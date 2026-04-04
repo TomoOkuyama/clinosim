@@ -52,8 +52,12 @@ def place_admission_orders(
         first_line_list = [first_line_list]
     admission["medications"] = {"first_line": {country: first_line_list}}
 
-    # Lab orders
+    # Lab orders (probability field: 1.0=mandatory, <1.0=optional)
     for i, lab_spec in enumerate(admission.get("labs", [])):
+        prob = lab_spec.get("probability", 1.0)
+        if prob < 1.0 and rng.random() > prob:
+            continue  # optional test, not ordered this time
+
         order = Order(
             order_id=f"ORD-{patient_id}-ADM-L{i:02d}",
             encounter_id=encounter_id,
@@ -152,11 +156,20 @@ def place_daily_lab_orders(
         freq = lab_spec.get("frequency", "daily")
         jp_mod = lab_spec.get("japan_modifier", 1.0)
 
+        # Optional tests (probability < 1.0): physician discretion
+        prob = lab_spec.get("probability", 1.0)
+        if prob < 1.0 and rng.random() > prob:
+            continue
+
+        # Every_N_days frequency
+        if freq == "every_3_days" and day_number % 3 != 0:
+            continue
+
         # Apply frequency: "daily" with modifier < 1.0 means skip some days
         effective_freq = jp_mod * lab_frequency_multiplier
         if freq == "daily" and effective_freq < 1.0:
             if rng.random() > effective_freq:
-                continue  # skip this day
+                continue
 
         order = Order(
             order_id=f"ORD-{patient_id}-D{day_number:02d}-L{i:02d}",

@@ -109,11 +109,16 @@ def get_daily_directive(
     day: int,
     profile: PatientPhysiologicalProfile,
     protocol_archetypes: dict[str, Any] | None = None,
+    age: int = 70,
+    rng: Any | None = None,
 ) -> StateChangeDirective:
     """Get the StateChangeDirective for a given day and archetype.
 
-    Reads trajectory from protocol_archetypes YAML if available,
-    otherwise uses built-in fallback.
+    Individual variation is applied through:
+    1. Amplitude: immune_reactivity modulates inflammation swings
+    2. Speed: age and treatment_sensitivity affect recovery/deterioration speed
+    3. Timing: effective_day is shifted by age-based time stretch
+    4. Noise: small random daily fluctuation (biological variation)
     """
     # Get trajectory from YAML or fallback
     if protocol_archetypes and archetype_name in protocol_archetypes:
@@ -122,28 +127,61 @@ def get_daily_directive(
     else:
         trajectory_data = _FALLBACK_TRAJECTORIES.get(archetype_name, {})
 
+    # --- Speed modulation: age-based time stretch ---
+    # Elderly patients progress more slowly (both recovery and deterioration)
+    # Young patients recover faster
+    # age 40 → speed 1.2x (faster), age 70 → 1.0x, age 85 → 0.7x, age 95 → 0.5x
+    if age < 50:
+        speed_factor = 1.2
+    elif age < 70:
+        speed_factor = 1.0
+    elif age < 80:
+        speed_factor = 0.85
+    elif age < 90:
+        speed_factor = 0.7
+    else:
+        speed_factor = 0.55
+
+    # Treatment sensitivity also affects speed of recovery (but not deterioration)
+    recovery_speed = speed_factor * profile.treatment_sensitivity
+
+    # --- Timing: stretch the effective day ---
+    # A faster patient at "day 5" is clinically equivalent to a slower patient at "day 7"
+    effective_day = day * speed_factor
+
     changes: dict[str, float] = {}
     for var_name in ["inflammation_level", "volume_status", "renal_function",
                      "perfusion_status", "cardiac_function", "hepatic_function",
                      "anemia_level", "coagulation_status", "ph_status"]:
         if var_name in trajectory_data:
             traj = trajectory_data[var_name]
-            # Convert YAML keys (may be strings) to ints
             int_traj = {int(k): v for k, v in traj.items()}
-            delta = _interpolate(int_traj, day)
+            delta = _interpolate(int_traj, effective_day)
 
-            # Patient modulation
+            # --- Amplitude modulation ---
+            # Immune reactivity: high → bigger inflammation swings (both up and down)
             if var_name == "inflammation_level":
                 delta *= profile.immune_reactivity / 0.5
+
+            # Recovery deltas (positive for renal/perfusion) scale with treatment sensitivity
             if delta > 0 and var_name in ("renal_function", "perfusion_status"):
-                delta *= profile.treatment_sensitivity
+                delta *= recovery_speed
+
+            # Deterioration deltas: elderly deteriorate faster
+            if delta < 0 and var_name in ("renal_function", "perfusion_status"):
+                delta *= (2.0 - speed_factor)  # age 85, speed 0.7 → deterioration ×1.3
+
+            # --- Daily noise (biological variation) ---
+            if rng is not None:
+                noise = float(rng.normal(0, abs(delta) * 0.15 + 0.005))
+                delta += noise
 
             changes[var_name] = delta
 
     return StateChangeDirective(
         source="disease_progression",
         changes=changes,
-        reason=f"{archetype_name}_day{day}",
+        reason=f"{archetype_name}_day{day}_age{age}",
     )
 
 

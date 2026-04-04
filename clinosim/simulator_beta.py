@@ -333,7 +333,11 @@ def _run_daily_loop(
 
     for day in range(target_los):
         # State update
-        directive = get_daily_directive(archetype, day, patient.physiological_profile)
+        directive = get_daily_directive(
+            archetype, day, patient.physiological_profile,
+            protocol_archetypes=protocol.course_archetypes or None,
+            age=patient.age, rng=rng,
+        )
         state = update(state, directive, timedelta(days=1))
         state_history.append(deepcopy(state))
 
@@ -375,9 +379,24 @@ def _run_daily_loop(
         order_mods = archetype_data.get("order_modifications", {})
         treatment_mods = archetype_data.get("treatment_modifications", {})
 
+        # Check order/treatment modifications for this day (with ±1 day jitter for realism)
         day_key = f"day_{day}"
-        if day_key in order_mods:
-            mod = order_mods[day_key]
+        # Also check adjacent days (in case the modification fires ±1 day early/late)
+        day_keys_to_check = [day_key]
+        if rng.random() < 0.3:  # 30% chance of ±1 day shift
+            shift = int(rng.choice([-1, 1]))
+            alt_key = f"day_{day + shift}"
+            if alt_key in order_mods and day_key not in order_mods:
+                day_keys_to_check = [alt_key]
+
+        matched_order_key = None
+        for dk in day_keys_to_check:
+            if dk in order_mods:
+                matched_order_key = dk
+                break
+
+        if matched_order_key:
+            mod = order_mods[matched_order_key]
             # Add labs
             for lab_name in mod.get("add_labs", []):
                 all_orders.append(Order(
@@ -399,8 +418,15 @@ def _run_daily_loop(
                     status=OrderStatus.PLACED,
                 ))
 
-        if day_key in treatment_mods:
-            mod = treatment_mods[day_key]
+        # Treatment modifications (same jitter logic)
+        matched_tx_key = None
+        for dk in day_keys_to_check:
+            if dk in treatment_mods:
+                matched_tx_key = dk
+                break
+
+        if matched_tx_key:
+            mod = treatment_mods[matched_tx_key]
             # Stop medications
             for drug_name in mod.get("stop", []):
                 all_orders.append(Order(
