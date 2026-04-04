@@ -77,6 +77,50 @@ presenting_symptoms:
   - {name: "fatigue", probability: 0.85, severity_range: [0.3, 0.7]}
   - {name: "cough", probability: 0.40, severity_range: [0.1, 0.4]}
 
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "BNP", urgency: "stat"}
+      - {test: "CRP", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Albumin", urgency: "stat"}
+      - {test: "AST", urgency: "stat"}
+      - {test: "ALT", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "PT_INR", urgency: "stat"}
+    imaging:
+      - {test: "Chest_Xray_PA", urgency: "stat"}
+      - {test: "Echocardiogram", urgency: "urgent"}
+    supportive:
+      - {type: "IV_fluid_restriction", detail: "Restrict to 1000 mL/day"}
+      - {type: "O2", detail: "Nasal cannula SpO2 >= 94%"}
+      - {type: "diet", detail: "Low sodium (6g/day)"}
+      - {type: "daily_weight", detail: "Daily weight monitoring"}
+      - {type: "fluid_balance", detail: "Strict I/O monitoring"}
+  daily_monitoring:
+    labs:
+      - {test: "Creatinine", frequency: "daily"}
+      - {test: "K", frequency: "daily"}
+      - {test: "Na", frequency: "daily"}
+      - {test: "BNP", frequency: "every_3_days"}
+    vitals:
+      stable: "q4h"
+      unstable: "q2h"
+  discharge_criteria:
+    japan:
+      - "Dry weight achieved (weight stable for 48h)"
+      - "Oral diuretic tolerated"
+      - "SpO2 >= 95% on room air"
+      - "No orthopnea"
+      - "Stable renal function"
+    us:
+      - "Euvolemic on oral diuretics"
+      - "Functional status at baseline"
+      - "Stable renal function"
+
 drugs:
   first_line:
     japan:

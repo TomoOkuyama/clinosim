@@ -113,6 +113,79 @@ initial_state_impact:
     ph_status: -0.10
 
 # ============================================================
+# ORDER PROTOCOLS (what to order and when)
+# All admission orders, daily monitoring, and discharge criteria
+# are defined here — the engine reads this, not hardcoded.
+# ============================================================
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "CRP", urgency: "stat"}
+      - {test: "WBC", urgency: "stat"}
+      - {test: "PCT", urgency: "stat"}
+      - {test: "Albumin", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "BUN", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "AST", urgency: "stat"}
+      - {test: "ALT", urgency: "stat"}
+    imaging:
+      - {test: "Chest_Xray_PA_Lateral", urgency: "stat"}
+    supportive:
+      - {type: "IV_fluid", detail: "NS 80-125 mL/h"}
+      - {type: "O2", detail: "Nasal cannula SpO2 >= 94%"}
+      - {type: "antipyretic", detail: "Acetaminophen 500mg PO q6h PRN temp >= 38.5"}
+      - {type: "DVT_prophylaxis", detail: "Enoxaparin 2000IU SC daily"}
+
+  daily_monitoring:
+    labs:
+      - {test: "CRP", frequency: "daily"}
+      - {test: "WBC", frequency: "daily"}
+      - {test: "Creatinine", frequency: "daily"}
+    vitals:
+      stable: "q4h"
+      unstable: "q1h"
+    imaging:
+      - {test: "Chest_Xray", frequency: "day_3_and_prn", condition: "no improvement or worsening"}
+
+  trigger_orders:
+    no_defervescence_72h:
+      condition: "inflammation_level > 0.5 at Day 3"
+      actions:
+        - {type: "lab", test: "Blood_culture_repeat"}
+        - {type: "imaging", test: "Chest_CT_with_contrast"}
+        - {type: "medication_change", action: "escalate_antibiotic"}
+        - {type: "consult", target: "infectious_disease"}
+    spo2_below_90:
+      condition: "SpO2 < 90% on supplemental O2"
+      actions:
+        - {type: "lab", test: "ABG"}
+        - {type: "respiratory", action: "increase_O2_or_HFNC"}
+        - {type: "evaluate", action: "consider_ICU_transfer"}
+    renal_deterioration:
+      condition: "Creatinine rise > 0.3 from baseline"
+      actions:
+        - {type: "medication_change", action: "adjust_antibiotic_for_renal"}
+        - {type: "fluid", action: "reassess_volume_status"}
+
+  discharge_criteria:
+    japan:
+      - "Afebrile (< 37.0C) for 48 hours"
+      - "CRP declining and < 50% of peak"
+      - "Oral medication tolerated for 24 hours"
+      - "SpO2 >= 95% on room air"
+      - "ADL independent or with available support"
+    us:
+      - "Afebrile (< 37.5C) for 24 hours"
+      - "Oral medication tolerated"
+      - "Clinically stable (no escalation in 24h)"
+      - "SpO2 >= 92% on room air"
+
+# ============================================================
 # LIKELIHOOD RATIO TABLE
 # Source: Clinical diagnostic studies meta-analyses
 #         Metlay et al. Ann Intern Med 2003
