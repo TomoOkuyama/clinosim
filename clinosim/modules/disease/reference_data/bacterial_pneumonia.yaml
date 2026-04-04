@@ -131,8 +131,10 @@ order_protocols:
       - {test: "Glucose", urgency: "stat"}
       - {test: "Hb", urgency: "stat"}
       - {test: "Plt", urgency: "stat"}
-      - {test: "AST", urgency: "stat"}
-      - {test: "ALT", urgency: "stat"}
+      - {test: "AST", urgency: "stat", probability: 0.85}       # optional: physician discretion
+      - {test: "ALT", urgency: "stat", probability: 0.85}       # optional: often ordered with AST
+      - {test: "LDH", urgency: "stat", probability: 0.40}       # some physicians order, not all
+      - {test: "Lactate", urgency: "stat", probability: 0.50}   # if sepsis concern
     imaging:
       - {test: "Chest_Xray_PA_Lateral", urgency: "stat"}
     supportive:

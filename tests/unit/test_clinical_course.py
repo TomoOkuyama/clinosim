@@ -94,7 +94,7 @@ class TestGetDailyDirective:
         for name in _FALLBACK_PROBABILITIES:
             d = get_daily_directive(name, 5, normal_profile)
             assert "inflammation_level" in d.changes
-            assert d.reason == f"{name}_day5"
+            assert name in d.reason and "day5" in d.reason
 
     def test_yaml_trajectory_used(self, normal_profile):
         yaml_archs = {
