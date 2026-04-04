@@ -500,7 +500,12 @@ def _generate_vitals(
             if key == "spo2":
                 raw[key] = min(100.0, max(60.0, raw[key]))
 
+        # Add jitter to measurement time (realistic: ±15 min for ward)
+        jitter_min = float(rng.normal(0, 10))
+        actual_time = vit_time + timedelta(minutes=jitter_min)
+
         vitals.append(VitalSignRecord(
+            timestamp=actual_time,
             temperature_celsius=round(raw["temperature"], 1),
             heart_rate=int(round(raw["heart_rate"])),
             systolic_bp=int(round(raw["systolic_bp"])),
