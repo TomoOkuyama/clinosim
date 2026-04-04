@@ -759,40 +759,128 @@ def _simulate_unknown_condition(
     healthcare: HealthcareSystemConfig,
     roster: StaffRoster,
 ) -> CIFPatientRecord | None:
-    """Simulate patient with unknown/idiopathic condition."""
+    """Simulate patient with unknown/idiopathic condition.
+
+    Unlike known-disease patients, unknown condition patients undergo extensive
+    diagnostic workup that progressively broadens without reaching a conclusion.
+    """
     state = initialize_state(patient.physiological_profile, patient.chronic_conditions, patient.patient_id)
     state.inflammation_level += float(rng.uniform(0.10, 0.30))
 
     admission_time = datetime(event.timestamp.year, event.timestamp.month, event.timestamp.day,
                                int(rng.integers(8, 22)), 0)
-    encounter = create_inpatient_encounter(patient.patient_id, admission_time,
-                                            chief_complaint=event.disease_id.replace("unknown_", "").replace("_", " "))
-    encounter.attending_physician_id = assign_staff("admission", "internal_medicine", roster, rng).get("attending_physician", "DR-001")
+    complaint = event.disease_id.replace("unknown_", "").replace("_", " ")
+    encounter = create_inpatient_encounter(patient.patient_id, admission_time, chief_complaint=complaint)
+    attending_id = assign_staff("admission", "internal_medicine", roster, rng).get("attending_physician", "DR-001")
+    encounter.attending_physician_id = attending_id
 
-    target_los = int(rng.integers(5, 11))
+    target_los = int(rng.integers(7, 14))  # unknown conditions: longer workup
     all_vitals: list[VitalSignRecord] = []
+    all_orders: list[Order] = []
+    all_lab_results: list[OrderResult] = []
     state_history = [deepcopy(state)]
+    has_diabetes = any(c.code.startswith("E11") for c in patient.chronic_conditions)
+
+    # Extensive admission workup (broader than known-disease)
+    admission_labs = ["CRP", "WBC", "Hb", "Plt", "Creatinine", "Na", "K", "Glucose",
+                      "AST", "ALT", "ALP", "LDH", "Albumin", "PT_INR", "PCT"]
+    for i, lab_name in enumerate(admission_labs):
+        all_orders.append(Order(
+            order_id=f"ORD-{patient.patient_id}-ADM-L{i:02d}",
+            patient_id=patient.patient_id, order_type=OrderType.LAB,
+            display_name=lab_name, urgency="stat",
+            clinical_intent=f"Unknown {complaint}: initial workup",
+            ordered_datetime=admission_time, ordered_by=attending_id,
+            status=OrderStatus.PLACED,
+        ))
+
+    # Imaging: CXR + CT (broader search)
+    for i, img in enumerate(["Chest_Xray", "CT_abdomen_pelvis"]):
+        all_orders.append(Order(
+            order_id=f"ORD-{patient.patient_id}-ADM-I{i:02d}",
+            patient_id=patient.patient_id, order_type=OrderType.IMAGING,
+            display_name=img, urgency="stat" if i == 0 else "urgent",
+            clinical_intent=f"Unknown {complaint}: imaging workup",
+            ordered_datetime=admission_time + timedelta(hours=i + 1),
+            ordered_by=attending_id, status=OrderStatus.PLACED,
+        ))
 
     for day in range(target_los):
+        # State: slow random walk (no clear trajectory)
         state.inflammation_level += float(rng.normal(0, 0.02))
         state.inflammation_level = max(0.0, min(1.0, state.inflammation_level))
         state_history.append(deepcopy(state))
 
-        for v in _generate_vitals(state, patient, day, admission_time, rng):
-            all_vitals.append(v)
+        # Daily labs (more frequent than known-disease: still investigating)
+        if day >= 1:
+            daily_labs = ["CRP", "WBC", "Creatinine"]
+            # Additional workup on specific days
+            if day == 2:
+                daily_labs.extend(["Ferritin", "LDH", "PCT"])  # infection/tumor markers
+            if day == 4:
+                daily_labs.extend(["ANA", "RF"])  # autoimmune screening
+                # Additional imaging
+                all_orders.append(Order(
+                    order_id=f"ORD-{patient.patient_id}-D4-IMG",
+                    patient_id=patient.patient_id, order_type=OrderType.IMAGING,
+                    display_name="CT_chest_with_contrast", urgency="routine",
+                    clinical_intent="Day 4: expanded imaging for unknown fever",
+                    ordered_datetime=admission_time + timedelta(days=4, hours=10),
+                    ordered_by=attending_id, status=OrderStatus.PLACED,
+                ))
+
+            for i, lab_name in enumerate(daily_labs):
+                lab_time = admission_time + timedelta(days=day, hours=6)
+                all_orders.append(Order(
+                    order_id=f"ORD-{patient.patient_id}-D{day}-L{i:02d}",
+                    patient_id=patient.patient_id, order_type=OrderType.LAB,
+                    display_name=lab_name, urgency="routine",
+                    clinical_intent=f"Day {day}: monitoring + workup",
+                    ordered_datetime=lab_time, ordered_by=attending_id,
+                    status=OrderStatus.PLACED,
+                ))
+
+        # Generate lab results
+        true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes)
+        for order in all_orders:
+            if order.order_type.value == "lab" and order.status == OrderStatus.PLACED and order.display_name in true_labs:
+                result_time = calculate_lab_result_time(order, rng)
+                observed = generate_lab_result(order.display_name, true_labs[order.display_name], rng)
+                flag = determine_flag(order.display_name, observed, sex=patient.sex)
+                tech_id = assign_staff("lab_result", "", roster, rng).get("performing_technician", "TECH-001")
+                order.result = OrderResult(
+                    result_datetime=result_time, performed_by=tech_id,
+                    lab_name=order.display_name, value=observed, unit="", flag=flag,
+                )
+                order.status = OrderStatus.RESULTED
+                all_lab_results.append(order.result)
+
+        # Vitals
+        all_vitals.extend(_generate_vitals(state, patient, day, admission_time, rng))
 
     encounter.status = EncounterStatus.COMPLETED
     encounter.discharge_datetime = admission_time + timedelta(days=target_los, hours=14)
 
+    # ~50% of unknown conditions get partially resolved during stay
+    # (workup finds something, but not a definitive diagnosis)
+    if rng.random() < 0.5:
+        discharge_code = "R50.9" if "fever" in event.disease_id else "R53.1"
+        discharge_name = "Unresolved " + complaint
+    else:
+        # Partially resolved: nonspecific diagnosis assigned
+        discharge_code = "R50.9" if "fever" in event.disease_id else "R68.8"
+        discharge_name = complaint.title() + " (under investigation, outpatient follow-up)"
+
     return CIFPatientRecord(
-        patient=patient, encounters=[encounter], vital_signs=all_vitals,
+        patient=patient, encounters=[encounter],
+        orders=all_orders, vital_signs=all_vitals, lab_results=all_lab_results,
         condition_event=ConditionEvent(condition_id=f"COND-{patient.patient_id}-UNK",
                                        condition_type="unknown", symptom_pattern=event.disease_id),
         clinical_diagnosis=ClinicalDiagnosis(
             admission_diagnosis_code="R50.9" if "fever" in event.disease_id else "R53.1",
-            admission_diagnosis_name=event.disease_id.replace("unknown_", "").replace("_", " ").title(),
-            discharge_diagnosis_code="R50.9" if "fever" in event.disease_id else "R53.1",
-            discharge_diagnosis_name="Unresolved " + event.disease_id.replace("unknown_", "").replace("_", " "),
+            admission_diagnosis_name=complaint.title(),
+            discharge_diagnosis_code=discharge_code,
+            discharge_diagnosis_name=discharge_name,
             diagnosis_correct=False,
         ),
         physiological_states=state_history,
