@@ -1,0 +1,143 @@
+# Hip Fracture (Femoral Neck / Intertrochanteric) — Reference Data
+# Sources: MHLW Patient Survey, Japanese Orthopaedic Association, AAOS, Cochrane reviews
+
+disease_id: hip_fracture
+icd_codes:
+  primary: "S72.0"
+  variants:
+    - {code: "S72.00", name: "Fracture of neck of femur", probability: 0.50}
+    - {code: "S72.10", name: "Intertrochanteric fracture", probability: 0.45}
+    - {code: "S72.2", name: "Subtrochanteric fracture", probability: 0.05}
+
+incidence:
+  japan:
+    "0-44":  {M: 5, F: 3}
+    "45-54": {M: 10, F: 8}
+    "55-64": {M: 25, F: 30}
+    "65-74": {M: 60, F: 120}
+    "75-84": {M: 150, F: 400}
+    "85+":   {M: 350, F: 900}
+  risk_multipliers:
+    - {condition: "M81", multiplier: 3.0}     # Osteoporosis
+    - {condition: "F00", multiplier: 2.5}     # Dementia (fall risk)
+    - {condition: "G20", multiplier: 2.0}     # Parkinson's
+    - {condition: "I10", multiplier: 1.3}     # HT (orthostatic hypotension)
+    - {condition: "E11.9", multiplier: 1.5}   # DM (neuropathy)
+  seasonal_curve:
+    1: 1.4    # winter: icy conditions
+    2: 1.3
+    3: 1.1
+    4: 1.0
+    5: 0.9
+    6: 0.8
+    7: 0.8
+    8: 0.8
+    9: 0.9
+    10: 1.0
+    11: 1.1
+    12: 1.3
+  # Trauma-triggered: falls
+  trigger_type: "trauma"
+  time_of_day_pattern: "bimodal"   # morning activity + evening (home falls)
+
+severity:
+  distribution:
+    mild: 0.0       # hip fracture is never mild — always requires admission
+    moderate: 0.70   # standard surgical case
+    severe: 0.30     # complex (multiple comorbidities, delayed surgery)
+  modifiers:
+    - {condition: "age_over_85", severe_multiplier: 1.8}
+    - {condition: "dementia", severe_multiplier: 1.5}
+    - {condition: "anticoagulant_use", severe_multiplier: 1.5}
+
+initial_state_impact:
+  moderate:
+    inflammation_level: 0.20
+    anemia_level: 0.10       # fracture site bleeding
+    volume_status: -0.15     # blood loss + fasting
+    perfusion_status: -0.05
+  severe:
+    inflammation_level: 0.30
+    anemia_level: 0.20
+    volume_status: -0.25
+    perfusion_status: -0.15
+    renal_function: -0.05
+
+presenting_symptoms:
+  - {name: "hip_pain", probability: 1.0, severity_range: [0.7, 1.0]}
+  - {name: "inability_to_walk", probability: 0.95, severity_range: [0.8, 1.0]}
+  - {name: "leg_shortening", probability: 0.70, severity_range: [0.5, 0.8]}
+  - {name: "external_rotation", probability: 0.65, severity_range: [0.5, 0.8]}
+
+drugs:
+  first_line:
+    japan:
+      - {drug: "Acetaminophen", dose: "1000mg IV q6h PRN", route: "IV"}
+      - {drug: "Enoxaparin", dose: "2000IU SC daily", note: "DVT prophylaxis"}
+    us:
+      - {drug: "Acetaminophen", dose: "1000mg IV q6h PRN", route: "IV"}
+      - {drug: "Enoxaparin", dose: "40mg SC daily", note: "DVT prophylaxis"}
+  post_op:
+    japan:
+      - {drug: "Celecoxib", dose: "200mg PO daily"}
+      - {drug: "Enoxaparin", dose: "2000IU SC daily x14 days"}
+    us:
+      - {drug: "Oxycodone", dose: "5mg PO q4-6h PRN"}
+      - {drug: "Enoxaparin", dose: "40mg SC daily"}
+
+# Surgical procedure info
+procedure:
+  type: "ORIF or hemiarthroplasty"
+  procedure_code_jp: "K0461"   # 骨折観血的手術（大腿）
+  procedure_code_us: "27236"   # CPT: open treatment femoral fracture
+  typical_duration_minutes: {mean: 90, sd: 30, min: 45, max: 180}
+  anesthesia: "spinal or general"
+  estimated_blood_loss_ml: {mean: 300, sd: 150, min: 100, max: 800}
+  time_to_surgery:
+    japan: {mean_hours: 48, sd_hours: 24, note: "often day 1-2 after admission"}
+    us: {mean_hours: 24, sd_hours: 12, note: "target < 24h, ideally < 48h"}
+
+target_los:
+  japan:
+    moderate: {mean: 28, sd: 8, min: 14, max: 60}
+    severe: {mean: 40, sd: 12, min: 21, max: 90}
+  us:
+    moderate: {mean: 5, sd: 2, min: 3, max: 10}
+    severe: {mean: 8, sd: 3, min: 5, max: 18}
+
+# Rehabilitation (critical for hip fracture)
+rehabilitation:
+  start_day: 1   # POD 1 (day after surgery)
+  sessions_per_day: 1
+  session_duration_minutes: 40
+  goals:
+    - "Weight bearing as tolerated by Week 1"
+    - "Independent transfer by Week 2"
+    - "Walker ambulation by Week 3"
+    - "Modified independent ADL by discharge"
+  fim_trajectory:
+    day_0: {motor: 35, cognitive: 30}
+    week_1: {motor: 45, cognitive: 30}
+    week_2: {motor: 55, cognitive: 31}
+    week_3: {motor: 65, cognitive: 32}
+    week_4: {motor: 75, cognitive: 33}
+
+outcome_benchmarks:
+  japan:
+    median_los: 30
+    in_hospital_mortality: 0.04
+    thirty_day_readmission: 0.08
+    surgical_site_infection_rate: 0.03
+    dvt_rate: 0.05
+    delirium_rate: 0.25
+    mean_age_admitted: 82
+    female_ratio: 0.75
+  us:
+    median_los: 5
+    in_hospital_mortality: 0.03
+    thirty_day_readmission: 0.12
+    surgical_site_infection_rate: 0.02
+    dvt_rate: 0.04
+    delirium_rate: 0.20
+    mean_age_admitted: 80
+    female_ratio: 0.70

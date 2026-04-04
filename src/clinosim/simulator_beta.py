@@ -56,7 +56,12 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
 
     # --- Load modules ---
     healthcare = load_healthcare_config(config.country)
-    protocol = load_disease_protocol("bacterial_pneumonia")
+    # Load all Phase 1 disease protocols
+    protocols = {
+        "bacterial_pneumonia": load_disease_protocol("bacterial_pneumonia"),
+        "heart_failure_exacerbation": load_disease_protocol("heart_failure_exacerbation"),
+        "hip_fracture": load_disease_protocol("hip_fracture"),
+    }
     roster = generate_roster(config.hospital_scale, config.country, rng)
 
     # --- Generate population ---
@@ -91,10 +96,19 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
         # Layer 1 → Layer 2
         patient = activate_patient(person, rng, config.country)
 
+        # Select protocol for this disease
+        disease_id = event.disease_id
+        protocol = protocols.get(disease_id)
+        if protocol is None:
+            continue  # unknown disease, skip
+
         # Select archetype
         severity = "moderate" if event.severity > 0.3 else "mild"
         if event.severity > 0.7:
             severity = "severe"
+        # Hip fracture: never mild
+        if disease_id == "hip_fracture" and severity == "mild":
+            severity = "moderate"
         archetype = select_archetype(severity, patient.physiological_profile, rng)
 
         # Initialize state

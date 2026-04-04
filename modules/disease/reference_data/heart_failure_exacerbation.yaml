@@ -1,0 +1,124 @@
+# Heart Failure Exacerbation — Reference Data
+# Sources: MHLW Patient Survey, ACC/AHA Guidelines, ESC Guidelines, JP JCARE-CARD registry
+
+disease_id: heart_failure_exacerbation
+icd_codes:
+  primary: "I50.9"
+  variants:
+    - {code: "I50.0", name: "Congestive heart failure", probability: 0.40}
+    - {code: "I50.1", name: "Left ventricular failure", probability: 0.30}
+    - {code: "I50.9", name: "Heart failure, unspecified", probability: 0.30}
+
+incidence:
+  japan:
+    "0-44":  {M: 5, F: 3}
+    "45-54": {M: 30, F: 15}
+    "55-64": {M: 80, F: 50}
+    "65-74": {M: 250, F: 180}
+    "75-84": {M: 600, F: 500}
+    "85+":   {M: 1200, F: 1000}
+  risk_multipliers:
+    - {condition: "I10", multiplier: 2.0}     # Hypertension
+    - {condition: "E11.9", multiplier: 1.8}   # Diabetes
+    - {condition: "I25", multiplier: 2.5}     # Coronary artery disease
+    - {condition: "I48", multiplier: 2.0}     # Atrial fibrillation
+    - {condition: "N18", multiplier: 2.5}     # CKD
+    - {condition: "J44", multiplier: 1.5}     # COPD
+  seasonal_curve:
+    1: 1.3    # winter: cold stress + fluid retention
+    2: 1.2
+    3: 1.1
+    4: 1.0
+    5: 0.9
+    6: 0.9
+    7: 1.1    # summer: heat stress
+    8: 1.2
+    9: 1.0
+    10: 1.0
+    11: 1.1
+    12: 1.3
+  # HF exacerbation requires prior HF diagnosis
+  requires_prior_condition: "I50"
+
+severity:
+  distribution:
+    mild: 0.20
+    moderate: 0.55
+    severe: 0.25
+  modifiers:
+    - {condition: "age_over_80", severe_multiplier: 1.5}
+    - {condition: "N18", severe_multiplier: 1.8}
+    - {condition: "I48", severe_multiplier: 1.3}
+
+initial_state_impact:
+  mild:
+    cardiac_function: -0.15
+    volume_status: 0.30
+    inflammation_level: 0.10
+  moderate:
+    cardiac_function: -0.25
+    volume_status: 0.50
+    perfusion_status: -0.10
+    inflammation_level: 0.15
+    renal_function: -0.05
+  severe:
+    cardiac_function: -0.40
+    volume_status: 0.70
+    perfusion_status: -0.25
+    inflammation_level: 0.20
+    renal_function: -0.15
+    ph_status: -0.10
+
+presenting_symptoms:
+  - {name: "dyspnea", probability: 0.95, severity_range: [0.4, 0.9]}
+  - {name: "orthopnea", probability: 0.70, severity_range: [0.3, 0.8]}
+  - {name: "edema", probability: 0.80, severity_range: [0.3, 0.7]}
+  - {name: "weight_gain", probability: 0.75, severity_range: [0.2, 0.6]}
+  - {name: "fatigue", probability: 0.85, severity_range: [0.3, 0.7]}
+  - {name: "cough", probability: 0.40, severity_range: [0.1, 0.4]}
+
+drugs:
+  first_line:
+    japan:
+      - {drug: "Furosemide", code_yj: "2139007", dose: "20-40mg IV", route: "IV"}
+    us:
+      - {drug: "Furosemide", code_rxnorm: "4603", dose: "40mg IV", route: "IV"}
+  additional:
+    japan:
+      - {drug: "Carperitide", code_yj: "2179100", dose: "0.1ug/kg/min IV", note: "JP-specific: hANP"}
+    us:
+      - {drug: "Nitroglycerin", code_rxnorm: "4917", dose: "5-200ug/min IV drip"}
+  discharge_oral:
+    japan:
+      - {drug: "Furosemide", dose: "20mg PO daily"}
+      - {drug: "Enalapril", dose: "5mg PO daily"}
+      - {drug: "Carvedilol", dose: "2.5mg PO BID"}
+    us:
+      - {drug: "Furosemide", dose: "40mg PO daily"}
+      - {drug: "Lisinopril", dose: "10mg PO daily"}
+      - {drug: "Carvedilol", dose: "6.25mg PO BID"}
+
+target_los:
+  japan:
+    mild: {mean: 10, sd: 3, min: 5, max: 18}
+    moderate: {mean: 17, sd: 5, min: 10, max: 30}
+    severe: {mean: 24, sd: 7, min: 14, max: 45}
+  us:
+    mild: {mean: 3, sd: 1, min: 2, max: 5}
+    moderate: {mean: 5, sd: 2, min: 3, max: 10}
+    severe: {mean: 8, sd: 3, min: 5, max: 18}
+
+outcome_benchmarks:
+  japan:
+    median_los: 17
+    in_hospital_mortality: 0.06
+    thirty_day_readmission: 0.22
+    icu_transfer_rate: 0.12
+    mean_age_admitted: 78
+    male_ratio: 0.52
+  us:
+    median_los: 5
+    in_hospital_mortality: 0.04
+    thirty_day_readmission: 0.23
+    mean_age_admitted: 73
+    male_ratio: 0.50
