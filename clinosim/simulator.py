@@ -221,7 +221,8 @@ def _simulate_patient(
     # Create encounter
     admission_time = datetime(event.timestamp.year, event.timestamp.month, event.timestamp.day,
                                int(rng.integers(8, 22)), 0)
-    encounter = create_inpatient_encounter(patient.patient_id, admission_time)
+    chief_complaint = _disease_chief_complaint(disease_id)
+    encounter = create_inpatient_encounter(patient.patient_id, admission_time, chief_complaint=chief_complaint)
 
     # Staff assignment
     # Department assignment based on disease
@@ -737,6 +738,16 @@ def _extract_findings(
 # ============================================================
 # Mortality evaluation
 # ============================================================
+
+def _disease_chief_complaint(disease_id: str) -> str:
+    """Generate disease-appropriate chief complaint."""
+    complaints = {
+        "bacterial_pneumonia": "Fever, cough, dyspnea",
+        "heart_failure_exacerbation": "Dyspnea on exertion, orthopnea, lower extremity edema",
+        "hip_fracture": "Hip pain after fall, unable to walk",
+    }
+    return complaints.get(disease_id, "General malaise")
+
 
 def _disease_to_department(disease_id: str) -> str:
     """Map disease to the primary managing department."""
