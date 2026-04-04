@@ -31,16 +31,54 @@ class DifferentialDiagnosis:
         return self.candidates[0] if self.candidates else None
 
 
-# Default pneumonia differential (from protocol YAML)
-DEFAULT_PNEUMONIA_DIFFERENTIAL = [
-    {"disease": "bacterial_pneumonia", "icd": "J18.9", "name": "Bacterial pneumonia", "prior": 0.45},
-    {"disease": "viral_pneumonia", "icd": "J12.9", "name": "Viral pneumonia", "prior": 0.15},
-    {"disease": "influenza", "icd": "J11.1", "name": "Influenza", "prior": 0.10},
-    {"disease": "heart_failure", "icd": "I50.9", "name": "Heart failure (pulmonary edema)", "prior": 0.10},
-    {"disease": "pulmonary_embolism", "icd": "I26.9", "name": "Pulmonary embolism", "prior": 0.05},
-    {"disease": "tuberculosis", "icd": "A15.0", "name": "Tuberculosis", "prior": 0.02},
-    {"disease": "other", "icd": "R05", "name": "Other respiratory", "prior": 0.13},
-]
+# Disease-specific differentials
+DIFFERENTIALS: dict[str, list[dict]] = {
+    "bacterial_pneumonia": [
+        {"disease": "bacterial_pneumonia", "icd": "J18.9", "name": "Bacterial pneumonia", "prior": 0.45},
+        {"disease": "viral_pneumonia", "icd": "J12.9", "name": "Viral pneumonia", "prior": 0.15},
+        {"disease": "influenza", "icd": "J11.1", "name": "Influenza", "prior": 0.10},
+        {"disease": "heart_failure", "icd": "I50.9", "name": "Heart failure (pulmonary edema)", "prior": 0.10},
+        {"disease": "pulmonary_embolism", "icd": "I26.9", "name": "Pulmonary embolism", "prior": 0.05},
+        {"disease": "tuberculosis", "icd": "A15.0", "name": "Tuberculosis", "prior": 0.02},
+        {"disease": "other", "icd": "R05", "name": "Other respiratory", "prior": 0.13},
+    ],
+    "heart_failure_exacerbation": [
+        {"disease": "heart_failure_exacerbation", "icd": "I50.9", "name": "Heart failure exacerbation", "prior": 0.55},
+        {"disease": "pneumonia", "icd": "J18.9", "name": "Pneumonia", "prior": 0.15},
+        {"disease": "acute_coronary_syndrome", "icd": "I21.9", "name": "Acute coronary syndrome", "prior": 0.10},
+        {"disease": "pulmonary_embolism", "icd": "I26.9", "name": "Pulmonary embolism", "prior": 0.05},
+        {"disease": "copd_exacerbation", "icd": "J44.1", "name": "COPD exacerbation", "prior": 0.05},
+        {"disease": "other", "icd": "R06.0", "name": "Other dyspnea", "prior": 0.10},
+    ],
+    "hip_fracture": [
+        {"disease": "hip_fracture", "icd": "S72.0", "name": "Hip fracture", "prior": 0.85},
+        {"disease": "pathological_fracture", "icd": "M84.4", "name": "Pathological fracture (tumor)", "prior": 0.05},
+        {"disease": "pelvic_fracture", "icd": "S32.1", "name": "Pelvic fracture", "prior": 0.05},
+        {"disease": "other", "icd": "M79.6", "name": "Other hip pain", "prior": 0.05},
+    ],
+}
+
+# Diagnosis code progression (more specific as confidence grows)
+DIAGNOSIS_PROGRESSION: dict[str, list[tuple[float, str, str]]] = {
+    "bacterial_pneumonia": [
+        (0.0, "J18.9", "Pneumonia, unspecified"),
+        (0.7, "J18.1", "Lobar pneumonia, unspecified"),
+        (0.9, "J13", "Pneumonia due to Streptococcus pneumoniae"),
+    ],
+    "heart_failure_exacerbation": [
+        (0.0, "I50.9", "Heart failure, unspecified"),
+        (0.7, "I50.0", "Congestive heart failure"),
+        (0.9, "I50.0", "Congestive heart failure, acute exacerbation"),
+    ],
+    "hip_fracture": [
+        (0.0, "S72.0", "Fracture of neck of femur"),
+        (0.7, "S72.00", "Fracture of neck of femur, closed"),
+        (0.9, "S72.00", "Fracture of neck of femur, closed"),
+    ],
+}
+
+# Keep backward compatibility
+DEFAULT_PNEUMONIA_DIFFERENTIAL = DIFFERENTIALS["bacterial_pneumonia"]
 
 # Likelihood ratios for key findings
 LR_TABLE: dict[str, dict[str, dict[str, float]]] = {
@@ -63,23 +101,14 @@ LR_TABLE: dict[str, dict[str, dict[str, float]]] = {
     },
 }
 
-# Diagnosis code progression (more specific as confidence grows)
-DIAGNOSIS_PROGRESSION = {
-    "bacterial_pneumonia": [
-        (0.0, "J18.9", "Pneumonia, unspecified"),
-        (0.7, "J18.1", "Lobar pneumonia, unspecified"),
-        (0.9, "J13", "Pneumonia due to Streptococcus pneumoniae"),
-    ],
-}
-
-
 def initialize_differential(
     disease_id: str = "bacterial_pneumonia",
     age: int = 70,
 ) -> DifferentialDiagnosis:
-    """Create initial differential from default priors, adjusted by age."""
+    """Create initial differential from disease-specific priors, adjusted by age."""
+    differential_list = DIFFERENTIALS.get(disease_id, DEFAULT_PNEUMONIA_DIFFERENTIAL)
     candidates = []
-    for dx in DEFAULT_PNEUMONIA_DIFFERENTIAL:
+    for dx in differential_list:
         prior = dx["prior"]
         # Age adjustment: elderly → higher probability of HF overlap
         if age >= 75 and dx["disease"] == "heart_failure":
