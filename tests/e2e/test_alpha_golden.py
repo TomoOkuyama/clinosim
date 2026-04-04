@@ -20,7 +20,7 @@ GOLDEN = {
     "los_days": 15,
     "lab_result_count": 50,
     "vital_sign_count": 43,
-    "order_count": 55,
+    "order_count": 56,
     "state_snapshot_count": 16,
     "initial_inflammation": 0.530,
     "peak_inflammation": 0.580,
