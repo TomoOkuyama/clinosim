@@ -22,66 +22,35 @@ def place_admission_orders(
 ) -> list[Order]:
     """Expand protocol admission orders into concrete Order instances.
 
-    The protocol YAML uses these top-level keys:
-      - drugs.first_line.{country} — first-line medications
-      - expected_lab_distributions.admission — labs to order
-    For alpha, we construct admission orders from these.
+    Reads order_protocols.admission_orders from disease YAML.
+    Falls back to drugs/expected_lab_distributions if order_protocols not defined.
     """
     orders: list[Order] = []
 
-    # Build admission order structure from protocol YAML keys
-    admission: dict = {}
+    # Prefer YAML order_protocols, fall back to legacy structure
+    order_protocols = protocol.get("order_protocols", {})
+    admission = order_protocols.get("admission_orders", {})
 
-    # Labs: derive from expected_lab_distributions.admission
-    lab_dists = protocol.get("expected_lab_distributions", {}).get("admission", {})
-    admission["labs"] = [
-        {"test": lab_name, "urgency": "stat"} for lab_name in lab_dists.keys()
-    ]
+    if not admission.get("labs"):
+        # Fallback: derive from expected_lab_distributions
+        lab_dists = protocol.get("expected_lab_distributions", {}).get("admission", {})
+        admission["labs"] = [{"test": name, "urgency": "stat"} for name in lab_dists.keys()]
 
-    # Medications: from drugs.first_line
+    if not admission.get("supportive"):
+        admission["supportive"] = [
+            {"type": "IV_fluid", "detail": "NS 80-125 mL/h"},
+            {"type": "DVT_prophylaxis", "detail": "Enoxaparin 2000IU SC daily"},
+        ]
+
+    if not admission.get("imaging"):
+        admission["imaging"] = [{"test": "Chest_Xray", "urgency": "stat"}]
+
+    # Medications: from drugs.first_line (always from drugs section)
     drugs = protocol.get("drugs", {})
     first_line_list = drugs.get("first_line", {}).get(country, [])
     if isinstance(first_line_list, dict):
         first_line_list = [first_line_list]
     admission["medications"] = {"first_line": {country: first_line_list}}
-
-    # Supportive and imaging — disease-specific
-    disease_id = protocol.get("disease_id", "")
-
-    if "heart_failure" in disease_id:
-        admission["supportive"] = [
-            {"type": "IV_fluid", "detail": "Restrict to 1000 mL/day"},
-            {"type": "O2", "detail": "Nasal cannula SpO2 >= 94%"},
-            {"type": "diet", "detail": "Low sodium (6g/day)"},
-            {"type": "daily_weight", "detail": "Daily weight monitoring"},
-            {"type": "fluid_balance", "detail": "Strict I/O monitoring"},
-        ]
-        admission["imaging"] = [
-            {"test": "Chest_Xray_PA", "code_cpt": "71046", "urgency": "stat"},
-            {"test": "Echocardiogram", "code_cpt": "93306", "urgency": "urgent"},
-        ]
-    elif "hip_fracture" in disease_id:
-        admission["supportive"] = [
-            {"type": "IV_fluid", "detail": "NS 80-125 mL/h"},
-            {"type": "pain_management", "detail": "Acetaminophen 1000mg IV q6h + PRN opioid"},
-            {"type": "DVT_prophylaxis", "detail": "Enoxaparin 2000IU SC daily"},
-            {"type": "urinary_catheter", "detail": "Foley catheter for perioperative period"},
-        ]
-        admission["imaging"] = [
-            {"test": "Hip_Xray_AP_Lateral", "code_cpt": "73502", "urgency": "stat"},
-            {"test": "Chest_Xray_preop", "code_cpt": "71046", "urgency": "urgent"},
-        ]
-    else:
-        # Default: pneumonia and other medical conditions
-        admission["supportive"] = [
-            {"type": "IV_fluid", "detail": "NS 80-125 mL/h"},
-            {"type": "O2", "detail": "Nasal cannula SpO2 >= 94%"},
-            {"type": "antipyretic", "detail": "Acetaminophen 500mg PO q6h PRN"},
-            {"type": "DVT_prophylaxis", "detail": "Enoxaparin 2000IU SC daily"},
-        ]
-        admission["imaging"] = [
-            {"test": "Chest_Xray_PA_Lateral", "code_cpt": "71046", "urgency": "stat"},
-        ]
 
     # Lab orders
     for i, lab_spec in enumerate(admission.get("labs", [])):
@@ -167,15 +136,17 @@ def place_daily_lab_orders(
     lab_frequency_multiplier: float,
     rng: np.random.Generator,
 ) -> list[Order]:
-    """Place daily monitoring lab orders per protocol."""
+    """Place daily monitoring lab orders per protocol. Reads from YAML order_protocols.daily_monitoring."""
     orders: list[Order] = []
 
-    # For alpha: daily monitoring = CRP, CBC (WBC/Hb/Plt), BMP (Creatinine, BUN, K, Na, Glucose)
-    daily_labs = [
-        {"test": "CRP", "frequency": "daily", "japan_modifier": 1.0, "us_modifier": 0.5},
-        {"test": "WBC", "frequency": "daily", "japan_modifier": 1.0, "us_modifier": 0.5},
-        {"test": "Creatinine", "frequency": "daily", "japan_modifier": 1.0, "us_modifier": 0.5},
-    ]
+    # Read from YAML, fall back to defaults
+    order_protocols = protocol.get("order_protocols", {})
+    daily_monitoring = order_protocols.get("daily_monitoring", {})
+    daily_labs = daily_monitoring.get("labs", [
+        {"test": "CRP", "frequency": "daily"},
+        {"test": "WBC", "frequency": "daily"},
+        {"test": "Creatinine", "frequency": "daily"},
+    ])
 
     for i, lab_spec in enumerate(daily_labs):
         freq = lab_spec.get("frequency", "daily")

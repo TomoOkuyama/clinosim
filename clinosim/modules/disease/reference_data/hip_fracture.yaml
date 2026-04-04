@@ -69,6 +69,48 @@ presenting_symptoms:
   - {name: "leg_shortening", probability: 0.70, severity_range: [0.5, 0.8]}
   - {name: "external_rotation", probability: 0.65, severity_range: [0.5, 0.8]}
 
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "CRP", urgency: "stat"}
+      - {test: "WBC", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "PT_INR", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "Albumin", urgency: "stat"}
+    imaging:
+      - {test: "Hip_Xray_AP_Lateral", urgency: "stat"}
+      - {test: "Chest_Xray_preop", urgency: "urgent"}
+    supportive:
+      - {type: "IV_fluid", detail: "NS 80-125 mL/h"}
+      - {type: "pain_management", detail: "Acetaminophen 1000mg IV q6h + PRN opioid"}
+      - {type: "DVT_prophylaxis", detail: "Enoxaparin 2000IU SC daily (hold 12h pre-op)"}
+      - {type: "urinary_catheter", detail: "Foley catheter for perioperative period"}
+  daily_monitoring:
+    labs:
+      - {test: "CRP", frequency: "daily"}
+      - {test: "Hb", frequency: "daily", note: "monitor for bleeding"}
+      - {test: "Creatinine", frequency: "daily"}
+    vitals:
+      stable: "q4h"
+      post_op_24h: "q2h"
+  discharge_criteria:
+    japan:
+      - "Pain controlled with oral analgesics"
+      - "Independent transfer with walker"
+      - "Wound clean, no signs of infection"
+      - "Stable hemoglobin"
+      - "Rehab goals progressing"
+    us:
+      - "Medically stable"
+      - "Safe for SNF/rehab facility discharge"
+      - "Pain controlled on oral meds"
+      - "DVT prophylaxis plan in place"
+
 drugs:
   first_line:
     japan:
