@@ -189,45 +189,87 @@ def generate_monthly_events(
     month: int,
     rng: np.random.Generator,
 ) -> list[LifeEvent]:
-    """Generate life events for one month across the population."""
+    """Generate life events for one month across the population. All Phase 1 diseases."""
     events: list[LifeEvent] = []
-    event_date = date(year, month, 15)  # mid-month
-
-    # Seasonal modifier for pneumonia
-    seasonal = {1: 1.8, 2: 1.6, 3: 1.3, 4: 1.0, 5: 0.8, 6: 0.7,
-                7: 0.7, 8: 0.7, 9: 0.8, 10: 1.0, 11: 1.3, 12: 1.7}
-    season_mod = seasonal.get(month, 1.0)
+    event_date = date(year, month, 15)
 
     for person in registry.persons.values():
         if not person.is_alive:
             continue
 
-        # Pneumonia incidence (simplified: age-dependent base rate)
-        base_rate_annual = _pneumonia_incidence(person.age) / 100_000
-        monthly_rate = base_rate_annual * season_mod / 12
-
-        # Risk multipliers from chronic conditions
-        if "J44" in person.chronic_conditions:  # COPD
-            monthly_rate *= 3.0
-        if "E11.9" in person.chronic_conditions:  # DM
-            monthly_rate *= 1.5
-        if "I50" in person.chronic_conditions:  # HF
-            monthly_rate *= 2.0
-
-        if rng.random() < monthly_rate:
-            severity = float(rng.beta(2, 3))  # skewed toward mild
-            # Care-seeking decision
-            requires = severity > person.care_seeking_threshold
+        # --- Bacterial Pneumonia ---
+        pn_rate = _disease_monthly_rate(
+            person, "bacterial_pneumonia", month,
+            _pneumonia_incidence, _PNEUMONIA_SEASONAL, _PNEUMONIA_RISK,
+        )
+        if rng.random() < pn_rate:
+            severity = float(rng.beta(2, 3))
             events.append(LifeEvent(
-                person_id=person.person_id,
-                event_type="acute_disease_onset",
+                person_id=person.person_id, event_type="acute_disease_onset",
                 timestamp=event_date + timedelta(days=int(rng.integers(0, 28))),
-                severity=severity,
-                disease_id="bacterial_pneumonia",
-                requires_hospital=requires,
+                severity=severity, disease_id="bacterial_pneumonia",
+                requires_hospital=severity > person.care_seeking_threshold,
+            ))
+
+        # --- Heart Failure Exacerbation (requires prior HF diagnosis) ---
+        if "I50" in person.chronic_conditions:
+            hf_rate = _disease_monthly_rate(
+                person, "heart_failure_exacerbation", month,
+                _hf_exacerbation_incidence, _HF_SEASONAL, _HF_RISK,
+            )
+            if rng.random() < hf_rate:
+                severity = float(rng.beta(3, 3))  # more uniform severity
+                events.append(LifeEvent(
+                    person_id=person.person_id, event_type="chronic_exacerbation",
+                    timestamp=event_date + timedelta(days=int(rng.integers(0, 28))),
+                    severity=max(0.3, severity),  # HF exacerbation is at least moderate
+                    disease_id="heart_failure_exacerbation",
+                    requires_hospital=severity > person.care_seeking_threshold * 0.8,
+                ))
+
+        # --- Hip Fracture (trauma, age-dependent) ---
+        hf_rate = _disease_monthly_rate(
+            person, "hip_fracture", month,
+            _hip_fracture_incidence, _HIP_SEASONAL, _HIP_RISK,
+        )
+        if rng.random() < hf_rate:
+            # Hip fracture always requires hospital
+            events.append(LifeEvent(
+                person_id=person.person_id, event_type="trauma",
+                timestamp=event_date + timedelta(days=int(rng.integers(0, 28))),
+                severity=0.7 + float(rng.random() * 0.3),  # always moderate-severe
+                disease_id="hip_fracture",
+                requires_hospital=True,  # always
             ))
 
     return events
+
+
+def _disease_monthly_rate(
+    person: PersonRecord, disease_id: str, month: int,
+    incidence_fn: Any, seasonal: dict[int, float], risk_multipliers: dict[str, float],
+) -> float:
+    base_annual = incidence_fn(person.age, person.sex) / 100_000
+    seasonal_mod = seasonal.get(month, 1.0)
+    monthly = base_annual * seasonal_mod / 12
+    for code, mult in risk_multipliers.items():
+        if code in person.chronic_conditions:
+            monthly *= mult
+    return monthly
+
+
+# === Seasonal curves ===
+_PNEUMONIA_SEASONAL = {1: 1.8, 2: 1.6, 3: 1.3, 4: 1.0, 5: 0.8, 6: 0.7,
+                       7: 0.7, 8: 0.7, 9: 0.8, 10: 1.0, 11: 1.3, 12: 1.7}
+_HF_SEASONAL = {1: 1.3, 2: 1.2, 3: 1.1, 4: 1.0, 5: 0.9, 6: 0.9,
+                7: 1.1, 8: 1.2, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.3}
+_HIP_SEASONAL = {1: 1.4, 2: 1.3, 3: 1.1, 4: 1.0, 5: 0.9, 6: 0.8,
+                 7: 0.8, 8: 0.8, 9: 0.9, 10: 1.0, 11: 1.1, 12: 1.3}
+
+# === Risk multipliers ===
+_PNEUMONIA_RISK = {"J44": 3.0, "E11.9": 1.5, "I50": 2.0, "N18": 1.8}
+_HF_RISK = {"I10": 1.5, "E11.9": 1.3, "N18": 2.0, "I48": 1.5}
+_HIP_RISK = {"M81": 3.0, "F00": 2.5, "G20": 2.0, "E11.9": 1.3}
 
 
 def _sample_age_band(rng: np.random.Generator) -> tuple[int, int]:
@@ -262,18 +304,39 @@ def _sample_given_name(name_data: dict, sex: str, rng: np.random.Generator) -> d
     return names[idx]
 
 
-def _pneumonia_incidence(age: int) -> float:
-    """Age-specific pneumonia incidence per 100,000/year (JP, approximate)."""
-    if age < 5:
-        return 700
-    if age < 15:
-        return 130
+def _pneumonia_incidence(age: int, sex: str = "M") -> float:
+    """Age-specific pneumonia incidence per 100,000/year (JP)."""
+    base = {0: 700, 5: 130, 15: 50, 25: 60, 35: 80, 45: 120,
+            55: 200, 65: 500, 75: 1200, 85: 2500}
+    rate = 60.0
+    for a, r in sorted(base.items()):
+        if age >= a:
+            rate = r
+    return rate * (1.0 if sex == "M" else 0.75)
+
+
+def _hf_exacerbation_incidence(age: int, sex: str = "M") -> float:
+    """Age-specific HF exacerbation incidence per 100,000/year among HF patients.
+    This is the exacerbation rate, not new HF incidence.
+    HF patients have ~25% annual hospitalization rate.
+    """
     if age < 45:
-        return 60
+        return 5000   # 5% of HF patients (rare in young)
     if age < 65:
-        return 150
+        return 15000  # 15%
     if age < 75:
-        return 400
+        return 20000  # 20%
     if age < 85:
-        return 1000
-    return 2000
+        return 25000  # 25%
+    return 30000      # 30%
+
+
+def _hip_fracture_incidence(age: int, sex: str = "M") -> float:
+    """Age-specific hip fracture incidence per 100,000/year (JP)."""
+    base = {0: 3, 45: 8, 55: 25, 65: 80, 75: 300, 85: 700}
+    rate = 3.0
+    for a, r in sorted(base.items()):
+        if age >= a:
+            rate = r
+    # Female: 2-3x higher (osteoporosis)
+    return rate * (1.0 if sex == "M" else 2.5)
