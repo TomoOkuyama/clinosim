@@ -11,7 +11,11 @@ from datetime import datetime, timedelta
 
 import numpy as np
 
-from clinosim.modules.clinical_course.engine import get_daily_directive, select_archetype
+from clinosim.modules.clinical_course.engine import (
+    evaluate_complications,
+    get_daily_directive,
+    select_archetype,
+)
 from clinosim.modules.disease.protocol import load_disease_protocol
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.healthcare_system.loader import load_healthcare_config
@@ -40,8 +44,13 @@ from clinosim.modules.population.engine import (
     generate_population,
 )
 from clinosim.modules.staff.engine import assign_staff, generate_roster
-from clinosim.types.clinical import PhysiologicalState, StateChangeDirective
-from clinosim.types.config import SimulatorConfig
+from clinosim.types.clinical import (
+    ClinicalDiagnosis,
+    ConditionEvent,
+    PhysiologicalState,
+    StateChangeDirective,
+)
+from clinosim.types.config import ForcedScenario, SimulatorConfig
 from clinosim.types.encounter import (
     EncounterStatus,
     Order,
@@ -91,6 +100,12 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
     hospital_events = [e for e in all_events if e.requires_hospital]
     print(f"  Life events: {len(all_events)} total, {len(hospital_events)} requiring hospital")
 
+    # --- Process forced scenarios first ---
+    forced_events = []
+    for scenario in config.forced_scenarios:
+        for i in range(scenario.count):
+            forced_events.append(scenario)
+
     # --- Simulate each hospital visit ---
     patient_records: list[CIFPatientRecord] = []
 
@@ -104,9 +119,27 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
 
         # Select protocol for this disease
         disease_id = event.disease_id
+
+        # Unknown condition: generate minimal encounter without disease protocol
+        if event.condition_type == "unknown" or disease_id.startswith("unknown_"):
+            record = _simulate_unknown_condition(patient, event, rng, healthcare)
+            if record:
+                patient_records.append(record)
+                person.has_visited_hospital = True
+                person.visit_count += 1
+            continue
+
         protocol = protocols.get(disease_id)
         if protocol is None:
-            continue  # unknown disease, skip
+            continue
+
+        # Mixed condition: note ground truth includes multiple diseases
+        condition_event = ConditionEvent(
+            condition_id=f"COND-{patient.patient_id}-001",
+            condition_type=event.condition_type,
+            ground_truth_diseases=[disease_id] if event.condition_type == "known_disease"
+                else [disease_id, "heart_failure_exacerbation"],  # mixed: pneumonia + HF
+        )
 
         # Select archetype
         severity = "moderate" if event.severity > 0.3 else "mild"
@@ -161,6 +194,10 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
         # Track treatment state
         treatment_changed = False
         treatment_change_day: int | None = None
+
+        # Track complications
+        active_complications: set[str] = set()
+        complications_occurred: list[str] = []
 
         for day in range(target_los):
             # --- Clinical course: state progression ---
@@ -266,8 +303,32 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
                 )
                 all_vitals.append(record)
 
+            # --- Complication evaluation ---
+            complication_list = protocol.complications if protocol.complications else []
+            if complication_list and day >= 1:
+                triggered = evaluate_complications(
+                    day, state, patient, complication_list, active_complications, rng
+                )
+                for comp in triggered:
+                    # Apply complication state impact
+                    impact = comp.get("state_impact", {})
+                    for var, delta in impact.items():
+                        current = getattr(state, var, None)
+                        if current is not None:
+                            setattr(state, var, max(-1.0, min(1.0, current + delta)))
+                    complications_occurred.append(comp.get("name", "unknown"))
+
         # Final diagnosis code
         dx_code, dx_name = get_current_diagnosis_code(differential)
+
+        # Build clinical diagnosis (AD-28)
+        clinical_diagnosis = ClinicalDiagnosis(
+            admission_diagnosis_code="J18.9" if disease_id == "bacterial_pneumonia" else protocol.icd_codes.get("primary", ""),
+            admission_diagnosis_name=disease_id.replace("_", " ").title(),
+            discharge_diagnosis_code=dx_code,
+            discharge_diagnosis_name=dx_name,
+            diagnosis_correct=(dx_code != "R05"),  # simplified: correct if not "unspecified"
+        )
 
         encounter.status = EncounterStatus.COMPLETED
         encounter.discharge_datetime = admission_time + timedelta(days=target_los, hours=14)
@@ -278,6 +339,9 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
             orders=all_orders,
             vital_signs=all_vitals,
             lab_results=all_lab_results,
+            condition_event=condition_event,
+            clinical_diagnosis=clinical_diagnosis,
+            complications_occurred=complications_occurred,
             physiological_states=state_history,
         ))
 
@@ -295,6 +359,93 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
     )
 
     return CIFDataset(metadata=metadata, patients=patient_records)
+
+
+def _simulate_unknown_condition(
+    patient: Any,
+    event: Any,
+    rng: np.random.Generator,
+    healthcare: Any,
+) -> CIFPatientRecord | None:
+    """Simulate a patient with unknown/idiopathic condition.
+
+    Generates a short admission with nonspecific findings, workup,
+    and discharge with unresolved diagnosis.
+    """
+    from clinosim.modules.physiology.engine import initialize_state, derive_lab_values, derive_vital_signs
+
+    state = initialize_state(
+        patient.physiological_profile, patient.chronic_conditions,
+        patient_id=patient.patient_id,
+    )
+
+    # Apply nonspecific state change (mild inflammation, no clear pattern)
+    state.inflammation_level += float(rng.uniform(0.10, 0.30))
+
+    admission_time = datetime(
+        event.timestamp.year, event.timestamp.month, event.timestamp.day,
+        int(rng.integers(8, 22)), 0,
+    )
+    encounter = create_inpatient_encounter(
+        patient_id=patient.patient_id,
+        admission_datetime=admission_time,
+        chief_complaint=event.disease_id.replace("unknown_", "").replace("_", " "),
+    )
+
+    # Short stay: 5-10 days (workup then discharge unresolved)
+    target_los = int(rng.integers(5, 11))
+
+    all_vitals: list[VitalSignRecord] = []
+    state_history = [deepcopy(state)]
+
+    for day in range(target_los):
+        # Slow random walk (no clear trajectory)
+        state.inflammation_level += float(rng.normal(0, 0.02))
+        state.inflammation_level = max(0.0, min(1.0, state.inflammation_level))
+        state_history.append(deepcopy(state))
+
+        for hour in [6, 14, 18]:
+            vit_time = admission_time + timedelta(days=day, hours=hour - admission_time.hour)
+            if vit_time < admission_time:
+                continue
+            vitals_dict = derive_vital_signs(state, patient.baseline_vitals, vit_time)
+            for key in vitals_dict:
+                vitals_dict[key] += float(rng.normal(0, 0.5 if key == "temperature" else 2))
+            all_vitals.append(VitalSignRecord(
+                temperature_celsius=round(vitals_dict["temperature"], 1),
+                heart_rate=int(round(vitals_dict["heart_rate"])),
+                systolic_bp=int(round(vitals_dict["systolic_bp"])),
+                diastolic_bp=int(round(vitals_dict["diastolic_bp"])),
+                respiratory_rate=int(round(vitals_dict["respiratory_rate"])),
+                spo2=round(min(100.0, max(60.0, vitals_dict["spo2"])), 1),
+                data_source="manual",
+            ))
+
+    encounter.status = EncounterStatus.COMPLETED
+    encounter.discharge_datetime = admission_time + timedelta(days=target_los, hours=14)
+
+    condition_event = ConditionEvent(
+        condition_id=f"COND-{patient.patient_id}-UNK",
+        condition_type="unknown",
+        symptom_pattern=event.disease_id,
+    )
+
+    clinical_diagnosis = ClinicalDiagnosis(
+        admission_diagnosis_code="R50.9" if "fever" in event.disease_id else "R53.1",
+        admission_diagnosis_name=event.disease_id.replace("unknown_", "").replace("_", " ").title(),
+        discharge_diagnosis_code="R50.9" if "fever" in event.disease_id else "R53.1",
+        discharge_diagnosis_name="Unresolved " + event.disease_id.replace("unknown_", "").replace("_", " "),
+        diagnosis_correct=False,  # by definition: unknown cause
+    )
+
+    return CIFPatientRecord(
+        patient=patient,
+        encounters=[encounter],
+        vital_signs=all_vitals,
+        condition_event=condition_event,
+        clinical_diagnosis=clinical_diagnosis,
+        physiological_states=state_history,
+    )
 
 
 def main() -> None:

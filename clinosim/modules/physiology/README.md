@@ -56,6 +56,46 @@ inflammation_level --> coagulation_status <-- hepatic_function
                   +--> anemia_level (slow)
 ```
 
+## How to add a new state variable
+
+1. Add the field to `PhysiologicalState` in `clinosim/types/clinical.py`:
+   ```python
+   new_variable: float = 0.0
+   ```
+2. Register its valid range in `_variable_range()` in `engine.py`:
+   ```python
+   "new_variable": (0.0, 1.0),
+   ```
+3. If it has a baseline value derived from the patient profile, initialize it inside
+   `initialize_state()`, mirroring how `renal_function` is set from `profile.renal_reserve`.
+4. If it influences or is influenced by other variables, add the coupling logic in
+   `apply_coupling_rules()`. Follow the pattern: check a threshold, compute a delta, apply
+   with `clamp()`.
+5. If the variable should be observable, add a derivation formula in `derive_lab_values()`
+   or `derive_vital_signs()` (see below).
+6. Update `StateChangeDirective` handling in `get_daily_directive()` (clinical_course
+   module) — add the new variable name to the `for var_name in [...]` list so YAML
+   trajectories can target it.
+
+## How to add a new lab derivation formula
+
+All lab derivation lives in `derive_lab_values()` in `engine.py`. Each formula maps one or
+more hidden state variables to an observable analyte value. Steps:
+
+1. Add a new entry inside the function body, assigning to `labs["AnalyteName"]`:
+   ```python
+   # Example: derive a fictional marker driven by hepatic function
+   labs["ALT_ratio"] = max(0.0, (1 - hepatic) * 80 + infl * 20)
+   ```
+   Reference variables already in scope: `infl`, `renal`, `cardiac`, `hepatic`, `anemia`,
+   `perfusion`, `ph`, plus the raw `state` object for anything else.
+2. Add the analyte to the observation module's `BIOLOGICAL_CV`, `ANALYTICAL_CV`, and
+   `PRECISION` dicts so the noise pipeline can process it.
+3. Add reference ranges to `determine_flag()` in `clinosim/modules/observation/engine.py`
+   if H/L/critical flagging is required.
+4. Optionally add the analyte to the expected lab distributions in the relevant disease
+   YAML for benchmarking.
+
 ## Dependencies
 - `clinosim.types.clinical` (PhysiologicalState, StateChangeDirective)
 - `clinosim.types.patient` (PatientPhysiologicalProfile, BaselineVitals)

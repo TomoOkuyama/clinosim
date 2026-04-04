@@ -24,6 +24,45 @@ Returns `"H"`, `"L"`, `"critical"`, or `None` based on reference ranges.
 - `ANALYTICAL_CV` — 30+ analytes, typical modern analyzer imprecision
 - `PRECISION` — reporting decimal places per analyte
 
+## How to add CV values for a new lab item
+
+CV values are stored as module-level dicts in `engine.py`. Adding a new analyte requires
+entries in all three tables:
+
+```python
+# 1. Within-individual biological variation (Ricos et al. or equivalent source)
+BIOLOGICAL_CV["NewItem"] = 0.08   # 8%
+
+# 2. Analytical imprecision (instrument specification or EQAS data)
+ANALYTICAL_CV["NewItem"] = 0.04   # 4%
+
+# 3. Reporting precision (number of decimal places)
+PRECISION["NewItem"] = 1
+```
+
+Use the same key string (e.g. `"NewItem"`) in all three dicts and in whatever
+`derive_lab_values()` formula produces it, so that `generate_lab_result()` can look it up.
+If no entry exists in a dict, a default is applied (`CVi=5%`, `CVa=3%`, `decimals=1`).
+
+## How to add new reference ranges
+
+Reference ranges are checked in `determine_flag()`. The `defaults` dict inside that
+function maps analyte name → sex-stratified or universal normal limits:
+
+```python
+defaults["NewItem"] = {"all": (lower, upper)}           # sex-independent
+defaults["NewItem"] = {"M": (13.5, 17.5), "F": (11.5, 15.5)}  # sex-stratified
+```
+
+If the analyte needs panic-value detection (critical flag), add it to the `panic` dict:
+
+```python
+panic["NewItem"] = (critical_low, critical_high)   # use None to skip one side
+```
+
+External callers may also supply a `reference_ranges` dict to `determine_flag()` to
+override the built-in defaults (e.g. for age-specific or pregnancy-specific ranges).
+
 ## Dependencies
 - None (standalone — uses only numpy for random sampling)
 
