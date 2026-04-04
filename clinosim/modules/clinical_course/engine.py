@@ -172,8 +172,11 @@ def get_daily_directive(
                 delta *= (2.0 - speed_factor)  # age 85, speed 0.7 → deterioration ×1.3
 
             # --- Daily noise (biological variation) ---
+            # Noise is proportional to delta magnitude, with a very small floor.
+            # This prevents noise from dominating when delta is near zero (late recovery).
             if rng is not None:
-                noise = float(rng.normal(0, abs(delta) * 0.15 + 0.005))
+                noise_sd = abs(delta) * 0.12 + 0.001
+                noise = float(rng.normal(0, noise_sd))
                 delta += noise
 
             changes[var_name] = delta
