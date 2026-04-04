@@ -39,7 +39,7 @@ parquet = [
 all = ["clinosim[dev,llm,parquet]"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/clinosim"]
+packages = ["clinosim"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

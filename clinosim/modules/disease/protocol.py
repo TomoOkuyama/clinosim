@@ -8,8 +8,8 @@ from typing import Any
 import yaml
 from pydantic import BaseModel
 
-# reference_data is at project root: clinosim/modules/disease/reference_data/
-_REFERENCE_DATA_DIR = Path(__file__).parent.parent.parent.parent.parent / "modules" / "disease" / "reference_data"
+# reference_data is in the same package: clinosim/modules/disease/reference_data/
+_REFERENCE_DATA_DIR = Path(__file__).parent / "reference_data"
 
 
 class DiseaseProtocol(BaseModel):
