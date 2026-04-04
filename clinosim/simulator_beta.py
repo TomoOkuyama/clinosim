@@ -195,9 +195,10 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
         treatment_changed = False
         treatment_change_day: int | None = None
 
-        # Track complications
+        # Track complications and mortality
         active_complications: set[str] = set()
         complications_occurred: list[str] = []
+        death_occurred = False
 
         for day in range(target_los):
             # --- Clinical course: state progression ---
@@ -318,6 +319,18 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
                             setattr(state, var, max(-1.0, min(1.0, current + delta)))
                     complications_occurred.append(comp.get("name", "unknown"))
 
+            # --- Mortality evaluation ---
+            # Check if patient dies during this day based on severity, state, age
+            death_occurred = _evaluate_mortality(
+                state, patient, severity, day, target_los, rng
+            )
+            if death_occurred:
+                # Patient dies — truncate stay
+                encounter.status = EncounterStatus.COMPLETED
+                encounter.discharge_datetime = admission_time + timedelta(days=day, hours=int(rng.integers(0, 24)))
+                target_los = day  # stop simulation
+                break
+
         # Final diagnosis code
         dx_code, dx_name = get_current_diagnosis_code(differential)
 
@@ -342,12 +355,16 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
             condition_event=condition_event,
             clinical_diagnosis=clinical_diagnosis,
             complications_occurred=complications_occurred,
+            deceased=death_occurred,
+            death_day=target_los if death_occurred else None,
             physiological_states=state_history,
         ))
 
         # Mark as visited
         person.has_visited_hospital = True
         person.visit_count += 1
+        if death_occurred:
+            person.is_alive = False
 
     metadata = CIFMetadata(
         clinosim_version="0.1.0-beta",
@@ -359,6 +376,70 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
     )
 
     return CIFDataset(metadata=metadata, patients=patient_records)
+
+
+def _evaluate_mortality(
+    state: PhysiologicalState,
+    patient: Any,
+    severity: str,
+    day: int,
+    target_los: int,
+    rng: np.random.Generator,
+) -> bool:
+    """Evaluate whether the patient dies on this day.
+
+    Mortality risk factors:
+    - Disease severity (severe: 3x base rate)
+    - Perfusion failure (shock: high mortality)
+    - Age (exponential increase after 75)
+    - Complications (each complication adds risk)
+    - Day of stay (mortality peaks Day 2-5 for acute, later for chronic)
+
+    Base in-hospital mortality rates (total stay):
+    - Pneumonia: 5-7% (JP), 5% (US)
+    - Heart failure: 4-6%
+    - Hip fracture: 3-4%
+    These translate to daily rates of roughly 0.3-0.5%/day.
+    """
+    # Base daily mortality rate (calibrated for total stay mortality of 5-7%)
+    if severity == "severe":
+        base_daily = 0.003  # ~4% over 14 days for severe
+    elif severity == "moderate":
+        base_daily = 0.0005  # ~0.7% over 14 days for moderate
+    else:
+        base_daily = 0.0001  # negligible for mild
+
+    # Age multiplier (exponential after 75)
+    age = patient.age if hasattr(patient, "age") else 70
+    age_mult = 1.0
+    if age >= 85:
+        age_mult = 3.0
+    elif age >= 80:
+        age_mult = 2.0
+    elif age >= 75:
+        age_mult = 1.5
+
+    # Perfusion failure = high mortality
+    perf_mult = 1.0
+    if state.perfusion_status < 0.3:
+        perf_mult = 5.0  # shock
+    elif state.perfusion_status < 0.5:
+        perf_mult = 2.0
+
+    # Renal failure adds risk
+    renal_mult = 1.0
+    if state.renal_function < 0.2:
+        renal_mult = 2.0
+
+    # Mortality timing: peaks Day 2-7 for acute illness
+    timing_mult = 1.0
+    if 2 <= day <= 7:
+        timing_mult = 1.5
+    elif day > 14:
+        timing_mult = 0.5  # survivors past 2 weeks have lower daily risk
+
+    daily_risk = base_daily * age_mult * perf_mult * renal_mult * timing_mult
+    return bool(rng.random() < daily_risk)
 
 
 def _simulate_unknown_condition(

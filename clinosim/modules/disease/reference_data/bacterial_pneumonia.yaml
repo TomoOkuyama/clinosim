@@ -531,7 +531,7 @@ archetype_modifiers:
 complications:
   - name: "parapneumonic_effusion"
     description: "Pleural effusion complicating pneumonia"
-    probability_per_day: 0.02
+    probability_per_day: 0.008
     onset_day_range: [2, 7]
     risk_factors:
       - {condition: "severity_severe", multiplier: 3.0}
@@ -557,7 +557,7 @@ complications:
 
   - name: "acute_kidney_injury"
     description: "Pre-renal AKI from sepsis/dehydration"
-    probability_per_day: 0.03
+    probability_per_day: 0.01
     onset_day_range: [1, 5]
     risk_factors:
       - {condition: "renal_function < 0.5", multiplier: 3.0}
@@ -573,7 +573,7 @@ complications:
 
   - name: "delirium"
     description: "Acute confusion, especially in elderly"
-    probability_per_day: 0.04
+    probability_per_day: 0.015
     onset_day_range: [1, 7]
     risk_factors:
       - {condition: "age_over_75", multiplier: 2.5}
