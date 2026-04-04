@@ -246,26 +246,20 @@ def generate_monthly_events(
                 condition_type="known_disease",
             ))
 
-        # --- Mixed-cause: Pneumonia + HF overlap (elderly with both conditions) ---
-        if ("I50" in person.chronic_conditions and person.age >= 65):
-            # Probability of presenting with overlapping symptoms
-            mixed_rate = 0.001 * _PNEUMONIA_SEASONAL.get(month, 1.0)  # rare but realistic
-            if rng.random() < mixed_rate:
-                events.append(LifeEvent(
-                    person_id=person.person_id,
-                    event_type="acute_disease_onset",
-                    timestamp=event_date + timedelta(days=int(rng.integers(0, 28))),
-                    severity=float(rng.beta(3, 2)),  # tends toward moderate-severe
-                    disease_id="bacterial_pneumonia",  # primary label, but both are active
-                    requires_hospital=True,
-                    condition_type="mixed",  # ground truth: pneumonia + HF exacerbation
-                ))
+        # --- Mixed-cause conditions ---
+        # In reality, 15-25% of elderly admissions involve 2+ active diseases.
+        # Mixed happens when an acute event triggers in someone with other active conditions.
+        # We model this by upgrading known_disease events to mixed when the patient
+        # has relevant comorbidities that would be simultaneously active.
+        # This is done as a post-processing step below (after all events generated).
 
         # --- Unknown-cause conditions ---
-        # FUO (fever of unknown origin): ~5% of fever admissions
-        # Unexplained symptoms in elderly
-        if person.age >= 50:
-            unknown_rate = 0.0002 * (1.0 + (person.age - 50) * 0.01)
+        # ~8-12% of admissions start as "unknown" at presentation.
+        # Of these, ~50-70% are resolved during stay (workup finds cause).
+        # ~3-5% of total admissions remain truly undiagnosed at discharge.
+        if person.age >= 40:
+            # Base rate: roughly 3% of admissions start as unknown presentation
+            unknown_rate = 0.00008 * (1.0 + (person.age - 40) * 0.005)
             if rng.random() < unknown_rate:
                 pattern = str(rng.choice([
                     "fever_unknown", "weight_loss_unexplained",
@@ -281,6 +275,16 @@ def generate_monthly_events(
                     requires_hospital=unk_severity > person.care_seeking_threshold,
                     condition_type="unknown",
                 ))
+
+    # --- Post-processing: upgrade some known_disease events to mixed ---
+    # Elderly patients (75+) with 2+ chronic conditions who get admitted
+    # have ~20% chance of having a second active condition during the stay.
+    for event in events:
+        if event.condition_type == "known_disease" and event.requires_hospital:
+            person = registry.persons.get(event.person_id)
+            if person and person.age >= 70 and len(person.chronic_conditions) >= 2:
+                if rng.random() < 0.18:  # ~18% of elderly multi-morbid admissions = mixed
+                    event.condition_type = "mixed"
 
     return events
 
