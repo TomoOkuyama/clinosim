@@ -6,7 +6,10 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 
 from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent, PhysiologicalState
-from clinosim.types.encounter import Encounter, Order, OrderResult, VitalSignRecord
+from clinosim.types.encounter import (
+    Encounter, MedicationAdministration, Order, OrderResult,
+    PrescriptionRecord, VitalSignRecord,
+)
 from clinosim.types.patient import PatientProfile
 
 
@@ -39,6 +42,8 @@ class CIFPatientRecord:
     complications_occurred: list[str] = field(default_factory=list)
     procedures: list = field(default_factory=list)  # ProcedureRecord
     rehab_sessions: list = field(default_factory=list)  # RehabSession
+    medication_administrations: list[MedicationAdministration] = field(default_factory=list)
+    discharge_prescription: PrescriptionRecord | None = None
     icu_transferred: bool = False
     deceased: bool = False
     death_day: int | None = None
