@@ -22,6 +22,11 @@ from clinosim.modules.order.engine import (
     place_daily_lab_orders,
 )
 from clinosim.modules.output.cif_writer import write_cif
+from clinosim.modules.diagnosis.engine import (
+    initialize_differential,
+    update_differential,
+    get_current_diagnosis_code,
+)
 from clinosim.modules.patient.activator import activate_patient
 from clinosim.modules.physiology.engine import (
     apply_disease_onset,
@@ -42,6 +47,7 @@ from clinosim.types.encounter import (
     Order,
     OrderResult,
     OrderStatus,
+    OrderType,
     VitalSignRecord,
 )
 from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord
@@ -149,12 +155,20 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
 
         has_diabetes = any(c.code.startswith("E11") for c in patient.chronic_conditions)
 
+        # Initialize differential diagnosis
+        differential = initialize_differential(disease_id, patient.age)
+
+        # Track treatment state
+        treatment_changed = False
+        treatment_change_day: int | None = None
+
         for day in range(target_los):
+            # --- Clinical course: state progression ---
             directive = get_daily_directive(archetype, day, patient.physiological_profile)
             state = update(state, directive, timedelta(days=1))
             state_history.append(deepcopy(state))
 
-            # Daily labs
+            # --- Daily labs ---
             if day >= 1:
                 lab_time = datetime(
                     admission_time.year, admission_time.month, admission_time.day, 6, 0
@@ -165,8 +179,9 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
                 )
                 all_orders.extend(daily_orders)
 
-            # Lab results
+            # --- Generate lab results ---
             true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes)
+            todays_results: list[tuple[str, float]] = []
             for order in all_orders:
                 if (order.order_type.value == "lab"
                     and order.status == OrderStatus.PLACED
@@ -180,8 +195,55 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
                     )
                     order.status = OrderStatus.RESULTED
                     all_lab_results.append(order.result)
+                    todays_results.append((order.display_name, observed))
 
-            # Vitals
+            # --- Diagnosis update (Bayesian, during morning rounds) ---
+            if day >= 1 and todays_results:
+                findings: list[tuple[str, bool]] = []
+                for lab_name, value in todays_results:
+                    if lab_name == "CRP" and value > 100:
+                        findings.append(("crp_above_100", True))
+                    elif lab_name == "CRP" and value <= 100:
+                        findings.append(("crp_above_100", False))
+                    if lab_name == "WBC" and value > 15000:
+                        findings.append(("wbc_elevated", True))
+                    elif lab_name == "WBC" and value <= 15000:
+                        findings.append(("wbc_elevated", False))
+
+                # Day 0-1: imaging findings (simulated)
+                if day == 1 and disease_id == "bacterial_pneumonia":
+                    findings.append(("chest_xray_consolidation", True))
+                    findings.append(("procalcitonin_elevated", True))
+
+                if findings:
+                    differential = update_differential(differential, findings)
+
+            # --- Treatment evaluation (Day 3: check response) ---
+            if day == 3 and not treatment_changed:
+                # Check if treatment is working
+                if state.inflammation_level > 0.5 and archetype in ("treatment_resistant", "gradual_deterioration"):
+                    # Treatment not working → escalate
+                    treatment_changed = True
+                    treatment_change_day = day
+                    # Place escalation antibiotic order
+                    escalation = protocol.drugs.get("escalation", {}).get("japan", [])
+                    if escalation:
+                        esc_drug = escalation[0] if isinstance(escalation, list) else escalation
+                        esc_order = Order(
+                            order_id=f"ORD-{patient.patient_id}-ESC-001",
+                            encounter_id=encounter.encounter_id,
+                            patient_id=patient.patient_id,
+                            order_type=OrderType.MEDICATION,
+                            display_name=f"Escalation: {esc_drug.get('drug', 'Meropenem')}",
+                            urgency="urgent",
+                            clinical_intent=f"Day {day}: no improvement, antibiotic escalation",
+                            ordered_datetime=admission_time + timedelta(days=day, hours=10),
+                            ordered_by="STAFF-PLACEHOLDER-001",
+                            status=OrderStatus.PLACED,
+                        )
+                        all_orders.append(esc_order)
+
+            # --- Vitals ---
             for hour in [6, 14, 18]:
                 vit_time = datetime(
                     admission_time.year, admission_time.month, admission_time.day, hour, 0
@@ -203,6 +265,9 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
                     data_source="manual",
                 )
                 all_vitals.append(record)
+
+        # Final diagnosis code
+        dx_code, dx_name = get_current_diagnosis_code(differential)
 
         encounter.status = EncounterStatus.COMPLETED
         encounter.discharge_datetime = admission_time + timedelta(days=target_los, hours=14)
