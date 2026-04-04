@@ -139,6 +139,7 @@ class Order:
 
 @dataclass
 class VitalSignRecord:
+    timestamp: datetime = field(default_factory=datetime.now)
     temperature_celsius: float | None = None
     heart_rate: int | None = None
     systolic_bp: int | None = None
@@ -146,4 +147,5 @@ class VitalSignRecord:
     respiratory_rate: int | None = None
     spo2: float | None = None
     pain_score: int | None = None
+    measured_by: str = ""  # nurse staff_id
     data_source: str = "manual"  # "manual" | "device_auto"
