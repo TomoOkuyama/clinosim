@@ -118,7 +118,7 @@ def determine_flag(
     # Panic values
     panic: dict[str, tuple[float | None, float | None]] = {
         "K": (2.5, 6.5),
-        "Hb": (None, 7.0),  # critical low only
+        "Hb": (7.0, None),  # critical low only (Hb < 7.0 = critical)
         "Glucose": (40, 500),
         "Na": (120, 160),
         "pH": (7.1, 7.6),
