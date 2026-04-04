@@ -138,8 +138,18 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
         if protocol is None:
             continue
 
+        # Mixed condition: determine secondary disease and pass to simulator
+        secondary_protocol = None
+        if event.condition_type == "mixed":
+            # Determine secondary disease based on patient's chronic conditions
+            if "I50" in [c.code for c in patient.chronic_conditions] and disease_id != "heart_failure_exacerbation":
+                secondary_protocol = protocols.get("heart_failure_exacerbation")
+            elif disease_id == "heart_failure_exacerbation":
+                secondary_protocol = protocols.get("bacterial_pneumonia")
+
         record = _simulate_patient(
             patient, event, disease_id, protocol, healthcare, roster, config, rng,
+            secondary_protocol=secondary_protocol,
         )
         patient_records.append(record)
         person.has_visited_hospital = True
@@ -173,8 +183,13 @@ def _simulate_patient(
     rng: np.random.Generator,
     forced_severity: str | None = None,
     forced_archetype: str | None = None,
+    secondary_protocol: DiseaseProtocol | None = None,
 ) -> CIFPatientRecord:
-    """Simulate one patient's complete hospital encounter."""
+    """Simulate one patient's complete hospital encounter.
+
+    For mixed conditions, secondary_protocol provides the second disease's
+    state impact and a secondary diagnosis to track.
+    """
 
     # Severity & archetype (may be forced)
     if forced_severity:
@@ -192,6 +207,13 @@ def _simulate_patient(
     # Initialize physiological state
     state = initialize_state(patient.physiological_profile, patient.chronic_conditions, patient.patient_id)
     state = apply_disease_onset(state, severity, protocol.initial_state_impact)
+
+    # Mixed condition: superimpose secondary disease's state impact
+    secondary_disease_id = None
+    if secondary_protocol:
+        secondary_disease_id = secondary_protocol.disease_id
+        # Secondary disease typically presents at moderate severity
+        state = apply_disease_onset(state, "moderate", secondary_protocol.initial_state_impact)
 
     # Create encounter
     admission_time = datetime(event.timestamp.year, event.timestamp.month, event.timestamp.day,
@@ -263,19 +285,36 @@ def _simulate_patient(
     yaml_progression = protocol_diagnostic.get("diagnosis_progression") if protocol_diagnostic else None
     dx_code, dx_name = get_current_diagnosis_code(differential, protocol_progression=yaml_progression)
 
+    # Diagnosis correctness and missed diagnoses (AD-29)
+    missed: list[str] = []
+    overcalled: list[str] = []
+    if secondary_protocol and secondary_disease_id:
+        # 30% chance of missing the secondary diagnosis in mixed cases
+        if rng.random() < 0.30:
+            missed.append(secondary_disease_id)
+
     clinical_diagnosis = ClinicalDiagnosis(
         admission_diagnosis_code=protocol.icd_codes.get("primary", ""),
         admission_diagnosis_name=disease_id.replace("_", " ").title(),
         discharge_diagnosis_code=dx_code,
         discharge_diagnosis_name=dx_name,
-        diagnosis_correct=(dx_code != "R05"),
+        diagnosis_correct=(dx_code != "R05" and not missed),
+        missed_diagnoses=missed,
+        overcalled_diagnoses=overcalled,
     )
+
+    # Build ground truth diseases list
+    if event.condition_type == "mixed" and secondary_disease_id:
+        gt_diseases = [disease_id, secondary_disease_id]
+    elif event.condition_type == "known_disease":
+        gt_diseases = [disease_id]
+    else:
+        gt_diseases = [disease_id]
 
     condition_event = ConditionEvent(
         condition_id=f"COND-{patient.patient_id}-001",
         condition_type=event.condition_type,
-        ground_truth_diseases=[disease_id] if event.condition_type == "known_disease"
-            else [disease_id, "heart_failure_exacerbation"],
+        ground_truth_diseases=gt_diseases,
     )
 
     # Discharge prescription
