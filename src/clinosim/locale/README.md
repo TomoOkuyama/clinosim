@@ -1,26 +1,23 @@
 # locale
 
-Centralized repository for all country/language-specific data. Every module that needs localized content reads from here via `locale.loader`.
+Centralized repository for all country/language-specific data. One folder per country. Adding a new country = adding one folder with YAML files.
 
 ## Structure
 
 ```
 locale/
-  loader.py           <- Single access point (load_names, load_terminology, etc.)
-  names/
-    japan.yaml        <- JP surnames (100+), given names M (40+), given names F (40+)
-    us.yaml           <- US surnames, given names (planned)
-  terminology/
-    lab_ja.yaml       <- Lab test display names in Japanese
-    lab_en.yaml       <- Lab test display names in English
-    (future: diagnosis_ja.yaml, drug_ja.yaml, procedure_ja.yaml, ...)
-  code_mapping/
-    internal_to_jlac10.yaml  <- Internal lab name -> JLAC10 code
-    internal_to_loinc.yaml   <- Internal lab name -> LOINC code
-    (future: internal_to_yj.yaml, internal_to_rxnorm.yaml, ...)
-  formatting/
-    japan.yaml        <- Date/time/unit formatting rules for Japan
-    us.yaml           <- Date/time/unit formatting rules for US
+  loader.py              <- Single access point for all locale data
+  japan/                  <- Japan-specific data
+    names.yaml            <- Surnames (100+), given names M (40+), F (40+), with kana
+    terminology_lab.yaml  <- Lab test display names in Japanese
+    code_mapping_lab.yaml <- Internal lab name -> JLAC10 code
+    formatting.yaml       <- Date/time/unit formatting rules
+  us/                     <- US-specific data
+    terminology_lab.yaml  <- Lab test display names in English
+    code_mapping_lab.yaml <- Internal lab name -> LOINC code
+    formatting.yaml       <- Date/time/unit formatting rules
+  shared/                 <- Cross-country shared data
+    naming_rules.yaml     <- Naming conventions for 10 countries
 ```
 
 ## Public API
@@ -28,40 +25,44 @@ locale/
 ```python
 from clinosim.locale.loader import (
     load_names,          # (country) -> name YAML data
-    load_terminology,    # (code_system, language) -> {code: display_name}
-    load_code_mapping,   # (from_system, to_system) -> {internal: standard_code}
-    load_formatting,     # (country) -> formatting rules
+    load_naming_rules,   # (country) -> naming convention rules
+    load_terminology,    # (domain, country) -> {internal_name: display_name}
+    load_code_mapping,   # (domain, country) -> {internal_name: standard_code}
+    load_formatting,     # (country) -> formatting rules dict
 )
+
+# Examples
+names = load_names("JP")             # japan/names.yaml
+rules = load_naming_rules("JP")      # shared/naming_rules.yaml → japan section
+terms = load_terminology("lab", "JP") # japan/terminology_lab.yaml
+codes = load_code_mapping("lab", "JP") # japan/code_mapping_lab.yaml
+fmt = load_formatting("JP")          # japan/formatting.yaml
 ```
 
-## Key design rules (AD-25, AD-26)
+## Adding a new country
 
-1. **CIF is language-neutral.** Only person names are country-specific in CIF.
-2. **Clinical terminology uses official master data ONLY.** Never LLM-translated.
-3. **All localized data lives here.** No localization data in other modules.
-4. **Adding a new country/language = adding YAML files here.** No code changes.
+1. Create `locale/{country}/` folder
+2. Add required YAML files:
+   - `names.yaml` — surname + given name lists with weights
+   - `terminology_lab.yaml` — lab display names in local language
+   - `code_mapping_lab.yaml` — internal name → national code system
+   - `formatting.yaml` — date/time/unit rules
+3. Add country section to `shared/naming_rules.yaml`
+4. Add country mapping to `loader.py` `_COUNTRY_DIR_MAP`
+5. No other code changes needed
 
-## Data sources (authoritative)
+## Key rules (AD-25, AD-26, AD-27)
 
-| Data | Japan source | US source |
-|---|---|---|
-| Person names | Census surname frequency, birth registration | US Census, SSA baby names |
-| Lab names | JLAC10 master (日本臨床検査標準協議会) | LOINC (Regenstrief) |
-| Lab codes | JLAC10 | LOINC |
-| Drug names | 医薬品マスター (PMDA) | RxNorm (NLM) |
-| Diagnosis names | 標準病名マスター (厚労省) | ICD-10-CM (CMS) |
-
-## Dependencies
-- `pyyaml` (YAML loading)
+- CIF is language-neutral. Only person names are country-specific at generation time.
+- Clinical terminology uses official master data ONLY. Never LLM-translated.
+- All locale data lives here. No localization data in other modules.
 
 ## Implementation status
-- [x] Japanese names (100 surnames, 40 male, 40 female given names, with kana readings)
-- [x] Lab terminology (ja, en — 30 items each)
-- [x] Lab code mapping (internal → JLAC10, internal → LOINC)
-- [x] Formatting rules (japan, us)
-- [x] Loader with caching (lru_cache)
-- [ ] US names data
-- [ ] Drug terminology (ja, en)
-- [ ] Diagnosis terminology (ja, en)
-- [ ] Procedure terminology (ja, en)
-- [ ] Drug code mapping (internal → YJ, internal → RxNorm)
+- [x] Japan: names (100 surnames, 80 given), terminology, code_mapping, formatting
+- [x] US: terminology, code_mapping, formatting
+- [x] Shared: naming rules for 10 countries
+- [x] Loader with LRU caching
+- [ ] US names data (Census surnames, SSA given names)
+- [ ] Drug terminology/code_mapping (ja, en)
+- [ ] Diagnosis terminology/code_mapping (ja, en)
+- [ ] Procedure terminology/code_mapping (ja, en)
