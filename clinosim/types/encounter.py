@@ -84,6 +84,7 @@ class OrderStatus(str, Enum):
 class OrderResult:
     result_datetime: datetime = field(default_factory=datetime.now)
     performed_by: str = ""
+    lab_name: str = ""  # display name of the test (e.g., "CRP", "WBC")
     value: float | str | None = None
     unit: str | None = None
     reference_range: str | None = None

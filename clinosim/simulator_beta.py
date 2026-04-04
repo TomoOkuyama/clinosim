@@ -192,6 +192,16 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
         )
         all_orders.extend(admission_orders)
 
+        # Assign staff from roster (instead of placeholder IDs)
+        staff_assignments = assign_staff("admission", "internal_medicine", roster, rng)
+        attending_id = staff_assignments.get("attending_physician", "DR-001")
+        nurse_id = staff_assignments.get("primary_nurse", "NS-001")
+        encounter.attending_physician_id = attending_id
+
+        # Update order staff IDs
+        for order in admission_orders:
+            order.ordered_by = attending_id
+
         has_diabetes = any(c.code.startswith("E11") for c in patient.chronic_conditions)
 
         # Initialize tracking variables (must be before surgery block)
@@ -262,9 +272,10 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
                     result_time = calculate_lab_result_time(order, rng)
                     observed = generate_lab_result(order.display_name, true_labs[order.display_name], rng)
                     flag = determine_flag(order.display_name, observed, sex=patient.sex)
+                    lab_tech = assign_staff("lab_result", "", roster, rng).get("performing_technician", "TECH-001")
                     order.result = OrderResult(
-                        result_datetime=result_time, performed_by="TECH-001",
-                        value=observed, unit="", flag=flag,
+                        result_datetime=result_time, performed_by=lab_tech,
+                        lab_name=order.display_name, value=observed, unit="", flag=flag,
                     )
                     order.status = OrderStatus.RESULTED
                     all_lab_results.append(order.result)

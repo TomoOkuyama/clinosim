@@ -45,17 +45,43 @@ def place_admission_orders(
         first_line_list = [first_line_list]
     admission["medications"] = {"first_line": {country: first_line_list}}
 
-    # Supportive (hardcoded for alpha)
-    admission["supportive"] = [
-        {"type": "IV_fluid", "detail": "NS 80-125 mL/h"},
-        {"type": "O2", "detail": "Nasal cannula SpO2 >= 94%"},
-        {"type": "antipyretic", "detail": "Acetaminophen 500mg PO PRN"},
-    ]
+    # Supportive and imaging — disease-specific
+    disease_id = protocol.get("disease_id", "")
 
-    # Imaging (hardcoded for alpha)
-    admission["imaging"] = [
-        {"test": "Chest_Xray_PA_Lateral", "code_cpt": "71046", "urgency": "stat"},
-    ]
+    if "heart_failure" in disease_id:
+        admission["supportive"] = [
+            {"type": "IV_fluid", "detail": "Restrict to 1000 mL/day"},
+            {"type": "O2", "detail": "Nasal cannula SpO2 >= 94%"},
+            {"type": "diet", "detail": "Low sodium (6g/day)"},
+            {"type": "daily_weight", "detail": "Daily weight monitoring"},
+            {"type": "fluid_balance", "detail": "Strict I/O monitoring"},
+        ]
+        admission["imaging"] = [
+            {"test": "Chest_Xray_PA", "code_cpt": "71046", "urgency": "stat"},
+            {"test": "Echocardiogram", "code_cpt": "93306", "urgency": "urgent"},
+        ]
+    elif "hip_fracture" in disease_id:
+        admission["supportive"] = [
+            {"type": "IV_fluid", "detail": "NS 80-125 mL/h"},
+            {"type": "pain_management", "detail": "Acetaminophen 1000mg IV q6h + PRN opioid"},
+            {"type": "DVT_prophylaxis", "detail": "Enoxaparin 2000IU SC daily"},
+            {"type": "urinary_catheter", "detail": "Foley catheter for perioperative period"},
+        ]
+        admission["imaging"] = [
+            {"test": "Hip_Xray_AP_Lateral", "code_cpt": "73502", "urgency": "stat"},
+            {"test": "Chest_Xray_preop", "code_cpt": "71046", "urgency": "urgent"},
+        ]
+    else:
+        # Default: pneumonia and other medical conditions
+        admission["supportive"] = [
+            {"type": "IV_fluid", "detail": "NS 80-125 mL/h"},
+            {"type": "O2", "detail": "Nasal cannula SpO2 >= 94%"},
+            {"type": "antipyretic", "detail": "Acetaminophen 500mg PO q6h PRN"},
+            {"type": "DVT_prophylaxis", "detail": "Enoxaparin 2000IU SC daily"},
+        ]
+        admission["imaging"] = [
+            {"test": "Chest_Xray_PA_Lateral", "code_cpt": "71046", "urgency": "stat"},
+        ]
 
     # Lab orders
     for i, lab_spec in enumerate(admission.get("labs", [])):
