@@ -275,12 +275,111 @@ print(f'Complications: {len(p.complications)}')
 python -m pytest tests/ -q
 ```
 
-### Step 5: Validate output
+### Step 5: Generate test data for this disease only
 
-Run a simulation and check benchmarks:
+Use `run_forced()` to generate data for your specific disease and archetype, without running the full population simulation.
+
+```python
+source .venv/bin/activate && python -c "
+from clinosim.simulator_beta import run_forced
+from clinosim.modules.output.cif_writer import write_cif
+from clinosim.modules.output.csv_adapter import convert_cif_to_csv
+from clinosim.types.config import ForcedScenario
+
+# Generate 5 patients with your disease, specific archetype
+scenario = ForcedScenario(
+    disease_id='your_disease_id',
+    count=5,
+    severity='moderate',            # or 'mild', 'severe'
+    archetype='smooth_recovery',    # or any archetype you defined
+)
+dataset = run_forced(scenario)
+write_cif(dataset, './output/test_disease')
+convert_cif_to_csv('./output/test_disease', './output/test_disease_csv')
+
+# Inspect results
+for r in dataset.patients:
+    enc = r.encounters[0]
+    los = (enc.discharge_datetime - enc.admission_datetime).days
+    print(f'{r.patient.patient_id}: LOS={los}d, Labs={len(r.lab_results)}, '
+          f'Dx={r.clinical_diagnosis.discharge_diagnosis_code}, '
+          f'Complications={r.complications_occurred or \"None\"}')
+"
+```
+
+### Step 6: Verify each archetype produces correct clinical actions
+
+Test each archetype separately to verify order/treatment modifications fire correctly:
+
+```python
+source .venv/bin/activate && python -c "
+from clinosim.simulator_beta import run_forced
+from clinosim.types.config import ForcedScenario
+
+for archetype in ['smooth_recovery', 'dip_then_recovery', 'treatment_resistant',
+                  'gradual_deterioration', 'sudden_deterioration']:
+    scenario = ForcedScenario(
+        disease_id='your_disease_id',
+        count=1,
+        severity='moderate',
+        archetype=archetype,
+    )
+    dataset = run_forced(scenario)
+    r = dataset.patients[0]
+
+    # Check archetype-specific orders
+    mod_orders = [o for o in r.orders if 'MOD-D' in o.order_id or 'STOP' in o.order_id or 'START' in o.order_id]
+    print(f'{archetype:25s}: LOS={len(r.physiological_states)-1}d, '
+          f'mods={len(mod_orders)}, deceased={r.deceased}')
+    for o in mod_orders:
+        print(f'  {o.display_name}')
+"
+```
+
+Expected output example (pneumonia):
+```
+smooth_recovery          : LOS=13d, mods=0, deceased=False
+dip_then_recovery        : LOS=14d, mods=3, deceased=False    # Day 2: Lactate, blood culture, CXR
+treatment_resistant      : LOS=13d, mods=6, deceased=False    # Day 3: STOP ABPC/SBT, START Meropenem, CT, cultures
+gradual_deterioration    : LOS=16d, mods=8, deceased=False    # Day 3+5: escalation, vasopressor, ICU
+sudden_deterioration     : LOS=5d,  mods=7, deceased=True     # Day 2: emergency escalation, ICU
+```
+
+### Step 7: Validate against benchmarks
+
+Run a full population simulation and check your disease's outcome benchmarks:
+
 ```bash
-python -m clinosim.simulator_beta ./output/test 10000
-# Check that generated LOS, mortality, age distribution match outcome_benchmarks
+source .venv/bin/activate && python -c "
+from clinosim.simulator_beta import run_beta
+from clinosim.modules.validator.benchmarks import run_benchmarks
+from clinosim.types.config import SimulatorConfig
+
+dataset = run_beta(SimulatorConfig(catchment_population=20000, random_seed=42))
+report = run_benchmarks(dataset, 'JP')
+print(report.summary())
+for r in report.results:
+    print(f'  [{r.status}] {r.name}: {r.generated_value:.1f} (expected {r.expected_value})')
+"
+```
+
+### Step 8: Generate with specific patient characteristics
+
+Use `patient_overrides` in ForcedScenario to test edge cases:
+
+```python
+# Elderly patient with multiple comorbidities
+scenario = ForcedScenario(
+    disease_id='your_disease_id',
+    count=3,
+    severity='severe',
+    archetype='gradual_deterioration',
+    patient_overrides={
+        'age': 88,
+        'sex': 'F',
+        'chronic_conditions': ['I10', 'E11.9', 'N18', 'I48'],  # HT + DM + CKD + AF
+    },
+)
 ```
 
 ---
@@ -295,17 +394,17 @@ Not all hospital visits are driven by a single identifiable disease:
 | `mixed` | Multiple diseases overlap | May miss one | Pneumonia + HF → J18.9 + I50.9 (or just J18.9) |
 | `unknown` | No disease YAML | Workup inconclusive | FUO → R50.9 |
 
-The `condition_type` field in `LifeEvent` controls which type is generated.
-
 ## Implementation status
 
 - [x] Protocol loader with Pydantic validation
-- [x] Bacterial pneumonia (full: incidence, severity, archetypes, complications, drugs, benchmarks)
+- [x] Bacterial pneumonia (full: incidence, severity, archetypes with clinical scenarios, complications, drugs, orders, benchmarks)
 - [x] Heart failure exacerbation (full)
-- [x] Hip fracture (full, including procedure and rehab data)
-- [x] YAML-driven clinical course archetypes
+- [x] Hip fracture (full, including procedure, rehab, order protocols)
+- [x] YAML-driven clinical course archetypes with order/treatment modifications per scenario
 - [x] Complication engine with cascade support
 - [x] Condition-first model (known/mixed/unknown)
-- [ ] Severity determination algorithm (uses protocol data)
-- [ ] Full Bayesian LR table integration
+- [x] ForcedScenario: generate specific disease + archetype + severity without population
+- [x] Disease-specific order protocols (admission, daily monitoring, discharge criteria)
+- [x] Disease-specific diagnostic data (differential, LR table, code progression)
 - [ ] Pediatric disease protocols
+- [ ] More diseases (UTI, stroke, AMI, sepsis, COPD, DKA)

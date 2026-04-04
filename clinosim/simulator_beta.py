@@ -171,14 +171,23 @@ def _simulate_patient(
     roster: StaffRoster,
     config: SimulatorConfig,
     rng: np.random.Generator,
+    forced_severity: str | None = None,
+    forced_archetype: str | None = None,
 ) -> CIFPatientRecord:
     """Simulate one patient's complete hospital encounter."""
 
-    # Severity & archetype
-    severity = "severe" if event.severity > 0.7 else ("moderate" if event.severity > 0.3 else "mild")
-    if disease_id == "hip_fracture" and severity == "mild":
-        severity = "moderate"
-    archetype = select_archetype(severity, patient.physiological_profile, rng)
+    # Severity & archetype (may be forced)
+    if forced_severity:
+        severity = forced_severity
+    else:
+        severity = "severe" if event.severity > 0.7 else ("moderate" if event.severity > 0.3 else "mild")
+        if disease_id == "hip_fracture" and severity == "mild":
+            severity = "moderate"
+
+    if forced_archetype:
+        archetype = forced_archetype
+    else:
+        archetype = select_archetype(severity, patient.physiological_profile, rng)
 
     # Initialize physiological state
     state = initialize_state(patient.physiological_profile, patient.chronic_conditions, patient.patient_id)
@@ -728,6 +737,91 @@ def _simulate_unknown_condition(
 # ============================================================
 # CLI entry point
 # ============================================================
+
+def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) -> CIFDataset:
+    """Generate data for a specific forced scenario only. No population needed.
+
+    Usage:
+        from clinosim.types.config import ForcedScenario, SimulatorConfig
+        scenario = ForcedScenario(disease_id="bacterial_pneumonia", count=5, archetype="treatment_resistant")
+        dataset = run_forced(scenario)
+    """
+    if config is None:
+        config = SimulatorConfig()
+
+    rng = np.random.default_rng(config.random_seed)
+    healthcare = load_healthcare_config(config.country)
+    roster = generate_roster(config.hospital_scale, config.country, rng)
+
+    protocol = load_disease_protocol(scenario.disease_id)
+
+    patient_records: list[CIFPatientRecord] = []
+
+    for i in range(scenario.count):
+        # Create patient (from overrides or random)
+        from clinosim.modules.patient.test_patient import create_test_patient
+        from clinosim.modules.patient.activator import activate_patient
+        from clinosim.modules.population.engine import PersonRecord
+        from datetime import date
+
+        if scenario.patient_overrides:
+            age = scenario.patient_overrides.get("age", 72)
+            sex = scenario.patient_overrides.get("sex", "F")
+        else:
+            age = int(rng.integers(55, 95))
+            sex = str(rng.choice(["M", "F"]))
+
+        # Create a minimal PersonRecord for activation
+        person = PersonRecord(
+            person_id=f"FORCED-{i+1:04d}",
+            household_id=f"HH-FORCED-{i+1:04d}",
+            age=age,
+            sex=sex,
+            date_of_birth=date(2024 - age, 1, 1),
+            family_name="テスト" if config.country == "JP" else "Test",
+            given_name=f"患者{i+1}" if config.country == "JP" else f"Patient{i+1}",
+            chronic_conditions=scenario.patient_overrides.get("chronic_conditions", []),
+        )
+        patient = activate_patient(person, rng, config.country)
+
+        # Force severity and archetype
+        severity = scenario.severity or "moderate"
+        archetype = scenario.archetype or select_archetype(severity, patient.physiological_profile, rng)
+
+        # Create life event
+        event = LifeEvent(
+            person_id=patient.patient_id,
+            event_type="forced",
+            timestamp=date(2024, 6, 15),
+            severity={"mild": 0.2, "moderate": 0.5, "severe": 0.8}.get(severity, 0.5),
+            disease_id=scenario.disease_id,
+            requires_hospital=True,
+            condition_type="known_disease",
+        )
+
+        record = _simulate_patient(
+            patient, event, scenario.disease_id, protocol,
+            healthcare, roster, config, rng,
+            forced_severity=scenario.severity,
+            forced_archetype=scenario.archetype,
+        )
+
+        # Force specific complications if requested
+        if scenario.complications:
+            record.complications_occurred.extend(scenario.complications)
+
+        patient_records.append(record)
+
+    metadata = CIFMetadata(
+        clinosim_version="0.1.0",
+        random_seed=config.random_seed,
+        country=config.country,
+        hospital_scale=config.hospital_scale,
+        total_patients_generated=len(patient_records),
+        llm_mode="none",
+    )
+    return CIFDataset(metadata=metadata, patients=patient_records)
+
 
 def main() -> None:
     import sys
