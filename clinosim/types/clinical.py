@@ -33,3 +33,58 @@ class StateChangeDirective:
     source: str = ""  # "disease_progression" | "treatment_effect" | "complication"
     changes: dict[str, float] = field(default_factory=dict)
     reason: str = ""
+
+
+@dataclass
+class ConditionEvent:
+    """What actually happens to the patient (hidden ground truth). AD-28.
+
+    This is the TRUE cause of the patient's condition, which may or may not
+    be correctly identified by the clinical process.
+    """
+
+    condition_id: str = ""
+    condition_type: str = "known_disease"  # "known_disease" | "mixed" | "unknown"
+
+    # For known_disease / mixed: the actual diseases driving state changes
+    ground_truth_diseases: list[str] = field(default_factory=list)
+
+    # For unknown: the symptom pattern without identified cause
+    symptom_pattern: str = ""  # "fever_unknown" | "weight_loss" | "malaise"
+
+    # Combined state impact from all causes (applied to physiology)
+    state_impacts: dict[str, float] = field(default_factory=dict)
+
+    # Presenting symptoms (what the patient reports)
+    presenting_symptoms: list[dict] = field(default_factory=list)
+
+
+@dataclass
+class ClinicalDiagnosis:
+    """What the hospital concludes (may differ from ground truth). AD-28.
+
+    This is the diagnosis as recorded in the EHR — the clinical output,
+    not the hidden truth.
+    """
+
+    admission_diagnosis_code: str = ""  # ICD at admission (often vague: R50.9, J18.9)
+    admission_diagnosis_name: str = ""
+    working_diagnoses: list[dict] = field(default_factory=list)  # [{code, name, day, confidence}]
+    discharge_diagnosis_code: str = ""  # ICD at discharge
+    discharge_diagnosis_name: str = ""
+
+    # Hidden fields (in CIF, not in clinical output)
+    diagnosis_correct: bool = True  # does discharge dx match ground truth?
+    missed_diagnoses: list[str] = field(default_factory=list)  # ground truth not identified
+    overcalled_diagnoses: list[str] = field(default_factory=list)  # diagnosed but not present
+
+
+@dataclass
+class DiagnosticAccuracyConfig:
+    """Tunable diagnostic accuracy parameters. AD-29."""
+
+    initial_correct_rate: float = 0.60  # first working dx matches truth
+    final_correct_rate: float = 0.85  # discharge dx matches truth
+    missed_secondary_rate: float = 0.30  # miss secondary dx in mixed cases
+    fuo_rate: float = 0.05  # fever remains undiagnosed
+    incidental_finding_rate: float = 0.08  # find unrelated condition

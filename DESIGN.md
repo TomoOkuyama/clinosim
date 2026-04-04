@@ -774,6 +774,124 @@ LLM mode (Ollama/Claude) generates natural-language narratives in the specified 
 
 ---
 
+### Condition-first simulation model
+
+#### Principle: symptoms before diagnosis
+
+In real hospitals, patients arrive with **conditions** (symptoms, signs, abnormal values), not diagnoses. The diagnosis is the **output** of the clinical process, not the input.
+
+clinosim simulates this forward process:
+
+```
+Ground truth          Clinical process         EHR record
+(hidden, in CIF)      (simulated)              (output)
+                                               
+Cause:                Presentation:            Admission Dx:
+  known disease   -->   symptoms/signs    -->    "Pneumonia, unspecified"
+  mixed causes    -->   overlapping Sx    -->    "Pneumonia" (may be wrong)
+  unknown cause   -->   nonspecific Sx    -->    "Fever, unspecified"
+                            |
+                        Workup:
+                          labs, imaging
+                            |
+                        Differential:
+                          updated by results
+                            |
+                        Working Dx:             Progress notes:
+                          may change            "Pneumonia suspected"
+                            |
+                        Final Dx:               Discharge Dx:
+                          may differ from       "Pneumonia due to S. pneumoniae"
+                          ground truth          (or "Fever, unresolved" in 10%)
+```
+
+#### Three types of condition generators
+
+**Type 1: Known-cause condition**
+A specific disease drives the state changes. This is the current model.
+- Ground truth: bacterial_pneumonia
+- State trajectory: follows disease YAML archetype
+- Diagnosis process: clinical workup should converge on the correct disease
+- Clinical accuracy: ~85% correctly diagnosed (tunable)
+
+**Type 2: Mixed-cause condition**
+Multiple diseases contribute simultaneously. Common in elderly.
+- Ground truth: pneumonia + heart_failure_exacerbation (both active)
+- State trajectory: superposition of both disease impacts
+- Diagnosis process: one disease may mask the other. Initial diagnosis may be incomplete.
+- Example: 80yo with cough, dyspnea, bilateral infiltrates. Is it pneumonia, HF, or both?
+  CXR shows infiltrates (could be either). BNP elevated (HF?). CRP elevated (infection?).
+  Diuretic trial partially helps (HF component). Antibiotics also help (infection component).
+  Final dx: "Pneumonia with acute HF exacerbation" — both are real.
+
+**Type 3: Unknown-cause condition**
+State changes occur without a clear disease mechanism.
+- Ground truth: `unknown` or `idiopathic_{symptom_pattern}`
+- State trajectory: stochastic but physiologically constrained
+- Diagnosis process: extensive workup, may remain undiagnosed
+- Examples:
+  - Fever of unknown origin (FUO): inflammation rises without clear cause
+  - Unexplained weight loss in elderly
+  - Nonspecific malaise with mildly elevated inflammatory markers
+  - Drug fever (cause is iatrogenic, not disease)
+- Final dx: "R50.9 Fever, unspecified" (unresolved at discharge in ~10% of cases)
+
+#### Ground truth vs clinical diagnosis
+
+```python
+@dataclass
+class ConditionEvent:
+    """What actually happens to the patient (hidden ground truth)."""
+    condition_id: str
+    condition_type: str           # "known_disease" | "mixed" | "unknown"
+    
+    # For known_disease:
+    ground_truth_diseases: list[str]  # ["bacterial_pneumonia"] or ["bacterial_pneumonia", "heart_failure_exacerbation"]
+    
+    # For unknown:
+    symptom_pattern: str          # "fever_unknown" | "weight_loss" | "malaise"
+    
+    # State impact is applied regardless of type
+    state_impacts: dict[str, float]   # combined impact from all causes
+    
+@dataclass 
+class ClinicalDiagnosis:
+    """What the hospital concludes (may differ from ground truth)."""
+    admission_diagnosis: str      # ICD code at admission (often vague)
+    working_diagnoses: list       # evolves over stay
+    discharge_diagnosis: str      # ICD code at discharge (may still be vague)
+    
+    diagnosis_correct: bool       # does discharge dx match ground truth? (CIF hidden field)
+    missed_diagnoses: list[str]   # ground truth diseases not identified
+    overcalled_diagnoses: list[str]  # diagnosed but not actually present
+```
+
+#### Diagnostic accuracy parameters
+
+Real-world diagnostic accuracy varies. clinosim models this as a tunable parameter:
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `initial_correct_rate` | 0.60 | Probability that first working diagnosis is correct |
+| `final_correct_rate` | 0.85 | Probability that discharge diagnosis matches ground truth |
+| `missed_secondary_rate` | 0.30 | Probability of missing a secondary diagnosis in mixed cases |
+| `fuo_rate` | 0.05 | Probability that a fever case remains undiagnosed |
+| `incidental_finding_rate` | 0.08 | Probability of finding an unrelated condition during workup |
+
+These can be adjusted to generate data at different "clinical quality" levels:
+- **Real-world default**: matches published misdiagnosis rates
+- **High-quality setting**: better than average (for ideal-scenario testing)
+- **Low-quality setting**: more errors (for error-detection algorithm training)
+
+#### Architecture decision
+
+| AD | Decision |
+|---|---|
+| AD-28 | Condition-first model: patients present with symptoms, not diagnoses. Ground truth (hidden) may differ from clinical diagnosis (recorded). Three condition types: known-disease, mixed-cause, unknown-cause. |
+| AD-29 | Diagnostic accuracy is a tunable parameter. Default matches real-world rates (~85% correct). Can be adjusted for different use cases. |
+
+---
+
 ## 3. Two Simulation Modes
 
 clinosim supports two simulation modes. Mode 2 is a superset of Mode 1.
