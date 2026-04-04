@@ -3,7 +3,7 @@
 import os
 import pytest
 
-from clinosim.simulator_beta import run_beta
+from clinosim.simulator import run_beta
 from clinosim.modules.output.csv_adapter import convert_cif_to_csv
 from clinosim.modules.output.cif_writer import write_cif
 from clinosim.modules.output.fhir_r4_adapter import convert_cif_to_fhir

@@ -2,7 +2,7 @@
 
 import pytest
 
-from clinosim.simulator_beta import run_beta, run_forced
+from clinosim.simulator import run_beta, run_forced
 from clinosim.types.config import ForcedScenario, SimulatorConfig
 
 
