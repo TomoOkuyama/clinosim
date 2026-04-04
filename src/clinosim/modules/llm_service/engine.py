@@ -79,8 +79,19 @@ class LLMResponse:
 class LLMService:
     """Central LLM service. All modules call generate() — never LLM directly."""
 
-    def __init__(self, mode: str = "none"):
+    def __init__(self, mode: str = "none", judgment_provider: Any = None,
+                 narrative_provider: Any = None,
+                 judgment_model_map: dict[str, str] | None = None,
+                 narrative_model_map: dict[str, str] | None = None):
         self.mode = mode  # "none" | "template" | "llm"
+        self.judgment_provider = judgment_provider
+        self.narrative_provider = narrative_provider
+        self.judgment_model_map = judgment_model_map or {}
+        self.narrative_model_map = narrative_model_map or {}
+        self.total_input_tokens = 0
+        self.total_output_tokens = 0
+        self.call_count = 0
+        self.fallback_count = 0
 
     def generate(self, task_type: LLMTaskType, event: ClinicalEventData) -> LLMResponse:
         """Single entry point for all LLM interactions."""
@@ -93,8 +104,8 @@ class LLMService:
         if self.mode == "template":
             return self._template_generate(task_type, event, language)
 
-        # LLM mode (not yet implemented — fall back to template)
-        return self._template_generate(task_type, event, language)
+        # LLM mode
+        return self._llm_generate(task_type, event, language, category)
 
     def _template_generate(
         self, task_type: LLMTaskType, event: ClinicalEventData, language: str
@@ -129,6 +140,139 @@ class LLMService:
                 text = f"[Template: {task_type.value}]"
 
         return LLMResponse(text=text, source="template")
+
+
+    def _llm_generate(
+        self, task_type: LLMTaskType, event: ClinicalEventData,
+        language: str, category: LLMTaskCategory,
+    ) -> LLMResponse:
+        """Call actual LLM provider. Falls back to template on failure."""
+        # Select provider and model
+        if category == LLMTaskCategory.JUDGMENT:
+            provider = self.judgment_provider
+            model_map = self.judgment_model_map
+        else:
+            provider = self.narrative_provider
+            model_map = self.narrative_model_map
+
+        if provider is None:
+            # No provider configured — fall back to template
+            self.fallback_count += 1
+            return self._template_generate(task_type, event, language)
+
+        # Build prompt
+        system_prompt, user_prompt = _build_prompt(task_type, event, language)
+        model = model_map.get("medium", model_map.get("small", ""))
+
+        # Call with retry
+        for attempt in range(3):
+            try:
+                response = provider.complete(
+                    prompt=user_prompt,
+                    model=model,
+                    max_tokens=1500,
+                    system_prompt=system_prompt,
+                )
+                self.call_count += 1
+                self.total_input_tokens += response.input_tokens
+                self.total_output_tokens += response.output_tokens
+
+                return LLMResponse(
+                    text=response.text,
+                    source="llm",
+                    model=response.model,
+                )
+            except Exception as e:
+                if attempt == 2:
+                    # All retries exhausted — fall back to template
+                    self.fallback_count += 1
+                    return self._template_generate(task_type, event, language)
+                import time
+                time.sleep(1 * (attempt + 1))
+
+        return self._template_generate(task_type, event, language)
+
+    def cost_report(self) -> dict:
+        return {
+            "total_calls": self.call_count,
+            "total_input_tokens": self.total_input_tokens,
+            "total_output_tokens": self.total_output_tokens,
+            "fallback_count": self.fallback_count,
+        }
+
+
+def _build_prompt(task_type: LLMTaskType, event: ClinicalEventData,
+                   language: str) -> tuple[str, str]:
+    """Build system and user prompts for an LLM call. Centralized here (AD-11)."""
+    ps = event.patient_summary
+    ed = event.event_data
+
+    lang_instruction = {
+        "ja": "Write in Japanese. Use appropriate Japanese medical terminology.",
+        "en": "Write in English. Use standard medical terminology.",
+    }.get(language, "Write in English.")
+
+    match task_type:
+        case LLMTaskType.PROGRESS_NOTE:
+            system = (
+                f"You are a physician writing a daily progress note. "
+                f"Use SOAP format. Be concise. {lang_instruction}"
+            )
+            user = (
+                f"Patient: {ps.age}yo {ps.sex}, Hospital Day {ps.hospital_day}\n"
+                f"Diagnosis: {ps.current_diagnosis}\n"
+                f"Vitals: {ed.get('vitals', {})}\n"
+                f"Key labs: {ed.get('key_labs', {})}\n"
+                f"Write the progress note."
+            )
+
+        case LLMTaskType.DISCHARGE_SUMMARY:
+            system = (
+                f"You are a physician writing a discharge summary. "
+                f"Be comprehensive but concise. {lang_instruction}"
+            )
+            user = (
+                f"Patient: {ps.age}yo {ps.sex}\n"
+                f"Diagnosis: {ed.get('final_diagnosis', ps.current_diagnosis)}\n"
+                f"LOS: {ed.get('los_days', 14)} days\n"
+                f"Key events: {ed.get('key_events', [])}\n"
+                f"Discharge medications: {ed.get('discharge_medications', [])}\n"
+                f"Write the discharge summary."
+            )
+
+        case LLMTaskType.ADMISSION_HP:
+            system = (
+                f"You are a physician writing an admission History & Physical. "
+                f"{lang_instruction}"
+            )
+            conditions = ", ".join(ps.relevant_conditions or [])
+            user = (
+                f"Patient: {ps.age}yo {ps.sex}\n"
+                f"Chief complaint: {ps.chief_complaint}\n"
+                f"PMH: {conditions}\n"
+                f"Write the admission H&P."
+            )
+
+        case LLMTaskType.CHIEF_COMPLAINT:
+            system = f"Generate a brief chief complaint statement. {lang_instruction}"
+            symptoms = ed.get("symptoms", ["fever", "cough"])
+            days = ed.get("symptom_days", 3)
+            user = f"Symptoms: {', '.join(symptoms)} for {days} days."
+
+        case LLMTaskType.DIAGNOSTIC_REASONING:
+            system = "You are a physician explaining diagnostic reasoning. Write in English."
+            user = (
+                f"Differential changed: {ed.get('differential_before', {})} "
+                f"-> {ed.get('differential_after', {})}\n"
+                f"New findings: {ed.get('new_findings', [])}\n"
+                f"Explain the reasoning."
+            )
+
+        case _:
+            system = f"You are a medical professional. {lang_instruction}"
+            user = f"Task: {task_type.value}. Patient: {ps.age}yo {ps.sex}."
+
+    return system, user
 
 
 # ============================================================
