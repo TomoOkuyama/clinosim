@@ -8,7 +8,7 @@ import pytest
 from clinosim.modules.llm_service.engine import LLMService
 from clinosim.modules.output.cif_writer import write_cif
 from clinosim.modules.output.narrative_generator import generate_narratives
-from clinosim.simulator_beta import run_alpha
+from clinosim.simulator import run_alpha
 from clinosim.types.config import SimulatorConfig
 
 

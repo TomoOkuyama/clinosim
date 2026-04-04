@@ -1,15 +1,18 @@
-"""Simulator — population-driven, multiple patients, all archetypes.
+"""clinosim simulator — population-driven EHR data generation.
 
-Refactored into clear functions:
-  run_beta()           — orchestrator
-  _simulate_patient()  — one patient's full hospital encounter
-  _run_daily_loop()    — daily cycle (state update, labs, vitals, complications)
-  _generate_mar()      — medication administration records
-  _build_discharge_rx() — discharge prescription
+Public API:
+  run_beta(config)       — population-driven simulation (main entry point)
+  run_forced(scenario)   — generate specific disease/archetype (testing)
+  run_alpha(config)      — backward-compatible single patient
+
+CLI:
+  clinosim generate -p 10000 -o ./output --format cif csv fhir
+  clinosim test-disease bacterial_pneumonia --archetype treatment_resistant -n 5
 """
 
 from __future__ import annotations
 
+import os
 from copy import deepcopy
 from datetime import datetime, timedelta
 from typing import Any
@@ -987,29 +990,85 @@ def run_alpha(config: SimulatorConfig | None = None) -> CIFDataset:
 
 
 def main() -> None:
-    import sys
-    output_dir = sys.argv[1] if len(sys.argv) > 1 else "./output/cif_beta"
-    pop_size = int(sys.argv[2]) if len(sys.argv) > 2 else 10_000
+    """CLI entry point: clinosim [command] [options]"""
+    import argparse
 
-    print(f"clinosim v0.1: population={pop_size}")
-    config = SimulatorConfig(
-        catchment_population=pop_size,
-        time_range=("2024-04-01", "2025-03-31"),
-        random_seed=42,
+    parser = argparse.ArgumentParser(
+        prog="clinosim",
+        description="Clinically Realistic Hospital Data Simulator",
     )
-    dataset = run_beta(config)
-    write_cif(dataset, output_dir)
+    sub = parser.add_subparsers(dest="command", help="Command to run")
 
-    print(f"  Patients: {len(dataset.patients)}")
-    if dataset.patients:
-        total_labs = sum(len(r.lab_results) for r in dataset.patients)
-        total_vitals = sum(len(r.vital_signs) for r in dataset.patients)
-        total_mars = sum(len(r.medication_administrations) for r in dataset.patients)
-        total_deceased = sum(1 for r in dataset.patients if r.deceased)
-        print(f"  Labs: {total_labs}, Vitals: {total_vitals}, MARs: {total_mars}")
-        print(f"  Deceased: {total_deceased}")
-    print(f"  Output: {output_dir}/")
+    # === generate: population-driven simulation ===
+    gen = sub.add_parser("generate", help="Generate patient data from population simulation")
+    gen.add_argument("-o", "--output", default="./output", help="Output directory")
+    gen.add_argument("-p", "--population", type=int, default=10_000, help="Catchment population size")
+    gen.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
+    gen.add_argument("--country", default="JP", help="Country code (JP or US)")
+    gen.add_argument("--period", default="2024-04-01,2025-03-31", help="Simulation period (start,end)")
+    gen.add_argument("--format", nargs="+", default=["cif"], help="Output formats: cif, csv, fhir")
+
+    # === test-disease: generate specific disease/archetype ===
+    td = sub.add_parser("test-disease", help="Generate data for a specific disease and archetype")
+    td.add_argument("disease_id", help="Disease ID (e.g., bacterial_pneumonia)")
+    td.add_argument("-o", "--output", default="./output", help="Output directory")
+    td.add_argument("-n", "--count", type=int, default=3, help="Number of patients")
+    td.add_argument("--severity", default=None, help="Force severity: mild/moderate/severe")
+    td.add_argument("--archetype", default=None, help="Force archetype name")
+    td.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
+    td.add_argument("--format", nargs="+", default=["cif", "csv"], help="Output formats")
+
+    args = parser.parse_args()
+
+    if args.command == "generate":
+        start, end = args.period.split(",")
+        config = SimulatorConfig(
+            catchment_population=args.population,
+            time_range=(start.strip(), end.strip()),
+            random_seed=args.seed,
+            country=args.country,
+        )
+        print(f"clinosim generate: population={args.population}, seed={args.seed}, country={args.country}")
+        dataset = run_beta(config)
+
+    elif args.command == "test-disease":
+        scenario = ForcedScenario(
+            disease_id=args.disease_id,
+            count=args.count,
+            severity=args.severity,
+            archetype=args.archetype,
+        )
+        config = SimulatorConfig(random_seed=args.seed)
+        print(f"clinosim test-disease: {args.disease_id} x{args.count}")
+        dataset = run_forced(scenario, config)
+
+    else:
+        parser.print_help()
+        return
+
+    # Output
+    cif_dir = os.path.join(args.output, "cif")
+    write_cif(dataset, cif_dir)
+
+    if "csv" in args.format:
+        from clinosim.modules.output.csv_adapter import convert_cif_to_csv
+        convert_cif_to_csv(cif_dir, os.path.join(args.output, "csv"))
+
+    if "fhir" in args.format:
+        from clinosim.modules.output.fhir_r4_adapter import convert_cif_to_fhir
+        convert_cif_to_fhir(cif_dir, os.path.join(args.output, "fhir_r4"))
+
+    # Summary
+    n = len(dataset.patients)
+    print(f"  Patients: {n}")
+    if n > 0:
+        print(f"  Labs: {sum(len(r.lab_results) for r in dataset.patients)}")
+        print(f"  Vitals: {sum(len(r.vital_signs) for r in dataset.patients)}")
+        print(f"  MARs: {sum(len(r.medication_administrations) for r in dataset.patients)}")
+        print(f"  Deceased: {sum(1 for r in dataset.patients if r.deceased)}")
+    print(f"  Output: {args.output}/")
 
 
 if __name__ == "__main__":
+    import os
     main()

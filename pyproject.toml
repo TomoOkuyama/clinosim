@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "clinosim"
-version = "0.1.0-alpha"
+version = "0.1.0"
 description = "Clinically Realistic Hospital Data Simulator"
 readme = "README.md"
 license = "MIT"
@@ -37,6 +37,9 @@ parquet = [
     "pandas>=2.2",
 ]
 all = ["clinosim[dev,llm,parquet]"]
+
+[project.scripts]
+clinosim = "clinosim.simulator:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["clinosim"]

@@ -6,7 +6,7 @@ Golden values updated when simulator behavior changes intentionally.
 
 import pytest
 
-from clinosim.simulator_beta import run_alpha
+from clinosim.simulator import run_alpha
 from clinosim.types.config import SimulatorConfig
 
 GOLDEN = {
