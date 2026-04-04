@@ -843,6 +843,26 @@ def _simulate_unknown_condition(
             ordered_by=attending_id, status=OrderStatus.PLACED,
         ))
 
+    # Supportive medications (even unknown conditions need basic care)
+    supportive_meds = [
+        {"drug": "Acetaminophen 500mg PO q6h PRN", "intent": "antipyretic for fever"},
+        {"drug": "IV_fluid: NS 80mL/h", "intent": "hydration"},
+    ]
+    # If fever is the complaint, empiric antibiotics may be started
+    if "fever" in complaint:
+        supportive_meds.append({"drug": "Ceftriaxone 1g IV daily", "intent": "empiric antibiotic (pending workup)"})
+
+    for i, med in enumerate(supportive_meds):
+        all_orders.append(Order(
+            order_id=f"ORD-{patient.patient_id}-ADM-M{i:02d}",
+            patient_id=patient.patient_id, order_type=OrderType.MEDICATION,
+            display_name=med["drug"], urgency="routine",
+            clinical_intent=f"Unknown {complaint}: {med['intent']}",
+            ordered_datetime=admission_time + timedelta(minutes=30),
+            ordered_by=attending_id, status=OrderStatus.PLACED,
+        ))
+    all_mars: list[MedicationAdministration] = []
+
     for day in range(target_los):
         # State: slow random walk (no clear trajectory)
         state.inflammation_level += float(rng.normal(0, 0.02))
@@ -896,6 +916,9 @@ def _simulate_unknown_condition(
         # Vitals
         all_vitals.extend(_generate_vitals(state, patient, day, admission_time, rng))
 
+        # MAR for supportive medications
+        all_mars.extend(_generate_mar(patient, all_orders, day, admission_time, roster, rng))
+
     encounter.status = EncounterStatus.COMPLETED
     encounter.discharge_datetime = admission_time + timedelta(days=target_los, hours=14)
 
@@ -912,6 +935,7 @@ def _simulate_unknown_condition(
     return CIFPatientRecord(
         patient=patient, encounters=[encounter],
         orders=all_orders, vital_signs=all_vitals, lab_results=all_lab_results,
+        medication_administrations=all_mars,
         condition_event=ConditionEvent(condition_id=f"COND-{patient.patient_id}-UNK",
                                        condition_type="unknown", symptom_pattern=event.disease_id),
         clinical_diagnosis=ClinicalDiagnosis(
