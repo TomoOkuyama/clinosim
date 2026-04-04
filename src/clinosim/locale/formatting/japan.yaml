@@ -1,0 +1,20 @@
+# Japan formatting rules
+
+date_format: "yyyy/MM/dd"          # 2024/06/15
+time_format: "24h"                  # 14:30
+datetime_format: "yyyy/MM/dd HH:mm" # 2024/06/15 14:30
+name_order: "family_given"          # 田中 太郎
+name_script: "ja"
+
+# Units (clinical)
+temperature_unit: "C"               # always Celsius
+weight_unit: "kg"
+height_unit: "cm"
+blood_pressure_unit: "mmHg"
+
+# Lab value display
+lab_decimal_separator: "."
+lab_thousands_separator: ","
+
+# FHIR profile
+fhir_profile_base: "http://jpfhir.jp/fhir/core"

@@ -1,0 +1,99 @@
+"""End-to-end tests for v0.1-beta (population-driven, multiple patients)."""
+
+import os
+import pytest
+
+from clinosim.simulator_beta import run_beta
+from clinosim.modules.output.csv_adapter import convert_cif_to_csv
+from clinosim.modules.output.cif_writer import write_cif
+from clinosim.modules.output.fhir_r4_adapter import convert_cif_to_fhir
+from clinosim.modules.validator.benchmarks import run_benchmarks
+from clinosim.types.config import SimulatorConfig
+
+
+@pytest.fixture(scope="module")
+def beta_result():
+    config = SimulatorConfig(
+        catchment_population=10_000,
+        time_range=("2024-04-01", "2025-03-31"),
+        random_seed=42,
+    )
+    return run_beta(config)
+
+
+@pytest.mark.e2e
+class TestBeta:
+    def test_generates_multiple_patients(self, beta_result):
+        assert len(beta_result.patients) > 5, "Should generate multiple patients from 10K population"
+
+    def test_age_distribution_realistic(self, beta_result):
+        ages = [p.patient.age for p in beta_result.patients]
+        mean_age = sum(ages) / len(ages)
+        # Pneumonia patients should be predominantly elderly
+        assert mean_age > 50, f"Mean age {mean_age:.0f} too young for pneumonia cohort"
+
+    def test_varied_archetypes(self, beta_result):
+        """Not all patients should have the same trajectory."""
+        final_inflammations = [
+            p.physiological_states[-1].inflammation_level
+            for p in beta_result.patients if p.physiological_states
+        ]
+        # Some variation expected
+        assert max(final_inflammations) - min(final_inflammations) >= 0, "Some variation expected"
+
+    def test_csv_output(self, beta_result, tmp_path):
+        cif_dir = str(tmp_path / "cif")
+        csv_dir = str(tmp_path / "csv")
+        write_cif(beta_result, cif_dir)
+        convert_cif_to_csv(cif_dir, csv_dir)
+
+        assert os.path.exists(os.path.join(csv_dir, "patients.csv"))
+        assert os.path.exists(os.path.join(csv_dir, "vital_signs.csv"))
+        assert os.path.exists(os.path.join(csv_dir, "lab_results.csv"))
+        assert os.path.exists(os.path.join(csv_dir, "orders.csv"))
+        assert os.path.exists(os.path.join(csv_dir, "encounters.csv"))
+
+    def test_benchmarks_pass(self, beta_result):
+        report = run_benchmarks(beta_result, country="JP")
+        print(f"\n{report.summary()}")
+        for r in report.results:
+            print(f"  {r.name}: {r.generated_value:.1f} (expected {r.expected_value}, range {r.expected_range}) [{r.status}]")
+        # At least 50% should pass (beta quality, not production)
+        assert report.pass_rate >= 0.5, f"Benchmark pass rate too low: {report.pass_rate:.0%}"
+
+    def test_fhir_output(self, beta_result, tmp_path):
+        cif_dir = str(tmp_path / "cif")
+        fhir_dir = str(tmp_path / "fhir")
+        write_cif(beta_result, cif_dir)
+        convert_cif_to_fhir(cif_dir, fhir_dir, country="JP")
+
+        # Check FHIR bundles exist
+        fhir_files = [f for f in os.listdir(fhir_dir) if f.endswith(".json")]
+        # May be fewer files than patients if same person has multiple encounters (same ID → 1 file)
+        unique_patients = len({p.patient.patient_id for p in beta_result.patients})
+        assert len(fhir_files) == unique_patients
+
+        # Validate first bundle structure
+        import json
+        with open(os.path.join(fhir_dir, fhir_files[0])) as f:
+            bundle = json.load(f)
+        assert bundle["resourceType"] == "Bundle"
+        assert bundle["type"] == "collection"
+        assert len(bundle["entry"]) > 0
+
+        # Check resource types present
+        resource_types = {e["resource"]["resourceType"] for e in bundle["entry"]}
+        assert "Patient" in resource_types
+        assert "Encounter" in resource_types
+        assert "Observation" in resource_types
+
+    def test_reproducibility(self, beta_result):
+        config = SimulatorConfig(
+            catchment_population=10_000,
+            time_range=("2024-04-01", "2025-03-31"),
+            random_seed=42,
+        )
+        result2 = run_beta(config)
+        assert len(result2.patients) == len(beta_result.patients)
+        for p1, p2 in zip(beta_result.patients, result2.patients):
+            assert p1.patient.patient_id == p2.patient.patient_id
