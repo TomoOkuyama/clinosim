@@ -19,12 +19,12 @@ See `DESIGN.md` for full architecture, `TODO.md` for roadmap, `modules/INTERFACE
 - Type checking: mypy (strict mode)
 - Line length: 100
 - Types: Pydantic BaseModel for YAML-loaded configs (AD-18). @dataclass for runtime types.
-- All types defined in `src/clinosim/types/` — never define data types inside module code.
+- All types defined in `clinosim/types/` — never define data types inside module code.
 
 ## Architecture rules
 
-- **INTERFACES.md is the contract** — all inter-module data types must be defined there (design phase) or in `src/clinosim/types/` (implementation).
-- **Module independence** — each module under `src/clinosim/modules/` can only depend on types and other modules listed in its SPEC.md Dependencies section.
+- **INTERFACES.md is the contract** — all inter-module data types must be defined there (design phase) or in `clinosim/types/` (implementation).
+- **Module independence** — each module under `clinosim/modules/` can only depend on types and other modules listed in its SPEC.md Dependencies section.
 - **LLM calls only via llm_service** (AD-11) — no other module may call any LLM API directly.
 - **CIF is the only simulation output** (AD-17) — format adapters (FHIR, CSV) read CIF, never simulation internals.
 - **Deterministic with seed** (AD-16) — each module creates its own `numpy.random.Generator` from its sub-seed. Never use `random.random()` or shared global state.
@@ -52,11 +52,10 @@ See `DESIGN.md` for full architecture, `TODO.md` for roadmap, `modules/INTERFACE
 ## Key directories
 
 ```
-src/clinosim/
+clinosim/
   types/          <- All data type definitions
   modules/        <- Module implementations (one package per module)
   config/         <- Default YAML configurations
-modules/          <- Module SPEC.md files (design documents, not code)
 tests/            <- Test code
 ```
 
@@ -77,8 +76,8 @@ ollama pull llama3.1:70b
 ```
 
 Config files:
-- `src/clinosim/config/llm_service.yaml` — default (local Ollama)
-- `src/clinosim/config/llm_service.cloud.yaml` — cloud (Anthropic API, needs ANTHROPIC_API_KEY)
+- `clinosim/config/llm_service.yaml` — default (local Ollama)
+- `clinosim/config/llm_service.cloud.yaml` — cloud (Anthropic API, needs ANTHROPIC_API_KEY)
 
 JUDGMENT and NARRATIVE can use different providers (AD-24). See `modules/llm_service/SPEC.md` for details.
 
