@@ -197,7 +197,9 @@ def derive_lab_values(
     if state.volume_status < -0.3:
         labs["BUN"] *= 1.0 + abs(state.volume_status) * 0.5
     labs["eGFR"] = renal * 120
-    labs["K"] = clamp(4.0 + (1 - renal) * 3.0 + max(0, -ph) * 1.0, 2.5, 8.0)
+    # K: renal failure causes hyperkalemia, but not as aggressively as before
+    # renal 1.0→K 4.0, renal 0.3→K 5.4, renal 0.1→K 6.0, acidosis adds
+    labs["K"] = clamp(4.0 + (1 - renal) * 2.2 + max(0, -ph) * 0.8, 2.5, 8.0)
     labs["Na"] = 140.0 - (1 - renal) * 5 + state.volume_status * (-3)
     labs["Na"] = clamp(labs["Na"], 120, 160)
 
