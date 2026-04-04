@@ -122,6 +122,23 @@ rehabilitation:
     week_3: {motor: 65, cognitive: 32}
     week_4: {motor: 75, cognitive: 33}
 
+diagnostic:
+  differential:
+    - {disease: "hip_fracture", icd: "S72.0", name: "Hip fracture", prior: 0.85}
+    - {disease: "pathological_fracture", icd: "M84.4", name: "Pathological fracture (tumor)", prior: 0.05}
+    - {disease: "pelvic_fracture", icd: "S32.1", name: "Pelvic fracture", prior: 0.05}
+    - {disease: "other", icd: "M79.6", name: "Other hip pain", prior: 0.05}
+  likelihood_ratios:
+    xray_fracture_confirmed:
+      hip_fracture: {pos: 50.0, neg: 0.1}
+      pathological_fracture: {pos: 5.0, neg: 0.5}
+  confirmation_threshold: 0.95
+  diagnosis_progression:
+    hip_fracture:
+      - [0.0, "S72.0", "Fracture of neck of femur"]
+      - [0.7, "S72.00", "Fracture of neck of femur, closed"]
+      - [0.9, "S72.00", "Fracture of neck of femur, closed"]
+
 outcome_benchmarks:
   japan:
     median_los: 30
