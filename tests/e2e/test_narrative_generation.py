@@ -8,7 +8,7 @@ import pytest
 from clinosim.modules.llm_service.engine import LLMService
 from clinosim.modules.output.cif_writer import write_cif
 from clinosim.modules.output.narrative_generator import generate_narratives
-from clinosim.simulator import run_alpha
+from clinosim.simulator_beta import run_alpha
 from clinosim.types.config import SimulatorConfig
 
 
@@ -36,7 +36,7 @@ class TestNarrativeGeneration:
         with open(os.path.join(narrative_dir, files[0])) as f:
             data = json.load(f)
 
-        assert data["patient_id"] == "P-ALPHA-001"
+        assert data["patient_id"] == "FORCED-0001"
         assert len(data["notes"]) >= 4  # H&P + progress notes + discharge
 
         # Check note types present
