@@ -467,7 +467,7 @@ def _generate_mar(
                 actual_datetime=actual,
                 status=status,
                 dose=order.display_name,
-                route="IV" if "IV" in drug_name.upper() else "PO",
+                route=_determine_route(drug_name, order.clinical_intent),
                 administered_by=nurse_id,
                 hold_reason=hold_reason,
             ))
@@ -589,6 +589,24 @@ def _extract_findings(
 # ============================================================
 # Mortality evaluation
 # ============================================================
+
+def _determine_route(drug_name: str, clinical_intent: str) -> str:
+    """Determine medication administration route."""
+    combined = (drug_name + " " + clinical_intent).upper()
+    if "IV" in combined or "DRIP" in combined:
+        return "IV"
+    if "SC" in combined or "SUBCUTANEOUS" in combined or "ENOXAPARIN" in combined.upper():
+        return "SC"
+    if "IM" in combined:
+        return "IM"
+    # Known IV drugs
+    iv_drugs = ["AMPICILLIN", "SULBACTAM", "CEFTRIAXONE", "MEROPENEM",
+                "FUROSEMIDE", "NITROGLYCERIN", "VANCOMYCIN", "LEVOFLOXACIN"]
+    for d in iv_drugs:
+        if d in drug_name.upper():
+            return "IV"
+    return "PO"
+
 
 def _evaluate_mortality(
     state: PhysiologicalState,

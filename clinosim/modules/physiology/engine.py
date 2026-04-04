@@ -178,7 +178,8 @@ def derive_lab_values(
     ph = state.ph_status
 
     # --- Inflammation ---
-    labs["CRP"] = 0.1 * math.exp(infl * 5.8)
+    # CRP: infl 0→0.3, 0.3→11, 0.5→50, 0.7→138, 1.0→400 mg/L
+    labs["CRP"] = 0.3 + 400 * infl ** 3
     if infl < 0.8:
         labs["WBC"] = 7000 + infl * 12000
     else:
