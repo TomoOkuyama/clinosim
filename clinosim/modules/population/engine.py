@@ -41,9 +41,10 @@ class Household:
 @dataclass
 class LifeEvent:
     person_id: str
-    event_type: str  # "acute_disease_onset" | "chronic_exacerbation" | "trauma"
+    event_type: str  # "acute_disease_onset" | "chronic_exacerbation" | "trauma" | "unknown_condition"
     timestamp: date
     severity: float = 0.5  # 0.0-1.0
+    condition_type: str = "known_disease"  # "known_disease" | "mixed" | "unknown" (AD-28)
     disease_id: str = ""
     requires_hospital: bool = False
 
@@ -209,6 +210,7 @@ def generate_monthly_events(
                 timestamp=event_date + timedelta(days=int(rng.integers(0, 28))),
                 severity=severity, disease_id="bacterial_pneumonia",
                 requires_hospital=severity > person.care_seeking_threshold,
+                condition_type="known_disease",
             ))
 
         # --- Heart Failure Exacerbation (requires prior HF diagnosis) ---
@@ -225,6 +227,7 @@ def generate_monthly_events(
                     severity=max(0.3, severity),  # HF exacerbation is at least moderate
                     disease_id="heart_failure_exacerbation",
                     requires_hospital=severity > person.care_seeking_threshold * 0.8,
+                    condition_type="known_disease",
                 ))
 
         # --- Hip Fracture (trauma, age-dependent) ---
@@ -240,7 +243,44 @@ def generate_monthly_events(
                 severity=0.7 + float(rng.random() * 0.3),  # always moderate-severe
                 disease_id="hip_fracture",
                 requires_hospital=True,  # always
+                condition_type="known_disease",
             ))
+
+        # --- Mixed-cause: Pneumonia + HF overlap (elderly with both conditions) ---
+        if ("I50" in person.chronic_conditions and person.age >= 65):
+            # Probability of presenting with overlapping symptoms
+            mixed_rate = 0.001 * _PNEUMONIA_SEASONAL.get(month, 1.0)  # rare but realistic
+            if rng.random() < mixed_rate:
+                events.append(LifeEvent(
+                    person_id=person.person_id,
+                    event_type="acute_disease_onset",
+                    timestamp=event_date + timedelta(days=int(rng.integers(0, 28))),
+                    severity=float(rng.beta(3, 2)),  # tends toward moderate-severe
+                    disease_id="bacterial_pneumonia",  # primary label, but both are active
+                    requires_hospital=True,
+                    condition_type="mixed",  # ground truth: pneumonia + HF exacerbation
+                ))
+
+        # --- Unknown-cause conditions ---
+        # FUO (fever of unknown origin): ~5% of fever admissions
+        # Unexplained symptoms in elderly
+        if person.age >= 50:
+            unknown_rate = 0.0002 * (1.0 + (person.age - 50) * 0.01)
+            if rng.random() < unknown_rate:
+                pattern = str(rng.choice([
+                    "fever_unknown", "weight_loss_unexplained",
+                    "malaise_fatigue", "elevated_inflammatory_markers",
+                ]))
+                unk_severity = float(rng.beta(2, 3))
+                events.append(LifeEvent(
+                    person_id=person.person_id,
+                    event_type="unknown_condition",
+                    timestamp=event_date + timedelta(days=int(rng.integers(0, 28))),
+                    severity=unk_severity,
+                    disease_id=f"unknown_{pattern}",
+                    requires_hospital=unk_severity > person.care_seeking_threshold,
+                    condition_type="unknown",
+                ))
 
     return events
 
