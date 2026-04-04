@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date, datetime
 
-from clinosim.types.clinical import PhysiologicalState
+from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent, PhysiologicalState
 from clinosim.types.encounter import Encounter, Order, OrderResult, VitalSignRecord
 from clinosim.types.patient import PatientProfile
 
@@ -32,6 +32,11 @@ class CIFPatientRecord:
     orders: list[Order] = field(default_factory=list)
     vital_signs: list[VitalSignRecord] = field(default_factory=list)
     lab_results: list[OrderResult] = field(default_factory=list)
+
+    # Condition & diagnosis (AD-28)
+    condition_event: ConditionEvent = field(default_factory=ConditionEvent)
+    clinical_diagnosis: ClinicalDiagnosis = field(default_factory=ClinicalDiagnosis)
+    complications_occurred: list[str] = field(default_factory=list)
 
     # Hidden state (for validation/debugging, not exported to clinical formats)
     physiological_states: list[PhysiologicalState] = field(default_factory=list)
