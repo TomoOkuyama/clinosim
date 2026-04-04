@@ -37,8 +37,11 @@ class CIFPatientRecord:
     condition_event: ConditionEvent = field(default_factory=ConditionEvent)
     clinical_diagnosis: ClinicalDiagnosis = field(default_factory=ClinicalDiagnosis)
     complications_occurred: list[str] = field(default_factory=list)
-    deceased: bool = False  # did the patient die during this encounter?
-    death_day: int | None = None  # hospital day of death (None if survived)
+    procedures: list = field(default_factory=list)  # ProcedureRecord
+    rehab_sessions: list = field(default_factory=list)  # RehabSession
+    icu_transferred: bool = False
+    deceased: bool = False
+    death_day: int | None = None
 
     # Hidden state (for validation/debugging, not exported to clinical formats)
     physiological_states: list[PhysiologicalState] = field(default_factory=list)
