@@ -1,10 +1,13 @@
 """Locale data loader — single access point for all country/language-specific data.
 
-Provides:
-  - Person names (surnames, given names with weights)
-  - Clinical terminology (display names for ICD, LOINC, RxNorm, etc.)
-  - Code mappings (internal code → standard code system)
-  - Formatting rules (date, time, units)
+Directory structure (country-based):
+  locale/
+    japan/
+      names.yaml, terminology_lab.yaml, code_mapping_lab.yaml, formatting.yaml
+    us/
+      names.yaml, terminology_lab.yaml, code_mapping_lab.yaml, formatting.yaml
+    shared/
+      naming_rules.yaml
 """
 
 from __future__ import annotations
@@ -17,51 +20,50 @@ import yaml
 
 _LOCALE_DIR = Path(__file__).parent
 
+_COUNTRY_DIR_MAP = {"JP": "japan", "US": "us"}
+
+
+def _country_dir(country: str) -> Path:
+    dir_name = _COUNTRY_DIR_MAP.get(country, country.lower())
+    return _LOCALE_DIR / dir_name
+
 
 @lru_cache(maxsize=16)
 def load_names(country: str) -> dict[str, Any]:
     """Load person name data for a country."""
-    path = _LOCALE_DIR / "names" / f"{_country_filename(country)}.yaml"
-    return _load_yaml(path, fallback=_FALLBACK_NAMES)
+    return _load_yaml(_country_dir(country) / "names.yaml", fallback=_FALLBACK_NAMES)
 
 
 @lru_cache(maxsize=16)
 def load_naming_rules(country: str) -> dict[str, Any]:
-    """Load naming rules for a country (name order, components, household rules)."""
-    all_rules = _load_yaml(_LOCALE_DIR / "names" / "naming_rules.yaml", fallback={})
-    country_key = _country_filename(country)
-    return all_rules.get(country_key, all_rules.get("us", {}))  # fallback to US
+    """Load naming rules for a country from shared/naming_rules.yaml."""
+    all_rules = _load_yaml(_LOCALE_DIR / "shared" / "naming_rules.yaml", fallback={})
+    dir_name = _COUNTRY_DIR_MAP.get(country, country.lower())
+    return all_rules.get(dir_name, all_rules.get("us", {}))
 
 
 @lru_cache(maxsize=32)
-def load_terminology(code_system: str, language: str) -> dict[str, str]:
-    """Load display names for a code system in a language.
+def load_terminology(domain: str, country: str) -> dict[str, str]:
+    """Load display names for a domain (lab, diagnosis, drug, procedure).
 
-    Example: load_terminology("icd10", "ja") -> {"J18.9": "肺炎、詳細不明", ...}
+    Example: load_terminology("lab", "JP") -> {"CRP": "C反応性蛋白", ...}
     """
-    path = _LOCALE_DIR / "terminology" / f"{code_system}_{language}.yaml"
-    return _load_yaml(path, fallback={})
+    return _load_yaml(_country_dir(country) / f"terminology_{domain}.yaml", fallback={})
 
 
 @lru_cache(maxsize=32)
-def load_code_mapping(from_system: str, to_system: str) -> dict[str, str]:
-    """Load code mapping between two systems.
+def load_code_mapping(domain: str, country: str) -> dict[str, str]:
+    """Load code mapping for a domain.
 
-    Example: load_code_mapping("internal", "jlac10") -> {"CRP": "5C070", ...}
+    Example: load_code_mapping("lab", "JP") -> {"CRP": "5C070", ...}
     """
-    path = _LOCALE_DIR / "code_mapping" / f"{from_system}_to_{to_system}.yaml"
-    return _load_yaml(path, fallback={})
+    return _load_yaml(_country_dir(country) / f"code_mapping_{domain}.yaml", fallback={})
 
 
 @lru_cache(maxsize=8)
 def load_formatting(country: str) -> dict[str, Any]:
     """Load formatting rules for a country (date, time, units)."""
-    path = _LOCALE_DIR / "formatting" / f"{_country_filename(country)}.yaml"
-    return _load_yaml(path, fallback=_FALLBACK_FORMATTING)
-
-
-def _country_filename(country: str) -> str:
-    return {"JP": "japan", "US": "us"}.get(country, country.lower())
+    return _load_yaml(_country_dir(country) / "formatting.yaml", fallback=_FALLBACK_FORMATTING)
 
 
 def _load_yaml(path: Path, fallback: Any = None) -> Any:
