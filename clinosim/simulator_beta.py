@@ -61,7 +61,7 @@ from clinosim.types.clinical import (
     PhysiologicalState,
     StateChangeDirective,
 )
-from clinosim.types.config import HealthcareSystemConfig, SimulatorConfig
+from clinosim.types.config import ForcedScenario, HealthcareSystemConfig, SimulatorConfig
 from clinosim.types.encounter import (
     EncounterStatus,
     MedicationAdministration,
@@ -886,6 +886,16 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
         llm_mode="none",
     )
     return CIFDataset(metadata=metadata, patients=patient_records)
+
+
+def run_alpha(config: SimulatorConfig | None = None) -> CIFDataset:
+    """Backward-compatible alpha: 1 pneumonia patient via ForcedScenario."""
+    scenario = ForcedScenario(
+        disease_id="bacterial_pneumonia", count=1,
+        severity="moderate", archetype="smooth_recovery",
+        patient_overrides={"age": 72, "sex": "F"},
+    )
+    return run_forced(scenario, config)
 
 
 def main() -> None:
