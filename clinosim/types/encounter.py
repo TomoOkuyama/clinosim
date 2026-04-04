@@ -94,6 +94,34 @@ class OrderResult:
 
 
 @dataclass
+class MedicationAdministration:
+    """Record of a single medication administration event (MAR entry)."""
+
+    order_id: str = ""
+    drug_name: str = ""
+    scheduled_datetime: datetime = field(default_factory=datetime.now)
+    actual_datetime: datetime | None = None
+    status: str = "given"  # "given" | "held" | "refused" | "not_available"
+    dose: str = ""
+    route: str = ""  # "IV" | "PO" | "SC" | "IM"
+    administered_by: str = ""  # nurse staff_id
+    hold_reason: str | None = None
+    refusal_reason: str | None = None
+
+
+@dataclass
+class PrescriptionRecord:
+    """Discharge or outpatient prescription record."""
+
+    prescription_id: str = ""
+    patient_id: str = ""
+    prescriber_id: str = ""
+    issue_date: datetime = field(default_factory=datetime.now)
+    items: list[dict] = field(default_factory=list)
+    # Each item: {drug_name, dose, frequency, route, days_supply, generic_name}
+
+
+@dataclass
 class Order:
     order_id: str = ""
     encounter_id: str = ""
