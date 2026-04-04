@@ -26,6 +26,12 @@ from clinosim.modules.order.engine import (
     place_daily_lab_orders,
 )
 from clinosim.modules.output.cif_writer import write_cif
+from clinosim.modules.procedure.engine import (
+    ProcedureRecord,
+    RehabSession,
+    generate_rehab_sessions,
+    simulate_surgery,
+)
 from clinosim.modules.diagnosis.engine import (
     initialize_differential,
     update_differential,
@@ -188,6 +194,35 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
 
         has_diabetes = any(c.code.startswith("E11") for c in patient.chronic_conditions)
 
+        # Initialize tracking variables (must be before surgery block)
+        procedures: list = []
+        rehab_sessions: list = []
+        icu_transferred = False
+        surgery_done = False
+        surgery_day: int | None = None
+
+        # --- Surgery (for hip fracture and other surgical conditions) ---
+        if disease_id == "hip_fracture":
+            proc_record, proc_state_impacts = simulate_surgery(
+                patient, disease_id, encounter.encounter_id,
+                admission_time, protocol, rng, config.country,
+            )
+            procedures.append(proc_record)
+            surgery_done = True
+            surgery_day = max(1, int((proc_record.start_datetime - admission_time).total_seconds() / 86400))
+
+            # Apply surgical state impacts
+            for var, delta in proc_state_impacts.items():
+                current = getattr(state, var, None)
+                if current is not None:
+                    setattr(state, var, max(-1.0, min(1.0, current + delta)))
+
+            # Generate rehab sessions
+            rehab_sessions = generate_rehab_sessions(
+                patient.patient_id, encounter.encounter_id,
+                proc_record.start_datetime, target_los, rng, config.country,
+            )
+
         # Initialize differential diagnosis
         differential = initialize_differential(disease_id, patient.age)
 
@@ -318,6 +353,10 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
                         if current is not None:
                             setattr(state, var, max(-1.0, min(1.0, current + delta)))
                     complications_occurred.append(comp.get("name", "unknown"))
+                    # Check if complication triggers ICU transfer
+                    actions = comp.get("actions", [])
+                    if "icu_transfer" in actions or "consider_icu" in actions:
+                        icu_transferred = True
 
             # --- Mortality evaluation ---
             # Check if patient dies during this day based on severity, state, age
@@ -355,6 +394,9 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
             condition_event=condition_event,
             clinical_diagnosis=clinical_diagnosis,
             complications_occurred=complications_occurred,
+            procedures=procedures,
+            rehab_sessions=rehab_sessions,
+            icu_transferred=icu_transferred,
             deceased=death_occurred,
             death_day=target_los if death_occurred else None,
             physiological_states=state_history,

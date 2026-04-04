@@ -105,14 +105,68 @@ def _my_new_template(ps: PatientSummary, ed: dict, language: str) -> str:
 source .venv/bin/activate && python -m pytest tests/unit/test_llm_service.py -v
 ```
 
+## Narrative document types — complete list
+
+All clinical documents that require natural-language text generation. Each type needs both a template-mode fallback and an LLM prompt template.
+
+### Implemented
+- [x] Chief complaint (主訴)
+- [x] Admission H&P (入院時記録)
+- [x] Daily progress note — SOAP format (経過記録)
+- [x] Discharge summary (退院時サマリー)
+- [x] Diagnostic reasoning (診断推論) — JUDGMENT, English
+- [x] Treatment decision rationale (治療判断根拠) — JUDGMENT, English
+
+### TODO — Inpatient documents
+- [ ] Operative report (手術記録) — procedure, findings, EBL, implants, complications
+- [ ] Anesthesia record narrative (麻酔記録) — induction, maintenance, emergence, events
+- [ ] Consultation note (コンサルテーション返書) — specialist response with recommendations
+- [ ] Consultation request (コンサルテーション依頼) — reason for consultation, specific questions
+- [ ] ICU admission note (ICU入室時記録) — reason for transfer, current status, plan
+- [ ] ICU daily note (ICU経過記録) — more detailed than ward progress note
+- [ ] Transfer note (転科・転棟サマリー) — summary when moving between units
+- [ ] Procedure note (処置記録) — central line, thoracentesis, lumbar puncture, etc.
+- [ ] Informed consent documentation (インフォームドコンセント記録) — what was explained, patient understanding
+
+### TODO — Nursing documents
+- [ ] Nursing admission assessment (入院時看護アセスメント) — comprehensive initial assessment
+- [ ] Nursing shift handoff / SBAR (申し送り) — situation, background, assessment, recommendation
+- [ ] Nursing care plan (看護計画) — goals, interventions, evaluation
+- [ ] Fall incident report (転倒転落レポート) — circumstances, injuries, interventions
+- [ ] Restraint documentation (身体拘束記録) — reason, alternatives tried, monitoring
+
+### TODO — Rehabilitation documents
+- [ ] Rehab initial evaluation (リハビリ初期評価) — functional status, goals, plan
+- [ ] Rehab session note (リハビリ実施記録) — activities, patient response, progress
+- [ ] Rehab discharge summary (リハビリサマリー) — FIM change, goals achieved, recommendations
+
+### TODO — Outpatient / follow-up documents
+- [ ] Outpatient visit note (外来診療録) — shorter format than inpatient
+- [ ] Referral letter (紹介状) — reason, findings, request
+- [ ] Reply letter to referring physician (返書) — diagnosis, treatment, follow-up plan
+- [ ] Prescription explanation (処方説明) — patient-facing medication instructions
+
+### TODO — Special documents
+- [ ] Death certificate narrative (死亡診断書) — cause of death chain, contributing factors
+- [ ] Autopsy report (剖検報告) — if applicable
+- [ ] Discharge instructions (退院時指導) — patient-facing, plain language
+- [ ] Health checkup report (健診結果報告) — findings, recommendations
+- [ ] Cancer screening report (がん検診報告) — findings, follow-up recommendation
+
+### TODO — Administrative
+- [ ] Insurance pre-authorization narrative (事前審査) — medical necessity justification
+- [ ] DPC coding summary (DPCコーディングサマリー) — JP-specific
+
 ## Implementation status
 - [x] Template mode (rule-based text generation)
 - [x] JUDGMENT/NARRATIVE task category routing
-- [x] Japanese and English template generators (chief complaint, progress note, discharge summary, admission H&P, diagnostic reasoning, treatment decision)
-- [ ] Ollama provider (local Llama)
+- [x] LLM mode with OllamaProvider + MockProvider
+- [x] Graceful degradation (retry → template fallback)
+- [x] Cost tracking (input/output tokens)
+- [x] Centralized prompt construction (_build_prompt)
+- [ ] Ollama end-to-end testing with real model
 - [ ] Anthropic direct provider
 - [ ] Bedrock gateway provider
 - [ ] OpenAI-compatible provider
-- [ ] Response caching
-- [ ] Graceful degradation (retry → fallback)
-- [ ] Cost tracking
+- [ ] Response caching (LRU + disk persist)
+- [ ] All narrative document types listed above
