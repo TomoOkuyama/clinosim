@@ -1,0 +1,14 @@
+# US Healthcare System Configuration
+
+country: "US"
+
+# Clinical practice
+lab_frequency_multiplier: 0.8
+discharge_criteria: "functional_recovery"
+target_los_multiplier: 0.35
+
+# Coding systems
+diagnosis_code_system: "ICD-10-CM"
+drug_code_system: "RxNorm"
+lab_code_system: "LOINC"
+procedure_code_system: "CPT"
