@@ -78,7 +78,7 @@ class SimulatorConfig(BaseModel):
     """Top-level simulation configuration (AD-19: preset + override)."""
 
     mode: str = "patient_record"
-    country: str = "JP"
+    country: str = "US"  # default: US (English). Use "JP" for Japanese.
     hospital_scale: str = "medium"
     disease_modules: list[str] = ["bacterial_pneumonia"]
     catchment_population: int = 50_000

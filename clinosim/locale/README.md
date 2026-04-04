@@ -51,6 +51,17 @@ fmt = load_formatting("JP")          # japan/formatting.yaml
 4. Add country mapping to `loader.py` `_COUNTRY_DIR_MAP`
 5. No other code changes needed
 
+## Terminology: English as base, translations per locale
+
+English (US) terminology files are the **master/base**. Other languages provide translations:
+
+```
+us/terminology_lab.yaml:    CRP: "C-reactive protein"     <- English base (master)
+jp/terminology_lab.yaml:    CRP: "C反応性蛋白"              <- Japanese translation
+```
+
+When adding a new term: add to US first (English), then translate to each locale.
+
 ## Key rules (AD-25, AD-26, AD-27)
 
 - CIF is language-neutral. Only person names are country-specific at generation time.
