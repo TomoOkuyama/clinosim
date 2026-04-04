@@ -20,7 +20,8 @@ import yaml
 
 _LOCALE_DIR = Path(__file__).parent
 
-_COUNTRY_DIR_MAP = {"JP": "japan", "US": "us"}
+# ISO 3166-1 alpha-2 lowercase
+_COUNTRY_DIR_MAP = {"JP": "jp", "US": "us"}
 
 
 def _country_dir(country: str) -> Path:

@@ -2,7 +2,7 @@
 # Used by population engine to generate household-appropriate names
 # Adding a new country = adding a section here + a names/{country}.yaml file
 
-japan:
+jp:
   name_order: "family_given"              # display: family name first
   name_components: ["family_name", "given_name"]
   has_middle_name: false
@@ -27,7 +27,7 @@ us:
   children_surname_rule: "fathers_surname"
   name_script: "en"
 
-korea:
+kr:
   name_order: "family_given"
   name_components: ["family_name", "given_name"]
   has_middle_name: false
@@ -39,7 +39,7 @@ korea:
   children_surname_rule: "fathers_surname"
   name_script: "ko"
 
-spain:
+es:
   name_order: "given_family"
   name_components: ["given_name", "paternal_surname", "maternal_surname"]
   has_middle_name: false                  # two surnames serve this function
@@ -50,7 +50,7 @@ spain:
   children_surname_rule: "father_first_mother_first"  # child gets paternal 1st + maternal 1st
   name_script: "es"
 
-china:
+cn:
   name_order: "family_given"
   name_components: ["family_name", "given_name"]
   has_middle_name: false
@@ -63,7 +63,7 @@ china:
   children_surname_rule: "fathers_surname"
   name_script: "zh"
 
-russia:
+ru:
   name_order: "given_family"
   name_components: ["given_name", "patronymic", "family_name"]
   has_middle_name: false
@@ -79,7 +79,7 @@ russia:
   children_surname_rule: "fathers_surname"
   name_script: "ru"
 
-arabic:
+sa:
   name_order: "given_patronymic"
   name_components: ["given_name", "ibn_bint", "father_name", "grandfather_name", "family_name"]
   has_middle_name: false
@@ -92,7 +92,7 @@ arabic:
   children_surname_rule: "fathers_chain"  # child's name includes father's name in chain
   name_script: "ar"
 
-brazil:
+br:
   name_order: "given_family"
   name_components: ["given_name", "middle_name", "maternal_surname", "paternal_surname"]
   has_middle_name: true
@@ -104,7 +104,7 @@ brazil:
   children_surname_rule: "maternal_plus_paternal"
   name_script: "pt"
 
-india:
+in:
   # NOTE: India has extreme regional/religious variation. This is a simplified default.
   name_order: "given_family"
   name_components: ["given_name", "family_name"]
