@@ -25,6 +25,14 @@ def load_names(country: str) -> dict[str, Any]:
     return _load_yaml(path, fallback=_FALLBACK_NAMES)
 
 
+@lru_cache(maxsize=16)
+def load_naming_rules(country: str) -> dict[str, Any]:
+    """Load naming rules for a country (name order, components, household rules)."""
+    all_rules = _load_yaml(_LOCALE_DIR / "names" / "naming_rules.yaml", fallback={})
+    country_key = _country_filename(country)
+    return all_rules.get(country_key, all_rules.get("us", {}))  # fallback to US
+
+
 @lru_cache(maxsize=32)
 def load_terminology(code_system: str, language: str) -> dict[str, str]:
     """Load display names for a code system in a language.

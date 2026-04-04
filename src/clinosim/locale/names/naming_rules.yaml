@@ -1,0 +1,118 @@
+# Country-specific naming rules
+# Used by population engine to generate household-appropriate names
+# Adding a new country = adding a section here + a names/{country}.yaml file
+
+japan:
+  name_order: "family_given"              # display: family name first
+  name_components: ["family_name", "given_name"]
+  has_middle_name: false
+  has_patronymic: false
+  has_phonetic: true                      # katakana reading required
+  phonetic_script: "katakana"
+  household_surname_rule: "shared"        # all household members share family name
+  marriage_surname_rule: "one_spouse_changes"  # one spouse takes the other's surname (法律上必須)
+  children_surname_rule: "same_as_household"
+  name_script: "ja"
+
+us:
+  name_order: "given_family"
+  name_components: ["given_name", "middle_name", "family_name"]
+  has_middle_name: true
+  middle_name_probability: 0.85           # ~85% of Americans have middle names
+  has_patronymic: false
+  has_phonetic: false
+  household_surname_rule: "mostly_shared" # ~80% wife takes husband's surname, ~20% keeps maiden
+  wife_keeps_maiden_probability: 0.20
+  marriage_surname_rule: "wife_typically_changes"
+  children_surname_rule: "fathers_surname"
+  name_script: "en"
+
+korea:
+  name_order: "family_given"
+  name_components: ["family_name", "given_name"]
+  has_middle_name: false
+  has_patronymic: false
+  has_phonetic: true
+  phonetic_script: "roman"                # romanization
+  household_surname_rule: "not_shared"    # wife keeps maiden name after marriage
+  marriage_surname_rule: "wife_keeps_maiden"
+  children_surname_rule: "fathers_surname"
+  name_script: "ko"
+
+spain:
+  name_order: "given_family"
+  name_components: ["given_name", "paternal_surname", "maternal_surname"]
+  has_middle_name: false                  # two surnames serve this function
+  has_patronymic: false
+  has_phonetic: false
+  household_surname_rule: "not_shared"    # each person has own two surnames
+  marriage_surname_rule: "no_change"      # surnames do not change at marriage
+  children_surname_rule: "father_first_mother_first"  # child gets paternal 1st + maternal 1st
+  name_script: "es"
+
+china:
+  name_order: "family_given"
+  name_components: ["family_name", "given_name"]
+  has_middle_name: false
+  has_patronymic: false
+  has_phonetic: true
+  phonetic_script: "pinyin"
+  household_surname_rule: "mostly_shared" # children traditionally take father's surname
+  wife_keeps_maiden_probability: 0.50     # ~50% keep maiden name in modern China
+  marriage_surname_rule: "wife_may_keep"
+  children_surname_rule: "fathers_surname"
+  name_script: "zh"
+
+russia:
+  name_order: "given_family"
+  name_components: ["given_name", "patronymic", "family_name"]
+  has_middle_name: false
+  has_patronymic: true                    # -ovich/-ovna suffix from father's first name
+  patronymic_male_suffix: "ович"
+  patronymic_female_suffix: "овна"
+  has_phonetic: false
+  household_surname_rule: "shared"
+  marriage_surname_rule: "wife_typically_changes"
+  # Family names have gender forms: Иванов (M) / Иванова (F)
+  surname_has_gender_form: true
+  surname_female_suffix: "а"
+  children_surname_rule: "fathers_surname"
+  name_script: "ru"
+
+arabic:
+  name_order: "given_patronymic"
+  name_components: ["given_name", "ibn_bint", "father_name", "grandfather_name", "family_name"]
+  has_middle_name: false
+  has_patronymic: true                    # ibn (son of) / bint (daughter of)
+  patronymic_male_prefix: "بن"           # ibn
+  patronymic_female_prefix: "بنت"         # bint
+  has_phonetic: false
+  household_surname_rule: "tribal_family" # family/tribal name shared, but not a "surname" in Western sense
+  marriage_surname_rule: "no_change"
+  children_surname_rule: "fathers_chain"  # child's name includes father's name in chain
+  name_script: "ar"
+
+brazil:
+  name_order: "given_family"
+  name_components: ["given_name", "middle_name", "maternal_surname", "paternal_surname"]
+  has_middle_name: true
+  middle_name_probability: 0.70
+  has_patronymic: false
+  has_phonetic: false
+  household_surname_rule: "partially_shared"  # paternal surname shared, maternal differs
+  marriage_surname_rule: "wife_may_add_husband"
+  children_surname_rule: "maternal_plus_paternal"
+  name_script: "pt"
+
+india:
+  # NOTE: India has extreme regional/religious variation. This is a simplified default.
+  name_order: "given_family"
+  name_components: ["given_name", "family_name"]
+  has_middle_name: true                   # sometimes father's name used as middle
+  middle_name_probability: 0.50
+  has_patronymic: false                   # varies by region
+  has_phonetic: false
+  household_surname_rule: "mostly_shared" # varies significantly by region
+  marriage_surname_rule: "varies"
+  children_surname_rule: "fathers_surname"
+  name_script: "hi"                       # varies by region (hi, ta, te, etc.)

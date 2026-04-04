@@ -90,16 +90,22 @@ def generate_population(
     avg_household_size = 2.3  # JP average
     n_households = int(size / avg_household_size)
 
-    # Load name data
+    # Load name data and naming rules
     name_data = _load_name_data(country)
+    from clinosim.locale.loader import load_naming_rules
+    naming_rules = load_naming_rules(country)
+    surname_rule = naming_rules.get("household_surname_rule", "shared")
 
     person_count = 0
     for h_idx in range(n_households):
         hh_id = f"HH-{h_idx+1:06d}"
         hh = Household(household_id=hh_id)
 
-        # Household family name (shared by all members, JP rule)
-        family_surname = _sample_surname(name_data, rng)
+        # Household family name — rule depends on country
+        # "shared": all members share one surname (JP, CN traditional)
+        # "mostly_shared": most share, but wife may keep maiden (~20% US)
+        # "not_shared": each person has own surname (KR, ES)
+        household_surname = _sample_surname(name_data, rng)
 
         # Household size: 1-4 (weighted)
         hh_size = int(rng.choice([1, 2, 2, 3, 3, 4]))
@@ -122,6 +128,29 @@ def generate_population(
             # Given name (sex-appropriate)
             given = _sample_given_name(name_data, sex, rng)
 
+            # Family name — apply household surname rule
+            if surname_rule == "shared":
+                # All members share household surname (JP)
+                member_surname = household_surname
+            elif surname_rule == "mostly_shared":
+                # First member sets surname; spouse may keep maiden with some probability
+                maiden_prob = naming_rules.get("wife_keeps_maiden_probability", 0.20)
+                if m_idx == 0:
+                    member_surname = household_surname
+                elif m_idx == 1 and sex == "F" and rng.random() < maiden_prob:
+                    # Spouse keeps maiden name
+                    member_surname = _sample_surname(name_data, rng)
+                else:
+                    member_surname = household_surname
+            elif surname_rule == "not_shared":
+                # Each person has own surname (KR, ES)
+                if m_idx == 0:
+                    member_surname = household_surname
+                else:
+                    member_surname = _sample_surname(name_data, rng)
+            else:
+                member_surname = household_surname
+
             # Chronic conditions
             conditions: list[str] = []
             for code, age_ranges in JP_CHRONIC_PREVALENCE.items():
@@ -139,9 +168,9 @@ def generate_population(
                 age=age,
                 sex=sex,
                 date_of_birth=dob,
-                family_name=family_surname["kanji"],
-                given_name=given["kanji"],
-                phonetic=f"{family_surname['kana']} {given['kana']}",
+                family_name=member_surname.get("kanji", member_surname.get("name", "")),
+                given_name=given.get("kanji", given.get("name", "")),
+                phonetic=f"{member_surname.get('kana', '')} {given.get('kana', '')}".strip() or None,
                 blood_type=blood_type,
                 chronic_conditions=conditions,
                 care_seeking_threshold=threshold,
