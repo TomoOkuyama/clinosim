@@ -224,7 +224,9 @@ def _simulate_patient(
     encounter = create_inpatient_encounter(patient.patient_id, admission_time)
 
     # Staff assignment
-    staff = assign_staff("admission", "internal_medicine", roster, rng)
+    # Department assignment based on disease
+    department = _disease_to_department(disease_id)
+    staff = assign_staff("admission", department, roster, rng)
     attending_id = staff.get("attending_physician", "DR-001")
     encounter.attending_physician_id = attending_id
 
@@ -392,8 +394,17 @@ def _run_daily_loop(
             )
             all_orders.extend(daily_orders)
 
-        # Lab results
+        # Lab results (with temporal lag for slow markers like CRP)
         true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes)
+
+        # Apply temporal lag: CRP reflects inflammation from ~1 day ago
+        if len(state_history) >= 2 and "CRP" in true_labs:
+            # CRP lags inflammation by ~1 day
+            lag_idx = max(0, len(state_history) - 2)  # previous day's state
+            lagged_state = state_history[lag_idx]
+            lagged_labs = derive_lab_values(lagged_state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes)
+            true_labs["CRP"] = lagged_labs.get("CRP", true_labs["CRP"])
+
         for order in all_orders:
             if order.order_type.value == "lab" and order.status == OrderStatus.PLACED and order.display_name in true_labs:
                 result_time = calculate_lab_result_time(order, rng)
@@ -551,14 +562,27 @@ def _generate_mar(
 
     for order in med_orders:
         drug_name = order.display_name
-        # Determine administration times based on route/frequency
-        if "IV" in drug_name.upper() or "iv" in order.clinical_intent.lower():
-            # IV: typically q6h or q8h
-            admin_hours = [6, 12, 18, 0] if "q6h" in drug_name.lower() else [8, 16, 0]
-        elif "daily" in drug_name.lower() or "SC" in drug_name.upper():
-            admin_hours = [8]  # once daily
+        # Determine administration times based on drug and route
+        route = _determine_route(drug_name, order.clinical_intent)
+
+        # Known frequencies for specific drugs
+        q6h_drugs = ["AMPICILLIN", "SULBACTAM", "PIPERACILLIN", "TAZOBACTAM"]
+        q8h_drugs = ["MEROPENEM", "CEFTRIAXONE", "CEFTAZIDIME"]
+        daily_drugs = ["LEVOFLOXACIN", "ENOXAPARIN", "FUROSEMIDE"]
+
+        drug_upper = drug_name.upper()
+        if any(d in drug_upper for d in q6h_drugs):
+            admin_hours = [0, 6, 12, 18]  # q6h
+        elif any(d in drug_upper for d in q8h_drugs):
+            admin_hours = [0, 8, 16]  # q8h
+        elif any(d in drug_upper for d in daily_drugs) or route == "SC":
+            admin_hours = [8]  # daily
+        elif route == "IV":
+            admin_hours = [0, 8, 16]  # default IV: q8h
+        elif "BID" in drug_upper or "bid" in order.clinical_intent.lower():
+            admin_hours = [8, 20]
         else:
-            admin_hours = [8, 14, 20]  # TID default
+            admin_hours = [8, 14, 20]  # TID default for PO
 
         for hour in admin_hours:
             scheduled = datetime(
@@ -713,6 +737,17 @@ def _extract_findings(
 # ============================================================
 # Mortality evaluation
 # ============================================================
+
+def _disease_to_department(disease_id: str) -> str:
+    """Map disease to the primary managing department."""
+    mapping = {
+        "bacterial_pneumonia": "internal_medicine",
+        "heart_failure_exacerbation": "internal_medicine",  # cardiology in larger hospitals
+        "hip_fracture": "internal_medicine",  # orthopedics for surgery, but internal med for medical management
+        # In JP medium hospitals, orthopedics does surgery but internal medicine may manage medical issues
+    }
+    return mapping.get(disease_id, "internal_medicine")
+
 
 def _determine_route(drug_name: str, clinical_intent: str) -> str:
     """Determine medication administration route."""
