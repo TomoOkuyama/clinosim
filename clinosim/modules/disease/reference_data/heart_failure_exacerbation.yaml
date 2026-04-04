@@ -108,6 +108,30 @@ target_los:
     moderate: {mean: 5, sd: 2, min: 3, max: 10}
     severe: {mean: 8, sd: 3, min: 5, max: 18}
 
+diagnostic:
+  differential:
+    - {disease: "heart_failure_exacerbation", icd: "I50.9", name: "Heart failure exacerbation", prior: 0.55}
+    - {disease: "pneumonia", icd: "J18.9", name: "Pneumonia", prior: 0.15}
+    - {disease: "acute_coronary_syndrome", icd: "I21.9", name: "Acute coronary syndrome", prior: 0.10}
+    - {disease: "pulmonary_embolism", icd: "I26.9", name: "Pulmonary embolism", prior: 0.05}
+    - {disease: "copd_exacerbation", icd: "J44.1", name: "COPD exacerbation", prior: 0.05}
+    - {disease: "other", icd: "R06.0", name: "Other dyspnea", prior: 0.10}
+  likelihood_ratios:
+    bnp_elevated:
+      heart_failure_exacerbation: {pos: 8.0, neg: 0.15}
+      pneumonia: {pos: 1.2, neg: 0.9}
+    bilateral_infiltrates:
+      heart_failure_exacerbation: {pos: 3.0, neg: 0.4}
+      pneumonia: {pos: 2.0, neg: 0.7}
+    diuretic_response:
+      heart_failure_exacerbation: {pos: 6.0, neg: 0.3}
+  confirmation_threshold: 0.90
+  diagnosis_progression:
+    heart_failure_exacerbation:
+      - [0.0, "I50.9", "Heart failure, unspecified"]
+      - [0.7, "I50.0", "Congestive heart failure"]
+      - [0.9, "I50.0", "Congestive heart failure, acute exacerbation"]
+
 outcome_benchmarks:
   japan:
     median_los: 17

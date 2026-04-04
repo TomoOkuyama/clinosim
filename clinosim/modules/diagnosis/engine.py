@@ -104,9 +104,19 @@ LR_TABLE: dict[str, dict[str, dict[str, float]]] = {
 def initialize_differential(
     disease_id: str = "bacterial_pneumonia",
     age: int = 70,
+    protocol_diagnostic: dict | None = None,
 ) -> DifferentialDiagnosis:
-    """Create initial differential from disease-specific priors, adjusted by age."""
-    differential_list = DIFFERENTIALS.get(disease_id, DEFAULT_PNEUMONIA_DIFFERENTIAL)
+    """Create initial differential. Uses protocol YAML data if provided, falls back to built-in.
+
+    Args:
+        protocol_diagnostic: The 'diagnostic' section from disease YAML.
+            If provided, uses protocol_diagnostic['differential'] and protocol_diagnostic['diagnosis_progression'].
+    """
+    # Prefer protocol YAML data, fall back to built-in
+    if protocol_diagnostic and "differential" in protocol_diagnostic:
+        differential_list = protocol_diagnostic["differential"]
+    else:
+        differential_list = DIFFERENTIALS.get(disease_id, DEFAULT_PNEUMONIA_DIFFERENTIAL)
     candidates = []
     for dx in differential_list:
         prior = dx["prior"]
@@ -137,23 +147,30 @@ def update_differential(
     diff: DifferentialDiagnosis,
     findings: list[tuple[str, bool]],
     confirmation_threshold: float = 0.90,
+    protocol_lr_table: dict | None = None,
 ) -> DifferentialDiagnosis:
     """Update differential with new findings via Bayesian update.
 
     Args:
         diff: Current differential
+        protocol_lr_table: LR table from disease YAML. Falls back to built-in LR_TABLE.
         findings: List of (finding_name, is_positive) tuples
         confirmation_threshold: Probability at which diagnosis is confirmed
     """
     for finding_name, is_positive in findings:
-        lr_entry = LR_TABLE.get(finding_name)
+        effective_lr = protocol_lr_table or LR_TABLE
+        lr_entry = effective_lr.get(finding_name)
         if lr_entry is None:
             continue
 
         for candidate in diff.candidates:
             dx = candidate.disease_code
             if dx in lr_entry:
-                lr = lr_entry[dx]["pos" if is_positive else "neg"]
+                dx_lr = lr_entry[dx]
+                if is_positive:
+                    lr = dx_lr.get("pos", dx_lr.get("positive_LR", 1.0))
+                else:
+                    lr = dx_lr.get("neg", dx_lr.get("negative_LR", 1.0))
                 candidate.probability *= lr
                 candidate.evidence.append(
                     f"{finding_name}: {'(+)' if is_positive else '(-)'} LR={lr}"
@@ -180,12 +197,23 @@ def update_differential(
     return diff
 
 
-def get_current_diagnosis_code(diff: DifferentialDiagnosis) -> tuple[str, str]:
-    """Returns (ICD code, display name) based on current confidence."""
+def get_current_diagnosis_code(
+    diff: DifferentialDiagnosis,
+    protocol_progression: dict | None = None,
+) -> tuple[str, str]:
+    """Returns (ICD code, display name) based on current confidence.
+
+    Args:
+        protocol_progression: diagnosis_progression from disease YAML. Falls back to built-in.
+    """
     if not diff.working_diagnosis:
         return "R05", "Cough, unspecified"
 
-    progression = DIAGNOSIS_PROGRESSION.get(diff.working_diagnosis)
+    # Prefer protocol YAML, fall back to built-in
+    if protocol_progression and diff.working_diagnosis in protocol_progression:
+        progression = protocol_progression[diff.working_diagnosis]
+    else:
+        progression = DIAGNOSIS_PROGRESSION.get(diff.working_diagnosis)
     if not progression:
         top = diff.top_candidate
         return (top.icd_code, top.display_name) if top else ("R05", "Cough")

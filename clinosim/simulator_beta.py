@@ -226,7 +226,8 @@ def _simulate_patient(
         )
 
     # Differential diagnosis
-    differential = initialize_differential(disease_id, patient.age)
+    protocol_diagnostic = protocol.diagnostic if hasattr(protocol, 'diagnostic') else {}
+    differential = initialize_differential(disease_id, patient.age, protocol_diagnostic=protocol_diagnostic)
 
     # Daily simulation loop
     has_diabetes = any(c.code.startswith("E11") for c in patient.chronic_conditions)
@@ -249,7 +250,9 @@ def _simulate_patient(
     actual_los = loop_result["actual_los"]
 
     # Final diagnosis
-    dx_code, dx_name = get_current_diagnosis_code(differential)
+    protocol_diagnostic = protocol.diagnostic if hasattr(protocol, 'diagnostic') else {}
+    yaml_progression = protocol_diagnostic.get("diagnosis_progression") if protocol_diagnostic else None
+    dx_code, dx_name = get_current_diagnosis_code(differential, protocol_progression=yaml_progression)
 
     clinical_diagnosis = ClinicalDiagnosis(
         admission_diagnosis_code=protocol.icd_codes.get("primary", ""),
@@ -353,7 +356,10 @@ def _run_daily_loop(
         if day >= 1:
             findings = _extract_findings(all_lab_results, disease_id, day)
             if findings:
-                differential = update_differential(differential, findings)
+                protocol_lr = protocol.likelihood_ratios if hasattr(protocol, 'likelihood_ratios') and protocol.likelihood_ratios else None
+                protocol_diagnostic = protocol.diagnostic if hasattr(protocol, 'diagnostic') else {}
+                yaml_lr = protocol_diagnostic.get("likelihood_ratios") if protocol_diagnostic else None
+                differential = update_differential(differential, findings, protocol_lr_table=yaml_lr or protocol_lr)
 
         # Treatment evaluation (Day 3)
         if day == 3 and not treatment_changed and state.inflammation_level > 0.5:
