@@ -361,22 +361,63 @@ def _run_daily_loop(
                 yaml_lr = protocol_diagnostic.get("likelihood_ratios") if protocol_diagnostic else None
                 differential = update_differential(differential, findings, protocol_lr_table=yaml_lr or protocol_lr)
 
-        # Treatment evaluation (Day 3)
-        if day == 3 and not treatment_changed and state.inflammation_level > 0.5:
-            if archetype in ("treatment_resistant", "gradual_deterioration"):
-                treatment_changed = True
-                esc = protocol.drugs.get("escalation", {}).get("japan", [])
-                if esc:
-                    drug = esc[0] if isinstance(esc, list) else esc
-                    all_orders.append(Order(
-                        order_id=f"ORD-{patient.patient_id}-ESC-001",
-                        patient_id=patient.patient_id, order_type=OrderType.MEDICATION,
-                        display_name=f"Escalation: {drug.get('drug', 'Meropenem')}",
-                        urgency="urgent",
-                        clinical_intent=f"Day {day}: no improvement, escalation",
-                        ordered_datetime=admission_time + timedelta(days=day, hours=10),
-                        status=OrderStatus.PLACED,
-                    ))
+        # Archetype-specific order/treatment modifications (YAML-driven)
+        archetype_data = protocol.course_archetypes.get(archetype, {}) if protocol.course_archetypes else {}
+        order_mods = archetype_data.get("order_modifications", {})
+        treatment_mods = archetype_data.get("treatment_modifications", {})
+
+        day_key = f"day_{day}"
+        if day_key in order_mods:
+            mod = order_mods[day_key]
+            # Add labs
+            for lab_name in mod.get("add_labs", []):
+                all_orders.append(Order(
+                    order_id=f"ORD-{patient.patient_id}-MOD-D{day}-{lab_name[:5]}",
+                    patient_id=patient.patient_id, order_type=OrderType.LAB,
+                    display_name=lab_name, urgency="stat",
+                    clinical_intent=f"Day {day} {archetype}: additional workup",
+                    ordered_datetime=admission_time + timedelta(days=day, hours=10),
+                    status=OrderStatus.PLACED,
+                ))
+            # Add imaging
+            for img_name in mod.get("add_imaging", []):
+                all_orders.append(Order(
+                    order_id=f"ORD-{patient.patient_id}-MOD-D{day}-IMG",
+                    patient_id=patient.patient_id, order_type=OrderType.IMAGING,
+                    display_name=img_name, urgency="stat",
+                    clinical_intent=f"Day {day} {archetype}: additional imaging",
+                    ordered_datetime=admission_time + timedelta(days=day, hours=10),
+                    status=OrderStatus.PLACED,
+                ))
+
+        if day_key in treatment_mods:
+            mod = treatment_mods[day_key]
+            # Stop medications
+            for drug_name in mod.get("stop", []):
+                all_orders.append(Order(
+                    order_id=f"ORD-{patient.patient_id}-STOP-D{day}",
+                    patient_id=patient.patient_id, order_type=OrderType.MEDICATION,
+                    display_name=f"DISCONTINUE: {drug_name}",
+                    urgency="routine",
+                    clinical_intent=f"Day {day} {archetype}: stop {drug_name}",
+                    ordered_datetime=admission_time + timedelta(days=day, hours=10),
+                    status=OrderStatus.PLACED,
+                ))
+            # Start new medications
+            start_meds = mod.get("start", {}).get("japan", mod.get("start", []))
+            if isinstance(start_meds, list):
+                for med in start_meds:
+                    if isinstance(med, dict):
+                        all_orders.append(Order(
+                            order_id=f"ORD-{patient.patient_id}-START-D{day}-{med.get('drug','')[:8]}",
+                            patient_id=patient.patient_id, order_type=OrderType.MEDICATION,
+                            display_name=f"{med.get('drug', '')} {med.get('dose', '')}",
+                            urgency="urgent",
+                            clinical_intent=f"Day {day} {archetype}: new medication",
+                            ordered_datetime=admission_time + timedelta(days=day, hours=10),
+                            status=OrderStatus.PLACED,
+                        ))
+                        treatment_changed = True
 
         # Medication administration (MAR)
         mars_today = _generate_mar(patient, all_orders, day, admission_time, roster, rng)
