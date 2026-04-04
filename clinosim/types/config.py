@@ -63,6 +63,17 @@ class LLMServiceConfig(BaseModel):
     cache_persist_to_disk: bool = True
 
 
+class ForcedScenario(BaseModel):
+    """Force generation of a specific clinical scenario."""
+
+    disease_id: str
+    count: int = 1
+    severity: str | None = None  # "mild" | "moderate" | "severe" — None = random
+    archetype: str | None = None  # force specific archetype — None = random selection
+    complications: list[str] = []  # force specific complications to occur
+    patient_overrides: dict = {}  # override patient attributes: {"age": 82, "sex": "M", ...}
+
+
 class SimulatorConfig(BaseModel):
     """Top-level simulation configuration (AD-19: preset + override)."""
 
@@ -76,6 +87,9 @@ class SimulatorConfig(BaseModel):
     cif_format: str = "json"  # "json" | "msgpack" | "parquet"
 
     llm: LLMServiceConfig = LLMServiceConfig()
+
+    # Force specific scenarios (in addition to population-generated ones)
+    forced_scenarios: list[ForcedScenario] = []
 
     @classmethod
     def preset(cls, name: str) -> SimulatorConfig:
