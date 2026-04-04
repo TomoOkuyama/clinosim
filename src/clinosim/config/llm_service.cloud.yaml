@@ -1,0 +1,37 @@
+# clinosim LLM Service Configuration — Cloud (Anthropic API)
+#
+# Setup: export ANTHROPIC_API_KEY=sk-ant-...
+# Higher quality output but requires API key and incurs cost.
+
+judgment:
+  mode: "llm"
+  provider: "anthropic_direct"
+  anthropic_direct:
+    api_key_env: "ANTHROPIC_API_KEY"
+  model_map:
+    small: "claude-haiku-4-5-20251001"
+    medium: "claude-haiku-4-5-20251001"
+    large: "claude-sonnet-4-6-20250514"
+  timeout_seconds: 30
+  retry_attempts: 3
+  max_tokens_per_run: 2000000
+  fallback_on_budget_exceeded: "template"
+
+narrative:
+  mode: "llm"
+  provider: "anthropic_direct"
+  anthropic_direct:
+    api_key_env: "ANTHROPIC_API_KEY"
+  model_map:
+    small: "claude-haiku-4-5-20251001"
+    medium: "claude-sonnet-4-6-20250514"
+    large: "claude-opus-4-6-20250610"
+  timeout_seconds: 60
+  retry_attempts: 3
+  max_tokens_per_run: 10000000
+  fallback_on_budget_exceeded: "template"
+
+cache:
+  enabled: true
+  max_entries: 5000
+  persist_to_disk: true

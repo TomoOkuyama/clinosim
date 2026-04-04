@@ -1,0 +1,48 @@
+# clinosim LLM Service Configuration
+#
+# Default: local Ollama (no API key needed)
+# Setup: brew install ollama && ollama pull llama3.1:8b
+#
+# To use cloud APIs, copy this file, modify, and pass as --llm-config <path>
+
+# JUDGMENT: used during simulation (Stage 1)
+# Affects structural data (diagnosis codes, drug selections, treatment decisions)
+judgment:
+  mode: "llm"               # "llm" | "template" | "none"
+  provider: "local"          # "local" | "bedrock_gateway" | "anthropic_direct" | "openai_compatible"
+  local:
+    endpoint: "http://localhost:11434"
+    model: "llama3.1:8b"
+  model_map:
+    small: "llama3.1:8b"
+    medium: "llama3.1:8b"
+    large: "llama3.1:8b"
+  timeout_seconds: 120
+  retry_attempts: 2
+  retry_backoff_seconds: 1
+  max_tokens_per_run: 2000000
+  fallback_on_budget_exceeded: "template"
+
+# NARRATIVE: used in Stage 2 (separate from simulation, re-runnable)
+# Affects text content only (H&P, progress notes, discharge summaries)
+narrative:
+  mode: "llm"               # "llm" | "template" | "none"
+  provider: "local"
+  local:
+    endpoint: "http://localhost:11434"
+    model: "llama3.1:8b"     # upgrade to llama3.1:70b or qwen2.5:72b for better quality
+  model_map:
+    small: "llama3.1:8b"
+    medium: "llama3.1:8b"
+    large: "llama3.1:8b"
+  timeout_seconds: 180       # narrative can be slow on local models
+  retry_attempts: 2
+  retry_backoff_seconds: 2
+  max_tokens_per_run: 10000000
+  fallback_on_budget_exceeded: "template"
+
+# Shared cache
+cache:
+  enabled: true
+  max_entries: 5000
+  persist_to_disk: true

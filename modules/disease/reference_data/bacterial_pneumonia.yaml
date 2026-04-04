@@ -1,0 +1,446 @@
+# Bacterial Pneumonia — Complete Reference Data
+# Sources cited per section. All rates are approximate and should be validated
+# against the most current published data before production use.
+
+disease_id: bacterial_pneumonia
+icd_codes:
+  primary: "J18.9"  # Pneumonia, unspecified organism
+  variants:
+    - {code: "J13", name: "Pneumonia due to Streptococcus pneumoniae", probability: 0.25}
+    - {code: "J15.7", name: "Pneumonia due to Mycoplasma pneumoniae", probability: 0.15}
+    - {code: "J15.1", name: "Pneumonia due to Pseudomonas", probability: 0.05}
+    - {code: "J15.0", name: "Pneumonia due to Klebsiella pneumoniae", probability: 0.05}
+    - {code: "J15.9", name: "Unspecified bacterial pneumonia", probability: 0.30}
+    - {code: "J18.1", name: "Lobar pneumonia, unspecified organism", probability: 0.20}
+
+# ============================================================
+# INCIDENCE (per 100,000 per year, by age band and sex)
+# Source: JP — 患者調査 2020, 感染症発生動向調査
+#         US — CDC NHDS, Jain et al. NEJM 2015
+# ============================================================
+incidence:
+  japan:
+    "0-4":   {M: 800, F: 600}
+    "5-14":  {M: 150, F: 120}
+    "15-24": {M: 50, F: 40}
+    "25-34": {M: 60, F: 50}
+    "35-44": {M: 80, F: 60}
+    "45-54": {M: 120, F: 80}
+    "55-64": {M: 200, F: 130}
+    "65-74": {M: 500, F: 350}
+    "75-84": {M: 1200, F: 900}
+    "85+":   {M: 2500, F: 2000}
+  us:
+    "0-4":   {M: 900, F: 700}
+    "5-14":  {M: 100, F: 80}
+    "15-24": {M: 40, F: 35}
+    "25-34": {M: 50, F: 45}
+    "35-44": {M: 70, F: 55}
+    "45-54": {M: 100, F: 75}
+    "55-64": {M: 180, F: 120}
+    "65-74": {M: 450, F: 320}
+    "75-84": {M: 1100, F: 850}
+    "85+":   {M: 2200, F: 1800}
+
+  risk_multipliers:
+    - {condition: "COPD", multiplier: 3.0}
+    - {condition: "diabetes", multiplier: 1.5}
+    - {condition: "heart_failure", multiplier: 2.0}
+    - {condition: "CKD", multiplier: 1.8}
+    - {condition: "liver_cirrhosis", multiplier: 2.5}
+    - {condition: "smoking_current", multiplier: 1.8}
+    - {condition: "alcohol_dependence", multiplier: 2.0}
+    - {condition: "immunosuppressed", multiplier: 5.0}
+    - {condition: "dementia", multiplier: 2.5}   # aspiration risk
+    - {condition: "stroke_history", multiplier: 2.0}  # aspiration risk
+
+  seasonal_curve:  # monthly multiplier (1.0 = baseline)
+    1: 1.8   # Jan
+    2: 1.6
+    3: 1.3
+    4: 1.0
+    5: 0.8
+    6: 0.7
+    7: 0.7
+    8: 0.7
+    9: 0.8
+    10: 1.0
+    11: 1.3
+    12: 1.7
+
+  vaccine_protection:
+    pneumococcal:
+      effectiveness: 0.45   # ~45% reduction in pneumococcal pneumonia
+      duration_days: 1825   # ~5 years
+    influenza:
+      effectiveness: 0.20   # indirect: reduces post-influenza bacterial pneumonia
+      duration_days: 365
+
+# ============================================================
+# SEVERITY DISTRIBUTION
+# Source: CAP severity studies (CURB-65, PSI), JP DPC data
+# ============================================================
+severity:
+  distribution:
+    mild: 0.30        # outpatient manageable
+    moderate: 0.55    # requires hospitalization
+    severe: 0.15      # requires ICU
+  modifiers:
+    - {condition: "age_over_75", mild_multiplier: 0.6, severe_multiplier: 1.8}
+    - {condition: "COPD", moderate_multiplier: 1.3, severe_multiplier: 1.5}
+    - {condition: "heart_failure", severe_multiplier: 2.0}
+    - {condition: "immunosuppressed", severe_multiplier: 2.5, mild_multiplier: 0.3}
+    - {condition: "dementia", severe_multiplier: 1.5}
+
+# ============================================================
+# INITIAL PHYSIOLOGICAL STATE IMPACT
+# How this disease changes physiological state at onset (added to patient baseline)
+# ============================================================
+initial_state_impact:
+  mild:
+    inflammation_level: 0.25
+    volume_status: -0.10
+  moderate:
+    inflammation_level: 0.50
+    volume_status: -0.20
+    perfusion_status: -0.05
+    renal_function: -0.05
+  severe:
+    inflammation_level: 0.75
+    volume_status: -0.30
+    perfusion_status: -0.20
+    renal_function: -0.15
+    ph_status: -0.10
+
+# ============================================================
+# LIKELIHOOD RATIO TABLE
+# Source: Clinical diagnostic studies meta-analyses
+#         Metlay et al. Ann Intern Med 2003
+#         Christ-Crain et al. Am J Respir Crit Care Med 2004
+# ============================================================
+likelihood_ratios:
+  # Finding → {disease: {positive_LR, negative_LR}}
+  chest_xray_consolidation:
+    bacterial_pneumonia: {positive_LR: 8.0, negative_LR: 0.3}
+    viral_pneumonia: {positive_LR: 2.0, negative_LR: 0.7}
+    heart_failure: {positive_LR: 0.5, negative_LR: 1.1}
+    pulmonary_embolism: {positive_LR: 0.3, negative_LR: 1.0}
+
+  procalcitonin_above_0.5:
+    bacterial_pneumonia: {positive_LR: 6.0, negative_LR: 0.15}
+    viral_pneumonia: {positive_LR: 0.3, negative_LR: 2.0}
+    heart_failure: {positive_LR: 0.8, negative_LR: 1.0}
+    tuberculosis: {positive_LR: 1.5, negative_LR: 0.8}
+
+  crp_above_100:
+    bacterial_pneumonia: {positive_LR: 3.5, negative_LR: 0.4}
+    viral_pneumonia: {positive_LR: 0.5, negative_LR: 1.5}
+    heart_failure: {positive_LR: 0.8, negative_LR: 1.1}
+
+  wbc_above_15000:
+    bacterial_pneumonia: {positive_LR: 2.5, negative_LR: 0.6}
+    viral_pneumonia: {positive_LR: 0.5, negative_LR: 1.3}
+
+  blood_culture_positive:
+    bacterial_pneumonia: {positive_LR: 15.0, negative_LR: 0.85}
+    # Sensitivity only ~10-20%, so negative LR is weak
+
+  urinary_antigen_pneumococcus_positive:
+    bacterial_pneumonia: {positive_LR: 20.0, negative_LR: 0.70}
+    # Sensitivity ~70% for pneumococcal, specificity ~95%
+
+  urinary_antigen_legionella_positive:
+    bacterial_pneumonia: {positive_LR: 50.0, negative_LR: 0.95}
+    # Very specific for Legionella serogroup 1
+
+  sputum_gram_stain_gpc_dominant:
+    bacterial_pneumonia: {positive_LR: 4.0, negative_LR: 0.7}
+
+  bilateral_infiltrates:
+    bacterial_pneumonia: {positive_LR: 1.5, negative_LR: 0.8}
+    viral_pneumonia: {positive_LR: 3.0, negative_LR: 0.5}
+    heart_failure: {positive_LR: 3.0, negative_LR: 0.4}
+
+  pleural_effusion:
+    bacterial_pneumonia: {positive_LR: 2.0, negative_LR: 0.9}
+    heart_failure: {positive_LR: 4.0, negative_LR: 0.5}
+    tuberculosis: {positive_LR: 3.0, negative_LR: 0.8}
+
+# ============================================================
+# LAB REFERENCE RANGES (admission values for pneumonia patients)
+# For benchmarking generated data
+# Source: Clinical studies, textbook values
+# ============================================================
+expected_lab_distributions:
+  admission:
+    CRP:
+      unit: "mg/L"
+      median: 80
+      iqr: [30, 150]
+      range: [5, 400]
+    WBC:
+      unit: "/uL"
+      median: 12000
+      iqr: [8000, 16000]
+      range: [2000, 30000]
+    PCT:
+      unit: "ng/mL"
+      median: 1.5
+      iqr: [0.3, 8.0]
+      range: [0.05, 100]
+    Albumin:
+      unit: "g/dL"
+      median: 3.2
+      iqr: [2.8, 3.6]
+      range: [1.5, 4.0]
+    Creatinine:
+      unit: "mg/dL"
+      median: 0.9
+      iqr: [0.7, 1.3]
+      range: [0.4, 5.0]
+      note: "higher if pre-existing CKD or dehydration"
+    BUN:
+      unit: "mg/dL"
+      median: 20
+      iqr: [14, 30]
+      range: [8, 80]
+    Glucose:
+      unit: "mg/dL"
+      median: 130
+      iqr: [100, 180]
+      range: [70, 400]
+      note: "stress hyperglycemia common"
+    Lactate:
+      unit: "mmol/L"
+      median: 1.5
+      iqr: [1.0, 2.5]
+      range: [0.5, 10.0]
+      note: ">4 suggests severe sepsis"
+
+  discharge:
+    CRP:
+      unit: "mg/L"
+      median: 8
+      iqr: [3, 20]
+      note: "JP waits for more normalization than US"
+    WBC:
+      unit: "/uL"
+      median: 7500
+      iqr: [5500, 9500]
+
+# ============================================================
+# VITAL SIGN DISTRIBUTIONS
+# Source: Clinical studies on CAP
+# ============================================================
+expected_vital_distributions:
+  admission:
+    temperature:
+      unit: "C"
+      mean: 38.5
+      sd: 0.8
+      range: [36.5, 40.5]
+    heart_rate:
+      unit: "bpm"
+      mean: 100
+      sd: 15
+      range: [60, 140]
+    systolic_bp:
+      unit: "mmHg"
+      mean: 125
+      sd: 20
+      range: [80, 180]
+    respiratory_rate:
+      unit: "/min"
+      mean: 22
+      sd: 5
+      range: [14, 40]
+    spo2:
+      unit: "%"
+      mean: 94
+      sd: 3
+      range: [80, 99]
+
+# ============================================================
+# TREATMENT REFERENCE — Drug selection data
+# Source: IDSA/ATS CAP Guidelines 2019, JRS CAP Guidelines 2017
+# ============================================================
+drugs:
+  first_line:
+    japan:
+      - drug: "Ampicillin/Sulbactam"
+        code_yj: "6131405"
+        dose: "3g IV q6h"
+        route: IV
+        renal_adjustment:
+          eGFR_30_60: "1.5g IV q6h"
+          eGFR_below_30: "1.5g IV q12h"
+        pregnancy_safe: true
+
+    us:
+      - drug: "Ceftriaxone"
+        code_rxnorm: "309090"
+        dose: "1g IV daily"
+        route: IV
+        pregnancy_safe: true
+      - drug: "Azithromycin"
+        code_rxnorm: "248656"
+        dose: "500mg IV daily"
+        route: IV
+        note: "Added for atypical coverage"
+        pregnancy_safe: true
+
+  alternative_penicillin_allergy:
+    japan:
+      - drug: "Levofloxacin"
+        code_yj: "6241017"
+        dose: "500mg IV daily"
+        renal_adjustment:
+          eGFR_below_50: "250mg IV daily"
+        pregnancy_safe: false
+    us:
+      - drug: "Levofloxacin"
+        code_rxnorm: "82122"
+        dose: "750mg IV daily"
+        renal_adjustment:
+          eGFR_below_50: "500mg IV daily"
+        pregnancy_safe: false
+
+  escalation:  # when first-line fails (Day 3 no improvement)
+    japan:
+      - drug: "Meropenem"
+        code_yj: "6139401"
+        dose: "1g IV q8h"
+        indication: "no_defervescence_72h or culture_resistant_organism"
+        renal_adjustment:
+          eGFR_below_30: "0.5g IV q12h"
+    us:
+      - drug: "Piperacillin/Tazobactam"
+        code_rxnorm: "240984"
+        dose: "4.5g IV q6h"
+        indication: "same"
+
+  discharge_oral:
+    japan:
+      - drug: "Amoxicillin"
+        code_yj: "6131001"
+        dose: "250mg PO TID"
+        duration_days: 5
+    us:
+      - drug: "Amoxicillin/Clavulanate"
+        code_rxnorm: "562251"
+        dose: "875/125mg PO BID"
+        duration_days: 5
+
+# ============================================================
+# DRUG INTERACTIONS relevant to pneumonia treatment
+# ============================================================
+drug_interactions:
+  - drug_a: "Levofloxacin"
+    drug_b: "Warfarin"
+    severity: "major"
+    effect: "Increased INR, bleeding risk"
+    action: "Monitor INR closely"
+
+  - drug_a: "Azithromycin"
+    drug_b: "Amiodarone"
+    severity: "major"
+    effect: "QT prolongation risk"
+    action: "Avoid combination or monitor ECG"
+
+  - drug_a: "Meropenem"
+    drug_b: "Valproic acid"
+    severity: "contraindicated"
+    effect: "Dramatically reduces valproate levels"
+    action: "Do not use together"
+
+# ============================================================
+# LAB ITEM REFERENCE RANGES (age/sex-specific normal values)
+# Used for flagging H/L results
+# Source: Standard clinical laboratory references
+# ============================================================
+reference_ranges:
+  CRP:
+    unit: "mg/L"
+    all: {low: 0, high: 3}     # some labs use 5 or 10
+  WBC:
+    unit: "/uL"
+    all: {low: 3500, high: 9500}
+  Hb:
+    unit: "g/dL"
+    male: {low: 13.5, high: 17.5}
+    female: {low: 11.5, high: 15.5}
+    pregnant: {low: 10.0, high: 14.0}  # pregnancy-adjusted
+  Plt:
+    unit: "x10^3/uL"
+    all: {low: 150, high: 400}
+  Creatinine:
+    unit: "mg/dL"
+    male: {low: 0.6, high: 1.1}
+    female: {low: 0.4, high: 0.8}
+  BUN:
+    unit: "mg/dL"
+    all: {low: 8, high: 20}
+  Na:
+    unit: "mEq/L"
+    all: {low: 136, high: 145}
+  K:
+    unit: "mEq/L"
+    all: {low: 3.5, high: 5.0}
+  Glucose:
+    unit: "mg/dL"
+    fasting: {low: 70, high: 100}
+    random: {low: 70, high: 140}
+  Albumin:
+    unit: "g/dL"
+    all: {low: 3.5, high: 5.0}
+  AST:
+    unit: "U/L"
+    all: {low: 10, high: 35}
+  ALT:
+    unit: "U/L"
+    all: {low: 5, high: 40}
+  PCT:
+    unit: "ng/mL"
+    all: {low: 0, high: 0.05}
+  Lactate:
+    unit: "mmol/L"
+    all: {low: 0.5, high: 2.0}
+  PT_INR:
+    unit: ""
+    all: {low: 0.9, high: 1.1}
+    on_warfarin: {low: 2.0, high: 3.0}
+  BNP:
+    unit: "pg/mL"
+    all: {low: 0, high: 100}
+    age_over_75: {low: 0, high: 200}
+
+# ============================================================
+# OUTCOME BENCHMARKS
+# For validating generated data against reality
+# ============================================================
+outcome_benchmarks:
+  japan:
+    median_los: 14
+    los_iqr: [10, 18]
+    in_hospital_mortality: 0.07
+    icu_transfer_rate: 0.07
+    thirty_day_readmission: 0.17
+    antibiotic_switch_rate: 0.12
+    blood_culture_positivity: 0.15
+    mean_time_to_first_abx_hours: 3.0
+    chest_xray_consolidation_rate: 0.85
+    mean_age_admitted: 72
+    male_ratio: 0.55
+
+  us:
+    median_los: 4.5
+    los_iqr: [3, 6]
+    in_hospital_mortality: 0.05
+    icu_transfer_rate: 0.10
+    thirty_day_readmission: 0.18
+    antibiotic_switch_rate: 0.10
+    blood_culture_positivity: 0.12
+    mean_time_to_first_abx_hours: 2.5
+    chest_xray_consolidation_rate: 0.85
+    mean_age_admitted: 68
+    male_ratio: 0.52

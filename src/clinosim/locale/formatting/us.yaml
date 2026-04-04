@@ -1,0 +1,20 @@
+# US formatting rules
+
+date_format: "MM/dd/yyyy"           # 06/15/2024
+time_format: "12h"                  # 2:30 PM
+datetime_format: "MM/dd/yyyy h:mm a" # 06/15/2024 2:30 PM
+name_order: "given_family"          # John Smith
+name_script: "en"
+
+# Units (clinical — US hospitals generally use metric for clinical data)
+temperature_unit: "C"               # most US hospitals use Celsius clinically
+weight_unit: "kg"                   # clinical: kg (patient-facing: lb)
+height_unit: "cm"                   # clinical: cm (patient-facing: ft/in)
+blood_pressure_unit: "mmHg"
+
+# Lab value display
+lab_decimal_separator: "."
+lab_thousands_separator: ","
+
+# FHIR profile
+fhir_profile_base: "http://hl7.org/fhir/us/core"
