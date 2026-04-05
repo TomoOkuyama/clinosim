@@ -1,0 +1,109 @@
+"""Unit tests for encounter features: outpatient, ED, ward/bed, diet, ADL, I/O, nursing."""
+
+import pytest
+
+from clinosim.simulator import run_forced, run_beta
+from clinosim.types.config import ForcedScenario, SimulatorConfig
+
+
+@pytest.fixture(scope="module")
+def us_inpatient():
+    scenario = ForcedScenario(disease_id="bacterial_pneumonia", count=1, severity="moderate")
+    config = SimulatorConfig(random_seed=42, country="US")
+    dataset = run_forced(scenario, config)
+    return dataset.patients[0]
+
+
+@pytest.fixture(scope="module")
+def small_population():
+    config = SimulatorConfig(catchment_population=2000, random_seed=42, country="US")
+    return run_beta(config)
+
+
+class TestWardBed:
+    def test_inpatient_has_ward(self, us_inpatient):
+        assert us_inpatient.encounters[0].ward_id != ""
+
+    def test_inpatient_has_bed(self, us_inpatient):
+        assert us_inpatient.encounters[0].bed_number != ""
+
+    def test_ward_format(self, us_inpatient):
+        ward = us_inpatient.encounters[0].ward_id
+        assert len(ward) == 2  # e.g. "3W"
+        assert ward[0].isdigit()
+
+
+class TestDietOrders:
+    def test_has_diet_orders(self, us_inpatient):
+        diets = [o for o in us_inpatient.orders if o.order_type.value == "diet"]
+        assert len(diets) > 0
+
+    def test_first_diet_is_npo(self, us_inpatient):
+        diets = [o for o in us_inpatient.orders if o.order_type.value == "diet"]
+        assert diets[0].display_name == "NPO"
+
+
+class TestADL:
+    def test_has_adl_assessments(self, us_inpatient):
+        assert len(us_inpatient.adl_assessments) > 0
+
+    def test_barthel_score_range(self, us_inpatient):
+        for adl in us_inpatient.adl_assessments:
+            assert 0 <= adl.barthel_score <= 100
+
+
+class TestIO:
+    def test_has_io_records(self, us_inpatient):
+        assert len(us_inpatient.intake_output_records) > 0
+
+    def test_io_has_positive_values(self, us_inpatient):
+        for io in us_inpatient.intake_output_records:
+            assert io.intake_iv_ml >= 0
+            assert io.output_urine_ml >= 0
+
+
+class TestPainScore:
+    def test_vitals_have_pain_score(self, us_inpatient):
+        assert all(v.pain_score is not None for v in us_inpatient.vital_signs)
+
+    def test_pain_score_range(self, us_inpatient):
+        for v in us_inpatient.vital_signs:
+            assert 0 <= v.pain_score <= 10
+
+
+class TestNursingNotes:
+    def test_some_vitals_have_notes(self, us_inpatient):
+        notes = [v for v in us_inpatient.vital_signs if v.nursing_note]
+        assert len(notes) > 0  # at least admission note
+
+
+class TestEDVisits:
+    def test_ed_visits_generated(self, small_population):
+        ed = [r for r in small_population.patients
+              if r.encounters and r.encounters[0].encounter_type.value == "emergency"]
+        assert len(ed) > 0
+
+    def test_ed_has_chief_complaint(self, small_population):
+        ed = [r for r in small_population.patients
+              if r.encounters and r.encounters[0].encounter_type.value == "emergency"]
+        if ed:
+            assert ed[0].encounters[0].chief_complaint != ""
+
+
+class TestOutpatient:
+    def test_outpatient_visits_generated(self, small_population):
+        opd = [r for r in small_population.patients
+               if r.encounters and r.encounters[0].encounter_type.value == "outpatient"]
+        assert len(opd) > 0
+
+    def test_outpatient_has_diagnosis(self, small_population):
+        opd = [r for r in small_population.patients
+               if r.encounters and r.encounters[0].encounter_type.value == "outpatient"]
+        for r in opd[:5]:
+            assert r.clinical_diagnosis.discharge_diagnosis_code != ""
+
+
+class TestLabUnits:
+    def test_all_labs_have_units(self, us_inpatient):
+        for lab in us_inpatient.lab_results:
+            assert lab.unit != "", f"Lab {lab.lab_name} missing unit"
