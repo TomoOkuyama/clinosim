@@ -1949,6 +1949,8 @@ def main() -> None:
     gen.add_argument("--country", default="US", help="Country code (US or JP)")
     gen.add_argument("--period", default="2024-04-01,2025-03-31", help="Simulation period (start,end)")
     gen.add_argument("--format", nargs="+", default=["cif"], help="Output formats: cif, csv, fhir")
+    gen.add_argument("--narrative", action="store_true", help="Generate narrative layer (requires Ollama)")
+    gen.add_argument("--narrative-model", default="qwen:7b", help="Ollama model for narratives")
 
     # === test-disease: generate specific disease/archetype ===
     td = sub.add_parser("test-disease", help="Generate data for a specific disease and archetype")
@@ -2001,6 +2003,19 @@ def main() -> None:
         from clinosim.modules.output.fhir_r4_adapter import convert_cif_to_fhir
         country = getattr(args, "country", "US")
         convert_cif_to_fhir(cif_dir, os.path.join(args.output, "fhir_r4"), country=country)
+
+    # Narrative layer (Stage 2, optional)
+    if getattr(args, "narrative", False):
+        from clinosim.modules.llm_service.engine import LLMService, OllamaProvider
+        from clinosim.modules.output.narrative_generator import generate_narratives
+        model = getattr(args, "narrative_model", "qwen:7b")
+        print(f"  Generating narratives with {model}...")
+        provider = OllamaProvider(model=model)
+        llm = LLMService(mode="llm", narrative_provider=provider,
+                         narrative_model_map={"small": model, "medium": model})
+        lang = "ja" if getattr(args, "country", "US") == "JP" else "en"
+        version = generate_narratives(cif_dir, llm, language=lang)
+        print(f"  Narratives generated: version={version}")
 
     # Summary
     _print_summary(dataset, args.output)
