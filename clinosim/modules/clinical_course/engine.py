@@ -172,12 +172,19 @@ def get_daily_directive(
                 delta *= (2.0 - speed_factor)  # age 85, speed 0.7 → deterioration ×1.3
 
             # --- Daily noise (biological variation) ---
-            # Noise is proportional to delta magnitude, with a very small floor.
-            # This prevents noise from dominating when delta is near zero (late recovery).
+            # Two components:
+            # 1. Proportional noise (larger swings when changing fast)
+            # 2. Random daily perturbation (e.g., activity, meals, stress)
+            #    This creates non-monotonic trajectories (CRP may bump up on Day 4)
             if rng is not None:
-                noise_sd = abs(delta) * 0.12 + 0.001
-                noise = float(rng.normal(0, noise_sd))
-                delta += noise
+                prop_noise = float(rng.normal(0, abs(delta) * 0.15 + 0.002))
+                # Occasional larger perturbation (~15% chance of a "bump day")
+                if rng.random() < 0.15:
+                    bump = float(rng.normal(0, 0.02))
+                    if var_name == "inflammation_level":
+                        bump = abs(bump)  # inflammation bumps upward
+                    prop_noise += bump
+                delta += prop_noise
 
             changes[var_name] = delta
 
