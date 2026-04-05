@@ -1,0 +1,48 @@
+# Viral Upper Respiratory Infection — ED visit protocol
+# Very common, self-limiting. Supportive care and discharge.
+
+condition_id: viral_uri
+chief_complaint: "Fever, sore throat, cough, nasal congestion"
+encounter_type: emergency  # also outpatient_urgent
+department: internal_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.60     # minimal workup, quick discharge
+  moderate: 0.30  # some labs, observation
+  severe: 0.10    # high fever, dehydration concern
+
+ed_stay_hours:
+  mild: {mean: 1.5, sd: 0.5}
+  moderate: {mean: 2.5, sd: 0.8}
+  severe: {mean: 4, sd: 1}
+
+workup:
+  vitals: true
+  labs:
+    - {test: "Rapid_Strep", probability: 0.5}
+    - {test: "WBC", probability: 0.3}
+    - {test: "CRP", probability: 0.2}
+  imaging:
+    - {test: "Chest_Xray", probability: 0.15}  # rule out pneumonia if cough prominent
+
+treatment:
+  - {name: "Acetaminophen 500mg", probability: 0.6, route: "PO", intent: "antipyretic/analgesic"}
+  - {name: "Ibuprofen 400mg", probability: 0.4, route: "PO", intent: "antipyretic/analgesic"}
+  - {name: "IV normal saline 500mL", probability: 0.2, route: "IV", intent: "rehydration"}
+  - {name: "Oral fluids encouraged", probability: 0.8, route: "PO", intent: "hydration"}
+
+discharge_instructions:
+  - "Rest and increase fluid intake"
+  - "Symptomatic care: warm fluids, honey for cough, saline nasal spray"
+  - "Expected duration 5-10 days"
+  - "Return if fever >39C persisting >3 days, difficulty breathing, or worsening symptoms"
+
+discharge_prescriptions:
+  - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.5}
+  - {drug: "Dextromethorphan/Guaifenesin", route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.3}
+
+incidence_modifier: 1.2  # very common
+age_distribution: all
+sex_ratio_female: 1.0
+seasonal: {1: 1.4, 2: 1.3, 3: 1.2, 4: 0.8, 5: 0.7, 6: 0.6, 7: 0.6, 8: 0.6, 9: 0.8, 10: 1.0, 11: 1.2, 12: 1.4}

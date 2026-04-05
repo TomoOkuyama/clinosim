@@ -2305,10 +2305,17 @@ def main() -> None:
 
     if args.command == "list-diseases":
         protocols = _load_all_disease_protocols()
-        print(f"{len(protocols)} disease protocols available:")
+        print(f"\n{len(protocols)} inpatient disease protocols:")
         for name in sorted(protocols.keys()):
             p = protocols[name]
             print(f"  {name:35s} | {p.chief_complaint[:50]}")
+
+        from clinosim.modules.encounter.protocol import load_all_encounter_conditions
+        ed_conditions = load_all_encounter_conditions()
+        print(f"\n{len(ed_conditions)} ED/outpatient encounter conditions:")
+        for name in sorted(ed_conditions.keys()):
+            c = ed_conditions[name]
+            print(f"  {name:35s} | {c.get('chief_complaint', '')[:50]}")
         return
 
     if args.command == "validate":

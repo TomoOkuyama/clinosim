@@ -1,0 +1,51 @@
+# Migraine — ED visit protocol
+# Severe headache presentation. Rule out secondary causes, abortive therapy, discharge.
+
+condition_id: migraine
+chief_complaint: "Severe headache, nausea, photophobia"
+encounter_type: emergency
+department: internal_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.30     # responds quickly to medication
+  moderate: 0.50  # requires IV therapy, observation
+  severe: 0.20    # prolonged, refractory, needs imaging
+
+ed_stay_hours:
+  mild: {mean: 2, sd: 0.5}
+  moderate: {mean: 3.5, sd: 1}
+  severe: {mean: 5, sd: 1.5}
+
+workup:
+  vitals: true
+  labs:
+    - {test: "WBC", probability: 0.2}
+    - {test: "CRP", probability: 0.15}
+  imaging:
+    - {test: "CT_Head", probability: 0.3}  # rule out SAH if worst headache, first episode, or atypical features
+
+treatment:
+  - {name: "Ketorolac 30mg", probability: 0.7, route: "IV", intent: "analgesic"}
+  - {name: "Metoclopramide 10mg", probability: 0.6, route: "IV", intent: "antiemetic/migraine adjunct"}
+  - {name: "Ondansetron 4mg", probability: 0.3, route: "IV", intent: "antiemetic"}
+  - {name: "IV normal saline 1000mL", probability: 0.5, route: "IV", intent: "rehydration"}
+  - {name: "Diphenhydramine 25mg", probability: 0.3, route: "IV", intent: "adjunct/akathisia prevention"}
+  - {name: "Dark room rest", probability: 0.8, route: "non-pharmacologic", intent: "photophobia relief"}
+
+discharge_instructions:
+  - "Migraine aborted with IV therapy"
+  - "Avoid known triggers (bright lights, certain foods, stress)"
+  - "Follow up with PCP or neurology for preventive therapy if frequent"
+  - "Return if headache recurs and is unresponsive to prescribed medication"
+  - "Return immediately if sudden worst headache of life, neck stiffness, or fever"
+
+discharge_prescriptions:
+  - {drug: "Sumatriptan 50mg", route: "PO", frequency: "PRN (max 2/day)", duration_days: 30, probability: 0.6}
+  - {drug: "Naproxen 500mg", route: "PO", frequency: "bid PRN", duration_days: 7, probability: 0.5}
+  - {drug: "Ondansetron 4mg", route: "PO", frequency: "q8h PRN", duration_days: 5, probability: 0.3}
+
+incidence_modifier: 0.8
+age_distribution: adults  # predominantly 20-50
+sex_ratio_female: 1.8  # much more common in women
+seasonal: {1: 1.0, 2: 1.0, 3: 1.1, 4: 1.1, 5: 1.1, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 0.9, 12: 0.9}
