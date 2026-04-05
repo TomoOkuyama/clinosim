@@ -264,3 +264,18 @@ mixed_conditions:
   min_age: 70
   min_chronic_conditions: 2
   probability: 0.18
+
+# ED visits that don't result in admission
+ed_visit_not_admitted:
+  rate_per_admitted: 2.5  # JP: lower ED utilization than US
+  conditions:
+    - {name: "viral_gastroenteritis", probability: 0.20, chief_complaint: "Nausea, vomiting, diarrhea"}
+    - {name: "chest_pain_noncardiac", probability: 0.12, chief_complaint: "Chest pain, ruled out ACS"}
+    - {name: "minor_laceration", probability: 0.10, chief_complaint: "Laceration requiring sutures"}
+    - {name: "ankle_sprain", probability: 0.10, chief_complaint: "Ankle injury after fall"}
+    - {name: "viral_uri", probability: 0.12, chief_complaint: "Fever, sore throat, cough"}
+    - {name: "migraine", probability: 0.08, chief_complaint: "Severe headache, nausea"}
+    - {name: "allergic_reaction_mild", probability: 0.07, chief_complaint: "Urticaria, mild angioedema"}
+    - {name: "low_back_pain", probability: 0.08, chief_complaint: "Acute low back pain"}
+    - {name: "uti_uncomplicated", probability: 0.05, chief_complaint: "Dysuria, frequency"}
+    - {name: "food_poisoning", probability: 0.08, chief_complaint: "Abdominal pain, vomiting after meal"}

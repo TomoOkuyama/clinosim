@@ -275,6 +275,40 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
     n_opd = len(patient_records) - len(inpatient_records) - len(readmission_events)
     print(f"  Outpatient done: {n_opd} visits generated", flush=True)
 
+    # === ED visits (not admitted — go home after ED evaluation) ===
+    ed_config = demo.get("ed_visit_not_admitted", {}) if 'demo' in dir() else {}
+    if not ed_config:
+        from clinosim.locale.loader import load_demographics
+        ed_config = load_demographics(config.country).get("ed_visit_not_admitted", {})
+    ed_rate = ed_config.get("rate_per_admitted", 3.0)
+    ed_conditions = ed_config.get("conditions", [])
+    n_ed = int(len(inpatient_records) * ed_rate)
+    if ed_conditions and n_ed > 0:
+        ed_probs = [c.get("probability", 0.1) for c in ed_conditions]
+        total_p = sum(ed_probs)
+        ed_probs = [p / total_p for p in ed_probs]
+        for _ in range(n_ed):
+            # Pick random person from population
+            person_id = rng.choice(list(population.persons.keys()))
+            person = population.get_person(person_id)
+            if not person or not person.is_alive:
+                continue
+            patient = activate_patient(person, rng, config.country)
+            # Pick ED condition
+            cond_idx = int(rng.choice(len(ed_conditions), p=ed_probs))
+            cond = ed_conditions[cond_idx]
+            # Random date within simulation period
+            ed_month = int(rng.integers(start_m, min(start_m + 11, 13)))
+            ed_day = int(rng.integers(1, 28))
+            ed_hour = int(rng.choice([9, 10, 14, 15, 19, 20, 21, 22]))  # ED visit hours
+            ed_time = datetime(start_y, ed_month, ed_day, ed_hour, int(rng.integers(0, 60)))
+
+            ed_record = _simulate_ed_visit(
+                patient, cond, ed_time, roster, rng,
+            )
+            patient_records.append(ed_record)
+        print(f"  ED visits (not admitted): {n_ed} generated", flush=True)
+
     metadata = CIFMetadata(
         clinosim_version="0.1.0",
         random_seed=config.random_seed,
@@ -1363,6 +1397,91 @@ def _simulate_outpatient_visit(
         clinical_diagnosis=clinical_diagnosis,
         discharge_prescription=rx,
         physiological_states=[],
+    )
+
+
+def _simulate_ed_visit(
+    patient: PatientProfile,
+    condition: dict,
+    visit_time: datetime,
+    roster: StaffRoster,
+    rng: np.random.Generator,
+) -> CIFPatientRecord:
+    """Simulate an ED visit that results in discharge home (not admission)."""
+    encounter = create_inpatient_encounter(
+        patient.patient_id, visit_time,
+        chief_complaint=condition.get("chief_complaint", "ED visit"),
+        visit_number=99,
+    )
+    encounter.encounter_type = EncounterType.EMERGENCY
+    encounter.status = EncounterStatus.COMPLETED
+    # ED stay: 2-6 hours
+    ed_hours = float(rng.normal(3.5, 1.0))
+    encounter.discharge_datetime = visit_time + timedelta(hours=max(1, ed_hours))
+
+    staff = assign_staff("admission", "internal_medicine", roster, rng)
+    encounter.attending_physician_id = staff.get("attending_physician", "DR-001")
+
+    orders: list[Order] = []
+    lab_results: list[OrderResult] = []
+
+    # Basic labs for ED (~60% of visits get labs)
+    if rng.random() < 0.6:
+        from clinosim.modules.observation.engine import generate_lab_result, determine_flag
+        for i, test in enumerate(["WBC", "CRP", "Creatinine"]):
+            order = Order(
+                order_id=f"ORD-{patient.patient_id}-ED-L{i}",
+                patient_id=patient.patient_id,
+                order_type=OrderType.LAB,
+                display_name=test,
+                urgency="stat",
+                clinical_intent=f"ED workup: {test}",
+                ordered_datetime=visit_time + timedelta(minutes=int(rng.normal(15, 5))),
+                status=OrderStatus.PLACED,
+            )
+            baseline = {"WBC": 7500, "CRP": 1.0, "Creatinine": 0.9}
+            observed = generate_lab_result(test, baseline.get(test, 100), rng)
+            flag = determine_flag(test, observed, sex=patient.sex)
+            order.result = OrderResult(
+                result_datetime=visit_time + timedelta(minutes=int(rng.normal(60, 15))),
+                lab_name=test, value=observed,
+                unit=get_lab_unit(test), flag=flag,
+            )
+            order.status = OrderStatus.RESULTED
+            orders.append(order)
+            lab_results.append(order.result)
+
+    # Vitals (1 set)
+    baseline = patient.baseline_vitals
+    vitals = [VitalSignRecord(
+        timestamp=visit_time + timedelta(minutes=5),
+        temperature_celsius=round(float(rng.normal(36.8, 0.5)), 1),
+        heart_rate=int(rng.normal(baseline.heart_rate, 10)),
+        systolic_bp=int(rng.normal(baseline.systolic_bp, 10)),
+        diastolic_bp=int(rng.normal(baseline.diastolic_bp, 7)),
+        respiratory_rate=int(rng.normal(16, 2)),
+        spo2=round(float(min(99, rng.normal(97.5, 1))), 1),
+        pain_score=int(max(0, min(10, rng.normal(3, 2)))),
+        data_source="manual",
+    )]
+
+    cond_name = condition.get("name", "ed_visit")
+    return CIFPatientRecord(
+        patient=patient,
+        encounters=[encounter],
+        orders=orders,
+        vital_signs=vitals,
+        lab_results=lab_results,
+        condition_event=ConditionEvent(
+            condition_id=f"COND-{patient.patient_id}-ED",
+            condition_type="ed_visit",
+            ground_truth_diseases=[cond_name],
+        ),
+        clinical_diagnosis=ClinicalDiagnosis(
+            admission_diagnosis_code=cond_name,
+            discharge_diagnosis_code=cond_name,
+            discharge_diagnosis_name=condition.get("chief_complaint", cond_name),
+        ),
     )
 
 
