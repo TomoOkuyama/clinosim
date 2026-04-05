@@ -1,0 +1,46 @@
+# Ankle Sprain — ED visit protocol
+# Common injury. X-ray to rule out fracture, RICE, discharge.
+
+condition_id: ankle_sprain
+chief_complaint: "Ankle injury after fall, pain, swelling"
+encounter_type: emergency
+department: internal_medicine  # orthopedics in some facilities
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.50    # Grade I, no imaging needed
+  moderate: 0.40 # Grade II, X-ray, short splint
+  severe: 0.10   # Grade III, X-ray, posterior splint, orthopedic follow-up
+
+ed_stay_hours:
+  mild: {mean: 1.5, sd: 0.5}
+  moderate: {mean: 2.5, sd: 0.8}
+  severe: {mean: 3.5, sd: 1}
+
+workup:
+  vitals: true
+  labs: []  # no labs for isolated ankle sprain
+  imaging:
+    - {test: "Ankle_Xray", probability: 0.7}  # Ottawa ankle rules
+
+treatment:
+  - {name: "Ice pack application", probability: 0.9, route: "topical"}
+  - {name: "Elastic bandage wrap", probability: 0.8, route: "topical"}
+  - {name: "Posterior splint", probability: 0.15, route: "topical", intent: "immobilization for severe"}
+  - {name: "Acetaminophen 500mg", probability: 0.5, route: "PO"}
+  - {name: "Ibuprofen 400mg", probability: 0.6, route: "PO", intent: "anti-inflammatory"}
+
+discharge_instructions:
+  - "RICE: Rest, Ice, Compression, Elevation"
+  - "Weight bearing as tolerated with crutches if needed"
+  - "Follow up with orthopedics if not improving in 5-7 days"
+  - "Return if unable to bear weight or significant swelling increase"
+
+discharge_prescriptions:
+  - {drug: "Ibuprofen 400mg", route: "PO", frequency: "tid", duration_days: 7, probability: 0.7}
+  - {drug: "Acetaminophen 500mg", route: "PO", frequency: "tid PRN", duration_days: 7, probability: 0.5}
+
+incidence_modifier: 1.0
+age_distribution: all
+sex_ratio_female: 1.1
+seasonal: {1: 1.1, 2: 1.0, 3: 0.9, 4: 1.0, 5: 1.1, 6: 1.2, 7: 1.2, 8: 1.1, 9: 1.1, 10: 1.0, 11: 1.0, 12: 1.1}

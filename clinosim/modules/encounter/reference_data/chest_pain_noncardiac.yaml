@@ -1,0 +1,50 @@
+# Non-cardiac Chest Pain — ED visit protocol
+# Rule-out ACS. Serial troponins, ECG, then discharge if negative.
+
+condition_id: chest_pain_noncardiac
+chief_complaint: "Chest pain, rule out acute coronary syndrome"
+encounter_type: emergency
+department: internal_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.30
+  moderate: 0.60  # needs serial troponins (4-6h observation)
+  severe: 0.10    # prolonged observation, stress test consideration
+
+ed_stay_hours:
+  mild: {mean: 3, sd: 1}
+  moderate: {mean: 5, sd: 1.5}
+  severe: {mean: 8, sd: 2}
+
+workup:
+  vitals: true
+  labs:
+    - {test: "Troponin", probability: 0.95, serial: true, interval_hours: 3}
+    - {test: "CRP", probability: 0.3}
+    - {test: "Creatinine", probability: 0.5}
+    - {test: "Glucose", probability: 0.4}
+    - {test: "WBC", probability: 0.4}
+    - {test: "BNP", probability: 0.3}
+  imaging:
+    - {test: "Chest_Xray", probability: 0.7}
+    - {test: "ECG", probability: 0.95}
+
+treatment:
+  - {name: "Aspirin 325mg", probability: 0.6, route: "PO", intent: "empiric ACS protocol"}
+  - {name: "Nitroglycerin 0.4mg SL", probability: 0.3, route: "SL", intent: "chest pain relief"}
+  - {name: "IV normal saline", probability: 0.3, route: "IV"}
+
+discharge_instructions:
+  - "Troponin negative x2, ECG unchanged — ACS ruled out"
+  - "Follow up with PCP within 1 week"
+  - "Return immediately if chest pain recurs, worsens, or associated with dyspnea"
+  - "Consider outpatient stress test if risk factors present"
+
+discharge_prescriptions:
+  - {drug: "Omeprazole 20mg", route: "PO", frequency: "daily", duration_days: 14, probability: 0.4}
+
+incidence_modifier: 1.0
+age_distribution: adults  # predominantly 40+
+sex_ratio_female: 0.6  # more men
+seasonal: {1: 1.1, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.1}

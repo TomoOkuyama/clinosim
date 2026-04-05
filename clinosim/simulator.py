@@ -1543,67 +1543,127 @@ def _simulate_ed_visit(
     roster: StaffRoster,
     rng: np.random.Generator,
 ) -> CIFPatientRecord:
-    """Simulate an ED visit that results in discharge home (not admission)."""
+    """Simulate an ED visit using YAML protocol if available, else basic."""
     import uuid
+    from clinosim.modules.observation.engine import generate_lab_result, determine_flag
+
+    # Try to load detailed YAML protocol
+    cond_name = condition.get("name", condition.get("condition_id", "ed_visit"))
+    try:
+        from clinosim.modules.encounter.protocol import load_encounter_condition
+        protocol = load_encounter_condition(cond_name)
+    except (FileNotFoundError, Exception):
+        protocol = None
+
+    chief = (protocol or condition).get("chief_complaint", cond_name)
+
     ed_num = int(uuid.uuid4().hex[:4], 16) % 9000 + 1000
     encounter = create_inpatient_encounter(
         patient.patient_id, visit_time,
-        chief_complaint=condition.get("chief_complaint", "ED visit"),
+        chief_complaint=chief,
         visit_number=ed_num,
     )
     encounter.encounter_type = EncounterType.EMERGENCY
     encounter.status = EncounterStatus.COMPLETED
-    # ED stay: 2-6 hours
-    ed_hours = float(rng.normal(3.5, 1.0))
-    encounter.discharge_datetime = visit_time + timedelta(hours=max(1, ed_hours))
 
     staff = assign_staff("admission", "internal_medicine", roster, rng)
     encounter.attending_physician_id = staff.get("attending_physician", "DR-001")
 
+    # ED stay duration from protocol or default
+    if protocol:
+        severity = str(rng.choice(["mild", "moderate", "severe"],
+                        p=[protocol.get("severity_distribution", {}).get(s, 0.33)
+                           for s in ["mild", "moderate", "severe"]]))
+        stay_cfg = protocol.get("ed_stay_hours", {}).get(severity, {"mean": 3, "sd": 1})
+        ed_hours = float(rng.normal(stay_cfg["mean"], stay_cfg["sd"]))
+    else:
+        ed_hours = float(rng.normal(3.5, 1.0))
+    encounter.discharge_datetime = visit_time + timedelta(hours=max(1, ed_hours))
+
     orders: list[Order] = []
     lab_results: list[OrderResult] = []
 
-    # Basic labs for ED (~60% of visits get labs)
-    if rng.random() < 0.6:
-        from clinosim.modules.observation.engine import generate_lab_result, determine_flag
-        for i, test in enumerate(["WBC", "CRP", "Creatinine"]):
-            order = Order(
-                order_id=f"ORD-{patient.patient_id}-ED-L{i}",
-                patient_id=patient.patient_id,
-                order_type=OrderType.LAB,
-                display_name=test,
-                urgency="stat",
-                clinical_intent=f"ED workup: {test}",
-                ordered_datetime=visit_time + timedelta(minutes=int(rng.normal(15, 5))),
-                status=OrderStatus.PLACED,
-            )
-            baseline = {"WBC": 7500, "CRP": 1.0, "Creatinine": 0.9}
-            observed = generate_lab_result(test, baseline.get(test, 100), rng)
-            flag = determine_flag(test, observed, sex=patient.sex)
-            order.result = OrderResult(
-                result_datetime=visit_time + timedelta(minutes=int(rng.normal(60, 15))),
-                lab_name=test, value=observed,
-                unit=get_lab_unit(test), flag=flag,
-            )
-            order.status = OrderStatus.RESULTED
-            orders.append(order)
-            lab_results.append(order.result)
+    # Labs from protocol workup
+    workup = (protocol or {}).get("workup", {})
+    lab_specs = workup.get("labs", [])
+    if not lab_specs and not protocol:
+        # Default: basic labs with 60% probability
+        if rng.random() < 0.6:
+            lab_specs = [{"test": "WBC", "probability": 1.0},
+                         {"test": "CRP", "probability": 1.0},
+                         {"test": "Creatinine", "probability": 1.0}]
 
-    # Vitals (1 set)
-    baseline = patient.baseline_vitals
+    baseline_values = {"WBC": 7500, "CRP": 1.0, "Creatinine": 0.9, "Na": 140,
+                       "K": 4.2, "Glucose": 100, "Troponin": 0.01, "BNP": 50}
+    for i, lab_spec in enumerate(lab_specs):
+        test = lab_spec.get("test", "")
+        prob = lab_spec.get("probability", 1.0)
+        if rng.random() > prob:
+            continue
+        order = Order(
+            order_id=f"ORD-{patient.patient_id}-ED-L{i}",
+            patient_id=patient.patient_id,
+            order_type=OrderType.LAB,
+            display_name=test, urgency="stat",
+            clinical_intent=f"ED workup: {test}",
+            ordered_datetime=visit_time + timedelta(minutes=int(rng.normal(10, 5))),
+            status=OrderStatus.PLACED,
+        )
+        observed = generate_lab_result(test, baseline_values.get(test, 100), rng)
+        flag = determine_flag(test, observed, sex=patient.sex)
+        order.result = OrderResult(
+            result_datetime=visit_time + timedelta(minutes=int(rng.normal(50, 15))),
+            lab_name=test, value=observed,
+            unit=get_lab_unit(test), flag=flag,
+        )
+        order.status = OrderStatus.RESULTED
+        orders.append(order)
+        lab_results.append(order.result)
+
+    # Imaging from protocol
+    for i, img_spec in enumerate(workup.get("imaging", [])):
+        test = img_spec.get("test", "")
+        if rng.random() > img_spec.get("probability", 1.0):
+            continue
+        orders.append(Order(
+            order_id=f"ORD-{patient.patient_id}-ED-I{i}",
+            patient_id=patient.patient_id,
+            order_type=OrderType.IMAGING,
+            display_name=test, urgency="stat",
+            clinical_intent=f"ED imaging: {test}",
+            ordered_datetime=visit_time + timedelta(minutes=int(rng.normal(20, 8))),
+            status=OrderStatus.PLACED,
+        ))
+
+    # Treatment orders from protocol
+    for i, tx in enumerate((protocol or {}).get("treatment", [])):
+        if rng.random() > tx.get("probability", 1.0):
+            continue
+        orders.append(Order(
+            order_id=f"ORD-{patient.patient_id}-ED-T{i}",
+            patient_id=patient.patient_id,
+            order_type=OrderType.MEDICATION,
+            display_name=tx.get("name", ""),
+            urgency="stat",
+            clinical_intent=f"ED treatment: {tx.get('intent', tx.get('name', ''))}",
+            ordered_datetime=visit_time + timedelta(minutes=int(rng.normal(30, 10))),
+            status=OrderStatus.PLACED,
+        ))
+
+    # Vitals
+    bv = patient.baseline_vitals
     vitals = [VitalSignRecord(
         timestamp=visit_time + timedelta(minutes=5),
         temperature_celsius=round(float(rng.normal(36.8, 0.5)), 1),
-        heart_rate=int(rng.normal(baseline.heart_rate, 10)),
-        systolic_bp=int(rng.normal(baseline.systolic_bp, 10)),
-        diastolic_bp=int(rng.normal(baseline.diastolic_bp, 7)),
+        heart_rate=int(rng.normal(bv.heart_rate, 10)),
+        systolic_bp=int(rng.normal(bv.systolic_bp, 10)),
+        diastolic_bp=int(rng.normal(bv.diastolic_bp, 7)),
         respiratory_rate=int(rng.normal(16, 2)),
         spo2=round(float(min(99, rng.normal(97.5, 1))), 1),
         pain_score=int(max(0, min(10, rng.normal(3, 2)))),
         data_source="manual",
     )]
 
-    cond_name = condition.get("name", "ed_visit")
     return CIFPatientRecord(
         patient=patient,
         encounters=[encounter],
@@ -1618,7 +1678,7 @@ def _simulate_ed_visit(
         clinical_diagnosis=ClinicalDiagnosis(
             admission_diagnosis_code=cond_name,
             discharge_diagnosis_code=cond_name,
-            discharge_diagnosis_name=condition.get("chief_complaint", cond_name),
+            discharge_diagnosis_name=chief,
         ),
     )
 
