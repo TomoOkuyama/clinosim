@@ -27,6 +27,35 @@ CONDITION_NAMES = {
     "J44": "COPD",
     "N18": "Chronic kidney disease",
     "I50": "Heart failure",
+    "I48": "Atrial fibrillation",
+    "I25": "Ischemic heart disease",
+    "M81": "Osteoporosis",
+    "F00": "Dementia",
+    "G20": "Parkinson's disease",
+    "E03": "Hypothyroidism",
+    "K21": "GERD",
+    "J45": "Asthma",
+    "N40": "Benign prostatic hyperplasia",
+    "M17": "Osteoarthritis",
+    "I63": "Cerebral infarction",
+    "I21": "Acute myocardial infarction",
+    "K92": "Gastrointestinal hemorrhage",
+    "K25": "Gastric ulcer",
+    "K26": "Duodenal ulcer",
+    "E10": "Type 1 diabetes mellitus",
+    "R65": "Sepsis/SIRS",
+    "A41": "Sepsis",
+    "K56": "Intestinal obstruction",
+    "K85": "Acute pancreatitis",
+    "K35": "Acute appendicitis",
+    "I26": "Pulmonary embolism",
+    "K81": "Acute cholecystitis",
+    "K80": "Cholelithiasis",
+    "L03": "Cellulitis",
+    "N17": "Acute kidney injury",
+    "K74": "Cirrhosis of liver",
+    "K70": "Alcoholic liver disease",
+    "J69": "Aspiration pneumonia",
 }
 
 
@@ -64,7 +93,9 @@ def activate_patient(
         hepatic_reserve=max(0.1, float(rng.beta(8, 2)) - age_penalty * 0.7),
         treatment_sensitivity=float(rng.normal(1.0, 0.15)),
         symptom_reporting_bias=float(rng.normal(1.0, 0.25)),
-        delirium_susceptibility=float(rng.beta(2, 8)) + (0.15 if age >= 75 else 0),
+        delirium_susceptibility=float(rng.beta(2, 8)) + (0.15 if age >= 75 else 0)
+            + (0.25 if "F00" in person.chronic_conditions else 0)
+            + (0.10 if "G20" in person.chronic_conditions else 0),
         dvt_susceptibility=float(rng.beta(2, 8)) + (0.10 if age >= 70 else 0),
     )
 
@@ -101,10 +132,18 @@ def activate_patient(
         spo2=round(float(min(99, rng.normal(97.5, 1.0))), 1),
     )
 
-    # HT adjustment
+    # Chronic condition adjustments to baseline vitals
     if "I10" in person.chronic_conditions:
         vitals.systolic_bp += 10
         vitals.diastolic_bp += 5
+    if "I48" in person.chronic_conditions:
+        vitals.heart_rate += int(rng.integers(5, 20))  # irregularly irregular
+    if "J44" in person.chronic_conditions:
+        vitals.spo2 = round(min(vitals.spo2, float(rng.normal(94, 1.5))), 1)
+    if "J45" in person.chronic_conditions:
+        vitals.respiratory_rate += int(rng.integers(0, 3))
+    if "E03" in person.chronic_conditions:
+        vitals.heart_rate -= int(rng.integers(3, 8))  # bradycardia tendency
 
     # Build PersonName from Layer 1 data
     if country == "JP":
@@ -119,6 +158,9 @@ def activate_patient(
         name_script="ja" if country == "JP" else "en",
         phonetic=person.phonetic,
     )
+
+    # Current medications from Layer 1 (discharge prescriptions from prior visits)
+    current_meds = list(person.current_medications) if hasattr(person, "current_medications") else []
 
     return PatientProfile(
         patient_id=person.person_id,
@@ -136,7 +178,7 @@ def activate_patient(
         health_literacy=round(float(rng.normal(0.6, 0.15)), 2),
         chronic_conditions=conditions,
         allergies=allergies,
-        current_medications=[],
+        current_medications=current_meds,
         smoking_status=str(rng.choice(["never", "former", "current"], p=[0.55, 0.30, 0.15])),
         alcohol_use=str(rng.choice(["none", "social", "heavy"], p=[0.60, 0.30, 0.10])),
         physiological_profile=profile,

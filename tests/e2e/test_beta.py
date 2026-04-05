@@ -54,7 +54,7 @@ class TestBeta:
         assert os.path.exists(os.path.join(csv_dir, "encounters.csv"))
 
     def test_benchmarks_pass(self, beta_result):
-        report = run_benchmarks(beta_result, country="JP")
+        report = run_benchmarks(beta_result, country="US")
         print(f"\n{report.summary()}")
         for r in report.results:
             print(f"  {r.name}: {r.generated_value:.1f} (expected {r.expected_value}, range {r.expected_range}) [{r.status}]")
@@ -65,7 +65,7 @@ class TestBeta:
         cif_dir = str(tmp_path / "cif")
         fhir_dir = str(tmp_path / "fhir")
         write_cif(beta_result, cif_dir)
-        convert_cif_to_fhir(cif_dir, fhir_dir, country="JP")
+        convert_cif_to_fhir(cif_dir, fhir_dir, country="US")
 
         # Check FHIR bundles exist
         fhir_files = [f for f in os.listdir(fhir_dir) if f.endswith(".json")]

@@ -6,9 +6,12 @@ Clinical course archetype engine. Selects a trajectory pattern for each patient 
 
 ```python
 from clinosim.modules.clinical_course.engine import (
-    select_archetype,      # (severity, profile, rng) -> archetype name
-    get_daily_directive,   # (archetype, day, profile) -> StateChangeDirective
-    ARCHETYPES,            # dict of all archetype definitions
+    select_archetype,                # (severity, profile, rng) -> archetype name
+    get_daily_directive,             # (archetype, day, profile) -> StateChangeDirective
+    compute_diagnosis_effectiveness, # (working_dx, ground_truth, confidence, day) -> float
+    apply_diagnosis_modifier,        # (directive, effectiveness) -> modified directive
+    natural_recovery_directive,      # (day, disease_id, severity, profile) -> directive
+    evaluate_complications,          # (day, state, patient, ...) -> list[dict]
 )
 ```
 
@@ -97,11 +100,28 @@ source .venv/bin/activate && python -m pytest tests/unit/test_clinical_course.py
 ```
 13 tests covering: archetype selection, daily directives, interpolation, severity/profile modifiers.
 
+## Diagnosis-treatment feedback
+
+`compute_diagnosis_effectiveness()` calculates how effective treatment is based on diagnostic accuracy. When the working diagnosis is wrong, recovery deltas are dampened via `apply_diagnosis_modifier()`, causing slower CRP decline and prolonged inflammation — leaving traceable footprints in the data.
+
+`diagnostic_difficulty` (0.0-1.0) is read from each disease YAML's `diagnostic` section:
+- 0.05: Hip fracture (X-ray confirms instantly)
+- 0.25: UTI (urinalysis + culture)
+- 0.30: Pneumonia (CXR + culture, moderate)
+- 0.35: HF exacerbation (BNP useful but overlaps with pneumonia)
+- 0.40: COPD exacerbation (overlaps with pneumonia and HF)
+
+## Natural recovery
+
+`natural_recovery_directive()` adds small baseline healing independent of treatment. Models innate immune response and homeostatic regulation. Scaled by `immune_reactivity` and severity.
+
 ## Implementation status
-- [x] All 6 archetypes with hardcoded trajectories
+- [x] All 6 archetypes (YAML-driven with hardcoded fallback)
 - [x] Severity-dependent selection probability
 - [x] Patient profile modulation (immune reactivity, treatment sensitivity)
 - [x] Linear interpolation between day points
-- [x] 13 unit tests passing
-- [ ] YAML-driven trajectory definitions (currently hardcoded)
-- [ ] Treatment change triggers (Day 3 no improvement → escalation)
+- [x] Diagnosis-treatment feedback loop
+- [x] Natural recovery model
+- [x] Diagnostic difficulty per disease (YAML-driven)
+- [x] Complication cascade with risk factor evaluation
+- [x] Treatment change triggers (Day 3 antibiotic switch etc.)

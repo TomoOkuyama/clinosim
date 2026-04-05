@@ -1,0 +1,1151 @@
+# Sepsis — Complete Reference Data
+# Sources cited per section. All rates are approximate and should be validated
+# against the most current published data before production use.
+
+disease_id: sepsis
+chief_complaint: "Fever, altered mental status, hypotension"
+department: internal_medicine
+encounter_type: medical
+requires_surgery: false
+minimum_severity: moderate    # sepsis always requires hospitalization
+readmission_eligible: true
+
+icd_codes:
+  primary: "A41.9"  # Sepsis, unspecified organism
+  variants:
+    - {code: "R65.20", name: "Severe sepsis without septic shock", probability: 0.35}
+    - {code: "R65.21", name: "Severe sepsis with septic shock", probability: 0.20}
+    - {code: "A41.9", name: "Sepsis, unspecified organism", probability: 0.20}
+    - {code: "A41.01", name: "Sepsis due to Methicillin susceptible Staphylococcus aureus", probability: 0.08}
+    - {code: "A41.02", name: "Sepsis due to Methicillin resistant Staphylococcus aureus", probability: 0.05}
+    - {code: "A41.51", name: "Sepsis due to Escherichia coli", probability: 0.07}
+    - {code: "A40.0", name: "Sepsis due to streptococcus, group A", probability: 0.03}
+    - {code: "A41.52", name: "Sepsis due to Pseudomonas", probability: 0.02}
+
+# ============================================================
+# INCIDENCE (per 100,000 per year, by age band and sex)
+# Source: JP — 日本集中治療医学会 Sepsis Registry, DPC data
+#         US — CDC NHDS, Rhee et al. JAMA 2017, Martin et al. NEJM 2003
+# ============================================================
+incidence:
+  japan:
+    "0-4":   {M: 60, F: 45}
+    "5-14":  {M: 10, F: 8}
+    "15-24": {M: 15, F: 12}
+    "25-34": {M: 20, F: 18}
+    "35-44": {M: 35, F: 28}
+    "45-54": {M: 80, F: 55}
+    "55-64": {M: 180, F: 120}
+    "65-74": {M: 450, F: 320}
+    "75-84": {M: 1100, F: 800}
+    "85+":   {M: 2200, F: 1700}
+  us:
+    "0-4":   {M: 70, F: 55}
+    "5-14":  {M: 12, F: 10}
+    "15-24": {M: 18, F: 15}
+    "25-34": {M: 25, F: 22}
+    "35-44": {M: 45, F: 35}
+    "45-54": {M: 100, F: 70}
+    "55-64": {M: 220, F: 150}
+    "65-74": {M: 550, F: 380}
+    "75-84": {M: 1300, F: 950}
+    "85+":   {M: 2600, F: 2000}
+
+  risk_multipliers:
+    - {condition: "immunosuppressed", multiplier: 6.0}
+    - {condition: "diabetes", multiplier: 2.0}
+    - {condition: "CKD", multiplier: 3.0}
+    - {condition: "liver_cirrhosis", multiplier: 4.0}
+    - {condition: "heart_failure", multiplier: 2.0}
+    - {condition: "COPD", multiplier: 2.0}
+    - {condition: "malignancy", multiplier: 3.5}
+    - {condition: "alcohol_dependence", multiplier: 2.5}
+    - {condition: "indwelling_catheter", multiplier: 3.0}
+    - {condition: "recent_surgery", multiplier: 2.5}
+    - {condition: "nursing_home_resident", multiplier: 2.0}
+    - {condition: "splenectomy", multiplier: 5.0}
+    - {condition: "HIV", multiplier: 3.0}
+
+  seasonal_curve:  # monthly multiplier (1.0 = baseline)
+    1: 1.3   # Jan — winter respiratory infections as source
+    2: 1.2
+    3: 1.1
+    4: 1.0
+    5: 0.9
+    6: 0.8
+    7: 0.9   # summer — UTI/wound sources increase slightly
+    8: 0.9
+    9: 0.9
+    10: 1.0
+    11: 1.1
+    12: 1.3
+
+  vaccine_protection:
+    pneumococcal:
+      effectiveness: 0.15   # reduces pneumonia-sourced sepsis somewhat
+      duration_days: 1825
+    influenza:
+      effectiveness: 0.10   # reduces post-influenza bacterial sepsis
+      duration_days: 365
+
+# ============================================================
+# SEVERITY DISTRIBUTION
+# Source: Surviving Sepsis Campaign data, JAAM Sepsis Registry
+# Note: minimum_severity is moderate — no "mild" sepsis by definition
+# ============================================================
+severity:
+  distribution:
+    mild: 0.0         # sepsis always requires hospitalization
+    moderate: 0.55    # sepsis without organ failure progression
+    severe: 0.45      # severe sepsis / septic shock
+  modifiers:
+    - {condition: "age_over_75", moderate_multiplier: 0.8, severe_multiplier: 1.4}
+    - {condition: "immunosuppressed", moderate_multiplier: 0.7, severe_multiplier: 1.8}
+    - {condition: "liver_cirrhosis", severe_multiplier: 2.0}
+    - {condition: "CKD", severe_multiplier: 1.5}
+    - {condition: "malignancy", severe_multiplier: 1.6}
+    - {condition: "diabetes", severe_multiplier: 1.3}
+
+# ============================================================
+# INITIAL PHYSIOLOGICAL STATE IMPACT
+# How this disease changes physiological state at onset (added to patient baseline)
+# Sepsis has SEVERE multi-system impact from the start
+# ============================================================
+initial_state_impact:
+  moderate:
+    inflammation_level: 0.65
+    volume_status: -0.25
+    perfusion_status: -0.15
+    renal_function: -0.10
+    hepatic_function: -0.05
+    coagulation_status: -0.05
+    ph_status: -0.05
+  severe:
+    inflammation_level: 0.85
+    volume_status: -0.40
+    perfusion_status: -0.35
+    renal_function: -0.25
+    hepatic_function: -0.15
+    coagulation_status: -0.15
+    ph_status: -0.15
+
+# ============================================================
+# ORDER PROTOCOLS (what to order and when)
+# Source: Surviving Sepsis Campaign Guidelines 2021
+#         日本版敗血症診療ガイドライン 2020 (J-SSCG 2020)
+# ============================================================
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "Blood_culture_set_1", urgency: "stat"}     # 2 sets before antibiotics
+      - {test: "Blood_culture_set_2", urgency: "stat"}     # from different site
+      - {test: "Lactate", urgency: "stat"}                  # key sepsis marker
+      - {test: "CRP", urgency: "stat"}
+      - {test: "WBC", urgency: "stat"}
+      - {test: "PCT", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "BUN", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "AST", urgency: "stat"}
+      - {test: "ALT", urgency: "stat"}
+      - {test: "T_Bilirubin", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "PT_INR", urgency: "stat"}
+      - {test: "Fibrinogen", urgency: "stat"}
+      - {test: "D_dimer", urgency: "stat", probability: 0.80}
+      - {test: "ABG", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "Albumin", urgency: "stat"}
+      - {test: "Urine_culture", urgency: "stat"}
+      - {test: "Urinalysis", urgency: "stat"}
+      - {test: "Sputum_culture", urgency: "stat", probability: 0.60}
+    imaging:
+      - {test: "Chest_Xray_PA_Lateral", urgency: "stat"}
+      - {test: "CT_abdomen_pelvis", urgency: "stat", probability: 0.50, note: "if source unclear"}
+    supportive:
+      - {type: "IV_fluid", detail: "Crystalloid 30 mL/kg bolus within 3 hours"}
+      - {type: "O2", detail: "Target SpO2 >= 94%"}
+      - {type: "antipyretic", detail: "Acetaminophen 1000mg IV q6h PRN temp >= 38.5"}
+      - {type: "DVT_prophylaxis", detail: "Enoxaparin 2000IU SC daily (hold if coagulopathy)"}
+      - {type: "stress_ulcer_prophylaxis", detail: "Famotidine 20mg IV BID or PPI"}
+      - {type: "glucose_monitoring", detail: "BG q4-6h, target 140-180 mg/dL"}
+      - {type: "foley_catheter", detail: "Strict I/O monitoring, target UO >= 0.5 mL/kg/h"}
+
+  daily_monitoring:
+    labs:
+      - {test: "CRP", frequency: "daily"}
+      - {test: "WBC", frequency: "daily"}
+      - {test: "Creatinine", frequency: "daily"}
+      - {test: "Lactate", frequency: "q6h_until_normalizing"}
+      - {test: "Plt", frequency: "daily"}
+      - {test: "PT_INR", frequency: "daily"}
+      - {test: "AST", frequency: "daily"}
+      - {test: "ALT", frequency: "daily"}
+      - {test: "T_Bilirubin", frequency: "daily"}
+      - {test: "ABG", frequency: "q6-12h_if_ventilated"}
+    vitals:
+      stable: "q2h"
+      unstable: "q1h_or_continuous"
+    imaging:
+      - {test: "Chest_Xray", frequency: "daily_if_ventilated_or_prn"}
+
+  trigger_orders:
+    lactate_rising:
+      condition: "Lactate > 4 mmol/L or rising despite resuscitation"
+      actions:
+        - {type: "fluid", action: "additional_crystalloid_bolus"}
+        - {type: "medication", action: "start_vasopressor_if_not_already"}
+        - {type: "lab", test: "ABG"}
+        - {type: "evaluate", action: "reassess_source_control"}
+    no_improvement_48h:
+      condition: "Persistent fever and rising inflammatory markers at 48h"
+      actions:
+        - {type: "lab", test: "Blood_culture_repeat_x2"}
+        - {type: "imaging", test: "CT_abdomen_pelvis_with_contrast"}
+        - {type: "medication_change", action: "broaden_or_change_antibiotic"}
+        - {type: "consult", target: "infectious_disease"}
+        - {type: "evaluate", action: "assess_source_control_drainage"}
+    renal_deterioration:
+      condition: "Creatinine rise > 0.3 from baseline or UO < 0.5 mL/kg/h for 6h"
+      actions:
+        - {type: "fluid", action: "reassess_volume_status"}
+        - {type: "medication_change", action: "adjust_antibiotic_for_renal"}
+        - {type: "evaluate", action: "consider_renal_replacement_therapy"}
+    coagulopathy_worsening:
+      condition: "Plt < 50 or PT-INR > 2.0 or Fibrinogen < 100"
+      actions:
+        - {type: "lab", test: "DIC_panel_repeat"}
+        - {type: "transfusion", action: "FFP_and_or_platelets_if_bleeding"}
+        - {type: "evaluate", action: "assess_for_DIC"}
+    hemodynamic_instability:
+      condition: "MAP < 65 despite fluid resuscitation"
+      actions:
+        - {type: "medication", action: "start_norepinephrine"}
+        - {type: "evaluate", action: "icu_transfer_if_not_already"}
+        - {type: "monitoring", action: "arterial_line_placement"}
+        - {type: "lab", test: "Lactate"}
+
+  discharge_criteria:
+    japan:
+      - "Afebrile (< 37.0C) for 72 hours"
+      - "CRP declining and < 30% of peak"
+      - "Lactate normalized (< 2.0 mmol/L)"
+      - "Oral medication tolerated for 48 hours"
+      - "Hemodynamically stable off vasopressors for >= 48h"
+      - "No organ dysfunction progression"
+      - "ADL at acceptable level or rehabilitation arranged"
+    us:
+      - "Afebrile (< 37.5C) for 48 hours"
+      - "Lactate normalized (< 2.0 mmol/L)"
+      - "Oral medication tolerated for 24 hours"
+      - "Hemodynamically stable off vasopressors for >= 24h"
+      - "Clinically improving, no escalation in 24h"
+      - "Appropriate follow-up arranged"
+
+# ============================================================
+# LIKELIHOOD RATIO TABLE
+# Source: Clinical diagnostic studies, Sepsis-3 validation studies
+#         Churpek et al. JAMA 2017, Liu et al. JAMA 2017
+# ============================================================
+likelihood_ratios:
+  lactate_above_4:
+    sepsis: {positive_LR: 8.0, negative_LR: 0.4}
+    heart_failure: {positive_LR: 2.0, negative_LR: 0.8}
+    mesenteric_ischemia: {positive_LR: 5.0, negative_LR: 0.6}
+
+  procalcitonin_above_2:
+    sepsis: {positive_LR: 7.0, negative_LR: 0.2}
+    viral_infection: {positive_LR: 0.2, negative_LR: 2.0}
+    pancreatitis: {positive_LR: 1.5, negative_LR: 0.8}
+
+  blood_culture_positive:
+    sepsis: {positive_LR: 12.0, negative_LR: 0.70}
+    # Sensitivity ~30-50% in sepsis, so negative LR is moderate
+    endocarditis: {positive_LR: 15.0, negative_LR: 0.50}
+    line_infection: {positive_LR: 10.0, negative_LR: 0.75}
+
+  qsofa_score_gte_2:
+    sepsis: {positive_LR: 4.5, negative_LR: 0.5}
+    dehydration: {positive_LR: 1.5, negative_LR: 0.9}
+    drug_overdose: {positive_LR: 1.2, negative_LR: 0.9}
+
+  crp_above_100:
+    sepsis: {positive_LR: 3.0, negative_LR: 0.5}
+    pneumonia: {positive_LR: 3.5, negative_LR: 0.4}
+    autoimmune_flare: {positive_LR: 2.0, negative_LR: 0.7}
+
+  wbc_above_12000_or_below_4000:
+    sepsis: {positive_LR: 2.0, negative_LR: 0.6}
+    viral_infection: {positive_LR: 0.5, negative_LR: 1.3}
+
+  urine_culture_positive:
+    sepsis: {positive_LR: 3.0, negative_LR: 0.80}
+    # Points to urinary source
+    uti_with_bacteremia: {positive_LR: 8.0, negative_LR: 0.60}
+
+  chest_xray_infiltrate:
+    sepsis: {positive_LR: 2.5, negative_LR: 0.85}
+    pneumonia_with_SIRS: {positive_LR: 6.0, negative_LR: 0.30}
+
+  ct_abdomen_abscess:
+    sepsis: {positive_LR: 15.0, negative_LR: 0.90}
+    intra_abdominal_infection: {positive_LR: 20.0, negative_LR: 0.85}
+
+# ============================================================
+# DIAGNOSTIC DIFFICULTY
+# Source: Sepsis-3 definitions, clinical literature on diagnostic delay
+# ============================================================
+diagnostic_difficulty: 0.5    # high — source often unclear, mimics many conditions
+
+differential_diagnosis:
+  - {disease: "sepsis", pretest_probability: 0.35}
+  - {disease: "pneumonia_with_SIRS", pretest_probability: 0.20}
+  - {disease: "uti_with_bacteremia", pretest_probability: 0.15}
+  - {disease: "intra_abdominal_infection", pretest_probability: 0.12}
+  - {disease: "meningitis", pretest_probability: 0.08}
+  - {disease: "endocarditis", pretest_probability: 0.05}
+  - {disease: "drug_reaction", pretest_probability: 0.03}
+  - {disease: "adrenal_crisis", pretest_probability: 0.02}
+
+# ============================================================
+# LAB REFERENCE RANGES (admission values for sepsis patients)
+# For benchmarking generated data
+# Source: Clinical studies, Surviving Sepsis Campaign data
+# ============================================================
+expected_lab_distributions:
+  admission:
+    CRP:
+      unit: "mg/L"
+      median: 180
+      iqr: [80, 300]
+      range: [20, 500]
+    WBC:
+      unit: "/uL"
+      median: 15000
+      iqr: [9000, 22000]
+      range: [1000, 40000]
+      note: "leukopenia (<4000) in ~10% — poor prognosis"
+    PCT:
+      unit: "ng/mL"
+      median: 8.0
+      iqr: [2.0, 30.0]
+      range: [0.1, 200]
+    Lactate:
+      unit: "mmol/L"
+      median: 3.0
+      iqr: [1.8, 5.5]
+      range: [0.8, 15.0]
+      note: ">4 mmol/L defines septic shock (with vasopressor need)"
+    Creatinine:
+      unit: "mg/dL"
+      median: 1.6
+      iqr: [1.0, 2.8]
+      range: [0.5, 8.0]
+      note: "acute kidney injury very common"
+    BUN:
+      unit: "mg/dL"
+      median: 35
+      iqr: [20, 60]
+      range: [10, 120]
+    Albumin:
+      unit: "g/dL"
+      median: 2.5
+      iqr: [2.0, 3.0]
+      range: [1.0, 3.5]
+      note: "low albumin = capillary leak, poor prognosis"
+    AST:
+      unit: "U/L"
+      median: 55
+      iqr: [30, 120]
+      range: [15, 2000]
+      note: "hepatic dysfunction common; shock liver AST >1000"
+    ALT:
+      unit: "U/L"
+      median: 40
+      iqr: [20, 90]
+      range: [10, 1500]
+    T_Bilirubin:
+      unit: "mg/dL"
+      median: 1.5
+      iqr: [0.8, 3.0]
+      range: [0.3, 20.0]
+    Plt:
+      unit: "x10^3/uL"
+      median: 140
+      iqr: [80, 220]
+      range: [10, 400]
+      note: "thrombocytopenia common; DIC if <50 with coagulopathy"
+    PT_INR:
+      unit: ""
+      median: 1.4
+      iqr: [1.1, 1.8]
+      range: [0.9, 5.0]
+    Fibrinogen:
+      unit: "mg/dL"
+      median: 350
+      iqr: [200, 500]
+      range: [50, 800]
+      note: "initially elevated (acute phase); drops with DIC"
+    D_dimer:
+      unit: "ug/mL"
+      median: 5.0
+      iqr: [2.0, 12.0]
+      range: [0.5, 50.0]
+    Glucose:
+      unit: "mg/dL"
+      median: 160
+      iqr: [120, 220]
+      range: [40, 500]
+      note: "stress hyperglycemia common; hypoglycemia = severe"
+    Na:
+      unit: "mEq/L"
+      median: 138
+      iqr: [134, 142]
+      range: [120, 155]
+    K:
+      unit: "mEq/L"
+      median: 4.2
+      iqr: [3.6, 5.0]
+      range: [2.5, 7.0]
+      note: "hyperkalemia with AKI"
+    Hb:
+      unit: "g/dL"
+      median: 11.0
+      iqr: [9.5, 13.0]
+      range: [5.0, 17.0]
+    ABG_pH:
+      unit: ""
+      median: 7.32
+      iqr: [7.25, 7.38]
+      range: [6.90, 7.50]
+      note: "metabolic acidosis from lactate and renal dysfunction"
+    ABG_pCO2:
+      unit: "mmHg"
+      median: 32
+      iqr: [26, 38]
+      range: [15, 55]
+      note: "compensatory respiratory alkalosis"
+    ABG_HCO3:
+      unit: "mEq/L"
+      median: 18
+      iqr: [14, 22]
+      range: [5, 28]
+
+  discharge:
+    CRP:
+      unit: "mg/L"
+      median: 15
+      iqr: [5, 35]
+      note: "JP waits for more normalization than US"
+    WBC:
+      unit: "/uL"
+      median: 8000
+      iqr: [6000, 10000]
+    Lactate:
+      unit: "mmol/L"
+      median: 1.2
+      iqr: [0.8, 1.6]
+    Creatinine:
+      unit: "mg/dL"
+      median: 1.0
+      iqr: [0.7, 1.5]
+      note: "may remain elevated if CKD develops"
+
+# ============================================================
+# VITAL SIGN DISTRIBUTIONS
+# Source: Surviving Sepsis Campaign, qSOFA criteria
+# ============================================================
+expected_vital_distributions:
+  admission:
+    temperature:
+      unit: "C"
+      mean: 38.8
+      sd: 1.0
+      range: [35.0, 41.0]
+      note: "hypothermia (<36C) in ~10% — poor prognosis"
+    heart_rate:
+      unit: "bpm"
+      mean: 110
+      sd: 18
+      range: [50, 160]
+    systolic_bp:
+      unit: "mmHg"
+      mean: 95
+      sd: 22
+      range: [50, 160]
+      note: "MAP <65 defines need for vasopressors"
+    respiratory_rate:
+      unit: "/min"
+      mean: 26
+      sd: 6
+      range: [14, 45]
+    spo2:
+      unit: "%"
+      mean: 93
+      sd: 4
+      range: [70, 99]
+
+# ============================================================
+# TREATMENT REFERENCE — Drug selection data
+# Source: Surviving Sepsis Campaign Guidelines 2021
+#         日本版敗血症診療ガイドライン 2020 (J-SSCG 2020)
+# ============================================================
+drugs:
+  first_line:
+    japan:
+      - drug: "Meropenem"
+        code_yj: "6139401"
+        dose: "1g IV q8h"
+        route: IV
+        renal_adjustment:
+          eGFR_30_60: "0.5g IV q8h"
+          eGFR_below_30: "0.5g IV q12h"
+        pregnancy_safe: true
+        note: "Empiric broad-spectrum for unknown source"
+      - drug: "Vancomycin"
+        code_yj: "6113400"
+        dose: "15-20mg/kg IV q12h"
+        route: IV
+        renal_adjustment:
+          eGFR_30_60: "15mg/kg IV q24h"
+          eGFR_below_30: "15mg/kg IV q48h, monitor levels"
+        pregnancy_safe: false
+        note: "Added if MRSA risk factors present"
+        probability: 0.50
+
+    us:
+      - drug: "Piperacillin/Tazobactam"
+        code_rxnorm: "240984"
+        dose: "4.5g IV q6h"
+        route: IV
+        renal_adjustment:
+          eGFR_below_30: "2.25g IV q6h"
+        pregnancy_safe: true
+        note: "Broad-spectrum empiric; or Meropenem if ESBL risk"
+      - drug: "Vancomycin"
+        code_rxnorm: "11124"
+        dose: "15-20mg/kg IV q8-12h"
+        route: IV
+        renal_adjustment:
+          eGFR_30_60: "15mg/kg IV q24h"
+          eGFR_below_30: "15mg/kg IV q48h, monitor levels"
+        pregnancy_safe: false
+        note: "Added if MRSA risk factors present"
+        probability: 0.50
+
+  alternative_penicillin_allergy:
+    japan:
+      - drug: "Ciprofloxacin"
+        code_yj: "6241007"
+        dose: "400mg IV q8h"
+        renal_adjustment:
+          eGFR_below_50: "400mg IV q12h"
+        pregnancy_safe: false
+      - drug: "Aztreonam"
+        code_yj: "6139203"
+        dose: "2g IV q8h"
+        renal_adjustment:
+          eGFR_below_30: "1g IV q8h"
+        pregnancy_safe: true
+    us:
+      - drug: "Ciprofloxacin"
+        code_rxnorm: "2551"
+        dose: "400mg IV q8h"
+        renal_adjustment:
+          eGFR_below_50: "400mg IV q12h"
+        pregnancy_safe: false
+      - drug: "Aztreonam"
+        code_rxnorm: "18631"
+        dose: "2g IV q8h"
+        renal_adjustment:
+          eGFR_below_30: "1g IV q8h"
+        pregnancy_safe: true
+
+  escalation:  # when empiric therapy fails
+    japan:
+      - drug: "Meropenem"
+        code_yj: "6139401"
+        dose: "2g IV q8h"
+        indication: "persistent bacteremia or resistant organism"
+        note: "Dose escalation if already on standard dose"
+      - drug: "Micafungin"
+        code_yj: "6179001"
+        dose: "100mg IV daily"
+        indication: "suspected_invasive_candidiasis"
+        note: "Add antifungal if >5 days broad-spectrum ABx with no improvement"
+    us:
+      - drug: "Meropenem"
+        code_rxnorm: "29561"
+        dose: "2g IV q8h"
+        indication: "ESBL or resistant gram-negative"
+      - drug: "Micafungin"
+        code_rxnorm: "349252"
+        dose: "100mg IV daily"
+        indication: "suspected_invasive_candidiasis"
+
+  vasopressors:
+    - drug: "Norepinephrine"
+      dose: "0.05-0.5 ug/kg/min IV continuous"
+      indication: "MAP < 65 despite fluid resuscitation"
+      note: "First-line vasopressor per SSC guidelines"
+    - drug: "Vasopressin"
+      dose: "0.03 units/min IV continuous"
+      indication: "Adjunct to norepinephrine when NE dose > 0.25 ug/kg/min"
+      note: "Second-line vasopressor"
+    - drug: "Epinephrine"
+      dose: "0.01-0.1 ug/kg/min IV continuous"
+      indication: "Refractory shock despite NE + vasopressin"
+      note: "Third-line vasopressor"
+    - drug: "Hydrocortisone"
+      dose: "50mg IV q6h"
+      indication: "Septic shock refractory to vasopressors"
+      note: "Stress-dose steroids; taper after shock resolution"
+
+  discharge_oral:
+    japan:
+      - drug: "Levofloxacin"
+        code_yj: "6241017"
+        dose: "500mg PO daily"
+        duration_days: 7
+        note: "Guided by culture results; total ABx course 7-14 days"
+    us:
+      - drug: "Levofloxacin"
+        code_rxnorm: "82122"
+        dose: "750mg PO daily"
+        duration_days: 7
+        note: "Guided by culture results; total ABx course 7-14 days"
+
+# ============================================================
+# DRUG INTERACTIONS relevant to sepsis treatment
+# ============================================================
+drug_interactions:
+  - drug_a: "Vancomycin"
+    drug_b: "Piperacillin/Tazobactam"
+    severity: "moderate"
+    effect: "Increased risk of acute kidney injury"
+    action: "Monitor renal function closely; consider alternative combination"
+
+  - drug_a: "Meropenem"
+    drug_b: "Valproic acid"
+    severity: "contraindicated"
+    effect: "Dramatically reduces valproate levels"
+    action: "Do not use together"
+
+  - drug_a: "Ciprofloxacin"
+    drug_b: "Warfarin"
+    severity: "major"
+    effect: "Increased INR, bleeding risk"
+    action: "Monitor INR closely"
+
+  - drug_a: "Norepinephrine"
+    drug_b: "MAO_inhibitors"
+    severity: "contraindicated"
+    effect: "Hypertensive crisis"
+    action: "Avoid; use alternative vasopressor with extreme caution"
+
+  - drug_a: "Micafungin"
+    drug_b: "Sirolimus"
+    severity: "major"
+    effect: "Increased sirolimus levels"
+    action: "Monitor levels, consider dose reduction"
+
+# ============================================================
+# LAB ITEM REFERENCE RANGES (age/sex-specific normal values)
+# Used for flagging H/L results
+# Source: Standard clinical laboratory references
+# ============================================================
+reference_ranges:
+  CRP:
+    unit: "mg/L"
+    all: {low: 0, high: 3}
+  WBC:
+    unit: "/uL"
+    all: {low: 3500, high: 9500}
+  Hb:
+    unit: "g/dL"
+    male: {low: 13.5, high: 17.5}
+    female: {low: 11.5, high: 15.5}
+  Plt:
+    unit: "x10^3/uL"
+    all: {low: 150, high: 400}
+  Creatinine:
+    unit: "mg/dL"
+    male: {low: 0.6, high: 1.1}
+    female: {low: 0.4, high: 0.8}
+  BUN:
+    unit: "mg/dL"
+    all: {low: 8, high: 20}
+  Na:
+    unit: "mEq/L"
+    all: {low: 136, high: 145}
+  K:
+    unit: "mEq/L"
+    all: {low: 3.5, high: 5.0}
+  Glucose:
+    unit: "mg/dL"
+    fasting: {low: 70, high: 100}
+    random: {low: 70, high: 140}
+  Albumin:
+    unit: "g/dL"
+    all: {low: 3.5, high: 5.0}
+  AST:
+    unit: "U/L"
+    all: {low: 10, high: 35}
+  ALT:
+    unit: "U/L"
+    all: {low: 5, high: 40}
+  T_Bilirubin:
+    unit: "mg/dL"
+    all: {low: 0.2, high: 1.2}
+  PCT:
+    unit: "ng/mL"
+    all: {low: 0, high: 0.05}
+  Lactate:
+    unit: "mmol/L"
+    all: {low: 0.5, high: 2.0}
+  PT_INR:
+    unit: ""
+    all: {low: 0.9, high: 1.1}
+    on_warfarin: {low: 2.0, high: 3.0}
+  Fibrinogen:
+    unit: "mg/dL"
+    all: {low: 200, high: 400}
+  D_dimer:
+    unit: "ug/mL"
+    all: {low: 0, high: 0.5}
+
+# ============================================================
+# TARGET LENGTH OF STAY (country-specific)
+# Source: JP DPC data, US NHDS, Vincent et al. Crit Care Med
+# Sepsis has significantly longer LOS than most other conditions
+# ============================================================
+target_los:
+  japan:
+    moderate: {mean: 21, sd: 6, min: 14, max: 35}
+    severe: {mean: 35, sd: 10, min: 21, max: 60}
+  us:
+    moderate: {mean: 10, sd: 3, min: 7, max: 16}
+    severe: {mean: 18, sd: 6, min: 10, max: 35}
+
+# ============================================================
+# OUTCOME BENCHMARKS
+# For validating generated data against reality
+# Source: JP — JAAM Sepsis Registry, DPC data
+#         US — CDC, Rhee et al. JAMA 2017
+# ============================================================
+outcome_benchmarks:
+  japan:
+    median_los: 24
+    los_iqr: [16, 35]
+    in_hospital_mortality: 0.25
+    icu_admission_rate: 0.50
+    thirty_day_readmission: 0.20
+    blood_culture_positivity: 0.35
+    vasopressor_use_rate: 0.40
+    mechanical_ventilation_rate: 0.30
+    rrt_rate: 0.10                      # renal replacement therapy
+    mean_time_to_first_abx_hours: 1.5   # target <1h per guidelines
+    dic_rate: 0.15
+    mean_age_admitted: 74
+    male_ratio: 0.58
+
+  us:
+    median_los: 12
+    los_iqr: [8, 18]
+    in_hospital_mortality: 0.20
+    icu_admission_rate: 0.55
+    thirty_day_readmission: 0.22
+    blood_culture_positivity: 0.30
+    vasopressor_use_rate: 0.35
+    mechanical_ventilation_rate: 0.28
+    rrt_rate: 0.08
+    mean_time_to_first_abx_hours: 1.0
+    dic_rate: 0.12
+    mean_age_admitted: 70
+    male_ratio: 0.55
+
+# ============================================================
+# CLINICAL COURSE ARCHETYPES (daily state variable changes)
+# Each archetype defines day-by-day deltas for physiological state variables.
+# Sepsis has more aggressive trajectories and longer timelines than pneumonia.
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.30
+    description: "Source controlled, early appropriate antibiotics, steady improvement from Day 2-3"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: 0.00, 2: -0.05, 3: -0.08, 5: -0.10, 7: -0.10, 10: -0.08, 14: -0.06, 21: -0.04, 28: -0.02}
+      volume_status: {0: 0.05, 1: 0.05, 2: 0.04, 3: 0.03, 5: 0.02, 7: 0.01, 10: 0.01, 14: 0.00, 21: 0.00, 28: 0.00}
+      perfusion_status: {0: 0.02, 1: 0.03, 2: 0.04, 3: 0.03, 5: 0.02, 7: 0.01, 10: 0.01, 14: 0.00, 21: 0.00, 28: 0.00}
+      renal_function: {0: -0.02, 1: 0.00, 2: 0.01, 3: 0.02, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.01, 21: 0.01, 28: 0.00}
+      hepatic_function: {0: 0.00, 1: 0.00, 2: 0.01, 3: 0.01, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.00, 21: 0.00, 28: 0.00}
+      coagulation_status: {0: 0.00, 1: 0.00, 2: 0.01, 3: 0.01, 5: 0.01, 7: 0.01, 10: 0.00, 14: 0.00, 21: 0.00, 28: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.20
+    description: "Initial worsening Day 1-4 with organ dysfunction, then gradual recovery"
+    trajectory:
+      inflammation_level: {0: 0.10, 1: 0.08, 2: 0.05, 3: 0.00, 5: -0.05, 7: -0.08, 10: -0.10, 14: -0.08, 21: -0.05, 28: -0.03}
+      volume_status: {0: -0.05, 1: -0.05, 2: -0.02, 3: 0.02, 5: 0.03, 7: 0.02, 10: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
+      perfusion_status: {0: -0.08, 1: -0.05, 2: -0.02, 3: 0.02, 5: 0.03, 7: 0.02, 10: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
+      renal_function: {0: -0.05, 1: -0.03, 2: -0.02, 3: 0.00, 5: 0.01, 7: 0.02, 10: 0.02, 14: 0.01, 21: 0.01, 28: 0.00}
+      hepatic_function: {0: -0.03, 1: -0.02, 2: -0.01, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
+      coagulation_status: {0: -0.03, 1: -0.02, 2: -0.01, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.00, 21: 0.00, 28: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["Lactate", "Blood_culture_repeat_x2", "ABG"]
+        add_imaging: ["Chest_Xray_portable"]
+      day_3:
+        add_labs: ["DIC_panel"]
+    treatment_modifications:
+      day_1:
+        add_fluid: {detail: "Additional crystalloid 1000mL bolus"}
+      day_2:
+        start:
+          all: [{drug: "Norepinephrine", dose: "0.05-0.1 ug/kg/min"}]
+        action: "icu_transfer"
+
+  plateau:
+    probability: 0.15
+    description: "Stable but not improving for 5-7 days, then slow recovery"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: 0.03, 2: 0.01, 3: 0.00, 5: 0.00, 7: 0.00, 10: -0.05, 14: -0.08, 21: -0.06, 28: -0.03}
+      volume_status: {0: 0.02, 1: 0.02, 2: 0.01, 3: 0.00, 5: 0.00, 7: 0.00, 10: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
+      perfusion_status: {0: 0.01, 1: 0.01, 2: 0.00, 3: 0.00, 5: 0.00, 7: 0.00, 10: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
+      renal_function: {0: -0.02, 1: -0.01, 2: 0.00, 3: 0.00, 5: 0.00, 7: 0.00, 10: 0.01, 14: 0.01, 21: 0.01, 28: 0.00}
+    order_modifications:
+      day_5:
+        add_labs: ["Blood_culture_repeat_x2", "PCT", "Fungal_culture"]
+        add_imaging: ["CT_abdomen_pelvis_with_contrast"]
+        add_consult: ["infectious_disease"]
+      day_7:
+        add_labs: ["Beta_D_glucan", "Galactomannan"]
+    treatment_modifications:
+      day_5:
+        action: "reassess_source_control"
+      day_7:
+        start:
+          japan: [{drug: "Micafungin", dose: "100mg IV daily"}]
+          us: [{drug: "Micafungin", dose: "100mg IV daily"}]
+        note: "Empiric antifungal if no improvement with broad-spectrum ABx"
+
+  treatment_resistant:
+    probability: 0.15
+    description: "Resistant organism or uncontrolled source; requires major treatment changes"
+    trajectory:
+      inflammation_level: {0: 0.10, 1: 0.08, 2: 0.08, 3: 0.05, 5: 0.03, 7: -0.02, 10: -0.08, 14: -0.10, 21: -0.06, 28: -0.03}
+      volume_status: {0: -0.05, 1: -0.03, 2: -0.02, 3: -0.01, 5: 0.02, 7: 0.03, 10: 0.02, 14: 0.01, 21: 0.00, 28: 0.00}
+      perfusion_status: {0: -0.08, 1: -0.05, 2: -0.03, 3: -0.02, 5: 0.00, 7: 0.02, 10: 0.02, 14: 0.01, 21: 0.00, 28: 0.00}
+      renal_function: {0: -0.05, 1: -0.03, 2: -0.02, 3: -0.01, 5: 0.00, 7: 0.01, 10: 0.02, 14: 0.01, 21: 0.01, 28: 0.00}
+      coagulation_status: {0: -0.03, 1: -0.02, 2: -0.02, 3: -0.01, 5: 0.00, 7: 0.01, 10: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["Blood_culture_repeat_x2", "Lactate"]
+      day_3:
+        add_labs: ["Blood_culture_repeat_x2", "Sputum_culture", "PCT", "DIC_panel"]
+        add_imaging: ["CT_abdomen_pelvis_with_contrast"]
+        add_consult: ["infectious_disease", "surgery_if_source_control_needed"]
+    treatment_modifications:
+      day_3:
+        stop: ["Piperacillin/Tazobactam"]
+        start:
+          japan:
+            - {drug: "Meropenem", dose: "2g IV q8h"}
+            - {drug: "Vancomycin", dose: "15-20mg/kg IV q12h"}
+          us:
+            - {drug: "Meropenem", dose: "2g IV q8h"}
+            - {drug: "Vancomycin", dose: "15-20mg/kg IV q8-12h"}
+      day_5:
+        action: "interventional_source_control"
+        note: "Percutaneous drainage or surgical intervention if abscess identified"
+    triggers:
+      - day: 3
+        condition: "inflammation_level > 0.6"
+        actions: ["escalate_antibiotic", "order_ct", "consult_infectious_disease"]
+      - day: 5
+        condition: "inflammation_level > 0.5"
+        actions: ["interventional_source_control", "add_antifungal"]
+
+  gradual_deterioration:
+    probability: 0.12
+    description: "Progressive multi-organ failure despite treatment -> prolonged ICU stay, possible death"
+    trajectory:
+      inflammation_level: {0: 0.10, 1: 0.10, 2: 0.08, 3: 0.08, 5: 0.05, 7: 0.05, 10: 0.03, 14: 0.02, 21: 0.00, 28: -0.02}
+      perfusion_status: {0: -0.08, 1: -0.08, 2: -0.05, 3: -0.05, 5: -0.03, 7: -0.02, 10: 0.00, 14: 0.01, 21: 0.01, 28: 0.01}
+      renal_function: {0: -0.05, 1: -0.05, 2: -0.05, 3: -0.03, 5: -0.03, 7: -0.02, 10: -0.01, 14: 0.00, 21: 0.01, 28: 0.01}
+      hepatic_function: {0: -0.03, 1: -0.03, 2: -0.03, 3: -0.02, 5: -0.02, 7: -0.01, 10: 0.00, 14: 0.00, 21: 0.00, 28: 0.00}
+      coagulation_status: {0: -0.05, 1: -0.05, 2: -0.05, 3: -0.03, 5: -0.02, 7: -0.01, 10: 0.00, 14: 0.01, 21: 0.01, 28: 0.00}
+      ph_status: {0: -0.03, 1: -0.03, 2: -0.02, 3: -0.02, 5: -0.01, 7: 0.00, 10: 0.00, 14: 0.01, 21: 0.01, 28: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["ABG", "Lactate", "Blood_culture_repeat_x2", "DIC_panel"]
+      day_3:
+        add_labs: ["ABG", "Lactate", "DIC_panel"]
+        add_imaging: ["CT_abdomen_pelvis_with_contrast"]
+      day_5:
+        add_labs: ["ABG", "Lactate", "Fungal_culture", "Beta_D_glucan"]
+        add_consult: ["infectious_disease", "nephrology"]
+      day_7:
+        add_labs: ["ABG", "Lactate"]
+    treatment_modifications:
+      day_1:
+        start:
+          all: [{drug: "Norepinephrine", dose: "0.1 ug/kg/min IV drip"}]
+        action: "icu_transfer"
+      day_3:
+        stop: ["Piperacillin/Tazobactam"]
+        start:
+          japan:
+            - {drug: "Meropenem", dose: "2g IV q8h"}
+            - {drug: "Vancomycin", dose: "15-20mg/kg IV q12h"}
+          us:
+            - {drug: "Meropenem", dose: "2g IV q8h"}
+            - {drug: "Vancomycin", dose: "15-20mg/kg IV q8-12h"}
+      day_5:
+        start:
+          all:
+            - {drug: "Vasopressin", dose: "0.03 units/min IV continuous"}
+            - {drug: "Hydrocortisone", dose: "50mg IV q6h"}
+        action: "consider_rrt"
+      day_7:
+        start:
+          all: [{drug: "Micafungin", dose: "100mg IV daily"}]
+        action: "intubation_if_not_already"
+    triggers:
+      - day: 3
+        condition: "perfusion_status < 0.3"
+        actions: ["escalate_vasopressor", "consult_infectious_disease"]
+      - day: 5
+        condition: "renal_function < 0.3"
+        actions: ["start_rrt", "consult_nephrology"]
+      - day: 7
+        condition: "perfusion_status < 0.2"
+        actions: ["goals_of_care_discussion"]
+
+  sudden_deterioration:
+    probability: 0.08
+    description: "Acute decompensation with septic shock on Day 1-2; high mortality"
+    trajectory:
+      inflammation_level: {0: 0.15, 1: 0.15, 2: 0.10, 3: 0.00, 5: -0.05, 7: -0.08, 10: -0.08, 14: -0.05, 21: -0.03, 28: -0.02}
+      perfusion_status: {0: -0.15, 1: -0.20, 2: -0.05, 3: 0.05, 5: 0.05, 7: 0.03, 10: 0.02, 14: 0.01, 21: 0.01, 28: 0.00}
+      renal_function: {0: -0.08, 1: -0.10, 2: -0.05, 3: 0.00, 5: 0.02, 7: 0.02, 10: 0.02, 14: 0.01, 21: 0.01, 28: 0.00}
+      hepatic_function: {0: -0.05, 1: -0.10, 2: -0.05, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
+      coagulation_status: {0: -0.08, 1: -0.12, 2: -0.05, 3: 0.00, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
+      ph_status: {0: -0.08, 1: -0.10, 2: -0.05, 3: 0.00, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
+    order_modifications:
+      day_0:
+        add_labs: ["ABG", "Lactate", "Blood_culture_x2", "DIC_panel", "Troponin", "Cortisol"]
+      day_1:
+        add_labs: ["ABG", "Lactate", "DIC_panel"]
+        add_imaging: ["CT_abdomen_pelvis_with_contrast", "Echocardiogram"]
+    treatment_modifications:
+      day_0:
+        start:
+          all:
+            - {drug: "Norepinephrine", dose: "0.2 ug/kg/min IV drip"}
+            - {drug: "Hydrocortisone", dose: "50mg IV q6h"}
+        action: "icu_transfer"
+        action_2: "intubation_evaluation"
+      day_1:
+        start:
+          all:
+            - {drug: "Vasopressin", dose: "0.03 units/min IV continuous"}
+        action: "consider_rrt"
+        note: "Aggressive multi-organ support"
+    triggers:
+      - day: 0
+        condition: "perfusion_status < 0.3"
+        actions: ["icu_transfer", "start_vasopressor", "intubation_evaluation"]
+      - day: 1
+        condition: "perfusion_status < 0.2"
+        actions: ["add_second_vasopressor", "goals_of_care_discussion"]
+
+# Archetype selection modifiers (patient profile dependent)
+archetype_modifiers:
+  - condition: "immune_reactivity < 0.3"
+    effect: {treatment_resistant: 0.10, gradual_deterioration: 0.05, smooth_recovery: -0.15}
+  - condition: "age >= 80"
+    effect: {gradual_deterioration: 0.08, sudden_deterioration: 0.04, smooth_recovery: -0.12}
+  - condition: "treatment_sensitivity > 1.2"
+    effect: {smooth_recovery: 0.10, treatment_resistant: -0.05, gradual_deterioration: -0.05}
+  - condition: "immunosuppressed"
+    effect: {treatment_resistant: 0.10, gradual_deterioration: 0.05, smooth_recovery: -0.15}
+  - condition: "liver_cirrhosis"
+    effect: {sudden_deterioration: 0.05, gradual_deterioration: 0.05, smooth_recovery: -0.10}
+  - condition: "malignancy"
+    effect: {treatment_resistant: 0.08, gradual_deterioration: 0.05, smooth_recovery: -0.13}
+
+# ============================================================
+# COMPLICATIONS (secondary events during hospitalization)
+# Sepsis has high complication rates and multi-organ involvement
+# ============================================================
+complications:
+  - name: "disseminated_intravascular_coagulation"
+    description: "DIC — consumptive coagulopathy with microvascular thrombosis and bleeding"
+    probability_per_day: 0.015
+    onset_day_range: [0, 7]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 3.0}
+      - {condition: "liver_cirrhosis", multiplier: 2.5}
+      - {condition: "malignancy", multiplier: 2.0}
+      - {condition: "coagulation_status < 0.4", multiplier: 2.0}
+    state_impact:
+      coagulation_status: -0.20
+      perfusion_status: -0.10
+      renal_function: -0.05
+    detection:
+      test: "DIC_panel"
+      finding: "ISTH_DIC_score_gte_5"
+    actions: ["transfuse_FFP_if_bleeding", "transfuse_platelets_if_below_20k", "heparin_if_thrombotic_dominant", "treat_underlying_cause"]
+
+  - name: "acute_respiratory_distress_syndrome"
+    description: "ARDS — diffuse alveolar damage from systemic inflammation"
+    probability_per_day: 0.012
+    onset_day_range: [1, 7]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.5}
+      - {condition: "pneumonia_as_source", multiplier: 3.0}
+      - {condition: "massive_fluid_resuscitation", multiplier: 1.5}
+    state_impact:
+      perfusion_status: -0.15
+      ph_status: -0.10
+      inflammation_level: 0.10
+    detection:
+      test: "chest_xray_and_abg"
+      finding: "bilateral_infiltrates_and_pao2_fio2_below_300"
+    actions: ["intubation_mechanical_ventilation", "lung_protective_ventilation_6ml_kg", "prone_positioning_if_severe", "conservative_fluid_strategy"]
+
+  - name: "acute_kidney_injury"
+    description: "Sepsis-associated AKI — hemodynamic and inflammatory renal injury"
+    probability_per_day: 0.020
+    onset_day_range: [0, 5]
+    risk_factors:
+      - {condition: "renal_function < 0.5", multiplier: 2.5}
+      - {condition: "volume_status < -0.3", multiplier: 2.0}
+      - {condition: "age_over_75", multiplier: 1.5}
+      - {condition: "CKD", multiplier: 3.0}
+      - {condition: "nephrotoxic_drugs", multiplier: 2.0}
+    state_impact:
+      renal_function: -0.20
+      ph_status: -0.08
+      volume_status: 0.10  # fluid overload when kidneys fail
+    detection:
+      test: "creatinine_and_urine_output"
+      finding: "KDIGO_stage_2_or_3"
+    actions: ["optimize_volume_status", "hold_nephrotoxic_drugs", "adjust_drug_dosing", "consider_rrt_if_stage_3"]
+
+  - name: "hepatic_dysfunction"
+    description: "Sepsis-associated hepatic dysfunction or shock liver"
+    probability_per_day: 0.008
+    onset_day_range: [1, 7]
+    risk_factors:
+      - {condition: "liver_cirrhosis", multiplier: 4.0}
+      - {condition: "severity_severe", multiplier: 2.0}
+      - {condition: "perfusion_status < 0.3", multiplier: 3.0}
+    state_impact:
+      hepatic_function: -0.20
+      coagulation_status: -0.10
+    detection:
+      test: "liver_function_tests"
+      finding: "AST_ALT_above_5x_ULN_or_bilirubin_above_4"
+    actions: ["supportive_care", "avoid_hepatotoxic_drugs", "monitor_coagulation", "lactulose_if_encephalopathy"]
+
+  - name: "icu_delirium"
+    description: "Acute confusion in ICU setting from sepsis, sedation, and critical illness"
+    probability_per_day: 0.025
+    onset_day_range: [1, 14]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 2.5}
+      - {condition: "dementia", multiplier: 3.0}
+      - {condition: "icu_stay", multiplier: 2.0}
+      - {condition: "mechanical_ventilation", multiplier: 2.5}
+      - {condition: "benzodiazepine_use", multiplier: 2.0}
+      - {condition: "delirium_susceptibility > 0.3", multiplier: 2.0}
+    state_impact: {}  # delirium doesn't directly change physiological state
+    detection:
+      test: "CAM_ICU_screening"
+      finding: "positive"
+    actions: ["reorientation", "sleep_hygiene", "minimize_sedation", "avoid_benzodiazepines", "early_mobilization", "consider_haloperidol_or_quetiapine"]
+
+  - name: "central_line_associated_bloodstream_infection"
+    description: "CLABSI — secondary bloodstream infection from central venous catheter"
+    probability_per_day: 0.005
+    onset_day_range: [3, 21]
+    risk_factors:
+      - {condition: "central_line_present", multiplier: 5.0}
+      - {condition: "immunosuppressed", multiplier: 2.0}
+      - {condition: "icu_stay_over_7_days", multiplier: 2.0}
+    state_impact:
+      inflammation_level: 0.15
+      perfusion_status: -0.05
+    detection:
+      test: "blood_culture_differential_time_to_positivity"
+      finding: "central_line_culture_positive_2h_before_peripheral"
+    actions: ["remove_central_line", "new_blood_cultures", "targeted_antibiotic"]
+
+  - name: "c_diff_colitis"
+    description: "Clostridioides difficile infection from prolonged broad-spectrum antibiotic use"
+    probability_per_day: 0.008
+    onset_day_range: [5, 28]
+    risk_factors:
+      - {condition: "broad_spectrum_antibiotic_over_7_days", multiplier: 3.0}
+      - {condition: "age_over_65", multiplier: 1.5}
+      - {condition: "fluoroquinolone_use", multiplier: 2.0}
+      - {condition: "PPI_use", multiplier: 1.5}
+    state_impact:
+      inflammation_level: 0.10
+      volume_status: -0.10
+    detection:
+      test: "c_diff_toxin_pcr"
+      finding: "positive"
+    actions: ["stop_offending_antibiotic_if_possible", "start_oral_vancomycin_125mg_qid", "contact_precautions"]
+
+  - name: "stress_cardiomyopathy"
+    description: "Sepsis-induced myocardial dysfunction (septic cardiomyopathy)"
+    probability_per_day: 0.005
+    onset_day_range: [1, 5]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.5}
+      - {condition: "heart_failure", multiplier: 2.0}
+      - {condition: "high_vasopressor_dose", multiplier: 2.0}
+    state_impact:
+      perfusion_status: -0.15
+      volume_status: 0.05   # fluid overload from pump failure
+    detection:
+      test: "echocardiogram_and_troponin"
+      finding: "reduced_LVEF_and_elevated_troponin"
+    actions: ["dobutamine_if_low_CO", "reduce_fluid_rate", "careful_vasopressor_titration"]
+
+  - name: "critical_illness_polyneuropathy"
+    description: "ICU-acquired weakness from prolonged critical illness"
+    probability_per_day: 0.005
+    onset_day_range: [7, 28]
+    risk_factors:
+      - {condition: "icu_stay_over_7_days", multiplier: 3.0}
+      - {condition: "mechanical_ventilation_over_7_days", multiplier: 2.5}
+      - {condition: "corticosteroid_use", multiplier: 1.5}
+      - {condition: "hyperglycemia", multiplier: 1.5}
+    state_impact: {}  # functional impairment, not captured in physiological state
+    detection:
+      test: "clinical_exam_and_emg"
+      finding: "diffuse_weakness_and_reduced_reflexes"
+    actions: ["early_mobilization", "physical_therapy", "glycemic_control", "minimize_sedation"]
+
+# ============================================================
+# FORCED GENERATION (for testing / specific scenario creation)
+# ============================================================
+# Example usage in config:
+#   forced_scenarios:
+#     - disease_id: "sepsis"
+#       count: 3
+#       severity: "severe"
+#       archetype: "sudden_deterioration"
+#       complications: ["disseminated_intravascular_coagulation", "acute_kidney_injury", "acute_respiratory_distress_syndrome"]
+#       patient_overrides:
+#         age: 78
+#         sex: "M"
+#         chronic_conditions: ["E11", "N18"]  # diabetes, CKD

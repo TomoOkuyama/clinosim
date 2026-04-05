@@ -39,9 +39,9 @@ class PersonName:
 
     family_name: str = ""
     given_name: str = ""
-    display_name: str = ""  # formatted for display (JP: 姓名, US: Given Family)
+    display_name: str = ""  # formatted for display (e.g., "Given Family" or "Family Given")
     name_script: str = "en"  # "ja" | "en"
-    phonetic: str | None = None  # JP: katakana reading (e.g., "タナカ タロウ")
+    phonetic: str | None = None  # phonetic reading for languages that need it (e.g., katakana)
 
 
 @dataclass

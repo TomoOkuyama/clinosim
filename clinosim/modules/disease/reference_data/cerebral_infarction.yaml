@@ -1,0 +1,1025 @@
+# Cerebral Infarction (Ischemic Stroke) — Complete Reference Data
+# Sources cited per section. All rates are approximate and should be validated
+# against the most current published data before production use.
+
+disease_id: cerebral_infarction
+chief_complaint: "Sudden onset weakness, speech difficulty, facial droop"
+department: internal_medicine
+encounter_type: medical
+requires_surgery: false
+minimum_severity: moderate
+readmission_eligible: true
+diagnostic_difficulty: 0.3   # CT/MRI confirms quickly, but stroke mimics exist
+
+icd_codes:
+  primary: "I63.9"  # Cerebral infarction, unspecified
+  variants:
+    - {code: "I63.3", name: "Cerebral infarction due to thrombosis of middle cerebral artery", probability: 0.35}
+    - {code: "I63.5", name: "Cerebral infarction due to unspecified occlusion of basilar artery", probability: 0.10}
+    - {code: "I66.0", name: "Occlusion and stenosis of middle cerebral artery", probability: 0.15}
+    - {code: "I63.4", name: "Cerebral infarction due to embolism of cerebral arteries", probability: 0.25}
+    - {code: "I63.9", name: "Cerebral infarction, unspecified", probability: 0.15}
+
+# ============================================================
+# INCIDENCE (per 100,000 per year, by age band and sex)
+# Source: JP — 脳卒中データバンク, 患者調査 2020
+#         US — AHA Heart Disease and Stroke Statistics 2023
+# ============================================================
+incidence:
+  japan:
+    "0-4":   {M: 2, F: 2}
+    "5-14":  {M: 2, F: 2}
+    "15-24": {M: 5, F: 5}
+    "25-34": {M: 10, F: 8}
+    "35-44": {M: 30, F: 20}
+    "45-54": {M: 80, F: 50}
+    "55-64": {M: 200, F: 120}
+    "65-74": {M: 500, F: 350}
+    "75-84": {M: 1200, F: 900}
+    "85+":   {M: 2000, F: 1800}
+  us:
+    "0-4":   {M: 3, F: 3}
+    "5-14":  {M: 3, F: 3}
+    "15-24": {M: 8, F: 7}
+    "25-34": {M: 15, F: 12}
+    "35-44": {M: 40, F: 30}
+    "45-54": {M: 100, F: 65}
+    "55-64": {M: 250, F: 160}
+    "65-74": {M: 550, F: 400}
+    "75-84": {M: 1300, F: 1000}
+    "85+":   {M: 2200, F: 2000}
+
+  risk_multipliers:
+    - {condition: "atrial_fibrillation", multiplier: 5.0}
+    - {condition: "hypertension", multiplier: 2.5}
+    - {condition: "diabetes", multiplier: 2.0}
+    - {condition: "dyslipidemia", multiplier: 1.5}
+    - {condition: "smoking_current", multiplier: 2.0}
+    - {condition: "heart_failure", multiplier: 2.0}
+    - {condition: "prior_stroke_or_TIA", multiplier: 3.0}
+    - {condition: "carotid_stenosis", multiplier: 3.0}
+    - {condition: "obesity", multiplier: 1.5}
+    - {condition: "CKD", multiplier: 1.5}
+    - {condition: "patent_foramen_ovale", multiplier: 1.5}
+
+  seasonal_curve:  # monthly multiplier (1.0 = baseline)
+    1: 1.2   # Jan — cold weather increases risk
+    2: 1.2
+    3: 1.1
+    4: 1.0
+    5: 0.9
+    6: 0.9
+    7: 1.0   # summer heat can increase dehydration risk
+    8: 1.0
+    9: 0.9
+    10: 1.0
+    11: 1.1
+    12: 1.2
+
+  vaccine_protection: {}  # no vaccine protection for stroke
+
+# ============================================================
+# SEVERITY DISTRIBUTION
+# Source: NIHSS-based classification, JP DPC data, AHA data
+# Note: minimum_severity is moderate; mild strokes (TIA-like) are excluded
+# ============================================================
+severity:
+  distribution:
+    mild: 0.00        # excluded (minimum_severity: moderate)
+    moderate: 0.65    # NIHSS 5-15, requires hospitalization
+    severe: 0.35      # NIHSS > 15, large vessel occlusion, may need ICU
+  modifiers:
+    - {condition: "atrial_fibrillation", severe_multiplier: 1.8}
+    - {condition: "age_over_75", severe_multiplier: 1.5}
+    - {condition: "diabetes", severe_multiplier: 1.3}
+    - {condition: "prior_stroke_or_TIA", severe_multiplier: 1.4}
+    - {condition: "heart_failure", severe_multiplier: 1.5}
+
+# ============================================================
+# INITIAL PHYSIOLOGICAL STATE IMPACT
+# How this disease changes physiological state at onset (added to patient baseline)
+# Stroke affects perfusion primarily; inflammation is secondary
+# ============================================================
+initial_state_impact:
+  moderate:
+    perfusion_status: -0.25
+    inflammation_level: 0.15
+    cardiac_function: -0.05     # may be cardioembolic origin
+    volume_status: -0.05
+  severe:
+    perfusion_status: -0.40
+    inflammation_level: 0.25
+    cardiac_function: -0.15     # higher likelihood of cardioembolic
+    volume_status: -0.10
+    renal_function: -0.05
+    ph_status: -0.05
+
+# ============================================================
+# ORDER PROTOCOLS (what to order and when)
+# Source: AHA/ASA Guidelines 2019, 日本脳卒中学会 脳卒中治療ガイドライン 2021
+# ============================================================
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "CBC", urgency: "stat"}
+      - {test: "PT_INR", urgency: "stat"}
+      - {test: "aPTT", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "BUN", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Troponin", urgency: "stat"}
+      - {test: "BNP", urgency: "stat", probability: 0.70}
+      - {test: "HbA1c", urgency: "routine"}
+      - {test: "Lipid_panel", urgency: "routine"}
+      - {test: "TSH", urgency: "routine", probability: 0.50}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "AST", urgency: "stat", probability: 0.80}
+      - {test: "ALT", urgency: "stat", probability: 0.80}
+      - {test: "D_dimer", urgency: "stat", probability: 0.40}
+    imaging:
+      - {test: "CT_head_noncontrast", urgency: "stat"}
+      - {test: "CT_angiography_head_neck", urgency: "stat", probability: 0.70}
+      - {test: "MRI_brain_DWI", urgency: "within_24h"}
+      - {test: "MRA_intracranial", urgency: "within_24h", probability: 0.60}
+      - {test: "Carotid_ultrasound", urgency: "within_48h"}
+      - {test: "Echocardiography_TTE", urgency: "within_48h"}
+      - {test: "ECG_12lead", urgency: "stat"}
+    supportive:
+      - {type: "IV_fluid", detail: "NS 80 mL/h (avoid hypotonic fluids)"}
+      - {type: "NPO", detail: "NPO until swallowing assessment completed"}
+      - {type: "DVT_prophylaxis", detail: "Sequential compression devices (avoid anticoagulant DVT prophylaxis first 24h)"}
+      - {type: "BP_management", detail: "Permissive hypertension: allow SBP < 220 (or < 185 if tPA given)"}
+      - {type: "neuro_checks", detail: "NIHSS q2h for first 24h, then q4h"}
+      - {type: "continuous_telemetry", detail: "Cardiac monitoring for AF detection x48h minimum"}
+      - {type: "HOB_elevation", detail: "Head of bed flat or 30 degrees per protocol"}
+
+  daily_monitoring:
+    labs:
+      - {test: "Glucose", frequency: "q6h_first_48h_then_daily"}
+      - {test: "PT_INR", frequency: "daily_if_on_anticoagulation"}
+      - {test: "Creatinine", frequency: "daily"}
+      - {test: "CBC", frequency: "daily_first_3_days"}
+    vitals:
+      stable: "q4h"
+      unstable: "q1h"
+    neuro_assessment:
+      first_24h: "q2h"
+      after_24h: "q4h"
+    imaging:
+      - {test: "CT_head_noncontrast", frequency: "prn", condition: "neurological deterioration"}
+      - {test: "MRI_brain", frequency: "day_1_to_3", condition: "if not done at admission"}
+
+  trigger_orders:
+    neurological_deterioration:
+      condition: "NIHSS increase >= 4 points from baseline"
+      actions:
+        - {type: "imaging", test: "CT_head_noncontrast_stat"}
+        - {type: "lab", test: "Glucose_stat"}
+        - {type: "lab", test: "PT_INR_stat"}
+        - {type: "evaluate", action: "consider_hemorrhagic_transformation"}
+        - {type: "evaluate", action: "consider_malignant_edema"}
+    hemorrhagic_transformation_detected:
+      condition: "New hemorrhage on repeat CT"
+      actions:
+        - {type: "medication_change", action: "hold_all_antithrombotics"}
+        - {type: "lab", test: "PT_INR_aPTT_fibrinogen_stat"}
+        - {type: "consult", target: "neurosurgery"}
+        - {type: "evaluate", action: "consider_ICU_transfer"}
+    swallowing_failure:
+      condition: "Failed bedside swallowing assessment"
+      actions:
+        - {type: "diet", action: "maintain_NPO"}
+        - {type: "consult", target: "speech_therapy_formal_swallow_eval"}
+        - {type: "nutrition", action: "consider_NG_tube_if_prolonged"}
+    atrial_fibrillation_detected:
+      condition: "New AF on telemetry"
+      actions:
+        - {type: "lab", test: "TSH"}
+        - {type: "medication_change", action: "plan_anticoagulation_after_acute_phase"}
+        - {type: "evaluate", action: "CHA2DS2_VASc_score"}
+
+  discharge_criteria:
+    japan:
+      - "Neurologically stable (NIHSS not worsening) for >= 48 hours"
+      - "Swallowing assessment passed or alternative nutrition established"
+      - "Rehabilitation plan established (often continues as inpatient)"
+      - "Secondary prevention medications optimized"
+      - "BP controlled (< 140/90 or per target)"
+      - "Stroke etiology workup complete"
+      - "Family education on stroke signs completed"
+    us:
+      - "Neurologically stable for >= 24 hours"
+      - "Swallowing assessment passed or alternative nutrition established"
+      - "Able to participate in rehabilitation (or transfer to rehab facility)"
+      - "Secondary prevention medications started"
+      - "Follow-up arranged"
+      - "DVT prophylaxis plan for post-discharge if immobile"
+
+# ============================================================
+# LIKELIHOOD RATIO TABLE
+# Source: Clinical diagnostic studies, Defined by imaging and clinical criteria
+#         Defined by TOAST classification
+# ============================================================
+likelihood_ratios:
+  ct_head_early_ischemic_changes:
+    cerebral_infarction: {positive_LR: 6.0, negative_LR: 0.6}
+    hemorrhagic_stroke: {positive_LR: 0.1, negative_LR: 1.5}
+    brain_tumor: {positive_LR: 0.3, negative_LR: 1.1}
+
+  mri_dwi_restricted_diffusion:
+    cerebral_infarction: {positive_LR: 25.0, negative_LR: 0.10}
+    tia: {positive_LR: 0.5, negative_LR: 1.3}
+    brain_tumor: {positive_LR: 0.8, negative_LR: 1.1}
+
+  ct_angiography_large_vessel_occlusion:
+    cerebral_infarction: {positive_LR: 15.0, negative_LR: 0.5}
+    hemorrhagic_stroke: {positive_LR: 0.2, negative_LR: 1.1}
+
+  atrial_fibrillation_on_ecg:
+    cerebral_infarction: {positive_LR: 3.0, negative_LR: 0.7}
+    # cardioembolic subtype
+
+  carotid_stenosis_over_70_pct:
+    cerebral_infarction: {positive_LR: 4.0, negative_LR: 0.8}
+
+  sudden_onset_focal_deficit:
+    cerebral_infarction: {positive_LR: 5.0, negative_LR: 0.3}
+    hemorrhagic_stroke: {positive_LR: 4.0, negative_LR: 0.4}
+    tia: {positive_LR: 3.0, negative_LR: 0.5}
+    brain_tumor: {positive_LR: 0.5, negative_LR: 1.3}
+    migraine_with_aura: {positive_LR: 1.5, negative_LR: 0.8}
+    todds_paralysis: {positive_LR: 2.0, negative_LR: 0.9}
+
+  elevated_glucose_on_admission:
+    cerebral_infarction: {positive_LR: 1.5, negative_LR: 0.8}
+    # stress hyperglycemia common in acute stroke
+
+  echo_intracardiac_thrombus:
+    cerebral_infarction: {positive_LR: 20.0, negative_LR: 0.9}
+    # highly specific for cardioembolic source
+
+# ============================================================
+# DIFFERENTIAL DIAGNOSIS
+# Source: Clinical stroke mimics literature
+# ============================================================
+differential_diagnosis:
+  - {disease: "cerebral_infarction", prior_probability: 0.55}
+  - {disease: "hemorrhagic_stroke", prior_probability: 0.15}
+  - {disease: "tia", prior_probability: 0.10}
+  - {disease: "brain_tumor", prior_probability: 0.05}
+  - {disease: "todds_paralysis", prior_probability: 0.05}
+  - {disease: "migraine_with_aura", prior_probability: 0.05}
+  - {disease: "hypoglycemia", prior_probability: 0.03}
+  - {disease: "conversion_disorder", prior_probability: 0.02}
+
+# ============================================================
+# LAB REFERENCE RANGES (admission values for stroke patients)
+# For benchmarking generated data
+# Source: Clinical studies, stroke registries
+# ============================================================
+expected_lab_distributions:
+  admission:
+    Glucose:
+      unit: "mg/dL"
+      median: 140
+      iqr: [110, 180]
+      range: [70, 400]
+      note: "Stress hyperglycemia common; higher glucose correlates with worse outcome"
+    PT_INR:
+      unit: ""
+      median: 1.0
+      iqr: [0.9, 1.1]
+      range: [0.8, 4.0]
+      note: "Elevated if on warfarin; critical for tPA eligibility"
+    Creatinine:
+      unit: "mg/dL"
+      median: 0.9
+      iqr: [0.7, 1.2]
+      range: [0.4, 5.0]
+    Troponin:
+      unit: "ng/mL"
+      median: 0.02
+      iqr: [0.01, 0.05]
+      range: [0.00, 1.0]
+      note: "Mild elevation common in cardioembolic stroke"
+    BNP:
+      unit: "pg/mL"
+      median: 120
+      iqr: [50, 250]
+      range: [10, 2000]
+      note: "Elevated suggests cardiac source"
+    HbA1c:
+      unit: "%"
+      median: 6.2
+      iqr: [5.6, 7.5]
+      range: [4.5, 14.0]
+      note: "Many stroke patients have undiagnosed diabetes"
+    Total_cholesterol:
+      unit: "mg/dL"
+      median: 200
+      iqr: [170, 240]
+      range: [100, 350]
+    LDL:
+      unit: "mg/dL"
+      median: 120
+      iqr: [90, 150]
+      range: [40, 250]
+    WBC:
+      unit: "/uL"
+      median: 8500
+      iqr: [6500, 11000]
+      range: [3000, 20000]
+      note: "Mild leukocytosis from stress response"
+    CRP:
+      unit: "mg/L"
+      median: 5
+      iqr: [2, 15]
+      range: [0.5, 100]
+      note: "Mild elevation; markedly elevated suggests infection or other etiology"
+
+  discharge:
+    Glucose:
+      unit: "mg/dL"
+      median: 110
+      iqr: [90, 140]
+    PT_INR:
+      unit: ""
+      median: 1.0
+      iqr: [0.9, 1.1]
+      note: "2.0-3.0 if started on warfarin for AF"
+    LDL:
+      unit: "mg/dL"
+      median: 100
+      iqr: [70, 130]
+      note: "Target < 70 for high-risk patients on statin"
+
+# ============================================================
+# VITAL SIGN DISTRIBUTIONS
+# Source: Clinical studies on acute ischemic stroke
+# ============================================================
+expected_vital_distributions:
+  admission:
+    temperature:
+      unit: "C"
+      mean: 36.8
+      sd: 0.5
+      range: [36.0, 38.5]
+      note: "Fever rare at onset; if present consider infection or large infarct"
+    heart_rate:
+      unit: "bpm"
+      mean: 82
+      sd: 15
+      range: [50, 130]
+      note: "Irregular if AF; bradycardia possible with posterior circulation stroke"
+    systolic_bp:
+      unit: "mmHg"
+      mean: 170
+      sd: 25
+      range: [100, 240]
+      note: "Hypertension common at presentation (Cushing response, premorbid HTN)"
+    diastolic_bp:
+      unit: "mmHg"
+      mean: 95
+      sd: 15
+      range: [60, 140]
+    respiratory_rate:
+      unit: "/min"
+      mean: 18
+      sd: 4
+      range: [12, 30]
+    spo2:
+      unit: "%"
+      mean: 96
+      sd: 2
+      range: [85, 100]
+      note: "Usually preserved unless aspiration or large infarct with decreased consciousness"
+
+# ============================================================
+# TREATMENT REFERENCE — Drug and intervention data
+# Source: AHA/ASA Guidelines 2019, 日本脳卒中学会ガイドライン 2021
+# ============================================================
+drugs:
+  acute_reperfusion:
+    - drug: "Alteplase (tPA)"
+      code_rxnorm: "8410"
+      dose: "0.9 mg/kg IV (max 90mg), 10% bolus then 60min infusion"
+      route: IV
+      probability: 0.20  # only ~20% of ischemic stroke patients receive tPA
+      eligibility:
+        time_window_hours: 4.5
+        contraindications:
+          - "INR > 1.7"
+          - "Platelet < 100,000"
+          - "Recent surgery within 14 days"
+          - "Active bleeding"
+          - "SBP > 185 or DBP > 110 (uncontrolled)"
+      note: "Door-to-needle target < 60 min"
+
+  antiplatelet:
+    first_line:
+      japan:
+        - drug: "Aspirin"
+          code_yj: "3399007"
+          dose: "160-300mg loading, then 100mg PO daily"
+          route: PO
+          start_timing: "within 24-48h (after 24h if tPA given)"
+          pregnancy_safe: false
+        - drug: "Clopidogrel"
+          code_yj: "3399100"
+          dose: "300mg loading, then 75mg PO daily"
+          route: PO
+          probability: 0.40  # dual antiplatelet for minor stroke / high-risk TIA
+          note: "DAPT (aspirin + clopidogrel) for 21 days in minor stroke"
+      us:
+        - drug: "Aspirin"
+          code_rxnorm: "1191"
+          dose: "325mg loading, then 81mg PO daily"
+          route: PO
+          start_timing: "within 24-48h (after 24h if tPA given)"
+          pregnancy_safe: false
+        - drug: "Clopidogrel"
+          code_rxnorm: "32968"
+          dose: "300mg loading, then 75mg PO daily"
+          route: PO
+          probability: 0.40
+          note: "DAPT for 21 days per POINT/CHANCE trial for minor stroke"
+
+  anticoagulation:
+    indication: "atrial_fibrillation_or_cardioembolic_source"
+    start_timing: "typically Day 3-14 depending on infarct size"
+    japan:
+      - drug: "Edoxaban"
+        code_yj: "3339004"
+        dose: "60mg PO daily (30mg if CrCl 15-50 or weight <= 60kg)"
+        route: PO
+        note: "DOAC preferred over warfarin in Japan"
+      - drug: "Warfarin"
+        code_yj: "3332001"
+        dose: "Titrate to INR 2.0-3.0 (1.6-2.6 if age >= 70)"
+        route: PO
+        probability: 0.30
+        note: "Used if mechanical valve or DOAC contraindicated"
+    us:
+      - drug: "Apixaban"
+        code_rxnorm: "1364430"
+        dose: "5mg PO BID (2.5mg if age >= 80, weight <= 60kg, or Cr >= 1.5)"
+        route: PO
+        note: "DOAC preferred; ARISTOTLE trial data"
+      - drug: "Warfarin"
+        code_rxnorm: "11289"
+        dose: "Titrate to INR 2.0-3.0"
+        route: PO
+        probability: 0.20
+        note: "Used if mechanical valve or DOAC contraindicated"
+
+  statin:
+    japan:
+      - drug: "Atorvastatin"
+        code_yj: "2189015"
+        dose: "10-20mg PO daily"
+        route: PO
+        note: "Lower typical dose in Japan"
+    us:
+      - drug: "Atorvastatin"
+        code_rxnorm: "83367"
+        dose: "40-80mg PO daily"
+        route: PO
+        note: "High-intensity statin per AHA guidelines"
+
+  antihypertensive:
+    start_timing: "after acute phase (typically Day 2-3, once neurologically stable)"
+    japan:
+      - drug: "Amlodipine"
+        code_yj: "2171022"
+        dose: "5mg PO daily"
+        route: PO
+      - drug: "Candesartan"
+        code_yj: "2149041"
+        dose: "8mg PO daily"
+        route: PO
+    us:
+      - drug: "Amlodipine"
+        code_rxnorm: "17767"
+        dose: "5-10mg PO daily"
+        route: PO
+      - drug: "Lisinopril"
+        code_rxnorm: "29046"
+        dose: "10-20mg PO daily"
+        route: PO
+
+  bp_lowering_acute:
+    indication: "SBP > 185 or DBP > 110 (pre-tPA) or SBP > 220 (no tPA)"
+    japan:
+      - drug: "Nicardipine"
+        code_yj: "2171401"
+        dose: "1-6mg/h IV drip"
+        route: IV
+    us:
+      - drug: "Nicardipine"
+        code_rxnorm: "7417"
+        dose: "5-15mg/h IV drip"
+        route: IV
+      - drug: "Labetalol"
+        code_rxnorm: "6185"
+        dose: "10-20mg IV q10-20min PRN"
+        route: IV
+
+# ============================================================
+# DRUG INTERACTIONS relevant to stroke treatment
+# ============================================================
+drug_interactions:
+  - drug_a: "Aspirin"
+    drug_b: "Warfarin"
+    severity: "major"
+    effect: "Increased bleeding risk"
+    action: "Monitor INR closely; typically avoid combination unless strong indication"
+
+  - drug_a: "Clopidogrel"
+    drug_b: "Omeprazole"
+    severity: "major"
+    effect: "Reduced clopidogrel efficacy (CYP2C19 inhibition)"
+    action: "Use pantoprazole or famotidine instead"
+
+  - drug_a: "Apixaban"
+    drug_b: "Aspirin"
+    severity: "moderate"
+    effect: "Increased bleeding risk"
+    action: "Avoid dual therapy unless short-term indication; monitor for bleeding"
+
+  - drug_a: "Warfarin"
+    drug_b: "Atorvastatin"
+    severity: "moderate"
+    effect: "May increase INR"
+    action: "Monitor INR when initiating statin"
+
+  - drug_a: "Alteplase"
+    drug_b: "Aspirin"
+    severity: "major"
+    effect: "Increased hemorrhagic risk"
+    action: "Hold aspirin for 24h after tPA administration"
+
+# ============================================================
+# LAB ITEM REFERENCE RANGES (age/sex-specific normal values)
+# Used for flagging H/L results
+# Source: Standard clinical laboratory references
+# ============================================================
+reference_ranges:
+  CBC:
+    WBC:
+      unit: "/uL"
+      all: {low: 3500, high: 9500}
+    Hb:
+      unit: "g/dL"
+      male: {low: 13.5, high: 17.5}
+      female: {low: 11.5, high: 15.5}
+    Plt:
+      unit: "x10^3/uL"
+      all: {low: 150, high: 400}
+  PT_INR:
+    unit: ""
+    all: {low: 0.9, high: 1.1}
+    on_warfarin: {low: 2.0, high: 3.0}
+  aPTT:
+    unit: "sec"
+    all: {low: 25, high: 35}
+  Glucose:
+    unit: "mg/dL"
+    fasting: {low: 70, high: 100}
+    random: {low: 70, high: 140}
+  HbA1c:
+    unit: "%"
+    all: {low: 4.5, high: 5.6}
+    prediabetes: {low: 5.7, high: 6.4}
+  Creatinine:
+    unit: "mg/dL"
+    male: {low: 0.6, high: 1.1}
+    female: {low: 0.4, high: 0.8}
+  BUN:
+    unit: "mg/dL"
+    all: {low: 8, high: 20}
+  Na:
+    unit: "mEq/L"
+    all: {low: 136, high: 145}
+  K:
+    unit: "mEq/L"
+    all: {low: 3.5, high: 5.0}
+  Troponin:
+    unit: "ng/mL"
+    all: {low: 0, high: 0.04}
+  BNP:
+    unit: "pg/mL"
+    all: {low: 0, high: 100}
+    age_over_75: {low: 0, high: 200}
+  Total_cholesterol:
+    unit: "mg/dL"
+    all: {low: 0, high: 200}
+  LDL:
+    unit: "mg/dL"
+    all: {low: 0, high: 140}
+  HDL:
+    unit: "mg/dL"
+    male: {low: 40, high: 100}
+    female: {low: 50, high: 100}
+  Triglycerides:
+    unit: "mg/dL"
+    all: {low: 0, high: 150}
+  CRP:
+    unit: "mg/L"
+    all: {low: 0, high: 3}
+  AST:
+    unit: "U/L"
+    all: {low: 10, high: 35}
+  ALT:
+    unit: "U/L"
+    all: {low: 5, high: 40}
+  D_dimer:
+    unit: "ug/mL"
+    all: {low: 0, high: 0.5}
+
+# ============================================================
+# TARGET LENGTH OF STAY (country-specific)
+# JP includes inpatient rehabilitation; US transfers to rehab facility
+# Source: JP — DPC data, US — AHA Get With The Guidelines
+# ============================================================
+target_los:
+  japan:
+    moderate: {mean: 22, sd: 5, min: 14, max: 35}
+    severe: {mean: 30, sd: 7, min: 18, max: 50}
+  us:
+    moderate: {mean: 5, sd: 1.5, min: 3, max: 8}
+    severe: {mean: 7, sd: 2, min: 4, max: 14}
+
+# OUTCOME BENCHMARKS
+# For validating generated data against reality
+# Source: JP — 脳卒中データバンク 2021, US — AHA Statistics 2023
+# ============================================================
+outcome_benchmarks:
+  japan:
+    median_los: 24
+    los_iqr: [18, 30]
+    in_hospital_mortality: 0.08
+    icu_transfer_rate: 0.15
+    thirty_day_readmission: 0.10
+    tpa_administration_rate: 0.10
+    thrombectomy_rate: 0.05
+    hemorrhagic_transformation_rate: 0.06
+    af_detection_rate: 0.25
+    mean_nihss_at_admission: 8
+    mean_age_admitted: 74
+    male_ratio: 0.58
+
+  us:
+    median_los: 5
+    los_iqr: [3, 7]
+    in_hospital_mortality: 0.05
+    icu_transfer_rate: 0.20
+    thirty_day_readmission: 0.12
+    tpa_administration_rate: 0.12
+    thrombectomy_rate: 0.08
+    hemorrhagic_transformation_rate: 0.06
+    af_detection_rate: 0.25
+    mean_nihss_at_admission: 8
+    mean_age_admitted: 70
+    male_ratio: 0.52
+
+# ============================================================
+# CLINICAL COURSE ARCHETYPES (daily state variable changes)
+# Stroke trajectory differs from infection: perfusion and neurological recovery
+# are primary axes. Inflammation is mild. Rehabilitation milestones matter.
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.40
+    description: "Steady neurological improvement from Day 1; good response to reperfusion or collaterals"
+    trajectory:
+      perfusion_status: {0: -0.05, 1: 0.03, 2: 0.04, 3: 0.04, 5: 0.03, 7: 0.02, 10: 0.02, 14: 0.01, 21: 0.01, 28: 0.00}
+      inflammation_level: {0: 0.02, 1: 0.01, 2: -0.01, 3: -0.02, 5: -0.02, 7: -0.01, 10: -0.01, 14: 0.00, 21: 0.00, 28: 0.00}
+      cardiac_function: {0: 0.00, 1: 0.00, 2: 0.01, 3: 0.01, 5: 0.01, 7: 0.00, 10: 0.00, 14: 0.00, 21: 0.00, 28: 0.00}
+      volume_status: {0: 0.01, 1: 0.02, 2: 0.01, 3: 0.01, 5: 0.00, 7: 0.00, 10: 0.00, 14: 0.00, 21: 0.00, 28: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.20
+    description: "Early worsening Day 1-3 (edema, extension), then gradual recovery with rehab"
+    trajectory:
+      perfusion_status: {0: -0.08, 1: -0.05, 2: -0.03, 3: 0.00, 5: 0.03, 7: 0.04, 10: 0.03, 14: 0.02, 21: 0.01, 28: 0.01}
+      inflammation_level: {0: 0.05, 1: 0.03, 2: 0.02, 3: 0.00, 5: -0.02, 7: -0.02, 10: -0.01, 14: -0.01, 21: 0.00, 28: 0.00}
+      cardiac_function: {0: -0.02, 1: -0.01, 2: 0.00, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.00, 14: 0.00, 21: 0.00, 28: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["CT_head_noncontrast_repeat"]
+        add_imaging: ["MRI_brain_if_not_done"]
+    treatment_modifications:
+      day_2:
+        add_fluid: {detail: "NS bolus if hypotensive; otherwise maintain euvolemia"}
+
+  plateau:
+    probability: 0.20
+    description: "Stable deficit without significant improvement; requires prolonged rehabilitation"
+    trajectory:
+      perfusion_status: {0: -0.02, 1: 0.00, 2: 0.00, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.01, 21: 0.01, 28: 0.00}
+      inflammation_level: {0: 0.02, 1: 0.00, 2: -0.01, 3: -0.01, 5: 0.00, 7: 0.00, 10: 0.00, 14: 0.00, 21: 0.00, 28: 0.00}
+      cardiac_function: {0: 0.00, 1: 0.00, 2: 0.00, 3: 0.00, 5: 0.00, 7: 0.00, 10: 0.00, 14: 0.00, 21: 0.00, 28: 0.00}
+    order_modifications:
+      day_7:
+        add_imaging: ["MRI_brain_follow_up"]
+    treatment_modifications: {}
+
+  treatment_resistant:
+    probability: 0.05
+    description: "Progressive stroke despite treatment; large vessel occlusion without recanalization"
+    trajectory:
+      perfusion_status: {0: -0.10, 1: -0.05, 2: -0.03, 3: -0.02, 5: 0.00, 7: 0.01, 10: 0.01, 14: 0.01, 21: 0.01, 28: 0.00}
+      inflammation_level: {0: 0.08, 1: 0.05, 2: 0.03, 3: 0.01, 5: -0.01, 7: -0.02, 10: -0.02, 14: -0.01, 21: -0.01, 28: 0.00}
+      cardiac_function: {0: -0.03, 1: -0.02, 2: -0.01, 3: 0.00, 5: 0.00, 7: 0.01, 10: 0.01, 14: 0.00, 21: 0.00, 28: 0.00}
+      renal_function: {0: -0.02, 1: -0.01, 2: 0.00, 3: 0.00, 5: 0.00, 7: 0.01, 10: 0.01, 14: 0.00, 21: 0.00, 28: 0.00}
+    order_modifications:
+      day_1:
+        add_imaging: ["CT_angiography_repeat", "CT_perfusion"]
+        add_consult: ["interventional_neuroradiology"]
+      day_3:
+        add_imaging: ["MRI_brain"]
+        add_labs: ["Repeat_coagulation_panel"]
+    treatment_modifications:
+      day_1:
+        evaluate: "thrombectomy_candidacy"
+    triggers:
+      - day: 1
+        condition: "perfusion_status < 0.3 and large_vessel_occlusion"
+        actions: ["consider_thrombectomy", "interventional_neuroradiology_consult"]
+
+  gradual_deterioration:
+    probability: 0.10
+    description: "Slow worsening from cerebral edema, secondary complications -> may need ICU"
+    trajectory:
+      perfusion_status: {0: -0.08, 1: -0.05, 2: -0.05, 3: -0.03, 5: -0.03, 7: -0.01, 10: 0.01, 14: 0.01, 21: 0.01, 28: 0.00}
+      inflammation_level: {0: 0.05, 1: 0.05, 2: 0.05, 3: 0.03, 5: 0.02, 7: 0.00, 10: -0.02, 14: -0.02, 21: -0.01, 28: 0.00}
+      cardiac_function: {0: -0.03, 1: -0.03, 2: -0.02, 3: -0.01, 5: 0.00, 7: 0.00, 10: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
+      renal_function: {0: -0.02, 1: -0.02, 2: -0.02, 3: -0.01, 5: -0.01, 7: 0.00, 10: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["Osmolality", "Na"]
+        add_imaging: ["CT_head_noncontrast_stat"]
+      day_5:
+        add_labs: ["ABG", "Lactate"]
+        add_imaging: ["CT_head_noncontrast_stat"]
+    treatment_modifications:
+      day_2:
+        start:
+          japan: [{drug: "Mannitol", dose: "200mL IV q8h"}]
+          us: [{drug: "Mannitol", dose: "1g/kg IV q6h"}]
+        note: "Hyperosmolar therapy for cerebral edema"
+      day_5:
+        action: "icu_transfer"
+        evaluate: "decompressive_craniectomy_if_malignant_MCA"
+    triggers:
+      - day: 3
+        condition: "midline_shift > 5mm on CT"
+        actions: ["neurosurgery_consult", "consider_decompressive_craniectomy"]
+      - day: 5
+        condition: "perfusion_status < 0.3"
+        actions: ["icu_transfer"]
+
+  sudden_deterioration:
+    probability: 0.05
+    description: "Sudden worsening from hemorrhagic transformation or recurrent stroke"
+    trajectory:
+      perfusion_status: {0: -0.03, 1: 0.02, 2: -0.25, 3: -0.05, 5: 0.03, 7: 0.03, 10: 0.02, 14: 0.01, 21: 0.01, 28: 0.00}
+      inflammation_level: {0: 0.02, 1: -0.01, 2: 0.15, 3: 0.05, 5: -0.03, 7: -0.03, 10: -0.02, 14: -0.01, 21: -0.01, 28: 0.00}
+      cardiac_function: {0: 0.00, 1: 0.00, 2: -0.10, 3: -0.03, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.00, 21: 0.00, 28: 0.00}
+      renal_function: {0: 0.00, 1: 0.00, 2: -0.10, 3: -0.03, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["PT_INR_stat", "aPTT_stat", "Fibrinogen", "Type_and_Screen"]
+        add_imaging: ["CT_head_noncontrast_stat"]
+    treatment_modifications:
+      day_2:
+        stop: ["Aspirin", "Clopidogrel", "Apixaban", "Edoxaban", "Warfarin"]
+        action: "icu_transfer"
+        evaluate: "neurosurgery_consult_for_hemorrhagic_transformation"
+    triggers:
+      - day: 2
+        condition: "acute_neurological_decline"
+        actions: ["stat_ct_head", "hold_antithrombotics", "icu_transfer", "neurosurgery_consult"]
+
+# Archetype selection modifiers (patient profile dependent)
+archetype_modifiers:
+  - condition: "atrial_fibrillation"
+    effect: {sudden_deterioration: 0.03, smooth_recovery: -0.03}
+  - condition: "age >= 80"
+    effect: {gradual_deterioration: 0.05, plateau: 0.05, smooth_recovery: -0.10}
+  - condition: "tpa_received"
+    effect: {smooth_recovery: 0.15, treatment_resistant: -0.05, sudden_deterioration: 0.02}
+    note: "tPA improves outcome but slightly increases hemorrhagic transformation risk"
+  - condition: "diabetes"
+    effect: {plateau: 0.05, smooth_recovery: -0.05}
+  - condition: "prior_stroke"
+    effect: {treatment_resistant: 0.05, gradual_deterioration: 0.03, smooth_recovery: -0.08}
+
+# ============================================================
+# COMPLICATIONS (secondary events during hospitalization)
+# ============================================================
+complications:
+  - name: "hemorrhagic_transformation"
+    description: "Bleeding into infarcted brain tissue"
+    probability_per_day: 0.008
+    onset_day_range: [1, 7]
+    risk_factors:
+      - {condition: "tpa_received", multiplier: 3.0}
+      - {condition: "anticoagulation", multiplier: 2.5}
+      - {condition: "large_infarct_volume", multiplier: 2.0}
+      - {condition: "severity_severe", multiplier: 2.0}
+      - {condition: "age_over_75", multiplier: 1.5}
+    state_impact:
+      perfusion_status: -0.20
+      inflammation_level: 0.10
+    detection:
+      test: "ct_head_noncontrast"
+      finding: "new_hemorrhage_within_infarct"
+    actions: ["hold_antithrombotics", "stat_coagulation_panel", "neurosurgery_consult", "consider_icu"]
+
+  - name: "aspiration_pneumonia"
+    description: "Pneumonia from dysphagia-related aspiration"
+    probability_per_day: 0.012
+    onset_day_range: [1, 10]
+    risk_factors:
+      - {condition: "dysphagia", multiplier: 4.0}
+      - {condition: "decreased_consciousness", multiplier: 3.0}
+      - {condition: "age_over_75", multiplier: 1.5}
+      - {condition: "brainstem_infarct", multiplier: 2.5}
+    state_impact:
+      inflammation_level: 0.20
+      perfusion_status: -0.05
+      volume_status: -0.10
+    detection:
+      test: "chest_xray"
+      finding: "new_infiltrate"
+    actions: ["start_antibiotics", "NPO", "speech_therapy_reassessment"]
+
+  - name: "dvt"
+    description: "Deep vein thrombosis from immobility and paresis"
+    probability_per_day: 0.008
+    onset_day_range: [3, 21]
+    risk_factors:
+      - {condition: "hemiplegia", multiplier: 3.0}
+      - {condition: "immobility_days > 3", multiplier: 2.0}
+      - {condition: "no_dvt_prophylaxis", multiplier: 3.0}
+      - {condition: "age_over_75", multiplier: 1.5}
+    state_impact:
+      coagulation_status: 0.05
+    detection:
+      test: "d_dimer_then_ultrasound"
+      finding: "dvt_confirmed"
+    actions: ["start_anticoagulation"]
+    cascade: ["pulmonary_embolism"]
+
+  - name: "pulmonary_embolism"
+    description: "PE from DVT embolization"
+    probability_given_parent: 0.10
+    parent_complication: "dvt"
+    onset_days_after_parent: [0, 7]
+    state_impact:
+      perfusion_status: -0.20
+      inflammation_level: 0.05
+      ph_status: -0.05
+    actions: ["ct_angiography", "anticoagulation", "consider_icu"]
+
+  - name: "seizure"
+    description: "Post-stroke seizure from cortical irritation"
+    probability_per_day: 0.005
+    onset_day_range: [1, 14]
+    risk_factors:
+      - {condition: "cortical_infarct", multiplier: 3.0}
+      - {condition: "hemorrhagic_transformation", multiplier: 2.5}
+      - {condition: "severity_severe", multiplier: 2.0}
+    state_impact:
+      perfusion_status: -0.05
+    detection:
+      test: "clinical_observation_or_eeg"
+      finding: "seizure_activity"
+    actions: ["antiepileptic_medication", "eeg_monitoring", "rule_out_recurrent_stroke"]
+
+  - name: "cerebral_edema"
+    description: "Malignant cerebral edema with mass effect (large MCA infarct)"
+    probability_per_day: 0.006
+    onset_day_range: [2, 5]
+    risk_factors:
+      - {condition: "large_mca_infarct", multiplier: 5.0}
+      - {condition: "age_under_60", multiplier: 2.0}  # paradoxically worse in younger due to less atrophy
+      - {condition: "severity_severe", multiplier: 2.5}
+    state_impact:
+      perfusion_status: -0.15
+      inflammation_level: 0.05
+    detection:
+      test: "ct_head"
+      finding: "midline_shift_or_effacement"
+    actions: ["hyperosmolar_therapy", "icu_transfer", "neurosurgery_consult", "consider_decompressive_craniectomy"]
+
+  - name: "post_stroke_depression"
+    description: "Depression developing during hospitalization or early recovery"
+    probability_per_day: 0.010
+    onset_day_range: [5, 30]
+    risk_factors:
+      - {condition: "frontal_lobe_infarct", multiplier: 2.0}
+      - {condition: "severe_disability", multiplier: 2.0}
+      - {condition: "prior_depression", multiplier: 3.0}
+      - {condition: "social_isolation", multiplier: 1.5}
+    state_impact: {}  # does not directly change physiological state variables
+    detection:
+      test: "PHQ9_screening"
+      finding: "score_above_9"
+    actions: ["psychiatry_consult", "consider_SSRI", "supportive_counseling"]
+
+  - name: "urinary_tract_infection"
+    description: "UTI from indwelling catheter or urinary retention"
+    probability_per_day: 0.008
+    onset_day_range: [3, 14]
+    risk_factors:
+      - {condition: "urinary_catheter", multiplier: 3.0}
+      - {condition: "urinary_retention", multiplier: 2.0}
+      - {condition: "diabetes", multiplier: 1.5}
+      - {condition: "female", multiplier: 1.5}
+    state_impact:
+      inflammation_level: 0.10
+    detection:
+      test: "urinalysis_and_culture"
+      finding: "pyuria_and_bacteriuria"
+    actions: ["remove_catheter_if_possible", "start_antibiotics"]
+
+  - name: "delirium"
+    description: "Acute confusion, especially in elderly stroke patients"
+    probability_per_day: 0.012
+    onset_day_range: [1, 7]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 2.5}
+      - {condition: "dementia", multiplier: 3.0}
+      - {condition: "right_hemisphere_infarct", multiplier: 1.5}
+      - {condition: "icu_stay", multiplier: 2.0}
+    state_impact: {}
+    detection:
+      test: "CAM_screening"
+      finding: "positive"
+    actions: ["reorientation", "sleep_hygiene", "avoid_benzodiazepines", "treat_underlying_cause"]
+
+# ============================================================
+# REHABILITATION PROTOCOL
+# Rehabilitation is critical for stroke recovery — PT/OT/ST from early days
+# Source: AHA/ASA Guidelines, 日本脳卒中学会リハビリガイドライン
+# ============================================================
+rehabilitation:
+  start_timing: "Day 2 (once medically stable and no hemorrhagic transformation)"
+  components:
+    physical_therapy:
+      description: "Mobility, gait training, balance, strengthening of affected limbs"
+      frequency: "Daily (BID in JP inpatient rehab phase)"
+      duration_minutes: 40
+      goals:
+        - "Sit to stand independently"
+        - "Ambulate with or without assistive device"
+        - "Stair navigation"
+    occupational_therapy:
+      description: "ADL training, fine motor skills, upper extremity function"
+      frequency: "Daily"
+      duration_minutes: 40
+      goals:
+        - "Self-feeding"
+        - "Dressing and grooming"
+        - "Handwriting or adaptive techniques"
+    speech_therapy:
+      description: "Swallowing rehabilitation, aphasia therapy, cognitive-communication"
+      frequency: "Daily (if aphasia or dysphagia present)"
+      duration_minutes: 30
+      probability: 0.60  # not all stroke patients need ST
+      goals:
+        - "Safe oral intake (pass swallowing evaluation)"
+        - "Functional communication"
+        - "Cognitive-linguistic recovery"
+
+  japan_specific:
+    kaifuku_ki_rehab: true  # 回復期リハビリテーション — JP-specific rehab ward transfer
+    typical_rehab_ward_los: {mean: 60, sd: 20, min: 30, max: 120}
+    note: "Most JP stroke patients transfer to rehab ward (回復期リハ病棟) after acute phase"
+
+  us_specific:
+    inpatient_rehab_facility_transfer: true
+    typical_irf_los: {mean: 16, sd: 5, min: 7, max: 30}
+    note: "US patients typically transfer to IRF or SNF after acute hospital stay"
+
+# ============================================================
+# FORCED GENERATION (for testing / specific scenario creation)
+# ============================================================
+# Example usage in config:
+#   forced_scenarios:
+#     - disease_id: "cerebral_infarction"
+#       count: 3
+#       severity: "severe"
+#       archetype: "dip_then_recovery"
+#       complications: ["hemorrhagic_transformation", "aspiration_pneumonia"]
+#       patient_overrides:
+#         age: 78
+#         sex: "M"
+#         chronic_conditions: ["I48", "I10", "E11"]  # AF, HTN, DM2

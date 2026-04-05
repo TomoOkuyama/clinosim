@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from enum import Enum
 
 
@@ -149,3 +149,16 @@ class VitalSignRecord:
     pain_score: int | None = None
     measured_by: str = ""  # nurse staff_id
     data_source: str = "manual"  # "manual" | "device_auto"
+
+
+@dataclass
+class IntakeOutputRecord:
+    """Daily fluid balance record (nursing documentation)."""
+    date: date = field(default_factory=date.today)
+    intake_iv_ml: int = 0  # IV fluid
+    intake_oral_ml: int = 0  # oral intake
+    intake_other_ml: int = 0  # blood products, tube feeding
+    output_urine_ml: int = 0
+    output_drain_ml: int = 0  # surgical drain, NG tube
+    output_other_ml: int = 0  # emesis, stool
+    net_balance_ml: int = 0  # intake - output

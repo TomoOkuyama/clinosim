@@ -1,0 +1,54 @@
+# Drug code mapping — RxNorm (US)
+# Internal name → RxNorm CUI
+# Source: NLM RxNorm
+
+# Antibiotics
+Ampicillin/Sulbactam: "308182"
+Amoxicillin: "723"
+Amoxicillin/Clavulanate: "18631"
+Azithromycin: "18631"
+Ceftriaxone: "2193"
+Levofloxacin: "82122"
+Meropenem: "29561"
+Piperacillin/Tazobactam: "139462"
+
+# Cardiovascular
+Furosemide: "4603"
+Carvedilol: "20352"
+Enalapril: "3827"
+Lisinopril: "29046"
+Amlodipine: "17767"
+Candesartan: "214354"
+Nitroglycerin: "4917"
+Carperitide: "1310738"
+Enoxaparin: "67108"
+Warfarin: "11289"
+Apixaban: "1364430"
+Aspirin: "1191"
+Clopidogrel: "32968"
+Atorvastatin: "83367"
+Norepinephrine: "7512"
+
+# Pain / Anti-inflammatory
+Acetaminophen: "161"
+Celecoxib: "140587"
+Oxycodone: "7804"
+
+# Diabetes
+Metformin: "6809"
+Sliding scale insulin: "5856"
+
+# Respiratory
+Tiotropium: "274766"
+Salbutamol: "435"
+Fluticasone/Salmeterol: "108761"
+
+# GI / Other
+Lansoprazole: "17128"
+Sodium bicarbonate: "9796"
+Vitamin D: "11253"
+Alendronate: "3002"
+Donepezil: "135447"
+Levodopa/Carbidopa: "103919"
+Levothyroxine: "10582"
+Tamsulosin: "77492"

@@ -43,10 +43,16 @@ class CIFPatientRecord:
     procedures: list = field(default_factory=list)  # ProcedureRecord
     rehab_sessions: list = field(default_factory=list)  # RehabSession
     medication_administrations: list[MedicationAdministration] = field(default_factory=list)
+    intake_output_records: list = field(default_factory=list)  # IntakeOutputRecord
     discharge_prescription: PrescriptionRecord | None = None
     icu_transferred: bool = False
     deceased: bool = False
     death_day: int | None = None
+
+    # Readmission tracking
+    is_readmission: bool = False
+    prior_encounter_id: str | None = None
+    readmission_number: int = 0  # 0 = first admission, 1 = first readmission
 
     # Hidden state (for validation/debugging, not exported to clinical formats)
     physiological_states: list[PhysiologicalState] = field(default_factory=list)

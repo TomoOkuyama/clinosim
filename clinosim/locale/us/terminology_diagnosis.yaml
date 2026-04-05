@@ -1,0 +1,78 @@
+# Diagnosis display names — US English (ICD-10-CM)
+# Source: ICD-10-CM (CMS/NCHS)
+
+# Pneumonia
+J15.9: "Bacterial pneumonia, unspecified"
+J18.9: "Pneumonia, unspecified"
+J15.0: "Pneumonia due to Klebsiella pneumoniae"
+J15.1: "Pneumonia due to Pseudomonas"
+J13: "Pneumonia due to Streptococcus pneumoniae"
+
+# Heart failure
+I50.9: "Heart failure, unspecified"
+I50.1: "Left ventricular failure, unspecified"
+I50: "Heart failure"
+
+# Hip fracture
+S72.0: "Fracture of neck of femur"
+S72.1: "Pertrochanteric fracture"
+
+# Urinary tract infection
+N39.0: "Urinary tract infection, site not specified"
+N10: "Acute tubulo-interstitial nephritis"
+N12: "Tubulo-interstitial nephritis, not specified as acute or chronic"
+N30.0: "Acute cystitis"
+N41.0: "Acute prostatitis"
+N20.0: "Calculus of kidney"
+
+# Cerebral infarction (stroke)
+I63.9: "Cerebral infarction, unspecified"
+I63.3: "Cerebral infarction due to thrombosis of cerebral arteries"
+I63.5: "Cerebral infarction due to unspecified occlusion of basilar artery"
+I61.9: "Nontraumatic intracerebral hemorrhage, unspecified"
+G45.9: "Transient cerebral ischemic attack, unspecified"
+
+# Acute myocardial infarction
+I21.9: "Acute myocardial infarction, unspecified"
+I21.0: "Acute transmural myocardial infarction of anterior wall"
+I21.1: "Acute transmural myocardial infarction of inferior wall"
+I21.4: "Acute subendocardial myocardial infarction (NSTEMI)"
+I20.0: "Unstable angina"
+
+# Gastrointestinal bleeding
+K92.2: "Gastrointestinal hemorrhage, unspecified"
+K92.0: "Hematemesis"
+K92.1: "Melena"
+K25.4: "Acute gastric ulcer with hemorrhage"
+K26.4: "Acute duodenal ulcer with hemorrhage"
+
+# Diabetic ketoacidosis
+E11.10: "Type 2 diabetes mellitus with ketoacidosis without coma"
+E10.10: "Type 1 diabetes mellitus with ketoacidosis without coma"
+E11.65: "Type 2 diabetes mellitus with hyperglycemia"
+
+# Sepsis
+A41.9: "Sepsis, unspecified organism"
+R65.20: "Severe sepsis without septic shock"
+R65.21: "Severe sepsis with septic shock"
+
+# COPD exacerbation
+J44.1: "Chronic obstructive pulmonary disease with acute exacerbation"
+J44.0: "Chronic obstructive pulmonary disease with acute lower respiratory infection"
+
+# Chronic conditions
+I10: "Essential (primary) hypertension"
+E11.9: "Type 2 diabetes mellitus without complications"
+E78: "Disorders of lipoprotein metabolism and other lipidemias"
+J44: "Other chronic obstructive pulmonary disease"
+N18: "Chronic kidney disease"
+I48: "Atrial fibrillation and flutter"
+I25: "Chronic ischemic heart disease"
+M81: "Osteoporosis without current pathological fracture"
+F00: "Dementia in Alzheimer disease"
+G20: "Parkinson disease"
+E03: "Other hypothyroidism"
+K21: "Gastro-esophageal reflux disease"
+J45: "Asthma"
+N40: "Benign prostatic hyperplasia"
+M17: "Osteoarthritis of knee"

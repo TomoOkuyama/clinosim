@@ -13,8 +13,24 @@ import numpy as np
 
 
 @dataclass
+class HospitalizationSummary:
+    """Compact record of a past hospitalization, persisted in Layer 1."""
+    encounter_id: str
+    disease_id: str
+    admission_date: date
+    discharge_date: date
+    los_days: int
+    outcome: str  # "discharged" | "deceased" | "transferred"
+    discharge_diagnoses: list[str] = field(default_factory=list)  # ICD codes
+    discharge_medications: list[str] = field(default_factory=list)  # drug names
+    residual_inflammation: float = 0.0  # state at discharge
+    residual_renal: float = 1.0  # state at discharge
+    was_readmission: bool = False
+
+
+@dataclass
 class PersonRecord:
-    """Layer 1 person record — lightweight."""
+    """Layer 1 person record — lightweight but retains medical history."""
     person_id: str
     household_id: str
     age: int
@@ -22,13 +38,18 @@ class PersonRecord:
     date_of_birth: date
     family_name: str = ""
     given_name: str = ""
-    phonetic: str | None = None  # JP: katakana reading
+    phonetic: str | None = None
     blood_type: str = "A"
     chronic_conditions: list[str] = field(default_factory=list)
+    current_medications: list[str] = field(default_factory=list)  # active medications
     is_alive: bool = True
     care_seeking_threshold: float = 0.3
     has_visited_hospital: bool = False
     visit_count: int = 0
+    last_discharge_date: date | None = None
+    last_encounter_id: str | None = None
+    last_disease_id: str | None = None
+    hospitalization_history: list[HospitalizationSummary] = field(default_factory=list)
 
 
 @dataclass
@@ -47,6 +68,9 @@ class LifeEvent:
     condition_type: str = "known_disease"  # "known_disease" | "mixed" | "unknown" (AD-28)
     disease_id: str = ""
     requires_hospital: bool = False
+    is_readmission: bool = False
+    prior_encounter_id: str | None = None
+    readmission_number: int = 0
 
 
 @dataclass
@@ -62,22 +86,34 @@ class PopulationRegistry:
         return len(self.persons)
 
 
-# Age distribution for Japan (simplified, per 1000)
-JP_AGE_DISTRIBUTION = {
-    (0, 14): 0.12, (15, 24): 0.09, (25, 34): 0.10, (35, 44): 0.12,
-    (45, 54): 0.14, (55, 64): 0.13, (65, 74): 0.15, (75, 84): 0.10, (85, 99): 0.05,
-}
+def _load_demographics(country: str) -> dict:
+    """Load demographic data from locale."""
+    from clinosim.locale.loader import load_demographics
+    return load_demographics(country)
 
-JP_CHRONIC_PREVALENCE = {
-    "I10": {(40, 99): 0.35},       # Hypertension
-    "E11.9": {(40, 99): 0.10},     # Type 2 DM
-    "E78": {(40, 99): 0.20},       # Dyslipidemia
-    "J44": {(40, 99): 0.05},       # COPD
-    "N18": {(60, 99): 0.08},       # CKD
-    "I50": {(65, 99): 0.03},       # Heart failure
-}
 
-JP_BLOOD_TYPE = {"A": 0.40, "O": 0.30, "B": 0.20, "AB": 0.10}
+def _parse_age_distribution(demo: dict) -> tuple[list[tuple[int, int]], list[float]]:
+    """Parse age_distribution from demographics YAML into bands and probs."""
+    raw = demo.get("age_distribution", {})
+    bands: list[tuple[int, int]] = []
+    probs: list[float] = []
+    for key, val in raw.items():
+        lo, hi = key.split("-")
+        bands.append((int(lo), int(hi)))
+        probs.append(float(val))
+    return bands, probs
+
+
+def _parse_chronic_prevalence(demo: dict) -> dict[str, dict[tuple[int, int], float]]:
+    """Parse chronic_prevalence from demographics YAML into structured dict."""
+    raw = demo.get("chronic_prevalence", {})
+    result: dict[str, dict[tuple[int, int], float]] = {}
+    for code, age_ranges in raw.items():
+        result[code] = {}
+        for key, prev in age_ranges.items():
+            lo, hi = key.split("-")
+            result[code][(int(lo), int(hi))] = float(prev)
+    return result
 
 
 def generate_population(
@@ -88,7 +124,8 @@ def generate_population(
 ) -> PopulationRegistry:
     """Generate a catchment area population with households."""
     registry = PopulationRegistry()
-    avg_household_size = 2.3  # JP average
+    demo = _load_demographics(country)
+    avg_household_size = demo.get("average_household_size", 2.5)
     n_households = int(size / avg_household_size)
 
     # Load name data and naming rules
@@ -119,12 +156,13 @@ def generate_population(
             pid = f"POP-{person_count:06d}"
 
             # Age from distribution
-            age_band = _sample_age_band(rng)
+            age_band = _sample_age_band(demo, rng)
             age = int(rng.integers(age_band[0], age_band[1] + 1))
 
             sex = "M" if rng.random() < 0.49 else "F"
             dob = date(base_year - age, int(rng.integers(1, 13)), int(rng.integers(1, 29)))
-            blood_type = str(rng.choice(list(JP_BLOOD_TYPE.keys()), p=list(JP_BLOOD_TYPE.values())))
+            bt = demo.get("blood_type", {"O": 0.44, "A": 0.42, "B": 0.10, "AB": 0.04})
+            blood_type = str(rng.choice(list(bt.keys()), p=list(bt.values())))
 
             # Given name (sex-appropriate)
             given = _sample_given_name(name_data, sex, rng)
@@ -154,7 +192,8 @@ def generate_population(
 
             # Chronic conditions
             conditions: list[str] = []
-            for code, age_ranges in JP_CHRONIC_PREVALENCE.items():
+            chronic_data = _parse_chronic_prevalence(demo)
+            for code, age_ranges in chronic_data.items():
                 for (lo, hi), prev in age_ranges.items():
                     if lo <= age <= hi and rng.random() < prev:
                         conditions.append(code)
@@ -189,82 +228,102 @@ def generate_monthly_events(
     year: int,
     month: int,
     rng: np.random.Generator,
+    country: str = "US",
 ) -> list[LifeEvent]:
     """Generate life events for one month across the population. All Phase 1 diseases."""
     events: list[LifeEvent] = []
     event_date = date(year, month, 15)
 
+    # Load country-specific epidemiology from locale
+    demo = _load_demographics(country)
+    incidence = demo.get("disease_incidence", {})
+    seasonal = demo.get("seasonal_modifiers", {})
+    risk_mults = demo.get("disease_risk_multipliers", {})
+
     for person in registry.persons.values():
         if not person.is_alive:
             continue
 
-        # --- Bacterial Pneumonia ---
-        pn_rate = _disease_monthly_rate(
-            person, "bacterial_pneumonia", month,
-            _pneumonia_incidence, _PNEUMONIA_SEASONAL, _PNEUMONIA_RISK,
-        )
-        if rng.random() < pn_rate:
-            severity = float(rng.beta(2, 3))
-            events.append(LifeEvent(
-                person_id=person.person_id, event_type="acute_disease_onset",
-                timestamp=event_date + timedelta(days=int(rng.integers(0, 28))),
-                severity=severity, disease_id="bacterial_pneumonia",
-                requires_hospital=severity > person.care_seeking_threshold,
-                condition_type="known_disease",
-            ))
+        # --- Data-driven disease event generation ---
+        for disease_id, disease_spec in incidence.items():
+            age_rates = disease_spec.get("age_rates", disease_spec.get("age_rates_among_hf", {}))
+            if not age_rates:
+                continue
 
-        # --- Heart Failure Exacerbation (requires prior HF diagnosis) ---
-        if "I50" in person.chronic_conditions:
-            hf_rate = _disease_monthly_rate(
-                person, "heart_failure_exacerbation", month,
-                _hf_exacerbation_incidence, _HF_SEASONAL, _HF_RISK,
+            # Prerequisite check (e.g., HF exacerbation requires I50)
+            prereq = disease_spec.get("prerequisite_condition")
+            if prereq and prereq not in person.chronic_conditions:
+                continue
+
+            sex_ratio = disease_spec.get("sex_ratio_female", 1.0)
+            disease_seasonal = seasonal.get(disease_id, {})
+            disease_risk = risk_mults.get(disease_id, {})
+
+            rate = _disease_monthly_rate_from_locale(
+                person, month, age_rates, sex_ratio, disease_seasonal, disease_risk,
             )
-            if rng.random() < hf_rate:
-                severity = float(rng.beta(3, 3))  # more uniform severity
-                events.append(LifeEvent(
-                    person_id=person.person_id, event_type="chronic_exacerbation",
-                    timestamp=event_date + timedelta(days=int(rng.integers(0, 28))),
-                    severity=max(0.3, severity),  # HF exacerbation is at least moderate
-                    disease_id="heart_failure_exacerbation",
-                    requires_hospital=severity > person.care_seeking_threshold * 0.8,
-                    condition_type="known_disease",
-                ))
 
-        # --- Hip Fracture (trauma, age-dependent) ---
-        hf_rate = _disease_monthly_rate(
-            person, "hip_fracture", month,
-            _hip_fracture_incidence, _HIP_SEASONAL, _HIP_RISK,
-        )
-        if rng.random() < hf_rate:
-            # Hip fracture always requires hospital
+            # Prior hospitalization for the same disease increases recurrence risk
+            if hasattr(person, "hospitalization_history"):
+                prior_same = [
+                    h for h in person.hospitalization_history
+                    if h.disease_id == disease_id
+                ]
+                if prior_same:
+                    rate *= 1.5  # 50% higher recurrence after prior episode
+
+            if rng.random() >= rate:
+                continue
+
+            # Severity from beta distribution
+            beta_params = disease_spec.get("severity_beta", [2, 3])
+            severity = float(rng.beta(beta_params[0], beta_params[1]))
+            sev_min = disease_spec.get("severity_minimum")
+            if sev_min is not None:
+                severity = max(float(sev_min), severity)
+
+            # Hospitalization decision
+            event_type = disease_spec.get("event_type", "acute_disease_onset")
+            if disease_spec.get("always_hospitalize"):
+                requires_hospital = True
+            else:
+                threshold = person.care_seeking_threshold
+                # Age-based threshold modifier
+                age_mods = disease_spec.get("hospitalization_threshold_modifier_by_age", {})
+                if age_mods:
+                    for age_str in sorted(age_mods.keys(), key=int, reverse=True):
+                        if person.age >= int(age_str):
+                            threshold *= float(age_mods[age_str])
+                            break
+                # Flat modifier
+                flat_mod = disease_spec.get("hospitalization_threshold_modifier")
+                if flat_mod is not None:
+                    threshold *= float(flat_mod)
+                requires_hospital = severity > threshold
+
             events.append(LifeEvent(
-                person_id=person.person_id, event_type="trauma",
+                person_id=person.person_id,
+                event_type=event_type,
                 timestamp=event_date + timedelta(days=int(rng.integers(0, 28))),
-                severity=0.7 + float(rng.random() * 0.3),  # always moderate-severe
-                disease_id="hip_fracture",
-                requires_hospital=True,  # always
+                severity=severity,
+                disease_id=disease_id,
+                requires_hospital=requires_hospital,
                 condition_type="known_disease",
             ))
-
-        # --- Mixed-cause conditions ---
-        # In reality, 15-25% of elderly admissions involve 2+ active diseases.
-        # Mixed happens when an acute event triggers in someone with other active conditions.
-        # We model this by upgrading known_disease events to mixed when the patient
-        # has relevant comorbidities that would be simultaneously active.
-        # This is done as a post-processing step below (after all events generated).
 
         # --- Unknown-cause conditions ---
-        # ~8-12% of admissions start as "unknown" at presentation.
-        # Of these, ~50-70% are resolved during stay (workup finds cause).
-        # ~3-5% of total admissions remain truly undiagnosed at discharge.
-        if person.age >= 40:
-            # Base rate: roughly 3% of admissions start as unknown presentation
-            unknown_rate = 0.00008 * (1.0 + (person.age - 40) * 0.005)
+        unknown_cfg = demo.get("unknown_conditions", {})
+        unknown_min_age = unknown_cfg.get("min_age", 40)
+        unknown_base_rate = unknown_cfg.get("base_rate", 0.00008)
+        unknown_age_factor = unknown_cfg.get("age_factor", 0.005)
+        unknown_patterns = unknown_cfg.get("patterns", [
+            "fever_unknown", "weight_loss_unexplained",
+            "malaise_fatigue", "elevated_inflammatory_markers",
+        ])
+        if person.age >= unknown_min_age:
+            unknown_rate = unknown_base_rate * (1.0 + (person.age - unknown_min_age) * unknown_age_factor)
             if rng.random() < unknown_rate:
-                pattern = str(rng.choice([
-                    "fever_unknown", "weight_loss_unexplained",
-                    "malaise_fatigue", "elevated_inflammatory_markers",
-                ]))
+                pattern = str(rng.choice(unknown_patterns))
                 unk_severity = float(rng.beta(2, 3))
                 events.append(LifeEvent(
                     person_id=person.person_id,
@@ -277,48 +336,52 @@ def generate_monthly_events(
                 ))
 
     # --- Post-processing: upgrade some known_disease events to mixed ---
-    # Elderly patients (75+) with 2+ chronic conditions who get admitted
-    # have ~20% chance of having a second active condition during the stay.
+    mixed_cfg = demo.get("mixed_conditions", {})
+    mixed_min_age = mixed_cfg.get("min_age", 70)
+    mixed_min_chronic = mixed_cfg.get("min_chronic_conditions", 2)
+    mixed_probability = mixed_cfg.get("probability", 0.18)
     for event in events:
         if event.condition_type == "known_disease" and event.requires_hospital:
             person = registry.persons.get(event.person_id)
-            if person and person.age >= 70 and len(person.chronic_conditions) >= 2:
-                if rng.random() < 0.18:  # ~18% of elderly multi-morbid admissions = mixed
+            if (person and person.age >= mixed_min_age
+                    and len(person.chronic_conditions) >= mixed_min_chronic):
+                if rng.random() < mixed_probability:
                     event.condition_type = "mixed"
 
     return events
 
 
-def _disease_monthly_rate(
-    person: PersonRecord, disease_id: str, month: int,
-    incidence_fn: Any, seasonal: dict[int, float], risk_multipliers: dict[str, float],
+def _disease_monthly_rate_from_locale(
+    person: PersonRecord,
+    month: int,
+    age_rates: dict,
+    sex_ratio_female: float,
+    seasonal: dict,
+    risk_multipliers: dict,
 ) -> float:
-    base_annual = incidence_fn(person.age, person.sex) / 100_000
-    seasonal_mod = seasonal.get(month, 1.0)
-    monthly = base_annual * seasonal_mod / 12
+    """Calculate monthly disease rate from locale epidemiology data."""
+    # Find age-appropriate incidence rate
+    rate = 0.0
+    for age_str, r in sorted(age_rates.items(), key=lambda x: int(x[0])):
+        if person.age >= int(age_str):
+            rate = float(r)
+    # Sex adjustment
+    if person.sex == "F":
+        rate *= sex_ratio_female
+    # Annual to monthly
+    monthly = (rate / 100_000) / 12
+    # Seasonal
+    seasonal_mod = seasonal.get(month, seasonal.get(str(month), 1.0))
+    monthly *= float(seasonal_mod)
+    # Risk multipliers from chronic conditions
     for code, mult in risk_multipliers.items():
         if code in person.chronic_conditions:
-            monthly *= mult
+            monthly *= float(mult)
     return monthly
 
 
-# === Seasonal curves ===
-_PNEUMONIA_SEASONAL = {1: 1.8, 2: 1.6, 3: 1.3, 4: 1.0, 5: 0.8, 6: 0.7,
-                       7: 0.7, 8: 0.7, 9: 0.8, 10: 1.0, 11: 1.3, 12: 1.7}
-_HF_SEASONAL = {1: 1.3, 2: 1.2, 3: 1.1, 4: 1.0, 5: 0.9, 6: 0.9,
-                7: 1.1, 8: 1.2, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.3}
-_HIP_SEASONAL = {1: 1.4, 2: 1.3, 3: 1.1, 4: 1.0, 5: 0.9, 6: 0.8,
-                 7: 0.8, 8: 0.8, 9: 0.9, 10: 1.0, 11: 1.1, 12: 1.3}
-
-# === Risk multipliers ===
-_PNEUMONIA_RISK = {"J44": 3.0, "E11.9": 1.5, "I50": 2.0, "N18": 1.8}
-_HF_RISK = {"I10": 1.5, "E11.9": 1.3, "N18": 2.0, "I48": 1.5}
-_HIP_RISK = {"M81": 3.0, "F00": 2.5, "G20": 2.0, "E11.9": 1.3}
-
-
-def _sample_age_band(rng: np.random.Generator) -> tuple[int, int]:
-    bands = list(JP_AGE_DISTRIBUTION.keys())
-    probs = list(JP_AGE_DISTRIBUTION.values())
+def _sample_age_band(demo: dict, rng: np.random.Generator) -> tuple[int, int]:
+    bands, probs = _parse_age_distribution(demo)
     idx = int(rng.choice(len(bands), p=probs))
     return bands[idx]
 
@@ -348,39 +411,3 @@ def _sample_given_name(name_data: dict, sex: str, rng: np.random.Generator) -> d
     return names[idx]
 
 
-def _pneumonia_incidence(age: int, sex: str = "M") -> float:
-    """Age-specific pneumonia incidence per 100,000/year (JP)."""
-    base = {0: 700, 5: 130, 15: 50, 25: 60, 35: 80, 45: 120,
-            55: 200, 65: 500, 75: 1200, 85: 2500}
-    rate = 60.0
-    for a, r in sorted(base.items()):
-        if age >= a:
-            rate = r
-    return rate * (1.0 if sex == "M" else 0.75)
-
-
-def _hf_exacerbation_incidence(age: int, sex: str = "M") -> float:
-    """Age-specific HF exacerbation incidence per 100,000/year among HF patients.
-    This is the exacerbation rate, not new HF incidence.
-    HF patients have ~25% annual hospitalization rate.
-    """
-    if age < 45:
-        return 5000   # 5% of HF patients (rare in young)
-    if age < 65:
-        return 15000  # 15%
-    if age < 75:
-        return 20000  # 20%
-    if age < 85:
-        return 25000  # 25%
-    return 30000      # 30%
-
-
-def _hip_fracture_incidence(age: int, sex: str = "M") -> float:
-    """Age-specific hip fracture incidence per 100,000/year (JP)."""
-    base = {0: 3, 45: 8, 55: 25, 65: 80, 75: 300, 85: 700}
-    rate = 3.0
-    for a, r in sorted(base.items()):
-        if age >= a:
-            rate = r
-    # Female: 2-3x higher (osteoporosis)
-    return rate * (1.0 if sex == "M" else 2.5)

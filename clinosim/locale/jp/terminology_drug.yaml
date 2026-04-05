@@ -1,0 +1,53 @@
+# Drug display names — Japanese
+# Internal name → 日本語表示名（商品名）
+
+# 抗菌薬
+Ampicillin/Sulbactam: "アンピシリン/スルバクタム（ユナシン）"
+Amoxicillin: "アモキシシリン（サワシリン）"
+Amoxicillin/Clavulanate: "アモキシシリン/クラブラン酸（オーグメンチン）"
+Azithromycin: "アジスロマイシン（ジスロマック）"
+Ceftriaxone: "セフトリアキソン（ロセフィン）"
+Levofloxacin: "レボフロキサシン（クラビット）"
+Meropenem: "メロペネム（メロペン）"
+Piperacillin/Tazobactam: "ピペラシリン/タゾバクタム（ゾシン）"
+
+# 循環器系
+Furosemide: "フロセミド（ラシックス）"
+Carvedilol: "カルベジロール（アーチスト）"
+Enalapril: "エナラプリル（レニベース）"
+Lisinopril: "リシノプリル（ゼストリル）"
+Amlodipine: "アムロジピン（アムロジン/ノルバスク）"
+Candesartan: "カンデサルタン（ブロプレス）"
+Nitroglycerin: "ニトログリセリン（ミリスロール）"
+Carperitide: "カルペリチド（ハンプ）"
+Enoxaparin: "エノキサパリン（クレキサン）"
+Warfarin: "ワルファリン（ワーファリン）"
+Apixaban: "アピキサバン（エリキュース）"
+Aspirin: "アスピリン（バイアスピリン）"
+Clopidogrel: "クロピドグレル（プラビックス）"
+Atorvastatin: "アトルバスタチン（リピトール）"
+Norepinephrine: "ノルエピネフリン（ノルアドリナリン）"
+
+# 鎮痛・消炎
+Acetaminophen: "アセトアミノフェン（カロナール）"
+Celecoxib: "セレコキシブ（セレコックス）"
+Oxycodone: "オキシコドン（オキシコンチン）"
+
+# 糖尿病
+Metformin: "メトホルミン（メトグルコ）"
+Sliding scale insulin: "スライディングスケールインスリン（ヒューマリンR）"
+
+# 呼吸器系
+Tiotropium: "チオトロピウム（スピリーバ）"
+Salbutamol: "サルブタモール（サルタノール/ベネトリン）"
+Fluticasone/Salmeterol: "フルチカゾン/サルメテロール（アドエア）"
+
+# 消化器・その他
+Lansoprazole: "ランソプラゾール（タケプロン）"
+Sodium bicarbonate: "炭酸水素ナトリウム（メイロン）"
+Vitamin D: "ビタミンD（アルファカルシドール）"
+Alendronate: "アレンドロン酸（フォサマック/ボナロン）"
+Donepezil: "ドネペジル（アリセプト）"
+Levodopa/Carbidopa: "レボドパ/カルビドパ（ネオドパストン/メネシット）"
+Levothyroxine: "レボチロキシン（チラーヂンS）"
+Tamsulosin: "タムスロシン（ハルナール）"

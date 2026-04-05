@@ -1,0 +1,821 @@
+# Acute Kidney Injury — Complete Reference Data
+# Sources cited per section. All rates are approximate and should be validated
+# against the most current published data before production use.
+
+disease_id: acute_kidney_injury
+chief_complaint: "Decreased urine output, edema, nausea, confusion"
+department: internal_medicine
+encounter_type: medical
+requires_surgery: false
+readmission_eligible: true
+
+icd_codes:
+  primary: "N17.9"  # Acute kidney failure, unspecified
+  variants:
+    - {code: "N17.0", name: "Acute kidney failure with tubular necrosis", probability: 0.30}
+    - {code: "N17.1", name: "Acute kidney failure with acute cortical necrosis", probability: 0.03}
+    - {code: "N17.2", name: "Acute kidney failure with medullary necrosis", probability: 0.02}
+    - {code: "N17.8", name: "Other acute kidney failure", probability: 0.15}
+    - {code: "N17.9", name: "Acute kidney failure, unspecified", probability: 0.50}
+
+# ============================================================
+# INCIDENCE (per 100,000 per year, by age band and sex)
+# Source: JP — 日本腎臓学会 AKI registry, DPC data
+#         US — Hsu et al. Kidney Int 2007, USRDS
+# ============================================================
+incidence:
+  japan:
+    "0-4":   {M: 20, F: 15}
+    "5-14":  {M: 10, F: 8}
+    "15-24": {M: 15, F: 12}
+    "25-34": {M: 25, F: 20}
+    "35-44": {M: 50, F: 35}
+    "45-54": {M: 100, F: 70}
+    "55-64": {M: 250, F: 170}
+    "65-74": {M: 600, F: 400}
+    "75-84": {M: 1200, F: 850}
+    "85+":   {M: 2000, F: 1500}
+  us:
+    "0-4":   {M: 25, F: 20}
+    "5-14":  {M: 12, F: 10}
+    "15-24": {M: 20, F: 15}
+    "25-34": {M: 30, F: 22}
+    "35-44": {M: 60, F: 40}
+    "45-54": {M: 120, F: 80}
+    "55-64": {M: 300, F: 200}
+    "65-74": {M: 700, F: 500}
+    "75-84": {M: 1400, F: 1000}
+    "85+":   {M: 2300, F: 1700}
+
+  risk_multipliers:
+    - {condition: "CKD", multiplier: 5.0}
+    - {condition: "heart_failure", multiplier: 3.0}
+    - {condition: "diabetes", multiplier: 2.0}
+    - {condition: "liver_cirrhosis", multiplier: 3.5}
+    - {condition: "sepsis", multiplier: 5.0}
+    - {condition: "hypertension", multiplier: 1.5}
+    - {condition: "NSAID_use", multiplier: 2.0}
+    - {condition: "aminoglycoside_use", multiplier: 3.0}
+    - {condition: "contrast_exposure", multiplier: 2.5}
+    - {condition: "rhabdomyolysis", multiplier: 5.0}
+    - {condition: "urinary_obstruction", multiplier: 4.0}
+
+  seasonal_curve:
+    1: 1.05
+    2: 1.05
+    3: 1.00
+    4: 1.00
+    5: 0.95
+    6: 1.00
+    7: 1.10    # dehydration in summer
+    8: 1.10
+    9: 1.00
+    10: 1.00
+    11: 1.00
+    12: 1.05
+
+  vaccine_protection: {}  # not applicable
+
+# ============================================================
+# SEVERITY DISTRIBUTION (KDIGO staging)
+# Source: KDIGO AKI Guidelines 2012
+# ============================================================
+severity:
+  distribution:
+    mild: 0.45        # KDIGO Stage 1
+    moderate: 0.35    # KDIGO Stage 2
+    severe: 0.20      # KDIGO Stage 3
+  modifiers:
+    - {condition: "CKD", mild_multiplier: 0.6, severe_multiplier: 2.0}
+    - {condition: "sepsis", moderate_multiplier: 1.3, severe_multiplier: 2.0}
+    - {condition: "heart_failure", moderate_multiplier: 1.3, severe_multiplier: 1.5}
+    - {condition: "age_over_75", mild_multiplier: 0.7, severe_multiplier: 1.5}
+    - {condition: "liver_cirrhosis", severe_multiplier: 2.5}
+
+# ============================================================
+# INITIAL PHYSIOLOGICAL STATE IMPACT
+# ============================================================
+initial_state_impact:
+  mild:
+    renal_function: -0.25
+    volume_status: 0.05      # fluid retention
+    inflammation_level: 0.10
+  moderate:
+    renal_function: -0.45
+    volume_status: 0.15
+    inflammation_level: 0.20
+    ph_status: -0.05
+    perfusion_status: -0.05
+  severe:
+    renal_function: -0.65
+    volume_status: 0.25
+    inflammation_level: 0.35
+    ph_status: -0.15
+    perfusion_status: -0.15
+
+# ============================================================
+# ORDER PROTOCOLS
+# ============================================================
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "BUN", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Cl", urgency: "stat"}
+      - {test: "CO2", urgency: "stat"}
+      - {test: "Ca", urgency: "stat"}
+      - {test: "Phosphate", urgency: "stat"}
+      - {test: "Mg", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "CRP", urgency: "stat"}
+      - {test: "WBC", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "ABG", urgency: "stat", probability: 0.70}
+      - {test: "Lactate", urgency: "stat", probability: 0.60}
+      - {test: "Urinalysis", urgency: "stat"}
+      - {test: "Urine_Na", urgency: "stat", probability: 0.60}
+      - {test: "Urine_Cr", urgency: "stat", probability: 0.60}
+      - {test: "FENa", urgency: "stat", probability: 0.50}
+      - {test: "AST", urgency: "stat"}
+      - {test: "ALT", urgency: "stat"}
+      - {test: "CK", urgency: "stat", probability: 0.50}
+      - {test: "PT_INR", urgency: "stat", probability: 0.50}
+      - {test: "Albumin", urgency: "stat"}
+    imaging:
+      - {test: "Renal_ultrasound", urgency: "stat"}
+      - {test: "Chest_Xray_PA", urgency: "stat", probability: 0.80}
+    supportive:
+      - {type: "urine_output_monitoring", detail: "Foley catheter, hourly urine output measurement"}
+      - {type: "fluid_management", detail: "Individualized — NS if prerenal, restrict if oliguric/overloaded"}
+      - {type: "hold_nephrotoxins", detail: "Hold NSAIDs, aminoglycosides, ACE-I/ARB, metformin"}
+      - {type: "DVT_prophylaxis", detail: "Enoxaparin 2000IU SC daily (adjust for renal function)"}
+
+  daily_monitoring:
+    labs:
+      - {test: "Creatinine", frequency: "q12h_if_rising_else_daily"}
+      - {test: "BUN", frequency: "daily"}
+      - {test: "K", frequency: "q12h"}
+      - {test: "Na", frequency: "daily"}
+      - {test: "CO2", frequency: "daily"}
+      - {test: "Phosphate", frequency: "daily"}
+    vitals:
+      stable: "q4h"
+      unstable: "q1h"
+    fluid_balance:
+      - {task: "strict_intake_output", frequency: "q1h"}
+      - {task: "daily_weight", frequency: "daily"}
+
+  trigger_orders:
+    hyperkalemia:
+      condition: "K > 5.5 mEq/L"
+      actions:
+        - {type: "lab", test: "ECG_12lead"}
+        - {type: "medication", action: "calcium_gluconate_IV_if_ecg_changes"}
+        - {type: "medication", action: "insulin_dextrose_for_K_shift"}
+        - {type: "medication", action: "sodium_polystyrene_or_patiromer"}
+        - {type: "evaluate", action: "consider_emergent_dialysis"}
+    metabolic_acidosis:
+      condition: "pH < 7.2 or CO2 < 15"
+      actions:
+        - {type: "lab", test: "ABG"}
+        - {type: "medication", action: "sodium_bicarbonate_IV_if_pH_below_7.1"}
+        - {type: "evaluate", action: "consider_emergent_dialysis"}
+    fluid_overload:
+      condition: "pulmonary_edema or SpO2 < 92%"
+      actions:
+        - {type: "imaging", test: "Chest_Xray"}
+        - {type: "medication", action: "furosemide_IV_high_dose"}
+        - {type: "evaluate", action: "consider_emergent_dialysis"}
+    no_improvement_48h:
+      condition: "creatinine still rising at 48h"
+      actions:
+        - {type: "lab", test: "Urinalysis_with_microscopy"}
+        - {type: "lab", test: "complement_C3_C4"}
+        - {type: "lab", test: "ANCA"}
+        - {type: "lab", test: "anti_GBM"}
+        - {type: "consult", target: "nephrology"}
+        - {type: "evaluate", action: "consider_renal_biopsy"}
+
+  discharge_criteria:
+    japan:
+      - "Creatinine trending toward baseline or stable"
+      - "K stable between 3.5-5.0 mEq/L"
+      - "No fluid overload (edema resolving, no pulmonary edema)"
+      - "Urine output > 0.5 mL/kg/h"
+      - "Oral intake adequate"
+      - "Nephrology follow-up arranged"
+    us:
+      - "Creatinine trending toward baseline"
+      - "Electrolytes stable"
+      - "No indication for dialysis"
+      - "Clinically stable"
+      - "Outpatient follow-up within 7 days"
+
+# ============================================================
+# DIAGNOSTIC SECTION
+# Source: KDIGO 2012, clinical decision-making studies
+# ============================================================
+diagnostic:
+  diagnostic_difficulty: 0.35  # AKI diagnosis is easy; identifying the cause is the challenge
+  differential:
+    - {disease: "prerenal_aki", icd: "N17.9", name: "Prerenal AKI (dehydration, hypoperfusion)", prior: 0.55}
+    - {disease: "intrinsic_renal_atn", icd: "N17.0", name: "Acute tubular necrosis", prior: 0.20}
+    - {disease: "postrenal_obstruction", icd: "N13.9", name: "Obstructive uropathy", prior: 0.10}
+    - {disease: "glomerulonephritis", icd: "N05.9", name: "Rapidly progressive GN", prior: 0.05}
+    - {disease: "interstitial_nephritis", icd: "N10", name: "Acute interstitial nephritis", prior: 0.05}
+    - {disease: "hepatorenal_syndrome", icd: "K76.7", name: "Hepatorenal syndrome", prior: 0.03}
+    - {disease: "other", icd: "N17.8", name: "Other causes of AKI", prior: 0.02}
+
+# ============================================================
+# LIKELIHOOD RATIO TABLE
+# Source: KDIGO Guidelines, Bagshaw et al., clinical studies
+# ============================================================
+likelihood_ratios:
+  fena_below_1_percent:
+    prerenal_aki: {positive_LR: 8.0, negative_LR: 0.3}
+    intrinsic_renal_atn: {positive_LR: 0.2, negative_LR: 2.5}
+    hepatorenal_syndrome: {positive_LR: 5.0, negative_LR: 0.4}
+
+  fena_above_2_percent:
+    intrinsic_renal_atn: {positive_LR: 6.0, negative_LR: 0.4}
+    prerenal_aki: {positive_LR: 0.15, negative_LR: 2.0}
+
+  hydronephrosis_on_ultrasound:
+    postrenal_obstruction: {positive_LR: 25.0, negative_LR: 0.15}
+    prerenal_aki: {positive_LR: 0.3, negative_LR: 1.0}
+
+  muddy_brown_casts_urine:
+    intrinsic_renal_atn: {positive_LR: 12.0, negative_LR: 0.5}
+    prerenal_aki: {positive_LR: 0.2, negative_LR: 1.2}
+
+  rbc_casts_urine:
+    glomerulonephritis: {positive_LR: 30.0, negative_LR: 0.6}
+    interstitial_nephritis: {positive_LR: 0.5, negative_LR: 1.0}
+
+  wbc_casts_urine:
+    interstitial_nephritis: {positive_LR: 10.0, negative_LR: 0.5}
+    glomerulonephritis: {positive_LR: 1.5, negative_LR: 0.8}
+
+  eosinophiluria:
+    interstitial_nephritis: {positive_LR: 6.0, negative_LR: 0.7}
+
+  response_to_fluid_challenge:
+    prerenal_aki: {positive_LR: 8.0, negative_LR: 0.2}
+    intrinsic_renal_atn: {positive_LR: 0.3, negative_LR: 2.0}
+
+  anca_positive:
+    glomerulonephritis: {positive_LR: 20.0, negative_LR: 0.6}
+
+# ============================================================
+# EXPECTED LAB DISTRIBUTIONS
+# ============================================================
+expected_lab_distributions:
+  admission:
+    Creatinine:
+      unit: "mg/dL"
+      median: 3.0
+      iqr: [1.8, 5.0]
+      range: [1.3, 15.0]
+    BUN:
+      unit: "mg/dL"
+      median: 50
+      iqr: [30, 80]
+      range: [15, 150]
+    K:
+      unit: "mEq/L"
+      median: 5.0
+      iqr: [4.3, 5.8]
+      range: [3.5, 7.5]
+      note: "hyperkalemia is the most dangerous complication"
+    Na:
+      unit: "mEq/L"
+      median: 137
+      iqr: [133, 141]
+      range: [120, 150]
+    CO2:
+      unit: "mEq/L"
+      median: 20
+      iqr: [16, 24]
+      range: [8, 28]
+    Phosphate:
+      unit: "mg/dL"
+      median: 5.5
+      iqr: [4.0, 7.5]
+      range: [2.5, 12.0]
+    Ca:
+      unit: "mg/dL"
+      median: 8.5
+      iqr: [7.8, 9.2]
+      range: [6.0, 10.5]
+    CRP:
+      unit: "mg/L"
+      median: 30
+      iqr: [10, 80]
+      range: [1, 300]
+    Hb:
+      unit: "g/dL"
+      median: 11.0
+      iqr: [9.5, 13.0]
+      range: [6.0, 16.0]
+
+  discharge:
+    Creatinine:
+      unit: "mg/dL"
+      median: 1.5
+      iqr: [1.0, 2.5]
+      note: "may not return to baseline, especially if CKD"
+    K:
+      unit: "mEq/L"
+      median: 4.2
+      iqr: [3.8, 4.8]
+
+# ============================================================
+# EXPECTED VITAL SIGN DISTRIBUTIONS
+# ============================================================
+expected_vital_distributions:
+  admission:
+    temperature:
+      unit: "C"
+      mean: 37.0
+      sd: 0.6
+      range: [36.0, 39.0]
+    heart_rate:
+      unit: "bpm"
+      mean: 90
+      sd: 18
+      range: [55, 130]
+    systolic_bp:
+      unit: "mmHg"
+      mean: 125
+      sd: 25
+      range: [70, 190]
+      note: "may be low (prerenal) or high (fluid overload)"
+    respiratory_rate:
+      unit: "/min"
+      mean: 20
+      sd: 5
+      range: [12, 35]
+      note: "Kussmaul breathing if acidotic"
+    spo2:
+      unit: "%"
+      mean: 96
+      sd: 2
+      range: [85, 99]
+
+# ============================================================
+# TREATMENT REFERENCE — Drug selection data
+# Source: KDIGO 2012, UpToDate, 日本腎臓学会 AKI ガイドライン
+# ============================================================
+drugs:
+  first_line:
+    japan:
+      - drug: "Normal_saline"
+        code_yj: "3311401"
+        dose: "200-500 mL/h IV (if prerenal, fluid-responsive)"
+        route: IV
+        note: "Fluid resuscitation for prerenal AKI"
+        pregnancy_safe: true
+      - drug: "Furosemide"
+        code_yj: "2139002"
+        dose: "20-40mg IV (if fluid overloaded)"
+        route: IV
+        note: "Only for volume management, does not improve renal recovery"
+        pregnancy_safe: false
+    us:
+      - drug: "Lactated_Ringers"
+        code_rxnorm: "313002"
+        dose: "200-500 mL/h IV (if prerenal, fluid-responsive)"
+        route: IV
+        note: "Balanced crystalloid preferred over NS to avoid hyperchloremic acidosis"
+        pregnancy_safe: true
+      - drug: "Furosemide"
+        code_rxnorm: "4603"
+        dose: "40-80mg IV (if fluid overloaded)"
+        route: IV
+        pregnancy_safe: false
+
+  hyperkalemia_management:
+    japan:
+      - drug: "Calcium_gluconate"
+        code_yj: "3212001"
+        dose: "10mL 8.5% IV over 5min"
+        route: IV
+        indication: "K > 6.0 or ECG changes"
+        note: "Cardioprotective, does not lower K"
+      - drug: "Insulin_regular"
+        code_yj: "2491100"
+        dose: "10 units IV + D50W 50mL"
+        route: IV
+        indication: "K > 5.5"
+        note: "Shifts K intracellularly"
+      - drug: "Sodium_polystyrene_sulfonate"
+        code_yj: "2399001"
+        dose: "15-30g PO or PR"
+        indication: "K > 5.5"
+    us:
+      - drug: "Calcium_gluconate"
+        code_rxnorm: "4500"
+        dose: "1g (10mL 10%) IV over 5min"
+        route: IV
+        indication: "K > 6.0 or ECG changes"
+      - drug: "Insulin_regular"
+        code_rxnorm: "5856"
+        dose: "10 units IV + D50W 50mL"
+        route: IV
+      - drug: "Patiromer"
+        code_rxnorm: "1593773"
+        dose: "8.4g PO daily"
+        indication: "ongoing_hyperkalemia"
+
+  acidosis_management:
+    japan:
+      - drug: "Sodium_bicarbonate"
+        code_yj: "2344001"
+        dose: "50-100 mEq IV over 1-2h"
+        route: IV
+        indication: "pH < 7.1 or CO2 < 12"
+    us:
+      - drug: "Sodium_bicarbonate"
+        code_rxnorm: "9863"
+        dose: "50-150 mEq IV"
+        route: IV
+        indication: "pH < 7.1 or severe symptomatic acidosis"
+
+  escalation:
+    japan:
+      - drug: "Hemodialysis"
+        code_yj: "procedure"
+        dose: "3-4h session, 3x/week or continuous (CRRT)"
+        indication: "refractory_hyperkalemia, acidosis, volume_overload, uremia, or BUN > 100"
+    us:
+      - drug: "Hemodialysis"
+        code_rxnorm: "procedure"
+        dose: "3-4h session or CRRT"
+        indication: "same"
+
+  discharge_oral:
+    japan:
+      - drug: "Sodium_bicarbonate_oral"
+        code_yj: "2344100"
+        dose: "1-2g PO TID"
+        duration_days: 30
+        note: "If persistent mild metabolic acidosis"
+        probability: 0.30
+    us:
+      - drug: "Sodium_bicarbonate_oral"
+        code_rxnorm: "9863"
+        dose: "650mg PO TID"
+        duration_days: 30
+        probability: 0.25
+
+# ============================================================
+# DRUG INTERACTIONS
+# ============================================================
+drug_interactions:
+  - drug_a: "ACE_inhibitor"
+    drug_b: "Potassium_supplement"
+    severity: "major"
+    effect: "Severe hyperkalemia"
+    action: "Avoid combination in AKI"
+
+  - drug_a: "NSAIDs"
+    drug_b: "ACE_inhibitor"
+    severity: "major"
+    effect: "Further reduction in GFR"
+    action: "Hold both in AKI"
+
+  - drug_a: "Metformin"
+    drug_b: "Contrast_media"
+    severity: "major"
+    effect: "Lactic acidosis risk when renal function impaired"
+    action: "Hold metformin 48h before/after contrast, check Cr"
+
+  - drug_a: "Vancomycin"
+    drug_b: "Piperacillin/Tazobactam"
+    severity: "major"
+    effect: "Increased nephrotoxicity"
+    action: "Avoid combination in AKI; use alternative"
+
+# ============================================================
+# REFERENCE RANGES
+# ============================================================
+reference_ranges:
+  Creatinine:
+    unit: "mg/dL"
+    male: {low: 0.6, high: 1.1}
+    female: {low: 0.4, high: 0.8}
+  BUN:
+    unit: "mg/dL"
+    all: {low: 8, high: 20}
+  K:
+    unit: "mEq/L"
+    all: {low: 3.5, high: 5.0}
+  Na:
+    unit: "mEq/L"
+    all: {low: 136, high: 145}
+  CO2:
+    unit: "mEq/L"
+    all: {low: 22, high: 29}
+  Phosphate:
+    unit: "mg/dL"
+    all: {low: 2.5, high: 4.5}
+  Ca:
+    unit: "mg/dL"
+    all: {low: 8.5, high: 10.5}
+  Hb:
+    unit: "g/dL"
+    male: {low: 13.5, high: 17.5}
+    female: {low: 11.5, high: 15.5}
+  CRP:
+    unit: "mg/L"
+    all: {low: 0, high: 3}
+  Albumin:
+    unit: "g/dL"
+    all: {low: 3.5, high: 5.0}
+
+# ============================================================
+# TARGET LENGTH OF STAY
+# ============================================================
+target_los:
+  japan:
+    mild: {mean: 14, sd: 4, min: 7, max: 21}
+    moderate: {mean: 18, sd: 5, min: 10, max: 28}
+    severe: {mean: 25, sd: 7, min: 14, max: 42}
+  us:
+    mild: {mean: 5, sd: 2, min: 3, max: 8}
+    moderate: {mean: 7, sd: 3, min: 4, max: 12}
+    severe: {mean: 12, sd: 4, min: 7, max: 21}
+
+# ============================================================
+# OUTCOME BENCHMARKS
+# ============================================================
+outcome_benchmarks:
+  japan:
+    median_los: 17
+    los_iqr: [12, 24]
+    in_hospital_mortality: 0.10
+    icu_transfer_rate: 0.15
+    thirty_day_readmission: 0.20
+    dialysis_required_rate: 0.15
+    renal_recovery_rate: 0.60
+    progression_to_ckd_rate: 0.25
+    mean_age_admitted: 72
+    male_ratio: 0.58
+
+  us:
+    median_los: 7
+    los_iqr: [4, 10]
+    in_hospital_mortality: 0.08
+    icu_transfer_rate: 0.18
+    thirty_day_readmission: 0.22
+    dialysis_required_rate: 0.12
+    renal_recovery_rate: 0.65
+    progression_to_ckd_rate: 0.20
+    mean_age_admitted: 68
+    male_ratio: 0.55
+
+# ============================================================
+# CLINICAL COURSE ARCHETYPES
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.40
+    description: "Prerenal AKI responding to fluid resuscitation within 24-48h"
+    trajectory:
+      renal_function: {0: -0.05, 1: 0.05, 2: 0.08, 3: 0.08, 5: 0.06, 7: 0.05, 10: 0.04, 14: 0.03}
+      volume_status: {0: 0.03, 1: 0.02, 2: 0.00, 3: -0.02, 5: -0.02, 7: -0.01, 10: 0.00, 14: 0.00}
+      inflammation_level: {0: 0.02, 1: -0.02, 2: -0.03, 3: -0.03, 5: -0.02, 7: -0.01, 10: -0.01, 14: 0.00}
+      ph_status: {0: 0.00, 1: 0.01, 2: 0.02, 3: 0.02, 5: 0.01, 7: 0.01, 10: 0.00, 14: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.20
+    description: "Creatinine peaks Day 3-5 (ATN phase), then gradual recovery"
+    trajectory:
+      renal_function: {0: -0.10, 1: -0.05, 2: -0.03, 3: 0.00, 5: 0.05, 7: 0.06, 10: 0.05, 14: 0.04, 21: 0.03}
+      volume_status: {0: 0.05, 1: 0.03, 2: 0.02, 3: 0.00, 5: -0.02, 7: -0.02, 10: -0.01, 14: 0.00, 21: 0.00}
+      ph_status: {0: -0.02, 1: -0.01, 2: 0.00, 3: 0.01, 5: 0.02, 7: 0.01, 10: 0.01, 14: 0.00, 21: 0.00}
+    order_modifications:
+      day_3:
+        add_labs: ["Urinalysis_microscopy", "Urine_Na", "FENa"]
+    treatment_modifications:
+      day_3:
+        adjust: "reduce_IV_fluid_if_euvolemic"
+
+  plateau_then_recovery:
+    probability: 0.15
+    description: "Creatinine plateaus for 7-10 days (prolonged ATN), then slow recovery"
+    trajectory:
+      renal_function: {0: -0.05, 1: -0.02, 2: 0.00, 3: 0.00, 5: 0.00, 7: 0.00, 10: 0.03, 14: 0.04, 21: 0.03}
+      volume_status: {0: 0.03, 1: 0.02, 2: 0.01, 3: 0.00, 5: 0.00, 7: -0.01, 10: -0.02, 14: -0.01, 21: 0.00}
+    order_modifications:
+      day_7:
+        add_labs: ["complement_C3_C4", "ANCA", "anti_GBM", "protein_electrophoresis"]
+        add_consult: ["nephrology"]
+    treatment_modifications:
+      day_7:
+        evaluate: "consider_renal_biopsy"
+
+  treatment_resistant:
+    probability: 0.12
+    description: "Progressive AKI requiring dialysis initiation"
+    trajectory:
+      renal_function: {0: -0.08, 1: -0.05, 2: -0.03, 3: -0.02, 5: 0.00, 7: 0.02, 10: 0.04, 14: 0.04, 21: 0.03}
+      volume_status: {0: 0.05, 1: 0.03, 2: 0.03, 3: 0.00, 5: -0.02, 7: -0.02, 10: -0.01, 14: 0.00, 21: 0.00}
+      ph_status: {0: -0.03, 1: -0.02, 2: -0.01, 3: 0.02, 5: 0.02, 7: 0.01, 10: 0.01, 14: 0.00, 21: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["ABG", "K_stat"]
+        add_consult: ["nephrology"]
+      day_3:
+        add_procedure: ["dialysis_catheter_placement"]
+    treatment_modifications:
+      day_3:
+        start:
+          japan: [{drug: "Hemodialysis", dose: "3-4h, 3x/week"}]
+          us: [{drug: "Hemodialysis", dose: "3-4h or CRRT if ICU"}]
+    triggers:
+      - day: 3
+        condition: "K > 6.0 or pH < 7.1 or pulmonary_edema"
+        actions: ["emergent_dialysis"]
+
+  gradual_deterioration:
+    probability: 0.08
+    description: "Multi-organ dysfunction with progressive AKI"
+    trajectory:
+      renal_function: {0: -0.10, 1: -0.08, 2: -0.05, 3: -0.03, 5: -0.02, 7: 0.00, 10: 0.02, 14: 0.03, 21: 0.02}
+      perfusion_status: {0: -0.05, 1: -0.05, 2: -0.03, 3: -0.02, 5: 0.00, 7: 0.01, 10: 0.02, 14: 0.01, 21: 0.01}
+      inflammation_level: {0: 0.08, 1: 0.05, 2: 0.03, 3: 0.02, 5: 0.00, 7: -0.02, 10: -0.03, 14: -0.02, 21: -0.01}
+      volume_status: {0: 0.05, 1: 0.05, 2: 0.03, 3: 0.00, 5: -0.02, 7: -0.02, 10: -0.01, 14: 0.00, 21: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["Lactate", "ABG", "LDH", "Haptoglobin"]
+      day_5:
+        add_labs: ["ABG", "Lactate"]
+    treatment_modifications:
+      day_2:
+        start:
+          japan: [{drug: "CRRT", dose: "continuous 24h"}]
+          us: [{drug: "CRRT", dose: "continuous 24h"}]
+        action: "icu_transfer"
+    triggers:
+      - day: 3
+        condition: "perfusion_status < 0.4 and renal_function < 0.3"
+        actions: ["icu_transfer", "CRRT"]
+
+  sudden_deterioration:
+    probability: 0.05
+    description: "Cardiac arrest from hyperkalemia or severe pulmonary edema"
+    trajectory:
+      renal_function: {0: -0.05, 1: -0.02, 2: -0.20, 3: -0.05, 5: 0.05, 7: 0.05, 10: 0.04, 14: 0.03, 21: 0.02}
+      perfusion_status: {0: 0.00, 1: 0.00, 2: -0.25, 3: 0.05, 5: 0.05, 7: 0.03, 10: 0.02, 14: 0.01, 21: 0.01}
+      ph_status: {0: 0.00, 1: 0.00, 2: -0.15, 3: 0.05, 5: 0.03, 7: 0.02, 10: 0.01, 14: 0.00, 21: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["K_stat", "ABG", "ECG_12lead", "Lactate"]
+    treatment_modifications:
+      day_2:
+        start:
+          japan:
+            - {drug: "Calcium_gluconate", dose: "10mL 8.5% IV stat"}
+            - {drug: "Emergent_dialysis", dose: "stat"}
+          us:
+            - {drug: "Calcium_gluconate", dose: "1g IV stat"}
+            - {drug: "Emergent_dialysis", dose: "stat"}
+        action: "icu_transfer"
+    triggers:
+      - day: 2
+        condition: "K > 6.5 or pH < 7.0"
+        actions: ["icu_transfer", "emergent_dialysis", "calcium_gluconate"]
+
+archetype_modifiers:
+  - condition: "CKD"
+    effect: {treatment_resistant: 0.10, smooth_recovery: -0.10}
+  - condition: "age >= 80"
+    effect: {plateau_then_recovery: 0.08, smooth_recovery: -0.08}
+  - condition: "sepsis"
+    effect: {gradual_deterioration: 0.08, sudden_deterioration: 0.03, smooth_recovery: -0.11}
+  - condition: "prerenal_etiology"
+    effect: {smooth_recovery: 0.15, treatment_resistant: -0.10, gradual_deterioration: -0.05}
+
+# ============================================================
+# COMPLICATIONS
+# ============================================================
+complications:
+  - name: "hyperkalemia"
+    description: "Life-threatening potassium elevation"
+    probability_per_day: 0.025
+    onset_day_range: [0, 7]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 3.0}
+      - {condition: "CKD", multiplier: 2.0}
+      - {condition: "ACE_inhibitor_use", multiplier: 2.0}
+      - {condition: "rhabdomyolysis", multiplier: 3.0}
+    state_impact:
+      ph_status: -0.03
+    detection:
+      test: "K_level_and_ECG"
+      finding: "K_above_6_or_peaked_T_waves"
+    actions: ["calcium_gluconate", "insulin_dextrose", "consider_dialysis"]
+
+  - name: "metabolic_acidosis"
+    description: "Non-anion gap or anion gap metabolic acidosis"
+    probability_per_day: 0.020
+    onset_day_range: [0, 7]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.5}
+      - {condition: "sepsis", multiplier: 2.0}
+    state_impact:
+      ph_status: -0.10
+      perfusion_status: -0.05
+    detection:
+      test: "ABG"
+      finding: "pH_below_7.25"
+    actions: ["sodium_bicarbonate_if_severe", "consider_dialysis"]
+
+  - name: "pulmonary_edema"
+    description: "Fluid overload causing respiratory failure"
+    probability_per_day: 0.015
+    onset_day_range: [0, 7]
+    risk_factors:
+      - {condition: "heart_failure", multiplier: 3.0}
+      - {condition: "oliguric", multiplier: 2.5}
+      - {condition: "excessive_IV_fluid", multiplier: 2.0}
+    state_impact:
+      volume_status: 0.15
+      perfusion_status: -0.10
+    detection:
+      test: "chest_xray_and_SpO2"
+      finding: "bilateral_infiltrates_and_hypoxemia"
+    actions: ["high_dose_furosemide", "O2_NIPPV", "consider_emergent_dialysis"]
+
+  - name: "uremic_encephalopathy"
+    description: "Altered mental status from severe azotemia"
+    probability_per_day: 0.008
+    onset_day_range: [3, 14]
+    risk_factors:
+      - {condition: "BUN_above_100", multiplier: 5.0}
+      - {condition: "age_over_75", multiplier: 1.5}
+    state_impact: {}
+    detection:
+      test: "neurological_exam"
+      finding: "confusion_asterixis_myoclonus"
+    actions: ["emergent_dialysis", "CT_head_to_exclude_stroke"]
+
+  - name: "bleeding_uremic_platelet_dysfunction"
+    description: "GI or mucosal bleeding from uremic platelet dysfunction"
+    probability_per_day: 0.006
+    onset_day_range: [2, 14]
+    risk_factors:
+      - {condition: "BUN_above_80", multiplier: 2.0}
+      - {condition: "anticoagulation", multiplier: 3.0}
+    state_impact:
+      volume_status: -0.10
+      perfusion_status: -0.05
+    detection:
+      test: "clinical_exam_and_Hb"
+      finding: "Hb_drop_or_visible_bleeding"
+    actions: ["hold_anticoagulation", "desmopressin", "transfuse_if_needed"]
+
+  - name: "delirium"
+    description: "Acute confusion from uremia, electrolytes, or polypharmacy"
+    probability_per_day: 0.012
+    onset_day_range: [1, 10]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 2.5}
+      - {condition: "dementia", multiplier: 3.0}
+      - {condition: "BUN_above_80", multiplier: 2.0}
+    state_impact: {}
+    detection:
+      test: "CAM_screening"
+      finding: "positive"
+    actions: ["reorientation", "correct_electrolytes", "avoid_sedatives"]
+
+  - name: "dvt"
+    description: "Deep vein thrombosis from immobility"
+    probability_per_day: 0.008
+    onset_day_range: [3, 14]
+    risk_factors:
+      - {condition: "immobility_days > 3", multiplier: 2.0}
+      - {condition: "nephrotic_range_proteinuria", multiplier: 3.0}
+    state_impact:
+      coagulation_status: 0.05
+    detection:
+      test: "d_dimer_then_ultrasound"
+      finding: "dvt_confirmed"
+    actions: ["anticoagulation_with_renal_dosing"]
+    cascade: ["pulmonary_embolism"]
+
+  - name: "pulmonary_embolism"
+    description: "PE from DVT embolization"
+    probability_given_parent: 0.10
+    parent_complication: "dvt"
+    onset_days_after_parent: [0, 7]
+    state_impact:
+      perfusion_status: -0.20
+      ph_status: -0.05
+    actions: ["ct_angiography", "anticoagulation_renal_adjusted", "consider_icu"]

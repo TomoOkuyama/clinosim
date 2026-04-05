@@ -7,7 +7,6 @@ JUDGMENT and NARRATIVE use independently configurable providers (AD-24).
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
 from typing import Any
 
@@ -182,7 +181,7 @@ class LLMService:
                     source="llm",
                     model=response.model,
                 )
-            except Exception as e:
+            except Exception:
                 if attempt == 2:
                     # All retries exhausted — fall back to template
                     self.fallback_count += 1
@@ -370,8 +369,6 @@ def _admission_hp(ps: PatientSummary, ed: dict, language: str) -> str:
 
 
 def _diagnostic_reasoning(ps: PatientSummary, ed: dict) -> str:
-    diff_before = ed.get("differential_before", {})
-    diff_after = ed.get("differential_after", {})
     findings = ed.get("new_findings", [])
     return (
         f"Updated differential based on: {', '.join(findings)}. "

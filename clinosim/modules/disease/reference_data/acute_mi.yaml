@@ -1,0 +1,1038 @@
+# Acute Myocardial Infarction (AMI) — Complete Reference Data
+# Sources cited per section. All rates are approximate and should be validated
+# against the most current published data before production use.
+
+disease_id: acute_mi
+chief_complaint: "Chest pain, diaphoresis, dyspnea"
+department: internal_medicine
+encounter_type: medical
+requires_surgery: false
+minimum_severity: moderate
+readmission_eligible: true
+diagnostic_difficulty: 0.25   # ECG + troponin is straightforward, but NSTEMI can be subtle
+
+icd_codes:
+  primary: "I21.9"  # Acute myocardial infarction, unspecified
+  variants:
+    - {code: "I21.0", name: "Acute transmural MI of anterior wall (anterior STEMI)", probability: 0.25}
+    - {code: "I21.1", name: "Acute transmural MI of inferior wall (inferior STEMI)", probability: 0.20}
+    - {code: "I21.2", name: "Acute transmural MI of other sites", probability: 0.05}
+    - {code: "I21.4", name: "Acute subendocardial MI (NSTEMI)", probability: 0.40}
+    - {code: "I21.9", name: "Acute myocardial infarction, unspecified", probability: 0.10}
+
+# ============================================================
+# INCIDENCE (per 100,000 per year, by age band and sex)
+# Source: JP — 循環器疾患診療実態調査 (JROAD), 患者調査 2020
+#         US — CDC NHDS, AHA Heart Disease & Stroke Statistics 2023
+# ============================================================
+incidence:
+  japan:
+    "0-4":   {M: 0, F: 0}
+    "5-14":  {M: 0, F: 0}
+    "15-24": {M: 1, F: 0}
+    "25-34": {M: 5, F: 1}
+    "35-44": {M: 30, F: 5}
+    "45-54": {M: 80, F: 15}
+    "55-64": {M: 150, F: 40}
+    "65-74": {M: 300, F: 100}
+    "75-84": {M: 500, F: 250}
+    "85+":   {M: 600, F: 400}
+  us:
+    "0-4":   {M: 0, F: 0}
+    "5-14":  {M: 0, F: 0}
+    "15-24": {M: 2, F: 1}
+    "25-34": {M: 10, F: 3}
+    "35-44": {M: 60, F: 15}
+    "45-54": {M: 180, F: 50}
+    "55-64": {M: 350, F: 120}
+    "65-74": {M: 550, F: 250}
+    "75-84": {M: 800, F: 500}
+    "85+":   {M: 1000, F: 700}
+
+  risk_multipliers:
+    - {condition: "hypertension", multiplier: 2.0}
+    - {condition: "diabetes", multiplier: 2.5}
+    - {condition: "dyslipidemia", multiplier: 2.0}
+    - {condition: "smoking_current", multiplier: 3.0}
+    - {condition: "obesity", multiplier: 1.5}
+    - {condition: "CKD", multiplier: 1.8}
+    - {condition: "family_history_CAD", multiplier: 2.0}
+    - {condition: "prior_MI", multiplier: 3.0}
+    - {condition: "peripheral_artery_disease", multiplier: 1.8}
+    - {condition: "rheumatoid_arthritis", multiplier: 1.5}
+
+  seasonal_curve:  # monthly multiplier (1.0 = baseline)
+    1: 1.3   # Jan — winter peak
+    2: 1.2
+    3: 1.1
+    4: 1.0
+    5: 0.9
+    6: 0.9
+    7: 0.9
+    8: 0.9
+    9: 0.9
+    10: 1.0
+    11: 1.1
+    12: 1.3
+
+  vaccine_protection: {}   # no vaccine-preventable component
+
+# ============================================================
+# SEVERITY DISTRIBUTION
+# Source: TIMI risk score studies, JP DPC data, ACC/AHA guidelines
+# ============================================================
+severity:
+  distribution:
+    mild: 0.0         # AMI always at least moderate
+    moderate: 0.65    # uncomplicated MI (NSTEMI or small STEMI)
+    severe: 0.35      # large STEMI, multivessel, cardiogenic shock
+  modifiers:
+    - {condition: "age_over_75", moderate_multiplier: 0.8, severe_multiplier: 1.5}
+    - {condition: "diabetes", severe_multiplier: 1.3}
+    - {condition: "prior_MI", severe_multiplier: 1.5}
+    - {condition: "heart_failure", severe_multiplier: 2.0}
+    - {condition: "CKD", severe_multiplier: 1.5}
+    - {condition: "anterior_wall_MI", severe_multiplier: 1.5}
+
+# ============================================================
+# INITIAL PHYSIOLOGICAL STATE IMPACT
+# How this disease changes physiological state at onset (added to patient baseline)
+# ============================================================
+initial_state_impact:
+  moderate:
+    cardiac_function: -0.30
+    perfusion_status: -0.15
+    inflammation_level: 0.15
+    ph_status: -0.03
+  severe:
+    cardiac_function: -0.50
+    perfusion_status: -0.30
+    inflammation_level: 0.25
+    ph_status: -0.10
+    renal_function: -0.10
+    volume_status: -0.10
+
+# ============================================================
+# ORDER PROTOCOLS (what to order and when)
+# All admission orders, daily monitoring, and discharge criteria
+# are defined here — the engine reads this, not hardcoded.
+# ============================================================
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "Troponin_I", urgency: "stat"}
+      - {test: "Troponin_I_serial_6h", urgency: "stat", note: "repeat at 3h and 6h"}
+      - {test: "CK_MB", urgency: "stat"}
+      - {test: "BNP", urgency: "stat"}
+      - {test: "WBC", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "BUN", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "HbA1c", urgency: "routine", probability: 0.80}
+      - {test: "Total_cholesterol", urgency: "routine"}
+      - {test: "LDL", urgency: "routine"}
+      - {test: "HDL", urgency: "routine"}
+      - {test: "Triglycerides", urgency: "routine"}
+      - {test: "PT_INR", urgency: "stat"}
+      - {test: "APTT", urgency: "stat"}
+      - {test: "AST", urgency: "stat"}
+      - {test: "ALT", urgency: "stat"}
+      - {test: "LDH", urgency: "stat", probability: 0.70}
+      - {test: "CRP", urgency: "stat", probability: 0.60}
+      - {test: "D_dimer", urgency: "stat", probability: 0.40}
+    imaging:
+      - {test: "ECG_12lead", urgency: "stat"}
+      - {test: "Echocardiography", urgency: "stat", note: "bedside TTE for wall motion and EF"}
+      - {test: "Chest_Xray_PA", urgency: "stat"}
+      - {test: "Coronary_angiography", urgency: "urgent", probability: 0.70, note: "STEMI -> emergent PCI; NSTEMI -> within 24-72h"}
+    supportive:
+      - {type: "O2", detail: "Nasal cannula SpO2 >= 94%"}
+      - {type: "IV_access", detail: "Two large-bore peripheral IVs"}
+      - {type: "continuous_monitoring", detail: "Continuous ECG telemetry, BP q15min x 4h then q1h"}
+      - {type: "bed_rest", detail: "Bed rest for initial 12-24h"}
+      - {type: "NPO", detail: "NPO until catheterization assessment"}
+
+  daily_monitoring:
+    labs:
+      - {test: "Troponin_I", frequency: "q6h_first_24h_then_daily"}
+      - {test: "CK_MB", frequency: "q6h_first_24h_then_daily"}
+      - {test: "BNP", frequency: "day_3_and_prn"}
+      - {test: "Creatinine", frequency: "daily"}
+      - {test: "K", frequency: "daily"}
+      - {test: "Glucose", frequency: "daily"}
+      - {test: "PT_INR", frequency: "daily_if_on_anticoagulation"}
+    vitals:
+      stable: "q2h"
+      unstable: "q15min"
+    imaging:
+      - {test: "ECG_12lead", frequency: "daily_and_prn"}
+      - {test: "Echocardiography", frequency: "day_3_to_5", condition: "reassess EF and wall motion"}
+
+  trigger_orders:
+    troponin_rising_after_pci:
+      condition: "Troponin continues rising > 24h post-PCI"
+      actions:
+        - {type: "imaging", test: "ECG_12lead_repeat"}
+        - {type: "imaging", test: "Echocardiography"}
+        - {type: "evaluate", action: "consider_repeat_angiography"}
+    new_st_changes:
+      condition: "New ST changes on telemetry"
+      actions:
+        - {type: "lab", test: "Troponin_I_stat"}
+        - {type: "imaging", test: "ECG_12lead_stat"}
+        - {type: "evaluate", action: "consider_emergent_cath"}
+    hypotension_shock:
+      condition: "SBP < 90 mmHg or signs of cardiogenic shock"
+      actions:
+        - {type: "lab", test: "Lactate"}
+        - {type: "lab", test: "ABG"}
+        - {type: "imaging", test: "Echocardiography_bedside"}
+        - {type: "medication", action: "start_vasopressor"}
+        - {type: "evaluate", action: "consider_IABP_or_Impella"}
+        - {type: "evaluate", action: "icu_transfer"}
+    new_arrhythmia:
+      condition: "Sustained VT, VF, or high-grade AV block on telemetry"
+      actions:
+        - {type: "lab", test: "K_Mg_stat"}
+        - {type: "imaging", test: "ECG_12lead_stat"}
+        - {type: "medication", action: "amiodarone_or_lidocaine"}
+        - {type: "evaluate", action: "consider_temporary_pacing"}
+    heart_failure_signs:
+      condition: "Dyspnea, crackles, SpO2 < 92%, rising BNP"
+      actions:
+        - {type: "lab", test: "BNP"}
+        - {type: "imaging", test: "Chest_Xray"}
+        - {type: "medication", action: "IV_furosemide"}
+        - {type: "evaluate", action: "reassess_fluid_balance"}
+
+  discharge_criteria:
+    japan:
+      - "No recurrent chest pain for 48 hours"
+      - "Troponin trending down"
+      - "Hemodynamically stable (SBP > 100, HR 50-100)"
+      - "No significant arrhythmia for 48 hours"
+      - "Ambulating without symptoms"
+      - "Echocardiography completed (EF assessment)"
+      - "Cardiac rehabilitation initiated"
+      - "Oral medications tolerated for 24 hours"
+    us:
+      - "No recurrent chest pain for 24 hours"
+      - "Troponin trending down"
+      - "Hemodynamically stable"
+      - "No significant arrhythmia for 24 hours"
+      - "Oral medications tolerated"
+      - "Outpatient follow-up arranged"
+
+# ============================================================
+# LIKELIHOOD RATIO TABLE
+# Source: Clinical diagnostic studies meta-analyses
+#         Hess et al. Am Heart J 2012
+#         Reichlin et al. NEJM 2009 (high-sensitivity troponin)
+# ============================================================
+likelihood_ratios:
+  troponin_elevated:
+    acute_mi: {positive_LR: 12.0, negative_LR: 0.05}
+    unstable_angina: {positive_LR: 0.5, negative_LR: 1.5}
+    pulmonary_embolism: {positive_LR: 1.5, negative_LR: 0.9}
+    pericarditis: {positive_LR: 1.2, negative_LR: 0.9}
+    heart_failure: {positive_LR: 1.8, negative_LR: 0.7}
+
+  st_elevation_on_ecg:
+    acute_mi: {positive_LR: 15.0, negative_LR: 0.5}
+    pericarditis: {positive_LR: 2.0, negative_LR: 0.9}
+    aortic_dissection: {positive_LR: 0.3, negative_LR: 1.0}
+
+  st_depression_on_ecg:
+    acute_mi: {positive_LR: 5.0, negative_LR: 0.6}
+    unstable_angina: {positive_LR: 4.0, negative_LR: 0.7}
+
+  new_wall_motion_abnormality:
+    acute_mi: {positive_LR: 10.0, negative_LR: 0.2}
+    stress_cardiomyopathy: {positive_LR: 3.0, negative_LR: 0.9}
+
+  ck_mb_elevated:
+    acute_mi: {positive_LR: 8.0, negative_LR: 0.15}
+    myocarditis: {positive_LR: 2.0, negative_LR: 0.8}
+
+  bnp_elevated:
+    acute_mi: {positive_LR: 2.0, negative_LR: 0.5}
+    heart_failure: {positive_LR: 6.0, negative_LR: 0.1}
+    pulmonary_embolism: {positive_LR: 2.5, negative_LR: 0.5}
+
+  d_dimer_elevated:
+    acute_mi: {positive_LR: 1.2, negative_LR: 0.9}
+    pulmonary_embolism: {positive_LR: 6.0, negative_LR: 0.05}
+    aortic_dissection: {positive_LR: 5.0, negative_LR: 0.10}
+
+  chest_xray_pulmonary_edema:
+    acute_mi: {positive_LR: 3.0, negative_LR: 0.7}
+    heart_failure: {positive_LR: 5.0, negative_LR: 0.3}
+
+# ============================================================
+# LAB REFERENCE RANGES (admission values for AMI patients)
+# For benchmarking generated data
+# Source: Clinical studies, textbook values
+# ============================================================
+expected_lab_distributions:
+  admission:
+    Troponin_I:
+      unit: "ng/mL"
+      median: 5.0
+      iqr: [1.0, 20.0]
+      range: [0.04, 200.0]
+      note: "peaks at 12-24h; STEMI higher than NSTEMI"
+    CK_MB:
+      unit: "U/L"
+      median: 80
+      iqr: [30, 200]
+      range: [5, 500]
+      note: "peaks at 12-24h"
+    BNP:
+      unit: "pg/mL"
+      median: 250
+      iqr: [80, 600]
+      range: [20, 5000]
+      note: "higher with LV dysfunction"
+    WBC:
+      unit: "/uL"
+      median: 11000
+      iqr: [8500, 14000]
+      range: [5000, 25000]
+      note: "stress leukocytosis"
+    Creatinine:
+      unit: "mg/dL"
+      median: 1.0
+      iqr: [0.8, 1.4]
+      range: [0.4, 5.0]
+      note: "higher with pre-existing CKD or cardiorenal syndrome"
+    Glucose:
+      unit: "mg/dL"
+      median: 150
+      iqr: [110, 220]
+      range: [70, 500]
+      note: "stress hyperglycemia, worse prognosis if very high"
+    Total_cholesterol:
+      unit: "mg/dL"
+      median: 200
+      iqr: [170, 240]
+      range: [100, 350]
+    LDL:
+      unit: "mg/dL"
+      median: 130
+      iqr: [100, 160]
+      range: [50, 250]
+    PT_INR:
+      unit: ""
+      median: 1.0
+      iqr: [0.9, 1.1]
+      range: [0.8, 1.3]
+    K:
+      unit: "mEq/L"
+      median: 4.2
+      iqr: [3.8, 4.6]
+      range: [3.0, 6.0]
+      note: "hypo- or hyperkalemia increases arrhythmia risk"
+
+  discharge:
+    Troponin_I:
+      unit: "ng/mL"
+      median: 0.5
+      iqr: [0.1, 2.0]
+      note: "trending down but may still be elevated"
+    BNP:
+      unit: "pg/mL"
+      median: 150
+      iqr: [50, 400]
+
+# ============================================================
+# VITAL SIGN DISTRIBUTIONS
+# Source: Clinical studies on AMI presentation
+# ============================================================
+expected_vital_distributions:
+  admission:
+    temperature:
+      unit: "C"
+      mean: 36.8
+      sd: 0.4
+      range: [36.0, 38.0]
+      note: "usually afebrile; low-grade fever possible day 2-3"
+    heart_rate:
+      unit: "bpm"
+      mean: 85
+      sd: 20
+      range: [40, 140]
+      note: "tachycardia from sympathetic activation; bradycardia in inferior MI"
+    systolic_bp:
+      unit: "mmHg"
+      mean: 135
+      sd: 25
+      range: [70, 200]
+      note: "hypertensive on presentation (sympathetic); hypotensive if shock"
+    respiratory_rate:
+      unit: "/min"
+      mean: 20
+      sd: 4
+      range: [12, 35]
+    spo2:
+      unit: "%"
+      mean: 96
+      sd: 2
+      range: [85, 100]
+      note: "lower if pulmonary edema or cardiogenic shock"
+
+# ============================================================
+# TREATMENT REFERENCE — Drug selection data
+# Source: JCS Guidelines 2019, ACC/AHA STEMI/NSTEMI Guidelines 2023
+# ============================================================
+drugs:
+  first_line:
+    japan:
+      - drug: "Aspirin"
+        code_yj: "3399007"
+        dose: "162-325mg loading, then 100mg PO daily"
+        route: PO
+        pregnancy_safe: false
+      - drug: "Clopidogrel"
+        code_yj: "3399100"
+        dose: "300mg loading, then 75mg PO daily"
+        route: PO
+        note: "Dual antiplatelet therapy (DAPT)"
+        pregnancy_safe: false
+      - drug: "Heparin"
+        code_yj: "3334400"
+        dose: "60U/kg bolus, then 12U/kg/h IV drip (target APTT 1.5-2.5x)"
+        route: IV
+        pregnancy_safe: true
+      - drug: "Nitroglycerin"
+        code_yj: "2171019"
+        dose: "5ug/min IV, titrate for chest pain and BP"
+        route: IV
+        note: "Avoid if SBP < 90 or right ventricular MI"
+        pregnancy_safe: false
+      - drug: "Morphine"
+        dose: "2-4mg IV q5-15min PRN"
+        route: IV
+        note: "For refractory pain only; use with caution"
+        probability: 0.30
+        pregnancy_safe: false
+
+    us:
+      - drug: "Aspirin"
+        code_rxnorm: "1191"
+        dose: "325mg loading, then 81mg PO daily"
+        route: PO
+        pregnancy_safe: false
+      - drug: "Ticagrelor"
+        code_rxnorm: "1116632"
+        dose: "180mg loading, then 90mg PO BID"
+        route: PO
+        note: "Preferred over clopidogrel for ACS per ACC/AHA"
+        pregnancy_safe: false
+      - drug: "Heparin"
+        code_rxnorm: "5224"
+        dose: "60U/kg bolus (max 4000U), then 12U/kg/h IV (max 1000U/h)"
+        route: IV
+        pregnancy_safe: true
+      - drug: "Nitroglycerin"
+        code_rxnorm: "4917"
+        dose: "5-10ug/min IV, titrate"
+        route: IV
+        note: "Avoid if SBP < 90 or right ventricular MI"
+        pregnancy_safe: false
+
+  post_pci:
+    japan:
+      - drug: "Atorvastatin"
+        code_yj: "2189015"
+        dose: "20mg PO daily"
+        route: PO
+        note: "High-intensity statin; some JP guidelines use moderate intensity"
+        pregnancy_safe: false
+      - drug: "Bisoprolol"
+        code_yj: "2123017"
+        dose: "2.5mg PO daily, titrate"
+        route: PO
+        note: "Beta-blocker; start low if EF reduced"
+        pregnancy_safe: false
+      - drug: "Enalapril"
+        code_yj: "2144003"
+        dose: "2.5mg PO daily, titrate to 10mg"
+        route: PO
+        note: "ACE inhibitor for LV remodeling prevention"
+        renal_adjustment:
+          eGFR_below_30: "1.25mg PO daily"
+        pregnancy_safe: false
+
+    us:
+      - drug: "Atorvastatin"
+        code_rxnorm: "83367"
+        dose: "80mg PO daily"
+        route: PO
+        note: "High-intensity statin per ACC/AHA"
+        pregnancy_safe: false
+      - drug: "Metoprolol_succinate"
+        code_rxnorm: "866924"
+        dose: "25mg PO daily, titrate to 200mg"
+        route: PO
+        note: "Beta-blocker; avoid if cardiogenic shock"
+        pregnancy_safe: false
+      - drug: "Lisinopril"
+        code_rxnorm: "29046"
+        dose: "5mg PO daily, titrate to 20mg"
+        route: PO
+        note: "ACE inhibitor; start within 24h if stable"
+        renal_adjustment:
+          eGFR_below_30: "2.5mg PO daily"
+        pregnancy_safe: false
+
+  escalation:  # cardiogenic shock or recurrent ischemia
+    japan:
+      - drug: "Dobutamine"
+        code_yj: "2119406"
+        dose: "2-20ug/kg/min IV drip"
+        indication: "cardiogenic_shock_with_low_CO"
+      - drug: "Norepinephrine"
+        code_yj: "2451400"
+        dose: "0.05-0.3ug/kg/min IV drip"
+        indication: "cardiogenic_shock_with_hypotension"
+    us:
+      - drug: "Dobutamine"
+        code_rxnorm: "3616"
+        dose: "2-20ug/kg/min IV drip"
+        indication: "cardiogenic_shock_with_low_CO"
+      - drug: "Norepinephrine"
+        code_rxnorm: "7512"
+        dose: "0.05-0.3ug/kg/min IV drip"
+        indication: "cardiogenic_shock_with_hypotension"
+
+  discharge_oral:
+    japan:
+      - drug: "Aspirin"
+        code_yj: "3399007"
+        dose: "100mg PO daily"
+        duration_days: 365
+        note: "indefinite"
+      - drug: "Clopidogrel"
+        code_yj: "3399100"
+        dose: "75mg PO daily"
+        duration_days: 365
+        note: "DAPT for 12 months post-PCI"
+      - drug: "Atorvastatin"
+        code_yj: "2189015"
+        dose: "20mg PO daily"
+        duration_days: 365
+        note: "indefinite"
+    us:
+      - drug: "Aspirin"
+        code_rxnorm: "1191"
+        dose: "81mg PO daily"
+        duration_days: 365
+        note: "indefinite"
+      - drug: "Ticagrelor"
+        code_rxnorm: "1116632"
+        dose: "90mg PO BID"
+        duration_days: 365
+        note: "DAPT for 12 months post-PCI"
+      - drug: "Atorvastatin"
+        code_rxnorm: "83367"
+        dose: "80mg PO daily"
+        duration_days: 365
+        note: "indefinite"
+
+# ============================================================
+# DRUG INTERACTIONS relevant to AMI treatment
+# ============================================================
+drug_interactions:
+  - drug_a: "Aspirin"
+    drug_b: "Warfarin"
+    severity: "major"
+    effect: "Increased bleeding risk"
+    action: "Monitor INR closely; consider PPI for GI protection"
+
+  - drug_a: "Clopidogrel"
+    drug_b: "Omeprazole"
+    severity: "moderate"
+    effect: "Reduced clopidogrel efficacy (CYP2C19 inhibition)"
+    action: "Use pantoprazole instead"
+
+  - drug_a: "Ticagrelor"
+    drug_b: "Simvastatin"
+    severity: "moderate"
+    effect: "Increased simvastatin levels"
+    action: "Limit simvastatin to 40mg; prefer atorvastatin"
+
+  - drug_a: "ACE_inhibitor"
+    drug_b: "Potassium_supplement"
+    severity: "major"
+    effect: "Hyperkalemia risk"
+    action: "Monitor K closely"
+
+  - drug_a: "Beta_blocker"
+    drug_b: "Verapamil"
+    severity: "major"
+    effect: "Severe bradycardia and hypotension"
+    action: "Avoid combination"
+
+  - drug_a: "Heparin"
+    drug_b: "NSAID"
+    severity: "major"
+    effect: "Increased bleeding risk"
+    action: "Avoid NSAIDs; use acetaminophen for pain"
+
+# ============================================================
+# LAB ITEM REFERENCE RANGES (age/sex-specific normal values)
+# Used for flagging H/L results
+# Source: Standard clinical laboratory references
+# ============================================================
+reference_ranges:
+  Troponin_I:
+    unit: "ng/mL"
+    all: {low: 0, high: 0.04}
+    note: "99th percentile URL"
+  CK_MB:
+    unit: "U/L"
+    all: {low: 0, high: 25}
+  BNP:
+    unit: "pg/mL"
+    all: {low: 0, high: 100}
+    age_over_75: {low: 0, high: 200}
+  WBC:
+    unit: "/uL"
+    all: {low: 3500, high: 9500}
+  Hb:
+    unit: "g/dL"
+    male: {low: 13.5, high: 17.5}
+    female: {low: 11.5, high: 15.5}
+  Plt:
+    unit: "x10^3/uL"
+    all: {low: 150, high: 400}
+  Creatinine:
+    unit: "mg/dL"
+    male: {low: 0.6, high: 1.1}
+    female: {low: 0.4, high: 0.8}
+  BUN:
+    unit: "mg/dL"
+    all: {low: 8, high: 20}
+  Na:
+    unit: "mEq/L"
+    all: {low: 136, high: 145}
+  K:
+    unit: "mEq/L"
+    all: {low: 3.5, high: 5.0}
+  Glucose:
+    unit: "mg/dL"
+    fasting: {low: 70, high: 100}
+    random: {low: 70, high: 140}
+  Total_cholesterol:
+    unit: "mg/dL"
+    all: {low: 0, high: 200}
+  LDL:
+    unit: "mg/dL"
+    all: {low: 0, high: 140}
+  HDL:
+    unit: "mg/dL"
+    male: {low: 40, high: 80}
+    female: {low: 50, high: 90}
+  Triglycerides:
+    unit: "mg/dL"
+    all: {low: 0, high: 150}
+  AST:
+    unit: "U/L"
+    all: {low: 10, high: 35}
+  ALT:
+    unit: "U/L"
+    all: {low: 5, high: 40}
+  LDH:
+    unit: "U/L"
+    all: {low: 120, high: 245}
+  PT_INR:
+    unit: ""
+    all: {low: 0.9, high: 1.1}
+    on_anticoagulation: {low: 2.0, high: 3.0}
+  APTT:
+    unit: "sec"
+    all: {low: 25, high: 35}
+    on_heparin: {low: 50, high: 80}
+
+# ============================================================
+# TARGET LENGTH OF STAY (country-specific)
+# Source: JP — DPC data, JROAD registry
+#         US — AHA Get With The Guidelines, CMS data
+# ============================================================
+target_los:
+  japan:
+    moderate: {mean: 12, sd: 3, min: 8, max: 18}
+    severe: {mean: 21, sd: 5, min: 14, max: 35}
+  us:
+    moderate: {mean: 4, sd: 1, min: 2, max: 6}
+    severe: {mean: 7, sd: 2, min: 4, max: 14}
+
+# OUTCOME BENCHMARKS
+# For validating generated data against reality
+# ============================================================
+outcome_benchmarks:
+  japan:
+    median_los: 12
+    los_iqr: [10, 14]
+    in_hospital_mortality: 0.07
+    icu_transfer_rate: 0.25
+    thirty_day_readmission: 0.10
+    pci_rate: 0.70
+    door_to_balloon_time_minutes: 90
+    mean_age_admitted: 68
+    male_ratio: 0.72
+
+  us:
+    median_los: 4
+    los_iqr: [3, 5]
+    in_hospital_mortality: 0.05
+    icu_transfer_rate: 0.30
+    thirty_day_readmission: 0.12
+    pci_rate: 0.75
+    door_to_balloon_time_minutes: 60
+    mean_age_admitted: 65
+    male_ratio: 0.68
+
+# ============================================================
+# CLINICAL COURSE ARCHETYPES (daily state variable changes)
+# Each archetype defines day-by-day deltas for physiological state variables.
+# Disease authors specify these trajectories — the engine interpolates between days.
+# Patient profile (immune_reactivity, treatment_sensitivity) modulates amplitude.
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.50
+    description: "Successful PCI/treatment, steady cardiac recovery"
+    trajectory:
+      cardiac_function: {0: -0.05, 1: 0.02, 2: 0.03, 3: 0.04, 5: 0.04, 7: 0.03, 10: 0.02, 14: 0.02}
+      perfusion_status: {0: -0.02, 1: 0.02, 2: 0.03, 3: 0.03, 5: 0.02, 7: 0.01, 10: 0.01, 14: 0.00}
+      inflammation_level: {0: 0.05, 1: 0.03, 2: -0.02, 3: -0.03, 5: -0.03, 7: -0.02, 10: -0.01, 14: -0.01}
+      renal_function: {0: 0.00, 1: 0.00, 2: 0.01, 3: 0.01, 5: 0.01, 7: 0.00, 10: 0.00, 14: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.15
+    description: "Post-PCI transient worsening (reperfusion injury, transient HF), then recovery"
+    trajectory:
+      cardiac_function: {0: -0.08, 1: -0.05, 2: -0.03, 3: 0.02, 5: 0.04, 7: 0.04, 10: 0.03, 14: 0.02}
+      perfusion_status: {0: -0.05, 1: -0.03, 2: 0.00, 3: 0.02, 5: 0.02, 7: 0.01, 10: 0.01, 14: 0.00}
+      inflammation_level: {0: 0.08, 1: 0.05, 2: 0.02, 3: -0.02, 5: -0.05, 7: -0.04, 10: -0.02, 14: -0.01}
+      renal_function: {0: -0.03, 1: -0.02, 2: 0.00, 3: 0.01, 5: 0.01, 7: 0.01, 10: 0.00, 14: 0.00}
+    order_modifications:
+      day_1:
+        add_labs: ["BNP", "Lactate", "ABG"]
+        add_imaging: ["Echocardiography_bedside"]
+    treatment_modifications:
+      day_1:
+        add_fluid: {detail: "IV furosemide 20mg if pulmonary congestion"}
+
+  plateau:
+    probability: 0.15
+    description: "Slow recovery, no significant improvement for 5-7 days, then gradual improvement"
+    trajectory:
+      cardiac_function: {0: -0.05, 1: 0.00, 2: 0.00, 3: 0.00, 5: 0.00, 7: 0.02, 10: 0.03, 14: 0.03}
+      perfusion_status: {0: -0.02, 1: 0.00, 2: 0.00, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.00}
+      inflammation_level: {0: 0.05, 1: 0.02, 2: 0.00, 3: 0.00, 5: -0.01, 7: -0.02, 10: -0.02, 14: -0.01}
+    order_modifications:
+      day_5:
+        add_labs: ["BNP", "Troponin_I"]
+        add_imaging: ["Echocardiography"]
+    treatment_modifications: {}
+
+  treatment_resistant:
+    probability: 0.05
+    description: "Ongoing ischemia despite PCI; requires repeat intervention or CABG evaluation"
+    trajectory:
+      cardiac_function: {0: -0.08, 1: -0.03, 2: -0.02, 3: -0.02, 5: 0.00, 7: 0.02, 10: 0.03, 14: 0.03}
+      perfusion_status: {0: -0.05, 1: -0.02, 2: -0.01, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.00}
+      inflammation_level: {0: 0.08, 1: 0.05, 2: 0.03, 3: 0.00, 5: -0.03, 7: -0.05, 10: -0.03, 14: -0.02}
+    order_modifications:
+      day_2:
+        add_labs: ["Troponin_I_stat", "Lactate"]
+        add_imaging: ["ECG_12lead_stat", "Echocardiography"]
+      day_3:
+        add_imaging: ["Coronary_angiography_repeat"]
+        add_consult: ["cardiac_surgery"]
+    treatment_modifications:
+      day_3:
+        action: "consider_repeat_pci_or_cabg"
+    triggers:
+      - day: 2
+        condition: "cardiac_function < 0.4 and chest_pain_recurrent"
+        actions: ["repeat_ecg", "urgent_cath_evaluation"]
+
+  gradual_deterioration:
+    probability: 0.10
+    description: "Progressive heart failure despite treatment -> ICU escalation"
+    trajectory:
+      cardiac_function: {0: -0.10, 1: -0.05, 2: -0.05, 3: -0.03, 5: -0.02, 7: 0.00, 10: 0.02, 14: 0.02}
+      perfusion_status: {0: -0.08, 1: -0.05, 2: -0.03, 3: -0.02, 5: 0.00, 7: 0.01, 10: 0.01, 14: 0.01}
+      renal_function: {0: -0.05, 1: -0.03, 2: -0.02, 3: -0.01, 5: 0.00, 7: 0.01, 10: 0.01, 14: 0.01}
+      inflammation_level: {0: 0.10, 1: 0.08, 2: 0.05, 3: 0.03, 5: 0.00, 7: -0.03, 10: -0.03, 14: -0.02}
+    order_modifications:
+      day_2:
+        add_labs: ["BNP", "Lactate", "ABG"]
+        add_imaging: ["Echocardiography_bedside", "Chest_Xray"]
+      day_4:
+        add_labs: ["BNP", "Lactate", "Creatinine"]
+    treatment_modifications:
+      day_2:
+        start:
+          japan: [{drug: "Dobutamine", dose: "5ug/kg/min IV drip"}]
+          us: [{drug: "Dobutamine", dose: "5ug/kg/min IV drip"}]
+      day_4:
+        start:
+          japan: [{drug: "Norepinephrine", dose: "0.05ug/kg/min IV drip"}]
+        action: "icu_transfer"
+    triggers:
+      - day: 3
+        condition: "perfusion_status < 0.4"
+        actions: ["icu_transfer", "start_inotrope"]
+
+  sudden_deterioration:
+    probability: 0.05
+    description: "Sudden cardiac arrest, VF, or massive re-infarction on Day 1-2"
+    trajectory:
+      cardiac_function: {0: -0.05, 1: -0.35, 2: -0.10, 3: 0.05, 5: 0.05, 7: 0.05, 10: 0.03, 14: 0.02}
+      perfusion_status: {0: -0.02, 1: -0.30, 2: -0.05, 3: 0.05, 5: 0.05, 7: 0.03, 10: 0.02, 14: 0.01}
+      renal_function: {0: 0.00, 1: -0.15, 2: -0.05, 3: 0.02, 5: 0.02, 7: 0.01, 10: 0.01, 14: 0.01}
+      inflammation_level: {0: 0.05, 1: 0.20, 2: 0.10, 3: -0.05, 5: -0.08, 7: -0.05, 10: -0.03, 14: -0.02}
+    order_modifications:
+      day_1:
+        add_labs: ["ABG", "Lactate", "Troponin_I_stat", "K_Mg_stat"]
+        add_imaging: ["ECG_12lead_stat", "Echocardiography_bedside"]
+    treatment_modifications:
+      day_1:
+        start:
+          japan:
+            - {drug: "Norepinephrine", dose: "0.1ug/kg/min IV drip"}
+            - {drug: "Amiodarone", dose: "300mg IV bolus then 900mg/24h drip"}
+          us:
+            - {drug: "Norepinephrine", dose: "0.1ug/kg/min IV drip"}
+            - {drug: "Amiodarone", dose: "300mg IV bolus then 900mg/24h drip"}
+        action: "icu_transfer"
+        action_2: "emergent_cath_or_resuscitation"
+    triggers:
+      - day: 1
+        condition: "cardiac_function < 0.3 or VF_detected"
+        actions: ["icu_transfer", "start_vasopressor", "emergent_cath_evaluation", "defibrillation_if_vf"]
+
+# Archetype selection modifiers (patient profile dependent)
+archetype_modifiers:
+  - condition: "age >= 80"
+    effect: {gradual_deterioration: 0.05, sudden_deterioration: 0.03, smooth_recovery: -0.08}
+  - condition: "prior_MI"
+    effect: {treatment_resistant: 0.05, gradual_deterioration: 0.05, smooth_recovery: -0.10}
+  - condition: "diabetes"
+    effect: {gradual_deterioration: 0.03, smooth_recovery: -0.03}
+  - condition: "anterior_wall_MI"
+    effect: {gradual_deterioration: 0.05, sudden_deterioration: 0.03, smooth_recovery: -0.08}
+  - condition: "treatment_sensitivity > 1.2"
+    effect: {smooth_recovery: 0.10, treatment_resistant: -0.05}
+
+# ============================================================
+# COMPLICATIONS (secondary events during hospitalization)
+# Each complication has: trigger conditions, timing, probability,
+# physiological impact, and detection/treatment actions.
+# Complications can themselves trigger further complications (cascade).
+# ============================================================
+complications:
+  - name: "cardiogenic_shock"
+    description: "Pump failure with inadequate tissue perfusion"
+    probability_per_day: 0.015
+    onset_day_range: [0, 3]
+    risk_factors:
+      - {condition: "anterior_wall_MI", multiplier: 2.5}
+      - {condition: "age_over_75", multiplier: 2.0}
+      - {condition: "prior_MI", multiplier: 2.0}
+      - {condition: "EF_below_30", multiplier: 3.0}
+    state_impact:
+      cardiac_function: -0.25
+      perfusion_status: -0.30
+      renal_function: -0.15
+    detection:
+      test: "hemodynamic_assessment"
+      finding: "SBP_below_90_with_end_organ_hypoperfusion"
+    actions: ["vasopressor_start", "inotrope_start", "consider_IABP_Impella", "icu_transfer", "emergent_cath"]
+
+  - name: "ventricular_arrhythmia"
+    description: "Sustained VT or VF"
+    probability_per_day: 0.02
+    onset_day_range: [0, 5]
+    risk_factors:
+      - {condition: "anterior_wall_MI", multiplier: 1.5}
+      - {condition: "EF_below_30", multiplier: 2.5}
+      - {condition: "hypokalemia", multiplier: 3.0}
+      - {condition: "hypomagnesemia", multiplier: 2.0}
+    state_impact:
+      perfusion_status: -0.20
+      cardiac_function: -0.10
+    detection:
+      test: "continuous_ecg_telemetry"
+      finding: "sustained_VT_or_VF"
+    actions: ["defibrillation_if_VF", "amiodarone_IV", "correct_electrolytes", "evaluate_ICD_need"]
+
+  - name: "acute_heart_failure"
+    description: "New-onset HF or acute decompensation post-MI"
+    probability_per_day: 0.012
+    onset_day_range: [1, 7]
+    risk_factors:
+      - {condition: "anterior_wall_MI", multiplier: 2.0}
+      - {condition: "EF_below_40", multiplier: 2.5}
+      - {condition: "prior_heart_failure", multiplier: 3.0}
+      - {condition: "age_over_75", multiplier: 1.5}
+    state_impact:
+      cardiac_function: -0.10
+      perfusion_status: -0.05
+      volume_status: 0.15    # fluid overload
+    detection:
+      test: "clinical_and_bnp"
+      finding: "dyspnea_crackles_elevated_bnp"
+    actions: ["IV_diuretics", "oxygen_therapy", "echocardiography", "monitor_fluid_balance"]
+
+  - name: "pericarditis"
+    description: "Post-MI pericarditis (early, within days)"
+    probability_per_day: 0.005
+    onset_day_range: [2, 5]
+    risk_factors:
+      - {condition: "transmural_MI", multiplier: 2.0}
+    state_impact:
+      inflammation_level: 0.10
+    detection:
+      test: "ecg_and_echocardiography"
+      finding: "diffuse_st_elevation_and_friction_rub"
+    actions: ["aspirin_increase_dose", "avoid_anticoagulation_if_effusion", "echocardiography_for_effusion"]
+
+  - name: "dressler_syndrome"
+    description: "Late autoimmune pericarditis (2-10 weeks post-MI)"
+    probability_per_day: 0.002
+    onset_day_range: [14, 70]
+    risk_factors:
+      - {condition: "transmural_MI", multiplier: 2.0}
+      - {condition: "no_reperfusion", multiplier: 2.0}
+    state_impact:
+      inflammation_level: 0.15
+    detection:
+      test: "ecg_and_echocardiography"
+      finding: "pericardial_effusion_pleuritis_fever"
+    actions: ["aspirin_or_colchicine", "echocardiography_serial", "monitor_for_tamponade"]
+
+  - name: "mechanical_complication"
+    description: "Ventricular septal rupture, free wall rupture, or papillary muscle rupture"
+    probability_per_day: 0.002
+    onset_day_range: [2, 7]
+    risk_factors:
+      - {condition: "transmural_MI", multiplier: 3.0}
+      - {condition: "no_reperfusion", multiplier: 4.0}
+      - {condition: "age_over_75", multiplier: 2.0}
+      - {condition: "first_MI", multiplier: 1.5}
+    state_impact:
+      cardiac_function: -0.30
+      perfusion_status: -0.30
+    detection:
+      test: "echocardiography"
+      finding: "new_murmur_hemodynamic_collapse"
+    actions: ["emergent_surgery_consult", "vasopressor", "IABP", "icu_transfer"]
+    cascade: ["cardiogenic_shock"]
+
+  - name: "acute_kidney_injury"
+    description: "Cardiorenal syndrome or contrast-induced nephropathy post-angiography"
+    probability_per_day: 0.01
+    onset_day_range: [1, 5]
+    risk_factors:
+      - {condition: "CKD", multiplier: 3.0}
+      - {condition: "diabetes", multiplier: 1.5}
+      - {condition: "cardiogenic_shock", multiplier: 3.0}
+      - {condition: "contrast_volume_high", multiplier: 2.0}
+      - {condition: "age_over_75", multiplier: 1.5}
+    state_impact:
+      renal_function: -0.15
+      ph_status: -0.05
+    detection:
+      test: "creatinine"
+      finding: "rise_above_0.3_from_baseline_or_25pct"
+    actions: ["IV_hydration", "hold_nephrotoxic_drugs", "adjust_medication_doses", "monitor_urine_output"]
+
+  - name: "stroke"
+    description: "Embolic stroke from LV thrombus or atrial fibrillation"
+    probability_per_day: 0.003
+    onset_day_range: [1, 14]
+    risk_factors:
+      - {condition: "anterior_wall_MI", multiplier: 2.5}
+      - {condition: "EF_below_30", multiplier: 2.0}
+      - {condition: "atrial_fibrillation", multiplier: 3.0}
+    state_impact:
+      perfusion_status: -0.05
+    detection:
+      test: "neurological_exam"
+      finding: "new_focal_deficit"
+    actions: ["stat_CT_head", "neurology_consult", "consider_thrombolysis_or_thrombectomy"]
+
+  - name: "gi_bleeding"
+    description: "GI bleed from antiplatelet/anticoagulation therapy"
+    probability_per_day: 0.005
+    onset_day_range: [1, 14]
+    risk_factors:
+      - {condition: "triple_therapy", multiplier: 3.0}
+      - {condition: "prior_gi_bleed", multiplier: 4.0}
+      - {condition: "age_over_75", multiplier: 1.5}
+      - {condition: "no_ppi", multiplier: 2.0}
+    state_impact:
+      volume_status: -0.10
+      perfusion_status: -0.05
+    detection:
+      test: "clinical_and_labs"
+      finding: "melena_or_hematemesis_or_hb_drop"
+    actions: ["hold_anticoagulation", "IV_PPI", "blood_transfusion_prn", "GI_consult", "reassess_antiplatelet"]
+
+# ============================================================
+# DIFFERENTIAL DIAGNOSIS
+# Used by diagnostic reasoning module
+# ============================================================
+differential_diagnosis:
+  - disease: "acute_mi"
+    prior_probability: 0.35
+    key_features: ["chest_pain_pressure", "diaphoresis", "ecg_changes", "troponin_elevated"]
+  - disease: "unstable_angina"
+    prior_probability: 0.25
+    key_features: ["chest_pain_exertional", "ecg_changes_possible", "troponin_normal"]
+  - disease: "aortic_dissection"
+    prior_probability: 0.05
+    key_features: ["tearing_chest_pain", "bp_differential", "widened_mediastinum"]
+  - disease: "pulmonary_embolism"
+    prior_probability: 0.10
+    key_features: ["pleuritic_chest_pain", "dyspnea", "d_dimer_elevated", "tachycardia"]
+  - disease: "pericarditis"
+    prior_probability: 0.08
+    key_features: ["positional_chest_pain", "friction_rub", "diffuse_st_elevation"]
+  - disease: "gerd"
+    prior_probability: 0.10
+    key_features: ["burning_chest_pain", "postprandial", "relieved_by_antacid"]
+  - disease: "myocarditis"
+    prior_probability: 0.04
+    key_features: ["recent_viral_illness", "troponin_elevated", "diffuse_ecg_changes"]
+  - disease: "stress_cardiomyopathy"
+    prior_probability: 0.03
+    key_features: ["emotional_trigger", "apical_ballooning", "troponin_mild_elevation"]
+
+# ============================================================
+# FORCED GENERATION (for testing / specific scenario creation)
+# Users can override population-driven generation to force specific cases.
+# See SimulatorConfig.forced_scenarios
+# ============================================================
+# Example usage in config:
+#   forced_scenarios:
+#     - disease_id: "acute_mi"
+#       count: 3
+#       severity: "severe"
+#       archetype: "sudden_deterioration"
+#       complications: ["cardiogenic_shock", "ventricular_arrhythmia"]
+#       patient_overrides:
+#         age: 72
+#         sex: "M"
+#         chronic_conditions: ["I10", "E11", "E78"]

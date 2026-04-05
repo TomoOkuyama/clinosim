@@ -12,7 +12,6 @@ from typing import Any
 
 import numpy as np
 
-from clinosim.types.clinical import PhysiologicalState
 
 
 @dataclass
@@ -191,7 +190,6 @@ def generate_rehab_sessions(
 
     # Rehab starts POD 1 (day after surgery)
     start_day = 1
-    sessions_per_day = 1
     duration = 40 if country == "JP" else 30
 
     activities_by_phase = {

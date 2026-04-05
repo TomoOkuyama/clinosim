@@ -27,12 +27,13 @@ def create_inpatient_encounter(
     admission_datetime: datetime,
     chief_complaint: str = "Fever, cough, dyspnea",
     department_id: str = "internal_medicine",
+    visit_number: int = 1,
 ) -> Encounter:
     """Create a new inpatient encounter."""
     return Encounter(
-        encounter_id=f"ENC-{patient_id}-001",
+        encounter_id=f"ENC-{patient_id}-{visit_number:03d}",
         patient_id=patient_id,
-        episode_id=f"EP-{patient_id}-001",
+        episode_id=f"EP-{patient_id}-{visit_number:03d}",
         encounter_type=EncounterType.INPATIENT,
         status=EncounterStatus.IN_PROGRESS,
         department_id=department_id,

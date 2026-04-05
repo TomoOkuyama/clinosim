@@ -1,0 +1,724 @@
+# Cellulitis — Complete Reference Data
+# Sources cited per section. All rates are approximate and should be validated
+# against the most current published data before production use.
+
+disease_id: cellulitis
+chief_complaint: "Erythema, warmth, swelling of affected limb, fever"
+department: internal_medicine
+encounter_type: medical
+requires_surgery: false
+readmission_eligible: true
+
+icd_codes:
+  primary: "L03.90"  # Cellulitis, unspecified
+  variants:
+    - {code: "L03.11", name: "Cellulitis of right lower limb", probability: 0.30}
+    - {code: "L03.12", name: "Cellulitis of left lower limb", probability: 0.30}
+    - {code: "L03.01", name: "Cellulitis of finger", probability: 0.05}
+    - {code: "L03.31", name: "Cellulitis of trunk", probability: 0.05}
+    - {code: "L03.21", name: "Cellulitis of face", probability: 0.05}
+    - {code: "L03.11", name: "Cellulitis of upper limb", probability: 0.10}
+    - {code: "L03.90", name: "Cellulitis, unspecified", probability: 0.15}
+
+# ============================================================
+# INCIDENCE (per 100,000 per year, by age band and sex)
+# Source: JP — 患者調査, 皮膚科疾患統計
+#         US — Hersh et al. Arch Intern Med 2008, FDA surveillance
+# ============================================================
+incidence:
+  japan:
+    "0-4":   {M: 80, F: 60}
+    "5-14":  {M: 60, F: 40}
+    "15-24": {M: 50, F: 35}
+    "25-34": {M: 70, F: 50}
+    "35-44": {M: 100, F: 70}
+    "45-54": {M: 150, F: 100}
+    "55-64": {M: 200, F: 150}
+    "65-74": {M: 350, F: 280}
+    "75-84": {M: 500, F: 420}
+    "85+":   {M: 700, F: 600}
+  us:
+    "0-4":   {M: 100, F: 75}
+    "5-14":  {M: 70, F: 50}
+    "15-24": {M: 80, F: 55}
+    "25-34": {M: 100, F: 70}
+    "35-44": {M: 150, F: 100}
+    "45-54": {M: 200, F: 140}
+    "55-64": {M: 280, F: 200}
+    "65-74": {M: 400, F: 320}
+    "75-84": {M: 550, F: 450}
+    "85+":   {M: 750, F: 650}
+
+  risk_multipliers:
+    - {condition: "diabetes", multiplier: 2.5}
+    - {condition: "obesity", multiplier: 2.0}
+    - {condition: "peripheral_vascular_disease", multiplier: 2.5}
+    - {condition: "lymphedema", multiplier: 5.0}
+    - {condition: "chronic_venous_insufficiency", multiplier: 3.0}
+    - {condition: "immunosuppressed", multiplier: 3.0}
+    - {condition: "tinea_pedis", multiplier: 2.0}
+    - {condition: "prior_cellulitis", multiplier: 3.0}
+    - {condition: "injection_drug_use", multiplier: 5.0}
+    - {condition: "CKD", multiplier: 1.5}
+
+  seasonal_curve:
+    1: 0.80
+    2: 0.80
+    3: 0.85
+    4: 0.90
+    5: 1.00
+    6: 1.15
+    7: 1.25
+    8: 1.25
+    9: 1.15
+    10: 1.00
+    11: 0.90
+    12: 0.85
+
+  vaccine_protection: {}  # not applicable
+
+# ============================================================
+# SEVERITY DISTRIBUTION
+# Source: Eron classification, IDSA skin and soft tissue guidelines 2014
+# ============================================================
+severity:
+  distribution:
+    mild: 0.40        # no systemic toxicity, minor comorbidities
+    moderate: 0.45    # systemic toxicity or significant comorbidities
+    severe: 0.15      # sepsis, necrotizing concern, failed outpatient
+  modifiers:
+    - {condition: "diabetes", moderate_multiplier: 1.3, severe_multiplier: 1.5}
+    - {condition: "immunosuppressed", severe_multiplier: 2.5, mild_multiplier: 0.3}
+    - {condition: "peripheral_vascular_disease", severe_multiplier: 1.8}
+    - {condition: "age_over_75", mild_multiplier: 0.7, severe_multiplier: 1.5}
+    - {condition: "obesity", moderate_multiplier: 1.2, severe_multiplier: 1.3}
+
+# ============================================================
+# INITIAL PHYSIOLOGICAL STATE IMPACT
+# ============================================================
+initial_state_impact:
+  mild:
+    inflammation_level: 0.20
+    volume_status: -0.05
+  moderate:
+    inflammation_level: 0.40
+    volume_status: -0.10
+    perfusion_status: -0.05
+  severe:
+    inflammation_level: 0.65
+    volume_status: -0.20
+    perfusion_status: -0.15
+    renal_function: -0.05
+
+# ============================================================
+# ORDER PROTOCOLS
+# ============================================================
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "CRP", urgency: "stat"}
+      - {test: "WBC", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "BUN", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "AST", urgency: "stat", probability: 0.60}
+      - {test: "ALT", urgency: "stat", probability: 0.60}
+      - {test: "Lactate", urgency: "stat", probability: 0.40}
+      - {test: "Blood_culture_x2", urgency: "stat", probability: 0.70}
+      - {test: "HbA1c", urgency: "routine", probability: 0.50}
+    imaging:
+      - {test: "Soft_tissue_ultrasound", urgency: "routine", probability: 0.30}
+    supportive:
+      - {type: "IV_fluid", detail: "NS 80-125 mL/h"}
+      - {type: "limb_elevation", detail: "Elevate affected limb above heart level"}
+      - {type: "wound_marking", detail: "Mark borders of erythema with skin marker"}
+      - {type: "antipyretic", detail: "Acetaminophen 500mg PO q6h PRN temp >= 38.5"}
+      - {type: "DVT_prophylaxis", detail: "Enoxaparin 2000IU SC daily (contralateral limb)"}
+
+  daily_monitoring:
+    labs:
+      - {test: "CRP", frequency: "daily"}
+      - {test: "WBC", frequency: "every_other_day"}
+      - {test: "Creatinine", frequency: "daily"}
+    vitals:
+      stable: "q8h"
+      unstable: "q4h"
+    wound_assessment:
+      - {task: "measure_erythema_borders", frequency: "q12h"}
+
+  trigger_orders:
+    no_improvement_48h:
+      condition: "erythema_not_receding and CRP_not_declining at 48h"
+      actions:
+        - {type: "lab", test: "Blood_culture_repeat"}
+        - {type: "imaging", test: "CT_soft_tissue_with_contrast"}
+        - {type: "medication_change", action: "escalate_antibiotic"}
+        - {type: "evaluate", action: "surgical_consult_for_abscess_or_necrotizing"}
+    suspected_abscess:
+      condition: "fluctuant_area or worsening_despite_antibiotics"
+      actions:
+        - {type: "imaging", test: "Soft_tissue_ultrasound"}
+        - {type: "consult", target: "surgery_or_interventional_radiology"}
+    sepsis_criteria:
+      condition: "qSOFA >= 2 or lactate > 2"
+      actions:
+        - {type: "lab", test: "Lactate"}
+        - {type: "lab", test: "Blood_culture_x2"}
+        - {type: "fluid", action: "30mL/kg_crystalloid_bolus"}
+        - {type: "evaluate", action: "consider_ICU_transfer"}
+
+  discharge_criteria:
+    japan:
+      - "Afebrile (< 37.0C) for 48 hours"
+      - "CRP declining and < 50% of peak"
+      - "Erythema clearly receding (documented by skin markings)"
+      - "Oral antibiotic tolerated for 24 hours"
+      - "No signs of abscess formation"
+    us:
+      - "Afebrile (< 37.5C) for 24 hours"
+      - "Erythema improving"
+      - "Oral antibiotic tolerated"
+      - "Clinically stable"
+
+# ============================================================
+# DIAGNOSTIC SECTION
+# Source: IDSA 2014, clinical decision-making studies
+# ============================================================
+diagnostic:
+  diagnostic_difficulty: 0.15  # clinical diagnosis based on exam
+  differential:
+    - {disease: "cellulitis", icd: "L03.90", name: "Cellulitis", prior: 0.65}
+    - {disease: "deep_vein_thrombosis", icd: "I82.40", name: "Deep vein thrombosis", prior: 0.08}
+    - {disease: "necrotizing_fasciitis", icd: "M72.6", name: "Necrotizing fasciitis", prior: 0.03}
+    - {disease: "abscess", icd: "L02.9", name: "Cutaneous abscess", prior: 0.10}
+    - {disease: "contact_dermatitis", icd: "L25.9", name: "Contact dermatitis", prior: 0.05}
+    - {disease: "venous_stasis_dermatitis", icd: "I87.2", name: "Venous stasis dermatitis", prior: 0.05}
+    - {disease: "gout", icd: "M10.9", name: "Gout", prior: 0.02}
+    - {disease: "other", icd: "L98.9", name: "Other skin disorder", prior: 0.02}
+
+# ============================================================
+# LIKELIHOOD RATIO TABLE
+# Source: Clinical diagnostic studies, IDSA guidelines
+# ============================================================
+likelihood_ratios:
+  unilateral_erythema_warmth_spreading:
+    cellulitis: {positive_LR: 8.0, negative_LR: 0.2}
+    deep_vein_thrombosis: {positive_LR: 1.5, negative_LR: 0.8}
+    necrotizing_fasciitis: {positive_LR: 3.0, negative_LR: 0.5}
+
+  fever_above_38:
+    cellulitis: {positive_LR: 2.5, negative_LR: 0.6}
+    deep_vein_thrombosis: {positive_LR: 0.5, negative_LR: 1.2}
+    necrotizing_fasciitis: {positive_LR: 3.0, negative_LR: 0.5}
+
+  crepitus_on_palpation:
+    necrotizing_fasciitis: {positive_LR: 30.0, negative_LR: 0.7}
+    cellulitis: {positive_LR: 0.1, negative_LR: 1.0}
+
+  pain_out_of_proportion:
+    necrotizing_fasciitis: {positive_LR: 8.0, negative_LR: 0.3}
+    cellulitis: {positive_LR: 0.5, negative_LR: 1.1}
+
+  fluctuant_area:
+    abscess: {positive_LR: 15.0, negative_LR: 0.5}
+    cellulitis: {positive_LR: 0.5, negative_LR: 1.1}
+
+  positive_blood_culture:
+    cellulitis: {positive_LR: 5.0, negative_LR: 0.95}
+    necrotizing_fasciitis: {positive_LR: 8.0, negative_LR: 0.8}
+
+# ============================================================
+# EXPECTED LAB DISTRIBUTIONS
+# ============================================================
+expected_lab_distributions:
+  admission:
+    CRP:
+      unit: "mg/L"
+      median: 60
+      iqr: [20, 120]
+      range: [5, 300]
+    WBC:
+      unit: "/uL"
+      median: 11000
+      iqr: [8000, 15000]
+      range: [4000, 25000]
+    Creatinine:
+      unit: "mg/dL"
+      median: 0.9
+      iqr: [0.7, 1.2]
+      range: [0.4, 3.0]
+    Glucose:
+      unit: "mg/dL"
+      median: 120
+      iqr: [95, 170]
+      range: [70, 400]
+      note: "often elevated if diabetic"
+    Lactate:
+      unit: "mmol/L"
+      median: 1.2
+      iqr: [0.8, 1.8]
+      range: [0.5, 6.0]
+
+  discharge:
+    CRP:
+      unit: "mg/L"
+      median: 10
+      iqr: [4, 25]
+    WBC:
+      unit: "/uL"
+      median: 7000
+      iqr: [5000, 9000]
+
+# ============================================================
+# EXPECTED VITAL SIGN DISTRIBUTIONS
+# ============================================================
+expected_vital_distributions:
+  admission:
+    temperature:
+      unit: "C"
+      mean: 38.2
+      sd: 0.8
+      range: [36.5, 40.0]
+    heart_rate:
+      unit: "bpm"
+      mean: 95
+      sd: 15
+      range: [60, 130]
+    systolic_bp:
+      unit: "mmHg"
+      mean: 130
+      sd: 20
+      range: [85, 180]
+    respiratory_rate:
+      unit: "/min"
+      mean: 18
+      sd: 3
+      range: [12, 28]
+    spo2:
+      unit: "%"
+      mean: 97
+      sd: 1.5
+      range: [92, 100]
+
+# ============================================================
+# TREATMENT REFERENCE — Drug selection data
+# Source: IDSA 2014, Sanford Guide, JCS/JSI Guidelines
+# ============================================================
+drugs:
+  first_line:
+    japan:
+      - drug: "Cefazolin"
+        code_yj: "6132003"
+        dose: "1g IV q8h"
+        route: IV
+        renal_adjustment:
+          eGFR_30_60: "1g IV q12h"
+          eGFR_below_30: "1g IV q24h"
+        pregnancy_safe: true
+    us:
+      - drug: "Cefazolin"
+        code_rxnorm: "309090"
+        dose: "2g IV q8h"
+        route: IV
+        renal_adjustment:
+          eGFR_30_60: "1g IV q8h"
+          eGFR_below_30: "1g IV q12h"
+        pregnancy_safe: true
+
+  alternative_penicillin_allergy:
+    japan:
+      - drug: "Clindamycin"
+        code_yj: "6152002"
+        dose: "600mg IV q8h"
+        pregnancy_safe: false
+        note: "C. diff risk"
+    us:
+      - drug: "Vancomycin"
+        code_rxnorm: "11124"
+        dose: "15-20mg/kg IV q12h (trough 15-20)"
+        note: "If MRSA concern; otherwise clindamycin 600mg IV q8h"
+        renal_adjustment:
+          eGFR_below_30: "dose by trough levels"
+        pregnancy_safe: false
+
+  mrsa_coverage:
+    japan:
+      - drug: "Vancomycin"
+        code_yj: "6113003"
+        dose: "1g IV q12h (adjust by trough)"
+        indication: "known_MRSA_or_failed_first_line"
+        renal_adjustment:
+          eGFR_below_30: "dose by trough levels"
+    us:
+      - drug: "Vancomycin"
+        code_rxnorm: "11124"
+        dose: "15-20mg/kg IV q8-12h (AUC/MIC guided)"
+        indication: "known_MRSA_or_purulent_cellulitis"
+
+  escalation:
+    japan:
+      - drug: "Piperacillin/Tazobactam"
+        code_yj: "6131700"
+        dose: "4.5g IV q8h"
+        indication: "no_improvement_48h_or_diabetic_foot"
+        renal_adjustment:
+          eGFR_below_30: "4.5g IV q12h"
+    us:
+      - drug: "Piperacillin/Tazobactam"
+        code_rxnorm: "240984"
+        dose: "4.5g IV q6h"
+        indication: "no_improvement_48h_or_polymicrobial_concern"
+
+  discharge_oral:
+    japan:
+      - drug: "Cephalexin"
+        code_yj: "6132001"
+        dose: "500mg PO QID"
+        duration_days: 7
+    us:
+      - drug: "Cephalexin"
+        code_rxnorm: "197454"
+        dose: "500mg PO QID"
+        duration_days: 7
+      - drug: "Trimethoprim/Sulfamethoxazole"
+        code_rxnorm: "10831"
+        dose: "DS 1 tab PO BID"
+        duration_days: 7
+        note: "Added if MRSA concern"
+
+# ============================================================
+# DRUG INTERACTIONS
+# ============================================================
+drug_interactions:
+  - drug_a: "Vancomycin"
+    drug_b: "Piperacillin/Tazobactam"
+    severity: "major"
+    effect: "Increased nephrotoxicity risk"
+    action: "Monitor renal function closely; consider alternatives"
+
+  - drug_a: "Clindamycin"
+    drug_b: "Neuromuscular_blockers"
+    severity: "major"
+    effect: "Enhanced neuromuscular blockade"
+    action: "Monitor if concurrent use required"
+
+  - drug_a: "Vancomycin"
+    drug_b: "Aminoglycosides"
+    severity: "major"
+    effect: "Additive nephrotoxicity and ototoxicity"
+    action: "Monitor levels and renal function"
+
+# ============================================================
+# REFERENCE RANGES
+# ============================================================
+reference_ranges:
+  CRP:
+    unit: "mg/L"
+    all: {low: 0, high: 3}
+  WBC:
+    unit: "/uL"
+    all: {low: 3500, high: 9500}
+  Hb:
+    unit: "g/dL"
+    male: {low: 13.5, high: 17.5}
+    female: {low: 11.5, high: 15.5}
+  Creatinine:
+    unit: "mg/dL"
+    male: {low: 0.6, high: 1.1}
+    female: {low: 0.4, high: 0.8}
+  Glucose:
+    unit: "mg/dL"
+    fasting: {low: 70, high: 100}
+    random: {low: 70, high: 140}
+  Lactate:
+    unit: "mmol/L"
+    all: {low: 0.5, high: 2.0}
+  Na:
+    unit: "mEq/L"
+    all: {low: 136, high: 145}
+  K:
+    unit: "mEq/L"
+    all: {low: 3.5, high: 5.0}
+
+# ============================================================
+# TARGET LENGTH OF STAY
+# ============================================================
+target_los:
+  japan:
+    mild: {mean: 7, sd: 2, min: 4, max: 12}
+    moderate: {mean: 10, sd: 3, min: 6, max: 16}
+    severe: {mean: 14, sd: 4, min: 8, max: 21}
+  us:
+    mild: {mean: 3, sd: 1, min: 2, max: 5}
+    moderate: {mean: 4, sd: 1, min: 3, max: 6}
+    severe: {mean: 6, sd: 2, min: 4, max: 10}
+
+# ============================================================
+# OUTCOME BENCHMARKS
+# ============================================================
+outcome_benchmarks:
+  japan:
+    median_los: 8
+    los_iqr: [6, 12]
+    in_hospital_mortality: 0.005
+    icu_transfer_rate: 0.02
+    thirty_day_readmission: 0.14
+    antibiotic_switch_rate: 0.15
+    blood_culture_positivity: 0.08
+    mean_time_to_first_abx_hours: 2.5
+    abscess_drainage_rate: 0.10
+    mean_age_admitted: 65
+    male_ratio: 0.55
+
+  us:
+    median_los: 4
+    los_iqr: [3, 5]
+    in_hospital_mortality: 0.003
+    icu_transfer_rate: 0.02
+    thirty_day_readmission: 0.12
+    antibiotic_switch_rate: 0.12
+    blood_culture_positivity: 0.05
+    mean_time_to_first_abx_hours: 2.0
+    abscess_drainage_rate: 0.12
+    mean_age_admitted: 58
+    male_ratio: 0.55
+
+# ============================================================
+# CLINICAL COURSE ARCHETYPES
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.55
+    description: "Steady improvement from Day 1-2 after IV antibiotics"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: -0.03, 2: -0.06, 3: -0.06, 5: -0.05, 7: -0.04, 10: -0.03}
+      volume_status: {0: 0.02, 1: 0.02, 2: 0.02, 3: 0.01, 5: 0.00, 7: 0.00, 10: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.18
+    description: "Slight worsening Day 1-2 (antibiotic not yet effective), then improvement"
+    trajectory:
+      inflammation_level: {0: 0.08, 1: 0.03, 2: -0.02, 3: -0.05, 5: -0.06, 7: -0.05, 10: -0.03}
+      volume_status: {0: -0.03, 1: -0.02, 2: 0.02, 3: 0.02, 5: 0.01, 7: 0.00, 10: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["CRP", "Blood_culture_repeat"]
+    treatment_modifications: {}
+
+  plateau_then_recovery:
+    probability: 0.10
+    description: "Minimal change for 3-5 days, then gradual improvement"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.01, 2: 0.00, 3: 0.00, 5: -0.02, 7: -0.06, 10: -0.05}
+      volume_status: {0: 0.01, 1: 0.01, 2: 0.00, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.00}
+    order_modifications:
+      day_4:
+        add_labs: ["CRP", "WBC"]
+        add_imaging: ["Soft_tissue_ultrasound"]
+    treatment_modifications: {}
+
+  treatment_resistant:
+    probability: 0.10
+    description: "No response to first-line; requires antibiotic escalation or abscess drainage"
+    trajectory:
+      inflammation_level: {0: 0.08, 1: 0.05, 2: 0.03, 3: 0.02, 5: -0.02, 7: -0.05, 10: -0.06}
+      volume_status: {0: -0.03, 1: -0.02, 2: 0.00, 3: 0.01, 5: 0.02, 7: 0.01, 10: 0.00}
+    order_modifications:
+      day_3:
+        add_labs: ["Blood_culture_repeat", "CRP"]
+        add_imaging: ["CT_soft_tissue_with_contrast"]
+        add_consult: ["surgery"]
+    treatment_modifications:
+      day_3:
+        stop: ["Cefazolin"]
+        start:
+          japan: [{drug: "Piperacillin/Tazobactam", dose: "4.5g IV q8h"}]
+          us: [{drug: "Vancomycin", dose: "15mg/kg IV q12h"}, {drug: "Piperacillin/Tazobactam", dose: "4.5g IV q6h"}]
+    triggers:
+      - day: 3
+        condition: "erythema_spreading and inflammation_level > 0.4"
+        actions: ["escalate_antibiotic", "imaging", "surgical_consult"]
+
+  gradual_deterioration:
+    probability: 0.05
+    description: "Progressive spread, evolving sepsis despite treatment"
+    trajectory:
+      inflammation_level: {0: 0.10, 1: 0.08, 2: 0.06, 3: 0.05, 5: 0.03, 7: 0.00, 10: -0.03, 14: -0.05}
+      perfusion_status: {0: -0.05, 1: -0.05, 2: -0.03, 3: -0.02, 5: 0.00, 7: 0.02, 10: 0.02, 14: 0.01}
+      renal_function: {0: -0.03, 1: -0.02, 2: -0.01, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.01}
+    order_modifications:
+      day_2:
+        add_labs: ["Lactate", "Blood_culture_repeat", "CK"]
+        add_imaging: ["CT_soft_tissue_with_contrast"]
+      day_4:
+        add_labs: ["Lactate", "ABG"]
+    treatment_modifications:
+      day_2:
+        stop: ["Cefazolin"]
+        start:
+          japan: [{drug: "Meropenem", dose: "1g IV q8h"}, {drug: "Vancomycin", dose: "1g IV q12h"}]
+          us: [{drug: "Meropenem", dose: "1g IV q8h"}, {drug: "Vancomycin", dose: "15mg/kg IV q12h"}]
+      day_4:
+        action: "icu_transfer"
+    triggers:
+      - day: 3
+        condition: "perfusion_status < 0.4"
+        actions: ["icu_transfer", "surgical_exploration"]
+
+  sudden_deterioration:
+    probability: 0.02
+    description: "Rapid progression suggesting necrotizing fasciitis or toxic shock"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: 0.25, 2: 0.10, 3: -0.05, 5: -0.08, 7: -0.06, 10: -0.04, 14: -0.03}
+      perfusion_status: {0: -0.03, 1: -0.30, 2: -0.05, 3: 0.05, 5: 0.05, 7: 0.03, 10: 0.02, 14: 0.01}
+      renal_function: {0: 0.00, 1: -0.15, 2: -0.05, 3: 0.02, 5: 0.02, 7: 0.01, 10: 0.01, 14: 0.01}
+    order_modifications:
+      day_1:
+        add_labs: ["Lactate", "CK", "ABG", "Blood_culture_x2"]
+        add_imaging: ["CT_soft_tissue_with_contrast"]
+        add_consult: ["surgery_urgent"]
+    treatment_modifications:
+      day_1:
+        stop: ["Cefazolin"]
+        start:
+          japan:
+            - {drug: "Meropenem", dose: "1g IV q8h"}
+            - {drug: "Vancomycin", dose: "1g IV q12h"}
+            - {drug: "Clindamycin", dose: "600mg IV q8h"}
+          us:
+            - {drug: "Meropenem", dose: "1g IV q8h"}
+            - {drug: "Vancomycin", dose: "15mg/kg IV q12h"}
+            - {drug: "Clindamycin", dose: "900mg IV q8h"}
+        action: "icu_transfer"
+        action_2: "emergent_surgical_debridement"
+    triggers:
+      - day: 1
+        condition: "rapid_spread or crepitus or pain_out_of_proportion"
+        actions: ["icu_transfer", "emergent_surgical_debridement"]
+
+archetype_modifiers:
+  - condition: "diabetes"
+    effect: {treatment_resistant: 0.08, smooth_recovery: -0.08}
+  - condition: "immunosuppressed"
+    effect: {gradual_deterioration: 0.08, smooth_recovery: -0.08}
+  - condition: "age >= 80"
+    effect: {plateau_then_recovery: 0.05, smooth_recovery: -0.05}
+  - condition: "injection_drug_use"
+    effect: {treatment_resistant: 0.10, smooth_recovery: -0.10}
+
+# ============================================================
+# COMPLICATIONS
+# ============================================================
+complications:
+  - name: "abscess_formation"
+    description: "Localized collection of pus within cellulitis"
+    probability_per_day: 0.012
+    onset_day_range: [2, 7]
+    risk_factors:
+      - {condition: "diabetes", multiplier: 2.0}
+      - {condition: "immunosuppressed", multiplier: 2.5}
+      - {condition: "injection_drug_use", multiplier: 3.0}
+    state_impact:
+      inflammation_level: 0.10
+    detection:
+      test: "soft_tissue_ultrasound"
+      finding: "fluid_collection"
+    actions: ["incision_and_drainage", "wound_culture", "wound_packing"]
+
+  - name: "necrotizing_fasciitis"
+    description: "Deep soft tissue infection with necrosis — surgical emergency"
+    probability_per_day: 0.002
+    onset_day_range: [0, 5]
+    risk_factors:
+      - {condition: "diabetes", multiplier: 3.0}
+      - {condition: "immunosuppressed", multiplier: 5.0}
+      - {condition: "liver_cirrhosis", multiplier: 3.0}
+    state_impact:
+      inflammation_level: 0.30
+      perfusion_status: -0.20
+    detection:
+      test: "clinical_exam_and_CT"
+      finding: "crepitus_or_gas_on_imaging"
+    actions: ["emergent_surgical_debridement", "icu_transfer", "broad_spectrum_antibiotics"]
+
+  - name: "sepsis"
+    description: "Systemic inflammatory response from cellulitis"
+    probability_per_day: 0.008
+    onset_day_range: [0, 5]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 3.0}
+      - {condition: "immunosuppressed", multiplier: 2.5}
+      - {condition: "age_over_75", multiplier: 1.5}
+    state_impact:
+      inflammation_level: 0.20
+      perfusion_status: -0.15
+      renal_function: -0.10
+    detection:
+      test: "lactate_and_vitals"
+      finding: "lactate_above_2_and_hypotension"
+    actions: ["IV_fluid_resuscitation", "blood_cultures", "escalate_antibiotics"]
+
+  - name: "lymphedema"
+    description: "Chronic lymphatic damage from recurrent cellulitis"
+    probability_per_day: 0.005
+    onset_day_range: [7, 21]
+    risk_factors:
+      - {condition: "prior_cellulitis", multiplier: 3.0}
+      - {condition: "obesity", multiplier: 2.0}
+    state_impact: {}
+    detection:
+      test: "clinical_exam"
+      finding: "persistent_edema"
+    actions: ["compression_therapy", "skin_care_education", "prophylactic_antibiotic_discussion"]
+
+  - name: "acute_kidney_injury"
+    description: "Pre-renal AKI from sepsis/dehydration"
+    probability_per_day: 0.006
+    onset_day_range: [1, 5]
+    risk_factors:
+      - {condition: "CKD", multiplier: 3.0}
+      - {condition: "diabetes", multiplier: 1.5}
+      - {condition: "age_over_75", multiplier: 1.5}
+    state_impact:
+      renal_function: -0.15
+    detection:
+      test: "creatinine"
+      finding: "rise_above_0.3_from_baseline"
+    actions: ["IV_fluid_bolus", "hold_nephrotoxic_drugs", "monitor_urine_output"]
+
+  - name: "c_diff_colitis"
+    description: "Clostridioides difficile infection from antibiotic use"
+    probability_per_day: 0.004
+    onset_day_range: [5, 21]
+    risk_factors:
+      - {condition: "antibiotic_duration_over_7_days", multiplier: 2.0}
+      - {condition: "age_over_65", multiplier: 1.5}
+      - {condition: "clindamycin_use", multiplier: 2.5}
+    state_impact:
+      inflammation_level: 0.10
+      volume_status: -0.10
+    detection:
+      test: "c_diff_toxin"
+      finding: "positive"
+    actions: ["stop_offending_antibiotic", "start_oral_vancomycin", "contact_precautions"]
+
+  - name: "dvt"
+    description: "Deep vein thrombosis from immobility and inflammation"
+    probability_per_day: 0.008
+    onset_day_range: [3, 14]
+    risk_factors:
+      - {condition: "immobility_days > 3", multiplier: 2.0}
+      - {condition: "lower_limb_cellulitis", multiplier: 2.0}
+      - {condition: "obesity", multiplier: 1.5}
+    state_impact:
+      coagulation_status: 0.05
+    detection:
+      test: "d_dimer_then_ultrasound"
+      finding: "dvt_confirmed"
+    actions: ["start_anticoagulation"]

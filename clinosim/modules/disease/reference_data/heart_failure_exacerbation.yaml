@@ -2,6 +2,12 @@
 # Sources: MHLW Patient Survey, ACC/AHA Guidelines, ESC Guidelines, JP JCARE-CARD registry
 
 disease_id: heart_failure_exacerbation
+chief_complaint: "Dyspnea on exertion, orthopnea, lower extremity edema"
+department: internal_medicine
+encounter_type: medical
+requires_surgery: false
+readmission_eligible: true
+
 icd_codes:
   primary: "I50.9"
   variants:
@@ -153,6 +159,8 @@ target_los:
     severe: {mean: 8, sd: 3, min: 5, max: 18}
 
 diagnostic:
+  # 0.0 = trivial (fracture on X-ray), 1.0 = very difficult (rare disease)
+  diagnostic_difficulty: 0.35  # BNP+echo helps but pneumonia overlap complicates
   differential:
     - {disease: "heart_failure_exacerbation", icd: "I50.9", name: "Heart failure exacerbation", prior: 0.55}
     - {disease: "pneumonia", icd: "J18.9", name: "Pneumonia", prior: 0.15}

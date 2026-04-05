@@ -1,0 +1,266 @@
+# Japan demographic data for population generation
+# Source: Statistics Bureau of Japan (2020 Census), MHLW National Health Survey
+
+average_household_size: 2.3
+
+# Age distribution (proportional, sums to 1.0)
+# Source: Statistics Bureau of Japan (2020)
+age_distribution:
+  "0-14": 0.12
+  "15-24": 0.09
+  "25-34": 0.10
+  "35-44": 0.12
+  "45-54": 0.14
+  "55-64": 0.13
+  "65-74": 0.15
+  "75-84": 0.10
+  "85-99": 0.05
+
+# Blood type distribution
+# Source: Japanese Red Cross (Japan-specific)
+blood_type:
+  A: 0.40
+  O: 0.30
+  B: 0.20
+  AB: 0.10
+
+# Chronic disease prevalence by age range
+# Format: ICD-10 code -> {age_range: prevalence}
+# Source: MHLW National Health and Nutrition Survey
+chronic_prevalence:
+  I10:      # Hypertension — ~43% of adults 40+
+    "40-99": 0.35
+  E11.9:    # Type 2 DM — ~10% of adults 40+
+    "40-99": 0.10
+  E78:      # Dyslipidemia — ~20% of adults 40+
+    "40-99": 0.20
+  J44:      # COPD — ~5% of adults 40+
+    "40-99": 0.05
+  N18:      # CKD — ~8% of adults 60+
+    "60-99": 0.08
+  I50:      # Heart failure — ~3% of adults 65+
+    "65-99": 0.03
+  I48:      # Atrial fibrillation — ~1.5% age 50+, ~9% age 75+
+    "50-74": 0.015
+    "75-99": 0.09
+  I25:      # Ischemic heart disease — ~3% age 50+, ~10% age 70+ (lower than US)
+    "50-69": 0.03
+    "70-99": 0.10
+  M81:      # Osteoporosis — sex-neutral ~15% age 60+ (higher in Japan)
+    "60-99": 0.15
+  F00:      # Dementia/Alzheimer — ~3% age 65+, ~16% age 85+ (high longevity)
+    "65-84": 0.03
+    "85-99": 0.16
+  G20:      # Parkinson's disease — ~0.5% age 60+, ~2% age 80+
+    "60-79": 0.005
+    "80-99": 0.02
+  E03:      # Hypothyroidism — ~4% age 50+ (slightly lower than US)
+    "50-99": 0.04
+  K21:      # GERD — ~12% age 40+ (lower than US, rising trend)
+    "40-99": 0.12
+  J45:      # Asthma — ~7% all ages (slightly lower than US)
+    "0-99": 0.07
+  N40:      # BPH (benign prostatic hyperplasia) — sex-neutral ~8% age 50+
+    "50-99": 0.08
+  M17:      # Osteoarthritis — ~15% age 50+, ~30% age 70+ (similar to US)
+    "50-69": 0.15
+    "70-99": 0.30
+
+# Disease incidence rates per 100,000/year by age group
+# Source: MHLW Patient Survey, Japanese Orthopedic Association
+disease_incidence:
+  bacterial_pneumonia:
+    age_rates: {0: 700, 5: 130, 15: 50, 25: 60, 35: 80, 45: 120, 55: 200, 65: 500, 75: 1200, 85: 2500}
+    sex_ratio_female: 0.75
+    event_type: acute_disease_onset
+    severity_beta: [2, 3]
+  heart_failure_exacerbation:
+    age_rates: {0: 5000, 45: 15000, 65: 20000, 75: 25000, 85: 30000}
+    sex_ratio_female: 1.0
+    event_type: chronic_exacerbation
+    prerequisite_condition: I50
+    severity_beta: [3, 3]
+    severity_minimum: 0.3
+    hospitalization_threshold_modifier: 0.8
+  hip_fracture:
+    age_rates: {0: 3, 45: 8, 55: 25, 65: 80, 75: 300, 85: 700}
+    sex_ratio_female: 2.5
+    event_type: trauma
+    severity_beta: [7, 3]
+    always_hospitalize: true
+  urinary_tract_infection:
+    age_rates: {0: 25, 15: 40, 25: 70, 35: 90, 45: 110, 55: 180, 65: 380, 75: 750, 85: 1400}
+    sex_ratio_female: 3.0
+    event_type: acute_disease_onset
+    severity_beta: [3, 4]
+    hospitalization_threshold_modifier_by_age:
+      65: 0.5
+      0: 0.7
+  copd_exacerbation:
+    age_rates: {0: 3000, 45: 10000, 55: 15000, 65: 20000, 75: 25000, 85: 30000}
+    sex_ratio_female: 0.8
+    event_type: chronic_exacerbation
+    prerequisite_condition: J44
+    severity_beta: [3, 3]
+    severity_minimum: 0.2
+    hospitalization_threshold_modifier: 0.7
+  sepsis:
+    age_rates: {0: 4, 15: 6, 25: 8, 35: 12, 45: 25, 55: 70, 65: 180, 75: 450, 85: 900}
+    sex_ratio_female: 0.85
+    event_type: acute_disease_onset
+    severity_beta: [4, 3]
+    severity_minimum: 0.3
+    always_hospitalize: true
+  cerebral_infarction:
+    # JP: ~900/100k age 65+ (higher than US). Source: Japan Stroke Database
+    age_rates: {0: 1, 25: 3, 35: 10, 45: 30, 55: 100, 65: 300, 75: 700, 85: 1400}
+    sex_ratio_female: 0.75
+    event_type: acute_disease_onset
+    severity_beta: [3, 3]
+    severity_minimum: 0.3
+    always_hospitalize: true
+  acute_mi:
+    # JP: ~250/100k age 65+ (lower than US). Source: JROAD registry
+    age_rates: {0: 0, 25: 1, 35: 3, 45: 12, 55: 40, 65: 100, 75: 250, 85: 400}
+    sex_ratio_female: 0.45
+    event_type: acute_disease_onset
+    severity_beta: [3, 3]
+    severity_minimum: 0.3
+    always_hospitalize: true
+  gi_bleeding:
+    # JP: ~280/100k age 65+. Source: MHLW Patient Survey
+    age_rates: {0: 2, 25: 4, 35: 8, 45: 20, 55: 50, 65: 130, 75: 300, 85: 550}
+    sex_ratio_female: 0.65
+    event_type: acute_disease_onset
+    severity_beta: [2, 3]
+  diabetic_ketoacidosis:
+    # JP: ~25/100k among diabetics. Source: JDSS
+    age_rates: {0: 1500, 15: 2500, 25: 3500, 35: 4000, 45: 5000, 55: 4000, 65: 3500, 75: 2500, 85: 1500}
+    sex_ratio_female: 1.1
+    event_type: acute_disease_onset
+    prerequisite_condition: E11.9
+    severity_beta: [3, 3]
+    severity_minimum: 0.3
+    always_hospitalize: true
+  ileus:
+    age_rates: {0: 4, 25: 7, 35: 12, 45: 25, 55: 55, 65: 110, 75: 230, 85: 380}
+    sex_ratio_female: 0.9
+    event_type: acute_disease_onset
+    severity_beta: [2, 3]
+    always_hospitalize: true
+  acute_pancreatitis:
+    age_rates: {0: 2, 25: 8, 35: 18, 45: 30, 55: 45, 65: 70, 75: 110, 85: 140}
+    sex_ratio_female: 0.6
+    event_type: acute_disease_onset
+    severity_beta: [2, 4]
+    always_hospitalize: true
+  acute_appendicitis:
+    age_rates: {0: 18, 5: 35, 15: 70, 25: 55, 35: 35, 45: 22, 55: 13, 65: 8, 75: 6, 85: 4}
+    sex_ratio_female: 0.8
+    event_type: acute_disease_onset
+    severity_beta: [3, 3]
+    severity_minimum: 0.3
+    always_hospitalize: true
+  pulmonary_embolism:
+    age_rates: {0: 1, 25: 2, 35: 5, 45: 12, 55: 30, 65: 80, 75: 170, 85: 300}
+    sex_ratio_female: 1.1
+    event_type: acute_disease_onset
+    severity_beta: [3, 3]
+    always_hospitalize: true
+  acute_cholecystitis:
+    age_rates: {0: 1, 25: 4, 35: 12, 45: 25, 55: 45, 65: 70, 75: 110, 85: 140}
+    sex_ratio_female: 1.5
+    event_type: acute_disease_onset
+    severity_beta: [3, 3]
+    severity_minimum: 0.3
+    always_hospitalize: true
+  atrial_fibrillation_rvr:
+    age_rates: {0: 0, 25: 1, 35: 2, 45: 8, 55: 25, 65: 70, 75: 180, 85: 360}
+    sex_ratio_female: 0.7
+    event_type: acute_disease_onset
+    severity_beta: [2, 4]
+  cellulitis:
+    age_rates: {0: 4, 15: 8, 25: 15, 35: 25, 45: 35, 55: 50, 65: 85, 75: 150, 85: 260}
+    sex_ratio_female: 0.8
+    event_type: acute_disease_onset
+    severity_beta: [2, 4]
+  acute_kidney_injury:
+    age_rates: {0: 2, 25: 2, 35: 4, 45: 12, 55: 35, 65: 90, 75: 220, 85: 450}
+    sex_ratio_female: 0.8
+    event_type: acute_disease_onset
+    severity_beta: [3, 3]
+    always_hospitalize: true
+  liver_cirrhosis_decompensated:
+    age_rates: {0: 0, 25: 1, 35: 4, 45: 12, 55: 35, 65: 55, 75: 70, 85: 55}
+    sex_ratio_female: 0.4
+    event_type: acute_disease_onset
+    severity_beta: [3, 3]
+    always_hospitalize: true
+  aspiration_pneumonia:
+    age_rates: {0: 4, 25: 2, 35: 2, 45: 6, 55: 18, 65: 70, 75: 220, 85: 550}
+    sex_ratio_female: 0.65
+    event_type: acute_disease_onset
+    severity_beta: [3, 3]
+
+# Monthly seasonal modifiers (1.0 = baseline)
+seasonal_modifiers:
+  bacterial_pneumonia: {1: 1.8, 2: 1.6, 3: 1.3, 4: 1.0, 5: 0.8, 6: 0.7, 7: 0.7, 8: 0.7, 9: 0.8, 10: 1.0, 11: 1.3, 12: 1.7}
+  heart_failure_exacerbation: {1: 1.3, 2: 1.2, 3: 1.1, 4: 1.0, 5: 0.9, 6: 0.9, 7: 1.1, 8: 1.2, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.3}
+  hip_fracture: {1: 1.4, 2: 1.3, 3: 1.1, 4: 1.0, 5: 0.9, 6: 0.8, 7: 0.8, 8: 0.8, 9: 0.9, 10: 1.0, 11: 1.1, 12: 1.3}
+  urinary_tract_infection: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.1, 7: 1.2, 8: 1.2, 9: 1.1, 10: 1.0, 11: 1.0, 12: 1.0}
+  copd_exacerbation: {1: 1.5, 2: 1.3, 3: 1.1, 4: 0.9, 5: 0.8, 6: 0.7, 7: 0.7, 8: 0.8, 9: 0.9, 10: 1.0, 11: 1.2, 12: 1.5}
+  sepsis: {1: 1.3, 2: 1.2, 3: 1.1, 4: 1.0, 5: 0.9, 6: 0.9, 7: 0.9, 8: 0.9, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.2}
+  cerebral_infarction: {1: 1.2, 2: 1.1, 3: 1.0, 4: 1.0, 5: 0.9, 6: 0.9, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.2}
+  acute_mi: {1: 1.3, 2: 1.2, 3: 1.0, 4: 1.0, 5: 0.9, 6: 0.8, 7: 0.9, 8: 0.9, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.3}
+  gi_bleeding: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
+  diabetic_ketoacidosis: {1: 1.1, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.1, 8: 1.1, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.1}
+  ileus: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
+  acute_pancreatitis: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.2}
+  acute_appendicitis: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.1, 6: 1.2, 7: 1.2, 8: 1.1, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
+  pulmonary_embolism: {1: 1.1, 2: 1.1, 3: 1.0, 4: 1.0, 5: 1.0, 6: 0.9, 7: 0.9, 8: 0.9, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.1}
+  acute_cholecystitis: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.1}
+  atrial_fibrillation_rvr: {1: 1.2, 2: 1.1, 3: 1.0, 4: 1.0, 5: 0.9, 6: 0.9, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.2}
+  cellulitis: {1: 0.9, 2: 0.9, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.1, 7: 1.2, 8: 1.2, 9: 1.1, 10: 1.0, 11: 0.9, 12: 0.9}
+  acute_kidney_injury: {1: 1.1, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.1, 7: 1.2, 8: 1.2, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.1}
+  liver_cirrhosis_decompensated: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.1}
+  aspiration_pneumonia: {1: 1.5, 2: 1.3, 3: 1.1, 4: 1.0, 5: 0.9, 6: 0.8, 7: 0.8, 8: 0.8, 9: 0.9, 10: 1.0, 11: 1.2, 12: 1.5}
+
+# Risk multipliers: chronic condition -> disease risk increase
+disease_risk_multipliers:
+  bacterial_pneumonia: {J44: 3.0, E11.9: 1.5, I50: 2.0, N18: 1.8}
+  heart_failure_exacerbation: {I10: 1.5, E11.9: 1.3, N18: 2.0, I48: 1.5}
+  hip_fracture: {M81: 3.0, F00: 2.5, G20: 2.0, E11.9: 1.3}
+  urinary_tract_infection: {E11.9: 2.0, N18: 2.5, N40: 2.0, F00: 1.5}
+  copd_exacerbation: {I50: 1.5, E11.9: 1.2, I10: 1.1}
+  sepsis: {E11.9: 2.0, N18: 2.5, I50: 1.8, J44: 1.5, I48: 1.3}
+  cerebral_infarction: {I10: 2.5, I48: 3.0, E11.9: 1.8, I25: 2.0, E78: 1.3}
+  acute_mi: {I10: 2.0, E11.9: 2.5, E78: 2.0, I25: 3.0, I48: 1.3}
+  gi_bleeding: {I48: 1.5, I25: 1.3, M17: 1.5, K21: 2.0}
+  diabetic_ketoacidosis: {N18: 1.5, I50: 1.3}
+  ileus: {M17: 1.5}
+  acute_pancreatitis: {E78: 1.3, K21: 1.2}
+  acute_appendicitis: {}
+  pulmonary_embolism: {I50: 1.5, I48: 1.3, M17: 1.5}
+  acute_cholecystitis: {E78: 1.3, E11.9: 1.2}
+  atrial_fibrillation_rvr: {I10: 2.0, I50: 2.5, I25: 1.5, E03: 1.3}
+  cellulitis: {E11.9: 2.5, N18: 1.5}
+  acute_kidney_injury: {N18: 3.0, I50: 2.0, E11.9: 1.8, I10: 1.3}
+  liver_cirrhosis_decompensated: {}
+  aspiration_pneumonia: {F00: 3.0, G20: 2.5}
+
+# Unknown conditions (~3-5% of admissions start as unknown)
+unknown_conditions:
+  min_age: 40
+  base_rate: 0.00008
+  age_factor: 0.005
+  patterns:
+    - fever_unknown
+    - weight_loss_unexplained
+    - malaise_fatigue
+    - elevated_inflammatory_markers
+
+# Mixed conditions (dual pathology in elderly multi-morbid patients)
+mixed_conditions:
+  min_age: 70
+  min_chronic_conditions: 2
+  probability: 0.18

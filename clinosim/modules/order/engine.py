@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 
 import numpy as np
 
-from clinosim.types.encounter import Order, OrderResult, OrderStatus, OrderType
+from clinosim.types.encounter import Order, OrderStatus, OrderType
 
 
 def place_admission_orders(
@@ -88,7 +88,7 @@ def place_admission_orders(
                 display_name=med_spec.get("drug", "Unknown"),
                 urgency="stat",
                 clinical_intent=f"Empiric antibiotic: {med_spec.get('drug', '')}",
-                ordered_datetime=admission_time + timedelta(minutes=30),
+                ordered_datetime=admission_time + timedelta(minutes=int(rng.normal(30, 10))),
                 ordered_by="STAFF-PLACEHOLDER-001",
                 status=OrderStatus.PLACED,
             )
@@ -105,7 +105,7 @@ def place_admission_orders(
             display_name=f"{sup['type']}: {sup['detail']}",
             urgency="routine",
             clinical_intent=f"Supportive: {sup['type']}",
-            ordered_datetime=admission_time + timedelta(minutes=45),
+            ordered_datetime=admission_time + timedelta(minutes=int(rng.normal(45, 15))),
             ordered_by="STAFF-PLACEHOLDER-001",
             status=OrderStatus.PLACED,
         )
@@ -122,7 +122,7 @@ def place_admission_orders(
             display_name=img_spec.get("test", "Imaging"),
             urgency=img_spec.get("urgency", "stat"),
             clinical_intent=f"Admission imaging: {img_spec.get('test', '')}",
-            ordered_datetime=admission_time + timedelta(minutes=15),
+            ordered_datetime=admission_time + timedelta(minutes=int(rng.normal(20, 8))),
             ordered_by="STAFF-PLACEHOLDER-001",
             status=OrderStatus.PLACED,
         )

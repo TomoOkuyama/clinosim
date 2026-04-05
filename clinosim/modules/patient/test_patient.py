@@ -33,7 +33,7 @@ def create_test_patient() -> PatientProfile:
         weight_kg=54.0,
         bmi=23.4,
         employment_status="retired",
-        insurance_type="late_elderly",  # 後期高齢者医療
+        insurance_type="late_elderly",  # Japan's late-stage elderly healthcare
         health_literacy=0.6,
         chronic_conditions=[
             ChronicCondition(

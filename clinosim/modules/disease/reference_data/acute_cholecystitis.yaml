@@ -1,0 +1,795 @@
+# Acute Cholecystitis — Complete Reference Data
+# Sources cited per section. All rates are approximate and should be validated
+# against the most current published data before production use.
+
+disease_id: acute_cholecystitis
+chief_complaint: "Right upper quadrant pain, fever, Murphy's sign positive"
+department: internal_medicine
+encounter_type: surgical
+requires_surgery: true
+minimum_severity: moderate
+readmission_eligible: false
+diagnostic_difficulty: 0.2   # US + clinical criteria (Tokyo Guidelines) make diagnosis straightforward
+
+icd_codes:
+  primary: "K81.0"  # Acute cholecystitis
+  variants:
+    - {code: "K80.00", name: "Calculus of gallbladder with acute cholecystitis without obstruction", probability: 0.55}
+    - {code: "K80.01", name: "Calculus of gallbladder with acute cholecystitis with obstruction", probability: 0.15}
+    - {code: "K81.0", name: "Acute cholecystitis (acalculous)", probability: 0.10}
+    - {code: "K80.42", name: "Calculus of bile duct with acute cholecystitis without obstruction", probability: 0.10}
+    - {code: "K80.62", name: "Calculus of gallbladder and bile duct with acute cholecystitis", probability: 0.10}
+
+# ============================================================
+# INCIDENCE (per 100,000 per year, by age band and sex)
+# Source: JP — MHLW Patient Survey, Japanese Biliary Tract Society
+#         US — NIS data, Stinton & Shaffer Gut Liver 2012
+# ============================================================
+incidence:
+  japan:
+    "0-4":   {M: 0, F: 0}
+    "5-14":  {M: 1, F: 1}
+    "15-24": {M: 3, F: 5}
+    "25-34": {M: 8, F: 15}
+    "35-44": {M: 15, F: 30}
+    "45-54": {M: 25, F: 45}
+    "55-64": {M: 40, F: 60}
+    "65-74": {M: 60, F: 80}
+    "75-84": {M: 75, F: 90}
+    "85+":   {M: 70, F: 85}
+  us:
+    "0-4":   {M: 0, F: 0}
+    "5-14":  {M: 1, F: 2}
+    "15-24": {M: 5, F: 10}
+    "25-34": {M: 12, F: 25}
+    "35-44": {M: 20, F: 40}
+    "45-54": {M: 35, F: 55}
+    "55-64": {M: 50, F: 70}
+    "65-74": {M: 70, F: 90}
+    "75-84": {M: 85, F: 100}
+    "85+":   {M: 80, F: 95}
+
+  risk_multipliers:
+    - {condition: "gallstones", multiplier: 8.0}
+    - {condition: "female", multiplier: 1.5}
+    - {condition: "obesity", multiplier: 2.0}
+    - {condition: "diabetes", multiplier: 1.5}
+    - {condition: "rapid_weight_loss", multiplier: 3.0}
+    - {condition: "pregnancy", multiplier: 1.5}
+    - {condition: "oral_contraceptives", multiplier: 1.3}
+    - {condition: "TPN_use", multiplier: 3.0}
+    - {condition: "critical_illness", multiplier: 4.0}     # acalculous cholecystitis
+    - {condition: "Native_American_ancestry", multiplier: 2.0}
+
+  seasonal_curve:
+    1: 1.0
+    2: 1.0
+    3: 1.0
+    4: 1.0
+    5: 1.0
+    6: 1.0
+    7: 1.0
+    8: 1.0
+    9: 1.0
+    10: 1.0
+    11: 1.0
+    12: 1.1   # slight holiday dietary increase
+
+  vaccine_protection: {}
+
+# ============================================================
+# SEVERITY DISTRIBUTION
+# Source: Tokyo Guidelines 2018 (TG18) grading
+# ============================================================
+severity:
+  distribution:
+    mild: 0.00        # minimum_severity = moderate; Grade I would be moderate in this context
+    moderate: 0.65    # Grade I-II: no organ dysfunction, WBC elevation, palpable mass, duration >72h
+    severe: 0.35      # Grade III: organ dysfunction (cardiovascular, neurological, respiratory, renal, hepatic, hematological)
+  modifiers:
+    - {condition: "age_over_75", severe_multiplier: 1.8}
+    - {condition: "diabetes", severe_multiplier: 1.3}
+    - {condition: "immunosuppressed", severe_multiplier: 2.0}
+    - {condition: "acalculous", severe_multiplier: 2.5, note: "acalculous cholecystitis has worse prognosis"}
+    - {condition: "symptom_duration_over_72h", moderate_multiplier: 1.3, severe_multiplier: 1.5}
+
+# ============================================================
+# INITIAL PHYSIOLOGICAL STATE IMPACT
+# ============================================================
+initial_state_impact:
+  mild: {}  # Not used (minimum_severity = moderate)
+  moderate:
+    inflammation_level: 0.30
+    volume_status: -0.10
+  severe:
+    inflammation_level: 0.55
+    volume_status: -0.20
+    perfusion_status: -0.10
+    renal_function: -0.10
+
+# ============================================================
+# ORDER PROTOCOLS
+# ============================================================
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "WBC", urgency: "stat"}
+      - {test: "CRP", urgency: "stat"}
+      - {test: "AST", urgency: "stat"}
+      - {test: "ALT", urgency: "stat"}
+      - {test: "ALP", urgency: "stat"}
+      - {test: "GGT", urgency: "stat"}
+      - {test: "Total_bilirubin", urgency: "stat"}
+      - {test: "Direct_bilirubin", urgency: "stat"}
+      - {test: "Amylase", urgency: "stat", probability: 0.70}
+      - {test: "Lipase", urgency: "stat", probability: 0.70}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "BUN", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "PT_INR", urgency: "stat"}
+      - {test: "Type_and_screen", urgency: "stat"}
+      - {test: "Blood_culture_x2", urgency: "stat", probability: 0.50}
+    imaging:
+      - {test: "Abdominal_ultrasound", urgency: "stat",
+         note: "First-line imaging — gallstones, GB wall thickening, pericholecystic fluid, Murphy sign"}
+      - {test: "CT_abdomen_pelvis_with_contrast", urgency: "within_6h", probability: 0.40,
+         note: "If US equivocal or to assess for complications"}
+      - {test: "MRCP", urgency: "within_24h", probability: 0.25,
+         note: "If CBD stone suspected (elevated bilirubin/ALP)"}
+    supportive:
+      - {type: "NPO", detail: "Nothing by mouth for surgery"}
+      - {type: "IV_fluid", detail: "Lactated Ringer 125 mL/h"}
+      - {type: "pain_management", detail: "Acetaminophen 1000mg IV + NSAIDs or opioid PRN"}
+      - {type: "antibiotic", detail: "Cefmetazole or Ceftriaxone + Metronidazole (see drugs section)"}
+
+  daily_monitoring:
+    labs:
+      - {test: "WBC", frequency: "daily"}
+      - {test: "CRP", frequency: "daily"}
+      - {test: "Total_bilirubin", frequency: "daily"}
+      - {test: "ALP", frequency: "daily", condition: "if elevated at admission"}
+      - {test: "Creatinine", frequency: "daily"}
+    vitals:
+      stable: "q4h"
+      unstable: "q2h"
+    imaging: []
+
+  trigger_orders:
+    cbd_stone_suspected:
+      condition: "Total bilirubin > 4 or dilated CBD on US (>8mm)"
+      actions:
+        - {type: "imaging", test: "MRCP"}
+        - {type: "procedure", test: "ERCP_with_stone_extraction"}
+        - {type: "consult", target: "gastroenterology"}
+    failed_conservative_or_grade_iii:
+      condition: "Organ dysfunction, worsening despite antibiotics 48-72h"
+      actions:
+        - {type: "procedure", test: "percutaneous_cholecystostomy_drainage"}
+        - {type: "consult", target: "interventional_radiology"}
+    gangrenous_cholecystitis:
+      condition: "Fever persists, WBC rising, CT suggests wall necrosis"
+      actions:
+        - {type: "imaging", test: "CT_abdomen_with_contrast"}
+        - {type: "evaluate", action: "emergent_cholecystectomy"}
+
+  discharge_criteria:
+    japan:
+      - "Tolerating oral diet for 24-48 hours"
+      - "Afebrile (< 37.0C) for 48 hours"
+      - "Pain controlled with oral analgesics"
+      - "Wound clean and dry"
+      - "WBC normalizing and CRP declining"
+      - "Biliary drainage removed (if placed)"
+    us:
+      - "Tolerating oral diet"
+      - "Afebrile"
+      - "Pain controlled with oral analgesics"
+      - "Ambulating"
+      - "Same-day discharge for uncomplicated laparoscopic cases (selected patients)"
+
+# ============================================================
+# LIKELIHOOD RATIO TABLE
+# Source: Shea et al. Acad Emerg Med 1994, TG18 diagnostic criteria
+# ============================================================
+likelihood_ratios:
+  us_gallstones:
+    acute_cholecystitis: {positive_LR: 4.0, negative_LR: 0.2}
+    biliary_colic: {positive_LR: 5.0, negative_LR: 0.3}
+    choledocholithiasis: {positive_LR: 3.0, negative_LR: 0.5}
+
+  us_gb_wall_thickening:
+    acute_cholecystitis: {positive_LR: 6.0, negative_LR: 0.4}
+    ascites: {positive_LR: 1.5, negative_LR: 0.9}
+
+  us_pericholecystic_fluid:
+    acute_cholecystitis: {positive_LR: 8.0, negative_LR: 0.5}
+
+  sonographic_murphy_sign:
+    acute_cholecystitis: {positive_LR: 5.0, negative_LR: 0.3}
+    biliary_colic: {positive_LR: 1.5, negative_LR: 0.8}
+
+  wbc_above_10000:
+    acute_cholecystitis: {positive_LR: 2.0, negative_LR: 0.5}
+    biliary_colic: {positive_LR: 0.8, negative_LR: 1.1}
+
+  crp_above_30:
+    acute_cholecystitis: {positive_LR: 3.0, negative_LR: 0.4}
+
+  elevated_bilirubin:
+    choledocholithiasis: {positive_LR: 5.0, negative_LR: 0.4}
+    acute_cholecystitis: {positive_LR: 2.0, negative_LR: 0.7}
+    note: "elevated bilirubin suggests CBD stone"
+
+  elevated_alp_ggt:
+    choledocholithiasis: {positive_LR: 4.0, negative_LR: 0.4}
+    acute_cholecystitis: {positive_LR: 1.5, negative_LR: 0.8}
+
+  hida_scan_non_filling:
+    acute_cholecystitis: {positive_LR: 12.0, negative_LR: 0.05}
+    note: "Gold standard but rarely needed if US is diagnostic"
+
+# ============================================================
+# LAB REFERENCE RANGES (admission values)
+# ============================================================
+expected_lab_distributions:
+  admission:
+    WBC:
+      unit: "/uL"
+      median: 13000
+      iqr: [10000, 16000]
+      range: [5000, 25000]
+    CRP:
+      unit: "mg/L"
+      median: 50
+      iqr: [20, 120]
+      range: [3, 350]
+    Total_bilirubin:
+      unit: "mg/dL"
+      median: 1.5
+      iqr: [0.8, 3.0]
+      range: [0.3, 12.0]
+      note: ">4 suggests CBD stone"
+    ALP:
+      unit: "U/L"
+      median: 120
+      iqr: [80, 200]
+      range: [40, 600]
+    GGT:
+      unit: "U/L"
+      median: 80
+      iqr: [40, 180]
+      range: [15, 500]
+    AST:
+      unit: "U/L"
+      median: 45
+      iqr: [25, 80]
+      range: [10, 500]
+    ALT:
+      unit: "U/L"
+      median: 50
+      iqr: [25, 100]
+      range: [8, 600]
+    Creatinine:
+      unit: "mg/dL"
+      median: 0.8
+      iqr: [0.6, 1.1]
+      range: [0.4, 3.0]
+    Amylase:
+      unit: "U/L"
+      median: 70
+      iqr: [40, 120]
+      range: [20, 500]
+      note: "elevated if concurrent pancreatitis"
+
+  discharge:
+    WBC:
+      unit: "/uL"
+      median: 7500
+      iqr: [5500, 9500]
+    CRP:
+      unit: "mg/L"
+      median: 12
+      iqr: [4, 30]
+    Total_bilirubin:
+      unit: "mg/dL"
+      median: 0.8
+      iqr: [0.5, 1.2]
+
+# ============================================================
+# VITAL SIGN DISTRIBUTIONS
+# ============================================================
+expected_vital_distributions:
+  admission:
+    temperature:
+      unit: "C"
+      mean: 37.8
+      sd: 0.8
+      range: [36.5, 39.5]
+    heart_rate:
+      unit: "bpm"
+      mean: 92
+      sd: 14
+      range: [60, 130]
+    systolic_bp:
+      unit: "mmHg"
+      mean: 130
+      sd: 20
+      range: [85, 180]
+    respiratory_rate:
+      unit: "/min"
+      mean: 18
+      sd: 3
+      range: [12, 28]
+    spo2:
+      unit: "%"
+      mean: 97
+      sd: 1.5
+      range: [93, 100]
+
+# ============================================================
+# TREATMENT REFERENCE — Drug selection data
+# Source: TG18, WSES 2020, SAGES guidelines
+# ============================================================
+drugs:
+  first_line:
+    japan:
+      - drug: "Cefmetazole"
+        code_yj: "6132405"
+        dose: "1g IV q8h"
+        route: IV
+        note: "Good biliary coverage; widely used in Japan"
+        renal_adjustment:
+          eGFR_below_30: "0.5g IV q12h"
+        pregnancy_safe: true
+      - drug: "Acetaminophen"
+        code_yj: "1141700"
+        dose: "1000mg IV q6h"
+        route: IV
+        pregnancy_safe: true
+      - drug: "Diclofenac"
+        code_yj: "1147700"
+        dose: "50mg suppository PRN"
+        route: PR
+        note: "NSAIDs reduce gallbladder prostaglandin-mediated inflammation"
+        pregnancy_safe: false
+
+    us:
+      - drug: "Ceftriaxone"
+        code_rxnorm: "309090"
+        dose: "2g IV daily"
+        route: IV
+        pregnancy_safe: true
+      - drug: "Metronidazole"
+        code_rxnorm: "6922"
+        dose: "500mg IV q8h"
+        route: IV
+        note: "Added for anaerobic coverage"
+        pregnancy_safe: false
+      - drug: "Ketorolac"
+        code_rxnorm: "6739"
+        dose: "30mg IV q6h"
+        route: IV
+        note: "Max 5 days"
+        pregnancy_safe: false
+
+  alternative_penicillin_allergy:
+    japan:
+      - drug: "Levofloxacin"
+        code_yj: "6241017"
+        dose: "500mg IV daily"
+        renal_adjustment:
+          eGFR_below_50: "250mg IV daily"
+        pregnancy_safe: false
+      - drug: "Metronidazole"
+        code_yj: "6419002"
+        dose: "500mg IV q8h"
+        pregnancy_safe: false
+    us:
+      - drug: "Levofloxacin"
+        code_rxnorm: "82122"
+        dose: "750mg IV daily"
+        pregnancy_safe: false
+      - drug: "Metronidazole"
+        code_rxnorm: "6922"
+        dose: "500mg IV q8h"
+        pregnancy_safe: false
+
+  escalation:  # gangrenous or emphysematous cholecystitis, sepsis
+    japan:
+      - drug: "Piperacillin/Tazobactam"
+        code_yj: "6131701"
+        dose: "4.5g IV q8h"
+        indication: "gangrenous_cholecystitis_or_sepsis"
+        renal_adjustment:
+          eGFR_below_30: "2.25g IV q8h"
+    us:
+      - drug: "Piperacillin/Tazobactam"
+        code_rxnorm: "240984"
+        dose: "3.375g IV q6h"
+        indication: "gangrenous_cholecystitis_or_sepsis"
+
+  discharge_oral:
+    japan:
+      - drug: "Cefditoren pivoxil"
+        code_yj: "6132814"
+        dose: "200mg PO TID"
+        duration_days: 5
+        note: "Only if complicated; uncomplicated needs no postop antibiotics"
+      - drug: "Loxoprofen"
+        code_yj: "1149019"
+        dose: "60mg PO TID PRN"
+        duration_days: 5
+    us:
+      - drug: "Amoxicillin/Clavulanate"
+        code_rxnorm: "562251"
+        dose: "875/125mg PO BID"
+        duration_days: 5
+        note: "Only if complicated"
+      - drug: "Ibuprofen"
+        code_rxnorm: "5640"
+        dose: "400mg PO q6h PRN"
+        duration_days: 5
+
+# ============================================================
+# DRUG INTERACTIONS
+# ============================================================
+drug_interactions:
+  - drug_a: "Metronidazole"
+    drug_b: "Warfarin"
+    severity: "major"
+    effect: "Increased INR, bleeding risk"
+    action: "Monitor INR closely"
+
+  - drug_a: "Metronidazole"
+    drug_b: "Alcohol"
+    severity: "major"
+    effect: "Disulfiram-like reaction"
+    action: "Strict alcohol avoidance"
+
+  - drug_a: "Levofloxacin"
+    drug_b: "Warfarin"
+    severity: "major"
+    effect: "Increased INR, bleeding risk"
+    action: "Monitor INR closely"
+
+  - drug_a: "Ketorolac"
+    drug_b: "Anticoagulants"
+    severity: "major"
+    effect: "Increased bleeding risk"
+    action: "Avoid combination"
+
+# ============================================================
+# LAB ITEM REFERENCE RANGES
+# ============================================================
+reference_ranges:
+  WBC:
+    unit: "/uL"
+    all: {low: 3500, high: 9500}
+  CRP:
+    unit: "mg/L"
+    all: {low: 0, high: 3}
+  Hb:
+    unit: "g/dL"
+    male: {low: 13.5, high: 17.5}
+    female: {low: 11.5, high: 15.5}
+  Plt:
+    unit: "x10^3/uL"
+    all: {low: 150, high: 400}
+  Creatinine:
+    unit: "mg/dL"
+    male: {low: 0.6, high: 1.1}
+    female: {low: 0.4, high: 0.8}
+  BUN:
+    unit: "mg/dL"
+    all: {low: 8, high: 20}
+  Na:
+    unit: "mEq/L"
+    all: {low: 136, high: 145}
+  K:
+    unit: "mEq/L"
+    all: {low: 3.5, high: 5.0}
+  AST:
+    unit: "U/L"
+    all: {low: 10, high: 35}
+  ALT:
+    unit: "U/L"
+    all: {low: 5, high: 40}
+  ALP:
+    unit: "U/L"
+    all: {low: 40, high: 130}
+  GGT:
+    unit: "U/L"
+    male: {low: 10, high: 50}
+    female: {low: 7, high: 32}
+  Total_bilirubin:
+    unit: "mg/dL"
+    all: {low: 0.2, high: 1.2}
+  Direct_bilirubin:
+    unit: "mg/dL"
+    all: {low: 0.0, high: 0.3}
+  Amylase:
+    unit: "U/L"
+    all: {low: 30, high: 110}
+  Lipase:
+    unit: "U/L"
+    all: {low: 13, high: 60}
+  PT_INR:
+    unit: ""
+    all: {low: 0.9, high: 1.1}
+
+# ============================================================
+# TARGET LENGTH OF STAY
+# ============================================================
+target_los:
+  japan:
+    mild: {mean: 8, sd: 3, min: 5, max: 14}
+    moderate: {mean: 12, sd: 4, min: 7, max: 20}
+    severe: {mean: 18, sd: 6, min: 10, max: 30}
+  us:
+    mild: {mean: 2, sd: 1, min: 1, max: 4}
+    moderate: {mean: 4, sd: 1, min: 2, max: 6}
+    severe: {mean: 7, sd: 3, min: 4, max: 14}
+
+# ============================================================
+# OUTCOME BENCHMARKS
+# ============================================================
+outcome_benchmarks:
+  japan:
+    median_los: 12
+    los_iqr: [8, 16]
+    in_hospital_mortality: 0.01
+    icu_transfer_rate: 0.03
+    thirty_day_readmission: 0.05
+    laparoscopic_rate: 0.80
+    conversion_to_open_rate: 0.08
+    ercp_rate: 0.20
+    percutaneous_drainage_rate: 0.10
+    wound_infection_rate: 0.04
+    bile_duct_injury_rate: 0.003
+    mean_age_admitted: 62
+    male_ratio: 0.45
+
+  us:
+    median_los: 4
+    los_iqr: [2, 5]
+    in_hospital_mortality: 0.005
+    icu_transfer_rate: 0.03
+    thirty_day_readmission: 0.06
+    laparoscopic_rate: 0.90
+    conversion_to_open_rate: 0.05
+    ercp_rate: 0.18
+    percutaneous_drainage_rate: 0.05
+    wound_infection_rate: 0.03
+    bile_duct_injury_rate: 0.003
+    mean_age_admitted: 55
+    male_ratio: 0.42
+
+# ============================================================
+# CLINICAL COURSE ARCHETYPES
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.50
+    description: "Uncomplicated laparoscopic cholecystectomy — rapid recovery"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: -0.08, 2: -0.10, 3: -0.08, 5: -0.05, 7: -0.03, 10: -0.02, 14: -0.01}
+      volume_status: {0: 0.03, 1: 0.03, 2: 0.02, 3: 0.01, 5: 0.00, 7: 0.00, 10: 0.00, 14: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.18
+    description: "Postoperative nausea/mild ileus, then recovery by POD 2-3"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: -0.03, 2: 0.02, 3: -0.03, 5: -0.06, 7: -0.05, 10: -0.03, 14: -0.02}
+      volume_status: {0: 0.02, 1: 0.00, 2: -0.02, 3: 0.02, 5: 0.01, 7: 0.01, 10: 0.00, 14: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["WBC", "CRP"]
+    treatment_modifications:
+      day_2:
+        action: "antiemetics_and_continued_NPO"
+
+  plateau_then_recovery:
+    probability: 0.10
+    description: "Delayed surgery (Day 3-5) due to workup for CBD stone, then recovery"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.02, 2: 0.00, 3: 0.00, 5: -0.05, 7: -0.08, 10: -0.06, 14: -0.03}
+      volume_status: {0: 0.02, 1: 0.01, 2: 0.00, 3: 0.00, 5: 0.02, 7: 0.01, 10: 0.00, 14: 0.00}
+    order_modifications:
+      day_2:
+        add_imaging: ["MRCP"]
+      day_3:
+        add_procedure: ["ERCP"]
+    treatment_modifications: {}
+
+  treatment_resistant:
+    probability: 0.10
+    description: "Gangrenous or complicated cholecystitis — difficult surgery, prolonged antibiotics"
+    trajectory:
+      inflammation_level: {0: 0.10, 1: 0.05, 2: 0.02, 3: -0.02, 5: -0.05, 7: -0.08, 10: -0.06, 14: -0.04}
+      volume_status: {0: -0.03, 1: 0.00, 2: 0.01, 3: 0.02, 5: 0.01, 7: 0.01, 10: 0.00, 14: 0.00}
+      renal_function: {0: -0.03, 1: -0.01, 2: 0.00, 3: 0.01, 5: 0.01, 7: 0.01, 10: 0.00, 14: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["Blood_culture", "WBC", "CRP"]
+        add_imaging: ["CT_abdomen_with_contrast"]
+    treatment_modifications:
+      day_2:
+        stop: ["Cefmetazole"]
+        start:
+          japan: [{drug: "Piperacillin/Tazobactam", dose: "4.5g IV q8h"}]
+          us: [{drug: "Piperacillin/Tazobactam", dose: "3.375g IV q6h"}]
+    triggers:
+      - day: 2
+        condition: "gangrenous_changes_on_ct"
+        actions: ["escalate_antibiotic", "emergent_cholecystectomy"]
+
+  gradual_deterioration:
+    probability: 0.07
+    description: "Cholangitis or sepsis developing — ICU transfer needed"
+    trajectory:
+      inflammation_level: {0: 0.12, 1: 0.08, 2: 0.05, 3: 0.02, 5: -0.02, 7: -0.05, 10: -0.05, 14: -0.03}
+      perfusion_status: {0: -0.05, 1: -0.05, 2: -0.03, 3: -0.02, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.01}
+      renal_function: {0: -0.05, 1: -0.03, 2: -0.02, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_1:
+        add_labs: ["Blood_culture_x2", "Lactate", "ABG"]
+    treatment_modifications:
+      day_1:
+        start:
+          japan: [{drug: "Meropenem", dose: "1g IV q8h"}]
+          us: [{drug: "Meropenem", dose: "1g IV q8h"}]
+      day_2:
+        action: "emergent_ercp_or_percutaneous_drainage"
+    triggers:
+      - day: 1
+        condition: "Charcot_triad_or_Reynolds_pentad"
+        actions: ["emergent_ercp", "icu_transfer"]
+
+  sudden_deterioration:
+    probability: 0.05
+    description: "Gallbladder perforation or bile peritonitis"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: 0.30, 2: 0.08, 3: -0.05, 5: -0.08, 7: -0.06, 10: -0.04, 14: -0.02}
+      perfusion_status: {0: 0.00, 1: -0.20, 2: -0.05, 3: 0.05, 5: 0.05, 7: 0.03, 10: 0.02, 14: 0.01}
+      renal_function: {0: 0.00, 1: -0.10, 2: -0.03, 3: 0.02, 5: 0.02, 7: 0.01, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_1:
+        add_labs: ["ABG", "Lactate", "Blood_culture_x2", "Type_and_crossmatch"]
+        add_imaging: ["CT_abdomen_pelvis_with_contrast"]
+    treatment_modifications:
+      day_1:
+        start:
+          japan:
+            - {drug: "Meropenem", dose: "1g IV q8h"}
+          us:
+            - {drug: "Meropenem", dose: "1g IV q8h"}
+        action: "emergent_cholecystectomy_or_drainage"
+        action_2: "icu_transfer"
+    triggers:
+      - day: 1
+        condition: "peritoneal_signs_or_hemodynamic_instability"
+        actions: ["emergent_surgery", "icu_transfer"]
+
+# Archetype selection modifiers
+archetype_modifiers:
+  - condition: "age >= 75"
+    effect: {gradual_deterioration: 0.05, smooth_recovery: -0.05}
+  - condition: "symptom_duration_over_72h"
+    effect: {treatment_resistant: 0.08, smooth_recovery: -0.08}
+  - condition: "acalculous_cholecystitis"
+    effect: {gradual_deterioration: 0.08, sudden_deterioration: 0.05, smooth_recovery: -0.13}
+
+# ============================================================
+# COMPLICATIONS
+# ============================================================
+complications:
+  - name: "bile_duct_injury"
+    description: "Iatrogenic common bile duct injury during cholecystectomy"
+    probability_per_day: 0.003
+    onset_day_range: [0, 1]   # intraoperative
+    risk_factors:
+      - {condition: "severe_inflammation", multiplier: 3.0}
+      - {condition: "unclear_anatomy", multiplier: 5.0}
+      - {condition: "conversion_to_open", multiplier: 2.0}
+    state_impact:
+      inflammation_level: 0.15
+    detection:
+      test: "intraoperative_cholangiogram_or_ct"
+      finding: "bile_leak_or_stricture"
+    actions: ["ercp_with_stenting", "hepaticojejunostomy_if_major"]
+
+  - name: "bile_leak"
+    description: "Postoperative bile leak from cystic duct stump or accessory duct"
+    probability_per_day: 0.005
+    onset_day_range: [1, 5]
+    risk_factors:
+      - {condition: "gangrenous_cholecystitis", multiplier: 3.0}
+      - {condition: "severe_inflammation", multiplier: 2.0}
+    state_impact:
+      inflammation_level: 0.10
+    detection:
+      test: "ct_abdomen_or_hida"
+      finding: "bile_collection_or_free_fluid"
+    actions: ["percutaneous_drainage", "ercp_with_stenting"]
+
+  - name: "cholangitis"
+    description: "Ascending cholangitis from retained CBD stone"
+    probability_per_day: 0.005
+    onset_day_range: [1, 7]
+    risk_factors:
+      - {condition: "choledocholithiasis", multiplier: 5.0}
+      - {condition: "elevated_bilirubin", multiplier: 3.0}
+    state_impact:
+      inflammation_level: 0.25
+      perfusion_status: -0.10
+    detection:
+      test: "clinical_and_labs"
+      finding: "Charcot_triad_fever_jaundice_rlq_pain"
+    actions: ["emergent_ercp", "broad_spectrum_antibiotics"]
+    cascade: ["sepsis"]
+
+  - name: "wound_infection"
+    description: "Surgical site infection"
+    probability_per_day: 0.006
+    onset_day_range: [3, 10]
+    risk_factors:
+      - {condition: "gangrenous_cholecystitis", multiplier: 3.0}
+      - {condition: "obesity", multiplier: 1.5}
+      - {condition: "diabetes", multiplier: 1.5}
+    state_impact:
+      inflammation_level: 0.05
+    detection:
+      test: "wound_inspection"
+      finding: "erythema_drainage_warmth"
+    actions: ["wound_opening_and_drainage", "wound_culture", "antibiotics_if_cellulitis"]
+
+  - name: "postoperative_pancreatitis"
+    description: "Pancreatitis following ERCP or CBD exploration"
+    probability_per_day: 0.004
+    onset_day_range: [0, 3]
+    risk_factors:
+      - {condition: "ercp_performed", multiplier: 5.0}
+      - {condition: "cbd_exploration", multiplier: 3.0}
+    state_impact:
+      inflammation_level: 0.20
+      volume_status: -0.10
+    detection:
+      test: "lipase"
+      finding: "above_3x_uln"
+    actions: ["NPO", "aggressive_iv_fluids", "pain_management"]
+
+  - name: "dvt"
+    description: "Deep vein thrombosis"
+    probability_per_day: 0.005
+    onset_day_range: [2, 10]
+    risk_factors:
+      - {condition: "immobility_days > 2", multiplier: 2.0}
+      - {condition: "no_dvt_prophylaxis", multiplier: 3.0}
+      - {condition: "obesity", multiplier: 1.5}
+    state_impact:
+      coagulation_status: 0.05
+    detection:
+      test: "d_dimer_then_ultrasound"
+      finding: "dvt_confirmed"
+    actions: ["start_anticoagulation"]
+    cascade: ["pulmonary_embolism"]
+
+  - name: "retained_cbd_stone"
+    description: "CBD stone missed during initial workup"
+    probability_per_day: 0.003
+    onset_day_range: [1, 14]
+    risk_factors:
+      - {condition: "elevated_bilirubin_at_admission", multiplier: 3.0}
+      - {condition: "no_preoperative_mrcp", multiplier: 2.0}
+    state_impact:
+      inflammation_level: 0.08
+    detection:
+      test: "liver_function_tests"
+      finding: "rising_bilirubin_and_alp"
+    actions: ["mrcp", "ercp_with_stone_extraction"]

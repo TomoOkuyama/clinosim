@@ -1,0 +1,923 @@
+# Urinary Tract Infection / Pyelonephritis — Complete Reference Data
+# Sources cited per section. All rates are approximate and should be validated
+# against the most current published data before production use.
+
+disease_id: urinary_tract_infection
+chief_complaint: "Fever, dysuria, flank pain"
+department: internal_medicine
+encounter_type: medical
+requires_surgery: false
+readmission_eligible: true
+icd_codes:
+  primary: "N10"  # Acute pyelonephritis
+  variants:
+    - {code: "N39.0", name: "Urinary tract infection, site not specified", probability: 0.35}
+    - {code: "N10", name: "Acute tubulo-interstitial nephritis (pyelonephritis)", probability: 0.35}
+    - {code: "N12", name: "Tubulo-interstitial nephritis, not specified as acute or chronic", probability: 0.10}
+    - {code: "N30.0", name: "Acute cystitis", probability: 0.15}
+    - {code: "N30.9", name: "Cystitis, unspecified", probability: 0.05}
+
+# ============================================================
+# INCIDENCE (per 100,000 per year, by age band and sex)
+# Source: JP — 患者調査 2020, 日本泌尿器科学会
+#         US — NHDS, Foxman et al. Am J Med 2002, Czaja et al. J Gen Intern Med 2007
+# Note: UTI is 3-4x more common in women across all age groups
+# ============================================================
+incidence:
+  japan:
+    "0-4":   {M: 80, F: 120}
+    "5-14":  {M: 20, F: 80}
+    "15-24": {M: 15, F: 300}
+    "25-34": {M: 20, F: 400}
+    "35-44": {M: 25, F: 350}
+    "45-54": {M: 40, F: 400}
+    "55-64": {M: 80, F: 500}
+    "65-74": {M: 200, F: 800}
+    "75-84": {M: 400, F: 1500}
+    "85+":   {M: 600, F: 2200}
+  us:
+    "0-4":   {M: 70, F: 100}
+    "5-14":  {M: 15, F: 70}
+    "15-24": {M: 10, F: 350}
+    "25-34": {M: 15, F: 450}
+    "35-44": {M: 20, F: 380}
+    "45-54": {M: 35, F: 420}
+    "55-64": {M: 70, F: 480}
+    "65-74": {M: 180, F: 750}
+    "75-84": {M: 350, F: 1400}
+    "85+":   {M: 550, F: 2000}
+
+  risk_multipliers:
+    - {condition: "diabetes", multiplier: 2.5}
+    - {condition: "CKD", multiplier: 2.0}
+    - {condition: "urinary_catheter", multiplier: 6.0}
+    - {condition: "urinary_obstruction", multiplier: 3.5}
+    - {condition: "neurogenic_bladder", multiplier: 3.0}
+    - {condition: "pregnancy", multiplier: 2.0}
+    - {condition: "immunosuppressed", multiplier: 4.0}
+    - {condition: "kidney_transplant", multiplier: 3.0}
+    - {condition: "BPH", multiplier: 2.5}         # benign prostatic hyperplasia in males
+    - {condition: "recurrent_UTI_history", multiplier: 3.0}
+    - {condition: "postmenopausal", multiplier: 1.8}
+
+  seasonal_curve:  # monthly multiplier (1.0 = baseline); UTI has mild summer peak
+    1: 0.95
+    2: 0.90
+    3: 0.95
+    4: 1.00
+    5: 1.05
+    6: 1.10
+    7: 1.15   # Jul — peak (dehydration)
+    8: 1.15   # Aug — peak
+    9: 1.10
+    10: 1.00
+    11: 0.95
+    12: 0.90
+
+  vaccine_protection: {}  # No relevant vaccination for UTI
+
+# ============================================================
+# SEVERITY DISTRIBUTION
+# Source: Clinical severity grading studies, JP DPC data
+# ============================================================
+severity:
+  distribution:
+    mild: 0.35        # uncomplicated lower UTI, may be managed outpatient
+    moderate: 0.50    # pyelonephritis requiring hospitalization
+    severe: 0.15      # urosepsis / complicated pyelonephritis
+  modifiers:
+    - {condition: "age_over_75", mild_multiplier: 0.5, severe_multiplier: 2.0}
+    - {condition: "diabetes", moderate_multiplier: 1.3, severe_multiplier: 1.5}
+    - {condition: "CKD", moderate_multiplier: 1.2, severe_multiplier: 1.8}
+    - {condition: "urinary_obstruction", severe_multiplier: 2.5, mild_multiplier: 0.4}
+    - {condition: "immunosuppressed", severe_multiplier: 2.5, mild_multiplier: 0.3}
+    - {condition: "urinary_catheter", severe_multiplier: 1.5}
+
+# ============================================================
+# INITIAL PHYSIOLOGICAL STATE IMPACT
+# How this disease changes physiological state at onset (added to patient baseline)
+# ============================================================
+initial_state_impact:
+  mild:
+    inflammation_level: 0.15
+    volume_status: -0.05
+  moderate:
+    inflammation_level: 0.40
+    volume_status: -0.15
+    renal_function: -0.10
+    perfusion_status: -0.03
+  severe:
+    inflammation_level: 0.70
+    volume_status: -0.25
+    renal_function: -0.20
+    perfusion_status: -0.15
+    ph_status: -0.08
+
+# ============================================================
+# ORDER PROTOCOLS (what to order and when)
+# All admission orders, daily monitoring, and discharge criteria
+# are defined here — the engine reads this, not hardcoded.
+# ============================================================
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "Urinalysis", urgency: "stat"}
+      - {test: "Urine_culture_sensitivity", urgency: "stat"}
+      - {test: "CRP", urgency: "stat"}
+      - {test: "WBC", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "BUN", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "Blood_culture_x2", urgency: "stat"}
+      - {test: "PCT", urgency: "stat", probability: 0.60}        # if sepsis concern
+      - {test: "Lactate", urgency: "stat", probability: 0.55}    # if sepsis concern
+      - {test: "AST", urgency: "stat", probability: 0.70}
+      - {test: "ALT", urgency: "stat", probability: 0.70}
+    imaging:
+      - {test: "Renal_ultrasound", urgency: "routine", probability: 0.40}
+      - {test: "CT_abdomen_pelvis", urgency: "stat", probability: 0.30, condition: "complicated or obstructive suspected"}
+    supportive:
+      - {type: "IV_fluid", detail: "NS or LR 100-150 mL/h"}
+      - {type: "antipyretic", detail: "Acetaminophen 500mg PO q6h PRN temp >= 38.5"}
+      - {type: "DVT_prophylaxis", detail: "Enoxaparin 2000IU SC daily"}
+
+  daily_monitoring:
+    labs:
+      - {test: "CRP", frequency: "daily"}
+      - {test: "WBC", frequency: "daily"}
+      - {test: "Creatinine", frequency: "daily"}
+    vitals:
+      stable: "q4h"
+      unstable: "q1h"
+    imaging:
+      - {test: "Renal_ultrasound", frequency: "prn", condition: "worsening or persistent fever"}
+
+  trigger_orders:
+    no_defervescence_72h:
+      condition: "inflammation_level > 0.4 at Day 3"
+      actions:
+        - {type: "lab", test: "Blood_culture_repeat"}
+        - {type: "lab", test: "Urine_culture_repeat"}
+        - {type: "imaging", test: "CT_abdomen_pelvis_with_contrast"}
+        - {type: "medication_change", action: "escalate_antibiotic"}
+        - {type: "consult", target: "urology"}
+    renal_deterioration:
+      condition: "Creatinine rise > 0.3 from baseline"
+      actions:
+        - {type: "medication_change", action: "adjust_antibiotic_for_renal"}
+        - {type: "fluid", action: "reassess_volume_status"}
+        - {type: "evaluate", action: "consider_nephrology_consult"}
+    hemodynamic_instability:
+      condition: "systolic_bp < 90 or MAP < 65"
+      actions:
+        - {type: "lab", test: "Lactate"}
+        - {type: "lab", test: "ABG"}
+        - {type: "fluid", action: "NS_500mL_bolus"}
+        - {type: "evaluate", action: "consider_ICU_transfer"}
+
+  discharge_criteria:
+    japan:
+      - "Afebrile (< 37.0C) for 48 hours"
+      - "CRP declining and < 50% of peak"
+      - "Oral antibiotic tolerated for 24 hours"
+      - "Creatinine stable or improving"
+      - "Urine culture sensitivity confirmed, appropriate oral agent selected"
+      - "ADL independent or with available support"
+    us:
+      - "Afebrile (< 37.5C) for 24 hours"
+      - "Oral antibiotic tolerated"
+      - "Clinically stable (no escalation in 24h)"
+      - "Creatinine stable or improving"
+
+# ============================================================
+# LIKELIHOOD RATIO TABLE
+# Source: Clinical diagnostic studies meta-analyses
+#         Bent et al. JAMA 2002, Giesen et al. BMC Urol 2010
+#         Johnson & Russo. NEJM 2018
+# ============================================================
+likelihood_ratios:
+  # Finding -> {disease: {positive_LR, negative_LR}}
+  urine_nitrite_positive:
+    urinary_tract_infection: {positive_LR: 6.0, negative_LR: 0.6}
+    nephrolithiasis: {positive_LR: 0.5, negative_LR: 1.1}
+    prostatitis: {positive_LR: 3.0, negative_LR: 0.7}
+
+  urine_leukocyte_esterase_positive:
+    urinary_tract_infection: {positive_LR: 4.5, negative_LR: 0.2}
+    nephrolithiasis: {positive_LR: 1.5, negative_LR: 0.8}
+    prostatitis: {positive_LR: 3.5, negative_LR: 0.4}
+
+  urine_wbc_above_10:
+    urinary_tract_infection: {positive_LR: 5.0, negative_LR: 0.2}
+    nephrolithiasis: {positive_LR: 1.2, negative_LR: 0.9}
+    prostatitis: {positive_LR: 4.0, negative_LR: 0.3}
+
+  urine_culture_positive_above_10e5:
+    urinary_tract_infection: {positive_LR: 20.0, negative_LR: 0.3}
+    prostatitis: {positive_LR: 10.0, negative_LR: 0.5}
+    # Sensitivity ~80-90% for pyelonephritis
+
+  blood_culture_positive:
+    urinary_tract_infection: {positive_LR: 8.0, negative_LR: 0.85}
+    # ~20-30% positive in pyelonephritis, higher in urosepsis
+
+  crp_above_100:
+    urinary_tract_infection: {positive_LR: 3.0, negative_LR: 0.4}
+    nephrolithiasis: {positive_LR: 0.5, negative_LR: 1.3}
+    prostatitis: {positive_LR: 2.5, negative_LR: 0.6}
+
+  procalcitonin_above_0.5:
+    urinary_tract_infection: {positive_LR: 5.0, negative_LR: 0.2}
+    nephrolithiasis: {positive_LR: 0.3, negative_LR: 1.5}
+    prostatitis: {positive_LR: 2.0, negative_LR: 0.6}
+
+  flank_pain_or_cva_tenderness:
+    urinary_tract_infection: {positive_LR: 4.0, negative_LR: 0.5}
+    nephrolithiasis: {positive_LR: 5.0, negative_LR: 0.4}
+    prostatitis: {positive_LR: 0.3, negative_LR: 1.1}
+
+  ct_hydronephrosis:
+    urinary_tract_infection: {positive_LR: 2.5, negative_LR: 0.9}
+    nephrolithiasis: {positive_LR: 12.0, negative_LR: 0.3}
+    # Hydronephrosis in UTI suggests obstruction — complicated
+
+  ct_renal_abscess:
+    urinary_tract_infection: {positive_LR: 25.0, negative_LR: 0.95}
+    # Highly specific for complicated pyelonephritis
+
+  dysuria_and_frequency:
+    urinary_tract_infection: {positive_LR: 2.0, negative_LR: 0.5}
+    nephrolithiasis: {positive_LR: 1.2, negative_LR: 0.9}
+    prostatitis: {positive_LR: 2.5, negative_LR: 0.6}
+
+# ============================================================
+# DIAGNOSTIC — initial differential diagnosis
+# Source: Clinical practice guidelines, UpToDate
+# ============================================================
+diagnostic:
+  diagnostic_difficulty: 0.25  # Urinalysis + culture; complicated vs simple takes longer
+  presenting_symptoms:
+    - "dysuria"
+    - "urinary_frequency"
+    - "urinary_urgency"
+    - "suprapubic_pain"
+    - "flank_pain"
+    - "fever"
+    - "nausea_vomiting"
+    - "costovertebral_angle_tenderness"
+
+  initial_differentials:
+    - disease: "urinary_tract_infection"
+      prior_probability: 0.50
+      key_findings: ["positive_urinalysis", "urine_culture_positive", "dysuria", "fever"]
+    - disease: "pyelonephritis"
+      prior_probability: 0.25
+      key_findings: ["flank_pain", "fever", "cva_tenderness", "positive_urine_culture"]
+    - disease: "nephrolithiasis"
+      prior_probability: 0.10
+      key_findings: ["colicky_flank_pain", "hematuria", "ct_stone_detected"]
+    - disease: "prostatitis"
+      prior_probability: 0.08
+      key_findings: ["perineal_pain", "tender_prostate", "male_patient"]
+      applies_to: "male_only"
+    - disease: "urethritis"
+      prior_probability: 0.04
+      key_findings: ["urethral_discharge", "sexually_active", "negative_urine_culture"]
+    - disease: "vaginitis"
+      prior_probability: 0.03
+      key_findings: ["vaginal_discharge", "external_dysuria", "negative_urinalysis"]
+      applies_to: "female_only"
+
+# ============================================================
+# LAB REFERENCE RANGES (admission values for UTI/pyelonephritis patients)
+# For benchmarking generated data
+# Source: Clinical studies, textbook values
+# ============================================================
+expected_lab_distributions:
+  admission:
+    CRP:
+      unit: "mg/L"
+      median: 60
+      iqr: [20, 120]
+      range: [3, 350]
+    WBC:
+      unit: "/uL"
+      median: 11000
+      iqr: [8000, 15000]
+      range: [3000, 25000]
+    PCT:
+      unit: "ng/mL"
+      median: 0.8
+      iqr: [0.2, 4.0]
+      range: [0.05, 80]
+    Creatinine:
+      unit: "mg/dL"
+      median: 1.1
+      iqr: [0.8, 1.6]
+      range: [0.4, 6.0]
+      note: "higher if pre-existing CKD, obstruction, or dehydration"
+    BUN:
+      unit: "mg/dL"
+      median: 22
+      iqr: [15, 35]
+      range: [8, 90]
+    Glucose:
+      unit: "mg/dL"
+      median: 125
+      iqr: [95, 170]
+      range: [70, 400]
+      note: "stress hyperglycemia; higher in diabetics"
+    Lactate:
+      unit: "mmol/L"
+      median: 1.3
+      iqr: [0.8, 2.2]
+      range: [0.5, 8.0]
+      note: ">4 suggests urosepsis"
+    Urinalysis_WBC:
+      unit: "/HPF"
+      median: 50
+      iqr: [20, 100]
+      range: [5, 500]
+      note: "many/HPF"
+    Urine_bacteria:
+      unit: "CFU/mL"
+      median: 100000
+      iqr: [50000, 500000]
+      range: [10000, 10000000]
+
+  discharge:
+    CRP:
+      unit: "mg/L"
+      median: 10
+      iqr: [4, 25]
+      note: "JP waits for more normalization than US"
+    WBC:
+      unit: "/uL"
+      median: 7000
+      iqr: [5500, 9000]
+    Creatinine:
+      unit: "mg/dL"
+      median: 0.9
+      iqr: [0.6, 1.2]
+      note: "should return near baseline"
+
+# ============================================================
+# VITAL SIGN DISTRIBUTIONS
+# Source: Clinical studies on acute pyelonephritis
+# ============================================================
+expected_vital_distributions:
+  admission:
+    temperature:
+      unit: "C"
+      mean: 38.8
+      sd: 0.9
+      range: [36.5, 40.5]
+    heart_rate:
+      unit: "bpm"
+      mean: 95
+      sd: 15
+      range: [60, 135]
+    systolic_bp:
+      unit: "mmHg"
+      mean: 120
+      sd: 20
+      range: [75, 175]
+    respiratory_rate:
+      unit: "/min"
+      mean: 18
+      sd: 4
+      range: [12, 30]
+    spo2:
+      unit: "%"
+      mean: 97
+      sd: 1.5
+      range: [92, 100]
+
+# ============================================================
+# TREATMENT REFERENCE — Drug selection data
+# Source: IDSA UTI Guidelines 2010, JP 尿路感染症ガイドライン 2015
+#         Gupta et al. Clin Infect Dis 2011
+# ============================================================
+drugs:
+  first_line:
+    japan:
+      - drug: "Ceftriaxone"
+        code_yj: "6132412"
+        dose: "1-2g IV daily"
+        route: IV
+        renal_adjustment:
+          eGFR_below_30: "1g IV daily"
+        pregnancy_safe: true
+
+    us:
+      - drug: "Ceftriaxone"
+        code_rxnorm: "309090"
+        dose: "1g IV daily"
+        route: IV
+        pregnancy_safe: true
+      - drug: "Ciprofloxacin"
+        code_rxnorm: "309308"
+        dose: "400mg IV q12h"
+        route: IV
+        note: "Alternative first-line if local susceptibility permits"
+        pregnancy_safe: false
+
+  alternative_penicillin_allergy:
+    japan:
+      - drug: "Levofloxacin"
+        code_yj: "6241017"
+        dose: "500mg IV daily"
+        renal_adjustment:
+          eGFR_below_50: "250mg IV daily"
+        pregnancy_safe: false
+    us:
+      - drug: "Levofloxacin"
+        code_rxnorm: "82122"
+        dose: "750mg IV daily"
+        renal_adjustment:
+          eGFR_below_50: "500mg IV daily"
+        pregnancy_safe: false
+
+  escalation:  # when first-line fails (Day 3 no improvement)
+    japan:
+      - drug: "Meropenem"
+        code_yj: "6139401"
+        dose: "1g IV q8h"
+        indication: "no_defervescence_72h or culture_ESBL_producing_organism"
+        renal_adjustment:
+          eGFR_below_30: "0.5g IV q12h"
+    us:
+      - drug: "Meropenem"
+        code_rxnorm: "106892"
+        dose: "1g IV q8h"
+        indication: "same"
+        renal_adjustment:
+          eGFR_below_30: "0.5g IV q12h"
+      - drug: "Piperacillin/Tazobactam"
+        code_rxnorm: "240984"
+        dose: "4.5g IV q6h"
+        indication: "alternative escalation"
+
+  discharge_oral:
+    japan:
+      - drug: "Levofloxacin"
+        code_yj: "6241017"
+        dose: "500mg PO daily"
+        duration_days: 7
+      - drug: "Cefcapene pivoxil"
+        code_yj: "6132420"
+        dose: "100mg PO TID"
+        duration_days: 7
+        note: "If fluoroquinolone not preferred"
+    us:
+      - drug: "Ciprofloxacin"
+        code_rxnorm: "309308"
+        dose: "500mg PO BID"
+        duration_days: 7
+      - drug: "Trimethoprim/Sulfamethoxazole"
+        code_rxnorm: "198335"
+        dose: "160/800mg PO BID"
+        duration_days: 14
+        note: "If susceptible on culture"
+
+# ============================================================
+# DRUG INTERACTIONS relevant to UTI treatment
+# ============================================================
+drug_interactions:
+  - drug_a: "Levofloxacin"
+    drug_b: "Warfarin"
+    severity: "major"
+    effect: "Increased INR, bleeding risk"
+    action: "Monitor INR closely"
+
+  - drug_a: "Ciprofloxacin"
+    drug_b: "Theophylline"
+    severity: "major"
+    effect: "Increased theophylline levels, seizure risk"
+    action: "Monitor theophylline levels, dose reduction"
+
+  - drug_a: "Trimethoprim/Sulfamethoxazole"
+    drug_b: "Warfarin"
+    severity: "major"
+    effect: "Markedly increased INR"
+    action: "Reduce warfarin dose, monitor INR closely"
+
+  - drug_a: "Trimethoprim/Sulfamethoxazole"
+    drug_b: "Methotrexate"
+    severity: "contraindicated"
+    effect: "Increased methotrexate toxicity"
+    action: "Avoid combination"
+
+  - drug_a: "Meropenem"
+    drug_b: "Valproic acid"
+    severity: "contraindicated"
+    effect: "Dramatically reduces valproate levels"
+    action: "Do not use together"
+
+  - drug_a: "Ciprofloxacin"
+    drug_b: "Tizanidine"
+    severity: "contraindicated"
+    effect: "Marked increase in tizanidine levels"
+    action: "Avoid combination"
+
+# ============================================================
+# LAB ITEM REFERENCE RANGES (age/sex-specific normal values)
+# Used for flagging H/L results
+# Source: Standard clinical laboratory references
+# ============================================================
+reference_ranges:
+  CRP:
+    unit: "mg/L"
+    all: {low: 0, high: 3}
+  WBC:
+    unit: "/uL"
+    all: {low: 3500, high: 9500}
+  Hb:
+    unit: "g/dL"
+    male: {low: 13.5, high: 17.5}
+    female: {low: 11.5, high: 15.5}
+    pregnant: {low: 10.0, high: 14.0}
+  Plt:
+    unit: "x10^3/uL"
+    all: {low: 150, high: 400}
+  Creatinine:
+    unit: "mg/dL"
+    male: {low: 0.6, high: 1.1}
+    female: {low: 0.4, high: 0.8}
+  BUN:
+    unit: "mg/dL"
+    all: {low: 8, high: 20}
+  Na:
+    unit: "mEq/L"
+    all: {low: 136, high: 145}
+  K:
+    unit: "mEq/L"
+    all: {low: 3.5, high: 5.0}
+  Glucose:
+    unit: "mg/dL"
+    fasting: {low: 70, high: 100}
+    random: {low: 70, high: 140}
+  AST:
+    unit: "U/L"
+    all: {low: 10, high: 35}
+  ALT:
+    unit: "U/L"
+    all: {low: 5, high: 40}
+  PCT:
+    unit: "ng/mL"
+    all: {low: 0, high: 0.05}
+  Lactate:
+    unit: "mmol/L"
+    all: {low: 0.5, high: 2.0}
+  Urinalysis_WBC:
+    unit: "/HPF"
+    all: {low: 0, high: 5}
+  Urine_nitrite:
+    unit: ""
+    all: {normal: "negative"}
+  Urine_bacteria:
+    unit: "CFU/mL"
+    all: {low: 0, high: 1000}
+
+# ============================================================
+# TARGET LENGTH OF STAY (country-specific)
+# Source: JP DPC data, US Medicare/HCUP data
+# Note: JP LOS is significantly longer due to practice patterns
+# ============================================================
+target_los:
+  japan:
+    mild: {mean: 7, sd: 2, min: 4, max: 12}
+    moderate: {mean: 12, sd: 3, min: 7, max: 20}
+    severe: {mean: 18, sd: 5, min: 12, max: 30}
+  us:
+    mild: {mean: 3, sd: 1, min: 2, max: 5}
+    moderate: {mean: 4, sd: 1.5, min: 3, max: 7}
+    severe: {mean: 7, sd: 3, min: 4, max: 14}
+
+# OUTCOME BENCHMARKS
+# For validating generated data against reality
+# ============================================================
+outcome_benchmarks:
+  japan:
+    median_los: 11
+    los_iqr: [7, 16]
+    in_hospital_mortality: 0.03
+    icu_transfer_rate: 0.05
+    thirty_day_readmission: 0.12
+    antibiotic_switch_rate: 0.15
+    blood_culture_positivity: 0.25
+    urine_culture_positivity: 0.85
+    mean_time_to_first_abx_hours: 2.5
+    mean_age_admitted: 74
+    female_ratio: 0.72
+
+  us:
+    median_los: 4
+    los_iqr: [3, 6]
+    in_hospital_mortality: 0.02
+    icu_transfer_rate: 0.06
+    thirty_day_readmission: 0.14
+    antibiotic_switch_rate: 0.12
+    blood_culture_positivity: 0.22
+    urine_culture_positivity: 0.82
+    mean_time_to_first_abx_hours: 2.0
+    mean_age_admitted: 70
+    female_ratio: 0.70
+
+# ============================================================
+# CLINICAL COURSE ARCHETYPES (daily state variable changes)
+# Each archetype defines day-by-day deltas for physiological state variables.
+# Disease authors specify these trajectories — the engine interpolates between days.
+# Patient profile (immune_reactivity, treatment_sensitivity) modulates amplitude.
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.60
+    description: "Steady improvement from Day 1-2 after treatment initiation"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: -0.03, 2: -0.08, 3: -0.08, 5: -0.06, 7: -0.05, 10: -0.03, 14: -0.02}
+      volume_status: {0: 0.02, 1: 0.03, 2: 0.03, 3: 0.02, 5: 0.01, 7: 0.01, 10: 0.00, 14: 0.00}
+      renal_function: {0: 0.00, 1: 0.01, 2: 0.02, 3: 0.02, 5: 0.01, 7: 0.01, 10: 0.00, 14: 0.00}
+      perfusion_status: {0: 0.00, 1: 0.00, 2: 0.01, 3: 0.01, 5: 0.00, 7: 0.00, 10: 0.00, 14: 0.00}
+    # Smooth recovery: no order/treatment modifications needed
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.15
+    description: "Worsening Day 1-3 (initial septic response), then gradual improvement"
+    trajectory:
+      inflammation_level: {0: 0.08, 1: 0.05, 2: 0.02, 3: -0.02, 5: -0.08, 7: -0.08, 10: -0.06, 14: -0.04}
+      volume_status: {0: -0.05, 1: -0.03, 2: 0.02, 3: 0.03, 5: 0.02, 7: 0.01, 10: 0.00, 14: 0.00}
+      renal_function: {0: -0.03, 1: -0.02, 2: 0.00, 3: 0.01, 5: 0.02, 7: 0.01, 10: 0.01, 14: 0.00}
+      perfusion_status: {0: -0.03, 1: -0.02, 2: 0.00, 3: 0.01, 5: 0.01, 7: 0.00, 10: 0.00, 14: 0.00}
+    order_modifications:
+      day_2:  # temporary worsening triggers additional monitoring
+        add_labs: ["Lactate", "Blood_culture_repeat"]
+    treatment_modifications:
+      day_2:
+        add_fluid: {detail: "NS 500mL bolus for volume repletion"}
+
+  plateau_then_recovery:
+    probability: 0.10
+    description: "No change for 3-5 days, then improvement"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.02, 2: 0.00, 3: 0.00, 5: 0.00, 7: -0.08, 10: -0.08, 14: -0.04}
+      volume_status: {0: 0.01, 1: 0.01, 2: 0.01, 3: 0.00, 5: 0.00, 7: 0.01, 10: 0.01, 14: 0.00}
+      renal_function: {0: 0.00, 1: 0.00, 2: 0.00, 3: 0.00, 5: 0.00, 7: 0.01, 10: 0.01, 14: 0.01}
+    order_modifications:
+      day_5:  # no improvement for 5 days -> more investigation
+        add_labs: ["Urine_culture_repeat", "Blood_culture_repeat", "Procalcitonin"]
+        add_imaging: ["CT_abdomen_pelvis_with_contrast"]
+    treatment_modifications: {}  # continue same antibiotic (patience)
+
+  treatment_resistant:
+    probability: 0.08
+    description: "No response to first-line; requires antibiotic change at Day 3 (often ESBL organism)"
+    trajectory:
+      inflammation_level: {0: 0.08, 1: 0.05, 2: 0.05, 3: 0.02, 5: -0.02, 7: -0.06, 10: -0.08, 14: -0.06}
+      volume_status: {0: -0.03, 1: -0.02, 2: -0.01, 3: 0.00, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.00}
+      renal_function: {0: -0.03, 1: -0.02, 2: -0.01, 3: 0.00, 5: 0.01, 7: 0.02, 10: 0.01, 14: 0.01}
+    order_modifications:
+      day_3:
+        add_labs: ["Urine_culture_repeat", "Blood_culture_repeat", "Procalcitonin"]
+        add_imaging: ["CT_abdomen_pelvis_with_contrast"]
+        add_consult: ["infectious_disease", "urology"]
+    treatment_modifications:
+      day_3:
+        stop: ["Ceftriaxone"]
+        start:
+          japan: [{drug: "Meropenem", dose: "1g IV q8h"}]
+          us: [{drug: "Meropenem", dose: "1g IV q8h"}]
+    triggers:
+      - day: 3
+        condition: "inflammation_level > 0.4"
+        actions: ["escalate_antibiotic", "order_ct", "consult_infectious_disease"]
+
+  gradual_deterioration:
+    probability: 0.05
+    description: "Slow worsening despite treatment -> urosepsis -> ICU transfer"
+    trajectory:
+      inflammation_level: {0: 0.10, 1: 0.08, 2: 0.06, 3: 0.05, 5: 0.03, 7: 0.02, 10: 0.00, 14: -0.02}
+      perfusion_status: {0: -0.05, 1: -0.05, 2: -0.03, 3: -0.03, 5: -0.02, 7: 0.00, 10: 0.01, 14: 0.01}
+      renal_function: {0: -0.05, 1: -0.04, 2: -0.03, 3: -0.02, 5: -0.01, 7: 0.00, 10: 0.01, 14: 0.01}
+      volume_status: {0: -0.05, 1: -0.03, 2: -0.02, 3: -0.01, 5: 0.00, 7: 0.01, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_3:
+        add_labs: ["ABG", "Lactate", "Blood_culture_repeat"]
+      day_5:
+        add_labs: ["ABG", "Lactate"]
+        add_imaging: ["CT_abdomen_pelvis_with_contrast"]
+    treatment_modifications:
+      day_3:
+        stop: ["Ceftriaxone"]
+        start:
+          japan: [{drug: "Meropenem", dose: "1g IV q8h"}]
+          us: [{drug: "Meropenem", dose: "1g IV q8h"}]
+      day_5:
+        start:
+          japan: [{drug: "Norepinephrine", dose: "0.05ug/kg/min IV drip"}]
+        action: "icu_transfer"
+    triggers:
+      - day: 5
+        condition: "perfusion_status < 0.4"
+        actions: ["icu_transfer"]
+
+  sudden_deterioration:
+    probability: 0.02
+    description: "Sudden critical worsening (uroseptic shock) on Day 1-2"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: -0.02, 2: 0.30, 3: 0.08, 5: -0.05, 7: -0.08, 10: -0.06, 14: -0.03}
+      perfusion_status: {0: 0.00, 1: 0.00, 2: -0.25, 3: -0.05, 5: 0.05, 7: 0.05, 10: 0.02, 14: 0.01}
+      renal_function: {0: 0.00, 1: 0.00, 2: -0.20, 3: -0.05, 5: 0.02, 7: 0.03, 10: 0.02, 14: 0.01}
+      volume_status: {0: 0.00, 1: 0.00, 2: -0.15, 3: -0.03, 5: 0.03, 7: 0.03, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["ABG", "Lactate", "Blood_culture_x2", "DIC_panel", "Troponin"]
+        add_imaging: ["CT_abdomen_pelvis_with_contrast"]
+    treatment_modifications:
+      day_2:
+        stop: ["Ceftriaxone"]
+        start:
+          japan:
+            - {drug: "Meropenem", dose: "1g IV q8h"}
+            - {drug: "Norepinephrine", dose: "0.1ug/kg/min IV drip"}
+          us:
+            - {drug: "Meropenem", dose: "1g IV q8h"}
+            - {drug: "Norepinephrine", dose: "0.1ug/kg/min IV drip"}
+        action: "icu_transfer"
+        action_2: "central_line_placement"
+    triggers:
+      - day: 2
+        condition: "perfusion_status < 0.4"
+        actions: ["icu_transfer", "start_vasopressor", "evaluate_source_control"]
+
+# Archetype selection modifiers (patient profile dependent)
+archetype_modifiers:
+  - condition: "immune_reactivity < 0.3"
+    effect: {treatment_resistant: 0.10, smooth_recovery: -0.10}
+  - condition: "age >= 80"
+    effect: {gradual_deterioration: 0.05, smooth_recovery: -0.05}
+  - condition: "treatment_sensitivity > 1.2"
+    effect: {smooth_recovery: 0.10, treatment_resistant: -0.05}
+  - condition: "urinary_catheter"
+    effect: {treatment_resistant: 0.08, smooth_recovery: -0.08}
+  - condition: "diabetes"
+    effect: {dip_then_recovery: 0.05, smooth_recovery: -0.05}
+
+# ============================================================
+# COMPLICATIONS (secondary events during hospitalization)
+# Each complication has: trigger conditions, timing, probability,
+# physiological impact, and detection/treatment actions.
+# Complications can themselves trigger further complications (cascade).
+# ============================================================
+complications:
+  - name: "urosepsis"
+    description: "Sepsis secondary to urinary source — systemic inflammatory response"
+    probability_per_day: 0.012
+    onset_day_range: [1, 5]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 3.0}
+      - {condition: "urinary_obstruction", multiplier: 3.5}
+      - {condition: "age_over_75", multiplier: 2.0}
+      - {condition: "immunosuppressed", multiplier: 2.5}
+      - {condition: "diabetes", multiplier: 1.5}
+    state_impact:
+      inflammation_level: 0.25
+      perfusion_status: -0.20
+      renal_function: -0.10
+      ph_status: -0.05
+    detection:
+      test: "lactate_and_blood_culture"
+      finding: "lactate_above_2_or_positive_culture"
+    actions: ["iv_fluid_resuscitation", "escalate_antibiotic", "vasopressor_if_refractory", "consider_icu"]
+    cascade: ["dic", "multiorgan_failure"]
+
+  - name: "renal_abscess"
+    description: "Intrarenal or perinephric abscess complicating pyelonephritis"
+    probability_per_day: 0.005
+    onset_day_range: [3, 10]
+    risk_factors:
+      - {condition: "urinary_obstruction", multiplier: 4.0}
+      - {condition: "diabetes", multiplier: 3.0}
+      - {condition: "treatment_resistant_archetype", multiplier: 2.5}
+    state_impact:
+      inflammation_level: 0.15
+      renal_function: -0.10
+    detection:
+      test: "ct_abdomen_with_contrast"
+      finding: "renal_abscess"
+    actions: ["percutaneous_drainage_if_over_3cm", "escalate_antibiotic", "urology_consult"]
+
+  - name: "bacteremia"
+    description: "Positive blood cultures from urinary source"
+    probability_per_day: 0.015
+    onset_day_range: [0, 3]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.5}
+      - {condition: "urinary_obstruction", multiplier: 2.0}
+      - {condition: "age_over_75", multiplier: 1.5}
+    state_impact:
+      inflammation_level: 0.10
+      perfusion_status: -0.05
+    detection:
+      test: "blood_culture"
+      finding: "positive_gram_negative_rods"
+    actions: ["confirm_antibiotic_sensitivity", "repeat_blood_culture_48h", "evaluate_source_control"]
+    cascade: ["urosepsis"]
+
+  - name: "acute_kidney_injury"
+    description: "AKI from sepsis, dehydration, or nephrotoxic drugs"
+    probability_per_day: 0.012
+    onset_day_range: [1, 5]
+    risk_factors:
+      - {condition: "renal_function < 0.5", multiplier: 3.0}
+      - {condition: "volume_status < -0.3", multiplier: 2.5}
+      - {condition: "age_over_75", multiplier: 1.5}
+      - {condition: "CKD", multiplier: 2.0}
+    state_impact:
+      renal_function: -0.15
+      ph_status: -0.05
+    detection:
+      test: "creatinine"
+      finding: "rise_above_0.3_from_baseline"
+    actions: ["iv_fluid_bolus", "hold_nephrotoxic_drugs", "adjust_antibiotic_dose", "monitor_urine_output"]
+
+  - name: "delirium"
+    description: "Acute confusion, especially in elderly UTI patients"
+    probability_per_day: 0.018
+    onset_day_range: [1, 7]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 2.5}
+      - {condition: "dementia", multiplier: 3.0}
+      - {condition: "icu_stay", multiplier: 2.0}
+      - {condition: "delirium_susceptibility > 0.3", multiplier: 2.0}
+    state_impact: {}              # delirium doesn't change physiological state variables directly
+    detection:
+      test: "CAM_screening"
+      finding: "positive"
+    actions: ["reorientation", "sleep_hygiene", "avoid_benzodiazepines", "consider_haloperidol"]
+
+  - name: "c_diff_colitis"
+    description: "Clostridioides difficile infection from antibiotic use"
+    probability_per_day: 0.005
+    onset_day_range: [5, 21]
+    risk_factors:
+      - {condition: "antibiotic_duration_over_7_days", multiplier: 2.0}
+      - {condition: "age_over_65", multiplier: 1.5}
+      - {condition: "fluoroquinolone_use", multiplier: 2.5}
+    state_impact:
+      inflammation_level: 0.10
+      volume_status: -0.10        # diarrhea -> dehydration
+    detection:
+      test: "c_diff_toxin"
+      finding: "positive"
+    actions: ["stop_offending_antibiotic", "start_oral_vancomycin", "contact_precautions"]
+
+  - name: "dvt"
+    description: "Deep vein thrombosis"
+    probability_per_day: 0.008
+    onset_day_range: [3, 14]
+    risk_factors:
+      - {condition: "immobility_days > 3", multiplier: 2.0}
+      - {condition: "dvt_susceptibility > 0.3", multiplier: 2.0}
+      - {condition: "no_dvt_prophylaxis", multiplier: 3.0}
+    state_impact:
+      coagulation_status: 0.05
+    detection:
+      test: "d_dimer_then_ultrasound"
+      finding: "dvt_confirmed"
+    actions: ["start_anticoagulation"]
+    cascade: ["pulmonary_embolism"]
+
+  - name: "pulmonary_embolism"
+    description: "PE from DVT embolization"
+    probability_given_parent: 0.10
+    parent_complication: "dvt"
+    onset_days_after_parent: [0, 7]
+    state_impact:
+      perfusion_status: -0.20
+      inflammation_level: 0.05
+      ph_status: -0.05
+    actions: ["ct_angiography", "anticoagulation", "consider_icu"]
+
+# ============================================================
+# FORCED GENERATION (for testing / specific scenario creation)
+# Users can override population-driven generation to force specific cases.
+# See SimulatorConfig.forced_scenarios
+# ============================================================
+# Example usage in config:
+#   forced_scenarios:
+#     - disease_id: "urinary_tract_infection"
+#       count: 5
+#       severity: "severe"
+#       archetype: "treatment_resistant"
+#       complications: ["urosepsis", "renal_abscess"]
+#       patient_overrides:
+#         age: 78
+#         sex: "F"
+#         chronic_conditions: ["E11", "N18"]
