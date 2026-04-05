@@ -246,9 +246,14 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
         followup_date = enc.discharge_datetime + timedelta(days=post_dc_days)
         disease_id = (record.condition_event.ground_truth_diseases[0]
                       if record.condition_event.ground_truth_diseases else "")
+        # Merge disease-specific labs into post-discharge spec
+        disease_fu = followup_data.get("_post_discharge_by_disease", {}).get(disease_id, {})
+        merged_spec = dict(post_dc_spec)
+        if disease_fu.get("labs"):
+            merged_spec["labs"] = disease_fu["labs"]
         opd_record = _simulate_outpatient_visit(
             patient_cache[pid], "post_discharge", followup_date, roster, rng,
-            followup_spec=post_dc_spec, post_discharge_disease=disease_id,
+            followup_spec=merged_spec, post_discharge_disease=disease_id,
         )
         patient_records.append(opd_record)
 
@@ -1411,10 +1416,24 @@ def _simulate_outpatient_visit(
     Generates: 1 encounter, 0-3 lab orders, 1 vital sign set, prescription renewal.
     """
     import uuid
-    opd_num = int(uuid.uuid4().hex[:4], 16) % 9000 + 1000  # 1000-9999 unique
+    opd_num = int(uuid.uuid4().hex[:4], 16) % 9000 + 1000
+
+    # Build visit reason from YAML spec or disease-specific post-discharge reason
+    spec = followup_spec or {}
+    if spec.get("visit_reason"):
+        chief = spec["visit_reason"]
+    elif post_discharge_disease:
+        # Look up disease-specific post-discharge reason
+        from clinosim.locale.loader import load_chronic_followup
+        fu = load_chronic_followup()
+        disease_fu = fu.get("_post_discharge_by_disease", {}).get(post_discharge_disease, {})
+        chief = disease_fu.get("visit_reason", f"Post-discharge follow-up: {post_discharge_disease}")
+    else:
+        chief = f"Follow-up: {chronic_code}"
+
     encounter = create_inpatient_encounter(
         patient.patient_id, visit_date,
-        chief_complaint=f"Follow-up: {chronic_code or post_discharge_disease}",
+        chief_complaint=chief,
         visit_number=opd_num,
     )
     encounter.encounter_type = EncounterType.OUTPATIENT
