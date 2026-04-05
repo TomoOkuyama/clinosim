@@ -1933,6 +1933,11 @@ def _simulate_unknown_condition(
     encounter = create_inpatient_encounter(patient.patient_id, admission_time, chief_complaint=complaint)
     attending_id = assign_staff("admission", "internal_medicine", roster, rng).get("attending_physician", "DR-001")
     encounter.attending_physician_id = attending_id
+    # Ward/bed for unknown condition patients
+    ward_floor = int(rng.integers(3, 7))
+    encounter.ward_id = f"{ward_floor}{'EW'[int(rng.integers(0, 2))]}"
+    encounter.bed_number = f"{ward_floor}{int(rng.integers(1, 30)):02d}-{int(rng.integers(1, 5))}"
+    encounter.attending_physician_id = attending_id
 
     target_los = int(rng.integers(7, 14))  # unknown conditions: longer workup
     all_vitals: list[VitalSignRecord] = []
@@ -2201,7 +2206,34 @@ def main() -> None:
     td.add_argument("--country", default="US", help="Country code (US or JP)")
     td.add_argument("--format", nargs="+", default=["cif", "csv"], help="Output formats")
 
+    # === validate: run quality checks on generated data ===
+    val = sub.add_parser("validate", help="Run data quality checks on generated data")
+    val.add_argument("-p", "--population", type=int, default=5_000, help="Population size")
+    val.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
+    val.add_argument("--country", default="US", help="Country code")
+
+    # === list-diseases: show available disease protocols ===
+    sub.add_parser("list-diseases", help="List all available disease protocols")
+
     args = parser.parse_args()
+
+    if args.command == "list-diseases":
+        protocols = _load_all_disease_protocols()
+        print(f"{len(protocols)} disease protocols available:")
+        for name in sorted(protocols.keys()):
+            p = protocols[name]
+            print(f"  {name:35s} | {p.chief_complaint[:50]}")
+        return
+
+    if args.command == "validate":
+        config = SimulatorConfig(
+            catchment_population=args.population,
+            random_seed=args.seed, country=args.country,
+        )
+        print(f"clinosim validate: pop={args.population}, country={args.country}")
+        dataset = run_beta(config)
+        _run_quality_checks(dataset)
+        return
 
     if args.command == "generate":
         start, end = args.period.split(",")
@@ -2298,6 +2330,96 @@ def _print_summary(dataset: CIFDataset, output_dir: str) -> None:
             print(f"    {d:30s} {n:4d}  (LOS avg {avg_los:.1f}d)")
 
     print(f"\n  Output: {output_dir}/")
+
+
+def _run_quality_checks(dataset: CIFDataset) -> None:
+    """Run comprehensive quality checks on generated data."""
+    from collections import Counter
+
+    records = dataset.patients
+    inpatients = [r for r in records if r.encounters and r.encounters[0].encounter_type == EncounterType.INPATIENT]
+    outpatients = [r for r in records if r.encounters and r.encounters[0].encounter_type == EncounterType.OUTPATIENT]
+    ed_visits = [r for r in records if r.encounters and r.encounters[0].encounter_type == EncounterType.EMERGENCY]
+
+    print(f"\n{'='*50}")
+    print("  Data Quality Report")
+    print(f"{'='*50}")
+    print(f"  Records: {len(records)} (inp={len(inpatients)}, opd={len(outpatients)}, ed={len(ed_visits)})")
+
+    issues = 0
+
+    # Check: labs have units
+    no_unit = sum(1 for r in records for l in r.lab_results if not l.unit)
+    if no_unit:
+        print(f"  ❌ Labs missing units: {no_unit}")
+        issues += 1
+    else:
+        print(f"  ✅ All labs have units")
+
+    # Check: all records have diagnosis
+    no_dx = sum(1 for r in records if not r.clinical_diagnosis.discharge_diagnosis_code)
+    if no_dx:
+        print(f"  ❌ Records missing diagnosis: {no_dx}")
+        issues += 1
+    else:
+        print(f"  ✅ All records have diagnosis codes")
+
+    # Check: inpatients have vitals, labs, MARs
+    inp_no_vitals = sum(1 for r in inpatients if not r.vital_signs)
+    inp_no_labs = sum(1 for r in inpatients if not r.lab_results)
+    inp_no_mars = sum(1 for r in inpatients if not r.medication_administrations)
+    for name, count in [("vitals", inp_no_vitals), ("labs", inp_no_labs), ("MARs", inp_no_mars)]:
+        if count:
+            print(f"  ❌ Inpatients missing {name}: {count}")
+            issues += 1
+        else:
+            print(f"  ✅ All inpatients have {name}")
+
+    # Check: ward/bed
+    inp_no_ward = sum(1 for r in inpatients if not r.encounters[0].ward_id)
+    print(f"  {'❌' if inp_no_ward else '✅'} Ward/bed assignment: {len(inpatients)-inp_no_ward}/{len(inpatients)}")
+    if inp_no_ward: issues += 1
+
+    # Check: pain scores
+    vitals_with_pain = sum(1 for r in records for v in r.vital_signs if v.pain_score is not None)
+    total_vitals = sum(len(r.vital_signs) for r in records)
+    pct = vitals_with_pain / total_vitals * 100 if total_vitals else 0
+    print(f"  ✅ Pain scores: {pct:.0f}% of vitals")
+
+    # Check: ADL for inpatients
+    adl_count = sum(len(r.adl_assessments) for r in inpatients)
+    print(f"  ✅ ADL assessments: {adl_count} (avg {adl_count/len(inpatients):.1f}/patient)" if inpatients else "  - No inpatients")
+
+    # Check: I/O for inpatients
+    io_count = sum(len(r.intake_output_records) for r in inpatients)
+    print(f"  ✅ I/O records: {io_count}")
+
+    # Check: diet orders
+    diet_count = sum(1 for r in inpatients if any(o.order_type.value == "diet" for o in r.orders))
+    print(f"  ✅ Diet orders: {diet_count}/{len(inpatients)} inpatients")
+
+    # Disease distribution
+    by_disease = Counter()
+    for r in inpatients:
+        d = r.condition_event.ground_truth_diseases[0] if r.condition_event.ground_truth_diseases else "?"
+        by_disease[d] += 1
+    print(f"\n  Disease distribution ({len(by_disease)} types):")
+    for d, n in by_disease.most_common(5):
+        print(f"    {d:30s} {n:4d}")
+    if len(by_disease) > 5:
+        print(f"    ... and {len(by_disease)-5} more")
+
+    # Readmission check
+    readmits = sum(1 for r in inpatients if r.is_readmission)
+    rate = readmits / (len(inpatients) - readmits) * 100 if len(inpatients) > readmits else 0
+    print(f"\n  Readmission rate: {rate:.1f}% ({readmits} readmissions)")
+
+    # Mortality
+    deceased = sum(1 for r in records if r.deceased)
+    mort_rate = deceased / len(inpatients) * 100 if inpatients else 0
+    print(f"  Mortality rate: {mort_rate:.1f}% ({deceased} deaths)")
+
+    print(f"\n  {'✅ ALL CHECKS PASSED' if issues == 0 else f'⚠ {issues} ISSUES FOUND'}")
 
 
 if __name__ == "__main__":
