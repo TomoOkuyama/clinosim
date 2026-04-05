@@ -1,16 +1,17 @@
 # Chronic disease outpatient follow-up schedules
 # Defines what happens at routine clinic visits for each chronic condition
-# Used by the outpatient encounter generator
 
 I10:  # Hypertension
+  visit_reason: "Blood pressure management, medication review"
   follow_up_interval_months: 1
-  labs: []  # BP only unless annual checkup
+  labs: []
   labs_annual: [Creatinine, K, Na]
   vitals: [systolic_bp, diastolic_bp, heart_rate]
   prescriptions_renewed: true
   visit_duration_minutes: 15
 
 E11.9:  # Type 2 Diabetes
+  visit_reason: "Diabetes management, glycemic control review"
   follow_up_interval_months: 2
   labs: [Glucose]
   labs_quarterly: [HbA1c, Creatinine]
@@ -19,6 +20,7 @@ E11.9:  # Type 2 Diabetes
   visit_duration_minutes: 20
 
 E78:  # Dyslipidemia
+  visit_reason: "Lipid management, statin therapy monitoring"
   follow_up_interval_months: 3
   labs: []
   labs_quarterly: [AST, ALT]
@@ -28,6 +30,7 @@ E78:  # Dyslipidemia
   visit_duration_minutes: 10
 
 J44:  # COPD
+  visit_reason: "COPD management, pulmonary function review"
   follow_up_interval_months: 2
   labs: []
   labs_annual: [CRP, Hb]
@@ -36,6 +39,7 @@ J44:  # COPD
   visit_duration_minutes: 20
 
 N18:  # CKD
+  visit_reason: "Renal function monitoring, electrolyte check"
   follow_up_interval_months: 1
   labs: [Creatinine, K, Na, BUN]
   labs_quarterly: [Hb, Ca, eGFR]
@@ -44,6 +48,7 @@ N18:  # CKD
   visit_duration_minutes: 20
 
 I50:  # Heart failure
+  visit_reason: "Heart failure management, volume status assessment"
   follow_up_interval_months: 1
   labs: [BNP]
   labs_quarterly: [Creatinine, K, Na]
@@ -52,6 +57,7 @@ I50:  # Heart failure
   visit_duration_minutes: 20
 
 I48:  # Atrial fibrillation
+  visit_reason: "Anticoagulation management, INR check"
   follow_up_interval_months: 2
   labs: [PT_INR]
   vitals: [systolic_bp, heart_rate]
@@ -59,6 +65,7 @@ I48:  # Atrial fibrillation
   visit_duration_minutes: 15
 
 I25:  # Ischemic heart disease
+  visit_reason: "Coronary artery disease follow-up, cardiac risk management"
   follow_up_interval_months: 2
   labs: []
   labs_annual: [Creatinine, Glucose, LDL]
@@ -67,6 +74,7 @@ I25:  # Ischemic heart disease
   visit_duration_minutes: 15
 
 E03:  # Hypothyroidism
+  visit_reason: "Thyroid function monitoring, levothyroxine dose adjustment"
   follow_up_interval_months: 3
   labs: []
   labs_quarterly: [TSH]
@@ -74,9 +82,96 @@ E03:  # Hypothyroidism
   prescriptions_renewed: true
   visit_duration_minutes: 10
 
-# Post-discharge follow-up (generic, applied to all diseases)
+M81:  # Osteoporosis
+  visit_reason: "Bone health follow-up, fracture risk assessment"
+  follow_up_interval_months: 6
+  labs: []
+  labs_annual: [Ca]
+  vitals: [systolic_bp]
+  prescriptions_renewed: true
+  visit_duration_minutes: 10
+
+F00:  # Dementia
+  visit_reason: "Cognitive status assessment, caregiver support"
+  follow_up_interval_months: 3
+  labs: []
+  vitals: [systolic_bp, heart_rate]
+  prescriptions_renewed: true
+  visit_duration_minutes: 20
+
+G20:  # Parkinson's disease
+  visit_reason: "Motor function assessment, medication titration"
+  follow_up_interval_months: 2
+  labs: []
+  vitals: [systolic_bp, heart_rate]
+  prescriptions_renewed: true
+  visit_duration_minutes: 20
+
+# Disease-specific post-discharge follow-up
 _post_discharge:
-  first_visit_days: 14  # 2 weeks after discharge
-  labs: [CRP, WBC, Creatinine]  # basic recovery check
+  first_visit_days: 14
+  labs: [CRP, WBC, Creatinine]
   vitals: [systolic_bp, diastolic_bp, heart_rate, temperature]
   visit_duration_minutes: 20
+
+_post_discharge_by_disease:
+  bacterial_pneumonia:
+    visit_reason: "Post-pneumonia follow-up, CRP check, chest X-ray review"
+    labs: [CRP, WBC]
+  heart_failure_exacerbation:
+    visit_reason: "Post-HF discharge, volume status, BNP, weight check"
+    labs: [BNP, Creatinine, K]
+  hip_fracture:
+    visit_reason: "Post-surgical follow-up, wound check, mobility assessment"
+    labs: [CRP, Hb]
+  urinary_tract_infection:
+    visit_reason: "Post-UTI follow-up, urine culture result, symptom resolution"
+    labs: [CRP, WBC]
+  copd_exacerbation:
+    visit_reason: "Post-COPD exacerbation, pulmonary function, inhaler technique"
+    labs: [CRP]
+  sepsis:
+    visit_reason: "Post-sepsis recovery, organ function assessment, lab normalization"
+    labs: [CRP, WBC, Creatinine, AST, ALT, Plt]
+  cerebral_infarction:
+    visit_reason: "Post-stroke follow-up, neurological assessment, secondary prevention"
+    labs: [PT_INR, Creatinine]
+  acute_mi:
+    visit_reason: "Post-MI cardiac rehabilitation, medication optimization"
+    labs: [Creatinine, BNP]
+  gi_bleeding:
+    visit_reason: "Post-GI bleed follow-up, hemoglobin check, endoscopy results"
+    labs: [Hb, CRP]
+  diabetic_ketoacidosis:
+    visit_reason: "Post-DKA follow-up, insulin regimen review, HbA1c"
+    labs: [Glucose, HbA1c, K]
+  acute_kidney_injury:
+    visit_reason: "Post-AKI renal recovery monitoring, creatinine trend"
+    labs: [Creatinine, K, Na, BUN]
+  liver_cirrhosis_decompensated:
+    visit_reason: "Cirrhosis management, ascites assessment, hepatic function"
+    labs: [Albumin, AST, ALT, PT_INR]
+  acute_pancreatitis:
+    visit_reason: "Post-pancreatitis follow-up, amylase/lipase, dietary counseling"
+    labs: [CRP, Creatinine]
+  pulmonary_embolism:
+    visit_reason: "Anticoagulation monitoring, INR/DOAC level, symptom assessment"
+    labs: [PT_INR]
+  cellulitis:
+    visit_reason: "Post-cellulitis follow-up, wound healing assessment"
+    labs: [CRP, WBC]
+  aspiration_pneumonia:
+    visit_reason: "Post-aspiration pneumonia, swallowing evaluation, CRP check"
+    labs: [CRP, WBC]
+  atrial_fibrillation_rvr:
+    visit_reason: "Rate control assessment, ECG, anticoagulation review"
+    labs: [PT_INR]
+  ileus:
+    visit_reason: "Post-ileus follow-up, bowel function, dietary progression"
+    labs: [CRP]
+  acute_appendicitis:
+    visit_reason: "Post-appendectomy wound check, recovery assessment"
+    labs: []
+  acute_cholecystitis:
+    visit_reason: "Post-cholecystectomy follow-up, wound healing"
+    labs: []
