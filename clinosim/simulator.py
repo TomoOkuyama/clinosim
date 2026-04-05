@@ -1089,9 +1089,10 @@ def _generate_daily_io(
     else:
         oral = int(rng.normal(1200, 300))  # recovering
 
-    # Urine output: correlates with renal function
+    # Urine output: correlates with renal function and hydration
     base_urine = 1500 * state.renal_function
-    urine = int(max(100, rng.normal(base_urine, 300)))
+    urine_sd = max(100, base_urine * 0.2)  # SD proportional to base
+    urine = int(max(50, rng.normal(base_urine, urine_sd)))  # min 50ml (anuria threshold)
 
     # Drain (post-surgical only, simplified)
     drain = 0
