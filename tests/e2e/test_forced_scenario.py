@@ -53,37 +53,30 @@ class TestForcedScenario:
             assert len(r.rehab_sessions) > 0, "hip fracture should have rehab"
 
 
+@pytest.fixture(scope="module")
+def mixed_dataset():
+    config = SimulatorConfig(
+        catchment_population=30_000, random_seed=42,
+        time_range=("2024-04-01", "2025-03-31"),
+    )
+    return run_beta(config)
+
+
 @pytest.mark.e2e
 class TestMixedCondition:
-    def test_mixed_patients_exist(self):
-        config = SimulatorConfig(
-            catchment_population=30_000, random_seed=42,
-            time_range=("2024-04-01", "2025-03-31"),
-        )
-        dataset = run_beta(config)
-        mixed = [r for r in dataset.patients if r.condition_event.condition_type == "mixed"]
+    def test_mixed_patients_exist(self, mixed_dataset):
+        mixed = [r for r in mixed_dataset.patients if r.condition_event.condition_type == "mixed"]
         assert len(mixed) > 0, "Should have some mixed condition patients"
 
-    def test_mixed_has_dual_ground_truth(self):
-        config = SimulatorConfig(
-            catchment_population=30_000, random_seed=42,
-            time_range=("2024-04-01", "2025-03-31"),
-        )
-        dataset = run_beta(config)
-        mixed = [r for r in dataset.patients if r.condition_event.condition_type == "mixed"]
+    def test_mixed_has_dual_ground_truth(self, mixed_dataset):
+        mixed = [r for r in mixed_dataset.patients if r.condition_event.condition_type == "mixed"]
         if mixed:
             r = mixed[0]
             assert len(r.condition_event.ground_truth_diseases) >= 2
 
-    def test_mixed_state_reflects_both_diseases(self):
-        config = SimulatorConfig(
-            catchment_population=30_000, random_seed=42,
-            time_range=("2024-04-01", "2025-03-31"),
-        )
-        dataset = run_beta(config)
-        mixed = [r for r in dataset.patients if r.condition_event.condition_type == "mixed"]
+    def test_mixed_state_reflects_both_diseases(self, mixed_dataset):
+        mixed = [r for r in mixed_dataset.patients if r.condition_event.condition_type == "mixed"]
         if mixed:
             r = mixed[0]
             s = r.physiological_states[0]
-            # Mixed HF+pneumonia should have both inflammation (pneumonia) and volume overload (HF)
             assert s.inflammation_level > 0.3, "Should have inflammation from pneumonia"

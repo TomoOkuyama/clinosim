@@ -33,14 +33,23 @@ pip install -e ".[dev]"
 # Population-driven simulation (default: US, 10k catchment population)
 clinosim generate -o ./output --seed 42
 
-# Japan mode
-clinosim generate -o ./output --country JP --seed 42
+# Japan mode with all output formats
+clinosim generate -o ./output --country JP --format cif csv fhir
 
 # Generate specific disease scenarios
-clinosim test-disease bacterial_pneumonia -n 5 -o ./output --format cif csv fhir
+clinosim test-disease bacterial_pneumonia -n 5 --format cif csv
 
 # Force severity and archetype
-clinosim test-disease hip_fracture --severity severe --archetype dip_then_recovery
+clinosim test-disease sepsis --severity severe --archetype treatment_resistant
+
+# Generate with LLM narratives (requires Ollama)
+clinosim generate -o ./output --narrative --narrative-model qwen:7b
+
+# Data quality validation
+clinosim validate -p 5000 --country US
+
+# List available diseases
+clinosim list-diseases
 ```
 
 ### Python API
@@ -79,7 +88,7 @@ for record in dataset.patients:
 | Format | Description |
 |---|---|
 | **CIF** (default) | Structural JSON — full simulation data, immutable intermediate format |
-| **CSV** | 11 tables: patients, encounters, diagnoses, lab_results, vital_signs, orders, medication_administrations, procedures, rehab_sessions, intake_output, prescriptions |
+| **CSV** | 12 tables: patients, encounters, diagnoses, lab_results, vital_signs (with pain scores and nursing notes), orders (including diet), medication_administrations, procedures, rehab_sessions, intake_output, adl_assessments (Barthel Index), prescriptions |
 | **FHIR R4** | HL7 FHIR R4 JSON bundles (Patient, Encounter, Observation, MedicationRequest, MedicationAdministration, Procedure, Practitioner) |
 
 ---
