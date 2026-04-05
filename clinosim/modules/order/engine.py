@@ -67,7 +67,7 @@ def place_admission_orders(
             display_name=lab_spec["test"],
             urgency=lab_spec.get("urgency", "routine"),
             clinical_intent=f"Admission workup: {lab_spec['test']}",
-            ordered_datetime=admission_time,
+            ordered_datetime=admission_time + timedelta(minutes=int(rng.normal(5, 3))),
             ordered_by="STAFF-PLACEHOLDER-001",
             status=OrderStatus.PLACED,
         )

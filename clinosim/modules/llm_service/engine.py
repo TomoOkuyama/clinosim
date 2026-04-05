@@ -75,6 +75,46 @@ class LLMResponse:
     reasoning: str | None = None
 
 
+@dataclass
+class ProviderResponse:
+    text: str = ""
+    input_tokens: int = 0
+    output_tokens: int = 0
+    model: str = ""
+
+
+class OllamaProvider:
+    """Local Ollama LLM provider."""
+
+    def __init__(self, endpoint: str = "http://localhost:11434", model: str = "qwen:7b"):
+        self.endpoint = endpoint
+        self.default_model = model
+
+    def complete(self, prompt: str, model: str = "", max_tokens: int = 1500,
+                 system_prompt: str = "") -> ProviderResponse:
+        import httpx
+        model = model or self.default_model
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+
+        resp = httpx.post(
+            f"{self.endpoint}/api/chat",
+            json={"model": model, "messages": messages, "stream": False,
+                  "options": {"num_predict": max_tokens}},
+            timeout=120,
+        )
+        data = resp.json()
+        text = data.get("message", {}).get("content", "")
+        return ProviderResponse(
+            text=text,
+            input_tokens=data.get("prompt_eval_count", 0),
+            output_tokens=data.get("eval_count", 0),
+            model=model,
+        )
+
+
 class LLMService:
     """Central LLM service. All modules call generate() — never LLM directly."""
 
