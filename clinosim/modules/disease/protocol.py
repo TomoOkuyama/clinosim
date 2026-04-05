@@ -35,6 +35,14 @@ class DiseaseProtocol(BaseModel):
     reference_ranges: dict[str, Any] = {}
     outcome_benchmarks: dict[str, Any] = {}
 
+    # Disease metadata (eliminates hardcoding in simulator)
+    chief_complaint: str = ""  # e.g. "Fever, cough, dyspnea"
+    department: str = "internal_medicine"
+    encounter_type: str = "medical"  # "medical" | "surgical" | "trauma"
+    requires_surgery: bool = False
+    minimum_severity: str | None = None  # force minimum severity (e.g. "moderate" for fracture)
+    readmission_eligible: bool = True  # False for surgical conditions like fractures
+
 
 def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
     """Load a disease protocol YAML and validate."""

@@ -14,9 +14,11 @@ protocol = load_disease_protocol("bacterial_pneumonia")
 
 ```
 clinosim/modules/disease/reference_data/
-  bacterial_pneumonia.yaml          <- Phase 1 (complete)
-  heart_failure_exacerbation.yaml   <- Phase 1 (complete)
-  hip_fracture.yaml                 <- Phase 1 (complete)
+  bacterial_pneumonia.yaml
+  heart_failure_exacerbation.yaml
+  hip_fracture.yaml
+  urinary_tract_infection.yaml
+  copd_exacerbation.yaml
 ```
 
 ## Dependencies
@@ -38,6 +40,18 @@ source .venv/bin/activate && python -m pytest tests/unit/test_disease.py -v
 Create `clinosim/modules/disease/reference_data/{disease_id}.yaml`.
 
 Use `bacterial_pneumonia.yaml` as a reference template. The disease_id must be unique and use snake_case.
+
+**Required metadata fields** (top of YAML, controls simulator behavior without code changes):
+
+```yaml
+disease_id: urinary_tract_infection
+chief_complaint: "Fever, dysuria, flank pain"     # displayed in encounter
+department: internal_medicine                       # managing department
+encounter_type: medical                             # "medical" | "surgical" | "trauma"
+requires_surgery: false                             # triggers procedure engine
+minimum_severity: null                              # force minimum (e.g., "moderate" for fractures)
+readmission_eligible: true                          # false for surgical conditions
+```
 
 ### Step 2: Fill in each section
 
@@ -253,11 +267,25 @@ outcome_benchmarks:
     female_ratio: 0.65
 ```
 
-### Step 3: Register in population engine (if new disease type)
+### Step 3: Add epidemiology data to demographics.yaml
 
-If the disease follows the same trigger pattern as existing diseases (acute onset from incidence rate), it will be picked up automatically by the population engine once you add incidence data.
+Add your disease to `clinosim/locale/{us,jp}/demographics.yaml` under `disease_incidence`:
 
-If the disease has a special trigger (e.g., requires prior condition like HF exacerbation, or is trauma-triggered like hip fracture), add the trigger logic in `clinosim/modules/population/engine.py` in the `generate_monthly_events()` function.
+```yaml
+disease_incidence:
+  your_disease_id:
+    age_rates: {0: 10, 45: 50, 65: 200, 75: 600}
+    sex_ratio_female: 1.5
+    event_type: acute_disease_onset    # or chronic_exacerbation, trauma
+    severity_beta: [2, 3]              # beta distribution params
+    # Optional:
+    prerequisite_condition: I50        # requires prior chronic condition
+    always_hospitalize: true           # e.g., fractures
+    hospitalization_threshold_modifier: 0.7
+```
+
+Also add seasonal modifiers and risk multipliers in the same file.
+The population engine auto-discovers all diseases in `disease_incidence` — **no code changes needed**.
 
 ### Step 4: Test
 
@@ -281,7 +309,7 @@ Use `run_forced()` to generate data for your specific disease and archetype, wit
 
 ```python
 source .venv/bin/activate && python -c "
-from clinosim.simulator_beta import run_forced
+from clinosim.simulator import run_forced
 from clinosim.modules.output.cif_writer import write_cif
 from clinosim.modules.output.csv_adapter import convert_cif_to_csv
 from clinosim.types.config import ForcedScenario
@@ -313,7 +341,7 @@ Test each archetype separately to verify order/treatment modifications fire corr
 
 ```python
 source .venv/bin/activate && python -c "
-from clinosim.simulator_beta import run_forced
+from clinosim.simulator import run_forced
 from clinosim.types.config import ForcedScenario
 
 for archetype in ['smooth_recovery', 'dip_then_recovery', 'treatment_resistant',
@@ -351,7 +379,7 @@ Run a full population simulation and check your disease's outcome benchmarks:
 
 ```bash
 source .venv/bin/activate && python -c "
-from clinosim.simulator_beta import run_beta
+from clinosim.simulator import run_beta
 from clinosim.modules.validator.benchmarks import run_benchmarks
 from clinosim.types.config import SimulatorConfig
 
@@ -406,5 +434,8 @@ Not all hospital visits are driven by a single identifiable disease:
 - [x] ForcedScenario: generate specific disease + archetype + severity without population
 - [x] Disease-specific order protocols (admission, daily monitoring, discharge criteria)
 - [x] Disease-specific diagnostic data (differential, LR table, code progression)
+- [x] UTI + COPD exacerbation (data-driven, no code changes)
+- [x] Disease metadata YAML-driven (chief_complaint, department, surgery, readmission)
+- [x] Auto-discovery: adding YAML = adding disease
+- [ ] More diseases (stroke, AMI, sepsis, DKA)
 - [ ] Pediatric disease protocols
-- [ ] More diseases (UTI, stroke, AMI, sepsis, COPD, DKA)

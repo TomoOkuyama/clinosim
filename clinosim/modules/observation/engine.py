@@ -47,6 +47,26 @@ PRECISION: dict[str, int] = {
 }
 
 
+# Standard units for lab results
+LAB_UNITS: dict[str, str] = {
+    "Na": "mmol/L", "K": "mmol/L", "Cl": "mmol/L", "Ca": "mg/dL",
+    "Creatinine": "mg/dL", "BUN": "mg/dL", "Glucose": "mg/dL", "eGFR": "mL/min/1.73m2",
+    "AST": "U/L", "ALT": "U/L", "ALP": "U/L", "GGT": "U/L",
+    "T_Bil": "mg/dL", "Albumin": "g/dL", "TP": "g/dL",
+    "LDH": "U/L", "CK": "U/L",
+    "WBC": "/uL", "Hb": "g/dL", "Hct": "%", "Plt": "x10^3/uL",
+    "CRP": "mg/L", "PCT": "ng/mL", "BNP": "pg/mL", "Troponin": "ng/mL",
+    "Lactate": "mmol/L", "pH": "", "HCO3": "mmol/L", "pCO2": "mmHg",
+    "PT_INR": "", "Fibrinogen": "mg/dL", "D_dimer": "ug/mL",
+    "TSH": "mIU/L", "SpO2": "%",
+}
+
+
+def get_lab_unit(lab_name: str) -> str:
+    """Get the standard unit for a lab test."""
+    return LAB_UNITS.get(lab_name, "")
+
+
 def apply_realistic_variability(
     lab_name: str,
     true_value: float,

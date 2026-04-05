@@ -65,7 +65,7 @@
 | AD-9 | 2026-04-04 | Compact context pattern: pre-summarized `LLMClinicalContext` (~300 tokens) instead of full patient record for each LLM call. |
 | AD-10 | 2026-04-04 | Batch + cache strategy: LLM called at key narrative points only (4–11 calls per patient), with pattern caching for common scenarios. |
 | AD-11 | 2026-04-04 | All LLM calls go through `llm_service` module. No other module may call LLM directly. |
-| AD-12 | 2026-04-04 | Primary LLM provider: EC2 Bedrock Gateway → AWS Bedrock (Claude). Provider abstraction enables future addition of other LLM providers. |
+| AD-12 | 2026-04-04 | Default LLM provider: local Ollama (llama3.1:8b). Cloud APIs (Anthropic) available as optional fallback. Provider abstraction enables addition of other LLM providers. |
 | AD-13 | 2026-04-04 | Two LLM task categories: JUDGMENT (always English) and NARRATIVE (target country language). English judgment = better quality + fewer tokens. |
 | AD-14 | 2026-04-04 | Three-tier validation: Tier 1 statistical benchmarks (automated), Tier 2 clinical pattern validation (automated+expert), Tier 3 domain expert blind test (human). |
 | AD-15 | 2026-04-04 | Output as pluggable adapter system: each format (FHIR R4, CSV, HL7v2, etc.) is a separate adapter implementing OutputAdapter interface. |
@@ -80,7 +80,7 @@
 | AD-24 | 2026-04-04 | JUDGMENT and NARRATIVE use independently configurable LLM providers/models. Local + cloud mix supported. |
 | AD-25 | 2026-04-04 | CIF is language-neutral. Person names are country-specific at generation time. All other localization at output/Stage 2. |
 | AD-26 | 2026-04-04 | Clinical terminology uses official master data only (JLAC10, LOINC, etc.). Never LLM-translated. |
-| AD-27 | 2026-04-04 | All locale data (names, terminology, code mapping, formatting) centralized in `src/clinosim/locale/`. Adding a country = adding YAML files. |
+| AD-27 | 2026-04-04 | All locale data (names, terminology, code mapping, formatting) centralized in `clinosim/locale/`. Adding a country = adding YAML files. |
 
 ## Implementation Roadmap
 
@@ -94,92 +94,133 @@ v0.1-beta:  Population-driven, multiple archetypes, LLM template mode
 v0.1:       Full v0.1 with LLM, validation, CIF export
 ```
 
-### v0.1-alpha — "Hello World" (1 patient end-to-end)
+### v0.1-alpha — "Hello World" (1 patient end-to-end) ✅ COMPLETE
 
 Goal: Generate one pneumonia patient's 14-day inpatient record and write CIF.
-Skip: population, staff personas, LLM, complex archetypes.
 
-| # | Task | Module | Details |
+| # | Task | Module | Status |
 |---|---|---|---|
-| 1 | JP healthcare config (hardcoded defaults) | `healthcare_system` | Load japan.yaml with essential params only |
-| 2 | Medium hospital (hardcoded template) | `facility` | Load japan_medium.yaml, no randomization |
-| 3 | Test patient (hardcoded, no population) | `patient` | Directly create one PatientProfile: 72F, HT+DM, pneumonia |
-| 4 | Pneumonia protocol (YAML) | `disease` | Load bacterial_pneumonia.yaml, smooth_recovery archetype only |
-| 5 | Physiology engine (core 9 variables) | `physiology` | initialize_state + update + derive_lab_values + derive_vital_signs |
-| 6 | Inpatient encounter (linear workflow) | `encounter` | Admission → daily cycle × 14 → discharge. No branching. |
-| 7 | Lab/med orders (from protocol YAML) | `order` | place_from_protocol + timing. Lab collection triggers observation. |
-| 8 | Observation (Layer 3 noise) | `observation` | apply_realistic_variability on physiology-derived values |
-| 9 | Nursing (vitals + MAR only) | `nursing` | Vital sign events + medication administration records |
-| 10 | Validator (Pass 1 only) | `validator` | Rate-of-change + mutual exclusion checks |
-| 11 | CIF Writer (JSON) | `output` | Write CIFPatientRecord to JSON |
-| 12 | Simulator loop (single patient) | `simulator` | Wire modules, run 1 patient, write CIF |
+| 1 | JP healthcare config (hardcoded defaults) | `healthcare_system` | ✅ |
+| 2 | Medium hospital (hardcoded template) | `facility` | ✅ |
+| 3 | Test patient (hardcoded, no population) | `patient` | ✅ |
+| 4 | Pneumonia protocol (YAML) | `disease` | ✅ |
+| 5 | Physiology engine (core 9 variables) | `physiology` | ✅ |
+| 6 | Inpatient encounter (linear workflow) | `encounter` | ✅ |
+| 7 | Lab/med orders (from protocol YAML) | `order` | ✅ |
+| 8 | Observation (Layer 3 noise) | `observation` | ✅ |
+| 9 | Nursing (vitals + MAR only) | `nursing` | ✅ |
+| 10 | Validator (Pass 1 only) | `validator` | ✅ |
+| 11 | CIF Writer (JSON) | `output` | ✅ |
+| 12 | Simulator loop (single patient) | `simulator` | ✅ |
 
-**Skip in alpha**: population, staff (use placeholder IDs), LLM, diagnosis (fix working dx), treatment changes, procedure, multiple archetypes, CIF→FHIR/CSV adapters.
+### v0.1-beta — Population + archetypes + template mode (mostly complete)
 
-**Success criteria**: CIF JSON contains a complete 14-day pneumonia record with ~50 lab results, ~80 vital signs, medication orders, and timestamps that pass validator Pass 1.
+| # | Task | Module | Status |
+|---|---|---|---|
+| 1 | Population generation (households, Layer 1) | `population` | ✅ |
+| 2 | Life event engine (monthly loop, disease onset) | `population` | ✅ |
+| 3 | Care-seeking decision model | `population` | ✅ (implicit in event generation) |
+| 4 | Layer 1→2 activation / deactivation | `patient` | ✅ |
+| 5 | Staff roster + assignment | `staff` | ✅ (62-member JP roster) |
+| 6 | All 6 archetypes (not just smooth_recovery) | `disease`, `clinical_course` | ✅ |
+| 7 | Treatment selection + change logic | `treatment` | ✅ |
+| 8 | Bayesian differential diagnosis (basic) | `diagnosis` | ✅ (per-disease DIFFERENTIALS from YAML) |
+| 9 | LLM service — template mode only | `llm_service` | ✅ (Ollama + template fallback) |
+| 10 | Diet orders, infection control | `order`, `nursing` | Partial (orders yes, nursing basic) |
+| 11 | CIF → FHIR R4 adapter | `output` | ✅ (7 resource types) |
+| 12 | CIF → CSV adapter | `output` | ✅ (9 tables) |
+| 13 | Statistical benchmarks (Tier 1) | `validator` | Open |
+| 14 | Multiple patients (10–100) | `simulator` | ✅ |
 
-### v0.1-beta — Population + archetypes + template mode
-
-| # | Task | Module |
-|---|---|---|
-| 1 | Population generation (households, Layer 1) | `population` |
-| 2 | Life event engine (monthly loop, disease onset) | `population` |
-| 3 | Care-seeking decision model | `population` |
-| 4 | Layer 1→2 activation / deactivation | `patient` |
-| 5 | Staff roster + assignment | `staff` |
-| 6 | All 6 archetypes (not just smooth_recovery) | `disease`, `clinical_course` |
-| 7 | Treatment selection + change logic | `treatment` |
-| 8 | Bayesian differential diagnosis (basic) | `diagnosis` |
-| 9 | LLM service — template mode only | `llm_service` |
-| 10 | Diet orders, infection control | `order`, `nursing` |
-| 11 | CIF → FHIR R4 adapter | `output` |
-| 12 | CIF → CSV adapter | `output` |
-| 13 | Statistical benchmarks (Tier 1) | `validator` |
-| 14 | Multiple patients (10–100) | `simulator` |
+**Additionally implemented (ahead of schedule):**
+- 5 diseases: pneumonia, HF, hip fracture, UTI, COPD exacerbation (originally v0.2)
+- Surgical/procedural workflow + rehab sessions (originally v0.2)
+- US healthcare system support with country-specific LOS/drugs/demographics (originally v0.2)
+- Mixed conditions (dual-pathology) + unknown presentations
+- Mortality evaluation + 30-day readmission with prior encounter linking
+- Diagnosis-treatment feedback loop (misdiagnosis → slower recovery)
+- Natural recovery model (innate healing independent of treatment)
+- Diagnostic difficulty per disease (YAML-driven)
+- 16 chronic conditions with home medications + monitoring labs
+- Narrative generator (template-based, versioned)
+- ForcedScenario mode (test specific disease/archetype)
+- Complete locale system (24 YAML files: names, terminology, code mapping, demographics, formatting)
+- Disease protocol auto-discovery (no code changes for new diseases)
+- All disease parameters YAML-driven (chief complaint, department, surgery, readmission eligibility)
 
 ### v0.1 — Full foundation release
 
-| # | Task | Module |
-|---|---|---|
-| 1 | LLM mode (Bedrock Gateway) | `llm_service` |
-| 2 | LLM narrative generation (H&P, progress notes, discharge summary) | `llm_service` |
-| 3 | LLM judgment (diagnostic reasoning, treatment rationale) | `llm_service` |
-| 4 | Consent records | `encounter` |
-| 5 | Prescription model (JP 院外処方) | `treatment` |
-| 6 | Documentation noise (delayed entry, templates) | `nursing` |
-| 7 | Device auto-recording (ICU monitors, POCT) | `observation`, `nursing` |
-| 8 | 3-layer variability model (CVi + pre-analytical + CVa) | `observation` |
-| 9 | Health checkup encounters | `encounter`, `population` |
-| 10 | Outpatient chronic disease management | `encounter`, `population` |
-| 11 | Validator Pass 2 (LLM consistency review) | `validator` |
-| 12 | Reproducibility (seed management, LLM cache) | `simulator` |
-| 13 | Configuration preset + override API | `simulator` |
-| 14 | Full validation report (Tier 1 + Tier 2) | `validator` |
-| 15 | Scale: 100–1,000 patients | `simulator` |
+| # | Task | Module | Status |
+|---|---|---|---|
+| 1 | LLM mode (Ollama local default) | `llm_service` | ✅ (template mode done, real LLM untested) |
+| 2 | LLM narrative generation (H&P, progress notes, discharge summary) | `llm_service` | ✅ (template mode) |
+| 3 | LLM judgment (diagnostic reasoning, treatment rationale) | `llm_service` | Open |
+| 4 | Consent records | `encounter` | Open |
+| 5 | Prescription model (discharge Rx) | `treatment` | ✅ (basic discharge prescriptions) |
+| 6 | Documentation noise (delayed entry, templates) | `nursing` | Open |
+| 7 | Device auto-recording (ICU monitors, POCT) | `observation`, `nursing` | Open |
+| 8 | 3-layer variability model (CVi + pre-analytical + CVa) | `observation` | ✅ |
+| 9 | Health checkup encounters | `encounter`, `population` | Open |
+| 10 | Outpatient chronic disease management | `encounter`, `population` | Open |
+| 11 | Validator Pass 2 (LLM consistency review) | `validator` | Open |
+| 12 | Reproducibility (seed management, LLM cache) | `simulator` | ✅ (seed-based reproducibility) |
+| 13 | Configuration preset + override API | `simulator` | Partial (SimulatorConfig, no preset API) |
+| 14 | Full validation report (Tier 1 + Tier 2) | `validator` | Open |
+| 15 | Scale: 100–1,000 patients | `simulator` | Open (tested up to ~50) |
 
 ### v0.2 — Core expansion
 
-- [ ] Heart failure exacerbation + hip fracture disease modules
-- [ ] Surgical/procedural workflow (`procedure`)
-- [ ] Rehabilitation (FIM, PT/OT/ST sessions)
+- [x] Heart failure exacerbation + hip fracture disease modules (done in v0.1-beta)
+- [x] Surgical/procedural workflow — `procedure` (done in v0.1-beta)
+- [x] Rehabilitation (PT/OT sessions) (done in v0.1-beta)
 - [ ] ED + day surgery encounter workflows
-- [ ] US healthcare system
+- [x] US healthcare system (done in v0.1-beta)
 - [ ] Staff lifecycle (hiring, retirement, rotation)
 - [ ] Encounter workflow YAML-ization (AD for v0.2)
 - [ ] Pregnancy/delivery/NICU encounters
 - [ ] Multi-department outpatient patterns
+- [x] UTI + COPD exacerbation diseases (done in v0.1-beta)
+- [x] Sepsis, cerebral infarction, acute MI, GI bleeding, DKA (done in v0.1-beta)
+- [x] Ileus, pancreatitis, appendicitis, PE, cholecystitis, AF/RVR, cellulitis, AKI, cirrhosis, aspiration PNA
+- **20 diseases total — ~75% coverage of acute hospital admissions**
+- [x] Drug terminology/code_mapping per locale (RxNorm + YJ code)
+- [x] Diagnosis terminology/code_mapping per locale (ICD-10-CM + ICD-10)
+- [x] Procedure terminology/code_mapping per locale (CPT + K-code)
 
-### v0.3 — Diagnostic reasoning + realism
+### v0.3 — Encounter types beyond acute inpatient
+
+- [ ] **Outpatient encounters**
+  - [ ] Chronic disease follow-up (HT/DM/dyslipidemia monthly visits: BP, labs, prescription renewal)
+  - [ ] Post-discharge follow-up (2-week post-discharge visit, labs, medication review)
+  - [ ] Specialty outpatient (cardiology, neurology, gastro follow-up after inpatient)
+- [ ] **Emergency department encounters**
+  - [ ] ED visit → discharge home (no admission: minor injuries, viral illness, stable chest pain)
+  - [ ] ED visit → admission (current flow, but with explicit ED documentation)
+- [ ] **Acute events (non-disease)**
+  - [ ] Trauma (falls, traffic accidents, workplace injuries — beyond hip fracture)
+  - [ ] Burns
+  - [ ] Poisoning / drug overdose
+  - [ ] Food poisoning / acute gastroenteritis
+  - [ ] Allergic reactions / anaphylaxis
+- [ ] **Day surgery / procedures**
+  - [ ] Endoscopy (screening, diagnostic)
+  - [ ] Cataract surgery
+  - [ ] Colonoscopy / polypectomy
+- [ ] **Health checkup (定期健診)**
+  - [ ] Annual health screening (blood tests, chest X-ray, urinalysis)
+  - [ ] Cancer screening (colonoscopy, mammography, CT)
+
+### v0.4 — Diagnostic reasoning + realism
 
 - [ ] Advanced Bayesian diagnosis (therapeutic trials, diagnostic drift)
-- [ ] Complication cascade
-- [ ] Context-dependent missingness
+- [ ] Complication cascade improvements
+- [x] Context-dependent missingness (done: weekend/stable/discharge lab reduction, specimen rejection, hemolysis)
 - [ ] Explainable anomaly patterns
-- [ ] 30-day readmission model
+- [x] 30-day readmission model (done in v0.1-beta, with prior encounter linking)
 - [ ] Consultation workflow
 - [ ] Pediatric disease modules
 
-### v0.4 — Scale + polish
+### v0.5 — Scale + polish
 
 - [ ] Small/large hospital templates
 - [ ] Mental health encounters (psychiatric admission)

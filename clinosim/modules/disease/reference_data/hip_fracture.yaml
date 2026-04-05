@@ -2,6 +2,13 @@
 # Sources: MHLW Patient Survey, Japanese Orthopaedic Association, AAOS, Cochrane reviews
 
 disease_id: hip_fracture
+chief_complaint: "Hip pain after fall, unable to walk"
+department: internal_medicine
+encounter_type: surgical
+requires_surgery: true
+minimum_severity: moderate
+readmission_eligible: false  # Surgical — readmissions are for complications, not same disease
+
 icd_codes:
   primary: "S72.0"
   variants:
@@ -165,6 +172,7 @@ rehabilitation:
     week_4: {motor: 75, cognitive: 33}
 
 diagnostic:
+  diagnostic_difficulty: 0.05  # X-ray confirms immediately
   differential:
     - {disease: "hip_fracture", icd: "S72.0", name: "Hip fracture", prior: 0.85}
     - {disease: "pathological_fracture", icd: "M84.4", name: "Pathological fracture (tumor)", prior: 0.05}

@@ -1,0 +1,36 @@
+# Diagnosis code mapping — Internal ICD-10 → ICD-10 (Japan)
+# Source: ICD-10 (2013年版準拠)
+# Note: Japan uses standard ICD-10 codes without clinical modification.
+
+# 肺炎
+J15.9: "J15.9"
+J18.9: "J18.9"
+J15.0: "J15.0"
+J15.1: "J15.1"
+J13: "J13"
+
+# 心不全
+I50.9: "I50.9"
+I50.1: "I50.1"
+I50: "I50.9"
+
+# 大腿骨骨折
+S72.0: "S72.0"
+S72.1: "S72.1"
+
+# 慢性疾患
+I10: "I10"
+E11.9: "E11.9"
+E78: "E78"
+J44: "J44"
+N18: "N18"
+I48: "I48"
+I25: "I25"
+M81: "M81"
+F00: "F00"
+G20: "G20"
+E03: "E03"
+K21: "K21"
+J45: "J45"
+N40: "N40"
+M17: "M17"

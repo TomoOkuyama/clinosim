@@ -1,0 +1,980 @@
+# COPD Exacerbation — Complete Reference Data
+# Sources cited per section. All rates are approximate and should be validated
+# against the most current published data before production use.
+
+disease_id: copd_exacerbation
+chief_complaint: "Worsening dyspnea, increased sputum production, wheezing"
+department: internal_medicine
+encounter_type: medical
+requires_surgery: false
+readmission_eligible: true   # COPD has very high readmission rates (~20%)
+minimum_severity: null
+
+icd_codes:
+  primary: "J44.1"  # COPD with acute exacerbation
+  variants:
+    - {code: "J44.0", name: "COPD with acute lower respiratory infection", probability: 0.35}
+    - {code: "J44.1", name: "COPD with acute exacerbation, unspecified", probability: 0.50}
+    - {code: "J44.9", name: "COPD, unspecified", probability: 0.10}
+    - {code: "J96.00", name: "Acute respiratory failure, unspecified (secondary)", probability: 0.05}
+
+# ============================================================
+# INCIDENCE (per 100,000 per year, by age band and sex)
+# Source: JP — MHLW Patient Survey 2020, COPD epidemiology studies
+#         US — CDC NHDS, GOLD Report 2023, Mannino et al.
+# ============================================================
+incidence:
+  japan:
+    "0-4":   {M: 0, F: 0}
+    "5-14":  {M: 0, F: 0}
+    "15-24": {M: 1, F: 1}
+    "25-34": {M: 5, F: 3}
+    "35-44": {M: 20, F: 10}
+    "45-54": {M: 80, F: 40}
+    "55-64": {M: 200, F: 100}
+    "65-74": {M: 500, F: 250}
+    "75-84": {M: 900, F: 500}
+    "85+":   {M: 1200, F: 700}
+  us:
+    "0-4":   {M: 0, F: 0}
+    "5-14":  {M: 0, F: 0}
+    "15-24": {M: 2, F: 2}
+    "25-34": {M: 8, F: 5}
+    "35-44": {M: 30, F: 20}
+    "45-54": {M: 120, F: 80}
+    "55-64": {M: 300, F: 200}
+    "65-74": {M: 600, F: 400}
+    "75-84": {M: 1000, F: 650}
+    "85+":   {M: 1300, F: 900}
+
+  risk_multipliers:
+    - {condition: "smoking_current", multiplier: 3.5}
+    - {condition: "smoking_former", multiplier: 1.8}
+    - {condition: "heart_failure", multiplier: 2.5}
+    - {condition: "diabetes", multiplier: 1.3}
+    - {condition: "GERD", multiplier: 1.5}
+    - {condition: "CKD", multiplier: 1.5}
+    - {condition: "anxiety_depression", multiplier: 1.4}
+    - {condition: "low_BMI", multiplier: 1.6}     # BMI < 20; cachexia risk
+    - {condition: "prior_exacerbation", multiplier: 3.0}   # strongest predictor
+    - {condition: "home_oxygen_use", multiplier: 2.5}
+    - {condition: "inhaler_nonadherence", multiplier: 2.0}
+
+  seasonal_curve:  # monthly multiplier (1.0 = baseline)
+    1: 1.6    # Jan — cold, viral triggers
+    2: 1.5
+    3: 1.3
+    4: 1.0
+    5: 0.8
+    6: 0.7
+    7: 0.7
+    8: 0.7
+    9: 0.9
+    10: 1.1
+    11: 1.3
+    12: 1.5
+
+  vaccine_protection:
+    influenza:
+      effectiveness: 0.30   # reduces viral-triggered exacerbations
+      duration_days: 365
+    pneumococcal:
+      effectiveness: 0.20   # reduces bacterial co-infection
+      duration_days: 1825   # ~5 years
+
+# ============================================================
+# SEVERITY DISTRIBUTION
+# Source: GOLD 2023, BAP-65 score, COPD exacerbation severity studies
+# ============================================================
+severity:
+  distribution:
+    mild: 0.25        # increased bronchodilator use only (typically outpatient)
+    moderate: 0.55    # requires hospitalization, systemic steroids + antibiotics
+    severe: 0.20      # requires ICU / NIV / intubation
+  modifiers:
+    - {condition: "age_over_75", mild_multiplier: 0.6, severe_multiplier: 1.8}
+    - {condition: "FEV1_below_30", severe_multiplier: 2.5, mild_multiplier: 0.3}
+    - {condition: "heart_failure", moderate_multiplier: 1.3, severe_multiplier: 1.8}
+    - {condition: "home_oxygen_use", severe_multiplier: 2.0}
+    - {condition: "prior_icu_admission", severe_multiplier: 2.0}
+    - {condition: "hypercapnia_baseline", severe_multiplier: 1.5}
+
+# ============================================================
+# INITIAL PHYSIOLOGICAL STATE IMPACT
+# How this disease changes physiological state at onset (added to patient baseline)
+# COPD exacerbation: airflow obstruction, V/Q mismatch, respiratory acidosis
+# ============================================================
+initial_state_impact:
+  mild:
+    inflammation_level: 0.15
+    ph_status: -0.05           # mild respiratory acidosis
+  moderate:
+    inflammation_level: 0.30
+    ph_status: -0.15           # moderate respiratory acidosis
+    volume_status: -0.05
+    perfusion_status: -0.05
+  severe:
+    inflammation_level: 0.50
+    ph_status: -0.25           # significant respiratory acidosis (CO2 retention)
+    volume_status: -0.15
+    perfusion_status: -0.15
+    renal_function: -0.05
+
+# ============================================================
+# ORDER PROTOCOLS (what to order and when)
+# All admission orders, daily monitoring, and discharge criteria
+# are defined here — the engine reads this, not hardcoded.
+# ============================================================
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "CRP", urgency: "stat"}
+      - {test: "WBC", urgency: "stat"}
+      - {test: "ABG", urgency: "stat"}           # critical for COPD: pH, pCO2, pO2
+      - {test: "PCT", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "BUN", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "BNP", urgency: "stat", probability: 0.70}    # rule out heart failure
+      - {test: "D_dimer", urgency: "stat", probability: 0.30}  # if PE concern
+      - {test: "Sputum_culture", urgency: "routine", probability: 0.60}
+    imaging:
+      - {test: "Chest_Xray_PA_Lateral", urgency: "stat"}
+      - {test: "Chest_CT", urgency: "routine", probability: 0.30}   # if diagnostic uncertainty
+    supportive:
+      - {type: "bronchodilator", detail: "Salbutamol 2.5mg nebulizer q4h (q1h PRN acute)"}
+      - {type: "bronchodilator", detail: "Ipratropium 0.5mg nebulizer q6h"}
+      - {type: "steroid", detail: "Prednisolone 40mg PO daily x5 days"}
+      - {type: "O2", detail: "Controlled O2 target SpO2 88-92% (avoid hyperoxia in CO2 retainers)"}
+      - {type: "DVT_prophylaxis", detail: "Enoxaparin 2000IU SC daily"}
+      - {type: "antipyretic", detail: "Acetaminophen 500mg PO q6h PRN temp >= 38.5"}
+
+  daily_monitoring:
+    labs:
+      - {test: "CRP", frequency: "daily"}
+      - {test: "WBC", frequency: "daily"}
+      - {test: "ABG", frequency: "daily_until_stable"}
+      - {test: "Creatinine", frequency: "daily"}
+    vitals:
+      stable: "q4h"
+      unstable: "q1h"
+    respiratory:
+      - {test: "SpO2_continuous", condition: "first 24-48h or if on NIV"}
+      - {test: "peak_flow", frequency: "BID", condition: "if able to perform"}
+    imaging:
+      - {test: "Chest_Xray", frequency: "day_3_and_prn", condition: "no improvement or worsening"}
+
+  trigger_orders:
+    persistent_hypercapnia:
+      condition: "pCO2 > 60 mmHg or pH < 7.30 despite treatment"
+      actions:
+        - {type: "respiratory", action: "initiate_NIV_BiPAP"}
+        - {type: "lab", test: "ABG_repeat_1h"}
+        - {type: "evaluate", action: "consider_ICU_transfer"}
+    niv_failure:
+      condition: "pH < 7.25 despite 1-2h NIV or clinical deterioration"
+      actions:
+        - {type: "evaluate", action: "intubation_and_mechanical_ventilation"}
+        - {type: "action", action: "ICU_transfer"}
+    no_improvement_72h:
+      condition: "inflammation_level > 0.4 at Day 3 or persistent dyspnea"
+      actions:
+        - {type: "lab", test: "Sputum_culture_repeat"}
+        - {type: "lab", test: "PCT"}
+        - {type: "imaging", test: "Chest_CT_with_contrast"}
+        - {type: "medication_change", action: "add_or_escalate_antibiotic"}
+        - {type: "consult", target: "pulmonology"}
+    spo2_below_85:
+      condition: "SpO2 < 85% on controlled O2"
+      actions:
+        - {type: "lab", test: "ABG"}
+        - {type: "respiratory", action: "increase_O2_or_initiate_NIV"}
+        - {type: "evaluate", action: "consider_ICU_transfer"}
+    renal_deterioration:
+      condition: "Creatinine rise > 0.3 from baseline"
+      actions:
+        - {type: "medication_change", action: "adjust_medications_for_renal"}
+        - {type: "fluid", action: "reassess_volume_status"}
+
+  discharge_criteria:
+    japan:
+      - "Dyspnea returned to baseline or near-baseline"
+      - "SpO2 >= 90% on room air (or patient's baseline O2)"
+      - "ABG stable: pH > 7.35, pCO2 at patient's baseline"
+      - "Inhaler technique assessed and adequate"
+      - "CRP declining"
+      - "No nebulizer needed for >= 24 hours"
+      - "Oral medication tolerated"
+      - "ADL independent or with available support"
+    us:
+      - "Dyspnea returned to baseline"
+      - "SpO2 >= 88% on room air (or baseline O2)"
+      - "No more than q4h bronchodilator use"
+      - "Oral steroids and antibiotics tolerated"
+      - "Clinically stable (no escalation in 12-24h)"
+      - "Outpatient follow-up arranged within 7 days"
+
+# ============================================================
+# DIAGNOSTIC SECTION
+# Source: GOLD 2023, clinical decision-making studies
+# ============================================================
+diagnostic:
+  # 0.0 = trivial (fracture on X-ray), 1.0 = very difficult (rare disease)
+  diagnostic_difficulty: 0.40  # overlaps with pneumonia, heart failure, PE
+  differential:
+    - {disease: "copd_exacerbation", icd: "J44.1", name: "COPD with acute exacerbation", prior: 0.50}
+    - {disease: "bacterial_pneumonia", icd: "J18.9", name: "Bacterial pneumonia", prior: 0.15}
+    - {disease: "heart_failure_exacerbation", icd: "I50.9", name: "Heart failure exacerbation", prior: 0.12}
+    - {disease: "pulmonary_embolism", icd: "I26.9", name: "Pulmonary embolism", prior: 0.05}
+    - {disease: "pneumothorax", icd: "J93.9", name: "Pneumothorax", prior: 0.03}
+    - {disease: "lung_cancer", icd: "C34.9", name: "Lung cancer (new/progressing)", prior: 0.03}
+    - {disease: "other", icd: "R06.0", name: "Other causes of dyspnea", prior: 0.12}
+
+# ============================================================
+# LIKELIHOOD RATIO TABLE
+# Source: Clinical diagnostic studies meta-analyses
+#         GOLD 2023, Thomsen et al., Daniels et al.
+# ============================================================
+likelihood_ratios:
+  history_of_copd_confirmed:
+    copd_exacerbation: {positive_LR: 12.0, negative_LR: 0.05}
+    bacterial_pneumonia: {positive_LR: 1.5, negative_LR: 0.9}
+    heart_failure_exacerbation: {positive_LR: 1.2, negative_LR: 0.9}
+
+  increased_sputum_purulence:
+    copd_exacerbation: {positive_LR: 3.5, negative_LR: 0.6}
+    bacterial_pneumonia: {positive_LR: 2.0, negative_LR: 0.7}
+
+  wheezing_on_auscultation:
+    copd_exacerbation: {positive_LR: 4.0, negative_LR: 0.5}
+    heart_failure_exacerbation: {positive_LR: 1.5, negative_LR: 0.8}
+    bacterial_pneumonia: {positive_LR: 0.8, negative_LR: 1.1}
+
+  chest_xray_hyperinflation:
+    copd_exacerbation: {positive_LR: 5.0, negative_LR: 0.7}
+    bacterial_pneumonia: {positive_LR: 0.5, negative_LR: 1.1}
+    heart_failure_exacerbation: {positive_LR: 0.3, negative_LR: 1.1}
+
+  chest_xray_consolidation:
+    copd_exacerbation: {positive_LR: 0.4, negative_LR: 1.2}
+    bacterial_pneumonia: {positive_LR: 8.0, negative_LR: 0.3}
+    heart_failure_exacerbation: {positive_LR: 0.5, negative_LR: 1.1}
+
+  procalcitonin_above_0.25:
+    copd_exacerbation: {positive_LR: 1.5, negative_LR: 0.8}
+    bacterial_pneumonia: {positive_LR: 5.0, negative_LR: 0.2}
+
+  bnp_above_300:
+    copd_exacerbation: {positive_LR: 0.6, negative_LR: 1.3}
+    heart_failure_exacerbation: {positive_LR: 8.0, negative_LR: 0.15}
+
+  abg_respiratory_acidosis:
+    copd_exacerbation: {positive_LR: 5.0, negative_LR: 0.5}
+    bacterial_pneumonia: {positive_LR: 1.5, negative_LR: 0.9}
+    pulmonary_embolism: {positive_LR: 1.2, negative_LR: 0.9}
+
+  d_dimer_elevated:
+    copd_exacerbation: {positive_LR: 1.2, negative_LR: 0.9}
+    pulmonary_embolism: {positive_LR: 6.0, negative_LR: 0.10}
+
+  bilateral_infiltrates:
+    copd_exacerbation: {positive_LR: 0.5, negative_LR: 1.1}
+    heart_failure_exacerbation: {positive_LR: 3.0, negative_LR: 0.4}
+    bacterial_pneumonia: {positive_LR: 1.5, negative_LR: 0.8}
+
+  absent_breath_sounds_unilateral:
+    copd_exacerbation: {positive_LR: 0.3, negative_LR: 1.0}
+    pneumothorax: {positive_LR: 15.0, negative_LR: 0.4}
+
+# ============================================================
+# LAB REFERENCE RANGES (admission values for COPD exacerbation patients)
+# For benchmarking generated data
+# Source: Clinical studies, textbook values, GOLD 2023
+# ============================================================
+expected_lab_distributions:
+  admission:
+    CRP:
+      unit: "mg/L"
+      median: 40
+      iqr: [15, 80]
+      range: [2, 250]
+      note: "lower than pneumonia unless infectious trigger"
+    WBC:
+      unit: "/uL"
+      median: 10000
+      iqr: [7500, 13000]
+      range: [4000, 22000]
+    PCT:
+      unit: "ng/mL"
+      median: 0.15
+      iqr: [0.05, 0.5]
+      range: [0.02, 10]
+      note: "low unless bacterial co-infection"
+    ABG_pH:
+      unit: ""
+      median: 7.33
+      iqr: [7.28, 7.38]
+      range: [7.10, 7.45]
+      note: "respiratory acidosis from CO2 retention"
+    ABG_pCO2:
+      unit: "mmHg"
+      median: 55
+      iqr: [45, 70]
+      range: [35, 100]
+      note: "elevated = hypercapnic respiratory failure"
+    ABG_pO2:
+      unit: "mmHg"
+      median: 58
+      iqr: [48, 68]
+      range: [35, 85]
+      note: "hypoxemia from V/Q mismatch"
+    ABG_HCO3:
+      unit: "mEq/L"
+      median: 28
+      iqr: [25, 32]
+      range: [18, 40]
+      note: "often elevated (chronic metabolic compensation)"
+    Creatinine:
+      unit: "mg/dL"
+      median: 0.9
+      iqr: [0.7, 1.2]
+      range: [0.4, 4.0]
+    BUN:
+      unit: "mg/dL"
+      median: 18
+      iqr: [12, 26]
+      range: [6, 60]
+    Glucose:
+      unit: "mg/dL"
+      median: 140
+      iqr: [110, 190]
+      range: [70, 400]
+      note: "steroid-induced hyperglycemia expected during treatment"
+    BNP:
+      unit: "pg/mL"
+      median: 80
+      iqr: [30, 180]
+      range: [5, 500]
+      note: "mild elevation from right heart strain; >300 suggests HF overlap"
+
+  discharge:
+    CRP:
+      unit: "mg/L"
+      median: 8
+      iqr: [3, 18]
+    WBC:
+      unit: "/uL"
+      median: 8000
+      iqr: [6000, 10000]
+    ABG_pH:
+      unit: ""
+      median: 7.38
+      iqr: [7.35, 7.42]
+      note: "returned toward patient's chronic baseline"
+    ABG_pCO2:
+      unit: "mmHg"
+      median: 48
+      iqr: [42, 55]
+      note: "may remain elevated if chronic CO2 retainer"
+
+# ============================================================
+# VITAL SIGN DISTRIBUTIONS
+# Source: Clinical studies on COPD exacerbation
+# ============================================================
+expected_vital_distributions:
+  admission:
+    temperature:
+      unit: "C"
+      mean: 37.3
+      sd: 0.6
+      range: [36.0, 39.0]
+      note: "less febrile than pneumonia unless infectious trigger"
+    heart_rate:
+      unit: "bpm"
+      mean: 105
+      sd: 15
+      range: [70, 140]
+    systolic_bp:
+      unit: "mmHg"
+      mean: 135
+      sd: 20
+      range: [90, 180]
+      note: "often mildly elevated from sympathetic activation"
+    respiratory_rate:
+      unit: "/min"
+      mean: 26
+      sd: 6
+      range: [18, 45]
+      note: "typically higher than pneumonia"
+    spo2:
+      unit: "%"
+      mean: 89
+      sd: 4
+      range: [70, 96]
+      note: "target 88-92% to avoid suppressing hypoxic drive"
+
+# ============================================================
+# TREATMENT REFERENCE — Drug selection data
+# Source: GOLD 2023, JRS COPD Guidelines 2022, ATS/ERS guidelines
+# ============================================================
+drugs:
+  first_line:
+    japan:
+      - drug: "Salbutamol"
+        code_yj: "2259701"
+        dose: "2.5mg nebulizer q4h (q1h PRN acute)"
+        route: inhaled
+        pregnancy_safe: true
+      - drug: "Ipratropium"
+        code_yj: "2259402"
+        dose: "0.5mg nebulizer q6h"
+        route: inhaled
+        pregnancy_safe: true
+      - drug: "Prednisolone"
+        code_yj: "2456001"
+        dose: "30-40mg PO daily x5-7 days"
+        route: PO
+        note: "or Methylprednisolone 125mg IV if unable to take PO"
+        pregnancy_safe: false
+    us:
+      - drug: "Albuterol"
+        code_rxnorm: "435"
+        dose: "2.5mg nebulizer q4h (q1h PRN acute)"
+        route: inhaled
+        pregnancy_safe: true
+      - drug: "Ipratropium"
+        code_rxnorm: "7213"
+        dose: "0.5mg nebulizer q6h"
+        route: inhaled
+        pregnancy_safe: true
+      - drug: "Prednisone"
+        code_rxnorm: "8640"
+        dose: "40mg PO daily x5 days"
+        route: PO
+        pregnancy_safe: false
+
+  antibiotics_if_infectious:
+    japan:
+      - drug: "Ceftriaxone"
+        code_yj: "6132413"
+        dose: "1g IV daily"
+        route: IV
+        indication: "purulent sputum or suspected bacterial trigger"
+        renal_adjustment:
+          eGFR_below_30: "1g IV daily (no adjustment needed)"
+        pregnancy_safe: true
+      - drug: "Azithromycin"
+        code_yj: "6149007"
+        dose: "500mg PO day1, then 250mg PO days 2-5"
+        route: PO
+        indication: "atypical coverage or mild infection"
+        pregnancy_safe: true
+    us:
+      - drug: "Ceftriaxone"
+        code_rxnorm: "309090"
+        dose: "1g IV daily"
+        route: IV
+        indication: "purulent sputum + elevated WBC/CRP"
+        pregnancy_safe: true
+      - drug: "Azithromycin"
+        code_rxnorm: "248656"
+        dose: "500mg PO day1, then 250mg PO days 2-5"
+        route: PO
+        indication: "atypical coverage or outpatient transition"
+        pregnancy_safe: true
+
+  alternative_penicillin_allergy:
+    japan:
+      - drug: "Levofloxacin"
+        code_yj: "6241017"
+        dose: "500mg IV or PO daily"
+        renal_adjustment:
+          eGFR_below_50: "250mg daily"
+        pregnancy_safe: false
+    us:
+      - drug: "Levofloxacin"
+        code_rxnorm: "82122"
+        dose: "750mg PO daily"
+        renal_adjustment:
+          eGFR_below_50: "500mg daily"
+        pregnancy_safe: false
+
+  escalation:  # when first-line fails (Day 3 no improvement or NIV failure)
+    japan:
+      - drug: "Meropenem"
+        code_yj: "6139401"
+        dose: "1g IV q8h"
+        indication: "no_improvement_72h or culture_resistant_organism"
+        renal_adjustment:
+          eGFR_below_30: "0.5g IV q12h"
+    us:
+      - drug: "Piperacillin/Tazobactam"
+        code_rxnorm: "240984"
+        dose: "4.5g IV q6h"
+        indication: "same"
+
+  discharge_oral:
+    japan:
+      - drug: "Prednisolone"
+        code_yj: "2456001"
+        dose: "20mg PO daily, taper over 5-7 days"
+        duration_days: 7
+        note: "total steroid course 10-14 days"
+      - drug: "Amoxicillin/Clavulanate"
+        code_yj: "6131101"
+        dose: "250mg PO TID"
+        duration_days: 5
+        condition: "if infectious trigger"
+    us:
+      - drug: "Prednisone"
+        code_rxnorm: "8640"
+        dose: "40mg PO daily (remaining days of 5-day course)"
+        duration_days: 3
+      - drug: "Amoxicillin/Clavulanate"
+        code_rxnorm: "562251"
+        dose: "875/125mg PO BID"
+        duration_days: 5
+        condition: "if infectious trigger"
+
+# ============================================================
+# DRUG INTERACTIONS relevant to COPD exacerbation treatment
+# ============================================================
+drug_interactions:
+  - drug_a: "Prednisolone"
+    drug_b: "Warfarin"
+    severity: "moderate"
+    effect: "Altered INR, increased bleeding risk"
+    action: "Monitor INR more frequently"
+
+  - drug_a: "Prednisolone"
+    drug_b: "Insulin"
+    severity: "moderate"
+    effect: "Steroid-induced hyperglycemia"
+    action: "Increase insulin dose; monitor glucose q6h"
+
+  - drug_a: "Salbutamol"
+    drug_b: "Beta_blocker"
+    severity: "major"
+    effect: "Mutual antagonism; salbutamol may cause hypokalemia"
+    action: "Use cardioselective beta-blocker; monitor K+"
+
+  - drug_a: "Ipratropium"
+    drug_b: "Tiotropium"
+    severity: "moderate"
+    effect: "Redundant anticholinergic; increased side effects"
+    action: "Hold long-acting anticholinergic during acute nebulizer use"
+
+  - drug_a: "Levofloxacin"
+    drug_b: "Warfarin"
+    severity: "major"
+    effect: "Increased INR, bleeding risk"
+    action: "Monitor INR closely"
+
+  - drug_a: "Azithromycin"
+    drug_b: "Amiodarone"
+    severity: "major"
+    effect: "QT prolongation risk"
+    action: "Avoid combination or monitor ECG"
+
+  - drug_a: "Prednisolone"
+    drug_b: "NSAIDs"
+    severity: "moderate"
+    effect: "Increased GI bleeding risk"
+    action: "Add PPI prophylaxis if both required"
+
+# ============================================================
+# LAB ITEM REFERENCE RANGES (age/sex-specific normal values)
+# Used for flagging H/L results
+# Source: Standard clinical laboratory references
+# ============================================================
+reference_ranges:
+  CRP:
+    unit: "mg/L"
+    all: {low: 0, high: 3}
+  WBC:
+    unit: "/uL"
+    all: {low: 3500, high: 9500}
+  Hb:
+    unit: "g/dL"
+    male: {low: 13.5, high: 17.5}
+    female: {low: 11.5, high: 15.5}
+  Plt:
+    unit: "x10^3/uL"
+    all: {low: 150, high: 400}
+  Creatinine:
+    unit: "mg/dL"
+    male: {low: 0.6, high: 1.1}
+    female: {low: 0.4, high: 0.8}
+  BUN:
+    unit: "mg/dL"
+    all: {low: 8, high: 20}
+  Na:
+    unit: "mEq/L"
+    all: {low: 136, high: 145}
+  K:
+    unit: "mEq/L"
+    all: {low: 3.5, high: 5.0}
+  Glucose:
+    unit: "mg/dL"
+    fasting: {low: 70, high: 100}
+    random: {low: 70, high: 140}
+  PCT:
+    unit: "ng/mL"
+    all: {low: 0, high: 0.05}
+  ABG_pH:
+    unit: ""
+    all: {low: 7.35, high: 7.45}
+  ABG_pCO2:
+    unit: "mmHg"
+    all: {low: 35, high: 45}
+  ABG_pO2:
+    unit: "mmHg"
+    all: {low: 80, high: 100}
+  ABG_HCO3:
+    unit: "mEq/L"
+    all: {low: 22, high: 26}
+  BNP:
+    unit: "pg/mL"
+    all: {low: 0, high: 100}
+    age_over_75: {low: 0, high: 200}
+
+# ============================================================
+# TARGET LENGTH OF STAY (country-specific)
+# Source: MHLW DPC data (JP), HCUP NIS (US), GOLD 2023
+# ============================================================
+target_los:
+  japan:
+    mild: {mean: 8, sd: 2, min: 5, max: 12}
+    moderate: {mean: 12, sd: 3, min: 8, max: 18}
+    severe: {mean: 18, sd: 5, min: 12, max: 30}
+  us:
+    mild: {mean: 3, sd: 1, min: 2, max: 5}
+    moderate: {mean: 5, sd: 2, min: 3, max: 8}
+    severe: {mean: 8, sd: 3, min: 5, max: 14}
+
+# ============================================================
+# OUTCOME BENCHMARKS
+# For validating generated data against reality
+# Source: MHLW DPC data, ATS/ERS, Lindenauer et al., GOLD 2023
+# ============================================================
+outcome_benchmarks:
+  japan:
+    median_los: 12
+    los_iqr: [8, 16]
+    in_hospital_mortality: 0.05
+    icu_transfer_rate: 0.08
+    thirty_day_readmission: 0.18
+    niv_use_rate: 0.15
+    intubation_rate: 0.05
+    antibiotic_use_rate: 0.65    # not all exacerbations need antibiotics
+    mean_age_admitted: 74
+    male_ratio: 0.70             # COPD still male-predominant in Japan
+
+  us:
+    median_los: 5
+    los_iqr: [3, 7]
+    in_hospital_mortality: 0.03
+    icu_transfer_rate: 0.10
+    thirty_day_readmission: 0.20   # COPD is a CMS readmission penalty condition
+    niv_use_rate: 0.18
+    intubation_rate: 0.06
+    antibiotic_use_rate: 0.70
+    mean_age_admitted: 68
+    male_ratio: 0.48              # near-equal in US (female smoking rates caught up)
+
+# ============================================================
+# CLINICAL COURSE ARCHETYPES (daily state variable changes)
+# Each archetype defines day-by-day deltas for physiological state variables.
+# Disease authors specify these trajectories — the engine interpolates between days.
+# Patient profile (immune_reactivity, treatment_sensitivity) modulates amplitude.
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.50
+    description: "Steady improvement from Day 1-2 with bronchodilators and steroids"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: -0.03, 2: -0.05, 3: -0.06, 5: -0.05, 7: -0.04, 10: -0.03, 14: -0.01}
+      ph_status: {0: -0.02, 1: 0.03, 2: 0.04, 3: 0.03, 5: 0.02, 7: 0.01, 10: 0.01, 14: 0.00}
+      volume_status: {0: 0.02, 1: 0.02, 2: 0.02, 3: 0.01, 5: 0.01, 7: 0.00, 10: 0.00, 14: 0.00}
+      perfusion_status: {0: 0.00, 1: 0.01, 2: 0.01, 3: 0.01, 5: 0.00, 7: 0.00, 10: 0.00, 14: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.15
+    description: "Initial worsening Day 1-2 (e.g., infectious trigger), then improvement with antibiotics"
+    trajectory:
+      inflammation_level: {0: 0.08, 1: 0.05, 2: 0.02, 3: -0.03, 5: -0.06, 7: -0.08, 10: -0.05, 14: -0.03}
+      ph_status: {0: -0.05, 1: -0.03, 2: 0.01, 3: 0.03, 5: 0.03, 7: 0.02, 10: 0.01, 14: 0.00}
+      volume_status: {0: -0.03, 1: -0.02, 2: 0.01, 3: 0.02, 5: 0.01, 7: 0.01, 10: 0.00, 14: 0.00}
+      perfusion_status: {0: -0.02, 1: -0.01, 2: 0.00, 3: 0.01, 5: 0.01, 7: 0.00, 10: 0.00, 14: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["ABG", "Sputum_culture", "Blood_culture"]
+        add_imaging: ["Chest_Xray_portable"]
+    treatment_modifications:
+      day_2:
+        start:
+          japan: [{drug: "Ceftriaxone", dose: "1g IV daily"}]
+          us: [{drug: "Ceftriaxone", dose: "1g IV daily"}]
+
+  plateau:
+    probability: 0.15
+    description: "Minimal change for 3-5 days despite treatment, then gradual improvement"
+    trajectory:
+      inflammation_level: {0: 0.02, 1: 0.01, 2: 0.00, 3: 0.00, 5: -0.01, 7: -0.05, 10: -0.06, 14: -0.04}
+      ph_status: {0: -0.01, 1: 0.01, 2: 0.01, 3: 0.00, 5: 0.00, 7: 0.02, 10: 0.02, 14: 0.01}
+      volume_status: {0: 0.01, 1: 0.01, 2: 0.00, 3: 0.00, 5: 0.00, 7: 0.01, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_5:
+        add_labs: ["ABG", "PCT", "Sputum_culture"]
+        add_imaging: ["Chest_CT"]
+    treatment_modifications:
+      day_5:
+        note: "consider extending steroid course or adding antibiotic if not already on one"
+
+  treatment_resistant:
+    probability: 0.10
+    description: "Poor response to bronchodilators/steroids; may need NIV and antibiotic escalation"
+    trajectory:
+      inflammation_level: {0: 0.08, 1: 0.05, 2: 0.03, 3: 0.02, 5: -0.01, 7: -0.04, 10: -0.08, 14: -0.06}
+      ph_status: {0: -0.05, 1: -0.03, 2: -0.02, 3: 0.00, 5: 0.02, 7: 0.03, 10: 0.03, 14: 0.02}
+      volume_status: {0: -0.03, 1: -0.02, 2: -0.01, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.00}
+      renal_function: {0: -0.02, 1: -0.01, 2: 0.00, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.01}
+    order_modifications:
+      day_3:
+        add_labs: ["ABG", "Sputum_culture_repeat", "PCT", "Blood_culture"]
+        add_imaging: ["Chest_CT_with_contrast"]
+        add_consult: ["pulmonology"]
+    treatment_modifications:
+      day_2:
+        start:
+          japan: [{drug: "NIV_BiPAP", dose: "IPAP 12 / EPAP 5 cmH2O"}]
+          us: [{drug: "NIV_BiPAP", dose: "IPAP 12 / EPAP 5 cmH2O"}]
+      day_3:
+        start:
+          japan: [{drug: "Meropenem", dose: "1g IV q8h"}]
+          us: [{drug: "Piperacillin/Tazobactam", dose: "4.5g IV q6h"}]
+    triggers:
+      - day: 3
+        condition: "ph_status < 7.30 or inflammation_level > 0.5"
+        actions: ["escalate_antibiotic", "order_ct", "consult_pulmonology"]
+
+  gradual_deterioration:
+    probability: 0.07
+    description: "Slow worsening despite treatment -> ICU transfer, NIV or intubation"
+    trajectory:
+      inflammation_level: {0: 0.08, 1: 0.06, 2: 0.05, 3: 0.04, 5: 0.03, 7: 0.02, 10: 0.00, 14: -0.02}
+      ph_status: {0: -0.06, 1: -0.04, 2: -0.03, 3: -0.02, 5: -0.01, 7: 0.01, 10: 0.02, 14: 0.02}
+      perfusion_status: {0: -0.03, 1: -0.03, 2: -0.02, 3: -0.02, 5: -0.01, 7: 0.00, 10: 0.01, 14: 0.01}
+      renal_function: {0: -0.02, 1: -0.02, 2: -0.02, 3: -0.01, 5: -0.01, 7: 0.00, 10: 0.01, 14: 0.01}
+    order_modifications:
+      day_3:
+        add_labs: ["ABG", "Lactate", "Blood_culture"]
+      day_5:
+        add_labs: ["ABG", "Lactate"]
+        add_imaging: ["Chest_CT"]
+    treatment_modifications:
+      day_2:
+        start:
+          japan: [{drug: "NIV_BiPAP", dose: "IPAP 14 / EPAP 6 cmH2O"}]
+          us: [{drug: "NIV_BiPAP", dose: "IPAP 14 / EPAP 6 cmH2O"}]
+      day_5:
+        start:
+          japan: [{drug: "Meropenem", dose: "1g IV q8h"}]
+        action: "icu_transfer"
+        action_2: "evaluate_intubation"
+    triggers:
+      - day: 5
+        condition: "ph_status < 7.25 or perfusion_status < 0.4"
+        actions: ["icu_transfer", "intubation_evaluation"]
+
+  sudden_deterioration:
+    probability: 0.03
+    description: "Sudden critical worsening (pneumothorax, PE, acute respiratory failure) on Day 1-2"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: -0.01, 2: 0.20, 3: 0.08, 5: -0.03, 7: -0.06, 10: -0.05, 14: -0.03}
+      ph_status: {0: -0.03, 1: 0.01, 2: -0.20, 3: -0.05, 5: 0.05, 7: 0.05, 10: 0.03, 14: 0.01}
+      perfusion_status: {0: 0.00, 1: 0.00, 2: -0.25, 3: -0.05, 5: 0.05, 7: 0.04, 10: 0.02, 14: 0.01}
+      renal_function: {0: 0.00, 1: 0.00, 2: -0.10, 3: -0.03, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.01}
+    order_modifications:
+      day_2:
+        add_labs: ["ABG", "Lactate", "D_dimer", "Troponin", "Blood_culture_x2"]
+        add_imaging: ["CT_angiography", "Chest_Xray_portable"]
+    treatment_modifications:
+      day_2:
+        start:
+          japan:
+            - {drug: "Intubation_and_mechanical_ventilation", dose: "TV 6mL/kg, PEEP 5"}
+            - {drug: "Meropenem", dose: "1g IV q8h"}
+          us:
+            - {drug: "Intubation_and_mechanical_ventilation", dose: "TV 6mL/kg, PEEP 5"}
+            - {drug: "Piperacillin/Tazobactam", dose: "4.5g IV q6h"}
+        action: "icu_transfer"
+        action_2: "intubation"
+    triggers:
+      - day: 2
+        condition: "ph_status < 7.20 or perfusion_status < 0.4"
+        actions: ["icu_transfer", "intubation", "start_vasopressor_if_hypotensive"]
+
+# Archetype selection modifiers (patient profile dependent)
+archetype_modifiers:
+  - condition: "FEV1_below_30"
+    effect: {treatment_resistant: 0.08, gradual_deterioration: 0.05, smooth_recovery: -0.13}
+  - condition: "age >= 80"
+    effect: {gradual_deterioration: 0.05, sudden_deterioration: 0.02, smooth_recovery: -0.07}
+  - condition: "treatment_sensitivity > 1.2"
+    effect: {smooth_recovery: 0.10, treatment_resistant: -0.05, gradual_deterioration: -0.05}
+  - condition: "prior_icu_admission"
+    effect: {gradual_deterioration: 0.05, treatment_resistant: 0.05, smooth_recovery: -0.10}
+  - condition: "home_oxygen_use"
+    effect: {treatment_resistant: 0.05, smooth_recovery: -0.05}
+
+# ============================================================
+# COMPLICATIONS (secondary events during hospitalization)
+# Each complication has: trigger conditions, timing, probability,
+# physiological impact, and detection/treatment actions.
+# Complications can themselves trigger further complications (cascade).
+# ============================================================
+complications:
+  - name: "pneumothorax"
+    description: "Spontaneous pneumothorax from bullous emphysema"
+    probability_per_day: 0.005
+    onset_day_range: [0, 10]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 3.0}
+      - {condition: "mechanical_ventilation", multiplier: 5.0}
+      - {condition: "emphysema_predominant", multiplier: 2.0}
+    state_impact:
+      perfusion_status: -0.20
+      ph_status: -0.10
+    detection:
+      test: "chest_xray"
+      finding: "pneumothorax"
+    actions: ["chest_tube_insertion", "icu_transfer"]
+
+  - name: "respiratory_failure_requiring_niv"
+    description: "Acute hypercapnic respiratory failure requiring non-invasive ventilation"
+    probability_per_day: 0.015
+    onset_day_range: [0, 5]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.0}
+      - {condition: "hypercapnia_baseline", multiplier: 2.5}
+      - {condition: "age_over_75", multiplier: 1.5}
+    state_impact:
+      ph_status: -0.10
+      perfusion_status: -0.05
+    detection:
+      test: "ABG"
+      finding: "pH < 7.30 and pCO2 > 55"
+    actions: ["initiate_NIV_BiPAP", "continuous_monitoring", "ABG_q2h"]
+    cascade: ["intubation_required"]
+
+  - name: "intubation_required"
+    description: "NIV failure requiring intubation and mechanical ventilation"
+    probability_given_parent: 0.20    # 20% of NIV patients fail and require intubation
+    parent_complication: "respiratory_failure_requiring_niv"
+    onset_days_after_parent: [0, 3]
+    state_impact:
+      ph_status: -0.05
+      inflammation_level: 0.10      # ventilator-associated inflammation
+      perfusion_status: -0.10
+    actions: ["intubation", "icu_transfer", "sedation_protocol"]
+
+  - name: "cardiac_arrhythmia"
+    description: "Atrial fibrillation or flutter from hypoxia, acidosis, and beta-agonist use"
+    probability_per_day: 0.008
+    onset_day_range: [0, 7]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 2.0}
+      - {condition: "heart_failure", multiplier: 2.5}
+      - {condition: "hypoxemia_severe", multiplier: 2.0}
+      - {condition: "hypokalemia", multiplier: 1.8}
+    state_impact:
+      perfusion_status: -0.10
+    detection:
+      test: "ecg_or_telemetry"
+      finding: "atrial_fibrillation_or_flutter"
+    actions: ["rate_control_with_diltiazem_or_amiodarone", "correct_electrolytes", "ecg_monitoring"]
+
+  - name: "pulmonary_embolism"
+    description: "PE — COPD patients have elevated VTE risk"
+    probability_per_day: 0.004
+    onset_day_range: [2, 14]
+    risk_factors:
+      - {condition: "immobility_days > 3", multiplier: 2.0}
+      - {condition: "no_dvt_prophylaxis", multiplier: 3.0}
+      - {condition: "polycythemia", multiplier: 1.5}
+    state_impact:
+      perfusion_status: -0.20
+      ph_status: -0.05
+      inflammation_level: 0.05
+    detection:
+      test: "ct_angiography"
+      finding: "pulmonary_embolism_confirmed"
+    actions: ["anticoagulation", "consider_icu", "echocardiography"]
+
+  - name: "acute_kidney_injury"
+    description: "Pre-renal AKI from dehydration and poor intake"
+    probability_per_day: 0.008
+    onset_day_range: [1, 7]
+    risk_factors:
+      - {condition: "renal_function < 0.5", multiplier: 3.0}
+      - {condition: "volume_status < -0.3", multiplier: 2.0}
+      - {condition: "age_over_75", multiplier: 1.5}
+    state_impact:
+      renal_function: -0.15
+      ph_status: -0.05
+    detection:
+      test: "creatinine"
+      finding: "rise_above_0.3_from_baseline"
+    actions: ["iv_fluid_bolus", "hold_nephrotoxic_drugs", "monitor_urine_output"]
+
+  - name: "delirium"
+    description: "Acute confusion from hypoxia, hypercapnia, steroids, and age"
+    probability_per_day: 0.012
+    onset_day_range: [1, 7]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 2.5}
+      - {condition: "dementia", multiplier: 3.0}
+      - {condition: "hypercapnia", multiplier: 2.0}
+      - {condition: "steroid_use", multiplier: 1.5}
+    state_impact: {}
+    detection:
+      test: "CAM_screening"
+      finding: "positive"
+    actions: ["reorientation", "sleep_hygiene", "avoid_benzodiazepines", "consider_haloperidol"]
+
+  - name: "steroid_hyperglycemia"
+    description: "Significant hyperglycemia from systemic corticosteroids"
+    probability_per_day: 0.020
+    onset_day_range: [1, 5]
+    risk_factors:
+      - {condition: "diabetes", multiplier: 3.0}
+      - {condition: "age_over_65", multiplier: 1.3}
+    state_impact: {}     # hyperglycemia managed separately from core physiological state
+    detection:
+      test: "glucose"
+      finding: "above_200_mg_dL"
+    actions: ["sliding_scale_insulin", "endocrine_consult_if_severe", "monitor_glucose_q6h"]
+
+# ============================================================
+# FORCED GENERATION (for testing / specific scenario creation)
+# Users can override population-driven generation to force specific cases.
+# See SimulatorConfig.forced_scenarios
+# ============================================================
+# Example usage in config:
+#   forced_scenarios:
+#     - disease_id: "copd_exacerbation"
+#       count: 5
+#       severity: "severe"
+#       archetype: "treatment_resistant"
+#       complications: ["respiratory_failure_requiring_niv", "cardiac_arrhythmia"]
+#       patient_overrides:
+#         age: 78
+#         sex: "M"
+#         chronic_conditions: ["J44.1", "I48"]

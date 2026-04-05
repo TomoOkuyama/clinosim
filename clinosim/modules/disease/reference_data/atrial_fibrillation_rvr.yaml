@@ -1,0 +1,731 @@
+# Atrial Fibrillation with Rapid Ventricular Response — Complete Reference Data
+# Sources cited per section. All rates are approximate and should be validated
+# against the most current published data before production use.
+
+disease_id: atrial_fibrillation_rvr
+chief_complaint: "Palpitations, dyspnea, dizziness, chest discomfort"
+department: internal_medicine
+encounter_type: medical
+requires_surgery: false
+readmission_eligible: true
+
+icd_codes:
+  primary: "I48.91"  # Unspecified atrial fibrillation
+  variants:
+    - {code: "I48.0", name: "Paroxysmal atrial fibrillation", probability: 0.40}
+    - {code: "I48.1", name: "Persistent atrial fibrillation", probability: 0.30}
+    - {code: "I48.2", name: "Chronic atrial fibrillation", probability: 0.15}
+    - {code: "I48.91", name: "Unspecified atrial fibrillation", probability: 0.15}
+
+# ============================================================
+# INCIDENCE (per 100,000 per year, by age band and sex)
+# Source: JP — Fushimi AF Registry, 循環器疾患診療実態調査
+#         US — Framingham Heart Study, Go et al. JAMA 2001
+# ============================================================
+incidence:
+  japan:
+    "0-4":   {M: 0, F: 0}
+    "5-14":  {M: 1, F: 1}
+    "15-24": {M: 5, F: 3}
+    "25-34": {M: 10, F: 5}
+    "35-44": {M: 30, F: 15}
+    "45-54": {M: 100, F: 50}
+    "55-64": {M: 300, F: 150}
+    "65-74": {M: 800, F: 400}
+    "75-84": {M: 1500, F: 900}
+    "85+":   {M: 2200, F: 1500}
+  us:
+    "0-4":   {M: 0, F: 0}
+    "5-14":  {M: 1, F: 1}
+    "15-24": {M: 5, F: 3}
+    "25-34": {M: 12, F: 6}
+    "35-44": {M: 35, F: 18}
+    "45-54": {M: 120, F: 60}
+    "55-64": {M: 350, F: 180}
+    "65-74": {M: 900, F: 500}
+    "75-84": {M: 1700, F: 1000}
+    "85+":   {M: 2500, F: 1800}
+
+  risk_multipliers:
+    - {condition: "hypertension", multiplier: 1.5}
+    - {condition: "heart_failure", multiplier: 3.0}
+    - {condition: "valvular_heart_disease", multiplier: 2.5}
+    - {condition: "diabetes", multiplier: 1.4}
+    - {condition: "COPD", multiplier: 1.5}
+    - {condition: "hyperthyroidism", multiplier: 3.0}
+    - {condition: "obesity", multiplier: 1.5}
+    - {condition: "alcohol_dependence", multiplier: 2.0}
+    - {condition: "obstructive_sleep_apnea", multiplier: 2.0}
+    - {condition: "CKD", multiplier: 1.5}
+
+  seasonal_curve:  # monthly multiplier (1.0 = baseline)
+    1: 1.15
+    2: 1.10
+    3: 1.05
+    4: 1.00
+    5: 0.95
+    6: 0.90
+    7: 0.95
+    8: 1.00
+    9: 1.00
+    10: 1.05
+    11: 1.10
+    12: 1.15
+
+  vaccine_protection: {}  # not applicable
+
+# ============================================================
+# SEVERITY DISTRIBUTION
+# Source: AFFIRM, RACE, J-RHYTHM studies
+# ============================================================
+severity:
+  distribution:
+    mild: 0.35        # hemodynamically stable, rate < 130
+    moderate: 0.50    # rate 130-150, mildly symptomatic
+    severe: 0.15      # rate > 150, hemodynamic instability, acute HF
+  modifiers:
+    - {condition: "heart_failure", moderate_multiplier: 1.3, severe_multiplier: 2.0}
+    - {condition: "age_over_75", mild_multiplier: 0.8, severe_multiplier: 1.5}
+    - {condition: "valvular_heart_disease", severe_multiplier: 1.8}
+    - {condition: "hyperthyroidism", moderate_multiplier: 1.3, severe_multiplier: 1.5}
+    - {condition: "WPW_syndrome", severe_multiplier: 3.0}
+
+# ============================================================
+# INITIAL PHYSIOLOGICAL STATE IMPACT
+# ============================================================
+initial_state_impact:
+  mild:
+    inflammation_level: 0.05
+    perfusion_status: -0.05
+  moderate:
+    inflammation_level: 0.10
+    perfusion_status: -0.15
+    volume_status: -0.05
+  severe:
+    inflammation_level: 0.15
+    perfusion_status: -0.30
+    volume_status: -0.15
+    renal_function: -0.10
+
+# ============================================================
+# ORDER PROTOCOLS
+# ============================================================
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "Troponin", urgency: "stat"}
+      - {test: "BNP", urgency: "stat"}
+      - {test: "TSH", urgency: "stat"}
+      - {test: "FT4", urgency: "stat", probability: 0.70}
+      - {test: "CRP", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "BUN", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Mg", urgency: "stat"}
+      - {test: "Ca", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "PT_INR", urgency: "stat"}
+      - {test: "APTT", urgency: "stat"}
+      - {test: "AST", urgency: "stat", probability: 0.80}
+      - {test: "ALT", urgency: "stat", probability: 0.80}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "D_dimer", urgency: "stat", probability: 0.40}
+    imaging:
+      - {test: "Chest_Xray_PA", urgency: "stat"}
+      - {test: "ECG_12lead", urgency: "stat"}
+      - {test: "Echocardiography_TTE", urgency: "routine", probability: 0.90}
+    supportive:
+      - {type: "telemetry", detail: "Continuous cardiac monitoring"}
+      - {type: "IV_access", detail: "Peripheral IV line"}
+      - {type: "O2", detail: "PRN SpO2 < 94%"}
+
+  daily_monitoring:
+    labs:
+      - {test: "Creatinine", frequency: "daily"}
+      - {test: "K", frequency: "daily"}
+      - {test: "Mg", frequency: "daily"}
+    vitals:
+      stable: "q4h"
+      unstable: "q1h"
+    imaging:
+      - {test: "ECG_12lead", frequency: "daily_until_rate_controlled"}
+
+  trigger_orders:
+    rate_not_controlled_24h:
+      condition: "heart_rate > 110 at 24h despite rate control"
+      actions:
+        - {type: "medication_change", action: "increase_rate_control_dose"}
+        - {type: "lab", test: "TSH"}
+        - {type: "evaluate", action: "consider_amiodarone_or_cardioversion"}
+    hemodynamic_instability:
+      condition: "systolic_bp < 90 or signs_of_shock"
+      actions:
+        - {type: "procedure", action: "emergency_cardioversion"}
+        - {type: "evaluate", action: "consider_ICU_transfer"}
+    new_heart_failure:
+      condition: "BNP > 500 or new_pulmonary_edema"
+      actions:
+        - {type: "medication", action: "IV_diuretics"}
+        - {type: "evaluate", action: "reassess_rate_control_agent"}
+
+  discharge_criteria:
+    japan:
+      - "Heart rate < 100 bpm on oral medication for 24 hours"
+      - "No hemodynamic instability for 48 hours"
+      - "Anticoagulation plan established (CHA2DS2-VASc assessed)"
+      - "Echocardiography completed"
+      - "Oral medication tolerated"
+      - "Follow-up cardiology appointment arranged"
+    us:
+      - "Heart rate < 100 bpm on oral medication"
+      - "Hemodynamically stable for 12 hours"
+      - "Anticoagulation plan established"
+      - "Follow-up arranged within 7 days"
+
+# ============================================================
+# DIAGNOSTIC SECTION
+# Source: ESC 2020, AHA/ACC/HRS 2023 AF Guidelines
+# ============================================================
+diagnostic:
+  diagnostic_difficulty: 0.15  # ECG confirms AF immediately
+  differential:
+    - {disease: "atrial_fibrillation_rvr", icd: "I48.91", name: "Atrial fibrillation with RVR", prior: 0.60}
+    - {disease: "atrial_flutter", icd: "I48.92", name: "Atrial flutter", prior: 0.10}
+    - {disease: "supraventricular_tachycardia", icd: "I47.1", name: "Supraventricular tachycardia", prior: 0.10}
+    - {disease: "acute_coronary_syndrome", icd: "I21.9", name: "Acute coronary syndrome", prior: 0.08}
+    - {disease: "pulmonary_embolism", icd: "I26.9", name: "Pulmonary embolism", prior: 0.05}
+    - {disease: "thyrotoxicosis", icd: "E05.9", name: "Thyrotoxicosis", prior: 0.04}
+    - {disease: "other", icd: "R00.0", name: "Other tachycardia", prior: 0.03}
+
+# ============================================================
+# LIKELIHOOD RATIO TABLE
+# Source: ESC Guidelines, clinical diagnostic studies
+# ============================================================
+likelihood_ratios:
+  ecg_irregularly_irregular:
+    atrial_fibrillation_rvr: {positive_LR: 25.0, negative_LR: 0.05}
+    atrial_flutter: {positive_LR: 2.0, negative_LR: 0.8}
+    supraventricular_tachycardia: {positive_LR: 0.3, negative_LR: 1.2}
+
+  absent_p_waves_ecg:
+    atrial_fibrillation_rvr: {positive_LR: 20.0, negative_LR: 0.1}
+    atrial_flutter: {positive_LR: 3.0, negative_LR: 0.7}
+
+  bnp_elevated_above_300:
+    atrial_fibrillation_rvr: {positive_LR: 2.0, negative_LR: 0.7}
+    acute_coronary_syndrome: {positive_LR: 3.0, negative_LR: 0.5}
+
+  troponin_elevated:
+    atrial_fibrillation_rvr: {positive_LR: 1.5, negative_LR: 0.9}
+    acute_coronary_syndrome: {positive_LR: 10.0, negative_LR: 0.2}
+
+  tsh_suppressed:
+    thyrotoxicosis: {positive_LR: 15.0, negative_LR: 0.1}
+    atrial_fibrillation_rvr: {positive_LR: 1.2, negative_LR: 0.95}
+
+# ============================================================
+# EXPECTED LAB DISTRIBUTIONS
+# ============================================================
+expected_lab_distributions:
+  admission:
+    BNP:
+      unit: "pg/mL"
+      median: 250
+      iqr: [100, 500]
+      range: [20, 3000]
+    Troponin:
+      unit: "ng/mL"
+      median: 0.02
+      iqr: [0.01, 0.06]
+      range: [0.01, 0.5]
+      note: "mild elevation from demand ischemia is common"
+    K:
+      unit: "mEq/L"
+      median: 4.0
+      iqr: [3.6, 4.5]
+      range: [2.8, 5.5]
+    Mg:
+      unit: "mg/dL"
+      median: 1.9
+      iqr: [1.6, 2.2]
+      range: [1.0, 2.8]
+    TSH:
+      unit: "mIU/L"
+      median: 1.5
+      iqr: [0.8, 2.5]
+      range: [0.01, 10.0]
+      note: "suppressed TSH suggests thyrotoxicosis as trigger"
+    Creatinine:
+      unit: "mg/dL"
+      median: 1.0
+      iqr: [0.8, 1.3]
+      range: [0.5, 4.0]
+
+# ============================================================
+# EXPECTED VITAL SIGN DISTRIBUTIONS
+# ============================================================
+expected_vital_distributions:
+  admission:
+    temperature:
+      unit: "C"
+      mean: 36.8
+      sd: 0.4
+      range: [36.0, 38.0]
+    heart_rate:
+      unit: "bpm"
+      mean: 135
+      sd: 20
+      range: [100, 200]
+    systolic_bp:
+      unit: "mmHg"
+      mean: 130
+      sd: 25
+      range: [75, 200]
+    respiratory_rate:
+      unit: "/min"
+      mean: 20
+      sd: 4
+      range: [14, 32]
+    spo2:
+      unit: "%"
+      mean: 96
+      sd: 2
+      range: [88, 99]
+
+# ============================================================
+# TREATMENT REFERENCE — Drug selection data
+# Source: ESC 2020, AHA/ACC/HRS 2023, J-RHYTHM, JCS Guidelines
+# ============================================================
+drugs:
+  first_line:
+    japan:
+      - drug: "Diltiazem"
+        code_yj: "2171006"
+        dose: "10mg IV bolus, then 5-15mg/h drip"
+        route: IV
+        note: "Preferred rate control agent in Japan"
+        contraindication: "heart_failure_with_reduced_EF"
+        pregnancy_safe: false
+      - drug: "Landiolol"
+        code_yj: "2123700"
+        dose: "0.0625mg/kg/min IV"
+        route: IV
+        note: "Ultra-short-acting beta-blocker, Japan-specific"
+        pregnancy_safe: false
+    us:
+      - drug: "Diltiazem"
+        code_rxnorm: "3443"
+        dose: "0.25mg/kg IV bolus, then 5-15mg/h drip"
+        route: IV
+        contraindication: "heart_failure_with_reduced_EF"
+        pregnancy_safe: false
+      - drug: "Metoprolol"
+        code_rxnorm: "6918"
+        dose: "5mg IV q5min x3"
+        route: IV
+        note: "Preferred if HFrEF"
+        pregnancy_safe: false
+
+  alternative_beta_blocker_contraindicated:
+    japan:
+      - drug: "Digoxin"
+        code_yj: "2113001"
+        dose: "0.25mg IV, then 0.125-0.25mg PO daily"
+        note: "When both CCB and beta-blocker contraindicated"
+        renal_adjustment:
+          eGFR_below_30: "0.0625mg PO daily"
+        pregnancy_safe: false
+    us:
+      - drug: "Digoxin"
+        code_rxnorm: "3407"
+        dose: "0.5mg IV load, then 0.125-0.25mg PO daily"
+        renal_adjustment:
+          eGFR_below_30: "0.0625mg PO daily"
+        pregnancy_safe: false
+
+  rhythm_control:
+    japan:
+      - drug: "Amiodarone"
+        code_yj: "2129009"
+        dose: "150mg IV over 10min, then 1mg/min x6h, then 0.5mg/min"
+        route: IV
+        indication: "persistent_AF_or_hemodynamic_compromise"
+        note: "Also used for rate control when others fail"
+        pregnancy_safe: false
+    us:
+      - drug: "Amiodarone"
+        code_rxnorm: "703"
+        dose: "150mg IV over 10min, then 1mg/min x6h, then 0.5mg/min"
+        route: IV
+        indication: "persistent_AF_or_hemodynamic_compromise"
+        pregnancy_safe: false
+
+  anticoagulation:
+    japan:
+      - drug: "Heparin"
+        code_yj: "3334400"
+        dose: "Initial bolus 5000IU IV, then 1000IU/h drip (adjust by APTT)"
+        route: IV
+        indication: "CHA2DS2-VASc >= 1 (Japan)"
+        pregnancy_safe: false
+      - drug: "Edoxaban"
+        code_yj: "3339003"
+        dose: "60mg PO daily (30mg if CrCl 15-50 or weight <= 60kg)"
+        route: PO
+        indication: "transition_from_heparin"
+        pregnancy_safe: false
+    us:
+      - drug: "Heparin"
+        code_rxnorm: "5224"
+        dose: "80IU/kg bolus, then 18IU/kg/h (adjust by APTT)"
+        route: IV
+        indication: "CHA2DS2-VASc >= 2 (men) or >= 3 (women)"
+        pregnancy_safe: false
+      - drug: "Apixaban"
+        code_rxnorm: "1364430"
+        dose: "5mg PO BID (2.5mg BID if age>=80, weight<=60kg, or Cr>=1.5)"
+        route: PO
+        indication: "transition_from_heparin"
+        pregnancy_safe: false
+
+  discharge_oral:
+    japan:
+      - drug: "Bisoprolol"
+        code_yj: "2123014"
+        dose: "2.5-5mg PO daily"
+        duration_days: 0   # chronic
+        note: "Rate control maintenance"
+      - drug: "Edoxaban"
+        code_yj: "3339003"
+        dose: "60mg PO daily"
+        duration_days: 0   # chronic
+        note: "If CHA2DS2-VASc indicates anticoagulation"
+    us:
+      - drug: "Metoprolol_succinate"
+        code_rxnorm: "6918"
+        dose: "25-100mg PO daily"
+        duration_days: 0
+      - drug: "Apixaban"
+        code_rxnorm: "1364430"
+        dose: "5mg PO BID"
+        duration_days: 0
+        note: "If CHA2DS2-VASc indicates anticoagulation"
+
+# ============================================================
+# DRUG INTERACTIONS
+# ============================================================
+drug_interactions:
+  - drug_a: "Diltiazem"
+    drug_b: "Metoprolol"
+    severity: "major"
+    effect: "Severe bradycardia and hypotension"
+    action: "Avoid combination"
+
+  - drug_a: "Amiodarone"
+    drug_b: "Digoxin"
+    severity: "major"
+    effect: "Increased digoxin levels, toxicity risk"
+    action: "Reduce digoxin dose by 50%"
+
+  - drug_a: "Amiodarone"
+    drug_b: "Warfarin"
+    severity: "major"
+    effect: "Increased INR, bleeding risk"
+    action: "Reduce warfarin dose by 30-50%, monitor INR"
+
+  - drug_a: "Apixaban"
+    drug_b: "Ketoconazole"
+    severity: "major"
+    effect: "Increased apixaban levels via CYP3A4/P-gp inhibition"
+    action: "Reduce apixaban dose"
+
+  - drug_a: "Diltiazem"
+    drug_b: "Simvastatin"
+    severity: "moderate"
+    effect: "Increased statin levels, myopathy risk"
+    action: "Limit simvastatin to 10mg daily"
+
+# ============================================================
+# REFERENCE RANGES
+# ============================================================
+reference_ranges:
+  BNP:
+    unit: "pg/mL"
+    all: {low: 0, high: 100}
+    age_over_75: {low: 0, high: 200}
+  Troponin:
+    unit: "ng/mL"
+    all: {low: 0, high: 0.04}
+  K:
+    unit: "mEq/L"
+    all: {low: 3.5, high: 5.0}
+  Mg:
+    unit: "mg/dL"
+    all: {low: 1.7, high: 2.2}
+  TSH:
+    unit: "mIU/L"
+    all: {low: 0.5, high: 4.5}
+  Creatinine:
+    unit: "mg/dL"
+    male: {low: 0.6, high: 1.1}
+    female: {low: 0.4, high: 0.8}
+  PT_INR:
+    unit: ""
+    all: {low: 0.9, high: 1.1}
+    on_warfarin: {low: 2.0, high: 3.0}
+  Hb:
+    unit: "g/dL"
+    male: {low: 13.5, high: 17.5}
+    female: {low: 11.5, high: 15.5}
+
+# ============================================================
+# TARGET LENGTH OF STAY
+# ============================================================
+target_los:
+  japan:
+    mild: {mean: 7, sd: 2, min: 4, max: 12}
+    moderate: {mean: 9, sd: 3, min: 5, max: 15}
+    severe: {mean: 14, sd: 4, min: 8, max: 21}
+  us:
+    mild: {mean: 2, sd: 1, min: 1, max: 3}
+    moderate: {mean: 3, sd: 1, min: 2, max: 5}
+    severe: {mean: 5, sd: 2, min: 3, max: 8}
+
+# ============================================================
+# OUTCOME BENCHMARKS
+# ============================================================
+outcome_benchmarks:
+  japan:
+    median_los: 8
+    los_iqr: [5, 12]
+    in_hospital_mortality: 0.01
+    icu_transfer_rate: 0.05
+    thirty_day_readmission: 0.15
+    cardioversion_rate: 0.20
+    anticoagulation_initiated_rate: 0.75
+    mean_time_to_rate_control_hours: 6.0
+    mean_age_admitted: 73
+    male_ratio: 0.60
+
+  us:
+    median_los: 2.5
+    los_iqr: [1.5, 4]
+    in_hospital_mortality: 0.005
+    icu_transfer_rate: 0.04
+    thirty_day_readmission: 0.20
+    cardioversion_rate: 0.25
+    anticoagulation_initiated_rate: 0.80
+    mean_time_to_rate_control_hours: 4.0
+    mean_age_admitted: 70
+    male_ratio: 0.58
+
+# ============================================================
+# CLINICAL COURSE ARCHETYPES
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.50
+    description: "Rate controlled within 6-12h, steady improvement"
+    trajectory:
+      inflammation_level: {0: 0.02, 1: -0.02, 2: -0.02, 3: -0.01, 5: -0.01, 7: 0.00}
+      perfusion_status: {0: 0.05, 1: 0.08, 2: 0.05, 3: 0.03, 5: 0.01, 7: 0.00}
+      volume_status: {0: 0.02, 1: 0.03, 2: 0.02, 3: 0.01, 5: 0.00, 7: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.20
+    description: "Initial rate control difficult, hypotension from meds, then stabilization"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.02, 2: -0.01, 3: -0.02, 5: -0.01, 7: 0.00}
+      perfusion_status: {0: -0.05, 1: -0.03, 2: 0.05, 3: 0.05, 5: 0.03, 7: 0.01}
+      volume_status: {0: -0.03, 1: 0.02, 2: 0.03, 3: 0.02, 5: 0.01, 7: 0.00}
+    order_modifications:
+      day_1:
+        add_labs: ["Troponin_repeat", "BNP"]
+    treatment_modifications:
+      day_1:
+        add_fluid: {detail: "NS 250mL bolus for rate-control-induced hypotension"}
+
+  plateau_then_recovery:
+    probability: 0.10
+    description: "Refractory to initial rate control for 2-3 days, then responds to dose adjustment"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.02, 2: 0.01, 3: -0.01, 5: -0.02, 7: -0.01}
+      perfusion_status: {0: -0.05, 1: -0.03, 2: -0.02, 3: 0.03, 5: 0.05, 7: 0.03}
+    order_modifications:
+      day_3:
+        add_labs: ["TSH", "FT4"]
+        add_imaging: ["Echocardiography_repeat"]
+    treatment_modifications:
+      day_3:
+        action: "switch_rate_control_agent_or_add_second"
+
+  treatment_resistant:
+    probability: 0.10
+    description: "Rate control fails; requires cardioversion or amiodarone"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: 0.03, 2: 0.02, 3: 0.00, 5: -0.03, 7: -0.03}
+      perfusion_status: {0: -0.10, 1: -0.05, 2: -0.03, 3: 0.10, 5: 0.08, 7: 0.03}
+    order_modifications:
+      day_2:
+        add_labs: ["TSH", "Mg"]
+        add_imaging: ["TEE"]
+    treatment_modifications:
+      day_2:
+        start:
+          japan: [{drug: "Amiodarone", dose: "150mg IV over 10min then 1mg/min"}]
+          us: [{drug: "Amiodarone", dose: "150mg IV over 10min then 1mg/min"}]
+        action: "consider_cardioversion"
+    triggers:
+      - day: 2
+        condition: "heart_rate > 120 despite max rate control"
+        actions: ["start_amiodarone", "consider_cardioversion"]
+
+  gradual_deterioration:
+    probability: 0.07
+    description: "Develops heart failure or cardiogenic shock from prolonged RVR"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: 0.05, 2: 0.05, 3: 0.03, 5: 0.02, 7: 0.00, 10: -0.02, 14: -0.02}
+      perfusion_status: {0: -0.10, 1: -0.08, 2: -0.05, 3: -0.03, 5: 0.02, 7: 0.03, 10: 0.03, 14: 0.02}
+      renal_function: {0: -0.05, 1: -0.03, 2: -0.02, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.01}
+      volume_status: {0: -0.05, 1: -0.05, 2: -0.03, 3: 0.02, 5: 0.03, 7: 0.02, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["BNP", "Lactate", "ABG"]
+        add_imaging: ["Echocardiography_urgent"]
+    treatment_modifications:
+      day_2:
+        start:
+          japan: [{drug: "Furosemide", dose: "20mg IV"}]
+          us: [{drug: "Furosemide", dose: "40mg IV"}]
+        action: "icu_transfer"
+    triggers:
+      - day: 2
+        condition: "perfusion_status < 0.4"
+        actions: ["icu_transfer", "emergency_cardioversion"]
+
+  sudden_deterioration:
+    probability: 0.03
+    description: "Acute hemodynamic collapse — stroke or cardiogenic shock"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: -0.01, 2: 0.20, 3: 0.05, 5: -0.03, 7: -0.05, 10: -0.03, 14: -0.02}
+      perfusion_status: {0: -0.05, 1: 0.00, 2: -0.35, 3: 0.05, 5: 0.08, 7: 0.05, 10: 0.03, 14: 0.01}
+      renal_function: {0: 0.00, 1: 0.00, 2: -0.15, 3: -0.05, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.01}
+    order_modifications:
+      day_2:
+        add_labs: ["Troponin", "ABG", "Lactate", "BNP"]
+        add_imaging: ["CT_head", "Echocardiography_urgent"]
+    treatment_modifications:
+      day_2:
+        action: "icu_transfer"
+        action_2: "emergency_cardioversion"
+    triggers:
+      - day: 2
+        condition: "perfusion_status < 0.3"
+        actions: ["icu_transfer", "emergency_cardioversion", "vasopressor"]
+
+archetype_modifiers:
+  - condition: "heart_failure"
+    effect: {gradual_deterioration: 0.08, smooth_recovery: -0.08}
+  - condition: "age >= 80"
+    effect: {gradual_deterioration: 0.05, smooth_recovery: -0.05}
+  - condition: "hyperthyroidism"
+    effect: {treatment_resistant: 0.08, smooth_recovery: -0.08}
+
+# ============================================================
+# COMPLICATIONS
+# ============================================================
+complications:
+  - name: "acute_heart_failure"
+    description: "Tachycardia-induced cardiomyopathy or decompensation"
+    probability_per_day: 0.015
+    onset_day_range: [0, 5]
+    risk_factors:
+      - {condition: "heart_failure", multiplier: 3.0}
+      - {condition: "severity_severe", multiplier: 2.5}
+      - {condition: "valvular_heart_disease", multiplier: 2.0}
+    state_impact:
+      perfusion_status: -0.15
+      volume_status: 0.10   # fluid overload
+    detection:
+      test: "BNP_and_chest_xray"
+      finding: "elevated_BNP_and_pulmonary_edema"
+    actions: ["IV_diuretics", "rate_control_optimization", "echocardiography"]
+
+  - name: "cardioembolic_stroke"
+    description: "Ischemic stroke from left atrial thrombus"
+    probability_per_day: 0.003
+    onset_day_range: [0, 14]
+    risk_factors:
+      - {condition: "CHA2DS2_VASc_high", multiplier: 3.0}
+      - {condition: "no_anticoagulation", multiplier: 5.0}
+      - {condition: "age_over_75", multiplier: 2.0}
+    state_impact:
+      perfusion_status: -0.20
+    detection:
+      test: "neurological_exam"
+      finding: "focal_deficit"
+    actions: ["CT_head_stat", "neurology_consult", "consider_thrombolysis"]
+
+  - name: "bradycardia_from_treatment"
+    description: "Excessive rate control causing symptomatic bradycardia"
+    probability_per_day: 0.010
+    onset_day_range: [0, 3]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 1.5}
+      - {condition: "CKD", multiplier: 1.5}
+      - {condition: "concurrent_beta_blocker_and_ccb", multiplier: 3.0}
+    state_impact:
+      perfusion_status: -0.10
+    detection:
+      test: "telemetry"
+      finding: "heart_rate_below_50"
+    actions: ["hold_rate_control", "atropine_prn", "reduce_dose"]
+
+  - name: "hypotension_from_treatment"
+    description: "Drug-induced hypotension from rate control agents"
+    probability_per_day: 0.012
+    onset_day_range: [0, 3]
+    risk_factors:
+      - {condition: "volume_depleted", multiplier: 2.0}
+      - {condition: "age_over_75", multiplier: 1.5}
+    state_impact:
+      perfusion_status: -0.10
+      renal_function: -0.05
+    detection:
+      test: "vitals"
+      finding: "systolic_bp_below_90"
+    actions: ["IV_fluid_bolus", "reduce_rate_control_dose"]
+
+  - name: "bleeding_on_anticoagulation"
+    description: "Hemorrhagic complication from anticoagulation therapy"
+    probability_per_day: 0.004
+    onset_day_range: [1, 14]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 1.8}
+      - {condition: "CKD", multiplier: 2.0}
+      - {condition: "liver_disease", multiplier: 2.5}
+      - {condition: "concurrent_antiplatelet", multiplier: 2.0}
+    state_impact:
+      volume_status: -0.10
+      perfusion_status: -0.05
+    detection:
+      test: "Hb_drop_or_clinical_bleeding"
+      finding: "Hb_drop_2g_or_visible_bleeding"
+    actions: ["hold_anticoagulation", "type_and_crossmatch", "evaluate_source"]
+
+  - name: "delirium"
+    description: "Acute confusion, especially in elderly"
+    probability_per_day: 0.010
+    onset_day_range: [1, 7]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 2.5}
+      - {condition: "dementia", multiplier: 3.0}
+    state_impact: {}
+    detection:
+      test: "CAM_screening"
+      finding: "positive"
+    actions: ["reorientation", "sleep_hygiene", "avoid_benzodiazepines"]

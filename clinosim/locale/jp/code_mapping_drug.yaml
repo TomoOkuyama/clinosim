@@ -1,0 +1,55 @@
+# Drug code mapping — YJ code (Japan)
+# Internal name → 薬価基準収載医薬品コード (YJ code)
+# Source: 薬価基準収載品目リスト（厚生労働省）
+# Note: representative product codes; generics may differ
+
+# 抗菌薬
+Ampicillin/Sulbactam: "6131405"
+Amoxicillin: "6131002"
+Amoxicillin/Clavulanate: "6131100"
+Azithromycin: "6149004"
+Ceftriaxone: "6132413"
+Levofloxacin: "6241015"
+Meropenem: "6139002"
+Piperacillin/Tazobactam: "6131700"
+
+# 循環器系
+Furosemide: "2139007"
+Carvedilol: "2149036"
+Enalapril: "2144002"
+Lisinopril: "2144005"
+Amlodipine: "2171022"
+Candesartan: "2149040"
+Nitroglycerin: "2171002"
+Carperitide: "2119004"
+Enoxaparin: "3334400"
+Warfarin: "3332001"
+Apixaban: "3339005"
+Aspirin: "3399007"
+Clopidogrel: "3399004"
+Atorvastatin: "2189015"
+Norepinephrine: "2451002"
+
+# 鎮痛・消炎
+Acetaminophen: "1141007"
+Celecoxib: "1149036"
+Oxycodone: "8119003"
+
+# 糖尿病
+Metformin: "3962001"
+Sliding scale insulin: "2492410"
+
+# 呼吸器系
+Tiotropium: "2259710"
+Salbutamol: "2254701"
+Fluticasone/Salmeterol: "2290800"
+
+# 消化器・その他
+Lansoprazole: "2329025"
+Sodium bicarbonate: "7211001"
+Vitamin D: "3112002"
+Alendronate: "3999017"
+Donepezil: "1190012"
+Levodopa/Carbidopa: "1169011"
+Levothyroxine: "2431003"
+Tamsulosin: "2590009"

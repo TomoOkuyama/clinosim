@@ -1,0 +1,5 @@
+# Procedure code mapping — Internal name → CPT code (US)
+# Source: CPT (AMA)
+
+ORIF_femur: "27236"
+hemiarthroplasty_hip: "27125"

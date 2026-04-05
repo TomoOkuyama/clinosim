@@ -1,0 +1,914 @@
+# Decompensated Liver Cirrhosis — Complete Reference Data
+# Sources cited per section. All rates are approximate and should be validated
+# against the most current published data before production use.
+
+disease_id: liver_cirrhosis_decompensated
+chief_complaint: "Abdominal distension, jaundice, confusion, hematemesis"
+department: internal_medicine
+encounter_type: medical
+requires_surgery: false
+readmission_eligible: true
+
+icd_codes:
+  primary: "K74.60"  # Unspecified cirrhosis of liver
+  variants:
+    - {code: "K70.31", name: "Alcoholic liver cirrhosis with ascites", probability: 0.35}
+    - {code: "K74.60", name: "Unspecified cirrhosis of liver", probability: 0.20}
+    - {code: "K76.6", name: "Portal hypertension", probability: 0.15}
+    - {code: "K70.41", name: "Alcoholic hepatic failure with ascites", probability: 0.10}
+    - {code: "K74.69", name: "Other cirrhosis of liver", probability: 0.10}
+    - {code: "B18.2", name: "Chronic viral hepatitis C with cirrhosis", probability: 0.10}
+
+# ============================================================
+# INCIDENCE (per 100,000 per year, by age band and sex)
+# Source: JP — 肝臓学会, 患者調査, 人口動態統計
+#         US — NIDDK, GBD 2019, AASLD data
+# ============================================================
+incidence:
+  japan:
+    "0-4":   {M: 0, F: 0}
+    "5-14":  {M: 0, F: 0}
+    "15-24": {M: 1, F: 1}
+    "25-34": {M: 5, F: 3}
+    "35-44": {M: 15, F: 8}
+    "45-54": {M: 50, F: 25}
+    "55-64": {M: 120, F: 60}
+    "65-74": {M: 200, F: 100}
+    "75-84": {M: 250, F: 130}
+    "85+":   {M: 180, F: 100}
+  us:
+    "0-4":   {M: 0, F: 0}
+    "5-14":  {M: 0, F: 0}
+    "15-24": {M: 2, F: 1}
+    "25-34": {M: 8, F: 5}
+    "35-44": {M: 25, F: 15}
+    "45-54": {M: 80, F: 45}
+    "55-64": {M: 150, F: 80}
+    "65-74": {M: 220, F: 120}
+    "75-84": {M: 200, F: 110}
+    "85+":   {M: 150, F: 90}
+
+  risk_multipliers:
+    - {condition: "alcohol_dependence", multiplier: 5.0}
+    - {condition: "hepatitis_C", multiplier: 4.0}
+    - {condition: "hepatitis_B", multiplier: 3.5}
+    - {condition: "NASH", multiplier: 2.5}
+    - {condition: "diabetes", multiplier: 1.8}
+    - {condition: "obesity", multiplier: 1.5}
+    - {condition: "autoimmune_hepatitis", multiplier: 3.0}
+    - {condition: "primary_biliary_cholangitis", multiplier: 3.0}
+    - {condition: "hemochromatosis", multiplier: 2.0}
+
+  seasonal_curve:
+    1: 1.05
+    2: 1.00
+    3: 1.00
+    4: 1.00
+    5: 1.00
+    6: 1.00
+    7: 1.00
+    8: 1.00
+    9: 1.00
+    10: 1.00
+    11: 1.00
+    12: 1.10    # holiday alcohol consumption
+
+  prerequisite:
+    note: "May have K74 (cirrhosis) in chronic conditions, but not required — can be first presentation"
+    chronic_condition_codes: ["K74", "K70.3", "K74.6", "B18.1", "B18.2"]
+    first_presentation_probability: 0.25
+
+  vaccine_protection: {}
+
+# ============================================================
+# SEVERITY DISTRIBUTION (Child-Pugh based)
+# Source: Child-Pugh, MELD score studies, D'Amico et al. J Hepatol 2006
+# ============================================================
+severity:
+  distribution:
+    mild: 0.25        # Child-Pugh A with single decompensation event
+    moderate: 0.50    # Child-Pugh B with ascites/variceal bleeding
+    severe: 0.25      # Child-Pugh C or multi-organ involvement
+  modifiers:
+    - {condition: "alcohol_dependence_active", moderate_multiplier: 1.3, severe_multiplier: 1.5}
+    - {condition: "hepatocellular_carcinoma", severe_multiplier: 2.0}
+    - {condition: "CKD", severe_multiplier: 1.8}
+    - {condition: "diabetes", moderate_multiplier: 1.2, severe_multiplier: 1.3}
+    - {condition: "age_over_75", severe_multiplier: 1.5}
+
+# ============================================================
+# INITIAL PHYSIOLOGICAL STATE IMPACT
+# ============================================================
+initial_state_impact:
+  mild:
+    inflammation_level: 0.15
+    volume_status: 0.15          # ascites/fluid retention
+    hepatic_function: -0.30
+    perfusion_status: -0.05
+  moderate:
+    inflammation_level: 0.30
+    volume_status: 0.25
+    hepatic_function: -0.50
+    perfusion_status: -0.10
+    renal_function: -0.10
+    coagulation_status: -0.15
+  severe:
+    inflammation_level: 0.45
+    volume_status: 0.35
+    hepatic_function: -0.70
+    perfusion_status: -0.20
+    renal_function: -0.25
+    coagulation_status: -0.25
+    ph_status: -0.05
+
+# ============================================================
+# ORDER PROTOCOLS
+# ============================================================
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "AST", urgency: "stat"}
+      - {test: "ALT", urgency: "stat"}
+      - {test: "Total_bilirubin", urgency: "stat"}
+      - {test: "Direct_bilirubin", urgency: "stat"}
+      - {test: "Albumin", urgency: "stat"}
+      - {test: "PT_INR", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "BUN", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "WBC", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "CRP", urgency: "stat"}
+      - {test: "Ammonia", urgency: "stat"}
+      - {test: "Lactate", urgency: "stat", probability: 0.60}
+      - {test: "ALP", urgency: "stat"}
+      - {test: "GGT", urgency: "stat"}
+      - {test: "Blood_type_and_screen", urgency: "stat"}
+      - {test: "AFP", urgency: "routine", probability: 0.70}
+    imaging:
+      - {test: "Abdominal_ultrasound", urgency: "stat"}
+      - {test: "Chest_Xray_PA", urgency: "stat"}
+    procedures:
+      - {test: "Diagnostic_paracentesis", urgency: "stat", probability: 0.80}
+      - {test: "Ascitic_fluid_analysis", urgency: "stat", note: "cell count, albumin, culture, total protein"}
+    supportive:
+      - {type: "fluid_restriction", detail: "1-1.5L/day if Na < 125"}
+      - {type: "sodium_restriction", detail: "<2g Na/day"}
+      - {type: "fall_precautions", detail: "High risk due to encephalopathy and coagulopathy"}
+      - {type: "lactulose", detail: "30mL PO TID if encephalopathy"}
+
+  daily_monitoring:
+    labs:
+      - {test: "Creatinine", frequency: "daily"}
+      - {test: "Na", frequency: "daily"}
+      - {test: "K", frequency: "daily"}
+      - {test: "Total_bilirubin", frequency: "every_other_day"}
+      - {test: "Albumin", frequency: "every_other_day"}
+      - {test: "PT_INR", frequency: "every_other_day"}
+      - {test: "Ammonia", frequency: "daily_if_encephalopathy"}
+    vitals:
+      stable: "q4h"
+      unstable: "q1h"
+    fluid_balance:
+      - {task: "strict_intake_output", frequency: "q8h"}
+      - {task: "daily_weight", frequency: "daily"}
+      - {task: "abdominal_girth", frequency: "daily"}
+
+  trigger_orders:
+    suspected_sbp:
+      condition: "ascitic_fluid_PMN > 250 or new_fever_or_abdominal_pain"
+      actions:
+        - {type: "lab", test: "ascitic_fluid_culture"}
+        - {type: "medication", action: "start_IV_cefotaxime"}
+        - {type: "lab", test: "Blood_culture_x2"}
+    variceal_bleeding:
+      condition: "hematemesis or melena or Hb_drop > 2g"
+      actions:
+        - {type: "procedure", action: "emergent_EGD"}
+        - {type: "medication", action: "octreotide_50ug_bolus_then_50ug_h"}
+        - {type: "medication", action: "ceftriaxone_1g_IV_daily"}
+        - {type: "fluid", action: "blood_transfusion_target_Hb_7"}
+    hepatorenal_syndrome:
+      condition: "creatinine_rise > 0.3 with no response to albumin challenge"
+      actions:
+        - {type: "medication", action: "albumin_1g_kg_day1_then_20_40g_daily"}
+        - {type: "medication", action: "terlipressin_or_midodrine_octreotide"}
+        - {type: "consult", target: "nephrology"}
+        - {type: "evaluate", action: "consider_liver_transplant_evaluation"}
+    worsening_encephalopathy:
+      condition: "West_Haven_grade >= 3 or rapid_deterioration"
+      actions:
+        - {type: "lab", test: "Ammonia"}
+        - {type: "medication", action: "increase_lactulose"}
+        - {type: "medication", action: "add_rifaximin"}
+        - {type: "evaluate", action: "exclude_other_causes_infection_GI_bleed"}
+
+  discharge_criteria:
+    japan:
+      - "Ascites controlled (weight stable, no tense ascites)"
+      - "Encephalopathy resolved (West Haven grade 0-1)"
+      - "Creatinine stable"
+      - "INR stable (may not normalize)"
+      - "Na > 130 mEq/L"
+      - "Oral medications tolerated"
+      - "Adequate caloric intake"
+      - "Follow-up hepatology arranged"
+    us:
+      - "Ascites managed (stable weight, on diuretic regimen)"
+      - "Encephalopathy controlled"
+      - "Creatinine stable"
+      - "Hemodynamically stable"
+      - "Outpatient follow-up within 7 days"
+
+# ============================================================
+# DIAGNOSTIC SECTION
+# Source: AASLD Practice Guidelines, EASL Guidelines
+# ============================================================
+diagnostic:
+  diagnostic_difficulty: 0.30  # clinical + labs + imaging usually confirmatory, but cause identification varies
+  differential:
+    - {disease: "liver_cirrhosis_decompensated", icd: "K74.60", name: "Decompensated cirrhosis", prior: 0.55}
+    - {disease: "heart_failure", icd: "I50.9", name: "Right heart failure with hepatic congestion", prior: 0.10}
+    - {disease: "budd_chiari_syndrome", icd: "I82.0", name: "Budd-Chiari syndrome", prior: 0.03}
+    - {disease: "hepatocellular_carcinoma", icd: "C22.0", name: "Hepatocellular carcinoma", prior: 0.08}
+    - {disease: "peritoneal_carcinomatosis", icd: "C78.6", name: "Peritoneal carcinomatosis", prior: 0.05}
+    - {disease: "nephrotic_syndrome", icd: "N04.9", name: "Nephrotic syndrome", prior: 0.03}
+    - {disease: "acute_hepatitis", icd: "K72.0", name: "Acute hepatic failure", prior: 0.05}
+    - {disease: "other", icd: "R18.8", name: "Other causes of ascites", prior: 0.11}
+
+# ============================================================
+# LIKELIHOOD RATIO TABLE
+# Source: AASLD Guidelines, Runyon BA Hepatology studies
+# ============================================================
+likelihood_ratios:
+  saag_above_1_1:
+    liver_cirrhosis_decompensated: {positive_LR: 12.0, negative_LR: 0.1}
+    heart_failure: {positive_LR: 5.0, negative_LR: 0.3}
+    peritoneal_carcinomatosis: {positive_LR: 0.2, negative_LR: 3.0}
+
+  saag_below_1_1:
+    peritoneal_carcinomatosis: {positive_LR: 8.0, negative_LR: 0.3}
+    nephrotic_syndrome: {positive_LR: 6.0, negative_LR: 0.5}
+    liver_cirrhosis_decompensated: {positive_LR: 0.1, negative_LR: 5.0}
+
+  nodular_liver_on_ultrasound:
+    liver_cirrhosis_decompensated: {positive_LR: 15.0, negative_LR: 0.3}
+    hepatocellular_carcinoma: {positive_LR: 5.0, negative_LR: 0.5}
+
+  thrombocytopenia_below_100k:
+    liver_cirrhosis_decompensated: {positive_LR: 4.0, negative_LR: 0.4}
+    heart_failure: {positive_LR: 0.5, negative_LR: 1.2}
+
+  elevated_ammonia:
+    liver_cirrhosis_decompensated: {positive_LR: 5.0, negative_LR: 0.3}
+    acute_hepatitis: {positive_LR: 3.0, negative_LR: 0.6}
+
+  inr_above_1_5:
+    liver_cirrhosis_decompensated: {positive_LR: 5.0, negative_LR: 0.3}
+    acute_hepatitis: {positive_LR: 4.0, negative_LR: 0.5}
+
+# ============================================================
+# EXPECTED LAB DISTRIBUTIONS
+# ============================================================
+expected_lab_distributions:
+  admission:
+    Total_bilirubin:
+      unit: "mg/dL"
+      median: 4.0
+      iqr: [2.0, 8.0]
+      range: [1.0, 30.0]
+    Albumin:
+      unit: "g/dL"
+      median: 2.5
+      iqr: [2.0, 3.0]
+      range: [1.0, 3.5]
+    PT_INR:
+      unit: ""
+      median: 1.8
+      iqr: [1.4, 2.5]
+      range: [1.1, 5.0]
+    Creatinine:
+      unit: "mg/dL"
+      median: 1.3
+      iqr: [0.9, 2.0]
+      range: [0.5, 6.0]
+    Na:
+      unit: "mEq/L"
+      median: 133
+      iqr: [128, 137]
+      range: [115, 145]
+    Ammonia:
+      unit: "ug/dL"
+      median: 80
+      iqr: [50, 120]
+      range: [20, 300]
+    Plt:
+      unit: "x10^3/uL"
+      median: 80
+      iqr: [50, 120]
+      range: [20, 200]
+    AST:
+      unit: "U/L"
+      median: 60
+      iqr: [35, 100]
+      range: [15, 500]
+    ALT:
+      unit: "U/L"
+      median: 40
+      iqr: [25, 70]
+      range: [10, 300]
+    Hb:
+      unit: "g/dL"
+      median: 10.0
+      iqr: [8.5, 12.0]
+      range: [5.0, 14.0]
+
+  discharge:
+    Total_bilirubin:
+      unit: "mg/dL"
+      median: 2.5
+      iqr: [1.5, 5.0]
+      note: "often does not normalize"
+    Creatinine:
+      unit: "mg/dL"
+      median: 1.0
+      iqr: [0.7, 1.5]
+    Na:
+      unit: "mEq/L"
+      median: 135
+      iqr: [131, 139]
+
+# ============================================================
+# EXPECTED VITAL SIGN DISTRIBUTIONS
+# ============================================================
+expected_vital_distributions:
+  admission:
+    temperature:
+      unit: "C"
+      mean: 37.2
+      sd: 0.7
+      range: [36.0, 39.5]
+      note: "may be febrile if SBP or infection"
+    heart_rate:
+      unit: "bpm"
+      mean: 90
+      sd: 15
+      range: [55, 130]
+      note: "hyperdynamic circulation common"
+    systolic_bp:
+      unit: "mmHg"
+      mean: 110
+      sd: 20
+      range: [70, 160]
+      note: "may be hypotensive from vasodilation"
+    respiratory_rate:
+      unit: "/min"
+      mean: 18
+      sd: 4
+      range: [12, 30]
+    spo2:
+      unit: "%"
+      mean: 96
+      sd: 2
+      range: [88, 99]
+
+# ============================================================
+# TREATMENT REFERENCE — Drug selection data
+# Source: AASLD/EASL Guidelines, JSH Guidelines
+# ============================================================
+drugs:
+  first_line:
+    japan:
+      - drug: "Furosemide"
+        code_yj: "2139002"
+        dose: "20-40mg IV or PO daily"
+        route: IV
+        note: "Combined with spironolactone for ascites"
+        pregnancy_safe: false
+      - drug: "Spironolactone"
+        code_yj: "2133002"
+        dose: "25-100mg PO daily"
+        route: PO
+        note: "Primary diuretic for cirrhotic ascites (100:40 ratio with furosemide)"
+        pregnancy_safe: false
+      - drug: "Lactulose"
+        code_yj: "2359003"
+        dose: "30mL PO TID (titrate to 2-3 soft stools/day)"
+        route: PO
+        indication: "hepatic_encephalopathy"
+        pregnancy_safe: true
+    us:
+      - drug: "Furosemide"
+        code_rxnorm: "4603"
+        dose: "40mg PO daily"
+        route: PO
+        pregnancy_safe: false
+      - drug: "Spironolactone"
+        code_rxnorm: "9997"
+        dose: "100mg PO daily"
+        route: PO
+        pregnancy_safe: false
+      - drug: "Lactulose"
+        code_rxnorm: "6026"
+        dose: "30mL PO TID"
+        route: PO
+        indication: "hepatic_encephalopathy"
+        pregnancy_safe: true
+
+  sbp_treatment:
+    japan:
+      - drug: "Cefotaxime"
+        code_yj: "6132401"
+        dose: "2g IV q8h"
+        route: IV
+        indication: "ascitic_PMN > 250"
+        duration_days: 5
+      - drug: "Albumin"
+        code_yj: "6343401"
+        dose: "1.5g/kg Day 1, 1g/kg Day 3"
+        route: IV
+        note: "Prevents hepatorenal syndrome in SBP"
+    us:
+      - drug: "Cefotaxime"
+        code_rxnorm: "2059"
+        dose: "2g IV q8h"
+        route: IV
+        duration_days: 5
+      - drug: "Albumin"
+        code_rxnorm: "596"
+        dose: "1.5g/kg Day 1, 1g/kg Day 3"
+        route: IV
+
+  variceal_bleeding:
+    japan:
+      - drug: "Octreotide"
+        code_yj: "2413600"
+        dose: "50ug IV bolus, then 50ug/h continuous"
+        route: IV
+        duration_days: 5
+      - drug: "Ceftriaxone"
+        code_yj: "6132404"
+        dose: "1g IV daily"
+        route: IV
+        note: "Antibiotic prophylaxis in variceal bleed"
+        duration_days: 7
+    us:
+      - drug: "Octreotide"
+        code_rxnorm: "7435"
+        dose: "50ug IV bolus, then 50ug/h"
+        route: IV
+        duration_days: 5
+      - drug: "Ceftriaxone"
+        code_rxnorm: "2193"
+        dose: "1g IV daily"
+        route: IV
+        duration_days: 7
+
+  encephalopathy_adjunct:
+    japan:
+      - drug: "Rifaximin"
+        code_yj: "6119001"
+        dose: "400mg PO TID"
+        route: PO
+        indication: "recurrent_encephalopathy or inadequate_response_to_lactulose"
+        pregnancy_safe: false
+    us:
+      - drug: "Rifaximin"
+        code_rxnorm: "194501"
+        dose: "550mg PO BID"
+        route: PO
+        pregnancy_safe: false
+
+  hepatorenal_syndrome:
+    japan:
+      - drug: "Terlipressin"
+        code_yj: "2414700"
+        dose: "1mg IV q4-6h (increase to 2mg if no response)"
+        route: IV
+        indication: "hepatorenal_syndrome_type_1"
+      - drug: "Albumin"
+        code_yj: "6343401"
+        dose: "20-40g IV daily"
+        route: IV
+    us:
+      - drug: "Midodrine"
+        code_rxnorm: "6931"
+        dose: "7.5-12.5mg PO TID"
+        route: PO
+        indication: "hepatorenal_syndrome (with octreotide)"
+      - drug: "Octreotide"
+        code_rxnorm: "7435"
+        dose: "100-200ug SC TID"
+        route: SC
+      - drug: "Albumin"
+        code_rxnorm: "596"
+        dose: "25-50g IV daily"
+        route: IV
+
+  discharge_oral:
+    japan:
+      - drug: "Spironolactone"
+        code_yj: "2133002"
+        dose: "50-100mg PO daily"
+        duration_days: 0   # chronic
+      - drug: "Furosemide"
+        code_yj: "2139002"
+        dose: "20-40mg PO daily"
+        duration_days: 0
+      - drug: "Lactulose"
+        code_yj: "2359003"
+        dose: "30mL PO TID"
+        duration_days: 0
+      - drug: "Rifaximin"
+        code_yj: "6119001"
+        dose: "400mg PO TID"
+        duration_days: 0
+        probability: 0.50
+    us:
+      - drug: "Spironolactone"
+        code_rxnorm: "9997"
+        dose: "100mg PO daily"
+        duration_days: 0
+      - drug: "Furosemide"
+        code_rxnorm: "4603"
+        dose: "40mg PO daily"
+        duration_days: 0
+      - drug: "Lactulose"
+        code_rxnorm: "6026"
+        dose: "30mL PO TID"
+        duration_days: 0
+      - drug: "Rifaximin"
+        code_rxnorm: "194501"
+        dose: "550mg PO BID"
+        duration_days: 0
+        probability: 0.60
+
+# ============================================================
+# DRUG INTERACTIONS
+# ============================================================
+drug_interactions:
+  - drug_a: "Spironolactone"
+    drug_b: "ACE_inhibitor"
+    severity: "major"
+    effect: "Hyperkalemia"
+    action: "Monitor K closely; avoid if possible"
+
+  - drug_a: "NSAIDs"
+    drug_b: "Spironolactone"
+    severity: "contraindicated"
+    effect: "Renal failure and resistance to diuretics"
+    action: "Absolutely avoid NSAIDs in cirrhosis"
+
+  - drug_a: "Lactulose"
+    drug_b: "Antacids"
+    severity: "moderate"
+    effect: "Alkalinization of colon reduces lactulose efficacy"
+    action: "Avoid concurrent use"
+
+  - drug_a: "Midazolam"
+    drug_b: "Liver_disease"
+    severity: "major"
+    effect: "Prolonged sedation due to impaired hepatic metabolism"
+    action: "Avoid benzodiazepines in cirrhosis"
+
+# ============================================================
+# REFERENCE RANGES
+# ============================================================
+reference_ranges:
+  Total_bilirubin:
+    unit: "mg/dL"
+    all: {low: 0.2, high: 1.2}
+  Albumin:
+    unit: "g/dL"
+    all: {low: 3.5, high: 5.0}
+  AST:
+    unit: "U/L"
+    all: {low: 10, high: 35}
+  ALT:
+    unit: "U/L"
+    all: {low: 5, high: 40}
+  ALP:
+    unit: "U/L"
+    all: {low: 40, high: 130}
+  GGT:
+    unit: "U/L"
+    male: {low: 10, high: 50}
+    female: {low: 7, high: 32}
+  PT_INR:
+    unit: ""
+    all: {low: 0.9, high: 1.1}
+  Ammonia:
+    unit: "ug/dL"
+    all: {low: 10, high: 50}
+  Plt:
+    unit: "x10^3/uL"
+    all: {low: 150, high: 400}
+  Creatinine:
+    unit: "mg/dL"
+    male: {low: 0.6, high: 1.1}
+    female: {low: 0.4, high: 0.8}
+  Na:
+    unit: "mEq/L"
+    all: {low: 136, high: 145}
+  K:
+    unit: "mEq/L"
+    all: {low: 3.5, high: 5.0}
+  Hb:
+    unit: "g/dL"
+    male: {low: 13.5, high: 17.5}
+    female: {low: 11.5, high: 15.5}
+
+# ============================================================
+# TARGET LENGTH OF STAY
+# ============================================================
+target_los:
+  japan:
+    mild: {mean: 14, sd: 4, min: 8, max: 21}
+    moderate: {mean: 18, sd: 5, min: 10, max: 28}
+    severe: {mean: 25, sd: 7, min: 14, max: 42}
+  us:
+    mild: {mean: 5, sd: 2, min: 3, max: 8}
+    moderate: {mean: 7, sd: 2, min: 4, max: 12}
+    severe: {mean: 10, sd: 4, min: 6, max: 21}
+
+# ============================================================
+# OUTCOME BENCHMARKS
+# ============================================================
+outcome_benchmarks:
+  japan:
+    median_los: 17
+    los_iqr: [12, 24]
+    in_hospital_mortality: 0.15
+    icu_transfer_rate: 0.12
+    thirty_day_readmission: 0.30
+    paracentesis_rate: 0.75
+    sbp_rate: 0.15
+    variceal_bleeding_rate: 0.20
+    hepatorenal_syndrome_rate: 0.08
+    mean_age_admitted: 68
+    male_ratio: 0.65
+
+  us:
+    median_los: 7
+    los_iqr: [4, 10]
+    in_hospital_mortality: 0.10
+    icu_transfer_rate: 0.15
+    thirty_day_readmission: 0.35
+    paracentesis_rate: 0.80
+    sbp_rate: 0.12
+    variceal_bleeding_rate: 0.18
+    hepatorenal_syndrome_rate: 0.06
+    mean_age_admitted: 62
+    male_ratio: 0.62
+
+# ============================================================
+# CLINICAL COURSE ARCHETYPES
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.35
+    description: "Ascites responds to diuretics, encephalopathy resolves with lactulose"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: -0.02, 2: -0.03, 3: -0.03, 5: -0.03, 7: -0.02, 10: -0.01, 14: -0.01, 21: 0.00}
+      volume_status: {0: 0.00, 1: -0.02, 2: -0.03, 3: -0.03, 5: -0.03, 7: -0.02, 10: -0.01, 14: -0.01, 21: 0.00}
+      hepatic_function: {0: 0.00, 1: 0.01, 2: 0.02, 3: 0.02, 5: 0.02, 7: 0.01, 10: 0.01, 14: 0.01, 21: 0.00}
+      renal_function: {0: 0.01, 1: 0.01, 2: 0.01, 3: 0.01, 5: 0.01, 7: 0.00, 10: 0.00, 14: 0.00, 21: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.20
+    description: "Initial worsening (SBP or volume overload) then improvement with treatment"
+    trajectory:
+      inflammation_level: {0: 0.08, 1: 0.05, 2: 0.00, 3: -0.03, 5: -0.05, 7: -0.04, 10: -0.03, 14: -0.02, 21: -0.01}
+      volume_status: {0: 0.05, 1: 0.03, 2: 0.00, 3: -0.03, 5: -0.03, 7: -0.02, 10: -0.01, 14: -0.01, 21: 0.00}
+      hepatic_function: {0: -0.05, 1: -0.03, 2: 0.00, 3: 0.02, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.01, 21: 0.00}
+      renal_function: {0: -0.03, 1: -0.02, 2: 0.00, 3: 0.01, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.00, 21: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["Blood_culture_x2", "Ascitic_fluid_analysis"]
+    treatment_modifications:
+      day_2:
+        start:
+          japan: [{drug: "Cefotaxime", dose: "2g IV q8h"}]
+          us: [{drug: "Cefotaxime", dose: "2g IV q8h"}]
+        add: [{drug: "Albumin", dose: "1.5g/kg IV"}]
+
+  plateau_then_recovery:
+    probability: 0.15
+    description: "Diuretic-resistant ascites, requires therapeutic paracentesis, then gradual response"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.02, 2: 0.01, 3: 0.00, 5: 0.00, 7: -0.02, 10: -0.03, 14: -0.02, 21: -0.01}
+      volume_status: {0: 0.03, 1: 0.02, 2: 0.01, 3: 0.00, 5: -0.05, 7: -0.03, 10: -0.02, 14: -0.01, 21: 0.00}
+      hepatic_function: {0: 0.00, 1: 0.00, 2: 0.00, 3: 0.00, 5: 0.01, 7: 0.02, 10: 0.01, 14: 0.01, 21: 0.00}
+    order_modifications:
+      day_5:
+        add_procedure: ["large_volume_paracentesis"]
+        add_labs: ["Albumin_post_paracentesis"]
+    treatment_modifications:
+      day_5:
+        add: [{drug: "Albumin", dose: "6-8g per liter removed"}]
+        adjust: "increase_diuretic_doses"
+
+  treatment_resistant:
+    probability: 0.15
+    description: "Refractory ascites and/or encephalopathy requiring escalation"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: 0.03, 2: 0.02, 3: 0.01, 5: 0.00, 7: -0.02, 10: -0.03, 14: -0.03, 21: -0.02}
+      volume_status: {0: 0.05, 1: 0.03, 2: 0.02, 3: 0.00, 5: -0.03, 7: -0.03, 10: -0.02, 14: -0.01, 21: 0.00}
+      hepatic_function: {0: -0.03, 1: -0.02, 2: 0.00, 3: 0.00, 5: 0.01, 7: 0.02, 10: 0.02, 14: 0.01, 21: 0.01}
+      renal_function: {0: -0.05, 1: -0.03, 2: -0.01, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.01, 21: 0.00}
+    order_modifications:
+      day_3:
+        add_labs: ["Urine_Na", "Creatinine"]
+        add_procedure: ["large_volume_paracentesis"]
+      day_7:
+        add_consult: ["hepatology", "transplant_surgery"]
+    treatment_modifications:
+      day_3:
+        adjust: "maximize_diuretics"
+        add: [{drug: "Midodrine", dose: "7.5mg PO TID"}]
+      day_7:
+        evaluate: "consider_TIPS_or_transplant"
+    triggers:
+      - day: 5
+        condition: "refractory_ascites and renal_function < 0.4"
+        actions: ["hepatorenal_syndrome_protocol", "transplant_evaluation"]
+
+  gradual_deterioration:
+    probability: 0.10
+    description: "Progressive multi-organ failure — hepatorenal syndrome, worsening encephalopathy"
+    trajectory:
+      inflammation_level: {0: 0.08, 1: 0.05, 2: 0.05, 3: 0.03, 5: 0.02, 7: 0.01, 10: 0.00, 14: 0.00, 21: 0.00}
+      hepatic_function: {0: -0.05, 1: -0.03, 2: -0.03, 3: -0.02, 5: -0.01, 7: 0.00, 10: 0.01, 14: 0.01, 21: 0.00}
+      renal_function: {0: -0.08, 1: -0.05, 2: -0.03, 3: -0.02, 5: -0.01, 7: 0.00, 10: 0.01, 14: 0.01, 21: 0.01}
+      perfusion_status: {0: -0.05, 1: -0.03, 2: -0.03, 3: -0.02, 5: -0.01, 7: 0.00, 10: 0.01, 14: 0.01, 21: 0.00}
+    order_modifications:
+      day_3:
+        add_labs: ["Lactate", "ABG", "Ammonia"]
+      day_5:
+        add_consult: ["icu", "hepatology"]
+    treatment_modifications:
+      day_3:
+        start:
+          japan: [{drug: "Terlipressin", dose: "1mg IV q6h"}, {drug: "Albumin", dose: "20g IV daily"}]
+          us: [{drug: "Midodrine", dose: "12.5mg PO TID"}, {drug: "Octreotide", dose: "200ug SC TID"}, {drug: "Albumin", dose: "25g IV daily"}]
+      day_5:
+        action: "icu_transfer"
+    triggers:
+      - day: 5
+        condition: "renal_function < 0.3 or perfusion_status < 0.4"
+        actions: ["icu_transfer", "CRRT_consideration"]
+
+  sudden_deterioration:
+    probability: 0.05
+    description: "Massive variceal hemorrhage or acute-on-chronic liver failure"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: -0.02, 2: 0.25, 3: 0.10, 5: -0.05, 7: -0.05, 10: -0.03, 14: -0.02, 21: -0.01}
+      hepatic_function: {0: -0.02, 1: 0.00, 2: -0.20, 3: -0.05, 5: 0.02, 7: 0.02, 10: 0.02, 14: 0.01, 21: 0.01}
+      perfusion_status: {0: -0.05, 1: 0.00, 2: -0.30, 3: 0.05, 5: 0.05, 7: 0.03, 10: 0.02, 14: 0.01, 21: 0.01}
+      volume_status: {0: 0.00, 1: 0.00, 2: -0.20, 3: 0.05, 5: 0.05, 7: 0.02, 10: 0.01, 14: 0.00, 21: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["Hb_stat", "PT_INR", "Blood_type_crossmatch", "Lactate"]
+        add_procedure: ["emergent_EGD"]
+    treatment_modifications:
+      day_2:
+        start:
+          japan:
+            - {drug: "Octreotide", dose: "50ug IV bolus then 50ug/h"}
+            - {drug: "Packed_RBC", dose: "transfuse to Hb 7"}
+          us:
+            - {drug: "Octreotide", dose: "50ug IV bolus then 50ug/h"}
+            - {drug: "Packed_RBC", dose: "transfuse to Hb 7"}
+        action: "icu_transfer"
+        action_2: "emergent_endoscopy_band_ligation"
+    triggers:
+      - day: 2
+        condition: "Hb_drop > 3 or perfusion_status < 0.3"
+        actions: ["icu_transfer", "blood_transfusion", "emergent_EGD"]
+
+archetype_modifiers:
+  - condition: "alcohol_dependence_active"
+    effect: {treatment_resistant: 0.08, smooth_recovery: -0.08}
+  - condition: "hepatocellular_carcinoma"
+    effect: {gradual_deterioration: 0.10, smooth_recovery: -0.10}
+  - condition: "age >= 75"
+    effect: {gradual_deterioration: 0.05, smooth_recovery: -0.05}
+  - condition: "CKD"
+    effect: {treatment_resistant: 0.05, smooth_recovery: -0.05}
+
+# ============================================================
+# COMPLICATIONS
+# ============================================================
+complications:
+  - name: "spontaneous_bacterial_peritonitis"
+    description: "Infection of ascitic fluid without obvious surgical source"
+    probability_per_day: 0.012
+    onset_day_range: [0, 14]
+    risk_factors:
+      - {condition: "ascitic_protein_below_1", multiplier: 3.0}
+      - {condition: "prior_sbp", multiplier: 3.0}
+      - {condition: "GI_bleeding", multiplier: 2.0}
+    state_impact:
+      inflammation_level: 0.20
+      renal_function: -0.10
+      perfusion_status: -0.05
+    detection:
+      test: "diagnostic_paracentesis"
+      finding: "PMN_above_250"
+    actions: ["IV_cefotaxime", "IV_albumin", "repeat_paracentesis_48h"]
+
+  - name: "variceal_hemorrhage"
+    description: "Upper GI bleeding from esophageal or gastric varices"
+    probability_per_day: 0.010
+    onset_day_range: [0, 21]
+    risk_factors:
+      - {condition: "large_varices", multiplier: 5.0}
+      - {condition: "INR_above_2", multiplier: 2.0}
+      - {condition: "portal_hypertension_severe", multiplier: 3.0}
+    state_impact:
+      volume_status: -0.25
+      perfusion_status: -0.20
+    detection:
+      test: "clinical_hematemesis_melena"
+      finding: "hematemesis_or_melena_with_Hb_drop"
+    actions: ["emergent_EGD", "octreotide", "ceftriaxone", "blood_transfusion"]
+
+  - name: "hepatorenal_syndrome"
+    description: "Functional renal failure in advanced cirrhosis"
+    probability_per_day: 0.008
+    onset_day_range: [3, 21]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 3.0}
+      - {condition: "SBP", multiplier: 3.0}
+      - {condition: "hyponatremia_below_125", multiplier: 2.5}
+    state_impact:
+      renal_function: -0.25
+      perfusion_status: -0.10
+    detection:
+      test: "creatinine_and_urine_Na"
+      finding: "creatinine_rise_with_urine_Na_below_10"
+    actions: ["albumin_infusion", "terlipressin_or_midodrine_octreotide", "CRRT_if_needed"]
+
+  - name: "hepatic_encephalopathy_worsening"
+    description: "Progression of encephalopathy to Grade 3-4"
+    probability_per_day: 0.015
+    onset_day_range: [0, 14]
+    risk_factors:
+      - {condition: "GI_bleeding", multiplier: 3.0}
+      - {condition: "infection", multiplier: 2.5}
+      - {condition: "constipation", multiplier: 2.0}
+      - {condition: "hypokalemia", multiplier: 1.5}
+    state_impact: {}
+    detection:
+      test: "neurological_exam_and_ammonia"
+      finding: "west_haven_grade_3_or_4"
+    actions: ["increase_lactulose", "add_rifaximin", "identify_precipitant", "consider_intubation_if_grade_4"]
+
+  - name: "acute_kidney_injury"
+    description: "AKI from prerenal causes, hepatorenal, or nephrotoxins"
+    probability_per_day: 0.012
+    onset_day_range: [1, 14]
+    risk_factors:
+      - {condition: "excessive_diuresis", multiplier: 2.5}
+      - {condition: "SBP", multiplier: 2.0}
+      - {condition: "GI_bleeding", multiplier: 2.0}
+    state_impact:
+      renal_function: -0.15
+    detection:
+      test: "creatinine"
+      finding: "rise_above_0.3_from_baseline"
+    actions: ["hold_diuretics", "IV_albumin", "assess_cause"]
+
+  - name: "coagulopathy_bleeding"
+    description: "Non-variceal bleeding from severe coagulopathy"
+    probability_per_day: 0.006
+    onset_day_range: [0, 21]
+    risk_factors:
+      - {condition: "INR_above_2.5", multiplier: 3.0}
+      - {condition: "Plt_below_50", multiplier: 2.5}
+      - {condition: "procedure_recent", multiplier: 2.0}
+    state_impact:
+      volume_status: -0.10
+      perfusion_status: -0.05
+    detection:
+      test: "Hb_and_clinical"
+      finding: "Hb_drop_or_visible_bleeding"
+    actions: ["transfuse_if_needed", "FFP_or_vitamin_K", "platelet_transfusion_if_below_50"]
+
+  - name: "delirium"
+    description: "Acute confusion beyond hepatic encephalopathy"
+    probability_per_day: 0.010
+    onset_day_range: [1, 14]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 2.0}
+      - {condition: "alcohol_withdrawal", multiplier: 5.0}
+    state_impact: {}
+    detection:
+      test: "CAM_screening"
+      finding: "positive"
+    actions: ["differentiate_from_encephalopathy", "avoid_benzodiazepines", "thiamine_if_alcohol"]

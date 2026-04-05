@@ -7,7 +7,6 @@ are derived from the hidden physiological state, not generated independently.
 from __future__ import annotations
 
 import math
-from copy import deepcopy
 from datetime import datetime, timedelta
 
 import numpy as np
@@ -55,6 +54,15 @@ def initialize_state(
             state.coagulation_status += s * 0.2
         elif code.startswith("J44"):  # COPD
             state.ph_status -= s * 0.05
+        elif code.startswith("I25"):  # Ischemic heart disease
+            state.cardiac_function *= 1.0 - s * 0.2
+        elif code.startswith("I48"):  # Atrial fibrillation
+            state.cardiac_function *= 1.0 - s * 0.1
+        elif code.startswith("E03"):  # Hypothyroidism
+            # Mild baseline bradycardia effect (reflected in vitals)
+            pass
+        elif code.startswith("J45"):  # Asthma
+            state.ph_status -= s * 0.02  # mild respiratory effect
 
     # Perfusion tracks cardiac
     state.perfusion_status = clamp(state.cardiac_function * 0.8 + 0.2, 0.0, 1.0)

@@ -1,0 +1,908 @@
+# Gastrointestinal Bleeding — Complete Reference Data
+# Sources cited per section. All rates are approximate and should be validated
+# against the most current published data before production use.
+
+disease_id: gi_bleeding
+chief_complaint: "Hematemesis, melena, dizziness, syncope"
+department: internal_medicine  # gastroenterology
+encounter_type: medical
+requires_surgery: false  # endoscopy is interventional, not surgical
+readmission_eligible: true  # high readmission rate ~15%
+
+icd_codes:
+  primary: "K92.2"  # Gastrointestinal hemorrhage, unspecified
+  variants:
+    - {code: "K92.0", name: "Hematemesis", probability: 0.25}
+    - {code: "K92.1", name: "Melena", probability: 0.20}
+    - {code: "K25.4", name: "Acute gastric ulcer with hemorrhage", probability: 0.20}
+    - {code: "K26.4", name: "Acute duodenal ulcer with hemorrhage", probability: 0.15}
+    - {code: "K22.6", name: "Gastro-esophageal laceration-hemorrhage syndrome (Mallory-Weiss)", probability: 0.08}
+    - {code: "I85.01", name: "Esophageal varices with bleeding", probability: 0.07}
+    - {code: "K57.11", name: "Diverticulosis of large intestine with bleeding", probability: 0.05}
+
+# ============================================================
+# INCIDENCE (per 100,000 per year, by age band and sex)
+# Source: JP — DPC data, JGES registry
+#         US — Laine et al. Am J Gastroenterol 2012, Peery et al. Gastroenterology 2019
+# ============================================================
+incidence:
+  japan:
+    "0-4":   {M: 2, F: 1}
+    "5-14":  {M: 3, F: 2}
+    "15-24": {M: 10, F: 5}
+    "25-34": {M: 20, F: 10}
+    "35-44": {M: 40, F: 20}
+    "45-54": {M: 80, F: 40}
+    "55-64": {M: 150, F: 80}
+    "65-74": {M: 300, F: 180}
+    "75-84": {M: 500, F: 350}
+    "85+":   {M: 700, F: 500}
+  us:
+    "0-4":   {M: 2, F: 1}
+    "5-14":  {M: 3, F: 2}
+    "15-24": {M: 12, F: 6}
+    "25-34": {M: 25, F: 12}
+    "35-44": {M: 45, F: 25}
+    "45-54": {M: 90, F: 50}
+    "55-64": {M: 160, F: 90}
+    "65-74": {M: 320, F: 200}
+    "75-84": {M: 520, F: 380}
+    "85+":   {M: 750, F: 550}
+
+  risk_multipliers:
+    - {condition: "peptic_ulcer_history", multiplier: 5.0}
+    - {condition: "liver_cirrhosis", multiplier: 6.0}
+    - {condition: "NSAID_use", multiplier: 4.0}
+    - {condition: "anticoagulant_use", multiplier: 3.0}
+    - {condition: "antiplatelet_use", multiplier: 2.5}
+    - {condition: "H_pylori_positive", multiplier: 3.0}
+    - {condition: "alcohol_dependence", multiplier: 3.0}
+    - {condition: "CKD", multiplier: 2.0}
+    - {condition: "heart_failure", multiplier: 1.5}
+    - {condition: "prior_gi_bleed", multiplier: 4.0}
+    - {condition: "coagulopathy", multiplier: 3.5}
+
+  seasonal_curve:  # monthly multiplier (1.0 = baseline); minimal seasonality
+    1: 1.05
+    2: 1.05
+    3: 1.0
+    4: 1.0
+    5: 1.0
+    6: 0.95
+    7: 0.95
+    8: 0.95
+    9: 1.0
+    10: 1.0
+    11: 1.05
+    12: 1.1   # Dec — holiday alcohol/NSAID use
+
+  vaccine_protection: {}  # no vaccine relevant
+
+# ============================================================
+# SEVERITY DISTRIBUTION
+# Source: Rockall score distribution studies, Blatchford score validation
+# ============================================================
+severity:
+  distribution:
+    mild: 0.25        # self-limited, stable hemodynamics
+    moderate: 0.55    # requires hospitalization and endoscopy
+    severe: 0.20      # hemodynamic instability, transfusion, ICU
+  modifiers:
+    - {condition: "age_over_75", mild_multiplier: 0.5, severe_multiplier: 2.0}
+    - {condition: "liver_cirrhosis", mild_multiplier: 0.3, severe_multiplier: 2.5}
+    - {condition: "anticoagulant_use", moderate_multiplier: 1.3, severe_multiplier: 1.8}
+    - {condition: "coagulopathy", severe_multiplier: 2.0, mild_multiplier: 0.4}
+    - {condition: "CKD", severe_multiplier: 1.5}
+
+# ============================================================
+# DIAGNOSTIC DIFFICULTY
+# Source: Clinical experience; EGD required for definitive source ID
+# ============================================================
+diagnostic_difficulty: 0.35
+
+# ============================================================
+# INITIAL PHYSIOLOGICAL STATE IMPACT
+# How this disease changes physiological state at onset (added to patient baseline)
+# Key pathophysiology: acute blood loss -> anemia, hypovolemia, hypoperfusion
+# ============================================================
+initial_state_impact:
+  mild:
+    anemia_level: 0.20
+    volume_status: -0.10
+    inflammation_level: 0.05
+  moderate:
+    anemia_level: 0.40
+    volume_status: -0.25
+    perfusion_status: -0.10
+    inflammation_level: 0.10
+    renal_function: -0.05
+  severe:
+    anemia_level: 0.65
+    volume_status: -0.40
+    perfusion_status: -0.25
+    inflammation_level: 0.15
+    renal_function: -0.15
+    ph_status: -0.10
+
+# ============================================================
+# ORDER PROTOCOLS (what to order and when)
+# All admission orders, daily monitoring, and discharge criteria
+# are defined here — the engine reads this, not hardcoded.
+# ============================================================
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Hct", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "PT_INR", urgency: "stat"}
+      - {test: "APTT", urgency: "stat"}
+      - {test: "BUN", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Type_and_crossmatch", urgency: "stat"}
+      - {test: "Lactate", urgency: "stat", probability: 0.70}
+      - {test: "Albumin", urgency: "stat", probability: 0.60}
+      - {test: "AST", urgency: "stat", probability: 0.70}
+      - {test: "ALT", urgency: "stat", probability: 0.70}
+      - {test: "Total_bilirubin", urgency: "stat", probability: 0.60}
+    imaging:
+      - {test: "Chest_Xray_PA", urgency: "routine", probability: 0.50}
+    procedures:
+      - {test: "Upper_endoscopy_EGD", urgency: "urgent", probability: 0.80,
+         note: "Within 24h for non-variceal; within 12h for variceal"}
+      - {test: "Colonoscopy", urgency: "semi_urgent", probability: 0.30,
+         note: "If upper GI source not identified"}
+      - {test: "CT_angiography", urgency: "stat", probability: 0.10,
+         note: "If massive bleeding with hemodynamic instability"}
+    supportive:
+      - {type: "IV_fluid", detail: "NS or LR 500-1000mL bolus, then 125-250mL/h"}
+      - {type: "NPO", detail: "Nothing by mouth pending endoscopy"}
+      - {type: "large_bore_IV", detail: "Two large-bore (16-18G) peripheral IVs"}
+      - {type: "PPI", detail: "Omeprazole 80mg IV bolus, then 8mg/h continuous infusion"}
+      - {type: "hold_anticoagulants", detail: "Hold warfarin, DOACs, heparin"}
+      - {type: "transfusion", detail: "pRBC if Hb < 7g/dL (or < 8 if cardiac comorbidity)"}
+
+  daily_monitoring:
+    labs:
+      - {test: "Hb", frequency: "q6h_first_24h_then_daily"}
+      - {test: "Hct", frequency: "q6h_first_24h_then_daily"}
+      - {test: "BUN", frequency: "daily"}
+      - {test: "Creatinine", frequency: "daily"}
+      - {test: "PT_INR", frequency: "daily", condition: "if on anticoagulant or coagulopathy"}
+    vitals:
+      stable: "q4h"
+      unstable: "q1h"
+      note: "Include orthostatic vitals when able to stand"
+    stool:
+      - {test: "Stool_color_and_consistency", frequency: "each_bowel_movement"}
+
+  trigger_orders:
+    hb_drop_2_from_baseline:
+      condition: "Hb drop >= 2 g/dL from admission"
+      actions:
+        - {type: "lab", test: "Hb_stat"}
+        - {type: "lab", test: "Type_and_crossmatch_recheck"}
+        - {type: "transfusion", action: "transfuse_pRBC"}
+        - {type: "evaluate", action: "consider_repeat_endoscopy_or_interventional_radiology"}
+    hemodynamic_instability:
+      condition: "SBP < 90 or HR > 110 despite resuscitation"
+      actions:
+        - {type: "fluid", action: "aggressive_IV_resuscitation"}
+        - {type: "transfusion", action: "transfuse_pRBC_and_FFP"}
+        - {type: "imaging", test: "CT_angiography"}
+        - {type: "evaluate", action: "consider_ICU_transfer"}
+    rebleeding:
+      condition: "Recurrent hematemesis or melena with Hb drop after initial stabilization"
+      actions:
+        - {type: "procedure", test: "Repeat_endoscopy"}
+        - {type: "evaluate", action: "consider_interventional_radiology_embolization"}
+        - {type: "evaluate", action: "consider_surgical_consult"}
+
+  discharge_criteria:
+    japan:
+      - "No evidence of active bleeding for >= 72 hours"
+      - "Hb stable (< 0.5 g/dL drop over 24h) for 48 hours"
+      - "Tolerating oral diet for 24 hours"
+      - "Hemodynamically stable off IV fluids"
+      - "PT-INR corrected (if applicable)"
+      - "Endoscopic hemostasis confirmed successful"
+      - "ADL independent or with available support"
+    us:
+      - "No evidence of active bleeding for >= 24 hours"
+      - "Hb stable for 24 hours"
+      - "Tolerating oral PPI and diet"
+      - "Hemodynamically stable"
+      - "Follow-up arranged within 7 days"
+
+# ============================================================
+# LIKELIHOOD RATIO TABLE
+# Source: Clinical diagnostic studies
+#         Srygley et al. JAMA 2012 (systematic review of UGIB diagnosis)
+# ============================================================
+likelihood_ratios:
+  melena_on_exam:
+    upper_gi_bleed: {positive_LR: 5.1, negative_LR: 0.5}
+    lower_gi_bleed: {positive_LR: 0.3, negative_LR: 1.2}
+
+  hematemesis:
+    upper_gi_bleed: {positive_LR: 10.0, negative_LR: 0.6}
+    lower_gi_bleed: {positive_LR: 0.05, negative_LR: 1.1}
+
+  bun_creatinine_ratio_above_30:
+    upper_gi_bleed: {positive_LR: 7.5, negative_LR: 0.5}
+    lower_gi_bleed: {positive_LR: 0.5, negative_LR: 1.3}
+
+  nasogastric_aspirate_bloody:
+    upper_gi_bleed: {positive_LR: 11.0, negative_LR: 0.6}
+
+  nasogastric_aspirate_clear:
+    upper_gi_bleed: {positive_LR: 0.5, negative_LR: 1.5}
+    note: "Clear aspirate does not rule out duodenal source"
+
+  bright_red_blood_per_rectum:
+    lower_gi_bleed: {positive_LR: 3.0, negative_LR: 0.6}
+    upper_gi_bleed: {positive_LR: 0.8, negative_LR: 1.0}
+    note: "Massive UGIB can present with hematochezia"
+
+  spider_angiomata_or_ascites:
+    variceal_bleed: {positive_LR: 5.0, negative_LR: 0.7}
+    peptic_ulcer: {positive_LR: 0.5, negative_LR: 1.1}
+
+  egd_ulcer_with_visible_vessel:
+    peptic_ulcer_bleed: {positive_LR: 20.0, negative_LR: 0.3}
+
+  egd_clean_base_ulcer:
+    low_risk_rebleed: {positive_LR: 8.0, negative_LR: 0.5}
+
+# ============================================================
+# LAB REFERENCE RANGES (admission values for GI bleeding patients)
+# For benchmarking generated data
+# Source: Clinical studies, textbook values
+# ============================================================
+expected_lab_distributions:
+  admission:
+    Hb:
+      unit: "g/dL"
+      median: 8.5
+      iqr: [6.5, 10.5]
+      range: [3.0, 14.0]
+      note: "May be falsely normal early due to hemoconcentration"
+    Hct:
+      unit: "%"
+      median: 26
+      iqr: [20, 32]
+      range: [10, 42]
+    Plt:
+      unit: "x10^3/uL"
+      median: 210
+      iqr: [150, 280]
+      range: [30, 450]
+      note: "Low if cirrhosis with portal hypertension"
+    PT_INR:
+      unit: ""
+      median: 1.1
+      iqr: [0.9, 1.4]
+      range: [0.8, 5.0]
+      note: "Elevated if on anticoagulants or liver disease"
+    BUN:
+      unit: "mg/dL"
+      median: 35
+      iqr: [22, 55]
+      range: [10, 100]
+      note: "Elevated due to digested blood in upper GI bleed"
+    Creatinine:
+      unit: "mg/dL"
+      median: 1.0
+      iqr: [0.7, 1.5]
+      range: [0.4, 5.0]
+    Lactate:
+      unit: "mmol/L"
+      median: 2.0
+      iqr: [1.2, 3.5]
+      range: [0.5, 12.0]
+      note: "> 4 suggests significant hypoperfusion"
+    Albumin:
+      unit: "g/dL"
+      median: 3.0
+      iqr: [2.5, 3.5]
+      range: [1.5, 4.5]
+
+  discharge:
+    Hb:
+      unit: "g/dL"
+      median: 9.5
+      iqr: [8.5, 11.0]
+      note: "May remain below normal; outpatient iron supplementation"
+    BUN:
+      unit: "mg/dL"
+      median: 18
+      iqr: [12, 25]
+
+# ============================================================
+# VITAL SIGN DISTRIBUTIONS
+# Source: Clinical studies on acute GI hemorrhage
+# ============================================================
+expected_vital_distributions:
+  admission:
+    temperature:
+      unit: "C"
+      mean: 36.8
+      sd: 0.4
+      range: [36.0, 37.5]
+      note: "Usually afebrile unless aspiration or infection"
+    heart_rate:
+      unit: "bpm"
+      mean: 100
+      sd: 18
+      range: [60, 140]
+      note: "Tachycardia from hypovolemia; may be blunted by beta-blockers"
+    systolic_bp:
+      unit: "mmHg"
+      mean: 110
+      sd: 22
+      range: [60, 170]
+      note: "Hypotension indicates significant blood loss"
+    respiratory_rate:
+      unit: "/min"
+      mean: 18
+      sd: 4
+      range: [12, 30]
+    spo2:
+      unit: "%"
+      mean: 97
+      sd: 2
+      range: [88, 100]
+
+# ============================================================
+# TREATMENT REFERENCE — Drug and procedure data
+# Source: ACG Guidelines 2012, JGES Guidelines 2020,
+#         NICE UGIB guidelines, Barkun et al. Ann Intern Med 2019
+# ============================================================
+drugs:
+  first_line:
+    japan:
+      - drug: "Omeprazole"
+        code_yj: "2329021"
+        dose: "80mg IV bolus, then 8mg/h continuous infusion x 72h"
+        route: IV
+        note: "High-dose PPI for peptic ulcer bleeding"
+        pregnancy_safe: false
+      - drug: "Omeprazole"
+        code_yj: "2329020"
+        dose: "20mg PO daily (after IV course)"
+        route: PO
+        note: "Step-down oral PPI"
+        pregnancy_safe: false
+    us:
+      - drug: "Pantoprazole"
+        code_rxnorm: "261255"
+        dose: "80mg IV bolus, then 8mg/h continuous infusion x 72h"
+        route: IV
+        note: "Pantoprazole preferred in US"
+        pregnancy_safe: false
+      - drug: "Pantoprazole"
+        code_rxnorm: "261257"
+        dose: "40mg PO daily (after IV course)"
+        route: PO
+        pregnancy_safe: false
+
+  variceal_specific:
+    japan:
+      - drug: "Octreotide"
+        code_yj: "7229401"
+        dose: "50mcg IV bolus, then 50mcg/h continuous infusion x 3-5 days"
+        route: IV
+        note: "Somatostatin analog for variceal bleeding"
+        pregnancy_safe: false
+      - drug: "Ceftriaxone"
+        code_yj: "6132414"
+        dose: "1g IV daily x 7 days"
+        route: IV
+        note: "Antibiotic prophylaxis for cirrhotic patients with GI bleed"
+        pregnancy_safe: true
+    us:
+      - drug: "Octreotide"
+        code_rxnorm: "203675"
+        dose: "50mcg IV bolus, then 50mcg/h continuous infusion x 3-5 days"
+        route: IV
+        pregnancy_safe: false
+      - drug: "Ceftriaxone"
+        code_rxnorm: "309090"
+        dose: "1g IV daily x 7 days"
+        route: IV
+        note: "Antibiotic prophylaxis for cirrhotic patients"
+        pregnancy_safe: true
+
+  transfusion:
+    japan:
+      - drug: "Packed_red_blood_cells"
+        dose: "2 units pRBC per transfusion"
+        route: IV
+        threshold: "Hb < 7 g/dL (or < 8 if cardiac comorbidity)"
+      - drug: "Fresh_frozen_plasma"
+        dose: "2-4 units"
+        route: IV
+        threshold: "PT-INR > 1.5 with active bleeding"
+    us:
+      - drug: "Packed_red_blood_cells"
+        dose: "2 units pRBC per transfusion"
+        route: IV
+        threshold: "Hb < 7 g/dL (or < 8 if cardiac comorbidity)"
+      - drug: "Fresh_frozen_plasma"
+        dose: "2-4 units"
+        route: IV
+        threshold: "PT-INR > 1.5 with active bleeding"
+
+  reversal_agents:
+    - drug: "Vitamin_K"
+      dose: "10mg IV slow infusion"
+      indication: "Warfarin-related coagulopathy"
+    - drug: "Idarucizumab"
+      dose: "5g IV"
+      indication: "Dabigatran reversal"
+    - drug: "Andexanet_alfa"
+      dose: "Per weight-based protocol"
+      indication: "Factor Xa inhibitor reversal (rivaroxaban, apixaban)"
+
+  discharge_oral:
+    japan:
+      - drug: "Omeprazole"
+        code_yj: "2329020"
+        dose: "20mg PO daily"
+        duration_days: 56  # 8 weeks for ulcer healing
+      - drug: "Ferrous_fumarate"
+        dose: "200mg PO daily"
+        duration_days: 90
+        note: "Iron supplementation for anemia recovery"
+    us:
+      - drug: "Pantoprazole"
+        code_rxnorm: "261257"
+        dose: "40mg PO daily"
+        duration_days: 56
+      - drug: "Ferrous_sulfate"
+        code_rxnorm: "310325"
+        dose: "325mg PO daily"
+        duration_days: 90
+
+# ============================================================
+# DRUG INTERACTIONS relevant to GI bleeding treatment
+# ============================================================
+drug_interactions:
+  - drug_a: "Omeprazole"
+    drug_b: "Clopidogrel"
+    severity: "major"
+    effect: "Reduced antiplatelet effect of clopidogrel via CYP2C19 inhibition"
+    action: "Use pantoprazole instead; or alternative antiplatelet strategy"
+
+  - drug_a: "Octreotide"
+    drug_b: "Insulin"
+    severity: "moderate"
+    effect: "Altered glucose regulation"
+    action: "Monitor blood glucose closely"
+
+  - drug_a: "Ceftriaxone"
+    drug_b: "Calcium_containing_IV_solutions"
+    severity: "major"
+    effect: "Risk of ceftriaxone-calcium precipitates"
+    action: "Do not co-administer via same IV line"
+
+# ============================================================
+# LAB ITEM REFERENCE RANGES (age/sex-specific normal values)
+# Used for flagging H/L results
+# Source: Standard clinical laboratory references
+# ============================================================
+reference_ranges:
+  Hb:
+    unit: "g/dL"
+    male: {low: 13.5, high: 17.5}
+    female: {low: 11.5, high: 15.5}
+    pregnant: {low: 10.0, high: 14.0}
+  Hct:
+    unit: "%"
+    male: {low: 40, high: 52}
+    female: {low: 36, high: 46}
+  Plt:
+    unit: "x10^3/uL"
+    all: {low: 150, high: 400}
+  PT_INR:
+    unit: ""
+    all: {low: 0.9, high: 1.1}
+    on_warfarin: {low: 2.0, high: 3.0}
+  APTT:
+    unit: "sec"
+    all: {low: 25, high: 35}
+  BUN:
+    unit: "mg/dL"
+    all: {low: 8, high: 20}
+  Creatinine:
+    unit: "mg/dL"
+    male: {low: 0.6, high: 1.1}
+    female: {low: 0.4, high: 0.8}
+  Na:
+    unit: "mEq/L"
+    all: {low: 136, high: 145}
+  K:
+    unit: "mEq/L"
+    all: {low: 3.5, high: 5.0}
+  Albumin:
+    unit: "g/dL"
+    all: {low: 3.5, high: 5.0}
+  AST:
+    unit: "U/L"
+    all: {low: 10, high: 35}
+  ALT:
+    unit: "U/L"
+    all: {low: 5, high: 40}
+  Total_bilirubin:
+    unit: "mg/dL"
+    all: {low: 0.2, high: 1.2}
+  Lactate:
+    unit: "mmol/L"
+    all: {low: 0.5, high: 2.0}
+
+# ============================================================
+# TARGET LENGTH OF STAY (country-specific)
+# Source: JP — DPC data, JGES registry
+#         US — Charlson et al., AGA clinical practice update
+# ============================================================
+target_los:
+  japan:
+    mild: {mean: 10, sd: 3, min: 5, max: 16}
+    moderate: {mean: 12, sd: 3, min: 7, max: 20}
+    severe: {mean: 16, sd: 4, min: 10, max: 28}
+  us:
+    mild: {mean: 3, sd: 1, min: 2, max: 5}
+    moderate: {mean: 4, sd: 1, min: 2, max: 7}
+    severe: {mean: 6, sd: 2, min: 3, max: 12}
+
+# ============================================================
+# OUTCOME BENCHMARKS
+# For validating generated data against reality
+# ============================================================
+outcome_benchmarks:
+  japan:
+    median_los: 12
+    los_iqr: [8, 16]
+    in_hospital_mortality: 0.05
+    icu_transfer_rate: 0.10
+    thirty_day_readmission: 0.15
+    rebleeding_rate: 0.12
+    endoscopy_within_24h_rate: 0.80
+    transfusion_rate: 0.45
+    mean_units_prbc_transfused: 3.2
+    mean_age_admitted: 68
+    male_ratio: 0.60
+
+  us:
+    median_los: 4
+    los_iqr: [3, 6]
+    in_hospital_mortality: 0.03
+    icu_transfer_rate: 0.12
+    thirty_day_readmission: 0.15
+    rebleeding_rate: 0.10
+    endoscopy_within_24h_rate: 0.85
+    transfusion_rate: 0.40
+    mean_units_prbc_transfused: 2.8
+    mean_age_admitted: 65
+    male_ratio: 0.58
+
+# ============================================================
+# CLINICAL COURSE ARCHETYPES (daily state variable changes)
+# Each archetype defines day-by-day deltas for physiological state variables.
+# Disease authors specify these trajectories — the engine interpolates between days.
+# Patient profile (immune_reactivity, treatment_sensitivity) modulates amplitude.
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.55
+    description: "Bleeding controlled by endoscopy/PPI; steady Hb recovery"
+    trajectory:
+      anemia_level: {0: 0.05, 1: 0.00, 2: -0.03, 3: -0.05, 5: -0.05, 7: -0.04, 10: -0.03, 14: -0.02}
+      volume_status: {0: 0.05, 1: 0.05, 2: 0.03, 3: 0.02, 5: 0.01, 7: 0.00, 10: 0.00, 14: 0.00}
+      perfusion_status: {0: 0.02, 1: 0.02, 2: 0.01, 3: 0.01, 5: 0.00, 7: 0.00, 10: 0.00, 14: 0.00}
+      inflammation_level: {0: 0.00, 1: -0.01, 2: -0.01, 3: -0.01, 5: -0.01, 7: 0.00, 10: 0.00, 14: 0.00}
+      renal_function: {0: 0.00, 1: 0.01, 2: 0.01, 3: 0.01, 5: 0.01, 7: 0.00, 10: 0.00, 14: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.15
+    description: "Initial stabilization then rebleed Day 2-3, controlled by repeat endoscopy"
+    trajectory:
+      anemia_level: {0: 0.05, 1: -0.02, 2: 0.15, 3: 0.05, 5: -0.05, 7: -0.05, 10: -0.04, 14: -0.03}
+      volume_status: {0: 0.05, 1: 0.03, 2: -0.10, 3: 0.05, 5: 0.03, 7: 0.01, 10: 0.00, 14: 0.00}
+      perfusion_status: {0: 0.02, 1: 0.01, 2: -0.10, 3: 0.02, 5: 0.02, 7: 0.01, 10: 0.00, 14: 0.00}
+      renal_function: {0: 0.00, 1: 0.01, 2: -0.05, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["Hb_stat", "Type_and_crossmatch"]
+        add_procedures: ["Repeat_upper_endoscopy"]
+    treatment_modifications:
+      day_2:
+        add_transfusion: {detail: "pRBC 2 units for rebleed"}
+        add_fluid: {detail: "NS 500mL bolus"}
+
+  plateau:
+    probability: 0.10
+    description: "Bleeding stops but Hb remains low; slow recovery over extended stay"
+    trajectory:
+      anemia_level: {0: 0.02, 1: 0.00, 2: 0.00, 3: 0.00, 5: -0.01, 7: -0.02, 10: -0.03, 14: -0.03}
+      volume_status: {0: 0.03, 1: 0.02, 2: 0.01, 3: 0.00, 5: 0.00, 7: 0.00, 10: 0.00, 14: 0.00}
+      perfusion_status: {0: 0.01, 1: 0.01, 2: 0.00, 3: 0.00, 5: 0.00, 7: 0.00, 10: 0.00, 14: 0.00}
+    order_modifications:
+      day_5:
+        add_labs: ["Reticulocyte_count", "Iron_studies", "Ferritin"]
+    treatment_modifications:
+      day_3:
+        start:
+          japan: [{drug: "Ferrous_fumarate", dose: "200mg PO daily"}]
+          us: [{drug: "Ferrous_sulfate", dose: "325mg PO daily"}]
+
+  treatment_resistant:
+    probability: 0.10
+    description: "Endoscopic hemostasis fails; requires interventional radiology or surgery"
+    trajectory:
+      anemia_level: {0: 0.08, 1: 0.05, 2: 0.05, 3: -0.02, 5: -0.05, 7: -0.05, 10: -0.04, 14: -0.03}
+      volume_status: {0: -0.05, 1: -0.03, 2: -0.02, 3: 0.05, 5: 0.03, 7: 0.01, 10: 0.00, 14: 0.00}
+      perfusion_status: {0: -0.05, 1: -0.05, 2: -0.03, 3: 0.03, 5: 0.02, 7: 0.01, 10: 0.00, 14: 0.00}
+      renal_function: {0: -0.03, 1: -0.02, 2: -0.01, 3: 0.01, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["Hb_stat", "Lactate", "Type_and_crossmatch"]
+        add_imaging: ["CT_angiography"]
+        add_consult: ["interventional_radiology", "surgery"]
+    treatment_modifications:
+      day_2:
+        add_transfusion: {detail: "pRBC 4 units, FFP 2 units (massive transfusion protocol)"}
+        action: "interventional_radiology_embolization"
+    triggers:
+      - day: 2
+        condition: "anemia_level > 0.7 and perfusion_status < 0.4"
+        actions: ["interventional_radiology", "consider_surgery"]
+
+  gradual_deterioration:
+    probability: 0.07
+    description: "Ongoing slow bleed -> progressive organ dysfunction -> ICU"
+    trajectory:
+      anemia_level: {0: 0.08, 1: 0.05, 2: 0.05, 3: 0.03, 5: 0.02, 7: 0.00, 10: -0.02, 14: -0.02}
+      volume_status: {0: -0.05, 1: -0.03, 2: -0.03, 3: -0.02, 5: -0.01, 7: 0.00, 10: 0.01, 14: 0.01}
+      perfusion_status: {0: -0.05, 1: -0.05, 2: -0.03, 3: -0.03, 5: -0.02, 7: -0.01, 10: 0.01, 14: 0.01}
+      renal_function: {0: -0.03, 1: -0.03, 2: -0.03, 3: -0.02, 5: -0.01, 7: 0.00, 10: 0.01, 14: 0.01}
+    order_modifications:
+      day_3:
+        add_labs: ["Hb_stat", "Lactate", "ABG"]
+        add_procedures: ["Repeat_upper_endoscopy"]
+      day_5:
+        add_labs: ["Lactate", "ABG"]
+        add_imaging: ["CT_angiography"]
+    treatment_modifications:
+      day_3:
+        add_transfusion: {detail: "pRBC 2 units"}
+      day_5:
+        action: "icu_transfer"
+        add_transfusion: {detail: "massive_transfusion_protocol"}
+    triggers:
+      - day: 5
+        condition: "perfusion_status < 0.35"
+        actions: ["icu_transfer", "interventional_radiology_or_surgery"]
+
+  sudden_deterioration:
+    probability: 0.03
+    description: "Sudden massive hemorrhage (e.g., variceal rupture, Dieulafoy lesion) on Day 1-2"
+    trajectory:
+      anemia_level: {0: 0.05, 1: 0.30, 2: 0.05, 3: -0.05, 5: -0.05, 7: -0.04, 10: -0.03, 14: -0.02}
+      volume_status: {0: 0.00, 1: -0.30, 2: 0.10, 3: 0.05, 5: 0.02, 7: 0.01, 10: 0.00, 14: 0.00}
+      perfusion_status: {0: 0.00, 1: -0.30, 2: 0.05, 3: 0.05, 5: 0.03, 7: 0.02, 10: 0.01, 14: 0.00}
+      renal_function: {0: 0.00, 1: -0.15, 2: -0.05, 3: 0.02, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.01}
+      ph_status: {0: 0.00, 1: -0.10, 2: -0.03, 3: 0.02, 5: 0.02, 7: 0.01, 10: 0.00, 14: 0.00}
+    order_modifications:
+      day_1:
+        add_labs: ["Hb_stat", "ABG", "Lactate", "Type_and_crossmatch", "Fibrinogen"]
+        add_procedures: ["Emergency_endoscopy"]
+    treatment_modifications:
+      day_1:
+        action: "icu_transfer"
+        add_transfusion: {detail: "massive_transfusion_protocol"}
+        start:
+          japan:
+            - {drug: "Norepinephrine", dose: "0.05ug/kg/min IV drip"}
+          us:
+            - {drug: "Norepinephrine", dose: "0.05ug/kg/min IV drip"}
+        action_2: "intubation_evaluation"
+    triggers:
+      - day: 1
+        condition: "perfusion_status < 0.3"
+        actions: ["icu_transfer", "massive_transfusion", "emergency_endoscopy", "intubation_evaluation"]
+
+# Archetype selection modifiers (patient profile dependent)
+archetype_modifiers:
+  - condition: "liver_cirrhosis"
+    effect: {sudden_deterioration: 0.08, smooth_recovery: -0.08}
+  - condition: "anticoagulant_use"
+    effect: {treatment_resistant: 0.05, dip_then_recovery: 0.05, smooth_recovery: -0.10}
+  - condition: "age >= 80"
+    effect: {gradual_deterioration: 0.05, smooth_recovery: -0.05}
+  - condition: "peptic_ulcer_history"
+    effect: {dip_then_recovery: 0.05, smooth_recovery: -0.05}
+
+# ============================================================
+# COMPLICATIONS (secondary events during hospitalization)
+# Each complication has: trigger conditions, timing, probability,
+# physiological impact, and detection/treatment actions.
+# Complications can themselves trigger further complications (cascade).
+# ============================================================
+complications:
+  - name: "rebleeding"
+    description: "Recurrence of GI hemorrhage after initial hemostasis"
+    probability_per_day: 0.02
+    onset_day_range: [1, 7]
+    risk_factors:
+      - {condition: "ulcer_with_visible_vessel", multiplier: 3.0}
+      - {condition: "variceal_source", multiplier: 2.5}
+      - {condition: "anticoagulant_use", multiplier: 2.0}
+      - {condition: "coagulopathy", multiplier: 2.5}
+      - {condition: "age_over_75", multiplier: 1.5}
+    state_impact:
+      anemia_level: 0.20
+      volume_status: -0.15
+      perfusion_status: -0.10
+    detection:
+      test: "hemoglobin_and_vitals"
+      finding: "Hb_drop_or_hematemesis_recurrence"
+    actions: ["repeat_endoscopy", "transfuse_prbc", "consider_interventional_radiology"]
+    cascade: ["hemorrhagic_shock"]
+
+  - name: "hemorrhagic_shock"
+    description: "Severe hypovolemic shock from massive blood loss"
+    probability_given_parent: 0.10
+    parent_complication: "rebleeding"
+    onset_days_after_parent: [0, 1]
+    state_impact:
+      perfusion_status: -0.30
+      renal_function: -0.15
+      ph_status: -0.10
+    actions: ["massive_transfusion_protocol", "icu_transfer", "vasopressors", "emergency_surgery_or_IR"]
+
+  - name: "aspiration_pneumonia"
+    description: "Aspiration of blood or gastric contents during hematemesis"
+    probability_per_day: 0.008
+    onset_day_range: [0, 3]
+    risk_factors:
+      - {condition: "hematemesis", multiplier: 3.0}
+      - {condition: "altered_consciousness", multiplier: 4.0}
+      - {condition: "age_over_75", multiplier: 2.0}
+      - {condition: "hepatic_encephalopathy", multiplier: 3.0}
+    state_impact:
+      inflammation_level: 0.20
+      perfusion_status: -0.05
+    detection:
+      test: "chest_xray"
+      finding: "new_infiltrate"
+    actions: ["start_antibiotic", "oxygen_supplementation", "respiratory_monitoring"]
+
+  - name: "transfusion_reaction"
+    description: "Adverse reaction to blood product transfusion"
+    probability_per_day: 0.005
+    onset_day_range: [0, 7]
+    risk_factors:
+      - {condition: "multiple_transfusions", multiplier: 2.0}
+      - {condition: "prior_transfusion_reaction", multiplier: 5.0}
+    state_impact:
+      inflammation_level: 0.10
+    detection:
+      test: "vitals_and_symptoms"
+      finding: "fever_urticaria_or_dyspnea_during_transfusion"
+    actions: ["stop_transfusion", "antihistamine", "reassess_blood_compatibility"]
+
+  - name: "acute_kidney_injury"
+    description: "Pre-renal AKI from hypoperfusion due to blood loss"
+    probability_per_day: 0.012
+    onset_day_range: [1, 5]
+    risk_factors:
+      - {condition: "renal_function < 0.5", multiplier: 3.0}
+      - {condition: "volume_status < -0.3", multiplier: 2.5}
+      - {condition: "age_over_75", multiplier: 1.5}
+      - {condition: "NSAID_use", multiplier: 2.0}
+    state_impact:
+      renal_function: -0.15
+      ph_status: -0.05
+    detection:
+      test: "creatinine"
+      finding: "rise_above_0.3_from_baseline"
+    actions: ["aggressive_iv_fluid", "hold_nephrotoxic_drugs", "monitor_urine_output"]
+
+  - name: "hepatic_encephalopathy"
+    description: "Encephalopathy triggered by blood protein load in cirrhotic patients"
+    probability_per_day: 0.010
+    onset_day_range: [1, 5]
+    risk_factors:
+      - {condition: "liver_cirrhosis", multiplier: 10.0}
+      - {condition: "portal_hypertension", multiplier: 5.0}
+    state_impact:
+      inflammation_level: 0.05
+    detection:
+      test: "mental_status_and_ammonia"
+      finding: "confusion_asterixis_elevated_ammonia"
+    actions: ["lactulose", "rifaximin", "protein_restriction"]
+
+  - name: "dvt"
+    description: "Deep vein thrombosis from immobility"
+    probability_per_day: 0.005
+    onset_day_range: [3, 14]
+    risk_factors:
+      - {condition: "immobility_days > 3", multiplier: 2.0}
+      - {condition: "dvt_susceptibility > 0.3", multiplier: 2.0}
+      - {condition: "no_dvt_prophylaxis", multiplier: 3.0}
+    note: "DVT prophylaxis often held due to active bleeding"
+    state_impact:
+      coagulation_status: 0.05
+    detection:
+      test: "d_dimer_then_ultrasound"
+      finding: "dvt_confirmed"
+    actions: ["evaluate_bleeding_risk_vs_anticoagulation", "IVC_filter_if_contraindicated"]
+    cascade: ["pulmonary_embolism"]
+
+  - name: "pulmonary_embolism"
+    description: "PE from DVT embolization"
+    probability_given_parent: 0.10
+    parent_complication: "dvt"
+    onset_days_after_parent: [0, 7]
+    state_impact:
+      perfusion_status: -0.20
+      ph_status: -0.05
+    actions: ["ct_angiography", "evaluate_anticoagulation_vs_IVC_filter", "consider_icu"]
+
+# ============================================================
+# DIFFERENTIAL DIAGNOSIS
+# For LLM-driven clinical reasoning and documentation
+# ============================================================
+differential_diagnosis:
+  - diagnosis: "Peptic ulcer bleeding (gastric/duodenal)"
+    probability: 0.35
+    distinguishing_features: ["epigastric pain", "NSAID or H. pylori history", "EGD confirms ulcer"]
+  - diagnosis: "Esophageal or gastric variceal bleeding"
+    probability: 0.15
+    distinguishing_features: ["known liver cirrhosis", "massive hematemesis", "spider angiomata", "ascites"]
+  - diagnosis: "Mallory-Weiss tear"
+    probability: 0.08
+    distinguishing_features: ["preceded by vomiting or retching", "self-limited", "EGD shows mucosal tear at GEJ"]
+  - diagnosis: "Diverticular bleeding (lower GI)"
+    probability: 0.12
+    distinguishing_features: ["painless hematochezia", "older patient", "colonoscopy confirms"]
+  - diagnosis: "Colorectal malignancy"
+    probability: 0.08
+    distinguishing_features: ["weight loss", "iron deficiency anemia", "change in bowel habits", "colonoscopy with mass"]
+  - diagnosis: "Angiodysplasia"
+    probability: 0.05
+    distinguishing_features: ["recurrent occult or overt bleeding", "elderly", "CKD or aortic stenosis"]
+  - diagnosis: "Erosive gastritis/esophagitis"
+    probability: 0.10
+    distinguishing_features: ["diffuse mucosal erosions on EGD", "NSAID or alcohol use", "usually less severe"]
+  - diagnosis: "Dieulafoy lesion"
+    probability: 0.03
+    distinguishing_features: ["massive arterial bleeding", "small submucosal vessel", "difficult to locate on EGD"]
+  - diagnosis: "Aortoenteric fistula"
+    probability: 0.02
+    distinguishing_features: ["prior aortic surgery", "herald bleed then massive hemorrhage", "CT angiography"]
+  - diagnosis: "Upper GI malignancy (gastric/esophageal cancer)"
+    probability: 0.02
+    distinguishing_features: ["weight loss", "dysphagia", "mass on EGD"]
+
+# ============================================================
+# FORCED GENERATION (for testing / specific scenario creation)
+# Users can override population-driven generation to force specific cases.
+# See SimulatorConfig.forced_scenarios
+# ============================================================
+# Example usage in config:
+#   forced_scenarios:
+#     - disease_id: "gi_bleeding"
+#       count: 5
+#       severity: "severe"
+#       archetype: "sudden_deterioration"
+#       complications: ["rebleeding", "hemorrhagic_shock"]
+#       patient_overrides:
+#         age: 70
+#         sex: "M"
+#         chronic_conditions: ["K74.6", "I85.0"]  # cirrhosis, varices

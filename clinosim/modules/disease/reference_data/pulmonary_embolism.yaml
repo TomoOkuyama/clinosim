@@ -1,0 +1,758 @@
+# Pulmonary Embolism — Complete Reference Data
+# Sources cited per section. All rates are approximate and should be validated
+# against the most current published data before production use.
+
+disease_id: pulmonary_embolism
+chief_complaint: "Acute dyspnea, pleuritic chest pain, tachycardia"
+department: internal_medicine
+encounter_type: medical
+requires_surgery: false
+readmission_eligible: true
+minimum_severity: null
+diagnostic_difficulty: 0.45   # Mimics pneumonia, ACS, anxiety, pleurisy — Wells/Geneva + D-dimer + CTPA needed
+
+icd_codes:
+  primary: "I26.9"  # Pulmonary embolism without acute cor pulmonale
+  variants:
+    - {code: "I26.9", name: "Pulmonary embolism without acute cor pulmonale", probability: 0.60}
+    - {code: "I26.0", name: "Pulmonary embolism with acute cor pulmonale", probability: 0.20}
+    - {code: "I26.92", name: "Saddle embolus of pulmonary artery without acute cor pulmonale", probability: 0.05}
+    - {code: "I26.02", name: "Saddle embolus of pulmonary artery with acute cor pulmonale", probability: 0.03}
+    - {code: "I26.99", name: "Other pulmonary embolism without acute cor pulmonale", probability: 0.12}
+
+# ============================================================
+# INCIDENCE (per 100,000 per year, by age band and sex)
+# Source: JP — MHLW Patient Survey, JEVT registry
+#         US — CDC, Beckman et al. Am J Med 2010
+# ============================================================
+incidence:
+  japan:
+    "0-4":   {M: 0, F: 0}
+    "5-14":  {M: 0, F: 0}
+    "15-24": {M: 2, F: 3}
+    "25-34": {M: 3, F: 8}
+    "35-44": {M: 5, F: 12}
+    "45-54": {M: 10, F: 18}
+    "55-64": {M: 20, F: 25}
+    "65-74": {M: 40, F: 45}
+    "75-84": {M: 65, F: 70}
+    "85+":   {M: 80, F: 85}
+  us:
+    "0-4":   {M: 0, F: 0}
+    "5-14":  {M: 1, F: 1}
+    "15-24": {M: 5, F: 10}
+    "25-34": {M: 10, F: 20}
+    "35-44": {M: 20, F: 30}
+    "45-54": {M: 40, F: 45}
+    "55-64": {M: 70, F: 65}
+    "65-74": {M: 110, F: 100}
+    "75-84": {M: 180, F: 160}
+    "85+":   {M: 250, F: 220}
+
+  risk_multipliers:
+    - {condition: "dvt_history", multiplier: 5.0}
+    - {condition: "recent_surgery", multiplier: 4.0}
+    - {condition: "immobility_over_3_days", multiplier: 3.0}
+    - {condition: "active_cancer", multiplier: 4.0}
+    - {condition: "oral_contraceptives", multiplier: 3.0}
+    - {condition: "pregnancy_or_postpartum", multiplier: 5.0}
+    - {condition: "obesity", multiplier: 2.0}
+    - {condition: "factor_V_Leiden", multiplier: 5.0}
+    - {condition: "antiphospholipid_syndrome", multiplier: 6.0}
+    - {condition: "heart_failure", multiplier: 2.0}
+    - {condition: "smoking_current", multiplier: 1.5}
+    - {condition: "long_haul_flight", multiplier: 2.5}
+
+  seasonal_curve:
+    1: 1.1
+    2: 1.1
+    3: 1.0
+    4: 1.0
+    5: 1.0
+    6: 1.0
+    7: 0.9
+    8: 0.9
+    9: 1.0
+    10: 1.0
+    11: 1.0
+    12: 1.1
+
+  vaccine_protection: {}
+
+# ============================================================
+# SEVERITY DISTRIBUTION
+# Source: ESC Guidelines 2019, PESI score correlation
+# ============================================================
+severity:
+  distribution:
+    mild: 0.35        # low-risk (PESI I-II), could be outpatient in US
+    moderate: 0.45    # submassive (RV dysfunction without hemodynamic instability)
+    severe: 0.20      # massive (hemodynamic instability, shock)
+  modifiers:
+    - {condition: "age_over_75", mild_multiplier: 0.6, severe_multiplier: 1.8}
+    - {condition: "active_cancer", moderate_multiplier: 1.3, severe_multiplier: 1.5}
+    - {condition: "heart_failure", severe_multiplier: 2.0}
+    - {condition: "COPD", severe_multiplier: 1.5}
+    - {condition: "saddle_embolus", severe_multiplier: 3.0, mild_multiplier: 0.2}
+
+# ============================================================
+# INITIAL PHYSIOLOGICAL STATE IMPACT
+# ============================================================
+initial_state_impact:
+  mild:
+    inflammation_level: 0.10
+    perfusion_status: -0.05
+  moderate:
+    inflammation_level: 0.20
+    perfusion_status: -0.20
+    volume_status: -0.05
+    renal_function: -0.05
+    ph_status: -0.05
+  severe:
+    inflammation_level: 0.35
+    perfusion_status: -0.40
+    volume_status: -0.10
+    renal_function: -0.15
+    ph_status: -0.15
+
+# ============================================================
+# ORDER PROTOCOLS
+# ============================================================
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "D_dimer", urgency: "stat"}
+      - {test: "Troponin", urgency: "stat"}
+      - {test: "BNP", urgency: "stat"}
+      - {test: "PT_INR", urgency: "stat"}
+      - {test: "aPTT", urgency: "stat"}
+      - {test: "WBC", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "BUN", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "AST", urgency: "stat", probability: 0.60}
+      - {test: "ALT", urgency: "stat", probability: 0.60}
+      - {test: "ABG", urgency: "stat", probability: 0.70}
+      - {test: "Lactate", urgency: "stat", probability: 0.60}
+    imaging:
+      - {test: "CT_pulmonary_angiography", urgency: "stat"}
+      - {test: "Chest_Xray", urgency: "stat"}
+      - {test: "Echocardiogram", urgency: "stat", probability: 0.60,
+         note: "Assess RV function, especially if submassive/massive"}
+      - {test: "Lower_extremity_venous_ultrasound", urgency: "within_24h", probability: 0.50}
+    supportive:
+      - {type: "O2", detail: "Nasal cannula or mask, SpO2 >= 94%"}
+      - {type: "IV_fluid", detail: "NS 80 mL/h (cautious — RV may not tolerate volume)"}
+      - {type: "telemetry", detail: "Continuous cardiac monitoring"}
+      - {type: "DVT_prophylaxis", detail: "therapeutic_anticoagulation (replaces prophylactic)"}
+
+  daily_monitoring:
+    labs:
+      - {test: "Creatinine", frequency: "daily"}
+      - {test: "Hb", frequency: "daily"}
+      - {test: "Plt", frequency: "daily"}
+      - {test: "PT_INR", frequency: "daily", condition: "if on warfarin"}
+      - {test: "aPTT", frequency: "q6h", condition: "if on UFH"}
+    vitals:
+      stable: "q4h"
+      unstable: "q1h"
+    imaging: []
+
+  trigger_orders:
+    hemodynamic_instability:
+      condition: "SBP < 90 for > 15 min or requiring vasopressors"
+      actions:
+        - {type: "lab", test: "ABG"}
+        - {type: "lab", test: "Lactate"}
+        - {type: "lab", test: "Troponin_repeat"}
+        - {type: "imaging", test: "Echocardiogram_bedside"}
+        - {type: "evaluate", action: "consider_thrombolysis_or_embolectomy"}
+        - {type: "consult", target: "interventional_radiology_or_cardiac_surgery"}
+    heparin_induced_thrombocytopenia:
+      condition: "Platelet drop > 50% from baseline or < 100k while on heparin"
+      actions:
+        - {type: "lab", test: "HIT_antibody_PF4"}
+        - {type: "medication_change", action: "stop_heparin_start_argatroban"}
+    bleeding_complication:
+      condition: "Hb drop > 2 g/dL or active bleeding"
+      actions:
+        - {type: "lab", test: "Hb_repeat"}
+        - {type: "lab", test: "PT_INR"}
+        - {type: "lab", test: "Type_and_crossmatch"}
+        - {type: "medication_change", action: "hold_anticoagulation"}
+        - {type: "evaluate", action: "reversal_agent_if_life_threatening"}
+
+  discharge_criteria:
+    japan:
+      - "Hemodynamically stable for 48 hours"
+      - "SpO2 >= 95% on room air"
+      - "Therapeutic anticoagulation established (INR 2.0-3.0 or DOAC started)"
+      - "Pain controlled with oral analgesics"
+      - "No ongoing RV dysfunction on echo"
+      - "Education on anticoagulation therapy"
+    us:
+      - "Hemodynamically stable for 24 hours"
+      - "SpO2 >= 92% on room air"
+      - "Oral anticoagulation initiated and tolerated"
+      - "Pain controlled"
+      - "Outpatient follow-up arranged"
+
+# ============================================================
+# LIKELIHOOD RATIO TABLE
+# Source: Wells score validation, PIOPED II, Christopher study
+# ============================================================
+likelihood_ratios:
+  ctpa_filling_defect:
+    pulmonary_embolism: {positive_LR: 50.0, negative_LR: 0.05}
+    artifact: {positive_LR: 0.2, negative_LR: 1.0}
+
+  d_dimer_above_500:
+    pulmonary_embolism: {positive_LR: 2.0, negative_LR: 0.10}
+    dvt: {positive_LR: 2.0, negative_LR: 0.15}
+    active_cancer: {positive_LR: 1.5, negative_LR: 0.8}
+    note: "Very sensitive, poor specificity — useful to rule out"
+
+  rv_dilation_on_echo:
+    pulmonary_embolism: {positive_LR: 4.0, negative_LR: 0.5}
+    right_heart_failure: {positive_LR: 3.0, negative_LR: 0.5}
+
+  troponin_elevated:
+    pulmonary_embolism: {positive_LR: 2.5, negative_LR: 0.6}
+    acute_mi: {positive_LR: 8.0, negative_LR: 0.2}
+    note: "Elevated troponin in PE indicates RV strain (submassive)"
+
+  bnp_elevated:
+    pulmonary_embolism: {positive_LR: 2.0, negative_LR: 0.5}
+    heart_failure: {positive_LR: 6.0, negative_LR: 0.2}
+
+  dvt_on_ultrasound:
+    pulmonary_embolism: {positive_LR: 4.0, negative_LR: 0.6}
+    note: "~50% of PE patients have DVT on US"
+
+  abg_hypoxemia_hypocapnia:
+    pulmonary_embolism: {positive_LR: 2.0, negative_LR: 0.6}
+    pneumonia: {positive_LR: 1.5, negative_LR: 0.8}
+    anxiety_hyperventilation: {positive_LR: 1.5, negative_LR: 0.8}
+
+  s1q3t3_on_ecg:
+    pulmonary_embolism: {positive_LR: 3.0, negative_LR: 0.8}
+    note: "Classic but only present in ~20% of PE cases"
+
+# ============================================================
+# LAB REFERENCE RANGES (admission values)
+# ============================================================
+expected_lab_distributions:
+  admission:
+    D_dimer:
+      unit: "ng/mL"
+      median: 3000
+      iqr: [1500, 8000]
+      range: [500, 50000]
+    Troponin:
+      unit: "ng/mL"
+      median: 0.05
+      iqr: [0.01, 0.15]
+      range: [0, 2.0]
+      note: "elevated in submassive/massive PE"
+    BNP:
+      unit: "pg/mL"
+      median: 150
+      iqr: [50, 400]
+      range: [10, 2000]
+    Creatinine:
+      unit: "mg/dL"
+      median: 0.9
+      iqr: [0.7, 1.2]
+      range: [0.4, 3.0]
+    WBC:
+      unit: "/uL"
+      median: 10000
+      iqr: [7500, 13000]
+      range: [4000, 20000]
+    Hb:
+      unit: "g/dL"
+      median: 13.5
+      iqr: [12.0, 15.0]
+      range: [8.0, 18.0]
+    Lactate:
+      unit: "mmol/L"
+      median: 1.5
+      iqr: [1.0, 2.5]
+      range: [0.5, 8.0]
+      note: "elevated indicates tissue hypoperfusion"
+    PT_INR:
+      unit: ""
+      median: 1.0
+      iqr: [0.9, 1.1]
+      range: [0.8, 1.5]
+
+  discharge:
+    D_dimer:
+      unit: "ng/mL"
+      median: 800
+      iqr: [400, 1500]
+      note: "may remain elevated for weeks"
+    BNP:
+      unit: "pg/mL"
+      median: 60
+      iqr: [20, 120]
+
+# ============================================================
+# VITAL SIGN DISTRIBUTIONS
+# ============================================================
+expected_vital_distributions:
+  admission:
+    temperature:
+      unit: "C"
+      mean: 37.2
+      sd: 0.5
+      range: [36.3, 38.5]
+    heart_rate:
+      unit: "bpm"
+      mean: 105
+      sd: 18
+      range: [70, 150]
+    systolic_bp:
+      unit: "mmHg"
+      mean: 120
+      sd: 25
+      range: [70, 180]
+    respiratory_rate:
+      unit: "/min"
+      mean: 24
+      sd: 6
+      range: [16, 40]
+    spo2:
+      unit: "%"
+      mean: 92
+      sd: 4
+      range: [75, 99]
+
+# ============================================================
+# TREATMENT REFERENCE — Drug selection data
+# Source: ESC Guidelines 2019, ACCP Guidelines, JCS Guidelines
+# ============================================================
+drugs:
+  first_line:
+    japan:
+      - drug: "Unfractionated Heparin"
+        code_yj: "3334400"
+        dose: "80 units/kg IV bolus then 18 units/kg/h IV drip"
+        route: IV
+        note: "Monitor aPTT q6h, target 60-80s"
+        renal_adjustment: {}
+        pregnancy_safe: true
+      - drug: "Warfarin"
+        code_yj: "3332001"
+        dose: "Start 3-5mg PO daily, target INR 2.0-3.0 (JP: 1.5-2.5 for age>70)"
+        route: PO
+        note: "Overlap with heparin for >= 5 days and INR >= 2.0 for 24h"
+        pregnancy_safe: false
+
+    us:
+      - drug: "Enoxaparin"
+        code_rxnorm: "67108"
+        dose: "1mg/kg SC q12h"
+        route: SC
+        note: "Bridge to oral anticoagulant"
+        renal_adjustment:
+          eGFR_below_30: "1mg/kg SC daily"
+        pregnancy_safe: true
+      - drug: "Rivaroxaban"
+        code_rxnorm: "1114195"
+        dose: "15mg PO BID x 21 days then 20mg PO daily"
+        route: PO
+        note: "DOAC — no heparin bridge needed"
+        pregnancy_safe: false
+
+  alternative_penicillin_allergy: {}  # Not applicable
+
+  escalation:  # massive PE
+    japan:
+      - drug: "Alteplase (tPA)"
+        code_yj: "3959401"
+        dose: "0.6mg/kg IV over 2h (max 40mg JP dose)"
+        indication: "massive_PE_with_hemodynamic_instability"
+        note: "Lower dose in Japan than US protocol"
+      - drug: "Norepinephrine"
+        code_yj: "2451700"
+        dose: "0.05-0.5 ug/kg/min IV drip"
+        indication: "shock"
+    us:
+      - drug: "Alteplase (tPA)"
+        code_rxnorm: "8410"
+        dose: "100mg IV over 2h"
+        indication: "massive_PE_with_hemodynamic_instability"
+      - drug: "Norepinephrine"
+        code_rxnorm: "7512"
+        dose: "0.05-0.5 ug/kg/min IV drip"
+        indication: "shock"
+
+  discharge_oral:
+    japan:
+      - drug: "Warfarin"
+        code_yj: "3332001"
+        dose: "Adjusted to INR 2.0-3.0 (1.5-2.5 age>70)"
+        duration_days: 90
+        note: "Minimum 3 months; longer if unprovoked or cancer"
+      - drug: "Edoxaban"
+        code_yj: "3339003"
+        dose: "60mg PO daily (30mg if body weight <=60kg or eGFR 15-50)"
+        duration_days: 90
+        note: "DOAC alternative widely used in Japan"
+    us:
+      - drug: "Rivaroxaban"
+        code_rxnorm: "1114195"
+        dose: "20mg PO daily with food"
+        duration_days: 90
+      - drug: "Apixaban"
+        code_rxnorm: "1364430"
+        dose: "5mg PO BID (after 7 days of 10mg BID)"
+        duration_days: 90
+
+# ============================================================
+# DRUG INTERACTIONS
+# ============================================================
+drug_interactions:
+  - drug_a: "Warfarin"
+    drug_b: "NSAIDs"
+    severity: "major"
+    effect: "Increased bleeding risk"
+    action: "Avoid combination"
+
+  - drug_a: "Warfarin"
+    drug_b: "Amiodarone"
+    severity: "major"
+    effect: "Increased INR"
+    action: "Reduce warfarin dose by 30-50%, monitor INR closely"
+
+  - drug_a: "Rivaroxaban"
+    drug_b: "Ketoconazole"
+    severity: "major"
+    effect: "Increased rivaroxaban levels via CYP3A4/P-gp inhibition"
+    action: "Avoid combination"
+
+  - drug_a: "Heparin"
+    drug_b: "NSAIDs"
+    severity: "major"
+    effect: "Increased bleeding risk"
+    action: "Avoid combination during anticoagulation"
+
+  - drug_a: "Edoxaban"
+    drug_b: "Rifampin"
+    severity: "major"
+    effect: "Decreased edoxaban levels via P-gp induction"
+    action: "Avoid combination"
+
+# ============================================================
+# LAB ITEM REFERENCE RANGES
+# ============================================================
+reference_ranges:
+  D_dimer:
+    unit: "ng/mL"
+    all: {low: 0, high: 500}
+    age_adjusted: "age x 10 if age > 50"
+  Troponin:
+    unit: "ng/mL"
+    all: {low: 0, high: 0.04}
+  BNP:
+    unit: "pg/mL"
+    all: {low: 0, high: 100}
+    age_over_75: {low: 0, high: 200}
+  WBC:
+    unit: "/uL"
+    all: {low: 3500, high: 9500}
+  Hb:
+    unit: "g/dL"
+    male: {low: 13.5, high: 17.5}
+    female: {low: 11.5, high: 15.5}
+  Plt:
+    unit: "x10^3/uL"
+    all: {low: 150, high: 400}
+  Creatinine:
+    unit: "mg/dL"
+    male: {low: 0.6, high: 1.1}
+    female: {low: 0.4, high: 0.8}
+  BUN:
+    unit: "mg/dL"
+    all: {low: 8, high: 20}
+  Na:
+    unit: "mEq/L"
+    all: {low: 136, high: 145}
+  K:
+    unit: "mEq/L"
+    all: {low: 3.5, high: 5.0}
+  PT_INR:
+    unit: ""
+    all: {low: 0.9, high: 1.1}
+    on_warfarin: {low: 2.0, high: 3.0}
+  aPTT:
+    unit: "seconds"
+    all: {low: 25, high: 35}
+    on_heparin: {low: 60, high: 80}
+  Lactate:
+    unit: "mmol/L"
+    all: {low: 0.5, high: 2.0}
+
+# ============================================================
+# TARGET LENGTH OF STAY
+# ============================================================
+target_los:
+  japan:
+    mild: {mean: 10, sd: 3, min: 6, max: 16}
+    moderate: {mean: 13, sd: 4, min: 8, max: 21}
+    severe: {mean: 18, sd: 6, min: 10, max: 30}
+  us:
+    mild: {mean: 3, sd: 1, min: 2, max: 5}
+    moderate: {mean: 5, sd: 2, min: 3, max: 8}
+    severe: {mean: 8, sd: 3, min: 5, max: 14}
+
+# ============================================================
+# OUTCOME BENCHMARKS
+# ============================================================
+outcome_benchmarks:
+  japan:
+    median_los: 12
+    los_iqr: [8, 16]
+    in_hospital_mortality: 0.05
+    icu_transfer_rate: 0.12
+    thirty_day_readmission: 0.08
+    thrombolysis_rate: 0.05
+    catheter_directed_therapy_rate: 0.03
+    dvt_coexistence_rate: 0.50
+    mean_age_admitted: 65
+    male_ratio: 0.45
+
+  us:
+    median_los: 5
+    los_iqr: [3, 7]
+    in_hospital_mortality: 0.03
+    icu_transfer_rate: 0.15
+    thirty_day_readmission: 0.06
+    thrombolysis_rate: 0.04
+    catheter_directed_therapy_rate: 0.05
+    dvt_coexistence_rate: 0.45
+    mean_age_admitted: 60
+    male_ratio: 0.48
+
+# ============================================================
+# CLINICAL COURSE ARCHETYPES
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.50
+    description: "Anticoagulation started promptly, symptoms resolve over 2-4 days"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.00, 2: -0.03, 3: -0.04, 5: -0.04, 7: -0.03, 10: -0.02, 14: -0.01}
+      perfusion_status: {0: 0.02, 1: 0.03, 2: 0.03, 3: 0.02, 5: 0.01, 7: 0.01, 10: 0.00, 14: 0.00}
+      volume_status: {0: 0.01, 1: 0.01, 2: 0.01, 3: 0.00, 5: 0.00, 7: 0.00, 10: 0.00, 14: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.18
+    description: "Initial worsening Day 1-2 (RV strain, hypoxia), then improvement with anticoagulation"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: 0.03, 2: 0.00, 3: -0.03, 5: -0.05, 7: -0.04, 10: -0.03, 14: -0.02}
+      perfusion_status: {0: -0.05, 1: -0.03, 2: 0.00, 3: 0.03, 5: 0.03, 7: 0.02, 10: 0.01, 14: 0.00}
+      renal_function: {0: -0.02, 1: -0.01, 2: 0.00, 3: 0.01, 5: 0.01, 7: 0.00, 10: 0.00, 14: 0.00}
+    order_modifications:
+      day_1:
+        add_labs: ["Troponin_repeat", "BNP_repeat", "ABG"]
+        add_imaging: ["Echocardiogram"]
+    treatment_modifications:
+      day_1:
+        add_fluid: {detail: "Cautious 250mL NS bolus — avoid RV overload"}
+
+  plateau_then_recovery:
+    probability: 0.10
+    description: "Persistent hypoxia and tachycardia for 4-5 days, then gradual resolution"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.02, 2: 0.01, 3: 0.00, 5: 0.00, 7: -0.03, 10: -0.05, 14: -0.03}
+      perfusion_status: {0: -0.03, 1: -0.02, 2: -0.01, 3: 0.00, 5: 0.00, 7: 0.02, 10: 0.02, 14: 0.01}
+    order_modifications:
+      day_5:
+        add_labs: ["Troponin", "BNP"]
+        add_imaging: ["Echocardiogram"]
+    treatment_modifications: {}
+
+  treatment_resistant:
+    probability: 0.10
+    description: "Recurrent PE or propagation despite anticoagulation — IVC filter considered"
+    trajectory:
+      inflammation_level: {0: 0.08, 1: 0.05, 2: 0.03, 3: 0.00, 5: -0.02, 7: -0.05, 10: -0.05, 14: -0.04}
+      perfusion_status: {0: -0.05, 1: -0.03, 2: -0.02, 3: 0.00, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.01}
+      renal_function: {0: -0.03, 1: -0.02, 2: -0.01, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_3:
+        add_labs: ["aPTT", "Anti_Xa_level"]
+        add_imaging: ["CT_pulmonary_angiography_repeat"]
+        add_consult: ["interventional_radiology"]
+    treatment_modifications:
+      day_3:
+        action: "consider_ivc_filter"
+        start:
+          japan: [{drug: "Unfractionated_Heparin", dose: "increase_rate_by_20%"}]
+          us: [{drug: "Unfractionated_Heparin", dose: "increase_rate_by_20%"}]
+    triggers:
+      - day: 3
+        condition: "recurrent_symptoms_or_new_pe"
+        actions: ["ivc_filter_consideration", "increase_anticoagulation"]
+
+  gradual_deterioration:
+    probability: 0.07
+    description: "Progressive RV failure — hemodynamic compromise requiring ICU"
+    trajectory:
+      inflammation_level: {0: 0.10, 1: 0.08, 2: 0.05, 3: 0.03, 5: 0.00, 7: -0.03, 10: -0.05, 14: -0.03}
+      perfusion_status: {0: -0.08, 1: -0.06, 2: -0.05, 3: -0.03, 5: 0.02, 7: 0.03, 10: 0.02, 14: 0.01}
+      renal_function: {0: -0.05, 1: -0.04, 2: -0.03, 3: -0.02, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.01}
+    order_modifications:
+      day_2:
+        add_labs: ["ABG", "Lactate", "Troponin", "BNP"]
+        add_imaging: ["Echocardiogram_bedside"]
+    treatment_modifications:
+      day_3:
+        start:
+          japan: [{drug: "Dobutamine", dose: "5 ug/kg/min IV drip"}]
+          us: [{drug: "Dobutamine", dose: "5 ug/kg/min IV drip"}]
+        action: "icu_transfer"
+    triggers:
+      - day: 3
+        condition: "SBP < 90 or lactate > 4"
+        actions: ["icu_transfer", "consider_thrombolysis"]
+
+  sudden_deterioration:
+    probability: 0.05
+    description: "Massive PE with cardiovascular collapse — emergent thrombolysis or embolectomy"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: 0.30, 2: 0.05, 3: -0.05, 5: -0.08, 7: -0.06, 10: -0.04, 14: -0.02}
+      perfusion_status: {0: -0.05, 1: -0.35, 2: 0.10, 3: 0.08, 5: 0.05, 7: 0.03, 10: 0.02, 14: 0.01}
+      renal_function: {0: -0.02, 1: -0.15, 2: -0.03, 3: 0.02, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.01}
+      ph_status: {0: -0.02, 1: -0.12, 2: -0.02, 3: 0.03, 5: 0.02, 7: 0.01, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_1:
+        add_labs: ["ABG", "Lactate", "Troponin", "BNP", "Type_and_crossmatch"]
+        add_imaging: ["Echocardiogram_bedside"]
+    treatment_modifications:
+      day_1:
+        start:
+          japan:
+            - {drug: "Alteplase", dose: "0.6mg/kg IV over 2h (max 40mg)"}
+            - {drug: "Norepinephrine", dose: "0.1ug/kg/min IV drip"}
+          us:
+            - {drug: "Alteplase", dose: "100mg IV over 2h"}
+            - {drug: "Norepinephrine", dose: "0.1ug/kg/min IV drip"}
+        action: "icu_transfer"
+        action_2: "intubation_if_needed"
+    triggers:
+      - day: 1
+        condition: "SBP < 90 or cardiac_arrest"
+        actions: ["icu_transfer", "thrombolysis", "start_vasopressor"]
+
+# Archetype selection modifiers
+archetype_modifiers:
+  - condition: "active_cancer"
+    effect: {treatment_resistant: 0.08, smooth_recovery: -0.08}
+  - condition: "age >= 80"
+    effect: {gradual_deterioration: 0.05, smooth_recovery: -0.05}
+  - condition: "troponin_elevated_and_rv_dysfunction"
+    effect: {gradual_deterioration: 0.08, sudden_deterioration: 0.05, smooth_recovery: -0.13}
+
+# ============================================================
+# COMPLICATIONS
+# ============================================================
+complications:
+  - name: "recurrent_pe"
+    description: "New or propagated pulmonary embolism despite anticoagulation"
+    probability_per_day: 0.005
+    onset_day_range: [2, 14]
+    risk_factors:
+      - {condition: "active_cancer", multiplier: 3.0}
+      - {condition: "subtherapeutic_anticoagulation", multiplier: 5.0}
+      - {condition: "large_residual_dvt", multiplier: 2.0}
+    state_impact:
+      perfusion_status: -0.15
+      inflammation_level: 0.10
+    detection:
+      test: "ct_pulmonary_angiography"
+      finding: "new_filling_defect"
+    actions: ["ivc_filter", "intensify_anticoagulation"]
+
+  - name: "right_heart_failure"
+    description: "Acute RV failure from pressure overload"
+    probability_per_day: 0.008
+    onset_day_range: [0, 5]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 5.0}
+      - {condition: "pre_existing_heart_failure", multiplier: 2.0}
+      - {condition: "saddle_embolus", multiplier: 3.0}
+    state_impact:
+      perfusion_status: -0.20
+      renal_function: -0.10
+    detection:
+      test: "echocardiogram"
+      finding: "rv_dilation_and_hypokinesis"
+    actions: ["icu_transfer", "dobutamine", "consider_thrombolysis"]
+
+  - name: "bleeding_complication"
+    description: "Major bleeding from anticoagulation therapy"
+    probability_per_day: 0.006
+    onset_day_range: [1, 14]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 2.0}
+      - {condition: "renal_impairment", multiplier: 2.0}
+      - {condition: "recent_surgery", multiplier: 3.0}
+      - {condition: "thrombolysis_given", multiplier: 5.0}
+    state_impact:
+      perfusion_status: -0.10
+    detection:
+      test: "hemoglobin_drop"
+      finding: "Hb_decrease_above_2"
+    actions: ["hold_anticoagulation", "blood_transfusion", "reversal_agent_if_needed"]
+
+  - name: "heparin_induced_thrombocytopenia"
+    description: "HIT — immune-mediated platelet activation"
+    probability_per_day: 0.002
+    onset_day_range: [5, 14]
+    risk_factors:
+      - {condition: "unfractionated_heparin_use", multiplier: 5.0}
+      - {condition: "surgical_patient", multiplier: 2.0}
+    state_impact:
+      coagulation_status: 0.15
+    detection:
+      test: "platelet_count"
+      finding: "drop_above_50_percent_or_below_100k"
+    actions: ["stop_all_heparin", "start_argatroban", "HIT_antibody_testing"]
+
+  - name: "chronic_thromboembolic_pulmonary_hypertension"
+    description: "CTEPH — late complication from unresolved clot"
+    probability_per_day: 0.001
+    onset_day_range: [60, 365]
+    risk_factors:
+      - {condition: "large_or_bilateral_pe", multiplier: 3.0}
+      - {condition: "recurrent_pe", multiplier: 5.0}
+    state_impact:
+      perfusion_status: -0.10
+    detection:
+      test: "echocardiogram_and_vq_scan"
+      finding: "persistent_pulmonary_hypertension"
+    actions: ["refer_to_pulmonary_hypertension_center", "consider_pulmonary_endarterectomy"]
+
+  - name: "acute_kidney_injury"
+    description: "AKI from reduced cardiac output"
+    probability_per_day: 0.008
+    onset_day_range: [1, 5]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 3.0}
+      - {condition: "pre_existing_CKD", multiplier: 2.0}
+      - {condition: "right_heart_failure", multiplier: 2.5}
+    state_impact:
+      renal_function: -0.15
+      ph_status: -0.05
+    detection:
+      test: "creatinine"
+      finding: "rise_above_0.3_from_baseline"
+    actions: ["cautious_fluids", "monitor_urine_output", "hold_nephrotoxic_drugs"]

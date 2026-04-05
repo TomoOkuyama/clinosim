@@ -1,0 +1,702 @@
+# Acute Appendicitis — Complete Reference Data
+# Sources cited per section. All rates are approximate and should be validated
+# against the most current published data before production use.
+
+disease_id: acute_appendicitis
+chief_complaint: "Right lower quadrant pain, nausea, fever"
+department: internal_medicine
+encounter_type: surgical
+requires_surgery: true
+minimum_severity: moderate
+readmission_eligible: false
+diagnostic_difficulty: 0.25   # Classic presentation is clear, but atypical (retrocecal, early) can mimic other diagnoses
+
+icd_codes:
+  primary: "K35.80"  # Unspecified acute appendicitis without abscess
+  variants:
+    - {code: "K35.80", name: "Acute appendicitis without abscess", probability: 0.55}
+    - {code: "K35.2", name: "Acute appendicitis with generalized peritonitis", probability: 0.10}
+    - {code: "K35.3", name: "Acute appendicitis with localized peritonitis", probability: 0.20}
+    - {code: "K35.89", name: "Acute appendicitis with other appendiceal abscess", probability: 0.10}
+    - {code: "K35.9", name: "Acute appendicitis, unspecified", probability: 0.05}
+
+# ============================================================
+# INCIDENCE (per 100,000 per year, by age band and sex)
+# Source: JP — MHLW Patient Survey, Japanese surgical registry
+#         US — NIS, Addiss et al. Ann Epidemiol 1990, updated data
+# ============================================================
+incidence:
+  japan:
+    "0-4":   {M: 10, F: 8}
+    "5-14":  {M: 80, F: 70}
+    "15-24": {M: 150, F: 130}
+    "25-34": {M: 120, F: 100}
+    "35-44": {M: 80, F: 65}
+    "45-54": {M: 55, F: 45}
+    "55-64": {M: 40, F: 35}
+    "65-74": {M: 30, F: 25}
+    "75-84": {M: 20, F: 18}
+    "85+":   {M: 12, F: 10}
+  us:
+    "0-4":   {M: 12, F: 10}
+    "5-14":  {M: 90, F: 80}
+    "15-24": {M: 160, F: 140}
+    "25-34": {M: 130, F: 110}
+    "35-44": {M: 85, F: 70}
+    "45-54": {M: 60, F: 50}
+    "55-64": {M: 45, F: 38}
+    "65-74": {M: 35, F: 28}
+    "75-84": {M: 22, F: 20}
+    "85+":   {M: 15, F: 12}
+
+  risk_multipliers:
+    - {condition: "family_history_appendicitis", multiplier: 1.5}
+    - {condition: "low_fiber_diet", multiplier: 1.3}
+    - {condition: "cystic_fibrosis", multiplier: 1.5}
+
+  seasonal_curve:
+    1: 0.9
+    2: 0.9
+    3: 1.0
+    4: 1.0
+    5: 1.1
+    6: 1.1
+    7: 1.2   # slight summer peak
+    8: 1.2
+    9: 1.1
+    10: 1.0
+    11: 0.9
+    12: 0.9
+
+  vaccine_protection: {}
+
+# ============================================================
+# SEVERITY DISTRIBUTION
+# Source: Surgical literature, Alvarado score correlation
+# ============================================================
+severity:
+  distribution:
+    mild: 0.00        # All require hospitalization; minimum_severity = moderate
+    moderate: 0.70    # Non-perforated appendicitis
+    severe: 0.30      # Perforated, gangrenous, or with abscess/peritonitis
+  modifiers:
+    - {condition: "age_over_65", severe_multiplier: 2.0}
+    - {condition: "age_under_5", severe_multiplier: 2.5}
+    - {condition: "symptom_duration_over_48h", severe_multiplier: 2.0}
+    - {condition: "diabetes", severe_multiplier: 1.3}
+    - {condition: "immunosuppressed", severe_multiplier: 1.8}
+
+# ============================================================
+# INITIAL PHYSIOLOGICAL STATE IMPACT
+# ============================================================
+initial_state_impact:
+  mild: {}  # Not used (minimum_severity = moderate)
+  moderate:
+    inflammation_level: 0.30
+    volume_status: -0.10
+  severe:
+    inflammation_level: 0.55
+    volume_status: -0.20
+    perfusion_status: -0.10
+    renal_function: -0.05
+    ph_status: -0.05
+
+# ============================================================
+# ORDER PROTOCOLS
+# ============================================================
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "WBC", urgency: "stat"}
+      - {test: "CRP", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "BUN", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "AST", urgency: "stat", probability: 0.60}
+      - {test: "ALT", urgency: "stat", probability: 0.60}
+      - {test: "Total_bilirubin", urgency: "stat", probability: 0.50}
+      - {test: "Urinalysis", urgency: "stat"}
+      - {test: "PT_INR", urgency: "stat"}
+      - {test: "Type_and_screen", urgency: "stat"}
+      - {test: "Pregnancy_test", urgency: "stat", condition: "female_of_childbearing_age"}
+    imaging:
+      - {test: "CT_abdomen_pelvis_with_contrast", urgency: "stat", probability: 0.85}
+      - {test: "Abdominal_ultrasound", urgency: "stat", probability: 0.30,
+         note: "Preferred in children and pregnant women"}
+    supportive:
+      - {type: "NPO", detail: "Nothing by mouth for surgery"}
+      - {type: "IV_fluid", detail: "Lactated Ringer 125 mL/h"}
+      - {type: "antibiotic_prophylaxis", detail: "Cefazolin 2g IV (preoperative)"}
+      - {type: "pain_management", detail: "Acetaminophen 1000mg IV + Fentanyl 50mcg IV PRN"}
+
+  daily_monitoring:
+    labs:
+      - {test: "WBC", frequency: "POD1"}
+      - {test: "CRP", frequency: "POD1"}
+      - {test: "Creatinine", frequency: "POD1", condition: "if concern"}
+    vitals:
+      stable: "q4h"
+      unstable: "q2h"
+    imaging: []  # Typically not needed postoperatively unless complication
+
+  trigger_orders:
+    postoperative_fever:
+      condition: "Temperature > 38.5C after POD 1"
+      actions:
+        - {type: "lab", test: "WBC"}
+        - {type: "lab", test: "CRP"}
+        - {type: "lab", test: "Blood_culture"}
+        - {type: "imaging", test: "CT_abdomen_pelvis"}
+        - {type: "evaluate", action: "assess_for_abscess_or_wound_infection"}
+    ileus_postoperative:
+      condition: "No flatus by POD 2, nausea, distension"
+      actions:
+        - {type: "imaging", test: "Abdominal_Xray"}
+        - {type: "supportive", action: "NG_tube_if_needed"}
+        - {type: "NPO", action: "continue_NPO"}
+
+  discharge_criteria:
+    japan:
+      - "Tolerating oral diet"
+      - "Afebrile (< 37.0C) for 24 hours"
+      - "Pain controlled with oral analgesics"
+      - "Bowel function returned (flatus or BM)"
+      - "Wound clean and dry"
+      - "WBC normalizing"
+    us:
+      - "Tolerating oral diet"
+      - "Afebrile"
+      - "Pain controlled with oral analgesics"
+      - "Ambulating independently"
+
+# ============================================================
+# LIKELIHOOD RATIO TABLE
+# Source: Alvarado score validation studies, MANTRELS
+# ============================================================
+likelihood_ratios:
+  rlq_tenderness:
+    acute_appendicitis: {positive_LR: 3.0, negative_LR: 0.2}
+    mesenteric_lymphadenitis: {positive_LR: 1.5, negative_LR: 0.8}
+    ovarian_torsion: {positive_LR: 1.5, negative_LR: 0.8}
+
+  rebound_tenderness:
+    acute_appendicitis: {positive_LR: 3.5, negative_LR: 0.5}
+    perforated_appendicitis: {positive_LR: 5.0, negative_LR: 0.3}
+
+  wbc_above_10000:
+    acute_appendicitis: {positive_LR: 2.0, negative_LR: 0.5}
+    mesenteric_lymphadenitis: {positive_LR: 1.2, negative_LR: 0.9}
+
+  crp_above_50:
+    acute_appendicitis: {positive_LR: 2.5, negative_LR: 0.5}
+    perforated_appendicitis: {positive_LR: 4.0, negative_LR: 0.3}
+
+  ct_dilated_appendix_above_6mm:
+    acute_appendicitis: {positive_LR: 15.0, negative_LR: 0.05}
+    normal: {positive_LR: 0.1, negative_LR: 5.0}
+
+  ct_periappendiceal_fat_stranding:
+    acute_appendicitis: {positive_LR: 8.0, negative_LR: 0.2}
+
+  ct_appendicolith:
+    acute_appendicitis: {positive_LR: 5.0, negative_LR: 0.7}
+    perforated_appendicitis: {positive_LR: 3.0, negative_LR: 0.8}
+
+  migration_of_pain_to_rlq:
+    acute_appendicitis: {positive_LR: 3.0, negative_LR: 0.5}
+
+# ============================================================
+# LAB REFERENCE RANGES (admission values)
+# ============================================================
+expected_lab_distributions:
+  admission:
+    WBC:
+      unit: "/uL"
+      median: 14000
+      iqr: [11000, 17000]
+      range: [6000, 25000]
+    CRP:
+      unit: "mg/L"
+      median: 40
+      iqr: [15, 90]
+      range: [2, 300]
+      note: "much higher if perforated"
+    Creatinine:
+      unit: "mg/dL"
+      median: 0.8
+      iqr: [0.6, 1.0]
+      range: [0.4, 2.0]
+    Hb:
+      unit: "g/dL"
+      median: 14.0
+      iqr: [12.5, 15.5]
+      range: [10.0, 18.0]
+    Total_bilirubin:
+      unit: "mg/dL"
+      median: 1.0
+      iqr: [0.6, 1.5]
+      range: [0.2, 3.0]
+      note: "mild elevation suggests perforation (Estrada 2007)"
+
+  discharge:
+    WBC:
+      unit: "/uL"
+      median: 8000
+      iqr: [6000, 10000]
+    CRP:
+      unit: "mg/L"
+      median: 15
+      iqr: [5, 35]
+
+# ============================================================
+# VITAL SIGN DISTRIBUTIONS
+# ============================================================
+expected_vital_distributions:
+  admission:
+    temperature:
+      unit: "C"
+      mean: 37.8
+      sd: 0.7
+      range: [36.5, 39.5]
+    heart_rate:
+      unit: "bpm"
+      mean: 90
+      sd: 14
+      range: [60, 130]
+    systolic_bp:
+      unit: "mmHg"
+      mean: 128
+      sd: 18
+      range: [90, 170]
+    respiratory_rate:
+      unit: "/min"
+      mean: 18
+      sd: 3
+      range: [12, 28]
+    spo2:
+      unit: "%"
+      mean: 98
+      sd: 1
+      range: [94, 100]
+
+# ============================================================
+# TREATMENT REFERENCE — Drug selection data
+# Source: JSES guidelines, SAGES guidelines, Solomkin et al. Clin Infect Dis 2010
+# ============================================================
+drugs:
+  first_line:
+    japan:
+      - drug: "Cefmetazole"
+        code_yj: "6132405"
+        dose: "1g IV q8h"
+        route: IV
+        note: "Preoperative prophylaxis and postoperative (if perforated)"
+        renal_adjustment:
+          eGFR_below_30: "0.5g IV q12h"
+        pregnancy_safe: true
+      - drug: "Acetaminophen"
+        code_yj: "1141700"
+        dose: "1000mg IV q6h"
+        route: IV
+        pregnancy_safe: true
+      - drug: "Fentanyl"
+        code_yj: "8219700"
+        dose: "50mcg IV PRN"
+        route: IV
+        note: "Perioperative analgesia"
+        pregnancy_safe: false
+
+    us:
+      - drug: "Cefazolin"
+        code_rxnorm: "4053"
+        dose: "2g IV (single preoperative dose)"
+        route: IV
+        note: "Non-perforated: prophylaxis only"
+        pregnancy_safe: true
+      - drug: "Metronidazole"
+        code_rxnorm: "6922"
+        dose: "500mg IV q8h"
+        route: IV
+        note: "Added for anaerobic coverage if perforated"
+        pregnancy_safe: false
+      - drug: "Ketorolac"
+        code_rxnorm: "6739"
+        dose: "30mg IV q6h"
+        route: IV
+        note: "Postoperative pain; max 5 days"
+        pregnancy_safe: false
+
+  alternative_penicillin_allergy:
+    japan:
+      - drug: "Clindamycin"
+        code_yj: "6152005"
+        dose: "600mg IV q8h"
+        pregnancy_safe: false
+      - drug: "Gentamicin"
+        code_yj: "6115001"
+        dose: "5mg/kg IV daily"
+        renal_adjustment:
+          eGFR_below_50: "adjust_by_level"
+        pregnancy_safe: false
+    us:
+      - drug: "Ciprofloxacin"
+        code_rxnorm: "2551"
+        dose: "400mg IV q12h"
+        pregnancy_safe: false
+      - drug: "Metronidazole"
+        code_rxnorm: "6922"
+        dose: "500mg IV q8h"
+        pregnancy_safe: false
+
+  escalation:  # perforated or complicated
+    japan:
+      - drug: "Piperacillin/Tazobactam"
+        code_yj: "6131701"
+        dose: "4.5g IV q8h"
+        indication: "perforated_appendicitis_or_abscess"
+        renal_adjustment:
+          eGFR_below_30: "2.25g IV q8h"
+    us:
+      - drug: "Piperacillin/Tazobactam"
+        code_rxnorm: "240984"
+        dose: "3.375g IV q6h"
+        indication: "perforated_appendicitis_or_abscess"
+
+  discharge_oral:
+    japan:
+      - drug: "Cefditoren pivoxil"
+        code_yj: "6132814"
+        dose: "200mg PO TID"
+        duration_days: 5
+        note: "Only if perforated; non-perforated needs no postop antibiotics"
+    us:
+      - drug: "Amoxicillin/Clavulanate"
+        code_rxnorm: "562251"
+        dose: "875/125mg PO BID"
+        duration_days: 5
+        note: "Only if perforated"
+      - drug: "Metronidazole"
+        code_rxnorm: "6922"
+        dose: "500mg PO TID"
+        duration_days: 5
+        note: "Only if perforated, combined with above"
+
+# ============================================================
+# DRUG INTERACTIONS
+# ============================================================
+drug_interactions:
+  - drug_a: "Metronidazole"
+    drug_b: "Warfarin"
+    severity: "major"
+    effect: "Increased INR, bleeding risk"
+    action: "Monitor INR closely"
+
+  - drug_a: "Metronidazole"
+    drug_b: "Alcohol"
+    severity: "major"
+    effect: "Disulfiram-like reaction"
+    action: "Strict alcohol avoidance"
+
+  - drug_a: "Ketorolac"
+    drug_b: "Anticoagulants"
+    severity: "major"
+    effect: "Increased bleeding risk"
+    action: "Avoid combination"
+
+# ============================================================
+# LAB ITEM REFERENCE RANGES
+# ============================================================
+reference_ranges:
+  WBC:
+    unit: "/uL"
+    all: {low: 3500, high: 9500}
+  CRP:
+    unit: "mg/L"
+    all: {low: 0, high: 3}
+  Hb:
+    unit: "g/dL"
+    male: {low: 13.5, high: 17.5}
+    female: {low: 11.5, high: 15.5}
+  Plt:
+    unit: "x10^3/uL"
+    all: {low: 150, high: 400}
+  Creatinine:
+    unit: "mg/dL"
+    male: {low: 0.6, high: 1.1}
+    female: {low: 0.4, high: 0.8}
+  BUN:
+    unit: "mg/dL"
+    all: {low: 8, high: 20}
+  Na:
+    unit: "mEq/L"
+    all: {low: 136, high: 145}
+  K:
+    unit: "mEq/L"
+    all: {low: 3.5, high: 5.0}
+  Glucose:
+    unit: "mg/dL"
+    fasting: {low: 70, high: 100}
+    random: {low: 70, high: 140}
+  Total_bilirubin:
+    unit: "mg/dL"
+    all: {low: 0.2, high: 1.2}
+  AST:
+    unit: "U/L"
+    all: {low: 10, high: 35}
+  ALT:
+    unit: "U/L"
+    all: {low: 5, high: 40}
+  PT_INR:
+    unit: ""
+    all: {low: 0.9, high: 1.1}
+
+# ============================================================
+# TARGET LENGTH OF STAY
+# ============================================================
+target_los:
+  japan:
+    mild: {mean: 7, sd: 2, min: 4, max: 10}       # non-perforated
+    moderate: {mean: 8, sd: 3, min: 5, max: 14}    # non-perforated (moderate = baseline for this disease)
+    severe: {mean: 14, sd: 5, min: 8, max: 28}     # perforated, abscess, peritonitis
+  us:
+    mild: {mean: 1, sd: 0.5, min: 1, max: 2}      # same-day or next-day discharge
+    moderate: {mean: 2, sd: 1, min: 1, max: 4}
+    severe: {mean: 5, sd: 2, min: 3, max: 10}
+
+# ============================================================
+# OUTCOME BENCHMARKS
+# ============================================================
+outcome_benchmarks:
+  japan:
+    median_los: 8
+    los_iqr: [6, 11]
+    in_hospital_mortality: 0.005
+    icu_transfer_rate: 0.02
+    thirty_day_readmission: 0.04
+    perforation_rate: 0.25
+    laparoscopic_rate: 0.85
+    conversion_to_open_rate: 0.05
+    wound_infection_rate: 0.05
+    mean_age_admitted: 35
+    male_ratio: 0.55
+
+  us:
+    median_los: 2
+    los_iqr: [1, 3]
+    in_hospital_mortality: 0.003
+    icu_transfer_rate: 0.02
+    thirty_day_readmission: 0.05
+    perforation_rate: 0.20
+    laparoscopic_rate: 0.90
+    conversion_to_open_rate: 0.03
+    wound_infection_rate: 0.04
+    mean_age_admitted: 32
+    male_ratio: 0.54
+
+# ============================================================
+# CLINICAL COURSE ARCHETYPES
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.55
+    description: "Uncomplicated laparoscopic appendectomy — rapid recovery"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: -0.10, 2: -0.10, 3: -0.08, 5: -0.05, 7: -0.03, 10: -0.02, 14: -0.01}
+      volume_status: {0: 0.03, 1: 0.03, 2: 0.02, 3: 0.01, 5: 0.00, 7: 0.00, 10: 0.00, 14: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.18
+    description: "Postoperative ileus or mild wound issue, then recovery by POD 3-4"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: -0.02, 2: 0.03, 3: -0.02, 5: -0.08, 7: -0.06, 10: -0.04, 14: -0.02}
+      volume_status: {0: 0.02, 1: 0.00, 2: -0.02, 3: 0.02, 5: 0.02, 7: 0.01, 10: 0.00, 14: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["WBC", "CRP"]
+        add_imaging: ["Abdominal_Xray"]
+    treatment_modifications:
+      day_2:
+        action: "continue_NPO_for_ileus"
+
+  plateau_then_recovery:
+    probability: 0.08
+    description: "Slow postoperative recovery, low-grade fever persisting to POD 4-5"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: -0.02, 2: 0.00, 3: 0.00, 5: -0.03, 7: -0.06, 10: -0.05, 14: -0.03}
+      volume_status: {0: 0.02, 1: 0.01, 2: 0.00, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.00, 14: 0.00}
+    order_modifications:
+      day_4:
+        add_labs: ["WBC", "CRP", "Blood_culture"]
+    treatment_modifications: {}
+
+  treatment_resistant:
+    probability: 0.10
+    description: "Perforated appendicitis requiring extended antibiotics, possible abscess drainage"
+    trajectory:
+      inflammation_level: {0: 0.10, 1: -0.02, 2: 0.00, 3: 0.00, 5: -0.05, 7: -0.08, 10: -0.06, 14: -0.04}
+      volume_status: {0: -0.03, 1: 0.02, 2: 0.01, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.00, 14: 0.00}
+      renal_function: {0: -0.02, 1: 0.00, 2: 0.00, 3: 0.01, 5: 0.01, 7: 0.01, 10: 0.00, 14: 0.00}
+    order_modifications:
+      day_3:
+        add_labs: ["WBC", "CRP", "Blood_culture"]
+        add_imaging: ["CT_abdomen_pelvis_with_contrast"]
+    treatment_modifications:
+      day_3:
+        stop: ["Cefmetazole"]
+        start:
+          japan: [{drug: "Piperacillin/Tazobactam", dose: "4.5g IV q8h"}]
+          us: [{drug: "Piperacillin/Tazobactam", dose: "3.375g IV q6h"}]
+    triggers:
+      - day: 3
+        condition: "persistent_fever_and_elevated_WBC"
+        actions: ["escalate_antibiotic", "ct_for_abscess"]
+
+  gradual_deterioration:
+    probability: 0.05
+    description: "Complicated peritonitis with sepsis — ICU transfer"
+    trajectory:
+      inflammation_level: {0: 0.12, 1: 0.05, 2: 0.03, 3: 0.02, 5: -0.02, 7: -0.05, 10: -0.05, 14: -0.04}
+      perfusion_status: {0: -0.05, 1: -0.03, 2: -0.02, 3: -0.01, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.01}
+      renal_function: {0: -0.03, 1: -0.02, 2: -0.01, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_1:
+        add_labs: ["ABG", "Lactate", "Blood_culture_x2"]
+    treatment_modifications:
+      day_1:
+        start:
+          japan: [{drug: "Meropenem", dose: "1g IV q8h"}]
+          us: [{drug: "Meropenem", dose: "1g IV q8h"}]
+        action: "icu_transfer"
+    triggers:
+      - day: 1
+        condition: "sepsis_criteria_met"
+        actions: ["icu_transfer", "broad_spectrum_antibiotics"]
+
+  sudden_deterioration:
+    probability: 0.04
+    description: "Postoperative hemorrhage or anastomotic leak (rare)"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.25, 2: 0.05, 3: -0.05, 5: -0.08, 7: -0.06, 10: -0.04, 14: -0.02}
+      perfusion_status: {0: 0.00, 1: -0.20, 2: -0.03, 3: 0.05, 5: 0.03, 7: 0.02, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_1:
+        add_labs: ["Hb", "Type_and_crossmatch", "Lactate", "ABG"]
+        add_imaging: ["CT_abdomen_pelvis_with_contrast"]
+    treatment_modifications:
+      day_1:
+        start:
+          japan: [{drug: "Meropenem", dose: "1g IV q8h"}]
+          us: [{drug: "Meropenem", dose: "1g IV q8h"}]
+        action: "reoperation_or_ir_embolization"
+        action_2: "icu_transfer"
+    triggers:
+      - day: 1
+        condition: "Hb_drop_above_2_or_hemodynamic_instability"
+        actions: ["blood_transfusion", "icu_transfer", "reoperation"]
+
+# Archetype selection modifiers
+archetype_modifiers:
+  - condition: "age >= 65"
+    effect: {gradual_deterioration: 0.05, smooth_recovery: -0.05}
+  - condition: "symptom_duration_over_48h"
+    effect: {treatment_resistant: 0.10, smooth_recovery: -0.10}
+  - condition: "immunosuppressed"
+    effect: {gradual_deterioration: 0.05, treatment_resistant: 0.05, smooth_recovery: -0.10}
+
+# ============================================================
+# COMPLICATIONS
+# ============================================================
+complications:
+  - name: "wound_infection"
+    description: "Surgical site infection"
+    probability_per_day: 0.008
+    onset_day_range: [3, 10]
+    risk_factors:
+      - {condition: "perforated_appendicitis", multiplier: 3.0}
+      - {condition: "obesity", multiplier: 1.5}
+      - {condition: "diabetes", multiplier: 1.5}
+    state_impact:
+      inflammation_level: 0.08
+    detection:
+      test: "wound_inspection"
+      finding: "erythema_drainage_warmth"
+    actions: ["wound_opening_and_drainage", "wound_culture", "antibiotics_if_cellulitis"]
+
+  - name: "intra_abdominal_abscess"
+    description: "Pelvic or subhepatic abscess post-appendectomy"
+    probability_per_day: 0.005
+    onset_day_range: [5, 14]
+    risk_factors:
+      - {condition: "perforated_appendicitis", multiplier: 4.0}
+      - {condition: "severity_severe", multiplier: 3.0}
+    state_impact:
+      inflammation_level: 0.15
+      perfusion_status: -0.05
+    detection:
+      test: "ct_abdomen_pelvis"
+      finding: "rim_enhancing_fluid_collection"
+    actions: ["percutaneous_drainage", "antibiotics", "repeat_imaging"]
+
+  - name: "postoperative_ileus"
+    description: "Paralytic ileus after surgery"
+    probability_per_day: 0.02
+    onset_day_range: [1, 4]
+    risk_factors:
+      - {condition: "open_surgery", multiplier: 2.0}
+      - {condition: "perforated_appendicitis", multiplier: 1.5}
+      - {condition: "opioid_use", multiplier: 1.5}
+    state_impact:
+      volume_status: -0.05
+    detection:
+      test: "abdominal_exam_and_xray"
+      finding: "distension_absent_bowel_sounds"
+    actions: ["NPO", "ambulation", "reduce_opioids", "ng_tube_if_needed"]
+
+  - name: "stump_appendicitis"
+    description: "Inflammation of residual appendiceal stump (rare)"
+    probability_per_day: 0.001
+    onset_day_range: [7, 30]
+    risk_factors:
+      - {condition: "incomplete_appendectomy", multiplier: 10.0}
+    state_impact:
+      inflammation_level: 0.15
+    detection:
+      test: "ct_abdomen"
+      finding: "inflammation_at_cecal_base"
+    actions: ["antibiotics", "completion_appendectomy"]
+
+  - name: "dvt"
+    description: "Deep vein thrombosis"
+    probability_per_day: 0.005
+    onset_day_range: [2, 10]
+    risk_factors:
+      - {condition: "immobility_days > 2", multiplier: 2.0}
+      - {condition: "no_dvt_prophylaxis", multiplier: 3.0}
+    state_impact:
+      coagulation_status: 0.05
+    detection:
+      test: "d_dimer_then_ultrasound"
+      finding: "dvt_confirmed"
+    actions: ["start_anticoagulation"]
+    cascade: ["pulmonary_embolism"]
+
+  - name: "adhesive_bowel_obstruction"
+    description: "Small bowel obstruction from postoperative adhesions (late complication)"
+    probability_per_day: 0.001
+    onset_day_range: [14, 365]
+    risk_factors:
+      - {condition: "open_surgery", multiplier: 3.0}
+      - {condition: "perforated_appendicitis", multiplier: 2.0}
+    state_impact:
+      inflammation_level: 0.10
+      volume_status: -0.10
+    detection:
+      test: "ct_abdomen"
+      finding: "transition_point_dilated_proximal_bowel"
+    actions: ["NPO", "ng_tube", "iv_fluids", "surgery_consult"]

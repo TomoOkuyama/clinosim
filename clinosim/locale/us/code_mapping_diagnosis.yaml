@@ -1,0 +1,36 @@
+# Diagnosis code mapping — Internal ICD-10 → ICD-10-CM (US)
+# Source: ICD-10-CM (CMS/NCHS)
+# Note: Most codes are identical between ICD-10 and ICD-10-CM for these conditions.
+
+# Pneumonia
+J15.9: "J15.9"
+J18.9: "J18.9"
+J15.0: "J15.0"
+J15.1: "J15.1"
+J13: "J13"
+
+# Heart failure
+I50.9: "I50.9"
+I50.1: "I50.1"
+I50: "I50.9"
+
+# Hip fracture
+S72.0: "S72.009A"
+S72.1: "S72.101A"
+
+# Chronic conditions
+I10: "I10"
+E11.9: "E11.9"
+E78: "E78.5"
+J44: "J44.1"
+N18: "N18.9"
+I48: "I48.91"
+I25: "I25.9"
+M81: "M81.0"
+F00: "F03.90"
+G20: "G20"
+E03: "E03.9"
+K21: "K21.0"
+J45: "J45.909"
+N40: "N40.0"
+M17: "M17.9"

@@ -1,0 +1,796 @@
+# Acute Pancreatitis — Complete Reference Data
+# Sources cited per section. All rates are approximate and should be validated
+# against the most current published data before production use.
+
+disease_id: acute_pancreatitis
+chief_complaint: "Severe epigastric pain radiating to back, nausea, vomiting"
+department: internal_medicine
+encounter_type: medical
+requires_surgery: false
+readmission_eligible: true
+minimum_severity: null
+diagnostic_difficulty: 0.2   # Lipase > 3x ULN is highly specific; diagnosis usually straightforward
+
+icd_codes:
+  primary: "K85.9"  # Acute pancreatitis, unspecified
+  variants:
+    - {code: "K85.1", name: "Biliary acute pancreatitis", probability: 0.40}
+    - {code: "K85.2", name: "Alcohol-induced acute pancreatitis", probability: 0.25}
+    - {code: "K85.3", name: "Drug-induced acute pancreatitis", probability: 0.03}
+    - {code: "K85.8", name: "Other acute pancreatitis", probability: 0.07}
+    - {code: "K85.9", name: "Acute pancreatitis, unspecified", probability: 0.25}
+
+# ============================================================
+# INCIDENCE (per 100,000 per year, by age band and sex)
+# Source: JP — MHLW Patient Survey, JPS nationwide survey
+#         US — NIS data, Peery et al. Gastroenterology 2019
+# ============================================================
+incidence:
+  japan:
+    "0-4":   {M: 1, F: 1}
+    "5-14":  {M: 2, F: 1}
+    "15-24": {M: 5, F: 3}
+    "25-34": {M: 15, F: 8}
+    "35-44": {M: 35, F: 15}
+    "45-54": {M: 55, F: 25}
+    "55-64": {M: 70, F: 40}
+    "65-74": {M: 80, F: 55}
+    "75-84": {M: 75, F: 60}
+    "85+":   {M: 60, F: 50}
+  us:
+    "0-4":   {M: 1, F: 1}
+    "5-14":  {M: 2, F: 2}
+    "15-24": {M: 8, F: 5}
+    "25-34": {M: 25, F: 15}
+    "35-44": {M: 50, F: 25}
+    "45-54": {M: 65, F: 35}
+    "55-64": {M: 75, F: 50}
+    "65-74": {M: 85, F: 60}
+    "75-84": {M: 80, F: 65}
+    "85+":   {M: 65, F: 55}
+
+  risk_multipliers:
+    - {condition: "gallstones", multiplier: 5.0}
+    - {condition: "alcohol_dependence", multiplier: 4.0}
+    - {condition: "hypertriglyceridemia", multiplier: 3.0}
+    - {condition: "smoking_current", multiplier: 1.5}
+    - {condition: "obesity", multiplier: 1.8}
+    - {condition: "diabetes", multiplier: 1.3}
+    - {condition: "prior_pancreatitis", multiplier: 3.0}
+    - {condition: "ERCP_recent", multiplier: 10.0}
+
+  seasonal_curve:
+    1: 1.0
+    2: 1.0
+    3: 1.0
+    4: 1.0
+    5: 1.0
+    6: 1.0
+    7: 1.0
+    8: 1.0
+    9: 1.0
+    10: 1.0
+    11: 1.1   # slightly higher with holiday alcohol intake
+    12: 1.2
+
+  vaccine_protection: {}
+
+# ============================================================
+# SEVERITY DISTRIBUTION
+# Source: Revised Atlanta Classification, JPN severity score
+# ============================================================
+severity:
+  distribution:
+    mild: 0.55        # interstitial edematous, no organ failure
+    moderate: 0.30    # transient organ failure (<48h) or local complications
+    severe: 0.15      # persistent organ failure (>48h)
+  modifiers:
+    - {condition: "age_over_75", mild_multiplier: 0.7, severe_multiplier: 1.8}
+    - {condition: "obesity", moderate_multiplier: 1.3, severe_multiplier: 1.5}
+    - {condition: "alcohol_dependence", severe_multiplier: 1.5}
+    - {condition: "CKD", severe_multiplier: 1.5}
+    - {condition: "APACHE_II_above_8", severe_multiplier: 2.0, mild_multiplier: 0.3}
+
+# ============================================================
+# INITIAL PHYSIOLOGICAL STATE IMPACT
+# ============================================================
+initial_state_impact:
+  mild:
+    inflammation_level: 0.20
+    volume_status: -0.15
+  moderate:
+    inflammation_level: 0.45
+    volume_status: -0.30
+    perfusion_status: -0.10
+    renal_function: -0.10
+  severe:
+    inflammation_level: 0.70
+    volume_status: -0.40
+    perfusion_status: -0.25
+    renal_function: -0.20
+    ph_status: -0.10
+
+# ============================================================
+# ORDER PROTOCOLS
+# ============================================================
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "Lipase", urgency: "stat"}
+      - {test: "Amylase", urgency: "stat"}
+      - {test: "CRP", urgency: "stat"}
+      - {test: "WBC", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "BUN", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Ca", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "AST", urgency: "stat"}
+      - {test: "ALT", urgency: "stat"}
+      - {test: "ALP", urgency: "stat"}
+      - {test: "GGT", urgency: "stat"}
+      - {test: "Total_bilirubin", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Hct", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "Triglycerides", urgency: "stat", probability: 0.60}
+      - {test: "Lactate", urgency: "stat", probability: 0.50}
+      - {test: "LDH", urgency: "stat", probability: 0.40}
+    imaging:
+      - {test: "Abdominal_ultrasound", urgency: "stat", note: "Evaluate for gallstones"}
+      - {test: "CT_abdomen_pelvis_with_contrast", urgency: "within_24h", probability: 0.60,
+         note: "If diagnosis unclear or severe; best at 72h for necrosis assessment"}
+    supportive:
+      - {type: "NPO", detail: "Nothing by mouth initially"}
+      - {type: "IV_fluid", detail: "Lactated Ringer 250-500 mL/h for first 12-24h (aggressive hydration)"}
+      - {type: "pain_management", detail: "Hydromorphone 0.5-1mg IV q3h PRN or PCA"}
+      - {type: "DVT_prophylaxis", detail: "Enoxaparin 2000IU SC daily"}
+
+  daily_monitoring:
+    labs:
+      - {test: "CRP", frequency: "daily"}
+      - {test: "WBC", frequency: "daily"}
+      - {test: "Creatinine", frequency: "daily"}
+      - {test: "Ca", frequency: "daily"}
+      - {test: "Lipase", frequency: "q48h"}
+      - {test: "Hct", frequency: "q12h_first_48h_then_daily"}
+    vitals:
+      stable: "q4h"
+      unstable: "q1h"
+    imaging:
+      - {test: "CT_abdomen_with_contrast", frequency: "day_3_to_5_if_severe",
+         condition: "assess for necrosis if no improvement"}
+
+  trigger_orders:
+    suspected_infected_necrosis:
+      condition: "persistent fever and elevated WBC after Day 7-10"
+      actions:
+        - {type: "imaging", test: "CT_abdomen_with_contrast"}
+        - {type: "procedure", test: "CT_guided_FNA_of_necrosis"}
+        - {type: "medication_change", action: "start_antibiotics_carbapenem"}
+        - {type: "consult", target: "interventional_radiology_or_surgery"}
+    acute_fluid_collection:
+      condition: "increasing abdominal pain, WBC rising after initial improvement"
+      actions:
+        - {type: "imaging", test: "CT_abdomen_with_contrast"}
+        - {type: "evaluate", action: "consider_drainage"}
+    respiratory_deterioration:
+      condition: "SpO2 < 92% or increasing respiratory rate"
+      actions:
+        - {type: "lab", test: "ABG"}
+        - {type: "imaging", test: "Chest_Xray"}
+        - {type: "evaluate", action: "consider_ICU_for_ARDS"}
+
+  discharge_criteria:
+    japan:
+      - "Pain controlled with oral analgesics"
+      - "Tolerating oral diet for 48 hours"
+      - "CRP declining and < 50% of peak"
+      - "Afebrile (< 37.0C) for 48 hours"
+      - "Lipase trending toward normal"
+      - "Etiology addressed (e.g., cholecystectomy scheduled if gallstone)"
+    us:
+      - "Pain controlled with oral analgesics"
+      - "Tolerating low-fat oral diet"
+      - "Afebrile for 24 hours"
+      - "No IV fluids needed"
+      - "Etiology addressed or follow-up arranged"
+
+# ============================================================
+# LIKELIHOOD RATIO TABLE
+# Source: Clinical diagnostic studies, ACG guidelines
+# ============================================================
+likelihood_ratios:
+  lipase_above_3x_uln:
+    acute_pancreatitis: {positive_LR: 25.0, negative_LR: 0.05}
+    biliary_colic: {positive_LR: 0.8, negative_LR: 1.1}
+    peptic_ulcer: {positive_LR: 0.3, negative_LR: 1.0}
+
+  amylase_above_3x_uln:
+    acute_pancreatitis: {positive_LR: 10.0, negative_LR: 0.15}
+    bowel_obstruction: {positive_LR: 1.5, negative_LR: 0.9}
+    peptic_ulcer: {positive_LR: 0.5, negative_LR: 1.0}
+
+  ct_pancreatic_inflammation:
+    acute_pancreatitis: {positive_LR: 15.0, negative_LR: 0.15}
+    pancreatic_cancer: {positive_LR: 1.5, negative_LR: 0.9}
+
+  gallstones_on_ultrasound:
+    biliary_pancreatitis: {positive_LR: 8.0, negative_LR: 0.3}
+    alcoholic_pancreatitis: {positive_LR: 0.5, negative_LR: 1.2}
+
+  alt_above_150:
+    biliary_pancreatitis: {positive_LR: 6.0, negative_LR: 0.4}
+    alcoholic_pancreatitis: {positive_LR: 0.3, negative_LR: 1.5}
+
+  crp_above_150:
+    acute_pancreatitis: {positive_LR: 2.5, negative_LR: 0.5}
+    note: "CRP > 150 at 48h predicts severe pancreatitis"
+
+# ============================================================
+# LAB REFERENCE RANGES (admission values)
+# ============================================================
+expected_lab_distributions:
+  admission:
+    Lipase:
+      unit: "U/L"
+      median: 800
+      iqr: [300, 2000]
+      range: [180, 10000]
+    Amylase:
+      unit: "U/L"
+      median: 500
+      iqr: [200, 1200]
+      range: [100, 5000]
+    CRP:
+      unit: "mg/L"
+      median: 60
+      iqr: [20, 150]
+      range: [5, 400]
+    WBC:
+      unit: "/uL"
+      median: 13000
+      iqr: [9000, 17000]
+      range: [4000, 30000]
+    Creatinine:
+      unit: "mg/dL"
+      median: 0.9
+      iqr: [0.7, 1.3]
+      range: [0.4, 5.0]
+    BUN:
+      unit: "mg/dL"
+      median: 20
+      iqr: [14, 30]
+      range: [8, 60]
+    Ca:
+      unit: "mg/dL"
+      median: 8.5
+      iqr: [7.8, 9.2]
+      range: [6.0, 10.5]
+      note: "low Ca is a severity marker (Ranson criteria)"
+    Glucose:
+      unit: "mg/dL"
+      median: 150
+      iqr: [110, 220]
+      range: [70, 500]
+      note: "stress hyperglycemia, exocrine failure"
+    ALT:
+      unit: "U/L"
+      median: 80
+      iqr: [30, 200]
+      range: [10, 1000]
+      note: "elevated if biliary etiology"
+    Total_bilirubin:
+      unit: "mg/dL"
+      median: 1.5
+      iqr: [0.8, 3.0]
+      range: [0.3, 10.0]
+    Hct:
+      unit: "%"
+      median: 42
+      iqr: [38, 46]
+      range: [25, 55]
+      note: "hemoconcentration indicates dehydration"
+    Lactate:
+      unit: "mmol/L"
+      median: 1.5
+      iqr: [1.0, 2.5]
+      range: [0.5, 8.0]
+
+  discharge:
+    CRP:
+      unit: "mg/L"
+      median: 15
+      iqr: [5, 35]
+    WBC:
+      unit: "/uL"
+      median: 7500
+      iqr: [5500, 9500]
+    Lipase:
+      unit: "U/L"
+      median: 100
+      iqr: [60, 180]
+
+# ============================================================
+# VITAL SIGN DISTRIBUTIONS
+# ============================================================
+expected_vital_distributions:
+  admission:
+    temperature:
+      unit: "C"
+      mean: 37.5
+      sd: 0.7
+      range: [36.5, 39.5]
+    heart_rate:
+      unit: "bpm"
+      mean: 98
+      sd: 16
+      range: [60, 140]
+    systolic_bp:
+      unit: "mmHg"
+      mean: 118
+      sd: 22
+      range: [75, 175]
+    respiratory_rate:
+      unit: "/min"
+      mean: 20
+      sd: 4
+      range: [14, 35]
+    spo2:
+      unit: "%"
+      mean: 96
+      sd: 2
+      range: [88, 100]
+
+# ============================================================
+# TREATMENT REFERENCE — Drug selection data
+# Source: JPS Guidelines 2021, ACG Guidelines 2013, AGA 2018
+# ============================================================
+drugs:
+  first_line:
+    japan:
+      - drug: "Lactated Ringer"
+        code_yj: "3319501"
+        dose: "250-500 mL/h IV for first 12-24h"
+        route: IV
+        note: "Aggressive early fluid resuscitation (JP guidelines: goal-directed)"
+        pregnancy_safe: true
+      - drug: "Fentanyl"
+        code_yj: "8219700"
+        dose: "25-50 mcg IV q1h PRN"
+        route: IV
+        note: "Preferred over morphine (no sphincter of Oddi spasm)"
+        pregnancy_safe: false
+      - drug: "Acetaminophen"
+        code_yj: "1141700"
+        dose: "1000mg IV q6h"
+        route: IV
+        pregnancy_safe: true
+
+    us:
+      - drug: "Lactated Ringer"
+        code_rxnorm: "313002"
+        dose: "250-500 mL/h IV for first 12-24h"
+        route: IV
+        pregnancy_safe: true
+      - drug: "Hydromorphone"
+        code_rxnorm: "3423"
+        dose: "0.5-1mg IV q3h PRN"
+        route: IV
+        pregnancy_safe: false
+      - drug: "Acetaminophen"
+        code_rxnorm: "161"
+        dose: "1000mg IV q6h"
+        route: IV
+        pregnancy_safe: true
+
+  alternative_penicillin_allergy: {}  # Not applicable for primary treatment
+
+  escalation:  # for infected necrosis or severe disease
+    japan:
+      - drug: "Meropenem"
+        code_yj: "6139401"
+        dose: "1g IV q8h"
+        indication: "infected_necrosis_or_pancreatic_abscess"
+        renal_adjustment:
+          eGFR_below_30: "0.5g IV q12h"
+      - drug: "Nafamostat"
+        code_yj: "3999407"
+        dose: "20mg/h continuous IV"
+        indication: "severe pancreatitis (JP-specific protease inhibitor)"
+        note: "Used in Japan, not standard in US/EU"
+    us:
+      - drug: "Meropenem"
+        code_rxnorm: "29561"
+        dose: "1g IV q8h"
+        indication: "infected_necrosis"
+        renal_adjustment:
+          eGFR_below_30: "0.5g IV q12h"
+      - drug: "Imipenem/Cilastatin"
+        code_rxnorm: "5880"
+        dose: "500mg IV q6h"
+        indication: "alternative for infected necrosis"
+
+  discharge_oral:
+    japan:
+      - drug: "Acetaminophen"
+        code_yj: "1141007"
+        dose: "500mg PO q6h PRN"
+        duration_days: 7
+      - drug: "Camostat mesilate"
+        code_yj: "3999003"
+        dose: "200mg PO TID"
+        duration_days: 14
+        note: "Protease inhibitor (JP-specific, for recurrence prevention)"
+    us:
+      - drug: "Acetaminophen"
+        code_rxnorm: "161"
+        dose: "500mg PO q6h PRN"
+        duration_days: 7
+
+# ============================================================
+# DRUG INTERACTIONS
+# ============================================================
+drug_interactions:
+  - drug_a: "Meropenem"
+    drug_b: "Valproic acid"
+    severity: "contraindicated"
+    effect: "Dramatically reduces valproate levels"
+    action: "Do not use together"
+
+  - drug_a: "Hydromorphone"
+    drug_b: "Benzodiazepines"
+    severity: "major"
+    effect: "Respiratory depression risk"
+    action: "Monitor closely, reduce doses"
+
+  - drug_a: "Fentanyl"
+    drug_b: "MAO_inhibitors"
+    severity: "contraindicated"
+    effect: "Serotonin syndrome risk"
+    action: "Avoid combination"
+
+# ============================================================
+# LAB ITEM REFERENCE RANGES
+# ============================================================
+reference_ranges:
+  Lipase:
+    unit: "U/L"
+    all: {low: 13, high: 60}
+  Amylase:
+    unit: "U/L"
+    all: {low: 30, high: 110}
+  CRP:
+    unit: "mg/L"
+    all: {low: 0, high: 3}
+  WBC:
+    unit: "/uL"
+    all: {low: 3500, high: 9500}
+  Hb:
+    unit: "g/dL"
+    male: {low: 13.5, high: 17.5}
+    female: {low: 11.5, high: 15.5}
+  Plt:
+    unit: "x10^3/uL"
+    all: {low: 150, high: 400}
+  Creatinine:
+    unit: "mg/dL"
+    male: {low: 0.6, high: 1.1}
+    female: {low: 0.4, high: 0.8}
+  BUN:
+    unit: "mg/dL"
+    all: {low: 8, high: 20}
+  Na:
+    unit: "mEq/L"
+    all: {low: 136, high: 145}
+  K:
+    unit: "mEq/L"
+    all: {low: 3.5, high: 5.0}
+  Ca:
+    unit: "mg/dL"
+    all: {low: 8.5, high: 10.5}
+  Glucose:
+    unit: "mg/dL"
+    fasting: {low: 70, high: 100}
+    random: {low: 70, high: 140}
+  AST:
+    unit: "U/L"
+    all: {low: 10, high: 35}
+  ALT:
+    unit: "U/L"
+    all: {low: 5, high: 40}
+  ALP:
+    unit: "U/L"
+    all: {low: 40, high: 130}
+  GGT:
+    unit: "U/L"
+    male: {low: 10, high: 50}
+    female: {low: 7, high: 32}
+  Total_bilirubin:
+    unit: "mg/dL"
+    all: {low: 0.2, high: 1.2}
+  Lactate:
+    unit: "mmol/L"
+    all: {low: 0.5, high: 2.0}
+
+# ============================================================
+# TARGET LENGTH OF STAY
+# ============================================================
+target_los:
+  japan:
+    mild: {mean: 12, sd: 4, min: 7, max: 20}
+    moderate: {mean: 18, sd: 5, min: 10, max: 30}
+    severe: {mean: 28, sd: 10, min: 14, max: 60}
+  us:
+    mild: {mean: 4, sd: 1, min: 2, max: 7}
+    moderate: {mean: 6, sd: 2, min: 4, max: 10}
+    severe: {mean: 12, sd: 5, min: 7, max: 30}
+
+# ============================================================
+# OUTCOME BENCHMARKS
+# ============================================================
+outcome_benchmarks:
+  japan:
+    median_los: 16
+    los_iqr: [10, 22]
+    in_hospital_mortality: 0.03
+    icu_transfer_rate: 0.10
+    thirty_day_readmission: 0.12
+    necrotizing_rate: 0.15
+    infected_necrosis_rate: 0.05
+    ercp_rate: 0.25
+    cholecystectomy_index_admission: 0.10
+    mean_age_admitted: 58
+    male_ratio: 0.62
+
+  us:
+    median_los: 5
+    los_iqr: [3, 8]
+    in_hospital_mortality: 0.02
+    icu_transfer_rate: 0.12
+    thirty_day_readmission: 0.15
+    necrotizing_rate: 0.15
+    infected_necrosis_rate: 0.05
+    ercp_rate: 0.20
+    cholecystectomy_index_admission: 0.30
+    mean_age_admitted: 52
+    male_ratio: 0.58
+
+# ============================================================
+# CLINICAL COURSE ARCHETYPES
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.50
+    description: "Mild edematous pancreatitis — pain improves Day 2-3, diet advanced Day 3-4"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: 0.02, 2: -0.05, 3: -0.07, 5: -0.06, 7: -0.05, 10: -0.03, 14: -0.02}
+      volume_status: {0: 0.05, 1: 0.05, 2: 0.03, 3: 0.02, 5: 0.01, 7: 0.00, 10: 0.00, 14: 0.00}
+      renal_function: {0: 0.00, 1: 0.01, 2: 0.01, 3: 0.01, 5: 0.00, 7: 0.00, 10: 0.00, 14: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.18
+    description: "Pain worsens Day 1-3 with CRP peak Day 3, then steady improvement"
+    trajectory:
+      inflammation_level: {0: 0.10, 1: 0.08, 2: 0.03, 3: -0.02, 5: -0.08, 7: -0.08, 10: -0.06, 14: -0.04}
+      volume_status: {0: -0.05, 1: -0.03, 2: 0.02, 3: 0.03, 5: 0.02, 7: 0.01, 10: 0.00, 14: 0.00}
+      renal_function: {0: -0.03, 1: -0.02, 2: 0.00, 3: 0.01, 5: 0.01, 7: 0.01, 10: 0.00, 14: 0.00}
+      perfusion_status: {0: -0.03, 1: -0.02, 2: 0.00, 3: 0.01, 5: 0.01, 7: 0.00, 10: 0.00, 14: 0.00}
+    order_modifications:
+      day_3:
+        add_labs: ["Lactate", "Ca"]
+        add_imaging: ["CT_abdomen_with_contrast"]
+    treatment_modifications:
+      day_1:
+        add_fluid: {detail: "Increase LR to 500 mL/h"}
+
+  plateau_then_recovery:
+    probability: 0.10
+    description: "CRP and pain persist for 5-7 days, then gradual resolution"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: 0.03, 2: 0.02, 3: 0.00, 5: 0.00, 7: -0.05, 10: -0.08, 14: -0.06}
+      volume_status: {0: 0.02, 1: 0.02, 2: 0.01, 3: 0.00, 5: 0.00, 7: 0.01, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_5:
+        add_imaging: ["CT_abdomen_with_contrast"]
+    treatment_modifications: {}
+
+  treatment_resistant:
+    probability: 0.10
+    description: "Necrotizing pancreatitis — requires prolonged treatment, possible intervention"
+    trajectory:
+      inflammation_level: {0: 0.12, 1: 0.08, 2: 0.05, 3: 0.03, 5: 0.00, 7: -0.03, 10: -0.05, 14: -0.05}
+      volume_status: {0: -0.08, 1: -0.05, 2: -0.02, 3: 0.00, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.00}
+      renal_function: {0: -0.05, 1: -0.03, 2: -0.02, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.01}
+      perfusion_status: {0: -0.05, 1: -0.03, 2: -0.01, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_5:
+        add_labs: ["Blood_culture", "Procalcitonin"]
+        add_imaging: ["CT_abdomen_with_contrast"]
+      day_10:
+        add_imaging: ["CT_abdomen_with_contrast"]
+        add_consult: ["interventional_radiology"]
+    treatment_modifications:
+      day_7:
+        start:
+          japan: [{drug: "Meropenem", dose: "1g IV q8h"}]
+          us: [{drug: "Meropenem", dose: "1g IV q8h"}]
+    triggers:
+      - day: 7
+        condition: "persistent_fever_and_elevated_WBC"
+        actions: ["ct_guided_fna", "start_antibiotics"]
+
+  gradual_deterioration:
+    probability: 0.07
+    description: "Multi-organ failure developing over days — ICU transfer required"
+    trajectory:
+      inflammation_level: {0: 0.12, 1: 0.10, 2: 0.08, 3: 0.05, 5: 0.03, 7: 0.02, 10: -0.02, 14: -0.03}
+      perfusion_status: {0: -0.08, 1: -0.06, 2: -0.05, 3: -0.03, 5: -0.02, 7: 0.00, 10: 0.01, 14: 0.01}
+      renal_function: {0: -0.06, 1: -0.05, 2: -0.04, 3: -0.03, 5: -0.01, 7: 0.00, 10: 0.01, 14: 0.01}
+      ph_status: {0: -0.03, 1: -0.03, 2: -0.02, 3: -0.01, 5: 0.00, 7: 0.01, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["ABG", "Lactate", "Blood_culture"]
+      day_5:
+        add_labs: ["ABG", "Lactate"]
+        add_imaging: ["CT_abdomen_with_contrast"]
+    treatment_modifications:
+      day_3:
+        start:
+          japan:
+            - {drug: "Nafamostat", dose: "20mg/h continuous IV"}
+          us: []
+      day_5:
+        start:
+          japan: [{drug: "Norepinephrine", dose: "0.05ug/kg/min IV drip"}]
+          us: [{drug: "Norepinephrine", dose: "0.05ug/kg/min IV drip"}]
+        action: "icu_transfer"
+    triggers:
+      - day: 5
+        condition: "persistent_organ_failure"
+        actions: ["icu_transfer"]
+
+  sudden_deterioration:
+    probability: 0.05
+    description: "Sudden hemorrhagic or fulminant necrotizing pancreatitis — Day 1-2"
+    trajectory:
+      inflammation_level: {0: 0.08, 1: 0.30, 2: 0.10, 3: 0.05, 5: -0.05, 7: -0.08, 10: -0.06, 14: -0.03}
+      perfusion_status: {0: -0.05, 1: -0.25, 2: -0.05, 3: 0.03, 5: 0.05, 7: 0.03, 10: 0.02, 14: 0.01}
+      renal_function: {0: -0.03, 1: -0.15, 2: -0.05, 3: 0.02, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.01}
+      ph_status: {0: -0.02, 1: -0.10, 2: -0.03, 3: 0.02, 5: 0.02, 7: 0.01, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_1:
+        add_labs: ["ABG", "Lactate", "Blood_culture_x2", "Hb", "Type_and_screen"]
+        add_imaging: ["CT_abdomen_with_contrast"]
+    treatment_modifications:
+      day_1:
+        start:
+          japan:
+            - {drug: "Meropenem", dose: "1g IV q8h"}
+            - {drug: "Nafamostat", dose: "20mg/h continuous IV"}
+            - {drug: "Norepinephrine", dose: "0.1ug/kg/min IV drip"}
+          us:
+            - {drug: "Meropenem", dose: "1g IV q8h"}
+            - {drug: "Norepinephrine", dose: "0.1ug/kg/min IV drip"}
+        action: "icu_transfer"
+    triggers:
+      - day: 1
+        condition: "perfusion_status < 0.3"
+        actions: ["icu_transfer", "start_vasopressor"]
+
+# Archetype selection modifiers
+archetype_modifiers:
+  - condition: "alcohol_dependence"
+    effect: {treatment_resistant: 0.05, smooth_recovery: -0.05}
+  - condition: "age >= 75"
+    effect: {gradual_deterioration: 0.05, smooth_recovery: -0.05}
+  - condition: "obesity_bmi_over_30"
+    effect: {treatment_resistant: 0.05, gradual_deterioration: 0.03, smooth_recovery: -0.08}
+
+# ============================================================
+# COMPLICATIONS
+# ============================================================
+complications:
+  - name: "pancreatic_pseudocyst"
+    description: "Encapsulated fluid collection after 4+ weeks"
+    probability_per_day: 0.003
+    onset_day_range: [14, 42]
+    risk_factors:
+      - {condition: "necrotizing_pancreatitis", multiplier: 4.0}
+      - {condition: "alcohol_etiology", multiplier: 1.5}
+    state_impact:
+      inflammation_level: 0.05
+    detection:
+      test: "ct_abdomen"
+      finding: "encapsulated_fluid_collection"
+    actions: ["observe_if_asymptomatic", "consider_drainage_if_symptomatic"]
+
+  - name: "infected_necrosis"
+    description: "Bacterial infection of pancreatic necrosis"
+    probability_per_day: 0.005
+    onset_day_range: [7, 21]
+    risk_factors:
+      - {condition: "necrotizing_pancreatitis", multiplier: 5.0}
+      - {condition: "severity_severe", multiplier: 3.0}
+    state_impact:
+      inflammation_level: 0.25
+      perfusion_status: -0.10
+    detection:
+      test: "ct_guided_fna"
+      finding: "positive_gram_stain_or_culture"
+    actions: ["antibiotics_carbapenem", "consider_necrosectomy", "percutaneous_drainage"]
+    cascade: ["sepsis"]
+
+  - name: "acute_kidney_injury"
+    description: "AKI from hypovolemia and systemic inflammation"
+    probability_per_day: 0.012
+    onset_day_range: [1, 7]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 3.0}
+      - {condition: "volume_status < -0.3", multiplier: 2.5}
+      - {condition: "age_over_75", multiplier: 1.5}
+    state_impact:
+      renal_function: -0.15
+      ph_status: -0.05
+    detection:
+      test: "creatinine"
+      finding: "rise_above_0.3_from_baseline"
+    actions: ["aggressive_iv_fluids", "hold_nephrotoxic_drugs", "monitor_urine_output"]
+
+  - name: "ARDS"
+    description: "Acute respiratory distress syndrome from systemic inflammation"
+    probability_per_day: 0.005
+    onset_day_range: [1, 7]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 5.0}
+      - {condition: "necrotizing_pancreatitis", multiplier: 3.0}
+    state_impact:
+      perfusion_status: -0.15
+      ph_status: -0.10
+    detection:
+      test: "ABG_and_chest_xray"
+      finding: "PaO2_FiO2_below_300_bilateral_infiltrates"
+    actions: ["icu_transfer", "mechanical_ventilation", "lung_protective_ventilation"]
+
+  - name: "splenic_vein_thrombosis"
+    description: "Thrombosis of splenic vein from adjacent inflammation"
+    probability_per_day: 0.002
+    onset_day_range: [5, 21]
+    risk_factors:
+      - {condition: "necrotizing_pancreatitis", multiplier: 3.0}
+    state_impact:
+      coagulation_status: 0.05
+    detection:
+      test: "ct_abdomen_with_contrast"
+      finding: "splenic_vein_filling_defect"
+    actions: ["anticoagulation_consideration", "monitor_for_portal_hypertension"]
+
+  - name: "pancreatic_duct_disruption"
+    description: "Disruption of main pancreatic duct with leakage"
+    probability_per_day: 0.002
+    onset_day_range: [3, 14]
+    risk_factors:
+      - {condition: "necrotizing_pancreatitis", multiplier: 4.0}
+    state_impact:
+      inflammation_level: 0.10
+    detection:
+      test: "MRCP_or_ERCP"
+      finding: "contrast_extravasation"
+    actions: ["ERCP_with_stenting", "consider_surgery"]
+
+  - name: "delirium"
+    description: "Alcohol withdrawal delirium or ICU-related confusion"
+    probability_per_day: 0.01
+    onset_day_range: [1, 5]
+    risk_factors:
+      - {condition: "alcohol_dependence", multiplier: 5.0}
+      - {condition: "age_over_75", multiplier: 2.0}
+      - {condition: "icu_stay", multiplier: 2.0}
+    state_impact: {}
+    detection:
+      test: "CAM_screening"
+      finding: "positive"
+    actions: ["benzodiazepines_if_alcohol_withdrawal", "reorientation", "thiamine"]

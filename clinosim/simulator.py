@@ -20,8 +20,11 @@ from typing import Any
 import numpy as np
 
 from clinosim.modules.clinical_course.engine import (
+    apply_diagnosis_modifier,
+    compute_diagnosis_effectiveness,
     evaluate_complications,
     get_daily_directive,
+    natural_recovery_directive,
     select_archetype,
 )
 from clinosim.modules.diagnosis.engine import (
@@ -32,7 +35,7 @@ from clinosim.modules.diagnosis.engine import (
 from clinosim.modules.disease.protocol import DiseaseProtocol, load_disease_protocol
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.healthcare_system.loader import load_healthcare_config
-from clinosim.modules.observation.engine import determine_flag, generate_lab_result
+from clinosim.modules.observation.engine import determine_flag, generate_lab_result, get_lab_unit
 from clinosim.modules.order.engine import (
     calculate_lab_result_time,
     place_admission_orders,
@@ -49,7 +52,6 @@ from clinosim.modules.physiology.engine import (
 )
 from clinosim.modules.population.engine import (
     LifeEvent,
-    PopulationRegistry,
     generate_monthly_events,
     generate_population,
 )
@@ -62,11 +64,11 @@ from clinosim.types.clinical import (
     ClinicalDiagnosis,
     ConditionEvent,
     PhysiologicalState,
-    StateChangeDirective,
 )
 from clinosim.types.config import ForcedScenario, HealthcareSystemConfig, SimulatorConfig
 from clinosim.types.encounter import (
     EncounterStatus,
+    EncounterType,
     MedicationAdministration,
     Order,
     OrderResult,
@@ -92,11 +94,7 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
 
     # Load modules
     healthcare = load_healthcare_config(config.country)
-    protocols = {
-        "bacterial_pneumonia": load_disease_protocol("bacterial_pneumonia"),
-        "heart_failure_exacerbation": load_disease_protocol("heart_failure_exacerbation"),
-        "hip_fracture": load_disease_protocol("hip_fracture"),
-    }
+    protocols = _load_all_disease_protocols()
     roster = generate_roster(config.hospital_scale, config.country, rng)
 
     # Generate population
@@ -110,7 +108,7 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
     all_events: list[LifeEvent] = []
     y, m = start_y, start_m
     while (y, m) <= (end_y, end_m):
-        all_events.extend(generate_monthly_events(population, y, m, rng))
+        all_events.extend(generate_monthly_events(population, y, m, rng, country=config.country))
         m += 1
         if m > 12:
             m, y = 1, y + 1
@@ -120,7 +118,11 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
 
     # Simulate each patient
     patient_records: list[CIFPatientRecord] = []
-    for event in hospital_events:
+    n_hosp = len(hospital_events)
+    for idx, event in enumerate(hospital_events):
+        if (idx + 1) % 50 == 0 or idx == n_hosp - 1:
+            print(f"  Simulating inpatient {idx+1}/{n_hosp}...", flush=True)
+
         person = population.get_person(event.person_id)
         if person is None or not person.is_alive:
             continue
@@ -141,24 +143,137 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
         if protocol is None:
             continue
 
-        # Mixed condition: determine secondary disease and pass to simulator
+        # Mixed condition: determine secondary disease from patient's chronic conditions
         secondary_protocol = None
         if event.condition_type == "mixed":
-            # Determine secondary disease based on patient's chronic conditions
-            if "I50" in [c.code for c in patient.chronic_conditions] and disease_id != "heart_failure_exacerbation":
-                secondary_protocol = protocols.get("heart_failure_exacerbation")
-            elif disease_id == "heart_failure_exacerbation":
-                secondary_protocol = protocols.get("bacterial_pneumonia")
+            secondary_protocol = _select_secondary_disease(
+                patient, disease_id, protocols, rng,
+            )
 
         record = _simulate_patient(
             patient, event, disease_id, protocol, healthcare, roster, config, rng,
             secondary_protocol=secondary_protocol,
+            is_readmission=event.is_readmission,
+            prior_encounter_id=event.prior_encounter_id,
+            readmission_number=event.readmission_number,
         )
         patient_records.append(record)
-        person.has_visited_hospital = True
-        person.visit_count += 1
+        _deactivate_to_layer1(person, record, disease_id)
         if record.deceased:
             person.is_alive = False
+
+    print(f"  Inpatient done: {len(patient_records)} records", flush=True)
+
+    # === Readmission evaluation (post-loop pass) ===
+    country_key = _country_to_yaml_key(config.country)
+    readmission_events: list[LifeEvent] = []
+    for record in patient_records:
+        if record.deceased or record.is_readmission:
+            continue
+        person = population.get_person(record.patient.patient_id)
+        if not person or not person.is_alive:
+            continue
+        disease_id = (
+            record.condition_event.ground_truth_diseases[0]
+            if record.condition_event.ground_truth_diseases else None
+        )
+        if not disease_id:
+            continue
+        protocol = protocols.get(disease_id)
+        if not protocol:
+            continue
+        re_event = _evaluate_readmission(
+            record, person, disease_id, protocol, country_key, rng,
+        )
+        if re_event:
+            readmission_events.append(re_event)
+
+    # Simulate readmissions (max 1 chain per patient for now)
+    readmission_events.sort(key=lambda e: e.timestamp)
+    for re_event in readmission_events:
+        person = population.get_person(re_event.person_id)
+        if not person or not person.is_alive:
+            continue
+        protocol = protocols.get(re_event.disease_id)
+        if not protocol:
+            continue
+        patient = activate_patient(person, rng, config.country)
+        record = _simulate_patient(
+            patient, re_event, re_event.disease_id, protocol,
+            healthcare, roster, config, rng,
+            is_readmission=True,
+            prior_encounter_id=re_event.prior_encounter_id,
+            readmission_number=re_event.readmission_number,
+        )
+        patient_records.append(record)
+        _deactivate_to_layer1(person, record, re_event.disease_id)
+        if record.deceased:
+            person.is_alive = False
+
+    print(f"  Readmissions done: {len(readmission_events)} evaluated", flush=True)
+
+    # === Outpatient encounters ===
+    from clinosim.locale.loader import load_chronic_followup
+    followup_data = load_chronic_followup()
+    post_dc_spec = followup_data.get("_post_discharge", {})
+    post_dc_days = post_dc_spec.get("first_visit_days", 14)
+
+    # Collect inpatient records only (not readmission OPD duplicates)
+    inpatient_records = [
+        r for r in patient_records
+        if not r.deceased and r.encounters
+        and r.encounters[0].encounter_type == EncounterType.INPATIENT
+    ]
+
+    # Cache activated patients to avoid redundant activation
+    patient_cache: dict[str, PatientProfile] = {}
+    seen_opd_pids: set[str] = set()
+
+    for record in inpatient_records:
+        pid = record.patient.patient_id
+        person = population.get_person(pid)
+        if not person or not person.is_alive:
+            continue
+        enc = record.encounters[0]
+        if not enc.discharge_datetime:
+            continue
+
+        # Activate once per patient
+        if pid not in patient_cache:
+            patient_cache[pid] = activate_patient(person, rng, config.country)
+
+        # Post-discharge follow-up (1 per inpatient encounter)
+        followup_date = enc.discharge_datetime + timedelta(days=post_dc_days)
+        disease_id = (record.condition_event.ground_truth_diseases[0]
+                      if record.condition_event.ground_truth_diseases else "")
+        opd_record = _simulate_outpatient_visit(
+            patient_cache[pid], "post_discharge", followup_date, roster, rng,
+            followup_spec=post_dc_spec, post_discharge_disease=disease_id,
+        )
+        patient_records.append(opd_record)
+
+        # Chronic disease follow-up (max 2 conditions per patient, once)
+        if pid in seen_opd_pids:
+            continue
+        seen_opd_pids.add(pid)
+        chronic_visits = 0
+        for chronic_code in person.chronic_conditions:
+            if chronic_visits >= 2:
+                break
+            spec = followup_data.get(chronic_code)
+            if not spec:
+                continue
+            visit_month = int(rng.integers(start_m, min(start_m + 6, 13)))
+            visit_date = datetime(start_y, visit_month, int(rng.integers(1, 28)), 10, 0)
+            opd_record = _simulate_outpatient_visit(
+                patient_cache[pid], "chronic_followup", visit_date, roster, rng,
+                chronic_code=chronic_code, followup_spec=spec,
+            )
+            patient_records.append(opd_record)
+            chronic_visits += 1
+
+    n_opd = len(patient_records) - len(inpatient_records) - len(readmission_events)
+    print(f"  Outpatient done: {n_opd} visits generated", flush=True)
 
     metadata = CIFMetadata(
         clinosim_version="0.1.0",
@@ -187,6 +302,9 @@ def _simulate_patient(
     forced_severity: str | None = None,
     forced_archetype: str | None = None,
     secondary_protocol: DiseaseProtocol | None = None,
+    is_readmission: bool = False,
+    prior_encounter_id: str | None = None,
+    readmission_number: int = 0,
 ) -> CIFPatientRecord:
     """Simulate one patient's complete hospital encounter.
 
@@ -199,8 +317,13 @@ def _simulate_patient(
         severity = forced_severity
     else:
         severity = "severe" if event.severity > 0.7 else ("moderate" if event.severity > 0.3 else "mild")
-        if disease_id == "hip_fracture" and severity == "mild":
-            severity = "moderate"
+        # Apply minimum severity from protocol (e.g., fractures are at least moderate)
+        if protocol.minimum_severity:
+            severity_order = ["mild", "moderate", "severe"]
+            min_idx = severity_order.index(protocol.minimum_severity) if protocol.minimum_severity in severity_order else 0
+            cur_idx = severity_order.index(severity) if severity in severity_order else 0
+            if cur_idx < min_idx:
+                severity = protocol.minimum_severity
 
     if forced_archetype:
         archetype = forced_archetype
@@ -209,6 +332,13 @@ def _simulate_patient(
 
     # Initialize physiological state
     state = initialize_state(patient.physiological_profile, patient.chronic_conditions, patient.patient_id)
+
+    # Readmission: carry over residual state from prior hospitalization
+    if is_readmission:
+        # Readmitted patients have worse baseline (incomplete recovery from prior stay)
+        state.inflammation_level = max(state.inflammation_level, 0.05)
+        state.renal_function = min(state.renal_function, 0.9)
+
     state = apply_disease_onset(state, severity, protocol.initial_state_impact)
 
     # Mixed condition: superimpose secondary disease's state impact
@@ -218,41 +348,70 @@ def _simulate_patient(
         # Secondary disease typically presents at moderate severity
         state = apply_disease_onset(state, "moderate", secondary_protocol.initial_state_impact)
 
-    # Create encounter
+    # Create encounter — realistic admission time pattern
+    if protocol.encounter_type == "surgical":
+        # Elective surgery: morning admission (8-10)
+        adm_hour = int(rng.choice([8, 9, 10], p=[0.3, 0.5, 0.2]))
+    elif event.severity > 0.6:
+        # Emergency: any hour, peak in evening (ED presentation)
+        adm_hour = int(rng.choice(24))
+    else:
+        # Urgent: daytime bias (9-20)
+        adm_hour = int(rng.normal(14, 3))
+        adm_hour = max(8, min(22, adm_hour))
+    adm_minute = int(rng.integers(0, 60))
     admission_time = datetime(event.timestamp.year, event.timestamp.month, event.timestamp.day,
-                               int(rng.integers(8, 22)), 0)
-    chief_complaint = _disease_chief_complaint(disease_id)
-    encounter = create_inpatient_encounter(patient.patient_id, admission_time, chief_complaint=chief_complaint)
+                               adm_hour, adm_minute)
+    chief_complaint = _disease_chief_complaint(protocol)
+    encounter = create_inpatient_encounter(
+        patient.patient_id, admission_time,
+        chief_complaint=chief_complaint,
+        visit_number=readmission_number + 1,
+    )
 
-    # Staff assignment
-    # Department assignment based on disease
-    department = _disease_to_department(disease_id)
+    # Staff assignment — department from protocol YAML
+    department = _disease_to_department(protocol)
     staff = assign_staff("admission", department, roster, rng)
     attending_id = staff.get("attending_physician", "DR-001")
     encounter.attending_physician_id = attending_id
 
-    # LOS
-    los_cfg = protocol.target_los.get("japan", {}).get(severity, {"mean": 14, "sd": 4, "min": 5, "max": 30})
+    # LOS (country-specific)
+    country_key = _country_to_yaml_key(config.country)
+    los_by_country = protocol.target_los.get(country_key) or protocol.target_los.get("japan", {})
+    los_cfg = los_by_country.get(severity, {"mean": 14, "sd": 4, "min": 5, "max": 30})
     target_los = int(max(los_cfg.get("min", 5), min(los_cfg.get("max", 30), rng.normal(los_cfg["mean"], los_cfg["sd"]))))
+    # Archetypes with treatment changes need minimum LOS to reach the change day
+    if archetype in ("treatment_resistant", "plateau", "gradual_deterioration", "sudden_deterioration"):
+        arc_data = (protocol.course_archetypes or {}).get(archetype, {})
+        treatment_mods = arc_data.get("treatment_modifications", {})
+        if treatment_mods:
+            mod_days = [int(k.split("_")[1]) for k in treatment_mods if k.startswith("day_")]
+            if mod_days:
+                target_los = max(target_los, max(mod_days) + 2)
 
     # Admission orders
     admission_orders = place_admission_orders(
         protocol.model_dump(), patient.patient_id, encounter.encounter_id,
-        admission_time, country="japan", rng=rng,
+        admission_time, country=country_key, rng=rng,
     )
     for o in admission_orders:
         o.ordered_by = attending_id
 
+    # Home medication orders (chronic condition continuation)
+    home_med_orders, chronic_monitoring = _generate_home_medication_orders(
+        patient, encounter.encounter_id, admission_time, attending_id, rng,
+    )
+    admission_orders.extend(home_med_orders)
+
     # Tracking
     procedures, rehab_sessions = [], []
-    icu_transferred, surgery_done, death_occurred = False, False, False
+    icu_transferred, death_occurred = False, False
 
-    # Surgery (hip fracture)
-    if disease_id == "hip_fracture":
+    # Surgery (protocol-driven: requires_surgery flag in YAML)
+    if protocol.requires_surgery:
         proc, impacts = simulate_surgery(patient, disease_id, encounter.encounter_id,
                                           admission_time, protocol, rng, config.country)
         procedures.append(proc)
-        surgery_done = True
         for var, delta in impacts.items():
             cur = getattr(state, var, None)
             if cur is not None:
@@ -268,10 +427,14 @@ def _simulate_patient(
 
     # Daily simulation loop
     has_diabetes = any(c.code.startswith("E11") for c in patient.chronic_conditions)
+    protocol_min_los = los_cfg.get("min", 3)
     loop_result = _run_daily_loop(
         state, patient, disease_id, protocol, archetype, differential,
         admission_orders, admission_time, target_los, has_diabetes,
         healthcare, roster, rng,
+        chronic_monitoring=chronic_monitoring,
+        country_key=country_key,
+        min_los=protocol_min_los,
     )
 
     # Unpack results
@@ -279,6 +442,7 @@ def _simulate_patient(
     all_lab_results = loop_result["lab_results"]
     all_vitals = loop_result["vitals"]
     all_mars = loop_result["mars"]
+    all_io = loop_result.get("io_records", [])
     state_history = loop_result["state_history"]
     complications_occurred = loop_result["complications"]
     death_occurred = loop_result["death_occurred"]
@@ -324,11 +488,14 @@ def _simulate_patient(
     )
 
     # Discharge prescription
-    discharge_rx = _build_discharge_rx(patient, disease_id, protocol, attending_id, rng) if not death_occurred else None
+    discharge_rx = _build_discharge_rx(patient, disease_id, protocol, attending_id, rng, country_key=country_key) if not death_occurred else None
 
     # Encounter completion
     encounter.status = EncounterStatus.COMPLETED
-    encounter.discharge_datetime = admission_time + timedelta(days=actual_los, hours=14 if not death_occurred else 0)
+    # Discharge time: morning (10-12) for planned discharge, any time for death
+    dc_hour = 0 if death_occurred else int(rng.normal(11, 1.5))
+    dc_hour = max(9, min(16, dc_hour)) if not death_occurred else 0
+    encounter.discharge_datetime = admission_time + timedelta(days=actual_los, hours=dc_hour)
 
     return CIFPatientRecord(
         patient=patient, encounters=[encounter], orders=all_orders,
@@ -337,9 +504,13 @@ def _simulate_patient(
         complications_occurred=complications_occurred,
         procedures=procedures, rehab_sessions=rehab_sessions,
         medication_administrations=all_mars,
+        intake_output_records=all_io,
         discharge_prescription=discharge_rx,
         icu_transferred=icu_transferred, deceased=death_occurred,
         death_day=actual_los if death_occurred else None,
+        is_readmission=is_readmission,
+        prior_encounter_id=prior_encounter_id,
+        readmission_number=readmission_number,
         physiological_states=state_history,
     )
 
@@ -362,6 +533,9 @@ def _run_daily_loop(
     healthcare: HealthcareSystemConfig,
     roster: StaffRoster,
     rng: np.random.Generator,
+    chronic_monitoring: list[dict] | None = None,
+    country_key: str = "japan",
+    min_los: int = 3,
 ) -> dict:
     """Run the day-by-day simulation loop. Returns all generated data."""
 
@@ -369,31 +543,93 @@ def _run_daily_loop(
     all_lab_results: list[OrderResult] = []
     all_vitals: list[VitalSignRecord] = []
     all_mars: list[MedicationAdministration] = []
+    all_io: list = []
     state_history = [deepcopy(state)]
     active_complications: set[str] = set()
     complications_occurred: list[str] = []
     death_occurred = False
     icu_transferred = False
-    treatment_changed = False
+
+    # Determine severity string for natural recovery scaling
+    severity_str = "moderate"  # default
+    for s in ("severe", "moderate", "mild"):
+        los_data = (protocol.target_los.get(country_key) or {}).get(s)
+        if los_data and abs(target_los - los_data.get("mean", 14)) < 5:
+            severity_str = s
+            break
 
     for day in range(target_los):
-        # State update
+        # State update with diagnosis-treatment feedback
         directive = get_daily_directive(
             archetype, day, patient.physiological_profile,
             protocol_archetypes=protocol.course_archetypes or None,
             age=patient.age, rng=rng,
         )
+
+        # Phase 1: Dampen recovery if diagnosis is wrong
+        dx_confidence = 0.0
+        working_dx = None
+        if differential.top_candidate:
+            dx_confidence = differential.top_candidate.probability
+            working_dx = differential.top_candidate.disease_code
+        dx_difficulty = (protocol.diagnostic or {}).get("diagnostic_difficulty", 0.3)
+        effectiveness = compute_diagnosis_effectiveness(
+            working_dx, disease_id, dx_confidence, day,
+            diagnostic_difficulty=dx_difficulty,
+        )
+        directive = apply_diagnosis_modifier(
+            directive, effectiveness,
+            current_volume=state.volume_status,
+            current_ph=state.ph_status,
+        )
+
+        # Phase 2: Natural recovery (small baseline healing)
+        nat_directive = natural_recovery_directive(
+            day, disease_id, severity_str, patient.physiological_profile,
+        )
+        for var, delta in nat_directive.changes.items():
+            directive.changes[var] = directive.changes.get(var, 0.0) + delta
+
         state = update(state, directive, timedelta(days=1))
         state_history.append(deepcopy(state))
 
-        # Daily lab orders (from Day 1)
+        # Daily lab orders (from Day 1) with context-dependent frequency
         if day >= 1:
-            lab_time = datetime(admission_time.year, admission_time.month, admission_time.day, 6, 0) + timedelta(days=day)
+            # Morning lab draw: 05:30-07:00 with jitter
+            lab_hour = 6
+            lab_min = int(rng.integers(0, 45))  # 06:00-06:45
+            if rng.random() < 0.2:
+                lab_hour = 5
+                lab_min = int(rng.integers(30, 60))  # 05:30-06:00
+            lab_time = datetime(
+                admission_time.year, admission_time.month, admission_time.day,
+                lab_hour, lab_min,
+            ) + timedelta(days=day)
+
+            # Context-dependent lab frequency modulation
+            freq_mod = healthcare.lab_frequency_multiplier
+            # Near discharge: reduce routine labs
+            if day >= target_los - 2 and state.inflammation_level < 0.1:
+                freq_mod *= 0.5
+            # Weekend: reduce non-urgent labs
+            if lab_time.weekday() >= 5:  # Saturday/Sunday
+                freq_mod *= 0.7
+            # Stable patient: reduce after first week
+            if day >= 7 and state.inflammation_level < 0.15:
+                freq_mod *= 0.8
+
             daily_orders = place_daily_lab_orders(
                 protocol.model_dump(), patient.patient_id, "", day, lab_time,
-                healthcare.lab_frequency_multiplier, rng,
+                freq_mod, rng,
             )
             all_orders.extend(daily_orders)
+
+        # Chronic condition monitoring labs (additional to disease protocol)
+        if chronic_monitoring and day >= 1:
+            chronic_lab_orders = _place_chronic_monitoring_orders(
+                chronic_monitoring, patient.patient_id, day, admission_time, rng,
+            )
+            all_orders.extend(chronic_lab_orders)
 
         # Lab results (with temporal lag for slow markers like CRP)
         true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes)
@@ -408,13 +644,32 @@ def _run_daily_loop(
 
         for order in all_orders:
             if order.order_type.value == "lab" and order.status == OrderStatus.PLACED and order.display_name in true_labs:
+                # Pre-analytical issues: specimen rejection (~2%), hemolysis (~3% for K/LDH)
+                if rng.random() < 0.02:
+                    order.status = OrderStatus.CANCELLED
+                    continue  # specimen lost/rejected
+                if order.display_name in ("K", "LDH") and rng.random() < 0.03:
+                    # Hemolyzed sample → falsely elevated K/LDH, flagged
+                    result_time = calculate_lab_result_time(order, rng)
+                    hemolyzed_val = true_labs[order.display_name] * float(rng.uniform(1.2, 1.8))
+                    lab_tech = assign_staff("lab_result", "", roster, rng).get("performing_technician", "TECH-001")
+                    order.result = OrderResult(
+                        result_datetime=result_time, performed_by=lab_tech,
+                        lab_name=order.display_name, value=round(hemolyzed_val, 1),
+                        unit=get_lab_unit(order.display_name), flag="H*",
+                    )
+                    order.status = OrderStatus.RESULTED
+                    all_lab_results.append(order.result)
+                    continue
+
                 result_time = calculate_lab_result_time(order, rng)
                 observed = generate_lab_result(order.display_name, true_labs[order.display_name], rng)
                 flag = determine_flag(order.display_name, observed, sex=patient.sex)
                 lab_tech = assign_staff("lab_result", "", roster, rng).get("performing_technician", "TECH-001")
                 order.result = OrderResult(
                     result_datetime=result_time, performed_by=lab_tech,
-                    lab_name=order.display_name, value=observed, unit="", flag=flag,
+                    lab_name=order.display_name, value=observed,
+                    unit=get_lab_unit(order.display_name), flag=flag,
                 )
                 order.status = OrderStatus.RESULTED
                 all_lab_results.append(order.result)
@@ -493,7 +748,7 @@ def _run_daily_loop(
                     status=OrderStatus.PLACED,
                 ))
             # Start new medications
-            start_meds = mod.get("start", {}).get("japan", mod.get("start", []))
+            start_meds = mod.get("start", {}).get(country_key, mod.get("start", []))
             if isinstance(start_meds, list):
                 for med in start_meds:
                     if isinstance(med, dict):
@@ -506,7 +761,6 @@ def _run_daily_loop(
                             ordered_datetime=admission_time + timedelta(days=day, hours=10),
                             status=OrderStatus.PLACED,
                         ))
-                        treatment_changed = True
 
         # Medication administration (MAR)
         mars_today = _generate_mar(patient, all_orders, day, admission_time, roster, rng)
@@ -515,6 +769,10 @@ def _run_daily_loop(
         # Vitals
         vitals_today = _generate_vitals(state, patient, day, admission_time, rng)
         all_vitals.extend(vitals_today)
+
+        # Daily I/O record
+        io_record = _generate_daily_io(state, patient, day, admission_time, rng)
+        all_io.append(io_record)
 
         # Complications
         comp_list = protocol.complications if protocol.complications else []
@@ -529,22 +787,199 @@ def _run_daily_loop(
                 if "icu_transfer" in comp.get("actions", []):
                     icu_transferred = True
 
-        # Mortality
-        if _evaluate_mortality(state, patient, severity="moderate", day=day, rng=rng):
+        # Mortality (disease-specific rate from YAML benchmarks)
+        benchmark_mortality = (protocol.outcome_benchmarks.get(country_key, {})
+                               .get("in_hospital_mortality", 0.0))
+        if _evaluate_mortality(
+            state, patient, severity=severity_str, day=day, rng=rng,
+            disease_mortality_rate=benchmark_mortality,
+            target_los=target_los,
+        ):
             death_occurred = True
             break
 
+        # Early discharge: if state-based criteria met before target_los
+        if day >= min_los and not death_occurred:
+            if _check_discharge_ready(state, day, country_key):
+                break  # actual_los = day + 1
+
+    actual_los = day + 1
     return {
         "orders": all_orders, "lab_results": all_lab_results, "vitals": all_vitals,
-        "mars": all_mars, "state_history": state_history,
+        "mars": all_mars, "io_records": all_io, "state_history": state_history,
         "complications": complications_occurred, "death_occurred": death_occurred,
         "icu_transferred": icu_transferred, "differential": differential,
-        "actual_los": day + 1 if death_occurred else target_los,
+        "actual_los": actual_los,
     }
 
 
 # ============================================================
 # Medication Administration Records (MAR)
+# ============================================================
+# Home medications and chronic monitoring
+# ============================================================
+
+def _generate_home_medication_orders(
+    patient: PatientProfile,
+    encounter_id: str,
+    admission_time: datetime,
+    attending_id: str,
+    rng: np.random.Generator,
+) -> tuple[list[Order], list[dict]]:
+    """Generate medication orders for home meds (chronic condition continuation).
+
+    Returns:
+        (medication_orders, chronic_monitoring_specs)
+    """
+    from clinosim.locale.loader import load_chronic_medications
+    chronic_meds = load_chronic_medications()
+
+    orders: list[Order] = []
+    monitoring: list[dict] = []
+    med_idx = 0
+
+    for condition in patient.chronic_conditions:
+        code = condition.code
+        spec = chronic_meds.get(code)
+        if not spec:
+            continue
+
+        # Home medications (with renal dose adjustment)
+        has_ckd = any(c.code.startswith("N18") for c in patient.chronic_conditions)
+        renal_reserve = patient.physiological_profile.renal_reserve if hasattr(patient, "physiological_profile") else 1.0
+
+        for med in spec.get("medications", []):
+            prob = med.get("probability", 1.0)
+            if prob < 1.0 and rng.random() > prob:
+                continue
+
+            drug_name = med["drug"]
+            intent = f"Home medication (continue): {code} - {drug_name}"
+
+            # Renal dose adjustment for CKD patients
+            if has_ckd and renal_reserve < 0.5:
+                renal_drugs = ["Metformin", "Enoxaparin", "Enalapril", "Candesartan",
+                               "Alendronate", "Celecoxib"]
+                if any(rd.lower() in drug_name.lower() for rd in renal_drugs):
+                    if "Metformin" in drug_name and renal_reserve < 0.3:
+                        intent += " [HELD - eGFR<30]"
+                        continue  # contraindicated
+                    elif "Celecoxib" in drug_name:
+                        intent += " [HELD - renal impairment]"
+                        continue
+                    else:
+                        intent += " [dose reduced for renal impairment]"
+
+            order = Order(
+                order_id=f"ORD-{patient.patient_id}-HM-{med_idx:02d}",
+                encounter_id=encounter_id,
+                patient_id=patient.patient_id,
+                order_type=OrderType.MEDICATION,
+                order_code="",
+                display_name=drug_name,
+                urgency="routine",
+                clinical_intent=intent,
+                ordered_datetime=admission_time + timedelta(minutes=60),
+                ordered_by=attending_id,
+                status=OrderStatus.PLACED,
+            )
+            orders.append(order)
+            med_idx += 1
+
+        # Monitoring specs (passed to daily loop)
+        for mon in spec.get("monitoring", []):
+            monitoring.append(mon)
+
+    return orders, monitoring
+
+
+def _place_chronic_monitoring_orders(
+    monitoring: list[dict],
+    patient_id: str,
+    day: int,
+    admission_time: datetime,
+    rng: np.random.Generator,
+) -> list[Order]:
+    """Place additional lab orders for chronic condition monitoring."""
+    orders: list[Order] = []
+
+    for i, mon in enumerate(monitoring):
+        freq = mon.get("frequency", "daily")
+
+        # Frequency-based scheduling
+        if freq == "every_3_days" and day % 3 != 0:
+            continue
+        if freq == "qid":
+            # Multiple times per day — handled differently (monitoring, not standard lab)
+            # Generate separate orders at each time
+            times = mon.get("times", [6, 11, 17, 21])
+            for t_idx, hour in enumerate(times):
+                order_time = datetime(
+                    admission_time.year, admission_time.month, admission_time.day,
+                    hour, 0,
+                ) + timedelta(days=day)
+                if order_time < admission_time:
+                    continue
+                orders.append(Order(
+                    order_id=f"ORD-{patient_id}-CM-D{day:02d}-{i:02d}-{t_idx}",
+                    encounter_id="",
+                    patient_id=patient_id,
+                    order_type=OrderType.LAB,
+                    order_code="",
+                    display_name=mon["test"],
+                    urgency="routine",
+                    clinical_intent=mon.get("intent", f"Chronic monitoring: {mon['test']}"),
+                    ordered_datetime=order_time,
+                    ordered_by="",
+                    status=OrderStatus.PLACED,
+                ))
+            continue
+
+        if freq == "tid":
+            times = [8, 14, 20]
+            for t_idx, hour in enumerate(times):
+                order_time = datetime(
+                    admission_time.year, admission_time.month, admission_time.day,
+                    hour, 0,
+                ) + timedelta(days=day)
+                if order_time < admission_time:
+                    continue
+                orders.append(Order(
+                    order_id=f"ORD-{patient_id}-CM-D{day:02d}-{i:02d}-{t_idx}",
+                    encounter_id="",
+                    patient_id=patient_id,
+                    order_type=OrderType.LAB,
+                    order_code="",
+                    display_name=mon["test"],
+                    urgency="routine",
+                    clinical_intent=mon.get("intent", f"Chronic monitoring: {mon['test']}"),
+                    ordered_datetime=order_time,
+                    ordered_by="",
+                    status=OrderStatus.PLACED,
+                ))
+            continue
+
+        # Default: daily at 06:00
+        order_time = datetime(
+            admission_time.year, admission_time.month, admission_time.day, 6, 0,
+        ) + timedelta(days=day)
+        orders.append(Order(
+            order_id=f"ORD-{patient_id}-CM-D{day:02d}-{i:02d}",
+            encounter_id="",
+            patient_id=patient_id,
+            order_type=OrderType.LAB,
+            order_code="",
+            display_name=mon["test"],
+            urgency="routine",
+            clinical_intent=mon.get("intent", f"Chronic monitoring: {mon['test']}"),
+            ordered_datetime=order_time,
+            ordered_by="",
+            status=OrderStatus.PLACED,
+        ))
+
+    return orders
+
+
 # ============================================================
 
 def _generate_mar(
@@ -628,6 +1063,54 @@ def _generate_mar(
 # Vitals generation
 # ============================================================
 
+def _generate_daily_io(
+    state: PhysiologicalState,
+    patient: PatientProfile,
+    day: int,
+    admission_time: datetime,
+    rng: np.random.Generator,
+) -> dict:
+    """Generate daily intake/output record."""
+    from clinosim.types.encounter import IntakeOutputRecord
+
+    # IV fluid: higher in early days, less as patient improves
+    if day <= 2:
+        iv = int(rng.normal(1500, 300))  # aggressive hydration
+    elif state.volume_status < -0.2:
+        iv = int(rng.normal(1200, 200))  # dehydrated
+    else:
+        iv = int(rng.normal(500, 200))  # maintenance
+
+    # Oral intake: improves as patient recovers
+    if day == 0:
+        oral = int(rng.normal(200, 100))  # NPO or minimal
+    elif state.inflammation_level > 0.3:
+        oral = int(rng.normal(500, 200))  # poor appetite
+    else:
+        oral = int(rng.normal(1200, 300))  # recovering
+
+    # Urine output: correlates with renal function
+    base_urine = 1500 * state.renal_function
+    urine = int(max(100, rng.normal(base_urine, 300)))
+
+    # Drain (post-surgical only, simplified)
+    drain = 0
+
+    iv = max(0, iv)
+    oral = max(0, oral)
+    total_in = iv + oral
+    total_out = urine + drain
+    net = total_in - total_out
+
+    io_date = (admission_time + timedelta(days=day)).date()
+    return IntakeOutputRecord(
+        date=io_date,
+        intake_iv_ml=iv, intake_oral_ml=oral,
+        output_urine_ml=urine, output_drain_ml=drain,
+        net_balance_ml=net,
+    )
+
+
 def _generate_vitals(
     state: PhysiologicalState,
     patient: PatientProfile,
@@ -635,10 +1118,24 @@ def _generate_vitals(
     admission_time: datetime,
     rng: np.random.Generator,
 ) -> list[VitalSignRecord]:
-    """Generate vital sign measurements for this day."""
+    """Generate vital sign measurements for this day with context-dependent frequency."""
     vitals: list[VitalSignRecord] = []
 
-    for hour in [6, 14, 18]:
+    # Measurement schedule depends on acuity
+    if state.perfusion_status < 0.5 or state.inflammation_level > 0.5:
+        # Unstable: q4h
+        hours = [2, 6, 10, 14, 18, 22]
+    elif day <= 2:
+        # Early admission: q6h
+        hours = [0, 6, 12, 18]
+    elif state.inflammation_level < 0.1 and day >= 7:
+        # Stable, late stay: bid
+        hours = [6, 18]
+    else:
+        # Standard: tid
+        hours = [6, 14, 18]
+
+    for hour in hours:
         vit_time = datetime(admission_time.year, admission_time.month, admission_time.day, hour, 0) + timedelta(days=day)
         if vit_time < admission_time:
             continue
@@ -653,6 +1150,12 @@ def _generate_vitals(
         jitter_min = float(rng.normal(0, 10))
         actual_time = vit_time + timedelta(minutes=jitter_min)
 
+        # Pain score (NRS 0-10): correlates with inflammation and surgical status
+        base_pain = state.inflammation_level * 4  # inflammation → pain
+        if day <= 2:
+            base_pain += 2  # acute phase
+        pain = max(0, min(10, int(rng.normal(base_pain, 1.5))))
+
         vitals.append(VitalSignRecord(
             timestamp=actual_time,
             temperature_celsius=round(raw["temperature"], 1),
@@ -661,6 +1164,7 @@ def _generate_vitals(
             diastolic_bp=int(round(raw["diastolic_bp"])),
             respiratory_rate=int(round(raw["respiratory_rate"])),
             spo2=round(raw["spo2"], 1),
+            pain_score=pain,
             data_source="manual",
         ))
 
@@ -677,11 +1181,12 @@ def _build_discharge_rx(
     protocol: DiseaseProtocol,
     prescriber_id: str,
     rng: np.random.Generator,
+    country_key: str = "japan",
 ) -> PrescriptionRecord:
     """Build discharge prescription from protocol."""
     items: list[dict] = []
 
-    discharge_drugs = protocol.drugs.get("discharge_oral", {}).get("japan", [])
+    discharge_drugs = protocol.drugs.get("discharge_oral", {}).get(country_key, [])
     if isinstance(discharge_drugs, dict):
         discharge_drugs = [discharge_drugs]
 
@@ -739,25 +1244,344 @@ def _extract_findings(
 # Mortality evaluation
 # ============================================================
 
-def _disease_chief_complaint(disease_id: str) -> str:
-    """Generate disease-appropriate chief complaint."""
-    complaints = {
-        "bacterial_pneumonia": "Fever, cough, dyspnea",
-        "heart_failure_exacerbation": "Dyspnea on exertion, orthopnea, lower extremity edema",
-        "hip_fracture": "Hip pain after fall, unable to walk",
+# ============================================================
+# Outpatient encounter simulation
+# ============================================================
+
+def _simulate_outpatient_visit(
+    patient: PatientProfile,
+    visit_type: str,
+    visit_date: datetime,
+    roster: StaffRoster,
+    rng: np.random.Generator,
+    chronic_code: str = "",
+    followup_spec: dict | None = None,
+    post_discharge_disease: str = "",
+) -> CIFPatientRecord:
+    """Simulate a single outpatient visit (chronic follow-up or post-discharge).
+
+    Generates: 1 encounter, 0-3 lab orders, 1 vital sign set, prescription renewal.
+    """
+    encounter = create_inpatient_encounter(
+        patient.patient_id, visit_date,
+        chief_complaint=f"Follow-up: {chronic_code or post_discharge_disease}",
+        visit_number=99,  # outpatient numbering
+    )
+    encounter.encounter_type = EncounterType.OUTPATIENT
+    encounter.status = EncounterStatus.COMPLETED
+    encounter.discharge_datetime = visit_date + timedelta(minutes=int(rng.integers(15, 45)))
+
+    staff = assign_staff("rounds", "internal_medicine", roster, rng)
+    encounter.attending_physician_id = staff.get("attending_physician", "DR-001")
+
+    orders: list[Order] = []
+    lab_results: list[OrderResult] = []
+    vitals: list[VitalSignRecord] = []
+
+    spec = followup_spec or {}
+
+    # Vitals
+    baseline = patient.baseline_vitals
+    raw_vitals = {
+        "temperature": float(rng.normal(36.4, 0.2)),
+        "heart_rate": float(baseline.heart_rate + rng.normal(0, 5)),
+        "systolic_bp": float(baseline.systolic_bp + rng.normal(0, 8)),
+        "diastolic_bp": float(baseline.diastolic_bp + rng.normal(0, 5)),
+        "respiratory_rate": float(rng.normal(16, 1.5)),
+        "spo2": float(min(99, rng.normal(97.5, 0.8))),
     }
-    return complaints.get(disease_id, "General malaise")
+    vitals.append(VitalSignRecord(
+        timestamp=visit_date + timedelta(minutes=5),
+        temperature_celsius=round(raw_vitals["temperature"], 1),
+        heart_rate=int(round(raw_vitals["heart_rate"])),
+        systolic_bp=int(round(raw_vitals["systolic_bp"])),
+        diastolic_bp=int(round(raw_vitals["diastolic_bp"])),
+        respiratory_rate=int(round(raw_vitals["respiratory_rate"])),
+        spo2=round(raw_vitals["spo2"], 1),
+        data_source="manual",
+    ))
+
+    # Labs (if specified in followup schedule)
+    lab_tests = spec.get("labs", [])
+    for i, test_name in enumerate(lab_tests):
+        order = Order(
+            order_id=f"ORD-{patient.patient_id}-OPD-L{i:02d}",
+            patient_id=patient.patient_id,
+            order_type=OrderType.LAB,
+            display_name=test_name,
+            urgency="routine",
+            clinical_intent=f"Outpatient follow-up: {test_name}",
+            ordered_datetime=visit_date + timedelta(minutes=10),
+            status=OrderStatus.PLACED,
+        )
+        orders.append(order)
+
+        # Generate result (use baseline-ish values for stable outpatient)
+        from clinosim.modules.observation.engine import generate_lab_result, determine_flag
+        baseline_values = {"CRP": 0.5, "WBC": 6500, "Creatinine": 0.9, "K": 4.2,
+                           "Na": 140, "Glucose": 100, "HbA1c": 6.5, "BNP": 50,
+                           "PT_INR": 1.1, "Hb": 13.0, "AST": 25, "ALT": 22,
+                           "BUN": 15, "Ca": 9.2, "eGFR": 75, "TSH": 2.5}
+        true_val = baseline_values.get(test_name, 100.0)
+        observed = generate_lab_result(test_name, true_val, rng)
+        flag = determine_flag(test_name, observed, sex=patient.sex)
+        result = OrderResult(
+            result_datetime=visit_date + timedelta(hours=2),
+            lab_name=test_name, value=observed,
+            unit=get_lab_unit(test_name), flag=flag,
+        )
+        order.result = result
+        order.status = OrderStatus.RESULTED
+        lab_results.append(result)
+
+    # Prescription renewal
+    rx = None
+    if spec.get("prescriptions_renewed") and patient.current_medications:
+        rx = PrescriptionRecord(
+            prescription_id=f"RX-{patient.patient_id}-OPD",
+            prescriber_id=encounter.attending_physician_id,
+            items=[{"drug": med, "duration_days": 30} for med in patient.current_medications],
+        )
+
+    condition_event = ConditionEvent(
+        condition_id=f"COND-{patient.patient_id}-OPD",
+        condition_type="chronic_followup",
+    )
+    clinical_diagnosis = ClinicalDiagnosis(
+        admission_diagnosis_code=chronic_code,
+        discharge_diagnosis_code=chronic_code,
+    )
+
+    return CIFPatientRecord(
+        patient=patient,
+        encounters=[encounter],
+        orders=orders,
+        vital_signs=vitals,
+        lab_results=lab_results,
+        condition_event=condition_event,
+        clinical_diagnosis=clinical_diagnosis,
+        discharge_prescription=rx,
+        physiological_states=[],
+    )
 
 
-def _disease_to_department(disease_id: str) -> str:
-    """Map disease to the primary managing department."""
-    mapping = {
-        "bacterial_pneumonia": "internal_medicine",
-        "heart_failure_exacerbation": "internal_medicine",  # cardiology in larger hospitals
-        "hip_fracture": "internal_medicine",  # orthopedics for surgery, but internal med for medical management
-        # In JP medium hospitals, orthopedics does surgery but internal medicine may manage medical issues
-    }
-    return mapping.get(disease_id, "internal_medicine")
+def _load_all_disease_protocols() -> dict[str, DiseaseProtocol]:
+    """Auto-discover and load all disease protocol YAMLs."""
+    from pathlib import Path
+    ref_dir = Path(__file__).parent / "modules" / "disease" / "reference_data"
+    protocols = {}
+    for yaml_file in sorted(ref_dir.glob("*.yaml")):
+        disease_id = yaml_file.stem
+        try:
+            protocols[disease_id] = load_disease_protocol(disease_id)
+        except Exception:
+            pass  # Skip invalid YAML files
+    return protocols
+
+
+def _deactivate_to_layer1(
+    person: Any,
+    record: CIFPatientRecord,
+    disease_id: str,
+) -> None:
+    """Feed hospital results back to Layer 1 PersonRecord after discharge.
+
+    Updates chronic conditions, medications, and hospitalization history
+    so future encounters can reference the patient's medical history.
+    """
+    from clinosim.modules.population.engine import HospitalizationSummary
+
+    person.has_visited_hospital = True
+    person.visit_count += 1
+
+    # Encounter tracking
+    if record.encounters:
+        enc = record.encounters[0]
+        person.last_encounter_id = enc.encounter_id
+        person.last_disease_id = disease_id
+        if enc.discharge_datetime:
+            person.last_discharge_date = enc.discharge_datetime.date()
+
+    # Add new diagnoses to chronic conditions
+    dx_code = record.clinical_diagnosis.discharge_diagnosis_code
+    if dx_code:
+        # Normalize to base code (e.g., "J44.1" → "J44") for chronic condition tracking
+        base_code = dx_code.split(".")[0] if "." in dx_code else dx_code
+        # Only add if it's a chronic/recurring condition and not already present
+        chronic_prefixes = ("I", "E", "J44", "J45", "N18", "M", "G20", "F00", "K21", "N40")
+        if any(base_code.startswith(p) for p in chronic_prefixes):
+            # Check if base code already in chronic conditions
+            existing_bases = {c.split(".")[0] for c in person.chronic_conditions}
+            if base_code not in existing_bases:
+                person.chronic_conditions.append(base_code)
+
+    # Update medications: discharge prescriptions become current medications
+    if record.discharge_prescription and record.discharge_prescription.items:
+        person.current_medications = [
+            item.get("drug", item.get("name", ""))
+            for item in record.discharge_prescription.items
+            if isinstance(item, dict)
+        ]
+
+    # Residual physiological state at discharge
+    residual_infl = 0.0
+    residual_renal = 1.0
+    if record.physiological_states:
+        final = record.physiological_states[-1]
+        residual_infl = final.inflammation_level
+        residual_renal = final.renal_function
+
+    # Build hospitalization summary
+    admission_date = record.encounters[0].admission_datetime.date() if record.encounters else None
+    discharge_date = person.last_discharge_date
+    if admission_date and discharge_date:
+        los = (discharge_date - admission_date).days
+    else:
+        los = len(record.physiological_states) - 1
+
+    summary = HospitalizationSummary(
+        encounter_id=person.last_encounter_id or "",
+        disease_id=disease_id,
+        admission_date=admission_date or discharge_date or record.encounters[0].admission_datetime.date(),
+        discharge_date=discharge_date or admission_date or record.encounters[0].admission_datetime.date(),
+        los_days=max(1, los),
+        outcome="deceased" if record.deceased else "discharged",
+        discharge_diagnoses=[dx_code] if dx_code else [disease_id],
+        discharge_medications=person.current_medications.copy(),
+        residual_inflammation=residual_infl,
+        residual_renal=residual_renal,
+        was_readmission=record.is_readmission,
+    )
+    person.hospitalization_history.append(summary)
+
+
+def _select_secondary_disease(
+    patient: PatientProfile,
+    primary_disease_id: str,
+    protocols: dict[str, DiseaseProtocol],
+    rng: np.random.Generator,
+) -> DiseaseProtocol | None:
+    """Select a secondary disease for mixed conditions based on patient's chronic diseases.
+
+    Priority: diseases whose prerequisite_condition matches patient's chronic conditions.
+    Fallback: any non-surgical disease different from primary.
+    """
+    # Find candidate diseases (non-surgical, different from primary)
+    matching = []
+    for did, proto in protocols.items():
+        if did == primary_disease_id or proto.requires_surgery:
+            continue
+        # Check demographics YAML prerequisite — read from incidence data isn't available here,
+        # but we can check if the disease name implies a chronic condition match
+        # Use a simpler approach: any medical disease the patient could plausibly have
+        matching.append(proto)
+
+    if not matching:
+        return None
+
+    # Prefer diseases related to patient's comorbidities
+    # Pneumonia is common secondary for any hospitalized patient
+    preferred = [p for p in matching if p.disease_id == "bacterial_pneumonia"]
+    if preferred:
+        return preferred[0]
+
+    return rng.choice(matching)
+
+
+def _evaluate_readmission(
+    record: CIFPatientRecord,
+    person: Any,
+    disease_id: str,
+    protocol: DiseaseProtocol,
+    country_key: str,
+    rng: np.random.Generator,
+) -> LifeEvent | None:
+    """Evaluate 30-day readmission probability and generate event if triggered.
+
+    Uses YAML benchmark rates as the TARGET rate. Risk modifiers adjust around
+    the benchmark but the final rate is clamped near the benchmark range.
+    """
+    # Check if this disease type is eligible for same-disease readmission
+    if not protocol.readmission_eligible:
+        return None
+
+    benchmarks = protocol.outcome_benchmarks.get(country_key, {})
+    base_rate = benchmarks.get("thirty_day_readmission", 0.15)
+
+    # Start from base rate, apply modest modifiers
+    rate = base_rate
+
+    # Risk modifiers — all modest, multiplicative effects compound
+    modifier = 1.0
+
+    # Residual inflammation at discharge (incomplete recovery)
+    if record.physiological_states:
+        final_infl = record.physiological_states[-1].inflammation_level
+        if final_infl > 0.15:
+            modifier *= 1.15
+
+    # Age (elderly more likely to bounce back)
+    age = record.patient.age
+    if age >= 80:
+        modifier *= 1.1
+    elif age >= 70:
+        modifier *= 1.05
+
+    # Comorbidity burden (small additive)
+    n_chronic = len(record.patient.chronic_conditions)
+    modifier += n_chronic * 0.01
+
+    # Diagnosis accuracy
+    if record.clinical_diagnosis.missed_diagnoses:
+        modifier *= 1.2
+
+    rate = base_rate * modifier
+    # Clamp: stay within 50% of benchmark
+    rate = min(rate, base_rate * 1.5)
+
+    if rng.random() >= rate:
+        return None
+
+    discharge_date = person.last_discharge_date
+    if not discharge_date:
+        return None
+
+    readmit_days = int(rng.integers(2, 28))
+    readmit_date = discharge_date + timedelta(days=readmit_days)
+
+    # Readmission severity: slightly higher than original
+    original_severity = 0.5
+    if record.physiological_states:
+        original_severity = record.physiological_states[0].inflammation_level
+    readmit_severity = min(1.0, original_severity + float(rng.uniform(0.05, 0.15)))
+
+    return LifeEvent(
+        person_id=person.person_id,
+        event_type="readmission",
+        timestamp=readmit_date,
+        severity=readmit_severity,
+        disease_id=disease_id,
+        requires_hospital=True,
+        condition_type="known_disease",
+        is_readmission=True,
+        prior_encounter_id=person.last_encounter_id,
+        readmission_number=(record.readmission_number or 0) + 1,
+    )
+
+
+def _country_to_yaml_key(country: str) -> str:
+    """Convert country code to disease YAML key."""
+    return {"JP": "japan", "US": "us"}.get(country, "us")
+
+
+def _disease_chief_complaint(protocol: DiseaseProtocol) -> str:
+    """Get chief complaint from disease protocol YAML."""
+    return protocol.chief_complaint or "General malaise"
+
+
+def _disease_to_department(protocol: DiseaseProtocol) -> str:
+    """Get managing department from disease protocol YAML."""
+    return protocol.department or "internal_medicine"
 
 
 def _determine_route(drug_name: str, clinical_intent: str) -> str:
@@ -778,23 +1602,71 @@ def _determine_route(drug_name: str, clinical_intent: str) -> str:
     return "PO"
 
 
+def _check_discharge_ready(
+    state: PhysiologicalState,
+    day: int,
+    country_key: str,
+) -> bool:
+    """Check if patient meets state-based discharge criteria.
+
+    Common criteria across diseases:
+    - Inflammation resolving (CRP proxy)
+    - Hemodynamically stable (perfusion)
+    - No acute organ dysfunction
+    JP: stricter (lower inflammation threshold, longer afebrile requirement)
+    US: earlier discharge once clinically stable
+    """
+    if country_key == "us":
+        return (
+            state.inflammation_level < 0.10
+            and state.perfusion_status > 0.7
+            and state.renal_function > 0.5
+            and abs(state.volume_status) < 0.3
+            and abs(state.ph_status) < 0.2
+        )
+    else:  # japan — stricter criteria
+        return (
+            state.inflammation_level < 0.05
+            and state.perfusion_status > 0.8
+            and state.renal_function > 0.6
+            and abs(state.volume_status) < 0.2
+            and abs(state.ph_status) < 0.15
+        )
+
+
 def _evaluate_mortality(
     state: PhysiologicalState,
     patient: Any,
     severity: str,
     day: int,
     rng: np.random.Generator,
+    disease_mortality_rate: float = 0.0,
+    target_los: int = 14,
 ) -> bool:
-    """Daily mortality evaluation."""
-    base = {"severe": 0.003, "moderate": 0.0005}.get(severity, 0.0001)
+    """Daily mortality evaluation using disease-specific benchmark rates.
 
-    age = patient.age if hasattr(patient, "age") else 70
-    age_mult = 3.0 if age >= 85 else (2.0 if age >= 80 else (1.5 if age >= 75 else 1.0))
-    perf_mult = 5.0 if state.perfusion_status < 0.3 else (2.0 if state.perfusion_status < 0.5 else 1.0)
-    renal_mult = 2.0 if state.renal_function < 0.2 else 1.0
-    timing = 1.5 if 2 <= day <= 7 else (0.5 if day > 14 else 1.0)
-
-    return bool(rng.random() < base * age_mult * perf_mult * renal_mult * timing)
+    If disease_mortality_rate is provided (from YAML outcome_benchmarks),
+    it is used as the total in-hospital mortality rate and spread across the LOS.
+    """
+    if disease_mortality_rate > 0:
+        # Spread total mortality across hospital stay, weighted by day
+        day_weight = 1.5 if 2 <= day <= 7 else (0.5 if day > 14 else 1.0)
+        daily_base = disease_mortality_rate / max(target_los, 1) * day_weight
+        # When benchmark is used, apply only mild individual modifiers
+        # The benchmark already accounts for average patient demographics
+        age = patient.age if hasattr(patient, "age") else 70
+        individual_mod = 1.0
+        if age >= 85:
+            individual_mod *= 1.2
+        if state.perfusion_status < 0.3:
+            individual_mod *= 1.3
+        individual_mod = min(individual_mod, 1.8)
+        return bool(rng.random() < daily_base * individual_mod)
+    else:
+        daily_base = {"severe": 0.003, "moderate": 0.0005}.get(severity, 0.0001)
+        age = patient.age if hasattr(patient, "age") else 70
+        age_mult = 1.5 if age >= 85 else (1.2 if age >= 80 else 1.0)
+        return bool(rng.random() < daily_base * age_mult)
 
 
 # ============================================================
@@ -919,7 +1791,8 @@ def _simulate_unknown_condition(
                 tech_id = assign_staff("lab_result", "", roster, rng).get("performing_technician", "TECH-001")
                 order.result = OrderResult(
                     result_datetime=result_time, performed_by=tech_id,
-                    lab_name=order.display_name, value=observed, unit="", flag=flag,
+                    lab_name=order.display_name, value=observed,
+                    unit=get_lab_unit(order.display_name), flag=flag,
                 )
                 order.status = OrderStatus.RESULTED
                 all_lab_results.append(order.result)
@@ -985,7 +1858,6 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
 
     for i in range(scenario.count):
         # Create patient (from overrides or random)
-        from clinosim.modules.patient.test_patient import create_test_patient
         from clinosim.modules.patient.activator import activate_patient
         from clinosim.modules.population.engine import PersonRecord
         from datetime import date
@@ -1012,7 +1884,6 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
 
         # Force severity and archetype
         severity = scenario.severity or "moderate"
-        archetype = scenario.archetype or select_archetype(severity, patient.physiological_profile, rng)
 
         # Create life event
         event = LifeEvent(
@@ -1086,6 +1957,7 @@ def main() -> None:
     td.add_argument("--severity", default=None, help="Force severity: mild/moderate/severe")
     td.add_argument("--archetype", default=None, help="Force archetype name")
     td.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
+    td.add_argument("--country", default="US", help="Country code (US or JP)")
     td.add_argument("--format", nargs="+", default=["cif", "csv"], help="Output formats")
 
     args = parser.parse_args()
@@ -1108,8 +1980,8 @@ def main() -> None:
             severity=args.severity,
             archetype=args.archetype,
         )
-        config = SimulatorConfig(random_seed=args.seed)
-        print(f"clinosim test-disease: {args.disease_id} x{args.count}")
+        config = SimulatorConfig(random_seed=args.seed, country=args.country)
+        print(f"clinosim test-disease: {args.disease_id} x{args.count}, country={args.country}")
         dataset = run_forced(scenario, config)
 
     else:
@@ -1126,17 +1998,52 @@ def main() -> None:
 
     if "fhir" in args.format:
         from clinosim.modules.output.fhir_r4_adapter import convert_cif_to_fhir
-        convert_cif_to_fhir(cif_dir, os.path.join(args.output, "fhir_r4"))
+        country = getattr(args, "country", "US")
+        convert_cif_to_fhir(cif_dir, os.path.join(args.output, "fhir_r4"), country=country)
 
     # Summary
-    n = len(dataset.patients)
-    print(f"  Patients: {n}")
-    if n > 0:
-        print(f"  Labs: {sum(len(r.lab_results) for r in dataset.patients)}")
-        print(f"  Vitals: {sum(len(r.vital_signs) for r in dataset.patients)}")
-        print(f"  MARs: {sum(len(r.medication_administrations) for r in dataset.patients)}")
-        print(f"  Deceased: {sum(1 for r in dataset.patients if r.deceased)}")
-    print(f"  Output: {args.output}/")
+    _print_summary(dataset, args.output)
+
+
+def _print_summary(dataset: CIFDataset, output_dir: str) -> None:
+    """Print a summary report of generated data."""
+    from collections import Counter, defaultdict
+
+    all_records = dataset.patients
+    inpatients = [r for r in all_records if r.encounters and r.encounters[0].encounter_type.value == "inpatient"]
+    outpatients = [r for r in all_records if r.encounters and r.encounters[0].encounter_type.value == "outpatient"]
+    readmits = [r for r in inpatients if r.is_readmission]
+    deceased = [r for r in all_records if r.deceased]
+
+    print(f"\n{'='*50}")
+    print(f"  clinosim generation complete")
+    print(f"{'='*50}")
+    print(f"  Total records:  {len(all_records)}")
+    print(f"    Inpatient:    {len(inpatients)} ({len(readmits)} readmissions)")
+    print(f"    Outpatient:   {len(outpatients)}")
+    print(f"    Deceased:     {len(deceased)}")
+    print(f"  Data volume:")
+    print(f"    Lab results:  {sum(len(r.lab_results) for r in all_records):,}")
+    print(f"    Vital signs:  {sum(len(r.vital_signs) for r in all_records):,}")
+    print(f"    MAR entries:  {sum(len(r.medication_administrations) for r in all_records):,}")
+    print(f"    I/O records:  {sum(len(r.intake_output_records) for r in all_records):,}")
+    print(f"    Orders:       {sum(len(r.orders) for r in all_records):,}")
+
+    # Disease distribution (inpatient only)
+    by_disease = Counter()
+    los_by_disease = defaultdict(list)
+    for r in inpatients:
+        d = r.condition_event.ground_truth_diseases[0] if r.condition_event.ground_truth_diseases else "?"
+        by_disease[d] += 1
+        los_by_disease[d].append(len(r.physiological_states) - 1)
+
+    if by_disease:
+        print(f"\n  Disease distribution (inpatient):")
+        for d, n in by_disease.most_common(10):
+            avg_los = sum(los_by_disease[d]) / len(los_by_disease[d])
+            print(f"    {d:30s} {n:4d}  (LOS avg {avg_los:.1f}d)")
+
+    print(f"\n  Output: {output_dir}/")
 
 
 if __name__ == "__main__":

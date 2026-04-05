@@ -1,0 +1,5 @@
+# Procedure code mapping — Internal name → K-code (Japan)
+# Source: 診療報酬点数表
+
+ORIF_femur: "K0461"
+hemiarthroplasty_hip: "K0811"

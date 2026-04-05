@@ -67,6 +67,24 @@ def load_formatting(country: str) -> dict[str, Any]:
     return _load_yaml(_country_dir(country) / "formatting.yaml", fallback=_FALLBACK_FORMATTING)
 
 
+@lru_cache(maxsize=8)
+def load_demographics(country: str) -> dict[str, Any]:
+    """Load demographic data for population generation."""
+    return _load_yaml(_country_dir(country) / "demographics.yaml", fallback=_FALLBACK_DEMOGRAPHICS)
+
+
+@lru_cache(maxsize=1)
+def load_chronic_medications() -> dict[str, Any]:
+    """Load chronic condition home medications and monitoring rules."""
+    return _load_yaml(_LOCALE_DIR / "shared" / "chronic_medications.yaml", fallback={})
+
+
+@lru_cache(maxsize=1)
+def load_chronic_followup() -> dict[str, Any]:
+    """Load chronic disease outpatient follow-up schedules."""
+    return _load_yaml(_LOCALE_DIR / "shared" / "chronic_followup.yaml", fallback={})
+
+
 def _load_yaml(path: Path, fallback: Any = None) -> Any:
     if path.exists():
         with open(path) as f:
@@ -75,9 +93,9 @@ def _load_yaml(path: Path, fallback: Any = None) -> Any:
 
 
 _FALLBACK_NAMES: dict[str, Any] = {
-    "surnames": [{"kanji": "Test", "kana": "テスト", "weight": 1}],
-    "given_names_male": [{"kanji": "Taro", "kana": "タロウ", "weight": 1}],
-    "given_names_female": [{"kanji": "Hanako", "kana": "ハナコ", "weight": 1}],
+    "surnames": [{"name": "Test", "weight": 1}],
+    "given_names_male": [{"name": "John", "weight": 1}],
+    "given_names_female": [{"name": "Jane", "weight": 1}],
 }
 
 _FALLBACK_FORMATTING: dict[str, Any] = {
@@ -86,4 +104,12 @@ _FALLBACK_FORMATTING: dict[str, Any] = {
     "temperature_unit": "C",
     "weight_unit": "kg",
     "height_unit": "cm",
+}
+
+_FALLBACK_DEMOGRAPHICS: dict[str, Any] = {
+    "average_household_size": 2.5,
+    "age_distribution": {"0-14": 0.18, "15-24": 0.13, "25-34": 0.14, "35-44": 0.13,
+                         "45-54": 0.13, "55-64": 0.13, "65-74": 0.09, "75-84": 0.05, "85-99": 0.02},
+    "blood_type": {"O": 0.44, "A": 0.42, "B": 0.10, "AB": 0.04},
+    "chronic_prevalence": {},
 }

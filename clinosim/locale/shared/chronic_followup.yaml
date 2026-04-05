@@ -1,0 +1,82 @@
+# Chronic disease outpatient follow-up schedules
+# Defines what happens at routine clinic visits for each chronic condition
+# Used by the outpatient encounter generator
+
+I10:  # Hypertension
+  follow_up_interval_months: 1
+  labs: []  # BP only unless annual checkup
+  labs_annual: [Creatinine, K, Na]
+  vitals: [systolic_bp, diastolic_bp, heart_rate]
+  prescriptions_renewed: true
+  visit_duration_minutes: 15
+
+E11.9:  # Type 2 Diabetes
+  follow_up_interval_months: 2
+  labs: [Glucose]
+  labs_quarterly: [HbA1c, Creatinine]
+  vitals: [systolic_bp, diastolic_bp, weight]
+  prescriptions_renewed: true
+  visit_duration_minutes: 20
+
+E78:  # Dyslipidemia
+  follow_up_interval_months: 3
+  labs: []
+  labs_quarterly: [AST, ALT]
+  labs_annual: [LDL, HDL, TG, TC]
+  vitals: [systolic_bp, diastolic_bp]
+  prescriptions_renewed: true
+  visit_duration_minutes: 10
+
+J44:  # COPD
+  follow_up_interval_months: 2
+  labs: []
+  labs_annual: [CRP, Hb]
+  vitals: [systolic_bp, heart_rate, spo2, respiratory_rate]
+  prescriptions_renewed: true
+  visit_duration_minutes: 20
+
+N18:  # CKD
+  follow_up_interval_months: 1
+  labs: [Creatinine, K, Na, BUN]
+  labs_quarterly: [Hb, Ca, eGFR]
+  vitals: [systolic_bp, diastolic_bp, weight]
+  prescriptions_renewed: true
+  visit_duration_minutes: 20
+
+I50:  # Heart failure
+  follow_up_interval_months: 1
+  labs: [BNP]
+  labs_quarterly: [Creatinine, K, Na]
+  vitals: [systolic_bp, diastolic_bp, heart_rate, weight]
+  prescriptions_renewed: true
+  visit_duration_minutes: 20
+
+I48:  # Atrial fibrillation
+  follow_up_interval_months: 2
+  labs: [PT_INR]
+  vitals: [systolic_bp, heart_rate]
+  prescriptions_renewed: true
+  visit_duration_minutes: 15
+
+I25:  # Ischemic heart disease
+  follow_up_interval_months: 2
+  labs: []
+  labs_annual: [Creatinine, Glucose, LDL]
+  vitals: [systolic_bp, diastolic_bp, heart_rate]
+  prescriptions_renewed: true
+  visit_duration_minutes: 15
+
+E03:  # Hypothyroidism
+  follow_up_interval_months: 3
+  labs: []
+  labs_quarterly: [TSH]
+  vitals: [systolic_bp, heart_rate]
+  prescriptions_renewed: true
+  visit_duration_minutes: 10
+
+# Post-discharge follow-up (generic, applied to all diseases)
+_post_discharge:
+  first_visit_days: 14  # 2 weeks after discharge
+  labs: [CRP, WBC, Creatinine]  # basic recovery check
+  vitals: [systolic_bp, diastolic_bp, heart_rate, temperature]
+  visit_duration_minutes: 20

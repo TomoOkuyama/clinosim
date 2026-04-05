@@ -3,6 +3,12 @@
 # against the most current published data before production use.
 
 disease_id: bacterial_pneumonia
+chief_complaint: "Fever, cough, dyspnea"
+department: internal_medicine
+encounter_type: medical
+requires_surgery: false
+readmission_eligible: true
+
 icd_codes:
   primary: "J18.9"  # Pneumonia, unspecified organism
   variants:
@@ -490,6 +496,19 @@ reference_ranges:
     age_over_75: {low: 0, high: 200}
 
 # ============================================================
+# ============================================================
+# TARGET LENGTH OF STAY (country-specific)
+# ============================================================
+target_los:
+  japan:
+    mild: {mean: 10, sd: 3, min: 5, max: 18}
+    moderate: {mean: 14, sd: 4, min: 8, max: 25}
+    severe: {mean: 21, sd: 6, min: 14, max: 35}
+  us:
+    mild: {mean: 3, sd: 1, min: 2, max: 5}
+    moderate: {mean: 5, sd: 2, min: 3, max: 8}
+    severe: {mean: 8, sd: 3, min: 5, max: 14}
+
 # OUTCOME BENCHMARKS
 # For validating generated data against reality
 # ============================================================

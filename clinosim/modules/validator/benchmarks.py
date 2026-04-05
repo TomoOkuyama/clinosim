@@ -92,13 +92,14 @@ def run_benchmarks(dataset: CIFDataset, country: str = "JP") -> BenchmarkReport:
         expected_range=(0.40, 0.70),
     ))
 
-    # --- Length of stay ---
+    # --- Length of stay (inpatient only) ---
     los_days = []
     for p in patients:
         for enc in p.encounters:
-            if enc.discharge_datetime and enc.admission_datetime:
+            if enc.encounter_type.value == "inpatient" and enc.discharge_datetime and enc.admission_datetime:
                 los = (enc.discharge_datetime - enc.admission_datetime).days
-                los_days.append(los)
+                if los > 0:
+                    los_days.append(los)
 
     if los_days:
         report.add(BenchmarkResult(

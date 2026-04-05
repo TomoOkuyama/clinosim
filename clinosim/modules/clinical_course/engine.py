@@ -288,3 +288,129 @@ def _interpolate(trajectory: dict[int, float], day: int) -> float:
             return v0 + (v1 - v0) * frac
 
     return trajectory[days[-1]]
+
+
+# ============================================================
+# Diagnosis-treatment feedback
+# ============================================================
+
+# Variables where NEGATIVE delta = improvement (recovery)
+_IMPROVEMENT_IS_NEGATIVE = {"inflammation_level", "anemia_level", "coagulation_status"}
+# Variables where POSITIVE delta = improvement
+_IMPROVEMENT_IS_POSITIVE = {
+    "renal_function", "cardiac_function", "hepatic_function", "perfusion_status",
+}
+# Variables where movement toward 0 = improvement
+_IMPROVEMENT_TOWARD_ZERO = {"volume_status", "ph_status"}
+
+
+def compute_diagnosis_effectiveness(
+    working_diagnosis: str | None,
+    ground_truth_disease: str,
+    diagnosis_confidence: float,
+    day: int,
+    diagnostic_difficulty: float = 0.3,
+) -> float:
+    """Compute treatment effectiveness based on diagnosis accuracy.
+
+    Args:
+        diagnostic_difficulty: 0.0 (trivial, e.g. fracture) to 1.0 (very hard).
+            Higher difficulty means empiric therapy is less effective and
+            correct diagnosis matters more.
+
+    Returns 0.0-1.0 where 1.0 = fully effective treatment.
+    """
+    if working_diagnosis is None:
+        # Empiric therapy — less effective for harder-to-diagnose conditions
+        return max(0.15, 0.4 - diagnostic_difficulty * 0.2)
+
+    wd = working_diagnosis.lower().replace(" ", "_")
+    gt = ground_truth_disease.lower().replace(" ", "_")
+
+    if wd == gt or gt in wd or wd in gt:
+        # Correct diagnosis — effectiveness scales with confidence
+        # Harder diseases need higher confidence for full effect
+        confidence_threshold = 0.3 + diagnostic_difficulty * 0.3
+        if diagnosis_confidence >= confidence_threshold:
+            return min(1.0, 0.6 + diagnosis_confidence * 0.4)
+        return min(1.0, 0.4 + diagnosis_confidence * 0.5)
+
+    # Wrong diagnosis — harder diseases fare worse with wrong treatment
+    return max(0.05, 0.2 - diagnostic_difficulty * 0.1)
+
+
+def apply_diagnosis_modifier(
+    directive: StateChangeDirective,
+    effectiveness: float,
+    current_volume: float = 0.0,
+    current_ph: float = 0.0,
+) -> StateChangeDirective:
+    """Dampen recovery deltas when treatment is ineffective."""
+    if effectiveness >= 0.99:
+        return directive
+
+    modified_changes: dict[str, float] = {}
+    for var, delta in directive.changes.items():
+        if _is_improvement(var, delta, current_volume, current_ph):
+            modified_changes[var] = delta * effectiveness
+        else:
+            modified_changes[var] = delta
+
+    return StateChangeDirective(
+        timestamp=directive.timestamp,
+        patient_id=directive.patient_id,
+        source=directive.source,
+        changes=modified_changes,
+        reason=directive.reason,
+    )
+
+
+def _is_improvement(
+    var: str, delta: float, current_volume: float, current_ph: float,
+) -> bool:
+    """Check if a delta represents clinical improvement."""
+    if var in _IMPROVEMENT_IS_NEGATIVE:
+        return delta < 0
+    if var in _IMPROVEMENT_IS_POSITIVE:
+        return delta > 0
+    if var in _IMPROVEMENT_TOWARD_ZERO:
+        current = current_volume if var == "volume_status" else current_ph
+        if current > 0:
+            return delta < 0
+        if current < 0:
+            return delta > 0
+    return False
+
+
+# ============================================================
+# Natural recovery
+# ============================================================
+
+def natural_recovery_directive(
+    day: int,
+    disease_id: str,
+    severity: str,
+    profile: PatientPhysiologicalProfile,
+) -> StateChangeDirective:
+    """Compute small baseline recovery independent of treatment.
+
+    Models the body's innate healing — immune response, homeostatic regulation.
+    """
+    immune = getattr(profile, "immune_reactivity", 0.5)
+    severity_scale = {"mild": 1.2, "moderate": 1.0, "severe": 0.6}.get(severity, 1.0)
+    base = 0.01 * immune * severity_scale
+
+    # Natural recovery diminishes over time (acute phase response fades)
+    if day > 7:
+        base *= 0.7
+    if day > 14:
+        base *= 0.5
+
+    return StateChangeDirective(
+        source="natural_recovery",
+        changes={
+            "inflammation_level": -base,
+            "volume_status": -0.005 * severity_scale,  # toward 0
+        },
+        reason=f"Natural recovery (immune={immune:.2f}, severity={severity})",
+    )
