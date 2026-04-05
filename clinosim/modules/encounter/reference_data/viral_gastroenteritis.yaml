@@ -1,0 +1,49 @@
+# Viral Gastroenteritis — ED visit protocol
+# Most common ED visit condition. Usually discharged after IV fluid + antiemetics.
+
+condition_id: viral_gastroenteritis
+chief_complaint: "Nausea, vomiting, diarrhea, abdominal cramps"
+encounter_type: emergency  # emergency | outpatient_urgent
+department: internal_medicine
+disposition: discharge_home  # discharge_home | observation | admit (criteria-based)
+
+severity_distribution:
+  mild: 0.50     # oral rehydration, go home quickly
+  moderate: 0.40  # IV fluids, observation 2-4h
+  severe: 0.10    # prolonged observation, consider admission
+
+ed_stay_hours:
+  mild: {mean: 2, sd: 0.5}
+  moderate: {mean: 4, sd: 1}
+  severe: {mean: 6, sd: 1.5}
+
+# What gets done in the ED
+workup:
+  vitals: true  # always
+  labs:
+    - {test: "WBC", probability: 0.4}
+    - {test: "CRP", probability: 0.3}
+    - {test: "Na", probability: 0.5}
+    - {test: "K", probability: 0.5}
+    - {test: "Creatinine", probability: 0.5}
+    - {test: "Glucose", probability: 0.3}
+  imaging: []  # rarely imaging for gastroenteritis
+
+treatment:
+  - {name: "IV normal saline 1000mL", probability: 0.7, route: "IV"}
+  - {name: "Ondansetron 4mg", probability: 0.6, route: "IV", intent: "antiemetic"}
+  - {name: "Acetaminophen 500mg", probability: 0.3, route: "PO", intent: "antipyretic"}
+
+discharge_instructions:
+  - "Clear liquids for 24 hours, advance diet as tolerated"
+  - "Return if unable to keep fluids down for >12h"
+  - "Return if bloody stool or fever >39C"
+
+discharge_prescriptions:
+  - {drug: "Ondansetron 4mg", route: "PO", frequency: "q8h PRN", duration_days: 3, probability: 0.5}
+
+# Demographics
+incidence_modifier: 1.0  # relative to base ED rate
+age_distribution: all  # affects all ages
+sex_ratio_female: 1.0
+seasonal: {1: 1.3, 2: 1.2, 3: 1.1, 4: 0.9, 5: 0.8, 6: 0.8, 7: 0.9, 8: 0.9, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.3}
