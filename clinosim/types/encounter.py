@@ -149,6 +149,7 @@ class VitalSignRecord:
     respiratory_rate: int | None = None
     spo2: float | None = None
     pain_score: int | None = None
+    nursing_note: str = ""  # brief nursing assessment
     measured_by: str = ""  # nurse staff_id
     data_source: str = "manual"  # "manual" | "device_auto"
 

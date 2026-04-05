@@ -1287,6 +1287,22 @@ def _generate_vitals(
             base_pain += 2  # acute phase
         pain = max(0, min(10, int(rng.normal(base_pain, 1.5))))
 
+        # Brief nursing note (context-dependent)
+        note_parts = []
+        if raw["temperature"] >= 38.0:
+            note_parts.append("febrile")
+        if pain >= 5:
+            note_parts.append(f"pain {pain}/10, analgesic administered")
+        elif pain >= 3:
+            note_parts.append(f"mild pain {pain}/10")
+        if raw["spo2"] < 93:
+            note_parts.append(f"SpO2 low, O2 adjusted")
+        if state.inflammation_level < 0.1 and day >= 3:
+            note_parts.append("improving, appetite good")
+        if day == 0:
+            note_parts.append("admission assessment completed")
+        nursing_note = ". ".join(note_parts) + "." if note_parts else ""
+
         vitals.append(VitalSignRecord(
             timestamp=actual_time,
             temperature_celsius=round(raw["temperature"], 1),
@@ -1296,6 +1312,7 @@ def _generate_vitals(
             respiratory_rate=int(round(raw["respiratory_rate"])),
             spo2=round(raw["spo2"], 1),
             pain_score=pain,
+            nursing_note=nursing_note,
             data_source="manual",
         ))
 
