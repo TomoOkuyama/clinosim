@@ -1,0 +1,49 @@
+# Minor Laceration — ED visit protocol
+# Common ED presentation. Wound closure with sutures/staples/glue, discharge with wound care.
+
+condition_id: minor_laceration
+chief_complaint: "Laceration requiring sutures"
+encounter_type: emergency
+department: internal_medicine  # emergency medicine in some facilities
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.55     # small, clean laceration, tissue glue
+  moderate: 0.35  # moderate depth, sutures needed
+  severe: 0.10    # deep, contaminated, or complex closure
+
+ed_stay_hours:
+  mild: {mean: 1.5, sd: 0.5}
+  moderate: {mean: 2.5, sd: 0.8}
+  severe: {mean: 3.5, sd: 1}
+
+workup:
+  vitals: true
+  labs:
+    - {test: "Tetanus_status", probability: 0.6}
+  imaging:
+    - {test: "Xray_affected_area", probability: 0.15}  # foreign body or fracture concern
+
+treatment:
+  - {name: "Lidocaine 1% local infiltration", probability: 0.9, route: "local", intent: "local anesthesia"}
+  - {name: "Wound irrigation with normal saline", probability: 0.95, route: "topical", intent: "wound cleaning"}
+  - {name: "Suture closure", probability: 0.6, route: "topical", intent: "wound closure"}
+  - {name: "Skin staples", probability: 0.15, route: "topical", intent: "wound closure"}
+  - {name: "Tissue adhesive (glue)", probability: 0.25, route: "topical", intent: "wound closure"}
+  - {name: "Tetanus toxoid booster", probability: 0.3, route: "IM", intent: "prophylaxis"}
+  - {name: "Acetaminophen 500mg", probability: 0.4, route: "PO", intent: "analgesic"}
+
+discharge_instructions:
+  - "Keep wound clean and dry for 24 hours"
+  - "Return for suture removal in 7-10 days (face 5 days)"
+  - "Watch for signs of infection: increasing redness, swelling, warmth, drainage"
+  - "Return if fever or red streaking from wound"
+
+discharge_prescriptions:
+  - {drug: "Ibuprofen 400mg", route: "PO", frequency: "tid PRN", duration_days: 5, probability: 0.6}
+  - {drug: "Cephalexin 500mg", route: "PO", frequency: "qid", duration_days: 7, probability: 0.15}
+
+incidence_modifier: 1.0
+age_distribution: all
+sex_ratio_female: 0.7  # more men (occupational / recreational injuries)
+seasonal: {1: 0.9, 2: 0.9, 3: 1.0, 4: 1.0, 5: 1.1, 6: 1.2, 7: 1.2, 8: 1.2, 9: 1.1, 10: 1.0, 11: 0.9, 12: 0.9}

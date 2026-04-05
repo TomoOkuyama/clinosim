@@ -1,0 +1,47 @@
+# Anxiety / Panic Attack — ED visit protocol
+# Often presents mimicking cardiac or respiratory emergency.
+
+condition_id: anxiety_panic_attack
+chief_complaint: "Palpitations, dyspnea, chest tightness, anxiety"
+encounter_type: emergency
+department: internal_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.40
+  moderate: 0.50
+  severe: 0.10
+
+ed_stay_hours:
+  mild: {mean: 2, sd: 0.5}
+  moderate: {mean: 3, sd: 1}
+  severe: {mean: 5, sd: 1.5}
+
+workup:
+  vitals: true
+  labs:
+    - {test: "Troponin", probability: 0.4}
+    - {test: "Glucose", probability: 0.3}
+    - {test: "TSH", probability: 0.2}
+  imaging:
+    - {test: "ECG", probability: 0.7}
+    - {test: "Chest_Xray", probability: 0.3}
+
+treatment:
+  - {name: "Lorazepam 0.5mg", probability: 0.4, route: "PO", intent: "anxiolytic"}
+  - {name: "Reassurance and breathing exercises", probability: 0.9, route: "non-pharmacologic"}
+  - {name: "IV normal saline 500mL", probability: 0.2, route: "IV"}
+
+discharge_instructions:
+  - "Cardiac workup negative — symptoms consistent with panic attack"
+  - "Follow up with PCP for anxiety management"
+  - "Consider cognitive behavioral therapy referral"
+  - "Return if chest pain recurs with exertion or new symptoms"
+
+discharge_prescriptions:
+  - {drug: "Hydroxyzine 25mg", route: "PO", frequency: "q8h PRN", duration_days: 7, probability: 0.3}
+
+incidence_modifier: 1.0
+age_distribution: adults
+sex_ratio_female: 1.5
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}

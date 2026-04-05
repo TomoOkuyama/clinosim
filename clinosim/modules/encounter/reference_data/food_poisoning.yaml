@@ -1,0 +1,51 @@
+# Food Poisoning — ED visit protocol
+# Acute gastroenteritis from contaminated food. IV fluids, antiemetics, discharge.
+
+condition_id: food_poisoning
+chief_complaint: "Abdominal pain, vomiting, diarrhea after meal"
+encounter_type: emergency
+department: internal_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.45     # mild nausea, observation, oral fluids
+  moderate: 0.40  # significant vomiting, IV fluids needed
+  severe: 0.15    # dehydration, prolonged observation
+
+ed_stay_hours:
+  mild: {mean: 2, sd: 0.5}
+  moderate: {mean: 3.5, sd: 1}
+  severe: {mean: 5.5, sd: 1.5}
+
+workup:
+  vitals: true
+  labs:
+    - {test: "WBC", probability: 0.3}
+    - {test: "Na", probability: 0.4}
+    - {test: "K", probability: 0.4}
+    - {test: "Creatinine", probability: 0.3}
+    - {test: "Glucose", probability: 0.2}
+  imaging:
+    - {test: "Abdominal_Xray", probability: 0.1}  # if obstruction concern
+
+treatment:
+  - {name: "IV normal saline 1000mL", probability: 0.7, route: "IV", intent: "rehydration"}
+  - {name: "Ondansetron 4mg", probability: 0.6, route: "IV", intent: "antiemetic"}
+  - {name: "Metoclopramide 10mg", probability: 0.2, route: "IV", intent: "antiemetic"}
+  - {name: "Acetaminophen 500mg", probability: 0.3, route: "PO", intent: "antipyretic"}
+
+discharge_instructions:
+  - "Clear liquids for 24 hours, advance to bland diet (BRAT) as tolerated"
+  - "Avoid dairy, caffeine, and fatty foods for 48 hours"
+  - "Oral rehydration solution or sports drinks to maintain hydration"
+  - "Return if bloody stool, fever >39C, unable to keep fluids down >12 hours"
+  - "Return if symptoms not improving after 48 hours"
+
+discharge_prescriptions:
+  - {drug: "Ondansetron 4mg", route: "PO", frequency: "q8h PRN", duration_days: 3, probability: 0.5}
+  - {drug: "Loperamide 2mg", route: "PO", frequency: "PRN after each loose stool (max 8mg/day)", duration_days: 3, probability: 0.2}
+
+incidence_modifier: 0.8
+age_distribution: all
+sex_ratio_female: 1.0
+seasonal: {1: 0.8, 2: 0.8, 3: 0.9, 4: 1.0, 5: 1.1, 6: 1.3, 7: 1.4, 8: 1.4, 9: 1.2, 10: 1.0, 11: 0.9, 12: 0.8}

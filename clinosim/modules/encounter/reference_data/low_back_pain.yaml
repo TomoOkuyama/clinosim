@@ -1,0 +1,51 @@
+# Low Back Pain — ED visit protocol
+# Acute mechanical low back pain. Rule out red flags, symptomatic treatment, discharge.
+
+condition_id: low_back_pain
+chief_complaint: "Acute low back pain, onset after lifting"
+encounter_type: emergency
+department: internal_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.40     # muscle strain, no imaging
+  moderate: 0.45  # significant pain, X-ray considered
+  severe: 0.15    # concern for radiculopathy, advanced imaging considered
+
+ed_stay_hours:
+  mild: {mean: 2, sd: 0.5}
+  moderate: {mean: 3, sd: 1}
+  severe: {mean: 4, sd: 1.5}
+
+workup:
+  vitals: true
+  labs:
+    - {test: "WBC", probability: 0.15}  # if infection concern
+    - {test: "ESR", probability: 0.1}   # if infection/inflammation concern
+  imaging:
+    - {test: "Lumbar_Xray", probability: 0.3}
+    - {test: "MRI_Lumbar", probability: 0.05}  # red flags: saddle anesthesia, weakness, bladder dysfunction
+
+treatment:
+  - {name: "Ketorolac 30mg", probability: 0.6, route: "IV", intent: "analgesic"}
+  - {name: "Ibuprofen 600mg", probability: 0.4, route: "PO", intent: "anti-inflammatory"}
+  - {name: "Cyclobenzaprine 10mg", probability: 0.4, route: "PO", intent: "muscle relaxant"}
+  - {name: "Acetaminophen 1000mg", probability: 0.3, route: "PO", intent: "analgesic"}
+  - {name: "Heat pack application", probability: 0.5, route: "topical", intent: "muscle relaxation"}
+
+discharge_instructions:
+  - "Continue activity as tolerated — bed rest not recommended"
+  - "Apply heat or ice for comfort"
+  - "Expected improvement within 2-4 weeks"
+  - "Physical therapy referral for strengthening"
+  - "Return if leg weakness, numbness, difficulty urinating, or worsening pain"
+
+discharge_prescriptions:
+  - {drug: "Ibuprofen 600mg", route: "PO", frequency: "tid", duration_days: 10, probability: 0.7}
+  - {drug: "Cyclobenzaprine 10mg", route: "PO", frequency: "tid PRN", duration_days: 7, probability: 0.5}
+  - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 10, probability: 0.4}
+
+incidence_modifier: 1.0
+age_distribution: adults  # predominantly 25-65
+sex_ratio_female: 0.9  # slightly more men
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.1, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}

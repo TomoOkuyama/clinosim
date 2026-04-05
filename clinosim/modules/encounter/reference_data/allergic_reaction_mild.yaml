@@ -1,0 +1,47 @@
+# Mild Allergic Reaction — ED visit protocol
+# Urticaria/mild angioedema. Antihistamines, observation, discharge.
+
+condition_id: allergic_reaction_mild
+chief_complaint: "Urticaria, mild angioedema, itching"
+encounter_type: emergency
+department: internal_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.55     # localized urticaria, quick response to antihistamine
+  moderate: 0.35  # widespread urticaria, mild angioedema
+  severe: 0.10    # significant angioedema, borderline anaphylaxis concern
+
+ed_stay_hours:
+  mild: {mean: 2, sd: 0.5}
+  moderate: {mean: 3, sd: 1}
+  severe: {mean: 4.5, sd: 1.5}
+
+workup:
+  vitals: true
+  labs: []  # labs rarely needed for mild allergic reactions
+  imaging: []
+
+treatment:
+  - {name: "Diphenhydramine 50mg", probability: 0.8, route: "IV", intent: "antihistamine"}
+  - {name: "Famotidine 20mg", probability: 0.4, route: "IV", intent: "H2 blocker adjunct"}
+  - {name: "Methylprednisolone 125mg", probability: 0.3, route: "IV", intent: "anti-inflammatory"}
+  - {name: "Epinephrine 0.3mg", probability: 0.10, route: "IM", intent: "anaphylaxis concern"}
+  - {name: "IV normal saline", probability: 0.2, route: "IV"}
+
+discharge_instructions:
+  - "Allergic reaction treated, symptoms improved"
+  - "Avoid identified or suspected trigger"
+  - "Continue antihistamines for 3-5 days as rebound urticaria may occur"
+  - "Return immediately if throat swelling, difficulty breathing, or lightheadedness"
+  - "Follow up with allergist if recurrent episodes"
+
+discharge_prescriptions:
+  - {drug: "Cetirizine 10mg", route: "PO", frequency: "daily", duration_days: 7, probability: 0.7}
+  - {drug: "Prednisone 40mg", route: "PO", frequency: "daily", duration_days: 5, probability: 0.3}
+  - {drug: "Epinephrine auto-injector", route: "IM", frequency: "PRN emergency", duration_days: 365, probability: 0.2}
+
+incidence_modifier: 0.7
+age_distribution: all
+sex_ratio_female: 1.2
+seasonal: {1: 0.8, 2: 0.8, 3: 1.1, 4: 1.3, 5: 1.3, 6: 1.2, 7: 1.1, 8: 1.0, 9: 1.0, 10: 0.9, 11: 0.8, 12: 0.8}
