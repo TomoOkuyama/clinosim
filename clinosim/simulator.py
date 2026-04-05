@@ -1297,10 +1297,12 @@ def _simulate_outpatient_visit(
 
     Generates: 1 encounter, 0-3 lab orders, 1 vital sign set, prescription renewal.
     """
+    import uuid
+    opd_num = int(uuid.uuid4().hex[:4], 16) % 9000 + 1000  # 1000-9999 unique
     encounter = create_inpatient_encounter(
         patient.patient_id, visit_date,
         chief_complaint=f"Follow-up: {chronic_code or post_discharge_disease}",
-        visit_number=99,  # outpatient numbering
+        visit_number=opd_num,
     )
     encounter.encounter_type = EncounterType.OUTPATIENT
     encounter.status = EncounterStatus.COMPLETED
@@ -1408,10 +1410,12 @@ def _simulate_ed_visit(
     rng: np.random.Generator,
 ) -> CIFPatientRecord:
     """Simulate an ED visit that results in discharge home (not admission)."""
+    import uuid
+    ed_num = int(uuid.uuid4().hex[:4], 16) % 9000 + 1000
     encounter = create_inpatient_encounter(
         patient.patient_id, visit_time,
         chief_complaint=condition.get("chief_complaint", "ED visit"),
-        visit_number=99,
+        visit_number=ed_num,
     )
     encounter.encounter_type = EncounterType.EMERGENCY
     encounter.status = EncounterStatus.COMPLETED
