@@ -57,7 +57,7 @@ LAB_UNITS: dict[str, str] = {
     "WBC": "/uL", "Hb": "g/dL", "Hct": "%", "Plt": "x10^3/uL",
     "CRP": "mg/L", "PCT": "ng/mL", "BNP": "pg/mL", "Troponin": "ng/mL",
     "Lactate": "mmol/L", "pH": "", "HCO3": "mmol/L", "pCO2": "mmHg",
-    "PT_INR": "", "Fibrinogen": "mg/dL", "D_dimer": "ug/mL",
+    "PT_INR": "ratio", "Fibrinogen": "mg/dL", "D_dimer": "ug/mL",
     "TSH": "mIU/L", "SpO2": "%",
 }
 
