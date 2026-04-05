@@ -53,6 +53,8 @@ class Encounter:
     discharge_datetime: datetime | None = None
     chief_complaint: str = ""
     disease_event_id: str = ""
+    ward_id: str = ""  # e.g. "4W" (4th floor west)
+    bed_number: str = ""  # e.g. "401-2"
     time_resolution: timedelta | None = None
 
     def __post_init__(self) -> None:
@@ -149,6 +151,23 @@ class VitalSignRecord:
     pain_score: int | None = None
     measured_by: str = ""  # nurse staff_id
     data_source: str = "manual"  # "manual" | "device_auto"
+
+
+@dataclass
+class ADLAssessment:
+    """Activities of Daily Living assessment (Barthel Index, scored 0-100)."""
+    date: date = field(default_factory=date.today)
+    barthel_score: int = 100  # 0=totally dependent, 100=fully independent
+    feeding: int = 10  # 0/5/10
+    bathing: int = 5  # 0/5
+    grooming: int = 5  # 0/5
+    dressing: int = 10  # 0/5/10
+    bowel_control: int = 10  # 0/5/10
+    bladder_control: int = 10  # 0/5/10
+    toilet_use: int = 10  # 0/5/10
+    transfers: int = 15  # 0/5/10/15
+    mobility: int = 15  # 0/5/10/15
+    stairs: int = 10  # 0/5/10
 
 
 @dataclass

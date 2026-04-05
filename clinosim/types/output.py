@@ -44,6 +44,7 @@ class CIFPatientRecord:
     rehab_sessions: list = field(default_factory=list)  # RehabSession
     medication_administrations: list[MedicationAdministration] = field(default_factory=list)
     intake_output_records: list = field(default_factory=list)  # IntakeOutputRecord
+    adl_assessments: list = field(default_factory=list)  # ADLAssessment
     discharge_prescription: PrescriptionRecord | None = None
     icu_transferred: bool = False
     deceased: bool = False
