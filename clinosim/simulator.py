@@ -409,6 +409,12 @@ def _simulate_patient(
     attending_id = staff.get("attending_physician", "DR-001")
     encounter.attending_physician_id = attending_id
 
+    # Ward and bed assignment
+    ward_floor = int(rng.integers(3, 7))  # floors 3-6
+    ward_wing = str(rng.choice(["E", "W"]))
+    encounter.ward_id = f"{ward_floor}{ward_wing}"
+    encounter.bed_number = f"{ward_floor}{int(rng.integers(1, 30)):02d}-{int(rng.integers(1, 5))}"
+
     # LOS (country-specific)
     country_key = _country_to_yaml_key(config.country)
     los_by_country = protocol.target_los.get(country_key) or protocol.target_los.get("japan", {})
@@ -477,6 +483,7 @@ def _simulate_patient(
     all_vitals = loop_result["vitals"]
     all_mars = loop_result["mars"]
     all_io = loop_result.get("io_records", [])
+    all_adl = loop_result.get("adl_assessments", [])
     state_history = loop_result["state_history"]
     complications_occurred = loop_result["complications"]
     death_occurred = loop_result["death_occurred"]
@@ -539,6 +546,7 @@ def _simulate_patient(
         procedures=procedures, rehab_sessions=rehab_sessions,
         medication_administrations=all_mars,
         intake_output_records=all_io,
+        adl_assessments=all_adl,
         discharge_prescription=discharge_rx,
         icu_transferred=icu_transferred, deceased=death_occurred,
         death_day=actual_los if death_occurred else None,
@@ -578,6 +586,7 @@ def _run_daily_loop(
     all_vitals: list[VitalSignRecord] = []
     all_mars: list[MedicationAdministration] = []
     all_io: list = []
+    all_adl: list = []
     state_history = [deepcopy(state)]
     active_complications: set[str] = set()
     complications_occurred: list[str] = []
@@ -800,6 +809,31 @@ def _run_daily_loop(
         mars_today = _generate_mar(patient, all_orders, day, admission_time, roster, rng)
         all_mars.extend(mars_today)
 
+        # Diet order (only when diet changes: NPO → clear liquid → soft → regular)
+        if day == 0:
+            diet = "NPO"
+        elif day == 1 and state.inflammation_level > 0.3:
+            diet = "clear_liquid"
+        elif state.inflammation_level > 0.2:
+            diet = "soft_diet"
+        else:
+            diet = "regular_diet"
+        prev_diet = getattr(_generate_vitals, '_prev_diet', {}).get(patient.patient_id, "")
+        if diet != prev_diet:
+            all_orders.append(Order(
+                order_id=f"ORD-{patient.patient_id}-DIET-D{day}",
+                patient_id=patient.patient_id,
+                order_type=OrderType.DIET,
+                display_name=diet,
+                urgency="routine",
+                clinical_intent=f"Day {day} diet: {diet}",
+                ordered_datetime=admission_time + timedelta(days=day, hours=7),
+                status=OrderStatus.PLACED,
+            ))
+            if not hasattr(_generate_vitals, '_prev_diet'):
+                _generate_vitals._prev_diet = {}
+            _generate_vitals._prev_diet[patient.patient_id] = diet
+
         # Vitals
         vitals_today = _generate_vitals(state, patient, day, admission_time, rng)
         all_vitals.extend(vitals_today)
@@ -807,6 +841,11 @@ def _run_daily_loop(
         # Daily I/O record
         io_record = _generate_daily_io(state, patient, day, admission_time, rng)
         all_io.append(io_record)
+
+        # ADL assessment (admission, weekly, discharge approach)
+        adl = _generate_adl_assessment(state, patient, day, admission_time, rng)
+        if adl:
+            all_adl.append(adl)
 
         # Complications
         comp_list = protocol.complications if protocol.complications else []
@@ -840,7 +879,8 @@ def _run_daily_loop(
     actual_los = day + 1
     return {
         "orders": all_orders, "lab_results": all_lab_results, "vitals": all_vitals,
-        "mars": all_mars, "io_records": all_io, "state_history": state_history,
+        "mars": all_mars, "io_records": all_io, "adl_assessments": all_adl,
+        "state_history": state_history,
         "complications": complications_occurred, "death_occurred": death_occurred,
         "icu_transferred": icu_transferred, "differential": differential,
         "actual_los": actual_los,
@@ -1096,6 +1136,62 @@ def _generate_mar(
 # ============================================================
 # Vitals generation
 # ============================================================
+
+def _generate_adl_assessment(
+    state: PhysiologicalState,
+    patient: PatientProfile,
+    day: int,
+    admission_time: datetime,
+    rng: np.random.Generator,
+) -> dict | None:
+    """Generate ADL (Barthel Index) assessment. Done on admission, weekly, and discharge."""
+    from clinosim.types.encounter import ADLAssessment
+
+    # ADL assessed on admission (day 0), weekly (day 7, 14...), and approaching discharge
+    if day != 0 and day % 7 != 0:
+        return None
+
+    # Base score depends on age and clinical state
+    age = patient.age
+    base = 100
+    if age >= 85:
+        base -= 20
+    elif age >= 75:
+        base -= 10
+
+    # Acute illness reduces ADL
+    infl_penalty = int(state.inflammation_level * 30)
+    perf_penalty = int((1.0 - state.perfusion_status) * 20)
+    renal_penalty = int((1.0 - state.renal_function) * 10)
+
+    # Day 0: worst ADL (acute admission)
+    if day == 0:
+        total = max(0, base - infl_penalty - perf_penalty - renal_penalty - 15)
+    else:
+        # Gradual recovery
+        recovery = min(day * 3, 30)  # up to +30 over time
+        total = max(0, min(100, base - infl_penalty - perf_penalty + recovery))
+
+    total = int(rng.normal(total, 5))
+    total = max(0, min(100, total))
+
+    # Distribute across components proportionally
+    ratio = total / 100.0
+    return ADLAssessment(
+        date=(admission_time + timedelta(days=day)).date(),
+        barthel_score=total,
+        feeding=int(10 * min(1, ratio + 0.1)),
+        bathing=int(5 * ratio),
+        grooming=int(5 * min(1, ratio + 0.1)),
+        dressing=int(10 * ratio),
+        bowel_control=int(10 * min(1, ratio + 0.2)),
+        bladder_control=int(10 * min(1, ratio + 0.15)),
+        toilet_use=int(10 * ratio),
+        transfers=int(15 * ratio),
+        mobility=int(15 * ratio),
+        stairs=int(10 * max(0, ratio - 0.2)),
+    )
+
 
 def _generate_daily_io(
     state: PhysiologicalState,
