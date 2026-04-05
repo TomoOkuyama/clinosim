@@ -1476,13 +1476,15 @@ def _simulate_outpatient_visit(
             items=[{"drug": med, "duration_days": 30} for med in patient.current_medications],
         )
 
+    dx_code = chronic_code or post_discharge_disease or "Z09"  # Z09 = follow-up examination
     condition_event = ConditionEvent(
         condition_id=f"COND-{patient.patient_id}-OPD",
-        condition_type="chronic_followup",
+        condition_type="chronic_followup" if chronic_code else "post_discharge_followup",
+        ground_truth_diseases=[dx_code] if dx_code else [],
     )
     clinical_diagnosis = ClinicalDiagnosis(
-        admission_diagnosis_code=chronic_code,
-        discharge_diagnosis_code=chronic_code,
+        admission_diagnosis_code=dx_code,
+        discharge_diagnosis_code=dx_code,
     )
 
     return CIFPatientRecord(
