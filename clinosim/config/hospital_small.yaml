@@ -1,6 +1,8 @@
 # Small community hospital (~50 beds)
 # Fewer resources → longer waits, some services unavailable
 
+recommended_population: 12000
+
 resource_capacity:
   lab_analyzers: 2
   ct_scanners: 1
