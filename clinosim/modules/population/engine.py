@@ -40,6 +40,13 @@ class PersonRecord:
     given_name: str = ""
     phonetic: str | None = None
     blood_type: str = "A"
+    # Address and contact (shared at household level)
+    postal_code: str = ""
+    state: str = ""
+    city: str = ""
+    address_line: str = ""
+    phone_home: str = ""
+    phone_mobile: str = ""
     chronic_conditions: list[str] = field(default_factory=list)
     current_medications: list[str] = field(default_factory=list)  # active medications
     is_alive: bool = True
@@ -135,14 +142,20 @@ def generate_population(
 
     # Load name data and naming rules
     name_data = _load_name_data(country)
-    from clinosim.locale.loader import load_naming_rules
+    from clinosim.locale.loader import load_naming_rules, load_addresses
     naming_rules = load_naming_rules(country)
     surname_rule = naming_rules.get("household_surname_rule", "shared")
+    addr_data = load_addresses(country)
 
     person_count = 0
     for h_idx in range(n_households):
         hh_id = f"HH-{h_idx+1:06d}"
         hh = Household(household_id=hh_id)
+
+        # Generate household address (shared by all members)
+        hh_addr = _generate_household_address(addr_data, rng)
+        hh_phone_home = _generate_phone(addr_data, "landline", rng)
+        has_landline = rng.random() < addr_data.get("contact_rules", {}).get("household_has_landline_probability", 0.5)
 
         # Household family name — rule depends on country
         # "shared": all members share one surname (JP, CN traditional)
@@ -207,6 +220,9 @@ def generate_population(
             threshold = float(rng.normal(0.30, 0.12))
             threshold = max(0.05, min(0.90, threshold))
 
+            # Phone: generate mobile for adults
+            mobile = _generate_phone(addr_data, "mobile", rng) if age >= 15 else ""
+
             person = PersonRecord(
                 person_id=pid,
                 household_id=hh_id,
@@ -217,6 +233,12 @@ def generate_population(
                 given_name=given.get("kanji", given.get("name", "")),
                 phonetic=f"{member_surname.get('kana', '')} {given.get('kana', '')}".strip() or None,
                 blood_type=blood_type,
+                postal_code=hh_addr.get("postal_code", ""),
+                state=hh_addr.get("state", ""),
+                city=hh_addr.get("city", ""),
+                address_line=hh_addr.get("line", ""),
+                phone_home=hh_phone_home if has_landline else "",
+                phone_mobile=mobile if age >= 15 else "",
                 chronic_conditions=conditions,
                 care_seeking_threshold=threshold,
             )
@@ -550,3 +572,78 @@ def generate_healthcare_calendar(
             ))
 
     return events
+
+
+def _generate_household_address(addr_data: dict, rng: np.random.Generator) -> dict:
+    """Generate a household address from locale address data."""
+    cities = addr_data.get("cities", [])
+    if not cities:
+        return {"postal_code": "", "state": "", "city": "", "line": ""}
+
+    weights = [c.get("weight", 1) for c in cities]
+    total = sum(weights)
+    probs = [w / total for w in weights]
+    city_data = cities[int(rng.choice(len(cities), p=probs))]
+
+    city = city_data.get("city", "")
+    state = city_data.get("prefecture", addr_data.get("state", ""))
+    zips = city_data.get("zips", ["00000"])
+    postal_code = str(rng.choice(zips))
+
+    country = addr_data.get("country", "US")
+    if country == "JP":
+        towns = addr_data.get("towns", ["本町"])
+        town = str(rng.choice(towns))
+        chome = int(rng.integers(1, 6))
+        banchi = int(rng.integers(1, 30))
+        go = int(rng.integers(1, 15))
+        line = f"{town}{chome}丁目{banchi}-{go}"
+        if rng.random() < addr_data.get("apartment_probability", 0.6):
+            apt_names = addr_data.get("apartment_names", ["マンション"])
+            apt = str(rng.choice(apt_names))
+            room = int(rng.integers(101, 1205))
+            line += f" {apt}{room}"
+    else:
+        streets = addr_data.get("street_names", ["Main St"])
+        street = str(rng.choice(streets))
+        num = int(rng.integers(1, 500))
+        line = f"{num} {street}"
+        if rng.random() < addr_data.get("apartment_probability", 0.35):
+            apt_num = int(rng.integers(1, 13))
+            line += f", Apt {apt_num}"
+
+    return {"postal_code": postal_code, "state": state, "city": city, "line": line}
+
+
+def _generate_phone(addr_data: dict, phone_type: str, rng: np.random.Generator) -> str:
+    """Generate a phone number from locale phone patterns."""
+    phone_cfg = addr_data.get("phone", {})
+    country = addr_data.get("country", "US")
+
+    if country == "JP":
+        if phone_type == "mobile":
+            prefixes = phone_cfg.get("mobile_prefix", ["090"])
+            prefix = str(rng.choice(prefixes))
+            mid = f"{int(rng.integers(1000, 9999)):04d}"
+            last = f"{int(rng.integers(1000, 9999)):04d}"
+            return f"{prefix}-{mid}-{last}"
+        else:
+            areas = phone_cfg.get("area_codes_landline", ["03"])
+            area = str(rng.choice(areas))
+            if area == "03":
+                exchange = f"{int(rng.integers(1000, 9999)):04d}"
+                number = f"{int(rng.integers(1000, 9999)):04d}"
+                return f"{area}-{exchange}-{number}"
+            else:
+                exchange = f"{int(rng.integers(100, 999)):03d}"
+                number = f"{int(rng.integers(1000, 9999)):04d}"
+                return f"{area}-{exchange}-{number}"
+    else:
+        if phone_type == "mobile":
+            areas = phone_cfg.get("mobile_prefix", ["617"])
+        else:
+            areas = phone_cfg.get("area_codes", ["617"])
+        area = str(rng.choice(areas))
+        exchange = f"{int(rng.integers(200, 999)):03d}"
+        number = f"{int(rng.integers(1000, 9999)):04d}"
+        return f"({area}) {exchange}-{number}"
