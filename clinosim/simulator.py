@@ -1578,7 +1578,8 @@ def _simulate_ed_visit(
         chief_complaint=chief,
         visit_number=ed_num,
     )
-    encounter.encounter_type = EncounterType.EMERGENCY
+    proto_enc_type = (protocol or condition).get("encounter_type", "emergency")
+    encounter.encounter_type = EncounterType.OUTPATIENT if proto_enc_type == "outpatient" else EncounterType.EMERGENCY
     encounter.status = EncounterStatus.COMPLETED
 
     staff = assign_staff("admission", "internal_medicine", roster, rng)
@@ -1586,9 +1587,14 @@ def _simulate_ed_visit(
 
     # ED stay duration from protocol or default
     if protocol:
-        severity = str(rng.choice(["mild", "moderate", "severe"],
-                        p=[protocol.get("severity_distribution", {}).get(s, 0.33)
-                           for s in ["mild", "moderate", "severe"]]))
+        sev_dist = protocol.get("severity_distribution", {})
+        sev_probs = [float(sev_dist.get(s, 0.0)) for s in ["mild", "moderate", "severe"]]
+        total_p = sum(sev_probs)
+        if total_p <= 0:
+            sev_probs = [0.33, 0.34, 0.33]
+        else:
+            sev_probs = [p / total_p for p in sev_probs]
+        severity = str(rng.choice(["mild", "moderate", "severe"], p=sev_probs))
         stay_cfg = protocol.get("ed_stay_hours", {}).get(severity, {"mean": 3, "sd": 1})
         ed_hours = float(rng.normal(stay_cfg["mean"], stay_cfg["sd"]))
     else:
@@ -2316,6 +2322,15 @@ def main() -> None:
     # === list-diseases: show available disease protocols ===
     sub.add_parser("list-diseases", help="List all available disease protocols")
 
+    # === test-encounter: debug single encounter condition ===
+    te = sub.add_parser("test-encounter", help="Simulate one patient for an encounter condition (debug)")
+    te.add_argument("condition_id", help="Condition ID (e.g., chest_pain_noncardiac, flu_vaccination)")
+    te.add_argument("-n", "--count", type=int, default=1, help="Number of patients")
+    te.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
+    te.add_argument("--country", default="US", help="Country code")
+    te.add_argument("--age", type=int, default=None, help="Force patient age")
+    te.add_argument("--sex", default=None, help="Force patient sex (M/F)")
+
     args = parser.parse_args()
 
     if args.command == "list-diseases":
@@ -2331,6 +2346,10 @@ def main() -> None:
         for name in sorted(ed_conditions.keys()):
             c = ed_conditions[name]
             print(f"  {name:35s} | {c.get('chief_complaint', '')[:50]}")
+        return
+
+    if args.command == "test-encounter":
+        _run_test_encounter(args)
         return
 
     if args.command == "validate":
@@ -2364,6 +2383,10 @@ def main() -> None:
         config = SimulatorConfig(random_seed=args.seed, country=args.country)
         print(f"clinosim test-disease: {args.disease_id} x{args.count}, country={args.country}")
         dataset = run_forced(scenario, config)
+
+        # Debug output for each patient
+        for i, record in enumerate(dataset.patients):
+            _print_debug_record(record, i + 1)
 
     else:
         parser.print_help()
@@ -2528,6 +2551,119 @@ def _run_quality_checks(dataset: CIFDataset) -> None:
     print(f"  Mortality rate: {mort_rate:.1f}% ({deceased} deaths)")
 
     print(f"\n  {'✅ ALL CHECKS PASSED' if issues == 0 else f'⚠ {issues} ISSUES FOUND'}")
+
+
+def _run_test_encounter(args: Any) -> None:
+    """Debug CLI: simulate patients for a specific encounter condition."""
+    from clinosim.modules.encounter.protocol import load_encounter_condition
+    from clinosim.modules.population.engine import PersonRecord
+
+    rng = np.random.default_rng(args.seed)
+    roster = generate_roster("medium", args.country, rng)
+
+    # Load protocol
+    try:
+        protocol = load_encounter_condition(args.condition_id)
+    except FileNotFoundError:
+        print(f"❌ Encounter condition '{args.condition_id}' not found.")
+        print("Run 'clinosim list-diseases' to see available conditions.")
+        return
+
+    enc_type = protocol.get("encounter_type", "emergency")
+    print(f"\n{'='*60}")
+    print(f"  test-encounter: {args.condition_id}")
+    print(f"  Type: {enc_type} | Dept: {protocol.get('department', '?')}")
+    print(f"  Chief: {protocol.get('chief_complaint', '?')}")
+    print(f"{'='*60}")
+
+    for i in range(args.count):
+        # Create patient
+        age = args.age or int(rng.integers(30, 85))
+        sex = args.sex or str(rng.choice(["M", "F"]))
+        person = PersonRecord(
+            person_id=f"TEST-{i+1:04d}",
+            household_id=f"HH-TEST-{i+1:04d}",
+            age=age, sex=sex,
+            date_of_birth=__import__("datetime").date(2024 - age, 1, 1),
+        )
+        patient = activate_patient(person, rng, args.country)
+
+        visit_time = datetime(2024, 6, 15, int(rng.integers(8, 20)), int(rng.integers(0, 60)))
+        record = _simulate_ed_visit(patient, protocol, visit_time, roster, rng)
+
+        _print_debug_record(record, i + 1)
+
+
+def _print_debug_record(record: CIFPatientRecord, index: int = 1) -> None:
+    """Print detailed debug output for a single patient record."""
+    r = record
+    enc = r.encounters[0] if r.encounters else None
+    los = len(r.physiological_states) - 1 if r.physiological_states else 0
+
+    print(f"\n--- Patient {index}: {r.patient.patient_id} ---")
+    print(f"  {r.patient.age}yo {r.patient.sex} | Chronic: {[c.code for c in r.patient.chronic_conditions]}")
+    if enc:
+        print(f"  Encounter: {enc.encounter_type.value} | {enc.encounter_id}")
+        print(f"  Chief: {enc.chief_complaint}")
+        print(f"  Admit: {enc.admission_datetime}")
+        print(f"  Discharge: {enc.discharge_datetime}")
+        if enc.ward_id:
+            print(f"  Ward: {enc.ward_id} Bed: {enc.bed_number}")
+    if los > 0:
+        print(f"  LOS: {los} days | Deceased: {r.deceased}")
+    print(f"  Dx: {r.clinical_diagnosis.discharge_diagnosis_code} ({r.clinical_diagnosis.discharge_diagnosis_name[:50]})")
+
+    # Orders
+    order_types = {}
+    for o in r.orders:
+        ot = o.order_type.value
+        order_types[ot] = order_types.get(ot, 0) + 1
+    print(f"\n  Orders ({len(r.orders)}):")
+    for ot, n in sorted(order_types.items()):
+        print(f"    {ot}: {n}")
+
+    # Labs
+    if r.lab_results:
+        print(f"\n  Lab results ({len(r.lab_results)}):")
+        for lab in r.lab_results[:10]:
+            print(f"    {lab.lab_name:15s} = {lab.value:>8} {lab.unit:10s} {lab.flag or ''}")
+        if len(r.lab_results) > 10:
+            print(f"    ... and {len(r.lab_results) - 10} more")
+
+    # Vitals
+    if r.vital_signs:
+        v = r.vital_signs[0]
+        print(f"\n  Vitals (first of {len(r.vital_signs)}):")
+        print(f"    T={v.temperature_celsius}C HR={v.heart_rate} BP={v.systolic_bp}/{v.diastolic_bp} "
+              f"RR={v.respiratory_rate} SpO2={v.spo2} Pain={v.pain_score}")
+        if v.nursing_note:
+            print(f"    Note: {v.nursing_note}")
+
+    # MARs
+    if r.medication_administrations:
+        print(f"\n  Medications ({len(r.medication_administrations)} MAR entries):")
+        seen = set()
+        for mar in r.medication_administrations:
+            if mar.drug_name not in seen:
+                print(f"    {mar.drug_name} ({mar.route})")
+                seen.add(mar.drug_name)
+
+    # Complications
+    if r.complications_occurred:
+        print(f"\n  Complications: {r.complications_occurred}")
+
+    # ADL
+    if r.adl_assessments:
+        print(f"\n  ADL: {len(r.adl_assessments)} assessments, "
+              f"Barthel {r.adl_assessments[0].barthel_score}→{r.adl_assessments[-1].barthel_score}")
+
+    # I/O
+    if r.intake_output_records:
+        io = r.intake_output_records[0]
+        print(f"\n  I/O (Day 1): IV={io.intake_iv_ml}ml Oral={io.intake_oral_ml}ml "
+              f"Urine={io.output_urine_ml}ml Net={io.net_balance_ml:+d}ml")
+
+    print()
 
 
 if __name__ == "__main__":

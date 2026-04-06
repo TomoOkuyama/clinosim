@@ -110,15 +110,35 @@ ed_visit_not_admitted:
     - {name: "skin_biopsy", probability: 0.03, chief_complaint: "Suspicious skin lesion"}
 ```
 
-### Step 4: Verify
+### Step 4: Test with debug output
 
 ```bash
-# Check YAML loads
+# Test a single patient with your new condition (detailed debug output)
+clinosim test-encounter skin_biopsy
+
+# Test with specific patient demographics
+clinosim test-encounter skin_biopsy --age 65 --sex F --seed 123
+
+# Test multiple patients
+clinosim test-encounter skin_biopsy -n 5
+
+# For inpatient diseases, use test-disease instead:
+clinosim test-disease bacterial_pneumonia -n 1 --severity severe
+
+# Verify it appears in the condition list
 clinosim list-diseases
 
-# Run quality check
+# Run full quality validation
 clinosim validate -p 3000
 ```
+
+The `test-encounter` command shows:
+- Patient demographics and chronic conditions
+- Encounter type, timing, duration
+- All orders (labs, imaging, medications) with results
+- Vital signs with pain score and nursing notes
+- Diagnosis codes
+- Discharge prescriptions
 
 ---
 
