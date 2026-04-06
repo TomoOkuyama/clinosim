@@ -1,73 +1,75 @@
-# Hospital operational parameters
+# Hospital operational parameters (default: 50-bed community hospital)
 # Defines resource capacity, staffing, and daily patterns.
 # These determine how long patients wait for tests, imaging, and procedures.
+#
+# To simulate a larger hospital, use --hospital-config with a custom YAML
+# or copy this file and adjust resource_capacity/staffing.
+
+# Recommended catchment population for this hospital size
+# This is the default if -p is not specified on CLI
+recommended_population: 12000
 
 # Resource capacity (number of units)
 resource_capacity:
-  lab_analyzers: 5
-  ct_scanners: 2
-  mri_scanners: 1
-  xray_rooms: 3
-  ultrasound_rooms: 2
-  operating_rooms: 4
-  ed_beds: 20
-  inpatient_beds: 200
+  lab_analyzers: 2
+  ct_scanners: 1
+  mri_scanners: 0    # small hospital — MRI referred to regional center
+  xray_rooms: 2
+  ultrasound_rooms: 1
+  operating_rooms: 2
+  ed_beds: 8
+  inpatient_beds: 50
 
 # Staffing levels by shift (fraction of full capacity, 0.0-1.0)
 staffing:
   day:      # 08:00-16:00
     hours: [8, 16]
     lab_staff: 1.0
-    radiology_staff: 1.0
+    radiology_staff: 0.8
     nursing_staff: 1.0
-    pharmacy_staff: 1.0
-    or_staff: 1.0
+    pharmacy_staff: 0.8
+    or_staff: 0.8
   evening:  # 16:00-00:00
     hours: [16, 0]
-    lab_staff: 0.7
-    radiology_staff: 0.5
-    nursing_staff: 0.8
-    pharmacy_staff: 0.5
-    or_staff: 0.3    # emergency only
+    lab_staff: 0.5
+    radiology_staff: 0.3
+    nursing_staff: 0.7
+    pharmacy_staff: 0.3
+    or_staff: 0.1    # emergency only
   night:    # 00:00-08:00
     hours: [0, 8]
-    lab_staff: 0.3
-    radiology_staff: 0.2
-    nursing_staff: 0.6
-    pharmacy_staff: 0.0   # closed, emergency dispense only
-    or_staff: 0.1         # emergency only
-  weekend_modifier: 0.6   # multiply day shift levels by this on weekends
+    lab_staff: 0.2
+    radiology_staff: 0.1
+    nursing_staff: 0.5
+    pharmacy_staff: 0.0
+    or_staff: 0.0
+  weekend_modifier: 0.6
 
 # Daily utilization patterns (additive to baseline)
 daily_patterns:
   morning_lab_rush:
     hours: [6, 8]
-    lab_queue_delta: 0.3     # all ward blood draws happen at once
+    lab_queue_delta: 0.35
   post_morning_rounds:
     hours: [9, 11]
-    ct_queue_delta: 0.15     # doctors order imaging after rounds
-    lab_queue_delta: 0.1     # additional orders from rounds
-  afternoon_discharge:
-    hours: [10, 14]
-    bed_occupancy_delta: -0.05
+    ct_queue_delta: 0.1
+    lab_queue_delta: 0.1
   monday_backlog:
-    weekday: 0  # Monday
-    ct_queue_delta: 0.15
-    mri_queue_delta: 0.25
+    weekday: 0
+    ct_queue_delta: 0.2
     lab_queue_delta: 0.1
 
 # Base processing time (minutes, with no queue and full staff)
 base_processing_time:
-  lab_stat: 20        # chemistry analyzer cycle
-  lab_routine: 45     # batch processing
-  xray: 15            # quick, portable available
-  ct: 20              # scan time only
-  mri: 40             # scan time
-  ultrasound: 25      # operator-dependent
-  or_minor: 30        # minor procedure
-  or_major: 90        # major surgery
+  lab_stat: 25
+  lab_routine: 55
+  xray: 15
+  ct: 25
+  ultrasound: 30
+  or_minor: 30
+  or_major: 90
 
 # Reporting time (radiologist reads and reports)
 reporting_time:
-  stat: 15             # priority read
-  routine: 120         # batch reading
+  stat: 20
+  routine: 150

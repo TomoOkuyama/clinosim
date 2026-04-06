@@ -69,8 +69,15 @@ def run_beta(
         hospital_ops = load_hospital_operations()
     hospital_state = HospitalState()
 
-    # Generate population
-    population = generate_population(config.catchment_population, config.country, rng)
+    # Population: use hospital's recommended_population unless overridden
+    pop_size = config.catchment_population
+    recommended = hospital_ops.get("recommended_population")
+    if recommended and config.catchment_population == 10_000:  # default unchanged
+        pop_size = recommended
+    beds = hospital_ops.get("resource_capacity", {}).get("inpatient_beds", 50)
+    print(f"  Hospital: {beds} beds", flush=True)
+
+    population = generate_population(pop_size, config.country, rng)
     print(f"  Population: {population.total_persons} persons")
 
     # Run life events

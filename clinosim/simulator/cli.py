@@ -32,7 +32,7 @@ def main() -> None:
     # === generate: population-driven simulation ===
     gen = sub.add_parser("generate", help="Generate patient data from population simulation")
     gen.add_argument("-o", "--output", default="./output", help="Output directory")
-    gen.add_argument("-p", "--population", type=int, default=10_000, help="Catchment population size")
+    gen.add_argument("-p", "--population", type=int, default=10_000, help="Catchment population (default: from hospital config)")
     gen.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
     gen.add_argument("--country", default="US", help="Country code (US or JP)")
     gen.add_argument("--period", default="2024-04-01,2025-03-31", help="Simulation period (start,end)")

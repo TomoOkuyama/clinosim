@@ -1,0 +1,69 @@
+# Large regional hospital (200 beds)
+# Full service: MRI, multiple CTs, full OR capacity
+
+recommended_population: 50000
+
+resource_capacity:
+  lab_analyzers: 5
+  ct_scanners: 2
+  mri_scanners: 1
+  xray_rooms: 3
+  ultrasound_rooms: 2
+  operating_rooms: 4
+  ed_beds: 20
+  inpatient_beds: 200
+
+staffing:
+  day:
+    hours: [8, 16]
+    lab_staff: 1.0
+    radiology_staff: 1.0
+    nursing_staff: 1.0
+    pharmacy_staff: 1.0
+    or_staff: 1.0
+  evening:
+    hours: [16, 0]
+    lab_staff: 0.7
+    radiology_staff: 0.5
+    nursing_staff: 0.8
+    pharmacy_staff: 0.5
+    or_staff: 0.3
+  night:
+    hours: [0, 8]
+    lab_staff: 0.3
+    radiology_staff: 0.2
+    nursing_staff: 0.6
+    pharmacy_staff: 0.0
+    or_staff: 0.1
+  weekend_modifier: 0.6
+
+daily_patterns:
+  morning_lab_rush:
+    hours: [6, 8]
+    lab_queue_delta: 0.3
+  post_morning_rounds:
+    hours: [9, 11]
+    ct_queue_delta: 0.15
+    lab_queue_delta: 0.1
+  afternoon_discharge:
+    hours: [10, 14]
+    bed_occupancy_delta: -0.05
+  monday_backlog:
+    weekday: 0
+    ct_queue_delta: 0.15
+    mri_queue_delta: 0.25
+    lab_queue_delta: 0.1
+
+base_processing_time:
+  lab_stat: 20
+  lab_routine: 45
+  xray: 15
+  ct: 20
+  mri: 40
+  ultrasound: 25
+  or_minor: 30
+  or_major: 90
+
+reporting_time:
+  stat: 15
+  routine: 120
