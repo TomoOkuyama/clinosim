@@ -64,6 +64,10 @@ CONDITION_NAMES = {
     "M48": "Vertebral collapse",
     "I80": "Deep vein thrombosis",
     "I82": "Venous thromboembolism",
+    "T07": "Multiple injuries",
+    "S52": "Forearm fracture",
+    "S06": "Intracranial injury",
+    "S22": "Rib fracture",
 }
 
 

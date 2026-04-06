@@ -1,0 +1,224 @@
+# Severe Traffic Accident (Major Trauma, Multiple Injuries) — Reference Data
+# Sources: Japan Trauma Data Bank, ACS TQIP, Trauma Surgery guidelines
+
+disease_id: traffic_accident_severe
+chief_complaint: "Major trauma, motor vehicle accident, multiple injuries"
+department: internal_medicine  # trauma surgery / emergency
+encounter_type: surgical
+requires_surgery: true
+minimum_severity: moderate
+readmission_eligible: false  # Trauma — readmissions are complication-driven
+
+icd_codes:
+  primary: "T07"
+  variants:
+    - {code: "S06.9", name: "Intracranial injury, unspecified", probability: 0.40}
+    - {code: "T07", name: "Multiple injuries, unspecified", probability: 0.35}
+    - {code: "S27.0", name: "Traumatic pneumothorax", probability: 0.15}
+    - {code: "S36.1", name: "Injury of liver", probability: 0.10}
+
+incidence:
+  japan:
+    "0-44":  {M: 30, F: 15}
+    "45-54": {M: 20, F: 10}
+    "55-64": {M: 15, F: 8}
+    "65-74": {M: 12, F: 8}
+    "75-84": {M: 8, F: 5}
+    "85+":   {M: 3, F: 2}
+  risk_multipliers:
+    - {condition: "F10", multiplier: 3.0}     # Alcohol use disorder
+    - {condition: "F32", multiplier: 1.5}     # Depression (risk-taking)
+  seasonal_curve:
+    1: 0.9
+    2: 0.9
+    3: 1.0
+    4: 1.0
+    5: 1.1
+    6: 1.1
+    7: 1.3    # summer driving season
+    8: 1.3
+    9: 1.1
+    10: 1.0
+    11: 1.0
+    12: 1.2   # holiday travel
+  trigger_type: "trauma"
+  time_of_day_pattern: "evening_peak"  # evening/night hours
+
+severity:
+  distribution:
+    mild: 0.0       # severe trauma is never mild — always requires admission
+    moderate: 0.55
+    severe: 0.45
+  modifiers:
+    - {condition: "age_over_65", severe_multiplier: 1.8}
+    - {condition: "anticoagulant_use", severe_multiplier: 2.0}
+    - {condition: "multiple_comorbidities", severe_multiplier: 1.5}
+
+initial_state_impact:
+  moderate:
+    inflammation_level: 0.40
+    anemia_level: 0.25       # hemorrhage
+    volume_status: -0.30     # blood loss
+    perfusion_status: -0.20
+    renal_function: -0.05
+  severe:
+    inflammation_level: 0.60
+    anemia_level: 0.40
+    volume_status: -0.50
+    perfusion_status: -0.35
+    renal_function: -0.15
+
+presenting_symptoms:
+  - {name: "multiple_trauma", probability: 1.0, severity_range: [0.7, 1.0]}
+  - {name: "pain", probability: 1.0, severity_range: [0.8, 1.0]}
+  - {name: "altered_consciousness", probability: 0.40, severity_range: [0.3, 0.9]}
+  - {name: "tachycardia", probability: 0.60, severity_range: [0.4, 0.8]}
+  - {name: "hypotension", probability: 0.35, severity_range: [0.3, 0.7]}
+
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "CRP", urgency: "stat"}
+      - {test: "WBC", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "PT_INR", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "Lactate", urgency: "stat"}
+      - {test: "Blood_Type_Crossmatch", urgency: "stat"}
+      - {test: "Albumin", urgency: "stat"}
+      - {test: "AST", urgency: "stat"}
+      - {test: "ALT", urgency: "stat"}
+      - {test: "Lipase", urgency: "stat"}
+    imaging:
+      - {test: "FAST_Ultrasound", urgency: "stat"}
+      - {test: "CT_Whole_Body", urgency: "stat", note: "pan-scan for polytrauma"}
+      - {test: "Chest_Xray", urgency: "stat"}
+      - {test: "Pelvis_Xray", urgency: "stat"}
+    supportive:
+      - {type: "IV_fluid", detail: "NS or LR wide open, titrate to MAP > 65"}
+      - {type: "massive_transfusion_protocol", detail: "Activate if hemorrhagic shock"}
+      - {type: "pain_management", detail: "Fentanyl 25-50mcg IV PRN, avoid sedation if TBI"}
+      - {type: "DVT_prophylaxis", detail: "Enoxaparin when bleeding risk resolved"}
+      - {type: "tetanus_prophylaxis", detail: "Td booster if > 5 years"}
+      - {type: "urinary_catheter", detail: "Foley catheter, monitor UOP"}
+  daily_monitoring:
+    labs:
+      - {test: "CRP", frequency: "daily"}
+      - {test: "Hb", frequency: "q6-8h first 48h then daily"}
+      - {test: "Creatinine", frequency: "daily"}
+      - {test: "Lactate", frequency: "q6h until normalized"}
+    vitals:
+      stable: "q2h"
+      icu: "continuous"
+  discharge_criteria:
+    japan:
+      - "Hemodynamically stable off pressors"
+      - "All surgical wounds healing"
+      - "Pain controlled with oral analgesics"
+      - "Independent ADLs or rehab plan in place"
+      - "Follow-up appointments scheduled"
+    us:
+      - "Hemodynamically stable"
+      - "No ongoing transfusion requirements"
+      - "Pain controlled on oral meds"
+      - "Safe discharge destination (home, rehab, SNF)"
+      - "DVT prophylaxis plan"
+
+drugs:
+  first_line:
+    japan:
+      - {drug: "Fentanyl", dose: "25-50mcg IV q1h PRN", route: "IV"}
+      - {drug: "Acetaminophen", dose: "1000mg IV q6h", route: "IV"}
+      - {drug: "Cefazolin", dose: "1g IV q8h", note: "surgical prophylaxis"}
+      - {drug: "Famotidine", dose: "20mg IV q12h", note: "stress ulcer prophylaxis"}
+    us:
+      - {drug: "Fentanyl", dose: "25-100mcg IV q1h PRN", route: "IV"}
+      - {drug: "Acetaminophen", dose: "1000mg IV q6h", route: "IV"}
+      - {drug: "Cefazolin", dose: "2g IV q8h", note: "surgical prophylaxis"}
+      - {drug: "Pantoprazole", dose: "40mg IV daily", note: "stress ulcer prophylaxis"}
+  post_op:
+    japan:
+      - {drug: "Acetaminophen", dose: "1000mg PO q6h"}
+      - {drug: "Enoxaparin", dose: "2000IU SC daily"}
+      - {drug: "Celecoxib", dose: "200mg PO daily"}
+    us:
+      - {drug: "Oxycodone", dose: "5-10mg PO q4-6h PRN"}
+      - {drug: "Acetaminophen", dose: "1000mg PO q6h"}
+      - {drug: "Enoxaparin", dose: "40mg SC daily"}
+
+procedure:
+  type: "Variable — damage control surgery, orthopedic fixation, neurosurgical intervention"
+  procedure_code_jp: "K142"    # 開頭術 or various depending on injury
+  procedure_code_us: "20680"   # CPT: varies by procedure
+  typical_duration_minutes: {mean: 180, sd: 90, min: 60, max: 480}
+  anesthesia: "general"
+  estimated_blood_loss_ml: {mean: 800, sd: 500, min: 200, max: 3000}
+  time_to_surgery:
+    japan: {mean_hours: 6, sd_hours: 4, note: "emergent for life-threatening injuries"}
+    us: {mean_hours: 4, sd_hours: 3, note: "emergent damage control"}
+
+target_los:
+  japan:
+    moderate: {mean: 28, sd: 10, min: 21, max: 40}
+    severe: {mean: 40, sd: 15, min: 28, max: 90}
+  us:
+    moderate: {mean: 10, sd: 4, min: 7, max: 14}
+    severe: {mean: 14, sd: 5, min: 10, max: 30}
+
+rehabilitation:
+  start_day: 3   # after initial stabilization
+  sessions_per_day: 1
+  session_duration_minutes: 30
+  goals:
+    - "Bed mobility by Week 1"
+    - "Seated balance by Week 2"
+    - "Standing transfers by Week 3"
+    - "Ambulation with assistive device by Week 4"
+  fim_trajectory:
+    day_0: {motor: 20, cognitive: 25}
+    week_1: {motor: 30, cognitive: 27}
+    week_2: {motor: 40, cognitive: 29}
+    week_3: {motor: 55, cognitive: 31}
+    week_4: {motor: 65, cognitive: 32}
+
+diagnostic:
+  diagnostic_difficulty: 0.30  # multiple injuries may obscure some findings
+  differential:
+    - {disease: "traffic_accident_severe", icd: "T07", name: "Multiple injuries", prior: 0.70}
+    - {disease: "isolated_tbi", icd: "S06.9", name: "Isolated traumatic brain injury", prior: 0.15}
+    - {disease: "isolated_abdominal_trauma", icd: "S36.9", name: "Isolated abdominal organ injury", prior: 0.10}
+    - {disease: "other", icd: "T14.9", name: "Unspecified injury", prior: 0.05}
+  likelihood_ratios:
+    ct_multiple_injuries:
+      traffic_accident_severe: {pos: 20.0, neg: 0.2}
+      isolated_tbi: {pos: 3.0, neg: 0.5}
+  confirmation_threshold: 0.90
+  diagnosis_progression:
+    traffic_accident_severe:
+      - [0.0, "T07", "Multiple injuries, unspecified"]
+      - [0.5, "T07", "Multiple injuries — specific organ injuries identified"]
+      - [0.9, "T07", "Multiple injuries, fully characterized"]
+
+outcome_benchmarks:
+  japan:
+    median_los: 30
+    in_hospital_mortality: 0.05
+    thirty_day_readmission: 0.06
+    surgical_site_infection_rate: 0.05
+    dvt_rate: 0.08
+    delirium_rate: 0.20
+    mean_age_admitted: 45
+    female_ratio: 0.35
+  us:
+    median_los: 10
+    in_hospital_mortality: 0.03
+    thirty_day_readmission: 0.10
+    surgical_site_infection_rate: 0.04
+    dvt_rate: 0.06
+    delirium_rate: 0.15
+    mean_age_admitted: 40
+    female_ratio: 0.35

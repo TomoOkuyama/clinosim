@@ -1,0 +1,58 @@
+# Rib Fracture — ED visit protocol
+# Chest wall trauma. Pain management is key. Rule out pneumothorax/hemothorax.
+
+condition_id: rib_fracture
+chief_complaint: "Chest wall pain after fall/trauma, worse with breathing"
+encounter_type: emergency
+department: internal_medicine  # emergency medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.45    # 1-2 ribs, no complications
+  moderate: 0.40 # 2-3 ribs, significant pain, chest X-ray
+  severe: 0.15   # Multiple ribs, possible pneumothorax, may need admission
+
+ed_stay_hours:
+  mild: {mean: 2.5, sd: 0.8}
+  moderate: {mean: 3.5, sd: 1.0}
+  severe: {mean: 5.0, sd: 1.5}
+
+workup:
+  vitals: true
+  labs:
+    - {test: "Hb", probability: 0.3, note: "rule out significant hemorrhage"}
+  imaging:
+    - {test: "Chest_Xray", probability: 0.9}
+    - {test: "CT_Chest", probability: 0.2, note: "multiple fractures or suspected pneumothorax"}
+
+treatment:
+  - {name: "Ibuprofen 400mg", probability: 0.7, route: "PO", intent: "anti-inflammatory"}
+  - {name: "Acetaminophen 1000mg", probability: 0.6, route: "PO"}
+  - {name: "Oxycodone 5mg", probability: 0.3, route: "PO", intent: "severe pain PRN"}
+  - {name: "Lidocaine patch 5%", probability: 0.2, route: "topical", intent: "local pain relief"}
+  - {name: "Incentive spirometry instruction", probability: 0.8, route: "other", intent: "prevent atelectasis/pneumonia"}
+  - {name: "Ice pack application", probability: 0.7, route: "topical"}
+
+discharge_instructions:
+  - "Use incentive spirometer 10 times every hour while awake"
+  - "Take deep breaths regularly — splinting leads to pneumonia"
+  - "Take pain medication on schedule, not just PRN, for first 3-5 days"
+  - "Sleep semi-upright or on injured side for comfort"
+  - "Return if increasing shortness of breath, fever, or coughing blood"
+  - "Follow up with primary care in 1-2 weeks"
+
+discharge_prescriptions:
+  - {drug: "Ibuprofen 400mg", route: "PO", frequency: "tid", duration_days: 10, probability: 0.7}
+  - {drug: "Acetaminophen 500mg", route: "PO", frequency: "tid", duration_days: 10, probability: 0.5}
+  - {drug: "Oxycodone 5mg", route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.3}
+
+# Severe cases (flail chest, pneumothorax) may require admission
+admission_criteria:
+  probability: 0.10
+  criteria: "Flail chest, pneumothorax, hemothorax, 3+ fractures in elderly, SpO2 < 94%"
+
+incidence_modifier: 1.0
+probability: 0.04  # relative frequency among ED visits
+age_distribution: all
+sex_ratio_female: 0.8
+seasonal: {1: 1.2, 2: 1.1, 3: 1.0, 4: 0.9, 5: 0.9, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.2}

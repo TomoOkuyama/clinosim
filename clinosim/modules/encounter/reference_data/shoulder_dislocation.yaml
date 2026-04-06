@@ -1,0 +1,52 @@
+# Shoulder Dislocation (Anterior) — ED visit protocol
+# Traumatic anterior dislocation. X-ray, procedural sedation, closed reduction, sling.
+
+condition_id: shoulder_dislocation
+chief_complaint: "Shoulder injury after fall, unable to move arm"
+encounter_type: emergency
+department: internal_medicine  # emergency medicine / orthopedics
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.30    # First-time, uncomplicated, quick reduction
+  moderate: 0.50 # Standard reduction under sedation
+  severe: 0.20   # Associated fracture (Hill-Sachs/Bankart), difficult reduction
+
+ed_stay_hours:
+  mild: {mean: 2.5, sd: 0.8}
+  moderate: {mean: 3.5, sd: 1.0}
+  severe: {mean: 4.5, sd: 1.0}
+
+workup:
+  vitals: true
+  labs: []  # no routine labs unless sedation planned
+  imaging:
+    - {test: "Shoulder_Xray_AP_Lateral", probability: 0.95, note: "pre-reduction"}
+    - {test: "Shoulder_Xray_Post_Reduction", probability: 0.95, note: "confirm relocation"}
+
+treatment:
+  - {name: "Procedural sedation (Propofol/Midazolam)", probability: 0.7, route: "IV", intent: "facilitate closed reduction"}
+  - {name: "Closed reduction", probability: 1.0, route: "other", intent: "relocate glenohumeral joint"}
+  - {name: "Sling immobilization", probability: 1.0, route: "topical", intent: "post-reduction support"}
+  - {name: "Ice pack application", probability: 0.8, route: "topical"}
+  - {name: "Morphine 4mg IV", probability: 0.5, route: "IV", intent: "pre-reduction analgesia"}
+  - {name: "Ibuprofen 400mg", probability: 0.5, route: "PO", intent: "post-reduction pain"}
+
+discharge_instructions:
+  - "Wear sling at all times for 2-3 weeks"
+  - "Remove sling only for gentle elbow/wrist exercises"
+  - "Apply ice for 20 minutes every 2-3 hours for first 48 hours"
+  - "Follow up with orthopedics in 1-2 weeks"
+  - "Return if arm becomes numb, cold, or if shoulder slips out again"
+  - "No overhead activities or heavy lifting for 6 weeks"
+
+discharge_prescriptions:
+  - {drug: "Ibuprofen 400mg", route: "PO", frequency: "tid", duration_days: 7, probability: 0.7}
+  - {drug: "Acetaminophen 500mg", route: "PO", frequency: "tid PRN", duration_days: 7, probability: 0.5}
+  - {drug: "Oxycodone 5mg", route: "PO", frequency: "q6h PRN", duration_days: 3, probability: 0.2}
+
+incidence_modifier: 1.0
+probability: 0.03  # relative frequency among ED visits
+age_distribution: all
+sex_ratio_female: 0.5  # 2:1 male predominance
+seasonal: {1: 1.1, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.1, 6: 1.2, 7: 1.3, 8: 1.3, 9: 1.1, 10: 1.0, 11: 1.0, 12: 1.1}

@@ -1,0 +1,221 @@
+# Subdural Hematoma (Traumatic) — Reference Data
+# Sources: Brain Trauma Foundation, Japanese Neurosurgical Society, ACS TQIP
+
+disease_id: subdural_hematoma
+chief_complaint: "Altered consciousness after head trauma, progressive deterioration"
+department: internal_medicine  # neurosurgery
+encounter_type: surgical
+requires_surgery: true
+minimum_severity: moderate
+readmission_eligible: true  # Chronic subdural may recur
+
+icd_codes:
+  primary: "S06.5"
+  variants:
+    - {code: "S06.5", name: "Traumatic subdural hemorrhage", probability: 0.70}
+    - {code: "S06.50", name: "Traumatic subdural hemorrhage without LOC", probability: 0.10}
+    - {code: "S06.51", name: "Traumatic subdural hemorrhage with LOC < 30min", probability: 0.15}
+    - {code: "S06.52", name: "Traumatic subdural hemorrhage with LOC > 30min", probability: 0.05}
+
+incidence:
+  japan:
+    "0-44":  {M: 5, F: 2}
+    "45-54": {M: 8, F: 3}
+    "55-64": {M: 12, F: 5}
+    "65-74": {M: 25, F: 12}
+    "75-84": {M: 50, F: 30}
+    "85+":   {M: 80, F: 50}
+  risk_multipliers:
+    - {condition: "anticoagulant_use", multiplier: 5.0}   # Warfarin, DOACs
+    - {condition: "F10", multiplier: 3.0}                  # Alcohol use disorder (atrophy + falls)
+    - {condition: "F00", multiplier: 2.5}                  # Dementia (falls)
+    - {condition: "M81", multiplier: 1.5}                  # Osteoporosis (fragility)
+    - {condition: "I10", multiplier: 1.3}                  # Hypertension
+  seasonal_curve:
+    1: 1.2    # winter falls
+    2: 1.1
+    3: 1.0
+    4: 1.0
+    5: 1.0
+    6: 1.0
+    7: 1.0
+    8: 1.0
+    9: 1.0
+    10: 1.0
+    11: 1.1
+    12: 1.2
+  trigger_type: "trauma"
+  time_of_day_pattern: "bimodal"  # morning activity + evening falls
+
+severity:
+  distribution:
+    mild: 0.0       # subdural hematoma requiring surgery is never mild
+    moderate: 0.55   # GCS 9-13, focal deficits, operable
+    severe: 0.45     # GCS 3-8, midline shift, herniation risk
+  modifiers:
+    - {condition: "age_over_80", severe_multiplier: 2.0}
+    - {condition: "anticoagulant_use", severe_multiplier: 2.0}
+    - {condition: "gcs_below_8", severe_multiplier: 2.5}
+
+initial_state_impact:
+  moderate:
+    inflammation_level: 0.25
+    anemia_level: 0.05
+    volume_status: -0.10
+    perfusion_status: -0.10
+    renal_function: -0.05
+  severe:
+    inflammation_level: 0.35
+    anemia_level: 0.10
+    volume_status: -0.20
+    perfusion_status: -0.25
+    renal_function: -0.10
+
+presenting_symptoms:
+  - {name: "altered_consciousness", probability: 0.90, severity_range: [0.4, 1.0]}
+  - {name: "headache", probability: 0.70, severity_range: [0.5, 0.9]}
+  - {name: "focal_neurological_deficit", probability: 0.60, severity_range: [0.3, 0.8]}
+  - {name: "pupil_asymmetry", probability: 0.35, severity_range: [0.5, 1.0]}
+  - {name: "vomiting", probability: 0.40, severity_range: [0.3, 0.7]}
+  - {name: "seizure", probability: 0.15, severity_range: [0.5, 0.9]}
+
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "CRP", urgency: "stat"}
+      - {test: "WBC", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "PT_INR", urgency: "stat"}
+      - {test: "APTT", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "Blood_Type_Crossmatch", urgency: "stat"}
+    imaging:
+      - {test: "CT_Head_Non_Contrast", urgency: "stat"}
+      - {test: "CT_Head_Post_Op", urgency: "urgent", note: "within 6h of surgery"}
+    supportive:
+      - {type: "IV_fluid", detail: "NS 80 mL/h — avoid hypotonic fluids (cerebral edema risk)"}
+      - {type: "head_of_bed", detail: "Elevate 30 degrees"}
+      - {type: "seizure_prophylaxis", detail: "Levetiracetam 500mg IV q12h x7 days"}
+      - {type: "anticoagulant_reversal", detail: "Vitamin K + FFP if on warfarin; idarucizumab if dabigatran"}
+      - {type: "urinary_catheter", detail: "Foley catheter"}
+      - {type: "neuro_monitoring", detail: "GCS q1h, pupil checks q1h"}
+  daily_monitoring:
+    labs:
+      - {test: "CRP", frequency: "daily"}
+      - {test: "Na", frequency: "daily", note: "monitor for SIADH / cerebral salt wasting"}
+      - {test: "Creatinine", frequency: "daily"}
+      - {test: "PT_INR", frequency: "daily if on anticoagulant reversal"}
+    vitals:
+      stable: "q2h"
+      icu: "continuous"
+  discharge_criteria:
+    japan:
+      - "GCS 15 or returned to baseline"
+      - "No new neurological deficits"
+      - "Stable repeat CT (no re-accumulation)"
+      - "Pain controlled with oral analgesics"
+      - "Rehab goals progressing"
+    us:
+      - "Neurologically stable or improving"
+      - "Stable CT imaging"
+      - "Safe for discharge (home or rehab facility)"
+      - "Anticoagulation plan established"
+      - "Seizure prophylaxis plan in place"
+
+drugs:
+  first_line:
+    japan:
+      - {drug: "Levetiracetam", dose: "500mg IV q12h", note: "seizure prophylaxis x7 days"}
+      - {drug: "Acetaminophen", dose: "1000mg IV q6h PRN", route: "IV"}
+      - {drug: "Mannitol", dose: "200mL (20%) IV over 30min", note: "ICP management PRN"}
+    us:
+      - {drug: "Levetiracetam", dose: "500mg IV q12h", note: "seizure prophylaxis x7 days"}
+      - {drug: "Acetaminophen", dose: "1000mg IV q6h PRN", route: "IV"}
+      - {drug: "Mannitol", dose: "1g/kg IV over 30min", note: "ICP management PRN"}
+  post_op:
+    japan:
+      - {drug: "Levetiracetam", dose: "500mg PO q12h"}
+      - {drug: "Acetaminophen", dose: "500mg PO q6h PRN"}
+      - {drug: "Enoxaparin", dose: "2000IU SC daily", note: "DVT prophylaxis, start POD 1-2"}
+    us:
+      - {drug: "Levetiracetam", dose: "500mg PO q12h"}
+      - {drug: "Oxycodone", dose: "5mg PO q4-6h PRN"}
+      - {drug: "Enoxaparin", dose: "40mg SC daily", note: "DVT prophylaxis, start POD 1-2"}
+
+procedure:
+  type: "Craniotomy or burr hole evacuation"
+  procedure_code_jp: "K164-2"  # 慢性硬膜下血腫穿孔洗浄術 / K1642
+  procedure_code_us: "61312"   # CPT: craniotomy for subdural hematoma
+  typical_duration_minutes: {mean: 90, sd: 30, min: 30, max: 180}
+  anesthesia: "general"
+  estimated_blood_loss_ml: {mean: 200, sd: 150, min: 50, max: 600}
+  time_to_surgery:
+    japan: {mean_hours: 4, sd_hours: 3, note: "emergent for acute SDH with herniation"}
+    us: {mean_hours: 3, sd_hours: 2, note: "emergent — target < 4h for acute"}
+
+target_los:
+  japan:
+    moderate: {mean: 21, sd: 7, min: 14, max: 30}
+    severe: {mean: 30, sd: 10, min: 21, max: 60}
+  us:
+    moderate: {mean: 7, sd: 3, min: 5, max: 14}
+    severe: {mean: 14, sd: 5, min: 7, max: 30}
+
+rehabilitation:
+  start_day: 2   # POD 2 if neurologically stable
+  sessions_per_day: 1
+  session_duration_minutes: 30
+  goals:
+    - "Orientation and cognitive assessment by Week 1"
+    - "Seated balance and transfers by Week 2"
+    - "Ambulation with assistance by Week 3"
+    - "Modified independent ADL by Week 4"
+  fim_trajectory:
+    day_0: {motor: 25, cognitive: 18}
+    week_1: {motor: 35, cognitive: 22}
+    week_2: {motor: 45, cognitive: 26}
+    week_3: {motor: 55, cognitive: 28}
+    week_4: {motor: 65, cognitive: 30}
+
+diagnostic:
+  diagnostic_difficulty: 0.15  # CT confirms, but timing/mechanism may be unclear
+  differential:
+    - {disease: "subdural_hematoma", icd: "S06.5", name: "Subdural hematoma", prior: 0.65}
+    - {disease: "epidural_hematoma", icd: "S06.4", name: "Epidural hematoma", prior: 0.15}
+    - {disease: "subarachnoid_hemorrhage", icd: "I60.9", name: "Subarachnoid hemorrhage", prior: 0.10}
+    - {disease: "intracerebral_hemorrhage", icd: "I61.9", name: "Intracerebral hemorrhage", prior: 0.05}
+    - {disease: "other", icd: "S06.9", name: "Other intracranial injury", prior: 0.05}
+  likelihood_ratios:
+    ct_subdural_collection:
+      subdural_hematoma: {pos: 40.0, neg: 0.05}
+      epidural_hematoma: {pos: 2.0, neg: 0.8}
+  confirmation_threshold: 0.95
+  diagnosis_progression:
+    subdural_hematoma:
+      - [0.0, "S06.5", "Traumatic subdural hemorrhage"]
+      - [0.5, "S06.5", "Acute subdural hematoma, post-craniotomy"]
+      - [0.9, "S06.5", "Acute subdural hematoma, evacuated, recovering"]
+
+outcome_benchmarks:
+  japan:
+    median_los: 25
+    in_hospital_mortality: 0.15
+    thirty_day_readmission: 0.10
+    surgical_site_infection_rate: 0.03
+    dvt_rate: 0.06
+    delirium_rate: 0.35
+    mean_age_admitted: 72
+    female_ratio: 0.40
+  us:
+    median_los: 10
+    in_hospital_mortality: 0.10
+    thirty_day_readmission: 0.12
+    surgical_site_infection_rate: 0.03
+    dvt_rate: 0.05
+    delirium_rate: 0.30
+    mean_age_admitted: 70
+    female_ratio: 0.40
