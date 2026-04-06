@@ -43,7 +43,8 @@ discharge_prescriptions:
   - {drug: "Ondansetron 4mg", route: "PO", frequency: "q8h PRN", duration_days: 3, probability: 0.5}
 
 # Demographics
-incidence_modifier: 1.0  # relative to base ED rate
+incidence_modifier: 1.0
+probability: 0.20  # relative frequency among ED visits
 age_distribution: all  # affects all ages
 sex_ratio_female: 1.0
 seasonal: {1: 1.3, 2: 1.2, 3: 1.1, 4: 0.9, 5: 0.8, 6: 0.8, 7: 0.9, 8: 0.9, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.3}

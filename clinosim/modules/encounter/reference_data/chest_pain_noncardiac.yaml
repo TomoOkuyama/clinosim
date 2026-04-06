@@ -45,6 +45,7 @@ discharge_prescriptions:
   - {drug: "Omeprazole 20mg", route: "PO", frequency: "daily", duration_days: 14, probability: 0.4}
 
 incidence_modifier: 1.0
+probability: 0.15  # relative frequency among ED visits
 age_distribution: adults  # predominantly 40+
 sex_ratio_female: 0.6  # more men
 seasonal: {1: 1.1, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.1}

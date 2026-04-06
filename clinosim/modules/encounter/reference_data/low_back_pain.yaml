@@ -46,6 +46,7 @@ discharge_prescriptions:
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 10, probability: 0.4}
 
 incidence_modifier: 1.0
+probability: 0.08  # relative frequency among ED visits
 age_distribution: adults  # predominantly 25-65
 sex_ratio_female: 0.9  # slightly more men
 seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.1, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}

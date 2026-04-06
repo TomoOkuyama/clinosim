@@ -42,7 +42,8 @@ discharge_prescriptions:
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.5}
   - {drug: "Dextromethorphan/Guaifenesin", route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.3}
 
-incidence_modifier: 1.2  # very common
+incidence_modifier: 1.0
+probability: 0.10  # relative frequency among ED visits
 age_distribution: all
 sex_ratio_female: 1.0
 seasonal: {1: 1.4, 2: 1.3, 3: 1.2, 4: 0.8, 5: 0.7, 6: 0.6, 7: 0.6, 8: 0.6, 9: 0.8, 10: 1.0, 11: 1.2, 12: 1.4}

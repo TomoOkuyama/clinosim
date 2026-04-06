@@ -45,7 +45,8 @@ discharge_prescriptions:
   - {drug: "Naproxen 500mg", route: "PO", frequency: "bid PRN", duration_days: 7, probability: 0.5}
   - {drug: "Ondansetron 4mg", route: "PO", frequency: "q8h PRN", duration_days: 5, probability: 0.3}
 
-incidence_modifier: 0.8
+incidence_modifier: 1.0
+probability: 0.08  # relative frequency among ED visits
 age_distribution: adults  # predominantly 20-50
 sex_ratio_female: 1.8  # much more common in women
 seasonal: {1: 1.0, 2: 1.0, 3: 1.1, 4: 1.1, 5: 1.1, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 0.9, 12: 0.9}
