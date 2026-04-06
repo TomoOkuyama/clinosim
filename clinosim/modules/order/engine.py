@@ -193,21 +193,92 @@ def calculate_lab_result_time(
     order: Order,
     rng: np.random.Generator,
 ) -> datetime:
-    """Calculate when a lab result becomes available."""
+    """Calculate when a lab result becomes available.
+
+    Models real-world delays: urgency, time of day, weekday, random congestion.
+    """
     base_delay_minutes: float
     if order.urgency == "stat":
         base_delay_minutes = float(rng.normal(45, 15))
     else:
         base_delay_minutes = float(rng.normal(120, 30))
 
+    ordered = order.ordered_datetime
+    hour = ordered.hour
+    weekday = ordered.weekday()  # 0=Mon, 6=Sun
+
     # Night: defer routine to morning
-    hour = order.ordered_datetime.hour
     if (hour >= 22 or hour < 6) and order.urgency != "stat":
-        # Defer to 06:30 next morning
-        next_morning = order.ordered_datetime.replace(hour=6, minute=30, second=0)
+        next_morning = ordered.replace(hour=6, minute=30, second=0)
         if hour >= 22:
             next_morning += timedelta(days=1)
         return next_morning + timedelta(minutes=float(rng.normal(90, 30)))
 
+    # Weekend delay: lab staff reduced, processing slower
+    if weekday >= 5:  # Saturday/Sunday
+        base_delay_minutes *= 1.5
+        if order.urgency != "stat":
+            base_delay_minutes *= 1.3  # non-urgent even slower on weekends
+
+    # Random congestion: ~15% chance of significant delay (equipment busy, batch processing)
+    if rng.random() < 0.15:
+        congestion_extra = float(rng.exponential(30))  # 0-90 min extra
+        base_delay_minutes += congestion_extra
+
+    # Evening (17-22): reduced staff, slight delay
+    if 17 <= hour < 22:
+        base_delay_minutes *= 1.2
+
     delay = max(15.0, base_delay_minutes)
-    return order.ordered_datetime + timedelta(minutes=delay)
+    return ordered + timedelta(minutes=delay)
+
+
+def calculate_imaging_result_time(
+    order: Order,
+    rng: np.random.Generator,
+) -> datetime:
+    """Calculate when imaging is performed and result available.
+
+    Models: scheduling delay + exam duration + reporting delay.
+    CT/MRI have longer waits than X-ray.
+    """
+    ordered = order.ordered_datetime
+    hour = ordered.hour
+    weekday = ordered.weekday()
+
+    imaging_name = order.display_name.upper()
+
+    # Scheduling delay (time from order to exam start)
+    if order.urgency == "stat":
+        if "CT" in imaging_name or "MRI" in imaging_name:
+            schedule_delay = float(rng.normal(60, 20))   # stat CT: ~1h
+        else:
+            schedule_delay = float(rng.normal(30, 10))   # stat X-ray: ~30min
+    else:
+        if "MRI" in imaging_name:
+            schedule_delay = float(rng.normal(24 * 60, 8 * 60))  # routine MRI: 1-2 days
+        elif "CT" in imaging_name:
+            schedule_delay = float(rng.normal(4 * 60, 2 * 60))   # routine CT: 2-6h
+        elif "ECHO" in imaging_name or "ULTRASOUND" in imaging_name:
+            schedule_delay = float(rng.normal(3 * 60, 60))        # echo/US: 2-4h
+        else:
+            schedule_delay = float(rng.normal(60, 30))             # X-ray: ~1h
+
+    # Weekend: scheduling takes longer
+    if weekday >= 5:
+        schedule_delay *= 1.5
+        if "MRI" in imaging_name and order.urgency != "stat":
+            schedule_delay += 24 * 60  # MRI may defer to Monday
+
+    # Night: non-urgent deferred to morning
+    if (hour >= 22 or hour < 6) and order.urgency != "stat":
+        schedule_delay += (6 - hour if hour < 6 else 30 - hour) * 60
+
+    # Reporting delay (radiologist reads and writes report)
+    if order.urgency == "stat":
+        report_delay = float(rng.normal(30, 10))  # stat: ~30min
+    else:
+        report_delay = float(rng.normal(4 * 60, 2 * 60))  # routine: 2-6h
+
+    total_delay = max(15, schedule_delay + report_delay)
+    return ordered + timedelta(minutes=total_delay)
