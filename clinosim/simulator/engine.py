@@ -314,10 +314,20 @@ def run_beta(
     ed_rate = ed_demo.get("rate_per_admitted", 3.0)
     n_ed = int(len(inpatient_records) * ed_rate)
     if ed_conditions and n_ed > 0:
-        ed_probs = [spec.get("probability", 0.05) for _, spec in ed_conditions]
-        total_p = sum(ed_probs)
-        ed_probs = [p / total_p for p in ed_probs]
         for _ in range(n_ed):
+            # Apply seasonal modifiers to probabilities for this visit's month
+            total_months = (end_y - start_y) * 12 + (end_m - start_m) + 1
+            month_offset = int(rng.integers(0, total_months))
+            visit_month = ((start_m - 1 + month_offset) % 12) + 1
+
+            ed_probs = []
+            for _, spec in ed_conditions:
+                base_p = spec.get("probability", 0.05)
+                seasonal = spec.get("seasonal", {})
+                seasonal_mod = float(seasonal.get(visit_month, seasonal.get(str(visit_month), 1.0)))
+                ed_probs.append(base_p * seasonal_mod)
+            total_p = sum(ed_probs)
+            ed_probs = [p / total_p for p in ed_probs]
             person_id = rng.choice(list(population.persons.keys()))
             person = population.get_person(person_id)
             if not person or not person.is_alive:
@@ -325,11 +335,11 @@ def run_beta(
             patient = activate_patient(person, rng, config.country)
             cond_idx = int(rng.choice(len(ed_conditions), p=ed_probs))
             cond_name, cond = ed_conditions[cond_idx]
-            # Random date within simulation period
-            ed_month = int(rng.integers(start_m, min(start_m + 11, 13)))
+            # Use the same month that seasonal modifiers were calculated for
+            ed_year = start_y + (start_m - 1 + month_offset) // 12
             ed_day = int(rng.integers(1, 28))
-            ed_hour = int(rng.choice([9, 10, 14, 15, 19, 20, 21, 22]))  # ED visit hours
-            ed_time = datetime(start_y, ed_month, ed_day, ed_hour, int(rng.integers(0, 60)))
+            ed_hour = int(rng.choice([9, 10, 14, 15, 19, 20, 21, 22]))
+            ed_time = datetime(ed_year, visit_month, ed_day, ed_hour, int(rng.integers(0, 60)))
 
             ed_record = _simulate_ed_visit(
                 patient, cond, ed_time, roster, rng,
