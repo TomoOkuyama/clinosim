@@ -22,6 +22,9 @@ class DailyCycleEvent:
     data: dict[str, Any] = field(default_factory=dict)
 
 
+_encounter_counter: int = 0
+
+
 def create_inpatient_encounter(
     patient_id: str,
     admission_datetime: datetime,
@@ -29,11 +32,14 @@ def create_inpatient_encounter(
     department_id: str = "internal_medicine",
     visit_number: int = 1,
 ) -> Encounter:
-    """Create a new inpatient encounter."""
+    """Create a new inpatient encounter with globally unique ID."""
+    global _encounter_counter
+    _encounter_counter += 1
+    enc_id = f"ENC-{patient_id}-{_encounter_counter:06d}"
     return Encounter(
-        encounter_id=f"ENC-{patient_id}-{visit_number:04d}",
+        encounter_id=enc_id,
         patient_id=patient_id,
-        episode_id=f"EP-{patient_id}-{visit_number:03d}",
+        episode_id=f"EP-{patient_id}-{_encounter_counter:06d}",
         encounter_type=EncounterType.INPATIENT,
         status=EncounterStatus.IN_PROGRESS,
         department_id=department_id,

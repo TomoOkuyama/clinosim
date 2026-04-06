@@ -38,9 +38,6 @@ def _simulate_outpatient_visit(
 
     Generates: 1 encounter, 0-3 lab orders, 1 vital sign set, prescription renewal.
     """
-    import uuid
-    opd_num = int(uuid.uuid4().hex[:4], 16) % 9000 + 1000
-
     # Build visit reason from YAML spec or disease-specific post-discharge reason
     spec = followup_spec or {}
     if spec.get("visit_reason"):
@@ -63,7 +60,7 @@ def _simulate_outpatient_visit(
     encounter = create_inpatient_encounter(
         patient.patient_id, visit_date,
         chief_complaint=chief,
-        visit_number=opd_num,
+        visit_number=0,  # ignored — global counter used
     )
     encounter.encounter_type = EncounterType.OUTPATIENT
     encounter.status = EncounterStatus.COMPLETED

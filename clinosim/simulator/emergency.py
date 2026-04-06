@@ -31,7 +31,6 @@ def _simulate_ed_visit(
     rng: np.random.Generator,
 ) -> CIFPatientRecord:
     """Simulate an ED visit using YAML protocol if available, else basic."""
-    import uuid
     from clinosim.modules.observation.engine import generate_lab_result, determine_flag
 
     # Try to load detailed YAML protocol
@@ -44,11 +43,9 @@ def _simulate_ed_visit(
 
     chief = (protocol or condition).get("chief_complaint", cond_name)
 
-    ed_num = int(uuid.uuid4().hex[:4], 16) % 9000 + 1000
     encounter = create_inpatient_encounter(
         patient.patient_id, visit_time,
         chief_complaint=chief,
-        visit_number=ed_num,
     )
     proto_enc_type = (protocol or condition).get("encounter_type", "emergency")
     encounter.encounter_type = EncounterType.OUTPATIENT if proto_enc_type == "outpatient" else EncounterType.EMERGENCY
