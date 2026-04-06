@@ -1,0 +1,774 @@
+# Deep Vein Thrombosis — Complete Reference Data
+# Sources cited per section. All rates are approximate and should be validated
+# against the most current published data before production use.
+
+disease_id: deep_vein_thrombosis
+chief_complaint: "Unilateral leg swelling, pain, warmth"
+department: internal_medicine
+encounter_type: medical
+requires_surgery: false
+readmission_eligible: true
+minimum_severity: null
+diagnostic_difficulty: 0.3   # D-dimer + compression ultrasound confirm; clinical diagnosis alone unreliable
+
+icd_codes:
+  primary: "I80.20"  # Phlebitis and thrombophlebitis of unspecified deep vessels of lower extremity
+  variants:
+    - {code: "I82.40", name: "Acute embolism and thrombosis of unspecified deep veins of lower extremity", probability: 0.30}
+    - {code: "I82.41", name: "Acute embolism and thrombosis of femoral vein", probability: 0.25}
+    - {code: "I82.42", name: "Acute embolism and thrombosis of iliac vein", probability: 0.10}
+    - {code: "I82.43", name: "Acute embolism and thrombosis of popliteal vein", probability: 0.20}
+    - {code: "I82.49", name: "Acute embolism and thrombosis of other specified deep vein of lower extremity", probability: 0.15}
+
+# ============================================================
+# INCIDENCE (per 100,000 per year, by age band and sex)
+# Source: JP — 静脈血栓塞栓症ガイドライン, 患者調査
+#         US — Heit et al. Arch Intern Med 2002, White RH. Circulation 2003
+# Hospitalized DVT only
+# ============================================================
+incidence:
+  japan:
+    "0-4":   {M: 0, F: 0}
+    "5-14":  {M: 1, F: 1}
+    "15-24": {M: 3, F: 5}
+    "25-34": {M: 5, F: 10}
+    "35-44": {M: 8, F: 15}
+    "45-54": {M: 15, F: 25}
+    "55-64": {M: 30, F: 40}
+    "65-74": {M: 60, F: 75}
+    "75-84": {M: 100, F: 120}
+    "85+":   {M: 150, F: 180}
+  us:
+    "0-4":   {M: 0, F: 0}
+    "5-14":  {M: 1, F: 1}
+    "15-24": {M: 5, F: 8}
+    "25-34": {M: 10, F: 15}
+    "35-44": {M: 15, F: 25}
+    "45-54": {M: 30, F: 40}
+    "55-64": {M: 50, F: 60}
+    "65-74": {M: 90, F: 100}
+    "75-84": {M: 150, F: 170}
+    "85+":   {M: 250, F: 280}
+
+  risk_multipliers:
+    - {condition: "active_cancer", multiplier: 5.0}
+    - {condition: "recent_surgery", multiplier: 4.0}
+    - {condition: "immobility_prolonged", multiplier: 3.0}
+    - {condition: "prior_vte", multiplier: 3.5}
+    - {condition: "pregnancy_postpartum", multiplier: 5.0}
+    - {condition: "oral_contraceptive", multiplier: 3.0}
+    - {condition: "hormone_replacement", multiplier: 2.0}
+    - {condition: "obesity_bmi_over_30", multiplier: 2.0}
+    - {condition: "heart_failure", multiplier: 2.0}
+    - {condition: "nephrotic_syndrome", multiplier: 3.0}
+    - {condition: "antiphospholipid_syndrome", multiplier: 6.0}
+    - {condition: "factor_V_Leiden", multiplier: 5.0}
+    - {condition: "smoking_current", multiplier: 1.5}
+    - {condition: "long_haul_travel", multiplier: 2.0}
+
+  seasonal_curve:  # minimal seasonality
+    1: 1.0
+    2: 1.0
+    3: 1.0
+    4: 1.0
+    5: 1.0
+    6: 1.0
+    7: 1.0
+    8: 1.0
+    9: 1.0
+    10: 1.0
+    11: 1.0
+    12: 1.0
+
+  vaccine_protection: {}
+
+# ============================================================
+# SEVERITY DISTRIBUTION
+# Source: ACCP VTE Guidelines, clinical staging
+# ============================================================
+severity:
+  distribution:
+    mild: 0.35        # distal DVT (calf), limited swelling
+    moderate: 0.50    # proximal DVT (femoral/popliteal), significant symptoms
+    severe: 0.15      # iliofemoral DVT, phlegmasia, or hemodynamically significant PE risk
+  modifiers:
+    - {condition: "iliofemoral_location", severe_multiplier: 3.0}
+    - {condition: "active_cancer", moderate_multiplier: 1.3, severe_multiplier: 1.8}
+    - {condition: "bilateral_dvt", severe_multiplier: 2.5}
+    - {condition: "phlegmasia_signs", severe_multiplier: 5.0}
+
+# ============================================================
+# INITIAL PHYSIOLOGICAL STATE IMPACT
+# Key: inflammatory response, risk of embolization, fluid redistribution
+# ============================================================
+initial_state_impact:
+  mild:
+    inflammation_level: 0.10
+    coagulation_status: 0.10
+  moderate:
+    inflammation_level: 0.18
+    coagulation_status: 0.15
+    volume_status: -0.05
+  severe:
+    inflammation_level: 0.30
+    coagulation_status: 0.25
+    volume_status: -0.10
+    perfusion_status: -0.05
+
+# ============================================================
+# ORDER PROTOCOLS
+# ============================================================
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "D_dimer", urgency: "stat"}
+      - {test: "CBC", urgency: "stat"}
+      - {test: "PT_INR", urgency: "stat"}
+      - {test: "aPTT", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "BUN", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "AST", urgency: "stat"}
+      - {test: "ALT", urgency: "stat"}
+      - {test: "Troponin", urgency: "stat", probability: 0.60}  # if PE suspected
+      - {test: "BNP", urgency: "stat", probability: 0.50}        # if PE suspected
+    imaging:
+      - {test: "Compression_Ultrasound_Lower_Extremity", urgency: "stat"}
+      - {test: "CT_Angiography_Chest", urgency: "stat", probability: 0.50}  # rule out concurrent PE
+    supportive:
+      - {type: "IV_fluid", detail: "NS 80 mL/h"}
+      - {type: "leg_elevation", detail: "Elevate affected limb above heart level"}
+      - {type: "compression_stocking", detail: "Graduated compression stocking on unaffected leg"}
+
+  daily_monitoring:
+    labs:
+      - {test: "aPTT", frequency: "q6h_initially_if_heparin", note: "until therapeutic, then daily"}
+      - {test: "PT_INR", frequency: "daily_if_warfarin_started"}
+      - {test: "CBC", frequency: "daily", note: "monitor for HIT"}
+      - {test: "Creatinine", frequency: "every_other_day"}
+    vitals:
+      stable: "q6h"
+      unstable: "q2h"
+    assessments:
+      - {test: "Leg_circumference_measurement", frequency: "daily"}
+      - {test: "Signs_of_PE", frequency: "q4h", note: "dyspnea, chest pain, tachycardia"}
+
+  trigger_orders:
+    pe_suspected:
+      condition: "New dyspnea, chest pain, tachycardia, or SpO2 decline"
+      actions:
+        - {type: "imaging", test: "CT_Angiography_Chest_stat"}
+        - {type: "lab", test: "ABG"}
+        - {type: "lab", test: "Troponin"}
+        - {type: "lab", test: "BNP"}
+    hit_suspected:
+      condition: "Platelet drop > 50% from baseline or new thrombosis on heparin"
+      actions:
+        - {type: "lab", test: "HIT_antibody_PF4"}
+        - {type: "medication_change", action: "stop_heparin_start_argatroban"}
+    thrombus_extension:
+      condition: "Worsening swelling or pain despite anticoagulation"
+      actions:
+        - {type: "imaging", test: "Repeat_compression_ultrasound"}
+        - {type: "evaluate", action: "consider_catheter_directed_thrombolysis"}
+    bleeding_complication:
+      condition: "Active bleeding or Hb drop > 2 g/dL"
+      actions:
+        - {type: "medication_change", action: "hold_anticoagulation"}
+        - {type: "lab", test: "CBC_stat_type_and_screen"}
+        - {type: "evaluate", action: "IVC_filter_consideration"}
+
+  discharge_criteria:
+    japan:
+      - "Therapeutic anticoagulation achieved"
+      - "No signs of PE"
+      - "Pain and swelling improving"
+      - "Oral anticoagulation stable"
+      - "Patient educated on signs of PE, bleeding precautions"
+      - "Follow-up appointment within 1 week"
+    us:
+      - "Therapeutic anticoagulation achieved (INR 2-3 if warfarin, or stable on DOAC)"
+      - "No signs of PE"
+      - "Ambulatory"
+      - "Outpatient anticoagulation monitoring arranged"
+
+# ============================================================
+# LIKELIHOOD RATIO TABLE
+# Source: Wells et al. Lancet 1997, Goodacre et al. BMJ 2005
+# ============================================================
+likelihood_ratios:
+  compression_ultrasound_positive:
+    deep_vein_thrombosis: {positive_LR: 25.0, negative_LR: 0.05}
+    # Sensitivity ~95% for proximal DVT, ~70% for calf DVT
+    cellulitis: {positive_LR: 0.1, negative_LR: 1.0}
+    baker_cyst: {positive_LR: 0.1, negative_LR: 1.0}
+
+  d_dimer_elevated:
+    deep_vein_thrombosis: {positive_LR: 2.0, negative_LR: 0.10}
+    # High sensitivity (~95%), low specificity (~40%)
+    cellulitis: {positive_LR: 1.5, negative_LR: 0.5}
+    baker_cyst: {positive_LR: 0.8, negative_LR: 1.0}
+    cancer: {positive_LR: 2.0, negative_LR: 0.5}
+
+  unilateral_leg_swelling:
+    deep_vein_thrombosis: {positive_LR: 3.0, negative_LR: 0.4}
+    cellulitis: {positive_LR: 2.0, negative_LR: 0.5}
+    baker_cyst: {positive_LR: 2.5, negative_LR: 0.7}
+    lymphedema: {positive_LR: 1.5, negative_LR: 0.8}
+
+  calf_tenderness:
+    deep_vein_thrombosis: {positive_LR: 1.8, negative_LR: 0.6}
+    cellulitis: {positive_LR: 2.0, negative_LR: 0.5}
+    muscle_strain: {positive_LR: 2.0, negative_LR: 0.5}
+
+  wells_score_high:
+    deep_vein_thrombosis: {positive_LR: 5.0, negative_LR: 0.25}
+
+  homan_sign_positive:
+    deep_vein_thrombosis: {positive_LR: 1.3, negative_LR: 0.9}
+    # Poor sensitivity and specificity — largely abandoned
+
+  pitting_edema:
+    deep_vein_thrombosis: {positive_LR: 2.0, negative_LR: 0.6}
+    heart_failure: {positive_LR: 2.5, negative_LR: 0.5}
+    cellulitis: {positive_LR: 1.5, negative_LR: 0.8}
+
+# ============================================================
+# LAB REFERENCE RANGES
+# ============================================================
+expected_lab_distributions:
+  admission:
+    D_dimer:
+      unit: "ug/mL"
+      median: 4.0
+      iqr: [2.0, 8.0]
+      range: [0.5, 30.0]
+      note: "highly elevated; age-adjusted cutoff for elderly"
+    CRP:
+      unit: "mg/L"
+      median: 15
+      iqr: [5, 35]
+      range: [1, 80]
+    WBC:
+      unit: "/uL"
+      median: 8500
+      iqr: [6500, 11000]
+      range: [4000, 16000]
+    Hb:
+      unit: "g/dL"
+      median: 13.0
+      iqr: [11.5, 14.5]
+      range: [8.0, 17.0]
+    Plt:
+      unit: "x10^3/uL"
+      median: 250
+      iqr: [200, 320]
+      range: [100, 500]
+    PT_INR:
+      unit: ""
+      median: 1.0
+      iqr: [0.9, 1.1]
+      range: [0.8, 1.3]
+    aPTT:
+      unit: "sec"
+      median: 30
+      iqr: [26, 34]
+      range: [22, 40]
+    Creatinine:
+      unit: "mg/dL"
+      median: 0.9
+      iqr: [0.7, 1.2]
+      range: [0.4, 3.0]
+
+  discharge:
+    PT_INR:
+      unit: ""
+      median: 2.2
+      iqr: [1.8, 2.8]
+      note: "if warfarin; N/A for DOAC"
+    D_dimer:
+      unit: "ug/mL"
+      median: 2.0
+      iqr: [1.0, 4.0]
+      note: "declining but may remain elevated for weeks"
+
+# ============================================================
+# VITAL SIGN DISTRIBUTIONS
+# ============================================================
+expected_vital_distributions:
+  admission:
+    temperature:
+      unit: "C"
+      mean: 37.0
+      sd: 0.4
+      range: [36.2, 38.0]
+      note: "low-grade fever possible"
+    heart_rate:
+      unit: "bpm"
+      mean: 82
+      sd: 12
+      range: [60, 110]
+    systolic_bp:
+      unit: "mmHg"
+      mean: 130
+      sd: 18
+      range: [90, 175]
+    respiratory_rate:
+      unit: "/min"
+      mean: 16
+      sd: 2
+      range: [12, 22]
+    spo2:
+      unit: "%"
+      mean: 98
+      sd: 1
+      range: [93, 99]
+
+# ============================================================
+# TREATMENT — Drug selection data
+# Source: ACCP VTE Guidelines 2021, CHEST guidelines,
+#         JP 肺血栓塞栓症/深部静脈血栓症ガイドライン 2017
+# ============================================================
+drugs:
+  first_line:
+    japan:
+      - drug: "Unfractionated Heparin"
+        code_yj: "3334400"
+        dose: "80 U/kg IV bolus, then 18 U/kg/h infusion"
+        route: IV
+        note: "Target aPTT 1.5-2.5x control"
+        renal_adjustment: {}
+        pregnancy_safe: true
+      - drug: "Edoxaban"
+        code_yj: "3339006"
+        dose: "60mg PO daily (after 5+ days heparin)"
+        route: PO
+        note: "Start after initial heparin phase"
+        renal_adjustment:
+          eGFR_15_50: "30mg PO daily"
+          eGFR_below_15: "avoid"
+        pregnancy_safe: false
+    us:
+      - drug: "Rivaroxaban"
+        code_rxnorm: "1114195"
+        dose: "15mg PO BID x21 days, then 20mg PO daily"
+        route: PO
+        note: "Direct oral route — no heparin bridge needed for most patients"
+        renal_adjustment:
+          eGFR_below_30: "avoid"
+        pregnancy_safe: false
+      - drug: "Unfractionated Heparin"
+        code_rxnorm: "5224"
+        dose: "80 U/kg IV bolus, then 18 U/kg/h"
+        route: IV
+        note: "For patients requiring bridging (cancer, renal failure)"
+        pregnancy_safe: true
+
+  alternative_doac_contraindicated:
+    japan:
+      - drug: "Warfarin"
+        code_yj: "3332001"
+        dose: "Initial 2-5mg PO daily, target INR 1.5-2.5 (JP) or 2.0-3.0"
+        route: PO
+        note: "Overlap with heparin until INR therapeutic for 24h"
+        pregnancy_safe: false
+    us:
+      - drug: "Warfarin"
+        code_rxnorm: "11289"
+        dose: "Initial 5mg PO daily, target INR 2.0-3.0"
+        route: PO
+        note: "Overlap with heparin for minimum 5 days and INR >= 2.0 for 24h"
+        pregnancy_safe: false
+
+  cancer_associated_vte:
+    japan:
+      - drug: "Edoxaban"
+        code_yj: "3339006"
+        dose: "60mg PO daily"
+        route: PO
+        note: "DOAC preferred over LMWH in most cancer-associated VTE (Hokusai-VTE Cancer)"
+    us:
+      - drug: "Rivaroxaban"
+        code_rxnorm: "1114195"
+        dose: "15mg PO BID x21d then 20mg daily"
+        route: PO
+        note: "Alternative: apixaban or LMWH per ASCO guidelines"
+      - drug: "Enoxaparin"
+        code_rxnorm: "67108"
+        dose: "1mg/kg SC BID"
+        route: SC
+        note: "Preferred if GI cancer with mucosal involvement"
+
+  escalation:  # for iliofemoral DVT or phlegmasia
+    japan:
+      - drug: "Catheter-directed thrombolysis"
+        code_yj: "N/A"
+        dose: "Urokinase 60,000-240,000 IU via catheter"
+        route: catheter
+        indication: "iliofemoral_dvt_acute_phlegmasia"
+    us:
+      - drug: "Catheter-directed thrombolysis"
+        code_rxnorm: "N/A"
+        dose: "Alteplase 0.5-1mg/h via catheter x12-24h"
+        route: catheter
+        indication: "iliofemoral_dvt_phlegmasia"
+
+  alternative_penicillin_allergy:
+    japan: []
+    us: []
+
+  discharge_oral:
+    japan:
+      - drug: "Edoxaban"
+        code_yj: "3339006"
+        dose: "60mg PO daily"
+        duration_days: 90
+        note: "Minimum 3 months; extend if unprovoked or ongoing risk"
+    us:
+      - drug: "Rivaroxaban"
+        code_rxnorm: "1114195"
+        dose: "20mg PO daily with food"
+        duration_days: 90
+        note: "Minimum 3 months; consider extended for unprovoked DVT"
+
+# ============================================================
+# DRUG INTERACTIONS
+# ============================================================
+drug_interactions:
+  - drug_a: "Warfarin"
+    drug_b: "NSAID"
+    severity: "major"
+    effect: "Increased bleeding risk"
+    action: "Avoid combination"
+
+  - drug_a: "Rivaroxaban"
+    drug_b: "Ketoconazole"
+    severity: "contraindicated"
+    effect: "Strong CYP3A4 and P-gp inhibition dramatically increases rivaroxaban levels"
+    action: "Do not use together"
+
+  - drug_a: "Rivaroxaban"
+    drug_b: "Rifampin"
+    severity: "major"
+    effect: "Strong CYP3A4 induction reduces rivaroxaban levels"
+    action: "Avoid combination; consider alternative anticoagulant"
+
+  - drug_a: "Edoxaban"
+    drug_b: "Dronedarone"
+    severity: "major"
+    effect: "Increased edoxaban levels via P-gp inhibition"
+    action: "Reduce edoxaban dose to 30mg"
+
+  - drug_a: "Heparin"
+    drug_b: "NSAID"
+    severity: "major"
+    effect: "Increased bleeding risk"
+    action: "Avoid combination or monitor closely"
+
+# ============================================================
+# LAB ITEM REFERENCE RANGES
+# ============================================================
+reference_ranges:
+  D_dimer:
+    unit: "ug/mL"
+    all: {low: 0, high: 0.5}
+    age_adjusted: "Age x 10 ng/mL for patients > 50 years"
+  CRP:
+    unit: "mg/L"
+    all: {low: 0, high: 3}
+  WBC:
+    unit: "/uL"
+    all: {low: 3500, high: 9500}
+  Hb:
+    unit: "g/dL"
+    male: {low: 13.5, high: 17.5}
+    female: {low: 11.5, high: 15.5}
+  Plt:
+    unit: "x10^3/uL"
+    all: {low: 150, high: 400}
+  PT_INR:
+    unit: ""
+    all: {low: 0.9, high: 1.1}
+    on_warfarin: {low: 2.0, high: 3.0}
+  aPTT:
+    unit: "sec"
+    all: {low: 25, high: 35}
+    on_heparin: {low: 60, high: 90}
+  Creatinine:
+    unit: "mg/dL"
+    male: {low: 0.6, high: 1.1}
+    female: {low: 0.4, high: 0.8}
+  BUN:
+    unit: "mg/dL"
+    all: {low: 8, high: 20}
+  Na:
+    unit: "mEq/L"
+    all: {low: 136, high: 145}
+  K:
+    unit: "mEq/L"
+    all: {low: 3.5, high: 5.0}
+  AST:
+    unit: "U/L"
+    all: {low: 10, high: 35}
+  ALT:
+    unit: "U/L"
+    all: {low: 5, high: 40}
+
+# ============================================================
+# TARGET LENGTH OF STAY
+# ============================================================
+target_los:
+  japan:
+    mild: {mean: 7, sd: 2, min: 4, max: 12}
+    moderate: {mean: 10, sd: 3, min: 6, max: 16}
+    severe: {mean: 14, sd: 4, min: 8, max: 25}
+  us:
+    mild: {mean: 2, sd: 1, min: 1, max: 4}
+    moderate: {mean: 3, sd: 1, min: 2, max: 5}
+    severe: {mean: 5, sd: 2, min: 3, max: 10}
+
+# ============================================================
+# OUTCOME BENCHMARKS
+# Source: RIETE registry, Heit et al. Arch Intern Med, JP DPC data
+# ============================================================
+outcome_benchmarks:
+  japan:
+    median_los: 9
+    los_iqr: [6, 13]
+    in_hospital_mortality: 0.01
+    icu_transfer_rate: 0.03
+    thirty_day_readmission: 0.06
+    pe_during_admission_rate: 0.05
+    hit_rate: 0.01
+    major_bleeding_rate: 0.03
+    mean_age_admitted: 65
+    male_ratio: 0.45
+
+  us:
+    median_los: 3
+    los_iqr: [2, 5]
+    in_hospital_mortality: 0.008
+    icu_transfer_rate: 0.02
+    thirty_day_readmission: 0.07
+    pe_during_admission_rate: 0.04
+    hit_rate: 0.01
+    major_bleeding_rate: 0.02
+    mean_age_admitted: 60
+    male_ratio: 0.42
+
+# ============================================================
+# DIAGNOSTIC
+# ============================================================
+diagnostic:
+  diagnostic_difficulty: 0.3  # D-dimer + ultrasound; clinical pretest probability assessment needed
+  differential:
+    - {disease: "deep_vein_thrombosis", icd: "I82.40", name: "Deep vein thrombosis", prior: 0.40}
+    - {disease: "cellulitis", icd: "L03.11", name: "Cellulitis of lower limb", prior: 0.15}
+    - {disease: "baker_cyst_rupture", icd: "M71.2", name: "Baker cyst (ruptured)", prior: 0.10}
+    - {disease: "muscle_strain", icd: "S86.9", name: "Calf muscle strain / tear", prior: 0.10}
+    - {disease: "lymphedema", icd: "I89.0", name: "Lymphedema", prior: 0.05}
+    - {disease: "heart_failure", icd: "I50.9", name: "Heart failure (bilateral edema)", prior: 0.08}
+    - {disease: "superficial_thrombophlebitis", icd: "I80.0", name: "Superficial thrombophlebitis", prior: 0.07}
+    - {disease: "other", icd: "M79.6", name: "Other limb pain", prior: 0.05}
+
+# ============================================================
+# CLINICAL COURSE ARCHETYPES
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.55
+    description: "Anticoagulation therapeutic quickly, symptoms improve, transition to oral therapy"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: -0.02, 2: -0.03, 3: -0.03, 5: -0.02, 7: -0.01}
+      coagulation_status: {0: -0.02, 1: -0.03, 2: -0.02, 3: -0.01, 5: -0.01, 7: -0.01}
+      volume_status: {0: 0.01, 1: 0.01, 2: 0.01, 3: 0.00, 5: 0.00, 7: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.18
+    description: "Initial worsening of swelling Day 1-2 before anticoagulation takes effect"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: 0.02, 2: -0.02, 3: -0.03, 5: -0.03, 7: -0.02, 10: -0.01}
+      coagulation_status: {0: 0.02, 1: 0.00, 2: -0.02, 3: -0.03, 5: -0.02, 7: -0.01, 10: -0.01}
+      volume_status: {0: -0.02, 1: 0.00, 2: 0.01, 3: 0.01, 5: 0.00, 7: 0.00, 10: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["D_dimer", "Repeat_compression_ultrasound"]
+    treatment_modifications: {}
+
+  plateau_then_recovery:
+    probability: 0.10
+    description: "Slow improvement over 5-7 days; persistent edema"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.01, 2: 0.00, 3: 0.00, 5: -0.02, 7: -0.03, 10: -0.02}
+      coagulation_status: {0: 0.01, 1: 0.00, 2: 0.00, 3: -0.01, 5: -0.02, 7: -0.02, 10: -0.01}
+    order_modifications:
+      day_5:
+        add_imaging: ["Repeat_compression_ultrasound"]
+    treatment_modifications: {}
+
+  treatment_resistant:
+    probability: 0.08
+    description: "Thrombus propagation despite standard anticoagulation, requires dose adjustment or intervention"
+    trajectory:
+      inflammation_level: {0: 0.06, 1: 0.03, 2: 0.02, 3: 0.00, 5: -0.02, 7: -0.04, 10: -0.04, 14: -0.02}
+      coagulation_status: {0: 0.03, 1: 0.02, 2: 0.01, 3: -0.01, 5: -0.02, 7: -0.03, 10: -0.02, 14: -0.01}
+    order_modifications:
+      day_3:
+        add_imaging: ["Repeat_compression_ultrasound"]
+        add_labs: ["Anti_Xa_level", "HIT_antibody"]
+    treatment_modifications:
+      day_3:
+        action: "increase_anticoagulation_or_switch"
+    triggers:
+      - day: 3
+        condition: "worsening_swelling_despite_therapeutic_anticoagulation"
+        actions: ["repeat_ultrasound", "consider_catheter_thrombolysis"]
+
+  gradual_deterioration:
+    probability: 0.06
+    description: "Development of PE or post-thrombotic syndrome features"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: 0.03, 2: 0.02, 3: 0.02, 5: 0.01, 7: -0.01, 10: -0.02, 14: -0.02}
+      coagulation_status: {0: 0.03, 1: 0.02, 2: 0.01, 3: 0.01, 5: 0.00, 7: -0.01, 10: -0.02, 14: -0.01}
+      perfusion_status: {0: -0.02, 1: -0.02, 2: -0.01, 3: -0.01, 5: 0.00, 7: 0.01, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_3:
+        add_labs: ["D_dimer", "Troponin"]
+      day_5:
+        add_imaging: ["CT_Angiography_Chest"]
+    treatment_modifications: {}
+    triggers:
+      - day: 5
+        condition: "new_dyspnea_or_chest_pain"
+        actions: ["rule_out_PE"]
+
+  sudden_deterioration:
+    probability: 0.03
+    description: "Acute massive PE from DVT embolization"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.00, 2: 0.20, 3: 0.05, 5: -0.05, 7: -0.08, 10: -0.05, 14: -0.03}
+      perfusion_status: {0: 0.00, 1: 0.00, 2: -0.25, 3: -0.05, 5: 0.05, 7: 0.05, 10: 0.03, 14: 0.01}
+      coagulation_status: {0: -0.01, 1: -0.01, 2: 0.05, 3: 0.00, 5: -0.02, 7: -0.02, 10: -0.01, 14: -0.01}
+    order_modifications:
+      day_2:
+        add_labs: ["ABG", "Troponin", "BNP", "Lactate"]
+        add_imaging: ["CT_Angiography_Chest_stat", "Echocardiogram"]
+    treatment_modifications:
+      day_2:
+        action: "icu_transfer"
+        start:
+          japan: [{drug: "Heparin_increase", dose: "Increase infusion rate"}]
+          us: [{drug: "Heparin_increase", dose: "Increase infusion rate"}]
+        action_2: "consider_systemic_thrombolysis"
+    triggers:
+      - day: 2
+        condition: "acute_dyspnea_hypotension_or_desaturation"
+        actions: ["icu_transfer", "emergent_ct_angiography", "consider_thrombolysis"]
+
+# Archetype selection modifiers
+archetype_modifiers:
+  - condition: "active_cancer"
+    effect: {treatment_resistant: 0.08, gradual_deterioration: 0.05, smooth_recovery: -0.13}
+  - condition: "prior_vte"
+    effect: {treatment_resistant: 0.05, smooth_recovery: -0.05}
+  - condition: "iliofemoral_location"
+    effect: {sudden_deterioration: 0.05, gradual_deterioration: 0.05, smooth_recovery: -0.10}
+
+# ============================================================
+# COMPLICATIONS
+# ============================================================
+complications:
+  - name: "pulmonary_embolism"
+    description: "PE from DVT embolization — most feared complication"
+    probability_per_day: 0.008
+    onset_day_range: [0, 14]
+    risk_factors:
+      - {condition: "proximal_dvt", multiplier: 4.0}
+      - {condition: "free_floating_thrombus", multiplier: 6.0}
+      - {condition: "subtherapeutic_anticoagulation", multiplier: 3.0}
+    state_impact:
+      perfusion_status: -0.20
+      ph_status: -0.05
+      inflammation_level: 0.05
+    detection:
+      test: "ct_angiography"
+      finding: "filling_defect_in_pulmonary_arteries"
+    actions: ["increase_anticoagulation", "consider_thrombolysis_if_massive", "icu_transfer_if_hemodynamically_unstable"]
+
+  - name: "heparin_induced_thrombocytopenia"
+    description: "HIT — immune-mediated platelet destruction causing paradoxical thrombosis"
+    probability_per_day: 0.002
+    onset_day_range: [5, 14]
+    risk_factors:
+      - {condition: "unfractionated_heparin_use", multiplier: 5.0}
+      - {condition: "surgical_patient", multiplier: 2.0}
+    state_impact:
+      coagulation_status: 0.15
+    detection:
+      test: "platelet_count"
+      finding: "drop_above_50_percent_from_baseline"
+    actions: ["stop_all_heparin", "start_argatroban_or_fondaparinux", "send_HIT_antibody"]
+
+  - name: "major_bleeding"
+    description: "Major bleeding from anticoagulation therapy"
+    probability_per_day: 0.004
+    onset_day_range: [1, 14]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 2.0}
+      - {condition: "CKD", multiplier: 2.0}
+      - {condition: "concurrent_antiplatelet", multiplier: 2.5}
+      - {condition: "liver_disease", multiplier: 2.0}
+    state_impact:
+      volume_status: -0.10
+      perfusion_status: -0.05
+    detection:
+      test: "hb_drop_or_clinical_bleeding"
+      finding: "Hb drop > 2 g/dL or overt bleeding"
+    actions: ["hold_anticoagulation", "transfuse_if_needed", "consider_reversal", "consider_IVC_filter"]
+
+  - name: "post_thrombotic_syndrome"
+    description: "Chronic venous insufficiency from valve damage — develops later"
+    probability_per_day: 0.003
+    onset_day_range: [14, 90]
+    risk_factors:
+      - {condition: "proximal_dvt", multiplier: 2.0}
+      - {condition: "recurrent_dvt", multiplier: 3.0}
+      - {condition: "obesity", multiplier: 1.5}
+    state_impact: {}
+    detection:
+      test: "clinical_assessment"
+      finding: "chronic_swelling_skin_changes"
+    actions: ["compression_therapy", "elevation", "exercise_program"]
+
+  - name: "phlegmasia_cerulea_dolens"
+    description: "Massive iliofemoral DVT with limb-threatening ischemia"
+    probability_per_day: 0.001
+    onset_day_range: [0, 5]
+    risk_factors:
+      - {condition: "iliofemoral_dvt", multiplier: 10.0}
+      - {condition: "active_cancer", multiplier: 3.0}
+    state_impact:
+      perfusion_status: -0.20
+      volume_status: -0.10
+    detection:
+      test: "clinical_exam"
+      finding: "massively_swollen_cyanotic_limb"
+    actions: ["emergent_catheter_thrombolysis", "surgical_thrombectomy", "fasciotomy_if_compartment_syndrome"]
+
+  - name: "thrombus_extension"
+    description: "Extension of DVT to more proximal veins despite anticoagulation"
+    probability_per_day: 0.005
+    onset_day_range: [2, 10]
+    risk_factors:
+      - {condition: "subtherapeutic_anticoagulation", multiplier: 3.0}
+      - {condition: "active_cancer", multiplier: 2.0}
+    state_impact:
+      inflammation_level: 0.05
+      coagulation_status: 0.05
+    detection:
+      test: "repeat_compression_ultrasound"
+      finding: "proximal_extension"
+    actions: ["optimize_anticoagulation", "consider_catheter_thrombolysis", "IVC_filter_if_continued_progression"]
