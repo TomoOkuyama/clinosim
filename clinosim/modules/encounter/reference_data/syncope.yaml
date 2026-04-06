@@ -1,0 +1,46 @@
+# Syncope — ED visit protocol
+# Loss of consciousness evaluation. ECG, troponin, glucose workup.
+
+condition_id: syncope
+chief_complaint: "Loss of consciousness, fainting episode"
+encounter_type: emergency
+department: internal_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.40
+  moderate: 0.45
+  severe: 0.15    # cardiac syncope concern, prolonged monitoring
+
+ed_stay_hours:
+  mild: {mean: 3, sd: 1}
+  moderate: {mean: 5, sd: 1.5}
+  severe: {mean: 8, sd: 2}
+
+workup:
+  vitals: true
+  labs:
+    - {test: "ECG", probability: 0.95}
+    - {test: "Troponin", probability: 0.5}
+    - {test: "Glucose", probability: 0.6}
+    - {test: "Hb", probability: 0.4}
+  imaging:
+    - {test: "CT_Head", probability: 0.3}
+
+treatment:
+  - {name: "IV normal saline 1L", probability: 0.6, route: "IV", intent: "volume resuscitation"}
+  - {name: "Cardiac monitoring", probability: 0.5, route: "N/A", intent: "arrhythmia detection"}
+
+discharge_instructions:
+  - "Cardiac and neurological workup negative"
+  - "Follow up with PCP or cardiologist within 1 week"
+  - "Return immediately if recurrent syncope, chest pain, or palpitations"
+  - "Avoid driving until cleared by physician"
+
+discharge_prescriptions: []
+
+incidence_modifier: 1.0
+probability: 0.06
+age_distribution: adults
+sex_ratio_female: 0.5
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.1, 7: 1.1, 8: 1.1, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}

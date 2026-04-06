@@ -186,6 +186,40 @@ DIFFERENTIALS: dict[str, list[dict]] = {
         {"disease": "chemical_pneumonitis", "icd": "J68.0", "name": "Chemical pneumonitis", "prior": 0.08},
         {"disease": "other", "icd": "J98.8", "name": "Other respiratory disorder", "prior": 0.12},
     ],
+    "influenza": [
+        {"disease": "influenza", "icd": "J10.1", "name": "Influenza with respiratory manifestations", "prior": 0.55},
+        {"disease": "bacterial_pneumonia", "icd": "J18.9", "name": "Bacterial pneumonia", "prior": 0.20},
+        {"disease": "viral_uri", "icd": "J06.9", "name": "Viral URI", "prior": 0.10},
+        {"disease": "covid", "icd": "U07.1", "name": "COVID-19", "prior": 0.08},
+        {"disease": "other", "icd": "R50.9", "name": "Fever, unspecified", "prior": 0.07},
+    ],
+    "asthma_exacerbation": [
+        {"disease": "asthma_exacerbation", "icd": "J45.21", "name": "Acute severe asthma", "prior": 0.60},
+        {"disease": "copd_exacerbation", "icd": "J44.1", "name": "COPD exacerbation", "prior": 0.15},
+        {"disease": "pneumonia", "icd": "J18.9", "name": "Pneumonia", "prior": 0.08},
+        {"disease": "heart_failure", "icd": "I50.9", "name": "Pulmonary edema", "prior": 0.07},
+        {"disease": "other", "icd": "R06.2", "name": "Wheezing", "prior": 0.10},
+    ],
+    "hemorrhagic_stroke": [
+        {"disease": "hemorrhagic_stroke", "icd": "I61.9", "name": "Intracerebral hemorrhage", "prior": 0.55},
+        {"disease": "ischemic_stroke", "icd": "I63.9", "name": "Ischemic stroke", "prior": 0.20},
+        {"disease": "subarachnoid_hemorrhage", "icd": "I60.9", "name": "Subarachnoid hemorrhage", "prior": 0.10},
+        {"disease": "brain_tumor", "icd": "C71.9", "name": "Brain neoplasm", "prior": 0.05},
+        {"disease": "other", "icd": "R29.8", "name": "Other neurological", "prior": 0.10},
+    ],
+    "vertebral_compression_fracture": [
+        {"disease": "vertebral_compression_fracture", "icd": "M80.08", "name": "Pathological vertebral fracture", "prior": 0.65},
+        {"disease": "spinal_metastasis", "icd": "C79.5", "name": "Spinal metastasis", "prior": 0.10},
+        {"disease": "disc_herniation", "icd": "M51.1", "name": "Disc herniation", "prior": 0.10},
+        {"disease": "other", "icd": "M54.5", "name": "Low back pain", "prior": 0.15},
+    ],
+    "deep_vein_thrombosis": [
+        {"disease": "deep_vein_thrombosis", "icd": "I80.20", "name": "DVT lower extremity", "prior": 0.55},
+        {"disease": "cellulitis", "icd": "L03.11", "name": "Cellulitis (mimic)", "prior": 0.15},
+        {"disease": "baker_cyst", "icd": "M71.20", "name": "Baker cyst rupture", "prior": 0.08},
+        {"disease": "muscle_strain", "icd": "S86.9", "name": "Muscle strain", "prior": 0.10},
+        {"disease": "other", "icd": "M79.6", "name": "Other limb pain", "prior": 0.12},
+    ],
 }
 
 # Diagnosis code progression (more specific as confidence grows)
@@ -289,6 +323,31 @@ DIAGNOSIS_PROGRESSION: dict[str, list[tuple[float, str, str]]] = {
         (0.0, "J69.0", "Pneumonitis due to food and vomit"),
         (0.7, "J69.0", "Aspiration pneumonia"),
         (0.9, "J69.0", "Aspiration pneumonia"),
+    ],
+    "influenza": [
+        (0.0, "J11.1", "Influenza, unspecified, with respiratory manifestations"),
+        (0.7, "J10.1", "Influenza due to identified virus"),
+        (0.9, "J10.0", "Influenza with pneumonia"),
+    ],
+    "asthma_exacerbation": [
+        (0.0, "J45.9", "Asthma, unspecified"),
+        (0.7, "J45.21", "Mild intermittent asthma with acute exacerbation"),
+        (0.9, "J45.41", "Moderate persistent asthma with acute exacerbation"),
+    ],
+    "hemorrhagic_stroke": [
+        (0.0, "I61.9", "Nontraumatic intracerebral hemorrhage, unspecified"),
+        (0.7, "I61.0", "Nontraumatic intracerebral hemorrhage, hemispheric"),
+        (0.9, "I61.0", "Hemorrhagic stroke, hemispheric"),
+    ],
+    "vertebral_compression_fracture": [
+        (0.0, "M48.50", "Collapsed vertebra, site unspecified"),
+        (0.7, "M80.08", "Age-related osteoporosis with pathological fracture"),
+        (0.9, "M80.08", "Osteoporotic vertebral compression fracture"),
+    ],
+    "deep_vein_thrombosis": [
+        (0.0, "I82.90", "Embolism and thrombosis of unspecified vein"),
+        (0.7, "I80.20", "Phlebitis and thrombophlebitis of lower extremity"),
+        (0.9, "I80.20", "Deep vein thrombosis, lower extremity"),
     ],
 }
 

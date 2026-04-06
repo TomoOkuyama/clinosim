@@ -1,0 +1,36 @@
+# Smoking Cessation — Outpatient visit protocol
+# Counseling and pharmacotherapy for tobacco cessation.
+
+condition_id: smoking_cessation
+chief_complaint: "Smoking cessation counseling, nicotine replacement"
+encounter_type: outpatient
+department: primary_care
+disposition: discharge_home
+
+visit_duration_minutes:
+  mean: 20
+  sd: 5
+
+workup:
+  vitals: true
+  labs: []
+
+treatment:
+  - {name: "Motivational interviewing / counseling", probability: 0.95, route: "N/A", intent: "behavioral support"}
+  - {name: "Fagerström assessment", probability: 0.7, route: "N/A", intent: "nicotine dependence evaluation"}
+
+followup_instructions:
+  - "Follow up in 2-4 weeks to assess progress"
+  - "Call quit-line (1-800-QUIT-NOW) for additional support"
+  - "Use nicotine replacement as prescribed; do not smoke while using patch"
+  - "Identify and plan for triggers and high-risk situations"
+
+prescriptions:
+  - {drug: "Nicotine patch 21mg/24hr", route: "transdermal", frequency: "daily", duration_days: 42, probability: 0.5}
+  - {drug: "Varenicline 1mg", route: "PO", frequency: "BID", duration_days: 84, probability: 0.3}
+
+incidence_modifier: 1.0
+probability: 0.04
+age_distribution: adults
+sex_ratio_female: 0.45
+seasonal: {1: 1.3, 2: 1.1, 3: 1.0, 4: 1.0, 5: 1.0, 6: 0.9, 7: 0.9, 8: 0.9, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}

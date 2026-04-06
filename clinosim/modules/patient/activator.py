@@ -56,6 +56,14 @@ CONDITION_NAMES = {
     "K74": "Cirrhosis of liver",
     "K70": "Alcoholic liver disease",
     "J69": "Aspiration pneumonia",
+    "J10": "Influenza",
+    "J11": "Influenza",
+    "J45": "Asthma",
+    "I61": "Intracerebral hemorrhage",
+    "M80": "Osteoporotic fracture",
+    "M48": "Vertebral collapse",
+    "I80": "Deep vein thrombosis",
+    "I82": "Venous thromboembolism",
 }
 
 

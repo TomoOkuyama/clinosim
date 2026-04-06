@@ -1,0 +1,770 @@
+# Vertebral Compression Fracture — Complete Reference Data
+# Sources cited per section. All rates are approximate and should be validated
+# against the most current published data before production use.
+
+disease_id: vertebral_compression_fracture
+chief_complaint: "Acute back pain after minimal trauma, worse with movement"
+department: internal_medicine
+encounter_type: medical
+requires_surgery: false
+readmission_eligible: true
+minimum_severity: null
+diagnostic_difficulty: 0.2   # Spine X-ray/MRI confirms; distinguishing acute vs. old and pathologic vs. osteoporotic takes more workup
+
+icd_codes:
+  primary: "M80.08"  # Age-related osteoporosis with current pathological fracture, vertebrae
+  variants:
+    - {code: "M80.08", name: "Osteoporosis with pathological fracture, vertebrae", probability: 0.50}
+    - {code: "M48.50", name: "Collapsed vertebra, not elsewhere classified, site unspecified", probability: 0.20}
+    - {code: "M84.48", name: "Pathological fracture, other site (vertebra)", probability: 0.10}
+    - {code: "S22.0", name: "Fracture of thoracic vertebra (traumatic)", probability: 0.10}
+    - {code: "S32.0", name: "Fracture of lumbar vertebra (traumatic)", probability: 0.10}
+
+# ============================================================
+# INCIDENCE (per 100,000 per year, by age band and sex)
+# Source: JP — 日本骨粗鬆症学会, 骨折リエゾン DB
+#         US — Burge et al. JBMR 2007, Ensrud et al.
+# Hospitalized VCF only (many treated outpatient)
+# ============================================================
+incidence:
+  japan:
+    "0-4":   {M: 0, F: 0}
+    "5-14":  {M: 0, F: 0}
+    "15-24": {M: 1, F: 1}
+    "25-34": {M: 2, F: 1}
+    "35-44": {M: 3, F: 2}
+    "45-54": {M: 5, F: 10}
+    "55-64": {M: 15, F: 40}
+    "65-74": {M: 40, F: 120}
+    "75-84": {M: 80, F: 300}
+    "85+":   {M: 150, F: 500}
+  us:
+    "0-4":   {M: 0, F: 0}
+    "5-14":  {M: 0, F: 0}
+    "15-24": {M: 1, F: 1}
+    "25-34": {M: 2, F: 1}
+    "35-44": {M: 3, F: 2}
+    "45-54": {M: 5, F: 8}
+    "55-64": {M: 12, F: 35}
+    "65-74": {M: 35, F: 100}
+    "75-84": {M: 70, F: 250}
+    "85+":   {M: 130, F: 450}
+
+  risk_multipliers:
+    - {condition: "M81", multiplier: 5.0}   # osteoporosis
+    - {condition: "F00", multiplier: 2.0}   # dementia (fall risk)
+    - {condition: "prior_vertebral_fracture", multiplier: 4.0}
+    - {condition: "chronic_steroid_use", multiplier: 3.0}
+    - {condition: "rheumatoid_arthritis", multiplier: 2.0}
+    - {condition: "CKD", multiplier: 1.5}
+    - {condition: "alcohol_heavy", multiplier: 1.5}
+    - {condition: "smoking_current", multiplier: 1.3}
+    - {condition: "hyperparathyroidism", multiplier: 2.5}
+    - {condition: "metastatic_cancer", multiplier: 5.0}
+
+  seasonal_curve:  # mild winter peak (falls on ice)
+    1: 1.2
+    2: 1.2
+    3: 1.1
+    4: 1.0
+    5: 0.9
+    6: 0.9
+    7: 0.9
+    8: 0.9
+    9: 0.9
+    10: 1.0
+    11: 1.0
+    12: 1.1
+
+  vaccine_protection: {}
+
+# ============================================================
+# SEVERITY DISTRIBUTION
+# ============================================================
+severity:
+  distribution:
+    mild: 0.35        # single level, stable, moderate pain
+    moderate: 0.50    # significant pain, functional limitation
+    severe: 0.15      # multiple levels, neurological deficit, or burst fracture
+  modifiers:
+    - {condition: "age_over_80", mild_multiplier: 0.7, severe_multiplier: 1.5}
+    - {condition: "multiple_levels", severe_multiplier: 2.0}
+    - {condition: "metastatic_cancer", severe_multiplier: 2.5}
+    - {condition: "neurological_deficit", severe_multiplier: 3.0}
+    - {condition: "chronic_steroid_use", moderate_multiplier: 1.3}
+
+# ============================================================
+# INITIAL PHYSIOLOGICAL STATE IMPACT
+# Key: pain-driven immobility, risk of DVT, deconditioning in elderly
+# ============================================================
+initial_state_impact:
+  mild:
+    inflammation_level: 0.08
+    volume_status: -0.03
+  moderate:
+    inflammation_level: 0.15
+    volume_status: -0.05
+    perfusion_status: -0.02
+  severe:
+    inflammation_level: 0.25
+    volume_status: -0.10
+    perfusion_status: -0.05
+    renal_function: -0.03
+
+# ============================================================
+# ORDER PROTOCOLS
+# ============================================================
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "CRP", urgency: "stat"}
+      - {test: "WBC", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "BUN", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Ca", urgency: "stat"}
+      - {test: "P", urgency: "stat"}
+      - {test: "ALP", urgency: "stat"}
+      - {test: "Albumin", urgency: "stat"}
+      - {test: "Vitamin_D_25OH", urgency: "routine", probability: 0.70}
+      - {test: "PTH", urgency: "routine", probability: 0.50}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "TRACP-5b", urgency: "routine", probability: 0.40}  # bone turnover marker (JP)
+      - {test: "P1NP", urgency: "routine", probability: 0.40}      # bone formation marker
+    imaging:
+      - {test: "Spine_Xray_AP_Lateral", urgency: "stat"}
+      - {test: "Spine_MRI", urgency: "urgent", probability: 0.80}  # differentiate acute vs. old, exclude tumor
+    supportive:
+      - {type: "bed_rest", detail: "Bed rest with gradual mobilization as pain allows"}
+      - {type: "IV_fluid", detail: "NS 60-80 mL/h"}
+      - {type: "DVT_prophylaxis", detail: "Enoxaparin 2000IU SC daily or pneumatic compression"}
+
+  daily_monitoring:
+    labs:
+      - {test: "CRP", frequency: "every_other_day"}
+      - {test: "Creatinine", frequency: "every_other_day"}
+    vitals:
+      stable: "q6h"
+      unstable: "q4h"
+    assessments:
+      - {test: "Pain_score_NRS", frequency: "TID"}
+      - {test: "ADL_assessment", frequency: "daily"}
+    imaging: []
+
+  trigger_orders:
+    pain_uncontrolled:
+      condition: "NRS pain score >= 7 despite multimodal analgesia for 48h"
+      actions:
+        - {type: "consult", target: "pain_management"}
+        - {type: "evaluate", action: "consider_vertebroplasty_or_kyphoplasty"}
+    neurological_deficit:
+      condition: "New or worsening lower extremity weakness or sensory loss"
+      actions:
+        - {type: "imaging", test: "Spine_MRI_urgent"}
+        - {type: "consult", target: "spine_surgery"}
+    malignancy_suspected:
+      condition: "MRI shows suspicious lesion or unexpected osteolysis"
+      actions:
+        - {type: "lab", test: "Protein_electrophoresis"}
+        - {type: "lab", test: "PSA_if_male"}
+        - {type: "imaging", test: "CT_chest_abdomen_pelvis"}
+        - {type: "consult", target: "oncology"}
+
+  discharge_criteria:
+    japan:
+      - "Pain controlled on oral analgesics (NRS <= 4)"
+      - "Able to transfer and ambulate with or without assistive device"
+      - "Bowel and bladder function intact"
+      - "Osteoporosis treatment plan established"
+      - "Fall prevention plan in place"
+      - "Follow-up imaging and orthopedic visit scheduled"
+    us:
+      - "Pain controlled on oral medications"
+      - "Able to mobilize safely (with PT clearance)"
+      - "No neurological deficit"
+      - "Safe discharge destination arranged"
+      - "Osteoporosis treatment initiated or planned"
+
+# ============================================================
+# LIKELIHOOD RATIO TABLE
+# Source: Old et al. Am Fam Physician 2004, Jarvik & Deyo NEJM 2002
+# ============================================================
+likelihood_ratios:
+  spine_xray_compression:
+    vertebral_compression_fracture: {positive_LR: 12.0, negative_LR: 0.2}
+    metastatic_spine_disease: {positive_LR: 2.0, negative_LR: 0.8}
+
+  mri_acute_bone_marrow_edema:
+    vertebral_compression_fracture: {positive_LR: 15.0, negative_LR: 0.1}
+    # MRI with STIR is gold standard for acute vs. chronic
+    metastatic_spine_disease: {positive_LR: 3.0, negative_LR: 0.6}
+
+  point_tenderness_over_spine:
+    vertebral_compression_fracture: {positive_LR: 3.0, negative_LR: 0.4}
+    muscle_strain: {positive_LR: 1.5, negative_LR: 0.8}
+
+  history_of_osteoporosis:
+    vertebral_compression_fracture: {positive_LR: 4.0, negative_LR: 0.5}
+
+  elevated_esr_or_crp:
+    vertebral_compression_fracture: {positive_LR: 0.8, negative_LR: 1.1}
+    spinal_infection: {positive_LR: 5.0, negative_LR: 0.3}
+    metastatic_spine_disease: {positive_LR: 2.5, negative_LR: 0.6}
+
+  age_over_70_female:
+    vertebral_compression_fracture: {positive_LR: 3.0, negative_LR: 0.5}
+
+# ============================================================
+# LAB REFERENCE RANGES
+# ============================================================
+expected_lab_distributions:
+  admission:
+    CRP:
+      unit: "mg/L"
+      median: 5
+      iqr: [2, 12]
+      range: [0, 40]
+      note: "mildly elevated from tissue injury"
+    WBC:
+      unit: "/uL"
+      median: 7500
+      iqr: [5500, 9500]
+      range: [4000, 14000]
+    Ca:
+      unit: "mg/dL"
+      median: 9.0
+      iqr: [8.5, 9.5]
+      range: [7.5, 11.0]
+      note: "check for hypercalcemia (malignancy) or low Ca (osteoporosis)"
+    ALP:
+      unit: "U/L"
+      median: 85
+      iqr: [60, 120]
+      range: [40, 300]
+      note: "elevated ALP may suggest bone turnover or Paget's"
+    Albumin:
+      unit: "g/dL"
+      median: 3.5
+      iqr: [3.1, 3.9]
+      range: [2.0, 4.5]
+    Vitamin_D_25OH:
+      unit: "ng/mL"
+      median: 18
+      iqr: [12, 25]
+      range: [5, 50]
+      note: "deficiency very common in VCF patients"
+    Creatinine:
+      unit: "mg/dL"
+      median: 0.8
+      iqr: [0.6, 1.1]
+      range: [0.4, 3.5]
+
+  discharge:
+    CRP:
+      unit: "mg/L"
+      median: 3
+      iqr: [1, 6]
+    Creatinine:
+      unit: "mg/dL"
+      median: 0.8
+      iqr: [0.6, 1.0]
+
+# ============================================================
+# VITAL SIGN DISTRIBUTIONS
+# ============================================================
+expected_vital_distributions:
+  admission:
+    temperature:
+      unit: "C"
+      mean: 36.6
+      sd: 0.3
+      range: [36.0, 37.5]
+    heart_rate:
+      unit: "bpm"
+      mean: 80
+      sd: 12
+      range: [55, 110]
+    systolic_bp:
+      unit: "mmHg"
+      mean: 135
+      sd: 20
+      range: [90, 180]
+    respiratory_rate:
+      unit: "/min"
+      mean: 16
+      sd: 2
+      range: [12, 22]
+    spo2:
+      unit: "%"
+      mean: 97
+      sd: 1
+      range: [93, 99]
+
+# ============================================================
+# TREATMENT — Drug selection data
+# Source: AACE/ACE Osteoporosis Guidelines 2020, JP 骨粗鬆症治療ガイドライン 2015
+# ============================================================
+drugs:
+  first_line:
+    japan:
+      - drug: "Acetaminophen"
+        code_yj: "1141001"
+        dose: "500mg PO q6h (max 4g/day)"
+        route: PO
+        note: "First-line analgesic"
+      - drug: "NSAID (Loxoprofen)"
+        code_yj: "1149001"
+        dose: "60mg PO TID"
+        route: PO
+        note: "Add if acetaminophen insufficient; limit duration for elderly"
+        renal_adjustment:
+          eGFR_below_30: "avoid"
+      - drug: "Elcatonin"
+        code_yj: "3999104"
+        dose: "20 units IM weekly"
+        route: IM
+        note: "Calcitonin for acute pain and bone loss"
+    us:
+      - drug: "Acetaminophen"
+        code_rxnorm: "161"
+        dose: "650mg PO q6h (max 3g/day)"
+        route: PO
+      - drug: "Calcitonin nasal spray"
+        code_rxnorm: "1799"
+        dose: "200IU intranasal daily"
+        route: nasal
+        note: "Analgesic effect in acute VCF"
+
+  pain_escalation:
+    japan:
+      - drug: "Tramadol"
+        code_yj: "1149501"
+        dose: "25-50mg PO q4-6h PRN"
+        route: PO
+        note: "For moderate pain unresponsive to NSAID"
+      - drug: "Pregabalin"
+        code_yj: "1190003"
+        dose: "75mg PO BID, titrate to 150mg BID"
+        route: PO
+        note: "For neuropathic component"
+        renal_adjustment:
+          eGFR_below_30: "25-75mg PO daily"
+    us:
+      - drug: "Tramadol"
+        code_rxnorm: "10689"
+        dose: "50mg PO q4-6h PRN"
+        route: PO
+      - drug: "Pregabalin"
+        code_rxnorm: "187832"
+        dose: "75mg PO BID"
+        route: PO
+        renal_adjustment:
+          eGFR_below_30: "25-75mg PO daily"
+
+  osteoporosis_treatment:
+    japan:
+      - drug: "Denosumab"
+        code_yj: "3999440"
+        dose: "60mg SC q6months"
+        route: SC
+        note: "Start during hospitalization"
+      - drug: "Alfacalcidol"
+        code_yj: "3112001"
+        dose: "1mcg PO daily"
+        route: PO
+      - drug: "Calcium carbonate"
+        code_yj: "3229001"
+        dose: "500mg PO BID"
+        route: PO
+    us:
+      - drug: "Alendronate"
+        code_rxnorm: "3164"
+        dose: "70mg PO weekly"
+        route: PO
+        note: "Start after acute pain subsides"
+      - drug: "Calcium carbonate + Vitamin D"
+        code_rxnorm: "215523"
+        dose: "600mg/400IU PO BID"
+        route: PO
+
+  alternative_penicillin_allergy:
+    japan: []
+    us: []
+
+  escalation:  # vertebroplasty/kyphoplasty consideration
+    japan:
+      - drug: "Vertebroplasty"
+        code_yj: "N/A"
+        dose: "Percutaneous vertebroplasty under fluoroscopy"
+        route: procedural
+        indication: "pain_refractory_to_conservative_treatment_4_weeks"
+    us:
+      - drug: "Kyphoplasty"
+        code_rxnorm: "N/A"
+        dose: "Balloon kyphoplasty under fluoroscopy"
+        route: procedural
+        indication: "pain_refractory_to_conservative_treatment_2_weeks"
+
+  discharge_oral:
+    japan:
+      - drug: "Acetaminophen"
+        code_yj: "1141001"
+        dose: "500mg PO TID PRN"
+        duration_days: 14
+      - drug: "Denosumab"
+        code_yj: "3999440"
+        dose: "60mg SC q6months"
+        note: "Continue osteoporosis treatment"
+      - drug: "Alfacalcidol"
+        code_yj: "3112001"
+        dose: "1mcg PO daily"
+    us:
+      - drug: "Acetaminophen"
+        code_rxnorm: "161"
+        dose: "650mg PO TID PRN"
+        duration_days: 14
+      - drug: "Alendronate"
+        code_rxnorm: "3164"
+        dose: "70mg PO weekly"
+
+# ============================================================
+# DRUG INTERACTIONS
+# ============================================================
+drug_interactions:
+  - drug_a: "Loxoprofen"
+    drug_b: "Warfarin"
+    severity: "major"
+    effect: "Increased bleeding risk"
+    action: "Avoid or monitor INR closely"
+
+  - drug_a: "Loxoprofen"
+    drug_b: "ACE_inhibitor"
+    severity: "moderate"
+    effect: "Reduced antihypertensive effect, increased renal risk"
+    action: "Monitor renal function and BP"
+
+  - drug_a: "Tramadol"
+    drug_b: "SSRI"
+    severity: "major"
+    effect: "Serotonin syndrome risk"
+    action: "Use with caution, monitor"
+
+  - drug_a: "Alendronate"
+    drug_b: "Calcium_supplements"
+    severity: "minor"
+    effect: "Calcium reduces bisphosphonate absorption"
+    action: "Take bisphosphonate 30min before calcium"
+
+# ============================================================
+# LAB ITEM REFERENCE RANGES
+# ============================================================
+reference_ranges:
+  CRP:
+    unit: "mg/L"
+    all: {low: 0, high: 3}
+  WBC:
+    unit: "/uL"
+    all: {low: 3500, high: 9500}
+  Hb:
+    unit: "g/dL"
+    male: {low: 13.5, high: 17.5}
+    female: {low: 11.5, high: 15.5}
+  Plt:
+    unit: "x10^3/uL"
+    all: {low: 150, high: 400}
+  Creatinine:
+    unit: "mg/dL"
+    male: {low: 0.6, high: 1.1}
+    female: {low: 0.4, high: 0.8}
+  BUN:
+    unit: "mg/dL"
+    all: {low: 8, high: 20}
+  Na:
+    unit: "mEq/L"
+    all: {low: 136, high: 145}
+  K:
+    unit: "mEq/L"
+    all: {low: 3.5, high: 5.0}
+  Ca:
+    unit: "mg/dL"
+    all: {low: 8.5, high: 10.5}
+  P:
+    unit: "mg/dL"
+    all: {low: 2.5, high: 4.5}
+  ALP:
+    unit: "U/L"
+    all: {low: 40, high: 120}
+  Albumin:
+    unit: "g/dL"
+    all: {low: 3.5, high: 5.0}
+  Vitamin_D_25OH:
+    unit: "ng/mL"
+    all: {low: 30, high: 100}
+    deficient: {low: 0, high: 20}
+    insufficient: {low: 20, high: 30}
+
+# ============================================================
+# TARGET LENGTH OF STAY
+# JP much longer due to in-hospital rehabilitation model
+# ============================================================
+target_los:
+  japan:
+    mild: {mean: 14, sd: 4, min: 7, max: 21}
+    moderate: {mean: 21, sd: 6, min: 12, max: 35}
+    severe: {mean: 30, sd: 8, min: 18, max: 50}
+  us:
+    mild: {mean: 3, sd: 1, min: 1, max: 5}
+    moderate: {mean: 4, sd: 2, min: 2, max: 7}
+    severe: {mean: 6, sd: 2, min: 3, max: 10}
+
+# ============================================================
+# OUTCOME BENCHMARKS
+# Source: Johnell & Kanis Osteoporos Int 2006, JP DPC data
+# ============================================================
+outcome_benchmarks:
+  japan:
+    median_los: 18
+    los_iqr: [12, 28]
+    in_hospital_mortality: 0.02
+    icu_transfer_rate: 0.01
+    thirty_day_readmission: 0.06
+    vertebroplasty_rate: 0.08
+    osteoporosis_treatment_initiation_rate: 0.65
+    mean_age_admitted: 79
+    male_ratio: 0.25
+    subsequent_fracture_1year_rate: 0.20
+
+  us:
+    median_los: 4
+    los_iqr: [2, 6]
+    in_hospital_mortality: 0.01
+    icu_transfer_rate: 0.01
+    thirty_day_readmission: 0.08
+    vertebroplasty_kyphoplasty_rate: 0.12
+    osteoporosis_treatment_initiation_rate: 0.40
+    mean_age_admitted: 77
+    male_ratio: 0.22
+    subsequent_fracture_1year_rate: 0.18
+
+# ============================================================
+# DIAGNOSTIC
+# ============================================================
+diagnostic:
+  diagnostic_difficulty: 0.2  # X-ray/MRI confirms; distinguishing cause takes more workup
+  differential:
+    - {disease: "vertebral_compression_fracture", icd: "M80.08", name: "Osteoporotic VCF", prior: 0.60}
+    - {disease: "muscle_strain", icd: "M54.5", name: "Low back pain / muscle strain", prior: 0.10}
+    - {disease: "metastatic_spine", icd: "C79.51", name: "Metastatic bone disease", prior: 0.08}
+    - {disease: "spinal_infection", icd: "M46.20", name: "Spinal osteomyelitis / discitis", prior: 0.05}
+    - {disease: "multiple_myeloma", icd: "C90.0", name: "Multiple myeloma", prior: 0.05}
+    - {disease: "disc_herniation", icd: "M51.16", name: "Lumbar disc herniation", prior: 0.07}
+    - {disease: "other", icd: "M54.9", name: "Other dorsalgia", prior: 0.05}
+
+# ============================================================
+# CLINICAL COURSE ARCHETYPES
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.45
+    description: "Pain controlled within days, gradual mobilization, discharge with osteoporosis plan"
+    trajectory:
+      inflammation_level: {0: 0.02, 1: -0.01, 2: -0.02, 3: -0.02, 5: -0.01, 7: -0.01, 14: -0.01, 21: 0.00}
+      volume_status: {0: 0.01, 1: 0.01, 2: 0.01, 3: 0.00, 5: 0.00, 7: 0.00, 14: 0.00, 21: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.20
+    description: "Pain worsens Day 2-3 (movement attempts), then gradually improves with adjusted regimen"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.02, 2: 0.01, 3: -0.01, 5: -0.02, 7: -0.02, 14: -0.01, 21: 0.00}
+      volume_status: {0: -0.02, 1: 0.00, 2: 0.01, 3: 0.01, 5: 0.00, 7: 0.00, 14: 0.00, 21: 0.00}
+    order_modifications:
+      day_3:
+        add_labs: ["CRP"]
+    treatment_modifications:
+      day_3:
+        add_medication: {drug: "Tramadol", dose: "50mg PO q6h PRN"}
+
+  plateau_then_recovery:
+    probability: 0.15
+    description: "Persistent pain for 1-2 weeks, slow mobilization, then gradual improvement"
+    trajectory:
+      inflammation_level: {0: 0.02, 1: 0.01, 2: 0.00, 3: 0.00, 5: 0.00, 7: -0.01, 14: -0.02, 21: -0.01, 28: -0.01}
+      volume_status: {0: 0.00, 1: 0.00, 2: 0.00, 3: 0.00, 5: 0.00, 7: 0.01, 14: 0.00, 21: 0.00, 28: 0.00}
+    order_modifications:
+      day_7:
+        add_imaging: ["Spine_Xray_repeat"]
+    treatment_modifications:
+      day_7:
+        add_consult: ["pain_management"]
+
+  treatment_resistant:
+    probability: 0.10
+    description: "Pain refractory to conservative management, vertebroplasty/kyphoplasty considered"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.02, 2: 0.01, 3: 0.01, 5: 0.00, 7: 0.00, 14: -0.02, 21: -0.03, 28: -0.02}
+      volume_status: {0: -0.02, 1: -0.01, 2: 0.00, 3: 0.00, 5: 0.01, 7: 0.01, 14: 0.00, 21: 0.00, 28: 0.00}
+    order_modifications:
+      day_7:
+        add_imaging: ["Spine_MRI_repeat"]
+        add_consult: ["pain_management", "interventional_radiology"]
+    treatment_modifications:
+      day_10:
+        start:
+          japan: [{procedure: "Vertebroplasty", detail: "Percutaneous vertebroplasty under fluoroscopy"}]
+          us: [{procedure: "Kyphoplasty", detail: "Balloon kyphoplasty under fluoroscopy"}]
+    triggers:
+      - day: 7
+        condition: "NRS pain >= 7 despite multimodal analgesia"
+        actions: ["pain_consult", "consider_vertebroplasty"]
+
+  gradual_deterioration:
+    probability: 0.07
+    description: "Immobility-related deconditioning, complications from bedrest in frail elderly"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.02, 2: 0.02, 3: 0.01, 5: 0.01, 7: 0.00, 14: 0.00, 21: -0.01, 28: -0.01}
+      volume_status: {0: -0.02, 1: -0.02, 2: -0.01, 3: -0.01, 5: 0.00, 7: 0.00, 14: 0.01, 21: 0.01, 28: 0.00}
+      renal_function: {0: -0.01, 1: -0.01, 2: -0.01, 3: 0.00, 5: 0.00, 7: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
+    order_modifications:
+      day_5:
+        add_labs: ["CRP", "Albumin", "Creatinine"]
+    treatment_modifications:
+      day_5:
+        add_consult: ["rehabilitation", "nutrition"]
+    triggers:
+      - day: 7
+        condition: "unable_to_mobilize"
+        actions: ["reassess_pain_management", "nutrition_optimization"]
+
+  sudden_deterioration:
+    probability: 0.03
+    description: "Acute complication — PE from DVT, or pathological fracture reveals malignancy"
+    trajectory:
+      inflammation_level: {0: 0.02, 1: 0.00, 2: 0.15, 3: 0.05, 5: -0.03, 7: -0.05, 14: -0.03, 21: -0.02, 28: -0.01}
+      perfusion_status: {0: 0.00, 1: 0.00, 2: -0.15, 3: -0.03, 5: 0.03, 7: 0.03, 14: 0.01, 21: 0.00, 28: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["D_dimer", "Troponin", "ABG"]
+        add_imaging: ["CT_angiography"]
+    treatment_modifications:
+      day_2:
+        start:
+          japan: [{drug: "Heparin IV", dose: "Start anticoagulation per PE protocol"}]
+          us: [{drug: "Heparin IV", dose: "80U/kg bolus then 18U/kg/h"}]
+    triggers:
+      - day: 2
+        condition: "acute_dyspnea_or_desaturation"
+        actions: ["rule_out_PE", "start_anticoagulation"]
+
+# Archetype selection modifiers
+archetype_modifiers:
+  - condition: "age >= 85"
+    effect: {gradual_deterioration: 0.05, smooth_recovery: -0.05}
+  - condition: "dementia"
+    effect: {gradual_deterioration: 0.05, plateau_then_recovery: 0.05, smooth_recovery: -0.10}
+  - condition: "obesity"
+    effect: {treatment_resistant: 0.05, smooth_recovery: -0.05}
+
+# ============================================================
+# COMPLICATIONS
+# ============================================================
+complications:
+  - name: "dvt"
+    description: "Deep vein thrombosis from prolonged bed rest"
+    probability_per_day: 0.008
+    onset_day_range: [3, 21]
+    risk_factors:
+      - {condition: "immobility_days > 3", multiplier: 2.5}
+      - {condition: "no_dvt_prophylaxis", multiplier: 3.0}
+      - {condition: "age_over_75", multiplier: 1.5}
+    state_impact:
+      coagulation_status: 0.05
+    detection:
+      test: "d_dimer_then_ultrasound"
+      finding: "dvt_confirmed"
+    actions: ["start_anticoagulation"]
+    cascade: ["pulmonary_embolism"]
+
+  - name: "pulmonary_embolism"
+    description: "PE from DVT embolization"
+    probability_given_parent: 0.10
+    parent_complication: "dvt"
+    onset_days_after_parent: [0, 7]
+    state_impact:
+      perfusion_status: -0.20
+      ph_status: -0.05
+    actions: ["ct_angiography", "anticoagulation", "consider_icu"]
+
+  - name: "urinary_tract_infection"
+    description: "UTI from immobility and possible catheterization"
+    probability_per_day: 0.006
+    onset_day_range: [3, 21]
+    risk_factors:
+      - {condition: "indwelling_catheter", multiplier: 4.0}
+      - {condition: "female", multiplier: 2.0}
+      - {condition: "age_over_75", multiplier: 1.5}
+    state_impact:
+      inflammation_level: 0.08
+    detection:
+      test: "urinalysis_and_culture"
+      finding: "pyuria_and_positive_culture"
+    actions: ["start_antibiotic", "remove_catheter_if_possible"]
+
+  - name: "constipation_ileus"
+    description: "Opioid-induced constipation or reduced motility from bed rest"
+    probability_per_day: 0.015
+    onset_day_range: [2, 14]
+    risk_factors:
+      - {condition: "opioid_use", multiplier: 3.0}
+      - {condition: "immobility", multiplier: 2.0}
+    state_impact: {}
+    detection:
+      test: "abdominal_xray"
+      finding: "dilated_loops_or_fecal_loading"
+    actions: ["bowel_regimen", "reduce_opioids", "mobilize"]
+
+  - name: "delirium"
+    description: "Hospital delirium in frail elderly"
+    probability_per_day: 0.012
+    onset_day_range: [1, 14]
+    risk_factors:
+      - {condition: "age_over_80", multiplier: 2.5}
+      - {condition: "dementia", multiplier: 3.0}
+      - {condition: "opioid_use", multiplier: 2.0}
+    state_impact: {}
+    detection:
+      test: "CAM_screening"
+      finding: "positive"
+    actions: ["reorientation", "reduce_opioids", "sleep_hygiene", "avoid_benzodiazepines"]
+
+  - name: "pressure_ulcer"
+    description: "Skin breakdown from prolonged bed rest"
+    probability_per_day: 0.005
+    onset_day_range: [5, 28]
+    risk_factors:
+      - {condition: "immobility", multiplier: 3.0}
+      - {condition: "malnutrition", multiplier: 2.5}
+      - {condition: "age_over_80", multiplier: 2.0}
+    state_impact:
+      inflammation_level: 0.03
+    detection:
+      test: "skin_assessment"
+      finding: "stage_2_or_higher_pressure_ulcer"
+    actions: ["pressure_redistribution", "wound_care", "nutrition_optimization"]
+
+  - name: "adjacent_vertebral_fracture"
+    description: "New fracture at adjacent level"
+    probability_per_day: 0.002
+    onset_day_range: [7, 60]
+    risk_factors:
+      - {condition: "prior_vertebroplasty", multiplier: 2.0}
+      - {condition: "severe_osteoporosis", multiplier: 3.0}
+    state_impact:
+      inflammation_level: 0.05
+    detection:
+      test: "spine_xray_or_mri"
+      finding: "new_compression_fracture"
+    actions: ["pain_management_restart", "reassess_osteoporosis_treatment"]

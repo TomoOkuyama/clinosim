@@ -1,0 +1,47 @@
+# Minor Burn — ED visit protocol
+# Partial thickness burn management. Wound care and pain control.
+
+condition_id: minor_burn
+chief_complaint: "Burn to hand/arm, partial thickness"
+encounter_type: emergency
+department: emergency_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.45
+  moderate: 0.40
+  severe: 0.15    # larger area or deeper burn concern
+
+ed_stay_hours:
+  mild: {mean: 1.5, sd: 0.5}
+  moderate: {mean: 2.5, sd: 1}
+  severe: {mean: 4, sd: 1.5}
+
+workup:
+  vitals: true
+  labs: []
+  imaging: []
+
+treatment:
+  - {name: "Cool water irrigation", probability: 0.8, route: "topical", intent: "initial burn care"}
+  - {name: "Silver sulfadiazine cream", probability: 0.6, route: "topical", intent: "antimicrobial wound care"}
+  - {name: "Non-adherent dressing", probability: 0.9, route: "topical", intent: "wound protection"}
+  - {name: "Ibuprofen 400mg", probability: 0.6, route: "PO", intent: "pain management"}
+  - {name: "Acetaminophen/codeine", probability: 0.2, route: "PO", intent: "pain management for moderate burns"}
+
+discharge_instructions:
+  - "Partial thickness burn — expected to heal in 10-14 days"
+  - "Change dressing daily; reapply topical cream"
+  - "Keep wound clean and covered"
+  - "Return if increasing redness beyond burn margin, fever, or foul-smelling drainage"
+  - "Follow up with PCP or burn clinic in 2-3 days"
+
+discharge_prescriptions:
+  - {drug: "Silver sulfadiazine 1% cream", route: "topical", frequency: "BID", duration_days: 14, probability: 0.6}
+  - {drug: "Ibuprofen 400mg", route: "PO", frequency: "Q6H PRN", duration_days: 7, probability: 0.5}
+
+incidence_modifier: 1.0
+probability: 0.03
+age_distribution: all_ages
+sex_ratio_female: 0.4
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.1, 7: 1.2, 8: 1.1, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}

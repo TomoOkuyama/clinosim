@@ -1,0 +1,46 @@
+# Vertigo — ED visit protocol
+# Peripheral vs central vertigo evaluation. Symptomatic treatment.
+
+condition_id: vertigo
+chief_complaint: "Dizziness, room spinning, nausea"
+encounter_type: emergency
+department: internal_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.35
+  moderate: 0.50
+  severe: 0.15    # central vertigo concern, requires imaging
+
+ed_stay_hours:
+  mild: {mean: 2, sd: 0.5}
+  moderate: {mean: 3, sd: 1}
+  severe: {mean: 5, sd: 1.5}
+
+workup:
+  vitals: true
+  labs:
+    - {test: "Glucose", probability: 0.3}
+  imaging:
+    - {test: "CT_Head", probability: 0.2}
+
+treatment:
+  - {name: "Meclizine 25mg", probability: 0.7, route: "PO", intent: "antivertiginous"}
+  - {name: "Ondansetron 4mg", probability: 0.5, route: "IV", intent: "antiemetic"}
+  - {name: "IV normal saline", probability: 0.3, route: "IV", intent: "hydration"}
+
+discharge_instructions:
+  - "Symptoms consistent with peripheral vertigo (likely BPPV)"
+  - "Follow up with PCP within 1 week; consider ENT referral if persistent"
+  - "Return if severe headache, weakness, vision changes, or difficulty walking"
+  - "Perform Epley maneuver at home as instructed"
+
+discharge_prescriptions:
+  - {drug: "Meclizine 25mg", route: "PO", frequency: "TID PRN", duration_days: 7, probability: 0.6}
+  - {drug: "Ondansetron 4mg ODT", route: "PO", frequency: "Q8H PRN", duration_days: 5, probability: 0.3}
+
+incidence_modifier: 1.0
+probability: 0.05
+age_distribution: adults
+sex_ratio_female: 0.6
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}

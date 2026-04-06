@@ -1,0 +1,44 @@
+# Foreign Body Ingestion — ED visit protocol
+# Accidental ingestion evaluation. Imaging and observation.
+
+condition_id: foreign_body_ingestion
+chief_complaint: "Accidental ingestion of foreign body"
+encounter_type: emergency
+department: emergency_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.50    # small blunt object, likely to pass
+  moderate: 0.35
+  severe: 0.15    # sharp object or esophageal impaction
+
+ed_stay_hours:
+  mild: {mean: 2, sd: 0.5}
+  moderate: {mean: 4, sd: 1}
+  severe: {mean: 6, sd: 2}
+
+workup:
+  vitals: true
+  labs: []
+  imaging:
+    - {test: "Xray_Abdomen", probability: 0.8}
+
+treatment:
+  - {name: "Observation and monitoring", probability: 0.8, route: "N/A", intent: "assess passage"}
+  - {name: "Endoscopy", probability: 0.15, route: "N/A", intent: "foreign body removal if impacted"}
+  - {name: "IV normal saline", probability: 0.2, route: "IV", intent: "hydration during observation"}
+
+discharge_instructions:
+  - "Foreign body expected to pass spontaneously within 2-5 days"
+  - "Monitor stools for passage of object"
+  - "Return immediately if abdominal pain, vomiting, bloody stool, or fever"
+  - "High-fiber diet encouraged to facilitate passage"
+  - "Follow up with PCP if object not passed within 5 days"
+
+discharge_prescriptions: []
+
+incidence_modifier: 1.0
+probability: 0.02
+age_distribution: all_ages
+sex_ratio_female: 0.5
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
