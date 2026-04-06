@@ -1,0 +1,47 @@
+# Concussion (Mild Traumatic Brain Injury) — ED visit protocol
+# Head injury with transient neurological symptoms. CT to rule out bleed, observe, discharge.
+
+condition_id: concussion
+chief_complaint: "Head injury, brief loss of consciousness, headache, confusion"
+encounter_type: emergency
+department: internal_medicine  # emergency medicine / neurology consult PRN
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.50    # GCS 15, no LOC or LOC < 30s, normal CT
+  moderate: 0.40 # GCS 14-15, LOC < 5min, CT obtained
+  severe: 0.10   # Prolonged symptoms, extended observation, possible admission
+
+ed_stay_hours:
+  mild: {mean: 3.0, sd: 0.8}
+  moderate: {mean: 4.5, sd: 1.0}
+  severe: {mean: 6.0, sd: 1.5}
+
+workup:
+  vitals: true
+  labs: []  # no routine labs for isolated concussion
+  imaging:
+    - {test: "CT_Head", probability: 0.7}  # Canadian CT Head Rule
+
+treatment:
+  - {name: "Neurological observation", probability: 1.0, route: "other", intent: "serial neuro checks q1h"}
+  - {name: "Acetaminophen 500mg", probability: 0.7, route: "PO", intent: "headache relief — avoid NSAIDs"}
+  - {name: "Ondansetron 4mg", probability: 0.3, route: "IV", intent: "anti-emetic for nausea"}
+  - {name: "IV normal saline", probability: 0.2, route: "IV", intent: "hydration if vomiting"}
+
+discharge_instructions:
+  - "Have a responsible adult stay with you for first 24 hours"
+  - "Return IMMEDIATELY if: worsening headache, repeated vomiting, seizures, confusion, weakness"
+  - "No driving, sports, or strenuous activity for at least 48 hours"
+  - "Follow stepwise return-to-activity protocol"
+  - "Avoid alcohol and sedating medications for 48 hours"
+  - "Follow up with primary care in 1-2 days"
+
+discharge_prescriptions:
+  - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 7, probability: 0.7}
+
+incidence_modifier: 1.0
+probability: 0.04  # relative frequency among ED visits
+age_distribution: all
+sex_ratio_female: 0.7  # more common in males (sports, accidents)
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.1, 6: 1.2, 7: 1.2, 8: 1.2, 9: 1.1, 10: 1.1, 11: 1.0, 12: 1.0}

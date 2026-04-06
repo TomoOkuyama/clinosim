@@ -220,6 +220,24 @@ DIFFERENTIALS: dict[str, list[dict]] = {
         {"disease": "muscle_strain", "icd": "S86.9", "name": "Muscle strain", "prior": 0.10},
         {"disease": "other", "icd": "M79.6", "name": "Other limb pain", "prior": 0.12},
     ],
+    "traffic_accident_severe": [
+        {"disease": "multiple_trauma", "icd": "T07", "name": "Multiple injuries", "prior": 0.50},
+        {"disease": "rib_fracture", "icd": "S22.4", "name": "Multiple rib fractures", "prior": 0.15},
+        {"disease": "spleen_laceration", "icd": "S36.0", "name": "Splenic laceration", "prior": 0.10},
+        {"disease": "pneumothorax", "icd": "S27.0", "name": "Traumatic pneumothorax", "prior": 0.08},
+        {"disease": "other", "icd": "T14.9", "name": "Injury, unspecified", "prior": 0.17},
+    ],
+    "wrist_fracture_surgical": [
+        {"disease": "distal_radius_fracture", "icd": "S52.50", "name": "Distal radius fracture", "prior": 0.75},
+        {"disease": "scaphoid_fracture", "icd": "S62.0", "name": "Scaphoid fracture", "prior": 0.10},
+        {"disease": "other", "icd": "S52.9", "name": "Other forearm fracture", "prior": 0.15},
+    ],
+    "subdural_hematoma": [
+        {"disease": "subdural_hematoma", "icd": "S06.5", "name": "Traumatic subdural hemorrhage", "prior": 0.60},
+        {"disease": "epidural_hematoma", "icd": "S06.4", "name": "Epidural hemorrhage", "prior": 0.10},
+        {"disease": "cerebral_contusion", "icd": "S06.3", "name": "Cerebral contusion", "prior": 0.15},
+        {"disease": "other", "icd": "S06.9", "name": "Other intracranial injury", "prior": 0.15},
+    ],
 }
 
 # Diagnosis code progression (more specific as confidence grows)

@@ -1,0 +1,202 @@
+# Wrist Fracture Surgical (Displaced Distal Radius ORIF) — Reference Data
+# Sources: AAOS, BOA, Japanese Orthopaedic Association guidelines
+
+disease_id: wrist_fracture_surgical
+chief_complaint: "Displaced distal radius fracture requiring ORIF"
+department: internal_medicine  # orthopedics
+encounter_type: surgical
+requires_surgery: true
+minimum_severity: moderate
+readmission_eligible: false  # Surgical — readmissions are complication-driven
+
+icd_codes:
+  primary: "S52.50"
+  variants:
+    - {code: "S52.50", name: "Fracture of lower end of radius, unspecified", probability: 0.50}
+    - {code: "S52.51", name: "Colles' fracture (displaced)", probability: 0.30}
+    - {code: "S52.52", name: "Smith's fracture", probability: 0.10}
+    - {code: "S52.59", name: "Other fracture of lower end of radius", probability: 0.10}
+
+incidence:
+  japan:
+    "0-44":  {M: 10, F: 5}
+    "45-54": {M: 8, F: 12}
+    "55-64": {M: 6, F: 20}
+    "65-74": {M: 8, F: 35}
+    "75-84": {M: 10, F: 50}
+    "85+":   {M: 8, F: 40}
+  risk_multipliers:
+    - {condition: "M81", multiplier: 3.0}     # Osteoporosis
+    - {condition: "E11.9", multiplier: 1.3}   # DM (neuropathy, fall risk)
+    - {condition: "G20", multiplier: 1.5}     # Parkinson's (fall risk)
+  seasonal_curve:
+    1: 1.3
+    2: 1.2
+    3: 1.0
+    4: 0.9
+    5: 0.9
+    6: 1.0
+    7: 1.1
+    8: 1.1
+    9: 1.0
+    10: 1.0
+    11: 1.1
+    12: 1.3
+  trigger_type: "trauma"
+  time_of_day_pattern: "daytime"
+
+severity:
+  distribution:
+    mild: 0.0       # surgical cases are by definition not mild
+    moderate: 0.75
+    severe: 0.25    # comminuted, intra-articular, polytrauma
+  modifiers:
+    - {condition: "age_over_75", severe_multiplier: 1.5}
+    - {condition: "osteoporosis", severe_multiplier: 1.3}
+    - {condition: "anticoagulant_use", severe_multiplier: 1.5}
+
+initial_state_impact:
+  moderate:
+    inflammation_level: 0.10
+    anemia_level: 0.02
+    volume_status: -0.05
+    perfusion_status: 0.0
+  severe:
+    inflammation_level: 0.15
+    anemia_level: 0.05
+    volume_status: -0.10
+    perfusion_status: -0.05
+
+presenting_symptoms:
+  - {name: "wrist_pain", probability: 1.0, severity_range: [0.7, 1.0]}
+  - {name: "wrist_swelling", probability: 1.0, severity_range: [0.6, 0.9]}
+  - {name: "wrist_deformity", probability: 0.70, severity_range: [0.5, 0.8]}
+  - {name: "limited_range_of_motion", probability: 0.95, severity_range: [0.8, 1.0]}
+
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "CRP", urgency: "stat"}
+      - {test: "WBC", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "PT_INR", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+    imaging:
+      - {test: "Wrist_Xray_AP_Lateral", urgency: "stat"}
+      - {test: "Wrist_CT", urgency: "urgent", note: "pre-op planning if comminuted"}
+    supportive:
+      - {type: "splint", detail: "Sugar-tong splint pending surgery"}
+      - {type: "pain_management", detail: "Acetaminophen 1000mg PO q6h + opioid PRN"}
+      - {type: "elevation", detail: "Elevate hand above heart level"}
+  daily_monitoring:
+    labs:
+      - {test: "CRP", frequency: "daily", note: "post-op infection monitoring"}
+      - {test: "Hb", frequency: "POD0 only"}
+    vitals:
+      stable: "q6h"
+      post_op_24h: "q4h"
+  discharge_criteria:
+    japan:
+      - "Pain controlled with oral analgesics"
+      - "Wound clean, no signs of infection"
+      - "Finger circulation and sensation intact"
+      - "Cast/splint properly fitted"
+      - "Rehab exercises instructed"
+    us:
+      - "Pain controlled on oral meds"
+      - "Neurovascular status intact"
+      - "Wound dry and clean"
+      - "Discharge instructions reviewed"
+
+drugs:
+  first_line:
+    japan:
+      - {drug: "Acetaminophen", dose: "1000mg PO q6h PRN", route: "PO"}
+      - {drug: "Cefazolin", dose: "1g IV", note: "pre-op prophylaxis single dose"}
+    us:
+      - {drug: "Acetaminophen", dose: "1000mg PO q6h PRN", route: "PO"}
+      - {drug: "Cefazolin", dose: "2g IV", note: "pre-op prophylaxis single dose"}
+  post_op:
+    japan:
+      - {drug: "Loxoprofen", dose: "60mg PO tid"}
+      - {drug: "Rebamipide", dose: "100mg PO tid", note: "gastric protection"}
+    us:
+      - {drug: "Oxycodone", dose: "5mg PO q4-6h PRN"}
+      - {drug: "Ibuprofen", dose: "400mg PO tid"}
+
+procedure:
+  type: "ORIF with volar locking plate"
+  procedure_code_jp: "K0462"   # 骨折観血的手術（前腕）
+  procedure_code_us: "25607"   # CPT: ORIF distal radius
+  typical_duration_minutes: {mean: 75, sd: 20, min: 45, max: 120}
+  anesthesia: "regional (brachial plexus block) or general"
+  estimated_blood_loss_ml: {mean: 50, sd: 30, min: 10, max: 150}
+  time_to_surgery:
+    japan: {mean_hours: 48, sd_hours: 24, note: "next available OR slot"}
+    us: {mean_hours: 24, sd_hours: 12, note: "often same day or next morning"}
+
+target_los:
+  japan:
+    moderate: {mean: 7, sd: 2, min: 5, max: 10}
+    severe: {mean: 10, sd: 3, min: 7, max: 14}
+  us:
+    moderate: {mean: 1, sd: 0.5, min: 0, max: 2}
+    severe: {mean: 2, sd: 1, min: 1, max: 4}
+
+rehabilitation:
+  start_day: 1   # POD 1 — finger exercises
+  sessions_per_day: 1
+  session_duration_minutes: 20
+  goals:
+    - "Active finger ROM by POD 1"
+    - "Gentle wrist ROM at 2 weeks (after suture removal)"
+    - "Progressive strengthening at 6 weeks"
+    - "Full function by 3-4 months"
+  fim_trajectory:
+    day_0: {motor: 75, cognitive: 35}
+    week_1: {motor: 78, cognitive: 35}
+    week_2: {motor: 82, cognitive: 35}
+    week_3: {motor: 85, cognitive: 35}
+    week_4: {motor: 88, cognitive: 35}
+
+diagnostic:
+  diagnostic_difficulty: 0.05  # X-ray/CT confirms immediately
+  differential:
+    - {disease: "wrist_fracture_surgical", icd: "S52.50", name: "Distal radius fracture", prior: 0.85}
+    - {disease: "scaphoid_fracture", icd: "S62.0", name: "Scaphoid fracture", prior: 0.08}
+    - {disease: "ulnar_styloid_fracture", icd: "S52.6", name: "Distal ulna fracture", prior: 0.05}
+    - {disease: "other", icd: "S63.0", name: "Wrist dislocation", prior: 0.02}
+  likelihood_ratios:
+    xray_fracture_confirmed:
+      wrist_fracture_surgical: {pos: 50.0, neg: 0.05}
+      scaphoid_fracture: {pos: 3.0, neg: 0.5}
+  confirmation_threshold: 0.95
+  diagnosis_progression:
+    wrist_fracture_surgical:
+      - [0.0, "S52.50", "Fracture of lower end of radius"]
+      - [0.5, "S52.50", "Displaced distal radius fracture"]
+      - [0.9, "S52.50", "Displaced distal radius fracture, ORIF completed"]
+
+outcome_benchmarks:
+  japan:
+    median_los: 7
+    in_hospital_mortality: 0.001
+    thirty_day_readmission: 0.03
+    surgical_site_infection_rate: 0.02
+    dvt_rate: 0.01
+    delirium_rate: 0.02
+    mean_age_admitted: 65
+    female_ratio: 0.65
+  us:
+    median_los: 1
+    in_hospital_mortality: 0.001
+    thirty_day_readmission: 0.04
+    surgical_site_infection_rate: 0.02
+    dvt_rate: 0.01
+    delirium_rate: 0.01
+    mean_age_admitted: 60
+    female_ratio: 0.60

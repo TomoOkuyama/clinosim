@@ -1,0 +1,53 @@
+# Minor Traffic Accident — ED visit protocol
+# MVC with no LOC, soft tissue injuries. Imaging to rule out fracture/hemorrhage.
+
+condition_id: traffic_accident_minor
+chief_complaint: "Motor vehicle accident, no loss of consciousness, neck/back pain"
+encounter_type: emergency
+department: internal_medicine  # emergency medicine where available
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.55    # Soft tissue only, minimal imaging
+  moderate: 0.35 # Cervical collar, full imaging workup
+  severe: 0.10   # Multiple contusions, extended observation
+
+ed_stay_hours:
+  mild: {mean: 3.0, sd: 0.8}
+  moderate: {mean: 4.0, sd: 1.0}
+  severe: {mean: 5.0, sd: 1.0}
+
+workup:
+  vitals: true
+  labs:
+    - {test: "WBC", probability: 0.3}
+    - {test: "Hb", probability: 0.3}
+  imaging:
+    - {test: "Cervical_Spine_Xray", probability: 0.8}
+    - {test: "CT_Head", probability: 0.3}
+    - {test: "Chest_Xray", probability: 0.4}
+
+treatment:
+  - {name: "Cervical collar application", probability: 0.6, route: "topical", intent: "c-spine precaution"}
+  - {name: "Ibuprofen 400mg", probability: 0.7, route: "PO", intent: "anti-inflammatory"}
+  - {name: "Acetaminophen 500mg", probability: 0.5, route: "PO"}
+  - {name: "Diclofenac gel", probability: 0.3, route: "topical", intent: "local pain relief"}
+  - {name: "Observation", probability: 0.4, route: "other", intent: "monitor for delayed symptoms"}
+
+discharge_instructions:
+  - "Monitor for worsening headache, dizziness, or vomiting — return immediately"
+  - "Wear cervical collar as directed for 1-2 weeks"
+  - "Avoid driving for 24-48 hours"
+  - "Follow up with primary care or orthopedics in 5-7 days"
+  - "Apply ice to painful areas for 20 min every 2-3 hours"
+
+discharge_prescriptions:
+  - {drug: "Ibuprofen 400mg", route: "PO", frequency: "tid", duration_days: 7, probability: 0.7}
+  - {drug: "Acetaminophen 500mg", route: "PO", frequency: "tid PRN", duration_days: 7, probability: 0.5}
+  - {drug: "Cyclobenzaprine 5mg", route: "PO", frequency: "tid PRN", duration_days: 5, probability: 0.3}
+
+incidence_modifier: 1.0
+probability: 0.05  # relative frequency among ED visits
+age_distribution: all
+sex_ratio_female: 0.9
+seasonal: {1: 1.1, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.1, 6: 1.2, 7: 1.3, 8: 1.3, 9: 1.1, 10: 1.0, 11: 1.0, 12: 1.2}

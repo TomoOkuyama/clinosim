@@ -238,6 +238,28 @@ disease_incidence:
     event_type: acute_disease_onset
     severity_beta: [2, 3]
     always_hospitalize: true
+  traffic_accident_severe:
+    # Severe MVA requiring hospitalization. Source: NHTSA
+    age_rates: {0: 5, 15: 15, 25: 20, 35: 15, 45: 12, 55: 10, 65: 12, 75: 15, 85: 10}
+    sex_ratio_female: 0.5  # young men predominate
+    event_type: trauma
+    severity_beta: [4, 3]
+    severity_minimum: 0.4
+    always_hospitalize: true
+  wrist_fracture_surgical:
+    age_rates: {0: 5, 15: 10, 25: 8, 35: 5, 45: 8, 55: 15, 65: 30, 75: 60, 85: 80}
+    sex_ratio_female: 2.0  # osteoporosis
+    event_type: trauma
+    severity_beta: [3, 3]
+    severity_minimum: 0.3
+    always_hospitalize: true
+  subdural_hematoma:
+    age_rates: {0: 1, 25: 2, 35: 3, 45: 5, 55: 8, 65: 15, 75: 30, 85: 50}
+    sex_ratio_female: 0.6
+    event_type: trauma
+    severity_beta: [4, 3]
+    severity_minimum: 0.4
+    always_hospitalize: true
 
 # Monthly seasonal modifiers (1.0 = baseline)
 seasonal_modifiers:
@@ -266,6 +288,9 @@ seasonal_modifiers:
   hemorrhagic_stroke: {1: 1.2, 2: 1.1, 3: 1.0, 4: 1.0, 5: 0.9, 6: 0.9, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.2}
   vertebral_compression_fracture: {1: 1.3, 2: 1.2, 3: 1.1, 4: 1.0, 5: 0.9, 6: 0.8, 7: 0.8, 8: 0.9, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.2}
   deep_vein_thrombosis: {1: 1.1, 2: 1.1, 3: 1.0, 4: 1.0, 5: 1.0, 6: 0.9, 7: 0.9, 8: 0.9, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.1}
+  traffic_accident_severe: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.1, 6: 1.2, 7: 1.3, 8: 1.3, 9: 1.1, 10: 1.0, 11: 1.0, 12: 1.1}
+  wrist_fracture_surgical: {1: 1.2, 2: 1.1, 3: 1.0, 4: 1.0, 5: 1.0, 6: 0.9, 7: 0.9, 8: 0.9, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.2}
+  subdural_hematoma: {1: 1.1, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.1}
 
 # Risk multipliers: chronic condition -> disease risk increase
 disease_risk_multipliers:
@@ -294,6 +319,9 @@ disease_risk_multipliers:
   hemorrhagic_stroke: {I10: 3.0, I48: 1.5}
   vertebral_compression_fracture: {M81: 5.0, F00: 2.0, G20: 1.5}
   deep_vein_thrombosis: {I50: 1.5, M17: 2.0, I48: 1.3}
+  traffic_accident_severe: {}
+  wrist_fracture_surgical: {M81: 3.0}
+  subdural_hematoma: {I48: 2.0, F00: 2.5}
 
 # Unknown conditions (~3-5% of admissions start as unknown)
 unknown_conditions:
