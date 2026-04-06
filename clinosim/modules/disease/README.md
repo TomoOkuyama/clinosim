@@ -287,25 +287,35 @@ disease_incidence:
 Also add seasonal modifiers and risk multipliers in the same file.
 The population engine auto-discovers all diseases in `disease_incidence` — **no code changes needed**.
 
-### Step 4: Test
+### Step 4: Test with debug output
 
 ```bash
-# Verify YAML loads without error
-source .venv/bin/activate && python -c "
-from clinosim.modules.disease.protocol import load_disease_protocol
-p = load_disease_protocol('your_disease_id')
-print(f'Loaded: {p.disease_id}')
-print(f'Archetypes: {list(p.course_archetypes.keys())}')
-print(f'Complications: {len(p.complications)}')
-"
+# Quick test: simulate 1 patient with detailed debug output
+clinosim test-disease your_disease_id -n 1 --severity moderate
 
-# Run full test suite
-python -m pytest tests/ -q
+# Test specific archetype
+clinosim test-disease your_disease_id -n 1 --severity severe --archetype treatment_resistant
+
+# Test with JP settings
+clinosim test-disease your_disease_id -n 3 --country JP
+
+# Verify it appears in the disease list
+clinosim list-diseases
+
+# Run full quality validation
+clinosim validate -p 3000
 ```
 
-### Step 5: Generate test data for this disease only
+The `test-disease` command shows detailed output for each patient:
+- Demographics, chronic conditions
+- Ward/bed, LOS, deceased status
+- All orders (labs/imaging/medication/diet) with counts
+- Lab results with values, units, flags
+- Vitals with pain score and nursing notes
+- Medication administration records
+- Complications, ADL trajectory, I/O balance
 
-Use `run_forced()` to generate data for your specific disease and archetype, without running the full population simulation.
+### Step 5: Generate multi-patient data for analysis
 
 ```python
 source .venv/bin/activate && python -c "
