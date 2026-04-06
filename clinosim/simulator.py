@@ -37,7 +37,7 @@ from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.healthcare_system.loader import load_healthcare_config
 from clinosim.modules.observation.engine import determine_flag, generate_lab_result, get_lab_unit
 from clinosim.modules.order.engine import (
-    calculate_lab_result_time,
+    calculate_result_time_from_state,
     place_admission_orders,
     place_daily_lab_orders,
 )
@@ -98,6 +98,11 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
     protocols = _load_all_disease_protocols()
     roster = generate_roster(config.hospital_scale, config.country, rng)
 
+    # Hospital operational state
+    from clinosim.modules.facility.hospital_state import HospitalState, load_hospital_operations
+    hospital_ops = load_hospital_operations()
+    hospital_state = HospitalState()
+
     # Generate population
     population = generate_population(config.catchment_population, config.country, rng)
     print(f"  Population: {population.total_persons} persons")
@@ -157,6 +162,8 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
             is_readmission=event.is_readmission,
             prior_encounter_id=event.prior_encounter_id,
             readmission_number=event.readmission_number,
+            hospital_state=hospital_state,
+            hospital_ops=hospital_ops,
         )
         patient_records.append(record)
         _deactivate_to_layer1(person, record, disease_id)
@@ -205,6 +212,8 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
             is_readmission=True,
             prior_encounter_id=re_event.prior_encounter_id,
             readmission_number=re_event.readmission_number,
+            hospital_state=hospital_state,
+            hospital_ops=hospital_ops,
         )
         patient_records.append(record)
         _deactivate_to_layer1(person, record, re_event.disease_id)
@@ -353,6 +362,8 @@ def _simulate_patient(
     is_readmission: bool = False,
     prior_encounter_id: str | None = None,
     readmission_number: int = 0,
+    hospital_state: Any = None,
+    hospital_ops: dict | None = None,
 ) -> CIFPatientRecord:
     """Simulate one patient's complete hospital encounter.
 
@@ -489,6 +500,8 @@ def _simulate_patient(
         chronic_monitoring=chronic_monitoring,
         country_key=country_key,
         min_los=protocol_min_los,
+        hospital_state=hospital_state,
+        hospital_ops=hospital_ops,
     )
 
     # Unpack results
@@ -592,6 +605,8 @@ def _run_daily_loop(
     chronic_monitoring: list[dict] | None = None,
     country_key: str = "japan",
     min_los: int = 3,
+    hospital_state: Any = None,
+    hospital_ops: dict | None = None,
 ) -> dict:
     """Run the day-by-day simulation loop. Returns all generated data."""
 
@@ -707,7 +722,7 @@ def _run_daily_loop(
                     continue  # specimen lost/rejected
                 if order.display_name in ("K", "LDH") and rng.random() < 0.03:
                     # Hemolyzed sample → falsely elevated K/LDH, flagged
-                    result_time = calculate_lab_result_time(order, rng)
+                    result_time = calculate_result_time_from_state(order, hospital_state, hospital_ops or {}, rng)
                     hemolyzed_val = true_labs[order.display_name] * float(rng.uniform(1.2, 1.8))
                     lab_tech = assign_staff("lab_result", "", roster, rng).get("performing_technician", "TECH-001")
                     order.result = OrderResult(
@@ -719,7 +734,7 @@ def _run_daily_loop(
                     all_lab_results.append(order.result)
                     continue
 
-                result_time = calculate_lab_result_time(order, rng)
+                result_time = calculate_result_time_from_state(order, hospital_state, hospital_ops or {}, rng)
                 observed = generate_lab_result(order.display_name, true_labs[order.display_name], rng)
                 flag = determine_flag(order.display_name, observed, sex=patient.sex)
                 lab_tech = assign_staff("lab_result", "", roster, rng).get("performing_technician", "TECH-001")
@@ -2136,7 +2151,7 @@ def _simulate_unknown_condition(
         true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes)
         for order in all_orders:
             if order.order_type.value == "lab" and order.status == OrderStatus.PLACED and order.display_name in true_labs:
-                result_time = calculate_lab_result_time(order, rng)
+                result_time = calculate_result_time_from_state(order, None, {}, rng)  # unknown condition: no hospital state
                 observed = generate_lab_result(order.display_name, true_labs[order.display_name], rng)
                 flag = determine_flag(order.display_name, observed, sex=patient.sex)
                 tech_id = assign_staff("lab_result", "", roster, rng).get("performing_technician", "TECH-001")
