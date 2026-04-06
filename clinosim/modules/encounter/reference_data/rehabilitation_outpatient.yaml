@@ -1,0 +1,36 @@
+# Rehabilitation Outpatient — Outpatient visit protocol
+# Physical/occupational therapy session.
+
+condition_id: rehabilitation_outpatient
+chief_complaint: "Physical/occupational therapy session"
+encounter_type: outpatient
+department: rehabilitation
+disposition: discharge_home
+
+visit_duration_minutes:
+  mean: 60
+  sd: 15
+
+workup:
+  vitals: true
+  labs: []
+
+treatment:
+  - {name: "Supervised therapeutic exercises", probability: 0.9, route: "N/A", intent: "strength and mobility"}
+  - {name: "Gait training", probability: 0.6, route: "N/A", intent: "ambulation improvement"}
+  - {name: "Range of motion exercises", probability: 0.7, route: "N/A", intent: "joint flexibility"}
+  - {name: "Modalities (heat/cold/TENS)", probability: 0.4, route: "topical", intent: "pain management"}
+
+followup_instructions:
+  - "Continue home exercise program as instructed"
+  - "Next session per regular schedule (typically 2-3x/week)"
+  - "Report increased pain or new symptoms to therapist"
+  - "Progress to next phase when goals are met"
+
+prescriptions: []
+
+incidence_modifier: 1.0
+probability: 0.06
+age_distribution: adults
+sex_ratio_female: 0.55
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}

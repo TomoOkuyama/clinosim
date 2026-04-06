@@ -1,0 +1,48 @@
+# Elderly Fall — ED visit protocol
+# Fall evaluation. Rule out fracture, head injury, and underlying cause.
+
+condition_id: elderly_fall
+chief_complaint: "Fall at home, no loss of consciousness"
+encounter_type: emergency
+department: emergency_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.35
+  moderate: 0.45
+  severe: 0.20    # suspected fracture or head injury
+
+ed_stay_hours:
+  mild: {mean: 3, sd: 1}
+  moderate: {mean: 4, sd: 1.5}
+  severe: {mean: 6, sd: 2}
+
+workup:
+  vitals: true
+  labs:
+    - {test: "WBC", probability: 0.3}
+    - {test: "Creatinine", probability: 0.3}
+  imaging:
+    - {test: "Xray_Affected_Area", probability: 0.7}
+    - {test: "CT_Head", probability: 0.3}
+
+treatment:
+  - {name: "Acetaminophen 1000mg", probability: 0.6, route: "PO", intent: "pain management"}
+  - {name: "IV normal saline", probability: 0.3, route: "IV", intent: "hydration"}
+  - {name: "Ice pack to affected area", probability: 0.4, route: "topical", intent: "swelling reduction"}
+
+discharge_instructions:
+  - "No fracture identified on imaging; soft tissue injury"
+  - "Follow up with PCP within 1 week"
+  - "Return if worsening pain, inability to bear weight, confusion, or persistent headache"
+  - "Home safety assessment recommended — remove tripping hazards"
+  - "Review medications that may contribute to falls (sedatives, antihypertensives)"
+
+discharge_prescriptions:
+  - {drug: "Acetaminophen 500mg", route: "PO", frequency: "Q6H PRN", duration_days: 7, probability: 0.5}
+
+incidence_modifier: 1.0
+probability: 0.06
+age_distribution: elderly  # predominantly 65+
+sex_ratio_female: 0.6
+seasonal: {1: 1.1, 2: 1.1, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.1}

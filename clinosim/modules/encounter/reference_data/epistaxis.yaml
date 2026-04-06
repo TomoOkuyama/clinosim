@@ -1,0 +1,43 @@
+# Epistaxis — ED visit protocol
+# Nosebleed management. Assess coagulopathy, nasal packing if needed.
+
+condition_id: epistaxis
+chief_complaint: "Nosebleed, unable to stop with pressure"
+encounter_type: emergency
+department: emergency_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.40
+  moderate: 0.45
+  severe: 0.15    # posterior bleed, requires packing or ENT consult
+
+ed_stay_hours:
+  mild: {mean: 1.5, sd: 0.5}
+  moderate: {mean: 3, sd: 1}
+  severe: {mean: 5, sd: 1.5}
+
+workup:
+  vitals: true
+  labs:
+    - {test: "PT_INR", probability: 0.5}
+    - {test: "Hb", probability: 0.4}
+
+treatment:
+  - {name: "Nasal packing (anterior)", probability: 0.5, route: "topical", intent: "hemostasis"}
+  - {name: "Silver nitrate cauterization", probability: 0.3, route: "topical", intent: "hemostasis"}
+  - {name: "Oxymetazoline nasal spray", probability: 0.4, route: "nasal", intent: "vasoconstriction"}
+
+discharge_instructions:
+  - "Bleeding controlled with packing/cauterization"
+  - "Keep head elevated, avoid nose blowing for 48 hours"
+  - "Return if bleeding recurs and cannot be controlled with 15 minutes of direct pressure"
+  - "Follow up with ENT if recurrent episodes"
+
+discharge_prescriptions: []
+
+incidence_modifier: 1.0
+probability: 0.04
+age_distribution: adults
+sex_ratio_female: 0.45
+seasonal: {1: 1.2, 2: 1.2, 3: 1.0, 4: 1.0, 5: 1.0, 6: 0.9, 7: 0.9, 8: 0.9, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.2}

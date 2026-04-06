@@ -1,0 +1,45 @@
+# Mild Asthma Attack — ED visit protocol
+# Bronchospasm management. Nebulized bronchodilator and steroid.
+
+condition_id: asthma_attack_mild
+chief_complaint: "Wheezing, dyspnea, chest tightness"
+encounter_type: emergency
+department: emergency_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.50
+  moderate: 0.40
+  severe: 0.10    # incomplete response, extended observation
+
+ed_stay_hours:
+  mild: {mean: 2, sd: 0.5}
+  moderate: {mean: 3, sd: 1}
+  severe: {mean: 5, sd: 1.5}
+
+workup:
+  vitals: true
+  labs: []
+  imaging: []
+
+treatment:
+  - {name: "Nebulized salbutamol 2.5mg", probability: 0.95, route: "INH", intent: "bronchodilation"}
+  - {name: "Ipratropium bromide 0.5mg nebulized", probability: 0.4, route: "INH", intent: "bronchodilation"}
+  - {name: "Prednisolone 40mg", probability: 0.7, route: "PO", intent: "anti-inflammatory"}
+
+discharge_instructions:
+  - "Good response to bronchodilator therapy"
+  - "Continue rescue inhaler as needed"
+  - "Complete steroid course as prescribed"
+  - "Follow up with PCP or pulmonologist within 1 week"
+  - "Return if worsening dyspnea, inability to speak in full sentences, or no relief from inhaler"
+
+discharge_prescriptions:
+  - {drug: "Prednisone 40mg", route: "PO", frequency: "daily", duration_days: 5, probability: 0.7}
+  - {drug: "Albuterol MDI", route: "INH", frequency: "Q4-6H PRN", duration_days: 30, probability: 0.5}
+
+incidence_modifier: 1.0
+probability: 0.05
+age_distribution: adults
+sex_ratio_female: 0.55
+seasonal: {1: 1.3, 2: 1.2, 3: 1.0, 4: 0.9, 5: 0.8, 6: 0.8, 7: 0.8, 8: 0.9, 9: 1.0, 10: 1.1, 11: 1.2, 12: 1.3}

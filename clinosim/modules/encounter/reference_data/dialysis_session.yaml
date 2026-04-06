@@ -1,0 +1,42 @@
+# Dialysis Session — Outpatient visit protocol
+# Scheduled hemodialysis with pre/post vitals and lab monitoring.
+
+condition_id: dialysis_session
+chief_complaint: "Scheduled hemodialysis session"
+encounter_type: outpatient
+department: nephrology
+disposition: discharge_home
+
+visit_duration_minutes:
+  mean: 240
+  sd: 30
+
+workup:
+  vitals: true   # before and after dialysis
+  vitals_pre_and_post: true
+  labs:
+    - {test: "K", probability: 0.9}
+    - {test: "BUN", probability: 0.9}
+    - {test: "Creatinine", probability: 0.9}
+    - {test: "Hb", probability: 0.5}
+
+treatment:
+  - {name: "Hemodialysis 4-hour session", probability: 1.0, route: "extracorporeal", intent: "renal replacement therapy"}
+  - {name: "Heparin anticoagulation", probability: 0.7, route: "IV", intent: "circuit anticoagulation"}
+  - {name: "EPO (epoetin alfa)", probability: 0.3, route: "IV", intent: "anemia management"}
+
+followup_instructions:
+  - "Next dialysis session per regular schedule (typically 3x/week)"
+  - "Maintain fluid and dietary restrictions between sessions"
+  - "Monitor daily weight; report gain >2kg between sessions"
+  - "Report symptoms: dyspnea, chest pain, severe fatigue"
+
+prescriptions:
+  - {drug: "Sevelamer 800mg", route: "PO", frequency: "TID with meals", duration_days: 30, probability: 0.4}
+  - {drug: "Calcitriol 0.25mcg", route: "PO", frequency: "daily", duration_days: 30, probability: 0.3}
+
+incidence_modifier: 1.0
+probability: 0.05
+age_distribution: adults
+sex_ratio_female: 0.45
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}

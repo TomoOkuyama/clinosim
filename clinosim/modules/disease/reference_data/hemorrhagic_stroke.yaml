@@ -1,0 +1,802 @@
+# Hemorrhagic Stroke (Intracerebral Hemorrhage) — Complete Reference Data
+# Sources cited per section. All rates are approximate and should be validated
+# against the most current published data before production use.
+
+disease_id: hemorrhagic_stroke
+chief_complaint: "Sudden severe headache, vomiting, altered consciousness"
+department: internal_medicine
+encounter_type: medical
+requires_surgery: false
+readmission_eligible: true
+minimum_severity: moderate
+diagnostic_difficulty: 0.15   # CT confirms ICH immediately; underlying cause evaluation takes longer
+
+icd_codes:
+  primary: "I61.9"  # Nontraumatic intracerebral hemorrhage, unspecified
+  variants:
+    - {code: "I61.0", name: "Nontraumatic ICH in hemisphere, subcortical", probability: 0.35}
+    - {code: "I61.1", name: "Nontraumatic ICH in hemisphere, cortical", probability: 0.20}
+    - {code: "I61.3", name: "Nontraumatic ICH in brain stem", probability: 0.10}
+    - {code: "I61.4", name: "Nontraumatic ICH in cerebellum", probability: 0.10}
+    - {code: "I61.5", name: "Nontraumatic ICH, intraventricular", probability: 0.10}
+    - {code: "I61.9", name: "Nontraumatic ICH, unspecified", probability: 0.15}
+
+# ============================================================
+# INCIDENCE (per 100,000 per year, by age band and sex)
+# Source: JP — 脳卒中データバンク, 患者調査
+#         US — Flaherty et al. Neurology 2006, AHA Heart Disease & Stroke Statistics
+# ============================================================
+incidence:
+  japan:
+    "0-4":   {M: 1, F: 1}
+    "5-14":  {M: 1, F: 1}
+    "15-24": {M: 2, F: 2}
+    "25-34": {M: 5, F: 3}
+    "35-44": {M: 15, F: 8}
+    "45-54": {M: 40, F: 25}
+    "55-64": {M: 80, F: 50}
+    "65-74": {M: 150, F: 100}
+    "75-84": {M: 300, F: 250}
+    "85+":   {M: 500, F: 450}
+  us:
+    "0-4":   {M: 1, F: 1}
+    "5-14":  {M: 1, F: 1}
+    "15-24": {M: 2, F: 2}
+    "25-34": {M: 4, F: 3}
+    "35-44": {M: 12, F: 7}
+    "45-54": {M: 35, F: 20}
+    "55-64": {M: 65, F: 40}
+    "65-74": {M: 120, F: 85}
+    "75-84": {M: 250, F: 200}
+    "85+":   {M: 400, F: 380}
+
+  risk_multipliers:
+    - {condition: "hypertension", multiplier: 4.0}
+    - {condition: "anticoagulant_use", multiplier: 5.0}
+    - {condition: "antiplatelet_use", multiplier: 1.5}
+    - {condition: "alcohol_heavy", multiplier: 2.0}
+    - {condition: "cerebral_amyloid_angiopathy", multiplier: 3.0}
+    - {condition: "liver_cirrhosis", multiplier: 2.5}
+    - {condition: "CKD", multiplier: 1.8}
+    - {condition: "smoking_current", multiplier: 1.5}
+    - {condition: "cocaine_use", multiplier: 6.0}
+
+  seasonal_curve:  # mild winter peak (BP elevations)
+    1: 1.2
+    2: 1.2
+    3: 1.1
+    4: 1.0
+    5: 0.9
+    6: 0.9
+    7: 0.9
+    8: 0.9
+    9: 1.0
+    10: 1.0
+    11: 1.1
+    12: 1.2
+
+  vaccine_protection: {}
+
+# ============================================================
+# SEVERITY DISTRIBUTION
+# Source: ICH Score (Hemphill et al. Stroke 2001), JP stroke registry
+# ============================================================
+severity:
+  distribution:
+    mild: 0.00        # all ICH patients are at least moderate — not discharged from ED
+    moderate: 0.55    # small-medium hematoma, GCS 13-15
+    severe: 0.45      # large hematoma, GCS <=12, IVH, or brainstem
+  modifiers:
+    - {condition: "anticoagulant_use", severe_multiplier: 2.0}
+    - {condition: "age_over_75", severe_multiplier: 1.5}
+    - {condition: "hypertension_uncontrolled", severe_multiplier: 1.5}
+    - {condition: "intraventricular_hemorrhage", severe_multiplier: 2.5}
+
+# ============================================================
+# INITIAL PHYSIOLOGICAL STATE IMPACT
+# Key pathophysiology: acute brain injury, hypertensive response,
+# raised ICP, secondary brain edema, risk of herniation
+# ============================================================
+initial_state_impact:
+  moderate:
+    inflammation_level: 0.20
+    perfusion_status: -0.10
+    neurological_status: -0.30
+    volume_status: -0.05
+  severe:
+    inflammation_level: 0.35
+    perfusion_status: -0.25
+    neurological_status: -0.60
+    volume_status: -0.10
+    ph_status: -0.05
+    renal_function: -0.05
+
+# ============================================================
+# ORDER PROTOCOLS
+# ============================================================
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "CBC", urgency: "stat"}
+      - {test: "PT_INR", urgency: "stat"}
+      - {test: "aPTT", urgency: "stat"}
+      - {test: "Fibrinogen", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "BUN", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "Troponin", urgency: "stat", probability: 0.60}
+      - {test: "CRP", urgency: "stat"}
+      - {test: "Type_and_Screen", urgency: "stat"}
+      - {test: "Liver_function", urgency: "stat", probability: 0.70}
+    imaging:
+      - {test: "CT_Head_NonContrast", urgency: "stat"}
+      - {test: "CT_Angiography_Head", urgency: "stat", probability: 0.70}  # spot sign for expansion risk
+    consults:
+      - {service: "neurosurgery", urgency: "stat"}
+      - {service: "neurology", urgency: "stat", probability: 0.80}
+    supportive:
+      - {type: "IV_fluid", detail: "NS 80 mL/h"}
+      - {type: "BP_management", detail: "Target SBP < 140 mmHg per AHA/ASA guidelines"}
+      - {type: "DVT_prophylaxis", detail: "Pneumatic compression devices (SCDs) — delay pharmacologic prophylaxis 24-48h"}
+      - {type: "NPO", detail: "NPO until swallowing assessment"}
+      - {type: "head_elevation", detail: "HOB 30 degrees"}
+      - {type: "seizure_prophylaxis", detail: "Not routine; only if seizure occurs", probability: 0.20}
+
+  daily_monitoring:
+    labs:
+      - {test: "CBC", frequency: "daily"}
+      - {test: "PT_INR", frequency: "daily_if_on_anticoagulant"}
+      - {test: "Creatinine", frequency: "daily"}
+      - {test: "Na", frequency: "daily"}
+      - {test: "Glucose", frequency: "q6h"}
+    vitals:
+      stable: "q1h for 24h then q2h"
+      unstable: "q15min"
+    neurological:
+      - {test: "GCS", frequency: "q1h for 24h then q2h"}
+      - {test: "Pupil_check", frequency: "q1h for 24h then q2h"}
+      - {test: "NIHSS", frequency: "q4h", probability: 0.70}
+    imaging:
+      - {test: "CT_Head_repeat", frequency: "6-24h", condition: "neurological deterioration or routine 24h follow-up"}
+
+  trigger_orders:
+    neurological_deterioration:
+      condition: "GCS drop >= 2 points from baseline"
+      actions:
+        - {type: "imaging", test: "CT_Head_stat"}
+        - {type: "consult", target: "neurosurgery_stat"}
+        - {type: "evaluate", action: "consider_surgical_evacuation"}
+        - {type: "medication", action: "osmotic_therapy_mannitol_or_hypertonic_saline"}
+    hematoma_expansion:
+      condition: "Repeat CT shows > 33% volume increase or > 6mL growth"
+      actions:
+        - {type: "consult", target: "neurosurgery_stat"}
+        - {type: "medication", action: "reverse_anticoagulation_if_applicable"}
+        - {type: "evaluate", action: "surgical_evacuation_vs_EVD"}
+    sbp_over_180:
+      condition: "SBP > 180 mmHg despite initial treatment"
+      actions:
+        - {type: "medication", action: "IV_nicardipine_or_labetalol_infusion"}
+    seizure:
+      condition: "New seizure activity"
+      actions:
+        - {type: "medication", action: "Levetiracetam_1000mg_IV"}
+        - {type: "lab", test: "EEG_if_persistent_altered_consciousness"}
+
+  discharge_criteria:
+    japan:
+      - "Neurologically stable for 48+ hours"
+      - "BP controlled on oral medications"
+      - "No further hematoma expansion on imaging"
+      - "Rehabilitation plan established"
+      - "Swallowing safe or tube feeding arranged"
+      - "ADL assessment completed"
+    us:
+      - "Neurologically stable for 24+ hours"
+      - "BP controlled on oral medications"
+      - "No hematoma expansion on follow-up CT"
+      - "Safe disposition plan (rehab facility, SNF, or home with services)"
+      - "Swallowing assessment completed"
+
+# ============================================================
+# LIKELIHOOD RATIO TABLE
+# Source: Goldstein & Simel, JAMA 2005, Brott et al. Stroke 1997
+# ============================================================
+likelihood_ratios:
+  ct_intracerebral_hemorrhage:
+    hemorrhagic_stroke: {positive_LR: 100.0, negative_LR: 0.01}
+    # CT is the gold standard — essentially diagnostic
+    cerebral_infarction: {positive_LR: 0.02, negative_LR: 1.5}
+    subarachnoid_hemorrhage: {positive_LR: 0.5, negative_LR: 1.0}
+
+  sudden_severe_headache:
+    hemorrhagic_stroke: {positive_LR: 3.0, negative_LR: 0.5}
+    subarachnoid_hemorrhage: {positive_LR: 5.0, negative_LR: 0.3}
+    cerebral_infarction: {positive_LR: 0.8, negative_LR: 1.1}
+
+  vomiting_at_onset:
+    hemorrhagic_stroke: {positive_LR: 2.5, negative_LR: 0.6}
+    cerebral_infarction: {positive_LR: 0.5, negative_LR: 1.1}
+
+  sbp_above_200_at_onset:
+    hemorrhagic_stroke: {positive_LR: 3.0, negative_LR: 0.6}
+    cerebral_infarction: {positive_LR: 1.5, negative_LR: 0.8}
+
+  gcs_below_12:
+    hemorrhagic_stroke: {positive_LR: 2.5, negative_LR: 0.5}
+    cerebral_infarction: {positive_LR: 1.0, negative_LR: 1.0}
+
+  anticoagulant_use:
+    hemorrhagic_stroke: {positive_LR: 2.0, negative_LR: 0.8}
+
+# ============================================================
+# LAB REFERENCE RANGES
+# ============================================================
+expected_lab_distributions:
+  admission:
+    Glucose:
+      unit: "mg/dL"
+      median: 150
+      iqr: [120, 200]
+      range: [80, 400]
+      note: "stress hyperglycemia; associated with worse outcome"
+    CRP:
+      unit: "mg/L"
+      median: 5
+      iqr: [2, 15]
+      range: [0, 60]
+    WBC:
+      unit: "/uL"
+      median: 10500
+      iqr: [8000, 13000]
+      range: [5000, 22000]
+      note: "stress leukocytosis common"
+    PT_INR:
+      unit: ""
+      median: 1.0
+      iqr: [0.9, 1.1]
+      range: [0.8, 5.0]
+      note: "elevated if on warfarin"
+    Creatinine:
+      unit: "mg/dL"
+      median: 0.9
+      iqr: [0.7, 1.2]
+      range: [0.4, 4.0]
+    Na:
+      unit: "mEq/L"
+      median: 140
+      iqr: [137, 143]
+      range: [125, 155]
+      note: "hyponatremia from SIADH or cerebral salt wasting possible"
+    Troponin:
+      unit: "ng/mL"
+      median: 0.02
+      iqr: [0.01, 0.05]
+      range: [0.00, 1.0]
+      note: "mild elevation from neurogenic stunned myocardium"
+
+  discharge:
+    CRP:
+      unit: "mg/L"
+      median: 10
+      iqr: [4, 25]
+      note: "may remain mildly elevated from tissue injury"
+    Na:
+      unit: "mEq/L"
+      median: 139
+      iqr: [136, 142]
+
+# ============================================================
+# VITAL SIGN DISTRIBUTIONS
+# ============================================================
+expected_vital_distributions:
+  admission:
+    temperature:
+      unit: "C"
+      mean: 37.0
+      sd: 0.5
+      range: [36.0, 38.5]
+      note: "central fever possible with large ICH"
+    heart_rate:
+      unit: "bpm"
+      mean: 85
+      sd: 15
+      range: [50, 130]
+      note: "bradycardia if Cushing reflex (ICP crisis)"
+    systolic_bp:
+      unit: "mmHg"
+      mean: 185
+      sd: 30
+      range: [120, 260]
+      note: "severe hypertension is hallmark"
+    respiratory_rate:
+      unit: "/min"
+      mean: 18
+      sd: 4
+      range: [10, 35]
+    spo2:
+      unit: "%"
+      mean: 96
+      sd: 2
+      range: [85, 99]
+    gcs:
+      unit: ""
+      mean: 12
+      sd: 3
+      range: [3, 15]
+
+# ============================================================
+# TREATMENT — Drug selection data
+# Source: AHA/ASA ICH Guidelines 2022, JP 脳卒中治療ガイドライン 2021
+# ============================================================
+drugs:
+  first_line:
+    japan:
+      - drug: "Nicardipine"
+        code_yj: "2149401"
+        dose: "1-6 mg/h IV infusion"
+        route: IV
+        note: "Target SBP < 140 mmHg within 1h"
+        renal_adjustment: {}
+        pregnancy_safe: false
+      - drug: "Mannitol"
+        code_yj: "3399001"
+        dose: "200mL (20%) IV over 30min q6-8h"
+        route: IV
+        indication: "elevated_ICP_signs"
+        note: "Use for cerebral edema/elevated ICP"
+    us:
+      - drug: "Nicardipine"
+        code_rxnorm: "7417"
+        dose: "5-15 mg/h IV infusion"
+        route: IV
+        note: "Target SBP < 140 mmHg"
+      - drug: "Labetalol"
+        code_rxnorm: "6135"
+        dose: "10-20mg IV bolus q10-20min, max 300mg"
+        route: IV
+        note: "Alternative BP management"
+
+  anticoagulant_reversal:
+    japan:
+      - drug: "Vitamin K"
+        code_yj: "3160001"
+        dose: "10mg IV"
+        route: IV
+        indication: "warfarin_use_with_elevated_INR"
+      - drug: "Prothrombin Complex Concentrate (4F-PCC)"
+        code_yj: "6343401"
+        dose: "25-50 IU/kg IV"
+        route: IV
+        indication: "warfarin_use_urgent_reversal"
+      - drug: "Idarucizumab"
+        code_yj: "3339910"
+        dose: "5g IV"
+        route: IV
+        indication: "dabigatran_reversal"
+    us:
+      - drug: "Vitamin K"
+        code_rxnorm: "11253"
+        dose: "10mg IV"
+        route: IV
+        indication: "warfarin_reversal"
+      - drug: "4-Factor PCC (Kcentra)"
+        code_rxnorm: "1364430"
+        dose: "25-50 IU/kg IV"
+        route: IV
+        indication: "warfarin_urgent_reversal"
+      - drug: "Idarucizumab"
+        code_rxnorm: "1658399"
+        dose: "5g IV"
+        route: IV
+        indication: "dabigatran_reversal"
+      - drug: "Andexanet alfa"
+        code_rxnorm: "2058819"
+        dose: "400-800mg IV bolus then infusion"
+        route: IV
+        indication: "rivaroxaban_or_apixaban_reversal"
+
+  escalation:
+    japan:
+      - drug: "Hypertonic Saline"
+        code_yj: "3319001"
+        dose: "23.4% 30mL IV over 15min via central line"
+        route: IV
+        indication: "severe_cerebral_edema_or_herniation_signs"
+    us:
+      - drug: "Hypertonic Saline"
+        code_rxnorm: "313002"
+        dose: "23.4% 30mL IV over 15min via central line"
+        route: IV
+        indication: "severe_cerebral_edema_or_herniation"
+
+  alternative_penicillin_allergy:
+    japan: []
+    us: []
+
+  discharge_oral:
+    japan:
+      - drug: "Amlodipine"
+        code_yj: "2171015"
+        dose: "5-10mg PO daily"
+        duration_days: 90
+        note: "Long-term BP control"
+      - drug: "Levetiracetam"
+        code_yj: "1139009"
+        dose: "500mg PO BID"
+        duration_days: 30
+        note: "Only if seizure occurred during hospitalization"
+        probability: 0.15
+    us:
+      - drug: "Amlodipine"
+        code_rxnorm: "17767"
+        dose: "5-10mg PO daily"
+        duration_days: 90
+      - drug: "Levetiracetam"
+        code_rxnorm: "39998"
+        dose: "500mg PO BID"
+        duration_days: 30
+        probability: 0.15
+
+# ============================================================
+# DRUG INTERACTIONS
+# ============================================================
+drug_interactions:
+  - drug_a: "Nicardipine"
+    drug_b: "Cyclosporine"
+    severity: "major"
+    effect: "Increased cyclosporine levels"
+    action: "Monitor levels closely"
+
+  - drug_a: "Mannitol"
+    drug_b: "Lithium"
+    severity: "moderate"
+    effect: "May reduce lithium excretion"
+    action: "Monitor lithium levels"
+
+# ============================================================
+# LAB ITEM REFERENCE RANGES
+# ============================================================
+reference_ranges:
+  CRP:
+    unit: "mg/L"
+    all: {low: 0, high: 3}
+  WBC:
+    unit: "/uL"
+    all: {low: 3500, high: 9500}
+  Hb:
+    unit: "g/dL"
+    male: {low: 13.5, high: 17.5}
+    female: {low: 11.5, high: 15.5}
+  Plt:
+    unit: "x10^3/uL"
+    all: {low: 150, high: 400}
+  PT_INR:
+    unit: ""
+    all: {low: 0.9, high: 1.1}
+    on_warfarin: {low: 2.0, high: 3.0}
+  aPTT:
+    unit: "sec"
+    all: {low: 25, high: 35}
+  Creatinine:
+    unit: "mg/dL"
+    male: {low: 0.6, high: 1.1}
+    female: {low: 0.4, high: 0.8}
+  BUN:
+    unit: "mg/dL"
+    all: {low: 8, high: 20}
+  Na:
+    unit: "mEq/L"
+    all: {low: 136, high: 145}
+  K:
+    unit: "mEq/L"
+    all: {low: 3.5, high: 5.0}
+  Glucose:
+    unit: "mg/dL"
+    fasting: {low: 70, high: 100}
+    random: {low: 70, high: 140}
+  Troponin:
+    unit: "ng/mL"
+    all: {low: 0, high: 0.04}
+
+# ============================================================
+# TARGET LENGTH OF STAY
+# JP much longer due to in-hospital rehabilitation model
+# ============================================================
+target_los:
+  japan:
+    moderate: {mean: 28, sd: 8, min: 14, max: 50}
+    severe: {mean: 40, sd: 12, min: 21, max: 70}
+  us:
+    moderate: {mean: 8, sd: 3, min: 4, max: 14}
+    severe: {mean: 14, sd: 5, min: 7, max: 30}
+
+# ============================================================
+# OUTCOME BENCHMARKS
+# Source: AHA/ASA, Feigin et al. Lancet Neurol 2009, JP 脳卒中DB
+# ============================================================
+outcome_benchmarks:
+  japan:
+    median_los: 32
+    los_iqr: [20, 45]
+    in_hospital_mortality: 0.25
+    icu_transfer_rate: 0.55
+    thirty_day_mortality: 0.30
+    thirty_day_readmission: 0.05
+    surgical_evacuation_rate: 0.15
+    hematoma_expansion_rate: 0.25
+    mean_age_admitted: 70
+    male_ratio: 0.55
+
+  us:
+    median_los: 10
+    los_iqr: [6, 16]
+    in_hospital_mortality: 0.20
+    icu_transfer_rate: 0.60
+    thirty_day_mortality: 0.25
+    thirty_day_readmission: 0.08
+    surgical_evacuation_rate: 0.12
+    hematoma_expansion_rate: 0.25
+    mean_age_admitted: 67
+    male_ratio: 0.52
+
+# ============================================================
+# DIAGNOSTIC
+# ============================================================
+diagnostic:
+  diagnostic_difficulty: 0.15  # CT confirms ICH immediately
+  differential:
+    - {disease: "hemorrhagic_stroke", icd: "I61.9", name: "Intracerebral hemorrhage", prior: 0.65}
+    - {disease: "cerebral_infarction", icd: "I63.9", name: "Ischemic stroke", prior: 0.15}
+    - {disease: "subarachnoid_hemorrhage", icd: "I60.9", name: "Subarachnoid hemorrhage", prior: 0.08}
+    - {disease: "brain_tumor", icd: "C71.9", name: "Brain tumor with hemorrhage", prior: 0.05}
+    - {disease: "subdural_hematoma", icd: "I62.0", name: "Subdural hematoma", prior: 0.04}
+    - {disease: "other", icd: "G93.4", name: "Other intracranial cause", prior: 0.03}
+
+# ============================================================
+# CLINICAL COURSE ARCHETYPES
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.30
+    description: "Small hematoma, stable course, neurological improvement, transfer to rehab"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: 0.02, 2: -0.02, 3: -0.02, 5: -0.02, 7: -0.02, 14: -0.01, 21: -0.01, 28: -0.01}
+      neurological_status: {0: -0.05, 1: 0.00, 2: 0.02, 3: 0.02, 5: 0.02, 7: 0.02, 14: 0.02, 21: 0.01, 28: 0.01}
+      perfusion_status: {0: 0.00, 1: 0.01, 2: 0.01, 3: 0.01, 5: 0.00, 7: 0.00, 14: 0.00, 21: 0.00, 28: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.20
+    description: "Mild hematoma expansion or edema Day 2-4, then stabilization and gradual recovery"
+    trajectory:
+      inflammation_level: {0: 0.08, 1: 0.05, 2: 0.03, 3: 0.00, 5: -0.02, 7: -0.03, 14: -0.02, 21: -0.01, 28: -0.01}
+      neurological_status: {0: -0.08, 1: -0.05, 2: -0.03, 3: 0.00, 5: 0.02, 7: 0.02, 14: 0.02, 21: 0.01, 28: 0.01}
+      perfusion_status: {0: -0.03, 1: -0.02, 2: 0.00, 3: 0.01, 5: 0.01, 7: 0.00, 14: 0.00, 21: 0.00, 28: 0.00}
+    order_modifications:
+      day_2:
+        add_imaging: ["CT_Head_repeat"]
+    treatment_modifications:
+      day_2:
+        add_medication: {drug: "Mannitol", dose: "200mL 20% IV q8h"}
+
+  plateau_then_recovery:
+    probability: 0.15
+    description: "No neurological change for 7-10 days, then gradual improvement with rehabilitation"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: 0.03, 2: 0.01, 3: 0.00, 5: 0.00, 7: -0.01, 14: -0.02, 21: -0.02, 28: -0.01}
+      neurological_status: {0: -0.05, 1: -0.02, 2: 0.00, 3: 0.00, 5: 0.00, 7: 0.00, 14: 0.01, 21: 0.02, 28: 0.02}
+    order_modifications:
+      day_5:
+        add_imaging: ["CT_Head_repeat"]
+        add_consult: ["rehabilitation"]
+    treatment_modifications: {}
+
+  treatment_resistant:
+    probability: 0.12
+    description: "Significant hematoma expansion despite BP control, requires surgical consideration"
+    trajectory:
+      inflammation_level: {0: 0.10, 1: 0.08, 2: 0.05, 3: 0.03, 5: 0.00, 7: -0.02, 14: -0.03, 21: -0.02, 28: -0.01}
+      neurological_status: {0: -0.10, 1: -0.08, 2: -0.03, 3: 0.00, 5: 0.01, 7: 0.02, 14: 0.02, 21: 0.02, 28: 0.01}
+      perfusion_status: {0: -0.05, 1: -0.03, 2: -0.01, 3: 0.00, 5: 0.01, 7: 0.01, 14: 0.00, 21: 0.00, 28: 0.00}
+    order_modifications:
+      day_1:
+        add_imaging: ["CT_Head_repeat"]
+        add_consult: ["neurosurgery_stat"]
+    treatment_modifications:
+      day_1:
+        start:
+          japan: [{drug: "Hypertonic Saline 23.4%", dose: "30mL IV over 15min"}]
+          us: [{drug: "Hypertonic Saline 23.4%", dose: "30mL IV over 15min"}]
+    triggers:
+      - day: 1
+        condition: "hematoma_expansion > 33%"
+        actions: ["neurosurgery_consult", "consider_evacuation"]
+
+  gradual_deterioration:
+    probability: 0.13
+    description: "Progressive cerebral edema, declining consciousness, ICU course, high mortality"
+    trajectory:
+      inflammation_level: {0: 0.10, 1: 0.08, 2: 0.06, 3: 0.05, 5: 0.03, 7: 0.02, 14: 0.00, 21: -0.01, 28: -0.01}
+      neurological_status: {0: -0.10, 1: -0.08, 2: -0.06, 3: -0.04, 5: -0.02, 7: 0.00, 14: 0.01, 21: 0.01, 28: 0.01}
+      perfusion_status: {0: -0.05, 1: -0.05, 2: -0.03, 3: -0.02, 5: -0.01, 7: 0.00, 14: 0.01, 21: 0.01, 28: 0.00}
+      renal_function: {0: -0.02, 1: -0.02, 2: -0.01, 3: -0.01, 5: 0.00, 7: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
+    order_modifications:
+      day_1:
+        add_imaging: ["CT_Head_repeat"]
+      day_3:
+        add_labs: ["ABG", "Lactate"]
+        add_imaging: ["CT_Head_repeat"]
+    treatment_modifications:
+      day_1:
+        start:
+          japan: [{drug: "Mannitol", dose: "200mL 20% IV q6h"}]
+      day_3:
+        action: "icu_transfer"
+    triggers:
+      - day: 3
+        condition: "GCS < 9"
+        actions: ["icu_transfer", "intubation_evaluation"]
+
+  sudden_deterioration:
+    probability: 0.10
+    description: "Catastrophic hematoma expansion or herniation — ICU, possible surgical evacuation"
+    trajectory:
+      inflammation_level: {0: 0.08, 1: 0.20, 2: 0.10, 3: 0.00, 5: -0.03, 7: -0.05, 14: -0.03, 21: -0.02, 28: -0.01}
+      neurological_status: {0: -0.05, 1: -0.30, 2: -0.05, 3: 0.02, 5: 0.02, 7: 0.02, 14: 0.02, 21: 0.01, 28: 0.01}
+      perfusion_status: {0: 0.00, 1: -0.20, 2: -0.05, 3: 0.03, 5: 0.03, 7: 0.02, 14: 0.01, 21: 0.00, 28: 0.00}
+    order_modifications:
+      day_1:
+        add_imaging: ["CT_Head_stat"]
+        add_labs: ["ABG", "PT_INR", "Fibrinogen"]
+    treatment_modifications:
+      day_1:
+        action: "icu_transfer"
+        action_2: "neurosurgery_stat_consult"
+        start:
+          japan:
+            - {drug: "Hypertonic Saline 23.4%", dose: "30mL IV stat"}
+            - {drug: "Mannitol", dose: "300mL 20% IV rapid"}
+    triggers:
+      - day: 1
+        condition: "GCS drop >= 4 points"
+        actions: ["icu_transfer", "emergent_ct", "surgical_evacuation_evaluation"]
+
+# Archetype selection modifiers
+archetype_modifiers:
+  - condition: "anticoagulant_use"
+    effect: {treatment_resistant: 0.08, sudden_deterioration: 0.05, smooth_recovery: -0.13}
+  - condition: "age >= 80"
+    effect: {gradual_deterioration: 0.08, smooth_recovery: -0.08}
+  - condition: "hematoma_volume_above_30mL"
+    effect: {sudden_deterioration: 0.08, gradual_deterioration: 0.05, smooth_recovery: -0.13}
+
+# ============================================================
+# COMPLICATIONS
+# ============================================================
+complications:
+  - name: "hematoma_expansion"
+    description: "Growth of intracerebral hemorrhage in first 24h"
+    probability_per_day: 0.05
+    onset_day_range: [0, 2]
+    risk_factors:
+      - {condition: "anticoagulant_use", multiplier: 3.0}
+      - {condition: "spot_sign_on_CTA", multiplier: 4.0}
+      - {condition: "large_initial_volume", multiplier: 2.0}
+    state_impact:
+      neurological_status: -0.15
+      perfusion_status: -0.05
+    detection:
+      test: "ct_head_repeat"
+      finding: "volume_increase_above_33_percent"
+    actions: ["neurosurgery_consult", "osmotic_therapy", "consider_surgical_evacuation"]
+
+  - name: "cerebral_edema"
+    description: "Perihematomal edema peaking Day 3-7"
+    probability_per_day: 0.03
+    onset_day_range: [2, 7]
+    risk_factors:
+      - {condition: "large_hematoma", multiplier: 2.5}
+      - {condition: "intraventricular_hemorrhage", multiplier: 2.0}
+    state_impact:
+      neurological_status: -0.10
+    detection:
+      test: "ct_head_repeat"
+      finding: "significant_edema_with_midline_shift"
+    actions: ["osmotic_therapy", "head_elevation", "neurosurgery_consult"]
+    cascade: ["brain_herniation"]
+
+  - name: "brain_herniation"
+    description: "Transtentorial herniation from mass effect"
+    probability_given_parent: 0.10
+    parent_complication: "cerebral_edema"
+    onset_days_after_parent: [0, 3]
+    state_impact:
+      neurological_status: -0.30
+      perfusion_status: -0.15
+    actions: ["emergent_osmotic_therapy", "emergent_surgical_evacuation", "intubation"]
+
+  - name: "hydrocephalus"
+    description: "Obstructive hydrocephalus from intraventricular hemorrhage"
+    probability_per_day: 0.015
+    onset_day_range: [0, 5]
+    risk_factors:
+      - {condition: "intraventricular_hemorrhage", multiplier: 5.0}
+    state_impact:
+      neurological_status: -0.10
+    detection:
+      test: "ct_head"
+      finding: "ventricular_dilation"
+    actions: ["external_ventricular_drain", "neurosurgery_consult"]
+
+  - name: "seizure"
+    description: "Early seizure from cortical irritation"
+    probability_per_day: 0.015
+    onset_day_range: [0, 7]
+    risk_factors:
+      - {condition: "cortical_location", multiplier: 3.0}
+      - {condition: "large_hematoma", multiplier: 1.5}
+    state_impact:
+      neurological_status: -0.05
+    detection:
+      test: "clinical_observation_or_EEG"
+      finding: "seizure_activity"
+    actions: ["Levetiracetam_start", "EEG_monitoring"]
+
+  - name: "aspiration_pneumonia"
+    description: "Aspiration due to depressed consciousness and dysphagia"
+    probability_per_day: 0.010
+    onset_day_range: [2, 14]
+    risk_factors:
+      - {condition: "GCS_below_10", multiplier: 3.0}
+      - {condition: "dysphagia", multiplier: 4.0}
+      - {condition: "intubation", multiplier: 2.0}
+    state_impact:
+      inflammation_level: 0.20
+      perfusion_status: -0.05
+    detection:
+      test: "chest_xray"
+      finding: "new_infiltrate"
+    actions: ["start_antibiotic", "NPO_or_NG_tube"]
+
+  - name: "dvt"
+    description: "Deep vein thrombosis from immobility"
+    probability_per_day: 0.008
+    onset_day_range: [3, 21]
+    risk_factors:
+      - {condition: "immobility", multiplier: 3.0}
+      - {condition: "no_pharmacologic_dvt_prophylaxis", multiplier: 2.0}
+    state_impact:
+      coagulation_status: 0.05
+    detection:
+      test: "d_dimer_then_ultrasound"
+      finding: "dvt_confirmed"
+    actions: ["start_anticoagulation_cautiously"]
+    cascade: ["pulmonary_embolism"]
+
+  - name: "pulmonary_embolism"
+    description: "PE from DVT"
+    probability_given_parent: 0.08
+    parent_complication: "dvt"
+    onset_days_after_parent: [0, 7]
+    state_impact:
+      perfusion_status: -0.15
+      ph_status: -0.05
+    actions: ["ct_angiography", "anticoagulation_if_safe", "consider_IVC_filter"]
+
+  - name: "delirium"
+    description: "Post-stroke delirium, very common in elderly"
+    probability_per_day: 0.02
+    onset_day_range: [1, 10]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 2.5}
+      - {condition: "dementia", multiplier: 3.0}
+      - {condition: "large_hematoma", multiplier: 2.0}
+    state_impact: {}
+    detection:
+      test: "CAM_screening"
+      finding: "positive"
+    actions: ["reorientation", "sleep_hygiene", "avoid_benzodiazepines"]

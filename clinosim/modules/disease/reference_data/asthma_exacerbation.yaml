@@ -1,0 +1,710 @@
+# Asthma Exacerbation — Complete Reference Data
+# Sources cited per section. All rates are approximate and should be validated
+# against the most current published data before production use.
+
+disease_id: asthma_exacerbation
+chief_complaint: "Severe wheezing, dyspnea, use of accessory muscles"
+department: internal_medicine
+encounter_type: medical
+requires_surgery: false
+readmission_eligible: true
+minimum_severity: null
+diagnostic_difficulty: 0.25   # history + exam + peak flow; overlap with COPD, cardiac asthma
+prerequisite: "J45"  # requires pre-existing asthma in chronic conditions
+
+icd_codes:
+  primary: "J45.21"  # Mild intermittent asthma with acute exacerbation (catch-all for exacerbation)
+  variants:
+    - {code: "J45.21", name: "Mild intermittent asthma with acute exacerbation", probability: 0.10}
+    - {code: "J45.31", name: "Mild persistent asthma with acute exacerbation", probability: 0.15}
+    - {code: "J45.41", name: "Moderate persistent asthma with acute exacerbation", probability: 0.35}
+    - {code: "J45.51", name: "Severe persistent asthma with acute exacerbation", probability: 0.30}
+    - {code: "J46", name: "Status asthmaticus", probability: 0.10}
+
+# ============================================================
+# INCIDENCE (per 100,000 per year, by age band and sex)
+# Source: JP — 患者調査, 厚労省喘息統計
+#         US — CDC NHDS, Moorman et al. MMWR 2012
+# Hospitalized exacerbations only
+# ============================================================
+incidence:
+  japan:
+    "0-4":   {M: 200, F: 150}
+    "5-14":  {M: 100, F: 80}
+    "15-24": {M: 30, F: 35}
+    "25-34": {M: 25, F: 40}
+    "35-44": {M: 30, F: 50}
+    "45-54": {M: 35, F: 55}
+    "55-64": {M: 40, F: 60}
+    "65-74": {M: 80, F: 100}
+    "75-84": {M: 120, F: 150}
+    "85+":   {M: 180, F: 200}
+  us:
+    "0-4":   {M: 250, F: 180}
+    "5-14":  {M: 120, F: 90}
+    "15-24": {M: 40, F: 50}
+    "25-34": {M: 30, F: 50}
+    "35-44": {M: 35, F: 55}
+    "45-54": {M: 40, F: 60}
+    "55-64": {M: 50, F: 70}
+    "65-74": {M: 90, F: 110}
+    "75-84": {M: 130, F: 160}
+    "85+":   {M: 200, F: 220}
+
+  risk_multipliers:
+    - {condition: "GERD", multiplier: 1.5}
+    - {condition: "allergic_rhinitis", multiplier: 1.5}
+    - {condition: "obesity_bmi_over_30", multiplier: 1.8}
+    - {condition: "smoking_current", multiplier: 2.0}
+    - {condition: "medication_noncompliance", multiplier: 3.0}
+    - {condition: "prior_icu_for_asthma", multiplier: 4.0}
+    - {condition: "recent_viral_uri", multiplier: 2.0}
+    - {condition: "aspirin_sensitivity", multiplier: 2.5}
+
+  seasonal_curve:  # moderate spring/fall peaks (allergen-driven)
+    1: 1.0
+    2: 0.9
+    3: 1.2
+    4: 1.4   # spring pollen
+    5: 1.5
+    6: 1.1
+    7: 0.8
+    8: 0.7
+    9: 1.2   # fall return-to-school, ragweed
+    10: 1.3
+    11: 1.1
+    12: 1.0
+
+  vaccine_protection:
+    influenza:
+      effectiveness: 0.15   # indirect — reduces viral-triggered exacerbations
+      duration_days: 365
+
+# ============================================================
+# SEVERITY DISTRIBUTION
+# Source: GINA 2023, JP asthma management guidelines
+# ============================================================
+severity:
+  distribution:
+    mild: 0.25        # responds quickly to nebulized bronchodilators
+    moderate: 0.55    # requires IV steroids, prolonged nebulization
+    severe: 0.20      # near-fatal, ICU consideration
+  modifiers:
+    - {condition: "prior_icu_for_asthma", mild_multiplier: 0.3, severe_multiplier: 3.0}
+    - {condition: "medication_noncompliance", moderate_multiplier: 1.3, severe_multiplier: 1.8}
+    - {condition: "obesity_bmi_over_30", severe_multiplier: 1.5}
+    - {condition: "smoking_current", severe_multiplier: 1.5, mild_multiplier: 0.7}
+    - {condition: "age_over_65", severe_multiplier: 1.5}
+
+# ============================================================
+# INITIAL PHYSIOLOGICAL STATE IMPACT
+# ============================================================
+initial_state_impact:
+  mild:
+    inflammation_level: 0.15
+    ph_status: -0.03
+  moderate:
+    inflammation_level: 0.30
+    ph_status: -0.08
+    perfusion_status: -0.03
+  severe:
+    inflammation_level: 0.45
+    ph_status: -0.15
+    perfusion_status: -0.10
+    volume_status: -0.10
+
+# ============================================================
+# ORDER PROTOCOLS
+# ============================================================
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "ABG", urgency: "stat"}
+      - {test: "CRP", urgency: "stat"}
+      - {test: "WBC", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Mg", urgency: "stat"}
+      - {test: "Glucose", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "Theophylline_level", urgency: "stat", probability: 0.30}  # if on theophylline
+      - {test: "Lactate", urgency: "stat", probability: 0.40}
+    imaging:
+      - {test: "Chest_Xray_PA_Lateral", urgency: "stat"}
+    pulmonary_function:
+      - {test: "Peak_Expiratory_Flow", urgency: "stat"}
+    supportive:
+      - {type: "nebulizer", detail: "Salbutamol 2.5mg NEB q20min x3, then q1-4h PRN"}
+      - {type: "nebulizer", detail: "Ipratropium 0.5mg NEB q20min x3"}
+      - {type: "O2", detail: "Nasal cannula or mask SpO2 >= 94%"}
+      - {type: "IV_fluid", detail: "NS 80 mL/h"}
+
+  daily_monitoring:
+    labs:
+      - {test: "ABG", frequency: "daily_if_severe"}
+      - {test: "K", frequency: "daily"}
+      - {test: "Glucose", frequency: "daily"}  # steroid-induced hyperglycemia
+      - {test: "Peak_Expiratory_Flow", frequency: "BID"}
+    vitals:
+      stable: "q4h"
+      unstable: "q1h"
+    imaging: []
+
+  trigger_orders:
+    no_improvement_6h:
+      condition: "Peak flow < 50% predicted after initial treatment"
+      actions:
+        - {type: "medication", action: "IV_magnesium_sulfate_2g"}
+        - {type: "evaluate", action: "consider_ICU_transfer"}
+        - {type: "lab", test: "ABG"}
+    rising_pco2:
+      condition: "PaCO2 > 45 mmHg or rising despite treatment"
+      actions:
+        - {type: "respiratory", action: "consider_NIV_or_intubation"}
+        - {type: "evaluate", action: "icu_transfer"}
+    hypokalemia:
+      condition: "K < 3.0 mEq/L"
+      actions:
+        - {type: "medication", action: "IV_KCl_replacement"}
+        - {type: "lab", test: "K_repeat_in_4h"}
+
+  discharge_criteria:
+    japan:
+      - "Peak flow >= 70% of personal best or predicted"
+      - "Able to use inhaler correctly"
+      - "SpO2 >= 95% on room air"
+      - "No nocturnal symptoms for 24 hours"
+      - "Oral steroid taper prescribed"
+      - "Follow-up appointment within 1 week"
+    us:
+      - "Peak flow >= 70% of personal best or predicted"
+      - "No supplemental O2 needed (SpO2 >= 92%)"
+      - "Symptom-free for 12 hours on q4h bronchodilator"
+      - "Inhaler technique reviewed"
+      - "Oral steroid taper prescribed"
+
+# ============================================================
+# LIKELIHOOD RATIO TABLE
+# Source: GINA, clinical diagnostic studies
+# ============================================================
+likelihood_ratios:
+  peak_flow_below_50_percent:
+    asthma_exacerbation: {positive_LR: 5.0, negative_LR: 0.3}
+    copd_exacerbation: {positive_LR: 3.0, negative_LR: 0.5}
+    heart_failure: {positive_LR: 0.3, negative_LR: 1.1}
+
+  wheezing_on_auscultation:
+    asthma_exacerbation: {positive_LR: 3.0, negative_LR: 0.5}
+    copd_exacerbation: {positive_LR: 2.5, negative_LR: 0.6}
+    heart_failure: {positive_LR: 1.5, negative_LR: 0.8}
+
+  response_to_bronchodilator:
+    asthma_exacerbation: {positive_LR: 6.0, negative_LR: 0.4}
+    copd_exacerbation: {positive_LR: 2.0, negative_LR: 0.7}
+
+  elevated_bnp:
+    asthma_exacerbation: {positive_LR: 0.3, negative_LR: 1.5}
+    heart_failure: {positive_LR: 5.0, negative_LR: 0.15}
+
+  hyperinflation_on_cxr:
+    asthma_exacerbation: {positive_LR: 3.0, negative_LR: 0.6}
+    copd_exacerbation: {positive_LR: 4.0, negative_LR: 0.5}
+    bacterial_pneumonia: {positive_LR: 0.3, negative_LR: 1.0}
+
+  eosinophilia:
+    asthma_exacerbation: {positive_LR: 3.5, negative_LR: 0.7}
+    copd_exacerbation: {positive_LR: 1.5, negative_LR: 0.9}
+    allergic_bronchopulmonary_aspergillosis: {positive_LR: 5.0, negative_LR: 0.5}
+
+# ============================================================
+# LAB REFERENCE RANGES
+# ============================================================
+expected_lab_distributions:
+  admission:
+    ABG_pH:
+      unit: ""
+      median: 7.42
+      iqr: [7.38, 7.46]
+      range: [7.20, 7.55]
+      note: "initial respiratory alkalosis, then acidosis if tiring"
+    ABG_pCO2:
+      unit: "mmHg"
+      median: 35
+      iqr: [30, 42]
+      range: [20, 65]
+      note: "normal pCO2 in severe attack is ominous (fatigue)"
+    ABG_pO2:
+      unit: "mmHg"
+      median: 75
+      iqr: [60, 85]
+      range: [40, 100]
+    CRP:
+      unit: "mg/L"
+      median: 10
+      iqr: [3, 25]
+      range: [1, 80]
+    WBC:
+      unit: "/uL"
+      median: 10000
+      iqr: [7500, 13000]
+      range: [5000, 20000]
+      note: "leukocytosis may be steroid-induced"
+    K:
+      unit: "mEq/L"
+      median: 3.8
+      iqr: [3.4, 4.2]
+      range: [2.5, 5.0]
+      note: "beta-agonist use drives K intracellularly"
+    Glucose:
+      unit: "mg/dL"
+      median: 130
+      iqr: [100, 180]
+      range: [70, 400]
+      note: "stress + steroid effect"
+
+  discharge:
+    ABG_pH:
+      unit: ""
+      median: 7.40
+      iqr: [7.38, 7.42]
+    K:
+      unit: "mEq/L"
+      median: 4.0
+      iqr: [3.6, 4.4]
+
+# ============================================================
+# VITAL SIGN DISTRIBUTIONS
+# ============================================================
+expected_vital_distributions:
+  admission:
+    temperature:
+      unit: "C"
+      mean: 37.0
+      sd: 0.4
+      range: [36.5, 38.0]
+    heart_rate:
+      unit: "bpm"
+      mean: 110
+      sd: 15
+      range: [80, 150]
+    systolic_bp:
+      unit: "mmHg"
+      mean: 130
+      sd: 15
+      range: [90, 180]
+      note: "may be elevated from sympathetic drive"
+    respiratory_rate:
+      unit: "/min"
+      mean: 28
+      sd: 6
+      range: [18, 45]
+    spo2:
+      unit: "%"
+      mean: 92
+      sd: 3
+      range: [80, 98]
+    peak_flow:
+      unit: "% predicted"
+      mean: 40
+      sd: 15
+      range: [15, 70]
+
+# ============================================================
+# TREATMENT — Drug selection data
+# Source: GINA 2023, JGL 2021 (日本アレルギー学会)
+# ============================================================
+drugs:
+  first_line:
+    japan:
+      - drug: "Methylprednisolone"
+        code_yj: "2456401"
+        dose: "40-80mg IV q6-8h"
+        route: IV
+        duration_days: 3
+        note: "Switch to oral prednisolone when improving"
+      - drug: "Salbutamol"
+        code_yj: "2254700"
+        dose: "2.5mg NEB q1-4h"
+        route: NEB
+      - drug: "Ipratropium"
+        code_yj: "2259700"
+        dose: "0.5mg NEB q4-6h"
+        route: NEB
+    us:
+      - drug: "Methylprednisolone"
+        code_rxnorm: "6902"
+        dose: "125mg IV, then 40-80mg IV q6-8h"
+        route: IV
+        duration_days: 3
+      - drug: "Albuterol"
+        code_rxnorm: "435"
+        dose: "2.5mg NEB q20min x3, then q1-4h"
+        route: NEB
+      - drug: "Ipratropium"
+        code_rxnorm: "7213"
+        dose: "0.5mg NEB q4-6h"
+        route: NEB
+
+  escalation:
+    japan:
+      - drug: "Magnesium Sulfate"
+        code_yj: "3219401"
+        dose: "2g IV over 20min"
+        route: IV
+        indication: "no_response_to_initial_treatment"
+      - drug: "Aminophylline"
+        code_yj: "2115001"
+        dose: "6mg/kg IV loading, then 0.5mg/kg/h"
+        route: IV
+        indication: "refractory_to_bronchodilators_and_steroids"
+        note: "Monitor drug level (therapeutic 10-20 mcg/mL)"
+    us:
+      - drug: "Magnesium Sulfate"
+        code_rxnorm: "6475"
+        dose: "2g IV over 20min"
+        route: IV
+        indication: "no_response_to_initial_treatment"
+
+  alternative_penicillin_allergy:
+    # Not applicable — no antibiotics in primary treatment
+    japan: []
+    us: []
+
+  discharge_oral:
+    japan:
+      - drug: "Prednisolone"
+        code_yj: "2456001"
+        dose: "30-40mg PO daily"
+        duration_days: 5
+        note: "Taper over 5-7 days"
+      - drug: "ICS/LABA inhaler"
+        code_yj: "2290900"
+        dose: "Resume or initiate controller therapy"
+        note: "Ensure step-up from pre-exacerbation level"
+    us:
+      - drug: "Prednisone"
+        code_rxnorm: "8640"
+        dose: "40-50mg PO daily"
+        duration_days: 5
+      - drug: "ICS/LABA inhaler"
+        code_rxnorm: "745679"
+        dose: "Resume or initiate controller therapy"
+
+# ============================================================
+# DRUG INTERACTIONS
+# ============================================================
+drug_interactions:
+  - drug_a: "Aminophylline"
+    drug_b: "Ciprofloxacin"
+    severity: "major"
+    effect: "Increased theophylline levels (CYP1A2 inhibition)"
+    action: "Reduce aminophylline dose by 50%"
+
+  - drug_a: "Aminophylline"
+    drug_b: "Erythromycin"
+    severity: "major"
+    effect: "Increased theophylline levels"
+    action: "Monitor level closely"
+
+  - drug_a: "Salbutamol"
+    drug_b: "Non-selective beta-blocker"
+    severity: "contraindicated"
+    effect: "Beta-blocker antagonizes bronchodilator effect"
+    action: "Avoid non-selective beta-blockers in asthma"
+
+  - drug_a: "Methylprednisolone"
+    drug_b: "Warfarin"
+    severity: "moderate"
+    effect: "Variable INR changes"
+    action: "Monitor INR closely"
+
+# ============================================================
+# LAB ITEM REFERENCE RANGES
+# ============================================================
+reference_ranges:
+  CRP:
+    unit: "mg/L"
+    all: {low: 0, high: 3}
+  WBC:
+    unit: "/uL"
+    all: {low: 3500, high: 9500}
+  Hb:
+    unit: "g/dL"
+    male: {low: 13.5, high: 17.5}
+    female: {low: 11.5, high: 15.5}
+  K:
+    unit: "mEq/L"
+    all: {low: 3.5, high: 5.0}
+  Mg:
+    unit: "mg/dL"
+    all: {low: 1.7, high: 2.2}
+  Glucose:
+    unit: "mg/dL"
+    fasting: {low: 70, high: 100}
+    random: {low: 70, high: 140}
+  Creatinine:
+    unit: "mg/dL"
+    male: {low: 0.6, high: 1.1}
+    female: {low: 0.4, high: 0.8}
+  Theophylline:
+    unit: "mcg/mL"
+    therapeutic: {low: 10, high: 20}
+
+# ============================================================
+# TARGET LENGTH OF STAY
+# ============================================================
+target_los:
+  japan:
+    mild: {mean: 7, sd: 2, min: 4, max: 10}
+    moderate: {mean: 10, sd: 3, min: 6, max: 16}
+    severe: {mean: 14, sd: 4, min: 8, max: 25}
+  us:
+    mild: {mean: 2, sd: 1, min: 1, max: 4}
+    moderate: {mean: 4, sd: 1, min: 2, max: 6}
+    severe: {mean: 7, sd: 3, min: 4, max: 14}
+
+# ============================================================
+# OUTCOME BENCHMARKS
+# Source: CDC, JP DPC data, Hasegawa et al. Ann Allergy Asthma Immunol 2014
+# ============================================================
+outcome_benchmarks:
+  japan:
+    median_los: 8
+    los_iqr: [5, 12]
+    in_hospital_mortality: 0.005
+    icu_transfer_rate: 0.08
+    thirty_day_readmission: 0.15
+    intubation_rate: 0.03
+    mean_peak_flow_improvement_percent: 45
+    steroid_use_rate: 0.95
+    mean_age_admitted: 52
+    male_ratio: 0.42
+
+  us:
+    median_los: 3
+    los_iqr: [2, 5]
+    in_hospital_mortality: 0.004
+    icu_transfer_rate: 0.10
+    thirty_day_readmission: 0.15
+    intubation_rate: 0.02
+    mean_peak_flow_improvement_percent: 50
+    steroid_use_rate: 0.97
+    mean_age_admitted: 45
+    male_ratio: 0.40
+
+# ============================================================
+# DIAGNOSTIC
+# ============================================================
+diagnostic:
+  diagnostic_difficulty: 0.25  # history + exam + peak flow; COPD overlap in elderly
+  differential:
+    - {disease: "asthma_exacerbation", icd: "J45.41", name: "Asthma exacerbation", prior: 0.55}
+    - {disease: "copd_exacerbation", icd: "J44.1", name: "COPD exacerbation", prior: 0.15}
+    - {disease: "heart_failure_exacerbation", icd: "I50.9", name: "Heart failure (cardiac asthma)", prior: 0.10}
+    - {disease: "pulmonary_embolism", icd: "I26.9", name: "Pulmonary embolism", prior: 0.05}
+    - {disease: "vocal_cord_dysfunction", icd: "J38.3", name: "Vocal cord dysfunction", prior: 0.05}
+    - {disease: "anaphylaxis", icd: "T78.2", name: "Anaphylaxis", prior: 0.05}
+    - {disease: "other", icd: "R06.2", name: "Other causes of wheezing", prior: 0.05}
+
+# ============================================================
+# CLINICAL COURSE ARCHETYPES
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.50
+    description: "Rapid response to bronchodilators and steroids, discharged in 2-5 days"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: -0.05, 2: -0.08, 3: -0.06, 5: -0.04, 7: -0.02}
+      ph_status: {0: 0.02, 1: 0.03, 2: 0.02, 3: 0.01, 5: 0.00, 7: 0.00}
+      perfusion_status: {0: 0.01, 1: 0.01, 2: 0.01, 3: 0.00, 5: 0.00, 7: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.20
+    description: "Initial treatment response partial, requires intensification, then improves"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: 0.02, 2: -0.02, 3: -0.06, 5: -0.06, 7: -0.04, 10: -0.03}
+      ph_status: {0: -0.03, 1: -0.02, 2: 0.02, 3: 0.02, 5: 0.01, 7: 0.01, 10: 0.00}
+      perfusion_status: {0: -0.02, 1: 0.00, 2: 0.01, 3: 0.01, 5: 0.00, 7: 0.00, 10: 0.00}
+    order_modifications:
+      day_1:
+        add_labs: ["ABG", "K"]
+    treatment_modifications:
+      day_1:
+        add_medication: {drug: "Magnesium Sulfate", dose: "2g IV over 20min"}
+
+  plateau_then_recovery:
+    probability: 0.10
+    description: "Persistent wheezing for 3-5 days despite treatment, then gradual improvement"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.01, 2: 0.00, 3: 0.00, 5: -0.03, 7: -0.06, 10: -0.05, 14: -0.03}
+      ph_status: {0: 0.01, 1: 0.01, 2: 0.00, 3: 0.00, 5: 0.01, 7: 0.01, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_3:
+        add_labs: ["ABG", "Eosinophil_count"]
+    treatment_modifications: {}
+
+  treatment_resistant:
+    probability: 0.10
+    description: "Poor response to standard therapy, requires aminophylline or ICU step-up"
+    trajectory:
+      inflammation_level: {0: 0.08, 1: 0.05, 2: 0.03, 3: 0.00, 5: -0.03, 7: -0.06, 10: -0.08, 14: -0.05}
+      ph_status: {0: -0.05, 1: -0.03, 2: -0.01, 3: 0.01, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.00}
+      perfusion_status: {0: -0.03, 1: -0.02, 2: 0.00, 3: 0.01, 5: 0.01, 7: 0.00, 10: 0.00, 14: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["ABG", "Theophylline_level"]
+    treatment_modifications:
+      day_2:
+        start:
+          japan: [{drug: "Aminophylline", dose: "6mg/kg IV loading then 0.5mg/kg/h"}]
+          us: [{drug: "Magnesium Sulfate", dose: "2g IV over 20min"}]
+    triggers:
+      - day: 2
+        condition: "peak_flow < 40%"
+        actions: ["escalate_bronchodilator", "consider_aminophylline"]
+
+  gradual_deterioration:
+    probability: 0.07
+    description: "Worsening airway obstruction, rising pCO2, ICU transfer for NIV/intubation"
+    trajectory:
+      inflammation_level: {0: 0.08, 1: 0.06, 2: 0.05, 3: 0.03, 5: 0.02, 7: 0.00, 10: -0.03, 14: -0.05}
+      ph_status: {0: -0.05, 1: -0.05, 2: -0.03, 3: -0.02, 5: 0.00, 7: 0.02, 10: 0.02, 14: 0.01}
+      perfusion_status: {0: -0.03, 1: -0.04, 2: -0.03, 3: -0.02, 5: 0.00, 7: 0.01, 10: 0.01, 14: 0.01}
+    order_modifications:
+      day_2:
+        add_labs: ["ABG", "Lactate"]
+      day_3:
+        add_labs: ["ABG"]
+    treatment_modifications:
+      day_2:
+        start:
+          japan: [{drug: "Aminophylline", dose: "6mg/kg IV loading then 0.5mg/kg/h"}]
+      day_3:
+        action: "icu_transfer"
+        start:
+          japan: [{drug: "NIV_BiPAP", dose: "IPAP 12 EPAP 5"}]
+    triggers:
+      - day: 3
+        condition: "pCO2 > 50 mmHg"
+        actions: ["icu_transfer", "consider_intubation"]
+
+  sudden_deterioration:
+    probability: 0.03
+    description: "Near-fatal asthma — rapid respiratory arrest requiring emergent intubation"
+    trajectory:
+      inflammation_level: {0: 0.10, 1: 0.25, 2: 0.05, 3: -0.05, 5: -0.08, 7: -0.08, 10: -0.05, 14: -0.03}
+      ph_status: {0: -0.03, 1: -0.20, 2: 0.05, 3: 0.05, 5: 0.03, 7: 0.02, 10: 0.01, 14: 0.00}
+      perfusion_status: {0: 0.00, 1: -0.20, 2: 0.05, 3: 0.05, 5: 0.03, 7: 0.02, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_1:
+        add_labs: ["ABG", "Lactate", "Troponin"]
+    treatment_modifications:
+      day_1:
+        action: "icu_transfer"
+        action_2: "emergent_intubation"
+        start:
+          japan:
+            - {drug: "Epinephrine", dose: "0.3mg SC or 0.1mg IV"}
+            - {drug: "Ketamine", dose: "1mg/kg IV for RSI"}
+    triggers:
+      - day: 1
+        condition: "pCO2 > 60 or pH < 7.25"
+        actions: ["emergent_intubation", "icu_transfer"]
+
+# Archetype selection modifiers
+archetype_modifiers:
+  - condition: "prior_icu_for_asthma"
+    effect: {sudden_deterioration: 0.05, gradual_deterioration: 0.05, smooth_recovery: -0.10}
+  - condition: "medication_noncompliance"
+    effect: {treatment_resistant: 0.08, smooth_recovery: -0.08}
+  - condition: "treatment_sensitivity > 1.2"
+    effect: {smooth_recovery: 0.10, treatment_resistant: -0.05}
+
+# ============================================================
+# COMPLICATIONS
+# ============================================================
+complications:
+  - name: "pneumothorax"
+    description: "Barotrauma from air trapping or positive pressure ventilation"
+    probability_per_day: 0.003
+    onset_day_range: [1, 7]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 5.0}
+      - {condition: "mechanical_ventilation", multiplier: 8.0}
+    state_impact:
+      perfusion_status: -0.15
+      ph_status: -0.05
+    detection:
+      test: "chest_xray"
+      finding: "pneumothorax"
+    actions: ["chest_tube", "surgery_consult"]
+
+  - name: "steroid_hyperglycemia"
+    description: "Steroid-induced hyperglycemia requiring insulin"
+    probability_per_day: 0.05
+    onset_day_range: [1, 5]
+    risk_factors:
+      - {condition: "diabetes", multiplier: 3.0}
+      - {condition: "obesity_bmi_over_30", multiplier: 1.5}
+    state_impact: {}
+    detection:
+      test: "glucose"
+      finding: "glucose > 200 mg/dL"
+    actions: ["sliding_scale_insulin", "monitor_glucose_qid"]
+
+  - name: "hypokalemia"
+    description: "Beta-agonist and steroid induced hypokalemia"
+    probability_per_day: 0.04
+    onset_day_range: [1, 4]
+    risk_factors:
+      - {condition: "baseline_K_low", multiplier: 2.0}
+      - {condition: "diuretic_use", multiplier: 2.0}
+    state_impact: {}
+    detection:
+      test: "potassium"
+      finding: "K < 3.0"
+    actions: ["IV_KCl_replacement", "recheck_K_in_4h"]
+
+  - name: "respiratory_failure"
+    description: "Respiratory muscle fatigue requiring mechanical ventilation"
+    probability_per_day: 0.005
+    onset_day_range: [1, 5]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 5.0}
+      - {condition: "prior_icu_for_asthma", multiplier: 3.0}
+    state_impact:
+      ph_status: -0.15
+      perfusion_status: -0.10
+    detection:
+      test: "ABG"
+      finding: "pCO2 > 50 and rising"
+    actions: ["icu_transfer", "intubation", "mechanical_ventilation"]
+
+  - name: "atelectasis"
+    description: "Mucus plugging causing lobar collapse"
+    probability_per_day: 0.008
+    onset_day_range: [1, 5]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.0}
+      - {condition: "thick_secretions", multiplier: 2.0}
+    state_impact:
+      inflammation_level: 0.03
+    detection:
+      test: "chest_xray"
+      finding: "lobar_atelectasis"
+    actions: ["chest_physiotherapy", "bronchoscopy_if_refractory"]
+
+  - name: "delirium"
+    description: "Acute confusion from hypoxia, medications, or sleep deprivation"
+    probability_per_day: 0.008
+    onset_day_range: [1, 5]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 2.5}
+      - {condition: "dementia", multiplier: 3.0}
+      - {condition: "icu_stay", multiplier: 2.0}
+    state_impact: {}
+    detection:
+      test: "CAM_screening"
+      finding: "positive"
+    actions: ["reorientation", "minimize_sedation", "sleep_hygiene"]

@@ -201,6 +201,38 @@ disease_incidence:
     sex_ratio_female: 0.65
     event_type: acute_disease_onset
     severity_beta: [3, 3]
+  influenza:
+    age_rates: {0: 250, 5: 180, 15: 100, 25: 70, 35: 80, 45: 100, 55: 180, 65: 450, 75: 900, 85: 1700}
+    sex_ratio_female: 1.0
+    event_type: acute_disease_onset
+    severity_beta: [2, 4]
+  asthma_exacerbation:
+    age_rates: {0: 3500, 15: 5000, 25: 4500, 35: 4500, 45: 5500, 55: 6500, 65: 7500, 75: 7500, 85: 5500}
+    sex_ratio_female: 1.3
+    event_type: chronic_exacerbation
+    prerequisite_condition: J45
+    severity_beta: [2, 3]
+    severity_minimum: 0.2
+    hospitalization_threshold_modifier: 0.7
+  hemorrhagic_stroke:
+    age_rates: {0: 1, 25: 2, 35: 4, 45: 10, 55: 25, 65: 60, 75: 140, 85: 280}
+    sex_ratio_female: 0.8
+    event_type: acute_disease_onset
+    severity_beta: [4, 3]
+    severity_minimum: 0.4
+    always_hospitalize: true
+  vertebral_compression_fracture:
+    age_rates: {0: 0, 45: 4, 55: 12, 65: 50, 75: 140, 85: 300}
+    sex_ratio_female: 2.5
+    event_type: trauma
+    severity_beta: [2, 3]
+    always_hospitalize: true
+  deep_vein_thrombosis:
+    age_rates: {0: 1, 25: 2, 35: 4, 45: 12, 55: 30, 65: 70, 75: 130, 85: 220}
+    sex_ratio_female: 1.1
+    event_type: acute_disease_onset
+    severity_beta: [2, 3]
+    always_hospitalize: true
 
 # Monthly seasonal modifiers (1.0 = baseline)
 seasonal_modifiers:
@@ -224,6 +256,11 @@ seasonal_modifiers:
   acute_kidney_injury: {1: 1.1, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.1, 7: 1.2, 8: 1.2, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.1}
   liver_cirrhosis_decompensated: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.1}
   aspiration_pneumonia: {1: 1.5, 2: 1.3, 3: 1.1, 4: 1.0, 5: 0.9, 6: 0.8, 7: 0.8, 8: 0.8, 9: 0.9, 10: 1.0, 11: 1.2, 12: 1.5}
+  influenza: {1: 1.8, 2: 1.6, 3: 1.0, 4: 0.3, 5: 0.1, 6: 0.1, 7: 0.1, 8: 0.1, 9: 0.2, 10: 0.5, 11: 1.0, 12: 1.5}
+  asthma_exacerbation: {1: 1.3, 2: 1.2, 3: 1.1, 4: 1.0, 5: 1.1, 6: 0.8, 7: 0.7, 8: 0.8, 9: 1.2, 10: 1.1, 11: 1.1, 12: 1.3}
+  hemorrhagic_stroke: {1: 1.2, 2: 1.1, 3: 1.0, 4: 1.0, 5: 0.9, 6: 0.9, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.2}
+  vertebral_compression_fracture: {1: 1.3, 2: 1.2, 3: 1.1, 4: 1.0, 5: 0.9, 6: 0.8, 7: 0.8, 8: 0.9, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.2}
+  deep_vein_thrombosis: {1: 1.1, 2: 1.1, 3: 1.0, 4: 1.0, 5: 1.0, 6: 0.9, 7: 0.9, 8: 0.9, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.1}
 
 # Risk multipliers: chronic condition -> disease risk increase
 disease_risk_multipliers:
@@ -247,6 +284,11 @@ disease_risk_multipliers:
   acute_kidney_injury: {N18: 3.0, I50: 2.0, E11.9: 1.8, I10: 1.3}
   liver_cirrhosis_decompensated: {}
   aspiration_pneumonia: {F00: 3.0, G20: 2.5}
+  influenza: {J44: 2.0, I50: 1.5, E11.9: 1.3, N18: 1.5}
+  asthma_exacerbation: {I50: 1.3, K21: 1.2}
+  hemorrhagic_stroke: {I10: 3.0, I48: 1.5}
+  vertebral_compression_fracture: {M81: 5.0, F00: 2.0, G20: 1.5}
+  deep_vein_thrombosis: {I50: 1.5, M17: 2.0, I48: 1.3}
 
 # Unknown conditions (~3-5% of admissions start as unknown)
 unknown_conditions:
