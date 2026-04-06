@@ -282,3 +282,68 @@ def calculate_imaging_result_time(
 
     total_delay = max(15, schedule_delay + report_delay)
     return ordered + timedelta(minutes=total_delay)
+
+
+# ============================================================
+# Hospital-state-aware delay calculation
+# ============================================================
+
+def calculate_result_time_from_state(
+    order: Order,
+    hospital_state: Any,
+    ops_config: dict,
+    rng: Any,
+) -> datetime:
+    """Calculate result time using hospital operational state.
+
+    Delays emerge from resource utilization and staffing, not hardcoded values.
+    Falls back to legacy calculation if hospital_state is None.
+    """
+    if hospital_state is None:
+        return calculate_lab_result_time(order, rng)
+
+    ordered = order.ordered_datetime
+
+    # Determine resource type
+    order_type = order.order_type.value
+    name_upper = order.display_name.upper()
+
+    if order_type == "lab":
+        resource = "lab"
+    elif order_type == "imaging":
+        if "MRI" in name_upper:
+            resource = "mri"
+        elif "CT" in name_upper:
+            resource = "ct"
+        elif "XRAY" in name_upper or "X-RAY" in name_upper or "CHEST" in name_upper:
+            resource = "xray"
+        elif "ECHO" in name_upper or "ULTRA" in name_upper:
+            resource = "ultrasound"
+        else:
+            resource = "xray"  # default imaging
+    else:
+        # Medication, diet, etc. — no result time needed
+        return ordered + timedelta(minutes=5)
+
+    # Update hospital state for current time
+    hospital_state.update_for_time(ordered, ops_config)
+
+    # Calculate delay from state
+    delay = hospital_state.calculate_delay(resource, order.urgency, ops_config)
+
+    # Add randomness (±20%)
+    delay *= float(1.0 + rng.normal(0, 0.2))
+    delay = max(10.0, delay)
+
+    # Night deferral for non-stat
+    hour = ordered.hour
+    if (hour >= 22 or hour < 6) and order.urgency != "stat":
+        next_morning = ordered.replace(hour=6, minute=30, second=0)
+        if hour >= 22:
+            next_morning += timedelta(days=1)
+        delay = max(delay, (next_morning - ordered).total_seconds() / 60)
+
+    # Update queue
+    hospital_state.add_to_queue(resource, ops_config)
+
+    return ordered + timedelta(minutes=delay)
