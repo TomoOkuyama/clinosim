@@ -40,6 +40,32 @@ discharge_instructions:
 discharge_prescriptions:
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 7, probability: 0.7}
 
+scenarios:
+  mild:
+    probability: 0.50
+    description: "GCS 15, brief LOC, quick observation and discharge"
+    additional_labs: []
+    additional_imaging: []
+    additional_treatment: []
+    duration_modifier: 0.6
+    discharge_note: "Mild concussion, return precautions"
+  moderate:
+    probability: 0.35
+    description: "Persistent headache and vomiting, CT obtained"
+    additional_labs: []
+    additional_imaging: [CT_head]
+    additional_treatment: []
+    duration_modifier: 1.2
+    discharge_note: "CT negative, prolonged observation"
+  concerning:
+    probability: 0.15
+    description: "Repeated vomiting, confusion, neurology involvement"
+    additional_labs: [WBC, Glucose]
+    additional_imaging: [CT_head]
+    additional_treatment: [Neurology consult]
+    duration_modifier: 2.0
+    discharge_note: "CT clear but symptomatic, admit for observation"
+
 incidence_modifier: 1.0
 probability: 0.04  # relative frequency among ED visits
 age_distribution: all

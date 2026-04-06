@@ -45,6 +45,32 @@ discharge_prescriptions:
   - {drug: "Cyclobenzaprine 10mg", route: "PO", frequency: "tid PRN", duration_days: 7, probability: 0.5}
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 10, probability: 0.4}
 
+scenarios:
+  musculoskeletal:
+    probability: 0.60
+    description: "No red flags, mechanical back pain, no imaging needed"
+    additional_labs: []
+    additional_imaging: []
+    additional_treatment: []
+    duration_modifier: 0.7
+    discharge_note: "Mechanical back pain, PT referral"
+  with_imaging:
+    probability: 0.30
+    description: "Older patient or concerning features, imaging obtained"
+    additional_labs: []
+    additional_imaging: [Lumbar_Xray]
+    additional_treatment: []
+    duration_modifier: 1.2
+    discharge_note: "Degenerative changes, no acute pathology"
+  red_flags:
+    probability: 0.10
+    description: "Neurological symptoms present, urgent advanced imaging"
+    additional_labs: [CRP, ESR]
+    additional_imaging: [Lumbar_Xray, MRI_lumbar]
+    additional_treatment: []
+    duration_modifier: 2.0
+    discharge_note: "MRI pending, urgent neurosurgery referral"
+
 incidence_modifier: 1.0
 probability: 0.08  # relative frequency among ED visits
 age_distribution: adults  # predominantly 25-65

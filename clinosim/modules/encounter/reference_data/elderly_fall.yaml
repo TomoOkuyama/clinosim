@@ -41,6 +41,32 @@ discharge_instructions:
 discharge_prescriptions:
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "Q6H PRN", duration_days: 7, probability: 0.5}
 
+scenarios:
+  no_injury:
+    probability: 0.40
+    description: "Normal exam, no imaging needed, fall prevention counseling"
+    additional_labs: []
+    additional_imaging: []
+    additional_treatment: []
+    duration_modifier: 0.5
+    discharge_note: "No acute injury, fall prevention counseling"
+  soft_tissue:
+    probability: 0.35
+    description: "Bruising and pain, X-ray negative for fracture"
+    additional_labs: []
+    additional_imaging: []
+    additional_treatment: []
+    duration_modifier: 1.0
+    discharge_note: "Contusion, no fracture. RICE"
+  occult_fracture:
+    probability: 0.25
+    description: "X-ray shows fracture or CT needed for further evaluation"
+    additional_labs: []
+    additional_imaging: [CT_affected_area]
+    additional_treatment: [Orthopedic consult, Splint]
+    duration_modifier: 1.8
+    discharge_note: "Fracture identified, orthopedic follow-up"
+
 incidence_modifier: 1.0
 probability: 0.06
 age_distribution: elderly  # predominantly 65+

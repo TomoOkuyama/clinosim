@@ -41,6 +41,32 @@ discharge_prescriptions:
   - {drug: "Prednisone 40mg", route: "PO", frequency: "daily", duration_days: 5, probability: 0.3}
   - {drug: "Epinephrine auto-injector", route: "IM", frequency: "PRN emergency", duration_days: 365, probability: 0.2}
 
+scenarios:
+  urticaria_only:
+    probability: 0.60
+    description: "Localized hives, no airway involvement, single antihistamine sufficient"
+    additional_labs: []
+    additional_imaging: []
+    additional_treatment: []
+    duration_modifier: 0.6
+    discharge_note: "Urticaria resolved, avoid allergen"
+  moderate_angioedema:
+    probability: 0.30
+    description: "Lip or face swelling requiring steroid treatment"
+    additional_labs: []
+    additional_imaging: []
+    additional_treatment: [Methylprednisolone 40mg IV]
+    duration_modifier: 1.5
+    discharge_note: "Angioedema resolved with steroids"
+  anaphylaxis_concern:
+    probability: 0.10
+    description: "Borderline anaphylaxis with systemic symptoms"
+    additional_labs: []
+    additional_imaging: []
+    additional_treatment: [Epinephrine 0.3mg IM, IV fluid]
+    duration_modifier: 2.0
+    discharge_note: "Epinephrine given, 4h observation, EpiPen prescribed"
+
 incidence_modifier: 1.0
 probability: 0.07  # relative frequency among ED visits
 age_distribution: all

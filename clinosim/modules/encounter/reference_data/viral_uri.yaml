@@ -42,6 +42,32 @@ discharge_prescriptions:
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.5}
   - {drug: "Dextromethorphan/Guaifenesin", route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.3}
 
+scenarios:
+  simple_viral:
+    probability: 0.60
+    description: "Straightforward viral illness, no testing needed"
+    additional_labs: []
+    additional_imaging: []
+    additional_treatment: []
+    duration_modifier: 0.6
+    discharge_note: "Viral illness, supportive care"
+  strep_positive:
+    probability: 0.25
+    description: "Rapid strep test positive, antibiotics indicated"
+    additional_labs: []
+    additional_imaging: []
+    additional_treatment: [Amoxicillin 500mg PO]
+    duration_modifier: 1.0
+    discharge_note: "Group A strep, antibiotics started"
+  pneumonia_concern:
+    probability: 0.15
+    description: "Persistent cough with fever, need to rule out pneumonia"
+    additional_labs: [CRP, WBC]
+    additional_imaging: [Chest_Xray]
+    additional_treatment: []
+    duration_modifier: 1.5
+    discharge_note: "CXR clear, viral URI confirmed"
+
 incidence_modifier: 1.0
 probability: 0.10  # relative frequency among ED visits
 age_distribution: all
