@@ -39,6 +39,7 @@ def main() -> None:
     gen.add_argument("--format", nargs="+", default=["cif"], help="Output formats: cif, csv, fhir")
     gen.add_argument("--narrative", action="store_true", help="Generate narrative layer (requires Ollama)")
     gen.add_argument("--narrative-model", default="qwen:7b", help="Ollama model for narratives")
+    gen.add_argument("--hospital-config", default=None, help="Hospital operations YAML (default: config/hospital_operations.yaml)")
 
     # === test-disease: generate specific disease/archetype ===
     td = sub.add_parser("test-disease", help="Generate data for a specific disease and archetype")
@@ -108,8 +109,11 @@ def main() -> None:
             random_seed=args.seed,
             country=args.country,
         )
+        hospital_cfg = getattr(args, "hospital_config", None)
         print(f"clinosim generate: population={args.population}, seed={args.seed}, country={args.country}")
-        dataset = run_beta(config)
+        if hospital_cfg:
+            print(f"  Hospital config: {hospital_cfg}")
+        dataset = run_beta(config, hospital_config_path=hospital_cfg)
 
     elif args.command == "test-disease":
         scenario = ForcedScenario(

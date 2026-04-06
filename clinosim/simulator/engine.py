@@ -38,8 +38,16 @@ from clinosim.simulator.outpatient import _simulate_outpatient_visit
 # Main entry point
 # ============================================================
 
-def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
-    """Run population-driven simulation."""
+def run_beta(
+    config: SimulatorConfig | None = None,
+    hospital_config_path: str | None = None,
+) -> CIFDataset:
+    """Run population-driven simulation.
+
+    Args:
+        hospital_config_path: Path to hospital operations YAML.
+            If None, uses default config/hospital_operations.yaml.
+    """
     if config is None:
         config = SimulatorConfig()
 
@@ -50,9 +58,15 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
     protocols = _load_all_disease_protocols()
     roster = generate_roster(config.hospital_scale, config.country, rng)
 
-    # Hospital operational state
+    # Hospital operational state (YAML-configurable per hospital)
     from clinosim.modules.facility.hospital_state import HospitalState, load_hospital_operations
-    hospital_ops = load_hospital_operations()
+    if hospital_config_path:
+        import yaml
+        from pathlib import Path
+        with open(Path(hospital_config_path)) as f:
+            hospital_ops = yaml.safe_load(f) or {}
+    else:
+        hospital_ops = load_hospital_operations()
     hospital_state = HospitalState()
 
     # Generate population
@@ -71,15 +85,41 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
         if m > 12:
             m, y = 1, y + 1
 
-    hospital_events = [e for e in all_events if e.requires_hospital]
+    hospital_events = sorted(
+        [e for e in all_events if e.requires_hospital],
+        key=lambda e: e.timestamp,  # chronological order
+    )
     print(f"  Life events: {len(all_events)} total, {len(hospital_events)} requiring hospital")
 
-    # Simulate each patient
+    # Simulate each patient in chronological order (DES-aware)
+    # Hospital state is shared — concurrent patients affect delays
     patient_records: list[CIFPatientRecord] = []
+    concurrent_patients: int = 0
+    active_discharges: list[tuple] = []  # (discharge_date, beds_freed)
+    beds_total = hospital_ops.get("resource_capacity", {}).get("inpatient_beds", 200)
+
     n_hosp = len(hospital_events)
     for idx, event in enumerate(hospital_events):
         if (idx + 1) % 50 == 0 or idx == n_hosp - 1:
-            print(f"  Simulating inpatient {idx+1}/{n_hosp}...", flush=True)
+            print(f"  Simulating inpatient {idx+1}/{n_hosp} "
+                  f"(concurrent={concurrent_patients}, "
+                  f"bed_occ={hospital_state.bed_occupancy:.0%})...", flush=True)
+
+        # Advance hospital time — discharge patients who have left
+        event_time = datetime(event.timestamp.year, event.timestamp.month, event.timestamp.day, 12, 0)
+        hospital_state.update_for_time(event_time, hospital_ops)
+        new_active = []
+        for dc_date, beds in active_discharges:
+            if dc_date <= event.timestamp:
+                hospital_state.bed_occupancy = max(0, hospital_state.bed_occupancy - beds)
+                concurrent_patients = max(0, concurrent_patients - 1)
+            else:
+                new_active.append((dc_date, beds))
+        active_discharges = new_active
+
+        # Admit: increase bed occupancy
+        hospital_state.bed_occupancy = min(0.99, hospital_state.bed_occupancy + 1.0 / beds_total)
+        concurrent_patients += 1
 
         person = population.get_person(event.person_id)
         if person is None or not person.is_alive:
@@ -119,10 +159,15 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
         )
         patient_records.append(record)
         _deactivate_to_layer1(person, record, disease_id)
+        # Track discharge for bed occupancy management
+        if record.encounters and record.encounters[0].discharge_datetime:
+            dc_date = record.encounters[0].discharge_datetime.date()
+            active_discharges.append((dc_date, 1.0 / beds_total))
         if record.deceased:
             person.is_alive = False
 
-    print(f"  Inpatient done: {len(patient_records)} records", flush=True)
+    print(f"  Inpatient done: {len(patient_records)} records "
+          f"(peak concurrent: {concurrent_patients})", flush=True)
 
     # === Readmission evaluation (post-loop pass) ===
     country_key = _country_to_yaml_key(config.country)
