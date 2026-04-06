@@ -1,0 +1,48 @@
+# Annual Health Screening — Outpatient visit protocol
+# Routine annual checkup. Japan: 特定健診 (Tokutei Kenshin). US: Annual physical.
+
+condition_id: annual_health_screening
+chief_complaint: "Annual health screening / preventive checkup"
+encounter_type: outpatient
+department: internal_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 1.0
+
+ed_stay_hours:
+  mild: {mean: 0.5, sd: 0.2}  # 30 min visit
+
+workup:
+  vitals: true
+  labs:
+    - {test: "WBC", probability: 0.9}
+    - {test: "Hb", probability: 0.9}
+    - {test: "Plt", probability: 0.8}
+    - {test: "Glucose", probability: 0.9}
+    - {test: "HbA1c", probability: 0.5}
+    - {test: "Creatinine", probability: 0.9}
+    - {test: "AST", probability: 0.9}
+    - {test: "ALT", probability: 0.9}
+    - {test: "GGT", probability: 0.7}
+    - {test: "T_Bil", probability: 0.6}
+    - {test: "Albumin", probability: 0.7}
+    - {test: "Na", probability: 0.5}
+    - {test: "K", probability: 0.5}
+    - {test: "CRP", probability: 0.5}
+  imaging:
+    - {test: "Chest_Xray", probability: 0.8}
+    - {test: "ECG", probability: 0.6}
+
+treatment: []
+
+discharge_instructions:
+  - "Results will be mailed within 2 weeks"
+  - "Follow up if any abnormalities detected"
+
+discharge_prescriptions: []
+
+incidence_modifier: 1.0
+age_distribution: adults_40plus
+sex_ratio_female: 1.1
+seasonal: {1: 0.5, 2: 0.6, 3: 0.7, 4: 1.0, 5: 1.2, 6: 1.3, 7: 1.2, 8: 1.1, 9: 1.1, 10: 1.0, 11: 0.8, 12: 0.5}

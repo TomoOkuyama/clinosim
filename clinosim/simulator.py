@@ -52,6 +52,7 @@ from clinosim.modules.physiology.engine import (
 )
 from clinosim.modules.population.engine import (
     LifeEvent,
+    generate_healthcare_calendar,
     generate_monthly_events,
     generate_population,
 )
@@ -212,22 +213,19 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
 
     print(f"  Readmissions done: {len(readmission_events)} evaluated", flush=True)
 
-    # === Outpatient encounters ===
+    # === Outpatient encounters (healthcare calendar for ALL population) ===
     from clinosim.locale.loader import load_chronic_followup
     followup_data = load_chronic_followup()
-    post_dc_spec = followup_data.get("_post_discharge", {})
-    post_dc_days = post_dc_spec.get("first_visit_days", 14)
 
-    # Collect inpatient records only (not readmission OPD duplicates)
+    # Post-discharge follow-up for inpatient records
     inpatient_records = [
         r for r in patient_records
         if not r.deceased and r.encounters
         and r.encounters[0].encounter_type == EncounterType.INPATIENT
     ]
-
-    # Cache activated patients to avoid redundant activation
+    post_dc_spec = followup_data.get("_post_discharge", {})
+    post_dc_days = post_dc_spec.get("first_visit_days", 14)
     patient_cache: dict[str, PatientProfile] = {}
-    seen_opd_pids: set[str] = set()
 
     for record in inpatient_records:
         pid = record.patient.patient_id
@@ -237,48 +235,59 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
         enc = record.encounters[0]
         if not enc.discharge_datetime:
             continue
-
-        # Activate once per patient
         if pid not in patient_cache:
             patient_cache[pid] = activate_patient(person, rng, config.country)
-
-        # Post-discharge follow-up (1 per inpatient encounter)
-        followup_date = enc.discharge_datetime + timedelta(days=post_dc_days)
         disease_id = (record.condition_event.ground_truth_diseases[0]
                       if record.condition_event.ground_truth_diseases else "")
-        # Merge disease-specific labs into post-discharge spec
         disease_fu = followup_data.get("_post_discharge_by_disease", {}).get(disease_id, {})
         merged_spec = dict(post_dc_spec)
         if disease_fu.get("labs"):
             merged_spec["labs"] = disease_fu["labs"]
+        followup_date = enc.discharge_datetime + timedelta(days=post_dc_days)
         opd_record = _simulate_outpatient_visit(
             patient_cache[pid], "post_discharge", followup_date, roster, rng,
             followup_spec=merged_spec, post_discharge_disease=disease_id,
         )
         patient_records.append(opd_record)
 
-        # Chronic disease follow-up (max 2 conditions per patient, once)
-        if pid in seen_opd_pids:
-            continue
-        seen_opd_pids.add(pid)
-        chronic_visits = 0
-        for chronic_code in person.chronic_conditions:
-            if chronic_visits >= 2:
-                break
-            spec = followup_data.get(chronic_code)
-            if not spec:
-                continue
-            visit_month = int(rng.integers(start_m, min(start_m + 6, 13)))
-            visit_date = datetime(start_y, visit_month, int(rng.integers(1, 28)), 10, 0)
-            opd_record = _simulate_outpatient_visit(
-                patient_cache[pid], "chronic_followup", visit_date, roster, rng,
-                chronic_code=chronic_code, followup_spec=spec,
-            )
-            patient_records.append(opd_record)
-            chronic_visits += 1
+    n_post_dc = len(patient_records) - len(inpatient_records) - len(readmission_events)
 
-    n_opd = len(patient_records) - len(inpatient_records) - len(readmission_events)
-    print(f"  Outpatient done: {n_opd} visits generated", flush=True)
+    # Healthcare calendar: chronic visits + screening for ALL population
+    calendar_events = generate_healthcare_calendar(population, start_y, config.country, rng)
+    print(f"  Healthcare calendar: {len(calendar_events)} events for population", flush=True)
+
+    n_calendar = 0
+    for event in calendar_events:
+        person = population.get_person(event.person_id)
+        if not person or not person.is_alive:
+            continue
+        if event.person_id not in patient_cache:
+            patient_cache[event.person_id] = activate_patient(person, rng, config.country)
+        patient = patient_cache[event.person_id]
+
+        visit_time = datetime(event.timestamp.year, event.timestamp.month,
+                              event.timestamp.day, 10, int(rng.integers(0, 45)))
+
+        if event.event_type == "chronic_visit":
+            spec = followup_data.get(event.disease_id, {})
+            opd_record = _simulate_outpatient_visit(
+                patient, "chronic_followup", visit_time, roster, rng,
+                chronic_code=event.disease_id, followup_spec=spec,
+            )
+        elif event.event_type == "health_screening":
+            opd_record = _simulate_outpatient_visit(
+                patient, "health_screening", visit_time, roster, rng,
+                chronic_code="annual_health_screening",
+                followup_spec={"labs": ["WBC", "Hb", "Glucose", "Creatinine", "AST", "ALT"],
+                               "visit_reason": "Annual health screening"},
+            )
+        else:
+            continue
+
+        patient_records.append(opd_record)
+        n_calendar += 1
+
+    print(f"  Outpatient done: {n_post_dc} post-discharge + {n_calendar} calendar", flush=True)
 
     # === ED visits (not admitted — go home after ED evaluation) ===
     ed_config = demo.get("ed_visit_not_admitted", {}) if 'demo' in dir() else {}

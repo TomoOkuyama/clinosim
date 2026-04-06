@@ -62,15 +62,20 @@ class Household:
 @dataclass
 class LifeEvent:
     person_id: str
-    event_type: str  # "acute_disease_onset" | "chronic_exacerbation" | "trauma" | "unknown_condition"
+    event_type: str  # "acute_disease_onset" | "chronic_exacerbation" | "trauma" |
+    #                   "unknown_condition" | "chronic_visit" | "health_screening" |
+    #                   "ed_visit" | "followup"
     timestamp: date
     severity: float = 0.5  # 0.0-1.0
-    condition_type: str = "known_disease"  # "known_disease" | "mixed" | "unknown" (AD-28)
+    condition_type: str = "known_disease"  # "known_disease" | "mixed" | "unknown" |
+    #                                        "chronic_followup" | "screening" | "ed_visit"
     disease_id: str = ""
+    encounter_type: str = "inpatient"  # "inpatient" | "outpatient" | "emergency"
     requires_hospital: bool = False
     is_readmission: bool = False
     prior_encounter_id: str | None = None
     readmission_number: int = 0
+    protocol_source: str = ""  # YAML file that defines this encounter's protocol
 
 
 @dataclass
@@ -411,3 +416,83 @@ def _sample_given_name(name_data: dict, sex: str, rng: np.random.Generator) -> d
     return names[idx]
 
 
+
+
+def generate_healthcare_calendar(
+    registry: PopulationRegistry,
+    year: int,
+    country: str,
+    rng: np.random.Generator,
+) -> list[LifeEvent]:
+    """Generate a year's healthcare calendar for ALL population members.
+
+    This includes:
+    - Chronic disease management visits (for everyone with chronic conditions)
+    - Annual health screening (age 40+)
+    - ED visits (non-admitted, from demographics config)
+
+    Acute disease events are generated separately by generate_monthly_events().
+    """
+    events: list[LifeEvent] = []
+
+    # Load follow-up schedules
+    from clinosim.locale.loader import load_chronic_followup
+    followup_data = load_chronic_followup()
+
+    for person in registry.persons.values():
+        if not person.is_alive:
+            continue
+
+        # --- Chronic disease visits ---
+        # Group conditions into combined visits (real patients see one doctor
+        # for multiple conditions in a single visit)
+        conditions_with_spec = [
+            (code, followup_data.get(code))
+            for code in person.chronic_conditions
+            if followup_data.get(code)
+        ]
+        if not conditions_with_spec:
+            continue
+
+        # Use shortest interval as visit frequency (covers all conditions)
+        shortest_interval = min(
+            spec.get("follow_up_interval_months", 3)
+            for _, spec in conditions_with_spec
+        )
+        # Cap: max 6 visits/year for chronic management
+        max_visits = min(12 // shortest_interval, 6)
+        primary_code = conditions_with_spec[0][0]  # main condition for the visit
+
+        month = int(rng.integers(1, min(shortest_interval + 1, 4)))
+        visit_count = 0
+        while month <= 12 and visit_count < max_visits:
+            visit_date = date(year, month, int(rng.integers(1, 28)))
+            events.append(LifeEvent(
+                person_id=person.person_id,
+                event_type="chronic_visit",
+                timestamp=visit_date,
+                severity=0.0,
+                condition_type="chronic_followup",
+                disease_id=primary_code,
+                encounter_type="outpatient",
+                protocol_source=f"chronic_followup:{primary_code}",
+            ))
+            month += shortest_interval
+            visit_count += 1
+
+        # --- Annual health screening (age 40+) ---
+        if person.age >= 40:
+            screening_month = int(rng.integers(4, 11))  # Apr-Oct (typical screening season)
+            screening_date = date(year, screening_month, int(rng.integers(1, 28)))
+            events.append(LifeEvent(
+                person_id=person.person_id,
+                event_type="health_screening",
+                timestamp=screening_date,
+                severity=0.0,
+                condition_type="screening",
+                disease_id="annual_health_screening",
+                encounter_type="outpatient",
+                protocol_source="screening:annual",
+            ))
+
+    return events
