@@ -1,0 +1,384 @@
+"""Simulator engine — run_beta, run_forced, run_alpha entry points."""
+
+from __future__ import annotations
+
+from datetime import date, datetime, timedelta
+
+import numpy as np
+
+from clinosim.modules.disease.protocol import load_disease_protocol
+from clinosim.modules.healthcare_system.loader import load_healthcare_config
+from clinosim.modules.patient.activator import activate_patient
+from clinosim.modules.population.engine import (
+    LifeEvent,
+    PersonRecord,
+    generate_healthcare_calendar,
+    generate_monthly_events,
+    generate_population,
+)
+from clinosim.modules.staff.engine import generate_roster
+from clinosim.types.config import ForcedScenario, SimulatorConfig
+from clinosim.types.encounter import EncounterType
+from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord
+from clinosim.types.patient import PatientProfile
+
+from clinosim.simulator.emergency import _simulate_ed_visit
+from clinosim.simulator.helpers import (
+    _country_to_yaml_key,
+    _deactivate_to_layer1,
+    _evaluate_readmission,
+    _load_all_disease_protocols,
+    _select_secondary_disease,
+)
+from clinosim.simulator.inpatient import _simulate_patient, _simulate_unknown_condition
+from clinosim.simulator.outpatient import _simulate_outpatient_visit
+
+
+# ============================================================
+# Main entry point
+# ============================================================
+
+def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
+    """Run population-driven simulation."""
+    if config is None:
+        config = SimulatorConfig()
+
+    rng = np.random.default_rng(config.random_seed)
+
+    # Load modules
+    healthcare = load_healthcare_config(config.country)
+    protocols = _load_all_disease_protocols()
+    roster = generate_roster(config.hospital_scale, config.country, rng)
+
+    # Hospital operational state
+    from clinosim.modules.facility.hospital_state import HospitalState, load_hospital_operations
+    hospital_ops = load_hospital_operations()
+    hospital_state = HospitalState()
+
+    # Generate population
+    population = generate_population(config.catchment_population, config.country, rng)
+    print(f"  Population: {population.total_persons} persons")
+
+    # Run life events
+    start_y, start_m = int(config.time_range[0][:4]), int(config.time_range[0][5:7])
+    end_y, end_m = int(config.time_range[1][:4]), int(config.time_range[1][5:7])
+
+    all_events: list[LifeEvent] = []
+    y, m = start_y, start_m
+    while (y, m) <= (end_y, end_m):
+        all_events.extend(generate_monthly_events(population, y, m, rng, country=config.country))
+        m += 1
+        if m > 12:
+            m, y = 1, y + 1
+
+    hospital_events = [e for e in all_events if e.requires_hospital]
+    print(f"  Life events: {len(all_events)} total, {len(hospital_events)} requiring hospital")
+
+    # Simulate each patient
+    patient_records: list[CIFPatientRecord] = []
+    n_hosp = len(hospital_events)
+    for idx, event in enumerate(hospital_events):
+        if (idx + 1) % 50 == 0 or idx == n_hosp - 1:
+            print(f"  Simulating inpatient {idx+1}/{n_hosp}...", flush=True)
+
+        person = population.get_person(event.person_id)
+        if person is None or not person.is_alive:
+            continue
+
+        patient = activate_patient(person, rng, config.country)
+        disease_id = event.disease_id
+
+        # Unknown condition
+        if event.condition_type == "unknown" or disease_id.startswith("unknown_"):
+            record = _simulate_unknown_condition(patient, event, rng, healthcare, roster)
+            if record:
+                patient_records.append(record)
+                person.has_visited_hospital = True
+                person.visit_count += 1
+            continue
+
+        protocol = protocols.get(disease_id)
+        if protocol is None:
+            continue
+
+        # Mixed condition: determine secondary disease from patient's chronic conditions
+        secondary_protocol = None
+        if event.condition_type == "mixed":
+            secondary_protocol = _select_secondary_disease(
+                patient, disease_id, protocols, rng,
+            )
+
+        record = _simulate_patient(
+            patient, event, disease_id, protocol, healthcare, roster, config, rng,
+            secondary_protocol=secondary_protocol,
+            is_readmission=event.is_readmission,
+            prior_encounter_id=event.prior_encounter_id,
+            readmission_number=event.readmission_number,
+            hospital_state=hospital_state,
+            hospital_ops=hospital_ops,
+        )
+        patient_records.append(record)
+        _deactivate_to_layer1(person, record, disease_id)
+        if record.deceased:
+            person.is_alive = False
+
+    print(f"  Inpatient done: {len(patient_records)} records", flush=True)
+
+    # === Readmission evaluation (post-loop pass) ===
+    country_key = _country_to_yaml_key(config.country)
+    readmission_events: list[LifeEvent] = []
+    for record in patient_records:
+        if record.deceased or record.is_readmission:
+            continue
+        person = population.get_person(record.patient.patient_id)
+        if not person or not person.is_alive:
+            continue
+        disease_id = (
+            record.condition_event.ground_truth_diseases[0]
+            if record.condition_event.ground_truth_diseases else None
+        )
+        if not disease_id:
+            continue
+        protocol = protocols.get(disease_id)
+        if not protocol:
+            continue
+        re_event = _evaluate_readmission(
+            record, person, disease_id, protocol, country_key, rng,
+        )
+        if re_event:
+            readmission_events.append(re_event)
+
+    # Simulate readmissions (max 1 chain per patient for now)
+    readmission_events.sort(key=lambda e: e.timestamp)
+    for re_event in readmission_events:
+        person = population.get_person(re_event.person_id)
+        if not person or not person.is_alive:
+            continue
+        protocol = protocols.get(re_event.disease_id)
+        if not protocol:
+            continue
+        patient = activate_patient(person, rng, config.country)
+        record = _simulate_patient(
+            patient, re_event, re_event.disease_id, protocol,
+            healthcare, roster, config, rng,
+            is_readmission=True,
+            prior_encounter_id=re_event.prior_encounter_id,
+            readmission_number=re_event.readmission_number,
+            hospital_state=hospital_state,
+            hospital_ops=hospital_ops,
+        )
+        patient_records.append(record)
+        _deactivate_to_layer1(person, record, re_event.disease_id)
+        if record.deceased:
+            person.is_alive = False
+
+    print(f"  Readmissions done: {len(readmission_events)} evaluated", flush=True)
+
+    # === Outpatient encounters (healthcare calendar for ALL population) ===
+    from clinosim.locale.loader import load_chronic_followup
+    followup_data = load_chronic_followup()
+
+    # Post-discharge follow-up for inpatient records
+    inpatient_records = [
+        r for r in patient_records
+        if not r.deceased and r.encounters
+        and r.encounters[0].encounter_type == EncounterType.INPATIENT
+    ]
+    post_dc_spec = followup_data.get("_post_discharge", {})
+    post_dc_days = post_dc_spec.get("first_visit_days", 14)
+    patient_cache: dict[str, PatientProfile] = {}
+
+    for record in inpatient_records:
+        pid = record.patient.patient_id
+        person = population.get_person(pid)
+        if not person or not person.is_alive:
+            continue
+        enc = record.encounters[0]
+        if not enc.discharge_datetime:
+            continue
+        if pid not in patient_cache:
+            patient_cache[pid] = activate_patient(person, rng, config.country)
+        disease_id = (record.condition_event.ground_truth_diseases[0]
+                      if record.condition_event.ground_truth_diseases else "")
+        disease_fu = followup_data.get("_post_discharge_by_disease", {}).get(disease_id, {})
+        merged_spec = dict(post_dc_spec)
+        if disease_fu.get("labs"):
+            merged_spec["labs"] = disease_fu["labs"]
+        followup_date = enc.discharge_datetime + timedelta(days=post_dc_days)
+        opd_record = _simulate_outpatient_visit(
+            patient_cache[pid], "post_discharge", followup_date, roster, rng,
+            followup_spec=merged_spec, post_discharge_disease=disease_id,
+        )
+        patient_records.append(opd_record)
+
+    n_post_dc = len(patient_records) - len(inpatient_records) - len(readmission_events)
+
+    # Healthcare calendar: chronic visits + screening for ALL population
+    calendar_events = generate_healthcare_calendar(population, start_y, config.country, rng)
+    print(f"  Healthcare calendar: {len(calendar_events)} events for population", flush=True)
+
+    n_calendar = 0
+    for event in calendar_events:
+        person = population.get_person(event.person_id)
+        if not person or not person.is_alive:
+            continue
+        if event.person_id not in patient_cache:
+            patient_cache[event.person_id] = activate_patient(person, rng, config.country)
+        patient = patient_cache[event.person_id]
+
+        visit_time = datetime(event.timestamp.year, event.timestamp.month,
+                              event.timestamp.day, 10, int(rng.integers(0, 45)))
+
+        if event.event_type == "chronic_visit":
+            spec = followup_data.get(event.disease_id, {})
+            opd_record = _simulate_outpatient_visit(
+                patient, "chronic_followup", visit_time, roster, rng,
+                chronic_code=event.disease_id, followup_spec=spec,
+            )
+        elif event.event_type == "health_screening":
+            opd_record = _simulate_outpatient_visit(
+                patient, "health_screening", visit_time, roster, rng,
+                chronic_code="annual_health_screening",
+                followup_spec={"labs": ["WBC", "Hb", "Glucose", "Creatinine", "AST", "ALT"],
+                               "visit_reason": "Annual health screening"},
+            )
+        else:
+            continue
+
+        patient_records.append(opd_record)
+        n_calendar += 1
+
+    print(f"  Outpatient done: {n_post_dc} post-discharge + {n_calendar} calendar", flush=True)
+
+    # === ED visits (not admitted — go home after ED evaluation) ===
+    ed_config = {}
+    if not ed_config:
+        from clinosim.locale.loader import load_demographics
+        ed_config = load_demographics(config.country).get("ed_visit_not_admitted", {})
+    ed_rate = ed_config.get("rate_per_admitted", 3.0)
+    ed_conditions = ed_config.get("conditions", [])
+    n_ed = int(len(inpatient_records) * ed_rate)
+    if ed_conditions and n_ed > 0:
+        ed_probs = [c.get("probability", 0.1) for c in ed_conditions]
+        total_p = sum(ed_probs)
+        ed_probs = [p / total_p for p in ed_probs]
+        for _ in range(n_ed):
+            # Pick random person from population
+            person_id = rng.choice(list(population.persons.keys()))
+            person = population.get_person(person_id)
+            if not person or not person.is_alive:
+                continue
+            patient = activate_patient(person, rng, config.country)
+            # Pick ED condition
+            cond_idx = int(rng.choice(len(ed_conditions), p=ed_probs))
+            cond = ed_conditions[cond_idx]
+            # Random date within simulation period
+            ed_month = int(rng.integers(start_m, min(start_m + 11, 13)))
+            ed_day = int(rng.integers(1, 28))
+            ed_hour = int(rng.choice([9, 10, 14, 15, 19, 20, 21, 22]))  # ED visit hours
+            ed_time = datetime(start_y, ed_month, ed_day, ed_hour, int(rng.integers(0, 60)))
+
+            ed_record = _simulate_ed_visit(
+                patient, cond, ed_time, roster, rng,
+            )
+            patient_records.append(ed_record)
+        print(f"  ED visits (not admitted): {n_ed} generated", flush=True)
+
+    metadata = CIFMetadata(
+        clinosim_version="0.1.0",
+        random_seed=config.random_seed,
+        country=config.country,
+        hospital_scale=config.hospital_scale,
+        total_patients_generated=len(patient_records),
+        llm_mode=config.llm.judgment.mode,
+    )
+    return CIFDataset(metadata=metadata, patients=patient_records)
+
+
+def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) -> CIFDataset:
+    """Generate data for a specific forced scenario only. No population needed.
+
+    Usage:
+        from clinosim.types.config import ForcedScenario, SimulatorConfig
+        scenario = ForcedScenario(disease_id="bacterial_pneumonia", count=5, archetype="treatment_resistant")
+        dataset = run_forced(scenario)
+    """
+    if config is None:
+        config = SimulatorConfig()
+
+    rng = np.random.default_rng(config.random_seed)
+    healthcare = load_healthcare_config(config.country)
+    roster = generate_roster(config.hospital_scale, config.country, rng)
+
+    protocol = load_disease_protocol(scenario.disease_id)
+
+    patient_records: list[CIFPatientRecord] = []
+
+    for i in range(scenario.count):
+        # Create patient (from overrides or random)
+        if scenario.patient_overrides:
+            age = scenario.patient_overrides.get("age", 72)
+            sex = scenario.patient_overrides.get("sex", "F")
+        else:
+            age = int(rng.integers(55, 95))
+            sex = str(rng.choice(["M", "F"]))
+
+        # Create a minimal PersonRecord for activation
+        person = PersonRecord(
+            person_id=f"FORCED-{i+1:04d}",
+            household_id=f"HH-FORCED-{i+1:04d}",
+            age=age,
+            sex=sex,
+            date_of_birth=date(2024 - age, 1, 1),
+            family_name="テスト" if config.country == "JP" else "Test",
+            given_name=f"患者{i+1}" if config.country == "JP" else f"Patient{i+1}",
+            chronic_conditions=scenario.patient_overrides.get("chronic_conditions", []),
+        )
+        patient = activate_patient(person, rng, config.country)
+
+        # Force severity and archetype
+        severity = scenario.severity or "moderate"
+
+        # Create life event
+        event = LifeEvent(
+            person_id=patient.patient_id,
+            event_type="forced",
+            timestamp=date(2024, 6, 15),
+            severity={"mild": 0.2, "moderate": 0.5, "severe": 0.8}.get(severity, 0.5),
+            disease_id=scenario.disease_id,
+            requires_hospital=True,
+            condition_type="known_disease",
+        )
+
+        record = _simulate_patient(
+            patient, event, scenario.disease_id, protocol,
+            healthcare, roster, config, rng,
+            forced_severity=scenario.severity,
+            forced_archetype=scenario.archetype,
+        )
+
+        # Force specific complications if requested
+        if scenario.complications:
+            record.complications_occurred.extend(scenario.complications)
+
+        patient_records.append(record)
+
+    metadata = CIFMetadata(
+        clinosim_version="0.1.0",
+        random_seed=config.random_seed,
+        country=config.country,
+        hospital_scale=config.hospital_scale,
+        total_patients_generated=len(patient_records),
+        llm_mode="none",
+    )
+    return CIFDataset(metadata=metadata, patients=patient_records)
+
+
+def run_alpha(config: SimulatorConfig | None = None) -> CIFDataset:
+    """Backward-compatible alpha: 1 pneumonia patient via ForcedScenario."""
+    scenario = ForcedScenario(
+        disease_id="bacterial_pneumonia", count=1,
+        severity="moderate", archetype="smooth_recovery",
+        patient_overrides={"age": 72, "sex": "F"},
+    )
+    return run_forced(scenario, config)

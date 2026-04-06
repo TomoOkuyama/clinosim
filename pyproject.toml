@@ -39,7 +39,7 @@ parquet = [
 all = ["clinosim[dev,llm,parquet]"]
 
 [project.scripts]
-clinosim = "clinosim.simulator:main"
+clinosim = "clinosim.simulator.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["clinosim"]
