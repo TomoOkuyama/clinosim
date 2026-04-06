@@ -250,28 +250,29 @@ def run_beta(config: SimulatorConfig | None = None) -> CIFDataset:
 
     print(f"  Outpatient done: {n_post_dc} post-discharge + {n_calendar} calendar", flush=True)
 
-    # === ED visits (not admitted — go home after ED evaluation) ===
-    ed_config = {}
-    if not ed_config:
-        from clinosim.locale.loader import load_demographics
-        ed_config = load_demographics(config.country).get("ed_visit_not_admitted", {})
-    ed_rate = ed_config.get("rate_per_admitted", 3.0)
-    ed_conditions = ed_config.get("conditions", [])
+    # === ED visits (not admitted — auto-discovered from encounter YAMLs) ===
+    from clinosim.modules.encounter.protocol import load_all_encounter_conditions
+    from clinosim.locale.loader import load_demographics
+    all_enc_conditions = load_all_encounter_conditions()
+    ed_conditions = [
+        (name, spec) for name, spec in all_enc_conditions.items()
+        if spec.get("encounter_type") == "emergency"
+    ]
+    ed_demo = load_demographics(config.country).get("ed_visit_not_admitted", {})
+    ed_rate = ed_demo.get("rate_per_admitted", 3.0)
     n_ed = int(len(inpatient_records) * ed_rate)
     if ed_conditions and n_ed > 0:
-        ed_probs = [c.get("probability", 0.1) for c in ed_conditions]
+        ed_probs = [spec.get("probability", 0.05) for _, spec in ed_conditions]
         total_p = sum(ed_probs)
         ed_probs = [p / total_p for p in ed_probs]
         for _ in range(n_ed):
-            # Pick random person from population
             person_id = rng.choice(list(population.persons.keys()))
             person = population.get_person(person_id)
             if not person or not person.is_alive:
                 continue
             patient = activate_patient(person, rng, config.country)
-            # Pick ED condition
             cond_idx = int(rng.choice(len(ed_conditions), p=ed_probs))
-            cond = ed_conditions[cond_idx]
+            cond_name, cond = ed_conditions[cond_idx]
             # Random date within simulation period
             ed_month = int(rng.integers(start_m, min(start_m + 11, 13)))
             ed_day = int(rng.integers(1, 28))
