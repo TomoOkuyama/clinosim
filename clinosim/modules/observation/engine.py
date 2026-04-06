@@ -59,6 +59,10 @@ LAB_UNITS: dict[str, str] = {
     "Lactate": "mmol/L", "pH": "", "HCO3": "mmol/L", "pCO2": "mmHg",
     "PT_INR": "ratio", "Fibrinogen": "mg/dL", "D_dimer": "ug/mL",
     "TSH": "mIU/L", "SpO2": "%",
+    "HbA1c": "%", "ESR": "mm/h",
+    "Urinalysis": "qualitative", "Urine_culture": "qualitative",
+    "Rapid_Strep": "qualitative", "Tetanus_status": "qualitative",
+    "LDL": "mg/dL", "HDL": "mg/dL", "TG": "mg/dL", "TC": "mg/dL",
 }
 
 
