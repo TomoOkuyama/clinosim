@@ -1,0 +1,74 @@
+# Acute Urinary Retention — ED visit protocol
+# Inability to urinate, common in elderly men with BPH.
+
+condition_id: urinary_retention
+chief_complaint: "Unable to urinate, suprapubic pain and distension"
+encounter_type: emergency
+department: internal_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.30
+  moderate: 0.50
+  severe: 0.20
+
+ed_stay_hours:
+  mild: {mean: 2, sd: 0.5}
+  moderate: {mean: 3, sd: 1}
+  severe: {mean: 5, sd: 1.5}
+
+workup:
+  vitals: true
+  labs:
+    - {test: "Creatinine", probability: 0.8}
+    - {test: "K", probability: 0.6}
+    - {test: "Na", probability: 0.5}
+    - {test: "Urinalysis", probability: 0.7}
+    - {test: "WBC", probability: 0.4}
+  imaging:
+    - {test: "Bladder_ultrasound", probability: 0.6}
+    - {test: "Renal_ultrasound", probability: 0.3}
+
+treatment:
+  - {name: "Foley catheter insertion", probability: 0.9, route: "procedure", intent: "bladder decompression"}
+  - {name: "IV normal saline 500mL", probability: 0.4, route: "IV"}
+  - {name: "Tamsulosin 0.4mg", probability: 0.7, route: "PO", intent: "alpha-blocker for BPH"}
+
+scenarios:
+  simple_retention:
+    probability: 0.50
+    description: "BPH-related, catheter placed, good output, stable renal function"
+    additional_labs: []
+    additional_imaging: []
+    duration_modifier: 0.7
+    discharge_note: "Catheter placed, 800mL drained. Urology follow-up for trial without catheter."
+  with_aki:
+    probability: 0.30
+    description: "Significant post-obstructive diuresis, mild AKI"
+    additional_labs: [{test: "Creatinine", probability: 0.9}, {test: "K", probability: 0.9}]
+    additional_imaging: [{test: "Renal_ultrasound", probability: 0.8}]
+    duration_modifier: 1.5
+    discharge_note: "Post-obstructive diuresis, Cr mildly elevated. Recheck in 48h."
+  complicated:
+    probability: 0.20
+    description: "UTI with retention, or significant AKI requiring observation"
+    additional_labs: [{test: "WBC", probability: 0.9}, {test: "CRP", probability: 0.7}, {test: "Creatinine", probability: 0.9}]
+    additional_treatment: [{name: "Ceftriaxone 1g IV", probability: 0.6}]
+    duration_modifier: 2.0
+    discharge_note: "Infected retention. Antibiotics started, close urology follow-up."
+
+discharge_instructions:
+  - "Catheter care instructions provided"
+  - "Urology follow-up within 3-5 days for trial without catheter"
+  - "Return if fever, catheter blockage, or significant bleeding"
+  - "Increase fluid intake"
+
+discharge_prescriptions:
+  - {drug: "Tamsulosin 0.4mg", route: "PO", frequency: "daily", duration_days: 14, probability: 0.8}
+  - {drug: "Ciprofloxacin 500mg", route: "PO", frequency: "bid", duration_days: 7, probability: 0.3}
+
+incidence_modifier: 1.0
+probability: 0.03
+age_distribution: elderly  # predominantly men 60+
+sex_ratio_female: 0.1  # overwhelmingly male
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}

@@ -1,0 +1,78 @@
+# Non-specific Abdominal Pain — ED visit protocol
+# Most common ED chief complaint. Wide differential, often self-limiting.
+
+condition_id: abdominal_pain_nonspecific
+chief_complaint: "Abdominal pain, nausea"
+encounter_type: emergency
+department: internal_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.40
+  moderate: 0.45
+  severe: 0.15
+
+ed_stay_hours:
+  mild: {mean: 2.5, sd: 0.8}
+  moderate: {mean: 4, sd: 1}
+  severe: {mean: 6, sd: 1.5}
+
+workup:
+  vitals: true
+  labs:
+    - {test: "WBC", probability: 0.8}
+    - {test: "CRP", probability: 0.6}
+    - {test: "Creatinine", probability: 0.5}
+    - {test: "AST", probability: 0.5}
+    - {test: "ALT", probability: 0.5}
+    - {test: "Glucose", probability: 0.4}
+    - {test: "Urinalysis", probability: 0.5}
+  imaging:
+    - {test: "Abdominal_Xray", probability: 0.4}
+    - {test: "CT_abdomen_pelvis", probability: 0.35}
+    - {test: "Abdominal_ultrasound", probability: 0.2}
+
+treatment:
+  - {name: "IV normal saline 1000mL", probability: 0.5, route: "IV"}
+  - {name: "Ondansetron 4mg", probability: 0.4, route: "IV", intent: "antiemetic"}
+  - {name: "Acetaminophen 1000mg", probability: 0.5, route: "IV", intent: "analgesic"}
+  - {name: "Buscopan 20mg", probability: 0.3, route: "IV", intent: "antispasmodic"}
+
+scenarios:
+  benign_self_limiting:
+    probability: 0.50
+    description: "Non-specific pain, resolves with observation"
+    additional_labs: []
+    additional_imaging: []
+    duration_modifier: 0.7
+    discharge_note: "Pain resolved, no acute pathology. Follow up if recurs."
+  requires_imaging:
+    probability: 0.35
+    description: "Persistent pain, CT/US to rule out surgical abdomen"
+    additional_labs: [{test: "Lipase", probability: 0.5}]
+    additional_imaging: [{test: "CT_abdomen_pelvis", probability: 0.8}]
+    duration_modifier: 1.3
+    discharge_note: "CT negative for acute pathology. GI follow-up if persistent."
+  concerning:
+    probability: 0.15
+    description: "High WBC or imaging findings, surgical consult"
+    additional_labs: [{test: "Lipase", probability: 0.8}, {test: "Lactate", probability: 0.5}]
+    additional_imaging: [{test: "CT_abdomen_pelvis", probability: 0.95}]
+    additional_treatment: [{name: "Surgical consult", probability: 0.7}]
+    duration_modifier: 2.0
+    discharge_note: "Surgical consult completed, outpatient follow-up arranged."
+
+discharge_instructions:
+  - "Return if pain worsens, fever develops, or vomiting persists"
+  - "Follow up with PCP within 3-5 days"
+  - "Bland diet for 24 hours"
+
+discharge_prescriptions:
+  - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.5}
+  - {drug: "Buscopan 10mg", route: "PO", frequency: "tid PRN", duration_days: 3, probability: 0.3}
+
+incidence_modifier: 1.0
+probability: 0.08
+age_distribution: all
+sex_ratio_female: 1.2
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
