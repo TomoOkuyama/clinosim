@@ -51,3 +51,50 @@ Donepezil: "ドネペジル（アリセプト）"
 Levodopa/Carbidopa: "レボドパ/カルビドパ（ネオドパストン/メネシット）"
 Levothyroxine: "レボチロキシン（チラーヂンS）"
 Tamsulosin: "タムスロシン（ハルナール）"
+
+# 抗ウイルス薬
+Oseltamivir: "オセルタミビル（タミフル）"
+Zanamivir: "ザナミビル（リレンザ）"
+Baloxavir: "バロキサビル（ゾフルーザ）"
+
+# 喘息
+Prednisolone: "プレドニゾロン（プレドニン）"
+Methylprednisolone: "メチルプレドニゾロン（ソル・メドロール）"
+Ipratropium: "イプラトロピウム（アトロベント）"
+Montelukast: "モンテルカスト（シングレア/キプレス）"
+
+# 脳卒中・神経
+Nicardipine: "ニカルジピン（ペルジピン）"
+Mannitol: "マンニトール（マンニットール）"
+Alteplase: "アルテプラーゼ（アクチバシン/グルトパ）"
+Edoxaban: "エドキサバン（リクシアナ）"
+Rivaroxaban: "リバーロキサバン（イグザレルト）"
+
+# 止血・凝固
+Heparin: "ヘパリン（ヘパリンナトリウム）"
+Tranexamic acid: "トラネキサム酸（トランサミン）"
+
+# 鎮痛・筋弛緩
+Ketorolac: "ケトロラク"
+Ibuprofen: "イブプロフェン（ブルフェン）"
+Diclofenac: "ジクロフェナク（ボルタレン）"
+Morphine: "モルヒネ（モルヒネ塩酸塩）"
+Tizanidine: "チザニジン（テルネリン）"
+
+# 制吐・消化器
+Ondansetron: "オンダンセトロン（ゾフラン）"
+Metoclopramide: "メトクロプラミド（プリンペラン）"
+Omeprazole: "オメプラゾール（オメプラール）"
+Famotidine: "ファモチジン（ガスター）"
+
+# 抗ヒスタミン
+Diphenhydramine: "ジフェンヒドラミン（レスタミン）"
+Hydroxyzine: "ヒドロキシジン（アタラックス）"
+Epinephrine: "エピネフリン（アドレナリン/エピペン）"
+
+# その他
+Midazolam: "ミダゾラム（ドルミカム）"
+Fentanyl: "フェンタニル（フェンタニル）"
+Lorazepam: "ロラゼパム（ワイパックス）"
+Varenicline: "バレニクリン（チャンピックス）"
+Meclizine: "メクリジン（トラベルミン）"
