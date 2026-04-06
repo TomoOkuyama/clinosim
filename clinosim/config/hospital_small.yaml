@@ -1,0 +1,54 @@
+# Small community hospital (~50 beds)
+# Fewer resources → longer waits, some services unavailable
+
+resource_capacity:
+  lab_analyzers: 2
+  ct_scanners: 1
+  mri_scanners: 0    # no MRI → referred to larger hospital
+  xray_rooms: 1
+  ultrasound_rooms: 1
+  operating_rooms: 1
+  ed_beds: 6
+  inpatient_beds: 50
+
+staffing:
+  day:
+    hours: [8, 16]
+    lab_staff: 0.8
+    radiology_staff: 0.6
+    nursing_staff: 0.8
+    pharmacy_staff: 0.5
+    or_staff: 0.5
+  evening:
+    hours: [16, 0]
+    lab_staff: 0.3
+    radiology_staff: 0.2
+    nursing_staff: 0.5
+    pharmacy_staff: 0.0
+    or_staff: 0.0    # no evening surgery
+  night:
+    hours: [0, 8]
+    lab_staff: 0.1    # on-call only
+    radiology_staff: 0.0
+    nursing_staff: 0.4
+    pharmacy_staff: 0.0
+    or_staff: 0.0
+  weekend_modifier: 0.5
+
+daily_patterns:
+  morning_lab_rush:
+    hours: [6, 8]
+    lab_queue_delta: 0.4   # bigger impact with fewer analyzers
+
+base_processing_time:
+  lab_stat: 25
+  lab_routine: 60
+  xray: 15
+  ct: 25
+  ultrasound: 30
+  or_minor: 30
+  or_major: 90
+
+reporting_time:
+  stat: 20
+  routine: 180    # fewer radiologists → slower reporting
