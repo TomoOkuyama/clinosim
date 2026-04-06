@@ -39,6 +39,32 @@ discharge_instructions:
 
 discharge_prescriptions: []
 
+scenarios:
+  vasovagal:
+    probability: 0.50
+    description: "Young patient with clear trigger, quick recovery, benign episode"
+    additional_labs: []
+    additional_imaging: []
+    additional_treatment: []
+    duration_modifier: 0.5
+    discharge_note: "Vasovagal syncope, benign"
+  cardiac_concern:
+    probability: 0.30
+    description: "Elderly patient or abnormal ECG requiring cardiac workup"
+    additional_labs: [Troponin, BNP]
+    additional_imaging: [Echocardiography]
+    additional_treatment: []
+    duration_modifier: 1.5
+    discharge_note: "Cardiac workup negative, Holter ordered"
+  unexplained:
+    probability: 0.20
+    description: "No clear cause identified, extensive workup needed"
+    additional_labs: [Troponin, BNP, Cortisol, TSH]
+    additional_imaging: [CT_head, Echocardiography]
+    additional_treatment: []
+    duration_modifier: 2.0
+    discharge_note: "Neurology/cardiology follow-up recommended"
+
 incidence_modifier: 1.0
 probability: 0.06
 age_distribution: adults

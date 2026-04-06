@@ -45,6 +45,32 @@ discharge_prescriptions:
   - {drug: "Ondansetron 4mg", route: "PO", frequency: "q8h PRN", duration_days: 3, probability: 0.5}
   - {drug: "Loperamide 2mg", route: "PO", frequency: "PRN after each loose stool (max 8mg/day)", duration_days: 3, probability: 0.2}
 
+scenarios:
+  mild_dehydration:
+    probability: 0.50
+    description: "Oral rehydration sufficient, quick improvement"
+    additional_labs: []
+    additional_imaging: []
+    additional_treatment: []
+    duration_modifier: 0.6
+    discharge_note: "Tolerated PO, hydration improved"
+  moderate:
+    probability: 0.35
+    description: "IV fluids needed, electrolyte check"
+    additional_labs: [Na, K]
+    additional_imaging: []
+    additional_treatment: []
+    duration_modifier: 1.2
+    discharge_note: "IV hydration, electrolytes normal"
+  severe_dehydration:
+    probability: 0.15
+    description: "Multiple IV bags required, persistent vomiting, antiemetics"
+    additional_labs: [Na, K, Creatinine, WBC]
+    additional_imaging: []
+    additional_treatment: []
+    duration_modifier: 2.0
+    discharge_note: "Significant dehydration, consider observation"
+
 incidence_modifier: 1.0
 probability: 0.05  # relative frequency among ED visits
 age_distribution: all

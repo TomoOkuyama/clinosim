@@ -44,6 +44,32 @@ discharge_instructions:
 discharge_prescriptions:
   - {drug: "Omeprazole 20mg", route: "PO", frequency: "daily", duration_days: 14, probability: 0.4}
 
+scenarios:
+  quick_ruleout:
+    probability: 0.40
+    description: "Single troponin negative with normal ECG, rapid ACS rule-out"
+    additional_labs: []
+    additional_imaging: []
+    additional_treatment: []
+    duration_modifier: 0.6
+    discharge_note: "ACS ruled out, likely musculoskeletal"
+  serial_observation:
+    probability: 0.40
+    description: "Serial troponins x2 (3h apart), extended observation period"
+    additional_labs: [Troponin_repeat]
+    additional_imaging: []
+    additional_treatment: []
+    duration_modifier: 1.5
+    discharge_note: "Serial troponins negative, low-risk"
+  extended_cardiac:
+    probability: 0.20
+    description: "Borderline troponin or ECG changes requiring cardiology involvement"
+    additional_labs: [BNP, Troponin_repeat]
+    additional_imaging: [Echocardiography]
+    additional_treatment: [Cardiology consult]
+    duration_modifier: 2.0
+    discharge_note: "Cardiology cleared, outpatient stress test"
+
 incidence_modifier: 1.0
 probability: 0.15  # relative frequency among ED visits
 age_distribution: adults  # predominantly 40+

@@ -283,9 +283,19 @@ def run_beta(
 
         if event.event_type == "chronic_visit":
             spec = followup_data.get(event.disease_id, {})
+            # Merge optional labs: quarterly (25% each visit) and annual (8% each visit)
+            visit_labs = list(spec.get("labs", []))
+            for lab in spec.get("labs_quarterly", []):
+                if rng.random() < 0.25 and lab not in visit_labs:
+                    visit_labs.append(lab)
+            for lab in spec.get("labs_annual", []):
+                if rng.random() < 0.08 and lab not in visit_labs:
+                    visit_labs.append(lab)
+            merged_spec = dict(spec)
+            merged_spec["labs"] = visit_labs
             opd_record = _simulate_outpatient_visit(
                 patient, "chronic_followup", visit_time, roster, rng,
-                chronic_code=event.disease_id, followup_spec=spec,
+                chronic_code=event.disease_id, followup_spec=merged_spec,
             )
         elif event.event_type == "health_screening":
             opd_record = _simulate_outpatient_visit(

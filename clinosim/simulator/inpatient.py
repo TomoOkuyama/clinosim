@@ -633,7 +633,10 @@ def _run_daily_loop(
             if _check_discharge_ready(state, day, country_key):
                 break  # actual_los = day + 1
 
-    actual_los = day + 1
+    try:
+        actual_los = day + 1
+    except NameError:
+        actual_los = max(1, target_los)
     return {
         "orders": all_orders, "lab_results": all_lab_results, "vitals": all_vitals,
         "mars": all_mars, "io_records": all_io, "adl_assessments": all_adl,
