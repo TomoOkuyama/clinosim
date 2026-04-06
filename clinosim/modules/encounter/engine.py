@@ -31,7 +31,7 @@ def create_inpatient_encounter(
 ) -> Encounter:
     """Create a new inpatient encounter."""
     return Encounter(
-        encounter_id=f"ENC-{patient_id}-{visit_number:03d}",
+        encounter_id=f"ENC-{patient_id}-{visit_number:04d}",
         patient_id=patient_id,
         episode_id=f"EP-{patient_id}-{visit_number:03d}",
         encounter_type=EncounterType.INPATIENT,
