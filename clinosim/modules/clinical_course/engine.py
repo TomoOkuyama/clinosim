@@ -178,9 +178,9 @@ def get_daily_directive(
             #    This creates non-monotonic trajectories (CRP may bump up on Day 4)
             if rng is not None:
                 prop_noise = float(rng.normal(0, abs(delta) * 0.15 + 0.002))
-                # Occasional larger perturbation (~15% chance of a "bump day")
-                if rng.random() < 0.15:
-                    bump = float(rng.normal(0, 0.02))
+                # Occasional larger perturbation (~10% chance of a "bump day")
+                if rng.random() < 0.10:
+                    bump = float(rng.normal(0, 0.008))
                     if var_name == "inflammation_level":
                         bump = abs(bump)  # inflammation bumps upward
                     prop_noise += bump
