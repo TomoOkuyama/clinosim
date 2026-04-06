@@ -1,0 +1,34 @@
+# Prescription Renewal — Outpatient visit protocol
+# Brief visit for medication refill and prescription renewal. Minimal workup.
+
+condition_id: prescription_renewal
+chief_complaint: "Medication refill, prescription renewal only"
+encounter_type: outpatient
+department: internal_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 1.0
+
+ed_stay_hours:
+  mild: {mean: 0.17, sd: 0.05}  # 10 min visit
+
+workup:
+  vitals: true  # BP check only
+  labs: []
+  imaging: []
+
+treatment: []
+
+discharge_instructions:
+  - "Continue medications as prescribed"
+  - "Schedule follow-up for comprehensive review if not seen in >6 months"
+  - "Report any new symptoms or side effects at next visit"
+
+discharge_prescriptions: []
+prescriptions_renewed: true
+
+incidence_modifier: 1.0
+age_distribution: adults_all
+sex_ratio_female: 1.1
+seasonal: {1: 1.1, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.1}

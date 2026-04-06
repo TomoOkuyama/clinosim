@@ -1438,7 +1438,13 @@ def _simulate_outpatient_visit(
         disease_fu = fu.get("_post_discharge_by_disease", {}).get(post_discharge_disease, {})
         chief = disease_fu.get("visit_reason", f"Post-discharge follow-up: {post_discharge_disease}")
     else:
-        chief = f"Follow-up: {chronic_code}"
+        # Try encounter protocol YAML for chief complaint
+        try:
+            from clinosim.modules.encounter.protocol import load_encounter_condition
+            enc_proto = load_encounter_condition(chronic_code)
+            chief = enc_proto.get("chief_complaint", f"Follow-up: {chronic_code}")
+        except (FileNotFoundError, Exception):
+            chief = f"Follow-up: {chronic_code}"
 
     encounter = create_inpatient_encounter(
         patient.patient_id, visit_date,

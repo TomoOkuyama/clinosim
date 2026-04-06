@@ -1,0 +1,34 @@
+# Influenza Vaccination — Outpatient visit protocol
+# Seasonal influenza vaccine administration visit.
+
+condition_id: flu_vaccination
+chief_complaint: "Influenza vaccination"
+encounter_type: outpatient
+department: internal_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 1.0
+
+ed_stay_hours:
+  mild: {mean: 0.25, sd: 0.1}  # 15 min visit
+
+workup:
+  vitals: false
+  labs: []
+  imaging: []
+
+treatment:
+  - {name: "influenza vaccine IM", probability: 1.0}
+
+discharge_instructions:
+  - "Mild soreness at injection site is normal for 1-2 days"
+  - "Fever, fatigue, and body aches may occur and resolve in 1-2 days"
+  - "Seek medical attention if severe allergic reaction (difficulty breathing, swelling)"
+
+discharge_prescriptions: []
+
+incidence_modifier: 1.0
+age_distribution: adults_all
+sex_ratio_female: 1.1
+seasonal: {1: 0.1, 2: 0.05, 3: 0.02, 4: 0.01, 5: 0.01, 6: 0.01, 7: 0.01, 8: 0.05, 9: 0.5, 10: 1.5, 11: 1.5, 12: 1.0}

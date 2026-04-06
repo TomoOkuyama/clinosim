@@ -1,0 +1,36 @@
+# Diabetic Retinopathy Screening — Outpatient visit protocol
+# Annual fundoscopy screening for diabetic patients to detect retinopathy.
+
+condition_id: diabetic_retinopathy_screening
+chief_complaint: "Diabetic retinopathy screening, fundoscopy"
+encounter_type: outpatient
+department: ophthalmology
+disposition: discharge_home
+
+severity_distribution:
+  mild: 1.0
+
+ed_stay_hours:
+  mild: {mean: 0.5, sd: 0.15}  # 30 min visit
+
+workup:
+  vitals: false
+  labs: []
+  imaging:
+    - {test: "Fundus_Photography", probability: 1.0}
+
+treatment:
+  - {name: "mydriatic eye drops (tropicamide)", probability: 1.0}
+
+discharge_instructions:
+  - "Vision may be blurry for 4-6 hours due to pupil dilation"
+  - "Wear sunglasses outdoors until pupils return to normal"
+  - "Do not drive until vision clears"
+  - "Results discussed at next diabetes follow-up"
+
+discharge_prescriptions: []
+
+incidence_modifier: 1.0
+age_distribution: adults_all
+sex_ratio_female: 1.0
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}

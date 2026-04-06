@@ -1,0 +1,47 @@
+# Pre-operative Assessment — Outpatient visit protocol
+# Scheduled pre-surgical evaluation including labs, imaging, and anesthesia review.
+
+condition_id: preoperative_assessment
+chief_complaint: "Pre-operative assessment for scheduled surgery"
+encounter_type: outpatient
+department: surgery
+disposition: discharge_home
+
+severity_distribution:
+  mild: 1.0
+
+ed_stay_hours:
+  mild: {mean: 0.75, sd: 0.25}  # 45 min visit
+
+workup:
+  vitals: true
+  labs:
+    - {test: "WBC", probability: 1.0}
+    - {test: "Hb", probability: 1.0}
+    - {test: "Plt", probability: 1.0}
+    - {test: "Creatinine", probability: 1.0}
+    - {test: "Na", probability: 1.0}
+    - {test: "K", probability: 1.0}
+    - {test: "Glucose", probability: 1.0}
+    - {test: "PT_INR", probability: 1.0}
+    - {test: "Type_and_Crossmatch", probability: 0.8}
+    - {test: "AST", probability: 0.7}
+    - {test: "ALT", probability: 0.7}
+    - {test: "Albumin", probability: 0.6}
+  imaging:
+    - {test: "Chest_Xray", probability: 0.9}
+    - {test: "ECG", probability: 0.95}
+
+treatment: []
+
+discharge_instructions:
+  - "NPO after midnight the night before surgery"
+  - "Review medication list — hold anticoagulants as directed"
+  - "Arrive at hospital at scheduled pre-op time"
+
+discharge_prescriptions: []
+
+incidence_modifier: 1.0
+age_distribution: adults_all
+sex_ratio_female: 1.0
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 0.9, 9: 1.0, 10: 1.0, 11: 1.0, 12: 0.8}

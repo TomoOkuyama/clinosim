@@ -1,0 +1,34 @@
+# Lab Result Consultation — Outpatient visit protocol
+# Brief visit to review and explain previous lab/test results with the patient.
+
+condition_id: lab_result_consultation
+chief_complaint: "Lab result review, test result explanation"
+encounter_type: outpatient
+department: internal_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 1.0
+
+ed_stay_hours:
+  mild: {mean: 0.25, sd: 0.1}  # 15 min visit
+
+workup:
+  vitals: false
+  labs: []
+  imaging: []
+
+treatment: []
+
+discharge_instructions:
+  - "Review provided result summary sheet"
+  - "Follow dietary and lifestyle recommendations as discussed"
+  - "Schedule follow-up labs if indicated"
+  - "Contact clinic with any questions about results"
+
+discharge_prescriptions: []
+
+incidence_modifier: 1.0
+age_distribution: adults_all
+sex_ratio_female: 1.1
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
