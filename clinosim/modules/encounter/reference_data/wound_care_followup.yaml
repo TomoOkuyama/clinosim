@@ -1,0 +1,40 @@
+# Wound Care Follow-up — Outpatient visit protocol
+# Post-procedure wound check, suture/staple removal, and dressing change.
+
+condition_id: wound_care_followup
+chief_complaint: "Wound care follow-up, suture/staple removal"
+encounter_type: outpatient
+department: surgery
+disposition: discharge_home
+
+severity_distribution:
+  mild: 1.0
+
+ed_stay_hours:
+  mild: {mean: 0.33, sd: 0.1}  # 20 min visit
+
+workup:
+  vitals: false
+  labs:
+    - {test: "WBC", probability: 0.2}
+    - {test: "CRP", probability: 0.2}
+  imaging: []
+
+treatment:
+  - {name: "wound assessment", probability: 1.0}
+  - {name: "suture removal", probability: 0.7}
+  - {name: "staple removal", probability: 0.3}
+  - {name: "dressing change", probability: 0.8}
+
+discharge_instructions:
+  - "Keep wound clean and dry for 24-48 hours"
+  - "Apply petroleum jelly or prescribed ointment to promote healing"
+  - "Watch for signs of infection: redness, warmth, swelling, drainage"
+  - "Return if wound reopens or signs of infection develop"
+
+discharge_prescriptions: []
+
+incidence_modifier: 1.0
+age_distribution: adults_all
+sex_ratio_female: 0.9
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.1, 7: 1.1, 8: 1.1, 9: 1.0, 10: 1.0, 11: 1.0, 12: 0.9}

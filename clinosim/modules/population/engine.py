@@ -482,7 +482,7 @@ def generate_healthcare_calendar(
 
         # --- Annual health screening (age 40+) ---
         if person.age >= 40:
-            screening_month = int(rng.integers(4, 11))  # Apr-Oct (typical screening season)
+            screening_month = int(rng.integers(4, 11))
             screening_date = date(year, screening_month, int(rng.integers(1, 28)))
             events.append(LifeEvent(
                 person_id=person.person_id,
@@ -493,6 +493,60 @@ def generate_healthcare_calendar(
                 disease_id="annual_health_screening",
                 encounter_type="outpatient",
                 protocol_source="screening:annual",
+            ))
+
+        # --- Flu vaccination (age 65+ or chronic conditions, Oct-Dec) ---
+        if person.age >= 65 or len(person.chronic_conditions) >= 2:
+            if rng.random() < 0.5:  # ~50% vaccination rate
+                vax_month = int(rng.choice([10, 11, 12]))
+                events.append(LifeEvent(
+                    person_id=person.person_id,
+                    event_type="chronic_visit",
+                    timestamp=date(year, vax_month, int(rng.integers(1, 28))),
+                    severity=0.0,
+                    condition_type="screening",
+                    disease_id="flu_vaccination",
+                    encounter_type="outpatient",
+                    protocol_source="encounter:flu_vaccination",
+                ))
+
+        # --- Colonoscopy screening (age 50+, every 10 years → ~10% per year) ---
+        if person.age >= 50 and rng.random() < 0.08:
+            events.append(LifeEvent(
+                person_id=person.person_id,
+                event_type="health_screening",
+                timestamp=date(year, int(rng.integers(1, 13)), int(rng.integers(1, 28))),
+                severity=0.0,
+                condition_type="screening",
+                disease_id="colonoscopy_screening",
+                encounter_type="outpatient",
+                protocol_source="encounter:colonoscopy_screening",
+            ))
+
+        # --- Mammography screening (women 40+, annual → ~60% participation) ---
+        if person.sex == "F" and person.age >= 40 and rng.random() < 0.4:
+            events.append(LifeEvent(
+                person_id=person.person_id,
+                event_type="health_screening",
+                timestamp=date(year, int(rng.integers(1, 13)), int(rng.integers(1, 28))),
+                severity=0.0,
+                condition_type="screening",
+                disease_id="mammography_screening",
+                encounter_type="outpatient",
+                protocol_source="encounter:mammography_screening",
+            ))
+
+        # --- Diabetic retinopathy screening (DM patients, annual) ---
+        if "E11.9" in person.chronic_conditions and rng.random() < 0.6:
+            events.append(LifeEvent(
+                person_id=person.person_id,
+                event_type="chronic_visit",
+                timestamp=date(year, int(rng.integers(1, 13)), int(rng.integers(1, 28))),
+                severity=0.0,
+                condition_type="screening",
+                disease_id="diabetic_retinopathy_screening",
+                encounter_type="outpatient",
+                protocol_source="encounter:diabetic_retinopathy_screening",
             ))
 
     return events

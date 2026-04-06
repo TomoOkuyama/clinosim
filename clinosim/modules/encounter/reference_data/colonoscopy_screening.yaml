@@ -1,0 +1,41 @@
+# Colonoscopy Screening — Outpatient visit protocol
+# Screening colonoscopy for colorectal cancer prevention and polyp detection.
+
+condition_id: colonoscopy_screening
+chief_complaint: "Screening colonoscopy for colorectal cancer"
+encounter_type: outpatient
+department: gastroenterology
+disposition: discharge_home
+
+severity_distribution:
+  mild: 1.0
+
+ed_stay_hours:
+  mild: {mean: 2.0, sd: 0.5}  # 2 hours including recovery
+
+workup:
+  vitals: true
+  labs:
+    - {test: "WBC", probability: 0.5}
+    - {test: "Hb", probability: 0.8}
+    - {test: "Plt", probability: 0.5}
+  imaging: []
+
+treatment:
+  - {name: "midazolam IV sedation", probability: 0.95}
+  - {name: "fentanyl IV sedation", probability: 0.95}
+  - {name: "polypectomy", probability: 0.3}
+
+discharge_instructions:
+  - "No driving for 24 hours after sedation"
+  - "Clear liquids initially, advance diet as tolerated"
+  - "If polyps removed: avoid aspirin/NSAIDs for 1 week"
+  - "Return to ED for significant rectal bleeding, fever, or abdominal pain"
+  - "Pathology results in 1-2 weeks if biopsy performed"
+
+discharge_prescriptions: []
+
+incidence_modifier: 1.0
+age_distribution: adults_50plus
+sex_ratio_female: 1.0
+seasonal: {1: 1.0, 2: 1.0, 3: 1.1, 4: 1.1, 5: 1.0, 6: 1.0, 7: 0.9, 8: 0.9, 9: 1.0, 10: 1.0, 11: 1.0, 12: 0.9}

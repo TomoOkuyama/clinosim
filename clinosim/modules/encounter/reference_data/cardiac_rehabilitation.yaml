@@ -1,0 +1,38 @@
+# Cardiac Rehabilitation — Outpatient visit protocol
+# Supervised exercise and education session for post-MI or post-cardiac surgery patients.
+
+condition_id: cardiac_rehabilitation
+chief_complaint: "Cardiac rehabilitation session (post-MI/post-surgery)"
+encounter_type: outpatient
+department: cardiology_rehabilitation
+disposition: discharge_home
+
+severity_distribution:
+  mild: 1.0
+
+ed_stay_hours:
+  mild: {mean: 1.0, sd: 0.2}  # 1 hour session
+
+workup:
+  vitals: true  # HR, BP before and after exercise
+  labs: []
+  imaging:
+    - {test: "ECG", probability: 0.3}
+
+treatment:
+  - {name: "supervised aerobic exercise", probability: 1.0}
+  - {name: "resistance training", probability: 0.6}
+  - {name: "patient education (diet, lifestyle)", probability: 0.8}
+
+discharge_instructions:
+  - "Continue home exercise program as prescribed"
+  - "Monitor heart rate during activity — stay within target zone"
+  - "Stop exercise and seek help if chest pain, dizziness, or severe dyspnea"
+  - "Next session scheduled per rehabilitation plan"
+
+discharge_prescriptions: []
+
+incidence_modifier: 1.0
+age_distribution: adults_50plus
+sex_ratio_female: 0.4
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}

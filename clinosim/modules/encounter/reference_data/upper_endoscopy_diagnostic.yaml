@@ -1,0 +1,40 @@
+# Upper Endoscopy (EGD) — Outpatient visit protocol
+# Diagnostic esophagogastroduodenoscopy for dyspepsia, GERD, or upper GI symptoms.
+
+condition_id: upper_endoscopy_diagnostic
+chief_complaint: "Diagnostic EGD for dyspepsia/GERD evaluation"
+encounter_type: outpatient
+department: gastroenterology
+disposition: discharge_home
+
+severity_distribution:
+  mild: 1.0
+
+ed_stay_hours:
+  mild: {mean: 1.5, sd: 0.4}  # 1.5 hours including recovery
+
+workup:
+  vitals: true
+  labs:
+    - {test: "Hb", probability: 0.8}
+    - {test: "H_pylori", probability: 0.6}
+  imaging: []
+
+treatment:
+  - {name: "midazolam IV sedation", probability: 0.9}
+  - {name: "fentanyl IV sedation", probability: 0.9}
+  - {name: "biopsy", probability: 0.5}
+
+discharge_instructions:
+  - "No driving for 24 hours after sedation"
+  - "Soft diet for remainder of day"
+  - "If biopsy taken, results available in 1-2 weeks"
+  - "Return to ED for difficulty swallowing, vomiting blood, or severe abdominal pain"
+
+discharge_prescriptions:
+  - {drug: "omeprazole", dose: "20mg", route: "PO", frequency: "daily", probability: 0.6}
+
+incidence_modifier: 1.0
+age_distribution: adults_all
+sex_ratio_female: 1.0
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}

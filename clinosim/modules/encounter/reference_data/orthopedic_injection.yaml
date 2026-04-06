@@ -1,0 +1,39 @@
+# Orthopedic Injection — Outpatient visit protocol
+# Intra-articular corticosteroid injection for osteoarthritis (knee, shoulder, hip).
+
+condition_id: orthopedic_injection
+chief_complaint: "Intra-articular injection for osteoarthritis (knee/shoulder)"
+encounter_type: outpatient
+department: orthopedics
+disposition: discharge_home
+
+severity_distribution:
+  mild: 1.0
+
+ed_stay_hours:
+  mild: {mean: 0.5, sd: 0.15}  # 30 min visit
+
+workup:
+  vitals: false
+  labs: []
+  imaging:
+    - {test: "Xray_Joint", probability: 0.5}
+
+treatment:
+  - {name: "local anesthesia (lidocaine)", probability: 1.0}
+  - {name: "corticosteroid intra-articular injection (triamcinolone)", probability: 1.0}
+
+discharge_instructions:
+  - "Rest the joint for 24-48 hours after injection"
+  - "Ice the area for 15-20 minutes if sore"
+  - "Pain relief typically begins within 2-3 days"
+  - "Avoid strenuous activity with the joint for 48 hours"
+  - "Return if joint becomes hot, swollen, or red (rare infection risk)"
+
+discharge_prescriptions:
+  - {drug: "acetaminophen", dose: "500mg", route: "PO", frequency: "Q6H PRN", probability: 0.5}
+
+incidence_modifier: 1.0
+age_distribution: adults_50plus
+sex_ratio_female: 1.2
+seasonal: {1: 1.1, 2: 1.1, 3: 1.0, 4: 1.0, 5: 1.0, 6: 0.9, 7: 0.9, 8: 0.9, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.1}
