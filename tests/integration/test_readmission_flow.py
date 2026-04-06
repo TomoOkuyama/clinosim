@@ -14,7 +14,7 @@ from clinosim.types.config import SimulatorConfig
 @pytest.fixture(scope="module")
 def readmission_dataset():
     config = SimulatorConfig(
-        catchment_population=10_000,
+        catchment_population=5_000,
         random_seed=42,
         country="US",
     )

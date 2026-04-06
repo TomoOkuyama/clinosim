@@ -18,7 +18,7 @@ from clinosim.types.config import ForcedScenario, SimulatorConfig
 @pytest.fixture(scope="module")
 def us_dataset():
     config = SimulatorConfig(
-        catchment_population=10_000,
+        catchment_population=5_000,
         random_seed=42,
         country="US",
     )

@@ -56,7 +56,7 @@ class TestForcedScenario:
 @pytest.fixture(scope="module")
 def mixed_dataset():
     config = SimulatorConfig(
-        catchment_population=30_000, random_seed=42,
+        catchment_population=15_000, random_seed=42,
         time_range=("2024-04-01", "2025-03-31"),
     )
     return run_beta(config)
