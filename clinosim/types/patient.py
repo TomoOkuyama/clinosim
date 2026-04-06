@@ -34,14 +34,37 @@ class BaselineVitals:
 
 
 @dataclass
+class Address:
+    """Postal address."""
+    postal_code: str = ""
+    state: str = ""  # US: state, JP: prefecture
+    city: str = ""
+    line1: str = ""  # street address
+    line2: str = ""  # apt/unit
+    country: str = "US"
+
+
+@dataclass
+class ContactInfo:
+    """Patient contact information."""
+    phone_home: str = ""     # household landline
+    phone_mobile: str = ""   # personal mobile
+    phone_primary: str = ""  # which one to use (home or mobile)
+    email: str = ""
+    emergency_contact_name: str = ""
+    emergency_contact_phone: str = ""
+    emergency_contact_relationship: str = ""
+
+
+@dataclass
 class PersonName:
     """Country-appropriate name representation (AD-25)."""
 
     family_name: str = ""
     given_name: str = ""
-    display_name: str = ""  # formatted for display (e.g., "Given Family" or "Family Given")
-    name_script: str = "en"  # "ja" | "en"
-    phonetic: str | None = None  # phonetic reading for languages that need it (e.g., katakana)
+    display_name: str = ""
+    name_script: str = "en"
+    phonetic: str | None = None
 
 
 @dataclass
@@ -67,7 +90,7 @@ class PatientProfile:
 
     patient_id: str = ""
     name: PersonName = field(default_factory=PersonName)
-    age: int = 0
+    age: int = 0  # kept for backward compat; derived from date_of_birth in output
     sex: str = "M"
     date_of_birth: date | None = None
     blood_type: str = "A"
@@ -75,6 +98,9 @@ class PatientProfile:
     height_cm: float = 170.0
     weight_kg: float = 65.0
     bmi: float = 22.5
+
+    address: Address = field(default_factory=Address)
+    contact: ContactInfo = field(default_factory=ContactInfo)
 
     employment_status: str = "retired"
     insurance_type: str = "NHI_employee"

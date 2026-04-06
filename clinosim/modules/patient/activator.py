@@ -174,6 +174,23 @@ def activate_patient(
     # Current medications from Layer 1 (discharge prescriptions from prior visits)
     current_meds = list(person.current_medications) if hasattr(person, "current_medications") else []
 
+    # Address and contact from Layer 1
+    from clinosim.types.patient import Address, ContactInfo
+    address = Address(
+        postal_code=getattr(person, "postal_code", ""),
+        state=getattr(person, "state", ""),
+        city=getattr(person, "city", ""),
+        line1=getattr(person, "address_line", ""),
+        country=country,
+    )
+    phone_mobile = getattr(person, "phone_mobile", "")
+    phone_home = getattr(person, "phone_home", "")
+    contact = ContactInfo(
+        phone_home=phone_home,
+        phone_mobile=phone_mobile,
+        phone_primary=phone_mobile if phone_mobile else phone_home,
+    )
+
     return PatientProfile(
         patient_id=person.person_id,
         name=name,
@@ -185,6 +202,8 @@ def activate_patient(
         height_cm=round(height, 1),
         weight_kg=round(weight, 1),
         bmi=round(bmi, 1),
+        address=address,
+        contact=contact,
         employment_status="retired" if age >= 65 else "employed",
         insurance_type="late_elderly" if age >= 75 else "NHI_employee",
         health_literacy=round(float(rng.normal(0.6, 0.15)), 2),

@@ -79,6 +79,12 @@ def load_chronic_medications() -> dict[str, Any]:
     return _load_yaml(_LOCALE_DIR / "shared" / "chronic_medications.yaml", fallback={})
 
 
+@lru_cache(maxsize=8)
+def load_addresses(country: str) -> dict[str, Any]:
+    """Load address/phone data for a country."""
+    return _load_yaml(_country_dir(country) / "addresses.yaml", fallback={})
+
+
 @lru_cache(maxsize=1)
 def load_chronic_followup() -> dict[str, Any]:
     """Load chronic disease outpatient follow-up schedules."""
