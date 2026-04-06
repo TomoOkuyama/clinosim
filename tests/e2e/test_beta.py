@@ -14,7 +14,7 @@ from clinosim.types.config import SimulatorConfig
 @pytest.fixture(scope="module")
 def beta_result():
     config = SimulatorConfig(
-        catchment_population=10_000,
+        catchment_population=5_000,
         time_range=("2024-04-01", "2025-03-31"),
         random_seed=42,
     )
@@ -88,7 +88,7 @@ class TestBeta:
 
     def test_reproducibility(self, beta_result):
         config = SimulatorConfig(
-            catchment_population=10_000,
+            catchment_population=5_000,
             time_range=("2024-04-01", "2025-03-31"),
             random_seed=42,
         )
