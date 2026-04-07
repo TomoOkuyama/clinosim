@@ -2,9 +2,13 @@
 # Most common ED visit condition. Usually discharged after IV fluid + antiemetics.
 
 condition_id: viral_gastroenteritis
-chief_complaint: "Nausea, vomiting, diarrhea, abdominal cramps"
+icd10_code: "A08.4"
+icd10_display: "Viral intestinal infection, unspecified"
+chief_complaint:
+  en: "Nausea, vomiting, diarrhea, abdominal cramps"
+  ja: "嘔気・嘔吐・下痢・腹部痙攣"
 encounter_type: emergency  # emergency | outpatient_urgent
-department: internal_medicine
+department: emergency_medicine
 disposition: discharge_home  # discharge_home | observation | admit (criteria-based)
 
 severity_distribution:

@@ -2,9 +2,13 @@
 # Rule-out ACS. Serial troponins, ECG, then discharge if negative.
 
 condition_id: chest_pain_noncardiac
-chief_complaint: "Chest pain, rule out acute coronary syndrome"
+icd10_code: "R07.89"
+icd10_display: "Other chest pain"
+chief_complaint:
+  en: "Chest pain, rule out acute coronary syndrome"
+  ja: "胸痛（急性冠症候群除外目的）"
 encounter_type: emergency
-department: internal_medicine
+department: emergency_medicine
 disposition: discharge_home
 
 severity_distribution:

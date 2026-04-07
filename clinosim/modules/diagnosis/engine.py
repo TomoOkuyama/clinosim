@@ -495,22 +495,34 @@ def get_current_diagnosis_code(
 ) -> tuple[str, str]:
     """Returns (ICD code, display name) based on current confidence.
 
-    Args:
-        protocol_progression: diagnosis_progression from disease YAML. Falls back to built-in.
+    Strategy:
+    1. Use working_diagnosis if set (high confidence)
+    2. Fall back to top candidate (any confidence)
+    3. Last resort: R69 (Illness, unspecified)
     """
-    if not diff.working_diagnosis:
-        return "R05", "Cough, unspecified"
+    # Determine the target disease — fall back to top candidate if no working dx
+    target = diff.working_diagnosis
+    if not target and diff.candidates:
+        target = diff.candidates[0].disease_code
 
-    # Prefer protocol YAML, fall back to built-in
-    if protocol_progression and diff.working_diagnosis in protocol_progression:
-        progression = protocol_progression[diff.working_diagnosis]
+    if not target:
+        return "R69", "Illness, unspecified"
+
+    # Look up progression (YAML > built-in)
+    progression = None
+    if protocol_progression and target in protocol_progression:
+        progression = protocol_progression[target]
     else:
-        progression = DIAGNOSIS_PROGRESSION.get(diff.working_diagnosis)
-    if not progression:
-        top = diff.top_candidate
-        return (top.icd_code, top.display_name) if top else ("R05", "Cough")
+        progression = DIAGNOSIS_PROGRESSION.get(target)
 
-    confidence = diff.top_candidate.probability if diff.top_candidate else 0
+    if not progression:
+        # No progression — fall back to top candidate's icd_code
+        top = diff.top_candidate
+        if top and top.icd_code:
+            return (top.icd_code, top.display_name)
+        return "R69", "Illness, unspecified"
+
+    confidence = diff.candidates[0].probability if diff.candidates else 0
     code, name = progression[0][1], progression[0][2]
     for threshold, c, n in progression:
         if confidence >= threshold:

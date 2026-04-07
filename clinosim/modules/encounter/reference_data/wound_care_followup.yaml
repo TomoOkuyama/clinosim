@@ -2,9 +2,13 @@
 # Post-procedure wound check, suture/staple removal, and dressing change.
 
 condition_id: wound_care_followup
-chief_complaint: "Wound care follow-up, suture/staple removal"
+icd10_code: "Z48.01"
+icd10_display: "Encounter for change or removal of surgical wound dressing"
+chief_complaint:
+  en: "Wound care follow-up, suture/staple removal"
+  ja: "創傷ケア・抜糸・抜鉤"
 encounter_type: outpatient
-department: surgery
+department: primary_care
 disposition: discharge_home
 
 severity_distribution:

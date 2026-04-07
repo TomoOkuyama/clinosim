@@ -2,9 +2,13 @@
 # FOOSH injury. X-ray confirms. Splint/cast if non-displaced, refer ortho if displaced.
 
 condition_id: wrist_fracture
-chief_complaint: "Fall on outstretched hand, wrist pain and swelling"
+icd10_code: "S62.90XA"
+icd10_display: "Unspecified fracture of unspecified wrist, initial encounter for closed fracture"
+chief_complaint:
+  en: "Fall on outstretched hand, wrist pain and swelling"
+  ja: "転倒後の手関節痛・腫脹"
 encounter_type: emergency
-department: internal_medicine  # orthopedics in some facilities
+department: orthopedics
 disposition: discharge_home
 
 severity_distribution:

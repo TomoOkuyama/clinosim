@@ -2,9 +2,13 @@
 # Traumatic anterior dislocation. X-ray, procedural sedation, closed reduction, sling.
 
 condition_id: shoulder_dislocation
-chief_complaint: "Shoulder injury after fall, unable to move arm"
+icd10_code: "S43.006A"
+icd10_display: "Unspecified dislocation of unspecified shoulder joint, initial encounter"
+chief_complaint:
+  en: "Shoulder injury after fall, unable to move arm"
+  ja: "転倒後の肩関節損傷（上肢挙上不能）"
 encounter_type: emergency
-department: internal_medicine  # emergency medicine / orthopedics
+department: orthopedics
 disposition: discharge_home
 
 severity_distribution:

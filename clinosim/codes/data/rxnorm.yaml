@@ -1,0 +1,210 @@
+metadata:
+  name: RxNorm
+  uri: http://www.nlm.nih.gov/research/umls/rxnorm
+  version: '2024'
+  description: RxNorm (US NLM)
+codes:
+  '10156':
+    en: Losartan
+    ja: ロサルタン
+  '103919':
+    en: Levodopa/Carbidopa (Sinemet)
+    ja: レボドパ/カルビドパ（ネオドパストン/メネシット）
+  '10582':
+    en: Levothyroxine (Synthroid)
+    ja: レボチロキシン（チラーヂンS）
+  '108761':
+    en: Fluticasone/Salmeterol (Advair)
+    ja: フルチカゾン/サルメテロール（アドエア）
+  '11124':
+    en: Warfarin
+    ja: ワルファリン
+  '1116635':
+    en: Ampicillin / Sulbactam Injectable Product
+    ja: アンピシリン・スルバクタム注
+  '11253':
+    en: Vitamin D (Cholecalciferol)
+    ja: ビタミンD（アルファカルシドール）
+  '11289':
+    en: Warfarin (Coumadin)
+    ja: ワルファリン（ワーファリン）
+  '1191':
+    en: Aspirin
+    ja: アスピリン（バイアスピリン）
+  '1310738':
+    en: Carperitide
+    ja: カルペリチド（ハンプ）
+  '135447':
+    en: Donepezil (Aricept)
+    ja: ドネペジル（アリセプト）
+  '1364430':
+    en: Apixaban (Eliquis)
+    ja: アピキサバン（エリキュース）
+  '139462':
+    en: Piperacillin/Tazobactam (Zosyn)
+    ja: ピペラシリン/タゾバクタム（ゾシン）
+  '140587':
+    en: Celecoxib (Celebrex)
+    ja: セレコキシブ（セレコックス）
+  '161':
+    en: Acetaminophen (Tylenol)
+    ja: アセトアミノフェン（カロナール）
+  '17128':
+    en: Lansoprazole (Prevacid)
+    ja: ランソプラゾール（タケプロン）
+  '17767':
+    en: Amlodipine (Norvasc)
+    ja: アムロジピン（アムロジン/ノルバスク）
+  '1807627':
+    en: 0.9% Sodium Chloride injectable solution
+    ja: 生理食塩水
+  '18631':
+    en: Amoxicillin/Clavulanate (Augmentin) / Azithromycin (Zithromax)
+    ja: アモキシシリン/クラブラン酸（オーグメンチン） / アジスロマイシン（ジスロマック）
+  '202488':
+    en: Levofloxacin
+    ja: レボフロキサシン
+  '20352':
+    en: Carvedilol (Coreg)
+    ja: カルベジロール（アーチスト）
+  '212995':
+    en: Prednisolone
+    ja: プレドニゾロン
+  '214354':
+    en: Candesartan (Atacand)
+    ja: カンデサルタン（ブロプレス）
+  '2193':
+    en: Ceftriaxone (Rocephin)
+    ja: セフトリアキソン（ロセフィン）
+  '221147':
+    en: Rivaroxaban
+    ja: リバーロキサバン
+  '227224':
+    en: Meropenem
+    ja: メロペネム
+  '2592':
+    en: Chlorhexidine
+    ja: クロルヘキシジン
+  '2670':
+    en: Clopidogrel
+    ja: クロピドグレル
+  '274766':
+    en: Tiotropium (Spiriva)
+    ja: チオトロピウム（スピリーバ）
+  '29046':
+    en: Lisinopril (Zestril)
+    ja: リシノプリル（ゼストリル）
+  '29561':
+    en: Meropenem (Merrem)
+    ja: メロペネム（メロペン）
+  '3002':
+    en: Alendronate (Fosamax)
+    ja: アレンドロン酸（フォサマック/ボナロン）
+  '308182':
+    en: Ampicillin/Sulbactam (Unasyn)
+    ja: アンピシリン/スルバクタム（ユナシン）
+  '309090':
+    en: Ceftriaxone 1 G Injection
+    ja: セフトリアキソン1g注
+  '321064':
+    en: Apixaban
+    ja: アピキサバン
+  '32968':
+    en: Clopidogrel (Plavix)
+    ja: クロピドグレル（プラビックス）
+  '3423':
+    en: Heparin
+    ja: ヘパリン
+  '3443':
+    en: Epinephrine
+    ja: エピネフリン
+  '36567':
+    en: Simvastatin
+    ja: シンバスタチン
+  '3827':
+    en: Enalapril (Vasotec)
+    ja: エナラプリル（レニベース）
+  '4053':
+    en: Diphenhydramine
+    ja: ジフェンヒドラミン
+  '4337':
+    en: Ceftriaxone
+    ja: セフトリアキソン
+  '435':
+    en: Albuterol (ProAir / Ventolin)
+    ja: サルブタモール（サルタノール/ベネトリン）
+  '4603':
+    en: Furosemide (Lasix)
+    ja: フロセミド（ラシックス）
+  '47613':
+    en: Lactated Ringer solution
+    ja: 乳酸リンゲル液
+  '4850':
+    en: Hydrocortisone
+    ja: ヒドロコルチゾン
+  '4917':
+    en: Nitroglycerin (Nitrostat)
+    ja: ニトログリセリン（ミリスロール）
+  '5640':
+    en: Ibuprofen
+    ja: イブプロフェン
+  '5856':
+    en: Sliding scale insulin (Regular insulin)
+    ja: スライディングスケールインスリン（ヒューマリンR）
+  '6373':
+    en: Levetiracetam
+    ja: レベチラセタム
+  '67108':
+    en: Enoxaparin (Lovenox)
+    ja: エノキサパリン（クレキサン）
+  '6809':
+    en: Metformin (Glucophage)
+    ja: メトホルミン（メトグルコ）
+  '6902':
+    en: Metformin
+    ja: メトホルミン
+  '6960':
+    en: Midazolam
+    ja: ミダゾラム
+  '7052':
+    en: Morphine
+    ja: モルヒネ
+  '723':
+    en: Amoxicillin (Amoxil)
+    ja: アモキシシリン（サワシリン）
+  '7512':
+    en: Norepinephrine (Levophed)
+    ja: ノルエピネフリン（ノルアドリナリン）
+  '7646':
+    en: Omeprazole
+    ja: オメプラゾール
+  '77492':
+    en: Tamsulosin (Flomax)
+    ja: タムスロシン（ハルナール）
+  '7771':
+    en: Naloxone
+    ja: ナロキソン
+  '7804':
+    en: Oxycodone (OxyContin)
+    ja: オキシコドン（オキシコンチン）
+  '7806':
+    en: Nitroglycerin
+    ja: ニトログリセリン
+  '7980':
+    en: Penicillin G
+    ja: ペニシリンG
+  '8163':
+    en: Ondansetron 4 MG Oral Tablet
+    ja: オンダンセトロン4mg錠
+  '82122':
+    en: Levofloxacin (Levaquin)
+    ja: レボフロキサシン（クラビット）
+  '83367':
+    en: Atorvastatin (Lipitor)
+    ja: アトルバスタチン（リピトール）
+  '8896':
+    en: Ondansetron
+    ja: オンダンセトロン
+  '9796':
+    en: Sodium bicarbonate
+    ja: 炭酸水素ナトリウム（メイロン）

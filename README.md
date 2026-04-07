@@ -1,13 +1,59 @@
 # clinosim
 
-> **Clinically Realistic Hospital Data Simulator**
+> **Clinically Realistic Hospital Data Simulator** — Generate FHIR R4 EHR data from a virtual hospital
 
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![FHIR](https://img.shields.io/badge/output-HL7%20FHIR%20R4-orange)](https://hl7.org/fhir/)
-[![Status](https://img.shields.io/badge/status-v0.1%20alpha-yellow)]()
+[![FHIR](https://img.shields.io/badge/output-HL7%20FHIR%20R4%20Bulk-orange)](https://hl7.org/fhir/uv/bulkdata/)
+[![Status](https://img.shields.io/badge/status-v0.1%20beta-yellow)]()
 
-**clinosim** generates synthetic hospital EHR data by simulating patients' clinical journeys — from symptom onset through diagnosis, hospitalization, treatment, and discharge. Instead of producing random data, it maintains a **hidden physiological state** for each patient and derives all observations from that state, ensuring that labs, vitals, and clinical decisions are internally consistent.
+🇯🇵 **日本語版**: [README.ja.md](README.ja.md)
+
+**clinosim** generates synthetic EHR data through **forward simulation** starting from a population. Rather than producing random values, every patient carries a hidden **9-variable physiological state**, and all observations (labs, vitals, medications, diagnoses) are derived from that state — ensuring **clinically coherent** data.
+
+Primary use cases:
+- Training data for medical AI/ML models
+- EHR system testing and QA
+- Clinical research simulation
+- Educational case datasets
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [CLI Reference](#cli-reference)
+- [Output Formats](#output-formats)
+- [Data Flow](#data-flow)
+- [Module Architecture](#module-architecture)
+- [Code Systems & Authoritative Sources](#code-systems--authoritative-sources)
+- [Supported Diseases](#supported-diseases)
+- [Multi-Country Support](#multi-country-support)
+- [Hospital Configuration](#hospital-configuration)
+- [Design Philosophy](#design-philosophy)
+- [Testing](#testing)
+- [Extension Guide](#extension-guide)
+- [License](#license)
+
+---
+
+## Features
+
+- **HL7 FHIR Bulk Data Access** compliant NDJSON output (Patient.ndjson, Encounter.ndjson, ...)
+- **9-variable physiology model** ensures labs/vitals are physiologically and clinically coherent
+- **Bayesian differential diagnosis** with likelihood ratios; 6 disease trajectory archetypes
+- **Authoritative code systems** (ICD-10-CM, LOINC, RxNorm, JLAC10, YJ codes, CPT) with multilingual display
+- **28 diseases + 44 ED/outpatient conditions** defined in YAML (no code changes to add new ones)
+- **JCCLS reference ranges 2022** for Japanese labs; Tietz/Mayo for US
+- **NEWS2-compatible vitals** including AVPU consciousness level and supplemental oxygen
+- **Ward + bed Location hierarchy** with PractitionerRole.location assignment
+- **Snapshot date** support — includes "currently admitted" patients (in-progress encounters)
+- **30-day readmission chains** with `prior_encounter_id` linking
+- **Multi-country**: US (English) and JP (Japanese) parallel output
+- **Fully deterministic** with seed
+- **English-first with language fallback** in code systems
 
 ---
 
@@ -17,11 +63,14 @@
 git clone https://github.com/your-org/clinosim.git
 cd clinosim
 python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 ```
 
-**Requirements:** Python 3.11+
+**Requirements**:
+- Python 3.11+
+- Main dependencies: numpy, pyyaml, pydantic
+- (Optional) Ollama for local LLM narrative generation
 
 ---
 
@@ -30,292 +79,687 @@ pip install -e ".[dev]"
 ### CLI
 
 ```bash
-# Population-driven simulation (default: US, 10k catchment population)
-clinosim generate -o ./output --seed 42
+# Default: US, past 1 year ending today, 60,000 catchment, 50-bed hospital
+clinosim generate -o ./output
 
-# Japan mode with all output formats
-clinosim generate -o ./output --country JP --format cif csv fhir
+# Custom period (--end is the snapshot date)
+clinosim generate -o ./output --start 2024-01-01 --end 2024-12-31
 
-# Generate specific disease scenarios
-clinosim test-disease bacterial_pneumonia -n 5 --format cif csv
+# Japan 10-bed clinic
+clinosim generate -o ./output \
+  --country JP \
+  --hospital-config clinosim/config/hospital_small.yaml \
+  -p 12000
 
-# Force severity and archetype
-clinosim test-disease sepsis --severity severe --archetype treatment_resistant
+# Forced disease scenario (debugging)
+clinosim test-disease bacterial_pneumonia -n 5 --severity moderate
 
-# Generate with LLM narratives (requires Ollama)
-clinosim generate -o ./output --narrative --narrative-model qwen:7b
+# Encounter unit test
+clinosim test-encounter chest_pain_noncardiac --age 65 --sex M
 
-# Data quality validation
-clinosim validate -p 5000 --country US
-
-# List available diseases
+# List available diseases and encounters
 clinosim list-diseases
 ```
 
 ### Python API
 
 ```python
-from clinosim.simulator import run_beta, run_forced
-from clinosim.types.config import SimulatorConfig, ForcedScenario
+from clinosim.simulator import run_beta
+from clinosim.types.config import SimulatorConfig
 
-# Population-driven simulation
 config = SimulatorConfig(
-    catchment_population=10_000,
-    random_seed=42,
+    catchment_population=60_000,
     country="US",
+    random_seed=42,
+    snapshot_date="2026-04-08",   # EHR snapshot at this point in time
 )
 dataset = run_beta(config)
 
-# Or generate a specific disease scenario
-scenario = ForcedScenario(
-    disease_id="bacterial_pneumonia",
-    count=3,
-    severity="moderate",
-    archetype="smooth_recovery",
-)
-dataset = run_forced(scenario, SimulatorConfig(random_seed=42))
-
 # Access results
 for record in dataset.patients:
-    print(f"{record.patient.age}yo {record.patient.sex}")
-    print(f"  Labs: {len(record.lab_results)}")
-    print(f"  Vitals: {len(record.vital_signs)}")
-    print(f"  Orders: {len(record.orders)}")
+    enc = record.encounters[0]
+    print(f"{record.patient.name.family_name}: {enc.encounter_type} → {enc.status}")
+    print(f"  labs={len(record.lab_results)}, vitals={len(record.vital_signs)}")
 ```
 
-### Output Formats
+### Code System Lookup
 
-| Format | Description |
-|---|---|
-| **CIF** (default) | Structural JSON — full simulation data, immutable intermediate format |
-| **CSV** | 12 tables: patients, encounters, diagnoses, lab_results, vital_signs (with pain scores and nursing notes), orders (including diet), medication_administrations, procedures, rehab_sessions, intake_output, adl_assessments (Barthel Index), prescriptions |
-| **FHIR R4** | HL7 FHIR R4 JSON bundles (Patient, Encounter, Observation, MedicationRequest, MedicationAdministration, Procedure, Practitioner) |
+```python
+from clinosim.codes import lookup, get_system_uri
+
+lookup("icd-10-cm", "N10", "en")
+# → "Acute tubulo-interstitial nephritis"
+
+lookup("icd-10-cm", "N10", "ja")
+# → "急性腎盂腎炎"
+
+get_system_uri("loinc")
+# → "http://loinc.org"
+```
 
 ---
 
-## How It Works
+## CLI Reference
 
-clinosim generates data through a forward simulation pipeline:
+### `clinosim generate`
 
-```
-Population Registry       Disease definitions (YAML)
-(demographics, households)    (protocols, drugs, archetypes)
-        |                           |
-        v                           v
-   Disease Event Scheduler  -->  Patient Activation
-        |                           |
-        v                           v
-   Encounter Creation  <---  Clinical Course Engine
-        |                    (6 trajectory archetypes)
-        |                           |
-        v                           v
-   Daily Simulation Loop      Physiology Engine
-   (orders, labs, vitals,     (9 state variables,
-    meds, procedures)          coupling rules)
-        |                           |
-        v                           v
-   Diagnosis Engine           Observation Engine
-   (Bayesian differential,    (3-layer variability:
-    likelihood ratios)         biological + analytical)
-        |                           |
-        +----------- + ------------+
-                     |
-                     v
-              CIF / CSV / FHIR Output
+Population-driven simulation (primary use case).
+
+| Option | Default | Description |
+|---|---|---|
+| `-o, --output DIR` | `./output` | Output directory |
+| `-p, --population N` | hospital config's `recommended_population` | Catchment population |
+| `--country CODE` | `US` | `US` or `JP` |
+| `--start YYYY-MM-DD` | `--end` minus 1 year | Simulation start date |
+| `--end YYYY-MM-DD` | today | Simulation end date = snapshot date |
+| `--hospital-config PATH` | `clinosim/config/hospital_operations.yaml` (50-bed) | Hospital config YAML |
+| `--format ...` | `cif fhir` | `cif`, `csv`, `fhir`, `narrative` |
+| `-s, --seed N` | `42` | Random seed |
+| `--narrative` | off | LLM narrative generation (requires Ollama) |
+| `--narrative-model NAME` | `qwen:7b` | Ollama model name |
+
+### `clinosim test-disease DISEASE_ID`
+
+Generate forced scenario for a specific disease (debugging / golden tests).
+
+```bash
+clinosim test-disease heart_failure_exacerbation \
+  --severity severe --archetype treatment_resistant -n 3
 ```
 
-### Key Concepts
+### `clinosim test-encounter CONDITION_ID`
 
-- **9 physiological state variables** (inflammation, renal, cardiac, hepatic, anemia, coagulation, volume, perfusion, pH) drive all observations via coupling rules
-- **Bayesian diagnosis engine** — differential lists updated by test results using likelihood ratios from disease YAML
-- **6 clinical course archetypes** — smooth_recovery, dip_then_recovery, plateau, treatment_resistant, gradual_deterioration, sudden_deterioration
-- **3-layer lab variability** — biological CV (CVi) + pre-analytical + analytical CV (CVa), with context-dependent missingness (weekend, stable patient, specimen rejection, hemolysis artifacts)
-- **Diagnosis-treatment feedback** — misdiagnosis slows recovery; diagnostic difficulty per disease drives treatment effectiveness
-- **30-day readmission** — YAML benchmark-calibrated, with prior encounter linking and Layer 1 hospitalization history
-- **16 chronic conditions** — home medications continued during hospitalization, condition-specific monitoring labs
-- **Individual variation** — age-based trajectory speed, daily noise, treatment timing jitter, natural recovery
-- **3 condition types** — known_disease (92%), mixed dual-pathology (4%), unknown presentation (3%)
+ED / outpatient encounter unit test.
+
+```bash
+clinosim test-encounter migraine --age 35 --sex F
+```
+
+### `clinosim validate`
+
+Quality check generated data against published benchmarks.
+
+### `clinosim list-diseases`
+
+Show all 28 diseases + 44 encounter conditions.
+
+---
+
+## Output Formats
+
+### CIF (Clinosim Intermediate Format)
+
+```
+output/cif/
+├── metadata.json                  # Generation info, snapshot_date, etc.
+├── hospital.json                  # Staff roster + hospital config
+└── structural/patients/
+    └── ENC-POP-XXXXXX-NNNNNN.json # One file per encounter
+```
+
+CIF is the **immutable intermediate format** of the simulation. All output adapters derive from this.
+
+### FHIR R4 — Bulk Data Export NDJSON Format
+
+Compliant with [HL7 FHIR Bulk Data Access](https://hl7.org/fhir/uv/bulkdata/):
+
+```
+output/fhir_r4/
+├── manifest.json                   # Bulk Data manifest (transactionTime, output[])
+├── _facility.json                  # Organization + Location master (Bundle)
+├── Patient.ndjson                  # 1 patient per line
+├── Encounter.ndjson                # 1 encounter per line
+├── Observation.ndjson              # labs + vitals + AVPU + O2 (LOINC)
+├── Condition.ndjson                # Encounter dx + chronic conditions (ICD-10-CM)
+├── MedicationRequest.ndjson        # Prescriptions (RxNorm)
+├── MedicationAdministration.ndjson # MAR records
+├── Procedure.ndjson                # Surgery + bedside procedures (CPT)
+├── AllergyIntolerance.ndjson       # Patient-level (deduplicated)
+├── Practitioner.ndjson             # Doctors, nurses, technicians
+├── PractitionerRole.ndjson         # Specialty + organization + ward location
+├── Organization.ndjson             # Hospital + departments
+└── Location.ndjson                 # Wards + beds
+```
+
+Each line = 1 FHIR resource. `Resource.id` is unique across all 12 resource types. Reference integrity is maintained.
+
+### Included FHIR R4 Fields (key resources)
+
+| Resource | Fields |
+|---|---|
+| Patient | identifier (MRN, type=MR), name (with kanji+kana extension for JP), gender, birthDate, address, telecom, maritalStatus, communication (BCP-47), contact (emergency) |
+| Encounter | class, type (SNOMED), serviceType, priority, period, length, participant (ATND/ADM/DIS), diagnosis ref, hospitalization (admitSource, dischargeDisposition), location (bed → ward via partOf), serviceProvider (department Org) |
+| Observation | code (LOINC), valueQuantity (UCUM units + system + code), referenceRange (low/high/text/source extension for JP Core), interpretation (N/H/L/HH/LL), encounter, performer |
+| Condition | code (ICD-10-CM with display), category (encounter-diagnosis / problem-list-item), severity (SNOMED), stage (NYHA, CKD G, GOLD, etc.), clinicalStatus (active/resolved), onsetDateTime, recordedDate, encounter |
+| MedicationRequest | medicationCodeableConcept (RxNorm), dosageInstruction (text + doseAndRate + timing repeat + route SNOMED), encounter, requester, reasonReference |
+| MedicationAdministration | dosage (dose SimpleQuantity + route + rateQuantity for continuous), context, performer, reasonReference |
+| Procedure | code (CPT), encounter, performedDateTime / performedPeriod, performer |
+| Practitioner | name (with prefix), gender, telecom, qualification |
+| PractitionerRole | practitioner, organization (dept), location (ward), specialty (SNOMED) |
+| Location | physicalType (wa=ward, bd=bed, area), partOf (bed→ward), managingOrganization |
+| Organization | hospital-main + dept-{specialty} (partOf hierarchy) |
+
+### CSV
+
+```
+output/csv/
+├── patients.csv
+├── encounters.csv
+├── conditions.csv
+├── lab_results.csv
+├── vital_signs.csv
+├── orders.csv
+├── medication_administrations.csv
+├── procedures.csv
+└── ...
+```
+
+---
+
+## Data Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  population engine                                          │
+│  ・Generate catchment (household-based)                     │
+│  ・PersonRecord (Layer 1: lightweight registry)             │
+│  ・Monthly LifeEvent (incidence × seasonality × risk mod)   │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  patient activator                                          │
+│  ・PersonRecord (L1) → PatientProfile (L2)                  │
+│  ・Anthropometrics, organ reserves, chronic staging         │
+│  ・Address, emergency contact, preferred language           │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  encounter creation                                         │
+│  ・disease YAML → department (resolved via hospital_config) │
+│  ・staff_id assignment, ward + bed_number assignment        │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  daily simulation loop (per inpatient day)                  │
+│                                                              │
+│   ┌──────────────────────────────┐                          │
+│   │ clinical_course              │                          │
+│   │  ・archetype trajectory      │                          │
+│   │  ・diagnosis effectiveness   │                          │
+│   │  ・natural recovery          │                          │
+│   │  ・complications             │                          │
+│   └──────────────────────────────┘                          │
+│              │                                              │
+│              ▼                                              │
+│   ┌──────────────────────────────┐                          │
+│   │ physiology engine            │                          │
+│   │  ・9-state update            │                          │
+│   │  ・derive_lab_values()       │                          │
+│   │  ・derive_vital_signs()      │                          │
+│   └──────────────────────────────┘                          │
+│              │                                              │
+│              ▼                                              │
+│   ┌──────────────────────────────┐                          │
+│   │ orders + observation         │                          │
+│   │  ・place_daily_lab_orders()  │                          │
+│   │  ・3-layer noise (CVi+CVa)   │                          │
+│   │  ・H/L/critical flagging     │                          │
+│   │  ・interp + reference range  │                          │
+│   └──────────────────────────────┘                          │
+│              │                                              │
+│              ▼                                              │
+│   ┌──────────────────────────────┐                          │
+│   │ diagnosis engine             │                          │
+│   │  ・Bayesian update (LR)      │                          │
+│   │  ・working_diagnosis update  │                          │
+│   └──────────────────────────────┘                          │
+│              │                                              │
+│              ▼                                              │
+│   ┌──────────────────────────────┐                          │
+│   │ procedure + MAR              │                          │
+│   │  ・bedside procedures        │                          │
+│   │  ・MAR (with hold logic)     │                          │
+│   └──────────────────────────────┘                          │
+│              │                                              │
+│              ▼                                              │
+│   ┌──────────────────────────────┐                          │
+│   │ discharge readiness?         │                          │
+│   │  YES → encounter complete    │                          │
+│   │  NO  → next day              │                          │
+│   └──────────────────────────────┘                          │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  CIF dataset (immutable intermediate format)                │
+└─────────────────────────────────────────────────────────────┘
+                            │
+              ┌─────────────┼─────────────┐
+              ▼             ▼             ▼
+      ┌──────────┐  ┌──────────┐  ┌──────────┐
+      │ CIF JSON │  │ FHIR R4  │  │   CSV    │
+      │ writer   │  │ NDJSON   │  │ adapter  │
+      └──────────┘  │ Bulk Data│  └──────────┘
+                    └──────────┘
+                         │
+                         ▼
+           clinosim.codes (lookup display text)
+```
+
+### Snapshot Semantics
+
+- Simulation period: `--start` ~ `--end`
+- `--end` = **snapshot date**
+- No life events generated past the snapshot date (no future admissions)
+- Inpatients whose `discharge_datetime` would fall after the snapshot date:
+  - `discharge_datetime = None`
+  - `Encounter.status = "in-progress"`
+  - Partial data only (labs/vitals/orders/MAR up to snapshot day)
+  - Primary `Condition.clinicalStatus = "active"` (not resolved)
+- This produces a realistic EHR snapshot **including currently admitted patients** (e.g., 50-bed × 60% occupancy ≈ 30 in-progress encounters)
+
+---
+
+## Module Architecture
+
+```
+clinosim/
+├── codes/                    # ★ International code systems + multilingual display (locale-independent)
+│   ├── data/
+│   │   ├── icd-10-cm.yaml    # 224 codes
+│   │   ├── icd-10.yaml       # 110 (WHO ICD-10, JP)
+│   │   ├── loinc.yaml        # 59
+│   │   ├── jlac10.yaml       # 30
+│   │   ├── rxnorm.yaml       # 68
+│   │   ├── yj.yaml           # 39
+│   │   ├── cpt.yaml          # 25
+│   │   └── k-codes.yaml      # 2
+│   └── loader.py             # lookup(system, code, lang) API
+│
+├── locale/                   # Country/culture-specific data
+│   ├── jp/, us/
+│   │   ├── names.yaml        # Person names (family + given + reading)
+│   │   ├── addresses.yaml    # 47 prefectures / 50 states + ZIP
+│   │   ├── demographics.yaml # Age dist, incidence rates
+│   │   ├── formatting.yaml   # Date/unit formatting
+│   │   ├── reference_range_lab.yaml  # JCCLS / Tietz reference ranges
+│   │   └── code_mapping_*.yaml  # Internal test name → standard code
+│   └── shared/
+│       ├── chronic_followup.yaml      # Outpatient patterns by chronic dx
+│       ├── chronic_medications.yaml   # Home meds + monitoring
+│       └── naming_rules.yaml          # Name generation rules
+│
+├── config/                   # Hospital configuration YAMLs
+│   ├── hospital_operations.yaml  # 50-bed community hospital (default)
+│   ├── hospital_small.yaml       # 10-bed clinic
+│   ├── llm_service.yaml          # LLM (local Ollama default)
+│   └── llm_service.cloud.yaml    # Anthropic API
+│
+├── types/                    # Data type definitions (Pydantic / dataclass)
+│   ├── config.py             # SimulatorConfig
+│   ├── patient.py            # PatientProfile, ChronicCondition
+│   ├── clinical.py           # PhysiologicalState, ClinicalDiagnosis
+│   ├── encounter.py          # Encounter, Order, VitalSignRecord, MAR
+│   └── output.py             # CIFDataset, CIFPatientRecord, CIFMetadata
+│
+├── modules/                  # Functional modules (each with README)
+│   ├── disease/              # 28 disease YAML protocols
+│   ├── encounter/            # 44 ED/outpatient condition YAMLs
+│   ├── physiology/           # 9-state model + lab/vital derivation
+│   ├── clinical_course/      # 6 archetypes + complications + diagnosis feedback
+│   ├── diagnosis/            # Bayesian differential (LR table)
+│   ├── observation/          # 3-layer lab noise + flagging
+│   ├── order/                # Lab/medication/imaging orders + result delays
+│   ├── procedure/            # Surgery + bedside procedures + rehabilitation
+│   ├── population/           # Population/household generation + life events
+│   ├── patient/              # Layer1 → Layer2 activator
+│   ├── staff/                # Hospital staff roster + assignment
+│   ├── facility/             # Hospital state + M/M/1 queueing
+│   ├── healthcare_system/    # Country-specific parameters (JP / US)
+│   ├── output/               # CIF / FHIR R4 / CSV / narrative
+│   ├── llm_service/          # Ollama + Anthropic integration
+│   └── validator/            # Comparison against published benchmarks
+│
+├── simulator/                # Top-level orchestration
+│   ├── engine.py             # run_beta, run_forced
+│   ├── inpatient.py          # Inpatient simulation
+│   ├── emergency.py          # ED visit
+│   ├── outpatient.py         # Outpatient visit
+│   ├── helpers.py            # Ward/department resolver, mortality, etc.
+│   └── cli.py                # CLI entry point
+│
+└── tests/
+    ├── unit/                 # Module unit tests (140 tests)
+    ├── integration/          # Cross-module integration tests
+    └── e2e/                  # E2E + golden file tests
+```
+
+Each module has its own **README.md** documenting purpose, design principles, API, data structures, and extension procedures.
+
+---
+
+## Code Systems & Authoritative Sources
+
+`clinosim/codes/` centralizes international standard code systems. Total **8 systems, 577 codes**, all with English display (Japanese is optional).
+
+| Key | Name | Use | Authoritative Source |
+|---|---|---|---|
+| `icd-10-cm` | ICD-10-CM | US diagnoses | [CMS](https://www.cms.gov/medicare/coding-billing/icd-10-codes) |
+| `icd-10` | WHO ICD-10 | JP diagnoses | [WHO](https://icd.who.int/browse10/) |
+| `loinc` | LOINC | Lab tests, vitals | [Regenstrief](https://loinc.org/) |
+| `jlac10` | JLAC10 | JP lab codes | [JCCLS](https://www.jccls.org/) |
+| `rxnorm` | RxNorm | US drugs | [NLM](https://www.nlm.nih.gov/research/umls/rxnorm/) |
+| `yj` | YJ codes | JP drugs | MHLW Drug Price Standards |
+| `cpt` | CPT | US procedures | [AMA](https://www.ama-assn.org/practice-management/cpt) |
+| `k-codes` | K codes | JP reimbursement procedures | MHLW Medical Fee Schedule |
+
+### Using Code Systems (FHIR Observation example)
+
+```python
+from clinosim.codes import lookup, get_system_uri
+
+# CIF data is code-only
+crp_code = "1988-5"  # LOINC
+
+# Build FHIR Observation
+obs = {
+    "resourceType": "Observation",
+    "code": {
+        "coding": [{
+            "system": get_system_uri("loinc"),
+            "code": crp_code,
+            "display": lookup("loinc", crp_code, "en"),
+        }],
+    },
+    "valueQuantity": {"value": 38.2, "unit": "mg/L"},
+}
+```
+
+See `clinosim/codes/README.md` for details.
 
 ---
 
 ## Supported Diseases
 
-Diseases are defined entirely in YAML — no code changes needed to add new ones.
-
-20 diseases covering ~75% of acute hospital admissions:
+28 diseases defined in YAML, covering ~80% of acute hospital admissions:
 
 | Category | Diseases |
 |---|---|
-| **Respiratory** | Bacterial pneumonia, COPD exacerbation, Aspiration pneumonia |
-| **Cardiovascular** | Heart failure exacerbation, Acute MI, Atrial fibrillation/RVR, Pulmonary embolism |
-| **Infectious** | Sepsis, UTI/Pyelonephritis, Cellulitis |
-| **GI/Hepatic** | GI bleeding, Acute pancreatitis, Acute cholecystitis (surgical), Ileus, Decompensated cirrhosis |
+| **Respiratory** | Bacterial pneumonia, Aspiration pneumonia, COPD exacerbation, Asthma exacerbation, Influenza, Pulmonary embolism |
+| **Cardiovascular** | Heart failure exacerbation, Acute MI, Atrial fibrillation/RVR |
+| **Neurological** | Cerebral infarction, Hemorrhagic stroke, Subdural hematoma |
+| **GI/Hepatic** | GI bleeding, Acute pancreatitis, Ileus, Decompensated cirrhosis |
+| **General Surgery** | Acute appendicitis, Acute cholecystitis |
+| **Orthopedic** | Hip fracture, Vertebral compression fracture, Wrist fracture |
+| **Trauma** | Severe traffic accident |
 | **Metabolic** | Diabetic ketoacidosis |
-| **Neurological** | Cerebral infarction (stroke) |
 | **Renal** | Acute kidney injury |
-| **Surgical** | Hip fracture (ORIF/hemiarthroplasty), Acute appendicitis |
+| **Infectious** | Sepsis, Urinary tract infection, Cellulitis |
+| **Vascular** | Deep vein thrombosis |
 
-Adding a new disease requires only a YAML file + epidemiology data in demographics.yaml — no code changes.
+Plus **44 ED/outpatient conditions** (chest pain, viral gastroenteritis, ankle sprain, annual screening, flu vaccination, dialysis session, etc.) — see `clinosim/modules/encounter/reference_data/`.
 
-See `clinosim/modules/disease/README.md` for how to add new diseases.
+Adding new diseases requires **only adding a YAML file** (no code changes). See `clinosim/modules/disease/README.md`.
 
 ---
 
 ## Multi-Country Support
 
-Default output is US/English. Japan is available via `--country JP`.
-
-| Item | US (default) | Japan (`--country JP`) |
+| Item | US (default) | JP (`--country JP`) |
 |---|---|---|
+| Diagnosis codes | ICD-10-CM | ICD-10 (WHO) |
 | Lab codes | LOINC | JLAC10 |
-| Diagnosis codes | ICD-10-CM | ICD-10 |
-| Drug codes | (generic names) | (generic names) |
-| Lab display names | English | Japanese |
-| Patient names | English names | Japanese names (kanji + kana) |
-| Date/unit formatting | US conventions | Japanese conventions |
-
-Locale data lives in `clinosim/locale/{country}/`. Adding a new country = adding one folder with YAML files (names, terminology, code mapping, formatting) and a section in `shared/naming_rules.yaml`.
-
----
-
-## Project Structure
-
-```
-clinosim/
-  clinosim/
-    simulator.py               # Main simulator (run_beta, run_forced, CLI)
-    types/                     # Shared data types (config, patient, clinical, encounter, output)
-    locale/                    # Country-specific data (names, terminology, codes, formatting)
-    config/                    # YAML config files (country defaults, LLM settings)
-    modules/
-      physiology/              # 9 state variables, coupling rules, lab/vital derivation
-      clinical_course/         # 6 trajectory archetypes, complication evaluation
-      diagnosis/               # Bayesian differential diagnosis engine
-      disease/                 # Disease loader + reference_data/*.yaml
-      observation/             # 3-layer lab variability, H/L/critical flagging
-      order/                   # YAML-driven admission/daily order protocols
-      population/              # Household-based population generation
-      patient/                 # Layer 1 -> Layer 2 patient activation
-      procedure/               # Surgery workflows, rehab sessions
-      staff/                   # Hospital staff roster and assignment
-      output/                  # CIF writer, CSV adapter, FHIR R4 adapter, narrative generator
-      treatment/               # Medication selection and modification
-      encounter/               # Encounter workflow management
-      healthcare_system/       # Country-specific system parameters
-      llm_service/             # LLM integration (Ollama local + cloud API)
-      ...
-  tests/
-    unit/                      # Per-module unit tests
-    integration/               # Module chain tests
-    e2e/                       # Full simulation golden tests
-  pyproject.toml
-```
+| Drug codes | RxNorm | YJ codes |
+| Procedure codes | CPT | K codes |
+| Display language | English | Japanese (English fallback) |
+| Patient names | English | Kanji + kana extension |
+| Addresses | 50 US states | 47 Japanese prefectures (JIS X 0401) |
+| Lab reference ranges | Tietz/Mayo | JCCLS Reference Intervals 2022 |
+| Marital status | HL7 v3 (S/M/D/W) | Same |
+| Language | en-US | ja-JP |
 
 ---
 
-## Running Tests
+## Hospital Configuration
 
-```bash
-source .venv/bin/activate
+`clinosim/config/hospital_*.yaml` defines hospital physical layout and operational parameters:
 
-# All tests
-pytest
+```yaml
+recommended_population: 60000
 
-# By category
-pytest -m unit
-pytest -m integration
-pytest -m e2e
+available_departments:           # Available specialties
+  - internal_medicine
+  - cardiology
+  - gastroenterology
+  - general_surgery
+  - orthopedics
+  - emergency_medicine
+  - primary_care
 
-# With coverage
-pytest --cov=clinosim
+department_rollup:              # Sub-specialty → available department
+  pulmonology: internal_medicine
+  neurology: internal_medicine
+  neurosurgery: general_surgery
+
+wards:                          # Wards per department
+  internal_medicine: ["4E", "4W"]
+  cardiology: ["5E"]
+  general_surgery: ["3E"]
+  orthopedics: ["3W"]
+  emergency_medicine: ["ER"]
+  primary_care: ["OPD"]
+
+ward_capacity:                  # Bed count per ward
+  "4E": 10
+  "4W": 10
+  "5E": 8
+  "3E": 8
+  "3W": 6
+
+resource_capacity:              # Lab/imaging capacity
+  lab_analyzers: 2
+  ct_scanners: 1
+  mri_scanners: 0
+  inpatient_beds: 50
+
+staffing:                       # Staffing ratio per shift
+  day:    {hours: [8, 16],  lab_staff: 1.0, nursing_staff: 1.0}
+  evening:{hours: [16, 0],  lab_staff: 0.5, nursing_staff: 0.7}
+  night:  {hours: [0, 8],   lab_staff: 0.2, nursing_staff: 0.5}
 ```
 
----
+This enables:
+- Automatic disease → department → ward → bed routing
+- M/M/1 queueing model with dynamic test result delays
+- Nurses assigned per ward (PractitionerRole.location)
+- Switchable hospital templates (large / mid-size / clinic)
 
-## Development Guidelines
-
-### Module Dependency Direction
-
-```
-    healthcare_system
-    (config root: all modules depend on this)
-    |
-    +-------------+----------------------------+
-    |             |                            |
-    v             v                            v
-  facility ---> staff                     population
-    |                                         |
-    |                                     patient
-    |                                     (L1->L2)
-    |                                         |
-    +-------------------+---------------------+
-                        |
-                        v
-  disease ---------> encounter
-    |              (workflow driver)
-    |                 |
-    |       +---------+-----------+
-    |       |         |           |
-    |       v         v           v
-    +-> diagnosis   order <--> nursing
-    |       |         |           |
-    |       v         v           |
-    +-> treatment     |           |
-    |       |         |           |
-    |       v         v           v
-    +-> clinical   physiology  observation
-        _course       |           |
-                      |    procedure
-                      |           |
-                      +-----+-----+
-                            |
-                            v
-                        validator
-                            |
-                            v
-                          output
-
-  llm_service (cross-cutting service: used by all, no reverse dependency)
-```
-
-When modifying a module, check its downstream dependents for consistency. High-impact modules:
-
-- **disease YAML** — affects diagnosis, treatment, orders, clinical course, discharge criteria
-- **physiology derivation formulas** — affects all lab/vital values
-- **healthcare_system** — affects all behavior via country parameters
-
-Each module has its own `README.md` with role, interfaces, and data addition instructions.
+See `clinosim/modules/facility/README.md`.
 
 ---
 
 ## Design Philosophy
 
-1. **State before observation** — Lab values are never generated independently. Every observation is derived from physiological state, ensuring cross-marker consistency.
-2. **Process before outcome** — Diagnoses emerge from Bayesian reasoning over test results, not assigned upfront. Treatment changes are tied to observable clinical triggers.
-3. **Institution shapes behavior** — The same disease produces different data depending on the healthcare system (reimbursement, discharge criteria, cultural norms).
-4. **YAML-driven extensibility** — Adding a disease means adding a YAML file. No engine code changes required.
+1. **State before observation** — Lab values are never generated independently. All observations derive from physiological state.
+2. **Process before outcome** — Diagnoses emerge from Bayesian reasoning over test results. Treatment changes are tied to observable clinical triggers.
+3. **Institution shapes behavior** — The same disease produces different data depending on healthcare system (insurance, discharge criteria, culture).
+4. **Code is the truth** — CIF stores only codes; display text is resolved at output time via the codes module.
+5. **YAML-driven extensibility** — Adding a disease = adding a YAML file. No engine code changes.
+6. **English-first** — All codes must have English display; other languages are translation attributes.
+7. **Authoritative sources** — Code values and English text follow official definitions from CMS/NLM/AMA/WHO/etc.
+8. **Single source of truth** — No duplicate data (e.g., CIF doesn't store display, codes module is the only source).
+
+---
+
+## Testing
+
+```bash
+source .venv/bin/activate
+
+# All tests (140 tests, ~2 minutes)
+pytest -x
+
+# By category
+pytest -m unit                   # Unit tests
+pytest -m integration            # Cross-module
+pytest -m e2e                    # E2E + golden tests
+
+# Coverage
+pytest --cov=clinosim
+```
+
+---
+
+## Extension Guide
+
+### Add a new disease
+
+1. Create `clinosim/modules/disease/reference_data/<disease_id>.yaml` (use existing disease as template)
+2. Add to incidence list in `clinosim/locale/<country>/demographics.yaml`
+3. Add necessary ICD codes to `clinosim/codes/data/icd-10-cm.yaml` (if not present)
+4. Test: `clinosim test-disease <disease_id>`
+
+Details: `clinosim/modules/disease/README.md`
+
+### Add a new encounter type (ED/outpatient)
+
+1. Create `clinosim/modules/encounter/reference_data/<condition_id>.yaml`
+2. Include `icd10_code` and `icd10_display`
+3. Test: `clinosim test-encounter <condition_id>`
+
+### Add a new country
+
+1. Create `clinosim/locale/<country_code>/` folder
+2. Add `names.yaml`, `addresses.yaml`, `demographics.yaml`, `reference_range_lab.yaml`, `formatting.yaml`
+3. Add entry in `clinosim/locale/shared/naming_rules.yaml`
+4. (Optional) Add country-specific code system to `codes/data/`
+
+### Add a new language
+
+Add a new language key to each entry in `clinosim/codes/data/*.yaml`:
+
+```yaml
+N10:
+  en: "Acute tubulo-interstitial nephritis"
+  ja: "急性腎盂腎炎"
+  de: "Akute tubulointerstitielle Nephritis"   # New language
+```
+
+Details: `clinosim/codes/README.md`
+
+---
+
+## Module Dependency Graph
+
+```
+                     ┌──────────┐
+                     │  codes   │  (international code systems)
+                     └──────────┘
+                          ▲
+                          │ lookup
+                          │
+   ┌──────────┐      ┌──────────┐
+   │  locale  │ ──── │  output  │ (FHIR/CIF/CSV)
+   │(country) │      └──────────┘
+   └──────────┘           ▲
+        │                 │
+        ▼                 │
+   ┌──────────┐           │
+   │  patient │           │
+   │ activator│           │
+   └──────────┘           │
+        │                 │
+        ▼                 │
+   ┌──────────┐           │
+   │encounter │           │
+   └──────────┘           │
+        │                 │
+        ▼                 │
+  ┌──────────────────────────────┐
+  │  daily simulation loop       │
+  │                              │
+  │  clinical_course             │
+  │       ↓                      │
+  │  physiology  ←  diagnosis    │
+  │       ↓             ↑        │
+  │  observation    order        │
+  │       ↓             ↓        │
+  │  procedure       MAR         │
+  └──────────────────────────────┘
+        ▲                  ▲
+        │                  │
+   ┌──────────┐      ┌──────────┐
+   │  disease │      │ facility │
+   │  (YAML)  │      │ (queue)  │
+   └──────────┘      └──────────┘
+        │                  │
+        └─────────┬────────┘
+                  │
+            ┌──────────┐
+            │population│
+            └──────────┘
+                  │
+                  ▼
+          ┌──────────┐
+          │  staff   │
+          └──────────┘
+                  ▲
+                  │
+            ┌──────────┐
+            │healthcare│
+            │ _system  │
+            └──────────┘
+```
+
+`llm_service` and `validator` are cross-cutting (used in dedicated phases).
+
+See each module's `clinosim/modules/<module>/README.md` for details.
 
 ---
 
 ## LLM Integration (Optional)
 
-clinosim can use LLMs for narrative generation (discharge summaries, progress notes). Default: Ollama with a local Llama model. Cloud APIs available as fallback.
+clinosim can use LLMs for narrative generation (discharge summaries, progress notes). Default: local Ollama.
 
 ```bash
-# Start Ollama (must be installed separately)
+# Install Ollama (separate)
+brew install ollama
 ollama serve
+ollama pull qwen:7b
 
-# Generate with narrative layer
-clinosim generate -o ./output --seed 42
+# Generate with narrative
+clinosim generate --narrative --narrative-model qwen:7b
 ```
 
 LLM is **not required** for structural data generation. Without an LLM, template-based narratives are used.
+
+Details: `clinosim/modules/llm_service/README.md`
+
+---
+
+## Data Quality Validation
+
+```bash
+# Compare against published benchmarks (LOS, mortality, complication rates)
+clinosim validate -p 5000 --country US
+```
+
+Public sources:
+- JAMA, NEJM clinical guidelines
+- AHRQ Healthcare Cost and Utilization Project (HCUP)
+- MHLW Patient Survey (Japan)
+- OECD Health Data
+
+Details: `clinosim/modules/validator/README.md`
 
 ---
 
 ## Disclaimer
 
-clinosim generates entirely **synthetic** data. No real patient information is used or produced. Generated data is intended for software development, algorithm research, and system testing only. It should not be used for clinical decision-making.
+clinosim generates entirely **synthetic** data. No real patient information is used or produced. Generated data is intended for software development, algorithm research, and system testing only. **It must not be used for clinical decision-making**.
 
 ---
 
@@ -332,11 +776,20 @@ pip install -e ".[dev]"
 pytest
 ```
 
+Each module's README has extension guidelines.
+
 ---
 
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
+
+Code system data follows the original registry's license:
+- ICD-10-CM, RxNorm: Public domain
+- LOINC: LOINC License (free for commercial use)
+- WHO ICD-10: WHO Terms of Use
+- CPT: AMA Copyright (educational/research subset only)
+- JLAC10, YJ, K-codes: MHLW / JCCLS public data
 
 ---
 
@@ -345,7 +798,17 @@ MIT License. See [LICENSE](LICENSE) for details.
 ```bibtex
 @software{clinosim,
   title  = {clinosim: Clinically Realistic Hospital Data Simulator},
-  year   = {2025},
+  year   = {2026},
   url    = {https://github.com/your-org/clinosim}
 }
 ```
+
+---
+
+## Related Documentation
+
+- [README.ja.md](README.ja.md) — 日本語版 README
+- [DESIGN.md](DESIGN.md) — Detailed design document (architecture decisions, ADRs)
+- [TODO.md](TODO.md) — Development roadmap
+- [CLAUDE.md](CLAUDE.md) — Claude Code development guidelines
+- Each module's `README.md` — Module-level API reference

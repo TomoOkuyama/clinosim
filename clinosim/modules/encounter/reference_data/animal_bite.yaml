@@ -2,7 +2,11 @@
 # Wound management, infection prevention, tetanus assessment.
 
 condition_id: animal_bite
-chief_complaint: "Dog bite to hand/leg, wound requiring treatment"
+icd10_code: "W54.0XXA"
+icd10_display: "Bitten by dog, initial encounter"
+chief_complaint:
+  en: "Dog bite to hand/leg, wound requiring treatment"
+  ja: "犬咬傷（手/下肢）"
 encounter_type: emergency
 department: emergency_medicine
 disposition: discharge_home

@@ -1,0 +1,183 @@
+metadata:
+  name: LOINC
+  uri: http://loinc.org
+  version: '2.76'
+  description: Logical Observation Identifiers Names and Codes
+codes:
+  11580-8:
+    en: Thyroid stimulating hormone [Units/volume] in Serum or Plasma
+    ja: TSH（血清）
+  13457-7:
+    en: Cholesterol in LDL [Mass/volume] in Serum or Plasma by Direct assay
+    ja: LDLコレステロール
+  14804-9:
+    en: Lactate dehydrogenase [Enzymatic activity/volume] in Serum or Plasma by Lactate to pyruvate reaction
+    ja: LDH（血清）
+  1742-6:
+    en: Alanine aminotransferase
+    ja: ALT(GPT)
+  1751-7:
+    en: Albumin
+    ja: アルブミン
+  17861-6:
+    en: Calcium
+    ja: カルシウム
+  1798-8:
+    en: Amylase [Enzymatic activity/volume] in Serum or Plasma
+    ja: アミラーゼ
+  1920-8:
+    en: Aspartate aminotransferase
+    ja: AST(GOT)
+  1959-6:
+    en: Bicarbonate [Moles/volume] in Arterial blood
+    ja: HCO3（動脈血）
+  1963-8:
+    en: Bicarbonate
+    ja: HCO3
+  1975-2:
+    en: Total bilirubin
+    ja: 総ビリルビン
+  1988-5:
+    en: C-reactive protein
+    ja: C反応性蛋白
+  2019-8:
+    en: pCO2
+    ja: pCO2
+  2075-0:
+    en: Chloride
+    ja: クロール
+  2085-9:
+    en: Cholesterol in HDL [Mass/volume] in Serum or Plasma
+    ja: HDLコレステロール
+  2093-3:
+    en: Cholesterol [Mass/volume] in Serum or Plasma
+    ja: 総コレステロール
+  2157-6:
+    en: Creatine kinase
+    ja: CK(CPK)
+  2160-0:
+    en: Creatinine
+    ja: クレアチニン
+  2324-2:
+    en: Gamma-glutamyl transferase
+    ja: γ-GTP
+  2345-7:
+    en: Glucose
+    ja: 血糖
+  2518-9:
+    en: Cortisol [Mass/volume] in Serum or Plasma
+    ja: コルチゾール（血清）
+  2524-7:
+    en: Lactate
+    ja: 乳酸
+  2532-0:
+    en: Lactate dehydrogenase
+    ja: LDH
+  2571-8:
+    en: Triglyceride [Mass/volume] in Serum or Plasma
+    ja: トリグリセリド
+  2703-7:
+    en: Oxygen [Partial pressure] in Arterial blood
+    ja: PaO2
+  2708-6:
+    en: Oxygen saturation in Arterial blood
+    ja: 動脈血酸素飽和度
+  2744-1:
+    en: pH
+    ja: pH
+  2823-3:
+    en: Potassium
+    ja: カリウム
+  2885-2:
+    en: Total protein
+    ja: 総蛋白
+  2951-2:
+    en: Sodium
+    ja: ナトリウム
+  30341-2:
+    en: Erythrocyte sedimentation rate
+    ja: 赤血球沈降速度（ESR）
+  3040-3:
+    en: Lipase [Enzymatic activity/volume] in Serum or Plasma
+    ja: リパーゼ
+  30934-4:
+    en: Brain natriuretic peptide [Mass/volume] in Plasma
+    ja: BNP（血漿）
+  3094-0:
+    en: Blood urea nitrogen
+    ja: 尿素窒素
+  3151-8:
+    en: Inhaled oxygen flow rate
+    ja: 吸入酸素流量
+  3255-7:
+    en: Fibrinogen [Mass/volume] in Platelet poor plasma by Coagulation assay
+    ja: フィブリノーゲン（血漿）
+  32693-4:
+    en: Lactate [Moles/volume] in Blood
+    ja: 乳酸（血液）
+  33762-6:
+    en: Natriuretic peptide.B prohormone N-Terminal [Mass/volume] in Serum or Plasma
+    ja: NT-proBNP
+  33914-3:
+    en: Glomerular filtration rate/1.73 sq M.predicted
+    ja: 推算糸球体濾過量（eGFR）
+  42637-9:
+    en: B-type natriuretic peptide
+    ja: BNP
+  4544-3:
+    en: Hematocrit
+    ja: ヘマトクリット
+  4548-4:
+    en: Hemoglobin A1c
+    ja: HbA1c
+  48066-5:
+    en: D dimer [Mass/volume] in Platelet poor plasma by Immunoassay
+    ja: Dダイマー（血漿）
+  48642-3:
+    en: Estimated GFR
+    ja: 推算糸球体濾過量
+  5902-2:
+    en: Prothrombin time (PT)
+    ja: プロトロンビン時間
+  6301-6:
+    en: PT-INR
+    ja: PT-INR
+  6598-7:
+    en: Troponin T.cardiac [Mass/volume] in Serum or Plasma
+    ja: 心筋トロポニンT（血清）
+  6690-2:
+    en: White blood cell count
+    ja: 白血球数
+  6768-6:
+    en: Alkaline phosphatase
+    ja: ALP
+  718-7:
+    en: Hemoglobin
+    ja: ヘモグロビン
+  75241-0:
+    en: Procalcitonin
+    ja: プロカルシトニン
+  777-3:
+    en: Platelet count
+    ja: 血小板数
+  789-8:
+    en: Erythrocyte count [#/volume] in Blood
+    ja: 赤血球数（血液）
+  80288-4:
+    en: Level of consciousness AVPU
+    ja: 意識レベル（AVPU）
+  8310-5:
+    en: Body temperature
+    ja: 体温
+  8462-4:
+    en: Diastolic blood pressure
+    ja: 拡張期血圧
+  8480-6:
+    en: Systolic blood pressure
+    ja: 収縮期血圧
+  8867-4:
+    en: Heart rate
+    ja: 心拍数
+  9279-1:
+    en: Respiratory rate
+    ja: 呼吸数

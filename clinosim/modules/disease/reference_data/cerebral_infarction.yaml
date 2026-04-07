@@ -3,8 +3,10 @@
 # against the most current published data before production use.
 
 disease_id: cerebral_infarction
-chief_complaint: "Sudden onset weakness, speech difficulty, facial droop"
-department: internal_medicine
+chief_complaint:
+  en: "Sudden onset weakness, speech difficulty, facial droop"
+  ja: "突然の片麻痺・構音障害・顔面麻痺"
+department: neurology
 encounter_type: medical
 requires_surgery: false
 minimum_severity: moderate

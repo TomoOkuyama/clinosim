@@ -2,9 +2,13 @@
 # Supervised exercise and education session for post-MI or post-cardiac surgery patients.
 
 condition_id: cardiac_rehabilitation
-chief_complaint: "Cardiac rehabilitation session (post-MI/post-surgery)"
+icd10_code: "Z51.89"
+icd10_display: "Encounter for other specified aftercare"
+chief_complaint:
+  en: "Cardiac rehabilitation session (post-MI/post-surgery)"
+  ja: "心臓リハビリテーション（運動療法）"
 encounter_type: outpatient
-department: cardiology_rehabilitation
+department: cardiology
 disposition: discharge_home
 
 severity_distribution:

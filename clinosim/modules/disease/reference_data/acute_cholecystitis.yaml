@@ -3,8 +3,10 @@
 # against the most current published data before production use.
 
 disease_id: acute_cholecystitis
-chief_complaint: "Right upper quadrant pain, fever, Murphy's sign positive"
-department: internal_medicine
+chief_complaint:
+  en: "Right upper quadrant pain, fever, Murphy's sign positive"
+  ja: "右季肋部痛・発熱・Murphy徴候陽性"
+department: general_surgery
 encounter_type: surgical
 requires_surgery: true
 minimum_severity: moderate

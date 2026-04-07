@@ -3,8 +3,10 @@
 # against the most current published data before production use.
 
 disease_id: acute_appendicitis
-chief_complaint: "Right lower quadrant pain, nausea, fever"
-department: internal_medicine
+chief_complaint:
+  en: "Right lower quadrant pain, nausea, fever"
+  ja: "右下腹部痛・嘔気・発熱"
+department: general_surgery
 encounter_type: surgical
 requires_surgery: true
 minimum_severity: moderate

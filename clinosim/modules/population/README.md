@@ -1,92 +1,302 @@
-# population
+# clinosim.modules.population — 集団生成・ライフイベントエンジン
 
-Catchment area population generation and life event engine. The origin of all hospital encounters — no patient exists without first being part of the population.
+## 目的
 
-All demographic data (age distribution, blood type, chronic disease prevalence, disease incidence rates, seasonal modifiers, risk multipliers) is loaded from locale YAML files — no epidemiological data is hardcoded.
+clinosim の **全入院経路の起点**。 病院の catchment area (医療圏) の住民集団を生成し、 そこから月次のライフイベント (疾患発症・慢性疾患増悪・外傷・ED受診・健診受診等) を発生させる。
 
-## Public API
+重要原則: **患者は population から生まれる**。 どの患者も最初に `PersonRecord` として集団に所属し、 ライフイベント (`LifeEvent`) が care-seeking の閾値を超えたとき、 初めて hospital encounter へ変換される。
+
+これにより:
+
+- 疫学 (発症率、年齢分布、季節性) が人口レベルで正しくスケールする
+- 同一患者の再入院・外来フォローを一貫した person_id で追跡できる
+- 慢性疾患の既往が急性イベントのリスクに連動する
+- 健診・ワクチン・検診といった "無症状時の受診" もモデル化できる (外来データを充実)
+
+すべての疫学データ (年齢分布、 血液型、 慢性疾患有病率、 疾患 incidence、 季節性、 リスク倍率) は **locale YAML から読み込む** — コードには疫学値をハードコードしない。
+
+## 設計原則
+
+| # | 原則 | 説明 |
+|---|---|---|
+| 1 | **Layer 1 = lightweight** | PersonRecord は shallow (名前・住所・慢性疾患等のみ)。 深層医療データは encounter 時に hydrate |
+| 2 | **Household 単位の生成** | 世帯単位で住所・姓を共有 (国別 surname rule) |
+| 3 | **データ駆動の疫学** | incidence rate は locale `demographics.yaml` の `disease_incidence` から |
+| 4 | **Care-seeking threshold** | 個人ごとの受診閾値 `care_seeking_threshold` (normal(0.30, 0.12)) |
+| 5 | **月次バッチ** | ライフイベントは年×月のループで生成、 timestamp は月内ランダム |
+| 6 | **再入院追跡** | `hospitalization_history` に `HospitalizationSummary` を蓄積、 再発率を 1.5 倍に |
+| 7 | **決定論的** | すべて `rng: np.random.Generator` 経由 |
+
+## API リファレンス
+
+### `generate_population(size, country, rng, base_year=2024) -> PopulationRegistry`
+
+指定サイズの住民集団を生成する。
+
+```python
+from clinosim.modules.population.engine import generate_population
+import numpy as np
+
+rng = np.random.default_rng(42)
+registry = generate_population(size=10_000, country="JP", rng=rng, base_year=2024)
+print(f"Generated {registry.total_persons} persons in {len(registry.households)} households")
+```
+
+**生成ステップ**:
+
+1. Locale demographics から年齢分布・血液型分布・慢性疾患有病率を読み込み
+2. `size / average_household_size` 世帯を作成
+3. 各世帯で住所を生成 (都市・州・番地・アパート名)
+4. 世帯電話 (有線は確率付き)、 世帯姓 (surname rule 依存)
+5. 各世帯メンバーを生成:
+   - 年齢 (年齢分布からサンプル)
+   - 性別 (M:F = 49:51)
+   - 血液型 (国別分布)
+   - 姓 (shared / mostly_shared / not_shared rule)
+   - 名 (性別依存の weighted sampling)
+   - 慢性疾患 (年齢別有病率 rng で割り付け、 平均 16 種のうち該当分)
+   - 携帯電話 (15 歳以上)
+   - care_seeking_threshold = `clamp(normal(0.30, 0.12), 0.05, 0.90)`
+
+### `generate_monthly_events(registry, year, month, rng, country="US") -> list[LifeEvent]`
+
+1 ヶ月分の急性疾患・外傷・未知症候のライフイベントを生成する。
+
+```python
+from clinosim.modules.population.engine import generate_monthly_events
+
+events = generate_monthly_events(registry, year=2024, month=3, rng=rng, country="US")
+print(f"March 2024: {len(events)} life events")
+hospital_events = [e for e in events if e.requires_hospital]
+```
+
+**生成ロジック**:
+
+1. `demographics.yaml` の `disease_incidence` を反復、 各疾患について:
+   - 患者年齢で rate をルックアップ
+   - 性別比で補正
+   - 月次 rate = (年率 / 100,000) / 12 に換算
+   - 季節性 modifier を乗算 (月ごと)
+   - 慢性疾患のリスク倍率 (`disease_risk_multipliers`)
+   - 既往歴: 同疾患の過去 hospitalization があれば ×1.5 (recurrence)
+   - `prerequisite_condition` チェック (例: HF exacerbation は I50 必須)
+2. `rng.random() < rate` なら発症
+3. 重症度は beta 分布 (`severity_beta: [alpha, beta]`)、 最低値 `severity_minimum`
+4. 入院判定:
+   - `always_hospitalize: true` なら強制入院
+   - そうでなければ `severity > person.care_seeking_threshold × age_modifier × flat_modifier`
+5. **Unknown conditions** (非典型主訴): 40 歳以上で ~0.008%/月 × 年齢係数、 4 種の pattern (fever_unknown, weight_loss, malaise, elevated_markers)
+6. **Mixed conditions** (dual pathology): 70 歳以上 & 慢性疾患 2 つ以上 & 入院必要 → 18% の確率で `condition_type = "mixed"` へ格上げ
+
+### `generate_healthcare_calendar(registry, year, country, rng) -> list[LifeEvent]`
+
+1 年分の **計画的受診** (慢性疾患フォロー、健診、ワクチン、検診) を生成する。 急性疾患とは別に発生する。
+
+```python
+from clinosim.modules.population.engine import generate_healthcare_calendar
+
+calendar = generate_healthcare_calendar(registry, year=2024, country="JP", rng=rng)
+# → 外来 (chronic_visit, health_screening) イベントが多数
+```
+
+**生成内容**:
+
+| イベント | 対象 | 頻度 |
+|---|---|---|
+| 慢性疾患フォロー | 慢性疾患保有者 | 最短フォロー間隔 (例: 3 ヶ月毎)、最大 6 回/年 |
+| 年次健診 | 40 歳以上 | 年 1 回 (4-10 月のいずれか) |
+| インフルワクチン | 65 歳以上または慢性疾患 2 つ以上 | 50% 接種率、10-12 月 |
+| 大腸内視鏡検診 | 50 歳以上 | 年 8% (≒10 年毎) |
+| マンモグラフィ | 女性 40 歳以上 | 年 40% |
+| 糖尿病網膜症検診 | E11.9 保有者 | 年 60% |
+
+フォロー間隔は `locale/shared/chronic_followup.yaml` から読み込む (ICD code → `follow_up_interval_months`)。
+
+## データ構造
+
+### `PersonRecord` (Layer 1 個人記録)
+
+```python
+@dataclass
+class PersonRecord:
+    person_id: str              # "POP-000001"
+    household_id: str           # "HH-000001"
+    age: int
+    sex: str                    # "M" | "F"
+    date_of_birth: date
+    family_name: str
+    given_name: str
+    phonetic: str | None        # JP 用 ふりがな
+    blood_type: str             # "A" | "B" | "O" | "AB"
+    # 住所・連絡 (世帯共通)
+    postal_code: str
+    state: str                  # prefecture (JP) / state (US)
+    city: str
+    address_line: str
+    phone_home: str
+    phone_mobile: str
+    # 医療
+    chronic_conditions: list[str]             # ICD-10 コード
+    current_medications: list[str]
+    is_alive: bool = True
+    care_seeking_threshold: float = 0.3
+    has_visited_hospital: bool = False
+    visit_count: int = 0
+    last_discharge_date: date | None = None
+    last_encounter_id: str | None = None
+    last_disease_id: str | None = None
+    hospitalization_history: list[HospitalizationSummary]
+```
+
+### `LifeEvent`
+
+```python
+@dataclass
+class LifeEvent:
+    person_id: str
+    event_type: str         # "acute_disease_onset" | "chronic_exacerbation" | "trauma" |
+                            # "unknown_condition" | "chronic_visit" | "health_screening" |
+                            # "ed_visit" | "followup"
+    timestamp: date
+    severity: float = 0.5
+    condition_type: str = "known_disease"
+                            # "known_disease" | "mixed" | "unknown" |
+                            # "chronic_followup" | "screening" | "ed_visit"
+    disease_id: str = ""
+    encounter_type: str = "inpatient"  # "inpatient" | "outpatient" | "emergency"
+    requires_hospital: bool = False
+    is_readmission: bool = False
+    prior_encounter_id: str | None = None
+    readmission_number: int = 0
+    protocol_source: str = ""      # このイベントの protocol YAML 参照
+```
+
+### `HospitalizationSummary` (再入院追跡)
+
+```python
+@dataclass
+class HospitalizationSummary:
+    encounter_id: str
+    disease_id: str
+    admission_date: date
+    discharge_date: date
+    los_days: int
+    outcome: str                        # "discharged" | "deceased" | "transferred"
+    discharge_diagnoses: list[str]      # ICD codes
+    discharge_medications: list[str]
+    residual_inflammation: float = 0.0  # state at discharge
+    residual_renal: float = 1.0
+    was_readmission: bool = False
+```
+
+### `Household` / `PopulationRegistry`
+
+```python
+@dataclass
+class Household:
+    household_id: str
+    members: list[PersonRecord]
+    region: str = "urban"
+
+@dataclass
+class PopulationRegistry:
+    households: list[Household]
+    persons: dict[str, PersonRecord]
+
+    def get_person(self, person_id: str) -> PersonRecord | None: ...
+    @property
+    def total_persons(self) -> int: ...
+```
+
+## 使用例: 1 年分のシミュレーション
 
 ```python
 from clinosim.modules.population.engine import (
-    generate_population,       # (size, country, rng) -> PopulationRegistry
-    generate_monthly_events,   # (registry, year, month, rng, country) -> list[LifeEvent]
-    PersonRecord,
-    Household,
-    LifeEvent,
-    PopulationRegistry,
+    generate_population, generate_monthly_events, generate_healthcare_calendar,
 )
+import numpy as np
+
+rng = np.random.default_rng(seed=20240101)
+
+# 1. Population creation (once at simulation start)
+registry = generate_population(size=50_000, country="JP", rng=rng, base_year=2024)
+
+# 2. Yearly planned healthcare calendar
+calendar = generate_healthcare_calendar(registry, year=2024, country="JP", rng=rng)
+
+# 3. Monthly acute events
+all_events = list(calendar)
+for month in range(1, 13):
+    events = generate_monthly_events(registry, year=2024, month=month, rng=rng, country="JP")
+    all_events.extend(events)
+
+# 4. Route to encounter module
+for event in sorted(all_events, key=lambda e: e.timestamp):
+    if event.requires_hospital:
+        encounter = create_inpatient_encounter(registry.get_person(event.person_id), event)
+    elif event.encounter_type == "outpatient":
+        encounter = create_outpatient_encounter(...)
 ```
 
-### `generate_population(size, country, rng) -> PopulationRegistry`
-Creates households and persons with country-appropriate demographics from `locale/{country}/demographics.yaml`:
-- Age distribution, blood type distribution, household size
-- Chronic condition assignment (16 conditions) by age-specific prevalence
-- Names from `locale/{country}/names.yaml` with surname sharing rules
+## 新しい国を追加する
 
-### `generate_monthly_events(registry, year, month, rng, country) -> list[LifeEvent]`
-Runs one month of life events across the population using locale epidemiology data:
-- Disease incidence (age/sex-specific) from `demographics.yaml`
-- Seasonal modifiers (monthly) from `demographics.yaml`
-- Chronic condition risk multipliers from `demographics.yaml`
-- 3 disease types: bacterial pneumonia, HF exacerbation, hip fracture
-- Mixed conditions (dual pathology) and unknown presentations
+1. `locale/<country>/demographics.yaml` を作成:
+   - `average_household_size`
+   - `age_distribution` (例: `"0-14": 0.12`)
+   - `blood_type`
+   - `chronic_prevalence` (ICD → 年齢帯 → 有病率)
+   - `disease_incidence` (per disease: `age_rates`, `sex_ratio_female`, `severity_beta`, ...)
+   - `seasonal_modifiers` (月次)
+   - `disease_risk_multipliers` (chronic code → 倍率)
+   - `unknown_conditions`, `mixed_conditions` 設定
+2. `locale/<country>/names.yaml` (weighted 姓・名)
+3. `locale/<country>/addresses.yaml` (都市・通り・アパート名)
+4. `locale/shared/naming_rules.yaml` に surname rule を追加
+5. `locale/loader.py` の `_COUNTRY_DIR_MAP` に追加
+6. **コード変更不要** — すべて YAML 駆動
 
-## Dependencies
-- `clinosim.locale.loader` — all demographic/epidemiological data
-- `numpy` — random number generation
+## 新しい疾患をライフイベント生成に追加する
 
-## Testing
+1. `demographics.yaml` の `disease_incidence` に追加:
+   ```yaml
+   disease_incidence:
+     my_new_disease:
+       age_rates: {0: 10, 45: 50, 65: 200}    # per 100k/year
+       sex_ratio_female: 0.8
+       severity_beta: [2, 3]
+       event_type: "acute_disease_onset"
+       always_hospitalize: false
+       hospitalization_threshold_modifier_by_age:
+         65: 0.8
+         80: 0.6
+   ```
+2. `seasonal_modifiers` と `disease_risk_multipliers` を追加
+3. 対応する `clinosim/modules/disease/reference_data/<disease>.yaml` を作成
+
+## 依存関係
+
+- `clinosim.locale.loader` — demographics / names / addresses / chronic_followup
+- `numpy` — RNG と weighted choice
+- **他モジュールへの依存なし** (出力 `LifeEvent` を encounter モジュールが consume)
+
+## テスト
+
 ```bash
 source .venv/bin/activate && python -m pytest tests/unit/test_population.py -v
 ```
 
-## How to add a new country
+カバー範囲: 世帯生成、 慢性疾患割り付け、 疫学率計算、 季節性、 surname rule、 再入院倍率、 ヘルスケアカレンダー。
 
-1. Create `locale/{country}/demographics.yaml` with:
-   - `average_household_size`
-   - `age_distribution` (age ranges with proportions)
-   - `blood_type` (distribution)
-   - `chronic_prevalence` (ICD-10 code -> age range -> prevalence)
-   - `disease_incidence` (per disease: age_rates, sex_ratio)
-   - `seasonal_modifiers` (per disease: monthly multipliers)
-   - `disease_risk_multipliers` (per disease: chronic condition -> risk factor)
-2. Create `locale/{country}/names.yaml` (surnames + given names with weights)
-3. Add naming rules to `locale/shared/naming_rules.yaml`
-4. Add country mapping to `locale/loader.py` `_COUNTRY_DIR_MAP`
-5. No code changes needed
+## 権威ソース
 
-## How to add a new disease to life events
-
-1. Add incidence data to `demographics.yaml` under `disease_incidence`:
-   ```yaml
-   disease_incidence:
-     my_new_disease:
-       age_rates: {0: 10, 45: 50, 65: 200}
-       sex_ratio_female: 0.8
-   ```
-2. Add seasonal curve and risk multipliers:
-   ```yaml
-   seasonal_modifiers:
-     my_new_disease: {1: 1.2, 2: 1.1, ..., 12: 1.2}
-   disease_risk_multipliers:
-     my_new_disease: {E11.9: 1.5, I10: 1.3}
-   ```
-3. Add event generation block in `generate_monthly_events()` (follow existing pattern)
-4. Add disease YAML in `modules/disease/reference_data/`
-
-## Implementation status
-- [x] Household generation with realistic size distribution
-- [x] Person generation with country-specific age/sex/blood type distribution
-- [x] Chronic condition assignment (16 conditions) by age-specific prevalence
-- [x] Care-seeking threshold generation
-- [x] 3 disease types: pneumonia, HF exacerbation, hip fracture
-- [x] Country-specific disease incidence rates from locale
-- [x] Seasonal modifiers from locale
-- [x] Risk multipliers from chronic conditions (locale-driven)
-- [x] Mixed conditions (dual pathology, ~18% of elderly multi-morbid)
-- [x] Unknown presentations (~3% of admissions)
-- [x] US and JP fully supported
-- [ ] Household-level events (infection transmission)
-- [ ] Chronic disease management visits
-- [ ] Health checkup scheduling
-- [ ] Additional diseases (UTI, stroke, AMI, sepsis, COPD, DKA)
+- **日本 (JP)**:
+  - 厚生労働省「患者調査」 (疾病別受療率) — https://www.mhlw.go.jp/toukei/list/10-20.html
+  - 総務省「国勢調査」 (年齢分布・世帯サイズ)
+  - 厚生労働省「特定健診・特定保健指導」 (40 歳以上健診の根拠)
+- **米国 (US)**:
+  - CDC NHIS (National Health Interview Survey) — chronic prevalence
+  - CDC WISQARS (injury incidence)
+  - HCUP (hospitalization rates)
+  - USPSTF 推奨 (screening 年齢・頻度)
+- **共通**:
+  - GBD (Global Burden of Disease) study — 疾患負荷比較

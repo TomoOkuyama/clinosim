@@ -85,6 +85,16 @@ def load_addresses(country: str) -> dict[str, Any]:
     return _load_yaml(_country_dir(country) / "addresses.yaml", fallback={})
 
 
+@lru_cache(maxsize=8)
+def load_reference_ranges(country: str) -> dict[str, Any]:
+    """Load lab reference range data for a country.
+
+    Returns dict with 'source_url', 'source_name', and 'ranges' keys.
+    Example: load_reference_ranges("JP") -> {"ranges": {"CRP": [{"low": 0, ...}], ...}}
+    """
+    return _load_yaml(_country_dir(country) / "reference_range_lab.yaml", fallback={})
+
+
 @lru_cache(maxsize=1)
 def load_chronic_followup() -> dict[str, Any]:
     """Load chronic disease outpatient follow-up schedules."""

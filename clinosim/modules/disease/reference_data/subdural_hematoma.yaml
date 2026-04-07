@@ -2,8 +2,10 @@
 # Sources: Brain Trauma Foundation, Japanese Neurosurgical Society, ACS TQIP
 
 disease_id: subdural_hematoma
-chief_complaint: "Altered consciousness after head trauma, progressive deterioration"
-department: internal_medicine  # neurosurgery
+chief_complaint:
+  en: "Altered consciousness after head trauma, progressive deterioration"
+  ja: "頭部外傷後の意識障害・進行性悪化"
+department: neurosurgery
 encounter_type: surgical
 requires_surgery: true
 minimum_severity: moderate

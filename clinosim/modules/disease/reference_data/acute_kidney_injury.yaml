@@ -3,8 +3,10 @@
 # against the most current published data before production use.
 
 disease_id: acute_kidney_injury
-chief_complaint: "Decreased urine output, edema, nausea, confusion"
-department: internal_medicine
+chief_complaint:
+  en: "Decreased urine output, edema, nausea, confusion"
+  ja: "尿量減少・浮腫・嘔気・意識混濁"
+department: nephrology
 encounter_type: medical
 requires_surgery: false
 readmission_eligible: true

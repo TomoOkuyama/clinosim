@@ -3,8 +3,10 @@
 # against the most current published data before production use.
 
 disease_id: influenza
-chief_complaint: "High fever, myalgia, cough, fatigue"
-department: internal_medicine
+chief_complaint:
+  en: "High fever, myalgia, cough, fatigue"
+  ja: "高熱・筋肉痛・咳嗽・倦怠感"
+department: pulmonology
 encounter_type: medical
 requires_surgery: false
 readmission_eligible: true

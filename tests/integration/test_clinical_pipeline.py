@@ -37,8 +37,8 @@ def profile():
 @pytest.fixture
 def conditions():
     return [
-        ChronicCondition(code="I10", name="HT", severity_score=0.2),
-        ChronicCondition(code="E11.9", name="DM", severity_score=0.2),
+        ChronicCondition(code="I10", severity_score=0.2),
+        ChronicCondition(code="E11.9", severity_score=0.2),
     ]
 
 

@@ -63,12 +63,19 @@ class TestIO:
 
 
 class TestPainScore:
-    def test_vitals_have_pain_score(self, us_inpatient):
-        assert all(v.pain_score is not None for v in us_inpatient.vital_signs)
+    def test_full_round_vitals_have_pain_score(self, us_inpatient):
+        # Pain score is recorded with full round vitals (not continuous monitor or recheck)
+        full_vitals = [v for v in us_inpatient.vital_signs
+                       if v.temperature_celsius is not None
+                       and v.systolic_bp is not None
+                       and v.respiratory_rate is not None]
+        assert len(full_vitals) > 0
+        assert all(v.pain_score is not None for v in full_vitals)
 
     def test_pain_score_range(self, us_inpatient):
         for v in us_inpatient.vital_signs:
-            assert 0 <= v.pain_score <= 10
+            if v.pain_score is not None:
+                assert 0 <= v.pain_score <= 10
 
 
 class TestNursingNotes:

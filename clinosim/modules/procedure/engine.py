@@ -58,6 +58,8 @@ def simulate_surgery(
     protocol: Any,
     rng: np.random.Generator,
     country: str = "JP",
+    surgeon_id: str = "",
+    anesthesiologist_id: str = "",
 ) -> tuple[ProcedureRecord, dict[str, float]]:
     """Simulate a surgical procedure. Returns the record and state impacts.
 
@@ -133,8 +135,8 @@ def simulate_surgery(
         start_datetime=surgery_start,
         end_datetime=surgery_start + timedelta(minutes=duration),
         duration_minutes=duration,
-        primary_surgeon_id="SURG-PLACEHOLDER-001",
-        anesthesiologist_id="ANES-PLACEHOLDER-001",
+        primary_surgeon_id=surgeon_id,
+        anesthesiologist_id=anesthesiologist_id,
         anesthesia_type=anesthesia_type,
         asa_class=asa,
         estimated_blood_loss_ml=ebl,
@@ -158,6 +160,156 @@ def simulate_surgery(
         state_impacts["perfusion_status"] = -0.10
 
     return record, state_impacts
+
+
+# ============================================================
+# Bedside / routine inpatient procedures
+# ============================================================
+
+# (procedure_type, CPT, K-code, name_en, name_ja, anesthesia)
+_BEDSIDE_PROCEDURES: list[tuple[str, str, str, str, str, str]] = [
+    ("urinary_catheter", "51702", "D002", "Urinary catheter insertion", "尿道カテーテル挿入", "none"),
+    ("central_line", "36556", "G005-2", "Central venous catheter insertion", "中心静脈カテーテル挿入", "local"),
+    ("arterial_line", "36620", "G005-3", "Arterial line insertion", "動脈ライン挿入", "local"),
+    ("lumbar_puncture", "62270", "D004", "Lumbar puncture", "腰椎穿刺", "local"),
+    ("thoracentesis", "32555", "D010", "Thoracentesis", "胸腔穿刺", "local"),
+    ("paracentesis", "49083", "D011", "Paracentesis", "腹腔穿刺", "local"),
+    ("intubation", "31500", "J044", "Endotracheal intubation", "気管挿管", "sedation"),
+    ("nasogastric_tube", "43752", "J034", "Nasogastric tube insertion", "経鼻胃管挿入", "none"),
+    ("chest_tube", "32551", "D012", "Chest tube insertion", "胸腔ドレーン挿入", "local"),
+    ("wound_debridement", "97597", "K002", "Wound debridement", "創傷デブリードマン", "local"),
+    ("cardioversion", "92960", "K599", "Electrical cardioversion", "電気的カルジオバージョン", "sedation"),
+    ("blood_transfusion", "36430", "K920", "Blood transfusion", "輸血", "none"),
+    ("dialysis_acute", "90935", "J038", "Acute hemodialysis", "急性血液透析", "none"),
+    ("bronchoscopy", "31622", "D302", "Bronchoscopy", "気管支鏡検査", "sedation"),
+    ("echocardiography", "93306", "D215", "Transthoracic echocardiography", "経胸壁心エコー", "none"),
+]
+
+# Rules: (disease_id or category) → [(procedure_type, probability)]
+# category keywords checked against disease_id
+_PROCEDURE_RULES: list[tuple[str | list[str], list[tuple[str, float]]]] = [
+    # Universal: urinary catheter for severe patients
+    (["sepsis", "acute_mi", "heart_failure", "cerebral_infarction", "hemorrhagic_stroke",
+      "subdural_hematoma", "traffic_accident_severe"],
+     [("urinary_catheter", 0.85)]),
+    # Moderate-severe inpatients: urinary catheter
+    (["copd_exacerbation", "gi_bleeding", "acute_pancreatitis", "diabetic_ketoacidosis",
+      "liver_cirrhosis_decompensated", "pulmonary_embolism", "acute_kidney_injury"],
+     [("urinary_catheter", 0.50)]),
+    # Sepsis / critical: central line, arterial line
+    (["sepsis"],
+     [("central_line", 0.70), ("arterial_line", 0.50), ("blood_transfusion", 0.15)]),
+    # Heart failure: echocardiography
+    (["heart_failure_exacerbation"],
+     [("echocardiography", 0.80), ("urinary_catheter", 0.60)]),
+    # Acute MI: arterial line, echo
+    (["acute_mi"],
+     [("arterial_line", 0.60), ("central_line", 0.40), ("echocardiography", 0.90)]),
+    # Stroke: nasogastric tube (dysphagia risk), lumbar puncture
+    (["cerebral_infarction", "hemorrhagic_stroke"],
+     [("nasogastric_tube", 0.30), ("echocardiography", 0.50)]),
+    # Hemorrhagic stroke / subdural: intubation
+    (["hemorrhagic_stroke", "subdural_hematoma"],
+     [("intubation", 0.40), ("central_line", 0.50), ("arterial_line", 0.40)]),
+    # GI bleeding: nasogastric tube, blood transfusion
+    (["gi_bleeding"],
+     [("nasogastric_tube", 0.50), ("blood_transfusion", 0.60), ("central_line", 0.30)]),
+    # Liver cirrhosis: paracentesis, nasogastric tube
+    (["liver_cirrhosis_decompensated"],
+     [("paracentesis", 0.70), ("nasogastric_tube", 0.25), ("blood_transfusion", 0.30)]),
+    # Pneumonia/aspiration: bronchoscopy in severe cases
+    (["bacterial_pneumonia", "aspiration_pneumonia"],
+     [("bronchoscopy", 0.15), ("intubation", 0.10)]),
+    # DKA: central line, arterial line
+    (["diabetic_ketoacidosis"],
+     [("central_line", 0.35), ("arterial_line", 0.20)]),
+    # Pulmonary embolism: echo
+    (["pulmonary_embolism"],
+     [("echocardiography", 0.70), ("central_line", 0.20)]),
+    # Ileus: nasogastric tube
+    (["ileus"],
+     [("nasogastric_tube", 0.80)]),
+    # AKI: dialysis in severe cases
+    (["acute_kidney_injury"],
+     [("dialysis_acute", 0.30), ("central_line", 0.40)]),
+    # Atrial fibrillation: cardioversion, echo
+    (["atrial_fibrillation_rvr"],
+     [("cardioversion", 0.25), ("echocardiography", 0.60)]),
+    # Pancreatitis: nasogastric tube
+    (["acute_pancreatitis"],
+     [("nasogastric_tube", 0.40), ("central_line", 0.20)]),
+    # Trauma: central line, arterial line, blood transfusion
+    (["traffic_accident_severe"],
+     [("central_line", 0.70), ("arterial_line", 0.60), ("blood_transfusion", 0.50),
+      ("intubation", 0.30), ("chest_tube", 0.25)]),
+    # Cellulitis with severe: wound debridement
+    (["cellulitis"],
+     [("wound_debridement", 0.30)]),
+]
+
+
+def generate_bedside_procedures(
+    patient_id: str,
+    encounter_id: str,
+    disease_id: str,
+    admission_time: datetime,
+    severity: str,
+    rng: np.random.Generator,
+    country: str = "US",
+) -> list[ProcedureRecord]:
+    """Generate bedside/routine procedures based on disease and severity.
+
+    Uses rule-based matching: disease_id is matched against _PROCEDURE_RULES,
+    and each candidate procedure fires with its probability, scaled by severity.
+    """
+    severity_mult = {"severe": 1.3, "moderate": 1.0, "mild": 0.5}.get(severity, 1.0)
+    proc_lookup = {p[0]: p for p in _BEDSIDE_PROCEDURES}
+
+    triggered: dict[str, float] = {}  # procedure_type → max probability
+    for disease_match, proc_list in _PROCEDURE_RULES:
+        match_list = disease_match if isinstance(disease_match, list) else [disease_match]
+        if disease_id not in match_list:
+            continue
+        for proc_type, prob in proc_list:
+            # Take the highest probability across matching rules
+            triggered[proc_type] = max(triggered.get(proc_type, 0), prob)
+
+    results: list[ProcedureRecord] = []
+    proc_idx = 0
+    for proc_type, base_prob in triggered.items():
+        prob = min(1.0, base_prob * severity_mult)
+        if rng.random() >= prob:
+            continue
+        spec = proc_lookup.get(proc_type)
+        if not spec:
+            continue
+
+        _, cpt, kcode, name_en, name_ja, anesthesia = spec
+        code = kcode if country == "JP" else cpt
+        name = name_ja if country == "JP" else name_en
+
+        # Timing: most bedside procedures happen within first 24h
+        hours_offset = max(0.5, float(rng.exponential(6)))  # median ~6h post-admission
+        proc_time = admission_time + timedelta(hours=hours_offset)
+        duration = int(max(10, rng.normal(30, 10)))
+
+        record = ProcedureRecord(
+            procedure_id=f"PROC-{patient_id}-{proc_idx + 2:03d}",
+            patient_id=patient_id,
+            encounter_id=encounter_id,
+            procedure_type=proc_type,
+            procedure_code=code,
+            procedure_name=name,
+            start_datetime=proc_time,
+            end_datetime=proc_time + timedelta(minutes=duration),
+            duration_minutes=duration,
+            primary_surgeon_id="",
+            anesthesia_type=anesthesia,
+        )
+        results.append(record)
+        proc_idx += 1
+
+    return results
 
 
 @dataclass

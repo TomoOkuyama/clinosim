@@ -2,7 +2,11 @@
 # Routine breast cancer screening mammography for women aged 40+.
 
 condition_id: mammography_screening
-chief_complaint: "Breast cancer screening mammography"
+icd10_code: "Z12.31"
+icd10_display: "Encounter for screening mammogram for malignant neoplasm of breast"
+chief_complaint:
+  en: "Breast cancer screening mammography"
+  ja: "乳癌スクリーニング・マンモグラフィ"
 encounter_type: outpatient
 department: radiology
 disposition: discharge_home

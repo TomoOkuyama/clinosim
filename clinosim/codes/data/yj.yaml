@@ -1,0 +1,123 @@
+metadata:
+  name: YJ Code
+  uri: urn:oid:1.2.392.100495.20.2.74
+  version: '2024'
+  description: Japanese drug code (YJ/HOT)
+codes:
+  '6131405':
+    en: Ampicillin/Sulbactam (Unasyn)
+    ja: アンピシリン/スルバクタム（ユナシン）
+  '6131002':
+    en: Amoxicillin (Amoxil)
+    ja: アモキシシリン（サワシリン）
+  '6131100':
+    en: Amoxicillin/Clavulanate (Augmentin)
+    ja: アモキシシリン/クラブラン酸（オーグメンチン）
+  '6149004':
+    en: Azithromycin (Zithromax)
+    ja: アジスロマイシン（ジスロマック）
+  '6132413':
+    en: Ceftriaxone (Rocephin)
+    ja: セフトリアキソン（ロセフィン）
+  '6241015':
+    en: Levofloxacin (Levaquin)
+    ja: レボフロキサシン（クラビット）
+  '6139002':
+    en: Meropenem (Merrem)
+    ja: メロペネム（メロペン）
+  '6131700':
+    en: Piperacillin/Tazobactam (Zosyn)
+    ja: ピペラシリン/タゾバクタム（ゾシン）
+  '2139007':
+    en: Furosemide (Lasix)
+    ja: フロセミド（ラシックス）
+  '2149036':
+    en: Carvedilol (Coreg)
+    ja: カルベジロール（アーチスト）
+  '2144002':
+    en: Enalapril (Vasotec)
+    ja: エナラプリル（レニベース）
+  '2144005':
+    en: Lisinopril (Zestril)
+    ja: リシノプリル（ゼストリル）
+  '2171022':
+    en: Amlodipine (Norvasc)
+    ja: アムロジピン（アムロジン/ノルバスク）
+  '2149040':
+    en: Candesartan (Atacand)
+    ja: カンデサルタン（ブロプレス）
+  '2171002':
+    en: Nitroglycerin (Nitrostat)
+    ja: ニトログリセリン（ミリスロール）
+  '2119004':
+    en: Carperitide
+    ja: カルペリチド（ハンプ）
+  '3334400':
+    en: Enoxaparin (Lovenox)
+    ja: エノキサパリン（クレキサン）
+  '3332001':
+    en: Warfarin (Coumadin)
+    ja: ワルファリン（ワーファリン）
+  '3339005':
+    en: Apixaban (Eliquis)
+    ja: アピキサバン（エリキュース）
+  '3399007':
+    en: Aspirin
+    ja: アスピリン（バイアスピリン）
+  '3399004':
+    en: Clopidogrel (Plavix)
+    ja: クロピドグレル（プラビックス）
+  '2189015':
+    en: Atorvastatin (Lipitor)
+    ja: アトルバスタチン（リピトール）
+  '2451002':
+    en: Norepinephrine (Levophed)
+    ja: ノルエピネフリン（ノルアドリナリン）
+  '1141007':
+    en: Acetaminophen (Tylenol)
+    ja: アセトアミノフェン（カロナール）
+  '1149036':
+    en: Celecoxib (Celebrex)
+    ja: セレコキシブ（セレコックス）
+  '8119003':
+    en: Oxycodone (OxyContin)
+    ja: オキシコドン（オキシコンチン）
+  '3962001':
+    en: Metformin (Glucophage)
+    ja: メトホルミン（メトグルコ）
+  '2492410':
+    en: Sliding scale insulin (Regular insulin)
+    ja: スライディングスケールインスリン（ヒューマリンR）
+  '2259710':
+    en: Tiotropium (Spiriva)
+    ja: チオトロピウム（スピリーバ）
+  '2254701':
+    en: Albuterol (ProAir / Ventolin)
+    ja: サルブタモール（サルタノール/ベネトリン）
+  '2290800':
+    en: Fluticasone/Salmeterol (Advair)
+    ja: フルチカゾン/サルメテロール（アドエア）
+  '2329025':
+    en: Lansoprazole (Prevacid)
+    ja: ランソプラゾール（タケプロン）
+  '7211001':
+    en: Sodium bicarbonate
+    ja: 炭酸水素ナトリウム（メイロン）
+  '3112002':
+    en: Vitamin D (Cholecalciferol)
+    ja: ビタミンD（アルファカルシドール）
+  '3999017':
+    en: Alendronate (Fosamax)
+    ja: アレンドロン酸（フォサマック/ボナロン）
+  '1190012':
+    en: Donepezil (Aricept)
+    ja: ドネペジル（アリセプト）
+  '1169011':
+    en: Levodopa/Carbidopa (Sinemet)
+    ja: レボドパ/カルビドパ（ネオドパストン/メネシット）
+  '2431003':
+    en: Levothyroxine (Synthroid)
+    ja: レボチロキシン（チラーヂンS）
+  '2590009':
+    en: Tamsulosin (Flomax)
+    ja: タムスロシン（ハルナール）

@@ -7,7 +7,50 @@
 
 # Recommended catchment population for this hospital size
 # This is the default if -p is not specified on CLI
-recommended_population: 12000
+recommended_population: 60000  # 50-bed hospital, ~80% occupancy with realistic admission rate
+
+# Available departments at this hospital (50-bed community hospital).
+# Granular sub-specialties roll up via department_rollup below.
+available_departments:
+  - internal_medicine    # 内科 (general medicine, absorbs pulm/neuro/nephro/endo)
+  - cardiology           # 循環器内科
+  - gastroenterology     # 消化器内科
+  - general_surgery      # 外科 (absorbs neurosurg/trauma)
+  - orthopedics          # 整形外科
+  - emergency_medicine   # 救急
+  - primary_care         # プライマリケア (outpatient)
+
+# Map granular specialties to the available departments at this hospital
+department_rollup:
+  pulmonology: internal_medicine
+  neurology: internal_medicine
+  nephrology: internal_medicine
+  endocrinology: internal_medicine
+  hematology: internal_medicine
+  infectious_disease: internal_medicine
+  neurosurgery: general_surgery
+  trauma_surgery: general_surgery
+  cardiovascular_surgery: general_surgery
+  vascular_surgery: general_surgery
+
+# Ward layout — which ward(s) each department uses + bed count per ward
+wards:
+  internal_medicine: ["4E", "4W"]
+  cardiology: ["5E"]
+  gastroenterology: ["5W"]
+  general_surgery: ["3E"]
+  orthopedics: ["3W"]
+  emergency_medicine: ["ER"]
+  primary_care: ["OPD"]
+
+# Bed capacity per ward (inpatient wards only; 50 beds total)
+ward_capacity:
+  "4E": 10
+  "4W": 10
+  "5E": 8
+  "5W": 8
+  "3E": 8
+  "3W": 6
 
 # Resource capacity (number of units)
 resource_capacity:

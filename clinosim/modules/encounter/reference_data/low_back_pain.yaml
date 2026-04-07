@@ -2,9 +2,13 @@
 # Acute mechanical low back pain. Rule out red flags, symptomatic treatment, discharge.
 
 condition_id: low_back_pain
-chief_complaint: "Acute low back pain, onset after lifting"
+icd10_code: "M54.50"
+icd10_display: "Low back pain, unspecified"
+chief_complaint:
+  en: "Acute low back pain, onset after lifting"
+  ja: "急性腰痛（挙上時発症）"
 encounter_type: emergency
-department: internal_medicine
+department: emergency_medicine
 disposition: discharge_home
 
 severity_distribution:

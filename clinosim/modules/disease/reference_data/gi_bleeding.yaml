@@ -3,8 +3,10 @@
 # against the most current published data before production use.
 
 disease_id: gi_bleeding
-chief_complaint: "Hematemesis, melena, dizziness, syncope"
-department: internal_medicine  # gastroenterology
+chief_complaint:
+  en: "Hematemesis, melena, dizziness, syncope"
+  ja: "吐血・下血（タール便）・めまい・失神"
+department: gastroenterology
 encounter_type: medical
 requires_surgery: false  # endoscopy is interventional, not surgical
 readmission_eligible: true  # high readmission rate ~15%

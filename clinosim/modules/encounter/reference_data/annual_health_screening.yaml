@@ -2,9 +2,13 @@
 # Routine annual checkup. Japan: 特定健診 (Tokutei Kenshin). US: Annual physical.
 
 condition_id: annual_health_screening
-chief_complaint: "Annual health screening / preventive checkup"
+icd10_code: "Z00.00"
+icd10_display: "Encounter for general adult medical examination without abnormal findings"
+chief_complaint:
+  en: "Annual health screening / preventive checkup"
+  ja: "定期健康診断（特定健診）"
 encounter_type: outpatient
-department: internal_medicine
+department: primary_care
 disposition: discharge_home
 
 severity_distribution:

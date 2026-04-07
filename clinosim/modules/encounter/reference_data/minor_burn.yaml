@@ -2,7 +2,11 @@
 # Partial thickness burn management. Wound care and pain control.
 
 condition_id: minor_burn
-chief_complaint: "Burn to hand/arm, partial thickness"
+icd10_code: "T30.0"
+icd10_display: "Burn of unspecified body region, unspecified degree"
+chief_complaint:
+  en: "Burn to hand/arm, partial thickness"
+  ja: "手/腕の熱傷（部分層）"
 encounter_type: emergency
 department: emergency_medicine
 disposition: discharge_home

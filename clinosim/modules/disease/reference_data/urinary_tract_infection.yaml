@@ -3,7 +3,9 @@
 # against the most current published data before production use.
 
 disease_id: urinary_tract_infection
-chief_complaint: "Fever, dysuria, flank pain"
+chief_complaint:
+  en: "Fever, dysuria, flank pain"
+  ja: "発熱・排尿時痛・側腹部痛"
 department: internal_medicine
 encounter_type: medical
 requires_surgery: false

@@ -3,8 +3,10 @@
 # against the most current published data before production use.
 
 disease_id: copd_exacerbation
-chief_complaint: "Worsening dyspnea, increased sputum production, wheezing"
-department: internal_medicine
+chief_complaint:
+  en: "Worsening dyspnea, increased sputum production, wheezing"
+  ja: "呼吸困難増悪・喀痰増加・喘鳴"
+department: pulmonology
 encounter_type: medical
 requires_surgery: false
 readmission_eligible: true   # COPD has very high readmission rates (~20%)

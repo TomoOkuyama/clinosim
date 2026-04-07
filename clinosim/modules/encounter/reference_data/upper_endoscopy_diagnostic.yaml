@@ -2,7 +2,11 @@
 # Diagnostic esophagogastroduodenoscopy for dyspepsia, GERD, or upper GI symptoms.
 
 condition_id: upper_endoscopy_diagnostic
-chief_complaint: "Diagnostic EGD for dyspepsia/GERD evaluation"
+icd10_code: "Z13.818"
+icd10_display: "Encounter for screening for other digestive system disorders"
+chief_complaint:
+  en: "Diagnostic EGD for dyspepsia/GERD evaluation"
+  ja: "上部消化管内視鏡（胃カメラ）"
 encounter_type: outpatient
 department: gastroenterology
 disposition: discharge_home

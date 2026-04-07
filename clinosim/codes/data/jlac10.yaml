@@ -1,0 +1,96 @@
+metadata:
+  name: JLAC10
+  uri: urn:oid:1.2.392.200119.4.1005
+  version: '2024'
+  description: Japanese Laboratory Code (JLAC10)
+codes:
+  5C070:
+    en: C-reactive protein
+    ja: C反応性蛋白
+  2A010:
+    en: White blood cell count
+    ja: 白血球数
+  2A020:
+    en: Hemoglobin
+    ja: ヘモグロビン
+  2A030:
+    en: Hematocrit
+    ja: ヘマトクリット
+  2A050:
+    en: Platelet count
+    ja: 血小板数
+  3C015:
+    en: Creatinine
+    ja: クレアチニン
+  3C010:
+    en: Blood urea nitrogen
+    ja: 尿素窒素
+  3H015:
+    en: Sodium
+    ja: ナトリウム
+  3H020:
+    en: Potassium
+    ja: カリウム
+  3H025:
+    en: Chloride
+    ja: クロール
+  3H040:
+    en: Calcium
+    ja: カルシウム
+  3D010:
+    en: Glucose
+    ja: 血糖
+  3B035:
+    en: Aspartate aminotransferase
+    ja: AST(GOT)
+  3B045:
+    en: Alanine aminotransferase
+    ja: ALT(GPT)
+  3B070:
+    en: Alkaline phosphatase
+    ja: ALP
+  3B090:
+    en: Gamma-glutamyl transferase
+    ja: γ-GTP
+  3B050:
+    en: Total bilirubin
+    ja: 総ビリルビン
+  3A015:
+    en: Albumin
+    ja: アルブミン
+  3A010:
+    en: Total protein
+    ja: 総蛋白
+  3B005:
+    en: Lactate dehydrogenase
+    ja: LDH
+  3B010:
+    en: Creatine kinase
+    ja: CK(CPK)
+  5C170:
+    en: Procalcitonin
+    ja: プロカルシトニン
+  4Z190:
+    en: B-type natriuretic peptide
+    ja: BNP
+  3F020:
+    en: Lactate
+    ja: 乳酸
+  2B030:
+    en: PT-INR
+    ja: PT-INR
+  8A065:
+    en: Estimated GFR
+    ja: 推算糸球体濾過量
+  3D045:
+    en: Hemoglobin A1c
+    ja: HbA1c
+  6A010:
+    en: pH
+    ja: pH
+  6A020:
+    en: pCO2
+    ja: pCO2
+  6A030:
+    en: Bicarbonate
+    ja: HCO3

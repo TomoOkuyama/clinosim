@@ -2,7 +2,11 @@
 # Screening colonoscopy for colorectal cancer prevention and polyp detection.
 
 condition_id: colonoscopy_screening
-chief_complaint: "Screening colonoscopy for colorectal cancer"
+icd10_code: "Z12.11"
+icd10_display: "Encounter for screening for malignant neoplasm of colon"
+chief_complaint:
+  en: "Screening colonoscopy for colorectal cancer"
+  ja: "大腸癌スクリーニング大腸内視鏡"
 encounter_type: outpatient
 department: gastroenterology
 disposition: discharge_home

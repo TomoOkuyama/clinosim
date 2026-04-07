@@ -2,9 +2,13 @@
 # Head injury with transient neurological symptoms. CT to rule out bleed, observe, discharge.
 
 condition_id: concussion
-chief_complaint: "Head injury, brief loss of consciousness, headache, confusion"
+icd10_code: "S06.0X0A"
+icd10_display: "Concussion without loss of consciousness, initial encounter"
+chief_complaint:
+  en: "Head injury, brief loss of consciousness, headache, confusion"
+  ja: "頭部外傷・一過性意識消失・頭痛・混乱"
 encounter_type: emergency
-department: internal_medicine  # emergency medicine / neurology consult PRN
+department: emergency_medicine
 disposition: discharge_home
 
 severity_distribution:

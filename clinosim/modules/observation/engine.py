@@ -40,29 +40,44 @@ PRECISION: dict[str, int] = {
     "Creatinine": 2, "BUN": 1, "Glucose": 0, "eGFR": 0,
     "AST": 0, "ALT": 0, "ALP": 0, "GGT": 0, "T_Bil": 1, "Albumin": 1, "TP": 1,
     "LDH": 0, "CK": 0,
-    "WBC": 0, "Hb": 1, "Hct": 1, "Plt": 1,
+    "WBC": 0, "Hb": 1, "Hct": 1, "Plt": 0,  # Plt reported as integer (10^3/uL)
     "CRP": 1, "PCT": 2, "BNP": 1, "Troponin": 3,
     "Lactate": 1, "pH": 2, "HCO3": 1, "pCO2": 1,
     "PT_INR": 1,
+    "HbA1c": 1, "ESR": 0,
+    "LDL": 0, "HDL": 0, "TG": 0, "TC": 0,
+    "Na": 0, "Fibrinogen": 0,
+    "D_dimer": 2,
+    "Amylase": 0, "Lipase": 0,
+    "TSH": 2,
+    "Cortisol": 1,
 }
 
 
-# Standard units for lab results
+# Standard units for lab results — UCUM (http://unitsofmeasure.org)
+# References: https://ucum.org/, FHIR R4 Observation requires UCUM
 LAB_UNITS: dict[str, str] = {
     "Na": "mmol/L", "K": "mmol/L", "Cl": "mmol/L", "Ca": "mg/dL",
-    "Creatinine": "mg/dL", "BUN": "mg/dL", "Glucose": "mg/dL", "eGFR": "mL/min/1.73m2",
+    "Creatinine": "mg/dL", "BUN": "mg/dL", "Glucose": "mg/dL",
+    "eGFR": "mL/min/{1.73_m2}",  # UCUM annotation for body surface area
     "AST": "U/L", "ALT": "U/L", "ALP": "U/L", "GGT": "U/L",
     "T_Bil": "mg/dL", "Albumin": "g/dL", "TP": "g/dL",
     "LDH": "U/L", "CK": "U/L",
-    "WBC": "/uL", "Hb": "g/dL", "Hct": "%", "Plt": "x10^3/uL",
+    "WBC": "/uL",         # Cell count per microliter (e.g. 7500)
+    "Hb": "g/dL", "Hct": "%",
+    "Plt": "10*3/uL",     # UCUM (was "x10^3/uL")
     "CRP": "mg/L", "PCT": "ng/mL", "BNP": "pg/mL", "Troponin": "ng/mL",
-    "Lactate": "mmol/L", "pH": "", "HCO3": "mmol/L", "pCO2": "mmHg",
-    "PT_INR": "ratio", "Fibrinogen": "mg/dL", "D_dimer": "ug/mL",
-    "TSH": "mIU/L", "SpO2": "%",
+    "Lactate": "mmol/L", "pH": "[pH]", "HCO3": "mmol/L", "pCO2": "mm[Hg]",
+    "pO2": "mm[Hg]",
+    "PT_INR": "{INR}", "Fibrinogen": "mg/dL", "D_dimer": "ug/mL",
+    "TSH": "m[IU]/L", "SpO2": "%",
     "HbA1c": "%", "ESR": "mm/h",
-    "Urinalysis": "qualitative", "Urine_culture": "qualitative",
-    "Rapid_Strep": "qualitative", "Tetanus_status": "qualitative",
+    "Urinalysis": "{qualitative}", "Urine_culture": "{qualitative}",
+    "Rapid_Strep": "{qualitative}", "Tetanus_status": "{qualitative}",
     "LDL": "mg/dL", "HDL": "mg/dL", "TG": "mg/dL", "TC": "mg/dL",
+    "Amylase": "U/L", "Lipase": "U/L",
+    "Cortisol": "ug/dL",
+    "BNP": "pg/mL",
 }
 
 
@@ -96,14 +111,39 @@ def round_to_precision(lab_name: str, value: float) -> float:
     return round(value, decimals)
 
 
+_QUALITATIVE_TESTS = {"Urinalysis", "Urine_culture", "Rapid_Strep", "Tetanus_status"}
+
+
 def generate_lab_result(
     lab_name: str,
     true_value: float,
     rng: np.random.Generator,
-) -> float:
-    """Full pipeline: variability + rounding."""
+) -> float | str:
+    """Full pipeline: variability + rounding. Returns string for qualitative tests."""
+    if lab_name in _QUALITATIVE_TESTS:
+        return _generate_qualitative_result(lab_name, rng)
     noisy = apply_realistic_variability(lab_name, true_value, rng)
     return round_to_precision(lab_name, noisy)
+
+
+def _generate_qualitative_result(lab_name: str, rng: np.random.Generator) -> str:
+    """Return categorical result for qualitative tests."""
+    if lab_name == "Urinalysis":
+        # Common qualitative urinalysis dipstick result
+        return str(rng.choice(
+            ["Normal", "Trace protein", "1+ protein", "Trace blood", "1+ leukocytes", "Glucose 1+"],
+            p=[0.55, 0.10, 0.05, 0.10, 0.15, 0.05],
+        ))
+    if lab_name == "Urine_culture":
+        return str(rng.choice(
+            ["No growth", "Mixed flora (contaminated)", "E. coli >100,000 CFU/mL", "Klebsiella >100,000 CFU/mL"],
+            p=[0.55, 0.20, 0.20, 0.05],
+        ))
+    if lab_name == "Rapid_Strep":
+        return str(rng.choice(["Negative", "Positive"], p=[0.85, 0.15]))
+    if lab_name == "Tetanus_status":
+        return str(rng.choice(["Up to date", "Unknown", "Last >10 years ago"], p=[0.55, 0.30, 0.15]))
+    return "Negative"
 
 
 def determine_flag(

@@ -3,8 +3,10 @@
 # against the most current published data before production use.
 
 disease_id: atrial_fibrillation_rvr
-chief_complaint: "Palpitations, dyspnea, dizziness, chest discomfort"
-department: internal_medicine
+chief_complaint:
+  en: "Palpitations, dyspnea, dizziness, chest discomfort"
+  ja: "動悸・呼吸困難・めまい・胸部不快感"
+department: cardiology
 encounter_type: medical
 requires_surgery: false
 readmission_eligible: true

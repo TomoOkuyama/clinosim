@@ -2,9 +2,13 @@
 # Seasonal influenza vaccine administration visit.
 
 condition_id: flu_vaccination
-chief_complaint: "Influenza vaccination"
+icd10_code: "Z23"
+icd10_display: "Encounter for immunization"
+chief_complaint:
+  en: "Influenza vaccination"
+  ja: "インフルエンザ予防接種"
 encounter_type: outpatient
-department: internal_medicine
+department: primary_care
 disposition: discharge_home
 
 severity_distribution:

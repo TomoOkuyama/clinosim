@@ -38,7 +38,6 @@ def create_test_patient() -> PatientProfile:
         chronic_conditions=[
             ChronicCondition(
                 code="I10",
-                name="Essential hypertension",
                 onset_date=date(2010, 6, 1),
                 severity="mild",
                 controlled=True,
@@ -46,7 +45,6 @@ def create_test_patient() -> PatientProfile:
             ),
             ChronicCondition(
                 code="E11.9",
-                name="Type 2 diabetes mellitus without complications",
                 onset_date=date(2015, 9, 1),
                 severity="mild",
                 controlled=True,

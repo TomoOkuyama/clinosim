@@ -2,9 +2,13 @@
 # Scheduled pre-surgical evaluation including labs, imaging, and anesthesia review.
 
 condition_id: preoperative_assessment
-chief_complaint: "Pre-operative assessment for scheduled surgery"
+icd10_code: "Z01.818"
+icd10_display: "Encounter for other preprocedural examination"
+chief_complaint:
+  en: "Pre-operative assessment for scheduled surgery"
+  ja: "術前検査・術前評価"
 encounter_type: outpatient
-department: surgery
+department: general_surgery
 disposition: discharge_home
 
 severity_distribution:

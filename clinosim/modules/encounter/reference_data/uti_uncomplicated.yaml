@@ -2,9 +2,13 @@
 # Lower urinary tract infection. Urinalysis, antibiotics, discharge.
 
 condition_id: uti_uncomplicated
-chief_complaint: "Dysuria, urinary frequency, suprapubic discomfort"
+icd10_code: "N39.0"
+icd10_display: "Urinary tract infection, site not specified"
+chief_complaint:
+  en: "Dysuria, urinary frequency, suprapubic discomfort"
+  ja: "排尿時痛・頻尿・恥骨上部不快感"
 encounter_type: emergency  # also outpatient_urgent
-department: internal_medicine
+department: primary_care
 disposition: discharge_home
 
 severity_distribution:

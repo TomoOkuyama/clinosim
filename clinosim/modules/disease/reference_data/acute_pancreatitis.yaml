@@ -3,8 +3,10 @@
 # against the most current published data before production use.
 
 disease_id: acute_pancreatitis
-chief_complaint: "Severe epigastric pain radiating to back, nausea, vomiting"
-department: internal_medicine
+chief_complaint:
+  en: "Severe epigastric pain radiating to back, nausea, vomiting"
+  ja: "心窩部激痛（背部放散）・嘔気・嘔吐"
+department: gastroenterology
 encounter_type: medical
 requires_surgery: false
 readmission_eligible: true

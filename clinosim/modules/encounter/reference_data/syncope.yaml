@@ -2,9 +2,13 @@
 # Loss of consciousness evaluation. ECG, troponin, glucose workup.
 
 condition_id: syncope
-chief_complaint: "Loss of consciousness, fainting episode"
+icd10_code: "R55"
+icd10_display: "Syncope and collapse"
+chief_complaint:
+  en: "Loss of consciousness, fainting episode"
+  ja: "意識消失・失神エピソード"
 encounter_type: emergency
-department: internal_medicine
+department: emergency_medicine
 disposition: discharge_home
 
 severity_distribution:

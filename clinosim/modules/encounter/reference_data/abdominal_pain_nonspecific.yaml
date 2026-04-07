@@ -2,9 +2,13 @@
 # Most common ED chief complaint. Wide differential, often self-limiting.
 
 condition_id: abdominal_pain_nonspecific
-chief_complaint: "Abdominal pain, nausea"
+icd10_code: "R10.9"
+icd10_display: "Unspecified abdominal pain"
+chief_complaint:
+  en: "Abdominal pain, nausea"
+  ja: "腹痛・嘔気"
 encounter_type: emergency
-department: internal_medicine
+department: emergency_medicine
 disposition: discharge_home
 
 severity_distribution:

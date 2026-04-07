@@ -1271,3 +1271,440 @@ What this module does (1–2 sentences).
 | Class name | PascalCase | `PatientProfile` |
 | State variable | snake_case | `inflammation_level` |
 | Config file | snake_case.yaml | `pneumonia.yaml` |
+| FHIR Resource id | type-encounter-suffix | `lab-ENC-POP-000001-000123-0042` |
+| Code system key | lowercase-with-hyphens | `icd-10-cm`, `loinc`, `k-codes` |
+
+---
+
+# Part 6 — Architecture Updates (v0.1-beta, 2026-04-08)
+
+This part documents major architectural decisions made after the initial v0.1-alpha
+foundation. They are integrated into the live codebase but recorded here as ADRs for
+historical reference.
+
+## 6.1 Code System Module (`clinosim/codes/`)
+
+### Problem
+
+Initially, terminology files (e.g., ICD code → display name) lived under
+`clinosim/locale/jp/terminology_diagnosis.yaml` and similar paths. This created two
+issues:
+
+1. **Misclassification**: ICD-10-CM is an international standard, not a culture-specific
+   data set. Putting it under `locale/jp/` implied locale-scoped ownership when actually
+   it's the same code values, just translated.
+2. **Translation duplication**: When supporting JP and US, the same ICD code had
+   separate entries in two files. Updating one but not the other led to mismatches.
+3. **CIF redundancy**: `ClinicalDiagnosis` stored both `discharge_diagnosis_code` and
+   `discharge_diagnosis_name`. The name was a derivative of the code + locale, but
+   stored separately, allowing them to drift.
+
+### Decision (AD-30, AD-33, AD-35)
+
+Create a new `clinosim/codes/` module that is **locale-independent** and serves as the
+single source of truth for clinical code systems.
+
+```
+clinosim/codes/
+├── __init__.py          # public API
+├── loader.py            # lookup() with language fallback
+├── README.md            # module documentation
+└── data/
+    ├── icd-10-cm.yaml   # 224 codes, all with EN, most with JA
+    ├── icd-10.yaml      # WHO version (110 codes)
+    ├── loinc.yaml       # 59 codes
+    ├── jlac10.yaml      # 30 codes
+    ├── rxnorm.yaml      # 68 codes
+    ├── yj.yaml          # 39 codes
+    ├── cpt.yaml         # 25 codes
+    └── k-codes.yaml     # 2 codes
+```
+
+### Schema
+
+```yaml
+metadata:
+  name: "ICD-10-CM"
+  uri: "http://hl7.org/fhir/sid/icd-10-cm"   # FHIR canonical system URI
+  version: "2024"
+  description: "..."
+
+codes:
+  N10:
+    en: "Acute tubulo-interstitial nephritis"   # REQUIRED
+    ja: "急性腎盂腎炎"                          # optional
+  J18.9:
+    en: "Pneumonia, unspecified organism"
+    ja: "肺炎，詳細不明"
+```
+
+### Principles
+
+1. **English-first**: Every code MUST have an `en` field. Other languages are optional
+   translation attributes. The loader falls back to English if a requested language
+   is missing, then to the code itself.
+
+2. **Authoritative sources**: Code values and English text follow official definitions
+   from CMS (ICD-10-CM), NLM (RxNorm), Regenstrief (LOINC), AMA (CPT), WHO (ICD-10),
+   JCCLS (JLAC10), MHLW (YJ codes, K codes).
+
+3. **Locale-independent**: `codes/` is at the same level as `locale/`, NOT inside it.
+   Code systems are international standards.
+
+4. **Single lookup API**:
+   ```python
+   from clinosim.codes import lookup, get_system_uri
+   lookup("icd-10-cm", "N10", "en")  # → "Acute tubulo-interstitial nephritis"
+   lookup("icd-10-cm", "N10", "ja")  # → "急性腎盂腎炎"
+   get_system_uri("loinc")           # → "http://loinc.org"
+   ```
+
+### Impact on CIF
+
+`ClinicalDiagnosis` was simplified — `*_name` fields removed, `*_system` added:
+
+```python
+# Before
+@dataclass
+class ClinicalDiagnosis:
+    admission_diagnosis_code: str
+    admission_diagnosis_name: str          # ← removed
+    discharge_diagnosis_code: str
+    discharge_diagnosis_name: str          # ← removed
+
+# After
+@dataclass
+class ClinicalDiagnosis:
+    admission_diagnosis_code: str
+    admission_diagnosis_system: str = "icd-10-cm"   # ← added
+    discharge_diagnosis_code: str
+    discharge_diagnosis_system: str = "icd-10-cm"   # ← added
+```
+
+`ChronicCondition.name` was similarly removed. Display text is now resolved by output
+adapters (FHIR, CSV, narrative) calling `clinosim.codes.lookup()` at output time.
+
+### Locale module after migration
+
+`clinosim/locale/` now contains only **culture/country-dependent** data:
+
+- `names.yaml` — person name generation (kanji + reading for JP, given/family for US)
+- `addresses.yaml` — 47 prefectures / 50 states + ZIP code patterns
+- `demographics.yaml` — population age distribution, disease incidence rates
+- `formatting.yaml` — date and unit formatting rules
+- `reference_range_lab.yaml` — JCCLS / Tietz lab reference ranges
+- `code_mapping_*.yaml` — internal test name → standard code (kept here because the
+  internal name "WBC" is a clinosim implementation detail, not a standard)
+
+The old `terminology_*.yaml` files were removed.
+
+---
+
+## 6.2 FHIR Bulk Data Export NDJSON (AD-31)
+
+### Problem
+
+The original FHIR R4 adapter wrote one Bundle JSON file per encounter
+(`ENC-POP-XXXXXX-NNNNNN.json`). This worked but had drawbacks:
+
+1. **File explosion**: 153,530 files for a 60k catchment hospital
+2. **Wrapping overhead**: each Bundle had `Bundle.entry[]` wrapping that was redundant
+3. **Resource id duplication**: vital sign IDs collided across patient encounters
+   (`vs-{patient_id}-0000-heart_rate` recurred per encounter)
+4. **Not standard format**: real EHR vendors (Epic, Cerner) export via FHIR Bulk Data
+   Access spec (NDJSON files per resource type), not as per-patient bundles
+
+### Decision (AD-31)
+
+Replace per-encounter Bundle output with HL7 FHIR Bulk Data Access compliant NDJSON:
+
+```
+output/fhir_r4/
+├── manifest.json                           # Bulk Data manifest
+├── _facility.json                          # Org + Location master Bundle
+├── Patient.ndjson                          # 1 patient per line
+├── Encounter.ndjson                        # 1 encounter per line
+├── Observation.ndjson                      # labs + vitals (LOINC)
+├── Condition.ndjson                        # ICD-10-CM
+├── MedicationRequest.ndjson                # RxNorm
+├── MedicationAdministration.ndjson         # MAR
+├── Procedure.ndjson                        # CPT
+├── AllergyIntolerance.ndjson               # patient-level
+├── Practitioner.ndjson                     # staff master
+├── PractitionerRole.ndjson                 # specialty + ward
+├── Organization.ndjson                     # hospital + departments
+└── Location.ndjson                         # wards + beds
+```
+
+### Resource id uniqueness
+
+A critical FHIR R4 invariant: `Resource.id` MUST be unique within its resource type.
+The old per-encounter Bundle approach hid violations because each Bundle was
+self-contained. Once aggregated into NDJSON, collisions became visible.
+
+Fixed by including `encounter_id` in resource ids:
+
+- Lab obs: `lab-{encounter_id}-{seq}` instead of `lab-{patient_id}-{seq}`
+- Vital obs: `vs-{encounter_id}-{seq}-{field}`
+- MAR: `mar-{encounter_id}-{seq}`
+- MedRequest: `{encounter_id}-{order_id}` (prefixed)
+- Procedure: `{encounter_id}-{procedure_id}` (prefixed)
+- Condition (encounter dx): `cond-{encounter_id}-primary`
+- Condition (chronic): `cond-{encounter_id}-chronic-{idx}`
+
+Patient-level resources (Patient, Practitioner, AllergyIntolerance) are deduplicated
+in the NDJSON writer rather than re-emitted.
+
+### Manifest format
+
+Follows the [HL7 FHIR Bulk Data Access spec](https://hl7.org/fhir/uv/bulkdata/):
+
+```json
+{
+  "transactionTime": "2026-04-08T17:30:00",
+  "request": "clinosim generate (country=US)",
+  "requiresAccessToken": false,
+  "output": [
+    {"type": "Patient", "url": "Patient.ndjson"},
+    {"type": "Encounter", "url": "Encounter.ndjson"},
+    ...
+  ],
+  "error": []
+}
+```
+
+This format is consumable by any FHIR client expecting Bulk Data export, including
+Epic and Cerner integration tools.
+
+### Size impact
+
+For US 50-bed hospital, catchment 30k, 1 year:
+- Old format: 153,530 files, 5.7 GB total
+- New format: 13 files, 1.3 GB total (-77% size reduction from JSON wrapping removal)
+
+---
+
+## 6.3 Snapshot Date Semantics (AD-32)
+
+### Problem
+
+The simulator generated all encounters that fell within the simulation period to
+completion (every encounter had `discharge_datetime` set). This produced "all patients
+discharged" datasets, which don't reflect a real EHR snapshot where some patients are
+currently admitted.
+
+For visualization tools and AI models trained on EHR snapshots (e.g., NEWS2 alert
+systems for currently admitted patients), this was a significant gap.
+
+### Decision (AD-32)
+
+Introduce **snapshot date** semantics:
+
+- `--end YYYY-MM-DD` flag = the snapshot date (defaults to today)
+- `--start YYYY-MM-DD` defaults to `--end - 1 year`
+- No life events generated past the snapshot date
+- Inpatients whose `discharge_datetime` would fall after the snapshot date are
+  truncated:
+  - `Encounter.status = "in-progress"`
+  - `discharge_datetime = None`
+  - `discharge_disposition = ""`
+  - `discharging_physician_id = ""`
+  - Lab/vital/order/MAR records filtered to ≤ snapshot day
+  - Discharge prescription not issued
+- Primary `Condition.clinicalStatus = "active"` for in-progress encounters (vs
+  `resolved` for completed ones)
+- Death is exempt from this rule (deceased patients are always "completed" with
+  `dischargeDisposition = "exp"`)
+
+### Result
+
+A typical 50-bed hospital with avg LOS 5 days and ~3 admissions/day produces ~15
+in-progress encounters at any point in time (~30% occupancy). With higher catchment
+and longer LOS, this approaches realistic 80% bed occupancy.
+
+This enables generating realistic EHR snapshots for:
+- NEWS2 / early warning alert systems
+- Bed management dashboards
+- Real-time clinical decision support training data
+
+---
+
+## 6.4 Hospital Configuration-Driven Layout (AD-34)
+
+### Problem
+
+Hospital physical layout (which departments exist, which wards belong to which
+specialty, how many beds per ward) was hardcoded or randomly assigned. This created:
+
+1. **Inconsistent FHIR data**: encounters claimed to be in non-existent wards
+2. **Staffing mismatches**: PractitionerRole specialties didn't match Encounter
+   serviceType
+3. **No bed capacity model**: no way to enforce occupancy limits
+
+### Decision (AD-34)
+
+Hospital configuration YAML defines the complete physical and organizational layout:
+
+```yaml
+# clinosim/config/hospital_operations.yaml (50-bed hospital)
+recommended_population: 60000
+
+available_departments:           # specialties this hospital supports
+  - internal_medicine
+  - cardiology
+  - gastroenterology
+  - general_surgery
+  - orthopedics
+  - emergency_medicine
+  - primary_care
+
+department_rollup:               # specialty → available department mapping
+  pulmonology: internal_medicine    # disease YAML says pulmonology, hospital says IM
+  neurology: internal_medicine
+  neurosurgery: general_surgery
+  trauma_surgery: general_surgery
+
+wards:                           # which wards each department uses
+  internal_medicine: ["4E", "4W"]
+  cardiology: ["5E"]
+  gastroenterology: ["5W"]
+  general_surgery: ["3E"]
+  orthopedics: ["3W"]
+  emergency_medicine: ["ER"]
+  primary_care: ["OPD"]
+
+ward_capacity:                   # bed count per ward
+  "4E": 10
+  "4W": 10
+  "5E": 8
+  "5W": 8
+  "3E": 8
+  "3W": 6
+```
+
+### Cascading effects
+
+1. **Disease → department resolution**: `disease.department` (granular) is rolled up
+   via `department_rollup` to one of `available_departments`. So a `pulmonology` disease
+   in a hospital that doesn't have pulmonology gets routed to `internal_medicine`.
+
+2. **Staff generation**: `generate_roster()` creates physicians ONLY for
+   `available_departments`. Nurses are distributed across `wards` (each ward gets
+   ~6 nurses, scaled by `ward_capacity`).
+
+3. **Bed assignment**: When an encounter is created, `bed_number` is sampled from
+   `1..ward_capacity[ward_id]`. No more random "601-3" bed numbers.
+
+4. **FHIR Location resources**: `_facility.json` contains one `Location` per ward
+   (physicalType=wa) and one per bed (physicalType=bd, partOf the ward). Encounter
+   references the bed Location, which references the ward via `partOf`.
+
+5. **PractitionerRole.location**: nurses are assigned to a ward in their roster entry,
+   which is reflected in PractitionerRole.location reference.
+
+This means hospital templates (`hospital_operations.yaml` for 50-bed,
+`hospital_small.yaml` for 10-bed) are now genuinely different hospitals, not just
+size labels.
+
+---
+
+## 6.5 Updated module list
+
+The current module count has grown beyond v0.1-alpha:
+
+```
+clinosim/
+├── codes/                  ★ NEW (AD-30, AD-33, AD-35)
+├── locale/
+├── config/
+├── types/
+├── modules/
+│   ├── disease/            (28 disease YAMLs)
+│   ├── encounter/          (44 ED/outpatient YAMLs)
+│   ├── physiology/
+│   ├── clinical_course/
+│   ├── diagnosis/
+│   ├── observation/
+│   ├── order/
+│   ├── procedure/          ★ NEW (was empty, now 15 bedside procedures)
+│   ├── population/
+│   ├── patient/
+│   ├── staff/              (ward-aware after AD-34)
+│   ├── facility/           ★ NEW README (M/M/1 queueing)
+│   ├── healthcare_system/
+│   ├── output/             (Bulk Data NDJSON after AD-31)
+│   ├── llm_service/
+│   └── validator/
+└── simulator/              (orchestration: engine, inpatient, emergency, outpatient)
+```
+
+Each module has its own README.md with API reference and design notes.
+
+---
+
+## 6.6 Realistic vital sign measurement patterns
+
+### Problem
+
+Initial implementation generated all 6 vital signs (T, HR, BP, RR, SpO2) at every
+measurement time, with the same timestamp. This was unrealistic:
+
+- Outpatient HTN visit: only BP and HR are measured (not all 6)
+- Continuous monitoring: HR and SpO2 every 1-2h, but full vitals only q6h
+- Same timestamp for all 6 fields is implausible (BP cuff and thermometer aren't
+  simultaneous)
+
+### Decision
+
+1. **Inpatient**: separate routine full vitals (q4h–q8h based on acuity) from
+   continuous monitoring (HR + SpO2 only every 2h for unstable/respiratory patients)
+   plus event-driven recheck (T-only re-measurement after fever).
+
+2. **Outpatient**: vital subset by visit type and chronic condition:
+   - HTN/DM/IHD followup: BP + HR
+   - HF: BP + HR + weight + SpO2
+   - COPD: BP + HR + SpO2 + RR
+   - Annual physical: full set
+
+3. **Per-field timestamp offset** (in FHIR adapter):
+   - HR / BP simultaneous (same device cycle)
+   - SpO2: +5s
+   - Temperature: +30s
+   - RR: +60s
+
+This produces NEWS2-compatible vital data while remaining clinically plausible.
+
+---
+
+## 6.7 NEWS2 / early warning vital data
+
+To support NEWS2 (National Early Warning Score 2) alert systems, vitals now include:
+
+- **AVPU consciousness level** (Alert / Voice / Pain / Unresponsive)
+  - LOINC code 80288-4
+  - SNOMED concept value (248234008 for Alert, etc.)
+  - Inferred from `state.perfusion_status` and disease type
+
+- **Supplemental oxygen flow rate** (L/min)
+  - LOINC code 3151-8
+  - Includes oxygen delivery device (nasal_cannula, simple_mask, non-rebreather)
+  - Activated based on SpO2 < 92 or respiratory disease
+
+These two additional Observation types are emitted alongside standard vitals when
+applicable. NEWS2 score can be computed from any in-progress encounter's latest
+observations.
+
+---
+
+## 6.8 Updated ADR list (Part 6 additions)
+
+| ADR | Date | Title |
+|---|---|---|
+| AD-28 | 2026-04-06 | Diagnosis vs ground truth separation (ConditionEvent vs ClinicalDiagnosis) |
+| AD-29 | 2026-04-06 | Diagnostic accuracy via likelihood ratios (Bayesian update) |
+| AD-30 | 2026-04-08 | Code is the truth: CIF stores codes only, no display text |
+| AD-31 | 2026-04-08 | FHIR Bulk Data Export NDJSON (replacing per-encounter Bundle) |
+| AD-32 | 2026-04-08 | Snapshot date semantics with in-progress encounters |
+| AD-33 | 2026-04-08 | English-first principle for code systems |
+| AD-34 | 2026-04-08 | Hospital config-driven physical layout (departments, wards, beds) |
+| AD-35 | 2026-04-08 | codes module separated from locale (international standards) |

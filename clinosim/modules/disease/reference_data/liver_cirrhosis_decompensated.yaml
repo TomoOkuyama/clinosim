@@ -3,8 +3,10 @@
 # against the most current published data before production use.
 
 disease_id: liver_cirrhosis_decompensated
-chief_complaint: "Abdominal distension, jaundice, confusion, hematemesis"
-department: internal_medicine
+chief_complaint:
+  en: "Abdominal distension, jaundice, confusion, hematemesis"
+  ja: "腹部膨満・黄疸・意識混濁・吐血"
+department: gastroenterology
 encounter_type: medical
 requires_surgery: false
 readmission_eligible: true

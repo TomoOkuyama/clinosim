@@ -49,6 +49,8 @@ class Encounter:
     status: EncounterStatus = EncounterStatus.PLANNED
     department_id: str = ""
     attending_physician_id: str = ""
+    admitting_physician_id: str = ""
+    discharging_physician_id: str = ""
     admission_datetime: datetime = field(default_factory=datetime.now)
     discharge_datetime: datetime | None = None
     chief_complaint: str = ""
@@ -56,6 +58,10 @@ class Encounter:
     ward_id: str = ""  # e.g. "4W" (4th floor west)
     bed_number: str = ""  # e.g. "401-2"
     time_resolution: timedelta | None = None
+    # FHIR-aligned hospitalization fields
+    admit_source: str = ""  # "emd" | "hosp-trans" | "gp" | "mp" | "nursing" | "outp"
+    discharge_disposition: str = ""  # "home" | "hosp" | "other-hcf" | "exp" | "snf"
+    priority: str = ""  # "EM" (emergency) | "UR" (urgent) | "R" (routine)
 
     def __post_init__(self) -> None:
         if self.time_resolution is None:
@@ -137,6 +143,14 @@ class Order:
     ordered_by: str = ""
     status: OrderStatus = OrderStatus.PLACED
     result: OrderResult | None = None
+    # Structured medication fields (populated when order_type=MEDICATION)
+    dose_quantity: float | None = None  # numeric dose value
+    dose_unit: str = ""  # "mg" | "g" | "mL" | "unit"
+    frequency: str = ""  # "BID" | "TID" | "q8h" | "once" | "continuous"
+    frequency_per_day: int | None = None  # times per day for FHIR timing
+    route: str = ""  # "PO" | "IV" | "SC" | "IM" | "SL" | "topical"
+    duration_days: int | None = None
+    reason_condition: str = ""  # ICD code or condition reference
 
 
 @dataclass
@@ -149,6 +163,10 @@ class VitalSignRecord:
     respiratory_rate: int | None = None
     spo2: float | None = None
     pain_score: int | None = None
+    consciousness_level: str = "A"  # AVPU: A=Alert, V=Voice, P=Pain, U=Unresponsive (NEWS2)
+    on_supplemental_oxygen: bool = False
+    oxygen_flow_rate_lpm: float | None = None  # liters per minute, if on O2
+    oxygen_delivery_device: str = ""  # "nasal_cannula" | "simple_mask" | "venturi" | "non-rebreather" | "HFNC" | "BiPAP" | "ventilator"
     nursing_note: str = ""  # brief nursing assessment
     measured_by: str = ""  # nurse staff_id
     data_source: str = "manual"  # "manual" | "device_auto"

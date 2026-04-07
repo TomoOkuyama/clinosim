@@ -1,0 +1,137 @@
+# Laboratory reference ranges — Japan (JCCLS共用基準範囲 2022)
+# Source: 日本臨床検査標準協議会（JCCLS）共用基準範囲 2022年版
+# https://www.jccls.org/wp-content/uploads/2022/10/kijyunhani20221031.pdf
+#
+# Format per test:
+#   low, high: numeric bounds
+#   unit: UCUM unit
+#   text: display text for referenceRange.text
+#   sex: "M" | "F" | null (null = common to both sexes)
+#
+# Tests with sex-specific ranges have multiple entries (list).
+# Tests with a single range have one entry.
+
+source_url: "https://www.jccls.org/wp-content/uploads/2022/10/kijyunhani20221031.pdf"
+source_name: "JCCLS共用基準範囲2022"
+
+ranges:
+  # === 血液学 ===
+  WBC:
+    - {low: 3300, high: 8600, unit: "/uL", text: "JCCLS共用基準範囲2022"}
+  Hb:
+    - {low: 13.7, high: 16.8, unit: "g/dL", text: "JCCLS共用基準範囲2022 M", sex: "M"}
+    - {low: 11.6, high: 14.8, unit: "g/dL", text: "JCCLS共用基準範囲2022 F", sex: "F"}
+  Hct:
+    - {low: 40.7, high: 50.1, unit: "%", text: "JCCLS共用基準範囲2022 M", sex: "M"}
+    - {low: 35.1, high: 44.4, unit: "%", text: "JCCLS共用基準範囲2022 F", sex: "F"}
+  Plt:
+    - {low: 158, high: 348, unit: "10*3/uL", text: "JCCLS共用基準範囲2022"}
+
+  # === 生化学（肝・胆） ===
+  AST:
+    - {low: 13, high: 30, unit: "U/L", text: "JCCLS共用基準範囲2022"}
+  ALT:
+    - {low: 10, high: 42, unit: "U/L", text: "JCCLS共用基準範囲2022 M", sex: "M"}
+    - {low: 7, high: 23, unit: "U/L", text: "JCCLS共用基準範囲2022 F", sex: "F"}
+  GGT:
+    - {low: 13, high: 64, unit: "U/L", text: "JCCLS共用基準範囲2022 M", sex: "M"}
+    - {low: 9, high: 32, unit: "U/L", text: "JCCLS共用基準範囲2022 F", sex: "F"}
+  ALP:
+    - {low: 38, high: 113, unit: "U/L", text: "JCCLS共用基準範囲2022（IFCC法）"}
+  LDH:
+    - {low: 124, high: 222, unit: "U/L", text: "JCCLS共用基準範囲2022（IFCC法）"}
+  T_Bil:
+    - {low: 0.4, high: 1.5, unit: "mg/dL", text: "JCCLS共用基準範囲2022"}
+  Albumin:
+    - {low: 4.1, high: 5.1, unit: "g/dL", text: "JCCLS共用基準範囲2022"}
+  TP:
+    - {low: 6.6, high: 8.1, unit: "g/dL", text: "JCCLS共用基準範囲2022"}
+  CK:
+    - {low: 59, high: 248, unit: "U/L", text: "JCCLS共用基準範囲2022 M", sex: "M"}
+    - {low: 41, high: 153, unit: "U/L", text: "JCCLS共用基準範囲2022 F", sex: "F"}
+
+  # === 腎機能 ===
+  Creatinine:
+    - {low: 0.65, high: 1.07, unit: "mg/dL", text: "JCCLS共用基準範囲2022 M", sex: "M"}
+    - {low: 0.46, high: 0.79, unit: "mg/dL", text: "JCCLS共用基準範囲2022 F", sex: "F"}
+  BUN:
+    - {low: 8, high: 20, unit: "mg/dL", text: "JCCLS共用基準範囲2022"}
+  eGFR:
+    - {low: 60, high: 200, unit: "mL/min/{1.73_m2}", text: "CKD診療ガイドライン（≥60正常）"}
+
+  # === 電解質 ===
+  Na:
+    - {low: 138, high: 146, unit: "mmol/L", text: "JCCLS共用基準範囲2022"}
+  K:
+    - {low: 3.6, high: 4.8, unit: "mmol/L", text: "JCCLS共用基準範囲2022"}
+  Cl:
+    - {low: 101, high: 108, unit: "mmol/L", text: "JCCLS共用基準範囲2022"}
+  Ca:
+    - {low: 8.8, high: 10.1, unit: "mg/dL", text: "JCCLS共用基準範囲2022"}
+
+  # === 糖代謝 ===
+  Glucose:
+    - {low: 73, high: 109, unit: "mg/dL", text: "JCCLS共用基準範囲2022（空腹時）"}
+  HbA1c:
+    - {low: 4.9, high: 6.0, unit: "%", text: "JCCLS共用基準範囲2022（NGSP値）"}
+
+  # === 脂質 ===
+  LDL:
+    - {low: 65, high: 163, unit: "mg/dL", text: "JCCLS共用基準範囲2022"}
+  HDL:
+    - {low: 40, high: 90, unit: "mg/dL", text: "JCCLS共用基準範囲2022 M", sex: "M"}
+    - {low: 48, high: 103, unit: "mg/dL", text: "JCCLS共用基準範囲2022 F", sex: "F"}
+  TG:
+    - {low: 40, high: 234, unit: "mg/dL", text: "JCCLS共用基準範囲2022 M", sex: "M"}
+    - {low: 30, high: 117, unit: "mg/dL", text: "JCCLS共用基準範囲2022 F", sex: "F"}
+  TC:
+    - {low: 142, high: 248, unit: "mg/dL", text: "JCCLS共用基準範囲2022"}
+
+  # === 炎症マーカー ===
+  CRP:
+    - {low: 0, high: 1.4, unit: "mg/L", text: "JCCLS共用基準範囲2022"}
+  PCT:
+    - {low: 0, high: 0.05, unit: "ng/mL", text: "敗血症診断カットオフ（＜0.05 正常）"}
+  ESR:
+    - {low: 2, high: 10, unit: "mm/h", text: "一般基準値 M", sex: "M"}
+    - {low: 3, high: 15, unit: "mm/h", text: "一般基準値 F", sex: "F"}
+
+  # === 心臓マーカー ===
+  BNP:
+    - {low: 0, high: 18.4, unit: "pg/mL", text: "JCCLS共用基準範囲2022"}
+  Troponin:
+    - {low: 0, high: 0.014, unit: "ng/mL", text: "高感度トロポニンT 99パーセンタイル"}
+  D_dimer:
+    - {low: 0, high: 1.0, unit: "ug/mL", text: "基準値（＜1.0）"}
+
+  # === 凝固 ===
+  PT_INR:
+    - {low: 0.85, high: 1.15, unit: "{INR}", text: "一般基準値（非ワーファリン服用）"}
+  Fibrinogen:
+    - {low: 200, high: 400, unit: "mg/dL", text: "一般基準値"}
+
+  # === 血液ガス ===
+  pH:
+    - {low: 7.35, high: 7.45, unit: "[pH]", text: "動脈血ガス基準値"}
+  pCO2:
+    - {low: 35, high: 45, unit: "mm[Hg]", text: "動脈血ガス基準値"}
+  pO2:
+    - {low: 80, high: 100, unit: "mm[Hg]", text: "動脈血ガス基準値"}
+  HCO3:
+    - {low: 22, high: 26, unit: "mmol/L", text: "動脈血ガス基準値"}
+  Lactate:
+    - {low: 0.5, high: 1.6, unit: "mmol/L", text: "一般基準値"}
+
+  # === 膵酵素 ===
+  Amylase:
+    - {low: 44, high: 132, unit: "U/L", text: "JCCLS共用基準範囲2022"}
+  Lipase:
+    - {low: 13, high: 55, unit: "U/L", text: "一般基準値"}
+
+  # === 甲状腺 ===
+  TSH:
+    - {low: 0.5, high: 5.0, unit: "m[IU]/L", text: "一般基準値"}
+
+  # === その他 ===
+  Cortisol:
+    - {low: 6.24, high: 18.0, unit: "ug/dL", text: "早朝基準値"}

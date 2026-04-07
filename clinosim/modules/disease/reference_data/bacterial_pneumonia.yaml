@@ -3,8 +3,10 @@
 # against the most current published data before production use.
 
 disease_id: bacterial_pneumonia
-chief_complaint: "Fever, cough, dyspnea"
-department: internal_medicine
+chief_complaint:
+  en: "Fever, cough, dyspnea"
+  ja: "発熱・咳嗽・呼吸困難"
+department: pulmonology
 encounter_type: medical
 requires_surgery: false
 readmission_eligible: true

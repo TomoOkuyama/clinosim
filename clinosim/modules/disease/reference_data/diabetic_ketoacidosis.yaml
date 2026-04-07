@@ -3,8 +3,10 @@
 # against the most current published data before production use.
 
 disease_id: diabetic_ketoacidosis
-chief_complaint: "Nausea, vomiting, abdominal pain, polyuria, altered consciousness"
-department: internal_medicine  # endocrinology
+chief_complaint:
+  en: "Nausea, vomiting, abdominal pain, polyuria, altered consciousness"
+  ja: "嘔気・嘔吐・腹痛・多尿・意識障害"
+department: endocrinology
 encounter_type: medical
 requires_surgery: false
 readmission_eligible: true

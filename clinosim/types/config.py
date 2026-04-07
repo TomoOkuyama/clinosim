@@ -84,6 +84,7 @@ class SimulatorConfig(BaseModel):
     catchment_population: int = 50_000
     random_seed: int = 42
     time_range: tuple[str, str] = ("2024-04-01", "2025-03-31")
+    snapshot_date: str | None = None  # YYYY-MM-DD; ongoing inpatients have no discharge_datetime as of this date
     cif_format: str = "json"  # "json" | "msgpack" | "parquet"
 
     llm: LLMServiceConfig = LLMServiceConfig()

@@ -2,9 +2,13 @@
 # Acute gastroenteritis from contaminated food. IV fluids, antiemetics, discharge.
 
 condition_id: food_poisoning
-chief_complaint: "Abdominal pain, vomiting, diarrhea after meal"
+icd10_code: "A05.9"
+icd10_display: "Bacterial foodborne intoxication, unspecified"
+chief_complaint:
+  en: "Abdominal pain, vomiting, diarrhea after meal"
+  ja: "食後の腹痛・嘔吐・下痢"
 encounter_type: emergency
-department: internal_medicine
+department: emergency_medicine
 disposition: discharge_home
 
 severity_distribution:

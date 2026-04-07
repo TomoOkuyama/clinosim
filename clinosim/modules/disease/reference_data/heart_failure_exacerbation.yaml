@@ -2,8 +2,10 @@
 # Sources: MHLW Patient Survey, ACC/AHA Guidelines, ESC Guidelines, JP JCARE-CARD registry
 
 disease_id: heart_failure_exacerbation
-chief_complaint: "Dyspnea on exertion, orthopnea, lower extremity edema"
-department: internal_medicine
+chief_complaint:
+  en: "Dyspnea on exertion, orthopnea, lower extremity edema"
+  ja: "労作時呼吸困難・起座呼吸・下肢浮腫"
+department: cardiology
 encounter_type: medical
 requires_surgery: false
 readmission_eligible: true

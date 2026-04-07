@@ -1,0 +1,336 @@
+metadata:
+  name: ICD-10
+  uri: http://hl7.org/fhir/sid/icd-10
+  version: WHO 2019
+  description: WHO International Classification of Diseases, 10th Revision
+codes:
+  A41:
+    en: Other sepsis
+    ja: 敗血症
+  A41.9:
+    en: Sepsis, unspecified
+    ja: 敗血症、詳細不明
+  E03:
+    en: Other hypothyroidism
+    ja: その他の甲状腺機能低下症
+  E11:
+    en: Type 2 diabetes mellitus
+    ja: 2型糖尿病
+  E11.9:
+    en: Type 2 diabetes mellitus without complications
+    ja: 2型糖尿病（合併症なし）
+  E78:
+    en: Disorders of lipoprotein metabolism and other lipidaemias
+    ja: 脂質異常症
+  F00:
+    en: Dementia in Alzheimer disease
+    ja: アルツハイマー型認知症
+  F10:
+    en: Mental and behavioural disorders due to use of alcohol
+    ja: アルコール使用障害
+  F32:
+    en: Depressive episode
+    ja: うつ病エピソード
+  F41.0:
+    en: Panic disorder [episodic paroxysmal anxiety]
+    ja: パニック障害
+  G20:
+    en: Parkinson disease
+    ja: パーキンソン病
+  G43:
+    en: Migraine
+    ja: 片頭痛
+  G45.9:
+    en: Transient cerebral ischaemic attack, unspecified
+    ja: 一過性脳虚血発作、詳細不明
+  I10:
+    en: Essential (primary) hypertension
+    ja: 本態性高血圧症
+  I20.0:
+    en: Unstable angina
+    ja: 不安定狭心症
+  I21:
+    en: Acute myocardial infarction
+    ja: 急性心筋梗塞
+  I21.0:
+    en: Acute transmural myocardial infarction of anterior wall
+    ja: 前壁急性貫壁性心筋梗塞
+  I21.1:
+    en: Acute transmural myocardial infarction of inferior wall
+    ja: 下壁急性貫壁性心筋梗塞
+  I21.4:
+    en: Acute subendocardial myocardial infarction
+    ja: 急性心内膜下心筋梗塞（NSTEMI）
+  I21.9:
+    en: Acute myocardial infarction, unspecified
+    ja: 急性心筋梗塞、詳細不明
+  I25:
+    en: Chronic ischaemic heart disease
+    ja: 慢性虚血性心疾患
+  I26:
+    en: Pulmonary embolism
+    ja: 肺塞栓症
+  I48:
+    en: Atrial fibrillation and flutter
+    ja: 心房細動・心房粗動
+  I50:
+    en: Heart failure
+    ja: 心不全
+  I50.1:
+    en: Left ventricular failure
+    ja: 左心不全
+  I50.9:
+    en: Heart failure, unspecified
+    ja: 心不全、詳細不明
+  I61:
+    en: Intracerebral haemorrhage
+    ja: 脳内出血
+  I61.9:
+    en: Intracerebral haemorrhage, unspecified
+    ja: 脳内出血、詳細不明
+  I63:
+    en: Cerebral infarction
+    ja: 脳梗塞
+  I63.9:
+    en: Cerebral infarction, unspecified
+    ja: 脳梗塞、詳細不明
+  I80:
+    en: Phlebitis and thrombophlebitis
+    ja: 静脈炎・血栓性静脈炎
+  I82:
+    en: Other venous embolism and thrombosis
+    ja: その他の静脈塞栓・血栓症
+  J06.9:
+    en: Acute upper respiratory infection, unspecified
+    ja: 急性上気道感染症、詳細不明
+  J10:
+    en: Influenza due to identified seasonal influenza virus
+    ja: インフルエンザ（同定ウイルス）
+  J11:
+    en: Influenza, virus not identified
+    ja: インフルエンザ（ウイルス不明）
+  J13:
+    en: Pneumonia due to Streptococcus pneumoniae
+    ja: 肺炎球菌性肺炎
+  J15:
+    en: Bacterial pneumonia, not elsewhere classified
+    ja: 細菌性肺炎
+  J15.0:
+    en: Pneumonia due to Klebsiella pneumoniae
+    ja: 肺炎桿菌による肺炎
+  J15.1:
+    en: Pneumonia due to Pseudomonas
+    ja: 緑膿菌による肺炎
+  J15.9:
+    en: Bacterial pneumonia, unspecified
+    ja: 細菌性肺炎、詳細不明
+  J18:
+    en: Pneumonia, organism unspecified
+    ja: 肺炎、病原体不明
+  J18.0:
+    en: Bronchopneumonia, unspecified
+    ja: 気管支肺炎
+  J18.9:
+    en: Pneumonia, unspecified
+    ja: 肺炎、詳細不明
+  J44:
+    en: Other chronic obstructive pulmonary disease
+    ja: その他のCOPD
+  J44.0:
+    en: COPD with acute lower respiratory infection
+    ja: COPD急性下気道感染
+  J44.1:
+    en: COPD with acute exacerbation, unspecified
+    ja: COPD急性増悪
+  J45:
+    en: Asthma
+    ja: 喘息
+  J45.9:
+    en: Asthma, unspecified
+    ja: 喘息、詳細不明
+  J46:
+    en: Status asthmaticus
+    ja: 喘息発作重積状態
+  J69:
+    en: Pneumonitis due to solids and liquids
+    ja: 固体・液体による肺臓炎
+  K21:
+    en: Gastro-oesophageal reflux disease
+    ja: 胃食道逆流症
+  K25:
+    en: Gastric ulcer
+    ja: 胃潰瘍
+  K26:
+    en: Duodenal ulcer
+    ja: 十二指腸潰瘍
+  K35:
+    en: Acute appendicitis
+    ja: 急性虫垂炎
+  K37:
+    en: Unspecified appendicitis
+    ja: 虫垂炎、詳細不明
+  K56:
+    en: Paralytic ileus and intestinal obstruction without hernia
+    ja: 麻痺性イレウス・腸閉塞
+  K74:
+    en: Fibrosis and cirrhosis of liver
+    ja: 肝線維症・肝硬変
+  K80:
+    en: Cholelithiasis
+    ja: 胆石症
+  K81:
+    en: Cholecystitis
+    ja: 胆嚢炎
+  K85:
+    en: Acute pancreatitis
+    ja: 急性膵炎
+  K92:
+    en: Other diseases of digestive system
+    ja: その他消化器疾患
+  L03:
+    en: Cellulitis
+    ja: 蜂窩織炎
+  M17:
+    en: Gonarthrosis [arthrosis of knee]
+    ja: 変形性膝関節症
+  M48:
+    en: Other spondylopathies
+    ja: その他脊椎症
+  M54.5:
+    en: Low back pain
+    ja: 腰痛
+  M80:
+    en: Osteoporosis with pathological fracture
+    ja: 骨粗鬆症性病的骨折
+  M81:
+    en: Osteoporosis without pathological fracture
+    ja: 骨粗鬆症（病的骨折なし）
+  N10:
+    en: Acute tubulo-interstitial nephritis
+    ja: 急性腎盂腎炎
+  N17:
+    en: Acute kidney failure
+    ja: 急性腎不全
+  N18:
+    en: Chronic kidney disease
+    ja: 慢性腎臓病
+  N18.3:
+    en: Chronic kidney disease, stage 3
+    ja: 慢性腎臓病ステージ3
+  N23:
+    en: Unspecified renal colic
+    ja: 腎仙痛、詳細不明
+  N39.0:
+    en: Urinary tract infection, site not specified
+    ja: 尿路感染症、部位不明
+  N40:
+    en: Hyperplasia of prostate
+    ja: 前立腺肥大症
+  R04.0:
+    en: Epistaxis
+    ja: 鼻出血
+  R05:
+    en: Cough
+    ja: 咳嗽
+  R07:
+    en: Pain in throat and chest
+    ja: 咽頭・胸部痛
+  R10:
+    en: Abdominal and pelvic pain
+    ja: 腹部・骨盤痛
+  R42:
+    en: Dizziness and giddiness
+    ja: めまい
+  R50.9:
+    en: Fever, unspecified
+    ja: 発熱、詳細不明
+  R53:
+    en: Malaise and fatigue
+    ja: 倦怠感・疲労
+  R55:
+    en: Syncope and collapse
+    ja: 失神・虚脱
+  R57:
+    en: Shock, not elsewhere classified
+    ja: ショック、他分類不能
+  R69:
+    en: Unknown and unspecified causes of morbidity
+    ja: 詳細不明の疾患
+  S06:
+    en: Intracranial injury
+    ja: 頭蓋内損傷
+  S22:
+    en: Fracture of rib(s), sternum and thoracic spine
+    ja: 肋骨・胸骨・胸椎骨折
+  S42:
+    en: Fracture of shoulder and upper arm
+    ja: 肩・上腕骨折
+  S52:
+    en: Fracture of forearm
+    ja: 前腕骨折
+  S62:
+    en: Fracture at wrist and hand level
+    ja: 手関節・手骨折
+  S72:
+    en: Fracture of femur
+    ja: 大腿骨骨折
+  S72.0:
+    en: Fracture of neck of femur
+    ja: 大腿骨頸部骨折
+  S72.1:
+    en: Pertrochanteric fracture
+    ja: 大腿骨転子部骨折
+  S93:
+    en: Dislocation, sprain and strain of joints and ligaments at ankle and foot level
+    ja: 足関節・足部捻挫・脱臼
+  T07:
+    en: Unspecified multiple injuries
+    ja: 多発外傷、詳細不明
+  T14:
+    en: Injury of unspecified body region
+    ja: 損傷、部位不明
+  T30:
+    en: Burn and corrosion, body region unspecified
+    ja: 熱傷、部位不明
+  T78:
+    en: Adverse effects, not elsewhere classified
+    ja: 有害作用、他分類不能
+  W19:
+    en: Unspecified fall
+    ja: 転倒、詳細不明
+  W54:
+    en: Bitten or struck by dog
+    ja: 犬咬傷・打撲
+  Z00:
+    en: General examination and investigation of persons without complaint or reported diagnosis
+    ja: 一般健康診断（訴えなし）
+  Z01:
+    en: Other special examinations and investigations of persons without complaint or reported diagnosis
+    ja: その他の特殊健康診断
+  Z09:
+    en: Follow-up examination after treatment for conditions other than malignant neoplasms
+    ja: 治療後フォローアップ
+  Z12:
+    en: Special screening examination for neoplasms
+    ja: 腫瘍スクリーニング
+  Z13:
+    en: Special screening examination for other diseases and disorders
+    ja: その他疾患スクリーニング
+  Z23:
+    en: Need for immunization
+    ja: 予防接種
+  Z48:
+    en: Encounter for other postprocedural aftercare
+    ja: 術後ケア
+  Z51:
+    en: Other medical care
+    ja: その他の医療ケア
+  Z71:
+    en: Persons encountering health services for other counselling and medical advice
+    ja: 相談・医療指導
+  Z76:
+    en: Persons encountering health services in other circumstances
+    ja: その他の医療サービス利用
+  Z99.2:
+    en: Dependence on renal dialysis
+    ja: 透析依存

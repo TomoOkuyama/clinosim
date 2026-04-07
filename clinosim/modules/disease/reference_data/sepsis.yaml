@@ -3,7 +3,9 @@
 # against the most current published data before production use.
 
 disease_id: sepsis
-chief_complaint: "Fever, altered mental status, hypotension"
+chief_complaint:
+  en: "Fever, altered mental status, hypotension"
+  ja: "発熱・意識変容・低血圧"
 department: internal_medicine
 encounter_type: medical
 requires_surgery: false

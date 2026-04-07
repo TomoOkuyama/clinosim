@@ -5,11 +5,94 @@ Expands disease protocol order definitions into concrete Order instances with ti
 
 from __future__ import annotations
 
+import re
 from datetime import datetime, timedelta
+from typing import Any
 
 import numpy as np
 
 from clinosim.types.encounter import Order, OrderStatus, OrderType
+
+
+# Mapping: text frequency token → times per day
+_FREQ_PER_DAY: dict[str, int] = {
+    "once": 1, "qd": 1, "daily": 1,
+    "bid": 2, "q12h": 2,
+    "tid": 3, "q8h": 3,
+    "qid": 4, "q6h": 4,
+    "q4h": 6, "q3h": 8, "q2h": 12,
+    "continuous": 24, "drip": 24,
+}
+
+
+def enrich_medication_order(order: Order, dose_str: str = "") -> Order:
+    """Populate dose/frequency/route fields by parsing display_name and dose_str.
+
+    Idempotent — safe to call multiple times. Mutates and returns the order.
+    """
+    # Try the explicit dose string first, then fall back to display_name
+    parsed = parse_dose_string(dose_str) if dose_str else {}
+    if not parsed:
+        parsed = parse_dose_string(order.display_name)
+
+    if order.dose_quantity is None and parsed.get("dose_quantity") is not None:
+        order.dose_quantity = parsed["dose_quantity"]
+    if not order.dose_unit and parsed.get("dose_unit"):
+        order.dose_unit = parsed["dose_unit"]
+    if not order.frequency and parsed.get("frequency"):
+        order.frequency = parsed["frequency"]
+    if order.frequency_per_day is None and parsed.get("frequency_per_day") is not None:
+        order.frequency_per_day = parsed["frequency_per_day"]
+    if not order.route and parsed.get("route"):
+        order.route = parsed["route"]
+    # Fallback: heuristic from drug name (PO is the default for tablets)
+    if not order.route and order.display_name:
+        from clinosim.simulator.helpers import _determine_route
+        order.route = _determine_route(order.display_name, order.clinical_intent or "")
+    # Default frequency: assume daily if dose is set but no frequency parsed
+    if order.dose_quantity is not None and not order.frequency:
+        order.frequency = "DAILY"
+        order.frequency_per_day = 1
+    return order
+
+
+def parse_dose_string(dose_str: str) -> dict[str, Any]:
+    """Parse a dose string like '500mg PO BID' into structured fields.
+
+    Returns dict with keys: dose_quantity, dose_unit, frequency, frequency_per_day, route.
+    All keys may be missing if unparseable.
+    """
+    result: dict[str, Any] = {}
+    if not dose_str:
+        return result
+
+    s = dose_str.strip()
+
+    # Dose quantity + unit (e.g. "500mg", "1.5g", "1000IU", "0.4mg")
+    m = re.search(r"(\d+(?:\.\d+)?)\s*(mg|g|mcg|ug|mL|ml|L|IU|U|unit|units|%)", s, re.IGNORECASE)
+    if m:
+        try:
+            result["dose_quantity"] = float(m.group(1))
+            result["dose_unit"] = m.group(2)
+        except ValueError:
+            pass
+
+    # Route (PO, IV, SC, IM, SL, topical, inhaled, PR, NG)
+    route_match = re.search(r"\b(PO|IV|SC|IM|SL|PR|NG|inhaled|topical|nebulized)\b",
+                            s, re.IGNORECASE)
+    if route_match:
+        result["route"] = route_match.group(1).upper()
+
+    # Frequency tokens
+    s_lower = s.lower()
+    for token, per_day in _FREQ_PER_DAY.items():
+        # Use word boundaries for safety
+        if re.search(rf"\b{re.escape(token)}\b", s_lower):
+            result["frequency"] = token.upper()
+            result["frequency_per_day"] = per_day
+            break
+
+    return result
 
 
 def place_admission_orders(
@@ -19,6 +102,7 @@ def place_admission_orders(
     admission_time: datetime,
     country: str,
     rng: np.random.Generator,
+    ordered_by: str = "",
 ) -> list[Order]:
     """Expand protocol admission orders into concrete Order instances.
 
@@ -68,7 +152,7 @@ def place_admission_orders(
             urgency=lab_spec.get("urgency", "routine"),
             clinical_intent=f"Admission workup: {lab_spec['test']}",
             ordered_datetime=admission_time + timedelta(minutes=int(rng.normal(5, 3))),
-            ordered_by="STAFF-PLACEHOLDER-001",
+            ordered_by=ordered_by,
             status=OrderStatus.PLACED,
         )
         orders.append(order)
@@ -79,6 +163,8 @@ def place_admission_orders(
     if first_line:
         med_spec = first_line if isinstance(first_line, dict) else first_line[0] if first_line else {}
         if med_spec:
+            dose_str = med_spec.get("dose", "")
+            parsed = parse_dose_string(dose_str)
             order = Order(
                 order_id=f"ORD-{patient_id}-ADM-M01",
                 encounter_id=encounter_id,
@@ -89,24 +175,51 @@ def place_admission_orders(
                 urgency="stat",
                 clinical_intent=f"Empiric antibiotic: {med_spec.get('drug', '')}",
                 ordered_datetime=admission_time + timedelta(minutes=int(rng.normal(30, 10))),
-                ordered_by="STAFF-PLACEHOLDER-001",
+                ordered_by=ordered_by,
                 status=OrderStatus.PLACED,
+                dose_quantity=parsed.get("dose_quantity"),
+                dose_unit=parsed.get("dose_unit", ""),
+                frequency=parsed.get("frequency", ""),
+                frequency_per_day=parsed.get("frequency_per_day"),
+                route=parsed.get("route") or med_spec.get("route", ""),
+                duration_days=med_spec.get("duration_days"),
             )
             orders.append(order)
 
-    # Supportive orders
+    # Supportive orders — classify into medication vs. care plan/therapy
+    _MED_TYPES = {
+        "IV_fluid", "iv_fluid", "K_replacement", "antibiotic", "antipyretic", "DVT_prophylaxis",
+        "PPI", "lactulose", "bronchodilator", "steroid", "iv_insulin", "IV_insulin",
+        "anticoagulant", "vasopressor", "antiemetic", "analgesic", "pain_management",
+        "rate_control", "anti_inflammatory", "thrombolytic", "diuretic",
+    }
+    _CARE_PLAN_TYPES = {
+        "NPO", "fall_precautions", "BP_management", "neuro_checks", "bed_rest",
+        "leg_elevation", "compression_stocking", "fluid_restriction", "sodium_restriction",
+        "diet", "daily_weight", "monitoring", "continuous_telemetry", "HOB_elevation",
+        "large_bore_IV", "glucose_check", "O2", "fluid_balance", "IV_fluid_restriction",
+        "head_elevation", "spinal_precautions", "isolation", "wound_care",
+    }
     for i, sup in enumerate(admission.get("supportive", [])):
+        sup_type = sup.get("type", "")
+        if sup_type in _MED_TYPES:
+            order_type = OrderType.MEDICATION
+        elif sup_type in _CARE_PLAN_TYPES:
+            order_type = OrderType.THERAPY
+        else:
+            # Default: heuristic — explicit "drug" keyword → medication, else therapy
+            order_type = OrderType.MEDICATION if "drug" in sup_type.lower() else OrderType.THERAPY
         order = Order(
             order_id=f"ORD-{patient_id}-ADM-S{i:02d}",
             encounter_id=encounter_id,
             patient_id=patient_id,
-            order_type=OrderType.MEDICATION,
+            order_type=order_type,
             order_code="",
             display_name=f"{sup['type']}: {sup['detail']}",
             urgency="routine",
             clinical_intent=f"Supportive: {sup['type']}",
             ordered_datetime=admission_time + timedelta(minutes=int(rng.normal(45, 15))),
-            ordered_by="STAFF-PLACEHOLDER-001",
+            ordered_by=ordered_by,
             status=OrderStatus.PLACED,
         )
         orders.append(order)
@@ -123,7 +236,7 @@ def place_admission_orders(
             urgency=img_spec.get("urgency", "stat"),
             clinical_intent=f"Admission imaging: {img_spec.get('test', '')}",
             ordered_datetime=admission_time + timedelta(minutes=int(rng.normal(20, 8))),
-            ordered_by="STAFF-PLACEHOLDER-001",
+            ordered_by=ordered_by,
             status=OrderStatus.PLACED,
         )
         orders.append(order)
@@ -139,6 +252,7 @@ def place_daily_lab_orders(
     order_time: datetime,
     lab_frequency_multiplier: float,
     rng: np.random.Generator,
+    ordered_by: str = "",
 ) -> list[Order]:
     """Place daily monitoring lab orders per protocol. Reads from YAML order_protocols.daily_monitoring."""
     orders: list[Order] = []
@@ -181,7 +295,7 @@ def place_daily_lab_orders(
             urgency="routine",
             clinical_intent=f"Day {day_number} monitoring: {lab_spec['test']}",
             ordered_datetime=order_time,
-            ordered_by="STAFF-PLACEHOLDER-001",
+            ordered_by=ordered_by,
             status=OrderStatus.PLACED,
         )
         orders.append(order)
