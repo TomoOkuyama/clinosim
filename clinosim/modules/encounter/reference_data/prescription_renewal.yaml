@@ -2,9 +2,13 @@
 # Brief visit for medication refill and prescription renewal. Minimal workup.
 
 condition_id: prescription_renewal
-chief_complaint: "Medication refill, prescription renewal only"
+icd10_code: "Z76.0"
+icd10_display: "Encounter for issue of repeat prescription"
+chief_complaint:
+  en: "Medication refill, prescription renewal only"
+  ja: "処方更新・定期処方"
 encounter_type: outpatient
-department: internal_medicine
+department: primary_care
 disposition: discharge_home
 
 severity_distribution:

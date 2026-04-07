@@ -2,7 +2,11 @@
 # Annual fundoscopy screening for diabetic patients to detect retinopathy.
 
 condition_id: diabetic_retinopathy_screening
-chief_complaint: "Diabetic retinopathy screening, fundoscopy"
+icd10_code: "Z13.5"
+icd10_display: "Encounter for screening for eye and ear disorders"
+chief_complaint:
+  en: "Diabetic retinopathy screening, fundoscopy"
+  ja: "糖尿病性網膜症スクリーニング・眼底検査"
 encounter_type: outpatient
 department: ophthalmology
 disposition: discharge_home

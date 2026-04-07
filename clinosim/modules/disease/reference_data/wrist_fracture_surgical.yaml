@@ -2,8 +2,10 @@
 # Sources: AAOS, BOA, Japanese Orthopaedic Association guidelines
 
 disease_id: wrist_fracture_surgical
-chief_complaint: "Displaced distal radius fracture requiring ORIF"
-department: internal_medicine  # orthopedics
+chief_complaint:
+  en: "Displaced distal radius fracture requiring ORIF"
+  ja: "橈骨遠位端骨折（転位あり・ORIF適応）"
+department: orthopedics
 encounter_type: surgical
 requires_surgery: true
 minimum_severity: moderate

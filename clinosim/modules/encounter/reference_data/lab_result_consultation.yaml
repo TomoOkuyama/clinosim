@@ -2,9 +2,13 @@
 # Brief visit to review and explain previous lab/test results with the patient.
 
 condition_id: lab_result_consultation
-chief_complaint: "Lab result review, test result explanation"
+icd10_code: "Z71.89"
+icd10_display: "Other specified counseling"
+chief_complaint:
+  en: "Lab result review, test result explanation"
+  ja: "検査結果説明・結果確認"
 encounter_type: outpatient
-department: internal_medicine
+department: primary_care
 disposition: discharge_home
 
 severity_distribution:

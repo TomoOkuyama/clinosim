@@ -3,8 +3,10 @@
 # against the most current published data before production use.
 
 disease_id: asthma_exacerbation
-chief_complaint: "Severe wheezing, dyspnea, use of accessory muscles"
-department: internal_medicine
+chief_complaint:
+  en: "Severe wheezing, dyspnea, use of accessory muscles"
+  ja: "重度喘鳴・呼吸困難・補助呼吸筋使用"
+department: pulmonology
 encounter_type: medical
 requires_surgery: false
 readmission_eligible: true

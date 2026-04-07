@@ -1,0 +1,131 @@
+"""Code system loader — unified API for clinical code lookups.
+
+Usage:
+    from clinosim.codes import lookup, get_system_uri
+
+    # Get display text in English
+    display = lookup("icd-10-cm", "N10", lang="en")
+    # → "Acute tubulo-interstitial nephritis"
+
+    # Get display text in Japanese
+    display = lookup("icd-10-cm", "N10", lang="ja")
+    # → "急性腎盂腎炎"
+
+    # Get FHIR system URI
+    uri = get_system_uri("icd-10-cm")
+    # → "http://hl7.org/fhir/sid/icd-10-cm"
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
+from typing import Any
+
+import yaml
+
+_DATA_DIR = Path(__file__).parent / "data"
+
+
+@dataclass
+class CodeSystem:
+    """A clinical code system with metadata and entries."""
+    key: str  # short key (e.g., "icd-10-cm")
+    name: str  # human-readable name
+    uri: str  # FHIR system URI
+    version: str  # version / year
+    codes: dict[str, dict[str, str]]  # code → {en, ja, ...}
+
+
+@lru_cache(maxsize=32)
+def _load_system(system_key: str) -> CodeSystem | None:
+    """Load a code system yaml file. Returns None if not found."""
+    path = _DATA_DIR / f"{system_key}.yaml"
+    if not path.exists():
+        return None
+    with open(path, encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    meta = data.get("metadata", {}) or {}
+    return CodeSystem(
+        key=system_key,
+        name=meta.get("name", system_key),
+        uri=meta.get("uri", f"urn:clinosim:{system_key}"),
+        version=meta.get("version", ""),
+        codes=data.get("codes", {}) or {},
+    )
+
+
+def lookup(system: str, code: str, lang: str = "en") -> str:
+    """Look up display text for a code in the given language.
+
+    Resolution order:
+    1. Exact match
+    2. Base code (e.g. "E11.9" → "E11")
+    3. Any sub-code starting with the given base (e.g. "I63" → "I63.9")
+    4. Return the code itself as fallback
+    """
+    cs = _load_system(system)
+    if not cs:
+        return code
+
+    entry = cs.codes.get(code)
+    if not entry:
+        # Base code lookup (strip subcode)
+        base = code.split(".")[0]
+        entry = cs.codes.get(base)
+
+    if not entry:
+        # Reverse: try to find a child code if the query is a base code
+        prefix = code + "."
+        for k, v in cs.codes.items():
+            if k.startswith(prefix) or k == code:
+                entry = v
+                break
+
+    if not entry:
+        return code
+
+    if lang in entry:
+        return str(entry[lang])
+    if "en" in entry:
+        return str(entry["en"])
+    for v in entry.values():
+        if isinstance(v, str):
+            return v
+    return code
+
+
+def get_display(system: str, code: str, country: str = "US") -> str:
+    """Convenience: look up display using country → language mapping.
+
+    US → en, JP → ja.
+    """
+    lang = {"JP": "ja", "US": "en"}.get(country, "en")
+    return lookup(system, code, lang=lang)
+
+
+def get_system_uri(system: str) -> str:
+    """Get the FHIR canonical system URI for a code system key."""
+    cs = _load_system(system)
+    if cs:
+        return cs.uri
+    # Built-in fallbacks for known systems
+    return _BUILTIN_URIS.get(system, f"urn:clinosim:{system}")
+
+
+# Built-in fallback URIs when the yaml doesn't define one
+_BUILTIN_URIS: dict[str, str] = {
+    "icd-10-cm": "http://hl7.org/fhir/sid/icd-10-cm",
+    "icd-10": "http://hl7.org/fhir/sid/icd-10",
+    "loinc": "http://loinc.org",
+    "snomed-ct": "http://snomed.info/sct",
+    "rxnorm": "http://www.nlm.nih.gov/research/umls/rxnorm",
+    "cpt": "http://www.ama-assn.org/go/cpt",
+    "jlac10": "urn:oid:1.2.392.200119.4.1005",
+    "yj": "urn:oid:1.2.392.100495.20.2.74",
+    "k-codes": "urn:oid:1.2.392.200119.4.401",
+    "ucum": "http://unitsofmeasure.org",
+    "hl7-v3-actcode": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+    "hl7-v3-maritalstatus": "http://terminology.hl7.org/CodeSystem/v3-MaritalStatus",
+}

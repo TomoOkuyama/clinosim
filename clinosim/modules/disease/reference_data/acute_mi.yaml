@@ -3,8 +3,10 @@
 # against the most current published data before production use.
 
 disease_id: acute_mi
-chief_complaint: "Chest pain, diaphoresis, dyspnea"
-department: internal_medicine
+chief_complaint:
+  en: "Chest pain, diaphoresis, dyspnea"
+  ja: "胸痛・冷汗・呼吸困難"
+department: cardiology
 encounter_type: medical
 requires_surgery: false
 minimum_severity: moderate

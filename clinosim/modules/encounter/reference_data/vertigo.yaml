@@ -2,9 +2,13 @@
 # Peripheral vs central vertigo evaluation. Symptomatic treatment.
 
 condition_id: vertigo
-chief_complaint: "Dizziness, room spinning, nausea"
+icd10_code: "R42"
+icd10_display: "Dizziness and giddiness"
+chief_complaint:
+  en: "Dizziness, room spinning, nausea"
+  ja: "めまい・回転性めまい・嘔気"
 encounter_type: emergency
-department: internal_medicine
+department: emergency_medicine
 disposition: discharge_home
 
 severity_distribution:

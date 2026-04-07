@@ -3,8 +3,10 @@
 # against the most current published data before production use.
 
 disease_id: ileus
-chief_complaint: "Abdominal pain, vomiting, constipation, abdominal distension"
-department: internal_medicine
+chief_complaint:
+  en: "Abdominal pain, vomiting, constipation, abdominal distension"
+  ja: "腹痛・嘔吐・排便停止・腹部膨満"
+department: gastroenterology
 encounter_type: medical
 requires_surgery: false
 readmission_eligible: true

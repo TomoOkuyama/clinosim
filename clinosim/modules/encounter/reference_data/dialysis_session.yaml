@@ -2,7 +2,11 @@
 # Scheduled hemodialysis with pre/post vitals and lab monitoring.
 
 condition_id: dialysis_session
-chief_complaint: "Scheduled hemodialysis session"
+icd10_code: "Z99.2"
+icd10_display: "Dependence on renal dialysis"
+chief_complaint:
+  en: "Scheduled hemodialysis session"
+  ja: "定期血液透析"
 encounter_type: outpatient
 department: nephrology
 disposition: discharge_home

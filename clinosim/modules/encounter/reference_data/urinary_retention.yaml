@@ -2,9 +2,13 @@
 # Inability to urinate, common in elderly men with BPH.
 
 condition_id: urinary_retention
-chief_complaint: "Unable to urinate, suprapubic pain and distension"
+icd10_code: "R33.9"
+icd10_display: "Retention of urine, unspecified"
+chief_complaint:
+  en: "Unable to urinate, suprapubic pain and distension"
+  ja: "排尿不能・恥骨上部痛・腹部膨満"
 encounter_type: emergency
-department: internal_medicine
+department: emergency_medicine
 disposition: discharge_home
 
 severity_distribution:

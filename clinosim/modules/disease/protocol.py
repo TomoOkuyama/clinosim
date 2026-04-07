@@ -36,7 +36,7 @@ class DiseaseProtocol(BaseModel):
     outcome_benchmarks: dict[str, Any] = {}
 
     # Disease metadata (eliminates hardcoding in simulator)
-    chief_complaint: str = ""  # e.g. "Fever, cough, dyspnea"
+    chief_complaint: str | dict[str, str] = ""  # str or {en: "...", ja: "..."}
     department: str = "internal_medicine"
     encounter_type: str = "medical"  # "medical" | "surgical" | "trauma"
     requires_surgery: bool = False

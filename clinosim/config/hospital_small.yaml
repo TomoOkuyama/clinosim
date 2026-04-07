@@ -1,38 +1,69 @@
-# Small community hospital (~50 beds)
-# Fewer resources → longer waits, some services unavailable
+# Small hospital / clinic with inpatient beds (~10 beds)
+# Limited resources, some services (CT/MRI) referred to regional hospital.
 
-recommended_population: 12000
+recommended_population: 12000  # 10-bed clinic, ~80% occupancy
+
+# Tiny clinic — only 内科 + 救急 + プライマリケア.
+# Surgical/orthopedic cases referred to larger hospital.
+available_departments:
+  - internal_medicine
+  - emergency_medicine
+  - primary_care
+
+# All sub-specialties and surgical specialties fall back to internal_medicine
+# (a tiny clinic doesn't have specialists)
+department_rollup:
+  pulmonology: internal_medicine
+  cardiology: internal_medicine
+  gastroenterology: internal_medicine
+  neurology: internal_medicine
+  nephrology: internal_medicine
+  endocrinology: internal_medicine
+  hematology: internal_medicine
+  infectious_disease: internal_medicine
+  general_surgery: internal_medicine     # too small for surgery; medical management only
+  orthopedics: internal_medicine
+  neurosurgery: internal_medicine
+  trauma_surgery: internal_medicine
+
+wards:
+  internal_medicine: ["1F"]              # single ward
+  emergency_medicine: ["ER"]
+  primary_care: ["OPD"]
+
+ward_capacity:
+  "1F": 10
 
 resource_capacity:
-  lab_analyzers: 2
-  ct_scanners: 1
-  mri_scanners: 0    # no MRI → referred to larger hospital
+  lab_analyzers: 1
+  ct_scanners: 0    # referred to regional hospital
+  mri_scanners: 0
   xray_rooms: 1
   ultrasound_rooms: 1
   operating_rooms: 1
-  ed_beds: 6
-  inpatient_beds: 50
+  ed_beds: 3
+  inpatient_beds: 10
 
 staffing:
   day:
     hours: [8, 16]
-    lab_staff: 0.8
-    radiology_staff: 0.6
-    nursing_staff: 0.8
+    lab_staff: 1.0
+    radiology_staff: 0.5
+    nursing_staff: 1.0
     pharmacy_staff: 0.5
     or_staff: 0.5
   evening:
     hours: [16, 0]
     lab_staff: 0.3
-    radiology_staff: 0.2
+    radiology_staff: 0.0
     nursing_staff: 0.5
     pharmacy_staff: 0.0
-    or_staff: 0.0    # no evening surgery
+    or_staff: 0.0
   night:
     hours: [0, 8]
-    lab_staff: 0.1    # on-call only
+    lab_staff: 0.1
     radiology_staff: 0.0
-    nursing_staff: 0.4
+    nursing_staff: 0.3
     pharmacy_staff: 0.0
     or_staff: 0.0
   weekend_modifier: 0.5
@@ -40,17 +71,23 @@ staffing:
 daily_patterns:
   morning_lab_rush:
     hours: [6, 8]
-    lab_queue_delta: 0.4   # bigger impact with fewer analyzers
+    lab_queue_delta: 0.2
+  post_morning_rounds:
+    hours: [9, 11]
+    lab_queue_delta: 0.1
+  monday_backlog:
+    weekday: 0
+    lab_queue_delta: 0.1
 
 base_processing_time:
-  lab_stat: 25
+  lab_stat: 30
   lab_routine: 60
   xray: 15
-  ct: 25
+  ct: 0       # no CT
   ultrasound: 30
   or_minor: 30
-  or_major: 90
+  or_major: 120
 
 reporting_time:
-  stat: 20
-  routine: 180    # fewer radiologists → slower reporting
+  stat: 25
+  routine: 180

@@ -2,7 +2,11 @@
 # Accidental ingestion evaluation. Imaging and observation.
 
 condition_id: foreign_body_ingestion
-chief_complaint: "Accidental ingestion of foreign body"
+icd10_code: "T18.9XXA"
+icd10_display: "Foreign body in alimentary tract, part unspecified, initial encounter"
+chief_complaint:
+  en: "Accidental ingestion of foreign body"
+  ja: "異物誤飲"
 encounter_type: emergency
 department: emergency_medicine
 disposition: discharge_home

@@ -67,24 +67,20 @@ class TestBeta:
         write_cif(beta_result, cif_dir)
         convert_cif_to_fhir(cif_dir, fhir_dir, country="US")
 
-        # Check FHIR bundles exist (one per encounter)
-        fhir_files = [f for f in os.listdir(fhir_dir) if f.endswith(".json")]
-        # Allow small margin for file name collisions in outpatient/ED numbering
-        assert len(fhir_files) >= len(beta_result.patients) * 0.95
+        # Bulk Data Export: one NDJSON per resource type + manifest.json
+        ndjson_files = [f for f in os.listdir(fhir_dir) if f.endswith(".ndjson")]
+        assert "Patient.ndjson" in ndjson_files
+        assert "Encounter.ndjson" in ndjson_files
+        assert "Observation.ndjson" in ndjson_files
+        assert "manifest.json" in os.listdir(fhir_dir)
 
-        # Validate first bundle structure
+        # Validate first line of Patient.ndjson is a valid Patient resource
         import json
-        with open(os.path.join(fhir_dir, fhir_files[0])) as f:
-            bundle = json.load(f)
-        assert bundle["resourceType"] == "Bundle"
-        assert bundle["type"] == "collection"
-        assert len(bundle["entry"]) > 0
-
-        # Check resource types present
-        resource_types = {e["resource"]["resourceType"] for e in bundle["entry"]}
-        assert "Patient" in resource_types
-        assert "Encounter" in resource_types
-        assert "Observation" in resource_types
+        with open(os.path.join(fhir_dir, "Patient.ndjson")) as f:
+            first_line = f.readline()
+        patient = json.loads(first_line)
+        assert patient["resourceType"] == "Patient"
+        assert patient.get("identifier")
 
     def test_reproducibility(self, beta_result):
         config = SimulatorConfig(

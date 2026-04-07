@@ -2,7 +2,11 @@
 # Fall evaluation. Rule out fracture, head injury, and underlying cause.
 
 condition_id: elderly_fall
-chief_complaint: "Fall at home, no loss of consciousness"
+icd10_code: "W19.XXXA"
+icd10_display: "Unspecified fall, initial encounter"
+chief_complaint:
+  en: "Fall at home, no loss of consciousness"
+  ja: "自宅での転倒（意識消失なし）"
 encounter_type: emergency
 department: emergency_medicine
 disposition: discharge_home

@@ -22,6 +22,7 @@ class CIFMetadata:
     hospital_scale: str = ""
     simulation_period_start: date | None = None
     simulation_period_end: date | None = None
+    snapshot_date: str | None = None  # YYYY-MM-DD; current-state cutoff
     total_patients_generated: int = 0
     llm_mode: str = "none"
 
@@ -63,3 +64,5 @@ class CIFPatientRecord:
 class CIFDataset:
     metadata: CIFMetadata = field(default_factory=CIFMetadata)
     patients: list[CIFPatientRecord] = field(default_factory=list)
+    hospital_roster: list = field(default_factory=list)  # list[StaffMember]
+    hospital_config: dict = field(default_factory=dict)  # ops yaml content

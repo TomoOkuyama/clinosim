@@ -2,9 +2,13 @@
 # Common injury. X-ray to rule out fracture, RICE, discharge.
 
 condition_id: ankle_sprain
-chief_complaint: "Ankle injury after fall, pain, swelling"
+icd10_code: "S93.40"
+icd10_display: "Sprain of unspecified ligament of ankle"
+chief_complaint:
+  en: "Ankle injury after fall, pain, swelling"
+  ja: "足関節捻挫（転倒後）"
 encounter_type: emergency
-department: internal_medicine  # orthopedics in some facilities
+department: emergency_medicine
 disposition: discharge_home
 
 severity_distribution:

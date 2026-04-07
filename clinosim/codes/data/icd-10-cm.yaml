@@ -1,0 +1,685 @@
+metadata:
+  name: ICD-10-CM
+  uri: http://hl7.org/fhir/sid/icd-10-cm
+  version: '2024'
+  description: International Classification of Diseases, 10th Revision, Clinical Modification
+    (US)
+codes:
+  A05.9:
+    en: Bacterial foodborne intoxication, unspecified
+    ja: 細菌性食中毒、詳細不明
+  A08.4:
+    en: Viral intestinal infection, unspecified
+    ja: ウイルス性腸炎、詳細不明
+  A41:
+    en: Other sepsis
+    ja: 敗血症
+  A41.9:
+    en: Sepsis, unspecified organism
+    ja: 敗血症，詳細不明
+  B18.2:
+    en: Chronic viral hepatitis C
+    ja: 慢性C型ウイルス肝炎
+  E03:
+    en: Other hypothyroidism
+    ja: 甲状腺機能低下症
+  E10.10:
+    en: Type 1 diabetes mellitus with ketoacidosis without coma
+    ja: 1型糖尿病性ケトアシドーシス，昏睡なし
+  E11.10:
+    en: Type 2 diabetes mellitus with ketoacidosis without coma
+    ja: 2型糖尿病性ケトアシドーシス，昏睡なし
+  E11.65:
+    en: Type 2 diabetes mellitus with hyperglycemia
+    ja: 2型糖尿病，高血糖を伴うもの
+  E11.9:
+    en: Type 2 diabetes mellitus without complications
+    ja: 2型糖尿病
+  E78:
+    en: Disorders of lipoprotein metabolism and other lipidemias
+    ja: 脂質異常症
+  F00:
+    en: Dementia in Alzheimer disease
+    ja: 認知症
+  F10:
+    en: Alcohol related disorders
+    ja: アルコール使用障害
+  F32:
+    en: Depressive episode
+    ja: うつ病
+  F41.0:
+    en: Panic disorder [episodic paroxysmal anxiety] without agoraphobia
+    ja: パニック障害（広場恐怖なし）
+  G20:
+    en: Parkinson disease
+    ja: パーキンソン病
+  G43.909:
+    en: Migraine, unspecified, not intractable, without status migrainosus
+    ja: 片頭痛、詳細不明
+  G45.9:
+    en: Transient cerebral ischemic attack, unspecified
+    ja: 一過性脳虚血発作，詳細不明
+  I10:
+    en: Essential (primary) hypertension
+    ja: 本態性高血圧症
+  I20.0:
+    en: Unstable angina
+    ja: 不安定狭心症
+  I21:
+    en: Acute myocardial infarction
+    ja: 急性心筋梗塞
+  I21.0:
+    en: Acute transmural myocardial infarction of anterior wall
+    ja: 前壁の急性貫壁性心筋梗塞
+  I21.1:
+    en: Acute transmural myocardial infarction of inferior wall
+    ja: 下壁の急性貫壁性心筋梗塞
+  I21.4:
+    en: Acute subendocardial myocardial infarction (NSTEMI)
+    ja: 急性心内膜下心筋梗塞（NSTEMI）
+  I21.9:
+    en: Acute myocardial infarction, unspecified
+    ja: 急性心筋梗塞，詳細不明
+  I25:
+    en: Chronic ischemic heart disease
+    ja: 慢性虚血性心疾患
+  I26:
+    en: Pulmonary embolism
+    ja: 肺塞栓症
+  I26.0:
+    en: Pulmonary embolism with acute cor pulmonale
+    ja: 肺塞栓症，急性肺性心を伴うもの
+  I26.02:
+    en: Saddle embolus of pulmonary artery with acute cor pulmonale
+    ja: 鞍状肺塞栓，急性肺性心を伴うもの
+  I26.9:
+    en: Pulmonary embolism without acute cor pulmonale
+    ja: 肺塞栓症，急性肺性心を伴わないもの
+  I26.92:
+    en: Saddle embolus of pulmonary artery without acute cor pulmonale
+    ja: 鞍状肺塞栓，急性肺性心を伴わないもの
+  I26.99:
+    en: Other pulmonary embolism without acute cor pulmonale
+    ja: その他の肺塞栓症，急性肺性心を伴わないもの
+  I48:
+    en: Atrial fibrillation and flutter
+    ja: 心房細動
+  I48.0:
+    en: Paroxysmal atrial fibrillation
+    ja: 発作性心房細動
+  I48.1:
+    en: Persistent atrial fibrillation
+    ja: 持続性心房細動
+  I48.2:
+    en: Chronic atrial fibrillation
+    ja: 慢性心房細動
+  I48.91:
+    en: Unspecified atrial fibrillation
+    ja: 心房細動，詳細不明
+  I50:
+    en: Heart failure
+    ja: 心不全
+  I50.1:
+    en: Left ventricular failure, unspecified
+    ja: 左心不全
+  I50.9:
+    en: Heart failure, unspecified
+    ja: 心不全，詳細不明
+  I61:
+    en: Nontraumatic intracerebral hemorrhage
+    ja: 非外傷性脳内出血
+  I61.0:
+    en: Nontraumatic intracerebral hemorrhage in hemisphere, subcortical
+    ja: 非外傷性脳内出血，大脳半球皮質下
+  I61.1:
+    en: Nontraumatic intracerebral hemorrhage in hemisphere, cortical
+    ja: 非外傷性脳内出血，大脳半球皮質
+  I61.3:
+    en: Nontraumatic intracerebral hemorrhage in brain stem
+    ja: 非外傷性脳幹出血
+  I61.4:
+    en: Nontraumatic intracerebral hemorrhage in cerebellum
+    ja: 非外傷性小脳出血
+  I61.5:
+    en: Nontraumatic intraventricular hemorrhage
+    ja: 非外傷性脳室内出血
+  I61.9:
+    en: Nontraumatic intracerebral hemorrhage, unspecified
+    ja: 非外傷性脳内出血，詳細不明
+  I63:
+    en: Cerebral infarction
+    ja: 脳梗塞
+  I63.3:
+    en: Cerebral infarction due to thrombosis of cerebral arteries
+    ja: 脳動脈の血栓症による脳梗塞
+  I63.4:
+    en: Cerebral infarction due to embolism of cerebral arteries
+    ja: 脳動脈の塞栓症による脳梗塞
+  I63.5:
+    en: Cerebral infarction due to unspecified occlusion of basilar artery
+    ja: 椎骨脳底動脈閉塞による脳梗塞
+  I63.9:
+    en: Cerebral infarction, unspecified
+    ja: 脳梗塞，詳細不明
+  I66.0:
+    en: Occlusion and stenosis of middle cerebral artery
+    ja: 中大脳動脈の閉塞および狭窄
+  I80:
+    en: Phlebitis and thrombophlebitis
+    ja: 静脈炎・血栓性静脈炎
+  I80.20:
+    en: Phlebitis and thrombophlebitis of unspecified deep vessels of lower extremities
+    ja: 下肢深部静脈の血栓性静脈炎，詳細不明
+  I82:
+    en: Other venous embolism and thrombosis
+    ja: その他の静脈塞栓・血栓症
+  I82.40:
+    en: Acute embolism and thrombosis of unspecified deep veins of lower extremity
+    ja: 下肢深部静脈の急性塞栓症および血栓症，詳細不明
+  I82.41:
+    en: Acute embolism and thrombosis of femoral vein
+    ja: 大腿静脈の急性塞栓症および血栓症
+  I82.42:
+    en: Acute embolism and thrombosis of iliac vein
+    ja: 腸骨静脈の急性塞栓症および血栓症
+  I82.43:
+    en: Acute embolism and thrombosis of popliteal vein
+    ja: 膝窩静脈の急性塞栓症および血栓症
+  I82.49:
+    en: Acute embolism and thrombosis of other specified deep vein of lower extremity
+    ja: 下肢のその他の深部静脈の急性塞栓症および血栓症
+  J06.9:
+    en: Acute upper respiratory infection, unspecified
+    ja: 急性上気道感染症、詳細不明
+  J10:
+    en: Influenza due to other identified influenza virus
+    ja: インフルエンザ（同定されたウイルス）
+  J10.0:
+    en: Influenza due to other identified influenza virus with pneumonia
+    ja: その他のインフルエンザウイルスによるインフルエンザ，肺炎を伴うもの
+  J10.1:
+    en: Influenza due to other identified influenza virus with other respiratory manifestations
+    ja: その他のインフルエンザウイルスによるインフルエンザ，他の呼吸器症状を伴うもの
+  J10.8:
+    en: Influenza due to other identified influenza virus with other manifestations
+    ja: その他のインフルエンザウイルスによるインフルエンザ，他の症状を伴うもの
+  J11:
+    en: Influenza due to unidentified influenza virus
+    ja: インフルエンザ（ウイルス不明）
+  J11.0:
+    en: Influenza due to unidentified influenza virus with pneumonia
+    ja: インフルエンザ，ウイルス不明，肺炎を伴うもの
+  J11.1:
+    en: Influenza due to unidentified influenza virus with other respiratory manifestations
+    ja: インフルエンザ，ウイルス不明，他の呼吸器症状を伴うもの
+  J12.9:
+    en: Viral pneumonia, unspecified
+    ja: ウイルス性肺炎、詳細不明
+  J13:
+    en: Pneumonia due to Streptococcus pneumoniae
+    ja: 肺炎球菌による肺炎
+  J15.0:
+    en: Pneumonia due to Klebsiella pneumoniae
+    ja: 肺炎桿菌による肺炎
+  J15.1:
+    en: Pneumonia due to Pseudomonas
+    ja: 緑膿菌による肺炎
+  J15.9:
+    en: Bacterial pneumonia, unspecified
+    ja: 細菌性肺炎，詳細不明
+  J18.0:
+    en: Bronchopneumonia, unspecified organism
+    ja: 気管支肺炎，病原体不明
+  J18.1:
+    en: Lobar pneumonia, unspecified organism
+    ja: 大葉性肺炎、病原体不明
+  J18.9:
+    en: Pneumonia, unspecified
+    ja: 肺炎，詳細不明
+  J44:
+    en: Other chronic obstructive pulmonary disease
+    ja: 慢性閉塞性肺疾患
+  J44.0:
+    en: Chronic obstructive pulmonary disease with acute lower respiratory infection
+    ja: 慢性閉塞性肺疾患の急性下気道感染
+  J44.1:
+    en: Chronic obstructive pulmonary disease with acute exacerbation
+    ja: 慢性閉塞性肺疾患の急性増悪
+  J45:
+    en: Asthma
+    ja: 喘息
+  J45.21:
+    en: Mild intermittent asthma with (acute) exacerbation
+    ja: 軽症間欠型喘息の急性増悪
+  J45.31:
+    en: Mild persistent asthma with (acute) exacerbation
+    ja: 軽症持続型喘息の急性増悪
+  J45.41:
+    en: Moderate persistent asthma with (acute) exacerbation
+    ja: 中等症持続型喘息の急性増悪
+  J45.51:
+    en: Severe persistent asthma with (acute) exacerbation
+    ja: 重症持続型喘息の急性増悪
+  J45.9:
+    en: Asthma, unspecified
+    ja: 喘息、詳細不明
+  J45.901:
+    en: Unspecified asthma with (acute) exacerbation
+    ja: 喘息急性増悪、詳細不明
+  J46:
+    en: Status asthmaticus
+    ja: 喘息発作重積状態
+  J69:
+    en: Pneumonitis due to solids and liquids
+    ja: 固体・液体による肺臓炎
+  J69.0:
+    en: Pneumonitis due to inhalation of food and vomit
+    ja: 食物および吐物による肺臓炎
+  J69.1:
+    en: Pneumonitis due to inhalation of oils and essences
+    ja: 油脂および精油による肺臓炎
+  K21:
+    en: Gastro-esophageal reflux disease
+    ja: 胃食道逆流症
+  K25:
+    en: Gastric ulcer
+    ja: 胃潰瘍
+  K25.4:
+    en: Acute gastric ulcer with hemorrhage
+    ja: 急性胃潰瘍，出血を伴うもの
+  K26:
+    en: Duodenal ulcer
+    ja: 十二指腸潰瘍
+  K26.4:
+    en: Acute duodenal ulcer with hemorrhage
+    ja: 急性十二指腸潰瘍，出血を伴うもの
+  K35:
+    en: Acute appendicitis
+    ja: 急性虫垂炎
+  K35.2:
+    en: Acute appendicitis with generalized peritonitis
+    ja: 急性虫垂炎，汎発性腹膜炎を伴うもの
+  K35.3:
+    en: Acute appendicitis with localized peritonitis
+    ja: 急性虫垂炎，限局性腹膜炎を伴うもの
+  K35.80:
+    ja: 急性虫垂炎，膿瘍なし
+    en: Unspecified acute appendicitis
+  K35.89:
+    en: Other acute appendicitis
+    ja: 急性虫垂炎，その他の虫垂膿瘍を伴うもの
+  K35.9:
+    en: Acute appendicitis, unspecified
+    ja: 急性虫垂炎，詳細不明
+  K37:
+    en: Unspecified appendicitis
+    ja: 虫垂炎、詳細不明
+  K56:
+    en: Paralytic ileus and intestinal obstruction without hernia
+    ja: 麻痺性イレウス・腸閉塞
+  K56.0:
+    en: Paralytic ileus
+    ja: 麻痺性イレウス
+  K56.1:
+    en: Intussusception
+    ja: 腸重積症
+  K56.2:
+    en: Volvulus
+    ja: 腸捻転
+  K56.4:
+    en: Other impaction of intestine
+    ja: その他の腸嵌頓
+  K56.5:
+    en: Intestinal adhesions with obstruction
+    ja: 癒着性イレウス
+  K56.6:
+    en: Other and unspecified intestinal obstruction
+    ja: その他および詳細不明の腸閉塞
+  K56.69:
+    en: Other intestinal obstruction
+    ja: その他の腸閉塞
+  K70.31:
+    en: Alcoholic cirrhosis of liver with ascites
+    ja: アルコール性肝硬変，腹水を伴うもの
+  K70.41:
+    en: Alcoholic hepatic failure with ascites
+    ja: アルコール性肝不全，腹水を伴うもの
+  K74.60:
+    ja: 肝硬変，詳細不明
+    en: Unspecified cirrhosis of liver
+  K74.69:
+    en: Other cirrhosis of liver
+    ja: その他の肝硬変
+  K76.6:
+    en: Portal hypertension
+    ja: 門脈圧亢進症
+  K80:
+    en: Cholelithiasis
+    ja: 胆石症
+  K80.00:
+    en: Calculus of gallbladder with acute cholecystitis without obstruction
+    ja: 胆嚢結石症を伴う急性胆嚢炎，閉塞なし
+  K80.01:
+    en: Calculus of gallbladder with acute cholecystitis with obstruction
+    ja: 胆嚢結石症を伴う急性胆嚢炎，閉塞あり
+  K80.42:
+    en: Calculus of bile duct with acute cholecystitis without obstruction
+    ja: 総胆管結石症を伴う急性胆嚢炎，閉塞なし
+  K80.62:
+    en: Calculus of gallbladder and bile duct with acute cholecystitis without obstruction
+    ja: 胆嚢および胆管結石症を伴う急性胆嚢炎
+  K81:
+    en: Cholecystitis
+    ja: 胆嚢炎
+  K81.0:
+    en: Acute cholecystitis
+    ja: 急性胆嚢炎（無石性）
+  K81.9:
+    en: Cholecystitis, unspecified
+    ja: 胆嚢炎、詳細不明
+  K85:
+    en: Acute pancreatitis
+    ja: 急性膵炎
+  K85.1:
+    en: Biliary acute pancreatitis
+    ja: 胆石性急性膵炎
+  K85.2:
+    en: Alcohol induced acute pancreatitis
+    ja: アルコール性急性膵炎
+  K85.3:
+    en: Drug induced acute pancreatitis
+    ja: 薬剤性急性膵炎
+  K85.8:
+    en: Other acute pancreatitis
+    ja: その他の急性膵炎
+  K85.9:
+    ja: 急性膵炎，詳細不明
+    en: Acute pancreatitis, unspecified
+  K92:
+    en: Other diseases of digestive system
+    ja: その他消化器疾患
+  K92.0:
+    en: Hematemesis
+    ja: 吐血
+  K92.1:
+    en: Melena
+    ja: 下血（メレナ）
+  K92.2:
+    en: Gastrointestinal hemorrhage, unspecified
+    ja: 消化管出血，詳細不明
+  L03:
+    en: Cellulitis and acute lymphangitis
+    ja: 蜂窩織炎・急性リンパ管炎
+  L03.01:
+    en: Cellulitis of finger
+    ja: 蜂窩織炎，手指
+  L03.11:
+    en: Cellulitis of other parts of limb
+    ja: 蜂窩織炎，右下肢
+  L03.12:
+    en: Acute lymphangitis of other parts of limb
+    ja: 蜂窩織炎，左下肢
+  L03.21:
+    en: Cellulitis of face
+    ja: 蜂窩織炎，顔面
+  L03.31:
+    en: Cellulitis of trunk
+    ja: 蜂窩織炎，体幹
+  L03.90:
+    ja: 蜂窩織炎，詳細不明
+    en: Cellulitis, unspecified
+  M17:
+    en: Osteoarthritis of knee
+    ja: 変形性膝関節症
+  M48:
+    en: Other spondylopathies
+    ja: その他脊椎症
+  M48.50:
+    ja: 椎体圧潰，部位不明
+    en: Collapsed vertebra, not elsewhere classified
+  M48.50XA:
+    en: Collapsed vertebra, not elsewhere classified, site unspecified, initial encounter
+      for fracture
+    ja: 椎体圧迫骨折、部位不明、初回診療
+  M54.50:
+    en: Low back pain, unspecified
+    ja: 腰痛、詳細不明
+  M80:
+    en: Osteoporosis with current pathological fracture
+    ja: 骨粗鬆症性病的骨折
+  M80.08:
+    en: Age-related osteoporosis with current pathological fracture, vertebra(e)
+    ja: 骨粗鬆症に伴う病的骨折，椎体
+  M81:
+    en: Osteoporosis without current pathological fracture
+    ja: 骨粗鬆症
+  M84.48:
+    en: Pathological fracture, other site
+    ja: 病的骨折，その他の部位（椎体）
+  N10:
+    en: Acute tubulo-interstitial nephritis
+    ja: 急性尿細管間質性腎炎（腎盂腎炎）
+  N12:
+    en: Tubulo-interstitial nephritis, not specified as acute or chronic
+    ja: 尿細管間質性腎炎，急性・慢性不明
+  N17:
+    en: Acute kidney failure
+    ja: 急性腎障害
+  N17.0:
+    en: Acute kidney failure with tubular necrosis
+    ja: 急性腎不全，急性尿細管壊死を伴うもの
+  N17.1:
+    en: Acute kidney failure with acute cortical necrosis
+    ja: 急性腎不全，急性皮質壊死を伴うもの
+  N17.2:
+    en: Acute kidney failure with medullary necrosis
+    ja: 急性腎不全，髄質壊死を伴うもの
+  N17.8:
+    en: Other acute kidney failure
+    ja: その他の急性腎不全
+  N17.9:
+    en: Acute kidney failure, unspecified
+    ja: 急性腎不全，詳細不明
+  N18:
+    en: Chronic kidney disease
+    ja: 慢性腎臓病
+  N18.3:
+    en: Chronic kidney disease, stage 3 (moderate)
+    ja: 慢性腎臓病ステージ3
+  N20.0:
+    en: Calculus of kidney
+    ja: 腎結石
+  N23:
+    en: Unspecified renal colic
+    ja: 腎仙痛、詳細不明
+  N30.0:
+    en: Acute cystitis
+    ja: 急性膀胱炎
+  N39.0:
+    en: Urinary tract infection, site not specified
+    ja: 尿路感染症，部位不明
+  N40:
+    en: Benign prostatic hyperplasia
+    ja: 前立腺肥大症
+  N41.0:
+    en: Acute prostatitis
+    ja: 急性前立腺炎
+  R04.0:
+    en: Epistaxis
+    ja: 鼻出血
+  R05:
+    en: Cough
+    ja: 咳嗽
+  R07.89:
+    en: Other chest pain
+    ja: その他の胸痛
+  R10.9:
+    en: Unspecified abdominal pain
+    ja: 腹痛、詳細不明
+  R33.9:
+    en: Retention of urine, unspecified
+    ja: 尿閉、詳細不明
+  R42:
+    en: Dizziness and giddiness
+    ja: めまい
+  R50.9:
+    en: Fever, unspecified
+    ja: 発熱、詳細不明
+  R53.1:
+    en: Weakness
+    ja: 脱力感
+  R55:
+    en: Syncope and collapse
+    ja: 失神・虚脱
+  R65.20:
+    en: Severe sepsis without septic shock
+    ja: 重症敗血症，敗血症性ショックなし
+  R65.21:
+    en: Severe sepsis with septic shock
+    ja: 敗血症性ショック
+  R68.8:
+    en: Other general symptoms and signs
+    ja: その他の全身症状および徴候
+  R69:
+    en: Illness, unspecified
+    ja: 詳細不明の疾患
+  S06.0X0A:
+    en: Concussion without loss of consciousness, initial encounter
+    ja: 脳震盪（意識消失なし）、初回診療
+  S06.5:
+    en: Traumatic subdural hemorrhage
+    ja: 外傷性硬膜下出血
+  S06.50:
+    en: Traumatic subdural hemorrhage without loss of consciousness
+    ja: 外傷性硬膜下出血，意識消失なし
+  S06.51:
+    en: Traumatic subdural hemorrhage with loss of consciousness of 30 minutes or
+      less
+    ja: 外傷性硬膜下出血，意識消失30分未満
+  S06.52:
+    en: Traumatic subdural hemorrhage with loss of consciousness of 31 minutes to
+      59 minutes
+    ja: 外傷性硬膜下出血，意識消失30分以上
+  S06.9:
+    en: Unspecified intracranial injury
+    ja: 頭蓋内損傷，詳細不明
+  S22.0:
+    en: Fracture of thoracic vertebra
+    ja: 胸椎骨折（外傷性）
+  S22.39XA:
+    en: Fracture of one rib, unspecified side, initial encounter for closed fracture
+    ja: 単一肋骨骨折（部位不明）、閉鎖性、初回診療
+  S27.0:
+    en: Traumatic pneumothorax
+    ja: 外傷性気胸
+  S32.0:
+    en: Fracture of lumbar vertebra
+    ja: 腰椎骨折（外傷性）
+  S36.1:
+    en: Injury of liver or gallbladder
+    ja: 肝損傷
+  S43.006A:
+    en: Unspecified dislocation of unspecified shoulder joint, initial encounter
+    ja: 肩関節脱臼（部位不明）、初回診療
+  S52.50:
+    ja: 橈骨遠位端骨折，詳細不明
+    en: Unspecified fracture of the lower end of unspecified radius
+  S52.51:
+    en: Colles' fracture
+    ja: コレス骨折（転位あり）
+  S52.52:
+    en: Smith's fracture
+    ja: スミス骨折
+  S52.59:
+    en: Other fractures of lower end of radius
+    ja: その他の橈骨遠位端骨折
+  S62.90XA:
+    en: Unspecified fracture of unspecified wrist and hand, initial encounter for
+      closed fracture
+    ja: 手関節骨折（詳細不明）、閉鎖性、初回診療
+  S72.0:
+    en: Fracture of neck of femur
+    ja: 大腿骨頸部骨折
+  S72.00:
+    en: Fracture of unspecified part of neck of unspecified femur
+    ja: 大腿骨頸部骨折、部位不明
+  S72.1:
+    en: Pertrochanteric fracture
+    ja: 大腿骨転子部骨折
+  S93.40:
+    en: Sprain of unspecified ligament of unspecified ankle
+    ja: 足関節捻挫、靭帯部位不明
+  T07:
+    ja: 多発損傷，詳細不明
+    en: Unspecified multiple injuries
+  T14.90:
+    en: Injury, unspecified
+    ja: 損傷、詳細不明
+  T18.9XXA:
+    en: Foreign body in alimentary tract, part unspecified, initial encounter
+    ja: 消化管異物、部位不明、初回診療
+  T30.0:
+    en: Burn of unspecified body region, unspecified degree
+    ja: 熱傷、部位・度数不明
+  T78.40:
+    en: Allergy, unspecified
+    ja: アレルギー、詳細不明
+  V89.2XXA:
+    en: Person injured in unspecified motor-vehicle accident, traffic, initial encounter
+    ja: 交通事故（自動車、詳細不明）、初回診療
+  W19.XXXA:
+    en: Unspecified fall, initial encounter
+    ja: 転倒（詳細不明）、初回診療
+  W54.0XXA:
+    en: Bitten by dog, initial encounter
+    ja: 犬咬傷、初回診療
+  Z00.00:
+    en: Encounter for general adult medical examination without abnormal findings
+    ja: 一般成人健康診断（異常所見なし）
+  Z01.818:
+    en: Encounter for other preprocedural examination
+    ja: その他の術前検査
+  Z09:
+    en: Encounter for follow-up examination after completed treatment for conditions
+      other than malignant neoplasm
+    ja: 治療完了後のフォローアップ
+  Z12.11:
+    en: Encounter for screening for malignant neoplasm of colon
+    ja: 大腸悪性腫瘍スクリーニング
+  Z12.31:
+    en: Encounter for screening mammogram for malignant neoplasm of breast
+    ja: 乳腺悪性腫瘍マンモグラフィ検診
+  Z13.39:
+    en: Encounter for screening examination for other mental health and behavioral
+      disorders
+    ja: その他精神・行動障害スクリーニング
+  Z13.5:
+    en: Encounter for screening for eye and ear disorders
+    ja: 眼・耳疾患スクリーニング
+  Z13.818:
+    en: Encounter for screening for other digestive system disorders
+    ja: その他消化器疾患スクリーニング
+  Z23:
+    en: Encounter for immunization
+    ja: 予防接種
+  Z48.01:
+    en: Encounter for change or removal of surgical wound dressing
+    ja: 手術創ドレッシング交換・抜去
+  Z51.89:
+    en: Encounter for other specified aftercare
+    ja: その他のアフターケア
+  Z71.6:
+    en: Tobacco abuse counseling
+    ja: 喫煙相談
+  Z71.89:
+    en: Other specified counseling
+    ja: その他のカウンセリング
+  Z76.0:
+    en: Encounter for issue of repeat prescription
+    ja: 処方箋再発行
+  Z76.89:
+    en: Persons encountering health services in other specified circumstances
+    ja: その他の医療サービス利用
+  Z99.2:
+    en: Dependence on renal dialysis
+    ja: 透析依存

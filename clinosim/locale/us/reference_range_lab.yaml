@@ -1,0 +1,128 @@
+# Laboratory reference ranges — United States
+# Primary source: Tietz Clinical Guide to Laboratory Tests, 4th Edition (Wu, 2006)
+# Cross-referenced with: Mayo Clinic Laboratories, Quest Diagnostics reference intervals
+# https://www.mayocliniclabs.com/test-catalog
+#
+# These are adult reference intervals. Sex-specific ranges noted where applicable.
+
+source_url: "https://www.mayocliniclabs.com/test-catalog"
+source_name: "Standard US Reference Intervals (Tietz/Mayo)"
+
+ranges:
+  # === Hematology ===
+  WBC:
+    - {low: 3500, high: 10500, unit: "/uL", text: "Standard reference interval"}
+  Hb:
+    - {low: 13.5, high: 17.5, unit: "g/dL", text: "Standard reference interval M", sex: "M"}
+    - {low: 12.0, high: 16.0, unit: "g/dL", text: "Standard reference interval F", sex: "F"}
+  Hct:
+    - {low: 38.3, high: 48.6, unit: "%", text: "Standard reference interval M", sex: "M"}
+    - {low: 35.5, high: 44.9, unit: "%", text: "Standard reference interval F", sex: "F"}
+  Plt:
+    - {low: 150, high: 400, unit: "10*3/uL", text: "Standard reference interval"}
+
+  # === Hepatic ===
+  AST:
+    - {low: 10, high: 40, unit: "U/L", text: "Standard reference interval"}
+  ALT:
+    - {low: 7, high: 56, unit: "U/L", text: "Standard reference interval"}
+  GGT:
+    - {low: 9, high: 48, unit: "U/L", text: "Standard reference interval"}
+  ALP:
+    - {low: 44, high: 147, unit: "U/L", text: "Standard reference interval"}
+  LDH:
+    - {low: 140, high: 280, unit: "U/L", text: "Standard reference interval"}
+  T_Bil:
+    - {low: 0.1, high: 1.2, unit: "mg/dL", text: "Standard reference interval"}
+  Albumin:
+    - {low: 3.5, high: 5.5, unit: "g/dL", text: "Standard reference interval"}
+  TP:
+    - {low: 6.0, high: 8.3, unit: "g/dL", text: "Standard reference interval"}
+  CK:
+    - {low: 55, high: 170, unit: "U/L", text: "Standard reference interval M", sex: "M"}
+    - {low: 30, high: 135, unit: "U/L", text: "Standard reference interval F", sex: "F"}
+
+  # === Renal ===
+  Creatinine:
+    - {low: 0.74, high: 1.35, unit: "mg/dL", text: "Standard reference interval M", sex: "M"}
+    - {low: 0.59, high: 1.04, unit: "mg/dL", text: "Standard reference interval F", sex: "F"}
+  BUN:
+    - {low: 6, high: 20, unit: "mg/dL", text: "Standard reference interval"}
+  eGFR:
+    - {low: 60, high: 200, unit: "mL/min/{1.73_m2}", text: "CKD-EPI (>=60 normal)"}
+
+  # === Electrolytes ===
+  Na:
+    - {low: 136, high: 145, unit: "mmol/L", text: "Standard reference interval"}
+  K:
+    - {low: 3.5, high: 5.0, unit: "mmol/L", text: "Standard reference interval"}
+  Cl:
+    - {low: 98, high: 106, unit: "mmol/L", text: "Standard reference interval"}
+  Ca:
+    - {low: 8.5, high: 10.5, unit: "mg/dL", text: "Standard reference interval"}
+
+  # === Glucose/Metabolic ===
+  Glucose:
+    - {low: 70, high: 99, unit: "mg/dL", text: "Fasting reference interval (ADA)"}
+  HbA1c:
+    - {low: 4.0, high: 5.6, unit: "%", text: "Normal (ADA), prediabetes 5.7-6.4%"}
+
+  # === Lipids ===
+  LDL:
+    - {low: 0, high: 100, unit: "mg/dL", text: "Optimal (ATP III guidelines)"}
+  HDL:
+    - {low: 40, high: 200, unit: "mg/dL", text: "Standard reference interval M", sex: "M"}
+    - {low: 50, high: 200, unit: "mg/dL", text: "Standard reference interval F", sex: "F"}
+  TG:
+    - {low: 0, high: 150, unit: "mg/dL", text: "Normal (ATP III guidelines)"}
+  TC:
+    - {low: 0, high: 200, unit: "mg/dL", text: "Desirable (ATP III guidelines)"}
+
+  # === Inflammatory markers ===
+  CRP:
+    - {low: 0, high: 8, unit: "mg/L", text: "Standard reference interval"}
+  PCT:
+    - {low: 0, high: 0.05, unit: "ng/mL", text: "Sepsis cutoff (<0.05 normal)"}
+  ESR:
+    - {low: 0, high: 15, unit: "mm/h", text: "Standard reference interval M", sex: "M"}
+    - {low: 0, high: 20, unit: "mm/h", text: "Standard reference interval F", sex: "F"}
+
+  # === Cardiac markers ===
+  BNP:
+    - {low: 0, high: 100, unit: "pg/mL", text: "Rule-out heart failure (<100)"}
+  Troponin:
+    - {low: 0, high: 0.04, unit: "ng/mL", text: "99th percentile upper reference limit"}
+  D_dimer:
+    - {low: 0, high: 0.50, unit: "ug/mL", text: "Standard reference interval (<0.50 FEU)"}
+
+  # === Coagulation ===
+  PT_INR:
+    - {low: 0.8, high: 1.1, unit: "{INR}", text: "Standard reference interval (no anticoagulation)"}
+  Fibrinogen:
+    - {low: 200, high: 400, unit: "mg/dL", text: "Standard reference interval"}
+
+  # === Blood gas ===
+  pH:
+    - {low: 7.35, high: 7.45, unit: "[pH]", text: "Arterial blood gas reference"}
+  pCO2:
+    - {low: 35, high: 45, unit: "mm[Hg]", text: "Arterial blood gas reference"}
+  pO2:
+    - {low: 80, high: 100, unit: "mm[Hg]", text: "Arterial blood gas reference"}
+  HCO3:
+    - {low: 22, high: 26, unit: "mmol/L", text: "Arterial blood gas reference"}
+  Lactate:
+    - {low: 0.5, high: 2.0, unit: "mmol/L", text: "Standard reference interval"}
+
+  # === Pancreatic ===
+  Amylase:
+    - {low: 28, high: 100, unit: "U/L", text: "Standard reference interval"}
+  Lipase:
+    - {low: 0, high: 60, unit: "U/L", text: "Standard reference interval"}
+
+  # === Thyroid ===
+  TSH:
+    - {low: 0.27, high: 4.2, unit: "m[IU]/L", text: "Standard reference interval (Mayo)"}
+
+  # === Other ===
+  Cortisol:
+    - {low: 6.2, high: 19.4, unit: "ug/dL", text: "AM reference interval (Mayo)"}

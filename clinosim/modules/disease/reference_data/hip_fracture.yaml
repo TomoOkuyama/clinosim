@@ -2,8 +2,10 @@
 # Sources: MHLW Patient Survey, Japanese Orthopaedic Association, AAOS, Cochrane reviews
 
 disease_id: hip_fracture
-chief_complaint: "Hip pain after fall, unable to walk"
-department: internal_medicine
+chief_complaint:
+  en: "Hip pain after fall, unable to walk"
+  ja: "転倒後の股関節痛・歩行不能"
+department: orthopedics
 encounter_type: surgical
 requires_surgery: true
 minimum_severity: moderate

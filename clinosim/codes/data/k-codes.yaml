@@ -1,0 +1,12 @@
+metadata:
+  name: K-codes
+  uri: urn:oid:1.2.392.200119.4.401
+  version: '2024'
+  description: Japanese procedure code (診療報酬点数表 Kコード)
+codes:
+  K0461:
+    en: Open treatment of femoral fracture, proximal end, neck (ORIF)
+    ja: 骨折観血的手術（大腿）
+  K0811:
+    en: Hemiarthroplasty, hip
+    ja: 人工骨頭挿入術（股）

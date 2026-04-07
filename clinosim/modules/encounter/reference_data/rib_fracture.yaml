@@ -2,9 +2,13 @@
 # Chest wall trauma. Pain management is key. Rule out pneumothorax/hemothorax.
 
 condition_id: rib_fracture
-chief_complaint: "Chest wall pain after fall/trauma, worse with breathing"
+icd10_code: "S22.39XA"
+icd10_display: "Fracture of one rib, unspecified side, initial encounter for closed fracture"
+chief_complaint:
+  en: "Chest wall pain after fall/trauma, worse with breathing"
+  ja: "外傷後の胸壁痛（呼吸時増悪）"
 encounter_type: emergency
-department: internal_medicine  # emergency medicine
+department: emergency_medicine
 disposition: discharge_home
 
 severity_distribution:

@@ -2,8 +2,10 @@
 # Sources: Japan Trauma Data Bank, ACS TQIP, Trauma Surgery guidelines
 
 disease_id: traffic_accident_severe
-chief_complaint: "Major trauma, motor vehicle accident, multiple injuries"
-department: internal_medicine  # trauma surgery / emergency
+chief_complaint:
+  en: "Major trauma, motor vehicle accident, multiple injuries"
+  ja: "交通外傷・多発外傷"
+department: trauma_surgery
 encounter_type: surgical
 requires_surgery: true
 minimum_severity: moderate

@@ -29,6 +29,7 @@ def _simulate_ed_visit(
     visit_time: datetime,
     roster: StaffRoster,
     rng: np.random.Generator,
+    country: str = "US",
 ) -> CIFPatientRecord:
     """Simulate an ED visit using YAML protocol if available, else basic."""
     from clinosim.modules.observation.engine import generate_lab_result, determine_flag
@@ -41,7 +42,9 @@ def _simulate_ed_visit(
     except (FileNotFoundError, Exception):
         protocol = None
 
-    chief = (protocol or condition).get("chief_complaint", cond_name)
+    from clinosim.locale.text import resolve_text
+    raw_chief = (protocol or condition).get("chief_complaint", cond_name)
+    chief = resolve_text(raw_chief, country=country)
 
     encounter = create_inpatient_encounter(
         patient.patient_id, visit_time,
@@ -70,6 +73,10 @@ def _simulate_ed_visit(
         ed_hours = float(rng.normal(3.5, 1.0))
     encounter.discharge_datetime = visit_time + timedelta(hours=max(1, ed_hours))
 
+    # Pre-assign a lab tech for this visit's labs
+    lab_tech_assignment = assign_staff("lab_collection", "laboratory", roster, rng)
+    lab_tech_id = lab_tech_assignment.get("performing_technician", "")
+
     orders: list[Order] = []
     lab_results: list[OrderResult] = []
 
@@ -97,12 +104,14 @@ def _simulate_ed_visit(
             display_name=test, urgency="stat",
             clinical_intent=f"ED workup: {test}",
             ordered_datetime=visit_time + timedelta(minutes=int(rng.normal(10, 5))),
+            ordered_by=encounter.attending_physician_id,
             status=OrderStatus.PLACED,
         )
         observed = generate_lab_result(test, baseline_values.get(test, 100), rng)
         flag = determine_flag(test, observed, sex=patient.sex)
         order.result = OrderResult(
             result_datetime=visit_time + timedelta(minutes=int(rng.normal(50, 15))),
+            performed_by=lab_tech_id,
             lab_name=test, value=observed,
             unit=get_lab_unit(test), flag=flag,
         )
@@ -122,6 +131,7 @@ def _simulate_ed_visit(
             display_name=test, urgency="stat",
             clinical_intent=f"ED imaging: {test}",
             ordered_datetime=visit_time + timedelta(minutes=int(rng.normal(20, 8))),
+            ordered_by=encounter.attending_physician_id,
             status=OrderStatus.PLACED,
         ))
 
@@ -137,6 +147,7 @@ def _simulate_ed_visit(
             urgency="stat",
             clinical_intent=f"ED treatment: {tx.get('intent', tx.get('name', ''))}",
             ordered_datetime=visit_time + timedelta(minutes=int(rng.normal(30, 10))),
+            ordered_by=encounter.attending_physician_id,
             status=OrderStatus.PLACED,
         ))
 
@@ -154,6 +165,25 @@ def _simulate_ed_visit(
         data_source="manual",
     )]
 
+    # Enrich medication orders + assign encounter_id
+    from clinosim.modules.order.engine import enrich_medication_order
+    for o in orders:
+        if o.order_type == OrderType.MEDICATION:
+            enrich_medication_order(o)
+        if not o.encounter_id:
+            o.encounter_id = encounter.encounter_id
+
+    # ED encounter metadata
+    encounter.admit_source = "outp"
+    encounter.discharge_disposition = "home"
+    encounter.priority = "EM"
+    encounter.admitting_physician_id = encounter.attending_physician_id
+    encounter.discharging_physician_id = encounter.attending_physician_id
+
+    # Use ICD-10 from encounter YAML (required by FHIR R4)
+    icd_code = (protocol or condition).get("icd10_code", "R69")  # R69 = Illness, unspecified
+    icd_display = (protocol or condition).get("icd10_display", chief or cond_name)
+
     return CIFPatientRecord(
         patient=patient,
         encounters=[encounter],
@@ -166,8 +196,9 @@ def _simulate_ed_visit(
             ground_truth_diseases=[cond_name],
         ),
         clinical_diagnosis=ClinicalDiagnosis(
-            admission_diagnosis_code=cond_name,
-            discharge_diagnosis_code=cond_name,
-            discharge_diagnosis_name=chief,
+            admission_diagnosis_code=icd_code,
+            admission_diagnosis_system="icd-10" if country == "JP" else "icd-10-cm",
+            discharge_diagnosis_code=icd_code,
+            discharge_diagnosis_system="icd-10" if country == "JP" else "icd-10-cm",
         ),
     )

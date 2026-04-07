@@ -51,10 +51,12 @@ class TestUSMode:
             assert avg_los < 10, f"US pneumonia avg LOS should be <10, got {avg_los:.1f}"
 
     def test_chronic_conditions_have_names(self, us_dataset):
-        """All chronic conditions should have proper English names, not just ICD codes."""
+        """All chronic conditions should resolve to proper English names via codes module."""
+        from clinosim.codes import lookup
         for r in us_dataset.patients:
             for c in r.patient.chronic_conditions:
-                assert c.name != c.code, f"Chronic condition name is just the code: {c.code}"
+                display = lookup(c.system or "icd-10-cm", c.code, "en")
+                assert display != c.code, f"Chronic condition display is just the code: {c.code}"
 
     def test_home_medications_present(self, us_dataset):
         """Inpatients with chronic conditions should have home medication orders."""
@@ -81,23 +83,22 @@ class TestUSMode:
         write_cif(us_dataset, cif_dir)
         convert_cif_to_fhir(cif_dir, fhir_dir, country="US")
 
-        # Check first FHIR bundle for LOINC system
+        # Bulk Data Export: Observation.ndjson contains lab Observations
         import os
-        fhir_files = sorted(os.listdir(fhir_dir))
-        assert len(fhir_files) > 0
-        with open(os.path.join(fhir_dir, fhir_files[0])) as f:
-            bundle = json.load(f)
-        lab_obs = [
-            e["resource"] for e in bundle["entry"]
-            if e["resource"].get("resourceType") == "Observation"
-            and any(
-                cat.get("coding", [{}])[0].get("code") == "laboratory"
-                for cat in e["resource"].get("category", [])
-            )
-        ]
-        if lab_obs:
-            code_system = lab_obs[0]["code"]["coding"][0].get("system", "")
-            assert "loinc" in code_system.lower(), f"Expected LOINC system, got: {code_system}"
+        obs_path = os.path.join(fhir_dir, "Observation.ndjson")
+        assert os.path.exists(obs_path)
+        with open(obs_path) as f:
+            for line in f:
+                obs = json.loads(line)
+                cats = obs.get("category", [])
+                is_lab = any(
+                    cat.get("coding", [{}])[0].get("code") == "laboratory"
+                    for cat in cats
+                )
+                if is_lab:
+                    code_system = obs["code"]["coding"][0].get("system", "")
+                    assert "loinc" in code_system.lower(), f"Expected LOINC system, got: {code_system}"
+                    return
 
 
 @pytest.mark.e2e

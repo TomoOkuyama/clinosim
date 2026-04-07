@@ -2,7 +2,11 @@
 # Intra-articular corticosteroid injection for osteoarthritis (knee, shoulder, hip).
 
 condition_id: orthopedic_injection
-chief_complaint: "Intra-articular injection for osteoarthritis (knee/shoulder)"
+icd10_code: "Z51.89"
+icd10_display: "Encounter for other specified aftercare"
+chief_complaint:
+  en: "Intra-articular injection for osteoarthritis (knee/shoulder)"
+  ja: "変形性関節症に対する関節内注射"
 encounter_type: outpatient
 department: orthopedics
 disposition: discharge_home

@@ -43,7 +43,7 @@ def create_inpatient_encounter(
         encounter_type=EncounterType.INPATIENT,
         status=EncounterStatus.IN_PROGRESS,
         department_id=department_id,
-        attending_physician_id="STAFF-PLACEHOLDER-001",
+        attending_physician_id="",
         admission_datetime=admission_datetime,
         chief_complaint=chief_complaint,
         disease_event_id=f"DE-{patient_id}-001",

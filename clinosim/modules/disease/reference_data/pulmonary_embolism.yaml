@@ -3,8 +3,10 @@
 # against the most current published data before production use.
 
 disease_id: pulmonary_embolism
-chief_complaint: "Acute dyspnea, pleuritic chest pain, tachycardia"
-department: internal_medicine
+chief_complaint:
+  en: "Acute dyspnea, pleuritic chest pain, tachycardia"
+  ja: "急性呼吸困難・胸膜痛・頻脈"
+department: pulmonology
 encounter_type: medical
 requires_surgery: false
 readmission_eligible: true

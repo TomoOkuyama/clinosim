@@ -2,9 +2,13 @@
 # Initial evaluation for patients referred by primary care for specialist consultation.
 
 condition_id: new_patient_referral
-chief_complaint: "New patient evaluation, referred by primary care"
+icd10_code: "Z76.89"
+icd10_display: "Persons encountering health services in other specified circumstances"
+chief_complaint:
+  en: "New patient evaluation, referred by primary care"
+  ja: "紹介初診・新患評価"
 encounter_type: outpatient
-department: internal_medicine
+department: primary_care
 disposition: discharge_home
 
 severity_distribution:

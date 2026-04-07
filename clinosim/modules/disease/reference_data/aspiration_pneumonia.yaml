@@ -6,8 +6,10 @@
 # and treatment approach (anaerobic coverage, swallowing evaluation).
 
 disease_id: aspiration_pneumonia
-chief_complaint: "Cough, fever, dyspnea after witnessed aspiration event"
-department: internal_medicine
+chief_complaint:
+  en: "Cough, fever, dyspnea after witnessed aspiration event"
+  ja: "誤嚥後の咳嗽・発熱・呼吸困難"
+department: pulmonology
 encounter_type: medical
 requires_surgery: false
 readmission_eligible: true

@@ -35,7 +35,8 @@ def main() -> None:
     gen.add_argument("-p", "--population", type=int, default=10_000, help="Catchment population (default: from hospital config)")
     gen.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
     gen.add_argument("--country", default="US", help="Country code (US or JP)")
-    gen.add_argument("--period", default="2024-04-01,2025-03-31", help="Simulation period (start,end)")
+    gen.add_argument("--start", default=None, help="Simulation start date YYYY-MM-DD (default: 1 year before --end)")
+    gen.add_argument("--end", default=None, help="Simulation end date / snapshot date YYYY-MM-DD (default: today). Inpatients still admitted on this date have no discharge.")
     gen.add_argument("--format", nargs="+", default=["cif"], help="Output formats: cif, csv, fhir")
     gen.add_argument("--narrative", action="store_true", help="Generate narrative layer (requires Ollama)")
     gen.add_argument("--narrative-model", default="qwen:7b", help="Ollama model for narratives")
@@ -102,15 +103,23 @@ def main() -> None:
         return
 
     if args.command == "generate":
-        start, end = args.period.split(",")
+        from datetime import date, timedelta as _td
+        # Default end = today, default start = end - 1 year
+        end_date = (datetime.strptime(args.end, "%Y-%m-%d").date()
+                    if args.end else date.today())
+        start_date = (datetime.strptime(args.start, "%Y-%m-%d").date()
+                      if args.start else end_date - _td(days=365))
+        end = end_date.strftime("%Y-%m-%d")
+        start = start_date.strftime("%Y-%m-%d")
         config = SimulatorConfig(
             catchment_population=args.population,
-            time_range=(start.strip(), end.strip()),
+            time_range=(start, end),
             random_seed=args.seed,
             country=args.country,
+            snapshot_date=end,
         )
         hospital_cfg = getattr(args, "hospital_config", None)
-        print(f"clinosim generate: population={args.population}, seed={args.seed}, country={args.country}")
+        print(f"clinosim generate: population={args.population}, seed={args.seed}, country={args.country}, period={start}~{end}")
         if hospital_cfg:
             print(f"  Hospital config: {hospital_cfg}")
         dataset = run_beta(config, hospital_config_path=hospital_cfg)
@@ -332,7 +341,7 @@ def _run_test_encounter(args: Any) -> None:
         patient = activate_patient(person, rng, args.country)
 
         visit_time = datetime(2024, 6, 15, int(rng.integers(8, 20)), int(rng.integers(0, 60)))
-        record = _simulate_ed_visit(patient, protocol, visit_time, roster, rng)
+        record = _simulate_ed_visit(patient, protocol, visit_time, roster, rng, country=args.country)
 
         _print_debug_record(record, i + 1)
 
@@ -354,7 +363,12 @@ def _print_debug_record(record: CIFPatientRecord, index: int = 1) -> None:
             print(f"  Ward: {enc.ward_id} Bed: {enc.bed_number}")
     if los > 0:
         print(f"  LOS: {los} days | Deceased: {r.deceased}")
-    print(f"  Dx: {r.clinical_diagnosis.discharge_diagnosis_code} ({r.clinical_diagnosis.discharge_diagnosis_name[:50]})")
+    from clinosim.codes import lookup as _code_lookup
+    _dx_name = _code_lookup(
+        r.clinical_diagnosis.discharge_diagnosis_system or "icd-10-cm",
+        r.clinical_diagnosis.discharge_diagnosis_code,
+    )
+    print(f"  Dx: {r.clinical_diagnosis.discharge_diagnosis_code} ({_dx_name[:50]})")
 
     # Orders
     order_types = {}

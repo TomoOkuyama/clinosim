@@ -25,8 +25,8 @@ def hip_patient():
         age=82,
         sex="F",
         chronic_conditions=[
-            ChronicCondition(code="I10", name="HT", severity_score=0.2),
-            ChronicCondition(code="M81", name="Osteoporosis", severity_score=0.3),
+            ChronicCondition(code="I10", severity_score=0.2),
+            ChronicCondition(code="M81", severity_score=0.3),
         ],
     )
 

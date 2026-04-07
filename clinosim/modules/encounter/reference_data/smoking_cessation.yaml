@@ -2,7 +2,11 @@
 # Counseling and pharmacotherapy for tobacco cessation.
 
 condition_id: smoking_cessation
-chief_complaint: "Smoking cessation counseling, nicotine replacement"
+icd10_code: "Z71.6"
+icd10_display: "Tobacco abuse counseling"
+chief_complaint:
+  en: "Smoking cessation counseling, nicotine replacement"
+  ja: "禁煙外来・ニコチン代替療法"
 encounter_type: outpatient
 department: primary_care
 disposition: discharge_home

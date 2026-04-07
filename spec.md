@@ -506,13 +506,57 @@ P(Disease|Test) ∝ P(Test|Disease) × P(Disease)
 
 ## 9. データ標準規格
 
-| 項目 | 日本 | 米国・国際 |
-|---|---|---|
-| 病名コード | ICD-10 | ICD-10-CM / ICD-11 |
-| 薬剤コード | YJコード | RxNorm |
-| 検査コード | JLAC10 | LOINC |
-| 診療行為 | Kコード | CPTコード |
-| データ形式 | HL7 FHIR R4 | HL7 FHIR R4 |
+### コード体系一覧
+
+| 項目 | 日本 | 米国・国際 | clinosim実装 |
+|---|---|---|---|
+| 病名コード | ICD-10 (WHO) | ICD-10-CM | `clinosim/codes/data/icd-10-cm.yaml`, `icd-10.yaml` |
+| 薬剤コード | YJコード | RxNorm | `clinosim/codes/data/yj.yaml`, `rxnorm.yaml` |
+| 検査コード | JLAC10 | LOINC | `clinosim/codes/data/jlac10.yaml`, `loinc.yaml` |
+| 診療行為 | Kコード | CPTコード | `clinosim/codes/data/k-codes.yaml`, `cpt.yaml` |
+| 単位 | UCUM | UCUM | (loader内蔵 system URI) |
+| データ形式 | HL7 FHIR R4 Bulk Data NDJSON | HL7 FHIR R4 Bulk Data NDJSON | one .ndjson per resource type |
+
+### コード体系モジュール (`clinosim/codes/`)
+
+すべての臨床コードは `clinosim/codes/` モジュールが一元管理 (locale非依存)。 各コードは英語 (必須) + 日本語 (オプション) の多言語表示を持ちます。
+
+```python
+from clinosim.codes import lookup, get_system_uri
+
+lookup("icd-10-cm", "N10", "en")  # → "Acute tubulo-interstitial nephritis"
+lookup("icd-10-cm", "N10", "ja")  # → "急性腎盂腎炎"
+get_system_uri("loinc")            # → "http://loinc.org"
+```
+
+### 権威ソース (Authoritative Sources)
+
+| Code System | 出典 |
+|---|---|
+| ICD-10-CM | [CMS ICD-10-CM 2024](https://www.cms.gov/medicare/coding-billing/icd-10-codes) |
+| ICD-10 (WHO) | [WHO ICD-10](https://icd.who.int/browse10/) |
+| LOINC | [Regenstrief LOINC](https://loinc.org/) |
+| JLAC10 | [日本臨床検査標準協議会 (JCCLS)](https://www.jccls.org/) |
+| RxNorm | [NLM RxNorm](https://www.nlm.nih.gov/research/umls/rxnorm/) |
+| YJ コード | 厚生労働省 薬価基準 |
+| CPT | [AMA CPT](https://www.ama-assn.org/practice-management/cpt) |
+| K コード | 厚生労働省 診療報酬点数表 |
+
+### CIF と表示テキストの分離
+
+CIF (Clinosim Intermediate Format) は **コード値のみ** を保持し、 表示テキストは出力時に codes module 経由で解決されます (AD-30):
+
+```python
+@dataclass
+class ClinicalDiagnosis:
+    admission_diagnosis_code: str = ""               # 例: "N10"
+    admission_diagnosis_system: str = "icd-10-cm"    # コード体系キー
+    discharge_diagnosis_code: str = ""
+    discharge_diagnosis_system: str = "icd-10-cm"
+    # display は保持しない (CIF はコードのみ)
+```
+
+FHIR / CSV / narrative 出力時に各 adapter が `clinosim.codes.lookup()` を呼んで言語別の display を取得します。
 
 ---
 
@@ -547,13 +591,96 @@ P(Disease|Test) ∝ P(Test|Disease) × P(Disease)
 
 ### 推奨技術スタック
 
-| 用途 | 技術 |
+| 用途 | 技術 | clinosim実装 |
+|---|---|---|
+| 言語 | Python 3.11+ | ✅ |
+| シミュレーションフレームワーク | (現状: 月次loop) | ✅ Mode 1。 Mode 2 (DES) は未実装 |
+| 疾患ルール定義 | YAML | ✅ (28 疾患 + 44 ED/外来 condition) |
+| 状態遷移モデル | 9-変数 ODE 風 update | ✅ |
+| 統計モデル | NumPy | ✅ |
+| バリデーション | Pydantic | ✅ (YAML読込時) |
+| LLM | Ollama (local) + Anthropic (cloud) | ✅ (`llm_service`) |
+| 出力 | CIF JSON / FHIR R4 NDJSON / CSV | ✅ |
+
+---
+
+## 10.1 出力フォーマット (v0.1-beta)
+
+### CIF (Clinosim Intermediate Format)
+
+シミュレーションの **immutable intermediate format**。 1 encounter = 1 JSON ファイル。 すべての出力 adapter はここから派生。
+
+```
+output/cif/
+├── metadata.json
+├── hospital.json                  # staff roster + hospital config
+└── structural/patients/
+    └── ENC-POP-XXXXXX-NNNNNN.json
+```
+
+### FHIR R4 — Bulk Data Export NDJSON 形式
+
+[HL7 FHIR Bulk Data Access](https://hl7.org/fhir/uv/bulkdata/) 仕様準拠。 1 リソース型 = 1 NDJSON ファイル。
+
+```
+output/fhir_r4/
+├── manifest.json                   # Bulk Data manifest
+├── _facility.json                  # Organization + Location マスター
+├── Patient.ndjson                  # 1 患者 1 行
+├── Encounter.ndjson
+├── Observation.ndjson              # labs + vitals (LOINC)
+├── Condition.ndjson                # 主疾患 + 慢性疾患 (ICD-10-CM)
+├── MedicationRequest.ndjson        # RxNorm
+├── MedicationAdministration.ndjson
+├── Procedure.ndjson                # CPT
+├── AllergyIntolerance.ndjson
+├── Practitioner.ndjson
+├── PractitionerRole.ndjson         # specialty + ward location
+├── Organization.ndjson             # hospital + departments
+└── Location.ndjson                 # wards (wa) + beds (bd)
+```
+
+各 Resource.id は 12 リソース型すべてで一意。 reference 整合性が取れています。
+
+### CSV
+
+- patients, encounters, conditions, lab_results, vital_signs, orders, medication_administrations, procedures, ...
+
+---
+
+## 10.2 Snapshot date semantics (v0.1-beta)
+
+`--end YYYY-MM-DD` 引数で **snapshot date** を指定可能 (default: 今日)。
+
+- snapshot date を超える life event は生成されない
+- snapshot 時点で discharge_datetime が未来になる入院:
+  - `Encounter.status = "in-progress"`
+  - `discharge_datetime = None`
+  - 部分的な lab/vital/order/MAR データのみ
+  - 主疾患 `Condition.clinicalStatus = "active"` (resolved されない)
+- これにより**現在入院中の患者**を含む現実的な EHR スナップショットを生成可能 (NEWS2 アラートシステムなどに対応)
+
+---
+
+## 10.3 病院構成 (Hospital Configuration)
+
+`clinosim/config/hospital_*.yaml` で病院の物理レイアウトを定義:
+
+| 設定項目 | 内容 |
 |---|---|
-| 言語 | Python |
-| シミュレーションフレームワーク | SimPy（離散事象シミュレーション） |
-| 疾患ルール定義 | YAML / JSON（外部設定ファイル） |
-| 状態遷移モデル | マルコフ連鎖 |
-| 統計モデル | NumPy / SciPy（確率分布） |
+| `recommended_population` | 推奨 catchment 人口 |
+| `available_departments` | 利用可能な診療科 (内科、循環器、消化器、外科、整形、救急、プライマリケア) |
+| `department_rollup` | 専門科 → 利用可能科への集約マップ (e.g., pulmonology → internal_medicine) |
+| `wards` | 各科の病棟 ID リスト |
+| `ward_capacity` | 病棟ごとのベッド数 |
+| `resource_capacity` | lab analyzer / CT / MRI / OR 等の数 |
+| `staffing` | シフト別 staffing 比率 |
+
+これにより:
+- 疾患 → 科 → 病棟 → ベッドの自動 routing
+- M/M/1 queueing で検査結果遅延が動的に変動
+- 病棟ごとに看護師配属 (FHIR PractitionerRole.location)
+- 標準セット (50床、 10床) を切り替え可能
 
 ---
 

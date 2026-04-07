@@ -70,11 +70,12 @@ class PersonName:
 @dataclass
 class ChronicCondition:
     code: str = ""
-    name: str = ""
+    system: str = "icd-10-cm"  # code system key (lookup via clinosim.codes)
     onset_date: date | None = None
     severity: str = "mild"
     controlled: bool = True
     severity_score: float = 0.3
+    stage: str = ""  # e.g., "CKD G3a", "NYHA II", "HbA1c 7.2%"
 
 
 @dataclass
@@ -101,6 +102,9 @@ class PatientProfile:
 
     address: Address = field(default_factory=Address)
     contact: ContactInfo = field(default_factory=ContactInfo)
+
+    marital_status: str = ""  # "S" | "M" | "D" | "W" | "U" (HL7 v3-MaritalStatus)
+    preferred_language: str = ""  # BCP-47 code: "en-US" | "ja-JP"
 
     employment_status: str = "retired"
     insurance_type: str = "NHI_employee"

@@ -2,7 +2,11 @@
 # Nosebleed management. Assess coagulopathy, nasal packing if needed.
 
 condition_id: epistaxis
-chief_complaint: "Nosebleed, unable to stop with pressure"
+icd10_code: "R04.0"
+icd10_display: "Epistaxis"
+chief_complaint:
+  en: "Nosebleed, unable to stop with pressure"
+  ja: "鼻出血（圧迫止血困難）"
 encounter_type: emergency
 department: emergency_medicine
 disposition: discharge_home

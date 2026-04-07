@@ -3,8 +3,10 @@
 # against the most current published data before production use.
 
 disease_id: vertebral_compression_fracture
-chief_complaint: "Acute back pain after minimal trauma, worse with movement"
-department: internal_medicine
+chief_complaint:
+  en: "Acute back pain after minimal trauma, worse with movement"
+  ja: "軽微外傷後の急性背部痛・体動時増悪"
+department: orthopedics
 encounter_type: medical
 requires_surgery: false
 readmission_eligible: true

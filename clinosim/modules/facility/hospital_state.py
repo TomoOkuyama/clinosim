@@ -137,6 +137,11 @@ class HospitalState:
             staff = 1.0
         staff_factor = 1.0 / max(0.1, staff)
 
+        # Cap factors to avoid pathological multiplication
+        # When congestion + staff factors compound, delays can blow up
+        congestion_factor = min(congestion_factor, 5.0)  # max 5x slowdown from congestion
+        staff_factor = min(staff_factor, 4.0)  # max 4x slowdown from staffing (matches night-shift reality)
+
         # Reporting time (for imaging)
         reporting = 0.0
         if resource in ("ct", "mri", "xray", "ultrasound"):
@@ -146,7 +151,11 @@ class HospitalState:
                 reporting = float(report_times.get("routine", 120))
             reporting *= staff_factor  # less staff → slower reporting
 
-        return base * congestion_factor * staff_factor + reporting
+        delay = base * congestion_factor * staff_factor + reporting
+
+        # Hard cap: stat results within 4h, routine within 12h
+        max_delay = 240.0 if urgency == "stat" else 720.0  # minutes
+        return min(delay, max_delay)
 
     def add_to_queue(self, resource: str, ops_config: dict[str, Any]) -> None:
         """Record that a resource is being used (increases utilization)."""

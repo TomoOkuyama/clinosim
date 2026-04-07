@@ -1,252 +1,363 @@
-# encounter
+# clinosim.modules.encounter — Encounter Module
 
-Encounter management module. Handles all types of patient-hospital interactions: inpatient stays, outpatient visits, ED visits, screening, and procedures.
+## 目的
 
-## Architecture
+clinosim における **全ての患者 × 医療機関 接点 (encounter)** を管理する。 入院、救急外来、定期外来、スクリーニング、術前評価、処置来院、フォローアップ等、 あらゆる受診タイプを YAML プロトコル駆動で扱う。
 
-clinosim models three encounter categories, each driven by YAML protocols:
+本モジュールの責務は 2 つ:
 
-| Category | YAML Location | Protocol Count | Description |
+1. **Encounter 型プロトコル (ED / 外来条件, 44 件)** の定義と YAML ロード
+2. **入院 encounter の基礎的生成** (`create_inpatient_encounter`) と **日次サイクルタイムライン** の生成
+
+疾患 (inpatient disease) 側は `clinosim.modules.disease` が担当し、本モジュールは 外来・救急など **同日退院型の医療接触** を中心にカバーする。
+
+## 設計原則
+
+| # | 原則 | 説明 |
+|---|---|---|
+| 1 | **YAML is the truth** | 全 ED / 外来条件は YAML。エンジンに条件分岐を書かない |
+| 2 | **Auto-discovery** | `reference_data/` にファイルを置けば即認識 (モジュールキャッシュ付き) |
+| 3 | **Globally unique IDs** | Encounter ID と Episode ID はシミュレーション全体を通じて一意 |
+| 4 | **Multi-language chief complaint** | `chief_complaint` は str または `{en, ja}` 辞書 → `resolve_text` で解決 |
+| 5 | **Daily cycle は国ごとに標準化** | 入院病棟の日課 (06:00 vitals → 09:00 rounds → ...) を決定論的に発生 |
+| 6 | **Condition vs Disease** | 外来/ED = encounter YAML, 入院疾患 = disease YAML |
+
+## ディレクトリ構造
+
+```
+clinosim/modules/encounter/
+├── __init__.py
+├── engine.py               # create_inpatient_encounter(), generate_daily_cycle(), generate_encounter_timeline()
+├── protocol.py             # load_encounter_condition(), load_all_encounter_conditions()
+├── README.md
+├── SPEC.md
+└── reference_data/         # 44 条件 YAML (ED 27 + outpatient 17)
+    ├── migraine.yaml
+    ├── viral_uri.yaml
+    ├── annual_health_screening.yaml
+    ├── flu_vaccination.yaml
+    ├── ...
+```
+
+## カテゴリ別 Encounter 数
+
+| カテゴリ | YAML の場所 | 件数 | 説明 |
 |---|---|---|---|
-| **Inpatient diseases** | `modules/disease/reference_data/*.yaml` | 20 | Multi-day hospital stays with daily simulation |
-| **ED conditions** | `modules/encounter/reference_data/*.yaml` | 11 | Emergency visits, typically discharged same day |
-| **Outpatient conditions** | `modules/encounter/reference_data/*.yaml` | 13 | Scheduled visits: screening, follow-up, procedures |
+| **入院疾患** | `modules/disease/reference_data/*.yaml` | 28 | 複数日の入院。日次シミュレーション |
+| **ED 条件** | `modules/encounter/reference_data/*.yaml` | 27 | 救急受診・同日退院が中心 |
+| **外来条件** | `modules/encounter/reference_data/*.yaml` | 17 | スクリーニング・フォロー・ワクチン・術前等 |
 
-**Adding a new encounter condition = adding a YAML file.** No code changes required.
+ED と外来の合計 **44 件** が encounter モジュール配下にある。
 
----
+### 代表的な ED 条件 (27 件の一部)
 
-## Adding a new encounter condition
+`migraine`, `viral_uri`, `chest_pain_noncardiac`, `minor_laceration`, `ankle_sprain`, `viral_gastroenteritis`, `allergic_reaction_mild`, `low_back_pain`, `uti_uncomplicated`, `food_poisoning`, `anxiety_panic_attack`, `renal_colic`, `syncope`, `vertigo`, `epistaxis`, `shoulder_dislocation`, `elderly_fall`, `rib_fracture`, `wrist_fracture`, `concussion`, `minor_burn`, `animal_bite`, `foreign_body_ingestion`, `urinary_retention`, `asthma_attack_mild`, `abdominal_pain_nonspecific`, `traffic_accident_minor`
 
-### Step 1: Create the YAML file
+### 代表的な外来条件 (17 件の一部)
 
-Create `modules/encounter/reference_data/{condition_id}.yaml`.
+`annual_health_screening`, `preoperative_assessment`, `colonoscopy_screening`, `upper_endoscopy_diagnostic`, `diabetic_retinopathy_screening`, `cardiac_rehabilitation`, `mammography_screening`, `flu_vaccination`, `wound_care_followup`, `orthopedic_injection`, `new_patient_referral`, `lab_result_consultation`, `prescription_renewal`, `rehabilitation_outpatient`, `smoking_cessation`, `mental_health_followup`, `dialysis_session`
 
-The `condition_id` must be a unique snake_case identifier (e.g., `skin_biopsy`, `cataract_evaluation`).
+## API リファレンス
 
-### Step 2: Define the YAML structure
+### `load_encounter_condition(condition_id: str) -> dict[str, Any]`
 
-Every encounter condition YAML must include these fields:
+1 件の encounter 条件 YAML をロードして dict を返す (`protocol.py:15`)。
+
+```python
+from clinosim.modules.encounter.protocol import load_encounter_condition
+
+data = load_encounter_condition("migraine")
+data["icd10_code"]              # "G43.909"
+data["encounter_type"]          # "emergency"
+data["severity_distribution"]   # {"mild": 0.30, "moderate": 0.50, "severe": 0.20}
+data["workup"]["labs"]          # [{"test": "WBC", "probability": 0.2}, ...]
+```
+
+**Raises**: `FileNotFoundError` — 該当 YAML が `reference_data/` に無い場合
+
+### `load_all_encounter_conditions() -> dict[str, dict[str, Any]]`
+
+`reference_data/*.yaml` を自動発見してロードし、`condition_id → YAML data` の辞書を返す。 モジュールレベルでキャッシュされるため 2 回目以降はファイル IO ゼロ (`protocol.py:24`)。
+
+```python
+from clinosim.modules.encounter.protocol import load_all_encounter_conditions
+
+all_conditions = load_all_encounter_conditions()
+print(f"Loaded {len(all_conditions)} conditions")
+print(list(all_conditions.keys())[:5])
+# ["abdominal_pain_nonspecific", "allergic_reaction_mild", ...]
+```
+
+YAML パースエラーは silent skip される (ログなし)。本番ではロード前に `pytest tests/unit/test_encounter_protocols.py` 実行を推奨。
+
+### `create_inpatient_encounter(patient_id, admission_datetime, chief_complaint, department_id, visit_number) -> Encounter`
+
+新しい入院 encounter を作成する (`engine.py:28`)。グローバルカウンタで一意 ID を発行する。
+
+```python
+from datetime import datetime
+from clinosim.modules.encounter.engine import create_inpatient_encounter
+
+enc = create_inpatient_encounter(
+    patient_id="P-000001",
+    admission_datetime=datetime(2024, 1, 15, 14, 30),
+    chief_complaint="Fever, cough, dyspnea",
+    department_id="internal_medicine",
+)
+enc.encounter_id    # "ENC-P-000001-000001"
+enc.episode_id      # "EP-P-000001-000001"
+enc.encounter_type  # EncounterType.INPATIENT
+enc.status          # EncounterStatus.IN_PROGRESS
+```
+
+**グローバルカウンタ**: モジュールレベル `_encounter_counter` がシミュレーション実行中に単調増加し、 ID 衝突を防ぐ。 テスト間でリセットしたい場合は `encounter.engine._encounter_counter = 0` を明示的に設定する (AD: 通常テストでは別 seed で判別)。
+
+### `generate_daily_cycle(encounter, day_number) -> list[DailyCycleEvent]`
+
+入院 1 日分の **定型スケジュール** を生成する (`engine.py:54`)。日本の中規模病院の日課をモデル化:
+
+| 時刻 | イベント |
+|---|---|
+| 06:00 | morning_vitals |
+| 06:30 | morning_labs |
+| 09:00 | rounds |
+| 14:00 | afternoon_vitals |
+| 18:00 | evening_vitals |
+| 18:30 | evening_meds |
+| 22:00 | night_check |
+
+```python
+from clinosim.modules.encounter.engine import generate_daily_cycle
+
+events = generate_daily_cycle(enc, day_number=3)
+for e in events:
+    print(e.timestamp, e.event_type)
+# 2024-01-18 06:00:00 morning_vitals
+# 2024-01-18 06:30:00 morning_labs
+# ...
+```
+
+### `generate_encounter_timeline(encounter, total_days) -> list[DailyCycleEvent]`
+
+入院全期間の完全タイムラインを生成する (`engine.py:116`)。
+- Day 0 に入院イベント 3 件 (`admission`, `admission_assessment`, `admission_orders`)
+- 各日の daily cycle (Day 0 は入院時刻より前のイベントをスキップ)
+- 退院日に `discharge_decision` (10:00) と `discharge` (14:00)
+- 結果を chronological 順にソート
+
+```python
+timeline = generate_encounter_timeline(enc, total_days=7)
+# returns ~50 events sorted by timestamp
+```
+
+### `DailyCycleEvent` (dataclass)
+
+```python
+@dataclass
+class DailyCycleEvent:
+    timestamp: datetime
+    event_type: str     # "morning_vitals" | "admission" | "discharge" | ...
+    data: dict[str, Any] = field(default_factory=dict)
+```
+
+## YAML スキーマ
+
+### Required metadata
 
 ```yaml
-# Required metadata
-condition_id: skin_biopsy                   # unique snake_case ID
-chief_complaint: "Suspicious skin lesion evaluation and biopsy"
-encounter_type: outpatient                  # "outpatient" | "emergency"
-department: dermatology                     # managing department
-disposition: discharge_home                 # "discharge_home" | "observation" | "admit"
+condition_id: migraine
+icd10_code: "G43.909"
+icd10_display: "Migraine, unspecified, not intractable, without status migrainosus"
+chief_complaint:
+  en: "Severe headache, nausea, photophobia"
+  ja: "激しい頭痛・嘔気・光過敏"
+encounter_type: emergency            # "emergency" | "outpatient"
+department: emergency_medicine
+disposition: discharge_home          # "discharge_home" | "observation" | "admit"
+```
 
-# Severity and duration
+### Severity & duration
+
+```yaml
 severity_distribution:
-  mild: 0.70        # probability (must sum to ~1.0)
-  moderate: 0.25
-  severe: 0.05
+  mild:     0.30
+  moderate: 0.50
+  severe:   0.20
 
-ed_stay_hours:      # visit duration per severity
-  mild: {mean: 0.5, sd: 0.2}
-  moderate: {mean: 1.0, sd: 0.3}
-  severe: {mean: 2.0, sd: 0.5}
+ed_stay_hours:
+  mild:     {mean: 2.0, sd: 0.5}
+  moderate: {mean: 3.5, sd: 1.0}
+  severe:   {mean: 5.0, sd: 1.5}
+```
 
-# Clinical workup
+### Workup (vitals/labs/imaging)
+
+```yaml
 workup:
-  vitals: true      # measure vital signs? (true/false)
-  labs:             # each lab test with ordering probability
+  vitals: true
+  labs:
     - {test: "WBC", probability: 0.3}
     - {test: "CRP", probability: 0.2}
-  imaging:          # imaging studies with probability
-    - {test: "Skin_ultrasound", probability: 0.2}
-
-# Treatment given during visit
-treatment:
-  - {name: "Local anesthesia (lidocaine)", probability: 0.9, route: "local", intent: "anesthesia"}
-  - {name: "Punch biopsy", probability: 0.8, route: "procedure", intent: "diagnostic biopsy"}
-  - {name: "Wound closure (suture)", probability: 0.5, route: "procedure"}
-
-# Patient instructions at discharge
-discharge_instructions:
-  - "Keep wound clean and dry for 48 hours"
-  - "Biopsy results available in 5-7 business days"
-  - "Return if signs of infection (redness, warmth, drainage)"
-
-# Medications prescribed at discharge
-discharge_prescriptions:
-  - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 3, probability: 0.5}
-
-# Demographics (who gets this condition)
-incidence_modifier: 1.0     # relative frequency vs other conditions
-age_distribution: adults    # "all" | "adults" | "adults_40plus" | "elderly" | "pediatric"
-sex_ratio_female: 1.0       # 1.0 = equal, >1 = more women, <1 = more men
-seasonal:                   # monthly multiplier (1.0 = baseline)
-  1: 1.0
-  2: 1.0
-  # ... all 12 months
-  12: 1.0
+    - {test: "Troponin", probability: 0.4, serial: true, interval_hours: 3}
+  imaging:
+    - {test: "CT_Head", probability: 0.3}
 ```
 
-### Step 3: Register in the healthcare calendar (if applicable)
+Available lab names: `WBC`, `CRP`, `Creatinine`, `Na`, `K`, `Glucose`, `Hb`, `Plt`, `AST`, `ALT`, `BUN`, `Troponin`, `BNP`, `PT_INR`, `HbA1c`, `Lactate`, `Albumin`, `TSH`, `Ca`, `eGFR`, `PCT`, `LDH`, `GGT`, `T_Bil`, `pH`, `HCO3`, `pCO2`
 
-For conditions that should be **automatically generated** for the population (not just available for manual testing), add generation rules in `modules/population/engine.py` → `generate_healthcare_calendar()`.
+### Treatment
 
-Example: to add annual skin cancer screening for age 50+:
-```python
-# In generate_healthcare_calendar()
-if person.age >= 50 and rng.random() < 0.1:  # 10% screening rate
-    events.append(LifeEvent(
-        person_id=person.person_id,
-        event_type="health_screening",
-        timestamp=date(year, int(rng.integers(3, 10)), int(rng.integers(1, 28))),
-        severity=0.0,
-        condition_type="screening",
-        disease_id="skin_biopsy",  # matches condition_id in YAML
-        encounter_type="outpatient",
-        protocol_source="encounter:skin_biopsy",
-    ))
-```
-
-For ED conditions, add to `locale/{country}/demographics.yaml` → `ed_visit_not_admitted.conditions`:
 ```yaml
-ed_visit_not_admitted:
-  conditions:
-    - {name: "skin_biopsy", probability: 0.03, chief_complaint: "Suspicious skin lesion"}
+treatment:
+  - {name: "Ketorolac 30mg",     probability: 0.7, route: "IV",  intent: "analgesic"}
+  - {name: "Metoclopramide 10mg", probability: 0.6, route: "IV",  intent: "antiemetic"}
+  - {name: "IV normal saline 1000mL", probability: 0.5, route: "IV", intent: "rehydration"}
+  - {name: "Dark room rest",      probability: 0.8, route: "non-pharmacologic"}
 ```
 
-### Step 4: Test with debug output
+`route` は `IV` / `PO` / `IM` / `SC` / `SL` / `topical` / `INH` / `procedure` / `non-pharmacologic` のいずれか。
+
+### Discharge
+
+```yaml
+discharge_instructions:
+  - "Keep hydrated, rest in dark quiet room"
+  - "Return if neurologic symptoms, worst headache of life, fever"
+
+discharge_prescriptions:
+  - {drug: "Sumatriptan 50mg", route: "PO", frequency: "PRN", duration_days: 30, probability: 0.3}
+```
+
+### Demographics (オプション)
+
+```yaml
+incidence_modifier: 1.0           # 相対頻度
+age_distribution: adults          # "all" | "adults" | "adults_40plus" | "elderly" | "pediatric"
+sex_ratio_female: 1.5             # 1.0=equal, >1=女性多
+seasonal:
+  1: 1.0
+  # ... all 12 months
+```
+
+## 使用例
+
+### 1 件の ED 条件でシミュレート
+
+```python
+from clinosim.modules.encounter.protocol import load_encounter_condition
+from clinosim.locale.text import resolve_text
+
+cond = load_encounter_condition("migraine")
+print(resolve_text(cond["chief_complaint"], country="JP"))
+# → "激しい頭痛・嘔気・光過敏"
+
+# Severity sampling
+sev = rng.choice(list(cond["severity_distribution"].keys()),
+                 p=list(cond["severity_distribution"].values()))
+
+# Stay duration
+h = cond["ed_stay_hours"][sev]
+stay_hours = float(rng.normal(h["mean"], h["sd"]))
+```
+
+### 入院フルタイムライン
+
+```python
+from datetime import datetime
+from clinosim.modules.encounter.engine import (
+    create_inpatient_encounter, generate_encounter_timeline,
+)
+
+enc = create_inpatient_encounter(
+    patient_id="P-000001",
+    admission_datetime=datetime(2024, 1, 15, 14, 30),
+    chief_complaint="Fever, cough, dyspnea",
+    department_id="internal_medicine",
+)
+events = generate_encounter_timeline(enc, total_days=7)
+for e in events[:5]:
+    print(f"{e.timestamp:%Y-%m-%d %H:%M} {e.event_type}")
+```
+
+### CLI デバッグ
 
 ```bash
-# Test a single patient with your new condition (detailed debug output)
-clinosim test-encounter skin_biopsy
+# 単一 encounter 条件で 1 患者生成 + 詳細出力
+clinosim test-encounter migraine
 
-# Test with specific patient demographics
-clinosim test-encounter skin_biopsy --age 65 --sex F --seed 123
+# 年齢・性別・シード指定
+clinosim test-encounter migraine --age 65 --sex F --seed 123
 
-# Test multiple patients
-clinosim test-encounter skin_biopsy -n 5
+# 複数患者
+clinosim test-encounter flu_vaccination -n 5
 
-# For inpatient diseases, use test-disease instead:
-clinosim test-disease bacterial_pneumonia -n 1 --severity severe
-
-# Verify it appears in the condition list
-clinosim list-diseases
-
-# Run full quality validation
-clinosim validate -p 3000
+# 全条件一覧
+clinosim list-diseases   # encounter + disease を合わせて表示
 ```
 
-The `test-encounter` command shows:
-- Patient demographics and chronic conditions
-- Encounter type, timing, duration
-- All orders (labs, imaging, medications) with results
-- Vital signs with pain score and nursing notes
-- Diagnosis codes
-- Discharge prescriptions
+## 拡張方法
 
----
+### 新しい encounter 条件を追加する
 
-## YAML field reference
+1. `reference_data/<condition_id>.yaml` を作成 (既存 YAML をテンプレートに)
+2. Required metadata (condition_id, icd10_code, icd10_display, chief_complaint, encounter_type, department, disposition) を埋める
+3. `severity_distribution`, `ed_stay_hours`, `workup` を定義
+4. 必要に応じて `treatment`, `discharge_instructions`, `discharge_prescriptions` を追加
+5. 自動的に population に生成させたい場合:
+   - **ED 条件**: `locale/{country}/demographics.yaml > ed_visit_not_admitted.conditions` にエントリを追加
+   - **外来条件**: `modules/population/engine.py > generate_healthcare_calendar()` に生成ルールを追加
+6. `clinosim test-encounter <condition_id>` で動作確認
+7. `pytest tests/unit/test_encounter_protocols.py` を実行
 
-### Required fields
+### ICD コードの多言語表示を追加する
 
-| Field | Type | Description |
-|---|---|---|
-| `condition_id` | string | Unique snake_case identifier |
-| `chief_complaint` | string | What brings the patient (displayed in encounter) |
-| `encounter_type` | string | `"outpatient"` or `"emergency"` |
-| `department` | string | Managing department |
-| `disposition` | string | `"discharge_home"`, `"observation"`, or `"admit"` |
-| `severity_distribution` | dict | `{mild: 0.x, moderate: 0.x, severe: 0.x}` |
-| `ed_stay_hours` | dict | Duration per severity `{mean: x, sd: y}` |
-| `workup` | dict | Clinical workup (see below) |
+本モジュールは `icd10_code` と `icd10_display` のみ YAML に持つが、 最終的な display 解決は **`clinosim.codes` モジュール** に委譲することを推奨:
 
-### workup structure
+```python
+from clinosim.codes import lookup
 
-```yaml
-workup:
-  vitals: true/false
-  labs:
-    - {test: "TestName", probability: 0.0-1.0}
-    - {test: "TestName", probability: 0.0-1.0, serial: true, interval_hours: 3}  # for serial tests
-  imaging:
-    - {test: "ImagingName", probability: 0.0-1.0}
+display_ja = lookup("icd-10-cm", cond["icd10_code"], "ja")
 ```
 
-Available lab test names: WBC, CRP, Creatinine, Na, K, Glucose, Hb, Plt, AST, ALT, BUN, Troponin, BNP, PT_INR, HbA1c, Lactate, Albumin, TSH, Ca, eGFR, PCT, LDH, GGT, T_Bil, pH, HCO3, pCO2
+### 新しい daily cycle パターン (国別)
 
-### treatment structure
+`generate_daily_cycle()` を country 引数で分岐させる (現状は日本の中規模病院モデル固定)。 例: 米国病院は rounds が 07:00-09:00、evening meds が 20:00、など。
 
-```yaml
-treatment:
-  - name: "Drug/procedure name"
-    probability: 0.0-1.0      # chance of being administered
-    route: "IV" | "PO" | "IM" | "SC" | "SL" | "topical" | "INH" | "procedure" | "non-pharmacologic"
-    intent: "description"      # optional: clinical rationale
-```
+## 依存関係
 
-### Optional fields
+本モジュールが依存するもの:
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `discharge_instructions` | list[str] | `[]` | Patient education at discharge |
-| `discharge_prescriptions` | list[dict] | `[]` | Take-home medications |
-| `incidence_modifier` | float | `1.0` | Relative frequency |
-| `age_distribution` | string | `"all"` | Target population |
-| `sex_ratio_female` | float | `1.0` | Sex distribution |
-| `seasonal` | dict | all 1.0 | Monthly incidence multiplier |
-
----
-
-## How the simulator uses encounter YAMLs
-
-1. **Auto-discovery**: `encounter/protocol.py` → `load_all_encounter_conditions()` scans `reference_data/*.yaml`
-2. **ED visits**: demographics.yaml condition names are matched to YAML `condition_id`. If matched, the full protocol (labs, imaging, treatment) is used. If not matched, a basic simulation runs.
-3. **Outpatient visits**: `generate_healthcare_calendar()` creates events. The simulator calls `_simulate_outpatient_visit()` which reads the YAML for visit reason and labs.
-4. **Output**: All encounter types produce the same `CIFPatientRecord` structure → same CSV/FHIR output.
-
----
-
-## Current encounter conditions
-
-### ED conditions (11)
-| Condition | Chief Complaint |
+| 依存先 | 用途 |
 |---|---|
-| viral_gastroenteritis | Nausea, vomiting, diarrhea |
-| chest_pain_noncardiac | Chest pain, rule out ACS |
-| minor_laceration | Laceration requiring sutures |
-| ankle_sprain | Ankle injury after fall |
-| viral_uri | Fever, sore throat, cough |
-| migraine | Severe headache, nausea |
-| allergic_reaction_mild | Urticaria, angioedema |
-| low_back_pain | Acute low back pain |
-| uti_uncomplicated | Dysuria, frequency |
-| food_poisoning | Abdominal pain after meal |
-| anxiety_panic_attack | Palpitations, anxiety |
+| `clinosim.types.encounter` | `Encounter`, `EncounterStatus`, `EncounterType` |
+| `pyyaml` | YAML パース |
 
-### Outpatient conditions (13)
-| Condition | Chief Complaint |
+本モジュールに依存する側:
+
+| 依存側 | 用途 |
 |---|---|
-| annual_health_screening | Annual preventive checkup |
-| preoperative_assessment | Pre-surgical evaluation |
-| colonoscopy_screening | Colorectal cancer screening |
-| upper_endoscopy_diagnostic | EGD for dyspepsia |
-| diabetic_retinopathy_screening | Fundoscopy for DM |
-| cardiac_rehabilitation | Post-MI supervised exercise |
-| mammography_screening | Breast cancer screening |
-| flu_vaccination | Influenza vaccination |
-| wound_care_followup | Suture removal, wound check |
-| orthopedic_injection | Joint injection for OA |
-| new_patient_referral | New patient evaluation |
-| lab_result_consultation | Test result review |
-| prescription_renewal | Medication refill only |
+| `clinosim.simulator` | 入院 encounter 作成とタイムライン生成 |
+| `clinosim.modules.order` | Encounter × 条件プロトコルから検査・薬剤オーダーを生成 |
+| `clinosim.modules.observation` | Daily cycle の `morning_labs` / `morning_vitals` をトリガ |
+| `clinosim.modules.clinical_course` | Day 単位の進行を駆動 |
 
----
+## テスト
 
-## Implementation status
-- [x] Inpatient encounter creation with ward/bed
-- [x] YAML-driven ED visit simulation (11 conditions)
-- [x] YAML-driven outpatient visit simulation (13 conditions)
-- [x] Auto-discovery of encounter condition YAMLs
-- [x] Healthcare calendar (chronic visits, screening, vaccination)
-- [x] Post-discharge follow-up (20 disease-specific protocols)
-- [x] Encounter linking (readmission prior_encounter_id)
-- [ ] ICU workflow (15-min resolution)
-- [ ] Encounter transitions (ward → ICU → ward)
-- [ ] Pre-natal/delivery workflows
+```bash
+# 単体テスト (YAML ロード, Encounter 生成, 日次サイクル)
+pytest tests/unit/test_encounter.py -v
+
+# 全 encounter YAML の構造検証
+pytest tests/unit/test_encounter_protocols.py -v
+
+# CLI 動作確認
+clinosim test-encounter migraine -n 1 --seed 42
+```
+
+テスト観点:
+
+- `load_all_encounter_conditions()` が 44 件以上返すこと
+- 各 YAML に必須フィールドが揃っていること
+- `severity_distribution` の合計が ≈ 1.0
+- `create_inpatient_encounter()` の ID がグローバルに一意であること
+- `generate_encounter_timeline()` が入院時刻前のイベントを除外し、chronological 順であること

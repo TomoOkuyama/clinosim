@@ -21,6 +21,11 @@ Thumbs.db
 
 # Output (generated data)
 output/
+output_*/
+
+# Installers (do not commit)
+Miniconda3*.sh
+*.tar.gz
 
 # Test artifacts
 .pytest_cache/

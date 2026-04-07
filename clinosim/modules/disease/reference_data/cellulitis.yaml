@@ -3,7 +3,9 @@
 # against the most current published data before production use.
 
 disease_id: cellulitis
-chief_complaint: "Erythema, warmth, swelling of affected limb, fever"
+chief_complaint:
+  en: "Erythema, warmth, swelling of affected limb, fever"
+  ja: "患部の発赤・熱感・腫脹・発熱"
 department: internal_medicine
 encounter_type: medical
 requires_surgery: false

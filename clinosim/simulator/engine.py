@@ -56,7 +56,6 @@ def run_beta(
     # Load modules
     healthcare = load_healthcare_config(config.country)
     protocols = _load_all_disease_protocols()
-    roster = generate_roster(config.hospital_scale, config.country, rng)
 
     # Hospital operational state (YAML-configurable per hospital)
     from clinosim.modules.facility.hospital_state import HospitalState, load_hospital_operations
@@ -67,6 +66,9 @@ def run_beta(
             hospital_ops = yaml.safe_load(f) or {}
     else:
         hospital_ops = load_hospital_operations()
+
+    # Staff roster scaled to hospital config (ward-aware, dept-aware)
+    roster = generate_roster(config.hospital_scale, config.country, rng, hospital_config=hospital_ops)
     hospital_state = HospitalState()
 
     # Population: use hospital's recommended_population unless overridden
@@ -84,6 +86,14 @@ def run_beta(
     start_y, start_m = int(config.time_range[0][:4]), int(config.time_range[0][5:7])
     end_y, end_m = int(config.time_range[1][:4]), int(config.time_range[1][5:7])
 
+    # Cap end date by snapshot_date (no life events past "today")
+    snapshot_dt = None
+    if config.snapshot_date:
+        snapshot_dt = datetime.strptime(config.snapshot_date, "%Y-%m-%d")
+        snap_y, snap_m = snapshot_dt.year, snapshot_dt.month
+        if (snap_y, snap_m) < (end_y, end_m):
+            end_y, end_m = snap_y, snap_m
+
     all_events: list[LifeEvent] = []
     y, m = start_y, start_m
     while (y, m) <= (end_y, end_m):
@@ -91,6 +101,13 @@ def run_beta(
         m += 1
         if m > 12:
             m, y = 1, y + 1
+
+    # Filter out events after snapshot date
+    if snapshot_dt:
+        all_events = [
+            e for e in all_events
+            if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) <= snapshot_dt
+        ]
 
     hospital_events = sorted(
         [e for e in all_events if e.requires_hospital],
@@ -137,7 +154,7 @@ def run_beta(
 
         # Unknown condition
         if event.condition_type == "unknown" or disease_id.startswith("unknown_"):
-            record = _simulate_unknown_condition(patient, event, rng, healthcare, roster)
+            record = _simulate_unknown_condition(patient, event, rng, healthcare, roster, hospital_ops=hospital_ops)
             if record:
                 patient_records.append(record)
                 person.has_visited_hospital = True
@@ -200,6 +217,13 @@ def run_beta(
         if re_event:
             readmission_events.append(re_event)
 
+    # Filter out readmissions past snapshot date
+    if snapshot_dt:
+        readmission_events = [
+            e for e in readmission_events
+            if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) <= snapshot_dt
+        ]
+
     # Simulate readmissions (max 1 chain per patient for now)
     readmission_events.sort(key=lambda e: e.timestamp)
     for re_event in readmission_events:
@@ -257,9 +281,13 @@ def run_beta(
         if disease_fu.get("labs"):
             merged_spec["labs"] = disease_fu["labs"]
         followup_date = enc.discharge_datetime + timedelta(days=post_dc_days)
+        # Skip post-discharge visits scheduled after the snapshot date
+        if snapshot_dt and followup_date > snapshot_dt:
+            continue
         opd_record = _simulate_outpatient_visit(
             patient_cache[pid], "post_discharge", followup_date, roster, rng,
             followup_spec=merged_spec, post_discharge_disease=disease_id,
+            country=config.country,
         )
         patient_records.append(opd_record)
 
@@ -267,6 +295,12 @@ def run_beta(
 
     # Healthcare calendar: chronic visits + screening for ALL population
     calendar_events = generate_healthcare_calendar(population, start_y, config.country, rng)
+    # Filter out events past snapshot date
+    if snapshot_dt:
+        calendar_events = [
+            e for e in calendar_events
+            if not e.timestamp or datetime.combine(e.timestamp, datetime.min.time()) <= snapshot_dt
+        ]
     print(f"  Healthcare calendar: {len(calendar_events)} events for population", flush=True)
 
     n_calendar = 0
@@ -296,6 +330,7 @@ def run_beta(
             opd_record = _simulate_outpatient_visit(
                 patient, "chronic_followup", visit_time, roster, rng,
                 chronic_code=event.disease_id, followup_spec=merged_spec,
+                country=config.country,
             )
         elif event.event_type == "health_screening":
             opd_record = _simulate_outpatient_visit(
@@ -303,6 +338,7 @@ def run_beta(
                 chronic_code="annual_health_screening",
                 followup_spec={"labs": ["WBC", "Hb", "Glucose", "Creatinine", "AST", "ALT"],
                                "visit_reason": "Annual health screening"},
+                country=config.country,
             )
         else:
             continue
@@ -350,9 +386,12 @@ def run_beta(
             ed_day = int(rng.integers(1, 28))
             ed_hour = int(rng.choice([9, 10, 14, 15, 19, 20, 21, 22]))
             ed_time = datetime(ed_year, visit_month, ed_day, ed_hour, int(rng.integers(0, 60)))
+            # Skip ED visits past snapshot date
+            if snapshot_dt and ed_time > snapshot_dt:
+                continue
 
             ed_record = _simulate_ed_visit(
-                patient, cond, ed_time, roster, rng,
+                patient, cond, ed_time, roster, rng, country=config.country,
             )
             patient_records.append(ed_record)
         print(f"  ED visits (not admitted): {n_ed} generated", flush=True)
@@ -362,10 +401,13 @@ def run_beta(
         random_seed=config.random_seed,
         country=config.country,
         hospital_scale=config.hospital_scale,
+        snapshot_date=config.snapshot_date,
         total_patients_generated=len(patient_records),
         llm_mode=config.llm.judgment.mode,
     )
-    return CIFDataset(metadata=metadata, patients=patient_records)
+    return CIFDataset(metadata=metadata, patients=patient_records,
+                      hospital_roster=list(roster.members),
+                      hospital_config=hospital_ops or {})
 
 
 def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) -> CIFDataset:
@@ -441,10 +483,13 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
         random_seed=config.random_seed,
         country=config.country,
         hospital_scale=config.hospital_scale,
+        snapshot_date=config.snapshot_date,
         total_patients_generated=len(patient_records),
         llm_mode="none",
     )
-    return CIFDataset(metadata=metadata, patients=patient_records)
+    return CIFDataset(metadata=metadata, patients=patient_records,
+                      hospital_roster=list(roster.members),
+                      hospital_config={})
 
 
 def run_alpha(config: SimulatorConfig | None = None) -> CIFDataset:

@@ -2,9 +2,13 @@
 # Severe headache presentation. Rule out secondary causes, abortive therapy, discharge.
 
 condition_id: migraine
-chief_complaint: "Severe headache, nausea, photophobia"
+icd10_code: "G43.909"
+icd10_display: "Migraine, unspecified, not intractable, without status migrainosus"
+chief_complaint:
+  en: "Severe headache, nausea, photophobia"
+  ja: "激しい頭痛・嘔気・光過敏"
 encounter_type: emergency
-department: internal_medicine
+department: emergency_medicine
 disposition: discharge_home
 
 severity_distribution:

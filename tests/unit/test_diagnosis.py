@@ -45,9 +45,9 @@ class TestDiagnosis:
 
     def test_diagnosis_code_progression(self):
         diff = initialize_differential()
-        # Initial: prior 0.45 < 0.5 → no working_diagnosis yet → R05
+        # Initial: top candidate is bacterial_pneumonia at prior 0.45 → fall back to top progression
         code, name = get_current_diagnosis_code(diff)
-        assert code == "R05"  # no working dx yet
+        assert code == "J18.9"  # falls back to progression[0] for top candidate
 
         # One positive CXR → bacterial pneumonia probability jumps above 0.5
         diff = update_differential(diff, [("chest_xray_consolidation", True)])

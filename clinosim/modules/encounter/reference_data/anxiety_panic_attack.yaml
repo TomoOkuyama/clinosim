@@ -2,9 +2,13 @@
 # Often presents mimicking cardiac or respiratory emergency.
 
 condition_id: anxiety_panic_attack
-chief_complaint: "Palpitations, dyspnea, chest tightness, anxiety"
+icd10_code: "F41.0"
+icd10_display: "Panic disorder without agoraphobia"
+chief_complaint:
+  en: "Palpitations, dyspnea, chest tightness, anxiety"
+  ja: "動悸・呼吸困難・胸部圧迫感・不安"
 encounter_type: emergency
-department: internal_medicine
+department: emergency_medicine
 disposition: discharge_home
 
 severity_distribution:

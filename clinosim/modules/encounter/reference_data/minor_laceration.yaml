@@ -2,9 +2,13 @@
 # Common ED presentation. Wound closure with sutures/staples/glue, discharge with wound care.
 
 condition_id: minor_laceration
-chief_complaint: "Laceration requiring sutures"
+icd10_code: "T14.90"
+icd10_display: "Injury, unspecified"
+chief_complaint:
+  en: "Laceration requiring sutures"
+  ja: "裂傷（縫合が必要）"
 encounter_type: emergency
-department: internal_medicine  # emergency medicine in some facilities
+department: emergency_medicine
 disposition: discharge_home
 
 severity_distribution:

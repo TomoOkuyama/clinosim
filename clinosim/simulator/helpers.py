@@ -228,14 +228,59 @@ def _country_to_yaml_key(country: str) -> str:
     return {"JP": "japan", "US": "us"}.get(country, "us")
 
 
-def _disease_chief_complaint(protocol: DiseaseProtocol) -> str:
-    """Get chief complaint from disease protocol YAML."""
-    return protocol.chief_complaint or "General malaise"
+def _disease_chief_complaint(protocol: DiseaseProtocol, country: str = "US") -> str:
+    """Get chief complaint from disease protocol YAML (multi-language support)."""
+    from clinosim.locale.text import resolve_text
+    return resolve_text(protocol.chief_complaint, country=country) or "General malaise"
 
 
 def _disease_to_department(protocol: DiseaseProtocol) -> str:
-    """Get managing department from disease protocol YAML."""
+    """Get the granular department from disease protocol YAML."""
     return protocol.department or "internal_medicine"
+
+
+def resolve_department(
+    granular_dept: str,
+    hospital_ops: dict | None,
+) -> str:
+    """Resolve a granular specialty to an available department at this hospital.
+
+    Uses hospital_ops.department_rollup to map specialties (e.g., pulmonology)
+    to one of hospital_ops.available_departments (e.g., internal_medicine).
+    Falls back to internal_medicine if neither matches.
+    """
+    if not hospital_ops:
+        return granular_dept or "internal_medicine"
+
+    available = set(hospital_ops.get("available_departments", []))
+    rollup = hospital_ops.get("department_rollup", {}) or {}
+
+    # If the granular department is directly available, use it
+    if granular_dept in available:
+        return granular_dept
+
+    # Otherwise, look up rollup
+    rolled = rollup.get(granular_dept)
+    if rolled and rolled in available:
+        return rolled
+
+    # Fallbacks: internal_medicine → first available → granular as-is
+    if "internal_medicine" in available:
+        return "internal_medicine"
+    if available:
+        return next(iter(available))
+    return granular_dept or "internal_medicine"
+
+
+def pick_ward(department: str, hospital_ops: dict | None, rng: Any) -> str:
+    """Pick a ward_id for the given department from hospital config."""
+    if hospital_ops:
+        wards_map = hospital_ops.get("wards", {}) or {}
+        options = wards_map.get(department, [])
+        if options:
+            return str(rng.choice(options)) if len(options) > 1 else options[0]
+    # Fallback
+    return "4E"
 
 
 def _determine_route(drug_name: str, clinical_intent: str) -> str:

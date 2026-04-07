@@ -3,7 +3,9 @@
 # against the most current published data before production use.
 
 disease_id: deep_vein_thrombosis
-chief_complaint: "Unilateral leg swelling, pain, warmth"
+chief_complaint:
+  en: "Unilateral leg swelling, pain, warmth"
+  ja: "一側下肢の腫脹・疼痛・熱感"
 department: internal_medicine
 encounter_type: medical
 requires_surgery: false

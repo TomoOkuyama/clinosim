@@ -3,8 +3,10 @@
 # against the most current published data before production use.
 
 disease_id: hemorrhagic_stroke
-chief_complaint: "Sudden severe headache, vomiting, altered consciousness"
-department: internal_medicine
+chief_complaint:
+  en: "Sudden severe headache, vomiting, altered consciousness"
+  ja: "突然の激しい頭痛・嘔吐・意識障害"
+department: neurosurgery
 encounter_type: medical
 requires_surgery: false
 readmission_eligible: true

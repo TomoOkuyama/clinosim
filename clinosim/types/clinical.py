@@ -64,14 +64,15 @@ class ClinicalDiagnosis:
     """What the hospital concludes (may differ from ground truth). AD-28.
 
     This is the diagnosis as recorded in the EHR — the clinical output,
-    not the hidden truth.
+    not the hidden truth. CIF stores ONLY codes; display text is resolved
+    at output time via the clinosim.codes module.
     """
 
     admission_diagnosis_code: str = ""  # ICD at admission (often vague: R50.9, J18.9)
-    admission_diagnosis_name: str = ""
-    working_diagnoses: list[dict] = field(default_factory=list)  # [{code, name, day, confidence}]
+    admission_diagnosis_system: str = "icd-10-cm"  # code system key
+    working_diagnoses: list[dict] = field(default_factory=list)  # [{code, day, confidence}]
     discharge_diagnosis_code: str = ""  # ICD at discharge
-    discharge_diagnosis_name: str = ""
+    discharge_diagnosis_system: str = "icd-10-cm"
 
     # Hidden fields (in CIF, not in clinical output)
     diagnosis_correct: bool = True  # does discharge dx match ground truth?

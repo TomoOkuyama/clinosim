@@ -2,9 +2,13 @@
 # Urticaria/mild angioedema. Antihistamines, observation, discharge.
 
 condition_id: allergic_reaction_mild
-chief_complaint: "Urticaria, mild angioedema, itching"
+icd10_code: "T78.40"
+icd10_display: "Allergy, unspecified"
+chief_complaint:
+  en: "Urticaria, mild angioedema, itching"
+  ja: "蕁麻疹・軽度血管浮腫・掻痒"
 encounter_type: emergency
-department: internal_medicine
+department: emergency_medicine
 disposition: discharge_home
 
 severity_distribution:

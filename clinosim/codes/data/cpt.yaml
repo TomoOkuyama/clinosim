@@ -1,0 +1,81 @@
+metadata:
+  name: CPT
+  uri: http://www.ama-assn.org/go/cpt
+  version: '2024'
+  description: Current Procedural Terminology (AMA)
+codes:
+  '12001':
+    en: Simple repair of superficial wounds
+    ja: 単純創縫合（表在創）
+  '27125':
+    en: Hemiarthroplasty, hip
+    ja: 人工骨頭挿入術（股）
+  '27130':
+    en: Arthroplasty, acetabular and proximal femoral prosthetic replacement (total hip arthroplasty)
+    ja: 人工股関節全置換術
+  '27236':
+    en: Open treatment of femoral fracture, proximal end, neck (ORIF)
+    ja: 骨折観血的手術（大腿）
+  '31500':
+    en: Intubation, endotracheal, emergency procedure
+    ja: 気管挿管（救急）
+  '31622':
+    en: Bronchoscopy, rigid or flexible, diagnostic
+    ja: 気管支鏡検査
+  '32551':
+    en: Tube thoracostomy
+    ja: 胸腔ドレーン挿入
+  '32555':
+    en: Thoracentesis, needle or catheter, aspiration of the pleural space
+    ja: 胸腔穿刺（針またはカテーテル）
+  '36430':
+    en: Transfusion, blood or blood components
+    ja: 輸血
+  '36556':
+    en: Insertion of non-tunneled centrally inserted central venous catheter; age 5 years or older
+    ja: 中心静脈カテーテル挿入（5歳以上）
+  '36620':
+    en: Arterial catheterization or cannulation for sampling, monitoring or transfusion; percutaneous
+    ja: 動脈ライン挿入
+  '43752':
+    en: Naso- or oro-gastric tube placement
+    ja: 経鼻・経口胃管挿入
+  '44970':
+    en: Laparoscopy, surgical, appendectomy
+    ja: 腹腔鏡下虫垂切除術
+  '47562':
+    en: Laparoscopy, surgical; cholecystectomy
+    ja: 腹腔鏡下胆嚢摘出術
+  '49083':
+    en: Abdominal paracentesis
+    ja: 腹腔穿刺
+  '51702':
+    en: Insertion of temporary indwelling bladder catheter; simple
+    ja: 一時的膀胱カテーテル挿入
+  '62270':
+    en: Spinal puncture, lumbar, diagnostic
+    ja: 腰椎穿刺（診断目的）
+  '70450':
+    en: Computed tomography, head or brain; without contrast material
+    ja: 頭部CT（造影なし）
+  '71045':
+    en: Radiologic examination, chest; single view
+    ja: 胸部X線（1方向）
+  '71046':
+    en: Radiologic examination, chest; 2 views
+    ja: 胸部X線（2方向）
+  '74176':
+    en: Computed tomography, abdomen and pelvis; without contrast material
+    ja: 腹部・骨盤CT（造影なし）
+  '90935':
+    en: Hemodialysis procedure with single evaluation by a physician
+    ja: 血液透析（医師による1回評価）
+  '92960':
+    en: Cardioversion, elective, electrical
+    ja: 電気的カルジオバージョン（待機的）
+  '93306':
+    en: Echocardiography, transthoracic, real-time with image documentation
+    ja: 経胸壁心エコー
+  '97597':
+    en: Debridement of skin, subcutaneous tissue, muscle and/or fascia, open wound
+    ja: 創傷デブリードマン

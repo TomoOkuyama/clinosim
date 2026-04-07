@@ -43,8 +43,8 @@ def test_patient_profile():
 @pytest.fixture
 def test_conditions():
     return [
-        ChronicCondition(code="I10", name="Hypertension", severity_score=0.2),
-        ChronicCondition(code="E11.9", name="Type 2 DM", severity_score=0.2),
+        ChronicCondition(code="I10", severity_score=0.2),
+        ChronicCondition(code="E11.9", severity_score=0.2),
     ]
 
 
@@ -75,7 +75,7 @@ class TestInitializeState:
 
     def test_ckd_reduces_renal(self):
         profile = PatientPhysiologicalProfile(renal_reserve=0.80)
-        ckd = [ChronicCondition(code="N18.3", name="CKD stage 3", severity_score=0.5)]
+        ckd = [ChronicCondition(code="N18.3", severity_score=0.5)]
         state = initialize_state(profile, ckd)
         assert state.renal_function < 0.70  # reduced by CKD
 

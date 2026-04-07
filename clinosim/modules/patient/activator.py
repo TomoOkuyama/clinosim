@@ -20,6 +20,42 @@ from clinosim.types.patient import (
     PatientProfile,
 )
 
+def _generate_stage(code: str, severity: str, rng: np.random.Generator) -> str:
+    """Generate clinical staging text for a chronic condition by ICD code."""
+    base = code.split(".")[0]
+    if base == "N18":  # CKD
+        # Distribute G1-G5 with most patients in G2-G3
+        stages = ["G1", "G2", "G3a", "G3b", "G4", "G5"]
+        weights = [0.05, 0.30, 0.30, 0.20, 0.10, 0.05]
+        return f"CKD {str(rng.choice(stages, p=weights))}"
+    if base == "I50":  # Heart failure
+        nyha = ["I", "II", "III", "IV"]
+        if severity == "mild":
+            weights = [0.30, 0.50, 0.15, 0.05]
+        else:
+            weights = [0.10, 0.30, 0.40, 0.20]
+        return f"NYHA {str(rng.choice(nyha, p=weights))}"
+    if base in ("E11", "E10"):  # Diabetes
+        if severity == "mild":
+            hba1c = float(rng.uniform(6.5, 7.5))
+        else:
+            hba1c = float(rng.uniform(7.5, 9.5))
+        return f"HbA1c {hba1c:.1f}%"
+    if base == "J44":  # COPD (GOLD)
+        gold = ["GOLD 1", "GOLD 2", "GOLD 3", "GOLD 4"]
+        weights = [0.20, 0.40, 0.30, 0.10]
+        return str(rng.choice(gold, p=weights))
+    if base == "J45":  # Asthma
+        levels = ["Mild intermittent", "Mild persistent", "Moderate persistent", "Severe persistent"]
+        weights = [0.30, 0.35, 0.25, 0.10]
+        return str(rng.choice(levels, p=weights))
+    if base == "I10":  # Hypertension
+        return f"Stage {str(rng.choice(['1', '2'], p=[0.6, 0.4]))}"
+    if base == "I25":  # Ischemic heart disease (CCS class)
+        return f"CCS {str(rng.choice(['I', 'II', 'III'], p=[0.4, 0.4, 0.2]))}"
+    return ""
+
+
 CONDITION_NAMES = {
     "I10": "Essential hypertension",
     "E11.9": "Type 2 diabetes mellitus",
@@ -114,13 +150,21 @@ def activate_patient(
     # Chronic conditions (expand from ICD codes)
     conditions = []
     for code in person.chronic_conditions:
+        # Random onset year (1-15 yrs ago) and random month/day
+        onset_year = max(1950, 2024 - int(rng.integers(1, 15)))
+        onset_month = int(rng.integers(1, 13))
+        onset_day = int(rng.integers(1, 29))
+        sev = "mild" if rng.random() < 0.6 else "moderate"
+        # Stage by ICD code
+        stage = _generate_stage(code, sev, rng)
         conditions.append(ChronicCondition(
             code=code,
-            name=CONDITION_NAMES.get(code, code),
-            onset_date=date(max(1950, 2024 - int(rng.integers(1, 15))), 1, 1),
-            severity="mild" if rng.random() < 0.6 else "moderate",
+            system="icd-10-cm",
+            onset_date=date(onset_year, onset_month, onset_day),
+            severity=sev,
             controlled=rng.random() < 0.7,
             severity_score=float(rng.uniform(0.1, 0.4)),
+            stage=stage,
         ))
 
     # Allergies (~15% have at least one)
@@ -185,11 +229,45 @@ def activate_patient(
     )
     phone_mobile = getattr(person, "phone_mobile", "")
     phone_home = getattr(person, "phone_home", "")
+
+    # Emergency contact: typically spouse for married, or child/sibling for elderly
+    emergency_name = ""
+    emergency_phone = ""
+    emergency_rel = ""
+    if age >= 18:
+        # Reuse home phone as a household contact for spouse/family
+        emergency_phone = phone_home or phone_mobile
+        if age >= 75:
+            emergency_rel = str(rng.choice(["child", "spouse", "sibling"], p=[0.6, 0.25, 0.15]))
+        else:
+            emergency_rel = str(rng.choice(["spouse", "parent", "sibling", "child"],
+                                            p=[0.55, 0.20, 0.15, 0.10]))
+        # Generic emergency contact name (not generating full names to keep simple)
+        emergency_name = f"{name.family_name} family" if country == "US" else f"{name.family_name}家"
+
     contact = ContactInfo(
         phone_home=phone_home,
         phone_mobile=phone_mobile,
         phone_primary=phone_mobile if phone_mobile else phone_home,
+        emergency_contact_name=emergency_name,
+        emergency_contact_phone=emergency_phone,
+        emergency_contact_relationship=emergency_rel,
     )
+
+    # Marital status (HL7 v3-MaritalStatus codes)
+    if age < 18:
+        marital_status = "S"  # Never married
+    elif age < 30:
+        marital_status = str(rng.choice(["S", "M"], p=[0.65, 0.35]))
+    elif age < 50:
+        marital_status = str(rng.choice(["S", "M", "D"], p=[0.20, 0.70, 0.10]))
+    elif age < 70:
+        marital_status = str(rng.choice(["M", "D", "W", "S"], p=[0.65, 0.15, 0.10, 0.10]))
+    else:
+        marital_status = str(rng.choice(["M", "W", "D", "S"], p=[0.50, 0.35, 0.10, 0.05]))
+
+    # Preferred language (BCP-47)
+    preferred_language = "ja-JP" if country == "JP" else "en-US"
 
     return PatientProfile(
         patient_id=person.person_id,
@@ -204,6 +282,8 @@ def activate_patient(
         bmi=round(bmi, 1),
         address=address,
         contact=contact,
+        marital_status=marital_status,
+        preferred_language=preferred_language,
         employment_status="retired" if age >= 65 else "employed",
         insurance_type="late_elderly" if age >= 75 else "NHI_employee",
         health_literacy=round(float(rng.normal(0.6, 0.15)), 2),

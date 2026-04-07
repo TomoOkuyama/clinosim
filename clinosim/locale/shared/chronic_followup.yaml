@@ -2,7 +2,9 @@
 # Defines what happens at routine clinic visits for each chronic condition
 
 I10:  # Hypertension
-  visit_reason: "Blood pressure management, medication review"
+  visit_reason:
+    en: "Blood pressure management, medication review"
+    ja: "血圧管理・処方薬の見直し"
   follow_up_interval_months: 1
   labs: []
   labs_annual: [Creatinine, K, Na]
@@ -11,7 +13,9 @@ I10:  # Hypertension
   visit_duration_minutes: 15
 
 E11.9:  # Type 2 Diabetes
-  visit_reason: "Diabetes management, glycemic control review"
+  visit_reason:
+    en: "Diabetes management, glycemic control review"
+    ja: "糖尿病管理・血糖コントロールの確認"
   follow_up_interval_months: 2
   labs: [Glucose]
   labs_quarterly: [HbA1c, Creatinine]
@@ -20,7 +24,9 @@ E11.9:  # Type 2 Diabetes
   visit_duration_minutes: 20
 
 E78:  # Dyslipidemia
-  visit_reason: "Lipid management, statin therapy monitoring"
+  visit_reason:
+    en: "Lipid management, statin therapy monitoring"
+    ja: "脂質管理・スタチン療法のモニタリング"
   follow_up_interval_months: 3
   labs: []
   labs_quarterly: [AST, ALT]
@@ -30,7 +36,9 @@ E78:  # Dyslipidemia
   visit_duration_minutes: 10
 
 J44:  # COPD
-  visit_reason: "COPD management, pulmonary function review"
+  visit_reason:
+    en: "COPD management, pulmonary function review"
+    ja: "COPD管理・呼吸機能の評価"
   follow_up_interval_months: 2
   labs: []
   labs_annual: [CRP, Hb]
@@ -39,7 +47,9 @@ J44:  # COPD
   visit_duration_minutes: 20
 
 N18:  # CKD
-  visit_reason: "Renal function monitoring, electrolyte check"
+  visit_reason:
+    en: "Renal function monitoring, electrolyte check"
+    ja: "腎機能モニタリング・電解質チェック"
   follow_up_interval_months: 1
   labs: [Creatinine, K, Na, BUN]
   labs_quarterly: [Hb, Ca, eGFR]
@@ -48,7 +58,9 @@ N18:  # CKD
   visit_duration_minutes: 20
 
 I50:  # Heart failure
-  visit_reason: "Heart failure management, volume status assessment"
+  visit_reason:
+    en: "Heart failure management, volume status assessment"
+    ja: "心不全管理・体液量の評価"
   follow_up_interval_months: 1
   labs: [BNP]
   labs_quarterly: [Creatinine, K, Na]
@@ -57,7 +69,9 @@ I50:  # Heart failure
   visit_duration_minutes: 20
 
 I48:  # Atrial fibrillation
-  visit_reason: "Anticoagulation management, INR check"
+  visit_reason:
+    en: "Anticoagulation management, INR check"
+    ja: "抗凝固療法管理・INR確認"
   follow_up_interval_months: 2
   labs: [PT_INR]
   vitals: [systolic_bp, heart_rate]
@@ -65,7 +79,9 @@ I48:  # Atrial fibrillation
   visit_duration_minutes: 15
 
 I25:  # Ischemic heart disease
-  visit_reason: "Coronary artery disease follow-up, cardiac risk management"
+  visit_reason:
+    en: "Coronary artery disease follow-up, cardiac risk management"
+    ja: "冠動脈疾患フォローアップ・心血管リスク管理"
   follow_up_interval_months: 2
   labs: []
   labs_annual: [Creatinine, Glucose, LDL]
@@ -74,7 +90,9 @@ I25:  # Ischemic heart disease
   visit_duration_minutes: 15
 
 E03:  # Hypothyroidism
-  visit_reason: "Thyroid function monitoring, levothyroxine dose adjustment"
+  visit_reason:
+    en: "Thyroid function monitoring, levothyroxine dose adjustment"
+    ja: "甲状腺機能モニタリング・レボチロキシン用量調整"
   follow_up_interval_months: 3
   labs: []
   labs_quarterly: [TSH]
@@ -83,7 +101,9 @@ E03:  # Hypothyroidism
   visit_duration_minutes: 10
 
 M81:  # Osteoporosis
-  visit_reason: "Bone health follow-up, fracture risk assessment"
+  visit_reason:
+    en: "Bone health follow-up, fracture risk assessment"
+    ja: "骨粗鬆症フォローアップ・骨折リスク評価"
   follow_up_interval_months: 6
   labs: []
   labs_annual: [Ca]
@@ -92,7 +112,9 @@ M81:  # Osteoporosis
   visit_duration_minutes: 10
 
 F00:  # Dementia
-  visit_reason: "Cognitive status assessment, caregiver support"
+  visit_reason:
+    en: "Cognitive status assessment, caregiver support"
+    ja: "認知機能評価・介護者支援"
   follow_up_interval_months: 3
   labs: []
   vitals: [systolic_bp, heart_rate]
@@ -100,7 +122,9 @@ F00:  # Dementia
   visit_duration_minutes: 20
 
 G20:  # Parkinson's disease
-  visit_reason: "Motor function assessment, medication titration"
+  visit_reason:
+    en: "Motor function assessment, medication titration"
+    ja: "運動機能評価・薬物用量調整"
   follow_up_interval_months: 2
   labs: []
   vitals: [systolic_bp, heart_rate]
@@ -116,62 +140,102 @@ _post_discharge:
 
 _post_discharge_by_disease:
   bacterial_pneumonia:
-    visit_reason: "Post-pneumonia follow-up, CRP check, chest X-ray review"
+    visit_reason:
+      en: "Post-pneumonia follow-up, CRP check, chest X-ray review"
+      ja: "肺炎退院後フォローアップ・CRP確認・胸部X線評価"
     labs: [CRP, WBC]
   heart_failure_exacerbation:
-    visit_reason: "Post-HF discharge, volume status, BNP, weight check"
+    visit_reason:
+      en: "Post-HF discharge, volume status, BNP, weight check"
+      ja: "心不全退院後フォローアップ・体液量評価・BNP・体重確認"
     labs: [BNP, Creatinine, K]
   hip_fracture:
-    visit_reason: "Post-surgical follow-up, wound check, mobility assessment"
+    visit_reason:
+      en: "Post-surgical follow-up, wound check, mobility assessment"
+      ja: "術後フォローアップ・創部確認・歩行機能評価"
     labs: [CRP, Hb]
   urinary_tract_infection:
-    visit_reason: "Post-UTI follow-up, urine culture result, symptom resolution"
+    visit_reason:
+      en: "Post-UTI follow-up, urine culture result, symptom resolution"
+      ja: "尿路感染症退院後フォローアップ・尿培養結果確認・症状消退確認"
     labs: [CRP, WBC]
   copd_exacerbation:
-    visit_reason: "Post-COPD exacerbation, pulmonary function, inhaler technique"
+    visit_reason:
+      en: "Post-COPD exacerbation, pulmonary function, inhaler technique"
+      ja: "COPD増悪後フォローアップ・呼吸機能評価・吸入手技確認"
     labs: [CRP]
   sepsis:
-    visit_reason: "Post-sepsis recovery, organ function assessment, lab normalization"
+    visit_reason:
+      en: "Post-sepsis recovery, organ function assessment, lab normalization"
+      ja: "敗血症回復後フォローアップ・臓器機能評価・検査値正常化確認"
     labs: [CRP, WBC, Creatinine, AST, ALT, Plt]
   cerebral_infarction:
-    visit_reason: "Post-stroke follow-up, neurological assessment, secondary prevention"
+    visit_reason:
+      en: "Post-stroke follow-up, neurological assessment, secondary prevention"
+      ja: "脳梗塞退院後フォローアップ・神経学的評価・二次予防"
     labs: [PT_INR, Creatinine]
   acute_mi:
-    visit_reason: "Post-MI cardiac rehabilitation, medication optimization"
+    visit_reason:
+      en: "Post-MI cardiac rehabilitation, medication optimization"
+      ja: "心筋梗塞後心臓リハビリ・薬物療法最適化"
     labs: [Creatinine, BNP]
   gi_bleeding:
-    visit_reason: "Post-GI bleed follow-up, hemoglobin check, endoscopy results"
+    visit_reason:
+      en: "Post-GI bleed follow-up, hemoglobin check, endoscopy results"
+      ja: "消化管出血退院後フォローアップ・ヘモグロビン確認・内視鏡結果確認"
     labs: [Hb, CRP]
   diabetic_ketoacidosis:
-    visit_reason: "Post-DKA follow-up, insulin regimen review, HbA1c"
+    visit_reason:
+      en: "Post-DKA follow-up, insulin regimen review, HbA1c"
+      ja: "DKA退院後フォローアップ・インスリン療法確認・HbA1c"
     labs: [Glucose, HbA1c, K]
   acute_kidney_injury:
-    visit_reason: "Post-AKI renal recovery monitoring, creatinine trend"
+    visit_reason:
+      en: "Post-AKI renal recovery monitoring, creatinine trend"
+      ja: "急性腎障害回復後モニタリング・クレアチニン推移確認"
     labs: [Creatinine, K, Na, BUN]
   liver_cirrhosis_decompensated:
-    visit_reason: "Cirrhosis management, ascites assessment, hepatic function"
+    visit_reason:
+      en: "Cirrhosis management, ascites assessment, hepatic function"
+      ja: "肝硬変管理・腹水評価・肝機能確認"
     labs: [Albumin, AST, ALT, PT_INR]
   acute_pancreatitis:
-    visit_reason: "Post-pancreatitis follow-up, amylase/lipase, dietary counseling"
+    visit_reason:
+      en: "Post-pancreatitis follow-up, amylase/lipase, dietary counseling"
+      ja: "膵炎退院後フォローアップ・アミラーゼ/リパーゼ確認・食事指導"
     labs: [CRP, Creatinine]
   pulmonary_embolism:
-    visit_reason: "Anticoagulation monitoring, INR/DOAC level, symptom assessment"
+    visit_reason:
+      en: "Anticoagulation monitoring, INR/DOAC level, symptom assessment"
+      ja: "抗凝固療法モニタリング・INR/DOAC濃度・症状評価"
     labs: [PT_INR]
   cellulitis:
-    visit_reason: "Post-cellulitis follow-up, wound healing assessment"
+    visit_reason:
+      en: "Post-cellulitis follow-up, wound healing assessment"
+      ja: "蜂窩織炎退院後フォローアップ・創傷治癒評価"
     labs: [CRP, WBC]
   aspiration_pneumonia:
-    visit_reason: "Post-aspiration pneumonia, swallowing evaluation, CRP check"
+    visit_reason:
+      en: "Post-aspiration pneumonia, swallowing evaluation, CRP check"
+      ja: "誤嚥性肺炎退院後フォローアップ・嚥下機能評価・CRP確認"
     labs: [CRP, WBC]
   atrial_fibrillation_rvr:
-    visit_reason: "Rate control assessment, ECG, anticoagulation review"
+    visit_reason:
+      en: "Rate control assessment, ECG, anticoagulation review"
+      ja: "心拍数コントロール評価・心電図・抗凝固療法確認"
     labs: [PT_INR]
   ileus:
-    visit_reason: "Post-ileus follow-up, bowel function, dietary progression"
+    visit_reason:
+      en: "Post-ileus follow-up, bowel function, dietary progression"
+      ja: "イレウス退院後フォローアップ・腸管機能確認・食事進行"
     labs: [CRP]
   acute_appendicitis:
-    visit_reason: "Post-appendectomy wound check, recovery assessment"
+    visit_reason:
+      en: "Post-appendectomy wound check, recovery assessment"
+      ja: "虫垂切除術後創部確認・回復評価"
     labs: []
   acute_cholecystitis:
-    visit_reason: "Post-cholecystectomy follow-up, wound healing"
+    visit_reason:
+      en: "Post-cholecystectomy follow-up, wound healing"
+      ja: "胆嚢摘出術後フォローアップ・創傷治癒確認"
     labs: []
