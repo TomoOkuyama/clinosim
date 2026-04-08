@@ -60,7 +60,7 @@ Primary use cases:
 ## Installation
 
 ```bash
-git clone https://github.com/your-org/clinosim.git
+git clone https://github.com/TomoOkuyama/clinosim.git
 cd clinosim
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
@@ -768,7 +768,7 @@ clinosim generates entirely **synthetic** data. No real patient information is u
 Contributions are welcome, especially from clinicians who can review the realism of disease modules and physiological mappings.
 
 ```bash
-git clone https://github.com/your-org/clinosim.git
+git clone https://github.com/TomoOkuyama/clinosim.git
 cd clinosim
 python -m venv .venv
 source .venv/bin/activate
@@ -799,7 +799,7 @@ Code system data follows the original registry's license:
 @software{clinosim,
   title  = {clinosim: Clinically Realistic Hospital Data Simulator},
   year   = {2026},
-  url    = {https://github.com/your-org/clinosim}
+  url    = {https://github.com/TomoOkuyama/clinosim}
 }
 ```
 
