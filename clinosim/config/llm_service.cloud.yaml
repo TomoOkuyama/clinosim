@@ -2,20 +2,13 @@
 #
 # Setup: export ANTHROPIC_API_KEY=sk-ant-...
 # Higher quality output but requires API key and incurs cost.
-
-judgment:
-  mode: "llm"
-  provider: "anthropic_direct"
-  anthropic_direct:
-    api_key_env: "ANTHROPIC_API_KEY"
-  model_map:
-    small: "claude-haiku-4-5-20251001"
-    medium: "claude-haiku-4-5-20251001"
-    large: "claude-sonnet-4-6-20250514"
-  timeout_seconds: 30
-  retry_attempts: 3
-  max_tokens_per_run: 2000000
-  fallback_on_budget_exceeded: "template"
+#
+# Document types (5 required per LOINC specification):
+#   - 34117-2: Admission H&P (all admissions)
+#   - 18842-5: Discharge Summary (all discharges)
+#   - 11504-8: Operative Note (surgeries)
+#   - 28570-0: Procedure Note (invasive bedside procedures)
+#   - 69730-0: Death Note (death discharges)
 
 narrative:
   mode: "llm"

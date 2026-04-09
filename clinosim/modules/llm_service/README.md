@@ -2,26 +2,31 @@
 
 ## 目的
 
-clinosim 内の **全 LLM 呼び出しの単一エントリポイント** を提供する (AD-11)。
+clinosim 内の **臨床文書ナラティブ生成の単一エントリポイント** を提供する (AD-11)。
 
-他のモジュール (encounter, diagnosis, observation, output 等) は LLM API を直接呼ばず、 必ず本サービス経由でテキスト生成を依頼する。 これにより:
+**5種類の必須文書のみ対応** (LOINC 準拠):
+- **34117-2**: Admission H&P (全入院)
+- **18842-5**: Discharge Summary (全退院)
+- **11504-8**: Operative Note (手術)
+- **28570-0**: Procedure Note (侵襲的 bedside 処置)
+- **69730-0**: Death Note (死亡退院)
 
-- LLM プロバイダ (Ollama, Anthropic, ローカルモック) を 1 箇所で切り替え可能
+他のモジュール (output 等) は LLM API を直接呼ばず、 必ず本サービス経由でテキスト生成を依頼する。 これにより:
+
+- LLM プロバイダ (Ollama, Bedrock, Anthropic) を 1 箇所で切り替え可能
 - プロンプトテンプレートが集中管理され、 監査・改善が容易
 - LLM 障害時の **自動 template フォールバック** で simulation を止めない
 - コスト/トークン使用量を集中計測
-- JUDGMENT (診断推論) と NARRATIVE (記録生成) を独立したプロバイダ・モデルで運用可能 (AD-24)
 
 ## 設計原則
 
 | # | 原則 | 説明 |
 |---|---|---|
-| 1 | **Single point of LLM access (AD-11)** | 他モジュールから LLM SDK (`anthropic`, `httpx` 等) を直接 import しない |
+| 1 | **Single point of LLM access (AD-11)** | 他モジュールから LLM SDK (`anthropic`, `boto3` 等) を直接 import しない |
 | 2 | **Modules never write prompts** | 呼び出し側は構造化された `ClinicalEventData` を渡すのみ。 プロンプト構築は本モジュール内で行う |
 | 3 | **Mode hierarchy** | `none` < `template` < `llm`。 LLM 失敗時は自動的に template にフォールバック |
-| 4 | **Category-aware routing (AD-24)** | JUDGMENT / NARRATIVE で別 provider・別モデル可能 |
-| 5 | **JUDGMENT は常に英語** | 言語設定に関わらず、 診断推論は英語で行う (medical literature の標準) |
-| 6 | **Deterministic-friendly** | mode=`none`/`template` ではネットワーク呼び出しゼロ → 完全再現可能 |
+| 4 | **5 document types only** | LOINC 準拠の5種類のみ生成。経過記録・看護記録等は含まない（トークン削減） |
+| 5 | **Deterministic-friendly** | mode=`none`/`template` ではネットワーク呼び出しゼロ → 完全再現可能 |
 
 ## ディレクトリ構造
 
@@ -51,9 +56,7 @@ class LLMService:
     def __init__(
         self,
         mode: str = "none",
-        judgment_provider: Any = None,
         narrative_provider: Any = None,
-        judgment_model_map: dict[str, str] | None = None,
         narrative_model_map: dict[str, str] | None = None,
     ) -> None: ...
 
@@ -94,19 +97,15 @@ resp = llm.generate(LLMTaskType.PROGRESS_NOTE, ev)
 print(resp.text, resp.source)  # source: "llm" | "template" | "none"
 ```
 
-### `LLMTaskType` — タスク種別
+### `LLMTaskType` — タスク種別（5種類のみ）
 
-| Category | TaskType | 説明 |
-|---|---|---|
-| JUDGMENT | `DIAGNOSTIC_REASONING` | 鑑別診断・確信度の推論 (常に英語) |
-| JUDGMENT | `TREATMENT_DECISION` | 治療方針の意思決定 |
-| JUDGMENT | `CLINICAL_JUDGMENT` | 一般的な臨床判断 |
-| JUDGMENT | `CONSISTENCY_REVIEW` | データ整合性チェック |
-| NARRATIVE | `CHIEF_COMPLAINT` | 主訴の自然文化 |
-| NARRATIVE | `ADMISSION_HP` | 入院時 H&P |
-| NARRATIVE | `PROGRESS_NOTE` | SOAP 形式の経過記録 |
-| NARRATIVE | `DISCHARGE_SUMMARY` | 退院時サマリー |
-| NARRATIVE | `NURSING_NOTE` | 看護記録 |
+| LOINC | TaskType | 説明 | 生成条件 |
+|---|---|---|---|
+| 34117-2 | `ADMISSION_HP` | 入院時 H&P | 全入院 |
+| 18842-5 | `DISCHARGE_SUMMARY` | 退院時サマリー | 全退院 |
+| 11504-8 | `OPERATIVE_NOTE` | 手術記録 | 手術 (hip fracture 等) |
+| 28570-0 | `PROCEDURE_NOTE` | 処置記録 | 侵襲的 bedside 処置 (central line, intubation 等) |
+| 69730-0 | `DEATH_NOTE` | 死亡診断書 | 死亡退院 |
 
 ### `OllamaProvider`
 
@@ -137,6 +136,76 @@ provider = OllamaProvider({"endpoint": "http://localhost:11434",
 if provider.health_check():
     print("Available models:", provider.list_models())
 ```
+
+### `BedrockProvider`
+
+Amazon Bedrock 経由で Claude モデルを使用。 boto3 クライアントで Bedrock Runtime API を呼び出す。
+
+```python
+class BedrockProvider:
+    def __init__(self, config: dict[str, Any] | None = None) -> None: ...
+    def complete(
+        self, prompt: str, model: str | None = None,
+        max_tokens: int = 1000, system_prompt: str = "",
+    ) -> ProviderResponse: ...
+    def health_check(self) -> bool: ...
+```
+
+必要な依存:
+
+```bash
+pip install boto3
+```
+
+AWS 認証情報の設定 (いずれか):
+
+1. AWS CLI: `aws configure`
+2. 環境変数: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`
+3. IAM ロール (EC2/ECS で実行時)
+4. AWS プロファイル: config に `profile_name` 指定
+
+必要な IAM 権限:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": "bedrock:InvokeModel",
+    "Resource": "arn:aws:bedrock:*::foundation-model/anthropic.claude-*"
+  }]
+}
+```
+
+エラーハンドリング:
+
+- `ImportError` → `RuntimeError("boto3 is required...")` (boto3 未インストール)
+- `ValidationException` → `ValueError("Invalid request...")` (リクエスト不正)
+- `ModelNotReadyException` → `RuntimeError("Model not ready...")` (モデル未利用可能)
+- `ThrottlingException` → `RuntimeError("API throttling...")` (レート制限)
+
+```python
+from clinosim.modules.llm_service.providers import BedrockProvider
+
+provider = BedrockProvider({
+    "region": "us-east-1",
+    "model": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+    # "profile_name": "default"  # optional
+})
+
+if provider.health_check():
+    resp = provider.complete("Write a brief chief complaint.", max_tokens=200)
+    print(resp.text)
+```
+
+対応モデル (2026年4月時点):
+
+| Model ID | 名称 | 用途 |
+|---|---|---|
+| `anthropic.claude-3-5-sonnet-20241022-v2:0` | Claude 3.5 Sonnet v2 | 推奨 (最新) |
+| `anthropic.claude-3-opus-20240229-v1:0` | Claude 3 Opus | 最高品質 |
+| `anthropic.claude-3-sonnet-20240229-v1:0` | Claude 3 Sonnet | バランス型 |
+| `anthropic.claude-3-haiku-20240307-v1:0` | Claude 3 Haiku | 高速・低コスト |
 
 ### `MockProvider`
 
@@ -263,20 +332,38 @@ print(llm.cost_report())
 #  'total_output_tokens': 2100, 'fallback_count': 0}
 ```
 
-### JUDGMENT/NARRATIVE で異なる provider (AD-24)
+### Bedrock で高品質な narrative 生成
 
 ```python
-# 高品質モデルで診断推論、 ローカル軽量モデルで記録生成
+from clinosim.modules.llm_service.providers import BedrockProvider
+
 llm = LLMService(
     mode="llm",
-    judgment_provider=anthropic_provider,         # Claude for reasoning
-    judgment_model_map={"medium": "claude-3-5-sonnet"},
-    narrative_provider=OllamaProvider(),          # local Llama for notes
-    narrative_model_map={"medium": "llama3.1:8b"},
+    narrative_provider=BedrockProvider({
+        "region": "us-east-1",
+        "model": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+    }),
+    narrative_model_map={"medium": "anthropic.claude-3-5-sonnet-20241022-v2:0"},
 )
+
+# 手術記録生成
+event = ClinicalEventData(
+    patient_summary=patient,
+    event_data={
+        "procedure_type": "ORIF",
+        "anesthesia_type": "general",
+        "duration_minutes": 120,
+        "estimated_blood_loss_ml": 450,
+    },
+    language="ja",
+)
+response = llm.generate(LLMTaskType.OPERATIVE_NOTE, event)
+print(response.text)  # Bedrock Claude で生成された手術記録
 ```
 
-## セットアップ — Ollama (デフォルト)
+## セットアップ
+
+### オプション1: Ollama (デフォルト・ローカル)
 
 ```bash
 # macOS
@@ -292,13 +379,52 @@ ollama serve
 ollama pull llama3.1:8b
 ```
 
-設定ファイル: `clinosim/config/llm_service.yaml` (デフォルト・local Ollama)、 `clinosim/config/llm_service.cloud.yaml` (Anthropic 直接呼び出し設定例、 `ANTHROPIC_API_KEY` が必要)。
+設定ファイル: `clinosim/config/llm_service.yaml`
+
+### オプション2: Amazon Bedrock (推奨・本番環境)
+
+```bash
+# boto3 インストール
+pip install boto3
+
+# AWS 認証設定 (いずれか)
+aws configure                     # 対話式設定
+# または環境変数
+export AWS_ACCESS_KEY_ID=AKIA...
+export AWS_SECRET_ACCESS_KEY=...
+export AWS_REGION=us-east-1
+```
+
+設定ファイル: `clinosim/config/llm_service.bedrock.yaml`
+
+IAM ポリシー例:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": "bedrock:InvokeModel",
+    "Resource": "arn:aws:bedrock:*::foundation-model/anthropic.claude-*"
+  }]
+}
+```
+
+利用可能リージョン: `us-east-1`, `us-west-2`, `ap-northeast-1` (東京), `eu-west-3` 等。 詳細は [Bedrock ドキュメント](https://docs.aws.amazon.com/bedrock/)。
+
+### オプション3: Anthropic API 直接
+
+設定ファイル: `clinosim/config/llm_service.cloud.yaml` (要 `ANTHROPIC_API_KEY` 環境変数)
 
 ## 依存関係
 
-- `httpx` — HTTP クライアント (Ollama 通信)
-- `numpy` (間接、 simulation 全般)
-- 外部依存ゼロでテスト可能 (`MockProvider` 使用時)
+| 依存 | 用途 | 必須? |
+|---|---|---|
+| `httpx` | Ollama 通信 | Ollama 使用時 |
+| `boto3` | Amazon Bedrock 通信 | Bedrock 使用時 |
+| `numpy` | 間接 (simulation 全般) | 常時 |
+
+外部依存ゼロでテスト可能 (`MockProvider` 使用時)。
 
 本モジュールは clinosim の他モジュールに **依存しない**。 逆に他モジュール (output/narrative_generator, encounter 等) が本モジュールに依存する。
 
@@ -310,9 +436,22 @@ ollama pull llama3.1:8b
 | Anthropic API | [docs.anthropic.com](https://docs.anthropic.com/) |
 | llama.cpp / GGUF | [llama.cpp](https://github.com/ggerganov/llama.cpp) |
 
+## トークン消費見積もり（日本語出力の場合）
+
+| Document Type | 平均 Input | 平均 Output | 合計 | 頻度（60k catchment, 1年） |
+|---|---|---|---|---|
+| Admission H&P | ~800 | ~2,500 | ~3,300 | 171 |
+| Discharge Summary | ~1,200 | ~3,500 | ~4,700 | 171 |
+| Operative Note | ~600 | ~2,000 | ~2,600 | 11 |
+| Procedure Note | ~400 | ~1,000 | ~1,400 | 19 |
+| Death Note | ~300 | ~800 | ~1,100 | 2 |
+| **合計** | | | **~1.8M tokens** | **374 documents** |
+
+経過記録・看護記録を含めると **50倍以上** になるため、5種類のみに限定。
+
 ## 既知の制約・今後
 
-- v0.1-beta 時点で **JUDGMENT カテゴリは未配線** — diagnosis モジュールから呼ばれる経路は実装途中
-- AnthropicProvider クラスは `providers.py` に未実装 (config だけ存在)
-- プロンプトキャッシュ・レスポンスキャッシュ未実装
+- プロンプトキャッシュ未実装（Bedrock Prompt Caching 対応は v0.2 予定）
+- レスポンスキャッシュ未実装
 - ストリーミング非対応 (1 リクエスト = 1 完全レスポンス)
+- AnthropicProvider (直接API) は未実装 (Bedrock 経由を推奨)
