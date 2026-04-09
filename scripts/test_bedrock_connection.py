@@ -10,7 +10,7 @@ Run this first on any new environment to verify:
 Usage:
     python scripts/test_bedrock_connection.py
     python scripts/test_bedrock_connection.py --region us-east-1
-    python scripts/test_bedrock_connection.py --model anthropic.claude-3-5-sonnet-20241022-v2:0
+    python scripts/test_bedrock_connection.py --model anthropic.claude-sonnet-4-20250514-v1:0
 
 Exit codes:
     0 = all checks passed
@@ -33,7 +33,7 @@ def main() -> int:
     parser.add_argument("--profile", default=None, help="AWS profile name")
     parser.add_argument(
         "--model",
-        default="anthropic.claude-3-5-sonnet-20241022-v2:0",
+        default="anthropic.claude-sonnet-4-20250514-v1:0",
         help="Bedrock model ID to test",
     )
     args = parser.parse_args()
