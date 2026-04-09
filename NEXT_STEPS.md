@@ -30,49 +30,49 @@
 - Outlined implementation phases: extraction → validation → integration
 - **Critical**: Narratives must reflect ACTUAL CIF outcomes, not hallucinated data
 
+✅ **Narrative Module Implementation (Phase 2)**
+- Created complete `clinosim/modules/narrative/` module
+- Implemented CIF data extraction for all 5 narrative types
+- Implemented prompt building with real CIF data (no more mock data)
+- Implemented orchestration engine (identify → extract → generate → store)
+- All extraction functions working with real CIF data for admission/discharge/death
+- Operative/procedure notes partial (need CIF enhancement)
+- Integration test passing: `test_narrative_module.py`
+- Git commit: `418b3f3`
+
 ## Immediate Next Steps (v0.1 Completion)
 
-### 1. Implement CIF Data Extraction Module ⏳ **HIGHEST PRIORITY**
+### 1. Implement CIF Data Extraction Module ✅ **COMPLETED (2026-04-09)**
 
-**Status**: Design complete, implementation not started  
-**Why first**: Current prompts contain minimal data (age, sex, diagnosis only) leading to hallucinated vitals/labs. Must extract real CIF data first before pipeline integration.
+**Status**: **Phase 2 implementation complete**  
+**Git commit**: `418b3f3` - "feat(narrative): Implement CIF extraction and prompt building module"
 
-**Files to create**:
-- `clinosim/modules/narrative/` (new module)
-- `clinosim/modules/narrative/__init__.py`
-- `clinosim/modules/narrative/cif_extractor.py` - Extract data from CIF+Protocol+Scenario
-- `clinosim/modules/narrative/validator.py` - Validate narrative-CIF consistency
+**Files created**:
+- ✅ `clinosim/modules/narrative/__init__.py` - Module exports
+- ✅ `clinosim/modules/narrative/cif_extractor.py` - Extract data from CIF for all 5 types
+- ✅ `clinosim/modules/narrative/prompt_builder.py` - Build prompts from extracted data
+- ✅ `clinosim/modules/narrative/engine.py` - Orchestrate generation flow
+- ✅ `clinosim/modules/narrative/README.md` - Complete module documentation
 
-**Implementation**:
-```python
-# cif_extractor.py
-def extract_admission_hp_data(
-    cif_record: CIFPatientRecord,
-    disease_protocol: dict,
-    encounter_scenario: dict = None
-) -> dict:
-    """Extract all data needed for Admission H&P narrative."""
-    # 1. Extract CIF vitals (AFTER admission)
-    # 2. Extract CIF labs (AFTER admission, within 4h)
-    # 3. Load disease protocol YAML
-    # 4. Load encounter scenario YAML (if ED/outpatient)
-    # 5. Resolve all codes to English via codes.lookup()
-    # 6. Return dict with complete prompt data
-```
-
-**Functions to implement**:
-- `extract_admission_hp_data()` - Admission vitals, labs, PMH
-- `extract_discharge_summary_data()` - BEFORE/AFTER comparison, key events
-- `extract_operative_note_data()` - Procedure details, intraop findings
-- `extract_procedure_note_data()` - Procedure details, peri-procedure vitals
-- `extract_death_note_data()` - Death circumstances, cause
-
-**See**: `NARRATIVE_CIF_MAPPING.md` for complete data requirements
+**Functions implemented**:
+- ✅ `extract_admission_hp_data()` - Admission vitals, labs, diagnosis (working with real CIF)
+- ✅ `extract_discharge_summary_data()` - Full admission/discharge data (working with real CIF)
+- ✅ `extract_operative_note_data()` - Procedure data (partial, needs CIF enhancement)
+- ✅ `extract_procedure_note_data()` - Procedure data (partial, needs CIF enhancement)
+- ✅ `extract_death_note_data()` - Death circumstances, cause (working with real CIF)
+- ✅ `identify_narratives_needed()` - Scan CIF and determine needed narratives
+- ✅ `generate_all_narratives()` - Complete orchestration flow
+- ✅ `build_prompt()` - Build prompts with concise instructions
 
 **Testing**:
-- Unit tests with mock CIF data
-- Integration tests with real disease protocol YAMLs
-- Verify no hallucinated data in extracted dicts
+- ✅ Integration test passes: `test_narrative_module.py`
+- ✅ Verified with forced scenarios: `test_all_narratives.py`
+- ✅ Verified with real CIF data: `test_cif_narrative.py`
+
+**Remaining work**:
+- ⏳ Enhance procedure extraction (operative/procedure notes need more CIF data)
+- ⏳ Implement `validator.py` for narrative-CIF consistency checks
+- ⏳ Add unit tests for individual functions
 
 ---
 
