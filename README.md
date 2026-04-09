@@ -811,4 +811,6 @@ Code system data follows the original registry's license:
 - [DESIGN.md](DESIGN.md) — Detailed design document (architecture decisions, ADRs)
 - [TODO.md](TODO.md) — Development roadmap
 - [CLAUDE.md](CLAUDE.md) — Claude Code development guidelines
+- [BEDROCK_SETUP.md](BEDROCK_SETUP.md) — AWS Bedrock integration guide (narrative generation)
+- [NEXT_STEPS.md](NEXT_STEPS.md) — Next steps and handoff notes for development
 - Each module's `README.md` — Module-level API reference

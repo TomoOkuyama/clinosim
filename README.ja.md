@@ -809,4 +809,6 @@ MIT License. See [LICENSE](LICENSE) for details.
 - [DESIGN.md](DESIGN.md) — 詳細な設計ドキュメント (アーキテクチャ判定、 ADR)
 - [TODO.md](TODO.md) — 開発ロードマップ
 - [CLAUDE.md](CLAUDE.md) — Claude Code 開発ガイドライン
+- [BEDROCK_SETUP.md](BEDROCK_SETUP.md) — AWS Bedrock 統合ガイド (ナラティブ生成)
+- [NEXT_STEPS.md](NEXT_STEPS.md) — 次のステップと開発引き継ぎメモ
 - 各モジュール `README.md` — モジュール別 API リファレンス
