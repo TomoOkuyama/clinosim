@@ -52,4 +52,6 @@ user_template: |
 
   Outcome: ${outcome}
 
+  ${clinical_guidance}
+
   Write the complete procedure note.

@@ -101,6 +101,8 @@ class TestPromptRegistry:
                 "specimens_sent": [],
                 "intraop_complications": [],
                 "outcome": "Successful",
+                "preop_vitals": "T 36.8°C, HR 82, BP 130/75",
+                "clinical_guidance": "",
             }
         )
         assert "ORIF femur" in user
@@ -679,4 +681,7 @@ def _discharge_summary_variables() -> dict:
         "hospital_course_bullets": ["Day 0: admitted", "Day 7: discharged"],
         "procedures_performed": "(none)",
         "discharge_medications": ["Amoxicillin 500mg PO BID x 7 days"],
+        "lab_trends_summary": ["CRP: 5.2mg/L (day 0) → 180mg/L (day 2) → 12mg/L (day 7) [improving]"],
+        "treatment_timeline": ["Day 0: Started Ceftriaxone IV", "Day 5: Switched to Amoxicillin PO"],
+        "clinical_guidance": "",
     }

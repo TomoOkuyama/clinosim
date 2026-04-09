@@ -47,10 +47,18 @@ user_template: |
   Hospital course leading to death (chronological):
   ${hospital_course_bullets}
 
+  Laboratory trends (admission → peak → latest):
+  ${lab_trends_summary}
+
+  Treatment timeline:
+  ${treatment_timeline}
+
   Key findings at time of death:
   ${terminal_findings}
 
   Complications during admission:
   ${complications}
+
+  ${clinical_guidance}
 
   Write the complete death note.

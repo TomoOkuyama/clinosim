@@ -24,7 +24,11 @@ system: |
   Rules:
     - Use formal clinical language and standard medical abbreviations.
     - Only use facts provided in the input. Do not invent lab values,
-      procedures, or medications.
+      procedures, or medications not listed.
+    - A "[HIDDEN CLINICAL CONTEXT]" section may be provided. Use it to
+      ensure clinical accuracy (e.g. correct disease terminology, appropriate
+      severity language). This is a retrospective document so you may
+      reference the confirmed diagnosis and full outcome.
     - Keep the total length under 600 words.
     - Write in English.
 
@@ -51,10 +55,18 @@ user_template: |
   Hospital course (chronological events):
   ${hospital_course_bullets}
 
+  Laboratory trends (admission → peak → latest):
+  ${lab_trends_summary}
+
+  Treatment timeline:
+  ${treatment_timeline}
+
   Procedures performed:
   ${procedures_performed}
 
   Discharge medications:
   ${discharge_medications}
+
+  ${clinical_guidance}
 
   Write the complete discharge summary note.
