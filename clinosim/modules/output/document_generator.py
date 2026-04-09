@@ -736,7 +736,11 @@ def _allergies(patient: dict[str, Any]) -> list[str]:
 
 
 def _initial_labs(record: dict[str, Any]) -> list[str]:
-    """Return the earliest abnormal labs as a bullet list."""
+    """Return the earliest abnormal labs as a bullet list.
+
+    Checks both ``result.interpretation`` and ``result.flag`` since CIF
+    may populate either field depending on the observation module version.
+    """
     orders = record.get("orders") or []
     abnormal: list[str] = []
     for o in orders[:30]:  # only look at the first batch
@@ -745,8 +749,13 @@ def _initial_labs(record: dict[str, Any]) -> list[str]:
         result = o.get("result") or {}
         if not result:
             continue
-        flag = (result.get("interpretation") or "").upper()
-        if flag in ("H", "L", "HH", "LL", "ABNORMAL"):
+        # Check both interpretation and flag fields
+        flag = (
+            result.get("interpretation")
+            or result.get("flag")
+            or ""
+        ).upper()
+        if flag in ("H", "L", "HH", "LL", "HU", "LU", "ABNORMAL"):
             name = result.get("lab_name") or o.get("display_name", "")
             val = result.get("value", "")
             unit = result.get("unit", "")
