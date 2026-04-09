@@ -3,28 +3,14 @@
 # Default: local Ollama (no API key needed)
 # Setup: brew install ollama && ollama pull llama3.1:8b
 #
-# To use cloud APIs, copy this file, modify, and pass as --llm-config <path>
+# To use cloud APIs, see llm_service.bedrock.yaml or llm_service.cloud.yaml
 
-# JUDGMENT: used during simulation (Stage 1)
-# Affects structural data (diagnosis codes, drug selections, treatment decisions)
-judgment:
-  mode: "llm"               # "llm" | "template" | "none"
-  provider: "local"          # "local" | "bedrock_gateway" | "anthropic_direct" | "openai_compatible"
-  local:
-    endpoint: "http://localhost:11434"
-    model: "llama3.1:8b"
-  model_map:
-    small: "llama3.1:8b"
-    medium: "llama3.1:8b"
-    large: "llama3.1:8b"
-  timeout_seconds: 120
-  retry_attempts: 2
-  retry_backoff_seconds: 1
-  max_tokens_per_run: 2000000
-  fallback_on_budget_exceeded: "template"
-
-# NARRATIVE: used in Stage 2 (separate from simulation, re-runnable)
-# Affects text content only (H&P, progress notes, discharge summaries)
+# NARRATIVE: Document generation (5 required types per LOINC specification)
+#   - 34117-2: Admission H&P (all admissions)
+#   - 18842-5: Discharge Summary (all discharges)
+#   - 11504-8: Operative Note (surgeries)
+#   - 28570-0: Procedure Note (invasive bedside procedures)
+#   - 69730-0: Death Note (death discharges)
 narrative:
   mode: "llm"               # "llm" | "template" | "none"
   provider: "local"
