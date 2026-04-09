@@ -1,7 +1,7 @@
 ============================================================
   Bedrock Single-Patient Narrative Validation
   Patient: 56yo Female, hip fracture, hemiarthroplasty
-  Date: 2026-04-09 09:27:56 UTC
+  Date: 2026-04-09 09:31:02 UTC
 ============================================================
 
 <frozen runpy>:128: RuntimeWarning: 'clinosim.simulator.cli' found in sys.modules after import of package 'clinosim.simulator', but prior to execution of 'clinosim.simulator.cli'; this may result in unpredictable behaviour
@@ -12,17 +12,17 @@ clinosim narrate: loading LLM config clinosim/config/llm_service.bedrock.yaml
   Tasks:         all Tier A+B
 
   === Narrative Generation Summary ===
-  Version ID:       bedrock_validation_v2
+  Version ID:       bedrock_validation_v3
   Patients:         1
   Total documents:  3
     admission_hp         1
     discharge_summary    1
     operative_note       1
-  LLM calls:        2
-  LLM input tokens: 1,240
-  LLM output tokens:989
+  LLM calls:        1
+  LLM input tokens: 501
+  LLM output tokens:381
   Fallbacks:        0
-  Cache hits:       1
+  Cache hits:       2
 
 ============================================================
   Generated Documents
@@ -32,9 +32,9 @@ clinosim narrate: loading LLM config clinosim/config/llm_service.bedrock.yaml
   admission_hp.json
 ============================================================
 LOINC:      34117-2
-Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
+Source:     cache (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
 Tokens:     in=763  out=645
-Cache hit:  False
+Cache hit:  True
 ------------------------------------------------------------
 **ADMISSION HISTORY & PHYSICAL**
 
@@ -152,7 +152,7 @@ Patient to follow up with orthopedic surgery as scheduled for routine post-opera
 ============================================================
 LOINC:      11504-8
 Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
-Tokens:     in=477  out=344
+Tokens:     in=501  out=381
 Cache hit:  False
 ------------------------------------------------------------
 **OPERATIVE NOTE**
@@ -171,16 +171,15 @@ Cache hit:  False
 
 **Anesthesia Type:** General anesthesia
 **Anesthesiologist:** DR-CA-001
-**ASA Class:** 2
 
-**Findings:** Hip fracture requiring hemiarthroplasty reconstruction.
+**Findings:** Hip fracture requiring femoral head replacement with bipolar prosthesis.
 
 **Description of Procedure:**
-The patient was brought to the operating room and placed under general anesthesia. Standard surgical preparation and draping were performed. A standard approach to the hip region was utilized. The fracture site was identified and prepared for prosthetic reconstruction. A bipolar femoral prosthesis was selected and implanted using standard technique. The prosthesis was positioned appropriately with satisfactory stability and range of motion confirmed intraoperatively. Thorough irrigation was performed. The wound was closed in layers using standard technique. Sterile dressing was applied.
+The patient was brought to the operating room and placed under general anesthesia. Standard positioning was achieved. The hip region was prepped and draped in sterile fashion. A standard surgical approach was utilized to access the hip joint. The fractured femoral head was identified and removed. The femoral canal was prepared according to standard technique. A bipolar femoral prosthesis was selected and inserted with appropriate sizing and positioning. The prosthesis was secured in proper alignment. Thorough irrigation was performed. Hemostasis was achieved. The wound was closed in layers using standard technique. Sterile dressing was applied.
 
-**Specimens:** None sent to pathology.
+**Specimens:** None sent to pathology
 
-**Drains and Implants:** Bipolar femoral prosthesis implanted.
+**Drains and Implants:** Bipolar femoral prosthesis
 
 **Estimated Blood Loss:** 383 mL
 
@@ -188,26 +187,31 @@ The patient was brought to the operating room and placed under general anesthesi
 
 **Disposition:** Patient tolerated the procedure well and was transferred to the recovery room in stable condition.
 
+---
 **Operative Duration:** 107 minutes
+**ASA Class:** 2
+
+Dictated by: DR-OR-001
+Date: September 8, 2025
 
 ============================================================
   Manifest
 ============================================================
 {
-  "version_id": "bedrock_validation_v2",
-  "generated_at": "2026-04-09T09:28:23.870688",
+  "version_id": "bedrock_validation_v3",
+  "generated_at": "2026-04-09T09:31:13.607907",
   "language": "en",
   "llm_mode": "llm",
   "llm_cost_report": {
-    "total_calls": 2,
-    "total_input_tokens": 1240,
-    "total_output_tokens": 989,
+    "total_calls": 1,
+    "total_input_tokens": 501,
+    "total_output_tokens": 381,
     "fallback_count": 0,
-    "cache_hit_count": 1,
+    "cache_hit_count": 2,
     "cache_stats": {
-      "hits": 1,
-      "misses": 2,
-      "writes": 2,
+      "hits": 2,
+      "misses": 1,
+      "writes": 1,
       "enabled": 1
     }
   },
