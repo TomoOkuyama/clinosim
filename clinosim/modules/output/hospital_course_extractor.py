@@ -133,18 +133,31 @@ def summarize_procedures(
 
 def summarize_admission_vitals(record: dict[str, Any]) -> str:
     """Return the earliest set of vitals as a one-line summary."""
+    return _summarize_vitals_at(record, index=0)
+
+
+def summarize_terminal_vitals(record: dict[str, Any]) -> str:
+    """Return the last recorded set of vitals (for death notes)."""
+    return _summarize_vitals_at(record, index=-1)
+
+
+def _summarize_vitals_at(record: dict[str, Any], index: int) -> str:
+    """Return a one-line vital signs summary from vitals[index]."""
     vitals = record.get("vital_signs") or []
     if not vitals:
         return "(not recorded)"
-    first = vitals[0]
-    if not isinstance(first, dict):
+    try:
+        vs = vitals[index]
+    except IndexError:
         return "(not recorded)"
-    bp_sys = first.get("systolic_bp") or first.get("bp_systolic")
-    bp_dia = first.get("diastolic_bp") or first.get("bp_diastolic")
-    hr = first.get("heart_rate")
-    rr = first.get("respiratory_rate")
-    temp = first.get("temperature")
-    spo2 = first.get("spo2") or first.get("oxygen_saturation")
+    if not isinstance(vs, dict):
+        return "(not recorded)"
+    bp_sys = vs.get("systolic_bp") or vs.get("bp_systolic")
+    bp_dia = vs.get("diastolic_bp") or vs.get("bp_diastolic")
+    hr = vs.get("heart_rate")
+    rr = vs.get("respiratory_rate")
+    temp = vs.get("temperature")
+    spo2 = vs.get("spo2") or vs.get("oxygen_saturation")
     parts = []
     if temp is not None:
         parts.append(f"T {temp}°C")
@@ -216,10 +229,17 @@ def _procedure_events(
     admission_dt: datetime | None,
     language: str,
 ) -> list[HospitalCourseFact]:
-    """Only surface invasive bedside procedures that warrant a note."""
+    """Only surface invasive bedside procedures that warrant mention in hospital course.
+
+    Note: this set is intentionally broader than _PROCEDURE_NOTE_TYPES in
+    document_generator.py. arterial_line appears in the hospital course but
+    does NOT generate a standalone Procedure Note, because arterial line
+    insertion is typically documented in a nursing flow sheet rather than a
+    formal procedure note.
+    """
     invasive = {
         "central_line",
-        "arterial_line",
+        "arterial_line",   # mentioned in hospital course but no standalone Procedure Note
         "lumbar_puncture",
         "thoracentesis",
         "paracentesis",

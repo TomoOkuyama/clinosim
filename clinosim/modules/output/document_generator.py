@@ -44,6 +44,7 @@ from clinosim.modules.output.hospital_course_extractor import (
     summarize_admission_vitals,
     summarize_discharge_medications,
     summarize_procedures,
+    summarize_terminal_vitals,
 )
 from clinosim.types.clinical import ClinicalDocument
 
@@ -325,7 +326,7 @@ def _build_death_summary(
         "primary_diagnosis": primary_dx or "(unknown)",
         "past_medical_history": _pmh(patient, language),
         "hospital_course_bullets": course_bullets,
-        "terminal_findings": summarize_admission_vitals(record),
+        "terminal_findings": summarize_terminal_vitals(record),
         "complications": record.get("complications_occurred") or ["(none documented)"],
     }
 
@@ -365,7 +366,7 @@ def _build_admission_hp(
         "admitting_physician": encounter.get("admitting_physician_id", ""),
         "department": encounter.get("department_id", ""),
         "chief_complaint": encounter.get("chief_complaint", ""),
-        "hpi_summary": encounter.get("chief_complaint", ""),
+        "hpi_summary": _build_hpi_summary(encounter, patient, record, language),
         "past_medical_history": _pmh(patient, language),
         "home_medications": _home_meds(patient),
         "allergies": _allergies(patient),
@@ -699,6 +700,41 @@ def _initial_labs(record: dict[str, Any]) -> list[str]:
             unit = result.get("unit", "")
             abnormal.append(f"{name} {val} {unit} [{flag}]".strip())
     return abnormal[:8] or ["(all within normal limits)"]
+
+
+def _build_hpi_summary(
+    encounter: dict[str, Any],
+    patient: dict[str, Any],
+    record: dict[str, Any],
+    language: str,
+) -> str:
+    """Build a richer HPI from chief complaint + admission vitals + initial labs.
+
+    This avoids the HPI being a plain copy of the chief complaint, giving the
+    LLM more context to work with.
+    """
+    parts: list[str] = []
+    age = patient.get("age", 0)
+    sex = _sex_label(patient.get("sex", ""), language)
+    cc = encounter.get("chief_complaint", "")
+    parts.append(f"{age}yo {sex} presenting with {cc}." if cc else f"{age}yo {sex}.")
+
+    # Admission vitals
+    vitals_str = summarize_admission_vitals(record)
+    if vitals_str and vitals_str != "(not recorded)":
+        parts.append(f"On arrival: {vitals_str}.")
+
+    # Initial abnormal labs
+    initial = _initial_labs(record)
+    if initial and initial != ["(all within normal limits)"]:
+        parts.append("Notable initial labs: " + "; ".join(initial[:4]) + ".")
+
+    # Chronic conditions context
+    pmh = _pmh(patient, language)
+    if pmh and pmh != ["(none reported)"]:
+        parts.append(f"PMH significant for {', '.join(pmh[:3])}.")
+
+    return " ".join(parts)
 
 
 def _outcome_label(code: str, language: str) -> str:

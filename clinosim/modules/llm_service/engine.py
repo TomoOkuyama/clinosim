@@ -227,6 +227,15 @@ class LLMService:
             case LLMTaskType.TREATMENT_DECISION:
                 text = _treatment_decision(ps, ed)
 
+            case LLMTaskType.DEATH_SUMMARY:
+                text = _death_summary_template(ps, ed, language)
+
+            case LLMTaskType.OPERATIVE_NOTE:
+                text = _operative_note_template(ps, ed, language)
+
+            case LLMTaskType.PROCEDURE_NOTE:
+                text = _procedure_note_template(ps, ed, language)
+
             case _:
                 text = f"[Template: {task_type.value}]"
 
@@ -531,3 +540,109 @@ def _treatment_decision(ps: PatientSummary, ed: dict) -> str:
     decision = ed.get("decision", "continue")
     reason = ed.get("reason", "on_track")
     return f"Treatment decision: {decision}. Reason: {reason}."
+
+
+def _death_summary_template(ps: PatientSummary, ed: dict, language: str) -> str:
+    dx = ed.get("primary_diagnosis", ps.current_diagnosis)
+    admit_dx = ed.get("admission_diagnosis", dx)
+    los = ed.get("los_days", 0)
+    death_dt = ed.get("death_datetime", "")
+    complications = ed.get("complications", [])
+    comp_str = ", ".join(complications) if complications else "(none documented)"
+    course = ed.get("hospital_course_bullets", [])
+    course_str = "\n".join(f"  {b}" for b in course) if course else "  (not available)"
+
+    if language == "ja":
+        return (
+            f"【死亡時記録】\n"
+            f"患者: {ps.age}歳 {ps.sex}\n"
+            f"入院診断: {admit_dx}\n"
+            f"最終診断: {dx}\n"
+            f"入院日数: {los}日\n"
+            f"死亡日時: {death_dt}\n"
+            f"経過:\n{course_str}\n"
+            f"合併症: {comp_str}\n"
+            f"治療経過にもかかわらず死亡。"
+        )
+    return (
+        f"Death Note\n"
+        f"Patient: {ps.age}yo {ps.sex}\n"
+        f"Admission Dx: {admit_dx}\n"
+        f"Final Dx: {dx}\n"
+        f"LOS: {los} days\n"
+        f"Date/time of death: {death_dt}\n"
+        f"Hospital course:\n{course_str}\n"
+        f"Complications: {comp_str}\n"
+        f"Patient died despite maximal therapy."
+    )
+
+
+def _operative_note_template(ps: PatientSummary, ed: dict, language: str) -> str:
+    proc_name = ed.get("procedure_name", "Surgical procedure")
+    surgeon = ed.get("surgeon", "")
+    anes_type = ed.get("anesthesia_type", "general")
+    duration = ed.get("duration_minutes", 0)
+    ebl = ed.get("estimated_blood_loss_ml", 0)
+    preop = ed.get("preop_diagnosis", ps.current_diagnosis)
+    postop = ed.get("postop_diagnosis", preop)
+    complications = ed.get("intraop_complications", [])
+    comp_str = ", ".join(complications) if complications else "None"
+    outcome = ed.get("outcome", "Successful")
+
+    if language == "ja":
+        return (
+            f"【手術記録】\n"
+            f"術式: {proc_name}\n"
+            f"執刀医: {surgeon}\n"
+            f"麻酔: {anes_type}\n"
+            f"手術時間: {duration}分\n"
+            f"出血量: {ebl}mL\n"
+            f"術前診断: {preop}\n"
+            f"術後診断: {postop}\n"
+            f"合併症: {comp_str}\n"
+            f"転帰: {outcome}"
+        )
+    return (
+        f"Operative Note\n"
+        f"Procedure: {proc_name}\n"
+        f"Surgeon: {surgeon}\n"
+        f"Anesthesia: {anes_type}\n"
+        f"Duration: {duration} min\n"
+        f"EBL: {ebl} mL\n"
+        f"Preop Dx: {preop}\n"
+        f"Postop Dx: {postop}\n"
+        f"Complications: {comp_str}\n"
+        f"Outcome: {outcome}"
+    )
+
+
+def _procedure_note_template(ps: PatientSummary, ed: dict, language: str) -> str:
+    proc_name = ed.get("procedure_name", "Bedside procedure")
+    operator = ed.get("operator", "")
+    indication = ed.get("indication", ps.chief_complaint)
+    body_site = ed.get("body_site", "")
+    anes_type = ed.get("anesthesia_type", "local")
+    duration = ed.get("duration_minutes", 0)
+    outcome = ed.get("outcome", "Successful")
+
+    if language == "ja":
+        return (
+            f"【処置記録】\n"
+            f"処置: {proc_name}\n"
+            f"実施者: {operator}\n"
+            f"適応: {indication}\n"
+            f"部位: {body_site}\n"
+            f"麻酔: {anes_type}\n"
+            f"所要時間: {duration}分\n"
+            f"転帰: {outcome}"
+        )
+    return (
+        f"Procedure Note\n"
+        f"Procedure: {proc_name}\n"
+        f"Operator: {operator}\n"
+        f"Indication: {indication}\n"
+        f"Site: {body_site}\n"
+        f"Anesthesia: {anes_type}\n"
+        f"Duration: {duration} min\n"
+        f"Outcome: {outcome}"
+    )
