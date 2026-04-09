@@ -26,16 +26,14 @@ narrative:
   bedrock:
     region: "us-east-1"
     profile: null  # null → default credential chain (EC2 IAM role, env vars, ~/.aws/credentials)
-    model_id: "anthropic.claude-sonnet-4-20250514-v1:0"
-    # Alternative model IDs:
-    #   model_id: "anthropic.claude-sonnet-4-6"           # latest Sonnet alias
-    #   model_id: "anthropic.claude-haiku-4-5-20251001-v1:0"  # fast/cheap
-    # Or explicit ARN for cross-region inference:
-    #   inference_profile_arn: "arn:aws:bedrock:us-east-1:...:inference-profile/..."
+    model_id: "us.anthropic.claude-sonnet-4-20250514-v1:0"
+    # Alternative model IDs (all require "us." prefix for on-demand inference):
+    #   model_id: "us.anthropic.claude-haiku-4-5-20251001-v1:0"  # fast/cheap
+    #   model_id: "us.anthropic.claude-opus-4-20250514-v1:0"     # highest quality
   model_map:
-    small: "anthropic.claude-haiku-4-5-20251001-v1:0"
-    medium: "anthropic.claude-sonnet-4-20250514-v1:0"
-    large: "anthropic.claude-opus-4-20250514-v1:0"
+    small: "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+    medium: "us.anthropic.claude-sonnet-4-20250514-v1:0"
+    large: "us.anthropic.claude-opus-4-20250514-v1:0"
   timeout_seconds: 60
   retry_attempts: 3
   retry_backoff_seconds: 2
