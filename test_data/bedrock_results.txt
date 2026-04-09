@@ -1,0 +1,233 @@
+============================================================
+  Bedrock Single-Patient Narrative Validation
+  Patient: 56yo Female, hip fracture, hemiarthroplasty
+  Date: 2026-04-09 09:27:56 UTC
+============================================================
+
+<frozen runpy>:128: RuntimeWarning: 'clinosim.simulator.cli' found in sys.modules after import of package 'clinosim.simulator', but prior to execution of 'clinosim.simulator.cli'; this may result in unpredictable behaviour
+clinosim narrate: loading LLM config clinosim/config/llm_service.bedrock.yaml
+  CIF directory: test_data/bedrock_single_patient
+  Language:      en
+  Mode:          llm
+  Tasks:         all Tier A+B
+
+  === Narrative Generation Summary ===
+  Version ID:       bedrock_validation_v2
+  Patients:         1
+  Total documents:  3
+    admission_hp         1
+    discharge_summary    1
+    operative_note       1
+  LLM calls:        2
+  LLM input tokens: 1,240
+  LLM output tokens:989
+  Fallbacks:        0
+  Cache hits:       1
+
+============================================================
+  Generated Documents
+============================================================
+
+============================================================
+  admission_hp.json
+============================================================
+LOINC:      34117-2
+Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
+Tokens:     in=763  out=645
+Cache hit:  False
+------------------------------------------------------------
+**ADMISSION HISTORY & PHYSICAL**
+
+**Date:** September 7, 2025  
+**Time:** 10:26  
+**Admitting Physician:** DR-OR-002  
+**Service:** Orthopedics
+
+**CHIEF COMPLAINT:**
+Hip pain after fall, unable to walk
+
+**HISTORY OF PRESENT ILLNESS:**
+56-year-old female presents with acute hip pain and inability to ambulate following a fall. Patient reports mechanical fall with subsequent onset of severe hip pain and complete inability to bear weight. No loss of consciousness reported with the fall.
+
+**PAST MEDICAL HISTORY:**
+None reported
+
+**MEDICATIONS:**
+None
+
+**ALLERGIES:**
+NKDA
+
+**FAMILY HISTORY:**
+Not obtained
+
+**SOCIAL HISTORY:**
+Not obtained
+
+**REVIEW OF SYSTEMS:**
+Patient endorses hip pain and inability to walk. Denies chest pain, shortness of breath, abdominal pain, or neurological symptoms.
+
+**PHYSICAL EXAMINATION:**
+**Vital Signs:** T 38.5°C, HR 92, RR 12, BP 120/72, SpO2 95.1%
+**General:** Alert, oriented, appears uncomfortable due to pain
+**Cardiovascular:** Regular rate and rhythm
+**Pulmonary:** Clear to auscultation bilaterally
+**Musculoskeletal:** Unable to bear weight on affected extremity, hip pain with movement
+**Neurological:** Alert and oriented
+
+**LABORATORY DATA:**
+CRP 74.7 mg/L (elevated), WBC 13,502/μL (elevated), Hemoglobin 10.0-11.1 g/dL (low), Creatinine 1.08 mg/dL (elevated), Potassium 5.1 mmol/L (elevated), Glucose 128 mg/dL (elevated), Albumin 2.9 g/dL (low)
+
+**ASSESSMENT:**
+56-year-old female with acute hip pain and inability to ambulate following mechanical fall. Clinical presentation is highly concerning for femoral neck fracture given mechanism of injury, inability to bear weight, and hip pain. Elevated inflammatory markers (CRP, WBC) may indicate inflammatory response to trauma. Mild anemia could be related to acute blood loss or chronic condition. Imaging studies required for definitive diagnosis.
+
+Differential diagnosis:
+1. Femoral neck fracture (most likely)
+2. Intertrochanteric hip fracture
+3. Hip dislocation
+4. Soft tissue injury/contusion
+
+**PLAN:**
+1. Orthopedic imaging including hip X-rays
+2. Pain management
+3. NPO pending surgical evaluation
+4. DVT prophylaxis
+5. Monitor vital signs and neurological status
+6. Orthopedic surgery consultation
+
+============================================================
+  discharge_summary.json
+============================================================
+LOINC:      18842-5
+Source:     cache (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
+Tokens:     in=958  out=653
+Cache hit:  True
+------------------------------------------------------------
+**DISCHARGE SUMMARY**
+
+**Patient:** 56-year-old Female  
+**Admission Date:** September 7, 2025  
+**Discharge Date:** September 15, 2025  
+**Length of Stay:** 8 days  
+**Attending Physician:** DR-OR-002  
+
+**ADMISSION DIAGNOSIS:**
+Fracture of neck of femur
+
+**DISCHARGE DIAGNOSES:**
+Primary: Fracture of unspecified part of neck of unspecified femur
+
+**CHIEF COMPLAINT:**
+Hip pain after fall, unable to walk
+
+**HISTORY OF PRESENT ILLNESS:**
+This 56-year-old female presented to the emergency department with hip pain and inability to ambulate following a fall. Clinical evaluation and imaging confirmed a femoral neck fracture requiring surgical intervention.
+
+**PAST MEDICAL HISTORY:**
+No significant past medical history reported.
+
+**HOSPITAL COURSE:**
+The patient was admitted on hospital day 0 with a femoral neck fracture. Initial laboratory studies revealed leukocytosis with WBC of 13,502 cells/μL and baseline creatinine of 1.1 mg/dL. CRP was elevated at 74.7 mg/L on admission. 
+
+On hospital day 1, the patient underwent hemiarthroplasty of the femoral head performed by DR-OR-001 with estimated blood loss of 383 mL. The procedure was completed without immediate complications.
+
+Post-operatively, the patient's clinical course was notable for transient acute kidney injury with creatinine peaking at 1.5 mg/dL on day 3, subsequently improving to 1.4 mg/dL by day 5. CRP levels showed expected post-surgical elevation, peaking at 478.3 mg/L on day 6 before trending down to 399.0 mg/L by day 7. Hemoglobin remained stable throughout the hospitalization, declining minimally from 11.1 g/dL to 10.1 g/dL by day 7.
+
+The patient received appropriate perioperative care including IV fluid resuscitation with normal saline, pain management with scheduled acetaminophen and PRN opioids, and DVT prophylaxis with enoxaparin 2000 IU subcutaneously daily.
+
+**PROCEDURES PERFORMED:**
+Hemiarthroplasty, femoral head on September 8, 2025
+
+**DISCHARGE MEDICATIONS:**
+None prescribed at discharge.
+
+**CONDITION AT DISCHARGE:**
+Stable condition. Patient ambulatory with appropriate assistive devices.
+
+**FOLLOW-UP INSTRUCTIONS:**
+Patient to follow up with orthopedic surgery as scheduled for routine post-operative care and wound assessment. Patient advised to continue weight-bearing restrictions as instructed and to seek immediate medical attention for signs of infection, increased pain, or other concerning symptoms.
+
+============================================================
+  operative_note_001.json
+============================================================
+LOINC:      11504-8
+Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
+Tokens:     in=477  out=344
+Cache hit:  False
+------------------------------------------------------------
+**OPERATIVE NOTE**
+
+**Date of Procedure:** September 8, 2025
+
+**Preoperative Diagnosis:** Hip fracture
+
+**Postoperative Diagnosis:** Hip fracture
+
+**Procedure Performed:** Hemiarthroplasty, femoral head (CPT 27125)
+
+**Surgeon:** DR-OR-001
+
+**Assistant(s):** None
+
+**Anesthesia Type:** General anesthesia
+**Anesthesiologist:** DR-CA-001
+**ASA Class:** 2
+
+**Findings:** Hip fracture requiring hemiarthroplasty reconstruction.
+
+**Description of Procedure:**
+The patient was brought to the operating room and placed under general anesthesia. Standard surgical preparation and draping were performed. A standard approach to the hip region was utilized. The fracture site was identified and prepared for prosthetic reconstruction. A bipolar femoral prosthesis was selected and implanted using standard technique. The prosthesis was positioned appropriately with satisfactory stability and range of motion confirmed intraoperatively. Thorough irrigation was performed. The wound was closed in layers using standard technique. Sterile dressing was applied.
+
+**Specimens:** None sent to pathology.
+
+**Drains and Implants:** Bipolar femoral prosthesis implanted.
+
+**Estimated Blood Loss:** 383 mL
+
+**Complications:** None
+
+**Disposition:** Patient tolerated the procedure well and was transferred to the recovery room in stable condition.
+
+**Operative Duration:** 107 minutes
+
+============================================================
+  Manifest
+============================================================
+{
+  "version_id": "bedrock_validation_v2",
+  "generated_at": "2026-04-09T09:28:23.870688",
+  "language": "en",
+  "llm_mode": "llm",
+  "llm_cost_report": {
+    "total_calls": 2,
+    "total_input_tokens": 1240,
+    "total_output_tokens": 989,
+    "fallback_count": 0,
+    "cache_hit_count": 1,
+    "cache_stats": {
+      "hits": 1,
+      "misses": 2,
+      "writes": 2,
+      "enabled": 1
+    }
+  },
+  "patient_count": 1,
+  "document_counts_by_type": {
+    "admission_hp": 1,
+    "operative_note": 1,
+    "discharge_summary": 1
+  },
+  "total_documents": 3,
+  "enabled_tasks": [
+    "admission_hp",
+    "death_summary",
+    "discharge_summary",
+    "operative_note",
+    "procedure_note"
+  ]
+}
+============================================================
+  Validation complete.
+  Results saved to: test_data/bedrock_results.txt
+  To share: git add test_data/bedrock_results.txt && git commit -m 'bedrock validation results' && git push
+============================================================
