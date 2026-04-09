@@ -10,6 +10,7 @@ from clinosim.types.encounter import (
     Encounter, MedicationAdministration, Order, OrderResult,
     PrescriptionRecord, VitalSignRecord,
 )
+from clinosim.types.narrative import NarrativeDocument
 from clinosim.types.patient import PatientProfile
 
 
@@ -55,6 +56,9 @@ class CIFPatientRecord:
     is_readmission: bool = False
     prior_encounter_id: str | None = None
     readmission_number: int = 0  # 0 = first admission, 1 = first readmission
+
+    # Narrative documents (generated from structured data)
+    narratives: list[NarrativeDocument] = field(default_factory=list)
 
     # Hidden state (for validation/debugging, not exported to clinical formats)
     physiological_states: list[PhysiologicalState] = field(default_factory=list)
