@@ -161,7 +161,7 @@ def _summarize_vitals_at(record: dict[str, Any], index: int) -> str:
     bp_dia = vs.get("diastolic_bp") or vs.get("bp_diastolic")
     hr = vs.get("heart_rate")
     rr = vs.get("respiratory_rate")
-    temp = vs.get("temperature")
+    temp = vs.get("temperature") or vs.get("temperature_celsius")
     spo2 = vs.get("spo2") or vs.get("oxygen_saturation")
     parts = []
     if temp is not None:
@@ -610,7 +610,9 @@ def extract_vitals_snapshot(
     for vs in vitals:
         if not isinstance(vs, dict):
             continue
-        vs_dt = _parse_dt(vs.get("measured_datetime") or vs.get("datetime"))
+        vs_dt = _parse_dt(
+            vs.get("timestamp") or vs.get("measured_datetime") or vs.get("datetime")
+        )
         if vs_dt is None:
             continue
         day = _day_offset(admission_dt, vs_dt)
@@ -630,7 +632,7 @@ def _format_vitals_dict(vs: dict[str, Any]) -> str:
     bp_dia = vs.get("diastolic_bp") or vs.get("bp_diastolic")
     hr = vs.get("heart_rate")
     rr = vs.get("respiratory_rate")
-    temp = vs.get("temperature")
+    temp = vs.get("temperature") or vs.get("temperature_celsius")
     spo2 = vs.get("spo2") or vs.get("oxygen_saturation")
     parts = []
     if temp is not None:
