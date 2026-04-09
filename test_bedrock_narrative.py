@@ -35,7 +35,7 @@ def test_bedrock_provider():
     try:
         provider = BedrockProvider({
             "region": "us-east-1",
-            "model": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+            "model": "us.anthropic.claude-sonnet-4-6",  # Inference profile ID
         })
 
         if provider.health_check():
@@ -61,10 +61,10 @@ def test_narrative_generation():
     print("Test 2: Narrative Generation (5 Document Types)")
     print("=" * 60)
 
-    # Initialize provider
+    # Initialize provider with Sonnet 4.6 (using inference profile)
     provider = BedrockProvider({
         "region": "us-east-1",
-        "model": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+        "model": "us.anthropic.claude-sonnet-4-6",  # Inference profile ID
     })
 
     # Initialize LLMService with Bedrock
@@ -72,7 +72,7 @@ def test_narrative_generation():
         mode="llm",
         narrative_provider=provider,
         narrative_model_map={
-            "medium": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+            "medium": "us.anthropic.claude-sonnet-4-6",  # Inference profile ID
         },
     )
 
@@ -154,6 +154,7 @@ def test_narrative_generation():
         )
 
         try:
+            import traceback
             response = llm.generate(test_case["task_type"], event)
 
             if response.source == "llm" and response.text:
@@ -168,7 +169,9 @@ def test_narrative_generation():
                 results.append(False)
 
         except Exception as e:
+            import traceback
             print(f"✗ Error: {e}")
+            print(f"  Traceback: {traceback.format_exc()}")
             results.append(False)
 
     # Summary
