@@ -2,15 +2,25 @@
 
 ## Status (current as of 2026-04-09)
 
-**v0.1-beta** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 28 diseases, snapshot date support, hospital config-driven physical layout, codes module with EN-first principle, **Bedrock-powered narrative generation (5 document types)**.
+**v0.1-beta + Milestone 1 (Clinical documents)** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 28 diseases, snapshot date support, hospital config-driven physical layout, codes module with EN-first principle, three-stage CLI pipeline (`generate` → `narrate` → `export-fhir`), and FHIR DocumentReference output for 5 clinical document types (Tier A+B).
 
 Generated dataset stats (US 50-bed hospital, catchment 30k):
 - 12,378 unique patients
 - 77,034 encounters (inpatient + ED + outpatient)
 - 176,803 conditions
 - 835,990 observations
-- All 12 FHIR resource types with 0 ID violations
-- **374 narrative documents (5 types via Bedrock)** ← NEW
+- 13 FHIR resource types (12 structured + DocumentReference) with 0 ID violations
+- 141 unit tests passing
+
+Test scale (US 5000 catchment, seed=42):
+- 171 inpatient encounters
+- Tier A+B clinical documents: **374 total**
+  - Admission H&P: 171
+  - Discharge Summary: 171
+  - Operative Note: 11
+  - Procedure Note: 19
+  - Death Note: 2
+- 100% reference integrity (Patient / Encounter / Practitioner)
 
 ## Architecture Decisions (current)
 
@@ -51,8 +61,12 @@ Generated dataset stats (US 50-bed hospital, catchment 30k):
 | **AD-33** | 2026-04-08 | **English-first code systems**: every entry in `clinosim/codes/data/*.yaml` MUST have an `en` field. Other languages are translation attributes with English fallback. |
 | **AD-34** | 2026-04-08 | **Hospital config-driven physical layout**: `available_departments` + `department_rollup` + `wards` + `ward_capacity` in hospital YAML drives staff generation, ward assignment, bed location resources. |
 | **AD-35** | 2026-04-08 | **codes module separated from locale**: international code systems (ICD/LOINC/RxNorm/etc.) live in `clinosim/codes/`, NOT under `locale/`. Codes are international standards; translations are attributes. |
-| **AD-36** | 2026-04-09 | **5 narrative types only**: LOINC-compliant document generation limited to Admission H&P (34117-2), Discharge Summary (18842-5), Operative Note (11504-8), Procedure Note (28570-0), Death Note (69730-0). Progress/nursing notes excluded to reduce token consumption by 50x. |
-| **AD-37** | 2026-04-09 | **Bedrock as primary LLM provider**: Amazon Bedrock with Claude 3 models via boto3. Supports us-east-1, us-west-2, ap-northeast-1. Replaces judgment/narrative split with single narrative-only service. |
+| **AD-36** | 2026-04-09 | **FHIR Procedure structural fields via SNOMED CT**: category (surgical/diagnostic/therapeutic), performer.function (surgeon/anaesthetist), recorder, reasonReference, bodySite, location (OR), outcome, complication. Metadata table `_PROCEDURE_METADATA` in procedure engine. |
+| **AD-37** | 2026-04-09 | **Three explicit CLI stages**: `generate` (structural CIF) → `narrate` (clinical documents) → `export-fhir` (FHIR R4 NDJSON). Each stage is independently runnable; Stage 2 can be executed remotely (e.g. EC2 for Bedrock) while Stage 1/3 stay local. |
+| **AD-38** | 2026-04-09 | **Clinical documents as FHIR DocumentReference (Tier A+B)**: Discharge Summary (LOINC 18842-5), Death Note (69730-0), Operative Note (11504-8), Admission H&P (34117-2), Procedure Note (28570-0). 5 document types, ~374 documents per 5000-population run. Base64 text/plain attachment with sha1 hash and size. |
+| **AD-39** | 2026-04-09 | **LLM provider plugin registry**: `providers/` subpackage with `LLMProvider` Protocol. Registry maps config keys (`ollama`, `bedrock`, `mock`, `local`) to builder callables. `factory.build_from_config_file()` wires providers + cache + registry from YAML. Bedrock uses boto3 lazy import. |
+| **AD-40** | 2026-04-09 | **Prompt templates as per-language YAML**: `clinosim/modules/llm_service/prompts/<lang>/<task>.yaml` with `system`, `user_template`, `max_tokens`, `temperature`, `version`. Rendered via `string.Template` (stdlib, zero deps). Language fallback to English (mirrors codes module). |
+| **AD-41** | 2026-04-09 | **SHA256 disk cache for LLM responses**: `PromptCache` keys by `SHA256(system ‖ user ‖ model)`. Enables reproducible re-runs, partial re-run recovery, and cost control for Bedrock. Cache stats in `cost_report()`. |
 
 ## Implementation Status
 
@@ -77,7 +91,7 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 | 11 | CIF → CSV adapter | `output` | ✅ |
 | 12 | Multiple patients (10–100,000) | `simulator` | ✅ (tested up to 30k) |
 
-### v0.1 — Foundation hardening (CURRENT)
+### v0.1 — Foundation hardening ✅ COMPLETE
 
 | # | Task | Module | Status |
 |---|---|---|---|
@@ -92,11 +106,44 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 | 9 | NEWS2-compatible vitals (AVPU + O2) | `physiology`, `output` | ✅ |
 | 10 | 28 diseases + 44 ED/outpatient conditions | `disease`, `encounter` | ✅ |
 | 11 | Module READMEs (all 17 modules) | docs | ✅ |
-| 12 | **Bedrock narrative generation (5 doc types)** | `llm_service` | ✅ 2026-04-09 |
-| 13 | **BedrockProvider implementation** | `llm_service` | ✅ 2026-04-09 |
-| 14 | **Token optimization (5 types only)** | `llm_service` | ✅ 2026-04-09 |
-| 15 | Performance: 100k+ patients, parallel sim | `simulator` | Open |
-| 16 | Tier 1 benchmarks expanded (LOS, mortality, complication) | `validator` | Partial |
+
+### Milestone 1 — Clinical documents + pluggable LLM ✅ COMPLETE (2026-04-09)
+
+| # | Task | Module | Status |
+|---|---|---|---|
+| 1 | FHIR Procedure structural fields (SNOMED) | `procedure`, `output` | ✅ (AD-36) |
+| 2 | `snomed-ct.yaml` code system | `codes` | ✅ |
+| 3 | Operating room Location resources | `output` | ✅ |
+| 4 | LLM provider subpackage (base, ollama, mock, bedrock) | `llm_service` | ✅ (AD-39) |
+| 5 | Provider registry + factory (YAML → LLMService) | `llm_service` | ✅ |
+| 6 | Prompt templates as per-language YAML | `llm_service` | ✅ (AD-40) |
+| 7 | PromptCache (SHA256 disk cache) | `llm_service` | ✅ (AD-41) |
+| 8 | `ClinicalDocument` type + CIF extension | `types`, `output` | ✅ |
+| 9 | `hospital_course_extractor` (deterministic facts) | `output` | ✅ |
+| 10 | `document_generator` (narrative CIF writer) | `output` | ✅ |
+| 11 | FHIR `DocumentReference` builder | `output` | ✅ (AD-38) |
+| 12 | `clinosim narrate` / `export-fhir` CLI | `simulator` | ✅ (AD-37) |
+| 13 | `llm_service.bedrock.yaml` config | `config` | ✅ |
+| 14 | 6 LOINC codes for document types | `codes` | ✅ |
+| 15 | Unit tests (32 new, 141 total) | tests | ✅ |
+| 16 | Tier A+B English prompts (5 YAML files) | prompts | ✅ |
+
+### v0.2 — LLM realism + Japanese documents (CURRENT)
+
+| # | Task | Module | Status |
+|---|---|---|---|
+| 1 | Ollama end-to-end narrative quality validation | `llm_service` | Open |
+| 2 | EC2 + Bedrock actual run (AD-37 remote execution) | infra | Open |
+| 3 | Japanese prompts (`prompts/ja/*.yaml`) with clinician review | `llm_service` | Open |
+| 4 | Template fallbacks for new Tier A+B tasks | `llm_service` | Partial |
+| 5 | LLM JUDGMENT phase wiring (diagnostic reasoning) | `llm_service`, `diagnosis` | Open |
+| 6 | Validator Pass 2 (LLM consistency review) | `validator` | Open |
+| 7 | Performance: 100k+ patients, parallel sim | `simulator` | Open |
+| 8 | Tier 1 benchmarks expanded (LOS, mortality, complication) | `validator` | Partial |
+| 9 | Hospital course extractor: treatment change detection | `output` | Partial |
+| 10 | Progress Note (Tier C, opt-in) | `llm_service`, `output` | Open |
+| 11 | Anthropic direct provider (non-Bedrock) | `llm_service` | Open |
+| 12 | OpenAI-compatible provider (LiteLLM / vLLM) | `llm_service` | Open |
 
 ## Open Design Questions
 
@@ -139,11 +186,17 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 
 ## Roadmap
 
-### v0.2 — Clinical reasoning + LLM integration
+### v0.2 — Clinical reasoning + LLM integration (CURRENT)
 
-- [ ] Real LLM integration (Ollama tested end-to-end)
+- [x] Clinical document pipeline (Tier A+B, 5 LOINC-coded types) ← Milestone 1
+- [x] Pluggable LLM providers (Ollama / Bedrock / Mock) ← Milestone 1
+- [x] Prompt templates as YAML (per-language) ← Milestone 1
+- [x] FHIR DocumentReference output ← Milestone 1
+- [x] SHA256 prompt cache ← Milestone 1
+- [ ] Ollama end-to-end narrative quality validation (llama3.1:70b or qwen2.5:72b)
+- [ ] EC2 + Bedrock actual production run
+- [ ] Japanese prompts with clinician review
 - [ ] LLM JUDGMENT phase wiring (diagnostic reasoning, treatment rationale)
-- [ ] Discharge summary generation (LLM narrative)
 - [ ] Validator Pass 2 (LLM consistency review)
 - [ ] Diagnostic drift over hospital stay
 - [ ] Pediatric disease modules (start with viral URI, asthma, gastroenteritis)
@@ -182,22 +235,28 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 - [ ] Comprehensive documentation
 - [ ] Stable API contracts
 
-## Recent completions (2026-04-09)
+## Recent completions (2026-04-09 — Milestone 1: Clinical documents)
 
-### Bedrock LLM Integration (2026-04-09)
-- ✅ BedrockProvider implementation (boto3-based, Claude 3 support)
-- ✅ 5 LOINC-compliant narrative types only (token reduction: 50x)
-  - 34117-2: Admission H&P (171 docs)
-  - 18842-5: Discharge Summary (171 docs)
-  - 11504-8: Operative Note (11 docs)
-  - 28570-0: Procedure Note (19 docs)
-  - 69730-0: Death Note (2 docs)
-- ✅ Removed unnecessary types (CHIEF_COMPLAINT, PROGRESS_NOTE, NURSING_NOTE, CONSULTATION_NOTE, all JUDGMENT tasks)
-- ✅ Enhanced prompts for all 5 document types (JP/EN)
-- ✅ llm_service.bedrock.yaml configuration
-- ✅ test_bedrock_narrative.py test script
-- ✅ Updated README with BedrockProvider usage and token estimates
-- ✅ Token consumption estimate: ~1.8M tokens for 374 documents (vs ~90M with all types)
+- ✅ FHIR Procedure structural fields: category, performer.function, recorder, reasonReference, bodySite, location (OR), outcome, complication (all via SNOMED CT subset, AD-36)
+- ✅ `clinosim/codes/data/snomed-ct.yaml` — 32-code minimal SNOMED subset for procedures/outcomes/complications/body sites (en + ja)
+- ✅ Operating room Location resources in facility bundle (hospital-config-driven)
+- ✅ `clinosim/modules/llm_service/providers/` subpackage: `base.py` Protocol, `ollama.py`, `mock.py`, `bedrock.py` (boto3 lazy, Converse API)
+- ✅ Provider registry + `register_provider()` extension point (AD-39)
+- ✅ `factory.build_from_config_file()` — YAML-driven LLMService construction
+- ✅ `PromptRegistry` with `string.Template`-based rendering and English fallback (AD-40)
+- ✅ `PromptCache` (SHA256 disk cache) with per-call stats in `cost_report()` (AD-41)
+- ✅ 5 English prompt YAML files: `discharge_summary`, `death_summary`, `operative_note`, `admission_hp`, `procedure_note`
+- ✅ `ClinicalDocument` type in `clinosim/types/clinical.py` + `CIFPatientRecord.documents` field
+- ✅ `clinosim/modules/output/hospital_course_extractor.py` — deterministic event extraction (admission, surgeries, lab peaks, complications, discharge)
+- ✅ `clinosim/modules/output/document_generator.py` — Stage 2 narrative CIF writer (Tier A+B)
+- ✅ `_build_document_reference()` in `fhir_r4_adapter` — base64 attachment + sha1 hash + related Procedure reference
+- ✅ `clinosim narrate` and `clinosim export-fhir` CLI subcommands (AD-37)
+- ✅ `clinosim generate --narrative --llm-config PATH --narrative-version ID` integrated pipeline
+- ✅ `clinosim/config/llm_service.bedrock.yaml` — EC2 Bedrock config template
+- ✅ 6 LOINC codes (34117-2, 11506-3, 18842-5, 69730-0, 11504-8, 28570-0) added to `loinc.yaml` with en + ja
+- ✅ 32 new unit tests in `tests/unit/test_clinical_documents.py` (prompts, cache, providers, extractor, document generator E2E, FHIR DocumentReference builder)
+- ✅ Total test count: 141 passing
+- ✅ Documentation: README.md, DESIGN.md (AD-36 to AD-41 + Part 7/8), TODO.md, new docs/clinical_documents.md, new docs/bedrock_setup.md
 
 ## Recent completions (2026-04-06 to 2026-04-08)
 

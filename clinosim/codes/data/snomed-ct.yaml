@@ -1,0 +1,111 @@
+metadata:
+  name: SNOMED CT
+  uri: http://snomed.info/sct
+  version: '2024-03'
+  description: |
+    SNOMED Clinical Terms — subset used by clinosim for FHIR Procedure
+    category, performer functions, outcomes, complications, and body sites.
+    Authoritative source: SNOMED International (https://www.snomed.org/).
+codes:
+  # === Procedure category ===
+  '387713003':
+    en: Surgical procedure
+    ja: 手術
+  '103693007':
+    en: Diagnostic procedure
+    ja: 診断的処置
+  '277132007':
+    en: Therapeutic procedure
+    ja: 治療的処置
+
+  # === Performer function (role) ===
+  '304292004':
+    en: Surgeon
+    ja: 執刀医
+  '158965000':
+    en: Assistant surgeon
+    ja: 助手
+  '158967008':
+    en: Anaesthetist
+    ja: 麻酔科医
+  '224549009':
+    en: Scrub nurse
+    ja: 器械出し看護師
+  '158972004':
+    en: Circulating nurse
+    ja: 外回り看護師
+
+  # === Procedure outcome ===
+  '385669000':
+    en: Successful
+    ja: 成功
+  '385670004':
+    en: Partially successful
+    ja: 部分的成功
+  '385671000':
+    en: Unsuccessful
+    ja: 不成功
+
+  # === Complications ===
+  '131148009':
+    en: Bleeding
+    ja: 出血
+  '45007003':
+    en: Hypotension
+    ja: 低血圧
+  '67782005':
+    en: Acute respiratory distress syndrome
+    ja: 急性呼吸窮迫症候群
+  '125666000':
+    en: Burn
+    ja: 熱傷
+  '87317003':
+    en: Surgical site infection
+    ja: 手術部位感染
+
+  # === Body sites (procedure-specific) ===
+  '71341001':
+    en: Bone structure of femur
+    ja: 大腿骨
+  '29836001':
+    en: Hip region structure
+    ja: 股関節部
+  '39607008':
+    en: Lung structure
+    ja: 肺
+  '80581009':
+    en: Upper urinary tract structure
+    ja: 上部尿路
+  '89837001':
+    en: Urinary bladder structure
+    ja: 膀胱
+  '113257007':
+    en: Structure of cardiovascular system
+    ja: 循環器系
+  '118375008':
+    en: Intrathoracic structure
+    ja: 胸腔内
+  '818983003':
+    en: Abdomen
+    ja: 腹部
+  '74262004':
+    en: Oral cavity structure
+    ja: 口腔
+  '12738006':
+    en: Brain structure
+    ja: 脳
+  '21483005':
+    en: Structure of central nervous system
+    ja: 中枢神経系
+  '58602004':
+    en: Peripheral vascular structure
+    ja: 末梢血管
+  '32713005':
+    en: Vertebral column structure
+    ja: 脊椎
+  '38266002':
+    en: Entire body as a whole
+    ja: 全身
+  '87642003':
+    en: Skin and subcutaneous tissue structure
+    ja: 皮膚・皮下組織

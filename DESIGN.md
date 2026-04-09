@@ -1708,3 +1708,238 @@ observations.
 | AD-33 | 2026-04-08 | English-first principle for code systems |
 | AD-34 | 2026-04-08 | Hospital config-driven physical layout (departments, wards, beds) |
 | AD-35 | 2026-04-08 | codes module separated from locale (international standards) |
+| AD-36 | 2026-04-09 | FHIR Procedure structural fields via SNOMED CT (category, performer.function, bodySite, outcome, complication) |
+| AD-37 | 2026-04-09 | Three explicit CLI stages: generate → narrate → export-fhir |
+| AD-38 | 2026-04-09 | Clinical documents as FHIR DocumentReference (Tier A+B scope, LOINC-coded) |
+| AD-39 | 2026-04-09 | LLM provider plugin registry + YAML-driven factory |
+| AD-40 | 2026-04-09 | Prompt templates externalized as per-language YAML files |
+| AD-41 | 2026-04-09 | SHA256 disk cache for LLM responses (reproducibility + cost control) |
+
+---
+
+## 7. Clinical documents via FHIR DocumentReference
+
+### Problem
+
+Before Milestone 1 (early 2026-04-09), clinosim had no way to produce narrative clinical
+documents as first-class FHIR resources. The legacy `narrative_generator` wrote loose
+JSON files under `cif/narratives/<version>/patients/*.json`, but these never made it into
+the FHIR Bulk Data export. Downstream consumers had patient, encounter, observation, and
+procedure resources but no discharge summary, no operative note, no admission H&P — the
+exact documents clinicians use to read and review a patient's story.
+
+This gap was blocking:
+- Readmission prediction and outcome research (discharge summary is the primary data source)
+- Mortality review (death note is a legal document for every inpatient death)
+- Surgical quality analysis (operative note is CMS §482.51-mandated)
+- NLP/LLM training pipelines that expect clinical notes as DocumentReference resources
+
+### Decision (AD-36, AD-37, AD-38)
+
+**AD-36 — FHIR Procedure gets structural fields via SNOMED CT.**
+Every `Procedure.ndjson` entry now includes:
+- `category` — SNOMED 387713003 (surgical) / 103693007 (diagnostic) / 277132007 (therapeutic)
+- `performer[].function` — SNOMED 304292004 (surgeon) / 158967008 (anaesthetist)
+- `recorder` — Practitioner reference (defaults to surgeon)
+- `reasonReference` — link to the encounter's primary Condition
+- `bodySite` — SNOMED anatomy code
+- `location` — Operating room Location reference (surgeries only)
+- `outcome` — SNOMED 385669000 (successful) / 385670004 (partial) / 385671000 (unsuccessful)
+- `complication` — SNOMED codes mapped from `ProcedureRecord.intraop_complications`
+
+`clinosim/codes/data/snomed-ct.yaml` contains the minimal SNOMED subset required for
+these fields, following the English-first principle (AD-33).
+
+**AD-37 — Three explicit CLI stages: `generate` → `narrate` → `export-fhir`.**
+Stage 1 (`generate`) produces the structural CIF. Stage 2 (`narrate`) generates clinical
+documents from an existing CIF and writes them to `cif/narratives/<version>/documents/`.
+Stage 3 (`export-fhir`) reads the CIF (and optionally a narrative version) and emits the
+FHIR NDJSON files, including `DocumentReference.ndjson` when a narrative version is
+provided.
+
+Rationale:
+- **Reproducibility (AD-16)** — Stage 1 is deterministic from seed. Stage 2 has
+  reproducibility via prompt cache (AD-41). Stage 3 is a pure function of CIF.
+- **Cost isolation** — Stage 2 is the only stage that may call a paid LLM API. On a
+  host without network access to the LLM (e.g. a laptop that cannot reach Bedrock), the
+  CIF directory can be shipped to an EC2 instance for Stage 2 only, then pulled back for
+  Stage 3.
+- **Experimentation** — multiple narrative versions from the same structural CIF can
+  coexist and be compared (template vs Ollama vs Bedrock, English vs Japanese, prompt
+  version 1 vs 2).
+- **CIF stays the single source of truth (AD-17, AD-30)** — structural/ is immutable,
+  narratives/ is a replaceable layer.
+
+**AD-38 — Clinical documents as FHIR DocumentReference (Tier A+B scope).**
+clinosim produces these documents out of the box:
+
+| Tier | Document | LOINC | Per-encounter count | Justification |
+|---|---|---|---|---|
+| A | Discharge Summary | 18842-5 | 1 per inpatient | CMS §482.24 mandated for every discharge |
+| A | Death Note | 69730-0 | 1 per death | Legal document; M&M review |
+| A | Operative Note | 11504-8 | 1 per surgical procedure | CMS §482.51 mandated |
+| B | Admission H&P | 34117-2 | 1 per inpatient | Standard US admission documentation |
+| B | Procedure Note | 28570-0 | 0..N per inpatient | Only for invasive bedside procedures with clinical significance |
+
+Procedure Note scope is restricted to **eight invasive bedside procedures** that require
+a formal note: `central_line`, `lumbar_puncture`, `thoracentesis`, `paracentesis`,
+`chest_tube`, `intubation`, `bronchoscopy`, `cardioversion`. Lower-complexity bedside
+procedures (urinary catheter, NG tube, echocardiography, blood transfusion, dialysis,
+arterial line, wound debridement) are documented in nursing or ancillary records and do
+not produce a separate DocumentReference.
+
+Progress Note (LOINC 11506-3) is **reserved for a future Tier C scope** because real-world
+progress notes are ~80% redundant with structured vitals/labs/MAR data and generating them
+at every hospital day would inflate token cost by an order of magnitude for minimal
+incremental research value.
+
+### Storage format: narrative CIF
+
+A new type `ClinicalDocument` (in `clinosim/types/clinical.py`) represents one clinical
+document. It is written as one JSON file per document under:
+
+```
+cif/narratives/<version_id>/documents/<encounter_id>/<task_type>[_suffix].json
+```
+
+Each file contains:
+- **Identity** — document_id, task_type, LOINC code
+- **References** — patient_id, encounter_id, author_practitioner_id, related_procedure_id
+- **Timing** — authored_datetime, period_start, period_end
+- **Content** — language, content_type, text
+- **Provenance** — text_source (llm/template/cache/none), llm_model, llm_provider,
+  input/output tokens, prompt_version, cache_hit, generated_at, fallback_reason
+
+The document_generator extracts a deterministic list of facts (via
+`hospital_course_extractor`) for each encounter and passes them as `${variables}` to the
+LLM prompt. This keeps the LLM honest: it narrates facts rather than inventing them.
+
+### FHIR DocumentReference mapping
+
+```
+DocumentReference.id          = <document_id>
+  .status                     = "current"
+  .docStatus                  = "final" (or "preliminary" for template fallback)
+  .type.coding                = LOINC code + display (resolved via clinosim.codes)
+  .category                   = us-core-documentreference-category: clinical-note
+  .subject                    = Patient/<patient_id>
+  .date                       = authored_datetime
+  .author                     = Practitioner/<author_practitioner_id>
+  .content[0].attachment
+      .contentType            = text/plain; charset=utf-8
+      .language               = en | ja
+      .data                   = base64(text)
+      .size                   = byte length
+      .hash                   = base64(sha1(text))
+  .context.encounter          = Encounter/<encounter_id>
+  .context.period             = { start, end }
+  .context.related            = Procedure/<related_procedure_id>  (operative/procedure)
+```
+
+Empty documents (Stage 1 stubs with no Stage 2 text) are **not emitted** — a
+DocumentReference with empty attachment data is useless to downstream consumers and
+would violate the FHIR profile implied by attaching a `clinical-note` category.
+
+---
+
+## 8. LLM service architecture: pluggable providers + YAML prompts
+
+### Problem
+
+The Milestone 0 `llm_service` supported only local Ollama and had all prompts hardcoded
+in `engine._build_prompt()`. Adding a new provider required editing `engine.py`, adding
+a new language required editing Python code, and adding a new document type required
+both. Bedrock was not implemented at all. There was no response cache, so re-running
+Stage 2 always re-invoked the LLM.
+
+### Decision (AD-39, AD-40, AD-41)
+
+**AD-39 — LLM provider plugin registry.**
+Providers live in `clinosim/modules/llm_service/providers/` as a subpackage. Every
+provider implements the `LLMProvider` Protocol (structural typing, no inheritance):
+
+```python
+class LLMProvider(Protocol):
+    def complete(self, prompt, model, max_tokens, system_prompt,
+                 temperature=0.4, stop_sequences=None) -> ProviderResponse: ...
+    def health_check(self) -> bool: ...
+```
+
+A registry in `providers/__init__.py` maps provider keys (`ollama`, `bedrock`, `mock`,
+`local`) to builder callables. Third-party code can extend the registry via
+`register_provider(name, builder)` without touching clinosim source.
+
+A new `factory.build_from_config_file(path)` reads `llm_service.yaml`, builds the
+appropriate providers for the `judgment:` and `narrative:` sections, and returns a fully
+wired `LLMService`. The Bedrock provider lazy-imports `boto3`, so users who never touch
+Bedrock do not need to install it.
+
+**AD-40 — Prompt templates as per-language YAML files.**
+Prompts live under `clinosim/modules/llm_service/prompts/<language>/<task_type>.yaml`:
+
+```yaml
+task_type: discharge_summary
+version: 1
+max_tokens: 2000
+temperature: 0.4
+system: |
+  You are an attending physician writing a comprehensive discharge summary ...
+user_template: |
+  Patient: ${age}yo ${sex}
+  Admission date: ${admission_date}
+  ...
+```
+
+`PromptRegistry.get(task_type, language)` loads and caches specs lazily. Rendering uses
+Python's standard-library `string.Template` (zero external dependencies) with
+`substitute()` on the user template (raises on missing keys — fail loud) and
+`safe_substitute()` on the system prompt (natural-language content may contain
+accidental `${...}` sequences).
+
+Language fallback mirrors the codes module behavior: if `ja/<task>.yaml` is missing, the
+registry falls back to `en/<task>.yaml` and logs via the PromptSpec's `language` field.
+
+Rationale:
+- **Clinician-editable** — non-programmers can improve prompt quality without touching
+  Python code.
+- **Language addition is a folder, not a PR review** — adding German means creating
+  `prompts/de/*.yaml`, no engine changes.
+- **Versioning + A/B testing** — the `version:` field is recorded on each generated
+  document, enabling reproducibility and controlled rollouts.
+- **JUDGMENT English-only invariant (AD-13)** is enforced at the yaml-tree level: only
+  put English prompts under judgment tasks.
+
+**AD-41 — SHA256 disk cache for LLM responses.**
+`PromptCache` in `clinosim/modules/llm_service/cache.py` stores one JSON file per cached
+response, keyed by `SHA256(system || user || model)`. Entries are written by
+`LLMService._llm_generate` after a successful provider call and read before every
+provider call when the cache is enabled.
+
+Rationale:
+- **Reproducibility (AD-16)** — re-running Stage 2 with the same inputs and same seed
+  produces byte-identical output.
+- **Cost control** — Bedrock Claude Sonnet runs on 5,000-patient datasets cost on the
+  order of $1–5 per run; cache hits make re-runs free.
+- **Partial re-run recovery** — if Stage 2 is interrupted mid-run, resuming only
+  re-invokes the LLM for documents that were not yet cached.
+
+Cache location defaults to `<cif>/narratives/<version>/cache/` or an explicit
+`cache.directory` in the YAML config. Cache is disabled for template and mock modes.
+
+### Data model: LLMService.generate
+
+`LLMService.generate(task_type, event, variables=None)` is the single entry point for
+all modules. `variables` is the new parameter that routes to PromptRegistry; when None,
+the legacy `_build_prompt` hardcoded path is used (kept for backward compatibility with
+admission H&P / discharge summary template code).
+
+The returned `LLMResponse` now carries:
+- `source` — `llm` | `template` | `cache` | `none`
+- `input_tokens` / `output_tokens`
+- `prompt_version` — from the PromptSpec
+- `cache_hit` — True when served from `PromptCache`
+- `fallback_reason` — populated on template fallback with a short error tag
+- `provider` — the configured provider key (e.g. `bedrock`) for provenance
+
+All of these are recorded on the `ClinicalDocument.generation` block and propagate into
+the narrative CIF manifest, enabling per-document cost analysis and audit.

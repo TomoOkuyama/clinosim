@@ -1,7 +1,10 @@
-"""LLM Service — v0.1-beta: template mode + Ollama provider skeleton.
+"""LLM Service — v0.1-beta: template mode + pluggable providers.
 
 All LLM calls from all modules go through this service (AD-11).
 JUDGMENT and NARRATIVE use independently configurable providers (AD-24).
+
+Provider implementations live in `providers/` and are instantiated via
+`providers.build_provider()` or the config-driven `factory.build_from_config()`.
 """
 
 from __future__ import annotations
@@ -10,17 +13,68 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
+# Re-export ProviderResponse from the new providers subpackage so existing
+# imports keep working. New code should import from .providers directly.
+from .providers import ProviderResponse  # noqa: F401
+from .providers.ollama import OllamaProvider  # noqa: F401  (back-compat)
+
+
+class LLMTaskCategory(str, Enum):
+    JUDGMENT = "judgment"
+    NARRATIVE = "narrative"
+
 
 class LLMTaskType(str, Enum):
-    """
-    Narrative document types for clinical data.
-    Only the 5 required types per LOINC specification.
-    """
-    ADMISSION_HP = "admission_hp"          # LOINC 34117-2 (all admissions)
-    DISCHARGE_SUMMARY = "discharge_summary"  # LOINC 18842-5 (all discharges)
-    OPERATIVE_NOTE = "operative_note"      # LOINC 11504-8 (surgeries)
-    PROCEDURE_NOTE = "procedure_note"      # LOINC 28570-0 (invasive bedside)
-    DEATH_NOTE = "death_note"              # LOINC 69730-0 (death discharges)
+    # JUDGMENT (always English)
+    DIAGNOSTIC_REASONING = "diagnostic_reasoning"
+    TREATMENT_DECISION = "treatment_decision"
+    CLINICAL_JUDGMENT = "clinical_judgment"
+    CONSISTENCY_REVIEW = "consistency_review"
+    # NARRATIVE — clinical documents (produce FHIR DocumentReference)
+    CHIEF_COMPLAINT = "chief_complaint"
+    ADMISSION_HP = "admission_hp"           # LOINC 34117-2
+    PROGRESS_NOTE = "progress_note"          # LOINC 11506-3
+    DISCHARGE_SUMMARY = "discharge_summary"  # LOINC 18842-5
+    DEATH_SUMMARY = "death_summary"          # LOINC 69730-0
+    OPERATIVE_NOTE = "operative_note"        # LOINC 11504-8
+    PROCEDURE_NOTE = "procedure_note"        # LOINC 28570-0
+    NURSING_NOTE = "nursing_note"
+
+
+TASK_CATEGORY: dict[LLMTaskType, LLMTaskCategory] = {
+    LLMTaskType.DIAGNOSTIC_REASONING: LLMTaskCategory.JUDGMENT,
+    LLMTaskType.TREATMENT_DECISION: LLMTaskCategory.JUDGMENT,
+    LLMTaskType.CLINICAL_JUDGMENT: LLMTaskCategory.JUDGMENT,
+    LLMTaskType.CONSISTENCY_REVIEW: LLMTaskCategory.JUDGMENT,
+    LLMTaskType.CHIEF_COMPLAINT: LLMTaskCategory.NARRATIVE,
+    LLMTaskType.ADMISSION_HP: LLMTaskCategory.NARRATIVE,
+    LLMTaskType.PROGRESS_NOTE: LLMTaskCategory.NARRATIVE,
+    LLMTaskType.DISCHARGE_SUMMARY: LLMTaskCategory.NARRATIVE,
+    LLMTaskType.DEATH_SUMMARY: LLMTaskCategory.NARRATIVE,
+    LLMTaskType.OPERATIVE_NOTE: LLMTaskCategory.NARRATIVE,
+    LLMTaskType.PROCEDURE_NOTE: LLMTaskCategory.NARRATIVE,
+    LLMTaskType.NURSING_NOTE: LLMTaskCategory.NARRATIVE,
+}
+
+
+# ============================================================
+# Clinical document metadata
+# LOINC codes from Regenstrief LOINC Reference (https://loinc.org/)
+# ============================================================
+
+DOCUMENT_LOINC: dict[LLMTaskType, str] = {
+    LLMTaskType.ADMISSION_HP: "34117-2",       # History and physical note
+    LLMTaskType.PROGRESS_NOTE: "11506-3",      # Progress note
+    LLMTaskType.DISCHARGE_SUMMARY: "18842-5",  # Discharge summary note
+    LLMTaskType.DEATH_SUMMARY: "69730-0",      # Death note
+    LLMTaskType.OPERATIVE_NOTE: "11504-8",     # Surgical operation note
+    LLMTaskType.PROCEDURE_NOTE: "28570-0",     # Procedure note
+}
+
+
+def loinc_for(task_type: LLMTaskType) -> str | None:
+    """Return the LOINC code for a document-producing task type, or None."""
+    return DOCUMENT_LOINC.get(task_type)
 
 
 @dataclass
@@ -51,85 +105,98 @@ class LLMResponse:
     text: str | None = None
     source: str = "none"  # "llm" | "template" | "cache" | "none"
     model: str | None = None
+    provider: str | None = None
+    input_tokens: int = 0
+    output_tokens: int = 0
+    prompt_version: int = 0
+    cache_hit: bool = False
+    fallback_reason: str = ""
     chosen_option: str | None = None
     reasoning: str | None = None
 
 
-@dataclass
-class ProviderResponse:
-    text: str = ""
-    input_tokens: int = 0
-    output_tokens: int = 0
-    model: str = ""
-
-
-class OllamaProvider:
-    """Local Ollama LLM provider."""
-
-    def __init__(self, endpoint: str = "http://localhost:11434", model: str = "qwen:7b"):
-        self.endpoint = endpoint
-        self.default_model = model
-
-    def complete(self, prompt: str, model: str = "", max_tokens: int = 1500,
-                 system_prompt: str = "") -> ProviderResponse:
-        import httpx
-        model = model or self.default_model
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt})
-
-        resp = httpx.post(
-            f"{self.endpoint}/api/chat",
-            json={"model": model, "messages": messages, "stream": False,
-                  "options": {"num_predict": max_tokens}},
-            timeout=120,
-        )
-        data = resp.json()
-        text = data.get("message", {}).get("content", "")
-        return ProviderResponse(
-            text=text,
-            input_tokens=data.get("prompt_eval_count", 0),
-            output_tokens=data.get("eval_count", 0),
-            model=model,
-        )
-
-
 class LLMService:
-    """
-    Central LLM service for narrative document generation.
+    """Central LLM service. All modules call generate() — never LLM directly."""
 
-    Supports 5 document types (LOINC codes):
-    - 34117-2: Admission H&P (all admissions)
-    - 18842-5: Discharge Summary (all discharges)
-    - 11504-8: Operative Note (surgeries)
-    - 28570-0: Procedure Note (invasive bedside procedures)
-    - 69730-0: Death Note (death discharges)
-    """
-
-    def __init__(self, mode: str = "none",
-                 narrative_provider: Any = None,
-                 narrative_model_map: dict[str, str] | None = None):
+    def __init__(
+        self,
+        mode: str = "none",
+        judgment_provider: Any = None,
+        narrative_provider: Any = None,
+        judgment_model_map: dict[str, str] | None = None,
+        narrative_model_map: dict[str, str] | None = None,
+        prompt_registry: Any = None,
+        cache: Any = None,
+        retry_attempts: int = 3,
+        retry_backoff_seconds: float = 1.0,
+        provider_name_judgment: str = "",
+        provider_name_narrative: str = "",
+    ):
         self.mode = mode  # "none" | "template" | "llm"
+        self.judgment_provider = judgment_provider
         self.narrative_provider = narrative_provider
+        self.judgment_model_map = judgment_model_map or {}
         self.narrative_model_map = narrative_model_map or {}
+        self.provider_name_judgment = provider_name_judgment
+        self.provider_name_narrative = provider_name_narrative
+        self.retry_attempts = retry_attempts
+        self.retry_backoff_seconds = retry_backoff_seconds
+
+        # Lazy import to avoid cycles
+        if prompt_registry is None:
+            from .prompt_registry import PromptRegistry
+            prompt_registry = PromptRegistry()
+        self.prompt_registry = prompt_registry
+        self.cache = cache  # PromptCache | None
+
         self.total_input_tokens = 0
         self.total_output_tokens = 0
         self.call_count = 0
         self.fallback_count = 0
+        self.cache_hit_count = 0
 
-    def generate(self, task_type: LLMTaskType, event: ClinicalEventData) -> LLMResponse:
-        """Single entry point for all LLM interactions."""
+    # ------------------------------------------------------------
+    # Factory helpers
+    # ------------------------------------------------------------
+    @classmethod
+    def from_config_file(cls, path: str | Any) -> "LLMService":
+        """Build an LLMService from a YAML config file.
+
+        See ``clinosim/config/llm_service.yaml`` for the expected schema.
+        """
+        from .factory import build_from_config_file
+        return build_from_config_file(path)
+
+    # ------------------------------------------------------------
+    # Core entry point
+    # ------------------------------------------------------------
+    def generate(
+        self,
+        task_type: LLMTaskType,
+        event: ClinicalEventData,
+        variables: dict[str, Any] | None = None,
+    ) -> LLMResponse:
+        """Single entry point for all LLM interactions.
+
+        Args:
+            task_type: task identifier (used to select prompt template)
+            event: legacy event data (used by JUDGMENT/chief_complaint)
+            variables: structured variables for PromptRegistry rendering.
+                When provided, YAML prompt templates are used (preferred path
+                for all document-producing tasks). When None, falls back to
+                the legacy ``_build_prompt`` path.
+        """
         if self.mode == "none":
             return LLMResponse(source="none")
 
-        language = event.language
+        category = TASK_CATEGORY[task_type]
+        language = "en" if category == LLMTaskCategory.JUDGMENT else event.language
 
         if self.mode == "template":
             return self._template_generate(task_type, event, language)
 
         # LLM mode
-        return self._llm_generate(task_type, event, language)
+        return self._llm_generate(task_type, event, language, category, variables)
 
     def _template_generate(
         self, task_type: LLMTaskType, event: ClinicalEventData, language: str
@@ -139,20 +206,26 @@ class LLMService:
         ed = event.event_data
 
         match task_type:
-            case LLMTaskType.ADMISSION_HP:
-                text = _admission_hp(ps, ed, language)
+            case LLMTaskType.CHIEF_COMPLAINT:
+                if language == "ja":
+                    text = _jp_chief_complaint(ps, ed)
+                else:
+                    text = _en_chief_complaint(ps, ed)
+
+            case LLMTaskType.PROGRESS_NOTE:
+                text = _progress_note(ps, ed, language)
 
             case LLMTaskType.DISCHARGE_SUMMARY:
                 text = _discharge_summary(ps, ed, language)
 
-            case LLMTaskType.OPERATIVE_NOTE:
-                text = _operative_note(ps, ed, language)
+            case LLMTaskType.ADMISSION_HP:
+                text = _admission_hp(ps, ed, language)
 
-            case LLMTaskType.PROCEDURE_NOTE:
-                text = _procedure_note(ps, ed, language)
+            case LLMTaskType.DIAGNOSTIC_REASONING:
+                text = _diagnostic_reasoning(ps, ed)
 
-            case LLMTaskType.DEATH_NOTE:
-                text = _death_note(ps, ed, language)
+            case LLMTaskType.TREATMENT_DECISION:
+                text = _treatment_decision(ps, ed)
 
             case _:
                 text = f"[Template: {task_type.value}]"
@@ -161,60 +234,111 @@ class LLMService:
 
 
     def _llm_generate(
-        self, task_type: LLMTaskType, event: ClinicalEventData,
+        self,
+        task_type: LLMTaskType,
+        event: ClinicalEventData,
         language: str,
+        category: LLMTaskCategory,
+        variables: dict[str, Any] | None,
     ) -> LLMResponse:
         """Call actual LLM provider. Falls back to template on failure."""
-        # Use narrative provider (all tasks are narrative now)
-        provider = self.narrative_provider
-        model_map = self.narrative_model_map
+        # Select provider and model
+        if category == LLMTaskCategory.JUDGMENT:
+            provider = self.judgment_provider
+            model_map = self.judgment_model_map
+            provider_name = self.provider_name_judgment
+        else:
+            provider = self.narrative_provider
+            model_map = self.narrative_model_map
+            provider_name = self.provider_name_narrative
 
         if provider is None:
             # No provider configured — fall back to template
             self.fallback_count += 1
-            return self._template_generate(task_type, event, language)
+            resp = self._template_generate(task_type, event, language)
+            resp.fallback_reason = "no_provider_configured"
+            return resp
 
-        # Build prompt
-        system_prompt, user_prompt = _build_prompt(task_type, event, language)
-        model = model_map.get("medium", model_map.get("small", ""))
+        # Prompt construction: prefer PromptRegistry (YAML) when variables are
+        # supplied, else fall back to the legacy hardcoded _build_prompt.
+        prompt_version = 0
+        max_tokens = 1500
+        temperature = 0.4
+        if variables is not None and self.prompt_registry is not None:
+            try:
+                spec = self.prompt_registry.get(task_type.value, language)
+                system_prompt, user_prompt = spec.render(variables)
+                prompt_version = spec.version
+                max_tokens = spec.max_tokens
+                temperature = spec.temperature
+            except (FileNotFoundError, KeyError) as e:
+                self.fallback_count += 1
+                resp = self._template_generate(task_type, event, language)
+                resp.fallback_reason = f"prompt_error:{type(e).__name__}"
+                return resp
+        else:
+            system_prompt, user_prompt = _build_prompt(task_type, event, language)
 
-        # Determine max_tokens by document type
-        max_tokens_map = {
-            LLMTaskType.ADMISSION_HP: 3000,
-            LLMTaskType.DISCHARGE_SUMMARY: 4000,
-            LLMTaskType.OPERATIVE_NOTE: 2500,
-            LLMTaskType.PROCEDURE_NOTE: 1500,
-            LLMTaskType.DEATH_NOTE: 1000,
-        }
-        max_tokens = max_tokens_map.get(task_type, 2000)
+        model = model_map.get("medium", model_map.get("small", "")) or ""
+
+        # Cache lookup
+        if self.cache is not None:
+            cached = self.cache.get(system_prompt, user_prompt, model)
+            if cached is not None:
+                self.cache_hit_count += 1
+                return LLMResponse(
+                    text=cached.text,
+                    source="cache",
+                    model=cached.model,
+                    provider=provider_name,
+                    input_tokens=cached.input_tokens,
+                    output_tokens=cached.output_tokens,
+                    prompt_version=prompt_version,
+                    cache_hit=True,
+                )
 
         # Call with retry
-        for attempt in range(3):
+        last_error = ""
+        for attempt in range(self.retry_attempts):
             try:
                 response = provider.complete(
                     prompt=user_prompt,
                     model=model,
                     max_tokens=max_tokens,
                     system_prompt=system_prompt,
+                    temperature=temperature,
                 )
                 self.call_count += 1
                 self.total_input_tokens += response.input_tokens
                 self.total_output_tokens += response.output_tokens
 
+                if self.cache is not None:
+                    self.cache.put(system_prompt, user_prompt, model, response)
+
                 return LLMResponse(
                     text=response.text,
                     source="llm",
                     model=response.model,
+                    provider=provider_name,
+                    input_tokens=response.input_tokens,
+                    output_tokens=response.output_tokens,
+                    prompt_version=prompt_version,
                 )
-            except Exception:
-                if attempt == 2:
+            except Exception as e:
+                last_error = f"{type(e).__name__}: {e}"
+                if attempt == self.retry_attempts - 1:
                     # All retries exhausted — fall back to template
                     self.fallback_count += 1
-                    return self._template_generate(task_type, event, language)
+                    resp = self._template_generate(task_type, event, language)
+                    resp.fallback_reason = f"provider_error:{last_error}"[:200]
+                    return resp
                 import time
-                time.sleep(1 * (attempt + 1))
+                time.sleep(self.retry_backoff_seconds * (attempt + 1))
 
-        return self._template_generate(task_type, event, language)
+        # Unreachable but for type-checkers
+        resp = self._template_generate(task_type, event, language)
+        resp.fallback_reason = f"unknown:{last_error}"
+        return resp
 
     def cost_report(self) -> dict:
         return {
@@ -222,6 +346,8 @@ class LLMService:
             "total_input_tokens": self.total_input_tokens,
             "total_output_tokens": self.total_output_tokens,
             "fallback_count": self.fallback_count,
+            "cache_hit_count": self.cache_hit_count,
+            "cache_stats": self.cache.stats() if self.cache else None,
         }
 
 
@@ -236,13 +362,20 @@ def _build_prompt(task_type: LLMTaskType, event: ClinicalEventData,
         "en": "Write in English. Use standard medical terminology.",
     }.get(language, "Write in English.")
 
-    # Conciseness instruction
-    concise_instr = {
-        "ja": "簡潔に記載してください（500-800文字程度）。",
-        "en": "Keep it concise and brief (500-800 characters).",
-    }.get(language, "Keep it concise.")
-
     match task_type:
+        case LLMTaskType.PROGRESS_NOTE:
+            system = (
+                f"You are a physician writing a daily progress note. "
+                f"Use SOAP format. Be concise. {lang_instruction}"
+            )
+            user = (
+                f"Patient: {ps.age}yo {ps.sex}, Hospital Day {ps.hospital_day}\n"
+                f"Diagnosis: {ps.current_diagnosis}\n"
+                f"Vitals: {ed.get('vitals', {})}\n"
+                f"Key labs: {ed.get('key_labs', {})}\n"
+                f"Write the progress note."
+            )
+
         case LLMTaskType.DISCHARGE_SUMMARY:
             system = (
                 f"You are a physician writing a discharge summary. "
@@ -254,7 +387,7 @@ def _build_prompt(task_type: LLMTaskType, event: ClinicalEventData,
                 f"LOS: {ed.get('los_days', 14)} days\n"
                 f"Key events: {ed.get('key_events', [])}\n"
                 f"Discharge medications: {ed.get('discharge_medications', [])}\n"
-                f"Write the discharge summary. {concise_instr}"
+                f"Write the discharge summary."
             )
 
         case LLMTaskType.ADMISSION_HP:
@@ -267,63 +400,22 @@ def _build_prompt(task_type: LLMTaskType, event: ClinicalEventData,
                 f"Patient: {ps.age}yo {ps.sex}\n"
                 f"Chief complaint: {ps.chief_complaint}\n"
                 f"PMH: {conditions}\n"
-                f"Write the admission H&P. {concise_instr}"
+                f"Write the admission H&P."
             )
 
-        case LLMTaskType.OPERATIVE_NOTE:
-            system = (
-                f"You are a surgeon writing an operative note (LOINC 11504-8). "
-                f"Include: preop diagnosis, postop diagnosis, procedure performed, "
-                f"indications, findings, technique, EBL, complications. "
-                f"{lang_instruction}"
-            )
-            procedure_type = ed.get("procedure_type", "ORIF")
-            anesthesia = ed.get("anesthesia_type", "general")
-            duration = ed.get("duration_minutes", 90)
-            ebl = ed.get("estimated_blood_loss_ml", 300)
-            findings = ed.get("findings", "")
-            complications = ed.get("intraop_complications", [])
-            user = (
-                f"Patient: {ps.age}yo {ps.sex}\n"
-                f"Preop Dx: {ed.get('preop_diagnosis', ps.current_diagnosis)}\n"
-                f"Procedure: {procedure_type}\n"
-                f"Anesthesia: {anesthesia}\n"
-                f"Duration: {duration} min\n"
-                f"EBL: {ebl} mL\n"
-                f"Findings: {findings}\n"
-                f"Complications: {', '.join(complications) if complications else 'None'}\n"
-                f"Write the operative note. {concise_instr}"
-            )
+        case LLMTaskType.CHIEF_COMPLAINT:
+            system = f"Generate a brief chief complaint statement. {lang_instruction}"
+            symptoms = ed.get("symptoms", ["fever", "cough"])
+            days = ed.get("symptom_days", 3)
+            user = f"Symptoms: {', '.join(symptoms)} for {days} days."
 
-        case LLMTaskType.PROCEDURE_NOTE:
-            system = (
-                f"You are a physician writing a procedure note (LOINC 28570-0) "
-                f"for an invasive bedside procedure. Include: indication, consent, "
-                f"technique, findings, complications, patient toleration. "
-                f"{lang_instruction}"
-            )
-            procedure_type = ed.get("procedure_type", "central_line")
-            indication = ed.get("indication", ps.current_diagnosis)
+        case LLMTaskType.DIAGNOSTIC_REASONING:
+            system = "You are a physician explaining diagnostic reasoning. Write in English."
             user = (
-                f"Patient: {ps.age}yo {ps.sex}\n"
-                f"Procedure: {procedure_type}\n"
-                f"Indication: {indication}\n"
-                f"Write the procedure note. {concise_instr}"
-            )
-
-        case LLMTaskType.DEATH_NOTE:
-            system = (
-                f"You are a physician writing a death note (LOINC 69730-0). "
-                f"Include: time of death, cause of death, family notification. "
-                f"Be respectful and concise. {lang_instruction}"
-            )
-            death_time = ed.get("death_datetime", "")
-            cause = ed.get("cause_of_death", ps.current_diagnosis)
-            user = (
-                f"Patient: {ps.age}yo {ps.sex}\n"
-                f"Time of death: {death_time}\n"
-                f"Cause: {cause}\n"
-                f"Write the death note. {concise_instr}"
+                f"Differential changed: {ed.get('differential_before', {})} "
+                f"-> {ed.get('differential_after', {})}\n"
+                f"New findings: {ed.get('new_findings', [])}\n"
+                f"Explain the reasoning."
             )
 
         case _:
@@ -334,40 +426,49 @@ def _build_prompt(task_type: LLMTaskType, event: ClinicalEventData,
 
 
 # ============================================================
-# Template generators (5 required document types only)
+# Template generators
 # ============================================================
 
-def _admission_hp(ps: PatientSummary, ed: dict, language: str) -> str:
-    los = ed.get("los_days", 14)
-    final_dx = ed.get("final_diagnosis", ps.current_diagnosis)
-    meds = ed.get("discharge_medications", [])
+def _jp_chief_complaint(ps: PatientSummary, ed: dict) -> str:
+    symptoms = ed.get("symptoms", ["発熱", "咳嗽", "呼吸困難"])
+    days = ed.get("symptom_days", 3)
+    return f"{days}日前からの{'、'.join(symptoms)}を主訴に来院。"
+
+
+def _en_chief_complaint(ps: PatientSummary, ed: dict) -> str:
+    symptoms = ed.get("symptoms", ["fever", "cough", "dyspnea"])
+    days = ed.get("symptom_days", 3)
+    return f"{days}-day history of {', '.join(symptoms)}."
+
+
+def _progress_note(ps: PatientSummary, ed: dict, language: str) -> str:
+    day = ps.hospital_day
+    vitals = ed.get("vitals", {})
+    labs = ed.get("key_labs", {})
 
     if language == "ja":
-        med_str = "、".join(meds) if meds else "処方なし"
+        t = vitals.get("temperature", "---")
+        crp = labs.get("CRP", "---")
         return (
-            f"【退院時サマリー】\n"
-            f"患者: {ps.age}歳 {ps.sex}\n"
-            f"入院期間: {los}日間\n"
-            f"最終診断: {final_dx}\n"
-            f"経過: 抗菌薬治療により軽快。\n"
-            f"退院時処方: {med_str}\n"
-            f"外来フォロー: 2週間後。"
+            f"【経過記録 Day {day}】\n"
+            f"S: 特記事項なし。食事摂取良好。\n"
+            f"O: 体温 {t}℃。CRP {crp}。\n"
+            f"A: {ps.current_diagnosis}。経過良好。\n"
+            f"P: 現治療継続。"
         )
     else:
-        med_str = ", ".join(meds) if meds else "None"
+        t = vitals.get("temperature", "---")
+        crp = labs.get("CRP", "---")
         return (
-            f"Discharge Summary\n"
-            f"Patient: {ps.age}yo {ps.sex}\n"
-            f"LOS: {los} days\n"
-            f"Final Dx: {final_dx}\n"
-            f"Course: Improved with antibiotic therapy.\n"
-            f"Discharge Rx: {med_str}\n"
-            f"Follow-up: 2 weeks."
+            f"Day {day} Progress Note\n"
+            f"S: No acute complaints. Tolerating diet.\n"
+            f"O: Temp {t}C. CRP {crp}.\n"
+            f"A: {ps.current_diagnosis}. Improving.\n"
+            f"P: Continue current management."
         )
 
 
 def _discharge_summary(ps: PatientSummary, ed: dict, language: str) -> str:
-    """Template for discharge summary (LOINC 18842-5)."""
     los = ed.get("los_days", 14)
     final_dx = ed.get("final_diagnosis", ps.current_diagnosis)
     meds = ed.get("discharge_medications", [])
@@ -397,7 +498,6 @@ def _discharge_summary(ps: PatientSummary, ed: dict, language: str) -> str:
 
 
 def _admission_hp(ps: PatientSummary, ed: dict, language: str) -> str:
-    """Template for admission H&P (LOINC 34117-2)."""
     conditions = ", ".join(ps.relevant_conditions or [])
     if language == "ja":
         return (
@@ -419,102 +519,15 @@ def _admission_hp(ps: PatientSummary, ed: dict, language: str) -> str:
         )
 
 
-def _operative_note(ps: PatientSummary, ed: dict, language: str) -> str:
-    """Template for operative note (LOINC 11504-8)."""
-    procedure_type = ed.get("procedure_type", "ORIF")
-    anesthesia = ed.get("anesthesia_type", "general")
-    duration = ed.get("duration_minutes", 90)
-    ebl = ed.get("estimated_blood_loss_ml", 300)
-    preop_dx = ed.get("preop_diagnosis", ps.current_diagnosis)
-    postop_dx = ed.get("postop_diagnosis", ps.current_diagnosis)
-    complications = ed.get("intraop_complications", [])
-
-    if language == "ja":
-        comp_str = "、".join(complications) if complications else "なし"
-        return (
-            f"【手術記録】\n"
-            f"患者: {ps.age}歳 {ps.sex}\n"
-            f"術前診断: {preop_dx}\n"
-            f"術後診断: {postop_dx}\n"
-            f"手術名: {procedure_type}\n"
-            f"麻酔: {anesthesia}\n"
-            f"手術時間: {duration}分\n"
-            f"出血量: {ebl}mL\n"
-            f"術中合併症: {comp_str}\n"
-            f"術中所見: 特記事項なし。\n"
-            f"終了時状態: 安定。"
-        )
-    else:
-        comp_str = ", ".join(complications) if complications else "None"
-        return (
-            f"Operative Note\n"
-            f"Patient: {ps.age}yo {ps.sex}\n"
-            f"Preop Dx: {preop_dx}\n"
-            f"Postop Dx: {postop_dx}\n"
-            f"Procedure: {procedure_type}\n"
-            f"Anesthesia: {anesthesia}\n"
-            f"Duration: {duration} min\n"
-            f"EBL: {ebl} mL\n"
-            f"Complications: {comp_str}\n"
-            f"Findings: Unremarkable.\n"
-            f"Condition: Stable at end."
-        )
+def _diagnostic_reasoning(ps: PatientSummary, ed: dict) -> str:
+    findings = ed.get("new_findings", [])
+    return (
+        f"Updated differential based on: {', '.join(findings)}. "
+        f"Most likely: {ps.current_diagnosis} ({ps.diagnosis_confidence:.0%})."
+    )
 
 
-def _procedure_note(ps: PatientSummary, ed: dict, language: str) -> str:
-    """Template for procedure note (LOINC 28570-0) - invasive bedside."""
-    procedure_type = ed.get("procedure_type", "central_line")
-    indication = ed.get("indication", ps.current_diagnosis)
-    complications = ed.get("complications", [])
-
-    if language == "ja":
-        comp_str = "、".join(complications) if complications else "なし"
-        return (
-            f"【処置記録】\n"
-            f"患者: {ps.age}歳 {ps.sex}\n"
-            f"処置名: {procedure_type}\n"
-            f"適応: {indication}\n"
-            f"手技: 清潔操作下に施行。\n"
-            f"合併症: {comp_str}\n"
-            f"患者状態: 良好に耐容。"
-        )
-    else:
-        comp_str = ", ".join(complications) if complications else "None"
-        return (
-            f"Procedure Note\n"
-            f"Patient: {ps.age}yo {ps.sex}\n"
-            f"Procedure: {procedure_type}\n"
-            f"Indication: {indication}\n"
-            f"Technique: Performed under sterile conditions.\n"
-            f"Complications: {comp_str}\n"
-            f"Toleration: Patient tolerated well."
-        )
-
-
-def _death_note(ps: PatientSummary, ed: dict, language: str) -> str:
-    """Template for death note (LOINC 69730-0)."""
-    death_time = ed.get("death_datetime", "不明")
-    cause = ed.get("cause_of_death", ps.current_diagnosis)
-
-    if language == "ja":
-        return (
-            f"【死亡診断書】\n"
-            f"患者: {ps.age}歳 {ps.sex}\n"
-            f"死亡日時: {death_time}\n"
-            f"死因: {cause}\n"
-            f"経過: 治療に反応せず、多臓器不全が進行。\n"
-            f"家族への説明: 実施済み。\n"
-            f"剖検: 家族が希望せず。"
-        )
-    else:
-        return (
-            f"Death Note\n"
-            f"Patient: {ps.age}yo {ps.sex}\n"
-            f"Time of death: {death_time}\n"
-            f"Cause of death: {cause}\n"
-            f"Course: Progressive multiorgan failure despite treatment.\n"
-            f"Family notification: Completed.\n"
-            f"Autopsy: Declined by family."
-        )
-
-
+def _treatment_decision(ps: PatientSummary, ed: dict) -> str:
+    decision = ed.get("decision", "continue")
+    reason = ed.get("reason", "on_track")
+    return f"Treatment decision: {decision}. Reason: {reason}."

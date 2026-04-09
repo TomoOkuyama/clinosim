@@ -42,18 +42,22 @@ Primary use cases:
 ## Features
 
 - **HL7 FHIR Bulk Data Access** compliant NDJSON output (Patient.ndjson, Encounter.ndjson, ...)
+- **Three-stage pipeline**: `generate` (structured CIF) → `narrate` (LLM clinical documents) → `export-fhir` (FHIR R4 NDJSON). Each stage is re-runnable and independently testable.
+- **Clinical documents as FHIR DocumentReference** (LOINC-coded): Discharge Summary, Death Note, Operative Note, Admission H&P, Procedure Note — each base64-encoded and linked to Patient/Encounter/Procedure
+- **Pluggable LLM providers** (Ollama, AWS Bedrock, Mock) with YAML-driven factory and SHA256 disk cache for reproducibility and cost control
 - **9-variable physiology model** ensures labs/vitals are physiologically and clinically coherent
 - **Bayesian differential diagnosis** with likelihood ratios; 6 disease trajectory archetypes
-- **Authoritative code systems** (ICD-10-CM, LOINC, RxNorm, JLAC10, YJ codes, CPT) with multilingual display
+- **Authoritative code systems** (ICD-10-CM, LOINC, RxNorm, JLAC10, YJ codes, CPT, SNOMED CT subset) with multilingual display
 - **28 diseases + 44 ED/outpatient conditions** defined in YAML (no code changes to add new ones)
 - **JCCLS reference ranges 2022** for Japanese labs; Tietz/Mayo for US
 - **NEWS2-compatible vitals** including AVPU consciousness level and supplemental oxygen
 - **Ward + bed Location hierarchy** with PractitionerRole.location assignment
+- **Operating rooms** modeled as FHIR Locations; surgical procedures include category (SNOMED), performer.function (surgeon/anaesthetist), bodySite, outcome, and complications
 - **Snapshot date** support — includes "currently admitted" patients (in-progress encounters)
 - **30-day readmission chains** with `prior_encounter_id` linking
 - **Multi-country**: US (English) and JP (Japanese) parallel output
 - **Fully deterministic** with seed
-- **English-first with language fallback** in code systems
+- **English-first with language fallback** in code systems and LLM prompt templates
 
 ---
 
@@ -79,6 +83,8 @@ pip install -e ".[dev]"
 ### CLI
 
 ```bash
+# === Stage 1: structured simulation (always local, deterministic) ===
+
 # Default: US, past 1 year ending today, 60,000 catchment, 50-bed hospital
 clinosim generate -o ./output
 
@@ -90,6 +96,36 @@ clinosim generate -o ./output \
   --country JP \
   --hospital-config clinosim/config/hospital_small.yaml \
   -p 12000
+
+# === Stage 2: clinical documents (optional — requires CIF from Stage 1) ===
+
+# Template mode (no LLM, deterministic, instant sanity check)
+clinosim narrate --cif-dir ./output/cif --version-id template_v1
+
+# Local Ollama
+clinosim narrate --cif-dir ./output/cif \
+  --llm-config clinosim/config/llm_service.yaml \
+  --version-id ollama_en_v1
+
+# Only a subset of document types
+clinosim narrate --cif-dir ./output/cif \
+  --tasks discharge_summary,operative_note
+
+# === Stage 3: FHIR Bulk Data export ===
+
+# Without documents (backward compatible)
+clinosim export-fhir --cif-dir ./output/cif
+
+# With a specific narrative version → adds DocumentReference.ndjson
+clinosim export-fhir --cif-dir ./output/cif --narrative-version ollama_en_v1
+
+# === One-shot pipeline ===
+
+# Stage 1 + Stage 2 + Stage 3 in a single command
+clinosim generate -o ./output --format fhir --narrative \
+  --llm-config clinosim/config/llm_service.yaml
+
+# === Debug / inspection ===
 
 # Forced disease scenario (debugging)
 clinosim test-disease bacterial_pneumonia -n 5 --severity moderate
@@ -141,9 +177,19 @@ get_system_uri("loinc")
 
 ## CLI Reference
 
-### `clinosim generate`
+clinosim is organized as three independent stages. You can run them as a single pipeline with `clinosim generate`, or run each stage separately for reproducibility, remote execution (e.g. Bedrock on EC2), or iterative narrative experiments.
 
-Population-driven simulation (primary use case).
+```
+┌────────────────┐  ┌────────────────┐  ┌──────────────────┐
+│ generate       │→ │ narrate        │→ │ export-fhir      │
+│ (Stage 1)      │  │ (Stage 2)      │  │ (Stage 3)        │
+│ structured CIF │  │ narrative CIF  │  │ FHIR R4 NDJSON   │
+└────────────────┘  └────────────────┘  └──────────────────┘
+```
+
+### `clinosim generate` — Stage 1 (structural simulation)
+
+Population-driven simulation. Produces the structural CIF and optionally runs Stage 2/3 in one command.
 
 | Option | Default | Description |
 |---|---|---|
@@ -153,10 +199,47 @@ Population-driven simulation (primary use case).
 | `--start YYYY-MM-DD` | `--end` minus 1 year | Simulation start date |
 | `--end YYYY-MM-DD` | today | Simulation end date = snapshot date |
 | `--hospital-config PATH` | `clinosim/config/hospital_operations.yaml` (50-bed) | Hospital config YAML |
-| `--format ...` | `cif fhir` | `cif`, `csv`, `fhir`, `narrative` |
+| `--format ...` | `cif fhir` | `cif`, `csv`, `fhir` |
 | `-s, --seed N` | `42` | Random seed |
-| `--narrative` | off | LLM narrative generation (requires Ollama) |
-| `--narrative-model NAME` | `qwen:7b` | Ollama model name |
+| `--narrative` | off | Run Stage 2 (clinical documents) after Stage 1 |
+| `--llm-config PATH` | (unset) | LLM service YAML used when `--narrative` is set |
+| `--narrative-version ID` | auto | Narrative version id used when exporting FHIR |
+| `--narrative-model NAME` | `qwen:7b` | Legacy Ollama model name (ignored if `--llm-config` is set) |
+
+### `clinosim narrate` — Stage 2 (clinical documents)
+
+Reads an existing CIF directory and generates clinical documents via the LLM service. Writes a new narrative version to `<cif>/narratives/<version_id>/`.
+
+| Option | Default | Description |
+|---|---|---|
+| `--cif-dir DIR` | **required** | Path to an existing CIF directory |
+| `--llm-config PATH` | (template mode) | LLM service YAML (`clinosim/config/llm_service*.yaml`) |
+| `--version-id ID` | auto-timestamped | Narrative version directory name |
+| `--language LANG` | `en` | Document language (`en` \| `ja`) |
+| `--tasks LIST` | all Tier A+B | Comma-separated subset: `discharge_summary,death_summary,operative_note,admission_hp,procedure_note` |
+
+**Tier A+B document scope** (default):
+
+| Document | LOINC | Generated when | Frequency |
+|---|---|---|---|
+| Discharge Summary | `18842-5` | Every inpatient discharge | 1 per encounter |
+| Death Note | `69730-0` | Deceased inpatient | 1 per death |
+| Operative Note | `11504-8` | Surgical procedure (SNOMED 387713003) | 1 per surgery |
+| Admission H&P | `34117-2` | Every inpatient admission | 1 per encounter |
+| Procedure Note | `28570-0` | Invasive bedside (central line, LP, thoracentesis, paracentesis, chest tube, intubation, bronchoscopy, cardioversion) | 1 per procedure |
+
+See [docs/clinical_documents.md](docs/clinical_documents.md) for details.
+
+### `clinosim export-fhir` — Stage 3 (FHIR R4 NDJSON)
+
+Reads an existing CIF directory (optionally with a narrative version) and writes FHIR R4 Bulk Data NDJSON files.
+
+| Option | Default | Description |
+|---|---|---|
+| `--cif-dir DIR` | **required** | Path to an existing CIF directory |
+| `-o, --output DIR` | `<cif>/../fhir_r4` | Output directory |
+| `--country CODE` | `US` | Country code (display language) |
+| `--narrative-version ID` | (none) | Narrative version to include as `DocumentReference.ndjson`. Use `current` to read the pointer at `<cif>/narratives/current_version.txt` |
 
 ### `clinosim test-disease DISEASE_ID`
 
@@ -183,6 +266,42 @@ Quality check generated data against published benchmarks.
 
 Show all 28 diseases + 44 encounter conditions.
 
+### Typical workflows
+
+**Local template-only run (no LLM, deterministic):**
+```bash
+clinosim generate -o ./output -p 5000 --country US
+clinosim narrate --cif-dir ./output/cif --version-id template_v1
+clinosim export-fhir --cif-dir ./output/cif --narrative-version template_v1
+```
+
+**Local LLM (Ollama):**
+```bash
+clinosim generate -o ./output -p 5000 --country US
+clinosim narrate --cif-dir ./output/cif \
+    --llm-config clinosim/config/llm_service.yaml \
+    --version-id ollama_en_v1
+clinosim export-fhir --cif-dir ./output/cif --narrative-version ollama_en_v1
+```
+
+**Split: local Stage 1, EC2 Stage 2 (Bedrock), back to local Stage 3:**
+```bash
+# On local machine
+clinosim generate -o ./output -p 5000 --country US --format cif
+scp -r ./output/cif ec2-user@ec2-host:/home/ec2-user/
+
+# On EC2 (IAM role with bedrock:Converse)
+clinosim narrate --cif-dir /home/ec2-user/cif \
+    --llm-config clinosim/config/llm_service.bedrock.yaml \
+    --version-id bedrock_sonnet_en_v1
+
+# Pull result back, then
+clinosim export-fhir --cif-dir ./output/cif \
+    --narrative-version bedrock_sonnet_en_v1
+```
+
+See [docs/bedrock_setup.md](docs/bedrock_setup.md) for the EC2 + Bedrock setup guide.
+
 ---
 
 ## Output Formats
@@ -191,13 +310,29 @@ Show all 28 diseases + 44 encounter conditions.
 
 ```
 output/cif/
-├── metadata.json                  # Generation info, snapshot_date, etc.
-├── hospital.json                  # Staff roster + hospital config
-└── structural/patients/
-    └── ENC-POP-XXXXXX-NNNNNN.json # One file per encounter
+├── metadata.json                             # Generation info, snapshot_date, etc.
+├── hospital.json                             # Staff roster + hospital config
+├── structural/                               # Stage 1 output (immutable)
+│   └── patients/
+│       └── ENC-POP-XXXXXX-NNNNNN.json        # One file per encounter
+└── narratives/                               # Stage 2 output (re-runnable)
+    ├── current_version.txt                   # Pointer to the latest version id
+    ├── <version_id>/
+    │   ├── manifest.json                     # LLM config, model, cost report, counts
+    │   └── documents/
+    │       └── ENC-POP-XXXXXX-NNNNNN/
+    │           ├── admission_hp.json
+    │           ├── discharge_summary.json
+    │           ├── death_summary.json        # only if deceased
+    │           ├── operative_note_001.json   # per surgery
+    │           └── procedure_note_<type>.json
+    └── <another_version_id>/                 # multiple versions coexist
+        └── ...
 ```
 
-CIF is the **immutable intermediate format** of the simulation. All output adapters derive from this.
+- `structural/` is the **immutable intermediate format** of the simulation. All structural FHIR/CSV resources derive from this.
+- `narratives/<version>/documents/` is the **narrative layer** — one JSON per clinical document, conforming to the `ClinicalDocument` type in `clinosim/types/clinical.py`. Each file contains the LOINC code, plain-text content, references, and provenance (LLM model, tokens, cache hit, prompt version, generated_at).
+- Multiple narrative versions can coexist: e.g. `template_v1`, `ollama_en_v1`, `bedrock_sonnet_en_v1` — all generated from the same structural CIF.
 
 ### FHIR R4 — Bulk Data Export NDJSON Format
 
@@ -205,23 +340,25 @@ Compliant with [HL7 FHIR Bulk Data Access](https://hl7.org/fhir/uv/bulkdata/):
 
 ```
 output/fhir_r4/
-├── manifest.json                   # Bulk Data manifest (transactionTime, output[])
-├── _facility.json                  # Organization + Location master (Bundle)
-├── Patient.ndjson                  # 1 patient per line
-├── Encounter.ndjson                # 1 encounter per line
-├── Observation.ndjson              # labs + vitals + AVPU + O2 (LOINC)
-├── Condition.ndjson                # Encounter dx + chronic conditions (ICD-10-CM)
-├── MedicationRequest.ndjson        # Prescriptions (RxNorm)
-├── MedicationAdministration.ndjson # MAR records
-├── Procedure.ndjson                # Surgery + bedside procedures (CPT)
-├── AllergyIntolerance.ndjson       # Patient-level (deduplicated)
-├── Practitioner.ndjson             # Doctors, nurses, technicians
-├── PractitionerRole.ndjson         # Specialty + organization + ward location
-├── Organization.ndjson             # Hospital + departments
-└── Location.ndjson                 # Wards + beds
+├── manifest.json                    # Bulk Data manifest (transactionTime, output[])
+├── Patient.ndjson                   # 1 patient per line
+├── Encounter.ndjson                 # 1 encounter per line
+├── Observation.ndjson               # labs + vitals + AVPU + O2 (LOINC)
+├── Condition.ndjson                 # Encounter dx + chronic conditions (ICD-10-CM / ICD-10)
+├── MedicationRequest.ndjson         # Prescriptions (RxNorm / YJ)
+├── MedicationAdministration.ndjson  # MAR records
+├── Procedure.ndjson                 # Surgery + bedside procedures (CPT / K-code + SNOMED CT metadata)
+├── DocumentReference.ndjson         # Clinical documents (only when a narrative version is provided)
+├── AllergyIntolerance.ndjson        # Patient-level (deduplicated)
+├── Practitioner.ndjson              # Doctors, nurses, technicians
+├── PractitionerRole.ndjson          # Specialty + organization + ward location
+├── Organization.ndjson              # Hospital + departments
+└── Location.ndjson                  # Wards + beds + operating rooms
 ```
 
-Each line = 1 FHIR resource. `Resource.id` is unique across all 12 resource types. Reference integrity is maintained.
+Each line = 1 FHIR resource. `Resource.id` is unique across all resource types. Reference integrity is maintained.
+
+`DocumentReference.ndjson` is emitted only when `clinosim export-fhir` is given `--narrative-version` (or when `clinosim generate --narrative --format fhir` runs the full pipeline). Without a narrative version, the remaining 12 resource types are produced normally.
 
 ### Included FHIR R4 Fields (key resources)
 
@@ -233,10 +370,11 @@ Each line = 1 FHIR resource. `Resource.id` is unique across all 12 resource type
 | Condition | code (ICD-10-CM with display), category (encounter-diagnosis / problem-list-item), severity (SNOMED), stage (NYHA, CKD G, GOLD, etc.), clinicalStatus (active/resolved), onsetDateTime, recordedDate, encounter |
 | MedicationRequest | medicationCodeableConcept (RxNorm), dosageInstruction (text + doseAndRate + timing repeat + route SNOMED), encounter, requester, reasonReference |
 | MedicationAdministration | dosage (dose SimpleQuantity + route + rateQuantity for continuous), context, performer, reasonReference |
-| Procedure | code (CPT), encounter, performedDateTime / performedPeriod, performer |
+| Procedure | code (CPT / K-code), category (SNOMED: surgical/diagnostic/therapeutic), encounter, performedPeriod, performer[] with function (surgeon/anaesthetist), recorder, reasonReference, bodySite (SNOMED), location (operating room), outcome (SNOMED), complication (SNOMED) |
+| DocumentReference | type (LOINC: 18842-5 / 69730-0 / 11504-8 / 34117-2 / 28570-0), category (clinical-note), subject, date, author, content.attachment (base64 text/plain, size, sha1 hash), context (encounter period, related Procedure) |
 | Practitioner | name (with prefix), gender, telecom, qualification |
 | PractitionerRole | practitioner, organization (dept), location (ward), specialty (SNOMED) |
-| Location | physicalType (wa=ward, bd=bed, area), partOf (bed→ward), managingOrganization |
+| Location | physicalType (wa=ward, bd=bed, area, ro=operating room), partOf (bed→ward), managingOrganization |
 | Organization | hospital-main + dept-{specialty} (partOf hierarchy) |
 
 ### CSV
@@ -258,96 +396,97 @@ output/csv/
 
 ## Data Flow
 
+clinosim implements a three-stage pipeline. Each stage is self-contained, has a well-defined input and output on disk, and can be run independently of the others.
+
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  population engine                                          │
-│  ・Generate catchment (household-based)                     │
-│  ・PersonRecord (Layer 1: lightweight registry)             │
-│  ・Monthly LifeEvent (incidence × seasonality × risk mod)   │
-└─────────────────────────────────────────────────────────────┘
+╔═══════════════════════════════════════════════════════════════╗
+║  STAGE 1 — clinosim generate (structured simulation)           ║
+╠═══════════════════════════════════════════════════════════════╣
+║                                                                 ║
+║  population engine                                              ║
+║   ・Catchment (household-based), Layer 1 registry               ║
+║   ・Monthly life events (incidence × seasonality × risk)        ║
+║              │                                                  ║
+║              ▼                                                  ║
+║  patient activator  (Layer 1 → Layer 2: full clinical profile)  ║
+║              │                                                  ║
+║              ▼                                                  ║
+║  encounter creation                                             ║
+║   ・disease YAML → department (resolved via hospital_config)    ║
+║   ・staff / ward / bed / OR assignment                          ║
+║              │                                                  ║
+║              ▼                                                  ║
+║  daily simulation loop (per inpatient day)                      ║
+║   clinical_course → physiology → orders/observation             ║
+║                   → diagnosis → procedure + MAR                 ║
+║                   → discharge readiness?                        ║
+║              │                                                  ║
+║              ▼                                                  ║
+║  CIF structural/  (immutable, one JSON per encounter)           ║
+║  + discharge prescription, procedures, vitals, labs, MAR,       ║
+║    conditions, ADL, I/O, complications, hidden ground truth     ║
+║                                                                 ║
+╚═══════════════════════════════════════════════════════════════╝
                             │
                             ▼
-┌─────────────────────────────────────────────────────────────┐
-│  patient activator                                          │
-│  ・PersonRecord (L1) → PatientProfile (L2)                  │
-│  ・Anthropometrics, organ reserves, chronic staging         │
-│  ・Address, emergency contact, preferred language           │
-└─────────────────────────────────────────────────────────────┘
+╔═══════════════════════════════════════════════════════════════╗
+║  STAGE 2 — clinosim narrate (clinical documents)               ║
+╠═══════════════════════════════════════════════════════════════╣
+║                                                                 ║
+║  For each inpatient encounter:                                  ║
+║                                                                 ║
+║   1. hospital_course_extractor                                  ║
+║        deterministic extraction of facts                        ║
+║        (admission, surgeries, lab peaks, complications,         ║
+║         treatment changes, discharge)                           ║
+║              │                                                  ║
+║              ▼                                                  ║
+║   2. document_generator                                         ║
+║        build ClinicalDocument stubs (Tier A + B):               ║
+║          - Admission H&P      LOINC 34117-2                     ║
+║          - Operative Note     LOINC 11504-8  (per surgery)      ║
+║          - Procedure Note     LOINC 28570-0  (invasive bedside) ║
+║          - Discharge Summary  LOINC 18842-5                     ║
+║          - Death Note         LOINC 69730-0  (if deceased)      ║
+║              │                                                  ║
+║              ▼                                                  ║
+║   3. LLMService.generate(task_type, variables)                  ║
+║        ├─ PromptRegistry (YAML templates, string.Template)      ║
+║        ├─ PromptCache    (SHA256 disk cache)                    ║
+║        └─ provider       (Ollama | Bedrock | Mock | ...)        ║
+║              │                                                  ║
+║              ▼                                                  ║
+║  CIF narratives/<version_id>/documents/                         ║
+║  (one JSON per clinical document, with provenance metadata)     ║
+║                                                                 ║
+╚═══════════════════════════════════════════════════════════════╝
                             │
                             ▼
-┌─────────────────────────────────────────────────────────────┐
-│  encounter creation                                         │
-│  ・disease YAML → department (resolved via hospital_config) │
-│  ・staff_id assignment, ward + bed_number assignment        │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│  daily simulation loop (per inpatient day)                  │
-│                                                              │
-│   ┌──────────────────────────────┐                          │
-│   │ clinical_course              │                          │
-│   │  ・archetype trajectory      │                          │
-│   │  ・diagnosis effectiveness   │                          │
-│   │  ・natural recovery          │                          │
-│   │  ・complications             │                          │
-│   └──────────────────────────────┘                          │
-│              │                                              │
-│              ▼                                              │
-│   ┌──────────────────────────────┐                          │
-│   │ physiology engine            │                          │
-│   │  ・9-state update            │                          │
-│   │  ・derive_lab_values()       │                          │
-│   │  ・derive_vital_signs()      │                          │
-│   └──────────────────────────────┘                          │
-│              │                                              │
-│              ▼                                              │
-│   ┌──────────────────────────────┐                          │
-│   │ orders + observation         │                          │
-│   │  ・place_daily_lab_orders()  │                          │
-│   │  ・3-layer noise (CVi+CVa)   │                          │
-│   │  ・H/L/critical flagging     │                          │
-│   │  ・interp + reference range  │                          │
-│   └──────────────────────────────┘                          │
-│              │                                              │
-│              ▼                                              │
-│   ┌──────────────────────────────┐                          │
-│   │ diagnosis engine             │                          │
-│   │  ・Bayesian update (LR)      │                          │
-│   │  ・working_diagnosis update  │                          │
-│   └──────────────────────────────┘                          │
-│              │                                              │
-│              ▼                                              │
-│   ┌──────────────────────────────┐                          │
-│   │ procedure + MAR              │                          │
-│   │  ・bedside procedures        │                          │
-│   │  ・MAR (with hold logic)     │                          │
-│   └──────────────────────────────┘                          │
-│              │                                              │
-│              ▼                                              │
-│   ┌──────────────────────────────┐                          │
-│   │ discharge readiness?         │                          │
-│   │  YES → encounter complete    │                          │
-│   │  NO  → next day              │                          │
-│   └──────────────────────────────┘                          │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│  CIF dataset (immutable intermediate format)                │
-└─────────────────────────────────────────────────────────────┘
-                            │
-              ┌─────────────┼─────────────┐
-              ▼             ▼             ▼
-      ┌──────────┐  ┌──────────┐  ┌──────────┐
-      │ CIF JSON │  │ FHIR R4  │  │   CSV    │
-      │ writer   │  │ NDJSON   │  │ adapter  │
-      └──────────┘  │ Bulk Data│  └──────────┘
-                    └──────────┘
-                         │
-                         ▼
-           clinosim.codes (lookup display text)
+╔═══════════════════════════════════════════════════════════════╗
+║  STAGE 3 — clinosim export-fhir                                ║
+╠═══════════════════════════════════════════════════════════════╣
+║                                                                 ║
+║  fhir_r4_adapter                                                ║
+║   ・Reads CIF structural/ → Patient, Encounter, Observation,    ║
+║     Condition, Procedure, MedicationRequest, MAR,               ║
+║     AllergyIntolerance, Practitioner(Role), Organization,       ║
+║     Location                                                    ║
+║   ・Reads CIF narratives/<version>/documents/ →                 ║
+║     DocumentReference  (base64 text/plain, LOINC-typed)         ║
+║   ・display text resolved via clinosim.codes (en / ja)          ║
+║              │                                                  ║
+║              ▼                                                  ║
+║  output/fhir_r4/  (HL7 Bulk Data NDJSON + manifest.json)        ║
+║                                                                 ║
+╚═══════════════════════════════════════════════════════════════╝
 ```
+
+**Why three stages?**
+
+- **Reproducibility** — Stage 1 is fully deterministic from a seed. Stage 2 is cached by SHA256(prompt). Stage 3 is a pure function of CIF.
+- **Cost control** — Stage 2 is the only stage that may call a paid LLM API. Bedrock runs can be isolated to a single EC2 invocation.
+- **Experimentation** — Multiple narrative versions (different models, different prompt versions) can be generated from the same structural CIF and compared.
+- **Remote execution** — Stage 2 can be run on a machine with network access to the LLM (e.g. EC2 for Bedrock), while Stage 1 and Stage 3 stay local.
 
 ### Snapshot Semantics
 
@@ -419,8 +558,29 @@ clinosim/
 │   ├── staff/                # Hospital staff roster + assignment
 │   ├── facility/             # Hospital state + M/M/1 queueing
 │   ├── healthcare_system/    # Country-specific parameters (JP / US)
-│   ├── output/               # CIF / FHIR R4 / CSV / narrative
-│   ├── llm_service/          # Ollama + Anthropic integration
+│   ├── output/               # CIF / FHIR R4 / CSV + clinical documents
+│   │   ├── cif_writer.py              # CIF structural writer
+│   │   ├── fhir_r4_adapter.py         # FHIR R4 Bulk NDJSON (incl. DocumentReference)
+│   │   ├── csv_adapter.py             # CSV tables
+│   │   ├── document_generator.py      # ★ Stage 2: narrative CIF writer
+│   │   └── hospital_course_extractor.py  # ★ deterministic event extraction
+│   ├── llm_service/          # All LLM access (AD-11)
+│   │   ├── engine.py                  # LLMService, LLMTaskType, PatientSummary
+│   │   ├── factory.py                 # YAML → LLMService
+│   │   ├── prompt_registry.py         # ★ YAML-based prompt templates
+│   │   ├── cache.py                   # ★ SHA256 disk cache
+│   │   ├── providers/                 # ★ Pluggable provider subpackage
+│   │   │   ├── base.py                # LLMProvider Protocol + ProviderResponse
+│   │   │   ├── ollama.py              # Local Ollama
+│   │   │   ├── bedrock.py             # AWS Bedrock (boto3 lazy import)
+│   │   │   └── mock.py                # Deterministic test provider
+│   │   └── prompts/                   # ★ Prompt template YAML tree
+│   │       └── en/                    # English prompts (5 Tier A+B types)
+│   │           ├── admission_hp.yaml
+│   │           ├── discharge_summary.yaml
+│   │           ├── death_summary.yaml
+│   │           ├── operative_note.yaml
+│   │           └── procedure_note.yaml
 │   └── validator/            # Comparison against published benchmarks
 │
 ├── simulator/                # Top-level orchestration
@@ -429,10 +589,10 @@ clinosim/
 │   ├── emergency.py          # ED visit
 │   ├── outpatient.py         # Outpatient visit
 │   ├── helpers.py            # Ward/department resolver, mortality, etc.
-│   └── cli.py                # CLI entry point
+│   └── cli.py                # CLI entry point (generate, narrate, export-fhir, ...)
 │
 └── tests/
-    ├── unit/                 # Module unit tests (140 tests)
+    ├── unit/                 # Module unit tests (141 tests)
     ├── integration/          # Cross-module integration tests
     └── e2e/                  # E2E + golden file tests
 ```
@@ -443,18 +603,30 @@ Each module has its own **README.md** documenting purpose, design principles, AP
 
 ## Code Systems & Authoritative Sources
 
-`clinosim/codes/` centralizes international standard code systems. Total **8 systems, 577 codes**, all with English display (Japanese is optional).
+`clinosim/codes/` centralizes international standard code systems, all with English display (Japanese is optional).
 
 | Key | Name | Use | Authoritative Source |
 |---|---|---|---|
 | `icd-10-cm` | ICD-10-CM | US diagnoses | [CMS](https://www.cms.gov/medicare/coding-billing/icd-10-codes) |
 | `icd-10` | WHO ICD-10 | JP diagnoses | [WHO](https://icd.who.int/browse10/) |
-| `loinc` | LOINC | Lab tests, vitals | [Regenstrief](https://loinc.org/) |
+| `loinc` | LOINC | Lab tests, vitals, clinical document types | [Regenstrief](https://loinc.org/) |
+| `snomed-ct` | SNOMED CT (subset) | Procedure category, performer role, body site, outcome, complication | [SNOMED International](https://www.snomed.org/) |
 | `jlac10` | JLAC10 | JP lab codes | [JCCLS](https://www.jccls.org/) |
 | `rxnorm` | RxNorm | US drugs | [NLM](https://www.nlm.nih.gov/research/umls/rxnorm/) |
 | `yj` | YJ codes | JP drugs | MHLW Drug Price Standards |
 | `cpt` | CPT | US procedures | [AMA](https://www.ama-assn.org/practice-management/cpt) |
 | `k-codes` | K codes | JP reimbursement procedures | MHLW Medical Fee Schedule |
+
+Clinical document types use the following LOINC codes:
+
+| Document | LOINC | Notes |
+|---|---|---|
+| History and physical note | `34117-2` | Generated at admission |
+| Progress note | `11506-3` | Reserved for future Tier C scope |
+| Discharge summary note | `18842-5` | Generated at discharge |
+| Death note | `69730-0` | Generated when `deceased=true` |
+| Surgical operation note | `11504-8` | Generated per surgical procedure |
+| Procedure note | `28570-0` | Generated per invasive bedside procedure |
 
 ### Using Code Systems (FHIR Observation example)
 
@@ -722,21 +894,71 @@ See each module's `clinosim/modules/<module>/README.md` for details.
 
 ## LLM Integration (Optional)
 
-clinosim can use LLMs for narrative generation (discharge summaries, progress notes). Default: local Ollama.
+clinosim uses LLMs only for **clinical documents** (Stage 2). All structural data (labs, vitals, diagnoses, meds) is deterministic and does not require an LLM.
+
+### Architecture
+
+- Single entry point: `clinosim.modules.llm_service.LLMService` (AD-11). No other module may call an LLM SDK directly.
+- Two task categories (AD-13, AD-24):
+  - **JUDGMENT** — clinical reasoning, always English, structured output (reserved for future use).
+  - **NARRATIVE** — clinical documents, target language, free text.
+- Pluggable providers via `clinosim.modules.llm_service.providers`:
+  - `ollama` — local Ollama server (default)
+  - `bedrock` — AWS Bedrock via Converse API (for EC2 deployment)
+  - `mock` — deterministic stub for tests
+  - New providers can be registered via `providers.register_provider()`.
+- Prompt templates live as YAML under `clinosim/modules/llm_service/prompts/<lang>/<task>.yaml` and are rendered with `string.Template`.
+- All responses are cached by SHA256(system + user + model) on disk for reproducibility and cost control.
+
+### Local Ollama (default)
 
 ```bash
-# Install Ollama (separate)
 brew install ollama
 ollama serve
-ollama pull qwen:7b
+ollama pull llama3.1:8b
 
-# Generate with narrative
-clinosim generate --narrative --narrative-model qwen:7b
+clinosim narrate --cif-dir ./output/cif \
+  --llm-config clinosim/config/llm_service.yaml \
+  --version-id ollama_en_v1
 ```
 
-LLM is **not required** for structural data generation. Without an LLM, template-based narratives are used.
+### AWS Bedrock (EC2)
 
-Details: `clinosim/modules/llm_service/README.md`
+```bash
+pip install 'clinosim[bedrock]'   # installs boto3
+
+# On an EC2 instance with an IAM role that grants bedrock:Converse:
+clinosim narrate --cif-dir ./cif \
+  --llm-config clinosim/config/llm_service.bedrock.yaml \
+  --version-id bedrock_sonnet_en_v1
+```
+
+See [docs/bedrock_setup.md](docs/bedrock_setup.md) for full EC2 + IAM setup.
+
+### Template mode (no LLM)
+
+```bash
+clinosim narrate --cif-dir ./output/cif --version-id template_v1
+```
+
+Template mode runs Stage 2 without any network call and produces deterministic placeholder content. Useful for CI, reproducibility tests, and sanity checks.
+
+### Extending to new providers
+
+```python
+from clinosim.modules.llm_service.providers import register_provider
+
+class MyProvider:
+    def __init__(self, config): ...
+    def complete(self, prompt, model, max_tokens, system_prompt, **kwargs): ...
+    def health_check(self): return True
+
+register_provider("my_provider", lambda cfg: MyProvider(cfg))
+```
+
+Then reference `provider: my_provider` in your `llm_service.yaml`.
+
+Details: [docs/clinical_documents.md](docs/clinical_documents.md), `clinosim/modules/llm_service/README.md`
 
 ---
 
@@ -811,6 +1033,6 @@ Code system data follows the original registry's license:
 - [DESIGN.md](DESIGN.md) — Detailed design document (architecture decisions, ADRs)
 - [TODO.md](TODO.md) — Development roadmap
 - [CLAUDE.md](CLAUDE.md) — Claude Code development guidelines
-- [BEDROCK_SETUP.md](BEDROCK_SETUP.md) — AWS Bedrock integration guide (narrative generation)
-- [NEXT_STEPS.md](NEXT_STEPS.md) — Next steps and handoff notes for development
+- [docs/clinical_documents.md](docs/clinical_documents.md) — Clinical document generation guide (LOINC mapping, prompts, extending to new types)
+- [docs/bedrock_setup.md](docs/bedrock_setup.md) — EC2 + AWS Bedrock setup for Stage 2 at scale
 - Each module's `README.md` — Module-level API reference
