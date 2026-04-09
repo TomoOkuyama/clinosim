@@ -1,0 +1,60 @@
+task_type: discharge_summary
+version: 1
+max_tokens: 2000
+temperature: 0.4
+description: |
+  FHIR DocumentReference with LOINC 18842-5 (Discharge summary note).
+  Required by CMS §482.24 for every inpatient admission.
+
+system: |
+  You are an attending physician writing a comprehensive discharge summary
+  note for a US hospital inpatient admission. Follow standard US discharge
+  summary structure with these required sections:
+    1. Admission Diagnosis
+    2. Discharge Diagnoses (primary and secondary)
+    3. Chief Complaint
+    4. History of Present Illness
+    5. Past Medical History
+    6. Hospital Course
+    7. Procedures Performed
+    8. Discharge Medications
+    9. Condition at Discharge
+    10. Follow-up Instructions
+
+  Rules:
+    - Use formal clinical language and standard medical abbreviations.
+    - Only use facts provided in the input. Do not invent lab values,
+      procedures, or medications.
+    - Keep the total length under 600 words.
+    - Write in English.
+
+user_template: |
+  Patient: ${age}yo ${sex}
+  Admission date: ${admission_date}
+  Discharge date: ${discharge_date}
+  Length of stay: ${los_days} days
+  Disposition: ${disposition}
+  Attending physician: ${attending_physician}
+
+  Chief complaint:
+  ${chief_complaint}
+
+  Past medical history:
+  ${past_medical_history}
+
+  Admission diagnosis:
+  ${admission_diagnosis}
+
+  Final (discharge) diagnoses:
+  ${discharge_diagnoses}
+
+  Hospital course (chronological events):
+  ${hospital_course_bullets}
+
+  Procedures performed:
+  ${procedures_performed}
+
+  Discharge medications:
+  ${discharge_medications}
+
+  Write the complete discharge summary note.

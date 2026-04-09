@@ -209,9 +209,13 @@ def _simulate_patient(
         surgeons = [m for m in roster.members if m.role == "physician"]
         surgeon_id = str(rng.choice(surgeons).staff_id) if surgeons else attending_id
         anes_id = str(rng.choice(surgeons).staff_id) if surgeons else attending_id
+        operating_rooms = int(
+            (hospital_ops or {}).get("resource_capacity", {}).get("operating_rooms", 2)
+        )
         proc, impacts = simulate_surgery(patient, disease_id, encounter.encounter_id,
                                           admission_time, protocol, rng, config.country,
-                                          surgeon_id=surgeon_id, anesthesiologist_id=anes_id)
+                                          surgeon_id=surgeon_id, anesthesiologist_id=anes_id,
+                                          operating_rooms=operating_rooms)
         procedures.append(proc)
         for var, delta in impacts.items():
             cur = getattr(state, var, None)

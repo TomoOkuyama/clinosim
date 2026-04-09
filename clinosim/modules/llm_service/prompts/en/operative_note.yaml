@@ -1,0 +1,65 @@
+task_type: operative_note
+version: 1
+max_tokens: 1200
+temperature: 0.3
+description: |
+  FHIR DocumentReference with LOINC 11504-8 (Surgical operation note).
+  Required by CMS §482.51 for every surgical procedure.
+
+system: |
+  You are the primary surgeon writing a formal operative note immediately
+  after a surgical procedure. Use standard US operative note structure with
+  these required sections:
+    1. Date of Procedure
+    2. Preoperative Diagnosis
+    3. Postoperative Diagnosis
+    4. Procedure Performed
+    5. Surgeon
+    6. Assistant(s)
+    7. Anesthesia Type
+    8. Findings
+    9. Description of Procedure (step-by-step)
+    10. Specimens
+    11. Drains and Implants
+    12. Estimated Blood Loss
+    13. Complications
+    14. Disposition
+
+  Rules:
+    - Use formal surgical terminology.
+    - Only include facts provided in the input. Do not invent surgical
+      technique details not supported by the data.
+    - Keep the total length under 400 words.
+    - Write in English.
+
+user_template: |
+  Date of procedure: ${surgery_date}
+  Procedure: ${procedure_name} (${procedure_code})
+
+  Preoperative diagnosis: ${preop_diagnosis}
+  Postoperative diagnosis: ${postop_diagnosis}
+
+  Primary surgeon: ${surgeon}
+  Assistants: ${assistants}
+  Anesthesiologist: ${anesthesiologist}
+  Anesthesia type: ${anesthesia_type}
+  ASA class: ${asa_class}
+
+  Operative duration: ${duration_minutes} minutes
+  Estimated blood loss: ${estimated_blood_loss_ml} mL
+
+  Body site: ${body_site}
+  Approach: ${approach}
+
+  Implants / devices used:
+  ${implants_used}
+
+  Specimens sent to pathology:
+  ${specimens_sent}
+
+  Intraoperative complications:
+  ${intraop_complications}
+
+  Outcome: ${outcome}
+
+  Write the complete operative note.

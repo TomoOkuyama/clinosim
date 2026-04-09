@@ -49,6 +49,13 @@ class ProcedureRecord:
     preop_diagnosis: str = ""
     postop_diagnosis: str = ""
 
+    # FHIR Procedure structural fields (SNOMED CT codes)
+    category_code: str = ""        # 387713003 (surgical) / 103693007 (diagnostic) / 277132007 (therapeutic)
+    body_site_code: str = ""       # SNOMED body site (empty if not applicable)
+    outcome_code: str = ""         # 385669000 (successful) / 385670004 (partial) / 385671000 (unsuccessful)
+    complication_codes: list[str] = field(default_factory=list)  # SNOMED complication codes
+    location_id: str = ""          # FHIR Location id (e.g. "loc-or-1" for operating rooms)
+
 
 def simulate_surgery(
     patient: Any,
@@ -60,6 +67,7 @@ def simulate_surgery(
     country: str = "JP",
     surgeon_id: str = "",
     anesthesiologist_id: str = "",
+    operating_rooms: int = 2,
 ) -> tuple[ProcedureRecord, dict[str, float]]:
     """Simulate a surgical procedure. Returns the record and state impacts.
 
@@ -125,6 +133,11 @@ def simulate_surgery(
         proc_name = f"Surgical procedure for {disease_id}"
         implants = []
 
+    # Metadata (SNOMED category / body site), outcome, location
+    meta = _PROCEDURE_METADATA.get(proc_type) or _PROCEDURE_METADATA["surgery"]
+    or_number = int(rng.integers(1, max(2, operating_rooms + 1)))
+    location_id = f"loc-or-{or_number}"
+
     record = ProcedureRecord(
         procedure_id=f"PROC-{patient.patient_id}-001",
         patient_id=patient.patient_id,
@@ -144,6 +157,11 @@ def simulate_surgery(
         intraop_complications=intraop_comps,
         preop_diagnosis=disease_id,
         postop_diagnosis=disease_id,
+        category_code=meta.category_code,
+        body_site_code=meta.body_site_code,
+        outcome_code=_derive_outcome(intraop_comps),
+        complication_codes=_map_complications(intraop_comps),
+        location_id=location_id,
     )
 
     # State impacts from surgery
@@ -160,6 +178,75 @@ def simulate_surgery(
         state_impacts["perfusion_status"] = -0.10
 
     return record, state_impacts
+
+
+# ============================================================
+# SNOMED CT codes used by this module (resolved via clinosim.codes at output time)
+# ============================================================
+_SCT_CATEGORY_SURGICAL = "387713003"
+_SCT_CATEGORY_DIAGNOSTIC = "103693007"
+_SCT_CATEGORY_THERAPEUTIC = "277132007"
+
+_SCT_OUTCOME_SUCCESS = "385669000"
+_SCT_OUTCOME_PARTIAL = "385670004"
+_SCT_OUTCOME_UNSUCCESS = "385671000"
+
+# Complication type → SNOMED code
+_COMPLICATION_SCT: dict[str, str] = {
+    "excessive_bleeding": "131148009",          # Bleeding
+    "anesthesia_hypotension": "45007003",       # Hypotension
+    "surgical_site_infection": "87317003",
+    "ards": "67782005",
+}
+
+
+# ============================================================
+# Procedure metadata table
+# ============================================================
+# Maps procedure_type → FHIR Procedure category + body site (SNOMED).
+# Used by both simulate_surgery and generate_bedside_procedures to populate
+# the structural FHIR fields.
+@dataclass(frozen=True)
+class ProcedureMeta:
+    category_code: str         # SNOMED category
+    body_site_code: str = ""   # SNOMED body site (empty if n/a)
+
+
+_PROCEDURE_METADATA: dict[str, ProcedureMeta] = {
+    # --- Surgeries ---
+    "ORIF": ProcedureMeta(_SCT_CATEGORY_SURGICAL, "71341001"),              # femur
+    "hemiarthroplasty": ProcedureMeta(_SCT_CATEGORY_SURGICAL, "29836001"),  # hip region
+    "surgery": ProcedureMeta(_SCT_CATEGORY_SURGICAL, ""),
+    # --- Bedside / routine ---
+    "urinary_catheter": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "89837001"),  # bladder
+    "central_line": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "113257007"),     # cardiovascular
+    "arterial_line": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "58602004"),     # peripheral vascular
+    "lumbar_puncture": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "32713005"),    # vertebral column
+    "thoracentesis": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "118375008"),    # intrathoracic
+    "paracentesis": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "818983003"),     # abdomen
+    "intubation": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "74262004"),        # oral cavity
+    "nasogastric_tube": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "74262004"),  # oral cavity
+    "chest_tube": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "118375008"),       # intrathoracic
+    "wound_debridement": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "87642003"), # skin/subcut
+    "cardioversion": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "113257007"),    # cardiovascular
+    "blood_transfusion": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "38266002"), # entire body
+    "dialysis_acute": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "80581009"),    # upper urinary tract
+    "bronchoscopy": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "39607008"),       # lung
+    "echocardiography": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "113257007"),  # cardiovascular
+}
+
+
+def _derive_outcome(complications: list[str]) -> str:
+    """Derive SNOMED outcome code from complication list."""
+    if not complications:
+        return _SCT_OUTCOME_SUCCESS
+    # Anesthesia hypotension / minor bleeding → partially successful
+    return _SCT_OUTCOME_PARTIAL
+
+
+def _map_complications(intraop_comps: list[str]) -> list[str]:
+    """Map internal complication keys → SNOMED codes."""
+    return [_COMPLICATION_SCT[c] for c in intraop_comps if c in _COMPLICATION_SCT]
 
 
 # ============================================================
@@ -293,6 +380,7 @@ def generate_bedside_procedures(
         proc_time = admission_time + timedelta(hours=hours_offset)
         duration = int(max(10, rng.normal(30, 10)))
 
+        meta = _PROCEDURE_METADATA.get(proc_type)
         record = ProcedureRecord(
             procedure_id=f"PROC-{patient_id}-{proc_idx + 2:03d}",
             patient_id=patient_id,
@@ -305,6 +393,11 @@ def generate_bedside_procedures(
             duration_minutes=duration,
             primary_surgeon_id="",
             anesthesia_type=anesthesia,
+            category_code=meta.category_code if meta else _SCT_CATEGORY_THERAPEUTIC,
+            body_site_code=meta.body_site_code if meta else "",
+            outcome_code=_SCT_OUTCOME_SUCCESS,
+            complication_codes=[],
+            location_id="",
         )
         results.append(record)
         proc_idx += 1

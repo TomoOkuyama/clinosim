@@ -5,12 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date, datetime
 
-from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent, PhysiologicalState
+from clinosim.types.clinical import (
+    ClinicalDiagnosis, ClinicalDocument, ConditionEvent, PhysiologicalState,
+)
 from clinosim.types.encounter import (
     Encounter, MedicationAdministration, Order, OrderResult,
     PrescriptionRecord, VitalSignRecord,
 )
-from clinosim.types.narrative import NarrativeDocument
 from clinosim.types.patient import PatientProfile
 
 
@@ -44,6 +45,7 @@ class CIFPatientRecord:
     complications_occurred: list[str] = field(default_factory=list)
     procedures: list = field(default_factory=list)  # ProcedureRecord
     rehab_sessions: list = field(default_factory=list)  # RehabSession
+    documents: list[ClinicalDocument] = field(default_factory=list)  # ClinicalDocument stubs (text="" in Stage 1)
     medication_administrations: list[MedicationAdministration] = field(default_factory=list)
     intake_output_records: list = field(default_factory=list)  # IntakeOutputRecord
     adl_assessments: list = field(default_factory=list)  # ADLAssessment
@@ -56,9 +58,6 @@ class CIFPatientRecord:
     is_readmission: bool = False
     prior_encounter_id: str | None = None
     readmission_number: int = 0  # 0 = first admission, 1 = first readmission
-
-    # Narrative documents (generated from structured data)
-    narratives: list[NarrativeDocument] = field(default_factory=list)
 
     # Hidden state (for validation/debugging, not exported to clinical formats)
     physiological_states: list[PhysiologicalState] = field(default_factory=list)

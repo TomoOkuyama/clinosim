@@ -65,7 +65,31 @@ class ProcedureRecord:
     # Pre/post
     preop_diagnosis: str = ""
     postop_diagnosis: str = ""
+
+    # FHIR Procedure structural fields (SNOMED CT codes, resolved at output time)
+    category_code: str = ""        # 387713003 (surgical) / 103693007 (diagnostic) / 277132007 (therapeutic)
+    body_site_code: str = ""       # SNOMED body site (e.g., 71341001 = femur)
+    outcome_code: str = ""         # 385669000 (successful) / 385670004 (partial) / 385671000 (unsuccessful)
+    complication_codes: list[str] = []  # SNOMED complication codes
+    location_id: str = ""          # FHIR Location id (e.g., "loc-or-2")
 ```
+
+**`category_code` / `body_site_code`** は `_PROCEDURE_METADATA` (procedure_type → ProcedureMeta) から自動決定。 SNOMED CT コードの表示テキストは [`clinosim/codes/data/snomed-ct.yaml`](../../codes/data/snomed-ct.yaml) で解決される (en / ja)。
+
+**`outcome_code`** は `intraop_complications` の有無で自動判定:
+- 合併症なし → `385669000` (Successful)
+- 合併症あり → `385670004` (Partially successful)
+
+**`complication_codes`** は `intraop_complications` の内部キー ("excessive_bleeding" 等) を SNOMED コードにマップ:
+
+| 内部キー | SNOMED |
+|---|---|
+| excessive_bleeding | 131148009 (Bleeding) |
+| anesthesia_hypotension | 45007003 (Hypotension) |
+| surgical_site_infection | 87317003 |
+| ards | 67782005 |
+
+**`location_id`** は手術時に `loc-or-1..N` (N = `hospital_config.resource_capacity.operating_rooms`) からランダム割当。 bedside procedure は空 (病棟で実施されるため)。
 
 ### `simulate_surgery(...) -> tuple[ProcedureRecord, dict[str, float]]`
 

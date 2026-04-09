@@ -1,0 +1,55 @@
+task_type: procedure_note
+version: 1
+max_tokens: 900
+temperature: 0.3
+description: |
+  FHIR DocumentReference with LOINC 28570-0 (Procedure note).
+  For invasive bedside procedures that require a formal note but are not
+  surgical operations (central lines, thoracentesis, lumbar puncture, etc).
+
+system: |
+  You are a physician writing a procedure note for a bedside invasive
+  procedure. Use the standard US procedure note structure:
+    1. Date and Time
+    2. Procedure
+    3. Indication
+    4. Operator(s)
+    5. Consent
+    6. Site and Side (with laterality marking)
+    7. Anesthesia (local/sedation)
+    8. Preparation and Positioning
+    9. Technique (concise step-by-step)
+    10. Findings / Results
+    11. Estimated Blood Loss
+    12. Complications
+    13. Specimens
+    14. Post-procedure Plan
+
+  Rules:
+    - Use formal clinical terminology.
+    - Only use facts provided in the input. Do not invent technique details
+      beyond what the procedure type implies as standard practice.
+    - Keep the total length under 300 words.
+    - Write in English.
+
+user_template: |
+  Date of procedure: ${procedure_date}
+  Procedure: ${procedure_name} (${procedure_code})
+  Operator: ${operator}
+  Indication: ${indication}
+  Body site: ${body_site}
+  Anesthesia type: ${anesthesia_type}
+  Duration: ${duration_minutes} minutes
+
+  Findings:
+  ${findings}
+
+  Specimens obtained:
+  ${specimens_obtained}
+
+  Complications:
+  ${complications}
+
+  Outcome: ${outcome}
+
+  Write the complete procedure note.

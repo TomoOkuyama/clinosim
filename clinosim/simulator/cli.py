@@ -41,6 +41,18 @@ def main() -> None:
     gen.add_argument("--narrative", action="store_true", help="Generate narrative layer (requires Ollama)")
     gen.add_argument("--narrative-model", default="qwen:7b", help="Ollama model for narratives")
     gen.add_argument("--hospital-config", default=None, help="Hospital operations YAML (default: config/hospital_operations.yaml)")
+    gen.add_argument(
+        "--narrative-version",
+        default=None,
+        help="Narrative version directory name to include in FHIR export "
+             "as DocumentReference (used only when --format includes fhir)",
+    )
+    gen.add_argument(
+        "--llm-config",
+        default=None,
+        help="LLM service YAML config (used when --narrative is set). "
+             "Defaults to a local Ollama template setup.",
+    )
 
     # === test-disease: generate specific disease/archetype ===
     td = sub.add_parser("test-disease", help="Generate data for a specific disease and archetype")
@@ -61,6 +73,37 @@ def main() -> None:
 
     # === list-diseases: show available disease protocols ===
     sub.add_parser("list-diseases", help="List all available disease protocols")
+
+    # === narrate: Stage 2 — generate clinical documents from CIF ===
+    nr = sub.add_parser(
+        "narrate",
+        help="Generate clinical documents (discharge/death/op/H&P/procedure notes) from an existing CIF directory",
+    )
+    nr.add_argument("--cif-dir", required=True, help="Path to an existing CIF directory (contains structural/)")
+    nr.add_argument("--llm-config", default=None, help="LLM service YAML config (default: template mode)")
+    nr.add_argument("--version-id", default=None, help="Narrative version directory name (default: auto-generated)")
+    nr.add_argument("--language", default="en", help="Document language (en|ja)")
+    nr.add_argument(
+        "--tasks",
+        default=None,
+        help="Comma-separated list of LLMTaskType values to generate "
+             "(default: all Tier A+B types)",
+    )
+
+    # === export-fhir: Stage 3 — convert CIF (+narrative) to FHIR NDJSON ===
+    ef = sub.add_parser(
+        "export-fhir",
+        help="Convert an existing CIF directory (with optional narrative version) to FHIR R4 Bulk Data NDJSON",
+    )
+    ef.add_argument("--cif-dir", required=True, help="Path to an existing CIF directory")
+    ef.add_argument("-o", "--output", default=None, help="Output directory (default: <cif-dir>/../fhir_r4)")
+    ef.add_argument("--country", default="US", help="Country code (US or JP)")
+    ef.add_argument(
+        "--narrative-version",
+        default=None,
+        help="Narrative version to include as DocumentReference. Use 'current' "
+             "to read the pointer at <cif-dir>/narratives/current_version.txt.",
+    )
 
     # === test-encounter: debug single encounter condition ===
     te = sub.add_parser("test-encounter", help="Simulate one patient for an encounter condition (debug)")
@@ -90,6 +133,14 @@ def main() -> None:
 
     if args.command == "test-encounter":
         _run_test_encounter(args)
+        return
+
+    if args.command == "narrate":
+        _run_narrate(args)
+        return
+
+    if args.command == "export-fhir":
+        _run_export_fhir(args)
         return
 
     if args.command == "validate":
@@ -152,23 +203,44 @@ def main() -> None:
         from clinosim.modules.output.csv_adapter import convert_cif_to_csv
         convert_cif_to_csv(cif_dir, os.path.join(args.output, "csv"))
 
+    # Narrative layer (Stage 2, optional) — runs BEFORE FHIR export so that
+    # DocumentReference can reference the freshly generated version.
+    narrative_version = getattr(args, "narrative_version", None)
+    if getattr(args, "narrative", False):
+        from clinosim.modules.llm_service.engine import LLMService
+        from clinosim.modules.llm_service.factory import build_from_config_file
+        from clinosim.modules.output.document_generator import generate_documents
+
+        lang = "ja" if getattr(args, "country", "US") == "JP" else "en"
+        llm_config = getattr(args, "llm_config", None)
+        if llm_config:
+            llm = build_from_config_file(llm_config)
+            print(f"  Using LLM config: {llm_config}")
+        else:
+            from clinosim.modules.llm_service.providers.ollama import OllamaProvider
+            model = getattr(args, "narrative_model", "qwen:7b")
+            print(f"  Generating narratives with local Ollama model={model}")
+            llm = LLMService(
+                mode="llm",
+                narrative_provider=OllamaProvider({"model": model}),
+                narrative_model_map={"small": model, "medium": model},
+                provider_name_narrative="ollama",
+            )
+        narrative_version = generate_documents(
+            cif_dir, llm, version_id=narrative_version, language=lang
+        )
+        print(f"  Narrative version: {narrative_version}")
+        print(f"  LLM cost report: {llm.cost_report()}")
+
     if "fhir" in args.format:
         from clinosim.modules.output.fhir_r4_adapter import convert_cif_to_fhir
         country = getattr(args, "country", "US")
-        convert_cif_to_fhir(cif_dir, os.path.join(args.output, "fhir_r4"), country=country)
-
-    # Narrative layer (Stage 2, optional)
-    if getattr(args, "narrative", False):
-        from clinosim.modules.llm_service.engine import LLMService, OllamaProvider
-        from clinosim.modules.output.narrative_generator import generate_narratives
-        model = getattr(args, "narrative_model", "qwen:7b")
-        print(f"  Generating narratives with {model}...")
-        provider = OllamaProvider(model=model)
-        llm = LLMService(mode="llm", narrative_provider=provider,
-                         narrative_model_map={"small": model, "medium": model})
-        lang = "ja" if getattr(args, "country", "US") == "JP" else "en"
-        version = generate_narratives(cif_dir, llm, language=lang)
-        print(f"  Narratives generated: version={version}")
+        convert_cif_to_fhir(
+            cif_dir,
+            os.path.join(args.output, "fhir_r4"),
+            country=country,
+            narrative_version=narrative_version,
+        )
 
     # Summary
     _print_summary(dataset, args.output)
@@ -421,6 +493,108 @@ def _print_debug_record(record: CIFPatientRecord, index: int = 1) -> None:
               f"Urine={io.output_urine_ml}ml Net={io.net_balance_ml:+d}ml")
 
     print()
+
+
+def _run_narrate(args: Any) -> None:
+    """Stage 2 handler: read an existing CIF and generate clinical documents."""
+    from clinosim.modules.llm_service.engine import LLMService
+    from clinosim.modules.llm_service.factory import build_from_config_file
+    from clinosim.modules.output.document_generator import generate_documents
+
+    cif_dir = args.cif_dir
+    if not os.path.isdir(os.path.join(cif_dir, "structural", "patients")):
+        print(f"❌ CIF directory not valid: {cif_dir} (missing structural/patients/)")
+        return
+
+    # Build LLMService
+    if args.llm_config:
+        print(f"clinosim narrate: loading LLM config {args.llm_config}")
+        llm = build_from_config_file(args.llm_config)
+    else:
+        print("clinosim narrate: no --llm-config provided, using template mode")
+        llm = LLMService(mode="template")
+
+    tasks = None
+    if args.tasks:
+        tasks = [t.strip() for t in args.tasks.split(",") if t.strip()]
+
+    print(f"  CIF directory: {cif_dir}")
+    print(f"  Language:      {args.language}")
+    print(f"  Mode:          {llm.mode}")
+    print(f"  Tasks:         {tasks or 'all Tier A+B'}")
+
+    version_id = generate_documents(
+        cif_dir,
+        llm,
+        version_id=args.version_id,
+        language=args.language,
+        tasks=tasks,
+    )
+
+    import json as _json
+    manifest_path = os.path.join(cif_dir, "narratives", version_id, "manifest.json")
+    if os.path.exists(manifest_path):
+        with open(manifest_path) as f:
+            manifest = _json.load(f)
+        print("\n  === Narrative Generation Summary ===")
+        print(f"  Version ID:       {version_id}")
+        print(f"  Patients:         {manifest.get('patient_count', 0)}")
+        print(f"  Total documents:  {manifest.get('total_documents', 0)}")
+        counts = manifest.get("document_counts_by_type", {})
+        for tname, n in sorted(counts.items()):
+            print(f"    {tname:20s} {n}")
+        cost = manifest.get("llm_cost_report", {})
+        if cost:
+            print(f"  LLM calls:        {cost.get('total_calls', 0)}")
+            print(f"  LLM input tokens: {cost.get('total_input_tokens', 0):,}")
+            print(f"  LLM output tokens:{cost.get('total_output_tokens', 0):,}")
+            print(f"  Fallbacks:        {cost.get('fallback_count', 0)}")
+            print(f"  Cache hits:       {cost.get('cache_hit_count', 0)}")
+
+
+def _run_export_fhir(args: Any) -> None:
+    """Stage 3 handler: convert an existing CIF (+narrative) into FHIR NDJSON."""
+    from clinosim.modules.output.fhir_r4_adapter import convert_cif_to_fhir
+
+    cif_dir = args.cif_dir
+    if not os.path.isdir(os.path.join(cif_dir, "structural", "patients")):
+        print(f"❌ CIF directory not valid: {cif_dir} (missing structural/patients/)")
+        return
+
+    if args.output:
+        output_dir = args.output
+    else:
+        parent = os.path.dirname(os.path.abspath(cif_dir))
+        output_dir = os.path.join(parent, "fhir_r4")
+
+    print(f"clinosim export-fhir:")
+    print(f"  CIF directory:      {cif_dir}")
+    print(f"  Output:             {output_dir}")
+    print(f"  Country:            {args.country}")
+    print(f"  Narrative version:  {args.narrative_version or '(none)'}")
+
+    convert_cif_to_fhir(
+        cif_dir,
+        output_dir,
+        country=args.country,
+        narrative_version=args.narrative_version,
+    )
+
+    # Summarize output
+    files = sorted(
+        f for f in os.listdir(output_dir)
+        if f.endswith(".ndjson") or f == "manifest.json"
+    )
+    print(f"\n  === FHIR Export Summary ===")
+    for name in files:
+        path = os.path.join(output_dir, name)
+        size = os.path.getsize(path)
+        if name.endswith(".ndjson"):
+            with open(path) as f:
+                line_count = sum(1 for _ in f)
+            print(f"    {name:35s} {line_count:>7d} lines  ({size:>10,} B)")
+        else:
+            print(f"    {name:35s} {'':>7s}        ({size:>10,} B)")
 
 
 if __name__ == "__main__":

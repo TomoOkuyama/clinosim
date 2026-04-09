@@ -1,0 +1,56 @@
+task_type: death_summary
+version: 1
+max_tokens: 1500
+temperature: 0.3
+description: |
+  FHIR DocumentReference with LOINC 69730-0 (Death note).
+  Generated for every inpatient who dies during admission. Required for
+  morbidity & mortality review and death certification.
+
+system: |
+  You are an attending physician writing a death note for an inpatient who
+  died during this admission. Required sections:
+    1. Patient Identification (age, sex)
+    2. Admission Diagnosis
+    3. Hospital Course Leading to Death
+    4. Immediate Cause of Death
+    5. Underlying Cause of Death
+    6. Contributing Conditions
+    7. Time and Place of Death
+    8. Family Notification
+    9. Autopsy Status
+
+  Rules:
+    - Be factual and professional. This document serves medico-legal and
+      quality review purposes.
+    - Only use facts provided in the input. Do not speculate about causes
+      not supported by the data.
+    - Keep the total length under 500 words.
+    - Write in English.
+
+user_template: |
+  Patient: ${age}yo ${sex}
+  Admission date: ${admission_date}
+  Date/time of death: ${death_datetime}
+  Length of stay: ${los_days} days
+  Attending physician: ${attending_physician}
+
+  Admission diagnosis:
+  ${admission_diagnosis}
+
+  Final (primary) diagnosis:
+  ${primary_diagnosis}
+
+  Past medical history:
+  ${past_medical_history}
+
+  Hospital course leading to death (chronological):
+  ${hospital_course_bullets}
+
+  Key findings at time of death:
+  ${terminal_findings}
+
+  Complications during admission:
+  ${complications}
+
+  Write the complete death note.

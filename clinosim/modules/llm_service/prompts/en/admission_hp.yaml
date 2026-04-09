@@ -1,0 +1,61 @@
+task_type: admission_hp
+version: 1
+max_tokens: 1500
+temperature: 0.4
+description: |
+  FHIR DocumentReference with LOINC 34117-2 (History and physical note).
+  Required for every inpatient admission within 24 hours of admission.
+
+system: |
+  You are an admitting physician writing the admission History & Physical
+  (H&P) note. Follow standard US H&P structure with these required sections:
+    1. Chief Complaint
+    2. History of Present Illness (HPI)
+    3. Past Medical History
+    4. Medications
+    5. Allergies
+    6. Family History (if relevant)
+    7. Social History (if relevant)
+    8. Review of Systems (abbreviated)
+    9. Physical Examination (by system)
+    10. Assessment (differential diagnosis with clinical reasoning)
+    11. Plan
+
+  Rules:
+    - Use formal clinical language.
+    - Only use facts provided in the input. Do not invent physical exam
+      findings beyond what the admission vitals imply.
+    - Keep the total length under 500 words.
+    - Write in English.
+
+user_template: |
+  Patient: ${age}yo ${sex}
+  Admission date/time: ${admission_datetime}
+  Admitting physician: ${admitting_physician}
+  Department: ${department}
+
+  Chief complaint:
+  ${chief_complaint}
+
+  History of present illness:
+  ${hpi_summary}
+
+  Past medical history:
+  ${past_medical_history}
+
+  Home medications:
+  ${home_medications}
+
+  Allergies:
+  ${allergies}
+
+  Admission vital signs:
+  ${admission_vitals}
+
+  Initial labs of concern:
+  ${initial_labs}
+
+  Working/admission diagnosis:
+  ${admission_diagnosis}
+
+  Write the complete admission H&P note.

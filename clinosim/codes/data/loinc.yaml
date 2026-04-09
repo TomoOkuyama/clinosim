@@ -4,6 +4,26 @@ metadata:
   version: '2.76'
   description: Logical Observation Identifiers Names and Codes
 codes:
+  # === Clinical document types (FHIR DocumentReference.type) ===
+  34117-2:
+    en: History and physical note
+    ja: 入院時記録
+  11506-3:
+    en: Progress note
+    ja: 経過記録
+  18842-5:
+    en: Discharge summary note
+    ja: 退院時サマリー
+  69730-0:
+    en: Death note
+    ja: 死亡時記録
+  11504-8:
+    en: Surgical operation note
+    ja: 手術記録
+  28570-0:
+    en: Procedure note
+    ja: 処置記録
+  # === Lab codes ===
   11580-8:
     en: Thyroid stimulating hormone [Units/volume] in Serum or Plasma
     ja: TSH（血清）
