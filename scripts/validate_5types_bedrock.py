@@ -52,19 +52,19 @@ from clinosim.modules.output.hospital_course_extractor import (
 # CIF files to test (one per document type that needs a unique patient)
 TEST_CASES = [
     {
-        "cif_file": "test_data/bedrock_single_patient/structural/patients/ENC-POP-000085-000061.json",
+        "cif_file": "test_data/smoke_patients/ENC-POP-000085-000060.json",
         "doc_types": ["admission_hp", "discharge_summary", "operative_note"],
-        "label": "Hip fracture, 56yo F, hemiarthroplasty, survived",
+        "label": "Hip fracture, 56yo F, hemiarthroplasty (posterolateral), survived",
+    },
+    {
+        "cif_file": "test_data/smoke_patients/ENC-POP-000180-000076.json",
+        "doc_types": ["admission_hp", "procedure_note"],
+        "label": "DKA, 44yo M, central line, home meds: Metformin+insulin+lansoprazole",
     },
     {
         "cif_file": "test_data/smoke_patients/ENC-POP-000283-000019.json",
-        "doc_types": ["admission_hp", "procedure_note"],
-        "label": "Patient with invasive bedside procedure (central line)",
-    },
-    {
-        "cif_file": "test_data/smoke_patients/ENC-POP-003414-000053.json",
         "doc_types": ["admission_hp", "discharge_summary", "death_summary"],
-        "label": "Deceased patient, 71yo F, UTI → death on day 3",
+        "label": "DKA death, 53yo F, HTN+DM2+COPD, home meds: 5 drugs, died day 3",
     },
 ]
 

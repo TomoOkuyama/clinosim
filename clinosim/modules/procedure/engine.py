@@ -49,6 +49,9 @@ class ProcedureRecord:
     preop_diagnosis: str = ""
     postop_diagnosis: str = ""
 
+    # Surgical approach (from disease YAML procedure.approach)
+    approach: str = ""
+
     # FHIR Procedure structural fields (SNOMED CT codes)
     category_code: str = ""        # 387713003 (surgical) / 103693007 (diagnostic) / 277132007 (therapeutic)
     body_site_code: str = ""       # SNOMED body site (empty if not applicable)
@@ -133,6 +136,10 @@ def simulate_surgery(
         proc_name = f"Surgical procedure for {disease_id}"
         implants = []
 
+    # Surgical approach from disease YAML (protocol.procedure.approach)
+    approach_map = proc_data.get("approach", {}) or {}
+    approach = approach_map.get(proc_type, "") if isinstance(approach_map, dict) else str(approach_map)
+
     # Metadata (SNOMED category / body site), outcome, location
     meta = _PROCEDURE_METADATA.get(proc_type) or _PROCEDURE_METADATA["surgery"]
     or_number = int(rng.integers(1, max(2, operating_rooms + 1)))
@@ -157,6 +164,7 @@ def simulate_surgery(
         intraop_complications=intraop_comps,
         preop_diagnosis=disease_id,
         postop_diagnosis=disease_id,
+        approach=approach,
         category_code=meta.category_code,
         body_site_code=meta.body_site_code,
         outcome_code=_derive_outcome(intraop_comps),

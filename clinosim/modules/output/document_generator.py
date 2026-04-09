@@ -458,7 +458,7 @@ def _build_operative_note(
         "duration_minutes": proc.get("duration_minutes", 0),
         "estimated_blood_loss_ml": proc.get("estimated_blood_loss_ml", 0),
         "body_site": body_site_display,
-        "approach": "(as per standard technique)",
+        "approach": proc.get("approach") or "(as per standard technique)",
         "implants_used": proc.get("implants_used") or ["(none)"],
         "specimens_sent": proc.get("specimens_sent") or ["(none)"],
         "intraop_complications": proc.get("intraop_complications") or ["(none)"],

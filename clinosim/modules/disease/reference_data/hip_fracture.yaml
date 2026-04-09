@@ -144,6 +144,9 @@ procedure:
   typical_duration_minutes: {mean: 90, sd: 30, min: 45, max: 180}
   anesthesia: "spinal or general"
   estimated_blood_loss_ml: {mean: 300, sd: 150, min: 100, max: 800}
+  approach:
+    ORIF: "lateral approach to proximal femur"
+    hemiarthroplasty: "posterolateral approach to hip joint"
   time_to_surgery:
     japan: {mean_hours: 48, sd_hours: 24, note: "often day 1-2 after admission"}
     us: {mean_hours: 24, sd_hours: 12, note: "target < 24h, ideally < 48h"}
