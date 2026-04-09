@@ -195,7 +195,7 @@ def _simulate_patient(
 
     # Home medication orders (chronic condition continuation)
     home_med_orders, chronic_monitoring = _generate_home_medication_orders(
-        patient, encounter.encounter_id, admission_time, attending_id, rng,
+        patient, encounter.encounter_id, admission_time, attending_id, rng, state=state,
     )
     admission_orders.extend(home_med_orders)
 
@@ -732,6 +732,7 @@ def _generate_home_medication_orders(
     admission_time: datetime,
     attending_id: str,
     rng: np.random.Generator,
+    state: Any = None,
 ) -> tuple[list[Order], list[dict]]:
     """Generate medication orders for home meds (chronic condition continuation).
 
@@ -754,6 +755,10 @@ def _generate_home_medication_orders(
         # Home medications (with renal dose adjustment)
         has_ckd = any(c.code.startswith("N18") for c in patient.chronic_conditions)
         renal_reserve = patient.physiological_profile.renal_reserve if hasattr(patient, "physiological_profile") else 1.0
+        # Also check initial renal_function state (reflects AKI on admission)
+        initial_renal = state.renal_function if state else renal_reserve
+        # Flag if likely AKI on admission: low renal function OR very low reserve
+        has_renal_impairment = has_ckd or initial_renal < 0.4
 
         for med in spec.get("medications", []):
             prob = med.get("probability", 1.0)
@@ -763,15 +768,18 @@ def _generate_home_medication_orders(
             drug_name = med["drug"]
             intent = f"Home medication (continue): {code} - {drug_name}"
 
-            # Renal dose adjustment for CKD patients
-            if has_ckd and renal_reserve < 0.5:
-                renal_drugs = ["Metformin", "Enoxaparin", "Enalapril", "Candesartan",
+            # Metformin: hold for ANY significant renal impairment (not just CKD)
+            # Clinical guideline: hold Metformin if eGFR < 30 or acute illness with AKI risk
+            if "Metformin" in drug_name and (initial_renal < 0.4 or has_renal_impairment):
+                intent += " [HELD - renal impairment / AKI risk]"
+                continue  # contraindicated
+
+            # Renal dose adjustment for CKD patients and impaired renal function
+            if has_renal_impairment and renal_reserve < 0.5:
+                renal_drugs = ["Enoxaparin", "Enalapril", "Candesartan",
                                "Alendronate", "Celecoxib"]
                 if any(rd.lower() in drug_name.lower() for rd in renal_drugs):
-                    if "Metformin" in drug_name and renal_reserve < 0.3:
-                        intent += " [HELD - eGFR<30]"
-                        continue  # contraindicated
-                    elif "Celecoxib" in drug_name:
+                    if "Celecoxib" in drug_name:
                         intent += " [HELD - renal impairment]"
                         continue
                     else:

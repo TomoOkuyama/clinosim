@@ -42,6 +42,7 @@ class DiseaseProtocol(BaseModel):
     requires_surgery: bool = False
     minimum_severity: str | None = None  # force minimum severity (e.g. "moderate" for fracture)
     readmission_eligible: bool = True  # False for surgical conditions like fractures
+    procedure: dict[str, Any] = {}  # Surgical procedure details (approach, duration, etc.)
 
 
 def load_disease_protocol(disease_id: str) -> DiseaseProtocol:

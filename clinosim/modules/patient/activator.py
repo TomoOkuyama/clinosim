@@ -215,8 +215,11 @@ def activate_patient(
         phonetic=person.phonetic,
     )
 
-    # Current medications from Layer 1 (discharge prescriptions from prior visits)
+    # Current medications: from Layer 1 (prior visit discharge) + chronic conditions
     current_meds = list(person.current_medications) if hasattr(person, "current_medications") else []
+    if not current_meds:
+        # Derive home medications from chronic conditions via chronic_medications.yaml
+        current_meds = _derive_home_medications(conditions, rng)
 
     # Address and contact from Layer 1
     from clinosim.types.patient import Address, ContactInfo
@@ -295,3 +298,41 @@ def activate_patient(
         physiological_profile=profile,
         baseline_vitals=vitals,
     )
+
+
+def _derive_home_medications(
+    chronic_conditions: list, rng: np.random.Generator
+) -> list[str]:
+    """Derive home medications from chronic conditions via chronic_medications.yaml.
+
+    Returns a list of drug name strings (e.g., ["Amlodipine 5mg", "Metformin 500mg"]).
+    """
+    from pathlib import Path
+    import yaml
+
+    yaml_path = Path(__file__).resolve().parent.parent.parent / "locale" / "shared" / "chronic_medications.yaml"
+    if not yaml_path.exists():
+        return []
+    data = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
+
+    meds: list[str] = []
+    seen: set[str] = set()
+    for condition in chronic_conditions:
+        code = condition.code if hasattr(condition, "code") else ""
+        if not code:
+            continue
+        # Try exact match, then base code (e.g., E11.9 → E11, N18.3 → N18)
+        spec = data.get(code) or data.get(code.split(".")[0])
+        if not spec:
+            continue
+        for drug_spec in spec.get("medications", []):
+            name = drug_spec.get("drug", "")
+            if not name or name in seen:
+                continue
+            # Respect probability (some drugs are not universally prescribed)
+            prob = drug_spec.get("probability", 1.0)
+            if prob < 1.0 and rng.random() >= prob:
+                continue
+            seen.add(name)
+            meds.append(name)
+    return meds
