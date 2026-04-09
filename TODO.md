@@ -1,8 +1,8 @@
 # clinosim — TODO
 
-## Status (current as of 2026-04-08)
+## Status (current as of 2026-04-09)
 
-**v0.1-beta** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 28 diseases, snapshot date support, hospital config-driven physical layout, codes module with EN-first principle.
+**v0.1-beta** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 28 diseases, snapshot date support, hospital config-driven physical layout, codes module with EN-first principle, **Bedrock-powered narrative generation (5 document types)**.
 
 Generated dataset stats (US 50-bed hospital, catchment 30k):
 - 12,378 unique patients
@@ -10,6 +10,7 @@ Generated dataset stats (US 50-bed hospital, catchment 30k):
 - 176,803 conditions
 - 835,990 observations
 - All 12 FHIR resource types with 0 ID violations
+- **374 narrative documents (5 types via Bedrock)** ← NEW
 
 ## Architecture Decisions (current)
 
@@ -50,6 +51,8 @@ Generated dataset stats (US 50-bed hospital, catchment 30k):
 | **AD-33** | 2026-04-08 | **English-first code systems**: every entry in `clinosim/codes/data/*.yaml` MUST have an `en` field. Other languages are translation attributes with English fallback. |
 | **AD-34** | 2026-04-08 | **Hospital config-driven physical layout**: `available_departments` + `department_rollup` + `wards` + `ward_capacity` in hospital YAML drives staff generation, ward assignment, bed location resources. |
 | **AD-35** | 2026-04-08 | **codes module separated from locale**: international code systems (ICD/LOINC/RxNorm/etc.) live in `clinosim/codes/`, NOT under `locale/`. Codes are international standards; translations are attributes. |
+| **AD-36** | 2026-04-09 | **5 narrative types only**: LOINC-compliant document generation limited to Admission H&P (34117-2), Discharge Summary (18842-5), Operative Note (11504-8), Procedure Note (28570-0), Death Note (69730-0). Progress/nursing notes excluded to reduce token consumption by 50x. |
+| **AD-37** | 2026-04-09 | **Bedrock as primary LLM provider**: Amazon Bedrock with Claude 3 models via boto3. Supports us-east-1, us-west-2, ap-northeast-1. Replaces judgment/narrative split with single narrative-only service. |
 
 ## Implementation Status
 
@@ -89,9 +92,9 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 | 9 | NEWS2-compatible vitals (AVPU + O2) | `physiology`, `output` | ✅ |
 | 10 | 28 diseases + 44 ED/outpatient conditions | `disease`, `encounter` | ✅ |
 | 11 | Module READMEs (all 17 modules) | docs | ✅ |
-| 12 | LLM judgment phase (real LLM, not template) | `llm_service` | Open |
-| 13 | LLM narrative generation (real Ollama tested) | `llm_service` | Open |
-| 14 | Validator Pass 2 (LLM consistency review) | `validator` | Open |
+| 12 | **Bedrock narrative generation (5 doc types)** | `llm_service` | ✅ 2026-04-09 |
+| 13 | **BedrockProvider implementation** | `llm_service` | ✅ 2026-04-09 |
+| 14 | **Token optimization (5 types only)** | `llm_service` | ✅ 2026-04-09 |
 | 15 | Performance: 100k+ patients, parallel sim | `simulator` | Open |
 | 16 | Tier 1 benchmarks expanded (LOS, mortality, complication) | `validator` | Partial |
 
@@ -178,6 +181,23 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 - [ ] Full validation against published benchmarks
 - [ ] Comprehensive documentation
 - [ ] Stable API contracts
+
+## Recent completions (2026-04-09)
+
+### Bedrock LLM Integration (2026-04-09)
+- ✅ BedrockProvider implementation (boto3-based, Claude 3 support)
+- ✅ 5 LOINC-compliant narrative types only (token reduction: 50x)
+  - 34117-2: Admission H&P (171 docs)
+  - 18842-5: Discharge Summary (171 docs)
+  - 11504-8: Operative Note (11 docs)
+  - 28570-0: Procedure Note (19 docs)
+  - 69730-0: Death Note (2 docs)
+- ✅ Removed unnecessary types (CHIEF_COMPLAINT, PROGRESS_NOTE, NURSING_NOTE, CONSULTATION_NOTE, all JUDGMENT tasks)
+- ✅ Enhanced prompts for all 5 document types (JP/EN)
+- ✅ llm_service.bedrock.yaml configuration
+- ✅ test_bedrock_narrative.py test script
+- ✅ Updated README with BedrockProvider usage and token estimates
+- ✅ Token consumption estimate: ~1.8M tokens for 374 documents (vs ~90M with all types)
 
 ## Recent completions (2026-04-06 to 2026-04-08)
 
