@@ -62,4 +62,9 @@ user_template: |
 
   Outcome: ${outcome}
 
+  Pre-operative vital signs:
+  ${preop_vitals}
+
+  ${clinical_guidance}
+
   Write the complete operative note.

@@ -40,7 +40,12 @@ from clinosim.modules.llm_service.engine import (
     loinc_for,
 )
 from clinosim.modules.output.hospital_course_extractor import (
+    extract_clinical_guidance,
     extract_hospital_course,
+    extract_lab_trends,
+    extract_treatment_timeline,
+    extract_vitals_snapshot,
+    format_lab_trends,
     summarize_admission_vitals,
     summarize_discharge_medications,
     summarize_procedures,
@@ -187,9 +192,23 @@ def _generate_for_record(
     course_bullets = [f.description for f in facts]
     deceased = bool(record.get("deceased"))
 
+    # Pre-compute shared enrichment data (used across multiple document types)
+    guidance = extract_clinical_guidance(record, language)
+    lab_trends = extract_lab_trends(record)
+    lab_trend_bullets = format_lab_trends(lab_trends)
+    treatment_timeline = extract_treatment_timeline(record)
+
+    # Shared context dict passed to all builders
+    enrichment = {
+        "guidance": guidance,
+        "lab_trends": lab_trends,
+        "lab_trend_bullets": lab_trend_bullets,
+        "treatment_timeline": treatment_timeline,
+    }
+
     # --- Admission H&P (Tier B) ---
     if LLMTaskType.ADMISSION_HP in enabled:
-        docs.append(_build_admission_hp(record, encounter, llm, language))
+        docs.append(_build_admission_hp(record, encounter, llm, language, enrichment))
 
     # --- Operative Note (Tier A) — one per surgery ---
     if LLMTaskType.OPERATIVE_NOTE in enabled:
@@ -198,7 +217,7 @@ def _generate_for_record(
                 continue
             if proc.get("category_code") != _SCT_SURGICAL:
                 continue
-            docs.append(_build_operative_note(proc, record, encounter, llm, language, index=i + 1))
+            docs.append(_build_operative_note(proc, record, encounter, llm, language, index=i + 1, enrichment=enrichment))
 
     # --- Procedure Note (Tier B) — invasive bedside only ---
     if LLMTaskType.PROCEDURE_NOTE in enabled:
@@ -209,17 +228,17 @@ def _generate_for_record(
                 continue
             if proc.get("procedure_type") not in _PROCEDURE_NOTE_TYPES:
                 continue
-            docs.append(_build_procedure_note(proc, record, encounter, llm, language))
+            docs.append(_build_procedure_note(proc, record, encounter, llm, language, enrichment=enrichment))
 
     # --- Discharge Summary (Tier A) ---
     if LLMTaskType.DISCHARGE_SUMMARY in enabled:
         docs.append(
-            _build_discharge_summary(record, encounter, course_bullets, llm, language)
+            _build_discharge_summary(record, encounter, course_bullets, llm, language, enrichment)
         )
 
     # --- Death Note (Tier A) — only for deceased inpatients ---
     if deceased and LLMTaskType.DEATH_SUMMARY in enabled:
-        docs.append(_build_death_summary(record, encounter, course_bullets, llm, language))
+        docs.append(_build_death_summary(record, encounter, course_bullets, llm, language, enrichment))
 
     return docs
 
@@ -235,6 +254,7 @@ def _build_discharge_summary(
     course_bullets: list[str],
     llm: LLMService,
     language: str,
+    enrichment: dict[str, Any] | None = None,
 ) -> ClinicalDocument:
     patient = record.get("patient") or {}
     cd = record.get("clinical_diagnosis") or {}
@@ -272,6 +292,13 @@ def _build_discharge_summary(
         "hospital_course_bullets": course_bullets,
         "procedures_performed": procedures_text or "(none)",
         "discharge_medications": discharge_meds or ["(none)"],
+        # Enrichment: lab trends and treatment timeline for richer hospital course
+        "lab_trends_summary": (enrichment or {}).get("lab_trend_bullets", []),
+        "treatment_timeline": (enrichment or {}).get("treatment_timeline", []),
+        # Clinical guidance (hidden context for LLM accuracy, not for output text)
+        "clinical_guidance": _format_guidance_for_prompt(
+            (enrichment or {}).get("guidance", {}), "discharge_summary"
+        ),
     }
 
     stub = _make_stub(
@@ -295,6 +322,7 @@ def _build_death_summary(
     course_bullets: list[str],
     llm: LLMService,
     language: str,
+    enrichment: dict[str, Any] | None = None,
 ) -> ClinicalDocument:
     patient = record.get("patient") or {}
     cd = record.get("clinical_diagnosis") or {}
@@ -328,6 +356,11 @@ def _build_death_summary(
         "hospital_course_bullets": course_bullets,
         "terminal_findings": summarize_terminal_vitals(record),
         "complications": record.get("complications_occurred") or ["(none documented)"],
+        "lab_trends_summary": (enrichment or {}).get("lab_trend_bullets", []),
+        "treatment_timeline": (enrichment or {}).get("treatment_timeline", []),
+        "clinical_guidance": _format_guidance_for_prompt(
+            (enrichment or {}).get("guidance", {}), "death_summary"
+        ),
     }
 
     stub = _make_stub(
@@ -349,6 +382,7 @@ def _build_admission_hp(
     encounter: dict[str, Any],
     llm: LLMService,
     language: str,
+    enrichment: dict[str, Any] | None = None,
 ) -> ClinicalDocument:
     patient = record.get("patient") or {}
     cd = record.get("clinical_diagnosis") or {}
@@ -373,6 +407,11 @@ def _build_admission_hp(
         "admission_vitals": summarize_admission_vitals(record),
         "initial_labs": _initial_labs(record),
         "admission_diagnosis": admit_dx or "(under investigation)",
+        # Clinical guidance: helps LLM write a realistic differential that leans
+        # toward the actual diagnosis, without stating it as confirmed.
+        "clinical_guidance": _format_guidance_for_prompt(
+            (enrichment or {}).get("guidance", {}), "admission_hp"
+        ),
     }
 
     stub = _make_stub(
@@ -396,6 +435,7 @@ def _build_operative_note(
     llm: LLMService,
     language: str,
     index: int,
+    enrichment: dict[str, Any] | None = None,
 ) -> ClinicalDocument:
     patient_id = (record.get("patient") or {}).get("patient_id", "")
     body_site_code = proc.get("body_site_code", "")
@@ -423,6 +463,14 @@ def _build_operative_note(
         "specimens_sent": proc.get("specimens_sent") or ["(none)"],
         "intraop_complications": proc.get("intraop_complications") or ["(none)"],
         "outcome": _outcome_label(proc.get("outcome_code", ""), language),
+        # Pre-op vitals (closest to surgery day)
+        "preop_vitals": extract_vitals_snapshot(
+            record,
+            target_day=_day_offset_from_encounter(encounter, proc.get("start_datetime")),
+        ),
+        "clinical_guidance": _format_guidance_for_prompt(
+            (enrichment or {}).get("guidance", {}), "operative_note"
+        ),
     }
 
     stub = _make_stub(
@@ -447,6 +495,7 @@ def _build_procedure_note(
     encounter: dict[str, Any],
     llm: LLMService,
     language: str,
+    enrichment: dict[str, Any] | None = None,
 ) -> ClinicalDocument:
     patient_id = (record.get("patient") or {}).get("patient_id", "")
     body_site_code = proc.get("body_site_code", "")
@@ -470,6 +519,9 @@ def _build_procedure_note(
         "specimens_obtained": proc.get("specimens_sent") or ["(none)"],
         "complications": proc.get("intraop_complications") or ["(none)"],
         "outcome": _outcome_label(proc.get("outcome_code", ""), language),
+        "clinical_guidance": _format_guidance_for_prompt(
+            (enrichment or {}).get("guidance", {}), "procedure_note"
+        ),
     }
 
     stub = _make_stub(
@@ -735,6 +787,95 @@ def _build_hpi_summary(
         parts.append(f"PMH significant for {', '.join(pmh[:3])}.")
 
     return " ".join(parts)
+
+
+def _day_offset_from_encounter(
+    encounter: dict[str, Any], target_dt: Any
+) -> int:
+    """Compute hospital day from encounter admission to a target datetime."""
+    admission = _parse_dt(encounter.get("admission_datetime"))
+    target = _parse_dt(target_dt)
+    if not admission or not target:
+        return 0
+    return max(0, (target - admission).days)
+
+
+def _format_guidance_for_prompt(
+    guidance: dict[str, Any], doc_type: str
+) -> str:
+    """Format clinical guidance as a hidden instruction block for the LLM.
+
+    This appears as a ${clinical_guidance} variable in the prompt. The YAML
+    system prompt instructs the LLM to use this for accuracy but never to
+    state it directly in the output text.
+
+    The format varies by document type to enforce temporal correctness:
+    - admission_hp: "The actual diagnosis is X; write as if suspecting but
+      not yet confirmed. Do NOT mention the confirmed diagnosis."
+    - discharge_summary / death_summary: full context is allowed since these
+      are written retrospectively.
+    - operative_note / procedure_note: only procedure-relevant guidance.
+    """
+    if not guidance:
+        return ""
+
+    confirmed = guidance.get("confirmed_diagnosis", "")
+    outcome = guidance.get("patient_outcome", "survived")
+    severity = guidance.get("disease_severity", "")
+    archetype = guidance.get("disease_archetype", "")
+    dx_correct = guidance.get("diagnosis_correct", True)
+    complications = guidance.get("complications", [])
+    comp_str = ", ".join(complications) if complications else "none"
+
+    if doc_type == "admission_hp":
+        # Temporal constraint: Day 0 perspective — diagnosis NOT yet confirmed
+        lines = [
+            "[HIDDEN CLINICAL CONTEXT — for accuracy only, do NOT state in note]",
+            f"Actual diagnosis (confirmed later): {confirmed}",
+            f"Severity: {severity}",
+            f"Patient outcome: {outcome}",
+            "INSTRUCTION: Write the assessment as if you strongly suspect this "
+            "diagnosis based on the presentation, but have NOT confirmed it yet. "
+            "Include it high in the differential but do not state it as established. "
+            "Do NOT mention the patient's eventual outcome or future events.",
+        ]
+        if not dx_correct:
+            lines.append(
+                "NOTE: The clinical team initially misdiagnosed this patient. "
+                "The admission working diagnosis may differ from the actual disease."
+            )
+        return "\n".join(lines)
+
+    if doc_type in ("discharge_summary", "death_summary"):
+        # Retrospective — all context available
+        lines = [
+            "[HIDDEN CLINICAL CONTEXT — use for accurate clinical language]",
+            f"Confirmed diagnosis: {confirmed}",
+            f"Severity: {severity}",
+            f"Clinical trajectory: {archetype}",
+            f"Complications during stay: {comp_str}",
+            f"Outcome: {outcome}",
+        ]
+        if not dx_correct:
+            lines.append(
+                "NOTE: Discharge diagnosis may not match the actual condition. "
+                "The discharge note should reflect what the clinical team concluded."
+            )
+        return "\n".join(lines)
+
+    if doc_type in ("operative_note", "procedure_note"):
+        # Procedure-focused — only intraop-relevant context
+        lines = [
+            "[HIDDEN CLINICAL CONTEXT — for surgical detail accuracy]",
+            f"Underlying diagnosis: {confirmed}",
+            f"Severity: {severity}",
+            f"Patient outcome: {outcome}",
+            "INSTRUCTION: Write only what was observed during the procedure. "
+            "Do NOT mention post-operative course or eventual outcome.",
+        ]
+        return "\n".join(lines)
+
+    return ""
 
 
 def _outcome_label(code: str, language: str) -> str:

@@ -25,6 +25,10 @@ system: |
     - Use formal clinical language.
     - Only use facts provided in the input. Do not invent physical exam
       findings beyond what the admission vitals imply.
+    - A "[HIDDEN CLINICAL CONTEXT]" section may be provided. Use it to
+      guide your differential diagnosis weighting and clinical reasoning,
+      but NEVER state confirmed diagnoses, patient outcomes, or future
+      events in the H&P text. Write strictly from the Day 0 perspective.
     - Keep the total length under 500 words.
     - Write in English.
 
@@ -57,5 +61,7 @@ user_template: |
 
   Working/admission diagnosis:
   ${admission_diagnosis}
+
+  ${clinical_guidance}
 
   Write the complete admission H&P note.

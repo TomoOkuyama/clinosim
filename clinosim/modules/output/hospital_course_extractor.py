@@ -18,9 +18,14 @@ from clinosim.codes import lookup as code_lookup
 __all__ = [
     "HospitalCourseFact",
     "extract_hospital_course",
+    "extract_clinical_guidance",
+    "extract_lab_trends",
+    "extract_treatment_timeline",
+    "extract_vitals_snapshot",
     "summarize_discharge_medications",
     "summarize_procedures",
     "summarize_admission_vitals",
+    "summarize_terminal_vitals",
 ]
 
 
@@ -370,6 +375,278 @@ def _discharge_event(
 
 
 # ============================================================
+# Clinical guidance — hidden context for LLM (NOT shown in output)
+# ============================================================
+
+
+def extract_clinical_guidance(
+    record: dict[str, Any],
+    language: str = "en",
+) -> dict[str, Any]:
+    """Extract hidden clinical context that the LLM can use for accuracy.
+
+    This data helps the LLM write clinically coherent narratives but must
+    NOT appear verbatim in the generated text. The prompt system instruction
+    tells the LLM how to use it.
+
+    Includes:
+    - confirmed_diagnosis: ground truth (for realistic differential weighting)
+    - diagnosis_correct: whether the clinical team got it right
+    - patient_outcome: survived / died (for appropriate severity language)
+    - disease_id: internal identifier (for archetype awareness)
+    - severity: mild / moderate / severe
+    - archetype: trajectory pattern (standard_recovery, treatment_resistant, etc.)
+    """
+    condition = record.get("condition_event") or {}
+    cd = record.get("clinical_diagnosis") or {}
+    gt_diseases = condition.get("ground_truth_diseases") or []
+    encounter = (record.get("encounters") or [{}])[0]
+
+    return {
+        "confirmed_diagnosis": gt_diseases[0] if gt_diseases else "",
+        "all_diagnoses": gt_diseases,
+        "diagnosis_correct": cd.get("diagnosis_correct", True),
+        "patient_outcome": "died" if record.get("deceased") else "survived",
+        "disease_severity": condition.get("severity", ""),
+        "disease_archetype": condition.get("archetype", ""),
+        "los_days": _los_days_from_encounter(encounter),
+        "had_surgery": any(
+            p.get("category_code") == "387713003"
+            for p in (record.get("procedures") or [])
+            if isinstance(p, dict)
+        ),
+        "complications": record.get("complications_occurred") or [],
+        "icu_transferred": record.get("icu_transferred", False),
+    }
+
+
+def _los_days_from_encounter(encounter: dict[str, Any]) -> int:
+    a = _parse_dt(encounter.get("admission_datetime"))
+    d = _parse_dt(encounter.get("discharge_datetime"))
+    return max(0, (d - a).days) if a and d else 0
+
+
+# ============================================================
+# Lab trends — admission → peak → pre-discharge trajectory
+# ============================================================
+
+
+def extract_lab_trends(
+    record: dict[str, Any],
+    admission_dt: datetime | None = None,
+) -> dict[str, dict[str, Any]]:
+    """Extract lab value trajectories for key markers.
+
+    Returns a dict keyed by normalized lab name:
+        {
+          "CRP": {
+            "admission": {"value": 5.2, "day": 0},
+            "peak": {"value": 180.0, "day": 3},
+            "latest": {"value": 12.5, "day": 12},
+            "trend": "improving"  # improving | worsening | stable | insufficient_data
+          },
+          ...
+        }
+    """
+    if admission_dt is None:
+        enc = (record.get("encounters") or [{}])[0]
+        admission_dt = _parse_dt(enc.get("admission_datetime"))
+
+    orders = record.get("orders") or []
+    # Collect all values per lab
+    series: dict[str, list[tuple[int, float]]] = {}
+    for o in orders:
+        if not isinstance(o, dict) or o.get("order_type") != "lab":
+            continue
+        result = o.get("result") or {}
+        if not result:
+            continue
+        lab_name = (result.get("lab_name") or o.get("display_name") or "").strip()
+        key = _normalize_lab_name(lab_name)
+        if key not in {"CRP", "WBC", "Cr", "Lactate", "Hgb", "Plt"}:
+            continue
+        try:
+            value = float(result.get("value", 0))
+        except (TypeError, ValueError):
+            continue
+        result_dt = _parse_dt(result.get("result_datetime"))
+        day = _day_offset(admission_dt, result_dt) if result_dt else 0
+        series.setdefault(key, []).append((day, value))
+
+    trends: dict[str, dict[str, Any]] = {}
+    for key, points in series.items():
+        if not points:
+            continue
+        points.sort(key=lambda x: x[0])
+        first_day, first_val = points[0]
+        peak_day, peak_val = max(points, key=lambda x: x[1])
+        last_day, last_val = points[-1]
+
+        # Determine trend
+        if len(points) < 2:
+            trend = "insufficient_data"
+        elif last_val < first_val * 0.7:
+            trend = "improving"
+        elif last_val > first_val * 1.3:
+            trend = "worsening"
+        else:
+            trend = "stable"
+
+        trends[key] = {
+            "admission": {"value": round(first_val, 1), "day": first_day},
+            "peak": {"value": round(peak_val, 1), "day": peak_day},
+            "latest": {"value": round(last_val, 1), "day": last_day},
+            "trend": trend,
+            "n_measurements": len(points),
+        }
+    return trends
+
+
+def format_lab_trends(trends: dict[str, dict[str, Any]]) -> list[str]:
+    """Format lab trends as human-readable bullet strings for prompts."""
+    out: list[str] = []
+    for name, t in sorted(trends.items()):
+        unit = _unit_for(name)
+        adm = t["admission"]
+        peak = t["peak"]
+        latest = t["latest"]
+        trend_label = t["trend"]
+        out.append(
+            f"{name}: admission {adm['value']}{unit} (day {adm['day']}) "
+            f"→ peak {peak['value']}{unit} (day {peak['day']}) "
+            f"→ latest {latest['value']}{unit} (day {latest['day']}) "
+            f"[{trend_label}]"
+        )
+    return out
+
+
+# ============================================================
+# Treatment timeline — medication starts/stops/changes
+# ============================================================
+
+
+def extract_treatment_timeline(
+    record: dict[str, Any],
+    admission_dt: datetime | None = None,
+) -> list[str]:
+    """Extract medication administration events as a timeline.
+
+    Returns bullet strings like:
+        "Day 0: Started Ceftriaxone IV"
+        "Day 5: Switched to Amoxicillin PO"
+    """
+    if admission_dt is None:
+        enc = (record.get("encounters") or [{}])[0]
+        admission_dt = _parse_dt(enc.get("admission_datetime"))
+
+    mars = record.get("medication_administrations") or []
+    if not mars:
+        return []
+
+    # Track first/last appearance of each drug
+    drug_timeline: dict[str, dict[str, Any]] = {}
+    for mar in mars:
+        if not isinstance(mar, dict):
+            continue
+        name = mar.get("drug_name") or mar.get("drug") or ""
+        if not name:
+            continue
+        route = mar.get("route", "")
+        admin_dt = _parse_dt(mar.get("administered_datetime") or mar.get("administration_datetime"))
+        day = _day_offset(admission_dt, admin_dt) if admin_dt else 0
+
+        if name not in drug_timeline:
+            drug_timeline[name] = {
+                "first_day": day,
+                "last_day": day,
+                "route": route,
+            }
+        else:
+            drug_timeline[name]["last_day"] = max(drug_timeline[name]["last_day"], day)
+            if day < drug_timeline[name]["first_day"]:
+                drug_timeline[name]["first_day"] = day
+
+    # Build timeline bullets
+    events: list[tuple[int, str]] = []
+    for drug, info in drug_timeline.items():
+        route = info["route"]
+        events.append((info["first_day"], f"Day {info['first_day']}: Started {drug} {route}".strip()))
+        if info["last_day"] > info["first_day"] + 1:
+            events.append(
+                (info["last_day"], f"Day {info['last_day']}: Last dose of {drug}")
+            )
+
+    events.sort(key=lambda x: x[0])
+    return [e[1] for e in events[:20]]  # cap at 20 entries
+
+
+# ============================================================
+# Vitals snapshot at a specific hospital day
+# ============================================================
+
+
+def extract_vitals_snapshot(
+    record: dict[str, Any],
+    target_day: int = 0,
+    admission_dt: datetime | None = None,
+) -> str:
+    """Return a one-line vitals summary for a specific hospital day.
+
+    Finds the vital sign record closest to the target day.
+    Useful for pre-op vitals (target_day = surgery day) or
+    pre-procedure vitals.
+    """
+    if admission_dt is None:
+        enc = (record.get("encounters") or [{}])[0]
+        admission_dt = _parse_dt(enc.get("admission_datetime"))
+
+    vitals = record.get("vital_signs") or []
+    if not vitals or admission_dt is None:
+        return "(not recorded)"
+
+    # Find closest vital to target_day
+    best: dict[str, Any] | None = None
+    best_dist = float("inf")
+    for vs in vitals:
+        if not isinstance(vs, dict):
+            continue
+        vs_dt = _parse_dt(vs.get("measured_datetime") or vs.get("datetime"))
+        if vs_dt is None:
+            continue
+        day = _day_offset(admission_dt, vs_dt)
+        dist = abs(day - target_day)
+        if dist < best_dist:
+            best = vs
+            best_dist = dist
+
+    if best is None:
+        return "(not recorded)"
+    return _format_vitals_dict(best)
+
+
+def _format_vitals_dict(vs: dict[str, Any]) -> str:
+    """Format a vital signs dict into a one-line summary."""
+    bp_sys = vs.get("systolic_bp") or vs.get("bp_systolic")
+    bp_dia = vs.get("diastolic_bp") or vs.get("bp_diastolic")
+    hr = vs.get("heart_rate")
+    rr = vs.get("respiratory_rate")
+    temp = vs.get("temperature")
+    spo2 = vs.get("spo2") or vs.get("oxygen_saturation")
+    parts = []
+    if temp is not None:
+        parts.append(f"T {temp}°C")
+    if hr is not None:
+        parts.append(f"HR {hr}")
+    if rr is not None:
+        parts.append(f"RR {rr}")
+    if bp_sys is not None and bp_dia is not None:
+        parts.append(f"BP {bp_sys}/{bp_dia}")
+    if spo2 is not None:
+        parts.append(f"SpO2 {spo2}%")
+    return ", ".join(parts) if parts else "(not recorded)"
+
+
+# ============================================================
 # Utility functions
 # ============================================================
 
@@ -426,6 +703,12 @@ _LAB_NAME_MAP = {
     "creatinine": "Cr",
     "cr": "Cr",
     "lactate": "Lactate",
+    "hemoglobin": "Hgb",
+    "hgb": "Hgb",
+    "hb": "Hgb",
+    "platelet count": "Plt",
+    "platelet": "Plt",
+    "plt": "Plt",
 }
 
 
@@ -433,7 +716,10 @@ def _normalize_lab_name(name: str) -> str:
     return _LAB_NAME_MAP.get(name.strip().lower(), name)
 
 
-_UNIT_MAP = {"CRP": "mg/L", "WBC": "cells/μL", "Cr": "mg/dL", "Lactate": "mmol/L"}
+_UNIT_MAP = {
+    "CRP": "mg/L", "WBC": "cells/μL", "Cr": "mg/dL",
+    "Lactate": "mmol/L", "Hgb": "g/dL", "Plt": "x10^3/μL",
+}
 
 
 def _unit_for(name: str) -> str:
