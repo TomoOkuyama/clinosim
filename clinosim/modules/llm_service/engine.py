@@ -236,6 +236,12 @@ def _build_prompt(task_type: LLMTaskType, event: ClinicalEventData,
         "en": "Write in English. Use standard medical terminology.",
     }.get(language, "Write in English.")
 
+    # Conciseness instruction
+    concise_instr = {
+        "ja": "簡潔に記載してください（500-800文字程度）。",
+        "en": "Keep it concise and brief (500-800 characters).",
+    }.get(language, "Keep it concise.")
+
     match task_type:
         case LLMTaskType.DISCHARGE_SUMMARY:
             system = (
@@ -248,7 +254,7 @@ def _build_prompt(task_type: LLMTaskType, event: ClinicalEventData,
                 f"LOS: {ed.get('los_days', 14)} days\n"
                 f"Key events: {ed.get('key_events', [])}\n"
                 f"Discharge medications: {ed.get('discharge_medications', [])}\n"
-                f"Write the discharge summary."
+                f"Write the discharge summary. {concise_instr}"
             )
 
         case LLMTaskType.ADMISSION_HP:
@@ -261,15 +267,15 @@ def _build_prompt(task_type: LLMTaskType, event: ClinicalEventData,
                 f"Patient: {ps.age}yo {ps.sex}\n"
                 f"Chief complaint: {ps.chief_complaint}\n"
                 f"PMH: {conditions}\n"
-                f"Write the admission H&P."
+                f"Write the admission H&P. {concise_instr}"
             )
 
         case LLMTaskType.OPERATIVE_NOTE:
             system = (
-                f"You are a surgeon writing a complete operative note (LOINC 11504-8). "
+                f"You are a surgeon writing an operative note (LOINC 11504-8). "
                 f"Include: preop diagnosis, postop diagnosis, procedure performed, "
-                f"indications, findings, technique, specimens, EBL, complications, "
-                f"condition at end. {lang_instruction}"
+                f"indications, findings, technique, EBL, complications. "
+                f"{lang_instruction}"
             )
             procedure_type = ed.get("procedure_type", "ORIF")
             anesthesia = ed.get("anesthesia_type", "general")
@@ -286,14 +292,14 @@ def _build_prompt(task_type: LLMTaskType, event: ClinicalEventData,
                 f"EBL: {ebl} mL\n"
                 f"Findings: {findings}\n"
                 f"Complications: {', '.join(complications) if complications else 'None'}\n"
-                f"Write the operative note."
+                f"Write the operative note. {concise_instr}"
             )
 
         case LLMTaskType.PROCEDURE_NOTE:
             system = (
                 f"You are a physician writing a procedure note (LOINC 28570-0) "
                 f"for an invasive bedside procedure. Include: indication, consent, "
-                f"technique, findings, specimens, complications, patient toleration. "
+                f"technique, findings, complications, patient toleration. "
                 f"{lang_instruction}"
             )
             procedure_type = ed.get("procedure_type", "central_line")
@@ -302,15 +308,14 @@ def _build_prompt(task_type: LLMTaskType, event: ClinicalEventData,
                 f"Patient: {ps.age}yo {ps.sex}\n"
                 f"Procedure: {procedure_type}\n"
                 f"Indication: {indication}\n"
-                f"Write the procedure note."
+                f"Write the procedure note. {concise_instr}"
             )
 
         case LLMTaskType.DEATH_NOTE:
             system = (
                 f"You are a physician writing a death note (LOINC 69730-0). "
-                f"Include: time of death, cause of death, family notification, "
-                f"autopsy discussion, belongings. Be respectful and concise. "
-                f"{lang_instruction}"
+                f"Include: time of death, cause of death, family notification. "
+                f"Be respectful and concise. {lang_instruction}"
             )
             death_time = ed.get("death_datetime", "")
             cause = ed.get("cause_of_death", ps.current_diagnosis)
@@ -318,7 +323,7 @@ def _build_prompt(task_type: LLMTaskType, event: ClinicalEventData,
                 f"Patient: {ps.age}yo {ps.sex}\n"
                 f"Time of death: {death_time}\n"
                 f"Cause: {cause}\n"
-                f"Write the death note."
+                f"Write the death note. {concise_instr}"
             )
 
         case _:
