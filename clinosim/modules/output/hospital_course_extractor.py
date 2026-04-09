@@ -604,9 +604,10 @@ def extract_vitals_snapshot(
     if not vitals or admission_dt is None:
         return "(not recorded)"
 
-    # Find closest vital to target_day
-    best: dict[str, Any] | None = None
-    best_dist = float("inf")
+    # Find the best vital record near target_day.
+    # Prefer records that have a complete set of fields (HR + BP + SpO2 + Temp)
+    # over records that are closer in time but have mostly None fields.
+    candidates: list[tuple[float, int, dict[str, Any]]] = []
     for vs in vitals:
         if not isinstance(vs, dict):
             continue
@@ -617,13 +618,19 @@ def extract_vitals_snapshot(
             continue
         day = _day_offset(admission_dt, vs_dt)
         dist = abs(day - target_day)
-        if dist < best_dist:
-            best = vs
-            best_dist = dist
+        # Count non-None vital fields as a completeness score
+        completeness = sum(1 for k in ("heart_rate", "systolic_bp", "spo2",
+                                        "temperature_celsius", "temperature",
+                                        "respiratory_rate")
+                           if vs.get(k) is not None)
+        # Sort key: within ±1 day, prefer completeness; beyond that, prefer proximity
+        effective_dist = dist if dist > 1 else 0
+        candidates.append((effective_dist, -completeness, vs))
 
-    if best is None:
+    if not candidates:
         return "(not recorded)"
-    return _format_vitals_dict(best)
+    candidates.sort(key=lambda x: (x[0], x[1]))
+    return _format_vitals_dict(candidates[0][2])
 
 
 def _format_vitals_dict(vs: dict[str, Any]) -> str:

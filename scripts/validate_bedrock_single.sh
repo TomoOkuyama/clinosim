@@ -11,7 +11,7 @@
 set -euo pipefail
 
 CIF_DIR="test_data/bedrock_single_patient"
-VERSION_ID="bedrock_validation_v2"
+VERSION_ID="bedrock_validation_v3"
 LLM_CONFIG="clinosim/config/llm_service.bedrock.yaml"
 RESULT_FILE="test_data/bedrock_results.txt"
 
