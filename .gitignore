@@ -19,9 +19,9 @@ build/
 .DS_Store
 Thumbs.db
 
-# Output (generated data)
-output/
-output_*/
+# Output (generated data — not clinosim/modules/output/ which is source code)
+/output/
+/output_*/
 
 # Installers (do not commit)
 Miniconda3*.sh
