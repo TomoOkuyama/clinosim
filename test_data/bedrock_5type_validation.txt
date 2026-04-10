@@ -1,445 +1,21 @@
 ======================================================================
   5-Type Bedrock Clinical Document Validation
-  Date: 2026-04-10 01:14:00 UTC
+  Date: 2026-04-10 01:20:10 UTC
 ======================================================================
 
 ======================================================================
-  PATIENT: Acute cholecystitis, 48yo F, cholangitis complication, laparoscopic cholecystectomy
-  File: test_data/smoke_patients/ENC-POP-000783-000085.json
-  ID: POP-000783  Age: 48  Sex: F
-  Ground truth: ['acute_cholecystitis']
-  Deceased: False
-  Procedures: 1
-======================================================================
-
-  --- Enrichment Data (from extractor) ---
-  Clinical guidance:
-    confirmed_diagnosis: acute_cholecystitis
-    all_diagnoses: ['acute_cholecystitis']
-    diagnosis_correct: True
-    patient_outcome: survived
-    disease_severity: 
-    disease_archetype: 
-    los_days: 4
-    had_surgery: True
-    complications: ['cholangitis']
-    icu_transferred: False
-  Lab trends:
-    CRP: admission 61.4mg/L (day 0) → peak 61.4mg/L (day 0) → latest 61.4mg/L (day 0) [insufficient_data]
-    Cr: admission 0.7mg/dL (day 0) → peak 0.9mg/dL (day 3) → latest 0.9mg/dL (day 3) [stable]
-    Hgb: admission 12.4g/dL (day 0) → peak 12.4g/dL (day 0) → latest 12.4g/dL (day 0) [insufficient_data]
-    Plt: admission 209.0x10^3/μL (day 0) → peak 209.0x10^3/μL (day 0) → latest 209.0x10^3/μL (day 0) [insufficient_data]
-    WBC: admission 9146.0cells/μL (day 0) → peak 15622.0cells/μL (day 1) → latest 15622.0cells/μL (day 1) [worsening]
-  Treatment timeline (5 events):
-    Day 0: Started Ceftriaxone IV
-    Day 0: Started IV_fluid: Lactated Ringer 125 mL/h IV
-    Day 0: Started pain_management: Acetaminophen 1000mg IV + NSAIDs or opioid PRN IV
-    Day 0: Started antibiotic: Cefmetazole or Ceftriaxone + Metronidazole (see drugs section) IV
-    Day 0: Started Atorvastatin 10mg PO
-  Hospital course (7 facts):
-    Day 0: Admitted with Right upper quadrant pain, fever, Murphy's sign positive. Initial working diagnosis: Acute cholecystitis.
-    Day 0: Surgical procedure for acute_cholecystitis. EBL 261 mL.
-    Day 0: CRP peaked at 61.4 mg/L.
-    Complication identified: cholangitis
-    Day 1: WBC peaked at 15622.0 cells/μL.
-    Day 3: Cr peaked at 0.9 mg/dL.
-    Day 4: Discharged to home. Final diagnosis: Cholecystitis, unspecified.
-
-  ============================================================
-  DOCUMENT: admission_hp
-  ============================================================
-  LOINC:      34117-2
-  Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
-  Tokens:    in=747  out=660
-  Cache:     False
-  Fallback:  (none)
-  ────────────────────────────────────────────────────────────
-**ADMISSION HISTORY & PHYSICAL**
-
-**Date:** November 7, 2024, 09:27
-**Admitting Physician:** DR-GS-003
-**Service:** General Surgery
-
-**CHIEF COMPLAINT:**
-Right upper quadrant pain, fever, Murphy's sign positive
-
-**HISTORY OF PRESENT ILLNESS:**
-48-year-old female presents with right upper quadrant pain and fever. Physical examination notable for positive Murphy's sign. Patient appears acutely ill with constitutional symptoms consistent with inflammatory process.
-
-**PAST MEDICAL HISTORY:**
-- Disorders of lipoprotein metabolism and other lipidemias
-
-**MEDICATIONS:**
-- Atorvastatin 10mg daily
-
-**ALLERGIES:**
-No known drug allergies (NKDA)
-
-**FAMILY HISTORY:**
-Non-contributory
-
-**SOCIAL HISTORY:**
-Deferred
-
-**REVIEW OF SYSTEMS:**
-Positive for right upper quadrant pain and fever. Other systems deferred due to acute presentation.
-
-**PHYSICAL EXAMINATION:**
-Vital Signs: Temperature 38.5°C, Heart Rate 85 bpm, Respiratory Rate 20/min, Blood Pressure 120/73 mmHg, Oxygen Saturation 97% on room air
-General: Appears acutely ill, febrile
-Abdomen: Positive Murphy's sign in right upper quadrant
-Other systems: Examination limited by acute presentation
-
-**LABORATORY DATA:**
-- WBC: 15,622/μL (elevated)
-- CRP: 61.4 mg/L (elevated)
-- AST: 70 U/L (elevated)
-- ALT: 47 U/L (elevated)
-- Glucose: 121 mg/dL (mildly elevated)
-
-**ASSESSMENT:**
-48-year-old female presenting with classic triad of right upper quadrant pain, fever, and positive Murphy's sign, concerning for acute cholecystitis. Laboratory findings demonstrate leukocytosis and elevated inflammatory markers consistent with acute inflammatory process. Mild transaminase elevation suggests possible hepatic involvement or biliary obstruction. 
-
-Differential diagnosis includes:
-1. Acute cholecystitis (most likely given clinical presentation)
-2. Choledocholithiasis with cholangitis
-3. Acute cholangitis
-4. Hepatitis
-5. Peptic ulcer disease with perforation
-
-**PLAN:**
-1. NPO status
-2. IV fluid resuscitation
-3. Obtain right upper quadrant ultrasound to evaluate gallbladder
-4. Consider CT abdomen/pelvis if ultrasound non-diagnostic
-5. Pain management
-6. Antibiotic therapy for suspected biliary sepsis
-7. Surgical consultation for possible cholecystectomy
-8. Serial laboratory monitoring including CBC, comprehensive metabolic panel, liver function tests
-9. Blood cultures if clinically indicated
-
-  ============================================================
-  DOCUMENT: discharge_summary
-  ============================================================
-  LOINC:      18842-5
-  Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
-  Tokens:    in=1111  out=679
-  Cache:     False
-  Fallback:  (none)
-  ────────────────────────────────────────────────────────────
-**DISCHARGE SUMMARY**
-
-**Patient:** 48-year-old Female  
-**Admission Date:** November 7, 2024  
-**Discharge Date:** November 11, 2024  
-**Length of Stay:** 4 days  
-**Attending Physician:** DR-GS-003
-
-**ADMISSION DIAGNOSIS:**
-Acute cholecystitis
-
-**DISCHARGE DIAGNOSES:**
-Primary: Cholecystitis, unspecified
-Secondary: Disorders of lipoprotein metabolism and other lipidemias
-
-**CHIEF COMPLAINT:**
-Right upper quadrant pain, fever, Murphy's sign positive
-
-**HISTORY OF PRESENT ILLNESS:**
-This 48-year-old female presented with right upper quadrant pain and fever. Physical examination was notable for a positive Murphy's sign, consistent with acute cholecystitis.
-
-**PAST MEDICAL HISTORY:**
-- Disorders of lipoprotein metabolism and other lipidemias
-
-**HOSPITAL COURSE:**
-The patient was admitted on hospital day 0 with clinical findings consistent with acute cholecystitis. Initial laboratory studies revealed an elevated CRP of 61.4 mg/L and WBC of 9,146 cells/μL. She underwent surgical intervention for acute cholecystitis on hospital day 0 with an estimated blood loss of 261 mL.
-
-During the hospitalization, the patient developed cholangitis as a complication. Laboratory trends showed worsening leukocytosis with WBC peaking at 15,622 cells/μL on hospital day 1. Creatinine remained stable, peaking at 0.9 mg/dL on hospital day 3. Hemoglobin and platelet counts remained stable throughout the admission at 12.4 g/dL and 209,000/μL respectively.
-
-The patient was managed with IV antibiotics including ceftriaxone, supportive care with lactated Ringer's solution at 125 mL/h, and pain management with acetaminophen 1000 mg IV plus NSAIDs or opioids as needed. Atorvastatin 10 mg PO was initiated for her lipid disorder.
-
-**PROCEDURES PERFORMED:**
-- Surgical procedure for acute cholecystitis performed on November 8, 2024 at 06:41 by DR-IM-004
-
-**DISCHARGE MEDICATIONS:**
-- Amoxicillin/Clavulanate 875/125 mg PO BID
-- Ibuprofen 400 mg PO q6h PRN
-- Atorvastatin 10 mg PO daily
-
-**CONDITION AT DISCHARGE:**
-Stable, tolerating oral intake, ambulatory
-
-**FOLLOW-UP INSTRUCTIONS:**
-Patient should follow up with surgery clinic and primary care physician as arranged. Complete prescribed antibiotic course. Return to emergency department for worsening abdominal pain, fever, nausea/vomiting, or other concerning symptoms.
-
-  ============================================================
-  DOCUMENT: operative_note
-  ============================================================
-  LOINC:      11504-8
-  Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
-  Tokens:    in=503  out=420
-  Cache:     False
-  Fallback:  (none)
-  ────────────────────────────────────────────────────────────
-**OPERATIVE NOTE**
-
-**Date of Procedure:** November 8, 2024
-
-**Preoperative Diagnosis:** Acute cholecystitis
-
-**Postoperative Diagnosis:** Acute cholecystitis
-
-**Procedure Performed:** Surgical procedure for acute cholecystitis
-
-**Surgeon:** DR-IM-004
-
-**Assistant(s):** None
-
-**Anesthesia Type:** Spinal anesthesia
-**Anesthesiologist:** DR-IM-004
-**ASA Class:** II
-
-**Findings:** Patient presented with acute cholecystitis. Preoperative vital signs demonstrated temperature of 38.5°C, heart rate 85 bpm, respiratory rate 20/min, blood pressure 120/73 mmHg, and oxygen saturation 97%.
-
-**Description of Procedure:** 
-The patient was brought to the operating room and positioned appropriately. Spinal anesthesia was administered by DR-IM-004 without complications. The surgical site was prepared and draped in standard sterile fashion. 
-
-The surgical procedure for acute cholecystitis was performed using standard technique over a duration of 118 minutes. The procedure was carried out methodically with careful attention to anatomical structures. Hemostasis was maintained throughout the procedure.
-
-The surgical site was irrigated and inspected for hemostasis. All instruments and sponge counts were correct.
-
-**Specimens:** None sent to pathology
-
-**Drains and Implants:** None placed
-
-**Estimated Blood Loss:** 261 mL
-
-**Complications:** None
-
-**Disposition:** The patient tolerated the procedure well. The surgical site was closed in layers using standard technique. The patient was transferred to the recovery area in stable condition.
-
----
-*Dictated and signed by DR-IM-004*
-*Date: November 8, 2024*
-
-======================================================================
-  PATIENT: Sepsis, 74yo F, AKI complication, central line + arterial line + urinary catheter
-  File: test_data/smoke_patients/ENC-POP-000429-000130.json
-  ID: POP-000429  Age: 74  Sex: F
-  Ground truth: ['sepsis']
-  Deceased: False
-  Procedures: 3
-======================================================================
-
-  --- Enrichment Data (from extractor) ---
-  Clinical guidance:
-    confirmed_diagnosis: sepsis
-    all_diagnoses: ['sepsis']
-    diagnosis_correct: True
-    patient_outcome: survived
-    disease_severity: 
-    disease_archetype: 
-    los_days: 14
-    had_surgery: False
-    complications: ['acute_kidney_injury']
-    icu_transferred: False
-  Lab trends:
-    CRP: admission 345.9mg/L (day 0) → peak 403.4mg/L (day 2) → latest 25.0mg/L (day 13) [improving]
-    Cr: admission 6.2mg/dL (day 0) → peak 10.0mg/dL (day 2) → latest 7.2mg/dL (day 13) [stable]
-    Hgb: admission 12.0g/dL (day 0) → peak 12.0g/dL (day 0) → latest 12.0g/dL (day 0) [insufficient_data]
-    Lactate: admission 3.1mmol/L (day 0) → peak 5.2mmol/L (day 9) → latest 3.8mmol/L (day 13) [stable]
-    Plt: admission 249.0x10^3/μL (day 0) → peak 249.0x10^3/μL (day 0) → latest 200.0x10^3/μL (day 13) [stable]
-    WBC: admission 9847.0cells/μL (day 0) → peak 18175.0cells/μL (day 6) → latest 11695.0cells/μL (day 12) [stable]
-  Treatment timeline (10 events):
-    Day 0: Started Piperacillin/Tazobactam IV
-    Day 0: Started IV_fluid: Crystalloid 30 mL/kg bolus within 3 hours IV
-    Day 0: Started antipyretic: Acetaminophen 1000mg IV q6h PRN temp >= 38.5 IV
-    Day 0: Started DVT_prophylaxis: Enoxaparin 2000IU SC daily (hold if coagulopathy) SC
-    Day 0: Started Sliding scale insulin SC
-    Day 0: Started Atorvastatin 10mg PO
-    Day 0: Started Aspirin 100mg PO
-    Day 0: Started Clopidogrel 75mg PO
-    ... and 2 more
-  Hospital course (9 facts):
-    Day 0: Admitted with Fever, altered mental status, hypotension. Initial working diagnosis: Sepsis, unspecified organism.
-    Day 0: Central venous catheter insertion performed at bedside.
-    Day 0: Arterial line insertion performed at bedside.
-    Complication identified: acute_kidney_injury
-    Day 2: CRP peaked at 403.4 mg/L.
-    Day 2: Cr peaked at 10.0 mg/dL.
-    Day 6: WBC peaked at 18175.0 cells/μL.
-    Day 9: Lactate peaked at 5.2 mmol/L.
-    Day 14: Discharged to home. Final diagnosis: Sepsis, unspecified organism.
-
-  ============================================================
-  DOCUMENT: admission_hp
-  ============================================================
-  LOINC:      34117-2
-  Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
-  Tokens:    in=880  out=695
-  Cache:     False
-  Fallback:  (none)
-  ────────────────────────────────────────────────────────────
-**ADMISSION HISTORY & PHYSICAL**
-
-**Chief Complaint:** Fever, altered mental status, hypotension
-
-**History of Present Illness:** 74-year-old female presents with acute onset of fever, altered mental status, and hypotension. Patient arrived with temperature of 39.7°C, heart rate 103 bpm, respiratory rate 23/min, blood pressure 114/72 mmHg, and oxygen saturation 91.9% on room air. Initial laboratory studies reveal significantly elevated inflammatory markers including CRP 345.9 mg/L and procalcitonin 24.78 ng/mL, along with lactate elevation to 3.1 mmol/L. Additional concerning findings include acute kidney injury with creatinine 6.2 mg/dL and BUN 74.6 mg/dL, hyperkalemia at 5.4 mmol/L, and transaminitis with AST 286 U/L.
-
-**Past Medical History:** 
-- Type 2 diabetes mellitus without complications
-- Disorders of lipoprotein metabolism and other lipidemias  
-- Chronic ischemic heart disease
-- Asthma
-
-**Medications:**
-- Metformin 500mg
-- Atorvastatin 10mg
-- Aspirin 100mg
-- Fluticasone/Salmeterol inhaler
-- Salbutamol inhaler PRN
-
-**Allergies:** NKDA
-
-**Family History:** Not obtained at this time
-
-**Social History:** Not obtained at this time
-
-**Review of Systems:** Unable to obtain due to altered mental status
-
-**Physical Examination:**
-Vital Signs: T 39.7°C, HR 103, RR 23, BP 114/72, SpO2 91.9%
-General: Appears acutely ill with altered mental status
-HEENT: Not fully assessed due to patient condition
-Cardiovascular: Tachycardic, regular rhythm
-Pulmonary: Tachypneic, decreased oxygen saturation
-Abdomen: Unable to assess adequately
-Neurologic: Altered mental status present
-
-**Assessment:** 74-year-old female presenting with fever, altered mental status, and relative hypotension concerning for sepsis. The constellation of findings including high fever, altered mentation, elevated lactate, markedly elevated inflammatory markers (CRP, procalcitonin), acute kidney injury, and multi-organ dysfunction strongly suggests septic shock. Differential diagnosis includes bacterial sepsis from urinary, pulmonary, or abdominal source, though source remains unclear. Alternative considerations include severe dehydration, medication toxicity, or other systemic inflammatory processes, though less likely given the clinical presentation and laboratory abnormalities.
-
-**Plan:**
-1. Initiate sepsis protocol with fluid resuscitation and broad-spectrum antibiotics
-2. Blood cultures, urine culture, chest imaging
-3. Continuous monitoring in appropriate care setting
-4. Nephrology consultation for acute kidney injury
-5. Supportive care and frequent reassessment
-
-  ============================================================
-  DOCUMENT: procedure_note
-  ============================================================
-  LOINC:      28570-0
-  Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
-  Tokens:    in=387  out=388
-  Cache:     False
-  Fallback:  (none)
-  ────────────────────────────────────────────────────────────
-**PROCEDURE NOTE**
-
-**Date and Time:** February 28, 2025 at 14:20
-
-**Procedure:** Central venous catheter insertion (CPT 36556)
-
-**Indication:** Fever, altered mental status, and hypotension requiring central venous access
-
-**Operator(s):** DR-IM-006
-
-**Consent:** Informed consent obtained and documented
-
-**Site and Side:** Right internal jugular vein with appropriate laterality marking
-
-**Anesthesia:** Local anesthesia with lidocaine 1%
-
-**Preparation and Positioning:** Patient positioned supine with head turned to the left. Sterile preparation and draping of the right neck region performed using chlorhexidine solution. Universal precautions observed with sterile gown, gloves, mask, and cap.
-
-**Technique:** Ultrasound guidance utilized to identify the right internal jugular vein. Local anesthesia administered to the insertion site. Using Seldinger technique, the vein was accessed with an 18-gauge needle under direct ultrasound visualization. Guidewire advanced without resistance. Sequential dilation performed. Triple-lumen central venous catheter inserted over the guidewire to appropriate depth. Guidewire removed. All lumens aspirated and flushed easily with normal saline.
-
-**Findings/Results:** Successful placement of triple-lumen central venous catheter with good blood return from all ports and easy flushing.
-
-**Estimated Blood Loss:** Minimal
-
-**Complications:** None
-
-**Specimens:** None obtained
-
-**Post-procedure Plan:** Chest radiograph to confirm catheter position and rule out pneumothorax. Catheter secured with sutures and sterile dressing applied.
-
-  ============================================================
-  DOCUMENT: discharge_summary
-  ============================================================
-  LOINC:      18842-5
-  Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
-  Tokens:    in=1361  out=747
-  Cache:     False
-  Fallback:  (none)
-  ────────────────────────────────────────────────────────────
-**DISCHARGE SUMMARY**
-
-**Patient:** 74-year-old Female  
-**Admission Date:** February 28, 2025  
-**Discharge Date:** March 14, 2025  
-**Length of Stay:** 14 days  
-**Attending Physician:** DR-IM-006  
-
-**ADMISSION DIAGNOSIS:**
-Sepsis, unspecified organism
-
-**DISCHARGE DIAGNOSES:**
-Primary: Sepsis, unspecified organism  
-Secondary: Acute kidney injury
-
-**CHIEF COMPLAINT:**
-Fever, altered mental status, hypotension
-
-**HISTORY OF PRESENT ILLNESS:**
-This 74-year-old female presented with fever, altered mental status, and hypotension consistent with sepsis. Initial evaluation revealed elevated inflammatory markers and acute kidney injury.
-
-**PAST MEDICAL HISTORY:**
-- Type 2 diabetes mellitus without complications
-- Disorders of lipoprotein metabolism and other lipidemias  
-- Chronic ischemic heart disease
-- Asthma
-
-**HOSPITAL COURSE:**
-The patient was admitted with sepsis of unknown source and developed acute kidney injury as a complication. She was managed with aggressive fluid resuscitation, broad-spectrum antibiotics, and supportive care. Central venous access and arterial monitoring were established on admission. Laboratory parameters showed significant inflammatory response with CRP peaking at 403.4 mg/L on day 2, WBC count reaching 18,175 cells/μL on day 6, and lactate peaking at 5.2 mmol/L on day 9. Creatinine peaked at 10.0 mg/dL on day 2, indicating severe acute kidney injury. Over the course of hospitalization, inflammatory markers improved significantly with CRP decreasing to 25.0 mg/L by day 13. Renal function partially recovered with creatinine stabilizing at 7.2 mg/dL at discharge. The patient's clinical condition gradually improved with resolution of fever and normalization of mental status.
-
-**PROCEDURES PERFORMED:**
-- Urinary catheter insertion (February 28, 2025)
-- Central venous catheter insertion (February 28, 2025)  
-- Arterial line insertion (February 28, 2025)
-
-**DISCHARGE MEDICATIONS:**
-- Levofloxacin 750mg PO daily
-- Metformin 500mg PO daily
-- Atorvastatin 10mg PO daily
-- Aspirin 100mg PO daily
-- Fluticasone/Salmeterol inhaler
-- Salbutamol inhaler PRN
-
-**CONDITION AT DISCHARGE:**
-Stable. Patient's sepsis has resolved with significant improvement in inflammatory markers. Acute kidney injury has partially recovered but remains elevated from baseline.
-
-**FOLLOW-UP INSTRUCTIONS:**
-1. Complete 7-day course of levofloxacin as prescribed
-2. Follow up with primary care physician within 1 week
-3. Nephrology consultation recommended for ongoing management of kidney function
-4. Monitor blood glucose closely and resume diabetic medications as tolerated
-5. Return to emergency department immediately for fever, confusion, or worsening symptoms
-6. Laboratory follow-up in 1 week to monitor renal function and inflammatory markers
-
-======================================================================
-  PATIENT: Acute MI death, 91yo M, 4 home meds, echo + arterial line + central line
-  File: test_data/smoke_patients/ENC-POP-001134-000096.json
-  ID: POP-001134  Age: 91  Sex: M
-  Ground truth: ['acute_mi']
+  PATIENT: GI bleeding death, 78yo M, 3 home meds, 2 procedures
+  File: test_data/smoke_patients/ENC-POP-001814-000115.json
+  ID: POP-001814  Age: 78  Sex: M
+  Ground truth: ['gi_bleeding']
   Deceased: True
-  Procedures: 3
+  Procedures: 2
 ======================================================================
 
   --- Enrichment Data (from extractor) ---
   Clinical guidance:
-    confirmed_diagnosis: acute_mi
-    all_diagnoses: ['acute_mi']
+    confirmed_diagnosis: gi_bleeding
+    all_diagnoses: ['gi_bleeding']
     diagnosis_correct: True
     patient_outcome: died
     disease_severity: 
@@ -449,59 +25,262 @@ Stable. Patient's sepsis has resolved with significant improvement in inflammato
     complications: []
     icu_transferred: False
   Lab trends:
-    CRP: admission 3.9mg/L (day 0) → peak 3.9mg/L (day 0) → latest 3.9mg/L (day 0) [insufficient_data]
-    Cr: admission 1.4mg/dL (day 0) → peak 1.4mg/dL (day 0) → latest 1.4mg/dL (day 0) [insufficient_data]
-    Hgb: admission 15.3g/dL (day 0) → peak 15.3g/dL (day 0) → latest 15.3g/dL (day 0) [insufficient_data]
-    Plt: admission 239.0x10^3/μL (day 0) → peak 239.0x10^3/μL (day 0) → latest 239.0x10^3/μL (day 0) [insufficient_data]
-    WBC: admission 9884.0cells/μL (day 0) → peak 9884.0cells/μL (day 0) → latest 9884.0cells/μL (day 0) [insufficient_data]
-  Treatment timeline (5 events):
-    Day 0: Started Aspirin PO
-    Day 0: Started Amlodipine 5mg PO
-    Day 0: Started Candesartan 8mg PO
-    Day 0: Started Atorvastatin 10mg PO
-    Day 0: Started Acetaminophen 500mg PO
-  Hospital course (6 facts):
-    Day 0: Admitted with Chest pain, diaphoresis, dyspnea. Initial working diagnosis: Acute myocardial infarction, unspecified.
-    Day 0: Arterial line insertion performed at bedside.
-    Day 0: WBC peaked at 9884.0 cells/μL.
-    Day 0: Cr peaked at 1.4 mg/dL.
-    Day 0: CRP peaked at 3.9 mg/L.
-    Day 1: Patient died despite maximal therapy. Final diagnosis: Acute myocardial infarction, unspecified.
+    Cr: admission 4.3mg/dL (day 0) → peak 4.3mg/dL (day 0) → latest 4.3mg/dL (day 0) [insufficient_data]
+    Hgb: admission 10.8g/dL (day 0) → peak 10.8g/dL (day 0) → latest 10.8g/dL (day 0) [insufficient_data]
+    Lactate: admission 4.5mmol/L (day 0) → peak 4.5mmol/L (day 0) → latest 4.5mmol/L (day 0) [insufficient_data]
+    Plt: admission 250.0x10^3/μL (day 0) → peak 250.0x10^3/μL (day 0) → latest 250.0x10^3/μL (day 0) [insufficient_data]
+  Treatment timeline (4 events):
+    Day 0: Started Pantoprazole IV
+    Day 0: Started IV_fluid: NS or LR 500-1000mL bolus, then 125-250mL/h IV
+    Day 0: Started PPI: Omeprazole 80mg IV bolus, then 8mg/h continuous infusion IV
+    Day 0: Started Lansoprazole 15mg PO
+  Hospital course (4 facts):
+    Day 0: Admitted with Hematemesis, melena, dizziness, syncope. Initial working diagnosis: Gastrointestinal hemorrhage, unspecified.
+    Day 0: Cr peaked at 4.3 mg/dL.
+    Day 0: Lactate peaked at 4.5 mmol/L.
+    Day 1: Patient died despite maximal therapy. Final diagnosis: Acute gastric ulcer with hemorrhage.
 
   ============================================================
   DOCUMENT: admission_hp
   ============================================================
   LOINC:      34117-2
   Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
-  Tokens:    in=838  out=704
+  Tokens:    in=811  out=812
   Cache:     False
   Fallback:  (none)
   ────────────────────────────────────────────────────────────
 **ADMISSION HISTORY & PHYSICAL**
 
-**Date:** November 29, 2024, 14:24
-**Admitting Physician:** DR-CA-001
-**Department:** Cardiology
+**Date:** January 20, 2025  
+**Time:** 10:28  
+**Admitting Physician:** DR-GI-001  
+**Service:** Gastroenterology
 
-**CHIEF COMPLAINT:**
-Chest pain, diaphoresis, and dyspnea.
+**CHIEF COMPLAINT:**  
+Hematemesis, melena, dizziness, and syncope.
 
-**HISTORY OF PRESENT ILLNESS:**
-This is a 91-year-old male presenting with acute onset chest pain associated with diaphoresis and dyspnea. The patient was brought to the emergency department with these concerning cardiac symptoms requiring immediate evaluation and cardiology consultation.
+**HISTORY OF PRESENT ILLNESS:**  
+This is a 78-year-old male presenting with acute onset of hematemesis, melena, dizziness, and syncope. The patient reports vomiting blood and passing dark, tarry stools accompanied by lightheadedness and at least one syncopal episode. Symptoms appear to represent an acute gastrointestinal bleeding event.
 
-**PAST MEDICAL HISTORY:**
-- Essential hypertension
-- Disorders of lipoprotein metabolism and other lipidemias
+**PAST MEDICAL HISTORY:**  
+- Gastroesophageal reflux disease
 - Osteoarthritis of knee
 
-**MEDICATIONS:**
-- Amlodipine 5mg daily
-- Atorvastatin 10mg daily
+**MEDICATIONS:**  
+- Lansoprazole 15mg daily
 - Acetaminophen 500mg as needed
 - Celecoxib 200mg daily
 
-**ALLERGIES:**
+**ALLERGIES:**  
 No known drug allergies.
+
+**FAMILY HISTORY:**  
+Not obtained at this time.
+
+**SOCIAL HISTORY:**  
+Not obtained at this time.
+
+**REVIEW OF SYSTEMS:**  
+Positive for hematemesis, melena, dizziness, and syncope as noted in HPI. Other systems not fully reviewed at this time given acute presentation.
+
+**PHYSICAL EXAMINATION:**  
+**Vital Signs:** Temperature 36.1°C, heart rate 91 bpm, respiratory rate 15, blood pressure 134/84 mmHg, oxygen saturation 100% on room air.  
+**General:** Appears stable but potentially volume depleted given history.  
+**Cardiovascular:** Regular rate and rhythm based on vital signs.  
+**Pulmonary:** Respiratory rate normal, oxygen saturation adequate.  
+**Abdomen:** Examination deferred pending further evaluation.  
+**Extremities:** Not examined at this time.
+
+**ASSESSMENT:**  
+This 78-year-old male presents with classic signs and symptoms of acute gastrointestinal hemorrhage. Laboratory findings reveal anemia (Hb 10.8 g/dL), elevated BUN (37.4 mg/dL) with significantly elevated creatinine (4.34 mg/dL), hyperkalemia (5.2 mmol/L), elevated lactate (4.5 mmol/L), and elevated ALT (123 U/L). The constellation of hematemesis, melena, anemia, and elevated BUN-to-creatinine ratio strongly suggests upper gastrointestinal bleeding. The patient's history of GERD and use of celecoxib (NSAID) are significant risk factors. Acute kidney injury and electrolyte abnormalities likely represent complications of volume loss and hypoperfusion.
+
+**Differential Diagnosis:**
+1. Upper gastrointestinal bleeding (peptic ulcer disease, erosive esophagitis)
+2. Lower gastrointestinal bleeding (less likely given hematemesis)
+3. Acute kidney injury secondary to volume depletion
+
+**PLAN:**  
+1. NPO status, IV access, type and crossmatch
+2. Serial hemoglobin monitoring
+3. Urgent gastroenterology consultation for upper endoscopy
+4. Nephrology consultation for acute kidney injury
+5. Proton pump inhibitor therapy
+6. Monitor vital signs and urine output
+7. Supportive care with IV fluids as appropriate
+
+  ============================================================
+  DOCUMENT: discharge_summary
+  ============================================================
+  LOINC:      18842-5
+  Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
+  Tokens:    in=950  out=612
+  Cache:     False
+  Fallback:  (none)
+  ────────────────────────────────────────────────────────────
+**DISCHARGE SUMMARY**
+
+**Patient:** 78-year-old Male  
+**Admission Date:** January 20, 2025  
+**Discharge Date:** January 21, 2025  
+**Length of Stay:** 1 day  
+**Attending Physician:** DR-GI-001  
+
+**ADMISSION DIAGNOSIS:**
+Gastrointestinal hemorrhage, unspecified
+
+**DISCHARGE DIAGNOSES:**
+Primary: Acute gastric ulcer with hemorrhage
+Secondary: Acute kidney injury
+
+**CHIEF COMPLAINT:**
+Hematemesis, melena, dizziness, syncope
+
+**HISTORY OF PRESENT ILLNESS:**
+This 78-year-old male presented with acute onset of hematemesis, melena, dizziness, and syncope. The patient's symptoms were consistent with an acute upper gastrointestinal bleeding episode with associated hemodynamic compromise.
+
+**PAST MEDICAL HISTORY:**
+- Gastroesophageal reflux disease
+- Osteoarthritis of knee
+
+**HOSPITAL COURSE:**
+The patient was admitted on January 20, 2025, with signs and symptoms of acute gastrointestinal hemorrhage. Initial presentation revealed significant hemodynamic instability with evidence of end-organ dysfunction. Laboratory studies on admission demonstrated acute kidney injury with creatinine of 4.3 mg/dL, anemia with hemoglobin of 10.8 g/dL, and elevated lactate of 4.5 mmol/L, indicating tissue hypoperfusion and shock. Platelet count was 250 x 10³/μL.
+
+Aggressive resuscitative measures were immediately initiated including IV fluid resuscitation with normal saline boluses followed by continuous infusion. The patient was started on high-dose proton pump inhibitor therapy with omeprazole 80 mg IV bolus followed by continuous infusion at 8 mg/hour, along with pantoprazole IV and lansoprazole 15 mg PO for gastric acid suppression. Blood transfusion was administered to address anemia secondary to acute blood loss.
+
+Despite maximal medical therapy and supportive care measures, the patient's condition continued to deteriorate. The final diagnosis was confirmed as acute gastric ulcer with hemorrhage. Unfortunately, the patient expired on January 21, 2025, despite all therapeutic interventions.
+
+**PROCEDURES PERFORMED:**
+- Urinary catheter insertion (January 21, 2025)
+- Blood transfusion (January 20, 2025)
+
+**DISCHARGE MEDICATIONS:**
+None (patient expired)
+
+**CONDITION AT DISCHARGE:**
+Patient expired
+
+**FOLLOW-UP INSTRUCTIONS:**
+Not applicable (patient expired)
+
+  ============================================================
+  DOCUMENT: death_summary
+  ============================================================
+  LOINC:      69730-0
+  Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
+  Tokens:    in=863  out=459
+  Cache:     False
+  Fallback:  (none)
+  ────────────────────────────────────────────────────────────
+**DEATH NOTE**
+
+**Patient Identification:** 78-year-old male
+
+**Admission Diagnosis:** Gastrointestinal hemorrhage, unspecified
+
+**Hospital Course Leading to Death:**
+The patient was admitted on January 20, 2025, presenting with hematemesis, melena, dizziness, and syncope consistent with acute gastrointestinal bleeding. Initial laboratory studies revealed significant abnormalities including creatinine of 4.3 mg/dL and elevated lactate of 4.5 mmol/L, indicating acute kidney injury and metabolic acidosis secondary to hypovolemic shock. Hemoglobin was 10.8 g/dL on admission.
+
+Aggressive medical management was initiated immediately, including high-dose proton pump inhibitor therapy with IV pantoprazole, omeprazole bolus followed by continuous infusion, and lansoprazole. IV fluid resuscitation was provided with normal saline/lactated Ringer's bolus followed by maintenance infusion. Despite maximal medical therapy, the patient's condition deteriorated rapidly.
+
+The patient expired on January 21, 2025, at 10:28 AM after a one-day hospital stay. Final diagnosis was determined to be acute gastric ulcer with hemorrhage.
+
+**Immediate Cause of Death:** Acute gastric ulcer with hemorrhage
+
+**Underlying Cause of Death:** Acute gastric ulcer with hemorrhage
+
+**Contributing Conditions:** 
+- Acute kidney injury (creatinine 4.3 mg/dL)
+- Metabolic acidosis (lactate 4.5 mmol/L)
+- History of gastroesophageal reflux disease
+- Osteoarthritis of knee
+
+**Time and Place of Death:** January 21, 2025, at 10:28 AM, inpatient unit
+
+**Family Notification:** [To be completed by attending physician]
+
+**Autopsy Status:** [To be determined]
+
+**Attending Physician:** DR-GI-001
+
+======================================================================
+  PATIENT: Acute pancreatitis, 63yo M, delirium complication, central line, 4 home meds
+  File: test_data/smoke_patients/ENC-POP-000697-000001.json
+  ID: POP-000697  Age: 63  Sex: M
+  Ground truth: ['acute_pancreatitis']
+  Deceased: False
+  Procedures: 1
+======================================================================
+
+  --- Enrichment Data (from extractor) ---
+  Clinical guidance:
+    confirmed_diagnosis: acute_pancreatitis
+    all_diagnoses: ['acute_pancreatitis']
+    diagnosis_correct: True
+    patient_outcome: survived
+    disease_severity: 
+    disease_archetype: 
+    los_days: 5
+    had_surgery: False
+    complications: ['delirium']
+    icu_transferred: False
+  Lab trends:
+    CRP: admission 35.4mg/L (day 0) → peak 93.0mg/L (day 3) → latest 93.0mg/L (day 3) [worsening]
+    Cr: admission 1.6mg/dL (day 0) → peak 1.6mg/dL (day 0) → latest 1.4mg/dL (day 3) [stable]
+    Hgb: admission 14.8g/dL (day 0) → peak 14.8g/dL (day 0) → latest 14.8g/dL (day 0) [insufficient_data]
+    Lactate: admission 3.2mmol/L (day 0) → peak 3.2mmol/L (day 0) → latest 3.2mmol/L (day 0) [insufficient_data]
+    Plt: admission 266.0x10^3/μL (day 0) → peak 266.0x10^3/μL (day 0) → latest 266.0x10^3/μL (day 0) [insufficient_data]
+    WBC: admission 12943.0cells/μL (day 0) → peak 12943.0cells/μL (day 0) → latest 11684.0cells/μL (day 3) [stable]
+  Treatment timeline (6 events):
+    Day 0: Started Lactated Ringer IV
+    Day 0: Started IV_fluid: Lactated Ringer 250-500 mL/h for first 12-24h (aggressive hydration) IV
+    Day 0: Started pain_management: Hydromorphone 0.5-1mg IV q3h PRN or PCA IV
+    Day 0: Started Metformin 500mg PO
+    Day 0: Started Aspirin 100mg PO
+    Day 0: Started DVT_prophylaxis: Enoxaparin 2000IU SC daily SC
+  Hospital course (8 facts):
+    Day 0: Admitted with Severe epigastric pain radiating to back, nausea, vomiting. Initial working diagnosis: Acute pancreatitis, unspecified.
+    Day 0: Central venous catheter insertion performed at bedside.
+    Day 0: WBC peaked at 12943.0 cells/μL.
+    Day 0: Cr peaked at 1.6 mg/dL.
+    Day 0: Lactate peaked at 3.2 mmol/L.
+    Complication identified: delirium
+    Day 3: CRP peaked at 93.0 mg/L.
+    Day 5: Discharged to home. Final diagnosis: Acute pancreatitis, unspecified.
+
+  ============================================================
+  DOCUMENT: admission_hp
+  ============================================================
+  LOINC:      34117-2
+  Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
+  Tokens:    in=849  out=743
+  Cache:     False
+  Fallback:  (none)
+  ────────────────────────────────────────────────────────────
+**ADMISSION HISTORY & PHYSICAL**
+
+**Date:** April 15, 2024  
+**Time:** 14:49  
+**Admitting Physician:** DR-GI-002  
+**Service:** Gastroenterology
+
+**CHIEF COMPLAINT:**
+Severe epigastric pain radiating to back, nausea, vomiting
+
+**HISTORY OF PRESENT ILLNESS:**
+63-year-old male presents with severe epigastric pain radiating to the back associated with nausea and vomiting. Pain characteristics, duration, and precipitating factors require further clarification.
+
+**PAST MEDICAL HISTORY:**
+- Type 2 diabetes mellitus without complications
+- Chronic ischemic heart disease
+
+**MEDICATIONS:**
+- Metformin 500mg
+- Sliding scale insulin
+- Aspirin 100mg
+- Clopidogrel 75mg
+
+**ALLERGIES:**
+NKDA
 
 **FAMILY HISTORY:**
 Not obtained at this time.
@@ -510,135 +289,358 @@ Not obtained at this time.
 Not obtained at this time.
 
 **REVIEW OF SYSTEMS:**
-Positive for chest pain, diaphoresis, and dyspnea as noted in HPI. Other systems not reviewed at this time due to acute presentation.
+Positive for epigastric pain, nausea, and vomiting as noted in HPI. Complete ROS deferred due to acute presentation.
 
 **PHYSICAL EXAMINATION:**
-**Vital Signs:** Temperature 37.0°C, heart rate 86 bpm, respiratory rate 16/min, blood pressure 143/89 mmHg, oxygen saturation 99.1% on room air.
-**General:** Elderly male in apparent distress.
-**Cardiovascular:** Regular rate and rhythm based on vital signs.
-**Pulmonary:** Respiratory rate within normal limits, adequate oxygenation.
-**Other systems:** Deferred due to acute presentation requiring immediate attention.
+**Vital Signs:** Temperature 37.7°C, Heart rate 62 bpm, Respiratory rate 19/min, Blood pressure 102/63 mmHg, Oxygen saturation 92.1%
+**General:** Patient appears uncomfortable secondary to pain
+**Cardiovascular:** Bradycardic, hypotensive
+**Pulmonary:** Mild hypoxemia noted
+**Abdomen:** Examination pending given acute presentation
+**Neurologic:** Alert and oriented
 
 **LABORATORY DATA:**
-Notable abnormalities include elevated WBC 9,884/μL, creatinine 1.35 mg/dL, BUN 23.1 mg/dL, AST 208 U/L, ALT 152 U/L, and CRP 3.9 mg/L.
+Notable for elevated inflammatory markers (CRP 35.4 mg/L, WBC 12,943/μL), acute kidney injury (creatinine 1.65 mg/dL, BUN 26.8 mg/dL), hyperkalemia (K 5.1 mmol/L), hyperglycemia (glucose 145 mg/dL), and elevated hepatic transaminases (AST 153 U/L, ALT 154 U/L).
 
 **ASSESSMENT:**
-91-year-old male with acute chest pain, diaphoresis, and dyspnea concerning for acute coronary syndrome. The constellation of symptoms in an elderly patient with cardiovascular risk factors (hypertension, dyslipidemia) raises high suspicion for acute myocardial infarction. Elevated cardiac enzymes (AST) support this concern. Differential diagnosis includes unstable angina, acute MI, and other causes of acute chest pain. Mild acute kidney injury may be related to decreased perfusion.
+63-year-old male with diabetes and coronary artery disease presenting with severe epigastric pain radiating to back, nausea, and vomiting. Laboratory findings demonstrate systemic inflammation, acute kidney injury, and hepatic enzyme elevation.
+
+**Differential Diagnosis:**
+1. Acute pancreatitis - most likely given classic pain pattern, systemic inflammation, and elevated hepatic enzymes
+2. Acute cholangitis
+3. Perforated peptic ulcer
+4. Acute myocardial infarction with atypical presentation
+5. Acute cholecystitis
 
 **PLAN:**
-1. Serial cardiac enzymes and troponins
-2. 12-lead ECG and continuous cardiac monitoring
-3. Chest X-ray
-4. Aspirin and antiplatelet therapy per protocol
-5. Cardiology consultation for further management
-6. Monitor renal function and fluid balance
-7. Pain management and supportive care
+1. NPO status
+2. IV fluid resuscitation
+3. Pain management
+4. Obtain lipase, amylase levels
+5. CT abdomen/pelvis with contrast
+6. Serial abdominal examinations
+7. Monitor renal function and electrolytes
+8. Cardiology consultation given known CAD and hemodynamic changes
+
+  ============================================================
+  DOCUMENT: procedure_note
+  ============================================================
+  LOINC:      28570-0
+  Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
+  Tokens:    in=400  out=357
+  Cache:     False
+  Fallback:  (none)
+  ────────────────────────────────────────────────────────────
+**PROCEDURE NOTE**
+
+**Date and Time:** April 15, 2024 at 22:27
+
+**Procedure:** Central venous catheter insertion (CPT 36556)
+
+**Indication:** Severe epigastric pain radiating to back with nausea and vomiting requiring central venous access
+
+**Operator(s):** DR-GI-002
+
+**Consent:** Informed consent obtained and documented
+
+**Site and Side:** Central venous system access site prepared and marked
+
+**Anesthesia:** Local anesthesia administered
+
+**Preparation and Positioning:** Patient positioned appropriately. Sterile preparation and draping performed using standard technique. Universal precautions observed throughout procedure.
+
+**Technique:** Under sterile conditions, local anesthetic was infiltrated at the insertion site. Using ultrasound guidance and Seldinger technique, venous access was obtained. Guidewire was advanced without resistance. Sequential dilation performed. Central venous catheter was advanced over the guidewire to appropriate depth. Guidewire removed. All lumens aspirated and flushed appropriately. Catheter secured with sutures.
+
+**Findings/Results:** Successful placement of central venous catheter with good blood return from all ports. Appropriate positioning confirmed.
+
+**Estimated Blood Loss:** Minimal
+
+**Complications:** None
+
+**Specimens:** None obtained
+
+**Post-procedure Plan:** Standard central line care protocols. Chest radiograph to confirm positioning. Monitor insertion site for signs of infection or complications. Maintain sterile technique for all line manipulations.
+
+**Procedure Duration:** 18 minutes
 
   ============================================================
   DOCUMENT: discharge_summary
   ============================================================
   LOINC:      18842-5
   Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
-  Tokens:    in=1070  out=659
+  Tokens:    in=1213  out=707
   Cache:     False
   Fallback:  (none)
   ────────────────────────────────────────────────────────────
 **DISCHARGE SUMMARY**
 
-**Patient:** 91-year-old Male  
-**Admission Date:** November 29, 2024  
-**Discharge Date:** November 30, 2024  
-**Length of Stay:** 1 day  
-**Attending Physician:** DR-CA-001  
-**Disposition:** Expired  
+**Patient:** 63-year-old Male  
+**Admission Date:** April 15, 2024  
+**Discharge Date:** April 21, 2024  
+**Length of Stay:** 5 days  
+**Attending Physician:** DR-GI-002
 
 **ADMISSION DIAGNOSIS:**
-Acute myocardial infarction, unspecified
+Acute pancreatitis, unspecified
 
 **DISCHARGE DIAGNOSES:**
-Primary: Acute myocardial infarction, unspecified
+Primary: Acute pancreatitis, unspecified
+Secondary: Type 2 diabetes mellitus without complications; Chronic ischemic heart disease; Delirium
 
 **CHIEF COMPLAINT:**
-Chest pain, diaphoresis, dyspnea
+Severe epigastric pain radiating to back, nausea, vomiting
 
 **HISTORY OF PRESENT ILLNESS:**
-This 91-year-old male presented with acute onset chest pain associated with diaphoresis and dyspnea. Clinical presentation was consistent with acute myocardial infarction.
+This 63-year-old male presented with severe epigastric pain radiating to the back associated with nausea and vomiting. Clinical presentation and laboratory findings were consistent with acute pancreatitis.
 
 **PAST MEDICAL HISTORY:**
-- Essential hypertension
-- Disorders of lipoprotein metabolism and other lipidemias  
-- Osteoarthritis of knee
+- Type 2 diabetes mellitus without complications
+- Chronic ischemic heart disease
 
 **HOSPITAL COURSE:**
-The patient was admitted on November 29, 2024, with clinical presentation consistent with acute myocardial infarction. Initial assessment confirmed the working diagnosis of acute MI. Immediate cardiac monitoring and supportive care were initiated. An arterial line was placed at bedside for hemodynamic monitoring. Transthoracic echocardiography was performed to assess cardiac function. A urinary catheter was inserted for accurate monitoring of fluid balance.
+The patient was admitted on hospital day 0 with acute pancreatitis. Initial laboratory studies revealed leukocytosis with WBC of 12,943 cells/μL, elevated creatinine at 1.6 mg/dL, and lactate of 3.2 mmol/L. CRP was initially 35.4 mg/L on admission and peaked at 93.0 mg/L on day 3, indicating significant inflammatory response.
 
-Laboratory studies on admission revealed WBC of 9,884 cells/μL, creatinine of 1.4 mg/dL, hemoglobin of 15.3 g/dL, platelets of 239,000/μL, and CRP of 3.9 mg/L. The patient was started on standard acute MI therapy including aspirin, along with antihypertensive medications (amlodipine 5mg and candesartan 8mg) and atorvastatin 10mg for lipid management. Acetaminophen 500mg was provided for comfort care.
+Aggressive fluid resuscitation was initiated with lactated Ringer's solution at 250-500 mL/h for the first 12-24 hours. Pain management was provided with hydromorphone 0.5-1 mg IV q3h PRN. The patient developed delirium during the hospitalization, which was managed supportively.
 
-Despite maximal medical therapy, the patient's condition deteriorated rapidly. On November 30, 2024, the patient expired secondary to complications from acute myocardial infarction.
+Laboratory trends showed improvement in WBC count from 12,943 to 11,684 cells/μL by day 3, and creatinine improved from 1.6 to 1.4 mg/dL. The patient's clinical condition gradually improved with conservative management.
 
 **PROCEDURES PERFORMED:**
-- Arterial line insertion (November 29, 2024, 16:36)
-- Transthoracic echocardiography (November 29, 2024, 15:35)
-- Urinary catheter insertion (November 29, 2024, 17:25)
+- Central venous catheter insertion on April 15, 2024
 
 **DISCHARGE MEDICATIONS:**
-None (patient expired)
+- Acetaminophen 500 mg PO q6h PRN
+- Metformin 500 mg PO daily
+- Sliding scale insulin as directed
+- Aspirin 100 mg PO daily
+- Clopidogrel 75 mg PO daily
 
 **CONDITION AT DISCHARGE:**
-Expired
+Stable, improved from admission. Pain controlled, tolerating oral intake.
 
 **FOLLOW-UP INSTRUCTIONS:**
-Not applicable. Family has been notified of the patient's death. Appropriate bereavement support resources were provided to the family.
+- Follow up with primary care physician within 1-2 weeks
+- Return to emergency department for worsening abdominal pain, persistent vomiting, fever, or inability to tolerate oral intake
+- Continue diabetic management with home medications
+- Advance diet as tolerated, avoiding alcohol and fatty foods
+- Monitor blood glucose levels closely given recent illness
+
+======================================================================
+  PATIENT: Severe traffic accident, 51yo F, surgery + intubation, 1 home med
+  File: test_data/smoke_patients/ENC-POP-004121-000036.json
+  ID: POP-004121  Age: 51  Sex: F
+  Ground truth: ['traffic_accident_severe']
+  Deceased: False
+  Procedures: 5
+======================================================================
+
+  --- Enrichment Data (from extractor) ---
+  Clinical guidance:
+    confirmed_diagnosis: traffic_accident_severe
+    all_diagnoses: ['traffic_accident_severe']
+    diagnosis_correct: True
+    patient_outcome: survived
+    disease_severity: 
+    disease_archetype: 
+    los_days: 13
+    had_surgery: True
+    complications: []
+    icu_transferred: False
+  Lab trends:
+    CRP: admission 123.5mg/L (day 0) → peak 256.1mg/L (day 2) → latest 5.5mg/L (day 9) [improving]
+    Cr: admission 1.1mg/dL (day 1) → peak 1.1mg/dL (day 1) → latest 1.0mg/dL (day 9) [stable]
+    Hgb: admission 4.9g/dL (day 0) → peak 5.5g/dL (day 7) → latest 5.0g/dL (day 12) [stable]
+    Lactate: admission 5.5mmol/L (day 0) → peak 8.1mmol/L (day 7) → latest 5.1mmol/L (day 12) [stable]
+    Plt: admission 264.0x10^3/μL (day 0) → peak 264.0x10^3/μL (day 0) → latest 264.0x10^3/μL (day 0) [insufficient_data]
+    WBC: admission 17594.0cells/μL (day 0) → peak 17594.0cells/μL (day 0) → latest 17594.0cells/μL (day 0) [insufficient_data]
+  Treatment timeline (5 events):
+    Day 0: Started Fentanyl IV
+    Day 0: Started IV_fluid: NS or LR wide open, titrate to MAP > 65 IV
+    Day 0: Started pain_management: Fentanyl 25-50mcg IV PRN, avoid sedation if TBI IV
+    Day 0: Started Atorvastatin 10mg PO
+    Day 0: Started DVT_prophylaxis: Enoxaparin when bleeding risk resolved IV
+  Hospital course (9 facts):
+    Day 0: Admitted with Major trauma, motor vehicle accident, multiple injuries. Initial working diagnosis: Unspecified multiple injuries.
+    Day 0: Arterial line insertion performed at bedside.
+    Day 0: Endotracheal intubation performed at bedside.
+    Day 0: WBC peaked at 17594.0 cells/μL.
+    Day 1: Surgical procedure for traffic_accident_severe. EBL 2335 mL.
+    Day 1: Cr peaked at 1.1 mg/dL.
+    Day 2: CRP peaked at 256.1 mg/L.
+    Day 7: Lactate peaked at 8.1 mmol/L.
+    Day 13: Discharged to home. Final diagnosis: Unspecified multiple injuries.
 
   ============================================================
-  DOCUMENT: death_summary
+  DOCUMENT: admission_hp
   ============================================================
-  LOINC:      69730-0
+  LOINC:      34117-2
   Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
-  Tokens:    in=937  out=463
+  Tokens:    in=792  out=680
   Cache:     False
   Fallback:  (none)
   ────────────────────────────────────────────────────────────
-**DEATH NOTE**
+**ADMISSION HISTORY & PHYSICAL**
 
-**Patient Identification:** 91-year-old male
+**Date:** June 26, 2024  
+**Time:** 08:30  
+**Admitting Physician:** DR-GS-005  
+**Service:** General Surgery
 
-**Admission Diagnosis:** Acute myocardial infarction, unspecified
+**CHIEF COMPLAINT:**
+Major trauma, motor vehicle accident, multiple injuries
 
-**Hospital Course Leading to Death:**
-The patient was admitted on November 29, 2024, presenting with chest pain, diaphoresis, and dyspnea consistent with acute myocardial infarction. Initial laboratory values showed WBC 9,884 cells/μL, creatinine 1.4 mg/dL, and CRP 3.9 mg/L. An arterial line was inserted at bedside for hemodynamic monitoring. 
+**HISTORY OF PRESENT ILLNESS:**
+51-year-old female presents following motor vehicle accident with multiple traumatic injuries. Patient arrived hemodynamically unstable with hypotension, tachycardia, and hypoxemia. Initial presentation concerning for shock physiology with elevated lactate and systemic inflammatory response.
 
-Treatment was initiated with aspirin, amlodipine 5mg, candesartan 8mg, and atorvastatin 10mg for acute coronary syndrome management, along with acetaminophen for comfort. Despite maximal medical therapy, the patient's condition deteriorated over the hospital course.
-
-**Immediate Cause of Death:** Acute myocardial infarction, unspecified
-
-**Underlying Cause of Death:** Acute myocardial infarction, unspecified
-
-**Contributing Conditions:** 
-- Essential hypertension
+**PAST MEDICAL HISTORY:**
 - Disorders of lipoprotein metabolism and other lipidemias
-- Osteoarthritis of knee
-- Advanced age (91 years)
 
-**Time and Place of Death:** 
-Date: November 30, 2024
-Time: 14:24 (2:24 PM)
-Location: Inpatient unit
-Length of stay: 1 day
+**MEDICATIONS:**
+- Atorvastatin 10mg daily
 
-**Vital Signs at Time of Death:** Heart rate 86 bpm, oxygen saturation 99.0%
+**ALLERGIES:**
+NKDA
 
-**Family Notification:** [To be completed by attending physician]
+**FAMILY HISTORY:**
+Not obtained due to acute presentation
 
-**Autopsy Status:** [To be determined in consultation with family and per institutional policy]
+**SOCIAL HISTORY:**
+Not obtained due to acute presentation
 
-**Attending Physician:** DR-CA-001
+**REVIEW OF SYSTEMS:**
+Unable to obtain due to patient's acute condition
 
-This death note reflects a 91-year-old male who succumbed to acute myocardial infarction despite appropriate medical intervention during a brief hospitalization.
+**PHYSICAL EXAMINATION:**
+**Vital Signs:** T 39.5°C, HR 116, RR 17, BP 79/73, SpO2 88.9%
+**General:** Critically ill-appearing female in acute distress
+**Cardiovascular:** Tachycardic, hypotensive
+**Pulmonary:** Hypoxemic on presentation
+**Neurologic:** Mental status assessment limited by acute presentation
+**Remaining systems:** Deferred pending stabilization and trauma evaluation
+
+**LABORATORY DATA:**
+- WBC 17,594/μL (elevated)
+- CRP 248.6 mg/L (markedly elevated)
+- Lactate 5.5 mmol/L (elevated)
+- Glucose 132 mg/dL (mildly elevated)
+- Albumin 2.3 g/dL (low)
+- AST 144 U/L, ALT 100 U/L (elevated)
+
+**ASSESSMENT:**
+51-year-old female with polytrauma following motor vehicle accident presenting with hemodynamic instability and systemic inflammatory response. Laboratory findings demonstrate leukocytosis, elevated inflammatory markers, and metabolic acidosis consistent with severe traumatic injury. Differential diagnosis includes:
+1. Severe polytrauma with hemorrhagic shock - most likely given mechanism and hemodynamic profile
+2. Traumatic brain injury
+3. Thoracic trauma with respiratory compromise
+4. Abdominal trauma with possible organ injury
+5. Orthopedic injuries
+
+**PLAN:**
+1. Immediate trauma team activation and primary survey
+2. Aggressive fluid resuscitation and blood product preparation
+3. Urgent imaging studies (CT head, chest, abdomen/pelvis)
+4. Serial laboratory monitoring including CBC, comprehensive metabolic panel, coagulation studies
+5. Surgical consultation as indicated by imaging findings
+6. Continuous monitoring in trauma bay with frequent reassessment
+
+  ============================================================
+  DOCUMENT: discharge_summary
+  ============================================================
+  LOINC:      18842-5
+  Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
+  Tokens:    in=1220  out=701
+  Cache:     False
+  Fallback:  (none)
+  ────────────────────────────────────────────────────────────
+**DISCHARGE SUMMARY**
+
+**Patient:** 51-year-old Female  
+**Admission Date:** June 26, 2024  
+**Discharge Date:** July 9, 2024  
+**Length of Stay:** 13 days  
+**Attending Physician:** DR-GS-005  
+**Disposition:** Home  
+
+**ADMISSION DIAGNOSIS:**
+Unspecified multiple injuries
+
+**DISCHARGE DIAGNOSES:**
+Primary: Unspecified multiple injuries secondary to motor vehicle accident
+Secondary: Disorders of lipoprotein metabolism and other lipidemias
+
+**CHIEF COMPLAINT:**
+Major trauma, motor vehicle accident, multiple injuries
+
+**HISTORY OF PRESENT ILLNESS:**
+51-year-old female presented following a motor vehicle accident with multiple traumatic injuries requiring immediate resuscitation and surgical intervention.
+
+**PAST MEDICAL HISTORY:**
+Disorders of lipoprotein metabolism and other lipidemias
+
+**HOSPITAL COURSE:**
+The patient was admitted on hospital day 0 following a severe motor vehicle accident with multiple injuries. Initial resuscitation included endotracheal intubation and arterial line placement at bedside. Laboratory studies revealed significant leukocytosis with WBC of 17,594 cells/μL and severe anemia with hemoglobin of 4.9 g/dL, necessitating blood transfusion. Urinary catheter was placed for monitoring.
+
+On hospital day 1, the patient underwent surgical intervention for severe traffic accident injuries with estimated blood loss of 2,335 mL. Creatinine peaked at 1.1 mg/dL on day 1. CRP rose significantly, peaking at 256.1 mg/L on day 2, consistent with severe inflammatory response. Lactate levels peaked at 8.1 mmol/L on day 7, indicating metabolic stress.
+
+The patient's clinical course showed gradual improvement with supportive care. CRP normalized to 5.5 mg/L by day 9. Hemoglobin remained stable around 5.0 g/dL, and creatinine improved to 1.0 mg/dL by day 9. Lactate levels stabilized at 5.1 mmol/L by day 12.
+
+**PROCEDURES PERFORMED:**
+- Surgical procedure for severe traffic accident injuries (June 28, 2024) - DR-GI-002
+- Endotracheal intubation (June 26, 2024)
+- Arterial line insertion (June 26, 2024)
+- Urinary catheter insertion (June 26, 2024)
+- Blood transfusion (June 26, 2024)
+
+**DISCHARGE MEDICATIONS:**
+- Atorvastatin 10 mg PO daily
+
+**CONDITION AT DISCHARGE:**
+Stable condition with resolved acute inflammatory markers and stable hemodynamic parameters.
+
+**FOLLOW-UP INSTRUCTIONS:**
+Patient to follow up with primary care physician and appropriate specialists as clinically indicated for ongoing management of trauma-related sequelae and lipid disorder management.
+
+  ============================================================
+  DOCUMENT: operative_note
+  ============================================================
+  LOINC:      11504-8
+  Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
+  Tokens:    in=499  out=380
+  Cache:     False
+  Fallback:  (none)
+  ────────────────────────────────────────────────────────────
+**OPERATIVE NOTE**
+
+**Date of Procedure:** June 28, 2024
+
+**Preoperative Diagnosis:** Severe traffic accident injuries
+
+**Postoperative Diagnosis:** Severe traffic accident injuries
+
+**Procedure Performed:** Emergency surgical intervention for severe trauma
+
+**Surgeon:** DR-GI-002
+
+**Assistant(s):** None
+
+**Anesthesia Type:** General anesthesia (DR-GS-001)
+
+**Findings:** Patient presented with severe traumatic injuries consistent with motor vehicle collision. Preoperative vital signs demonstrated hemodynamic instability with hypotension (BP 79/73), tachycardia (HR 116), hypoxemia (SpO2 88.9%), and hyperthermia (T 39.5°C).
+
+**Description of Procedure:**
+The patient was brought emergently to the operating room and placed in supine position. General anesthesia was induced and maintained throughout the procedure. Standard surgical preparation and draping were performed. The surgical approach was conducted according to standard trauma protocol techniques. The procedure involved systematic evaluation and management of traumatic injuries. Hemostasis was achieved through appropriate surgical techniques. All injured structures were addressed systematically. The surgical site was irrigated and inspected for adequate hemostasis. Closure was performed in standard fashion.
+
+**Specimens:** None sent to pathology
+
+**Drains and Implants:** No drains or implants placed
+
+**Estimated Blood Loss:** 2,335 mL
+
+**Complications:** None intraoperatively
+
+**Disposition:** Patient transferred to recovery in stable condition. Procedure completed successfully after 340 minutes of operative time. All surgical objectives were accomplished without intraoperative complications.
 
 ======================================================================
   Validation complete.
   Results: test_data/bedrock_5type_validation.txt
-  Cost report: {'total_calls': 9, 'total_input_tokens': 7834, 'total_output_tokens': 5415, 'fallback_count': 0, 'cache_hit_count': 0, 'cache_stats': None}
+  Cost report: {'total_calls': 9, 'total_input_tokens': 7597, 'total_output_tokens': 5451, 'fallback_count': 0, 'cache_hit_count': 0, 'cache_stats': None}
   To share: git add test_data/bedrock_5type_validation.txt && git commit -m 'bedrock 5-type validation' && git push
 ======================================================================
