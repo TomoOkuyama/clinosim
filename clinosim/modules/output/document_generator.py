@@ -110,6 +110,22 @@ def generate_documents(
 
     enabled_tasks = _resolve_enabled_tasks(tasks)
 
+    # Load staff name map from hospital.json (staff_id → display name)
+    staff_names: dict[str, str] = {}
+    hospital_path = cif_dir / "hospital.json"
+    if hospital_path.exists():
+        hospital_data = json.loads(hospital_path.read_text(encoding="utf-8"))
+        for s in hospital_data.get("staff", []):
+            sid = s.get("staff_id", "")
+            name = s.get("name", "")
+            if sid and name:
+                if sid.startswith("DR-"):
+                    staff_names[sid] = f"Dr. {name}"
+                elif sid.startswith("NS-"):
+                    staff_names[sid] = f"RN {name}"
+                else:
+                    staff_names[sid] = name
+
     patient_count = 0
     doc_counts: dict[str, int] = {}
 
@@ -119,7 +135,7 @@ def generate_documents(
         with open(structural_dir / filename, encoding="utf-8") as f:
             record = json.load(f)
 
-        docs = _generate_for_record(record, llm_service, language, enabled_tasks)
+        docs = _generate_for_record(record, llm_service, language, enabled_tasks, staff_names)
         if not docs:
             continue
 
@@ -167,6 +183,7 @@ def _generate_for_record(
     llm: LLMService,
     language: str,
     enabled: set[LLMTaskType],
+    staff_names: dict[str, str] | None = None,
 ) -> list[ClinicalDocument]:
     encounters = record.get("encounters") or []
     if not encounters:
@@ -206,9 +223,12 @@ def _generate_for_record(
         "treatment_timeline": treatment_timeline,
     }
 
+    # Name resolver
+    _sn = staff_names
+
     # --- Admission H&P (Tier B) ---
     if LLMTaskType.ADMISSION_HP in enabled:
-        docs.append(_build_admission_hp(record, encounter, llm, language, enrichment))
+        docs.append(_build_admission_hp(record, encounter, llm, language, enrichment, _sn))
 
     # --- Operative Note (Tier A) — one per surgery ---
     if LLMTaskType.OPERATIVE_NOTE in enabled:
@@ -217,7 +237,7 @@ def _generate_for_record(
                 continue
             if proc.get("category_code") != _SCT_SURGICAL:
                 continue
-            docs.append(_build_operative_note(proc, record, encounter, llm, language, index=i + 1, enrichment=enrichment))
+            docs.append(_build_operative_note(proc, record, encounter, llm, language, index=i + 1, enrichment=enrichment, staff_names=_sn))
 
     # --- Procedure Note (Tier B) — invasive bedside only ---
     if LLMTaskType.PROCEDURE_NOTE in enabled:
@@ -228,17 +248,17 @@ def _generate_for_record(
                 continue
             if proc.get("procedure_type") not in _PROCEDURE_NOTE_TYPES:
                 continue
-            docs.append(_build_procedure_note(proc, record, encounter, llm, language, enrichment=enrichment))
+            docs.append(_build_procedure_note(proc, record, encounter, llm, language, enrichment=enrichment, staff_names=_sn))
 
     # --- Discharge Summary (Tier A) ---
     if LLMTaskType.DISCHARGE_SUMMARY in enabled:
         docs.append(
-            _build_discharge_summary(record, encounter, course_bullets, llm, language, enrichment)
+            _build_discharge_summary(record, encounter, course_bullets, llm, language, enrichment, _sn)
         )
 
     # --- Death Note (Tier A) — only for deceased inpatients ---
     if deceased and LLMTaskType.DEATH_SUMMARY in enabled:
-        docs.append(_build_death_summary(record, encounter, course_bullets, llm, language, enrichment))
+        docs.append(_build_death_summary(record, encounter, course_bullets, llm, language, enrichment, _sn))
 
     return docs
 
@@ -255,6 +275,7 @@ def _build_discharge_summary(
     llm: LLMService,
     language: str,
     enrichment: dict[str, Any] | None = None,
+    staff_names: dict[str, str] | None = None,
 ) -> ClinicalDocument:
     patient = record.get("patient") or {}
     cd = record.get("clinical_diagnosis") or {}
@@ -284,7 +305,7 @@ def _build_discharge_summary(
         "discharge_date": _date_only(discharge_dt),
         "los_days": los_days,
         "disposition": encounter.get("discharge_disposition", "home"),
-        "attending_physician": encounter.get("attending_physician_id", ""),
+        "attending_physician": _staff_name(encounter.get("attending_physician_id", ""), staff_names),
         "chief_complaint": encounter.get("chief_complaint", ""),
         "past_medical_history": _pmh(patient, language),
         "admission_diagnosis": admit_dx_name or "(undiagnosed)",
@@ -292,10 +313,8 @@ def _build_discharge_summary(
         "hospital_course_bullets": course_bullets,
         "procedures_performed": procedures_text or "(none)",
         "discharge_medications": discharge_meds or ["(none)"],
-        # Enrichment: lab trends and treatment timeline for richer hospital course
         "lab_trends_summary": (enrichment or {}).get("lab_trend_bullets", []),
         "treatment_timeline": (enrichment or {}).get("treatment_timeline", []),
-        # Clinical guidance (hidden context for LLM accuracy, not for output text)
         "clinical_guidance": _format_guidance_for_prompt(
             (enrichment or {}).get("guidance", {}), "discharge_summary"
         ),
@@ -323,6 +342,7 @@ def _build_death_summary(
     llm: LLMService,
     language: str,
     enrichment: dict[str, Any] | None = None,
+    staff_names: dict[str, str] | None = None,
 ) -> ClinicalDocument:
     patient = record.get("patient") or {}
     cd = record.get("clinical_diagnosis") or {}
@@ -349,7 +369,7 @@ def _build_death_summary(
         "admission_date": _date_only(admission_dt),
         "death_datetime": discharge_dt,
         "los_days": los_days,
-        "attending_physician": encounter.get("attending_physician_id", ""),
+        "attending_physician": _staff_name(encounter.get("attending_physician_id", ""), staff_names),
         "admission_diagnosis": admit_dx or "(undiagnosed)",
         "primary_diagnosis": primary_dx or "(unknown)",
         "past_medical_history": _pmh(patient, language),
@@ -383,6 +403,7 @@ def _build_admission_hp(
     llm: LLMService,
     language: str,
     enrichment: dict[str, Any] | None = None,
+    staff_names: dict[str, str] | None = None,
 ) -> ClinicalDocument:
     patient = record.get("patient") or {}
     cd = record.get("clinical_diagnosis") or {}
@@ -397,7 +418,7 @@ def _build_admission_hp(
         "age": patient.get("age", 0),
         "sex": _sex_label(patient.get("sex", ""), language),
         "admission_datetime": encounter.get("admission_datetime", ""),
-        "admitting_physician": encounter.get("admitting_physician_id", ""),
+        "admitting_physician": _staff_name(encounter.get("admitting_physician_id", ""), staff_names),
         "department": encounter.get("department_id", ""),
         "chief_complaint": encounter.get("chief_complaint", ""),
         "hpi_summary": _build_hpi_summary(encounter, patient, record, language),
@@ -436,6 +457,7 @@ def _build_operative_note(
     language: str,
     index: int,
     enrichment: dict[str, Any] | None = None,
+    staff_names: dict[str, str] | None = None,
 ) -> ClinicalDocument:
     patient_id = (record.get("patient") or {}).get("patient_id", "")
     body_site_code = proc.get("body_site_code", "")
@@ -450,9 +472,9 @@ def _build_operative_note(
         "procedure_code": proc.get("procedure_code", ""),
         "preop_diagnosis": proc.get("preop_diagnosis", ""),
         "postop_diagnosis": proc.get("postop_diagnosis", ""),
-        "surgeon": proc.get("primary_surgeon_id", ""),
-        "assistants": proc.get("assistant_ids") or ["(none)"],
-        "anesthesiologist": proc.get("anesthesiologist_id", ""),
+        "surgeon": _staff_name(proc.get("primary_surgeon_id", ""), staff_names),
+        "assistants": [_staff_name(a, staff_names) for a in (proc.get("assistant_ids") or [])] or ["(none)"],
+        "anesthesiologist": _staff_name(proc.get("anesthesiologist_id", ""), staff_names),
         "anesthesia_type": proc.get("anesthesia_type", ""),
         "asa_class": proc.get("asa_class", ""),
         "duration_minutes": proc.get("duration_minutes", 0),
@@ -496,6 +518,7 @@ def _build_procedure_note(
     llm: LLMService,
     language: str,
     enrichment: dict[str, Any] | None = None,
+    staff_names: dict[str, str] | None = None,
 ) -> ClinicalDocument:
     patient_id = (record.get("patient") or {}).get("patient_id", "")
     body_site_code = proc.get("body_site_code", "")
@@ -510,7 +533,7 @@ def _build_procedure_note(
         "procedure_date": _format_dt(proc.get("start_datetime")),
         "procedure_name": proc.get("procedure_name", ""),
         "procedure_code": proc.get("procedure_code", ""),
-        "operator": proc.get("primary_surgeon_id", "") or encounter.get("attending_physician_id", ""),
+        "operator": _staff_name(proc.get("primary_surgeon_id", "") or encounter.get("attending_physician_id", ""), staff_names),
         "indication": proc.get("preop_diagnosis") or encounter.get("chief_complaint", ""),
         "body_site": body_site_display,
         "anesthesia_type": proc.get("anesthesia_type", "local"),
@@ -885,6 +908,13 @@ def _format_guidance_for_prompt(
         return "\n".join(lines)
 
     return ""
+
+
+def _staff_name(staff_id: str, staff_names: dict[str, str] | None) -> str:
+    """Resolve a staff ID to a display name. Falls back to the raw ID."""
+    if not staff_names or not staff_id:
+        return staff_id
+    return staff_names.get(staff_id, staff_id)
 
 
 def _outcome_label(code: str, language: str) -> str:
