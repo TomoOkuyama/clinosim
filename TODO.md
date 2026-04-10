@@ -141,6 +141,10 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 | 16 | Discharge prescription Cr-based contraindication check | `simulator` | Open — _build_discharge_rx does not check discharge-time renal function. Metformin reappears in DC Rx even with Cr 7.2 (eGFR<10). Need Cr/eGFR gate at discharge |
 | 17 | Metformin hold for acute_pancreatitis (NPO + acute illness) | `simulator` | Open — Metformin PO continued during acute pancreatitis despite NPO status. Add to disease_id hold list in _generate_home_medication_orders |
 | 18 | Trauma Hgb recovery model / discharge gate | `physiology`, `simulator` | Open — Hgb 5.0 at day 13 discharge is clinically impossible. Physiology engine needs post-trauma Hgb recovery + discharge criterion Hgb > 7.0 |
+| 19 | HF exacerbation: IV diuretic not in MAR | `simulator` | Open — Home furosemide exists but not converted to IV for acute HF. Need disease-specific home→IV escalation logic |
+| 20 | LLM hallucination: DOAC double-prescribing in DC Rx | `llm_service` | Open — When DC Rx is empty, LLM invents medications (rivaroxaban + apixaban both). Add prompt rule: "only prescribe medications listed in the input" |
+| 21 | Anticoagulant hold for hemorrhagic_stroke | `simulator` | Open — Home Apixaban/Warfarin continues during ICH. Add hemorrhagic_stroke to anticoagulant hold disease list |
+| 22 | BPH assigned to female patients | `population` | Open — demographics.yaml chronic condition assignment lacks sex filter. BPH (N40) should be M-only |
 | 6 | Template fallbacks for new Tier A+B tasks | `llm_service` | Partial — basic templates done, need enrichment |
 | 7 | LLM JUDGMENT phase wiring (diagnostic reasoning) | `llm_service`, `diagnosis` | Open |
 | 8 | Validator Pass 2 (LLM consistency review) | `validator` | Open |
