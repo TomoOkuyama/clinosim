@@ -51,21 +51,21 @@ from clinosim.modules.output.hospital_course_extractor import (
 
 # CIF files to test (one per document type that needs a unique patient)
 TEST_CASES = [
-    # Round 2: different diseases, complications, and patient profiles
+    # Round 3: GI bleeding death, pancreatitis+delirium, severe trauma+intubation
     {
-        "cif_file": "test_data/smoke_patients/ENC-POP-000783-000085.json",
-        "doc_types": ["admission_hp", "discharge_summary", "operative_note"],
-        "label": "Acute cholecystitis, 48yo F, cholangitis complication, laparoscopic cholecystectomy",
-    },
-    {
-        "cif_file": "test_data/smoke_patients/ENC-POP-000429-000130.json",
-        "doc_types": ["admission_hp", "procedure_note", "discharge_summary"],
-        "label": "Sepsis, 74yo F, AKI complication, central line + arterial line + urinary catheter",
-    },
-    {
-        "cif_file": "test_data/smoke_patients/ENC-POP-001134-000096.json",
+        "cif_file": "test_data/smoke_patients/ENC-POP-001814-000115.json",
         "doc_types": ["admission_hp", "discharge_summary", "death_summary"],
-        "label": "Acute MI death, 91yo M, 4 home meds, echo + arterial line + central line",
+        "label": "GI bleeding death, 78yo M, 3 home meds, 2 procedures",
+    },
+    {
+        "cif_file": "test_data/smoke_patients/ENC-POP-000697-000001.json",
+        "doc_types": ["admission_hp", "procedure_note", "discharge_summary"],
+        "label": "Acute pancreatitis, 63yo M, delirium complication, central line, 4 home meds",
+    },
+    {
+        "cif_file": "test_data/smoke_patients/ENC-POP-004121-000036.json",
+        "doc_types": ["admission_hp", "discharge_summary", "operative_note"],
+        "label": "Severe traffic accident, 51yo F, surgery + intubation, 1 home med",
     },
 ]
 
