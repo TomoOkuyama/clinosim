@@ -252,6 +252,7 @@ def _simulate_patient(
         hospital_ops=hospital_ops,
         attending_id=attending_id,
         encounter_id=encounter.encounter_id,
+        department=department,
     )
 
     # Unpack results
@@ -410,6 +411,7 @@ def _run_daily_loop(
     hospital_state: Any = None,
     hospital_ops: dict | None = None,
     attending_id: str = "",
+    department: str = "internal_medicine",
     encounter_id: str = "",
 ) -> dict:
     """Run the day-by-day simulation loop. Returns all generated data."""
@@ -640,7 +642,7 @@ def _run_daily_loop(
                         ))
 
         # Medication administration (MAR)
-        mars_today = _generate_mar(patient, all_orders, day, admission_time, roster, rng)
+        mars_today = _generate_mar(patient, all_orders, day, admission_time, department=department, roster=roster, rng=rng)
         all_mars.extend(mars_today)
 
         # Diet order (only when diet changes: NPO → clear liquid → soft → regular)
@@ -670,7 +672,8 @@ def _run_daily_loop(
             _generate_vitals._prev_diet[patient.patient_id] = diet
 
         # Vitals
-        vitals_today = _generate_vitals(state, patient, day, admission_time, rng, disease_id=disease_id)
+        ward_nurse_id = assign_staff("medication_administration", department, roster, rng).get("administering_nurse", "NS-001")
+        vitals_today = _generate_vitals(state, patient, day, admission_time, rng, disease_id=disease_id, nurse_id=ward_nurse_id)
         all_vitals.extend(vitals_today)
 
         # Daily I/O record
@@ -927,6 +930,8 @@ def _generate_mar(
     orders: list[Order],
     day: int,
     admission_time: datetime,
+    *,
+    department: str = "internal_medicine",
     roster: StaffRoster,
     rng: np.random.Generator,
 ) -> list[MedicationAdministration]:
@@ -938,7 +943,7 @@ def _generate_mar(
     # Ensure medication orders are enriched (idempotent) so MAR can use structured dose
     for o in med_orders:
         enrich_medication_order(o)
-    nurse_id = assign_staff("medication_administration", "internal_medicine", roster, rng).get("administering_nurse", "NS-001")
+    nurse_id = assign_staff("medication_administration", department, roster, rng).get("administering_nurse", "NS-001")
 
     for order in med_orders:
         drug_name = order.display_name
@@ -1173,6 +1178,7 @@ def _generate_vitals(
     admission_time: datetime,
     rng: np.random.Generator,
     disease_id: str = "",
+    nurse_id: str = "",
 ) -> list[VitalSignRecord]:
     """Generate vital sign measurements for this day.
 
@@ -1223,6 +1229,7 @@ def _generate_vitals(
             oxygen_flow_rate_lpm=round(o2_flow, 1) if o2_flow else None,
             oxygen_delivery_device=o2_device,
             nursing_note=note,
+            measured_by=nurse_id,
             data_source="manual",
         ))
 
@@ -1501,10 +1508,11 @@ def _simulate_unknown_condition(
                 all_lab_results.append(order.result)
 
         # Vitals
-        all_vitals.extend(_generate_vitals(state, patient, day, admission_time, rng))
+        unk_nurse_id = assign_staff("medication_administration", department, roster, rng).get("administering_nurse", "NS-001")
+        all_vitals.extend(_generate_vitals(state, patient, day, admission_time, rng, nurse_id=unk_nurse_id))
 
         # MAR for supportive medications
-        all_mars.extend(_generate_mar(patient, all_orders, day, admission_time, roster, rng))
+        all_mars.extend(_generate_mar(patient, all_orders, day, admission_time, department=department, roster=roster, rng=rng))
 
     encounter.status = EncounterStatus.COMPLETED
     encounter.discharge_datetime = admission_time + timedelta(days=target_los, hours=14)
