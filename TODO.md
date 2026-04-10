@@ -137,6 +137,8 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 | 3 | **Full FHIR Bulk Data export with DocumentReference + iris-ai copy** | `output` | Blocked by #2 |
 | 4 | Japanese prompts (`prompts/ja/*.yaml`) with clinician review | `llm_service` | Open |
 | 5 | Discharge prescription for hip fracture (post-op pain meds + DVT prophylaxis) | `disease` | Open — hip_fracture.yaml `drugs.discharge_oral` is empty |
+| 15 | Generic surgery names for non-hip-fracture diseases | `procedure` | Open — simulate_surgery uses "Surgical procedure for X" for all diseases except hip_fracture. Need disease-specific CPT/procedure names (e.g., cholecystitis → CPT 47562 Laparoscopic cholecystectomy) |
+| 16 | Discharge prescription Cr-based contraindication check | `simulator` | Open — _build_discharge_rx does not check discharge-time renal function. Metformin reappears in DC Rx even with Cr 7.2 (eGFR<10). Need Cr/eGFR gate at discharge |
 | 6 | Template fallbacks for new Tier A+B tasks | `llm_service` | Partial — basic templates done, need enrichment |
 | 7 | LLM JUDGMENT phase wiring (diagnostic reasoning) | `llm_service`, `diagnosis` | Open |
 | 8 | Validator Pass 2 (LLM consistency review) | `validator` | Open |
