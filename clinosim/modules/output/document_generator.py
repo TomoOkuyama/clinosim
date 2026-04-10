@@ -710,7 +710,7 @@ def _pmh(patient: dict[str, Any], language: str) -> list[str]:
 
 
 def _home_meds(patient: dict[str, Any]) -> list[str]:
-    meds = patient.get("home_medications") or []
+    meds = patient.get("current_medications") or patient.get("home_medications") or []
     out: list[str] = []
     for m in meds:
         if isinstance(m, dict):
