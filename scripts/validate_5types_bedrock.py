@@ -52,19 +52,19 @@ from clinosim.modules.output.hospital_course_extractor import (
 # CIF files to test (one per document type that needs a unique patient)
 TEST_CASES = [
     {
-        "cif_file": "test_data/smoke_patients/ENC-POP-000085-000060.json",
+        "cif_file": "test_data/smoke_patients/ENC-POP-000085-000061.json",
         "doc_types": ["admission_hp", "discharge_summary", "operative_note"],
         "label": "Hip fracture, 56yo F, hemiarthroplasty (posterolateral), survived",
     },
     {
-        "cif_file": "test_data/smoke_patients/ENC-POP-000180-000076.json",
-        "doc_types": ["admission_hp", "procedure_note"],
-        "label": "DKA, 44yo M, central line, home meds: Metformin+insulin+lansoprazole",
+        "cif_file": "test_data/smoke_patients/ENC-POP-000283-000019.json",
+        "doc_types": ["admission_hp", "procedure_note", "discharge_summary"],
+        "label": "DKA, 53yo F, HTN+DM2+COPD, Metformin HELD, central line",
     },
     {
-        "cif_file": "test_data/smoke_patients/ENC-POP-000283-000019.json",
+        "cif_file": "test_data/smoke_patients/ENC-POP-000437-000009.json",
         "doc_types": ["admission_hp", "discharge_summary", "death_summary"],
-        "label": "DKA death, 53yo F, HTN+DM2+COPD, home meds: 5 drugs, died day 3",
+        "label": "Cerebral infarction death, 74yo, Apixaban+Lansoprazole, died",
     },
 ]
 

@@ -132,18 +132,20 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 
 | # | Task | Module | Status |
 |---|---|---|---|
-| 1 | Ollama end-to-end narrative quality validation | `llm_service` | Open |
-| 2 | EC2 + Bedrock actual run (AD-37 remote execution) | infra | Open |
-| 3 | Japanese prompts (`prompts/ja/*.yaml`) with clinician review | `llm_service` | Open |
-| 4 | Template fallbacks for new Tier A+B tasks | `llm_service` | Partial |
-| 5 | LLM JUDGMENT phase wiring (diagnostic reasoning) | `llm_service`, `diagnosis` | Open |
-| 6 | Validator Pass 2 (LLM consistency review) | `validator` | Open |
-| 7 | Performance: 100k+ patients, parallel sim | `simulator` | Open |
-| 8 | Tier 1 benchmarks expanded (LOS, mortality, complication) | `validator` | Partial |
-| 9 | Hospital course extractor: treatment change detection | `output` | Partial |
-| 10 | Progress Note (Tier C, opt-in) | `llm_service`, `output` | Open |
-| 11 | Anthropic direct provider (non-Bedrock) | `llm_service` | Open |
-| 12 | OpenAI-compatible provider (LiteLLM / vLLM) | `llm_service` | Open |
+| 1 | **EC2 Bedrock 5-type validation (re-run after sim fixes)** | infra, `output` | **Next** — `scripts/validate_5types_bedrock.py` ready, 3 sim fixes applied (approach/home meds/metformin hold) |
+| 2 | **EC2 Bedrock full 374-document run** | infra | Blocked by #1 — after 5-type validation passes |
+| 3 | **Full FHIR Bulk Data export with DocumentReference + iris-ai copy** | `output` | Blocked by #2 |
+| 4 | Japanese prompts (`prompts/ja/*.yaml`) with clinician review | `llm_service` | Open |
+| 5 | Discharge prescription for hip fracture (post-op pain meds + DVT prophylaxis) | `disease` | Open — hip_fracture.yaml `drugs.discharge_oral` is empty |
+| 6 | Template fallbacks for new Tier A+B tasks | `llm_service` | Partial — basic templates done, need enrichment |
+| 7 | LLM JUDGMENT phase wiring (diagnostic reasoning) | `llm_service`, `diagnosis` | Open |
+| 8 | Validator Pass 2 (LLM consistency review) | `validator` | Open |
+| 9 | Performance: 100k+ patients, parallel sim | `simulator` | Open |
+| 10 | Tier 1 benchmarks expanded (LOS, mortality, complication) | `validator` | Partial |
+| 11 | Hospital course extractor: treatment change detection | `output` | Partial |
+| 12 | Progress Note (Tier C, opt-in) | `llm_service`, `output` | Open |
+| 13 | Anthropic direct provider (non-Bedrock) | `llm_service` | Open |
+| 14 | OpenAI-compatible provider (LiteLLM / vLLM) | `llm_service` | Open |
 
 ## Open Design Questions
 

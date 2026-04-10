@@ -195,7 +195,8 @@ def _simulate_patient(
 
     # Home medication orders (chronic condition continuation)
     home_med_orders, chronic_monitoring = _generate_home_medication_orders(
-        patient, encounter.encounter_id, admission_time, attending_id, rng, state=state,
+        patient, encounter.encounter_id, admission_time, attending_id, rng,
+        state=state, disease_id=disease_id,
     )
     admission_orders.extend(home_med_orders)
 
@@ -733,6 +734,7 @@ def _generate_home_medication_orders(
     attending_id: str,
     rng: np.random.Generator,
     state: Any = None,
+    disease_id: str = "",
 ) -> tuple[list[Order], list[dict]]:
     """Generate medication orders for home meds (chronic condition continuation).
 
@@ -768,10 +770,16 @@ def _generate_home_medication_orders(
             drug_name = med["drug"]
             intent = f"Home medication (continue): {code} - {drug_name}"
 
-            # Metformin: hold for ANY significant renal impairment (not just CKD)
-            # Clinical guideline: hold Metformin if eGFR < 30 or acute illness with AKI risk
-            if "Metformin" in drug_name and (initial_renal < 0.4 or has_renal_impairment):
-                intent += " [HELD - renal impairment / AKI risk]"
+            # Metformin: hold for renal impairment, AKI risk, or acute metabolic illness
+            # Clinical guideline: hold Metformin if eGFR < 30, acute illness, contrast dye, or DKA
+            # DKA/HHS: metformin is universally held due to lactic acidosis risk
+            metformin_contraindicated = (
+                initial_renal < 0.4
+                or has_renal_impairment
+                or disease_id in ("diabetic_ketoacidosis", "sepsis", "acute_kidney_injury")
+            )
+            if "Metformin" in drug_name and metformin_contraindicated:
+                intent += " [HELD - acute illness / lactic acidosis risk]"
                 continue  # contraindicated
 
             # Renal dose adjustment for CKD patients and impaired renal function
