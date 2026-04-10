@@ -51,20 +51,21 @@ from clinosim.modules.output.hospital_course_extractor import (
 
 # CIF files to test (one per document type that needs a unique patient)
 TEST_CASES = [
+    # Round 2: different diseases, complications, and patient profiles
     {
-        "cif_file": "test_data/smoke_patients/ENC-POP-000085-000061.json",
+        "cif_file": "test_data/smoke_patients/ENC-POP-000783-000085.json",
         "doc_types": ["admission_hp", "discharge_summary", "operative_note"],
-        "label": "Hip fracture, 56yo F, hemiarthroplasty (posterolateral), survived",
+        "label": "Acute cholecystitis, 48yo F, cholangitis complication, laparoscopic cholecystectomy",
     },
     {
-        "cif_file": "test_data/smoke_patients/ENC-POP-000283-000019.json",
+        "cif_file": "test_data/smoke_patients/ENC-POP-000429-000130.json",
         "doc_types": ["admission_hp", "procedure_note", "discharge_summary"],
-        "label": "DKA, 53yo F, HTN+DM2+COPD, Metformin HELD, central line",
+        "label": "Sepsis, 74yo F, AKI complication, central line + arterial line + urinary catheter",
     },
     {
-        "cif_file": "test_data/smoke_patients/ENC-POP-000437-000009.json",
+        "cif_file": "test_data/smoke_patients/ENC-POP-001134-000096.json",
         "doc_types": ["admission_hp", "discharge_summary", "death_summary"],
-        "label": "Cerebral infarction death, 74yo, Apixaban+Lansoprazole, died",
+        "label": "Acute MI death, 91yo M, 4 home meds, echo + arterial line + central line",
     },
 ]
 
