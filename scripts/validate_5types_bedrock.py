@@ -51,21 +51,21 @@ from clinosim.modules.output.hospital_course_extractor import (
 
 # CIF files to test (one per document type that needs a unique patient)
 TEST_CASES = [
-    # Round 3: GI bleeding death, pancreatitis+delirium, severe trauma+intubation
+    # Round 4: Heart failure death, pulmonary embolism, hemorrhagic stroke+seizure
     {
-        "cif_file": "test_data/smoke_patients/ENC-POP-001814-000115.json",
+        "cif_file": "test_data/smoke_patients/ENC-POP-001499-000111.json",
         "doc_types": ["admission_hp", "discharge_summary", "death_summary"],
-        "label": "GI bleeding death, 78yo M, 3 home meds, 2 procedures",
+        "label": "Heart failure death, 73yo F, 5 home meds (HF+DM+HTN+dyslipidemia+AFib)",
     },
     {
-        "cif_file": "test_data/smoke_patients/ENC-POP-000697-000001.json",
+        "cif_file": "test_data/smoke_patients/ENC-POP-001266-000078.json",
         "doc_types": ["admission_hp", "procedure_note", "discharge_summary"],
-        "label": "Acute pancreatitis, 63yo M, delirium complication, central line, 4 home meds",
+        "label": "Pulmonary embolism, 82yo F, central line, 1 home med",
     },
     {
-        "cif_file": "test_data/smoke_patients/ENC-POP-004121-000036.json",
-        "doc_types": ["admission_hp", "discharge_summary", "operative_note"],
-        "label": "Severe traffic accident, 51yo F, surgery + intubation, 1 home med",
+        "cif_file": "test_data/smoke_patients/ENC-POP-000767-000035.json",
+        "doc_types": ["admission_hp", "discharge_summary"],
+        "label": "Hemorrhagic stroke, 51yo M, seizure complication, 1 home med",
     },
 ]
 
