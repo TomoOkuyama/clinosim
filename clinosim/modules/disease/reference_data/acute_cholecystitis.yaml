@@ -11,6 +11,16 @@ encounter_type: surgical
 requires_surgery: true
 minimum_severity: moderate
 readmission_eligible: false
+
+procedure:
+  type: "laparoscopic cholecystectomy"
+  procedure_code_jp: "K672-2"  # 腹腔鏡下胆嚢摘出術
+  procedure_code_us: "47562"   # CPT: Laparoscopic cholecystectomy
+  typical_duration_minutes: {mean: 90, sd: 30, min: 45, max: 180}
+  anesthesia: "general"
+  estimated_blood_loss_ml: {mean: 100, sd: 75, min: 20, max: 500}
+  approach:
+    surgery: "laparoscopic approach with 4-port technique"
 diagnostic_difficulty: 0.2   # US + clinical criteria (Tokyo Guidelines) make diagnosis straightforward
 
 icd_codes:

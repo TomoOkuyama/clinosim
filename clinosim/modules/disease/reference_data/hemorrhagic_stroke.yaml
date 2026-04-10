@@ -11,6 +11,13 @@ encounter_type: medical
 requires_surgery: false
 readmission_eligible: true
 minimum_severity: moderate
+
+# Hold ALL anticoagulants and antiplatelets during active intracranial hemorrhage
+medication_holds:
+  - drugs: ["Apixaban", "Rivaroxaban", "Dabigatran", "Edoxaban", "Warfarin", "Heparin", "Enoxaparin"]
+    reason: "Active intracranial hemorrhage — anticoagulation contraindicated"
+  - drugs: ["Aspirin", "Clopidogrel", "Prasugrel", "Ticagrelor"]
+    reason: "Active intracranial hemorrhage — antiplatelet contraindicated"
 diagnostic_difficulty: 0.15   # CT confirms ICH immediately; underlying cause evaluation takes longer
 
 icd_codes:

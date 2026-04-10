@@ -60,7 +60,8 @@ chronic_prevalence:
     "40-99": 0.15
   J45:      # Asthma — ~8% all ages
     "0-99": 0.08
-  N40:      # BPH (benign prostatic hyperplasia) — sex-neutral ~8% age 50+
+  N40:      # BPH (benign prostatic hyperplasia) — male only ~8% age 50+
+    sex: M
     "50-99": 0.08
   M17:      # Osteoarthritis — ~15% age 50+, ~30% age 70+
     "50-69": 0.15

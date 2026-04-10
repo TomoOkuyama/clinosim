@@ -11,6 +11,10 @@ encounter_type: medical
 requires_surgery: false
 readmission_eligible: true
 minimum_severity: moderate
+
+medication_holds:
+  - drugs: ["Metformin"]
+    reason: "DKA — lactic acidosis risk; resume after metabolic stabilization"
 diagnostic_difficulty: 0.2  # glucose + ABG + ketones confirms quickly
 
 icd_codes:

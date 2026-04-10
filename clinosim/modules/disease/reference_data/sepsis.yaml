@@ -12,6 +12,10 @@ requires_surgery: false
 minimum_severity: moderate    # sepsis always requires hospitalization
 readmission_eligible: true
 
+medication_holds:
+  - drugs: ["Metformin"]
+    reason: "Sepsis — lactic acidosis risk, potential renal impairment"
+
 icd_codes:
   primary: "A41.9"  # Sepsis, unspecified organism
   variants:

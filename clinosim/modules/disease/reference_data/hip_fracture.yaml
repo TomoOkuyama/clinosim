@@ -135,6 +135,17 @@ drugs:
     us:
       - {drug: "Oxycodone", dose: "5mg PO q4-6h PRN"}
       - {drug: "Enoxaparin", dose: "40mg SC daily"}
+  discharge_oral:
+    japan:
+      - {drug: "Celecoxib", dose: "200mg PO daily", duration_days: 14}
+      - {drug: "Acetaminophen", dose: "500mg PO q6h PRN", duration_days: 28}
+      - {drug: "Enoxaparin", dose: "2000IU SC daily", duration_days: 14}
+      - {drug: "Calcium/Vitamin D", dose: "1 tablet PO daily", duration_days: 90}
+    us:
+      - {drug: "Oxycodone/Acetaminophen", dose: "5/325mg PO q4-6h PRN", duration_days: 14}
+      - {drug: "Acetaminophen", dose: "500mg PO q6h PRN", duration_days: 28}
+      - {drug: "Enoxaparin", dose: "40mg SC daily", duration_days: 28}
+      - {drug: "Calcium/Vitamin D", dose: "1 tablet PO daily", duration_days: 90}
 
 # Surgical procedure info
 procedure:

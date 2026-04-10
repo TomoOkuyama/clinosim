@@ -116,15 +116,34 @@ def _parse_age_distribution(demo: dict) -> tuple[list[tuple[int, int]], list[flo
     return bands, probs
 
 
-def _parse_chronic_prevalence(demo: dict) -> dict[str, dict[tuple[int, int], float]]:
-    """Parse chronic_prevalence from demographics YAML into structured dict."""
+@dataclass(frozen=True)
+class ChronicConditionSpec:
+    age_ranges: dict[tuple[int, int], float]
+    sex: str  # "M", "F", or "" (any)
+
+
+def _parse_chronic_prevalence(demo: dict) -> dict[str, ChronicConditionSpec]:
+    """Parse chronic_prevalence from demographics YAML into structured dict.
+
+    Supports optional ``sex: M`` or ``sex: F`` field to restrict conditions
+    to a specific sex (e.g., BPH is male-only).
+    """
     raw = demo.get("chronic_prevalence", {})
-    result: dict[str, dict[tuple[int, int], float]] = {}
-    for code, age_ranges in raw.items():
-        result[code] = {}
-        for key, prev in age_ranges.items():
-            lo, hi = key.split("-")
-            result[code][(int(lo), int(hi))] = float(prev)
+    result: dict[str, ChronicConditionSpec] = {}
+    for code, entry in raw.items():
+        if not isinstance(entry, dict):
+            continue
+        sex_filter = str(entry.get("sex", ""))
+        age_ranges: dict[tuple[int, int], float] = {}
+        for key, prev in entry.items():
+            if key == "sex":
+                continue
+            try:
+                lo, hi = str(key).split("-")
+                age_ranges[(int(lo), int(hi))] = float(prev)
+            except (ValueError, TypeError):
+                continue
+        result[code] = ChronicConditionSpec(age_ranges=age_ranges, sex=sex_filter)
     return result
 
 
@@ -208,11 +227,13 @@ def generate_population(
             else:
                 member_surname = household_surname
 
-            # Chronic conditions
+            # Chronic conditions (with sex filter support)
             conditions: list[str] = []
             chronic_data = _parse_chronic_prevalence(demo)
-            for code, age_ranges in chronic_data.items():
-                for (lo, hi), prev in age_ranges.items():
+            for code, spec in chronic_data.items():
+                if spec.sex and spec.sex != sex:
+                    continue  # e.g., BPH (N40) is male-only
+                for (lo, hi), prev in spec.age_ranges.items():
                     if lo <= age <= hi and rng.random() < prev:
                         conditions.append(code)
 

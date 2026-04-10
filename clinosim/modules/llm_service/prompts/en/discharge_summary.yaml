@@ -25,6 +25,10 @@ system: |
     - Use formal clinical language and standard medical abbreviations.
     - Only use facts provided in the input. Do not invent lab values,
       procedures, or medications not listed.
+    - CRITICAL: For Discharge Medications, list ONLY medications explicitly
+      provided in the input. If the input says "(none)" or the list is empty,
+      write "None prescribed at discharge" — do NOT invent or suggest
+      medications based on clinical reasoning.
     - A "[HIDDEN CLINICAL CONTEXT]" section may be provided. Use it to
       ensure clinical accuracy (e.g. correct disease terminology, appropriate
       severity language). This is a retrospective document so you may
