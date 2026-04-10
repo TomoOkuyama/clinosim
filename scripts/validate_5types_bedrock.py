@@ -51,21 +51,22 @@ from clinosim.modules.output.hospital_course_extractor import (
 
 # CIF files to test (one per document type that needs a unique patient)
 TEST_CASES = [
-    # Round 4: Heart failure death, pulmonary embolism, hemorrhagic stroke+seizure
+    # Post-fix validation: cholecystitis (new surgery name), hip fracture (DC Rx),
+    # hemorrhagic stroke (anticoag hold), sepsis (Cr check)
     {
-        "cif_file": "test_data/smoke_patients/ENC-POP-001499-000111.json",
+        "cif_file": "test_data/smoke_patients/ENC-POP-004128-000031.json",
+        "doc_types": ["admission_hp", "discharge_summary", "operative_note"],
+        "label": "Cholecystitis 55M, laparoscopic cholecystectomy, 4 home meds",
+    },
+    {
+        "cif_file": "test_data/smoke_patients/ENC-POP-000517-000077.json",
+        "doc_types": ["admission_hp", "discharge_summary", "operative_note"],
+        "label": "Hip fracture 89F, ORIF lateral approach, DC Rx with oxycodone+enoxaparin+Ca/VitD",
+    },
+    {
+        "cif_file": "test_data/smoke_patients/ENC-POP-004032-000155.json",
         "doc_types": ["admission_hp", "discharge_summary", "death_summary"],
-        "label": "Heart failure death, 73yo F, 5 home meds (HF+DM+HTN+dyslipidemia+AFib)",
-    },
-    {
-        "cif_file": "test_data/smoke_patients/ENC-POP-001266-000078.json",
-        "doc_types": ["admission_hp", "procedure_note", "discharge_summary"],
-        "label": "Pulmonary embolism, 82yo F, central line, 1 home med",
-    },
-    {
-        "cif_file": "test_data/smoke_patients/ENC-POP-000767-000035.json",
-        "doc_types": ["admission_hp", "discharge_summary"],
-        "label": "Hemorrhagic stroke, 51yo M, seizure complication, 1 home med",
+        "label": "Hemorrhagic stroke death 93F, Apixaban HELD, delirium complication",
     },
 ]
 

@@ -131,9 +131,13 @@ def simulate_surgery(
             proc_name = "Hemiarthroplasty, femoral head"
             implants = ["bipolar femoral prosthesis"]
     else:
-        proc_type = "surgery"
-        proc_code = ""
-        proc_name = f"Surgical procedure for {disease_id}"
+        # Read procedure details from disease YAML (fallback to generic)
+        proc_type = proc_data.get("type", "surgery").split("/")[0].strip().split(" or ")[0].strip()
+        if country == "JP":
+            proc_code = proc_data.get("procedure_code_jp", "")
+        else:
+            proc_code = proc_data.get("procedure_code_us", "")
+        proc_name = proc_data.get("type", "") or f"Surgical procedure for {disease_id}"
         implants = []
 
     # Surgical approach from disease YAML (protocol.procedure.approach)
