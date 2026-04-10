@@ -1,11 +1,11 @@
 ======================================================================
   5-Type Bedrock Clinical Document Validation
-  Date: 2026-04-09 09:57:45 UTC
+  Date: 2026-04-10 01:08:18 UTC
 ======================================================================
 
 ======================================================================
   PATIENT: Hip fracture, 56yo F, hemiarthroplasty (posterolateral), survived
-  File: test_data/smoke_patients/ENC-POP-000085-000060.json
+  File: test_data/smoke_patients/ENC-POP-000085-000061.json
   ID: POP-000085  Age: 56  Sex: F
   Ground truth: ['hip_fracture']
   Deceased: False
@@ -20,16 +20,16 @@
     patient_outcome: survived
     disease_severity: 
     disease_archetype: 
-    los_days: 10
+    los_days: 7
     had_surgery: True
     complications: []
     icu_transferred: False
   Lab trends:
-    CRP: admission 30.3mg/L (day 0) → peak 64.2mg/L (day 4) → latest 10.3mg/L (day 9) [improving]
-    Cr: admission 1.3mg/dL (day 0) → peak 1.3mg/dL (day 5) → latest 1.1mg/dL (day 7) [stable]
-    Hgb: admission 10.4g/dL (day 0) → peak 10.9g/dL (day 3) → latest 10.9g/dL (day 8) [stable]
-    Plt: admission 259.0x10^3/μL (day 0) → peak 259.0x10^3/μL (day 0) → latest 259.0x10^3/μL (day 0) [insufficient_data]
-    WBC: admission 10712.0cells/μL (day 0) → peak 10712.0cells/μL (day 0) → latest 10712.0cells/μL (day 0) [insufficient_data]
+    CRP: admission 30.4mg/L (day 0) → peak 479.0mg/L (day 6) → latest 479.0mg/L (day 6) [worsening]
+    Cr: admission 1.0mg/dL (day 0) → peak 1.2mg/dL (day 6) → latest 1.2mg/dL (day 6) [stable]
+    Hgb: admission 9.6g/dL (day 0) → peak 9.9g/dL (day 6) → latest 9.9g/dL (day 6) [stable]
+    Plt: admission 240.0x10^3/μL (day 0) → peak 240.0x10^3/μL (day 0) → latest 240.0x10^3/μL (day 0) [insufficient_data]
+    WBC: admission 14180.0cells/μL (day 0) → peak 14180.0cells/μL (day 0) → latest 14180.0cells/μL (day 0) [insufficient_data]
   Treatment timeline (4 events):
     Day 0: Started Acetaminophen IV
     Day 0: Started IV_fluid: NS 80-125 mL/h IV
@@ -37,33 +37,33 @@
     Day 0: Started DVT_prophylaxis: Enoxaparin 2000IU SC daily (hold 12h pre-op) SC
   Hospital course (6 facts):
     Day 0: Admitted with Hip pain after fall, unable to walk. Initial working diagnosis: Fracture of neck of femur.
-    Day 0: Hemiarthroplasty, femoral head. EBL 342 mL.
-    Day 0: WBC peaked at 10712.0 cells/μL.
-    Day 4: CRP peaked at 64.2 mg/L.
-    Day 5: Cr peaked at 1.3 mg/dL.
-    Day 10: Discharged to home. Final diagnosis: Fracture of unspecified part of neck of unspecified femur.
+    Day 0: Open reduction internal fixation, femur with excessive_bleeding. EBL 718 mL.
+    Day 0: WBC peaked at 14180.0 cells/μL.
+    Day 6: CRP peaked at 479.0 mg/L.
+    Day 6: Cr peaked at 1.2 mg/dL.
+    Day 7: Discharged to home. Final diagnosis: Fracture of unspecified part of neck of unspecified femur.
 
   ============================================================
   DOCUMENT: admission_hp
   ============================================================
   LOINC:      34117-2
   Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
-  Tokens:    in=766  out=639
+  Tokens:    in=763  out=689
   Cache:     False
   Fallback:  (none)
   ────────────────────────────────────────────────────────────
 **ADMISSION HISTORY & PHYSICAL**
 
 **Date:** September 7, 2024  
-**Time:** 10:51  
+**Time:** 09:00  
 **Admitting Physician:** DR-OR-002  
-**Service:** Orthopedics
+**Department:** Orthopedics
 
 **CHIEF COMPLAINT:**
 Hip pain after fall, unable to walk
 
 **HISTORY OF PRESENT ILLNESS:**
-56-year-old female presents with acute hip pain and inability to ambulate following a fall. Patient reports mechanical fall with subsequent onset of severe hip pain and complete inability to bear weight. No loss of consciousness reported with the fall.
+56-year-old female presents with acute hip pain and inability to ambulate following a fall. Patient reports mechanical fall with subsequent onset of severe hip pain and functional impairment preventing weight-bearing or ambulation.
 
 **PAST MEDICAL HISTORY:**
 None reported
@@ -72,49 +72,60 @@ None reported
 None
 
 **ALLERGIES:**
-NKDA
+No known drug allergies
 
 **FAMILY HISTORY:**
-Not obtained at this time
+Not obtained
 
 **SOCIAL HISTORY:**
-Not obtained at this time
+Not obtained
 
 **REVIEW OF SYSTEMS:**
-Limited secondary to acute presentation. Patient denies chest pain, shortness of breath, or abdominal pain. Focused on musculoskeletal complaint.
+Limited secondary to acute presentation. Patient endorses hip pain and inability to walk. Constitutional symptoms include subjective fever.
 
 **PHYSICAL EXAMINATION:**
-**Vital Signs:** T 36.9°C, HR 108, RR 15, BP 92/70, SpO2 94.9%
-**General:** Alert female in moderate distress secondary to pain
-**Cardiovascular:** Tachycardic, regular rhythm
-**Pulmonary:** Clear to auscultation bilaterally, normal respiratory effort
-**Musculoskeletal:** Unable to bear weight on affected extremity, significant pain with attempted movement of hip
+Vital Signs: Temperature 38.7°C, Heart rate 110 bpm, Respiratory rate 19/min, Blood pressure 96/50 mmHg, Oxygen saturation 94.7%
+
+General: Appears uncomfortable, febrile
+Cardiovascular: Tachycardic, hypotensive
+Pulmonary: Tachypneic
+Musculoskeletal: Hip examination deferred pending imaging
+Neurologic: Alert and oriented
 
 **LABORATORY DATA:**
-CRP 30.3 mg/L (elevated), WBC 10,712/uL (elevated), Hemoglobin 10.2-10.4 g/dL (low), Creatinine 1.07-1.27 mg/dL (elevated), Glucose 117 mg/dL (mildly elevated), Albumin 2.6 g/dL (low)
+CRP: 30.4-68.7 mg/L (elevated)
+WBC: 14,180/μL (elevated)
+Hemoglobin: 9.5-9.6 g/dL (low)
+Creatinine: 1.03 mg/dL (mildly elevated)
+Glucose: 117 mg/dL (mildly elevated)
+Albumin: 2.4 g/dL (low)
 
 **ASSESSMENT:**
-56-year-old female with acute hip pain and inability to ambulate following mechanical fall. Clinical presentation is highly concerning for femoral neck fracture given mechanism of injury, inability to bear weight, and significant pain with hip movement. Elevated inflammatory markers and mild anemia may reflect acute injury response. Differential diagnosis includes:
+56-year-old female presenting with acute hip pain and inability to ambulate following mechanical fall. Clinical presentation is highly concerning for femoral neck fracture given mechanism of injury and functional impairment. Concurrent findings include fever, tachycardia, hypotension, and laboratory abnormalities including leukocytosis, elevated inflammatory markers, anemia, and hypoalbuminemia, which may suggest systemic inflammatory response or concurrent medical issues.
+
+Differential diagnosis:
 1. Femoral neck fracture (most likely)
-2. Intertrochanteric fracture
+2. Intertrochanteric hip fracture
 3. Hip dislocation
-4. Severe soft tissue injury
+4. Pelvic fracture
+5. Concurrent sepsis or inflammatory process
 
 **PLAN:**
-1. Orthopedic imaging including hip X-rays to evaluate for fracture
-2. Pain management
-3. NPO pending surgical evaluation
-4. IV access and fluid resuscitation given borderline hypotension
-5. Orthopedic surgery consultation
-6. DVT prophylaxis
-7. Monitor vital signs and pain level
+1. Obtain urgent hip radiographs and CT if indicated
+2. Orthopedic surgery consultation
+3. Pain management
+4. IV fluid resuscitation for hypotension
+5. Blood cultures given fever and leukocytosis
+6. NPO pending surgical evaluation
+7. DVT prophylaxis
+8. Monitor hemoglobin and consider transfusion if indicated
 
   ============================================================
   DOCUMENT: discharge_summary
   ============================================================
   LOINC:      18842-5
   Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
-  Tokens:    in=1018  out=630
+  Tokens:    in=1024  out=649
   Cache:     False
   Fallback:  (none)
   ────────────────────────────────────────────────────────────
@@ -122,8 +133,8 @@ CRP 30.3 mg/L (elevated), WBC 10,712/uL (elevated), Hemoglobin 10.2-10.4 g/dL (l
 
 **Patient:** 56-year-old Female  
 **Admission Date:** September 7, 2024  
-**Discharge Date:** September 17, 2024  
-**Length of Stay:** 10 days  
+**Discharge Date:** September 14, 2024  
+**Length of Stay:** 7 days  
 **Attending Physician:** DR-OR-002  
 
 **ADMISSION DIAGNOSIS:**
@@ -136,36 +147,36 @@ Primary: Fracture of unspecified part of neck of unspecified femur
 Hip pain after fall, unable to walk
 
 **HISTORY OF PRESENT ILLNESS:**
-This 56-year-old female presented with hip pain and inability to ambulate following a fall. The patient was evaluated and found to have sustained a femoral neck fracture requiring surgical intervention.
+This 56-year-old female presented with hip pain and inability to ambulate following a fall. The patient was unable to bear weight and experienced significant discomfort, prompting emergency evaluation and subsequent admission for surgical management.
 
 **PAST MEDICAL HISTORY:**
 No significant past medical history reported.
 
 **HOSPITAL COURSE:**
-The patient was admitted on hospital day 0 with a femoral neck fracture. She underwent hemiarthroplasty of the femoral head on hospital day 1 (September 8, 2024) performed by DR-IM-004 with an estimated blood loss of 342 mL. The procedure was completed without immediate complications.
+The patient was admitted on hospital day 0 with a femoral neck fracture confirmed on imaging. She underwent open reduction internal fixation of the femur on hospital day 1 (September 8, 2024) performed by DR-GS-003. The procedure was complicated by excessive bleeding with an estimated blood loss of 718 mL.
 
-Post-operatively, the patient's recovery was monitored with serial laboratory studies. CRP levels peaked at 64.2 mg/L on hospital day 4, consistent with expected post-surgical inflammatory response, and subsequently trended downward to 10.3 mg/L by day 9. Creatinine remained stable with a peak of 1.3 mg/dL on day 5, improving to 1.1 mg/dL by day 7. Hemoglobin levels remained stable throughout the hospitalization at approximately 10.9 g/dL. WBC count was elevated at 10,712 cells/μL on admission.
+Post-operatively, the patient's clinical course was notable for elevated inflammatory markers. White blood cell count peaked at 14,180 cells/μL on admission. C-reactive protein demonstrated a significant rise from 30.4 mg/L on admission to 479.0 mg/L by hospital day 6, suggesting ongoing inflammatory response. Creatinine remained stable with a mild elevation from 1.0 mg/dL on admission to 1.2 mg/dL by day 6. Hemoglobin levels remained stable at approximately 9.6-9.9 g/dL throughout the hospitalization despite the operative blood loss.
 
-The patient received appropriate perioperative care including IV fluid resuscitation with normal saline, pain management with scheduled acetaminophen and PRN opioids, and DVT prophylaxis with enoxaparin 2000 IU subcutaneously daily. The patient's clinical condition improved progressively, and she was deemed suitable for discharge home on hospital day 10.
+The patient received appropriate perioperative care including IV fluid resuscitation with normal saline at 80-125 mL/h, pain management with acetaminophen 1000 mg IV every 6 hours plus PRN opioid medications, and DVT prophylaxis with enoxaparin 2000 IU subcutaneously daily.
 
 **PROCEDURES PERFORMED:**
-Hemiarthroplasty, femoral head (September 8, 2024)
+Open reduction internal fixation of femur on September 8, 2024, complicated by excessive bleeding (EBL 718 mL)
 
 **DISCHARGE MEDICATIONS:**
 None prescribed at discharge.
 
 **CONDITION AT DISCHARGE:**
-Stable condition, ambulatory with appropriate weight-bearing restrictions.
+Stable condition. Patient ambulatory with appropriate weight-bearing restrictions.
 
 **FOLLOW-UP INSTRUCTIONS:**
-Patient should follow up with orthopedic surgery for routine post-operative care and monitoring of surgical site healing. Standard hip precautions and weight-bearing restrictions should be observed as directed by the surgical team.
+Patient to follow up with orthopedic surgery for routine post-operative care and fracture healing assessment. Specific follow-up appointments to be scheduled as an outpatient. Patient educated on activity restrictions and signs/symptoms requiring immediate medical attention.
 
   ============================================================
   DOCUMENT: operative_note
   ============================================================
   LOINC:      11504-8
   Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
-  Tokens:    in=505  out=391
+  Tokens:    in=504  out=408
   Cache:     False
   Fallback:  (none)
   ────────────────────────────────────────────────────────────
@@ -177,40 +188,44 @@ Patient should follow up with orthopedic surgery for routine post-operative care
 
 **Postoperative Diagnosis:** Hip fracture
 
-**Procedure Performed:** Hemiarthroplasty, femoral head (CPT 27125)
+**Procedure Performed:** Open reduction internal fixation, femur (CPT 27236)
 
-**Surgeon:** DR-IM-004
+**Surgeon:** DR-GS-003
 
 **Assistant(s):** None
 
-**Anesthesia Type:** Spinal anesthesia administered by DR-GS-004, ASA Class 2
+**Anesthesia Type:** Spinal anesthesia
+**Anesthesiologist:** DR-EM-003
+**ASA Class:** 2
 
-**Findings:** Hip fracture requiring femoral head replacement
+**Findings:** Femoral fracture requiring internal fixation with intramedullary nail stabilization.
 
 **Description of Procedure:**
-The patient was positioned laterally and prepped and draped in standard sterile fashion. A posterolateral approach to the hip joint was utilized. The hip joint was exposed and the fracture was identified. The femoral head was removed and the femoral canal was prepared for prosthetic insertion. A bipolar femoral prosthesis was inserted and positioned appropriately. Range of motion was tested and found to be satisfactory. The wound was irrigated and hemostasis achieved. The capsule, fascia, and subcutaneous tissues were closed in layers. The skin was closed appropriately. Sterile dressing was applied.
+The patient was positioned supine and appropriate surgical timeout was performed. Following adequate spinal anesthesia, the operative site was prepped and draped in sterile fashion. A lateral approach to the proximal femur was utilized. Dissection was carried through skin and subcutaneous tissues. The fracture site was identified and reduced under direct visualization. An intramedullary nail was inserted for internal fixation of the femoral fracture. During the procedure, excessive bleeding was encountered and managed appropriately. The wound was irrigated and hemostasis achieved. The incision was closed in layers with appropriate sutures.
 
 **Specimens:** None sent to pathology
 
-**Drains and Implants:** Bipolar femoral prosthesis
+**Drains and Implants:** Intramedullary nail placed for femoral fixation
 
-**Estimated Blood Loss:** 342 mL
+**Estimated Blood Loss:** 718 mL
 
-**Complications:** None
+**Complications:** Excessive bleeding encountered intraoperatively
 
-**Disposition:** Patient tolerated the procedure well and was transferred to recovery in stable condition.
+**Disposition:** Patient transferred to recovery room in stable condition. Procedure partially successful with intramedullary nail fixation completed.
+
+**Operative Duration:** 31 minutes
 
 ---
-*Operative duration: 87 minutes*
-*Preoperative vital signs: T 36.9°C, HR 108, RR 15, BP 92/70, SpO2 94.9%*
+*Dictated by: DR-GS-003*
+*Date: September 8, 2024*
 
 ======================================================================
-  PATIENT: DKA, 44yo M, central line, home meds: Metformin+insulin+lansoprazole
-  File: test_data/smoke_patients/ENC-POP-000180-000076.json
-  ID: POP-000180  Age: 44  Sex: M
+  PATIENT: DKA, 53yo F, HTN+DM2+COPD, Metformin HELD, central line
+  File: test_data/smoke_patients/ENC-POP-000283-000019.json
+  ID: POP-000283  Age: 53  Sex: F
   Ground truth: ['diabetic_ketoacidosis']
   Deceased: False
-  Procedures: 2
+  Procedures: 1
 ======================================================================
 
   --- Enrichment Data (from extractor) ---
@@ -226,21 +241,23 @@ The patient was positioned laterally and prepped and draped in standard sterile 
     complications: []
     icu_transferred: False
   Lab trends:
-    Cr: admission 1.2mg/dL (day 0) → peak 1.2mg/dL (day 0) → latest 1.2mg/dL (day 0) [insufficient_data]
-    Lactate: admission 5.0mmol/L (day 0) → peak 5.0mmol/L (day 0) → latest 5.0mmol/L (day 0) [insufficient_data]
-  Treatment timeline (7 events):
+    CRP: admission 0.3mg/L (day 0) → peak 0.3mg/L (day 0) → latest 0.3mg/L (day 0) [insufficient_data]
+    Cr: admission 2.0mg/dL (day 0) → peak 2.0mg/dL (day 0) → latest 2.0mg/dL (day 0) [insufficient_data]
+  Treatment timeline (9 events):
     Day 0: Started Regular insulin (continuous IV) IV
     Day 0: Started IV_fluid: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h IV
     Day 0: Started IV_insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3) IV
     Day 0: Started K_replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0 IV
-    Day 0: Started Metformin 500mg PO
-    Day 0: Started Lansoprazole 15mg PO
-    Day 0: Started DVT_prophylaxis: Enoxaparin 2000IU SC daily (once hemodynamically stable) SC
+    Day 0: Started Amlodipine 5mg PO
+    Day 0: Started Candesartan 8mg PO
+    Day 0: Started Tiotropium 18mcg inhaler PO
+    Day 0: Started Salbutamol 100mcg inhaler PRN PO
+    ... and 1 more
   Hospital course (5 facts):
     Day 0: Admitted with Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Initial working diagnosis: Type 2 diabetes mellitus with ketoacidosis without coma.
     Day 0: Central venous catheter insertion performed at bedside.
-    Day 0: Cr peaked at 1.2 mg/dL.
-    Day 0: Lactate peaked at 5.0 mmol/L.
+    Day 0: Cr peaked at 2.0 mg/dL.
+    Day 0: CRP peaked at 0.3 mg/L.
     Day 3: Discharged to home. Final diagnosis: Type 2 diabetes mellitus with hyperglycemia.
 
   ============================================================
@@ -248,80 +265,91 @@ The patient was positioned laterally and prepped and draped in standard sterile 
   ============================================================
   LOINC:      34117-2
   Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
-  Tokens:    in=776  out=622
+  Tokens:    in=837  out=776
   Cache:     False
   Fallback:  (none)
   ────────────────────────────────────────────────────────────
 **ADMISSION HISTORY & PHYSICAL**
 
-**Chief Complaint:** Nausea, vomiting, abdominal pain, polyuria, altered consciousness
+**Date:** May 11, 2024  
+**Time:** 15:07  
+**Admitting Physician:** DR-IM-002  
+**Department:** Internal Medicine
 
-**History of Present Illness:** 
-44-year-old male presents with acute onset of nausea, vomiting, abdominal pain, polyuria, and altered level of consciousness. Patient demonstrates signs of metabolic derangement with elevated lactate and mild hyperglycemia in the setting of known diabetes mellitus.
+**CHIEF COMPLAINT:**
+Nausea, vomiting, abdominal pain, polyuria, altered consciousness
 
-**Past Medical History:**
-- Type 2 diabetes mellitus without complications
-- Gastroesophageal reflux disease
+**HISTORY OF PRESENT ILLNESS:**
+53-year-old female presents with acute onset of nausea, vomiting, abdominal pain, polyuria, and altered level of consciousness. Patient has known history of type 2 diabetes mellitus without complications, essential hypertension, and chronic obstructive pulmonary disease.
 
-**Medications:** 
-None reported
+**PAST MEDICAL HISTORY:**
+- Essential (primary) hypertension
+- Type 2 diabetes mellitus without complications  
+- Other chronic obstructive pulmonary disease
 
-**Allergies:** 
-NKDA
+**MEDICATIONS:**
+- Amlodipine 5mg daily
+- Candesartan 8mg daily
+- Metformin 500mg
+- Tiotropium 18mcg inhaler daily
+- Salbutamol 100mcg inhaler PRN
 
-**Family History:** 
+**ALLERGIES:**
+No known drug allergies
+
+**FAMILY HISTORY:**
 Not obtained at this time
 
-**Social History:** 
+**SOCIAL HISTORY:**
 Not obtained at this time
 
-**Review of Systems:** 
-Positive for nausea, vomiting, abdominal pain, polyuria, and altered mental status as per HPI. Complete review deferred due to patient's current condition.
+**REVIEW OF SYSTEMS:**
+Positive for nausea, vomiting, abdominal pain, polyuria, and altered mental status as noted in HPI. Complete ROS deferred due to patient's current condition.
 
-**Physical Examination:**
-**Vital Signs:** Temperature 36.0°C, Heart rate 79 bpm, Respiratory rate 16/min, Blood pressure 102/76 mmHg, Oxygen saturation 97.9%
-**General:** Patient appears ill with altered level of consciousness
-**Cardiovascular:** Heart rate regular, blood pressure slightly low-normal
-**Respiratory:** Respiratory rate within normal limits
-**Abdomen:** Patient reports abdominal pain
-**Neurologic:** Altered consciousness noted
-**Additional systems:** Examination limited by patient's current condition
+**PHYSICAL EXAMINATION:**
+Vital Signs: Temperature 36.6°C, Heart rate 69 bpm, Respiratory rate 20/min, Blood pressure 109/68 mmHg, Oxygen saturation 94.6% on room air
 
-**Assessment:**
-44-year-old male with known Type 2 diabetes mellitus presenting with classic symptoms concerning for diabetic ketoacidosis including nausea, vomiting, abdominal pain, polyuria, and altered mental status. Laboratory findings demonstrate elevated lactate (5.0 mmol/L), mild hyperglycemia (126 mg/dL), and acute kidney injury (creatinine 1.22 mg/dL, BUN 26.6 mg/dL). The constellation of symptoms in a diabetic patient with metabolic acidosis strongly suggests DKA.
+General: Patient appears ill with altered level of consciousness
+Cardiovascular: Heart rate regular, blood pressure hypotensive
+Pulmonary: Tachypneic at 20/min, oxygen saturation mildly decreased
+Abdomen: Patient reports abdominal pain
+Neurologic: Altered consciousness noted
+
+**ASSESSMENT:**
+53-year-old female with known type 2 diabetes mellitus presenting with classic symptoms of nausea, vomiting, abdominal pain, polyuria, and altered consciousness. Laboratory findings reveal hyperglycemia (glucose 142 mg/dL), hyperkalemia (K 5.6 mmol/L), and acute kidney injury (BUN 32.2 mg/dL, creatinine 2.0 mg/dL). Clinical presentation is highly concerning for diabetic ketoacidosis given the constellation of gastrointestinal symptoms, polyuria, altered mental status, and metabolic derangements in a diabetic patient.
 
 Differential diagnosis:
 1. Diabetic ketoacidosis - most likely given presentation and laboratory abnormalities
 2. Hyperosmolar hyperglycemic state
-3. Lactic acidosis from other causes
-4. Acute gastroenteritis with dehydration
+3. Acute kidney injury with metabolic acidosis
+4. Sepsis with secondary metabolic derangements
 
-**Plan:**
-1. Obtain arterial blood gas, serum ketones, complete metabolic panel
-2. IV fluid resuscitation
-3. Continuous cardiac monitoring
-4. Frequent glucose and electrolyte monitoring
-5. Endocrinology consultation
-6. Further laboratory workup pending initial results
+**PLAN:**
+1. Obtain arterial blood gas, serum ketones, and complete metabolic panel
+2. Initiate IV fluid resuscitation
+3. Monitor electrolytes closely, particularly potassium
+4. Consider insulin therapy pending confirmation of ketoacidosis
+5. Continuous cardiac monitoring given hyperkalemia
+6. Investigate precipitating factors including possible infection
 
   ============================================================
   DOCUMENT: procedure_note
   ============================================================
   LOINC:      28570-0
   Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
-  Tokens:    in=401  out=362
+  Tokens:    in=401  out=365
   Cache:     False
   Fallback:  (none)
   ────────────────────────────────────────────────────────────
 **PROCEDURE NOTE**
 
-**Date and Time:** October 19, 2024 at 19:47
+**Date and Time:** May 11, 2024, 15:49
 
 **Procedure:** Central venous catheter insertion (CPT 36556)
 
 **Indication:** Nausea, vomiting, abdominal pain, polyuria, and altered consciousness requiring central venous access
 
-**Operator(s):** DR-IM-005
+**Operator(s):** DR-IM-002
 
 **Consent:** Informed consent obtained and documented
 
@@ -329,12 +357,11 @@ Differential diagnosis:
 
 **Anesthesia:** Local anesthesia administered
 
-**Preparation and Positioning:** Patient positioned appropriately. Sterile preparation and draping of the insertion site performed using standard sterile technique.
+**Preparation and Positioning:** Patient positioned appropriately. Sterile preparation and draping performed according to standard protocol. Universal precautions observed throughout procedure.
 
-**Technique:** 
-Under sterile conditions, local anesthesia was administered to the insertion site. Using ultrasound guidance and standard Seldinger technique, the target vessel was accessed with an introducer needle. Guidewire was advanced through the needle without resistance. The needle was removed and serial dilation performed. The central venous catheter was advanced over the guidewire to appropriate depth. Guidewire was removed and all lumens aspirated and flushed successfully. Catheter was secured with sutures and sterile dressing applied.
+**Technique:** Under sterile conditions, local anesthesia was administered to the insertion site. Using standard Seldinger technique, venous access was obtained under ultrasound guidance. Guidewire was advanced without resistance. Sequential dilation performed. Central venous catheter was advanced over the guidewire to appropriate depth. Guidewire removed. All lumens aspirated and flushed appropriately. Catheter secured with sutures and sterile dressing applied.
 
-**Findings/Results:** Successful placement of central venous catheter with good blood return from all lumens and appropriate positioning confirmed.
+**Findings/Results:** Successful central venous catheter placement with good blood return from all lumens. Appropriate positioning confirmed.
 
 **Estimated Blood Loss:** Minimal
 
@@ -342,121 +369,17 @@ Under sterile conditions, local anesthesia was administered to the insertion sit
 
 **Specimens:** None obtained
 
-**Post-procedure Plan:** Standard central line care protocols to be followed. Chest X-ray to confirm positioning.
+**Post-procedure Plan:** Continue monitoring. Chest X-ray to confirm positioning. Central venous access available for ongoing management as clinically indicated.
 
-Total procedure time: 33 minutes
-
-======================================================================
-  PATIENT: DKA death, 53yo F, HTN+DM2+COPD, home meds: 5 drugs, died day 3
-  File: test_data/smoke_patients/ENC-POP-000283-000019.json
-  ID: POP-000283  Age: 53  Sex: F
-  Ground truth: ['diabetic_ketoacidosis']
-  Deceased: True
-  Procedures: 0
-======================================================================
-
-  --- Enrichment Data (from extractor) ---
-  Clinical guidance:
-    confirmed_diagnosis: diabetic_ketoacidosis
-    all_diagnoses: ['diabetic_ketoacidosis']
-    diagnosis_correct: True
-    patient_outcome: died
-    disease_severity: 
-    disease_archetype: 
-    los_days: 2
-    had_surgery: False
-    complications: []
-    icu_transferred: False
-  Lab trends:
-    Cr: admission 1.0mg/dL (day 0) → peak 1.0mg/dL (day 0) → latest 1.0mg/dL (day 0) [insufficient_data]
-    Lactate: admission 2.0mmol/L (day 0) → peak 2.0mmol/L (day 0) → latest 2.0mmol/L (day 0) [insufficient_data]
-  Treatment timeline (9 events):
-    Day 0: Started Regular insulin (continuous IV) IV
-    Day 0: Started IV_fluid: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h IV
-    Day 0: Started IV_insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3) IV
-    Day 0: Started K_replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0 IV
-    Day 0: Started Amlodipine 5mg PO
-    Day 0: Started Metformin 500mg PO
-    Day 0: Started Tiotropium 18mcg inhaler PO
-    Day 0: Started Salbutamol 100mcg inhaler PRN PO
-    ... and 1 more
-  Hospital course (4 facts):
-    Day 0: Admitted with Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Initial working diagnosis: Type 2 diabetes mellitus with ketoacidosis without coma.
-    Day 0: Cr peaked at 1.0 mg/dL.
-    Day 0: Lactate peaked at 2.0 mmol/L.
-    Day 2: Patient died despite maximal therapy. Final diagnosis: Type 2 diabetes mellitus with hyperglycemia.
-
-  ============================================================
-  DOCUMENT: admission_hp
-  ============================================================
-  LOINC:      34117-2
-  Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
-  Tokens:    in=785  out=649
-  Cache:     False
-  Fallback:  (none)
-  ────────────────────────────────────────────────────────────
-**ADMISSION HISTORY & PHYSICAL**
-
-**Date:** 2024-05-11  
-**Time:** 11:40  
-**Admitting Physician:** DR-IM-003  
-**Service:** Internal Medicine
-
-**CHIEF COMPLAINT:**
-Nausea, vomiting, abdominal pain, polyuria, altered consciousness
-
-**HISTORY OF PRESENT ILLNESS:**
-53-year-old female presents with acute onset of nausea, vomiting, abdominal pain, polyuria, and altered mental status. Patient demonstrates signs of metabolic derangement with associated gastrointestinal symptoms and neurologic changes.
-
-**PAST MEDICAL HISTORY:**
-- Essential hypertension
-- Type 2 diabetes mellitus without complications
-- Chronic obstructive pulmonary disease
-
-**MEDICATIONS:**
-None documented
-
-**ALLERGIES:**
-NKDA
-
-**FAMILY HISTORY:**
-Not obtained
-
-**SOCIAL HISTORY:**
-Not obtained
-
-**REVIEW OF SYSTEMS:**
-Positive for nausea, vomiting, abdominal pain, polyuria, and altered consciousness as per HPI. Other systems not assessed due to patient condition.
-
-**PHYSICAL EXAMINATION:**
-**Vital Signs:** Temperature 35.6°C, Heart rate 90 bpm, Respiratory rate 17/min, Blood pressure 117/68 mmHg, Oxygen saturation 94.0%
-**General:** Altered mental status
-**Cardiovascular:** Regular rate and rhythm based on vital signs
-**Pulmonary:** Mildly decreased oxygen saturation
-**Abdomen:** Patient reports abdominal pain
-**Neurologic:** Altered consciousness
-
-**LABORATORY DATA:**
-Glucose 134 mg/dL (elevated), Potassium 5.3 mmol/L (elevated), BUN 27 mg/dL (elevated), Creatinine 0.99 mg/dL (upper normal)
-
-**ASSESSMENT:**
-53-year-old female with known Type 2 diabetes presenting with classic symptom constellation concerning for diabetic ketoacidosis. The combination of nausea, vomiting, abdominal pain, polyuria, and altered mental status in a diabetic patient raises high suspicion for DKA. Elevated glucose, hyperkalemia, and elevated BUN support this differential. Alternative considerations include hyperosmolar hyperglycemic state, uremia, or other metabolic derangements.
-
-**PLAN:**
-1. Obtain arterial blood gas, serum ketones, and complete metabolic panel
-2. Initiate IV access and fluid resuscitation
-3. Monitor electrolytes closely
-4. Consider insulin therapy pending ketone results
-5. Continuous cardiac monitoring
-6. Frequent neurologic assessments
-7. Pulmonary support as needed given baseline COPD and current hypoxemia
+*Procedure duration: 36 minutes*
+*Procedure completed successfully without complications*
 
   ============================================================
   DOCUMENT: discharge_summary
   ============================================================
   LOINC:      18842-5
   Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
-  Tokens:    in=975  out=661
+  Tokens:    in=1079  out=826
   Cache:     False
   Fallback:  (none)
   ────────────────────────────────────────────────────────────
@@ -464,10 +387,9 @@ Glucose 134 mg/dL (elevated), Potassium 5.3 mmol/L (elevated), BUN 27 mg/dL (ele
 
 **Patient:** 53-year-old Female  
 **Admission Date:** May 11, 2024  
-**Discharge Date:** May 13, 2024  
-**Length of Stay:** 2 days  
-**Attending Physician:** DR-IM-003  
-**Disposition:** Expired
+**Discharge Date:** May 15, 2024  
+**Length of Stay:** 4 days  
+**Attending Physician:** DR-IM-002  
 
 **ADMISSION DIAGNOSIS:**
 Type 2 diabetes mellitus with ketoacidosis without coma
@@ -480,7 +402,7 @@ Secondary: Essential hypertension, chronic obstructive pulmonary disease
 Nausea, vomiting, abdominal pain, polyuria, altered consciousness
 
 **HISTORY OF PRESENT ILLNESS:**
-This 53-year-old female presented with acute onset of nausea, vomiting, abdominal pain, polyuria, and altered level of consciousness. Clinical presentation was consistent with diabetic ketoacidosis in the setting of known type 2 diabetes mellitus.
+This 53-year-old female with a history of type 2 diabetes mellitus, hypertension, and COPD presented with acute onset of nausea, vomiting, abdominal pain, polyuria, and altered level of consciousness. Clinical presentation was consistent with diabetic ketoacidosis.
 
 **PAST MEDICAL HISTORY:**
 - Essential hypertension
@@ -488,69 +410,239 @@ This 53-year-old female presented with acute onset of nausea, vomiting, abdomina
 - Chronic obstructive pulmonary disease
 
 **HOSPITAL COURSE:**
-The patient was admitted on hospital day 0 with clinical findings suggestive of diabetic ketoacidosis. Initial laboratory studies revealed creatinine of 1.0 mg/dL and lactate of 2.0 mmol/L. Aggressive treatment was initiated immediately including IV fluid resuscitation with normal saline (1000 mL/h x 1 hour, then 500 mL/h x 4 hours, then 250 mL/h), continuous IV insulin therapy with regular insulin at 0.1 U/kg/h after potassium correction, and potassium replacement with KCl 20-40 mEq/L targeting serum potassium 4.0-5.0 mEq/L.
+The patient was admitted on hospital day 0 with diabetic ketoacidosis. Initial laboratory values revealed elevated creatinine at 2.0 mg/dL and CRP of 0.3 mg/L. She was managed with aggressive fluid resuscitation and insulin therapy. A central venous catheter was placed at bedside for vascular access and monitoring. 
 
-The patient's home medications were continued including amlodipine 5mg daily for hypertension, metformin 500mg daily for diabetes, and respiratory medications including tiotropium 18mcg inhaler and salbutamol 100mcg inhaler PRN for COPD. DVT prophylaxis with enoxaparin 2000 IU subcutaneously daily was initiated once hemodynamically stable.
+The patient received normal saline at 1000 mL/h for 1 hour, followed by 500 mL/h for 4 hours, then 250 mL/h. Continuous IV regular insulin was initiated at 0.1 U/kg/h after potassium levels were confirmed ≥3.3 mEq/L. Potassium replacement with KCl 20-40 mEq/L was provided in IV fluids targeting serum potassium of 4.0-5.0 mEq/L.
 
-Despite maximal medical therapy, the patient's condition deteriorated and she expired on hospital day 2.
+Her home medications for hypertension and COPD were continued, including amlodipine, candesartan, tiotropium, and salbutamol. DVT prophylaxis with enoxaparin was initiated once hemodynamically stable.
+
+The patient's clinical condition improved steadily with resolution of ketoacidosis and normalization of mental status. She was transitioned to subcutaneous insulin and tolerated oral intake well.
 
 **PROCEDURES PERFORMED:**
-None
+Central venous catheter insertion on May 11, 2024
 
 **DISCHARGE MEDICATIONS:**
-None (patient expired)
+- Insulin glargine per established regimen
+- Amlodipine 5 mg PO daily
+- Candesartan 8 mg PO daily  
+- Metformin 500 mg PO twice daily
+- Tiotropium 18 mcg inhaler daily
+- Salbutamol 100 mcg inhaler PRN
+
+**CONDITION AT DISCHARGE:**
+Stable. Patient alert and oriented with resolved ketoacidosis and improved hyperglycemia. Tolerating oral intake and ambulating independently.
+
+**FOLLOW-UP INSTRUCTIONS:**
+- Follow up with primary care physician within 1-2 weeks
+- Endocrinology consultation for diabetes management optimization
+- Monitor blood glucose closely and continue prescribed insulin regimen
+- Return to ED for recurrent nausea, vomiting, abdominal pain, or altered mental status
+- Medication compliance counseling provided
+
+======================================================================
+  PATIENT: Cerebral infarction death, 74yo, Apixaban+Lansoprazole, died
+  File: test_data/smoke_patients/ENC-POP-000437-000009.json
+  ID: POP-000437  Age: 74  Sex: F
+  Ground truth: ['cerebral_infarction']
+  Deceased: True
+  Procedures: 3
+======================================================================
+
+  --- Enrichment Data (from extractor) ---
+  Clinical guidance:
+    confirmed_diagnosis: cerebral_infarction
+    all_diagnoses: ['cerebral_infarction']
+    diagnosis_correct: True
+    patient_outcome: died
+    disease_severity: 
+    disease_archetype: 
+    los_days: 2
+    had_surgery: False
+    complications: []
+    icu_transferred: False
+  Lab trends:
+    Cr: admission 0.9mg/dL (day 0) → peak 0.9mg/dL (day 0) → latest 0.9mg/dL (day 0) [insufficient_data]
+    Hgb: admission 12.4g/dL (day 0) → peak 12.4g/dL (day 0) → latest 12.4g/dL (day 0) [insufficient_data]
+    Plt: admission 216.0x10^3/μL (day 0) → peak 216.0x10^3/μL (day 0) → latest 216.0x10^3/μL (day 0) [insufficient_data]
+  Treatment timeline (3 events):
+    Day 0: Started IV_fluid: NS 80 mL/h (avoid hypotonic fluids) IV
+    Day 0: Started DVT_prophylaxis: Sequential compression devices (avoid anticoagulant DVT prophylaxis first 24h) IV
+    Day 0: Started Lansoprazole 15mg PO
+  Hospital course (3 facts):
+    Day 0: Admitted with Sudden onset weakness, speech difficulty, facial droop. Initial working diagnosis: Cerebral infarction, unspecified.
+    Day 0: Cr peaked at 0.9 mg/dL.
+    Day 2: Patient died despite maximal therapy. Final diagnosis: Cerebral infarction, unspecified.
+
+  ============================================================
+  DOCUMENT: admission_hp
+  ============================================================
+  LOINC:      34117-2
+  Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
+  Tokens:    in=706  out=640
+  Cache:     False
+  Fallback:  (none)
+  ────────────────────────────────────────────────────────────
+**ADMISSION HISTORY & PHYSICAL**
+
+**Date:** April 25, 2024  
+**Time:** 12:12  
+**Admitting Physician:** DR-IM-006  
+**Service:** Internal Medicine
+
+**CHIEF COMPLAINT:**
+Sudden onset weakness, speech difficulty, facial droop
+
+**HISTORY OF PRESENT ILLNESS:**
+74-year-old female presents with acute onset of weakness, speech difficulty, and facial droop. Symptoms developed suddenly with no reported preceding events or gradual progression.
+
+**PAST MEDICAL HISTORY:**
+- Atrial fibrillation and flutter
+- Gastroesophageal reflux disease
+
+**MEDICATIONS:**
+- Apixaban 5mg daily
+- Lansoprazole 15mg daily
+
+**ALLERGIES:**
+No known drug allergies
+
+**FAMILY HISTORY:**
+Not obtained at this time
+
+**SOCIAL HISTORY:**
+Not obtained at this time
+
+**REVIEW OF SYSTEMS:**
+Limited due to patient's current condition. Positive for weakness and speech difficulties as noted in HPI.
+
+**PHYSICAL EXAMINATION:**
+**Vital Signs:** Temperature 37.0°C, Heart rate 96 bpm, Respiratory rate 16/min, Blood pressure 119/74 mmHg, Oxygen saturation 100% on room air
+**General:** Alert but with obvious neurological deficits
+**Neurological:** Facial droop present, speech difficulty noted, weakness observed
+**Cardiovascular:** Heart rate regular at 96 bpm, blood pressure stable
+**Respiratory:** Respiratory rate 16/min, oxygen saturation normal
+**Other systems:** Deferred pending stabilization
+
+**LABORATORY DATA:**
+- Creatinine 0.89 mg/dL (elevated)
+- BUN 20.1 mg/dL (elevated)
+
+**ASSESSMENT:**
+74-year-old female with acute onset neurological symptoms including weakness, dysarthria, and facial droop. Given the sudden onset and constellation of findings, acute cerebrovascular accident is highly suspected. The patient's history of atrial fibrillation represents a significant risk factor for cardioembolic stroke, despite anticoagulation with apixaban. Differential diagnosis includes:
+1. Acute ischemic stroke (most likely)
+2. Hemorrhagic stroke
+3. Transient ischemic attack
+4. Other causes of acute neurological deficit
+
+Mildly elevated renal function parameters may reflect baseline kidney function or acute changes.
+
+**PLAN:**
+1. Immediate neurological evaluation and stroke protocol activation
+2. Urgent CT head to rule out hemorrhage
+3. Consider MRI brain and vascular imaging
+4. Continuous cardiac monitoring
+5. NPO pending swallow evaluation
+6. Serial neurological assessments
+7. Supportive care and monitoring
+
+  ============================================================
+  DOCUMENT: discharge_summary
+  ============================================================
+  LOINC:      18842-5
+  Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
+  Tokens:    in=884  out=550
+  Cache:     False
+  Fallback:  (none)
+  ────────────────────────────────────────────────────────────
+**DISCHARGE SUMMARY**
+
+**Patient:** 74-year-old Female  
+**Admission Date:** April 25, 2024  
+**Discharge Date:** April 27, 2024  
+**Length of Stay:** 2 days  
+**Disposition:** Expired  
+**Attending Physician:** DR-IM-006
+
+**ADMISSION DIAGNOSIS:**
+Cerebral infarction, unspecified
+
+**DISCHARGE DIAGNOSES:**
+Primary: Cerebral infarction, unspecified
+
+**CHIEF COMPLAINT:**
+Sudden onset weakness, speech difficulty, facial droop
+
+**HISTORY OF PRESENT ILLNESS:**
+This 74-year-old female presented with acute onset of neurological symptoms including weakness, speech difficulty, and facial droop. The sudden onset and constellation of symptoms were consistent with an acute cerebrovascular event.
+
+**PAST MEDICAL HISTORY:**
+- Atrial fibrillation and flutter
+- Gastroesophageal reflux disease
+
+**HOSPITAL COURSE:**
+The patient was admitted on hospital day 0 with acute neurological deficits suggestive of cerebral infarction. Initial assessment confirmed the working diagnosis of cerebral infarction, unspecified. Laboratory studies on admission revealed creatinine 0.9 mg/dL, hemoglobin 12.4 g/dL, and platelets 216,000/μL. 
+
+Supportive care was initiated including IV normal saline at 80 mL/h to avoid hypotonic fluids, sequential compression devices for DVT prophylaxis (avoiding anticoagulant prophylaxis in the first 24 hours post-stroke), and lansoprazole 15 mg PO for GERD management. Despite maximal medical therapy, the patient's condition deteriorated and she expired on hospital day 2.
+
+**PROCEDURES PERFORMED:**
+- Urinary catheter insertion (April 25, 2024, 15:38)
+- Nasogastric tube insertion (April 25, 2024, 13:47)
+- Transthoracic echocardiography (April 25, 2024, 13:57)
+
+**DISCHARGE MEDICATIONS:**
+None applicable
 
 **CONDITION AT DISCHARGE:**
 Expired
 
 **FOLLOW-UP INSTRUCTIONS:**
-Not applicable (patient expired)
-
----
-*This discharge summary documents the clinical course of a 53-year-old female who presented with diabetic ketoacidosis and despite aggressive medical management, expired during hospitalization.*
+Not applicable - patient expired during hospitalization. Family was notified and appropriate bereavement support was provided.
 
   ============================================================
   DOCUMENT: death_summary
   ============================================================
   LOINC:      69730-0
   Source:     llm (model: us.anthropic.claude-sonnet-4-20250514-v1:0)
-  Tokens:    in=921  out=440
+  Tokens:    in=770  out=434
   Cache:     False
   Fallback:  (none)
   ────────────────────────────────────────────────────────────
 **DEATH NOTE**
 
-**Patient Identification:** 53-year-old female
+**Patient Identification:** 74-year-old female
 
-**Admission Diagnosis:** Type 2 diabetes mellitus with ketoacidosis without coma
+**Admission Diagnosis:** Cerebral infarction, unspecified
 
 **Hospital Course Leading to Death:**
-The patient was admitted on May 11, 2024, presenting with nausea, vomiting, abdominal pain, polyuria, and altered consciousness consistent with diabetic ketoacidosis. Initial laboratory values showed creatinine of 1.0 mg/dL and lactate of 2.0 mmol/L. 
+The patient was admitted on April 25, 2024, presenting with sudden onset weakness, speech difficulty, and facial droop consistent with acute cerebral infarction. Initial evaluation revealed stable vital signs and laboratory values within normal limits including creatinine 0.9 mg/dL, hemoglobin 12.4 g/dL, and platelet count 216,000/μL.
 
-Treatment was initiated immediately with continuous IV regular insulin, aggressive fluid resuscitation (normal saline 1000mL/h initially, then tapered), and potassium replacement targeting levels of 4.0-5.0 mEq/L. The patient's home medications for diabetes, hypertension, and COPD were continued, and DVT prophylaxis was implemented.
+Treatment was initiated with normal saline IV fluids at 80 mL/hour to avoid hypotonic solutions, sequential compression devices for DVT prophylaxis (anticoagulant prophylaxis was avoided in the first 24 hours), and lansoprazole 15mg PO for gastroesophageal reflux disease management.
 
-Despite maximal medical therapy including intensive insulin management and supportive care, the patient's condition deteriorated over the 2-day hospitalization. At the time of death on May 13, 2024, vital signs showed temperature 35.9°C, heart rate 85 bpm, respiratory rate 16, blood pressure 116/70 mmHg, and oxygen saturation 91.5%.
+Despite maximal medical therapy, the patient's condition deteriorated over the 2-day hospitalization. At the time of death, vital signs were: temperature 36.8°C, heart rate 98 bpm, respiratory rate 16/min, blood pressure 119/70 mmHg, and oxygen saturation 100%.
 
-**Immediate Cause of Death:** Complications of diabetic ketoacidosis
+**Immediate Cause of Death:** Cerebral infarction
 
-**Underlying Cause of Death:** Type 2 diabetes mellitus with hyperglycemia
+**Underlying Cause of Death:** Cerebral infarction, unspecified
 
 **Contributing Conditions:** 
-- Essential hypertension
-- Chronic obstructive pulmonary disease
+- Atrial fibrillation and flutter
+- Gastroesophageal reflux disease
 
-**Time and Place of Death:** May 13, 2024, at 11:40 AM, inpatient unit
+**Time and Place of Death:** April 27, 2024, at 12:12 PM, inpatient unit
 
 **Family Notification:** [To be completed by attending physician]
 
 **Autopsy Status:** [To be determined]
 
-**Attending Physician:** DR-IM-003
-**Date:** May 13, 2024
+No complications were documented during the admission.
+
+---
+Attending Physician: DR-IM-006
+Date: April 27, 2024
 
 ======================================================================
   Validation complete.
   Results: test_data/bedrock_5type_validation.txt
-  Cost report: {'total_calls': 8, 'total_input_tokens': 6147, 'total_output_tokens': 4394, 'fallback_count': 0, 'cache_hit_count': 0, 'cache_stats': None}
+  Cost report: {'total_calls': 9, 'total_input_tokens': 6968, 'total_output_tokens': 5337, 'fallback_count': 0, 'cache_hit_count': 0, 'cache_stats': None}
   To share: git add test_data/bedrock_5type_validation.txt && git commit -m 'bedrock 5-type validation' && git push
 ======================================================================
