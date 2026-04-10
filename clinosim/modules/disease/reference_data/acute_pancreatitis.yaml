@@ -11,6 +11,11 @@ encounter_type: medical
 requires_surgery: false
 readmission_eligible: true
 minimum_severity: null
+
+# NPO status — hold all oral medications; Metformin contraindicated in acute illness
+medication_holds:
+  - drugs: ["Metformin"]
+    reason: "Acute illness with lactic acidosis risk + NPO status"
 diagnostic_difficulty: 0.2   # Lipase > 3x ULN is highly specific; diagnosis usually straightforward
 
 icd_codes:

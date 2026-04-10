@@ -196,7 +196,7 @@ def _simulate_patient(
     # Home medication orders (chronic condition continuation)
     home_med_orders, chronic_monitoring = _generate_home_medication_orders(
         patient, encounter.encounter_id, admission_time, attending_id, rng,
-        state=state, disease_id=disease_id,
+        state=state, disease_id=disease_id, protocol=protocol,
     )
     admission_orders.extend(home_med_orders)
 
@@ -307,7 +307,11 @@ def _simulate_patient(
     )
 
     # Discharge prescription
-    discharge_rx = _build_discharge_rx(patient, disease_id, protocol, attending_id, rng, country_key=country_key) if not death_occurred else None
+    final_renal = state.renal_function if state else 1.0
+    discharge_rx = _build_discharge_rx(
+        patient, disease_id, protocol, attending_id, rng,
+        country_key=country_key, final_renal_function=final_renal,
+    ) if not death_occurred else None
 
     # Enrich medication orders with parsed dose/frequency/route
     from clinosim.modules.order.engine import enrich_medication_order
@@ -735,6 +739,7 @@ def _generate_home_medication_orders(
     rng: np.random.Generator,
     state: Any = None,
     disease_id: str = "",
+    protocol: Any = None,
 ) -> tuple[list[Order], list[dict]]:
     """Generate medication orders for home meds (chronic condition continuation).
 
@@ -754,13 +759,21 @@ def _generate_home_medication_orders(
         if not spec:
             continue
 
-        # Home medications (with renal dose adjustment)
+        # Home medications (with YAML-driven holds + renal dose adjustment)
         has_ckd = any(c.code.startswith("N18") for c in patient.chronic_conditions)
         renal_reserve = patient.physiological_profile.renal_reserve if hasattr(patient, "physiological_profile") else 1.0
-        # Also check initial renal_function state (reflects AKI on admission)
         initial_renal = state.renal_function if state else renal_reserve
-        # Flag if likely AKI on admission: low renal function OR very low reserve
         has_renal_impairment = has_ckd or initial_renal < 0.4
+
+        # Build held drug set from disease protocol's medication_holds (YAML-driven)
+        held_drugs: set[str] = set()
+        hold_reasons: dict[str, str] = {}
+        if protocol and hasattr(protocol, "medication_holds"):
+            for hold in (protocol.medication_holds or []):
+                reason = hold.get("reason", "disease-specific hold")
+                for drug in hold.get("drugs", []):
+                    held_drugs.add(drug.lower())
+                    hold_reasons[drug.lower()] = reason
 
         for med in spec.get("medications", []):
             prob = med.get("probability", 1.0)
@@ -770,26 +783,28 @@ def _generate_home_medication_orders(
             drug_name = med["drug"]
             intent = f"Home medication (continue): {code} - {drug_name}"
 
-            # Metformin: hold for renal impairment, AKI risk, or acute metabolic illness
-            # Clinical guideline: hold Metformin if eGFR < 30, acute illness, contrast dye, or DKA
-            # DKA/HHS: metformin is universally held due to lactic acidosis risk
-            metformin_contraindicated = (
-                initial_renal < 0.4
-                or has_renal_impairment
-                or disease_id in ("diabetic_ketoacidosis", "sepsis", "acute_kidney_injury")
-            )
-            if "Metformin" in drug_name and metformin_contraindicated:
-                intent += " [HELD - acute illness / lactic acidosis risk]"
-                continue  # contraindicated
+            # 1. YAML-driven disease-specific holds (highest priority)
+            drug_lower = drug_name.lower()
+            yaml_held = False
+            for held_name in held_drugs:
+                if held_name in drug_lower:
+                    reason = hold_reasons.get(held_name, "disease-specific hold")
+                    yaml_held = True
+                    break
+            if yaml_held:
+                continue  # silently skip — not ordered
 
-            # Renal dose adjustment for CKD patients and impaired renal function
+            # 2. Metformin: renal-function-based hold (fallback for diseases without YAML holds)
+            if "metformin" in drug_lower and (initial_renal < 0.4 or has_renal_impairment):
+                continue
+
+            # 3. Renal dose adjustment for CKD patients
             if has_renal_impairment and renal_reserve < 0.5:
-                renal_drugs = ["Enoxaparin", "Enalapril", "Candesartan",
-                               "Alendronate", "Celecoxib"]
-                if any(rd.lower() in drug_name.lower() for rd in renal_drugs):
-                    if "Celecoxib" in drug_name:
-                        intent += " [HELD - renal impairment]"
-                        continue
+                renal_drugs = ["enoxaparin", "enalapril", "candesartan",
+                               "alendronate", "celecoxib"]
+                if any(rd in drug_lower for rd in renal_drugs):
+                    if "celecoxib" in drug_lower:
+                        continue  # held
                     else:
                         intent += " [dose reduced for renal impairment]"
 
@@ -1270,9 +1285,19 @@ def _build_discharge_rx(
     prescriber_id: str,
     rng: np.random.Generator,
     country_key: str = "japan",
+    final_renal_function: float = 1.0,
 ) -> PrescriptionRecord:
-    """Build discharge prescription from protocol."""
+    """Build discharge prescription from protocol.
+
+    Applies renal contraindication checks so that nephrotoxic drugs or drugs
+    requiring renal clearance are not prescribed at discharge if the patient's
+    renal function is impaired.
+    """
     items: list[dict] = []
+
+    # Drugs contraindicated at low renal function (eGFR roughly maps to state value)
+    renal_hold_drugs = {"metformin", "celecoxib", "ibuprofen", "naproxen",
+                         "enoxaparin", "alendronate"}
 
     discharge_drugs = protocol.drugs.get("discharge_oral", {}).get(country_key, [])
     if isinstance(discharge_drugs, dict):
@@ -1280,15 +1305,25 @@ def _build_discharge_rx(
 
     for drug_spec in discharge_drugs:
         if isinstance(drug_spec, dict):
+            drug_name = drug_spec.get("drug", "")
+            # Renal contraindication check at discharge
+            if final_renal_function < 0.3 and any(
+                rd in drug_name.lower() for rd in renal_hold_drugs
+            ):
+                continue  # skip nephrotoxic drug
             items.append({
-                "drug_name": drug_spec.get("drug", ""),
+                "drug_name": drug_name,
                 "dose": drug_spec.get("dose", ""),
                 "duration_days": drug_spec.get("duration_days", 7),
-                "route": "PO",
+                "route": drug_spec.get("route", "PO"),
             })
 
-    # Continue chronic medications
+    # Continue chronic medications (with renal check)
     for med in patient.current_medications:
+        if final_renal_function < 0.3 and any(
+            rd in med.lower() for rd in renal_hold_drugs
+        ):
+            continue  # do not restart nephrotoxic drug at discharge
         items.append({"drug_name": med, "dose": "", "route": "PO", "duration_days": 28})
 
     return PrescriptionRecord(

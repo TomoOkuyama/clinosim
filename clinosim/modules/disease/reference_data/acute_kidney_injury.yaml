@@ -11,6 +11,12 @@ encounter_type: medical
 requires_surgery: false
 readmission_eligible: true
 
+medication_holds:
+  - drugs: ["Metformin"]
+    reason: "AKI — lactic acidosis risk, renal clearance impaired"
+  - drugs: ["Celecoxib", "Ibuprofen", "Naproxen"]
+    reason: "AKI — NSAIDs contraindicated in renal impairment"
+
 icd_codes:
   primary: "N17.9"  # Acute kidney failure, unspecified
   variants:
