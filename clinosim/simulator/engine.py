@@ -71,11 +71,17 @@ def run_beta(
     roster = generate_roster(config.hospital_scale, config.country, rng, hospital_config=hospital_ops)
     hospital_state = HospitalState()
 
-    # Population: use hospital's recommended_population unless overridden
+    # Population: use hospital's recommended_population unless overridden by CLI
     pop_size = config.catchment_population
-    recommended = hospital_ops.get("recommended_population")
-    if recommended and config.catchment_population == 10_000:  # default unchanged
-        pop_size = recommended
+    recommended_raw = hospital_ops.get("recommended_population")
+    if recommended_raw:
+        if isinstance(recommended_raw, dict):
+            # Country-specific: {US: 40000, JP: 5000, default: 40000}
+            recommended = recommended_raw.get(config.country) or recommended_raw.get("default", 40000)
+        else:
+            recommended = int(recommended_raw)
+        if config.catchment_population == 10_000:  # CLI default unchanged → use hospital config
+            pop_size = recommended
     beds = hospital_ops.get("resource_capacity", {}).get("inpatient_beds", 50)
     print(f"  Hospital: {beds} beds", flush=True)
 
