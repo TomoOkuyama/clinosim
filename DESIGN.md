@@ -1714,6 +1714,9 @@ observations.
 | AD-39 | 2026-04-09 | LLM provider plugin registry + YAML-driven factory |
 | AD-40 | 2026-04-09 | Prompt templates externalized as per-language YAML files |
 | AD-41 | 2026-04-09 | SHA256 disk cache for LLM responses (reproducibility + cost control) |
+| AD-42 | 2026-04-10 | YAML-driven medication_holds in disease protocols (replaces hardcoded disease_id lists in simulator) |
+| AD-43 | 2026-04-10 | Country-specific recommended_population in hospital config (US: 40K, JP: 5K for 50-bed) |
+| AD-44 | 2026-04-10 | Staff name resolution in narrative prompts (hospital.json roster → display names) |
 
 ---
 
