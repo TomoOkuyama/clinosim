@@ -7,7 +7,10 @@
 
 # Recommended catchment population for this hospital size
 # This is the default if -p is not specified on CLI
-recommended_population: 60000  # 50-bed hospital, ~80% occupancy with realistic admission rate
+recommended_population:
+  US: 40000   # 50 beds ÷ 130 beds/100K ≈ 38K, rounded to 40K for ~80% occupancy
+  JP: 5000    # 50 beds ÷ 1300 beds/100K ≈ 3.8K, rounded to 5K (longer LOS in Japan)
+  default: 40000
 
 # Available departments at this hospital (50-bed community hospital).
 # Granular sub-specialties roll up via department_rollup below.
