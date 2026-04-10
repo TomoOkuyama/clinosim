@@ -128,28 +128,38 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 | 15 | Unit tests (32 new, 141 total) | tests | ✅ |
 | 16 | Tier A+B English prompts (5 YAML files) | prompts | ✅ |
 
-### v0.2 — LLM realism + Japanese documents (CURRENT)
+### Milestone 2 — Simulation fixes + Bedrock full run ✅ COMPLETE (2026-04-10)
 
 | # | Task | Module | Status |
 |---|---|---|---|
-| 1 | **EC2 Bedrock 5-type validation (re-run after sim fixes)** | infra, `output` | **Next** — `scripts/validate_5types_bedrock.py` ready, 3 sim fixes applied (approach/home meds/metformin hold) |
-| 2 | **EC2 Bedrock full 374-document run** | infra | Blocked by #1 — after 5-type validation passes |
-| 3 | **Full FHIR Bulk Data export with DocumentReference + iris-ai copy** | `output` | Blocked by #2 |
-| 4 | Japanese prompts (`prompts/ja/*.yaml`) with clinician review | `llm_service` | Open |
-| 5 | Discharge prescription for hip fracture (post-op pain meds + DVT prophylaxis) | `disease` | Open — hip_fracture.yaml `drugs.discharge_oral` is empty |
-| 15 | Generic surgery names for non-hip-fracture diseases | `procedure` | Open — simulate_surgery uses "Surgical procedure for X" for all diseases except hip_fracture. Need disease-specific CPT/procedure names (e.g., cholecystitis → CPT 47562 Laparoscopic cholecystectomy) |
-| 16 | Discharge prescription Cr-based contraindication check | `simulator` | Open — _build_discharge_rx does not check discharge-time renal function. Metformin reappears in DC Rx even with Cr 7.2 (eGFR<10). Need Cr/eGFR gate at discharge |
-| 17 | Metformin hold for acute_pancreatitis (NPO + acute illness) | `simulator` | Open — Metformin PO continued during acute pancreatitis despite NPO status. Add to disease_id hold list in _generate_home_medication_orders |
-| 18 | Trauma Hgb recovery model / discharge gate | `physiology`, `simulator` | Open — Hgb 5.0 at day 13 discharge is clinically impossible. Physiology engine needs post-trauma Hgb recovery + discharge criterion Hgb > 7.0 |
-| 19 | HF exacerbation: IV diuretic not in MAR | `simulator` | Open — Home furosemide exists but not converted to IV for acute HF. Need disease-specific home→IV escalation logic |
-| 20 | LLM hallucination: DOAC double-prescribing in DC Rx | `llm_service` | Open — When DC Rx is empty, LLM invents medications (rivaroxaban + apixaban both). Add prompt rule: "only prescribe medications listed in the input" |
-| 21 | Anticoagulant hold for hemorrhagic_stroke | `simulator` | Open — Home Apixaban/Warfarin continues during ICH. Add hemorrhagic_stroke to anticoagulant hold disease list |
-| 22 | BPH assigned to female patients | `population` | Open — demographics.yaml chronic condition assignment lacks sex filter. BPH (N40) should be M-only |
-| 6 | Template fallbacks for new Tier A+B tasks | `llm_service` | Partial — basic templates done, need enrichment |
-| 7 | LLM JUDGMENT phase wiring (diagnostic reasoning) | `llm_service`, `diagnosis` | Open |
-| 8 | Validator Pass 2 (LLM consistency review) | `validator` | Open |
-| 9 | Performance: 100k+ patients, parallel sim | `simulator` | Open |
-| 10 | Tier 1 benchmarks expanded (LOS, mortality, complication) | `validator` | Partial |
+| 1 | EC2 Bedrock 5-type validation (4 rounds, 12 diseases) | infra, `output` | ✅ |
+| 2 | YAML-driven `medication_holds` in disease protocols | `disease`, `simulator` | ✅ (hemorrhagic_stroke, pancreatitis, DKA, sepsis, AKI) |
+| 3 | Surgery procedure names from disease YAML | `procedure`, `disease` | ✅ (cholecystitis→CPT47562, appendicitis→CPT44970, trauma→CPT49000) |
+| 4 | Hip fracture discharge prescription | `disease` | ✅ (oxycodone + enoxaparin + Ca/VitD) |
+| 5 | DC Rx Cr-based contraindication check | `simulator` | ✅ (final_renal_function < 0.3 gates nephrotoxic drugs) |
+| 6 | BPH sex filter (demographics.yaml) | `population` | ✅ (sex: M field + engine filter) |
+| 7 | LLM hallucination prevention (DC Rx prompt) | `llm_service` | ✅ (prompt rule: only listed meds) |
+| 8 | Nurse assignment per department (was IM-only) | `simulator` | ✅ (MAR + vitals use patient's dept nurse) |
+| 9 | Staff ID → name in narrative prompts | `output` | ✅ (DR-XX-NNN → Dr. Name) |
+| 10 | Country-specific recommended_population | `config` | ✅ (US: 40K, JP: 5K) |
+| 11 | .gitignore fix (clinosim/modules/output/ was excluded) | repo | ✅ |
+| 12 | EC2 Bedrock full 421-document run | infra | ✅ |
+| 13 | FHIR Bulk Data with DocumentReference → iris-ai | `output` | ✅ |
+
+### v0.2 — Simulation realism + Japanese documents (CURRENT)
+
+| # | Task | Module | Status |
+|---|---|---|---|
+| 1 | Severity-based lab frequency modulation | `simulator` | Open — severe patients should get more frequent labs |
+| 2 | Trauma Hgb recovery model / discharge gate | `physiology`, `simulator` | Open — Hgb 5.0 at discharge is clinically impossible |
+| 3 | HF exacerbation: IV diuretic not in MAR | `simulator` | Open — Home furosemide → IV escalation needed |
+| 4 | narrate progress display (patient N/M) | `output` | Open — no progress indicator during long narrate runs |
+| 5 | Japanese prompts (`prompts/ja/*.yaml`) with clinician review | `llm_service` | Open |
+| 6 | 40K population full run (US production scale) | infra | Open |
+| 7 | Template fallbacks for new Tier A+B tasks | `llm_service` | Partial |
+| 8 | LLM JUDGMENT phase wiring (diagnostic reasoning) | `llm_service`, `diagnosis` | Open |
+| 9 | Validator Pass 2 (LLM consistency review) | `validator` | Open |
+| 10 | Performance: 100k+ patients, parallel sim | `simulator` | Open |
 | 11 | Hospital course extractor: treatment change detection | `output` | Partial |
 | 12 | Progress Note (Tier C, opt-in) | `llm_service`, `output` | Open |
 | 13 | Anthropic direct provider (non-Bedrock) | `llm_service` | Open |
@@ -166,7 +176,7 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 | 3 | OB/GYN encounters (pregnancy, delivery, NICU) | `encounter`, `disease` | Open (v0.2) |
 | 4 | Outpatient chronic disease management depth | `encounter`, `population` | Partial (chronic_followup.yaml exists but limited) |
 | 5 | LLM judgment phase wiring (currently template only) | `llm_service`, `diagnosis` | Open |
-| 6 | Realistic 80% bed occupancy at default population | `facility`, `population` | Partial (currently ~50% with 60k catchment for 50-bed) |
+| 6 | Realistic 80% bed occupancy at default population | `facility`, `population` | ✅ Fixed — US 40K / JP 5K recommended_population (was 60K) |
 | 7 | Code coverage expansion: more LOINC/RxNorm/CPT codes | `codes` | Continuous (224 ICD, 59 LOINC, 68 RxNorm, 25 CPT currently) |
 
 ### Medium Priority
@@ -203,8 +213,10 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 - [x] Prompt templates as YAML (per-language) ← Milestone 1
 - [x] FHIR DocumentReference output ← Milestone 1
 - [x] SHA256 prompt cache ← Milestone 1
-- [ ] Ollama end-to-end narrative quality validation (llama3.1:70b or qwen2.5:72b)
-- [ ] EC2 + Bedrock actual production run
+- [x] EC2 + Bedrock production run (421 documents, Claude Sonnet 4) ← Milestone 2
+- [x] 4-round clinical review (35 documents, 12 disease patterns) ← Milestone 2
+- [x] 8 simulation fixes (YAML medication_holds, surgery names, Cr check, sex filter, nurse dept, staff names) ← Milestone 2
+- [x] Country-specific recommended_population (US:40K, JP:5K) ← Milestone 2
 - [ ] Japanese prompts with clinician review
 - [ ] LLM JUDGMENT phase wiring (diagnostic reasoning, treatment rationale)
 - [ ] Validator Pass 2 (LLM consistency review)
@@ -244,6 +256,23 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 - [ ] Full validation against published benchmarks
 - [ ] Comprehensive documentation
 - [ ] Stable API contracts
+
+## Recent completions (2026-04-10 — Milestone 2: Simulation fixes + Bedrock full run)
+
+- ✅ 4-round Bedrock clinical validation (35 documents, 12 disease patterns, 5 document types)
+- ✅ YAML-driven `medication_holds` in disease protocols (hemorrhagic_stroke, pancreatitis, DKA, sepsis, AKI)
+- ✅ Surgery names from disease YAML (cholecystitis→laparoscopic cholecystectomy CPT 47562, appendicitis→CPT 44970, trauma→exploratory laparotomy CPT 49000)
+- ✅ Hip fracture discharge prescription (oxycodone/acetaminophen + enoxaparin + calcium/vitamin D)
+- ✅ Discharge Rx renal contraindication check (final_renal_function < 0.3 → skip metformin/celecoxib/NSAIDs)
+- ✅ BPH sex filter in demographics.yaml (N40 male-only + population engine sex check)
+- ✅ LLM hallucination prevention (discharge_summary prompt: "only prescribe listed medications")
+- ✅ Nurse assignment per department (was hardcoded to internal_medicine → now uses patient's dept)
+- ✅ Staff ID → name resolution in narrative prompts (DR-XX-NNN → Dr. Name, NS-XX-NNN → RN Name)
+- ✅ Country-specific recommended_population (US: 40K, JP: 5K based on bed/population ratios)
+- ✅ .gitignore fix (clinosim/modules/output/ was accidentally excluded)
+- ✅ EC2 Bedrock full run: 421 documents generated (191 H&P + 191 DC + 22 Procedure + 9 Op + 8 Death)
+- ✅ FHIR Bulk Data with 13 NDJSON types (incl. DocumentReference 421 + Practitioner 71 all-dept nurses)
+- ✅ Full dataset delivered to iris-ai (209MB FHIR Bulk Data)
 
 ## Recent completions (2026-04-09 — Milestone 1: Clinical documents)
 
