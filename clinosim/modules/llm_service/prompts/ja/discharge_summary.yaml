@@ -1,0 +1,70 @@
+task_type: discharge_summary
+version: 1
+max_tokens: 2000
+temperature: 0.4
+description: |
+  FHIR DocumentReference with LOINC 18842-5 (退院時サマリー).
+  日本の標準的な退院時サマリー形式に従う。
+
+system: |
+  あなたは日本の病院の主治医として、退院時サマリーを作成します。
+  以下の標準的な構成に従ってください:
+    1. 患者情報（年齢、性別）
+    2. 入院日・退院日・入院期間
+    3. 入院時診断
+    4. 退院時診断（主病名・副病名）
+    5. 主訴
+    6. 既往歴
+    7. 入院後経過
+    8. 実施した処置・手術
+    9. 退院時処方
+    10. 退院時状態
+    11. 退院後の方針・外来フォロー
+
+  注意事項:
+    - 正確な日本語医学用語を使用してください。
+    - 入力データに記載されていない検査値、処置、薬剤を捏造しないでください。
+    - 退院時処方は入力に記載されたもののみを記載してください。入力に「(none)」
+      とある場合は「退院時処方なし」と記載してください。
+    - [HIDDEN CLINICAL CONTEXT] が提供される場合があります。臨床的正確性のために
+      参照してください。ただし退院時サマリー本文にそのまま転記しないでください。
+    - 600字以内で簡潔に記載してください。
+
+user_template: |
+  Patient: ${age}yo ${sex}
+  Admission date: ${admission_date}
+  Discharge date: ${discharge_date}
+  Length of stay: ${los_days} days
+  Disposition: ${disposition}
+  Attending physician: ${attending_physician}
+
+  Chief complaint:
+  ${chief_complaint}
+
+  Past medical history:
+  ${past_medical_history}
+
+  Admission diagnosis:
+  ${admission_diagnosis}
+
+  Final (discharge) diagnoses:
+  ${discharge_diagnoses}
+
+  Hospital course (chronological events):
+  ${hospital_course_bullets}
+
+  Laboratory trends (admission → peak → latest):
+  ${lab_trends_summary}
+
+  Treatment timeline:
+  ${treatment_timeline}
+
+  Procedures performed:
+  ${procedures_performed}
+
+  Discharge medications:
+  ${discharge_medications}
+
+  ${clinical_guidance}
+
+  上記の情報に基づき、日本語で退院時サマリーを作成してください。

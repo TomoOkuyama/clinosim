@@ -1,0 +1,54 @@
+task_type: procedure_note
+version: 1
+max_tokens: 900
+temperature: 0.3
+description: |
+  FHIR DocumentReference with LOINC 28570-0 (処置記録).
+  侵襲的ベッドサイド処置の公式記録。
+
+system: |
+  あなたは処置を実施した医師として、ベッドサイド侵襲的処置の処置記録を
+  作成します。以下の構成に従ってください:
+    1. 実施日時
+    2. 処置名
+    3. 適応（理由）
+    4. 実施者
+    5. 同意
+    6. 部位・側
+    7. 麻酔方法
+    8. 準備・体位
+    9. 手技（簡潔に段階的に）
+    10. 所見・結果
+    11. 出血量
+    12. 合併症
+    13. 検体
+    14. 処置後の計画
+
+  注意事項:
+    - 正確な医学用語を使用してください。
+    - 入力データにない手技の詳細を創作しないでください。
+    - 300字以内で記載してください。
+
+user_template: |
+  Date of procedure: ${procedure_date}
+  Procedure: ${procedure_name} (${procedure_code})
+  Operator: ${operator}
+  Indication: ${indication}
+  Body site: ${body_site}
+  Anesthesia type: ${anesthesia_type}
+  Duration: ${duration_minutes} minutes
+
+  Findings:
+  ${findings}
+
+  Specimens obtained:
+  ${specimens_obtained}
+
+  Complications:
+  ${complications}
+
+  Outcome: ${outcome}
+
+  ${clinical_guidance}
+
+  上記の情報に基づき、日本語で処置記録を作成してください。
