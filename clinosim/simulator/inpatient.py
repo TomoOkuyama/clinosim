@@ -234,6 +234,14 @@ def _simulate_patient(
     )
     procedures.extend(bedside)
 
+    # Apply state impacts from bedside procedures (e.g., blood transfusion)
+    for proc in bedside:
+        if proc.procedure_type == "blood_transfusion":
+            # Each unit of RBC raises Hgb ~1 g/dL → anemia_level -0.07 per unit
+            # Assume 1-2 units per transfusion event
+            state.anemia_level = max(0.0, state.anemia_level - 0.15)
+            state.volume_status = min(1.0, state.volume_status + 0.05)
+
     # Differential diagnosis
     protocol_diagnostic = protocol.diagnostic if hasattr(protocol, 'diagnostic') else {}
     differential = initialize_differential(disease_id, patient.age, protocol_diagnostic=protocol_diagnostic)

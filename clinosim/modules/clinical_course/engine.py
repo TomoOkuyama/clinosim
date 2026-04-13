@@ -413,11 +413,20 @@ def natural_recovery_directive(
     if day > 14:
         base *= 0.5
 
+    # Anemia recovery: bone marrow erythropoiesis (~0.02/day = ~1 g/dL Hgb/week)
+    # Accelerates slightly after day 3 (reticulocyte response peaks day 3-5)
+    anemia_recovery = 0.015 * severity_scale
+    if day >= 3:
+        anemia_recovery = 0.025 * severity_scale
+    if day >= 7:
+        anemia_recovery = 0.02 * severity_scale  # steady-state production
+
     return StateChangeDirective(
         source="natural_recovery",
         changes={
             "inflammation_level": -base,
             "volume_status": -0.005 * severity_scale,  # toward 0
+            "anemia_level": -anemia_recovery,  # bone marrow erythropoiesis
         },
         reason=f"Natural recovery (immune={immune:.2f}, severity={severity})",
     )

@@ -161,6 +161,11 @@ def apply_coupling_rules(state: PhysiologicalState) -> None:
         state.anemia_level = clamp(
             state.anemia_level + (state.inflammation_level - 0.5) * 0.005, 0.0, 1.0
         )
+    # Resolving inflammation allows anemia to recover (bone marrow de-suppression)
+    elif state.inflammation_level < 0.2 and state.anemia_level > 0.05:
+        state.anemia_level = clamp(
+            state.anemia_level - 0.005, 0.0, 1.0
+        )
 
 
 # ---------------------------------------------------------------------------
