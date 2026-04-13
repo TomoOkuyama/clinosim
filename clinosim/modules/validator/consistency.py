@@ -176,13 +176,23 @@ def _check_medication_holds(
 
     # DKA/sepsis/pancreatitis: no metformin
     metformin_hold_diseases = {"diabetic_ketoacidosis", "sepsis", "acute_pancreatitis", "acute_kidney_injury"}
-    if disease in metformin_hold_diseases:
+    # Check primary disease AND complications for metformin contraindication
+    all_conditions = set(gt) | set(record.complications_occurred)
+    if all_conditions & metformin_hold_diseases:
+        triggering = all_conditions & metformin_hold_diseases
         for order in record.orders:
             name = (order.display_name or "").lower()
-            if "metformin" in name and "HELD" not in (order.clinical_intent or ""):
+            intent = (order.clinical_intent or "").lower()
+            # Skip hold instructions (these contain "metformin" but are not administration)
+            if "hold" in intent or "held" in intent:
+                continue
+            # Skip cancelled orders (held/cancelled during admission)
+            if hasattr(order, 'status') and order.status.value in ('cancelled', 'discontinued'):
+                continue
+            if "metformin" in name:
                 report.add(ConsistencyIssue(
                     pid, "error", "metformin_in_acute",
-                    f"Metformin ordered during {disease}",
+                    f"Metformin active despite {triggering}",
                 ))
 
 
