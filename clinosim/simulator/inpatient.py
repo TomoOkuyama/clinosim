@@ -261,6 +261,7 @@ def _simulate_patient(
         attending_id=attending_id,
         encounter_id=encounter.encounter_id,
         department=department,
+        severity=severity,
     )
 
     # Unpack results
@@ -420,6 +421,7 @@ def _run_daily_loop(
     hospital_ops: dict | None = None,
     attending_id: str = "",
     department: str = "internal_medicine",
+    severity: str = "moderate",
     encounter_id: str = "",
 ) -> dict:
     """Run the day-by-day simulation loop. Returns all generated data."""
@@ -494,6 +496,9 @@ def _run_daily_loop(
 
             # Context-dependent lab frequency modulation
             freq_mod = healthcare.lab_frequency_multiplier
+            # Severity: severe patients get more frequent labs, mild get fewer
+            severity_mult = {"severe": 1.3, "moderate": 1.0, "mild": 0.6}.get(severity, 1.0)
+            freq_mod *= severity_mult
             # Near discharge: reduce routine labs
             if day >= target_los - 2 and state.inflammation_level < 0.1:
                 freq_mod *= 0.5
