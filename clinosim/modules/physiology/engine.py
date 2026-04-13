@@ -179,6 +179,7 @@ def derive_lab_values(
     has_diabetes: bool = False,
     diabetes_controlled: bool = True,
     rng: np.random.Generator | None = None,
+    hour: int = 6,
 ) -> dict[str, float]:
     """Derive lab values from physiological state. Returns 'true' values before noise."""
     labs: dict[str, float] = {}
@@ -239,13 +240,28 @@ def derive_lab_values(
     labs["HCO3"] = 24 + ph * 12
     labs["pCO2"] = 40 - ph * 10  # respiratory compensation
 
-    # --- Glucose ---
+    # --- Glucose (with diurnal / postprandial variation) ---
     if has_diabetes:
         mean_glu = 130.0 if diabetes_controlled else 200.0
         labs["Glucose"] = mean_glu
     else:
         labs["Glucose"] = 95.0
     labs["Glucose"] += infl * 50  # stress hyperglycemia
+    # Postprandial rise: meals ~8h, 12h, 18h → peak 1-2h after
+    # Fasting (early morning 04-07): lowest
+    postprandial = 0.0
+    if 9 <= hour <= 10:    # post-breakfast
+        postprandial = 25.0
+    elif 13 <= hour <= 14:  # post-lunch
+        postprandial = 20.0
+    elif 19 <= hour <= 20:  # post-dinner
+        postprandial = 20.0
+    labs["Glucose"] += postprandial
+
+    # --- WBC diurnal variation (±10%, afternoon slightly higher) ---
+    # Nadir ~04:00, peak ~16:00
+    wbc_circadian = 1.0 + 0.10 * math.sin((hour - 4) * math.pi / 12)
+    labs["WBC"] *= wbc_circadian
 
     return labs
 
