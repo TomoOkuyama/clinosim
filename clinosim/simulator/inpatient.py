@@ -524,14 +524,14 @@ def _run_daily_loop(
             all_orders.extend(chronic_lab_orders)
 
         # Lab results (with temporal lag for slow markers like CRP)
-        true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes)
+        lab_hour = lab_time.hour if 'lab_time' in dir() else 6  # early morning default
+        true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, hour=lab_hour)
 
         # Apply temporal lag: CRP reflects inflammation from ~1 day ago
         if len(state_history) >= 2 and "CRP" in true_labs:
-            # CRP lags inflammation by ~1 day
-            lag_idx = max(0, len(state_history) - 2)  # previous day's state
+            lag_idx = max(0, len(state_history) - 2)
             lagged_state = state_history[lag_idx]
-            lagged_labs = derive_lab_values(lagged_state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes)
+            lagged_labs = derive_lab_values(lagged_state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, hour=lab_hour)
             true_labs["CRP"] = lagged_labs.get("CRP", true_labs["CRP"])
 
         for order in all_orders:
