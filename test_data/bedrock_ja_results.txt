@@ -1,0 +1,249 @@
+============================================================
+  Japanese Narrative Generation Test (Bedrock)
+  Date: 2026-04-13 06:32:46 UTC
+============================================================
+
+<frozen runpy>:128: RuntimeWarning: 'clinosim.simulator.cli' found in sys.modules after import of package 'clinosim.simulator', but prior to execution of 'clinosim.simulator.cli'; this may result in unpredictable behaviour
+clinosim narrate: loading LLM config clinosim/config/llm_service.bedrock.yaml
+  CIF directory: test_data/ja_narr_test
+  Language:      ja
+  Mode:          llm
+  Tasks:         all Tier A+B
+  Narrating 1/5115 files, 0 patients, 0 documents...
+  Narrating 397/5115 files, 10 patients, 23 documents...
+  Narrating 1052/5115 files, 20 patients, 45 documents...
+  Narrating 1938/5115 files, 30 patients, 67 documents...
+  Narrating 2389/5115 files, 40 patients, 89 documents...
+  Narrating 2934/5115 files, 50 patients, 111 documents...
+  Narrating 4554/5115 files, 60 patients, 136 documents...
+
+  === Narrative Generation Summary ===
+  Version ID:       bedrock_ja_test
+  Patients:         69
+  Total documents:  157
+    admission_hp         69
+    death_summary        3
+    discharge_summary    69
+    operative_note       5
+    procedure_note       11
+  LLM calls:        157
+  LLM input tokens: 175,960
+  LLM output tokens:88,003
+  Fallbacks:        0
+  Cache hits:       0
+
+============================================================
+  Generated Documents (1 sample per type)
+============================================================
+
+============================================================
+  admission_hp (LOINC 34117-2)
+  source=llm model=us.anthropic.claude-sonnet-4-20250514-v1:0
+  tokens: in=954 out=585
+============================================================
+**入院時記録**
+
+**主訴：** 胸痛、発汗、呼吸困難
+
+**現病歴：** 78歳男性。胸痛、発汗、呼吸困難を主訴に救急搬送。来院時バイタルサイン：体温37.2℃、脈拍114回/分、呼吸数19回/分、血圧80/50mmHg、SpO2 97.7%。
+
+**既往歴：** 2型糖尿病、慢性虚血性心疾患
+
+**内服薬：** メトホルミン500mg、スライディングスケールインスリン、アスピリン100mg、クロピドグレル75mg
+
+**アレルギー：** 薬物アレルギーなし
+
+**身体所見：** 
+- バイタルサイン：体温37.2℃、脈拍114回/分頻脈、呼吸数19回/分、血圧80/50mmHg低血圧、SpO2 97.7%
+- 発汗著明
+
+**検査所見：**
+- 血液検査：WBC 11,245/μL↑、Cr 5.71mg/dL↑、BUN 56.5mg/dL↑、Na 135mmol/L↓、K 5.3mmol/L↑、血糖140mg/dL↑、AST 382U/L↑、ALT 274U/L↑
+
+**アセスメント：** 胸痛、発汗、呼吸困難に低血圧、頻脈を伴う78歳男性。慢性虚血性心疾患の既往あり。急性心筋梗塞を最も疑う。腎機能障害、肝酵素上昇も認める。
+
+**プラン：** 
+1. 心電図、心エコー、心筋逸脱酵素測定
+2. 循環動態安定化
+3. 腎機能・電解質管理
+4. 緊急心臓カテーテル検査検討
+
+============================================================
+  discharge_summary (LOINC 18842-5)
+  source=llm model=us.anthropic.claude-sonnet-4-20250514-v1:0
+  tokens: in=1608 out=591
+============================================================
+**退院時サマリー**
+
+**患者情報：** 78歳 男性
+
+**入院日・退院日・入院期間：** 2024年11月20日～2024年11月25日（5日間）
+
+**入院時診断：** 急性心筋梗塞，詳細不明
+
+**退院時診断：** 
+- 主病名：急性心筋梗塞，詳細不明
+- 副病名：2型糖尿病、慢性虚血性心疾患
+
+**主訴：** 胸痛、発汗、呼吸困難
+
+**既往歴：** 2型糖尿病、慢性虚血性心疾患
+
+**入院後経過：** 
+入院時より胸痛、発汗、呼吸困難を認め急性心筋梗塞として加療開始。入院時WBC 11,245/μL、Cr 5.7mg/dLと上昇を認めた。第2病日にlactate 6.5mmol/Lまで上昇し循環不全に対しドブタミン、ノルエピネフリンによる昇圧治療を開始。第4病日にCr 8.6mg/dLまで上昇したが、その後循環動態は安定し昇圧剤を離脱。第5病日に自宅退院となった。
+
+**実施した処置・手術：** 
+動脈ライン挿入、尿道カテーテル挿入、経胸壁心エコー検査
+
+**退院時処方：** 
+アスピリン81mg 1日1回、チカグレロル90mg 1日2回、アトルバスタチン80mg 1日1回、スライディングスケールインスリン、アスピリン100mg、クロピドグレル75mg
+
+**退院時状態：** 胸痛消失、循環動態安定
+
+**退院後の方針・外来フォロー：** 
+循環器外来での継続加療、心機能評価および腎機能フォローが必要
+
+============================================================
+  operative_note (LOINC 11504-8)
+  source=llm model=us.anthropic.claude-sonnet-4-20250514-v1:0
+  tokens: in=594 out=401
+============================================================
+**手術記録**
+
+**手術日：** 2025年1月30日
+
+**術前診断：** 手関節骨折（手術適応）
+
+**術後診断：** 手関節骨折（手術適応）
+
+**術式名：** 橈骨遠位端骨折観血的整復内固定術（掌側ロッキングプレート使用）
+
+**執刀医・助手：** 執刀医 Dale Khan医師、助手なし
+
+**麻酔方法・麻酔科医：** 全身麻酔、麻酔科医 Lauren Krause医師、ASA分類2
+
+**手術所見：** 
+掌側modified Henry approachにて橈骨遠位端に到達。骨折部を確認し、適切な整復位を得た。
+
+**手術手技：**
+1. 掌側アプローチにて皮切
+2. 橈骨遠位端骨折部の展開
+3. 骨折の観血的整復
+4. 掌側ロッキングプレートによる内固定
+5. 創部洗浄後、層々に閉創
+
+**検体：** なし
+
+**ドレーン・インプラント：** 記載なし
+
+**出血量：** 50mL
+
+**合併症：** なし
+
+**術後の状態：** 手術は成功裏に終了
+
+**手術時間：** 58分
+
+============================================================
+  procedure_note (LOINC 28570-0)
+  source=llm model=us.anthropic.claude-sonnet-4-20250514-v1:0
+  tokens: in=450 out=389
+============================================================
+**中心静脈カテーテル挿入術 処置記録**
+
+1. **実施日時**: 2025年2月28日 18時35分
+
+2. **処置名**: 中心静脈カテーテル挿入術
+
+3. **適応（理由）**: 尿量減少、浮腫、嘔気、意識混濁に対する循環動態管理目的
+
+4. **実施者**: Dr. Davis Peters
+
+5. **同意**: 取得済み
+
+6. **部位・側**: 循環器系（詳細部位記載なし）
+
+7. **麻酔方法**: 局所麻酔
+
+8. **準備・体位**: 適切な体位設定、消毒・ドレーピング施行
+
+9. **手技**: 局所麻酔後、超音波ガイド下に穿刺針挿入、ガイドワイヤー挿入、ダイレーター使用後カテーテル挿入、固定
+
+10. **所見・結果**: カテーテル挿入成功、良好な血液逆流確認
+
+11. **出血量**: 軽微
+
+12. **合併症**: なし
+
+13. **検体**: なし
+
+14. **処置後の計画**: 胸部X線撮影にて位置確認予定、循環動態モニタリング継続
+
+所要時間: 34分
+
+============================================================
+  death_summary (LOINC 69730-0)
+  source=llm model=us.anthropic.claude-sonnet-4-20250514-v1:0
+  tokens: in=1403 out=457
+============================================================
+**死亡時記録**
+
+**患者情報：** 74歳男性
+
+**入院時診断：** 急性心筋梗塞、詳細不明
+
+**死亡に至る入院経過：**
+2024年6月27日、胸痛・発汗・呼吸困難にて急性心筋梗塞の診断で緊急入院。入院時より動脈ライン確保、抗血小板薬（アスピリン、チカグレロル）、ヘパリン、ニトログリセリンによる標準治療を開始。第1病日よりドブタミン投与開始するも循環動態改善せず、第2病日には乳酸値9.7mmol/Lまで上昇し心原性ショック状態となった。ドブタミン増量およびノルエピネフリン併用による強心・昇圧療法を行うも、第4病日にはクレアチニン1.7mg/dLまで上昇し腎機能悪化を認めた。最大限の治療にも関わらず循環不全は改善せず、第5病日11時21分永眠された。
+
+**直接死因：** 循環不全
+
+**原死因：** 急性心筋梗塞
+
+**死因の背景・寄与した疾患：** 2型糖尿病、認知症
+
+**死亡日時・場所：** 2024年7月2日11時21分、当院病棟
+
+**家族への説明状況：** 記載なし
+
+**剖検の有無：** 記載なし
+
+=== Manifest ===
+{
+  "version_id": "bedrock_ja_test",
+  "generated_at": "2026-04-13T06:54:33.590322",
+  "language": "ja",
+  "llm_mode": "llm",
+  "llm_cost_report": {
+    "total_calls": 157,
+    "total_input_tokens": 175960,
+    "total_output_tokens": 88003,
+    "fallback_count": 0,
+    "cache_hit_count": 0,
+    "cache_stats": {
+      "hits": 0,
+      "misses": 157,
+      "writes": 157,
+      "enabled": 1
+    }
+  },
+  "patient_count": 69,
+  "document_counts_by_type": {
+    "admission_hp": 69,
+    "discharge_summary": 69,
+    "operative_note": 5,
+    "procedure_note": 11,
+    "death_summary": 3
+  },
+  "total_documents": 157,
+  "enabled_tasks": [
+    "admission_hp",
+    "death_summary",
+    "discharge_summary",
+    "operative_note",
+    "procedure_note"
+  ]
+}
+============================================================
+  Results saved to: test_data/bedrock_ja_results.txt
+  To share: git add test_data/bedrock_ja_results.txt && git commit -m 'ja narrative results' && git push
+============================================================

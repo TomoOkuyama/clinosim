@@ -1,0 +1,35 @@
+{
+  "version_id": "bedrock_ja_test",
+  "generated_at": "2026-04-13T06:54:33.590322",
+  "language": "ja",
+  "llm_mode": "llm",
+  "llm_cost_report": {
+    "total_calls": 157,
+    "total_input_tokens": 175960,
+    "total_output_tokens": 88003,
+    "fallback_count": 0,
+    "cache_hit_count": 0,
+    "cache_stats": {
+      "hits": 0,
+      "misses": 157,
+      "writes": 157,
+      "enabled": 1
+    }
+  },
+  "patient_count": 69,
+  "document_counts_by_type": {
+    "admission_hp": 69,
+    "discharge_summary": 69,
+    "operative_note": 5,
+    "procedure_note": 11,
+    "death_summary": 3
+  },
+  "total_documents": 157,
+  "enabled_tasks": [
+    "admission_hp",
+    "death_summary",
+    "discharge_summary",
+    "operative_note",
+    "procedure_note"
+  ]
+}
