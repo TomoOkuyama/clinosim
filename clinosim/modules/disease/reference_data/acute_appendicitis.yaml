@@ -20,7 +20,7 @@ procedure:
   anesthesia: "general"
   estimated_blood_loss_ml: {mean: 50, sd: 30, min: 10, max: 200}
   approach:
-    surgery: "laparoscopic approach with 3-port technique"
+    laparoscopic appendectomy: "laparoscopic approach with 3-port technique"
 diagnostic_difficulty: 0.25   # Classic presentation is clear, but atypical (retrocecal, early) can mimic other diagnoses
 
 icd_codes:

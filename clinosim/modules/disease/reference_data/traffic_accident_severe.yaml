@@ -19,7 +19,7 @@ procedure:
   anesthesia: "general"
   estimated_blood_loss_ml: {mean: 1500, sd: 800, min: 300, max: 5000}
   approach:
-    surgery: "midline laparotomy for abdominal exploration and damage control"
+    "Variable \u2014 damage control surgery, orthopedic fixation, neurosurgical intervention": "midline laparotomy for abdominal exploration and damage control"
 
 icd_codes:
   primary: "T07"

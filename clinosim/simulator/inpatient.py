@@ -339,7 +339,7 @@ def _simulate_patient(
         encounter.admit_source = "emd"  # Most inpatients come via ED
     if not encounter.discharge_disposition:
         if death_occurred:
-            encounter.discharge_disposition = "exp"
+            encounter.discharge_disposition = "expired"
         else:
             encounter.discharge_disposition = "home"
     if not encounter.priority:
