@@ -216,7 +216,7 @@ def activate_patient(
     )
 
     # Current medications: from Layer 1 (prior visit discharge) + chronic conditions
-    current_meds = list(person.current_medications) if hasattr(person, "current_medications") else []
+    current_meds = [m for m in (person.current_medications if hasattr(person, "current_medications") else []) if m]
     if not current_meds:
         # Derive home medications from chronic conditions via chronic_medications.yaml
         # CIF stores English drug names (AD-30). JP names resolved at FHIR output.

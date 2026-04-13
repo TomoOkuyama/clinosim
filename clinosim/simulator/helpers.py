@@ -72,9 +72,11 @@ def _deactivate_to_layer1(
     # Update medications: discharge prescriptions become current medications
     if record.discharge_prescription and record.discharge_prescription.items:
         person.current_medications = [
-            item.get("drug", item.get("name", ""))
+            drug_name
             for item in record.discharge_prescription.items
             if isinstance(item, dict)
+            for drug_name in [item.get("drug_name", item.get("drug", item.get("name", "")))]
+            if drug_name  # filter out empty strings
         ]
 
     # Residual physiological state at discharge

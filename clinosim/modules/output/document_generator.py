@@ -224,7 +224,7 @@ def _generate_for_record(
     # Pre-compute shared enrichment data (used across multiple document types)
     guidance = extract_clinical_guidance(record, language)
     lab_trends = extract_lab_trends(record)
-    lab_trend_bullets = format_lab_trends(lab_trends)
+    lab_trend_bullets = format_lab_trends(lab_trends, language)
     treatment_timeline = extract_treatment_timeline(record)
 
     # Shared context dict passed to all builders
@@ -438,7 +438,7 @@ def _build_admission_hp(
         "home_medications": _home_meds(patient),
         "allergies": _allergies(patient),
         "admission_vitals": summarize_admission_vitals(record),
-        "initial_labs": _initial_labs(record),
+        "initial_labs": _initial_labs(record, language),
         "admission_diagnosis": admit_dx or "(under investigation)",
         # Clinical guidance: helps LLM write a realistic differential that leans
         # toward the actual diagnosis, without stating it as confirmed.
@@ -770,12 +770,17 @@ def _allergies(patient: dict[str, Any]) -> list[str]:
     return out or ["NKDA"]
 
 
-def _initial_labs(record: dict[str, Any]) -> list[str]:
+def _initial_labs(record: dict[str, Any], language: str = "en") -> list[str]:
     """Return the earliest abnormal labs as a bullet list.
 
     Checks both ``result.interpretation`` and ``result.flag`` since CIF
     may populate either field depending on the observation module version.
     """
+    from clinosim.modules.output.hospital_course_extractor import (
+        _JA_CONVERSION,
+        _UNIT_MAP_JA,
+    )
+
     orders = record.get("orders") or []
     abnormal: list[str] = []
     for o in orders[:30]:  # only look at the first batch
@@ -794,6 +799,12 @@ def _initial_labs(record: dict[str, Any]) -> list[str]:
             name = result.get("lab_name") or o.get("display_name", "")
             val = result.get("value", "")
             unit = result.get("unit", "")
+            # Convert units for Japanese locale (e.g. CRP mg/L → mg/dL)
+            if language == "ja" and isinstance(val, (int, float)):
+                factor = _JA_CONVERSION.get(name, 1.0)
+                if factor != 1.0:
+                    val = round(val * factor, 2)
+                    unit = _UNIT_MAP_JA.get(name, unit)
             abnormal.append(f"{name} {val} {unit} [{flag}]".strip())
     return abnormal[:8] or ["(all within normal limits)"]
 
