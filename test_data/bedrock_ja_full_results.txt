@@ -1,0 +1,321 @@
+============================================================
+  Full JP Run (CIF + Narrative)
+  Date: 2026-04-13 08:13:05 UTC
+  PID: 3530
+============================================================
+
+>>> Step 1: CIF generation
+<frozen runpy>:128: RuntimeWarning: 'clinosim.simulator.cli' found in sys.modules after import of package 'clinosim.simulator', but prior to execution of 'clinosim.simulator.cli'; this may result in unpredictable behaviour
+clinosim generate: population=5000, seed=42, country=JP, period=2025-04-13~2026-04-13
+  Hospital: 50 beds
+  Population: 5000 persons
+  Life events: 240 total, 198 requiring hospital
+  Simulating inpatient 50/198 (concurrent=12, bed_occ=94%)...
+  Simulating inpatient 100/198 (concurrent=17, bed_occ=95%)...
+  Simulating inpatient 150/198 (concurrent=8, bed_occ=77%)...
+  Simulating inpatient 198/198 (concurrent=14, bed_occ=89%)...
+  Inpatient done: 198 records (peak concurrent: 11)
+  Readmissions done: 29 evaluated
+  Healthcare calendar: 15692 events for population
+  Outpatient done: 174 post-discharge + 15692 calendar
+  ED visits (not admitted): 545 generated
+
+==================================================
+  clinosim generation complete
+==================================================
+  Total records:  16637
+    Inpatient:    227 (29 readmissions)
+    Outpatient:   15886
+    Deceased:     9
+  Data volume:
+    Lab results:  40,890
+    Vital signs:  47,468
+    MAR entries:  60,579
+    I/O records:  3,148
+    Orders:       53,447
+
+  Disease distribution (inpatient):
+    urinary_tract_infection          31  (LOS avg 10.4d)
+    copd_exacerbation                28  (LOS avg 11.3d)
+    asthma_exacerbation              24  (LOS avg 9.7d)
+    cerebral_infarction              21  (LOS avg 19.9d)
+    diabetic_ketoacidosis            21  (LOS avg 11.2d)
+    bacterial_pneumonia              17  (LOS avg 15.1d)
+    heart_failure_exacerbation       14  (LOS avg 16.8d)
+    acute_mi                         10  (LOS avg 12.8d)
+    acute_kidney_injury               6  (LOS avg 18.2d)
+    hip_fracture                      6  (LOS avg 33.8d)
+
+  Output: output/jp_full/
+
+>>> Step 2: Narrative generation (Bedrock)
+<frozen runpy>:128: RuntimeWarning: 'clinosim.simulator.cli' found in sys.modules after import of package 'clinosim.simulator', but prior to execution of 'clinosim.simulator.cli'; this may result in unpredictable behaviour
+clinosim narrate: loading LLM config clinosim/config/llm_service.bedrock.yaml
+  CIF directory: output/jp_full/cif
+  Language:      ja
+  Mode:          llm
+  Tasks:         all Tier A+B
+  Narrating 75/16637 files, 0 patients, 0 documents...
+  Narrating 1040/16637 files, 10 patients, 20 documents...
+  Narrating 2337/16637 files, 20 patients, 42 documents...
+  Narrating 3409/16637 files, 30 patients, 63 documents...
+  Narrating 4027/16637 files, 40 patients, 83 documents...
+  Narrating 5024/16637 files, 50 patients, 104 documents...
+  Narrating 5689/16637 files, 60 patients, 125 documents...
+  Narrating 6849/16637 files, 70 patients, 147 documents...
+  Narrating 7033/16637 files, 80 patients, 168 documents...
+  Narrating 7905/16637 files, 90 patients, 189 documents...
+  Narrating 8675/16637 files, 100 patients, 210 documents...
+  Narrating 9510/16637 files, 110 patients, 231 documents...
+  Narrating 10210/16637 files, 120 patients, 253 documents...
+  Narrating 10874/16637 files, 130 patients, 277 documents...
+  Narrating 11320/16637 files, 140 patients, 301 documents...
+  Narrating 11692/16637 files, 150 patients, 325 documents...
+  Narrating 12804/16637 files, 160 patients, 346 documents...
+  Narrating 13501/16637 files, 170 patients, 369 documents...
+  Narrating 14056/16637 files, 180 patients, 393 documents...
+  Narrating 14632/16637 files, 190 patients, 414 documents...
+  Narrating 15212/16637 files, 200 patients, 437 documents...
+  Narrating 15587/16637 files, 210 patients, 461 documents...
+  Narrating 16047/16637 files, 220 patients, 483 documents...
+
+  === Narrative Generation Summary ===
+  Version ID:       bedrock_ja_full
+  Patients:         227
+  Total documents:  499
+    admission_hp         227
+    death_summary        9
+    discharge_summary    227
+    operative_note       10
+    procedure_note       26
+  LLM calls:        499
+  LLM input tokens: 585,926
+  LLM output tokens:280,601
+  Fallbacks:        0
+  Cache hits:       0
+
+============================================================
+  Generated Documents (1 sample per type)
+============================================================
+
+============================================================
+  admission_hp (LOINC 34117-2)
+  source=llm model=us.anthropic.claude-sonnet-4-20250514-v1:0
+  tokens: in=1004 out=580
+============================================================
+**入院時記録**
+
+**主訴：** 呼吸困難の増悪、喀痰増加、喘鳴
+
+**現病歴：** 52歳男性。慢性閉塞性肺疾患の既往があり、数日前より呼吸困難の増悪、喀痰の増加、喘鳴を自覚し受診。症状は安静時にも認められ、日常生活に支障をきたしている。
+
+**既往歴：** 本態性高血圧症、慢性閉塞性肺疾患
+
+**内服薬：** アムロジピン5mg、カンデサルタン8mg、チオトロピウム18mcg吸入薬、サルブタモール100mcg吸入薬頓用
+
+**アレルギー：** ペニシリン
+
+**身体所見：** 
+- バイタルサイン：体温37.4°C、脈拍82回/分、呼吸数16回/分、血圧117/86mmHg、SpO2 96.2%
+
+**検査所見：**
+- 血液検査：WBC 13647.0/uL（高値）、CRP 2.5mg/dL（高値）、PCT 0.14ng/mL（高値）、Cr 1.18mg/dL（高値）、血糖125.0mg/dL（高値）
+
+**アセスメント：** 
+慢性閉塞性肺疾患の既往を有する患者の呼吸困難増悪。炎症反応高値を伴っており、COPD急性増悪を最も疑う。感染性肺炎、心不全の合併も鑑別に挙げられる。
+
+**プラン：**
+1. 酸素療法、気管支拡張薬投与
+2. 胸部X線、動脈血ガス分析
+3. 抗菌薬投与検討
+4. ステロイド投与検討
+5. 呼吸状態の経時的観察
+
+============================================================
+  discharge_summary (LOINC 18842-5)
+  source=llm model=us.anthropic.claude-sonnet-4-20250514-v1:0
+  tokens: in=1717 out=727
+============================================================
+**退院時サマリー**
+
+**患者情報:** 52歳 男性
+
+**入院日・退院日・入院期間:** 2026年3月30日 ～ 2026年4月8日（9日間）
+
+**入院時診断:** COPD急性増悪
+
+**退院時診断:** 
+- 主病名：COPD急性増悪
+- 副病名：本態性高血圧症、慢性閉塞性肺疾患
+
+**主訴:** 呼吸困難の悪化、喀痰増加、喘鳴
+
+**既往歴:** 本態性高血圧症、慢性閉塞性肺疾患
+
+**入院後経過:** 
+入院時、呼吸困難の悪化と喀痰増加、喘鳴を認めCOPD急性増悪と診断した。入院時WBC 13,647 cells/μL、CRP 1.28 mg/dLと炎症反応を認めた。第1病日にCRP 2.5 mg/dLまで上昇したが、気管支拡張薬（サルブタモール、イプラトロピウム）の吸入およびネブライザー投与、プレドニゾロン40mg内服による治療を開始した。第3病日にCr 1.4 mg/dLまで軽度上昇したが、その後改善傾向を示した。治療により炎症反応は改善し、第7病日にはCRP 0.03 mg/dL、第8病日にはWBC 7,069 cells/μLまで低下した。
+
+**実施した処置・手術:** 尿道カテーテル挿入（2026年3月30日）
+
+**退院時処方:** 
+プレドニゾロン20mg 1日1回内服（5-7日間で漸減）、アモキシシリン/クラブラン酸250mg 1日3回内服、アムロジピン5mg 1日1回内服、カンデサルタン8mg 1日1回内服、チオトロピウム18mcg吸入薬、サルブタモール100mcg吸入薬頓用
+
+**退院時状態:** 呼吸困難は改善し、炎症反応も正常化した。全身状態良好。
+
+**退院後の方針・外来フォロー:** 外来にて経過観察予定。呼吸器症状の悪化時は速やかに受診するよう指導した。
+
+主治医：田島 里美医師
+
+============================================================
+  procedure_note (LOINC 28570-0)
+  source=llm model=us.anthropic.claude-sonnet-4-20250514-v1:0
+  tokens: in=486 out=363
+============================================================
+**処置記録**
+
+1. **実施日時**: 2025年10月17日 00時48分
+
+2. **処置名**: 気管挿管
+
+3. **適応（理由）**: 発熱、咳嗽、呼吸困難
+
+4. **実施者**: 石山 ミツ医師
+
+5. **同意**: 取得済み
+
+6. **部位・側**: 口腔
+
+7. **麻酔方法**: 鎮静
+
+8. **準備・体位**: 仰臥位、頭部後屈位
+
+9. **手技**: 
+   - 前酸素化実施
+   - 鎮静薬投与
+   - 喉頭鏡にて声門確認
+   - 気管チューブ挿入
+   - カフ膨張
+   - 聴診にて両側呼吸音確認
+   - 人工呼吸器接続
+
+10. **所見・結果**: 気管挿管成功、適切な位置に留置確認
+
+11. **出血量**: なし
+
+12. **合併症**: なし
+
+13. **検体**: なし
+
+14. **処置後の計画**: 人工呼吸管理継続、胸部X線撮影にて位置確認予定
+
+所要時間: 20分
+
+============================================================
+  death_summary (LOINC 69730-0)
+  source=llm model=us.anthropic.claude-sonnet-4-20250514-v1:0
+  tokens: in=1177 out=481
+============================================================
+**死亡時記録**
+
+**1. 患者情報**
+81歳男性
+
+**2. 入院時診断**
+急性腎盂腎炎
+
+**3. 死亡に至る入院経過**
+2025年5月29日、発熱・排尿時痛・側腹部痛にて急性腎盂腎炎の診断で入院。入院時CRP 2.43mg/dL、WBC 12700.0 cells/μL、Cr 3.2mg/dLと炎症反応高値および腎機能悪化を認めた。セフトリアキソン静注、輸液療法を開始。入院1日目にせん妄を併発、Crは3.5mg/dLまで上昇。CRPは1.3mg/dLまで改善傾向を示したが、腎機能は悪化したまま推移。最大限の治療を行うも、2025年5月31日12時44分、入院2日目に死亡確認。
+
+**4. 直接死因**
+急性腎盂腎炎による多臓器不全
+
+**5. 原死因**
+急性腎盂腎炎
+
+**6. 死因の背景・寄与した疾患**
+慢性腎臓病（基礎疾患として腎機能悪化に寄与）
+
+**7. 死亡日時・場所**
+2025年5月31日12時44分、当院病棟
+
+**8. 家族への説明状況**
+石山ミツ医師より家族へ病状説明済み
+
+**9. 剖検の有無**
+記載なし
+
+主治医：石山ミツ医師
+
+============================================================
+  operative_note (LOINC 11504-8)
+  source=llm model=us.anthropic.claude-sonnet-4-20250514-v1:0
+  tokens: in=633 out=412
+============================================================
+**手術記録**
+
+**手術日：** 2025年7月4日
+
+**術前診断：** 急性胆嚢炎
+
+**術後診断：** 急性胆嚢炎
+
+**術式名：** 腹腔鏡下胆嚢摘出術（K672-2）
+
+**執刀医・助手：** 執刀医：田川 春男医師、助手：なし
+
+**麻酔方法・麻酔科医：** 全身麻酔、町田 信一医師
+
+**手術所見：** 胆嚢は炎症性変化を認め、周囲組織との癒着を認めた。
+
+**手術手技：** 4ポート法にて腹腔鏡下にアプローチ。気腹後、胆嚢周囲の癒着を慎重に剥離。Calot三角を同定し、胆嚢動脈および胆嚢管を確認。クリッピング後に切離。胆嚢床から胆嚢を剥離し、エンドバッグにて体外へ摘出。腹腔内を洗浄し、止血確認後、ポートを抜去。
+
+**検体：** なし
+
+**ドレーン・インプラント：** なし
+
+**出血量：** 50mL
+
+**合併症：** なし
+
+**術後の状態：** 手術は成功裏に終了
+
+=== Manifest ===
+{
+  "version_id": "bedrock_ja_full",
+  "generated_at": "2026-04-13T09:23:10.797225",
+  "language": "ja",
+  "llm_mode": "llm",
+  "llm_cost_report": {
+    "total_calls": 499,
+    "total_input_tokens": 585926,
+    "total_output_tokens": 280601,
+    "fallback_count": 0,
+    "cache_hit_count": 0,
+    "cache_stats": {
+      "hits": 0,
+      "misses": 499,
+      "writes": 499,
+      "enabled": 1
+    }
+  },
+  "patient_count": 227,
+  "document_counts_by_type": {
+    "admission_hp": 227,
+    "discharge_summary": 227,
+    "procedure_note": 26,
+    "death_summary": 9,
+    "operative_note": 10
+  },
+  "total_documents": 499,
+  "enabled_tasks": [
+    "admission_hp",
+    "death_summary",
+    "discharge_summary",
+    "operative_note",
+    "procedure_note"
+  ]
+}
+============================================================
+  DONE: 2026-04-13 09:23:10 UTC
+  Results: test_data/bedrock_ja_full_results.txt
+============================================================
