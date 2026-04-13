@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![FHIR](https://img.shields.io/badge/output-HL7%20FHIR%20R4%20Bulk-orange)](https://hl7.org/fhir/uv/bulkdata/)
-[![Status](https://img.shields.io/badge/status-v0.1%20beta-yellow)]()
+[![Status](https://img.shields.io/badge/status-v0.2-yellow)]()
 
 🇯🇵 **日本語版**: [README.ja.md](README.ja.md)
 
@@ -85,7 +85,7 @@ pip install -e ".[dev]"
 ```bash
 # === Stage 1: structured simulation (always local, deterministic) ===
 
-# Default: US, past 1 year ending today, 60,000 catchment, 50-bed hospital
+# Default: US, past 1 year ending today, 40,000 catchment, 50-bed hospital
 clinosim generate -o ./output
 
 # Custom period (--end is the snapshot date)
@@ -106,6 +106,12 @@ clinosim narrate --cif-dir ./output/cif --version-id template_v1
 clinosim narrate --cif-dir ./output/cif \
   --llm-config clinosim/config/llm_service.yaml \
   --version-id ollama_en_v1
+
+# Japanese documents via AWS Bedrock (requires EC2 + Bedrock access)
+clinosim narrate --cif-dir ./output/cif \
+  --llm-config clinosim/config/llm_service.bedrock.yaml \
+  --language ja \
+  --version-id bedrock_ja_v1
 
 # Only a subset of document types
 clinosim narrate --cif-dir ./output/cif \
@@ -144,7 +150,7 @@ from clinosim.simulator import run_beta
 from clinosim.types.config import SimulatorConfig
 
 config = SimulatorConfig(
-    catchment_population=60_000,
+    catchment_population=40_000,
     country="US",
     random_seed=42,
     snapshot_date="2026-04-08",   # EHR snapshot at this point in time
@@ -539,7 +545,7 @@ clinosim/
 │   └── cli.py                # CLI entry point (generate, narrate, export-fhir, ...)
 │
 └── tests/
-    ├── unit/                 # Module unit tests (141 tests)
+    ├── unit/                 # Module unit tests (187 tests)
     ├── integration/          # Cross-module integration tests
     └── e2e/                  # E2E + golden file tests
 ```

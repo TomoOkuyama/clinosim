@@ -1,8 +1,8 @@
 # clinosim — TODO
 
-## Status (current as of 2026-04-09)
+## Status (current as of 2026-04-13)
 
-**v0.1-beta + Milestone 1 (Clinical documents)** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 28 diseases, snapshot date support, hospital config-driven physical layout, codes module with EN-first principle, three-stage CLI pipeline (`generate` → `narrate` → `export-fhir`), and FHIR DocumentReference output for 5 clinical document types (Tier A+B).
+**v0.2 (Simulation realism + Japanese documents)** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 28 diseases, snapshot date support, pluggable LLM providers (Ollama/Bedrock/Mock), three-stage CLI pipeline (`generate` → `narrate` → `export-fhir`), FHIR DocumentReference for 5 clinical document types (Tier A+B) in English and Japanese.
 
 Generated dataset stats (US 50-bed hospital, catchment 30k):
 - 12,378 unique patients
@@ -10,16 +10,16 @@ Generated dataset stats (US 50-bed hospital, catchment 30k):
 - 176,803 conditions
 - 835,990 observations
 - 13 FHIR resource types (12 structured + DocumentReference) with 0 ID violations
-- 141 unit tests passing
+- 187 unit tests passing
 
-Test scale (US 5000 catchment, seed=42):
-- 171 inpatient encounters
-- Tier A+B clinical documents: **374 total**
-  - Admission H&P: 171
-  - Discharge Summary: 171
-  - Operative Note: 11
-  - Procedure Note: 19
-  - Death Note: 2
+JP narrative validation (8 patients, Bedrock Claude Sonnet 4, seed=123):
+- 22 documents across 5 types, 8 diseases (sepsis, appendicitis, hip fracture, AMI, GI bleed, hemorrhagic stroke, cellulitis, AF-RVR)
+- Japanese medical terminology accuracy verified by clinician review
+- CRP unit conversion (mg/L→mg/dL) handled in code, not by LLM
+- Staff name suffix (「医師」) consistent across all documents
+
+EN Bedrock full run (69 patients, seed=42):
+- 157 documents (69 H&P + 69 DC + 5 Op + 11 Proc + 3 Death)
 - 100% reference integrity (Patient / Encounter / Practitioner)
 
 ## Architecture Decisions (current)
@@ -67,6 +67,8 @@ Test scale (US 5000 catchment, seed=42):
 | **AD-39** | 2026-04-09 | **LLM provider plugin registry**: `providers/` subpackage with `LLMProvider` Protocol. Registry maps config keys (`ollama`, `bedrock`, `mock`, `local`) to builder callables. `factory.build_from_config_file()` wires providers + cache + registry from YAML. Bedrock uses boto3 lazy import. |
 | **AD-40** | 2026-04-09 | **Prompt templates as per-language YAML**: `clinosim/modules/llm_service/prompts/<lang>/<task>.yaml` with `system`, `user_template`, `max_tokens`, `temperature`, `version`. Rendered via `string.Template` (stdlib, zero deps). Language fallback to English (mirrors codes module). |
 | **AD-41** | 2026-04-09 | **SHA256 disk cache for LLM responses**: `PromptCache` keys by `SHA256(system ‖ user ‖ model)`. Enables reproducible re-runs, partial re-run recovery, and cost control for Bedrock. Cache stats in `cost_report()`. |
+| **AD-42** | 2026-04-13 | **Code-side unit conversion for Japanese locale**: CRP mg/L→mg/dL conversion happens in `hospital_course_extractor` and `document_generator` (not in LLM prompt). `format_lab_trends(language=)` and `_initial_labs(language=)` apply locale-specific conversion factors. |
+| **AD-43** | 2026-04-13 | **Japanese narrative prompt quality rules**: All ja prompts include mandatory 「医師」suffix for staff names. Units provided pre-converted so LLM uses input values as-is. |
 
 ## Implementation Status
 
@@ -156,16 +158,22 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 | 4 | narrate progress display (patient N/M) | `output` | ✅ every 10 patients |
 | 5 | Treatment escalation from disease YAML | `simulator` | ✅ Day 3 escalation when inflammation > 0.3 |
 | 6 | Treatment change detection in extractor | `output` | ✅ MAR datetime fix + new drug detection |
-| 7 | **5K Bedrock full run (all fixes reflected)** | infra | **Next** — requires EC2 Bedrock |
-| 8 | Japanese prompts (`prompts/ja/*.yaml`) with clinician review | `llm_service` | Open |
+| 7 | JP 5K Bedrock full run (CIF + narrative) | infra | ✅ Running on EC2 |
+| 8 | Japanese prompts (`prompts/ja/*.yaml`) with clinician review | `llm_service` | ✅ 5 prompts, 2 rounds of review, quality verified |
 | 9 | Template fallbacks for new Tier A+B tasks | `llm_service` | ✅ enriched with lab trends, approach, implants, etc. |
 | 10 | Diurnal lab variation (glucose postprandial, WBC circadian) | `physiology` | ✅ |
 | 11 | Critical patient vitals q2h (sepsis, MI, trauma) | `simulator` | ✅ |
 | 12 | Consistency validator Tier 2 (rule-based, 8 checks) | `validator` | ✅ 0 errors, 0 warnings |
 | 13 | AKI complication → metformin cancel | `simulator` | ✅ |
-| 14 | 40K population full run (US production scale) | infra | After #7 |
-| 15 | Anthropic direct provider (non-Bedrock) | `llm_service` | Open |
-| 16 | OpenAI-compatible provider (LiteLLM / vLLM) | `llm_service` | Open |
+| 14 | CRP mg/L→mg/dL code-side conversion for ja locale | `output` | ✅ (AD-42) |
+| 15 | Staff name suffix 「医師」 consistency in ja prompts | `llm_service` | ✅ (AD-43) |
+| 16 | Chronic med base code fallback in inpatient.py | `simulator` | ✅ code.split(".")[0] fallback |
+| 17 | Empty medication string filter (helpers + activator) | `simulator`, `patient` | ✅ drug_name key + empty filter |
+| 18 | JP FHIR localization (Location/Encounter/dosage/marital) | `output` | ✅ |
+| 19 | EN 5K Bedrock re-run (with all simulation fixes) | infra | After JP run |
+| 20 | 40K population full run (US production scale) | infra | After #19 |
+| 21 | Anthropic direct provider (non-Bedrock) | `llm_service` | Open |
+| 22 | OpenAI-compatible provider (LiteLLM / vLLM) | `llm_service` | Open |
 
 ## Open Design Questions
 
@@ -188,7 +196,7 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 | 8 | SNOMED CT integration (clinical findings) | `codes` | Open |
 | 9 | Discrete-event simulation engine (Mode 2) | `simulator` | Open (planned for v1.0) |
 | 10 | Holiday calendar per country (admission/discharge patterns) | `healthcare_system`, `facility` | Open |
-| 11 | Diurnal variation in lab values | `observation` | Open |
+| 11 | Diurnal variation in lab values | `observation` | ✅ Implemented (glucose postprandial, WBC circadian) |
 | 12 | Episode-of-care linking (multi-encounter problem tracking) | `encounter` | Open |
 | 13 | Consult workflow (specialty consultation requests) | `encounter`, `staff` | Open |
 | 14 | Diagnostic drift over hospital stay | `diagnosis` | Open |
@@ -219,7 +227,12 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 - [x] 4-round clinical review (35 documents, 12 disease patterns) ← Milestone 2
 - [x] 8 simulation fixes (YAML medication_holds, surgery names, Cr check, sex filter, nurse dept, staff names) ← Milestone 2
 - [x] Country-specific recommended_population (US:40K, JP:5K) ← Milestone 2
-- [ ] Japanese prompts with clinician review
+- [x] Japanese prompts with clinician review (5 types, 2 rounds, 8+8 patients) ← Milestone 3
+- [x] JP FHIR localization (Location names, Encounter type, dosage, marital status) ← Milestone 3
+- [x] CRP unit conversion (mg/L→mg/dL) at code level for ja locale (AD-42)
+- [x] Staff name suffix 「医師」 consistency in ja prompts (AD-43)
+- [x] Chronic medication base code fallback (E11→E11.9 lookup)
+- [x] Empty medication string filter (drug_name key + empty filter)
 - [ ] LLM JUDGMENT phase wiring (diagnostic reasoning, treatment rationale)
 - [ ] Validator Pass 2 (LLM consistency review)
 - [ ] Diagnostic drift over hospital stay
@@ -262,6 +275,20 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 - [ ] Full validation against published benchmarks
 - [ ] Comprehensive documentation
 - [ ] Stable API contracts
+
+## Recent completions (2026-04-13 — Milestone 3: Japanese narrative quality + simulation fixes)
+
+- ✅ Japanese narrative prompts (5 types: admission_hp, discharge_summary, death_summary, operative_note, procedure_note)
+- ✅ 2-round clinician review with Bedrock Claude Sonnet 4 (8+8 patients, 23+22 documents)
+- ✅ 8 diverse diseases validated: sepsis, acute appendicitis, hip fracture, AMI, GI bleed, hemorrhagic stroke, cellulitis, AF-RVR
+- ✅ CRP unit conversion moved from LLM prompt to code (AD-42): `format_lab_trends(language=)` + `_initial_labs(language=)` with `_JA_CONVERSION` dict
+- ✅ Staff name suffix 「医師」 enforced in all ja prompts (AD-43) — was inconsistent in v1 review
+- ✅ Chronic medication base code fallback: `chronic_meds.get(code) or chronic_meds.get(code.split(".")[0])` in `inpatient.py` (was exact-match only)
+- ✅ Empty medication string filter in `helpers.py` (`drug_name` key support + empty filter) and `activator.py` (filter before emptiness check)
+- ✅ JP FHIR localization: Location names (4E病棟, 4E-01号室), Encounter type (入院), serviceType (内科), maritalStatus (既婚), dosageInstruction (経口, 1日1回)
+- ✅ JP staff name format in narratives (佐伯 紬医師, not Dr. 佐伯 紬)
+- ✅ JP 5K full Bedrock run initiated on EC2 (CIF + narrative, nohup-safe)
+- ✅ 187 unit tests passing (up from 141)
 
 ## Recent completions (2026-04-10 — Milestone 2: Simulation fixes + Bedrock full run)
 
