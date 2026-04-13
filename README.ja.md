@@ -256,81 +256,34 @@ output/csv/
 
 ## データフロー
 
-```
-+---------------------------------------------------------------+
-|  STAGE 1 -- clinosim generate                                 |
-+---------------------------------------------------------------+
-|                                                               |
-|  population engine                                            |
-|   - catchment: household-based population generation          |
-|   - PersonRecord (Layer 1: lightweight registry)              |
-|   - monthly LifeEvent (incidence x seasonality x risk)        |
-|              |                                                |
-|              v                                                |
-|  patient activator (Layer 1 -> Layer 2: full clinical)        |
-|              |                                                |
-|              v                                                |
-|  encounter creation                                           |
-|   - disease YAML -> department (via hospital_config)          |
-|   - staff / ward / bed / OR assignment                        |
-|              |                                                |
-|              v                                                |
-|  daily simulation loop (per inpatient day)                    |
-|   clinical_course -> physiology -> orders/observation         |
-|                   -> diagnosis -> procedure + MAR             |
-|                   -> discharge readiness?                     |
-|              |                                                |
-|              v                                                |
-|  CIF structural/  (immutable, one JSON per encounter)         |
-|  + discharge Rx, procedures, vitals, labs, MAR,               |
-|    conditions, ADL, I/O, complications, ground truth          |
-|                                                               |
-+---------------------------------------------------------------+
-               |
-               v
-+---------------------------------------------------------------+
-|  STAGE 2 -- clinosim narrate                                  |
-+---------------------------------------------------------------+
-|                                                               |
-|  For each inpatient encounter:                                |
-|                                                               |
-|   1. hospital_course_extractor                                |
-|        deterministic fact extraction from CIF                 |
-|              |                                                |
-|              v                                                |
-|   2. document_generator                                       |
-|        ClinicalDocument stubs (Tier A + B):                   |
-|          - Admission H&P      LOINC 34117-2                   |
-|          - Operative Note     LOINC 11504-8                   |
-|          - Procedure Note     LOINC 28570-0                   |
-|          - Discharge Summary  LOINC 18842-5                   |
-|          - Death Note         LOINC 69730-0                   |
-|              |                                                |
-|              v                                                |
-|   3. LLMService.generate(task_type, variables)                |
-|        +- PromptRegistry (YAML templates)                     |
-|        +- PromptCache    (SHA256 disk cache)                  |
-|        +- provider       (Ollama | Bedrock | Mock)            |
-|              |                                                |
-|              v                                                |
-|  CIF narratives/<version_id>/documents/                       |
-|                                                               |
-+---------------------------------------------------------------+
-               |
-               v
-+---------------------------------------------------------------+
-|  STAGE 3 -- clinosim export-fhir                              |
-+---------------------------------------------------------------+
-|                                                               |
-|  fhir_r4_adapter                                              |
-|   - CIF structural/ -> 13 FHIR R4 resource types             |
-|   - CIF narratives/ -> DocumentReference (base64)             |
-|   - display text via clinosim.codes (en / ja)                 |
-|              |                                                |
-|              v                                                |
-|  output/fhir_r4/  (HL7 Bulk Data NDJSON + manifest.json)      |
-|                                                               |
-+---------------------------------------------------------------+
+```mermaid
+flowchart TD
+    subgraph stage1["Stage 1 — clinosim generate"]
+        pop["population engine<br/>人口生成 (世帯ベース)<br/>PersonRecord (Layer 1)<br/>月次 LifeEvent"]
+        act["patient activator<br/>Layer 1 → Layer 2 変換"]
+        enc["encounter creation<br/>disease YAML → 科判定<br/>staff / ward / bed 割当"]
+        loop["daily simulation loop<br/>clinical_course → physiology<br/>→ orders → diagnosis<br/>→ procedure + MAR<br/>→ discharge readiness?"]
+        cif_s["CIF structural/<br/>構造化 JSON (不変)"]
+        pop --> act --> enc --> loop --> cif_s
+    end
+
+    subgraph stage2["Stage 2 — clinosim narrate"]
+        ext["hospital_course_extractor<br/>CIF から事実を確定的抽出"]
+        gen["document_generator<br/>Admission H&P (34117-2)<br/>Operative Note (11504-8)<br/>Procedure Note (28570-0)<br/>Discharge Summary (18842-5)<br/>Death Note (69730-0)"]
+        llm["LLMService.generate<br/>PromptRegistry (YAML)<br/>PromptCache (SHA256)<br/>Provider (Ollama / Bedrock / Mock)"]
+        cif_n["CIF narratives/&lt;version&gt;/documents/"]
+        ext --> gen --> llm --> cif_n
+    end
+
+    subgraph stage3["Stage 3 — clinosim export-fhir"]
+        adapter["fhir_r4_adapter<br/>structural → 13 FHIR resource types<br/>narratives → DocumentReference (base64)<br/>display text via clinosim.codes"]
+        fhir["output/fhir_r4/<br/>HL7 Bulk Data NDJSON + manifest.json"]
+        adapter --> fhir
+    end
+
+    cif_s --> ext
+    cif_s --> adapter
+    cif_n --> adapter
 ```
 
 ### Snapshot semantics
@@ -639,51 +592,44 @@ N10:
 
 ## モジュール依存図
 
-```
-                  [codes]       (international code systems)
-                     ^
-                     | lookup
-                     |
-   [locale]  ---- [output]      (FHIR/CIF/CSV)
-   (country)         ^
-        |            |
-        v            |
-   [patient]         |
-   [activator]       |
-        |            |
-        v            |
-   [encounter]       |
-        |            |
-        v            |
-  +----------------------------+
-  |  daily simulation loop     |
-  |                            |
-  |  clinical_course           |
-  |       |                    |
-  |  physiology <- diagnosis   |
-  |       |            ^       |
-  |  observation    order      |
-  |       |            |       |
-  |  procedure       MAR      |
-  +----------------------------+
-        ^               ^
-        |               |
-   [disease]       [facility]
-    (YAML)          (queue)
-        |               |
-        +------+--------+
-               |
-          [population]
-               |
-               v
-           [staff]
-               ^
-               |
-         [healthcare]
-          [_system]
+```mermaid
+flowchart TD
+    codes["codes<br/>国際標準コード体系"]
+    locale["locale<br/>国・文化依存データ"]
+    output["output<br/>FHIR / CIF / CSV"]
+    patient["patient activator"]
+    encounter["encounter"]
+    disease["disease (YAML)"]
+    facility["facility (queue)"]
+    population["population"]
+    staff["staff"]
+    healthcare["healthcare_system"]
+
+    subgraph loop["daily simulation loop"]
+        cc["clinical_course"] --> phys["physiology"]
+        phys --> obs["observation"]
+        phys --> dx["diagnosis"]
+        dx --> cc
+        obs --> proc["procedure + MAR"]
+        dx --> order["order"]
+        order --> proc
+    end
+
+    codes -->|lookup| output
+    locale --> output
+    locale --> patient
+    patient --> encounter
+    encounter --> loop
+    disease --> loop
+    facility --> loop
+    loop --> output
+    population --> disease
+    population --> facility
+    population --> staff
+    healthcare --> staff
 ```
 
-`llm_service`, `validator` は cross-cutting (専用フェーズで利用)。
+`llm_service`, `validator` は cross-cutting（専用フェーズで利用）。
 
 各モジュールの詳細は `clinosim/modules/<module>/README.md` を参照。
 
