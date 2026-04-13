@@ -84,7 +84,8 @@ def activate_patient(
 2. **生理学的プロファイル** — `beta(8, 2)` から腎/心/肝予備能をサンプリングし `(age-40) × 0.005` のペナルティ減算。 薬物代謝表現型 (`poor` / `normal` / `rapid` / `ultra_rapid`) は country 依存の分布 (`activator.py:131-148`)
 3. **慢性疾患の staging** — 各 ICD コードに対し `_generate_stage()` が臨床的に妥当なステージ文字列を生成
 4. **アレルギー** — 約 15% に mild rash アレルギー (Penicillin / Sulfonamide / NSAIDs / Cephalosporin)
-5. **ベースラインバイタル** — 年齢補正 (SBP は +0.5/yr over 30) + 慢性疾患調整:
+5. **常用薬** — `_derive_home_medications()` が `chronic_medications.yaml` から ICD コードベースで導出。 exact match → base code fallback (例: `E11.9` → `E11`)。 JP locale では `drug_ja` フィールドを使用
+6. **ベースラインバイタル** — 年齢補正 (SBP は +0.5/yr over 30) + 慢性疾患調整:
    - `I10` (HT) → SBP +10, DBP +5
    - `I48` (AFib) → HR +5〜20 の irregular
    - `J44` (COPD) → SpO2 を 94 付近に制限

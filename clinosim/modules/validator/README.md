@@ -182,7 +182,8 @@ def my_benchmarks(dataset):
 
 ## 既知の制約・今後
 
-- v0.1-alpha は肺炎中心の期待値のみ。 疾患別 (HF, hip fracture, sepsis 等) のベンチマークは未実装
-- Tier 2 (患者個別の生理学的整合性検証) と Tier 3 (専門家レビュー) は未実装
+- Tier 1 は集計統計ベンチマーク (肺炎中心)。 疾患別 (HF, hip fracture, sepsis 等) の追加予定
+- ✅ Tier 2 (個別患者整合性) 実装済: `consistency.py` — 8 ルールベースチェック (退院 Hgb, 死亡 disposition, ラボ範囲, medication_holds, 処置フィールド, LOS, バイタル範囲, 性別特異的疾患)。 195 患者 / 1,560 チェックで 0 errors, 0 warnings
+- Tier 3 (専門家レビュー) は未実装
 - 死亡率・再入院率・合併症発生率の検証項目を追加予定
 - 期待値は文献の中央値ベース。 患者構成 (重症度・併存疾患) を考慮したリスク調整は未対応
