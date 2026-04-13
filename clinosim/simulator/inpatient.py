@@ -1232,8 +1232,14 @@ def _generate_vitals(
     is_respiratory = disease_id in _RESPIRATORY_DISEASES or disease_id == "heart_failure_exacerbation"
 
     # Routine full-vitals schedule by acuity
-    if is_unstable:
-        full_hours = [2, 6, 10, 14, 18, 22]  # q4h
+    # Critically unstable (septic shock, acute MI, hemorrhagic stroke): q1-2h
+    is_critical = (state.perfusion_status < 0.3
+                   or disease_id in ("sepsis", "acute_mi", "hemorrhagic_stroke",
+                                     "traffic_accident_severe"))
+    if is_critical and day <= 2:
+        full_hours = list(range(0, 24, 2))   # q2h (12 sets/day)
+    elif is_unstable:
+        full_hours = [2, 6, 10, 14, 18, 22]  # q4h (6 sets/day)
     elif day <= 2:
         full_hours = [0, 6, 12, 18]          # q6h
     elif state.inflammation_level < 0.1 and day >= 7:
