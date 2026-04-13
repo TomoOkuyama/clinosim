@@ -805,7 +805,7 @@ def _generate_home_medication_orders(
 
     for condition in patient.chronic_conditions:
         code = condition.code
-        spec = chronic_meds.get(code)
+        spec = chronic_meds.get(code) or chronic_meds.get(code.split(".")[0])
         if not spec:
             continue
 

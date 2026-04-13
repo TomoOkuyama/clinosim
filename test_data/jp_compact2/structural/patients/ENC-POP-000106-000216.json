@@ -18440,7 +18440,7 @@
     "prescription_id": "RX-POP-000106-DC",
     "patient_id": "POP-000106",
     "prescriber_id": "DR-CA-001",
-    "issue_date": "2026-04-13T16:27:08.432343",
+    "issue_date": "2026-04-13T16:57:35.142426",
     "items": [
       {
         "drug_name": "Aspirin",
@@ -18506,7 +18506,7 @@
   "readmission_number": 0,
   "physiological_states": [
     {
-      "timestamp": "2026-04-13T16:27:08.420608",
+      "timestamp": "2026-04-13T16:57:35.130546",
       "patient_id": "POP-000106",
       "inflammation_level": 0.18,
       "renal_function": 0.5085455921054315,
@@ -18519,7 +18519,7 @@
       "ph_status": -0.045704631817923135
     },
     {
-      "timestamp": "2026-04-14T16:27:08.420608",
+      "timestamp": "2026-04-14T16:57:35.130546",
       "patient_id": "POP-000106",
       "inflammation_level": 0.29444144552985396,
       "renal_function": 0.4542261715672936,
@@ -18532,7 +18532,7 @@
       "ph_status": -0.050568515925550714
     },
     {
-      "timestamp": "2026-04-15T16:27:08.420608",
+      "timestamp": "2026-04-15T16:57:35.130546",
       "patient_id": "POP-000106",
       "inflammation_level": 0.3844215177417255,
       "renal_function": 0.3933760729971273,
@@ -18545,7 +18545,7 @@
       "ph_status": -0.05673853563958398
     },
     {
-      "timestamp": "2026-04-16T16:27:08.420608",
+      "timestamp": "2026-04-16T16:57:35.130546",
       "patient_id": "POP-000106",
       "inflammation_level": 0.445509014584151,
       "renal_function": 0.3296767851398973,
@@ -18558,7 +18558,7 @@
       "ph_status": -0.06347839321102998
     },
     {
-      "timestamp": "2026-04-17T16:27:08.420608",
+      "timestamp": "2026-04-17T16:57:35.130546",
       "patient_id": "POP-000106",
       "inflammation_level": 0.4823076712611449,
       "renal_function": 0.2622851271345004,
@@ -18571,7 +18571,7 @@
       "ph_status": -0.07284246845538433
     },
     {
-      "timestamp": "2026-04-18T16:27:08.420608",
+      "timestamp": "2026-04-18T16:57:35.130546",
       "patient_id": "POP-000106",
       "inflammation_level": 0.4883774061542574,
       "renal_function": 0.18940710645681785,
@@ -18584,7 +18584,7 @@
       "ph_status": -0.08694771726807995
     },
     {
-      "timestamp": "2026-04-19T16:27:08.420608",
+      "timestamp": "2026-04-19T16:57:35.130546",
       "patient_id": "POP-000106",
       "inflammation_level": 0.47048678494101576,
       "renal_function": 0.11496483302362134,
@@ -18597,7 +18597,7 @@
       "ph_status": -0.10508793030353819
     },
     {
-      "timestamp": "2026-04-20T16:27:08.420608",
+      "timestamp": "2026-04-20T16:57:35.130546",
       "patient_id": "POP-000106",
       "inflammation_level": 0.43991756704788215,
       "renal_function": 0.05,
@@ -18610,7 +18610,7 @@
       "ph_status": -0.12695943466792858
     },
     {
-      "timestamp": "2026-04-21T16:27:08.420608",
+      "timestamp": "2026-04-21T16:57:35.130546",
       "patient_id": "POP-000106",
       "inflammation_level": 0.39847095287064027,
       "renal_function": 0.05,
@@ -18623,7 +18623,7 @@
       "ph_status": -0.14886348579276748
     },
     {
-      "timestamp": "2026-04-22T16:27:08.420608",
+      "timestamp": "2026-04-22T16:57:35.130546",
       "patient_id": "POP-000106",
       "inflammation_level": 0.3587734776164438,
       "renal_function": 0.05,
@@ -18636,7 +18636,7 @@
       "ph_status": -0.17056592795809197
     },
     {
-      "timestamp": "2026-04-23T16:27:08.420608",
+      "timestamp": "2026-04-23T16:57:35.130546",
       "patient_id": "POP-000106",
       "inflammation_level": 0.30372169649936753,
       "renal_function": 0.05,
@@ -18649,7 +18649,7 @@
       "ph_status": -0.19165112315152932
     },
     {
-      "timestamp": "2026-04-24T16:27:08.420608",
+      "timestamp": "2026-04-24T16:57:35.130546",
       "patient_id": "POP-000106",
       "inflammation_level": 0.24396674622503026,
       "renal_function": 0.05,
@@ -18662,7 +18662,7 @@
       "ph_status": -0.21203765817787215
     },
     {
-      "timestamp": "2026-04-25T16:27:08.420608",
+      "timestamp": "2026-04-25T16:57:35.130546",
       "patient_id": "POP-000106",
       "inflammation_level": 0.19355688123891285,
       "renal_function": 0.05,
@@ -18675,7 +18675,7 @@
       "ph_status": -0.2317221480022764
     },
     {
-      "timestamp": "2026-04-26T16:27:08.420608",
+      "timestamp": "2026-04-26T16:57:35.130546",
       "patient_id": "POP-000106",
       "inflammation_level": 0.1336203289078413,
       "renal_function": 0.05,
@@ -18688,7 +18688,7 @@
       "ph_status": -0.25017473040025334
     },
     {
-      "timestamp": "2026-04-27T16:27:08.420608",
+      "timestamp": "2026-04-27T16:57:35.130546",
       "patient_id": "POP-000106",
       "inflammation_level": 0.08268758375551187,
       "renal_function": 0.05,
@@ -18701,7 +18701,7 @@
       "ph_status": -0.2676898626215073
     },
     {
-      "timestamp": "2026-04-28T16:27:08.420608",
+      "timestamp": "2026-04-28T16:57:35.130546",
       "patient_id": "POP-000106",
       "inflammation_level": 0.0362816033068513,
       "renal_function": 0.05,

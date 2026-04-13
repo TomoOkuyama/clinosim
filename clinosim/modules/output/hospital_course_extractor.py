@@ -554,19 +554,26 @@ def extract_lab_trends(
     return trends
 
 
-def format_lab_trends(trends: dict[str, dict[str, Any]]) -> list[str]:
+def format_lab_trends(
+    trends: dict[str, dict[str, Any]], language: str = "en"
+) -> list[str]:
     """Format lab trends as human-readable bullet strings for prompts."""
     out: list[str] = []
     for name, t in sorted(trends.items()):
-        unit = _unit_for(name)
+        unit = _unit_for(name, language)
+        factor = _JA_CONVERSION.get(name, 1.0) if language == "ja" else 1.0
         adm = t["admission"]
         peak = t["peak"]
         latest = t["latest"]
         trend_label = t["trend"]
+
+        def _cv(v: float) -> float:
+            return round(v * factor, 2) if factor != 1.0 else v
+
         out.append(
-            f"{name}: admission {adm['value']}{unit} (day {adm['day']}) "
-            f"→ peak {peak['value']}{unit} (day {peak['day']}) "
-            f"→ latest {latest['value']}{unit} (day {latest['day']}) "
+            f"{name}: admission {_cv(adm['value'])}{unit} (day {adm['day']}) "
+            f"→ peak {_cv(peak['value'])}{unit} (day {peak['day']}) "
+            f"→ latest {_cv(latest['value'])}{unit} (day {latest['day']}) "
             f"[{trend_label}]"
         )
     return out
@@ -782,6 +789,19 @@ _UNIT_MAP = {
     "Lactate": "mmol/L", "Hgb": "g/dL", "Plt": "x10^3/μL",
 }
 
+# Japanese conventional units differ from SI for CRP: mg/dL instead of mg/L.
+_UNIT_MAP_JA = {
+    **_UNIT_MAP,
+    "CRP": "mg/dL",
+}
 
-def _unit_for(name: str) -> str:
+# Conversion factors from SI to Japanese conventional units (multiply).
+_JA_CONVERSION: dict[str, float] = {
+    "CRP": 0.1,  # mg/L → mg/dL (divide by 10)
+}
+
+
+def _unit_for(name: str, language: str = "en") -> str:
+    if language == "ja":
+        return _UNIT_MAP_JA.get(name, _UNIT_MAP.get(name, ""))
     return _UNIT_MAP.get(name, "")
