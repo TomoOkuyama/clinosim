@@ -1,0 +1,12 @@
+{
+  "clinosim_version": "0.1.0",
+  "generation_timestamp": "2026-04-13T16:02:01.232495",
+  "random_seed": 42,
+  "country": "JP",
+  "hospital_scale": "medium",
+  "simulation_period_start": null,
+  "simulation_period_end": null,
+  "snapshot_date": null,
+  "total_patients_generated": 6689,
+  "llm_mode": "none"
+}
