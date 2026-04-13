@@ -345,10 +345,13 @@ def _build_bundle(
     prior_encounter_id = record.get("prior_encounter_id")
     dx = record.get("clinical_diagnosis", {})
     primary_dx_code = dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", "")
+    admit_dx_code = dx.get("admission_diagnosis_code", "")
+    admit_dx_system = dx.get("admission_diagnosis_system", "icd-10-cm")
     for enc in record.get("encounters", []):
         entries.append(_entry(
             _build_encounter(enc, patient_id, is_readmission, prior_encounter_id,
-                             primary_dx_code=primary_dx_code, country=country)
+                             primary_dx_code=primary_dx_code, country=country,
+                             admit_dx_code=admit_dx_code, admit_dx_system=admit_dx_system)
         ))
 
     # === Condition resources ===
@@ -969,6 +972,8 @@ def _build_encounter(
     is_readmission: bool = False, prior_encounter_id: str | None = None,
     primary_dx_code: str = "",
     country: str = "US",
+    admit_dx_code: str = "",
+    admit_dx_system: str = "icd-10-cm",
 ) -> dict:
     """Build FHIR Encounter resource."""
     encounter_id = enc.get("encounter_id", str(uuid.uuid4()))
@@ -1045,7 +1050,16 @@ def _build_encounter(
                 pass
 
     if enc.get("chief_complaint"):
-        resource["reasonCode"] = [{"text": enc["chief_complaint"]}]
+        # reasonCode: use diagnosis display in target language (codes module)
+        # Falls back to English chief_complaint text if no code available
+        lang = "ja" if country == "JP" else "en"
+        if admit_dx_code:
+            reason_text = code_lookup(admit_dx_system, admit_dx_code, lang)
+            if reason_text == admit_dx_code:
+                reason_text = enc["chief_complaint"]  # fallback to English text
+        else:
+            reason_text = enc["chief_complaint"]
+        resource["reasonCode"] = [{"text": reason_text}]
         # reasonReference: link to primary Condition (if dx exists)
         if primary_dx_code:
             resource["reasonReference"] = [{
