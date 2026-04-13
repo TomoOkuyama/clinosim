@@ -219,8 +219,8 @@ def _surgery_events(
         day = _day_offset(admission_dt, p.get("start_datetime"))
         name = p.get("procedure_name") or p.get("procedure_type", "surgery")
         comps = p.get("intraop_complications") or []
-        comp_str = f" with {', '.join(comps)}" if comps else ""
         ebl = p.get("estimated_blood_loss_ml")
+        comp_str = f" with {', '.join(comps)}" if comps else ""
         ebl_str = f" EBL {ebl} mL." if ebl else ""
         events.append(
             HospitalCourseFact(

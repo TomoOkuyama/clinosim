@@ -219,7 +219,8 @@ def activate_patient(
     current_meds = list(person.current_medications) if hasattr(person, "current_medications") else []
     if not current_meds:
         # Derive home medications from chronic conditions via chronic_medications.yaml
-        current_meds = _derive_home_medications(conditions, rng, country=country)
+        # CIF stores English drug names (AD-30). JP names resolved at FHIR output.
+        current_meds = _derive_home_medications(conditions, rng, country="US")
 
     # Address and contact from Layer 1
     from clinosim.types.patient import Address, ContactInfo

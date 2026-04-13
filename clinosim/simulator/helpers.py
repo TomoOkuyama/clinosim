@@ -231,7 +231,8 @@ def _country_to_yaml_key(country: str) -> str:
 def _disease_chief_complaint(protocol: DiseaseProtocol, country: str = "US") -> str:
     """Get chief complaint from disease protocol YAML (multi-language support)."""
     from clinosim.locale.text import resolve_text
-    return resolve_text(protocol.chief_complaint, country=country) or "General malaise"
+    # CIF stores English always (AD-30). JP chief complaint resolved at FHIR output time.
+    return resolve_text(protocol.chief_complaint, language="en") or "General malaise"
 
 
 def _disease_to_department(protocol: DiseaseProtocol) -> str:
