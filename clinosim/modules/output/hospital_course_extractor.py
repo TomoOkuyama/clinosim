@@ -77,6 +77,9 @@ def extract_hospital_course(
     # --- Lab / physiological peaks (CRP, WBC, Cr) ---
     events.extend(_lab_peak_events(record, admission_dt))
 
+    # --- Treatment changes (new drugs started after day 0, drug switches) ---
+    events.extend(_treatment_change_events(record, admission_dt))
+
     # --- Discharge / death ---
     events.append(
         _discharge_event(record, encounter, admission_dt, discharge_dt, language)
@@ -294,6 +297,53 @@ def _complication_events(
         )
         for c in complications
     ]
+
+
+def _treatment_change_events(
+    record: dict[str, Any],
+    admission_dt: datetime | None,
+) -> list[HospitalCourseFact]:
+    """Detect treatment changes: drugs started after day 0 (escalation/switch).
+
+    Home medications and day-0 admission orders are excluded — only
+    new medications appearing on day 1+ are surfaced as treatment changes.
+    """
+    mars = record.get("medication_administrations") or []
+    if not mars:
+        return []
+
+    # Track first appearance day of each drug
+    drug_first_day: dict[str, int] = {}
+    for mar in mars:
+        if not isinstance(mar, dict):
+            continue
+        name = mar.get("drug_name") or ""
+        if not name:
+            continue
+        admin_dt = _parse_dt(
+            mar.get("administered_datetime") or mar.get("administration_datetime")
+        )
+        day = _day_offset(admission_dt, admin_dt) if admin_dt else 0
+        if name not in drug_first_day or day < drug_first_day[name]:
+            drug_first_day[name] = day
+
+    # Only surface drugs that first appear after day 0 (treatment changes)
+    events: list[HospitalCourseFact] = []
+    # Exclude common supportive drugs that are always day 0
+    supportive = {"acetaminophen", "ns", "lr", "normal saline", "lactated ringer"}
+    for drug, first_day in drug_first_day.items():
+        if first_day < 1:
+            continue  # day 0 = admission orders, not a "change"
+        if any(s in drug.lower() for s in supportive):
+            continue
+        events.append(
+            HospitalCourseFact(
+                hospital_day=first_day,
+                event_type="treatment_change",
+                description=f"Day {first_day}: Started {drug} (treatment escalation/switch).",
+            )
+        )
+    return events[:5]  # cap to avoid noise
 
 
 def _lab_peak_events(

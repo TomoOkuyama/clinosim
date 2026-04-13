@@ -129,15 +129,26 @@ def generate_documents(
     patient_count = 0
     doc_counts: dict[str, int] = {}
 
-    for filename in sorted(os.listdir(structural_dir)):
-        if not filename.endswith(".json"):
-            continue
+    # Count total files for progress display
+    all_files = sorted(f for f in os.listdir(structural_dir) if f.endswith(".json"))
+    total_files = len(all_files)
+
+    for file_idx, filename in enumerate(all_files):
         with open(structural_dir / filename, encoding="utf-8") as f:
             record = json.load(f)
 
         docs = _generate_for_record(record, llm_service, language, enabled_tasks, staff_names)
         if not docs:
             continue
+
+        # Progress display
+        total_docs = sum(doc_counts.values())
+        if patient_count % 10 == 0 or file_idx == total_files - 1:
+            print(
+                f"  Narrating {file_idx + 1}/{total_files} files, "
+                f"{patient_count} patients, {total_docs} documents...",
+                flush=True,
+            )
 
         enc_id = _encounter_id(record)
         enc_dir = documents_root / enc_id
