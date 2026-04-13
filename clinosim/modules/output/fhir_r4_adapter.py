@@ -246,7 +246,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 "resourceType": "Location",
                 "id": f"loc-ward-{ward}",
                 "status": "active",
-                "name": f"Ward {ward}" if ward not in ("ER", "OPD") else phys_display,
+                "name": (f"{ward}病棟" if country == "JP" else f"Ward {ward}") if ward not in ("ER", "OPD") else phys_display,
                 "physicalType": {
                     "coding": [{
                         "system": "http://terminology.hl7.org/CodeSystem/location-physical-type",
@@ -267,7 +267,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                         "resourceType": "Location",
                         "id": f"loc-bed-{bed_id}",
                         "status": "active",
-                        "name": f"Bed {bed_id}",
+                        "name": f"{bed_id}号室" if country == "JP" else f"Bed {bed_id}",
                         "physicalType": {
                             "coding": [{
                                 "system": "http://terminology.hl7.org/CodeSystem/location-physical-type",
@@ -348,7 +348,7 @@ def _build_bundle(
     for enc in record.get("encounters", []):
         entries.append(_entry(
             _build_encounter(enc, patient_id, is_readmission, prior_encounter_id,
-                             primary_dx_code=primary_dx_code)
+                             primary_dx_code=primary_dx_code, country=country)
         ))
 
     # === Condition resources ===
@@ -406,7 +406,7 @@ def _build_bundle(
         if not staff_id or staff_id in seen_staff:
             return
         seen_staff.add(staff_id)
-        entries.append(_entry(_build_practitioner(staff_id, roster_map)))
+        entries.append(_entry(_build_practitioner(staff_id, roster_map, country=country)))
         role = _build_practitioner_role(staff_id, roster_map)
         if role:
             entries.append(_entry(role))
@@ -530,7 +530,7 @@ def _build_patient(p: dict, country: str) -> dict:
             "coding": [{
                 "system": "http://terminology.hl7.org/CodeSystem/v3-MaritalStatus",
                 "code": marital,
-                "display": _MARITAL_DISPLAY.get(marital, ""),
+                "display": (_MARITAL_DISPLAY_JA if country == "JP" else _MARITAL_DISPLAY).get(marital, ""),
             }],
         }
 
@@ -578,6 +578,10 @@ def _build_patient(p: dict, country: str) -> dict:
 _MARITAL_DISPLAY = {
     "S": "Never Married", "M": "Married", "D": "Divorced",
     "W": "Widowed", "U": "Unmarried", "T": "Domestic partner",
+}
+_MARITAL_DISPLAY_JA = {
+    "S": "未婚", "M": "既婚", "D": "離婚",
+    "W": "死別", "U": "未婚", "T": "事実婚",
 }
 
 _LANG_DISPLAY = {
@@ -939,6 +943,12 @@ _ENCOUNTER_TYPE_SNOMED: dict[str, dict[str, str]] = {
     "outpatient": {"code": "270427003", "display": "Patient-initiated encounter"},
     "icu": {"code": "183452005", "display": "Emergency hospital admission"},
 }
+_ENCOUNTER_TYPE_SNOMED_JA: dict[str, str] = {
+    "inpatient": "入院",
+    "emergency": "救急入院",
+    "outpatient": "外来受診",
+    "icu": "救急入院",
+}
 
 _DEPARTMENT_DISPLAY: dict[str, str] = {
     "internal_medicine": "Internal Medicine",
@@ -958,6 +968,7 @@ def _build_encounter(
     enc: dict, patient_id: str,
     is_readmission: bool = False, prior_encounter_id: str | None = None,
     primary_dx_code: str = "",
+    country: str = "US",
 ) -> dict:
     """Build FHIR Encounter resource."""
     encounter_id = enc.get("encounter_id", str(uuid.uuid4()))
@@ -986,9 +997,10 @@ def _build_encounter(
     # Type (SNOMED)
     type_info = _ENCOUNTER_TYPE_SNOMED.get(enc_type)
     if type_info:
-        resource["type"] = [{
-            "coding": [{"system": "http://snomed.info/sct", **type_info}],
-        }]
+        coding = {"system": "http://snomed.info/sct", **type_info}
+        if country == "JP" and enc_type in _ENCOUNTER_TYPE_SNOMED_JA:
+            coding["display"] = _ENCOUNTER_TYPE_SNOMED_JA[enc_type]
+        resource["type"] = [{"coding": [coding]}]
 
     # Priority (Encounter.priority)
     priority = enc.get("priority", "")
@@ -1008,9 +1020,9 @@ def _build_encounter(
         "coding": [{
             "system": "http://terminology.hl7.org/CodeSystem/service-type",
             "code": department,
-            "display": _DEPARTMENT_DISPLAY.get(department, department),
+            "display": (_DEPT_DISPLAY_JA if country == "JP" else _DEPARTMENT_DISPLAY).get(department, department),
         }],
-        "text": _DEPARTMENT_DISPLAY.get(department, department),
+        "text": (_DEPT_DISPLAY_JA if country == "JP" else _DEPARTMENT_DISPLAY).get(department, department),
     }
 
     if enc.get("admission_datetime"):
@@ -1109,7 +1121,7 @@ def _build_encounter(
         locations.append({
             "location": {
                 "reference": f"Location/loc-bed-{bed_number}",
-                "display": f"Bed {bed_number}",
+                "display": f"{bed_number}号室" if country == "JP" else f"Bed {bed_number}",
             },
             "status": "completed" if enc.get("discharge_datetime") else "active",
         })
@@ -1118,7 +1130,7 @@ def _build_encounter(
         locations.append({
             "location": {
                 "reference": f"Location/loc-ward-{ward_id}",
-                "display": f"Ward {ward_id}",
+                "display": f"{ward_id}病棟" if country == "JP" else f"Ward {ward_id}",
             },
             "status": "completed" if enc.get("discharge_datetime") else "active",
         })
@@ -1956,6 +1968,13 @@ _ROLE_PREFIX_MAP: dict[str, dict[str, str]] = {
     "radiologist": {"qual_code": "MD", "qual_display": "Doctor of Medicine"},
     "pharmacist": {"qual_code": "PharmD", "qual_display": "Doctor of Pharmacy"},
 }
+_ROLE_PREFIX_MAP_JA: dict[str, dict[str, str]] = {
+    "physician": {"qual_code": "MD", "qual_display": "医師", "prefix": ""},
+    "nurse": {"qual_code": "RN", "qual_display": "看護師", "prefix": ""},
+    "lab_technician": {"qual_code": "MT", "qual_display": "臨床検査技師", "prefix": ""},
+    "radiologist": {"qual_code": "MD", "qual_display": "放射線科医", "prefix": ""},
+    "pharmacist": {"qual_code": "PharmD", "qual_display": "薬剤師", "prefix": ""},
+}
 
 # SNOMED specialty codes
 _SPECIALTY_SNOMED: dict[str, dict[str, str]] = {
@@ -1972,7 +1991,7 @@ _SPECIALTY_SNOMED: dict[str, dict[str, str]] = {
 }
 
 
-def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None) -> dict:
+def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None, country: str = "US") -> dict:
     """Build FHIR Practitioner resource. Uses roster data when available."""
     resource: dict[str, Any] = {
         "resourceType": "Practitioner",
@@ -1998,7 +2017,7 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
             family, given = full_name, ""
 
         name_obj: dict[str, Any] = {"family": family, "given": [given] if given else []}
-        if role == "physician" or role == "radiologist":
+        if role in ("physician", "radiologist") and country != "JP":
             name_obj["prefix"] = ["Dr."]
         resource["name"] = [name_obj]
 
@@ -2019,7 +2038,7 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
             resource["telecom"] = telecoms
 
         # Qualification
-        qual = _ROLE_PREFIX_MAP.get(role)
+        qual = (_ROLE_PREFIX_MAP_JA if country == "JP" else _ROLE_PREFIX_MAP).get(role)
         if qual:
             qualification: dict[str, Any] = {
                 "code": {
