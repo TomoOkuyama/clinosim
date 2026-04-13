@@ -157,34 +157,37 @@ def place_admission_orders(
         )
         orders.append(order)
 
-    # Medication orders
+    # Medication orders (all first-line drugs, not just the first)
     meds = admission.get("medications", {})
-    first_line = meds.get("first_line", {}).get(country.lower(), {})
-    if first_line:
-        med_spec = first_line if isinstance(first_line, dict) else first_line[0] if first_line else {}
-        if med_spec:
-            dose_str = med_spec.get("dose", "")
-            parsed = parse_dose_string(dose_str)
-            order = Order(
-                order_id=f"ORD-{patient_id}-ADM-M01",
-                encounter_id=encounter_id,
-                patient_id=patient_id,
-                order_type=OrderType.MEDICATION,
-                order_code=med_spec.get("code_yj", med_spec.get("code_rxnorm", "")),
-                display_name=med_spec.get("drug", "Unknown"),
-                urgency="stat",
-                clinical_intent=f"Empiric antibiotic: {med_spec.get('drug', '')}",
-                ordered_datetime=admission_time + timedelta(minutes=int(rng.normal(30, 10))),
-                ordered_by=ordered_by,
-                status=OrderStatus.PLACED,
-                dose_quantity=parsed.get("dose_quantity"),
-                dose_unit=parsed.get("dose_unit", ""),
-                frequency=parsed.get("frequency", ""),
-                frequency_per_day=parsed.get("frequency_per_day"),
-                route=parsed.get("route") or med_spec.get("route", ""),
-                duration_days=med_spec.get("duration_days"),
-            )
-            orders.append(order)
+    first_line_raw = meds.get("first_line", {}).get(country.lower(), [])
+    if isinstance(first_line_raw, dict):
+        first_line_raw = [first_line_raw]
+    for med_idx, med_spec in enumerate(first_line_raw):
+        if not isinstance(med_spec, dict):
+            continue
+        dose_str = med_spec.get("dose", "")
+        parsed = parse_dose_string(dose_str)
+        drug_name = med_spec.get("drug", "Unknown")
+        order = Order(
+            order_id=f"ORD-{patient_id}-ADM-M{med_idx + 1:02d}",
+            encounter_id=encounter_id,
+            patient_id=patient_id,
+            order_type=OrderType.MEDICATION,
+            order_code=med_spec.get("code_yj", med_spec.get("code_rxnorm", "")),
+            display_name=drug_name,
+            urgency="stat",
+            clinical_intent=f"First-line treatment: {drug_name}",
+            ordered_datetime=admission_time + timedelta(minutes=int(rng.normal(30, 10))),
+            ordered_by=ordered_by,
+            status=OrderStatus.PLACED,
+            dose_quantity=parsed.get("dose_quantity"),
+            dose_unit=parsed.get("dose_unit", ""),
+            frequency=parsed.get("frequency", ""),
+            frequency_per_day=parsed.get("frequency_per_day"),
+            route=parsed.get("route") or med_spec.get("route", ""),
+            duration_days=med_spec.get("duration_days"),
+        )
+        orders.append(order)
 
     # Supportive orders — classify into medication vs. care plan/therapy
     _MED_TYPES = {

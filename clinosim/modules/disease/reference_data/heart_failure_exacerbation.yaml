@@ -10,6 +10,11 @@ encounter_type: medical
 requires_surgery: false
 readmission_eligible: true
 
+# Hold oral diuretics during acute phase — IV furosemide replaces PO
+medication_holds:
+  - drugs: ["Furosemide"]
+    reason: "Acute HF exacerbation — oral diuretic replaced by IV furosemide"
+
 icd_codes:
   primary: "I50.9"
   variants:
