@@ -257,94 +257,80 @@ output/csv/
 ## データフロー
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  population engine                                          │
-│  ・catchment 人口生成 (世帯ベース)                           │
-│  ・PersonRecord (Layer 1: 軽量レジストリ)                    │
-│  ・月次 LifeEvent 生成 (incidence × 季節性 × risk modifier) │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│  patient activator                                          │
-│  ・PersonRecord (L1) → PatientProfile (L2) 変換             │
-│  ・身体計測、生理学的予備能、慢性疾患のステージ化             │
-│  ・住所、緊急連絡先、preferred language 等を設定              │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│  encounter creation                                         │
-│  ・disease YAML から科を判定 → hospital_config で resolve   │
-│  ・staff_id 割当、 ward + bed_number アサイン               │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│  daily simulation loop (per inpatient day)                  │
-│                                                              │
-│   ┌──────────────────────────────┐                          │
-│   │ clinical_course              │                          │
-│   │  ・archetype trajectory      │                          │
-│   │  ・diagnosis effectiveness   │                          │
-│   │  ・natural recovery          │                          │
-│   │  ・complications             │                          │
-│   └──────────────────────────────┘                          │
-│              │                                              │
-│              ▼                                              │
-│   ┌──────────────────────────────┐                          │
-│   │ physiology engine            │                          │
-│   │  ・9-state update            │                          │
-│   │  ・derive_lab_values()       │                          │
-│   │  ・derive_vital_signs()      │                          │
-│   └──────────────────────────────┘                          │
-│              │                                              │
-│              ▼                                              │
-│   ┌──────────────────────────────┐                          │
-│   │ orders + observation         │                          │
-│   │  ・place_daily_lab_orders()  │                          │
-│   │  ・3-layer noise (CVi+CVa)   │                          │
-│   │  ・H/L/critical flagging     │                          │
-│   │  ・interp + reference range  │                          │
-│   └──────────────────────────────┘                          │
-│              │                                              │
-│              ▼                                              │
-│   ┌──────────────────────────────┐                          │
-│   │ diagnosis engine             │                          │
-│   │  ・Bayesian update (LR)      │                          │
-│   │  ・working_diagnosis 更新    │                          │
-│   └──────────────────────────────┘                          │
-│              │                                              │
-│              ▼                                              │
-│   ┌──────────────────────────────┐                          │
-│   │ procedure + MAR              │                          │
-│   │  ・bedside procedures        │                          │
-│   │  ・MAR (with hold logic)     │                          │
-│   └──────────────────────────────┘                          │
-│              │                                              │
-│              ▼                                              │
-│   ┌──────────────────────────────┐                          │
-│   │ discharge readiness?         │                          │
-│   │  YES → encounter終了         │                          │
-│   │  NO  → next day              │                          │
-│   └──────────────────────────────┘                          │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│  CIF dataset (immutable intermediate format)                │
-└─────────────────────────────────────────────────────────────┘
-                            │
-              ┌─────────────┼─────────────┐
-              ▼             ▼             ▼
-      ┌──────────┐  ┌──────────┐  ┌──────────┐
-      │ CIF JSON │  │ FHIR R4  │  │   CSV    │
-      │ writer   │  │ NDJSON   │  │ adapter  │
-      └──────────┘  │ Bulk Data│  └──────────┘
-                    └──────────┘
-                         │
-                         ▼
-           clinosim.codes (lookup display text)
++---------------------------------------------------------------+
+|  STAGE 1 -- clinosim generate                                 |
++---------------------------------------------------------------+
+|                                                               |
+|  population engine                                            |
+|   - catchment: household-based population generation          |
+|   - PersonRecord (Layer 1: lightweight registry)              |
+|   - monthly LifeEvent (incidence x seasonality x risk)        |
+|              |                                                |
+|              v                                                |
+|  patient activator (Layer 1 -> Layer 2: full clinical)        |
+|              |                                                |
+|              v                                                |
+|  encounter creation                                           |
+|   - disease YAML -> department (via hospital_config)          |
+|   - staff / ward / bed / OR assignment                        |
+|              |                                                |
+|              v                                                |
+|  daily simulation loop (per inpatient day)                    |
+|   clinical_course -> physiology -> orders/observation         |
+|                   -> diagnosis -> procedure + MAR             |
+|                   -> discharge readiness?                     |
+|              |                                                |
+|              v                                                |
+|  CIF structural/  (immutable, one JSON per encounter)         |
+|  + discharge Rx, procedures, vitals, labs, MAR,               |
+|    conditions, ADL, I/O, complications, ground truth          |
+|                                                               |
++---------------------------------------------------------------+
+               |
+               v
++---------------------------------------------------------------+
+|  STAGE 2 -- clinosim narrate                                  |
++---------------------------------------------------------------+
+|                                                               |
+|  For each inpatient encounter:                                |
+|                                                               |
+|   1. hospital_course_extractor                                |
+|        deterministic fact extraction from CIF                 |
+|              |                                                |
+|              v                                                |
+|   2. document_generator                                       |
+|        ClinicalDocument stubs (Tier A + B):                   |
+|          - Admission H&P      LOINC 34117-2                   |
+|          - Operative Note     LOINC 11504-8                   |
+|          - Procedure Note     LOINC 28570-0                   |
+|          - Discharge Summary  LOINC 18842-5                   |
+|          - Death Note         LOINC 69730-0                   |
+|              |                                                |
+|              v                                                |
+|   3. LLMService.generate(task_type, variables)                |
+|        +- PromptRegistry (YAML templates)                     |
+|        +- PromptCache    (SHA256 disk cache)                  |
+|        +- provider       (Ollama | Bedrock | Mock)            |
+|              |                                                |
+|              v                                                |
+|  CIF narratives/<version_id>/documents/                       |
+|                                                               |
++---------------------------------------------------------------+
+               |
+               v
++---------------------------------------------------------------+
+|  STAGE 3 -- clinosim export-fhir                              |
++---------------------------------------------------------------+
+|                                                               |
+|  fhir_r4_adapter                                              |
+|   - CIF structural/ -> 13 FHIR R4 resource types             |
+|   - CIF narratives/ -> DocumentReference (base64)             |
+|   - display text via clinosim.codes (en / ja)                 |
+|              |                                                |
+|              v                                                |
+|  output/fhir_r4/  (HL7 Bulk Data NDJSON + manifest.json)      |
+|                                                               |
++---------------------------------------------------------------+
 ```
 
 ### Snapshot semantics
