@@ -1,0 +1,206 @@
+{
+  "patient": {
+    "patient_id": "POP-000175",
+    "name": {
+      "family_name": "Wood",
+      "given_name": "Emma",
+      "display_name": "Emma Wood",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 50,
+    "sex": "F",
+    "date_of_birth": "1974-07-20",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 162.3,
+    "weight_kg": 61.1,
+    "bmi": 23.2,
+    "address": {
+      "postal_code": "02458",
+      "state": "MA",
+      "city": "Newton",
+      "line1": "405 Maple Ave",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(781) 355-1386",
+      "phone_mobile": "(617) 546-5167",
+      "phone_primary": "(617) 546-5167",
+      "email": "",
+      "emergency_contact_name": "Wood family",
+      "emergency_contact_phone": "(781) 355-1386",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.63,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2020-04-27",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.179740698661852,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2019-01-25",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.3403959957697425,
+        "stage": "HbA1c 8.5%"
+      },
+      {
+        "code": "J44",
+        "system": "icd-10-cm",
+        "onset_date": "2011-05-13",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.10587239645203811,
+        "stage": "GOLD 2"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Metformin 500mg",
+      "Sliding scale insulin",
+      "Tiotropium 18mcg inhaler",
+      "Salbutamol 100mcg inhaler PRN"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.36701265143020856,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8682158185216304,
+      "cardiac_reserve": 0.8684529842365033,
+      "hepatic_reserve": 0.8803082309431761,
+      "treatment_sensitivity": 0.9937716261420767,
+      "symptom_reporting_bias": 0.8777576832679724,
+      "delirium_susceptibility": 0.207036638668129,
+      "dvt_susceptibility": 0.15598420851981384
+    },
+    "baseline_vitals": {
+      "temperature": 36.5,
+      "heart_rate": 82,
+      "systolic_bp": 140,
+      "diastolic_bp": 85,
+      "respiratory_rate": 14,
+      "spo2": 96.0
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000175-000471",
+      "patient_id": "POP-000175",
+      "episode_id": "EP-POP-000175-000471",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-06-10T10:38:00",
+      "discharge_datetime": "2024-06-10T10:58:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-000175-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-06-10T10:43:00",
+      "temperature_celsius": null,
+      "heart_rate": 71,
+      "systolic_bp": 144,
+      "diastolic_bp": 80,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000175-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000175-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-002",
+    "issue_date": "2026-04-13T15:30:31.939075",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Metformin 500mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Sliding scale insulin",
+        "duration_days": 30
+      },
+      {
+        "drug": "Tiotropium 18mcg inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol 100mcg inhaler PRN",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

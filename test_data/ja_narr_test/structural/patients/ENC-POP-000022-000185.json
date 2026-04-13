@@ -1,0 +1,240 @@
+{
+  "patient": {
+    "patient_id": "POP-000022",
+    "name": {
+      "family_name": "Brown",
+      "given_name": "Ebony",
+      "display_name": "Ebony Brown",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 48,
+    "sex": "F",
+    "date_of_birth": "1976-12-27",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 150.1,
+    "weight_kg": 52.3,
+    "bmi": 23.2,
+    "address": {
+      "postal_code": "02171",
+      "state": "MA",
+      "city": "Quincy",
+      "line1": "407 Beacon St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 237-1458",
+      "phone_primary": "(508) 237-1458",
+      "email": "",
+      "emergency_contact_name": "Brown family",
+      "emergency_contact_phone": "(508) 237-1458",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.53,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2018-12-12",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.1004206901771351,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2023-06-21",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.17030996835233309,
+        "stage": "HbA1c 7.4%"
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2023-07-12",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.211562739416266,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Metformin 500mg",
+      "Atorvastatin 10mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.2805295718723324,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8514533996539225,
+      "cardiac_reserve": 0.6575900484951709,
+      "hepatic_reserve": 0.8664996498349712,
+      "treatment_sensitivity": 0.8643109945480677,
+      "symptom_reporting_bias": 0.7889359420886349,
+      "delirium_susceptibility": 0.3027867036566889,
+      "dvt_susceptibility": 0.2235085751739314
+    },
+    "baseline_vitals": {
+      "temperature": 36.2,
+      "heart_rate": 69,
+      "systolic_bp": 106,
+      "diastolic_bp": 80,
+      "respiratory_rate": 19,
+      "spo2": 97.0
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000022-000185",
+      "patient_id": "POP-000022",
+      "episode_id": "EP-POP-000022-000185",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-05-05T10:17:00",
+      "discharge_datetime": "2024-05-05T11:01:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-000022-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000022-OPD-L00",
+      "encounter_id": "ENC-POP-000022-000185",
+      "patient_id": "POP-000022",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Creatinine",
+      "ordered_datetime": "2024-05-05T10:27:00",
+      "ordered_by": "DR-IM-003",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-05-05T12:17:00",
+        "performed_by": "TECH-LAB-005",
+        "lab_name": "Creatinine",
+        "value": 0.93,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": "H",
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-05-05T10:22:00",
+      "temperature_celsius": null,
+      "heart_rate": 69,
+      "systolic_bp": 117,
+      "diastolic_bp": 86,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-05-05T12:17:00",
+      "performed_by": "TECH-LAB-005",
+      "lab_name": "Creatinine",
+      "value": 0.93,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": "H",
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000022-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000022-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-003",
+    "issue_date": "2026-04-13T15:30:31.400599",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Metformin 500mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

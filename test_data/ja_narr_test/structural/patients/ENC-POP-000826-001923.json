@@ -1,0 +1,363 @@
+{
+  "patient": {
+    "patient_id": "POP-000826",
+    "name": {
+      "family_name": "Smith",
+      "given_name": "David",
+      "display_name": "David Smith",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 68,
+    "sex": "M",
+    "date_of_birth": "1956-05-23",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 158.1,
+    "weight_kg": 69.1,
+    "bmi": 27.7,
+    "address": {
+      "postal_code": "02108",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "162 Spring St, Apt 7",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 765-6015",
+      "phone_primary": "(781) 765-6015",
+      "email": "",
+      "emergency_contact_name": "Smith family",
+      "emergency_contact_phone": "(781) 765-6015",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.62,
+    "chronic_conditions": [
+      {
+        "code": "N18",
+        "system": "icd-10-cm",
+        "onset_date": "2010-07-08",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.33029971600670927,
+        "stage": "CKD G3a"
+      },
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2022-01-09",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.37637448555861897,
+        "stage": "Moderate persistent"
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "Sulfonamide",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Sodium bicarbonate 500mg",
+      "Fluticasone/Salmeterol inhaler",
+      "Salbutamol inhaler PRN"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.3649655805369714,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.49878151521606584,
+      "cardiac_reserve": 0.8126437017183056,
+      "hepatic_reserve": 0.6505746546288068,
+      "treatment_sensitivity": 1.0605616545104883,
+      "symptom_reporting_bias": 1.0812760312136107,
+      "delirium_susceptibility": 0.09860955301819163,
+      "dvt_susceptibility": 0.2504207470917589
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 77,
+      "systolic_bp": 134,
+      "diastolic_bp": 77,
+      "respiratory_rate": 13,
+      "spo2": 96.5
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000826-001923",
+      "patient_id": "POP-000826",
+      "episode_id": "EP-POP-000826-001923",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-04-14T10:23:00",
+      "discharge_datetime": "2024-04-14T11:02:00",
+      "chief_complaint": "Renal function monitoring, electrolyte check",
+      "disease_event_id": "DE-POP-000826-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000826-OPD-L00",
+      "encounter_id": "ENC-POP-000826-001923",
+      "patient_id": "POP-000826",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Creatinine",
+      "ordered_datetime": "2024-04-14T10:33:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-04-14T12:23:00",
+        "performed_by": "TECH-LAB-003",
+        "lab_name": "Creatinine",
+        "value": 0.91,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000826-OPD-L01",
+      "encounter_id": "ENC-POP-000826-001923",
+      "patient_id": "POP-000826",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "K",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: K",
+      "ordered_datetime": "2024-04-14T10:33:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-04-14T12:23:00",
+        "performed_by": "TECH-LAB-003",
+        "lab_name": "K",
+        "value": 4.2,
+        "unit": "mmol/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000826-OPD-L02",
+      "encounter_id": "ENC-POP-000826-001923",
+      "patient_id": "POP-000826",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Na",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Na",
+      "ordered_datetime": "2024-04-14T10:33:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-04-14T12:23:00",
+        "performed_by": "TECH-LAB-003",
+        "lab_name": "Na",
+        "value": 141.0,
+        "unit": "mmol/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000826-OPD-L03",
+      "encounter_id": "ENC-POP-000826-001923",
+      "patient_id": "POP-000826",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "BUN",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: BUN",
+      "ordered_datetime": "2024-04-14T10:33:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-04-14T12:23:00",
+        "performed_by": "TECH-LAB-003",
+        "lab_name": "BUN",
+        "value": 16.5,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-04-14T10:28:00",
+      "temperature_celsius": null,
+      "heart_rate": 79,
+      "systolic_bp": 155,
+      "diastolic_bp": 77,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-04-14T12:23:00",
+      "performed_by": "TECH-LAB-003",
+      "lab_name": "Creatinine",
+      "value": 0.91,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-04-14T12:23:00",
+      "performed_by": "TECH-LAB-003",
+      "lab_name": "K",
+      "value": 4.2,
+      "unit": "mmol/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-04-14T12:23:00",
+      "performed_by": "TECH-LAB-003",
+      "lab_name": "Na",
+      "value": 141.0,
+      "unit": "mmol/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-04-14T12:23:00",
+      "performed_by": "TECH-LAB-003",
+      "lab_name": "BUN",
+      "value": 16.5,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000826-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "N18"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "N18",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "N18",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000826-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-006",
+    "issue_date": "2026-04-13T15:30:34.486556",
+    "items": [
+      {
+        "drug": "Sodium bicarbonate 500mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Fluticasone/Salmeterol inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol inhaler PRN",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

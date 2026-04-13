@@ -1,0 +1,237 @@
+{
+  "patient": {
+    "patient_id": "POP-001324",
+    "name": {
+      "family_name": "Phillips",
+      "given_name": "Lydia",
+      "display_name": "Lydia Phillips",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 64,
+    "sex": "F",
+    "date_of_birth": "1960-02-08",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 159.5,
+    "weight_kg": 92.3,
+    "bmi": 36.3,
+    "address": {
+      "postal_code": "01601",
+      "state": "MA",
+      "city": "Worcester",
+      "line1": "115 Elm St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 930-2897",
+      "phone_primary": "(617) 930-2897",
+      "email": "",
+      "emergency_contact_name": "Phillips family",
+      "emergency_contact_phone": "(617) 930-2897",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.52,
+    "chronic_conditions": [
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2023-02-10",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.1724646534352916,
+        "stage": ""
+      },
+      {
+        "code": "J44",
+        "system": "icd-10-cm",
+        "onset_date": "2023-04-16",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.3958993848378029,
+        "stage": "GOLD 2"
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "Penicillin",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Atorvastatin 10mg",
+      "Tiotropium 18mcg inhaler",
+      "Salbutamol 100mcg inhaler PRN"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.6505677282415736,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7282090143421335,
+      "cardiac_reserve": 0.6902061580358244,
+      "hepatic_reserve": 0.8819322158159587,
+      "treatment_sensitivity": 0.7897909430260006,
+      "symptom_reporting_bias": 1.1467498252259922,
+      "delirium_susceptibility": 0.23421602091934954,
+      "dvt_susceptibility": 0.13022478466865223
+    },
+    "baseline_vitals": {
+      "temperature": 36.0,
+      "heart_rate": 73,
+      "systolic_bp": 139,
+      "diastolic_bp": 68,
+      "respiratory_rate": 16,
+      "spo2": 92.3
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001324-003240",
+      "patient_id": "POP-001324",
+      "episode_id": "EP-POP-001324-003240",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-04-13T10:31:00",
+      "discharge_datetime": "2024-04-13T11:11:00",
+      "chief_complaint": "Lipid management, statin therapy monitoring",
+      "disease_event_id": "DE-POP-001324-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001324-OPD-L00",
+      "encounter_id": "ENC-POP-001324-003240",
+      "patient_id": "POP-001324",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "ALT",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: ALT",
+      "ordered_datetime": "2024-04-13T10:41:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-04-13T12:31:00",
+        "performed_by": "TECH-LAB-009",
+        "lab_name": "ALT",
+        "value": 20.0,
+        "unit": "U/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-04-13T10:36:00",
+      "temperature_celsius": null,
+      "heart_rate": 70,
+      "systolic_bp": 140,
+      "diastolic_bp": 63,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-04-13T12:31:00",
+      "performed_by": "TECH-LAB-009",
+      "lab_name": "ALT",
+      "value": 20.0,
+      "unit": "U/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001324-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E78"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E78",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E78",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001324-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-006",
+    "issue_date": "2026-04-13T15:30:36.777789",
+    "items": [
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Tiotropium 18mcg inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol 100mcg inhaler PRN",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

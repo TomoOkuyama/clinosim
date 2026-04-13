@@ -1,0 +1,192 @@
+{
+  "patient": {
+    "patient_id": "POP-000107",
+    "name": {
+      "family_name": "Sullivan",
+      "given_name": "Jill",
+      "display_name": "Jill Sullivan",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 74,
+    "sex": "F",
+    "date_of_birth": "1950-10-15",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 176.6,
+    "weight_kg": 80.9,
+    "bmi": 26.0,
+    "address": {
+      "postal_code": "01604",
+      "state": "MA",
+      "city": "Worcester",
+      "line1": "170 Franklin St, Apt 4",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(617) 682-1226",
+      "phone_mobile": "(781) 681-5674",
+      "phone_primary": "(781) 681-5674",
+      "email": "",
+      "emergency_contact_name": "Sullivan family",
+      "emergency_contact_phone": "(617) 682-1226",
+      "emergency_contact_relationship": "sibling"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.77,
+    "chronic_conditions": [
+      {
+        "code": "M81",
+        "system": "icd-10-cm",
+        "onset_date": "2010-10-15",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.15413329669683334,
+        "stage": ""
+      },
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2022-04-27",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.32968947641127855,
+        "stage": "Mild persistent"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Alendronate 35mg",
+      "Vitamin D 1000IU",
+      "Fluticasone/Salmeterol inhaler",
+      "Salbutamol inhaler PRN"
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.8982807811655044,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.6801169269777122,
+      "cardiac_reserve": 0.7836342577240685,
+      "hepatic_reserve": 0.7812626772545335,
+      "treatment_sensitivity": 0.9718716305367546,
+      "symptom_reporting_bias": 0.7824642635441097,
+      "delirium_susceptibility": 0.008249450874103635,
+      "dvt_susceptibility": 0.19217738794792127
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 78,
+      "systolic_bp": 139,
+      "diastolic_bp": 72,
+      "respiratory_rate": 14,
+      "spo2": 97.6
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000107-000342",
+      "patient_id": "POP-000107",
+      "episode_id": "EP-POP-000107-000342",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-01-18T10:32:00",
+      "discharge_datetime": "2024-01-18T11:00:00",
+      "chief_complaint": "Bone health follow-up, fracture risk assessment",
+      "disease_event_id": "DE-POP-000107-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-01-18T10:37:00",
+      "temperature_celsius": null,
+      "heart_rate": 88,
+      "systolic_bp": 119,
+      "diastolic_bp": 68,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000107-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "M81"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "M81",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "M81",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000107-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-001",
+    "issue_date": "2026-04-13T15:30:31.697914",
+    "items": [
+      {
+        "drug": "Alendronate 35mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Vitamin D 1000IU",
+        "duration_days": 30
+      },
+      {
+        "drug": "Fluticasone/Salmeterol inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol inhaler PRN",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

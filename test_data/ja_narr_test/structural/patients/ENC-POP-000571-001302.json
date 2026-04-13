@@ -1,0 +1,226 @@
+{
+  "patient": {
+    "patient_id": "POP-000571",
+    "name": {
+      "family_name": "Martinez",
+      "given_name": "Emily",
+      "display_name": "Emily Martinez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 58,
+    "sex": "F",
+    "date_of_birth": "1966-07-05",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 161.4,
+    "weight_kg": 63.2,
+    "bmi": 24.2,
+    "address": {
+      "postal_code": "02130",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "462 Oak St, Apt 12",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(339) 487-6909",
+      "phone_mobile": "(617) 208-7025",
+      "phone_primary": "(617) 208-7025",
+      "email": "",
+      "emergency_contact_name": "Martinez family",
+      "emergency_contact_phone": "(339) 487-6909",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.63,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2014-06-19",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.12308236029892723,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "K21",
+        "system": "icd-10-cm",
+        "onset_date": "2013-09-27",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.24852711066767527,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Lansoprazole 15mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.7158404149293847,
+      "drug_metabolism_rate": "poor",
+      "renal_reserve": 0.7261742741517834,
+      "cardiac_reserve": 0.5550770487717228,
+      "hepatic_reserve": 0.757171475744242,
+      "treatment_sensitivity": 0.9309759847057246,
+      "symptom_reporting_bias": 1.146461827976683,
+      "delirium_susceptibility": 0.0793766113076475,
+      "dvt_susceptibility": 0.6277569381476997
+    },
+    "baseline_vitals": {
+      "temperature": 36.2,
+      "heart_rate": 81,
+      "systolic_bp": 133,
+      "diastolic_bp": 80,
+      "respiratory_rate": 11,
+      "spo2": 97.5
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000571-001302",
+      "patient_id": "POP-000571",
+      "episode_id": "EP-POP-000571-001302",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-03-07T10:42:00",
+      "discharge_datetime": "2024-03-07T10:57:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-000571-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000571-OPD-L00",
+      "encounter_id": "ENC-POP-000571-001302",
+      "patient_id": "POP-000571",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Creatinine",
+      "ordered_datetime": "2024-03-07T10:52:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-03-07T12:42:00",
+        "performed_by": "TECH-LAB-006",
+        "lab_name": "Creatinine",
+        "value": 0.93,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": "H",
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-03-07T10:47:00",
+      "temperature_celsius": null,
+      "heart_rate": 72,
+      "systolic_bp": 127,
+      "diastolic_bp": 82,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-03-07T12:42:00",
+      "performed_by": "TECH-LAB-006",
+      "lab_name": "Creatinine",
+      "value": 0.93,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": "H",
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000571-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000571-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-006",
+    "issue_date": "2026-04-13T15:30:33.398173",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Lansoprazole 15mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

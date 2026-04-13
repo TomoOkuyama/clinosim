@@ -1,0 +1,187 @@
+{
+  "patient": {
+    "patient_id": "POP-001019",
+    "name": {
+      "family_name": "Wright",
+      "given_name": "Megan",
+      "display_name": "Megan Wright",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 75,
+    "sex": "F",
+    "date_of_birth": "1949-02-18",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 154.7,
+    "weight_kg": 72.0,
+    "bmi": 30.1,
+    "address": {
+      "postal_code": "02138",
+      "state": "MA",
+      "city": "Cambridge",
+      "line1": "131 Highland Ave",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(781) 825-3318",
+      "phone_mobile": "(508) 680-4907",
+      "phone_primary": "(508) 680-4907",
+      "email": "",
+      "emergency_contact_name": "Wright family",
+      "emergency_contact_phone": "(781) 825-3318",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.6,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2016-10-12",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3257869017431069,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2022-02-19",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.3730849482376,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "",
+      "",
+      ""
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.20130536905543742,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.6688814165837342,
+      "cardiac_reserve": 0.5900316131118853,
+      "hepatic_reserve": 0.7135551427221827,
+      "treatment_sensitivity": 1.086393217883818,
+      "symptom_reporting_bias": 1.1290215898309433,
+      "delirium_susceptibility": 0.4707523053428472,
+      "dvt_susceptibility": 0.279658884896235
+    },
+    "baseline_vitals": {
+      "temperature": 36.2,
+      "heart_rate": 75,
+      "systolic_bp": 127,
+      "diastolic_bp": 76,
+      "respiratory_rate": 13,
+      "spo2": 98.8
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001019-002464",
+      "patient_id": "POP-001019",
+      "episode_id": "EP-POP-001019-002464",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-02-25T10:03:00",
+      "discharge_datetime": "2024-02-25T10:18:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-001019-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-02-25T10:08:00",
+      "temperature_celsius": null,
+      "heart_rate": 63,
+      "systolic_bp": 109,
+      "diastolic_bp": 76,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001019-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001019-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-003",
+    "issue_date": "2026-04-13T15:30:35.400626",
+    "items": [
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

@@ -1,0 +1,246 @@
+{
+  "patient": {
+    "patient_id": "POP-000186",
+    "name": {
+      "family_name": "Cortez",
+      "given_name": "Patricia",
+      "display_name": "Patricia Cortez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 43,
+    "sex": "F",
+    "date_of_birth": "1981-11-28",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 155.4,
+    "weight_kg": 69.4,
+    "bmi": 28.7,
+    "address": {
+      "postal_code": "02301",
+      "state": "MA",
+      "city": "Brockton",
+      "line1": "173 Park Ave",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 232-8934",
+      "phone_primary": "(617) 232-8934",
+      "email": "",
+      "emergency_contact_name": "Cortez family",
+      "emergency_contact_phone": "(617) 232-8934",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.6,
+    "chronic_conditions": [
+      {
+        "code": "J44",
+        "system": "icd-10-cm",
+        "onset_date": "2018-02-09",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.3768752026680199,
+        "stage": "GOLD 3"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "",
+      "",
+      "",
+      ""
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.3976353207159726,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8550703448301672,
+      "cardiac_reserve": 0.8146032156629172,
+      "hepatic_reserve": 0.6422756416129116,
+      "treatment_sensitivity": 0.9980167091235309,
+      "symptom_reporting_bias": 1.1686250358784316,
+      "delirium_susceptibility": 0.060085847336209336,
+      "dvt_susceptibility": 0.40613009707004816
+    },
+    "baseline_vitals": {
+      "temperature": 36.2,
+      "heart_rate": 88,
+      "systolic_bp": 113,
+      "diastolic_bp": 73,
+      "respiratory_rate": 17,
+      "spo2": 94.5
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000186-000106",
+      "patient_id": "POP-000186",
+      "episode_id": "EP-POP-000186-000106",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2025-01-21T18:14:00",
+      "discharge_datetime": "2025-01-21T18:48:00",
+      "chief_complaint": "Post-pneumonia follow-up, CRP check, chest X-ray review",
+      "disease_event_id": "DE-POP-000186-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000186-OPD-L00",
+      "encounter_id": "ENC-POP-000186-000106",
+      "patient_id": "POP-000186",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "CRP",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: CRP",
+      "ordered_datetime": "2025-01-21T18:24:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2025-01-21T20:14:00",
+        "performed_by": "TECH-LAB-004",
+        "lab_name": "CRP",
+        "value": 0.2,
+        "unit": "mg/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000186-OPD-L01",
+      "encounter_id": "ENC-POP-000186-000106",
+      "patient_id": "POP-000186",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "WBC",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: WBC",
+      "ordered_datetime": "2025-01-21T18:24:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2025-01-21T20:14:00",
+        "performed_by": "TECH-LAB-004",
+        "lab_name": "WBC",
+        "value": 7026.0,
+        "unit": "/uL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2025-01-21T18:19:00",
+      "temperature_celsius": 36.7,
+      "heart_rate": 89,
+      "systolic_bp": 127,
+      "diastolic_bp": 71,
+      "respiratory_rate": 15,
+      "spo2": 97.8,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2025-01-21T20:14:00",
+      "performed_by": "TECH-LAB-004",
+      "lab_name": "CRP",
+      "value": 0.2,
+      "unit": "mg/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2025-01-21T20:14:00",
+      "performed_by": "TECH-LAB-004",
+      "lab_name": "WBC",
+      "value": 7026.0,
+      "unit": "/uL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000186-OPD",
+    "condition_type": "post_discharge_followup",
+    "ground_truth_diseases": [
+      "Z09"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z09",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z09",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

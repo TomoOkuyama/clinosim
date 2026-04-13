@@ -1,0 +1,223 @@
+{
+  "patient": {
+    "patient_id": "POP-000679",
+    "name": {
+      "family_name": "Martinez",
+      "given_name": "Madison",
+      "display_name": "Madison Martinez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 52,
+    "sex": "F",
+    "date_of_birth": "1972-08-25",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 163.2,
+    "weight_kg": 107.6,
+    "bmi": 40.4,
+    "address": {
+      "postal_code": "02464",
+      "state": "MA",
+      "city": "Newton",
+      "line1": "327 Harvard St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(978) 221-8399",
+      "phone_mobile": "(781) 561-1129",
+      "phone_primary": "(781) 561-1129",
+      "email": "",
+      "emergency_contact_name": "Martinez family",
+      "emergency_contact_phone": "(978) 221-8399",
+      "emergency_contact_relationship": "sibling"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.48,
+    "chronic_conditions": [
+      {
+        "code": "I48",
+        "system": "icd-10-cm",
+        "onset_date": "2020-11-17",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.13509883627576325,
+        "stage": ""
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "Sulfonamide",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Warfarin 3mg",
+      "Apixaban 5mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.36098215483076385,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.5071085780227849,
+      "cardiac_reserve": 0.8413493695564822,
+      "hepatic_reserve": 0.5350999153324297,
+      "treatment_sensitivity": 0.9805997493227209,
+      "symptom_reporting_bias": 1.1850816026129154,
+      "delirium_susceptibility": 0.15698327707718338,
+      "dvt_susceptibility": 0.12712063275094523
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 85,
+      "systolic_bp": 118,
+      "diastolic_bp": 67,
+      "respiratory_rate": 15,
+      "spo2": 98.1
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000679-001573",
+      "patient_id": "POP-000679",
+      "episode_id": "EP-POP-000679-001573",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-02-24T10:37:00",
+      "discharge_datetime": "2024-02-24T11:04:00",
+      "chief_complaint": "Anticoagulation management, INR check",
+      "disease_event_id": "DE-POP-000679-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000679-OPD-L00",
+      "encounter_id": "ENC-POP-000679-001573",
+      "patient_id": "POP-000679",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "PT_INR",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: PT_INR",
+      "ordered_datetime": "2024-02-24T10:47:00",
+      "ordered_by": "DR-IM-001",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-02-24T12:37:00",
+        "performed_by": "TECH-LAB-004",
+        "lab_name": "PT_INR",
+        "value": 1.1,
+        "unit": "{INR}",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-02-24T10:42:00",
+      "temperature_celsius": null,
+      "heart_rate": 81,
+      "systolic_bp": 124,
+      "diastolic_bp": 74,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-02-24T12:37:00",
+      "performed_by": "TECH-LAB-004",
+      "lab_name": "PT_INR",
+      "value": 1.1,
+      "unit": "{INR}",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000679-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I48"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I48",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I48",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000679-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-001",
+    "issue_date": "2026-04-13T15:30:33.873815",
+    "items": [
+      {
+        "drug": "Warfarin 3mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Apixaban 5mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

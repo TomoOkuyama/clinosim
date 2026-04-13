@@ -1,0 +1,226 @@
+{
+  "patient": {
+    "patient_id": "POP-000260",
+    "name": {
+      "family_name": "Cox",
+      "given_name": "Wayne",
+      "display_name": "Wayne Cox",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 65,
+    "sex": "M",
+    "date_of_birth": "1959-10-09",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 177.2,
+    "weight_kg": 78.0,
+    "bmi": 24.8,
+    "address": {
+      "postal_code": "01610",
+      "state": "MA",
+      "city": "Worcester",
+      "line1": "447 Cedar St, Apt 3",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(617) 977-2375",
+      "phone_mobile": "(508) 899-7238",
+      "phone_primary": "(508) 899-7238",
+      "email": "",
+      "emergency_contact_name": "Cox family",
+      "emergency_contact_phone": "(617) 977-2375",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.54,
+    "chronic_conditions": [
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2023-04-24",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.34387384528275444,
+        "stage": ""
+      },
+      {
+        "code": "K21",
+        "system": "icd-10-cm",
+        "onset_date": "2021-02-06",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.31562659166854035,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Atorvastatin 10mg",
+      "Lansoprazole 15mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.4193395076903026,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8164404526512624,
+      "cardiac_reserve": 0.6307584649879472,
+      "hepatic_reserve": 0.7621417865543014,
+      "treatment_sensitivity": 1.2153690600180735,
+      "symptom_reporting_bias": 1.1925251052649837,
+      "delirium_susceptibility": 0.2929431265759633,
+      "dvt_susceptibility": 0.12860141240789577
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 58,
+      "systolic_bp": 132,
+      "diastolic_bp": 82,
+      "respiratory_rate": 15,
+      "spo2": 98.5
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000260-000641",
+      "patient_id": "POP-000260",
+      "episode_id": "EP-POP-000260-000641",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-12-25T10:24:00",
+      "discharge_datetime": "2024-12-25T10:39:00",
+      "chief_complaint": "Lipid management, statin therapy monitoring",
+      "disease_event_id": "DE-POP-000260-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000260-OPD-L00",
+      "encounter_id": "ENC-POP-000260-000641",
+      "patient_id": "POP-000260",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "HDL",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: HDL",
+      "ordered_datetime": "2024-12-25T10:34:00",
+      "ordered_by": "DR-IM-002",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-12-25T12:24:00",
+        "performed_by": "TECH-LAB-010",
+        "lab_name": "HDL",
+        "value": 94.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-12-25T10:29:00",
+      "temperature_celsius": null,
+      "heart_rate": 58,
+      "systolic_bp": 123,
+      "diastolic_bp": 80,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-005",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-12-25T12:24:00",
+      "performed_by": "TECH-LAB-010",
+      "lab_name": "HDL",
+      "value": 94.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000260-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E78"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E78",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E78",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000260-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-002",
+    "issue_date": "2026-04-13T15:30:32.228107",
+    "items": [
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Lansoprazole 15mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

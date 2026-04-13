@@ -1,0 +1,229 @@
+{
+  "patient": {
+    "patient_id": "POP-001067",
+    "name": {
+      "family_name": "Wells",
+      "given_name": "Robert",
+      "display_name": "Robert Wells",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 60,
+    "sex": "M",
+    "date_of_birth": "1964-10-19",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 165.7,
+    "weight_kg": 50.1,
+    "bmi": 18.2,
+    "address": {
+      "postal_code": "02155",
+      "state": "MA",
+      "city": "Medford",
+      "line1": "270 Harvard St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 316-2859",
+      "phone_primary": "(508) 316-2859",
+      "email": "",
+      "emergency_contact_name": "Wells family",
+      "emergency_contact_phone": "(508) 316-2859",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.51,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2017-05-02",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.35551149920707376,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2011-01-13",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.21632522251007666,
+        "stage": "CCS II"
+      },
+      {
+        "code": "M81",
+        "system": "icd-10-cm",
+        "onset_date": "2023-09-20",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.2576946435994069,
+        "stage": ""
+      },
+      {
+        "code": "K21",
+        "system": "icd-10-cm",
+        "onset_date": "2013-11-13",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.33028466002102624,
+        "stage": ""
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2010-11-26",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.39149052046892074,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Candesartan 8mg",
+      "Aspirin 100mg",
+      "Clopidogrel 75mg",
+      "Vitamin D 1000IU",
+      "Lansoprazole 15mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "heavy",
+    "physiological_profile": {
+      "immune_reactivity": 0.5540584178709915,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8318856739980088,
+      "cardiac_reserve": 0.6944324210736972,
+      "hepatic_reserve": 0.7072017582525937,
+      "treatment_sensitivity": 1.0785078249202584,
+      "symptom_reporting_bias": 1.057153041910082,
+      "delirium_susceptibility": 0.09142734765538721,
+      "dvt_susceptibility": 0.23981749701851598
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 65,
+      "systolic_bp": 137,
+      "diastolic_bp": 85,
+      "respiratory_rate": 17,
+      "spo2": 97.2
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001067-002581",
+      "patient_id": "POP-001067",
+      "episode_id": "EP-POP-001067-002581",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-03-13T10:32:00",
+      "discharge_datetime": "2024-03-13T11:02:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-001067-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-03-13T10:37:00",
+      "temperature_celsius": null,
+      "heart_rate": 68,
+      "systolic_bp": 128,
+      "diastolic_bp": 85,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-005",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001067-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001067-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-002",
+    "issue_date": "2026-04-13T15:30:35.602066",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Candesartan 8mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Aspirin 100mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Clopidogrel 75mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Vitamin D 1000IU",
+        "duration_days": 30
+      },
+      {
+        "drug": "Lansoprazole 15mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

@@ -1,0 +1,231 @@
+{
+  "patient": {
+    "patient_id": "POP-001666",
+    "name": {
+      "family_name": "Hernandez",
+      "given_name": "Richard",
+      "display_name": "Richard Hernandez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 65,
+    "sex": "M",
+    "date_of_birth": "1959-05-22",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 171.7,
+    "weight_kg": 96.3,
+    "bmi": 32.7,
+    "address": {
+      "postal_code": "01901",
+      "state": "MA",
+      "city": "Lynn",
+      "line1": "219 Franklin St, Apt 8",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(857) 465-5028",
+      "phone_mobile": "(781) 941-5116",
+      "phone_primary": "(781) 941-5116",
+      "email": "",
+      "emergency_contact_name": "Hernandez family",
+      "emergency_contact_phone": "(857) 465-5028",
+      "emergency_contact_relationship": "sibling"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.45,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2019-10-16",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.2965193014699654,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2015-02-16",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.22997004880230262,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Candesartan 8mg",
+      "Atorvastatin 10mg"
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.541333979052788,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.47355783492928705,
+      "cardiac_reserve": 0.6253951307436244,
+      "hepatic_reserve": 0.3348640351564749,
+      "treatment_sensitivity": 0.7498677730333968,
+      "symptom_reporting_bias": 1.2447939891512516,
+      "delirium_susceptibility": 0.27254644365989833,
+      "dvt_susceptibility": 0.24594304165904873
+    },
+    "baseline_vitals": {
+      "temperature": 36.8,
+      "heart_rate": 72,
+      "systolic_bp": 122,
+      "diastolic_bp": 88,
+      "respiratory_rate": 15,
+      "spo2": 96.1
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001666-004154",
+      "patient_id": "POP-001666",
+      "episode_id": "EP-POP-001666-004154",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-06-16T10:16:00",
+      "discharge_datetime": "2024-06-16T10:40:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-001666-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001666-OPD-L00",
+      "encounter_id": "ENC-POP-001666-004154",
+      "patient_id": "POP-001666",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Creatinine",
+      "ordered_datetime": "2024-06-16T10:26:00",
+      "ordered_by": "DR-IM-001",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-06-16T12:16:00",
+        "performed_by": "TECH-LAB-005",
+        "lab_name": "Creatinine",
+        "value": 0.85,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-06-16T10:21:00",
+      "temperature_celsius": null,
+      "heart_rate": 69,
+      "systolic_bp": 108,
+      "diastolic_bp": 90,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-06-16T12:16:00",
+      "performed_by": "TECH-LAB-005",
+      "lab_name": "Creatinine",
+      "value": 0.85,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001666-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001666-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-001",
+    "issue_date": "2026-04-13T15:30:38.401753",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Candesartan 8mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

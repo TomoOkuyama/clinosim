@@ -1,0 +1,201 @@
+{
+  "patient": {
+    "patient_id": "POP-001358",
+    "name": {
+      "family_name": "Rivera",
+      "given_name": "Patricia",
+      "display_name": "Patricia Rivera",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 58,
+    "sex": "F",
+    "date_of_birth": "1966-01-13",
+    "blood_type": "AB",
+    "rh_factor": "+",
+    "height_cm": 165.8,
+    "weight_kg": 90.4,
+    "bmi": 32.9,
+    "address": {
+      "postal_code": "02136",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "77 Commonwealth Ave",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 868-9611",
+      "phone_primary": "(617) 868-9611",
+      "email": "",
+      "emergency_contact_name": "Rivera family",
+      "emergency_contact_phone": "(617) 868-9611",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.55,
+    "chronic_conditions": [
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2022-05-03",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.29342540105577114,
+        "stage": ""
+      },
+      {
+        "code": "J44",
+        "system": "icd-10-cm",
+        "onset_date": "2019-02-04",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.32192985915369726,
+        "stage": "GOLD 2"
+      },
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2011-05-05",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.20675298136176148,
+        "stage": "CCS II"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Atorvastatin 10mg",
+      "Tiotropium 18mcg inhaler",
+      "Salbutamol 100mcg inhaler PRN",
+      "Aspirin 100mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5495254692311374,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7491874900303103,
+      "cardiac_reserve": 0.892897268515893,
+      "hepatic_reserve": 0.7301260533073495,
+      "treatment_sensitivity": 1.1694974105952278,
+      "symptom_reporting_bias": 1.108834252421533,
+      "delirium_susceptibility": 0.21081521903025532,
+      "dvt_susceptibility": 0.34220637547800953
+    },
+    "baseline_vitals": {
+      "temperature": 36.1,
+      "heart_rate": 74,
+      "systolic_bp": 135,
+      "diastolic_bp": 81,
+      "respiratory_rate": 16,
+      "spo2": 94.0
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001358-003326",
+      "patient_id": "POP-001358",
+      "episode_id": "EP-POP-001358-003326",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-05-04T10:25:00",
+      "discharge_datetime": "2024-05-04T10:48:00",
+      "chief_complaint": "Lipid management, statin therapy monitoring",
+      "disease_event_id": "DE-POP-001358-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-05-04T10:30:00",
+      "temperature_celsius": null,
+      "heart_rate": 73,
+      "systolic_bp": 134,
+      "diastolic_bp": 76,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001358-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E78"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E78",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E78",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001358-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-001",
+    "issue_date": "2026-04-13T15:30:36.923973",
+    "items": [
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Tiotropium 18mcg inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol 100mcg inhaler PRN",
+        "duration_days": 30
+      },
+      {
+        "drug": "Aspirin 100mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

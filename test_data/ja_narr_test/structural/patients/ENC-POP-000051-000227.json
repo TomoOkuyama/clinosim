@@ -1,0 +1,240 @@
+{
+  "patient": {
+    "patient_id": "POP-000051",
+    "name": {
+      "family_name": "Clark",
+      "given_name": "Lily",
+      "display_name": "Lily Clark",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 97,
+    "sex": "F",
+    "date_of_birth": "1927-02-06",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 166.2,
+    "weight_kg": 92.6,
+    "bmi": 33.5,
+    "address": {
+      "postal_code": "02126",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "480 Center St, Apt 2",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 430-4767",
+      "phone_primary": "(508) 430-4767",
+      "email": "",
+      "emergency_contact_name": "Clark family",
+      "emergency_contact_phone": "(508) 430-4767",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.52,
+    "chronic_conditions": [
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2022-11-25",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.3193809832483197,
+        "stage": ""
+      },
+      {
+        "code": "E03",
+        "system": "icd-10-cm",
+        "onset_date": "2016-03-14",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.2489195429261419,
+        "stage": ""
+      },
+      {
+        "code": "K21",
+        "system": "icd-10-cm",
+        "onset_date": "2022-04-07",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.18276097889164974,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Atorvastatin 10mg",
+      "Levothyroxine 50mcg",
+      "Lansoprazole 15mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.48066638449301624,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.34727612693842536,
+      "cardiac_reserve": 0.5972398398916658,
+      "hepatic_reserve": 0.7196419498406844,
+      "treatment_sensitivity": 1.0548534461719545,
+      "symptom_reporting_bias": 0.5093611054913607,
+      "delirium_susceptibility": 0.3613832725070269,
+      "dvt_susceptibility": 0.1264878481876044
+    },
+    "baseline_vitals": {
+      "temperature": 36.7,
+      "heart_rate": 70,
+      "systolic_bp": 149,
+      "diastolic_bp": 71,
+      "respiratory_rate": 18,
+      "spo2": 96.2
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000051-000227",
+      "patient_id": "POP-000051",
+      "episode_id": "EP-POP-000051-000227",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-06-07T10:00:00",
+      "discharge_datetime": "2024-06-07T10:32:00",
+      "chief_complaint": "Lipid management, statin therapy monitoring",
+      "disease_event_id": "DE-POP-000051-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000051-OPD-L00",
+      "encounter_id": "ENC-POP-000051-000227",
+      "patient_id": "POP-000051",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "TC",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: TC",
+      "ordered_datetime": "2024-06-07T10:10:00",
+      "ordered_by": "DR-IM-001",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-06-07T12:00:00",
+        "performed_by": "TECH-LAB-004",
+        "lab_name": "TC",
+        "value": 98.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-06-07T10:05:00",
+      "temperature_celsius": null,
+      "heart_rate": 70,
+      "systolic_bp": 135,
+      "diastolic_bp": 71,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-06-07T12:00:00",
+      "performed_by": "TECH-LAB-004",
+      "lab_name": "TC",
+      "value": 98.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000051-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E78"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E78",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E78",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000051-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-001",
+    "issue_date": "2026-04-13T15:30:31.485383",
+    "items": [
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Levothyroxine 50mcg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Lansoprazole 15mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

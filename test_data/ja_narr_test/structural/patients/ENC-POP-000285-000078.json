@@ -1,0 +1,233 @@
+{
+  "patient": {
+    "patient_id": "POP-000285",
+    "name": {
+      "family_name": "Trujillo",
+      "given_name": "Joyce",
+      "display_name": "Joyce Trujillo",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 1,
+    "sex": "F",
+    "date_of_birth": "2023-05-24",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 156.0,
+    "weight_kg": 78.8,
+    "bmi": 32.4,
+    "address": {
+      "postal_code": "02128",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "453 Washington St, Apt 4",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "",
+      "phone_primary": "",
+      "email": "",
+      "emergency_contact_name": "",
+      "emergency_contact_phone": "",
+      "emergency_contact_relationship": ""
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.79,
+    "chronic_conditions": [],
+    "allergies": [],
+    "current_medications": [
+      ""
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.29720517961204773,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8739015916625689,
+      "cardiac_reserve": 0.7759068634379852,
+      "hepatic_reserve": 0.6344327822673225,
+      "treatment_sensitivity": 1.0398636404495591,
+      "symptom_reporting_bias": 0.9745196915342429,
+      "delirium_susceptibility": 0.09875572406012004,
+      "dvt_susceptibility": 0.261068259585607
+    },
+    "baseline_vitals": {
+      "temperature": 36.1,
+      "heart_rate": 89,
+      "systolic_bp": 140,
+      "diastolic_bp": 71,
+      "respiratory_rate": 11,
+      "spo2": 95.5
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000285-000078",
+      "patient_id": "POP-000285",
+      "episode_id": "EP-POP-000285-000078",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-06-16T20:37:00",
+      "discharge_datetime": "2024-06-16T20:53:00",
+      "chief_complaint": "Post-pneumonia follow-up, CRP check, chest X-ray review",
+      "disease_event_id": "DE-POP-000285-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000285-OPD-L00",
+      "encounter_id": "ENC-POP-000285-000078",
+      "patient_id": "POP-000285",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "CRP",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: CRP",
+      "ordered_datetime": "2024-06-16T20:47:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-06-16T22:37:00",
+        "performed_by": "TECH-LAB-003",
+        "lab_name": "CRP",
+        "value": 0.6,
+        "unit": "mg/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000285-OPD-L01",
+      "encounter_id": "ENC-POP-000285-000078",
+      "patient_id": "POP-000285",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "WBC",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: WBC",
+      "ordered_datetime": "2024-06-16T20:47:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-06-16T22:37:00",
+        "performed_by": "TECH-LAB-003",
+        "lab_name": "WBC",
+        "value": 6966.0,
+        "unit": "/uL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-06-16T20:42:00",
+      "temperature_celsius": 36.3,
+      "heart_rate": 91,
+      "systolic_bp": 126,
+      "diastolic_bp": 72,
+      "respiratory_rate": 15,
+      "spo2": 96.4,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-06-16T22:37:00",
+      "performed_by": "TECH-LAB-003",
+      "lab_name": "CRP",
+      "value": 0.6,
+      "unit": "mg/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-06-16T22:37:00",
+      "performed_by": "TECH-LAB-003",
+      "lab_name": "WBC",
+      "value": 6966.0,
+      "unit": "/uL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000285-OPD",
+    "condition_type": "post_discharge_followup",
+    "ground_truth_diseases": [
+      "Z09"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z09",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z09",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

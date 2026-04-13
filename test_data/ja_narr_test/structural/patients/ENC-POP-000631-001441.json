@@ -1,0 +1,205 @@
+{
+  "patient": {
+    "patient_id": "POP-000631",
+    "name": {
+      "family_name": "Henderson",
+      "given_name": "Donald",
+      "display_name": "Donald Henderson",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 73,
+    "sex": "M",
+    "date_of_birth": "1951-01-15",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 174.5,
+    "weight_kg": 56.9,
+    "bmi": 18.7,
+    "address": {
+      "postal_code": "02124",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "248 Center St, Apt 2",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 741-6478",
+      "phone_primary": "(781) 741-6478",
+      "email": "",
+      "emergency_contact_name": "Henderson family",
+      "emergency_contact_phone": "(781) 741-6478",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.6,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2010-04-01",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.10114711957848727,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2014-07-20",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.19413315769968215,
+        "stage": ""
+      },
+      {
+        "code": "F00",
+        "system": "icd-10-cm",
+        "onset_date": "2021-11-15",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.19413976850615686,
+        "stage": ""
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2015-04-05",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.12940351410774184,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Atorvastatin 10mg",
+      "Acetaminophen 500mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.5469555042284086,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.6125357286631601,
+      "cardiac_reserve": 0.6915997096708604,
+      "hepatic_reserve": 0.7055824790518976,
+      "treatment_sensitivity": 0.9944970218514131,
+      "symptom_reporting_bias": 0.8623415611372307,
+      "delirium_susceptibility": 0.5008015135326054,
+      "dvt_susceptibility": 0.19502383063662082
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 66,
+      "systolic_bp": 138,
+      "diastolic_bp": 77,
+      "respiratory_rate": 17,
+      "spo2": 97.5
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000631-001441",
+      "patient_id": "POP-000631",
+      "episode_id": "EP-POP-000631-001441",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-02-04T10:40:00",
+      "discharge_datetime": "2024-02-04T11:12:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-000631-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-02-04T10:45:00",
+      "temperature_celsius": null,
+      "heart_rate": 67,
+      "systolic_bp": 128,
+      "diastolic_bp": 86,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000631-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000631-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-001",
+    "issue_date": "2026-04-13T15:30:33.635421",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Acetaminophen 500mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

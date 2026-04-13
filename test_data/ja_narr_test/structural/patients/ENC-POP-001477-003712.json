@@ -1,0 +1,291 @@
+{
+  "patient": {
+    "patient_id": "POP-001477",
+    "name": {
+      "family_name": "Taylor",
+      "given_name": "Michelle",
+      "display_name": "Michelle Taylor",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 70,
+    "sex": "F",
+    "date_of_birth": "1954-06-28",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 165.0,
+    "weight_kg": 66.3,
+    "bmi": 24.4,
+    "address": {
+      "postal_code": "02476",
+      "state": "MA",
+      "city": "Arlington",
+      "line1": "135 Pine St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(978) 329-7579",
+      "phone_mobile": "(617) 422-1447",
+      "phone_primary": "(617) 422-1447",
+      "email": "",
+      "emergency_contact_name": "Taylor family",
+      "emergency_contact_phone": "(978) 329-7579",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.5,
+    "chronic_conditions": [
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2021-06-15",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3047143564540041,
+        "stage": ""
+      },
+      {
+        "code": "N18",
+        "system": "icd-10-cm",
+        "onset_date": "2019-12-23",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.2079178046274844,
+        "stage": "CKD G3b"
+      },
+      {
+        "code": "M81",
+        "system": "icd-10-cm",
+        "onset_date": "2011-05-01",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.22469526278526114,
+        "stage": ""
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2014-11-13",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.3909056769189269,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Atorvastatin 10mg",
+      "Alendronate 35mg",
+      "Vitamin D 1000IU"
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5689865155032721,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7242566224456923,
+      "cardiac_reserve": 0.7327320497108868,
+      "hepatic_reserve": 0.7950660863153036,
+      "treatment_sensitivity": 1.2251963732425606,
+      "symptom_reporting_bias": 0.8697466554727712,
+      "delirium_susceptibility": 0.21567721636640805,
+      "dvt_susceptibility": 0.17464688541769985
+    },
+    "baseline_vitals": {
+      "temperature": 36.5,
+      "heart_rate": 90,
+      "systolic_bp": 135,
+      "diastolic_bp": 74,
+      "respiratory_rate": 15,
+      "spo2": 98.4
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001477-003712",
+      "patient_id": "POP-001477",
+      "episode_id": "EP-POP-001477-003712",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-05-20T10:08:00",
+      "discharge_datetime": "2024-05-20T10:36:00",
+      "chief_complaint": "Lipid management, statin therapy monitoring",
+      "disease_event_id": "DE-POP-001477-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001477-OPD-L00",
+      "encounter_id": "ENC-POP-001477-003712",
+      "patient_id": "POP-001477",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "ALT",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: ALT",
+      "ordered_datetime": "2024-05-20T10:18:00",
+      "ordered_by": "DR-IM-001",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-05-20T12:08:00",
+        "performed_by": "TECH-LAB-009",
+        "lab_name": "ALT",
+        "value": 20.0,
+        "unit": "U/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-001477-OPD-L01",
+      "encounter_id": "ENC-POP-001477-003712",
+      "patient_id": "POP-001477",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "TG",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: TG",
+      "ordered_datetime": "2024-05-20T10:18:00",
+      "ordered_by": "DR-IM-001",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-05-20T12:08:00",
+        "performed_by": "TECH-LAB-009",
+        "lab_name": "TG",
+        "value": 101.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-05-20T10:13:00",
+      "temperature_celsius": null,
+      "heart_rate": 89,
+      "systolic_bp": 135,
+      "diastolic_bp": 77,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-005",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-05-20T12:08:00",
+      "performed_by": "TECH-LAB-009",
+      "lab_name": "ALT",
+      "value": 20.0,
+      "unit": "U/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-05-20T12:08:00",
+      "performed_by": "TECH-LAB-009",
+      "lab_name": "TG",
+      "value": 101.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001477-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E78"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E78",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E78",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001477-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-001",
+    "issue_date": "2026-04-13T15:30:37.587135",
+    "items": [
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Alendronate 35mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Vitamin D 1000IU",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

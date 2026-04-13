@@ -1,0 +1,221 @@
+{
+  "patient": {
+    "patient_id": "POP-001815",
+    "name": {
+      "family_name": "Moore",
+      "given_name": "Liam",
+      "display_name": "Liam Moore",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 54,
+    "sex": "M",
+    "date_of_birth": "1970-02-13",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 179.3,
+    "weight_kg": 80.5,
+    "bmi": 25.0,
+    "address": {
+      "postal_code": "02459",
+      "state": "MA",
+      "city": "Newton",
+      "line1": "123 School St, Apt 8",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(339) 924-2966",
+      "phone_mobile": "(781) 210-3317",
+      "phone_primary": "(781) 210-3317",
+      "email": "",
+      "emergency_contact_name": "Moore family",
+      "emergency_contact_phone": "(339) 924-2966",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.65,
+    "chronic_conditions": [
+      {
+        "code": "K21",
+        "system": "icd-10-cm",
+        "onset_date": "2023-10-14",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.11082127847382839,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Lansoprazole 15mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.4677414114389507,
+      "drug_metabolism_rate": "ultra_rapid",
+      "renal_reserve": 0.8815064764004217,
+      "cardiac_reserve": 0.7724877304841942,
+      "hepatic_reserve": 0.7917549332136914,
+      "treatment_sensitivity": 1.167530444253818,
+      "symptom_reporting_bias": 1.289224904816252,
+      "delirium_susceptibility": 0.24775811558046903,
+      "dvt_susceptibility": 0.20588210705894205
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 62,
+      "systolic_bp": 125,
+      "diastolic_bp": 78,
+      "respiratory_rate": 15,
+      "spo2": 97.9
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001815-005064",
+      "patient_id": "POP-001815",
+      "episode_id": "EP-POP-001815-005064",
+      "encounter_type": "emergency",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-04-26T10:48:00",
+      "discharge_datetime": "2024-04-26T15:32:01.928802",
+      "chief_complaint": "Abdominal pain, vomiting, diarrhea after meal",
+      "disease_event_id": "DE-POP-001815-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "EM"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001815-ED-T0",
+      "encounter_id": "ENC-POP-001815-005064",
+      "patient_id": "POP-001815",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "IV normal saline 1000mL",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: rehydration",
+      "ordered_datetime": "2024-04-26T11:01:00",
+      "ordered_by": "DR-IM-003",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 1000.0,
+      "dose_unit": "mL",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "IV",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-001815-ED-T1",
+      "encounter_id": "ENC-POP-001815-005064",
+      "patient_id": "POP-001815",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Ondansetron 4mg",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: antiemetic",
+      "ordered_datetime": "2024-04-26T11:26:00",
+      "ordered_by": "DR-IM-003",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 4.0,
+      "dose_unit": "mg",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-001815-ED-T3",
+      "encounter_id": "ENC-POP-001815-005064",
+      "patient_id": "POP-001815",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Acetaminophen 500mg",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: antipyretic",
+      "ordered_datetime": "2024-04-26T11:27:00",
+      "ordered_by": "DR-IM-003",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 500.0,
+      "dose_unit": "mg",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-04-26T10:53:00",
+      "temperature_celsius": 36.2,
+      "heart_rate": 58,
+      "systolic_bp": 125,
+      "diastolic_bp": 79,
+      "respiratory_rate": 13,
+      "spo2": 97.1,
+      "pain_score": 7,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-EM-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001815-ED",
+    "condition_type": "ed_visit",
+    "ground_truth_diseases": [
+      "food_poisoning"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "A05.9",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "A05.9",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

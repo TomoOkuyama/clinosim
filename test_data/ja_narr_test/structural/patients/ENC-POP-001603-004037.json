@@ -1,0 +1,187 @@
+{
+  "patient": {
+    "patient_id": "POP-001603",
+    "name": {
+      "family_name": "Lopez",
+      "given_name": "Doris",
+      "display_name": "Doris Lopez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 52,
+    "sex": "F",
+    "date_of_birth": "1972-04-26",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 169.2,
+    "weight_kg": 74.2,
+    "bmi": 25.9,
+    "address": {
+      "postal_code": "01853",
+      "state": "MA",
+      "city": "Lowell",
+      "line1": "218 Oak St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 942-3391",
+      "phone_primary": "(617) 942-3391",
+      "email": "",
+      "emergency_contact_name": "Lopez family",
+      "emergency_contact_phone": "(617) 942-3391",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.66,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2020-10-08",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.28849260218375256,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2014-07-20",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.22058721867713127,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Acetaminophen 500mg",
+      "Celecoxib 200mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "heavy",
+    "physiological_profile": {
+      "immune_reactivity": 0.6733824256575487,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8499645834563925,
+      "cardiac_reserve": 0.7145039639690243,
+      "hepatic_reserve": 0.8236016879505194,
+      "treatment_sensitivity": 0.8479429827890586,
+      "symptom_reporting_bias": 1.400685494580688,
+      "delirium_susceptibility": 0.690889654620486,
+      "dvt_susceptibility": 0.17544391585229177
+    },
+    "baseline_vitals": {
+      "temperature": 36.5,
+      "heart_rate": 85,
+      "systolic_bp": 117,
+      "diastolic_bp": 75,
+      "respiratory_rate": 20,
+      "spo2": 97.6
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001603-004037",
+      "patient_id": "POP-001603",
+      "episode_id": "EP-POP-001603-004037",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-05-13T10:42:00",
+      "discharge_datetime": "2024-05-13T11:00:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-001603-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-05-13T10:47:00",
+      "temperature_celsius": null,
+      "heart_rate": 84,
+      "systolic_bp": 125,
+      "diastolic_bp": 73,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001603-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001603-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-003",
+    "issue_date": "2026-04-13T15:30:38.197286",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Acetaminophen 500mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Celecoxib 200mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

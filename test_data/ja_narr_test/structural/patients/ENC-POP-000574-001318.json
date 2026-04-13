@@ -1,0 +1,182 @@
+{
+  "patient": {
+    "patient_id": "POP-000574",
+    "name": {
+      "family_name": "Moore",
+      "given_name": "John",
+      "display_name": "John Moore",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 82,
+    "sex": "M",
+    "date_of_birth": "1942-08-06",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 170.1,
+    "weight_kg": 107.7,
+    "bmi": 37.2,
+    "address": {
+      "postal_code": "01701",
+      "state": "MA",
+      "city": "Framingham",
+      "line1": "54 Elm St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(351) 911-3061",
+      "phone_mobile": "(781) 215-6685",
+      "phone_primary": "(781) 215-6685",
+      "email": "",
+      "emergency_contact_name": "Moore family",
+      "emergency_contact_phone": "(351) 911-3061",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.45,
+    "chronic_conditions": [
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2018-01-03",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.32005669867118497,
+        "stage": ""
+      },
+      {
+        "code": "N40",
+        "system": "icd-10-cm",
+        "onset_date": "2019-10-19",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.10077770759103163,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Atorvastatin 10mg",
+      "Tamsulosin 0.2mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.4011881260034233,
+      "drug_metabolism_rate": "poor",
+      "renal_reserve": 0.4146957935341474,
+      "cardiac_reserve": 0.6134216614434652,
+      "hepatic_reserve": 0.5229900307060723,
+      "treatment_sensitivity": 0.7067148250188713,
+      "symptom_reporting_bias": 0.7614553391893026,
+      "delirium_susceptibility": 0.17874006698042247,
+      "dvt_susceptibility": 0.19355701079289697
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 76,
+      "systolic_bp": 145,
+      "diastolic_bp": 84,
+      "respiratory_rate": 15,
+      "spo2": 97.2
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000574-001318",
+      "patient_id": "POP-000574",
+      "episode_id": "EP-POP-000574-001318",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-12-02T10:44:00",
+      "discharge_datetime": "2024-12-02T11:08:00",
+      "chief_complaint": "Lipid management, statin therapy monitoring",
+      "disease_event_id": "DE-POP-000574-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-12-02T10:49:00",
+      "temperature_celsius": null,
+      "heart_rate": 80,
+      "systolic_bp": 142,
+      "diastolic_bp": 78,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000574-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E78"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E78",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E78",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000574-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-003",
+    "issue_date": "2026-04-13T15:30:33.422866",
+    "items": [
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Tamsulosin 0.2mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

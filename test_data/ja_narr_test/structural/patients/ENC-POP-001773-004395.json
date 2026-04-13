@@ -1,0 +1,179 @@
+{
+  "patient": {
+    "patient_id": "POP-001773",
+    "name": {
+      "family_name": "Green",
+      "given_name": "Harvey",
+      "display_name": "Harvey Green",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 72,
+    "sex": "M",
+    "date_of_birth": "1952-02-08",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 182.9,
+    "weight_kg": 91.2,
+    "bmi": 27.3,
+    "address": {
+      "postal_code": "02453",
+      "state": "MA",
+      "city": "Waltham",
+      "line1": "175 Commonwealth Ave, Apt 10",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(617) 962-6559",
+      "phone_mobile": "(617) 546-9938",
+      "phone_primary": "(617) 546-9938",
+      "email": "",
+      "emergency_contact_name": "Green family",
+      "emergency_contact_phone": "(617) 962-6559",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.66,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2010-11-21",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.3148392015671479,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2022-03-06",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.10590069253730443,
+        "stage": ""
+      },
+      {
+        "code": "J44",
+        "system": "icd-10-cm",
+        "onset_date": "2019-09-09",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.13233628026581382,
+        "stage": "GOLD 3"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Candesartan 8mg",
+      "Atorvastatin 10mg",
+      "Tiotropium 18mcg inhaler",
+      "Salbutamol 100mcg inhaler PRN"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5209004151827294,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.6381993276638,
+      "cardiac_reserve": 0.7614446673967988,
+      "hepatic_reserve": 0.7188836632604259,
+      "treatment_sensitivity": 1.1047797049605192,
+      "symptom_reporting_bias": 1.0630669653961033,
+      "delirium_susceptibility": 0.20580614736253047,
+      "dvt_susceptibility": 0.365405894430331
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 87,
+      "systolic_bp": 146,
+      "diastolic_bp": 79,
+      "respiratory_rate": 14,
+      "spo2": 95.3
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001773-004395",
+      "patient_id": "POP-001773",
+      "episode_id": "EP-POP-001773-004395",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-11-08T10:11:00",
+      "discharge_datetime": "2024-11-08T10:30:00",
+      "chief_complaint": "Influenza vaccination",
+      "disease_event_id": "DE-POP-001773-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-11-08T10:16:00",
+      "temperature_celsius": null,
+      "heart_rate": 84,
+      "systolic_bp": 156,
+      "diastolic_bp": 79,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001773-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z23"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z23",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z23",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

@@ -1,0 +1,174 @@
+{
+  "patient": {
+    "patient_id": "POP-000789",
+    "name": {
+      "family_name": "Lewis",
+      "given_name": "Patricia",
+      "display_name": "Patricia Lewis",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 92,
+    "sex": "F",
+    "date_of_birth": "1932-04-21",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 165.2,
+    "weight_kg": 90.7,
+    "bmi": 33.2,
+    "address": {
+      "postal_code": "01902",
+      "state": "MA",
+      "city": "Lynn",
+      "line1": "332 Summer St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(508) 437-4061",
+      "phone_mobile": "(781) 885-5294",
+      "phone_primary": "(781) 885-5294",
+      "email": "",
+      "emergency_contact_name": "Lewis family",
+      "emergency_contact_phone": "(508) 437-4061",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.69,
+    "chronic_conditions": [
+      {
+        "code": "F00",
+        "system": "icd-10-cm",
+        "onset_date": "2020-02-19",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.31891239945963307,
+        "stage": ""
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "Sulfonamide",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      ""
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.49355829657215883,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.5977628272974467,
+      "cardiac_reserve": 0.7009286771366687,
+      "hepatic_reserve": 0.43277282108867826,
+      "treatment_sensitivity": 1.0406638930918648,
+      "symptom_reporting_bias": 1.0158993883184957,
+      "delirium_susceptibility": 0.5405550847917553,
+      "dvt_susceptibility": 0.3695300427409093
+    },
+    "baseline_vitals": {
+      "temperature": 36.8,
+      "heart_rate": 102,
+      "systolic_bp": 135,
+      "diastolic_bp": 74,
+      "respiratory_rate": 17,
+      "spo2": 98.4
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000789-001838",
+      "patient_id": "POP-000789",
+      "episode_id": "EP-POP-000789-001838",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-005",
+      "admitting_physician_id": "DR-IM-005",
+      "discharging_physician_id": "DR-IM-005",
+      "admission_datetime": "2024-01-07T10:01:00",
+      "discharge_datetime": "2024-01-07T10:20:00",
+      "chief_complaint": "Cognitive status assessment, caregiver support",
+      "disease_event_id": "DE-POP-000789-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-01-07T10:06:00",
+      "temperature_celsius": null,
+      "heart_rate": 100,
+      "systolic_bp": 132,
+      "diastolic_bp": 82,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000789-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "F00"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "F00",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "F00",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000789-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-005",
+    "issue_date": "2026-04-13T15:30:34.339972",
+    "items": [
+      {
+        "drug": "",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

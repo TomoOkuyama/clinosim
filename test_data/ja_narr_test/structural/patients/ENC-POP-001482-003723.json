@@ -1,0 +1,182 @@
+{
+  "patient": {
+    "patient_id": "POP-001482",
+    "name": {
+      "family_name": "Nolan",
+      "given_name": "Brett",
+      "display_name": "Brett Nolan",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 59,
+    "sex": "M",
+    "date_of_birth": "1965-01-25",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 175.0,
+    "weight_kg": 88.6,
+    "bmi": 28.9,
+    "address": {
+      "postal_code": "02458",
+      "state": "MA",
+      "city": "Newton",
+      "line1": "386 Cedar St, Apt 4",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 838-2483",
+      "phone_primary": "(617) 838-2483",
+      "email": "",
+      "emergency_contact_name": "Nolan family",
+      "emergency_contact_phone": "(617) 838-2483",
+      "emergency_contact_relationship": "sibling"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.67,
+    "chronic_conditions": [
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2018-01-25",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.10121451472337868,
+        "stage": "CCS II"
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2013-06-10",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.3339025341411398,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Aspirin 100mg",
+      "Acetaminophen 500mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "heavy",
+    "physiological_profile": {
+      "immune_reactivity": 0.44569282082961076,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.803903065009559,
+      "cardiac_reserve": 0.39654554192048375,
+      "hepatic_reserve": 0.7084138968339866,
+      "treatment_sensitivity": 0.7827505945750821,
+      "symptom_reporting_bias": 1.0617947255227895,
+      "delirium_susceptibility": 0.3727085377357641,
+      "dvt_susceptibility": 0.24562470285972593
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 76,
+      "systolic_bp": 120,
+      "diastolic_bp": 62,
+      "respiratory_rate": 17,
+      "spo2": 97.1
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001482-003723",
+      "patient_id": "POP-001482",
+      "episode_id": "EP-POP-001482-003723",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-03-09T10:18:00",
+      "discharge_datetime": "2024-03-09T10:46:00",
+      "chief_complaint": "Coronary artery disease follow-up, cardiac risk management",
+      "disease_event_id": "DE-POP-001482-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-03-09T10:23:00",
+      "temperature_celsius": null,
+      "heart_rate": 68,
+      "systolic_bp": 125,
+      "diastolic_bp": 54,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001482-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I25"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I25",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I25",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001482-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-003",
+    "issue_date": "2026-04-13T15:30:37.614123",
+    "items": [
+      {
+        "drug": "Aspirin 100mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Acetaminophen 500mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

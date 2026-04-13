@@ -1,0 +1,231 @@
+{
+  "patient": {
+    "patient_id": "POP-001446",
+    "name": {
+      "family_name": "Williams",
+      "given_name": "Robert",
+      "display_name": "Robert Williams",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 63,
+    "sex": "M",
+    "date_of_birth": "1961-06-17",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 172.2,
+    "weight_kg": 100.5,
+    "bmi": 33.9,
+    "address": {
+      "postal_code": "02120",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "175 Summer St, Apt 3",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 265-6816",
+      "phone_primary": "(781) 265-6816",
+      "email": "",
+      "emergency_contact_name": "Williams family",
+      "emergency_contact_phone": "(781) 265-6816",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.53,
+    "chronic_conditions": [
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2016-11-21",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.1727241281275067,
+        "stage": ""
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2021-03-26",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.16615200735902344,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Atorvastatin 10mg",
+      "Acetaminophen 500mg",
+      "Celecoxib 200mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.8722130292970562,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7845407542774082,
+      "cardiac_reserve": 0.5246877054459876,
+      "hepatic_reserve": 0.7439275441078149,
+      "treatment_sensitivity": 0.9546388568749943,
+      "symptom_reporting_bias": 1.1528419439444426,
+      "delirium_susceptibility": 0.18827083780758597,
+      "dvt_susceptibility": 0.4412146754915754
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 63,
+      "systolic_bp": 128,
+      "diastolic_bp": 79,
+      "respiratory_rate": 11,
+      "spo2": 97.3
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001446-003612",
+      "patient_id": "POP-001446",
+      "episode_id": "EP-POP-001446-003612",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-01-10T10:37:00",
+      "discharge_datetime": "2024-01-10T11:14:00",
+      "chief_complaint": "Lipid management, statin therapy monitoring",
+      "disease_event_id": "DE-POP-001446-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001446-OPD-L00",
+      "encounter_id": "ENC-POP-001446-003612",
+      "patient_id": "POP-001446",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "AST",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: AST",
+      "ordered_datetime": "2024-01-10T10:47:00",
+      "ordered_by": "DR-IM-002",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-01-10T12:37:00",
+        "performed_by": "TECH-LAB-006",
+        "lab_name": "AST",
+        "value": 22.0,
+        "unit": "U/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-01-10T10:42:00",
+      "temperature_celsius": null,
+      "heart_rate": 63,
+      "systolic_bp": 120,
+      "diastolic_bp": 71,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-01-10T12:37:00",
+      "performed_by": "TECH-LAB-006",
+      "lab_name": "AST",
+      "value": 22.0,
+      "unit": "U/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001446-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E78"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E78",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E78",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001446-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-002",
+    "issue_date": "2026-04-13T15:30:37.419046",
+    "items": [
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Acetaminophen 500mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Celecoxib 200mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

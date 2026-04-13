@@ -1,0 +1,174 @@
+{
+  "patient": {
+    "patient_id": "POP-000877",
+    "name": {
+      "family_name": "Smith",
+      "given_name": "Karen",
+      "display_name": "Karen Smith",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 60,
+    "sex": "F",
+    "date_of_birth": "1964-06-14",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 152.7,
+    "weight_kg": 48.6,
+    "bmi": 20.8,
+    "address": {
+      "postal_code": "01109",
+      "state": "MA",
+      "city": "Springfield",
+      "line1": "416 Pine St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 577-4251",
+      "phone_primary": "(781) 577-4251",
+      "email": "",
+      "emergency_contact_name": "Smith family",
+      "emergency_contact_phone": "(781) 577-4251",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.22,
+    "chronic_conditions": [
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2016-03-24",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.18667120347249933,
+        "stage": "HbA1c 9.1%"
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2014-10-16",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.30305442985737513,
+        "stage": ""
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "Cephalosporin",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Metformin 500mg",
+      "Sliding scale insulin",
+      "Acetaminophen 500mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5700251297381357,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8645368656020291,
+      "cardiac_reserve": 0.6170060707942976,
+      "hepatic_reserve": 0.5820656371666475,
+      "treatment_sensitivity": 0.6988030393990298,
+      "symptom_reporting_bias": 1.1892254414696146,
+      "delirium_susceptibility": 0.28933397566740116,
+      "dvt_susceptibility": 0.3867904008756396
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 77,
+      "systolic_bp": 123,
+      "diastolic_bp": 89,
+      "respiratory_rate": 13,
+      "spo2": 97.0
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000877-002076",
+      "patient_id": "POP-000877",
+      "episode_id": "EP-POP-000877-002076",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-005",
+      "admitting_physician_id": "DR-IM-005",
+      "discharging_physician_id": "DR-IM-005",
+      "admission_datetime": "2024-10-15T10:39:00",
+      "discharge_datetime": "2024-10-15T10:54:00",
+      "chief_complaint": "Diabetic retinopathy screening, fundoscopy",
+      "disease_event_id": "DE-POP-000877-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-10-15T10:44:00",
+      "temperature_celsius": null,
+      "heart_rate": 74,
+      "systolic_bp": 125,
+      "diastolic_bp": 84,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000877-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z13.5"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z13.5",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z13.5",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

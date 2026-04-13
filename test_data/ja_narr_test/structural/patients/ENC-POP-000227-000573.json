@@ -1,0 +1,218 @@
+{
+  "patient": {
+    "patient_id": "POP-000227",
+    "name": {
+      "family_name": "Edwards",
+      "given_name": "Teresa",
+      "display_name": "Teresa Edwards",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 63,
+    "sex": "F",
+    "date_of_birth": "1961-10-10",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 160.6,
+    "weight_kg": 82.0,
+    "bmi": 31.8,
+    "address": {
+      "postal_code": "02111",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "382 School St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(978) 348-2361",
+      "phone_mobile": "(781) 240-4846",
+      "phone_primary": "(781) 240-4846",
+      "email": "",
+      "emergency_contact_name": "Edwards family",
+      "emergency_contact_phone": "(978) 348-2361",
+      "emergency_contact_relationship": "sibling"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.78,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2016-04-23",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.10368143625673192,
+        "stage": "Stage 1"
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "Sulfonamide",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Amlodipine 5mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.6173367358250793,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.6792240080049712,
+      "cardiac_reserve": 0.811480734701132,
+      "hepatic_reserve": 0.7664111367577842,
+      "treatment_sensitivity": 1.0549056338923377,
+      "symptom_reporting_bias": 1.1297433272666917,
+      "delirium_susceptibility": 0.2891025626420287,
+      "dvt_susceptibility": 0.30332516807130894
+    },
+    "baseline_vitals": {
+      "temperature": 36.1,
+      "heart_rate": 83,
+      "systolic_bp": 140,
+      "diastolic_bp": 80,
+      "respiratory_rate": 16,
+      "spo2": 98.7
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000227-000573",
+      "patient_id": "POP-000227",
+      "episode_id": "EP-POP-000227-000573",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-01-08T10:21:00",
+      "discharge_datetime": "2024-01-08T10:37:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-000227-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000227-OPD-L00",
+      "encounter_id": "ENC-POP-000227-000573",
+      "patient_id": "POP-000227",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Creatinine",
+      "ordered_datetime": "2024-01-08T10:31:00",
+      "ordered_by": "DR-IM-003",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-01-08T12:21:00",
+        "performed_by": "TECH-LAB-009",
+        "lab_name": "Creatinine",
+        "value": 0.94,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": "H",
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-01-08T10:26:00",
+      "temperature_celsius": null,
+      "heart_rate": 91,
+      "systolic_bp": 136,
+      "diastolic_bp": 80,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-01-08T12:21:00",
+      "performed_by": "TECH-LAB-009",
+      "lab_name": "Creatinine",
+      "value": 0.94,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": "H",
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000227-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000227-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-003",
+    "issue_date": "2026-04-13T15:30:32.113454",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

@@ -1,0 +1,222 @@
+{
+  "patient": {
+    "patient_id": "POP-001549",
+    "name": {
+      "family_name": "Ellis",
+      "given_name": "Mary",
+      "display_name": "Mary Ellis",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 13,
+    "sex": "F",
+    "date_of_birth": "2011-08-18",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 163.1,
+    "weight_kg": 100.4,
+    "bmi": 37.8,
+    "address": {
+      "postal_code": "02116",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "335 Church St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(781) 919-6416",
+      "phone_mobile": "",
+      "phone_primary": "(781) 919-6416",
+      "email": "",
+      "emergency_contact_name": "",
+      "emergency_contact_phone": "",
+      "emergency_contact_relationship": ""
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.45,
+    "chronic_conditions": [
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2013-05-16",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.20408394056310636,
+        "stage": "Severe persistent"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Fluticasone/Salmeterol inhaler",
+      "Salbutamol inhaler PRN"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.17835311807132456,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7365102457554684,
+      "cardiac_reserve": 0.641812839926071,
+      "hepatic_reserve": 0.7716602150739421,
+      "treatment_sensitivity": 0.8798586999600746,
+      "symptom_reporting_bias": 0.845207976162936,
+      "delirium_susceptibility": 0.1538999607636615,
+      "dvt_susceptibility": 0.32090494857526375
+    },
+    "baseline_vitals": {
+      "temperature": 36.1,
+      "heart_rate": 88,
+      "systolic_bp": 103,
+      "diastolic_bp": 77,
+      "respiratory_rate": 15,
+      "spo2": 97.7
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001549-005071",
+      "patient_id": "POP-001549",
+      "episode_id": "EP-POP-001549-005071",
+      "encounter_type": "emergency",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-004",
+      "admitting_physician_id": "DR-IM-004",
+      "discharging_physician_id": "DR-IM-004",
+      "admission_datetime": "2024-04-14T14:30:00",
+      "discharge_datetime": "2024-04-14T15:30:00",
+      "chief_complaint": "Laceration requiring sutures",
+      "disease_event_id": "DE-POP-001549-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "EM"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001549-ED-T0",
+      "encounter_id": "ENC-POP-001549-005071",
+      "patient_id": "POP-001549",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Lidocaine 1% local infiltration",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: local anesthesia",
+      "ordered_datetime": "2024-04-14T14:46:00",
+      "ordered_by": "DR-IM-004",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 1.0,
+      "dose_unit": "%",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-001549-ED-T1",
+      "encounter_id": "ENC-POP-001549-005071",
+      "patient_id": "POP-001549",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Wound irrigation with normal saline",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: wound cleaning",
+      "ordered_datetime": "2024-04-14T14:54:00",
+      "ordered_by": "DR-IM-004",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-001549-ED-T2",
+      "encounter_id": "ENC-POP-001549-005071",
+      "patient_id": "POP-001549",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Suture closure",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: wound closure",
+      "ordered_datetime": "2024-04-14T15:04:00",
+      "ordered_by": "DR-IM-004",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-04-14T14:35:00",
+      "temperature_celsius": 36.6,
+      "heart_rate": 87,
+      "systolic_bp": 96,
+      "diastolic_bp": 76,
+      "respiratory_rate": 17,
+      "spo2": 97.4,
+      "pain_score": 4,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-EM-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001549-ED",
+    "condition_type": "ed_visit",
+    "ground_truth_diseases": [
+      "minor_laceration"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "T14.90",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "T14.90",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

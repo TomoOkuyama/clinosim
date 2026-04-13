@@ -1,0 +1,187 @@
+{
+  "patient": {
+    "patient_id": "POP-000616",
+    "name": {
+      "family_name": "Simmons",
+      "given_name": "Kathryn",
+      "display_name": "Kathryn Simmons",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 41,
+    "sex": "F",
+    "date_of_birth": "1983-06-15",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 163.5,
+    "weight_kg": 78.3,
+    "bmi": 29.3,
+    "address": {
+      "postal_code": "02132",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "292 Summer St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 392-6709",
+      "phone_primary": "(508) 392-6709",
+      "email": "",
+      "emergency_contact_name": "Simmons family",
+      "emergency_contact_phone": "(508) 392-6709",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.53,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2014-08-04",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.23047134284906226,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2019-10-06",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.30143538962385624,
+        "stage": "HbA1c 9.4%"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Candesartan 8mg",
+      "Metformin 500mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.34381216630523337,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.9240811225451631,
+      "cardiac_reserve": 0.8406214421239369,
+      "hepatic_reserve": 0.8039467404787469,
+      "treatment_sensitivity": 0.8459539319887296,
+      "symptom_reporting_bias": 0.9443998619956423,
+      "delirium_susceptibility": 0.12803766402674055,
+      "dvt_susceptibility": 0.2637856786617557
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 76,
+      "systolic_bp": 132,
+      "diastolic_bp": 88,
+      "respiratory_rate": 15,
+      "spo2": 98.1
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000616-001399",
+      "patient_id": "POP-000616",
+      "episode_id": "EP-POP-000616-001399",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-004",
+      "admitting_physician_id": "DR-IM-004",
+      "discharging_physician_id": "DR-IM-004",
+      "admission_datetime": "2024-06-24T10:43:00",
+      "discharge_datetime": "2024-06-24T11:23:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-000616-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-06-24T10:48:00",
+      "temperature_celsius": null,
+      "heart_rate": 80,
+      "systolic_bp": 138,
+      "diastolic_bp": 99,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000616-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000616-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-004",
+    "issue_date": "2026-04-13T15:30:33.553784",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Candesartan 8mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Metformin 500mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

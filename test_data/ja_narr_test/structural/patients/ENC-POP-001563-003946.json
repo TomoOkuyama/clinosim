@@ -1,0 +1,226 @@
+{
+  "patient": {
+    "patient_id": "POP-001563",
+    "name": {
+      "family_name": "Martinez",
+      "given_name": "Whitney",
+      "display_name": "Whitney Martinez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 98,
+    "sex": "F",
+    "date_of_birth": "1926-09-15",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 148.4,
+    "weight_kg": 79.4,
+    "bmi": 36.1,
+    "address": {
+      "postal_code": "02155",
+      "state": "MA",
+      "city": "Medford",
+      "line1": "450 Main St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 721-3059",
+      "phone_primary": "(781) 721-3059",
+      "email": "",
+      "emergency_contact_name": "Martinez family",
+      "emergency_contact_phone": "(781) 721-3059",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "D",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.77,
+    "chronic_conditions": [
+      {
+        "code": "I48",
+        "system": "icd-10-cm",
+        "onset_date": "2020-04-14",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.3282904011997507,
+        "stage": ""
+      },
+      {
+        "code": "E03",
+        "system": "icd-10-cm",
+        "onset_date": "2020-06-19",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3892238861149898,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Warfarin 3mg",
+      "Levothyroxine 50mcg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.3742942182152283,
+      "drug_metabolism_rate": "rapid",
+      "renal_reserve": 0.5534829319513723,
+      "cardiac_reserve": 0.633850219282408,
+      "hepatic_reserve": 0.5836794830020715,
+      "treatment_sensitivity": 1.168529065804211,
+      "symptom_reporting_bias": 0.9055932168016269,
+      "delirium_susceptibility": 0.2951803829204685,
+      "dvt_susceptibility": 0.2903465557137478
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 72,
+      "systolic_bp": 155,
+      "diastolic_bp": 80,
+      "respiratory_rate": 14,
+      "spo2": 97.4
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001563-003946",
+      "patient_id": "POP-001563",
+      "episode_id": "EP-POP-001563-003946",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-005",
+      "admitting_physician_id": "DR-IM-005",
+      "discharging_physician_id": "DR-IM-005",
+      "admission_datetime": "2024-09-24T10:29:00",
+      "discharge_datetime": "2024-09-24T11:05:00",
+      "chief_complaint": "Anticoagulation management, INR check",
+      "disease_event_id": "DE-POP-001563-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001563-OPD-L00",
+      "encounter_id": "ENC-POP-001563-003946",
+      "patient_id": "POP-001563",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "PT_INR",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: PT_INR",
+      "ordered_datetime": "2024-09-24T10:39:00",
+      "ordered_by": "DR-IM-005",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-09-24T12:29:00",
+        "performed_by": "TECH-LAB-003",
+        "lab_name": "PT_INR",
+        "value": 1.1,
+        "unit": "{INR}",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-09-24T10:34:00",
+      "temperature_celsius": null,
+      "heart_rate": 64,
+      "systolic_bp": 159,
+      "diastolic_bp": 77,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-09-24T12:29:00",
+      "performed_by": "TECH-LAB-003",
+      "lab_name": "PT_INR",
+      "value": 1.1,
+      "unit": "{INR}",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001563-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I48"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I48",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I48",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001563-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-005",
+    "issue_date": "2026-04-13T15:30:38.028339",
+    "items": [
+      {
+        "drug": "Warfarin 3mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Levothyroxine 50mcg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

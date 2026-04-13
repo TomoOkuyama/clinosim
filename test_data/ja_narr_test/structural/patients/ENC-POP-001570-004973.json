@@ -1,0 +1,264 @@
+{
+  "patient": {
+    "patient_id": "POP-001570",
+    "name": {
+      "family_name": "Miller",
+      "given_name": "Philip",
+      "display_name": "Philip Miller",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 68,
+    "sex": "M",
+    "date_of_birth": "1956-12-05",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 176.1,
+    "weight_kg": 87.4,
+    "bmi": 28.2,
+    "address": {
+      "postal_code": "01901",
+      "state": "MA",
+      "city": "Lynn",
+      "line1": "202 Maple Ave, Apt 2",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 351-7467",
+      "phone_primary": "(617) 351-7467",
+      "email": "",
+      "emergency_contact_name": "Miller family",
+      "emergency_contact_phone": "(617) 351-7467",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.53,
+    "chronic_conditions": [
+      {
+        "code": "E03",
+        "system": "icd-10-cm",
+        "onset_date": "2020-07-10",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.2421442761189921,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Levothyroxine 50mcg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.48085554518714013,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.776170473345409,
+      "cardiac_reserve": 0.5333278010538901,
+      "hepatic_reserve": 0.8546431067669229,
+      "treatment_sensitivity": 1.0172441192141204,
+      "symptom_reporting_bias": 0.9587814444265425,
+      "delirium_susceptibility": 0.29862053306103664,
+      "dvt_susceptibility": 0.16219378239967708
+    },
+    "baseline_vitals": {
+      "temperature": 36.1,
+      "heart_rate": 78,
+      "systolic_bp": 136,
+      "diastolic_bp": 75,
+      "respiratory_rate": 13,
+      "spo2": 95.6
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001570-004973",
+      "patient_id": "POP-001570",
+      "episode_id": "EP-POP-001570-004973",
+      "encounter_type": "emergency",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2025-03-26T14:41:00",
+      "discharge_datetime": "2025-03-26T18:56:21.951291",
+      "chief_complaint": "Nausea, vomiting, diarrhea, abdominal cramps",
+      "disease_event_id": "DE-POP-001570-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "EM"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001570-ED-L3",
+      "encounter_id": "ENC-POP-001570-004973",
+      "patient_id": "POP-001570",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "K",
+      "urgency": "stat",
+      "clinical_intent": "ED workup: K",
+      "ordered_datetime": "2025-03-26T14:56:00",
+      "ordered_by": "DR-IM-003",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2025-03-26T15:17:00",
+        "performed_by": "TECH-LAB-006",
+        "lab_name": "K",
+        "value": 4.1,
+        "unit": "mmol/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-001570-ED-L5",
+      "encounter_id": "ENC-POP-001570-004973",
+      "patient_id": "POP-001570",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Glucose",
+      "urgency": "stat",
+      "clinical_intent": "ED workup: Glucose",
+      "ordered_datetime": "2025-03-26T14:47:00",
+      "ordered_by": "DR-IM-003",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2025-03-26T15:42:00",
+        "performed_by": "TECH-LAB-006",
+        "lab_name": "Glucose",
+        "value": 87.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-001570-ED-T0",
+      "encounter_id": "ENC-POP-001570-004973",
+      "patient_id": "POP-001570",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "IV normal saline 1000mL",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: IV normal saline 1000mL",
+      "ordered_datetime": "2025-03-26T15:18:00",
+      "ordered_by": "DR-IM-003",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 1000.0,
+      "dose_unit": "mL",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "IV",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2025-03-26T14:46:00",
+      "temperature_celsius": 38.4,
+      "heart_rate": 61,
+      "systolic_bp": 131,
+      "diastolic_bp": 80,
+      "respiratory_rate": 16,
+      "spo2": 97.1,
+      "pain_score": 0,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-EM-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2025-03-26T15:17:00",
+      "performed_by": "TECH-LAB-006",
+      "lab_name": "K",
+      "value": 4.1,
+      "unit": "mmol/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2025-03-26T15:42:00",
+      "performed_by": "TECH-LAB-006",
+      "lab_name": "Glucose",
+      "value": 87.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001570-ED",
+    "condition_type": "ed_visit",
+    "ground_truth_diseases": [
+      "viral_gastroenteritis"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "A08.4",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "A08.4",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

@@ -1,0 +1,212 @@
+{
+  "patient": {
+    "patient_id": "POP-000129",
+    "name": {
+      "family_name": "Watson",
+      "given_name": "Victoria",
+      "display_name": "Victoria Watson",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 65,
+    "sex": "F",
+    "date_of_birth": "1959-11-08",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 150.5,
+    "weight_kg": 72.3,
+    "bmi": 31.9,
+    "address": {
+      "postal_code": "01702",
+      "state": "MA",
+      "city": "Framingham",
+      "line1": "495 Summer St, Apt 7",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(857) 854-7106",
+      "phone_mobile": "(508) 949-3645",
+      "phone_primary": "(508) 949-3645",
+      "email": "",
+      "emergency_contact_name": "Watson family",
+      "emergency_contact_phone": "(857) 854-7106",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.64,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2020-08-26",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.2863027285239409,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "I50",
+        "system": "icd-10-cm",
+        "onset_date": "2015-11-09",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.29352115680003377,
+        "stage": "NYHA III"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.28894359867200775,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7701459487294955,
+      "cardiac_reserve": 0.8095107275300126,
+      "hepatic_reserve": 0.7031308963019064,
+      "treatment_sensitivity": 0.9835405713665233,
+      "symptom_reporting_bias": 0.7641098996395012,
+      "delirium_susceptibility": 0.1422944585657558,
+      "dvt_susceptibility": 0.09662673070068344
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 65,
+      "systolic_bp": 129,
+      "diastolic_bp": 78,
+      "respiratory_rate": 15,
+      "spo2": 97.3
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000129-000392",
+      "patient_id": "POP-000129",
+      "episode_id": "EP-POP-000129-000392",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-04-20T10:20:00",
+      "discharge_datetime": "2024-04-20T10:42:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-000129-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-04-20T10:25:00",
+      "temperature_celsius": null,
+      "heart_rate": 65,
+      "systolic_bp": 137,
+      "diastolic_bp": 81,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000129-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000129-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-001",
+    "issue_date": "2026-04-13T15:30:31.788394",
+    "items": [
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

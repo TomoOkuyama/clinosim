@@ -1,0 +1,168 @@
+{
+  "patient": {
+    "patient_id": "POP-000231",
+    "name": {
+      "family_name": "Morris",
+      "given_name": "Elaine",
+      "display_name": "Elaine Morris",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 99,
+    "sex": "F",
+    "date_of_birth": "1925-08-06",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 160.0,
+    "weight_kg": 81.7,
+    "bmi": 31.9,
+    "address": {
+      "postal_code": "02452",
+      "state": "MA",
+      "city": "Waltham",
+      "line1": "353 Commonwealth Ave",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 915-1921",
+      "phone_primary": "(781) 915-1921",
+      "email": "",
+      "emergency_contact_name": "Morris family",
+      "emergency_contact_phone": "(781) 915-1921",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.74,
+    "chronic_conditions": [
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2019-09-06",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.17081496075471156,
+        "stage": "CCS I"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Aspirin 100mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.39939645432311455,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.3457312863756044,
+      "cardiac_reserve": 0.40720658605218013,
+      "hepatic_reserve": 0.6060130683166572,
+      "treatment_sensitivity": 1.134144621947351,
+      "symptom_reporting_bias": 0.8201439288541301,
+      "delirium_susceptibility": 0.328192877400931,
+      "dvt_susceptibility": 0.3352790748192809
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 69,
+      "systolic_bp": 145,
+      "diastolic_bp": 84,
+      "respiratory_rate": 18,
+      "spo2": 97.5
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000231-000583",
+      "patient_id": "POP-000231",
+      "episode_id": "EP-POP-000231-000583",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-07-18T10:23:00",
+      "discharge_datetime": "2024-07-18T10:59:00",
+      "chief_complaint": "Coronary artery disease follow-up, cardiac risk management",
+      "disease_event_id": "DE-POP-000231-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-07-18T10:28:00",
+      "temperature_celsius": null,
+      "heart_rate": 59,
+      "systolic_bp": 158,
+      "diastolic_bp": 87,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000231-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I25"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I25",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I25",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000231-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-001",
+    "issue_date": "2026-04-13T15:30:32.124696",
+    "items": [
+      {
+        "drug": "Aspirin 100mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

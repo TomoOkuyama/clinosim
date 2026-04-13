@@ -1,0 +1,212 @@
+{
+  "patient": {
+    "patient_id": "POP-001412",
+    "name": {
+      "family_name": "Diaz",
+      "given_name": "Faye",
+      "display_name": "Faye Diaz",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 43,
+    "sex": "F",
+    "date_of_birth": "1981-12-02",
+    "blood_type": "B",
+    "rh_factor": "+",
+    "height_cm": 157.6,
+    "weight_kg": 77.5,
+    "bmi": 31.2,
+    "address": {
+      "postal_code": "02451",
+      "state": "MA",
+      "city": "Waltham",
+      "line1": "453 Washington St, Apt 8",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(857) 479-8137",
+      "phone_mobile": "(617) 527-1763",
+      "phone_primary": "(617) 527-1763",
+      "email": "",
+      "emergency_contact_name": "Diaz family",
+      "emergency_contact_phone": "(857) 479-8137",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.6,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2014-04-07",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.1755548597637596,
+        "stage": "Stage 1"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.40140817569444764,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8101514732583599,
+      "cardiac_reserve": 0.8081273703144135,
+      "hepatic_reserve": 0.8341159232153031,
+      "treatment_sensitivity": 1.1541386909347708,
+      "symptom_reporting_bias": 0.7106116965087643,
+      "delirium_susceptibility": 0.12024069832444484,
+      "dvt_susceptibility": 0.07702942465148396
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 69,
+      "systolic_bp": 140,
+      "diastolic_bp": 84,
+      "respiratory_rate": 16,
+      "spo2": 96.9
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001412-003507",
+      "patient_id": "POP-001412",
+      "episode_id": "EP-POP-001412-003507",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-05-17T10:10:00",
+      "discharge_datetime": "2024-05-17T10:46:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-001412-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001412-OPD-L00",
+      "encounter_id": "ENC-POP-001412-003507",
+      "patient_id": "POP-001412",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Na",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Na",
+      "ordered_datetime": "2024-05-17T10:20:00",
+      "ordered_by": "DR-IM-003",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-05-17T12:10:00",
+        "performed_by": "TECH-LAB-008",
+        "lab_name": "Na",
+        "value": 140.0,
+        "unit": "mmol/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-05-17T10:15:00",
+      "temperature_celsius": null,
+      "heart_rate": 67,
+      "systolic_bp": 128,
+      "diastolic_bp": 79,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-05-17T12:10:00",
+      "performed_by": "TECH-LAB-008",
+      "lab_name": "Na",
+      "value": 140.0,
+      "unit": "mmol/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001412-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001412-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-003",
+    "issue_date": "2026-04-13T15:30:37.234979",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

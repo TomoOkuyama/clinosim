@@ -1,0 +1,217 @@
+{
+  "patient": {
+    "patient_id": "POP-000632",
+    "name": {
+      "family_name": "Henderson",
+      "given_name": "Sara",
+      "display_name": "Sara Henderson",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 55,
+    "sex": "F",
+    "date_of_birth": "1969-04-20",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 167.4,
+    "weight_kg": 49.9,
+    "bmi": 17.8,
+    "address": {
+      "postal_code": "02124",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "248 Center St, Apt 2",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 345-4433",
+      "phone_primary": "(508) 345-4433",
+      "email": "",
+      "emergency_contact_name": "Henderson family",
+      "emergency_contact_phone": "(508) 345-4433",
+      "emergency_contact_relationship": "sibling"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.43,
+    "chronic_conditions": [
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2017-10-17",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.23069514930893434,
+        "stage": "CCS II"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Aspirin 100mg",
+      "Clopidogrel 75mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "heavy",
+    "physiological_profile": {
+      "immune_reactivity": 0.5259769951574026,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7163871853602886,
+      "cardiac_reserve": 0.7406681876852151,
+      "hepatic_reserve": 0.9180335610466699,
+      "treatment_sensitivity": 0.9272651273046008,
+      "symptom_reporting_bias": 1.1110743690275544,
+      "delirium_susceptibility": 0.2986270366170846,
+      "dvt_susceptibility": 0.1678249193807235
+    },
+    "baseline_vitals": {
+      "temperature": 36.0,
+      "heart_rate": 72,
+      "systolic_bp": 109,
+      "diastolic_bp": 82,
+      "respiratory_rate": 15,
+      "spo2": 97.5
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000632-001450",
+      "patient_id": "POP-000632",
+      "episode_id": "EP-POP-000632-001450",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-004",
+      "admitting_physician_id": "DR-IM-004",
+      "discharging_physician_id": "DR-IM-004",
+      "admission_datetime": "2024-04-14T10:11:00",
+      "discharge_datetime": "2024-04-14T10:43:00",
+      "chief_complaint": "Coronary artery disease follow-up, cardiac risk management",
+      "disease_event_id": "DE-POP-000632-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000632-OPD-L00",
+      "encounter_id": "ENC-POP-000632-001450",
+      "patient_id": "POP-000632",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Glucose",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Glucose",
+      "ordered_datetime": "2024-04-14T10:21:00",
+      "ordered_by": "DR-IM-004",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-04-14T12:11:00",
+        "performed_by": "TECH-LAB-004",
+        "lab_name": "Glucose",
+        "value": 103.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-04-14T10:16:00",
+      "temperature_celsius": null,
+      "heart_rate": 62,
+      "systolic_bp": 110,
+      "diastolic_bp": 79,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-04-14T12:11:00",
+      "performed_by": "TECH-LAB-004",
+      "lab_name": "Glucose",
+      "value": 103.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000632-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I25"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I25",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I25",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000632-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-004",
+    "issue_date": "2026-04-13T15:30:33.651357",
+    "items": [
+      {
+        "drug": "Aspirin 100mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Clopidogrel 75mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

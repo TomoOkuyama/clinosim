@@ -1,0 +1,250 @@
+{
+  "patient": {
+    "patient_id": "POP-000282",
+    "name": {
+      "family_name": "Hill",
+      "given_name": "Jacqueline",
+      "display_name": "Jacqueline Hill",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 54,
+    "sex": "F",
+    "date_of_birth": "1970-06-11",
+    "blood_type": "B",
+    "rh_factor": "+",
+    "height_cm": 173.9,
+    "weight_kg": 77.1,
+    "bmi": 25.5,
+    "address": {
+      "postal_code": "02141",
+      "state": "MA",
+      "city": "Cambridge",
+      "line1": "102 Oak St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 388-2783",
+      "phone_primary": "(781) 388-2783",
+      "email": "",
+      "emergency_contact_name": "Hill family",
+      "emergency_contact_phone": "(781) 388-2783",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.54,
+    "chronic_conditions": [
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2012-04-13",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.27944532955175677,
+        "stage": "CCS I"
+      },
+      {
+        "code": "E03",
+        "system": "icd-10-cm",
+        "onset_date": "2015-07-25",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.10432845238661718,
+        "stage": ""
+      },
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2017-08-07",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.26956144938755855,
+        "stage": "Moderate persistent"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Aspirin 100mg",
+      "Clopidogrel 75mg",
+      "Levothyroxine 50mcg",
+      "Fluticasone/Salmeterol inhaler",
+      "Salbutamol inhaler PRN"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.7322773698084118,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8834622835706947,
+      "cardiac_reserve": 0.5196263019382088,
+      "hepatic_reserve": 0.7983688210506237,
+      "treatment_sensitivity": 1.0720553716992445,
+      "symptom_reporting_bias": 1.2609275391128174,
+      "delirium_susceptibility": 0.2784894407045203,
+      "dvt_susceptibility": 0.10964622892547007
+    },
+    "baseline_vitals": {
+      "temperature": 36.7,
+      "heart_rate": 72,
+      "systolic_bp": 114,
+      "diastolic_bp": 87,
+      "respiratory_rate": 19,
+      "spo2": 98.6
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000282-000678",
+      "patient_id": "POP-000282",
+      "episode_id": "EP-POP-000282-000678",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-05-27T10:41:00",
+      "discharge_datetime": "2024-05-27T11:20:00",
+      "chief_complaint": "Coronary artery disease follow-up, cardiac risk management",
+      "disease_event_id": "DE-POP-000282-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000282-OPD-L00",
+      "encounter_id": "ENC-POP-000282-000678",
+      "patient_id": "POP-000282",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Glucose",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Glucose",
+      "ordered_datetime": "2024-05-27T10:51:00",
+      "ordered_by": "DR-IM-003",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-05-27T12:41:00",
+        "performed_by": "TECH-LAB-001",
+        "lab_name": "Glucose",
+        "value": 101.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-05-27T10:46:00",
+      "temperature_celsius": null,
+      "heart_rate": 75,
+      "systolic_bp": 118,
+      "diastolic_bp": 85,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-05-27T12:41:00",
+      "performed_by": "TECH-LAB-001",
+      "lab_name": "Glucose",
+      "value": 101.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000282-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I25"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I25",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I25",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000282-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-003",
+    "issue_date": "2026-04-13T15:30:32.290973",
+    "items": [
+      {
+        "drug": "Aspirin 100mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Clopidogrel 75mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Levothyroxine 50mcg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Fluticasone/Salmeterol inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol inhaler PRN",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

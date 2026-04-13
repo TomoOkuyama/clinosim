@@ -1,0 +1,201 @@
+{
+  "patient": {
+    "patient_id": "POP-000072",
+    "name": {
+      "family_name": "Williams",
+      "given_name": "Michelle",
+      "display_name": "Michelle Williams",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 72,
+    "sex": "F",
+    "date_of_birth": "1952-09-25",
+    "blood_type": "B",
+    "rh_factor": "+",
+    "height_cm": 161.0,
+    "weight_kg": 45.9,
+    "bmi": 17.7,
+    "address": {
+      "postal_code": "02474",
+      "state": "MA",
+      "city": "Arlington",
+      "line1": "221 Spring St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 411-9291",
+      "phone_primary": "(781) 411-9291",
+      "email": "",
+      "emergency_contact_name": "Williams family",
+      "emergency_contact_phone": "(781) 411-9291",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.48,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2020-01-28",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.38443712214385295,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "M81",
+        "system": "icd-10-cm",
+        "onset_date": "2023-02-11",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3604086949179991,
+        "stage": ""
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2012-06-12",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.11463917846386744,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Alendronate 35mg",
+      "Vitamin D 1000IU",
+      "Acetaminophen 500mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.7990540364871933,
+      "drug_metabolism_rate": "rapid",
+      "renal_reserve": 0.28046396185138744,
+      "cardiac_reserve": 0.6334434520789609,
+      "hepatic_reserve": 0.5959904576228597,
+      "treatment_sensitivity": 0.8509865178520842,
+      "symptom_reporting_bias": 1.4485738847947007,
+      "delirium_susceptibility": 0.09554427421829297,
+      "dvt_susceptibility": 0.1589852228218342
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 69,
+      "systolic_bp": 125,
+      "diastolic_bp": 77,
+      "respiratory_rate": 16,
+      "spo2": 97.2
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000072-000292",
+      "patient_id": "POP-000072",
+      "episode_id": "EP-POP-000072-000292",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-03-18T10:21:00",
+      "discharge_datetime": "2024-03-18T10:42:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-000072-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-03-18T10:26:00",
+      "temperature_celsius": null,
+      "heart_rate": 74,
+      "systolic_bp": 130,
+      "diastolic_bp": 86,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000072-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000072-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-003",
+    "issue_date": "2026-04-13T15:30:31.602703",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Alendronate 35mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Vitamin D 1000IU",
+        "duration_days": 30
+      },
+      {
+        "drug": "Acetaminophen 500mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

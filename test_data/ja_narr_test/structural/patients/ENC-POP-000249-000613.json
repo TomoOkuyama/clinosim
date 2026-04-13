@@ -1,0 +1,197 @@
+{
+  "patient": {
+    "patient_id": "POP-000249",
+    "name": {
+      "family_name": "Lee",
+      "given_name": "Elliott",
+      "display_name": "Elliott Lee",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 81,
+    "sex": "M",
+    "date_of_birth": "1943-03-17",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 164.7,
+    "weight_kg": 112.4,
+    "bmi": 41.4,
+    "address": {
+      "postal_code": "01607",
+      "state": "MA",
+      "city": "Worcester",
+      "line1": "336 Maple Ave, Apt 8",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 461-7981",
+      "phone_primary": "(617) 461-7981",
+      "email": "",
+      "emergency_contact_name": "Lee family",
+      "emergency_contact_phone": "(617) 461-7981",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.5,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2015-12-06",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.12945411928360767,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2016-09-27",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.17768537195896073,
+        "stage": ""
+      },
+      {
+        "code": "N18",
+        "system": "icd-10-cm",
+        "onset_date": "2021-06-08",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.2337305961198294,
+        "stage": "CKD G2"
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "Sulfonamide",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Atorvastatin 10mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.5956889779957287,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7484932440435921,
+      "cardiac_reserve": 0.39845408834114265,
+      "hepatic_reserve": 0.7012334032910411,
+      "treatment_sensitivity": 1.0194687637065059,
+      "symptom_reporting_bias": 0.9296474377531166,
+      "delirium_susceptibility": 0.39683050459522384,
+      "dvt_susceptibility": 0.16165836766516337
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 70,
+      "systolic_bp": 158,
+      "diastolic_bp": 89,
+      "respiratory_rate": 16,
+      "spo2": 97.2
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000249-000613",
+      "patient_id": "POP-000249",
+      "episode_id": "EP-POP-000249-000613",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-03-08T10:13:00",
+      "discharge_datetime": "2024-03-08T10:40:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-000249-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-03-08T10:18:00",
+      "temperature_celsius": null,
+      "heart_rate": 74,
+      "systolic_bp": 154,
+      "diastolic_bp": 100,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000249-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000249-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-003",
+    "issue_date": "2026-04-13T15:30:32.180954",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

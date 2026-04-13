@@ -1,0 +1,210 @@
+{
+  "patient": {
+    "patient_id": "POP-001401",
+    "name": {
+      "family_name": "Hernandez",
+      "given_name": "David",
+      "display_name": "David Hernandez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 64,
+    "sex": "M",
+    "date_of_birth": "1960-08-06",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 176.9,
+    "weight_kg": 116.8,
+    "bmi": 37.3,
+    "address": {
+      "postal_code": "02135",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "414 Church St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(978) 241-2645",
+      "phone_mobile": "(508) 526-4159",
+      "phone_primary": "(508) 526-4159",
+      "email": "",
+      "emergency_contact_name": "Hernandez family",
+      "emergency_contact_phone": "(978) 241-2645",
+      "emergency_contact_relationship": "sibling"
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.52,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2012-10-17",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.21992441476231883,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2022-05-18",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.39259058666638885,
+        "stage": ""
+      },
+      {
+        "code": "N18",
+        "system": "icd-10-cm",
+        "onset_date": "2019-12-26",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3809845994557843,
+        "stage": "CKD G3a"
+      },
+      {
+        "code": "M81",
+        "system": "icd-10-cm",
+        "onset_date": "2023-03-28",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.11765591607344317,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Atorvastatin 10mg",
+      "Alendronate 35mg",
+      "Vitamin D 1000IU"
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.541059255548881,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.671967411676348,
+      "cardiac_reserve": 0.6601322759944996,
+      "hepatic_reserve": 0.6038734008849588,
+      "treatment_sensitivity": 1.1315342520161011,
+      "symptom_reporting_bias": 1.2448208654773727,
+      "delirium_susceptibility": 0.0770725803228217,
+      "dvt_susceptibility": 0.09993404327012043
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 73,
+      "systolic_bp": 128,
+      "diastolic_bp": 79,
+      "respiratory_rate": 17,
+      "spo2": 98.5
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001401-003462",
+      "patient_id": "POP-001401",
+      "episode_id": "EP-POP-001401-003462",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-01-26T10:41:00",
+      "discharge_datetime": "2024-01-26T11:11:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-001401-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-01-26T10:46:00",
+      "temperature_celsius": null,
+      "heart_rate": 67,
+      "systolic_bp": 116,
+      "diastolic_bp": 87,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001401-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001401-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-002",
+    "issue_date": "2026-04-13T15:30:37.158358",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Alendronate 35mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Vitamin D 1000IU",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

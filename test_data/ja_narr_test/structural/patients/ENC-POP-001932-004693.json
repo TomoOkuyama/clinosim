@@ -1,0 +1,168 @@
+{
+  "patient": {
+    "patient_id": "POP-001932",
+    "name": {
+      "family_name": "Brown",
+      "given_name": "Richard",
+      "display_name": "Richard Brown",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 57,
+    "sex": "M",
+    "date_of_birth": "1967-01-28",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 170.8,
+    "weight_kg": 102.3,
+    "bmi": 35.1,
+    "address": {
+      "postal_code": "01701",
+      "state": "MA",
+      "city": "Framingham",
+      "line1": "388 Cedar St, Apt 1",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 539-2366",
+      "phone_primary": "(508) 539-2366",
+      "email": "",
+      "emergency_contact_name": "Brown family",
+      "emergency_contact_phone": "(508) 539-2366",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.68,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2022-08-09",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.10559131725235815,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "K21",
+        "system": "icd-10-cm",
+        "onset_date": "2012-06-18",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.3797837911593404,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Candesartan 8mg",
+      "Lansoprazole 15mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.38589598146478865,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7446998144238403,
+      "cardiac_reserve": 0.5949772999435755,
+      "hepatic_reserve": 0.8491942142200986,
+      "treatment_sensitivity": 0.7644237897832442,
+      "symptom_reporting_bias": 1.5022429823307686,
+      "delirium_susceptibility": 0.11036157307916453,
+      "dvt_susceptibility": 0.30953137273134546
+    },
+    "baseline_vitals": {
+      "temperature": 36.7,
+      "heart_rate": 71,
+      "systolic_bp": 141,
+      "diastolic_bp": 65,
+      "respiratory_rate": 12,
+      "spo2": 96.6
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001932-004693",
+      "patient_id": "POP-001932",
+      "episode_id": "EP-POP-001932-004693",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-10-13T10:09:00",
+      "discharge_datetime": "2024-10-13T10:30:00",
+      "chief_complaint": "Influenza vaccination",
+      "disease_event_id": "DE-POP-001932-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-10-13T10:14:00",
+      "temperature_celsius": null,
+      "heart_rate": 70,
+      "systolic_bp": 148,
+      "diastolic_bp": 59,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001932-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z23"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z23",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z23",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

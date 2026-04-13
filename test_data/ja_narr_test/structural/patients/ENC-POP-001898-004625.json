@@ -1,0 +1,259 @@
+{
+  "patient": {
+    "patient_id": "POP-001898",
+    "name": {
+      "family_name": "Jackson",
+      "given_name": "Jean",
+      "display_name": "Jean Jackson",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 82,
+    "sex": "F",
+    "date_of_birth": "1942-06-25",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 154.7,
+    "weight_kg": 69.2,
+    "bmi": 28.9,
+    "address": {
+      "postal_code": "01854",
+      "state": "MA",
+      "city": "Lowell",
+      "line1": "99 Beacon St, Apt 8",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 560-2239",
+      "phone_primary": "(781) 560-2239",
+      "email": "",
+      "emergency_contact_name": "Jackson family",
+      "emergency_contact_phone": "(781) 560-2239",
+      "emergency_contact_relationship": "sibling"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.71,
+    "chronic_conditions": [
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2016-07-10",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.24976545762612426,
+        "stage": ""
+      },
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2012-05-14",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.1058653081077611,
+        "stage": "CCS I"
+      },
+      {
+        "code": "M81",
+        "system": "icd-10-cm",
+        "onset_date": "2012-08-09",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.37767636611052735,
+        "stage": ""
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2023-07-08",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.33770251651297256,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Atorvastatin 10mg",
+      "Aspirin 100mg",
+      "Alendronate 35mg",
+      "Vitamin D 1000IU",
+      "Acetaminophen 500mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.6479869828841779,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7820484581484962,
+      "cardiac_reserve": 0.5370733049023034,
+      "hepatic_reserve": 0.5800346093539582,
+      "treatment_sensitivity": 1.0788913887313465,
+      "symptom_reporting_bias": 1.3427602572214705,
+      "delirium_susceptibility": 0.2661649890997282,
+      "dvt_susceptibility": 0.22940838300063632
+    },
+    "baseline_vitals": {
+      "temperature": 36.1,
+      "heart_rate": 78,
+      "systolic_bp": 124,
+      "diastolic_bp": 91,
+      "respiratory_rate": 16,
+      "spo2": 98.8
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001898-004625",
+      "patient_id": "POP-001898",
+      "episode_id": "EP-POP-001898-004625",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-12-15T10:23:00",
+      "discharge_datetime": "2024-12-15T10:41:00",
+      "chief_complaint": "Lipid management, statin therapy monitoring",
+      "disease_event_id": "DE-POP-001898-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001898-OPD-L00",
+      "encounter_id": "ENC-POP-001898-004625",
+      "patient_id": "POP-001898",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "TG",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: TG",
+      "ordered_datetime": "2024-12-15T10:33:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-12-15T12:23:00",
+        "performed_by": "TECH-LAB-006",
+        "lab_name": "TG",
+        "value": 107.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-12-15T10:28:00",
+      "temperature_celsius": null,
+      "heart_rate": 82,
+      "systolic_bp": 114,
+      "diastolic_bp": 84,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-12-15T12:23:00",
+      "performed_by": "TECH-LAB-006",
+      "lab_name": "TG",
+      "value": 107.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001898-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E78"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E78",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E78",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001898-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-006",
+    "issue_date": "2026-04-13T15:30:39.247799",
+    "items": [
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Aspirin 100mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Alendronate 35mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Vitamin D 1000IU",
+        "duration_days": 30
+      },
+      {
+        "drug": "Acetaminophen 500mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

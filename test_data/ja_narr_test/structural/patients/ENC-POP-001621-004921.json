@@ -1,0 +1,179 @@
+{
+  "patient": {
+    "patient_id": "POP-001621",
+    "name": {
+      "family_name": "Miller",
+      "given_name": "Paul",
+      "display_name": "Paul Miller",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 77,
+    "sex": "M",
+    "date_of_birth": "1947-08-10",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 174.0,
+    "weight_kg": 92.3,
+    "bmi": 30.5,
+    "address": {
+      "postal_code": "02113",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "396 Spring St, Apt 6",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 583-4794",
+      "phone_primary": "(617) 583-4794",
+      "email": "",
+      "emergency_contact_name": "Miller family",
+      "emergency_contact_phone": "(617) 583-4794",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.77,
+    "chronic_conditions": [
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2014-12-22",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.25567051223579995,
+        "stage": "HbA1c 6.9%"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Metformin 500mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.40643563989661563,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.6412296414359109,
+      "cardiac_reserve": 0.584594856900797,
+      "hepatic_reserve": 0.7428501502780855,
+      "treatment_sensitivity": 0.9048820332391321,
+      "symptom_reporting_bias": 0.5580158621224444,
+      "delirium_susceptibility": 0.25611053665085654,
+      "dvt_susceptibility": 0.4682424972077862
+    },
+    "baseline_vitals": {
+      "temperature": 36.1,
+      "heart_rate": 56,
+      "systolic_bp": 144,
+      "diastolic_bp": 70,
+      "respiratory_rate": 14,
+      "spo2": 98.2
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001621-004921",
+      "patient_id": "POP-001621",
+      "episode_id": "EP-POP-001621-004921",
+      "encounter_type": "emergency",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2025-01-17T20:06:00",
+      "discharge_datetime": "2025-01-18T00:27:08.376622",
+      "chief_complaint": "Urticaria, mild angioedema, itching",
+      "disease_event_id": "DE-POP-001621-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "EM"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001621-ED-T0",
+      "encounter_id": "ENC-POP-001621-004921",
+      "patient_id": "POP-001621",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Diphenhydramine 50mg",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: antihistamine",
+      "ordered_datetime": "2025-01-17T20:37:00",
+      "ordered_by": "DR-IM-006",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 50.0,
+      "dose_unit": "mg",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2025-01-17T20:11:00",
+      "temperature_celsius": 36.7,
+      "heart_rate": 71,
+      "systolic_bp": 139,
+      "diastolic_bp": 64,
+      "respiratory_rate": 15,
+      "spo2": 96.2,
+      "pain_score": 3,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-EM-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001621-ED",
+    "condition_type": "ed_visit",
+    "ground_truth_diseases": [
+      "allergic_reaction_mild"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "T78.40",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "T78.40",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

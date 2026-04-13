@@ -1,0 +1,236 @@
+{
+  "patient": {
+    "patient_id": "POP-000905",
+    "name": {
+      "family_name": "Hall",
+      "given_name": "Lance",
+      "display_name": "Lance Hall",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 42,
+    "sex": "M",
+    "date_of_birth": "1982-05-01",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 179.9,
+    "weight_kg": 62.6,
+    "bmi": 19.3,
+    "address": {
+      "postal_code": "02451",
+      "state": "MA",
+      "city": "Waltham",
+      "line1": "57 Pleasant St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(617) 915-7978",
+      "phone_mobile": "(617) 568-9554",
+      "phone_primary": "(617) 568-9554",
+      "email": "",
+      "emergency_contact_name": "Hall family",
+      "emergency_contact_phone": "(617) 915-7978",
+      "emergency_contact_relationship": "sibling"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.39,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2010-07-08",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.2555250217701966,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2022-02-13",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.13058826443732227,
+        "stage": "Mild persistent"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Candesartan 8mg",
+      "Fluticasone/Salmeterol inhaler",
+      "Salbutamol inhaler PRN"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.43724917029248805,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7995118791898894,
+      "cardiac_reserve": 0.8761945473817186,
+      "hepatic_reserve": 0.7375135556999801,
+      "treatment_sensitivity": 0.7846754721302666,
+      "symptom_reporting_bias": 0.9634731162573478,
+      "delirium_susceptibility": 0.1064520927163653,
+      "dvt_susceptibility": 0.08934279080826438
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 70,
+      "systolic_bp": 136,
+      "diastolic_bp": 72,
+      "respiratory_rate": 15,
+      "spo2": 97.9
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000905-002142",
+      "patient_id": "POP-000905",
+      "episode_id": "EP-POP-000905-002142",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-06-10T10:38:00",
+      "discharge_datetime": "2024-06-10T11:15:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-000905-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000905-OPD-L00",
+      "encounter_id": "ENC-POP-000905-002142",
+      "patient_id": "POP-000905",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "K",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: K",
+      "ordered_datetime": "2024-06-10T10:48:00",
+      "ordered_by": "DR-IM-002",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-06-10T12:38:00",
+        "performed_by": "TECH-LAB-009",
+        "lab_name": "K",
+        "value": 4.1,
+        "unit": "mmol/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-06-10T10:43:00",
+      "temperature_celsius": null,
+      "heart_rate": 75,
+      "systolic_bp": 144,
+      "diastolic_bp": 70,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-06-10T12:38:00",
+      "performed_by": "TECH-LAB-009",
+      "lab_name": "K",
+      "value": 4.1,
+      "unit": "mmol/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000905-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000905-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-002",
+    "issue_date": "2026-04-13T15:30:34.858229",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Candesartan 8mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Fluticasone/Salmeterol inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol inhaler PRN",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

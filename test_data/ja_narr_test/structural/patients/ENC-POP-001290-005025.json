@@ -1,0 +1,251 @@
+{
+  "patient": {
+    "patient_id": "POP-001290",
+    "name": {
+      "family_name": "King",
+      "given_name": "Eleanor",
+      "display_name": "Eleanor King",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 83,
+    "sex": "F",
+    "date_of_birth": "1941-10-04",
+    "blood_type": "B",
+    "rh_factor": "+",
+    "height_cm": 160.5,
+    "weight_kg": 61.7,
+    "bmi": 24.0,
+    "address": {
+      "postal_code": "02462",
+      "state": "MA",
+      "city": "Newton",
+      "line1": "191 Highland Ave, Apt 9",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(351) 454-1311",
+      "phone_mobile": "(508) 282-3859",
+      "phone_primary": "(508) 282-3859",
+      "email": "",
+      "emergency_contact_name": "King family",
+      "emergency_contact_phone": "(351) 454-1311",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.94,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2013-12-25",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.35715699375333954,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2020-07-20",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.13024852769859496,
+        "stage": ""
+      },
+      {
+        "code": "K21",
+        "system": "icd-10-cm",
+        "onset_date": "2020-03-21",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.24272821245067883,
+        "stage": ""
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2019-11-02",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.27212611828159944,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Atorvastatin 10mg",
+      "Lansoprazole 15mg",
+      "Acetaminophen 500mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5156592619628052,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.5015131497895323,
+      "cardiac_reserve": 0.5558123717646808,
+      "hepatic_reserve": 0.7375996608615646,
+      "treatment_sensitivity": 0.7858249693469886,
+      "symptom_reporting_bias": 1.2155987512508524,
+      "delirium_susceptibility": 0.29312483247318777,
+      "dvt_susceptibility": 0.25394381054410614
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 71,
+      "systolic_bp": 125,
+      "diastolic_bp": 82,
+      "respiratory_rate": 14,
+      "spo2": 97.0
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001290-005025",
+      "patient_id": "POP-001290",
+      "episode_id": "EP-POP-001290-005025",
+      "encounter_type": "emergency",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-05-17T09:47:00",
+      "discharge_datetime": "2024-05-17T12:52:44.339809",
+      "chief_complaint": "Urticaria, mild angioedema, itching",
+      "disease_event_id": "DE-POP-001290-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "EM"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001290-ED-T0",
+      "encounter_id": "ENC-POP-001290-005025",
+      "patient_id": "POP-001290",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Diphenhydramine 50mg",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: antihistamine",
+      "ordered_datetime": "2024-05-17T10:15:00",
+      "ordered_by": "DR-IM-003",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 50.0,
+      "dose_unit": "mg",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-001290-ED-T1",
+      "encounter_id": "ENC-POP-001290-005025",
+      "patient_id": "POP-001290",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Famotidine 20mg",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: H2 blocker adjunct",
+      "ordered_datetime": "2024-05-17T10:30:00",
+      "ordered_by": "DR-IM-003",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 20.0,
+      "dose_unit": "mg",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-001290-ED-T2",
+      "encounter_id": "ENC-POP-001290-005025",
+      "patient_id": "POP-001290",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Methylprednisolone 125mg",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: anti-inflammatory",
+      "ordered_datetime": "2024-05-17T10:16:00",
+      "ordered_by": "DR-IM-003",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 125.0,
+      "dose_unit": "mg",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-05-17T09:52:00",
+      "temperature_celsius": 36.5,
+      "heart_rate": 69,
+      "systolic_bp": 127,
+      "diastolic_bp": 79,
+      "respiratory_rate": 15,
+      "spo2": 98.4,
+      "pain_score": 4,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-EM-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001290-ED",
+    "condition_type": "ed_visit",
+    "ground_truth_diseases": [
+      "allergic_reaction_mild"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "T78.40",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "T78.40",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

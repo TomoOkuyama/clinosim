@@ -1,0 +1,347 @@
+{
+  "patient": {
+    "patient_id": "POP-000435",
+    "name": {
+      "family_name": "Robinson",
+      "given_name": "Carolyn",
+      "display_name": "Carolyn Robinson",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 75,
+    "sex": "F",
+    "date_of_birth": "1949-12-02",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 151.4,
+    "weight_kg": 70.2,
+    "bmi": 30.6,
+    "address": {
+      "postal_code": "01905",
+      "state": "MA",
+      "city": "Lynn",
+      "line1": "274 Pine St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(781) 563-1958",
+      "phone_mobile": "(508) 507-9801",
+      "phone_primary": "(508) 507-9801",
+      "email": "",
+      "emergency_contact_name": "Robinson family",
+      "emergency_contact_phone": "(781) 563-1958",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "D",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.55,
+    "chronic_conditions": [
+      {
+        "code": "N18",
+        "system": "icd-10-cm",
+        "onset_date": "2010-09-09",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.15184821297407203,
+        "stage": "CKD G1"
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2019-01-10",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.14172013604743863,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Acetaminophen 500mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.3967705494926068,
+      "drug_metabolism_rate": "rapid",
+      "renal_reserve": 0.6634539684131461,
+      "cardiac_reserve": 0.645716096305587,
+      "hepatic_reserve": 0.5464005097561082,
+      "treatment_sensitivity": 0.8701489931095016,
+      "symptom_reporting_bias": 1.3121139197313314,
+      "delirium_susceptibility": 0.2292386165229633,
+      "dvt_susceptibility": 0.273175865938968
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 83,
+      "systolic_bp": 140,
+      "diastolic_bp": 79,
+      "respiratory_rate": 19,
+      "spo2": 98.6
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000435-001005",
+      "patient_id": "POP-000435",
+      "episode_id": "EP-POP-000435-001005",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-01-11T10:37:00",
+      "discharge_datetime": "2024-01-11T11:01:00",
+      "chief_complaint": "Renal function monitoring, electrolyte check",
+      "disease_event_id": "DE-POP-000435-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000435-OPD-L00",
+      "encounter_id": "ENC-POP-000435-001005",
+      "patient_id": "POP-000435",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Creatinine",
+      "ordered_datetime": "2024-01-11T10:47:00",
+      "ordered_by": "DR-IM-002",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-01-11T12:37:00",
+        "performed_by": "TECH-LAB-002",
+        "lab_name": "Creatinine",
+        "value": 0.91,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": "H",
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000435-OPD-L01",
+      "encounter_id": "ENC-POP-000435-001005",
+      "patient_id": "POP-000435",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "K",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: K",
+      "ordered_datetime": "2024-01-11T10:47:00",
+      "ordered_by": "DR-IM-002",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-01-11T12:37:00",
+        "performed_by": "TECH-LAB-002",
+        "lab_name": "K",
+        "value": 4.1,
+        "unit": "mmol/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000435-OPD-L02",
+      "encounter_id": "ENC-POP-000435-001005",
+      "patient_id": "POP-000435",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Na",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Na",
+      "ordered_datetime": "2024-01-11T10:47:00",
+      "ordered_by": "DR-IM-002",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-01-11T12:37:00",
+        "performed_by": "TECH-LAB-002",
+        "lab_name": "Na",
+        "value": 141.0,
+        "unit": "mmol/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000435-OPD-L03",
+      "encounter_id": "ENC-POP-000435-001005",
+      "patient_id": "POP-000435",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "BUN",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: BUN",
+      "ordered_datetime": "2024-01-11T10:47:00",
+      "ordered_by": "DR-IM-002",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-01-11T12:37:00",
+        "performed_by": "TECH-LAB-002",
+        "lab_name": "BUN",
+        "value": 16.6,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-01-11T10:42:00",
+      "temperature_celsius": null,
+      "heart_rate": 89,
+      "systolic_bp": 133,
+      "diastolic_bp": 74,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-01-11T12:37:00",
+      "performed_by": "TECH-LAB-002",
+      "lab_name": "Creatinine",
+      "value": 0.91,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": "H",
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-01-11T12:37:00",
+      "performed_by": "TECH-LAB-002",
+      "lab_name": "K",
+      "value": 4.1,
+      "unit": "mmol/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-01-11T12:37:00",
+      "performed_by": "TECH-LAB-002",
+      "lab_name": "Na",
+      "value": 141.0,
+      "unit": "mmol/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-01-11T12:37:00",
+      "performed_by": "TECH-LAB-002",
+      "lab_name": "BUN",
+      "value": 16.6,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000435-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "N18"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "N18",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "N18",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000435-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-002",
+    "issue_date": "2026-04-13T15:30:32.872292",
+    "items": [
+      {
+        "drug": "Acetaminophen 500mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

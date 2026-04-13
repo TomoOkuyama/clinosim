@@ -1,0 +1,223 @@
+{
+  "patient": {
+    "patient_id": "POP-000790",
+    "name": {
+      "family_name": "Torres",
+      "given_name": "Hannah",
+      "display_name": "Hannah Torres",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 64,
+    "sex": "F",
+    "date_of_birth": "1960-08-23",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 159.0,
+    "weight_kg": 64.8,
+    "bmi": 25.6,
+    "address": {
+      "postal_code": "01603",
+      "state": "MA",
+      "city": "Worcester",
+      "line1": "138 Harvard St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 737-9720",
+      "phone_primary": "(617) 737-9720",
+      "email": "",
+      "emergency_contact_name": "Torres family",
+      "emergency_contact_phone": "(617) 737-9720",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.6,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2015-11-11",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.17844739020842562,
+        "stage": "Stage 1"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Candesartan 8mg"
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.6432287147457825,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.862204731262425,
+      "cardiac_reserve": 0.49175111420066464,
+      "hepatic_reserve": 0.7253784928919037,
+      "treatment_sensitivity": 1.1806221389174554,
+      "symptom_reporting_bias": 0.9784630059290894,
+      "delirium_susceptibility": 0.36879191900676617,
+      "dvt_susceptibility": 0.10772265580799616
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 77,
+      "systolic_bp": 141,
+      "diastolic_bp": 85,
+      "respiratory_rate": 16,
+      "spo2": 97.0
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000790-004944",
+      "patient_id": "POP-000790",
+      "episode_id": "EP-POP-000790-004944",
+      "encounter_type": "emergency",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-09-11T10:21:00",
+      "discharge_datetime": "2024-09-11T12:02:53.687606",
+      "chief_complaint": "Laceration requiring sutures",
+      "disease_event_id": "DE-POP-000790-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "EM"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000790-ED-L0",
+      "encounter_id": "ENC-POP-000790-004944",
+      "patient_id": "POP-000790",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Tetanus_status",
+      "urgency": "stat",
+      "clinical_intent": "ED workup: Tetanus_status",
+      "ordered_datetime": "2024-09-11T10:39:00",
+      "ordered_by": "DR-IM-001",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-09-11T11:15:00",
+        "performed_by": "TECH-LAB-007",
+        "lab_name": "Tetanus_status",
+        "value": "Up to date",
+        "unit": "{qualitative}",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000790-ED-T1",
+      "encounter_id": "ENC-POP-000790-004944",
+      "patient_id": "POP-000790",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Wound irrigation with normal saline",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: wound cleaning",
+      "ordered_datetime": "2024-09-11T10:42:00",
+      "ordered_by": "DR-IM-001",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-09-11T10:26:00",
+      "temperature_celsius": 37.1,
+      "heart_rate": 91,
+      "systolic_bp": 127,
+      "diastolic_bp": 84,
+      "respiratory_rate": 16,
+      "spo2": 96.3,
+      "pain_score": 3,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-EM-005",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-09-11T11:15:00",
+      "performed_by": "TECH-LAB-007",
+      "lab_name": "Tetanus_status",
+      "value": "Up to date",
+      "unit": "{qualitative}",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000790-ED",
+    "condition_type": "ed_visit",
+    "ground_truth_diseases": [
+      "minor_laceration"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "T14.90",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "T14.90",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

@@ -1,0 +1,215 @@
+{
+  "patient": {
+    "patient_id": "POP-000312",
+    "name": {
+      "family_name": "Berry",
+      "given_name": "Raymond",
+      "display_name": "Raymond Berry",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 56,
+    "sex": "M",
+    "date_of_birth": "1968-10-27",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 186.9,
+    "weight_kg": 100.3,
+    "bmi": 28.7,
+    "address": {
+      "postal_code": "01607",
+      "state": "MA",
+      "city": "Worcester",
+      "line1": "222 Main St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(781) 541-4306",
+      "phone_mobile": "(508) 945-4295",
+      "phone_primary": "(508) 945-4295",
+      "email": "",
+      "emergency_contact_name": "Berry family",
+      "emergency_contact_phone": "(781) 541-4306",
+      "emergency_contact_relationship": "sibling"
+    },
+    "marital_status": "D",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.55,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2018-01-08",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.28469047598854325,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2021-11-05",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.11743782564110855,
+        "stage": ""
+      },
+      {
+        "code": "N40",
+        "system": "icd-10-cm",
+        "onset_date": "2019-11-02",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.3576201226243123,
+        "stage": ""
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2013-02-07",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.36298876249634404,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Atorvastatin 10mg",
+      "Tamsulosin 0.2mg",
+      "Acetaminophen 500mg",
+      "Celecoxib 200mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.7080652823703115,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.4865966612254477,
+      "cardiac_reserve": 0.6560289460252225,
+      "hepatic_reserve": 0.7789377428765452,
+      "treatment_sensitivity": 0.8934475012776102,
+      "symptom_reporting_bias": 1.152731082464874,
+      "delirium_susceptibility": 0.1447684248523901,
+      "dvt_susceptibility": 0.23474723684225554
+    },
+    "baseline_vitals": {
+      "temperature": 36.5,
+      "heart_rate": 73,
+      "systolic_bp": 142,
+      "diastolic_bp": 81,
+      "respiratory_rate": 15,
+      "spo2": 97.5
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000312-000708",
+      "patient_id": "POP-000312",
+      "episode_id": "EP-POP-000312-000708",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-004",
+      "admitting_physician_id": "DR-IM-004",
+      "discharging_physician_id": "DR-IM-004",
+      "admission_datetime": "2024-01-04T10:10:00",
+      "discharge_datetime": "2024-01-04T10:40:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-000312-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-01-04T10:15:00",
+      "temperature_celsius": null,
+      "heart_rate": 69,
+      "systolic_bp": 147,
+      "diastolic_bp": 79,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000312-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000312-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-004",
+    "issue_date": "2026-04-13T15:30:32.345141",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Tamsulosin 0.2mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Acetaminophen 500mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Celecoxib 200mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

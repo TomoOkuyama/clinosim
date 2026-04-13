@@ -1,0 +1,259 @@
+{
+  "patient": {
+    "patient_id": "POP-001043",
+    "name": {
+      "family_name": "Caldwell",
+      "given_name": "Clinton",
+      "display_name": "Clinton Caldwell",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 52,
+    "sex": "M",
+    "date_of_birth": "1972-10-10",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 171.4,
+    "weight_kg": 82.7,
+    "bmi": 28.2,
+    "address": {
+      "postal_code": "02155",
+      "state": "MA",
+      "city": "Medford",
+      "line1": "463 Center St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(508) 968-9256",
+      "phone_mobile": "(508) 309-4071",
+      "phone_primary": "(508) 309-4071",
+      "email": "",
+      "emergency_contact_name": "Caldwell family",
+      "emergency_contact_phone": "(508) 968-9256",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.56,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2015-05-19",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.33804998526534685,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2013-01-17",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.12783495447140153,
+        "stage": ""
+      },
+      {
+        "code": "K21",
+        "system": "icd-10-cm",
+        "onset_date": "2011-12-11",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.16511541551090209,
+        "stage": ""
+      },
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2013-12-07",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.1288179288368543,
+        "stage": "Mild persistent"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Atorvastatin 10mg",
+      "Lansoprazole 15mg",
+      "Fluticasone/Salmeterol inhaler",
+      "Salbutamol inhaler PRN"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.36170016106307723,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.785277185622071,
+      "cardiac_reserve": 0.3668200491657016,
+      "hepatic_reserve": 0.7589664087180229,
+      "treatment_sensitivity": 1.193272476527982,
+      "symptom_reporting_bias": 1.2959183177492968,
+      "delirium_susceptibility": 0.4612164190296884,
+      "dvt_susceptibility": 0.07816074441626335
+    },
+    "baseline_vitals": {
+      "temperature": 36.2,
+      "heart_rate": 71,
+      "systolic_bp": 117,
+      "diastolic_bp": 74,
+      "respiratory_rate": 17,
+      "spo2": 98.2
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001043-002509",
+      "patient_id": "POP-001043",
+      "episode_id": "EP-POP-001043-002509",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-02-22T10:28:00",
+      "discharge_datetime": "2024-02-22T11:05:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-001043-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001043-OPD-L00",
+      "encounter_id": "ENC-POP-001043-002509",
+      "patient_id": "POP-001043",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Na",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Na",
+      "ordered_datetime": "2024-02-22T10:38:00",
+      "ordered_by": "DR-IM-001",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-02-22T12:28:00",
+        "performed_by": "TECH-LAB-003",
+        "lab_name": "Na",
+        "value": 142.0,
+        "unit": "mmol/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-02-22T10:33:00",
+      "temperature_celsius": null,
+      "heart_rate": 73,
+      "systolic_bp": 112,
+      "diastolic_bp": 75,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-02-22T12:28:00",
+      "performed_by": "TECH-LAB-003",
+      "lab_name": "Na",
+      "value": 142.0,
+      "unit": "mmol/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001043-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001043-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-001",
+    "issue_date": "2026-04-13T15:30:35.479793",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Lansoprazole 15mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Fluticasone/Salmeterol inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol inhaler PRN",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

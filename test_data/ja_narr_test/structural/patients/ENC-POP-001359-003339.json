@@ -1,0 +1,167 @@
+{
+  "patient": {
+    "patient_id": "POP-001359",
+    "name": {
+      "family_name": "Rivera",
+      "given_name": "Janet",
+      "display_name": "Janet Rivera",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 57,
+    "sex": "F",
+    "date_of_birth": "1967-12-17",
+    "blood_type": "AB",
+    "rh_factor": "+",
+    "height_cm": 176.0,
+    "weight_kg": 103.7,
+    "bmi": 33.5,
+    "address": {
+      "postal_code": "02136",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "77 Commonwealth Ave",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 991-7316",
+      "phone_primary": "(781) 991-7316",
+      "email": "",
+      "emergency_contact_name": "Rivera family",
+      "emergency_contact_phone": "(781) 991-7316",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.57,
+    "chronic_conditions": [
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2021-12-23",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.22322737719600566,
+        "stage": "HbA1c 8.8%"
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2022-10-01",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.12882194968278363,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Metformin 500mg",
+      "Atorvastatin 10mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.3577231534527342,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8149920765727133,
+      "cardiac_reserve": 0.7553830324149506,
+      "hepatic_reserve": 0.7999859071559744,
+      "treatment_sensitivity": 0.9688377612402913,
+      "symptom_reporting_bias": 1.0105792834522693,
+      "delirium_susceptibility": 0.17183703143193063,
+      "dvt_susceptibility": 0.2052911038413784
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 101,
+      "systolic_bp": 125,
+      "diastolic_bp": 79,
+      "respiratory_rate": 14,
+      "spo2": 98.1
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001359-003339",
+      "patient_id": "POP-001359",
+      "episode_id": "EP-POP-001359-003339",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-11-14T10:34:00",
+      "discharge_datetime": "2024-11-14T10:56:00",
+      "chief_complaint": "Influenza vaccination",
+      "disease_event_id": "DE-POP-001359-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-11-14T10:39:00",
+      "temperature_celsius": null,
+      "heart_rate": 96,
+      "systolic_bp": 130,
+      "diastolic_bp": 84,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001359-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z23"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z23",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z23",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

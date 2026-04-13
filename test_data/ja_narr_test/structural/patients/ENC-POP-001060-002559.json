@@ -1,0 +1,273 @@
+{
+  "patient": {
+    "patient_id": "POP-001060",
+    "name": {
+      "family_name": "Kim",
+      "given_name": "Elizabeth",
+      "display_name": "Elizabeth Kim",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 62,
+    "sex": "F",
+    "date_of_birth": "1962-02-03",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 172.2,
+    "weight_kg": 120.7,
+    "bmi": 40.7,
+    "address": {
+      "postal_code": "01701",
+      "state": "MA",
+      "city": "Framingham",
+      "line1": "437 Maple Ave",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(781) 331-5053",
+      "phone_mobile": "(508) 893-1409",
+      "phone_primary": "(508) 893-1409",
+      "email": "",
+      "emergency_contact_name": "Kim family",
+      "emergency_contact_phone": "(781) 331-5053",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.56,
+    "chronic_conditions": [
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2022-03-17",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.1337169250315142,
+        "stage": "HbA1c 8.5%"
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2014-05-19",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.3192488864534733,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Metformin 500mg",
+      "Acetaminophen 500mg",
+      "Celecoxib 200mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.6348160575207606,
+      "drug_metabolism_rate": "poor",
+      "renal_reserve": 0.7767407466682961,
+      "cardiac_reserve": 0.7871954866219504,
+      "hepatic_reserve": 0.6400364777163882,
+      "treatment_sensitivity": 0.7619211728912552,
+      "symptom_reporting_bias": 0.9148676503612452,
+      "delirium_susceptibility": 0.4034199075771435,
+      "dvt_susceptibility": 0.22215847080958204
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 74,
+      "systolic_bp": 121,
+      "diastolic_bp": 67,
+      "respiratory_rate": 14,
+      "spo2": 97.1
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001060-002559",
+      "patient_id": "POP-001060",
+      "episode_id": "EP-POP-001060-002559",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-01-22T10:09:00",
+      "discharge_datetime": "2024-01-22T10:35:00",
+      "chief_complaint": "Diabetes management, glycemic control review",
+      "disease_event_id": "DE-POP-001060-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001060-OPD-L00",
+      "encounter_id": "ENC-POP-001060-002559",
+      "patient_id": "POP-001060",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Glucose",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Glucose",
+      "ordered_datetime": "2024-01-22T10:19:00",
+      "ordered_by": "DR-IM-001",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-01-22T12:09:00",
+        "performed_by": "TECH-LAB-010",
+        "lab_name": "Glucose",
+        "value": 102.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-001060-OPD-L01",
+      "encounter_id": "ENC-POP-001060-002559",
+      "patient_id": "POP-001060",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Creatinine",
+      "ordered_datetime": "2024-01-22T10:19:00",
+      "ordered_by": "DR-IM-001",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-01-22T12:09:00",
+        "performed_by": "TECH-LAB-010",
+        "lab_name": "Creatinine",
+        "value": 0.85,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": "H",
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-01-22T10:14:00",
+      "temperature_celsius": null,
+      "heart_rate": 78,
+      "systolic_bp": 129,
+      "diastolic_bp": 60,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-01-22T12:09:00",
+      "performed_by": "TECH-LAB-010",
+      "lab_name": "Glucose",
+      "value": 102.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-01-22T12:09:00",
+      "performed_by": "TECH-LAB-010",
+      "lab_name": "Creatinine",
+      "value": 0.85,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": "H",
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001060-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E11.9"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E11.9",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E11.9",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001060-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-001",
+    "issue_date": "2026-04-13T15:30:35.561088",
+    "items": [
+      {
+        "drug": "Metformin 500mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Acetaminophen 500mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Celecoxib 200mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

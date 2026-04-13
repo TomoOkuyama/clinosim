@@ -1,0 +1,254 @@
+{
+  "patient": {
+    "patient_id": "POP-001966",
+    "name": {
+      "family_name": "Martin",
+      "given_name": "Edward",
+      "display_name": "Edward Martin",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 58,
+    "sex": "M",
+    "date_of_birth": "1966-05-06",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 193.9,
+    "weight_kg": 112.6,
+    "bmi": 30.0,
+    "address": {
+      "postal_code": "01904",
+      "state": "MA",
+      "city": "Lynn",
+      "line1": "144 School St, Apt 5",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(978) 628-2841",
+      "phone_mobile": "(617) 832-9328",
+      "phone_primary": "(617) 832-9328",
+      "email": "",
+      "emergency_contact_name": "Martin family",
+      "emergency_contact_phone": "(978) 628-2841",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.49,
+    "chronic_conditions": [
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2018-05-11",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.3067364798312051,
+        "stage": "Mild intermittent"
+      },
+      {
+        "code": "N40",
+        "system": "icd-10-cm",
+        "onset_date": "2022-02-08",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.2413427746130508,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Fluticasone/Salmeterol inhaler",
+      "Salbutamol inhaler PRN",
+      "Tamsulosin 0.2mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5741981212509268,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.2706526220878015,
+      "cardiac_reserve": 0.7823107724355929,
+      "hepatic_reserve": 0.4054666682085671,
+      "treatment_sensitivity": 0.923693492202218,
+      "symptom_reporting_bias": 0.7137864689983565,
+      "delirium_susceptibility": 0.19698009336631483,
+      "dvt_susceptibility": 0.19652650977665473
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 73,
+      "systolic_bp": 131,
+      "diastolic_bp": 81,
+      "respiratory_rate": 15,
+      "spo2": 97.2
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001966-004930",
+      "patient_id": "POP-001966",
+      "episode_id": "EP-POP-001966-004930",
+      "encounter_type": "emergency",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-06-27T14:25:00",
+      "discharge_datetime": "2024-06-27T17:34:01.158656",
+      "chief_complaint": "Abdominal pain, vomiting, diarrhea after meal",
+      "disease_event_id": "DE-POP-001966-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "EM"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001966-ED-L1",
+      "encounter_id": "ENC-POP-001966-004930",
+      "patient_id": "POP-001966",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Na",
+      "urgency": "stat",
+      "clinical_intent": "ED workup: Na",
+      "ordered_datetime": "2024-06-27T14:29:00",
+      "ordered_by": "DR-IM-003",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-06-27T14:56:00",
+        "performed_by": "TECH-LAB-003",
+        "lab_name": "Na",
+        "value": 139.0,
+        "unit": "mmol/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-001966-ED-T1",
+      "encounter_id": "ENC-POP-001966-004930",
+      "patient_id": "POP-001966",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Ondansetron 4mg",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: antiemetic",
+      "ordered_datetime": "2024-06-27T14:34:00",
+      "ordered_by": "DR-IM-003",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 4.0,
+      "dose_unit": "mg",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-001966-ED-T3",
+      "encounter_id": "ENC-POP-001966-004930",
+      "patient_id": "POP-001966",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Acetaminophen 500mg",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: antipyretic",
+      "ordered_datetime": "2024-06-27T14:42:00",
+      "ordered_by": "DR-IM-003",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 500.0,
+      "dose_unit": "mg",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-06-27T14:30:00",
+      "temperature_celsius": 36.4,
+      "heart_rate": 80,
+      "systolic_bp": 115,
+      "diastolic_bp": 82,
+      "respiratory_rate": 15,
+      "spo2": 98.6,
+      "pain_score": 2,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-EM-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-06-27T14:56:00",
+      "performed_by": "TECH-LAB-003",
+      "lab_name": "Na",
+      "value": 139.0,
+      "unit": "mmol/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001966-ED",
+    "condition_type": "ed_visit",
+    "ground_truth_diseases": [
+      "food_poisoning"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "A05.9",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "A05.9",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

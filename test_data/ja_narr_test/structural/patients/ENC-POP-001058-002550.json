@@ -1,0 +1,173 @@
+{
+  "patient": {
+    "patient_id": "POP-001058",
+    "name": {
+      "family_name": "Price",
+      "given_name": "Tanya",
+      "display_name": "Tanya Price",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 63,
+    "sex": "F",
+    "date_of_birth": "1961-05-22",
+    "blood_type": "B",
+    "rh_factor": "+",
+    "height_cm": 175.6,
+    "weight_kg": 99.7,
+    "bmi": 32.3,
+    "address": {
+      "postal_code": "02458",
+      "state": "MA",
+      "city": "Newton",
+      "line1": "140 Beacon St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 630-3033",
+      "phone_primary": "(617) 630-3033",
+      "email": "",
+      "emergency_contact_name": "Price family",
+      "emergency_contact_phone": "(617) 630-3033",
+      "emergency_contact_relationship": "sibling"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.64,
+    "chronic_conditions": [
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2015-03-26",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.1372030363369916,
+        "stage": "HbA1c 7.6%"
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2015-04-24",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.10113178761253322,
+        "stage": ""
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "NSAIDs",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Metformin 500mg",
+      "Atorvastatin 10mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.22988189457185937,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8297433233046645,
+      "cardiac_reserve": 0.7741171675161799,
+      "hepatic_reserve": 0.6849815134042689,
+      "treatment_sensitivity": 0.8856378911063026,
+      "symptom_reporting_bias": 0.6663859047972458,
+      "delirium_susceptibility": 0.04454908045724103,
+      "dvt_susceptibility": 0.11944833168088521
+    },
+    "baseline_vitals": {
+      "temperature": 36.7,
+      "heart_rate": 69,
+      "systolic_bp": 125,
+      "diastolic_bp": 81,
+      "respiratory_rate": 19,
+      "spo2": 97.8
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001058-002550",
+      "patient_id": "POP-001058",
+      "episode_id": "EP-POP-001058-002550",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-004",
+      "admitting_physician_id": "DR-IM-004",
+      "discharging_physician_id": "DR-IM-004",
+      "admission_datetime": "2024-12-20T10:21:00",
+      "discharge_datetime": "2024-12-20T10:58:00",
+      "chief_complaint": "Diabetic retinopathy screening, fundoscopy",
+      "disease_event_id": "DE-POP-001058-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-12-20T10:26:00",
+      "temperature_celsius": null,
+      "heart_rate": 65,
+      "systolic_bp": 129,
+      "diastolic_bp": 86,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001058-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z13.5"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z13.5",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z13.5",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

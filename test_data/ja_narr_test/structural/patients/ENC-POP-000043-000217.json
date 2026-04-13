@@ -1,0 +1,179 @@
+{
+  "patient": {
+    "patient_id": "POP-000043",
+    "name": {
+      "family_name": "Fernandez",
+      "given_name": "Denise",
+      "display_name": "Denise Fernandez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 40,
+    "sex": "F",
+    "date_of_birth": "1984-09-17",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 156.2,
+    "weight_kg": 74.1,
+    "bmi": 30.4,
+    "address": {
+      "postal_code": "02169",
+      "state": "MA",
+      "city": "Quincy",
+      "line1": "366 Church St, Apt 8",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 489-4995",
+      "phone_primary": "(508) 489-4995",
+      "email": "",
+      "emergency_contact_name": "Fernandez family",
+      "emergency_contact_phone": "(508) 489-4995",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.38,
+    "chronic_conditions": [
+      {
+        "code": "J44",
+        "system": "icd-10-cm",
+        "onset_date": "2010-11-02",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.22141278046376212,
+        "stage": "GOLD 2"
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "NSAIDs",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Tiotropium 18mcg inhaler",
+      "Salbutamol 100mcg inhaler PRN"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.20544951498435846,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8828098229424282,
+      "cardiac_reserve": 0.7294125411400733,
+      "hepatic_reserve": 0.8823902598307601,
+      "treatment_sensitivity": 0.9220603028146778,
+      "symptom_reporting_bias": 1.092693623519662,
+      "delirium_susceptibility": 0.3016240812879934,
+      "dvt_susceptibility": 0.008088445976992618
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 73,
+      "systolic_bp": 101,
+      "diastolic_bp": 82,
+      "respiratory_rate": 13,
+      "spo2": 95.1
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000043-000217",
+      "patient_id": "POP-000043",
+      "episode_id": "EP-POP-000043-000217",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-004",
+      "admitting_physician_id": "DR-IM-004",
+      "discharging_physician_id": "DR-IM-004",
+      "admission_datetime": "2024-10-16T10:16:00",
+      "discharge_datetime": "2024-10-16T10:35:00",
+      "chief_complaint": "COPD management, pulmonary function review",
+      "disease_event_id": "DE-POP-000043-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-10-16T10:21:00",
+      "temperature_celsius": null,
+      "heart_rate": 67,
+      "systolic_bp": 133,
+      "diastolic_bp": 80,
+      "respiratory_rate": 15,
+      "spo2": 96.6,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000043-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "J44"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "J44",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "J44",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000043-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-004",
+    "issue_date": "2026-04-13T15:30:31.460148",
+    "items": [
+      {
+        "drug": "Tiotropium 18mcg inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol 100mcg inhaler PRN",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

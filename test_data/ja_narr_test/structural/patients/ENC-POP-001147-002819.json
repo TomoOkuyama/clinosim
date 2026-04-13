@@ -1,0 +1,279 @@
+{
+  "patient": {
+    "patient_id": "POP-001147",
+    "name": {
+      "family_name": "Mendez",
+      "given_name": "Christopher",
+      "display_name": "Christopher Mendez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 66,
+    "sex": "M",
+    "date_of_birth": "1958-12-28",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 179.9,
+    "weight_kg": 106.9,
+    "bmi": 33.0,
+    "address": {
+      "postal_code": "01609",
+      "state": "MA",
+      "city": "Worcester",
+      "line1": "4 Highland Ave",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(781) 393-3664",
+      "phone_mobile": "(508) 815-4390",
+      "phone_primary": "(508) 815-4390",
+      "email": "",
+      "emergency_contact_name": "Mendez family",
+      "emergency_contact_phone": "(781) 393-3664",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.36,
+    "chronic_conditions": [
+      {
+        "code": "I50",
+        "system": "icd-10-cm",
+        "onset_date": "2010-08-20",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.2450735220506939,
+        "stage": "NYHA I"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.6654059508276642,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8194599199791778,
+      "cardiac_reserve": 0.8181561056121193,
+      "hepatic_reserve": 0.7456704407518003,
+      "treatment_sensitivity": 0.9047841747721195,
+      "symptom_reporting_bias": 0.8253596039979901,
+      "delirium_susceptibility": 0.1405386400347695,
+      "dvt_susceptibility": 0.1956021282745514
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 66,
+      "systolic_bp": 117,
+      "diastolic_bp": 72,
+      "respiratory_rate": 17,
+      "spo2": 97.9
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001147-002819",
+      "patient_id": "POP-001147",
+      "episode_id": "EP-POP-001147-002819",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-05-21T10:11:00",
+      "discharge_datetime": "2024-05-21T10:42:00",
+      "chief_complaint": "Heart failure management, volume status assessment",
+      "disease_event_id": "DE-POP-001147-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001147-OPD-L00",
+      "encounter_id": "ENC-POP-001147-002819",
+      "patient_id": "POP-001147",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "BNP",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: BNP",
+      "ordered_datetime": "2024-05-21T10:21:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-05-21T12:11:00",
+        "performed_by": "TECH-LAB-008",
+        "lab_name": "BNP",
+        "value": 60.5,
+        "unit": "pg/mL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-001147-OPD-L01",
+      "encounter_id": "ENC-POP-001147-002819",
+      "patient_id": "POP-001147",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Na",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Na",
+      "ordered_datetime": "2024-05-21T10:21:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-05-21T12:11:00",
+        "performed_by": "TECH-LAB-008",
+        "lab_name": "Na",
+        "value": 139.0,
+        "unit": "mmol/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-05-21T10:16:00",
+      "temperature_celsius": null,
+      "heart_rate": 71,
+      "systolic_bp": 124,
+      "diastolic_bp": 79,
+      "respiratory_rate": null,
+      "spo2": 96.6,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-05-21T12:11:00",
+      "performed_by": "TECH-LAB-008",
+      "lab_name": "BNP",
+      "value": 60.5,
+      "unit": "pg/mL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-05-21T12:11:00",
+      "performed_by": "TECH-LAB-008",
+      "lab_name": "Na",
+      "value": 139.0,
+      "unit": "mmol/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001147-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I50"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I50",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I50",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001147-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-006",
+    "issue_date": "2026-04-13T15:30:36.037526",
+    "items": [
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

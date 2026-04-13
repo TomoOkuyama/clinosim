@@ -1,0 +1,237 @@
+{
+  "patient": {
+    "patient_id": "POP-000831",
+    "name": {
+      "family_name": "Reyes",
+      "given_name": "James",
+      "display_name": "James Reyes",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 28,
+    "sex": "M",
+    "date_of_birth": "1996-06-10",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 180.6,
+    "weight_kg": 74.0,
+    "bmi": 22.7,
+    "address": {
+      "postal_code": "02120",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "206 Maple Ave",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 889-3408",
+      "phone_primary": "(617) 889-3408",
+      "email": "",
+      "emergency_contact_name": "Reyes family",
+      "emergency_contact_phone": "(617) 889-3408",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.48,
+    "chronic_conditions": [],
+    "allergies": [
+      {
+        "substance": "NSAIDs",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.7172333503177885,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8796194210638208,
+      "cardiac_reserve": 0.924876666120837,
+      "hepatic_reserve": 0.860404125015964,
+      "treatment_sensitivity": 1.2407425946796866,
+      "symptom_reporting_bias": 0.8988106874951428,
+      "delirium_susceptibility": 0.09212175700974301,
+      "dvt_susceptibility": 0.22075242943211007
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 76,
+      "systolic_bp": 102,
+      "diastolic_bp": 72,
+      "respiratory_rate": 15,
+      "spo2": 97.0
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000831-004975",
+      "patient_id": "POP-000831",
+      "episode_id": "EP-POP-000831-004975",
+      "encounter_type": "emergency",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2025-01-14T21:53:00",
+      "discharge_datetime": "2025-01-15T00:08:25.913625",
+      "chief_complaint": "Palpitations, dyspnea, chest tightness, anxiety",
+      "disease_event_id": "DE-POP-000831-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "EM"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000831-ED-L0",
+      "encounter_id": "ENC-POP-000831-004975",
+      "patient_id": "POP-000831",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Troponin",
+      "urgency": "stat",
+      "clinical_intent": "ED workup: Troponin",
+      "ordered_datetime": "2025-01-14T21:56:00",
+      "ordered_by": "DR-IM-001",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2025-01-14T23:03:00",
+        "performed_by": "TECH-LAB-006",
+        "lab_name": "Troponin",
+        "value": 0.011,
+        "unit": "ng/mL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000831-ED-T0",
+      "encounter_id": "ENC-POP-000831-004975",
+      "patient_id": "POP-000831",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Lorazepam 0.5mg",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: anxiolytic",
+      "ordered_datetime": "2025-01-14T22:20:00",
+      "ordered_by": "DR-IM-001",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 0.5,
+      "dose_unit": "mg",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000831-ED-T1",
+      "encounter_id": "ENC-POP-000831-004975",
+      "patient_id": "POP-000831",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Reassurance and breathing exercises",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: Reassurance and breathing exercises",
+      "ordered_datetime": "2025-01-14T22:22:00",
+      "ordered_by": "DR-IM-001",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2025-01-14T21:58:00",
+      "temperature_celsius": 36.4,
+      "heart_rate": 67,
+      "systolic_bp": 87,
+      "diastolic_bp": 64,
+      "respiratory_rate": 15,
+      "spo2": 97.2,
+      "pain_score": 3,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-EM-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2025-01-14T23:03:00",
+      "performed_by": "TECH-LAB-006",
+      "lab_name": "Troponin",
+      "value": 0.011,
+      "unit": "ng/mL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000831-ED",
+    "condition_type": "ed_visit",
+    "ground_truth_diseases": [
+      "anxiety_panic_attack"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "F41.0",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "F41.0",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

@@ -1,0 +1,235 @@
+{
+  "patient": {
+    "patient_id": "POP-000187",
+    "name": {
+      "family_name": "Cortez",
+      "given_name": "Christopher",
+      "display_name": "Christopher Cortez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 68,
+    "sex": "M",
+    "date_of_birth": "1956-01-20",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 181.0,
+    "weight_kg": 93.5,
+    "bmi": 28.5,
+    "address": {
+      "postal_code": "02301",
+      "state": "MA",
+      "city": "Brockton",
+      "line1": "173 Park Ave",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 695-4503",
+      "phone_primary": "(617) 695-4503",
+      "email": "",
+      "emergency_contact_name": "Cortez family",
+      "emergency_contact_phone": "(617) 695-4503",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.34,
+    "chronic_conditions": [
+      {
+        "code": "J44",
+        "system": "icd-10-cm",
+        "onset_date": "2022-07-13",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.34986285975311143,
+        "stage": "GOLD 3"
+      },
+      {
+        "code": "N18",
+        "system": "icd-10-cm",
+        "onset_date": "2017-06-04",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.11163180528749722,
+        "stage": "CKD G3a"
+      },
+      {
+        "code": "F00",
+        "system": "icd-10-cm",
+        "onset_date": "2022-05-09",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.2369592136090863,
+        "stage": ""
+      },
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2016-06-01",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.3519959877610202,
+        "stage": "Mild persistent"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.6837058172306998,
+      "drug_metabolism_rate": "ultra_rapid",
+      "renal_reserve": 0.7985042632247902,
+      "cardiac_reserve": 0.760889048103999,
+      "hepatic_reserve": 0.7320937039628408,
+      "treatment_sensitivity": 1.1071452187541155,
+      "symptom_reporting_bias": 0.7825063944984709,
+      "delirium_susceptibility": 0.3213959984140542,
+      "dvt_susceptibility": 0.2171229121711872
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 64,
+      "systolic_bp": 141,
+      "diastolic_bp": 84,
+      "respiratory_rate": 20,
+      "spo2": 93.7
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000187-000498",
+      "patient_id": "POP-000187",
+      "episode_id": "EP-POP-000187-000498",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-02-09T10:08:00",
+      "discharge_datetime": "2024-02-09T10:27:00",
+      "chief_complaint": "COPD management, pulmonary function review",
+      "disease_event_id": "DE-POP-000187-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-02-09T10:13:00",
+      "temperature_celsius": null,
+      "heart_rate": 68,
+      "systolic_bp": 128,
+      "diastolic_bp": 77,
+      "respiratory_rate": 17,
+      "spo2": 98.4,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000187-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "J44"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "J44",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "J44",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000187-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-002",
+    "issue_date": "2026-04-13T15:30:31.978065",
+    "items": [
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

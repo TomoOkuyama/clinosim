@@ -1,0 +1,306 @@
+{
+  "patient": {
+    "patient_id": "POP-000152",
+    "name": {
+      "family_name": "Cullen",
+      "given_name": "James",
+      "display_name": "James Cullen",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 46,
+    "sex": "M",
+    "date_of_birth": "1978-06-24",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 182.8,
+    "weight_kg": 119.8,
+    "bmi": 35.8,
+    "address": {
+      "postal_code": "02126",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "311 Cedar St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(617) 506-4936",
+      "phone_mobile": "(617) 404-7155",
+      "phone_primary": "(617) 404-7155",
+      "email": "",
+      "emergency_contact_name": "Cullen family",
+      "emergency_contact_phone": "(617) 506-4936",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.61,
+    "chronic_conditions": [
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2023-01-12",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.29394682149425927,
+        "stage": ""
+      },
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2015-12-27",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.3777975536229062,
+        "stage": "Moderate persistent"
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "Cephalosporin",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.6531668582499183,
+      "drug_metabolism_rate": "rapid",
+      "renal_reserve": 0.8642424915124796,
+      "cardiac_reserve": 0.7870489305963064,
+      "hepatic_reserve": 0.565394581495932,
+      "treatment_sensitivity": 0.9669554554723276,
+      "symptom_reporting_bias": 0.6890413328552714,
+      "delirium_susceptibility": 0.4614806597439881,
+      "dvt_susceptibility": 0.05062450864590668
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 68,
+      "systolic_bp": 118,
+      "diastolic_bp": 68,
+      "respiratory_rate": 16,
+      "spo2": 98.6
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000152-004918",
+      "patient_id": "POP-000152",
+      "episode_id": "EP-POP-000152-004918",
+      "encounter_type": "emergency",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-005",
+      "admitting_physician_id": "DR-IM-005",
+      "discharging_physician_id": "DR-IM-005",
+      "admission_datetime": "2024-09-11T10:39:00",
+      "discharge_datetime": "2024-09-11T13:27:08.100997",
+      "chief_complaint": "Nausea, vomiting, diarrhea, abdominal cramps",
+      "disease_event_id": "DE-POP-000152-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "EM"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000152-ED-L4",
+      "encounter_id": "ENC-POP-000152-004918",
+      "patient_id": "POP-000152",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "stat",
+      "clinical_intent": "ED workup: Creatinine",
+      "ordered_datetime": "2024-09-11T10:54:00",
+      "ordered_by": "DR-IM-005",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-09-11T11:29:00",
+        "performed_by": "TECH-LAB-004",
+        "lab_name": "Creatinine",
+        "value": 0.91,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000152-ED-L5",
+      "encounter_id": "ENC-POP-000152-004918",
+      "patient_id": "POP-000152",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Glucose",
+      "urgency": "stat",
+      "clinical_intent": "ED workup: Glucose",
+      "ordered_datetime": "2024-09-11T10:39:00",
+      "ordered_by": "DR-IM-005",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-09-11T11:12:00",
+        "performed_by": "TECH-LAB-004",
+        "lab_name": "Glucose",
+        "value": 97.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000152-ED-T0",
+      "encounter_id": "ENC-POP-000152-004918",
+      "patient_id": "POP-000152",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "IV normal saline 1000mL",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: IV normal saline 1000mL",
+      "ordered_datetime": "2024-09-11T11:02:00",
+      "ordered_by": "DR-IM-005",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 1000.0,
+      "dose_unit": "mL",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "IV",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000152-ED-T1",
+      "encounter_id": "ENC-POP-000152-004918",
+      "patient_id": "POP-000152",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Ondansetron 4mg",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: antiemetic",
+      "ordered_datetime": "2024-09-11T10:59:00",
+      "ordered_by": "DR-IM-005",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 4.0,
+      "dose_unit": "mg",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-09-11T10:44:00",
+      "temperature_celsius": 36.0,
+      "heart_rate": 67,
+      "systolic_bp": 128,
+      "diastolic_bp": 76,
+      "respiratory_rate": 17,
+      "spo2": 98.2,
+      "pain_score": 5,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-EM-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-09-11T11:29:00",
+      "performed_by": "TECH-LAB-004",
+      "lab_name": "Creatinine",
+      "value": 0.91,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-09-11T11:12:00",
+      "performed_by": "TECH-LAB-004",
+      "lab_name": "Glucose",
+      "value": 97.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000152-ED",
+    "condition_type": "ed_visit",
+    "ground_truth_diseases": [
+      "viral_gastroenteritis"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "A08.4",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "A08.4",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

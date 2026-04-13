@@ -1,0 +1,174 @@
+{
+  "patient": {
+    "patient_id": "POP-001556",
+    "name": {
+      "family_name": "Kelly",
+      "given_name": "Amanda",
+      "display_name": "Amanda Kelly",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 52,
+    "sex": "F",
+    "date_of_birth": "1972-03-23",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 170.3,
+    "weight_kg": 121.1,
+    "bmi": 41.7,
+    "address": {
+      "postal_code": "01104",
+      "state": "MA",
+      "city": "Springfield",
+      "line1": "470 Highland Ave, Apt 2",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(339) 589-1379",
+      "phone_mobile": "(617) 734-2319",
+      "phone_primary": "(617) 734-2319",
+      "email": "",
+      "emergency_contact_name": "Kelly family",
+      "emergency_contact_phone": "(339) 589-1379",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.46,
+    "chronic_conditions": [
+      {
+        "code": "E03",
+        "system": "icd-10-cm",
+        "onset_date": "2016-04-23",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.1829265825940057,
+        "stage": ""
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "Penicillin",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Levothyroxine 50mcg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.2960384122007363,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.6382725460426311,
+      "cardiac_reserve": 0.4534880494599112,
+      "hepatic_reserve": 0.6898818030416265,
+      "treatment_sensitivity": 1.0681575187920194,
+      "symptom_reporting_bias": 0.9105787978220427,
+      "delirium_susceptibility": 0.4232614871582055,
+      "dvt_susceptibility": 0.1437071324265806
+    },
+    "baseline_vitals": {
+      "temperature": 36.2,
+      "heart_rate": 64,
+      "systolic_bp": 133,
+      "diastolic_bp": 93,
+      "respiratory_rate": 13,
+      "spo2": 97.8
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001556-003920",
+      "patient_id": "POP-001556",
+      "episode_id": "EP-POP-001556-003920",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-005",
+      "admitting_physician_id": "DR-IM-005",
+      "discharging_physician_id": "DR-IM-005",
+      "admission_datetime": "2024-01-20T10:24:00",
+      "discharge_datetime": "2024-01-20T10:59:00",
+      "chief_complaint": "Thyroid function monitoring, levothyroxine dose adjustment",
+      "disease_event_id": "DE-POP-001556-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-01-20T10:29:00",
+      "temperature_celsius": null,
+      "heart_rate": 57,
+      "systolic_bp": 127,
+      "diastolic_bp": 95,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001556-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E03"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E03",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E03",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001556-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-005",
+    "issue_date": "2026-04-13T15:30:37.995971",
+    "items": [
+      {
+        "drug": "Levothyroxine 50mcg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

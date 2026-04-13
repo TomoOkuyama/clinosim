@@ -1,0 +1,254 @@
+{
+  "patient": {
+    "patient_id": "POP-000673",
+    "name": {
+      "family_name": "Walker",
+      "given_name": "Chelsea",
+      "display_name": "Chelsea Walker",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 40,
+    "sex": "F",
+    "date_of_birth": "1984-12-10",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 174.6,
+    "weight_kg": 77.6,
+    "bmi": 25.5,
+    "address": {
+      "postal_code": "02302",
+      "state": "MA",
+      "city": "Brockton",
+      "line1": "18 Maple Ave",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 735-6667",
+      "phone_primary": "(781) 735-6667",
+      "email": "",
+      "emergency_contact_name": "Walker family",
+      "emergency_contact_phone": "(781) 735-6667",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.54,
+    "chronic_conditions": [
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2011-02-15",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.32413078200220014,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Atorvastatin 10mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.6203596867923249,
+      "drug_metabolism_rate": "rapid",
+      "renal_reserve": 0.6461758618771187,
+      "cardiac_reserve": 0.8728153838219017,
+      "hepatic_reserve": 0.837182886052168,
+      "treatment_sensitivity": 0.9314504531290081,
+      "symptom_reporting_bias": 0.9764549079523277,
+      "delirium_susceptibility": 0.1262338528815016,
+      "dvt_susceptibility": 0.41447954435915274
+    },
+    "baseline_vitals": {
+      "temperature": 36.2,
+      "heart_rate": 72,
+      "systolic_bp": 104,
+      "diastolic_bp": 80,
+      "respiratory_rate": 14,
+      "spo2": 97.0
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000673-001564",
+      "patient_id": "POP-000673",
+      "episode_id": "EP-POP-000673-001564",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-06-16T10:21:00",
+      "discharge_datetime": "2024-06-16T10:58:00",
+      "chief_complaint": "Lipid management, statin therapy monitoring",
+      "disease_event_id": "DE-POP-000673-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000673-OPD-L00",
+      "encounter_id": "ENC-POP-000673-001564",
+      "patient_id": "POP-000673",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "ALT",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: ALT",
+      "ordered_datetime": "2024-06-16T10:31:00",
+      "ordered_by": "DR-IM-003",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-06-16T12:21:00",
+        "performed_by": "TECH-LAB-005",
+        "lab_name": "ALT",
+        "value": 16.0,
+        "unit": "U/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000673-OPD-L01",
+      "encounter_id": "ENC-POP-000673-001564",
+      "patient_id": "POP-000673",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "LDL",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: LDL",
+      "ordered_datetime": "2024-06-16T10:31:00",
+      "ordered_by": "DR-IM-003",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-06-16T12:21:00",
+        "performed_by": "TECH-LAB-005",
+        "lab_name": "LDL",
+        "value": 107.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-06-16T10:26:00",
+      "temperature_celsius": null,
+      "heart_rate": 71,
+      "systolic_bp": 102,
+      "diastolic_bp": 82,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-06-16T12:21:00",
+      "performed_by": "TECH-LAB-005",
+      "lab_name": "ALT",
+      "value": 16.0,
+      "unit": "U/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-06-16T12:21:00",
+      "performed_by": "TECH-LAB-005",
+      "lab_name": "LDL",
+      "value": 107.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000673-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E78"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E78",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E78",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000673-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-003",
+    "issue_date": "2026-04-13T15:30:33.851312",
+    "items": [
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

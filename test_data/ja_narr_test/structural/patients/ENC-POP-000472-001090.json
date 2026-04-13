@@ -1,0 +1,255 @@
+{
+  "patient": {
+    "patient_id": "POP-000472",
+    "name": {
+      "family_name": "Johnson",
+      "given_name": "Karen",
+      "display_name": "Karen Johnson",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 75,
+    "sex": "F",
+    "date_of_birth": "1949-04-11",
+    "blood_type": "B",
+    "rh_factor": "+",
+    "height_cm": 164.1,
+    "weight_kg": 95.8,
+    "bmi": 35.5,
+    "address": {
+      "postal_code": "02453",
+      "state": "MA",
+      "city": "Waltham",
+      "line1": "68 Park Ave",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(351) 865-6463",
+      "phone_mobile": "(781) 861-4772",
+      "phone_primary": "(781) 861-4772",
+      "email": "",
+      "emergency_contact_name": "Johnson family",
+      "emergency_contact_phone": "(351) 865-6463",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.48,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2021-08-20",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.1756442095234852,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2014-03-08",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.24475490429487387,
+        "stage": "HbA1c 9.5%"
+      },
+      {
+        "code": "J44",
+        "system": "icd-10-cm",
+        "onset_date": "2012-02-15",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.1153552878904852,
+        "stage": "GOLD 2"
+      },
+      {
+        "code": "I48",
+        "system": "icd-10-cm",
+        "onset_date": "2022-05-26",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.11082242164864799,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.4281678498217647,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.27254567858578627,
+      "cardiac_reserve": 0.5213773095614798,
+      "hepatic_reserve": 0.7200129143880505,
+      "treatment_sensitivity": 1.3374698982940614,
+      "symptom_reporting_bias": 0.8287503770653094,
+      "delirium_susceptibility": 0.1929112143893567,
+      "dvt_susceptibility": 0.41526457729828015
+    },
+    "baseline_vitals": {
+      "temperature": 36.0,
+      "heart_rate": 65,
+      "systolic_bp": 128,
+      "diastolic_bp": 78,
+      "respiratory_rate": 14,
+      "spo2": 95.1
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000472-001090",
+      "patient_id": "POP-000472",
+      "episode_id": "EP-POP-000472-001090",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-005",
+      "admitting_physician_id": "DR-IM-005",
+      "discharging_physician_id": "DR-IM-005",
+      "admission_datetime": "2024-03-14T10:13:00",
+      "discharge_datetime": "2024-03-14T10:36:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-000472-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-03-14T10:18:00",
+      "temperature_celsius": null,
+      "heart_rate": 72,
+      "systolic_bp": 136,
+      "diastolic_bp": 74,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000472-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000472-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-005",
+    "issue_date": "2026-04-13T15:30:33.008120",
+    "items": [
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

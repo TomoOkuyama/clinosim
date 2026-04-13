@@ -1,0 +1,200 @@
+{
+  "patient": {
+    "patient_id": "POP-000844",
+    "name": {
+      "family_name": "Anderson",
+      "given_name": "James",
+      "display_name": "James Anderson",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 52,
+    "sex": "M",
+    "date_of_birth": "1972-11-28",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 171.7,
+    "weight_kg": 91.8,
+    "bmi": 31.1,
+    "address": {
+      "postal_code": "01609",
+      "state": "MA",
+      "city": "Worcester",
+      "line1": "47 Center St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 608-5650",
+      "phone_primary": "(508) 608-5650",
+      "email": "",
+      "emergency_contact_name": "Anderson family",
+      "emergency_contact_phone": "(508) 608-5650",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.6,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2022-12-14",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.22702676514783596,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2017-09-11",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.36093552440892895,
+        "stage": "HbA1c 8.4%"
+      },
+      {
+        "code": "J44",
+        "system": "icd-10-cm",
+        "onset_date": "2021-11-28",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.3419800799949869,
+        "stage": "GOLD 2"
+      },
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2014-02-27",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.10013880490265853,
+        "stage": "Moderate persistent"
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2013-09-06",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3346100151647702,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.43288228214062086,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.5861325994923396,
+      "cardiac_reserve": 0.7374550080239333,
+      "hepatic_reserve": 0.9557037047902869,
+      "treatment_sensitivity": 0.6959150532975538,
+      "symptom_reporting_bias": 0.983852170675797,
+      "delirium_susceptibility": 0.27884671567445074,
+      "dvt_susceptibility": 0.328696764072948
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 64,
+      "systolic_bp": 133,
+      "diastolic_bp": 83,
+      "respiratory_rate": 14,
+      "spo2": 94.0
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000844-001981",
+      "patient_id": "POP-000844",
+      "episode_id": "EP-POP-000844-001981",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-01-03T10:14:00",
+      "discharge_datetime": "2024-01-03T10:39:00",
+      "chief_complaint": "Diabetic retinopathy screening, fundoscopy",
+      "disease_event_id": "DE-POP-000844-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-01-03T10:19:00",
+      "temperature_celsius": null,
+      "heart_rate": 73,
+      "systolic_bp": 132,
+      "diastolic_bp": 87,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000844-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z13.5"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z13.5",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z13.5",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

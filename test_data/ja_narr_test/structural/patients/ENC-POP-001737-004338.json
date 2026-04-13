@@ -1,0 +1,187 @@
+{
+  "patient": {
+    "patient_id": "POP-001737",
+    "name": {
+      "family_name": "Daniels",
+      "given_name": "Jeremy",
+      "display_name": "Jeremy Daniels",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 49,
+    "sex": "M",
+    "date_of_birth": "1975-03-01",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 174.2,
+    "weight_kg": 82.3,
+    "bmi": 27.1,
+    "address": {
+      "postal_code": "02122",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "475 Main St, Apt 2",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(508) 591-6557",
+      "phone_mobile": "(617) 260-7189",
+      "phone_primary": "(617) 260-7189",
+      "email": "",
+      "emergency_contact_name": "Daniels family",
+      "emergency_contact_phone": "(508) 591-6557",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.58,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2019-02-19",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.38926123343087166,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2013-09-15",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.34991712170862743,
+        "stage": "HbA1c 7.1%"
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2022-03-10",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.2727365287737087,
+        "stage": ""
+      },
+      {
+        "code": "K21",
+        "system": "icd-10-cm",
+        "onset_date": "2012-10-04",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.20982347392918743,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Metformin 500mg",
+      "Atorvastatin 10mg",
+      "Lansoprazole 15mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.3698333766688062,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7792580081981504,
+      "cardiac_reserve": 0.6106895552919973,
+      "hepatic_reserve": 0.637337147494364,
+      "treatment_sensitivity": 1.0322650433161833,
+      "symptom_reporting_bias": 0.8197823508070563,
+      "delirium_susceptibility": 0.277648295185321,
+      "dvt_susceptibility": 0.38579747137292286
+    },
+    "baseline_vitals": {
+      "temperature": 36.5,
+      "heart_rate": 75,
+      "systolic_bp": 120,
+      "diastolic_bp": 78,
+      "respiratory_rate": 19,
+      "spo2": 98.3
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001737-004338",
+      "patient_id": "POP-001737",
+      "episode_id": "EP-POP-001737-004338",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-08-06T10:37:00",
+      "discharge_datetime": "2024-08-06T11:06:00",
+      "chief_complaint": "Diabetic retinopathy screening, fundoscopy",
+      "disease_event_id": "DE-POP-001737-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-08-06T10:42:00",
+      "temperature_celsius": null,
+      "heart_rate": 82,
+      "systolic_bp": 102,
+      "diastolic_bp": 82,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-005",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001737-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z13.5"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z13.5",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z13.5",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

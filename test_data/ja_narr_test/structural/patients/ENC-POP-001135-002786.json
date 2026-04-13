@@ -1,0 +1,250 @@
+{
+  "patient": {
+    "patient_id": "POP-001135",
+    "name": {
+      "family_name": "Barton",
+      "given_name": "Connor",
+      "display_name": "Connor Barton",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 54,
+    "sex": "M",
+    "date_of_birth": "1970-11-10",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 160.1,
+    "weight_kg": 71.7,
+    "bmi": 28.0,
+    "address": {
+      "postal_code": "01609",
+      "state": "MA",
+      "city": "Worcester",
+      "line1": "331 Franklin St, Apt 6",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 351-6435",
+      "phone_primary": "(617) 351-6435",
+      "email": "",
+      "emergency_contact_name": "Barton family",
+      "emergency_contact_phone": "(617) 351-6435",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "D",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.5,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2016-09-12",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.3179223994124534,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2011-03-06",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.15235640274472062,
+        "stage": ""
+      },
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2019-01-17",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.23030713508840664,
+        "stage": "Severe persistent"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Candesartan 8mg",
+      "Atorvastatin 10mg",
+      "Fluticasone/Salmeterol inhaler",
+      "Salbutamol inhaler PRN"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.48268847246291563,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8646256131701187,
+      "cardiac_reserve": 0.7658928035484169,
+      "hepatic_reserve": 0.9123665205973742,
+      "treatment_sensitivity": 1.102329125921122,
+      "symptom_reporting_bias": 0.9180265895687134,
+      "delirium_susceptibility": 0.4054059759714545,
+      "dvt_susceptibility": 0.03503968477368028
+    },
+    "baseline_vitals": {
+      "temperature": 36.2,
+      "heart_rate": 81,
+      "systolic_bp": 105,
+      "diastolic_bp": 74,
+      "respiratory_rate": 19,
+      "spo2": 97.1
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001135-002786",
+      "patient_id": "POP-001135",
+      "episode_id": "EP-POP-001135-002786",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-01-12T10:36:00",
+      "discharge_datetime": "2024-01-12T11:02:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-001135-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001135-OPD-L00",
+      "encounter_id": "ENC-POP-001135-002786",
+      "patient_id": "POP-001135",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Creatinine",
+      "ordered_datetime": "2024-01-12T10:46:00",
+      "ordered_by": "DR-IM-002",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-01-12T12:36:00",
+        "performed_by": "TECH-LAB-010",
+        "lab_name": "Creatinine",
+        "value": 0.92,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-01-12T10:41:00",
+      "temperature_celsius": null,
+      "heart_rate": 86,
+      "systolic_bp": 108,
+      "diastolic_bp": 81,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-01-12T12:36:00",
+      "performed_by": "TECH-LAB-010",
+      "lab_name": "Creatinine",
+      "value": 0.92,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001135-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001135-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-002",
+    "issue_date": "2026-04-13T15:30:35.992779",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Candesartan 8mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Fluticasone/Salmeterol inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol inhaler PRN",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

@@ -1,0 +1,182 @@
+{
+  "patient": {
+    "patient_id": "POP-000143",
+    "name": {
+      "family_name": "Henry",
+      "given_name": "Sergio",
+      "display_name": "Sergio Henry",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 73,
+    "sex": "M",
+    "date_of_birth": "1951-08-09",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 175.5,
+    "weight_kg": 73.1,
+    "bmi": 23.8,
+    "address": {
+      "postal_code": "02130",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "94 Center St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 480-3828",
+      "phone_primary": "(617) 480-3828",
+      "email": "",
+      "emergency_contact_name": "Henry family",
+      "emergency_contact_phone": "(617) 480-3828",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.32,
+    "chronic_conditions": [
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2010-10-10",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.10790969202144687,
+        "stage": "CCS II"
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2013-08-08",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.2016076569452111,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Aspirin 100mg",
+      "Celecoxib 200mg"
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5936915103447655,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7647906257419003,
+      "cardiac_reserve": 0.282272909400478,
+      "hepatic_reserve": 0.6806111298968591,
+      "treatment_sensitivity": 1.0151143977496622,
+      "symptom_reporting_bias": 1.1927049501453197,
+      "delirium_susceptibility": 0.19179378012653686,
+      "dvt_susceptibility": 0.22557600670383718
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 78,
+      "systolic_bp": 144,
+      "diastolic_bp": 88,
+      "respiratory_rate": 13,
+      "spo2": 98.4
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000143-000406",
+      "patient_id": "POP-000143",
+      "episode_id": "EP-POP-000143-000406",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-004",
+      "admitting_physician_id": "DR-IM-004",
+      "discharging_physician_id": "DR-IM-004",
+      "admission_datetime": "2024-07-06T10:00:00",
+      "discharge_datetime": "2024-07-06T10:17:00",
+      "chief_complaint": "Coronary artery disease follow-up, cardiac risk management",
+      "disease_event_id": "DE-POP-000143-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-07-06T10:05:00",
+      "temperature_celsius": null,
+      "heart_rate": 80,
+      "systolic_bp": 145,
+      "diastolic_bp": 91,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000143-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I25"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I25",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I25",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000143-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-004",
+    "issue_date": "2026-04-13T15:30:31.817355",
+    "items": [
+      {
+        "drug": "Aspirin 100mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Celecoxib 200mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

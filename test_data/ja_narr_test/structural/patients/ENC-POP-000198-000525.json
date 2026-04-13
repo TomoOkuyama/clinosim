@@ -1,0 +1,167 @@
+{
+  "patient": {
+    "patient_id": "POP-000198",
+    "name": {
+      "family_name": "Phillips",
+      "given_name": "Harry",
+      "display_name": "Harry Phillips",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 55,
+    "sex": "M",
+    "date_of_birth": "1969-03-11",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 172.4,
+    "weight_kg": 47.2,
+    "bmi": 15.9,
+    "address": {
+      "postal_code": "02451",
+      "state": "MA",
+      "city": "Waltham",
+      "line1": "311 Summer St, Apt 9",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 911-3213",
+      "phone_primary": "(508) 911-3213",
+      "email": "",
+      "emergency_contact_name": "Phillips family",
+      "emergency_contact_phone": "(508) 911-3213",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.79,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2011-01-16",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.3990082532682433,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "N40",
+        "system": "icd-10-cm",
+        "onset_date": "2022-09-07",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.1680350304288774,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Tamsulosin 0.2mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.6739633433842811,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8262938650558328,
+      "cardiac_reserve": 0.7705565856223943,
+      "hepatic_reserve": 0.7423180596380227,
+      "treatment_sensitivity": 1.032057257246561,
+      "symptom_reporting_bias": 1.0589929945125596,
+      "delirium_susceptibility": 0.06898751239182098,
+      "dvt_susceptibility": 0.4539302002398491
+    },
+    "baseline_vitals": {
+      "temperature": 35.9,
+      "heart_rate": 73,
+      "systolic_bp": 116,
+      "diastolic_bp": 70,
+      "respiratory_rate": 14,
+      "spo2": 98.1
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000198-000525",
+      "patient_id": "POP-000198",
+      "episode_id": "EP-POP-000198-000525",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-004",
+      "admitting_physician_id": "DR-IM-004",
+      "discharging_physician_id": "DR-IM-004",
+      "admission_datetime": "2024-10-04T10:26:00",
+      "discharge_datetime": "2024-10-04T11:09:00",
+      "chief_complaint": "Influenza vaccination",
+      "disease_event_id": "DE-POP-000198-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-10-04T10:31:00",
+      "temperature_celsius": null,
+      "heart_rate": 76,
+      "systolic_bp": 125,
+      "diastolic_bp": 71,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000198-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z23"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z23",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z23",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}
