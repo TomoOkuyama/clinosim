@@ -1483,7 +1483,20 @@ _ROUTE_SNOMED: dict[str, dict[str, str]] = {
 }
 
 
-def _build_dosage_instruction(order: dict) -> dict[str, Any] | None:
+_ROUTE_JA: dict[str, str] = {
+    "PO": "経口", "IV": "静注", "SC": "皮下注", "IM": "筋注",
+    "SL": "舌下", "PR": "直腸", "INH": "吸入", "TOPICAL": "外用",
+    "NG": "経鼻", "INHALED": "吸入",
+}
+_FREQ_JA: dict[str, str] = {
+    "DAILY": "1日1回", "BID": "1日2回", "TID": "1日3回", "QID": "1日4回",
+    "Q4H": "4時間毎", "Q6H": "6時間毎", "Q8H": "8時間毎", "Q12H": "12時間毎",
+    "PRN": "必要時", "STAT": "緊急", "ONCE": "1回",
+    "1x/day": "1日1回", "2x/day": "1日2回", "3x/day": "1日3回", "4x/day": "1日4回",
+}
+
+
+def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any] | None:
     """Build FHIR Dosage from structured order fields."""
     dose_qty = order.get("dose_quantity")
     dose_unit = order.get("dose_unit", "")
@@ -1539,7 +1552,14 @@ def _build_dosage_instruction(order: dict) -> dict[str, Any] | None:
 
     # Text summary
     if parts:
-        dosage["text"] = " ".join(parts)
+        if country == "JP":
+            ja_parts = []
+            for p in parts:
+                p_upper = p.upper()
+                ja_parts.append(_ROUTE_JA.get(p_upper) or _FREQ_JA.get(p_upper) or _FREQ_JA.get(p) or p)
+            dosage["text"] = " ".join(ja_parts)
+        else:
+            dosage["text"] = " ".join(parts)
     elif order.get("display_name"):
         dosage["text"] = order["display_name"]
 
@@ -1600,7 +1620,7 @@ def _build_medication_request(
         resource["requester"] = {"reference": f"Practitioner/{order['ordered_by']}"}
 
     # Dosage instruction
-    dosage = _build_dosage_instruction(order)
+    dosage = _build_dosage_instruction(order, country=country)
     if dosage:
         resource["dosageInstruction"] = [dosage]
 

@@ -219,7 +219,7 @@ def activate_patient(
     current_meds = list(person.current_medications) if hasattr(person, "current_medications") else []
     if not current_meds:
         # Derive home medications from chronic conditions via chronic_medications.yaml
-        current_meds = _derive_home_medications(conditions, rng)
+        current_meds = _derive_home_medications(conditions, rng, country=country)
 
     # Address and contact from Layer 1
     from clinosim.types.patient import Address, ContactInfo
@@ -301,11 +301,11 @@ def activate_patient(
 
 
 def _derive_home_medications(
-    chronic_conditions: list, rng: np.random.Generator
+    chronic_conditions: list, rng: np.random.Generator, country: str = "US"
 ) -> list[str]:
     """Derive home medications from chronic conditions via chronic_medications.yaml.
 
-    Returns a list of drug name strings (e.g., ["Amlodipine 5mg", "Metformin 500mg"]).
+    Returns a list of drug name strings. JP uses drug_ja if available.
     """
     from pathlib import Path
     import yaml
@@ -327,6 +327,8 @@ def _derive_home_medications(
             continue
         for drug_spec in spec.get("medications", []):
             name = drug_spec.get("drug", "")
+            if country == "JP":
+                name = drug_spec.get("drug_ja", name)
             if not name or name in seen:
                 continue
             # Respect probability (some drugs are not universally prescribed)

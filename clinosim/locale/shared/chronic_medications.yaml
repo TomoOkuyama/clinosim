@@ -3,8 +3,9 @@
 # Source: Standard clinical guidelines (JCS, AHA/ACC, KDIGO, GOLD, ADA)
 #
 # Fields:
-#   drug: Generic drug name
-#   route: PO | IV | SC
+#   drug: Generic drug name (English)
+#   drug_ja: Japanese drug name (optional, used when country=JP)
+#   route: PO | IV | SC | INH
 #   frequency: daily | bid | tid | qid
 #   hold_condition: (optional) condition to hold the drug
 #   monitoring_labs: (optional) additional labs to monitor
@@ -12,16 +13,16 @@
 
 I10:  # Hypertension
   medications:
-    - {drug: "Amlodipine 5mg", route: "PO", frequency: "daily"}
-    - {drug: "Candesartan 8mg", route: "PO", frequency: "daily", probability: 0.5}
+    - {drug: "Amlodipine 5mg", drug_ja: "アムロジピン5mg", route: "PO", frequency: "daily"}
+    - {drug: "Candesartan 8mg", drug_ja: "カンデサルタン8mg", route: "PO", frequency: "daily", probability: 0.5}
   hold_conditions:
     - {drug: "Amlodipine 5mg", condition: "SBP < 90", field: "systolic_bp", threshold: 90, direction: "below"}
     - {drug: "Candesartan 8mg", condition: "SBP < 90", field: "systolic_bp", threshold: 90, direction: "below"}
 
 E11.9:  # Type 2 Diabetes
   medications:
-    - {drug: "Metformin 500mg", route: "PO", frequency: "bid"}
-    - {drug: "Sliding scale insulin", route: "SC", frequency: "qid", probability: 0.4}
+    - {drug: "Metformin 500mg", drug_ja: "メトホルミン500mg", route: "PO", frequency: "bid"}
+    - {drug: "Sliding scale insulin", drug_ja: "スライディングスケール インスリン", route: "SC", frequency: "qid", probability: 0.4}
   monitoring:
     - {test: "Glucose", frequency: "qid", times: [6, 11, 17, 21], intent: "Blood glucose monitoring (DM)"}
   hold_conditions:
@@ -29,15 +30,15 @@ E11.9:  # Type 2 Diabetes
 
 E78:  # Dyslipidemia
   medications:
-    - {drug: "Atorvastatin 10mg", route: "PO", frequency: "daily"}
+    - {drug: "Atorvastatin 10mg", drug_ja: "アトルバスタチン10mg", route: "PO", frequency: "daily"}
   monitoring:
     - {test: "AST", frequency: "every_3_days", intent: "Statin hepatotoxicity monitoring"}
     - {test: "ALT", frequency: "every_3_days", intent: "Statin hepatotoxicity monitoring"}
 
 J44:  # COPD
   medications:
-    - {drug: "Tiotropium 18mcg inhaler", route: "INH", frequency: "daily"}
-    - {drug: "Salbutamol 100mcg inhaler PRN", route: "INH", frequency: "prn"}
+    - {drug: "Tiotropium 18mcg inhaler", drug_ja: "チオトロピウム18mcg 吸入", route: "INH", frequency: "daily"}
+    - {drug: "Salbutamol 100mcg inhaler PRN", drug_ja: "サルブタモール100mcg 吸入 頓用", route: "INH", frequency: "prn"}
   monitoring:
     - {test: "SpO2", frequency: "tid", intent: "COPD SpO2 monitoring (target 88-92%)"}
   vital_adjustments:
@@ -46,7 +47,7 @@ J44:  # COPD
 
 N18:  # CKD
   medications:
-    - {drug: "Sodium bicarbonate 500mg", route: "PO", frequency: "tid", probability: 0.3}
+    - {drug: "Sodium bicarbonate 500mg", drug_ja: "炭酸水素ナトリウム500mg", route: "PO", frequency: "tid", probability: 0.3}
   monitoring:
     - {test: "Creatinine", frequency: "daily", intent: "Renal function monitoring (CKD)"}
     - {test: "K", frequency: "daily", intent: "Potassium monitoring (CKD)"}
@@ -57,9 +58,9 @@ N18:  # CKD
 
 I50:  # Heart failure
   medications:
-    - {drug: "Furosemide 20mg", route: "PO", frequency: "daily"}
-    - {drug: "Carvedilol 2.5mg", route: "PO", frequency: "bid", probability: 0.6}
-    - {drug: "Enalapril 5mg", route: "PO", frequency: "daily", probability: 0.5}
+    - {drug: "Furosemide 20mg", drug_ja: "フロセミド20mg", route: "PO", frequency: "daily"}
+    - {drug: "Carvedilol 2.5mg", drug_ja: "カルベジロール2.5mg", route: "PO", frequency: "bid", probability: 0.6}
+    - {drug: "Enalapril 5mg", drug_ja: "エナラプリル5mg", route: "PO", frequency: "daily", probability: 0.5}
   monitoring:
     - {test: "BNP", frequency: "every_3_days", intent: "Heart failure monitoring"}
     - {test: "K", frequency: "daily", intent: "Electrolyte monitoring (diuretic)"}
@@ -71,8 +72,8 @@ I50:  # Heart failure
 
 I48:  # Atrial fibrillation
   medications:
-    - {drug: "Warfarin 3mg", route: "PO", frequency: "daily", probability: 0.5}
-    - {drug: "Apixaban 5mg", route: "PO", frequency: "bid", probability: 0.5}
+    - {drug: "Warfarin 3mg", drug_ja: "ワルファリン3mg", route: "PO", frequency: "daily", probability: 0.5}
+    - {drug: "Apixaban 5mg", drug_ja: "アピキサバン5mg", route: "PO", frequency: "bid", probability: 0.5}
   monitoring:
     - {test: "PT-INR", frequency: "daily", intent: "Anticoagulation monitoring"}
   hold_conditions:
@@ -80,58 +81,58 @@ I48:  # Atrial fibrillation
 
 I25:  # Ischemic heart disease / Coronary artery disease
   medications:
-    - {drug: "Aspirin 100mg", route: "PO", frequency: "daily"}
-    - {drug: "Clopidogrel 75mg", route: "PO", frequency: "daily", probability: 0.4}
+    - {drug: "Aspirin 100mg", drug_ja: "アスピリン100mg", route: "PO", frequency: "daily"}
+    - {drug: "Clopidogrel 75mg", drug_ja: "クロピドグレル75mg", route: "PO", frequency: "daily", probability: 0.4}
   hold_conditions:
     - {drug: "Aspirin 100mg", condition: "Pre-surgical", note: "Hold pre-surgery"}
     - {drug: "Clopidogrel 75mg", condition: "Pre-surgical", note: "Hold pre-surgery"}
 
 M81:  # Osteoporosis
   medications:
-    - {drug: "Alendronate 35mg", route: "PO", frequency: "weekly", probability: 0.6, note: "Empty stomach, 30min before meals"}
-    - {drug: "Vitamin D 1000IU", route: "PO", frequency: "daily"}
+    - {drug: "Alendronate 35mg", drug_ja: "アレンドロネート35mg", route: "PO", frequency: "weekly", probability: 0.6, note: "Empty stomach, 30min before meals"}
+    - {drug: "Vitamin D 1000IU", drug_ja: "ビタミンD 1000IU", route: "PO", frequency: "daily"}
   monitoring:
     - {test: "Ca", frequency: "every_3_days", intent: "Calcium monitoring (osteoporosis)"}
 
 F00:  # Dementia / Alzheimer's
   medications:
-    - {drug: "Donepezil 5mg", route: "PO", frequency: "daily", probability: 0.5}
+    - {drug: "Donepezil 5mg", drug_ja: "ドネペジル5mg", route: "PO", frequency: "daily", probability: 0.5}
   notes:
     - "Increased delirium risk during hospitalization"
 
 G20:  # Parkinson's disease
   medications:
-    - {drug: "Levodopa/Carbidopa 100/25mg", route: "PO", frequency: "tid"}
+    - {drug: "Levodopa/Carbidopa 100/25mg", drug_ja: "レボドパ・カルビドパ100/25mg", route: "PO", frequency: "tid"}
   hold_conditions:
     - {drug: "Levodopa/Carbidopa 100/25mg", condition: "CRITICAL — must continue on schedule, never abruptly stop"}
 
 E03:  # Hypothyroidism
   medications:
-    - {drug: "Levothyroxine 50mcg", route: "PO", frequency: "daily"}
+    - {drug: "Levothyroxine 50mcg", drug_ja: "レボチロキシン50mcg", route: "PO", frequency: "daily"}
   monitoring:
     - {test: "TSH", frequency: "every_3_days", intent: "Thyroid monitoring (if hospitalized >7 days)"}
 
 K21:  # GERD
   medications:
-    - {drug: "Lansoprazole 15mg", route: "PO", frequency: "daily"}
+    - {drug: "Lansoprazole 15mg", drug_ja: "ランソプラゾール15mg", route: "PO", frequency: "daily"}
 
 J45:  # Asthma
   medications:
-    - {drug: "Fluticasone/Salmeterol inhaler", route: "INH", frequency: "bid"}
-    - {drug: "Salbutamol inhaler PRN", route: "INH", frequency: "prn"}
+    - {drug: "Fluticasone/Salmeterol inhaler", drug_ja: "フルチカゾン/サルメテロール吸入", route: "INH", frequency: "bid"}
+    - {drug: "Salbutamol inhaler PRN", drug_ja: "サルブタモール吸入 頓用", route: "INH", frequency: "prn"}
   monitoring:
     - {test: "SpO2", frequency: "tid", intent: "SpO2 monitoring if respiratory complaint"}
 
 N40:  # BPH
   medications:
-    - {drug: "Tamsulosin 0.2mg", route: "PO", frequency: "daily"}
+    - {drug: "Tamsulosin 0.2mg", drug_ja: "タムスロシン0.2mg", route: "PO", frequency: "daily"}
   hold_conditions:
     - {drug: "Tamsulosin 0.2mg", condition: "Pre-surgical", note: "Hold pre-surgery (risk of floppy iris syndrome)"}
 
 M17:  # Osteoarthritis
   medications:
-    - {drug: "Acetaminophen 500mg", route: "PO", frequency: "tid", probability: 0.7}
-    - {drug: "Celecoxib 200mg", route: "PO", frequency: "daily", probability: 0.3}
+    - {drug: "Acetaminophen 500mg", drug_ja: "アセトアミノフェン500mg", route: "PO", frequency: "tid", probability: 0.7}
+    - {drug: "Celecoxib 200mg", drug_ja: "セレコキシブ200mg", route: "PO", frequency: "daily", probability: 0.3}
   monitoring:
     - {test: "Creatinine", frequency: "every_3_days", intent: "Renal function monitoring (if on NSAID)"}
   hold_conditions:
