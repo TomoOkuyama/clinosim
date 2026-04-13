@@ -733,9 +733,16 @@ def _run_daily_loop(
                     cur = getattr(state, var, None)
                     if cur is not None:
                         setattr(state, var, max(-1.0, min(1.0, cur + delta)))
-                complications_occurred.append(comp.get("name", "unknown"))
+                comp_name = comp.get("name", "unknown")
+                complications_occurred.append(comp_name)
                 if "icu_transfer" in comp.get("actions", []):
                     icu_transferred = True
+                # Cancel contraindicated meds when AKI develops as complication
+                if comp_name == "acute_kidney_injury":
+                    for o in all_orders:
+                        if o.order_type == OrderType.MEDICATION and o.status == OrderStatus.PLACED:
+                            if "metformin" in (o.display_name or "").lower():
+                                o.status = OrderStatus.CANCELLED
 
         # Mortality (disease-specific rate from YAML benchmarks)
         benchmark_mortality = (protocol.outcome_benchmarks.get(country_key, {})

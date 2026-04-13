@@ -11,15 +11,7 @@ requires_surgery: true
 minimum_severity: moderate
 readmission_eligible: false  # Trauma — readmissions are complication-driven
 
-procedure:
-  type: "exploratory laparotomy / damage control surgery"
-  procedure_code_jp: "K636"
-  procedure_code_us: "49000"   # CPT: Exploratory laparotomy
-  typical_duration_minutes: {mean: 180, sd: 90, min: 60, max: 480}
-  anesthesia: "general"
-  estimated_blood_loss_ml: {mean: 1500, sd: 800, min: 300, max: 5000}
-  approach:
-    "Variable \u2014 damage control surgery, orthopedic fixation, neurosurgical intervention": "midline laparotomy for abdominal exploration and damage control"
+
 
 icd_codes:
   primary: "T07"
@@ -163,12 +155,14 @@ drugs:
       - {drug: "Enoxaparin", dose: "40mg SC daily"}
 
 procedure:
-  type: "Variable — damage control surgery, orthopedic fixation, neurosurgical intervention"
-  procedure_code_jp: "K142"    # 開頭術 or various depending on injury
-  procedure_code_us: "20680"   # CPT: varies by procedure
+  type: "exploratory laparotomy"
+  procedure_code_jp: "K636"
+  procedure_code_us: "49000"   # CPT: Exploratory laparotomy
   typical_duration_minutes: {mean: 180, sd: 90, min: 60, max: 480}
   anesthesia: "general"
-  estimated_blood_loss_ml: {mean: 800, sd: 500, min: 200, max: 3000}
+  estimated_blood_loss_ml: {mean: 1500, sd: 800, min: 300, max: 5000}
+  approach:
+    "exploratory laparotomy": "midline laparotomy for abdominal exploration and damage control"
   time_to_surgery:
     japan: {mean_hours: 6, sd_hours: 4, note: "emergent for life-threatening injuries"}
     us: {mean_hours: 4, sd_hours: 3, note: "emergent damage control"}

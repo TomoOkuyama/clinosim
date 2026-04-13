@@ -136,6 +136,9 @@ procedure:
   procedure_code_us: "25607"   # CPT: ORIF distal radius
   typical_duration_minutes: {mean: 75, sd: 20, min: 45, max: 120}
   anesthesia: "regional (brachial plexus block) or general"
+  estimated_blood_loss_ml: {mean: 30, sd: 20, min: 5, max: 100}
+  approach:
+    "ORIF with volar locking plate": "volar approach (modified Henry) to distal radius"
   estimated_blood_loss_ml: {mean: 50, sd: 30, min: 10, max: 150}
   time_to_surgery:
     japan: {mean_hours: 48, sd_hours: 24, note: "next available OR slot"}
