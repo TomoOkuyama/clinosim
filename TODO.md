@@ -150,20 +150,22 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 
 | # | Task | Module | Status |
 |---|---|---|---|
-| 1 | Severity-based lab frequency modulation | `simulator` | Open — severe patients should get more frequent labs |
-| 2 | Trauma Hgb recovery model / discharge gate | `physiology`, `simulator` | Open — Hgb 5.0 at discharge is clinically impossible |
-| 3 | HF exacerbation: IV diuretic not in MAR | `simulator` | Open — Home furosemide → IV escalation needed |
-| 4 | narrate progress display (patient N/M) | `output` | Open — no progress indicator during long narrate runs |
-| 5 | Japanese prompts (`prompts/ja/*.yaml`) with clinician review | `llm_service` | Open |
-| 6 | 40K population full run (US production scale) | infra | Open |
-| 7 | Template fallbacks for new Tier A+B tasks | `llm_service` | Partial |
-| 8 | LLM JUDGMENT phase wiring (diagnostic reasoning) | `llm_service`, `diagnosis` | Open |
-| 9 | Validator Pass 2 (LLM consistency review) | `validator` | Open |
-| 10 | Performance: 100k+ patients, parallel sim | `simulator` | Open |
-| 11 | Hospital course extractor: treatment change detection | `output` | Partial |
-| 12 | Progress Note (Tier C, opt-in) | `llm_service`, `output` | Open |
-| 13 | Anthropic direct provider (non-Bedrock) | `llm_service` | Open |
-| 14 | OpenAI-compatible provider (LiteLLM / vLLM) | `llm_service` | Open |
+| 1 | Severity-based lab frequency modulation | `simulator` | ✅ severe 1.3x, mild 0.6x |
+| 2 | Trauma Hgb recovery model / discharge gate | `physiology`, `simulator` | ✅ natural recovery + transfusion impact + anemia gate |
+| 3 | HF exacerbation: IV diuretic not in MAR | `simulator`, `order` | ✅ all first_line drugs ordered + PO furosemide held |
+| 4 | narrate progress display (patient N/M) | `output` | ✅ every 10 patients |
+| 5 | Treatment escalation from disease YAML | `simulator` | ✅ Day 3 escalation when inflammation > 0.3 |
+| 6 | Treatment change detection in extractor | `output` | ✅ MAR datetime fix + new drug detection |
+| 7 | **5K Bedrock full run (all fixes reflected)** | infra | **Next** — requires EC2 Bedrock |
+| 8 | Japanese prompts (`prompts/ja/*.yaml`) with clinician review | `llm_service` | Open |
+| 9 | Template fallbacks for new Tier A+B tasks | `llm_service` | ✅ enriched with lab trends, approach, implants, etc. |
+| 10 | Diurnal lab variation (glucose postprandial, WBC circadian) | `physiology` | ✅ |
+| 11 | Critical patient vitals q2h (sepsis, MI, trauma) | `simulator` | ✅ |
+| 12 | Consistency validator Tier 2 (rule-based, 8 checks) | `validator` | ✅ 0 errors, 0 warnings |
+| 13 | AKI complication → metformin cancel | `simulator` | ✅ |
+| 14 | 40K population full run (US production scale) | infra | After #7 |
+| 15 | Anthropic direct provider (non-Bedrock) | `llm_service` | Open |
+| 16 | OpenAI-compatible provider (LiteLLM / vLLM) | `llm_service` | Open |
 
 ## Open Design Questions
 
@@ -225,13 +227,17 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 - [ ] OB/GYN module (pregnancy, delivery, NICU)
 - [ ] Performance optimization (async LLM, parallel patient simulation)
 
-### v0.3 — Operational realism
+### v0.3 — Operational realism + LLM intelligence
 
+- [ ] LLM JUDGMENT phase wiring (diagnostic reasoning, treatment decisions)
+- [ ] Progress Note (Tier C, opt-in — daily SOAP notes via LLM)
+- [ ] Validator Pass 2 (LLM consistency review)
 - [ ] Discrete-event simulation engine (Mode 2)
 - [ ] Resource contention (OR scheduling, ICU bed allocation)
 - [ ] Multi-day treatment scheduling
 - [ ] Consult workflow
 - [ ] Episode-of-care multi-encounter tracking
+- [ ] Performance: 100k+ patients, parallel sim
 
 ### v0.4 — Coverage expansion
 
