@@ -480,30 +480,57 @@ def _progress_note(ps: PatientSummary, ed: dict, language: str) -> str:
 def _discharge_summary(ps: PatientSummary, ed: dict, language: str) -> str:
     los = ed.get("los_days", 14)
     final_dx = ed.get("final_diagnosis", ps.current_diagnosis)
+    admit_dx = ed.get("admission_diagnosis", ps.current_diagnosis)
     meds = ed.get("discharge_medications", [])
+    course = ed.get("hospital_course_bullets", [])
+    course_str = "\n".join(f"  {b}" for b in course) if course else ""
+    trends = ed.get("lab_trends_summary", [])
+    trends_str = "\n".join(f"  {t}" for t in trends) if trends else ""
+    procs = ed.get("procedures_performed", "")
+    disposition = ed.get("disposition", "home")
 
     if language == "ja":
         med_str = "、".join(meds) if meds else "処方なし"
-        return (
+        text = (
             f"【退院時サマリー】\n"
             f"患者: {ps.age}歳 {ps.sex}\n"
             f"入院期間: {los}日間\n"
+            f"入院診断: {admit_dx}\n"
             f"最終診断: {final_dx}\n"
-            f"経過: 抗菌薬治療により軽快。\n"
+        )
+        if course_str:
+            text += f"経過:\n{course_str}\n"
+        if trends_str:
+            text += f"検査推移:\n{trends_str}\n"
+        if procs:
+            text += f"実施手技: {procs}\n"
+        text += (
             f"退院時処方: {med_str}\n"
+            f"退院先: {disposition}\n"
             f"外来フォロー: 2週間後。"
         )
+        return text
     else:
         med_str = ", ".join(meds) if meds else "None"
-        return (
+        text = (
             f"Discharge Summary\n"
             f"Patient: {ps.age}yo {ps.sex}\n"
             f"LOS: {los} days\n"
+            f"Admission Dx: {admit_dx}\n"
             f"Final Dx: {final_dx}\n"
-            f"Course: Improved with antibiotic therapy.\n"
+        )
+        if course_str:
+            text += f"Hospital course:\n{course_str}\n"
+        if trends_str:
+            text += f"Lab trends:\n{trends_str}\n"
+        if procs:
+            text += f"Procedures: {procs}\n"
+        text += (
             f"Discharge Rx: {med_str}\n"
+            f"Disposition: {disposition}\n"
             f"Follow-up: 2 weeks."
         )
+        return text
 
 
 def _admission_hp(ps: PatientSummary, ed: dict, language: str) -> str:
@@ -551,9 +578,14 @@ def _death_summary_template(ps: PatientSummary, ed: dict, language: str) -> str:
     comp_str = ", ".join(complications) if complications else "(none documented)"
     course = ed.get("hospital_course_bullets", [])
     course_str = "\n".join(f"  {b}" for b in course) if course else "  (not available)"
+    trends = ed.get("lab_trends_summary", [])
+    trends_str = "\n".join(f"  {t}" for t in trends) if trends else ""
+    timeline = ed.get("treatment_timeline", [])
+    timeline_str = "\n".join(f"  {t}" for t in timeline) if timeline else ""
+    terminal = ed.get("terminal_findings", "")
 
     if language == "ja":
-        return (
+        text = (
             f"【死亡時記録】\n"
             f"患者: {ps.age}歳 {ps.sex}\n"
             f"入院診断: {admit_dx}\n"
@@ -562,9 +594,12 @@ def _death_summary_template(ps: PatientSummary, ed: dict, language: str) -> str:
             f"死亡日時: {death_dt}\n"
             f"経過:\n{course_str}\n"
             f"合併症: {comp_str}\n"
-            f"治療経過にもかかわらず死亡。"
         )
-    return (
+        if terminal:
+            text += f"死亡時所見: {terminal}\n"
+        text += "治療経過にもかかわらず死亡。"
+        return text
+    text = (
         f"Death Note\n"
         f"Patient: {ps.age}yo {ps.sex}\n"
         f"Admission Dx: {admit_dx}\n"
@@ -572,77 +607,138 @@ def _death_summary_template(ps: PatientSummary, ed: dict, language: str) -> str:
         f"LOS: {los} days\n"
         f"Date/time of death: {death_dt}\n"
         f"Hospital course:\n{course_str}\n"
-        f"Complications: {comp_str}\n"
-        f"Patient died despite maximal therapy."
     )
+    if trends_str:
+        text += f"Lab trends:\n{trends_str}\n"
+    if timeline_str:
+        text += f"Treatment:\n{timeline_str}\n"
+    if terminal:
+        text += f"Terminal findings: {terminal}\n"
+    text += f"Complications: {comp_str}\n"
+    text += "Patient died despite maximal therapy."
+    return text
 
 
 def _operative_note_template(ps: PatientSummary, ed: dict, language: str) -> str:
     proc_name = ed.get("procedure_name", "Surgical procedure")
+    proc_code = ed.get("procedure_code", "")
     surgeon = ed.get("surgeon", "")
+    assistants = ed.get("assistants", [])
+    assist_str = ", ".join(assistants) if isinstance(assistants, list) and assistants else "(none)"
+    anesthesiologist = ed.get("anesthesiologist", "")
     anes_type = ed.get("anesthesia_type", "general")
+    asa_class = ed.get("asa_class", "")
     duration = ed.get("duration_minutes", 0)
     ebl = ed.get("estimated_blood_loss_ml", 0)
     preop = ed.get("preop_diagnosis", ps.current_diagnosis)
     postop = ed.get("postop_diagnosis", preop)
+    body_site = ed.get("body_site", "")
+    approach = ed.get("approach", "")
+    implants = ed.get("implants_used", [])
+    implant_str = ", ".join(implants) if isinstance(implants, list) and implants else "(none)"
+    specimens = ed.get("specimens_sent", [])
+    specimen_str = ", ".join(specimens) if isinstance(specimens, list) and specimens else "(none)"
     complications = ed.get("intraop_complications", [])
-    comp_str = ", ".join(complications) if complications else "None"
+    comp_str = ", ".join(complications) if isinstance(complications, list) and complications else "None"
     outcome = ed.get("outcome", "Successful")
+    preop_vitals = ed.get("preop_vitals", "")
 
     if language == "ja":
-        return (
+        text = (
             f"【手術記録】\n"
-            f"術式: {proc_name}\n"
+            f"術式: {proc_name} ({proc_code})\n"
             f"執刀医: {surgeon}\n"
-            f"麻酔: {anes_type}\n"
+            f"助手: {assist_str}\n"
+            f"麻酔科医: {anesthesiologist}\n"
+            f"麻酔: {anes_type} (ASA {asa_class})\n"
             f"手術時間: {duration}分\n"
             f"出血量: {ebl}mL\n"
+            f"部位: {body_site}\n"
+        )
+        if approach:
+            text += f"アプローチ: {approach}\n"
+        text += (
             f"術前診断: {preop}\n"
             f"術後診断: {postop}\n"
+            f"インプラント: {implant_str}\n"
+            f"検体: {specimen_str}\n"
             f"合併症: {comp_str}\n"
             f"転帰: {outcome}"
         )
-    return (
+        return text
+    text = (
         f"Operative Note\n"
-        f"Procedure: {proc_name}\n"
+        f"Procedure: {proc_name} ({proc_code})\n"
         f"Surgeon: {surgeon}\n"
-        f"Anesthesia: {anes_type}\n"
+        f"Assistant(s): {assist_str}\n"
+        f"Anesthesiologist: {anesthesiologist}\n"
+        f"Anesthesia: {anes_type} (ASA {asa_class})\n"
         f"Duration: {duration} min\n"
         f"EBL: {ebl} mL\n"
+        f"Body site: {body_site}\n"
+    )
+    if approach:
+        text += f"Approach: {approach}\n"
+    if preop_vitals:
+        text += f"Preop vitals: {preop_vitals}\n"
+    text += (
         f"Preop Dx: {preop}\n"
         f"Postop Dx: {postop}\n"
+        f"Implants: {implant_str}\n"
+        f"Specimens: {specimen_str}\n"
         f"Complications: {comp_str}\n"
         f"Outcome: {outcome}"
     )
+    return text
 
 
 def _procedure_note_template(ps: PatientSummary, ed: dict, language: str) -> str:
     proc_name = ed.get("procedure_name", "Bedside procedure")
+    proc_code = ed.get("procedure_code", "")
     operator = ed.get("operator", "")
     indication = ed.get("indication", ps.chief_complaint)
     body_site = ed.get("body_site", "")
     anes_type = ed.get("anesthesia_type", "local")
     duration = ed.get("duration_minutes", 0)
+    findings = ed.get("findings", "")
+    specimens = ed.get("specimens_obtained", [])
+    specimen_str = ", ".join(specimens) if isinstance(specimens, list) and specimens else "(none)"
+    complications = ed.get("complications", [])
+    comp_str = ", ".join(complications) if isinstance(complications, list) and complications else "None"
     outcome = ed.get("outcome", "Successful")
 
     if language == "ja":
-        return (
+        text = (
             f"【処置記録】\n"
-            f"処置: {proc_name}\n"
+            f"処置: {proc_name} ({proc_code})\n"
             f"実施者: {operator}\n"
             f"適応: {indication}\n"
             f"部位: {body_site}\n"
             f"麻酔: {anes_type}\n"
             f"所要時間: {duration}分\n"
+        )
+        if findings:
+            text += f"所見: {findings}\n"
+        text += (
+            f"検体: {specimen_str}\n"
+            f"合併症: {comp_str}\n"
             f"転帰: {outcome}"
         )
-    return (
+        return text
+    text = (
         f"Procedure Note\n"
-        f"Procedure: {proc_name}\n"
+        f"Procedure: {proc_name} ({proc_code})\n"
         f"Operator: {operator}\n"
         f"Indication: {indication}\n"
         f"Site: {body_site}\n"
         f"Anesthesia: {anes_type}\n"
         f"Duration: {duration} min\n"
+    )
+    if findings:
+        text += f"Findings: {findings}\n"
+    text += (
+        f"Specimens: {specimen_str}\n"
+        f"Complications: {comp_str}\n"
         f"Outcome: {outcome}"
     )
+    return text
