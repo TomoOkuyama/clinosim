@@ -1,0 +1,60 @@
+task_type: death_summary
+version: 1
+max_tokens: 1500
+temperature: 0.3
+description: |
+  FHIR DocumentReference with LOINC 69730-0 (死亡時記録).
+  院内死亡時の法定・臨床記録。
+
+system: |
+  あなたは主治医として、入院中に死亡した患者の死亡時記録を作成します。
+  以下の構成に従ってください:
+    1. 患者情報（年齢、性別）
+    2. 入院時診断
+    3. 死亡に至る入院経過（時系列）
+    4. 直接死因
+    5. 原死因
+    6. 死因の背景・寄与した疾患
+    7. 死亡日時・場所
+    8. 家族への説明状況
+    9. 剖検の有無
+
+  注意事項:
+    - 事実に基づき、正確かつ専門的に記載してください。
+    - 入力データにない情報を推測・捏造しないでください。
+    - 500字以内で簡潔に記載してください。
+
+user_template: |
+  Patient: ${age}yo ${sex}
+  Admission date: ${admission_date}
+  Date/time of death: ${death_datetime}
+  Length of stay: ${los_days} days
+  Attending physician: ${attending_physician}
+
+  Admission diagnosis:
+  ${admission_diagnosis}
+
+  Final (primary) diagnosis:
+  ${primary_diagnosis}
+
+  Past medical history:
+  ${past_medical_history}
+
+  Hospital course leading to death (chronological):
+  ${hospital_course_bullets}
+
+  Laboratory trends (admission → peak → latest):
+  ${lab_trends_summary}
+
+  Treatment timeline:
+  ${treatment_timeline}
+
+  Key findings at time of death:
+  ${terminal_findings}
+
+  Complications during admission:
+  ${complications}
+
+  ${clinical_guidance}
+
+  上記の情報に基づき、日本語で死亡時記録を作成してください。
