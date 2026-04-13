@@ -399,86 +399,86 @@ output/csv/
 clinosim implements a three-stage pipeline. Each stage is self-contained, has a well-defined input and output on disk, and can be run independently of the others.
 
 ```
-╔═══════════════════════════════════════════════════════════════╗
-║  STAGE 1 — clinosim generate (structured simulation)           ║
-╠═══════════════════════════════════════════════════════════════╣
-║                                                                 ║
-║  population engine                                              ║
-║   ・Catchment (household-based), Layer 1 registry               ║
-║   ・Monthly life events (incidence × seasonality × risk)        ║
-║              │                                                  ║
-║              ▼                                                  ║
-║  patient activator  (Layer 1 → Layer 2: full clinical profile)  ║
-║              │                                                  ║
-║              ▼                                                  ║
-║  encounter creation                                             ║
-║   ・disease YAML → department (resolved via hospital_config)    ║
-║   ・staff / ward / bed / OR assignment                          ║
-║              │                                                  ║
-║              ▼                                                  ║
-║  daily simulation loop (per inpatient day)                      ║
-║   clinical_course → physiology → orders/observation             ║
-║                   → diagnosis → procedure + MAR                 ║
-║                   → discharge readiness?                        ║
-║              │                                                  ║
-║              ▼                                                  ║
-║  CIF structural/  (immutable, one JSON per encounter)           ║
-║  + discharge prescription, procedures, vitals, labs, MAR,       ║
-║    conditions, ADL, I/O, complications, hidden ground truth     ║
-║                                                                 ║
-╚═══════════════════════════════════════════════════════════════╝
-                            │
-                            ▼
-╔═══════════════════════════════════════════════════════════════╗
-║  STAGE 2 — clinosim narrate (clinical documents)               ║
-╠═══════════════════════════════════════════════════════════════╣
-║                                                                 ║
-║  For each inpatient encounter:                                  ║
-║                                                                 ║
-║   1. hospital_course_extractor                                  ║
-║        deterministic extraction of facts                        ║
-║        (admission, surgeries, lab peaks, complications,         ║
-║         treatment changes, discharge)                           ║
-║              │                                                  ║
-║              ▼                                                  ║
-║   2. document_generator                                         ║
-║        build ClinicalDocument stubs (Tier A + B):               ║
-║          - Admission H&P      LOINC 34117-2                     ║
-║          - Operative Note     LOINC 11504-8  (per surgery)      ║
-║          - Procedure Note     LOINC 28570-0  (invasive bedside) ║
-║          - Discharge Summary  LOINC 18842-5                     ║
-║          - Death Note         LOINC 69730-0  (if deceased)      ║
-║              │                                                  ║
-║              ▼                                                  ║
-║   3. LLMService.generate(task_type, variables)                  ║
-║        ├─ PromptRegistry (YAML templates, string.Template)      ║
-║        ├─ PromptCache    (SHA256 disk cache)                    ║
-║        └─ provider       (Ollama | Bedrock | Mock | ...)        ║
-║              │                                                  ║
-║              ▼                                                  ║
-║  CIF narratives/<version_id>/documents/                         ║
-║  (one JSON per clinical document, with provenance metadata)     ║
-║                                                                 ║
-╚═══════════════════════════════════════════════════════════════╝
-                            │
-                            ▼
-╔═══════════════════════════════════════════════════════════════╗
-║  STAGE 3 — clinosim export-fhir                                ║
-╠═══════════════════════════════════════════════════════════════╣
-║                                                                 ║
-║  fhir_r4_adapter                                                ║
-║   ・Reads CIF structural/ → Patient, Encounter, Observation,    ║
-║     Condition, Procedure, MedicationRequest, MAR,               ║
-║     AllergyIntolerance, Practitioner(Role), Organization,       ║
-║     Location                                                    ║
-║   ・Reads CIF narratives/<version>/documents/ →                 ║
-║     DocumentReference  (base64 text/plain, LOINC-typed)         ║
-║   ・display text resolved via clinosim.codes (en / ja)          ║
-║              │                                                  ║
-║              ▼                                                  ║
-║  output/fhir_r4/  (HL7 Bulk Data NDJSON + manifest.json)        ║
-║                                                                 ║
-╚═══════════════════════════════════════════════════════════════╝
++---------------------------------------------------------------+
+|  STAGE 1 -- clinosim generate (structured simulation)         |
++---------------------------------------------------------------+
+|                                                               |
+|  population engine                                            |
+|   - Catchment (household-based), Layer 1 registry             |
+|   - Monthly life events (incidence x seasonality x risk)      |
+|              |                                                |
+|              v                                                |
+|  patient activator  (Layer 1 -> Layer 2: full clinical)       |
+|              |                                                |
+|              v                                                |
+|  encounter creation                                           |
+|   - disease YAML -> department (via hospital_config)          |
+|   - staff / ward / bed / OR assignment                        |
+|              |                                                |
+|              v                                                |
+|  daily simulation loop (per inpatient day)                    |
+|   clinical_course -> physiology -> orders/observation         |
+|                   -> diagnosis -> procedure + MAR             |
+|                   -> discharge readiness?                     |
+|              |                                                |
+|              v                                                |
+|  CIF structural/  (immutable, one JSON per encounter)         |
+|  + discharge Rx, procedures, vitals, labs, MAR,               |
+|    conditions, ADL, I/O, complications, ground truth          |
+|                                                               |
++---------------------------------------------------------------+
+               |
+               v
++---------------------------------------------------------------+
+|  STAGE 2 -- clinosim narrate (clinical documents)             |
++---------------------------------------------------------------+
+|                                                               |
+|  For each inpatient encounter:                                |
+|                                                               |
+|   1. hospital_course_extractor                                |
+|        deterministic extraction of facts                      |
+|        (admission, surgeries, lab peaks, complications,       |
+|         treatment changes, discharge)                         |
+|              |                                                |
+|              v                                                |
+|   2. document_generator                                       |
+|        build ClinicalDocument stubs (Tier A + B):             |
+|          - Admission H&P      LOINC 34117-2                   |
+|          - Operative Note     LOINC 11504-8  (per surgery)    |
+|          - Procedure Note     LOINC 28570-0  (invasive)       |
+|          - Discharge Summary  LOINC 18842-5                   |
+|          - Death Note         LOINC 69730-0  (if deceased)    |
+|              |                                                |
+|              v                                                |
+|   3. LLMService.generate(task_type, variables)                |
+|        +- PromptRegistry (YAML templates)                     |
+|        +- PromptCache    (SHA256 disk cache)                  |
+|        +- provider       (Ollama | Bedrock | Mock)            |
+|              |                                                |
+|              v                                                |
+|  CIF narratives/<version_id>/documents/                       |
+|  (one JSON per clinical document, with provenance)            |
+|                                                               |
++---------------------------------------------------------------+
+               |
+               v
++---------------------------------------------------------------+
+|  STAGE 3 -- clinosim export-fhir                              |
++---------------------------------------------------------------+
+|                                                               |
+|  fhir_r4_adapter                                              |
+|   - Reads CIF structural/ -> Patient, Encounter,              |
+|     Observation, Condition, Procedure, MedicationRequest,     |
+|     MAR, AllergyIntolerance, Practitioner(Role),              |
+|     Organization, Location                                    |
+|   - Reads CIF narratives/<version>/documents/ ->              |
+|     DocumentReference  (base64 text/plain, LOINC-typed)       |
+|   - display text resolved via clinosim.codes (en / ja)        |
+|              |                                                |
+|              v                                                |
+|  output/fhir_r4/  (HL7 Bulk Data NDJSON + manifest.json)      |
+|                                                               |
++---------------------------------------------------------------+
 ```
 
 **Why three stages?**
