@@ -321,7 +321,9 @@ def _treatment_change_events(
         if not name:
             continue
         admin_dt = _parse_dt(
-            mar.get("administered_datetime") or mar.get("administration_datetime")
+            mar.get("actual_datetime")
+            or mar.get("administered_datetime")
+            or mar.get("administration_datetime")
         )
         day = _day_offset(admission_dt, admin_dt) if admin_dt else 0
         if name not in drug_first_day or day < drug_first_day[name]:
@@ -602,7 +604,7 @@ def extract_treatment_timeline(
         if not name:
             continue
         route = mar.get("route", "")
-        admin_dt = _parse_dt(mar.get("administered_datetime") or mar.get("administration_datetime"))
+        admin_dt = _parse_dt(mar.get("actual_datetime") or mar.get("administered_datetime") or mar.get("administration_datetime"))
         day = _day_offset(admission_dt, admin_dt) if admin_dt else 0
 
         if name not in drug_timeline:

@@ -654,6 +654,32 @@ def _run_daily_loop(
                             status=OrderStatus.PLACED,
                         ))
 
+        # Treatment escalation: if inflammation not improving by day 3, escalate
+        if day == 3 and state.inflammation_level > 0.3:
+            escalation_drugs = protocol.drugs.get("escalation", {}).get(country_key, [])
+            if isinstance(escalation_drugs, dict):
+                escalation_drugs = [escalation_drugs]
+            for esc_drug in escalation_drugs:
+                if not isinstance(esc_drug, dict):
+                    continue
+                drug_name = esc_drug.get("drug", "")
+                dose = esc_drug.get("dose", "")
+                indication = esc_drug.get("indication", "no improvement")
+                all_orders.append(Order(
+                    order_id=f"ORD-{patient.patient_id}-ESC-D{day}-{drug_name[:8]}",
+                    encounter_id=encounter_id,
+                    patient_id=patient.patient_id,
+                    order_type=OrderType.MEDICATION,
+                    order_code=esc_drug.get("code_yj", esc_drug.get("code_rxnorm", "")),
+                    display_name=f"{drug_name} {dose}".strip(),
+                    urgency="urgent",
+                    clinical_intent=f"Escalation day {day}: {drug_name} ({indication})",
+                    ordered_datetime=admission_time + timedelta(days=day, hours=10),
+                    ordered_by=attending_id,
+                    status=OrderStatus.PLACED,
+                    route=esc_drug.get("route", "IV"),
+                ))
+
         # Medication administration (MAR)
         mars_today = _generate_mar(patient, all_orders, day, admission_time, department=department, roster=roster, rng=rng)
         all_mars.extend(mars_today)
