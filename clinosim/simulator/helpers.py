@@ -315,9 +315,10 @@ def _check_discharge_ready(
     JP: stricter (lower inflammation threshold, longer afebrile requirement)
     US: earlier discharge once clinically stable
     """
-    # anemia_level < 0.55 ≈ Hgb > 7.0 g/dL (transfusion threshold)
+    # anemia_level < 0.60 ≈ Hgb > 7.0 g/dL for females (13 * (1-0.6*0.7) = 7.5)
+    # and Hgb > 8.7 for males (15 * (1-0.6*0.7) = 8.7)
     # No patient should be discharged with Hgb below transfusion trigger
-    anemia_ok = state.anemia_level < 0.55
+    anemia_ok = state.anemia_level < 0.60
 
     if country_key == "us":
         return (
