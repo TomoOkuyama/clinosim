@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![FHIR](https://img.shields.io/badge/output-HL7%20FHIR%20R4%20Bulk-orange)](https://hl7.org/fhir/uv/bulkdata/)
-[![Status](https://img.shields.io/badge/status-v0.1%20beta-yellow)]()
+[![Status](https://img.shields.io/badge/status-v0.2-yellow)]()
 
 **clinosim** は人口集団から始まる **forward simulation** で合成EHRデータを生成します。 ランダム生成ではなく、 各患者に **隠れた生理学的状態 (9 変数)** を持たせ、 すべての観測 (検査、バイタル、薬剤、診断) をその状態から導出するため、 **臨床的に整合性のある** データになります。
 
@@ -77,7 +77,7 @@ pip install -e ".[dev]"
 ### CLI
 
 ```bash
-# デフォルト: US, 過去1年, 今日が snapshot, 60,000人 catchment, 50床hospital
+# デフォルト: US, 過去1年, 今日が snapshot, 40,000人 catchment, 50床hospital
 clinosim generate -o ./output
 
 # 期間指定 (--end が snapshot date)
@@ -88,6 +88,21 @@ clinosim generate -o ./output \
   --country JP \
   --hospital-config clinosim/config/hospital_small.yaml \
   -p 12000
+
+# === Stage 2: 臨床文書生成 (LLM) ===
+
+# 日本語ナラティブ (AWS Bedrock)
+clinosim narrate --cif-dir ./output/cif \
+  --llm-config clinosim/config/llm_service.bedrock.yaml \
+  --language ja \
+  --version-id bedrock_ja_v1
+
+# === Stage 3: FHIR Bulk Data 出力 ===
+
+# DocumentReference 付き
+clinosim export-fhir --cif-dir ./output/cif --narrative-version bedrock_ja_v1
+
+# === デバッグ ===
 
 # 強制シナリオ (デバッグ用)
 clinosim test-disease bacterial_pneumonia -n 5 --severity moderate
@@ -106,7 +121,7 @@ from clinosim.simulator import run_beta
 from clinosim.types.config import SimulatorConfig
 
 config = SimulatorConfig(
-    catchment_population=60_000,
+    catchment_population=40_000,
     country="US",
     random_seed=42,
     snapshot_date="2026-04-08",   # この日時点での EHR スナップショット
@@ -466,7 +481,7 @@ YAML 定義で 28 疾患をサポート (急性入院の約 80% をカバー):
 `clinosim/config/hospital_*.yaml` で病院の物理構成・運営パラメータを定義:
 
 ```yaml
-recommended_population: 60000
+recommended_population: 40000  # US default; JP=5000
 
 available_departments:           # 利用可能な診療科
   - internal_medicine
