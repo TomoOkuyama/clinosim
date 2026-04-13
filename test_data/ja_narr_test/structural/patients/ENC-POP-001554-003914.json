@@ -1,0 +1,182 @@
+{
+  "patient": {
+    "patient_id": "POP-001554",
+    "name": {
+      "family_name": "West",
+      "given_name": "Betty",
+      "display_name": "Betty West",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 64,
+    "sex": "F",
+    "date_of_birth": "1960-06-28",
+    "blood_type": "B",
+    "rh_factor": "+",
+    "height_cm": 171.8,
+    "weight_kg": 90.7,
+    "bmi": 30.7,
+    "address": {
+      "postal_code": "01608",
+      "state": "MA",
+      "city": "Worcester",
+      "line1": "176 Pine St, Apt 2",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 978-3532",
+      "phone_primary": "(617) 978-3532",
+      "email": "",
+      "emergency_contact_name": "West family",
+      "emergency_contact_phone": "(617) 978-3532",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "D",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.58,
+    "chronic_conditions": [
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2021-03-24",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3305868548493763,
+        "stage": ""
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2017-06-24",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.36512906809063,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Atorvastatin 10mg",
+      "Acetaminophen 500mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.23859349615646483,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.854046840960673,
+      "cardiac_reserve": 0.8696273333434035,
+      "hepatic_reserve": 0.7311810522676081,
+      "treatment_sensitivity": 0.8686391303495279,
+      "symptom_reporting_bias": 1.1078214544113911,
+      "delirium_susceptibility": 0.15954595340064823,
+      "dvt_susceptibility": 0.7034918203124199
+    },
+    "baseline_vitals": {
+      "temperature": 36.8,
+      "heart_rate": 81,
+      "systolic_bp": 132,
+      "diastolic_bp": 69,
+      "respiratory_rate": 18,
+      "spo2": 97.6
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001554-003914",
+      "patient_id": "POP-001554",
+      "episode_id": "EP-POP-001554-003914",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-005",
+      "admitting_physician_id": "DR-IM-005",
+      "discharging_physician_id": "DR-IM-005",
+      "admission_datetime": "2024-03-23T10:34:00",
+      "discharge_datetime": "2024-03-23T11:04:00",
+      "chief_complaint": "Lipid management, statin therapy monitoring",
+      "disease_event_id": "DE-POP-001554-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-03-23T10:39:00",
+      "temperature_celsius": null,
+      "heart_rate": 82,
+      "systolic_bp": 141,
+      "diastolic_bp": 63,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001554-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E78"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E78",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E78",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001554-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-005",
+    "issue_date": "2026-04-13T15:30:37.982520",
+    "items": [
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Acetaminophen 500mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

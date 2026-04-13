@@ -1,0 +1,245 @@
+{
+  "patient": {
+    "patient_id": "POP-001046",
+    "name": {
+      "family_name": "Warner",
+      "given_name": "Lily",
+      "display_name": "Lily Warner",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 73,
+    "sex": "F",
+    "date_of_birth": "1951-12-12",
+    "blood_type": "AB",
+    "rh_factor": "+",
+    "height_cm": 162.1,
+    "weight_kg": 87.7,
+    "bmi": 33.4,
+    "address": {
+      "postal_code": "02155",
+      "state": "MA",
+      "city": "Medford",
+      "line1": "386 School St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(508) 604-3633",
+      "phone_mobile": "(508) 872-6353",
+      "phone_primary": "(508) 872-6353",
+      "email": "",
+      "emergency_contact_name": "Warner family",
+      "emergency_contact_phone": "(508) 604-3633",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.81,
+    "chronic_conditions": [
+      {
+        "code": "I50",
+        "system": "icd-10-cm",
+        "onset_date": "2019-07-06",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.2930818238769547,
+        "stage": "NYHA I"
+      },
+      {
+        "code": "F00",
+        "system": "icd-10-cm",
+        "onset_date": "2011-01-22",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.20060301429446786,
+        "stage": ""
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2020-06-28",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.2581292824529108,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Furosemide 20mg",
+      "Carvedilol 2.5mg",
+      "Enalapril 5mg",
+      "Acetaminophen 500mg"
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.5133893553967059,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.6164822516770514,
+      "cardiac_reserve": 0.5559382193052521,
+      "hepatic_reserve": 0.6849850229996046,
+      "treatment_sensitivity": 1.1520038142838198,
+      "symptom_reporting_bias": 1.2008289525643476,
+      "delirium_susceptibility": 0.3155809303130659,
+      "dvt_susceptibility": 0.2777657450194996
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 65,
+      "systolic_bp": 139,
+      "diastolic_bp": 83,
+      "respiratory_rate": 16,
+      "spo2": 98.2
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001046-002518",
+      "patient_id": "POP-001046",
+      "episode_id": "EP-POP-001046-002518",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-03-11T10:39:00",
+      "discharge_datetime": "2024-03-11T11:13:00",
+      "chief_complaint": "Heart failure management, volume status assessment",
+      "disease_event_id": "DE-POP-001046-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001046-OPD-L00",
+      "encounter_id": "ENC-POP-001046-002518",
+      "patient_id": "POP-001046",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "BNP",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: BNP",
+      "ordered_datetime": "2024-03-11T10:49:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-03-11T12:39:00",
+        "performed_by": "TECH-LAB-004",
+        "lab_name": "BNP",
+        "value": 35.4,
+        "unit": "pg/mL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-03-11T10:44:00",
+      "temperature_celsius": null,
+      "heart_rate": 64,
+      "systolic_bp": 118,
+      "diastolic_bp": 78,
+      "respiratory_rate": null,
+      "spo2": 97.8,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-005",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-03-11T12:39:00",
+      "performed_by": "TECH-LAB-004",
+      "lab_name": "BNP",
+      "value": 35.4,
+      "unit": "pg/mL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001046-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I50"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I50",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I50",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001046-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-006",
+    "issue_date": "2026-04-13T15:30:35.493637",
+    "items": [
+      {
+        "drug": "Furosemide 20mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Carvedilol 2.5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Enalapril 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Acetaminophen 500mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

@@ -1,0 +1,157 @@
+{
+  "patient": {
+    "patient_id": "POP-001269",
+    "name": {
+      "family_name": "Gonzales",
+      "given_name": "Emma",
+      "display_name": "Emma Gonzales",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 76,
+    "sex": "F",
+    "date_of_birth": "1948-06-26",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 159.9,
+    "weight_kg": 84.7,
+    "bmi": 33.1,
+    "address": {
+      "postal_code": "02122",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "406 Winter St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(351) 851-3841",
+      "phone_mobile": "(617) 295-9433",
+      "phone_primary": "(617) 295-9433",
+      "email": "",
+      "emergency_contact_name": "Gonzales family",
+      "emergency_contact_phone": "(351) 851-3841",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.8,
+    "chronic_conditions": [
+      {
+        "code": "M81",
+        "system": "icd-10-cm",
+        "onset_date": "2018-11-21",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.18252208256970678,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Vitamin D 1000IU"
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.4522228453209484,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.6725600745090816,
+      "cardiac_reserve": 0.6316316064439744,
+      "hepatic_reserve": 0.6658571791234901,
+      "treatment_sensitivity": 0.9167984762158202,
+      "symptom_reporting_bias": 0.5044100213109506,
+      "delirium_susceptibility": 0.26835922698587716,
+      "dvt_susceptibility": 0.13622022201622885
+    },
+    "baseline_vitals": {
+      "temperature": 36.8,
+      "heart_rate": 76,
+      "systolic_bp": 133,
+      "diastolic_bp": 78,
+      "respiratory_rate": 14,
+      "spo2": 98.6
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001269-003094",
+      "patient_id": "POP-001269",
+      "episode_id": "EP-POP-001269-003094",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-004",
+      "admitting_physician_id": "DR-IM-004",
+      "discharging_physician_id": "DR-IM-004",
+      "admission_datetime": "2024-10-07T10:34:00",
+      "discharge_datetime": "2024-10-07T10:59:00",
+      "chief_complaint": "Influenza vaccination",
+      "disease_event_id": "DE-POP-001269-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-10-07T10:39:00",
+      "temperature_celsius": null,
+      "heart_rate": 70,
+      "systolic_bp": 128,
+      "diastolic_bp": 70,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-005",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001269-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z23"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z23",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z23",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

@@ -1,0 +1,237 @@
+{
+  "patient": {
+    "patient_id": "POP-000867",
+    "name": {
+      "family_name": "Berry",
+      "given_name": "Jordan",
+      "display_name": "Jordan Berry",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 65,
+    "sex": "M",
+    "date_of_birth": "1959-01-15",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 186.6,
+    "weight_kg": 91.9,
+    "bmi": 26.4,
+    "address": {
+      "postal_code": "01108",
+      "state": "MA",
+      "city": "Springfield",
+      "line1": "266 Pine St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(978) 553-3689",
+      "phone_mobile": "(781) 335-7813",
+      "phone_primary": "(781) 335-7813",
+      "email": "",
+      "emergency_contact_name": "Berry family",
+      "emergency_contact_phone": "(978) 553-3689",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.78,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2015-09-09",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.31173398954868925,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2019-08-25",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.20982137732293593,
+        "stage": "CCS I"
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "Cephalosporin",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Candesartan 8mg",
+      "Aspirin 100mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.3541247063820736,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.5361583617895398,
+      "cardiac_reserve": 0.6409236633324781,
+      "hepatic_reserve": 0.6751349502293656,
+      "treatment_sensitivity": 1.0250952603186838,
+      "symptom_reporting_bias": 0.7460359193644948,
+      "delirium_susceptibility": 0.08409829231485345,
+      "dvt_susceptibility": 0.11794560539865499
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 77,
+      "systolic_bp": 133,
+      "diastolic_bp": 93,
+      "respiratory_rate": 13,
+      "spo2": 97.3
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000867-002041",
+      "patient_id": "POP-000867",
+      "episode_id": "EP-POP-000867-002041",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-05-17T10:16:00",
+      "discharge_datetime": "2024-05-17T10:35:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-000867-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000867-OPD-L00",
+      "encounter_id": "ENC-POP-000867-002041",
+      "patient_id": "POP-000867",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "K",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: K",
+      "ordered_datetime": "2024-05-17T10:26:00",
+      "ordered_by": "DR-IM-002",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-05-17T12:16:00",
+        "performed_by": "TECH-LAB-002",
+        "lab_name": "K",
+        "value": 4.4,
+        "unit": "mmol/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-05-17T10:21:00",
+      "temperature_celsius": null,
+      "heart_rate": 73,
+      "systolic_bp": 138,
+      "diastolic_bp": 94,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-05-17T12:16:00",
+      "performed_by": "TECH-LAB-002",
+      "lab_name": "K",
+      "value": 4.4,
+      "unit": "mmol/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000867-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000867-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-002",
+    "issue_date": "2026-04-13T15:30:34.668546",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Candesartan 8mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Aspirin 100mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

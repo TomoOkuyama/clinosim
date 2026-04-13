@@ -1,0 +1,196 @@
+{
+  "patient": {
+    "patient_id": "POP-001474",
+    "name": {
+      "family_name": "Young",
+      "given_name": "Brandon",
+      "display_name": "Brandon Young",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 82,
+    "sex": "M",
+    "date_of_birth": "1942-02-09",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 169.4,
+    "weight_kg": 85.7,
+    "bmi": 29.9,
+    "address": {
+      "postal_code": "02302",
+      "state": "MA",
+      "city": "Brockton",
+      "line1": "108 Elm St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 318-8514",
+      "phone_primary": "(781) 318-8514",
+      "email": "",
+      "emergency_contact_name": "Young family",
+      "emergency_contact_phone": "(781) 318-8514",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.57,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2012-12-14",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3689106338392759,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "E03",
+        "system": "icd-10-cm",
+        "onset_date": "2011-07-28",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.12897902398164035,
+        "stage": ""
+      },
+      {
+        "code": "N40",
+        "system": "icd-10-cm",
+        "onset_date": "2023-01-11",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.19570492529707378,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Levothyroxine 50mcg",
+      "Tamsulosin 0.2mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.52155009304458,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.3232544166960869,
+      "cardiac_reserve": 0.5942786705762912,
+      "hepatic_reserve": 0.7835228023546756,
+      "treatment_sensitivity": 1.281447808646129,
+      "symptom_reporting_bias": 1.3879256909624116,
+      "delirium_susceptibility": 0.3481086440747616,
+      "dvt_susceptibility": 0.6654592994366314
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 69,
+      "systolic_bp": 140,
+      "diastolic_bp": 86,
+      "respiratory_rate": 18,
+      "spo2": 96.3
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001474-003694",
+      "patient_id": "POP-001474",
+      "episode_id": "EP-POP-001474-003694",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-02-27T10:29:00",
+      "discharge_datetime": "2024-02-27T10:55:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-001474-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-02-27T10:34:00",
+      "temperature_celsius": null,
+      "heart_rate": 64,
+      "systolic_bp": 141,
+      "diastolic_bp": 83,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001474-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001474-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-006",
+    "issue_date": "2026-04-13T15:30:37.561494",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Levothyroxine 50mcg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Tamsulosin 0.2mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

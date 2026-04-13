@@ -1,0 +1,212 @@
+{
+  "patient": {
+    "patient_id": "POP-000166",
+    "name": {
+      "family_name": "Johnson",
+      "given_name": "John",
+      "display_name": "John Johnson",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 55,
+    "sex": "M",
+    "date_of_birth": "1969-05-17",
+    "blood_type": "AB",
+    "rh_factor": "+",
+    "height_cm": 172.1,
+    "weight_kg": 105.1,
+    "bmi": 35.5,
+    "address": {
+      "postal_code": "01103",
+      "state": "MA",
+      "city": "Springfield",
+      "line1": "270 Pleasant St, Apt 2",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 236-1632",
+      "phone_primary": "(617) 236-1632",
+      "email": "",
+      "emergency_contact_name": "Johnson family",
+      "emergency_contact_phone": "(617) 236-1632",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.77,
+    "chronic_conditions": [
+      {
+        "code": "E03",
+        "system": "icd-10-cm",
+        "onset_date": "2020-06-23",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.12176851471407803,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Levothyroxine 50mcg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.2686829209177259,
+      "drug_metabolism_rate": "poor",
+      "renal_reserve": 0.6484980730409462,
+      "cardiac_reserve": 0.8755604211330834,
+      "hepatic_reserve": 0.6666849977556268,
+      "treatment_sensitivity": 0.8824785718391949,
+      "symptom_reporting_bias": 0.7620765818829396,
+      "delirium_susceptibility": 0.12344517859193685,
+      "dvt_susceptibility": 0.09105158874379465
+    },
+    "baseline_vitals": {
+      "temperature": 36.5,
+      "heart_rate": 69,
+      "systolic_bp": 118,
+      "diastolic_bp": 70,
+      "respiratory_rate": 14,
+      "spo2": 97.6
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000166-000446",
+      "patient_id": "POP-000166",
+      "episode_id": "EP-POP-000166-000446",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-02-15T10:37:00",
+      "discharge_datetime": "2024-02-15T10:57:00",
+      "chief_complaint": "Thyroid function monitoring, levothyroxine dose adjustment",
+      "disease_event_id": "DE-POP-000166-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000166-OPD-L00",
+      "encounter_id": "ENC-POP-000166-000446",
+      "patient_id": "POP-000166",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "TSH",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: TSH",
+      "ordered_datetime": "2024-02-15T10:47:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-02-15T12:37:00",
+        "performed_by": "TECH-LAB-006",
+        "lab_name": "TSH",
+        "value": 2.68,
+        "unit": "m[IU]/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-02-15T10:42:00",
+      "temperature_celsius": null,
+      "heart_rate": 61,
+      "systolic_bp": 123,
+      "diastolic_bp": 68,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-02-15T12:37:00",
+      "performed_by": "TECH-LAB-006",
+      "lab_name": "TSH",
+      "value": 2.68,
+      "unit": "m[IU]/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000166-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E03"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E03",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E03",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000166-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-006",
+    "issue_date": "2026-04-13T15:30:31.903118",
+    "items": [
+      {
+        "drug": "Levothyroxine 50mcg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

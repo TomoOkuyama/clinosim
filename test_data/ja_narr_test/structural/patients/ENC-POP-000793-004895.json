@@ -1,0 +1,237 @@
+{
+  "patient": {
+    "patient_id": "POP-000793",
+    "name": {
+      "family_name": "Jennings",
+      "given_name": "Miguel",
+      "display_name": "Miguel Jennings",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 6,
+    "sex": "M",
+    "date_of_birth": "2018-10-02",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 175.3,
+    "weight_kg": 59.5,
+    "bmi": 19.4,
+    "address": {
+      "postal_code": "01903",
+      "state": "MA",
+      "city": "Lynn",
+      "line1": "153 Winter St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "",
+      "phone_primary": "",
+      "email": "",
+      "emergency_contact_name": "",
+      "emergency_contact_phone": "",
+      "emergency_contact_relationship": ""
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.59,
+    "chronic_conditions": [],
+    "allergies": [
+      {
+        "substance": "Penicillin",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [],
+    "smoking_status": "former",
+    "alcohol_use": "heavy",
+    "physiological_profile": {
+      "immune_reactivity": 0.5321345108584234,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8325762328447557,
+      "cardiac_reserve": 0.8159149409776377,
+      "hepatic_reserve": 0.7095543154473569,
+      "treatment_sensitivity": 1.1186452910004159,
+      "symptom_reporting_bias": 0.6964723214172406,
+      "delirium_susceptibility": 0.0402057556883197,
+      "dvt_susceptibility": 0.11290611466872862
+    },
+    "baseline_vitals": {
+      "temperature": 36.2,
+      "heart_rate": 59,
+      "systolic_bp": 111,
+      "diastolic_bp": 73,
+      "respiratory_rate": 13,
+      "spo2": 97.5
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000793-004895",
+      "patient_id": "POP-000793",
+      "episode_id": "EP-POP-000793-004895",
+      "encounter_type": "emergency",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2025-03-14T19:55:00",
+      "discharge_datetime": "2025-03-14T22:55:42.183927",
+      "chief_complaint": "Palpitations, dyspnea, chest tightness, anxiety",
+      "disease_event_id": "DE-POP-000793-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "EM"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000793-ED-L0",
+      "encounter_id": "ENC-POP-000793-004895",
+      "patient_id": "POP-000793",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Troponin",
+      "urgency": "stat",
+      "clinical_intent": "ED workup: Troponin",
+      "ordered_datetime": "2025-03-14T20:04:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2025-03-14T20:48:00",
+        "performed_by": "TECH-LAB-005",
+        "lab_name": "Troponin",
+        "value": 0.011,
+        "unit": "ng/mL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000793-ED-I0",
+      "encounter_id": "ENC-POP-000793-004895",
+      "patient_id": "POP-000793",
+      "order_type": "imaging",
+      "order_code": "",
+      "display_name": "ECG",
+      "urgency": "stat",
+      "clinical_intent": "ED imaging: ECG",
+      "ordered_datetime": "2025-03-14T20:19:00",
+      "ordered_by": "DR-IM-006",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000793-ED-T2",
+      "encounter_id": "ENC-POP-000793-004895",
+      "patient_id": "POP-000793",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "IV normal saline 500mL",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: IV normal saline 500mL",
+      "ordered_datetime": "2025-03-14T20:49:00",
+      "ordered_by": "DR-IM-006",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 500.0,
+      "dose_unit": "mL",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "IV",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2025-03-14T20:00:00",
+      "temperature_celsius": 37.2,
+      "heart_rate": 72,
+      "systolic_bp": 127,
+      "diastolic_bp": 70,
+      "respiratory_rate": 13,
+      "spo2": 98.1,
+      "pain_score": 0,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-EM-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2025-03-14T20:48:00",
+      "performed_by": "TECH-LAB-005",
+      "lab_name": "Troponin",
+      "value": 0.011,
+      "unit": "ng/mL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000793-ED",
+    "condition_type": "ed_visit",
+    "ground_truth_diseases": [
+      "anxiety_panic_attack"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "F41.0",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "F41.0",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

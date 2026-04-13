@@ -1,0 +1,151 @@
+{
+  "patient": {
+    "patient_id": "POP-000781",
+    "name": {
+      "family_name": "Lopez",
+      "given_name": "Wilma",
+      "display_name": "Wilma Lopez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 36,
+    "sex": "F",
+    "date_of_birth": "1988-05-05",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 156.0,
+    "weight_kg": 37.2,
+    "bmi": 15.3,
+    "address": {
+      "postal_code": "02125",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "99 Elm St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(781) 387-2211",
+      "phone_mobile": "(508) 600-7123",
+      "phone_primary": "(508) 600-7123",
+      "email": "",
+      "emergency_contact_name": "Lopez family",
+      "emergency_contact_phone": "(781) 387-2211",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.64,
+    "chronic_conditions": [],
+    "allergies": [
+      {
+        "substance": "Penicillin",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [],
+    "smoking_status": "current",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5012215561001498,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.628675197452737,
+      "cardiac_reserve": 0.9433268130826286,
+      "hepatic_reserve": 0.7034012202750166,
+      "treatment_sensitivity": 0.9766825484248509,
+      "symptom_reporting_bias": 1.431921647063845,
+      "delirium_susceptibility": 0.21000140913143395,
+      "dvt_susceptibility": 0.09489893204078809
+    },
+    "baseline_vitals": {
+      "temperature": 36.0,
+      "heart_rate": 71,
+      "systolic_bp": 111,
+      "diastolic_bp": 69,
+      "respiratory_rate": 13,
+      "spo2": 95.9
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000781-004899",
+      "patient_id": "POP-000781",
+      "episode_id": "EP-POP-000781-004899",
+      "encounter_type": "emergency",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-005",
+      "admitting_physician_id": "DR-IM-005",
+      "discharging_physician_id": "DR-IM-005",
+      "admission_datetime": "2024-09-18T14:55:00",
+      "discharge_datetime": "2024-09-18T15:59:18.405826",
+      "chief_complaint": "Acute low back pain, onset after lifting",
+      "disease_event_id": "DE-POP-000781-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "EM"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-09-18T15:00:00",
+      "temperature_celsius": 36.2,
+      "heart_rate": 74,
+      "systolic_bp": 105,
+      "diastolic_bp": 65,
+      "respiratory_rate": 16,
+      "spo2": 96.1,
+      "pain_score": 3,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-EM-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000781-ED",
+    "condition_type": "ed_visit",
+    "ground_truth_diseases": [
+      "low_back_pain"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "M54.50",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "M54.50",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

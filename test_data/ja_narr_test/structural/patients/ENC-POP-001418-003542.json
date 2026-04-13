@@ -1,0 +1,215 @@
+{
+  "patient": {
+    "patient_id": "POP-001418",
+    "name": {
+      "family_name": "Kennedy",
+      "given_name": "Jean",
+      "display_name": "Jean Kennedy",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 51,
+    "sex": "F",
+    "date_of_birth": "1973-10-05",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 162.5,
+    "weight_kg": 93.7,
+    "bmi": 35.5,
+    "address": {
+      "postal_code": "02452",
+      "state": "MA",
+      "city": "Waltham",
+      "line1": "11 Pleasant St, Apt 10",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 591-6835",
+      "phone_primary": "(508) 591-6835",
+      "email": "",
+      "emergency_contact_name": "Kennedy family",
+      "emergency_contact_phone": "(508) 591-6835",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.93,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2015-11-03",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.2630510558760884,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2017-10-21",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.3736176365934425,
+        "stage": "HbA1c 7.6%"
+      },
+      {
+        "code": "J44",
+        "system": "icd-10-cm",
+        "onset_date": "2022-05-17",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.18141560524563738,
+        "stage": "GOLD 2"
+      },
+      {
+        "code": "K21",
+        "system": "icd-10-cm",
+        "onset_date": "2023-10-16",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.23930362635836117,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Metformin 500mg",
+      "Tiotropium 18mcg inhaler",
+      "Salbutamol 100mcg inhaler PRN",
+      "Lansoprazole 15mg"
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5535653050479706,
+      "drug_metabolism_rate": "poor",
+      "renal_reserve": 0.6542233020411077,
+      "cardiac_reserve": 0.71675269700216,
+      "hepatic_reserve": 0.6991800150702181,
+      "treatment_sensitivity": 1.0348977728869873,
+      "symptom_reporting_bias": 1.1204251320348075,
+      "delirium_susceptibility": 0.16068839017107464,
+      "dvt_susceptibility": 0.07372603804742031
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 73,
+      "systolic_bp": 125,
+      "diastolic_bp": 100,
+      "respiratory_rate": 20,
+      "spo2": 93.8
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001418-003542",
+      "patient_id": "POP-001418",
+      "episode_id": "EP-POP-001418-003542",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-06-17T10:04:00",
+      "discharge_datetime": "2024-06-17T10:21:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-001418-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-06-17T10:09:00",
+      "temperature_celsius": null,
+      "heart_rate": 76,
+      "systolic_bp": 140,
+      "diastolic_bp": 92,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001418-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001418-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-003",
+    "issue_date": "2026-04-13T15:30:37.294343",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Metformin 500mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Tiotropium 18mcg inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol 100mcg inhaler PRN",
+        "duration_days": 30
+      },
+      {
+        "drug": "Lansoprazole 15mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

@@ -1,0 +1,315 @@
+{
+  "patient": {
+    "patient_id": "POP-000628",
+    "name": {
+      "family_name": "Walker",
+      "given_name": "Maria",
+      "display_name": "Maria Walker",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 47,
+    "sex": "F",
+    "date_of_birth": "1977-04-15",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 159.7,
+    "weight_kg": 38.2,
+    "bmi": 15.0,
+    "address": {
+      "postal_code": "01901",
+      "state": "MA",
+      "city": "Lynn",
+      "line1": "352 Beacon St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(781) 988-1938",
+      "phone_mobile": "(617) 768-8828",
+      "phone_primary": "(617) 768-8828",
+      "email": "",
+      "emergency_contact_name": "Walker family",
+      "emergency_contact_phone": "(781) 988-1938",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.51,
+    "chronic_conditions": [
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2016-09-07",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.3318623497347089,
+        "stage": "HbA1c 7.1%"
+      },
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2022-04-28",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.3493484014963729,
+        "stage": "Mild persistent"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Metformin 500mg",
+      "Fluticasone/Salmeterol inhaler",
+      "Salbutamol inhaler PRN"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "heavy",
+    "physiological_profile": {
+      "immune_reactivity": 0.6358709700736154,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7962823033264448,
+      "cardiac_reserve": 0.8379670566037013,
+      "hepatic_reserve": 0.9143554936729081,
+      "treatment_sensitivity": 1.0111672751478658,
+      "symptom_reporting_bias": 0.9433443507387005,
+      "delirium_susceptibility": 0.40563303690789493,
+      "dvt_susceptibility": 0.23526049404148827
+    },
+    "baseline_vitals": {
+      "temperature": 36.1,
+      "heart_rate": 79,
+      "systolic_bp": 126,
+      "diastolic_bp": 74,
+      "respiratory_rate": 18,
+      "spo2": 97.2
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000628-001424",
+      "patient_id": "POP-000628",
+      "episode_id": "EP-POP-000628-001424",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-004",
+      "admitting_physician_id": "DR-IM-004",
+      "discharging_physician_id": "DR-IM-004",
+      "admission_datetime": "2024-11-02T10:27:00",
+      "discharge_datetime": "2024-11-02T10:42:00",
+      "chief_complaint": "Diabetes management, glycemic control review",
+      "disease_event_id": "DE-POP-000628-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000628-OPD-L00",
+      "encounter_id": "ENC-POP-000628-001424",
+      "patient_id": "POP-000628",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Glucose",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Glucose",
+      "ordered_datetime": "2024-11-02T10:37:00",
+      "ordered_by": "DR-IM-004",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-11-02T12:27:00",
+        "performed_by": "TECH-LAB-003",
+        "lab_name": "Glucose",
+        "value": 98.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000628-OPD-L01",
+      "encounter_id": "ENC-POP-000628-001424",
+      "patient_id": "POP-000628",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "HbA1c",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: HbA1c",
+      "ordered_datetime": "2024-11-02T10:37:00",
+      "ordered_by": "DR-IM-004",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-11-02T12:27:00",
+        "performed_by": "TECH-LAB-003",
+        "lab_name": "HbA1c",
+        "value": 6.4,
+        "unit": "%",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000628-OPD-L02",
+      "encounter_id": "ENC-POP-000628-001424",
+      "patient_id": "POP-000628",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Creatinine",
+      "ordered_datetime": "2024-11-02T10:37:00",
+      "ordered_by": "DR-IM-004",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-11-02T12:27:00",
+        "performed_by": "TECH-LAB-003",
+        "lab_name": "Creatinine",
+        "value": 0.93,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": "H",
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-11-02T10:32:00",
+      "temperature_celsius": null,
+      "heart_rate": 78,
+      "systolic_bp": 123,
+      "diastolic_bp": 70,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-11-02T12:27:00",
+      "performed_by": "TECH-LAB-003",
+      "lab_name": "Glucose",
+      "value": 98.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-11-02T12:27:00",
+      "performed_by": "TECH-LAB-003",
+      "lab_name": "HbA1c",
+      "value": 6.4,
+      "unit": "%",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-11-02T12:27:00",
+      "performed_by": "TECH-LAB-003",
+      "lab_name": "Creatinine",
+      "value": 0.93,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": "H",
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000628-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E11.9"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E11.9",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E11.9",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000628-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-004",
+    "issue_date": "2026-04-13T15:30:33.597131",
+    "items": [
+      {
+        "drug": "Metformin 500mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Fluticasone/Salmeterol inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol inhaler PRN",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

@@ -1,0 +1,217 @@
+{
+  "patient": {
+    "patient_id": "POP-001053",
+    "name": {
+      "family_name": "Davis",
+      "given_name": "Jerry",
+      "display_name": "Jerry Davis",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 48,
+    "sex": "M",
+    "date_of_birth": "1976-04-11",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 187.9,
+    "weight_kg": 115.7,
+    "bmi": 32.8,
+    "address": {
+      "postal_code": "01905",
+      "state": "MA",
+      "city": "Lynn",
+      "line1": "434 Main St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 479-1914",
+      "phone_primary": "(781) 479-1914",
+      "email": "",
+      "emergency_contact_name": "Davis family",
+      "emergency_contact_phone": "(781) 479-1914",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.6,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2012-12-13",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.17271755999611035,
+        "stage": "Stage 1"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Candesartan 8mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.32748647946859577,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.9266199636801622,
+      "cardiac_reserve": 0.7751024392062013,
+      "hepatic_reserve": 0.8402457512704157,
+      "treatment_sensitivity": 1.1972410705508894,
+      "symptom_reporting_bias": 0.9950553800012751,
+      "delirium_susceptibility": 0.04396312015385811,
+      "dvt_susceptibility": 0.23194552481806738
+    },
+    "baseline_vitals": {
+      "temperature": 36.1,
+      "heart_rate": 62,
+      "systolic_bp": 119,
+      "diastolic_bp": 86,
+      "respiratory_rate": 14,
+      "spo2": 97.9
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001053-002528",
+      "patient_id": "POP-001053",
+      "episode_id": "EP-POP-001053-002528",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-01-19T10:35:00",
+      "discharge_datetime": "2024-01-19T11:04:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-001053-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001053-OPD-L00",
+      "encounter_id": "ENC-POP-001053-002528",
+      "patient_id": "POP-001053",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "K",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: K",
+      "ordered_datetime": "2024-01-19T10:45:00",
+      "ordered_by": "DR-IM-001",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-01-19T12:35:00",
+        "performed_by": "TECH-LAB-002",
+        "lab_name": "K",
+        "value": 4.3,
+        "unit": "mmol/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-01-19T10:40:00",
+      "temperature_celsius": null,
+      "heart_rate": 57,
+      "systolic_bp": 138,
+      "diastolic_bp": 96,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-01-19T12:35:00",
+      "performed_by": "TECH-LAB-002",
+      "lab_name": "K",
+      "value": 4.3,
+      "unit": "mmol/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001053-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001053-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-001",
+    "issue_date": "2026-04-13T15:30:35.515836",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Candesartan 8mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

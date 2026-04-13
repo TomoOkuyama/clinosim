@@ -1,0 +1,197 @@
+{
+  "patient": {
+    "patient_id": "POP-001108",
+    "name": {
+      "family_name": "Cruz",
+      "given_name": "Nancy",
+      "display_name": "Nancy Cruz",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 51,
+    "sex": "F",
+    "date_of_birth": "1973-03-17",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 155.5,
+    "weight_kg": 77.3,
+    "bmi": 31.9,
+    "address": {
+      "postal_code": "02155",
+      "state": "MA",
+      "city": "Medford",
+      "line1": "422 Center St, Apt 8",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 505-6968",
+      "phone_primary": "(508) 505-6968",
+      "email": "",
+      "emergency_contact_name": "Cruz family",
+      "emergency_contact_phone": "(508) 505-6968",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "D",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.5,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2016-05-02",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.2923985699218695,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "K21",
+        "system": "icd-10-cm",
+        "onset_date": "2020-10-16",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.1316871310730949,
+        "stage": ""
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2020-05-08",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.2779777711410387,
+        "stage": ""
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "Sulfonamide",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Lansoprazole 15mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.6907934538673836,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.6490229063435998,
+      "cardiac_reserve": 0.7170944491708156,
+      "hepatic_reserve": 0.7688898358232452,
+      "treatment_sensitivity": 1.0608793101675187,
+      "symptom_reporting_bias": 1.0988497733124731,
+      "delirium_susceptibility": 0.31671939777344343,
+      "dvt_susceptibility": 0.23885849005509963
+    },
+    "baseline_vitals": {
+      "temperature": 36.7,
+      "heart_rate": 64,
+      "systolic_bp": 123,
+      "diastolic_bp": 80,
+      "respiratory_rate": 13,
+      "spo2": 98.6
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001108-002703",
+      "patient_id": "POP-001108",
+      "episode_id": "EP-POP-001108-002703",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-04-25T10:03:00",
+      "discharge_datetime": "2024-04-25T10:26:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-001108-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-04-25T10:08:00",
+      "temperature_celsius": null,
+      "heart_rate": 63,
+      "systolic_bp": 108,
+      "diastolic_bp": 89,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001108-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001108-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-006",
+    "issue_date": "2026-04-13T15:30:35.835622",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Lansoprazole 15mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

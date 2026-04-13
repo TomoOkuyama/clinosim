@@ -1,0 +1,182 @@
+{
+  "patient": {
+    "patient_id": "POP-000341",
+    "name": {
+      "family_name": "Reed",
+      "given_name": "Helen",
+      "display_name": "Helen Reed",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 40,
+    "sex": "F",
+    "date_of_birth": "1984-08-10",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 160.8,
+    "weight_kg": 71.3,
+    "bmi": 27.6,
+    "address": {
+      "postal_code": "01606",
+      "state": "MA",
+      "city": "Worcester",
+      "line1": "48 Commonwealth Ave",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(781) 216-3158",
+      "phone_mobile": "(508) 925-9807",
+      "phone_primary": "(508) 925-9807",
+      "email": "",
+      "emergency_contact_name": "Reed family",
+      "emergency_contact_phone": "(781) 216-3158",
+      "emergency_contact_relationship": "sibling"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.64,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2011-09-06",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.306968060820805,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "K21",
+        "system": "icd-10-cm",
+        "onset_date": "2021-04-07",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.24912448306496365,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Lansoprazole 15mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5425255316285982,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8513993577202058,
+      "cardiac_reserve": 0.9293375637752754,
+      "hepatic_reserve": 0.6645045628684967,
+      "treatment_sensitivity": 1.1690353368971989,
+      "symptom_reporting_bias": 1.2190478934185893,
+      "delirium_susceptibility": 0.3741336886561879,
+      "dvt_susceptibility": 0.2811196434501366
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 82,
+      "systolic_bp": 144,
+      "diastolic_bp": 79,
+      "respiratory_rate": 12,
+      "spo2": 98.2
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000341-000795",
+      "patient_id": "POP-000341",
+      "episode_id": "EP-POP-000341-000795",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-03-21T10:18:00",
+      "discharge_datetime": "2024-03-21T11:00:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-000341-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-03-21T10:23:00",
+      "temperature_celsius": null,
+      "heart_rate": 81,
+      "systolic_bp": 145,
+      "diastolic_bp": 76,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000341-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000341-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-002",
+    "issue_date": "2026-04-13T15:30:32.505268",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Lansoprazole 15mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

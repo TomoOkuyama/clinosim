@@ -1,0 +1,174 @@
+{
+  "patient": {
+    "patient_id": "POP-000428",
+    "name": {
+      "family_name": "Coleman",
+      "given_name": "Sophia",
+      "display_name": "Sophia Coleman",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 66,
+    "sex": "F",
+    "date_of_birth": "1958-12-10",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 167.4,
+    "weight_kg": 92.0,
+    "bmi": 32.9,
+    "address": {
+      "postal_code": "02130",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "10 Pine St, Apt 2",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 609-1429",
+      "phone_primary": "(781) 609-1429",
+      "email": "",
+      "emergency_contact_name": "Coleman family",
+      "emergency_contact_phone": "(781) 609-1429",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.53,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2017-06-16",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.35432324071019006,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2020-11-18",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.21665229534484876,
+        "stage": "Mild persistent"
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "NSAIDs",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Fluticasone/Salmeterol inhaler",
+      "Salbutamol inhaler PRN"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.31918498706068466,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.6337933482132259,
+      "cardiac_reserve": 0.8176196166437134,
+      "hepatic_reserve": 0.6043628215675384,
+      "treatment_sensitivity": 1.0743749735598003,
+      "symptom_reporting_bias": 0.7256136483556731,
+      "delirium_susceptibility": 0.4380554933483189,
+      "dvt_susceptibility": 0.3349361650599911
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 85,
+      "systolic_bp": 137,
+      "diastolic_bp": 88,
+      "respiratory_rate": 19,
+      "spo2": 97.7
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000428-000997",
+      "patient_id": "POP-000428",
+      "episode_id": "EP-POP-000428-000997",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-10-20T10:17:00",
+      "discharge_datetime": "2024-10-20T10:50:00",
+      "chief_complaint": "Influenza vaccination",
+      "disease_event_id": "DE-POP-000428-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-10-20T10:22:00",
+      "temperature_celsius": null,
+      "heart_rate": 88,
+      "systolic_bp": 140,
+      "diastolic_bp": 84,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000428-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z23"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z23",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z23",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

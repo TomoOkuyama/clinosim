@@ -1,0 +1,196 @@
+{
+  "patient": {
+    "patient_id": "POP-001085",
+    "name": {
+      "family_name": "Reynolds",
+      "given_name": "Virginia",
+      "display_name": "Virginia Reynolds",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 82,
+    "sex": "F",
+    "date_of_birth": "1942-11-17",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 170.1,
+    "weight_kg": 91.3,
+    "bmi": 31.6,
+    "address": {
+      "postal_code": "02155",
+      "state": "MA",
+      "city": "Medford",
+      "line1": "131 Highland Ave, Apt 10",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(857) 413-5417",
+      "phone_mobile": "(508) 843-8947",
+      "phone_primary": "(508) 843-8947",
+      "email": "",
+      "emergency_contact_name": "Reynolds family",
+      "emergency_contact_phone": "(857) 413-5417",
+      "emergency_contact_relationship": "sibling"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.7,
+    "chronic_conditions": [
+      {
+        "code": "J44",
+        "system": "icd-10-cm",
+        "onset_date": "2016-10-16",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.13781589737827324,
+        "stage": "GOLD 3"
+      },
+      {
+        "code": "F00",
+        "system": "icd-10-cm",
+        "onset_date": "2017-03-08",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.3703144053126517,
+        "stage": ""
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2014-11-03",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.2632489667580473,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Tiotropium 18mcg inhaler",
+      "Salbutamol 100mcg inhaler PRN",
+      "Acetaminophen 500mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.6008963796057253,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.5785696262390699,
+      "cardiac_reserve": 0.5375089896990274,
+      "hepatic_reserve": 0.6245399132774057,
+      "treatment_sensitivity": 1.2745707740056043,
+      "symptom_reporting_bias": 0.7587850185441077,
+      "delirium_susceptibility": 0.6935911627874175,
+      "dvt_susceptibility": 0.24055640514780352
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 51,
+      "systolic_bp": 142,
+      "diastolic_bp": 72,
+      "respiratory_rate": 15,
+      "spo2": 94.1
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001085-002615",
+      "patient_id": "POP-001085",
+      "episode_id": "EP-POP-001085-002615",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-005",
+      "admitting_physician_id": "DR-IM-005",
+      "discharging_physician_id": "DR-IM-005",
+      "admission_datetime": "2024-06-07T10:01:00",
+      "discharge_datetime": "2024-06-07T10:23:00",
+      "chief_complaint": "COPD management, pulmonary function review",
+      "disease_event_id": "DE-POP-001085-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-06-07T10:06:00",
+      "temperature_celsius": null,
+      "heart_rate": 53,
+      "systolic_bp": 137,
+      "diastolic_bp": 60,
+      "respiratory_rate": 18,
+      "spo2": 97.5,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001085-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "J44"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "J44",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "J44",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001085-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-005",
+    "issue_date": "2026-04-13T15:30:35.676907",
+    "items": [
+      {
+        "drug": "Tiotropium 18mcg inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol 100mcg inhaler PRN",
+        "duration_days": 30
+      },
+      {
+        "drug": "Acetaminophen 500mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

@@ -1,0 +1,206 @@
+{
+  "patient": {
+    "patient_id": "POP-001353",
+    "name": {
+      "family_name": "Watts",
+      "given_name": "Dwayne",
+      "display_name": "Dwayne Watts",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 72,
+    "sex": "M",
+    "date_of_birth": "1952-09-24",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 181.5,
+    "weight_kg": 144.2,
+    "bmi": 43.8,
+    "address": {
+      "postal_code": "02301",
+      "state": "MA",
+      "city": "Brockton",
+      "line1": "441 Pleasant St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(978) 530-7529",
+      "phone_mobile": "(508) 959-9312",
+      "phone_primary": "(508) 959-9312",
+      "email": "",
+      "emergency_contact_name": "Watts family",
+      "emergency_contact_phone": "(978) 530-7529",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.7,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2017-09-15",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3588522911191649,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2014-06-26",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.28467746912708886,
+        "stage": ""
+      },
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2022-07-03",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.26651906310622286,
+        "stage": "Moderate persistent"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Candesartan 8mg",
+      "Atorvastatin 10mg",
+      "Fluticasone/Salmeterol inhaler",
+      "Salbutamol inhaler PRN"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.4553944302784334,
+      "drug_metabolism_rate": "rapid",
+      "renal_reserve": 0.6978487501230205,
+      "cardiac_reserve": 0.5110539537025276,
+      "hepatic_reserve": 0.6121369662171139,
+      "treatment_sensitivity": 1.037362540128558,
+      "symptom_reporting_bias": 0.9847586667304145,
+      "delirium_susceptibility": 0.387551622512108,
+      "dvt_susceptibility": 0.283563177578949
+    },
+    "baseline_vitals": {
+      "temperature": 36.0,
+      "heart_rate": 73,
+      "systolic_bp": 150,
+      "diastolic_bp": 67,
+      "respiratory_rate": 15,
+      "spo2": 98.3
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001353-003306",
+      "patient_id": "POP-001353",
+      "episode_id": "EP-POP-001353-003306",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-005",
+      "admitting_physician_id": "DR-IM-005",
+      "discharging_physician_id": "DR-IM-005",
+      "admission_datetime": "2024-06-07T10:26:00",
+      "discharge_datetime": "2024-06-07T10:41:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-001353-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-06-07T10:31:00",
+      "temperature_celsius": null,
+      "heart_rate": 76,
+      "systolic_bp": 150,
+      "diastolic_bp": 73,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001353-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001353-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-005",
+    "issue_date": "2026-04-13T15:30:36.885218",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Candesartan 8mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Fluticasone/Salmeterol inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol inhaler PRN",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

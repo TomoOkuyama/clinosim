@@ -1,0 +1,235 @@
+{
+  "patient": {
+    "patient_id": "POP-001671",
+    "name": {
+      "family_name": "Ramirez",
+      "given_name": "James",
+      "display_name": "James Ramirez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 61,
+    "sex": "M",
+    "date_of_birth": "1963-10-20",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 171.9,
+    "weight_kg": 64.7,
+    "bmi": 21.9,
+    "address": {
+      "postal_code": "02130",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "98 Franklin St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(617) 394-4718",
+      "phone_mobile": "(781) 469-7942",
+      "phone_primary": "(781) 469-7942",
+      "email": "",
+      "emergency_contact_name": "Ramirez family",
+      "emergency_contact_phone": "(617) 394-4718",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.62,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2015-01-06",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3014357947991121,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2014-02-08",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.11396587969422729,
+        "stage": "HbA1c 7.7%"
+      },
+      {
+        "code": "N18",
+        "system": "icd-10-cm",
+        "onset_date": "2018-01-27",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.1980657418900441,
+        "stage": "CKD G5"
+      },
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2011-11-06",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.37729674672797275,
+        "stage": "CCS III"
+      },
+      {
+        "code": "K21",
+        "system": "icd-10-cm",
+        "onset_date": "2019-01-05",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.3940680591050662,
+        "stage": ""
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "Cephalosporin",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Metformin 500mg",
+      "Sliding scale insulin",
+      "Sodium bicarbonate 500mg",
+      "Aspirin 100mg",
+      "Lansoprazole 15mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.7174137435357559,
+      "drug_metabolism_rate": "ultra_rapid",
+      "renal_reserve": 0.679375468373094,
+      "cardiac_reserve": 0.6663174846771709,
+      "hepatic_reserve": 0.7177413739374872,
+      "treatment_sensitivity": 1.0214046031511888,
+      "symptom_reporting_bias": 0.8377890943038855,
+      "delirium_susceptibility": 0.43465336136767835,
+      "dvt_susceptibility": 0.2586987751499871
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 63,
+      "systolic_bp": 125,
+      "diastolic_bp": 83,
+      "respiratory_rate": 17,
+      "spo2": 97.0
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001671-004165",
+      "patient_id": "POP-001671",
+      "episode_id": "EP-POP-001671-004165",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-02-03T10:00:00",
+      "discharge_datetime": "2024-02-03T10:39:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-001671-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-02-03T10:05:00",
+      "temperature_celsius": null,
+      "heart_rate": 59,
+      "systolic_bp": 107,
+      "diastolic_bp": 80,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001671-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001671-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-001",
+    "issue_date": "2026-04-13T15:30:38.426664",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Metformin 500mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Sliding scale insulin",
+        "duration_days": 30
+      },
+      {
+        "drug": "Sodium bicarbonate 500mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Aspirin 100mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Lansoprazole 15mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

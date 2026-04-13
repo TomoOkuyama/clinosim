@@ -1,0 +1,231 @@
+{
+  "patient": {
+    "patient_id": "POP-001596",
+    "name": {
+      "family_name": "Allen",
+      "given_name": "Peggy",
+      "display_name": "Peggy Allen",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 29,
+    "sex": "F",
+    "date_of_birth": "1995-07-19",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 160.3,
+    "weight_kg": 85.5,
+    "bmi": 33.3,
+    "address": {
+      "postal_code": "02119",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "484 Washington St, Apt 10",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(351) 779-2648",
+      "phone_mobile": "(617) 979-6283",
+      "phone_primary": "(617) 979-6283",
+      "email": "",
+      "emergency_contact_name": "Allen family",
+      "emergency_contact_phone": "(351) 779-2648",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.86,
+    "chronic_conditions": [],
+    "allergies": [],
+    "current_medications": [],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.5959582848455117,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8870040434975079,
+      "cardiac_reserve": 0.5747365754259062,
+      "hepatic_reserve": 0.8524591985273763,
+      "treatment_sensitivity": 1.182874405837614,
+      "symptom_reporting_bias": 1.0286242259406297,
+      "delirium_susceptibility": 0.16415662484380025,
+      "dvt_susceptibility": 0.2724031754521184
+    },
+    "baseline_vitals": {
+      "temperature": 36.2,
+      "heart_rate": 75,
+      "systolic_bp": 104,
+      "diastolic_bp": 73,
+      "respiratory_rate": 15,
+      "spo2": 97.5
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001596-004943",
+      "patient_id": "POP-001596",
+      "episode_id": "EP-POP-001596-004943",
+      "encounter_type": "emergency",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2025-02-13T15:29:00",
+      "discharge_datetime": "2025-02-13T17:58:24.888934",
+      "chief_complaint": "Nausea, vomiting, diarrhea, abdominal cramps",
+      "disease_event_id": "DE-POP-001596-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "EM"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001596-ED-L0",
+      "encounter_id": "ENC-POP-001596-004943",
+      "patient_id": "POP-001596",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "WBC",
+      "urgency": "stat",
+      "clinical_intent": "ED workup: WBC",
+      "ordered_datetime": "2025-02-13T15:37:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2025-02-13T15:45:00",
+        "performed_by": "TECH-LAB-009",
+        "lab_name": "WBC",
+        "value": 7549.0,
+        "unit": "/uL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-001596-ED-L5",
+      "encounter_id": "ENC-POP-001596-004943",
+      "patient_id": "POP-001596",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Glucose",
+      "urgency": "stat",
+      "clinical_intent": "ED workup: Glucose",
+      "ordered_datetime": "2025-02-13T15:43:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2025-02-13T16:24:00",
+        "performed_by": "TECH-LAB-009",
+        "lab_name": "Glucose",
+        "value": 96.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2025-02-13T15:34:00",
+      "temperature_celsius": 38.0,
+      "heart_rate": 66,
+      "systolic_bp": 113,
+      "diastolic_bp": 65,
+      "respiratory_rate": 12,
+      "spo2": 96.9,
+      "pain_score": 5,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-EM-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2025-02-13T15:45:00",
+      "performed_by": "TECH-LAB-009",
+      "lab_name": "WBC",
+      "value": 7549.0,
+      "unit": "/uL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2025-02-13T16:24:00",
+      "performed_by": "TECH-LAB-009",
+      "lab_name": "Glucose",
+      "value": 96.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001596-ED",
+    "condition_type": "ed_visit",
+    "ground_truth_diseases": [
+      "viral_gastroenteritis"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "A08.4",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "A08.4",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

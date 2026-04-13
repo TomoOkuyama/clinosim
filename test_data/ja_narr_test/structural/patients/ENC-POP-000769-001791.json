@@ -1,0 +1,202 @@
+{
+  "patient": {
+    "patient_id": "POP-000769",
+    "name": {
+      "family_name": "Rodriguez",
+      "given_name": "Ava",
+      "display_name": "Ava Rodriguez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 42,
+    "sex": "F",
+    "date_of_birth": "1982-09-19",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 164.6,
+    "weight_kg": 95.1,
+    "bmi": 35.1,
+    "address": {
+      "postal_code": "01606",
+      "state": "MA",
+      "city": "Worcester",
+      "line1": "118 Beacon St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(857) 570-2438",
+      "phone_mobile": "(781) 992-1713",
+      "phone_primary": "(781) 992-1713",
+      "email": "",
+      "emergency_contact_name": "Rodriguez family",
+      "emergency_contact_phone": "(857) 570-2438",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.37,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2020-06-07",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.26957894357094664,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2011-01-04",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.19353410848258518,
+        "stage": "HbA1c 8.5%"
+      },
+      {
+        "code": "K21",
+        "system": "icd-10-cm",
+        "onset_date": "2020-08-19",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.13413053078889156,
+        "stage": ""
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "Sulfonamide",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Metformin 500mg",
+      "Lansoprazole 15mg"
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "heavy",
+    "physiological_profile": {
+      "immune_reactivity": 0.7841382687291936,
+      "drug_metabolism_rate": "rapid",
+      "renal_reserve": 0.7887832463199916,
+      "cardiac_reserve": 0.4910309271432438,
+      "hepatic_reserve": 0.814224903356733,
+      "treatment_sensitivity": 0.7965435912586365,
+      "symptom_reporting_bias": 1.2199871060785068,
+      "delirium_susceptibility": 0.15842524930307916,
+      "dvt_susceptibility": 0.3733233367216156
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 89,
+      "systolic_bp": 123,
+      "diastolic_bp": 71,
+      "respiratory_rate": 10,
+      "spo2": 97.2
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000769-001791",
+      "patient_id": "POP-000769",
+      "episode_id": "EP-POP-000769-001791",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-02-14T10:04:00",
+      "discharge_datetime": "2024-02-14T10:46:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-000769-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-02-14T10:09:00",
+      "temperature_celsius": null,
+      "heart_rate": 90,
+      "systolic_bp": 109,
+      "diastolic_bp": 75,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000769-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000769-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-002",
+    "issue_date": "2026-04-13T15:30:34.261423",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Metformin 500mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Lansoprazole 15mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

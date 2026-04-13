@@ -1,0 +1,217 @@
+{
+  "patient": {
+    "patient_id": "POP-001183",
+    "name": {
+      "family_name": "Clark",
+      "given_name": "Richard",
+      "display_name": "Richard Clark",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 53,
+    "sex": "M",
+    "date_of_birth": "1971-06-03",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 173.4,
+    "weight_kg": 91.3,
+    "bmi": 30.4,
+    "address": {
+      "postal_code": "02109",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "317 Harvard St, Apt 11",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 928-6421",
+      "phone_primary": "(508) 928-6421",
+      "email": "",
+      "emergency_contact_name": "Clark family",
+      "emergency_contact_phone": "(508) 928-6421",
+      "emergency_contact_relationship": "sibling"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.31,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2021-12-02",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.14599202410045703,
+        "stage": "Stage 2"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Candesartan 8mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "heavy",
+    "physiological_profile": {
+      "immune_reactivity": 0.7321802327721708,
+      "drug_metabolism_rate": "ultra_rapid",
+      "renal_reserve": 0.912383264628843,
+      "cardiac_reserve": 0.606150446460509,
+      "hepatic_reserve": 0.56372549011866,
+      "treatment_sensitivity": 1.0928263631819448,
+      "symptom_reporting_bias": 0.5523282230081873,
+      "delirium_susceptibility": 0.16847126613849578,
+      "dvt_susceptibility": 0.10193508178178312
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 63,
+      "systolic_bp": 120,
+      "diastolic_bp": 85,
+      "respiratory_rate": 13,
+      "spo2": 96.5
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001183-002892",
+      "patient_id": "POP-001183",
+      "episode_id": "EP-POP-001183-002892",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-004",
+      "admitting_physician_id": "DR-IM-004",
+      "discharging_physician_id": "DR-IM-004",
+      "admission_datetime": "2024-01-24T10:18:00",
+      "discharge_datetime": "2024-01-24T10:55:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-001183-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001183-OPD-L00",
+      "encounter_id": "ENC-POP-001183-002892",
+      "patient_id": "POP-001183",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Creatinine",
+      "ordered_datetime": "2024-01-24T10:28:00",
+      "ordered_by": "DR-IM-004",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-01-24T12:18:00",
+        "performed_by": "TECH-LAB-001",
+        "lab_name": "Creatinine",
+        "value": 0.87,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-01-24T10:23:00",
+      "temperature_celsius": null,
+      "heart_rate": 61,
+      "systolic_bp": 124,
+      "diastolic_bp": 93,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-01-24T12:18:00",
+      "performed_by": "TECH-LAB-001",
+      "lab_name": "Creatinine",
+      "value": 0.87,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001183-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001183-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-004",
+    "issue_date": "2026-04-13T15:30:36.148876",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Candesartan 8mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

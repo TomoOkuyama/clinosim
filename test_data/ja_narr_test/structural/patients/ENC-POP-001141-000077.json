@@ -1,0 +1,233 @@
+{
+  "patient": {
+    "patient_id": "POP-001141",
+    "name": {
+      "family_name": "Mendoza",
+      "given_name": "Mary",
+      "display_name": "Mary Mendoza",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 64,
+    "sex": "F",
+    "date_of_birth": "1960-08-19",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 153.3,
+    "weight_kg": 82.0,
+    "bmi": 34.9,
+    "address": {
+      "postal_code": "01851",
+      "state": "MA",
+      "city": "Lowell",
+      "line1": "241 Commonwealth Ave",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 546-5017",
+      "phone_primary": "(781) 546-5017",
+      "email": "",
+      "emergency_contact_name": "Mendoza family",
+      "emergency_contact_phone": "(781) 546-5017",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "D",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.77,
+    "chronic_conditions": [],
+    "allergies": [],
+    "current_medications": [
+      ""
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.3773181396444175,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7647233141074714,
+      "cardiac_reserve": 0.518593637326189,
+      "hepatic_reserve": 0.8515680973332131,
+      "treatment_sensitivity": 0.9559955077657408,
+      "symptom_reporting_bias": 1.0357802283205582,
+      "delirium_susceptibility": 0.1471019432992165,
+      "dvt_susceptibility": 0.2877248871033625
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 80,
+      "systolic_bp": 126,
+      "diastolic_bp": 84,
+      "respiratory_rate": 12,
+      "spo2": 97.7
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001141-000077",
+      "patient_id": "POP-001141",
+      "episode_id": "EP-POP-001141-000077",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-05-24T11:34:00",
+      "discharge_datetime": "2024-05-24T11:56:00",
+      "chief_complaint": "Post-pancreatitis follow-up, amylase/lipase, dietary counseling",
+      "disease_event_id": "DE-POP-001141-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001141-OPD-L00",
+      "encounter_id": "ENC-POP-001141-000077",
+      "patient_id": "POP-001141",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "CRP",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: CRP",
+      "ordered_datetime": "2024-05-24T11:44:00",
+      "ordered_by": "DR-IM-002",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-05-24T13:34:00",
+        "performed_by": "TECH-LAB-001",
+        "lab_name": "CRP",
+        "value": 0.5,
+        "unit": "mg/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-001141-OPD-L01",
+      "encounter_id": "ENC-POP-001141-000077",
+      "patient_id": "POP-001141",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Creatinine",
+      "ordered_datetime": "2024-05-24T11:44:00",
+      "ordered_by": "DR-IM-002",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-05-24T13:34:00",
+        "performed_by": "TECH-LAB-001",
+        "lab_name": "Creatinine",
+        "value": 0.9,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": "H",
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-05-24T11:39:00",
+      "temperature_celsius": 36.4,
+      "heart_rate": 83,
+      "systolic_bp": 136,
+      "diastolic_bp": 85,
+      "respiratory_rate": 17,
+      "spo2": 98.1,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-05-24T13:34:00",
+      "performed_by": "TECH-LAB-001",
+      "lab_name": "CRP",
+      "value": 0.5,
+      "unit": "mg/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-05-24T13:34:00",
+      "performed_by": "TECH-LAB-001",
+      "lab_name": "Creatinine",
+      "value": 0.9,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": "H",
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001141-OPD",
+    "condition_type": "post_discharge_followup",
+    "ground_truth_diseases": [
+      "Z09"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z09",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z09",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

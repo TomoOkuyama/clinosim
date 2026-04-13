@@ -1,0 +1,158 @@
+{
+  "patient": {
+    "patient_id": "POP-001137",
+    "name": {
+      "family_name": "Page",
+      "given_name": "James",
+      "display_name": "James Page",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 63,
+    "sex": "M",
+    "date_of_birth": "1961-04-02",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 170.0,
+    "weight_kg": 74.7,
+    "bmi": 25.8,
+    "address": {
+      "postal_code": "02303",
+      "state": "MA",
+      "city": "Brockton",
+      "line1": "337 Maple Ave, Apt 5",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 247-7937",
+      "phone_primary": "(617) 247-7937",
+      "email": "",
+      "emergency_contact_name": "Page family",
+      "emergency_contact_phone": "(617) 247-7937",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.72,
+    "chronic_conditions": [
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2019-11-05",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.11056957993073191,
+        "stage": "HbA1c 6.8%"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Metformin 500mg",
+      "Sliding scale insulin"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.613369227203812,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7768899982261531,
+      "cardiac_reserve": 0.7205931278397728,
+      "hepatic_reserve": 0.6900866949425244,
+      "treatment_sensitivity": 0.8513683630882384,
+      "symptom_reporting_bias": 0.8997058627244982,
+      "delirium_susceptibility": 0.11086877462807948,
+      "dvt_susceptibility": 0.45139018981318896
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 68,
+      "systolic_bp": 122,
+      "diastolic_bp": 79,
+      "respiratory_rate": 16,
+      "spo2": 97.0
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001137-002801",
+      "patient_id": "POP-001137",
+      "episode_id": "EP-POP-001137-002801",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-005",
+      "admitting_physician_id": "DR-IM-005",
+      "discharging_physician_id": "DR-IM-005",
+      "admission_datetime": "2024-11-06T10:01:00",
+      "discharge_datetime": "2024-11-06T10:23:00",
+      "chief_complaint": "Diabetic retinopathy screening, fundoscopy",
+      "disease_event_id": "DE-POP-001137-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-11-06T10:06:00",
+      "temperature_celsius": null,
+      "heart_rate": 66,
+      "systolic_bp": 117,
+      "diastolic_bp": 69,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001137-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z13.5"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z13.5",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z13.5",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

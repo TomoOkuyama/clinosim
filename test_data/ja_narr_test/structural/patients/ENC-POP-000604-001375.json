@@ -1,0 +1,270 @@
+{
+  "patient": {
+    "patient_id": "POP-000604",
+    "name": {
+      "family_name": "Little",
+      "given_name": "Andrew",
+      "display_name": "Andrew Little",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 47,
+    "sex": "M",
+    "date_of_birth": "1977-06-04",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 172.2,
+    "weight_kg": 85.2,
+    "bmi": 28.7,
+    "address": {
+      "postal_code": "01852",
+      "state": "MA",
+      "city": "Lowell",
+      "line1": "337 Winter St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(857) 356-1487",
+      "phone_mobile": "(617) 929-5758",
+      "phone_primary": "(617) 929-5758",
+      "email": "",
+      "emergency_contact_name": "Little family",
+      "emergency_contact_phone": "(857) 356-1487",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.58,
+    "chronic_conditions": [
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2023-03-13",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.3305199859828738,
+        "stage": "HbA1c 7.3%"
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "Penicillin",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "",
+      "",
+      ""
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.6531708654834808,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.656219828447202,
+      "cardiac_reserve": 0.7458703358240049,
+      "hepatic_reserve": 0.9189499121711285,
+      "treatment_sensitivity": 1.2312037664561717,
+      "symptom_reporting_bias": 1.416221499653197,
+      "delirium_susceptibility": 0.13100271424242882,
+      "dvt_susceptibility": 0.07353945199021493
+    },
+    "baseline_vitals": {
+      "temperature": 36.7,
+      "heart_rate": 70,
+      "systolic_bp": 108,
+      "diastolic_bp": 65,
+      "respiratory_rate": 15,
+      "spo2": 98.3
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000604-001375",
+      "patient_id": "POP-000604",
+      "episode_id": "EP-POP-000604-001375",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-004",
+      "admitting_physician_id": "DR-IM-004",
+      "discharging_physician_id": "DR-IM-004",
+      "admission_datetime": "2024-10-07T10:00:00",
+      "discharge_datetime": "2024-10-07T10:23:00",
+      "chief_complaint": "Diabetes management, glycemic control review",
+      "disease_event_id": "DE-POP-000604-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000604-OPD-L00",
+      "encounter_id": "ENC-POP-000604-001375",
+      "patient_id": "POP-000604",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Glucose",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Glucose",
+      "ordered_datetime": "2024-10-07T10:10:00",
+      "ordered_by": "DR-IM-004",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-10-07T12:00:00",
+        "performed_by": "TECH-LAB-003",
+        "lab_name": "Glucose",
+        "value": 99.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000604-OPD-L01",
+      "encounter_id": "ENC-POP-000604-001375",
+      "patient_id": "POP-000604",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Creatinine",
+      "ordered_datetime": "2024-10-07T10:10:00",
+      "ordered_by": "DR-IM-004",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-10-07T12:00:00",
+        "performed_by": "TECH-LAB-003",
+        "lab_name": "Creatinine",
+        "value": 0.88,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-10-07T10:05:00",
+      "temperature_celsius": null,
+      "heart_rate": 72,
+      "systolic_bp": 107,
+      "diastolic_bp": 75,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-10-07T12:00:00",
+      "performed_by": "TECH-LAB-003",
+      "lab_name": "Glucose",
+      "value": 99.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-10-07T12:00:00",
+      "performed_by": "TECH-LAB-003",
+      "lab_name": "Creatinine",
+      "value": 0.88,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000604-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E11.9"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E11.9",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E11.9",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000604-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-004",
+    "issue_date": "2026-04-13T15:30:33.514742",
+    "items": [
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

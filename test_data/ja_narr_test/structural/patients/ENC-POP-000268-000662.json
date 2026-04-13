@@ -1,0 +1,157 @@
+{
+  "patient": {
+    "patient_id": "POP-000268",
+    "name": {
+      "family_name": "Anderson",
+      "given_name": "Diane",
+      "display_name": "Diane Anderson",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 66,
+    "sex": "F",
+    "date_of_birth": "1958-04-10",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 164.1,
+    "weight_kg": 68.6,
+    "bmi": 25.5,
+    "address": {
+      "postal_code": "02169",
+      "state": "MA",
+      "city": "Quincy",
+      "line1": "322 Main St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(857) 203-1151",
+      "phone_mobile": "(617) 524-6210",
+      "phone_primary": "(617) 524-6210",
+      "email": "",
+      "emergency_contact_name": "Anderson family",
+      "emergency_contact_phone": "(857) 203-1151",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.58,
+    "chronic_conditions": [
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2020-12-01",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.3601933611902374,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Atorvastatin 10mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.6301757849563797,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.6149661121073313,
+      "cardiac_reserve": 0.7139122266956083,
+      "hepatic_reserve": 0.6086838150690412,
+      "treatment_sensitivity": 0.7583010319977038,
+      "symptom_reporting_bias": 0.678609119484407,
+      "delirium_susceptibility": 0.2404631532242726,
+      "dvt_susceptibility": 0.05798859965445345
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 72,
+      "systolic_bp": 123,
+      "diastolic_bp": 86,
+      "respiratory_rate": 18,
+      "spo2": 97.1
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000268-000662",
+      "patient_id": "POP-000268",
+      "episode_id": "EP-POP-000268-000662",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-004",
+      "admitting_physician_id": "DR-IM-004",
+      "discharging_physician_id": "DR-IM-004",
+      "admission_datetime": "2024-10-05T10:15:00",
+      "discharge_datetime": "2024-10-05T10:44:00",
+      "chief_complaint": "Influenza vaccination",
+      "disease_event_id": "DE-POP-000268-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-10-05T10:20:00",
+      "temperature_celsius": null,
+      "heart_rate": 71,
+      "systolic_bp": 129,
+      "diastolic_bp": 84,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000268-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z23"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z23",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z23",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

@@ -1,0 +1,157 @@
+{
+  "patient": {
+    "patient_id": "POP-001570",
+    "name": {
+      "family_name": "Miller",
+      "given_name": "Philip",
+      "display_name": "Philip Miller",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 68,
+    "sex": "M",
+    "date_of_birth": "1956-12-05",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 162.0,
+    "weight_kg": 90.5,
+    "bmi": 34.5,
+    "address": {
+      "postal_code": "01901",
+      "state": "MA",
+      "city": "Lynn",
+      "line1": "202 Maple Ave, Apt 2",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 351-7467",
+      "phone_primary": "(617) 351-7467",
+      "email": "",
+      "emergency_contact_name": "Miller family",
+      "emergency_contact_phone": "(617) 351-7467",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.83,
+    "chronic_conditions": [
+      {
+        "code": "E03",
+        "system": "icd-10-cm",
+        "onset_date": "2023-09-27",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.1131516022786333,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Levothyroxine 50mcg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.392742748095953,
+      "drug_metabolism_rate": "rapid",
+      "renal_reserve": 0.5240519939726693,
+      "cardiac_reserve": 0.7155545876835678,
+      "hepatic_reserve": 0.5672775610050267,
+      "treatment_sensitivity": 0.8527228918847124,
+      "symptom_reporting_bias": 1.2493235692817226,
+      "delirium_susceptibility": 0.0831965048552125,
+      "dvt_susceptibility": 0.15014096171390065
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 63,
+      "systolic_bp": 113,
+      "diastolic_bp": 79,
+      "respiratory_rate": 12,
+      "spo2": 96.4
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001570-003978",
+      "patient_id": "POP-001570",
+      "episode_id": "EP-POP-001570-003978",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-005",
+      "admitting_physician_id": "DR-IM-005",
+      "discharging_physician_id": "DR-IM-005",
+      "admission_datetime": "2024-11-26T10:08:00",
+      "discharge_datetime": "2024-11-26T10:52:00",
+      "chief_complaint": "Influenza vaccination",
+      "disease_event_id": "DE-POP-001570-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-11-26T10:13:00",
+      "temperature_celsius": null,
+      "heart_rate": 67,
+      "systolic_bp": 109,
+      "diastolic_bp": 81,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001570-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z23"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z23",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z23",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

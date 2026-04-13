@@ -1,0 +1,268 @@
+{
+  "patient": {
+    "patient_id": "POP-000724",
+    "name": {
+      "family_name": "Williams",
+      "given_name": "Carlos",
+      "display_name": "Carlos Williams",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 73,
+    "sex": "M",
+    "date_of_birth": "1951-03-28",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 176.8,
+    "weight_kg": 102.5,
+    "bmi": 32.8,
+    "address": {
+      "postal_code": "02135",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "155 Park Ave, Apt 10",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(617) 845-7882",
+      "phone_mobile": "(617) 939-2851",
+      "phone_primary": "(617) 939-2851",
+      "email": "",
+      "emergency_contact_name": "Williams family",
+      "emergency_contact_phone": "(617) 845-7882",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.95,
+    "chronic_conditions": [
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2021-11-24",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.14125736671517003,
+        "stage": "CCS II"
+      },
+      {
+        "code": "E03",
+        "system": "icd-10-cm",
+        "onset_date": "2014-06-18",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.3919183330726475,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Aspirin 100mg",
+      "Levothyroxine 50mcg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5942794960298454,
+      "drug_metabolism_rate": "ultra_rapid",
+      "renal_reserve": 0.626434875233533,
+      "cardiac_reserve": 0.7513451840558724,
+      "hepatic_reserve": 0.5799865848212085,
+      "treatment_sensitivity": 0.8332585662936164,
+      "symptom_reporting_bias": 1.3184738158771776,
+      "delirium_susceptibility": 0.3538509403026367,
+      "dvt_susceptibility": 0.3177951839271407
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 65,
+      "systolic_bp": 124,
+      "diastolic_bp": 80,
+      "respiratory_rate": 13,
+      "spo2": 96.9
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000724-001690",
+      "patient_id": "POP-000724",
+      "episode_id": "EP-POP-000724-001690",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-09-16T10:08:00",
+      "discharge_datetime": "2024-09-16T10:39:00",
+      "chief_complaint": "Coronary artery disease follow-up, cardiac risk management",
+      "disease_event_id": "DE-POP-000724-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000724-OPD-L00",
+      "encounter_id": "ENC-POP-000724-001690",
+      "patient_id": "POP-000724",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Creatinine",
+      "ordered_datetime": "2024-09-16T10:18:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-09-16T12:08:00",
+        "performed_by": "TECH-LAB-002",
+        "lab_name": "Creatinine",
+        "value": 0.91,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000724-OPD-L01",
+      "encounter_id": "ENC-POP-000724-001690",
+      "patient_id": "POP-000724",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "LDL",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: LDL",
+      "ordered_datetime": "2024-09-16T10:18:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-09-16T12:08:00",
+        "performed_by": "TECH-LAB-002",
+        "lab_name": "LDL",
+        "value": 100.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-09-16T10:13:00",
+      "temperature_celsius": null,
+      "heart_rate": 67,
+      "systolic_bp": 113,
+      "diastolic_bp": 86,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-005",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-09-16T12:08:00",
+      "performed_by": "TECH-LAB-002",
+      "lab_name": "Creatinine",
+      "value": 0.91,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-09-16T12:08:00",
+      "performed_by": "TECH-LAB-002",
+      "lab_name": "LDL",
+      "value": 100.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000724-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I25"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I25",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I25",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000724-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-006",
+    "issue_date": "2026-04-13T15:30:34.080173",
+    "items": [
+      {
+        "drug": "Aspirin 100mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Levothyroxine 50mcg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

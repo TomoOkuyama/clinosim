@@ -1,0 +1,187 @@
+{
+  "patient": {
+    "patient_id": "POP-000507",
+    "name": {
+      "family_name": "Garcia",
+      "given_name": "Richard",
+      "display_name": "Richard Garcia",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 48,
+    "sex": "M",
+    "date_of_birth": "1976-07-09",
+    "blood_type": "B",
+    "rh_factor": "+",
+    "height_cm": 185.1,
+    "weight_kg": 120.6,
+    "bmi": 35.2,
+    "address": {
+      "postal_code": "02459",
+      "state": "MA",
+      "city": "Newton",
+      "line1": "296 Commonwealth Ave",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(508) 980-3465",
+      "phone_mobile": "(781) 518-1812",
+      "phone_primary": "(781) 518-1812",
+      "email": "",
+      "emergency_contact_name": "Garcia family",
+      "emergency_contact_phone": "(508) 980-3465",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.66,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2014-02-15",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.2457510627092732,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2021-09-06",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.21019371375170837,
+        "stage": "Mild intermittent"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Fluticasone/Salmeterol inhaler",
+      "Salbutamol inhaler PRN"
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.7961050524445215,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.444103291139434,
+      "cardiac_reserve": 0.8641028274350109,
+      "hepatic_reserve": 0.7249326527933931,
+      "treatment_sensitivity": 1.0625384893791496,
+      "symptom_reporting_bias": 0.8579684573967934,
+      "delirium_susceptibility": 0.193117628569301,
+      "dvt_susceptibility": 0.12539675644240392
+    },
+    "baseline_vitals": {
+      "temperature": 36.8,
+      "heart_rate": 62,
+      "systolic_bp": 111,
+      "diastolic_bp": 84,
+      "respiratory_rate": 16,
+      "spo2": 97.7
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000507-001147",
+      "patient_id": "POP-000507",
+      "episode_id": "EP-POP-000507-001147",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-03-11T10:22:00",
+      "discharge_datetime": "2024-03-11T10:42:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-000507-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-03-11T10:27:00",
+      "temperature_celsius": null,
+      "heart_rate": 64,
+      "systolic_bp": 113,
+      "diastolic_bp": 81,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000507-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000507-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-002",
+    "issue_date": "2026-04-13T15:30:33.110914",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Fluticasone/Salmeterol inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol inhaler PRN",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

@@ -1,0 +1,212 @@
+{
+  "patient": {
+    "patient_id": "POP-000035",
+    "name": {
+      "family_name": "Wheeler",
+      "given_name": "Carol",
+      "display_name": "Carol Wheeler",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 94,
+    "sex": "F",
+    "date_of_birth": "1930-12-17",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 156.8,
+    "weight_kg": 85.5,
+    "bmi": 34.8,
+    "address": {
+      "postal_code": "02303",
+      "state": "MA",
+      "city": "Brockton",
+      "line1": "441 Highland Ave, Apt 2",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 234-2861",
+      "phone_primary": "(617) 234-2861",
+      "email": "",
+      "emergency_contact_name": "Wheeler family",
+      "emergency_contact_phone": "(617) 234-2861",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "D",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.8,
+    "chronic_conditions": [
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2022-12-08",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.11814290020272741,
+        "stage": "HbA1c 7.8%"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Metformin 500mg"
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5887649682842429,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.4266757336445931,
+      "cardiac_reserve": 0.6381614985122177,
+      "hepatic_reserve": 0.7406874529360523,
+      "treatment_sensitivity": 0.9802777615085436,
+      "symptom_reporting_bias": 1.4408120092581134,
+      "delirium_susceptibility": 0.34912672539588324,
+      "dvt_susceptibility": 0.5537362659512653
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 71,
+      "systolic_bp": 158,
+      "diastolic_bp": 90,
+      "respiratory_rate": 18,
+      "spo2": 96.9
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000035-000201",
+      "patient_id": "POP-000035",
+      "episode_id": "EP-POP-000035-000201",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-11-17T10:09:00",
+      "discharge_datetime": "2024-11-17T10:35:00",
+      "chief_complaint": "Diabetes management, glycemic control review",
+      "disease_event_id": "DE-POP-000035-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000035-OPD-L00",
+      "encounter_id": "ENC-POP-000035-000201",
+      "patient_id": "POP-000035",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Glucose",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Glucose",
+      "ordered_datetime": "2024-11-17T10:19:00",
+      "ordered_by": "DR-IM-001",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-11-17T12:09:00",
+        "performed_by": "TECH-LAB-008",
+        "lab_name": "Glucose",
+        "value": 101.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-11-17T10:14:00",
+      "temperature_celsius": null,
+      "heart_rate": 75,
+      "systolic_bp": 168,
+      "diastolic_bp": 92,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-11-17T12:09:00",
+      "performed_by": "TECH-LAB-008",
+      "lab_name": "Glucose",
+      "value": 101.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000035-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E11.9"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E11.9",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E11.9",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000035-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-001",
+    "issue_date": "2026-04-13T15:30:31.430558",
+    "items": [
+      {
+        "drug": "Metformin 500mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

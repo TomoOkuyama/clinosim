@@ -1,0 +1,232 @@
+{
+  "patient": {
+    "patient_id": "POP-001418",
+    "name": {
+      "family_name": "Kennedy",
+      "given_name": "Jean",
+      "display_name": "Jean Kennedy",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 51,
+    "sex": "F",
+    "date_of_birth": "1973-10-05",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 166.4,
+    "weight_kg": 103.6,
+    "bmi": 37.4,
+    "address": {
+      "postal_code": "02452",
+      "state": "MA",
+      "city": "Waltham",
+      "line1": "11 Pleasant St, Apt 10",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 591-6835",
+      "phone_primary": "(508) 591-6835",
+      "email": "",
+      "emergency_contact_name": "Kennedy family",
+      "emergency_contact_phone": "(508) 591-6835",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.7,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2018-07-06",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.1201332057406416,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2019-02-15",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.13791341036348279,
+        "stage": "HbA1c 7.8%"
+      },
+      {
+        "code": "J44",
+        "system": "icd-10-cm",
+        "onset_date": "2016-10-09",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.15585083741424963,
+        "stage": "GOLD 2"
+      },
+      {
+        "code": "K21",
+        "system": "icd-10-cm",
+        "onset_date": "2020-03-28",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.25341385203825784,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Metformin 500mg",
+      "Sliding scale insulin",
+      "Tiotropium 18mcg inhaler",
+      "Salbutamol 100mcg inhaler PRN",
+      "Lansoprazole 15mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.5464689881896788,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7964655680246678,
+      "cardiac_reserve": 0.7818570264111588,
+      "hepatic_reserve": 0.7062956165794925,
+      "treatment_sensitivity": 1.2114827922071822,
+      "symptom_reporting_bias": 0.9069610454140248,
+      "delirium_susceptibility": 0.10541013015288397,
+      "dvt_susceptibility": 0.21978313109279515
+    },
+    "baseline_vitals": {
+      "temperature": 36.1,
+      "heart_rate": 61,
+      "systolic_bp": 125,
+      "diastolic_bp": 66,
+      "respiratory_rate": 15,
+      "spo2": 95.0
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001418-004904",
+      "patient_id": "POP-001418",
+      "episode_id": "EP-POP-001418-004904",
+      "encounter_type": "emergency",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-04-19T19:35:00",
+      "discharge_datetime": "2024-04-19T22:05:30.214240",
+      "chief_complaint": "Urticaria, mild angioedema, itching",
+      "disease_event_id": "DE-POP-001418-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "EM"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001418-ED-T2",
+      "encounter_id": "ENC-POP-001418-004904",
+      "patient_id": "POP-001418",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Methylprednisolone 125mg",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: anti-inflammatory",
+      "ordered_datetime": "2024-04-19T20:16:00",
+      "ordered_by": "DR-IM-002",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 125.0,
+      "dose_unit": "mg",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-001418-ED-T3",
+      "encounter_id": "ENC-POP-001418-004904",
+      "patient_id": "POP-001418",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Epinephrine 0.3mg",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: anaphylaxis concern",
+      "ordered_datetime": "2024-04-19T19:46:00",
+      "ordered_by": "DR-IM-002",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 0.3,
+      "dose_unit": "mg",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-04-19T19:40:00",
+      "temperature_celsius": 36.0,
+      "heart_rate": 74,
+      "systolic_bp": 145,
+      "diastolic_bp": 64,
+      "respiratory_rate": 17,
+      "spo2": 99.0,
+      "pain_score": 6,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-EM-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001418-ED",
+    "condition_type": "ed_visit",
+    "ground_truth_diseases": [
+      "allergic_reaction_mild"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "T78.40",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "T78.40",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

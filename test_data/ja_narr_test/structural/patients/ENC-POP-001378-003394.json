@@ -1,0 +1,174 @@
+{
+  "patient": {
+    "patient_id": "POP-001378",
+    "name": {
+      "family_name": "White",
+      "given_name": "Thomas",
+      "display_name": "Thomas White",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 48,
+    "sex": "M",
+    "date_of_birth": "1976-10-15",
+    "blood_type": "B",
+    "rh_factor": "+",
+    "height_cm": 178.4,
+    "weight_kg": 104.0,
+    "bmi": 32.7,
+    "address": {
+      "postal_code": "02124",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "352 Franklin St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 330-3713",
+      "phone_primary": "(508) 330-3713",
+      "email": "",
+      "emergency_contact_name": "White family",
+      "emergency_contact_phone": "(508) 330-3713",
+      "emergency_contact_relationship": "sibling"
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.58,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2019-01-11",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.19746536688760852,
+        "stage": "Stage 1"
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "Sulfonamide",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Amlodipine 5mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.6753810284977443,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7297375316584281,
+      "cardiac_reserve": 0.8352253221385934,
+      "hepatic_reserve": 0.6695465836191824,
+      "treatment_sensitivity": 1.0780164942994115,
+      "symptom_reporting_bias": 1.051327124839349,
+      "delirium_susceptibility": 0.08908279578116106,
+      "dvt_susceptibility": 0.2971824197525166
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 51,
+      "systolic_bp": 135,
+      "diastolic_bp": 74,
+      "respiratory_rate": 13,
+      "spo2": 97.7
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001378-003394",
+      "patient_id": "POP-001378",
+      "episode_id": "EP-POP-001378-003394",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-005",
+      "admitting_physician_id": "DR-IM-005",
+      "discharging_physician_id": "DR-IM-005",
+      "admission_datetime": "2024-06-19T10:31:00",
+      "discharge_datetime": "2024-06-19T11:15:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-001378-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-06-19T10:36:00",
+      "temperature_celsius": null,
+      "heart_rate": 58,
+      "systolic_bp": 114,
+      "diastolic_bp": 86,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001378-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001378-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-005",
+    "issue_date": "2026-04-13T15:30:37.042419",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

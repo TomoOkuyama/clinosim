@@ -1,0 +1,187 @@
+{
+  "patient": {
+    "patient_id": "POP-000570",
+    "name": {
+      "family_name": "Wallace",
+      "given_name": "Richard",
+      "display_name": "Richard Wallace",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 60,
+    "sex": "M",
+    "date_of_birth": "1964-05-11",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 172.1,
+    "weight_kg": 79.0,
+    "bmi": 26.7,
+    "address": {
+      "postal_code": "01605",
+      "state": "MA",
+      "city": "Worcester",
+      "line1": "423 Main St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 200-3790",
+      "phone_primary": "(508) 200-3790",
+      "email": "",
+      "emergency_contact_name": "Wallace family",
+      "emergency_contact_phone": "(508) 200-3790",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.58,
+    "chronic_conditions": [
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2020-03-10",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.21980435754082603,
+        "stage": ""
+      },
+      {
+        "code": "N18",
+        "system": "icd-10-cm",
+        "onset_date": "2020-09-01",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.392137180818583,
+        "stage": "CKD G2"
+      },
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2020-10-03",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.11453081185410435,
+        "stage": "Severe persistent"
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2019-08-13",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.10953124579853606,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Atorvastatin 10mg",
+      "Fluticasone/Salmeterol inhaler",
+      "Salbutamol inhaler PRN",
+      "Celecoxib 200mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.3700237420180779,
+      "drug_metabolism_rate": "rapid",
+      "renal_reserve": 0.7550528144878269,
+      "cardiac_reserve": 0.6551708747836457,
+      "hepatic_reserve": 0.8298330719990419,
+      "treatment_sensitivity": 1.0733939221021869,
+      "symptom_reporting_bias": 0.7374640930152152,
+      "delirium_susceptibility": 0.15923722192703624,
+      "dvt_susceptibility": 0.006350802359144739
+    },
+    "baseline_vitals": {
+      "temperature": 36.7,
+      "heart_rate": 76,
+      "systolic_bp": 111,
+      "diastolic_bp": 84,
+      "respiratory_rate": 17,
+      "spo2": 97.6
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000570-001299",
+      "patient_id": "POP-000570",
+      "episode_id": "EP-POP-000570-001299",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-10-22T10:40:00",
+      "discharge_datetime": "2024-10-22T11:04:00",
+      "chief_complaint": "Influenza vaccination",
+      "disease_event_id": "DE-POP-000570-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-10-22T10:45:00",
+      "temperature_celsius": null,
+      "heart_rate": 71,
+      "systolic_bp": 111,
+      "diastolic_bp": 74,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000570-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z23"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z23",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z23",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

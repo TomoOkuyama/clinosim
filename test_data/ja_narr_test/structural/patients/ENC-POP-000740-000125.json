@@ -1,0 +1,286 @@
+{
+  "patient": {
+    "patient_id": "POP-000740",
+    "name": {
+      "family_name": "Parker",
+      "given_name": "Shirley",
+      "display_name": "Shirley Parker",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 73,
+    "sex": "F",
+    "date_of_birth": "1951-01-28",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 162.3,
+    "weight_kg": 77.7,
+    "bmi": 29.5,
+    "address": {
+      "postal_code": "02155",
+      "state": "MA",
+      "city": "Medford",
+      "line1": "172 Park Ave",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(339) 905-8892",
+      "phone_mobile": "(508) 288-1967",
+      "phone_primary": "(508) 288-1967",
+      "email": "",
+      "emergency_contact_name": "Parker family",
+      "emergency_contact_phone": "(339) 905-8892",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.52,
+    "chronic_conditions": [
+      {
+        "code": "M48",
+        "system": "icd-10-cm",
+        "onset_date": "2012-08-05",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.32557302594279897,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "",
+      ""
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5775331158703587,
+      "drug_metabolism_rate": "ultra_rapid",
+      "renal_reserve": 0.7619500257513869,
+      "cardiac_reserve": 0.7978346519329217,
+      "hepatic_reserve": 0.811746317453909,
+      "treatment_sensitivity": 0.8356885030645187,
+      "symptom_reporting_bias": 1.1988694944032472,
+      "delirium_susceptibility": 0.35168370687554534,
+      "dvt_susceptibility": 0.36313042267978
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 74,
+      "systolic_bp": 134,
+      "diastolic_bp": 67,
+      "respiratory_rate": 15,
+      "spo2": 95.9
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000740-000125",
+      "patient_id": "POP-000740",
+      "episode_id": "EP-POP-000740-000125",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2025-04-18T17:33:00",
+      "discharge_datetime": "2025-04-18T18:14:00",
+      "chief_complaint": "Post-discharge follow-up: vertebral_compression_fracture",
+      "disease_event_id": "DE-POP-000740-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000740-OPD-L00",
+      "encounter_id": "ENC-POP-000740-000125",
+      "patient_id": "POP-000740",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "CRP",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: CRP",
+      "ordered_datetime": "2025-04-18T17:43:00",
+      "ordered_by": "DR-IM-003",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2025-04-18T19:33:00",
+        "performed_by": "TECH-LAB-004",
+        "lab_name": "CRP",
+        "value": 0.6,
+        "unit": "mg/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000740-OPD-L01",
+      "encounter_id": "ENC-POP-000740-000125",
+      "patient_id": "POP-000740",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "WBC",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: WBC",
+      "ordered_datetime": "2025-04-18T17:43:00",
+      "ordered_by": "DR-IM-003",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2025-04-18T19:33:00",
+        "performed_by": "TECH-LAB-004",
+        "lab_name": "WBC",
+        "value": 7197.0,
+        "unit": "/uL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000740-OPD-L02",
+      "encounter_id": "ENC-POP-000740-000125",
+      "patient_id": "POP-000740",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Creatinine",
+      "ordered_datetime": "2025-04-18T17:43:00",
+      "ordered_by": "DR-IM-003",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2025-04-18T19:33:00",
+        "performed_by": "TECH-LAB-004",
+        "lab_name": "Creatinine",
+        "value": 0.87,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": "H",
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2025-04-18T17:38:00",
+      "temperature_celsius": 36.3,
+      "heart_rate": 78,
+      "systolic_bp": 128,
+      "diastolic_bp": 68,
+      "respiratory_rate": 15,
+      "spo2": 97.1,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2025-04-18T19:33:00",
+      "performed_by": "TECH-LAB-004",
+      "lab_name": "CRP",
+      "value": 0.6,
+      "unit": "mg/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2025-04-18T19:33:00",
+      "performed_by": "TECH-LAB-004",
+      "lab_name": "WBC",
+      "value": 7197.0,
+      "unit": "/uL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2025-04-18T19:33:00",
+      "performed_by": "TECH-LAB-004",
+      "lab_name": "Creatinine",
+      "value": 0.87,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": "H",
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000740-OPD",
+    "condition_type": "post_discharge_followup",
+    "ground_truth_diseases": [
+      "Z09"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z09",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z09",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

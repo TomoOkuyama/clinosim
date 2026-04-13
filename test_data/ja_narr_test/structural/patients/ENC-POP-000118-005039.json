@@ -1,0 +1,216 @@
+{
+  "patient": {
+    "patient_id": "POP-000118",
+    "name": {
+      "family_name": "Williams",
+      "given_name": "Adrian",
+      "display_name": "Adrian Williams",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 28,
+    "sex": "M",
+    "date_of_birth": "1996-10-21",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 171.9,
+    "weight_kg": 91.8,
+    "bmi": 31.1,
+    "address": {
+      "postal_code": "02118",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "88 Beacon St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(339) 596-6538",
+      "phone_mobile": "(508) 722-1622",
+      "phone_primary": "(508) 722-1622",
+      "email": "",
+      "emergency_contact_name": "Williams family",
+      "emergency_contact_phone": "(339) 596-6538",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.62,
+    "chronic_conditions": [],
+    "allergies": [
+      {
+        "substance": "Sulfonamide",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5336975545087057,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.6036880761749907,
+      "cardiac_reserve": 0.9321057700980182,
+      "hepatic_reserve": 0.9212968100916481,
+      "treatment_sensitivity": 0.8884100203144827,
+      "symptom_reporting_bias": 0.8402540142629138,
+      "delirium_susceptibility": 0.06480117889714192,
+      "dvt_susceptibility": 0.07593101765553009
+    },
+    "baseline_vitals": {
+      "temperature": 36.0,
+      "heart_rate": 62,
+      "systolic_bp": 113,
+      "diastolic_bp": 67,
+      "respiratory_rate": 18,
+      "spo2": 96.8
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000118-005039",
+      "patient_id": "POP-000118",
+      "episode_id": "EP-POP-000118-005039",
+      "encounter_type": "emergency",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-10-04T09:20:00",
+      "discharge_datetime": "2024-10-04T11:00:44.093156",
+      "chief_complaint": "Fever, sore throat, cough, nasal congestion",
+      "disease_event_id": "DE-POP-000118-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "EM"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000118-ED-L0",
+      "encounter_id": "ENC-POP-000118-005039",
+      "patient_id": "POP-000118",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Rapid_Strep",
+      "urgency": "stat",
+      "clinical_intent": "ED workup: Rapid_Strep",
+      "ordered_datetime": "2024-10-04T09:31:00",
+      "ordered_by": "DR-IM-001",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-10-04T10:11:00",
+        "performed_by": "TECH-LAB-007",
+        "lab_name": "Rapid_Strep",
+        "value": "Positive",
+        "unit": "{qualitative}",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000118-ED-T0",
+      "encounter_id": "ENC-POP-000118-005039",
+      "patient_id": "POP-000118",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Acetaminophen 500mg",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: antipyretic/analgesic",
+      "ordered_datetime": "2024-10-04T09:40:00",
+      "ordered_by": "DR-IM-001",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 500.0,
+      "dose_unit": "mg",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-10-04T09:25:00",
+      "temperature_celsius": 36.7,
+      "heart_rate": 51,
+      "systolic_bp": 126,
+      "diastolic_bp": 63,
+      "respiratory_rate": 14,
+      "spo2": 97.2,
+      "pain_score": 0,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-EM-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-10-04T10:11:00",
+      "performed_by": "TECH-LAB-007",
+      "lab_name": "Rapid_Strep",
+      "value": "Positive",
+      "unit": "{qualitative}",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000118-ED",
+    "condition_type": "ed_visit",
+    "ground_truth_diseases": [
+      "viral_uri"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "J06.9",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "J06.9",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

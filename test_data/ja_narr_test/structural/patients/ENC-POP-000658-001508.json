@@ -1,0 +1,287 @@
+{
+  "patient": {
+    "patient_id": "POP-000658",
+    "name": {
+      "family_name": "Sandoval",
+      "given_name": "Adriana",
+      "display_name": "Adriana Sandoval",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 74,
+    "sex": "F",
+    "date_of_birth": "1950-09-07",
+    "blood_type": "AB",
+    "rh_factor": "+",
+    "height_cm": 145.2,
+    "weight_kg": 59.9,
+    "bmi": 28.4,
+    "address": {
+      "postal_code": "02114",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "234 Spring St, Apt 7",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 714-4162",
+      "phone_primary": "(508) 714-4162",
+      "email": "",
+      "emergency_contact_name": "Sandoval family",
+      "emergency_contact_phone": "(508) 714-4162",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.78,
+    "chronic_conditions": [
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2014-05-26",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.11829833458712564,
+        "stage": ""
+      },
+      {
+        "code": "N18",
+        "system": "icd-10-cm",
+        "onset_date": "2014-09-09",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.2940001339041743,
+        "stage": "CKD G3b"
+      },
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2023-08-12",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.15844947316354102,
+        "stage": "Mild persistent"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Atorvastatin 10mg",
+      "Sodium bicarbonate 500mg",
+      "Fluticasone/Salmeterol inhaler",
+      "Salbutamol inhaler PRN"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5838043270817505,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.762759782977775,
+      "cardiac_reserve": 0.7293635088217828,
+      "hepatic_reserve": 0.7343658490920623,
+      "treatment_sensitivity": 1.2507174280326798,
+      "symptom_reporting_bias": 1.5250623500674658,
+      "delirium_susceptibility": 0.23623162345852736,
+      "dvt_susceptibility": 0.23918920995310045
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 87,
+      "systolic_bp": 135,
+      "diastolic_bp": 90,
+      "respiratory_rate": 16,
+      "spo2": 98.2
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000658-001508",
+      "patient_id": "POP-000658",
+      "episode_id": "EP-POP-000658-001508",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-02-16T10:10:00",
+      "discharge_datetime": "2024-02-16T10:30:00",
+      "chief_complaint": "Lipid management, statin therapy monitoring",
+      "disease_event_id": "DE-POP-000658-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000658-OPD-L00",
+      "encounter_id": "ENC-POP-000658-001508",
+      "patient_id": "POP-000658",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "AST",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: AST",
+      "ordered_datetime": "2024-02-16T10:20:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-02-16T12:10:00",
+        "performed_by": "TECH-LAB-006",
+        "lab_name": "AST",
+        "value": 32.0,
+        "unit": "U/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000658-OPD-L01",
+      "encounter_id": "ENC-POP-000658-001508",
+      "patient_id": "POP-000658",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "ALT",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: ALT",
+      "ordered_datetime": "2024-02-16T10:20:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-02-16T12:10:00",
+        "performed_by": "TECH-LAB-006",
+        "lab_name": "ALT",
+        "value": 25.0,
+        "unit": "U/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-02-16T10:15:00",
+      "temperature_celsius": null,
+      "heart_rate": 89,
+      "systolic_bp": 140,
+      "diastolic_bp": 83,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-02-16T12:10:00",
+      "performed_by": "TECH-LAB-006",
+      "lab_name": "AST",
+      "value": 32.0,
+      "unit": "U/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-02-16T12:10:00",
+      "performed_by": "TECH-LAB-006",
+      "lab_name": "ALT",
+      "value": 25.0,
+      "unit": "U/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000658-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E78"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E78",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E78",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000658-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-006",
+    "issue_date": "2026-04-13T15:30:33.747935",
+    "items": [
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Sodium bicarbonate 500mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Fluticasone/Salmeterol inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol inhaler PRN",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

@@ -1,0 +1,278 @@
+{
+  "patient": {
+    "patient_id": "POP-000423",
+    "name": {
+      "family_name": "Ross",
+      "given_name": "Billy",
+      "display_name": "Billy Ross",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 73,
+    "sex": "M",
+    "date_of_birth": "1951-08-09",
+    "blood_type": "AB",
+    "rh_factor": "+",
+    "height_cm": 172.1,
+    "weight_kg": 53.6,
+    "bmi": 18.1,
+    "address": {
+      "postal_code": "02124",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "18 Highland Ave, Apt 11",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(781) 359-1127",
+      "phone_mobile": "(617) 901-7363",
+      "phone_primary": "(617) 901-7363",
+      "email": "",
+      "emergency_contact_name": "Ross family",
+      "emergency_contact_phone": "(781) 359-1127",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.91,
+    "chronic_conditions": [
+      {
+        "code": "I50",
+        "system": "icd-10-cm",
+        "onset_date": "2020-11-08",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.14325441157130128,
+        "stage": "NYHA II"
+      },
+      {
+        "code": "K21",
+        "system": "icd-10-cm",
+        "onset_date": "2017-02-21",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.27924775810599956,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Furosemide 20mg",
+      "Carvedilol 2.5mg",
+      "Enalapril 5mg",
+      "Lansoprazole 15mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5951786071227873,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.6633061557575107,
+      "cardiac_reserve": 0.5682531243124423,
+      "hepatic_reserve": 0.5959324709195948,
+      "treatment_sensitivity": 1.0712026975137556,
+      "symptom_reporting_bias": 1.134177741242074,
+      "delirium_susceptibility": 0.06947143781406817,
+      "dvt_susceptibility": 0.3384224108641962
+    },
+    "baseline_vitals": {
+      "temperature": 36.2,
+      "heart_rate": 76,
+      "systolic_bp": 131,
+      "diastolic_bp": 85,
+      "respiratory_rate": 19,
+      "spo2": 98.1
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000423-000977",
+      "patient_id": "POP-000423",
+      "episode_id": "EP-POP-000423-000977",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-02-20T10:25:00",
+      "discharge_datetime": "2024-02-20T10:45:00",
+      "chief_complaint": "Heart failure management, volume status assessment",
+      "disease_event_id": "DE-POP-000423-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000423-OPD-L00",
+      "encounter_id": "ENC-POP-000423-000977",
+      "patient_id": "POP-000423",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "BNP",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: BNP",
+      "ordered_datetime": "2024-02-20T10:35:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-02-20T12:25:00",
+        "performed_by": "TECH-LAB-001",
+        "lab_name": "BNP",
+        "value": 66.0,
+        "unit": "pg/mL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000423-OPD-L01",
+      "encounter_id": "ENC-POP-000423-000977",
+      "patient_id": "POP-000423",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "K",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: K",
+      "ordered_datetime": "2024-02-20T10:35:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-02-20T12:25:00",
+        "performed_by": "TECH-LAB-001",
+        "lab_name": "K",
+        "value": 4.2,
+        "unit": "mmol/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-02-20T10:30:00",
+      "temperature_celsius": null,
+      "heart_rate": 79,
+      "systolic_bp": 118,
+      "diastolic_bp": 80,
+      "respiratory_rate": null,
+      "spo2": 97.9,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-02-20T12:25:00",
+      "performed_by": "TECH-LAB-001",
+      "lab_name": "BNP",
+      "value": 66.0,
+      "unit": "pg/mL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-02-20T12:25:00",
+      "performed_by": "TECH-LAB-001",
+      "lab_name": "K",
+      "value": 4.2,
+      "unit": "mmol/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000423-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I50"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I50",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I50",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000423-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-006",
+    "issue_date": "2026-04-13T15:30:32.824315",
+    "items": [
+      {
+        "drug": "Furosemide 20mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Carvedilol 2.5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Enalapril 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Lansoprazole 15mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

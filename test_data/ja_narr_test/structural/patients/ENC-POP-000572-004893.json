@@ -1,0 +1,222 @@
+{
+  "patient": {
+    "patient_id": "POP-000572",
+    "name": {
+      "family_name": "Martinez",
+      "given_name": "Danielle",
+      "display_name": "Danielle Martinez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 43,
+    "sex": "F",
+    "date_of_birth": "1981-07-19",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 165.2,
+    "weight_kg": 75.7,
+    "bmi": 27.8,
+    "address": {
+      "postal_code": "02130",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "462 Oak St, Apt 12",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(339) 487-6909",
+      "phone_mobile": "(781) 829-5557",
+      "phone_primary": "(781) 829-5557",
+      "email": "",
+      "emergency_contact_name": "Martinez family",
+      "emergency_contact_phone": "(339) 487-6909",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.55,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2021-11-05",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.17025968418201404,
+        "stage": "Stage 1"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Candesartan 8mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.18711324407980573,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8205093761523025,
+      "cardiac_reserve": 0.7268720152262126,
+      "hepatic_reserve": 0.5403649994256766,
+      "treatment_sensitivity": 0.9763549151531306,
+      "symptom_reporting_bias": 1.0942142064801572,
+      "delirium_susceptibility": 0.1992289887705564,
+      "dvt_susceptibility": 0.24963957637907072
+    },
+    "baseline_vitals": {
+      "temperature": 36.2,
+      "heart_rate": 70,
+      "systolic_bp": 109,
+      "diastolic_bp": 76,
+      "respiratory_rate": 17,
+      "spo2": 97.5
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000572-004893",
+      "patient_id": "POP-000572",
+      "episode_id": "EP-POP-000572-004893",
+      "encounter_type": "emergency",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-04-09T09:24:00",
+      "discharge_datetime": "2024-04-09T12:55:04.249138",
+      "chief_complaint": "Ankle injury after fall, pain, swelling",
+      "disease_event_id": "DE-POP-000572-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "EM"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000572-ED-T0",
+      "encounter_id": "ENC-POP-000572-004893",
+      "patient_id": "POP-000572",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Ice pack application",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: Ice pack application",
+      "ordered_datetime": "2024-04-09T10:08:00",
+      "ordered_by": "DR-IM-006",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000572-ED-T1",
+      "encounter_id": "ENC-POP-000572-004893",
+      "patient_id": "POP-000572",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Elastic bandage wrap",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: Elastic bandage wrap",
+      "ordered_datetime": "2024-04-09T09:29:00",
+      "ordered_by": "DR-IM-006",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000572-ED-T4",
+      "encounter_id": "ENC-POP-000572-004893",
+      "patient_id": "POP-000572",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Ibuprofen 400mg",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: anti-inflammatory",
+      "ordered_datetime": "2024-04-09T09:57:00",
+      "ordered_by": "DR-IM-006",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 400.0,
+      "dose_unit": "mg",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-04-09T09:29:00",
+      "temperature_celsius": 36.7,
+      "heart_rate": 80,
+      "systolic_bp": 107,
+      "diastolic_bp": 60,
+      "respiratory_rate": 15,
+      "spo2": 97.0,
+      "pain_score": 2,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-EM-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000572-ED",
+    "condition_type": "ed_visit",
+    "ground_truth_diseases": [
+      "ankle_sprain"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "S93.40",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "S93.40",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

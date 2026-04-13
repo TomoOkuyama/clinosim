@@ -1,0 +1,260 @@
+{
+  "patient": {
+    "patient_id": "POP-000922",
+    "name": {
+      "family_name": "Ponce",
+      "given_name": "James",
+      "display_name": "James Ponce",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 55,
+    "sex": "M",
+    "date_of_birth": "1969-11-05",
+    "blood_type": "B",
+    "rh_factor": "+",
+    "height_cm": 176.5,
+    "weight_kg": 78.3,
+    "bmi": 25.1,
+    "address": {
+      "postal_code": "01605",
+      "state": "MA",
+      "city": "Worcester",
+      "line1": "434 Park Ave",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 963-3207",
+      "phone_primary": "(781) 963-3207",
+      "email": "",
+      "emergency_contact_name": "Ponce family",
+      "emergency_contact_phone": "(781) 963-3207",
+      "emergency_contact_relationship": "sibling"
+    },
+    "marital_status": "D",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.24,
+    "chronic_conditions": [
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2011-02-08",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.1298375926282866,
+        "stage": "HbA1c 8.5%"
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "NSAIDs",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Metformin 500mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5003493145623368,
+      "drug_metabolism_rate": "ultra_rapid",
+      "renal_reserve": 0.8705976290427071,
+      "cardiac_reserve": 0.7773441054390084,
+      "hepatic_reserve": 0.6681653309687831,
+      "treatment_sensitivity": 1.0269487726305395,
+      "symptom_reporting_bias": 0.7618714804247095,
+      "delirium_susceptibility": 0.1364085772972742,
+      "dvt_susceptibility": 0.15625329716462294
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 62,
+      "systolic_bp": 128,
+      "diastolic_bp": 95,
+      "respiratory_rate": 18,
+      "spo2": 97.4
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000922-002202",
+      "patient_id": "POP-000922",
+      "episode_id": "EP-POP-000922-002202",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-08-14T10:07:00",
+      "discharge_datetime": "2024-08-14T10:51:00",
+      "chief_complaint": "Diabetes management, glycemic control review",
+      "disease_event_id": "DE-POP-000922-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000922-OPD-L00",
+      "encounter_id": "ENC-POP-000922-002202",
+      "patient_id": "POP-000922",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Glucose",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Glucose",
+      "ordered_datetime": "2024-08-14T10:17:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-08-14T12:07:00",
+        "performed_by": "TECH-LAB-006",
+        "lab_name": "Glucose",
+        "value": 111.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": "H",
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000922-OPD-L01",
+      "encounter_id": "ENC-POP-000922-002202",
+      "patient_id": "POP-000922",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "HbA1c",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: HbA1c",
+      "ordered_datetime": "2024-08-14T10:17:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-08-14T12:07:00",
+        "performed_by": "TECH-LAB-006",
+        "lab_name": "HbA1c",
+        "value": 6.1,
+        "unit": "%",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-08-14T10:12:00",
+      "temperature_celsius": null,
+      "heart_rate": 74,
+      "systolic_bp": 135,
+      "diastolic_bp": 104,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-08-14T12:07:00",
+      "performed_by": "TECH-LAB-006",
+      "lab_name": "Glucose",
+      "value": 111.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": "H",
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-08-14T12:07:00",
+      "performed_by": "TECH-LAB-006",
+      "lab_name": "HbA1c",
+      "value": 6.1,
+      "unit": "%",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000922-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E11.9"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E11.9",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E11.9",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000922-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-006",
+    "issue_date": "2026-04-13T15:30:34.956860",
+    "items": [
+      {
+        "drug": "Metformin 500mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

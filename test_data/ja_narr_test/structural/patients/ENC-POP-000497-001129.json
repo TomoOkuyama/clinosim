@@ -1,0 +1,220 @@
+{
+  "patient": {
+    "patient_id": "POP-000497",
+    "name": {
+      "family_name": "Martin",
+      "given_name": "Dennis",
+      "display_name": "Dennis Martin",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 91,
+    "sex": "M",
+    "date_of_birth": "1933-03-14",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 181.8,
+    "weight_kg": 83.6,
+    "bmi": 25.3,
+    "address": {
+      "postal_code": "02301",
+      "state": "MA",
+      "city": "Brockton",
+      "line1": "228 Park Ave",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(781) 676-3191",
+      "phone_mobile": "(781) 665-5406",
+      "phone_primary": "(781) 665-5406",
+      "email": "",
+      "emergency_contact_name": "Martin family",
+      "emergency_contact_phone": "(781) 676-3191",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.73,
+    "chronic_conditions": [
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2017-07-02",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.1312046070178815,
+        "stage": ""
+      },
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2010-05-20",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3255989799819365,
+        "stage": "CCS I"
+      },
+      {
+        "code": "N40",
+        "system": "icd-10-cm",
+        "onset_date": "2017-10-22",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.1477686676238468,
+        "stage": ""
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2023-11-02",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.38576162814200426,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Atorvastatin 10mg",
+      "Aspirin 100mg",
+      "Clopidogrel 75mg",
+      "Tamsulosin 0.2mg",
+      "Acetaminophen 500mg",
+      "Celecoxib 200mg"
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.6575652737403674,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.6168719541257028,
+      "cardiac_reserve": 0.6219755825074988,
+      "hepatic_reserve": 0.682106863337153,
+      "treatment_sensitivity": 1.045992980621715,
+      "symptom_reporting_bias": 0.934491778593302,
+      "delirium_susceptibility": 0.16908964249906325,
+      "dvt_susceptibility": 0.31456201520137594
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 79,
+      "systolic_bp": 143,
+      "diastolic_bp": 79,
+      "respiratory_rate": 14,
+      "spo2": 98.5
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000497-001129",
+      "patient_id": "POP-000497",
+      "episode_id": "EP-POP-000497-001129",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-11-21T10:16:00",
+      "discharge_datetime": "2024-11-21T10:32:00",
+      "chief_complaint": "Lipid management, statin therapy monitoring",
+      "disease_event_id": "DE-POP-000497-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-11-21T10:21:00",
+      "temperature_celsius": null,
+      "heart_rate": 83,
+      "systolic_bp": 149,
+      "diastolic_bp": 82,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000497-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E78"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E78",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E78",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000497-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-001",
+    "issue_date": "2026-04-13T15:30:33.072088",
+    "items": [
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Aspirin 100mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Clopidogrel 75mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Tamsulosin 0.2mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Acetaminophen 500mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Celecoxib 200mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

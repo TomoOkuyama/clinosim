@@ -1,0 +1,226 @@
+{
+  "patient": {
+    "patient_id": "POP-000453",
+    "name": {
+      "family_name": "Smith",
+      "given_name": "Jerry",
+      "display_name": "Jerry Smith",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 95,
+    "sex": "M",
+    "date_of_birth": "1929-11-23",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 170.7,
+    "weight_kg": 63.4,
+    "bmi": 21.7,
+    "address": {
+      "postal_code": "02128",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "324 Main St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(617) 975-5793",
+      "phone_mobile": "(781) 234-2933",
+      "phone_primary": "(781) 234-2933",
+      "email": "",
+      "emergency_contact_name": "Smith family",
+      "emergency_contact_phone": "(617) 975-5793",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.75,
+    "chronic_conditions": [
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2016-02-04",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.2703129047982154,
+        "stage": "CCS I"
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2016-10-17",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.21989475024268157,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Aspirin 100mg",
+      "Acetaminophen 500mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.47301983783491414,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.3804461602201119,
+      "cardiac_reserve": 0.3511481735484755,
+      "hepatic_reserve": 0.7277436148838698,
+      "treatment_sensitivity": 0.931403258118267,
+      "symptom_reporting_bias": 0.8512246499655801,
+      "delirium_susceptibility": 0.5651396131372237,
+      "dvt_susceptibility": 0.287984617838433
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 63,
+      "systolic_bp": 146,
+      "diastolic_bp": 77,
+      "respiratory_rate": 14,
+      "spo2": 97.3
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000453-001043",
+      "patient_id": "POP-000453",
+      "episode_id": "EP-POP-000453-001043",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-05-10T10:00:00",
+      "discharge_datetime": "2024-05-10T10:36:00",
+      "chief_complaint": "Coronary artery disease follow-up, cardiac risk management",
+      "disease_event_id": "DE-POP-000453-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000453-OPD-L00",
+      "encounter_id": "ENC-POP-000453-001043",
+      "patient_id": "POP-000453",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Creatinine",
+      "ordered_datetime": "2024-05-10T10:10:00",
+      "ordered_by": "DR-IM-001",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-05-10T12:00:00",
+        "performed_by": "TECH-LAB-003",
+        "lab_name": "Creatinine",
+        "value": 0.99,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-05-10T10:05:00",
+      "temperature_celsius": null,
+      "heart_rate": 56,
+      "systolic_bp": 149,
+      "diastolic_bp": 79,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-05-10T12:00:00",
+      "performed_by": "TECH-LAB-003",
+      "lab_name": "Creatinine",
+      "value": 0.99,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000453-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I25"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I25",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I25",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000453-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-001",
+    "issue_date": "2026-04-13T15:30:32.932570",
+    "items": [
+      {
+        "drug": "Aspirin 100mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Acetaminophen 500mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

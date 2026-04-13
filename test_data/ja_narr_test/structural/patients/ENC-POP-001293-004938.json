@@ -1,0 +1,178 @@
+{
+  "patient": {
+    "patient_id": "POP-001293",
+    "name": {
+      "family_name": "McBride",
+      "given_name": "Randy",
+      "display_name": "Randy McBride",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 71,
+    "sex": "M",
+    "date_of_birth": "1953-10-01",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 175.2,
+    "weight_kg": 120.9,
+    "bmi": 39.4,
+    "address": {
+      "postal_code": "02113",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "129 Harvard St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(857) 395-9923",
+      "phone_mobile": "(617) 200-1585",
+      "phone_primary": "(617) 200-1585",
+      "email": "",
+      "emergency_contact_name": "McBride family",
+      "emergency_contact_phone": "(857) 395-9923",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.43,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2017-06-20",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.16638192810969435,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "M81",
+        "system": "icd-10-cm",
+        "onset_date": "2022-12-18",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.17390098574524412,
+        "stage": ""
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2012-02-12",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.37577660237235916,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Vitamin D 1000IU",
+      "Acetaminophen 500mg",
+      "Celecoxib 200mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.6371067637404423,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.731860578667023,
+      "cardiac_reserve": 0.7427266599743939,
+      "hepatic_reserve": 0.7858905667906348,
+      "treatment_sensitivity": 0.912553605896415,
+      "symptom_reporting_bias": 0.9766028523420679,
+      "delirium_susceptibility": 0.1842497542271455,
+      "dvt_susceptibility": 0.17102164040453444
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 72,
+      "systolic_bp": 128,
+      "diastolic_bp": 82,
+      "respiratory_rate": 14,
+      "spo2": 96.6
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001293-004938",
+      "patient_id": "POP-001293",
+      "episode_id": "EP-POP-001293-004938",
+      "encounter_type": "emergency",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-005",
+      "admitting_physician_id": "DR-IM-005",
+      "discharging_physician_id": "DR-IM-005",
+      "admission_datetime": "2024-11-05T22:19:00",
+      "discharge_datetime": "2024-11-06T00:58:42.377530",
+      "chief_complaint": "Urticaria, mild angioedema, itching",
+      "disease_event_id": "DE-POP-001293-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "EM"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-11-05T22:24:00",
+      "temperature_celsius": 36.9,
+      "heart_rate": 71,
+      "systolic_bp": 100,
+      "diastolic_bp": 79,
+      "respiratory_rate": 14,
+      "spo2": 97.8,
+      "pain_score": 2,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-EM-005",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001293-ED",
+    "condition_type": "ed_visit",
+    "ground_truth_diseases": [
+      "allergic_reaction_mild"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "T78.40",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "T78.40",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

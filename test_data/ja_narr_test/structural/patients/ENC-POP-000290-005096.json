@@ -1,0 +1,180 @@
+{
+  "patient": {
+    "patient_id": "POP-000290",
+    "name": {
+      "family_name": "Knight",
+      "given_name": "John",
+      "display_name": "John Knight",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 15,
+    "sex": "M",
+    "date_of_birth": "2009-08-28",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 172.7,
+    "weight_kg": 81.4,
+    "bmi": 27.3,
+    "address": {
+      "postal_code": "01852",
+      "state": "MA",
+      "city": "Lowell",
+      "line1": "372 Harvard St, Apt 12",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 620-6305",
+      "phone_primary": "(508) 620-6305",
+      "email": "",
+      "emergency_contact_name": "",
+      "emergency_contact_phone": "",
+      "emergency_contact_relationship": ""
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.49,
+    "chronic_conditions": [
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2015-12-01",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.3157067413078839,
+        "stage": "Mild intermittent"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Fluticasone/Salmeterol inhaler",
+      "Salbutamol inhaler PRN"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.4697745430270916,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.628798464851368,
+      "cardiac_reserve": 0.6330328415825605,
+      "hepatic_reserve": 0.6380804718083934,
+      "treatment_sensitivity": 0.8518557227589182,
+      "symptom_reporting_bias": 1.0011217664328402,
+      "delirium_susceptibility": 0.2356136883885862,
+      "dvt_susceptibility": 0.11804194217668286
+    },
+    "baseline_vitals": {
+      "temperature": 36.5,
+      "heart_rate": 63,
+      "systolic_bp": 106,
+      "diastolic_bp": 63,
+      "respiratory_rate": 19,
+      "spo2": 96.8
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000290-005096",
+      "patient_id": "POP-000290",
+      "episode_id": "EP-POP-000290-005096",
+      "encounter_type": "emergency",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-04-15T15:21:00",
+      "discharge_datetime": "2024-04-15T16:28:26.661229",
+      "chief_complaint": "Accidental ingestion of foreign body",
+      "disease_event_id": "DE-POP-000290-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "EM"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000290-ED-T0",
+      "encounter_id": "ENC-POP-000290-005096",
+      "patient_id": "POP-000290",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Observation and monitoring",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: assess passage",
+      "ordered_datetime": "2024-04-15T15:47:00",
+      "ordered_by": "DR-IM-002",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-04-15T15:26:00",
+      "temperature_celsius": 36.1,
+      "heart_rate": 65,
+      "systolic_bp": 102,
+      "diastolic_bp": 60,
+      "respiratory_rate": 16,
+      "spo2": 97.3,
+      "pain_score": 3,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-EM-005",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000290-ED",
+    "condition_type": "ed_visit",
+    "ground_truth_diseases": [
+      "foreign_body_ingestion"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "T18.9XXA",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "T18.9XXA",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

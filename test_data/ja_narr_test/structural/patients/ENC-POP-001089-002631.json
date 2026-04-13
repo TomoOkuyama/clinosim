@@ -1,0 +1,193 @@
+{
+  "patient": {
+    "patient_id": "POP-001089",
+    "name": {
+      "family_name": "Chang",
+      "given_name": "Joseph",
+      "display_name": "Joseph Chang",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 54,
+    "sex": "M",
+    "date_of_birth": "1970-02-15",
+    "blood_type": "B",
+    "rh_factor": "+",
+    "height_cm": 179.9,
+    "weight_kg": 80.9,
+    "bmi": 25.0,
+    "address": {
+      "postal_code": "01607",
+      "state": "MA",
+      "city": "Worcester",
+      "line1": "250 Main St, Apt 11",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 493-8546",
+      "phone_primary": "(508) 493-8546",
+      "email": "",
+      "emergency_contact_name": "Chang family",
+      "emergency_contact_phone": "(508) 493-8546",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "D",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.48,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2014-09-05",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.26261534535120884,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "J44",
+        "system": "icd-10-cm",
+        "onset_date": "2013-05-28",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.2702242249509126,
+        "stage": "GOLD 3"
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "Sulfonamide",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Tiotropium 18mcg inhaler",
+      "Salbutamol 100mcg inhaler PRN"
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "heavy",
+    "physiological_profile": {
+      "immune_reactivity": 0.3250019310468857,
+      "drug_metabolism_rate": "poor",
+      "renal_reserve": 0.6574025184154138,
+      "cardiac_reserve": 0.8663458036447109,
+      "hepatic_reserve": 0.8197933032002378,
+      "treatment_sensitivity": 0.6874823231238116,
+      "symptom_reporting_bias": 0.7867430760490004,
+      "delirium_susceptibility": 0.215162618170532,
+      "dvt_susceptibility": 0.09751808906176204
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 75,
+      "systolic_bp": 116,
+      "diastolic_bp": 78,
+      "respiratory_rate": 16,
+      "spo2": 91.2
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001089-002631",
+      "patient_id": "POP-001089",
+      "episode_id": "EP-POP-001089-002631",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-04-27T10:00:00",
+      "discharge_datetime": "2024-04-27T10:19:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-001089-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-04-27T10:05:00",
+      "temperature_celsius": null,
+      "heart_rate": 83,
+      "systolic_bp": 109,
+      "diastolic_bp": 74,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-005",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001089-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001089-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-006",
+    "issue_date": "2026-04-13T15:30:35.706725",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Tiotropium 18mcg inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol 100mcg inhaler PRN",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

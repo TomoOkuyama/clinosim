@@ -1,0 +1,212 @@
+{
+  "patient": {
+    "patient_id": "POP-001006",
+    "name": {
+      "family_name": "Lopez",
+      "given_name": "Jennifer",
+      "display_name": "Jennifer Lopez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 49,
+    "sex": "F",
+    "date_of_birth": "1975-02-27",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 166.2,
+    "weight_kg": 81.4,
+    "bmi": 29.5,
+    "address": {
+      "postal_code": "02141",
+      "state": "MA",
+      "city": "Cambridge",
+      "line1": "35 Spring St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(617) 614-5580",
+      "phone_mobile": "(781) 357-7252",
+      "phone_primary": "(781) 357-7252",
+      "email": "",
+      "emergency_contact_name": "Lopez family",
+      "emergency_contact_phone": "(617) 614-5580",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.75,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2014-02-13",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.12122852258668082,
+        "stage": "Stage 1"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.3500063732826258,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.9286814048547366,
+      "cardiac_reserve": 0.8846712848234004,
+      "hepatic_reserve": 0.7805930049301273,
+      "treatment_sensitivity": 1.1272293877017552,
+      "symptom_reporting_bias": 1.1063276344124704,
+      "delirium_susceptibility": 0.2209616293356185,
+      "dvt_susceptibility": 0.17816053625241993
+    },
+    "baseline_vitals": {
+      "temperature": 36.5,
+      "heart_rate": 77,
+      "systolic_bp": 159,
+      "diastolic_bp": 74,
+      "respiratory_rate": 15,
+      "spo2": 97.3
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001006-002405",
+      "patient_id": "POP-001006",
+      "episode_id": "EP-POP-001006-002405",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-02-18T10:26:00",
+      "discharge_datetime": "2024-02-18T10:44:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-001006-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001006-OPD-L00",
+      "encounter_id": "ENC-POP-001006-002405",
+      "patient_id": "POP-001006",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Creatinine",
+      "ordered_datetime": "2024-02-18T10:36:00",
+      "ordered_by": "DR-IM-002",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-02-18T12:26:00",
+        "performed_by": "TECH-LAB-004",
+        "lab_name": "Creatinine",
+        "value": 0.93,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": "H",
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-02-18T10:31:00",
+      "temperature_celsius": null,
+      "heart_rate": 77,
+      "systolic_bp": 152,
+      "diastolic_bp": 72,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-02-18T12:26:00",
+      "performed_by": "TECH-LAB-004",
+      "lab_name": "Creatinine",
+      "value": 0.93,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": "H",
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001006-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001006-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-002",
+    "issue_date": "2026-04-13T15:30:35.307704",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

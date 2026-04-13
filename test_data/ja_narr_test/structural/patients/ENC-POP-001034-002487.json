@@ -1,0 +1,273 @@
+{
+  "patient": {
+    "patient_id": "POP-001034",
+    "name": {
+      "family_name": "Wright",
+      "given_name": "Jean",
+      "display_name": "Jean Wright",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 71,
+    "sex": "F",
+    "date_of_birth": "1953-07-16",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 167.1,
+    "weight_kg": 68.3,
+    "bmi": 24.5,
+    "address": {
+      "postal_code": "01107",
+      "state": "MA",
+      "city": "Springfield",
+      "line1": "271 Commonwealth Ave, Apt 2",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 665-9674",
+      "phone_primary": "(508) 665-9674",
+      "email": "",
+      "emergency_contact_name": "Wright family",
+      "emergency_contact_phone": "(508) 665-9674",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.55,
+    "chronic_conditions": [
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2022-06-26",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.32201359428037596,
+        "stage": ""
+      },
+      {
+        "code": "M81",
+        "system": "icd-10-cm",
+        "onset_date": "2012-08-26",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.3224549515577521,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Atorvastatin 10mg",
+      "Alendronate 35mg",
+      "Vitamin D 1000IU"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.6894570549539722,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8005102710968414,
+      "cardiac_reserve": 0.7078742976316763,
+      "hepatic_reserve": 0.7428246659681291,
+      "treatment_sensitivity": 1.0801507954783733,
+      "symptom_reporting_bias": 0.8416895001242594,
+      "delirium_susceptibility": 0.24733535593390435,
+      "dvt_susceptibility": 0.23557070351127454
+    },
+    "baseline_vitals": {
+      "temperature": 36.7,
+      "heart_rate": 84,
+      "systolic_bp": 142,
+      "diastolic_bp": 67,
+      "respiratory_rate": 11,
+      "spo2": 98.4
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001034-002487",
+      "patient_id": "POP-001034",
+      "episode_id": "EP-POP-001034-002487",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2024-06-10T10:13:00",
+      "discharge_datetime": "2024-06-10T10:40:00",
+      "chief_complaint": "Lipid management, statin therapy monitoring",
+      "disease_event_id": "DE-POP-001034-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001034-OPD-L00",
+      "encounter_id": "ENC-POP-001034-002487",
+      "patient_id": "POP-001034",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "ALT",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: ALT",
+      "ordered_datetime": "2024-06-10T10:23:00",
+      "ordered_by": "DR-IM-002",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-06-10T12:13:00",
+        "performed_by": "TECH-LAB-005",
+        "lab_name": "ALT",
+        "value": 22.0,
+        "unit": "U/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-001034-OPD-L01",
+      "encounter_id": "ENC-POP-001034-002487",
+      "patient_id": "POP-001034",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "TG",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: TG",
+      "ordered_datetime": "2024-06-10T10:23:00",
+      "ordered_by": "DR-IM-002",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-06-10T12:13:00",
+        "performed_by": "TECH-LAB-005",
+        "lab_name": "TG",
+        "value": 95.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-06-10T10:18:00",
+      "temperature_celsius": null,
+      "heart_rate": 82,
+      "systolic_bp": 165,
+      "diastolic_bp": 79,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-06-10T12:13:00",
+      "performed_by": "TECH-LAB-005",
+      "lab_name": "ALT",
+      "value": 22.0,
+      "unit": "U/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-06-10T12:13:00",
+      "performed_by": "TECH-LAB-005",
+      "lab_name": "TG",
+      "value": 95.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001034-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E78"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E78",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E78",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001034-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-002",
+    "issue_date": "2026-04-13T15:30:35.439178",
+    "items": [
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Alendronate 35mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Vitamin D 1000IU",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

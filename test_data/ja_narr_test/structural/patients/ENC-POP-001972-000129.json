@@ -1,0 +1,216 @@
+{
+  "patient": {
+    "patient_id": "POP-001972",
+    "name": {
+      "family_name": "Lopez",
+      "given_name": "Joseph",
+      "display_name": "Joseph Lopez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 70,
+    "sex": "M",
+    "date_of_birth": "1954-11-17",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 180.8,
+    "weight_kg": 71.9,
+    "bmi": 22.0,
+    "address": {
+      "postal_code": "01601",
+      "state": "MA",
+      "city": "Worcester",
+      "line1": "434 Summer St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 285-3585",
+      "phone_primary": "(508) 285-3585",
+      "email": "",
+      "emergency_contact_name": "Lopez family",
+      "emergency_contact_phone": "(508) 285-3585",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.45,
+    "chronic_conditions": [
+      {
+        "code": "J44",
+        "system": "icd-10-cm",
+        "onset_date": "2012-12-10",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3952035601392994,
+        "stage": "GOLD 2"
+      },
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2023-04-24",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.15990694148999263,
+        "stage": "CCS II"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.4187410937379796,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7049024445570753,
+      "cardiac_reserve": 0.7140811302498943,
+      "hepatic_reserve": 0.7037555414564108,
+      "treatment_sensitivity": 0.9440838645956983,
+      "symptom_reporting_bias": 0.7799948914808221,
+      "delirium_susceptibility": 0.12696991756366502,
+      "dvt_susceptibility": 0.3091223684179573
+    },
+    "baseline_vitals": {
+      "temperature": 36.2,
+      "heart_rate": 81,
+      "systolic_bp": 141,
+      "diastolic_bp": 79,
+      "respiratory_rate": 20,
+      "spo2": 92.4
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001972-000129",
+      "patient_id": "POP-001972",
+      "episode_id": "EP-POP-001972-000129",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-09-14T05:49:00",
+      "discharge_datetime": "2024-09-14T06:17:00",
+      "chief_complaint": "Post-COPD exacerbation, pulmonary function, inhaler technique",
+      "disease_event_id": "DE-POP-001972-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001972-OPD-L00",
+      "encounter_id": "ENC-POP-001972-000129",
+      "patient_id": "POP-001972",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "CRP",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: CRP",
+      "ordered_datetime": "2024-09-14T05:59:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-09-14T07:49:00",
+        "performed_by": "TECH-LAB-010",
+        "lab_name": "CRP",
+        "value": 0.3,
+        "unit": "mg/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-09-14T05:54:00",
+      "temperature_celsius": 36.4,
+      "heart_rate": 78,
+      "systolic_bp": 158,
+      "diastolic_bp": 74,
+      "respiratory_rate": 18,
+      "spo2": 98.3,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-09-14T07:49:00",
+      "performed_by": "TECH-LAB-010",
+      "lab_name": "CRP",
+      "value": 0.3,
+      "unit": "mg/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001972-OPD",
+    "condition_type": "post_discharge_followup",
+    "ground_truth_diseases": [
+      "Z09"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z09",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z09",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

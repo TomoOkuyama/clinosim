@@ -1,0 +1,217 @@
+{
+  "patient": {
+    "patient_id": "POP-001326",
+    "name": {
+      "family_name": "Ward",
+      "given_name": "Candace",
+      "display_name": "Candace Ward",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 45,
+    "sex": "F",
+    "date_of_birth": "1979-03-05",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 174.1,
+    "weight_kg": 95.1,
+    "bmi": 31.4,
+    "address": {
+      "postal_code": "02171",
+      "state": "MA",
+      "city": "Quincy",
+      "line1": "433 Beacon St, Apt 2",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(978) 211-9083",
+      "phone_mobile": "(617) 792-5664",
+      "phone_primary": "(617) 792-5664",
+      "email": "",
+      "emergency_contact_name": "Ward family",
+      "emergency_contact_phone": "(978) 211-9083",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.61,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2011-01-23",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.24310705635404947,
+        "stage": "Stage 1"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Candesartan 8mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.36349940298914785,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8179213374076344,
+      "cardiac_reserve": 0.9494515976909867,
+      "hepatic_reserve": 0.8276368580842978,
+      "treatment_sensitivity": 0.9423170432082215,
+      "symptom_reporting_bias": 0.6811407758416335,
+      "delirium_susceptibility": 0.11243037336808395,
+      "dvt_susceptibility": 0.2139864940233183
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 82,
+      "systolic_bp": 133,
+      "diastolic_bp": 75,
+      "respiratory_rate": 16,
+      "spo2": 97.7
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001326-003248",
+      "patient_id": "POP-001326",
+      "episode_id": "EP-POP-001326-003248",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-02-23T10:01:00",
+      "discharge_datetime": "2024-02-23T10:29:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-001326-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001326-OPD-L00",
+      "encounter_id": "ENC-POP-001326-003248",
+      "patient_id": "POP-001326",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Na",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Na",
+      "ordered_datetime": "2024-02-23T10:11:00",
+      "ordered_by": "DR-IM-003",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-02-23T12:01:00",
+        "performed_by": "TECH-LAB-001",
+        "lab_name": "Na",
+        "value": 141.0,
+        "unit": "mmol/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-02-23T10:06:00",
+      "temperature_celsius": null,
+      "heart_rate": 94,
+      "systolic_bp": 129,
+      "diastolic_bp": 78,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-02-23T12:01:00",
+      "performed_by": "TECH-LAB-001",
+      "lab_name": "Na",
+      "value": 141.0,
+      "unit": "mmol/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001326-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001326-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-003",
+    "issue_date": "2026-04-13T15:30:36.791740",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Candesartan 8mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

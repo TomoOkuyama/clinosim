@@ -1,0 +1,236 @@
+{
+  "patient": {
+    "patient_id": "POP-000870",
+    "name": {
+      "family_name": "Perez",
+      "given_name": "Judith",
+      "display_name": "Judith Perez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 58,
+    "sex": "F",
+    "date_of_birth": "1966-11-13",
+    "blood_type": "B",
+    "rh_factor": "+",
+    "height_cm": 168.7,
+    "weight_kg": 63.2,
+    "bmi": 22.2,
+    "address": {
+      "postal_code": "02155",
+      "state": "MA",
+      "city": "Medford",
+      "line1": "375 School St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 669-4252",
+      "phone_primary": "(617) 669-4252",
+      "email": "",
+      "emergency_contact_name": "Perez family",
+      "emergency_contact_phone": "(617) 669-4252",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.99,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2016-11-02",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3524843813577396,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "I26",
+        "system": "icd-10-cm",
+        "onset_date": "2011-10-05",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.11227992507510563,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "",
+      "",
+      "",
+      ""
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.47903107664053424,
+      "drug_metabolism_rate": "rapid",
+      "renal_reserve": 0.8400713751441325,
+      "cardiac_reserve": 0.5980007117843095,
+      "hepatic_reserve": 0.8084314020635743,
+      "treatment_sensitivity": 0.885603878487389,
+      "symptom_reporting_bias": 1.4199841691529766,
+      "delirium_susceptibility": 0.09417224039522773,
+      "dvt_susceptibility": 0.25001802256686495
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 67,
+      "systolic_bp": 143,
+      "diastolic_bp": 88,
+      "respiratory_rate": 15,
+      "spo2": 97.6
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000870-002047",
+      "patient_id": "POP-000870",
+      "episode_id": "EP-POP-000870-002047",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-004",
+      "admitting_physician_id": "DR-IM-004",
+      "discharging_physician_id": "DR-IM-004",
+      "admission_datetime": "2024-04-25T10:08:00",
+      "discharge_datetime": "2024-04-25T10:24:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-000870-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000870-OPD-L00",
+      "encounter_id": "ENC-POP-000870-002047",
+      "patient_id": "POP-000870",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Creatinine",
+      "ordered_datetime": "2024-04-25T10:18:00",
+      "ordered_by": "DR-IM-004",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-04-25T12:08:00",
+        "performed_by": "TECH-LAB-002",
+        "lab_name": "Creatinine",
+        "value": 0.86,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": "H",
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-04-25T10:13:00",
+      "temperature_celsius": null,
+      "heart_rate": 65,
+      "systolic_bp": 131,
+      "diastolic_bp": 80,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-04-25T12:08:00",
+      "performed_by": "TECH-LAB-002",
+      "lab_name": "Creatinine",
+      "value": 0.86,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": "H",
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000870-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000870-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-004",
+    "issue_date": "2026-04-13T15:30:34.671075",
+    "items": [
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      },
+      {
+        "drug": "",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

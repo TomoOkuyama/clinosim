@@ -1,0 +1,187 @@
+{
+  "patient": {
+    "patient_id": "POP-001921",
+    "name": {
+      "family_name": "Williams",
+      "given_name": "Sandra",
+      "display_name": "Sandra Williams",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 76,
+    "sex": "F",
+    "date_of_birth": "1948-09-10",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 170.8,
+    "weight_kg": 54.9,
+    "bmi": 18.8,
+    "address": {
+      "postal_code": "02155",
+      "state": "MA",
+      "city": "Medford",
+      "line1": "242 Center St, Apt 12",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 437-4184",
+      "phone_primary": "(781) 437-4184",
+      "email": "",
+      "emergency_contact_name": "Williams family",
+      "emergency_contact_phone": "(781) 437-4184",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.54,
+    "chronic_conditions": [
+      {
+        "code": "E03",
+        "system": "icd-10-cm",
+        "onset_date": "2022-07-13",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.32650660501169315,
+        "stage": ""
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2016-07-11",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.1077669912086285,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Levothyroxine 50mcg",
+      "Acetaminophen 500mg",
+      "Celecoxib 200mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.3046504943764505,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7706006152119471,
+      "cardiac_reserve": 0.7290939565135401,
+      "hepatic_reserve": 0.7239208209244716,
+      "treatment_sensitivity": 1.007360356298779,
+      "symptom_reporting_bias": 1.1542567471418341,
+      "delirium_susceptibility": 0.3195178479516496,
+      "dvt_susceptibility": 0.20477569785207925
+    },
+    "baseline_vitals": {
+      "temperature": 36.7,
+      "heart_rate": 65,
+      "systolic_bp": 135,
+      "diastolic_bp": 76,
+      "respiratory_rate": 16,
+      "spo2": 97.0
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001921-004671",
+      "patient_id": "POP-001921",
+      "episode_id": "EP-POP-001921-004671",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-005",
+      "admitting_physician_id": "DR-IM-005",
+      "discharging_physician_id": "DR-IM-005",
+      "admission_datetime": "2024-04-23T10:41:00",
+      "discharge_datetime": "2024-04-23T10:59:00",
+      "chief_complaint": "Thyroid function monitoring, levothyroxine dose adjustment",
+      "disease_event_id": "DE-POP-001921-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-04-23T10:46:00",
+      "temperature_celsius": null,
+      "heart_rate": 79,
+      "systolic_bp": 145,
+      "diastolic_bp": 76,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001921-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E03"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E03",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E03",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001921-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-005",
+    "issue_date": "2026-04-13T15:30:39.338766",
+    "items": [
+      {
+        "drug": "Levothyroxine 50mcg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Acetaminophen 500mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Celecoxib 200mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

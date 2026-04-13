@@ -1,0 +1,182 @@
+{
+  "patient": {
+    "patient_id": "POP-000708",
+    "name": {
+      "family_name": "Nunez",
+      "given_name": "Maxwell",
+      "display_name": "Maxwell Nunez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 69,
+    "sex": "M",
+    "date_of_birth": "1955-06-22",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 171.6,
+    "weight_kg": 103.3,
+    "bmi": 35.1,
+    "address": {
+      "postal_code": "02109",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "268 Winter St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 481-7146",
+      "phone_primary": "(508) 481-7146",
+      "email": "",
+      "emergency_contact_name": "Nunez family",
+      "emergency_contact_phone": "(508) 481-7146",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.43,
+    "chronic_conditions": [
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2020-07-26",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.36634349450015713,
+        "stage": "CCS II"
+      },
+      {
+        "code": "N40",
+        "system": "icd-10-cm",
+        "onset_date": "2017-11-03",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.3951113316954002,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Aspirin 100mg",
+      "Tamsulosin 0.2mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.41304808188893716,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.570136353435624,
+      "cardiac_reserve": 0.7314352039139189,
+      "hepatic_reserve": 0.8185752534547478,
+      "treatment_sensitivity": 0.906009679850585,
+      "symptom_reporting_bias": 1.522640999285736,
+      "delirium_susceptibility": 0.10749788660735998,
+      "dvt_susceptibility": 0.3073494399626951
+    },
+    "baseline_vitals": {
+      "temperature": 36.1,
+      "heart_rate": 71,
+      "systolic_bp": 120,
+      "diastolic_bp": 70,
+      "respiratory_rate": 15,
+      "spo2": 98.3
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000708-001643",
+      "patient_id": "POP-000708",
+      "episode_id": "EP-POP-000708-001643",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-02-12T10:42:00",
+      "discharge_datetime": "2024-02-12T11:11:00",
+      "chief_complaint": "Coronary artery disease follow-up, cardiac risk management",
+      "disease_event_id": "DE-POP-000708-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-02-12T10:47:00",
+      "temperature_celsius": null,
+      "heart_rate": 67,
+      "systolic_bp": 112,
+      "diastolic_bp": 68,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-005",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000708-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I25"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I25",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I25",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000708-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-006",
+    "issue_date": "2026-04-13T15:30:34.014138",
+    "items": [
+      {
+        "drug": "Aspirin 100mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Tamsulosin 0.2mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

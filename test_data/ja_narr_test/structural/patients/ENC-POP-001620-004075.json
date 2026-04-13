@@ -1,0 +1,158 @@
+{
+  "patient": {
+    "patient_id": "POP-001620",
+    "name": {
+      "family_name": "Miller",
+      "given_name": "James",
+      "display_name": "James Miller",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 72,
+    "sex": "M",
+    "date_of_birth": "1952-01-02",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 189.3,
+    "weight_kg": 111.4,
+    "bmi": 31.1,
+    "address": {
+      "postal_code": "02113",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "396 Spring St, Apt 6",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 315-9833",
+      "phone_primary": "(781) 315-9833",
+      "email": "",
+      "emergency_contact_name": "Miller family",
+      "emergency_contact_phone": "(781) 315-9833",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.7,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2016-04-19",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.2956948324379099,
+        "stage": "Stage 1"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Candesartan 8mg"
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.2297114662282682,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.5843775813883212,
+      "cardiac_reserve": 0.7873014800164323,
+      "hepatic_reserve": 0.8562270017176435,
+      "treatment_sensitivity": 0.8744407624604927,
+      "symptom_reporting_bias": 1.1344117924043846,
+      "delirium_susceptibility": 0.081696406149706,
+      "dvt_susceptibility": 0.3853286757037354
+    },
+    "baseline_vitals": {
+      "temperature": 36.8,
+      "heart_rate": 69,
+      "systolic_bp": 148,
+      "diastolic_bp": 81,
+      "respiratory_rate": 16,
+      "spo2": 97.4
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001620-004075",
+      "patient_id": "POP-001620",
+      "episode_id": "EP-POP-001620-004075",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-10-08T10:10:00",
+      "discharge_datetime": "2024-10-08T10:35:00",
+      "chief_complaint": "Influenza vaccination",
+      "disease_event_id": "DE-POP-001620-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-10-08T10:15:00",
+      "temperature_celsius": null,
+      "heart_rate": 67,
+      "systolic_bp": 152,
+      "diastolic_bp": 78,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001620-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z23"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z23",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z23",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

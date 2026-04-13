@@ -1,0 +1,173 @@
+{
+  "patient": {
+    "patient_id": "POP-001822",
+    "name": {
+      "family_name": "Martinez",
+      "given_name": "Frances",
+      "display_name": "Frances Martinez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 71,
+    "sex": "F",
+    "date_of_birth": "1953-02-15",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 160.1,
+    "weight_kg": 73.7,
+    "bmi": 28.8,
+    "address": {
+      "postal_code": "02142",
+      "state": "MA",
+      "city": "Cambridge",
+      "line1": "284 Pleasant St, Apt 2",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 820-7549",
+      "phone_primary": "(508) 820-7549",
+      "email": "",
+      "emergency_contact_name": "Martinez family",
+      "emergency_contact_phone": "(508) 820-7549",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.63,
+    "chronic_conditions": [
+      {
+        "code": "M81",
+        "system": "icd-10-cm",
+        "onset_date": "2022-04-19",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.3410339697056782,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Alendronate 35mg",
+      "Vitamin D 1000IU"
+    ],
+    "smoking_status": "current",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5071728386147166,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.49553339951276265,
+      "cardiac_reserve": 0.7765219552220425,
+      "hepatic_reserve": 0.835001600770417,
+      "treatment_sensitivity": 0.7888057886592519,
+      "symptom_reporting_bias": 0.8786532028524098,
+      "delirium_susceptibility": 0.3152470297570049,
+      "dvt_susceptibility": 0.4525112622631302
+    },
+    "baseline_vitals": {
+      "temperature": 36.5,
+      "heart_rate": 69,
+      "systolic_bp": 125,
+      "diastolic_bp": 88,
+      "respiratory_rate": 14,
+      "spo2": 96.9
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001822-004474",
+      "patient_id": "POP-001822",
+      "episode_id": "EP-POP-001822-004474",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-07-13T10:27:00",
+      "discharge_datetime": "2024-07-13T11:10:00",
+      "chief_complaint": "Bone health follow-up, fracture risk assessment",
+      "disease_event_id": "DE-POP-001822-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-07-13T10:32:00",
+      "temperature_celsius": null,
+      "heart_rate": 64,
+      "systolic_bp": 109,
+      "diastolic_bp": 86,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001822-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "M81"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "M81",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "M81",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001822-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-006",
+    "issue_date": "2026-04-13T15:30:38.986029",
+    "items": [
+      {
+        "drug": "Alendronate 35mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Vitamin D 1000IU",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

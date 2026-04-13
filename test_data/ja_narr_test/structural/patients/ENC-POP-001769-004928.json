@@ -1,0 +1,228 @@
+{
+  "patient": {
+    "patient_id": "POP-001769",
+    "name": {
+      "family_name": "Wright",
+      "given_name": "Virginia",
+      "display_name": "Virginia Wright",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 46,
+    "sex": "F",
+    "date_of_birth": "1978-07-20",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 168.7,
+    "weight_kg": 98.5,
+    "bmi": 34.6,
+    "address": {
+      "postal_code": "02138",
+      "state": "MA",
+      "city": "Cambridge",
+      "line1": "482 Winter St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 774-2894",
+      "phone_primary": "(781) 774-2894",
+      "email": "",
+      "emergency_contact_name": "Wright family",
+      "emergency_contact_phone": "(781) 774-2894",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.13,
+    "chronic_conditions": [
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2013-10-26",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.39206983620106856,
+        "stage": "Mild persistent"
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "Sulfonamide",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Fluticasone/Salmeterol inhaler",
+      "Salbutamol inhaler PRN"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.39502451606781464,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.6623749004110415,
+      "cardiac_reserve": 0.5404223476285244,
+      "hepatic_reserve": 0.6416606855972067,
+      "treatment_sensitivity": 0.771048822484114,
+      "symptom_reporting_bias": 1.2290251213454324,
+      "delirium_susceptibility": 0.25951662224821875,
+      "dvt_susceptibility": 0.06707961231342775
+    },
+    "baseline_vitals": {
+      "temperature": 36.5,
+      "heart_rate": 87,
+      "systolic_bp": 135,
+      "diastolic_bp": 61,
+      "respiratory_rate": 17,
+      "spo2": 98.9
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001769-004928",
+      "patient_id": "POP-001769",
+      "episode_id": "EP-POP-001769-004928",
+      "encounter_type": "emergency",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2025-02-12T14:34:00",
+      "discharge_datetime": "2025-02-12T22:55:18.195135",
+      "chief_complaint": "Wheezing, dyspnea, chest tightness",
+      "disease_event_id": "DE-POP-001769-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "EM"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001769-ED-T0",
+      "encounter_id": "ENC-POP-001769-004928",
+      "patient_id": "POP-001769",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Nebulized salbutamol 2.5mg",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: bronchodilation",
+      "ordered_datetime": "2025-02-12T15:17:00",
+      "ordered_by": "DR-IM-002",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 2.5,
+      "dose_unit": "mg",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "NEBULIZED",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-001769-ED-T1",
+      "encounter_id": "ENC-POP-001769-004928",
+      "patient_id": "POP-001769",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Ipratropium bromide 0.5mg nebulized",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: bronchodilation",
+      "ordered_datetime": "2025-02-12T15:10:00",
+      "ordered_by": "DR-IM-002",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 0.5,
+      "dose_unit": "mg",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "NEBULIZED",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-001769-ED-T2",
+      "encounter_id": "ENC-POP-001769-004928",
+      "patient_id": "POP-001769",
+      "order_type": "medication",
+      "order_code": "",
+      "display_name": "Prednisolone 40mg",
+      "urgency": "stat",
+      "clinical_intent": "ED treatment: anti-inflammatory",
+      "ordered_datetime": "2025-02-12T15:13:00",
+      "ordered_by": "DR-IM-002",
+      "status": "placed",
+      "result": null,
+      "dose_quantity": 40.0,
+      "dose_unit": "mg",
+      "frequency": "DAILY",
+      "frequency_per_day": 1,
+      "route": "PO",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2025-02-12T14:39:00",
+      "temperature_celsius": 37.2,
+      "heart_rate": 92,
+      "systolic_bp": 135,
+      "diastolic_bp": 64,
+      "respiratory_rate": 15,
+      "spo2": 98.7,
+      "pain_score": 7,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-EM-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001769-ED",
+    "condition_type": "ed_visit",
+    "ground_truth_diseases": [
+      "asthma_attack_mild"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "J45.901",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "J45.901",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

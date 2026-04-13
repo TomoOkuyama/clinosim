@@ -1,0 +1,254 @@
+{
+  "patient": {
+    "patient_id": "POP-000551",
+    "name": {
+      "family_name": "Anderson",
+      "given_name": "Barbara",
+      "display_name": "Barbara Anderson",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 51,
+    "sex": "F",
+    "date_of_birth": "1973-07-05",
+    "blood_type": "B",
+    "rh_factor": "+",
+    "height_cm": 159.1,
+    "weight_kg": 112.3,
+    "bmi": 44.3,
+    "address": {
+      "postal_code": "02111",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "436 Franklin St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 699-8388",
+      "phone_primary": "(508) 699-8388",
+      "email": "",
+      "emergency_contact_name": "Anderson family",
+      "emergency_contact_phone": "(508) 699-8388",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.6,
+    "chronic_conditions": [
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2010-03-10",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.392500703912547,
+        "stage": "HbA1c 7.4%"
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2021-01-07",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.38960095614338547,
+        "stage": ""
+      },
+      {
+        "code": "J44",
+        "system": "icd-10-cm",
+        "onset_date": "2018-02-06",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.28752901197058567,
+        "stage": "GOLD 1"
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2021-09-10",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.11209611836767078,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Metformin 500mg",
+      "Atorvastatin 10mg",
+      "Tiotropium 18mcg inhaler",
+      "Salbutamol 100mcg inhaler PRN"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.44740548926366924,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.5977707313180697,
+      "cardiac_reserve": 0.7071796865188338,
+      "hepatic_reserve": 0.7927606699449431,
+      "treatment_sensitivity": 0.9275829318821717,
+      "symptom_reporting_bias": 1.119189167797045,
+      "delirium_susceptibility": 0.2368762699299898,
+      "dvt_susceptibility": 0.5125089108752318
+    },
+    "baseline_vitals": {
+      "temperature": 36.5,
+      "heart_rate": 72,
+      "systolic_bp": 118,
+      "diastolic_bp": 84,
+      "respiratory_rate": 12,
+      "spo2": 93.8
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000551-001238",
+      "patient_id": "POP-000551",
+      "episode_id": "EP-POP-000551-001238",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-02-17T10:13:00",
+      "discharge_datetime": "2024-02-17T10:39:00",
+      "chief_complaint": "Diabetes management, glycemic control review",
+      "disease_event_id": "DE-POP-000551-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000551-OPD-L00",
+      "encounter_id": "ENC-POP-000551-001238",
+      "patient_id": "POP-000551",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Glucose",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Glucose",
+      "ordered_datetime": "2024-02-17T10:23:00",
+      "ordered_by": "DR-IM-003",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-02-17T12:13:00",
+        "performed_by": "TECH-LAB-007",
+        "lab_name": "Glucose",
+        "value": 97.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-02-17T10:18:00",
+      "temperature_celsius": null,
+      "heart_rate": 69,
+      "systolic_bp": 109,
+      "diastolic_bp": 82,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-001",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-02-17T12:13:00",
+      "performed_by": "TECH-LAB-007",
+      "lab_name": "Glucose",
+      "value": 97.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000551-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E11.9"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E11.9",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E11.9",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000551-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-003",
+    "issue_date": "2026-04-13T15:30:33.288643",
+    "items": [
+      {
+        "drug": "Metformin 500mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Tiotropium 18mcg inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol 100mcg inhaler PRN",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

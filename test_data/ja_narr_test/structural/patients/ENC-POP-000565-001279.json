@@ -1,0 +1,231 @@
+{
+  "patient": {
+    "patient_id": "POP-000565",
+    "name": {
+      "family_name": "Gonzalez",
+      "given_name": "Jacob",
+      "display_name": "Jacob Gonzalez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 49,
+    "sex": "M",
+    "date_of_birth": "1975-02-16",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 168.9,
+    "weight_kg": 86.8,
+    "bmi": 30.4,
+    "address": {
+      "postal_code": "02134",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "316 Spring St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(978) 243-5720",
+      "phone_mobile": "(781) 804-5650",
+      "phone_primary": "(781) 804-5650",
+      "email": "",
+      "emergency_contact_name": "Gonzalez family",
+      "emergency_contact_phone": "(978) 243-5720",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.49,
+    "chronic_conditions": [
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2018-05-14",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.23046831110567548,
+        "stage": "HbA1c 8.9%"
+      },
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2013-03-27",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3253244277556722,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Metformin 500mg",
+      "Sliding scale insulin",
+      "Atorvastatin 10mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.34407011996519316,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.892871577555105,
+      "cardiac_reserve": 0.7898047975928858,
+      "hepatic_reserve": 0.9136068887672217,
+      "treatment_sensitivity": 0.913616370687886,
+      "symptom_reporting_bias": 1.084918779718975,
+      "delirium_susceptibility": 0.14392427093262744,
+      "dvt_susceptibility": 0.09632954305397345
+    },
+    "baseline_vitals": {
+      "temperature": 36.7,
+      "heart_rate": 87,
+      "systolic_bp": 128,
+      "diastolic_bp": 64,
+      "respiratory_rate": 15,
+      "spo2": 97.2
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000565-001279",
+      "patient_id": "POP-000565",
+      "episode_id": "EP-POP-000565-001279",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-10-04T10:25:00",
+      "discharge_datetime": "2024-10-04T10:51:00",
+      "chief_complaint": "Diabetes management, glycemic control review",
+      "disease_event_id": "DE-POP-000565-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000565-OPD-L00",
+      "encounter_id": "ENC-POP-000565-001279",
+      "patient_id": "POP-000565",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Glucose",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Glucose",
+      "ordered_datetime": "2024-10-04T10:35:00",
+      "ordered_by": "DR-IM-003",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-10-04T12:25:00",
+        "performed_by": "TECH-LAB-009",
+        "lab_name": "Glucose",
+        "value": 92.0,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-10-04T10:30:00",
+      "temperature_celsius": null,
+      "heart_rate": 83,
+      "systolic_bp": 112,
+      "diastolic_bp": 65,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-10-04T12:25:00",
+      "performed_by": "TECH-LAB-009",
+      "lab_name": "Glucose",
+      "value": 92.0,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000565-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E11.9"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E11.9",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E11.9",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000565-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-003",
+    "issue_date": "2026-04-13T15:30:33.354438",
+    "items": [
+      {
+        "drug": "Metformin 500mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Sliding scale insulin",
+        "duration_days": 30
+      },
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

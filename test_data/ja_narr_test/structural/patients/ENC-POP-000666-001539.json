@@ -1,0 +1,186 @@
+{
+  "patient": {
+    "patient_id": "POP-000666",
+    "name": {
+      "family_name": "Brown",
+      "given_name": "James",
+      "display_name": "James Brown",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 61,
+    "sex": "M",
+    "date_of_birth": "1963-12-10",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 175.8,
+    "weight_kg": 96.9,
+    "bmi": 31.3,
+    "address": {
+      "postal_code": "01905",
+      "state": "MA",
+      "city": "Lynn",
+      "line1": "384 Spring St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(617) 747-4072",
+      "phone_primary": "(617) 747-4072",
+      "email": "",
+      "emergency_contact_name": "Brown family",
+      "emergency_contact_phone": "(617) 747-4072",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.47,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2018-10-09",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3179958230360344,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2017-11-04",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.20243047062392983,
+        "stage": "HbA1c 7.5%"
+      },
+      {
+        "code": "J44",
+        "system": "icd-10-cm",
+        "onset_date": "2016-11-23",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.18948209019618856,
+        "stage": "GOLD 2"
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "NSAIDs",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Candesartan 8mg",
+      "Metformin 500mg",
+      "Sliding scale insulin",
+      "Tiotropium 18mcg inhaler",
+      "Salbutamol 100mcg inhaler PRN"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "heavy",
+    "physiological_profile": {
+      "immune_reactivity": 0.8605403108310167,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.6616890056007118,
+      "cardiac_reserve": 0.7138239980359262,
+      "hepatic_reserve": 0.7671983940463795,
+      "treatment_sensitivity": 1.1134000986395363,
+      "symptom_reporting_bias": 0.7030015609297953,
+      "delirium_susceptibility": 0.3081461050308813,
+      "dvt_susceptibility": 0.42169130495512946
+    },
+    "baseline_vitals": {
+      "temperature": 36.6,
+      "heart_rate": 60,
+      "systolic_bp": 151,
+      "diastolic_bp": 81,
+      "respiratory_rate": 17,
+      "spo2": 95.2
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000666-001539",
+      "patient_id": "POP-000666",
+      "episode_id": "EP-POP-000666-001539",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-005",
+      "admitting_physician_id": "DR-IM-005",
+      "discharging_physician_id": "DR-IM-005",
+      "admission_datetime": "2024-07-17T10:21:00",
+      "discharge_datetime": "2024-07-17T11:01:00",
+      "chief_complaint": "Diabetic retinopathy screening, fundoscopy",
+      "disease_event_id": "DE-POP-000666-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-07-17T10:26:00",
+      "temperature_celsius": null,
+      "heart_rate": 59,
+      "systolic_bp": 156,
+      "diastolic_bp": 74,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000666-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "Z13.5"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z13.5",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z13.5",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

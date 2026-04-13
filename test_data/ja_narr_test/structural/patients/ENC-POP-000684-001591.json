@@ -1,0 +1,220 @@
+{
+  "patient": {
+    "patient_id": "POP-000684",
+    "name": {
+      "family_name": "Kim",
+      "given_name": "Brian",
+      "display_name": "Brian Kim",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 78,
+    "sex": "M",
+    "date_of_birth": "1946-05-06",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 167.1,
+    "weight_kg": 109.3,
+    "bmi": 39.1,
+    "address": {
+      "postal_code": "01607",
+      "state": "MA",
+      "city": "Worcester",
+      "line1": "3 Center St, Apt 11",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 220-9536",
+      "phone_primary": "(508) 220-9536",
+      "email": "",
+      "emergency_contact_name": "Kim family",
+      "emergency_contact_phone": "(508) 220-9536",
+      "emergency_contact_relationship": "sibling"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.6,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2023-03-19",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.24527244939278162,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "I48",
+        "system": "icd-10-cm",
+        "onset_date": "2017-06-09",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.18996145657012922,
+        "stage": ""
+      },
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2016-12-01",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.2985585511781366,
+        "stage": "Mild persistent"
+      },
+      {
+        "code": "N40",
+        "system": "icd-10-cm",
+        "onset_date": "2017-12-11",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.3555456511665916,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Warfarin 3mg",
+      "Apixaban 5mg",
+      "Fluticasone/Salmeterol inhaler",
+      "Salbutamol inhaler PRN",
+      "Tamsulosin 0.2mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5020551341596707,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7896684321359355,
+      "cardiac_reserve": 0.6191775365706775,
+      "hepatic_reserve": 0.722871606605142,
+      "treatment_sensitivity": 0.9926238505324964,
+      "symptom_reporting_bias": 0.6528866263894515,
+      "delirium_susceptibility": 0.2188503386339409,
+      "dvt_susceptibility": 0.5604173804269009
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 68,
+      "systolic_bp": 152,
+      "diastolic_bp": 75,
+      "respiratory_rate": 16,
+      "spo2": 97.6
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000684-001591",
+      "patient_id": "POP-000684",
+      "episode_id": "EP-POP-000684-001591",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-004",
+      "admitting_physician_id": "DR-IM-004",
+      "discharging_physician_id": "DR-IM-004",
+      "admission_datetime": "2024-03-07T10:16:00",
+      "discharge_datetime": "2024-03-07T10:50:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-000684-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-03-07T10:21:00",
+      "temperature_celsius": null,
+      "heart_rate": 71,
+      "systolic_bp": 140,
+      "diastolic_bp": 81,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000684-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000684-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-004",
+    "issue_date": "2026-04-13T15:30:33.901576",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Warfarin 3mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Apixaban 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Fluticasone/Salmeterol inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol inhaler PRN",
+        "duration_days": 30
+      },
+      {
+        "drug": "Tamsulosin 0.2mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

@@ -1,0 +1,380 @@
+{
+  "patient": {
+    "patient_id": "POP-000669",
+    "name": {
+      "family_name": "Holmes",
+      "given_name": "Doris",
+      "display_name": "Doris Holmes",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 85,
+    "sex": "F",
+    "date_of_birth": "1939-06-12",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 159.4,
+    "weight_kg": 92.3,
+    "bmi": 36.3,
+    "address": {
+      "postal_code": "02301",
+      "state": "MA",
+      "city": "Brockton",
+      "line1": "312 Highland Ave, Apt 12",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 655-1854",
+      "phone_primary": "(508) 655-1854",
+      "email": "",
+      "emergency_contact_name": "Holmes family",
+      "emergency_contact_phone": "(508) 655-1854",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.61,
+    "chronic_conditions": [
+      {
+        "code": "N18",
+        "system": "icd-10-cm",
+        "onset_date": "2015-05-21",
+        "severity": "moderate",
+        "controlled": false,
+        "severity_score": 0.2524386856584307,
+        "stage": "CKD G3a"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Sodium bicarbonate 500mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "heavy",
+    "physiological_profile": {
+      "immune_reactivity": 0.6612143594534968,
+      "drug_metabolism_rate": "rapid",
+      "renal_reserve": 0.5973900839911503,
+      "cardiac_reserve": 0.47887903709214963,
+      "hepatic_reserve": 0.7236264904357995,
+      "treatment_sensitivity": 1.2330581074092037,
+      "symptom_reporting_bias": 1.0222283757732231,
+      "delirium_susceptibility": 0.3209443509162533,
+      "dvt_susceptibility": 0.1624139939406173
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 75,
+      "systolic_bp": 167,
+      "diastolic_bp": 90,
+      "respiratory_rate": 12,
+      "spo2": 96.5
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000669-001544",
+      "patient_id": "POP-000669",
+      "episode_id": "EP-POP-000669-001544",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-05-12T10:08:00",
+      "discharge_datetime": "2024-05-12T10:40:00",
+      "chief_complaint": "Renal function monitoring, electrolyte check",
+      "disease_event_id": "DE-POP-000669-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000669-OPD-L00",
+      "encounter_id": "ENC-POP-000669-001544",
+      "patient_id": "POP-000669",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Creatinine",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Creatinine",
+      "ordered_datetime": "2024-05-12T10:18:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-05-12T12:08:00",
+        "performed_by": "TECH-LAB-002",
+        "lab_name": "Creatinine",
+        "value": 0.86,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": "H",
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000669-OPD-L01",
+      "encounter_id": "ENC-POP-000669-001544",
+      "patient_id": "POP-000669",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "K",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: K",
+      "ordered_datetime": "2024-05-12T10:18:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-05-12T12:08:00",
+        "performed_by": "TECH-LAB-002",
+        "lab_name": "K",
+        "value": 4.1,
+        "unit": "mmol/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000669-OPD-L02",
+      "encounter_id": "ENC-POP-000669-001544",
+      "patient_id": "POP-000669",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Na",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Na",
+      "ordered_datetime": "2024-05-12T10:18:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-05-12T12:08:00",
+        "performed_by": "TECH-LAB-002",
+        "lab_name": "Na",
+        "value": 140.0,
+        "unit": "mmol/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000669-OPD-L03",
+      "encounter_id": "ENC-POP-000669-001544",
+      "patient_id": "POP-000669",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "BUN",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: BUN",
+      "ordered_datetime": "2024-05-12T10:18:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-05-12T12:08:00",
+        "performed_by": "TECH-LAB-002",
+        "lab_name": "BUN",
+        "value": 15.7,
+        "unit": "mg/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    },
+    {
+      "order_id": "ORD-POP-000669-OPD-L04",
+      "encounter_id": "ENC-POP-000669-001544",
+      "patient_id": "POP-000669",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "Hb",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: Hb",
+      "ordered_datetime": "2024-05-12T10:18:00",
+      "ordered_by": "DR-IM-006",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-05-12T12:08:00",
+        "performed_by": "TECH-LAB-002",
+        "lab_name": "Hb",
+        "value": 12.5,
+        "unit": "g/dL",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-05-12T10:13:00",
+      "temperature_celsius": null,
+      "heart_rate": 72,
+      "systolic_bp": 172,
+      "diastolic_bp": 87,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-05-12T12:08:00",
+      "performed_by": "TECH-LAB-002",
+      "lab_name": "Creatinine",
+      "value": 0.86,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": "H",
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-05-12T12:08:00",
+      "performed_by": "TECH-LAB-002",
+      "lab_name": "K",
+      "value": 4.1,
+      "unit": "mmol/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-05-12T12:08:00",
+      "performed_by": "TECH-LAB-002",
+      "lab_name": "Na",
+      "value": 140.0,
+      "unit": "mmol/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-05-12T12:08:00",
+      "performed_by": "TECH-LAB-002",
+      "lab_name": "BUN",
+      "value": 15.7,
+      "unit": "mg/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    },
+    {
+      "result_datetime": "2024-05-12T12:08:00",
+      "performed_by": "TECH-LAB-002",
+      "lab_name": "Hb",
+      "value": 12.5,
+      "unit": "g/dL",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000669-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "N18"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "N18",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "N18",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000669-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-006",
+    "issue_date": "2026-04-13T15:30:33.807811",
+    "items": [
+      {
+        "drug": "Sodium bicarbonate 500mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

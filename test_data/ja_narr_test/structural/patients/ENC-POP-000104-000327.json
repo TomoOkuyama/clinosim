@@ -1,0 +1,182 @@
+{
+  "patient": {
+    "patient_id": "POP-000104",
+    "name": {
+      "family_name": "Maxwell",
+      "given_name": "Kenneth",
+      "display_name": "Kenneth Maxwell",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 80,
+    "sex": "M",
+    "date_of_birth": "1944-11-15",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 185.6,
+    "weight_kg": 126.8,
+    "bmi": 36.8,
+    "address": {
+      "postal_code": "02110",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "472 School St, Apt 10",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 572-6877",
+      "phone_primary": "(508) 572-6877",
+      "email": "",
+      "emergency_contact_name": "Maxwell family",
+      "emergency_contact_phone": "(508) 572-6877",
+      "emergency_contact_relationship": "sibling"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.67,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2018-04-05",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.3726410966192234,
+        "stage": "Stage 1"
+      },
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2020-11-05",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.37738191904262863,
+        "stage": "CCS I"
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Amlodipine 5mg",
+      "Aspirin 100mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.5430268955911131,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.6929306825300849,
+      "cardiac_reserve": 0.6633286639053817,
+      "hepatic_reserve": 0.6978131721511741,
+      "treatment_sensitivity": 1.0061789886012569,
+      "symptom_reporting_bias": 1.261992250499441,
+      "delirium_susceptibility": 0.2609204523803515,
+      "dvt_susceptibility": 0.1314696314064769
+    },
+    "baseline_vitals": {
+      "temperature": 36.5,
+      "heart_rate": 61,
+      "systolic_bp": 144,
+      "diastolic_bp": 86,
+      "respiratory_rate": 18,
+      "spo2": 96.2
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000104-000327",
+      "patient_id": "POP-000104",
+      "episode_id": "EP-POP-000104-000327",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-003",
+      "admitting_physician_id": "DR-IM-003",
+      "discharging_physician_id": "DR-IM-003",
+      "admission_datetime": "2024-01-09T10:29:00",
+      "discharge_datetime": "2024-01-09T10:54:00",
+      "chief_complaint": "Blood pressure management, medication review",
+      "disease_event_id": "DE-POP-000104-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-01-09T10:34:00",
+      "temperature_celsius": null,
+      "heart_rate": 58,
+      "systolic_bp": 128,
+      "diastolic_bp": 89,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000104-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I10"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I10",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I10",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000104-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-003",
+    "issue_date": "2026-04-13T15:30:31.672637",
+    "items": [
+      {
+        "drug": "Amlodipine 5mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Aspirin 100mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

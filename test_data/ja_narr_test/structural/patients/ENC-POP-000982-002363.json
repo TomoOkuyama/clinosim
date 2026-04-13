@@ -1,0 +1,196 @@
+{
+  "patient": {
+    "patient_id": "POP-000982",
+    "name": {
+      "family_name": "Nelson",
+      "given_name": "Frank",
+      "display_name": "Frank Nelson",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 74,
+    "sex": "M",
+    "date_of_birth": "1950-06-07",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 179.8,
+    "weight_kg": 106.3,
+    "bmi": 32.9,
+    "address": {
+      "postal_code": "02302",
+      "state": "MA",
+      "city": "Brockton",
+      "line1": "154 Beacon St, Apt 9",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(508) 210-9060",
+      "phone_primary": "(508) 210-9060",
+      "email": "",
+      "emergency_contact_name": "Nelson family",
+      "emergency_contact_phone": "(508) 210-9060",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.7,
+    "chronic_conditions": [
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2013-01-24",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.34389716957242306,
+        "stage": "CCS III"
+      },
+      {
+        "code": "E03",
+        "system": "icd-10-cm",
+        "onset_date": "2012-12-24",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.26535406192212985,
+        "stage": ""
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2010-08-02",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.24211525827249783,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Aspirin 100mg",
+      "Levothyroxine 50mcg",
+      "Acetaminophen 500mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.7757545021896723,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.5694943088971522,
+      "cardiac_reserve": 0.6518219736072773,
+      "hepatic_reserve": 0.6259629788490682,
+      "treatment_sensitivity": 1.0852847568959167,
+      "symptom_reporting_bias": 1.0685928238154565,
+      "delirium_susceptibility": 0.2693607757123428,
+      "dvt_susceptibility": 0.5522699641188655
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 63,
+      "systolic_bp": 138,
+      "diastolic_bp": 68,
+      "respiratory_rate": 19,
+      "spo2": 97.5
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000982-002363",
+      "patient_id": "POP-000982",
+      "episode_id": "EP-POP-000982-002363",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-01-13T10:18:00",
+      "discharge_datetime": "2024-01-13T10:43:00",
+      "chief_complaint": "Coronary artery disease follow-up, cardiac risk management",
+      "disease_event_id": "DE-POP-000982-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-01-13T10:23:00",
+      "temperature_celsius": null,
+      "heart_rate": 62,
+      "systolic_bp": 142,
+      "diastolic_bp": 77,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000982-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I25"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I25",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I25",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000982-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-001",
+    "issue_date": "2026-04-13T15:30:35.232092",
+    "items": [
+      {
+        "drug": "Aspirin 100mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Levothyroxine 50mcg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Acetaminophen 500mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

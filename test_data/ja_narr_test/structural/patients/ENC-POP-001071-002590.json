@@ -1,0 +1,187 @@
+{
+  "patient": {
+    "patient_id": "POP-001071",
+    "name": {
+      "family_name": "Johnson",
+      "given_name": "Samuel",
+      "display_name": "Samuel Johnson",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 57,
+    "sex": "M",
+    "date_of_birth": "1967-12-13",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 171.0,
+    "weight_kg": 46.8,
+    "bmi": 16.0,
+    "address": {
+      "postal_code": "01104",
+      "state": "MA",
+      "city": "Springfield",
+      "line1": "330 Pleasant St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(978) 477-4818",
+      "phone_mobile": "(617) 750-4257",
+      "phone_primary": "(617) 750-4257",
+      "email": "",
+      "emergency_contact_name": "Johnson family",
+      "emergency_contact_phone": "(978) 477-4818",
+      "emergency_contact_relationship": "parent"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.73,
+    "chronic_conditions": [
+      {
+        "code": "J44",
+        "system": "icd-10-cm",
+        "onset_date": "2023-01-13",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.1561629148409826,
+        "stage": "GOLD 3"
+      },
+      {
+        "code": "I48",
+        "system": "icd-10-cm",
+        "onset_date": "2011-02-06",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.2252752852577983,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Tiotropium 18mcg inhaler",
+      "Salbutamol 100mcg inhaler PRN",
+      "Apixaban 5mg"
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.5530592469764839,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.4095731610195493,
+      "cardiac_reserve": 0.8215495423487476,
+      "hepatic_reserve": 0.8915449531597635,
+      "treatment_sensitivity": 0.9336691976734226,
+      "symptom_reporting_bias": 1.1922336177490043,
+      "delirium_susceptibility": 0.07066871743743249,
+      "dvt_susceptibility": 0.2853085888602271
+    },
+    "baseline_vitals": {
+      "temperature": 36.8,
+      "heart_rate": 77,
+      "systolic_bp": 127,
+      "diastolic_bp": 77,
+      "respiratory_rate": 18,
+      "spo2": 95.6
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001071-002590",
+      "patient_id": "POP-001071",
+      "episode_id": "EP-POP-001071-002590",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-06-04T10:02:00",
+      "discharge_datetime": "2024-06-04T10:34:00",
+      "chief_complaint": "COPD management, pulmonary function review",
+      "disease_event_id": "DE-POP-001071-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-06-04T10:07:00",
+      "temperature_celsius": null,
+      "heart_rate": 81,
+      "systolic_bp": 132,
+      "diastolic_bp": 74,
+      "respiratory_rate": 16,
+      "spo2": 97.8,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001071-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "J44"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "J44",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "J44",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001071-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-006",
+    "issue_date": "2026-04-13T15:30:35.617961",
+    "items": [
+      {
+        "drug": "Tiotropium 18mcg inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol 100mcg inhaler PRN",
+        "duration_days": 30
+      },
+      {
+        "drug": "Apixaban 5mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

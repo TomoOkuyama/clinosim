@@ -1,0 +1,240 @@
+{
+  "patient": {
+    "patient_id": "POP-001404",
+    "name": {
+      "family_name": "Hernandez",
+      "given_name": "Stephanie",
+      "display_name": "Stephanie Hernandez",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 76,
+    "sex": "F",
+    "date_of_birth": "1948-06-06",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 153.0,
+    "weight_kg": 97.6,
+    "bmi": 41.7,
+    "address": {
+      "postal_code": "02135",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "414 Church St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(978) 241-2645",
+      "phone_mobile": "(508) 719-8923",
+      "phone_primary": "(508) 719-8923",
+      "email": "",
+      "emergency_contact_name": "Hernandez family",
+      "emergency_contact_phone": "(978) 241-2645",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.64,
+    "chronic_conditions": [
+      {
+        "code": "E78",
+        "system": "icd-10-cm",
+        "onset_date": "2018-10-01",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.1940461076099817,
+        "stage": ""
+      },
+      {
+        "code": "J45",
+        "system": "icd-10-cm",
+        "onset_date": "2022-06-01",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.23632553183720226,
+        "stage": "Mild intermittent"
+      },
+      {
+        "code": "M17",
+        "system": "icd-10-cm",
+        "onset_date": "2015-06-22",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.34005248552619793,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Atorvastatin 10mg",
+      "Fluticasone/Salmeterol inhaler",
+      "Salbutamol inhaler PRN"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "social",
+    "physiological_profile": {
+      "immune_reactivity": 0.6789205654133216,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.5554039202866734,
+      "cardiac_reserve": 0.5870197123723095,
+      "hepatic_reserve": 0.14750947713068502,
+      "treatment_sensitivity": 1.3533248375386904,
+      "symptom_reporting_bias": 1.095531912235636,
+      "delirium_susceptibility": 0.2112151070518033,
+      "dvt_susceptibility": 0.3825260788242
+    },
+    "baseline_vitals": {
+      "temperature": 36.3,
+      "heart_rate": 76,
+      "systolic_bp": 148,
+      "diastolic_bp": 79,
+      "respiratory_rate": 16,
+      "spo2": 99.0
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001404-003472",
+      "patient_id": "POP-001404",
+      "episode_id": "EP-POP-001404-003472",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-005",
+      "admitting_physician_id": "DR-IM-005",
+      "discharging_physician_id": "DR-IM-005",
+      "admission_datetime": "2024-09-18T10:20:00",
+      "discharge_datetime": "2024-09-18T10:49:00",
+      "chief_complaint": "Lipid management, statin therapy monitoring",
+      "disease_event_id": "DE-POP-001404-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-001404-OPD-L00",
+      "encounter_id": "ENC-POP-001404-003472",
+      "patient_id": "POP-001404",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "ALT",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: ALT",
+      "ordered_datetime": "2024-09-18T10:30:00",
+      "ordered_by": "DR-IM-005",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2024-09-18T12:20:00",
+        "performed_by": "TECH-LAB-005",
+        "lab_name": "ALT",
+        "value": 24.0,
+        "unit": "U/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2024-09-18T10:25:00",
+      "temperature_celsius": null,
+      "heart_rate": 93,
+      "systolic_bp": 153,
+      "diastolic_bp": 86,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-004",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2024-09-18T12:20:00",
+      "performed_by": "TECH-LAB-005",
+      "lab_name": "ALT",
+      "value": 24.0,
+      "unit": "U/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-001404-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "E78"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "E78",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "E78",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001404-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-005",
+    "issue_date": "2026-04-13T15:30:37.172174",
+    "items": [
+      {
+        "drug": "Atorvastatin 10mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Fluticasone/Salmeterol inhaler",
+        "duration_days": 30
+      },
+      {
+        "drug": "Salbutamol inhaler PRN",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

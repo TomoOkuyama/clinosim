@@ -1,0 +1,168 @@
+{
+  "patient": {
+    "patient_id": "POP-000378",
+    "name": {
+      "family_name": "Phillips",
+      "given_name": "Maria",
+      "display_name": "Maria Phillips",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 67,
+    "sex": "F",
+    "date_of_birth": "1957-09-26",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 155.1,
+    "weight_kg": 83.0,
+    "bmi": 34.5,
+    "address": {
+      "postal_code": "02110",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "461 Washington St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(857) 406-1635",
+      "phone_mobile": "(508) 525-4912",
+      "phone_primary": "(508) 525-4912",
+      "email": "",
+      "emergency_contact_name": "Phillips family",
+      "emergency_contact_phone": "(857) 406-1635",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "S",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.41,
+    "chronic_conditions": [
+      {
+        "code": "G20",
+        "system": "icd-10-cm",
+        "onset_date": "2011-04-02",
+        "severity": "mild",
+        "controlled": false,
+        "severity_score": 0.14700712771535338,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Levodopa/Carbidopa 100/25mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.7164934013079985,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.8247039796569877,
+      "cardiac_reserve": 0.7719161162041439,
+      "hepatic_reserve": 0.5984468863541383,
+      "treatment_sensitivity": 1.0722578236849456,
+      "symptom_reporting_bias": 0.5646987229267646,
+      "delirium_susceptibility": 0.40385748266978405,
+      "dvt_susceptibility": 0.18178888096185894
+    },
+    "baseline_vitals": {
+      "temperature": 36.2,
+      "heart_rate": 80,
+      "systolic_bp": 122,
+      "diastolic_bp": 82,
+      "respiratory_rate": 13,
+      "spo2": 98.9
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000378-000854",
+      "patient_id": "POP-000378",
+      "episode_id": "EP-POP-000378-000854",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-006",
+      "admitting_physician_id": "DR-IM-006",
+      "discharging_physician_id": "DR-IM-006",
+      "admission_datetime": "2024-06-03T10:36:00",
+      "discharge_datetime": "2024-06-03T10:54:00",
+      "chief_complaint": "Motor function assessment, medication titration",
+      "disease_event_id": "DE-POP-000378-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-06-03T10:41:00",
+      "temperature_celsius": null,
+      "heart_rate": 75,
+      "systolic_bp": 132,
+      "diastolic_bp": 83,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-005",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-000378-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "G20"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "G20",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "G20",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-000378-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-006",
+    "issue_date": "2026-04-13T15:30:32.606359",
+    "items": [
+      {
+        "drug": "Levodopa/Carbidopa 100/25mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

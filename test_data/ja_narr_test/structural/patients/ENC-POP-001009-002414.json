@@ -1,0 +1,182 @@
+{
+  "patient": {
+    "patient_id": "POP-001009",
+    "name": {
+      "family_name": "Torres",
+      "given_name": "Stephen",
+      "display_name": "Stephen Torres",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 75,
+    "sex": "M",
+    "date_of_birth": "1949-12-01",
+    "blood_type": "O",
+    "rh_factor": "+",
+    "height_cm": 185.1,
+    "weight_kg": 109.6,
+    "bmi": 32.0,
+    "address": {
+      "postal_code": "01905",
+      "state": "MA",
+      "city": "Lynn",
+      "line1": "53 Winter St, Apt 1",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(617) 822-4303",
+      "phone_mobile": "(781) 270-8910",
+      "phone_primary": "(781) 270-8910",
+      "email": "",
+      "emergency_contact_name": "Torres family",
+      "emergency_contact_phone": "(617) 822-4303",
+      "emergency_contact_relationship": "child"
+    },
+    "marital_status": "D",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.52,
+    "chronic_conditions": [
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2015-10-17",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.10268763140719842,
+        "stage": "CCS II"
+      },
+      {
+        "code": "K21",
+        "system": "icd-10-cm",
+        "onset_date": "2023-06-22",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.14149017927358548,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "Aspirin 100mg",
+      "Lansoprazole 15mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.662911614656014,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7495242682993001,
+      "cardiac_reserve": 0.5485129858137805,
+      "hepatic_reserve": 0.6122713410111118,
+      "treatment_sensitivity": 1.2964885152426764,
+      "symptom_reporting_bias": 0.9262686097730781,
+      "delirium_susceptibility": 0.24898080136468098,
+      "dvt_susceptibility": 0.3184146020352837
+    },
+    "baseline_vitals": {
+      "temperature": 36.2,
+      "heart_rate": 65,
+      "systolic_bp": 127,
+      "diastolic_bp": 75,
+      "respiratory_rate": 18,
+      "spo2": 98.8
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001009-002414",
+      "patient_id": "POP-001009",
+      "episode_id": "EP-POP-001009-002414",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-001",
+      "admitting_physician_id": "DR-IM-001",
+      "discharging_physician_id": "DR-IM-001",
+      "admission_datetime": "2024-06-06T10:32:00",
+      "discharge_datetime": "2024-06-06T11:14:00",
+      "chief_complaint": "Coronary artery disease follow-up, cardiac risk management",
+      "disease_event_id": "DE-POP-001009-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-06-06T10:37:00",
+      "temperature_celsius": null,
+      "heart_rate": 71,
+      "systolic_bp": 133,
+      "diastolic_bp": 70,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-003",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001009-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I25"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I25",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I25",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001009-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-001",
+    "issue_date": "2026-04-13T15:30:35.321151",
+    "items": [
+      {
+        "drug": "Aspirin 100mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Lansoprazole 15mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

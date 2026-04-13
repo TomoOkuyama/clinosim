@@ -1,0 +1,240 @@
+{
+  "patient": {
+    "patient_id": "POP-000472",
+    "name": {
+      "family_name": "Johnson",
+      "given_name": "Karen",
+      "display_name": "Karen Johnson",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 75,
+    "sex": "F",
+    "date_of_birth": "1949-04-11",
+    "blood_type": "B",
+    "rh_factor": "+",
+    "height_cm": 164.1,
+    "weight_kg": 95.8,
+    "bmi": 35.5,
+    "address": {
+      "postal_code": "02453",
+      "state": "MA",
+      "city": "Waltham",
+      "line1": "68 Park Ave",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "(351) 865-6463",
+      "phone_mobile": "(781) 861-4772",
+      "phone_primary": "(781) 861-4772",
+      "email": "",
+      "emergency_contact_name": "Johnson family",
+      "emergency_contact_phone": "(351) 865-6463",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "W",
+    "preferred_language": "en-US",
+    "employment_status": "retired",
+    "insurance_type": "late_elderly",
+    "health_literacy": 0.48,
+    "chronic_conditions": [
+      {
+        "code": "I10",
+        "system": "icd-10-cm",
+        "onset_date": "2021-08-20",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.1756442095234852,
+        "stage": "Stage 2"
+      },
+      {
+        "code": "E11.9",
+        "system": "icd-10-cm",
+        "onset_date": "2014-03-08",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.24475490429487387,
+        "stage": "HbA1c 9.5%"
+      },
+      {
+        "code": "J44",
+        "system": "icd-10-cm",
+        "onset_date": "2012-02-15",
+        "severity": "mild",
+        "controlled": true,
+        "severity_score": 0.1153552878904852,
+        "stage": "GOLD 2"
+      },
+      {
+        "code": "I48",
+        "system": "icd-10-cm",
+        "onset_date": "2022-05-26",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.11082242164864799,
+        "stage": ""
+      }
+    ],
+    "allergies": [],
+    "current_medications": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ],
+    "smoking_status": "never",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.4281678498217647,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.27254567858578627,
+      "cardiac_reserve": 0.5213773095614798,
+      "hepatic_reserve": 0.7200129143880505,
+      "treatment_sensitivity": 1.3374698982940614,
+      "symptom_reporting_bias": 0.8287503770653094,
+      "delirium_susceptibility": 0.1929112143893567,
+      "dvt_susceptibility": 0.41526457729828015
+    },
+    "baseline_vitals": {
+      "temperature": 36.0,
+      "heart_rate": 65,
+      "systolic_bp": 128,
+      "diastolic_bp": 78,
+      "respiratory_rate": 14,
+      "spo2": 95.1
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-000472-000135",
+      "patient_id": "POP-000472",
+      "episode_id": "EP-POP-000472-000135",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-002",
+      "admitting_physician_id": "DR-IM-002",
+      "discharging_physician_id": "DR-IM-002",
+      "admission_datetime": "2025-05-26T19:08:00",
+      "discharge_datetime": "2025-05-26T19:28:00",
+      "chief_complaint": "Post-COPD exacerbation, pulmonary function, inhaler technique",
+      "disease_event_id": "DE-POP-000472-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-POP-000472-OPD-L00",
+      "encounter_id": "ENC-POP-000472-000135",
+      "patient_id": "POP-000472",
+      "order_type": "lab",
+      "order_code": "",
+      "display_name": "CRP",
+      "urgency": "routine",
+      "clinical_intent": "Outpatient follow-up: CRP",
+      "ordered_datetime": "2025-05-26T19:18:00",
+      "ordered_by": "DR-IM-002",
+      "status": "resulted",
+      "result": {
+        "result_datetime": "2025-05-26T21:08:00",
+        "performed_by": "TECH-LAB-008",
+        "lab_name": "CRP",
+        "value": 0.5,
+        "unit": "mg/L",
+        "reference_range": null,
+        "flag": null,
+        "interpretation": null,
+        "specimen_note": null
+      },
+      "dose_quantity": null,
+      "dose_unit": "",
+      "frequency": "",
+      "frequency_per_day": null,
+      "route": "",
+      "duration_days": null,
+      "reason_condition": ""
+    }
+  ],
+  "vital_signs": [
+    {
+      "timestamp": "2025-05-26T19:13:00",
+      "temperature_celsius": 36.1,
+      "heart_rate": 59,
+      "systolic_bp": 143,
+      "diastolic_bp": 72,
+      "respiratory_rate": 19,
+      "spo2": 97.4,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-005",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [
+    {
+      "result_datetime": "2025-05-26T21:08:00",
+      "performed_by": "TECH-LAB-008",
+      "lab_name": "CRP",
+      "value": 0.5,
+      "unit": "mg/L",
+      "reference_range": null,
+      "flag": null,
+      "interpretation": null,
+      "specimen_note": null
+    }
+  ],
+  "condition_event": {
+    "condition_id": "COND-POP-000472-OPD",
+    "condition_type": "post_discharge_followup",
+    "ground_truth_diseases": [
+      "Z09"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "Z09",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "Z09",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": null,
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}

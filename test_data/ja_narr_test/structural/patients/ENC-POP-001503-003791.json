@@ -1,0 +1,179 @@
+{
+  "patient": {
+    "patient_id": "POP-001503",
+    "name": {
+      "family_name": "Graham",
+      "given_name": "Andrea",
+      "display_name": "Andrea Graham",
+      "name_script": "en",
+      "phonetic": null
+    },
+    "age": 61,
+    "sex": "F",
+    "date_of_birth": "1963-04-16",
+    "blood_type": "A",
+    "rh_factor": "+",
+    "height_cm": 149.3,
+    "weight_kg": 47.1,
+    "bmi": 21.1,
+    "address": {
+      "postal_code": "02122",
+      "state": "MA",
+      "city": "Boston",
+      "line1": "285 Harvard St",
+      "line2": "",
+      "country": "US"
+    },
+    "contact": {
+      "phone_home": "",
+      "phone_mobile": "(781) 674-6344",
+      "phone_primary": "(781) 674-6344",
+      "email": "",
+      "emergency_contact_name": "Graham family",
+      "emergency_contact_phone": "(781) 674-6344",
+      "emergency_contact_relationship": "spouse"
+    },
+    "marital_status": "M",
+    "preferred_language": "en-US",
+    "employment_status": "employed",
+    "insurance_type": "NHI_employee",
+    "health_literacy": 0.51,
+    "chronic_conditions": [
+      {
+        "code": "I25",
+        "system": "icd-10-cm",
+        "onset_date": "2018-11-25",
+        "severity": "moderate",
+        "controlled": true,
+        "severity_score": 0.38647310078231567,
+        "stage": "CCS II"
+      }
+    ],
+    "allergies": [
+      {
+        "substance": "Penicillin",
+        "reaction_type": "rash",
+        "severity": "mild"
+      }
+    ],
+    "current_medications": [
+      "Aspirin 100mg",
+      "Clopidogrel 75mg"
+    ],
+    "smoking_status": "former",
+    "alcohol_use": "none",
+    "physiological_profile": {
+      "immune_reactivity": 0.6423505119895468,
+      "drug_metabolism_rate": "normal",
+      "renal_reserve": 0.7881186821574101,
+      "cardiac_reserve": 0.8080450461081217,
+      "hepatic_reserve": 0.8654412380224352,
+      "treatment_sensitivity": 1.2193016557373575,
+      "symptom_reporting_bias": 0.9172137738387859,
+      "delirium_susceptibility": 0.2904810897835187,
+      "dvt_susceptibility": 0.14282855445646844
+    },
+    "baseline_vitals": {
+      "temperature": 36.4,
+      "heart_rate": 88,
+      "systolic_bp": 129,
+      "diastolic_bp": 70,
+      "respiratory_rate": 17,
+      "spo2": 98.4
+    }
+  },
+  "encounters": [
+    {
+      "encounter_id": "ENC-POP-001503-003791",
+      "patient_id": "POP-001503",
+      "episode_id": "EP-POP-001503-003791",
+      "encounter_type": "outpatient",
+      "status": "completed",
+      "department_id": "internal_medicine",
+      "attending_physician_id": "DR-IM-005",
+      "admitting_physician_id": "DR-IM-005",
+      "discharging_physician_id": "DR-IM-005",
+      "admission_datetime": "2024-10-11T10:26:00",
+      "discharge_datetime": "2024-10-11T11:07:00",
+      "chief_complaint": "Coronary artery disease follow-up, cardiac risk management",
+      "disease_event_id": "DE-POP-001503-001",
+      "ward_id": "",
+      "bed_number": "",
+      "time_resolution": 3600.0,
+      "admit_source": "outp",
+      "discharge_disposition": "home",
+      "priority": "R"
+    }
+  ],
+  "orders": [],
+  "vital_signs": [
+    {
+      "timestamp": "2024-10-11T10:31:00",
+      "temperature_celsius": null,
+      "heart_rate": 90,
+      "systolic_bp": 133,
+      "diastolic_bp": 74,
+      "respiratory_rate": null,
+      "spo2": null,
+      "pain_score": null,
+      "consciousness_level": "A",
+      "on_supplemental_oxygen": false,
+      "oxygen_flow_rate_lpm": null,
+      "oxygen_delivery_device": "",
+      "nursing_note": "",
+      "measured_by": "NS-PC-002",
+      "data_source": "manual"
+    }
+  ],
+  "lab_results": [],
+  "condition_event": {
+    "condition_id": "COND-POP-001503-OPD",
+    "condition_type": "chronic_followup",
+    "ground_truth_diseases": [
+      "I25"
+    ],
+    "symptom_pattern": "",
+    "state_impacts": {},
+    "presenting_symptoms": []
+  },
+  "clinical_diagnosis": {
+    "admission_diagnosis_code": "I25",
+    "admission_diagnosis_system": "icd-10-cm",
+    "working_diagnoses": [],
+    "discharge_diagnosis_code": "I25",
+    "discharge_diagnosis_system": "icd-10-cm",
+    "diagnosis_correct": true,
+    "missed_diagnoses": [],
+    "overcalled_diagnoses": []
+  },
+  "complications_occurred": [],
+  "procedures": [],
+  "rehab_sessions": [],
+  "documents": [],
+  "medication_administrations": [],
+  "intake_output_records": [],
+  "adl_assessments": [],
+  "discharge_prescription": {
+    "prescription_id": "RX-POP-001503-OPD",
+    "patient_id": "",
+    "prescriber_id": "DR-IM-005",
+    "issue_date": "2026-04-13T15:30:37.741774",
+    "items": [
+      {
+        "drug": "Aspirin 100mg",
+        "duration_days": 30
+      },
+      {
+        "drug": "Clopidogrel 75mg",
+        "duration_days": 30
+      }
+    ]
+  },
+  "icu_transferred": false,
+  "deceased": false,
+  "death_day": null,
+  "is_readmission": false,
+  "prior_encounter_id": null,
+  "readmission_number": 0,
+  "physiological_states": []
+}
