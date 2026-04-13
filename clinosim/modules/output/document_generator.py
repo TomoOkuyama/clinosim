@@ -115,14 +115,15 @@ def generate_documents(
     hospital_path = cif_dir / "hospital.json"
     if hospital_path.exists():
         hospital_data = json.loads(hospital_path.read_text(encoding="utf-8"))
+        is_jp = language == "ja"
         for s in hospital_data.get("staff", []):
             sid = s.get("staff_id", "")
             name = s.get("name", "")
             if sid and name:
                 if sid.startswith("DR-"):
-                    staff_names[sid] = f"Dr. {name}"
+                    staff_names[sid] = f"{name}医師" if is_jp else f"Dr. {name}"
                 elif sid.startswith("NS-"):
-                    staff_names[sid] = f"RN {name}"
+                    staff_names[sid] = f"{name}看護師" if is_jp else f"RN {name}"
                 else:
                     staff_names[sid] = name
 
