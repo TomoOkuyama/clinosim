@@ -712,7 +712,8 @@ def _run_daily_loop(
 
         # Vitals
         ward_nurse_id = assign_staff("medication_administration", department, roster, rng).get("administering_nurse", "NS-001")
-        vitals_today = _generate_vitals(state, patient, day, admission_time, rng, disease_id=disease_id, nurse_id=ward_nurse_id)
+        vitals_country = "JP" if country_key == "japan" else "US"
+        vitals_today = _generate_vitals(state, patient, day, admission_time, rng, disease_id=disease_id, nurse_id=ward_nurse_id, country=vitals_country)
         all_vitals.extend(vitals_today)
 
         # Daily I/O record
@@ -1225,6 +1226,7 @@ def _generate_vitals(
     rng: np.random.Generator,
     disease_id: str = "",
     nurse_id: str = "",
+    country: str = "US",
 ) -> list[VitalSignRecord]:
     """Generate vital sign measurements for this day.
 
@@ -1294,14 +1296,24 @@ def _generate_vitals(
         actual_time = vit_time + timedelta(minutes=float(rng.normal(0, 10)))
 
         note_parts = []
-        if raw["temperature"] >= 38.0:
-            note_parts.append("febrile")
-        if raw["spo2"] < 93:
-            note_parts.append("SpO2 low, O2 adjusted")
-        if state.inflammation_level < 0.1 and day >= 3:
-            note_parts.append("improving, appetite good")
-        if day == 0 and hour == full_hours[0]:
-            note_parts.append("admission assessment completed")
+        if country == "JP":
+            if raw["temperature"] >= 38.0:
+                note_parts.append("発熱あり")
+            if raw["spo2"] < 93:
+                note_parts.append("SpO2低下、酸素調整")
+            if state.inflammation_level < 0.1 and day >= 3:
+                note_parts.append("改善傾向、食事摂取良好")
+            if day == 0 and hour == full_hours[0]:
+                note_parts.append("入院時アセスメント完了")
+        else:
+            if raw["temperature"] >= 38.0:
+                note_parts.append("febrile")
+            if raw["spo2"] < 93:
+                note_parts.append("SpO2 low, O2 adjusted")
+            if state.inflammation_level < 0.1 and day >= 3:
+                note_parts.append("improving, appetite good")
+            if day == 0 and hour == full_hours[0]:
+                note_parts.append("admission assessment completed")
         note = ". ".join(note_parts) + "." if note_parts else ""
 
         _emit(actual_time,
@@ -1313,7 +1325,7 @@ def _generate_vitals(
             recheck_time = actual_time + timedelta(minutes=int(rng.uniform(30, 60)))
             recheck_raw = _make_raw(state, patient, recheck_time, rng)
             _emit(recheck_time, fields={"temp"}, raw=recheck_raw,
-                  note=f"febrile recheck after {recheck_time.minute - actual_time.minute} min")
+                  note=f"発熱再検 {recheck_time.minute - actual_time.minute}分後" if country == "JP" else f"febrile recheck after {recheck_time.minute - actual_time.minute} min")
 
     # 2. Continuous bedside monitoring (HR + SpO2 only) every ~2h
     #    for unstable / respiratory / cardiac patients
@@ -1328,7 +1340,7 @@ def _generate_vitals(
             mon_time += timedelta(minutes=float(rng.normal(0, 5)))
             raw = _make_raw(state, patient, mon_time, rng)
             _emit(mon_time, fields={"hr", "spo2"}, raw=raw,
-                  note="continuous monitor")
+                  note="持続モニタリング" if country == "JP" else "continuous monitor")
 
     return vitals
 
