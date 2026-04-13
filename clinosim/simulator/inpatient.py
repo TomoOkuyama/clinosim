@@ -1295,25 +1295,16 @@ def _generate_vitals(
         raw = _make_raw(state, patient, vit_time, rng)
         actual_time = vit_time + timedelta(minutes=float(rng.normal(0, 10)))
 
+        # CIF stores English nursing notes (AD-30). JP translation at FHIR output.
         note_parts = []
-        if country == "JP":
-            if raw["temperature"] >= 38.0:
-                note_parts.append("発熱あり")
-            if raw["spo2"] < 93:
-                note_parts.append("SpO2低下、酸素調整")
-            if state.inflammation_level < 0.1 and day >= 3:
-                note_parts.append("改善傾向、食事摂取良好")
-            if day == 0 and hour == full_hours[0]:
-                note_parts.append("入院時アセスメント完了")
-        else:
-            if raw["temperature"] >= 38.0:
-                note_parts.append("febrile")
-            if raw["spo2"] < 93:
-                note_parts.append("SpO2 low, O2 adjusted")
-            if state.inflammation_level < 0.1 and day >= 3:
-                note_parts.append("improving, appetite good")
-            if day == 0 and hour == full_hours[0]:
-                note_parts.append("admission assessment completed")
+        if raw["temperature"] >= 38.0:
+            note_parts.append("febrile")
+        if raw["spo2"] < 93:
+            note_parts.append("SpO2 low, O2 adjusted")
+        if state.inflammation_level < 0.1 and day >= 3:
+            note_parts.append("improving, appetite good")
+        if day == 0 and hour == full_hours[0]:
+            note_parts.append("admission assessment completed")
         note = ". ".join(note_parts) + "." if note_parts else ""
 
         _emit(actual_time,
@@ -1325,7 +1316,7 @@ def _generate_vitals(
             recheck_time = actual_time + timedelta(minutes=int(rng.uniform(30, 60)))
             recheck_raw = _make_raw(state, patient, recheck_time, rng)
             _emit(recheck_time, fields={"temp"}, raw=recheck_raw,
-                  note=f"発熱再検 {recheck_time.minute - actual_time.minute}分後" if country == "JP" else f"febrile recheck after {recheck_time.minute - actual_time.minute} min")
+                  note=f"febrile recheck after {recheck_time.minute - actual_time.minute} min")
 
     # 2. Continuous bedside monitoring (HR + SpO2 only) every ~2h
     #    for unstable / respiratory / cardiac patients
@@ -1340,7 +1331,7 @@ def _generate_vitals(
             mon_time += timedelta(minutes=float(rng.normal(0, 5)))
             raw = _make_raw(state, patient, mon_time, rng)
             _emit(mon_time, fields={"hr", "spo2"}, raw=raw,
-                  note="持続モニタリング" if country == "JP" else "continuous monitor")
+                  note="continuous monitor")
 
     return vitals
 
