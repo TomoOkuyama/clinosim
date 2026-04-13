@@ -1946,3 +1946,55 @@ The returned `LLMResponse` now carries:
 
 All of these are recorded on the `ClinicalDocument.generation` block and propagate into
 the narrative CIF manifest, enabling per-document cost analysis and audit.
+
+---
+
+## Part 9: Japanese narrative localization (2026-04-13)
+
+### AD-42: Code-side unit conversion for Japanese locale
+
+CIF stores lab values in SI units (CRP in mg/L). Japanese clinical convention uses mg/dL for CRP.
+Rather than asking the LLM to convert (which was inconsistent), conversion happens in code:
+
+- `hospital_course_extractor.format_lab_trends(trends, language="ja")` applies `_JA_CONVERSION` factors
+- `document_generator._initial_labs(record, language="ja")` applies the same conversion
+- `_JA_CONVERSION = {"CRP": 0.1}` — multiply mg/L by 0.1 to get mg/dL
+- Prompts say "use input units as-is" — no LLM-side conversion
+
+This is extensible: add entries to `_JA_CONVERSION` and `_UNIT_MAP_JA` for other locale-specific units.
+
+### AD-43: Japanese narrative prompt quality rules
+
+All 5 Japanese prompts (`prompts/ja/*.yaml`) enforce:
+
+1. **Staff name suffix**: "医師名には必ず「医師」を付けてください" — prevents inconsistent Dr./no-prefix output
+2. **Unit passthrough**: "検査値の単位は入力データのまま使用してください" — prevents LLM from annotating "(換算値)" or showing conversion work
+3. **No fabrication**: all prompts prohibit inventing data not present in input (consistent with EN prompts)
+
+### Chronic medication base code fallback
+
+`chronic_medications.yaml` keys are specific ICD codes (e.g., `E11.9`). After discharge,
+`_deactivate_to_layer1()` normalizes codes to base form (`E11`). The medication lookup in
+`inpatient.py` now falls back to base code:
+
+```python
+spec = chronic_meds.get(code) or chronic_meds.get(code.split(".")[0])
+```
+
+This matches the existing fallback in `activator.py:326` and prevents medication loss on readmission.
+
+### JP FHIR localization summary
+
+The FHIR R4 adapter applies Japanese localization when `country="JP"`:
+
+| Resource | Field | JP value |
+|---|---|---|
+| Location | name | `4E病棟`, `4E-01号室` |
+| Encounter | type | `入院`, `外来`, `救急` |
+| Encounter | serviceType | `内科`, `外科`, etc. |
+| Patient | maritalStatus | `既婚`, `未婚` |
+| MedicationRequest | dosageInstruction.route | `経口`, `静注`, `皮下注` |
+| MedicationRequest | dosageInstruction.timing | `1日1回`, `1日2回`, `6時間毎` |
+| Practitioner | qualification | `医師` |
+
+All localization is at FHIR output time (AD-30). CIF remains language-neutral.
