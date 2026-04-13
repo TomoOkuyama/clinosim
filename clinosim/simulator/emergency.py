@@ -153,6 +153,7 @@ def _simulate_ed_visit(
 
     # Vitals
     bv = patient.baseline_vitals
+    ed_nurse_id = assign_staff("medication_administration", "emergency_medicine", roster, rng).get("administering_nurse", "")
     vitals = [VitalSignRecord(
         timestamp=visit_time + timedelta(minutes=5),
         temperature_celsius=round(float(rng.normal(36.8, 0.5)), 1),
@@ -162,6 +163,7 @@ def _simulate_ed_visit(
         respiratory_rate=int(rng.normal(16, 2)),
         spo2=round(float(min(99, rng.normal(97.5, 1))), 1),
         pain_score=int(max(0, min(10, rng.normal(3, 2)))),
+        measured_by=ed_nurse_id,
         data_source="manual",
     )]
 

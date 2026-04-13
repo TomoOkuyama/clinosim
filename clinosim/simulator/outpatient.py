@@ -114,6 +114,7 @@ def _simulate_outpatient_visit(
         "respiratory_rate": float(rng.normal(16, 1.5)),
         "spo2": float(min(99, rng.normal(97.5, 0.8))),
     }
+    opd_nurse_id = assign_staff("medication_administration", "primary_care", roster, rng).get("administering_nurse", "")
     vitals.append(VitalSignRecord(
         timestamp=visit_date + timedelta(minutes=5),
         temperature_celsius=round(raw["temperature"], 1) if "temp" in fields else None,
@@ -122,6 +123,7 @@ def _simulate_outpatient_visit(
         diastolic_bp=int(round(raw["diastolic_bp"])) if "bp" in fields else None,
         respiratory_rate=int(round(raw["respiratory_rate"])) if "rr" in fields else None,
         spo2=round(raw["spo2"], 1) if "spo2" in fields else None,
+        measured_by=opd_nurse_id,
         data_source="manual",
     ))
 
