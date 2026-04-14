@@ -148,3 +148,51 @@ Tetanus toxoid: "破傷風トキソイド"
 
 # --- PE/DVT treatment / 血栓症治療 ---
 Urokinase: "ウロキナーゼ"
+Sequential compression devices: "間欠的空気圧迫装置"
+therapeutic_anticoagulation: "治療的抗凝固療法"
+therapeutic anticoagulation: "治療的抗凝固療法"
+Broad spectrum antibiotic: "広域スペクトラム抗菌薬"
+
+# --- Non-drug orders (procedures classified as medication in CIF) ---
+# These should ideally not be MedicationRequests, but translate for consistency
+Ice pack application: "氷嚢貼付"
+Ice pack to affected area: "患部への氷嚢貼付"
+Heat pack application: "温罨法"
+Suture closure: "縫合閉創"
+Skin staples: "スキンステープル"
+Tissue adhesive: "組織接着剤"
+Nasal packing: "鼻腔パッキング"
+Cervical collar application: "頸椎カラー装着"
+Cardiac monitoring: "心電図モニタリング"
+Closed reduction: "徒手整復"
+Neurological observation: "神経学的観察"
+Sling immobilization: "三角巾固定"
+Short arm splint: "前腕シーネ固定"
+Posterior splint: "後方シーネ固定"
+Short arm cast: "前腕ギプス固定"
+Elastic bandage wrap: "弾性包帯巻"
+Non-adherent dressing: "非固着性ドレッシング"
+Reassurance and breathing exercises: "安心させる言葉かけと呼吸訓練"
+Incentive spirometry instruction: "インセンティブ・スパイロメトリー指導"
+Observation and monitoring: "経過観察"
+Observation: "経過観察"
+Oral fluids encouraged: "経口水分摂取励行"
+Dark room rest: "暗室安静"
+Cool water irrigation: "冷水洗浄"
+Wound irrigation with normal saline: "生理食塩液による創部洗浄"
+
+# --- Dialysis / 透析 ---
+Hemodialysis: "血液透析"
+
+# --- Ventilation / 呼吸管理 ---
+NIV_BiPAP: "非侵襲的陽圧換気 (BiPAP)"
+NIV BiPAP: "非侵襲的陽圧換気 (BiPAP)"
+Intubation and mechanical ventilation: "気管挿管・人工呼吸管理"
+
+# --- Interventional procedures / 手技 ---
+Vertebroplasty: "椎体形成術"
+Percutaneous vertebroplasty: "経皮的椎体形成術"
+Silver nitrate cauterization: "硝酸銀による焼灼"
+Procedural sedation: "手技時鎮静"
+Catheter-directed thrombolysis: "カテーテル血栓溶解療法"
+Foley catheter insertion: "膀胱留置カテーテル挿入"

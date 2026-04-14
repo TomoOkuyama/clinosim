@@ -639,20 +639,40 @@ def _run_daily_loop(
                     ordered_datetime=admission_time + timedelta(days=day, hours=10),
                     status=OrderStatus.PLACED,
                 ))
-            # Start new medications
+            # Start new medications or procedures
             start_meds = mod.get("start", {}).get(country_key, mod.get("start", []))
             if isinstance(start_meds, list):
                 for med in start_meds:
-                    if isinstance(med, dict):
+                    if not isinstance(med, dict):
+                        continue
+                    drug = med.get("drug", "").strip()
+                    proc = med.get("procedure", "").strip()
+                    if drug:
+                        # Medication order
+                        display = f"{drug} {med.get('dose', '')}".strip()
                         all_orders.append(Order(
-                            order_id=f"ORD-{patient.patient_id}-START-D{day}-{med.get('drug','')[:8]}",
+                            order_id=f"ORD-{patient.patient_id}-START-D{day}-{drug[:8]}",
                             patient_id=patient.patient_id, order_type=OrderType.MEDICATION,
-                            display_name=f"{med.get('drug', '')} {med.get('dose', '')}",
+                            display_name=display,
                             urgency="urgent",
                             clinical_intent=f"Day {day} {archetype}: new medication",
                             ordered_datetime=admission_time + timedelta(days=day, hours=10),
                             status=OrderStatus.PLACED,
                         ))
+                    elif proc:
+                        # Procedure order (not a medication)
+                        detail = med.get("detail", "")
+                        display = f"{proc}" + (f" ({detail})" if detail else "")
+                        all_orders.append(Order(
+                            order_id=f"ORD-{patient.patient_id}-PROC-D{day}-{proc[:8]}",
+                            patient_id=patient.patient_id, order_type=OrderType.PROCEDURE,
+                            display_name=display,
+                            urgency="urgent",
+                            clinical_intent=f"Day {day} {archetype}: new procedure",
+                            ordered_datetime=admission_time + timedelta(days=day, hours=10),
+                            status=OrderStatus.PLACED,
+                        ))
+                    # Skip entries with neither drug nor procedure
 
         # Treatment escalation: if inflammation not improving by day 3, escalate
         if day == 3 and state.inflammation_level > 0.3:

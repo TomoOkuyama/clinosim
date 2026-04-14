@@ -40,35 +40,38 @@ def _localize_drug_name(drug_name: str, country: str) -> str:
     """Resolve drug name to Japanese when country=JP.
 
     Matches drug names against the dictionary, handling:
-    - Exact match (case-insensitive)
-    - Dose suffix: "Drug 500mg" → "<ja> 500mg"
+    - Exact match (case-insensitive, underscore→space normalized)
     - Category prefix: "category: Drug ..." → "<ja> ..."
-    - Any drug name substring found anywhere in the text
+    - Any drug name substring found anywhere in the text (longest match wins)
     """
     if country == "US" or not drug_name:
         return drug_name
     ja_dict = _load_drug_names_ja()
-    # Strip category prefix like "bronchodilator:" or "DVT_prophylaxis:"
-    cleaned = drug_name
+    # Normalize underscores to spaces for matching
+    normalized = drug_name.replace("_", " ")
+    # Try exact match on normalized (case-insensitive)
+    ja = ja_dict.get(normalized.lower())
+    if ja:
+        return ja
+    # Try exact match on cleaned (prefix stripped) version
+    cleaned = normalized
     if ":" in cleaned:
         cleaned = cleaned.split(":", 1)[1].strip()
-    # Exact match (case-insensitive)
     ja = ja_dict.get(cleaned.lower())
     if ja:
         return ja
-    # Match longest known drug name found anywhere in the cleaned text
-    cleaned_lower = cleaned.lower()
+    # Match longest known drug name found anywhere in the ORIGINAL normalized text
+    # (not cleaned — because the drug name might be in the prefix itself)
+    search_text = normalized.lower()
     best_match: tuple[str, str] | None = None
     for en_key, ja_val in ja_dict.items():
-        if en_key in cleaned_lower:
+        if en_key in search_text:
             if best_match is None or len(en_key) > len(best_match[0]):
                 best_match = (en_key, ja_val)
     if best_match:
-        # Replace the English drug name occurrence with Japanese
         en_key, ja_val = best_match
-        # Case-insensitive replace (only first occurrence)
-        idx = cleaned_lower.find(en_key)
-        return (cleaned[:idx] + ja_val + cleaned[idx + len(en_key):]).strip()
+        idx = search_text.find(en_key)
+        return (normalized[:idx] + ja_val + normalized[idx + len(en_key):]).strip()
     return drug_name
 
 
@@ -443,12 +446,18 @@ def _build_bundle(
     # === MedicationRequest resources ===
     for order in record.get("orders", []):
         if order.get("order_type") == "medication":
+            # Skip orders with blank drug names (CIF data quality issue)
+            if not (order.get("display_name") or "").strip():
+                continue
             entries.append(_entry(_build_medication_request(
                 order, patient_id, country, primary_enc_id, primary_dx_code,
             )))
 
     # === MedicationAdministration resources (MAR) ===
     for i, mar in enumerate(record.get("medication_administrations", [])):
+        # Skip MAR entries with blank drug names
+        if not (mar.get("drug_name") or "").strip():
+            continue
         entries.append(_entry(_build_medication_admin(
             mar, patient_id, i, country,
             encounter_id=primary_enc_id, primary_dx_code=primary_dx_code,
