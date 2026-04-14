@@ -1472,7 +1472,14 @@ def _build_lab_observation(
     else:
         resource["valueString"] = str(value)
 
-    # Interpretation flag (always set, default Normal)
+    # Reference range (JP: JCCLS共用基準範囲)
+    ref_range = _build_reference_range(lab_name, patient_sex, country_code)
+    if ref_range:
+        resource["referenceRange"] = ref_range
+
+    # Interpretation — recompute from value vs reference range when possible
+    # (ensures consistency per FHIR spec: both must be consistent when provided).
+    # Fall back to flag-based mapping for non-numeric or no-range cases.
     flag = result.get("flag")
     interp_map = {
         "H": {"code": "H", "display": "High"},
@@ -1481,18 +1488,41 @@ def _build_lab_observation(
         "L*": {"code": "LL", "display": "Critical low"},
         "critical": {"code": "AA", "display": "Critical abnormal"},
     }
-    coded = interp_map.get(flag) if flag else {"code": "N", "display": "Normal"}
+    coded: dict[str, str] | None = None
+    if isinstance(value, (int, float)) and ref_range:
+        # Find normal range (type=normal or unlabeled first entry)
+        normal_rng = None
+        for rng in ref_range:
+            tc = (rng.get("type") or {}).get("coding", [{}])[0].get("code", "")
+            if tc == "normal" or not tc:
+                normal_rng = rng
+                break
+        if normal_rng:
+            low_v = (normal_rng.get("low") or {}).get("value")
+            high_v = (normal_rng.get("high") or {}).get("value")
+            is_critical = flag in ("H*", "L*", "critical")
+            out_low = low_v is not None and value < low_v
+            out_high = high_v is not None and value > high_v
+            if is_critical and out_low:
+                coded = {"code": "LL", "display": "Critical low"}
+            elif is_critical and out_high:
+                coded = {"code": "HH", "display": "Critical high"}
+            elif is_critical:
+                coded = {"code": "AA", "display": "Critical abnormal"}
+            elif out_low:
+                coded = {"code": "L", "display": "Low"}
+            elif out_high:
+                coded = {"code": "H", "display": "High"}
+            else:
+                coded = {"code": "N", "display": "Normal"}
+    if coded is None:
+        coded = interp_map.get(flag) if flag else {"code": "N", "display": "Normal"}
     resource["interpretation"] = [{
         "coding": [{
             "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
             **coded,
         }],
     }]
-
-    # Reference range (JP: JCCLS共用基準範囲)
-    ref_range = _build_reference_range(lab_name, patient_sex, country_code)
-    if ref_range:
-        resource["referenceRange"] = ref_range
 
     # Encounter reference (use order's encounter_id, fallback to primary)
     enc_ref = order.get("encounter_id", "") or encounter_id
@@ -1515,13 +1545,14 @@ def _build_vital_observations(
     entries = []
 
     # (field, loinc, display_en, display_ja, unit, low, high, critical_low, critical_high, time_offset_sec)
+    # crit_high=None means no upper critical bound (e.g., SpO2 cannot be critically high)
     # time_offset: per-field realistic delay within a vital-sign set
     # BP/HR measured simultaneously (same device cycle), Temp added later, RR counted last
     _vital_map = [
         ("heart_rate", "8867-4", "Heart rate", "脈拍", "/min", 60, 100, 40, 130, 0),
         ("systolic_bp", "8480-6", "Systolic blood pressure", "収縮期血圧", "mm[Hg]", 90, 140, 80, 200, 0),
         ("diastolic_bp", "8462-4", "Diastolic blood pressure", "拡張期血圧", "mm[Hg]", 60, 90, 50, 120, 0),
-        ("spo2", "2708-6", "Oxygen saturation", "酸素飽和度", "%", 95, 100, 88, 100, 5),
+        ("spo2", "2708-6", "Oxygen saturation", "酸素飽和度", "%", 95, 100, 88, None, 5),
         ("temperature_celsius", "8310-5", "Body temperature", "体温", "Cel", 36.0, 37.5, 35.0, 39.5, 30),
         ("respiratory_rate", "9279-1", "Respiratory rate", "呼吸数", "/min", 12, 20, 8, 30, 60),
     ]
@@ -1575,8 +1606,10 @@ def _build_vital_observations(
         if performer_id:
             obs["performer"] = [{"reference": f"Practitioner/{performer_id}"}]
 
-        # Reference range
-        obs["referenceRange"] = [{
+        # Reference range — normal range (always) + critical range (when defined)
+        range_text = "成人正常範囲" if country == "JP" else "Normal adult range"
+        crit_text = "パニック値" if country == "JP" else "Critical range"
+        ref_ranges = [{
             "low": {"value": low, "unit": unit, "system": "http://unitsofmeasure.org", "code": unit},
             "high": {"value": high, "unit": unit, "system": "http://unitsofmeasure.org", "code": unit},
             "type": {
@@ -1586,15 +1619,33 @@ def _build_vital_observations(
                     "display": "Normal Range",
                 }],
             },
-            "text": "Normal adult range",
+            "text": range_text,
         }]
+        # Add critical range as separate entry (panic values)
+        if crit_low is not None or crit_high is not None:
+            crit_range: dict[str, Any] = {
+                "type": {
+                    "coding": [{
+                        "system": "http://terminology.hl7.org/CodeSystem/referencerange-meaning",
+                        "code": "treatment",
+                        "display": "Critical Range",
+                    }],
+                },
+                "text": crit_text,
+            }
+            if crit_low is not None:
+                crit_range["low"] = {"value": crit_low, "unit": unit, "system": "http://unitsofmeasure.org", "code": unit}
+            if crit_high is not None:
+                crit_range["high"] = {"value": crit_high, "unit": unit, "system": "http://unitsofmeasure.org", "code": unit}
+            ref_ranges.append(crit_range)
+        obs["referenceRange"] = ref_ranges
 
-        # Interpretation (compute from value vs reference range)
+        # Interpretation (compute from value vs reference range — always consistent)
         interp_code = "N"
         interp_display = "Normal"
-        if value <= crit_low:
+        if crit_low is not None and value <= crit_low:
             interp_code = "LL"; interp_display = "Critical low"
-        elif value >= crit_high:
+        elif crit_high is not None and value >= crit_high:
             interp_code = "HH"; interp_display = "Critical high"
         elif value < low:
             interp_code = "L"; interp_display = "Low"
