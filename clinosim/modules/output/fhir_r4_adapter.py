@@ -20,6 +20,139 @@ from typing import Any
 # Lazy-loaded drug name dictionary for Japanese localization
 _drug_names_ja: dict[str, str] | None = None
 
+# Japanese translations for medical abbreviations/categories in medication text.
+# Applied word-by-word or as literal substrings (case-insensitive for abbrevs).
+_MED_CATEGORY_JA: dict[str, str] = {
+    # Category prefixes (lowercase for case-insensitive match)
+    "dvt prophylaxis": "DVT予防",
+    "dvt_prophylaxis": "DVT予防",
+    "antipyretic": "解熱剤",
+    "bronchodilator": "気管支拡張薬",
+    "steroid": "ステロイド",
+    "iv fluid": "輸液",
+    "iv_fluid": "輸液",
+    "iv_insulin": "インスリン持続静注",
+    "iv insulin": "インスリン持続静注",
+    "k_replacement": "カリウム補充",
+    "k replacement": "カリウム補充",
+    "pain_management": "疼痛管理",
+    "pain management": "疼痛管理",
+    "ppi": "PPI",
+    "nsaid": "NSAIDs",
+    "antibiotic": "抗菌薬",
+}
+
+# Dose/route/frequency abbreviation translations.
+# Applied as whole-word replacements (case-sensitive where needed).
+_MED_TERMS_JA: dict[str, str] = {
+    "PRN": "頓用",
+    "PO": "経口",
+    "IV": "静注",
+    "SC": "皮下注",
+    "IM": "筋注",
+    "SL": "舌下",
+    "inh": "吸入",
+    "inhaler": "吸入薬",
+    "nebulizer": "ネブライザー",
+    "local infiltration": "局所浸潤",
+    "daily": "1日1回",
+    "bid": "1日2回",
+    "tid": "1日3回",
+    "qid": "1日4回",
+    "q4h": "4時間毎",
+    "q6h": "6時間毎",
+    "q8h": "8時間毎",
+    "q12h": "12時間毎",
+    "q1h": "1時間毎",
+    "bolus": "ボーラス",
+    "continuous": "持続",
+    "drip": "点滴静注",
+    "infusion": "輸注",
+    "loading": "負荷投与",
+    "avoid": "回避",
+    "hold": "保留",
+    "if": "場合",
+    "or": "または",
+    "and": "および",
+    "then": "その後",
+    "first": "最初の",
+    "per": "あたり",
+    "acute": "急性期",
+    "hours": "時間",
+    "hour": "時間",
+    "session": "セッション",
+    "week": "週",
+    "days": "日間",
+    "min": "分",
+    "over": "かけて",
+    "after": "後",
+    "once": "一度",
+    "stable": "安定後",
+    "hemodynamically": "血行動態",
+    "hypotonic": "低張",
+    "fluids": "輸液",
+    "anticoagulant": "抗凝固",
+    "target": "目標",
+    "booster": "追加接種",
+    "anterior": "前方",
+    "nasal": "鼻",
+    "spray": "スプレー",
+    "glue": "接着剤",
+    "Nebulized": "ネブライザー",
+    "nebulized": "ネブライザー",
+    "Propofol": "プロポフォール",
+    "Midazolam": "ミダゾラム",
+    "temp": "体温",
+    "opioid": "オピオイド",
+    "within": "以内",
+    "in": "内",
+    "cream": "クリーム",
+    "gel": "ゲル",
+    "bromide": "臭化物",
+    "pre-op": "術前",
+    "coagulopathy": "凝固異常",
+    "encephalopathy": "肝性脳症",
+    "for": "の",
+    "aggressive": "積極的",
+    "hydration": "補液",
+    "Pneumatic compression devices": "間欠的空気圧迫装置",
+    "pneumatic compression": "間欠的空気圧迫",
+    "SCDs": "SCD",
+    "delay": "遅延",
+    "pharmacologic prophylaxis": "薬理学的予防",
+    "via": "経由",
+    "central line": "中心静脈ライン",
+    "contralateral": "反対側",
+    "limb": "肢",
+    "NPO": "絶食",
+    "local": "局所",
+    "q3h": "3時間毎",
+    "q2h": "2時間毎",
+    "adjust": "調整",
+    "renal": "腎",
+    "function": "機能",
+    "section": "セクション",
+    "see": "参照",
+    "drugs": "薬剤",
+    "Start": "開始",
+    "start": "開始",
+    "anticoagulation": "抗凝固療法",
+    "protocol": "プロトコル",
+    "cautious": "慎重",
+    "may": "可能性",
+    "tolerate": "耐容",
+    "volume": "容量",
+    "replaces": "置換",
+    "prophylactic": "予防投与",
+    "under": "下",
+    "fluoroscopy": "透視",
+    "catheter": "カテーテル",
+    "patch": "パッチ",
+    "RV": "右室",
+    "PE": "PE（肺塞栓）",
+    "not": "できず",
+}
+
 
 def _load_drug_names_ja() -> dict[str, str]:
     """Load English→Japanese drug name mapping (case-insensitive keys)."""
@@ -36,6 +169,31 @@ def _load_drug_names_ja() -> dict[str, str]:
     return _drug_names_ja
 
 
+def _localize_dosage_terms(text: str) -> str:
+    """Translate common medical abbreviations and dosage terms to Japanese.
+
+    Word-level replacements with case-insensitive matching for common terms.
+    """
+    # Category prefixes (apply first, longest-match-wins, case-insensitive)
+    # These often appear as "Category: ..." or "Category_word ..."
+    for cat, ja in sorted(_MED_CATEGORY_JA.items(), key=lambda x: -len(x[0])):
+        # Match as prefix word, case-insensitive, followed by : or space or _
+        pattern = r'(?i)\b' + re.escape(cat) + r'\b'
+        text = re.sub(pattern, ja, text)
+    # Dose/route/frequency terms (word-boundary, case-sensitive for uppercase abbrevs,
+    # case-insensitive for lowercase words)
+    for term, ja in sorted(_MED_TERMS_JA.items(), key=lambda x: -len(x[0])):
+        if term.isupper():
+            # Case-sensitive for uppercase abbrevs (PRN, PO, IV)
+            pattern = r'\b' + re.escape(term) + r'\b'
+            text = re.sub(pattern, ja, text)
+        else:
+            # Case-insensitive for lowercase words
+            pattern = r'(?i)\b' + re.escape(term) + r'\b'
+            text = re.sub(pattern, ja, text)
+    return text
+
+
 def _localize_drug_name(drug_name: str, country: str) -> str:
     """Resolve drug name to Japanese when country=JP.
 
@@ -43,6 +201,7 @@ def _localize_drug_name(drug_name: str, country: str) -> str:
     - Exact match (case-insensitive, underscore→space normalized)
     - Category prefix: "category: Drug ..." → "<ja> ..."
     - Any drug name substring found anywhere in the text (longest match wins)
+    - Dosage/route/frequency terms translated at end
     """
     if country == "US" or not drug_name:
         return drug_name
@@ -52,27 +211,27 @@ def _localize_drug_name(drug_name: str, country: str) -> str:
     # Try exact match on normalized (case-insensitive)
     ja = ja_dict.get(normalized.lower())
     if ja:
-        return ja
+        return _localize_dosage_terms(ja)
     # Try exact match on cleaned (prefix stripped) version
     cleaned = normalized
     if ":" in cleaned:
         cleaned = cleaned.split(":", 1)[1].strip()
     ja = ja_dict.get(cleaned.lower())
     if ja:
-        return ja
-    # Match longest known drug name found anywhere in the ORIGINAL normalized text
-    # (not cleaned — because the drug name might be in the prefix itself)
-    search_text = normalized.lower()
-    best_match: tuple[str, str] | None = None
-    for en_key, ja_val in ja_dict.items():
-        if en_key in search_text:
-            if best_match is None or len(en_key) > len(best_match[0]):
-                best_match = (en_key, ja_val)
-    if best_match:
-        en_key, ja_val = best_match
-        idx = search_text.find(en_key)
-        return (normalized[:idx] + ja_val + normalized[idx + len(en_key):]).strip()
-    return drug_name
+        return _localize_dosage_terms(ja)
+    # Replace ALL known drug name occurrences (longest-first to avoid partial matches)
+    # Use case-insensitive regex replacement
+    result = normalized
+    changed = False
+    for en_key in sorted(ja_dict.keys(), key=lambda k: -len(k)):
+        ja_val = ja_dict[en_key]
+        pattern = re.compile(r'(?i)\b' + re.escape(en_key) + r'\b')
+        new_result, n = pattern.subn(ja_val, result)
+        if n > 0:
+            result = new_result
+            changed = True
+    # Always translate dosage terms
+    return _localize_dosage_terms(result).strip() if changed or result != drug_name else _localize_dosage_terms(drug_name).strip()
 
 
 def convert_cif_to_fhir(
@@ -680,13 +839,16 @@ def _build_allergy_intolerance(
     if not substance:
         return None
 
+    # Localize substance display for JP
+    substance_display = _localize_drug_name(substance, country) if country == "JP" else substance
+
     rxnorm = _ALLERGEN_RXNORM.get(substance, "")
-    code: dict[str, Any] = {"text": substance}
+    code: dict[str, Any] = {"text": substance_display}
     if rxnorm:
         code["coding"] = [{
             "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
             "code": rxnorm,
-            "display": substance,
+            "display": substance_display,
         }]
 
     severity = allergy.get("severity", "mild").lower()
