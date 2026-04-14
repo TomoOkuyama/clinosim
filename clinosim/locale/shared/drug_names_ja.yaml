@@ -1,0 +1,150 @@
+# English drug name → Japanese drug name mapping
+# Used by FHIR adapter to localize medicationCodeableConcept.text for JP output.
+# Keys are matched case-insensitively against the base drug name (before dose/route).
+#
+# Sources: 医薬品添付文書 (PMDA), 薬価基準収載医薬品コード (YJ code)
+
+# --- Antibiotics / 抗菌薬 ---
+Ampicillin/Sulbactam: "アンピシリン/スルバクタム"
+Amoxicillin: "アモキシシリン"
+Amoxicillin/Clavulanate: "アモキシシリン/クラブラン酸"
+Cefazolin: "セファゾリン"
+Cefcapene pivoxil: "セフカペンピボキシル"
+Cefditoren pivoxil: "セフジトレンピボキシル"
+Cefmetazole: "セフメタゾール"
+Ceftriaxone: "セフトリアキソン"
+Cephalexin: "セファレキシン"
+Ciprofloxacin: "シプロフロキサシン"
+Levofloxacin: "レボフロキサシン"
+Meropenem: "メロペネム"
+Metronidazole: "メトロニダゾール"
+Micafungin: "ミカファンギン"
+Nitrofurantoin: "ニトロフラントイン"
+Piperacillin/Tazobactam: "ピペラシリン/タゾバクタム"
+Trimethoprim-sulfamethoxazole: "スルファメトキサゾール/トリメトプリム"
+Vancomycin: "バンコマイシン"
+
+# --- Antiviral / 抗ウイルス薬 ---
+Oseltamivir: "オセルタミビル"
+
+# --- Analgesics / 鎮痛薬 ---
+Acetaminophen: "アセトアミノフェン"
+Acetaminophen/codeine: "アセトアミノフェン/コデイン"
+Celecoxib: "セレコキシブ"
+Diclofenac: "ジクロフェナク"
+Fentanyl: "フェンタニル"
+Ibuprofen: "イブプロフェン"
+Ketorolac: "ケトロラク"
+Loxoprofen: "ロキソプロフェン"
+Morphine: "モルヒネ"
+Oxycodone: "オキシコドン"
+
+# --- Cardiovascular / 循環器系 ---
+Amlodipine: "アムロジピン"
+Apixaban: "アピキサバン"
+Aspirin: "アスピリン"
+Atorvastatin: "アトルバスタチン"
+Bisoprolol: "ビソプロロール"
+Candesartan: "カンデサルタン"
+Carvedilol: "カルベジロール"
+Clopidogrel: "クロピドグレル"
+Diltiazem: "ジルチアゼム"
+Dobutamine: "ドブタミン"
+Edoxaban: "エドキサバン"
+Enalapril: "エナラプリル"
+Enoxaparin: "エノキサパリン"
+Furosemide: "フロセミド"
+Heparin: "ヘパリン"
+Landiolol: "ランジオロール"
+Nicardipine: "ニカルジピン"
+Nitroglycerin: "ニトログリセリン"
+Norepinephrine: "ノルエピネフリン"
+Spironolactone: "スピロノラクトン"
+Unfractionated Heparin: "未分画ヘパリン"
+Warfarin: "ワルファリン"
+
+# --- Respiratory / 呼吸器系 ---
+Aminophylline: "アミノフィリン"
+Fluticasone/Salmeterol: "フルチカゾン/サルメテロール"
+Ipratropium: "イプラトロピウム"
+Salbutamol: "サルブタモール"
+Tiotropium: "チオトロピウム"
+
+# --- GI / 消化器系 ---
+Buscopan: "ブチルスコポラミン"
+Daikenchuto: "大建中湯"
+Famotidine: "ファモチジン"
+Lactulose: "ラクツロース"
+Lansoprazole: "ランソプラゾール"
+Metoclopramide: "メトクロプラミド"
+Mosapride: "モサプリド"
+Omeprazole: "オメプラゾール"
+Ondansetron: "オンダンセトロン"
+Rifaximin: "リファキシミン"
+
+# --- Endocrine / 内分泌系 ---
+Insulin glargine: "インスリングラルギン"
+Levothyroxine: "レボチロキシン"
+Metformin: "メトホルミン"
+Regular insulin: "レギュラーインスリン"
+Sliding scale insulin: "スライディングスケールインスリン"
+
+# --- Neurology / 神経系 ---
+Cyclobenzaprine: "シクロベンザプリン"
+Donepezil: "ドネペジル"
+Levetiracetam: "レベチラセタム"
+Levodopa/Carbidopa: "レボドパ/カルビドパ"
+Lorazepam: "ロラゼパム"
+
+# --- Bone / 骨代謝 ---
+Alendronate: "アレンドロネート"
+Alfacalcidol: "アルファカルシドール"
+Calcium/Vitamin D: "カルシウム/ビタミンD"
+Denosumab: "デノスマブ"
+Elcatonin: "エルカトニン"
+Vitamin D: "ビタミンD"
+
+# --- Urology / 泌尿器系 ---
+Phenazopyridine: "フェナゾピリジン"
+Tamsulosin: "タムスロシン"
+
+# --- Antihistamines / 抗ヒスタミン薬 ---
+Meclizine: "メクリジン"
+Oxymetazoline: "オキシメタゾリン"
+Silver sulfadiazine: "スルファジアジン銀"
+Silver nitrate: "硝酸銀"
+
+# --- Others / その他 ---
+Camostat mesilate: "カモスタットメシル酸塩"
+Diphenhydramine: "ジフェンヒドラミン"
+Epinephrine: "エピネフリン"
+Ferrous fumarate: "フマル酸第一鉄"
+Lidocaine: "リドカイン"
+Magnesium Sulfate: "硫酸マグネシウム"
+Mannitol: "マンニトール"
+Methylprednisolone: "メチルプレドニゾロン"
+Nafamostat: "ナファモスタット"
+Potassium chloride: "塩化カリウム"
+Prednisolone: "プレドニゾロン"
+Sodium bicarbonate: "炭酸水素ナトリウム"
+
+# --- IV fluids / 輸液 ---
+IV normal saline: "生理食塩液"
+Normal saline: "生理食塩液"
+NS: "生理食塩液"
+Lactated Ringer: "乳酸リンゲル液"
+LR: "乳酸リンゲル液"
+Hypertonic Saline: "高張食塩液"
+Crystalloid: "晶質液"
+KCl: "塩化カリウム"
+
+# --- Sedation/Anesthesia / 鎮静・麻酔 ---
+Propofol: "プロポフォール"
+Midazolam: "ミダゾラム"
+Hydromorphone: "ヒドロモルフォン"
+
+# --- Vaccines / ワクチン ---
+Tetanus toxoid: "破傷風トキソイド"
+
+# --- PE/DVT treatment / 血栓症治療 ---
+Urokinase: "ウロキナーゼ"

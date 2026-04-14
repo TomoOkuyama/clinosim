@@ -11,9 +11,65 @@ import os
 
 from clinosim.codes import get_system_uri, lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping, load_reference_ranges, load_terminology
+import re
 import uuid
 from datetime import date, datetime
+from pathlib import Path
 from typing import Any
+
+# Lazy-loaded drug name dictionary for Japanese localization
+_drug_names_ja: dict[str, str] | None = None
+
+
+def _load_drug_names_ja() -> dict[str, str]:
+    """Load English→Japanese drug name mapping (case-insensitive keys)."""
+    global _drug_names_ja
+    if _drug_names_ja is not None:
+        return _drug_names_ja
+    import yaml
+    yaml_path = Path(__file__).resolve().parent.parent.parent / "locale" / "shared" / "drug_names_ja.yaml"
+    if yaml_path.exists():
+        raw = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
+        _drug_names_ja = {k.lower(): v for k, v in raw.items()}
+    else:
+        _drug_names_ja = {}
+    return _drug_names_ja
+
+
+def _localize_drug_name(drug_name: str, country: str) -> str:
+    """Resolve drug name to Japanese when country=JP.
+
+    Matches drug names against the dictionary, handling:
+    - Exact match (case-insensitive)
+    - Dose suffix: "Drug 500mg" → "<ja> 500mg"
+    - Category prefix: "category: Drug ..." → "<ja> ..."
+    - Any drug name substring found anywhere in the text
+    """
+    if country == "US" or not drug_name:
+        return drug_name
+    ja_dict = _load_drug_names_ja()
+    # Strip category prefix like "bronchodilator:" or "DVT_prophylaxis:"
+    cleaned = drug_name
+    if ":" in cleaned:
+        cleaned = cleaned.split(":", 1)[1].strip()
+    # Exact match (case-insensitive)
+    ja = ja_dict.get(cleaned.lower())
+    if ja:
+        return ja
+    # Match longest known drug name found anywhere in the cleaned text
+    cleaned_lower = cleaned.lower()
+    best_match: tuple[str, str] | None = None
+    for en_key, ja_val in ja_dict.items():
+        if en_key in cleaned_lower:
+            if best_match is None or len(en_key) > len(best_match[0]):
+                best_match = (en_key, ja_val)
+    if best_match:
+        # Replace the English drug name occurrence with Japanese
+        en_key, ja_val = best_match
+        # Case-insensitive replace (only first occurrence)
+        idx = cleaned_lower.find(en_key)
+        return (cleaned[:idx] + ja_val + cleaned[idx + len(en_key):]).strip()
+    return drug_name
 
 
 def convert_cif_to_fhir(
@@ -1585,9 +1641,10 @@ def _build_medication_request(
     encounter_id: str = "", primary_dx_code: str = "",
 ) -> dict:
     """Build FHIR MedicationRequest resource."""
-    drug_name = order.get("display_name", "Unknown medication")
+    drug_name_raw = order.get("display_name", "Unknown medication")
+    drug_name = _localize_drug_name(drug_name_raw, country)
     # Strip dose info to get base drug name for code lookup
-    base_name = drug_name.split(" ")[0] if drug_name else ""
+    base_name = drug_name_raw.split(" ")[0] if drug_name_raw else ""
 
     country_code = "JP" if country != "US" else "US"
     lang = "ja" if country_code == "JP" else "en"
@@ -1654,8 +1711,9 @@ def _build_medication_admin(
     encounter_id: str = "", primary_dx_code: str = "",
 ) -> dict:
     """Build FHIR MedicationAdministration resource."""
-    drug_name = mar.get("drug_name", "")
-    base_name = drug_name.split(" ")[0] if drug_name else ""
+    drug_name_raw = mar.get("drug_name", "")
+    drug_name = _localize_drug_name(drug_name_raw, country)
+    base_name = drug_name_raw.split(" ")[0] if drug_name_raw else ""
     country_code = "JP" if country != "US" else "US"
     lang = "ja" if country_code == "JP" else "en"
     drug_codes = load_code_mapping("drug", country_code)
