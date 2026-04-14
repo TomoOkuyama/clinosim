@@ -10,7 +10,8 @@ from datetime import date
 
 import numpy as np
 
-from clinosim.modules.population.engine import PersonRecord
+from clinosim.modules.population.engine import PersonRecord, _sample_given_name
+from clinosim.locale.loader import load_names
 from clinosim.types.patient import (
     Allergy,
     BaselineVitals,
@@ -246,8 +247,27 @@ def activate_patient(
         else:
             emergency_rel = str(rng.choice(["spouse", "parent", "sibling", "child"],
                                             p=[0.55, 0.20, 0.15, 0.10]))
-        # Generic emergency contact name (not generating full names to keep simple)
-        emergency_name = f"{name.family_name} family" if country == "US" else f"{name.family_name}家"
+        # Generate a realistic person name for the emergency contact.
+        # Spouse/sibling/parent/child typically shares family name (Japan);
+        # opposite sex for spouse, random for others.
+        try:
+            name_data = load_names(country)
+            if emergency_rel == "spouse":
+                contact_sex = "F" if person.sex == "M" else "M"
+            else:
+                contact_sex = str(rng.choice(["M", "F"]))
+            given = _sample_given_name(name_data, contact_sex, rng)
+            # JP uses 'kanji' key, US uses 'name' key
+            given_name = given.get("kanji") or given.get("name", "")
+            if not given_name:
+                raise ValueError("empty given name")
+            if country == "JP":
+                emergency_name = f"{name.family_name} {given_name}"
+            else:
+                emergency_name = f"{given_name} {name.family_name}"
+        except Exception:
+            # Fallback if name data unavailable
+            emergency_name = f"{name.family_name} family" if country == "US" else f"{name.family_name}家"
 
     contact = ContactInfo(
         phone_home=phone_home,
