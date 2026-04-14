@@ -1328,7 +1328,7 @@ def _build_encounter(
             "rank": 1,
         }]
 
-    # Hospitalization (admit source / discharge disposition)
+    # Hospitalization (admit source / discharge disposition / re-admission)
     hosp: dict[str, Any] = {}
     if enc.get("admit_source"):
         hosp["admitSource"] = {
@@ -1343,6 +1343,17 @@ def _build_encounter(
                 "system": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
                 "code": enc["discharge_disposition"],
             }],
+        }
+    # Re-admission flag (FHIR standard: hospitalization.reAdmission CodeableConcept)
+    # Using HL7 v2 table 0092 "Re-admission Indicator" — the canonical source.
+    if is_readmission:
+        hosp["reAdmission"] = {
+            "coding": [{
+                "system": "http://terminology.hl7.org/CodeSystem/v2-0092",
+                "code": "R",
+                "display": "Re-admission",
+            }],
+            "text": "再入院" if country == "JP" else "Re-admission",
         }
     if hosp:
         resource["hospitalization"] = hosp
