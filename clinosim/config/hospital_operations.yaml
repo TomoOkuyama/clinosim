@@ -9,7 +9,9 @@
 # This is the default if -p is not specified on CLI
 recommended_population:
   US: 40000   # 50 beds ÷ 130 beds/100K ≈ 38K, rounded to 40K for ~80% occupancy
-  JP: 5000    # 50 beds ÷ 1300 beds/100K ≈ 3.8K, rounded to 5K (longer LOS in Japan)
+  JP: 10000   # Based on admission throughput: 50 beds × 365d × 0.80 / 14d avg LOS
+              # ≈ 1,043 admissions/yr. JP inpatient rate ~100/1000 pop/yr → 10K catchment.
+              # (Earlier 5K value based on bed density alone gave ~17% occupancy)
   default: 40000
 
 # Available departments at this hospital (50-bed community hospital).
