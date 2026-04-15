@@ -75,10 +75,10 @@ def extract_hospital_course(
     events.extend(_complication_events(record, language))
 
     # --- Lab / physiological peaks (CRP, WBC, Cr) ---
-    events.extend(_lab_peak_events(record, admission_dt))
+    events.extend(_lab_peak_events(record, admission_dt, language))
 
     # --- Treatment changes (new drugs started after day 0, drug switches) ---
-    events.extend(_treatment_change_events(record, admission_dt))
+    events.extend(_treatment_change_events(record, admission_dt, language))
 
     # --- Discharge / death ---
     events.append(
@@ -95,6 +95,23 @@ def extract_hospital_course(
 # ============================================================
 
 
+def _ja_localize_drug(name: str, language: str) -> str:
+    """Localize a drug name for JP; no-op otherwise."""
+    if language != "ja" or not name:
+        return name
+    from clinosim.modules.output.fhir_r4_adapter import _localize_drug_name
+    return _localize_drug_name(name, "JP")
+
+
+def _ja_localize_procedure(name: str, language: str) -> str:
+    """Localize a procedure name for JP."""
+    if language != "ja" or not name:
+        return name
+    from clinosim.modules.output.fhir_r4_adapter import _PROCEDURE_NAME_JA, _localize_drug_name
+    ja = _PROCEDURE_NAME_JA.get(name)
+    return ja if ja else _localize_drug_name(name, "JP")
+
+
 def summarize_discharge_medications(
     record: dict[str, Any], language: str = "en"
 ) -> list[str]:
@@ -106,6 +123,7 @@ def summarize_discharge_medications(
         if not isinstance(item, dict):
             continue
         name = item.get("drug_name") or item.get("drug") or ""
+        name = _ja_localize_drug(name, language)
         dose = item.get("dose", "")
         route = item.get("route", "")
         freq = item.get("frequency", "")
@@ -122,20 +140,24 @@ def summarize_procedures(
     """Return human-readable strings for all procedures in the encounter."""
     procs = record.get("procedures") or []
     out: list[str] = []
+    by_label = "担当" if language == "ja" else "by"
+    on_label = "施行日" if language == "ja" else "on"
+    comp_label = "合併症" if language == "ja" else "complications"
     for p in procs:
         if not isinstance(p, dict):
             continue
         name = p.get("procedure_name") or p.get("procedure_type", "procedure")
+        name = _ja_localize_procedure(name, language)
         start = _format_dt(p.get("start_datetime"))
         surgeon = p.get("primary_surgeon_id", "")
         complications = p.get("intraop_complications") or []
         comp_str = (
-            f" (complications: {', '.join(complications)})" if complications else ""
+            f" ({comp_label}: {', '.join(complications)})" if complications else ""
         )
         if start:
-            out.append(f"{name} on {start} by {surgeon}{comp_str}".strip())
+            out.append(f"{name} {on_label} {start} {by_label} {surgeon}{comp_str}".strip())
         else:
-            out.append(f"{name} by {surgeon}{comp_str}".strip())
+            out.append(f"{name} {by_label} {surgeon}{comp_str}".strip())
     return out
 
 
@@ -194,12 +216,19 @@ def _admission_event(
     cd = record.get("clinical_diagnosis") or {}
     admit_dx_code = cd.get("admission_diagnosis_code") or ""
     admit_dx_system = cd.get("admission_diagnosis_system") or "icd-10-cm"
-    admit_dx = code_lookup(admit_dx_system, admit_dx_code, language) if admit_dx_code else "undiagnosed"
-    chief = encounter.get("chief_complaint") or "not recorded"
-    description = (
-        f"Day 0: Admitted with {chief}. "
-        f"Initial working diagnosis: {admit_dx}."
-    )
+    if language == "ja":
+        undiag = "診断未確定"
+        admit_dx = code_lookup(admit_dx_system, admit_dx_code, language) if admit_dx_code else undiag
+        chief = encounter.get("chief_complaint") or "記載なし"
+        description = f"第0病日: {chief}にて入院。初期推定診断: {admit_dx}。"
+    else:
+        undiag = "undiagnosed"
+        admit_dx = code_lookup(admit_dx_system, admit_dx_code, language) if admit_dx_code else undiag
+        chief = encounter.get("chief_complaint") or "not recorded"
+        description = (
+            f"Day 0: Admitted with {chief}. "
+            f"Initial working diagnosis: {admit_dx}."
+        )
     return HospitalCourseFact(
         hospital_day=0, event_type="admission", description=description
     )
@@ -218,15 +247,22 @@ def _surgery_events(
             continue
         day = _day_offset(admission_dt, p.get("start_datetime"))
         name = p.get("procedure_name") or p.get("procedure_type", "surgery")
+        name = _ja_localize_procedure(name, language)
         comps = p.get("intraop_complications") or []
         ebl = p.get("estimated_blood_loss_ml")
-        comp_str = f" with {', '.join(comps)}" if comps else ""
-        ebl_str = f" EBL {ebl} mL." if ebl else ""
+        if language == "ja":
+            comp_str = f"（合併症: {', '.join(comps)}）" if comps else ""
+            ebl_str = f" 出血量 {ebl} mL." if ebl else ""
+            desc = f"第{day}病日: {name}{comp_str}.{ebl_str}"
+        else:
+            comp_str = f" with {', '.join(comps)}" if comps else ""
+            ebl_str = f" EBL {ebl} mL." if ebl else ""
+            desc = f"Day {day}: {name}{comp_str}.{ebl_str}"
         events.append(
             HospitalCourseFact(
                 hospital_day=day,
                 event_type="surgery",
-                description=f"Day {day}: {name}{comp_str}.{ebl_str}",
+                description=desc,
             )
         )
     return events
@@ -267,11 +303,15 @@ def _procedure_events(
             continue
         day = _day_offset(admission_dt, p.get("start_datetime"))
         name = p.get("procedure_name") or ptype
+        name = _ja_localize_procedure(name, language)
+        desc = (f"第{day}病日: {name}（ベッドサイドで施行）"
+                if language == "ja"
+                else f"Day {day}: {name} performed at bedside.")
         events.append(
             HospitalCourseFact(
                 hospital_day=day,
                 event_type="procedure",
-                description=f"Day {day}: {name} performed at bedside.",
+                description=desc,
             )
         )
     return events
@@ -288,12 +328,24 @@ def _complication_events(
     complications = record.get("complications_occurred") or []
     if not complications:
         return []
+    # JP translations for common complication labels
+    _COMP_JA = {
+        "pneumonia": "肺炎", "urinary_tract_infection": "尿路感染",
+        "dvt": "深部静脈血栓症", "pulmonary_embolism": "肺塞栓",
+        "wound_infection": "創部感染", "sepsis": "敗血症",
+        "acute_kidney_injury": "急性腎障害", "delirium": "せん妄",
+        "bleeding": "出血", "aspiration": "誤嚥",
+        "arrhythmia": "不整脈", "icu_delirium": "ICUせん妄",
+        "heart_failure": "心不全", "hypotension": "低血圧",
+        "aspiration_pneumonia": "誤嚥性肺炎",
+    }
+    prefix = "合併症: " if language == "ja" else "Complication identified: "
     # Place complications at day 1 so they appear after admission but before peaks
     return [
         HospitalCourseFact(
             hospital_day=1,
             event_type="complication",
-            description=f"Complication identified: {c}",
+            description=prefix + (_COMP_JA.get(c, c) if language == "ja" else str(c)),
         )
         for c in complications
     ]
@@ -302,6 +354,7 @@ def _complication_events(
 def _treatment_change_events(
     record: dict[str, Any],
     admission_dt: datetime | None,
+    language: str = "en",
 ) -> list[HospitalCourseFact]:
     """Detect treatment changes: drugs started after day 0 (escalation/switch).
 
@@ -338,11 +391,15 @@ def _treatment_change_events(
             continue  # day 0 = admission orders, not a "change"
         if any(s in drug.lower() for s in supportive):
             continue
+        drug_disp = _ja_localize_drug(drug, language)
+        desc = (f"第{first_day}病日: {drug_disp} 投与開始（治療強化・切替）"
+                if language == "ja"
+                else f"Day {first_day}: Started {drug_disp} (treatment escalation/switch).")
         events.append(
             HospitalCourseFact(
                 hospital_day=first_day,
                 event_type="treatment_change",
-                description=f"Day {first_day}: Started {drug} (treatment escalation/switch).",
+                description=desc,
             )
         )
     return events[:5]  # cap to avoid noise
@@ -351,6 +408,7 @@ def _treatment_change_events(
 def _lab_peak_events(
     record: dict[str, Any],
     admission_dt: datetime | None,
+    language: str = "en",
 ) -> list[HospitalCourseFact]:
     """Surface peaks of CRP / WBC / Creatinine / Lactate as notable events."""
     orders = record.get("orders") or []
@@ -381,12 +439,17 @@ def _lab_peak_events(
     events: list[HospitalCourseFact] = []
     for name, (dt, val) in peaks.items():
         day = _day_offset(admission_dt, dt) if dt else 1
-        unit = _unit_for(name)
+        unit = _unit_for(name, language)
+        factor = _JA_CONVERSION.get(name, 1.0) if language == "ja" else 1.0
+        disp_val = round(val * factor, 2) if factor != 1.0 else val
+        desc = (f"第{day}病日: {name} が {disp_val:.1f} {unit} まで上昇"
+                if language == "ja"
+                else f"Day {day}: {name} peaked at {disp_val:.1f} {unit}.")
         events.append(
             HospitalCourseFact(
                 hospital_day=day,
                 event_type="test_peak",
-                description=f"Day {day}: {name} peaked at {val:.1f} {unit}.",
+                description=desc,
             )
         )
     return events
@@ -403,26 +466,34 @@ def _discharge_event(
     cd = record.get("clinical_diagnosis") or {}
     dx_code = cd.get("discharge_diagnosis_code") or ""
     dx_system = cd.get("discharge_diagnosis_system") or "icd-10-cm"
-    dx_name = code_lookup(dx_system, dx_code, language) if dx_code else "uncertain"
+    dx_name = code_lookup(dx_system, dx_code, language) if dx_code else (
+        "診断未確定" if language == "ja" else "uncertain"
+    )
     disposition = encounter.get("discharge_disposition") or "home"
+    _DISPO_JA = {
+        "home": "自宅", "skilled_nursing_facility": "介護施設", "rehabilitation": "リハビリ施設",
+        "expired": "死亡退院", "long_term_care": "長期療養施設", "hospice": "ホスピス",
+        "against_medical_advice": "自己退院", "transferred": "転院",
+    }
+    dispo_disp = _DISPO_JA.get(disposition, disposition) if language == "ja" else disposition
 
     if record.get("deceased"):
+        desc = (f"第{max(day, 0)}病日: 最大限の治療にも関わらず永眠。最終診断: {dx_name}。"
+                if language == "ja"
+                else f"Day {max(day, 0)}: Patient died despite maximal therapy. Final diagnosis: {dx_name}.")
         return HospitalCourseFact(
             hospital_day=max(day, 0),
             event_type="death",
-            description=(
-                f"Day {max(day, 0)}: Patient died despite maximal therapy. "
-                f"Final diagnosis: {dx_name}."
-            ),
+            description=desc,
         )
 
+    desc = (f"第{max(day, 0)}病日: {dispo_disp}退院。最終診断: {dx_name}。"
+            if language == "ja"
+            else f"Day {max(day, 0)}: Discharged to {dispo_disp}. Final diagnosis: {dx_name}.")
     return HospitalCourseFact(
         hospital_day=max(day, 0),
         event_type="discharge",
-        description=(
-            f"Day {max(day, 0)}: Discharged to {disposition}. "
-            f"Final diagnosis: {dx_name}."
-        ),
+        description=desc,
     )
 
 
@@ -586,13 +657,14 @@ def format_lab_trends(
 
 def extract_treatment_timeline(
     record: dict[str, Any],
+    language: str = "en",
     admission_dt: datetime | None = None,
 ) -> list[str]:
     """Extract medication administration events as a timeline.
 
     Returns bullet strings like:
-        "Day 0: Started Ceftriaxone IV"
-        "Day 5: Switched to Amoxicillin PO"
+        "Day 0: Started Ceftriaxone IV"   (EN)
+        "第0病日: セフトリアキソン 静注 開始"  (JP)
     """
     if admission_dt is None:
         enc = (record.get("encounters") or [{}])[0]
@@ -629,11 +701,19 @@ def extract_treatment_timeline(
     events: list[tuple[int, str]] = []
     for drug, info in drug_timeline.items():
         route = info["route"]
-        events.append((info["first_day"], f"Day {info['first_day']}: Started {drug} {route}".strip()))
-        if info["last_day"] > info["first_day"] + 1:
-            events.append(
-                (info["last_day"], f"Day {info['last_day']}: Last dose of {drug}")
-            )
+        drug_disp = _ja_localize_drug(drug, language)
+        if language == "ja":
+            events.append((info["first_day"], f"第{info['first_day']}病日: {drug_disp} {route} 投与開始".strip()))
+            if info["last_day"] > info["first_day"] + 1:
+                events.append(
+                    (info["last_day"], f"第{info['last_day']}病日: {drug_disp} 最終投与")
+                )
+        else:
+            events.append((info["first_day"], f"Day {info['first_day']}: Started {drug_disp} {route}".strip()))
+            if info["last_day"] > info["first_day"] + 1:
+                events.append(
+                    (info["last_day"], f"Day {info['last_day']}: Last dose of {drug_disp}")
+                )
 
     events.sort(key=lambda x: x[0])
     return [e[1] for e in events[:20]]  # cap at 20 entries
