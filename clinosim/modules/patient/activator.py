@@ -309,6 +309,7 @@ def activate_patient(
         marital_status=marital_status,
         preferred_language=preferred_language,
         employment_status="retired" if age >= 65 else "employed",
+        occupation=getattr(person, "occupation", "other"),
         insurance_type="late_elderly" if age >= 75 else "NHI_employee",
         health_literacy=round(float(rng.normal(0.6, 0.15)), 2),
         chronic_conditions=conditions,

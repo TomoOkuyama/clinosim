@@ -107,6 +107,11 @@ class PatientProfile:
     preferred_language: str = ""  # BCP-47 code: "en-US" | "ja-JP"
 
     employment_status: str = "retired"
+    # Occupation category (drives work-related injury risk):
+    # "manufacturing" | "construction" | "agriculture" | "healthcare" |
+    # "service" | "office" | "transportation" | "education" |
+    # "homemaker" | "student" | "retired" | "unemployed" | "other"
+    occupation: str = "other"
     insurance_type: str = "NHI_employee"
     health_literacy: float = 0.7
 

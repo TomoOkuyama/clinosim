@@ -1,0 +1,147 @@
+# Crush Injury of Hand (Industrial / Occupational)
+# Severe hand/finger crush injury from press machines, conveyors, etc.
+# Sources: Japan Occupational Injury Statistics, OSHA reports
+disease_id: crush_injury_hand
+chief_complaint:
+  en: "Industrial hand crush injury with possible amputation"
+  ja: "手部挫滅創（労災、指切断の可能性）"
+department: orthopedics
+encounter_type: surgical
+requires_surgery: true
+minimum_severity: moderate
+readmission_eligible: false
+
+icd_codes:
+  primary: "S67.2"
+  variants:
+    - {code: "S67.2", name: "Crushing injury of hand", probability: 0.60}
+    - {code: "S68.1", name: "Traumatic amputation of finger", probability: 0.25}
+    - {code: "S67.8", name: "Crushing injury of other parts of wrist and hand", probability: 0.15}
+
+incidence:
+  japan:
+    "0-44": {M: 50, F: 10}
+    "45-64": {M: 40, F: 8}
+    "65+":   {M: 5, F: 1}
+  risk_multipliers: []
+  trigger_type: "trauma"
+  time_of_day_pattern: "day_peak"
+
+severity:
+  distribution:
+    mild: 0.0
+    moderate: 0.60
+    severe: 0.40
+
+initial_state_impact:
+  moderate:
+    inflammation_level: 0.25
+    anemia_level: 0.10
+    volume_status: -0.05
+    perfusion_status: -0.05
+  severe:
+    inflammation_level: 0.45
+    anemia_level: 0.25
+    volume_status: -0.15
+    perfusion_status: -0.10
+
+presenting_symptoms:
+  - {name: "pain", probability: 1.0, severity_range: [0.8, 1.0]}
+  - {name: "hand_deformity", probability: 1.0, severity_range: [0.7, 1.0]}
+  - {name: "bleeding", probability: 0.80, severity_range: [0.3, 0.8]}
+  - {name: "finger_amputation", probability: 0.25, severity_range: [0.9, 1.0]}
+
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "CRP", urgency: "stat"}
+      - {test: "WBC", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "PT_INR", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "Blood_Type_Crossmatch", urgency: "stat"}
+    imaging:
+      - {test: "Hand_Xray", urgency: "stat"}
+      - {test: "Hand_CT", urgency: "stat", note: "if suspected complex fracture"}
+    supportive:
+      - {type: "IV_fluid", detail: "NS 80-125 mL/h"}
+      - {type: "pain_management", detail: "Fentanyl 25-50mcg IV PRN, transition to oral"}
+      - {type: "tetanus_prophylaxis", detail: "Td booster if > 5 years"}
+  daily_monitoring:
+    labs:
+      - {test: "CRP", frequency: "daily"}
+      - {test: "WBC", frequency: "daily"}
+    vitals:
+      stable: "q6h"
+  discharge_criteria:
+    japan:
+      - "Surgical wound healing without infection"
+      - "Pain controlled with oral analgesics"
+      - "Hand therapy plan established"
+    us:
+      - "Wound healing appropriately"
+      - "Pain controlled on oral medications"
+      - "Outpatient hand therapy scheduled"
+
+drugs:
+  first_line:
+    japan:
+      - {drug: "Cefazolin", dose: "1g IV q8h", note: "surgical prophylaxis"}
+      - {drug: "Fentanyl", dose: "25-50mcg IV PRN", route: "IV"}
+      - {drug: "Acetaminophen", dose: "1000mg IV q6h", route: "IV"}
+    us:
+      - {drug: "Cefazolin", dose: "2g IV q8h", note: "surgical prophylaxis"}
+      - {drug: "Fentanyl", dose: "25-100mcg IV PRN", route: "IV"}
+      - {drug: "Acetaminophen", dose: "1000mg IV q6h", route: "IV"}
+  post_op:
+    japan:
+      - {drug: "Acetaminophen", dose: "1000mg PO q6h"}
+      - {drug: "Loxoprofen", dose: "60mg PO tid"}
+      - {drug: "Cephalexin", dose: "500mg PO qid x7d"}
+    us:
+      - {drug: "Oxycodone", dose: "5mg PO q4-6h PRN"}
+      - {drug: "Acetaminophen", dose: "1000mg PO q6h"}
+      - {drug: "Cephalexin", dose: "500mg PO qid x7d"}
+
+procedure:
+  type: "complex hand surgery / replantation"
+  procedure_code_jp: "K089"
+  procedure_code_us: "20838"
+  typical_duration_minutes: {mean: 150, sd: 60, min: 60, max: 360}
+  anesthesia: "general"
+  estimated_blood_loss_ml: {mean: 150, sd: 100, min: 30, max: 500}
+  approach:
+    "complex hand surgery / replantation": "debridement, fixation, tendon/nerve repair; replantation if amputation"
+
+target_los:
+  japan:
+    moderate: {mean: 10, sd: 4, min: 5, max: 14}
+    severe: {mean: 21, sd: 7, min: 14, max: 30}
+  us:
+    moderate: {mean: 3, sd: 2, min: 1, max: 7}
+    severe: {mean: 7, sd: 3, min: 5, max: 14}
+
+rehabilitation:
+  start_day: 3
+  sessions_per_day: 1
+  session_duration_minutes: 30
+  goals:
+    - "Passive ROM by Day 5"
+    - "Active ROM by Week 2"
+    - "Functional grip by Week 4"
+
+outcome_benchmarks:
+  japan:
+    median_los: 14
+    in_hospital_mortality: 0.00
+    thirty_day_readmission: 0.08
+    surgical_site_infection_rate: 0.10
+    mean_age_admitted: 42
+    female_ratio: 0.15
+  us:
+    median_los: 5
+    in_hospital_mortality: 0.00
+    thirty_day_readmission: 0.10
+    surgical_site_infection_rate: 0.08
+    mean_age_admitted: 38
+    female_ratio: 0.15

@@ -49,6 +49,8 @@ class PersonRecord:
     phone_mobile: str = ""
     chronic_conditions: list[str] = field(default_factory=list)
     current_medications: list[str] = field(default_factory=list)  # active medications
+    # Occupation category (drives work-related injury risk); see PatientProfile.occupation
+    occupation: str = "other"
     is_alive: bool = True
     care_seeking_threshold: float = 0.3
     has_visited_hospital: bool = False
@@ -261,6 +263,7 @@ def generate_population(
                 phone_home=hh_phone_home if has_landline else "",
                 phone_mobile=mobile if age >= 15 else "",
                 chronic_conditions=conditions,
+                occupation=_sample_occupation(demo, age, sex, rng),
                 care_seeking_threshold=threshold,
             )
             hh.members.append(person)
@@ -319,6 +322,14 @@ def generate_monthly_events(
                 ]
                 if prior_same:
                     rate *= 1.5  # 50% higher recurrence after prior episode
+
+            # Occupation-based risk multiplier (work-related injuries etc.)
+            occ_mults = demo.get("occupation_risk_multipliers", {}).get(disease_id, {})
+            if occ_mults and hasattr(person, "occupation"):
+                # Default 0.2 for non-matching occupations: some residual risk
+                # (e.g., office worker helping in warehouse, domestic accident)
+                occ_mult = occ_mults.get(person.occupation, 0.2)
+                rate *= float(occ_mult)
 
             if rng.random() >= rate:
                 continue
@@ -447,6 +458,31 @@ def _sample_surname(name_data: dict, rng: np.random.Generator) -> dict:
     weights /= weights.sum()
     idx = int(rng.choice(len(surnames), p=weights))
     return surnames[idx]
+
+
+def _sample_occupation(demo: dict, age: int, sex: str, rng: np.random.Generator) -> str:
+    """Sample occupation category from demographics occupation_distribution.
+
+    Age rules:
+    - < 15: "student"
+    - 15-21: 70% "student", 30% working-age distribution
+    - 22-64: working-age distribution
+    - >= 65: "retired"
+    """
+    if age < 15:
+        return "student"
+    if age >= 65:
+        return "retired"
+    dist = (demo.get("occupation_distribution") or {}).get("working_age") or {}
+    if not dist:
+        return "other"
+    # Age 15-21: mostly students
+    if age < 22 and rng.random() < 0.7:
+        return "student"
+    keys = list(dist.keys())
+    weights = np.array([dist[k] for k in keys], dtype=float)
+    weights /= weights.sum()
+    return str(rng.choice(keys, p=weights))
 
 
 def _sample_given_name(name_data: dict, sex: str, rng: np.random.Generator) -> dict:

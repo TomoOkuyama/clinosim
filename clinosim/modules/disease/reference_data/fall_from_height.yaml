@@ -1,0 +1,167 @@
+# Fall From Height (Construction / Industrial, ≥2 meters)
+# Major trauma from scaffolding, ladders, elevated work platforms
+# Sources: OSHA Fatal Four, Japan Occupational Safety data
+disease_id: fall_from_height
+chief_complaint:
+  en: "Fall from height at work site, multiple trauma"
+  ja: "高所墜落による多発外傷（労災）"
+department: trauma_surgery
+encounter_type: surgical
+requires_surgery: true
+minimum_severity: moderate
+readmission_eligible: false
+
+icd_codes:
+  primary: "T07"
+  variants:
+    - {code: "T07", name: "Multiple injuries, unspecified", probability: 0.40}
+    - {code: "S32.0", name: "Fracture of lumbar vertebra", probability: 0.20}
+    - {code: "S72.0", name: "Fracture of neck of femur", probability: 0.15}
+    - {code: "S22.0", name: "Fracture of thoracic vertebra", probability: 0.15}
+    - {code: "S06.9", name: "Intracranial injury, unspecified", probability: 0.10}
+
+incidence:
+  japan:
+    "0-44": {M: 40, F: 8}
+    "45-64": {M: 35, F: 7}
+    "65+":   {M: 20, F: 5}
+  risk_multipliers:
+    - {condition: "F10", multiplier: 2.0}
+  trigger_type: "trauma"
+  time_of_day_pattern: "day_peak"
+
+severity:
+  distribution:
+    mild: 0.0
+    moderate: 0.45
+    severe: 0.55
+
+initial_state_impact:
+  moderate:
+    inflammation_level: 0.40
+    anemia_level: 0.25
+    volume_status: -0.25
+    perfusion_status: -0.15
+    renal_function: -0.05
+  severe:
+    inflammation_level: 0.60
+    anemia_level: 0.40
+    volume_status: -0.50
+    perfusion_status: -0.35
+    renal_function: -0.15
+
+presenting_symptoms:
+  - {name: "multiple_trauma", probability: 1.0, severity_range: [0.7, 1.0]}
+  - {name: "pain", probability: 1.0, severity_range: [0.8, 1.0]}
+  - {name: "spinal_injury", probability: 0.40, severity_range: [0.5, 1.0]}
+  - {name: "altered_consciousness", probability: 0.30, severity_range: [0.3, 0.8]}
+  - {name: "hypotension", probability: 0.30, severity_range: [0.3, 0.7]}
+
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "CRP", urgency: "stat"}
+      - {test: "WBC", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Plt", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "PT_INR", urgency: "stat"}
+      - {test: "Lactate", urgency: "stat"}
+      - {test: "Blood_Type_Crossmatch", urgency: "stat"}
+    imaging:
+      - {test: "FAST_Ultrasound", urgency: "stat"}
+      - {test: "CT_Whole_Body", urgency: "stat", note: "pan-scan"}
+      - {test: "Cervical_Spine_CT", urgency: "stat"}
+      - {test: "Chest_Xray", urgency: "stat"}
+      - {test: "Pelvis_Xray", urgency: "stat"}
+    supportive:
+      - {type: "IV_fluid", detail: "NS or LR wide open, titrate to MAP > 65"}
+      - {type: "cervical_immobilization", detail: "Cervical collar until cleared"}
+      - {type: "pain_management", detail: "Fentanyl 25-50mcg IV PRN"}
+      - {type: "DVT_prophylaxis", detail: "Sequential compression devices initially"}
+      - {type: "urinary_catheter", detail: "Foley catheter"}
+  daily_monitoring:
+    labs:
+      - {test: "CRP", frequency: "daily"}
+      - {test: "Hb", frequency: "q6-8h first 48h"}
+      - {test: "Creatinine", frequency: "daily"}
+    vitals:
+      stable: "q2h"
+      icu: "continuous"
+  discharge_criteria:
+    japan:
+      - "Hemodynamically stable"
+      - "Pain controlled on oral analgesics"
+      - "Mobility plan / brace in place"
+      - "Rehab plan established"
+    us:
+      - "Hemodynamically stable"
+      - "Pain controlled on oral meds"
+      - "Safe discharge destination"
+
+drugs:
+  first_line:
+    japan:
+      - {drug: "Fentanyl", dose: "25-50mcg IV q1h PRN", route: "IV"}
+      - {drug: "Acetaminophen", dose: "1000mg IV q6h", route: "IV"}
+      - {drug: "Cefazolin", dose: "1g IV q8h", note: "surgical prophylaxis"}
+      - {drug: "Famotidine", dose: "20mg IV q12h"}
+    us:
+      - {drug: "Fentanyl", dose: "25-100mcg IV q1h PRN", route: "IV"}
+      - {drug: "Acetaminophen", dose: "1000mg IV q6h", route: "IV"}
+      - {drug: "Cefazolin", dose: "2g IV q8h"}
+      - {drug: "Pantoprazole", dose: "40mg IV daily"}
+  post_op:
+    japan:
+      - {drug: "Acetaminophen", dose: "1000mg PO q6h"}
+      - {drug: "Enoxaparin", dose: "2000IU SC daily"}
+      - {drug: "Loxoprofen", dose: "60mg PO tid"}
+    us:
+      - {drug: "Oxycodone", dose: "5-10mg PO q4-6h PRN"}
+      - {drug: "Acetaminophen", dose: "1000mg PO q6h"}
+      - {drug: "Enoxaparin", dose: "40mg SC daily"}
+
+procedure:
+  type: "orthopedic fracture fixation"
+  procedure_code_jp: "K081"
+  procedure_code_us: "22325"
+  typical_duration_minutes: {mean: 180, sd: 90, min: 60, max: 480}
+  anesthesia: "general"
+  estimated_blood_loss_ml: {mean: 500, sd: 400, min: 100, max: 2000}
+  approach:
+    "orthopedic fracture fixation": "open reduction and internal fixation; spinal stabilization if indicated"
+
+target_los:
+  japan:
+    moderate: {mean: 30, sd: 12, min: 18, max: 50}
+    severe: {mean: 45, sd: 18, min: 28, max: 90}
+  us:
+    moderate: {mean: 10, sd: 4, min: 7, max: 14}
+    severe: {mean: 16, sd: 6, min: 10, max: 30}
+
+rehabilitation:
+  start_day: 3
+  sessions_per_day: 1
+  session_duration_minutes: 30
+  goals:
+    - "Bed mobility Week 1"
+    - "Transfers Week 2"
+    - "Ambulation with device Week 3-4"
+
+outcome_benchmarks:
+  japan:
+    median_los: 32
+    in_hospital_mortality: 0.04
+    thirty_day_readmission: 0.07
+    surgical_site_infection_rate: 0.05
+    mean_age_admitted: 45
+    female_ratio: 0.15
+  us:
+    median_los: 12
+    in_hospital_mortality: 0.03
+    thirty_day_readmission: 0.12
+    surgical_site_infection_rate: 0.04
+    mean_age_admitted: 42
+    female_ratio: 0.15

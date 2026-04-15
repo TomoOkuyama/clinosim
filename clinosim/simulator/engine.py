@@ -372,19 +372,32 @@ def run_beta(
             month_offset = int(rng.integers(0, total_months))
             visit_month = ((start_m - 1 + month_offset) % 12) + 1
 
-            ed_probs = []
-            for _, spec in ed_conditions:
-                base_p = spec.get("probability", 0.05)
-                seasonal = spec.get("seasonal", {})
-                seasonal_mod = float(seasonal.get(visit_month, seasonal.get(str(visit_month), 1.0)))
-                ed_probs.append(base_p * seasonal_mod)
-            total_p = sum(ed_probs)
-            ed_probs = [p / total_p for p in ed_probs]
+            # Select person first (uniform), then filter conditions by their occupation
             person_id = rng.choice(list(population.persons.keys()))
             person = population.get_person(person_id)
             if not person or not person.is_alive:
                 continue
             patient = activate_patient(person, rng, config.country)
+
+            # Build condition probabilities weighted by occupation risk
+            occupation = getattr(person, "occupation", "other")
+            occ_mult_table = load_demographics(config.country).get("occupation_risk_multipliers", {})
+            ed_probs = []
+            for name, spec in ed_conditions:
+                base_p = spec.get("probability", 0.05)
+                seasonal = spec.get("seasonal", {})
+                seasonal_mod = float(seasonal.get(visit_month, seasonal.get(str(visit_month), 1.0)))
+                occ_mults = occ_mult_table.get(name, {})
+                if occ_mults:
+                    # Work-related condition — use 0.05 default for non-matching occupations
+                    occ_mod = occ_mults.get(occupation, 0.05)
+                else:
+                    occ_mod = 1.0
+                ed_probs.append(base_p * seasonal_mod * occ_mod)
+            total_p = sum(ed_probs)
+            if total_p <= 0:
+                continue
+            ed_probs = [p / total_p for p in ed_probs]
             cond_idx = int(rng.choice(len(ed_conditions), p=ed_probs))
             cond_name, cond = ed_conditions[cond_idx]
             # Use the same month that seasonal modifiers were calculated for
