@@ -1,0 +1,53 @@
+# Eye Foreign Body — ED visit protocol
+# Common occupational injury from welding, grinding, metal working.
+condition_id: eye_foreign_body
+icd10_code: "T15.0"
+icd10_display: "Foreign body in cornea"
+chief_complaint:
+  en: "Foreign body sensation in eye, work-related"
+  ja: "眼内異物（労災・作業中に発生）"
+encounter_type: emergency
+department: emergency_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.70     # surface conjunctival or corneal foreign body
+  moderate: 0.25  # embedded corneal FB, rust ring
+  severe: 0.05    # penetrating globe injury (refer)
+
+ed_stay_hours:
+  mild: {mean: 1.0, sd: 0.3}
+  moderate: {mean: 2.0, sd: 0.5}
+  severe: {mean: 3.0, sd: 1.0}
+
+workup:
+  vitals: true
+  labs: []
+  imaging:
+    - {test: "Slit_lamp_exam", probability: 0.95}
+    - {test: "Fluorescein_stain", probability: 0.90}
+    - {test: "Orbital_CT", probability: 0.05}   # suspected intraocular FB
+
+treatment:
+  - {name: "Proparacaine 0.5% eye drops", probability: 0.95, route: "topical", intent: "topical anesthesia"}
+  - {name: "Foreign body removal with 25G needle", probability: 0.70, route: "procedure", intent: "removal"}
+  - {name: "Rust ring removal with burr", probability: 0.20, route: "procedure", intent: "rust removal"}
+  - {name: "Ofloxacin ophthalmic drops", probability: 0.80, route: "topical", intent: "infection prophylaxis"}
+  - {name: "Cyclopentolate 1% eye drops", probability: 0.30, route: "topical", intent: "cycloplegia for pain"}
+  - {name: "Tetanus toxoid booster", probability: 0.3, route: "IM", intent: "prophylaxis"}
+
+discharge_instructions:
+  - "眼帯の着用（1日）"
+  - "処方された点眼薬を指示通り使用"
+  - "翌日に眼科再診"
+  - "視力低下・強い痛み・膿性分泌があれば至急受診"
+
+discharge_prescriptions:
+  - {drug: "Ofloxacin ophthalmic drops", route: "topical", frequency: "qid", duration_days: 5, probability: 0.9}
+  - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 3, probability: 0.5}
+
+incidence_modifier: 1.0
+probability: 0.03
+age_distribution: all
+sex_ratio_female: 0.15  # primarily male industrial workers
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}

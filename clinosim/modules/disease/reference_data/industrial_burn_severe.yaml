@@ -1,0 +1,158 @@
+# Severe Industrial Burn (Thermal / Chemical, ≥ 10% TBSA or deep)
+# Sources: Japan Burn Association, American Burn Association
+disease_id: industrial_burn_severe
+chief_complaint:
+  en: "Severe thermal/chemical burn from industrial accident"
+  ja: "労災による重度熱傷・化学熱傷"
+department: general_surgery
+encounter_type: surgical
+requires_surgery: true
+minimum_severity: moderate
+readmission_eligible: false
+
+icd_codes:
+  primary: "T31.2"
+  variants:
+    - {code: "T31.2", name: "Burns involving 20-29% of body surface", probability: 0.45}
+    - {code: "T31.3", name: "Burns involving 30-39% of body surface", probability: 0.25}
+    - {code: "T30.0", name: "Burn of unspecified body region, unspecified degree", probability: 0.20}
+    - {code: "T54.3", name: "Toxic effect of corrosive alkalis and alkali-like substances", probability: 0.10}
+
+incidence:
+  japan:
+    "0-44": {M: 35, F: 7}
+    "45-64": {M: 25, F: 5}
+    "65+":   {M: 5, F: 1}
+  risk_multipliers: []
+  trigger_type: "trauma"
+  time_of_day_pattern: "day_peak"
+
+severity:
+  distribution:
+    mild: 0.0
+    moderate: 0.55
+    severe: 0.45
+
+initial_state_impact:
+  moderate:
+    inflammation_level: 0.40
+    anemia_level: 0.10
+    volume_status: -0.35    # massive fluid loss
+    perfusion_status: -0.20
+    renal_function: -0.10
+  severe:
+    inflammation_level: 0.60
+    anemia_level: 0.20
+    volume_status: -0.55
+    perfusion_status: -0.35
+    renal_function: -0.20
+
+presenting_symptoms:
+  - {name: "burn_wound", probability: 1.0, severity_range: [0.7, 1.0]}
+  - {name: "pain", probability: 1.0, severity_range: [0.7, 1.0]}
+  - {name: "hypovolemia", probability: 0.80, severity_range: [0.5, 0.9]}
+  - {name: "inhalation_injury", probability: 0.20, severity_range: [0.5, 1.0]}
+
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "CRP", urgency: "stat"}
+      - {test: "WBC", urgency: "stat"}
+      - {test: "Hb", urgency: "stat"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Lactate", urgency: "stat"}
+      - {test: "CK", urgency: "stat", note: "rhabdomyolysis screen"}
+      - {test: "Blood_Type_Crossmatch", urgency: "stat"}
+    imaging:
+      - {test: "Chest_Xray", urgency: "stat", note: "if inhalation injury suspected"}
+    supportive:
+      - {type: "IV_fluid", detail: "Parkland formula: LR 4mL × kg × %TBSA over 24h"}
+      - {type: "pain_management", detail: "Fentanyl IV continuous or PRN"}
+      - {type: "wound_care", detail: "Silver sulfadiazine cream, sterile dressings"}
+      - {type: "nutritional_support", detail: "Early enteral feeding"}
+      - {type: "DVT_prophylaxis", detail: "Enoxaparin SC daily"}
+  daily_monitoring:
+    labs:
+      - {test: "CRP", frequency: "daily"}
+      - {test: "Creatinine", frequency: "daily"}
+      - {test: "Albumin", frequency: "daily"}
+    vitals:
+      stable: "q4h"
+      icu: "continuous"
+  discharge_criteria:
+    japan:
+      - "All wounds granulating or grafted"
+      - "No active infection"
+      - "Pain controlled on oral analgesics"
+      - "Rehabilitation plan established"
+    us:
+      - "Wounds epithelializing or closed"
+      - "No active infection"
+      - "Pain controlled PO"
+      - "Outpatient burn clinic follow-up"
+
+drugs:
+  first_line:
+    japan:
+      - {drug: "Fentanyl", dose: "25-50mcg IV q1h PRN", route: "IV"}
+      - {drug: "Acetaminophen", dose: "1000mg IV q6h", route: "IV"}
+      - {drug: "Cefazolin", dose: "1g IV q8h", note: "surgical prophylaxis for grafting"}
+      - {drug: "Silver sulfadiazine", dose: "topical BID", route: "topical"}
+    us:
+      - {drug: "Fentanyl", dose: "25-100mcg IV q1h PRN", route: "IV"}
+      - {drug: "Acetaminophen", dose: "1000mg IV q6h", route: "IV"}
+      - {drug: "Cefazolin", dose: "2g IV q8h"}
+      - {drug: "Silver sulfadiazine", dose: "topical BID", route: "topical"}
+  post_op:
+    japan:
+      - {drug: "Acetaminophen", dose: "1000mg PO q6h"}
+      - {drug: "Enoxaparin", dose: "2000IU SC daily"}
+    us:
+      - {drug: "Oxycodone", dose: "5-10mg PO q4-6h PRN"}
+      - {drug: "Acetaminophen", dose: "1000mg PO q6h"}
+      - {drug: "Enoxaparin", dose: "40mg SC daily"}
+
+procedure:
+  type: "debridement and skin grafting"
+  procedure_code_jp: "K013"
+  procedure_code_us: "15100"
+  typical_duration_minutes: {mean: 180, sd: 90, min: 60, max: 360}
+  anesthesia: "general"
+  estimated_blood_loss_ml: {mean: 400, sd: 300, min: 100, max: 1500}
+  approach:
+    "debridement and skin grafting": "staged escharectomy followed by split-thickness autograft"
+
+target_los:
+  japan:
+    moderate: {mean: 30, sd: 10, min: 20, max: 45}
+    severe: {mean: 50, sd: 20, min: 30, max: 90}
+  us:
+    moderate: {mean: 14, sd: 6, min: 7, max: 21}
+    severe: {mean: 28, sd: 12, min: 14, max: 60}
+
+rehabilitation:
+  start_day: 5
+  sessions_per_day: 2
+  session_duration_minutes: 30
+  goals:
+    - "Maintain ROM during healing"
+    - "Contracture prevention"
+    - "Progressive strengthening"
+
+outcome_benchmarks:
+  japan:
+    median_los: 35
+    in_hospital_mortality: 0.08
+    thirty_day_readmission: 0.07
+    surgical_site_infection_rate: 0.20
+    mean_age_admitted: 40
+    female_ratio: 0.20
+  us:
+    median_los: 18
+    in_hospital_mortality: 0.06
+    thirty_day_readmission: 0.12
+    surgical_site_infection_rate: 0.15
+    mean_age_admitted: 38
+    female_ratio: 0.20

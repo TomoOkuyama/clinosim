@@ -1,0 +1,133 @@
+# Electrical Injury (Occupational)
+# High-voltage or moderate-voltage electrical shock with tissue damage or arrhythmia risk
+# Sources: OSHA electrical safety data, Japan Electric Safety guidelines
+disease_id: electrical_injury
+chief_complaint:
+  en: "Electrical injury with burns and cardiac monitoring required"
+  ja: "感電による外傷（労災）"
+department: trauma_surgery
+encounter_type: surgical
+requires_surgery: false
+minimum_severity: moderate
+readmission_eligible: false
+
+icd_codes:
+  primary: "T75.4"
+  variants:
+    - {code: "T75.4", name: "Electrocution / shock from electric current", probability: 0.70}
+    - {code: "T30.0", name: "Burn, unspecified body region", probability: 0.25}
+    - {code: "I49.9", name: "Cardiac arrhythmia, unspecified", probability: 0.05}
+
+incidence:
+  japan:
+    "0-44": {M: 25, F: 4}
+    "45-64": {M: 20, F: 3}
+    "65+":   {M: 3, F: 1}
+  risk_multipliers: []
+  trigger_type: "trauma"
+  time_of_day_pattern: "day_peak"
+
+severity:
+  distribution:
+    mild: 0.0
+    moderate: 0.65
+    severe: 0.35
+
+initial_state_impact:
+  moderate:
+    inflammation_level: 0.25
+    anemia_level: 0.05
+    volume_status: -0.15    # rhabdomyolysis volume loss
+    perfusion_status: -0.10
+    renal_function: -0.10   # myoglobinuria risk
+  severe:
+    inflammation_level: 0.45
+    anemia_level: 0.15
+    volume_status: -0.30
+    perfusion_status: -0.25
+    renal_function: -0.25
+
+presenting_symptoms:
+  - {name: "burn_wound", probability: 0.80, severity_range: [0.3, 0.9]}
+  - {name: "pain", probability: 0.90, severity_range: [0.5, 0.9]}
+  - {name: "arrhythmia", probability: 0.30, severity_range: [0.4, 0.8]}
+  - {name: "altered_consciousness", probability: 0.20, severity_range: [0.3, 0.7]}
+  - {name: "muscle_necrosis", probability: 0.25, severity_range: [0.4, 0.9]}
+
+order_protocols:
+  admission_orders:
+    labs:
+      - {test: "CRP", urgency: "stat"}
+      - {test: "CK", urgency: "stat", note: "rhabdomyolysis marker"}
+      - {test: "Creatinine", urgency: "stat"}
+      - {test: "Na", urgency: "stat"}
+      - {test: "K", urgency: "stat"}
+      - {test: "Troponin", urgency: "stat", note: "myocardial injury screen"}
+      - {test: "PT_INR", urgency: "stat"}
+      - {test: "Urinalysis", urgency: "stat", note: "myoglobin"}
+    imaging:
+      - {test: "ECG_12lead", urgency: "stat"}
+      - {test: "Chest_Xray", urgency: "stat"}
+    supportive:
+      - {type: "IV_fluid", detail: "NS 150-200 mL/h, target UOP > 1-1.5 mL/kg/h"}
+      - {type: "cardiac_monitoring", detail: "Telemetry for 24-48h"}
+      - {type: "pain_management", detail: "Acetaminophen + fentanyl PRN"}
+      - {type: "wound_care", detail: "Clean and dress entry/exit wounds"}
+  daily_monitoring:
+    labs:
+      - {test: "CK", frequency: "q6-8h until trending down"}
+      - {test: "Creatinine", frequency: "daily"}
+      - {test: "Urinalysis", frequency: "daily"}
+    vitals:
+      stable: "q4h"
+      telemetry: "continuous"
+  discharge_criteria:
+    japan:
+      - "Normal sinus rhythm for 24h"
+      - "CK trending down, no rhabdomyolysis"
+      - "Wound healing"
+      - "Renal function stable"
+    us:
+      - "Normal cardiac rhythm"
+      - "CK/creatinine normalized"
+      - "Wounds appropriately managed"
+
+drugs:
+  first_line:
+    japan:
+      - {drug: "Acetaminophen", dose: "1000mg IV q6h", route: "IV"}
+      - {drug: "Fentanyl", dose: "25-50mcg IV PRN", route: "IV"}
+      - {drug: "Sodium bicarbonate", dose: "as needed for urine alkalinization", note: "rhabdo"}
+    us:
+      - {drug: "Acetaminophen", dose: "1000mg IV q6h", route: "IV"}
+      - {drug: "Fentanyl", dose: "25-100mcg IV PRN", route: "IV"}
+      - {drug: "Sodium bicarbonate", dose: "as needed", note: "urine alkalinization"}
+  post_op:
+    japan:
+      - {drug: "Acetaminophen", dose: "1000mg PO q6h"}
+      - {drug: "Loxoprofen", dose: "60mg PO tid"}
+    us:
+      - {drug: "Acetaminophen", dose: "1000mg PO q6h"}
+      - {drug: "Ibuprofen", dose: "400mg PO tid"}
+
+target_los:
+  japan:
+    moderate: {mean: 7, sd: 3, min: 3, max: 14}
+    severe: {mean: 14, sd: 7, min: 7, max: 28}
+  us:
+    moderate: {mean: 2, sd: 1, min: 1, max: 5}
+    severe: {mean: 6, sd: 3, min: 3, max: 14}
+
+outcome_benchmarks:
+  japan:
+    median_los: 8
+    in_hospital_mortality: 0.02
+    thirty_day_readmission: 0.05
+    mean_age_admitted: 38
+    female_ratio: 0.15
+  us:
+    median_los: 3
+    in_hospital_mortality: 0.02
+    thirty_day_readmission: 0.08
+    mean_age_admitted: 36
+    female_ratio: 0.15

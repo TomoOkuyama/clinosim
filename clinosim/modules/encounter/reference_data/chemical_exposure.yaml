@@ -1,0 +1,54 @@
+# Chemical Exposure — ED visit protocol
+# Occupational exposure to acids, alkalis, solvents (skin, eye, inhalation).
+condition_id: chemical_exposure
+icd10_code: "T54.9"
+icd10_display: "Toxic effect of unspecified corrosive substance"
+chief_complaint:
+  en: "Chemical exposure at workplace (skin/eye/inhalation)"
+  ja: "化学物質曝露（労災・皮膚/眼/吸入）"
+encounter_type: emergency
+department: emergency_medicine
+disposition: discharge_home
+
+severity_distribution:
+  mild: 0.60
+  moderate: 0.30
+  severe: 0.10
+
+ed_stay_hours:
+  mild: {mean: 2.0, sd: 0.5}
+  moderate: {mean: 4.0, sd: 1.0}
+  severe: {mean: 6.0, sd: 1.5}
+
+workup:
+  vitals: true
+  labs:
+    - {test: "WBC", probability: 0.40}
+    - {test: "CRP", probability: 0.30}
+    - {test: "ABG", probability: 0.25}   # inhalation exposure
+  imaging:
+    - {test: "Chest_Xray", probability: 0.35}
+
+treatment:
+  - {name: "Cool water irrigation", probability: 0.85, route: "topical", intent: "dilute / remove chemical"}
+  - {name: "Wound irrigation with normal saline", probability: 0.60, route: "topical", intent: "further decontamination"}
+  - {name: "Oxygen supplementation", probability: 0.20, route: "inhalation", intent: "respiratory support"}
+  - {name: "Nebulized salbutamol 2.5mg", probability: 0.15, route: "inhalation", intent: "bronchospasm"}
+  - {name: "Acetaminophen 500mg", probability: 0.40, route: "PO", intent: "analgesic"}
+  - {name: "Silver sulfadiazine cream", probability: 0.30, route: "topical", intent: "skin burn care"}
+
+discharge_instructions:
+  - "患部を清潔に保つ"
+  - "症状悪化時（呼吸困難、発熱、皮膚炎増悪）は再受診"
+  - "3-5日後に経過観察"
+  - "産業医・労働基準監督署への報告を推奨"
+
+discharge_prescriptions:
+  - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.6}
+  - {drug: "Silver sulfadiazine cream", route: "topical", frequency: "bid", duration_days: 7, probability: 0.3}
+
+incidence_modifier: 1.0
+probability: 0.025
+age_distribution: all
+sex_ratio_female: 0.25
+seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
