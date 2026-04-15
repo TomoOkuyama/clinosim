@@ -128,6 +128,48 @@ _MED_TERMS_JA: dict[str, str] = {
     "local": "局所",
     "q3h": "3時間毎",
     "q2h": "2時間毎",
+    "CONTINUOUS": "持続",
+    "NEB": "ネブライザー",
+    "NEBULIZED": "ネブライザー",
+    "SUBCUTANEOUS": "皮下注",
+    "INHALATION": "吸入",
+    "TOPICAL": "外用",
+    "ORAL": "経口",
+    "INTRAVENOUS": "静注",
+    "INTRAMUSCULAR": "筋注",
+    "SUBLINGUAL": "舌下",
+    "Parkland formula": "Parkland式",
+    "titrate": "調節",
+    "to": "まで",
+    "MAP": "MAP（平均動脈圧）",
+    "open": "全開",
+    "wide": "広い",
+    "sedation": "鎮静",
+    "TBI": "頭部外傷",
+    "Alteplase": "アルテプラーゼ",
+    "tPA": "tPA",
+    "dose": "用量",
+    "max": "最大",
+    "JP": "日本",
+    "ug": "μg",
+    "cerebral": "脳",
+    "edema": "浮腫",
+    "risk": "リスク",
+    "eye": "眼",
+    "drops": "点眼",
+    "eye drops": "点眼",
+    "needle": "針",
+    "removal": "除去",
+    "rust": "錆",
+    "ring": "輪",
+    "burr": "バー",
+    "when": "時",
+    "bleeding": "出血",
+    "resolved": "消失",
+    "transition": "移行",
+    "oral": "経口",
+    "Endoscopy": "内視鏡",
+    "endoscopy": "内視鏡",
     "adjust": "調整",
     "renal": "腎",
     "function": "機能",
@@ -415,7 +457,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             "coding": [{
                 "system": "http://terminology.hl7.org/CodeSystem/organization-type",
                 "code": "prov",
-                "display": "Healthcare Provider",
+                "display": _localize_display("Healthcare Provider", country, _ORG_TYPE_DISPLAY_JA),
             }],
         }],
         "name": hosp_name,
@@ -435,7 +477,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 "coding": [{
                     "system": "http://terminology.hl7.org/CodeSystem/organization-type",
                     "code": "dept",
-                    "display": "Hospital Department",
+                    "display": _localize_display("Hospital Department", country, _ORG_TYPE_DISPLAY_JA),
                 }],
             }],
             "name": display,
@@ -464,7 +506,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 "resourceType": "Location",
                 "id": f"loc-ward-{ward}",
                 "status": "active",
-                "name": (f"{ward}病棟" if country == "JP" else f"Ward {ward}") if ward not in ("ER", "OPD") else phys_display,
+                "name": (f"{ward}病棟" if country == "JP" else f"Ward {ward}") if ward not in ("ER", "OPD") else _localize_display(phys_display, country, _LOCATION_NAME_JA),
                 "physicalType": {
                     "coding": [{
                         "system": "http://terminology.hl7.org/CodeSystem/location-physical-type",
@@ -524,7 +566,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                     "coding": [{
                         "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
                         "code": "OR",
-                        "display": "Operating Room",
+                        "display": _localize_display("Operating Room", country, _LOCATION_TYPE_DISPLAY_JA),
                     }],
                 }],
                 "managingOrganization": {"reference": or_org_ref},
@@ -797,7 +839,7 @@ def _build_patient(p: dict, country: str) -> dict:
                         "code": "C",
                         "display": "Emergency Contact",
                     }],
-                    "text": emer_rel,
+                    "text": _localize_display(emer_rel, country, _RELATIONSHIP_DISPLAY_JA),
                 }]
             if emer_name:
                 ec["name"] = {"text": emer_name}
@@ -873,6 +915,117 @@ _OCCUPATION_DISPLAY_EN: dict[str, str] = {
 }
 
 
+# --- Shared display dictionaries for JP localization ---
+
+_CLASS_DISPLAY_JA: dict[str, str] = {
+    "AMB": "外来", "ambulatory": "外来",
+    "IMP": "入院", "inpatient encounter": "入院",
+    "EMER": "救急", "emergency": "救急",
+    "HH": "訪問看護", "home health": "訪問看護",
+    "FLD": "現地訪問", "field": "現地訪問",
+}
+
+_CATEGORY_DISPLAY_JA: dict[str, str] = {
+    "laboratory": "検体検査", "Laboratory": "検体検査",
+    "vital-signs": "バイタルサイン", "Vital Signs": "バイタルサイン",
+    "social-history": "社会歴", "Social History": "社会歴",
+    "encounter-diagnosis": "エンカウンター診断", "Encounter Diagnosis": "エンカウンター診断",
+    "problem-list-item": "問題リスト", "Problem List Item": "問題リスト",
+    "imaging": "画像検査", "Imaging": "画像検査",
+    "procedure": "処置", "Procedure": "処置",
+}
+
+_SEVERITY_DISPLAY_JA: dict[str, str] = {
+    "Mild": "軽度", "mild": "軽度", "24484000": "軽度",
+    "Moderate": "中等度", "moderate": "中等度", "6736007": "中等度",
+    "Severe": "重度", "severe": "重度", "24484000|severe": "重度", "255604002": "重度",
+}
+
+_INTERPRETATION_DISPLAY_JA: dict[str, str] = {
+    "N": "正常", "Normal": "正常",
+    "H": "高値", "High": "高値",
+    "L": "低値", "Low": "低値",
+    "HH": "パニック高値", "Critical high": "パニック高値",
+    "LL": "パニック低値", "Critical low": "パニック低値",
+    "A": "異常", "Abnormal": "異常",
+    "AA": "パニック異常", "Critical abnormal": "パニック異常",
+    "HU": "測定上限超", "LU": "測定下限未満",
+    "POS": "陽性", "NEG": "陰性",
+    "R": "耐性", "S": "感受性", "I": "中間",
+}
+
+_RELATIONSHIP_DISPLAY_JA: dict[str, str] = {
+    "spouse": "配偶者",
+    "child": "子",
+    "parent": "親",
+    "sibling": "同胞",
+    "partner": "パートナー",
+    "grandchild": "孫",
+    "grandparent": "祖父母",
+    "friend": "友人",
+    "guardian": "後見人",
+}
+
+_ORG_TYPE_DISPLAY_JA: dict[str, str] = {
+    "Hospital Department": "診療科",
+    "Healthcare Provider": "医療機関",
+    "prov": "医療機関",
+    "dept": "診療科",
+}
+
+_LOCATION_TYPE_DISPLAY_JA: dict[str, str] = {
+    "Operating Room": "手術室",
+    "Emergency Room": "救急外来",
+    "Outpatient Clinic": "外来",
+    "Ward": "病棟",
+    "Bed": "病床",
+    "Inpatient Ward": "入院病棟",
+}
+
+_LOCATION_NAME_JA: dict[str, str] = {
+    "Emergency Room": "救急外来",
+    "Outpatient Clinic": "外来",
+}
+
+# Procedure names (from disease YAML procedure.type) — EN→JA
+_PROCEDURE_NAME_JA: dict[str, str] = {
+    "Open reduction internal fixation, femur": "大腿骨観血的整復固定術",
+    "Open reduction internal fixation, wrist": "手関節観血的整復固定術",
+    "ORIF with volar locking plate": "掌側ロッキングプレートによる観血的整復固定術",
+    "laparoscopic cholecystectomy": "腹腔鏡下胆嚢摘出術",
+    "laparoscopic appendectomy": "腹腔鏡下虫垂切除術",
+    "exploratory laparotomy": "試験開腹術",
+    "bipolar hip hemiarthroplasty": "バイポーラ型人工骨頭置換術",
+    "complex hand surgery / replantation": "複雑手指手術・再接着術",
+    "debridement and skin grafting": "デブリードマン・植皮術",
+    "orthopedic fracture fixation": "整形外科的骨折固定術",
+    "percutaneous coronary intervention": "経皮的冠動脈インターベンション (PCI)",
+    "Kyphoplasty": "経皮的椎体形成術 (kyphoplasty)",
+    "Vertebroplasty": "経皮的椎体形成術",
+    "Hemiarthroplasty, femoral head": "大腿骨頭人工骨頭置換術",
+    "Hemiarthroplasty": "人工骨頭置換術",
+    "Craniotomy or burr hole evacuation": "開頭術または穿頭血腫除去術",
+    "Craniotomy": "開頭術",
+}
+
+
+def _localize_display(value: str, country: str, dictionary: dict[str, str]) -> str:
+    """Look up JP display for an English value when country=JP.
+    Returns original value if no mapping exists."""
+    if country != "JP" or not value:
+        return value
+    return dictionary.get(value, value)
+
+
+def _localize_interp(coded: dict[str, str], country: str) -> dict[str, str]:
+    """Localize interpretation display dict in place (returns new dict)."""
+    if country != "JP":
+        return coded
+    d = dict(coded)
+    d["display"] = _INTERPRETATION_DISPLAY_JA.get(d.get("code", ""), d.get("display", ""))
+    return d
+
+
 def _build_occupation_observation(
     occupation: str, patient_id: str, country: str,
 ) -> dict | None:
@@ -894,7 +1047,7 @@ def _build_occupation_observation(
             "coding": [{
                 "system": "http://terminology.hl7.org/CodeSystem/observation-category",
                 "code": "social-history",
-                "display": "Social History",
+                "display": _localize_display("Social History", country, _CATEGORY_DISPLAY_JA),
             }],
             "text": category_text,
         }],
@@ -1037,7 +1190,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                 "coding": [{
                     "system": "http://terminology.hl7.org/CodeSystem/condition-category",
                     "code": "encounter-diagnosis",
-                    "display": "Encounter Diagnosis",
+                    "display": _localize_display("Encounter Diagnosis", country, _CATEGORY_DISPLAY_JA),
                 }],
             }],
             "code": {
@@ -1048,7 +1201,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         }
 
         if severity:
-            cond["severity"] = _severity_coding(severity)
+            cond["severity"] = _severity_coding(severity, country)
 
         if admission_dt:
             cond["onsetDateTime"] = admission_dt[:10] if isinstance(admission_dt, str) else str(admission_dt)[:10]
@@ -1103,7 +1256,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                 "coding": [{
                     "system": "http://terminology.hl7.org/CodeSystem/condition-category",
                     "code": "problem-list-item",
-                    "display": "Problem List Item",
+                    "display": _localize_display("Problem List Item", country, _CATEGORY_DISPLAY_JA),
                 }],
             }],
             "code": {
@@ -1114,7 +1267,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         }
 
         if c_severity:
-            cond["severity"] = _severity_coding(c_severity)
+            cond["severity"] = _severity_coding(c_severity, country)
 
         # Stage (NYHA, CKD G, GOLD, etc.)
         c_stage = chronic.get("stage", "") if isinstance(chronic, dict) else ""
@@ -1168,15 +1321,19 @@ _SEVERITY_SNOMED: dict[str, dict[str, str]] = {
 }
 
 
-def _severity_coding(severity: str) -> dict[str, Any]:
+def _severity_coding(severity: str, country: str = "US") -> dict[str, Any]:
     """Build FHIR severity CodeableConcept from severity string."""
     sev = severity.lower()
-    snomed = _SEVERITY_SNOMED.get(sev, _SEVERITY_SNOMED.get("moderate"))
+    snomed = dict(_SEVERITY_SNOMED.get(sev, _SEVERITY_SNOMED.get("moderate")))
+    if country == "JP":
+        orig_display = snomed.get("display", "")
+        snomed["display"] = _SEVERITY_DISPLAY_JA.get(orig_display, orig_display)
     return {
         "coding": [{
             "system": "http://snomed.info/sct",
             **snomed,
         }],
+        "text": snomed.get("display", ""),
     }
 
 
@@ -1308,7 +1465,7 @@ def _build_encounter(
         "class": {
             "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
             "code": class_code,
-            "display": class_display,
+            "display": _localize_display(class_display, country, _CLASS_DISPLAY_JA),
         },
         "subject": {"reference": f"Patient/{patient_id}"},
     }
@@ -1548,8 +1705,9 @@ def _build_lab_observation(
             "coding": [{
                 "system": "http://terminology.hl7.org/CodeSystem/observation-category",
                 "code": "laboratory",
-                "display": "Laboratory",
+                "display": _localize_display("Laboratory", country, _CATEGORY_DISPLAY_JA),
             }],
+            "text": _localize_display("Laboratory", country, _CATEGORY_DISPLAY_JA),
         }],
         "code": {
             "coding": [{"system": code_system, "code": code_value, "display": display_name}],
@@ -1615,6 +1773,7 @@ def _build_lab_observation(
                 coded = {"code": "N", "display": "Normal"}
     if coded is None:
         coded = interp_map.get(flag) if flag else {"code": "N", "display": "Normal"}
+    coded = _localize_interp(coded, country)
     resource["interpretation"] = [{
         "coding": [{
             "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
@@ -1669,8 +1828,9 @@ def _build_vital_observations(
                 "coding": [{
                     "system": "http://terminology.hl7.org/CodeSystem/observation-category",
                     "code": "vital-signs",
-                    "display": "Vital Signs",
+                    "display": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
                 }],
+                "text": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
             }],
             "code": {
                 "coding": [{"system": "http://loinc.org", "code": loinc, "display": display}],
@@ -1714,7 +1874,7 @@ def _build_vital_observations(
                 "coding": [{
                     "system": "http://terminology.hl7.org/CodeSystem/referencerange-meaning",
                     "code": "normal",
-                    "display": "Normal Range",
+                    "display": "正常範囲" if country == "JP" else "Normal Range",
                 }],
             },
             "text": range_text,
@@ -1726,7 +1886,7 @@ def _build_vital_observations(
                     "coding": [{
                         "system": "http://terminology.hl7.org/CodeSystem/referencerange-meaning",
                         "code": "treatment",
-                        "display": "Critical Range",
+                        "display": "パニック範囲" if country == "JP" else "Critical Range",
                     }],
                 },
                 "text": crit_text,
@@ -1753,7 +1913,7 @@ def _build_vital_observations(
             "coding": [{
                 "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
                 "code": interp_code,
-                "display": interp_display,
+                "display": _localize_display(interp_display, country, _INTERPRETATION_DISPLAY_JA),
             }],
         }]
 
@@ -1779,8 +1939,9 @@ def _build_vital_observations(
                 "coding": [{
                     "system": "http://terminology.hl7.org/CodeSystem/observation-category",
                     "code": "vital-signs",
-                    "display": "Vital Signs",
+                    "display": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
                 }],
+                "text": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
             }],
             "code": {
                 "coding": [{
@@ -1819,8 +1980,9 @@ def _build_vital_observations(
                 "coding": [{
                     "system": "http://terminology.hl7.org/CodeSystem/observation-category",
                     "code": "vital-signs",
-                    "display": "Vital Signs",
+                    "display": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
                 }],
+                "text": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
             }],
             "code": {
                 "coding": [{
@@ -1947,11 +2109,14 @@ def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any
             for p in parts:
                 p_upper = p.upper()
                 ja_parts.append(_ROUTE_JA.get(p_upper) or _FREQ_JA.get(p_upper) or _FREQ_JA.get(p) or p)
-            dosage["text"] = " ".join(ja_parts)
+            text = " ".join(ja_parts)
+            # Final pass through dosage term translator for any remaining English
+            dosage["text"] = _localize_dosage_terms(text) if country == "JP" else text
         else:
             dosage["text"] = " ".join(parts)
     elif order.get("display_name"):
-        dosage["text"] = order["display_name"]
+        name = order["display_name"]
+        dosage["text"] = _localize_drug_name(name, country) if country == "JP" else name
 
     return dosage if dosage else None
 
@@ -2142,13 +2307,15 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
     base_pid = proc.get("procedure_id") or f"proc-{patient_id}-{index:03d}"
     resource_id = f"{enc_id}-{base_pid}" if enc_id else base_pid
 
+    proc_name_raw = proc.get("procedure_name", "")
+    proc_name_display = _localize_display(proc_name_raw, country, _PROCEDURE_NAME_JA)
     resource: dict[str, Any] = {
         "resourceType": "Procedure",
         "id": resource_id,
         "status": "completed",
         "code": {
-            "coding": [{"system": code_system, "code": proc.get("procedure_code", ""), "display": proc.get("procedure_name", "")}],
-            "text": proc.get("procedure_name", ""),
+            "coding": [{"system": code_system, "code": proc.get("procedure_code", ""), "display": proc_name_display}],
+            "text": proc_name_display,
         },
         "subject": {"reference": f"Patient/{patient_id}"},
     }
