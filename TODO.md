@@ -174,6 +174,7 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 | 20 | 40K population full run (US production scale) | infra | After #19 |
 | 21 | Anthropic direct provider (non-Bedrock) | `llm_service` | Open |
 | 22 | OpenAI-compatible provider (LiteLLM / vLLM) | `llm_service` | Open |
+| 23 | **A/B test: pre-localized vs English enrichment for JP narratives** | `output`, `llm_service` | **Open** — currently pre-localize all enrichment (drug names, procedure names, event descriptions, complications). Original design (AD-30) was English enrichment + LLM translates via `language=ja` instruction. Need to empirically compare quality (medical term accuracy, natural JP flow, token usage, hallucination rate) on same CIF dataset. If English input gives equal/better quality with high-tier models (Claude Sonnet 4), revert pre-localization to simplify maintenance. May need per-provider config (pre-localize for small/local models, English-only for Bedrock). |
 
 ## Open Design Questions
 
