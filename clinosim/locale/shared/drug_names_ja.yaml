@@ -197,6 +197,16 @@ Procedural sedation: "手技時鎮静"
 Catheter-directed thrombolysis: "カテーテル血栓溶解療法"
 Foley catheter insertion: "膀胱留置カテーテル挿入"
 
+# --- Ophthalmic / 眼科用薬 ---
+Proparacaine: "プロパラカイン"
+Cyclopentolate: "シクロペントラート"
+Ofloxacin: "オフロキサシン"
+Ofloxacin ophthalmic: "オフロキサシン点眼"
+
+# --- Procedures (ED) / 処置 ---
+Foreign body removal with 25G needle: "25G針による異物除去"
+Rust ring removal with burr: "バーによる錆輪除去"
+
 # --- Allergens / アレルゲン ---
 Penicillin: "ペニシリン"
 Cephalosporin: "セフェム系抗菌薬"
