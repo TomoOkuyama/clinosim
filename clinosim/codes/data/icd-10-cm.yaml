@@ -618,9 +618,39 @@ codes:
   T18.9XXA:
     en: Foreign body in alimentary tract, part unspecified, initial encounter
     ja: 消化管異物、部位不明、初回診療
+  S67.2:
+    en: Crushing injury of hand
+    ja: 手部挫滅損傷
+  S67.8:
+    en: Crushing injury of other parts of wrist and hand
+    ja: 手関節・手部のその他の部位の挫滅損傷
+  S68.1:
+    en: Traumatic amputation of finger
+    ja: 指外傷性切断
+  T15.0:
+    en: Foreign body in cornea
+    ja: 角膜内異物
   T30.0:
     en: Burn of unspecified body region, unspecified degree
     ja: 熱傷、部位・度数不明
+  T31.2:
+    en: Burns involving 20-29% of body surface
+    ja: 体表面積20-29%の熱傷
+  T31.3:
+    en: Burns involving 30-39% of body surface
+    ja: 体表面積30-39%の熱傷
+  T54.3:
+    en: Toxic effect of corrosive alkalis and alkali-like substances
+    ja: 腐食性アルカリ・アルカリ様物質の毒性
+  T54.9:
+    en: Toxic effect of unspecified corrosive substance
+    ja: 腐食性物質による中毒、詳細不明
+  T75.4:
+    en: Electrocution / shock from electric current
+    ja: 感電、電流による傷害
+  I49.9:
+    en: Cardiac arrhythmia, unspecified
+    ja: 心不整脈、詳細不明
   T78.40:
     en: Allergy, unspecified
     ja: アレルギー、詳細不明

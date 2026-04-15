@@ -584,6 +584,14 @@ def _build_bundle(
             if ai:
                 entries.append(_entry(ai))
 
+    # === Occupation (social history) Observation ===
+    # US Core Patient Occupation (LOINC 11341-5). Patient-level, not encounter-scoped.
+    occupation = patient_data.get("occupation", "")
+    if occupation:
+        occ_obs = _build_occupation_observation(occupation, patient_id, country)
+        if occ_obs:
+            entries.append(_entry(occ_obs))
+
     # Primary encounter id (for back-references)
     primary_enc_id = (record.get("encounters", [{}])[0].get("encounter_id", "")
                       if record.get("encounters") else "")
@@ -829,6 +837,85 @@ _ALLERGEN_RXNORM: dict[str, str] = {
     "Cephalosporin": "2173",
     "Aspirin": "1191",
 }
+
+
+# Occupation category localization for Observation.valueCodeableConcept
+_OCCUPATION_DISPLAY_JA: dict[str, str] = {
+    "manufacturing": "製造業",
+    "construction": "建設業",
+    "agriculture": "農林水産業",
+    "healthcare": "医療・福祉",
+    "service": "サービス・小売",
+    "office": "事務・専門職",
+    "transportation": "運輸業",
+    "education": "教育",
+    "homemaker": "主婦/主夫",
+    "student": "学生",
+    "retired": "退職",
+    "unemployed": "無職",
+    "other": "その他",
+}
+
+_OCCUPATION_DISPLAY_EN: dict[str, str] = {
+    "manufacturing": "Manufacturing worker",
+    "construction": "Construction worker",
+    "agriculture": "Agricultural worker",
+    "healthcare": "Healthcare worker",
+    "service": "Service/retail worker",
+    "office": "Office/professional worker",
+    "transportation": "Transportation worker",
+    "education": "Education worker",
+    "homemaker": "Homemaker",
+    "student": "Student",
+    "retired": "Retired",
+    "unemployed": "Unemployed",
+    "other": "Other occupation",
+}
+
+
+def _build_occupation_observation(
+    occupation: str, patient_id: str, country: str,
+) -> dict | None:
+    """Build FHIR Observation for patient occupation (social history).
+
+    Uses US Core Patient Occupation profile (LOINC 11341-5).
+    Reference: http://hl7.org/fhir/us/core/StructureDefinition/us-core-occupation
+    """
+    if not occupation:
+        return None
+    display_map = _OCCUPATION_DISPLAY_JA if country == "JP" else _OCCUPATION_DISPLAY_EN
+    display = display_map.get(occupation, occupation.title())
+    category_text = "社会歴" if country == "JP" else "Social History"
+    return {
+        "resourceType": "Observation",
+        "id": f"occupation-{patient_id}",
+        "status": "final",
+        "category": [{
+            "coding": [{
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "social-history",
+                "display": "Social History",
+            }],
+            "text": category_text,
+        }],
+        "code": {
+            "coding": [{
+                "system": "http://loinc.org",
+                "code": "11341-5",
+                "display": "History of Occupation",
+            }],
+            "text": "職業" if country == "JP" else "Occupation",
+        },
+        "subject": {"reference": f"Patient/{patient_id}"},
+        "valueCodeableConcept": {
+            "coding": [{
+                "system": "http://clinosim.example.org/CodeSystem/occupation-category",
+                "code": occupation,
+                "display": display,
+            }],
+            "text": display,
+        },
+    }
 
 
 def _build_allergy_intolerance(
