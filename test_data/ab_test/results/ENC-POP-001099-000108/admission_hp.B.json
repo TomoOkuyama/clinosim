@@ -1,0 +1,16 @@
+{
+  "encounter_id": "ENC-POP-001099-000108",
+  "task_type": "admission_hp",
+  "variant": "B",
+  "description": "B=English enrichment + JP prompt",
+  "language_enrichment": "en",
+  "language_output": "ja",
+  "prompt_version": 1,
+  "max_tokens": 1500,
+  "temperature": 0.4,
+  "generated_text": "【主訴】\n右下腹部痛、嘔気、発熱\n\n【現病歴】\n42歳男性。右下腹部痛、嘔気、発熱を主訴に来院。来院時バイタルサインは体温38.9°C、脈拍108回/分、呼吸数21回/分、血圧92/72mmHg、SpO2 95.8%であった。\n\n【既往歴】\n特記事項なし\n\n【内服薬】\nなし\n\n【アレルギー】\n薬物アレルギーなし\n\n【身体所見】\n■バイタルサイン\n体温38.9°C、脈拍108回/分、呼吸数21回/分、血圧92/72mmHg、SpO2 95.8%\n\n■血液検査\n・WBC 10206.0-14609.0 /uL（高値）\n・CRP 42.0-43.0 mg/L（高値）\n・Glucose 131.0 mg/dL（軽度高値）\n・AST 249.0 U/L（高値）\n・ALT 207.0 U/L（高値）\n・Creatinine 1.2 mg/dL（軽度高値）\n\n【アセスメント】\n42歳男性の右下腹部痛、発熱、炎症反応高値の症例。臨床症状と検査所見から急性虫垂炎を最も疑う。白血球増多とCRP高値は急性炎症を示唆し、右下腹部痛の局在と合わせて虫垂炎の可能性が高い。肝酵素上昇は炎症の全身への波及または併存病変の可能性がある。鑑別診断として腸閉塞、憩室炎、尿路結石等も考慮する必要がある。\n\n【プラン】\n・画像検査（腹部CT）による精査\n・抗菌薬投与の検討\n・外科的治療の適応評価\n・症状観察と定期的バイタルサイン測定",
+  "input_tokens": 1029,
+  "output_tokens": 595,
+  "model": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+  "latency_ms": 7035
+}

@@ -1,0 +1,16 @@
+{
+  "encounter_id": "ENC-POP-000106-000216",
+  "task_type": "admission_hp",
+  "variant": "A",
+  "description": "A=pre-localized JP enrichment",
+  "language_enrichment": "ja",
+  "language_output": "ja",
+  "prompt_version": 1,
+  "max_tokens": 1500,
+  "temperature": 0.4,
+  "generated_text": "【主訴】\n胸痛、発汗、呼吸困難\n\n【現病歴】\n83歳女性。胸痛、発汗、呼吸困難を主訴に来院。慢性閉塞性肺疾患、慢性虚血性心疾患、喘息の既往あり。\n\n【既往歴】\n・慢性閉塞性肺疾患\n・慢性虚血性心疾患\n・喘息\n\n【内服薬】\n・チオトロピウム 18mcg 吸入薬\n・サルブタモール 100mcg 吸入薬 頓用\n・アスピリン 100mg\n・クロピドグレル 75mg\n・フルチカゾン/サルメテロール 吸入薬\n・サルブタモール 吸入薬 頓用\n\n【アレルギー】\nなし\n\n【身体所見】\n■バイタルサイン\n体温 37.2°C、心拍数 120/分、呼吸数 14/分、血圧 108/73 mmHg、SpO2 94.4%\n\n【検査所見】\n■血液検査\nWBC 10914.0 /uL [H]、BUN 33.5 mg/dL [H]、K 5.3 mmol/L [H]、AST 192.0 U/L [H]、ALT 152.0 U/L [H]\n\n【アセスメント】\n83歳女性、胸痛・発汗・呼吸困難の症状と頻脈、AST上昇を認める。慢性虚血性心疾患の既往があり、急性心筋梗塞を最も疑う。鑑別として急性心不全、COPD急性増悪、肺塞栓症も考慮。\n\n【プラン】\n・心電図、心エコー、胸部X線検査\n・心筋逸脱酵素（トロポニン、CK-MB）測定\n・動脈血ガス分析\n・循環器科コンサルト\n・酸素投与、心電図モニタリング",
+  "input_tokens": 1232,
+  "output_tokens": 609,
+  "model": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+  "latency_ms": 7249
+}

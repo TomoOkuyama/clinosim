@@ -1,0 +1,16 @@
+{
+  "encounter_id": "ENC-POP-000760-000170",
+  "task_type": "admission_hp",
+  "variant": "A",
+  "description": "A=pre-localized JP enrichment",
+  "language_enrichment": "ja",
+  "language_output": "ja",
+  "prompt_version": 1,
+  "max_tokens": 1500,
+  "temperature": 0.4,
+  "generated_text": "【主訴】\n転倒後の股関節痛、歩行不能\n\n【現病歴】\n92歳女性。転倒後に股関節痛が出現し、歩行不能となったため受診。疼痛は持続性で、体動時に増強する。転倒の詳細や外傷の程度については追加聴取が必要。\n\n【既往歴】\n本態性高血圧症\n\n【内服薬】\nアムロジピン 5mg\n\n【アレルギー】\nなし\n\n【身体所見】\n■バイタルサイン\n体温 37.3°C、心拍数 97/分、呼吸数 18/分、血圧 127/85 mmHg、SpO2 98.1%\n\n【検査所見】\n■血液検査\nCRP 1.78-3.64 mg/dL（高値）、WBC 10184.0 /uL（高値）、Hb 10.6 g/dL（低値）、クレアチニン 0.96 mg/dL（高値）、血糖 112.0 mg/dL（高値）、アルブミン 3.1 g/dL（低値）\n\n【アセスメント】\n92歳女性の転倒後股関節痛、歩行不能。臨床症状と年齢を考慮すると大腿骨頸部骨折の可能性が高い。炎症反応の上昇と軽度貧血を認める。画像検査による骨折の確認が必要。\n\n【プラン】\n股関節X線撮影、必要に応じてCT検査を施行し骨折の有無を確認。疼痛管理と安静保持。整形外科的治療方針の検討。",
+  "input_tokens": 1180,
+  "output_tokens": 504,
+  "model": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+  "latency_ms": 6605
+}
