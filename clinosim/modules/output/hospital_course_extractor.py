@@ -75,7 +75,7 @@ def extract_hospital_course(
     events.extend(_complication_events(record, language))
 
     # --- Lab / physiological peaks (CRP, WBC, Cr) ---
-    events.extend(_lab_peak_events(record, admission_dt))
+    events.extend(_lab_peak_events(record, admission_dt, language))
 
     # --- Treatment changes (new drugs started after day 0, drug switches) ---
     events.extend(_treatment_change_events(record, admission_dt))
@@ -359,6 +359,7 @@ def _treatment_change_events(
 def _lab_peak_events(
     record: dict[str, Any],
     admission_dt: datetime | None,
+    language: str = "en",
 ) -> list[HospitalCourseFact]:
     """Surface peaks of CRP / WBC / Creatinine / Lactate as notable events."""
     orders = record.get("orders") or []
@@ -389,12 +390,15 @@ def _lab_peak_events(
     events: list[HospitalCourseFact] = []
     for name, (dt, val) in peaks.items():
         day = _day_offset(admission_dt, dt) if dt else 1
-        unit = _unit_for(name)
+        unit = _unit_for(name, language)
+        # CRP unit conversion (mathematical, not translation — AD-42)
+        factor = _JA_CONVERSION.get(name, 1.0) if language == "ja" else 1.0
+        disp_val = round(val * factor, 2) if factor != 1.0 else val
         events.append(
             HospitalCourseFact(
                 hospital_day=day,
                 event_type="test_peak",
-                description=f"Day {day}: {name} peaked at {val:.1f} {unit}.",
+                description=f"Day {day}: {name} peaked at {disp_val:.1f} {unit}.",
             )
         )
     return events
