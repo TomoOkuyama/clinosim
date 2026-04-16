@@ -1,0 +1,16 @@
+{
+  "encounter_id": "ENC-POP-001836-000156",
+  "task_type": "admission_hp",
+  "variant": "B",
+  "description": "B=English enrichment + JP prompt",
+  "language_enrichment": "en",
+  "language_output": "ja",
+  "prompt_version": 1,
+  "max_tokens": 1500,
+  "temperature": 0.4,
+  "generated_text": "【主訴】\n動悸、呼吸困難、めまい、胸部不快感\n\n【現病歴】\n82歳男性。動悸、呼吸困難、めまい、胸部不快感を主訴に来院。来院時バイタルサイン：体温37.6°C、心拍数69回/分、呼吸数13回/分、血圧119/78mmHg、SpO2 98.0%。\n\n【既往歴】\n慢性腎臓病\n\n【内服薬】\nなし\n\n【アレルギー】\n薬物アレルギーなし\n\n【身体所見】\n■バイタルサイン\n体温37.6°C、心拍数69回/分、呼吸数13回/分、血圧119/78mmHg、SpO2 98.0%\n\n■血液検査\n・クレアチニン1.29 mg/dL（高値）、1.46 mg/dL（高値）\n・AST 210.0 U/L（高値）\n\n【アセスメント】\n82歳男性、動悸・呼吸困難・めまい・胸部不快感で来院。症状と年齢から心房細動・心房粗動を強く疑う。AST上昇は心筋逸脱酵素の可能性もあり、急性冠症候群も鑑別に挙げられる。既往の慢性腎臓病の増悪も認める。\n\n鑑別診断：心房細動・心房粗動、急性冠症候群、心不全、慢性腎臓病急性増悪\n\n【プラン】\n・12誘導心電図施行\n・胸部X線撮影\n・心エコー検査\n・血液検査追加（BNP、トロポニン、電解質）\n・心電図モニター装着\n・循環器科での精査加療継続",
+  "input_tokens": 975,
+  "output_tokens": 544,
+  "model": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+  "latency_ms": 6429
+}

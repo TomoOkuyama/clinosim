@@ -1,0 +1,16 @@
+{
+  "encounter_id": "ENC-POP-001835-000080",
+  "task_type": "admission_hp",
+  "variant": "B",
+  "description": "B=English enrichment + JP prompt",
+  "language_enrichment": "en",
+  "language_output": "ja",
+  "prompt_version": 1,
+  "max_tokens": 1500,
+  "temperature": 0.4,
+  "generated_text": "【主訴】\n四肢の発赤、熱感、腫脹、発熱\n\n【現病歴】\n44歳男性。四肢の発赤、熱感、腫脹および発熱を主訴に受診。来院時バイタルサイン：体温38.7°C、心拍数107回/分、呼吸数15回/分、血圧106/61mmHg、SpO2 91.7%。\n\n【既往歴】\n特記事項なし\n\n【内服薬】\nなし\n\n【アレルギー】\n薬物アレルギーなし\n\n【身体所見】\n■バイタルサイン\n体温38.7°C、心拍数107回/分、呼吸数15回/分、血圧106/61mmHg、SpO2 91.7%\n\n【検査所見】\n■血液検査\n・CRP 23.3 mg/L（高値）\n・WBC 18065.0 /uL（高値）\n・Creatinine 1.36 mg/dL（高値）\n・BUN 28.8 mg/dL（高値）\n・Glucose 118.0 mg/dL（高値）\n・ALT 151.0 U/L（高値）\n・Lactate 6.5 mmol/L（高値）\n\n【アセスメント】\n発熱、四肢の発赤・熱感・腫脹、著明な炎症反応上昇（CRP 23.3、WBC 18065）から蜂窩織炎を強く疑う。乳酸値上昇、軽度腎機能低下を認め、全身状態への影響も考慮される。鑑別診断として深部静脈血栓症、壊死性筋膜炎も検討要。\n\n【プラン】\n・抗菌薬治療開始\n・培養検査提出\n・画像検査による病変範囲評価\n・水分管理、電解質補正\n・バイタルサイン監視",
+  "input_tokens": 1042,
+  "output_tokens": 568,
+  "model": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+  "latency_ms": 6773
+}

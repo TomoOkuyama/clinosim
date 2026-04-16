@@ -1,0 +1,16 @@
+{
+  "encounter_id": "ENC-POP-000106-000216",
+  "task_type": "admission_hp",
+  "variant": "B",
+  "description": "B=English enrichment + JP prompt",
+  "language_enrichment": "en",
+  "language_output": "ja",
+  "prompt_version": 1,
+  "max_tokens": 1500,
+  "temperature": 0.4,
+  "generated_text": "【主訴】\n胸痛、発汗、呼吸困難\n\n【現病歴】\n83歳女性。胸痛、発汗、呼吸困難を主訴に来院。来院時バイタルサイン：体温37.2℃、脈拍120回/分、呼吸数14回/分、血圧108/73mmHg、SpO2 94.4%。\n\n【既往歴】\n・慢性閉塞性肺疾患\n・慢性虚血性心疾患\n・気管支喘息\n\n【内服薬】\n・チオトロピウム18mcg吸入薬\n・サルブタモール100mcg吸入薬（頓用）\n・アスピリン100mg\n・クロピドグレル75mg\n・フルチカゾン/サルメテロール配合吸入薬\n\n【アレルギー】\n薬物アレルギーなし\n\n【身体所見】\n■バイタルサイン\n体温37.2℃、脈拍120回/分、呼吸数14回/分、血圧108/73mmHg、SpO2 94.4%\n\n■血液検査\nWBC 10914.0 /uL（高値）、BUN 33.5 mg/dL（高値）、K 5.3 mmol/L（高値）、AST 192.0 U/L（高値）、ALT 152.0 U/L（高値）\n\n【アセスメント】\n83歳女性、慢性虚血性心疾患の既往を有し、胸痛、発汗、呼吸困難で来院。頻脈、軽度酸素飽和度低下、AST/ALT上昇を認める。急性心筋梗塞を最も疑う。COPD急性増悪、肺塞栓症も鑑別に挙げられる。\n\n【プラン】\n・心電図、胸部X線撮影\n・心筋逸脱酵素（トロポニン、CK-MB）測定\n・心エコー検査\n・酸素投与、心電図モニタリング\n・循環器科コンサルト",
+  "input_tokens": 1101,
+  "output_tokens": 621,
+  "model": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+  "latency_ms": 7245
+}

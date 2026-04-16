@@ -1,0 +1,16 @@
+{
+  "encounter_id": "ENC-POP-001836-000156",
+  "task_type": "discharge_summary",
+  "variant": "A",
+  "description": "A=pre-localized JP enrichment",
+  "language_enrichment": "ja",
+  "language_output": "ja",
+  "prompt_version": 1,
+  "max_tokens": 2000,
+  "temperature": 0.4,
+  "generated_text": "【患者情報】\n82歳、男性\n\n【入院日・退院日・入院期間】\n入院日：2025年12月21日\n退院日：2025年12月26日（永眠）\n入院期間：5日間\n\n【入院時診断】\n心房細動・心房粗動\n\n【退院時診断】\n主病名：心房細動・心房粗動\n\n【主訴】\n動悸、呼吸困難、めまい、胸部不快感\n\n【既往歴】\n慢性腎臓病\n\n【入院後経過】\n第0病日に動悸、呼吸困難、めまい、胸部不快感を主訴に入院となった。心房細動・心房粗動と診断し、ジルチアゼム静注、ランジオロール静注による心拍数コントロールを開始した。また炭酸水素ナトリウム内服も併用した。入院時よりCRP 0.2mg/dL、Cr 1.3mg/dLであったが、第1病日にCr 1.5mg/dLまで上昇を認めた。その後Crは1.4mg/dLまで改善傾向を示したものの、第5病日に最大限の治療にも関わらず永眠された。\n\n【実施した処置・手術】\nなし\n\n【退院時処方】\n退院時処方なし\n\n【退院時状態】\n永眠\n\n【退院後の方針・外来フォロー】\n該当なし\n\n担当医：増田 栄医師",
+  "input_tokens": 1326,
+  "output_tokens": 446,
+  "model": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+  "latency_ms": 6285
+}

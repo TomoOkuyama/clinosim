@@ -1,0 +1,16 @@
+{
+  "encounter_id": "ENC-POP-002101-000019",
+  "task_type": "admission_hp",
+  "variant": "A",
+  "description": "A=pre-localized JP enrichment",
+  "language_enrichment": "ja",
+  "language_output": "ja",
+  "prompt_version": 1,
+  "max_tokens": 1500,
+  "temperature": 0.4,
+  "generated_text": "【主訴】\n吐血、下血、めまい、失神\n\n【現病歴】\n63歳女性。吐血、下血、めまい、失神を主訴に救急搬送された。来院時体温37.4℃、脈拍103回/分、呼吸数12回/分、血圧116/76mmHg、SpO2 97.8%であった。\n\n【既往歴】\n・2型糖尿病\n・胃食道逆流症\n・変形性膝関節症\n\n【内服薬】\n・インスリングラルギン\n・メトホルミン 500mg\n・ランソプラゾール 15mg\n\n【アレルギー】\nなし\n\n【身体所見】\n■バイタルサイン\n体温37.4℃、脈拍103回/分、呼吸数12回/分、血圧116/76mmHg、SpO2 97.8%\n\n■血液検査\n・Hb 8.1 g/dL（低値）\n・BUN 27.6-28.1 mg/dL（高値）\n・Creatinine 1.26 mg/dL（高値）\n・K 5.1 mmol/L（高値）\n・Lactate 6.0 mmol/L（高値）\n・AST 93.0 U/L（高値）\n・ALT 58.0 U/L（高値）\n\n【アセスメント】\n吐血・下血の症状と貧血、BUN上昇を認めることから上部消化管出血を強く疑う。胃食道逆流症の既往があり、消化性潰瘍や食道静脈瘤破裂等が鑑別として挙げられる。軽度の頻脈と乳酸値上昇から循環血液量減少による組織低灌流が示唆される。\n\n【プラン】\n・緊急上部消化管内視鏡検査\n・輸血準備、必要時輸血\n・補液による循環管理\n・プロトンポンプ阻害薬投与\n・継続的なバイタルサイン監視",
+  "input_tokens": 1240,
+  "output_tokens": 603,
+  "model": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+  "latency_ms": 9527
+}

@@ -1,0 +1,16 @@
+{
+  "encounter_id": "ENC-POP-001405-000031",
+  "task_type": "admission_hp",
+  "variant": "A",
+  "description": "A=pre-localized JP enrichment",
+  "language_enrichment": "ja",
+  "language_output": "ja",
+  "prompt_version": 1,
+  "max_tokens": 1500,
+  "temperature": 0.4,
+  "generated_text": "【主訴】\n突然の激しい頭痛、嘔吐、意識レベル低下\n\n【現病歴】\n82歳男性。突然発症の激しい頭痛、嘔吐、意識レベル低下にて救急搬送。症状は急激に出現し、これまでに経験したことのない頭痛とのこと。\n\n【既往歴】\n・本態性高血圧症\n・喘息\n\n【内服薬】\n・アムロジピン 5mg\n・フルチカゾン/サルメテロール 吸入薬\n・サルブタモール 吸入薬 頓用\n\n【アレルギー】\nなし\n\n【身体所見】\n■バイタルサイン\n体温 38.8°C、脈拍 101回/分、呼吸数 21回/分、血圧 142/88mmHg、SpO2 92.5%\n\n■血液検査\nクレアチニン 2.98 mg/dL [H]、BUN 42.2 mg/dL [H]、血糖 147.0 mg/dL [H]、CRP 23.19 mg/dL [H]\n\n【アセスメント】\n82歳男性、突然発症の激しい頭痛、嘔吐、意識障害を主訴とする症例。高血圧の既往があり、急性期脳血管障害、特に脳内出血を強く疑う。発熱、CRP高値から感染症の合併も考慮。腎機能障害も認める。\n\n鑑別診断：脳内出血、くも膜下出血、脳梗塞、髄膜炎、敗血症\n\n【プラン】\n・緊急頭部CT施行\n・神経学的診察詳細評価\n・感染症検索（血液培養等）\n・水分バランス管理\n・神経内科コンサルト検討",
+  "input_tokens": 1133,
+  "output_tokens": 556,
+  "model": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+  "latency_ms": 6578
+}
