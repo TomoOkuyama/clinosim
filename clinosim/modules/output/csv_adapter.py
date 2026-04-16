@@ -155,11 +155,12 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str) -> None:
             })
 
         # Procedures
+        from clinosim.modules.output.hospital_course_extractor import _resolve_procedure_name
         for proc in record.get("procedures", []):
             proc_rows.append({
                 "patient_id": patient_id,
                 "procedure_id": proc.get("procedure_id"),
-                "procedure_name": proc.get("procedure_name"),
+                "procedure_name": _resolve_procedure_name(proc, "en"),
                 "procedure_code": proc.get("procedure_code"),
                 "start_datetime": proc.get("start_datetime"),
                 "end_datetime": proc.get("end_datetime"),
