@@ -988,25 +988,19 @@ _LOCATION_NAME_JA: dict[str, str] = {
 }
 
 # Procedure names (from disease YAML procedure.type) — EN→JA
-_PROCEDURE_NAME_JA: dict[str, str] = {
-    "Open reduction internal fixation, femur": "大腿骨観血的整復固定術",
-    "Open reduction internal fixation, wrist": "手関節観血的整復固定術",
-    "ORIF with volar locking plate": "掌側ロッキングプレートによる観血的整復固定術",
-    "laparoscopic cholecystectomy": "腹腔鏡下胆嚢摘出術",
-    "laparoscopic appendectomy": "腹腔鏡下虫垂切除術",
-    "exploratory laparotomy": "試験開腹術",
-    "bipolar hip hemiarthroplasty": "バイポーラ型人工骨頭置換術",
-    "complex hand surgery / replantation": "複雑手指手術・再接着術",
-    "debridement and skin grafting": "デブリードマン・植皮術",
-    "orthopedic fracture fixation": "整形外科的骨折固定術",
-    "percutaneous coronary intervention": "経皮的冠動脈インターベンション (PCI)",
-    "Kyphoplasty": "経皮的椎体形成術 (kyphoplasty)",
-    "Vertebroplasty": "経皮的椎体形成術",
-    "Hemiarthroplasty, femoral head": "大腿骨頭人工骨頭置換術",
-    "Hemiarthroplasty": "人工骨頭置換術",
-    "Craniotomy or burr hole evacuation": "開頭術または穿頭血腫除去術",
-    "Craniotomy": "開頭術",
-}
+def _procedure_display(code: str, lang: str, fallback: str = "") -> str:
+    """Look up procedure display in k-codes.yaml / cpt.yaml.
+
+    Tries k-codes first (JP codes) then cpt (US codes). Falls back to the
+    provided `fallback` string if neither has an entry.
+    """
+    if not code:
+        return fallback
+    for system_key in ("k-codes", "cpt"):
+        disp = code_lookup(system_key, code, lang)
+        if disp and disp != code:
+            return disp
+    return fallback
 
 
 def _localize_display(value: str, country: str, dictionary: dict[str, str]) -> str:
@@ -2352,15 +2346,45 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
     base_pid = proc.get("procedure_id") or f"proc-{patient_id}-{index:03d}"
     resource_id = f"{enc_id}-{base_pid}" if enc_id else base_pid
 
-    proc_name_raw = proc.get("procedure_name", "")
-    proc_name_display = _localize_display(proc_name_raw, country, _PROCEDURE_NAME_JA)
+    # Fallback name from CIF (English, language-neutral per AD-30)
+    proc_name_fallback = proc.get("procedure_name", "")
+    proc_code_jp = proc.get("procedure_code_jp", "")
+    proc_code_us = proc.get("procedure_code_us", "")
+    primary_code = proc.get("procedure_code", "")
+
+    # Resolve displays via code dictionaries (k-codes.yaml / cpt.yaml)
+    primary_lang = "ja" if country == "JP" else "en"
+    primary_display = _procedure_display(primary_code, primary_lang, proc_name_fallback)
+
+    coding_entries: list[dict[str, Any]] = [{
+        "system": code_system,
+        "code": primary_code,
+        "display": primary_display,
+    }]
+
+    # Secondary coding: the OTHER country's code system for international interop
+    if country == "JP" and proc_code_us:
+        us_display = _procedure_display(proc_code_us, "en", proc_name_fallback)
+        coding_entries.append({
+            "system": get_system_uri("cpt"),
+            "code": proc_code_us,
+            "display": us_display,
+        })
+    elif country == "US" and proc_code_jp:
+        jp_display = _procedure_display(proc_code_jp, "ja", proc_name_fallback)
+        coding_entries.append({
+            "system": get_system_uri("k-codes"),
+            "code": proc_code_jp,
+            "display": jp_display,
+        })
+
     resource: dict[str, Any] = {
         "resourceType": "Procedure",
         "id": resource_id,
         "status": "completed",
         "code": {
-            "coding": [{"system": code_system, "code": proc.get("procedure_code", ""), "display": proc_name_display}],
-            "text": proc_name_display,
+            "coding": coding_entries,
+            "text": primary_display,
         },
         "subject": {"reference": f"Patient/{patient_id}"},
     }
