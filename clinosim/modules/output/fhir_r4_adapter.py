@@ -1127,6 +1127,65 @@ def _build_allergy_intolerance(
     }
 
 
+def _build_diagnosis_codeable_concept(
+    code: str, system_key: str, country: str
+) -> dict[str, Any]:
+    """Build a FHIR CodeableConcept for a diagnosis code with multilingual coding.
+
+    - Primary coding: target country's system + target language display
+    - Secondary coding: always includes English display (for interop)
+    - code.text: primary language display (local charting expression)
+    - Never emits display==code: falls back to "(display unavailable)"
+
+    Falls back to icd-10-cm lookup if the code isn't in the country's system
+    (e.g. JP using icd-10 but code only in icd-10-cm).
+    """
+    primary_lang = "ja" if country != "US" else "en"
+    primary_system = get_system_uri(system_key)
+
+    # Look up display in primary language (with cross-system fallback)
+    primary_display = (
+        code_lookup(system_key, code, primary_lang)
+        if code
+        else ""
+    )
+    # If primary system has no entry, try icd-10-cm which is more comprehensive
+    if (not primary_display or primary_display == code) and system_key != "icd-10-cm":
+        alt = code_lookup("icd-10-cm", code, primary_lang)
+        if alt and alt != code:
+            primary_display = alt
+    # Last-resort fallback: never emit display==code
+    if not primary_display or primary_display == code:
+        primary_display = "(display unavailable)"
+
+    # English display (for interop secondary coding)
+    en_display = code_lookup(system_key, code, "en") if code else ""
+    if (not en_display or en_display == code) and system_key != "icd-10-cm":
+        alt_en = code_lookup("icd-10-cm", code, "en")
+        if alt_en and alt_en != code:
+            en_display = alt_en
+    if not en_display or en_display == code:
+        en_display = "(display unavailable)"
+
+    coding = [{
+        "system": primary_system,
+        "code": code,
+        "display": primary_display,
+    }]
+    # Add English coding for multilingual interop when primary is not English
+    if primary_lang != "en" and en_display != primary_display:
+        coding.append({
+            "system": primary_system,  # same code system, different display
+            "code": code,
+            "display": en_display,
+        })
+
+    return {
+        "coding": coding,
+        "text": primary_display,
+    }
+
+
 def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]:
     """Build FHIR Condition resources from diagnosis and chronic conditions.
 
@@ -1153,8 +1212,6 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
 
     # --- Primary diagnosis (encounter diagnosis) ---
     dx_code = dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", "")
-    # Display text comes from the codes module (not stored in CIF)
-    dx_name = code_lookup(icd_system_key, dx_code, lang) if dx_code else ""
     if dx_code:
         base_code = dx_code.split(".")[0]
         seen_codes.add(base_code)
@@ -1167,9 +1224,6 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             clinical_status = "active" if deceased or not discharge_dt else "resolved"
         else:
             clinical_status = "resolved"
-
-        display = dx_name or dx_code
-        icd_system = get_system_uri(icd_system_key)
 
         cond: dict[str, Any] = {
             "resourceType": "Condition",
@@ -1193,10 +1247,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                     "display": _localize_display("Encounter Diagnosis", country, _CATEGORY_DISPLAY_JA),
                 }],
             }],
-            "code": {
-                "coding": [{"system": icd_system, "code": dx_code, "display": display}],
-                "text": display,
-            },
+            "code": _build_diagnosis_codeable_concept(dx_code, icd_system_key, country),
             "subject": {"reference": f"Patient/{patient_id}"},
         }
 
@@ -1234,9 +1285,6 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             continue
         seen_codes.add(base)
 
-        display = code_lookup(icd_system_key, c_code, lang) or c_code
-        icd_system = get_system_uri(icd_system_key)
-
         cond = {
             "resourceType": "Condition",
             "id": f"cond-{encounter_id}-chronic-{i:02d}" if encounter_id else f"cond-{patient_id}-chronic-{i:02d}",
@@ -1259,10 +1307,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                     "display": _localize_display("Problem List Item", country, _CATEGORY_DISPLAY_JA),
                 }],
             }],
-            "code": {
-                "coding": [{"system": icd_system, "code": c_code, "display": display}],
-                "text": display,
-            },
+            "code": _build_diagnosis_codeable_concept(c_code, icd_system_key, country),
             "subject": {"reference": f"Patient/{patient_id}"},
         }
 

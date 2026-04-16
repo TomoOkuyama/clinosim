@@ -328,6 +328,43 @@ codes:
   I49.9:
     en: Cardiac arrhythmia, unspecified
     ja: 心不整脈、詳細不明
+  # Codes used by ED/outpatient encounters — align with icd-10-cm.yaml
+  A05.9:
+    en: Bacterial foodborne intoxication, unspecified
+    ja: 細菌性食中毒、詳細不明
+  A08.4:
+    en: Viral intestinal infection, unspecified
+    ja: ウイルス性腸炎、詳細不明
+  J12.9:
+    en: Viral pneumonia, unspecified
+    ja: ウイルス性肺炎、詳細不明
+  M54.50:
+    en: Low back pain, unspecified
+    ja: 腰痛、詳細不明
+  N20.0:
+    en: Calculus of kidney
+    ja: 腎結石
+  R33.9:
+    en: Retention of urine, unspecified
+    ja: 尿閉、詳細不明
+  R65.20:
+    en: Severe sepsis without septic shock
+    ja: 重症敗血症、敗血症性ショックなし
+  R65.21:
+    en: Severe sepsis with septic shock
+    ja: 敗血症性ショック
+  R68.8:
+    en: Other general symptoms and signs
+    ja: その他の全身症状および徴候
+  S43.006A:
+    en: Unspecified dislocation of unspecified shoulder joint, initial encounter
+    ja: 肩関節脱臼（部位不明）、初回診療
+  T18.9XXA:
+    en: Foreign body in alimentary tract, part unspecified, initial encounter
+    ja: 消化管異物、部位不明、初回診療
+  V89.2XXA:
+    en: Person injured in unspecified motor-vehicle accident, traffic, initial encounter
+    ja: 交通事故（自動車、詳細不明）、初回診療
   W19:
     en: Unspecified fall
     ja: 転倒、詳細不明
