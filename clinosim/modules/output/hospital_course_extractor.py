@@ -132,7 +132,7 @@ def summarize_procedures(
     for p in procs:
         if not isinstance(p, dict):
             continue
-        name = p.get("procedure_name") or p.get("procedure_type", "procedure")
+        name = _resolve_procedure_name(p, "en")
         start = _format_dt(p.get("start_datetime"))
         surgeon = p.get("primary_surgeon_id", "")
         complications = p.get("intraop_complications") or []
@@ -225,7 +225,7 @@ def _surgery_events(
         if p.get("category_code") != "387713003":  # only surgical
             continue
         day = _day_offset(admission_dt, p.get("start_datetime"))
-        name = p.get("procedure_name") or p.get("procedure_type", "surgery")
+        name = _resolve_procedure_name(p, "en")
         comps = p.get("intraop_complications") or []
         ebl = p.get("estimated_blood_loss_ml")
         comp_str = f" with {', '.join(comps)}" if comps else ""
@@ -274,7 +274,7 @@ def _procedure_events(
         if ptype not in invasive:
             continue
         day = _day_offset(admission_dt, p.get("start_datetime"))
-        name = p.get("procedure_name") or ptype
+        name = _resolve_procedure_name(p, "en")
         events.append(
             HospitalCourseFact(
                 hospital_day=day,
@@ -283,6 +283,22 @@ def _procedure_events(
             )
         )
     return events
+
+
+def _resolve_procedure_name(proc: dict, lang: str = "en") -> str:
+    """Resolve procedure display from code via code_lookup (AD-30 compliant).
+
+    Tries k-codes, then cpt. Falls back to procedure_type as last resort.
+    """
+    for key in ("procedure_code", "procedure_code_jp", "procedure_code_us"):
+        code = proc.get(key, "")
+        if not code:
+            continue
+        for system_key in ("k-codes", "cpt"):
+            disp = code_lookup(system_key, code, lang)
+            if disp and disp != code:
+                return disp
+    return proc.get("procedure_type") or "procedure"
 
 
 def _complication_events(

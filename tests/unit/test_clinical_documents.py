@@ -299,6 +299,8 @@ class TestHospitalCourseExtractor:
         assert days == sorted(days)
 
     def test_surgery_event_only_when_surgical(self):
+        # Per AD-30, CIF stores codes not names — test uses procedure_code
+        # resolved via code_lookup at output time.
         record = {
             "encounters": [
                 {"admission_datetime": "2026-03-01T09:00:00"}
@@ -306,14 +308,14 @@ class TestHospitalCourseExtractor:
             "procedures": [
                 {
                     "procedure_type": "ORIF",
-                    "procedure_name": "Open reduction internal fixation",
+                    "procedure_code": "K0461",   # resolves via k-codes.yaml
                     "category_code": "387713003",  # surgical
                     "start_datetime": "2026-03-02T10:00:00",
                     "estimated_blood_loss_ml": 300,
                 },
                 {
                     "procedure_type": "urinary_catheter",
-                    "procedure_name": "Foley",
+                    "procedure_code": "D002",
                     "category_code": "277132007",  # therapeutic, not surgical
                     "start_datetime": "2026-03-01T12:00:00",
                 },
@@ -322,7 +324,8 @@ class TestHospitalCourseExtractor:
         facts = extract_hospital_course(record, "en")
         surgery = [f for f in facts if f.event_type == "surgery"]
         assert len(surgery) == 1
-        assert "Open reduction" in surgery[0].description
+        # procedure_name resolved from code via k-codes.yaml ("Open treatment of femoral fracture...")
+        assert "Open treatment" in surgery[0].description or "femoral" in surgery[0].description
 
     def test_procedure_note_targets_invasive_bedside(self):
         assert "central_line" in _PROCEDURE_NOTE_TYPES

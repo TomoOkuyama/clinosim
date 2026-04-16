@@ -25,7 +25,8 @@ class ProcedureRecord:
     procedure_code: str = ""  # K-code (JP) or CPT (US) — primary code for this country
     procedure_code_jp: str = ""  # K-code (always populated if available)
     procedure_code_us: str = ""  # CPT (always populated if available)
-    procedure_name: str = ""  # English name (language-neutral, AD-30)
+    # Per AD-30 (CIF is language-neutral), procedure display name is NOT stored
+    # in CIF. Consumers resolve via code_lookup("k-codes"|"cpt", code, lang).
 
     # Timing
     start_datetime: datetime = field(default_factory=datetime.now)
@@ -126,20 +127,17 @@ def simulate_surgery(
             proc_type = "ORIF"
             proc_code_jp = "K0461"
             proc_code_us = "27236"
-            proc_name = "Open reduction internal fixation, femur"
             implants = ["compression hip screw" if rng.random() < 0.5 else "intramedullary nail"]
         else:
             proc_type = "hemiarthroplasty"
             proc_code_jp = "K0811"
             proc_code_us = "27125"
-            proc_name = "Hemiarthroplasty, femoral head"
             implants = ["bipolar femoral prosthesis"]
     else:
-        # Read procedure details from disease YAML (fallback to generic)
+        # Read procedure codes from disease YAML
         proc_type = proc_data.get("type", "surgery").split("/")[0].strip().split(" or ")[0].strip()
         proc_code_jp = proc_data.get("procedure_code_jp", "")
         proc_code_us = proc_data.get("procedure_code_us", "")
-        proc_name = proc_data.get("type", "") or f"Surgical procedure for {disease_id}"
         implants = []
 
     # Primary code for this country
@@ -162,7 +160,6 @@ def simulate_surgery(
         procedure_code=proc_code,
         procedure_code_jp=proc_code_jp,
         procedure_code_us=proc_code_us,
-        procedure_name=proc_name,
         start_datetime=surgery_start,
         end_datetime=surgery_start + timedelta(minutes=duration),
         duration_minutes=duration,
@@ -390,10 +387,9 @@ def generate_bedside_procedures(
         if not spec:
             continue
 
-        _, cpt, kcode, name_en, name_ja, anesthesia = spec
+        _, cpt, kcode, _name_en, _name_ja, anesthesia = spec
         code = kcode if country == "JP" else cpt
-        # Store English name language-neutrally (AD-30); FHIR adapter localizes
-        name = name_en
+        # Names not stored — FHIR adapter resolves via code_lookup (AD-30)
 
         # Timing: most bedside procedures happen within first 24h
         hours_offset = max(0.5, float(rng.exponential(6)))  # median ~6h post-admission
@@ -409,7 +405,6 @@ def generate_bedside_procedures(
             procedure_code=code,
             procedure_code_jp=kcode,
             procedure_code_us=cpt,
-            procedure_name=name,
             start_datetime=proc_time,
             end_datetime=proc_time + timedelta(minutes=duration),
             duration_minutes=duration,

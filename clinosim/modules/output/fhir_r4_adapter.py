@@ -2346,15 +2346,16 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
     base_pid = proc.get("procedure_id") or f"proc-{patient_id}-{index:03d}"
     resource_id = f"{enc_id}-{base_pid}" if enc_id else base_pid
 
-    # Fallback name from CIF (English, language-neutral per AD-30)
-    proc_name_fallback = proc.get("procedure_name", "")
+    # Per AD-30, CIF stores only codes. Displays resolved via code_lookup.
     proc_code_jp = proc.get("procedure_code_jp", "")
     proc_code_us = proc.get("procedure_code_us", "")
     primary_code = proc.get("procedure_code", "")
+    proc_type = proc.get("procedure_type", "")
+    fallback = proc_type or "(procedure)"
 
     # Resolve displays via code dictionaries (k-codes.yaml / cpt.yaml)
     primary_lang = "ja" if country == "JP" else "en"
-    primary_display = _procedure_display(primary_code, primary_lang, proc_name_fallback)
+    primary_display = _procedure_display(primary_code, primary_lang, fallback)
 
     coding_entries: list[dict[str, Any]] = [{
         "system": code_system,
@@ -2364,14 +2365,14 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
 
     # Secondary coding: the OTHER country's code system for international interop
     if country == "JP" and proc_code_us:
-        us_display = _procedure_display(proc_code_us, "en", proc_name_fallback)
+        us_display = _procedure_display(proc_code_us, "en", fallback)
         coding_entries.append({
             "system": get_system_uri("cpt"),
             "code": proc_code_us,
             "display": us_display,
         })
     elif country == "US" and proc_code_jp:
-        jp_display = _procedure_display(proc_code_jp, "ja", proc_name_fallback)
+        jp_display = _procedure_display(proc_code_jp, "ja", fallback)
         coding_entries.append({
             "system": get_system_uri("k-codes"),
             "code": proc_code_jp,

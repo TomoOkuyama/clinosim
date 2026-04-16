@@ -40,6 +40,7 @@ from clinosim.modules.llm_service.engine import (
     loinc_for,
 )
 from clinosim.modules.output.hospital_course_extractor import (
+    _resolve_procedure_name,
     extract_clinical_guidance,
     extract_hospital_course,
     extract_lab_trends,
@@ -480,7 +481,7 @@ def _build_operative_note(
     )
     variables = {
         "surgery_date": _format_dt(proc.get("start_datetime")),
-        "procedure_name": proc.get("procedure_name", ""),
+        "procedure_name": _resolve_procedure_name(proc, language),
         "procedure_code": proc.get("procedure_code", ""),
         "preop_diagnosis": proc.get("preop_diagnosis", ""),
         "postop_diagnosis": proc.get("postop_diagnosis", ""),
@@ -543,7 +544,7 @@ def _build_procedure_note(
 
     variables = {
         "procedure_date": _format_dt(proc.get("start_datetime")),
-        "procedure_name": proc.get("procedure_name", ""),
+        "procedure_name": _resolve_procedure_name(proc, language),
         "procedure_code": proc.get("procedure_code", ""),
         "operator": _staff_name(proc.get("primary_surgeon_id", "") or encounter.get("attending_physician_id", ""), staff_names),
         "indication": proc.get("preop_diagnosis") or encounter.get("chief_complaint", ""),
