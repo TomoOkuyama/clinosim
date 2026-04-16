@@ -225,7 +225,7 @@ def _generate_for_record(
     guidance = extract_clinical_guidance(record, language)
     lab_trends = extract_lab_trends(record)
     lab_trend_bullets = format_lab_trends(lab_trends, language)
-    treatment_timeline = extract_treatment_timeline(record, language)
+    treatment_timeline = extract_treatment_timeline(record)
 
     # Shared context dict passed to all builders
     enrichment = {
@@ -435,8 +435,8 @@ def _build_admission_hp(
         "chief_complaint": encounter.get("chief_complaint", ""),
         "hpi_summary": _build_hpi_summary(encounter, patient, record, language),
         "past_medical_history": _pmh(patient, language),
-        "home_medications": _home_meds(patient, language),
-        "allergies": _allergies(patient, language),
+        "home_medications": _home_meds(patient),
+        "allergies": _allergies(patient),
         "admission_vitals": summarize_admission_vitals(record),
         "initial_labs": _initial_labs(record, language),
         "admission_diagnosis": admit_dx or "(under investigation)",
@@ -480,7 +480,7 @@ def _build_operative_note(
     )
     variables = {
         "surgery_date": _format_dt(proc.get("start_datetime")),
-        "procedure_name": _localize_procedure(proc.get("procedure_name", ""), language),
+        "procedure_name": proc.get("procedure_name", ""),
         "procedure_code": proc.get("procedure_code", ""),
         "preop_diagnosis": proc.get("preop_diagnosis", ""),
         "postop_diagnosis": proc.get("postop_diagnosis", ""),
@@ -543,7 +543,7 @@ def _build_procedure_note(
 
     variables = {
         "procedure_date": _format_dt(proc.get("start_datetime")),
-        "procedure_name": _localize_procedure(proc.get("procedure_name", ""), language),
+        "procedure_name": proc.get("procedure_name", ""),
         "procedure_code": proc.get("procedure_code", ""),
         "operator": _staff_name(proc.get("primary_surgeon_id", "") or encounter.get("attending_physician_id", ""), staff_names),
         "indication": proc.get("preop_diagnosis") or encounter.get("chief_complaint", ""),
@@ -744,56 +744,32 @@ def _pmh(patient: dict[str, Any], language: str) -> list[str]:
     return out or ["(none reported)"]
 
 
-def _localize_name(name: str, language: str) -> str:
-    """Localize a drug/procedure/allergen name when language=ja.
-
-    Delegates to fhir_r4_adapter's _localize_drug_name which handles:
-    - drug_names_ja.yaml dictionary (drugs, allergens, procedures, dosage terms)
-    - multi-term substring matching
-    - dosage term translation
-    """
-    if language != "ja" or not name:
-        return name
-    from clinosim.modules.output.fhir_r4_adapter import _localize_drug_name
-    return _localize_drug_name(name, "JP")
-
-
-def _localize_procedure(name: str, language: str) -> str:
-    """Localize a procedure name (surgery/bedside) when language=ja."""
-    if language != "ja" or not name:
-        return name
-    from clinosim.modules.output.fhir_r4_adapter import _PROCEDURE_NAME_JA, _localize_drug_name
-    ja = _PROCEDURE_NAME_JA.get(name)
-    if ja:
-        return ja
-    # Fall back to drug-name-style substring matching
-    return _localize_drug_name(name, "JP")
-
-
-def _home_meds(patient: dict[str, Any], language: str = "en") -> list[str]:
+def _home_meds(patient: dict[str, Any]) -> list[str]:
+    """Return English drug names. LLM handles translation based on prompt language."""
     meds = patient.get("current_medications") or patient.get("home_medications") or []
     out: list[str] = []
     for m in meds:
         if isinstance(m, dict):
             name = m.get("drug_name") or m.get("drug") or ""
             if name:
-                out.append(_localize_name(name, language))
+                out.append(name)
         elif isinstance(m, str):
-            out.append(_localize_name(m, language))
-    return out or [("なし" if language == "ja" else "(none)")]
+            out.append(m)
+    return out or ["(none)"]
 
 
-def _allergies(patient: dict[str, Any], language: str = "en") -> list[str]:
+def _allergies(patient: dict[str, Any]) -> list[str]:
+    """Return English allergen names. LLM handles translation."""
     allergies = patient.get("allergies") or []
     out: list[str] = []
     for a in allergies:
         if isinstance(a, dict):
             name = a.get("substance") or a.get("name") or ""
             if name:
-                out.append(_localize_name(name, language))
+                out.append(name)
         elif isinstance(a, str):
-            out.append(_localize_name(a, language))
-    return out or [("アレルギーなし" if language == "ja" else "NKDA")]
+            out.append(a)
+    return out or ["NKDA"]
 
 
 def _initial_labs(record: dict[str, Any], language: str = "en") -> list[str]:
@@ -826,27 +802,15 @@ def _initial_labs(record: dict[str, Any], language: str = "en") -> list[str]:
             val = result.get("value", "")
             unit = result.get("unit", "")
             # Convert units for Japanese locale (e.g. CRP mg/L → mg/dL)
+            # This is a numerical transformation, not translation — kept code-side
+            # per AD-42 because LLMs make arithmetic errors.
             if language == "ja" and isinstance(val, (int, float)):
                 factor = _JA_CONVERSION.get(name, 1.0)
                 if factor != 1.0:
                     val = round(val * factor, 2)
                     unit = _UNIT_MAP_JA.get(name, unit)
-            # Localize lab name to Japanese via code_mapping (JLAC10 → JP display)
-            display_name = name
-            if language == "ja" and name:
-                try:
-                    from clinosim.locale.loader import load_code_mapping
-                    code_map = load_code_mapping("lab", "JP")
-                    jlac = code_map.get(name)
-                    if jlac:
-                        ja_name = code_lookup("jlac10", jlac, "ja")
-                        if ja_name and ja_name != jlac:
-                            display_name = f"{name}（{ja_name}）"
-                except Exception:
-                    pass
-            abnormal.append(f"{display_name} {val} {unit} [{flag}]".strip())
-    fallback = "全て正常範囲内" if language == "ja" else "(all within normal limits)"
-    return abnormal[:8] or [fallback]
+            abnormal.append(f"{name} {val} {unit} [{flag}]".strip())
+    return abnormal[:8] or ["(all within normal limits)"]
 
 
 def _build_hpi_summary(
@@ -873,10 +837,8 @@ def _build_hpi_summary(
 
     # Initial abnormal labs
     initial = _initial_labs(record, language)
-    normal_sentinel = "全て正常範囲内" if language == "ja" else "(all within normal limits)"
-    if initial and initial != [normal_sentinel]:
-        label = "入院時異常検査値: " if language == "ja" else "Notable initial labs: "
-        parts.append(label + "; ".join(initial[:4]) + ".")
+    if initial and initial != ["(all within normal limits)"]:
+        parts.append("Notable initial labs: " + "; ".join(initial[:4]) + ".")
 
     # Chronic conditions context
     pmh = _pmh(patient, language)
