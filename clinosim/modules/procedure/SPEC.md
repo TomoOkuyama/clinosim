@@ -299,7 +299,7 @@ def execute_procedure(order: Order, patient: PatientProfile,
     # Generate record
     record = ProcedureRecord(
         procedure_code=get_procedure_code(procedure_type, patient.country),
-        procedure_name=procedure_type,
+        procedure_type=procedure_type,
         category=get_category(procedure_type),
         start_datetime=order.scheduled_events.collection_time,
         end_datetime=order.scheduled_events.collection_time + timedelta(minutes=surgical_time),

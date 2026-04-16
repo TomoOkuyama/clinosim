@@ -898,8 +898,11 @@ Consumed by: `output`
 ```python
 @dataclass
 class ProcedureRecord:
-    procedure_code: str                    # CPT / K-code
-    procedure_name: str
+    procedure_code: str                    # Primary CPT (US) / K-code (JP)
+    procedure_code_jp: str                 # K-code (always populated if available)
+    procedure_code_us: str                 # CPT (always populated if available)
+    # NOTE: Per AD-30, display name is NOT stored. Resolve via
+    # code_lookup("k-codes"|"cpt", code, lang) at output time.
     category: str                          # "major_surgery" | "minor" | "endoscopy" | "bedside"
     
     # Timing

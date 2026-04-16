@@ -204,15 +204,16 @@ def _check_procedure_fields(
         if not hasattr(proc, "category_code"):
             continue
         if proc.category_code == "387713003":  # surgical
+            ptype = getattr(proc, "procedure_type", "") or "surgery"
             if not proc.procedure_code:
                 report.add(ConsistencyIssue(
                     pid, "warning", "surgery_no_code",
-                    f"Surgery '{proc.procedure_name}' has no procedure code",
+                    f"Surgery '{ptype}' has no procedure code",
                 ))
             if not proc.approach:
                 report.add(ConsistencyIssue(
                     pid, "warning", "surgery_no_approach",
-                    f"Surgery '{proc.procedure_name}' has no approach defined",
+                    f"Surgery '{ptype}' has no approach defined",
                 ))
 
 
