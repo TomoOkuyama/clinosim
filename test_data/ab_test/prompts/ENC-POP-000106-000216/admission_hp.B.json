@@ -1,0 +1,13 @@
+{
+  "encounter_id": "ENC-POP-000106-000216",
+  "task_type": "admission_hp",
+  "variant": "B",
+  "description": "B=English enrichment + JP prompt",
+  "language_enrichment": "en",
+  "language_output": "ja",
+  "prompt_version": 1,
+  "max_tokens": 1500,
+  "temperature": 0.4,
+  "system_prompt": "あなたは入院担当医として、入院時記録（H&P: History and Physical）を\n作成します。日本の病院の標準的な記載形式に従ってください:\n  1. 主訴\n  2. 現病歴（HPI）\n  3. 既往歴\n  4. 内服薬\n  5. アレルギー\n  6. 家族歴（関連があれば）\n  7. 社会歴（関連があれば）\n  8. 系統的レビュー（簡略）\n  9. 身体所見（系統別）\n  10. アセスメント（鑑別診断と臨床推論）\n  11. プラン\n\n注意事項:\n  - 正確な日本語医学用語を使用してください。\n  - 入力データから得られる身体所見（バイタルサイン等）のみを記載してください。\n  - [HIDDEN CLINICAL CONTEXT] が提供される場合、鑑別診断の重み付けの参考に\n    してください。ただし確定診断や将来の転帰を入院時記録に記載しないでください。\n    入院時点の視点で記載してください。\n  - 検査値の単位は入力データのまま使用してください。変換や注釈は不要です。\n  - Markdown記号（**、##、-等）は使用しないでください。日本の電子カルテ形式に従い、\n    セクション見出しは【】で囲んでください（例: 【主訴】、【現病歴】、【既往歴】）。\n    小見出しは■を使用してください（例: ■バイタルサイン、■血液検査）。\n    箇条書きは「・」を使用してください。\n  - 500字以内で記載してください。\n",
+  "user_prompt": "Patient: 83yo Female\nAdmission date/time: 2026-03-23T05:16:00\nAdmitting physician: 田中 暁医師\nDepartment: cardiology\n\nChief complaint:\nChest pain, diaphoresis, dyspnea\n\nHistory of present illness:\n83yo Female presenting with Chest pain, diaphoresis, dyspnea. On arrival: T 37.2°C, HR 120, RR 14, BP 108/73, SpO2 94.4%. Notable initial labs: WBC 10914.0 /uL [H]; BUN 33.5 mg/dL [H]; K 5.3 mmol/L [H]; AST 192.0 U/L [H]. PMH significant for Other chronic obstructive pulmonary disease, Chronic ischemic heart disease, Asthma.\n\nPast medical history:\n- Other chronic obstructive pulmonary disease\n- Chronic ischemic heart disease\n- Asthma\n\nHome medications:\n- Tiotropium 18mcg inhaler\n- Salbutamol 100mcg inhaler PRN\n- Aspirin 100mg\n- Clopidogrel 75mg\n- Fluticasone/Salmeterol inhaler\n- Salbutamol inhaler PRN\n\nAllergies:\n- NKDA\n\nAdmission vital signs:\nT 37.2°C, HR 120, RR 14, BP 108/73, SpO2 94.4%\n\nInitial labs of concern:\n- WBC 10914.0 /uL [H]\n- BUN 33.5 mg/dL [H]\n- K 5.3 mmol/L [H]\n- AST 192.0 U/L [H]\n- ALT 152.0 U/L [H]\n\nWorking/admission diagnosis:\nAcute myocardial infarction, unspecified\n\n[HIDDEN CLINICAL CONTEXT — for accuracy only, do NOT state in note]\nActual diagnosis (confirmed later): acute_mi\nSeverity: \nPatient outcome: survived\nINSTRUCTION: Write the assessment as if you strongly suspect this diagnosis based on the presentation, but have NOT confirmed it yet. Include it high in the differential but do not state it as established. Do NOT mention the patient's eventual outcome or future events.\n\n上記の情報に基づき、日本語で入院時記録を作成してください。\n"
+}
