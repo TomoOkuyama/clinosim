@@ -79,3 +79,22 @@ codes:
   '97597':
     en: Debridement of skin, subcutaneous tissue, muscle and/or fascia, open wound
     ja: 創傷デブリードマン
+  # --- Surgery codes used by disease protocols ---
+  '15100':
+    en: Split-thickness autograft, trunk, arms, legs
+    ja: 分層植皮術（体幹・四肢）
+  '20838':
+    en: Replantation, foot, complete amputation (complex hand surgery)
+    ja: 複雑手指手術・再接着術
+  '22325':
+    en: Open treatment of vertebral fracture
+    ja: 椎体骨折観血的手術
+  '25607':
+    en: Open treatment of distal radial extra-articular fracture (ORIF volar plate)
+    ja: 橈骨遠位端骨折観血的整復固定術
+  '49000':
+    en: Exploratory laparotomy
+    ja: 試験開腹術
+  '61312':
+    en: Craniotomy or craniectomy for evacuation of subdural hematoma
+    ja: 開頭術または穿頭血腫除去術

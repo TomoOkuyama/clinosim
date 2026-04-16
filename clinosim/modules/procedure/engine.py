@@ -22,8 +22,10 @@ class ProcedureRecord:
     patient_id: str = ""
     encounter_id: str = ""
     procedure_type: str = ""  # "ORIF" | "hemiarthroplasty" | "thoracentesis" | ...
-    procedure_code: str = ""  # K-code (JP) or CPT (US)
-    procedure_name: str = ""
+    procedure_code: str = ""  # K-code (JP) or CPT (US) — primary code for this country
+    procedure_code_jp: str = ""  # K-code (always populated if available)
+    procedure_code_us: str = ""  # CPT (always populated if available)
+    procedure_name: str = ""  # English name (language-neutral, AD-30)
 
     # Timing
     start_datetime: datetime = field(default_factory=datetime.now)
@@ -122,23 +124,26 @@ def simulate_surgery(
     if disease_id == "hip_fracture":
         if rng.random() < 0.55:
             proc_type = "ORIF"
-            proc_code = "K0461" if country == "JP" else "27236"
+            proc_code_jp = "K0461"
+            proc_code_us = "27236"
             proc_name = "Open reduction internal fixation, femur"
             implants = ["compression hip screw" if rng.random() < 0.5 else "intramedullary nail"]
         else:
             proc_type = "hemiarthroplasty"
-            proc_code = "K0811" if country == "JP" else "27125"
+            proc_code_jp = "K0811"
+            proc_code_us = "27125"
             proc_name = "Hemiarthroplasty, femoral head"
             implants = ["bipolar femoral prosthesis"]
     else:
         # Read procedure details from disease YAML (fallback to generic)
         proc_type = proc_data.get("type", "surgery").split("/")[0].strip().split(" or ")[0].strip()
-        if country == "JP":
-            proc_code = proc_data.get("procedure_code_jp", "")
-        else:
-            proc_code = proc_data.get("procedure_code_us", "")
+        proc_code_jp = proc_data.get("procedure_code_jp", "")
+        proc_code_us = proc_data.get("procedure_code_us", "")
         proc_name = proc_data.get("type", "") or f"Surgical procedure for {disease_id}"
         implants = []
+
+    # Primary code for this country
+    proc_code = proc_code_jp if country == "JP" else proc_code_us
 
     # Surgical approach from disease YAML (protocol.procedure.approach)
     approach_map = proc_data.get("approach", {}) or {}
@@ -155,6 +160,8 @@ def simulate_surgery(
         encounter_id=encounter_id,
         procedure_type=proc_type,
         procedure_code=proc_code,
+        procedure_code_jp=proc_code_jp,
+        procedure_code_us=proc_code_us,
         procedure_name=proc_name,
         start_datetime=surgery_start,
         end_datetime=surgery_start + timedelta(minutes=duration),
@@ -385,7 +392,8 @@ def generate_bedside_procedures(
 
         _, cpt, kcode, name_en, name_ja, anesthesia = spec
         code = kcode if country == "JP" else cpt
-        name = name_ja if country == "JP" else name_en
+        # Store English name language-neutrally (AD-30); FHIR adapter localizes
+        name = name_en
 
         # Timing: most bedside procedures happen within first 24h
         hours_offset = max(0.5, float(rng.exponential(6)))  # median ~6h post-admission
@@ -399,6 +407,8 @@ def generate_bedside_procedures(
             encounter_id=encounter_id,
             procedure_type=proc_type,
             procedure_code=code,
+            procedure_code_jp=kcode,
+            procedure_code_us=cpt,
             procedure_name=name,
             start_datetime=proc_time,
             end_datetime=proc_time + timedelta(minutes=duration),
