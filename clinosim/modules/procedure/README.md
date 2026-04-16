@@ -38,9 +38,12 @@ class ProcedureRecord:
     procedure_id: str = ""
     patient_id: str = ""
     encounter_id: str = ""
-    procedure_type: str = ""        # "ORIF" | "thoracentesis" | ...
-    procedure_code: str = ""        # K-code (JP) or CPT (US)
-    procedure_name: str = ""
+    procedure_type: str = ""        # Internal identifier: "ORIF" | "thoracentesis" | ...
+    procedure_code: str = ""        # Primary code: K-code (JP) or CPT (US)
+    procedure_code_jp: str = ""     # Always populated (for multilingual coding)
+    procedure_code_us: str = ""     # Always populated
+    # Per AD-30, display name is NOT stored in CIF — resolved at output time
+    # via code_lookup("k-codes"|"cpt", code, lang).
 
     # Timing
     start_datetime: datetime

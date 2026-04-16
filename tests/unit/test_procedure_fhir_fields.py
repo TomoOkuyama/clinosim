@@ -112,13 +112,15 @@ def test_generate_bedside_procedures_populates_metadata(rng):
 
 
 def _proc_dict(**overrides) -> dict:
+    # Per AD-30, CIF stores only codes — procedure_name removed.
     base = {
         "procedure_id": "PROC-PAT-001",
         "patient_id": "PAT-001",
         "encounter_id": "ENC-PAT-001-0001",
         "procedure_type": "ORIF",
         "procedure_code": "27236",
-        "procedure_name": "Open reduction internal fixation",
+        "procedure_code_jp": "K0461",
+        "procedure_code_us": "27236",
         "start_datetime": "2026-04-06T14:30:00",
         "end_datetime": "2026-04-06T16:00:00",
         "duration_minutes": 90,
