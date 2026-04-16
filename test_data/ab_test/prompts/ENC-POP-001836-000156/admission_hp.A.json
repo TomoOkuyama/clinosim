@@ -1,0 +1,13 @@
+{
+  "encounter_id": "ENC-POP-001836-000156",
+  "task_type": "admission_hp",
+  "variant": "A",
+  "description": "A=pre-localized JP enrichment",
+  "language_enrichment": "ja",
+  "language_output": "ja",
+  "prompt_version": 1,
+  "max_tokens": 1500,
+  "temperature": 0.4,
+  "system_prompt": "あなたは入院担当医として、入院時記録（H&P: History and Physical）を\n作成します。日本の病院の標準的な記載形式に従ってください:\n  1. 主訴\n  2. 現病歴（HPI）\n  3. 既往歴\n  4. 内服薬\n  5. アレルギー\n  6. 家族歴（関連があれば）\n  7. 社会歴（関連があれば）\n  8. 系統的レビュー（簡略）\n  9. 身体所見（系統別）\n  10. アセスメント（鑑別診断と臨床推論）\n  11. プラン\n\n注意事項:\n  - 正確な日本語医学用語を使用してください。\n  - 入力データから得られる身体所見（バイタルサイン等）のみを記載してください。\n  - [HIDDEN CLINICAL CONTEXT] が提供される場合、鑑別診断の重み付けの参考に\n    してください。ただし確定診断や将来の転帰を入院時記録に記載しないでください。\n    入院時点の視点で記載してください。\n  - 検査値の単位は入力データのまま使用してください。変換や注釈は不要です。\n  - Markdown記号（**、##、-等）は使用しないでください。日本の電子カルテ形式に従い、\n    セクション見出しは【】で囲んでください（例: 【主訴】、【現病歴】、【既往歴】）。\n    小見出しは■を使用してください（例: ■バイタルサイン、■血液検査）。\n    箇条書きは「・」を使用してください。\n  - 500字以内で記載してください。\n",
+  "user_prompt": "Patient: 82yo 男性\nAdmission date/time: 2025-12-21T01:49:00\nAdmitting physician: 増田 栄医師\nDepartment: cardiology\n\nChief complaint:\nPalpitations, dyspnea, dizziness, chest discomfort\n\nHistory of present illness:\n82yo 男性 presenting with Palpitations, dyspnea, dizziness, chest discomfort. On arrival: T 37.6°C, HR 69, RR 13, BP 119/78, SpO2 98.0%. 入院時異常検査値: Creatinine（クレアチニン） 1.29 mg/dL [H]; AST（AST(GOT)） 210.0 U/L [H]; Creatinine（クレアチニン） 1.46 mg/dL [H]. PMH significant for 慢性腎臓病.\n\nPast medical history:\n- 慢性腎臓病\n\nHome medications:\n- なし\n\nAllergies:\n- アレルギーなし\n\nAdmission vital signs:\nT 37.6°C, HR 69, RR 13, BP 119/78, SpO2 98.0%\n\nInitial labs of concern:\n- Creatinine（クレアチニン） 1.29 mg/dL [H]\n- AST（AST(GOT)） 210.0 U/L [H]\n- Creatinine（クレアチニン） 1.46 mg/dL [H]\n\nWorking/admission diagnosis:\n心房細動・心房粗動\n\n[HIDDEN CLINICAL CONTEXT — for accuracy only, do NOT state in note]\nActual diagnosis (confirmed later): atrial_fibrillation_rvr\nSeverity: \nPatient outcome: died\nINSTRUCTION: Write the assessment as if you strongly suspect this diagnosis based on the presentation, but have NOT confirmed it yet. Include it high in the differential but do not state it as established. Do NOT mention the patient's eventual outcome or future events.\n\n上記の情報に基づき、日本語で入院時記録を作成してください。\n"
+}

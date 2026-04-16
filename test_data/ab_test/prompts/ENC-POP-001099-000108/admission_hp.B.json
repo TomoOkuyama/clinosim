@@ -1,0 +1,13 @@
+{
+  "encounter_id": "ENC-POP-001099-000108",
+  "task_type": "admission_hp",
+  "variant": "B",
+  "description": "B=English enrichment + JP prompt",
+  "language_enrichment": "en",
+  "language_output": "ja",
+  "prompt_version": 1,
+  "max_tokens": 1500,
+  "temperature": 0.4,
+  "system_prompt": "あなたは入院担当医として、入院時記録（H&P: History and Physical）を\n作成します。日本の病院の標準的な記載形式に従ってください:\n  1. 主訴\n  2. 現病歴（HPI）\n  3. 既往歴\n  4. 内服薬\n  5. アレルギー\n  6. 家族歴（関連があれば）\n  7. 社会歴（関連があれば）\n  8. 系統的レビュー（簡略）\n  9. 身体所見（系統別）\n  10. アセスメント（鑑別診断と臨床推論）\n  11. プラン\n\n注意事項:\n  - 正確な日本語医学用語を使用してください。\n  - 入力データから得られる身体所見（バイタルサイン等）のみを記載してください。\n  - [HIDDEN CLINICAL CONTEXT] が提供される場合、鑑別診断の重み付けの参考に\n    してください。ただし確定診断や将来の転帰を入院時記録に記載しないでください。\n    入院時点の視点で記載してください。\n  - 検査値の単位は入力データのまま使用してください。変換や注釈は不要です。\n  - Markdown記号（**、##、-等）は使用しないでください。日本の電子カルテ形式に従い、\n    セクション見出しは【】で囲んでください（例: 【主訴】、【現病歴】、【既往歴】）。\n    小見出しは■を使用してください（例: ■バイタルサイン、■血液検査）。\n    箇条書きは「・」を使用してください。\n  - 500字以内で記載してください。\n",
+  "user_prompt": "Patient: 42yo Male\nAdmission date/time: 2025-10-25T10:40:00\nAdmitting physician: 高瀬 信一医師\nDepartment: general_surgery\n\nChief complaint:\nRight lower quadrant pain, nausea, fever\n\nHistory of present illness:\n42yo Male presenting with Right lower quadrant pain, nausea, fever. On arrival: T 38.9°C, HR 108, RR 21, BP 92/72, SpO2 95.8%. Notable initial labs: WBC 10206.0 /uL [H]; CRP 43.0 mg/L [H]; Glucose 131.0 mg/dL [H]; AST 249.0 U/L [H].\n\nPast medical history:\n- (none reported)\n\nHome medications:\n- (none)\n\nAllergies:\n- NKDA\n\nAdmission vital signs:\nT 38.9°C, HR 108, RR 21, BP 92/72, SpO2 95.8%\n\nInitial labs of concern:\n- WBC 10206.0 /uL [H]\n- CRP 43.0 mg/L [H]\n- Glucose 131.0 mg/dL [H]\n- AST 249.0 U/L [H]\n- ALT 207.0 U/L [H]\n- WBC 14609.0 /uL [H]\n- CRP 42.0 mg/L [H]\n- Creatinine 1.2 mg/dL [H]\n\nWorking/admission diagnosis:\nAcute appendicitis\n\n[HIDDEN CLINICAL CONTEXT — for accuracy only, do NOT state in note]\nActual diagnosis (confirmed later): acute_appendicitis\nSeverity: \nPatient outcome: survived\nINSTRUCTION: Write the assessment as if you strongly suspect this diagnosis based on the presentation, but have NOT confirmed it yet. Include it high in the differential but do not state it as established. Do NOT mention the patient's eventual outcome or future events.\n\n上記の情報に基づき、日本語で入院時記録を作成してください。\n"
+}

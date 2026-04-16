@@ -1,0 +1,13 @@
+{
+  "encounter_id": "ENC-POP-002101-000019",
+  "task_type": "admission_hp",
+  "variant": "B",
+  "description": "B=English enrichment + JP prompt",
+  "language_enrichment": "en",
+  "language_output": "ja",
+  "prompt_version": 1,
+  "max_tokens": 1500,
+  "temperature": 0.4,
+  "system_prompt": "あなたは入院担当医として、入院時記録（H&P: History and Physical）を\n作成します。日本の病院の標準的な記載形式に従ってください:\n  1. 主訴\n  2. 現病歴（HPI）\n  3. 既往歴\n  4. 内服薬\n  5. アレルギー\n  6. 家族歴（関連があれば）\n  7. 社会歴（関連があれば）\n  8. 系統的レビュー（簡略）\n  9. 身体所見（系統別）\n  10. アセスメント（鑑別診断と臨床推論）\n  11. プラン\n\n注意事項:\n  - 正確な日本語医学用語を使用してください。\n  - 入力データから得られる身体所見（バイタルサイン等）のみを記載してください。\n  - [HIDDEN CLINICAL CONTEXT] が提供される場合、鑑別診断の重み付けの参考に\n    してください。ただし確定診断や将来の転帰を入院時記録に記載しないでください。\n    入院時点の視点で記載してください。\n  - 検査値の単位は入力データのまま使用してください。変換や注釈は不要です。\n  - Markdown記号（**、##、-等）は使用しないでください。日本の電子カルテ形式に従い、\n    セクション見出しは【】で囲んでください（例: 【主訴】、【現病歴】、【既往歴】）。\n    小見出しは■を使用してください（例: ■バイタルサイン、■血液検査）。\n    箇条書きは「・」を使用してください。\n  - 500字以内で記載してください。\n",
+  "user_prompt": "Patient: 63yo Female\nAdmission date/time: 2025-05-19T23:44:00\nAdmitting physician: 大岡 雄一医師\nDepartment: gastroenterology\n\nChief complaint:\nHematemesis, melena, dizziness, syncope\n\nHistory of present illness:\n63yo Female presenting with Hematemesis, melena, dizziness, syncope. On arrival: T 37.4°C, HR 103, RR 12, BP 116/76, SpO2 97.8%. Notable initial labs: Hb 8.1 g/dL [L]; BUN 27.6 mg/dL [H]; Creatinine 1.26 mg/dL [H]; K 5.1 mmol/L [H]. PMH significant for Type 2 diabetes mellitus without complications, Gastro-esophageal reflux disease, Osteoarthritis of knee.\n\nPast medical history:\n- Type 2 diabetes mellitus without complications\n- Gastro-esophageal reflux disease\n- Osteoarthritis of knee\n\nHome medications:\n- Insulin glargine\n- Metformin 500mg\n- Lansoprazole 15mg\n\nAllergies:\n- NKDA\n\nAdmission vital signs:\nT 37.4°C, HR 103, RR 12, BP 116/76, SpO2 97.8%\n\nInitial labs of concern:\n- Hb 8.1 g/dL [L]\n- BUN 27.6 mg/dL [H]\n- Creatinine 1.26 mg/dL [H]\n- K 5.1 mmol/L [H]\n- Lactate 6.0 mmol/L [H]\n- AST 93.0 U/L [H]\n- ALT 58.0 U/L [H]\n- BUN 28.1 mg/dL [H]\n\nWorking/admission diagnosis:\nOther diseases of digestive system\n\n[HIDDEN CLINICAL CONTEXT — for accuracy only, do NOT state in note]\nActual diagnosis (confirmed later): gi_bleeding\nSeverity: \nPatient outcome: survived\nINSTRUCTION: Write the assessment as if you strongly suspect this diagnosis based on the presentation, but have NOT confirmed it yet. Include it high in the differential but do not state it as established. Do NOT mention the patient's eventual outcome or future events.\n\n上記の情報に基づき、日本語で入院時記録を作成してください。\n"
+}
