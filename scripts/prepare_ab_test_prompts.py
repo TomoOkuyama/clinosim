@@ -31,7 +31,6 @@ from clinosim.modules.output.document_generator import (
     _format_guidance_for_prompt,
     _home_meds,
     _initial_labs,
-    _localize_procedure,
     _pmh,
     _resolve_dx,
     _sex_label,
@@ -99,8 +98,8 @@ def _build_admission_hp_vars(record, encounter, language_enrich, staff_map):
         "chief_complaint": encounter.get("chief_complaint", ""),
         "hpi_summary": _build_hpi_summary(encounter, patient, record, language_enrich),
         "past_medical_history": _pmh(patient, language_enrich),
-        "home_medications": _home_meds(patient, language_enrich),
-        "allergies": _allergies(patient, language_enrich),
+        "home_medications": _home_meds(patient),
+        "allergies": _allergies(patient),
         "admission_vitals": summarize_admission_vitals(record),
         "initial_labs": _initial_labs(record, language_enrich),
         "admission_diagnosis": admit_dx or "(under investigation)",
@@ -128,12 +127,8 @@ def _build_discharge_summary_vars(record, encounter, language_enrich, staff_map)
     lab_trends = extract_lab_trends(record)
     lab_bullets = format_lab_trends(lab_trends, language_enrich)
     treat_timeline = extract_treatment_timeline(record, language_enrich)
-    dc_meds = summarize_discharge_medications(record, language_enrich) or [
-        ("(なし)" if language_enrich == "ja" else "(none)")
-    ]
-    procs_performed = summarize_procedures(record, language_enrich) or [
-        ("(なし)" if language_enrich == "ja" else "(none)")
-    ]
+    dc_meds = summarize_discharge_medications(record, language_enrich) or ["(none)"]
+    procs_performed = summarize_procedures(record, language_enrich) or ["(none)"]
 
     enc = encounter
     admission_date = (enc.get("admission_datetime", "") or "")[:10]
