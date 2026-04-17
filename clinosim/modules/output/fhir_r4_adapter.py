@@ -2372,11 +2372,12 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
             "display": us_display,
         })
     elif country == "US" and proc_code_jp:
-        jp_display = _procedure_display(proc_code_jp, "ja", fallback)
+        # Secondary K-code for interop — use ENGLISH display (not Japanese)
+        jp_en_display = _procedure_display(proc_code_jp, "en", fallback)
         coding_entries.append({
             "system": get_system_uri("k-codes"),
             "code": proc_code_jp,
-            "display": jp_display,
+            "display": jp_en_display,
         })
 
     resource: dict[str, Any] = {
