@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Full US run: CIF generation + English narrative generation (Bedrock)
-# Run on EC2 with Bedrock access.
+# Full US pipeline on EC2: CIF → Narrative → FHIR → compress
 #
 # Usage (session-safe):
 #   nohup ./scripts/full_run_us.sh > /dev/null 2>&1 &
@@ -11,16 +10,17 @@ OUTPUT_DIR="output/us_full"
 VERSION_ID="bedrock_en_full"
 LLM_CONFIG="clinosim/config/llm_service.bedrock.yaml"
 RESULT_FILE="test_data/bedrock_us_full_results.txt"
+ARCHIVE="test_data/us_full.tar.gz"
 
 {
 echo "============================================================"
-echo "  Full US Run (CIF + English Narrative)"
+echo "  Full US Pipeline (CIF → Narrative → FHIR → Archive)"
 echo "  Date: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
 echo "  PID: $$"
 echo "============================================================"
 echo ""
 
-# Step 1: Generate CIF (US, 40K population, 50-bed hospital, seed=42)
+# Step 1: CIF generation (US, 40K population, seed=42, snapshot=today)
 echo ">>> Step 1: CIF generation"
 python3 -m clinosim.simulator.cli generate \
     -o "${OUTPUT_DIR}" \
@@ -28,6 +28,7 @@ python3 -m clinosim.simulator.cli generate \
     --country US \
     --format cif
 
+# Step 2: English narrative via Bedrock
 echo ""
 echo ">>> Step 2: English narrative generation (Bedrock)"
 python3 -m clinosim.simulator.cli narrate \
@@ -35,6 +36,21 @@ python3 -m clinosim.simulator.cli narrate \
     --llm-config "${LLM_CONFIG}" \
     --language en \
     --version-id "${VERSION_ID}"
+
+# Step 3: FHIR R4 Bulk Data export (with DocumentReference)
+echo ""
+echo ">>> Step 3: FHIR R4 Bulk Data export"
+python3 -m clinosim.simulator.cli export-fhir \
+    --cif-dir "${OUTPUT_DIR}/cif" \
+    --country US \
+    --narrative-version "${VERSION_ID}" \
+    -o "${OUTPUT_DIR}/fhir_r4"
+
+# Step 4: Archive (CIF + narratives + FHIR)
+echo ""
+echo ">>> Step 4: Archiving"
+tar czf "${ARCHIVE}" -C output us_full/
+ls -lh "${ARCHIVE}"
 
 echo ""
 echo "============================================================"
@@ -65,12 +81,18 @@ for enc_dir in sorted(os.listdir(docs_root)):
 "
 
 echo ""
-echo "=== Manifest ==="
+echo "=== Narrative Manifest ==="
 cat "${OUTPUT_DIR}/cif/narratives/${VERSION_ID}/manifest.json"
+
+echo ""
+echo "=== FHIR Export Summary ==="
+cat "${OUTPUT_DIR}/fhir_r4/manifest.json"
 
 echo ""
 echo "============================================================"
 echo "  DONE: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
 echo "  Results: ${RESULT_FILE}"
+echo "  Archive: ${ARCHIVE}"
+echo "  To push: git add -f ${ARCHIVE} ${RESULT_FILE} && git commit -m 'US full run' && git push"
 echo "============================================================"
 } 2>&1 | tee "${RESULT_FILE}"
