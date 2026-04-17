@@ -24,6 +24,7 @@ echo ""
 echo ">>> Step 1: CIF generation"
 python3 -m clinosim.simulator.cli generate \
     -o "${OUTPUT_DIR}" \
+    -p 10000 \
     -s 42 \
     --country US \
     --format cif
