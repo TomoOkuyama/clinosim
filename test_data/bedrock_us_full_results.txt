@@ -1,0 +1,613 @@
+============================================================
+  Full US Pipeline (CIF → Narrative → FHIR → Archive)
+[2026-04-17 08:19:08 UTC] START PID=28803
+  Config: US, 40K population, 50-bed hospital, seed=42
+============================================================
+
+[2026-04-17 08:19:08 UTC] Step 1/4: CIF generation START
+<frozen runpy>:128: RuntimeWarning: 'clinosim.simulator.cli' found in sys.modules after import of package 'clinosim.simulator', but prior to execution of 'clinosim.simulator.cli'; this may result in unpredictable behaviour
+clinosim generate: population=10000, seed=42, country=US, period=2025-04-17~2026-04-17
+  Hospital: 50 beds
+  Population: 40000 persons
+  Life events: 1463 total, 1283 requiring hospital
+  Simulating inpatient 50/1283 (concurrent=19, bed_occ=95%)...
+  Simulating inpatient 100/1283 (concurrent=20, bed_occ=91%)...
+  Simulating inpatient 150/1283 (concurrent=22, bed_occ=95%)...
+  Simulating inpatient 200/1283 (concurrent=20, bed_occ=91%)...
+  Simulating inpatient 250/1283 (concurrent=24, bed_occ=99%)...
+  Simulating inpatient 300/1283 (concurrent=9, bed_occ=69%)...
+  Simulating inpatient 350/1283 (concurrent=14, bed_occ=79%)...
+  Simulating inpatient 400/1283 (concurrent=16, bed_occ=79%)...
+  Simulating inpatient 450/1283 (concurrent=25, bed_occ=97%)...
+  Simulating inpatient 500/1283 (concurrent=12, bed_occ=71%)...
+  Simulating inpatient 550/1283 (concurrent=15, bed_occ=67%)...
+  Simulating inpatient 600/1283 (concurrent=21, bed_occ=79%)...
+  Simulating inpatient 650/1283 (concurrent=28, bed_occ=93%)...
+  Simulating inpatient 700/1283 (concurrent=18, bed_occ=73%)...
+  Simulating inpatient 750/1283 (concurrent=19, bed_occ=75%)...
+  Simulating inpatient 800/1283 (concurrent=21, bed_occ=67%)...
+  Simulating inpatient 850/1283 (concurrent=29, bed_occ=73%)...
+  Simulating inpatient 900/1283 (concurrent=32, bed_occ=79%)...
+  Simulating inpatient 950/1283 (concurrent=27, bed_occ=69%)...
+  Simulating inpatient 1000/1283 (concurrent=34, bed_occ=83%)...
+  Simulating inpatient 1050/1283 (concurrent=34, bed_occ=83%)...
+  Simulating inpatient 1100/1283 (concurrent=27, bed_occ=69%)...
+  Simulating inpatient 1150/1283 (concurrent=31, bed_occ=77%)...
+  Simulating inpatient 1200/1283 (concurrent=25, bed_occ=65%)...
+  Simulating inpatient 1250/1283 (concurrent=32, bed_occ=79%)...
+  Simulating inpatient 1283/1283 (concurrent=29, bed_occ=73%)...
+  Inpatient done: 1279 records (peak concurrent: 30)
+  Readmissions done: 222 evaluated
+  Healthcare calendar: 94763 events for population
+  Outpatient done: 1193 post-discharge + 94763 calendar
+  ED visits (not admitted): 5029 generated
+
+==================================================
+  clinosim generation complete
+==================================================
+  Total records:  102485
+    Inpatient:    1501 (222 readmissions)
+    Outpatient:   96114
+    Deceased:     64
+  Data volume:
+    Lab results:  194,464
+    Vital signs:  186,274
+    MAR entries:  141,098
+    I/O records:  6,904
+    Orders:       251,654
+
+  Disease distribution (inpatient):
+    copd_exacerbation               244  (LOS avg 5.1d)
+    asthma_exacerbation             213  (LOS avg 3.4d)
+    urinary_tract_infection         187  (LOS avg 4.1d)
+    diabetic_ketoacidosis           143  (LOS avg 3.4d)
+    heart_failure_exacerbation      133  (LOS avg 4.7d)
+    cerebral_infarction              80  (LOS avg 5.0d)
+    bacterial_pneumonia              72  (LOS avg 5.0d)
+    acute_mi                         52  (LOS avg 4.5d)
+    influenza                        49  (LOS avg 3.2d)
+    sepsis                           44  (LOS avg 12.4d)
+
+  Output: output/us_full/
+[2026-04-17 08:33:55 UTC] Step 1/4: CIF generation DONE
+
+[2026-04-17 08:33:55 UTC] Step 2/4: Narrative generation START (Bedrock, EN, resumable)
+<frozen runpy>:128: RuntimeWarning: 'clinosim.simulator.cli' found in sys.modules after import of package 'clinosim.simulator', but prior to execution of 'clinosim.simulator.cli'; this may result in unpredictable behaviour
+clinosim narrate: loading LLM config clinosim/config/llm_service.bedrock.yaml
+  CIF directory: output/us_full/cif
+  Language:      en
+  Mode:          llm
+  Tasks:         all Tier A+B
+  Narrating 65/102485 files, 0 patients, 0 documents...
+  Narrating 835/102485 files, 10 patients, 25 documents...
+  Narrating 1532/102485 files, 20 patients, 52 documents...
+  Narrating 2432/102485 files, 30 patients, 76 documents...
+  Narrating 3560/102485 files, 40 patients, 98 documents...
+  Narrating 4014/102485 files, 50 patients, 119 documents...
+  Narrating 5149/102485 files, 60 patients, 142 documents...
+  Narrating 5897/102485 files, 70 patients, 164 documents...
+  Narrating 7652/102485 files, 80 patients, 188 documents...
+  Narrating 8744/102485 files, 90 patients, 210 documents...
+  Narrating 9208/102485 files, 100 patients, 231 documents...
+  Narrating 10060/102485 files, 110 patients, 255 documents...
+  Narrating 10699/102485 files, 120 patients, 276 documents...
+  Narrating 11487/102485 files, 130 patients, 297 documents...
+  Narrating 12231/102485 files, 140 patients, 317 documents...
+  Narrating 13062/102485 files, 150 patients, 339 documents...
+  Narrating 13663/102485 files, 160 patients, 362 documents...
+  Narrating 14150/102485 files, 170 patients, 383 documents...
+  Narrating 15021/102485 files, 180 patients, 405 documents...
+  Narrating 15498/102485 files, 190 patients, 427 documents...
+  Narrating 16195/102485 files, 200 patients, 448 documents...
+  Narrating 16487/102485 files, 210 patients, 470 documents...
+  Narrating 17790/102485 files, 220 patients, 495 documents...
+  Narrating 18410/102485 files, 230 patients, 518 documents...
+  Narrating 19124/102485 files, 240 patients, 540 documents...
+  Narrating 19662/102485 files, 250 patients, 563 documents...
+  Narrating 20488/102485 files, 260 patients, 587 documents...
+  Narrating 20948/102485 files, 270 patients, 611 documents...
+  Narrating 21337/102485 files, 280 patients, 632 documents...
+  Narrating 22634/102485 files, 290 patients, 652 documents...
+  Narrating 23286/102485 files, 300 patients, 677 documents...
+  Narrating 23755/102485 files, 310 patients, 699 documents...
+  Narrating 23999/102485 files, 320 patients, 720 documents...
+  Narrating 24585/102485 files, 330 patients, 742 documents...
+  Narrating 25069/102485 files, 340 patients, 762 documents...
+  Narrating 25533/102485 files, 350 patients, 786 documents...
+  Narrating 26611/102485 files, 360 patients, 807 documents...
+  Narrating 27175/102485 files, 370 patients, 829 documents...
+  Narrating 28044/102485 files, 380 patients, 849 documents...
+  Narrating 28677/102485 files, 390 patients, 870 documents...
+  Narrating 29385/102485 files, 400 patients, 891 documents...
+  Narrating 30491/102485 files, 410 patients, 912 documents...
+  Narrating 30887/102485 files, 420 patients, 934 documents...
+  Narrating 31920/102485 files, 430 patients, 956 documents...
+  Narrating 33064/102485 files, 440 patients, 977 documents...
+  Narrating 33530/102485 files, 450 patients, 1000 documents...
+  Narrating 33973/102485 files, 460 patients, 1020 documents...
+  Narrating 34515/102485 files, 470 patients, 1043 documents...
+  Narrating 35113/102485 files, 480 patients, 1065 documents...
+  Narrating 35705/102485 files, 490 patients, 1086 documents...
+  Narrating 37011/102485 files, 500 patients, 1107 documents...
+  Narrating 37589/102485 files, 510 patients, 1129 documents...
+  Narrating 38167/102485 files, 520 patients, 1152 documents...
+  Narrating 38999/102485 files, 530 patients, 1173 documents...
+  Narrating 39832/102485 files, 540 patients, 1198 documents...
+  Narrating 40404/102485 files, 550 patients, 1220 documents...
+  Narrating 40769/102485 files, 560 patients, 1242 documents...
+  Narrating 41285/102485 files, 570 patients, 1265 documents...
+  Narrating 42140/102485 files, 580 patients, 1289 documents...
+  Narrating 42669/102485 files, 590 patients, 1311 documents...
+  Narrating 43074/102485 files, 600 patients, 1333 documents...
+  Narrating 43642/102485 files, 610 patients, 1355 documents...
+  Narrating 43961/102485 files, 620 patients, 1378 documents...
+  Narrating 44363/102485 files, 630 patients, 1401 documents...
+  Narrating 45298/102485 files, 640 patients, 1422 documents...
+  Narrating 45839/102485 files, 650 patients, 1445 documents...
+  Narrating 46456/102485 files, 660 patients, 1470 documents...
+  Narrating 47117/102485 files, 670 patients, 1491 documents...
+  Narrating 47600/102485 files, 680 patients, 1512 documents...
+  Narrating 48548/102485 files, 690 patients, 1535 documents...
+  Narrating 49133/102485 files, 700 patients, 1557 documents...
+  Narrating 49936/102485 files, 710 patients, 1578 documents...
+  Narrating 50718/102485 files, 720 patients, 1602 documents...
+  Narrating 51565/102485 files, 730 patients, 1623 documents...
+  Narrating 51997/102485 files, 740 patients, 1645 documents...
+  Narrating 52524/102485 files, 750 patients, 1666 documents...
+  Narrating 52905/102485 files, 760 patients, 1687 documents...
+  Narrating 53596/102485 files, 770 patients, 1707 documents...
+  Narrating 54174/102485 files, 780 patients, 1730 documents...
+  Narrating 54864/102485 files, 790 patients, 1753 documents...
+  Narrating 55536/102485 files, 800 patients, 1776 documents...
+  Narrating 56710/102485 files, 810 patients, 1799 documents...
+  Narrating 57453/102485 files, 820 patients, 1821 documents...
+  Narrating 57676/102485 files, 830 patients, 1844 documents...
+  Narrating 58119/102485 files, 840 patients, 1867 documents...
+  Narrating 59199/102485 files, 850 patients, 1888 documents...
+  Narrating 59727/102485 files, 860 patients, 1909 documents...
+  Narrating 60460/102485 files, 870 patients, 1930 documents...
+  Narrating 61464/102485 files, 880 patients, 1953 documents...
+  Narrating 61787/102485 files, 890 patients, 1978 documents...
+  Narrating 62684/102485 files, 900 patients, 2000 documents...
+  Narrating 63046/102485 files, 910 patients, 2023 documents...
+  Narrating 64175/102485 files, 920 patients, 2045 documents...
+  Narrating 64653/102485 files, 930 patients, 2068 documents...
+  Narrating 65018/102485 files, 940 patients, 2088 documents...
+  Narrating 65991/102485 files, 950 patients, 2109 documents...
+  Narrating 66359/102485 files, 960 patients, 2131 documents...
+  Narrating 66975/102485 files, 970 patients, 2156 documents...
+  Narrating 68181/102485 files, 980 patients, 2179 documents...
+  Narrating 68614/102485 files, 990 patients, 2200 documents...
+  Narrating 69344/102485 files, 1000 patients, 2223 documents...
+  Narrating 69778/102485 files, 1010 patients, 2245 documents...
+  Narrating 70669/102485 files, 1020 patients, 2267 documents...
+  Narrating 71021/102485 files, 1030 patients, 2287 documents...
+  Narrating 71608/102485 files, 1040 patients, 2311 documents...
+  Narrating 72451/102485 files, 1050 patients, 2333 documents...
+  Narrating 72999/102485 files, 1060 patients, 2355 documents...
+  Narrating 73414/102485 files, 1070 patients, 2377 documents...
+  Narrating 74173/102485 files, 1080 patients, 2401 documents...
+  Narrating 74589/102485 files, 1090 patients, 2424 documents...
+  Narrating 75401/102485 files, 1100 patients, 2444 documents...
+  Narrating 76027/102485 files, 1110 patients, 2469 documents...
+  Narrating 76858/102485 files, 1120 patients, 2490 documents...
+  Narrating 77498/102485 files, 1130 patients, 2510 documents...
+  Narrating 78119/102485 files, 1140 patients, 2534 documents...
+  Narrating 78552/102485 files, 1150 patients, 2556 documents...
+  Narrating 79508/102485 files, 1160 patients, 2578 documents...
+  Narrating 79864/102485 files, 1170 patients, 2601 documents...
+  Narrating 80604/102485 files, 1180 patients, 2624 documents...
+  Narrating 81378/102485 files, 1190 patients, 2647 documents...
+  Narrating 81783/102485 files, 1200 patients, 2667 documents...
+  Narrating 82719/102485 files, 1210 patients, 2691 documents...
+  Narrating 83491/102485 files, 1220 patients, 2713 documents...
+  Narrating 84169/102485 files, 1230 patients, 2736 documents...
+  Narrating 84823/102485 files, 1240 patients, 2758 documents...
+  Narrating 85628/102485 files, 1250 patients, 2779 documents...
+  Narrating 85963/102485 files, 1260 patients, 2801 documents...
+  Narrating 87125/102485 files, 1270 patients, 2825 documents...
+  Narrating 87908/102485 files, 1280 patients, 2847 documents...
+  Narrating 88237/102485 files, 1290 patients, 2870 documents...
+  Narrating 88707/102485 files, 1300 patients, 2890 documents...
+  Narrating 89156/102485 files, 1310 patients, 2911 documents...
+  Narrating 89680/102485 files, 1320 patients, 2931 documents...
+  Narrating 90184/102485 files, 1330 patients, 2955 documents...
+  Narrating 91245/102485 files, 1340 patients, 2978 documents...
+  Narrating 92105/102485 files, 1350 patients, 3006 documents...
+  Narrating 92719/102485 files, 1360 patients, 3029 documents...
+  Narrating 93414/102485 files, 1370 patients, 3050 documents...
+  Narrating 93924/102485 files, 1380 patients, 3071 documents...
+  Narrating 94301/102485 files, 1390 patients, 3092 documents...
+  Narrating 94842/102485 files, 1400 patients, 3112 documents...
+  Narrating 95307/102485 files, 1410 patients, 3132 documents...
+  Narrating 96327/102485 files, 1420 patients, 3157 documents...
+  Narrating 97418/102485 files, 1430 patients, 3180 documents...
+  Narrating 98118/102485 files, 1440 patients, 3203 documents...
+  Narrating 98613/102485 files, 1450 patients, 3226 documents...
+  Narrating 99239/102485 files, 1460 patients, 3247 documents...
+  Narrating 100130/102485 files, 1470 patients, 3269 documents...
+  Narrating 100889/102485 files, 1480 patients, 3292 documents...
+  Narrating 102029/102485 files, 1490 patients, 3315 documents...
+  Narrating 102484/102485 files, 1500 patients, 3342 documents...
+
+  === Narrative Generation Summary ===
+  Version ID:       bedrock_en_full
+  Patients:         1501
+  Total documents:  3344
+    admission_hp         1501
+    death_summary        64
+    discharge_summary    1501
+    operative_note       97
+    procedure_note       181
+  LLM calls:        3344
+  LLM input tokens: 3,383,297
+  LLM output tokens:2,201,813
+  Fallbacks:        0
+  Cache hits:       0
+[2026-04-17 17:37:38 UTC] Step 2/4: Narrative generation DONE
+
+[2026-04-17 17:37:38 UTC] Step 3/4: FHIR export START
+<frozen runpy>:128: RuntimeWarning: 'clinosim.simulator.cli' found in sys.modules after import of package 'clinosim.simulator', but prior to execution of 'clinosim.simulator.cli'; this may result in unpredictable behaviour
+clinosim export-fhir:
+  CIF directory:      output/us_full/cif
+  Output:             output/us_full/fhir_r4
+  Country:            US
+  Narrative version:  bedrock_en_full
+
+  === FHIR Export Summary ===
+    AllergyIntolerance.ndjson              2887 lines  ( 2,085,520 B)
+    Condition.ndjson                     228157 lines  (212,597,000 B)
+    DocumentReference.ndjson               3344 lines  (13,556,188 B)
+    Encounter.ndjson                     102485 lines  (184,460,780 B)
+    Location.ndjson                          60 lines  (    21,141 B)
+    MedicationAdministration.ndjson      141098 lines  (109,160,617 B)
+    MedicationRequest.ndjson              22447 lines  (18,409,078 B)
+    Observation.ndjson                  1147288 lines  (1,533,666,866 B)
+    Organization.ndjson                       8 lines  (     2,407 B)
+    Patient.ndjson                        16506 lines  (22,546,931 B)
+    Practitioner.ndjson                      85 lines  (    47,474 B)
+    PractitionerRole.ndjson                  85 lines  (    34,533 B)
+    Procedure.ndjson                       1150 lines  ( 1,295,545 B)
+    manifest.json                                      (     1,231 B)
+[2026-04-17 17:39:24 UTC] Step 3/4: FHIR export DONE
+
+[2026-04-17 17:39:24 UTC] Step 4/4: Archive START
+-rw-rw-r-- 1 ubuntu ubuntu 131M Apr 17 17:39 test_data/us_full.tar.gz
+[2026-04-17 17:39:52 UTC] Step 4/4: Archive DONE
+
+============================================================
+  Generated Documents (1 sample per type)
+============================================================
+
+============================================================
+  admission_hp (LOINC 34117-2)
+  source=llm model=us.anthropic.claude-sonnet-4-20250514-v1:0
+  tokens: in=827 out=762
+============================================================
+**ADMISSION HISTORY & PHYSICAL**
+
+**Date:** June 18, 2025  
+**Time:** 18:09  
+**Admitting Physician:** Dr. Kenneth Stanton  
+**Department:** Internal Medicine
+
+**CHIEF COMPLAINT:**
+Nausea, vomiting, abdominal pain, polyuria, and altered consciousness.
+
+**HISTORY OF PRESENT ILLNESS:**
+This is a 60-year-old female with a history of type 2 diabetes mellitus, chronic kidney disease, and dyslipidemia who presents with acute onset of nausea, vomiting, abdominal pain, polyuria, and altered mental status. The patient's symptoms appear to have developed acutely, prompting emergency evaluation.
+
+**PAST MEDICAL HISTORY:**
+- Type 2 diabetes mellitus without complications
+- Disorders of lipoprotein metabolism and other lipidemias  
+- Chronic kidney disease
+
+**MEDICATIONS:**
+- Metformin 500mg
+- Sliding scale insulin
+- Atorvastatin 10mg
+
+**ALLERGIES:**
+No known drug allergies (NKDA)
+
+**FAMILY HISTORY:**
+Not obtained at this time.
+
+**SOCIAL HISTORY:**
+Not obtained at this time.
+
+**REVIEW OF SYSTEMS:**
+Positive for nausea, vomiting, abdominal pain, polyuria, and altered consciousness as noted in HPI. Complete review deferred due to patient's current mental status.
+
+**PHYSICAL EXAMINATION:**
+**Vital Signs:** Temperature 37.0°C, heart rate 83 bpm, respiratory rate 19/min, blood pressure 100/77 mmHg, oxygen saturation 99.9% on room air
+**General:** Altered mental status, appears ill
+**Cardiovascular:** Regular rate and rhythm based on vital signs
+**Pulmonary:** Respiratory rate mildly elevated at 19/min
+**Abdomen:** Patient reports abdominal pain
+**Neurologic:** Altered consciousness
+
+**ASSESSMENT:**
+60-year-old female with type 2 diabetes mellitus presenting with classic symptoms of nausea, vomiting, abdominal pain, polyuria, and altered mental status. Laboratory findings reveal hyperglycemia (glucose 133 mg/dL), hyperkalemia (K 5.3 mmol/L), elevated BUN (29.7 mg/dL), acute kidney injury (creatinine 1.4 mg/dL), and significantly elevated lactate (4.6 mmol/L). 
+
+**Differential diagnosis:**
+1. **Diabetic ketoacidosis** - highly suspected given clinical presentation, known diabetes, and metabolic derangements
+2. Hyperosmolar hyperglycemic state
+3. Acute kidney injury with metabolic acidosis
+4. Sepsis with secondary metabolic derangements
+5. Medication-related lactic acidosis
+
+**PLAN:**
+1. Obtain arterial blood gas, serum ketones, and complete metabolic panel
+2. Continuous cardiac monitoring
+3. IV access and fluid resuscitation
+4. Hold metformin given elevated lactate and kidney dysfunction
+5. Endocrinology consultation
+6. Serial glucose monitoring
+7. Nephrology consultation for acute kidney injury
+8. Further diagnostic workup pending additional laboratory results
+
+============================================================
+  discharge_summary (LOINC 18842-5)
+  source=llm model=us.anthropic.claude-sonnet-4-20250514-v1:0
+  tokens: in=1241 out=765
+============================================================
+**DISCHARGE SUMMARY**
+
+**Patient:** 60-year-old Female  
+**Admission Date:** June 18, 2025  
+**Discharge Date:** June 22, 2025  
+**Length of Stay:** 3 days  
+**Attending Physician:** Dr. Kenneth Stanton
+
+**ADMISSION DIAGNOSIS:**
+Type 2 diabetes mellitus with ketoacidosis without coma
+
+**DISCHARGE DIAGNOSES:**
+Primary: Type 2 diabetes mellitus with hyperglycemia
+Secondary: Chronic kidney disease; Disorders of lipoprotein metabolism and other lipidemias
+
+**CHIEF COMPLAINT:**
+Nausea, vomiting, abdominal pain, polyuria, altered consciousness
+
+**HISTORY OF PRESENT ILLNESS:**
+This 60-year-old female with a history of type 2 diabetes mellitus, chronic kidney disease, and dyslipidemia presented with acute onset of nausea, vomiting, abdominal pain, polyuria, and altered consciousness. Initial assessment was consistent with diabetic ketoacidosis without coma.
+
+**PAST MEDICAL HISTORY:**
+- Type 2 diabetes mellitus without complications
+- Disorders of lipoprotein metabolism and other lipidemias  
+- Chronic kidney disease
+
+**HOSPITAL COURSE:**
+The patient was admitted on hospital day 0 with diabetic ketoacidosis. Initial laboratory values revealed elevated lactate at 4.6 mmol/L and creatinine of 1.4 mg/dL, with CRP of 0.4 mg/L. Treatment was initiated with aggressive IV fluid resuscitation using normal saline, potassium chloride replacement, and continuous insulin infusion per DKA protocol. IV fluid regimen included NS at 1000 mL/h for 1 hour, then 500 mL/h for 4 hours, followed by 250 mL/h. Insulin was administered as continuous IV drip at 0.1 U/kg/h after potassium normalization. Potassium replacement with KCl 20-40 mEq/L was provided targeting levels of 4.0-5.0. DVT prophylaxis with enoxaparin 2000 IU SC daily was initiated once hemodynamically stable. The patient's clinical condition improved steadily with resolution of ketoacidosis. By hospital day 2, IV fluids and electrolyte replacement were discontinued. The patient was transitioned to subcutaneous insulin regimen and prepared for discharge.
+
+**PROCEDURES PERFORMED:**
+Arterial catheterization or cannulation for sampling, monitoring performed percutaneously on June 20, 2025
+
+**DISCHARGE MEDICATIONS:**
+- Insulin glargine per established regimen PO
+- Metformin 500mg PO  
+- Sliding scale insulin PO
+- Atorvastatin 10mg PO
+
+**CONDITION AT DISCHARGE:**
+Stable condition with resolved diabetic ketoacidosis and improved hyperglycemia
+
+**FOLLOW-UP INSTRUCTIONS:**
+Patient should follow up with primary care physician and endocrinology for diabetes management optimization. Continue prescribed medications as directed. Monitor blood glucose levels closely and seek immediate medical attention for symptoms of hyperglycemia or ketoacidosis including nausea, vomiting, abdominal pain, or altered mental status.
+
+============================================================
+  procedure_note (LOINC 28570-0)
+  source=llm model=us.anthropic.claude-sonnet-4-20250514-v1:0
+  tokens: in=410 out=375
+============================================================
+**PROCEDURE NOTE**
+
+**Date and Time:** February 7, 2026 at 18:53
+
+**Procedure:** Insertion of non-tunneled centrally inserted central venous catheter (CPT 36556)
+
+**Indication:** Chest pain, diaphoresis, and dyspnea requiring central venous access
+
+**Operator(s):** Dr. Devin Huber
+
+**Consent:** Informed consent obtained and documented
+
+**Site and Side:** Central venous system access site marked and verified
+
+**Anesthesia:** Local anesthesia administered
+
+**Preparation and Positioning:** Patient positioned supine. Procedural site prepped and draped in sterile fashion using standard antiseptic technique. Sterile field maintained throughout procedure.
+
+**Technique:** Under sterile conditions, local anesthetic was infiltrated at the access site. Using ultrasound guidance and anatomical landmarks, venous access was obtained with introducer needle. Guidewire was advanced through the needle under fluoroscopic guidance when available. Sequential dilation performed over the guidewire. Central venous catheter was advanced over the guidewire to appropriate position. Guidewire removed and catheter secured with sutures. All lumens aspirated and flushed appropriately.
+
+**Findings/Results:** Successful placement of central venous catheter with appropriate positioning confirmed. Good blood return obtained from all lumens.
+
+**Estimated Blood Loss:** Minimal
+
+**Complications:** None
+
+**Specimens:** None obtained
+
+**Post-procedure Plan:** Post-procedure chest radiograph to confirm positioning and rule out pneumothorax. Continue monitoring per standard central line protocols.
+
+Total procedure duration: 33 minutes
+
+============================================================
+  death_summary (LOINC 69730-0)
+  source=llm model=us.anthropic.claude-sonnet-4-20250514-v1:0
+  tokens: in=949 out=435
+============================================================
+**DEATH NOTE**
+
+**Patient Identification:** 31-year-old male
+
+**Admission Diagnosis:** Crushing injury of hand
+
+**Hospital Course Leading to Death:**
+The patient was admitted on March 12, 2026, following an industrial hand crush injury with possible amputation. On the day of admission, he underwent complex hand surgery with replantation of complete amputation, with an estimated blood loss of 226 mL. Initial treatment included IV cefazolin, fentanyl for pain management, acetaminophen, and normal saline fluid support.
+
+The patient's clinical course was complicated by the development of progressive systemic infection. Laboratory values demonstrated worsening inflammatory markers with CRP rising from 131.8 mg/L on admission to a peak of 214.7 mg/L on hospital day 5. White blood cell count increased from 13,021 cells/μL on admission to a peak of 19,392 cells/μL on hospital day 4, subsequently declining to 16,347 cells/μL by day 6. Creatinine remained stable at 1.1 mg/dL throughout the admission.
+
+Despite maximal medical therapy, the patient's condition deteriorated progressively. At the time of death, vital signs showed heart rate of 89 bpm and oxygen saturation of 90.1%.
+
+**Immediate Cause of Death:** Pneumonia due to Streptococcus pneumoniae
+
+**Underlying Cause of Death:** Pneumonia due to Streptococcus pneumoniae
+
+**Contributing Conditions:** Status post crushing injury of hand with surgical replantation
+
+**Time and Place of Death:** March 19, 2026, at 09:46 hours, inpatient unit
+
+**Family Notification:** [To be completed by attending physician]
+
+**Autopsy Status:** [To be determined]
+
+**Attending Physician:** Dr. Rodney Buckley, MD
+
+============================================================
+  operative_note (LOINC 11504-8)
+  source=llm model=us.anthropic.claude-sonnet-4-20250514-v1:0
+  tokens: in=511 out=377
+============================================================
+**OPERATIVE NOTE**
+
+**Date of Procedure:** March 12, 2026
+
+**Preoperative Diagnosis:** Crush injury, hand
+
+**Postoperative Diagnosis:** Crush injury, hand
+
+**Procedure Performed:** Replantation, foot, complete amputation (CPT 20838)
+
+**Surgeon:** Dr. Landon Browne
+
+**Assistant(s):** None
+
+**Anesthesia Type:** General anesthesia administered by Dr. Norma Nguyen
+
+**Findings:** Complete amputation with crush injury pattern requiring microsurgical replantation.
+
+**Description of Procedure:**
+The patient was brought to the operating room and placed in supine position. General anesthesia was induced without complications. The surgical site was prepped and draped in standard sterile fashion. 
+
+Microsurgical replantation was performed utilizing standard technique for complete amputation. The procedure involved identification and repair of vascular structures, nerve repair, and skeletal fixation as indicated by the injury pattern. Meticulous attention was paid to restoration of circulation and tissue viability throughout the 123-minute operative duration.
+
+The wound was irrigated and hemostasis achieved. Standard closure techniques were employed.
+
+**Specimens:** None sent to pathology
+
+**Drains and Implants:** None utilized
+
+**Estimated Blood Loss:** 226 mL
+
+**Complications:** None intraoperatively
+
+**Disposition:** Patient transferred to recovery room in stable condition. Replantation appeared viable at completion of procedure with adequate perfusion noted.
+
+---
+*Dictated by: Dr. Landon Browne, MD*
+*Date: March 12, 2026*
+
+=== Narrative Manifest ===
+{
+  "version_id": "bedrock_en_full",
+  "generated_at": "2026-04-17T17:37:38.635781",
+  "language": "en",
+  "llm_mode": "llm",
+  "llm_cost_report": {
+    "total_calls": 3344,
+    "total_input_tokens": 3383297,
+    "total_output_tokens": 2201813,
+    "fallback_count": 0,
+    "cache_hit_count": 0,
+    "cache_stats": {
+      "hits": 0,
+      "misses": 3344,
+      "writes": 3344,
+      "enabled": 1
+    }
+  },
+  "patient_count": 1501,
+  "document_counts_by_type": {
+    "admission_hp": 1501,
+    "discharge_summary": 1501,
+    "procedure_note": 181,
+    "operative_note": 97,
+    "death_summary": 64
+  },
+  "total_documents": 3344,
+  "enabled_tasks": [
+    "admission_hp",
+    "death_summary",
+    "discharge_summary",
+    "operative_note",
+    "procedure_note"
+  ]
+}
+=== FHIR Export Summary ===
+{
+  "transactionTime": "2026-04-17T17:39:23.258573",
+  "request": "clinosim generate (country=US) narrative=bedrock_en_full",
+  "requiresAccessToken": false,
+  "output": [
+    {
+      "type": "AllergyIntolerance",
+      "url": "AllergyIntolerance.ndjson"
+    },
+    {
+      "type": "Condition",
+      "url": "Condition.ndjson"
+    },
+    {
+      "type": "DocumentReference",
+      "url": "DocumentReference.ndjson"
+    },
+    {
+      "type": "Encounter",
+      "url": "Encounter.ndjson"
+    },
+    {
+      "type": "Location",
+      "url": "Location.ndjson"
+    },
+    {
+      "type": "MedicationAdministration",
+      "url": "MedicationAdministration.ndjson"
+    },
+    {
+      "type": "MedicationRequest",
+      "url": "MedicationRequest.ndjson"
+    },
+    {
+      "type": "Observation",
+      "url": "Observation.ndjson"
+    },
+    {
+      "type": "Organization",
+      "url": "Organization.ndjson"
+    },
+    {
+      "type": "Patient",
+      "url": "Patient.ndjson"
+    },
+    {
+      "type": "Practitioner",
+      "url": "Practitioner.ndjson"
+    },
+    {
+      "type": "PractitionerRole",
+      "url": "PractitionerRole.ndjson"
+    },
+    {
+      "type": "Procedure",
+      "url": "Procedure.ndjson"
+    }
+  ],
+  "error": []
+}
+[2026-04-17 17:39:52 UTC] ALL DONE
+  Results: test_data/bedrock_us_full_results.txt
+  Archive: test_data/us_full.tar.gz
+  To push: git add -f test_data/us_full.tar.gz test_data/bedrock_us_full_results.txt && git commit -m 'US full run' && git push
+============================================================
