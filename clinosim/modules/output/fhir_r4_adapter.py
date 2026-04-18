@@ -1133,6 +1133,10 @@ def _build_diagnosis_codeable_concept(
 
     Falls back to icd-10-cm lookup if the code isn't in the country's system
     (e.g. JP using icd-10 but code only in icd-10-cm).
+
+    code.text is set to a clinical short-name / abbreviation when available
+    (e.g. "COPD" instead of "Other chronic obstructive pulmonary disease"),
+    enabling search by common clinical abbreviations.
     """
     primary_lang = "ja" if country != "US" else "en"
     primary_system = get_system_uri(system_key)
@@ -1174,10 +1178,73 @@ def _build_diagnosis_codeable_concept(
             "display": en_display,
         })
 
+    # code.text: clinical short-name / abbreviation for search friendliness.
+    # coding[].display remains the official ICD name; text is what clinicians type.
+    text = _CONDITION_SHORT_NAME.get(code.split(".")[0], {}).get(primary_lang) or primary_display
+
     return {
         "coding": coding,
-        "text": primary_display,
+        "text": text,
     }
+
+
+# Clinical abbreviations / short names for common conditions.
+# Keyed by ICD base code (before "."), with per-language short forms.
+# coding[].display keeps the official ICD name; code.text uses these.
+_CONDITION_SHORT_NAME: dict[str, dict[str, str]] = {
+    # Respiratory
+    "J44": {"en": "COPD", "ja": "COPD（慢性閉塞性肺疾患）"},
+    "J45": {"en": "Asthma", "ja": "喘息"},
+    "J15": {"en": "Bacterial pneumonia", "ja": "細菌性肺炎"},
+    "J12": {"en": "Viral pneumonia", "ja": "ウイルス性肺炎"},
+    "J18": {"en": "Pneumonia", "ja": "肺炎"},
+    "J69": {"en": "Aspiration pneumonia", "ja": "誤嚥性肺炎"},
+    "J10": {"en": "Influenza", "ja": "インフルエンザ"},
+    # Cardiovascular
+    "I50": {"en": "Heart failure (CHF)", "ja": "心不全"},
+    "I21": {"en": "Acute MI", "ja": "急性心筋梗塞"},
+    "I25": {"en": "Chronic ischemic heart disease (IHD)", "ja": "慢性虚血性心疾患"},
+    "I48": {"en": "Atrial fibrillation (AF)", "ja": "心房細動"},
+    "I10": {"en": "Hypertension (HTN)", "ja": "高血圧"},
+    "I63": {"en": "Cerebral infarction (stroke)", "ja": "脳梗塞"},
+    "I61": {"en": "Hemorrhagic stroke (ICH)", "ja": "脳出血"},
+    "I26": {"en": "Pulmonary embolism (PE)", "ja": "肺塞栓"},
+    "I80": {"en": "DVT", "ja": "深部静脈血栓症"},
+    "I82": {"en": "DVT", "ja": "深部静脈血栓症"},
+    # Endocrine
+    "E11": {"en": "Type 2 diabetes (DM)", "ja": "2型糖尿病"},
+    "E10": {"en": "Type 1 diabetes (DM)", "ja": "1型糖尿病"},
+    "E78": {"en": "Dyslipidemia", "ja": "脂質異常症"},
+    "E03": {"en": "Hypothyroidism", "ja": "甲状腺機能低下症"},
+    # Renal
+    "N18": {"en": "CKD", "ja": "慢性腎臓病"},
+    "N17": {"en": "AKI", "ja": "急性腎障害"},
+    "N10": {"en": "Acute pyelonephritis (UTI)", "ja": "急性腎盂腎炎"},
+    "N39": {"en": "UTI", "ja": "尿路感染症"},
+    # GI
+    "K21": {"en": "GERD", "ja": "逆流性食道炎"},
+    "K85": {"en": "Acute pancreatitis", "ja": "急性膵炎"},
+    "K80": {"en": "Cholelithiasis", "ja": "胆石症"},
+    "K81": {"en": "Cholecystitis", "ja": "胆嚢炎"},
+    "K92": {"en": "GI bleeding", "ja": "消化管出血"},
+    "K56": {"en": "Ileus", "ja": "イレウス"},
+    "K74": {"en": "Liver cirrhosis", "ja": "肝硬変"},
+    # Musculoskeletal
+    "M17": {"en": "Knee OA", "ja": "変形性膝関節症"},
+    "M81": {"en": "Osteoporosis", "ja": "骨粗鬆症"},
+    "S72": {"en": "Hip fracture", "ja": "大腿骨骨折"},
+    # Neurological
+    "F00": {"en": "Alzheimer's dementia", "ja": "アルツハイマー型認知症"},
+    "G20": {"en": "Parkinson's disease (PD)", "ja": "パーキンソン病"},
+    # Infectious
+    "A41": {"en": "Sepsis", "ja": "敗血症"},
+    "R65": {"en": "Severe sepsis / septic shock", "ja": "重症敗血症"},
+    "L03": {"en": "Cellulitis", "ja": "蜂窩織炎"},
+    # Prostate
+    "N40": {"en": "BPH", "ja": "前立腺肥大症"},
+    # DKA
+    "E13": {"en": "DKA", "ja": "糖尿病性ケトアシドーシス"},
+}
 
 
 def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]:
@@ -2160,15 +2227,35 @@ def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any
     return dosage if dosage else None
 
 
+def _strip_protocol_prefix(name: str) -> tuple[str, str]:
+    """Strip protocol/category prefix from drug order text.
+
+    "DVT_prophylaxis: Enoxaparin 2000IU SC daily" → ("Enoxaparin 2000IU SC daily", "DVT prophylaxis")
+    "antipyretic: Acetaminophen 500mg PO q6h PRN temp >= 38.5" → ("Acetaminophen 500mg PO q6h PRN temp >= 38.5", "antipyretic")
+    "Ceftriaxone 1g IV q8h" → ("Ceftriaxone 1g IV q8h", "")
+
+    Returns (cleaned_name, protocol_category).
+    """
+    if ":" in name:
+        prefix, rest = name.split(":", 1)
+        rest = rest.strip()
+        if rest:
+            return rest, prefix.replace("_", " ").strip()
+    return name, ""
+
+
 def _build_medication_request(
     order: dict, patient_id: str, country: str,
     encounter_id: str = "", primary_dx_code: str = "",
 ) -> dict:
     """Build FHIR MedicationRequest resource."""
     drug_name_raw = order.get("display_name", "Unknown medication")
-    drug_name = _localize_drug_name(drug_name_raw, country)
-    # Strip dose info to get base drug name for code lookup
-    base_name = drug_name_raw.split(" ")[0] if drug_name_raw else ""
+    # Strip protocol prefix (e.g. "DVT_prophylaxis:") from medicationCodeableConcept.text
+    # The prefix goes to dosageInstruction note instead.
+    drug_name_clean, protocol_category = _strip_protocol_prefix(drug_name_raw)
+    drug_name = _localize_drug_name(drug_name_clean, country)
+    # Strip dose info to get base drug name for code lookup (use cleaned name)
+    base_name = drug_name_clean.split(" ")[0] if drug_name_clean else ""
 
     country_code = "JP" if country != "US" else "US"
     lang = "ja" if country_code == "JP" else "en"
@@ -2236,8 +2323,9 @@ def _build_medication_admin(
 ) -> dict:
     """Build FHIR MedicationAdministration resource."""
     drug_name_raw = mar.get("drug_name", "")
-    drug_name = _localize_drug_name(drug_name_raw, country)
-    base_name = drug_name_raw.split(" ")[0] if drug_name_raw else ""
+    drug_name_clean, _ = _strip_protocol_prefix(drug_name_raw)
+    drug_name = _localize_drug_name(drug_name_clean, country)
+    base_name = drug_name_clean.split(" ")[0] if drug_name_clean else ""
     country_code = "JP" if country != "US" else "US"
     lang = "ja" if country_code == "JP" else "en"
     drug_codes = load_code_mapping("drug", country_code)
