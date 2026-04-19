@@ -290,7 +290,31 @@ for day in range(0, los_days):
 
 **他モジュールへの依存なし** (physiology の状態を直接読み書きしない、 directive ベースで疎結合)。
 
-## テスト
+## 修正ガイド
+
+### よくある修正シナリオ
+
+| やりたいこと | 修正場所 | 影響範囲 |
+|---|---|---|
+| 新しいアーキタイプを追加 | `select_archetype()` の case 追加 + 対応 trajectory 関数 | 全新疾患がこのアーキタイプを選択可能に |
+| 合併症の発火条件を変更 | `evaluate_complications()` | physiology state 推移、LOS に影響 |
+| 自然回復速度を調整 | `natural_recovery_directive()` | 退院タイミングに影響 |
+| 治療効果を変更 | `treatment_response_directive()` | 検査値推移に影響 |
+| 新しい state 変数への対応 | `for var_name in [...]` リストに追加 | physiology モジュール変更と同時に行う |
+
+### 関連モジュール
+
+```
+disease YAML (course_archetypes)
+  ↓ archetype → trajectory
+clinical_course.get_daily_directive()
+  ↓ StateChangeDirective
+physiology.update(state, directive)
+  ↓ updated PhysiologicalState
+observation / order → CIF → FHIR
+```
+
+### テスト
 
 ```bash
 source .venv/bin/activate && python -m pytest tests/unit/test_clinical_course.py -v

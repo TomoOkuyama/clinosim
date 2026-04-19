@@ -382,3 +382,39 @@ pytest tests/unit/test_observation.py -v
 - [ ] Context-dependent missingness (night, refusal, difficult draw)
 - [ ] Explainable anomaly patterns (hemolysis, IV contamination)
 - [ ] Pregnancy-specific reference ranges
+
+## 修正ガイド
+
+### よくある修正シナリオ
+
+| やりたいこと | 修正場所 | 影響範囲 |
+|---|---|---|
+| 新しい検査項目を追加 | (1) `BIOLOGICAL_CV`, `ANALYTICAL_CV`, `PRECISION` dict (2) `LAB_UNITS` dict (3) physiology の `derive_lab_values()` | FHIR Observation, narrative enrichment |
+| 参照範囲を変更 | `clinosim/locale/{jp,us}/reference_range_lab.yaml` | FHIR referenceRange, interpretation (AD-47) |
+| フラグ判定ロジック変更 | `determine_flag()` | CIF flag → FHIR interpretation |
+| CRP単位変換の調整 | ここでは変更しない — output モジュールの `_JA_CONVERSION` (AD-42) | |
+
+### 関連モジュール・データフロー
+
+```
+physiology.derive_lab_values()
+  ↓ true value (float)
+observation.generate_lab_result(name, true_value, rng)
+  ↓ + CVi + CVa + precision rounding
+  ↓ observed value (float)
+observation.determine_flag(name, value, sex)
+  ↓ "H" / "L" / "H*" / "L*" / None
+CIF OrderResult {value, unit, flag}
+  ↓
+fhir_r4_adapter._build_lab_observation()
+  ↓ referenceRange (from locale YAML) + interpretation (recomputed from value vs range)
+FHIR Observation
+```
+
+**重要**: FHIR adapter の interpretation は `OrderResult.flag` ではなく `value vs referenceRange` から再計算される (AD-47)。observation モジュールの flag はヒントとして使われるが、referenceRange との整合性が優先。
+
+### テスト
+
+```bash
+source .venv/bin/activate && python -m pytest tests/unit/test_observation.py -v
+```

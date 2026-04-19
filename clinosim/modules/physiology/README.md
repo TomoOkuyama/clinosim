@@ -276,10 +276,34 @@ print(f"CRP day 3: {labs['CRP']:.1f}, Temp: {vitals['temperature']}")
 
 **他モジュールへの依存なし** (physiology は leaf module)。
 
-## テスト
+## 修正ガイド
+
+### よくある修正シナリオ
+
+| やりたいこと | 修正場所 | 影響範囲 |
+|---|---|---|
+| 新しい state 変数を追加 | `PhysiologicalState` (types/clinical.py) + 上記「新しい state 変数」手順 | clinical_course, observation, hospital_course_extractor |
+| 新しいラボ項目を derive | `derive_lab_values()` + observation モジュール | FHIR Observation 出力、referenceRange |
+| バイタル変換式を調整 | `derive_vital_signs()` | FHIR Observation、ナラティブ |
+| coupling rule を変更 | `apply_coupling_rules()` | 全疾患の経過パターンに影響 |
+| CRP変換ロジックの変更 | ここでは変更しない — output モジュールの `_JA_CONVERSION` (AD-42) | |
+
+### 下流への影響マップ
+
+```
+physiology.derive_lab_values()
+  ↓ used by
+observation.generate_lab_result()  →  CIF OrderResult  →  FHIR Observation
+  ↓ also used by
+hospital_course_extractor.extract_lab_trends()  →  Narrative enrichment
+```
+
+### テスト
 
 ```bash
 source .venv/bin/activate && python -m pytest tests/unit/test_physiology.py -v
 ```
+
+変更後は `pytest -x -q` で全体回帰テストも実行すること。
 
 カバー範囲: 初期化、疾患発症、時間更新、coupling rules (perfusion→renal→pH)、検査値 derivation (20+ 項目)、バイタル derivation with circadian。
