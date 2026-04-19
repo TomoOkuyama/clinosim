@@ -84,18 +84,20 @@ def activate_patient(
 2. **生理学的プロファイル** — `beta(8, 2)` から腎/心/肝予備能をサンプリングし `(age-40) × 0.005` のペナルティ減算。 薬物代謝表現型 (`poor` / `normal` / `rapid` / `ultra_rapid`) は country 依存の分布 (`activator.py:131-148`)
 3. **慢性疾患の staging** — 各 ICD コードに対し `_generate_stage()` が臨床的に妥当なステージ文字列を生成
 4. **アレルギー** — 約 15% に mild rash アレルギー (Penicillin / Sulfonamide / NSAIDs / Cephalosporin)
-5. **常用薬** — `_derive_home_medications()` が `chronic_medications.yaml` から ICD コードベースで導出。 exact match → base code fallback (例: `E11.9` → `E11`)。 JP locale では `drug_ja` フィールドを使用
+5. **常用薬** — `_derive_home_medications()` が `chronic_medications.yaml` から ICD コードベースで導出。 exact match → base code fallback (例: `E11.9` → `E11`)。 JP locale では `drug_ja` フィールドを使用。空文字のフィルタ付き。
 6. **ベースラインバイタル** — 年齢補正 (SBP は +0.5/yr over 30) + 慢性疾患調整:
    - `I10` (HT) → SBP +10, DBP +5
    - `I48` (AFib) → HR +5〜20 の irregular
    - `J44` (COPD) → SpO2 を 94 付近に制限
    - `J45` (Asthma) → 呼吸数 +0〜3
    - `E03` (甲状腺機能低下) → HR -3〜8
-6. **名前表記** — JP は `family given`, US は `given family` の順で `display_name` を構築
-7. **婚姻状態** — 年齢帯別の分布 (HL7 v3 `S` / `M` / `D` / `W`) (`activator.py:257-267`)
-8. **優先言語** — country から BCP-47 タグに変換 (`JP → ja-JP`, `US → en-US`)
-9. **保険区分** — 75 歳以上は `late_elderly` (後期高齢者医療)、未満は `NHI_employee`
-10. **嗜好品** — 喫煙 55/30/15 (never/former/current)、飲酒 60/30/10 (none/social/heavy)
+7. **名前表記** — JP は `family given`, US は `given family` の順で `display_name` を構築
+8. **緊急連絡先** — 実在の個人名を生成（旧: `佐伯家`、新: `佐伯 紬`）。配偶者は反対の性別、それ以外はランダム。`load_names()` + `_sample_given_name()` で国別の名前を生成。
+9. **職業** — `PersonRecord.occupation` をそのまま `PatientProfile.occupation` に反映 (AD-45)
+10. **婚姻状態** — 年齢帯別の分布 (HL7 v3 `S` / `M` / `D` / `W`)
+11. **優先言語** — country から BCP-47 タグに変換 (`JP → ja-JP`, `US → en-US`)
+12. **保険区分** — 75 歳以上は `late_elderly` (後期高齢者医療)、未満は `NHI_employee`
+13. **嗜好品** — 喫煙 55/30/15 (never/former/current)、飲酒 60/30/10 (none/social/heavy)
 
 ### `_generate_stage(code, severity, rng) -> str`
 
@@ -188,6 +190,7 @@ class PatientProfile:
     marital_status: str                     # HL7 v3: S/M/D/W
     preferred_language: str                 # BCP-47: "ja-JP"
     employment_status: str                  # "employed" | "retired"
+    occupation: str                         # "manufacturing" | "construction" | ... (12 categories, AD-45)
     insurance_type: str                     # "late_elderly" | "NHI_employee" | ...
     health_literacy: float                  # 0.0–1.0
     chronic_conditions: list[ChronicCondition]
