@@ -78,6 +78,26 @@ for each (finding, is_positive):
 
 `candidate.evidence` に `"chest_xray_consolidation: (+) LR=8.0"` のような履歴を追加していく。
 
+**具体例** (肺炎の鑑別):
+```
+初期 prior: bacterial_pneumonia=0.45, viral_pneumonia=0.30, heart_failure=0.25
+
+Finding 1: "chest_xray_consolidation" (+)
+  LR+ for bacterial_pneumonia = 8.0 → 0.45 × 8.0 = 3.60
+  LR+ for viral_pneumonia     = 3.0 → 0.30 × 3.0 = 0.90
+  LR+ for heart_failure       = 0.5 → 0.25 × 0.5 = 0.125
+  正規化: 3.60+0.90+0.125 = 4.625
+  → bacterial=0.778, viral=0.195, HF=0.027
+
+Finding 2: "procalcitonin_elevated" (+)
+  LR+ for bacterial = 5.0 → 0.778 × 5.0 = 3.89
+  LR+ for viral     = 1.2 → 0.195 × 1.2 = 0.234
+  LR+ for HF        = 0.8 → 0.027 × 0.8 = 0.022
+  正規化: → bacterial=0.938 (>0.90 threshold → 確定診断)
+```
+
+LR 値の目安: LR+ > 10 = 強い陽性根拠, 5-10 = 中程度, 2-5 = 弱い。 LR- < 0.1 = 強い除外。
+
 ### `get_current_diagnosis_code(diff, protocol_progression=None) -> tuple[str, str]`
 
 現時点での confidence に対応する (ICD code, display name) を返す。

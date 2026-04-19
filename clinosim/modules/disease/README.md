@@ -141,7 +141,110 @@ protocol.outcome_benchmarks["japan"]["median_los"]            # 7
 
 ## YAML スキーマ概要
 
-1 本の疾患 YAML は以下のセクションから構成される。詳細は `bacterial_pneumonia.yaml` を参照。
+1 本の疾患 YAML は以下のセクションから構成される。
+
+### 必須 vs オプション セクション
+
+| セクション | 必須 | 省略時の挙動 |
+|---|---|---|
+| metadata (disease_id, chief_complaint, department 等) | ✅ | Pydantic validation 失敗 |
+| `icd_codes` | ✅ | validation 失敗 |
+| `incidence` | ✅ | validation 失敗 |
+| `severity` | ✅ | validation 失敗 |
+| `initial_state_impact` | ✅ | validation 失敗 |
+| `course_archetypes` | ✅ | 経過シミュレーション不能 |
+| `presenting_symptoms` | ⚠️ | 空リスト (主訴生成に影響) |
+| `order_protocols` | ⚠️ | 入院時オーダーなし |
+| `drugs` | ⚠️ | 薬剤オーダーなし |
+| `target_los` | ⚠️ | デフォルト LOS 適用 |
+| `outcome_benchmarks` | ⚠️ | validator スキップ |
+| `complications` | 任意 | 合併症なし |
+| `diagnostic` | 任意 | 診断フィードバックなし |
+| `rehabilitation` | 任意 | リハビリなし |
+| `procedure` | 任意 | 手術なし (`requires_surgery: true` 時は必須) |
+| `medication_holds` | 任意 | 常用薬の入院中保留なし |
+| `treatment_modifications` | 任意 | 日別の治療変更なし |
+
+### 最小限の疾患 YAML テンプレート
+
+新しい疾患を追加する際のスターターテンプレート:
+
+```yaml
+# New Disease — Reference Data
+# Sources: [cite clinical guideline]
+disease_id: new_disease_id
+chief_complaint:
+  en: "Chief complaint in English"
+  ja: "主訴（日本語）"
+department: internal_medicine    # available_departments の1つ
+encounter_type: medical          # medical | surgical | trauma
+requires_surgery: false
+readmission_eligible: true
+
+icd_codes:
+  primary: "X99.9"
+  variants:
+    - {code: "X99.9", name: "New disease, unspecified", probability: 1.0}
+
+incidence:
+  japan:
+    "0-44": {M: 10, F: 10}
+    "45-64": {M: 50, F: 50}
+    "65+":  {M: 100, F: 100}
+  risk_multipliers: []
+  trigger_type: "acute_disease_onset"
+
+severity:
+  distribution: {mild: 0.50, moderate: 0.35, severe: 0.15}
+
+initial_state_impact:
+  mild:     {inflammation_level: 0.10}
+  moderate: {inflammation_level: 0.25, renal_function: -0.05}
+  severe:   {inflammation_level: 0.45, renal_function: -0.15}
+
+course_archetypes:
+  smooth_recovery:
+    probability: 0.75
+    trajectory:
+      inflammation_level: {0: 0.03, 1: -0.05, 3: -0.08, 5: -0.05, 7: -0.03}
+
+drugs:
+  first_line:
+    japan:
+      - {drug: "DrugName", dose: "dose route frequency"}
+    us:
+      - {drug: "DrugName", dose: "dose route frequency"}
+
+target_los:
+  japan:
+    moderate: {mean: 7, sd: 2, min: 4, max: 14}
+    severe:   {mean: 14, sd: 4, min: 7, max: 28}
+  us:
+    moderate: {mean: 3, sd: 1, min: 2, max: 7}
+    severe:   {mean: 6, sd: 2, min: 3, max: 14}
+
+outcome_benchmarks:
+  japan:
+    median_los: 7
+    in_hospital_mortality: 0.02
+  us:
+    median_los: 3
+    in_hospital_mortality: 0.01
+```
+
+### 新しい疾患を追加するチェックリスト
+
+1. ✅ `reference_data/<disease_id>.yaml` 作成（上記テンプレート使用）
+2. ✅ `demographics.yaml` の `disease_incidence` に追加（JP + US）
+3. ✅ `demographics.yaml` の `seasonal_modifiers` に追加
+4. ✅ `demographics.yaml` の `disease_risk_multipliers` に追加（慢性疾患リスク）
+5. ✅ `codes/data/icd-10-cm.yaml` + `icd-10.yaml` に ICD コード追加（EN + JA）
+6. ✅ `clinosim test-disease <disease_id>` で単体テスト
+7. ✅ `pytest -x -q` で回帰テスト
+8. ⚠️ 手術ありなら: `procedure` セクション + K-code/CPT を `codes/data/k-codes.yaml` + `cpt.yaml` に追加
+9. ⚠️ 労災なら: `occupation_risk_multipliers` を `demographics.yaml` に追加
+
+詳細は `bacterial_pneumonia.yaml` (内科) や `hip_fracture.yaml` (外科) を参考に。
 
 ### Metadata セクション (必須)
 

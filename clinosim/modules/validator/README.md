@@ -214,3 +214,19 @@ def my_benchmarks(dataset):
 
 - **依存なし**: CIFDataset を受け取るだけの post-hoc 検証
 - **呼び出し元**: `clinosim validate` CLI、またはテスト内から直接呼び出し
+
+### バリデーション実行方法
+
+```bash
+# CLI (全データの Tier 1 + Tier 2 検証)
+clinosim validate --cif-dir ./output/cif
+
+# Python API
+from clinosim.modules.validator.consistency import run_consistency_checks
+report = run_consistency_checks(cif_dataset)
+print(f"Errors: {report.error_count}, Warnings: {report.warning_count}")
+for issue in report.issues:
+    print(f"  [{issue.severity}] {issue.patient_id}: {issue.message}")
+```
+
+**結果の解釈**: `error` はデータ品質問題で修正必須。 `warning` は許容範囲内だが調査推奨。

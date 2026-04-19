@@ -189,6 +189,22 @@ source .venv/bin/activate && python -m pytest tests/unit/test_healthcare_system.
 - 看護体制 (1:7 / 1:10 / 1:4 等の日本固有の病棟区分)
 - 紹介制度 (primary care ゲートキーパー vs 自由受診)
 
+## healthcare_system vs locale の境界
+
+| データ | 管理場所 | 理由 |
+|---|---|---|
+| 年齢分布、疾患 incidence、occupation | `locale/<country>/demographics.yaml` | 人口動態データ |
+| 姓名、住所パターン | `locale/<country>/names.yaml`, `addresses.yaml` | 文化データ |
+| 検査基準範囲 (JCCLS等) | `locale/<country>/reference_range_lab.yaml` | 臨床検査基準 |
+| 薬品コード (RxNorm/YJ) | `locale/<country>/code_mapping_drug.yaml` | コードマッピング |
+| 常用薬 (慢性疾患別) | `locale/shared/chronic_medications.yaml` | 国共通 + `drug_ja` |
+| JP 薬品名辞書 | `locale/shared/drug_names_ja.yaml` | FHIR 出力用翻訳 |
+| ICD/LOINC/SNOMED コード | `codes/data/*.yaml` | 国際コード体系（locale ではない） |
+| 病院構成 (ベッド数、科) | `config/hospital_*.yaml` | 施設設定 |
+| 医療制度 (保険、処方慣行) | `healthcare_system/*.yaml` | 制度レベル設定 |
+
+**原則**: 「人や文化に紐づくデータ」→ locale、「制度や政策に紐づくデータ」→ healthcare_system、「国際標準コード」→ codes
+
 ## 修正ガイド
 
 ### 新しい国を追加する

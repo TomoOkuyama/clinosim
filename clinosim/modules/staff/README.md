@@ -251,3 +251,12 @@ source .venv/bin/activate && python -m pytest tests/unit/test_staff.py -v
 | `hospital_config` | `available_departments` でどの科のスタッフを生成するか決定 |
 | `output/document_generator` | ナラティブで staff_id → name 変換 |
 | `output/fhir_r4_adapter` | Practitioner + PractitionerRole FHIR リソース |
+
+### 新しい診療科のスタッフを追加する
+
+1. `engine.py` の `_DEPT_PREFIX` dict に追加（例: `"neurosurgery": "NS"`）— **Python コード変更が必要**
+2. `hospital_operations.yaml` の `available_departments` に追加
+3. `fhir_r4_adapter.py` の `_DEPT_DISPLAY_JA` に日本語名を追加
+4. `clinosim generate` を実行するとロスターに新科のスタッフが自動生成される
+
+`_DEPT_PREFIX` は `engine.py` 冒頭付近の dict 定義。各科の staff_id prefix (例: `DR-IM-001`) を決める。
