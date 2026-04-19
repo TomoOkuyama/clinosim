@@ -48,11 +48,14 @@ Primary use cases:
 - **9-variable physiology model** ensures labs/vitals are physiologically and clinically coherent
 - **Bayesian differential diagnosis** with likelihood ratios; 6 disease trajectory archetypes
 - **Authoritative code systems** (ICD-10-CM, LOINC, RxNorm, JLAC10, YJ codes, CPT, SNOMED CT subset) with multilingual display
-- **28 diseases + 44 ED/outpatient conditions** defined in YAML (no code changes to add new ones)
+- **32 diseases + 46 ED/outpatient conditions** defined in YAML (no code changes to add new ones)
 - **JCCLS reference ranges 2022** for Japanese labs; Tietz/Mayo for US
 - **NEWS2-compatible vitals** including AVPU consciousness level and supplemental oxygen
 - **Ward + bed Location hierarchy** with PractitionerRole.location assignment
 - **Operating rooms** modeled as FHIR Locations; surgical procedures include category (SNOMED), performer.function (surgeon/anaesthetist), bodySite, outcome, and complications
+- **Occupational injuries**: 6 work-related conditions (crush injury, industrial burn, fall from height, electrical injury, eye foreign body, chemical exposure) with occupation-based risk multipliers
+- **Patient occupation** field (12 categories) with FHIR Observation (LOINC 11341-5, social-history)
+- **Multilingual FHIR coding**: Condition and Procedure emit dual coding entries (primary language + interop language); Condition code.text includes clinical abbreviations (COPD, CHF, CKD, DM)
 - **Snapshot date** support — includes "currently admitted" patients (in-progress encounters)
 - **30-day readmission chains** with `prior_encounter_id` linking
 - **Multi-country**: US (English) and JP (Japanese) parallel output
@@ -545,7 +548,7 @@ clinosim/
 │   └── cli.py                # CLI entry point (generate, narrate, export-fhir, ...)
 │
 └── tests/
-    ├── unit/                 # Module unit tests (187 tests)
+    ├── unit/                 # Module unit tests (189 tests)
     ├── integration/          # Cross-module integration tests
     └── e2e/                  # E2E + golden file tests
 ```

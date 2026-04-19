@@ -43,7 +43,7 @@
 - **9 状態変数による生理学モデル** で labs/vitals が物理的・臨床的に整合
 - **Bayesian 鑑別診断** (尤度比表)、 6つの疾患進行アーキタイプ
 - **権威コード体系** (ICD-10-CM, LOINC, RxNorm, JLAC10, YJ コード, CPT) 経由の多言語表示
-- **28 疾患 + 44 ED/外来 condition** を YAML定義 (コード変更なしで追加可)
+- **32 疾患 + 46 ED/外来 condition** を YAML定義 (コード変更なしで追加可)
 - **JCCLS 共用基準範囲 2022** に準拠した検査基準範囲
 - **NEWS2 互換バイタル** (意識レベル AVPU, 補助酸素流量を含む)
 - **病棟・ベッド単位** の Location 階層、 PractitionerRole.location 紐付け
@@ -360,7 +360,7 @@ clinosim/
 ├── modules/                  # 機能モジュール (各 README あり)
 │   ├── codes/                # → 上に展開
 │   ├── disease/              # 28 疾患 YAML protocol
-│   ├── encounter/            # 44 ED/外来 condition YAML
+│   ├── encounter/            # 46 ED/外来 condition YAML
 │   ├── physiology/           # 9 状態変数モデル + lab/vital 導出
 │   ├── clinical_course/      # 6 archetype + 合併症 + diagnosis feedback
 │   ├── diagnosis/            # Bayesian 鑑別診断 (LR table)
@@ -453,7 +453,7 @@ YAML 定義で 28 疾患をサポート (急性入院の約 80% をカバー):
 | **感染症** | 敗血症、尿路感染症、蜂窩織炎 |
 | **血管** | 深部静脈血栓症 |
 
-加えて **44 ED/外来 conditions** (chest pain, viral gastroenteritis, ankle sprain, annual screening, flu vaccination, dialysis session, etc.) — `clinosim/modules/encounter/reference_data/`。
+加えて **46 ED/外来 conditions** (chest pain, viral gastroenteritis, ankle sprain, annual screening, flu vaccination, dialysis session, etc.) — `clinosim/modules/encounter/reference_data/`。
 
 新疾患追加は **YAML を追加するだけ** (コード変更なし)。 詳細は `clinosim/modules/disease/README.md`。
 

@@ -1998,3 +1998,86 @@ The FHIR R4 adapter applies Japanese localization when `country="JP"`:
 | Practitioner | qualification | `医師` |
 
 All localization is at FHIR output time (AD-30). CIF remains language-neutral.
+
+---
+
+## Part 10: FHIR standards compliance + occupational injuries (2026-04-19)
+
+### AD-44: Enrichment is language-neutral
+
+A/B test on 8 patients × 2 document types (admission_hp, discharge_summary) confirmed:
+
+| Aspect | A (pre-localized JP) | B (English, LLM translates) |
+|--------|---------------------|---------------------------|
+| Drug/procedure names | Both correct | Both correct |
+| Natural Japanese flow | Slightly mechanical | More natural |
+| CRP unit | Correct (mg/dL) | **Wrong** (mg/L leaked) |
+| Diagnosis short names | Correct | ICD full names (unnatural) |
+| Token usage | 9,219 | 9,231 (≈ identical) |
+
+**Conclusion**: LLM translates free text well, but fails at math (CRP) and code normalization
+(ICD display). Keep code_lookup + CRP conversion only. Everything else English.
+
+### AD-45: Occupation model
+
+```
+PersonRecord.occupation: str  →  PatientProfile.occupation: str
+                                  ↓
+                         FHIR Observation (LOINC 11341-5, social-history)
+```
+
+Categories: manufacturing, construction, agriculture, healthcare, service, office,
+transportation, education, homemaker, student, retired, unemployed, other.
+
+`demographics.yaml` provides:
+- `occupation_distribution.working_age` — per-country labor statistics
+- `occupation_risk_multipliers` — per-injury-type risk by occupation (e.g. crush_injury_hand × 6.0 for manufacturing)
+
+### AD-46: Multilingual FHIR coding
+
+Condition and Procedure resources emit dual `coding[]` entries:
+
+```json
+{
+  "coding": [
+    {"system": "icd-10", "code": "J44.1", "display": "その他の慢性閉塞性肺疾患"},
+    {"system": "icd-10", "code": "J44.1", "display": "Other chronic obstructive pulmonary disease"}
+  ],
+  "text": "COPD（慢性閉塞性肺疾患）"
+}
+```
+
+`_build_diagnosis_codeable_concept()` tries `icd-10` → falls back to `icd-10-cm` → `"(display unavailable)"`.
+`code.text` uses `_CONDITION_SHORT_NAME` for search-friendly abbreviations (AD-49).
+
+### AD-47: Observation referenceRange + interpretation consistency
+
+Per FHIR R5 Note 5: "The interpretation should be consistent with the reference range when both
+are provided."
+
+- Lab interpretation recomputed from value vs normal range (not CIF flag alone)
+- Critical flags (H*/L*/critical) → directional LL/HH (not generic AA)
+- Vital signs emit two referenceRange entries: `type=normal` and `type=treatment` (critical/panic)
+- SpO2: `crit_high=None` (no upper critical — 100% is normal, not HH)
+
+### AD-48: procedure_name removed from CIF
+
+Strict AD-30 compliance: `ProcedureRecord` no longer has `procedure_name` field.
+Display is resolved at output time via `code_lookup("k-codes"|"cpt", code, lang)`.
+Both `procedure_code_jp` and `procedure_code_us` are stored for multilingual output.
+`_resolve_procedure_name(proc_dict, lang)` is the shared helper across all consumers.
+
+### Work-related injury YAMLs
+
+4 inpatient (disease/reference_data/):
+- `crush_injury_hand.yaml` (S67.2, ICD)
+- `industrial_burn_severe.yaml` (T31.2, ICD)
+- `fall_from_height.yaml` (T07, ICD)
+- `electrical_injury.yaml` (T75.4, ICD)
+
+2 ED (encounter/reference_data/):
+- `eye_foreign_body.yaml` (T15.0, ICD)
+- `chemical_exposure.yaml` (T54.9, ICD)
+
+All have `probability` (for ED weighted selection) and age_rates/sex_ratio (for inpatient
+incidence). Occupation risk multipliers concentrate events in industrial workers.
