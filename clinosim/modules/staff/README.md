@@ -232,3 +232,22 @@ source .venv/bin/activate && python -m pytest tests/unit/test_staff.py -v
 ```
 
 カバー範囲: ロスター生成 (scale 別)、 科別配分、 ward 配置、 assign_staff の fallback chain、 国別名前生成。
+
+## 修正ガイド
+
+### スタッフ名とFHIR出力の関係
+
+- CIF `hospital.json` にスタッフロスター (staff_id, name, department) が格納される
+- ナラティブ生成時: `document_generator._load_staff_names()` がロスターを読み込み、staff_id を実名に変換
+  - JP: `佐伯 紬医師` (family given + 「医師」suffix)
+  - US: `Dr. Smith`
+- FHIR: `Practitioner.ndjson` にスタッフリソースとして出力
+
+### 関連モジュール
+
+| モジュール | 関係 |
+|---|---|
+| `locale` | `names.yaml` からスタッフ名を生成 (国別 surname/given) |
+| `hospital_config` | `available_departments` でどの科のスタッフを生成するか決定 |
+| `output/document_generator` | ナラティブで staff_id → name 変換 |
+| `output/fhir_r4_adapter` | Practitioner + PractitionerRole FHIR リソース |

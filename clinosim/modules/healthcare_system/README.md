@@ -188,3 +188,19 @@ source .venv/bin/activate && python -m pytest tests/unit/test_healthcare_system.
 - 処方慣行 (ジェネリック比率、 後発品優先度)
 - 看護体制 (1:7 / 1:10 / 1:4 等の日本固有の病棟区分)
 - 紹介制度 (primary care ゲートキーパー vs 自由受診)
+
+## 修正ガイド
+
+### 新しい国を追加する
+
+1. `clinosim/locale/<country>/` ディレクトリ作成:
+   - `demographics.yaml` — 年齢分布、疾患 incidence、occupation_distribution
+   - `names.yaml` — 姓名 (weighted sampling)
+   - `addresses.yaml` — 住所パターン
+   - `reference_range_lab.yaml` — 検査基準範囲
+   - `code_mapping_lab.yaml`, `code_mapping_drug.yaml`
+2. `clinosim/locale/loader.py` の `_COUNTRY_DIR_MAP` に追加
+3. `clinosim/config/hospital_operations.yaml` の `recommended_population` に国追加
+4. `codes/data/*.yaml` に必要な ICD/LOINC/drug コードの多言語エントリ追加
+5. `llm_service/prompts/<lang>/` にナラティブプロンプト追加
+6. コード変更: population engine, patient activator は原則コード変更不要（YAML駆動）

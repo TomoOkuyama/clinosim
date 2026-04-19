@@ -417,3 +417,21 @@ pytest tests/unit/test_order.py::test_lab_result_time -v
 - [ ] Medication order recurring schedule (MAR auto-expansion)
 - [ ] Trigger order evaluation (protocol triggers like "stat lactate if febrile")
 - [ ] Equipment capacity constraints with priority preemption
+
+## 修正ガイド（追加情報）
+
+### 薬品追加時の関連ファイル
+
+| ファイル | 目的 | 例 |
+|---|---|---|
+| disease YAML `drugs.first_line` | 入院時の薬剤オーダー | `{drug: "Meropenem", dose: "1g IV q8h"}` |
+| `locale/shared/chronic_medications.yaml` | 慢性疾患の常用薬 | `drug_ja` フィールドでJP名 |
+| `locale/shared/drug_names_ja.yaml` | FHIR JP 出力用辞書 | `Meropenem: "メロペネム"` |
+| `locale/{jp,us}/code_mapping_drug.yaml` | 薬品名 → RxNorm/YJ コード | |
+
+### 薬品名の AD-30 原則
+
+- CIF には **英語薬品名** を格納 (Order.display_name, MAR.drug_name)
+- JP FHIR 出力時は `_localize_drug_name()` が `drug_names_ja.yaml` で変換
+- **空文字の drug_name はスキップ** される (FHIR adapter 側のフィルタ)
+- プロトコル接頭辞 (`DVT_prophylaxis:` 等) は FHIR adapter で `_strip_protocol_prefix()` により分離 (AD-50)

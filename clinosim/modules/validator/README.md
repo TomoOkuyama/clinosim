@@ -187,3 +187,30 @@ def my_benchmarks(dataset):
 - Tier 3 (専門家レビュー) は未実装
 - 死亡率・再入院率・合併症発生率の検証項目を追加予定
 - 期待値は文献の中央値ベース。 患者構成 (重症度・併存疾患) を考慮したリスク調整は未対応
+
+## 修正ガイド
+
+### 新しい Tier 2 チェックを追加する
+
+1. `consistency.py` に `_check_new_rule(record, pid, report)` 関数を追加
+2. `run_consistency_checks()` の呼び出しリストに追加
+3. `ConsistencyIssue` で `issue_type` を一意な名前にする
+4. テスト: `pytest tests/unit/test_validator.py -v`
+
+### Tier 2 既存 8 チェック
+
+| チェック名 | 内容 |
+|---|---|
+| `discharge_hgb` | 退院時 Hgb < 5.0 なら warning |
+| `deceased_disposition` | 死亡患者の disposition が "expired" / "died" か |
+| `lab_range` | ラボ値が物理的にあり得ない範囲でないか |
+| `medication_holds` | disease YAML の medication_holds に基づく薬剤保留チェック |
+| `procedure_fields` | 手術に procedure_code と approach があるか |
+| `los_consistency` | 入退院日時から計算した LOS が physiological_states 数と整合するか |
+| `vital_ranges` | バイタルが生存可能範囲内か |
+| `sex_specific_conditions` | 性別特異的疾患が正しい性別に割り当てられているか |
+
+### 関連モジュール
+
+- **依存なし**: CIFDataset を受け取るだけの post-hoc 検証
+- **呼び出し元**: `clinosim validate` CLI、またはテスト内から直接呼び出し

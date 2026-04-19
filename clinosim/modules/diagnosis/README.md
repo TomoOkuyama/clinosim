@@ -275,3 +275,25 @@ source .venv/bin/activate && python -m pytest tests/unit/test_diagnosis.py -v
   - Schuetz P et al., Cochrane Database 2017 (procalcitonin for bacterial infection)
   - McGee S, *Evidence-Based Physical Diagnosis*, 4th ed (clinical finding LRs)
 - ICD-10-CM コードは CMS 公式 (`clinosim.codes` モジュール参照)
+
+## 修正ガイド
+
+### 新しい疾患の診断ロジックを追加する
+
+1. disease YAML の `diagnostic` セクションに `differential`, `likelihood_ratios`, `confirmation_threshold` を記述
+2. コード変更不要（YAML 駆動）
+
+### 関連モジュール
+
+| モジュール | 関係 |
+|---|---|
+| `disease` | 鑑別診断リスト・LR テーブルのソース (YAML) |
+| `clinical_course` | 診断フィードバック (`diagnosis_correct` → treatment_sensitivity) |
+| `output` | `clinical_diagnosis.admission_diagnosis_code` → FHIR Condition (code_lookup で表示名解決) |
+| `codes` | ICD-10-CM/ICD-10 コード辞書 — 新コード追加時は `codes/data/icd-10-cm.yaml` + `icd-10.yaml` の両方に EN/JA で追加 |
+
+### ICD コード追加時の注意
+
+- `icd-10-cm.yaml` (US 主体) と `icd-10.yaml` (JP 主体) の **両方** に追加すること
+- 各エントリに `en` (必須) + `ja` (JP 出力用) フィールド
+- `_CONDITION_SHORT_NAME` (fhir_r4_adapter.py) に臨床略語があれば追加 (COPD, CHF 等)

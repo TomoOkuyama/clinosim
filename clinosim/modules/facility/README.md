@@ -284,3 +284,30 @@ daily_patterns:
 - `clinosim.modules.staff` — 個別 Practitioner ロスター (本モジュールは集約 staffing level のみ扱う)
 - `clinosim.modules.encounter` — オーダー発行と TAT 適用
 - `clinosim.modules.order` — オーダー種別と urgency 設定
+- `clinosim/config/hospital_operations.yaml` — 病床数・診療科・病棟・リソース容量の定義
+
+## 修正ガイド
+
+### 病院構成を変更する
+
+- `clinosim/config/hospital_operations.yaml` を編集（50床 community hospital）
+- `clinosim/config/hospital_small.yaml` を編集（10床 clinic）
+- カスタム: `--hospital-config PATH` で独自 YAML を指定
+
+### 新しい診療科を追加する
+
+1. `hospital_operations.yaml` の `available_departments` に追加
+2. `department_rollup` に細分化科 → 利用可能科のマッピング追加
+3. `wards` + `ward_capacity` に病棟・ベッド数追加
+4. `staff` モジュールの `_DEPT_PREFIX` に追加
+5. FHIR: `fhir_r4_adapter.py` の `_DEPT_DISPLAY_JA` に日本語名追加
+
+### recommended_population の調整
+
+```yaml
+recommended_population:
+  US: 40000   # 50 beds ÷ 130/100K ≈ 40K → ~80% occupancy
+  JP: 10000   # admission throughput basis: 50×365×0.80/14d ≈ 1,043/yr
+```
+
+`-p` CLI オプションでも上書き可能。
