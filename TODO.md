@@ -1,26 +1,29 @@
 # clinosim — TODO
 
-## Status (current as of 2026-04-13)
+## Status (current as of 2026-04-19)
 
-**v0.2 (Simulation realism + Japanese documents)** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 28 diseases, snapshot date support, pluggable LLM providers (Ollama/Bedrock/Mock), three-stage CLI pipeline (`generate` → `narrate` → `export-fhir`), FHIR DocumentReference for 5 clinical document types (Tier A+B) in English and Japanese.
+**v0.2 (Simulation realism + Japanese/English documents + Occupational injuries)** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 32 diseases + 46 ED/outpatient conditions, occupational injury support (6 work-related conditions + occupation field), snapshot date support, pluggable LLM providers (Ollama/Bedrock/Mock), three-stage CLI pipeline (`generate` → `narrate` → `export-fhir`), FHIR DocumentReference for 5 clinical document types (Tier A+B) in English and Japanese.
 
-Generated dataset stats (US 50-bed hospital, catchment 30k):
-- 12,378 unique patients
-- 77,034 encounters (inpatient + ED + outpatient)
-- 176,803 conditions
-- 835,990 observations
-- 13 FHIR resource types (12 structured + DocumentReference) with 0 ID violations
-- 187 unit tests passing
+Latest generated datasets:
 
-JP narrative validation (8 patients, Bedrock Claude Sonnet 4, seed=123):
-- 22 documents across 5 types, 8 diseases (sepsis, appendicitis, hip fracture, AMI, GI bleed, hemorrhagic stroke, cellulitis, AF-RVR)
-- Japanese medical terminology accuracy verified by clinician review
-- CRP unit conversion (mg/L→mg/dL) handled in code, not by LLM
-- Staff name suffix (「医師」) consistent across all documents
+US full run (40K catchment, 50-bed hospital, seed=42):
+- 102,485 encounters (1,501 inpatient + 96,114 outpatient + 5,029 ED)
+- 3,344 Bedrock EN narrative documents (1,501 H&P + 1,501 DC + 181 Proc + 97 Op + 64 Death)
+- 15 in-progress encounters (snapshot date)
+- FHIR Bulk Data 2.0GB, 13 resource types + DocumentReference, 0 ID violations
 
-EN Bedrock full run (69 patients, seed=42):
-- 157 documents (69 H&P + 69 DC + 5 Op + 11 Proc + 3 Death)
-- 100% reference integrity (Patient / Encounter / Practitioner)
+JP full run (5K catchment, 50-bed hospital, seed=42):
+- 16,637 encounters (227 inpatient + 15,886 outpatient + 524 ED)
+- 499 Bedrock JP narrative documents
+- Multilingual FHIR coding (JP primary + EN secondary for Condition/Procedure)
+- CRP unit conversion (mg/L→mg/dL) code-side (AD-42)
+- FHIR Bulk Data 467MB
+
+Code system coverage:
+- 234 ICD-10-CM codes, 133 ICD-10 codes (EN + JA bilingual)
+- 65 LOINC, 68 RxNorm, 31 CPT, 25 K-codes, 39 YJ, 31 SNOMED CT
+- 120+ drug name JP translations (drug_names_ja.yaml)
+- 189 unit tests passing
 
 ## Architecture Decisions (current)
 
@@ -68,7 +71,14 @@ EN Bedrock full run (69 patients, seed=42):
 | **AD-40** | 2026-04-09 | **Prompt templates as per-language YAML**: `clinosim/modules/llm_service/prompts/<lang>/<task>.yaml` with `system`, `user_template`, `max_tokens`, `temperature`, `version`. Rendered via `string.Template` (stdlib, zero deps). Language fallback to English (mirrors codes module). |
 | **AD-41** | 2026-04-09 | **SHA256 disk cache for LLM responses**: `PromptCache` keys by `SHA256(system ‖ user ‖ model)`. Enables reproducible re-runs, partial re-run recovery, and cost control for Bedrock. Cache stats in `cost_report()`. |
 | **AD-42** | 2026-04-13 | **Code-side unit conversion for Japanese locale**: CRP mg/L→mg/dL conversion happens in `hospital_course_extractor` and `document_generator` (not in LLM prompt). `format_lab_trends(language=)` and `_initial_labs(language=)` apply locale-specific conversion factors. |
-| **AD-43** | 2026-04-13 | **Japanese narrative prompt quality rules**: All ja prompts include mandatory 「医師」suffix for staff names. Units provided pre-converted so LLM uses input values as-is. |
+| **AD-43** | 2026-04-13 | **Japanese narrative prompt quality rules**: All ja prompts include mandatory 「医師」suffix for staff names. Markdown forbidden — use 【】 section headers, ■ subheaders, ・ bullets. |
+| **AD-44** | 2026-04-15 | **Enrichment is language-neutral, display at output time**: A/B test confirmed LLM translates drug/procedure names reliably. Enrichment passes English text to LLM; only 2 code-side exceptions: (1) `code_lookup(system, code, lang)` for official short-form diagnosis names, (2) CRP unit conversion (math). |
+| **AD-45** | 2026-04-15 | **Occupation field on Patient/PersonRecord**: 12 categories (manufacturing, construction, agriculture, healthcare, service, office, transportation, education, homemaker, student, retired, unemployed). Drives work-related injury incidence via `occupation_risk_multipliers` in demographics.yaml. FHIR Observation (LOINC 11341-5, social-history). |
+| **AD-46** | 2026-04-16 | **Multilingual FHIR coding**: Condition and Procedure emit dual coding entries (primary language + interop language). `_build_diagnosis_codeable_concept()` resolves from both `icd-10` and `icd-10-cm` with cross-system fallback. Never emits `display==code`. |
+| **AD-47** | 2026-04-16 | **FHIR Observation referenceRange/interpretation consistency**: Both must be present and consistent per FHIR R5 Note 5. Lab interpretation recomputed from value vs referenceRange (not CIF flag alone). Vital signs include normal + critical (panic) reference ranges as separate entries. |
+| **AD-48** | 2026-04-16 | **Procedure display via code dictionary (AD-30 strict)**: `procedure_name` removed from ProcedureRecord — display resolved at output time via `code_lookup("k-codes"|"cpt", code, lang)`. Both `procedure_code_jp` and `procedure_code_us` stored in CIF for multilingual FHIR output. |
+| **AD-49** | 2026-04-18 | **Condition code.text with clinical abbreviations**: `_CONDITION_SHORT_NAME` maps ICD base codes to search-friendly short names (COPD, CHF, CKD, DM, AF, etc.) in both EN and JA. `coding[].display` keeps official ICD name. |
+| **AD-50** | 2026-04-18 | **Medication protocol prefix stripping**: `_strip_protocol_prefix()` separates category prefixes (DVT_prophylaxis:, antipyretic:, etc.) from drug name in `medicationCodeableConcept.text`. Drug name only in text, protocol context in dosageInstruction. |
 
 ## Implementation Status
 
@@ -148,33 +158,44 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 | 12 | EC2 Bedrock full 421-document run | infra | ✅ |
 | 13 | FHIR Bulk Data with DocumentReference → iris-ai | `output` | ✅ |
 
-### v0.2 — Simulation realism + Japanese documents (CURRENT)
+### v0.2 — Simulation realism + JP/EN documents + Occupational injuries (CURRENT)
 
 | # | Task | Module | Status |
 |---|---|---|---|
 | 1 | Severity-based lab frequency modulation | `simulator` | ✅ severe 1.3x, mild 0.6x |
-| 2 | Trauma Hgb recovery model / discharge gate | `physiology`, `simulator` | ✅ natural recovery + transfusion impact + anemia gate |
-| 3 | HF exacerbation: IV diuretic not in MAR | `simulator`, `order` | ✅ all first_line drugs ordered + PO furosemide held |
-| 4 | narrate progress display (patient N/M) | `output` | ✅ every 10 patients |
+| 2 | Trauma Hgb recovery model / discharge gate | `physiology`, `simulator` | ✅ |
+| 3 | HF exacerbation: IV diuretic not in MAR | `simulator`, `order` | ✅ |
+| 4 | narrate progress display (patient N/M) | `output` | ✅ |
 | 5 | Treatment escalation from disease YAML | `simulator` | ✅ Day 3 escalation when inflammation > 0.3 |
-| 6 | Treatment change detection in extractor | `output` | ✅ MAR datetime fix + new drug detection |
-| 7 | JP 5K Bedrock full run (CIF + narrative) | infra | ✅ Running on EC2 |
-| 8 | Japanese prompts (`prompts/ja/*.yaml`) with clinician review | `llm_service` | ✅ 5 prompts, 2 rounds of review, quality verified |
-| 9 | Template fallbacks for new Tier A+B tasks | `llm_service` | ✅ enriched with lab trends, approach, implants, etc. |
-| 10 | Diurnal lab variation (glucose postprandial, WBC circadian) | `physiology` | ✅ |
-| 11 | Critical patient vitals q2h (sepsis, MI, trauma) | `simulator` | ✅ |
-| 12 | Consistency validator Tier 2 (rule-based, 8 checks) | `validator` | ✅ 0 errors, 0 warnings |
+| 6 | Treatment change detection in extractor | `output` | ✅ |
+| 7 | JP Bedrock full run (5K pop, 499 docs) | infra | ✅ |
+| 8 | Japanese prompts (`prompts/ja/*.yaml`) | `llm_service` | ✅ 5 types, 【】format, 「医師」suffix |
+| 9 | Template fallbacks for Tier A+B | `llm_service` | ✅ |
+| 10 | Diurnal lab variation | `physiology` | ✅ |
+| 11 | Critical patient vitals q2h | `simulator` | ✅ |
+| 12 | Consistency validator Tier 2 (8 checks) | `validator` | ✅ 0 errors |
 | 13 | AKI complication → metformin cancel | `simulator` | ✅ |
-| 14 | CRP mg/L→mg/dL code-side conversion for ja locale | `output` | ✅ (AD-42) |
-| 15 | Staff name suffix 「医師」 consistency in ja prompts | `llm_service` | ✅ (AD-43) |
-| 16 | Chronic med base code fallback in inpatient.py | `simulator` | ✅ code.split(".")[0] fallback |
-| 17 | Empty medication string filter (helpers + activator) | `simulator`, `patient` | ✅ drug_name key + empty filter |
-| 18 | JP FHIR localization (Location/Encounter/dosage/marital) | `output` | ✅ |
-| 19 | EN 5K Bedrock re-run (with all simulation fixes) | infra | After JP run |
-| 20 | 40K population full run (US production scale) | infra | After #19 |
-| 21 | Anthropic direct provider (non-Bedrock) | `llm_service` | Open |
-| 22 | OpenAI-compatible provider (LiteLLM / vLLM) | `llm_service` | Open |
-| 23 | **A/B test: pre-localized vs English enrichment for JP narratives** | `output`, `llm_service` | **Open** — currently pre-localize all enrichment (drug names, procedure names, event descriptions, complications). Original design (AD-30) was English enrichment + LLM translates via `language=ja` instruction. Need to empirically compare quality (medical term accuracy, natural JP flow, token usage, hallucination rate) on same CIF dataset. If English input gives equal/better quality with high-tier models (Claude Sonnet 4), revert pre-localization to simplify maintenance. May need per-provider config (pre-localize for small/local models, English-only for Bedrock). |
+| 14 | CRP mg/L→mg/dL code-side conversion | `output` | ✅ (AD-42) |
+| 15 | Staff name 「医師」 suffix | `llm_service` | ✅ (AD-43) |
+| 16 | Chronic med base code fallback | `simulator` | ✅ |
+| 17 | Empty medication string filter | `simulator`, `patient` | ✅ |
+| 18 | JP FHIR full localization | `output` | ✅ (display/text/name 全て JP) |
+| 19 | A/B test: enrichment localization strategy | `output` | ✅ (AD-44) English enrichment + LLM translates |
+| 20 | Enrichment language-neutral refactor | `output` | ✅ (AD-44) code_lookup + CRP のみ locale依存 |
+| 21 | Occupation field (PersonRecord + PatientProfile) | `population`, `patient` | ✅ (AD-45) 12 categories |
+| 22 | Work-related injuries (4 inpatient + 2 ED) | `disease`, `encounter` | ✅ (AD-45) occupation_risk_multipliers |
+| 23 | Multilingual FHIR coding (Condition + Procedure) | `output` | ✅ (AD-46) primary + interop dual coding |
+| 24 | FHIR Observation referenceRange/interpretation | `output` | ✅ (AD-47) 0 inconsistencies |
+| 25 | procedure_name removed from CIF (AD-30 strict) | `procedure`, `output` | ✅ (AD-48) code_lookup only |
+| 26 | JP drug name dictionary (120+ entries) | `locale` | ✅ drug_names_ja.yaml |
+| 27 | JP allergen/procedure/dosage term localization | `output` | ✅ FHIR adapter |
+| 28 | Emergency contact real person names | `patient` | ✅ (佐伯 紬, not 佐伯家) |
+| 29 | Condition code.text abbreviations (COPD, CHF, CKD) | `output` | ✅ (AD-49) |
+| 30 | Medication protocol prefix stripping | `output` | ✅ (AD-50) |
+| 31 | US 40K Bedrock full run (3,344 EN docs) | infra | ✅ |
+| 32 | JP recommended_population 5K → 10K | `config` | ✅ |
+| 33 | Anthropic direct provider (non-Bedrock) | `llm_service` | Open |
+| 34 | OpenAI-compatible provider (LiteLLM / vLLM) | `llm_service` | Open |
 
 ## Open Design Questions
 
@@ -276,6 +297,26 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 - [ ] Full validation against published benchmarks
 - [ ] Comprehensive documentation
 - [ ] Stable API contracts
+
+## Recent completions (2026-04-19 — Milestone 4: FHIR standards compliance + occupational injuries)
+
+- ✅ Occupational injuries: 4 inpatient (crush_injury_hand, industrial_burn_severe, fall_from_height, electrical_injury) + 2 ED (eye_foreign_body, chemical_exposure) — with occupation_risk_multipliers in demographics.yaml
+- ✅ Occupation field on PersonRecord/PatientProfile: 12 categories with age-based distribution from labor statistics. FHIR output as Observation (LOINC 11341-5, social-history)
+- ✅ A/B test: empirically confirmed English enrichment + LLM translation gives equal/better quality vs pre-localization. Reverted over-localization (AD-44)
+- ✅ Multilingual FHIR coding: Condition and Procedure emit dual coding (JP primary + EN interop, or vice versa). `_build_diagnosis_codeable_concept()` with cross-system fallback (AD-46)
+- ✅ FHIR Observation referenceRange/interpretation consistency: 0 inconsistencies (was 5,522). SpO2 100% HH bug fixed. Vital signs include normal + critical ranges. JP display for all (AD-47)
+- ✅ procedure_name removed from ProcedureRecord (AD-48, AD-30 strict): display via code_lookup("k-codes"|"cpt", code, lang). Both procedure_code_jp and procedure_code_us stored
+- ✅ k-codes.yaml expanded 2→25 entries, cpt.yaml +6 entries. Procedure display via code dictionary (not hardcoded dict)
+- ✅ Comprehensive JP FHIR localization: all display/text/name fields (Encounter class, Condition category/severity, Observation category/interpretation, referenceRange, Organization type, Location name/type, Patient relationship, Procedure code, MedicationRequest/Administration text)
+- ✅ Drug name dictionary (120+ entries) + allergen/procedure/dosage term translation for FHIR adapter
+- ✅ Condition code.text abbreviations (COPD, CHF, CKD, DM, AF etc.) for search friendliness (AD-49)
+- ✅ Medication protocol prefix stripping — DVT_prophylaxis:, antipyretic: etc. removed from medicationCodeableConcept.text (AD-50)
+- ✅ Emergency contact person names (佐伯 紬 instead of 佐伯家)
+- ✅ JP recommended_population 5K→10K (realistic 70-80% bed occupancy)
+- ✅ US 40K full run on EC2: 3,344 Bedrock EN documents, FHIR 2.0GB
+- ✅ JP 5K full run on EC2: 499 Bedrock JP documents, FHIR 467MB
+- ✅ ICD-10 + ICD-10-CM: 12 missing codes added (J12.9, A08.4, M54.50 etc.)
+- ✅ 189 unit tests passing
 
 ## Recent completions (2026-04-13 — Milestone 3: Japanese narrative quality + simulation fixes)
 

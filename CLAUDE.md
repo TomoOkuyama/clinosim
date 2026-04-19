@@ -69,7 +69,7 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 - `pytest -m unit` — per-module unit tests (<30s)
 - `pytest -m integration` — module chain tests (<5min)
 - `pytest -m e2e` — golden file comparison (<30min)
-- `pytest -x` — full suite (~2 min, 140 tests)
+- `pytest -x` — full suite (~2 min, 189 tests)
 - Always run unit tests before committing.
 
 ## When modifying a module
@@ -82,9 +82,34 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 6. If adding a new code, add it to `clinosim/codes/data/<system>.yaml` with at least an `en` field
 7. Run tests: `pytest -x -q`
 
+## FHIR output rules (must follow for all resource builders)
+
+- **Multilingual coding**: Condition and Procedure emit dual `coding[]` entries — primary language + interop language. Never emit `display == code`.
+- **code.text**: Use clinical short names from `_CONDITION_SHORT_NAME` (e.g. "COPD" not "Other chronic obstructive pulmonary disease"). For Procedures, resolve via `code_lookup()`.
+- **Medication text**: Strip protocol prefixes (DVT_prophylaxis:, antipyretic: etc.) via `_strip_protocol_prefix()`. `medicationCodeableConcept.text` = drug name only.
+- **referenceRange + interpretation**: Both MUST be present for numerical observations and MUST be consistent (FHIR R5 Note 5). Lab interpretation recomputed from value vs referenceRange.
+- **JP localization**: All `display`, `text`, `name` fields must use Japanese when `country="JP"`. Use `_localize_display()` for enum values. Drug/procedure names via `code_lookup()` or `_localize_drug_name()`.
+- **US output**: Must be 100% English. No Japanese characters in any field.
+
+## Enrichment architecture (narrative prompts)
+
+- **Enrichment is language-neutral** (AD-44): extraction functions produce English structured data regardless of target language. LLM translates based on prompt language instruction.
+- **Only 2 locale-specific operations in enrichment**:
+  1. `code_lookup(system, code, language)` — returns official diagnosis short name in target language
+  2. CRP unit conversion (mg/L → mg/dL for JP) — mathematical, not translation (AD-42)
+- **Do NOT pre-translate** drug names, procedure names, complication labels, event descriptions. LLM handles this.
+- **FHIR adapter localization is separate** — FHIR output path (not going through LLM) uses its own dictionaries (`drug_names_ja.yaml`, `_PROCEDURE_NAME_JA`, `_CONDITION_SHORT_NAME`, etc.)
+
+## AD-30 (CIF is language-neutral) enforcement
+
+- CIF stores **codes only**, not display text. Display resolved at output time via `clinosim.codes.lookup()`.
+- `ProcedureRecord` has `procedure_code`, `procedure_code_jp`, `procedure_code_us` — no `procedure_name`.
+- Drug names in `Order.display_name` and `MAR.drug_name` are English (pragmatic exception — RxNorm integration incomplete).
+- Diagnosis display comes from `code_lookup()` at FHIR export / enrichment time.
+
 ## Current implementation phase
 
-**v0.1-beta** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 28 diseases, snapshot date support.
+**v0.1-beta** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 32 diseases, snapshot date support.
 
 See `TODO.md` for roadmap and remaining tasks.
 
@@ -134,6 +159,7 @@ ollama pull llama3.1:70b
 
 Config files:
 - `clinosim/config/llm_service.yaml` — default (local Ollama)
+- `clinosim/config/llm_service.bedrock.yaml` — AWS Bedrock (Claude Sonnet 4, EC2 with IAM role)
 - `clinosim/config/llm_service.cloud.yaml` — cloud (Anthropic API, needs `ANTHROPIC_API_KEY`)
 
 JUDGMENT and NARRATIVE can use different providers (AD-24). See `modules/llm_service/README.md` for details.
@@ -157,7 +183,7 @@ No engine code changes required.
 
 ## Encounter (ED/outpatient) protocol YAML files
 
-Located at `clinosim/modules/encounter/reference_data/`. 44 conditions covering ED visits and outpatient encounters.
+Located at `clinosim/modules/encounter/reference_data/`. 46 conditions covering ED visits and outpatient encounters.
 
 Adding a new encounter type:
 
