@@ -461,11 +461,65 @@ IAM ポリシー例:
 
 経過記録・看護記録を含めると **50倍以上** になるため、5種類のみに限定。
 
+## Enrichment アーキテクチャ (AD-44)
+
+A/B テストにより確認された原則:
+
+- **Enrichment（LLM に渡す構造化データ）は言語中立（英語）** で統一
+- LLM は `prompts/ja/*.yaml` の言語指示に従って翻訳出力
+- **コード側で行うべき2項目のみ locale 依存**:
+  1. `code_lookup(system, code, lang)` — 診断名の公式短縮形
+  2. CRP mg/L→mg/dL 変換 — 数学的操作 (AD-42)
+- 薬品名・手術名・合併症ラベル・イベント記述は **LLM に翻訳させる** (事前翻訳しない)
+
+**根拠**: A/B テストで LLM (Claude Sonnet 4) の翻訳精度が事前翻訳と同等以上。
+事前翻訳の問題点: CRP 単位変換エラー、ICD 正式名直訳の不自然さ。
+
+## JP プロンプトのスタイルルール (AD-43)
+
+日本語プロンプト (`prompts/ja/*.yaml`) の共通ルール:
+
+- Markdown 記号 (`**`, `##`, `-`) 使用禁止
+- セクション見出し: 【】 で囲む（例: 【主訴】、【現病歴】）
+- 小見出し: ■ を使用（例: ■バイタルサイン）
+- 箇条書き: ・を使用
+- 医師名には必ず「医師」を付ける（例: 田中 太郎医師）
+- 検査値の単位は入力データのまま使用（変換不要 — コード側で変換済み）
+
+## 修正ガイド
+
+### 新しい言語のプロンプトを追加する
+
+1. `prompts/<lang>/` ディレクトリを作成
+2. 5 つの YAML ファイルを作成 (`admission_hp.yaml`, `discharge_summary.yaml`, `death_summary.yaml`, `operative_note.yaml`, `procedure_note.yaml`)
+3. 各ファイルの `system` セクションに言語指示を記載
+4. `user_template` は `${variable_name}` プレースホルダで共通 (EN プロンプトからコピー可)
+5. PromptRegistry は言語に対応する YAML を自動検出 (EN fallback あり)
+
+### 新しい LLM プロバイダを追加する
+
+1. `providers/` に新プロバイダクラスを作成 (`LLMProvider` Protocol 準拠)
+2. `providers/__init__.py` の `_PROVIDERS` dict にエントリ追加
+3. `clinosim/config/llm_service.<provider>.yaml` を作成
+4. `factory.build_from_config_file()` が自動認識
+
+### EC2 で Bedrock ナラティブを生成する
+
+```bash
+cd clinosim && source .venv/bin/activate
+nohup ./scripts/full_run_ja.sh > /dev/null 2>&1 &  # JP
+nohup ./scripts/full_run_us.sh > /dev/null 2>&1 &  # US
+tail -f test_data/bedrock_*_results.txt
+```
+
+中断しても再実行可能 (PromptCache でリジューム)。
+
 ## 既知の制約・今後
 
 - ✅ SHA256 レスポンスキャッシュ実装済 (`cache.py`, AD-41)
 - ✅ YAML プロンプトテンプレート実装済 (`prompt_registry.py`, AD-40)
-- ✅ 日本語プロンプト 5 種類実装済 (AD-43)
+- ✅ 日本語プロンプト 5 種類実装済 (AD-43, 【】形式)
+- ✅ A/B テスト完了: enrichment は言語中立が最適 (AD-44)
 - ストリーミング非対応 (1 リクエスト = 1 完全レスポンス)
 - AnthropicProvider (直接API) は未実装 (Bedrock 経由を推奨)
 - OpenAI-compatible provider (LiteLLM / vLLM) は未実装
