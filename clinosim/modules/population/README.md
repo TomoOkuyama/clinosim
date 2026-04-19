@@ -268,17 +268,44 @@ for event in sorted(all_events, key=lambda e: e.timestamp):
    ```yaml
    disease_incidence:
      my_new_disease:
-       age_rates: {0: 10, 45: 50, 65: 200}    # per 100k/year
-       sex_ratio_female: 0.8
-       severity_beta: [2, 3]
-       event_type: "acute_disease_onset"
-       always_hospitalize: false
+       age_rates: {0: 10, 45: 50, 65: 200}    # per 100k/year (年齢閾値 → 年率)
+       sex_ratio_female: 0.8                    # 女性は男性の0.8倍
+       severity_beta: [2, 3]                    # Beta(α,β) — 重症度分布
+       severity_minimum: null                   # 省略可。設定すると重症度が下回らない
+       event_type: "acute_disease_onset"        # | "trauma" | "chronic_exacerbation"
+       always_hospitalize: false                # true → severity に関係なく全入院
+       prerequisite_condition: null             # ICD コード (例: "I50" — HF 既往が必要)
        hospitalization_threshold_modifier_by_age:
-         65: 0.8
+         65: 0.8                                # 65歳以上で閾値 ×0.8 (入院しやすい)
          80: 0.6
    ```
-2. `seasonal_modifiers` と `disease_risk_multipliers` を追加
-3. 対応する `clinosim/modules/disease/reference_data/<disease>.yaml` を作成
+
+   **全フィールド解説**:
+   - `age_rates`: 年齢の閾値をキーとし、値は10万人年あたりの発症率。エンジンは年齢が閾値以上の最大キーの率を使用
+   - `sex_ratio_female`: 女性の発症率 = 男性 × この値。1.0 = 同率
+   - `severity_beta`: Beta分布のパラメータ [α, β]。α<β で軽症寄り、α>β で重症寄り
+   - `event_type`: LifeEvent.event_type に設定される文字列
+   - `prerequisite_condition`: 設定すると、この慢性疾患を持つ人のみ発症 (例: HF exacerbation は I50 保有者限定)
+
+2. `seasonal_modifiers` に月別倍率を追加:
+   ```yaml
+   seasonal_modifiers:
+     my_new_disease: {1: 1.2, 2: 1.1, ..., 12: 1.3}  # 月 → 発症率倍率
+   ```
+3. `disease_risk_multipliers` に慢性疾患リスク倍率を追加:
+   ```yaml
+   disease_risk_multipliers:
+     my_new_disease: {E11.9: 2.0, N18: 1.5}  # ICD → 倍率
+   ```
+4. 労災疾患なら `occupation_risk_multipliers` も追加:
+   ```yaml
+   occupation_risk_multipliers:
+     my_new_disease:
+       manufacturing: 5.0     # 製造業: 5倍
+       construction: 3.0
+       # 未記載の職業: デフォルト 0.2 倍
+   ```
+5. 対応する `clinosim/modules/disease/reference_data/<disease>.yaml` を作成 (disease モジュール README 参照)
 
 ## 依存関係
 
