@@ -110,7 +110,10 @@ def simulate_surgery(
 ) -> tuple[ProcedureRecord, dict[str, float]]: ...
 ```
 
-主要疾患 (現状 hip fracture) の手術をシミュレートし、 ProcedureRecord と physiology state への影響を返す。
+入院プロトコル（`requires_surgery: true`）の手術をシミュレートし、 ProcedureRecord と physiology state への影響を返す。
+
+**対応疾患**: hip_fracture (ORIF / hemiarthroplasty)、acute_cholecystitis、acute_appendicitis、traffic_accident_severe、wrist_fracture_surgical、subdural_hematoma、crush_injury_hand、industrial_burn_severe、fall_from_height。
+hip_fracture 以外は disease YAML の `procedure.procedure_code_jp` / `procedure_code_us` / `procedure.type` から手術種別・コードを読み込む。
 
 **Time-to-surgery** (国差):
 
@@ -377,9 +380,39 @@ for key, delta in impacts.items():
 - **CPT** — [`clinosim/codes/data/cpt.yaml`](../../codes/data/cpt.yaml) ([AMA CPT](https://www.ama-assn.org/practice-management/cpt))
 - **K コード** — [`clinosim/codes/data/k-codes.yaml`](../../codes/data/k-codes.yaml) ([厚労省 診療報酬点数表](https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000188411.html))
 
+## 修正ガイド
+
+### 新しい bedside procedure を追加する
+
+1. `engine.py` の `_BEDSIDE_PROCEDURES` タプルリストに追加:
+   ```python
+   ("new_procedure", "CPT_CODE", "K_CODE", "English name", "日本語名", "anesthesia_type"),
+   ```
+2. `_PROCEDURE_RULES` に disease → (procedure_type, probability) を追加
+3. `clinosim/codes/data/cpt.yaml` と `k-codes.yaml` にコード追加 (en/ja)
+
+### 新しい手術を追加する
+
+1. disease YAML の `procedure` セクションに記述:
+   ```yaml
+   procedure:
+     type: "new surgery type"
+     procedure_code_jp: "K999"
+     procedure_code_us: "99999"
+     typical_duration_minutes: {mean: 120, sd: 30}
+     anesthesia: "general"
+     estimated_blood_loss_ml: {mean: 300, sd: 150}
+   ```
+2. `k-codes.yaml` と `cpt.yaml` にコード追加
+3. エンジンコード変更不要（disease YAML 駆動）
+
+### CIF に procedure_name は格納しない (AD-30/AD-48)
+
+表示名は出力時に `code_lookup("k-codes"|"cpt", code, lang)` で解決する。
+`_resolve_procedure_name(proc_dict, lang)` が共通ヘルパー (hospital_course_extractor.py)。
+
 ## 既知の制約
 
-- 手術は hip fracture 以外の disease では generic な "surgery" record になる (procedure_code 空)
 - 術中合併症は 2 種類のみ (出血、 麻酔低血圧)。 神経損傷・感染等は未実装
 - リハビリは PT のみ生成 (OT/ST の自動生成は未実装)
 - 処置の team assignment は最低限 (assistant_ids 空、 staff モジュールとの統合が課題)
