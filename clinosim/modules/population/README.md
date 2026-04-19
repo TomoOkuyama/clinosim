@@ -56,6 +56,9 @@ print(f"Generated {registry.total_persons} persons in {len(registry.households)}
    - 名 (性別依存の weighted sampling)
    - 慢性疾患 (年齢別有病率 rng で割り付け、 平均 16 種のうち該当分)
    - 携帯電話 (15 歳以上)
+   - 職業 (`_sample_occupation()` — 年齢・国の労働統計ベース分布から割当、AD-45)
+     - age < 15 → student, age >= 65 → retired, 15-21 → 70% student / 30% working
+     - working_age: `demographics.yaml` の `occupation_distribution.working_age` から weighted choice
    - care_seeking_threshold = `clamp(normal(0.30, 0.12), 0.05, 0.90)`
 
 ### `generate_monthly_events(registry, year, month, rng, country="US") -> list[LifeEvent]`
@@ -79,6 +82,8 @@ hospital_events = [e for e in events if e.requires_hospital]
    - 季節性 modifier を乗算 (月ごと)
    - 慢性疾患のリスク倍率 (`disease_risk_multipliers`)
    - 既往歴: 同疾患の過去 hospitalization があれば ×1.5 (recurrence)
+   - **職業リスク倍率** (`occupation_risk_multipliers`): 労災疾患に対し、本人の `occupation` でリスク増減
+     - 例: crush_injury_hand × 6.0 (manufacturing), × 3.0 (construction), × 0.2 (default)
    - `prerequisite_condition` チェック (例: HF exacerbation は I50 必須)
 2. `rng.random() < rate` なら発症
 3. 重症度は beta 分布 (`severity_beta: [alpha, beta]`)、 最低値 `severity_minimum`
@@ -138,6 +143,8 @@ class PersonRecord:
     # 医療
     chronic_conditions: list[str]             # ICD-10 コード
     current_medications: list[str]
+    # 職業 (AD-45) — 労災リスク倍率と FHIR Observation に使用
+    occupation: str = "other"                 # "manufacturing" | "construction" | "office" | ... (12 categories)
     is_alive: bool = True
     care_seeking_threshold: float = 0.3
     has_visited_hospital: bool = False
