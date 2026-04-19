@@ -6,7 +6,7 @@ clinosim における **全ての患者 × 医療機関 接点 (encounter)** を
 
 本モジュールの責務は 2 つ:
 
-1. **Encounter 型プロトコル (ED / 外来条件, 44 件)** の定義と YAML ロード
+1. **Encounter 型プロトコル (ED / 外来条件, 46 件)** の定義と YAML ロード
 2. **入院 encounter の基礎的生成** (`create_inpatient_encounter`) と **日次サイクルタイムライン** の生成
 
 疾患 (inpatient disease) 側は `clinosim.modules.disease` が担当し、本モジュールは 外来・救急など **同日退院型の医療接触** を中心にカバーする。
@@ -31,7 +31,7 @@ clinosim/modules/encounter/
 ├── protocol.py             # load_encounter_condition(), load_all_encounter_conditions()
 ├── README.md
 ├── SPEC.md
-└── reference_data/         # 44 条件 YAML (ED 27 + outpatient 17)
+└── reference_data/         # 46 条件 YAML (ED 29 + outpatient 17)
     ├── migraine.yaml
     ├── viral_uri.yaml
     ├── annual_health_screening.yaml
@@ -47,7 +47,7 @@ clinosim/modules/encounter/
 | **ED 条件** | `modules/encounter/reference_data/*.yaml` | 27 | 救急受診・同日退院が中心 |
 | **外来条件** | `modules/encounter/reference_data/*.yaml` | 17 | スクリーニング・フォロー・ワクチン・術前等 |
 
-ED と外来の合計 **44 件** が encounter モジュール配下にある。
+ED と外来の合計 **46 件** が encounter モジュール配下にある。
 
 ### 代表的な ED 条件 (27 件の一部)
 
@@ -356,7 +356,7 @@ clinosim test-encounter migraine -n 1 --seed 42
 
 テスト観点:
 
-- `load_all_encounter_conditions()` が 44 件以上返すこと
+- `load_all_encounter_conditions()` が 46 件以上返すこと
 - 各 YAML に必須フィールドが揃っていること
 - `severity_distribution` の合計が ≈ 1.0
 - `create_inpatient_encounter()` の ID がグローバルに一意であること
