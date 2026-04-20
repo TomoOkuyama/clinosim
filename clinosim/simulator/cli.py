@@ -400,6 +400,8 @@ def _run_test_encounter(args: Any) -> None:
     print(f"  Chief: {protocol.get('chief_complaint', '?')}")
     print(f"{'='*60}")
 
+    from clinosim.locale.loader import load_demographics as _ld
+    _demo = _ld(args.country)
     for i in range(args.count):
         # Create patient
         age = args.age or int(rng.integers(30, 85))
@@ -410,7 +412,7 @@ def _run_test_encounter(args: Any) -> None:
             age=age, sex=sex,
             date_of_birth=__import__("datetime").date(2024 - age, 1, 1),
         )
-        patient = activate_patient(person, rng, args.country)
+        patient = activate_patient(person, rng, _demo)
 
         visit_time = datetime(2024, 6, 15, int(rng.integers(8, 20)), int(rng.integers(0, 60)))
         record = _simulate_ed_visit(patient, protocol, visit_time, roster, rng, country=args.country)
