@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from datetime import date
 
-from clinosim.modules.population.engine import PersonRecord, generate_population
+from clinosim.modules.population.engine import PersonRecord, generate_population, generate_monthly_events, PopulationRegistry
 from clinosim.types.patient import PatientProfile
 
 
@@ -98,6 +98,111 @@ def test_smoking_status_sex_differentiated():
             assert p.smoking_status == "current", f"Male should be current smoker per demo"
         else:
             assert p.smoking_status == "never", f"Female should be never-smoker per demo"
+
+
+def test_comorbidity_correlation_raises_prevalence():
+    """When I10 is present, E11.9 prevalence should be boosted by comorbidity_correlations."""
+    # Force I10 to always trigger, E11.9 just below threshold without correlation
+    demo = _us_demo_minimal()
+    demo["chronic_prevalence"] = {
+        "I10":   {"40-99": 1.0},   # always present for age 40+
+        "E11.9": {"40-99": 0.01},  # too low to trigger without boost
+    }
+    demo["comorbidity_correlations"] = {"I10": {"E11.9": 200.0}}  # 200x boost → should always trigger
+    rng = np.random.default_rng(42)
+    registry = generate_population(size=200, country="US", rng=rng, demo=demo)
+    adults = [p for p in registry.persons.values() if 40 <= p.age <= 99]
+    assert len(adults) > 0
+    # All adults have I10; with 200x boost, E11.9 should appear in almost all
+    e11_count = sum(1 for p in adults if "E11.9" in p.chronic_conditions)
+    assert e11_count / len(adults) > 0.95, \
+        f"Expected >95% E11.9 with 200x boost, got {e11_count}/{len(adults)}"
+
+
+def test_lifestyle_risk_multiplier_raises_chronic_prevalence():
+    """Obese patients (BMI≥30) should have higher E11.9 prevalence than non-obese."""
+    demo = _us_demo_minimal()
+    demo["chronic_prevalence"] = {"E11.9": {"0-99": 0.10}}
+    demo["lifestyle_risk_multipliers"] = {
+        "bmi": {
+            "thresholds": {"overweight": 25.0, "obese": 30.0},
+            "obese": {"E11.9": 7.0},
+            "overweight": {},
+        },
+        "smoking": {},
+    }
+    # Force all patients to be obese (BMI mean=35, std≈0)
+    demo["physiology"]["bmi"]["male"]   = {"mean": 35.0, "std": 0.001}
+    demo["physiology"]["bmi"]["female"] = {"mean": 35.0, "std": 0.001}
+
+    rng_obese = np.random.default_rng(42)
+    registry_obese = generate_population(size=500, country="US", rng=rng_obese, demo=demo)
+
+    # Force all patients to be non-obese (BMI mean=22, std≈0)
+    demo2 = _us_demo_minimal()
+    demo2["chronic_prevalence"] = {"E11.9": {"0-99": 0.10}}
+    demo2["lifestyle_risk_multipliers"] = demo["lifestyle_risk_multipliers"]
+    demo2["physiology"]["bmi"]["male"]   = {"mean": 22.0, "std": 0.001}
+    demo2["physiology"]["bmi"]["female"] = {"mean": 22.0, "std": 0.001}
+
+    rng_thin = np.random.default_rng(42)
+    registry_thin = generate_population(size=500, country="US", rng=rng_thin, demo=demo2)
+
+    obese_rate = sum(1 for p in registry_obese.persons.values() if "E11.9" in p.chronic_conditions) / 500
+    thin_rate  = sum(1 for p in registry_thin.persons.values() if "E11.9" in p.chronic_conditions) / 500
+    assert obese_rate > thin_rate * 2, \
+        f"Obese E11.9 rate {obese_rate:.2f} should be >2x thin rate {thin_rate:.2f}"
+
+
+def _make_registry_with_person(age: int, sex: str, smoking: str, bmi: float) -> PopulationRegistry:
+    r = PopulationRegistry()
+    p = PersonRecord(
+        person_id="POP-000001",
+        household_id="HH-001",
+        age=age,
+        sex=sex,
+        date_of_birth=date(2024 - age, 1, 1),
+        smoking_status=smoking,
+        bmi=bmi,
+        chronic_conditions=[],
+    )
+    r.persons["POP-000001"] = p
+    return r
+
+
+def test_lifestyle_risk_multiplier_increases_monthly_event_rate():
+    """Current smoker should have higher acute_mi event rate than never-smoker."""
+    demo = _us_demo_minimal()
+    demo["disease_incidence"] = {
+        "acute_mi": {
+            "age_rates": {0: 0, 45: 500000},  # very high base rate so events appear in small sample
+            "sex_ratio_female": 0.55,
+            "event_type": "acute_disease_onset",
+            "severity_beta": [3, 3],
+            "severity_minimum": 0.3,
+            "always_hospitalize": True,
+        }
+    }
+    demo["lifestyle_risk_multipliers"] = {
+        "smoking": {"current": {"acute_mi": 10.0}, "former": {}},
+        "bmi": {"thresholds": {"overweight": 25.0, "obese": 30.0}, "overweight": {}, "obese": {}},
+    }
+
+    smoker_events = 0
+    nonsmoker_events = 0
+    trials = 50
+
+    for seed in range(trials):
+        reg_s = _make_registry_with_person(55, "M", "current", 24.0)
+        events_s = generate_monthly_events(reg_s, 2024, 1, np.random.default_rng(seed), demo=demo)
+        smoker_events += len(events_s)
+
+        reg_n = _make_registry_with_person(55, "M", "never", 24.0)
+        events_n = generate_monthly_events(reg_n, 2024, 1, np.random.default_rng(seed), demo=demo)
+        nonsmoker_events += len(events_n)
+
+    assert smoker_events > nonsmoker_events, \
+        f"Smoker events {smoker_events} should exceed non-smoker {nonsmoker_events}"
 
 
 def test_occupation_age_thresholds_from_yaml():

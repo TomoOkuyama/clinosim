@@ -279,14 +279,39 @@ def generate_population(
             else:
                 member_surname = household_surname
 
-            # Chronic conditions (with sex filter support)
+            # Build accumulated multipliers from comorbidity correlations and lifestyle
+            comorbidity_cfg = demo.get("comorbidity_correlations") or {}
+            lifestyle_mults = demo.get("lifestyle_risk_multipliers") or {}
+            bmi_cfg_lm = lifestyle_mults.get("bmi") or {}
+            bmi_thresholds = bmi_cfg_lm.get("thresholds") or {"overweight": 25.0, "obese": 30.0}
+            smoking_cfg_lm = lifestyle_mults.get("smoking") or {}
+
+            bmi_cat: str | None = None
+            if bmi >= bmi_thresholds.get("obese", 30.0):
+                bmi_cat = "obese"
+            elif bmi >= bmi_thresholds.get("overweight", 25.0):
+                bmi_cat = "overweight"
+
             conditions: list[str] = []
             chronic_data = _parse_chronic_prevalence(demo)
             for code, spec in chronic_data.items():
                 if spec.sex and spec.sex != sex:
                     continue  # e.g., BPH (N40) is male-only
-                for (lo, hi), prev in spec.age_ranges.items():
-                    if lo <= age <= hi and rng.random() < prev:
+                for (lo, hi), base_prev in spec.age_ranges.items():
+                    if not (lo <= age <= hi):
+                        continue
+                    # Comorbidity correlation multiplier (from already-sampled conditions)
+                    corr_mult = 1.0
+                    for existing_code in conditions:
+                        corr_mult *= (comorbidity_cfg.get(existing_code) or {}).get(code, 1.0)
+                    # Lifestyle multipliers
+                    life_mult = 1.0
+                    if bmi_cat:
+                        life_mult *= (bmi_cfg_lm.get(bmi_cat) or {}).get(code, 1.0)
+                    life_mult *= (smoking_cfg_lm.get(smoking_status) or {}).get(code, 1.0)
+                    # Cap combined prevalence at 1.0
+                    final_prev = min(1.0, base_prev * corr_mult * life_mult)
+                    if rng.random() < final_prev:
                         conditions.append(code)
 
             # Care seeking threshold (JP: lower = more willing)
