@@ -388,6 +388,11 @@ ed_visit_not_admitted:
 # Occupation distribution for working-age population (15-64)
 # Source: US BLS Occupational Employment Statistics
 occupation_distribution:
+  age_thresholds:
+    student_max_age:          14
+    young_adult_max_age:      21
+    young_adult_student_prob: 0.70
+    retirement_min_age:       65
   working_age:
     office: 0.32              # office/administrative/professional
     service: 0.22             # retail/food/customer service
@@ -425,3 +430,110 @@ occupation_risk_multipliers:
     manufacturing: 4.0
     agriculture: 2.0
     healthcare: 1.8
+
+# Sex ratio
+sex_ratio:
+  male: 0.49
+
+# Physiology — body metrics distributions by sex
+# Source: CDC NHANES 2017-2020
+physiology:
+  bmi:
+    male:   {mean: 29.0, std: 6.0}
+    female: {mean: 29.5, std: 6.0}
+    clamp:  [15.0, 45.0]
+  height_cm:
+    male:   {mean: 175.5, std: 7.0}
+    female: {mean: 162.0, std: 7.0}
+    shrinkage_per_decade_after_60: 0.5
+
+# Lifestyle distribution — smoking and alcohol by sex
+# Source: CDC NHIS 2022, SAMHSA NSDUH 2022
+lifestyle_distribution:
+  smoking:
+    male:   {never: 0.48, former: 0.30, current: 0.22}
+    female: {never: 0.58, former: 0.27, current: 0.15}
+  alcohol:
+    male:   {none: 0.30, social: 0.50, heavy: 0.20}
+    female: {none: 0.45, social: 0.43, heavy: 0.12}
+
+# Lifestyle -> disease risk multipliers
+# Applied at chronic prevalence sampling AND monthly acute event generation
+# Source: CDC, AHA, GOLD guidelines
+lifestyle_risk_multipliers:
+  smoking:
+    current:
+      J44: 10.0
+      bacterial_pneumonia: 2.0
+      acute_mi: 2.5
+      cerebral_infarction: 1.8
+      hemorrhagic_stroke: 2.0
+      copd_exacerbation: 3.0
+    former:
+      J44: 3.0
+      acute_mi: 1.5
+      cerebral_infarction: 1.3
+  bmi:
+    thresholds: {overweight: 25.0, obese: 30.0}
+    overweight:
+      I10: 1.5
+      E11.9: 2.5
+      E78: 1.3
+    obese:
+      I10: 2.5
+      E11.9: 7.0
+      E78: 2.0
+      acute_mi: 2.0
+      acute_cholecystitis: 2.5
+      deep_vein_thrombosis: 1.5
+
+# Comorbidity correlations
+# condition_A present -> multiplier on condition_B's prevalence at sampling time
+# Source: Framingham, UKPDS, epidemiological meta-analyses
+comorbidity_correlations:
+  I10:
+    E78:   1.6
+    E11.9: 1.4
+    I25:   1.5
+  E11.9:
+    I10:   1.4
+    E78:   1.7
+    N18:   2.0
+    I25:   1.5
+  E78:
+    I10:   1.5
+    E11.9: 1.5
+    I25:   1.6
+
+# Insurance distribution by age band
+# Source: Kaiser Family Foundation 2023, CMS data
+insurance_distribution:
+  - age_range: "0-18"
+    weights:
+      private:       0.55
+      medicaid_chip: 0.40
+      uninsured:     0.05
+  - age_range: "19-64"
+    weights:
+      private_employer: 0.55
+      medicaid:         0.22
+      uninsured:        0.11
+      other_public:     0.12
+  - age_range: "65-99"
+    weights:
+      medicare:               0.40
+      medicare_plus_private:  0.35
+      medicare_medicaid_dual: 0.20
+      other:                  0.05
+
+# Race and ethnicity distribution (US only)
+# Source: US Census Bureau 2020
+race_distribution:
+  white:           0.594
+  black:           0.134
+  asian:           0.060
+  native_american: 0.013
+  other:           0.199
+ethnicity_distribution:
+  hispanic:     0.187
+  not_hispanic: 0.813
