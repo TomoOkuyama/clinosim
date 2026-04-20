@@ -158,10 +158,12 @@ def generate_population(
     country: str,
     rng: np.random.Generator,
     base_year: int = 2024,
+    demo: dict | None = None,
 ) -> PopulationRegistry:
     """Generate a catchment area population with households."""
     registry = PopulationRegistry()
-    demo = _load_demographics(country)
+    if demo is None:
+        demo = _load_demographics(country)
     avg_household_size = demo.get("average_household_size", 2.5)
     n_households = int(size / avg_household_size)
 
@@ -202,10 +204,54 @@ def generate_population(
             age_band = _sample_age_band(demo, rng)
             age = int(rng.integers(age_band[0], age_band[1] + 1))
 
-            sex = "M" if rng.random() < 0.49 else "F"
+            # Sex ratio from YAML (default 0.49 male)
+            male_prob = (demo.get("sex_ratio") or {}).get("male", 0.49)
+            sex = "M" if rng.random() < male_prob else "F"
             dob = date(base_year - age, int(rng.integers(1, 13)), int(rng.integers(1, 29)))
             bt = demo.get("blood_type", {"O": 0.44, "A": 0.42, "B": 0.10, "AB": 0.04})
             blood_type = str(rng.choice(list(bt.keys()), p=list(bt.values())))
+
+            # BMI and height from physiology section
+            phys = demo.get("physiology") or {}
+            bmi_cfg = phys.get("bmi") or {}
+            ht_cfg = phys.get("height_cm") or {}
+            sex_key = "male" if sex == "M" else "female"
+
+            bmi_mean = (bmi_cfg.get(sex_key) or {}).get("mean", 23.5 if sex == "M" else 22.0)
+            bmi_std  = (bmi_cfg.get(sex_key) or {}).get("std", 3.5)
+            bmi_clamp = bmi_cfg.get("clamp", [15.0, 45.0])
+            bmi = float(np.clip(rng.normal(bmi_mean, bmi_std), bmi_clamp[0], bmi_clamp[1]))
+
+            ht_mean = (ht_cfg.get(sex_key) or {}).get("mean", 170.0 if sex == "M" else 157.5)
+            ht_std  = (ht_cfg.get(sex_key) or {}).get("std", 5.5)
+            shrink  = ht_cfg.get("shrinkage_per_decade_after_60", 0.5)
+            height  = float(rng.normal(ht_mean, ht_std))
+            if age > 60:
+                height -= (age - 60) / 10 * shrink
+
+            # Lifestyle: smoking and alcohol (sex-specific distributions)
+            lifestyle = demo.get("lifestyle_distribution") or {}
+            smoking_dist = (lifestyle.get("smoking") or {}).get(sex_key, {})
+            if smoking_dist:
+                sk = list(smoking_dist.keys())
+                sp = np.array([smoking_dist[k] for k in sk], dtype=float)
+                sp /= sp.sum()
+                smoking_status = str(rng.choice(sk, p=sp))
+            else:
+                smoking_status = str(rng.choice(
+                    ["never", "former", "current"], p=[0.55, 0.30, 0.15]
+                ))
+
+            alcohol_dist = (lifestyle.get("alcohol") or {}).get(sex_key, {})
+            if alcohol_dist:
+                ak = list(alcohol_dist.keys())
+                ap = np.array([alcohol_dist[k] for k in ak], dtype=float)
+                ap /= ap.sum()
+                alcohol_use = str(rng.choice(ak, p=ap))
+            else:
+                alcohol_use = str(rng.choice(
+                    ["none", "social", "heavy"], p=[0.60, 0.30, 0.10]
+                ))
 
             # Given name (sex-appropriate)
             given = _sample_given_name(name_data, sex, rng)
@@ -268,6 +314,9 @@ def generate_population(
                 phone_mobile=mobile if age >= 15 else "",
                 chronic_conditions=conditions,
                 occupation=_sample_occupation(demo, age, sex, rng),
+                bmi=bmi,
+                smoking_status=smoking_status,
+                alcohol_use=alcohol_use,
                 care_seeking_threshold=threshold,
             )
             hh.members.append(person)
@@ -465,23 +514,22 @@ def _sample_surname(name_data: dict, rng: np.random.Generator) -> dict:
 
 
 def _sample_occupation(demo: dict, age: int, sex: str, rng: np.random.Generator) -> str:
-    """Sample occupation category from demographics occupation_distribution.
+    """Sample occupation category from demographics occupation_distribution."""
+    occ_cfg = demo.get("occupation_distribution") or {}
+    thresholds = occ_cfg.get("age_thresholds") or {}
+    student_max   = int(thresholds.get("student_max_age", 14))
+    young_max     = int(thresholds.get("young_adult_max_age", 21))
+    young_prob    = float(thresholds.get("young_adult_student_prob", 0.70))
+    retirement    = int(thresholds.get("retirement_min_age", 65))
 
-    Age rules:
-    - < 15: "student"
-    - 15-21: 70% "student", 30% working-age distribution
-    - 22-64: working-age distribution
-    - >= 65: "retired"
-    """
-    if age < 15:
+    if age <= student_max:
         return "student"
-    if age >= 65:
+    if age >= retirement:
         return "retired"
-    dist = (demo.get("occupation_distribution") or {}).get("working_age") or {}
+    dist = occ_cfg.get("working_age") or {}
     if not dist:
         return "other"
-    # Age 15-21: mostly students
-    if age < 22 and rng.random() < 0.7:
+    if age <= young_max and rng.random() < young_prob:
         return "student"
     keys = list(dist.keys())
     weights = np.array([dist[k] for k in keys], dtype=float)
