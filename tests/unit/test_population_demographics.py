@@ -303,3 +303,27 @@ def test_activate_patient_no_race_when_missing_from_demo():
     profile = activate_patient(person, rng, demo)
     assert profile.race == ""
     assert profile.ethnicity == ""
+
+
+# ---------------------------------------------------------------------------
+# Task 9: integration smoke test using real us/demographics.yaml
+# ---------------------------------------------------------------------------
+
+from clinosim.locale.loader import load_demographics as _load_demo
+
+
+def test_us_population_bmi_distribution_matches_yaml():
+    """End-to-end: generated US population BMI must be within 2 std of YAML mean."""
+    demo = _load_demo("US")
+    rng = np.random.default_rng(42)
+    registry = generate_population(size=500, country="US", rng=rng, demo=demo)
+    males   = [p.bmi for p in registry.persons.values() if p.sex == "M"]
+    females = [p.bmi for p in registry.persons.values() if p.sex == "F"]
+    assert males,   "No male persons generated"
+    assert females, "No female persons generated"
+    m_cfg = demo["physiology"]["bmi"]["male"]
+    f_cfg = demo["physiology"]["bmi"]["female"]
+    assert abs(np.mean(males)   - m_cfg["mean"]) < m_cfg["std"] * 2, \
+        f"Male BMI mean {np.mean(males):.1f} not within 2 std of {m_cfg['mean']}"
+    assert abs(np.mean(females) - f_cfg["mean"]) < f_cfg["std"] * 2, \
+        f"Female BMI mean {np.mean(females):.1f} not within 2 std of {f_cfg['mean']}"
