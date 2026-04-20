@@ -108,26 +108,46 @@ CONDITION_NAMES = {
 }
 
 
+def _sample_insurance(demo: dict, age: int, rng: np.random.Generator) -> str:
+    """Sample insurance type from insurance_distribution age bands."""
+    bands = demo.get("insurance_distribution") or []
+    for band in bands:
+        lo_str, hi_str = str(band.get("age_range", "0-99")).split("-")
+        if int(lo_str) <= age <= int(hi_str):
+            weights_dict = band.get("weights") or {}
+            if weights_dict:
+                keys = list(weights_dict.keys())
+                probs = np.array([weights_dict[k] for k in keys], dtype=float)
+                probs /= probs.sum()
+                return str(rng.choice(keys, p=probs))
+    # Fallback: keep legacy behavior
+    return "late_elderly" if age >= 75 else "NHI_employee"
+
+
 def activate_patient(
     person: PersonRecord,
     rng: np.random.Generator,
-    country: str = "JP",
+    demo: dict,
 ) -> PatientProfile:
     """Convert Layer 1 PersonRecord to Layer 2 PatientProfile."""
     age = person.age
     sex = person.sex
 
-    # Body metrics
-    if country == "JP":
-        height = float(rng.normal(170.0 if sex == "M" else 157.5, 5.5))
-        bmi = float(rng.normal(23.5 if sex == "M" else 22.0, 3.5))
-    else:
-        height = float(rng.normal(175.5 if sex == "M" else 162.0, 7.0))
-        bmi = float(rng.normal(29.0 if sex == "M" else 29.5, 6.0))
+    # Height from physiology section; BMI already set in Layer 1
+    phys = demo.get("physiology") or {}
+    ht_cfg = phys.get("height_cm") or {}
+    sex_key = "male" if sex == "M" else "female"
+    ht_mean = (ht_cfg.get(sex_key) or {}).get("mean", 170.0 if sex == "M" else 157.5)
+    ht_std  = (ht_cfg.get(sex_key) or {}).get("std", 5.5)
+    shrink  = ht_cfg.get("shrinkage_per_decade_after_60", 0.5)
+    height  = float(rng.normal(ht_mean, ht_std))
     if age > 60:
-        height -= (age - 60) / 10 * 0.5
-    bmi = max(15.0, min(45.0, bmi))
+        height -= (age - 60) / 10 * shrink
+    bmi    = person.bmi
     weight = bmi * (height / 100) ** 2
+
+    # Derive country from demo (for name formatting, language, etc.)
+    country = demo.get("_country", "JP") if isinstance(demo, dict) else "JP"
 
     # Physiological profile
     age_penalty = max(0, (age - 40) * 0.005)
@@ -293,6 +313,25 @@ def activate_patient(
     # Preferred language (BCP-47)
     preferred_language = "ja-JP" if country == "JP" else "en-US"
 
+    # Insurance type from YAML age bands
+    insurance_type = _sample_insurance(demo, age, rng)
+
+    # Race and ethnicity (US only; empty string if race_distribution absent)
+    race_dist = demo.get("race_distribution") or {}
+    if race_dist:
+        rk = list(race_dist.keys())
+        rp = np.array([race_dist[k] for k in rk], dtype=float)
+        rp /= rp.sum()
+        race = str(rng.choice(rk, p=rp))
+        eth_dist = demo.get("ethnicity_distribution") or {}
+        ek = list(eth_dist.keys())
+        ep = np.array([eth_dist[k] for k in ek], dtype=float)
+        ep /= ep.sum()
+        ethnicity = str(rng.choice(ek, p=ep))
+    else:
+        race = ""
+        ethnicity = ""
+
     return PatientProfile(
         patient_id=person.person_id,
         name=name,
@@ -310,15 +349,17 @@ def activate_patient(
         preferred_language=preferred_language,
         employment_status="retired" if age >= 65 else "employed",
         occupation=getattr(person, "occupation", "other"),
-        insurance_type="late_elderly" if age >= 75 else "NHI_employee",
+        insurance_type=insurance_type,
         health_literacy=round(float(rng.normal(0.6, 0.15)), 2),
         chronic_conditions=conditions,
         allergies=allergies,
         current_medications=current_meds,
-        smoking_status=str(rng.choice(["never", "former", "current"], p=[0.55, 0.30, 0.15])),
-        alcohol_use=str(rng.choice(["none", "social", "heavy"], p=[0.60, 0.30, 0.10])),
+        smoking_status=person.smoking_status,
+        alcohol_use=person.alcohol_use,
         physiological_profile=profile,
         baseline_vitals=vitals,
+        race=race,
+        ethnicity=ethnicity,
     )
 
 
