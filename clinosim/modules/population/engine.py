@@ -375,6 +375,18 @@ def generate_monthly_events(
         if not person.is_alive:
             continue
 
+        # Lifestyle risk multiplier prep — computed once per person, outside per-disease loop
+        lifestyle_lm = demo.get("lifestyle_risk_multipliers") or {}
+        smoking_lm = lifestyle_lm.get("smoking") or {}
+        bmi_lm_cfg = lifestyle_lm.get("bmi") or {}
+        bmi_thresh_lm = bmi_lm_cfg.get("thresholds") or {"overweight": 25.0, "obese": 30.0}
+
+        bmi_cat_lm: str | None = None
+        if person.bmi >= float(bmi_thresh_lm.get("obese", 30.0)):
+            bmi_cat_lm = "obese"
+        elif person.bmi >= float(bmi_thresh_lm.get("overweight", 25.0)):
+            bmi_cat_lm = "overweight"
+
         # --- Data-driven disease event generation ---
         for disease_id, disease_spec in incidence.items():
             age_rates = disease_spec.get("age_rates", disease_spec.get("age_rates_among_hf", {}))
@@ -411,18 +423,7 @@ def generate_monthly_events(
                 occ_mult = occ_mults.get(person.occupation, 0.2)
                 rate *= float(occ_mult)
 
-            # Lifestyle risk multipliers (smoking + BMI) — additive on top of occupation
-            lifestyle_lm = demo.get("lifestyle_risk_multipliers") or {}
-            smoking_lm = lifestyle_lm.get("smoking") or {}
-            bmi_lm_cfg = lifestyle_lm.get("bmi") or {}
-            bmi_thresh_lm = bmi_lm_cfg.get("thresholds") or {"overweight": 25.0, "obese": 30.0}
-
-            bmi_cat_lm: str | None = None
-            if person.bmi >= float(bmi_thresh_lm.get("obese", 30.0)):
-                bmi_cat_lm = "obese"
-            elif person.bmi >= float(bmi_thresh_lm.get("overweight", 25.0)):
-                bmi_cat_lm = "overweight"
-
+            # Lifestyle risk multipliers (smoking + BMI) — per-disease application
             smoking_mult_lm = float((smoking_lm.get(person.smoking_status) or {}).get(disease_id, 1.0))
             bmi_mult_lm = float((bmi_lm_cfg.get(bmi_cat_lm) or {}).get(disease_id, 1.0)) if bmi_cat_lm else 1.0
             rate *= smoking_mult_lm * bmi_mult_lm
