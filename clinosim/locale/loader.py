@@ -68,9 +68,22 @@ def load_formatting(country: str) -> dict[str, Any]:
 
 
 @lru_cache(maxsize=8)
-def load_demographics(country: str) -> dict[str, Any]:
-    """Load demographic data for population generation."""
+def _load_demographics_cached(country: str) -> dict[str, Any]:
+    """Internal cached loader for raw demographics YAML (no mutation)."""
     return _load_yaml(_country_dir(country) / "demographics.yaml", fallback=_FALLBACK_DEMOGRAPHICS)
+
+
+def load_demographics(country: str) -> dict[str, Any]:
+    """Load demographic data for population generation.
+
+    Injects ``_country`` into the returned dict so downstream consumers
+    (e.g. activate_patient) can determine locale without an extra argument.
+    The underlying YAML is cached; this function returns a fresh shallow copy
+    each call so callers may safely mutate the top-level dict.
+    """
+    result = dict(_load_demographics_cached(country))
+    result["_country"] = country
+    return result
 
 
 @lru_cache(maxsize=1)

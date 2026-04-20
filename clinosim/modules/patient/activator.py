@@ -120,8 +120,8 @@ def _sample_insurance(demo: dict, age: int, rng: np.random.Generator) -> str:
                 probs = np.array([weights_dict[k] for k in keys], dtype=float)
                 probs /= probs.sum()
                 return str(rng.choice(keys, p=probs))
-    # Fallback: keep legacy behavior
-    return "late_elderly" if age >= 75 else "NHI_employee"
+    # Fallback: no matching band
+    return ""
 
 
 def activate_patient(
@@ -324,10 +324,13 @@ def activate_patient(
         rp /= rp.sum()
         race = str(rng.choice(rk, p=rp))
         eth_dist = demo.get("ethnicity_distribution") or {}
-        ek = list(eth_dist.keys())
-        ep = np.array([eth_dist[k] for k in ek], dtype=float)
-        ep /= ep.sum()
-        ethnicity = str(rng.choice(ek, p=ep))
+        if eth_dist:
+            ek = list(eth_dist.keys())
+            ep = np.array([eth_dist[k] for k in ek], dtype=float)
+            ep /= ep.sum()
+            ethnicity = str(rng.choice(ek, p=ep))
+        else:
+            ethnicity = ""
     else:
         race = ""
         ethnicity = ""
