@@ -51,6 +51,10 @@ class PersonRecord:
     current_medications: list[str] = field(default_factory=list)  # active medications
     # Occupation category (drives work-related injury risk); see PatientProfile.occupation
     occupation: str = "other"
+    # Lifestyle attributes (set at generation time; drive disease risk multipliers)
+    bmi: float = 22.0
+    smoking_status: str = "never"   # "never" | "former" | "current"
+    alcohol_use: str = "none"       # "none" | "social" | "heavy"
     is_alive: bool = True
     care_seeking_threshold: float = 0.3
     has_visited_hospital: bool = False
