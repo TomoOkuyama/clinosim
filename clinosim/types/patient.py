@@ -113,6 +113,8 @@ class PatientProfile:
     # "homemaker" | "student" | "retired" | "unemployed" | "other"
     occupation: str = "other"
     insurance_type: str = "NHI_employee"
+    race: str = ""       # OMB race category — US only: "white"|"black"|"asian"|"native_american"|"other"
+    ethnicity: str = ""  # "hispanic" | "not_hispanic" — US only
     health_literacy: float = 0.7
 
     chronic_conditions: list[ChronicCondition] = field(default_factory=list)
