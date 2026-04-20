@@ -358,13 +358,15 @@ def generate_monthly_events(
     month: int,
     rng: np.random.Generator,
     country: str = "US",
+    demo: dict | None = None,
 ) -> list[LifeEvent]:
     """Generate life events for one month across the population. All Phase 1 diseases."""
     events: list[LifeEvent] = []
     event_date = date(year, month, 15)
 
     # Load country-specific epidemiology from locale
-    demo = _load_demographics(country)
+    if demo is None:
+        demo = _load_demographics(country)
     incidence = demo.get("disease_incidence", {})
     seasonal = demo.get("seasonal_modifiers", {})
     risk_mults = demo.get("disease_risk_multipliers", {})
@@ -408,6 +410,22 @@ def generate_monthly_events(
                 # (e.g., office worker helping in warehouse, domestic accident)
                 occ_mult = occ_mults.get(person.occupation, 0.2)
                 rate *= float(occ_mult)
+
+            # Lifestyle risk multipliers (smoking + BMI) — additive on top of occupation
+            lifestyle_lm = demo.get("lifestyle_risk_multipliers") or {}
+            smoking_lm = lifestyle_lm.get("smoking") or {}
+            bmi_lm_cfg = lifestyle_lm.get("bmi") or {}
+            bmi_thresh_lm = bmi_lm_cfg.get("thresholds") or {"overweight": 25.0, "obese": 30.0}
+
+            bmi_cat_lm: str | None = None
+            if person.bmi >= float(bmi_thresh_lm.get("obese", 30.0)):
+                bmi_cat_lm = "obese"
+            elif person.bmi >= float(bmi_thresh_lm.get("overweight", 25.0)):
+                bmi_cat_lm = "overweight"
+
+            smoking_mult_lm = float((smoking_lm.get(person.smoking_status) or {}).get(disease_id, 1.0))
+            bmi_mult_lm = float((bmi_lm_cfg.get(bmi_cat_lm) or {}).get(disease_id, 1.0)) if bmi_cat_lm else 1.0
+            rate *= smoking_mult_lm * bmi_mult_lm
 
             if rng.random() >= rate:
                 continue
