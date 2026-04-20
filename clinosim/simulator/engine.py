@@ -6,6 +6,7 @@ from datetime import date, datetime, timedelta
 
 import numpy as np
 
+from clinosim.locale.loader import load_demographics
 from clinosim.modules.disease.protocol import load_disease_protocol
 from clinosim.modules.healthcare_system.loader import load_healthcare_config
 from clinosim.modules.patient.activator import activate_patient
@@ -56,6 +57,7 @@ def run_beta(
     # Load modules
     healthcare = load_healthcare_config(config.country)
     protocols = _load_all_disease_protocols()
+    demo = load_demographics(config.country)
 
     # Hospital operational state (YAML-configurable per hospital)
     from clinosim.modules.facility.hospital_state import HospitalState, load_hospital_operations
@@ -155,7 +157,7 @@ def run_beta(
         if person is None or not person.is_alive:
             continue
 
-        patient = activate_patient(person, rng, config.country)
+        patient = activate_patient(person, rng, demo)
         disease_id = event.disease_id
 
         # Unknown condition
@@ -239,7 +241,7 @@ def run_beta(
         protocol = protocols.get(re_event.disease_id)
         if not protocol:
             continue
-        patient = activate_patient(person, rng, config.country)
+        patient = activate_patient(person, rng, demo)
         record = _simulate_patient(
             patient, re_event, re_event.disease_id, protocol,
             healthcare, roster, config, rng,
@@ -279,7 +281,7 @@ def run_beta(
         if not enc.discharge_datetime:
             continue
         if pid not in patient_cache:
-            patient_cache[pid] = activate_patient(person, rng, config.country)
+            patient_cache[pid] = activate_patient(person, rng, demo)
         disease_id = (record.condition_event.ground_truth_diseases[0]
                       if record.condition_event.ground_truth_diseases else "")
         disease_fu = followup_data.get("_post_discharge_by_disease", {}).get(disease_id, {})
@@ -315,7 +317,7 @@ def run_beta(
         if not person or not person.is_alive:
             continue
         if event.person_id not in patient_cache:
-            patient_cache[event.person_id] = activate_patient(person, rng, config.country)
+            patient_cache[event.person_id] = activate_patient(person, rng, demo)
         patient = patient_cache[event.person_id]
 
         visit_time = datetime(event.timestamp.year, event.timestamp.month,
@@ -356,13 +358,12 @@ def run_beta(
 
     # === ED visits (not admitted — auto-discovered from encounter YAMLs) ===
     from clinosim.modules.encounter.protocol import load_all_encounter_conditions
-    from clinosim.locale.loader import load_demographics
     all_enc_conditions = load_all_encounter_conditions()
     ed_conditions = [
         (name, spec) for name, spec in all_enc_conditions.items()
         if spec.get("encounter_type") == "emergency"
     ]
-    ed_demo = load_demographics(config.country).get("ed_visit_not_admitted", {})
+    ed_demo = demo.get("ed_visit_not_admitted", {})
     ed_rate = ed_demo.get("rate_per_admitted", 3.0)
     n_ed = int(len(inpatient_records) * ed_rate)
     if ed_conditions and n_ed > 0:
@@ -377,11 +378,11 @@ def run_beta(
             person = population.get_person(person_id)
             if not person or not person.is_alive:
                 continue
-            patient = activate_patient(person, rng, config.country)
+            patient = activate_patient(person, rng, demo)
 
             # Build condition probabilities weighted by occupation risk
             occupation = getattr(person, "occupation", "other")
-            occ_mult_table = load_demographics(config.country).get("occupation_risk_multipliers", {})
+            occ_mult_table = demo.get("occupation_risk_multipliers", {})
             ed_probs = []
             for name, spec in ed_conditions:
                 base_p = spec.get("probability", 0.05)
@@ -443,6 +444,7 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
     rng = np.random.default_rng(config.random_seed)
     healthcare = load_healthcare_config(config.country)
     roster = generate_roster(config.hospital_scale, config.country, rng)
+    _demo = load_demographics(config.country)
 
     protocol = load_disease_protocol(scenario.disease_id)
 
@@ -468,7 +470,7 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
             given_name=f"患者{i+1}" if config.country == "JP" else f"Patient{i+1}",
             chronic_conditions=scenario.patient_overrides.get("chronic_conditions", []),
         )
-        patient = activate_patient(person, rng, config.country)
+        patient = activate_patient(person, rng, _demo)
 
         # Force severity and archetype
         severity = scenario.severity or "moderate"
