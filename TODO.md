@@ -196,6 +196,9 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 | 32 | JP recommended_population 5K → 10K | `config` | ✅ |
 | 33 | Anthropic direct provider (non-Bedrock) | `llm_service` | Open |
 | 34 | OpenAI-compatible provider (LiteLLM / vLLM) | `llm_service` | Open |
+| 35 | Population demographics externalization (US) — sex_ratio, physiology, lifestyle, comorbidity_correlations, lifestyle_risk_multipliers, insurance_distribution, race_distribution, occupation age thresholds | `population`, `patient`, `locale` | ✅ US complete (2026-04-20) |
+| 36 | Population demographics externalization (JP) — apply same sections to `jp/demographics.yaml` | `locale` | 🔲 Pending user approval |
+| 37 | CIF smoke run with US demographics externalization — generate 500-patient CIF and verify BMI/smoking/insurance/race fields are realistic | `simulator`, `population` | 🔲 TODO |
 
 ## Open Design Questions
 
@@ -257,6 +260,8 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 - [x] Empty medication string filter (drug_name key + empty filter)
 - [ ] LLM JUDGMENT phase wiring (diagnostic reasoning, treatment rationale)
 - [ ] Validator Pass 2 (LLM consistency review)
+- [ ] **[TODO] CIF smoke run: US demographics externalization end-to-end verify** — generate 500-patient US CIF, check PatientProfile.bmi/smoking_status/alcohol_use/insurance_type/race/ethnicity are populated realistically
+- [ ] **[TODO] JP demographics externalization** — add sex_ratio, physiology, lifestyle_distribution, lifestyle_risk_multipliers, comorbidity_correlations, insurance_distribution, occupation age_thresholds to `jp/demographics.yaml` (pending user approval)
 - [ ] Diagnostic drift over hospital stay
 - [ ] Pediatric disease modules (start with viral URI, asthma, gastroenteritis)
 - [ ] OB/GYN module (pregnancy, delivery, NICU)
@@ -297,6 +302,17 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 - [ ] Full validation against published benchmarks
 - [ ] Comprehensive documentation
 - [ ] Stable API contracts
+
+## Recent completions (2026-04-20 — Demographics externalization US)
+
+- ✅ Population demographics externalization (US): 8 hardcoded fields moved to `us/demographics.yaml` — sex_ratio, physiology (BMI/height CDC NHANES), lifestyle_distribution (smoking/alcohol sex-specific CDC NHIS), lifestyle_risk_multipliers (BMI + smoking → chronic + acute events), comorbidity_correlations (I10/E11.9/E78 Framingham), insurance_distribution (age-band KFF 2023), race_distribution (Census 2020), occupation age_thresholds
+- ✅ PersonRecord now carries bmi, smoking_status, alcohol_use (Layer-1 lifestyle attributes for risk multipliers)
+- ✅ PatientProfile now carries race, ethnicity (US only; empty string for JP)
+- ✅ activate_patient() refactored: demo: dict replaces country: str; BMI/lifestyle from Layer-1; insurance/race from YAML
+- ✅ load_demographics() injects _country key for downstream locale selection
+- ✅ 201 unit tests passing (was 200)
+- 🔲 JP locale deployment pending approval
+- 🔲 End-to-end CIF smoke run pending
 
 ## Recent completions (2026-04-19 — Milestone 4: FHIR standards compliance + occupational injuries)
 
