@@ -20,12 +20,15 @@ build/
 Thumbs.db
 
 # Output (generated data — not clinosim/modules/output/ which is source code)
-/output/
+# Preserved sample outputs are tracked via Git LFS (see .gitattributes)
+/output/*
+!/output/fhir_jp_v2/
 /output_*/
 
 # Installers (do not commit)
 Miniconda3*.sh
 *.tar.gz
+!clinosim_fullrun_v2.tar.gz
 
 # Test artifacts
 .pytest_cache/
