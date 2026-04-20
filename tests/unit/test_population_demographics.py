@@ -215,3 +215,91 @@ def test_occupation_age_thresholds_from_yaml():
     for p in registry.persons.values():
         if p.age >= 60:
             assert p.occupation == "retired", f"Age {p.age} should be retired (threshold=60)"
+
+
+# ---------------------------------------------------------------------------
+# Task 7: activate_patient() tests
+# ---------------------------------------------------------------------------
+
+from clinosim.modules.patient.activator import activate_patient
+
+
+def _make_person(age: int = 45, sex: str = "M", bmi: float = 28.0,
+                 smoking: str = "never", alcohol: str = "none") -> PersonRecord:
+    return PersonRecord(
+        person_id="POP-TEST",
+        household_id="HH-TEST",
+        age=age,
+        sex=sex,
+        date_of_birth=date(2024 - age, 1, 1),
+        bmi=bmi,
+        smoking_status=smoking,
+        alcohol_use=alcohol,
+    )
+
+
+def _minimal_demo_for_activate(country_hint: str = "US") -> dict:
+    return {
+        "_country": country_hint,
+        "physiology": {
+            "bmi": {"male": {"mean": 29.0, "std": 6.0}, "female": {"mean": 29.5, "std": 6.0}, "clamp": [15.0, 45.0]},
+            "height_cm": {"male": {"mean": 175.5, "std": 7.0}, "female": {"mean": 162.0, "std": 7.0}, "shrinkage_per_decade_after_60": 0.5},
+        },
+        "insurance_distribution": [
+            {"age_range": "0-64", "weights": {"private": 1.0}},
+            {"age_range": "65-99", "weights": {"medicare": 1.0}},
+        ],
+        "race_distribution": {"white": 0.6, "black": 0.4},
+        "ethnicity_distribution": {"hispanic": 0.2, "not_hispanic": 0.8},
+    }
+
+
+def test_activate_patient_uses_person_bmi_not_regenerate():
+    """BMI in PatientProfile must equal person.bmi, not be regenerated."""
+    person = _make_person(bmi=33.7)
+    rng = np.random.default_rng(0)
+    demo = _minimal_demo_for_activate()
+    profile = activate_patient(person, rng, demo)
+    assert abs(profile.bmi - 33.7) < 0.01, \
+        f"PatientProfile.bmi {profile.bmi} should match PersonRecord.bmi 33.7"
+
+
+def test_activate_patient_uses_person_smoking():
+    """smoking_status in PatientProfile must come from PersonRecord."""
+    person = _make_person(smoking="current")
+    rng = np.random.default_rng(0)
+    demo = _minimal_demo_for_activate()
+    profile = activate_patient(person, rng, demo)
+    assert profile.smoking_status == "current"
+
+
+def test_activate_patient_insurance_from_yaml():
+    """Insurance type should come from insurance_distribution in demo."""
+    person_young = _make_person(age=30)
+    person_old   = _make_person(age=70)
+    rng = np.random.default_rng(0)
+    demo = _minimal_demo_for_activate()
+    profile_young = activate_patient(person_young, rng, demo)
+    profile_old   = activate_patient(person_old,   rng, demo)
+    assert profile_young.insurance_type == "private"
+    assert profile_old.insurance_type   == "medicare"
+
+
+def test_activate_patient_race_from_yaml():
+    """race and ethnicity must be sampled from demo when race_distribution present."""
+    person = _make_person()
+    rng = np.random.default_rng(0)
+    demo = _minimal_demo_for_activate()
+    profile = activate_patient(person, rng, demo)
+    assert profile.race in ("white", "black"), f"Unexpected race: {profile.race}"
+    assert profile.ethnicity in ("hispanic", "not_hispanic")
+
+
+def test_activate_patient_no_race_when_missing_from_demo():
+    """race and ethnicity should be empty string when race_distribution absent (JP)."""
+    person = _make_person()
+    rng = np.random.default_rng(0)
+    demo = {}  # no race_distribution
+    profile = activate_patient(person, rng, demo)
+    assert profile.race == ""
+    assert profile.ethnicity == ""
