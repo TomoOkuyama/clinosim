@@ -43,13 +43,13 @@ clinosim/modules/encounter/
 
 | カテゴリ | YAML の場所 | 件数 | 説明 |
 |---|---|---|---|
-| **入院疾患** | `modules/disease/reference_data/*.yaml` | 28 | 複数日の入院。日次シミュレーション |
-| **ED 条件** | `modules/encounter/reference_data/*.yaml` | 27 | 救急受診・同日退院が中心 |
+| **入院疾患** | `modules/disease/reference_data/*.yaml` | 32 | 複数日の入院。日次シミュレーション |
+| **ED 条件** | `modules/encounter/reference_data/*.yaml` | 29 | 救急受診・同日退院が中心 |
 | **外来条件** | `modules/encounter/reference_data/*.yaml` | 17 | スクリーニング・フォロー・ワクチン・術前等 |
 
 ED と外来の合計 **46 件** が encounter モジュール配下にある。
 
-### 代表的な ED 条件 (27 件の一部)
+### 代表的な ED 条件 (29 件の一部)
 
 `migraine`, `viral_uri`, `chest_pain_noncardiac`, `minor_laceration`, `ankle_sprain`, `viral_gastroenteritis`, `allergic_reaction_mild`, `low_back_pain`, `uti_uncomplicated`, `food_poisoning`, `anxiety_panic_attack`, `renal_colic`, `syncope`, `vertigo`, `epistaxis`, `shoulder_dislocation`, `elderly_fall`, `rib_fracture`, `wrist_fracture`, `concussion`, `minor_burn`, `animal_bite`, `foreign_body_ingestion`, `urinary_retention`, `asthma_attack_mild`, `abdominal_pain_nonspecific`, `traffic_accident_minor`
 

@@ -1,7 +1,7 @@
 # 医療ダミーデータ生成システム 仕様書
 
 **バージョン**: 0.3（設計検討中）  
-**最終更新**: 2024年
+**最終更新**: 2026年4月
 
 ---
 
@@ -595,7 +595,7 @@ FHIR / CSV / narrative 出力時に各 adapter が `clinosim.codes.lookup()` を
 |---|---|---|
 | 言語 | Python 3.11+ | ✅ |
 | シミュレーションフレームワーク | (現状: 月次loop) | ✅ Mode 1。 Mode 2 (DES) は未実装 |
-| 疾患ルール定義 | YAML | ✅ (28 疾患 + 44 ED/外来 condition) |
+| 疾患ルール定義 | YAML | ✅ (32 疾患 + 46 ED/外来 condition) |
 | 状態遷移モデル | 9-変数 ODE 風 update | ✅ |
 | 統計モデル | NumPy | ✅ |
 | バリデーション | Pydantic | ✅ (YAML読込時) |

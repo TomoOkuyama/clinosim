@@ -1619,8 +1619,8 @@ clinosim/
 ├── config/
 ├── types/
 ├── modules/
-│   ├── disease/            (28 disease YAMLs)
-│   ├── encounter/          (44 ED/outpatient YAMLs)
+│   ├── disease/            (32 disease YAMLs)
+│   ├── encounter/          (46 ED/outpatient YAMLs)
 │   ├── physiology/
 │   ├── clinical_course/
 │   ├── diagnosis/
@@ -1714,9 +1714,18 @@ observations.
 | AD-39 | 2026-04-09 | LLM provider plugin registry + YAML-driven factory |
 | AD-40 | 2026-04-09 | Prompt templates externalized as per-language YAML files |
 | AD-41 | 2026-04-09 | SHA256 disk cache for LLM responses (reproducibility + cost control) |
-| AD-42 | 2026-04-10 | YAML-driven medication_holds in disease protocols (replaces hardcoded disease_id lists in simulator) |
-| AD-43 | 2026-04-10 | Country-specific recommended_population in hospital config (US: 40K, JP: 5K for 50-bed) |
-| AD-44 | 2026-04-10 | Staff name resolution in narrative prompts (hospital.json roster → display names) |
+| AD-42 | 2026-04-13 | Code-side unit conversion for Japanese locale (CRP mg/L → mg/dL in extractor/generator, not LLM prompt) |
+| AD-43 | 2026-04-13 | Japanese narrative prompt quality rules (「医師」 suffix, 【】 section headers, no markdown) |
+| AD-44 | 2026-04-15 | Enrichment is language-neutral (English structured data; LLM translates at output time) |
+| AD-45 | 2026-04-15 | Occupation field on Patient/PersonRecord (12 categories; drives work-related injury incidence) |
+| AD-46 | 2026-04-16 | Multilingual FHIR coding (Condition/Procedure emit dual coding: primary + interop language) |
+| AD-47 | 2026-04-16 | FHIR Observation referenceRange + interpretation consistency (FHIR R5 Note 5) |
+| AD-48 | 2026-04-16 | procedure_name removed from CIF (display resolved at output via code_lookup, AD-30 strict) |
+| AD-49 | 2026-04-18 | Condition code.text with clinical abbreviations (_CONDITION_SHORT_NAME: COPD, CHF, CKD, DM, AF; coding[].display keeps official ICD name) |
+| AD-50 | 2026-04-18 | Medication protocol prefix stripping (_strip_protocol_prefix removes DVT_prophylaxis:, antipyretic: from medicationCodeableConcept.text) |
+| AD-51 | 2026-04-10 | YAML-driven medication_holds in disease protocols (replaces hardcoded disease_id lists in simulator) |
+| AD-52 | 2026-04-10 | Country-specific recommended_population in hospital config (US: 40K, JP: 10K for 50-bed) |
+| AD-53 | 2026-04-10 | Staff name resolution in narrative prompts (hospital.json roster → display names) |
 
 ---
 
