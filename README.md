@@ -273,7 +273,7 @@ Quality check generated data against published benchmarks.
 
 ### `clinosim list-diseases`
 
-Show all 28 diseases + 44 encounter conditions.
+Show all 32 diseases + 46 encounter conditions.
 
 ### Typical workflows
 
@@ -464,14 +464,15 @@ flowchart TD
 clinosim/
 ├── codes/                    # ★ International code systems + multilingual display (locale-independent)
 │   ├── data/
-│   │   ├── icd-10-cm.yaml    # 224 codes
-│   │   ├── icd-10.yaml       # 110 (WHO ICD-10, JP)
-│   │   ├── loinc.yaml        # 59
+│   │   ├── icd-10-cm.yaml    # 234 codes
+│   │   ├── icd-10.yaml       # 133 (WHO ICD-10, JP)
+│   │   ├── loinc.yaml        # 65
 │   │   ├── jlac10.yaml       # 30
 │   │   ├── rxnorm.yaml       # 68
 │   │   ├── yj.yaml           # 39
-│   │   ├── cpt.yaml          # 25
-│   │   └── k-codes.yaml      # 2
+│   │   ├── cpt.yaml          # 31
+│   │   ├── k-codes.yaml      # 25
+│   │   └── snomed-ct.yaml    # 31 (subset: procedure structural fields)
 │   └── loader.py             # lookup(system, code, lang) API
 │
 ├── locale/                   # Country/culture-specific data
@@ -490,6 +491,7 @@ clinosim/
 ├── config/                   # Hospital configuration YAMLs
 │   ├── hospital_operations.yaml  # 50-bed community hospital (default)
 │   ├── hospital_small.yaml       # 10-bed clinic
+│   ├── hospital_large.yaml       # large hospital
 │   ├── llm_service.yaml          # LLM (local Ollama default)
 │   └── llm_service.cloud.yaml    # Anthropic API
 │
@@ -501,8 +503,8 @@ clinosim/
 │   └── output.py             # CIFDataset, CIFPatientRecord, CIFMetadata
 │
 ├── modules/                  # Functional modules (each with README)
-│   ├── disease/              # 28 disease YAML protocols
-│   ├── encounter/            # 44 ED/outpatient condition YAMLs
+│   ├── disease/              # 32 disease YAML protocols
+│   ├── encounter/            # 46 ED/outpatient condition YAMLs
 │   ├── physiology/           # 9-state model + lab/vital derivation
 │   ├── clinical_course/      # 6 archetypes + complications + diagnosis feedback
 │   ├── diagnosis/            # Bayesian differential (LR table)
@@ -548,7 +550,7 @@ clinosim/
 │   └── cli.py                # CLI entry point (generate, narrate, export-fhir, ...)
 │
 └── tests/
-    ├── unit/                 # Module unit tests (189 tests)
+    ├── unit/                 # Module unit tests (201 tests)
     ├── integration/          # Cross-module integration tests
     └── e2e/                  # E2E + golden file tests
 ```
@@ -612,7 +614,7 @@ See `clinosim/codes/README.md` for details.
 
 ## Supported Diseases
 
-28 diseases defined in YAML, covering ~80% of acute hospital admissions:
+32 diseases defined in YAML, covering ~80% of acute hospital admissions:
 
 | Category | Diseases |
 |---|---|
@@ -627,8 +629,9 @@ See `clinosim/codes/README.md` for details.
 | **Renal** | Acute kidney injury |
 | **Infectious** | Sepsis, Urinary tract infection, Cellulitis |
 | **Vascular** | Deep vein thrombosis |
+| **Occupational (労災)** | Crush injury (hand), Severe industrial burn, Fall from height, Electrical injury |
 
-Plus **44 ED/outpatient conditions** (chest pain, viral gastroenteritis, ankle sprain, annual screening, flu vaccination, dialysis session, etc.) — see `clinosim/modules/encounter/reference_data/`.
+Plus **46 ED/outpatient conditions** (chest pain, viral gastroenteritis, ankle sprain, annual screening, flu vaccination, dialysis session, etc.) — see `clinosim/modules/encounter/reference_data/`.
 
 Adding new diseases requires **only adding a YAML file** (no code changes). See `clinosim/modules/disease/README.md`.
 
@@ -727,7 +730,7 @@ See `clinosim/modules/facility/README.md`.
 ```bash
 source .venv/bin/activate
 
-# All tests (140 tests, ~2 minutes)
+# All tests (201 tests, ~2 minutes)
 pytest -x
 
 # By category

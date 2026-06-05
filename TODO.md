@@ -1,6 +1,6 @@
 # clinosim — TODO
 
-## Status (current as of 2026-04-19)
+## Status (current as of 2026-04-20)
 
 **v0.2 (Simulation realism + Japanese/English documents + Occupational injuries)** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 32 diseases + 46 ED/outpatient conditions, occupational injury support (6 work-related conditions + occupation field), snapshot date support, pluggable LLM providers (Ollama/Bedrock/Mock), three-stage CLI pipeline (`generate` → `narrate` → `export-fhir`), FHIR DocumentReference for 5 clinical document types (Tier A+B) in English and Japanese.
 
@@ -23,7 +23,7 @@ Code system coverage:
 - 234 ICD-10-CM codes, 133 ICD-10 codes (EN + JA bilingual)
 - 65 LOINC, 68 RxNorm, 31 CPT, 25 K-codes, 39 YJ, 31 SNOMED CT
 - 120+ drug name JP translations (drug_names_ja.yaml)
-- 189 unit tests passing
+- 201 unit tests passing
 
 ## Architecture Decisions (current)
 

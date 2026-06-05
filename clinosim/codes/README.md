@@ -277,16 +277,17 @@ lookup("icd-10-cm", "Z99.2", "de")
 
 |Code system | Codes | Languages | Coverage focus |
 |---|---|---|---|
-| icd-10-cm | 224 | en, ja | clinosim で生成される全疾患 + よく使う Z-codes / ED 症状 |
-| icd-10 | 110 | en, ja | WHO ICD-10 ベースコード (JP 互換) |
-| loinc | 59 | en, ja | バイタル + 主要血液生化学 + 凝固 + 心臓マーカー |
+| icd-10-cm | 234 | en, ja | clinosim で生成される全疾患 + よく使う Z-codes / ED 症状 |
+| icd-10 | 133 | en, ja | WHO ICD-10 ベースコード (JP 互換) |
+| loinc | 65 | en, ja | バイタル + 主要血液生化学 + 凝固 + 心臓マーカー |
 | jlac10 | 30 | en, ja | JP 検査標準コード (JCCLS 共用基準範囲対応) |
 | rxnorm | 68 | en, ja | 抗菌薬・抗凝固・循環器・救急薬等 |
 | yj | 39 | en, ja | JP 医薬品 (主要処方薬) |
-| cpt | 25 | en, ja | 主要外科手技 + ベッドサイド処置 + 画像 |
-| k-codes | 2 | en, ja | (未整備、 拡張余地あり) |
+| cpt | 31 | en, ja | 主要外科手技 + ベッドサイド処置 + 画像 |
+| k-codes | 25 | en, ja | JP 診療報酬手技 (K コード) |
+| snomed-ct | 31 | en, ja | 手技構造化フィールド (category, performer role, body site, outcome, complication) |
 
-合計: **577 codes** (執筆時点)
+合計: **656 codes** (執筆時点)
 
 ## locale モジュールとの境界
 

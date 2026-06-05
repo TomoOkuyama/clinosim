@@ -42,7 +42,7 @@
 - **HL7 FHIR Bulk Data Access 準拠** の NDJSON 出力 (Patient.ndjson, Encounter.ndjson, ...)
 - **9 状態変数による生理学モデル** で labs/vitals が物理的・臨床的に整合
 - **Bayesian 鑑別診断** (尤度比表)、 6つの疾患進行アーキタイプ
-- **権威コード体系** (ICD-10-CM, LOINC, RxNorm, JLAC10, YJ コード, CPT) 経由の多言語表示
+- **権威コード体系** (ICD-10-CM, LOINC, RxNorm, JLAC10, YJ コード, CPT, SNOMED CT サブセット) 経由の多言語表示
 - **32 疾患 + 46 ED/外来 condition** を YAML定義 (コード変更なしで追加可)
 - **JCCLS 共用基準範囲 2022** に準拠した検査基準範囲
 - **NEWS2 互換バイタル** (意識レベル AVPU, 補助酸素流量を含む)
@@ -194,7 +194,7 @@ clinosim test-encounter migraine --age 35 --sex F
 
 ### `clinosim list-diseases`
 
-利用可能な 28 疾患 + 44 encounter conditions を表示。
+利用可能な 32 疾患 + 46 encounter conditions を表示。
 
 ---
 
@@ -321,14 +321,15 @@ flowchart TD
 clinosim/
 ├── codes/                    # ★ 国際コード体系 + 多言語表示 (locale非依存)
 │   ├── data/
-│   │   ├── icd-10-cm.yaml    # 224 codes
-│   │   ├── icd-10.yaml       # 110 (WHO ICD-10, JP用)
-│   │   ├── loinc.yaml        # 59
+│   │   ├── icd-10-cm.yaml    # 234 codes
+│   │   ├── icd-10.yaml       # 133 (WHO ICD-10, JP用)
+│   │   ├── loinc.yaml        # 65
 │   │   ├── jlac10.yaml       # 30
 │   │   ├── rxnorm.yaml       # 68
 │   │   ├── yj.yaml           # 39
-│   │   ├── cpt.yaml          # 25
-│   │   └── k-codes.yaml      # 2
+│   │   ├── cpt.yaml          # 31
+│   │   ├── k-codes.yaml      # 25
+│   │   └── snomed-ct.yaml    # 31 (サブセット: 手技構造化フィールド)
 │   └── loader.py             # lookup(system, code, lang) API
 │
 ├── locale/                   # 文化・国依存データ
@@ -347,6 +348,7 @@ clinosim/
 ├── config/                   # 病院設定 YAML
 │   ├── hospital_operations.yaml  # 50床 community hospital (default)
 │   ├── hospital_small.yaml       # 10床 clinic
+│   ├── hospital_large.yaml       # large hospital
 │   ├── llm_service.yaml          # LLM (local Ollama default)
 │   └── llm_service.cloud.yaml    # Anthropic API
 │
@@ -359,7 +361,7 @@ clinosim/
 │
 ├── modules/                  # 機能モジュール (各 README あり)
 │   ├── codes/                # → 上に展開
-│   ├── disease/              # 28 疾患 YAML protocol
+│   ├── disease/              # 32 疾患 YAML protocol
 │   ├── encounter/            # 46 ED/外来 condition YAML
 │   ├── physiology/           # 9 状態変数モデル + lab/vital 導出
 │   ├── clinical_course/      # 6 archetype + 合併症 + diagnosis feedback
@@ -385,7 +387,7 @@ clinosim/
 │   └── cli.py                # CLI entry point
 │
 └── tests/
-    ├── unit/                 # モジュール単体テスト (140 件)
+    ├── unit/                 # モジュール単体テスト (201 件)
     ├── integration/          # モジュール連携テスト
     └── e2e/                  # E2E + golden file テスト
 ```
@@ -396,7 +398,7 @@ clinosim/
 
 ## コード体系と権威ソース
 
-`clinosim/codes/` は国際標準のコード体系を一元管理。 全 8 体系、 合計 **577 codes**、 全コードに英語表示あり (日本語はオプション)。
+`clinosim/codes/` は国際標準のコード体系を一元管理。 全 9 体系、 合計 **656 codes**、 全コードに英語表示あり (日本語はオプション)。
 
 | Key | 名称 | 用途 | 権威ソース |
 |---|---|---|---|
@@ -408,6 +410,7 @@ clinosim/
 | `yj` | YJ コード | JP 医薬品 | 厚生労働省 薬価基準 |
 | `cpt` | CPT | US 手技 | [AMA](https://www.ama-assn.org/practice-management/cpt) |
 | `k-codes` | K コード | JP 診療報酬手技 | 厚生労働省 診療報酬点数表 |
+| `snomed-ct` | SNOMED CT (サブセット) | 手技の構造化フィールド (category, performer role, body site, outcome, complication) | [SNOMED International](https://www.snomed.org/) |
 
 ### コード体系の使い方 (FHIR Observation 例)
 
@@ -437,7 +440,7 @@ obs = {
 
 ## サポート疾患
 
-YAML 定義で 28 疾患をサポート (急性入院の約 80% をカバー):
+YAML 定義で 32 疾患をサポート (急性入院の約 80% をカバー):
 
 | カテゴリ | 疾患 |
 |---|---|
@@ -452,6 +455,7 @@ YAML 定義で 28 疾患をサポート (急性入院の約 80% をカバー):
 | **腎** | 急性腎障害 |
 | **感染症** | 敗血症、尿路感染症、蜂窩織炎 |
 | **血管** | 深部静脈血栓症 |
+| **労災** | 手挫滅創、重症工業熱傷、高所転落、電撃傷 |
 
 加えて **46 ED/外来 conditions** (chest pain, viral gastroenteritis, ankle sprain, annual screening, flu vaccination, dialysis session, etc.) — `clinosim/modules/encounter/reference_data/`。
 
@@ -552,7 +556,7 @@ staffing:                       # シフト別 staffing 比率
 ```bash
 source .venv/bin/activate
 
-# 全テスト (140 件、約2分)
+# 全テスト (201 件、約2分)
 pytest -x
 
 # カテゴリ別

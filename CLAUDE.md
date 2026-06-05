@@ -69,7 +69,7 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 - `pytest -m unit` — per-module unit tests (<30s)
 - `pytest -m integration` — module chain tests (<5min)
 - `pytest -m e2e` — golden file comparison (<30min)
-- `pytest -x` — full suite (~2 min, 189 tests)
+- `pytest -x` — full suite (~2 min, 201 tests)
 - Always run unit tests before committing.
 
 ## When modifying a module
@@ -135,6 +135,7 @@ Each hospital is defined by a YAML in `clinosim/config/hospital_*.yaml`:
 
 - `hospital_operations.yaml` — 50-bed community hospital (default)
 - `hospital_small.yaml` — 10-bed clinic
+- `hospital_large.yaml` — 200-bed regional hospital (full service)
 - Custom configs supported via `--hospital-config PATH`
 
 Required fields: `recommended_population`, `available_departments`, `department_rollup`, `wards`, `ward_capacity`, `resource_capacity`, `staffing`.

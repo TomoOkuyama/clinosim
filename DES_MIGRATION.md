@@ -1,5 +1,13 @@
 # DES Migration — Pre-Migration Audit
 
+> **Status (historical planning document):** The pre-migration cleanup described
+> below is largely complete. `simulator.py` has been split into
+> `simulator/{engine,inpatient,outpatient,emergency,helpers,cli}.py`, and a
+> discrete-event engine now exists at `simulator/des_engine.py`. Counts in this
+> document predate later growth — the project now ships **32 disease YAMLs** and
+> **46 encounter YAMLs** (not the 20/24 referenced below). Retained for design
+> rationale; see `DESIGN.md` and `TODO.md` for current state.
+
 ## 1. Current Architecture Issues
 
 ### simulator.py is a monolith (2,686 lines, 30+ functions)
