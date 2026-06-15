@@ -18,6 +18,8 @@ from clinosim.locale.loader import (
 )
 import re
 import uuid
+from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
@@ -587,131 +589,206 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     }
 
 
+@dataclass
+class BundleContext:
+    """Shared inputs for FHIR resource builders (AD-56)."""
+
+    record: dict
+    country: str
+    roster_map: dict
+    hospital_config: dict
+    patient_data: dict
+    patient_id: str
+    is_readmission: bool
+    prior_encounter_id: Any
+    primary_dx_code: str
+    admit_dx_code: str
+    admit_dx_system: str
+    primary_enc_id: str
+    patient_sex: str
+
+
+# --- Resource builders: (ctx) -> list[resource]. Order here == emission order. ---
+
+def _bb_patient(ctx: BundleContext) -> list[dict]:
+    return [_build_patient(ctx.patient_data, ctx.country)]
+
+
+def _bb_coverage(ctx: BundleContext) -> list[dict]:
+    return _build_coverage_resources(ctx.patient_data, ctx.country)
+
+
+def _bb_encounters(ctx: BundleContext) -> list[dict]:
+    return [
+        _build_encounter(enc, ctx.patient_id, ctx.is_readmission, ctx.prior_encounter_id,
+                         primary_dx_code=ctx.primary_dx_code, country=ctx.country,
+                         admit_dx_code=ctx.admit_dx_code, admit_dx_system=ctx.admit_dx_system)
+        for enc in ctx.record.get("encounters", [])
+    ]
+
+
+def _bb_conditions(ctx: BundleContext) -> list[dict]:
+    return list(_build_conditions(ctx.record, ctx.patient_id, ctx.country))
+
+
+def _bb_allergies(ctx: BundleContext) -> list[dict]:
+    out: list[dict] = []
+    for i, allergy in enumerate(ctx.patient_data.get("allergies", []) or []):
+        if isinstance(allergy, dict):
+            ai = _build_allergy_intolerance(allergy, ctx.patient_id, i, ctx.country)
+            if ai:
+                out.append(ai)
+    return out
+
+
+def _bb_occupation(ctx: BundleContext) -> list[dict]:
+    # US Core Patient Occupation (LOINC 11341-5). Patient-level, not encounter-scoped.
+    occupation = ctx.patient_data.get("occupation", "")
+    if occupation:
+        occ_obs = _build_occupation_observation(occupation, ctx.patient_id, ctx.country)
+        if occ_obs:
+            return [occ_obs]
+    return []
+
+
+def _bb_labs(ctx: BundleContext) -> list[dict]:
+    out: list[dict] = []
+    for i, order in enumerate(ctx.record.get("orders", [])):
+        if order.get("order_type") == "lab" and order.get("result"):
+            obs = _build_lab_observation(order, order["result"], ctx.patient_id, i,
+                                          ctx.country, ctx.patient_sex, ctx.primary_enc_id)
+            if obs:
+                out.append(obs)
+    return out
+
+
+def _bb_vitals(ctx: BundleContext) -> list[dict]:
+    # _build_vital_observations returns already-wrapped Bundle entries; unwrap to raw
+    # resources so the registry's single _entry() wrap applies uniformly.
+    out: list[dict] = []
+    for i, vs in enumerate(ctx.record.get("vital_signs", [])):
+        for entry in _build_vital_observations(vs, ctx.patient_id, i, ctx.country, ctx.primary_enc_id):
+            out.append(entry["resource"])
+    return out
+
+
+def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
+    out: list[dict] = []
+    for order in ctx.record.get("orders", []):
+        if order.get("order_type") == "medication":
+            if not (order.get("display_name") or "").strip():
+                continue  # skip blank drug names (CIF data quality)
+            out.append(_build_medication_request(
+                order, ctx.patient_id, ctx.country, ctx.primary_enc_id, ctx.primary_dx_code))
+    return out
+
+
+def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
+    out: list[dict] = []
+    for i, mar in enumerate(ctx.record.get("medication_administrations", [])):
+        if not (mar.get("drug_name") or "").strip():
+            continue
+        out.append(_build_medication_admin(
+            mar, ctx.patient_id, i, ctx.country,
+            encounter_id=ctx.primary_enc_id, primary_dx_code=ctx.primary_dx_code))
+    return out
+
+
+def _bb_procedures(ctx: BundleContext) -> list[dict]:
+    return [
+        _build_procedure(proc, ctx.patient_id, i, ctx.country)
+        for i, proc in enumerate(ctx.record.get("procedures", []))
+    ]
+
+
+def _bb_practitioners(ctx: BundleContext) -> list[dict]:
+    out: list[dict] = []
+    seen: set[str] = set()
+
+    def add(staff_id: str) -> None:
+        if not staff_id or staff_id in seen:
+            return
+        seen.add(staff_id)
+        out.append(_build_practitioner(staff_id, ctx.roster_map, country=ctx.country))
+        role = _build_practitioner_role(staff_id, ctx.roster_map)
+        if role:
+            out.append(role)
+
+    for enc in ctx.record.get("encounters", []):
+        add(enc.get("attending_physician_id", ""))
+        add(enc.get("admitting_physician_id", ""))
+        add(enc.get("discharging_physician_id", ""))
+    for o in ctx.record.get("orders", []):
+        add(o.get("ordered_by", ""))
+        if o.get("result"):
+            add(o["result"].get("performed_by", ""))
+    for vs in ctx.record.get("vital_signs", []):
+        add(vs.get("measured_by", ""))
+    for mar in ctx.record.get("medication_administrations", []):
+        add(mar.get("administered_by", ""))
+    for proc in ctx.record.get("procedures", []):
+        add(proc.get("primary_surgeon_id", ""))
+        add(proc.get("anesthesiologist_id", ""))
+    return out
+
+
+# Registry: emission order == list order. New Base/Module resources append a builder
+# here (or via register_bundle_builder) instead of editing _build_bundle (AD-56).
+_BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
+    _bb_patient,
+    _bb_coverage,
+    _bb_encounters,
+    _bb_conditions,
+    _bb_allergies,
+    _bb_occupation,
+    _bb_labs,
+    _bb_vitals,
+    _bb_medication_requests,
+    _bb_medication_admins,
+    _bb_procedures,
+    _bb_practitioners,
+]
+
+
+def register_bundle_builder(builder: Callable[[BundleContext], list[dict]]) -> None:
+    """Register a FHIR resource builder appended after the built-ins (AD-56)."""
+    if builder not in _BUNDLE_BUILDERS:
+        _BUNDLE_BUILDERS.append(builder)
+
+
 def _build_bundle(
     record: dict, country: str,
     roster_map: dict[str, dict] | None = None,
     hospital_config: dict | None = None,
 ) -> dict:
-    """Build a FHIR R4 Bundle from a CIF patient record."""
+    """Build a FHIR R4 Bundle from a CIF patient record by running the builder registry."""
     if roster_map is None:
         roster_map = {}
     if hospital_config is None:
         hospital_config = {}
     patient_data = record.get("patient", {})
-    patient_id = patient_data.get("patient_id", "unknown")
-
-    entries: list[dict] = []
-
-    # === Patient resource ===
-    entries.append(_entry(_build_patient(patient_data, country)))
-
-    # === Coverage + payor Organization (JP Core; AD-54) ===
-    for res in _build_coverage_resources(patient_data, country):
-        entries.append(_entry(res))
-
-    # === Encounter resources ===
-    is_readmission = record.get("is_readmission", False)
-    prior_encounter_id = record.get("prior_encounter_id")
     dx = record.get("clinical_diagnosis", {})
-    primary_dx_code = dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", "")
-    admit_dx_code = dx.get("admission_diagnosis_code", "")
-    admit_dx_system = dx.get("admission_diagnosis_system", "icd-10-cm")
-    for enc in record.get("encounters", []):
-        entries.append(_entry(
-            _build_encounter(enc, patient_id, is_readmission, prior_encounter_id,
-                             primary_dx_code=primary_dx_code, country=country,
-                             admit_dx_code=admit_dx_code, admit_dx_system=admit_dx_system)
-        ))
-
-    # === Condition resources ===
-    entries.extend(
-        _entry(c) for c in _build_conditions(record, patient_id, country)
+    encounters = record.get("encounters") or []
+    ctx = BundleContext(
+        record=record,
+        country=country,
+        roster_map=roster_map,
+        hospital_config=hospital_config,
+        patient_data=patient_data,
+        patient_id=patient_data.get("patient_id", "unknown"),
+        is_readmission=record.get("is_readmission", False),
+        prior_encounter_id=record.get("prior_encounter_id"),
+        primary_dx_code=dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", ""),
+        admit_dx_code=dx.get("admission_diagnosis_code", ""),
+        admit_dx_system=dx.get("admission_diagnosis_system", "icd-10-cm"),
+        primary_enc_id=encounters[0].get("encounter_id", "") if encounters else "",
+        patient_sex=patient_data.get("sex", ""),
     )
 
-    # === AllergyIntolerance resources ===
-    for i, allergy in enumerate(patient_data.get("allergies", []) or []):
-        if isinstance(allergy, dict):
-            ai = _build_allergy_intolerance(allergy, patient_id, i, country)
-            if ai:
-                entries.append(_entry(ai))
-
-    # === Occupation (social history) Observation ===
-    # US Core Patient Occupation (LOINC 11341-5). Patient-level, not encounter-scoped.
-    occupation = patient_data.get("occupation", "")
-    if occupation:
-        occ_obs = _build_occupation_observation(occupation, patient_id, country)
-        if occ_obs:
-            entries.append(_entry(occ_obs))
-
-    # Primary encounter id (for back-references)
-    primary_enc_id = (record.get("encounters", [{}])[0].get("encounter_id", "")
-                      if record.get("encounters") else "")
-
-    # === Observation resources — Lab results ===
-    patient_sex = patient_data.get("sex", "")
-    for i, order in enumerate(record.get("orders", [])):
-        if order.get("order_type") == "lab" and order.get("result"):
-            result = order["result"]
-            obs = _build_lab_observation(order, result, patient_id, i, country,
-                                          patient_sex, primary_enc_id)
-            if obs:
-                entries.append(_entry(obs))
-
-    # === Observation resources — Vital signs ===
-    for i, vs in enumerate(record.get("vital_signs", [])):
-        entries.extend(_build_vital_observations(vs, patient_id, i, country, primary_enc_id))
-
-    # === MedicationRequest resources ===
-    for order in record.get("orders", []):
-        if order.get("order_type") == "medication":
-            # Skip orders with blank drug names (CIF data quality issue)
-            if not (order.get("display_name") or "").strip():
-                continue
-            entries.append(_entry(_build_medication_request(
-                order, patient_id, country, primary_enc_id, primary_dx_code,
-            )))
-
-    # === MedicationAdministration resources (MAR) ===
-    for i, mar in enumerate(record.get("medication_administrations", [])):
-        # Skip MAR entries with blank drug names
-        if not (mar.get("drug_name") or "").strip():
-            continue
-        entries.append(_entry(_build_medication_admin(
-            mar, patient_id, i, country,
-            encounter_id=primary_enc_id, primary_dx_code=primary_dx_code,
-        )))
-
-    # === Procedure resources ===
-    for i, proc in enumerate(record.get("procedures", [])):
-        entries.append(_entry(_build_procedure(proc, patient_id, i, country)))
-
-    # === Practitioner + PractitionerRole resources (deduplicated) ===
-    seen_staff: set[str] = set()
-
-    def _add_staff(staff_id: str) -> None:
-        if not staff_id or staff_id in seen_staff:
-            return
-        seen_staff.add(staff_id)
-        entries.append(_entry(_build_practitioner(staff_id, roster_map, country=country)))
-        role = _build_practitioner_role(staff_id, roster_map)
-        if role:
-            entries.append(_entry(role))
-
-    for enc in record.get("encounters", []):
-        _add_staff(enc.get("attending_physician_id", ""))
-        _add_staff(enc.get("admitting_physician_id", ""))
-        _add_staff(enc.get("discharging_physician_id", ""))
-    for o in record.get("orders", []):
-        _add_staff(o.get("ordered_by", ""))
-        if o.get("result"):
-            _add_staff(o["result"].get("performed_by", ""))
-    for vs in record.get("vital_signs", []):
-        _add_staff(vs.get("measured_by", ""))
-    for mar in record.get("medication_administrations", []):
-        _add_staff(mar.get("administered_by", ""))
-    for proc in record.get("procedures", []):
-        _add_staff(proc.get("primary_surgeon_id", ""))
-        _add_staff(proc.get("anesthesiologist_id", ""))
+    entries: list[dict] = []
+    for builder in _BUNDLE_BUILDERS:
+        for resource in builder(ctx):
+            entries.append(_entry(resource))
 
     return {
         "resourceType": "Bundle",
