@@ -1728,6 +1728,7 @@ observations.
 | AD-53 | 2026-04-10 | Staff name resolution in narrative prompts (hospital.json roster → display names) |
 | AD-54 | 2026-06-15 | Country-pluggable resident identifier & insurance numbering module (`modules/identity/`) |
 | AD-55 | 2026-06-15 | EHR data enrichment split: near-essential data in Base (always-on, extends core), specialized/optional data in opt-in modules |
+| AD-56 | 2026-06-15 | Extensibility foundation (Phase 0): FHIR resource-builder registry, simulator enricher registry, CIF extensions slot for modules, config module-enablement map |
 
 ---
 
@@ -1859,6 +1860,50 @@ microbiology, blood gas, cardiac markers, nursing flowsheets).
 | Module | Billing (`modules/billing/` — JP DPC / US Claim+EOB); Devices + HAI (`modules/device/` — CLABSI/CAUTI/VAP); Care coordination (`modules/care_coordination/` — CarePlan/CareTeam/Goal) | one opt-in module per theme |
 
 See `TODO.md` for the phased implementation plan.
+
+---
+
+## 6.11 Extensibility foundation — Phase 0 (AD-56)
+
+### Problem
+
+Adding a new FHIR resource type or opt-in module currently requires editing several
+central hot spots, so the AD-55 roadmap (8 Base items + 3 modules) would touch the same
+monoliths repeatedly:
+
+- `output/fhir_r4_adapter.py` `_build_bundle()` (~3,000-line file) — every new resource
+  is hand-appended into one function, plus the dedup set.
+- `simulator/engine.py` `run_beta()` — every post-population pass is inlined (e.g.
+  `if config.jp_insurance_numbers: assign_identities(...)`), order-sensitive.
+- `types/output.py` `CIFPatientRecord` — fixed dataclass; every new data class adds a field.
+- `types/config.py` `SimulatorConfig` — one boolean per opt-in module.
+
+### Decision — do these enabling refactors *before* the AD-55 enrichment work
+
+1. **FHIR resource-builder registry.** A registry of builders `(record, ctx) -> list[resource]`;
+   the core loop iterates and emits. Each builder declares its dedup behaviour
+   (patient-level vs per-encounter). New resource = register a builder (co-located with its
+   domain) — no edit to `_build_bundle`.
+2. **Simulator enricher registry.** Post-population passes register with
+   `name` / `order` / `enabled(config)` / `run(...)`; `run_beta` iterates in declared order.
+   New module = register an enricher — no edit to `run_beta`. **Order is explicit and fixed
+   to preserve determinism (AD-16).**
+3. **CIF extensions slot.** Add `CIFPatientRecord.extensions: dict[str, Any]`. **Base** data
+   keeps typed fields (Base *is* core); **Modules** write to `extensions[<module>]` and never
+   edit the core type — module independence enforced at the type level (aligns with AD-55).
+4. **Config module-enablement map.** `SimulatorConfig.modules: dict[str, bool]` +
+   `module_enabled(name)` helper; `jp_insurance_numbers` kept as a back-compat alias.
+   Per-module structured config (e.g. billing country options) lives in its own block.
+
+Secondary: externalize the `observation` lab catalog (CV / precision / units) to YAML
+(done alongside the microbiology Base item). CSV adapter registry is **deferred** (low
+leverage — a new table is ~3 lines).
+
+### Constraint
+
+These refactor working code. Regression is gated by the existing golden / e2e suites and
+determinism (AD-16): any change in resource emission order or RNG draw order must be proven
+equivalent, not a true regression.
 
 ---
 

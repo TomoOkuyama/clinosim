@@ -287,6 +287,24 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 - [ ] Episode-of-care multi-encounter tracking
 - [ ] Performance: 100k+ patients, parallel sim
 
+### Phase 0 — Extensibility foundation (AD-56, do before the enrichment roadmap)
+
+> Enabling refactors so each AD-55 item is "register a builder/enricher" instead of editing
+> central monoliths. Gate with existing golden/e2e + determinism (AD-16).
+
+- [ ] **① FHIR resource-builder registry** — replace the hand-appended `_build_bundle()`
+  (`output/fhir_r4_adapter.py`) with a registry of `(record, ctx) -> list[resource]` builders;
+  each declares dedup behaviour (patient-level vs per-encounter). Core loops & emits. **Highest leverage.**
+- [ ] **② Simulator enricher registry** — replace inlined passes in `run_beta()`
+  (`simulator/engine.py`) with enrichers registered as `name`/`order`/`enabled(config)`/`run(...)`;
+  iterate in fixed order (determinism). Migrate `assign_identities` to it as the first consumer.
+- [ ] **④ CIF extensions slot** — add `CIFPatientRecord.extensions: dict[str, Any]`
+  (`types/output.py`). Base = typed fields; Modules write `extensions[<module>]`, never edit core type.
+- [ ] **③ Config module-enablement map** — `SimulatorConfig.modules: dict[str, bool]` +
+  `module_enabled()` helper (`types/config.py`); keep `jp_insurance_numbers` as back-compat alias.
+- [ ] **⑤ (with microbiology)** externalize `observation` lab catalog (CV/precision/units) to YAML.
+- Deferred: ⑥ CSV adapter registry (low leverage — new table ≈ 3 lines).
+
 ### EHR data enrichment roadmap (AD-55 — Base vs Module)
 
 > Benchmarked vs Synthea / USCDI v5 / MIMIC-IV. **Imaging/modality data out of scope**
