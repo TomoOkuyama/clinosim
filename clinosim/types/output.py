@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date, datetime
+from typing import Any
 
 from clinosim.types.clinical import (
     ClinicalDiagnosis, ClinicalDocument, ConditionEvent, PhysiologicalState,
@@ -61,6 +62,10 @@ class CIFPatientRecord:
 
     # Hidden state (for validation/debugging, not exported to clinical formats)
     physiological_states: list[PhysiologicalState] = field(default_factory=list)
+
+    # Opt-in module data (AD-55/AD-56). Base data uses typed fields above; modules
+    # write under extensions[<module_name>] so they never edit this core type.
+    extensions: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass

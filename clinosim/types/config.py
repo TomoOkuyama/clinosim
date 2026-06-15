@@ -90,6 +90,10 @@ class SimulatorConfig(BaseModel):
     # No effect for non-JP countries.
     jp_insurance_numbers: bool = True
 
+    # (AD-56) Opt-in module enablement, e.g. {"billing": True, "device": False}.
+    # Scales without adding one boolean per module. Query via module_enabled().
+    modules: dict[str, bool] = {}
+
     llm: LLMServiceConfig = LLMServiceConfig()
 
     # Force specific scenarios (in addition to population-generated ones)
@@ -120,6 +124,10 @@ class SimulatorConfig(BaseModel):
             },
         }
         return cls(**presets[name])
+
+    def module_enabled(self, name: str, default: bool = False) -> bool:
+        """Whether an opt-in module is enabled (AD-56). See `modules`."""
+        return self.modules.get(name, default)
 
     def override(self, overrides: dict) -> SimulatorConfig:
         data = self.model_dump()
