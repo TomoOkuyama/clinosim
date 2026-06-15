@@ -52,16 +52,25 @@ clinosim/modules/output/
 ├── Encounter.ndjson             # 入院/外来エンカウンタ
 ├── Condition.ndjson             # 診断 (multilingual coding + 略語 text)
 ├── AllergyIntolerance.ndjson    # アレルギー (JP: ペニシリン等)
+├── Coverage.ndjson              # 保険資格 (JPのみ; JP Core 記号/番号/枝番, AD-54)
 ├── Observation.ndjson           # ラボ + バイタル + 職業 (referenceRange + interpretation)
 ├── MedicationRequest.ndjson     # 処方 (protocol prefix stripped)
 ├── MedicationAdministration.ndjson # MAR (実投与)
 ├── Procedure.ndjson             # 手技 (multilingual coding: K-code + CPT)
 ├── Practitioner.ndjson          # スタッフ (de-dup)
 ├── PractitionerRole.ndjson      # スタッフロール (de-dup)
-├── Organization.ndjson          # 病院 + 診療科 (de-dup)
+├── Organization.ndjson          # 病院 + 診療科 + 保険者 (de-dup)
 ├── Location.ndjson              # 病棟 + ベッド + 手術室 (de-dup)
 └── DocumentReference.ndjson     # 臨床文書 (narrative version 指定時)
 ```
+
+### リソースビルダー・レジストリ (AD-56)
+
+`_build_bundle()` は `_BUNDLE_BUILDERS`(`(BundleContext) -> list[resource]` のリスト)を
+順に実行してエントリを生成する。**新しいリソース型は `register_bundle_builder()` で
+登録するだけ**で追加でき、`_build_bundle()` 本体の編集は不要。登録順 = 出力順。
+opt-in モジュールは CIF(`CIFPatientRecord.extensions[<module>]`)を読んでビルダーを
+登録する(`identity` モジュールには非依存 — output が CIF を読む)。
 
 ### 多言語 coding (AD-46)
 
