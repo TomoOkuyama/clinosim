@@ -315,6 +315,12 @@ def activate_patient(
 
     # Insurance type from YAML age bands
     insurance_type = _sample_insurance(demo, age, rng)
+    # JP (AD-54): unify the legacy insurance_type with the identity enrollment category
+    # (single source of truth), so CSV/insurance_type and FHIR Coverage stay consistent.
+    if person.identity is not None:
+        enrollment = person.identity.current_enrollment()
+        if enrollment is not None and enrollment.category:
+            insurance_type = enrollment.category
 
     # Race and ethnicity (US only; empty string if race_distribution absent)
     race_dist = demo.get("race_distribution") or {}
@@ -337,6 +343,8 @@ def activate_patient(
 
     return PatientProfile(
         patient_id=person.person_id,
+        household_id=person.household_id,
+        identity=getattr(person, "identity", None),
         name=name,
         age=age,
         sex=sex,

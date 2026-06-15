@@ -10,7 +10,12 @@ import json
 import os
 
 from clinosim.codes import get_system_uri, lookup as code_lookup
-from clinosim.locale.loader import load_code_mapping, load_reference_ranges, load_terminology
+from clinosim.locale.loader import (
+    load_code_mapping,
+    load_identity_config,
+    load_reference_ranges,
+    load_terminology,
+)
 import re
 import uuid
 from datetime import date, datetime
@@ -343,7 +348,7 @@ def convert_cif_to_fhir(
         # Dedup for patient-level master resources
         # AllergyIntolerance is patient-level (lifelong), not per-encounter
         if rt in ("Patient", "Practitioner", "PractitionerRole",
-                  "Organization", "Location", "AllergyIntolerance"):
+                  "Organization", "Location", "AllergyIntolerance", "Coverage"):
             ids = written_ids.setdefault(rt, set())
             rid = resource.get("id", "")
             if rid in ids:
@@ -600,6 +605,10 @@ def _build_bundle(
     # === Patient resource ===
     entries.append(_entry(_build_patient(patient_data, country)))
 
+    # === Coverage + payor Organization (JP Core; AD-54) ===
+    for res in _build_coverage_resources(patient_data, country):
+        entries.append(_entry(res))
+
     # === Encounter resources ===
     is_readmission = record.get("is_readmission", False)
     prior_encounter_id = record.get("prior_encounter_id")
@@ -726,6 +735,121 @@ def _entry(resource: dict) -> dict:
 # ============================================================
 # Resource builders
 # ============================================================
+
+_IDENTITY_CFG_CACHE: dict[str, dict] = {}
+
+# FHIR R4 standard: payer organization type
+_ORG_TYPE_SYSTEM = "http://terminology.hl7.org/CodeSystem/organization-type"
+# FHIR R4 standard: beneficiary's relationship to the policy subscriber
+_SUBSCRIBER_REL_SYSTEM = "http://terminology.hl7.org/CodeSystem/subscriber-relationship"
+
+
+def _identity_cfg(country: str) -> dict:
+    """Full resident-identity locale config (AD-54), cached."""
+    if country not in _IDENTITY_CFG_CACHE:
+        _IDENTITY_CFG_CACHE[country] = load_identity_config(country)
+    return _IDENTITY_CFG_CACHE[country]
+
+
+def _payer_name_map(country: str) -> dict[str, str]:
+    """Map 保険者番号 → insurer name from locale (display resolved at output, AD-30)."""
+    payers = _identity_cfg(country).get("payers", {})
+    out: dict[str, str] = {}
+    for entries in payers.values():
+        for e in entries or []:
+            if e.get("number"):
+                out[str(e["number"])] = str(e.get("name", e["number"]))
+    return out
+
+
+def _build_coverage_resources(patient_data: dict, country: str) -> list[dict]:
+    """Build JP Core Coverage + payor Organization from the patient's insurance enrollment.
+
+    Reads CIF data only (no dependency on the identity module — module independence).
+    `national_id` is never read here: the privacy chokepoint (AD-54) means individual
+    numbers are never emitted to FHIR.
+    """
+    cfg = _identity_cfg(country).get("fhir_coverage", {})
+    if not cfg:
+        return []
+    name_map = _payer_name_map(country)
+    type_labels = _identity_cfg(country).get("coverage_type_labels", {})
+    identity = patient_data.get("identity") or {}
+    enrollments = identity.get("enrollments") or []
+    pid = patient_data.get("patient_id", "")
+    resources: list[dict] = []
+
+    for idx, enr in enumerate(enrollments):
+        insurer = enr.get("insurer_number") or ""
+        number = enr.get("member_id") or ""
+        symbol = enr.get("group_symbol")
+        branch = enr.get("branch_number")
+        category = enr.get("category") or ""
+        if not insurer or not number:
+            continue
+
+        payer_org_id = f"payer-{insurer}"
+        resources.append({
+            "resourceType": "Organization",
+            "id": payer_org_id,
+            "identifier": [{
+                "system": cfg.get("insurer_number_system", ""),
+                "value": insurer,
+            }],
+            "type": [{"coding": [{
+                "system": _ORG_TYPE_SYSTEM,
+                "code": "pay",
+                "display": "Payer",
+            }]}],
+            "name": name_map.get(insurer, insurer),
+        })
+
+        # JP Core extensions: 記号 / 番号 / 枝番
+        extensions: list[dict] = []
+        if symbol:
+            extensions.append({"url": cfg.get("ext_symbol", ""), "valueString": symbol})
+        extensions.append({"url": cfg.get("ext_number", ""), "valueString": number})
+        if branch:
+            extensions.append({"url": cfg.get("ext_subnumber", ""), "valueString": branch})
+
+        # Composite member identifier: 保険者番号:記号:番号:枝番
+        composite = ":".join([insurer, symbol or "", number, branch or ""])
+        subscriber = f"{symbol}:{number}" if symbol else number
+
+        coverage: dict[str, Any] = {
+            "resourceType": "Coverage",
+            "id": f"cov-{pid}-{idx}",
+            "extension": extensions,
+            "identifier": [{"system": cfg.get("member_id_system", ""), "value": composite}],
+            "status": "active",
+            "subscriberId": subscriber,
+            "beneficiary": {"reference": f"Patient/{pid}"},
+            "payor": [{"reference": f"Organization/{payer_org_id}"}],
+        }
+        if cfg.get("profile"):
+            coverage["meta"] = {"profile": [cfg["profile"]]}
+        if branch:
+            coverage["dependent"] = branch
+        # Beneficiary's relationship to the subscriber: 被扶養者 → not self.
+        rel_code = "other" if category == "dependent" else "self"
+        coverage["relationship"] = {
+            "coding": [{"system": _SUBSCRIBER_REL_SYSTEM, "code": rel_code}]
+        }
+        # Coverage.type: human label (text-only CodeableConcept — no fabricated codes).
+        label = type_labels.get(category)
+        if label:
+            coverage["type"] = {"text": label}
+        period = {}
+        if enr.get("valid_from"):
+            period["start"] = enr["valid_from"]
+        if enr.get("valid_to"):
+            period["end"] = enr["valid_to"]
+        if period:
+            coverage["period"] = period
+        resources.append(coverage)
+
+    return resources
+
 
 def _build_patient(p: dict, country: str) -> dict:
     """Build FHIR Patient resource with locale-aware name."""

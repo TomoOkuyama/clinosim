@@ -17,6 +17,7 @@ from clinosim.modules.population.engine import (
     generate_monthly_events,
     generate_population,
 )
+from clinosim.modules.identity import assign_identities
 from clinosim.modules.staff.engine import generate_roster
 from clinosim.types.config import ForcedScenario, SimulatorConfig
 from clinosim.types.encounter import EncounterType
@@ -89,6 +90,12 @@ def run_beta(
 
     population = generate_population(pop_size, config.country, rng)
     print(f"  Population: {population.total_persons} persons")
+
+    # Resident identifier & insurance numbering (AD-54) — separate pass with a
+    # dedicated sub-seed so the main random stream stays deterministic.
+    # JP-only and opt-out-able via --no-jp-insurance (config.jp_insurance_numbers).
+    if config.country == "JP" and config.jp_insurance_numbers:
+        assign_identities(population, config.country, config.random_seed)
 
     # Run life events
     start_y, start_m = int(config.time_range[0][:4]), int(config.time_range[0][5:7])

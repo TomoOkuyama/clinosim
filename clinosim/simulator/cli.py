@@ -42,6 +42,14 @@ def main() -> None:
     gen.add_argument("--narrative-model", default="qwen:7b", help="Ollama model for narratives")
     gen.add_argument("--hospital-config", default=None, help="Hospital operations YAML (default: config/hospital_operations.yaml)")
     gen.add_argument(
+        "--jp-insurance",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="(JP only) Include Japanese insurance enrollment / 被保険者番号 "
+             "(emitted as FHIR Coverage). Use --no-jp-insurance to omit. "
+             "Ignored for non-JP countries.",
+    )
+    gen.add_argument(
         "--narrative-version",
         default=None,
         help="Narrative version directory name to include in FHIR export "
@@ -168,9 +176,13 @@ def main() -> None:
             random_seed=args.seed,
             country=args.country,
             snapshot_date=end,
+            jp_insurance_numbers=args.jp_insurance,
         )
         hospital_cfg = getattr(args, "hospital_config", None)
         print(f"clinosim generate: population={args.population}, seed={args.seed}, country={args.country}, period={start}~{end}")
+        if args.country == "JP":
+            status = "on" if args.jp_insurance else "off"
+            print(f"  JP insurance numbers (被保険者番号): {status}")
         if hospital_cfg:
             print(f"  Hospital config: {hospital_cfg}")
         dataset = run_beta(config, hospital_config_path=hospital_cfg)
