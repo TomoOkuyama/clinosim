@@ -287,6 +287,34 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 - [ ] Episode-of-care multi-encounter tracking
 - [ ] Performance: 100k+ patients, parallel sim
 
+### EHR data enrichment roadmap (AD-55 — Base vs Module)
+
+> Benchmarked vs Synthea / USCDI v5 / MIMIC-IV. **Imaging/modality data out of scope**
+> (CT/MRI/X-ray/US, echo, ECG tracings, endoscopy, spirometry, pathology) — see DESIGN §6.10.
+> **Base** = always-on, extends core (`types`/`population`/`observation`/`simulator`/`output`).
+> **Module** = opt-in, **one theme per module** (same pattern as `identity`).
+> Cross-cutting for all: types in `types/`, module-independence (deps in README),
+> deterministic sub-seed, FHIR built in `output` reading CIF (modules stay output-agnostic).
+
+#### Base — near-essential (always generated; extends existing core)
+
+- [ ] **Microbiology & susceptibility** — extend `observation` (+ `types/clinical`); emit `DiagnosticReport`+`Observation`(+`Specimen`). Disease→likely-organism + antibiogram tables in `locale`/`codes`. Justifies antibiotic choice / de-escalation for the sepsis/pneumonia/UTI/cellulitis cohort. **Highest ROI.**
+- [ ] **Blood-based markers**: lactate (sepsis), ABG (respiratory), cardiac troponin (ACS) — extend `observation` lab catalog + `physiology` derivation. Non-imaging substitute for ECG/echo.
+- [ ] **`DiagnosticReport` grouping** — `output` adapter (+ `types/output`): group lab Observations into panels (CBC/BMP/LFT). Structural fidelity, no new clinical data.
+- [ ] **Nursing flowsheets** — `observation` / `simulator.inpatient` (+ `types`): I/O & fluid balance (from `volume_status`), NEWS2 (already computable), pain (0-10), GCS, Braden, fall risk → `Observation`.
+- [ ] **Immunization history** — `population`/patient-profile attribute (+ `types/patient`); emit `Immunization`. Locale schedules (JP routine + influenza/pneumococcal; US ACIP).
+- [ ] **Family history** — `population` attribute (+ `types`); emit `FamilyMemberHistory` (DM/HTN/CAD/cancer). Base-light attribute, not a module.
+- [ ] **Code status / advance directive** — inpatient/ICU/death encounter attribute (+ `types/encounter`); emit `Observation`/`Consent`. Base-light.
+- [ ] **Extended SDOH incl. JP 要介護度** — `population`/`locale` demographics attributes (extends existing smoking/alcohol/occupation); emit SDOH `Observation`.
+
+#### Modules — specialized / optional (opt-in, one theme each)
+
+- [ ] **`modules/billing/`** — country-pluggable レセプト/claims (JP **DPC** per-diem bundling / US `Claim`+`ExplanationOfBenefit`). Mirrors `identity`: provider registry, deps `types`/`codes`/`locale`, reads CIF, FHIR in `output`, `--billing` flag. **Supersedes the v0.5 "DPC/DRG cost data" item.**
+- [ ] **`modules/device/`** — device placement (central line / urinary catheter / ventilator / telemetry) + **HAI risk** (CLABSI/CAUTI/VAP) from dwell time; deps `procedure`/`types`; emit `Device`/`DeviceUseStatement` (+ HAI `Condition`). Flag-gated.
+- [ ] **`modules/care_coordination/`** — `CarePlan`/`CareTeam`/`Goal` for USCDI/Synthea interoperability completeness; deps `types`; reads CIF; flag-gated.
+
+Suggested order: microbiology+markers → nursing flowsheets+`DiagnosticReport` → immunization/family-history/code-status/SDOH (Base) → `modules/billing` (JP DPC) → `modules/device` → `modules/care_coordination`.
+
 ### v0.4 — Coverage expansion
 
 - [ ] SNOMED CT clinical findings

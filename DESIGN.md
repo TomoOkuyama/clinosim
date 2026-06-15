@@ -1727,6 +1727,7 @@ observations.
 | AD-52 | 2026-04-10 | Country-specific recommended_population in hospital config (US: 40K, JP: 10K for 50-bed) |
 | AD-53 | 2026-04-10 | Staff name resolution in narrative prompts (hospital.json roster → display names) |
 | AD-54 | 2026-06-15 | Country-pluggable resident identifier & insurance numbering module (`modules/identity/`) |
+| AD-55 | 2026-06-15 | EHR data enrichment split: near-essential data in Base (always-on, extends core), specialized/optional data in opt-in modules |
 
 ---
 
@@ -1820,6 +1821,44 @@ opted in.
 2. Period-bounded enrollment history + 75-yr transition + `Coverage.period`
 3. Employment transitions (light probabilistic) + card/保険証 dates + verification method
 4. US compat tests + docs/ADR finalize
+
+---
+
+## 6.10 EHR data enrichment split — Base vs Module (AD-55)
+
+### Principle
+
+When adding EHR data classes (benchmarked against Synthea / USCDI v5 / MIMIC-IV):
+
+- **Base** — data that a realistic EHR essentially *always* carries (and that is cheaply
+  derivable from the existing physiology / clinical-course state). Generated on **every
+  run** by extending the **existing core** (`types/`, `population`, `observation`,
+  `simulator/*`, `output`). No new opt-in module, no flag.
+- **Module** — specialized or optional data. Implemented as an **opt-in, pluggable
+  module under `clinosim/modules/`** (same pattern as `identity`: own README +
+  Dependencies, types in `types/`, FHIR built in the `output` module reading CIF,
+  dedicated sub-seed, gated by a CLI flag / config). **One module per theme**
+  (e.g. billing, devices, care-coordination) — never a catch-all "extras" module,
+  consistent with the existing one-theme-per-module layout.
+
+Avoid over-modularizing: small near-universal *attributes* (family history, code status,
+extended SDOH) live in Base as patient/encounter fields, not as their own modules.
+
+### Scope guard (carried from the enrichment research)
+
+Imaging / modality-dependent data is **out of scope** (CT/MRI/X-ray/US, echo, ECG
+tracings, endoscopy findings, spirometry, pathology). Lab/bedside/administrative data is
+in scope (clinosim already derives labs from physiology, so the same applies to
+microbiology, blood gas, cardiac markers, nursing flowsheets).
+
+### Classification
+
+| Tier | Data | Lives in |
+|---|---|---|
+| Base | Microbiology + susceptibility; lactate / ABG / cardiac markers; `DiagnosticReport` grouping; nursing flowsheets (I/O, NEWS2, pain, GCS, Braden); immunization history; family history; code status / advance directive; extended SDOH (incl. JP 要介護度) | core: `types`, `population`, `observation`, `simulator`, `output` |
+| Module | Billing (`modules/billing/` — JP DPC / US Claim+EOB); Devices + HAI (`modules/device/` — CLABSI/CAUTI/VAP); Care coordination (`modules/care_coordination/` — CarePlan/CareTeam/Goal) | one opt-in module per theme |
+
+See `TODO.md` for the phased implementation plan.
 
 ---
 
