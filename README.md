@@ -55,6 +55,7 @@ Primary use cases:
 - **Operating rooms** modeled as FHIR Locations; surgical procedures include category (SNOMED), performer.function (surgeon/anaesthetist), bodySite, outcome, and complications
 - **Occupational injuries**: 6 work-related conditions (crush injury, industrial burn, fall from height, electrical injury, eye foreign body, chemical exposure) with occupation-based risk multipliers
 - **Patient occupation** field (12 categories) with FHIR Observation (LOINC 11341-5, social-history)
+- **Japanese insurance enrollment** (opt-in, `--jp-insurance`): occupation-driven 社保/国保/後期高齢者, valid 保険者番号/被保険者番号 check digits, マイナンバーカード・マイナ保険証 status — emitted as JP Core FHIR `Coverage` + 保険者 `Organization`. 個人番号 stays internal (never exported).
 - **Multilingual FHIR coding**: Condition and Procedure emit dual coding entries (primary language + interop language); Condition code.text includes clinical abbreviations (COPD, CHF, CKD, DM)
 - **Snapshot date** support — includes "currently admitted" patients (in-progress encounters)
 - **30-day readmission chains** with `prior_encounter_id` linking
@@ -359,15 +360,16 @@ output/fhir_r4/
 ├── Procedure.ndjson                 # Surgery + bedside procedures (CPT / K-code + SNOMED CT metadata)
 ├── DocumentReference.ndjson         # Clinical documents (only when a narrative version is provided)
 ├── AllergyIntolerance.ndjson        # Patient-level (deduplicated)
+├── Coverage.ndjson                  # Insurance enrollment (JP only; JP Core 被保険者番号/記号/番号/枝番)
 ├── Practitioner.ndjson              # Doctors, nurses, technicians
 ├── PractitionerRole.ndjson          # Specialty + organization + ward location
-├── Organization.ndjson              # Hospital + departments
+├── Organization.ndjson              # Hospital + departments + insurers (保険者, JP)
 └── Location.ndjson                  # Wards + beds + operating rooms
 ```
 
 Each line = 1 FHIR resource. `Resource.id` is unique across all resource types. Reference integrity is maintained.
 
-`DocumentReference.ndjson` is emitted only when `clinosim export-fhir` is given `--narrative-version` (or when `clinosim generate --narrative --format fhir` runs the full pipeline). Without a narrative version, the remaining 12 resource types are produced normally.
+`DocumentReference.ndjson` is emitted only when `clinosim export-fhir` is given `--narrative-version` (or when `clinosim generate --narrative --format fhir` runs the full pipeline). Without a narrative version, the remaining resource types are produced normally. `Coverage.ndjson` (+ insurer `Organization`) is emitted only for JP with insurance enabled (`--jp-insurance`, default on).
 
 ### Included FHIR R4 Fields (key resources)
 
@@ -500,6 +502,7 @@ clinosim/
 │   ├── patient.py            # PatientProfile, ChronicCondition
 │   ├── clinical.py           # PhysiologicalState, ClinicalDiagnosis
 │   ├── encounter.py          # Encounter, Order, VitalSignRecord, MAR
+│   ├── identity.py           # NationalIdentity, InsuranceEnrollment, IdentityTimeline
 │   └── output.py             # CIFDataset, CIFPatientRecord, CIFMetadata
 │
 ├── modules/                  # Functional modules (each with README)
@@ -516,6 +519,7 @@ clinosim/
 │   ├── staff/                # Hospital staff roster + assignment
 │   ├── facility/             # Hospital state + M/M/1 queueing
 │   ├── healthcare_system/    # Country-specific parameters (JP / US)
+│   ├── identity/             # Resident identifier & insurance numbering (JP, opt-in)
 │   ├── output/               # CIF / FHIR R4 / CSV + clinical documents
 │   │   ├── cif_writer.py              # CIF structural writer
 │   │   ├── fhir_r4_adapter.py         # FHIR R4 Bulk NDJSON (incl. DocumentReference)
@@ -550,7 +554,7 @@ clinosim/
 │   └── cli.py                # CLI entry point (generate, narrate, export-fhir, ...)
 │
 └── tests/
-    ├── unit/                 # Module unit tests (201 tests)
+    ├── unit/                 # Module unit tests (234 tests total across suites)
     ├── integration/          # Cross-module integration tests
     └── e2e/                  # E2E + golden file tests
 ```
@@ -730,7 +734,7 @@ See `clinosim/modules/facility/README.md`.
 ```bash
 source .venv/bin/activate
 
-# All tests (201 tests, ~2 minutes)
+# All tests (234 tests; unit+integration ~2 min, e2e golden ~8 min)
 pytest -x
 
 # By category
@@ -797,6 +801,7 @@ flowchart TD
     population["population"]
     staff["staff"]
     healthcare["healthcare_system"]
+    identity["identity<br/>(JP insurance, opt-in)"]
 
     subgraph loop["daily simulation loop"]
         cc["clinical_course"] --> phys["physiology"]
@@ -820,9 +825,13 @@ flowchart TD
     population --> facility
     population --> staff
     healthcare --> staff
+    population --> identity
+    identity --> output
 ```
 
 `llm_service` and `validator` are cross-cutting (used in dedicated phases).
+`identity` is an opt-in enricher (AD-54): it runs as a post-population pass via the
+enricher registry (AD-56) and its data is emitted as FHIR `Coverage` by `output`.
 
 See each module's `clinosim/modules/<module>/README.md` for details.
 

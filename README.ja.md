@@ -228,13 +228,14 @@ output/fhir_r4/
 ├── MedicationAdministration.ndjson # 投与記録 (MAR)
 ├── Procedure.ndjson                # 手術 + ベッドサイド処置 (CPT)
 ├── AllergyIntolerance.ndjson       # 患者レベル (dedupされる)
+├── Coverage.ndjson                 # 保険資格 (JPのみ; JP Core 被保険者番号/記号/番号/枝番)
 ├── Practitioner.ndjson             # 医師・看護師・技師
 ├── PractitionerRole.ndjson         # 専門・所属 organization・配属 location
-├── Organization.ndjson             # 病院 + 各科
+├── Organization.ndjson             # 病院 + 各科 + 保険者 (JP)
 └── Location.ndjson                 # 病棟 (ward) + ベッド (bed)
 ```
 
-各行が 1 FHIR リソース。Resource.id は 12 リソース型すべてで一意。 参照整合性が取れています。
+各行が 1 FHIR リソース。Resource.id は全リソース型で一意。 参照整合性が取れています。
 
 ### 含まれる FHIR R4 フィールド (主要)
 
@@ -291,7 +292,7 @@ flowchart TD
     end
 
     subgraph stage3["Stage 3 — clinosim export-fhir"]
-        adapter["fhir_r4_adapter<br/>structural → 13 FHIR resource types<br/>narratives → DocumentReference (base64)<br/>display text via clinosim.codes"]
+        adapter["fhir_r4_adapter<br/>structural → FHIR resource types (Coverage は JP のみ)<br/>narratives → DocumentReference (base64)<br/>display text via clinosim.codes"]
         fhir["output/fhir_r4/<br/>HL7 Bulk Data NDJSON + manifest.json"]
         adapter --> fhir
     end
@@ -374,6 +375,7 @@ clinosim/
 │   ├── staff/                # 病院職員 roster + 配属
 │   ├── facility/             # Hospital state + M/M/1 queueing
 │   ├── healthcare_system/    # 国別パラメータ (JP / US)
+│   ├── identity/             # 住民識別子・保険付番 (JP, opt-in)
 │   ├── output/               # CIF / FHIR R4 / CSV / narrative
 │   ├── llm_service/          # Ollama + Anthropic 統合
 │   └── validator/            # 公開ベンチマークとの照合
@@ -387,7 +389,7 @@ clinosim/
 │   └── cli.py                # CLI entry point
 │
 └── tests/
-    ├── unit/                 # モジュール単体テスト (201 件)
+    ├── unit/                 # モジュール単体テスト (全スイート計 234 件)
     ├── integration/          # モジュール連携テスト
     └── e2e/                  # E2E + golden file テスト
 ```
@@ -556,7 +558,7 @@ staffing:                       # シフト別 staffing 比率
 ```bash
 source .venv/bin/activate
 
-# 全テスト (201 件、約2分)
+# 全テスト (234 件; unit+integration 約2分, e2e golden 約8分)
 pytest -x
 
 # カテゴリ別
@@ -623,6 +625,7 @@ flowchart TD
     population["population"]
     staff["staff"]
     healthcare["healthcare_system"]
+    identity["identity<br/>JP保険 (opt-in)"]
 
     subgraph loop["daily simulation loop"]
         cc["clinical_course"] --> phys["physiology"]
@@ -646,9 +649,12 @@ flowchart TD
     population --> facility
     population --> staff
     healthcare --> staff
+    population --> identity
+    identity --> output
 ```
 
 `llm_service`, `validator` は cross-cutting（専用フェーズで利用）。
+`identity` は opt-in enricher (AD-54): 人口生成後パスとして enricher レジストリ (AD-56) 経由で実行され、データは `output` が FHIR `Coverage` として出力。
 
 各モジュールの詳細は `clinosim/modules/<module>/README.md` を参照。
 
