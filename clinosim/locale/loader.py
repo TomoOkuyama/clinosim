@@ -114,6 +114,17 @@ def load_chronic_followup() -> dict[str, Any]:
     return _load_yaml(_LOCALE_DIR / "shared" / "chronic_followup.yaml", fallback={})
 
 
+@lru_cache(maxsize=8)
+def load_identity_config(country: str) -> dict[str, Any]:
+    """Load resident identifier / insurance numbering config for a country (AD-54).
+
+    Returns payer representative sets, age-banded card/insurance rates, household
+    correlation, and insurance category distribution. Empty dict if absent (e.g. US,
+    which keeps its existing insurance handling in Phase 1).
+    """
+    return _load_yaml(_country_dir(country) / "identity.yaml", fallback={})
+
+
 def _load_yaml(path: Path, fallback: Any = None) -> Any:
     if path.exists():
         with open(path) as f:

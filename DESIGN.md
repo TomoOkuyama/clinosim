@@ -1726,6 +1726,100 @@ observations.
 | AD-51 | 2026-04-10 | YAML-driven medication_holds in disease protocols (replaces hardcoded disease_id lists in simulator) |
 | AD-52 | 2026-04-10 | Country-specific recommended_population in hospital config (US: 40K, JP: 10K for 50-bed) |
 | AD-53 | 2026-04-10 | Staff name resolution in narrative prompts (hospital.json roster → display names) |
+| AD-54 | 2026-06-15 | Country-pluggable resident identifier & insurance numbering module (`modules/identity/`) |
+
+---
+
+## 6.9 Resident identifier & insurance numbering (AD-54)
+
+### Problem
+
+Layer-1 residents and Layer-2 patients carried no payer identity beyond an
+internal MRN. Realistic EHR/claims data requires the patient's **insurance
+enrollment** (被保険者番号 / member id, 保険者番号 / insurer number, 記号 / group
+symbol, 枝番 / branch number) and — for Japan — the My-Number card / マイナ保険証
+state. These are **country-specific**, **household-correlated**, and
+**time-varying**, so they cannot be hardcoded.
+
+### Key domain facts (drove the design)
+
+- The 12-digit My Number (個人番号) is **not** stored in clinical EHRs by law
+  (number use is limited to social-security/tax/disaster). Even when a マイナ保険証
+  is presented, the provider receives the **insurance qualification**, never the
+  raw 個人番号. → My Number is a Layer-1 simulation attribute only; clinical
+  outputs (FHIR/CSV) must **not** emit it.
+- The EHR/claims identifier is the **被保険者番号 + 保険者番号**, represented in FHIR
+  as a **`Coverage`** resource (`subscriberId`, `payor` → insurer Organization),
+  not as a `Patient.identifier` slice (consistent with JP Core's design).
+  - **JP Core Coverage mapping (verified against jpfhir.jp/fhir/core):**
+    記号/番号/枝番 → `JP_Coverage_InsuredPersonSymbol` / `…InsuredPersonNumber` /
+    `…InsuredPersonSubNumber` extensions (valueString); `subscriberId` = `記号:番号`;
+    `dependent` = 枝番; `identifier.value` = `保険者番号:記号:番号:枝番`
+    (system `JP_Insurance_memberID`); `payor` → Organization with
+    `jp-insurer-number-namingsystem` identifier (= 保険者番号). Mandatory: `status`,
+    `beneficiary` (1..1), `payor` (1..*). Canonical URIs stored in
+    `locale/jp/identity.yaml:fhir_coverage`.
+  - **FHIR conformance details:** payor Organization carries `type` coding
+    `organization-type#pay` and a real insurer **name** resolved from
+    `locale/jp/identity.yaml:payers` (number → name at output; AD-30 — display text
+    never stored in CIF). `Coverage.relationship` = `self` (subscriber) / `other`
+    (被扶養者). `Coverage.type` is a text-only CodeableConcept (Japanese scheme label;
+    no fabricated codes). Representative payers carry valid 検証番号 / check digits.
+    US export emits **no** `Coverage` (no JP insurance leakage).
+- 記号 sharing granularity differs by scheme: 社保 (employee) shares 記号 at the
+  **employer (事業所)** level; 国保 shares at the **household** level; 後期高齢者
+  (75+) is **per-individual**.
+- "My-Number assignment" for a long-standing patient changes the **qualification
+  verification method** (紙 → online) but **not** the 被保険者番号. The data that
+  actually changes over time is the **payer** (転職/退職, and the deterministic
+  **75-yr → 後期高齢者** transition). Hence insurance is modeled as a
+  **period-bounded enrollment history**, and each encounter references the
+  enrollment valid on its date (`Coverage.period`).
+
+### Decision
+
+A new leaf-ish module `clinosim/modules/identity/` owns numbering:
+
+- `base.py` — `IdentityProvider` Protocol (country-pluggable seam; interface only)
+- `registry.py` — `country → provider` resolution (mirrors `healthcare_system`)
+- `generators.py` — check-digit number generators (国共通 pure functions)
+- `providers/jp.py` — JP rules (employer-level 記号, 社保/国保/後期高齢, 枝番,
+  card/保険証 dated flags, 75-yr transition)
+- `providers/us.py` — thin (existing `_sample_insurance` behavior preserved)
+
+Adding a country = new `providers/<cc>.py` + `locale/<cc>/identity.yaml`; no engine
+changes (same philosophy as disease/encounter YAMLs).
+
+**Determinism (AD-16):** numbering runs as a **separate pass after population
+generation**, using a **dedicated sub-seed Generator** so the existing random
+stream (and golden files) are untouched.
+
+**Privacy chokepoint:** `national_id` may live in CIF/`PersonRecord` for future
+マイナ-workflow extensibility, but output adapters carry a **sensitive-field
+default-exclude** policy — FHIR/CSV never emit `national_id` unless explicitly
+opted in.
+
+### Defaults (locale/jp/identity.yaml — researched, `# TODO: verify` where provisional)
+
+- マイナンバーカード保有率 (age-banded): 0–14 ≈0.70, 15–49 ≈0.77, 50s ≈0.82,
+  60s ≈0.90, 70s ≈0.91 (peak), 80+ ≈0.72 (総務省/デジタル庁 2025)
+- マイナ保険証 登録率: lower, same age shape (peak 60–70s)
+- 世帯内相関は `household_icc` (Gaussian-copula preserving marginal card rates)
+- **被用者保険 vs 国保 は occupation-driven**: the household's most-likely-employed
+  working-age member becomes the 被保険者 (others 被扶養者) via
+  `employee_probability_by_occupation`. Calibrated so the emergent <75 split is
+  ≈ 73:27 (MHLW 医療保険 基礎資料), with `insurance_category_distribution` as fallback.
+- **マイナ保険証 marginal**: registration is conditional on card holding at rate
+  `ins_rate/card_rate`, so the population linked marginal = configured `ins_rate`.
+- **`insurance_type` unified**: for JP, `PatientProfile.insurance_type` is set from the
+  enrollment `category` (single source of truth → consistent CSV/Coverage; was empty before).
+
+### Phasing
+
+1. Module skeleton + JP numbering + snapshot single enrollment + Coverage + payor Org
+2. Period-bounded enrollment history + 75-yr transition + `Coverage.period`
+3. Employment transitions (light probabilistic) + card/保険証 dates + verification method
+4. US compat tests + docs/ADR finalize
 
 ---
 
