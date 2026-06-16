@@ -148,9 +148,15 @@ def _simulate_outpatient_visit(
                        "Na": 140, "Glucose": 100, "HbA1c": 6.5, "BNP": 50,
                        "PT_INR": 1.1, "Hb": 13.0, "AST": 25, "ALT": 22,
                        "BUN": 15, "Ca": 9.2, "eGFR": 75, "TSH": 2.5,
-                       "Troponin_I": 0.01, "CK_MB": 1.0}
+                       "Troponin_I": 0.01, "CK_MB": 1.0,
+                       "LDL": 110, "HDL": 55, "TG": 130, "TC": 190, "ESR": 12}
     lab_tests = spec.get("labs", [])
     for i, test_name in enumerate(lab_tests):
+        # Skip non-quantitative diagnostics (e.g. ECG) misfiled under labs — they are
+        # not lab analytes and must not get a fabricated value (AD-57 cleanup).
+        canon = canonical_lab_name(test_name)
+        if canon not in _true_labs and canon not in baseline_values:
+            continue
         order = Order(
             order_id=f"ORD-{patient.patient_id}-OPD-L{i:02d}",
             patient_id=patient.patient_id,
@@ -165,7 +171,6 @@ def _simulate_outpatient_visit(
         orders.append(order)
 
         # Comorbidity-aware true value: physiology if modeled, else baseline normal.
-        canon = canonical_lab_name(test_name)
         true_val = _true_labs.get(canon, baseline_values.get(canon, 1.0))
         observed = generate_lab_result(canon, true_val, rng)
         flag = determine_flag(canon, observed, sex=patient.sex)

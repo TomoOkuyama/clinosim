@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.observation.engine import canonical_lab_name, determine_flag
+from clinosim.modules.observation.engine import (
+    canonical_lab_name,
+    determine_flag,
+    lab_panel_components,
+)
 from clinosim.modules.physiology.engine import derive_lab_values
 from clinosim.types.clinical import PhysiologicalState
 
@@ -59,3 +63,20 @@ class TestFlagAndCanonical:
         assert canonical_lab_name("Troponin_repeat") == "Troponin_I"
         assert canonical_lab_name("CRP") == "CRP"  # non-aliased unchanged
         assert canonical_lab_name("CK_MB") == "CK_MB"
+
+
+@pytest.mark.unit
+class TestABGPanel:
+    def test_panel_components(self):
+        assert lab_panel_components("ABG") == ["pH", "pCO2", "pO2", "HCO3"]
+        assert lab_panel_components("ABG_repeat_1h") == ["pH", "pCO2", "pO2", "HCO3"]
+        assert lab_panel_components("CRP") == []  # scalar, not a panel
+
+    def test_po2_derived_and_drops_with_inflammation(self):
+        from clinosim.modules.physiology.engine import derive_lab_values
+        well = derive_lab_values(_state(1.0), sex="M", age=60)
+        # high inflammation (pneumonia/COPD) → hypoxemia
+        from clinosim.types.clinical import PhysiologicalState
+        sick = derive_lab_values(PhysiologicalState(inflammation_level=0.8), sex="M", age=60)
+        assert "pO2" in well and 45 <= well["pO2"] <= 105
+        assert sick["pO2"] < well["pO2"]

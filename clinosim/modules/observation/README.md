@@ -413,6 +413,20 @@ FHIR Observation
 
 **重要**: FHIR adapter の interpretation は `OrderResult.flag` ではなく `value vs referenceRange` から再計算される (AD-47)。observation モジュールの flag はヒントとして使われるが、referenceRange との整合性が優先。
 
+## ラボ名の正規化・パネル展開・微生物 (AD-55 / AD-57)
+
+`reference_data/`(データ駆動、コード変更不要):
+
+- `lab_aliases.yaml` — オーダー名のバリアント → 正準 analyte。`canonical_lab_name(name)` が解決
+  (例: `Troponin` / `Troponin_I_stat` / `Troponin_I_serial_6h` → `Troponin_I`、`ABG_repeat_1h` → `ABG`)。
+- `lab_panels.yaml` — パネル → 構成要素。`lab_panel_components(name)` が返す
+  (例: `ABG` → `[pH, pCO2, pO2, HCO3]`)。simulator がパネルオーダーを構成要素オーダーに展開し、
+  各要素が上記スカラー経路で結果化される。
+- `microbiology.yaml` — 培養/感受性の起因菌・検体・抗菌薬コード + 疾患別分布 (`microbiology.py`)。
+
+**venue 横断の真値源 (AD-57)**: 入院/ED/外来とも `physiology.derive_lab_values(state)` で真値生成し、
+基礎疾患が全 venue に反映される。本モジュールは正準化・ノイズ・flag・単位・コード解決を担う。
+
 ### テスト
 
 ```bash

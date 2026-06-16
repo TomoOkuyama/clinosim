@@ -9,3 +9,6 @@ Troponin_I_serial_6h: Troponin_I
 Troponin_I_serial_3h: Troponin_I
 Troponin_repeat: Troponin_I
 # CK_MB is already canonical (derived directly).
+# Blood gas repeat → the "ABG" panel (expanded into pH/pCO2/pO2/HCO3 components).
+ABG_repeat_1h: ABG
+ABG_repeat: ABG

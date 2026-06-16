@@ -111,6 +111,11 @@ def _simulate_ed_visit(
         prob = lab_spec.get("probability", 1.0)
         if rng.random() > prob:
             continue
+        # Skip non-quantitative diagnostics (e.g. ECG) misfiled under labs — not lab
+        # analytes, must not get a fabricated value (AD-57 cleanup).
+        canon = canonical_lab_name(test)
+        if canon not in _true_labs and canon not in baseline_values:
+            continue
         order = Order(
             order_id=f"ORD-{patient.patient_id}-ED-L{i}",
             patient_id=patient.patient_id,
@@ -121,7 +126,6 @@ def _simulate_ed_visit(
             ordered_by=encounter.attending_physician_id,
             status=OrderStatus.PLACED,
         )
-        canon = canonical_lab_name(test)
         true_val = _true_labs.get(canon, baseline_values.get(canon, 1.0))
         observed = generate_lab_result(canon, true_val, rng)
         flag = determine_flag(canon, observed, sex=patient.sex)

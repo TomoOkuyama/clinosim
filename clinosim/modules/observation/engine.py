@@ -13,6 +13,7 @@ import numpy as np
 import yaml
 
 _ALIAS_REF = Path(__file__).parent / "reference_data" / "lab_aliases.yaml"
+_PANEL_REF = Path(__file__).parent / "reference_data" / "lab_panels.yaml"
 
 
 @lru_cache(maxsize=1)
@@ -23,9 +24,22 @@ def _lab_aliases() -> dict[str, str]:
     return {}
 
 
+@lru_cache(maxsize=1)
+def _lab_panels() -> dict[str, list[str]]:
+    if _PANEL_REF.exists():
+        with open(_PANEL_REF) as f:
+            return yaml.safe_load(f) or {}
+    return {}
+
+
 def canonical_lab_name(name: str) -> str:
     """Resolve a protocol lab order name to the canonical analyte (AD-55, data-driven)."""
     return _lab_aliases().get(name, name)
+
+
+def lab_panel_components(name: str) -> list[str]:
+    """Component analytes for a panel order (e.g. ABG → pH/pCO2/pO2/HCO3); [] if scalar."""
+    return list(_lab_panels().get(canonical_lab_name(name), []))
 
 
 # Biological variation (within-individual CV, Ricos et al.)
