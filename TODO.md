@@ -316,7 +316,7 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 
 #### Base — near-essential (always generated; extends existing core)
 
-- [ ] **Microbiology & susceptibility** — extend `observation` (+ `types/clinical`); emit `DiagnosticReport`+`Observation`(+`Specimen`). Disease→likely-organism + antibiogram tables in `locale`/`codes`. Justifies antibiotic choice / de-escalation for the sepsis/pneumonia/UTI/cellulitis cohort. **Highest ROI.**
+- [x] **Microbiology & susceptibility** — `observation/microbiology.py` + `types/microbiology.py` + `observation/reference_data/microbiology.yaml` (all codes data-driven). Emits FHIR `DiagnosticReport` + `Specimen` + `Observation` via the AD-56 builder registry; CSV `microbiology.csv`. Sepsis/pneumonia/UTI/cellulitis/aspiration cohort. Encounter-scoped sub-seed (main stream unperturbed). 10 unit tests. `# TODO: verify` SNOMED/LOINC codes + antibiogram rates vs authoritative sources.
 - [ ] **Blood-based markers**: lactate (sepsis), ABG (respiratory), cardiac troponin (ACS) — extend `observation` lab catalog + `physiology` derivation. Non-imaging substitute for ECG/echo.
 - [ ] **`DiagnosticReport` grouping** — `output` adapter (+ `types/output`): group lab Observations into panels (CBC/BMP/LFT). Structural fidelity, no new clinical data.
 - [ ] **Nursing flowsheets** — `observation` / `simulator.inpatient` (+ `types`): I/O & fluid balance (from `volume_status`), NEWS2 (already computable), pain (0-10), GCS, Braden, fall risk → `Observation`.

@@ -51,6 +51,7 @@ Primary use cases:
 - **32 diseases + 46 ED/outpatient conditions** defined in YAML (no code changes to add new ones)
 - **JCCLS reference ranges 2022** for Japanese labs; Tietz/Mayo for US
 - **NEWS2-compatible vitals** including AVPU consciousness level and supplemental oxygen
+- **Microbiology cultures + antibiotic susceptibility** for bacterial infections (sepsis, pneumonia, UTI, cellulitis): organism identification (SNOMED) and S/I/R antibiograms — emitted as FHIR `DiagnosticReport` + `Specimen` + `Observation`. All codes data-driven (`observation/reference_data/microbiology.yaml`)
 - **Ward + bed Location hierarchy** with PractitionerRole.location assignment
 - **Operating rooms** modeled as FHIR Locations; surgical procedures include category (SNOMED), performer.function (surgeon/anaesthetist), bodySite, outcome, and complications
 - **Occupational injuries**: 6 work-related conditions (crush injury, industrial burn, fall from height, electrical injury, eye foreign body, chemical exposure) with occupation-based risk multipliers
@@ -353,7 +354,9 @@ output/fhir_r4/
 ├── manifest.json                    # Bulk Data manifest (transactionTime, output[])
 ├── Patient.ndjson                   # 1 patient per line
 ├── Encounter.ndjson                 # 1 encounter per line
-├── Observation.ndjson               # labs + vitals + AVPU + O2 (LOINC)
+├── Observation.ndjson               # labs + vitals + AVPU + O2 + microbiology (LOINC/SNOMED)
+├── DiagnosticReport.ndjson          # Microbiology culture reports (infections; + Specimen)
+├── Specimen.ndjson                  # Culture specimens (blood/urine/sputum/wound)
 ├── Condition.ndjson                 # Encounter dx + chronic conditions (ICD-10-CM / ICD-10)
 ├── MedicationRequest.ndjson         # Prescriptions (RxNorm / YJ)
 ├── MedicationAdministration.ndjson  # MAR records

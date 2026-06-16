@@ -222,7 +222,9 @@ output/fhir_r4/
 ├── _facility.json                  # Organization + Location マスター (Bundle)
 ├── Patient.ndjson                  # 1 患者 1 行
 ├── Encounter.ndjson                # 1 encounter 1 行
-├── Observation.ndjson              # labs + vitals + AVPU + O2 (LOINC)
+├── Observation.ndjson              # labs + vitals + AVPU + O2 + 微生物 (LOINC/SNOMED)
+├── DiagnosticReport.ndjson         # 微生物培養レポート (感染症; + Specimen)
+├── Specimen.ndjson                 # 培養検体 (血液/尿/喀痰/創部)
 ├── Condition.ndjson                # 主疾患 + 慢性疾患 (ICD-10-CM)
 ├── MedicationRequest.ndjson        # 処方 (RxNorm)
 ├── MedicationAdministration.ndjson # 投与記録 (MAR)

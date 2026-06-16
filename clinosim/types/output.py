@@ -13,6 +13,7 @@ from clinosim.types.encounter import (
     Encounter, MedicationAdministration, Order, OrderResult,
     PrescriptionRecord, VitalSignRecord,
 )
+from clinosim.types.microbiology import MicrobiologyResult
 from clinosim.types.patient import PatientProfile
 
 
@@ -50,6 +51,7 @@ class CIFPatientRecord:
     medication_administrations: list[MedicationAdministration] = field(default_factory=list)
     intake_output_records: list = field(default_factory=list)  # IntakeOutputRecord
     adl_assessments: list = field(default_factory=list)  # ADLAssessment
+    microbiology: list[MicrobiologyResult] = field(default_factory=list)  # AD-55 Base (codes only)
     discharge_prescription: PrescriptionRecord | None = None
     icu_transferred: bool = False
     deceased: bool = False
