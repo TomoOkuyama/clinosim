@@ -109,3 +109,45 @@ codes:
   '87642003':
     en: Skin and subcutaneous tissue structure
     ja: 皮膚・皮下組織
+
+  # === Microbiology: organisms (AD-55) ===  # TODO: verify codes vs SNOMED CT
+  '9861002':
+    en: Streptococcus pneumoniae
+    ja: 肺炎球菌
+  '44470000':
+    en: Haemophilus influenzae
+    ja: インフルエンザ菌
+  '3092008':
+    en: Staphylococcus aureus
+    ja: 黄色ブドウ球菌
+  '80166006':
+    en: Streptococcus pyogenes
+    ja: 化膿レンサ球菌
+  '112283007':
+    en: Escherichia coli
+    ja: 大腸菌
+  '56415008':
+    en: Klebsiella pneumoniae
+    ja: 肺炎桿菌
+  '52499004':
+    en: Pseudomonas aeruginosa
+    ja: 緑膿菌
+  '73457008':
+    en: Proteus mirabilis
+    ja: プロテウス・ミラビリス
+  '78065002':
+    en: Enterococcus faecalis
+    ja: 腸球菌（フェカリス）
+  # === Microbiology: specimen types ===
+  '119297000':
+    en: Blood specimen
+    ja: 血液検体
+  '122575003':
+    en: Urine specimen
+    ja: 尿検体
+  '119334006':
+    en: Sputum specimen
+    ja: 喀痰検体
+  '257261003':
+    en: Swab
+    ja: スワブ検体

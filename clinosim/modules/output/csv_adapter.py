@@ -30,6 +30,7 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str) -> None:
     io_rows: list[dict] = []
     adl_rows: list[dict] = []
     rx_rows: list[dict] = []
+    microbiology_rows: list[dict] = []
 
     for filename in sorted(os.listdir(structural_dir)):
         if not filename.endswith(".json"):
@@ -211,6 +212,31 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str) -> None:
                 "stairs": adl.get("stairs"),
             })
 
+        # Microbiology (one row per susceptibility result; one row if no growth)
+        for mb in record.get("microbiology", []):
+            base = {
+                "patient_id": patient_id,
+                "encounter_id": mb.get("encounter_id"),
+                "specimen": mb.get("specimen"),
+                "specimen_snomed": mb.get("specimen_snomed"),
+                "test_loinc": mb.get("test_loinc"),
+                "collected_datetime": mb.get("collected_datetime"),
+                "reported_datetime": mb.get("reported_datetime"),
+                "growth": mb.get("growth"),
+                "organism_snomed": mb.get("organism_snomed"),
+                "quantitation": mb.get("quantitation"),
+            }
+            susceptibilities = mb.get("susceptibilities") or []
+            if susceptibilities:
+                for s in susceptibilities:
+                    microbiology_rows.append({
+                        **base,
+                        "antibiotic_loinc": s.get("antibiotic_loinc"),
+                        "interpretation": s.get("interpretation"),
+                    })
+            else:
+                microbiology_rows.append({**base, "antibiotic_loinc": "", "interpretation": ""})
+
         # Discharge prescription
         rx = record.get("discharge_prescription")
         if rx and rx.get("items"):
@@ -238,6 +264,7 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str) -> None:
     _write_csv(os.path.join(output_dir, "intake_output.csv"), io_rows)
     _write_csv(os.path.join(output_dir, "adl_assessments.csv"), adl_rows)
     _write_csv(os.path.join(output_dir, "prescriptions.csv"), rx_rows)
+    _write_csv(os.path.join(output_dir, "microbiology.csv"), microbiology_rows)
 
 
 def _write_csv(filepath: str, rows: list[dict]) -> None:

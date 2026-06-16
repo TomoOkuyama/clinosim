@@ -347,12 +347,13 @@ def convert_cif_to_fhir(
         rt = resource.get("resourceType", "")
         if not rt:
             return
-        # Dedup for patient-level master resources
-        # AllergyIntolerance is patient-level (lifelong), not per-encounter
-        if rt in ("Patient", "Practitioner", "PractitionerRole",
-                  "Organization", "Location", "AllergyIntolerance", "Coverage"):
+        # Enforce global Resource.id uniqueness within each type (FHIR requirement).
+        # Patient-level resources (Patient, AllergyIntolerance, Coverage, occupation
+        # Observation, ...) recur across a patient's per-encounter bundles; keep the
+        # first write only. Per-encounter resources have unique ids → never dropped.
+        rid = resource.get("id", "")
+        if rid:
             ids = written_ids.setdefault(rt, set())
-            rid = resource.get("id", "")
             if rid in ids:
                 return
             ids.add(rid)
@@ -732,6 +733,114 @@ def _bb_practitioners(ctx: BundleContext) -> list[dict]:
     return out
 
 
+# FHIR-standard antibiotic susceptibility interpretation labels
+# (v3-ObservationInterpretation; standard 3-value enum, localized for display only).
+_SUSCEPTIBILITY_DISPLAY = {
+    "S": {"en": "Susceptible", "ja": "感性"},
+    "I": {"en": "Intermediate", "ja": "中間"},
+    "R": {"en": "Resistant", "ja": "耐性"},
+}
+
+
+def _micro_coding(system_key: str, code: str, lang: str) -> dict:
+    """Build a coding with display resolved via codes (never display == code)."""
+    coding: dict[str, Any] = {"system": get_system_uri(system_key), "code": code}
+    disp = code_lookup(system_key, code, lang)
+    if disp and disp != code:
+        coding["display"] = disp
+    return coding
+
+
+def _bb_microbiology(ctx: BundleContext) -> list[dict]:
+    """Microbiology cultures → Specimen + Observation(s) + DiagnosticReport (AD-55)."""
+    cultures = ctx.record.get("microbiology") or []
+    if not cultures:
+        return []
+    lang = "ja" if ctx.country == "JP" else "en"
+    subject = {"reference": f"Patient/{ctx.patient_id}"}
+    enc_ref = {"reference": f"Encounter/{ctx.primary_enc_id}"} if ctx.primary_enc_id else None
+    lab_category = [{"coding": [{
+        "system": get_system_uri("hl7-observation-category"),
+        "code": "laboratory", "display": "Laboratory",
+    }]}]
+    out: list[dict] = []
+
+    for i, mb in enumerate(cultures):
+        base = f"{ctx.primary_enc_id or ctx.patient_id}-{i}"
+        spec_id = f"spec-{base}"
+        specimen: dict[str, Any] = {"resourceType": "Specimen", "id": spec_id, "subject": subject}
+        if mb.get("specimen_snomed"):
+            specimen["type"] = {"coding": [_micro_coding("snomed-ct", mb["specimen_snomed"], lang)]}
+        if mb.get("collected_datetime"):
+            specimen["collection"] = {"collectedDateTime": mb["collected_datetime"]}
+        out.append(specimen)
+
+        culture_loinc = mb.get("test_loinc", "")
+        culture_code = ({"coding": [_micro_coding("loinc", culture_loinc, lang)]}
+                        if culture_loinc else {"text": "Culture"})
+        result_refs: list[dict] = []
+
+        org_id = f"mb-org-{base}"
+        org_obs: dict[str, Any] = {
+            "resourceType": "Observation", "id": org_id, "status": "final",
+            "category": lab_category, "code": culture_code, "subject": subject,
+            "specimen": {"reference": f"Specimen/{spec_id}"},
+        }
+        if enc_ref:
+            org_obs["encounter"] = enc_ref
+        if mb.get("reported_datetime"):
+            org_obs["effectiveDateTime"] = mb["reported_datetime"]
+        if mb.get("growth") and mb.get("organism_snomed"):
+            org_obs["valueCodeableConcept"] = {
+                "coding": [_micro_coding("snomed-ct", mb["organism_snomed"], lang)]
+            }
+            if mb.get("quantitation"):
+                org_obs["note"] = [{"text": mb["quantitation"]}]
+        else:
+            org_obs["valueString"] = "発育なし" if lang == "ja" else "No growth"
+        out.append(org_obs)
+        result_refs.append({"reference": f"Observation/{org_id}"})
+
+        for j, sus in enumerate(mb.get("susceptibilities") or []):
+            interp = sus.get("interpretation", "")
+            disp = _SUSCEPTIBILITY_DISPLAY.get(interp, {})
+            sus_id = f"mb-sus-{base}-{j}"
+            sus_obs: dict[str, Any] = {
+                "resourceType": "Observation", "id": sus_id, "status": "final",
+                "category": lab_category,
+                "code": {"coding": [_micro_coding("loinc", sus.get("antibiotic_loinc", ""), lang)]},
+                "subject": subject,
+                "specimen": {"reference": f"Specimen/{spec_id}"},
+                "valueCodeableConcept": {"coding": [{
+                    "system": get_system_uri("hl7-observation-interpretation"),
+                    "code": interp,
+                    "display": disp.get(lang, disp.get("en", interp)),
+                }]},
+            }
+            if enc_ref:
+                sus_obs["encounter"] = enc_ref
+            out.append(sus_obs)
+            result_refs.append({"reference": f"Observation/{sus_id}"})
+
+        report: dict[str, Any] = {
+            "resourceType": "DiagnosticReport", "id": f"dr-mb-{base}", "status": "final",
+            "category": [{"coding": [{
+                "system": get_system_uri("hl7-diagnostic-service-section"),
+                "code": "MB", "display": "Microbiology",
+            }]}],
+            "code": culture_code, "subject": subject,
+            "specimen": [{"reference": f"Specimen/{spec_id}"}],
+            "result": result_refs,
+        }
+        if enc_ref:
+            report["encounter"] = enc_ref
+        if mb.get("reported_datetime"):
+            report["effectiveDateTime"] = mb["reported_datetime"]
+        out.append(report)
+
+    return out
+
+
 # Registry: emission order == list order. New Base/Module resources append a builder
 # here (or via register_bundle_builder) instead of editing _build_bundle (AD-56).
 _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
@@ -743,6 +852,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_occupation,
     _bb_labs,
     _bb_vitals,
+    _bb_microbiology,
     _bb_medication_requests,
     _bb_medication_admins,
     _bb_procedures,

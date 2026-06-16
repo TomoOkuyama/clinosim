@@ -128,4 +128,7 @@ _BUILTIN_URIS: dict[str, str] = {
     "ucum": "http://unitsofmeasure.org",
     "hl7-v3-actcode": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
     "hl7-v3-maritalstatus": "http://terminology.hl7.org/CodeSystem/v3-MaritalStatus",
+    "hl7-observation-interpretation": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+    "hl7-observation-category": "http://terminology.hl7.org/CodeSystem/observation-category",
+    "hl7-diagnostic-service-section": "http://terminology.hl7.org/CodeSystem/v2-0074",
 }
