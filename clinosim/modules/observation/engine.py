@@ -6,7 +6,27 @@ Three sources: biological variation (CVi), pre-analytical, analytical (CVa).
 
 from __future__ import annotations
 
+from functools import lru_cache
+from pathlib import Path
+
 import numpy as np
+import yaml
+
+_ALIAS_REF = Path(__file__).parent / "reference_data" / "lab_aliases.yaml"
+
+
+@lru_cache(maxsize=1)
+def _lab_aliases() -> dict[str, str]:
+    if _ALIAS_REF.exists():
+        with open(_ALIAS_REF) as f:
+            return yaml.safe_load(f) or {}
+    return {}
+
+
+def canonical_lab_name(name: str) -> str:
+    """Resolve a protocol lab order name to the canonical analyte (AD-55, data-driven)."""
+    return _lab_aliases().get(name, name)
+
 
 # Biological variation (within-individual CV, Ricos et al.)
 BIOLOGICAL_CV: dict[str, float] = {
@@ -17,6 +37,7 @@ BIOLOGICAL_CV: dict[str, float] = {
     "LDH": 0.083, "CK": 0.226,
     "WBC": 0.110, "Hb": 0.029, "Hct": 0.029, "Plt": 0.094,
     "CRP": 0.423, "PCT": 0.30, "BNP": 0.40, "Troponin": 0.14,
+    "Troponin_I": 0.14, "CK_MB": 0.15,
     "Lactate": 0.278, "pH": 0.002, "HCO3": 0.040, "pCO2": 0.046,
     "eGFR": 0.056, "PT_INR": 0.040,
 }
@@ -30,6 +51,7 @@ ANALYTICAL_CV: dict[str, float] = {
     "LDH": 0.035, "CK": 0.040,
     "WBC": 0.025, "Hb": 0.015, "Hct": 0.015, "Plt": 0.035,
     "CRP": 0.050, "PCT": 0.080, "BNP": 0.070, "Troponin": 0.080,
+    "Troponin_I": 0.080, "CK_MB": 0.050,
     "Lactate": 0.040, "pH": 0.001, "HCO3": 0.025, "pCO2": 0.025,
     "eGFR": 0.030, "PT_INR": 0.035,
 }
@@ -42,6 +64,7 @@ PRECISION: dict[str, int] = {
     "LDH": 0, "CK": 0,
     "WBC": 0, "Hb": 1, "Hct": 1, "Plt": 0,  # Plt reported as integer (10^3/uL)
     "CRP": 1, "PCT": 2, "BNP": 1, "Troponin": 3,
+    "Troponin_I": 3, "CK_MB": 1,
     "Lactate": 1, "pH": 2, "HCO3": 1, "pCO2": 1,
     "PT_INR": 1,
     "HbA1c": 1, "ESR": 0,
@@ -67,6 +90,7 @@ LAB_UNITS: dict[str, str] = {
     "Hb": "g/dL", "Hct": "%",
     "Plt": "10*3/uL",     # UCUM (was "x10^3/uL")
     "CRP": "mg/L", "PCT": "ng/mL", "BNP": "pg/mL", "Troponin": "ng/mL",
+    "Troponin_I": "ng/mL", "CK_MB": "ng/mL",
     "Lactate": "mmol/L", "pH": "[pH]", "HCO3": "mmol/L", "pCO2": "mm[Hg]",
     "pO2": "mm[Hg]",
     "PT_INR": "{INR}", "Fibrinogen": "mg/dL", "D_dimer": "ug/mL",
@@ -170,6 +194,8 @@ def determine_flag(
         "Lactate": {"all": (0.5, 2.0)},
         "pH": {"all": (7.35, 7.45)},
         "PCT": {"all": (0, 0.05)},
+        "Troponin_I": {"M": (0.0, 0.04), "F": (0.0, 0.03)},  # ng/mL; sex-specific cutoff
+        "CK_MB": {"all": (0.0, 5.0)},  # ng/mL
     }
 
     ranges = reference_ranges or defaults

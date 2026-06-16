@@ -23,7 +23,12 @@ from clinosim.modules.diagnosis.engine import (
 )
 from clinosim.modules.disease.protocol import DiseaseProtocol
 from clinosim.modules.encounter.engine import create_inpatient_encounter
-from clinosim.modules.observation.engine import determine_flag, generate_lab_result, get_lab_unit
+from clinosim.modules.observation.engine import (
+    canonical_lab_name,
+    determine_flag,
+    generate_lab_result,
+    get_lab_unit,
+)
 from clinosim.modules.order.engine import (
     calculate_result_time_from_state,
     place_admission_orders,
@@ -540,43 +545,46 @@ def _run_daily_loop(
 
         # Lab results (with temporal lag for slow markers like CRP)
         lab_hour = lab_time.hour if 'lab_time' in dir() else 6  # early morning default
-        true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, hour=lab_hour)
+        mi_injury = bool(getattr(protocol, "causes_myocardial_injury", False))
+        true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, hour=lab_hour, myocardial_injury=mi_injury)
 
         # Apply temporal lag: CRP reflects inflammation from ~1 day ago
         if len(state_history) >= 2 and "CRP" in true_labs:
             lag_idx = max(0, len(state_history) - 2)
             lagged_state = state_history[lag_idx]
-            lagged_labs = derive_lab_values(lagged_state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, hour=lab_hour)
+            lagged_labs = derive_lab_values(lagged_state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, hour=lab_hour, myocardial_injury=mi_injury)
             true_labs["CRP"] = lagged_labs.get("CRP", true_labs["CRP"])
 
         for order in all_orders:
-            if order.order_type.value == "lab" and order.status == OrderStatus.PLACED and order.display_name in true_labs:
+            # Resolve protocol order name → canonical analyte (stat/serial/alias → base).
+            canon = canonical_lab_name(order.display_name)
+            if order.order_type.value == "lab" and order.status == OrderStatus.PLACED and canon in true_labs:
                 # Pre-analytical issues: specimen rejection (~2%), hemolysis (~3% for K/LDH)
                 if rng.random() < 0.02:
                     order.status = OrderStatus.CANCELLED
                     continue  # specimen lost/rejected
-                if order.display_name in ("K", "LDH") and rng.random() < 0.03:
+                if canon in ("K", "LDH") and rng.random() < 0.03:
                     # Hemolyzed sample → falsely elevated K/LDH, flagged
                     result_time = calculate_result_time_from_state(order, hospital_state, hospital_ops or {}, rng)
-                    hemolyzed_val = true_labs[order.display_name] * float(rng.uniform(1.2, 1.8))
+                    hemolyzed_val = true_labs[canon] * float(rng.uniform(1.2, 1.8))
                     lab_tech = assign_staff("lab_result", "", roster, rng).get("performing_technician", "TECH-001")
                     order.result = OrderResult(
                         result_datetime=result_time, performed_by=lab_tech,
-                        lab_name=order.display_name, value=round(hemolyzed_val, 1),
-                        unit=get_lab_unit(order.display_name), flag="H*",
+                        lab_name=canon, value=round(hemolyzed_val, 1),
+                        unit=get_lab_unit(canon), flag="H*",
                     )
                     order.status = OrderStatus.RESULTED
                     all_lab_results.append(order.result)
                     continue
 
                 result_time = calculate_result_time_from_state(order, hospital_state, hospital_ops or {}, rng)
-                observed = generate_lab_result(order.display_name, true_labs[order.display_name], rng)
-                flag = determine_flag(order.display_name, observed, sex=patient.sex)
+                observed = generate_lab_result(canon, true_labs[canon], rng)
+                flag = determine_flag(canon, observed, sex=patient.sex)
                 lab_tech = assign_staff("lab_result", "", roster, rng).get("performing_technician", "TECH-001")
                 order.result = OrderResult(
                     result_datetime=result_time, performed_by=lab_tech,
-                    lab_name=order.display_name, value=observed,
-                    unit=get_lab_unit(order.display_name), flag=flag,
+                    lab_name=canon, value=observed,
+                    unit=get_lab_unit(canon), flag=flag,
                 )
                 order.status = OrderStatus.RESULTED
                 all_lab_results.append(order.result)

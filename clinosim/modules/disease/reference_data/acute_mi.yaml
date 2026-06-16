@@ -3,6 +3,7 @@
 # against the most current published data before production use.
 
 disease_id: acute_mi
+causes_myocardial_injury: true   # ACS → primary myocardial necrosis (high troponin/CK-MB), AD-55
 chief_complaint:
   en: "Chest pain, diaphoresis, dyspnea"
   ja: "胸痛・冷汗・呼吸困難"

@@ -2097,7 +2097,9 @@ def _build_lab_observation(
     if value is None:
         return None
 
-    lab_name = order.get("display_name", "Unknown")
+    # Prefer the result's canonical analyte name (stat/serial/alias resolved upstream)
+    # over the raw order label, so the code mapping resolves (AD-55).
+    lab_name = result.get("lab_name") or order.get("display_name", "Unknown")
 
     # test_name → code mapping still lives in locale (internal name → standard code)
     country_code = "JP" if country != "US" else "US"

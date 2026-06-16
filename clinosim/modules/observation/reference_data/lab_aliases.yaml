@@ -1,0 +1,11 @@
+# Lab order-name aliases → canonical analyte (AD-55).
+#
+# Disease/encounter protocols order labs under several names (stat/serial/repeat
+# variants, or a generic name). They all resolve to the canonical analyte whose true
+# value is derived by physiology. Data-driven: add an entry here, no code changes.
+Troponin: Troponin_I
+Troponin_I_stat: Troponin_I
+Troponin_I_serial_6h: Troponin_I
+Troponin_I_serial_3h: Troponin_I
+Troponin_repeat: Troponin_I
+# CK_MB is already canonical (derived directly).

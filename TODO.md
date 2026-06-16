@@ -305,6 +305,23 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 - [ ] **⑤ (with microbiology)** externalize `observation` lab catalog (CV/precision/units) to YAML.
 - Deferred: ⑥ CSV adapter registry (low leverage — new table ≈ 3 lines).
 
+### AD-57 — Unify observation (lab + vital) generation across venues
+
+> Today lab/vital values come from **3 divergent paths**: inpatient = physiology
+> `derive_lab_values(state)` (state/comorbidity-aware); ED (`emergency.py`) + outpatient
+> (`outpatient.py`) = hardcoded `baseline_values` dicts + a dangerous `default 100`
+> fallback, ignoring patient comorbidities. This caused the troponin canonicalization to
+> be applied in 3 places and risks venue inconsistency (e.g. a CKD patient's ED creatinine
+> reads normal). Unify into one generation service.
+
+- [ ] Extract a single `generate_observations(ordered_tests, state, profile, country, rng)`
+  service in `observation` (canonical name → physiology true value → 3-layer noise → flag/unit/code).
+- [ ] ED/outpatient: build a lightweight `PhysiologicalState` from the encounter scenario +
+  patient comorbidities, then call the shared service. Remove `baseline_values` + `default 100`.
+- [ ] Unify vitals generation the same way; fold in ABG panel expansion (one "ABG" order →
+  pH/pCO2/pO2/HCO3 results) + pO2 derivation (deferred from blood markers).
+- [ ] Preserve determinism / golden / e2e on refactor.
+
 ### EHR data enrichment roadmap (AD-55 — Base vs Module)
 
 > Benchmarked vs Synthea / USCDI v5 / MIMIC-IV. **Imaging/modality data out of scope**
@@ -317,7 +334,8 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 #### Base — near-essential (always generated; extends existing core)
 
 - [x] **Microbiology & susceptibility** — `observation/microbiology.py` + `types/microbiology.py` + `observation/reference_data/microbiology.yaml` (all codes data-driven). Emits FHIR `DiagnosticReport` + `Specimen` + `Observation` via the AD-56 builder registry; CSV `microbiology.csv`. Sepsis/pneumonia/UTI/cellulitis/aspiration cohort. Encounter-scoped sub-seed (main stream unperturbed). 10 unit tests. `# TODO: verify` SNOMED/LOINC codes + antibiogram rates vs authoritative sources.
-- [ ] **Blood-based markers**: lactate (sepsis), ABG (respiratory), cardiac troponin (ACS) — extend `observation` lab catalog + `physiology` derivation. Non-imaging substitute for ECG/echo.
+- [~] **Blood-based markers**: cardiac troponin + CK-MB **done** — `physiology` derives Troponin_I/CK_MB (ACS flag `causes_myocardial_injury` on the disease scenario → MI-level; other cardiac dysfunction → mild type-2; CKD confounder via renal; sex-specific cutoff). Lab order-name aliases (`observation/reference_data/lab_aliases.yaml`) canonicalize stat/serial/variant orders across inpatient/ED/outpatient; FHIR uses canonical name → LOINC resolves. Lactate already worked. **ABG panel (pH/pCO2/pO2/HCO3 from one "ABG" order) + pO2 deferred** — needs panel-expansion (one order → multiple results), tracked under AD-57.
+  - [ ] JP JLAC10 codes for Troponin_I / CK_MB (US LOINC done); serial-troponin intra-day trend
 - [ ] **`DiagnosticReport` grouping** — `output` adapter (+ `types/output`): group lab Observations into panels (CBC/BMP/LFT). Structural fidelity, no new clinical data.
 - [ ] **Nursing flowsheets** — `observation` / `simulator.inpatient` (+ `types`): I/O & fluid balance (from `volume_status`), NEWS2 (already computable), pain (0-10), GCS, Braden, fall risk → `Observation`.
 - [ ] **Immunization history** — `population`/patient-profile attribute (+ `types/patient`); emit `Immunization`. Locale schedules (JP routine + influenza/pneumococcal; US ACIP).

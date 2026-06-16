@@ -180,6 +180,7 @@ def derive_lab_values(
     diabetes_controlled: bool = True,
     rng: np.random.Generator | None = None,
     hour: int = 6,
+    myocardial_injury: bool = False,
 ) -> dict[str, float]:
     """Derive lab values from physiological state. Returns 'true' values before noise."""
     labs: dict[str, float] = {}
@@ -219,6 +220,22 @@ def derive_lab_values(
 
     # --- Cardiac ---
     labs["BNP"] = 30 * math.exp((1 - cardiac) * 4)
+    # Cardiac injury markers. Normal heart (cardiac≈1.0) stays negative so troponin
+    # rule-outs in non-cardiac disease read normal; acute injury (MI: cardiac 0.3–0.5)
+    # elevates strongly. Steep (^4) so only meaningful dysfunction lifts troponin.
+    injury = 1 - cardiac
+    # Troponin specificity: ANY cardiac dysfunction (sepsis, PE, AF, stroke) gives only a
+    # MILD, capped type-2/demand elevation; only true myocardial necrosis (ACS, flagged by
+    # the disease scenario) releases MI-level troponin. Renal impairment reduces clearance →
+    # chronic mild elevation (CKD confounder). Keeps non-cardiac labs clinically coherent.
+    renal_tnt = (1 - renal) * 0.10
+    tnt = 0.01 + min(injury**3 * 8.0, 3.0) + renal_tnt   # type-2 (mild, ≲3 ng/mL)
+    ckmb = 0.5 + min(injury**3 * 5.0, 3.0)
+    if myocardial_injury:                                # ACS → primary necrosis
+        tnt += injury**2 * 120.0
+        ckmb += injury**2 * 60.0
+    labs["Troponin_I"] = tnt   # ng/mL (normal < 0.04; ACS ~10–100)
+    labs["CK_MB"] = ckmb       # ng/mL (normal < 5)
 
     # --- Hepatic ---
     labs["AST"] = 25 + (1 - hepatic) * 500
