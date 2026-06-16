@@ -205,6 +205,25 @@ codes:
   2703-7:
     en: Oxygen [Partial pressure] in Arterial blood
     ja: 動脈血酸素分圧 (pO2)
+  # === Lipids / endocrine / inflammation (AD-57 code-mapping cleanup) ===
+  2089-1:
+    en: Cholesterol in LDL [Mass/volume] in Serum or Plasma
+    ja: LDLコレステロール
+  2085-9:
+    en: Cholesterol in HDL [Mass/volume] in Serum or Plasma
+    ja: HDLコレステロール
+  2571-8:
+    en: Triglyceride [Mass/volume] in Serum or Plasma
+    ja: 中性脂肪
+  2093-3:
+    en: Cholesterol [Mass/volume] in Serum or Plasma
+    ja: 総コレステロール
+  3016-3:
+    en: Thyrotropin [Units/volume] in Serum or Plasma
+    ja: 甲状腺刺激ホルモン (TSH)
+  4537-7:
+    en: Erythrocyte sedimentation rate by Westergren method
+    ja: 赤血球沈降速度 (ESR)
   # === Cardiac injury markers (AD-55) ===
   10839-9:
     en: Troponin I.cardiac [Mass/volume] in Serum or Plasma
