@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date
 
+from clinosim.types.identity import IdentityTimeline
+
 
 @dataclass
 class PatientPhysiologicalProfile:
@@ -90,6 +92,7 @@ class PatientProfile:
     """Full Layer 2 clinical profile."""
 
     patient_id: str = ""
+    household_id: str = ""  # carried from Layer 1; links family members (AD-54)
     name: PersonName = field(default_factory=PersonName)
     age: int = 0  # kept for backward compat; derived from date_of_birth in output
     sex: str = "M"
@@ -113,6 +116,10 @@ class PatientProfile:
     # "homemaker" | "student" | "retired" | "unemployed" | "other"
     occupation: str = "other"
     insurance_type: str = "NHI_employee"
+    # Resident identifier & insurance enrollment (AD-54). Carried from Layer 1.
+    # NOTE: identity.national.national_id is for internal use only — output adapters
+    # MUST NOT emit it (privacy chokepoint).
+    identity: IdentityTimeline | None = None
     race: str = ""       # OMB race category — US only: "white"|"black"|"asian"|"native_american"|"other"
     ethnicity: str = ""  # "hispanic" | "not_hispanic" — US only
     health_literacy: float = 0.7

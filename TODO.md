@@ -269,6 +269,14 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 
 ### v0.3 — Operational realism + LLM intelligence
 
+- [ ] Resident identifier & insurance numbering — `modules/identity/` (AD-54)
+  - [x] P1: module skeleton (base/registry/generators/providers) + JP numbering (employer-level 記号, 社保/国保/後期高齢, 枝番) + representative payer Organizations + snapshot single enrollment + FHIR `Coverage` (JP Core) + sensitive-field chokepoint (`national_id` not emitted) — 22 unit + 5 e2e tests, verified end-to-end
+  - [ ] P2: period-bounded enrollment history + deterministic 75-yr → 後期高齢者 transition + encounters reference time-valid `Coverage.period`
+  - [ ] P3: light employment transitions (就職/退職/転職) + マイナンバーカード取得日 / マイナ保険証登録日 + qualification verification method (紙/online)
+  - [ ] P4: US `_sample_insurance` migration into `providers/us.py` (behavior-compat tests) + docs/ADR finalize
+  - [x] Verify JP Core `Coverage` profile (記号/番号/枝番 extensions, subscriberId/dependent, payor namingsystem) — recorded in `locale/jp/identity.yaml:fhir_coverage` + DESIGN §6.9
+  - [x] Realism+quality pass: occupation-driven 社保/国保 (emergent <75 ≈ 73:27, MHLW), insurance_type unified with identity.category, マイナ保険証 marginal preserved, payor Organization real names + `organization-type#pay`, Coverage.type text + relationship
+  - [ ] Verify (裏取り) remaining: representative 保険者番号 vs official registries · 75-yr transition rules · 保険者番号 検証番号 algorithm · 個人番号 check-digit formula (replace `# TODO: verify` placeholders) · 健保組合 dual-income households (each earner own 社保, Phase 2/3)
 - [ ] LLM JUDGMENT phase wiring (diagnostic reasoning, treatment decisions)
 - [ ] Progress Note (Tier C, opt-in — daily SOAP notes via LLM)
 - [ ] Validator Pass 2 (LLM consistency review)
@@ -278,6 +286,52 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 - [ ] Consult workflow
 - [ ] Episode-of-care multi-encounter tracking
 - [ ] Performance: 100k+ patients, parallel sim
+
+### Phase 0 — Extensibility foundation (AD-56, do before the enrichment roadmap)
+
+> Enabling refactors so each AD-55 item is "register a builder/enricher" instead of editing
+> central monoliths. Gate with existing golden/e2e + determinism (AD-16).
+
+- [ ] **① FHIR resource-builder registry** — replace the hand-appended `_build_bundle()`
+  (`output/fhir_r4_adapter.py`) with a registry of `(record, ctx) -> list[resource]` builders;
+  each declares dedup behaviour (patient-level vs per-encounter). Core loops & emits. **Highest leverage.**
+- [ ] **② Simulator enricher registry** — replace inlined passes in `run_beta()`
+  (`simulator/engine.py`) with enrichers registered as `name`/`order`/`enabled(config)`/`run(...)`;
+  iterate in fixed order (determinism). Migrate `assign_identities` to it as the first consumer.
+- [ ] **④ CIF extensions slot** — add `CIFPatientRecord.extensions: dict[str, Any]`
+  (`types/output.py`). Base = typed fields; Modules write `extensions[<module>]`, never edit core type.
+- [ ] **③ Config module-enablement map** — `SimulatorConfig.modules: dict[str, bool]` +
+  `module_enabled()` helper (`types/config.py`); keep `jp_insurance_numbers` as back-compat alias.
+- [ ] **⑤ (with microbiology)** externalize `observation` lab catalog (CV/precision/units) to YAML.
+- Deferred: ⑥ CSV adapter registry (low leverage — new table ≈ 3 lines).
+
+### EHR data enrichment roadmap (AD-55 — Base vs Module)
+
+> Benchmarked vs Synthea / USCDI v5 / MIMIC-IV. **Imaging/modality data out of scope**
+> (CT/MRI/X-ray/US, echo, ECG tracings, endoscopy, spirometry, pathology) — see DESIGN §6.10.
+> **Base** = always-on, extends core (`types`/`population`/`observation`/`simulator`/`output`).
+> **Module** = opt-in, **one theme per module** (same pattern as `identity`).
+> Cross-cutting for all: types in `types/`, module-independence (deps in README),
+> deterministic sub-seed, FHIR built in `output` reading CIF (modules stay output-agnostic).
+
+#### Base — near-essential (always generated; extends existing core)
+
+- [x] **Microbiology & susceptibility** — `observation/microbiology.py` + `types/microbiology.py` + `observation/reference_data/microbiology.yaml` (all codes data-driven). Emits FHIR `DiagnosticReport` + `Specimen` + `Observation` via the AD-56 builder registry; CSV `microbiology.csv`. Sepsis/pneumonia/UTI/cellulitis/aspiration cohort. Encounter-scoped sub-seed (main stream unperturbed). 10 unit tests. `# TODO: verify` SNOMED/LOINC codes + antibiogram rates vs authoritative sources.
+- [ ] **Blood-based markers**: lactate (sepsis), ABG (respiratory), cardiac troponin (ACS) — extend `observation` lab catalog + `physiology` derivation. Non-imaging substitute for ECG/echo.
+- [ ] **`DiagnosticReport` grouping** — `output` adapter (+ `types/output`): group lab Observations into panels (CBC/BMP/LFT). Structural fidelity, no new clinical data.
+- [ ] **Nursing flowsheets** — `observation` / `simulator.inpatient` (+ `types`): I/O & fluid balance (from `volume_status`), NEWS2 (already computable), pain (0-10), GCS, Braden, fall risk → `Observation`.
+- [ ] **Immunization history** — `population`/patient-profile attribute (+ `types/patient`); emit `Immunization`. Locale schedules (JP routine + influenza/pneumococcal; US ACIP).
+- [ ] **Family history** — `population` attribute (+ `types`); emit `FamilyMemberHistory` (DM/HTN/CAD/cancer). Base-light attribute, not a module.
+- [ ] **Code status / advance directive** — inpatient/ICU/death encounter attribute (+ `types/encounter`); emit `Observation`/`Consent`. Base-light.
+- [ ] **Extended SDOH incl. JP 要介護度** — `population`/`locale` demographics attributes (extends existing smoking/alcohol/occupation); emit SDOH `Observation`.
+
+#### Modules — specialized / optional (opt-in, one theme each)
+
+- [ ] **`modules/billing/`** — country-pluggable レセプト/claims (JP **DPC** per-diem bundling / US `Claim`+`ExplanationOfBenefit`). Mirrors `identity`: provider registry, deps `types`/`codes`/`locale`, reads CIF, FHIR in `output`, `--billing` flag. **Supersedes the v0.5 "DPC/DRG cost data" item.**
+- [ ] **`modules/device/`** — device placement (central line / urinary catheter / ventilator / telemetry) + **HAI risk** (CLABSI/CAUTI/VAP) from dwell time; deps `procedure`/`types`; emit `Device`/`DeviceUseStatement` (+ HAI `Condition`). Flag-gated.
+- [ ] **`modules/care_coordination/`** — `CarePlan`/`CareTeam`/`Goal` for USCDI/Synthea interoperability completeness; deps `types`; reads CIF; flag-gated.
+
+Suggested order: microbiology+markers → nursing flowsheets+`DiagnosticReport` → immunization/family-history/code-status/SDOH (Base) → `modules/billing` (JP DPC) → `modules/device` → `modules/care_coordination`.
 
 ### v0.4 — Coverage expansion
 

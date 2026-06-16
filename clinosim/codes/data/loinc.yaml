@@ -201,3 +201,45 @@ codes:
   9279-1:
     en: Respiratory rate
     ja: 呼吸数
+
+  # === Microbiology: culture tests (AD-55) ===  # TODO: verify LOINC codes
+  600-7:
+    en: Bacteria identified in Blood by Culture
+    ja: 血液培養（細菌同定）
+  630-4:
+    en: Bacteria identified in Urine by Culture
+    ja: 尿培養（細菌同定）
+  619-7:
+    en: Bacteria identified in Sputum by Culture
+    ja: 喀痰培養（細菌同定）
+  634-6:
+    en: Bacteria identified in Wound by Culture
+    ja: 創部培養（細菌同定）
+  # === Microbiology: antibiotic susceptibility tests ===
+  18862-3:
+    en: Ampicillin [Susceptibility]
+    ja: アンピシリン感受性
+  18866-4:
+    en: Cefazolin [Susceptibility]
+    ja: セファゾリン感受性
+  18895-3:
+    en: Ceftriaxone [Susceptibility]
+    ja: セフトリアキソン感受性
+  18879-7:
+    en: Ciprofloxacin [Susceptibility]
+    ja: シプロフロキサシン感受性
+  18908-4:
+    en: Gentamicin [Susceptibility]
+    ja: ゲンタマイシン感受性
+  18991-2:
+    en: Vancomycin [Susceptibility]
+    ja: バンコマイシン感受性
+  18949-0:
+    en: Piperacillin+Tazobactam [Susceptibility]
+    ja: ピペラシリン・タゾバクタム感受性
+  18943-3:
+    en: Meropenem [Susceptibility]
+    ja: メロペネム感受性
+  18996-1:
+    en: Trimethoprim+Sulfamethoxazole [Susceptibility]
+    ja: ST合剤感受性

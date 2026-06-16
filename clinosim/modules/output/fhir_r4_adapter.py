@@ -10,9 +10,16 @@ import json
 import os
 
 from clinosim.codes import get_system_uri, lookup as code_lookup
-from clinosim.locale.loader import load_code_mapping, load_reference_ranges, load_terminology
+from clinosim.locale.loader import (
+    load_code_mapping,
+    load_identity_config,
+    load_reference_ranges,
+    load_terminology,
+)
 import re
 import uuid
+from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
@@ -340,12 +347,13 @@ def convert_cif_to_fhir(
         rt = resource.get("resourceType", "")
         if not rt:
             return
-        # Dedup for patient-level master resources
-        # AllergyIntolerance is patient-level (lifelong), not per-encounter
-        if rt in ("Patient", "Practitioner", "PractitionerRole",
-                  "Organization", "Location", "AllergyIntolerance"):
+        # Enforce global Resource.id uniqueness within each type (FHIR requirement).
+        # Patient-level resources (Patient, AllergyIntolerance, Coverage, occupation
+        # Observation, ...) recur across a patient's per-encounter bundles; keep the
+        # first write only. Per-encounter resources have unique ids → never dropped.
+        rid = resource.get("id", "")
+        if rid:
             ids = written_ids.setdefault(rt, set())
-            rid = resource.get("id", "")
             if rid in ids:
                 return
             ids.add(rid)
@@ -582,127 +590,315 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     }
 
 
+@dataclass
+class BundleContext:
+    """Shared inputs for FHIR resource builders (AD-56)."""
+
+    record: dict
+    country: str
+    roster_map: dict
+    hospital_config: dict
+    patient_data: dict
+    patient_id: str
+    is_readmission: bool
+    prior_encounter_id: Any
+    primary_dx_code: str
+    admit_dx_code: str
+    admit_dx_system: str
+    primary_enc_id: str
+    patient_sex: str
+
+
+# --- Resource builders: (ctx) -> list[resource]. Order here == emission order. ---
+
+def _bb_patient(ctx: BundleContext) -> list[dict]:
+    return [_build_patient(ctx.patient_data, ctx.country)]
+
+
+def _bb_coverage(ctx: BundleContext) -> list[dict]:
+    return _build_coverage_resources(ctx.patient_data, ctx.country)
+
+
+def _bb_encounters(ctx: BundleContext) -> list[dict]:
+    return [
+        _build_encounter(enc, ctx.patient_id, ctx.is_readmission, ctx.prior_encounter_id,
+                         primary_dx_code=ctx.primary_dx_code, country=ctx.country,
+                         admit_dx_code=ctx.admit_dx_code, admit_dx_system=ctx.admit_dx_system)
+        for enc in ctx.record.get("encounters", [])
+    ]
+
+
+def _bb_conditions(ctx: BundleContext) -> list[dict]:
+    return list(_build_conditions(ctx.record, ctx.patient_id, ctx.country))
+
+
+def _bb_allergies(ctx: BundleContext) -> list[dict]:
+    out: list[dict] = []
+    for i, allergy in enumerate(ctx.patient_data.get("allergies", []) or []):
+        if isinstance(allergy, dict):
+            ai = _build_allergy_intolerance(allergy, ctx.patient_id, i, ctx.country)
+            if ai:
+                out.append(ai)
+    return out
+
+
+def _bb_occupation(ctx: BundleContext) -> list[dict]:
+    # US Core Patient Occupation (LOINC 11341-5). Patient-level, not encounter-scoped.
+    occupation = ctx.patient_data.get("occupation", "")
+    if occupation:
+        occ_obs = _build_occupation_observation(occupation, ctx.patient_id, ctx.country)
+        if occ_obs:
+            return [occ_obs]
+    return []
+
+
+def _bb_labs(ctx: BundleContext) -> list[dict]:
+    out: list[dict] = []
+    for i, order in enumerate(ctx.record.get("orders", [])):
+        if order.get("order_type") == "lab" and order.get("result"):
+            obs = _build_lab_observation(order, order["result"], ctx.patient_id, i,
+                                          ctx.country, ctx.patient_sex, ctx.primary_enc_id)
+            if obs:
+                out.append(obs)
+    return out
+
+
+def _bb_vitals(ctx: BundleContext) -> list[dict]:
+    # _build_vital_observations returns already-wrapped Bundle entries; unwrap to raw
+    # resources so the registry's single _entry() wrap applies uniformly.
+    out: list[dict] = []
+    for i, vs in enumerate(ctx.record.get("vital_signs", [])):
+        for entry in _build_vital_observations(vs, ctx.patient_id, i, ctx.country, ctx.primary_enc_id):
+            out.append(entry["resource"])
+    return out
+
+
+def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
+    out: list[dict] = []
+    for order in ctx.record.get("orders", []):
+        if order.get("order_type") == "medication":
+            if not (order.get("display_name") or "").strip():
+                continue  # skip blank drug names (CIF data quality)
+            out.append(_build_medication_request(
+                order, ctx.patient_id, ctx.country, ctx.primary_enc_id, ctx.primary_dx_code))
+    return out
+
+
+def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
+    out: list[dict] = []
+    for i, mar in enumerate(ctx.record.get("medication_administrations", [])):
+        if not (mar.get("drug_name") or "").strip():
+            continue
+        out.append(_build_medication_admin(
+            mar, ctx.patient_id, i, ctx.country,
+            encounter_id=ctx.primary_enc_id, primary_dx_code=ctx.primary_dx_code))
+    return out
+
+
+def _bb_procedures(ctx: BundleContext) -> list[dict]:
+    return [
+        _build_procedure(proc, ctx.patient_id, i, ctx.country)
+        for i, proc in enumerate(ctx.record.get("procedures", []))
+    ]
+
+
+def _bb_practitioners(ctx: BundleContext) -> list[dict]:
+    out: list[dict] = []
+    seen: set[str] = set()
+
+    def add(staff_id: str) -> None:
+        if not staff_id or staff_id in seen:
+            return
+        seen.add(staff_id)
+        out.append(_build_practitioner(staff_id, ctx.roster_map, country=ctx.country))
+        role = _build_practitioner_role(staff_id, ctx.roster_map)
+        if role:
+            out.append(role)
+
+    for enc in ctx.record.get("encounters", []):
+        add(enc.get("attending_physician_id", ""))
+        add(enc.get("admitting_physician_id", ""))
+        add(enc.get("discharging_physician_id", ""))
+    for o in ctx.record.get("orders", []):
+        add(o.get("ordered_by", ""))
+        if o.get("result"):
+            add(o["result"].get("performed_by", ""))
+    for vs in ctx.record.get("vital_signs", []):
+        add(vs.get("measured_by", ""))
+    for mar in ctx.record.get("medication_administrations", []):
+        add(mar.get("administered_by", ""))
+    for proc in ctx.record.get("procedures", []):
+        add(proc.get("primary_surgeon_id", ""))
+        add(proc.get("anesthesiologist_id", ""))
+    return out
+
+
+# FHIR-standard antibiotic susceptibility interpretation labels
+# (v3-ObservationInterpretation; standard 3-value enum, localized for display only).
+_SUSCEPTIBILITY_DISPLAY = {
+    "S": {"en": "Susceptible", "ja": "感性"},
+    "I": {"en": "Intermediate", "ja": "中間"},
+    "R": {"en": "Resistant", "ja": "耐性"},
+}
+
+
+def _micro_coding(system_key: str, code: str, lang: str) -> dict:
+    """Build a coding with display resolved via codes (never display == code)."""
+    coding: dict[str, Any] = {"system": get_system_uri(system_key), "code": code}
+    disp = code_lookup(system_key, code, lang)
+    if disp and disp != code:
+        coding["display"] = disp
+    return coding
+
+
+def _bb_microbiology(ctx: BundleContext) -> list[dict]:
+    """Microbiology cultures → Specimen + Observation(s) + DiagnosticReport (AD-55)."""
+    cultures = ctx.record.get("microbiology") or []
+    if not cultures:
+        return []
+    lang = "ja" if ctx.country == "JP" else "en"
+    subject = {"reference": f"Patient/{ctx.patient_id}"}
+    enc_ref = {"reference": f"Encounter/{ctx.primary_enc_id}"} if ctx.primary_enc_id else None
+    lab_category = [{"coding": [{
+        "system": get_system_uri("hl7-observation-category"),
+        "code": "laboratory", "display": "Laboratory",
+    }]}]
+    out: list[dict] = []
+
+    for i, mb in enumerate(cultures):
+        base = f"{ctx.primary_enc_id or ctx.patient_id}-{i}"
+        spec_id = f"spec-{base}"
+        specimen: dict[str, Any] = {"resourceType": "Specimen", "id": spec_id, "subject": subject}
+        if mb.get("specimen_snomed"):
+            specimen["type"] = {"coding": [_micro_coding("snomed-ct", mb["specimen_snomed"], lang)]}
+        if mb.get("collected_datetime"):
+            specimen["collection"] = {"collectedDateTime": mb["collected_datetime"]}
+        out.append(specimen)
+
+        culture_loinc = mb.get("test_loinc", "")
+        culture_code = ({"coding": [_micro_coding("loinc", culture_loinc, lang)]}
+                        if culture_loinc else {"text": "Culture"})
+        result_refs: list[dict] = []
+
+        org_id = f"mb-org-{base}"
+        org_obs: dict[str, Any] = {
+            "resourceType": "Observation", "id": org_id, "status": "final",
+            "category": lab_category, "code": culture_code, "subject": subject,
+            "specimen": {"reference": f"Specimen/{spec_id}"},
+        }
+        if enc_ref:
+            org_obs["encounter"] = enc_ref
+        if mb.get("reported_datetime"):
+            org_obs["effectiveDateTime"] = mb["reported_datetime"]
+        if mb.get("growth") and mb.get("organism_snomed"):
+            org_obs["valueCodeableConcept"] = {
+                "coding": [_micro_coding("snomed-ct", mb["organism_snomed"], lang)]
+            }
+            if mb.get("quantitation"):
+                org_obs["note"] = [{"text": mb["quantitation"]}]
+        else:
+            org_obs["valueString"] = "発育なし" if lang == "ja" else "No growth"
+        out.append(org_obs)
+        result_refs.append({"reference": f"Observation/{org_id}"})
+
+        for j, sus in enumerate(mb.get("susceptibilities") or []):
+            interp = sus.get("interpretation", "")
+            disp = _SUSCEPTIBILITY_DISPLAY.get(interp, {})
+            sus_id = f"mb-sus-{base}-{j}"
+            sus_obs: dict[str, Any] = {
+                "resourceType": "Observation", "id": sus_id, "status": "final",
+                "category": lab_category,
+                "code": {"coding": [_micro_coding("loinc", sus.get("antibiotic_loinc", ""), lang)]},
+                "subject": subject,
+                "specimen": {"reference": f"Specimen/{spec_id}"},
+                "valueCodeableConcept": {"coding": [{
+                    "system": get_system_uri("hl7-observation-interpretation"),
+                    "code": interp,
+                    "display": disp.get(lang, disp.get("en", interp)),
+                }]},
+            }
+            if enc_ref:
+                sus_obs["encounter"] = enc_ref
+            out.append(sus_obs)
+            result_refs.append({"reference": f"Observation/{sus_id}"})
+
+        report: dict[str, Any] = {
+            "resourceType": "DiagnosticReport", "id": f"dr-mb-{base}", "status": "final",
+            "category": [{"coding": [{
+                "system": get_system_uri("hl7-diagnostic-service-section"),
+                "code": "MB", "display": "Microbiology",
+            }]}],
+            "code": culture_code, "subject": subject,
+            "specimen": [{"reference": f"Specimen/{spec_id}"}],
+            "result": result_refs,
+        }
+        if enc_ref:
+            report["encounter"] = enc_ref
+        if mb.get("reported_datetime"):
+            report["effectiveDateTime"] = mb["reported_datetime"]
+        out.append(report)
+
+    return out
+
+
+# Registry: emission order == list order. New Base/Module resources append a builder
+# here (or via register_bundle_builder) instead of editing _build_bundle (AD-56).
+_BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
+    _bb_patient,
+    _bb_coverage,
+    _bb_encounters,
+    _bb_conditions,
+    _bb_allergies,
+    _bb_occupation,
+    _bb_labs,
+    _bb_vitals,
+    _bb_microbiology,
+    _bb_medication_requests,
+    _bb_medication_admins,
+    _bb_procedures,
+    _bb_practitioners,
+]
+
+
+def register_bundle_builder(builder: Callable[[BundleContext], list[dict]]) -> None:
+    """Register a FHIR resource builder appended after the built-ins (AD-56)."""
+    if builder not in _BUNDLE_BUILDERS:
+        _BUNDLE_BUILDERS.append(builder)
+
+
 def _build_bundle(
     record: dict, country: str,
     roster_map: dict[str, dict] | None = None,
     hospital_config: dict | None = None,
 ) -> dict:
-    """Build a FHIR R4 Bundle from a CIF patient record."""
+    """Build a FHIR R4 Bundle from a CIF patient record by running the builder registry."""
     if roster_map is None:
         roster_map = {}
     if hospital_config is None:
         hospital_config = {}
     patient_data = record.get("patient", {})
-    patient_id = patient_data.get("patient_id", "unknown")
-
-    entries: list[dict] = []
-
-    # === Patient resource ===
-    entries.append(_entry(_build_patient(patient_data, country)))
-
-    # === Encounter resources ===
-    is_readmission = record.get("is_readmission", False)
-    prior_encounter_id = record.get("prior_encounter_id")
     dx = record.get("clinical_diagnosis", {})
-    primary_dx_code = dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", "")
-    admit_dx_code = dx.get("admission_diagnosis_code", "")
-    admit_dx_system = dx.get("admission_diagnosis_system", "icd-10-cm")
-    for enc in record.get("encounters", []):
-        entries.append(_entry(
-            _build_encounter(enc, patient_id, is_readmission, prior_encounter_id,
-                             primary_dx_code=primary_dx_code, country=country,
-                             admit_dx_code=admit_dx_code, admit_dx_system=admit_dx_system)
-        ))
-
-    # === Condition resources ===
-    entries.extend(
-        _entry(c) for c in _build_conditions(record, patient_id, country)
+    encounters = record.get("encounters") or []
+    ctx = BundleContext(
+        record=record,
+        country=country,
+        roster_map=roster_map,
+        hospital_config=hospital_config,
+        patient_data=patient_data,
+        patient_id=patient_data.get("patient_id", "unknown"),
+        is_readmission=record.get("is_readmission", False),
+        prior_encounter_id=record.get("prior_encounter_id"),
+        primary_dx_code=dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", ""),
+        admit_dx_code=dx.get("admission_diagnosis_code", ""),
+        admit_dx_system=dx.get("admission_diagnosis_system", "icd-10-cm"),
+        primary_enc_id=encounters[0].get("encounter_id", "") if encounters else "",
+        patient_sex=patient_data.get("sex", ""),
     )
 
-    # === AllergyIntolerance resources ===
-    for i, allergy in enumerate(patient_data.get("allergies", []) or []):
-        if isinstance(allergy, dict):
-            ai = _build_allergy_intolerance(allergy, patient_id, i, country)
-            if ai:
-                entries.append(_entry(ai))
-
-    # === Occupation (social history) Observation ===
-    # US Core Patient Occupation (LOINC 11341-5). Patient-level, not encounter-scoped.
-    occupation = patient_data.get("occupation", "")
-    if occupation:
-        occ_obs = _build_occupation_observation(occupation, patient_id, country)
-        if occ_obs:
-            entries.append(_entry(occ_obs))
-
-    # Primary encounter id (for back-references)
-    primary_enc_id = (record.get("encounters", [{}])[0].get("encounter_id", "")
-                      if record.get("encounters") else "")
-
-    # === Observation resources — Lab results ===
-    patient_sex = patient_data.get("sex", "")
-    for i, order in enumerate(record.get("orders", [])):
-        if order.get("order_type") == "lab" and order.get("result"):
-            result = order["result"]
-            obs = _build_lab_observation(order, result, patient_id, i, country,
-                                          patient_sex, primary_enc_id)
-            if obs:
-                entries.append(_entry(obs))
-
-    # === Observation resources — Vital signs ===
-    for i, vs in enumerate(record.get("vital_signs", [])):
-        entries.extend(_build_vital_observations(vs, patient_id, i, country, primary_enc_id))
-
-    # === MedicationRequest resources ===
-    for order in record.get("orders", []):
-        if order.get("order_type") == "medication":
-            # Skip orders with blank drug names (CIF data quality issue)
-            if not (order.get("display_name") or "").strip():
-                continue
-            entries.append(_entry(_build_medication_request(
-                order, patient_id, country, primary_enc_id, primary_dx_code,
-            )))
-
-    # === MedicationAdministration resources (MAR) ===
-    for i, mar in enumerate(record.get("medication_administrations", [])):
-        # Skip MAR entries with blank drug names
-        if not (mar.get("drug_name") or "").strip():
-            continue
-        entries.append(_entry(_build_medication_admin(
-            mar, patient_id, i, country,
-            encounter_id=primary_enc_id, primary_dx_code=primary_dx_code,
-        )))
-
-    # === Procedure resources ===
-    for i, proc in enumerate(record.get("procedures", [])):
-        entries.append(_entry(_build_procedure(proc, patient_id, i, country)))
-
-    # === Practitioner + PractitionerRole resources (deduplicated) ===
-    seen_staff: set[str] = set()
-
-    def _add_staff(staff_id: str) -> None:
-        if not staff_id or staff_id in seen_staff:
-            return
-        seen_staff.add(staff_id)
-        entries.append(_entry(_build_practitioner(staff_id, roster_map, country=country)))
-        role = _build_practitioner_role(staff_id, roster_map)
-        if role:
-            entries.append(_entry(role))
-
-    for enc in record.get("encounters", []):
-        _add_staff(enc.get("attending_physician_id", ""))
-        _add_staff(enc.get("admitting_physician_id", ""))
-        _add_staff(enc.get("discharging_physician_id", ""))
-    for o in record.get("orders", []):
-        _add_staff(o.get("ordered_by", ""))
-        if o.get("result"):
-            _add_staff(o["result"].get("performed_by", ""))
-    for vs in record.get("vital_signs", []):
-        _add_staff(vs.get("measured_by", ""))
-    for mar in record.get("medication_administrations", []):
-        _add_staff(mar.get("administered_by", ""))
-    for proc in record.get("procedures", []):
-        _add_staff(proc.get("primary_surgeon_id", ""))
-        _add_staff(proc.get("anesthesiologist_id", ""))
+    entries: list[dict] = []
+    for builder in _BUNDLE_BUILDERS:
+        for resource in builder(ctx):
+            entries.append(_entry(resource))
 
     return {
         "resourceType": "Bundle",
@@ -726,6 +922,121 @@ def _entry(resource: dict) -> dict:
 # ============================================================
 # Resource builders
 # ============================================================
+
+_IDENTITY_CFG_CACHE: dict[str, dict] = {}
+
+# FHIR R4 standard: payer organization type
+_ORG_TYPE_SYSTEM = "http://terminology.hl7.org/CodeSystem/organization-type"
+# FHIR R4 standard: beneficiary's relationship to the policy subscriber
+_SUBSCRIBER_REL_SYSTEM = "http://terminology.hl7.org/CodeSystem/subscriber-relationship"
+
+
+def _identity_cfg(country: str) -> dict:
+    """Full resident-identity locale config (AD-54), cached."""
+    if country not in _IDENTITY_CFG_CACHE:
+        _IDENTITY_CFG_CACHE[country] = load_identity_config(country)
+    return _IDENTITY_CFG_CACHE[country]
+
+
+def _payer_name_map(country: str) -> dict[str, str]:
+    """Map 保険者番号 → insurer name from locale (display resolved at output, AD-30)."""
+    payers = _identity_cfg(country).get("payers", {})
+    out: dict[str, str] = {}
+    for entries in payers.values():
+        for e in entries or []:
+            if e.get("number"):
+                out[str(e["number"])] = str(e.get("name", e["number"]))
+    return out
+
+
+def _build_coverage_resources(patient_data: dict, country: str) -> list[dict]:
+    """Build JP Core Coverage + payor Organization from the patient's insurance enrollment.
+
+    Reads CIF data only (no dependency on the identity module — module independence).
+    `national_id` is never read here: the privacy chokepoint (AD-54) means individual
+    numbers are never emitted to FHIR.
+    """
+    cfg = _identity_cfg(country).get("fhir_coverage", {})
+    if not cfg:
+        return []
+    name_map = _payer_name_map(country)
+    type_labels = _identity_cfg(country).get("coverage_type_labels", {})
+    identity = patient_data.get("identity") or {}
+    enrollments = identity.get("enrollments") or []
+    pid = patient_data.get("patient_id", "")
+    resources: list[dict] = []
+
+    for idx, enr in enumerate(enrollments):
+        insurer = enr.get("insurer_number") or ""
+        number = enr.get("member_id") or ""
+        symbol = enr.get("group_symbol")
+        branch = enr.get("branch_number")
+        category = enr.get("category") or ""
+        if not insurer or not number:
+            continue
+
+        payer_org_id = f"payer-{insurer}"
+        resources.append({
+            "resourceType": "Organization",
+            "id": payer_org_id,
+            "identifier": [{
+                "system": cfg.get("insurer_number_system", ""),
+                "value": insurer,
+            }],
+            "type": [{"coding": [{
+                "system": _ORG_TYPE_SYSTEM,
+                "code": "pay",
+                "display": "Payer",
+            }]}],
+            "name": name_map.get(insurer, insurer),
+        })
+
+        # JP Core extensions: 記号 / 番号 / 枝番
+        extensions: list[dict] = []
+        if symbol:
+            extensions.append({"url": cfg.get("ext_symbol", ""), "valueString": symbol})
+        extensions.append({"url": cfg.get("ext_number", ""), "valueString": number})
+        if branch:
+            extensions.append({"url": cfg.get("ext_subnumber", ""), "valueString": branch})
+
+        # Composite member identifier: 保険者番号:記号:番号:枝番
+        composite = ":".join([insurer, symbol or "", number, branch or ""])
+        subscriber = f"{symbol}:{number}" if symbol else number
+
+        coverage: dict[str, Any] = {
+            "resourceType": "Coverage",
+            "id": f"cov-{pid}-{idx}",
+            "extension": extensions,
+            "identifier": [{"system": cfg.get("member_id_system", ""), "value": composite}],
+            "status": "active",
+            "subscriberId": subscriber,
+            "beneficiary": {"reference": f"Patient/{pid}"},
+            "payor": [{"reference": f"Organization/{payer_org_id}"}],
+        }
+        if cfg.get("profile"):
+            coverage["meta"] = {"profile": [cfg["profile"]]}
+        if branch:
+            coverage["dependent"] = branch
+        # Beneficiary's relationship to the subscriber: 被扶養者 → not self.
+        rel_code = "other" if category == "dependent" else "self"
+        coverage["relationship"] = {
+            "coding": [{"system": _SUBSCRIBER_REL_SYSTEM, "code": rel_code}]
+        }
+        # Coverage.type: human label (text-only CodeableConcept — no fabricated codes).
+        label = type_labels.get(category)
+        if label:
+            coverage["type"] = {"text": label}
+        period = {}
+        if enr.get("valid_from"):
+            period["start"] = enr["valid_from"]
+        if enr.get("valid_to"):
+            period["end"] = enr["valid_to"]
+        if period:
+            coverage["period"] = period
+        resources.append(coverage)
+
+    return resources
+
 
 def _build_patient(p: dict, country: str) -> dict:
     """Build FHIR Patient resource with locale-aware name."""

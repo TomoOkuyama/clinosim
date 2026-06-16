@@ -1726,6 +1726,184 @@ observations.
 | AD-51 | 2026-04-10 | YAML-driven medication_holds in disease protocols (replaces hardcoded disease_id lists in simulator) |
 | AD-52 | 2026-04-10 | Country-specific recommended_population in hospital config (US: 40K, JP: 10K for 50-bed) |
 | AD-53 | 2026-04-10 | Staff name resolution in narrative prompts (hospital.json roster → display names) |
+| AD-54 | 2026-06-15 | Country-pluggable resident identifier & insurance numbering module (`modules/identity/`) |
+| AD-55 | 2026-06-15 | EHR data enrichment split: near-essential data in Base (always-on, extends core), specialized/optional data in opt-in modules |
+| AD-56 | 2026-06-15 | Extensibility foundation (Phase 0): FHIR resource-builder registry, simulator enricher registry, CIF extensions slot for modules, config module-enablement map |
+
+---
+
+## 6.9 Resident identifier & insurance numbering (AD-54)
+
+### Problem
+
+Layer-1 residents and Layer-2 patients carried no payer identity beyond an
+internal MRN. Realistic EHR/claims data requires the patient's **insurance
+enrollment** (被保険者番号 / member id, 保険者番号 / insurer number, 記号 / group
+symbol, 枝番 / branch number) and — for Japan — the My-Number card / マイナ保険証
+state. These are **country-specific**, **household-correlated**, and
+**time-varying**, so they cannot be hardcoded.
+
+### Key domain facts (drove the design)
+
+- The 12-digit My Number (個人番号) is **not** stored in clinical EHRs by law
+  (number use is limited to social-security/tax/disaster). Even when a マイナ保険証
+  is presented, the provider receives the **insurance qualification**, never the
+  raw 個人番号. → My Number is a Layer-1 simulation attribute only; clinical
+  outputs (FHIR/CSV) must **not** emit it.
+- The EHR/claims identifier is the **被保険者番号 + 保険者番号**, represented in FHIR
+  as a **`Coverage`** resource (`subscriberId`, `payor` → insurer Organization),
+  not as a `Patient.identifier` slice (consistent with JP Core's design).
+  - **JP Core Coverage mapping (verified against jpfhir.jp/fhir/core):**
+    記号/番号/枝番 → `JP_Coverage_InsuredPersonSymbol` / `…InsuredPersonNumber` /
+    `…InsuredPersonSubNumber` extensions (valueString); `subscriberId` = `記号:番号`;
+    `dependent` = 枝番; `identifier.value` = `保険者番号:記号:番号:枝番`
+    (system `JP_Insurance_memberID`); `payor` → Organization with
+    `jp-insurer-number-namingsystem` identifier (= 保険者番号). Mandatory: `status`,
+    `beneficiary` (1..1), `payor` (1..*). Canonical URIs stored in
+    `locale/jp/identity.yaml:fhir_coverage`.
+  - **FHIR conformance details:** payor Organization carries `type` coding
+    `organization-type#pay` and a real insurer **name** resolved from
+    `locale/jp/identity.yaml:payers` (number → name at output; AD-30 — display text
+    never stored in CIF). `Coverage.relationship` = `self` (subscriber) / `other`
+    (被扶養者). `Coverage.type` is a text-only CodeableConcept (Japanese scheme label;
+    no fabricated codes). Representative payers carry valid 検証番号 / check digits.
+    US export emits **no** `Coverage` (no JP insurance leakage).
+- 記号 sharing granularity differs by scheme: 社保 (employee) shares 記号 at the
+  **employer (事業所)** level; 国保 shares at the **household** level; 後期高齢者
+  (75+) is **per-individual**.
+- "My-Number assignment" for a long-standing patient changes the **qualification
+  verification method** (紙 → online) but **not** the 被保険者番号. The data that
+  actually changes over time is the **payer** (転職/退職, and the deterministic
+  **75-yr → 後期高齢者** transition). Hence insurance is modeled as a
+  **period-bounded enrollment history**, and each encounter references the
+  enrollment valid on its date (`Coverage.period`).
+
+### Decision
+
+A new leaf-ish module `clinosim/modules/identity/` owns numbering:
+
+- `base.py` — `IdentityProvider` Protocol (country-pluggable seam; interface only)
+- `registry.py` — `country → provider` resolution (mirrors `healthcare_system`)
+- `generators.py` — check-digit number generators (国共通 pure functions)
+- `providers/jp.py` — JP rules (employer-level 記号, 社保/国保/後期高齢, 枝番,
+  card/保険証 dated flags, 75-yr transition)
+- `providers/us.py` — thin (existing `_sample_insurance` behavior preserved)
+
+Adding a country = new `providers/<cc>.py` + `locale/<cc>/identity.yaml`; no engine
+changes (same philosophy as disease/encounter YAMLs).
+
+**Determinism (AD-16):** numbering runs as a **separate pass after population
+generation**, using a **dedicated sub-seed Generator** so the existing random
+stream (and golden files) are untouched.
+
+**Privacy chokepoint:** `national_id` may live in CIF/`PersonRecord` for future
+マイナ-workflow extensibility, but output adapters carry a **sensitive-field
+default-exclude** policy — FHIR/CSV never emit `national_id` unless explicitly
+opted in.
+
+### Defaults (locale/jp/identity.yaml — researched, `# TODO: verify` where provisional)
+
+- マイナンバーカード保有率 (age-banded): 0–14 ≈0.70, 15–49 ≈0.77, 50s ≈0.82,
+  60s ≈0.90, 70s ≈0.91 (peak), 80+ ≈0.72 (総務省/デジタル庁 2025)
+- マイナ保険証 登録率: lower, same age shape (peak 60–70s)
+- 世帯内相関は `household_icc` (Gaussian-copula preserving marginal card rates)
+- **被用者保険 vs 国保 は occupation-driven**: the household's most-likely-employed
+  working-age member becomes the 被保険者 (others 被扶養者) via
+  `employee_probability_by_occupation`. Calibrated so the emergent <75 split is
+  ≈ 73:27 (MHLW 医療保険 基礎資料), with `insurance_category_distribution` as fallback.
+- **マイナ保険証 marginal**: registration is conditional on card holding at rate
+  `ins_rate/card_rate`, so the population linked marginal = configured `ins_rate`.
+- **`insurance_type` unified**: for JP, `PatientProfile.insurance_type` is set from the
+  enrollment `category` (single source of truth → consistent CSV/Coverage; was empty before).
+
+### Phasing
+
+1. Module skeleton + JP numbering + snapshot single enrollment + Coverage + payor Org
+2. Period-bounded enrollment history + 75-yr transition + `Coverage.period`
+3. Employment transitions (light probabilistic) + card/保険証 dates + verification method
+4. US compat tests + docs/ADR finalize
+
+---
+
+## 6.10 EHR data enrichment split — Base vs Module (AD-55)
+
+### Principle
+
+When adding EHR data classes (benchmarked against Synthea / USCDI v5 / MIMIC-IV):
+
+- **Base** — data that a realistic EHR essentially *always* carries (and that is cheaply
+  derivable from the existing physiology / clinical-course state). Generated on **every
+  run** by extending the **existing core** (`types/`, `population`, `observation`,
+  `simulator/*`, `output`). No new opt-in module, no flag.
+- **Module** — specialized or optional data. Implemented as an **opt-in, pluggable
+  module under `clinosim/modules/`** (same pattern as `identity`: own README +
+  Dependencies, types in `types/`, FHIR built in the `output` module reading CIF,
+  dedicated sub-seed, gated by a CLI flag / config). **One module per theme**
+  (e.g. billing, devices, care-coordination) — never a catch-all "extras" module,
+  consistent with the existing one-theme-per-module layout.
+
+Avoid over-modularizing: small near-universal *attributes* (family history, code status,
+extended SDOH) live in Base as patient/encounter fields, not as their own modules.
+
+### Scope guard (carried from the enrichment research)
+
+Imaging / modality-dependent data is **out of scope** (CT/MRI/X-ray/US, echo, ECG
+tracings, endoscopy findings, spirometry, pathology). Lab/bedside/administrative data is
+in scope (clinosim already derives labs from physiology, so the same applies to
+microbiology, blood gas, cardiac markers, nursing flowsheets).
+
+### Classification
+
+| Tier | Data | Lives in |
+|---|---|---|
+| Base | Microbiology + susceptibility; lactate / ABG / cardiac markers; `DiagnosticReport` grouping; nursing flowsheets (I/O, NEWS2, pain, GCS, Braden); immunization history; family history; code status / advance directive; extended SDOH (incl. JP 要介護度) | core: `types`, `population`, `observation`, `simulator`, `output` |
+| Module | Billing (`modules/billing/` — JP DPC / US Claim+EOB); Devices + HAI (`modules/device/` — CLABSI/CAUTI/VAP); Care coordination (`modules/care_coordination/` — CarePlan/CareTeam/Goal) | one opt-in module per theme |
+
+See `TODO.md` for the phased implementation plan.
+
+---
+
+## 6.11 Extensibility foundation — Phase 0 (AD-56)
+
+### Problem
+
+Adding a new FHIR resource type or opt-in module currently requires editing several
+central hot spots, so the AD-55 roadmap (8 Base items + 3 modules) would touch the same
+monoliths repeatedly:
+
+- `output/fhir_r4_adapter.py` `_build_bundle()` (~3,000-line file) — every new resource
+  is hand-appended into one function, plus the dedup set.
+- `simulator/engine.py` `run_beta()` — every post-population pass is inlined (e.g.
+  `if config.jp_insurance_numbers: assign_identities(...)`), order-sensitive.
+- `types/output.py` `CIFPatientRecord` — fixed dataclass; every new data class adds a field.
+- `types/config.py` `SimulatorConfig` — one boolean per opt-in module.
+
+### Decision — do these enabling refactors *before* the AD-55 enrichment work
+
+1. **FHIR resource-builder registry.** A registry of builders `(record, ctx) -> list[resource]`;
+   the core loop iterates and emits. Each builder declares its dedup behaviour
+   (patient-level vs per-encounter). New resource = register a builder (co-located with its
+   domain) — no edit to `_build_bundle`.
+2. **Simulator enricher registry.** Post-population passes register with
+   `name` / `order` / `enabled(config)` / `run(...)`; `run_beta` iterates in declared order.
+   New module = register an enricher — no edit to `run_beta`. **Order is explicit and fixed
+   to preserve determinism (AD-16).**
+3. **CIF extensions slot.** Add `CIFPatientRecord.extensions: dict[str, Any]`. **Base** data
+   keeps typed fields (Base *is* core); **Modules** write to `extensions[<module>]` and never
+   edit the core type — module independence enforced at the type level (aligns with AD-55).
+4. **Config module-enablement map.** `SimulatorConfig.modules: dict[str, bool]` +
+   `module_enabled(name)` helper; `jp_insurance_numbers` kept as a back-compat alias.
+   Per-module structured config (e.g. billing country options) lives in its own block.
+
+Secondary: externalize the `observation` lab catalog (CV / precision / units) to YAML
+(done alongside the microbiology Base item). CSV adapter registry is **deferred** (low
+leverage — a new table is ~3 lines).
+
+### Constraint
+
+These refactor working code. Regression is gated by the existing golden / e2e suites and
+determinism (AD-16): any change in resource emission order or RNG draw order must be proven
+equivalent, not a true regression.
 
 ---
 

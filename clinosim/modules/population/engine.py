@@ -11,6 +11,8 @@ from datetime import date, timedelta
 
 import numpy as np
 
+from clinosim.types import IdentityTimeline
+
 
 @dataclass
 class HospitalizationSummary:
@@ -63,6 +65,9 @@ class PersonRecord:
     last_encounter_id: str | None = None
     last_disease_id: str | None = None
     hospitalization_history: list[HospitalizationSummary] = field(default_factory=list)
+    # Resident identifier & insurance enrollment (AD-54); populated by a separate
+    # post-generation pass (clinosim.modules.identity.assign_identities).
+    identity: IdentityTimeline | None = None
 
 
 @dataclass
