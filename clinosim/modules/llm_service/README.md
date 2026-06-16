@@ -448,18 +448,39 @@ IAM ポリシー例:
 | Anthropic API | [docs.anthropic.com](https://docs.anthropic.com/) |
 | llama.cpp / GGUF | [llama.cpp](https://github.com/ggerganov/llama.cpp) |
 
-## トークン消費見積もり（日本語出力の場合）
+## トークン消費・生成コスト見積もり（日本語出力）
 
-| Document Type | 平均 Input | 平均 Output | 合計 | 頻度（60k catchment, 1年） |
-|---|---|---|---|---|
-| Admission H&P | ~800 | ~2,500 | ~3,300 | 171 |
-| Discharge Summary | ~1,200 | ~3,500 | ~4,700 | 171 |
-| Operative Note | ~600 | ~2,000 | ~2,600 | 11 |
-| Procedure Note | ~400 | ~1,000 | ~1,400 | 19 |
-| Death Note | ~300 | ~800 | ~1,100 | 2 |
-| **合計** | | | **~1.8M tokens** | **374 documents** |
+> **実測** (2026-06-15): 人口 10,000 / 既定 50 床病院 (`hospital_operations.yaml`) / 1 年
+> (start 2023-07-01 〜 snapshot 2024-06-30) / seed 42。
+> **生成必要文書数は catchment 人口ではなく「病床数 × 期間」で律速** される
+> (人口を増やしても入院は病床上限で頭打ち。同一 50 床なら 1 万人でも 6 万人でも同程度)。
+
+| Document Type | 平均 Input | 平均 Output | 件数（実測） |
+|---|---|---|---|
+| Admission H&P | ~800 | ~2,500 | 491 |
+| Discharge Summary | ~1,200 | ~3,500 | 491 |
+| Operative Note | ~600 | ~2,000 | 39 |
+| Procedure Note | ~400 | ~1,000 | 66 |
+| Death Summary | ~300 | ~800 | 27 |
+| **合計** | **≈ 1.04M** | **≈ 3.11M** | **1,114 documents (≈ 4.2M tokens)** |
 
 経過記録・看護記録を含めると **50倍以上** になるため、5種類のみに限定。
+
+### Bedrock 生成コスト（参考・オンデマンド us, 上記 1,114 文書 / 1 回フル生成）
+
+| モデル | 単価 (in / out per 1M) | 概算コスト | 円 (¥150/$) |
+|---|---|---|---|
+| **Claude Sonnet 4**（既定 `medium`） | $3 / $15 | **≈ $50** | ≈ ¥7,500 |
+| Claude Haiku 4.5（`small`） | $1 / $5 | ≈ $17 | ≈ ¥2,600 |
+| Claude Opus 4（`large`） | $15 / $75 | ≈ $250 | ≈ ¥37,000 |
+
+**前提・補足**:
+- 上記 per-doc トークンは過去 Bedrock 実行ベースの目安。実出力長で **±数十%** の幅。
+- **enrichment は非 LLM**（JUDGMENT 未実装）→ LLM 呼び出しは文書数 = **1,114** のみ。
+- **SHA256 キャッシュ (AD-41)** で同一入力の再実行は無料。初回のみ全額。
+- **Bedrock prompt caching 未対応**（対応すれば共通プロンプト分の input がさらに低減）。
+- 参考タイミング（実測, 人口 1 万）: 構造データ生成 **≈ 109 秒** / テンプレートナラティブ生成 **≈ 4 秒**（LLM 不要）。
+- 正確な実測は、Bedrock で数十件サンプル生成し各文書 JSON の `llm_input_tokens` / `llm_output_tokens` を集計すれば誤差数 % で得られる。
 
 ## Enrichment アーキテクチャ (AD-44)
 
