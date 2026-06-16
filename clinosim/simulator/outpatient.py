@@ -7,7 +7,12 @@ from datetime import datetime, timedelta
 import numpy as np
 
 from clinosim.modules.encounter.engine import create_inpatient_encounter
-from clinosim.modules.observation.engine import determine_flag, generate_lab_result, get_lab_unit
+from clinosim.modules.observation.engine import (
+    canonical_lab_name,
+    determine_flag,
+    generate_lab_result,
+    get_lab_unit,
+)
 from clinosim.modules.staff.engine import StaffRoster, assign_staff
 from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent
 from clinosim.types.encounter import (
@@ -151,15 +156,17 @@ def _simulate_outpatient_visit(
         baseline_values = {"CRP": 0.5, "WBC": 6500, "Creatinine": 0.9, "K": 4.2,
                            "Na": 140, "Glucose": 100, "HbA1c": 6.5, "BNP": 50,
                            "PT_INR": 1.1, "Hb": 13.0, "AST": 25, "ALT": 22,
-                           "BUN": 15, "Ca": 9.2, "eGFR": 75, "TSH": 2.5}
-        true_val = baseline_values.get(test_name, 100.0)
-        observed = generate_lab_result(test_name, true_val, rng)
-        flag = determine_flag(test_name, observed, sex=patient.sex)
+                           "BUN": 15, "Ca": 9.2, "eGFR": 75, "TSH": 2.5,
+                           "Troponin_I": 0.01, "CK_MB": 1.0}
+        canon = canonical_lab_name(test_name)
+        true_val = baseline_values.get(canon, 100.0)
+        observed = generate_lab_result(canon, true_val, rng)
+        flag = determine_flag(canon, observed, sex=patient.sex)
         result = OrderResult(
             result_datetime=visit_date + timedelta(hours=2),
             performed_by=lab_tech_id,
-            lab_name=test_name, value=observed,
-            unit=get_lab_unit(test_name), flag=flag,
+            lab_name=canon, value=observed,
+            unit=get_lab_unit(canon), flag=flag,
         )
         order.result = result
         order.status = OrderStatus.RESULTED
