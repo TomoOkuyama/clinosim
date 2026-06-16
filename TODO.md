@@ -324,9 +324,26 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
   call (currently they share the physiology functions but duplicate the boilerplate).
 - [ ] Encounter scenarios: add optional `initial_state_impact` so ED-only presentations
   (e.g. appendicitis WBC↑) carry acute abnormalities, not just comorbidity baseline.
+- [x] **ABG panel expansion + pO2 done.** `observation/reference_data/lab_panels.yaml`
+  (data-driven) maps `ABG` → pH/pCO2/pO2/HCO3; panel orders are expanded into component
+  lab orders (parent marked resulted) so each resolves via the scalar path. physiology
+  derives pO2 (inflammation-proxied hypoxemia). LOINC/JLAC10 codes added. Respiratory
+  cohort now gets blood-gas results (was none) — verified COPD pH/pCO2/pO2/HCO3 resolve.
 - [ ] Unify vitals generation (ED/outpatient still use `baseline_vitals + noise`, not
-  `derive_vital_signs`); fold in ABG panel expansion (one "ABG" order → pH/pCO2/pO2/HCO3)
-  + pO2 derivation (deferred from blood markers).
+  `derive_vital_signs` — fold disease state into ED/outpatient vitals).
+- [x] FHIR code-mapping cleanup (from CIF/FHIR eval): US LOINC for lipids/TSH/ESR
+  (+ loinc displays), outpatient lipid/ESR baselines (was 1.0 garbage), ECG/non-analyte
+  guard in ED/outpatient (was fabricated empty-code lab). US empty-code labs 328→0.
+- [ ] **JP JLAC10 codes** for Troponin_I / CK_MB / LDL / HDL / TG / TC / TSH / ESR
+  (US LOINC done; JP still emits empty/raw codes — verify against JCCLS, don't invent).
+- [ ] **ECG as a proper diagnostic** (currently skipped from labs; model as Procedure/
+  diagnostic order so the "ECG was done" fact is recorded).
+- [ ] **Acid-base model** (eval finding): pH/HCO3/pCO2 derive from a single `ph_status`
+  axis → can't distinguish metabolic vs respiratory acidosis or show correct compensation
+  (DKA shows normal/high pCO2 instead of Kussmaul low; COPD HCO3 doesn't compensate up).
+  Split metabolic (HCO3) and respiratory (pCO2) axes with compensation.
+- [ ] ED non-cardiac troponin now reflects cardiac comorbidity (median ~0.095, can exceed
+  the 0.04 cutoff) — decide comorbidity-baseline vs rule-out-negative semantics.
 
 ### EHR data enrichment roadmap (AD-55 — Base vs Module)
 

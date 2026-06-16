@@ -28,6 +28,7 @@ from clinosim.modules.observation.engine import (
     determine_flag,
     generate_lab_result,
     get_lab_unit,
+    lab_panel_components,
 )
 from clinosim.modules.order.engine import (
     calculate_result_time_from_state,
@@ -554,6 +555,25 @@ def _run_daily_loop(
             lagged_state = state_history[lag_idx]
             lagged_labs = derive_lab_values(lagged_state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, hour=lab_hour, myocardial_injury=mi_injury)
             true_labs["CRP"] = lagged_labs.get("CRP", true_labs["CRP"])
+
+        # Expand panel orders (e.g. ABG → pH/pCO2/pO2/HCO3) into component lab orders so
+        # each component is resulted via the scalar path below (AD-57). Parent is marked
+        # RESULTED (no scalar result → no duplicate Observation).
+        _panel_children: list[Order] = []
+        for order in all_orders:
+            if order.order_type.value == "lab" and order.status == OrderStatus.PLACED:
+                comps = lab_panel_components(order.display_name)
+                for comp in comps:
+                    _panel_children.append(Order(
+                        order_id=f"{order.order_id}-{comp}", patient_id=order.patient_id,
+                        order_type=OrderType.LAB, display_name=comp, urgency=order.urgency,
+                        clinical_intent=order.clinical_intent,
+                        ordered_datetime=order.ordered_datetime, ordered_by=order.ordered_by,
+                        encounter_id=order.encounter_id, status=OrderStatus.PLACED,
+                    ))
+                if comps:
+                    order.status = OrderStatus.RESULTED
+        all_orders.extend(_panel_children)
 
         for order in all_orders:
             # Resolve protocol order name → canonical analyte (stat/serial/alias → base).

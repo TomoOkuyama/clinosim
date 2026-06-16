@@ -30,4 +30,5 @@ eGFR: "8A065"
 HbA1c: "3D045"
 pH: "6A010"
 pCO2: "6A020"
+pO2: "6A040"   # TODO: verify JLAC10 code
 HCO3: "6A030"
