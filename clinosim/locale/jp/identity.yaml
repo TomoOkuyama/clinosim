@@ -1,0 +1,104 @@
+# Resident identifier & insurance numbering — Japan (AD-54)
+#
+# Sources:
+#   - マイナンバーカード保有率 (age-banded): 総務省 / デジタル庁 2025
+#     (0-14 ~0.70, 15-49 ~0.77, 50s ~0.82, 60s ~0.90, 70s ~0.91 peak, 80+ ~0.72)
+#   - マイナ保険証 登録率: lower, same age shape, peak 60-70s (厚労省 2025)
+# Values marked `# TODO: verify` are provisional pending authoritative sourcing.
+
+# Generate the 12-digit 個人番号 (national_id). Held in CIF only; never emitted to
+# clinical output (privacy chokepoint). Set false to skip generation entirely.
+generate_national_id: true
+
+# Representative payers (kept small for realism without thousands of insurers).
+# Each has an explicit 保険者番号 (valid 検証番号 / check digit) + name. The provider
+# picks one per household; the FHIR adapter resolves number → name for the payor
+# Organization (display text resolved at output time per AD-30).
+# 8 digits = 被用者保険 (法別2+都道府県2+保険者別3+検証1) / 後期高齢; 6 digits = 国保.
+# TODO: verify representative numbers against official 保険者番号 registries.
+payers:
+  employee:        # 被用者保険 (協会けんぽ / 健保組合 / 共済)
+    - number: "01130012"
+      name: "全国健康保険協会 東京支部"
+    - number: "06139877"
+      name: "東京都某健康保険組合"
+    - number: "31130040"
+      name: "国家公務員共済組合"
+  national:        # 国民健康保険
+    - number: "131011"
+      name: "東京都新宿区 国民健康保険"
+  late_elderly:    # 後期高齢者医療制度 (75+)
+    - number: "39130083"
+      name: "東京都後期高齢者医療広域連合"
+
+# Coverage.type human label by category (emitted as FHIR Coverage.type.text).
+coverage_type_labels:
+  employee: "被用者保険（被保険者）"
+  dependent: "被用者保険（被扶養者）"
+  national: "国民健康保険"
+  late_elderly: "後期高齢者医療制度"
+
+# Primary driver of 被用者保険 (employee) vs 国保 (national): the household's most
+# likely-employed working-age member becomes the 被保険者 (others 被扶養者).
+# P(被用者保険 | occupation). Employees of firms with social insurance → 社保;
+# self-employed / non-employed → 国保. Calibrated so the emergent <75 split is
+# ≈ 被用者保険 73% / 国保 27% (MHLW 医療保険 基礎資料: 被用者 ~77M, 国保 ~28M).
+employee_probability_by_occupation:
+  office: 0.92
+  manufacturing: 0.88
+  education: 0.88
+  healthcare: 0.85
+  transportation: 0.82
+  service: 0.70
+  construction: 0.65       # 一人親方 are 国保; company employees 社保
+  other: 0.40
+  agriculture: 0.15        # mostly self-employed → 国保
+  student: 0.05            # usually 被扶養者 / 国保
+  homemaker: 0.0
+  unemployed: 0.0
+  retired: 0.0             # retired before 75 → 国保
+default_employee_probability: 0.40
+
+# Fallback only (used when occupation data is unavailable).
+insurance_category_distribution:
+  "0-74":
+    employee: 0.72
+    national: 0.28
+
+# マイナンバーカード保有率 (age-banded). Marginal rates preserved exactly by the
+# Gaussian-copula household model; household_icc controls intra-household correlation.
+card_holding_rate:
+  "0-14": 0.70
+  "15-29": 0.75
+  "30-49": 0.78
+  "50-59": 0.82
+  "60-69": 0.90
+  "70-79": 0.91
+  "80-": 0.72
+
+# マイナ保険証 利用登録率 (age-banded; conditional on card holding in the model).
+mynumber_insurance_rate:
+  "0-14": 0.30
+  "15-29": 0.35
+  "30-49": 0.45
+  "50-59": 0.55
+  "60-69": 0.62
+  "70-79": 0.60
+  "80-": 0.40
+
+# Intra-household correlation of card/insurance holding (0 = independent, 1 = identical).
+# Real intra-household statistics are sparse; exposed as a tunable parameter.
+household_icc: 0.5
+
+# FHIR output mapping — HL7 FHIR JP Core Coverage profile.
+# Verified against jpfhir.jp/fhir/core (Coverage profile + example). Consumed by the
+# FHIR adapter; the identity module itself stays output-agnostic.
+fhir_coverage:
+  profile: "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Coverage"
+  member_id_system: "http://jpfhir.jp/fhir/clins/Idsystem/JP_Insurance_memberID"
+  insurer_number_system: "http://jpfhir.jp/fhir/core/NamingSystem/jp-insurer-number-namingsystem"
+  ext_symbol: "http://jpfhir.jp/fhir/core/Extension/StructureDefinition/JP_Coverage_InsuredPersonSymbol"
+  ext_number: "http://jpfhir.jp/fhir/core/Extension/StructureDefinition/JP_Coverage_InsuredPersonNumber"
+  ext_subnumber: "http://jpfhir.jp/fhir/core/Extension/StructureDefinition/JP_Coverage_InsuredPersonSubNumber"
+  # Composite identifier value format: "保険者番号:記号:番号:枝番"
+  # subscriberId format: "記号:番号" ; dependent: "枝番"

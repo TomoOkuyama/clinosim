@@ -1,0 +1,142 @@
+# Microbiology culture & antibiotic susceptibility reference data (AD-55 Base).
+#
+# ALL codes live here (data-driven, never hardcoded in Python). Display text for these
+# codes is resolved at output time via clinosim.codes (snomed-ct.yaml / loinc.yaml).
+#
+# SNOMED organism codes / LOINC susceptibility codes are representative and marked
+# `# TODO: verify` against authoritative registries (SNOMED CT, Regenstrief LOINC).
+# Antibiogram S/I/R probabilities are approximate (CLSI-style); refine per locale later.
+
+# Specimen types: key -> { snomed (specimen type), test_loinc (culture test) }.
+specimens:
+  blood:  { snomed: "119297000", test_loinc: "600-7" }   # Blood specimen / Bacteria id'd in Blood by Culture
+  urine:  { snomed: "122575003", test_loinc: "630-4" }   # Urine specimen / Bacteria id'd in Urine by Culture
+  sputum: { snomed: "119334006", test_loinc: "619-7" }   # Sputum specimen / Bacteria id'd in Sputum by Culture
+  wound:  { snomed: "257261003", test_loinc: "634-6" }   # Swab / Bacteria id'd in Wound by Culture
+
+# Antibiotics: key -> LOINC "<drug> [Susceptibility]" test code.  # TODO: verify
+antibiotics:
+  ampicillin: "18862-3"
+  cefazolin: "18866-4"
+  ceftriaxone: "18895-3"
+  ciprofloxacin: "18879-7"
+  gentamicin: "18908-4"
+  vancomycin: "18991-2"
+  piperacillin_tazobactam: "18949-0"
+  meropenem: "18943-3"
+  trimethoprim_sulfamethoxazole: "18996-1"
+
+# Organisms: id -> snomed code + antibiogram (antibiotic_key -> [P(S), P(I), P(R)]).  # TODO: verify
+organisms:
+  streptococcus_pneumoniae:
+    snomed: "9861002"
+    antibiogram:
+      ampicillin: [0.75, 0.10, 0.15]
+      ceftriaxone: [0.90, 0.07, 0.03]
+      vancomycin: [1.00, 0.00, 0.00]
+      trimethoprim_sulfamethoxazole: [0.70, 0.05, 0.25]
+  haemophilus_influenzae:
+    snomed: "44470000"
+    antibiogram:
+      ampicillin: [0.65, 0.05, 0.30]
+      ceftriaxone: [0.98, 0.01, 0.01]
+      ciprofloxacin: [0.97, 0.01, 0.02]
+  staphylococcus_aureus:
+    snomed: "3092008"
+    antibiogram:
+      cefazolin: [0.70, 0.00, 0.30]          # ~30% MRSA → cefazolin R
+      vancomycin: [1.00, 0.00, 0.00]
+      trimethoprim_sulfamethoxazole: [0.90, 0.02, 0.08]
+      ciprofloxacin: [0.70, 0.05, 0.25]
+  streptococcus_pyogenes:
+    snomed: "80166006"
+    antibiogram:
+      ampicillin: [1.00, 0.00, 0.00]
+      ceftriaxone: [1.00, 0.00, 0.00]
+      vancomycin: [1.00, 0.00, 0.00]
+  escherichia_coli:
+    snomed: "112283007"
+    antibiogram:
+      ampicillin: [0.45, 0.05, 0.50]
+      ceftriaxone: [0.85, 0.03, 0.12]
+      ciprofloxacin: [0.75, 0.05, 0.20]
+      gentamicin: [0.90, 0.02, 0.08]
+      piperacillin_tazobactam: [0.92, 0.04, 0.04]
+      meropenem: [0.99, 0.00, 0.01]
+      trimethoprim_sulfamethoxazole: [0.70, 0.02, 0.28]
+  klebsiella_pneumoniae:
+    snomed: "56415008"
+    antibiogram:
+      ampicillin: [0.00, 0.00, 1.00]          # intrinsic resistance
+      ceftriaxone: [0.85, 0.03, 0.12]
+      ciprofloxacin: [0.85, 0.05, 0.10]
+      gentamicin: [0.90, 0.02, 0.08]
+      piperacillin_tazobactam: [0.88, 0.06, 0.06]
+      meropenem: [0.98, 0.01, 0.01]
+  pseudomonas_aeruginosa:
+    snomed: "52499004"
+    antibiogram:
+      ciprofloxacin: [0.80, 0.05, 0.15]
+      gentamicin: [0.85, 0.05, 0.10]
+      piperacillin_tazobactam: [0.88, 0.05, 0.07]
+      meropenem: [0.90, 0.04, 0.06]
+  proteus_mirabilis:
+    snomed: "73457008"
+    antibiogram:
+      ampicillin: [0.70, 0.05, 0.25]
+      ceftriaxone: [0.92, 0.03, 0.05]
+      ciprofloxacin: [0.85, 0.05, 0.10]
+      gentamicin: [0.88, 0.04, 0.08]
+  enterococcus_faecalis:
+    snomed: "78065002"
+    antibiogram:
+      ampicillin: [0.92, 0.02, 0.06]
+      vancomycin: [0.90, 0.02, 0.08]          # ~8% VRE
+
+# Disease profiles: which cultures are taken, growth likelihood, and the organism
+# distribution conditional on growth.
+diseases:
+  bacterial_pneumonia:
+    cultures:
+      - { specimen: blood,  order_prob: 1.0, growth_prob: 0.15 }
+      - { specimen: sputum, order_prob: 0.6, growth_prob: 0.50 }
+    organisms:
+      streptococcus_pneumoniae: 0.40
+      haemophilus_influenzae: 0.18
+      klebsiella_pneumoniae: 0.15
+      staphylococcus_aureus: 0.12
+      escherichia_coli: 0.15
+  aspiration_pneumonia:
+    cultures:
+      - { specimen: blood,  order_prob: 1.0, growth_prob: 0.15 }
+      - { specimen: sputum, order_prob: 0.7, growth_prob: 0.55 }
+    organisms:
+      klebsiella_pneumoniae: 0.30
+      staphylococcus_aureus: 0.25
+      escherichia_coli: 0.20
+      pseudomonas_aeruginosa: 0.15
+      streptococcus_pneumoniae: 0.10
+  sepsis:
+    cultures:
+      - { specimen: blood, order_prob: 1.0, growth_prob: 0.60 }
+    organisms:
+      escherichia_coli: 0.30
+      staphylococcus_aureus: 0.22
+      klebsiella_pneumoniae: 0.16
+      streptococcus_pneumoniae: 0.10
+      pseudomonas_aeruginosa: 0.12
+      enterococcus_faecalis: 0.10
+  urinary_tract_infection:
+    cultures:
+      - { specimen: urine, order_prob: 1.0, growth_prob: 0.80, quantitation: ">100,000 CFU/mL" }
+    organisms:
+      escherichia_coli: 0.70
+      klebsiella_pneumoniae: 0.12
+      proteus_mirabilis: 0.10
+      enterococcus_faecalis: 0.08
+  cellulitis:
+    cultures:
+      - { specimen: wound, order_prob: 0.5, growth_prob: 0.45 }
+    organisms:
+      staphylococcus_aureus: 0.55
+      streptococcus_pyogenes: 0.45

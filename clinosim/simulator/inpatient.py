@@ -377,6 +377,20 @@ def _simulate_patient(
         encounter.status = EncounterStatus.COMPLETED
         encounter.discharge_datetime = planned_discharge
 
+    # Microbiology cultures + susceptibilities (AD-55 Base) — infections only.
+    # Encounter-scoped sub-seed keeps the main random stream unperturbed (AD-16).
+    from clinosim.modules.observation.microbiology import generate_microbiology, has_microbiology
+    microbiology: list = []
+    if has_microbiology(disease_id):
+        microbiology = generate_microbiology(
+            disease_id, admission_time, encounter.encounter_id, config.random_seed,
+        )
+        if snapshot_dt:  # drop cultures not yet resulted as of snapshot
+            microbiology = [
+                m for m in microbiology
+                if m.reported_datetime is None or m.reported_datetime <= snapshot_dt
+            ]
+
     return CIFPatientRecord(
         patient=patient, encounters=[encounter], orders=all_orders,
         vital_signs=all_vitals, lab_results=all_lab_results,
@@ -386,6 +400,7 @@ def _simulate_patient(
         medication_administrations=all_mars,
         intake_output_records=all_io,
         adl_assessments=all_adl,
+        microbiology=microbiology,
         discharge_prescription=discharge_rx,
         icu_transferred=icu_transferred, deceased=death_occurred,
         death_day=actual_los if death_occurred else None,

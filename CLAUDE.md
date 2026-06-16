@@ -38,6 +38,14 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 - **LLM calls only via `llm_service`** (AD-11) — no other module may call Ollama or Anthropic APIs directly.
 - **Deterministic with seed** (AD-16) — each module creates its own `numpy.random.Generator` from a sub-seed. Never use `random.random()` or shared global state.
 
+### EHR data enrichment — Base vs Module (AD-55) + extensibility (AD-56)
+
+- **Near-essential data → Base** (always-on, extend core: `types`/`population`/`observation`/`simulator`/`output`). **Specialized/optional data → opt-in module**, one theme per module (like `identity`), gated via `SimulatorConfig.modules` + `config.module_enabled(name)`.
+- **Add a FHIR resource** by registering a builder via `register_bundle_builder()` (AD-56) — do NOT edit `_build_bundle()`. Builders return raw resources `(ctx) -> list[resource]`.
+- **Add a post-population / post-records pass** by registering an `Enricher` in `simulator/enrichers.py` (`register_builtin_enrichers`) — do NOT inline it into `run_beta`. Enrichers derive their own sub-seed; order is fixed (determinism).
+- **Modules must NOT edit `CIFPatientRecord`** — write to `CIFPatientRecord.extensions[<module>]`. Only Base data adds typed fields to the core type.
+- Refactors of these paths must preserve golden/e2e output and determinism.
+
 ### Code system module (`clinosim/codes/`)
 
 - **English-first principle**: every code in `codes/data/*.yaml` MUST have an `en` field. Other languages (`ja`, etc.) are optional translation attributes.
@@ -69,7 +77,7 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 - `pytest -m unit` — per-module unit tests (<30s)
 - `pytest -m integration` — module chain tests (<5min)
 - `pytest -m e2e` — golden file comparison (<30min)
-- `pytest -x` — full suite (~2 min, 201 tests)
+- `pytest -x` — full suite (234 tests; unit+integration ~2 min, e2e golden ~8 min)
 - Always run unit tests before committing.
 
 ## When modifying a module
@@ -109,7 +117,7 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 
 ## Current implementation phase
 
-**v0.1-beta** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 32 diseases, snapshot date support.
+**v0.1-beta** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 32 diseases, snapshot date support, and opt-in JP insurance enrollment (FHIR Coverage, AD-54).
 
 See `TODO.md` for roadmap and remaining tasks.
 
@@ -125,7 +133,9 @@ clinosim/
   config/          <- Hospital config YAML (50-bed, 10-bed, etc.) + LLM config
   types/           <- All data type definitions (Pydantic / dataclass)
   modules/         <- Functional modules (one package per module, each with README)
+    identity/      <- ★ Resident identifier & insurance numbering (JP, opt-in; AD-54)
   simulator/       <- Top-level orchestration (run_beta, run_forced, CLI)
+    enrichers.py   <- ★ Enricher registry for opt-in module passes (AD-56)
 tests/             <- Test code (unit / integration / e2e)
 ```
 

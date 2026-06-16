@@ -86,6 +86,13 @@ class SimulatorConfig(BaseModel):
     time_range: tuple[str, str] = ("2024-04-01", "2025-03-31")
     snapshot_date: str | None = None  # YYYY-MM-DD; ongoing inpatients have no discharge_datetime as of this date
     cif_format: str = "json"  # "json" | "msgpack" | "parquet"
+    # (JP only, AD-54) Include Japanese insurance enrollment / 被保険者番号 (FHIR Coverage).
+    # No effect for non-JP countries.
+    jp_insurance_numbers: bool = True
+
+    # (AD-56) Opt-in module enablement, e.g. {"billing": True, "device": False}.
+    # Scales without adding one boolean per module. Query via module_enabled().
+    modules: dict[str, bool] = {}
 
     llm: LLMServiceConfig = LLMServiceConfig()
 
@@ -117,6 +124,10 @@ class SimulatorConfig(BaseModel):
             },
         }
         return cls(**presets[name])
+
+    def module_enabled(self, name: str, default: bool = False) -> bool:
+        """Whether an opt-in module is enabled (AD-56). See `modules`."""
+        return self.modules.get(name, default)
 
     def override(self, overrides: dict) -> SimulatorConfig:
         data = self.model_dump()

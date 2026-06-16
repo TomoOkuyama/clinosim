@@ -24,6 +24,13 @@ from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord
 from clinosim.types.patient import PatientProfile
 
 from clinosim.simulator.emergency import _simulate_ed_visit
+from clinosim.simulator.enrichers import (
+    POST_POPULATION,
+    POST_RECORDS,
+    EnricherContext,
+    register_builtin_enrichers,
+    run_stage,
+)
 from clinosim.simulator.helpers import (
     _country_to_yaml_key,
     _deactivate_to_layer1,
@@ -89,6 +96,14 @@ def run_beta(
 
     population = generate_population(pop_size, config.country, rng)
     print(f"  Population: {population.total_persons} persons")
+
+    # Post-population enrichers (AD-56 registry) — e.g. resident identifier / insurance
+    # numbering (AD-54). Each enricher uses its own sub-seed; the main random stream
+    # (and golden files) is untouched (AD-16).
+    register_builtin_enrichers()
+    run_stage(POST_POPULATION, EnricherContext(
+        config=config, master_seed=config.random_seed, population=population,
+    ))
 
     # Run life events
     start_y, start_m = int(config.time_range[0][:4]), int(config.time_range[0][5:7])
@@ -415,6 +430,13 @@ def run_beta(
             )
             patient_records.append(ed_record)
         print(f"  ED visits (not admitted): {n_ed} generated", flush=True)
+
+    # Post-records enrichers (AD-56) — opt-in modules that read/extend finished records
+    # (e.g. billing, devices, care-coordination write to CIFPatientRecord.extensions).
+    run_stage(POST_RECORDS, EnricherContext(
+        config=config, master_seed=config.random_seed,
+        population=population, records=patient_records,
+    ))
 
     metadata = CIFMetadata(
         clinosim_version="0.1.0",

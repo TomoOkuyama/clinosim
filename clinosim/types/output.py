@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date, datetime
+from typing import Any
 
 from clinosim.types.clinical import (
     ClinicalDiagnosis, ClinicalDocument, ConditionEvent, PhysiologicalState,
@@ -12,6 +13,7 @@ from clinosim.types.encounter import (
     Encounter, MedicationAdministration, Order, OrderResult,
     PrescriptionRecord, VitalSignRecord,
 )
+from clinosim.types.microbiology import MicrobiologyResult
 from clinosim.types.patient import PatientProfile
 
 
@@ -49,6 +51,7 @@ class CIFPatientRecord:
     medication_administrations: list[MedicationAdministration] = field(default_factory=list)
     intake_output_records: list = field(default_factory=list)  # IntakeOutputRecord
     adl_assessments: list = field(default_factory=list)  # ADLAssessment
+    microbiology: list[MicrobiologyResult] = field(default_factory=list)  # AD-55 Base (codes only)
     discharge_prescription: PrescriptionRecord | None = None
     icu_transferred: bool = False
     deceased: bool = False
@@ -61,6 +64,10 @@ class CIFPatientRecord:
 
     # Hidden state (for validation/debugging, not exported to clinical formats)
     physiological_states: list[PhysiologicalState] = field(default_factory=list)
+
+    # Opt-in module data (AD-55/AD-56). Base data uses typed fields above; modules
+    # write under extensions[<module_name>] so they never edit this core type.
+    extensions: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
