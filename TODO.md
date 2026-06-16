@@ -314,13 +314,19 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 > be applied in 3 places and risks venue inconsistency (e.g. a CKD patient's ED creatinine
 > reads normal). Unify into one generation service.
 
-- [ ] Extract a single `generate_observations(ordered_tests, state, profile, country, rng)`
-  service in `observation` (canonical name → physiology true value → 3-layer noise → flag/unit/code).
-- [ ] ED/outpatient: build a lightweight `PhysiologicalState` from the encounter scenario +
-  patient comorbidities, then call the shared service. Remove `baseline_values` + `default 100`.
-- [ ] Unify vitals generation the same way; fold in ABG panel expansion (one "ABG" order →
-  pH/pCO2/pO2/HCO3 results) + pO2 derivation (deferred from blood markers).
-- [ ] Preserve determinism / golden / e2e on refactor.
+- [x] **Phase 1 — ED/outpatient labs → physiology.** `emergency.py` + `outpatient.py` now
+  build a baseline `PhysiologicalState` from the patient's chronic conditions
+  (`initialize_state`) and derive true values with `derive_lab_values` (comorbidity-aware:
+  CKD → high Cr/low eGFR, verified). Dangerous `default 100` replaced with a normal fallback.
+  `baseline_values` retained only for analytes physiology doesn't model. Same RNG draw
+  count → determinism preserved; integration/e2e green.
+- [ ] Extract a single `generate_observations(...)` wrapper so the 3 venues share one
+  call (currently they share the physiology functions but duplicate the boilerplate).
+- [ ] Encounter scenarios: add optional `initial_state_impact` so ED-only presentations
+  (e.g. appendicitis WBC↑) carry acute abnormalities, not just comorbidity baseline.
+- [ ] Unify vitals generation (ED/outpatient still use `baseline_vitals + noise`, not
+  `derive_vital_signs`); fold in ABG panel expansion (one "ABG" order → pH/pCO2/pO2/HCO3)
+  + pO2 derivation (deferred from blood markers).
 
 ### EHR data enrichment roadmap (AD-55 — Base vs Module)
 

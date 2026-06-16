@@ -136,7 +136,19 @@ def _simulate_outpatient_visit(
     lab_tech_assignment = assign_staff("lab_collection", "laboratory", roster, rng)
     lab_tech_id = lab_tech_assignment.get("performing_technician", "")
 
-    # Labs (if specified in followup schedule)
+    # Labs (if specified in followup schedule).
+    # Comorbidity-aware true values via the same physiology path as inpatient (AD-57).
+    from clinosim.modules.physiology.engine import derive_lab_values, initialize_state
+    _state = initialize_state(patient.physiological_profile, patient.chronic_conditions,
+                              patient.patient_id)
+    _has_dm = any("E11" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
+    _true_labs = derive_lab_values(_state, sex=patient.sex, age=patient.age, has_diabetes=_has_dm)
+    # baseline_values covers analytes physiology doesn't model; 1.0 fallback (not 100).
+    baseline_values = {"CRP": 0.5, "WBC": 6500, "Creatinine": 0.9, "K": 4.2,
+                       "Na": 140, "Glucose": 100, "HbA1c": 6.5, "BNP": 50,
+                       "PT_INR": 1.1, "Hb": 13.0, "AST": 25, "ALT": 22,
+                       "BUN": 15, "Ca": 9.2, "eGFR": 75, "TSH": 2.5,
+                       "Troponin_I": 0.01, "CK_MB": 1.0}
     lab_tests = spec.get("labs", [])
     for i, test_name in enumerate(lab_tests):
         order = Order(
@@ -152,14 +164,9 @@ def _simulate_outpatient_visit(
         )
         orders.append(order)
 
-        # Generate result (use baseline-ish values for stable outpatient)
-        baseline_values = {"CRP": 0.5, "WBC": 6500, "Creatinine": 0.9, "K": 4.2,
-                           "Na": 140, "Glucose": 100, "HbA1c": 6.5, "BNP": 50,
-                           "PT_INR": 1.1, "Hb": 13.0, "AST": 25, "ALT": 22,
-                           "BUN": 15, "Ca": 9.2, "eGFR": 75, "TSH": 2.5,
-                           "Troponin_I": 0.01, "CK_MB": 1.0}
+        # Comorbidity-aware true value: physiology if modeled, else baseline normal.
         canon = canonical_lab_name(test_name)
-        true_val = baseline_values.get(canon, 100.0)
+        true_val = _true_labs.get(canon, baseline_values.get(canon, 1.0))
         observed = generate_lab_result(canon, true_val, rng)
         flag = determine_flag(canon, observed, sex=patient.sex)
         result = OrderResult(
