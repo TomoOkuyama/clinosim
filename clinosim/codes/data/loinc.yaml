@@ -202,6 +202,9 @@ codes:
     en: Respiratory rate
     ja: 呼吸数
 
+  2703-7:
+    en: Oxygen [Partial pressure] in Arterial blood
+    ja: 動脈血酸素分圧 (pO2)
   # === Cardiac injury markers (AD-55) ===
   10839-9:
     en: Troponin I.cardiac [Mass/volume] in Serum or Plasma
