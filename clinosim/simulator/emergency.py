@@ -32,7 +32,9 @@ def _simulate_ed_visit(
     country: str = "US",
 ) -> CIFPatientRecord:
     """Simulate an ED visit using YAML protocol if available, else basic."""
-    from clinosim.modules.observation.engine import generate_lab_result, determine_flag
+    from clinosim.modules.observation.engine import (
+        canonical_lab_name, determine_flag, generate_lab_result,
+    )
 
     # Try to load detailed YAML protocol
     cond_name = condition.get("name", condition.get("condition_id", "ed_visit"))
@@ -91,7 +93,8 @@ def _simulate_ed_visit(
                          {"test": "Creatinine", "probability": 1.0}]
 
     baseline_values = {"WBC": 7500, "CRP": 1.0, "Creatinine": 0.9, "Na": 140,
-                       "K": 4.2, "Glucose": 100, "Troponin": 0.01, "BNP": 50}
+                       "K": 4.2, "Glucose": 100, "Troponin_I": 0.01, "CK_MB": 1.0,
+                       "BNP": 50}
     for i, lab_spec in enumerate(lab_specs):
         test = lab_spec.get("test", "")
         prob = lab_spec.get("probability", 1.0)
@@ -107,13 +110,14 @@ def _simulate_ed_visit(
             ordered_by=encounter.attending_physician_id,
             status=OrderStatus.PLACED,
         )
-        observed = generate_lab_result(test, baseline_values.get(test, 100), rng)
-        flag = determine_flag(test, observed, sex=patient.sex)
+        canon = canonical_lab_name(test)
+        observed = generate_lab_result(canon, baseline_values.get(canon, 100), rng)
+        flag = determine_flag(canon, observed, sex=patient.sex)
         order.result = OrderResult(
             result_datetime=visit_time + timedelta(minutes=int(rng.normal(50, 15))),
             performed_by=lab_tech_id,
-            lab_name=test, value=observed,
-            unit=get_lab_unit(test), flag=flag,
+            lab_name=canon, value=observed,
+            unit=get_lab_unit(canon), flag=flag,
         )
         order.status = OrderStatus.RESULTED
         orders.append(order)

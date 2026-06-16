@@ -202,6 +202,13 @@ codes:
     en: Respiratory rate
     ja: 呼吸数
 
+  # === Cardiac injury markers (AD-55) ===
+  10839-9:
+    en: Troponin I.cardiac [Mass/volume] in Serum or Plasma
+    ja: 心筋トロポニンI
+  13969-1:
+    en: Creatine kinase.MB [Mass/volume] in Serum or Plasma
+    ja: CK-MB
   # === Microbiology: culture tests (AD-55) ===  # TODO: verify LOINC codes
   600-7:
     en: Bacteria identified in Blood by Culture

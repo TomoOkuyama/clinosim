@@ -52,6 +52,7 @@ Primary use cases:
 - **JCCLS reference ranges 2022** for Japanese labs; Tietz/Mayo for US
 - **NEWS2-compatible vitals** including AVPU consciousness level and supplemental oxygen
 - **Microbiology cultures + antibiotic susceptibility** for bacterial infections (sepsis, pneumonia, UTI, cellulitis): organism identification (SNOMED) and S/I/R antibiograms — emitted as FHIR `DiagnosticReport` + `Specimen` + `Observation`. All codes data-driven (`observation/reference_data/microbiology.yaml`)
+- **Cardiac injury markers** (Troponin I, CK-MB): physiology-derived and clinically coherent — MI-level in ACS, mild type-2 elevation in other cardiac stress, negative in non-cardiac rule-outs (ED chest pain/syncope), with a CKD clearance confounder and sex-specific cutoffs. Lab order aliases (stat/serial variants) canonicalize across inpatient/ED/outpatient
 - **Ward + bed Location hierarchy** with PractitionerRole.location assignment
 - **Operating rooms** modeled as FHIR Locations; surgical procedures include category (SNOMED), performer.function (surgeon/anaesthetist), bodySite, outcome, and complications
 - **Occupational injuries**: 6 work-related conditions (crush injury, industrial burn, fall from height, electrical injury, eye foreign body, chemical exposure) with occupation-based risk multipliers

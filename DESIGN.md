@@ -1729,6 +1729,7 @@ observations.
 | AD-54 | 2026-06-15 | Country-pluggable resident identifier & insurance numbering module (`modules/identity/`) |
 | AD-55 | 2026-06-15 | EHR data enrichment split: near-essential data in Base (always-on, extends core), specialized/optional data in opt-in modules |
 | AD-56 | 2026-06-15 | Extensibility foundation (Phase 0): FHIR resource-builder registry, simulator enricher registry, CIF extensions slot for modules, config module-enablement map |
+| AD-57 | 2026-06-16 | Unify lab/vital generation across venues (inpatient/ED/outpatient) into one physiology-driven service (planned); replaces hardcoded ED/outpatient baselines |
 
 ---
 
