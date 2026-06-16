@@ -44,6 +44,9 @@ class DiseaseProtocol(BaseModel):
     readmission_eligible: bool = True  # False for surgical conditions like fractures
     procedure: dict[str, Any] = {}  # Surgical procedure details (approach, duration, etc.)
     medication_holds: list[dict[str, Any]] = []  # Home medications to hold during this admission
+    # Acute coronary syndrome → primary myocardial necrosis (drives high troponin/CK-MB,
+    # vs the mild type-2 elevation any cardiac dysfunction produces). AD-55.
+    causes_myocardial_injury: bool = False
 
 
 def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
