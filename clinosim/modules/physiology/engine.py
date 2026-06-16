@@ -256,6 +256,9 @@ def derive_lab_values(
     labs["pH"] = 7.40 + ph * 0.20
     labs["HCO3"] = 24 + ph * 12
     labs["pCO2"] = 40 - ph * 10  # respiratory compensation
+    # pO2: reduced by pulmonary involvement (inflammation as a lung-injury proxy until a
+    # dedicated respiratory/oxygenation state variable exists — AD-57 follow-up).
+    labs["pO2"] = clamp(95.0 - infl * 45.0, 45.0, 105.0)  # mm[Hg]
 
     # --- Glucose (with diurnal / postprandial variation) ---
     if has_diabetes:
