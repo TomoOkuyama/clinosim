@@ -33,8 +33,11 @@ def _simulate_ed_visit(
 ) -> CIFPatientRecord:
     """Simulate an ED visit using YAML protocol if available, else basic."""
     from clinosim.modules.observation.engine import (
-        canonical_lab_name, determine_flag, generate_lab_result,
+        canonical_lab_name,
+        determine_flag,
+        generate_lab_result,
     )
+    from clinosim.modules.physiology.engine import derive_lab_values, initialize_state
 
     # Try to load detailed YAML protocol
     cond_name = condition.get("name", condition.get("condition_id", "ed_visit"))
@@ -92,9 +95,17 @@ def _simulate_ed_visit(
                          {"test": "CRP", "probability": 1.0},
                          {"test": "Creatinine", "probability": 1.0}]
 
+    # Comorbidity-aware true values via the same physiology path as inpatient (AD-57):
+    # a baseline state built from the patient's chronic conditions (CKD → high Cr, etc.),
+    # then derive_lab_values. baseline_values covers analytes physiology doesn't model;
+    # the 1.0 final fallback replaces the old clinically dangerous default of 100.
     baseline_values = {"WBC": 7500, "CRP": 1.0, "Creatinine": 0.9, "Na": 140,
                        "K": 4.2, "Glucose": 100, "Troponin_I": 0.01, "CK_MB": 1.0,
-                       "BNP": 50}
+                       "BNP": 50, "HbA1c": 5.6, "TSH": 2.5, "Ca": 9.2}
+    _state = initialize_state(patient.physiological_profile, patient.chronic_conditions,
+                              patient.patient_id)
+    _has_dm = any("E11" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
+    _true_labs = derive_lab_values(_state, sex=patient.sex, age=patient.age, has_diabetes=_has_dm)
     for i, lab_spec in enumerate(lab_specs):
         test = lab_spec.get("test", "")
         prob = lab_spec.get("probability", 1.0)
@@ -111,7 +122,8 @@ def _simulate_ed_visit(
             status=OrderStatus.PLACED,
         )
         canon = canonical_lab_name(test)
-        observed = generate_lab_result(canon, baseline_values.get(canon, 100), rng)
+        true_val = _true_labs.get(canon, baseline_values.get(canon, 1.0))
+        observed = generate_lab_result(canon, true_val, rng)
         flag = determine_flag(canon, observed, sex=patient.sex)
         order.result = OrderResult(
             result_datetime=visit_time + timedelta(minutes=int(rng.normal(50, 15))),
