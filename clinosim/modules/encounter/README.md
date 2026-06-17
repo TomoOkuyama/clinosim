@@ -190,6 +190,24 @@ ed_stay_hours:
   severe:   {mean: 5.0, sd: 1.5}
 ```
 
+### Acute physiological impact (任意, AD-57)
+
+ED 提示の急性病態を physiology state に注入し、検査値・バイタルを併存疾患ベースラインでなく
+**急性疾患**から導出する (disease protocol の `initial_state_impact` と同型)。`emergency.py`
+が `initialize_state` 後に severity 別 delta を適用する。明確な生理学的シグネチャを持つ条件
+のみ付与し、無侵襲条件 (スクリーニング/抜糸等) は付けない。
+
+```yaml
+acid_base_type: respiratory   # 任意。既定 metabolic。過換気→呼吸性アルカローシス等
+initial_state_impact:
+  mild:     {inflammation_level: 0.12}                          # 感染→WBC/CRP/体温
+  moderate: {inflammation_level: 0.22}
+  severe:   {inflammation_level: 0.32, volume_status: -0.10}    # 脱水→BUN↑/BP↓
+```
+
+state 変数は physiology モジュール参照 (`inflammation_level`, `volume_status`,
+`ph_status`, `perfusion_status`, ...)。
+
 ### Workup (vitals/labs/imaging)
 
 ```yaml

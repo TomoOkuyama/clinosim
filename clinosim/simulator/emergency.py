@@ -38,6 +38,7 @@ def _simulate_ed_visit(
         generate_lab_result,
     )
     from clinosim.modules.physiology.engine import (
+        apply_disease_onset,
         derive_lab_values,
         derive_observed_vitals,
         initialize_state,
@@ -108,6 +109,16 @@ def _simulate_ed_visit(
                        "BNP": 50, "HbA1c": 5.6, "TSH": 2.5, "Ca": 9.2}
     _state = initialize_state(patient.physiological_profile, patient.chronic_conditions,
                               patient.patient_id)
+    # Acute-presentation injection (AD-57): fold the ED scenario's physiological impact (by
+    # the sampled severity) into the state so BOTH labs and vitals reflect the acute illness
+    # (e.g. UTI → WBC/CRP/temp up, gastroenteritis → dehydration), not just the comorbidity
+    # baseline. Data-driven from the encounter YAML's optional initial_state_impact, reusing
+    # the same physiology entry point as inpatient onset. No new RNG draws (determinism).
+    if protocol and protocol.get("initial_state_impact"):
+        _state = apply_disease_onset(
+            _state, severity, protocol["initial_state_impact"],
+            acid_base_type=protocol.get("acid_base_type", "metabolic"),
+        )
     _has_dm = any("E11" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
     _true_labs = derive_lab_values(_state, sex=patient.sex, age=patient.age, has_diabetes=_has_dm)
     for i, lab_spec in enumerate(lab_specs):

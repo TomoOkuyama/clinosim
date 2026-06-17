@@ -21,6 +21,13 @@ ed_stay_hours:
   moderate: {mean: 2.5, sd: 1}
   severe: {mean: 4, sd: 1.5}
 
+# Acute physiological signature (AD-57): a small superficial burn is local; larger/deeper
+# burns drive an inflammatory response and (severe) early fluid shift.
+initial_state_impact:
+  mild:     {}
+  moderate: {inflammation_level: 0.08}
+  severe:   {inflammation_level: 0.15, volume_status: -0.08}
+
 workup:
   vitals: true
   labs: []

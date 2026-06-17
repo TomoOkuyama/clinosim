@@ -97,6 +97,45 @@ class TestEDVisits:
             assert ed[0].encounters[0].chief_complaint != ""
 
 
+class TestEDAcuteInjection:
+    """ED encounter scenarios fold their acute physiological impact into labs/vitals (AD-57)."""
+
+    def _labs(self, condition_id, severity):
+        from clinosim.modules.encounter.protocol import load_encounter_condition
+        from clinosim.modules.physiology.engine import apply_disease_onset, derive_lab_values
+        from clinosim.types.clinical import PhysiologicalState
+
+        proto = load_encounter_condition(condition_id)
+        state = PhysiologicalState()
+        state = apply_disease_onset(
+            state, severity, proto.get("initial_state_impact", {}),
+            acid_base_type=proto.get("acid_base_type", "metabolic"))
+        return derive_lab_values(state, sex="M", age=45)
+
+    def test_uti_drives_inflammation(self):
+        """Infectious ED presentation raises WBC/CRP with severity."""
+        mild = self._labs("uti_uncomplicated", "mild")
+        severe = self._labs("uti_uncomplicated", "severe")
+        assert severe["WBC"] > mild["WBC"] > 7000
+        assert severe["CRP"] > mild["CRP"]
+
+    def test_gastroenteritis_drives_dehydration(self):
+        """Volume loss raises BUN (prerenal) at severe."""
+        severe = self._labs("viral_gastroenteritis", "severe")
+        assert severe["BUN"] > 15
+
+    def test_panic_attack_respiratory_alkalosis(self):
+        """Hyperventilation → low pCO2, high pH (no metabolic acidosis)."""
+        severe = self._labs("anxiety_panic_attack", "severe")
+        assert severe["pCO2"] < 38
+        assert severe["pH"] > 7.42
+
+    def test_empty_impact_is_noop(self):
+        """A local-only presentation (mild bite) leaves the baseline untouched."""
+        baseline = self._labs("animal_bite", "mild")
+        assert abs(baseline["WBC"] - 7000) < 800  # ~baseline, no systemic inflammation
+
+
 class TestOutpatient:
     def test_outpatient_visits_generated(self, small_population):
         opd = [r for r in small_population.patients

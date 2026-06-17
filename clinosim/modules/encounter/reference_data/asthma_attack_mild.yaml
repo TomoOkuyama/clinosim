@@ -21,6 +21,14 @@ ed_stay_hours:
   moderate: {mean: 3, sd: 1}
   severe: {mean: 5, sd: 1.5}
 
+# Acute physiological signature (AD-57): a mild attack drives tachypnea → respiratory
+# alkalosis (low pCO2, high pH). The respiratory axis routes the disturbance to pCO2.
+acid_base_type: respiratory
+initial_state_impact:
+  mild:     {ph_status: 0.04}
+  moderate: {ph_status: 0.08, inflammation_level: 0.03}
+  severe:   {ph_status: 0.12, inflammation_level: 0.05}
+
 workup:
   vitals: true
   labs: []
