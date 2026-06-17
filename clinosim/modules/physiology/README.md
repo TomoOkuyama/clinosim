@@ -182,6 +182,19 @@ vitals = derive_vital_signs(state, patient.baseline_vitals,
 
 Circadian: `0.3 * sin((hour-4) * π / 12)` (朝4時付近が最低体温)。
 
+### `derive_observed_vitals(state, baseline, timestamp, rng) -> dict[str, float]`
+
+`derive_vital_signs` に測定ノイズ (device/observer variation) を加えた **観測値**。
+inpatient / ED / outpatient が共有する単一バイタル生成パス (AD-57)。各 vital に
+`rng.normal(0, σ)` (temperature は σ=0.5、他は σ=2) を加算し、SpO2 を [60, 100] に再 clamp。
+
+```python
+from clinosim.modules.physiology.engine import derive_observed_vitals
+
+raw = derive_observed_vitals(state, patient.baseline_vitals, ts, rng)
+# raw = {"temperature": 38.6, "heart_rate": 110, ...}  # ノイズ込みの観測値
+```
+
 ## データ構造
 
 ### `PhysiologicalState` (clinosim.types.clinical)

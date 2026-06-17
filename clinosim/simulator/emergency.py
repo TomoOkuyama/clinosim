@@ -37,7 +37,11 @@ def _simulate_ed_visit(
         determine_flag,
         generate_lab_result,
     )
-    from clinosim.modules.physiology.engine import derive_lab_values, initialize_state
+    from clinosim.modules.physiology.engine import (
+        derive_lab_values,
+        derive_observed_vitals,
+        initialize_state,
+    )
 
     # Try to load detailed YAML protocol
     cond_name = condition.get("name", condition.get("condition_id", "ed_visit"))
@@ -171,18 +175,22 @@ def _simulate_ed_visit(
             status=OrderStatus.PLACED,
         ))
 
-    # Vitals
-    bv = patient.baseline_vitals
+    # Vitals — physiology-driven via the same derivation path as inpatient (AD-57):
+    # true values come from the comorbidity-adjusted state, then measurement noise.
     ed_nurse_id = assign_staff("medication_administration", "emergency_medicine", roster, rng).get("administering_nurse", "")
+    vit_time = visit_time + timedelta(minutes=5)
+    raw = derive_observed_vitals(_state, patient.baseline_vitals, vit_time, rng)
+    # ED presentations are acute → pain skews higher, scaled by inflammation.
+    pain = int(max(0, min(10, rng.normal(_state.inflammation_level * 4 + 2, 1.5))))
     vitals = [VitalSignRecord(
-        timestamp=visit_time + timedelta(minutes=5),
-        temperature_celsius=round(float(rng.normal(36.8, 0.5)), 1),
-        heart_rate=int(rng.normal(bv.heart_rate, 10)),
-        systolic_bp=int(rng.normal(bv.systolic_bp, 10)),
-        diastolic_bp=int(rng.normal(bv.diastolic_bp, 7)),
-        respiratory_rate=int(rng.normal(16, 2)),
-        spo2=round(float(min(99, rng.normal(97.5, 1))), 1),
-        pain_score=int(max(0, min(10, rng.normal(3, 2)))),
+        timestamp=vit_time,
+        temperature_celsius=round(raw["temperature"], 1),
+        heart_rate=int(round(raw["heart_rate"])),
+        systolic_bp=int(round(raw["systolic_bp"])),
+        diastolic_bp=int(round(raw["diastolic_bp"])),
+        respiratory_rate=int(round(raw["respiratory_rate"])),
+        spo2=round(raw["spo2"], 1),
+        pain_score=pain,
         measured_by=ed_nurse_id,
         data_source="manual",
     )]
