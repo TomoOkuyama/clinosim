@@ -1,7 +1,14 @@
+# CPT — Current Procedural Terminology (US procedure codes)
+#
+# AUTHORITATIVE SOURCE: American Medical Association (AMA), ama-assn.org/go/cpt.
+# CPT is proprietary (AMA license); codes/descriptors must follow the official AMA code
+# set. Do not fabricate a code (AD-57). NOTE: not yet machine-verified (no free public
+# CPT API; AMA license required for the master).
 metadata:
   name: CPT
   uri: http://www.ama-assn.org/go/cpt
   version: '2024'
+  source: "AMA Current Procedural Terminology (official code set)"
   description: Current Procedural Terminology (AMA)
 codes:
   '12001':
