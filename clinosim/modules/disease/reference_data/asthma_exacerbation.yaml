@@ -11,6 +11,7 @@ encounter_type: medical
 requires_surgery: false
 readmission_eligible: true
 minimum_severity: null
+acid_base_type: respiratory  # severe bronchospasm → CO2 retention (respiratory acidosis)
 diagnostic_difficulty: 0.25   # history + exam + peak flow; overlap with COPD, cardiac asthma
 prerequisite: "J45"  # requires pre-existing asthma in chronic conditions
 

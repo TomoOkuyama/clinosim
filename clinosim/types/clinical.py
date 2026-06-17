@@ -21,7 +21,12 @@ class PhysiologicalState:
     coagulation_status: float = 0.0  # 0.0–1.0
     volume_status: float = 0.0  # -1.0–+1.0
     perfusion_status: float = 1.0  # 0.0–1.0
-    ph_status: float = 0.0  # -1.0–+1.0
+    ph_status: float = 0.0  # -1.0–+1.0  (acid-base disturbance magnitude; neg = acidemia)
+    # Routes the ph_status disturbance between the metabolic (HCO3) and respiratory (pCO2)
+    # axes: 0.0 = purely metabolic (e.g. DKA, lactic acidosis, uremia), 1.0 = purely
+    # respiratory (e.g. COPD/asthma CO2 retention). Set from the disease scenario's
+    # acid_base_type or the patient's chronic respiratory conditions. AD-57.
+    respiratory_fraction: float = 0.0  # 0.0–1.0
 
 
 @dataclass
