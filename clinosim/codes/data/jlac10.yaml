@@ -1,99 +1,150 @@
+# JLAC10 — 日本臨床検査医学会 臨床検査項目分類コード（第10回改訂）分析物コード
+#
+# AUTHORITATIVE SOURCE (analyte codes 分析物コード verified against the official master):
+#   日本臨床検査医学会 検査項目コード委員会 (Japanese Society of Laboratory Medicine)
+#   "JLAC10コード表_臨床検査" version 137 (2026-06)
+#   https://www.jslm.org/committees/code/  ->  137jlac10_1.xlsx  (sheet「分析物コード」)
+# Lipid codes additionally cross-checked against the JP FHIR official CodeSystems:
+#   - 電子カルテ情報共有サービス JP-CLINS JLAC10 検体検査項目セット (core labo, 648 concepts)
+#     https://jpfhir.jp/fhir/clins/  (CodeSystem jp-clins-codesystem-JLAC10-corelabo-cs)
+#   - 健診結果報告 FHIR 実装ガイド 健診検査項目コードJLAC10ベース
+#     https://jpfhir.jp/fhir/eCheckup/igv1/CodeSystem-jp-observationLabResultCode-cs.html
+#
+# NOTE: codes here are the 5-character 分析物コード (analyte portion of the 17-digit JLAC10).
+# Do NOT add a code without verifying it against the master above (no fabrication — AD-57).
 metadata:
   name: JLAC10
   uri: urn:oid:1.2.392.200119.4.1005
-  version: '2024'
-  description: Japanese Laboratory Code (JLAC10)
+  version: '137'
+  source: "JSLM JLAC10 master v137 (2026-06); lipids cross-checked vs jpfhir.jp JP-CLINS"
+  description: Japanese Laboratory Code (JLAC10) — analyte codes (分析物コード)
 codes:
-  5C070:
-    en: C-reactive protein
-    ja: C反応性蛋白
+  # --- Hematology / coagulation (2x) ---
   2A010:
     en: White blood cell count
     ja: 白血球数
   2A020:
+    en: Red blood cell count
+    ja: 赤血球数
+  2A030:
     en: Hemoglobin
     ja: ヘモグロビン
-  2A030:
+  2A040:
     en: Hematocrit
     ja: ヘマトクリット
   2A050:
     en: Platelet count
     ja: 血小板数
-  3C015:
-    en: Creatinine
-    ja: クレアチニン
-  3C010:
-    en: Blood urea nitrogen
-    ja: 尿素窒素
-  3H015:
-    en: Sodium
-    ja: ナトリウム
-  3H020:
-    en: Potassium
-    ja: カリウム
-  3H025:
-    en: Chloride
-    ja: クロール
-  3H040:
-    en: Calcium
-    ja: カルシウム
-  3D010:
-    en: Glucose
-    ja: 血糖
-  3B035:
-    en: Aspartate aminotransferase
-    ja: AST(GOT)
-  3B045:
-    en: Alanine aminotransferase
-    ja: ALT(GPT)
-  3B070:
-    en: Alkaline phosphatase
-    ja: ALP
-  3B090:
-    en: Gamma-glutamyl transferase
-    ja: γ-GTP
-  3B050:
-    en: Total bilirubin
-    ja: 総ビリルビン
-  3A015:
-    en: Albumin
-    ja: アルブミン
+  2B030:
+    en: Prothrombin time
+    ja: プロトロンビン時間
+  2Z010:
+    en: Erythrocyte sedimentation rate
+    ja: 血沈
+  # --- Proteins / enzymes (3A / 3B) ---
   3A010:
     en: Total protein
     ja: 総蛋白
-  3B005:
-    en: Lactate dehydrogenase
-    ja: LDH
+  3A015:
+    en: Albumin
+    ja: アルブミン
   3B010:
     en: Creatine kinase
-    ja: CK(CPK)
-  5C170:
-    en: Procalcitonin
-    ja: プロカルシトニン
-  4Z190:
-    en: B-type natriuretic peptide
-    ja: BNP
-  3F020:
-    en: Lactate
-    ja: 乳酸
-  2B030:
-    en: PT-INR
-    ja: PT-INR
-  8A065:
-    en: Estimated GFR
-    ja: 推算糸球体濾過量
+    ja: クレアチンキナーゼ
+  3B015:
+    en: Creatine kinase-MB
+    ja: CK-MB
+  3B035:
+    en: Aspartate aminotransferase
+    ja: AST
+  3B045:
+    en: Alanine aminotransferase
+    ja: ALT
+  3B050:
+    en: Lactate dehydrogenase
+    ja: LD
+  3B070:
+    en: Alkaline phosphatase
+    ja: アルカリフォスファターゼ
+  3B090:
+    en: Gamma-glutamyl transferase
+    ja: γ-GT
+  # --- Carbohydrates (3D) ---
+  3D010:
+    en: Glucose
+    ja: グルコース
   3D045:
     en: Hemoglobin A1c
-    ja: HbA1c
-  6A010:
-    en: pH
-    ja: pH
-  6A020:
-    en: pCO2
-    ja: pCO2
-  6A030:
+    ja: グリコヘモグロビンA1c
+  # --- Organic acids (3E) ---
+  3E010:
+    en: Lactate
+    ja: 乳酸
+  # --- Lipids (3F) ---
+  3F015:
+    en: Triglyceride
+    ja: トリグリセリド
+  3F050:
+    en: Cholesterol, total
+    ja: コレステロール
+  3F070:
+    en: HDL-cholesterol
+    ja: HDL-コレステロール
+  3F077:
+    en: LDL-cholesterol
+    ja: LDL-コレステロール
+  # --- Renal / electrolytes / blood gas (3C / 3G / 3H / 3J) ---
+  3C015:
+    en: Creatinine
+    ja: クレアチニン
+  3C025:
+    en: Urea nitrogen
+    ja: 尿素窒素
+  3G125:
     en: Bicarbonate
-    ja: HCO3
-  6A040:
+    ja: 重炭酸塩
+  3H010:
+    en: Sodium
+    ja: ナトリウム
+  3H015:
+    en: Potassium
+    ja: カリウム
+  3H020:
+    en: Chloride
+    ja: クロール
+  3H030:
+    en: Calcium
+    ja: カルシウム
+  3H050:
+    en: pH, arterial blood
+    ja: 動脈血pH
+  3H055:
+    en: pCO2, arterial blood
+    ja: 動脈血CO2分圧
+  3H060:
     en: pO2
-    ja: pO2
+    ja: O2分圧
+  3J010:
+    en: Bilirubins, total
+    ja: 総ビリルビン
+  # --- Renal function (8A) ---
+  8A065:
+    en: Estimated GFR based on creatinine
+    ja: 推算GFRcreat
+  # --- Endocrine (4x) ---
+  4A055:
+    en: Thyroid-stimulating hormone
+    ja: TSH
+  4Z271:
+    en: Brain natriuretic polypeptide
+    ja: ヒト脳性Na利尿ペプチド
+  # --- Immunoserology / cardiac & inflammatory markers (5C) ---
+  5C070:
+    en: C-reactive protein
+    ja: CRP
+  5C094:
+    en: Troponin I
+    ja: トロポニンI
+  5C215:
+    en: Procalcitonin
+    ja: プロカルシトニン
