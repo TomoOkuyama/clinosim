@@ -21,6 +21,14 @@ ed_stay_hours:
   moderate: {mean: 3, sd: 1}
   severe: {mean: 5, sd: 1.5}
 
+# Acute physiological signature (AD-57): hyperventilation → respiratory alkalosis
+# (low pCO2, high pH) — the classic panic-attack blood gas. No inflammation.
+acid_base_type: respiratory
+initial_state_impact:
+  mild:     {ph_status: 0.08}
+  moderate: {ph_status: 0.15}
+  severe:   {ph_status: 0.22}
+
 workup:
   vitals: true
   labs:

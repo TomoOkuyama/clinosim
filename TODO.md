@@ -322,8 +322,16 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
   count → determinism preserved; integration/e2e green.
 - [ ] Extract a single `generate_observations(...)` wrapper so the 3 venues share one
   call (currently they share the physiology functions but duplicate the boilerplate).
-- [ ] Encounter scenarios: add optional `initial_state_impact` so ED-only presentations
-  (e.g. appendicitis WBC↑) carry acute abnormalities, not just comorbidity baseline.
+- [x] **Encounter scenarios carry acute physiology.** ED encounter YAMLs gained an optional
+  `initial_state_impact` (per severity, same schema as disease protocols) + `acid_base_type`;
+  `emergency.py` applies it via `apply_disease_onset` after `initialize_state`, so BOTH labs
+  and vitals reflect the acute illness, not just comorbidity baseline. Populated for the
+  conditions with a clear physiological signature: infections (UTI/viral URI → WBC/CRP/temp),
+  dehydration (gastroenteritis/food poisoning → volume↓ → BUN↑, BP↓/HR↑), hyperventilation
+  (asthma/panic → respiratory alkalosis), local→systemic (animal bite/minor burn).
+  Trivial presentations (screening, suture removal) carry no impact (no-op). Audit (pop 30k):
+  UTI WBC median 10,177 (vs ~7,500 baseline), gastroenteritis dehydration, panic pCO2 < 38.
+  Data-driven (user principle: lab changes from scenario/profile). 4 unit tests.
 - [x] **ABG panel expansion + pO2 done.** `observation/reference_data/lab_panels.yaml`
   (data-driven) maps `ABG` → pH/pCO2/pO2/HCO3; panel orders are expanded into component
   lab orders (parent marked resulted) so each resolves via the scalar path. physiology

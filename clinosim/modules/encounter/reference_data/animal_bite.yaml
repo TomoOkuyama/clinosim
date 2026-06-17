@@ -21,6 +21,13 @@ ed_stay_hours:
   moderate: {mean: 2.5, sd: 1}
   severe: {mean: 4, sd: 1.5}
 
+# Acute physiological signature (AD-57): a fresh bite is a local wound (no systemic
+# response); deeper/infected presentations add modest inflammation.
+initial_state_impact:
+  mild:     {}
+  moderate: {inflammation_level: 0.08}
+  severe:   {inflammation_level: 0.18}
+
 workup:
   vitals: true
   labs:
