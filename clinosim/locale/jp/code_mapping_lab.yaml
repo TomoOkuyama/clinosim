@@ -1,34 +1,64 @@
-# Internal lab name → JLAC10 code mapping
-# Source: JLAC10 master (日本臨床検査標準協議会)
+# Internal lab name → JLAC10 analyte code (分析物コード) mapping
+#
+# AUTHORITATIVE SOURCE — all codes verified against the official JLAC10 master:
+#   日本臨床検査医学会 (JSLM) 検査項目コード委員会
+#   "JLAC10コード表_臨床検査" v137 (2026-06): https://www.jslm.org/committees/code/
+#   (137jlac10_1.xlsx, sheet「分析物コード」)
+# Lipids cross-checked vs jpfhir.jp JP-CLINS / eCheckup FHIR CodeSystems.
+# Display text lives in clinosim/codes/data/jlac10.yaml. Never fabricate a code (AD-57).
 
-CRP: "5C070"
+# Hematology / coagulation
 WBC: "2A010"
-Hb: "2A020"
-Hct: "2A030"
+RBC: "2A020"
+Hb: "2A030"
+Hct: "2A040"
 Plt: "2A050"
-Creatinine: "3C015"
-BUN: "3C010"
-Na: "3H015"
-K: "3H020"
-Cl: "3H025"
-Ca: "3H040"
-Glucose: "3D010"
+PT_INR: "2B030"
+ESR: "2Z010"
+
+# Proteins / enzymes
+TP: "3A010"
+Albumin: "3A015"
+CK: "3B010"
+CK_MB: "3B015"
 AST: "3B035"
 ALT: "3B045"
+LDH: "3B050"
 ALP: "3B070"
 GGT: "3B090"
-T_Bil: "3B050"
-Albumin: "3A015"
-TP: "3A010"
-LDH: "3B005"
-CK: "3B010"
-PCT: "5C170"
-BNP: "4Z190"
-Lactate: "3F020"
-PT_INR: "2B030"
-eGFR: "8A065"
+
+# Carbohydrates
+Glucose: "3D010"
 HbA1c: "3D045"
-pH: "6A010"
-pCO2: "6A020"
-pO2: "6A040"   # TODO: verify JLAC10 code
-HCO3: "6A030"
+
+# Organic acids
+Lactate: "3E010"
+
+# Lipids
+TG: "3F015"
+TC: "3F050"
+HDL: "3F070"
+LDL: "3F077"
+
+# Renal / electrolytes / blood gas
+Creatinine: "3C015"
+BUN: "3C025"
+HCO3: "3G125"
+Na: "3H010"
+K: "3H015"
+Cl: "3H020"
+Ca: "3H030"
+pH: "3H050"
+pCO2: "3H055"
+pO2: "3H060"
+T_Bil: "3J010"
+eGFR: "8A065"
+
+# Endocrine
+TSH: "4A055"
+BNP: "4Z271"
+
+# Immunoserology / cardiac & inflammatory markers
+CRP: "5C070"
+Troponin_I: "5C094"
+PCT: "5C215"
