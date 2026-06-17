@@ -47,6 +47,11 @@ class DiseaseProtocol(BaseModel):
     # Acute coronary syndrome → primary myocardial necrosis (drives high troponin/CK-MB,
     # vs the mild type-2 elevation any cardiac dysfunction produces). AD-55.
     causes_myocardial_injury: bool = False
+    # Primary acid-base disturbance mechanism — routes the scenario's ph_status between the
+    # metabolic (HCO3) and respiratory (pCO2) axes so blood gas + compensation are coherent
+    # (e.g. DKA = metabolic → Kussmaul low pCO2; COPD = respiratory → compensatory high
+    # HCO3). "metabolic" | "respiratory" | "mixed". AD-57.
+    acid_base_type: str = "metabolic"
 
 
 def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
