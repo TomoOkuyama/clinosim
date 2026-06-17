@@ -350,8 +350,14 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 - [x] FHIR code-mapping cleanup (from CIF/FHIR eval): US LOINC for lipids/TSH/ESR
   (+ loinc displays), outpatient lipid/ESR baselines (was 1.0 garbage), ECG/non-analyte
   guard in ED/outpatient (was fabricated empty-code lab). US empty-code labs 328→0.
-- [ ] **JP JLAC10 codes** for Troponin_I / CK_MB / LDL / HDL / TG / TC / TSH / ESR
-  (US LOINC done; JP still emits empty/raw codes — verify against JCCLS, don't invent).
+- [x] **JP JLAC10 codes verified & corrected.** Added Troponin_I (5C094), CK_MB (3B015),
+  LDL (3F077), HDL (3F070), TG (3F015), TC (3F050), TSH (4A055), ESR (2Z010) — all verified
+  against the official **JSLM JLAC10 master v137 (2026-06)** (`jslm.org/committees/code/`),
+  lipids cross-checked vs jpfhir.jp JP-CLINS/eCheckup. **Audit also exposed ~13 pre-existing
+  fabricated/mismapped codes** in `jlac10.yaml` (Hb/Hct/BUN/Na/K/Cl/Ca/T_Bil/LDH/PCT/BNP/
+  Lactate were off, blood gas pH/pCO2/pO2/HCO3 pointed at the 6A0xx **microbiology** range) —
+  all corrected to the master codes. Source cited in both files; integrity guard test added
+  (`test_codes_jlac10.py`, 28 cases). JP FHIR audit: 31 correct JLAC10 codes + 和名 emitted.
 - [ ] **ECG as a proper diagnostic** (currently skipped from labs; model as Procedure/
   diagnostic order so the "ECG was done" fact is recorded).
 - [x] **Acid-base model** (eval finding): pH/HCO3/pCO2 derived from a single `ph_status`
@@ -380,7 +386,8 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 
 - [x] **Microbiology & susceptibility** — `observation/microbiology.py` + `types/microbiology.py` + `observation/reference_data/microbiology.yaml` (all codes data-driven). Emits FHIR `DiagnosticReport` + `Specimen` + `Observation` via the AD-56 builder registry; CSV `microbiology.csv`. Sepsis/pneumonia/UTI/cellulitis/aspiration cohort. Encounter-scoped sub-seed (main stream unperturbed). 10 unit tests. `# TODO: verify` SNOMED/LOINC codes + antibiogram rates vs authoritative sources.
 - [~] **Blood-based markers**: cardiac troponin + CK-MB **done** — `physiology` derives Troponin_I/CK_MB (ACS flag `causes_myocardial_injury` on the disease scenario → MI-level; other cardiac dysfunction → mild type-2; CKD confounder via renal; sex-specific cutoff). Lab order-name aliases (`observation/reference_data/lab_aliases.yaml`) canonicalize stat/serial/variant orders across inpatient/ED/outpatient; FHIR uses canonical name → LOINC resolves. Lactate already worked. **ABG panel (pH/pCO2/pO2/HCO3 from one "ABG" order) + pO2 deferred** — needs panel-expansion (one order → multiple results), tracked under AD-57.
-  - [ ] JP JLAC10 codes for Troponin_I / CK_MB (US LOINC done); serial-troponin intra-day trend
+  - [x] JP JLAC10 codes for Troponin_I (5C094) / CK_MB (3B015) verified vs JSLM master v137.
+    Serial-troponin intra-day trend still open.
 - [ ] **`DiagnosticReport` grouping** — `output` adapter (+ `types/output`): group lab Observations into panels (CBC/BMP/LFT). Structural fidelity, no new clinical data.
 - [ ] **Nursing flowsheets** — `observation` / `simulator.inpatient` (+ `types`): I/O & fluid balance (from `volume_status`), NEWS2 (already computable), pain (0-10), GCS, Braden, fall risk → `Observation`.
 - [ ] **Immunization history** — `population`/patient-profile attribute (+ `types/patient`); emit `Immunization`. Locale schedules (JP routine + influenza/pneumococcal; US ACIP).
