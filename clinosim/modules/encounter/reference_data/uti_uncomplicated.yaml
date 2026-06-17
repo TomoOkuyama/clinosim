@@ -21,6 +21,13 @@ ed_stay_hours:
   moderate: {mean: 3, sd: 1}
   severe: {mean: 4.5, sd: 1.5}
 
+# Acute physiological signature (AD-57): drives true labs/vitals via the physiology engine.
+# UTI → systemic inflammation (WBC/CRP/temp); early pyelonephritis adds mild dehydration.
+initial_state_impact:
+  mild:     {inflammation_level: 0.12}
+  moderate: {inflammation_level: 0.22}
+  severe:   {inflammation_level: 0.32, volume_status: -0.05}
+
 workup:
   vitals: true
   labs:

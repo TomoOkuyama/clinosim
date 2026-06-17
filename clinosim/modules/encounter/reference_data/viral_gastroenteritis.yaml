@@ -21,6 +21,13 @@ ed_stay_hours:
   moderate: {mean: 4, sd: 1}
   severe: {mean: 6, sd: 1.5}
 
+# Acute physiological signature (AD-57): dehydration (volume↓ → BUN↑, BP↓/HR↑) with mild
+# viral inflammation; severe volume loss tips into mild metabolic acidosis.
+initial_state_impact:
+  mild:     {inflammation_level: 0.05, volume_status: -0.10}
+  moderate: {inflammation_level: 0.08, volume_status: -0.22}
+  severe:   {inflammation_level: 0.10, volume_status: -0.38, ph_status: -0.05}
+
 # What gets done in the ED
 workup:
   vitals: true  # always
