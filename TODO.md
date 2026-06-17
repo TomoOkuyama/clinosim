@@ -346,10 +346,16 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
   (US LOINC done; JP still emits empty/raw codes — verify against JCCLS, don't invent).
 - [ ] **ECG as a proper diagnostic** (currently skipped from labs; model as Procedure/
   diagnostic order so the "ECG was done" fact is recorded).
-- [ ] **Acid-base model** (eval finding): pH/HCO3/pCO2 derive from a single `ph_status`
-  axis → can't distinguish metabolic vs respiratory acidosis or show correct compensation
-  (DKA shows normal/high pCO2 instead of Kussmaul low; COPD HCO3 doesn't compensate up).
-  Split metabolic (HCO3) and respiratory (pCO2) axes with compensation.
+- [x] **Acid-base model** (eval finding): pH/HCO3/pCO2 derived from a single `ph_status`
+  axis couldn't distinguish metabolic vs respiratory acidosis or show correct compensation.
+  **Fixed** with a two-axis model: `ph_status` (disturbance magnitude) + new
+  `PhysiologicalState.respiratory_fraction` (0 = metabolic → HCO3, 1 = respiratory → pCO2).
+  Blood gas now follows Henderson-Hasselbalch with partial compensation (Winter's for
+  metabolic acidosis → Kussmaul low pCO2; ~0.35 mEq/mmHg renal compensation for respiratory
+  acidosis → raised HCO3). Axis is **scenario/profile-driven** (same pattern as
+  `causes_myocardial_injury`): disease `acid_base_type` field (`metabolic` default,
+  `respiratory` for COPD/asthma) + chronic J44/J45 in `initialize_state`. Audited (pop 30k):
+  DKA pCO2 34.8 (Kussmaul ✓), COPD HCO3 26.7 / pCO2 47.5 (compensation ✓). 6 unit tests.
 - [ ] ED non-cardiac troponin now reflects cardiac comorbidity (median ~0.095, can exceed
   the 0.04 cutoff) — decide comorbidity-baseline vs rule-out-negative semantics.
 

@@ -133,14 +133,16 @@ def _simulate_patient(
         state.inflammation_level = max(state.inflammation_level, 0.05)
         state.renal_function = min(state.renal_function, 0.9)
 
-    state = apply_disease_onset(state, severity, protocol.initial_state_impact)
+    state = apply_disease_onset(state, severity, protocol.initial_state_impact,
+                                acid_base_type=protocol.acid_base_type)
 
     # Mixed condition: superimpose secondary disease's state impact
     secondary_disease_id = None
     if secondary_protocol:
         secondary_disease_id = secondary_protocol.disease_id
         # Secondary disease typically presents at moderate severity
-        state = apply_disease_onset(state, "moderate", secondary_protocol.initial_state_impact)
+        state = apply_disease_onset(state, "moderate", secondary_protocol.initial_state_impact,
+                                    acid_base_type=secondary_protocol.acid_base_type)
 
     # Create encounter — realistic admission time pattern
     if protocol.encounter_type == "surgical":
