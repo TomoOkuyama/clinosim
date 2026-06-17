@@ -54,6 +54,7 @@ def initialize_state(
             state.coagulation_status += s * 0.2
         elif code.startswith("J44"):  # COPD
             state.ph_status -= s * 0.05
+            state.respiratory_fraction = 1.0  # chronic CO2 retention → respiratory axis
         elif code.startswith("I25"):  # Ischemic heart disease
             state.cardiac_function *= 1.0 - s * 0.2
         elif code.startswith("I48"):  # Atrial fibrillation
@@ -63,6 +64,7 @@ def initialize_state(
             pass
         elif code.startswith("J45"):  # Asthma
             state.ph_status -= s * 0.02  # mild respiratory effect
+            state.respiratory_fraction = 1.0  # bronchospasm → respiratory axis
 
     # Perfusion tracks cardiac
     state.perfusion_status = clamp(state.cardiac_function * 0.8 + 0.2, 0.0, 1.0)
@@ -75,18 +77,29 @@ def initialize_state(
     return state
 
 
+_ACID_BASE_RESPIRATORY_FRACTION = {"metabolic": 0.0, "mixed": 0.5, "respiratory": 1.0}
+
+
 def apply_disease_onset(
     state: PhysiologicalState,
     severity: str,
     initial_impact: dict[str, dict[str, float]],
+    acid_base_type: str = "metabolic",
 ) -> PhysiologicalState:
-    """Apply the initial impact of a disease on physiological state."""
+    """Apply the initial impact of a disease on physiological state.
+
+    `acid_base_type` (from the disease scenario) routes the scenario's ph_status onto the
+    metabolic vs respiratory axis so blood gas / compensation are coherent. The acute
+    disturbance dominates the encounter, so it overrides any chronic-condition default.
+    """
     impact = initial_impact.get(severity, {})
     for var, delta in impact.items():
         current = getattr(state, var, None)
         if current is not None:
             lo, hi = _variable_range(var)
             setattr(state, var, clamp(current + delta, lo, hi))
+    if acid_base_type in _ACID_BASE_RESPIRATORY_FRACTION:
+        state.respiratory_fraction = _ACID_BASE_RESPIRATORY_FRACTION[acid_base_type]
     apply_coupling_rules(state)
     return state
 
@@ -252,10 +265,28 @@ def derive_lab_values(
     # --- Perfusion ---
     labs["Lactate"] = 1.0 + (1 - perfusion) * 12
 
-    # --- pH / Blood gas ---
-    labs["pH"] = 7.40 + ph * 0.20
-    labs["HCO3"] = 24 + ph * 12
-    labs["pCO2"] = 40 - ph * 10  # respiratory compensation
+    # --- pH / Blood gas (two-axis: metabolic HCO3 + respiratory pCO2, AD-57) ---
+    # `ph` is the acid-base disturbance magnitude (neg = acidemia); respiratory_fraction
+    # routes it between the metabolic (bicarbonate) and respiratory (CO2) axes. pH then
+    # follows Henderson-Hasselbalch on the resulting HCO3/pCO2, with partial compensation
+    # by the opposing system — so DKA shows Kussmaul (low pCO2) and chronic COPD shows a
+    # raised, compensating HCO3 rather than both moving the same way off one axis.
+    rf = clamp(state.respiratory_fraction, 0.0, 1.0)
+    mf = 1.0 - rf
+    hco3 = 24.0 + ph * mf * 24.0   # metabolic load drives bicarbonate
+    pco2 = 40.0 - ph * rf * 40.0   # respiratory load drives CO2 (acidosis → retention)
+    if mf > 0.0 and ph != 0.0:
+        # Respiratory compensation for a metabolic disturbance (Winter's formula, ~80%).
+        winters_pco2 = 1.5 * hco3 + 8.0
+        pco2 += 0.8 * (winters_pco2 - 40.0)
+    if rf > 0.0 and ph != 0.0:
+        # Renal (metabolic) compensation for a respiratory disturbance (~0.35 mEq/mmHg).
+        hco3 += 0.35 * (pco2 - 40.0)
+    pco2 = clamp(pco2, 15.0, 90.0)
+    hco3 = clamp(hco3, 5.0, 45.0)
+    labs["HCO3"] = hco3
+    labs["pCO2"] = pco2
+    labs["pH"] = clamp(6.1 + math.log10(hco3 / (0.03 * pco2)), 6.80, 7.70)
     # pO2: reduced by pulmonary involvement (inflammation as a lung-injury proxy until a
     # dedicated respiratory/oxygenation state variable exists — AD-57 follow-up).
     labs["pO2"] = clamp(95.0 - infl * 45.0, 45.0, 105.0)  # mm[Hg]
@@ -380,5 +411,6 @@ def _variable_range(var: str) -> tuple[float, float]:
         "volume_status": (-1.0, 1.0),
         "perfusion_status": (0.0, 1.0),
         "ph_status": (-1.0, 1.0),
+        "respiratory_fraction": (0.0, 1.0),
     }
     return ranges.get(var, (0.0, 1.0))

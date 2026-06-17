@@ -41,7 +41,8 @@ Hidden state (9 variables) ── derive ──→ Lab values (CRP, Cr, BNP, …
 | `coagulation_status` | 0–1 | 凝固障害 (DIC) | PT-INR, Plt |
 | `volume_status` | -1 〜 +1 | 脱水 ↔ overload | BP, RR, Na, BUN/Cr比 |
 | `perfusion_status` | 0–1 | 組織灌流 | Lactate, BP, 腎血流 |
-| `ph_status` | -1 〜 +1 | 酸塩基平衡 (- = アシドーシス) | pH, HCO3, pCO2, K |
+| `ph_status` | -1 〜 +1 | 酸塩基障害の大きさ (- = アシデミア) | pH, HCO3, pCO2, K |
+| `respiratory_fraction` | 0 〜 1 | 障害軸 (0=代謝性→HCO3 / 1=呼吸性→pCO2) | pH, HCO3, pCO2 |
 
 ## Coupling 依存グラフ
 
@@ -79,10 +80,10 @@ state = initialize_state(
 | `N18` | CKD | `renal_function *= 1 - s*0.5`; s>0.5 で anemia_level +0.15, ph -s*0.1 |
 | `I50` | 心不全 | `cardiac_function *= 1 - s*0.4`; s>0.3 で volume +s*0.3 |
 | `K74` | 肝硬変 | `hepatic_function *= 1 - s*0.5`; coagulation +s*0.2 |
-| `J44` | COPD | `ph_status -= s*0.05` |
+| `J44` | COPD | `ph_status -= s*0.05`; `respiratory_fraction = 1.0` (呼吸性軸) |
 | `I25` | 虚血性心疾患 | `cardiac_function *= 1 - s*0.2` |
 | `I48` | 心房細動 | `cardiac_function *= 1 - s*0.1` |
-| `J45` | 喘息 | `ph_status -= s*0.02` |
+| `J45` | 喘息 | `ph_status -= s*0.02`; `respiratory_fraction = 1.0` (呼吸性軸) |
 
 `s` = `condition.severity_score` (0-1)。
 
@@ -153,10 +154,19 @@ T_Bil      = 0.8 + (1-hepatic)*15
 PT_INR     = 1.0 + (1-hepatic)*2.0 + coagulation*1.5
 Hb         = base_hb * (1 - anemia*0.7)
 Lactate    = 1.0 + (1-perfusion)*12
-pH         = 7.40 + ph_status*0.20
-HCO3       = 24 + ph_status*12
 Glucose    = base + infl*50                         # stress hyperglycemia
+
+# 酸塩基 (二軸: 代謝性 HCO3 / 呼吸性 pCO2 + 代償, AD-57)
+mf, rf     = 1-respiratory_fraction, respiratory_fraction
+HCO3       = 24 + ph_status*mf*24                   # 代謝性 → 重炭酸
+pCO2       = 40 - ph_status*rf*40                   # 呼吸性 → CO2 (アシドーシス=貯留)
+# 代償: 代謝性アシドーシス → 呼吸代償 (Winter's, pCO2↓=Kussmaul);
+#       呼吸性アシドーシス → 腎代償 (0.35 mEq/mmHg, HCO3↑)
+pH         = 6.1 + log10(HCO3 / (0.03*pCO2))        # Henderson-Hasselbalch
 ```
+
+`respiratory_fraction` は疾患シナリオの `acid_base_type`(既定 `metabolic`、COPD/喘息は
+`respiratory`) または慢性 J44/J45 から設定される(エンジンにハードコードせずデータ駆動)。
 
 ### `derive_vital_signs(state, baseline, timestamp) -> dict[str, float]`
 

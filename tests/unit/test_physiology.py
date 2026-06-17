@@ -1,16 +1,13 @@
 """Unit tests for physiology engine."""
 
-import math
 from datetime import datetime, timedelta
 
-import pytest
-
 import numpy as np
+import pytest
 
 from clinosim.modules.physiology.engine import (
     apply_coupling_rules,
     apply_disease_onset,
-    clamp,
     derive_lab_values,
     derive_observed_vitals,
     derive_vital_signs,
@@ -192,6 +189,58 @@ class TestDeriveLabValues:
         labs = derive_lab_values(state, sex="F", age=85)
         for name, value in labs.items():
             assert value >= 0, f"{name} is negative: {value}"
+
+
+# --- Acid-base (two-axis metabolic / respiratory, AD-57) ---
+
+@pytest.mark.unit
+class TestAcidBase:
+    def test_normal_blood_gas(self):
+        labs = derive_lab_values(PhysiologicalState(), sex="M", age=50)
+        assert 7.38 <= labs["pH"] <= 7.42
+        assert 22 <= labs["HCO3"] <= 26
+        assert 38 <= labs["pCO2"] <= 42
+
+    def test_metabolic_acidosis_has_respiratory_compensation(self):
+        """DKA-style metabolic acidosis: low HCO3 AND low pCO2 (Kussmaul)."""
+        state = PhysiologicalState(ph_status=-0.5, respiratory_fraction=0.0)
+        labs = derive_lab_values(state, sex="M", age=50)
+        assert labs["pH"] < 7.35
+        assert labs["HCO3"] < 18          # primary metabolic drop
+        assert labs["pCO2"] < 36          # respiratory compensation (NOT a rise)
+
+    def test_respiratory_acidosis_has_metabolic_compensation(self):
+        """COPD-style respiratory acidosis: high pCO2 AND compensating high HCO3."""
+        state = PhysiologicalState(ph_status=-0.25, respiratory_fraction=1.0)
+        labs = derive_lab_values(state, sex="M", age=50)
+        assert labs["pCO2"] > 45          # CO2 retention
+        assert labs["HCO3"] > 25          # renal compensation (NOT a drop)
+        assert labs["pH"] > 7.30          # chronic compensation keeps pH near-normal
+
+    def test_axis_distinguishes_same_magnitude(self):
+        """Same ph_status magnitude routes differently by respiratory_fraction."""
+        met = derive_lab_values(
+            PhysiologicalState(ph_status=-0.3, respiratory_fraction=0.0), sex="M", age=50)
+        resp = derive_lab_values(
+            PhysiologicalState(ph_status=-0.3, respiratory_fraction=1.0), sex="M", age=50)
+        assert met["HCO3"] < resp["HCO3"]   # metabolic drops bicarb, respiratory raises it
+        assert met["pCO2"] < resp["pCO2"]   # metabolic lowers CO2, respiratory raises it
+
+    def test_copd_chronic_sets_respiratory_axis(self):
+        """A chronic COPD patient initializes onto the respiratory axis."""
+        profile = PatientPhysiologicalProfile(
+            renal_reserve=0.9, cardiac_reserve=0.9, hepatic_reserve=0.9)
+        copd = ChronicCondition(code="J44.9", severity="moderate", severity_score=0.5)
+        state = initialize_state(profile, [copd])
+        assert state.respiratory_fraction == 1.0
+
+    def test_disease_onset_sets_axis_from_type(self):
+        state = PhysiologicalState()
+        apply_disease_onset(state, "severe", {"severe": {"ph_status": -0.3}},
+                            acid_base_type="respiratory")
+        assert state.respiratory_fraction == 1.0
+        labs = derive_lab_values(state, sex="M", age=50)
+        assert labs["pCO2"] > 45 and labs["HCO3"] > 25
 
 
 # --- Vital signs derivation ---

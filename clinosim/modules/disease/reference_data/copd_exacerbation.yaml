@@ -10,6 +10,7 @@ department: pulmonology
 encounter_type: medical
 requires_surgery: false
 readmission_eligible: true   # COPD has very high readmission rates (~20%)
+acid_base_type: respiratory  # CO2 retention → respiratory acidosis (HCO3 compensates up)
 minimum_severity: null
 
 icd_codes:

@@ -316,6 +316,20 @@ initial_state_impact:
 
 利用可能な state 変数: `inflammation_level`, `renal_function`, `cardiac_function`, `hepatic_function`, `anemia_level`, `coagulation_status`, `volume_status`, `perfusion_status`, `ph_status`。
 
+### `acid_base_type` (任意, 既定 `metabolic`)
+
+`ph_status` で表す酸塩基障害を代謝性/呼吸性のどちらの軸に載せるか。physiology が血ガス
+(pH/HCO3/pCO2) と代償を導出する際に使う。検査値変化を疾患シナリオから駆動する例
+(cf. `causes_myocardial_injury`)。
+
+```yaml
+acid_base_type: respiratory   # metabolic(既定) | respiratory | mixed
+```
+
+- `metabolic` (DKA/敗血症/AKI 等): HCO3↓ が主、呼吸代償で pCO2↓ (Kussmaul)。
+- `respiratory` (COPD/喘息): pCO2↑ が主、腎代償で HCO3↑。
+- `mixed`: 両軸に半分ずつ。
+
 ### `course_archetypes`
 
 日次経過アーキタイプ。 確率つきの複数シナリオを持ち、simulator はそのうち 1 つをサンプリングして患者に適用する。

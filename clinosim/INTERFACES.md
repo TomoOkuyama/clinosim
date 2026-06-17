@@ -529,7 +529,8 @@ class PhysiologicalState:
     coagulation_status: float              # 0.0–1.0
     volume_status: float                   # -1.0–+1.0
     perfusion_status: float                # 0.0–1.0
-    ph_status: float                       # -1.0–+1.0
+    ph_status: float                       # -1.0–+1.0  (acid-base disturbance magnitude)
+    respiratory_fraction: float            # 0.0–1.0    (0=metabolic/HCO3, 1=respiratory/pCO2)
 ```
 
 ### 3.2 StateChangeDirective
