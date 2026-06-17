@@ -345,6 +345,26 @@ def derive_vital_signs(
     }
 
 
+def derive_observed_vitals(
+    state: PhysiologicalState,
+    baseline: BaselineVitals,
+    timestamp: datetime,
+    rng: np.random.Generator,
+) -> dict[str, float]:
+    """Physiology-derived vitals + realistic measurement noise.
+
+    Single derivation path shared by inpatient, ED, and outpatient (AD-57): the true
+    vitals come from the hidden physiological state, then per-measurement Gaussian noise
+    models device/observer variation. SpO2 is re-clamped to a physiological range.
+    """
+    raw = derive_vital_signs(state, baseline, timestamp)
+    for key in raw:
+        raw[key] += float(rng.normal(0, 0.5 if key == "temperature" else 2))
+        if key == "spo2":
+            raw[key] = min(100.0, max(60.0, raw[key]))
+    return raw
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

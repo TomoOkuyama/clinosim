@@ -38,7 +38,7 @@ from clinosim.modules.order.engine import (
 from clinosim.modules.physiology.engine import (
     apply_disease_onset,
     derive_lab_values,
-    derive_vital_signs,
+    derive_observed_vitals,
     initialize_state,
     update,
 )
@@ -1245,12 +1245,7 @@ _NEURO_DISEASES = {
 
 
 def _make_raw(state, patient, vit_time, rng):
-    raw = derive_vital_signs(state, patient.baseline_vitals, vit_time)
-    for key in raw:
-        raw[key] += float(rng.normal(0, 0.5 if key == "temperature" else 2))
-        if key == "spo2":
-            raw[key] = min(100.0, max(60.0, raw[key]))
-    return raw
+    return derive_observed_vitals(state, patient.baseline_vitals, vit_time, rng)
 
 
 def _o2_for(spo2, disease_id, rng):

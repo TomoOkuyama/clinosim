@@ -329,8 +329,16 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
   lab orders (parent marked resulted) so each resolves via the scalar path. physiology
   derives pO2 (inflammation-proxied hypoxemia). LOINC/JLAC10 codes added. Respiratory
   cohort now gets blood-gas results (was none) — verified COPD pH/pCO2/pO2/HCO3 resolve.
-- [ ] Unify vitals generation (ED/outpatient still use `baseline_vitals + noise`, not
-  `derive_vital_signs` — fold disease state into ED/outpatient vitals).
+- [x] **Unify vitals generation.** ED (`emergency.py`) + outpatient (`outpatient.py`) now
+  derive vitals from the comorbidity-adjusted `PhysiologicalState` via the same path as
+  inpatient. New shared helper `physiology.derive_observed_vitals(state, baseline, ts, rng)`
+  = `derive_vital_signs` + measurement noise; inpatient `_make_raw` delegates to it (output
+  unchanged — identical RNG draws). ED temp/SpO2/HR now track physiology (e.g. febrile up to
+  39.1 °C, hypoxia to 87 %, shock SBP to 66) instead of a fixed normal template; outpatient
+  keeps its measured-subset (`fields`) logic. Determinism preserved (same draw count/order);
+  unit/integration/e2e green. **Acute-presentation injection** (folding ED scenario severity
+  into the state so labs+vitals reflect the acute illness, not just comorbidity baseline)
+  deferred — see the `initial_state_impact` item above.
 - [x] FHIR code-mapping cleanup (from CIF/FHIR eval): US LOINC for lipids/TSH/ESR
   (+ loinc displays), outpatient lipid/ESR baselines (was 1.0 garbage), ECG/non-analyte
   guard in ED/outpatient (was fabricated empty-code lab). US empty-code labs 328→0.

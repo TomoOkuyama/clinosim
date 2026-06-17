@@ -5,11 +5,14 @@ from datetime import datetime, timedelta
 
 import pytest
 
+import numpy as np
+
 from clinosim.modules.physiology.engine import (
     apply_coupling_rules,
     apply_disease_onset,
     clamp,
     derive_lab_values,
+    derive_observed_vitals,
     derive_vital_signs,
     initialize_state,
     update,
@@ -228,3 +231,35 @@ class TestDeriveVitalSigns:
         vitals = derive_vital_signs(state, baseline_vitals, ts)
 
         assert 60 <= vitals["spo2"] <= 100
+
+
+# --- Observed vitals (shared inpatient/ED/outpatient path, AD-57) ---
+
+@pytest.mark.unit
+class TestDeriveObservedVitals:
+    def test_keys_and_determinism(self, baseline_vitals):
+        state = PhysiologicalState()
+        ts = datetime(2024, 6, 15, 10, 0)
+        a = derive_observed_vitals(state, baseline_vitals, ts, np.random.default_rng(7))
+        b = derive_observed_vitals(state, baseline_vitals, ts, np.random.default_rng(7))
+        assert set(a) == {"temperature", "heart_rate", "systolic_bp",
+                          "diastolic_bp", "respiratory_rate", "spo2"}
+        assert a == b  # same seed → identical observed values
+
+    def test_noise_keeps_spo2_in_range(self, baseline_vitals):
+        state = PhysiologicalState(inflammation_level=0.9, volume_status=0.8)
+        ts = datetime(2024, 6, 15, 10, 0)
+        for seed in range(20):
+            raw = derive_observed_vitals(state, baseline_vitals, ts, np.random.default_rng(seed))
+            assert 60 <= raw["spo2"] <= 100
+
+    def test_tracks_physiology(self, baseline_vitals):
+        """Observed vitals follow the hidden state, not a fixed normal template."""
+        ts = datetime(2024, 6, 15, 10, 0)
+        rng = np.random.default_rng(0)
+        febrile = derive_observed_vitals(
+            PhysiologicalState(inflammation_level=0.7), baseline_vitals, ts, rng)
+        healthy = derive_observed_vitals(
+            PhysiologicalState(), baseline_vitals, ts, np.random.default_rng(0))
+        assert febrile["temperature"] > healthy["temperature"]
+        assert febrile["heart_rate"] > healthy["heart_rate"]
