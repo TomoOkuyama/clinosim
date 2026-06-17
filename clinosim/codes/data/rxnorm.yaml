@@ -1,7 +1,14 @@
+# RxNorm — normalized US drug nomenclature
+#
+# AUTHORITATIVE SOURCE: U.S. National Library of Medicine (NLM), nlm.nih.gov/research/umls/rxnorm.
+# Codes (RXCUIs) verifiable via the free NLM RxNav/RxNorm API
+# (https://rxnav.nlm.nih.gov/REST/rxcui/<rxcui>/property.json?propName=RxNorm%20Name).
+# Do not fabricate a code (AD-57). NOTE: not yet machine-verified end-to-end.
 metadata:
   name: RxNorm
   uri: http://www.nlm.nih.gov/research/umls/rxnorm
   version: '2024'
+  source: "NLM RxNorm; RXCUIs verifiable via NLM RxNav API"
   description: RxNorm (US NLM)
 codes:
   '10156':

@@ -1,7 +1,23 @@
+# ICD-10-CM — International Classification of Diseases, 10th Rev, Clinical Modification (US)
+#
+# AUTHORITATIVE SOURCE: CMS / NCHS (cms.gov/medicare/coding-billing/icd-10-codes).
+# Codes verifiable via the NLM Clinical Table Search Service ICD-10-CM API
+# (https://clinicaltables.nlm.nih.gov/api/icd10cm/v3/search). Do not fabricate a code (AD-57).
+#
+# KNOWN ISSUES (2026-06 data-quality review — see TODO.md "ICD code review"):
+#  - The per-locale diagnosis translation (locale/<c>/code_mapping_diagnosis.yaml) is
+#    NOT wired up (load_code_mapping is only called for "lab"/"drug"). Diagnosis codes are
+#    therefore emitted as-is from CIF, looked up here for US display.
+#  - As a result this table still holds a few non-CM (WHO ICD-10) codes that US runs emit
+#    (F00, J46, K35.9, S06.50/51/52, S67.8) and many 3-char category codes that are valid
+#    classifications but not billable to highest specificity (I50, I21, A41, ...).
+#  - Fixing this properly = wire up code_mapping_diagnosis (internal→billable CM per locale)
+#    rather than renaming codes here (which would break the as-is display lookups). Tracked.
 metadata:
   name: ICD-10-CM
   uri: http://hl7.org/fhir/sid/icd-10-cm
   version: '2024'
+  source: "CMS/NCHS ICD-10-CM; verifiable via NLM Clinical Tables ICD-10-CM API"
   description: International Classification of Diseases, 10th Revision, Clinical Modification
     (US)
 codes:
