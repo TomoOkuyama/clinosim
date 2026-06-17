@@ -1,7 +1,16 @@
+# LOINC — Logical Observation Identifiers Names and Codes
+#
+# AUTHORITATIVE SOURCE: Regenstrief Institute (loinc.org).
+# All lab analyte codes used by locale/us/code_mapping_lab.yaml were verified (2026-06)
+# against the official NLM Clinical Table Search Service LOINC API
+# (https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search) — every mapped code's
+# COMPONENT / LONG_COMMON_NAME matches its analyte and specimen. Do not add a code without
+# verifying it against an authoritative LOINC source (no fabrication — AD-57).
 metadata:
   name: LOINC
   uri: http://loinc.org
   version: '2.76'
+  source: "Regenstrief LOINC; US lab codes verified vs NLM Clinical Tables LOINC API (2026-06)"
   description: Logical Observation Identifiers Names and Codes
 codes:
   # === Clinical document types (FHIR DocumentReference.type) ===
@@ -67,10 +76,10 @@ codes:
     en: Chloride
     ja: クロール
   2085-9:
-    en: Cholesterol in HDL [Mass/volume] in Serum or Plasma
+    en: HDL cholesterol
     ja: HDLコレステロール
   2093-3:
-    en: Cholesterol [Mass/volume] in Serum or Plasma
+    en: Total cholesterol
     ja: 総コレステロール
   2157-6:
     en: Creatine kinase
@@ -94,11 +103,11 @@ codes:
     en: Lactate dehydrogenase
     ja: LDH
   2571-8:
-    en: Triglyceride [Mass/volume] in Serum or Plasma
+    en: Triglyceride
     ja: トリグリセリド
   2703-7:
-    en: Oxygen [Partial pressure] in Arterial blood
-    ja: PaO2
+    en: pO2
+    ja: 動脈血酸素分圧 (pO2)
   2708-6:
     en: Oxygen saturation in Arterial blood
     ja: 動脈血酸素飽和度
@@ -202,34 +211,23 @@ codes:
     en: Respiratory rate
     ja: 呼吸数
 
-  2703-7:
-    en: Oxygen [Partial pressure] in Arterial blood
-    ja: 動脈血酸素分圧 (pO2)
-  # === Lipids / endocrine / inflammation (AD-57 code-mapping cleanup) ===
+  # === Lipids / endocrine / inflammation (AD-57; codes verified vs NLM LOINC) ===
+  # (2085-9 HDL, 2093-3 TC, 2571-8 TG, 2703-7 pO2 are defined once above — no duplicates.)
   2089-1:
-    en: Cholesterol in LDL [Mass/volume] in Serum or Plasma
+    en: LDL cholesterol
     ja: LDLコレステロール
-  2085-9:
-    en: Cholesterol in HDL [Mass/volume] in Serum or Plasma
-    ja: HDLコレステロール
-  2571-8:
-    en: Triglyceride [Mass/volume] in Serum or Plasma
-    ja: 中性脂肪
-  2093-3:
-    en: Cholesterol [Mass/volume] in Serum or Plasma
-    ja: 総コレステロール
   3016-3:
-    en: Thyrotropin [Units/volume] in Serum or Plasma
+    en: Thyroid-stimulating hormone
     ja: 甲状腺刺激ホルモン (TSH)
   4537-7:
-    en: Erythrocyte sedimentation rate by Westergren method
+    en: Erythrocyte sedimentation rate
     ja: 赤血球沈降速度 (ESR)
   # === Cardiac injury markers (AD-55) ===
   10839-9:
-    en: Troponin I.cardiac [Mass/volume] in Serum or Plasma
+    en: Cardiac troponin I
     ja: 心筋トロポニンI
   13969-1:
-    en: Creatine kinase.MB [Mass/volume] in Serum or Plasma
+    en: Creatine kinase-MB
     ja: CK-MB
   # === Microbiology: culture tests (AD-55) ===  # TODO: verify LOINC codes
   600-7:
