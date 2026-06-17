@@ -110,18 +110,21 @@ def _simulate_outpatient_visit(
     else:
         fields = {"hr", "bp"}
 
+    # Vitals — physiology-driven via the same derivation path as inpatient/ED (AD-57):
+    # true values from the comorbidity-adjusted state, then measurement noise. The
+    # measured subset (`fields`) still depends on visit type / chronic condition.
+    from clinosim.modules.physiology.engine import (
+        derive_observed_vitals,
+        initialize_state,
+    )
     baseline = patient.baseline_vitals
-    raw = {
-        "temperature": float(rng.normal(36.4, 0.2)),
-        "heart_rate": float(baseline.heart_rate + rng.normal(0, 5)),
-        "systolic_bp": float(baseline.systolic_bp + rng.normal(0, 8)),
-        "diastolic_bp": float(baseline.diastolic_bp + rng.normal(0, 5)),
-        "respiratory_rate": float(rng.normal(16, 1.5)),
-        "spo2": float(min(99, rng.normal(97.5, 0.8))),
-    }
+    _state = initialize_state(patient.physiological_profile, patient.chronic_conditions,
+                              patient.patient_id)
+    vit_time = visit_date + timedelta(minutes=5)
+    raw = derive_observed_vitals(_state, baseline, vit_time, rng)
     opd_nurse_id = assign_staff("medication_administration", "primary_care", roster, rng).get("administering_nurse", "")
     vitals.append(VitalSignRecord(
-        timestamp=visit_date + timedelta(minutes=5),
+        timestamp=vit_time,
         temperature_celsius=round(raw["temperature"], 1) if "temp" in fields else None,
         heart_rate=int(round(raw["heart_rate"])) if "hr" in fields else None,
         systolic_bp=int(round(raw["systolic_bp"])) if "bp" in fields else None,
@@ -137,10 +140,9 @@ def _simulate_outpatient_visit(
     lab_tech_id = lab_tech_assignment.get("performing_technician", "")
 
     # Labs (if specified in followup schedule).
-    # Comorbidity-aware true values via the same physiology path as inpatient (AD-57).
-    from clinosim.modules.physiology.engine import derive_lab_values, initialize_state
-    _state = initialize_state(patient.physiological_profile, patient.chronic_conditions,
-                              patient.patient_id)
+    # Comorbidity-aware true values via the same physiology path as inpatient (AD-57);
+    # reuses `_state` initialized above for vitals.
+    from clinosim.modules.physiology.engine import derive_lab_values
     _has_dm = any("E11" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
     _true_labs = derive_lab_values(_state, sex=patient.sex, age=patient.age, has_diabetes=_has_dm)
     # baseline_values covers analytes physiology doesn't model; 1.0 fallback (not 100).
