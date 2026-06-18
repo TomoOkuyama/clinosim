@@ -6,6 +6,7 @@ import pytest
 from clinosim.modules.observation.engine import (
     ANALYTICAL_CV,
     BIOLOGICAL_CV,
+    PHYSIOLOGIC_LIMITS,
     apply_realistic_variability,
     determine_flag,
     generate_lab_result,
@@ -35,6 +36,21 @@ class TestVariability:
 
     def test_zero_value_returns_zero(self, rng):
         assert apply_realistic_variability("CRP", 0.0, rng) == 0.0
+
+    def test_noise_never_exceeds_physiologic_limits(self, rng):
+        # Measurement noise on a true value near the upper physiologic edge must
+        # not produce life-incompatible observed values (e.g. K 10.5, CRP 663).
+        for lab, (lo, hi) in PHYSIOLOGIC_LIMITS.items():
+            # Push true value to the upper limit so noise tails would overshoot.
+            obs = [apply_realistic_variability(lab, hi, rng) for _ in range(500)]
+            assert max(obs) <= hi + 1e-9, f"{lab}: observed {max(obs)} > limit {hi}"
+            assert min(obs) >= lo - 1e-9, f"{lab}: observed {min(obs)} < limit {lo}"
+
+    def test_clamp_preserves_in_range_values(self, rng):
+        # A mid-range value must still vary (clamp must not collapse normal noise).
+        results = [apply_realistic_variability("K", 4.2, rng) for _ in range(100)]
+        assert min(results) != max(results)
+        assert all(PHYSIOLOGIC_LIMITS["K"][0] <= r <= PHYSIOLOGIC_LIMITS["K"][1] for r in results)
 
 
 @pytest.mark.unit
