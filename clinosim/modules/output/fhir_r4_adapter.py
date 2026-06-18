@@ -1558,6 +1558,24 @@ _CONDITION_SHORT_NAME: dict[str, dict[str, str]] = {
 }
 
 
+def _map_diagnosis_code(code: str, country: str) -> str:
+    """Translate an internal chronic/history diagnosis base code to its locale code.
+
+    US maps internal category/WHO codes (I50, E78, I21, ...) to billable ICD-10-CM
+    leaves; JP maps identity (WHO ICD-10 category codes are valid as-is). Codes absent
+    from the locale map pass through unchanged — disease primary diagnoses are already
+    specific (e.g. I21.9, A41.9) and stay untouched. See locale/<c>/code_mapping_diagnosis.
+
+    Dedup is intentionally done on the *internal* base code by the caller, not on the
+    mapped code, so a current acute MI (primary I21.9) still suppresses a duplicate
+    "old MI" chronic entry rather than emitting both.
+    """
+    if not code:
+        return code
+    country_code = "JP" if country != "US" else "US"
+    return load_code_mapping("diagnosis", country_code).get(code, code)
+
+
 def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]:
     """Build FHIR Condition resources from diagnosis and chronic conditions.
 
@@ -1619,7 +1637,9 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                     "display": _localize_display("Encounter Diagnosis", country, _CATEGORY_DISPLAY_JA),
                 }],
             }],
-            "code": _build_diagnosis_codeable_concept(dx_code, icd_system_key, country),
+            "code": _build_diagnosis_codeable_concept(
+                _map_diagnosis_code(dx_code, country), icd_system_key, country
+            ),
             "subject": {"reference": f"Patient/{patient_id}"},
         }
 
@@ -1679,7 +1699,9 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                     "display": _localize_display("Problem List Item", country, _CATEGORY_DISPLAY_JA),
                 }],
             }],
-            "code": _build_diagnosis_codeable_concept(c_code, icd_system_key, country),
+            "code": _build_diagnosis_codeable_concept(
+                _map_diagnosis_code(c_code, country), icd_system_key, country
+            ),
             "subject": {"reference": f"Patient/{patient_id}"},
         }
 

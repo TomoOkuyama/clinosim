@@ -363,15 +363,16 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
   (PR #10). Cross-system dup-key guard added (`test_codes_integrity.py`).
 - [x] **Authoritative-source comments** added to every code-data file (icd-10-cm, icd-10,
   rxnorm, cpt, k-codes, yj + earlier jlac10/loinc/snomed) and locale code_mapping files.
-- [ ] **ICD diagnosis-code review (2026-06 finding — needs decision).** Two structural issues:
-  (1) `locale/<c>/code_mapping_diagnosis.yaml` is **dead config** — `load_code_mapping` is
-  only called for "lab"/"drug", never "diagnosis", so the designed internal→locale (billable
-  CM / WHO) translation never runs; diagnosis codes are emitted as-is. (2) Consequently US
-  output emits a few non-CM codes (F00, J46, K35.9, S06.50/51/52, S67.8 — valid WHO ICD-10
-  but not ICD-10-CM) and many 3-char non-billable category codes (I50, I21, A41, ...).
-  Proper fix = wire up code_mapping_diagnosis (per-locale, internal→billable) in the FHIR
-  adapter + reconcile codes; changes US FHIR output + golden, so **user decision needed**.
-  (Renaming codes in icd-10-cm.yaml alone is NOT the fix — it breaks the as-is display lookup.)
+- [x] **ICD diagnosis-code review (2026-06 finding) — FIXED.** `code_mapping_diagnosis.yaml`
+  was dead config (`load_code_mapping` never called for "diagnosis") so US emitted
+  non-billable 3-char category codes (I50, I21, ...) and WHO-only codes (F00). Now wired into
+  the FHIR adapter (`_build_conditions`, both primary + chronic dx via `_map_diagnosis_code`).
+  US translates every internal chronic/history base code + non-billable primary to a billable
+  ICD-10-CM leaf (chronic→unspecified leaf; past-acute-as-chronic→"history of/old" e.g.
+  I21→I25.2; primary specificity/7th-char e.g. R05→R05.9, S72.00→S72.009A, T07→T07.XXXA).
+  JP maps identity (WHO category codes valid; output unchanged). All targets verified vs NLM
+  ICD-10-CM API (no fabrication) + added to `icd-10-cm.yaml`. Audit (US 10k): 91/91 distinct
+  Condition codes billable, 0 non-billable; JP 10k unchanged, 0 display-unavailable.
 - [ ] **RxNorm / CPT / SNOMED / YJ / K-code** — authoritative-source comments added but codes
   not yet machine-verified (RxNorm verifiable via NLM RxNav API; others need licensed masters).
 - [ ] **ECG as a proper diagnostic** (currently skipped from labs; model as Procedure/
