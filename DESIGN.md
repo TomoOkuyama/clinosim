@@ -1730,6 +1730,7 @@ observations.
 | AD-55 | 2026-06-15 | EHR data enrichment split: near-essential data in Base (always-on, extends core), specialized/optional data in opt-in modules |
 | AD-56 | 2026-06-15 | Extensibility foundation (Phase 0): FHIR resource-builder registry, simulator enricher registry, CIF extensions slot for modules, config module-enablement map |
 | AD-57 | 2026-06-16 | Unify lab/vital generation across venues (inpatient/ED/outpatient) into one physiology-driven service (planned); replaces hardcoded ED/outpatient baselines |
+| AD-58 | 2026-06-17 | **Output-format adapter registry.** CIF→format adapters self-register via `register_output_adapter` (`clinosim/modules/output/adapter.py`); the CLI is registry-driven (`available_formats()` / `get_adapter()`). Adding a format (SS-MIX, FHIR R3, HL7 v2) = add one `OutputAdapter` (`format_id`/`description`/`subdir`/`convert`) — no CLI or core edits. Built-in CSV/FHIR-R4 are thin wrappers (output unchanged). Adapters depend only on CIF + `clinosim.codes` + `clinosim.locale` (AD-17/AD-25). Evolution path: setuptools entry-point discovery for external plugin packages. |
 
 ---
 
