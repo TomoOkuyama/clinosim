@@ -179,6 +179,23 @@ class TestDeriveLabValues:
         assert labs["K"] > 5.0  # hyperkalemia
         assert labs["eGFR"] < 30
 
+    def test_dka_hyperglycemia_from_glucose_status(self):
+        """DKA's acute glycemic state drives glucose to 300-500+, not baseline (AD-57)."""
+        normal = derive_lab_values(PhysiologicalState(), sex="M", age=55)
+        dka = derive_lab_values(
+            PhysiologicalState(glucose_status=0.6), sex="M", age=55)
+        severe = derive_lab_values(
+            PhysiologicalState(glucose_status=0.8), sex="M", age=55)
+        assert normal["Glucose"] < 130
+        assert dka["Glucose"] > 300
+        assert severe["Glucose"] > dka["Glucose"]
+        assert dka["Glucose"] <= 1200  # clamped to a physiological bound
+
+    def test_hypoglycemia_from_negative_glucose_status(self):
+        labs = derive_lab_values(
+            PhysiologicalState(glucose_status=-0.5), sex="M", age=55)
+        assert labs["Glucose"] < 95
+
     def test_no_negative_values(self):
         """No lab value should ever be negative."""
         state = PhysiologicalState(
