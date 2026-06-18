@@ -41,7 +41,7 @@ clinosim/locale/
 │   ├── demographics.yaml      # 年齢分布, 血液型, 慢性疾患有病率, 疾患罹患率
 │   ├── formatting.yaml        # 日付・時刻・単位フォーマット
 │   ├── code_mapping_lab.yaml      # 内部名 → JLAC10
-│   ├── code_mapping_diagnosis.yaml # 内部名 → ICD-10 (WHO)
+│   ├── code_mapping_diagnosis.yaml # 内部 慢性/既往 base → ICD-10 (identity, WHO)
 │   ├── code_mapping_drug.yaml      # 内部名 → YJ コード
 │   ├── code_mapping_procedure.yaml # 内部名 → K コード
 │   └── reference_range_lab.yaml    # JCCLS 共用基準範囲 2022
@@ -51,7 +51,7 @@ clinosim/locale/
 │   ├── demographics.yaml      # US Census / CDC / AHA
 │   ├── formatting.yaml
 │   ├── code_mapping_lab.yaml      # 内部名 → LOINC
-│   ├── code_mapping_diagnosis.yaml # 内部名 → ICD-10-CM
+│   ├── code_mapping_diagnosis.yaml # 内部 慢性/既往 base → billable ICD-10-CM
 │   ├── code_mapping_drug.yaml      # 内部名 → RxNorm
 │   ├── code_mapping_procedure.yaml # 内部名 → CPT
 │   └── reference_range_lab.yaml    # Tietz Clinical Guide
@@ -130,6 +130,21 @@ jp_lab = load_code_mapping("lab", "JP")
 us_lab = load_code_mapping("lab", "US")
 # {"CRP": "1988-5", "WBC": "6690-2", ...}               (LOINC)
 ```
+
+**`"diagnosis"` domain** — 診断コードは慢性/既往の base コード (例 `I50`, `E78`, `I21`) を
+locale の請求可能コードへ変換する。FHIR adapter の `_build_conditions` が primary・chronic
+両方の Condition コードに適用 (マップに無いコードは passthrough; 疾患 primary は既に具体的)。
+
+```python
+us_dx = load_code_mapping("diagnosis", "US")
+# {"E78": "E78.5", "I50": "I50.9", "I21": "I25.2"(陳旧性MI), "R05": "R05.9", ...}  billable ICD-10-CM
+jp_dx = load_code_mapping("diagnosis", "JP")
+# {"E78": "E78", "I50": "I50", ...}  identity (WHO ICD-10 カテゴリコードは有効、出力不変)
+```
+
+> 内部 base コードが慢性歴に入る経路は `simulator/helpers.py` (退院 dx を base 切詰め + 慢性
+> prefix 一致で追加)。過去の急性イベント (MI=I21, 脳梗塞=I63 等) は US で「既往 (history/old)」
+> コードへ (I21→I25.2, I63→Z86.73)。全ターゲットは NLM ICD-10-CM API で照合済 (捏造禁止)。
 
 シミュレータは内部で `"CRP"` のような人間可読名を使い、CIF 出力時に本マップで国別コードに解決する。
 
@@ -320,7 +335,16 @@ ranges:
   WBC: [{low: 3300, high: 8600, unit: "/uL", text: "..."}]
   Hb:  [{low: 13.7, high: 16.8, unit: "g/dL", sex: "M", ...},
         {low: 11.6, high: 14.8, unit: "g/dL", sex: "F", ...}]
+  # ⚠️ キーは canonical 分析物名 (observation engine / code_mapping_lab.yaml と同一)。
+  # 例: 心筋トロポニンは "Troponin_I" であって "Troponin" ではない。不一致だと FHIR
+  # adapter の referenceRange 解決が失敗し interpretation も付かない。
+  Troponin_I: [{low: 0, high: 0.04, unit: "ng/mL", text: "..."}]
+  CK_MB:      [{low: 0, high: 5.0,  unit: "ng/mL", text: "..."}]
 ```
+
+FHIR adapter (`_build_reference_range`) はこの `ranges[<canonical 名>]` を引いて
+数値 Observation に `referenceRange` を付け、`interpretation` を値と範囲から再計算する
+(AD-47)。キーが分析物名と一致しない検査は範囲も interpretation も欠落する。
 
 ## 拡張方法
 

@@ -21,7 +21,7 @@ physiology モジュールが患者の真の生理学的状態から導いた **
 | 1 | **3-layer noise model** | CVi + CVa を独立に乗せる。生物学的 vs 分析的の区別を保持 |
 | 2 | **UCUM 単位必須** | 全検査値は FHIR R4 Observation 互換の UCUM 表記 |
 | 3 | **決定論的** | 呼出側が `rng: np.random.Generator` を渡す。グローバル状態なし (AD-16) |
-| 4 | **Negative-safe** | 観測値が負になる場合は 0 にクリップ |
+| 4 | **Negative-safe + 生理学クランプ** | 観測値は 0 下限に加え、アナライト別 `PHYSIOLOGIC_LIMITS` (ヒト生存域の縁) で再クランプ。ノイズのテールが生命非両立値 (K 10.5, CRP 663 等) を生むのを防ぐ。真に極端な true 値は通過 |
 | 5 | **Qualitative 検査対応** | 尿検査・培養・Strep 迅速など文字列結果も同じ API で扱える |
 | 6 | **Sex-aware reference ranges** | Hb, Creatinine 等は性差対応 |
 | 7 | **Panic value 独立判定** | H/L とは別に critical flag (K<2.5, Hb<7, pH<7.1 など) を返す |
@@ -389,7 +389,8 @@ pytest tests/unit/test_observation.py -v
 
 | やりたいこと | 修正場所 | 影響範囲 |
 |---|---|---|
-| 新しい検査項目を追加 | (1) `BIOLOGICAL_CV`, `ANALYTICAL_CV`, `PRECISION` dict (2) `LAB_UNITS` dict (3) physiology の `derive_lab_values()` | FHIR Observation, narrative enrichment |
+| 新しい検査項目を追加 | (1) `BIOLOGICAL_CV`, `ANALYTICAL_CV`, `PRECISION` dict (2) `LAB_UNITS` dict (3) 任意で `PHYSIOLOGIC_LIMITS` dict (生存域上下限) (4) physiology の `derive_lab_values()` | FHIR Observation, narrative enrichment |
+| 生理学クランプ範囲を調整 | `PHYSIOLOGIC_LIMITS` dict (`engine.py`) — アナライト別 `(lo, hi)` | 観測値の最大/最小テール |
 | 参照範囲を変更 | `clinosim/locale/{jp,us}/reference_range_lab.yaml` | FHIR referenceRange, interpretation (AD-47) |
 | フラグ判定ロジック変更 | `determine_flag()` | CIF flag → FHIR interpretation |
 | CRP単位変換の調整 | ここでは変更しない — output モジュールの `_JA_CONVERSION` (AD-42) | |
