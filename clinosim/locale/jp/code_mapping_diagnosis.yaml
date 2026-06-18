@@ -1,29 +1,19 @@
-# Diagnosis code mapping — Internal ICD-10 → ICD-10 (Japan)
-# Source: ICD-10 (2013年版準拠)
-# Note: Japan uses standard ICD-10 codes without clinical modification.
+# Diagnosis code mapping — Internal chronic/history base code → ICD-10 (Japan)
+#
+# AUTHORITATIVE SOURCE: ICD-10 (WHO, 2013年版準拠 — 厚生労働省 統計分類).
+# Note: Japan uses standard WHO ICD-10 codes WITHOUT clinical modification; 3-character
+# category codes (I50, J44, ...) are valid classifications. This map is therefore IDENTITY
+# for every internal chronic/history base code — wiring it up in the FHIR adapter leaves JP
+# output unchanged (the US counterpart instead translates to billable ICD-10-CM leaves).
 
-# 肺炎
-J15.9: "J15.9"
-J18.9: "J18.9"
-J15.0: "J15.0"
-J15.1: "J15.1"
-J13: "J13"
-
-# 心不全
-I50.9: "I50.9"
-I50.1: "I50.1"
-I50: "I50.9"
-
-# 大腿骨骨折
-S72.0: "S72.0"
-S72.1: "S72.1"
-
-# 慢性疾患
+# --- Chronic conditions (identity — WHO ICD-10 category codes emitted as-is) ---
 I10: "I10"
 E11.9: "E11.9"
+E10: "E10"
 E78: "E78"
 J44: "J44"
 N18: "N18"
+I50: "I50"
 I48: "I48"
 I25: "I25"
 M81: "M81"
@@ -34,3 +24,13 @@ K21: "K21"
 J45: "J45"
 N40: "N40"
 M17: "M17"
+
+# --- Past acute events carried as chronic background (identity) ---
+I21: "I21"
+I26: "I26"
+I61: "I61"
+I63: "I63"
+I80: "I80"
+I82: "I82"
+M48: "M48"
+M80: "M80"

@@ -4,15 +4,14 @@
 # Codes verifiable via the NLM Clinical Table Search Service ICD-10-CM API
 # (https://clinicaltables.nlm.nih.gov/api/icd10cm/v3/search). Do not fabricate a code (AD-57).
 #
-# KNOWN ISSUES (2026-06 data-quality review — see TODO.md "ICD code review"):
-#  - The per-locale diagnosis translation (locale/<c>/code_mapping_diagnosis.yaml) is
-#    NOT wired up (load_code_mapping is only called for "lab"/"drug"). Diagnosis codes are
-#    therefore emitted as-is from CIF, looked up here for US display.
-#  - As a result this table still holds a few non-CM (WHO ICD-10) codes that US runs emit
-#    (F00, J46, K35.9, S06.50/51/52, S67.8) and many 3-char category codes that are valid
-#    classifications but not billable to highest specificity (I50, I21, A41, ...).
-#  - Fixing this properly = wire up code_mapping_diagnosis (internal→billable CM per locale)
-#    rather than renaming codes here (which would break the as-is display lookups). Tracked.
+# DIAGNOSIS CODE MAPPING (2026-06 data-quality review — see TODO.md "ICD code review"):
+#  - The per-locale diagnosis translation (locale/<c>/code_mapping_diagnosis.yaml) IS now
+#    wired up in the FHIR adapter (_build_conditions, both primary + chronic). Internal
+#    chronic/history base codes (I50, E78, I21, M48, ...) are translated to billable
+#    ICD-10-CM leaves for US output; JP maps identity (WHO ICD-10 category codes valid).
+#  - The internal base codes (this table still defines them for chronic-tracking) and their
+#    billable targets both live here; the mapping picks the billable target at output time.
+#  - Codes are NEVER renamed in place (that would break as-is display); translation only.
 metadata:
   name: ICD-10-CM
   uri: http://hl7.org/fhir/sid/icd-10-cm
@@ -729,3 +728,113 @@ codes:
   Z99.2:
     en: Dependence on renal dialysis
     ja: 透析依存
+  # --- Billable targets for internal→CM diagnosis mapping (locale/us/code_mapping_diagnosis).
+  #     Internal chronic/history base codes are translated to these billable ICD-10-CM leaves
+  #     at FHIR output time. All verified vs NLM Clinical Tables ICD-10-CM API (2024). ---
+  E78.5:
+    en: Hyperlipidemia, unspecified
+    ja: 高脂血症、詳細不明
+  J44.9:
+    en: Chronic obstructive pulmonary disease, unspecified
+    ja: 慢性閉塞性肺疾患、詳細不明
+  N18.9:
+    en: Chronic kidney disease, unspecified
+    ja: 慢性腎臓病、詳細不明
+  I25.10:
+    en: Atherosclerotic heart disease of native coronary artery without angina pectoris
+    ja: 冠状動脈硬化症（自己冠動脈、狭心症を伴わない）
+  M81.0:
+    en: Age-related osteoporosis without current pathological fracture
+    ja: 加齢性骨粗鬆症（現在の病的骨折なし）
+  F03.90:
+    en: Unspecified dementia, unspecified severity, without behavioral disturbance, psychotic
+      disturbance, mood disturbance, and anxiety
+    ja: 認知症、詳細不明（行動障害を伴わない）
+  G20.C:
+    en: Parkinsonism, unspecified
+    ja: パーキンソニズム、詳細不明
+  E03.9:
+    en: Hypothyroidism, unspecified
+    ja: 甲状腺機能低下症、詳細不明
+  K21.9:
+    en: Gastro-esophageal reflux disease without esophagitis
+    ja: 胃食道逆流症（食道炎を伴わない）
+  J45.909:
+    en: Unspecified asthma, uncomplicated
+    ja: 喘息、詳細不明（合併症なし）
+  N40.0:
+    en: Benign prostatic hyperplasia without lower urinary tract symptoms
+    ja: 前立腺肥大症（下部尿路症状を伴わない）
+  M17.9:
+    en: Osteoarthritis of knee, unspecified
+    ja: 膝関節症、詳細不明
+  E10.9:
+    en: Type 1 diabetes mellitus without complications
+    ja: 1型糖尿病（合併症を伴わない）
+  I25.2:
+    en: Old myocardial infarction
+    ja: 陳旧性心筋梗塞
+  Z86.711:
+    en: Personal history of pulmonary embolism
+    ja: 肺塞栓症の既往
+  Z86.73:
+    en: Personal history of transient ischemic attack (TIA), and cerebral infarction without
+      residual deficits
+    ja: 一過性脳虚血発作および脳梗塞（後遺症なし）の既往
+  Z86.718:
+    en: Personal history of other venous thrombosis and embolism
+    ja: その他の静脈血栓塞栓症の既往
+  Z87.311:
+    en: Personal history of (healed) other pathological fracture
+    ja: その他の病的骨折（治癒）の既往
+  Z87.310:
+    en: Personal history of (healed) osteoporosis fracture
+    ja: 骨粗鬆症性骨折（治癒）の既往
+  # --- Billable targets for non-billable PRIMARY dx codes (specificity / 7th char).
+  #     locale/us/code_mapping_diagnosis translates the internal disease/encounter code
+  #     to these CM leaves for US output. Verified vs NLM ICD-10-CM API (2024). ---
+  J10.00:
+    en: Influenza due to other identified influenza virus with unspecified type of pneumonia
+    ja: インフルエンザ（その他のインフルエンザウイルス、肺炎・型不明）
+  K56.609:
+    en: Unspecified intestinal obstruction, unspecified as to partial versus complete obstruction
+    ja: 腸閉塞、詳細不明（部分・完全の別不明）
+  K85.90:
+    en: Acute pancreatitis without necrosis or infection, unspecified
+    ja: 急性膵炎（壊死・感染なし、詳細不明）
+  R05.9:
+    en: Cough, unspecified
+    ja: 咳嗽、詳細不明
+  R68.89:
+    en: Other general symptoms and signs
+    ja: その他の全身症状および徴候
+  S06.5X0A:
+    en: Traumatic subdural hemorrhage without loss of consciousness, initial encounter
+    ja: 外傷性硬膜下出血（意識消失なし）、初診
+  S52.509A:
+    en: Unspecified fracture of the lower end of unspecified radius, initial encounter for
+      closed fracture
+    ja: 橈骨下端骨折、部位不明、初診（閉鎖性）
+  S72.009A:
+    en: Fracture of unspecified part of neck of unspecified femur, initial encounter for closed
+      fracture
+    ja: 大腿骨頸部骨折、部位不明、初診（閉鎖性）
+  S93.409A:
+    en: Sprain of unspecified ligament of unspecified ankle, initial encounter
+    ja: 足関節靱帯捻挫、部位不明、初診
+  T07.XXXA:
+    en: Unspecified multiple injuries, initial encounter
+    ja: 多発外傷、詳細不明、初診
+  T14.90XA:
+    en: Injury, unspecified, initial encounter
+    ja: 損傷、詳細不明、初診
+  T15.00XA:
+    en: Foreign body in cornea, unspecified eye, initial encounter
+    ja: 角膜異物、眼不明、初診
+  T54.91XA:
+    en: Toxic effect of unspecified corrosive substance, accidental (unintentional), initial
+      encounter
+    ja: 腐食性物質の毒性作用、不慮、初診
+  T78.40XA:
+    en: Allergy, unspecified, initial encounter
+    ja: アレルギー、詳細不明、初診
