@@ -90,7 +90,9 @@ from their own import side-effect today and via entry points later.
 
 ### Built-in adapters (thin wrappers — zero behavior change)
 
-In `clinosim/modules/output/adapters_builtin.py` (or inline in `adapter.py`):
+In a dedicated `clinosim/modules/output/adapters_builtin.py` (keeps `adapter.py` limited to
+the interface + registry; the heavy FHIR/CSV modules are lazy-imported inside `convert()`,
+so there is no import cycle):
 
 ```python
 class CsvAdapter:
