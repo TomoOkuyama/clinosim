@@ -131,3 +131,7 @@ R65.21: "R65.1"
 S43.006A: "S43.0"
 T18.9XXA: "T18.9"
 V89.2XXA: "V89.2"
+
+# engine.py differential dx: CM codes absent from WHO → WHO ICD-10
+K56.9: "K56.7"
+R07.9: "R07.4"
