@@ -83,7 +83,7 @@ ALL_EMITTABLE = INTERNAL | _engine_differential_codes()
 
 
 def test_us_emittable_codes_resolve_billable_cm() -> None:
-    missing = sorted(c for c in INTERNAL if US_MAP.get(c, c) not in CM)
+    missing = sorted(c for c in ALL_EMITTABLE if US_MAP.get(c, c) not in CM)
     assert not missing, (
         "Emittable diagnosis codes whose US target is not an exact key in icd-10-cm.yaml "
         f"(add the code or a code_mapping_diagnosis/US entry): {missing}"
@@ -91,7 +91,7 @@ def test_us_emittable_codes_resolve_billable_cm() -> None:
 
 
 def test_jp_emittable_codes_resolve_true_who() -> None:
-    missing = sorted(c for c in INTERNAL if JP_MAP.get(c, c) not in WHO)
+    missing = sorted(c for c in ALL_EMITTABLE if JP_MAP.get(c, c) not in WHO)
     assert not missing, (
         "Emittable diagnosis codes whose JP target is not an exact WHO ICD-10 key in "
         f"icd-10.yaml (add the WHO code or a code_mapping_diagnosis/jp entry): {missing}"

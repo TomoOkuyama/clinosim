@@ -926,3 +926,179 @@ codes:
     en: Systemic inflammatory response syndrome (SIRS) of non-infectious origin without acute
       organ dysfunction
     ja: 非感染性の全身性炎症反応症候群（SIRS）、急性臓器機能障害を伴わないもの
+
+  # diagnosis/engine.py differential codes (US billable, NLM-verified)
+  A15.0:
+    en: "Tuberculosis of lung"
+    ja: "肺結核"
+  C16.9:
+    en: "Malignant neoplasm of stomach, unspecified"
+    ja: "胃の悪性新生物、詳細不明"
+  C71.9:
+    en: "Malignant neoplasm of brain, unspecified"
+    ja: "脳の悪性新生物、詳細不明"
+  C79.51:
+    en: "Secondary malignant neoplasm of bone"
+    ja: "続発性骨悪性新生物"
+  E05.90:
+    en: "Thyrotoxicosis, unspecified without thyrotoxic crisis or storm"
+    ja: "甲状腺中毒症、詳細不明、甲状腺クリーゼを伴わないもの"
+  E87.20:
+    en: "Acidosis, unspecified"
+    ja: "アシドーシス、詳細不明"
+  G43.109:
+    en: "Migraine with aura, not intractable, without status migrainosus"
+    ja: "前兆を伴う片頭痛、難治性でない、片頭痛重積を伴わない"
+  I30.9:
+    en: "Acute pericarditis, unspecified"
+    ja: "急性心膜炎、詳細不明"
+  I33.0:
+    en: "Acute and subacute infective endocarditis"
+    ja: "急性および亜急性感染性心内膜炎"
+  I47.10:
+    en: "Supraventricular tachycardia, unspecified"
+    ja: "上室頻拍、詳細不明"
+  I60.9:
+    en: "Nontraumatic subarachnoid hemorrhage, unspecified"
+    ja: "非外傷性くも膜下出血、詳細不明"
+  I71.00:
+    en: "Dissection of unspecified site of aorta"
+    ja: "大動脈解離、部位詳細不明"
+  I80.209:
+    en: "Phlebitis and thrombophlebitis of unspecified deep vessels of unspecified lower extremity"
+    ja: "下肢の深部血管の静脈炎および血栓性静脈炎、部位詳細不明"
+  I85.00:
+    en: "Esophageal varices without bleeding"
+    ja: "食道静脈瘤、出血を伴わないもの"
+  I88.0:
+    en: "Nonspecific mesenteric lymphadenitis"
+    ja: "非特異的腸間膜リンパ節炎"
+  J68.0:
+    en: "Bronchitis and pneumonitis due to chemicals, gases, fumes and vapors"
+    ja: "化学物質、ガス、煙および蒸気による気管支炎および肺臓炎"
+  J85.1:
+    en: "Abscess of lung with pneumonia"
+    ja: "肺膿瘍、肺炎を伴うもの"
+  J93.9:
+    en: "Pneumothorax, unspecified"
+    ja: "気胸、詳細不明"
+  J98.8:
+    en: "Other specified respiratory disorders"
+    ja: "その他の明示された呼吸器障害"
+  K21.00:
+    en: "Gastro-esophageal reflux disease with esophagitis, without bleeding"
+    ja: "胃食道逆流症、食道炎を伴い、出血を伴わないもの"
+  K25.9:
+    en: "Gastric ulcer, unspecified as acute or chronic, without hemorrhage or perforation"
+    ja: "胃潰瘍、急性・慢性の別不明、出血または穿孔を伴わないもの"
+  K46.0:
+    en: "Unspecified abdominal hernia with obstruction, without gangrene"
+    ja: "詳細不明の腹部ヘルニア、閉塞を伴い、壊疽を伴わないもの"
+  K50.90:
+    en: "Crohn's disease, unspecified, without complications"
+    ja: "クローン病、詳細不明、合併症を伴わないもの"
+  K57.32:
+    en: "Diverticulitis of large intestine without perforation or abscess without bleeding"
+    ja: "大腸憩室炎、穿孔・膿瘍なし、出血を伴わないもの"
+  K65.0:
+    en: "Generalized (acute) peritonitis"
+    ja: "汎発性(急性)腹膜炎"
+  K65.9:
+    en: "Peritonitis, unspecified"
+    ja: "腹膜炎、詳細不明"
+  K70.10:
+    en: "Alcoholic hepatitis without ascites"
+    ja: "アルコール性肝炎、腹水を伴わないもの"
+  K72.90:
+    en: "Hepatic failure, unspecified without coma"
+    ja: "肝不全、詳細不明、昏睡を伴わないもの"
+  K76.9:
+    en: "Liver disease, unspecified"
+    ja: "肝疾患、詳細不明"
+  K80.20:
+    en: "Calculus of gallbladder without cholecystitis without obstruction"
+    ja: "胆嚢結石、胆嚢炎を伴わず、閉塞を伴わないもの"
+  K83.09:
+    en: "Other cholangitis"
+    ja: "その他の胆管炎"
+  K92.9:
+    en: "Disease of digestive system, unspecified"
+    ja: "消化器系の疾患、詳細不明"
+  L02.91:
+    en: "Cutaneous abscess, unspecified"
+    ja: "皮膚膿瘍、詳細不明"
+  L08.9:
+    en: "Local infection of the skin and subcutaneous tissue, unspecified"
+    ja: "皮膚および皮下組織の局所感染、詳細不明"
+  M51.16:
+    en: "Intervertebral disc disorders with radiculopathy, lumbar region"
+    ja: "椎間板障害、神経根症を伴う、腰部"
+  M72.6:
+    en: "Necrotizing fasciitis"
+    ja: "壊死性筋膜炎"
+  M79.609:
+    en: "Pain in unspecified limb"
+    ja: "四肢痛、詳細不明"
+  M84.40XA:
+    en: "Pathological fracture, unspecified site, initial encounter for fracture"
+    ja: "病的骨折、部位詳細不明、骨折に対する初診"
+  N13.9:
+    en: "Obstructive and reflux uropathy, unspecified"
+    ja: "閉塞性および逆流性尿路症、詳細不明"
+  N83.209:
+    en: "Unspecified ovarian cyst, unspecified side"
+    ja: "卵巣嚢胞、詳細不明、側性不明"
+  R00.0:
+    en: "Tachycardia, unspecified"
+    ja: "頻脈、詳細不明"
+  R06.00:
+    en: "Dyspnea, unspecified"
+    ja: "呼吸困難、詳細不明"
+  R06.2:
+    en: "Wheezing"
+    ja: "喘鳴"
+  R07.9:
+    en: "Chest pain, unspecified"
+    ja: "胸痛、詳細不明"
+  R10.10:
+    en: "Upper abdominal pain, unspecified"
+    ja: "上腹部痛、詳細不明"
+  R10.30:
+    en: "Lower abdominal pain, unspecified"
+    ja: "下腹部痛、詳細不明"
+  R29.818:
+    en: "Other symptoms and signs involving the nervous system"
+    ja: "神経系に関するその他の症状および徴候"
+  R30.0:
+    en: "Dysuria"
+    ja: "排尿障害"
+  R73.9:
+    en: "Hyperglycemia, unspecified"
+    ja: "高血糖、詳細不明"
+  S06.300A:
+    en: "Unspecified focal traumatic brain injury without loss of consciousness, initial encounter"
+    ja: "詳細不明の限局性外傷性脳損傷、意識消失を伴わない、初診"
+  S06.4X0A:
+    en: "Epidural hemorrhage without loss of consciousness, initial encounter"
+    ja: "硬膜外出血、意識消失を伴わない、初診"
+  S22.41XA:
+    en: "Multiple fractures of ribs, right side, initial encounter for closed fracture"
+    ja: "多発肋骨骨折、右側、閉鎖骨折に対する初診"
+  S32.10XA:
+    en: "Unspecified fracture of sacrum, initial encounter for closed fracture"
+    ja: "仙骨骨折、詳細不明、閉鎖骨折に対する初診"
+  S36.00XA:
+    en: "Unspecified injury of spleen, initial encounter"
+    ja: "脾臓損傷、詳細不明、初診"
+  S52.90XA:
+    en: "Unspecified fracture of unspecified forearm, initial encounter for closed fracture"
+    ja: "前腕骨折、部位詳細不明、閉鎖骨折に対する初診"
+  S62.009A:
+    en: "Unspecified fracture of navicular [scaphoid] bone of unspecified wrist, initial encounter for closed fracture"
+    ja: "手の舟状骨骨折、詳細不明、手関節側性不明、閉鎖骨折に対する初診"
+  S86.909A:
+    en: "Unspecified injury of unspecified muscle(s) and tendon(s) at lower leg level, unspecified leg, initial encounter"
+    ja: "下腿レベルの筋および腱の損傷、詳細不明、側性不明、初診"
+  N19:
+    en: "Unspecified kidney failure"
+    ja: "詳細不明の腎不全"
