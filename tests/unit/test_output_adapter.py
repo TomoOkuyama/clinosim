@@ -121,3 +121,37 @@ class TestRunExports:
         with pytest.raises(ValueError, match="Unknown output format"):
             _run_exports(["nope"], str(tmp_path / "cif"), str(tmp_path), "US", "")
 
+
+@pytest.mark.unit
+class TestExportFhirRoutesThroughRegistry:
+    def test_export_fhir_uses_adapter(self, tmp_path):
+        from argparse import Namespace
+
+        import clinosim.simulator.cli as cli
+
+        seen = {}
+
+        class FhirSpy:
+            format_id = "fhir-r4"
+            description = "spy"
+            subdir = "fhir_r4"
+
+            def convert(self, cif_dir, out_dir, ctx):
+                seen["out_dir"] = out_dir
+                seen["country"] = ctx.country
+                seen["nv"] = ctx.narrative_version
+
+        register_output_adapter(FhirSpy())
+
+        cif_dir = tmp_path / "cif"
+        (cif_dir / "structural" / "patients").mkdir(parents=True)
+        args = Namespace(
+            cif_dir=str(cif_dir),
+            output=str(tmp_path / "out"),
+            country="JP",
+            narrative_version="v2",
+        )
+        cli._run_export_fhir(args)
+        assert seen["country"] == "JP"
+        assert seen["nv"] == "v2"
+        assert seen["out_dir"].endswith("/fhir_r4")

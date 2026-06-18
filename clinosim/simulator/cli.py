@@ -104,7 +104,7 @@ def main() -> None:
         help="Convert an existing CIF directory (with optional narrative version) to FHIR R4 Bulk Data NDJSON",
     )
     ef.add_argument("--cif-dir", required=True, help="Path to an existing CIF directory")
-    ef.add_argument("-o", "--output", default=None, help="Output directory (default: <cif-dir>/../fhir_r4)")
+    ef.add_argument("-o", "--output", default=None, help="Output root directory; FHIR goes to <output>/fhir_r4 (default root: <cif-dir>/..)")
     ef.add_argument("--country", default="US", help="Country code (US or JP)")
     ef.add_argument(
         "--narrative-version",
@@ -593,7 +593,7 @@ def _run_narrate(args: Any) -> None:
 
 def _run_export_fhir(args: Any) -> None:
     """Stage 3 handler: convert an existing CIF (+narrative) into FHIR NDJSON."""
-    from clinosim.modules.output.fhir_r4_adapter import convert_cif_to_fhir
+    from clinosim.modules.output.adapter import OutputContext, get_adapter
 
     cif_dir = args.cif_dir
     if not os.path.isdir(os.path.join(cif_dir, "structural", "patients")):
@@ -601,10 +601,10 @@ def _run_export_fhir(args: Any) -> None:
         return
 
     if args.output:
-        output_dir = args.output
+        output_root = args.output
     else:
-        parent = os.path.dirname(os.path.abspath(cif_dir))
-        output_dir = os.path.join(parent, "fhir_r4")
+        output_root = os.path.dirname(os.path.abspath(cif_dir))
+    output_dir = os.path.join(output_root, "fhir_r4")
 
     print(f"clinosim export-fhir:")
     print(f"  CIF directory:      {cif_dir}")
@@ -612,14 +612,18 @@ def _run_export_fhir(args: Any) -> None:
     print(f"  Country:            {args.country}")
     print(f"  Narrative version:  {args.narrative_version or '(none)'}")
 
-    convert_cif_to_fhir(
+    get_adapter("fhir-r4").convert(
         cif_dir,
         output_dir,
-        country=args.country,
-        narrative_version=args.narrative_version,
+        OutputContext(
+            country=getattr(args, "country", "US"),
+            narrative_version=getattr(args, "narrative_version", None) or "",
+        ),
     )
 
     # Summarize output
+    if not os.path.isdir(output_dir):
+        return
     files = sorted(
         f for f in os.listdir(output_dir)
         if f.endswith(".ndjson") or f == "manifest.json"
