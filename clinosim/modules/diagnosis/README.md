@@ -169,6 +169,16 @@ DIFFERENTIALS: dict[str, list[dict]] = {
 
 カバーする疾患 (抜粋): bacterial_pneumonia, heart_failure_exacerbation, hip_fracture, urinary_tract_infection, copd_exacerbation, sepsis, cerebral_infarction, acute_mi, gi_bleeding, diabetic_ketoacidosis, ileus, acute_pancreatitis, acute_appendicitis, pulmonary_embolism, acute_cholecystitis, atrial_fibrillation_rvr, cellulitis, acute_kidney_injury, liver_cirrhosis_decompensated, aspiration_pneumonia, influenza, asthma_exacerbation, hemorrhagic_stroke, vertebral_compression_fracture, deep_vein_thrombosis, 外傷系 (traffic_accident_severe, wrist_fracture_surgical, subdural_hematoma)。
 
+> ⚠️ **診断コードカバレッジ (必読)**: `DIFFERENTIALS` の `icd` と `LR_TABLE`/`DIAGNOSIS_PROGRESSION`
+> の ICD コードは、disease/encounter YAML に次ぐ**第3の emittable Condition コード源**。
+> これらを追加/変更したら、`codes/data/{icd-10-cm,icd-10}.yaml` への収載(US billable / JP は WHO
+> 3-4桁、権威照合・捏造禁止)が必須。`tests/unit/test_diagnosis_code_coverage.py` が3源すべてを
+> 横断ガードする(`ALL_EMITTABLE`)。詳細は ルート `CLAUDE.md`「Diagnosis code coverage」。
+>
+> **既知の負債**: 本モジュールは `DIFFERENTIALS` 表と表示 `name` を **Python にハードコード**して
+> いる(YAML駆動原則 AD に反する)。将来的に `reference_data` YAML 化 + `name` を
+> `clinosim.codes` lookup 解決にするのが望ましい(出力ロジック・決定論に関わるため別リファクタ)。
+
 ### `LR_TABLE` (組み込み likelihood ratios)
 
 ```python
