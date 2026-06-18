@@ -69,3 +69,55 @@ class TestBuiltinAdapters:
     def test_csv_adapter_metadata(self):
         a = get_adapter("csv")
         assert a.subdir == "csv"
+
+
+@pytest.mark.unit
+class TestRunExports:
+    def test_runs_requested_adapters_and_skips_cif(self, tmp_path):
+        from clinosim.simulator.cli import _run_exports
+
+        calls = []
+
+        class RecordingAdapter:
+            format_id = "rec"
+            description = "recording"
+            subdir = "rec"
+
+            def convert(self, cif_dir, out_dir, ctx):
+                calls.append((cif_dir, out_dir, ctx.country))
+
+        register_output_adapter(RecordingAdapter())
+        _run_exports(
+            formats=["cif", "rec"],
+            cif_dir=str(tmp_path / "cif"),
+            output_root=str(tmp_path),
+            country="JP",
+            narrative_version="v1",
+        )
+        assert len(calls) == 1
+        assert calls[0][1].endswith("/rec")
+        assert calls[0][2] == "JP"
+
+    def test_fhir_alias_resolves(self, tmp_path):
+        from clinosim.simulator.cli import _run_exports
+
+        seen = []
+
+        class FhirSpy:
+            format_id = "fhir-r4"
+            description = "spy"
+            subdir = "fhir_r4"
+
+            def convert(self, cif_dir, out_dir, ctx):
+                seen.append(out_dir)
+
+        register_output_adapter(FhirSpy())  # replaces builtin for this test
+        _run_exports(["fhir"], str(tmp_path / "cif"), str(tmp_path), "US", "")
+        assert seen and seen[0].endswith("/fhir_r4")
+
+    def test_unknown_format_raises_valueerror(self, tmp_path):
+        from clinosim.simulator.cli import _run_exports
+
+        with pytest.raises(ValueError, match="Unknown output format"):
+            _run_exports(["nope"], str(tmp_path / "cif"), str(tmp_path), "US", "")
+

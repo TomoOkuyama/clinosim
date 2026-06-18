@@ -37,7 +37,7 @@ def main() -> None:
     gen.add_argument("--country", default="US", help="Country code (US or JP)")
     gen.add_argument("--start", default=None, help="Simulation start date YYYY-MM-DD (default: 1 year before --end)")
     gen.add_argument("--end", default=None, help="Simulation end date / snapshot date YYYY-MM-DD (default: today). Inpatients still admitted on this date have no discharge.")
-    gen.add_argument("--format", nargs="+", default=["cif"], help="Output formats: cif, csv, fhir")
+    gen.add_argument("--format", nargs="+", default=["cif"], help="Output formats: cif, csv, fhir-r4 (alias: fhir). Add more by registering an OutputAdapter (AD-58).")
     gen.add_argument("--narrative", action="store_true", help="Generate narrative layer (requires Ollama)")
     gen.add_argument("--narrative-model", default="qwen:7b", help="Ollama model for narratives")
     gen.add_argument("--hospital-config", default=None, help="Hospital operations YAML (default: config/hospital_operations.yaml)")
@@ -211,10 +211,6 @@ def main() -> None:
     cif_dir = os.path.join(args.output, "cif")
     write_cif(dataset, cif_dir)
 
-    if "csv" in args.format:
-        from clinosim.modules.output.csv_adapter import convert_cif_to_csv
-        convert_cif_to_csv(cif_dir, os.path.join(args.output, "csv"))
-
     # Narrative layer (Stage 2, optional) — runs BEFORE FHIR export so that
     # DocumentReference can reference the freshly generated version.
     narrative_version = getattr(args, "narrative_version", None)
@@ -244,18 +240,47 @@ def main() -> None:
         print(f"  Narrative version: {narrative_version}")
         print(f"  LLM cost report: {llm.cost_report()}")
 
-    if "fhir" in args.format:
-        from clinosim.modules.output.fhir_r4_adapter import convert_cif_to_fhir
-        country = getattr(args, "country", "US")
-        convert_cif_to_fhir(
-            cif_dir,
-            os.path.join(args.output, "fhir_r4"),
-            country=country,
-            narrative_version=narrative_version,
-        )
+    # Format exports via the adapter registry (AD-58). Add a format = register an adapter.
+    _run_exports(
+        args.format,
+        cif_dir,
+        args.output,
+        getattr(args, "country", "US"),
+        narrative_version or "",
+    )
 
     # Summary
     _print_summary(dataset, args.output)
+
+
+# Back-compat alias: legacy "--format fhir" means FHIR R4.
+_FORMAT_ALIASES = {"fhir": "fhir-r4"}
+
+
+def _run_exports(
+    formats: list[str],
+    cif_dir: str,
+    output_root: str,
+    country: str,
+    narrative_version: str,
+) -> None:
+    """Run each requested export format through the adapter registry (AD-58).
+
+    CIF is assumed already written. "cif" is a no-op (CIF-only). Unknown formats raise
+    ValueError. Output goes to <output_root>/<adapter.subdir>.
+    """
+    from clinosim.modules.output.adapter import OutputContext, get_adapter
+
+    ctx = OutputContext(country=country, narrative_version=narrative_version or "")
+    for fmt in formats:
+        fmt = _FORMAT_ALIASES.get(fmt, fmt)
+        if fmt == "cif":
+            continue
+        try:
+            adapter = get_adapter(fmt)
+        except KeyError as e:
+            raise ValueError(str(e)) from e
+        adapter.convert(cif_dir, os.path.join(output_root, adapter.subdir), ctx)
 
 
 def _print_summary(dataset: CIFDataset, output_dir: str) -> None:
