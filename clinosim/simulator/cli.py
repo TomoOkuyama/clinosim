@@ -169,6 +169,7 @@ def main() -> None:
         return
 
     if args.command == "generate":
+        _validate_formats(args.format, parser)  # fail fast on bad --format (AD-58)
         from datetime import date, timedelta as _td
         # Default end = today, default start = end - 1 year
         end_date = (datetime.strptime(args.end, "%Y-%m-%d").date()
@@ -262,6 +263,20 @@ def main() -> None:
 
 # Back-compat alias: legacy "--format fhir" means FHIR R4.
 _FORMAT_ALIASES = {"fhir": "fhir-r4"}
+
+
+def _validate_formats(formats: list[str], parser: Any) -> None:
+    """Fail fast with a clean parser error on an unknown --format, before generation runs."""
+    from clinosim.modules.output.adapter import get_adapter
+
+    for fmt in formats:
+        resolved = _FORMAT_ALIASES.get(fmt, fmt)
+        if resolved == "cif":
+            continue
+        try:
+            get_adapter(resolved)
+        except KeyError as e:
+            parser.error(str(e))
 
 
 def _run_exports(
