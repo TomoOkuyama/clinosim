@@ -907,3 +907,22 @@ codes:
     en: Displaced subtrochanteric fracture of unspecified femur, initial encounter for closed
       fracture
     ja: 大腿骨転子下骨折（転位性）、側不明、初診・閉鎖骨折
+
+  # Differential/working-diagnosis codes from diagnosis/engine.py + ED scenarios (US billable)
+  E11.00:
+    en: Type 2 diabetes mellitus with hyperosmolarity without nonketotic hyperglycemic-hyperosmolar
+      coma (NKHHC)
+    ja: 2型糖尿病、高浸透圧、非ケトン性高血糖高浸透圧昏睡（NKHHC）を伴わないもの
+  I48.92:
+    en: Unspecified atrial flutter
+    ja: 心房粗動、詳細不明
+  I82.90:
+    en: Acute embolism and thrombosis of unspecified vein
+    ja: 急性塞栓症及び詳細不明の静脈の血栓症
+  M71.20:
+    en: Synovial cyst of popliteal space [Baker], unspecified knee
+    ja: 膝窩部滑液嚢腫［ベーカー嚢腫］、膝不明
+  R65.10:
+    en: Systemic inflammatory response syndrome (SIRS) of non-infectious origin without acute
+      organ dysfunction
+    ja: 非感染性の全身性炎症反応症候群（SIRS）、急性臓器機能障害を伴わないもの
