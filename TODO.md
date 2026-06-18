@@ -358,6 +358,22 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
   Lactate were off, blood gas pH/pCO2/pO2/HCO3 pointed at the 6A0xx **microbiology** range) —
   all corrected to the master codes. Source cited in both files; integrity guard test added
   (`test_codes_jlac10.py`, 28 cases). JP FHIR audit: 31 correct JLAC10 codes + 和名 emitted.
+- [x] **US LOINC verified.** All 38 US-mapped LOINC codes confirmed vs NLM Clinical Tables
+  LOINC API (no fabrication). Fixed 4 duplicate YAML keys + normalized verbose display
+  (PR #10). Cross-system dup-key guard added (`test_codes_integrity.py`).
+- [x] **Authoritative-source comments** added to every code-data file (icd-10-cm, icd-10,
+  rxnorm, cpt, k-codes, yj + earlier jlac10/loinc/snomed) and locale code_mapping files.
+- [ ] **ICD diagnosis-code review (2026-06 finding — needs decision).** Two structural issues:
+  (1) `locale/<c>/code_mapping_diagnosis.yaml` is **dead config** — `load_code_mapping` is
+  only called for "lab"/"drug", never "diagnosis", so the designed internal→locale (billable
+  CM / WHO) translation never runs; diagnosis codes are emitted as-is. (2) Consequently US
+  output emits a few non-CM codes (F00, J46, K35.9, S06.50/51/52, S67.8 — valid WHO ICD-10
+  but not ICD-10-CM) and many 3-char non-billable category codes (I50, I21, A41, ...).
+  Proper fix = wire up code_mapping_diagnosis (per-locale, internal→billable) in the FHIR
+  adapter + reconcile codes; changes US FHIR output + golden, so **user decision needed**.
+  (Renaming codes in icd-10-cm.yaml alone is NOT the fix — it breaks the as-is display lookup.)
+- [ ] **RxNorm / CPT / SNOMED / YJ / K-code** — authoritative-source comments added but codes
+  not yet machine-verified (RxNorm verifiable via NLM RxNav API; others need licensed masters).
 - [ ] **ECG as a proper diagnostic** (currently skipped from labs; model as Procedure/
   diagnostic order so the "ECG was done" fact is recorded).
 - [x] **Acid-base model** (eval finding): pH/HCO3/pCO2 derived from a single `ph_status`

@@ -1,7 +1,13 @@
+# K-codes — Japanese procedure codes (診療報酬点数表)
+#
+# AUTHORITATIVE SOURCE: MHLW 診療報酬点数表 (厚生労働省告示; K手術・D検査・G処置・J処置).
+# Updated each fee revision (隔年). Do not fabricate a code (AD-57).
+# NOTE: not yet machine-verified against the official 点数表.
 metadata:
   name: K-codes
   uri: urn:oid:1.2.392.200119.4.401
   version: '2024'
+  source: "MHLW 診療報酬点数表 (K/D/G/J codes)"
   description: |
     Japanese procedure codes (診療報酬点数表: K手術, D検査, G処置, J処置).
     Includes surgical procedures (K-codes), diagnostic/bedside procedures

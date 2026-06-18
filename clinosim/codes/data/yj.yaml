@@ -1,7 +1,13 @@
+# YJ code — Japanese individual drug code (個別医薬品コード)
+#
+# AUTHORITATIVE SOURCE: MHLW 薬価基準 / 個別医薬品コード(YJコード); HOT/YJ master maintained
+# via MEDIS-DC (medis.or.jp) 医薬品 HOT コードマスター. Do not fabricate a code (AD-57).
+# NOTE: not yet machine-verified against the MEDIS HOT/YJ master.
 metadata:
   name: YJ Code
   uri: urn:oid:1.2.392.100495.20.2.74
   version: '2024'
+  source: "MHLW 薬価基準 YJ / MEDIS HOT-YJ master"
   description: Japanese drug code (YJ/HOT)
 codes:
   '6131405':

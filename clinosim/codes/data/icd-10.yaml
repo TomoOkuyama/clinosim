@@ -1,7 +1,13 @@
+# ICD-10 (WHO) — used for JP diagnosis output (icd_system_key = icd-10 when country=JP)
+#
+# AUTHORITATIVE SOURCE: World Health Organization (WHO) ICD-10, icd.who.int/browse10.
+# JP uses the WHO ICD-10 family (厚労省 ICD-10 (2013)準拠). Do not fabricate a code (AD-57).
+# NOTE: not yet machine-verified against the WHO browser.
 metadata:
   name: ICD-10
   uri: http://hl7.org/fhir/sid/icd-10
   version: WHO 2019
+  source: "WHO ICD-10 (icd.who.int); JP diagnosis code system"
   description: WHO International Classification of Diseases, 10th Revision
 codes:
   A41:
