@@ -46,10 +46,15 @@ M80: "Z87.310"      # Personal history of (healed) osteoporosis fracture
 #     These are disease/encounter primary diagnoses; mapping reaches them because the
 #     adapter applies this map to the primary dx too. Unspecified site/laterality and
 #     "initial encounter" (7th char A) chosen for acute admissions. ---
+I21.2: "I21.29"       # STEMI involving other sites (I21.2 = non-billable header in CM)
 I26.9: "I26.99"       # Other pulmonary embolism without acute cor pulmonale
+I50.0: "I50.9"        # Congestive HF → Heart failure, unspecified (I50.0 is WHO-only, not CM)
 J10.0: "J10.00"       # Influenza w/ unspecified type of pneumonia
 J45.9: "J45.909"      # Unspecified asthma, uncomplicated
 K56.9: "K56.609"      # Unspecified intestinal obstruction
+N30.9: "N30.90"       # Cystitis, unspecified without hematuria (N30.9 = non-billable header)
+S72.10: "S72.143A"    # Displaced intertrochanteric fx, unspecified femur, initial (closed)
+S72.2: "S72.23XA"     # Displaced subtrochanteric fx, unspecified femur, initial (closed)
 K85.9: "K85.90"       # Acute pancreatitis without necrosis or infection, unspecified
 M48.50: "M48.50XA"    # Collapsed vertebra, site unspecified, initial encounter
 R05: "R05.9"          # Cough, unspecified (R05 subdivided in CM 2023)
