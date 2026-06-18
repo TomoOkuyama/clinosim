@@ -1,36 +1,65 @@
-# Diagnosis code mapping — Internal ICD-10 → ICD-10-CM (US)
-# Source: ICD-10-CM (CMS/NCHS)
-# Note: Most codes are identical between ICD-10 and ICD-10-CM for these conditions.
+# Diagnosis code mapping — Internal chronic/history base code → billable ICD-10-CM (US)
+#
+# AUTHORITATIVE SOURCE: ICD-10-CM (CMS/NCHS). Every target verified vs the NLM Clinical
+# Tables ICD-10-CM API (clinicaltables.nlm.nih.gov/api/icd10cm/v3/search, 2024). No fabrication.
+#
+# WHY THIS EXISTS: chronic conditions are tracked internally by base/category code
+# (activator.CONDITION_NAMES; discharge dx truncated to base in simulator/helpers.py).
+# Those category codes (I50, E78, J44, ...) and WHO-only codes (F00) are NOT billable to
+# highest specificity. At FHIR output time _build_conditions() translates each internal
+# code to its billable ICD-10-CM leaf via this map. Codes absent from the map pass through
+# unchanged (disease primary dx are already specific, e.g. I21.9, A41.9 — left untouched).
+#
+# Past-acute events that enter the medical history as a chronic base code map to the
+# clinically-correct "old / personal history of" ICD-10-CM code (I21→I25.2 Old MI, etc.).
 
-# Pneumonia
-J15.9: "J15.9"
-J18.9: "J18.9"
-J15.0: "J15.0"
-J15.1: "J15.1"
-J13: "J13"
+# --- Chronic conditions → unspecified billable leaf ---
+I10: "I10"          # Essential hypertension (already billable)
+E11.9: "E11.9"      # Type 2 diabetes mellitus without complications
+E10: "E10.9"        # Type 1 diabetes mellitus without complications
+E78: "E78.5"        # Hyperlipidemia, unspecified
+J44: "J44.9"        # COPD, unspecified
+N18: "N18.9"        # Chronic kidney disease, unspecified
+I50: "I50.9"        # Heart failure, unspecified
+I48: "I48.91"       # Unspecified atrial fibrillation
+I25: "I25.10"       # Atherosclerotic heart disease of native coronary artery w/o angina
+M81: "M81.0"        # Age-related osteoporosis without current pathological fracture
+F00: "F03.90"       # Unspecified dementia (WHO F00 Alzheimer → CM unspecified dementia)
+G20: "G20.C"        # Parkinsonism, unspecified (G20 subdivided in CM 2024)
+E03: "E03.9"        # Hypothyroidism, unspecified
+K21: "K21.9"        # GERD without esophagitis
+J45: "J45.909"      # Unspecified asthma, uncomplicated
+N40: "N40.0"        # Benign prostatic hyperplasia without lower urinary tract symptoms
+M17: "M17.9"        # Osteoarthritis of knee, unspecified
 
-# Heart failure
-I50.9: "I50.9"
-I50.1: "I50.1"
-I50: "I50.9"
+# --- Past acute events carried as chronic background → "personal history of / old" ---
+I21: "I25.2"        # Old myocardial infarction
+I26: "Z86.711"      # Personal history of pulmonary embolism
+I61: "Z86.73"       # Personal history of cerebral infarction without residual deficits
+I63: "Z86.73"       # Personal history of cerebral infarction without residual deficits
+I80: "Z86.718"      # Personal history of other venous thrombosis and embolism
+I82: "Z86.718"      # Personal history of other venous thrombosis and embolism
+M48: "Z87.311"      # Personal history of (healed) other pathological fracture (vertebral)
+M80: "Z87.310"      # Personal history of (healed) osteoporosis fracture
 
-# Hip fracture
-S72.0: "S72.009A"
-S72.1: "S72.101A"
-
-# Chronic conditions
-I10: "I10"
-E11.9: "E11.9"
-E78: "E78.5"
-J44: "J44.1"
-N18: "N18.9"
-I48: "I48.91"
-I25: "I25.9"
-M81: "M81.0"
-F00: "F03.90"
-G20: "G20"
-E03: "E03.9"
-K21: "K21.0"
-J45: "J45.909"
-N40: "N40.0"
-M17: "M17.9"
+# --- Non-billable PRIMARY dx codes (category / missing 7th char) → billable CM leaf.
+#     These are disease/encounter primary diagnoses; mapping reaches them because the
+#     adapter applies this map to the primary dx too. Unspecified site/laterality and
+#     "initial encounter" (7th char A) chosen for acute admissions. ---
+I26.9: "I26.99"       # Other pulmonary embolism without acute cor pulmonale
+J10.0: "J10.00"       # Influenza w/ unspecified type of pneumonia
+J45.9: "J45.909"      # Unspecified asthma, uncomplicated
+K56.9: "K56.609"      # Unspecified intestinal obstruction
+K85.9: "K85.90"       # Acute pancreatitis without necrosis or infection, unspecified
+M48.50: "M48.50XA"    # Collapsed vertebra, site unspecified, initial encounter
+R05: "R05.9"          # Cough, unspecified (R05 subdivided in CM 2023)
+R68.8: "R68.89"       # Other general symptoms and signs
+S06.5: "S06.5X0A"     # Traumatic subdural hemorrhage w/o LOC, initial encounter
+S52.50: "S52.509A"    # Fracture lower end unspecified radius, initial (closed)
+S72.00: "S72.009A"    # Fracture neck of unspecified femur, initial (closed)
+S93.40: "S93.409A"    # Sprain of unspecified ankle ligament, initial encounter
+T07: "T07.XXXA"       # Unspecified multiple injuries, initial encounter
+T14.90: "T14.90XA"    # Injury, unspecified, initial encounter
+T15.0: "T15.00XA"     # Foreign body in cornea, unspecified eye, initial encounter
+T54.9: "T54.91XA"     # Toxic effect of unspecified corrosive substance, initial
+T78.40: "T78.40XA"    # Allergy, unspecified, initial encounter
