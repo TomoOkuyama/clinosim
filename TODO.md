@@ -20,7 +20,7 @@ JP full run (5K catchment, 50-bed hospital, seed=42):
 - FHIR Bulk Data 467MB
 
 Code system coverage:
-- 234 ICD-10-CM codes, 133 ICD-10 codes (EN + JA bilingual)
+- 349 ICD-10-CM codes, 306 ICD-10 (WHO) codes (EN + JA bilingual)
 - 65 LOINC, 68 RxNorm, 31 CPT, 25 K-codes, 39 YJ, 31 SNOMED CT
 - 120+ drug name JP translations (drug_names_ja.yaml)
 - 201 unit tests passing
@@ -212,7 +212,7 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 | 4 | Outpatient chronic disease management depth | `encounter`, `population` | Partial (chronic_followup.yaml exists but limited) |
 | 5 | LLM judgment phase wiring (currently template only) | `llm_service`, `diagnosis` | Open |
 | 6 | Realistic 80% bed occupancy at default population | `facility`, `population` | ✅ Fixed — US 40K / JP 5K recommended_population (was 60K) |
-| 7 | Code coverage expansion: more LOINC/RxNorm/CPT codes | `codes` | Continuous (224 ICD, 59 LOINC, 68 RxNorm, 25 CPT currently) |
+| 7 | Code coverage expansion: more LOINC/RxNorm/CPT codes | `codes` | Continuous (349 ICD-10-CM, 306 ICD-10, 83 LOINC, 68 RxNorm, 31 CPT currently) |
 
 ### Medium Priority
 
@@ -370,9 +370,29 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
   US translates every internal chronic/history base code + non-billable primary to a billable
   ICD-10-CM leaf (chronic→unspecified leaf; past-acute-as-chronic→"history of/old" e.g.
   I21→I25.2; primary specificity/7th-char e.g. R05→R05.9, S72.00→S72.009A, T07→T07.XXXA).
-  JP maps identity (WHO category codes valid; output unchanged). All targets verified vs NLM
-  ICD-10-CM API (no fabrication) + added to `icd-10-cm.yaml`. Audit (US 10k): 91/91 distinct
-  Condition codes billable, 0 non-billable; JP 10k unchanged, 0 display-unavailable.
+  All targets verified vs NLM ICD-10-CM API (no fabrication) + added to `icd-10-cm.yaml`.
+  Audit (US 10k): 91/91 distinct Condition codes billable, 0 non-billable.
+- [x] **Used-but-missing diagnosis codes — FIXED (PR #19).** Disease/encounter scenarios
+  referenced 19 ICD codes absent from code-data (display fell back to approximate prefix
+  match). Registered after NLM/WHO verification; fixed miscode K57.11 (small-intestine) →
+  K57.31 (large-intestine diverticular bleeding). Coverage invariant added
+  (`test_diagnosis_code_coverage.py`).
+- [x] **JP diagnosis output → true WHO ICD-10 granularity — FIXED (PR #20).** JP previously
+  emitted ICD-10-CM-granularity codes (7th-char `S06.0X0A`, 5-char `A41.01`, `Z00.00`) under
+  the WHO `icd-10` system URI, resolving only via cm-fallback. `code_mapping_diagnosis/jp.yaml`
+  now folds every internal code to WHO 3-4 char (+110 WHO codes verified vs icd.who.int/
+  browse10/2019; R65 axis differs in WHO so severe-sepsis R65.20/.21→R65.1, SIRS R65.10→R65.2).
+  `icd-10.yaml` is now 100% WHO format. Structural guards: `test_jp_never_emits_cm_granular_code`,
+  `test_icd10_who_file_has_no_cm_granular_codes`. Generation: 0 CM-granular codes emitted.
+- [x] **engine.py differential codes registered — FIXED (PR #21).** The `DIFFERENTIALS` table +
+  LR tuples in `modules/diagnosis/engine.py` are a third emittable Condition-code source; ~65
+  codes were unregistered (prefix-fallback). Added after NLM/WHO verification (+58 CM, +58 WHO,
+  +35 us_map, +2 jp_map incl. K56.9→K56.7). Coverage test now ranges over `ALL_EMITTABLE`
+  (disease + encounter + engine.py). Generation (US 51k + JP 28k Conditions): 0 prefix-fallback.
+- [ ] **engine.py diagnosis tables → YAML (data-driven, follow-up #2).** `DIFFERENTIALS`,
+  `LR_TABLE`, `DIAGNOSIS_PROGRESSION` + display `name`s are hard-coded in Python (violates the
+  YAML-driven AD). Move to `reference_data` YAML and resolve `name` via `clinosim.codes` lookup.
+  Output-logic adjacent → must preserve determinism/golden output.
 - [ ] **RxNorm / CPT / SNOMED / YJ / K-code** — authoritative-source comments added but codes
   not yet machine-verified (RxNorm verifiable via NLM RxNav API; others need licensed masters).
 - [ ] **ECG as a proper diagnostic** (currently skipped from labs; model as Procedure/
