@@ -291,12 +291,18 @@ def derive_lab_values(
     # dedicated respiratory/oxygenation state variable exists — AD-57 follow-up).
     labs["pO2"] = clamp(95.0 - infl * 45.0, 45.0, 105.0)  # mm[Hg]
 
-    # --- Glucose (with diurnal / postprandial variation) ---
+    # --- Glucose (chronic diabetes baseline + acute glycemic state + diurnal variation) ---
     if has_diabetes:
-        mean_glu = 130.0 if diabetes_controlled else 200.0
-        labs["Glucose"] = mean_glu
+        base_glu = 130.0 if diabetes_controlled else 200.0
     else:
-        labs["Glucose"] = 95.0
+        base_glu = 95.0
+    # Acute glycemic drive (DKA/HHS push glucose_status up; insulin therapy lowers it).
+    gs = state.glucose_status
+    if gs >= 0:
+        base_glu += gs * 500.0   # hyperglycemia: gs 0.6 ≈ +300 (DKA 300–500 range)
+    else:
+        base_glu += gs * 55.0    # hypoglycemia: gs -0.5 ≈ -27
+    labs["Glucose"] = base_glu
     labs["Glucose"] += infl * 50  # stress hyperglycemia
     # Postprandial rise: meals ~8h, 12h, 18h → peak 1-2h after
     # Fasting (early morning 04-07): lowest
@@ -308,6 +314,7 @@ def derive_lab_values(
     elif 19 <= hour <= 20:  # post-dinner
         postprandial = 20.0
     labs["Glucose"] += postprandial
+    labs["Glucose"] = clamp(labs["Glucose"], 40.0, 1200.0)  # physiological bounds
 
     # --- WBC diurnal variation (±10%, afternoon slightly higher) ---
     # Nadir ~04:00, peak ~16:00
@@ -412,5 +419,6 @@ def _variable_range(var: str) -> tuple[float, float]:
         "perfusion_status": (0.0, 1.0),
         "ph_status": (-1.0, 1.0),
         "respiratory_fraction": (0.0, 1.0),
+        "glucose_status": (-1.0, 1.0),
     }
     return ranges.get(var, (0.0, 1.0))

@@ -27,6 +27,10 @@ class PhysiologicalState:
     # respiratory (e.g. COPD/asthma CO2 retention). Set from the disease scenario's
     # acid_base_type or the patient's chronic respiratory conditions. AD-57.
     respiratory_fraction: float = 0.0  # 0.0–1.0
+    # Acute glycemic state: 0.0 = euglycemia, positive = hyperglycemia (DKA/HHS drives this
+    # up, e.g. 0.6 ≈ 300–500 mg/dL), negative = hypoglycemia. Distinct from the chronic
+    # diabetes baseline (has_diabetes). Set from the disease scenario. AD-57.
+    glucose_status: float = 0.0  # -1.0–+1.0
 
 
 @dataclass
