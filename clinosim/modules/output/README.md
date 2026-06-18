@@ -93,6 +93,11 @@ Condition と Procedure は dual coding entry を出力:
 - `_build_diagnosis_codeable_concept()` が icd-10/icd-10-cm を cross-system fallback で解決
 - `code.text` には `_CONDITION_SHORT_NAME` の臨床略語 (COPD, CHF, CKD, DM, AF 等) を使用 (AD-49)
 - display==code は **絶対に出力しない** (fallback: "(display unavailable)")
+- **診断コードの請求化**: `_build_conditions()` は primary・chronic 両方の Condition コードを
+  `_map_diagnosis_code()` 経由で locale コードへ変換 (`code_mapping_diagnosis.yaml`)。US は内部
+  慢性/既往 base + 非請求 primary を **billable ICD-10-CM** へ (I50→I50.9, I21→I25.2 陳旧性MI,
+  R05→R05.9 等); JP は identity (WHO カテゴリコード有効、出力不変)。dedup は内部 base コードのまま
+  (急性MI primary が陳旧性MI chronic の重複を抑制)。詳細は `locale/README.md`。
 
 ### Observation referenceRange / interpretation (AD-47)
 
