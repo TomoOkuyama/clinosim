@@ -245,3 +245,23 @@ sex-specific range は `sex: "M"` / `sex: "F"` で区別。
 - CSV はネスト構造をパイプ区切りで平坦化する。 完全な可逆変換ではない
 - Progress Note (日次 SOAP 記録) は Tier C として将来計画 (v0.3)
 - 薬品名は CIF に英語で格納 (RxNorm 完全連携は未完了)。FHIR JP 出力時は `drug_names_ja.yaml` 辞書で変換
+
+## 出力フォーマットの追加 (AD-58)
+
+新しい出力形式は `OutputAdapter` を1つ登録するだけで追加できる（CLI もコアも無改修）。
+
+```python
+from clinosim.modules.output.adapter import OutputContext, register_output_adapter
+
+class SsMixAdapter:
+    format_id = "ss-mix"
+    description = "SS-MIX2 標準化ストレージ"
+    subdir = "ss_mix"
+    def convert(self, cif_dir: str, out_dir: str, ctx: OutputContext) -> None:
+        ...  # CIF を読んで out_dir に書き出す（CIF + clinosim.codes + locale のみ依存）
+
+register_output_adapter(SsMixAdapter())
+```
+
+`--format ss-mix` で利用可能になる。`OutputContext` は country / narrative_version 等の
+共通文脈を渡す。組み込み（csv / fhir-r4）は `adapters_builtin.py`。

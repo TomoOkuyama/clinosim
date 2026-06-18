@@ -42,6 +42,7 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 
 - **Near-essential data → Base** (always-on, extend core: `types`/`population`/`observation`/`simulator`/`output`). **Specialized/optional data → opt-in module**, one theme per module (like `identity`), gated via `SimulatorConfig.modules` + `config.module_enabled(name)`.
 - **Add a FHIR resource** by registering a builder via `register_bundle_builder()` (AD-56) — do NOT edit `_build_bundle()`. Builders return raw resources `(ctx) -> list[resource]`.
+- **Add an output format** by registering an `OutputAdapter` via `register_output_adapter()` (AD-58) — do NOT edit the CLI `--format` dispatch. Adapters read CIF + `clinosim.codes` + `clinosim.locale` only.
 - **Add a post-population / post-records pass** by registering an `Enricher` in `simulator/enrichers.py` (`register_builtin_enrichers`) — do NOT inline it into `run_beta`. Enrichers derive their own sub-seed; order is fixed (determinism).
 - **Modules must NOT edit `CIFPatientRecord`** — write to `CIFPatientRecord.extensions[<module>]`. Only Base data adds typed fields to the core type.
 - Refactors of these paths must preserve golden/e2e output and determinism.
