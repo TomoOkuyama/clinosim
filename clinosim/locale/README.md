@@ -41,7 +41,7 @@ clinosim/locale/
 │   ├── demographics.yaml      # 年齢分布, 血液型, 慢性疾患有病率, 疾患罹患率
 │   ├── formatting.yaml        # 日付・時刻・単位フォーマット
 │   ├── code_mapping_lab.yaml      # 内部名 → JLAC10
-│   ├── code_mapping_diagnosis.yaml # 内部 慢性/既往 base → ICD-10 (identity, WHO)
+│   ├── code_mapping_diagnosis.yaml # 内部コード → WHO ICD-10 (3-4桁へ畳み込み)
 │   ├── code_mapping_drug.yaml      # 内部名 → YJ コード
 │   ├── code_mapping_procedure.yaml # 内部名 → K コード
 │   └── reference_range_lab.yaml    # JCCLS 共用基準範囲 2022
@@ -131,16 +131,21 @@ us_lab = load_code_mapping("lab", "US")
 # {"CRP": "1988-5", "WBC": "6690-2", ...}               (LOINC)
 ```
 
-**`"diagnosis"` domain** — 診断コードは慢性/既往の base コード (例 `I50`, `E78`, `I21`) を
-locale の請求可能コードへ変換する。FHIR adapter の `_build_conditions` が primary・chronic
-両方の Condition コードに適用 (マップに無いコードは passthrough; 疾患 primary は既に具体的)。
+**`"diagnosis"` domain** — 診断コードを国別の標準粒度へ変換する。FHIR adapter の
+`_build_conditions` が primary・chronic 両方の Condition コードに適用 (マップに無いコードは
+passthrough)。**US は請求可能 ICD-10-CM へ、JP は WHO ICD-10(3-4桁)へ** — 非対称な2系統。
 
 ```python
 us_dx = load_code_mapping("diagnosis", "US")
-# {"E78": "E78.5", "I50": "I50.9", "I21": "I25.2"(陳旧性MI), "R05": "R05.9", ...}  billable ICD-10-CM
+# {"E78": "E78.5", "I50": "I50.9", "I21": "I25.2"(陳旧性MI), "A41.01": passthrough, ...}  billable ICD-10-CM
 jp_dx = load_code_mapping("diagnosis", "JP")
-# {"E78": "E78", "I50": "I50", ...}  identity (WHO ICD-10 カテゴリコードは有効、出力不変)
+# {"E78": "E78", "A41.01": "A41.0", "S06.0X0A": "S06.0", ...}  WHO ICD-10 へ畳み込み
 ```
+
+> **JP は真の WHO ICD-10 のみ出力**(`http://hl7.org/fhir/sid/icd-10` システムと整合)。
+> 疾患/encounter/engine.py の内部コードが ICD-10-CM 粒度(7桁拡張等)でも、JP マップが
+> WHO 3-4桁へ畳み込む(`icd-10-cm.yaml` への cross-fallback はしない)。整合性は
+> `tests/unit/test_diagnosis_code_coverage.py` がガード。
 
 > 内部 base コードが慢性歴に入る経路は `simulator/helpers.py` (退院 dx を base 切詰め + 慢性
 > prefix 一致で追加)。過去の急性イベント (MI=I21, 脳梗塞=I63 等) は US で「既往 (history/old)」
