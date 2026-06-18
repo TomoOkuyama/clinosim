@@ -764,3 +764,179 @@ codes:
   V89.2:
     en: Person injured in unspecified motor-vehicle accident, traffic
     ja: 詳細不明の自動車交通事故による負傷者
+
+  # diagnosis/engine.py differential codes (WHO ICD-10 2019-verified)
+  A15.0:
+    en: "Tuberculosis of lung, confirmed by sputum microscopy with or without culture"
+    ja: "肺結核、喀痰塗抹（培養の有無を問わない）により確認"
+  C16.9:
+    en: "Malignant neoplasm: Stomach, unspecified"
+    ja: "胃の悪性新生物、詳細不明"
+  C71.9:
+    en: "Malignant neoplasm: Brain, unspecified"
+    ja: "脳の悪性新生物、詳細不明"
+  C79.5:
+    en: "Secondary malignant neoplasm of bone and bone marrow"
+    ja: "骨および骨髄の続発性悪性新生物"
+  E05.9:
+    en: "Thyrotoxicosis, unspecified"
+    ja: "甲状腺中毒症、詳細不明"
+  E87.2:
+    en: "Acidosis"
+    ja: "アシドーシス"
+  G43.1:
+    en: "Migraine with aura [classical migraine]"
+    ja: "前兆を伴う片頭痛［古典型片頭痛］"
+  I30.9:
+    en: "Acute pericarditis, unspecified"
+    ja: "急性心膜炎、詳細不明"
+  I33.0:
+    en: "Acute and subacute infective endocarditis"
+    ja: "急性および亜急性感染性心内膜炎"
+  I47.1:
+    en: "Supraventricular tachycardia"
+    ja: "上室頻拍"
+  I60.9:
+    en: "Subarachnoid haemorrhage, unspecified"
+    ja: "くも膜下出血、詳細不明"
+  I71.0:
+    en: "Dissection of aorta [any part]"
+    ja: "大動脈解離［任意の部位］"
+  I88.0:
+    en: "Nonspecific mesenteric lymphadenitis"
+    ja: "非特異的腸間膜リンパ節炎"
+  J68.0:
+    en: "Bronchitis and pneumonitis due to chemicals, gases, fumes and vapours"
+    ja: "化学物質、ガス、煙および蒸気による気管支炎および肺臓炎"
+  J85.1:
+    en: "Abscess of lung with pneumonia"
+    ja: "肺膿瘍、肺炎を伴うもの"
+  J93.9:
+    en: "Pneumothorax, unspecified"
+    ja: "気胸、詳細不明"
+  J98.8:
+    en: "Other specified respiratory disorders"
+    ja: "その他の明示された呼吸器障害"
+  K21.0:
+    en: "Gastro-oesophageal reflux disease with oesophagitis"
+    ja: "胃食道逆流症、食道炎を伴うもの"
+  K25.9:
+    en: "Gastric ulcer: unspecified as acute or chronic, without haemorrhage or perforation"
+    ja: "胃潰瘍、急性・慢性の別不明、出血または穿孔を伴わないもの"
+  K46.0:
+    en: "Unspecified abdominal hernia with obstruction, without gangrene"
+    ja: "詳細不明の腹部ヘルニア、閉塞を伴い、壊疽を伴わないもの"
+  K50.9:
+    en: "Crohn disease, unspecified"
+    ja: "クローン病、詳細不明"
+  K65.0:
+    en: "Acute peritonitis"
+    ja: "急性腹膜炎"
+  K65.9:
+    en: "Peritonitis, unspecified"
+    ja: "腹膜炎、詳細不明"
+  K70.1:
+    en: "Alcoholic hepatitis"
+    ja: "アルコール性肝炎"
+  K72.9:
+    en: "Hepatic failure, unspecified"
+    ja: "肝不全、詳細不明"
+  K76.9:
+    en: "Liver disease, unspecified"
+    ja: "肝疾患、詳細不明"
+  K80.2:
+    en: "Calculus of gallbladder without cholecystitis"
+    ja: "胆嚢結石、胆嚢炎を伴わないもの"
+  K81.9:
+    en: "Cholecystitis, unspecified"
+    ja: "胆嚢炎、詳細不明"
+  K83.0:
+    en: "Cholangitis"
+    ja: "胆管炎"
+  K92.9:
+    en: "Disease of digestive system, unspecified"
+    ja: "消化器系の疾患、詳細不明"
+  L02.9:
+    en: "Cutaneous abscess, furuncle and carbuncle, unspecified"
+    ja: "皮膚膿瘍、せつおよびよう、詳細不明"
+  L08.9:
+    en: "Local infection of skin and subcutaneous tissue, unspecified"
+    ja: "皮膚および皮下組織の局所感染、詳細不明"
+  M51.1:
+    en: "Lumbar and other intervertebral disc disorders with radiculopathy"
+    ja: "腰部およびその他の椎間板障害、神経根症を伴うもの"
+  M72.6:
+    en: "Necrotizing fasciitis"
+    ja: "壊死性筋膜炎"
+  M79.6:
+    en: "Pain in limb"
+    ja: "四肢痛"
+  N13.9:
+    en: "Obstructive and reflux uropathy, unspecified"
+    ja: "閉塞性および逆流性尿路症、詳細不明"
+  N19:
+    en: "Unspecified kidney failure"
+    ja: "詳細不明の腎不全"
+  N41.0:
+    en: "Acute prostatitis"
+    ja: "急性前立腺炎"
+  N83.2:
+    en: "Other and unspecified ovarian cysts"
+    ja: "その他および詳細不明の卵巣嚢胞"
+  R00.0:
+    en: "Tachycardia, unspecified"
+    ja: "頻脈、詳細不明"
+  R06.0:
+    en: "Dyspnoea"
+    ja: "呼吸困難"
+  R06.2:
+    en: "Wheezing"
+    ja: "喘鳴"
+  R10.1:
+    en: "Pain localized to upper abdomen"
+    ja: "上腹部に限局する疼痛"
+  R10.3:
+    en: "Pain localized to other parts of lower abdomen"
+    ja: "下腹部のその他の部位に限局する疼痛"
+  R29.8:
+    en: "Other and unspecified symptoms and signs involving the nervous and musculoskeletal systems"
+    ja: "神経系および筋骨格系に関するその他および詳細不明の症状および徴候"
+  R30.0:
+    en: "Dysuria"
+    ja: "排尿障害"
+  R73.9:
+    en: "Hyperglycaemia, unspecified"
+    ja: "高血糖、詳細不明"
+  S06.3:
+    en: "Focal brain injury"
+    ja: "限局性脳損傷"
+  S06.4:
+    en: "Epidural haemorrhage"
+    ja: "硬膜外出血"
+  S22.4:
+    en: "Multiple fractures of ribs"
+    ja: "多発肋骨骨折"
+  S32.1:
+    en: "Fracture of sacrum"
+    ja: "仙骨骨折"
+  S36.0:
+    en: "Injury of spleen"
+    ja: "脾臓の損傷"
+  S52.9:
+    en: "Fracture of forearm, part unspecified"
+    ja: "前腕骨折、部位詳細不明"
+  S62.0:
+    en: "Fracture of navicular [scaphoid] bone of hand"
+    ja: "手の舟状骨骨折"
+  S86.9:
+    en: "Injury of unspecified muscle and tendon at lower leg level"
+    ja: "下腿レベルの詳細不明の筋および腱の損傷"
+  K56.7:
+    en: "Ileus, unspecified"
+    ja: "イレウス、詳細不明"
+  R07.4:
+    en: "Chest pain, unspecified"
+    ja: "胸痛、詳細不明"
+  N18.9:
+    en: "Chronic kidney disease, unspecified"
+    ja: "慢性腎臓病、詳細不明"
