@@ -123,6 +123,25 @@ class TestRunExports:
 
 
 @pytest.mark.unit
+class TestValidateFormats:
+    class _ParserStub:
+        def error(self, msg):
+            raise SystemExit(msg)
+
+    def test_unknown_format_calls_parser_error(self):
+        from clinosim.simulator.cli import _validate_formats
+
+        with pytest.raises(SystemExit, match="Unknown output format"):
+            _validate_formats(["bogus"], self._ParserStub())
+
+    def test_known_formats_and_aliases_pass(self):
+        from clinosim.simulator.cli import _validate_formats
+
+        # cif (special), csv/fhir-r4 (builtins), fhir (alias) all validate without error.
+        _validate_formats(["cif", "csv", "fhir-r4", "fhir"], self._ParserStub())
+
+
+@pytest.mark.unit
 class TestExportFhirRoutesThroughRegistry:
     def test_export_fhir_uses_adapter(self, tmp_path):
         from argparse import Namespace
