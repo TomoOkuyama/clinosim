@@ -37,7 +37,11 @@ def main() -> None:
     gen.add_argument("--country", default="US", help="Country code (US or JP)")
     gen.add_argument("--start", default=None, help="Simulation start date YYYY-MM-DD (default: 1 year before --end)")
     gen.add_argument("--end", default=None, help="Simulation end date / snapshot date YYYY-MM-DD (default: today). Inpatients still admitted on this date have no discharge.")
-    gen.add_argument("--format", nargs="+", default=["cif"], help="Output formats: cif, csv, fhir-r4 (alias: fhir). Add more by registering an OutputAdapter (AD-58).")
+    gen.add_argument(
+        "--format", nargs="+", default=["cif"],
+        help="Output formats: cif, csv, fhir-r4 (alias: fhir). "
+             "Add more by registering an OutputAdapter (AD-58).",
+    )
     gen.add_argument("--narrative", action="store_true", help="Generate narrative layer (requires Ollama)")
     gen.add_argument("--narrative-model", default="qwen:7b", help="Ollama model for narratives")
     gen.add_argument("--hospital-config", default=None, help="Hospital operations YAML (default: config/hospital_operations.yaml)")
@@ -104,7 +108,10 @@ def main() -> None:
         help="Convert an existing CIF directory (with optional narrative version) to FHIR R4 Bulk Data NDJSON",
     )
     ef.add_argument("--cif-dir", required=True, help="Path to an existing CIF directory")
-    ef.add_argument("-o", "--output", default=None, help="Output root directory; FHIR goes to <output>/fhir_r4 (default root: <cif-dir>/..)")
+    ef.add_argument(
+        "-o", "--output", default=None,
+        help="FHIR output directory (default: <cif-dir>/../fhir_r4)",
+    )
     ef.add_argument("--country", default="US", help="Country code (US or JP)")
     ef.add_argument(
         "--narrative-version",
@@ -600,11 +607,13 @@ def _run_export_fhir(args: Any) -> None:
         print(f"❌ CIF directory not valid: {cif_dir} (missing structural/patients/)")
         return
 
+    # Preserve export-fhir's original output semantics: --output is the FHIR directory
+    # itself (not a root); default is <cif parent>/fhir_r4.
     if args.output:
-        output_root = args.output
+        output_dir = args.output
     else:
-        output_root = os.path.dirname(os.path.abspath(cif_dir))
-    output_dir = os.path.join(output_root, "fhir_r4")
+        parent = os.path.dirname(os.path.abspath(cif_dir))
+        output_dir = os.path.join(parent, "fhir_r4")
 
     print(f"clinosim export-fhir:")
     print(f"  CIF directory:      {cif_dir}")

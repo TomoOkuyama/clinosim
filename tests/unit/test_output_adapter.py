@@ -154,4 +154,28 @@ class TestExportFhirRoutesThroughRegistry:
         cli._run_export_fhir(args)
         assert seen["country"] == "JP"
         assert seen["nv"] == "v2"
-        assert seen["out_dir"].endswith("/fhir_r4")
+        # export-fhir's original semantics: --output is the FHIR dir itself (not a root).
+        assert seen["out_dir"] == str(tmp_path / "out")
+
+    def test_export_fhir_default_output_is_cif_sibling(self, tmp_path):
+        from argparse import Namespace
+
+        import clinosim.simulator.cli as cli
+
+        seen = {}
+
+        class FhirSpy:
+            format_id = "fhir-r4"
+            description = "spy"
+            subdir = "fhir_r4"
+
+            def convert(self, cif_dir, out_dir, ctx):
+                seen["out_dir"] = out_dir
+
+        register_output_adapter(FhirSpy())
+        cif_dir = tmp_path / "cif"
+        (cif_dir / "structural" / "patients").mkdir(parents=True)
+        args = Namespace(cif_dir=str(cif_dir), output=None, country="US", narrative_version=None)
+        cli._run_export_fhir(args)
+        # default: <cif parent>/fhir_r4
+        assert seen["out_dir"] == str(tmp_path / "fhir_r4")
