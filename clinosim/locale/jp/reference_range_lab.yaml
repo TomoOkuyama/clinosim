@@ -99,8 +99,13 @@ ranges:
   # === 心臓マーカー ===
   BNP:
     - {low: 0, high: 18.4, unit: "pg/mL", text: "JCCLS共用基準範囲2022"}
-  Troponin:
-    - {low: 0, high: 0.014, unit: "ng/mL", text: "高感度トロポニンT 99パーセンタイル"}
+  # 心筋トロポニンI (cTnI)。キーは canonical 分析物名 Troponin_I に一致
+  # (observation engine + code_mapping_lab.yaml、JLAC10 5C094)。
+  Troponin_I:
+    - {low: 0, high: 0.04, unit: "ng/mL", text: "99パーセンタイル上限基準値（cTnI）"}
+  # CK-MB 質量。canonical 分析物 CK_MB (JLAC10 3B015)。
+  CK_MB:
+    - {low: 0, high: 5.0, unit: "ng/mL", text: "基準値上限（CK-MB 質量）"}
   D_dimer:
     - {low: 0, high: 1.0, unit: "ug/mL", text: "基準値（＜1.0）"}
 

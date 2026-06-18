@@ -90,8 +90,13 @@ ranges:
   # === Cardiac markers ===
   BNP:
     - {low: 0, high: 100, unit: "pg/mL", text: "Rule-out heart failure (<100)"}
-  Troponin:
+  # Cardiac troponin I (cTnI). Key matches the canonical analyte name Troponin_I
+  # used by observation engine + code_mapping_lab.yaml (LOINC 10839-9).
+  Troponin_I:
     - {low: 0, high: 0.04, unit: "ng/mL", text: "99th percentile upper reference limit"}
+  # CK-MB mass. Canonical analyte CK_MB (LOINC 13969-1).
+  CK_MB:
+    - {low: 0, high: 5.0, unit: "ng/mL", text: "Upper reference limit (CK-MB mass)"}
   D_dimer:
     - {low: 0, high: 0.50, unit: "ug/mL", text: "Standard reference interval (<0.50 FEU)"}
 
