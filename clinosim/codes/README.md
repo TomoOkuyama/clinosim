@@ -315,6 +315,12 @@ lookup("icd-10-cm", "Z99.2", "de")
 
 clinosim の codes/data/ には各レジストリから clinosim の合成データ生成に必要なサブセットのみを抽出して収載している。 商用 EHR に組み込む場合は元の権威ソースから完全な最新版を取得することを推奨。
 
+**サブセットは「出力されうるコード」を漏れなく覆うこと。** 診断コードについては
+`tests/unit/test_diagnosis_code_coverage.py` が「全 disease/encounter の `icd_codes` と
+診断マップのターゲットが code-data に exact 解決する」不変条件を回帰ガードする。新しい
+外来/疾患シナリオを追加する際は、参照する ICD コードの収載も必須(CLAUDE.md「Diagnosis
+code coverage」参照)。未収載だと FHIR Condition の display が近似 prefix fallback になる。
+
 ## 更新ポリシー
 
 - ICD-10-CM: 毎年 10 月 1 日に CMS が新版発表 → clinosim も追従

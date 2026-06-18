@@ -838,3 +838,72 @@ codes:
   T78.40XA:
     en: Allergy, unspecified, initial encounter
     ja: アレルギー、詳細不明、初診
+
+  # --- Codes referenced by disease/encounter scenarios, verified vs NLM ICD-10-CM
+  #     (clinicaltables.nlm.nih.gov/api/icd10cm). Added to close used-but-missing gaps. ---
+  # Sepsis organism-specific (sepsis.yaml variants)
+  A40.0:
+    en: Sepsis due to streptococcus, group A
+    ja: A群レンサ球菌による敗血症
+  A41.01:
+    en: Sepsis due to Methicillin susceptible Staphylococcus aureus
+    ja: メチシリン感性黄色ブドウ球菌（MSSA）による敗血症
+  A41.02:
+    en: Sepsis due to Methicillin resistant Staphylococcus aureus
+    ja: メチシリン耐性黄色ブドウ球菌（MRSA）による敗血症
+  A41.51:
+    en: Sepsis due to Escherichia coli [E. coli]
+    ja: 大腸菌による敗血症
+  A41.52:
+    en: Sepsis due to Pseudomonas
+    ja: 緑膿菌による敗血症
+  # Diabetes acute complications (diabetic_ketoacidosis.yaml variants)
+  E10.11:
+    en: Type 1 diabetes mellitus with ketoacidosis with coma
+    ja: 1型糖尿病、ケトアシドーシス性昏睡を伴うもの
+  E10.65:
+    en: Type 1 diabetes mellitus with hyperglycemia
+    ja: 1型糖尿病、高血糖を伴うもの
+  E11.11:
+    en: Type 2 diabetes mellitus with ketoacidosis with coma
+    ja: 2型糖尿病、ケトアシドーシス性昏睡を伴うもの
+  # GI / hepatobiliary (gi_bleeding.yaml)
+  I85.01:
+    en: Esophageal varices with bleeding
+    ja: 食道静脈瘤、出血を伴うもの
+  K22.6:
+    en: Gastro-esophageal laceration-hemorrhage syndrome
+    ja: 胃食道裂傷出血症候群（マロリー・ワイス症候群）
+  K57.31:
+    en: Diverticulosis of large intestine without perforation or abscess with bleeding
+    ja: 大腸憩室症、穿孔・膿瘍を伴わず出血を伴うもの
+  # Respiratory (bacterial_pneumonia.yaml, copd_exacerbation.yaml)
+  J15.7:
+    en: Pneumonia due to Mycoplasma pneumoniae
+    ja: 肺炎マイコプラズマによる肺炎
+  J96.00:
+    en: Acute respiratory failure, unspecified whether with hypoxia or hypercapnia
+    ja: 急性呼吸不全、低酸素血症・高炭酸ガス血症の別不明
+  # Cardiac billable target for STEMI-other-site (mapped from internal I21.2)
+  I21.29:
+    en: ST elevation (STEMI) myocardial infarction involving other sites
+    ja: その他の部位のST上昇型心筋梗塞（STEMI）
+  # UTI billable target (mapped from internal N30.9)
+  N30.90:
+    en: Cystitis, unspecified without hematuria
+    ja: 膀胱炎、詳細不明、血尿を伴わないもの
+  # Hip fracture subcategory headers + billable targets (hip_fracture.yaml; cf. S72.00/S72.009A)
+  S72.10:
+    en: Unspecified trochanteric fracture of femur
+    ja: 大腿骨転子部骨折、詳細不明
+  S72.143A:
+    en: Displaced intertrochanteric fracture of unspecified femur, initial encounter for closed
+      fracture
+    ja: 大腿骨転子間骨折（転位性）、側不明、初診・閉鎖骨折
+  S72.2:
+    en: Subtrochanteric fracture of femur
+    ja: 大腿骨転子下骨折
+  S72.23XA:
+    en: Displaced subtrochanteric fracture of unspecified femur, initial encounter for closed
+      fracture
+    ja: 大腿骨転子下骨折（転位性）、側不明、初診・閉鎖骨折
