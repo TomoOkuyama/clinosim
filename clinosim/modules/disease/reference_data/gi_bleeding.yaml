@@ -20,7 +20,7 @@ icd_codes:
     - {code: "K26.4", name: "Acute duodenal ulcer with hemorrhage", probability: 0.15}
     - {code: "K22.6", name: "Gastro-esophageal laceration-hemorrhage syndrome (Mallory-Weiss)", probability: 0.08}
     - {code: "I85.01", name: "Esophageal varices with bleeding", probability: 0.07}
-    - {code: "K57.11", name: "Diverticulosis of large intestine with bleeding", probability: 0.05}
+    - {code: "K57.31", name: "Diverticulosis of large intestine with bleeding", probability: 0.05}
 
 # ============================================================
 # INCIDENCE (per 100,000 per year, by age band and sex)

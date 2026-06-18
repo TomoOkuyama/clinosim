@@ -19,6 +19,9 @@ codes:
   E03:
     en: Other hypothyroidism
     ja: その他の甲状腺機能低下症
+  E10:
+    en: Type 1 diabetes mellitus
+    ja: 1型糖尿病
   E11:
     en: Type 2 diabetes mellitus
     ja: 2型糖尿病
@@ -410,3 +413,16 @@ codes:
   Z99.2:
     en: Dependence on renal dialysis
     ja: 透析依存
+
+  # --- WHO ICD-10 codes referenced by disease scenarios but absent from ICD-10-CM
+  #     (CM subdivides these into more granular leaves). JP emits them identity via
+  #     code_mapping_diagnosis; US translates to a billable CM leaf via the map. ---
+  I21.2:
+    en: Acute transmural myocardial infarction of other sites
+    ja: その他の部位の急性貫壁性心筋梗塞
+  I50.0:
+    en: Congestive heart failure
+    ja: うっ血性心不全
+  N30.9:
+    en: Cystitis, unspecified
+    ja: 膀胱炎、詳細不明

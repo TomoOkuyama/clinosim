@@ -188,10 +188,29 @@ Adding a new disease:
 2. Reference an existing disease as template
 3. Required: `disease_id`, `chief_complaint` (multi-language dict), `department`, `icd_codes`, `target_los`, `course_archetypes`, `outcome_benchmarks`
 4. Add to incidence list in `clinosim/locale/<country>/demographics.yaml`
-5. Add necessary ICD codes to `clinosim/codes/data/icd-10-cm.yaml` (with `en` and `ja`)
-6. Test: `clinosim test-disease <disease_id>`
+5. **Register every `icd_codes` value (primary AND variants) in the code data** — see
+   "Diagnosis code coverage" below. Skipping this makes the FHIR Condition display fall
+   back to approximate prefix-matched text instead of the authoritative entry.
+6. Test: `clinosim test-disease <disease_id>` and `pytest tests/unit/test_diagnosis_code_coverage.py`
 
 No engine code changes required.
+
+### Diagnosis code coverage (REQUIRED when adding/editing any disease or encounter)
+
+`codes/data/*.yaml` is an intentional **subset** (only codes clinosim emits). The invariant
+**every emittable diagnosis code resolves to an authoritative entry** is enforced by
+`tests/unit/test_diagnosis_code_coverage.py`. For each new/changed `icd_codes` value or
+encounter `icd10_code` `C`, verify the code vs an authoritative source (NLM ICD-10-CM API
+`clinicaltables.nlm.nih.gov/api/icd10cm`, WHO browser) — **never fabricate** — then:
+
+- **US billable**: if `C` is a valid billable ICD-10-CM leaf, add it to `codes/data/icd-10-cm.yaml`
+  (`en` + `ja`). If `C` is a non-billable category/header or WHO-only (e.g. `I21.2`, `I50.0`,
+  `N30.9`), add a `code_mapping_diagnosis/us.yaml` entry `C → <billable leaf>` and register the
+  leaf in `icd-10-cm.yaml`.
+- **JP (WHO)**: ensure `code_mapping_diagnosis/jp.yaml.get(C, C)` resolves in `codes/data/icd-10.yaml`
+  (WHO) or, by the adapter's documented cross-fallback, in `icd-10-cm.yaml`.
+
+Run `pytest tests/unit/test_diagnosis_code_coverage.py` — green means coverage is complete.
 
 ## Encounter (ED/outpatient) protocol YAML files
 
@@ -200,7 +219,8 @@ Located at `clinosim/modules/encounter/reference_data/`. 46 conditions covering 
 Adding a new encounter type:
 
 1. Create `<condition_id>.yaml` with: `condition_id`, `icd10_code`, `icd10_display`, `chief_complaint` (multi-language dict), `encounter_type`, `department`, `severity_distribution`, `workup`, `treatment`, `discharge_instructions`
-2. Test: `clinosim test-encounter <condition_id>`
+2. **Register `icd10_code` in the code data** per "Diagnosis code coverage" above (US billable in `icd-10-cm.yaml` / map; JP in `icd-10.yaml`).
+3. Test: `clinosim test-encounter <condition_id>` and `pytest tests/unit/test_diagnosis_code_coverage.py`
 
 ## Adding a new code
 
