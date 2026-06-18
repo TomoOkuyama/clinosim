@@ -119,6 +119,33 @@ LAB_UNITS: dict[str, str] = {
 }
 
 
+# Absolute physiologic plausibility bounds for the OBSERVED (post-noise) value,
+# in the analyte's LAB_UNITS. Set at the edge of human survivability so genuine
+# extreme true values pass through untouched; the bounds only clip implausible
+# measurement-noise tails (e.g. K 10.5 mmol/L, CRP 663 mg/L) that the multiplicative
+# Gaussian noise model can otherwise produce on large true values.
+PHYSIOLOGIC_LIMITS: dict[str, tuple[float, float]] = {
+    "Na": (100.0, 180.0),       # mmol/L — survivable hypo/hypernatremia extremes
+    "K": (2.5, 8.5),            # mmol/L
+    "Cl": (70.0, 130.0),        # mmol/L
+    "Ca": (4.0, 16.0),          # mg/dL
+    "Glucose": (20.0, 1300.0),  # mg/dL — hypoglycemia to HHS
+    "Creatinine": (0.1, 25.0),  # mg/dL — up to dialysis-dependent ESRD
+    "BUN": (1.0, 250.0),        # mg/dL
+    "Lactate": (0.2, 30.0),     # mmol/L
+    "CRP": (0.0, 500.0),        # mg/L
+    "WBC": (50.0, 200000.0),    # /uL — agranulocytosis to leukemoid reaction
+    "Hb": (2.0, 24.0),          # g/dL
+    "Hct": (6.0, 72.0),         # %
+    "Plt": (1.0, 2000.0),       # 10^3/uL
+    "pH": (6.8, 7.8),           # survivable acid-base extremes
+    "pCO2": (10.0, 130.0),      # mm[Hg]
+    "HCO3": (3.0, 50.0),        # mmol/L
+    "Troponin_I": (0.0, 200.0), # ng/mL — massive MI
+    "CK_MB": (0.0, 500.0),      # ng/mL
+}
+
+
 def get_lab_unit(lab_name: str) -> str:
     """Get the standard unit for a lab test."""
     return LAB_UNITS.get(lab_name, "")
@@ -140,6 +167,13 @@ def apply_realistic_variability(
     analytical_noise = rng.normal(0, true_value * cva)
 
     observed = true_value + bio_noise + analytical_noise
+
+    # Re-clamp post-noise to analyte-specific physiologic bounds so measurement
+    # noise on large true values cannot produce life-incompatible observations.
+    limit = PHYSIOLOGIC_LIMITS.get(lab_name)
+    if limit is not None:
+        lo, hi = limit
+        return float(min(max(observed, lo), hi))
     return max(0.0, observed)
 
 
