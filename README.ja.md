@@ -50,7 +50,7 @@
 - **心筋傷害マーカー** (トロポニン I, CK-MB): physiology 由来で臨床整合 (ACS で高値、二次性は軽度、非心臓性は陰性、CKD 交絡、性別カットオフ)
 - **動脈血ガス** (pH/pCO₂/pO₂/HCO₃): `ABG` オーダーを構成要素に展開 (呼吸器/代謝疾患で血ガス出力)
 - **検査値生成の venue 横断統一** (AD-57): 入院/ED/外来とも physiology 由来 → 基礎疾患が全 venue に反映 (例: CKD 患者の ED Cr が上昇)
-- **日本の保険資格** (opt-in `--jp-insurance`): 職業駆動の社保/国保/後期高齢、検証番号付き番号、マイナ保険証 → JP Core `Coverage`。個人番号は非出力
+- **日本の保険資格** (opt-in `--jp-insurance`): 職業駆動の社保/国保/後期高齢、検証番号付き番号、マイナ保険証 → JP Core `Coverage`。マイナンバーは非出力
 - **病棟・ベッド単位** の Location 階層、 PractitionerRole.location 紐付け
 - **Snapshot date** で「現在入院中」の患者を含む状態出力 (in-progress encounter)
 - **再入院チェイン** (30日以内、prior_encounter_id 紐付け)
