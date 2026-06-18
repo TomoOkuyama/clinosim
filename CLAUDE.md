@@ -199,9 +199,13 @@ No engine code changes required.
 
 `codes/data/*.yaml` is an intentional **subset** (only codes clinosim emits). The invariant
 **every emittable diagnosis code resolves to an authoritative entry** is enforced by
-`tests/unit/test_diagnosis_code_coverage.py`. For each new/changed `icd_codes` value or
-encounter `icd10_code` `C`, verify the code vs an authoritative source (NLM ICD-10-CM API
-`clinicaltables.nlm.nih.gov/api/icd10cm`, WHO browser) — **never fabricate** — then:
+`tests/unit/test_diagnosis_code_coverage.py`. Diagnosis codes reach FHIR Conditions from
+**three sources** — all covered by the test: (1) disease `icd_codes` (primary + variants),
+(2) encounter `icd10_code`, (3) the `DIFFERENTIALS` table + likelihood-ratio tuples hard-coded
+in `modules/diagnosis/engine.py` (working/differential diagnoses). For each new/changed code
+`C` in any of these, verify it vs an authoritative source (NLM ICD-10-CM API
+`clinicaltables.nlm.nih.gov/api/icd10cm`, WHO ICD-10 browser `icd.who.int/browse10`) — **never
+fabricate** — then:
 
 - **US billable**: if `C` is a valid billable ICD-10-CM leaf, add it to `codes/data/icd-10-cm.yaml`
   (`en` + `ja`). If `C` is a non-billable category/header or WHO-only (e.g. `I21.2`, `I50.0`,
