@@ -152,7 +152,7 @@ def get_daily_directive(
     changes: dict[str, float] = {}
     for var_name in ["inflammation_level", "volume_status", "renal_function",
                      "perfusion_status", "cardiac_function", "hepatic_function",
-                     "anemia_level", "coagulation_status", "ph_status"]:
+                     "anemia_level", "coagulation_status", "ph_status", "glucose_status"]:
         if var_name in trajectory_data:
             traj = trajectory_data[var_name]
             int_traj = {int(k): v for k, v in traj.items()}
@@ -308,7 +308,7 @@ _IMPROVEMENT_IS_POSITIVE = {
     "renal_function", "cardiac_function", "hepatic_function", "perfusion_status",
 }
 # Variables where movement toward 0 = improvement
-_IMPROVEMENT_TOWARD_ZERO = {"volume_status", "ph_status"}
+_IMPROVEMENT_TOWARD_ZERO = {"volume_status", "ph_status", "glucose_status"}
 
 
 def compute_diagnosis_effectiveness(
