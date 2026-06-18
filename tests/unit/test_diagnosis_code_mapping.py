@@ -57,15 +57,21 @@ def test_specific_primary_codes_pass_through_unchanged() -> None:
         assert _map_diagnosis_code(code, "US") == code
 
 
-def test_jp_mapping_is_identity() -> None:
-    # JP uses WHO ICD-10 category codes as-is; wiring must not change JP output.
+def test_jp_mapping_folds_to_who_granularity() -> None:
+    # JP maps internal codes to WHO ICD-10 (3-4 char). WHO category codes stay identity;
+    # CM-granular internal codes (e.g. A41.01, S06.0X0A) fold to their WHO parent.
+    import re
+
     jp_map = load_code_mapping("diagnosis", "JP")
-    assert jp_map, "JP diagnosis map should be populated (identity)"
+    assert jp_map, "JP diagnosis map should be populated"
+    who_format = re.compile(r"^[A-Z][0-9]{2}(\.[0-9])?$")
     for k, v in jp_map.items():
-        assert k == v, f"JP map must be identity, got {k} -> {v}"
-    # And unmapped codes pass through too.
+        assert who_format.match(v), f"JP map target must be WHO ICD-10 granularity, got {k} -> {v}"
+    # WHO category codes pass through identity; CM granularity folds to the WHO parent.
     assert _map_diagnosis_code("I21", "JP") == "I21"
     assert _map_diagnosis_code("E78", "JP") == "E78"
+    assert _map_diagnosis_code("A41.01", "JP") == "A41.0"
+    assert _map_diagnosis_code("S06.0X0A", "JP") == "S06.0"
 
 
 def test_empty_code_passes_through() -> None:

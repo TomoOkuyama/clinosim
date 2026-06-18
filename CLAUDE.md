@@ -207,8 +207,12 @@ encounter `icd10_code` `C`, verify the code vs an authoritative source (NLM ICD-
   (`en` + `ja`). If `C` is a non-billable category/header or WHO-only (e.g. `I21.2`, `I50.0`,
   `N30.9`), add a `code_mapping_diagnosis/us.yaml` entry `C → <billable leaf>` and register the
   leaf in `icd-10-cm.yaml`.
-- **JP (WHO)**: ensure `code_mapping_diagnosis/jp.yaml.get(C, C)` resolves in `codes/data/icd-10.yaml`
-  (WHO) or, by the adapter's documented cross-fallback, in `icd-10-cm.yaml`.
+- **JP (WHO)**: `code_mapping_diagnosis/jp.yaml.get(C, C)` must be a **true WHO ICD-10 code
+  (3-4 char)** present in `codes/data/icd-10.yaml`. If `C` is ICD-10-CM granularity (5-7 char,
+  7th-char extension, `X` placeholder — e.g. `A41.01`, `S06.0X0A`), add a jp map entry folding
+  it to its WHO parent (`A41.01 → A41.0`) and register the WHO code in `icd-10.yaml`. JP does NOT
+  emit CM-granularity codes nor fall back to `icd-10-cm.yaml` (enforced by
+  `test_jp_never_emits_cm_granular_code` + `test_icd10_who_file_has_no_cm_granular_codes`).
 
 Run `pytest tests/unit/test_diagnosis_code_coverage.py` — green means coverage is complete.
 
