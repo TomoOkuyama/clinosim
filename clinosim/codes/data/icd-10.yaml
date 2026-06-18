@@ -347,33 +347,15 @@ codes:
   J12.9:
     en: Viral pneumonia, unspecified
     ja: ウイルス性肺炎、詳細不明
-  M54.50:
-    en: Low back pain, unspecified
-    ja: 腰痛、詳細不明
   N20.0:
     en: Calculus of kidney
     ja: 腎結石
   R33.9:
     en: Retention of urine, unspecified
     ja: 尿閉、詳細不明
-  R65.20:
-    en: Severe sepsis without septic shock
-    ja: 重症敗血症、敗血症性ショックなし
-  R65.21:
-    en: Severe sepsis with septic shock
-    ja: 敗血症性ショック
   R68.8:
     en: Other general symptoms and signs
     ja: その他の全身症状および徴候
-  S43.006A:
-    en: Unspecified dislocation of unspecified shoulder joint, initial encounter
-    ja: 肩関節脱臼（部位不明）、初回診療
-  T18.9XXA:
-    en: Foreign body in alimentary tract, part unspecified, initial encounter
-    ja: 消化管異物、部位不明、初回診療
-  V89.2XXA:
-    en: Person injured in unspecified motor-vehicle accident, traffic, initial encounter
-    ja: 交通事故（自動車、詳細不明）、初回診療
   W19:
     en: Unspecified fall
     ja: 転倒、詳細不明
@@ -426,3 +408,359 @@ codes:
   N30.9:
     en: Cystitis, unspecified
     ja: 膀胱炎、詳細不明
+
+  # --- WHO ICD-10 (2019) equivalents of CM-granular codes used by disease/encounter
+  #     scenarios. JP emits these via code_mapping_diagnosis/jp.yaml (internal CM code →
+  #     WHO 3-4 char). Verified vs icd.who.int/browse10/2019. So JP output uses true WHO
+  #     ICD-10, not ICD-10-CM granularity (no cross-fallback to icd-10-cm.yaml). ---
+  A40.0:
+    en: Sepsis due to streptococcus, group A
+    ja: A群レンサ球菌による敗血症
+  A41.0:
+    en: Sepsis due to Staphylococcus aureus
+    ja: 黄色ブドウ球菌による敗血症
+  A41.5:
+    en: Sepsis due to other Gram-negative organisms
+    ja: その他のグラム陰性菌による敗血症
+  B18.2:
+    en: Chronic viral hepatitis C
+    ja: 慢性C型ウイルス肝炎
+  E10.1:
+    en: Type 1 diabetes mellitus with ketoacidosis
+    ja: ケトアシドーシスを伴う1型糖尿病
+  E10.6:
+    en: Type 1 diabetes mellitus with other specified complications
+    ja: その他の明示された合併症を伴う1型糖尿病
+  E11.1:
+    en: Type 2 diabetes mellitus with ketoacidosis
+    ja: ケトアシドーシスを伴う2型糖尿病
+  E11.6:
+    en: Type 2 diabetes mellitus with other specified complications
+    ja: その他の明示された合併症を伴う2型糖尿病
+  G43.9:
+    en: Migraine, unspecified
+    ja: 片頭痛、詳細不明
+  I26.0:
+    en: Pulmonary embolism with mention of acute cor pulmonale
+    ja: 急性肺性心の記載のある肺塞栓症
+  I26.9:
+    en: Pulmonary embolism without mention of acute cor pulmonale
+    ja: 急性肺性心の記載のない肺塞栓症
+  I48.0:
+    en: Paroxysmal atrial fibrillation
+    ja: 発作性心房細動
+  I48.1:
+    en: Persistent atrial fibrillation
+    ja: 持続性心房細動
+  I48.2:
+    en: Chronic atrial fibrillation
+    ja: 慢性心房細動
+  I48.9:
+    en: Atrial fibrillation and atrial flutter, unspecified
+    ja: 心房細動及び心房粗動、詳細不明
+  I61.0:
+    en: Intracerebral haemorrhage in hemisphere, subcortical
+    ja: 皮質下の大脳半球内出血
+  I61.1:
+    en: Intracerebral haemorrhage in hemisphere, cortical
+    ja: 皮質の大脳半球内出血
+  I61.3:
+    en: Intracerebral haemorrhage in brain stem
+    ja: 脳幹の脳内出血
+  I61.4:
+    en: Intracerebral haemorrhage in cerebellum
+    ja: 小脳の脳内出血
+  I61.5:
+    en: Intracerebral haemorrhage, intraventricular
+    ja: 脳室内出血
+  I63.3:
+    en: Cerebral infarction due to thrombosis of cerebral arteries
+    ja: 脳動脈の血栓症による脳梗塞
+  I63.4:
+    en: Cerebral infarction due to embolism of cerebral arteries
+    ja: 脳動脈の塞栓症による脳梗塞
+  I63.5:
+    en: Cerebral infarction due to unspecified occlusion or stenosis of cerebral arteries
+    ja: 脳動脈の詳細不明の閉塞又は狭窄による脳梗塞
+  I66.0:
+    en: Occlusion and stenosis of middle cerebral artery
+    ja: 中大脳動脈の閉塞及び狭窄
+  I80.2:
+    en: Phlebitis and thrombophlebitis of other deep vessels of lower extremities
+    ja: 下肢のその他の深部血管の静脈炎及び血栓性静脈炎
+  I82.9:
+    en: Embolism and thrombosis of unspecified vein
+    ja: 詳細不明の静脈の塞栓症及び血栓症
+  I85.0:
+    en: Oesophageal varices with bleeding
+    ja: 出血を伴う食道静脈瘤
+  J10.0:
+    en: Influenza with pneumonia, seasonal influenza virus identified
+    ja: 肺炎を伴うインフルエンザ、季節性インフルエンザウイルスを確認したもの
+  J10.1:
+    en: Influenza with other respiratory manifestations, seasonal influenza virus identified
+    ja: その他の呼吸器症状を伴うインフルエンザ、季節性インフルエンザウイルスを確認したもの
+  J10.8:
+    en: Influenza with other manifestations, seasonal influenza virus identified
+    ja: その他の症状を伴うインフルエンザ、季節性インフルエンザウイルスを確認したもの
+  J11.0:
+    en: Influenza with pneumonia, virus not identified
+    ja: 肺炎を伴うインフルエンザ、ウイルスを確認していないもの
+  J11.1:
+    en: Influenza with other respiratory manifestations, virus not identified
+    ja: その他の呼吸器症状を伴うインフルエンザ、ウイルスを確認していないもの
+  J15.7:
+    en: Pneumonia due to Mycoplasma pneumoniae
+    ja: 肺炎マイコプラズマによる肺炎
+  J18.1:
+    en: Lobar pneumonia, unspecified
+    ja: 大葉性肺炎、詳細不明
+  J44.9:
+    en: Chronic obstructive pulmonary disease, unspecified
+    ja: 慢性閉塞性肺疾患、詳細不明
+  J69.0:
+    en: Pneumonitis due to food and vomit
+    ja: 食物及び吐物による肺臓炎
+  J69.1:
+    en: Pneumonitis due to oils and essences
+    ja: 油及びエッセンスによる肺臓炎
+  J96.0:
+    en: Acute respiratory failure
+    ja: 急性呼吸不全
+  K22.6:
+    en: Gastro-oesophageal laceration-haemorrhage syndrome
+    ja: 胃食道裂傷出血症候群（マロリー・ワイス症候群）
+  K25.4:
+    en: Gastric ulcer, chronic or unspecified with haemorrhage
+    ja: 胃潰瘍、慢性又は詳細不明、出血を伴うもの
+  K26.4:
+    en: Duodenal ulcer, chronic or unspecified with haemorrhage
+    ja: 十二指腸潰瘍、慢性又は詳細不明、出血を伴うもの
+  K35.2:
+    en: Acute appendicitis with generalized peritonitis
+    ja: 汎発性腹膜炎を伴う急性虫垂炎
+  K35.3:
+    en: Acute appendicitis with localized peritonitis
+    ja: 限局性腹膜炎を伴う急性虫垂炎
+  K35.8:
+    en: Acute appendicitis, other and unspecified
+    ja: 急性虫垂炎、その他及び詳細不明
+  K56.0:
+    en: Paralytic ileus
+    ja: 麻痺性イレウス
+  K56.1:
+    en: Intussusception
+    ja: 腸重積（症）
+  K56.2:
+    en: Volvulus
+    ja: 腸捻転（症）
+  K56.4:
+    en: Other impaction of intestine
+    ja: その他の腸閉塞（嵌入）
+  K56.5:
+    en: Intestinal adhesions [bands] with obstruction
+    ja: 閉塞を伴う腸管癒着（索状物）
+  K56.6:
+    en: Other and unspecified intestinal obstruction
+    ja: その他及び詳細不明の腸閉塞
+  K57.3:
+    en: Diverticular disease of large intestine without perforation or abscess
+    ja: 穿孔又は膿瘍を伴わない大腸の憩室性疾患
+  K70.3:
+    en: Alcoholic cirrhosis of liver
+    ja: アルコール性肝硬変
+  K70.4:
+    en: Alcoholic hepatic failure
+    ja: アルコール性肝不全
+  K74.6:
+    en: Other and unspecified cirrhosis of liver
+    ja: その他及び詳細不明の肝硬変
+  K76.6:
+    en: Portal hypertension
+    ja: 門脈圧亢進症
+  K80.0:
+    en: Calculus of gallbladder with acute cholecystitis
+    ja: 急性胆嚢炎を伴う胆嚢結石
+  K80.4:
+    en: Calculus of bile duct with cholecystitis
+    ja: 胆嚢炎を伴う胆管結石
+  K80.5:
+    en: Calculus of bile duct without cholangitis or cholecystitis
+    ja: 胆管炎又は胆嚢炎を伴わない胆管結石
+  K81.0:
+    en: Acute cholecystitis
+    ja: 急性胆嚢炎
+  K85.1:
+    en: Biliary acute pancreatitis
+    ja: 胆石性急性膵炎
+  K85.2:
+    en: Alcohol-induced acute pancreatitis
+    ja: アルコール誘発性急性膵炎
+  K85.3:
+    en: Drug-induced acute pancreatitis
+    ja: 薬物誘発性急性膵炎
+  K85.8:
+    en: Other acute pancreatitis
+    ja: その他の急性膵炎
+  K85.9:
+    en: Acute pancreatitis, unspecified
+    ja: 急性膵炎、詳細不明
+  K92.0:
+    en: Haematemesis
+    ja: 吐血
+  K92.1:
+    en: Melaena
+    ja: 下血（メレナ）
+  K92.2:
+    en: Gastrointestinal haemorrhage, unspecified
+    ja: 消化管出血、詳細不明
+  L03.0:
+    en: Cellulitis of finger and toe
+    ja: 手指及び足指の蜂巣炎
+  L03.1:
+    en: Cellulitis of other parts of limb
+    ja: 四肢のその他の部位の蜂巣炎
+  L03.2:
+    en: Cellulitis of face
+    ja: 顔面の蜂巣炎
+  L03.3:
+    en: Cellulitis of trunk
+    ja: 体幹の蜂巣炎
+  L03.9:
+    en: Cellulitis, unspecified
+    ja: 蜂巣炎、詳細不明
+  M48.5:
+    en: Collapsed vertebra, not elsewhere classified
+    ja: 椎体圧潰、他に分類されないもの
+  M80.0:
+    en: Postmenopausal osteoporosis with pathological fracture
+    ja: 病的骨折を伴う閉経後骨粗鬆症
+  M84.4:
+    en: Pathological fracture, not elsewhere classified
+    ja: 病的骨折、他に分類されないもの
+  N12:
+    en: Tubulo-interstitial nephritis, not specified as acute or chronic
+    ja: 急性又は慢性と明示されない尿細管間質性腎炎
+  N17.0:
+    en: Acute renal failure with tubular necrosis
+    ja: 尿細管壊死を伴う急性腎不全
+  N17.1:
+    en: Acute renal failure with acute cortical necrosis
+    ja: 急性皮質壊死を伴う急性腎不全
+  N17.2:
+    en: Acute renal failure with medullary necrosis
+    ja: 髄質壊死を伴う急性腎不全
+  N17.8:
+    en: Other acute renal failure
+    ja: その他の急性腎不全
+  N17.9:
+    en: Acute renal failure, unspecified
+    ja: 急性腎不全、詳細不明
+  N30.0:
+    en: Acute cystitis
+    ja: 急性膀胱炎
+  R07.3:
+    en: Other chest pain
+    ja: その他の胸痛
+  R10.4:
+    en: Other and unspecified abdominal pain
+    ja: その他及び詳細不明の腹痛
+  S06.0:
+    en: Concussion
+    ja: 脳震盪
+  S06.5:
+    en: Traumatic subdural haemorrhage
+    ja: 外傷性硬膜下出血
+  S06.9:
+    en: Intracranial injury, unspecified
+    ja: 頭蓋内損傷、詳細不明
+  S22.0:
+    en: Fracture of thoracic vertebra
+    ja: 胸椎骨折
+  S22.3:
+    en: Fracture of rib
+    ja: 肋骨骨折
+  S27.0:
+    en: Traumatic pneumothorax
+    ja: 外傷性気胸
+  S32.0:
+    en: Fracture of lumbar vertebra
+    ja: 腰椎骨折
+  S36.1:
+    en: Injury of liver or gallbladder
+    ja: 肝臓又は胆嚢の損傷
+  S52.5:
+    en: Fracture of lower end of radius
+    ja: 橈骨下端骨折
+  S62.9:
+    en: Fracture of other and unspecified parts of wrist and hand
+    ja: 手首及び手のその他及び詳細不明の部位の骨折
+  S72.2:
+    en: Subtrochanteric fracture
+    ja: 転子下骨折
+  S93.4:
+    en: Sprain and strain of ankle
+    ja: 足首の捻挫及びストレイン
+  T14.9:
+    en: Injury, unspecified
+    ja: 損傷、詳細不明
+  T78.4:
+    en: Allergy, unspecified
+    ja: アレルギー、詳細不明
+  Z00.0:
+    en: General medical examination
+    ja: 一般的医学的検査
+  Z01.8:
+    en: Other specified special examinations
+    ja: その他の明示された特殊検査
+  Z12.1:
+    en: Special screening examination for neoplasm of intestinal tract
+    ja: 腸管の新生物に対する特殊スクリーニング検査
+  Z12.3:
+    en: Special screening examination for neoplasm of breast
+    ja: 乳房の新生物に対する特殊スクリーニング検査
+  Z13.5:
+    en: Special screening examination for eye and ear disorders
+    ja: 眼及び耳の障害に対する特殊スクリーニング検査
+  Z13.8:
+    en: Special screening examination for other specified diseases and disorders
+    ja: その他の明示された疾患及び障害に対する特殊スクリーニング検査
+  Z48.0:
+    en: Attention to surgical dressings and sutures
+    ja: 手術創ドレッシング及び縫合の処置
+  Z51.8:
+    en: Other specified medical care
+    ja: その他の明示された医療
+  Z71.6:
+    en: Tobacco abuse counselling
+    ja: タバコ乱用カウンセリング
+  Z71.8:
+    en: Other specified counselling
+    ja: その他の明示されたカウンセリング
+  Z76.0:
+    en: Issue of repeat prescription
+    ja: 反復処方箋の発行
+  Z76.8:
+    en: Persons encountering health services in other specified circumstances
+    ja: その他の明示された状況で保健サービスを受ける者
+  E11.0:
+    en: Type 2 diabetes mellitus with coma
+    ja: 2型糖尿病（昏睡を伴うもの）
+  M71.2:
+    en: Synovial cyst of popliteal space [Baker]
+    ja: 膝窩部滑液嚢腫［ベーカー嚢腫］
+  R65.1:
+    en: Systemic inflammatory response syndrome of infectious origin with organ failure
+    ja: 感染性の全身性炎症反応症候群（臓器不全を伴うもの）
+  R65.2:
+    en: Systemic inflammatory response syndrome of non-infectious origin without organ failure
+    ja: 非感染性の全身性炎症反応症候群（臓器不全を伴わないもの）
+  S43.0:
+    en: Dislocation of shoulder joint
+    ja: 肩関節脱臼
+  T18.9:
+    en: Foreign body in alimentary tract, part unspecified
+    ja: 消化管内異物（部位不明）
+  V89.2:
+    en: Person injured in unspecified motor-vehicle accident, traffic
+    ja: 詳細不明の自動車交通事故による負傷者
