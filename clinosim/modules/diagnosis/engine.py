@@ -18,7 +18,7 @@ _REFERENCE_DATA = Path(__file__).parent / "reference_data" / "builtin_differenti
 
 
 def _load_reference_data() -> tuple[
-    dict[str, list[dict]],
+    dict[str, list[dict[str, object]]],
     dict[str, list[tuple[float, str]]],
     dict[str, dict[str, dict[str, float]]],
 ]:
