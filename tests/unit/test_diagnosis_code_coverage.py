@@ -61,12 +61,21 @@ def _emittable_internal_codes() -> set[str]:
 
 
 def _engine_differential_codes() -> set[str]:
-    """ICD codes hard-coded in the differential/working-diagnosis lists of diagnosis/engine.py.
-    A third emittable source (working/discharge diagnoses) beyond the disease/encounter YAMLs."""
-    src = open(os.path.join(ROOT, "clinosim/modules/diagnosis/engine.py")).read()
+    """ICD codes in the built-in differential/progression tables (3rd emittable source:
+    working/discharge diagnoses) loaded from diagnosis/reference_data."""
+    fp = os.path.join(
+        ROOT, "clinosim/modules/diagnosis/reference_data/builtin_differentials.yaml"
+    )
+    data = yaml.safe_load(open(fp)) or {}
     codes: set[str] = set()
-    codes.update(re.findall(r'"icd":\s*"([A-TV-Z][0-9]{2}[0-9A-Z.]*)"', src))
-    codes.update(re.findall(r'\(\s*[0-9.]+,\s*"([A-TV-Z][0-9]{2}[0-9A-Z.]*)"', src))
+    for rows in data.get("differentials", {}).values():
+        for entry in rows:
+            if entry.get("icd"):
+                codes.add(entry["icd"])
+    for rows in data.get("diagnosis_progression", {}).values():
+        for row in rows:
+            if len(row) >= 2 and row[1]:
+                codes.add(row[1])
     return codes
 
 
