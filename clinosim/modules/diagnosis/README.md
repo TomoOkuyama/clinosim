@@ -15,11 +15,11 @@
 
 | # | 原則 | 説明 |
 |---|---|---|
-| 1 | **Priors は疾患毎** | `DIFFERENTIALS[disease_id]` に 26 疾患の鑑別リストを定義 |
+| 1 | **Priors は疾患毎** | reference_data/builtin_differentials.yaml の differentials[disease_id] に 28 疾患の鑑別リストを定義 |
 | 2 | **LR による Bayesian update** | 各 finding は `{"pos": LR+, "neg": LR-}` を持つ。 正規化で確率化 |
 | 3 | **Confirmation threshold** | top 候補の確率が threshold (既定 0.90) を超えると confirmed |
 | 4 | **Working vs confirmed** | top > 0.5 で working、 > threshold で confirmed |
-| 5 | **段階的 ICD コード進展** | `DIAGNOSIS_PROGRESSION` で confidence 閾値ごとに code/display を変化 |
+| 5 | **段階的 ICD コード進展** | builtin_differentials.yaml の diagnosis_progression で confidence 閾値ごとに ICD code を変化 (display は codes.lookup で解決) |
 | 6 | **Protocol YAML 優先** | disease YAML の `diagnostic.differential` / `lr_table` / `diagnosis_progression` があればそれを使用 |
 
 ## API リファレンス
