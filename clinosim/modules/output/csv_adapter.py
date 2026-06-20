@@ -29,6 +29,7 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str) -> None:
     rehab_rows: list[dict] = []
     io_rows: list[dict] = []
     adl_rows: list[dict] = []
+    nursing_rows: list[dict] = []
     rx_rows: list[dict] = []
     microbiology_rows: list[dict] = []
 
@@ -124,6 +125,8 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str) -> None:
                 "pain_score": vs.get("pain_score"),
                 "nursing_note": vs.get("nursing_note", ""),
                 "data_source": vs.get("data_source"),
+                "news2_score": vs.get("news2_score"),
+                "gcs_score": vs.get("gcs_score"),
             })
 
         # Orders table
@@ -212,6 +215,16 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str) -> None:
                 "stairs": adl.get("stairs"),
             })
 
+        # Nursing risk assessments (Braden scale + Morse fall risk)
+        for nra in record.get("nursing_risk_assessments", []):
+            nursing_rows.append({
+                "patient_id": patient_id,
+                "date": nra.get("date"),
+                "braden_total": nra.get("braden_total"),
+                "morse_total": nra.get("morse_total"),
+                "fall_risk_level": nra.get("fall_risk_level"),
+            })
+
         # Microbiology (one row per susceptibility result; one row if no growth)
         for mb in record.get("microbiology", []):
             base = {
@@ -263,6 +276,7 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str) -> None:
     _write_csv(os.path.join(output_dir, "rehab_sessions.csv"), rehab_rows)
     _write_csv(os.path.join(output_dir, "intake_output.csv"), io_rows)
     _write_csv(os.path.join(output_dir, "adl_assessments.csv"), adl_rows)
+    _write_csv(os.path.join(output_dir, "nursing_risk.csv"), nursing_rows)
     _write_csv(os.path.join(output_dir, "prescriptions.csv"), rx_rows)
     _write_csv(os.path.join(output_dir, "microbiology.csv"), microbiology_rows)
 
