@@ -10,7 +10,8 @@ from clinosim.types.clinical import (
     ClinicalDiagnosis, ClinicalDocument, ConditionEvent, PhysiologicalState,
 )
 from clinosim.types.encounter import (
-    Encounter, MedicationAdministration, Order, OrderResult,
+    ADLAssessment, Encounter, ImmunizationRecord, IntakeOutputRecord,
+    MedicationAdministration, NursingRiskAssessment, Order, OrderResult,
     PrescriptionRecord, VitalSignRecord,
 )
 from clinosim.types.microbiology import MicrobiologyResult
@@ -49,10 +50,10 @@ class CIFPatientRecord:
     rehab_sessions: list = field(default_factory=list)  # RehabSession
     documents: list[ClinicalDocument] = field(default_factory=list)  # ClinicalDocument stubs (text="" in Stage 1)
     medication_administrations: list[MedicationAdministration] = field(default_factory=list)
-    intake_output_records: list = field(default_factory=list)  # IntakeOutputRecord
-    adl_assessments: list = field(default_factory=list)  # ADLAssessment
-    nursing_risk_assessments: list = field(default_factory=list)  # NursingRiskAssessment
-    immunizations: list = field(default_factory=list)  # ImmunizationRecord
+    intake_output_records: list[IntakeOutputRecord] = field(default_factory=list)
+    adl_assessments: list[ADLAssessment] = field(default_factory=list)
+    nursing_risk_assessments: list[NursingRiskAssessment] = field(default_factory=list)
+    immunizations: list[ImmunizationRecord] = field(default_factory=list)
     microbiology: list[MicrobiologyResult] = field(default_factory=list)  # AD-55 Base (codes only)
     discharge_prescription: PrescriptionRecord | None = None
     icu_transferred: bool = False
