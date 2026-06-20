@@ -26,6 +26,10 @@ from typing import Any
 # Lazy-loaded drug name dictionary for Japanese localization
 _drug_names_ja: dict[str, str] | None = None
 
+# Lazy-loaded department display table ({key: {en, ja}}) — see
+# locale/shared/department_display.yaml
+_department_display: dict[str, dict[str, str]] | None = None
+
 # Japanese translations for medical abbreviations/categories in medication text.
 # Applied word-by-word or as literal substrings (case-insensitive for abbrevs).
 _MED_CATEGORY_JA: dict[str, str] = {
@@ -424,27 +428,30 @@ def convert_cif_to_fhir(
             w.close()
 
 
-_DEPT_DISPLAY_JA: dict[str, str] = {
-    "internal_medicine": "内科",
-    "cardiology": "循環器内科",
-    "pulmonology": "呼吸器内科",
-    "gastroenterology": "消化器内科",
-    "nephrology": "腎臓内科",
-    "endocrinology": "内分泌・代謝内科",
-    "neurology": "神経内科",
-    "general_surgery": "外科",
-    "orthopedics": "整形外科",
-    "neurosurgery": "脳神経外科",
-    "trauma_surgery": "外傷外科",
-    "emergency_medicine": "救急科",
-    "primary_care": "総合診療科",
-    "obstetrics_gynecology": "産婦人科",
-    "pediatrics": "小児科",
-    "ophthalmology": "眼科",
-    "psychiatry": "精神科",
-    "radiology": "放射線科",
-    "rehabilitation": "リハビリテーション科",
-}
+def _load_department_display() -> dict[str, dict[str, str]]:
+    """Load department display table ({key: {en, ja}}, case-insensitive keys)."""
+    global _department_display
+    if _department_display is not None:
+        return _department_display
+    import yaml
+    yaml_path = Path(__file__).resolve().parent.parent.parent \
+        / "locale" / "shared" / "department_display.yaml"
+    if yaml_path.exists():
+        raw = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
+        _department_display = raw.get("departments", {}) or {}
+    else:
+        _department_display = {}
+    return _department_display
+
+
+def _dept_display(dept: str, country: str) -> str:
+    """Resolve a department key to its display name for the target country.
+
+    Falls back to a title-cased key when the department is not in the table.
+    """
+    lang = "ja" if country == "JP" else "en"
+    entry = _load_department_display().get(dept, {})
+    return entry.get(lang) or dept.replace("_", " ").title()
 
 
 def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
@@ -474,8 +481,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
 
     # Department Organizations (one per available_department)
     for dept in available:
-        display = _DEPT_DISPLAY_JA.get(dept, dept.replace("_", " ").title()) \
-            if country == "JP" else dept.replace("_", " ").title()
+        display = _dept_display(dept, country)
         dept_org = {
             "resourceType": "Organization",
             "id": f"dept-{dept.replace('_', '-')}",
@@ -2137,20 +2143,6 @@ _ENCOUNTER_TYPE_SNOMED_JA: dict[str, str] = {
     "icu": "救急入院",
 }
 
-_DEPARTMENT_DISPLAY: dict[str, str] = {
-    "internal_medicine": "Internal Medicine",
-    "cardiology": "Cardiology",
-    "pulmonology": "Pulmonology",
-    "gastroenterology": "Gastroenterology",
-    "nephrology": "Nephrology",
-    "endocrinology": "Endocrinology",
-    "neurology": "Neurology",
-    "general_surgery": "General Surgery",
-    "orthopedics": "Orthopedic Surgery",
-    "emergency_medicine": "Emergency Medicine",
-}
-
-
 def _build_encounter(
     enc: dict, patient_id: str,
     is_readmission: bool = False, prior_encounter_id: str | None = None,
@@ -2205,13 +2197,14 @@ def _build_encounter(
 
     # Service type (department)
     department = enc.get("department_id", "") or "internal_medicine"
+    dept_display = _dept_display(department, country)
     resource["serviceType"] = {
         "coding": [{
             "system": "http://terminology.hl7.org/CodeSystem/service-type",
             "code": department,
-            "display": (_DEPT_DISPLAY_JA if country == "JP" else _DEPARTMENT_DISPLAY).get(department, department),
+            "display": dept_display,
         }],
-        "text": (_DEPT_DISPLAY_JA if country == "JP" else _DEPARTMENT_DISPLAY).get(department, department),
+        "text": dept_display,
     }
 
     if enc.get("admission_datetime"):

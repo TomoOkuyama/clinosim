@@ -300,7 +300,7 @@ daily_patterns:
 2. `department_rollup` に細分化科 → 利用可能科のマッピング追加
 3. `wards` + `ward_capacity` に病棟・ベッド数追加
 4. `staff` モジュールの `_DEPT_PREFIX` に追加
-5. FHIR: `fhir_r4_adapter.py` の `_DEPT_DISPLAY_JA` に日本語名追加
+5. FHIR: `locale/shared/department_display.yaml` に表示名（`en` / `ja`）を追加
 
 ### recommended_population の調整
 

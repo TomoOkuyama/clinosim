@@ -1,0 +1,29 @@
+# Department display names (locale-independent key -> per-language display).
+#
+# Used by the FHIR adapter for Organization.name (facility bundle) and
+# Encounter.serviceType (display + text). Keys are the internal department ids
+# resolved by simulator.helpers.resolve_department (see hospital config
+# `available_departments` / `department_rollup`).
+#
+# EN: standard department/specialty names. JA: 日本の標榜診療科名.
+# Missing entries fall back to a title-cased key at lookup time.
+departments:
+  internal_medicine: {en: "Internal Medicine", ja: "内科"}
+  cardiology: {en: "Cardiology", ja: "循環器内科"}
+  pulmonology: {en: "Pulmonology", ja: "呼吸器内科"}
+  gastroenterology: {en: "Gastroenterology", ja: "消化器内科"}
+  nephrology: {en: "Nephrology", ja: "腎臓内科"}
+  endocrinology: {en: "Endocrinology", ja: "内分泌・代謝内科"}
+  neurology: {en: "Neurology", ja: "神経内科"}
+  general_surgery: {en: "General Surgery", ja: "外科"}
+  orthopedics: {en: "Orthopedic Surgery", ja: "整形外科"}
+  neurosurgery: {en: "Neurosurgery", ja: "脳神経外科"}
+  trauma_surgery: {en: "Trauma Surgery", ja: "外傷外科"}
+  emergency_medicine: {en: "Emergency Medicine", ja: "救急科"}
+  primary_care: {en: "Primary Care", ja: "総合診療科"}
+  obstetrics_gynecology: {en: "Obstetrics and Gynecology", ja: "産婦人科"}
+  pediatrics: {en: "Pediatrics", ja: "小児科"}
+  ophthalmology: {en: "Ophthalmology", ja: "眼科"}
+  psychiatry: {en: "Psychiatry", ja: "精神科"}
+  radiology: {en: "Radiology", ja: "放射線科"}
+  rehabilitation: {en: "Rehabilitation", ja: "リハビリテーション科"}
