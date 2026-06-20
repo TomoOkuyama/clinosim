@@ -32,6 +32,10 @@ class PhysiologicalState:
     # diabetes baseline (has_diabetes). Set from the disease scenario. AD-57.
     glucose_status: float = 0.0  # -1.0–+1.0
     sodium_status: float = 0.0  # -1.0–+1.0  (neg = hyponatremia, pos = hypernatremia)
+    # Chronic glycemic control for diabetics: 1.0 = excellent (HbA1c ~6%), 0.0 = very poor
+    # (HbA1c ~12%). None = non-diabetic. Patient-stable; seeded from the E11 ChronicCondition
+    # by initialize_state and NOT moved by acute disease onset (HbA1c is a ~3-month average).
+    glycemic_control: float | None = None
 
 
 @dataclass
