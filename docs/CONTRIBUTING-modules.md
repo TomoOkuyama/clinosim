@@ -1,0 +1,312 @@
+# コントリビューターガイド: モジュール/プラグインの追加
+
+このドキュメントは、新しいコントリビューターが clinosim に **モジュール/プラグインを追加し、データを生成し、どのデータ/コードを使うかを正しく選択する** ための実践 playbook です。アーキテクチャ原則 (ADR) は `DESIGN.md`、規約の総覧は `CLAUDE.md` を参照してください。本書はそれらと重複せず、**HOW-TO** に集中します。
+
+実コードの正本パス:
+- Enricher registry: `clinosim/simulator/enrichers.py`
+- Output adapter registry: `clinosim/modules/output/adapter.py`
+- FHIR bundle builder registry: `clinosim/modules/output/fhir_r4_adapter.py`
+- 共有型: `clinosim/types/`
+- コードシステム: `clinosim/codes/`
+- locale データ: `clinosim/locale/`
+
+---
+
+## 判断: Base か Module か
+
+新しいデータ/機能を追加するとき、最初に **Base (always-on, core を拡張)** か **opt-in Module (`SimulatorConfig.modules` + `config.module_enabled()` でゲート)** かを決めます (AD-55)。
+
+### 決定チェックリスト
+
+以下にすべて Yes なら **Base**。1 つでも No 寄りなら **opt-in Module**。
+
+1. ほぼすべての EHR で必須のデータか? (例: 入院基本情報、vital、検査結果)
+2. 国/テーマに依存せず、ほぼ全 encounter に存在するか?
+3. CIF の core 型 (`CIFPatientRecord` / `CIFDataset`) に typed field として常時持たせるべきか?
+
+逆に、以下に当てはまるなら **opt-in Module**:
+
+- 特定テーマ 1 つに閉じている (`identity` = 在留番号/保険番号, `immunization` = 予防接種)
+- 特定国でのみ意味がある (JP 保険番号など) / ユーザーが OFF にしたい可能性がある
+- core 型を汚さず `CIFPatientRecord.extensions[<module>]` に書ける
+
+### ゲートの実装 (opt-in の場合)
+
+opt-in module は `Enricher.enabled` で gate します。`config.module_enabled(name, default=...)` を使うのが正しい作法です (AD-56)。
+
+```python
+# clinosim/simulator/enrichers.py の register_builtin_enrichers() 内
+register_enricher(Enricher(
+    name="immunization",
+    stage=POST_RECORDS,
+    run=run_immunization_enricher,
+    order=200,
+    enabled=lambda c: c.module_enabled("immunization", default=True),
+))
+```
+
+> **注意 (EXT-5):** 現状 `module_enabled()` は production で未配線で、`modules` dict は dead key になっています。新規 module は上記のように `module_enabled` 経由で gate し、advertised な AD-56 ゲートを実際に有効化してください。`default=True` を保てば既存 golden は不変です。
+
+---
+
+## モジュールの構造
+
+各モジュールは `clinosim/modules/<name>/` 配下の 1 パッケージで、**他モジュールへの依存は README の Dependencies に明記したものだけ** に限定します。
+
+### 正準レイアウト (canonical layout)
+
+```
+clinosim/modules/<name>/
+  __init__.py            <- public API を __all__ で re-export (空にしない)
+  engine.py              <- pure-function 群。cross-module import を持たない
+  protocol.py            <- (任意) YAML を Pydantic で validate して load
+  reference_data/*.yaml  <- データ駆動の定義 (Pydantic で検証)
+  README.md              <- 日本語 + 英語技術用語。## Dependencies を持つ
+```
+
+### canonical な「pure-function engine」(MOD-13 が手本)
+
+`observation/engine.py` は **cross-module import がゼロ** で、physiology 値・reference range などすべての文脈を関数引数で受け取ります。新規 engine はこれを手本にしてください。
+
+```python
+# 良い例: 文脈は引数で受ける。clinosim.modules.* を import しない
+def generate_lab_result(canon: str, true_value: float, rng: np.random.Generator,
+                        reference_ranges: dict | None = None) -> float:
+    ...
+```
+
+### 型は `clinosim/types/` に置く (engine 内に定義しない)
+
+**共有 runtime 型はモジュール内に定義してはいけません** (CLAUDE.md: "All types defined in `clinosim/types/`")。
+
+- `@dataclass` → runtime 型 (例: `clinosim/types/patient.py`, `encounter.py`, `output.py`)
+- Pydantic `BaseModel` → YAML-loaded config 型 (AD-18, 例: `clinosim/types/config.py`)
+
+> **既知の負債 (MOD-2..6, TYP-2):** `PersonRecord`/`LifeEvent`/`HospitalizationSummary` (population/engine.py)、`StaffMember`/`StaffRoster` (staff/engine.py)、`ProcedureRecord`/`RehabSession` (procedure/engine.py)、`HospitalState` (facility/hospital_state.py)、`DiseaseProtocol` (disease/protocol.py) は engine 内に残っています。**新規型はこの轍を踏まず最初から `clinosim/types/<name>.py` に定義し、`clinosim/types/__init__.py` に `__all__` で export** してください。loader 関数 (`load_disease_protocol` 等) は module 側に残し、型を types から import します。
+
+### YAML は Pydantic で validate する
+
+`disease/protocol.py` が正しい手本です。`DiseaseProtocol(BaseModel)` を `load_disease_protocol()` で `model_validate()` します。
+
+> **アンチパターン (ENC-1):** `encounter/protocol.py` は 46 YAML を `dict[str,Any]` のまま返し、`except Exception: pass` でパースエラーを握り潰しています。**新規 YAML protocol は必ず Pydantic でラップ** し、`extra="allow"` で段階導入してください。bare `except` 禁止。
+
+### `__init__.py` で public API を明示する
+
+> **既知の負債 (MOD-1, TYP-1):** 18 モジュール中 17 の `__init__.py` が空 (0 byte) で、caller が `from clinosim.modules.population.engine import LifeEvent` のように内部に直接到達しています。`identity/__init__.py` のみが正しく `__all__` で export しています。**新規モジュールは `__init__.py` に public surface を re-export** し、caller は `.engine` ではなく `from clinosim.modules.<name> import X` を使ってください。
+
+### README に `## Dependencies` を書く
+
+許可された依存先 (`clinosim/types/`, `clinosim/codes/`, `clinosim/locale/`, README に列挙した他モジュール) を `## Dependencies` (英語見出し、`identity/README.md` に合わせる) で明記します。
+
+---
+
+## データ生成の作法
+
+### 決定論コントラクト (AD-16 / AD-17)
+
+- **CIF が唯一の simulation 出力** (AD-17)。venue simulator は `return CIFPatientRecord(...)` で record を **返す** だけ。共有コレクションへ直接書いたり output adapter を呼んだりしない (DET-7 が手本: `inpatient.py:402` 等が return-based)。
+- **`random.random()` / stdlib `random` 禁止** (AD-16, DET-8)。必ず引数で渡された `np.random.Generator` を使う。module-level の可変 global state も禁止。
+  - **違反例 (DET-4):** `_generate_vitals._prev_diet` のように関数オブジェクト属性へ状態を溜めると、`FORCED-0001` 等の決定論 ID を共有する複数テスト呼び出しで stale 状態を読みます。状態は呼び出しスコープの local 変数に閉じること。
+
+### physiology state から導出する
+
+可能な限り、lab/vital は患者の physiology state (true value) から導出します。生成 chain は次に funnel させてください:
+
+```
+order → canonical_lab_name → generate_lab_result(true_value, rng) → determine_flag(canon, observed, sex, reference_ranges)
+```
+
+> **注意 (OBS-3):** `determine_flag()` には locale reference range を渡してください。現状 call site (`inpatient.py:604`, `outpatient.py:178`, `emergency.py:146` 等) が `reference_ranges=` を渡さず、JP 出力で interpretation が US default で計算される不整合があります。新規 call は `reference_ranges=load_reference_ranges(country).get("ranges", {})` を渡すこと。
+>
+> **注意 (DET-6):** fallback baseline lab 値を venue ごとに別定義しないこと (`outpatient.py` の WBC 6500 と `emergency.py` の WBC 7500 が乖離)。observation/engine.py 側の単一定数を import してください。
+
+### sub-seed 導出ルール (コピーすべき正確なパターン)
+
+各 enricher/module は **master seed から自分専用の sub-stream を導出** し、メイン random stream には触れません。現状 3 箇所 (`immunization/enricher.py:19`, `observation/nursing_enricher.py:28`, `observation/microbiology.py:39`) が同一式を copy-paste しています。**新規コードはこの式を踏襲** してください (将来的には `simulator/helpers.py` の `derive_sub_seed(master, module_offset, key)` に集約予定 — DET-2/EXT-4)。
+
+```python
+import hashlib
+
+_MODULE_OFFSET = 0x494D  # ★ module ごとに一意な定数を選ぶ (既存と衝突させない)
+
+def _sub_seed(master_seed: int, key: str) -> int:
+    h = int.from_bytes(hashlib.sha256(key.encode()).digest()[:6], "big")
+    return (master_seed + _MODULE_OFFSET + h) % (2**32)
+
+# 患者/encounter ごとに fresh な Generator を作る
+rng = np.random.default_rng(_sub_seed(ctx.master_seed, patient_id))
+```
+
+`key` には patient_id / household_id / encounter_id など **per-entity な一意キー** を必ず混ぜます (DET-3: identity module は integer-only の sub-seed で per-patient keying を欠く既知の不整合)。
+
+### CIF への書き込み: Base か extensions か
+
+- **Base データ** のみ `CIFPatientRecord` / `CIFDataset` に typed field を足せる。
+- **opt-in module は core 型を編集禁止**。`CIFPatientRecord.extensions[<module>]` に書く (AD-56)。
+
+```python
+# opt-in module enricher 内
+rec.extensions["immunization"] = [asdict(r) for r in immunizations]
+```
+
+> **例外の明文化 (TYP-4):** always-on の Base enricher (例 `nursing_risk_assessments`) は typed field に書いてよい。opt-in module enricher は必ず `extensions[<module>]` を使う。
+
+---
+
+## 拡張点の使い方
+
+**3 つの registry はいずれも core dispatch を編集せず、登録だけで拡張** します。core を直接編集してはいけません。
+
+### A. FHIR リソースを追加する (`register_bundle_builder`, AD-56)
+
+`_build_bundle()` を編集しない。builder は `(ctx: BundleContext) -> list[dict]` の pure 関数で raw resource を返します (Bundle entry でラップしない — registry が `_entry()` で一律ラップする)。
+
+```python
+# clinosim/modules/output/fhir_r4_adapter.py
+def _bb_my_resource(ctx: BundleContext) -> list[dict]:
+    # ctx fields: record, country, roster_map, hospital_config, patient_data,
+    #             patient_id, primary_dx_code, admit_dx_code, primary_enc_id, patient_sex, ...
+    if ctx.country != "JP":          # 国 gate は builder 内で行う
+        return []
+    return [{"resourceType": "...", "id": f"...-{ctx.primary_enc_id}", ...}]
+
+register_bundle_builder(_bb_my_resource)
+```
+
+- 命名は `_bb_*` prefix で統一 (EXT-6: `_build_nursing_observations` 等は旧式)。
+- `Resource.id` は型内で globally unique に。encounter-scoped id (`lab-{encounter_id}-...`) を使う (FA-7)。
+- **double-wrap 注意 (FA-3):** builder は raw resource dict を返す。`_entry()` を builder 内で呼ばない。
+
+### B. 出力フォーマットを追加する (`register_output_adapter`, AD-58)
+
+CLI の `--format` dispatch を編集しない。`OutputAdapter` Protocol を満たすクラスを `adapters_builtin.py` パターンで登録します。adapter は **CIF + `clinosim.codes` + `clinosim.locale` のみ** に依存できます。
+
+```python
+# clinosim/modules/output/adapter.py の Protocol:
+#   format_id: str / description: str / subdir: str
+#   def convert(self, cif_dir: str, out_dir: str, ctx: OutputContext) -> None
+class MyFormatAdapter:
+    format_id = "my-format"
+    description = "My export format"
+    subdir = "my_format"
+
+    def convert(self, cif_dir: str, out_dir: str, ctx: OutputContext) -> None:
+        from clinosim.modules.output.my_converter import convert_cif_to_myformat
+        convert_cif_to_myformat(cif_dir, out_dir, country=ctx.country)  # ctx.country を渡す
+
+register_output_adapter(MyFormatAdapter())
+```
+
+builtin は `_ensure_builtins()` が `adapters_builtin` を import して self-register します。新規 builtin はそこに `register_output_adapter(...)` を追加してください。
+
+> **注意 (FA-9):** `ctx.country` を必ず使う。CSV adapter は現状 `ctx.country` を捨てている既知の負債があります。
+
+### C. post-pass を追加する (Enricher, AD-56)
+
+`run_beta` にインライン化しない。`Enricher` を `register_builtin_enrichers()` (`enrichers.py`) で登録します。
+
+```python
+# clinosim/simulator/enrichers.py
+@dataclass  # 実体は既存の Enricher dataclass
+# Enricher(name, stage, run: Callable[[EnricherContext], None], order=100, enabled=lambda c: True)
+
+def run_my_pass(ctx: EnricherContext) -> None:
+    # ctx fields: config, master_seed, population, records
+    rng_seed = _sub_seed(ctx.master_seed, "my-pass")  # 自前 sub-seed (メイン stream に触れない)
+    for rec in ctx.records:
+        rec.extensions["my_module"] = ...
+
+register_enricher(Enricher(
+    name="my_module",
+    stage=POST_RECORDS,                 # or POST_POPULATION
+    run=run_my_pass,
+    order=300,                          # 昇順実行。order は固定 = 決定論
+    enabled=lambda c: c.module_enabled("my_module", default=True),
+))
+```
+
+- stage は `POST_POPULATION` (population 生成後/simulation 前、`ctx.population` を mutate) または `POST_RECORDS` (record 生成後、`ctx.records` を読み/extend)。
+- registry は name で idempotent。order 整数が実行順 = 決定論を支配します。
+
+---
+
+## 何のデータ/コードを使うか
+
+### codes と locale の分離
+
+- **`clinosim/codes/`** = 国際標準コードシステム (locale 非依存, EN-first)。`icd-10-cm.yaml`, `icd-10.yaml`, `loinc.yaml`, `rxnorm.yaml`, `yj.yaml`, `cpt.yaml`, `k-codes.yaml`, `cvx.yaml` 等。
+- **`clinosim/locale/`** = 国/文化依存データのみ (氏名, 住所, reference range, `code_mapping_*`)。terminology は codes/ へ移行済み (CODES-2)。**locale に display text を置かない。**
+
+### display は `lookup()` で解決する (AD-30)
+
+CIF は **コードのみ** 保持。display は出力時に解決します。
+
+```python
+from clinosim.codes import lookup as code_lookup
+name = code_lookup("icd-10-cm", "I50.9", "en")  # 見つからなければ code 自身/EN fallback
+```
+
+> **アンチパターン (DUP-3, FA-4, DIAG-1):** `CONDITION_NAMES` (patient/activator.py) のような display dict を新設しない。`csv_adapter.py` / `narrative_generator.py` の `admission_diagnosis_name` 等は CIF に存在しない ghost field で常に空。新規コードは `code_lookup(system, code, lang)` を使う。
+
+### URI は `get_system_uri()` で解決する
+
+```python
+from clinosim.codes import get_system_uri
+uri = get_system_uri("snomed-ct")  # FHIR system URI を文字列リテラルで書かない
+```
+
+> **アンチパターン (URI-1, CODES-4, FA-2):** SNOMED/LOINC/UCUM/HL7 URI を生文字列で埋め込まない (現状 fhir_r4_adapter.py に多数残存)。新規キーは `codes/loader.py` の `_BUILTIN_URIS` に正準 HL7 URI を登録してから `get_system_uri()` を使う。
+
+### internal-name → 標準コードは `code_mapping`
+
+内部テスト名 (`"WBC"`) → 標準コードは `locale/<country>/code_mapping_*.yaml` で解決します (`load_code_mapping()`)。YAML を直 `yaml.safe_load` せず canonical loader を通すこと (LOC-1)。
+
+### 権威出典 / English-first / コード coverage
+
+- **権威出典のみ:** CMS (ICD-10-CM), NLM (RxNorm, ICD-10-CM API `clinicaltables.nlm.nih.gov/api/icd10cm`), WHO (ICD-10, `icd.who.int/browse10`), Regenstrief (LOINC), AMA (CPT), JCCLS/JSLM (JLAC10), MHLW (YJ, K codes)。**コードを fabricate しない** (CODES-7: RxNorm CUI 18631 を 2 薬で共有した fabricated display が実例)。
+- **English-first:** `codes/data/*.yaml` の全エントリに `en` 必須、他言語 (`ja` 等) は任意 (CODES-1)。
+- **emittable な診断コードは全て登録:** disease の `icd_codes` (primary + variants)、encounter の `icd10_code`、`builtin_differentials.yaml` の `differentials[*].icd` + `diagnosis_progression`。US billable は `icd-10-cm.yaml`、非 billable は `code_mapping_diagnosis/us.yaml` で billable leaf へ。JP は WHO 3-4 桁を `icd-10.yaml` に (CM 粒度は `code_mapping_diagnosis/jp.yaml` で WHO 親へ畳む)。追加後は必ず:
+
+```bash
+pytest tests/unit/test_diagnosis_code_coverage.py
+```
+
+> RxNorm/YJ/CPT/K-codes/CVX には同等の coverage test がまだありません (CODES-6)。drug/procedure コードを追加したら手動で mapping → codes の存在を確認してください。
+
+---
+
+## 追加時チェックリスト
+
+順番に実行:
+
+1. **対象モジュールの `README.md` を読む** (Dependencies と既存 API を把握)。
+2. **共有型を `clinosim/types/<name>.py` に定義** し `types/__init__.py` に `__all__` で export (engine 内に定義しない)。`@dataclass` = runtime, Pydantic = config (AD-18)。
+3. **データ駆動なら `reference_data/*.yaml` + Pydantic 検証** (`model_validate`)。bare `except` 禁止。
+4. **決定論 sub-seed** を式どおりに導出 (per-entity key を混ぜる)。`random.random()` / global state 禁止。
+5. **適切な registry で登録:** FHIR → `register_bundle_builder`、出力形式 → `register_output_adapter`、post-pass → `register_enricher`。core dispatch / `_build_bundle` / `run_beta` / CLI `--format` を編集しない。
+6. **コード coverage:** 新規/変更コードを権威出典で照合 → `codes/data/<system>.yaml` (`en` 必須) または `code_mapping_*` に登録 → `pytest tests/unit/test_diagnosis_code_coverage.py`。
+7. **README / types を更新** (API・データ構造が変わったら)。`README.md` の依存グラフで downstream 影響を確認。
+8. **`pytest -x -q`** (unit 必須、commit 前)。出力に影響しうるなら `pytest -m e2e` で golden を確認。
+9. **生成された CIF + FHIR を臨床的整合性で監査** (lab/vital が physiology と整合、診断コードが正しく解決、JP 出力に英語が混入しないか、URI/reference 整合)。
+
+---
+
+## よくある落とし穴
+
+**Do**
+- engine は pure function、文脈は引数で渡す (`observation/engine.py` が手本)。
+- 型は `clinosim/types/`、display は `code_lookup()`、URI は `get_system_uri()`。
+- venue simulator は `CIFPatientRecord` を **return**、opt-in は `extensions[<module>]` に書く。
+- sub-seed に per-entity key を混ぜ、各 entity ごとに fresh な `default_rng` を作る。
+- YAML は Pydantic で validate、canonical loader (`locale/loader.py`, `codes/loader.py`) を通す。
+
+**Don't**
+- ❌ CIF に display text を保存しない (codes のみ。AD-30)。
+- ❌ FHIR system URI / 診断 display を生文字列でハードコードしない (URI-1, MOD-11, DUP-1/2/3, FA-2/4/8)。
+- ❌ `random.random()` / stdlib `random` / module-level 可変 global を使わない (AD-16; DET-4 の `_prev_diet` が反面教師)。
+- ❌ core dispatch (`_build_bundle`, `run_beta`, CLI `--format`) を編集しない — registry で拡張する。
+- ❌ 共有型を engine 内に定義しない (MOD-2..6)。`__init__.py` を空のままにせず public API を export する (MOD-1/TYP-1)。
+- ❌ private 関数 (`_sample_given_name` 等) を他モジュールから import しない (MOD-7/TYP-5) — locale の public utility に昇格させる。
+- ❌ コードを fabricate しない / `except Exception: pass` で YAML エラーを握り潰さない (CODES-7, ENC-1)。
+- ❌ `ctx.country` を捨てない (FA-9)。`determine_flag()` に locale reference range を渡し忘れない (OBS-3)。
+- ❌ venue ごとに baseline 値や lookup table を別定義して乖離させない (DET-6, DUP-1)。
