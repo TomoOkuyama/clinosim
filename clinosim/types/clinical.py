@@ -91,17 +91,6 @@ class ClinicalDiagnosis:
 
 
 @dataclass
-class DiagnosticAccuracyConfig:
-    """Tunable diagnostic accuracy parameters. AD-29."""
-
-    initial_correct_rate: float = 0.60  # first working dx matches truth
-    final_correct_rate: float = 0.85  # discharge dx matches truth
-    missed_secondary_rate: float = 0.30  # miss secondary dx in mixed cases
-    fuo_rate: float = 0.05  # fever remains undiagnosed
-    incidental_finding_rate: float = 0.08  # find unrelated condition
-
-
-@dataclass
 class ClinicalDocument:
     """A clinical document intended for FHIR DocumentReference output.
 

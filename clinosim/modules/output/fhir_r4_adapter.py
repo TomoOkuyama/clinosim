@@ -14,7 +14,6 @@ from clinosim.locale.loader import (
     load_code_mapping,
     load_identity_config,
     load_reference_ranges,
-    load_terminology,
 )
 import re
 import uuid
