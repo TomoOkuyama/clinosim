@@ -469,7 +469,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
         "active": True,
         "type": [{
             "coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/organization-type",
+                "system": get_system_uri("hl7-organization-type"),
                 "code": "prov",
                 "display": _localize_display("Healthcare Provider", country, _ORG_TYPE_DISPLAY_JA),
             }],
@@ -488,7 +488,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             "active": True,
             "type": [{
                 "coding": [{
-                    "system": "http://terminology.hl7.org/CodeSystem/organization-type",
+                    "system": get_system_uri("hl7-organization-type"),
                     "code": "dept",
                     "display": _localize_display("Hospital Department", country, _ORG_TYPE_DISPLAY_JA),
                 }],
@@ -522,7 +522,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 "name": (f"{ward}病棟" if country == "JP" else f"Ward {ward}") if ward not in ("ER", "OPD") else _localize_display(phys_display, country, _LOCATION_NAME_JA),
                 "physicalType": {
                     "coding": [{
-                        "system": "http://terminology.hl7.org/CodeSystem/location-physical-type",
+                        "system": get_system_uri("hl7-location-physical-type"),
                         "code": phys_type,
                         "display": phys_display,
                     }],
@@ -543,7 +543,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                         "name": f"{bed_id}号室" if country == "JP" else f"Bed {bed_id}",
                         "physicalType": {
                             "coding": [{
-                                "system": "http://terminology.hl7.org/CodeSystem/location-physical-type",
+                                "system": get_system_uri("hl7-location-physical-type"),
                                 "code": "bd",
                                 "display": "Bed",
                             }],
@@ -570,14 +570,14 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 "name": (f"手術室 {i}" if country == "JP" else f"Operating Room {i}"),
                 "physicalType": {
                     "coding": [{
-                        "system": "http://terminology.hl7.org/CodeSystem/location-physical-type",
+                        "system": get_system_uri("hl7-location-physical-type"),
                         "code": "ro",
                         "display": "Room",
                     }],
                 },
                 "type": [{
                     "coding": [{
-                        "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+                        "system": get_system_uri("hl7-v3-rolecode"),
                         "code": "OR",
                         "display": _localize_display("Operating Room", country, _LOCATION_TYPE_DISPLAY_JA),
                     }],
@@ -1352,7 +1352,7 @@ def _build_patient(p: dict, country: str) -> dict:
             "use": "usual",
             "type": {
                 "coding": [{
-                    "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                    "system": get_system_uri("hl7-v2-0203"),
                     "code": "MR",
                     "display": "Medical Record Number",
                 }],
@@ -1426,7 +1426,7 @@ def _build_patient(p: dict, country: str) -> dict:
             if emer_rel:
                 ec["relationship"] = [{
                     "coding": [{
-                        "system": "http://terminology.hl7.org/CodeSystem/v2-0131",
+                        "system": get_system_uri("hl7-v2-0131"),
                         "code": "C",
                         "display": "Emergency Contact",
                     }],
@@ -1647,7 +1647,7 @@ def _build_occupation_observation(
         "subject": {"reference": f"Patient/{patient_id}"},
         "valueCodeableConcept": {
             "coding": [{
-                "system": "http://clinosim.example.org/CodeSystem/occupation-category",
+                "system": get_system_uri("occupation-category"),
                 "code": occupation,
                 "display": display,
             }],
@@ -1691,14 +1691,14 @@ def _build_allergy_intolerance(
         "id": f"allergy-{patient_id}-{index:02d}",  # patient-scoped is OK (allergies are patient-level)
         "clinicalStatus": {
             "coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+                "system": get_system_uri("hl7-allergyintolerance-clinical"),
                 "code": "active",
                 "display": "Active",
             }],
         },
         "verificationStatus": {
             "coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-verification",
+                "system": get_system_uri("hl7-allergyintolerance-verification"),
                 "code": "confirmed",
                 "display": "Confirmed",
             }],
@@ -1900,19 +1900,19 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             "id": f"cond-{encounter_id}-primary" if encounter_id else f"cond-{patient_id}-primary",
             "clinicalStatus": {
                 "coding": [{
-                    "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+                    "system": get_system_uri("hl7-condition-clinical"),
                     "code": clinical_status,
                 }],
             },
             "verificationStatus": {
                 "coding": [{
-                    "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+                    "system": get_system_uri("hl7-condition-ver-status"),
                     "code": "confirmed",
                 }],
             },
             "category": [{
                 "coding": [{
-                    "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                    "system": get_system_uri("hl7-condition-category"),
                     "code": "encounter-diagnosis",
                     "display": _localize_display("Encounter Diagnosis", country, _CATEGORY_DISPLAY_JA),
                 }],
@@ -1962,19 +1962,19 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             "id": f"cond-{encounter_id}-chronic-{i:02d}" if encounter_id else f"cond-{patient_id}-chronic-{i:02d}",
             "clinicalStatus": {
                 "coding": [{
-                    "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+                    "system": get_system_uri("hl7-condition-clinical"),
                     "code": "active",
                 }],
             },
             "verificationStatus": {
                 "coding": [{
-                    "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+                    "system": get_system_uri("hl7-condition-ver-status"),
                     "code": "confirmed",
                 }],
             },
             "category": [{
                 "coding": [{
-                    "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                    "system": get_system_uri("hl7-condition-category"),
                     "code": "problem-list-item",
                     "display": _localize_display("Problem List Item", country, _CATEGORY_DISPLAY_JA),
                 }],
@@ -2189,7 +2189,7 @@ def _build_encounter(
         priority_display = {"EM": "emergency", "UR": "urgent", "R": "routine"}.get(priority, "")
         resource["priority"] = {
             "coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/v3-ActPriority",
+                "system": get_system_uri("hl7-v3-actpriority"),
                 "code": priority,
                 "display": priority_display,
             }],
@@ -2200,7 +2200,7 @@ def _build_encounter(
     dept_display = _dept_display(department, country)
     resource["serviceType"] = {
         "coding": [{
-            "system": "http://terminology.hl7.org/CodeSystem/service-type",
+            "system": get_system_uri("hl7-service-type"),
             "code": department,
             "display": dept_display,
         }],
@@ -2270,7 +2270,7 @@ def _build_encounter(
             "condition": {"reference": f"Condition/cond-{encounter_id}-primary"},
             "use": {
                 "coding": [{
-                    "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+                    "system": get_system_uri("hl7-diagnosis-role"),
                     "code": "DD",
                     "display": "Discharge diagnosis",
                 }],
@@ -2283,14 +2283,14 @@ def _build_encounter(
     if enc.get("admit_source"):
         hosp["admitSource"] = {
             "coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/admit-source",
+                "system": get_system_uri("hl7-admit-source"),
                 "code": enc["admit_source"],
             }],
         }
     if enc.get("discharge_disposition"):
         hosp["dischargeDisposition"] = {
             "coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
+                "system": get_system_uri("hl7-discharge-disposition"),
                 "code": enc["discharge_disposition"],
             }],
         }
@@ -2299,7 +2299,7 @@ def _build_encounter(
     if is_readmission:
         hosp["reAdmission"] = {
             "coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/v2-0092",
+                "system": get_system_uri("hl7-v2-0092"),
                 "code": "R",
                 "display": "Re-admission",
             }],
@@ -2368,7 +2368,7 @@ def _make_participant(code: str, display: str, practitioner_id: str) -> dict[str
     return {
         "type": [{
             "coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                "system": get_system_uri("hl7-v3-participationtype"),
                 "code": code,
                 "display": display,
             }],
@@ -2580,7 +2580,7 @@ def _build_vital_observations(
             "high": {"value": high, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
             "type": {
                 "coding": [{
-                    "system": "http://terminology.hl7.org/CodeSystem/referencerange-meaning",
+                    "system": get_system_uri("hl7-referencerange-meaning"),
                     "code": "normal",
                     "display": "正常範囲" if country == "JP" else "Normal Range",
                 }],
@@ -2592,7 +2592,7 @@ def _build_vital_observations(
             crit_range: dict[str, Any] = {
                 "type": {
                     "coding": [{
-                        "system": "http://terminology.hl7.org/CodeSystem/referencerange-meaning",
+                        "system": get_system_uri("hl7-referencerange-meaning"),
                         "code": "treatment",
                         "display": "パニック範囲" if country == "JP" else "Critical Range",
                     }],
@@ -3235,7 +3235,7 @@ def _build_document_reference(
             {
                 "coding": [
                     {
-                        "system": "http://hl7.org/fhir/us/core/CodeSystem/us-core-documentreference-category",
+                        "system": get_system_uri("us-core-documentreference-category"),
                         "code": "clinical-note",
                         "display": "Clinical Note",
                     }
@@ -3383,7 +3383,7 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
             qualification: dict[str, Any] = {
                 "code": {
                     "coding": [{
-                        "system": "http://terminology.hl7.org/CodeSystem/v2-0360",
+                        "system": get_system_uri("hl7-v2-0360"),
                         "code": qual["qual_code"],
                         "display": qual["qual_display"],
                     }],
@@ -3441,7 +3441,7 @@ def _build_practitioner_role(staff_id: str, roster_map: dict[str, dict] | None =
     if role_code:
         resource["code"] = [{
             "coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/practitioner-role",
+                "system": get_system_uri("hl7-practitioner-role"),
                 "code": role_code,
             }],
         }]
@@ -3502,7 +3502,7 @@ def _build_reference_range(
         if sex:
             rr["appliesTo"] = [{
                 "coding": [{
-                    "system": "http://terminology.hl7.org/CodeSystem/v3-AdministrativeGender",
+                    "system": get_system_uri("hl7-v3-administrativegender"),
                     "code": sex,
                 }],
             }]
