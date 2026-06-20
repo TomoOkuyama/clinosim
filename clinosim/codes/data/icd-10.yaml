@@ -940,3 +940,6 @@ codes:
   N18.9:
     en: "Chronic kidney disease, unspecified"
     ja: "慢性腎臓病、詳細不明"
+  U07.1:
+    en: "COVID-19"
+    ja: "新型コロナウイルス感染症"
