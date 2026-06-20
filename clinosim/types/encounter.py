@@ -217,3 +217,16 @@ class IntakeOutputRecord:
     output_drain_ml: int = 0  # surgical drain, NG tube
     output_other_ml: int = 0  # emesis, stool
     net_balance_ml: int = 0  # intake - output
+
+
+@dataclass
+class ImmunizationRecord:
+    """A completed immunization (vaccine history). FHIR Immunization (AD-55 Base).
+
+    CIF stores the CVX code only; display resolved at output via clinosim.codes (AD-30).
+    """
+    vaccine_cvx: str = ""
+    occurrence_date: date = field(default_factory=date.today)
+    status: str = "completed"
+    primary_source: bool = True
+    dose_number: int | None = None

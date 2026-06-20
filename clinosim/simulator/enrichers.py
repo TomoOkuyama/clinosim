@@ -93,3 +93,16 @@ def register_builtin_enrichers() -> None:
             run=enrich_nursing,
         )
     )
+
+    # Immunization history (AD-55 Base): adult vaccine history. Always-on.
+    from clinosim.modules.immunization.enricher import enrich_immunizations
+
+    register_enricher(
+        Enricher(
+            name="immunization",
+            stage=POST_RECORDS,
+            order=30,
+            enabled=lambda c: True,
+            run=enrich_immunizations,
+        )
+    )

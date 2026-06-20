@@ -1,0 +1,49 @@
+# US adult immunization schedule.
+# Sources: CDC ACIP adult immunization schedule; coverage = CDC FluVaxView / MMWR
+# approximate population estimates (modeling parameters, not codes). Verified 2026-06.
+vaccines:
+  influenza:
+    cvx: "150"
+    min_age: 18
+    frequency: annual
+    season_month: 10
+    available_from: "2000-01-01"
+    coverage_by_age_sex:
+      "18-49": {M: 0.32, F: 0.38}
+      "50-64": {M: 0.45, F: 0.50}
+      "65-99": {M: 0.68, F: 0.70}
+  covid19:
+    # 309 is the current active CVX representing a COVID-19 mRNA vaccination; availability anchors the program start.
+    cvx: "309"
+    min_age: 18
+    frequency: once
+    available_from: "2020-12-14"
+    coverage_by_age_sex:
+      "18-49": {M: 0.62, F: 0.66}
+      "50-64": {M: 0.78, F: 0.80}
+      "65-99": {M: 0.90, F: 0.91}
+  pneumococcal_ppsv23:
+    cvx: "33"
+    min_age: 65
+    frequency: once
+    available_from: "2000-01-01"
+    coverage_by_age_sex:
+      "65-99": {M: 0.65, F: 0.68}
+  tdap:
+    cvx: "115"
+    min_age: 18
+    frequency: every_n_years
+    interval_years: 10
+    available_from: "2005-06-01"
+    coverage_by_age_sex:
+      "18-49": {M: 0.30, F: 0.34}
+      "50-64": {M: 0.28, F: 0.32}
+      "65-99": {M: 0.24, F: 0.26}
+  zoster_rzv:
+    cvx: "187"
+    min_age: 50
+    frequency: once
+    available_from: "2017-10-20"
+    coverage_by_age_sex:
+      "50-64": {M: 0.30, F: 0.35}
+      "65-99": {M: 0.45, F: 0.50}
