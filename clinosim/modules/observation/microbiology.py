@@ -7,7 +7,6 @@ main simulation random stream (and golden files) is unperturbed (AD-16).
 
 from __future__ import annotations
 
-import hashlib
 from datetime import datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
@@ -16,6 +15,7 @@ from typing import Any
 import numpy as np
 import yaml
 
+from clinosim.simulator.seeding import derive_sub_seed
 from clinosim.types import MicrobiologyResult, SusceptibilityResult
 
 _REF = Path(__file__).parent / "reference_data" / "microbiology.yaml"
@@ -36,12 +36,6 @@ def has_microbiology(disease_id: str) -> bool:
     return disease_id in (_load().get("diseases") or {})
 
 
-def _encounter_seed(master_seed: int, encounter_id: str) -> int:
-    """Stable per-encounter sub-seed (hashlib → reproducible regardless of PYTHONHASHSEED)."""
-    h = int.from_bytes(hashlib.sha256(encounter_id.encode()).digest()[:6], "big")
-    return (int(master_seed) + _MICRO_SEED_OFFSET + h) % (2**32)
-
-
 def generate_microbiology(
     disease_id: str,
     collected_datetime: datetime | None,
@@ -58,7 +52,7 @@ def generate_microbiology(
     antibiotics = data.get("antibiotics") or {}
     organisms = data.get("organisms") or {}
 
-    rng = np.random.default_rng(_encounter_seed(master_seed, encounter_id))
+    rng = np.random.default_rng(derive_sub_seed(master_seed, _MICRO_SEED_OFFSET, encounter_id))
 
     org_dist = disease.get("organisms") or {}
     org_ids = list(org_dist.keys())

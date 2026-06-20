@@ -6,8 +6,6 @@ assessments. Uses a dedicated sub-seed so the main random stream is untouched.
 
 from __future__ import annotations
 
-import hashlib
-
 import numpy as np
 
 from clinosim.modules.observation.nursing import (
@@ -16,6 +14,7 @@ from clinosim.modules.observation.nursing import (
     compute_morse_fall_risk,
     compute_news2,
 )
+from clinosim.simulator.seeding import derive_sub_seed
 from clinosim.types.encounter import NursingRiskAssessment
 
 _NURSING_SEED_OFFSET = 0x4E55  # "NU"
@@ -23,11 +22,6 @@ _NURSING_SEED_OFFSET = 0x4E55  # "NU"
 # AVPU severity order: A (best/0) < V < P < U (worst/3).
 # Used to pick the most-impaired consciousness per day from same-day vitals.
 _AVPU_SEVERITY: dict[str, int] = {"A": 0, "V": 1, "P": 2, "U": 3}
-
-
-def _sub_seed(master_seed: int, key: str) -> int:
-    h = int.from_bytes(hashlib.sha256(key.encode()).digest()[:6], "big")
-    return (int(master_seed) + _NURSING_SEED_OFFSET + h) % (2**32)
 
 
 def _get(obj, name, default=None):
@@ -42,7 +36,8 @@ def enrich_nursing(ctx) -> None:
         patient = _get(rec, "patient")
         pid = _get(patient, "patient_id", "") if patient else ""
         age = int(_get(patient, "age", 70) or 70)
-        rng = np.random.default_rng(_sub_seed(ctx.master_seed, pid or "x"))
+        seed = derive_sub_seed(ctx.master_seed, _NURSING_SEED_OFFSET, pid or "x")
+        rng = np.random.default_rng(seed)
 
         # 1) NEWS2 + GCS on each vital record (NEWS2 deterministic; GCS small jitter)
         for vs in _get(rec, "vital_signs", []) or []:
