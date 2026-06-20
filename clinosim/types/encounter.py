@@ -170,6 +170,8 @@ class VitalSignRecord:
     nursing_note: str = ""  # brief nursing assessment
     measured_by: str = ""  # nurse staff_id
     data_source: str = "manual"  # "manual" | "device_auto"
+    news2_score: int | None = None  # NEWS2 aggregate (0-20), derived from this vital set
+    gcs_score: int | None = None    # Glasgow Coma Scale total (3-15)
 
 
 @dataclass
@@ -187,6 +189,21 @@ class ADLAssessment:
     transfers: int = 15  # 0/5/10/15
     mobility: int = 15  # 0/5/10/15
     stairs: int = 10  # 0/5/10
+
+
+@dataclass
+class NursingRiskAssessment:
+    """Daily nursing risk assessment: Braden (pressure ulcer) + Morse (fall) scales."""
+    date: date = field(default_factory=date.today)
+    braden_total: int = 23          # 6-23; lower = higher pressure-ulcer risk
+    braden_sensory: int = 4         # 1-4
+    braden_moisture: int = 4        # 1-4
+    braden_activity: int = 4        # 1-4
+    braden_mobility: int = 4        # 1-4
+    braden_nutrition: int = 4       # 1-4
+    braden_friction: int = 3        # 1-3
+    morse_total: int = 0            # 0-125
+    fall_risk_level: str = "low"    # "low" | "moderate" | "high"
 
 
 @dataclass

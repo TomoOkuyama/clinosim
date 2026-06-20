@@ -211,6 +211,31 @@ codes:
     en: Respiratory rate
     ja: 呼吸数
 
+  # === Nursing assessment scores (NLM LOINC API verified 2026-06) ===
+  9269-2:
+    en: Glasgow coma score total
+    ja: グラスゴー昏睡スケール合計
+  38227-5:
+    en: Braden scale total score
+    ja: ブレーデンスケール合計スコア
+  59460-6:
+    en: Fall risk total [Morse Fall Scale]
+    ja: 転倒リスク合計 [モールス転倒スケール]
+  96761-2:
+    en: Total score Barthel Index
+    ja: バーセルインデックス合計スコア
+
+  # === Fluid balance (NLM LOINC API verified 2026-06) ===
+  9108-2:
+    en: Fluid intake total 24 hour
+    ja: 総水分摂取量（24時間）
+  9192-6:
+    en: Urine output 24 hour
+    ja: 尿量（24時間）
+  9262-7:
+    en: Fluid output total 24 hour
+    ja: 総水分排泄量（24時間）
+
   # === Lipids / endocrine / inflammation (AD-57; codes verified vs NLM LOINC) ===
   # (2085-9 HDL, 2093-3 TC, 2571-8 TG, 2703-7 pO2 are defined once above — no duplicates.)
   2089-1:
