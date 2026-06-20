@@ -9,7 +9,7 @@
 
 🇯🇵 **日本語版**: [README.ja.md](README.ja.md)
 
-**clinosim** generates synthetic EHR data through **forward simulation** starting from a population. Rather than producing random values, every patient carries a hidden **9-variable physiological state**, and all observations (labs, vitals, medications, diagnoses) are derived from that state — ensuring **clinically coherent** data.
+**clinosim** generates synthetic EHR data through **forward simulation** starting from a population. Rather than producing random values, every patient carries a hidden **12-variable physiological state**, and all observations (labs, vitals, medications, diagnoses) are derived from that state — ensuring **clinically coherent** data.
 
 Primary use cases:
 - Training data for medical AI/ML models
@@ -45,7 +45,7 @@ Primary use cases:
 - **Three-stage pipeline**: `generate` (structured CIF) → `narrate` (LLM clinical documents) → `export-fhir` (FHIR R4 NDJSON). Each stage is re-runnable and independently testable.
 - **Clinical documents as FHIR DocumentReference** (LOINC-coded): Discharge Summary, Death Note, Operative Note, Admission H&P, Procedure Note — each base64-encoded and linked to Patient/Encounter/Procedure
 - **Pluggable LLM providers** (Ollama, AWS Bedrock, Mock) with YAML-driven factory and SHA256 disk cache for reproducibility and cost control
-- **9-variable physiology model** ensures labs/vitals are physiologically and clinically coherent
+- **12-variable physiology model** ensures labs/vitals are physiologically and clinically coherent
 - **Bayesian differential diagnosis** with likelihood ratios; 6 disease trajectory archetypes
 - **Authoritative code systems** (ICD-10-CM, LOINC, RxNorm, JLAC10, YJ codes, CPT, SNOMED CT subset) with multilingual display
 - **32 diseases + 46 ED/outpatient conditions** defined in YAML (no code changes to add new ones)
@@ -54,6 +54,7 @@ Primary use cases:
 - **Microbiology cultures + antibiotic susceptibility** for bacterial infections (sepsis, pneumonia, UTI, cellulitis): organism identification (SNOMED) and S/I/R antibiograms — emitted as FHIR `DiagnosticReport` + `Specimen` + `Observation`. All codes data-driven (`observation/reference_data/microbiology.yaml`)
 - **Cardiac injury markers** (Troponin I, CK-MB): physiology-derived and clinically coherent — MI-level in ACS, mild type-2 elevation in other cardiac stress, negative in non-cardiac rule-outs (ED chest pain/syncope), with a CKD clearance confounder and sex-specific cutoffs. Lab order aliases (stat/serial variants) canonicalize across inpatient/ED/outpatient
 - **Arterial blood gas** (pH, pCO₂, pO₂, HCO₃): an `ABG` order expands into its component results (data-driven panel), so respiratory/metabolic cohorts (COPD, pneumonia, asthma, DKA) get blood-gas data
+- **Dysnatremia coherence**: serum sodium tracks the disease — dilutional hyponatremia in chronic heart failure / cirrhosis, SIADH hyponatremia in pneumonia and HF exacerbation, and hypernatremia from dehydration — via a `sodium_status` physiology axis (disease drivers are data-driven)
 - **Unified physiology-driven labs across venues** (AD-57): inpatient, ED, and outpatient all derive lab true values from the patient's physiological state, so comorbidities are reflected everywhere (e.g. a CKD patient's ED creatinine is elevated, not a fixed normal)
 - **Ward + bed Location hierarchy** with PractitionerRole.location assignment
 - **Operating rooms** modeled as FHIR Locations; surgical procedures include category (SNOMED), performer.function (surgeon/anaesthetist), bodySite, outcome, and complications
@@ -514,7 +515,7 @@ clinosim/
 ├── modules/                  # Functional modules (each with README)
 │   ├── disease/              # 32 disease YAML protocols
 │   ├── encounter/            # 46 ED/outpatient condition YAMLs
-│   ├── physiology/           # 9-state model + lab/vital derivation
+│   ├── physiology/           # 12-state model + lab/vital derivation
 │   ├── clinical_course/      # 6 archetypes + complications + diagnosis feedback
 │   ├── diagnosis/            # Bayesian differential (LR table)
 │   ├── observation/          # 3-layer lab noise + flagging
