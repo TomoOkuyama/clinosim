@@ -44,6 +44,8 @@ Hidden state (9 variables) ── derive ──→ Lab values (CRP, Cr, BNP, …
 | `ph_status` | -1 〜 +1 | 酸塩基障害の大きさ (- = アシデミア) | pH, HCO3, pCO2, K |
 | `respiratory_fraction` | 0 〜 1 | 障害軸 (0=代謝性→HCO3 / 1=呼吸性→pCO2) | pH, HCO3, pCO2 |
 | `sodium_status` | -1 〜 +1 | Na バランス (- = 低 Na 血症 / + = 高 Na 血症) | Na (血清ナトリウム) |
+| `glucose_status` | -1 〜 +1 | 急性血糖状態 (+ = DKA/HHS 高血糖 / - = 低血糖) | Glucose |
+| `glycemic_control` | 0 〜 1 / None | 糖尿病の慢性血糖コントロール (1=良好 / 0=不良 / None=非糖尿病) | HbA1c, Glucose ベースライン |
 
 ## Coupling 依存グラフ
 
@@ -85,6 +87,7 @@ state = initialize_state(
 | `I25` | 虚血性心疾患 | `cardiac_function *= 1 - s*0.2` |
 | `I48` | 心房細動 | `cardiac_function *= 1 - s*0.1` |
 | `J45` | 喘息 | `ph_status -= s*0.02`; `respiratory_fraction = 1.0` (呼吸性軸) |
+| `E11`/`E10` | 糖尿病 | `glycemic_control = condition.glycemic_control` (E11 activation 時にサンプル) → HbA1c / Glucose ベースラインを駆動 |
 
 `s` = `condition.severity_score` (0-1)。
 
@@ -129,15 +132,19 @@ state = update(state, directive, time_step=timedelta(hours=1))
 6. **Anemia (chronic inflammation)**: `inflammation > 0.5` で slow 増加
 7. **Sodium (dehydration coupling)**: `volume_status < -0.35` (脱水) なら `sodium_status += (−volume_status − 0.35) * 1.2` — 自由水欠乏による高張性高 Na 血症を模擬
 
-### `derive_lab_values(state, sex, age, has_diabetes=False, diabetes_controlled=True, rng=None) -> dict[str, float]`
+### `derive_lab_values(state, sex, age, has_diabetes=False, rng=None, hour=6, myocardial_injury=False) -> dict[str, float]`
 
 Hidden state から検査値を計算する。 ノイズ無しの "真値" を返す (ノイズ付与は observation モジュール)。
+HbA1c と Glucose ベースラインは `state.glycemic_control`(慢性血糖コントロール軸)から導出され、
+互いに整合する(高 HbA1c ⇔ 高 Glucose)。`glycemic_control` は E11 慢性疾患から seed されるか、
+DKA 等のシナリオ(`DiseaseProtocol.chronic_glycemic_control`)で上書きされる。
 
 ```python
 from clinosim.modules.physiology.engine import derive_lab_values
 
-labs = derive_lab_values(state, sex="M", age=72, has_diabetes=True, diabetes_controlled=False)
-# labs = {"CRP": 138.2, "WBC": 15400, "Creatinine": 1.8, "BNP": 820, ...}
+labs = derive_lab_values(state, sex="M", age=72, has_diabetes=True)
+# state.glycemic_control=0.2 (不良) なら HbA1c ~10.8%, Glucose ベースライン高め
+# labs = {"CRP": 138.2, "WBC": 15400, "HbA1c": 10.8, "Glucose": 200, ...}
 ```
 
 **主な derivation 式** (抜粋):
