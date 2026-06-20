@@ -43,6 +43,26 @@ def test_all_dates_within_window():
     assert all(r.occurrence_date >= date(2020, 12, 14) for r in covid)
 
 
+def test_history_years_caps_annual_lookback():
+    """An annual vaccine with history_years=N only generates within the last N years
+    (models EHR data retention — avoids decades of accumulated flu shots)."""
+    from clinosim.modules.immunization.engine import generate_immunizations
+    as_of = date(2026, 1, 1)
+    schedule = {
+        "influenza": {
+            "cvx": "150", "min_age": 18, "frequency": "annual", "season_month": 10,
+            "available_from": "2000-01-01", "history_years": 10,
+            "coverage_by_age_sex": {"18-99": {"M": 1.0, "F": 1.0}},
+        }
+    }
+    recs = generate_immunizations(_patient(80), schedule, as_of, np.random.default_rng(2))
+    flu = [r for r in recs if r.vaccine_cvx == "150"]
+    # With coverage 1.0 and a 10-year lookback, at most ~11 seasons (2016-2026), never 26.
+    assert flu, "expected flu records"
+    assert all(r.occurrence_date >= date(2016, 1, 1) for r in flu)
+    assert len(flu) <= 11
+
+
 def test_high_coverage_more_than_low_band():
     from clinosim.modules.immunization.engine import generate_immunizations
     # elderly flu coverage (0.68-0.70) >> younger; count flu records across many seeds
