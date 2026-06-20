@@ -12,6 +12,10 @@ requires_surgery: false
 readmission_eligible: true
 minimum_severity: moderate
 
+# DKA implies long-standing poor chronic glycemic control -> high HbA1c (~11%), even for
+# new-onset diabetes. Overrides the patient's sampled glycemic_control for this admission.
+chronic_glycemic_control: 0.1
+
 medication_holds:
   - drugs: ["Metformin"]
     reason: "DKA — lactic acidosis risk; resume after metabolic stabilization"
