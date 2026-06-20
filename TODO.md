@@ -426,7 +426,7 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
   - [x] JP JLAC10 codes for Troponin_I (5C094) / CK_MB (3B015) verified vs JSLM master v137.
     Serial-troponin intra-day trend still open.
 - [ ] **`DiagnosticReport` grouping** — `output` adapter (+ `types/output`): group lab Observations into panels (CBC/BMP/LFT). Structural fidelity, no new clinical data.
-- [ ] **Nursing flowsheets** — `observation` / `simulator.inpatient` (+ `types`): I/O & fluid balance (from `volume_status`), NEWS2 (already computable), pain (0-10), GCS, Braden, fall risk → `Observation`.
+- [x] **Nursing flowsheets** — `observation/nursing.py` (純粋関数 NEWS2/GCS/Braden/Morse) + `nursing_enricher.py` (AD-56 Base post_records, 専用 hashlib サブシード → メインストリーム不変)。CIF: `VitalSignRecord.news2_score`/`gcs_score` + `NursingRiskAssessment` (Braden 6 サブスケール + Morse)。FHIR `category=survey` Observation 7 件 (NLM 照合済み LOINC: GCS 9269-2, Braden 38227-5, Morse 59460-6, Barthel 96761-2, 輸液 9108-2/9192-6/9262-7; NEWS2 は権威 LOINC なし → `code.text` のみ)。CSV: `nursing_risk.csv` 新規 + `vital_signs.csv` に NEWS2/GCS 列追加。thresholds はすべて `reference_data/nursing_scores.yaml` データ駆動。
 - [ ] **Immunization history** — `population`/patient-profile attribute (+ `types/patient`); emit `Immunization`. Locale schedules (JP routine + influenza/pneumococcal; US ACIP).
 - [ ] **Family history** — `population` attribute (+ `types`); emit `FamilyMemberHistory` (DM/HTN/CAD/cancer). Base-light attribute, not a module.
 - [ ] **Code status / advance directive** — inpatient/ICU/death encounter attribute (+ `types/encounter`); emit `Observation`/`Consent`. Base-light.
@@ -438,7 +438,7 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 - [ ] **`modules/device/`** — device placement (central line / urinary catheter / ventilator / telemetry) + **HAI risk** (CLABSI/CAUTI/VAP) from dwell time; deps `procedure`/`types`; emit `Device`/`DeviceUseStatement` (+ HAI `Condition`). Flag-gated.
 - [ ] **`modules/care_coordination/`** — `CarePlan`/`CareTeam`/`Goal` for USCDI/Synthea interoperability completeness; deps `types`; reads CIF; flag-gated.
 
-Suggested order: microbiology+markers → nursing flowsheets+`DiagnosticReport` → immunization/family-history/code-status/SDOH (Base) → `modules/billing` (JP DPC) → `modules/device` → `modules/care_coordination`.
+Suggested order: ~~microbiology+markers~~ ✅ → ~~nursing flowsheets~~ ✅ → `DiagnosticReport` grouping → immunization/family-history/code-status/SDOH (Base) → `modules/billing` (JP DPC) → `modules/device` → `modules/care_coordination`.
 
 ### v0.4 — Coverage expansion
 
