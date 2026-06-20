@@ -1019,7 +1019,7 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
             obs["valueQuantity"] = {
                 "value": int(intake_total),
                 "unit": "mL",
-                "system": "http://unitsofmeasure.org",
+                "system": get_system_uri("ucum"),
                 "code": "mL",
             }
             out.append(obs)
@@ -1035,7 +1035,7 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
             obs["valueQuantity"] = {
                 "value": int(urine_ml),
                 "unit": "mL",
-                "system": "http://unitsofmeasure.org",
+                "system": get_system_uri("ucum"),
                 "code": "mL",
             }
             out.append(obs)
@@ -1053,7 +1053,7 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
             obs["valueQuantity"] = {
                 "value": int(output_total),
                 "unit": "mL",
-                "system": "http://unitsofmeasure.org",
+                "system": get_system_uri("ucum"),
                 "code": "mL",
             }
             out.append(obs)
@@ -1390,7 +1390,7 @@ def _build_patient(p: dict, country: str) -> dict:
     if marital:
         resource["maritalStatus"] = {
             "coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/v3-MaritalStatus",
+                "system": get_system_uri("hl7-v3-maritalstatus"),
                 "code": marital,
                 "display": (_MARITAL_DISPLAY_JA if country == "JP" else _MARITAL_DISPLAY).get(marital, ""),
             }],
@@ -1624,7 +1624,7 @@ def _build_occupation_observation(
         "status": "final",
         "category": [{
             "coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "system": get_system_uri("hl7-observation-category"),
                 "code": "social-history",
                 "display": _localize_display("Social History", country, _CATEGORY_DISPLAY_JA),
             }],
@@ -1632,7 +1632,7 @@ def _build_occupation_observation(
         }],
         "code": {
             "coding": [{
-                "system": "http://loinc.org",
+                "system": get_system_uri("loinc"),
                 "code": "11341-5",
                 "display": "History of Occupation",
             }],
@@ -1665,7 +1665,7 @@ def _build_allergy_intolerance(
     code: dict[str, Any] = {"text": substance_display}
     if rxnorm:
         code["coding"] = [{
-            "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+            "system": get_system_uri("rxnorm"),
             "code": rxnorm,
             "display": substance_display,
         }]
@@ -1989,7 +1989,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                 "summary": {"text": c_stage},
                 "type": {
                     "coding": [{
-                        "system": "http://snomed.info/sct",
+                        "system": get_system_uri("snomed-ct"),
                         "code": "385356007",
                         "display": "Tumor stage finding",
                     }],
@@ -2043,7 +2043,7 @@ def _severity_coding(severity: str, country: str = "US") -> dict[str, Any]:
         snomed["display"] = _SEVERITY_DISPLAY_JA.get(orig_display, orig_display)
     return {
         "coding": [{
-            "system": "http://snomed.info/sct",
+            "system": get_system_uri("snomed-ct"),
             **snomed,
         }],
         "text": snomed.get("display", ""),
@@ -2176,7 +2176,7 @@ def _build_encounter(
         "id": encounter_id,
         "status": _map_encounter_status(enc.get("status", "")),
         "class": {
-            "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+            "system": get_system_uri("hl7-v3-actcode"),
             "code": class_code,
             "display": _localize_display(class_display, country, _CLASS_DISPLAY_JA),
         },
@@ -2186,7 +2186,7 @@ def _build_encounter(
     # Type (SNOMED)
     type_info = _ENCOUNTER_TYPE_SNOMED.get(enc_type)
     if type_info:
-        coding = {"system": "http://snomed.info/sct", **type_info}
+        coding = {"system": get_system_uri("snomed-ct"), **type_info}
         if country == "JP" and enc_type in _ENCOUNTER_TYPE_SNOMED_JA:
             coding["display"] = _ENCOUNTER_TYPE_SNOMED_JA[enc_type]
         resource["type"] = [{"coding": [coding]}]
@@ -2227,7 +2227,7 @@ def _build_encounter(
                 resource["length"] = {
                     "value": minutes,
                     "unit": "min",
-                    "system": "http://unitsofmeasure.org",
+                    "system": get_system_uri("ucum"),
                     "code": "min",
                 }
             except (ValueError, TypeError):
@@ -2353,7 +2353,7 @@ def _build_encounter(
         if "type" in resource:
             resource["type"].append({
                 "coding": [{
-                    "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+                    "system": get_system_uri("hl7-v3-actcode"),
                     "code": "READM",
                     "display": "Readmission",
                 }],
@@ -2361,7 +2361,7 @@ def _build_encounter(
         else:
             resource["type"] = [{
                 "coding": [{
-                    "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+                    "system": get_system_uri("hl7-v3-actcode"),
                     "code": "READM",
                     "display": "Readmission",
                 }],
@@ -2418,7 +2418,7 @@ def _build_lab_observation(
         "status": "final",
         "category": [{
             "coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "system": get_system_uri("hl7-observation-category"),
                 "code": "laboratory",
                 "display": _localize_display("Laboratory", country, _CATEGORY_DISPLAY_JA),
             }],
@@ -2437,7 +2437,7 @@ def _build_lab_observation(
         resource["valueQuantity"] = {
             "value": value,
             "unit": unit_str,
-            "system": "http://unitsofmeasure.org",
+            "system": get_system_uri("ucum"),
             "code": unit_str,  # UCUM code identical to display unit
         }
     else:
@@ -2491,7 +2491,7 @@ def _build_lab_observation(
     coded = _localize_interp(coded, country)
     resource["interpretation"] = [{
         "coding": [{
-            "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+            "system": get_system_uri("hl7-observation-interpretation"),
             **coded,
         }],
     }]
@@ -2541,21 +2541,21 @@ def _build_vital_observations(
             "status": "final",
             "category": [{
                 "coding": [{
-                    "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                    "system": get_system_uri("hl7-observation-category"),
                     "code": "vital-signs",
                     "display": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
                 }],
                 "text": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
             }],
             "code": {
-                "coding": [{"system": "http://loinc.org", "code": loinc, "display": display}],
+                "coding": [{"system": get_system_uri("loinc"), "code": loinc, "display": display}],
                 "text": display,
             },
             "subject": {"reference": f"Patient/{patient_id}"},
             "valueQuantity": {
                 "value": value,
                 "unit": unit,
-                "system": "http://unitsofmeasure.org",
+                "system": get_system_uri("ucum"),
                 "code": unit,
             },
         }
@@ -2583,8 +2583,8 @@ def _build_vital_observations(
         range_text = "成人正常範囲" if country == "JP" else "Normal adult range"
         crit_text = "パニック値" if country == "JP" else "Critical range"
         ref_ranges = [{
-            "low": {"value": low, "unit": unit, "system": "http://unitsofmeasure.org", "code": unit},
-            "high": {"value": high, "unit": unit, "system": "http://unitsofmeasure.org", "code": unit},
+            "low": {"value": low, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
+            "high": {"value": high, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
             "type": {
                 "coding": [{
                     "system": "http://terminology.hl7.org/CodeSystem/referencerange-meaning",
@@ -2607,9 +2607,9 @@ def _build_vital_observations(
                 "text": crit_text,
             }
             if crit_low is not None:
-                crit_range["low"] = {"value": crit_low, "unit": unit, "system": "http://unitsofmeasure.org", "code": unit}
+                crit_range["low"] = {"value": crit_low, "unit": unit, "system": get_system_uri("ucum"), "code": unit}
             if crit_high is not None:
-                crit_range["high"] = {"value": crit_high, "unit": unit, "system": "http://unitsofmeasure.org", "code": unit}
+                crit_range["high"] = {"value": crit_high, "unit": unit, "system": get_system_uri("ucum"), "code": unit}
             ref_ranges.append(crit_range)
         obs["referenceRange"] = ref_ranges
 
@@ -2626,7 +2626,7 @@ def _build_vital_observations(
             interp_code = "H"; interp_display = "High"
         obs["interpretation"] = [{
             "coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "system": get_system_uri("hl7-observation-interpretation"),
                 "code": interp_code,
                 "display": _localize_display(interp_display, country, _INTERPRETATION_DISPLAY_JA),
             }],
@@ -2652,7 +2652,7 @@ def _build_vital_observations(
             "status": "final",
             "category": [{
                 "coding": [{
-                    "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                    "system": get_system_uri("hl7-observation-category"),
                     "code": "vital-signs",
                     "display": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
                 }],
@@ -2660,7 +2660,7 @@ def _build_vital_observations(
             }],
             "code": {
                 "coding": [{
-                    "system": "http://loinc.org",
+                    "system": get_system_uri("loinc"),
                     "code": "80288-4",
                     "display": "Level of consciousness AVPU",
                 }],
@@ -2669,7 +2669,7 @@ def _build_vital_observations(
             "subject": {"reference": f"Patient/{patient_id}"},
             "valueCodeableConcept": {
                 "coding": [{
-                    "system": "http://snomed.info/sct",
+                    "system": get_system_uri("snomed-ct"),
                     "code": loc_snomed,
                     "display": loc_display,
                 }],
@@ -2693,7 +2693,7 @@ def _build_vital_observations(
             "status": "final",
             "category": [{
                 "coding": [{
-                    "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                    "system": get_system_uri("hl7-observation-category"),
                     "code": "vital-signs",
                     "display": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
                 }],
@@ -2701,7 +2701,7 @@ def _build_vital_observations(
             }],
             "code": {
                 "coding": [{
-                    "system": "http://loinc.org",
+                    "system": get_system_uri("loinc"),
                     "code": "3151-8",
                     "display": "Inhaled oxygen flow rate",
                 }],
@@ -2713,14 +2713,14 @@ def _build_vital_observations(
             o2_obs["valueQuantity"] = {
                 "value": flow,
                 "unit": "L/min",
-                "system": "http://unitsofmeasure.org",
+                "system": get_system_uri("ucum"),
                 "code": "L/min",
             }
         if device:
             o2_obs["component"] = [{
                 "code": {
                     "coding": [{
-                        "system": "http://loinc.org",
+                        "system": get_system_uri("loinc"),
                         "code": "8478-0",
                         "display": "Inhaled oxygen delivery system",
                     }],
@@ -2787,7 +2787,7 @@ def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any
             "doseQuantity": {
                 "value": dose_qty,
                 "unit": dose_unit,
-                "system": "http://unitsofmeasure.org",
+                "system": get_system_uri("ucum"),
             },
         }]
         parts.append(f"{dose_qty}{dose_unit}")
@@ -2797,7 +2797,7 @@ def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any
         snomed = _ROUTE_SNOMED.get(route)
         if snomed:
             dosage["route"] = {
-                "coding": [{"system": "http://snomed.info/sct", **snomed}],
+                "coding": [{"system": get_system_uri("snomed-ct"), **snomed}],
                 "text": route,
             }
         else:
@@ -2975,14 +2975,14 @@ def _build_medication_admin(
         dosage["dose"] = {
             "value": parsed["dose_quantity"],
             "unit": parsed["dose_unit"],
-            "system": "http://unitsofmeasure.org",
+            "system": get_system_uri("ucum"),
         }
     # Rate for continuous infusions
     if "CONTINUOUS" in dose_text.upper() or "DRIP" in dose_text.upper() or "/h" in dose_text:
         dosage["rateQuantity"] = {
             "value": parsed.get("dose_quantity") or 1,
             "unit": (parsed.get("dose_unit", "mL") + "/h"),
-            "system": "http://unitsofmeasure.org",
+            "system": get_system_uri("ucum"),
         }
     # Route
     route = (mar.get("route") or parsed.get("route") or "").upper()
@@ -2990,7 +2990,7 @@ def _build_medication_admin(
         snomed = _ROUTE_SNOMED.get(route)
         if snomed:
             dosage["route"] = {
-                "coding": [{"system": "http://snomed.info/sct", **snomed}],
+                "coding": [{"system": get_system_uri("snomed-ct"), **snomed}],
                 "text": route,
             }
         else:
@@ -3456,7 +3456,7 @@ def _build_practitioner_role(staff_id: str, roster_map: dict[str, dict] | None =
     if spec_info:
         resource["specialty"] = [{
             "coding": [{
-                "system": "http://snomed.info/sct",
+                "system": get_system_uri("snomed-ct"),
                 **spec_info,
             }],
             "text": spec_info["display"],
@@ -3495,12 +3495,12 @@ def _build_reference_range(
         if entry.get("low") is not None:
             rr["low"] = {
                 "value": entry["low"], "unit": unit_str,
-                "system": "http://unitsofmeasure.org", "code": unit_str,
+                "system": get_system_uri("ucum"), "code": unit_str,
             }
         if entry.get("high") is not None:
             rr["high"] = {
                 "value": entry["high"], "unit": unit_str,
-                "system": "http://unitsofmeasure.org", "code": unit_str,
+                "system": get_system_uri("ucum"), "code": unit_str,
             }
         if entry.get("text"):
             rr["text"] = entry["text"]
