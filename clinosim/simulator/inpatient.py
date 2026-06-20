@@ -136,6 +136,12 @@ def _simulate_patient(
     state = apply_disease_onset(state, severity, protocol.initial_state_impact,
                                 acid_base_type=protocol.acid_base_type)
 
+    # Scenario-implied chronic glycemic control (e.g. DKA/HHS imply long-standing poor
+    # control). Overrides the patient's sampled glycemic_control so HbA1c is coherently high
+    # even for new-onset diabetes. Persists through the stay (not an acute axis). AD-57.
+    if protocol.chronic_glycemic_control is not None:
+        state.glycemic_control = protocol.chronic_glycemic_control
+
     # Mixed condition: superimpose secondary disease's state impact
     secondary_disease_id = None
     if secondary_protocol:
