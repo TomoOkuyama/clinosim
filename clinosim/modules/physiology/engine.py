@@ -80,6 +80,25 @@ def initialize_state(
     return state
 
 
+# HbA1c model (chronic glycemic control). Coefficients fixed by generation audit.
+HBA1C_NONDM_BASE = 5.1     # %, non-diabetic baseline (mild age term added at use site)
+HBA1C_BEST = 6.0           # %, diabetic at perfect control (glycemic_control = 1.0)
+HBA1C_SPAN = 6.0           # %, added at glycemic_control = 0.0  -> 12.0% worst case
+# Diabetic fasting Glucose baseline as a function of glycemic control.
+GLU_DM_BEST = 120.0        # mg/dL at glycemic_control = 1.0
+GLU_DM_SPAN = 100.0        # mg/dL added at glycemic_control = 0.0 -> 220 worst
+GLYCEMIC_CONTROL_DEFAULT = 0.5   # fallback when has_diabetes but axis unset (e.g. new-onset)
+
+
+def hba1c_from_glycemic_control(glycemic_control: float) -> float:
+    """Typical (noise-free) HbA1c % for a diabetic at this chronic control level.
+
+    glycemic_control: 1.0 = excellent, 0.0 = very poor. Coefficients audit-tuned.
+    """
+    gc = clamp(glycemic_control, 0.0, 1.0)
+    return HBA1C_BEST + (1.0 - gc) * HBA1C_SPAN
+
+
 _ACID_BASE_RESPIRATORY_FRACTION = {"metabolic": 0.0, "mixed": 0.5, "respiratory": 1.0}
 
 
@@ -199,7 +218,6 @@ def derive_lab_values(
     sex: str,
     age: int,
     has_diabetes: bool = False,
-    diabetes_controlled: bool = True,
     rng: np.random.Generator | None = None,
     hour: int = 6,
     myocardial_injury: bool = False,
@@ -314,8 +332,10 @@ def derive_lab_values(
     labs["pO2"] = clamp(95.0 - infl * 45.0, 45.0, 105.0)  # mm[Hg]
 
     # --- Glucose (chronic diabetes baseline + acute glycemic state + diurnal variation) ---
-    if has_diabetes:
-        base_glu = 130.0 if diabetes_controlled else 200.0
+    is_diabetic = has_diabetes or state.glycemic_control is not None
+    gc = state.glycemic_control if state.glycemic_control is not None else GLYCEMIC_CONTROL_DEFAULT
+    if is_diabetic:
+        base_glu = GLU_DM_BEST + (1.0 - clamp(gc, 0.0, 1.0)) * GLU_DM_SPAN
     else:
         base_glu = 95.0
     # Acute glycemic drive (DKA/HHS push glucose_status up; insulin therapy lowers it).
@@ -337,6 +357,12 @@ def derive_lab_values(
         postprandial = 20.0
     labs["Glucose"] += postprandial
     labs["Glucose"] = clamp(labs["Glucose"], 40.0, 1200.0)  # physiological bounds
+
+    # --- HbA1c (chronic glycemic control; ~3-month average, control-driven) ---
+    if is_diabetic:
+        labs["HbA1c"] = hba1c_from_glycemic_control(gc)
+    else:
+        labs["HbA1c"] = HBA1C_NONDM_BASE + max(0, age - 40) * 0.003  # mild age term
 
     # --- WBC diurnal variation (±10%, afternoon slightly higher) ---
     # Nadir ~04:00, peak ~16:00

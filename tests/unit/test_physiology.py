@@ -11,6 +11,7 @@ from clinosim.modules.physiology.engine import (
     derive_lab_values,
     derive_observed_vitals,
     derive_vital_signs,
+    hba1c_from_glycemic_control,
     initialize_state,
     update,
     _variable_range,
@@ -439,3 +440,30 @@ def test_chronic_hf_cirrhosis_baseline_hyponatremia():
     assert state_k74.sodium_status < 0.0, (
         f"Cirrhosis should lower sodium_status, got {state_k74.sodium_status}"
     )
+
+
+@pytest.mark.unit
+class TestHbA1cGlycemicControl:
+    def test_hba1c_from_glycemic_control_monotonic_and_bounds(self):
+        best = hba1c_from_glycemic_control(1.0)
+        worst = hba1c_from_glycemic_control(0.0)
+        assert best < worst                      # worse control -> higher HbA1c
+        assert 6.0 <= best <= 7.0                # well-controlled diabetic
+        assert 10.0 <= worst <= 13.0             # very poor control
+        # clamps out-of-range input
+        assert hba1c_from_glycemic_control(2.0) == hba1c_from_glycemic_control(1.0)
+
+    def test_derive_lab_values_hba1c_diabetic_vs_nondiabetic(self):
+        nondm = PhysiologicalState()
+        labs_nondm = derive_lab_values(nondm, sex="M", age=55, has_diabetes=False)
+        assert 4.5 <= labs_nondm["HbA1c"] <= 5.8
+
+        good = PhysiologicalState(glycemic_control=0.9)
+        labs_good = derive_lab_values(good, sex="M", age=55, has_diabetes=True)
+        assert 6.0 <= labs_good["HbA1c"] <= 7.6
+
+        poor = PhysiologicalState(glycemic_control=0.1)
+        labs_poor = derive_lab_values(poor, sex="M", age=55, has_diabetes=True)
+        assert labs_poor["HbA1c"] > labs_good["HbA1c"]
+        # Glucose co-moves with control
+        assert labs_poor["Glucose"] > labs_good["Glucose"]
