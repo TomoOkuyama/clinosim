@@ -104,8 +104,8 @@ def _simulate_ed_visit(
     # a baseline state built from the patient's chronic conditions (CKD → high Cr, etc.),
     # then derive_lab_values. baseline_values is the reference-normal fallback for analytes
     # physiology doesn't model (HbA1c/WBC/CRP etc. resolve via _true_labs first). DET-6.
-    from clinosim.modules.observation.engine import _BASELINE_LAB_NORMALS
-    baseline_values = _BASELINE_LAB_NORMALS
+    from clinosim.modules.observation.engine import BASELINE_LAB_NORMALS
+    baseline_values = BASELINE_LAB_NORMALS
     _state = initialize_state(patient.physiological_profile, patient.chronic_conditions,
                               patient.patient_id)
     # Acute-presentation injection (AD-57): fold the ED scenario's physiological impact (by

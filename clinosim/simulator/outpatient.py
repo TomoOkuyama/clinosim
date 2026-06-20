@@ -143,12 +143,12 @@ def _simulate_outpatient_visit(
     # Comorbidity-aware true values via the same physiology path as inpatient (AD-57);
     # reuses `_state` initialized above for vitals.
     from clinosim.modules.physiology.engine import derive_lab_values
-    from clinosim.modules.observation.engine import _BASELINE_LAB_NORMALS
+    from clinosim.modules.observation.engine import BASELINE_LAB_NORMALS
     _has_dm = any("E11" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
     _true_labs = derive_lab_values(_state, sex=patient.sex, age=patient.age, has_diabetes=_has_dm)
     # Reference-normal fallback for analytes physiology doesn't model (HbA1c, WBC, CRP, etc.
     # are physiology-modeled and resolve via _true_labs first). DET-6 single source.
-    baseline_values = _BASELINE_LAB_NORMALS
+    baseline_values = BASELINE_LAB_NORMALS
     lab_tests = spec.get("labs", [])
     for i, test_name in enumerate(lab_tests):
         # Skip non-quantitative diagnostics (e.g. ECG) misfiled under labs — they are

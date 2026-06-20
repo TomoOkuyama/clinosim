@@ -198,9 +198,17 @@ poor ~180–220) and stay consistent with the patient's HbA1c.
 - `ChronicCondition.stage` (E11/E10) HbA1c string now derived from `glycemic_control`
   → FHIR `Condition.stage.summary.text` changes accordingly (now coherent with labs).
 - Glucose baseline for diabetics varies with control (was flat 130).
-- e2e `test_alpha_golden.py` `lab_result_count` (57) increases (inpatient HbA1c resulted)
-  — update the golden constant.
-- Everything else byte-identical (main stream preserved).
+- e2e `test_alpha_golden.py` golden patient is an inpatient pneumonia case that orders no
+  HbA1c, so its `lab_result_count` is unchanged; the documented golden constants are not
+  asserted and stay as-is.
+- **ED ESR now resolved (DET-6 side effect):** the old per-venue *emergency* baseline did
+  not contain ESR, so an ED ESR order (only `low_back_pain.yaml`, prob 0.1) was silently
+  dropped (placed, never resulted). The shared `BASELINE_LAB_NORMALS` includes ESR, so the
+  order now resolves to a normal value — a clinically-correct fix (an order should produce a
+  result), consistent with how the outpatient venue already handled ESR. This shifts the RNG
+  stream only within ED low-back-pain encounters that roll the ESR order; the inpatient e2e
+  golden is unaffected. No ED encounter orders lipids, so the lipid keys are inert in ED.
+- Otherwise byte-identical except HbA1c / diabetic Glucose (main stream preserved).
 
 ## Testing
 

@@ -150,7 +150,7 @@ PHYSIOLOGIC_LIMITS: dict[str, tuple[float, float]] = {
 
 # Reference-normal fallback values for analytes physiology does not model, shared by the
 # outpatient/emergency venues (DET-6 — single source of truth, replaces per-venue dicts).
-_BASELINE_LAB_NORMALS: dict[str, float] = {
+BASELINE_LAB_NORMALS: dict[str, float] = {
     "Ca": 9.2, "TSH": 2.5, "LDL": 110, "HDL": 55, "TG": 130, "TC": 190, "ESR": 12,
 }
 
