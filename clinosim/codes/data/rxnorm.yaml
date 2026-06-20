@@ -66,8 +66,11 @@ codes:
     en: 0.9% Sodium Chloride injectable solution
     ja: 生理食塩水
   '18631':
-    en: Amoxicillin/Clavulanate (Augmentin) / Azithromycin (Zithromax)
-    ja: アモキシシリン/クラブラン酸（オーグメンチン） / アジスロマイシン（ジスロマック）
+    en: Azithromycin (Zithromax)
+    ja: アジスロマイシン（ジスロマック）
+  '19711':
+    en: Amoxicillin / Clavulanate (Augmentin)
+    ja: アモキシシリン/クラブラン酸（オーグメンチン）
   '202488':
     en: Levofloxacin
     ja: レボフロキサシン
