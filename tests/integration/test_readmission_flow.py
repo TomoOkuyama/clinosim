@@ -70,6 +70,25 @@ class TestReadmissionFlow:
         assert "discharge_diagnosis_code" in rows[0]
         assert "ground_truth_diseases" in rows[0]
 
+    def test_csv_diagnosis_names_are_resolved(self, readmission_dataset, tmp_path):
+        # Regression (FA-4): CIF has no *_diagnosis_name field; the CSV adapter must
+        # resolve the display from the stored code + system (AD-30). It used to read a
+        # ghost field, leaving the name columns always empty.
+        cif_dir = str(tmp_path / "cif")
+        csv_dir = str(tmp_path / "csv")
+        write_cif(readmission_dataset, cif_dir)
+        convert_cif_to_csv(cif_dir, csv_dir, country="US")
+
+        import csv
+        with open(os.path.join(csv_dir, "diagnoses.csv")) as f:
+            rows = list(csv.DictReader(f))
+        coded = [r for r in rows if r["discharge_diagnosis_code"]]
+        assert coded, "expected some rows with a discharge diagnosis code"
+        for r in coded:
+            assert r["discharge_diagnosis_name"], (
+                f"diagnosis name must be resolved for code {r['discharge_diagnosis_code']}"
+            )
+
     def test_readmission_rate_within_benchmark(self, readmission_dataset):
         """Overall readmission rate (inpatient only) should be between 5-40%."""
         inpatients = [

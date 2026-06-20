@@ -9,9 +9,15 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from clinosim.codes import get_display
 
-def convert_cif_to_csv(cif_dir: str, output_dir: str) -> None:
-    """Read CIF structural data and write flat CSV files."""
+
+def convert_cif_to_csv(cif_dir: str, output_dir: str, country: str = "US") -> None:
+    """Read CIF structural data and write flat CSV files.
+
+    `country` selects the display language for resolved code names (US -> en, JP -> ja);
+    CIF stores codes only, so diagnosis names are resolved here via clinosim.codes (AD-30).
+    """
     os.makedirs(output_dir, exist_ok=True)
 
     structural_dir = os.path.join(cif_dir, "structural", "patients")
@@ -87,13 +93,21 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str) -> None:
         clinical_dx = record.get("clinical_diagnosis", {})
         condition = record.get("condition_event", {})
         enc_id = record.get("encounters", [{}])[0].get("encounter_id", "")
+        # CIF stores diagnosis codes only (AD-30); resolve display names here via the
+        # stored code + system in the target language. (CIF has no *_diagnosis_name field.)
+        adm_code = clinical_dx.get("admission_diagnosis_code", "")
+        adm_sys = clinical_dx.get("admission_diagnosis_system", "icd-10-cm")
+        dis_code = clinical_dx.get("discharge_diagnosis_code", "")
+        dis_sys = clinical_dx.get("discharge_diagnosis_system", "icd-10-cm")
+        adm_name = get_display(adm_sys, adm_code, country) if adm_code else ""
+        dis_name = get_display(dis_sys, dis_code, country) if dis_code else ""
         diagnoses_rows.append({
             "patient_id": patient_id,
             "encounter_id": enc_id,
-            "admission_diagnosis_code": clinical_dx.get("admission_diagnosis_code", ""),
-            "admission_diagnosis_name": clinical_dx.get("admission_diagnosis_name", ""),
-            "discharge_diagnosis_code": clinical_dx.get("discharge_diagnosis_code", ""),
-            "discharge_diagnosis_name": clinical_dx.get("discharge_diagnosis_name", ""),
+            "admission_diagnosis_code": adm_code,
+            "admission_diagnosis_name": adm_name,
+            "discharge_diagnosis_code": dis_code,
+            "discharge_diagnosis_name": dis_name,
             "diagnosis_correct": clinical_dx.get("diagnosis_correct", ""),
             "ground_truth_diseases": "|".join(condition.get("ground_truth_diseases", [])),
             "condition_type": condition.get("condition_type", ""),

@@ -17,7 +17,7 @@ class CsvAdapter:
     def convert(self, cif_dir: str, out_dir: str, ctx: OutputContext) -> None:
         from clinosim.modules.output.csv_adapter import convert_cif_to_csv
 
-        convert_cif_to_csv(cif_dir, out_dir)
+        convert_cif_to_csv(cif_dir, out_dir, country=ctx.country)
 
 
 class FhirR4Adapter:
