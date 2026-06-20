@@ -50,6 +50,8 @@ def test_braden_total_in_range_and_monotone():
     healthy = compute_braden({"barthel_score": 100}, "A", 0.0, _rng())
     frail = compute_braden({"barthel_score": 10}, "P", 0.5, _rng())
     assert 6 <= frail["braden_total"] <= healthy["braden_total"] <= 23
+    assert healthy["braden_total"] >= 20      # robust patient: high Braden
+    assert frail["braden_total"] <= 14        # frail patient: low Braden (high risk)
 
 
 def test_morse_levels():
@@ -60,6 +62,7 @@ def test_morse_levels():
 
 def test_deterministic_same_seed():
     import numpy as np
+
     from clinosim.modules.observation.nursing import compute_braden
     a = compute_braden({"barthel_score": 50}, "A", 0.0, np.random.default_rng(7))
     b = compute_braden({"barthel_score": 50}, "A", 0.0, np.random.default_rng(7))

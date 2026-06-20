@@ -18,10 +18,10 @@ news2:
   on_supplemental_oxygen: 2   # +2 if on supplemental O2
   temperature_celsius:
     - [null, 35.0, 3]
-    - [35.1, 36.0, 1]
-    - [36.1, 38.0, 0]
-    - [38.1, 39.0, 1]
-    - [39.1, null, 2]
+    - [35.0, 36.0, 1]
+    - [36.0, 38.0, 0]
+    - [38.0, 39.0, 1]
+    - [39.0, null, 2]
   systolic_bp:
     - [null, 90, 3]
     - [91, 100, 2]
@@ -60,8 +60,6 @@ braden:
 morse:
   # Morse Fall Scale item weights (published).
   history_of_falling: 25
-  secondary_diagnosis: 15
-  ambulatory_aid: 15
   iv_access: 20
   gait_impaired: 20
   gait_weak: 10

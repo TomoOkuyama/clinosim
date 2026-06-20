@@ -41,7 +41,7 @@ def compute_news2(vs: dict) -> int:
     total += _band_points(vs.get("systolic_bp"), cfg["systolic_bp"])
     total += _band_points(vs.get("heart_rate"), cfg["heart_rate"])
     total += int(cfg["consciousness"].get(vs.get("consciousness_level", "A"), 0))
-    return min(20, total)
+    return max(0, min(20, total))
 
 
 def compute_gcs(consciousness_level: str, perfusion_status: float,
