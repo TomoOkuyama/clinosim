@@ -78,6 +78,7 @@ class ChronicCondition:
     controlled: bool = True
     severity_score: float = 0.3
     stage: str = ""  # e.g., "CKD G3a", "NYHA II", "HbA1c 7.2%"
+    glycemic_control: float | None = None  # E11/E10 only; 1.0=excellent .. 0.0=very poor
 
 
 @dataclass
