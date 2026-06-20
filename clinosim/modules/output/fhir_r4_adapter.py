@@ -843,14 +843,19 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
 
 # --- Nursing flowsheet Observations (NEWS2 / GCS / Braden / Morse / ADL / I&O) ---
 
-_SURVEY_CATEGORY = [{
-    "coding": [{
-        "system": "http://terminology.hl7.org/CodeSystem/observation-category",
-        "code": "survey",
-        "display": "Survey",
-    }],
-    "text": "Survey",
-}]
+def _survey_category() -> list[dict]:
+    """Return the observation category list for survey-type observations.
+
+    Uses get_system_uri to avoid hardcoding FHIR system URIs (project rule).
+    """
+    return [{
+        "coding": [{
+            "system": get_system_uri("hl7-observation-category"),
+            "code": "survey",
+            "display": "Survey",
+        }],
+        "text": "Survey",
+    }]
 
 
 def _loinc_coding(code: str, lang: str) -> dict:
@@ -889,7 +894,7 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
             "resourceType": "Observation",
             "id": obs_id,
             "status": "final",
-            "category": _SURVEY_CATEGORY,
+            "category": _survey_category(),
             "subject": subject,
         }
         if enc_ref:
@@ -951,23 +956,29 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
             obs["valueInteger"] = int(morse)
             fall_level = nra.get("fall_risk_level")
             if fall_level:
-                # Map fall risk level to standard HL7 observation interpretation codes
+                # Clinosim Morse risk bands ("low"/"moderate"/"high") → HL7 v3
+                # ObservationInterpretation L / N / H.
                 _fall_interp: dict[str, tuple[str, str, str]] = {
                     "low": ("L", "Low", "低リスク"),
-                    "medium": ("N", "Normal", "中リスク"),
+                    "moderate": ("N", "Normal", "中リスク"),
                     "high": ("H", "High", "高リスク"),
                 }
                 code_val, display_en, display_ja = _fall_interp.get(
                     str(fall_level).lower(), ("N", "Normal", "通常")
                 )
                 interp_display = display_ja if ctx.country == "JP" else display_en
+                interp_text = (
+                    f"転倒リスク: {fall_level}"
+                    if ctx.country == "JP"
+                    else f"Fall risk: {fall_level}"
+                )
                 obs["interpretation"] = [{
                     "coding": [{
                         "system": get_system_uri("hl7-observation-interpretation"),
                         "code": code_val,
                         "display": interp_display,
                     }],
-                    "text": f"Fall risk: {fall_level}",
+                    "text": interp_text,
                 }]
             out.append(obs)
 
@@ -1007,7 +1018,7 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
                 "text": code_lookup("loinc", "9108-2", lang) or "Fluid intake total 24 hour",
             }
             obs["valueQuantity"] = {
-                "value": intake_total,
+                "value": int(intake_total),
                 "unit": "mL",
                 "system": "http://unitsofmeasure.org",
                 "code": "mL",
@@ -1041,7 +1052,7 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
                 "text": code_lookup("loinc", "9262-7", lang) or "Fluid output total 24 hour",
             }
             obs["valueQuantity"] = {
-                "value": output_total,
+                "value": int(output_total),
                 "unit": "mL",
                 "system": "http://unitsofmeasure.org",
                 "code": "mL",
