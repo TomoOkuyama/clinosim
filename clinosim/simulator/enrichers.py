@@ -80,3 +80,16 @@ def register_builtin_enrichers() -> None:
             run=lambda ctx: assign_identities(ctx.population, ctx.config.country, ctx.master_seed),
         )
     )
+
+    # Nursing flowsheet (AD-55 Base): NEWS2/GCS + Braden/Morse. Always-on.
+    from clinosim.modules.observation.nursing_enricher import enrich_nursing
+
+    register_enricher(
+        Enricher(
+            name="nursing",
+            stage=POST_RECORDS,
+            order=20,
+            enabled=lambda c: True,
+            run=enrich_nursing,
+        )
+    )
