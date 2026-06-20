@@ -67,6 +67,10 @@ def initialize_state(
         elif code.startswith("J45"):  # Asthma
             state.ph_status -= s * 0.02  # mild respiratory effect
             state.respiratory_fraction = 1.0  # bronchospasm → respiratory axis
+        elif code.startswith(("E11", "E10")):  # Diabetes — chronic glycemic control axis
+            gc = getattr(c, "glycemic_control", None)
+            if gc is not None:
+                state.glycemic_control = gc
 
     # Perfusion tracks cardiac
     state.perfusion_status = clamp(state.cardiac_function * 0.8 + 0.2, 0.0, 1.0)

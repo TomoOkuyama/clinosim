@@ -467,3 +467,14 @@ class TestHbA1cGlycemicControl:
         assert labs_poor["HbA1c"] > labs_good["HbA1c"]
         # Glucose co-moves with control
         assert labs_poor["Glucose"] > labs_good["Glucose"]
+
+
+@pytest.mark.unit
+def test_initialize_state_seeds_glycemic_control_from_e11():
+    prof = PatientPhysiologicalProfile()
+    dm = ChronicCondition(code="E11.9", glycemic_control=0.2)
+    st = initialize_state(prof, [dm], "pt-1")
+    assert st.glycemic_control == 0.2
+    # non-diabetic -> stays None
+    st2 = initialize_state(prof, [], "pt-2")
+    assert st2.glycemic_control is None
