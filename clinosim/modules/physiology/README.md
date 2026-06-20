@@ -29,7 +29,7 @@ Hidden state (9 variables) ── derive ──→ Lab values (CRP, Cr, BNP, …
 | 5 | **慢性疾患は baseline に焼き込む** | `initialize_state()` で chronic condition の severity_score を反映 |
 | 6 | **決定論的 (seed ベース)** | derive_* は RNG を使わない (noise は observation モジュール) |
 
-## 9 つの状態変数
+## 10 の状態変数
 
 | 変数名 | 範囲 | 臨床的意味 | 主な影響先 |
 |---|---|---|---|
@@ -43,6 +43,7 @@ Hidden state (9 variables) ── derive ──→ Lab values (CRP, Cr, BNP, …
 | `perfusion_status` | 0–1 | 組織灌流 | Lactate, BP, 腎血流 |
 | `ph_status` | -1 〜 +1 | 酸塩基障害の大きさ (- = アシデミア) | pH, HCO3, pCO2, K |
 | `respiratory_fraction` | 0 〜 1 | 障害軸 (0=代謝性→HCO3 / 1=呼吸性→pCO2) | pH, HCO3, pCO2 |
+| `sodium_status` | -1 〜 +1 | Na バランス (- = 低 Na 血症 / + = 高 Na 血症) | Na (血清ナトリウム) |
 
 ## Coupling 依存グラフ
 
@@ -78,8 +79,8 @@ state = initialize_state(
 | ICD prefix | 疾患 | 影響 |
 |---|---|---|
 | `N18` | CKD | `renal_function *= 1 - s*0.5`; s>0.5 で anemia_level +0.15, ph -s*0.1 |
-| `I50` | 心不全 | `cardiac_function *= 1 - s*0.4`; s>0.3 で volume +s*0.3 |
-| `K74` | 肝硬変 | `hepatic_function *= 1 - s*0.5`; coagulation +s*0.2 |
+| `I50` | 心不全 | `cardiac_function *= 1 - s*0.4`; s>0.3 で volume +s*0.3; **`sodium_status -= s*0.30`** (希釈性低 Na) |
+| `K74` | 肝硬変 | `hepatic_function *= 1 - s*0.5`; coagulation +s*0.2; **`sodium_status -= s*0.40`** (希釈性低 Na) |
 | `J44` | COPD | `ph_status -= s*0.05`; `respiratory_fraction = 1.0` (呼吸性軸) |
 | `I25` | 虚血性心疾患 | `cardiac_function *= 1 - s*0.2` |
 | `I48` | 心房細動 | `cardiac_function *= 1 - s*0.1` |
@@ -126,6 +127,7 @@ state = update(state, directive, time_step=timedelta(hours=1))
 4. **Coagulation (DIC)**: `inflammation > 0.7` で `(infl - 0.7) * 0.15` 増加
 5. **Coagulation (liver failure)**: `hepatic < 0.4` で追加悪化
 6. **Anemia (chronic inflammation)**: `inflammation > 0.5` で slow 増加
+7. **Sodium (dehydration coupling)**: `volume_status < -0.35` (脱水) なら `sodium_status += (−volume_status − 0.35) * 1.2` — 自由水欠乏による高張性高 Na 血症を模擬
 
 ### `derive_lab_values(state, sex, age, has_diabetes=False, diabetes_controlled=True, rng=None) -> dict[str, float]`
 
@@ -155,6 +157,9 @@ PT_INR     = 1.0 + (1-hepatic)*2.0 + coagulation*1.5
 Hb         = base_hb * (1 - anemia*0.7)
 Lactate    = 1.0 + (1-perfusion)*12
 Glucose    = base + infl*50                         # stress hyperglycemia
+Na         = clamp(140 + sodium_status*14 - (1-renal)*3, 120, 160)
+             # 正常患者: 140 mEq/L; ±1.0 で ±14 mEq/L スケール;
+             # 腎機能低下 (renal<1) で軽度 Na 保持補正; clamp [120, 160]
 
 # 酸塩基 (二軸: 代謝性 HCO3 / 呼吸性 pCO2 + 代償, AD-57)
 mf, rf     = 1-respiratory_fraction, respiratory_fraction
@@ -205,6 +210,70 @@ raw = derive_observed_vitals(state, patient.baseline_vitals, ts, rng)
 # raw = {"temperature": 38.6, "heart_rate": 110, ...}  # ノイズ込みの観測値
 ```
 
+## `sodium_status` 軸
+
+### 概要
+
+`sodium_status` は血清 Na バランスを表す隠れ状態変数 (範囲 -1.0 〜 +1.0) で、生成監査で
+発見された「Na が 131-144 mEq/L の狭帯域に張り付く」ギャップを是正するために追加された。
+
+| 値 | 臨床的意味 | 代表的 Na 値 |
+|---|---|---|
+| -1.0 | 重篤な低 Na 血症 (hyponatremia) | ≈ 126 mEq/L |
+| 0.0 | 正常 | ≈ 140 mEq/L |
+| +1.0 | 高 Na 血症 (hypernatremia) | ≈ 154 mEq/L |
+
+### 3 つのドライバ
+
+#### (a) 慢性ベースライン — `initialize_state()`
+
+慢性疾患 severity_score `s` から初期値を設定する (希釈性低 Na 血症):
+
+| ICD prefix | 疾患 | 影響 |
+|---|---|---|
+| `I50` | 心不全 (HF) | `sodium_status -= s * 0.30` (浮腫・RAA 系亢進による希釈) |
+| `K74` | 肝硬変 | `sodium_status -= s * 0.40` (腹水・アルブミン低下による希釈) |
+
+肝硬変は HF より係数が大きい (腹水貯留による希釈が顕著)。
+
+#### (b) 脱水 coupling — `apply_coupling_rules()`
+
+```
+volume_status < -0.35 (脱水) のとき:
+    sodium_status += (-volume_status - 0.35) * 1.2
+```
+
+自由水欠乏により細胞外液 Na 濃度が上昇する高張性高 Na 血症を模擬。閾値 -0.35 は
+軽度脱水では coupling が起きず、中等度以上の脱水で緩やかに高 Na 方向へ押し上げる
+設定になっている。
+
+#### (c) 疾患 YAML による急性 impact — `apply_disease_onset()`
+
+疾患 YAML の `initial_state_impact.sodium_status` を直接適用する (SIADH / 増悪)。
+現在適用される疾患:
+
+| 疾患 YAML | 想定メカニズム | `sodium_status` の典型値 |
+|---|---|---|
+| `heart_failure_exacerbation` | SIADH 様 / 希釈 | 負方向 |
+| `bacterial_pneumonia` | SIADH (炎症性 ADH 分泌亢進) | 負方向 |
+| `aspiration_pneumonia` | SIADH (炎症性 ADH 分泌亢進) | 負方向 |
+
+### Na 写像式
+
+```python
+Na = clamp(140 + sodium_status * 14 - (1 - renal_function) * 3, 120, 160)
+```
+
+- **スケール係数 14**: `sodium_status = ±1.0` で Na が ±14 mEq/L 変動 (126 〜 154 mEq/L)
+- **腎補正項 `(1-renal)*3`**: 腎機能低下時に Na 保持が増加する傾向を軽微に補正
+- **clamp [120, 160]**: 生理的限界を超えないよう強制
+
+### 決定論性
+
+`sodium_status` の全操作 (初期化・coupling・disease onset) は RNG を使用しない。
+同一 seed で同一 Na 値が再現されることが保証される。`derive_lab_values()` も決定論的
+(ノイズは observation モジュール側で付与)。
+
 ## データ構造
 
 ### `PhysiologicalState` (clinosim.types.clinical)
@@ -223,6 +292,7 @@ class PhysiologicalState:
     volume_status: float = 0.0
     perfusion_status: float = 1.0
     ph_status: float = 0.0
+    sodium_status: float = 0.0      # -1.0 = hyponatremia / +1.0 = hypernatremia
 ```
 
 ### `StateChangeDirective`
