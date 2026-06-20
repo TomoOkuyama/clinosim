@@ -251,8 +251,11 @@ def derive_lab_values(state: PhysiologicalState, patient: PatientProfile,
     # === CARDIAC ===
     cardiac = state.cardiac_function
     
-    # BNP: rises with cardiac dysfunction
-    labs["BNP"] = 30 * math.exp((1 - cardiac) * 4)  # 1.0→30, 0.5→220, 0.3→1100
+    # BNP: ventricular wall stress = volume/pressure load ON a stressed ventricle.
+    # The volume term is gated by cardiac dysfunction, so HF (low cardiac x high volume)
+    # rises sharply while uncomplicated MI (low cardiac, normal volume) stays moderate.
+    labs["BNP"] = 30 * math.exp((1 - cardiac) * 2.0 + max(0, volume) * (1 - cardiac) * 5.0)
+    # HF exacerbation (cardiac~0.27, volume~0.56) -> ~1000; MI (cardiac~0.19) -> ~150; normal -> ~37
     
     # === HEPATIC ===
     hepatic = state.hepatic_function

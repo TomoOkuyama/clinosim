@@ -39,7 +39,7 @@ Hidden state (9 variables) ── derive ──→ Lab values (CRP, Cr, BNP, …
 | `hepatic_function` | 0–1 | 肝機能 | AST, ALT, T_Bil, PT-INR, Alb |
 | `anemia_level` | 0–1 | 貧血の深度 | Hb, Hct, 代償性頻脈 |
 | `coagulation_status` | 0–1 | 凝固障害 (DIC) | PT-INR, Plt |
-| `volume_status` | -1 〜 +1 | 脱水 ↔ overload | BP, RR, Na, BUN/Cr比 |
+| `volume_status` | -1 〜 +1 | 脱水 ↔ overload | BP, RR, Na, BUN/Cr比, BNP(壁ストレス) |
 | `perfusion_status` | 0–1 | 組織灌流 | Lactate, BP, 腎血流 |
 | `ph_status` | -1 〜 +1 | 酸塩基障害の大きさ (- = アシデミア) | pH, HCO3, pCO2, K |
 | `respiratory_fraction` | 0 〜 1 | 障害軸 (0=代謝性→HCO3 / 1=呼吸性→pCO2) | pH, HCO3, pCO2 |
@@ -150,7 +150,7 @@ Albumin    = 4.2 - infl*2.0 - (1-hepatic)*1.5
 Creatinine = base_cr / renal (renal>0.5)
 BUN        = 15 / max(renal, 0.1), volume<-0.3 でさらに補正
 K          = 4.0 + (1-renal)*2.2 + max(0,-ph)*0.8
-BNP        = 30 * exp((1-cardiac)*4)
+BNP        = 30 * exp((1-cardiac)*2.0 + max(0,volume)*(1-cardiac)*5.0)  # 心室壁ストレス=容量負荷×心機能低下
 AST        = 25 + (1-hepatic)*500
 T_Bil      = 0.8 + (1-hepatic)*15
 PT_INR     = 1.0 + (1-hepatic)*2.0 + coagulation*1.5
