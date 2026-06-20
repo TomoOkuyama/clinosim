@@ -78,11 +78,11 @@ Enricher(
 メインランダムストリームを汚染しないよう、`hashlib.sha256` ベースの専用サブシードを使用する。
 
 ```python
-_IMM_SEED_OFFSET = 0x494D  # "IM"
+from clinosim.simulator.seeding import derive_sub_seed
 
-def _sub_seed(master_seed: int, key: str) -> int:
-    h = int.from_bytes(hashlib.sha256(key.encode()).digest()[:6], "big")
-    return (int(master_seed) + _IMM_SEED_OFFSET + h) % (2**32)
+_IMM_SEED_OFFSET = 0x494D  # "IM" — keep unique across modules (test_seeding guards this)
+
+rng = np.random.default_rng(derive_sub_seed(ctx.master_seed, _IMM_SEED_OFFSET, patient_id))
 ```
 
 患者 ID をキーとして患者ごとに独立した `numpy.random.Generator` を生成するため、
