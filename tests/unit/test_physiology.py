@@ -233,6 +233,17 @@ class TestDeriveLabValues:
             sex="M", age=75)
         assert dry["BNP"] == pytest.approx(floor["BNP"])
 
+    def test_bnp_clamped_to_assay_ceiling(self):
+        from clinosim.modules.observation.engine import (
+            PHYSIOLOGIC_LIMITS,
+            apply_realistic_variability,
+        )
+        assert PHYSIOLOGIC_LIMITS["BNP"] == (0.0, 5000.0)
+        rng = np.random.default_rng(0)
+        # A divergent true BNP (severe HF) must be capped at the assay ceiling.
+        observed = apply_realistic_variability("BNP", 12000.0, rng)
+        assert observed <= 5000.0
+
     def test_no_negative_values(self):
         """No lab value should ever be negative."""
         state = PhysiologicalState(

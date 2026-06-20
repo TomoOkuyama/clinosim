@@ -143,6 +143,7 @@ PHYSIOLOGIC_LIMITS: dict[str, tuple[float, float]] = {
     "HCO3": (3.0, 50.0),        # mmol/L
     "Troponin_I": (0.0, 200.0), # ng/mL — massive MI
     "CK_MB": (0.0, 500.0),      # ng/mL
+    "BNP": (0.0, 5000.0),       # pg/mL — assay reporting ceiling
 }
 
 
