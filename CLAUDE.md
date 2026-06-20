@@ -201,8 +201,9 @@ No engine code changes required.
 **every emittable diagnosis code resolves to an authoritative entry** is enforced by
 `tests/unit/test_diagnosis_code_coverage.py`. Diagnosis codes reach FHIR Conditions from
 **three sources** — all covered by the test: (1) disease `icd_codes` (primary + variants),
-(2) encounter `icd10_code`, (3) the `DIFFERENTIALS` table + likelihood-ratio tuples hard-coded
-in `modules/diagnosis/engine.py` (working/differential diagnoses). For each new/changed code
+(2) encounter `icd10_code`, (3) the built-in differential/progression tables in
+`modules/diagnosis/reference_data/builtin_differentials.yaml` (`differentials[*].icd` +
+`diagnosis_progression` codes) (working/differential diagnoses). For each new/changed code
 `C` in any of these, verify it vs an authoritative source (NLM ICD-10-CM API
 `clinicaltables.nlm.nih.gov/api/icd10cm`, WHO ICD-10 browser `icd.who.int/browse10`) — **never
 fabricate** — then:

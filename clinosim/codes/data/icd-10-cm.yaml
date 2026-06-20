@@ -1102,3 +1102,6 @@ codes:
   N19:
     en: "Unspecified kidney failure"
     ja: "詳細不明の腎不全"
+  U07.1:
+    en: "COVID-19"
+    ja: "新型コロナウイルス感染症"
