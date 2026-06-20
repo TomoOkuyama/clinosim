@@ -61,7 +61,7 @@ ED と外来の合計 **46 件** が encounter モジュール配下にある。
 
 ### `load_encounter_condition(condition_id: str) -> dict[str, Any]`
 
-1 件の encounter 条件 YAML をロードして dict を返す (`protocol.py:15`)。
+1 件の encounter 条件 YAML をロードし、`EncounterConditionProtocol` (Pydantic, AD-18) で検証してから dict を返す (`protocol.py`)。必須フィールド (`condition_id`, `icd10_code`, `chief_complaint`, `encounter_type`, `department`) が欠けると検証エラーを送出する。
 
 ```python
 from clinosim.modules.encounter.protocol import load_encounter_condition
@@ -88,7 +88,7 @@ print(list(all_conditions.keys())[:5])
 # ["abdominal_pain_nonspecific", "allergic_reaction_mild", ...]
 ```
 
-YAML パースエラーは silent skip される (ログなし)。本番ではロード前に `pytest tests/unit/test_encounter_protocols.py` 実行を推奨。
+各 YAML は `EncounterConditionProtocol` で検証され、不正な場合は該当ファイル名付きの `ValueError` を送出する (silent skip しない)。
 
 ### `create_inpatient_encounter(patient_id, admission_datetime, chief_complaint, department_id, visit_number) -> Encounter`
 
