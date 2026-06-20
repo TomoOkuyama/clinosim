@@ -420,5 +420,6 @@ def _variable_range(var: str) -> tuple[float, float]:
         "ph_status": (-1.0, 1.0),
         "respiratory_fraction": (0.0, 1.0),
         "glucose_status": (-1.0, 1.0),
+        "sodium_status": (-1.0, 1.0),
     }
     return ranges.get(var, (0.0, 1.0))
