@@ -190,7 +190,7 @@ def get_current_diagnosis_code(
         target = diff.candidates[0].disease_code
 
     if not target:
-        return "R69", "Illness, unspecified"
+        return "R69", _display("R69")
 
     # Look up progression (YAML > built-in)
     progression = None
@@ -204,7 +204,7 @@ def get_current_diagnosis_code(
         top = diff.top_candidate
         if top and top.icd_code:
             return (top.icd_code, _display(top.icd_code))
-        return "R69", "Illness, unspecified"
+        return "R69", _display("R69")
 
     confidence = diff.candidates[0].probability if diff.candidates else 0
     code = progression[0][1]
