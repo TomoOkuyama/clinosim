@@ -77,3 +77,21 @@ class TestFlags:
 
     def test_critical_low_hb(self):
         assert determine_flag("Hb", 6.0) == "critical"  # below panic threshold 7.0
+
+
+@pytest.mark.unit
+class TestHbA1cSupport:
+    def test_hba1c_in_cv_and_limits(self):
+        assert "HbA1c" in BIOLOGICAL_CV
+        assert "HbA1c" in ANALYTICAL_CV
+        assert "HbA1c" in PHYSIOLOGIC_LIMITS
+
+    def test_hba1c_flag(self):
+        assert determine_flag("HbA1c", 8.0) == "H"      # diabetic, above normal range
+        assert determine_flag("HbA1c", 5.2) is None     # normal
+
+    def test_baseline_lab_normals_exported(self):
+        from clinosim.modules.observation.engine import _BASELINE_LAB_NORMALS
+        assert _BASELINE_LAB_NORMALS["Ca"] == 9.2
+        assert _BASELINE_LAB_NORMALS["TSH"] == 2.5
+        assert "HbA1c" not in _BASELINE_LAB_NORMALS    # HbA1c is physiology-modeled now
