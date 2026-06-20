@@ -75,6 +75,14 @@ def generate_immunizations(patient, schedule: dict, as_of: date,
         if reached is None:
             continue
         start = max(avail, reached)
+        # Optional EHR data-retention window: only keep the last `history_years`
+        # of history (real EHRs don't carry decades of e.g. annual flu shots).
+        history_years = v.get("history_years")
+        if history_years is not None:
+            lookback = _safe_date(
+                as_of.year - int(history_years), as_of.month, as_of.day
+            )
+            start = max(start, lookback)
         if start > as_of:
             continue
 
