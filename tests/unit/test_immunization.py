@@ -27,7 +27,9 @@ def _sched():
 
 def test_min_age_excludes_pneumococcal_for_young():
     from clinosim.modules.immunization.engine import generate_immunizations
-    recs = generate_immunizations(_patient(40), _sched(), date(2026, 1, 1), np.random.default_rng(1))
+    recs = generate_immunizations(
+        _patient(40), _sched(), date(2026, 1, 1), np.random.default_rng(1)
+    )
     assert all(r.vaccine_cvx != "33" for r in recs)  # PPSV23 min_age 65
 
 
@@ -56,6 +58,35 @@ def test_high_coverage_more_than_low_band():
 
 def test_deterministic_same_seed():
     from clinosim.modules.immunization.engine import generate_immunizations
-    a = generate_immunizations(_patient(70), _sched(), date(2026, 1, 1), np.random.default_rng(7))
-    b = generate_immunizations(_patient(70), _sched(), date(2026, 1, 1), np.random.default_rng(7))
-    assert [(r.vaccine_cvx, r.occurrence_date) for r in a] == [(r.vaccine_cvx, r.occurrence_date) for r in b]
+    a = generate_immunizations(
+        _patient(70), _sched(), date(2026, 1, 1), np.random.default_rng(7)
+    )
+    b = generate_immunizations(
+        _patient(70), _sched(), date(2026, 1, 1), np.random.default_rng(7)
+    )
+    assert [(r.vaccine_cvx, r.occurrence_date) for r in a] == [
+        (r.vaccine_cvx, r.occurrence_date) for r in b
+    ]
+
+
+def test_covid_never_before_availability():
+    from clinosim.modules.immunization.engine import generate_immunizations
+    found = 0
+    for s in range(40):
+        recs = generate_immunizations(
+            _patient(80), _sched(), date(2026, 1, 1), np.random.default_rng(s)
+        )
+        covid = [r for r in recs if r.vaccine_cvx == "309"]
+        found += len(covid)
+        assert all(r.occurrence_date >= date(2020, 12, 14) for r in covid)
+    assert found > 0, "expected at least one COVID record across seeds (high elderly coverage)"
+
+
+def test_feb29_dob_does_not_crash():
+    from clinosim.modules.immunization.engine import generate_immunizations, load_schedule
+    from clinosim.types.patient import PatientProfile
+    p = PatientProfile(patient_id="p1", age=80, sex="F", date_of_birth=date(1944, 2, 29))
+    recs = generate_immunizations(
+        p, load_schedule("US"), date(2026, 1, 1), np.random.default_rng(3)
+    )
+    assert all(r.occurrence_date <= date(2026, 1, 1) for r in recs)

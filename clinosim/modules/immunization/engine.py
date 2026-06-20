@@ -43,6 +43,14 @@ def _parse(d: str) -> date:
     return date(y, m, day)
 
 
+def _safe_date(year: int, month: int, day: int) -> date:
+    """Construct a date, clamping Feb 29 to Feb 28 in non-leap years."""
+    try:
+        return date(year, month, day)
+    except ValueError:
+        return date(year, month, day - 1)
+
+
 def generate_immunizations(patient, schedule: dict, as_of: date,
                            rng: np.random.Generator) -> list:
     from clinosim.types.encounter import ImmunizationRecord
@@ -61,7 +69,7 @@ def generate_immunizations(patient, schedule: dict, as_of: date,
 
         # earliest eligible date = max(availability, date patient reached min_age)
         if dob is not None:
-            reached = date(dob.year + min_age, dob.month, dob.day)
+            reached = _safe_date(dob.year + min_age, dob.month, dob.day)
         else:
             reached = date(as_of.year - (base_age - min_age), 1, 1) if base_age >= min_age else None
         if reached is None:
@@ -82,8 +90,8 @@ def generate_immunizations(patient, schedule: dict, as_of: date,
         elif freq == "every_n_years":
             interval = int(v.get("interval_years", 10))
             yr = start.year
-            while date(yr, start.month, start.day) <= as_of:
-                occ = date(yr, start.month, start.day)
+            while _safe_date(yr, start.month, start.day) <= as_of:
+                occ = _safe_date(yr, start.month, start.day)
                 age_at = _age_on(dob, occ, base_age)
                 if rng.random() < _coverage(cov, age_at, sex):
                     out.append(ImmunizationRecord(vaccine_cvx=cvx, occurrence_date=occ))
