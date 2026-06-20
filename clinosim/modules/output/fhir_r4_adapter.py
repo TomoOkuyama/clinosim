@@ -30,180 +30,31 @@ _drug_names_ja: dict[str, str] | None = None
 # locale/shared/department_display.yaml
 _department_display: dict[str, dict[str, str]] | None = None
 
-# Japanese translations for medical abbreviations/categories in medication text.
-# Applied word-by-word or as literal substrings (case-insensitive for abbrevs).
-_MED_CATEGORY_JA: dict[str, str] = {
-    # Category prefixes (lowercase for case-insensitive match)
-    "dvt prophylaxis": "DVT予防",
-    "dvt_prophylaxis": "DVT予防",
-    "antipyretic": "解熱剤",
-    "bronchodilator": "気管支拡張薬",
-    "steroid": "ステロイド",
-    "iv fluid": "輸液",
-    "iv_fluid": "輸液",
-    "iv_insulin": "インスリン持続静注",
-    "iv insulin": "インスリン持続静注",
-    "k_replacement": "カリウム補充",
-    "k replacement": "カリウム補充",
-    "pain_management": "疼痛管理",
-    "pain management": "疼痛管理",
-    "ppi": "PPI",
-    "nsaid": "NSAIDs",
-    "antibiotic": "抗菌薬",
-}
+# Lazy-loaded JP medication-term tables ({"categories": {...}, "terms": {...}})
+# — see locale/shared/med_terms_ja.yaml
+_med_terms_ja: dict[str, dict[str, str]] | None = None
 
-# Dose/route/frequency abbreviation translations.
-# Applied as whole-word replacements (case-sensitive where needed).
-_MED_TERMS_JA: dict[str, str] = {
-    "PRN": "頓用",
-    "PO": "経口",
-    "IV": "静注",
-    "SC": "皮下注",
-    "IM": "筋注",
-    "SL": "舌下",
-    "inh": "吸入",
-    "inhaler": "吸入薬",
-    "nebulizer": "ネブライザー",
-    "local infiltration": "局所浸潤",
-    "daily": "1日1回",
-    "bid": "1日2回",
-    "tid": "1日3回",
-    "qid": "1日4回",
-    "q4h": "4時間毎",
-    "q6h": "6時間毎",
-    "q8h": "8時間毎",
-    "q12h": "12時間毎",
-    "q1h": "1時間毎",
-    "bolus": "ボーラス",
-    "continuous": "持続",
-    "drip": "点滴静注",
-    "infusion": "輸注",
-    "loading": "負荷投与",
-    "avoid": "回避",
-    "hold": "保留",
-    "if": "場合",
-    "or": "または",
-    "and": "および",
-    "then": "その後",
-    "first": "最初の",
-    "per": "あたり",
-    "acute": "急性期",
-    "hours": "時間",
-    "hour": "時間",
-    "session": "セッション",
-    "week": "週",
-    "days": "日間",
-    "min": "分",
-    "over": "かけて",
-    "after": "後",
-    "once": "一度",
-    "stable": "安定後",
-    "hemodynamically": "血行動態",
-    "hypotonic": "低張",
-    "fluids": "輸液",
-    "anticoagulant": "抗凝固",
-    "target": "目標",
-    "booster": "追加接種",
-    "anterior": "前方",
-    "nasal": "鼻",
-    "spray": "スプレー",
-    "glue": "接着剤",
-    "Nebulized": "ネブライザー",
-    "nebulized": "ネブライザー",
-    "Propofol": "プロポフォール",
-    "Midazolam": "ミダゾラム",
-    "temp": "体温",
-    "opioid": "オピオイド",
-    "within": "以内",
-    "in": "内",
-    "cream": "クリーム",
-    "gel": "ゲル",
-    "bromide": "臭化物",
-    "pre-op": "術前",
-    "coagulopathy": "凝固異常",
-    "encephalopathy": "肝性脳症",
-    "for": "の",
-    "aggressive": "積極的",
-    "hydration": "補液",
-    "Pneumatic compression devices": "間欠的空気圧迫装置",
-    "pneumatic compression": "間欠的空気圧迫",
-    "SCDs": "SCD",
-    "delay": "遅延",
-    "pharmacologic prophylaxis": "薬理学的予防",
-    "via": "経由",
-    "central line": "中心静脈ライン",
-    "contralateral": "反対側",
-    "limb": "肢",
-    "NPO": "絶食",
-    "local": "局所",
-    "q3h": "3時間毎",
-    "q2h": "2時間毎",
-    "CONTINUOUS": "持続",
-    "NEB": "ネブライザー",
-    "NEBULIZED": "ネブライザー",
-    "SUBCUTANEOUS": "皮下注",
-    "INHALATION": "吸入",
-    "TOPICAL": "外用",
-    "ORAL": "経口",
-    "INTRAVENOUS": "静注",
-    "INTRAMUSCULAR": "筋注",
-    "SUBLINGUAL": "舌下",
-    "Parkland formula": "Parkland式",
-    "titrate": "調節",
-    "to": "まで",
-    "MAP": "MAP（平均動脈圧）",
-    "open": "全開",
-    "wide": "広い",
-    "sedation": "鎮静",
-    "TBI": "頭部外傷",
-    "Alteplase": "アルテプラーゼ",
-    "tPA": "tPA",
-    "dose": "用量",
-    "max": "最大",
-    "JP": "日本",
-    "ug": "μg",
-    "cerebral": "脳",
-    "edema": "浮腫",
-    "risk": "リスク",
-    "eye": "眼",
-    "drops": "点眼",
-    "eye drops": "点眼",
-    "needle": "針",
-    "removal": "除去",
-    "rust": "錆",
-    "ring": "輪",
-    "burr": "バー",
-    "when": "時",
-    "bleeding": "出血",
-    "resolved": "消失",
-    "transition": "移行",
-    "oral": "経口",
-    "Endoscopy": "内視鏡",
-    "endoscopy": "内視鏡",
-    "adjust": "調整",
-    "renal": "腎",
-    "function": "機能",
-    "section": "セクション",
-    "see": "参照",
-    "drugs": "薬剤",
-    "Start": "開始",
-    "start": "開始",
-    "anticoagulation": "抗凝固療法",
-    "protocol": "プロトコル",
-    "cautious": "慎重",
-    "may": "可能性",
-    "tolerate": "耐容",
-    "volume": "容量",
-    "replaces": "置換",
-    "prophylactic": "予防投与",
-    "under": "下",
-    "fluoroscopy": "透視",
-    "catheter": "カテーテル",
-    "patch": "パッチ",
-    "RV": "右室",
-    "PE": "PE（肺塞栓）",
-    "not": "できず",
-}
+def _load_med_terms_ja() -> dict[str, dict[str, str]]:
+    """Load JP medication-term tables ({"categories": {...}, "terms": {...}}).
+
+    Order is preserved from the YAML (substitutions are order-sensitive).
+    """
+    global _med_terms_ja
+    if _med_terms_ja is not None:
+        return _med_terms_ja
+    import yaml
+    yaml_path = Path(__file__).resolve().parent.parent.parent \
+        / "locale" / "shared" / "med_terms_ja.yaml"
+    if yaml_path.exists():
+        raw = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
+        _med_terms_ja = {
+            "categories": raw.get("categories", {}) or {},
+            "terms": raw.get("terms", {}) or {},
+        }
+    else:
+        _med_terms_ja = {"categories": {}, "terms": {}}
+    return _med_terms_ja
+
 
 
 def _load_drug_names_ja() -> dict[str, str]:
@@ -226,15 +77,16 @@ def _localize_dosage_terms(text: str) -> str:
 
     Word-level replacements with case-insensitive matching for common terms.
     """
+    tables = _load_med_terms_ja()
     # Category prefixes (apply first, longest-match-wins, case-insensitive)
     # These often appear as "Category: ..." or "Category_word ..."
-    for cat, ja in sorted(_MED_CATEGORY_JA.items(), key=lambda x: -len(x[0])):
+    for cat, ja in sorted(tables["categories"].items(), key=lambda x: -len(x[0])):
         # Match as prefix word, case-insensitive, followed by : or space or _
         pattern = r'(?i)\b' + re.escape(cat) + r'\b'
         text = re.sub(pattern, ja, text)
     # Dose/route/frequency terms (word-boundary, case-sensitive for uppercase abbrevs,
     # case-insensitive for lowercase words)
-    for term, ja in sorted(_MED_TERMS_JA.items(), key=lambda x: -len(x[0])):
+    for term, ja in sorted(tables["terms"].items(), key=lambda x: -len(x[0])):
         if term.isupper():
             # Case-sensitive for uppercase abbrevs (PRN, PO, IV)
             pattern = r'\b' + re.escape(term) + r'\b'
