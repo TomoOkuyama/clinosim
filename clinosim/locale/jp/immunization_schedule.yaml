@@ -8,6 +8,7 @@ vaccines:
     frequency: annual
     season_month: 11
     available_from: "2000-01-01"
+    history_years: 10   # EHR retains only ~recent flu history (avoids 20+ accumulated shots)
     coverage_by_age_sex:
       "18-49": {M: 0.25, F: 0.30}
       "50-64": {M: 0.40, F: 0.44}
