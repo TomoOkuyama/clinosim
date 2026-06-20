@@ -243,7 +243,18 @@ def derive_lab_values(
     labs["Na"] = clamp(labs["Na"], 120, 160)
 
     # --- Cardiac ---
-    labs["BNP"] = 30 * math.exp((1 - cardiac) * 4)
+    # BNP reflects ventricular wall stress = volume/pressure load ON a stressed ventricle.
+    # The volume term is gated by cardiac dysfunction (coupling), so volume overload only
+    # elevates BNP when the heart is failing: HF (low cardiac x high volume) rises sharply,
+    # uncomplicated MI (low cardiac, normal volume) stays moderate, and non-cardiac fluid
+    # overload in a preserved heart (cirrhosis ascites, AKI) stays low. Deterministic
+    # (state -> lab, no rng). Coefficients tuned by generation audit: with the states the
+    # simulator actually produces (HF exacerbation cardiac~0.27/volume~0.56, acute MI
+    # cardiac~0.19/volume~0), these give HF exacerbation BNP ~800-1500, MI ~150-300, and
+    # non-cardiac < 100 pg/mL.
+    labs["BNP"] = 30.0 * math.exp(
+        (1 - cardiac) * 2.0 + max(0.0, state.volume_status) * (1 - cardiac) * 5.0
+    )
     # Cardiac injury markers. Normal heart (cardiac≈1.0) stays negative so troponin
     # rule-outs in non-cardiac disease read normal; acute injury (MI: cardiac 0.3–0.5)
     # elevates strongly. Steep (^4) so only meaningful dysfunction lifts troponin.
