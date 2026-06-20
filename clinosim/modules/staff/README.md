@@ -259,7 +259,7 @@ source .venv/bin/activate && python -m pytest tests/unit/test_staff.py -v
 
 1. `engine.py` の `_DEPT_PREFIX` dict に追加（例: `"neurosurgery": "NS"`）— **Python コード変更が必要**
 2. `hospital_operations.yaml` の `available_departments` に追加
-3. `fhir_r4_adapter.py` の `_DEPT_DISPLAY_JA` に日本語名を追加
+3. `locale/shared/department_display.yaml` に表示名（`en` / `ja`）を追加
 4. `clinosim generate` を実行するとロスターに新科のスタッフが自動生成される
 
 `_DEPT_PREFIX` は `engine.py` 冒頭付近の dict 定義。各科の staff_id prefix (例: `DR-IM-001`) を決める。
