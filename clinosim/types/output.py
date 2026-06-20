@@ -52,6 +52,7 @@ class CIFPatientRecord:
     intake_output_records: list = field(default_factory=list)  # IntakeOutputRecord
     adl_assessments: list = field(default_factory=list)  # ADLAssessment
     nursing_risk_assessments: list = field(default_factory=list)  # NursingRiskAssessment
+    immunizations: list = field(default_factory=list)  # ImmunizationRecord
     microbiology: list[MicrobiologyResult] = field(default_factory=list)  # AD-55 Base (codes only)
     discharge_prescription: PrescriptionRecord | None = None
     icu_transferred: bool = False
