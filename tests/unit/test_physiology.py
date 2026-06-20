@@ -197,6 +197,42 @@ class TestDeriveLabValues:
             PhysiologicalState(glucose_status=-0.5), sex="M", age=55)
         assert labs["Glucose"] < 95
 
+    def test_bnp_discriminates_hf_from_mi(self):
+        # HF exacerbation: low cardiac + volume overload (wall stress) -> high BNP.
+        hf = derive_lab_values(
+            PhysiologicalState(cardiac_function=0.43, volume_status=0.65),
+            sex="M", age=75)
+        # Uncomplicated MI: low cardiac, normal/low volume -> moderate BNP.
+        mi = derive_lab_values(
+            PhysiologicalState(cardiac_function=0.35, volume_status=-0.10),
+            sex="M", age=75)
+        # Normal heart -> near-baseline BNP.
+        normal = derive_lab_values(
+            PhysiologicalState(cardiac_function=0.90, volume_status=0.0),
+            sex="M", age=75)
+        assert normal["BNP"] < 100
+        assert 100 < mi["BNP"] < 400
+        assert hf["BNP"] > 800
+        assert hf["BNP"] > 5 * mi["BNP"]
+
+    def test_bnp_volume_term_gated_by_cardiac(self):
+        # Volume overload in a PRESERVED heart (e.g. cirrhosis ascites, AKI) must NOT
+        # spuriously elevate BNP — the volume term is gated by cardiac dysfunction.
+        preserved = derive_lab_values(
+            PhysiologicalState(cardiac_function=0.85, volume_status=0.50),
+            sex="M", age=75)
+        assert preserved["BNP"] < 100
+
+    def test_bnp_dehydration_does_not_suppress(self):
+        # Negative volume_status (dehydration) must not push BNP below the cardiac floor.
+        dry = derive_lab_values(
+            PhysiologicalState(cardiac_function=0.50, volume_status=-0.60),
+            sex="M", age=75)
+        floor = derive_lab_values(
+            PhysiologicalState(cardiac_function=0.50, volume_status=0.0),
+            sex="M", age=75)
+        assert dry["BNP"] == pytest.approx(floor["BNP"])
+
     def test_no_negative_values(self):
         """No lab value should ever be negative."""
         state = PhysiologicalState(
