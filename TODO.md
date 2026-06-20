@@ -238,6 +238,9 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 | 20 | Equipment throughput real-world validation | `facility` | Open |
 | 21 | Seasonal incidence curves per disease per country | `disease` | Partial (basic seasonal mod exists) |
 | 22 | Screening program participation rates | `population` | Open |
+| 23 | Narrative/discharge text referencing HbA1c + glycemic control | `enrichment`, `output` | Open (HbA1c now modeled via `glycemic_control` axis; narratives don't yet mention it) |
+| 24 | Non-diabetic HbA1c patient spread + prediabetes cohort | `physiology`, `population` | Open (non-DM HbA1c currently ~5.1–5.3, low-variance) |
+| 25 | Remove dead `ChronicCondition.controlled` field (superseded by `glycemic_control`) | `types`, `patient` | Open (kept to preserve RNG stream; clean up in a determinism-aware pass) |
 
 ## Roadmap
 

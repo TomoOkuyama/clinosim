@@ -330,6 +330,16 @@ acid_base_type: respiratory   # metabolic(既定) | respiratory | mixed
 - `respiratory` (COPD/喘息): pCO2↑ が主、腎代償で HCO3↑。
 - `mixed`: 両軸に半分ずつ。
 
+### `chronic_glycemic_control` (任意, 既定 `None`)
+
+慢性血糖コントロール不良を含意するシナリオ (DKA/HHS 等) で、その入院の `glycemic_control`
+軸 (0=不良 .. 1=良好) を上書きする。HbA1c と Glucose ベースラインを高値にし、E11 既往の無い
+新規発症糖尿病でも臨床整合的な高 HbA1c を生成する (`causes_myocardial_injury` と同型のシナリオ駆動)。
+
+```yaml
+chronic_glycemic_control: 0.1   # DKA は長期コントロール不良を含意 → HbA1c ~11%
+```
+
 ### `course_archetypes`
 
 日次経過アーキタイプ。 確率つきの複数シナリオを持ち、simulator はそのうち 1 つをサンプリングして患者に適用する。

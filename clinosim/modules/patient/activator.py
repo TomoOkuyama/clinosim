@@ -177,7 +177,9 @@ def activate_patient(
         # here) so the main RNG stream is unperturbed (AD-16).
         if code.split(".")[0] in ("E11", "E10"):
             gc_draw = float(rng.random())          # replaces the removed E11 stage uniform (1 draw)
-            glycemic_control = 1.0 - gc_draw       # low draw -> good control
+            # Cube skews control toward "good" (most diabetics are reasonably controlled):
+            # HbA1c median ~6.8%, ~55% < 7%, with a poorly-controlled tail to ~12%.
+            glycemic_control = 1.0 - gc_draw ** 3
             stage = f"HbA1c {hba1c_from_glycemic_control(glycemic_control):.1f}%"
         else:
             glycemic_control = None
