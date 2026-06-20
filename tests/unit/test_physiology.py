@@ -197,6 +197,57 @@ class TestDeriveLabValues:
             PhysiologicalState(glucose_status=-0.5), sex="M", age=55)
         assert labs["Glucose"] < 95
 
+    def test_bnp_discriminates_hf_from_mi(self):
+        # State values mirror what the simulator actually produces (verified by the
+        # generation audit), not design estimates: HF exacerbation drops cardiac to
+        # ~0.27 with volume overload ~0.56; acute MI drops cardiac to ~0.19 with normal
+        # volume. The thresholds encode the clinical target bands (HF 800-1500, MI <400).
+        # HF exacerbation: low cardiac + volume overload (wall stress) -> high BNP.
+        hf = derive_lab_values(
+            PhysiologicalState(cardiac_function=0.27, volume_status=0.56),
+            sex="M", age=75)
+        # Uncomplicated MI: low cardiac, normal/low volume -> moderate BNP.
+        mi = derive_lab_values(
+            PhysiologicalState(cardiac_function=0.19, volume_status=-0.05),
+            sex="M", age=75)
+        # Normal heart -> near-baseline BNP.
+        normal = derive_lab_values(
+            PhysiologicalState(cardiac_function=0.90, volume_status=0.0),
+            sex="M", age=75)
+        assert normal["BNP"] < 100
+        assert 100 < mi["BNP"] < 400
+        assert hf["BNP"] > 800
+        assert hf["BNP"] > 5 * mi["BNP"]
+
+    def test_bnp_volume_term_gated_by_cardiac(self):
+        # Volume overload in a PRESERVED heart (e.g. cirrhosis ascites, AKI) must NOT
+        # spuriously elevate BNP — the volume term is gated by cardiac dysfunction.
+        preserved = derive_lab_values(
+            PhysiologicalState(cardiac_function=0.85, volume_status=0.50),
+            sex="M", age=75)
+        assert preserved["BNP"] < 100
+
+    def test_bnp_dehydration_does_not_suppress(self):
+        # Negative volume_status (dehydration) must not push BNP below the cardiac floor.
+        dry = derive_lab_values(
+            PhysiologicalState(cardiac_function=0.50, volume_status=-0.60),
+            sex="M", age=75)
+        floor = derive_lab_values(
+            PhysiologicalState(cardiac_function=0.50, volume_status=0.0),
+            sex="M", age=75)
+        assert dry["BNP"] == pytest.approx(floor["BNP"])
+
+    def test_bnp_clamped_to_assay_ceiling(self):
+        from clinosim.modules.observation.engine import (
+            PHYSIOLOGIC_LIMITS,
+            apply_realistic_variability,
+        )
+        assert PHYSIOLOGIC_LIMITS["BNP"] == (0.0, 5000.0)
+        rng = np.random.default_rng(0)
+        # A divergent true BNP (severe HF) must be capped at the assay ceiling.
+        observed = apply_realistic_variability("BNP", 12000.0, rng)
+        assert observed <= 5000.0
+
     def test_no_negative_values(self):
         """No lab value should ever be negative."""
         state = PhysiologicalState(
