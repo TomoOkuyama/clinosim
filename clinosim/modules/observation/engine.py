@@ -53,7 +53,7 @@ BIOLOGICAL_CV: dict[str, float] = {
     "CRP": 0.423, "PCT": 0.30, "BNP": 0.40, "Troponin": 0.14,
     "Troponin_I": 0.14, "CK_MB": 0.15,
     "Lactate": 0.278, "pH": 0.002, "HCO3": 0.040, "pCO2": 0.046,
-    "eGFR": 0.056, "PT_INR": 0.040,
+    "eGFR": 0.056, "PT_INR": 0.040, "HbA1c": 0.015,
 }
 
 # Analytical variation (instrument imprecision)
@@ -67,7 +67,7 @@ ANALYTICAL_CV: dict[str, float] = {
     "CRP": 0.050, "PCT": 0.080, "BNP": 0.070, "Troponin": 0.080,
     "Troponin_I": 0.080, "CK_MB": 0.050,
     "Lactate": 0.040, "pH": 0.001, "HCO3": 0.025, "pCO2": 0.025,
-    "eGFR": 0.030, "PT_INR": 0.035,
+    "eGFR": 0.030, "PT_INR": 0.035, "HbA1c": 0.01,
 }
 
 # Reporting precision (number of decimal places)
@@ -144,6 +144,14 @@ PHYSIOLOGIC_LIMITS: dict[str, tuple[float, float]] = {
     "Troponin_I": (0.0, 200.0), # ng/mL — massive MI
     "CK_MB": (0.0, 500.0),      # ng/mL
     "BNP": (0.0, 5000.0),       # pg/mL — assay reporting ceiling
+    "HbA1c": (3.0, 18.0),       # % — survivable glycemic range
+}
+
+
+# Reference-normal fallback values for analytes physiology does not model, shared by the
+# outpatient/emergency venues (DET-6 — single source of truth, replaces per-venue dicts).
+_BASELINE_LAB_NORMALS: dict[str, float] = {
+    "Ca": 9.2, "TSH": 2.5, "LDL": 110, "HDL": 55, "TG": 130, "TC": 190, "ESR": 12,
 }
 
 
@@ -245,6 +253,7 @@ def determine_flag(
         "PCT": {"all": (0, 0.05)},
         "Troponin_I": {"M": (0.0, 0.04), "F": (0.0, 0.03)},  # ng/mL; sex-specific cutoff
         "CK_MB": {"all": (0.0, 5.0)},  # ng/mL
+        "HbA1c": {"all": (4.0, 5.6)},  # % — ADA normal; diabetics flag H
     }
 
     ranges = reference_ranges or defaults
