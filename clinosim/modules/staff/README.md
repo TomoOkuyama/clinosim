@@ -97,6 +97,9 @@ assignments = assign_staff("lab_collection", "", roster, rng)
 
 ## データ構造
 
+`StaffMember` / `StaffRoster` は `clinosim.types.staff` に定義 (全共有型は `clinosim/types/`)。
+`clinosim.modules.staff` と `clinosim.modules.staff.engine` から re-export される。
+
 ### `StaffMember`
 
 ```python
