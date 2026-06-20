@@ -13,6 +13,7 @@ from clinosim.modules.physiology.engine import (
     derive_vital_signs,
     initialize_state,
     update,
+    _variable_range,
 )
 from clinosim.types.clinical import PhysiologicalState, StateChangeDirective
 from clinosim.types.patient import BaselineVitals, ChronicCondition, PatientPhysiologicalProfile
@@ -329,3 +330,13 @@ class TestDeriveObservedVitals:
             PhysiologicalState(), baseline_vitals, ts, np.random.default_rng(0))
         assert febrile["temperature"] > healthy["temperature"]
         assert febrile["heart_rate"] > healthy["heart_rate"]
+
+
+# --- Sodium axis (dysnatremia) ---
+
+@pytest.mark.unit
+def test_sodium_status_field_and_range():
+    """Smoke test: sodium_status field exists and has correct range."""
+    s = PhysiologicalState()
+    assert s.sodium_status == 0.0
+    assert _variable_range("sodium_status") == (-1.0, 1.0)

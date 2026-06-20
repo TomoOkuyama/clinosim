@@ -31,6 +31,7 @@ class PhysiologicalState:
     # up, e.g. 0.6 ≈ 300–500 mg/dL), negative = hypoglycemia. Distinct from the chronic
     # diabetes baseline (has_diabetes). Set from the disease scenario. AD-57.
     glucose_status: float = 0.0  # -1.0–+1.0
+    sodium_status: float = 0.0  # -1.0–+1.0  (neg = hyponatremia, pos = hypernatremia)
 
 
 @dataclass
