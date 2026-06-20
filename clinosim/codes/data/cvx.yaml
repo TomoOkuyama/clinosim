@@ -1,0 +1,50 @@
+# CVX — Vaccine Administered codes.
+# AUTHORITATIVE SOURCE: CDC IIS (https://www2.cdc.gov/vaccines/iis/iisstandards/vaccines.asp?rpt=cvx).
+# Verified 2026-06 against the CDC CVX list (https://www2.cdc.gov/vaccines/iis/iisstandards/downloads/cvx.txt).
+# Only Active-status codes are included. Do not add a code without verifying against CDC (no fabrication).
+metadata:
+  name: CVX
+  uri: http://hl7.org/fhir/sid/cvx
+  version: '2026-06'
+  source: "CDC IIS CVX, verified 2026-06"
+  description: Vaccine Administered (CVX) codes used by clinosim immunization output.
+codes:
+  # === Influenza ===
+  "150":
+    en: "Influenza, split virus, quadrivalent, PF"
+    ja: "インフルエンザ（分割・4価・保存剤なし）"
+
+  # === Pneumococcal ===
+  "33":
+    en: "pneumococcal polysaccharide PPV23"
+    ja: "肺炎球菌（23価多糖体, PPSV23）"
+  "133":
+    en: "Pneumococcal conjugate PCV 13"
+    ja: "肺炎球菌（13価結合型, PCV13）"
+  "215":
+    en: "Pneumococcal conjugate PCV15, polysaccharide CRM197 conjugate, adjuvant, PF"
+    ja: "肺炎球菌（15価結合型, PCV15・保存剤なし）"
+  "216":
+    en: "Pneumococcal conjugate PCV20, polysaccharide CRM197 conjugate, adjuvant, PF"
+    ja: "肺炎球菌（20価結合型, PCV20・保存剤なし）"
+
+  # === Tetanus / Diphtheria / Pertussis ===
+  "115":
+    en: "Tdap"
+    ja: "破傷風・ジフテリア・百日咳（Tdap）"
+  "113":
+    en: "Td (adult), 5 Lf tetanus toxoid, preservative free, adsorbed"
+    ja: "破傷風・ジフテリア（Td成人用・保存剤なし）"
+
+  # === Zoster ===
+  "187":
+    en: "zoster recombinant"
+    ja: "帯状疱疹（組換え型, RZV/Shingrix）"
+
+  # === COVID-19 ===
+  "309":
+    en: "COVID-19, mRNA, LNP-S, PF, tris-sucrose, 30 mcg/0.3 mL"
+    ja: "COVID-19（mRNA・Pfizer季節性, 30mcg/0.3mL）"
+  "312":
+    en: "COVID-19, mRNA, LNP-S, PF, 50 mcg/0.5 mL"
+    ja: "COVID-19（mRNA・Moderna季節性, 50mcg/0.5mL）"

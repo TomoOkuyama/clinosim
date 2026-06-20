@@ -1,0 +1,31 @@
+# JP adult immunization schedule.
+# Sources: MHLW 定期接種 schedule; coverage = MHLW 接種率統計 approximate estimates.
+# Verified 2026-06.
+vaccines:
+  influenza:
+    cvx: "150"
+    min_age: 18
+    frequency: annual
+    season_month: 11
+    available_from: "2000-01-01"
+    coverage_by_age_sex:
+      "18-49": {M: 0.25, F: 0.30}
+      "50-64": {M: 0.40, F: 0.44}
+      "65-99": {M: 0.55, F: 0.58}
+  covid19:
+    # 309 is the current active CVX representing a COVID-19 mRNA vaccination; availability anchors the program start.
+    cvx: "309"
+    min_age: 18
+    frequency: once
+    available_from: "2021-02-17"
+    coverage_by_age_sex:
+      "18-49": {M: 0.70, F: 0.74}
+      "50-64": {M: 0.82, F: 0.84}
+      "65-99": {M: 0.90, F: 0.92}
+  pneumococcal_ppsv23:
+    cvx: "33"
+    min_age: 65
+    frequency: once
+    available_from: "2014-10-01"
+    coverage_by_age_sex:
+      "65-99": {M: 0.40, F: 0.42}

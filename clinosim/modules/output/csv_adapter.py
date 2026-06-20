@@ -32,6 +32,7 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str) -> None:
     nursing_rows: list[dict] = []
     rx_rows: list[dict] = []
     microbiology_rows: list[dict] = []
+    imm_rows: list[dict] = []
 
     for filename in sorted(os.listdir(structural_dir)):
         if not filename.endswith(".json"):
@@ -250,6 +251,16 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str) -> None:
             else:
                 microbiology_rows.append({**base, "antibiotic_loinc": "", "interpretation": ""})
 
+        # Immunizations
+        for imm in record.get("immunizations", []):
+            imm_rows.append({
+                "patient_id": patient_id,
+                "vaccine_cvx": imm.get("vaccine_cvx"),
+                "occurrence_date": imm.get("occurrence_date"),
+                "status": imm.get("status"),
+                "dose_number": imm.get("dose_number"),
+            })
+
         # Discharge prescription
         rx = record.get("discharge_prescription")
         if rx and rx.get("items"):
@@ -279,6 +290,7 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str) -> None:
     _write_csv(os.path.join(output_dir, "nursing_risk.csv"), nursing_rows)
     _write_csv(os.path.join(output_dir, "prescriptions.csv"), rx_rows)
     _write_csv(os.path.join(output_dir, "microbiology.csv"), microbiology_rows)
+    _write_csv(os.path.join(output_dir, "immunizations.csv"), imm_rows)
 
 
 def _write_csv(filepath: str, rows: list[dict]) -> None:
