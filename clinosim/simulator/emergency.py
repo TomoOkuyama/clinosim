@@ -102,11 +102,10 @@ def _simulate_ed_visit(
 
     # Comorbidity-aware true values via the same physiology path as inpatient (AD-57):
     # a baseline state built from the patient's chronic conditions (CKD → high Cr, etc.),
-    # then derive_lab_values. baseline_values covers analytes physiology doesn't model;
-    # the 1.0 final fallback replaces the old clinically dangerous default of 100.
-    baseline_values = {"WBC": 7500, "CRP": 1.0, "Creatinine": 0.9, "Na": 140,
-                       "K": 4.2, "Glucose": 100, "Troponin_I": 0.01, "CK_MB": 1.0,
-                       "BNP": 50, "HbA1c": 5.6, "TSH": 2.5, "Ca": 9.2}
+    # then derive_lab_values. baseline_values is the reference-normal fallback for analytes
+    # physiology doesn't model (HbA1c/WBC/CRP etc. resolve via _true_labs first). DET-6.
+    from clinosim.modules.observation.engine import _BASELINE_LAB_NORMALS
+    baseline_values = _BASELINE_LAB_NORMALS
     _state = initialize_state(patient.physiological_profile, patient.chronic_conditions,
                               patient.patient_id)
     # Acute-presentation injection (AD-57): fold the ED scenario's physiological impact (by
