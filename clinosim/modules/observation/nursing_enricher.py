@@ -20,6 +20,10 @@ from clinosim.types.encounter import NursingRiskAssessment
 
 _NURSING_SEED_OFFSET = 0x4E55  # "NU"
 
+# AVPU severity order: A (best/0) < V < P < U (worst/3).
+# Used to pick the most-impaired consciousness per day from same-day vitals.
+_AVPU_SEVERITY: dict[str, int] = {"A": 0, "V": 1, "P": 2, "U": 3}
+
 
 def _sub_seed(master_seed: int, key: str) -> int:
     h = int.from_bytes(hashlib.sha256(key.encode()).digest()[:6], "big")
@@ -55,11 +59,32 @@ def enrich_nursing(ctx) -> None:
         adls = _get(rec, "adl_assessments", []) or []
         ios = _get(rec, "intake_output_records", []) or []
         iv_dates = {str(_get(io, "date")) for io in ios if (_get(io, "intake_iv_ml", 0) or 0) > 0}
+
+        # Build date→worst-consciousness map from vitals.
+        # For each day take the most impaired reading so the daily nursing assessment
+        # reflects peak acuity (e.g. an obtunded patient isn't scored as Alert).
+        consciousness_by_date: dict[str, str] = {}
+        for vs in _get(rec, "vital_signs", []) or []:
+            ts = _get(vs, "timestamp")
+            if ts is None:
+                continue
+            # timestamp may be a datetime object or an ISO string — normalise to date string
+            if hasattr(ts, "date"):
+                day_key = str(ts.date())
+            else:
+                day_key = str(ts)[:10]
+            clvl = _get(vs, "consciousness_level", "A") or "A"
+            prev = consciousness_by_date.get(day_key, "A")
+            if _AVPU_SEVERITY.get(clvl, 0) > _AVPU_SEVERITY.get(prev, 0):
+                consciousness_by_date[day_key] = clvl
+
         out = []
         for adl in adls:
             adld = adl if isinstance(adl, dict) else adl.__dict__
             d = adld.get("date")
-            loc = "A"  # consciousness proxy; could be refined from same-day vitals
+            # Derive consciousness from same-day vitals; default to Alert when absent.
+            # volume_status is not persisted to CIF — always 0.0 (known limitation).
+            loc = consciousness_by_date.get(str(d), "A")
             braden = compute_braden(adld, loc, volume_status=0.0, rng=rng)
             morse, level = compute_morse_fall_risk(
                 age, adld, loc, has_iv=str(d) in iv_dates, rng=rng)
