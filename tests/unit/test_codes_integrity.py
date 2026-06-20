@@ -44,6 +44,27 @@ class TestCodeSystemFiles:
 
 
 @pytest.mark.unit
+class TestDrugMapping:
+    """RxNorm drug-mapping integrity (CODES-6/CODES-7). Mirrors the LOINC guard:
+    every emitted RxCUI must resolve in rxnorm.yaml, and no two distinct drugs may
+    share a CUI (the Amoxicillin/Clavulanate + Azithromycin -> 18631 collision)."""
+
+    def test_us_mapped_rxcuis_present(self):
+        rxnorm = yaml.safe_load((_DATA / "rxnorm.yaml").read_text())["codes"]
+        us = yaml.safe_load((_LOCALE / "us/code_mapping_drug.yaml").read_text())
+        missing = {n: c for n, c in us.items() if c not in rxnorm}
+        assert not missing, f"US-mapped RxCUIs absent from rxnorm.yaml: {missing}"
+
+    def test_no_two_drugs_share_a_rxcui(self):
+        us = yaml.safe_load((_LOCALE / "us/code_mapping_drug.yaml").read_text())
+        by_code: dict[str, list[str]] = {}
+        for name, code in us.items():
+            by_code.setdefault(code, []).append(name)
+        collisions = {c: names for c, names in by_code.items() if len(names) > 1}
+        assert not collisions, f"distinct drugs mapped to the same RxCUI: {collisions}"
+
+
+@pytest.mark.unit
 class TestLoincDisplay:
     def test_us_mapped_codes_present_and_clean(self):
         loinc = yaml.safe_load((_DATA / "loinc.yaml").read_text())["codes"]
