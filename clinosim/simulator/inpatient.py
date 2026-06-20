@@ -469,6 +469,7 @@ def _run_daily_loop(
             severity_str = s
             break
 
+    prev_diet = ""  # last diet ordered for this patient; threaded through the day loop
     for day in range(target_los):
         # State update with diagnosis-treatment feedback
         directive = get_daily_directive(
@@ -758,7 +759,6 @@ def _run_daily_loop(
             diet = "soft_diet"
         else:
             diet = "regular_diet"
-        prev_diet = getattr(_generate_vitals, '_prev_diet', {}).get(patient.patient_id, "")
         if diet != prev_diet:
             all_orders.append(Order(
                 order_id=f"ORD-{patient.patient_id}-DIET-D{day}",
@@ -771,9 +771,7 @@ def _run_daily_loop(
                 ordered_by=attending_id,
                 status=OrderStatus.PLACED,
             ))
-            if not hasattr(_generate_vitals, '_prev_diet'):
-                _generate_vitals._prev_diet = {}
-            _generate_vitals._prev_diet[patient.patient_id] = diet
+            prev_diet = diet
 
         # Vitals
         ward_nurse_id = assign_staff("medication_administration", department, roster, rng).get("administering_nurse", "NS-001")
