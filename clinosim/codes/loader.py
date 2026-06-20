@@ -132,4 +132,31 @@ _BUILTIN_URIS: dict[str, str] = {
     "hl7-observation-category": "http://terminology.hl7.org/CodeSystem/observation-category",
     "hl7-diagnostic-service-section": "http://terminology.hl7.org/CodeSystem/v2-0074",
     "cvx": "http://hl7.org/fhir/sid/cvx",
+    # HL7 terminology CodeSystems used in FHIR resources (URI-1)
+    "hl7-condition-clinical": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+    "hl7-condition-ver-status": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+    "hl7-condition-category": "http://terminology.hl7.org/CodeSystem/condition-category",
+    "hl7-location-physical-type": "http://terminology.hl7.org/CodeSystem/location-physical-type",
+    "hl7-referencerange-meaning": "http://terminology.hl7.org/CodeSystem/referencerange-meaning",
+    "hl7-organization-type": "http://terminology.hl7.org/CodeSystem/organization-type",
+    "hl7-v3-rolecode": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+    "hl7-v3-participationtype": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+    "hl7-v3-administrativegender": "http://terminology.hl7.org/CodeSystem/v3-AdministrativeGender",
+    "hl7-v3-actpriority": "http://terminology.hl7.org/CodeSystem/v3-ActPriority",
+    "hl7-v2-0360": "http://terminology.hl7.org/CodeSystem/v2-0360",
+    "hl7-v2-0203": "http://terminology.hl7.org/CodeSystem/v2-0203",
+    "hl7-v2-0131": "http://terminology.hl7.org/CodeSystem/v2-0131",
+    "hl7-v2-0092": "http://terminology.hl7.org/CodeSystem/v2-0092",
+    "hl7-service-type": "http://terminology.hl7.org/CodeSystem/service-type",
+    "hl7-practitioner-role": "http://terminology.hl7.org/CodeSystem/practitioner-role",
+    "hl7-discharge-disposition": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
+    "hl7-diagnosis-role": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
+    "hl7-allergyintolerance-verification":
+        "http://terminology.hl7.org/CodeSystem/allergyintolerance-verification",
+    "hl7-allergyintolerance-clinical":
+        "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+    "hl7-admit-source": "http://terminology.hl7.org/CodeSystem/admit-source",
+    "us-core-documentreference-category":
+        "http://hl7.org/fhir/us/core/CodeSystem/us-core-documentreference-category",
+    "occupation-category": "http://clinosim.example.org/CodeSystem/occupation-category",
 }
