@@ -10,6 +10,7 @@ import os
 from datetime import datetime
 from typing import Any
 
+from clinosim.codes import lookup as code_lookup
 from clinosim.modules.llm_service.engine import (
     ClinicalEventData,
     LLMService,
@@ -91,7 +92,17 @@ def _generate_patient_narratives(
     condition = record.get("condition_event", {})
     encounters = record.get("encounters", [])
     chief = encounters[0].get("chief_complaint", "") if encounters else ""
-    dx_name = clinical_dx.get("discharge_diagnosis_name") or clinical_dx.get("admission_diagnosis_name", "")
+    # CIF stores diagnosis codes only (AD-30); resolve a display name from the code +
+    # system in English (AD-44: enrichment is language-neutral, the LLM translates).
+    dx_code = clinical_dx.get("discharge_diagnosis_code") or clinical_dx.get(
+        "admission_diagnosis_code", ""
+    )
+    dx_sys = (
+        clinical_dx.get("discharge_diagnosis_system")
+        if clinical_dx.get("discharge_diagnosis_code")
+        else clinical_dx.get("admission_diagnosis_system")
+    ) or "icd-10-cm"
+    dx_name = code_lookup(dx_sys, dx_code, "en") if dx_code else ""
     gt_diseases = condition.get("ground_truth_diseases", [])
 
     ps = PatientSummary(
