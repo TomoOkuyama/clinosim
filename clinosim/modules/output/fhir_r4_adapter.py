@@ -15,127 +15,43 @@ from clinosim.locale.loader import (
     load_identity_config,
     load_reference_ranges,
 )
-import re
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import date, datetime
-from pathlib import Path
+from datetime import datetime
 from typing import Any
 
-# Lazy-loaded drug name dictionary for Japanese localization
-_drug_names_ja: dict[str, str] | None = None
+# FA-1 Phase 1: JP/EN localization layer extracted to _fhir_localization.
+# Re-exported here so existing imports keep working (facade).
+from clinosim.modules.output._fhir_localization import (
+    _CATEGORY_DISPLAY_JA,
+    _CLASS_DISPLAY_JA,
+    _FREQ_JA,
+    _INTERPRETATION_DISPLAY_JA,
+    _LOCATION_NAME_JA,
+    _LOCATION_TYPE_DISPLAY_JA,
+    _OCCUPATION_DISPLAY_EN,
+    _OCCUPATION_DISPLAY_JA,
+    _ORG_TYPE_DISPLAY_JA,
+    _RELATIONSHIP_DISPLAY_JA,
+    _ROLE_PREFIX_MAP_JA,
+    _ROUTE_JA,
+    _SEVERITY_DISPLAY_JA,
+    _dept_display,
+    _localize_display,
+    _localize_dosage_terms,
+    _localize_drug_name,
+    _localize_interp,
+    _procedure_display,
+)
 
-# Lazy-loaded department display table ({key: {en, ja}}) — see
-# locale/shared/department_display.yaml
-_department_display: dict[str, dict[str, str]] | None = None
-
-# Lazy-loaded JP medication-term tables ({"categories": {...}, "terms": {...}})
-# — see locale/shared/med_terms_ja.yaml
-_med_terms_ja: dict[str, dict[str, str]] | None = None
-
-def _load_med_terms_ja() -> dict[str, dict[str, str]]:
-    """Load JP medication-term tables ({"categories": {...}, "terms": {...}}).
-
-    Order is preserved from the YAML (substitutions are order-sensitive).
-    """
-    global _med_terms_ja
-    if _med_terms_ja is not None:
-        return _med_terms_ja
-    import yaml
-    yaml_path = Path(__file__).resolve().parent.parent.parent \
-        / "locale" / "shared" / "med_terms_ja.yaml"
-    if yaml_path.exists():
-        raw = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
-        _med_terms_ja = {
-            "categories": raw.get("categories", {}) or {},
-            "terms": raw.get("terms", {}) or {},
-        }
-    else:
-        _med_terms_ja = {"categories": {}, "terms": {}}
-    return _med_terms_ja
-
-
-
-def _load_drug_names_ja() -> dict[str, str]:
-    """Load English→Japanese drug name mapping (case-insensitive keys)."""
-    global _drug_names_ja
-    if _drug_names_ja is not None:
-        return _drug_names_ja
-    import yaml
-    yaml_path = Path(__file__).resolve().parent.parent.parent / "locale" / "shared" / "drug_names_ja.yaml"
-    if yaml_path.exists():
-        raw = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
-        _drug_names_ja = {k.lower(): v for k, v in raw.items()}
-    else:
-        _drug_names_ja = {}
-    return _drug_names_ja
-
-
-def _localize_dosage_terms(text: str) -> str:
-    """Translate common medical abbreviations and dosage terms to Japanese.
-
-    Word-level replacements with case-insensitive matching for common terms.
-    """
-    tables = _load_med_terms_ja()
-    # Category prefixes (apply first, longest-match-wins, case-insensitive)
-    # These often appear as "Category: ..." or "Category_word ..."
-    for cat, ja in sorted(tables["categories"].items(), key=lambda x: -len(x[0])):
-        # Match as prefix word, case-insensitive, followed by : or space or _
-        pattern = r'(?i)\b' + re.escape(cat) + r'\b'
-        text = re.sub(pattern, ja, text)
-    # Dose/route/frequency terms (word-boundary, case-sensitive for uppercase abbrevs,
-    # case-insensitive for lowercase words)
-    for term, ja in sorted(tables["terms"].items(), key=lambda x: -len(x[0])):
-        if term.isupper():
-            # Case-sensitive for uppercase abbrevs (PRN, PO, IV)
-            pattern = r'\b' + re.escape(term) + r'\b'
-            text = re.sub(pattern, ja, text)
-        else:
-            # Case-insensitive for lowercase words
-            pattern = r'(?i)\b' + re.escape(term) + r'\b'
-            text = re.sub(pattern, ja, text)
-    return text
-
-
-def _localize_drug_name(drug_name: str, country: str) -> str:
-    """Resolve drug name to Japanese when country=JP.
-
-    Matches drug names against the dictionary, handling:
-    - Exact match (case-insensitive, underscore→space normalized)
-    - Category prefix: "category: Drug ..." → "<ja> ..."
-    - Any drug name substring found anywhere in the text (longest match wins)
-    - Dosage/route/frequency terms translated at end
-    """
-    if country == "US" or not drug_name:
-        return drug_name
-    ja_dict = _load_drug_names_ja()
-    # Normalize underscores to spaces for matching
-    normalized = drug_name.replace("_", " ")
-    # Try exact match on normalized (case-insensitive)
-    ja = ja_dict.get(normalized.lower())
-    if ja:
-        return _localize_dosage_terms(ja)
-    # Try exact match on cleaned (prefix stripped) version
-    cleaned = normalized
-    if ":" in cleaned:
-        cleaned = cleaned.split(":", 1)[1].strip()
-    ja = ja_dict.get(cleaned.lower())
-    if ja:
-        return _localize_dosage_terms(ja)
-    # Replace ALL known drug name occurrences (longest-first to avoid partial matches)
-    # Use case-insensitive regex replacement
-    result = normalized
-    changed = False
-    for en_key in sorted(ja_dict.keys(), key=lambda k: -len(k)):
-        ja_val = ja_dict[en_key]
-        pattern = re.compile(r'(?i)\b' + re.escape(en_key) + r'\b')
-        new_result, n = pattern.subn(ja_val, result)
-        if n > 0:
-            result = new_result
-            changed = True
-    # Always translate dosage terms
-    return _localize_dosage_terms(result).strip() if changed or result != drug_name else _localize_dosage_terms(drug_name).strip()
+# Loader functions — re-exported for external importers (tests / other modules);
+# their callers were moved into _fhir_localization, so they are not used here.
+from clinosim.modules.output._fhir_localization import (  # noqa: F401
+    _load_department_display,
+    _load_drug_names_ja,
+    _load_med_terms_ja,
+)
 
 
 def convert_cif_to_fhir(
@@ -278,32 +194,6 @@ def convert_cif_to_fhir(
     finally:
         for w in writers.values():
             w.close()
-
-
-def _load_department_display() -> dict[str, dict[str, str]]:
-    """Load department display table ({key: {en, ja}}, case-insensitive keys)."""
-    global _department_display
-    if _department_display is not None:
-        return _department_display
-    import yaml
-    yaml_path = Path(__file__).resolve().parent.parent.parent \
-        / "locale" / "shared" / "department_display.yaml"
-    if yaml_path.exists():
-        raw = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
-        _department_display = raw.get("departments", {}) or {}
-    else:
-        _department_display = {}
-    return _department_display
-
-
-def _dept_display(dept: str, country: str) -> str:
-    """Resolve a department key to its display name for the target country.
-
-    Falls back to a title-cased key when the department is not in the table.
-    """
-    lang = "ja" if country == "JP" else "en"
-    entry = _load_department_display().get(dept, {})
-    return entry.get(lang) or dept.replace("_", " ").title()
 
 
 def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
@@ -1334,144 +1224,6 @@ _ALLERGEN_RXNORM: dict[str, str] = {
 
 
 # Occupation category localization for Observation.valueCodeableConcept
-_OCCUPATION_DISPLAY_JA: dict[str, str] = {
-    "manufacturing": "製造業",
-    "construction": "建設業",
-    "agriculture": "農林水産業",
-    "healthcare": "医療・福祉",
-    "service": "サービス・小売",
-    "office": "事務・専門職",
-    "transportation": "運輸業",
-    "education": "教育",
-    "homemaker": "主婦/主夫",
-    "student": "学生",
-    "retired": "退職",
-    "unemployed": "無職",
-    "other": "その他",
-}
-
-_OCCUPATION_DISPLAY_EN: dict[str, str] = {
-    "manufacturing": "Manufacturing worker",
-    "construction": "Construction worker",
-    "agriculture": "Agricultural worker",
-    "healthcare": "Healthcare worker",
-    "service": "Service/retail worker",
-    "office": "Office/professional worker",
-    "transportation": "Transportation worker",
-    "education": "Education worker",
-    "homemaker": "Homemaker",
-    "student": "Student",
-    "retired": "Retired",
-    "unemployed": "Unemployed",
-    "other": "Other occupation",
-}
-
-
-# --- Shared display dictionaries for JP localization ---
-
-_CLASS_DISPLAY_JA: dict[str, str] = {
-    "AMB": "外来", "ambulatory": "外来",
-    "IMP": "入院", "inpatient encounter": "入院",
-    "EMER": "救急", "emergency": "救急",
-    "HH": "訪問看護", "home health": "訪問看護",
-    "FLD": "現地訪問", "field": "現地訪問",
-}
-
-_CATEGORY_DISPLAY_JA: dict[str, str] = {
-    "laboratory": "検体検査", "Laboratory": "検体検査",
-    "vital-signs": "バイタルサイン", "Vital Signs": "バイタルサイン",
-    "social-history": "社会歴", "Social History": "社会歴",
-    "encounter-diagnosis": "エンカウンター診断", "Encounter Diagnosis": "エンカウンター診断",
-    "problem-list-item": "問題リスト", "Problem List Item": "問題リスト",
-    "imaging": "画像検査", "Imaging": "画像検査",
-    "procedure": "処置", "Procedure": "処置",
-}
-
-_SEVERITY_DISPLAY_JA: dict[str, str] = {
-    "Mild": "軽度", "mild": "軽度", "24484000": "軽度",
-    "Moderate": "中等度", "moderate": "中等度", "6736007": "中等度",
-    "Severe": "重度", "severe": "重度", "24484000|severe": "重度", "255604002": "重度",
-}
-
-_INTERPRETATION_DISPLAY_JA: dict[str, str] = {
-    "N": "正常", "Normal": "正常",
-    "H": "高値", "High": "高値",
-    "L": "低値", "Low": "低値",
-    "HH": "パニック高値", "Critical high": "パニック高値",
-    "LL": "パニック低値", "Critical low": "パニック低値",
-    "A": "異常", "Abnormal": "異常",
-    "AA": "パニック異常", "Critical abnormal": "パニック異常",
-    "HU": "測定上限超", "LU": "測定下限未満",
-    "POS": "陽性", "NEG": "陰性",
-    "R": "耐性", "S": "感受性", "I": "中間",
-}
-
-_RELATIONSHIP_DISPLAY_JA: dict[str, str] = {
-    "spouse": "配偶者",
-    "child": "子",
-    "parent": "親",
-    "sibling": "同胞",
-    "partner": "パートナー",
-    "grandchild": "孫",
-    "grandparent": "祖父母",
-    "friend": "友人",
-    "guardian": "後見人",
-}
-
-_ORG_TYPE_DISPLAY_JA: dict[str, str] = {
-    "Hospital Department": "診療科",
-    "Healthcare Provider": "医療機関",
-    "prov": "医療機関",
-    "dept": "診療科",
-}
-
-_LOCATION_TYPE_DISPLAY_JA: dict[str, str] = {
-    "Operating Room": "手術室",
-    "Emergency Room": "救急外来",
-    "Outpatient Clinic": "外来",
-    "Ward": "病棟",
-    "Bed": "病床",
-    "Inpatient Ward": "入院病棟",
-}
-
-_LOCATION_NAME_JA: dict[str, str] = {
-    "Emergency Room": "救急外来",
-    "Outpatient Clinic": "外来",
-}
-
-# Procedure names (from disease YAML procedure.type) — EN→JA
-def _procedure_display(code: str, lang: str, fallback: str = "") -> str:
-    """Look up procedure display in k-codes.yaml / cpt.yaml.
-
-    Tries k-codes first (JP codes) then cpt (US codes). Falls back to the
-    provided `fallback` string if neither has an entry.
-    """
-    if not code:
-        return fallback
-    for system_key in ("k-codes", "cpt"):
-        disp = code_lookup(system_key, code, lang)
-        if disp and disp != code:
-            return disp
-    return fallback
-
-
-def _localize_display(value: str, country: str, dictionary: dict[str, str]) -> str:
-    """Look up JP display for an English value when country=JP.
-    Returns original value if no mapping exists."""
-    if country != "JP" or not value:
-        return value
-    return dictionary.get(value, value)
-
-
-def _localize_interp(coded: dict[str, str], country: str) -> dict[str, str]:
-    """Localize interpretation display dict in place (returns new dict)."""
-    if country != "JP":
-        return coded
-    d = dict(coded)
-    d["display"] = _INTERPRETATION_DISPLAY_JA.get(d.get("code", ""), d.get("display", ""))
-    return d
-
-
 def _build_occupation_observation(
     occupation: str, patient_id: str, country: str,
 ) -> dict | None:
@@ -2604,19 +2356,6 @@ _ROUTE_SNOMED: dict[str, dict[str, str]] = {
 }
 
 
-_ROUTE_JA: dict[str, str] = {
-    "PO": "経口", "IV": "静注", "SC": "皮下注", "IM": "筋注",
-    "SL": "舌下", "PR": "直腸", "INH": "吸入", "TOPICAL": "外用",
-    "NG": "経鼻", "INHALED": "吸入",
-}
-_FREQ_JA: dict[str, str] = {
-    "DAILY": "1日1回", "BID": "1日2回", "TID": "1日3回", "QID": "1日4回",
-    "Q4H": "4時間毎", "Q6H": "6時間毎", "Q8H": "8時間毎", "Q12H": "12時間毎",
-    "PRN": "必要時", "STAT": "緊急", "ONCE": "1回",
-    "1x/day": "1日1回", "2x/day": "1日2回", "3x/day": "1日3回", "4x/day": "1日4回",
-}
-
-
 def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any] | None:
     """Build FHIR Dosage from structured order fields."""
     dose_qty = order.get("dose_quantity")
@@ -3169,14 +2908,6 @@ _ROLE_PREFIX_MAP: dict[str, dict[str, str]] = {
     "radiologist": {"qual_code": "MD", "qual_display": "Doctor of Medicine"},
     "pharmacist": {"qual_code": "PharmD", "qual_display": "Doctor of Pharmacy"},
 }
-_ROLE_PREFIX_MAP_JA: dict[str, dict[str, str]] = {
-    "physician": {"qual_code": "MD", "qual_display": "医師", "prefix": ""},
-    "nurse": {"qual_code": "RN", "qual_display": "看護師", "prefix": ""},
-    "lab_technician": {"qual_code": "MT", "qual_display": "臨床検査技師", "prefix": ""},
-    "radiologist": {"qual_code": "MD", "qual_display": "放射線科医", "prefix": ""},
-    "pharmacist": {"qual_code": "PharmD", "qual_display": "薬剤師", "prefix": ""},
-}
-
 # SNOMED specialty codes
 _SPECIALTY_SNOMED: dict[str, dict[str, str]] = {
     "general": {"code": "419192003", "display": "Internal Medicine"},
