@@ -112,17 +112,20 @@ initial_state_impact:
   mild:
     inflammation_level: 0.25
     volume_status: -0.05
+    sodium_status: -0.10
   moderate:
     inflammation_level: 0.50
     volume_status: -0.15
     perfusion_status: -0.10
     renal_function: -0.05
+    sodium_status: -0.25
   severe:
     inflammation_level: 0.75
     volume_status: -0.25
     perfusion_status: -0.25
     renal_function: -0.15
     ph_status: -0.10
+    sodium_status: -0.40
 
 # ============================================================
 # ORDER PROTOCOLS
