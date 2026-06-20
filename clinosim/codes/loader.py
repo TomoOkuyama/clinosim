@@ -131,4 +131,5 @@ _BUILTIN_URIS: dict[str, str] = {
     "hl7-observation-interpretation": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
     "hl7-observation-category": "http://terminology.hl7.org/CodeSystem/observation-category",
     "hl7-diagnostic-service-section": "http://terminology.hl7.org/CodeSystem/v2-0074",
+    "cvx": "http://hl7.org/fhir/sid/cvx",
 }
