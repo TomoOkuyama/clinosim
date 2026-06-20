@@ -467,11 +467,11 @@ morse:
 メインランダムストリームを汚染しないよう、`hashlib.sha256` ベースの専用サブシードを生成する。
 
 ```python
-_NURSING_SEED_OFFSET = 0x4E55  # "NU"
+from clinosim.simulator.seeding import derive_sub_seed
 
-def _sub_seed(master_seed: int, key: str) -> int:
-    h = int.from_bytes(hashlib.sha256(key.encode()).digest()[:6], "big")
-    return (int(master_seed) + _NURSING_SEED_OFFSET + h) % (2**32)
+_NURSING_SEED_OFFSET = 0x4E55  # "NU" — keep unique across modules (test_seeding guards this)
+
+rng = np.random.default_rng(derive_sub_seed(ctx.master_seed, _NURSING_SEED_OFFSET, patient_id))
 ```
 
 患者 ID をキーとして patient ごとに独立した `numpy.random.Generator` を作成するため、
