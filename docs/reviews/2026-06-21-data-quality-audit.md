@@ -44,7 +44,7 @@ These correctly omit a reference range. **No FHIR conformance defect.**
 
 ## 3. Issues found
 
-### A. [HIGH, pre-existing] `activate_patient` is non-idempotent — patient history is unstable across encounters
+### A. [HIGH, pre-existing — FIXED in this PR] `activate_patient` was non-idempotent — patient history unstable across encounters
 
 **Evidence:** 55% (US, 6,143/11,248) and 71% (JP, 231/325) of diabetic patients
 have **more than one distinct onset date for the same E11 chronic condition**
@@ -66,11 +66,25 @@ their own encounters — an EHR-coherence defect that pre-dates and is broader t
 the HbA1c work (HbA1c stage merely made it visible). Acute disease→lab coherence
 within a single encounter is unaffected (onset is applied per encounter).
 
-**Fix (follow-up, golden-changing):** route **all** activation sites through one
-shared `patient_cache` keyed by `person_id`, so each person is activated exactly
-once. Determinism note: this changes the RNG consumption pattern (fewer
-activations) → golden output changes; it is the correct fix and should land as its
-own PR with regenerated goldens. Watch memory for 24k cached `PatientProfile`s.
+**Fix (this PR, golden-changing):** all activation sites now route through one
+shared `patient_cache` keyed by `person_id` (hoisted above the inpatient loop), so
+each person is activated exactly once. RNG consumption changes (fewer activations)
+→ golden output changes; `run_alpha`/`test_alpha_golden` is unaffected (it uses
+`run_forced`, a single forced patient).
+
+**Post-fix verification (regenerated JP, seed 7):** measuring onset by
+`clinicalStatus`:
+- **Active (problem-list) chronic E11.9 onset: 0% inconsistent** (was 71%) — fixed.
+- **Stage HbA1c: 0% inconsistent** (was 18%) — fixed.
+- *Resolved (per-encounter diagnosis) E11.9 still varies by visit date* — this is a
+  different Condition type (encounter-diagnosis, onset = visit date) and is expected,
+  not the bug. New e2e test `test_patient_identity_stable_across_encounters` guards
+  the CIF-level invariant.
+
+**Minor follow-up (separate):** outpatient diabetes-followup emits E11.9 as a
+per-encounter diagnosis Condition with `clinicalStatus=resolved` and onset=visit
+date. "Resolved" on a chronic diabetes encounter-diagnosis is questionable; consider
+referencing the problem-list entry instead. Not addressed here.
 
 ### B. [LOW / observational] Sepsis systolic BP
 
@@ -82,5 +96,7 @@ more strongly to `perfusion_status` for severe sepsis. Not a conformance issue.
 
 FHIR R4 output is **conformant and clean** in both locales; clinical coherence
 (labs/vitals vs disease & comorbidity, and the new HbA1c↔glucose↔control axis) is
-**strong**. The one substantive finding is the **pre-existing `activate_patient`
-non-idempotency (Issue A)** — recommended as the next fix (own PR, golden-changing).
+**strong**. The one substantive finding — the pre-existing `activate_patient`
+non-idempotency (Issue A) — is **fixed in this PR** (verified: chronic onset/stage
+now 0% inconsistent). Issue B (sepsis BP) and the encounter-diagnosis `resolved`
+nuance are minor follow-ups.
