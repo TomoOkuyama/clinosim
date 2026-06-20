@@ -13,6 +13,7 @@ from clinosim.modules.physiology.engine import (
     derive_vital_signs,
     initialize_state,
     update,
+    _variable_range,
 )
 from clinosim.types.clinical import PhysiologicalState, StateChangeDirective
 from clinosim.types.patient import BaselineVitals, ChronicCondition, PatientPhysiologicalProfile
@@ -329,3 +330,61 @@ class TestDeriveObservedVitals:
             PhysiologicalState(), baseline_vitals, ts, np.random.default_rng(0))
         assert febrile["temperature"] > healthy["temperature"]
         assert febrile["heart_rate"] > healthy["heart_rate"]
+
+
+# --- Sodium axis (dysnatremia) ---
+
+@pytest.mark.unit
+def test_sodium_status_field_and_range():
+    """Smoke test: sodium_status field exists and has correct range."""
+    s = PhysiologicalState()
+    assert s.sodium_status == 0.0
+    assert _variable_range("sodium_status") == (-1.0, 1.0)
+
+
+@pytest.mark.unit
+def test_na_mapping_from_sodium_status():
+    """Na lab value is driven by the dysnatremia axis (sodium_status * 14 term)."""
+    # Normal: sodium_status=0, renal=1.0 -> 140 + 0*14 - 0*3 = 140
+    s = PhysiologicalState(renal_function=1.0, sodium_status=0.0)
+    assert abs(derive_lab_values(s, sex="M", age=60)["Na"] - 140.0) < 0.01
+
+    # Hyponatremia: sodium_status=-1 -> 140 - 14 - 0 = 126
+    s_lo = PhysiologicalState(renal_function=1.0, sodium_status=-1.0)
+    assert 124 <= derive_lab_values(s_lo, sex="M", age=60)["Na"] <= 128
+
+    # Hypernatremia: sodium_status=+1 -> 140 + 14 - 0 = 154 (>145)
+    s_hi = PhysiologicalState(renal_function=1.0, sodium_status=1.0)
+    assert derive_lab_values(s_hi, sex="M", age=60)["Na"] >= 148
+
+
+@pytest.mark.unit
+def test_dehydration_coupling_raises_sodium():
+    """Severe volume depletion (dehydration) concentrates serum sodium."""
+    s = PhysiologicalState(volume_status=-0.6, sodium_status=0.0)
+    apply_coupling_rules(s)
+    assert s.sodium_status > 0.0  # dehydration concentrates Na
+
+
+@pytest.mark.unit
+def test_chronic_hf_cirrhosis_baseline_hyponatremia():
+    """Chronic HF and cirrhosis drive sodium_status negative (dilutional hyponatremia)."""
+    profile = PatientPhysiologicalProfile(
+        renal_reserve=0.85,
+        cardiac_reserve=0.80,
+        hepatic_reserve=0.90,
+    )
+
+    # Heart failure (I50.9) with moderate severity -> dilutional hyponatremia
+    hf = ChronicCondition(code="I50.9", severity_score=0.6)
+    state_hf = initialize_state(profile, [hf])
+    assert state_hf.sodium_status < 0.0, (
+        f"HF should lower sodium_status, got {state_hf.sodium_status}"
+    )
+
+    # Cirrhosis (K74.6) -> dilutional hyponatremia
+    cirrhosis = ChronicCondition(code="K74.6", severity_score=0.6)
+    state_k74 = initialize_state(profile, [cirrhosis])
+    assert state_k74.sodium_status < 0.0, (
+        f"Cirrhosis should lower sodium_status, got {state_k74.sodium_status}"
+    )

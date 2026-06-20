@@ -49,9 +49,11 @@ def initialize_state(
             state.cardiac_function *= 1.0 - s * 0.4
             if s > 0.3:
                 state.volume_status += s * 0.3
+            state.sodium_status -= s * 0.30   # dilutional hyponatremia
         elif code.startswith("K74"):  # Cirrhosis
             state.hepatic_function *= 1.0 - s * 0.5
             state.coagulation_status += s * 0.2
+            state.sodium_status -= s * 0.40   # dilutional hyponatremia
         elif code.startswith("J44"):  # COPD
             state.ph_status -= s * 0.05
             state.respiratory_fraction = 1.0  # chronic CO2 retention → respiratory axis
@@ -73,6 +75,7 @@ def initialize_state(
     state.renal_function = clamp(state.renal_function, 0.05, 1.0)
     state.cardiac_function = clamp(state.cardiac_function, 0.05, 1.0)
     state.hepatic_function = clamp(state.hepatic_function, 0.05, 1.0)
+    state.sodium_status = clamp(state.sodium_status, -1.0, 1.0)
 
     return state
 
@@ -180,6 +183,12 @@ def apply_coupling_rules(state: PhysiologicalState) -> None:
             state.anemia_level - 0.005, 0.0, 1.0
         )
 
+    # Dehydration (free-water deficit) concentrates serum sodium -> hypernatremia.
+    if state.volume_status < -0.35:
+        state.sodium_status = clamp(
+            state.sodium_status + (abs(state.volume_status) - 0.35) * 1.2, -1.0, 1.0
+        )
+
 
 # ---------------------------------------------------------------------------
 # Lab value derivation (Layer 2)
@@ -228,7 +237,9 @@ def derive_lab_values(
     # K: renal failure causes hyperkalemia, but not as aggressively as before
     # renal 1.0→K 4.0, renal 0.3→K 5.4, renal 0.1→K 6.0, acidosis adds
     labs["K"] = clamp(4.0 + (1 - renal) * 2.2 + max(0, -ph) * 0.8, 2.5, 8.0)
-    labs["Na"] = 140.0 - (1 - renal) * 5 + state.volume_status * (-3)
+    # Na driven by the dysnatremia axis (chronic HF/cirrhosis hypo, dehydration hyper, SIADH).
+    # The old volume term is subsumed by the volume->sodium coupling (apply_coupling_rules).
+    labs["Na"] = 140.0 + state.sodium_status * 14.0 - (1 - renal) * 3.0
     labs["Na"] = clamp(labs["Na"], 120, 160)
 
     # --- Cardiac ---
@@ -420,5 +431,6 @@ def _variable_range(var: str) -> tuple[float, float]:
         "ph_status": (-1.0, 1.0),
         "respiratory_fraction": (0.0, 1.0),
         "glucose_status": (-1.0, 1.0),
+        "sodium_status": (-1.0, 1.0),
     }
     return ranges.get(var, (0.0, 1.0))
