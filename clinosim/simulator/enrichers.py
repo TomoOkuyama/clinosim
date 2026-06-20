@@ -15,9 +15,12 @@ Stages:
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 POST_POPULATION = "post_population"
 POST_RECORDS = "post_records"
@@ -40,21 +43,22 @@ class Enricher:
     enabled: Callable[[Any], bool] = lambda config: True
 
 
-_ENRICHERS: list[Enricher] = []
+_ENRICHERS: dict[str, Enricher] = {}
 _BUILTINS_REGISTERED = False
 
 
 def register_enricher(enricher: Enricher) -> None:
-    """Register an enricher (idempotent by name)."""
-    if any(e.name == enricher.name for e in _ENRICHERS):
-        return
-    _ENRICHERS.append(enricher)
+    """Register an enricher by name. Last registration wins (enables test override);
+    re-registering an existing name logs a warning."""
+    if enricher.name in _ENRICHERS:
+        logger.warning("Enricher %r re-registered — last-wins override", enricher.name)
+    _ENRICHERS[enricher.name] = enricher
 
 
 def run_stage(stage: str, ctx: EnricherContext) -> None:
     """Run all enabled enrichers for a stage, in deterministic (order, name) sequence."""
     for enricher in sorted(
-        (e for e in _ENRICHERS if e.stage == stage),
+        (e for e in _ENRICHERS.values() if e.stage == stage),
         key=lambda e: (e.order, e.name),
     ):
         if enricher.enabled(ctx.config):

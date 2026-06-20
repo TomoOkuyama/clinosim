@@ -993,9 +993,18 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
 
 
 def register_bundle_builder(builder: Callable[[BundleContext], list[dict]]) -> None:
-    """Register a FHIR resource builder appended after the built-ins (AD-56)."""
-    if builder not in _BUNDLE_BUILDERS:
+    """Register a FHIR resource builder appended after the built-ins (AD-56).
+
+    Deduplicated by function name (first registration wins), so a second builder with
+    the same name — e.g. a re-import of the same module — is not double-registered.
+    """
+    if builder.__name__ not in {b.__name__ for b in _BUNDLE_BUILDERS}:
         _BUNDLE_BUILDERS.append(builder)
+
+
+def available_builders() -> list[str]:
+    """Names of the registered bundle builders, in execution order (introspection)."""
+    return [b.__name__ for b in _BUNDLE_BUILDERS]
 
 
 def _build_bundle(
