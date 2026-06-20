@@ -6,19 +6,14 @@ simulation random stream is untouched (AD-16). occurrence dates <= snapshot (AD-
 
 from __future__ import annotations
 
-import hashlib
 from datetime import date, datetime
 
 import numpy as np
 
 from clinosim.modules.immunization.engine import generate_immunizations, load_schedule
+from clinosim.simulator.seeding import derive_sub_seed
 
 _IMM_SEED_OFFSET = 0x494D  # "IM"
-
-
-def _sub_seed(master_seed: int, key: str) -> int:
-    h = int.from_bytes(hashlib.sha256(key.encode()).digest()[:6], "big")
-    return (int(master_seed) + _IMM_SEED_OFFSET + h) % (2**32)
 
 
 def _get(obj, name, default=None):
@@ -48,7 +43,7 @@ def enrich_immunizations(ctx) -> None:
     for rec in ctx.records:
         patient = _get(rec, "patient")
         pid = _get(patient, "patient_id", "") if patient else ""
-        rng = np.random.default_rng(_sub_seed(ctx.master_seed, pid or "x"))
+        rng = np.random.default_rng(derive_sub_seed(ctx.master_seed, _IMM_SEED_OFFSET, pid or "x"))
         recs = generate_immunizations(patient, schedule, _as_of(ctx, rec), rng)
         if isinstance(rec, dict):
             rec["immunizations"] = recs
