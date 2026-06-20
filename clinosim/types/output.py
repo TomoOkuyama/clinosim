@@ -16,6 +16,7 @@ from clinosim.types.encounter import (
 )
 from clinosim.types.microbiology import MicrobiologyResult
 from clinosim.types.patient import PatientProfile
+from clinosim.types.procedure import ProcedureRecord, RehabSession
 
 
 @dataclass
@@ -46,8 +47,8 @@ class CIFPatientRecord:
     condition_event: ConditionEvent = field(default_factory=ConditionEvent)
     clinical_diagnosis: ClinicalDiagnosis = field(default_factory=ClinicalDiagnosis)
     complications_occurred: list[str] = field(default_factory=list)
-    procedures: list = field(default_factory=list)  # ProcedureRecord
-    rehab_sessions: list = field(default_factory=list)  # RehabSession
+    procedures: list[ProcedureRecord] = field(default_factory=list)
+    rehab_sessions: list[RehabSession] = field(default_factory=list)
     documents: list[ClinicalDocument] = field(default_factory=list)  # ClinicalDocument stubs (text="" in Stage 1)
     medication_administrations: list[MedicationAdministration] = field(default_factory=list)
     intake_output_records: list[IntakeOutputRecord] = field(default_factory=list)
