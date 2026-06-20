@@ -41,6 +41,27 @@ class TestBeta:
         # Some variation expected
         assert max(final_inflammations) - min(final_inflammations) >= 0, "Some variation expected"
 
+    def test_patient_identity_stable_across_encounters(self, beta_result):
+        """A person appearing in multiple encounters must have ONE stable medical
+        history: chronic-condition onset dates (and stage) identical across all their
+        records. Guards against activate_patient being re-run per encounter."""
+        from collections import defaultdict
+        onsets = defaultdict(set)   # (patient_id, code) -> {onset_date}
+        stages = defaultdict(set)   # (patient_id, code) -> {stage}
+        rec_count = defaultdict(int)
+        for rec in beta_result.patients:
+            pid = rec.patient.patient_id
+            rec_count[pid] += 1
+            for c in rec.patient.chronic_conditions:
+                onsets[(pid, c.code)].add(c.onset_date)
+                stages[(pid, c.code)].add(c.stage)
+        multi = [p for p, n in rec_count.items() if n > 1]
+        assert multi, "test needs patients with >1 encounter to be meaningful"
+        bad_onset = {k: v for k, v in onsets.items() if len(v) > 1}
+        bad_stage = {k: v for k, v in stages.items() if len(v) > 1}
+        assert not bad_onset, f"{len(bad_onset)} (patient,condition) have inconsistent onset dates across encounters, e.g. {list(bad_onset.items())[:3]}"
+        assert not bad_stage, f"{len(bad_stage)} (patient,condition) have inconsistent stage across encounters, e.g. {list(bad_stage.items())[:3]}"
+
     def test_csv_output(self, beta_result, tmp_path):
         cif_dir = str(tmp_path / "cif")
         csv_dir = str(tmp_path / "csv")

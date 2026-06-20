@@ -145,6 +145,19 @@ def run_beta(
     active_discharges: list[tuple] = []  # (discharge_date, beds_freed)
     beds_total = hospital_ops.get("resource_capacity", {}).get("inpatient_beds", 200)
 
+    # Activate each person at most once (stable identity). A person who appears across
+    # multiple phases (admission, readmission, post-discharge, calendar, ED) must share a
+    # single PatientProfile so their chronic-condition onset/stage, physiological profile,
+    # and baseline vitals are consistent across all their encounters. activate_patient
+    # re-samples those attributes, so calling it per encounter desynchronizes a patient's
+    # own history.
+    patient_cache: dict[str, PatientProfile] = {}
+
+    def _activate_cached(p: PersonRecord) -> PatientProfile:
+        if p.person_id not in patient_cache:
+            patient_cache[p.person_id] = activate_patient(p, rng, demo)
+        return patient_cache[p.person_id]
+
     n_hosp = len(hospital_events)
     for idx, event in enumerate(hospital_events):
         if (idx + 1) % 50 == 0 or idx == n_hosp - 1:
@@ -172,7 +185,7 @@ def run_beta(
         if person is None or not person.is_alive:
             continue
 
-        patient = activate_patient(person, rng, demo)
+        patient = _activate_cached(person)
         disease_id = event.disease_id
 
         # Unknown condition
@@ -256,7 +269,7 @@ def run_beta(
         protocol = protocols.get(re_event.disease_id)
         if not protocol:
             continue
-        patient = activate_patient(person, rng, demo)
+        patient = _activate_cached(person)
         record = _simulate_patient(
             patient, re_event, re_event.disease_id, protocol,
             healthcare, roster, config, rng,
@@ -285,7 +298,6 @@ def run_beta(
     ]
     post_dc_spec = followup_data.get("_post_discharge", {})
     post_dc_days = post_dc_spec.get("first_visit_days", 14)
-    patient_cache: dict[str, PatientProfile] = {}
 
     for record in inpatient_records:
         pid = record.patient.patient_id
@@ -295,8 +307,6 @@ def run_beta(
         enc = record.encounters[0]
         if not enc.discharge_datetime:
             continue
-        if pid not in patient_cache:
-            patient_cache[pid] = activate_patient(person, rng, demo)
         disease_id = (record.condition_event.ground_truth_diseases[0]
                       if record.condition_event.ground_truth_diseases else "")
         disease_fu = followup_data.get("_post_discharge_by_disease", {}).get(disease_id, {})
@@ -308,7 +318,7 @@ def run_beta(
         if snapshot_dt and followup_date > snapshot_dt:
             continue
         opd_record = _simulate_outpatient_visit(
-            patient_cache[pid], "post_discharge", followup_date, roster, rng,
+            _activate_cached(person), "post_discharge", followup_date, roster, rng,
             followup_spec=merged_spec, post_discharge_disease=disease_id,
             country=config.country,
         )
@@ -331,9 +341,7 @@ def run_beta(
         person = population.get_person(event.person_id)
         if not person or not person.is_alive:
             continue
-        if event.person_id not in patient_cache:
-            patient_cache[event.person_id] = activate_patient(person, rng, demo)
-        patient = patient_cache[event.person_id]
+        patient = _activate_cached(person)
 
         visit_time = datetime(event.timestamp.year, event.timestamp.month,
                               event.timestamp.day, 10, int(rng.integers(0, 45)))
@@ -393,7 +401,7 @@ def run_beta(
             person = population.get_person(person_id)
             if not person or not person.is_alive:
                 continue
-            patient = activate_patient(person, rng, demo)
+            patient = _activate_cached(person)
 
             # Build condition probabilities weighted by occupation risk
             occupation = getattr(person, "occupation", "other")
