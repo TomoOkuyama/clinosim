@@ -414,6 +414,146 @@ FHIR Observation
 
 **重要**: FHIR adapter の interpretation は `OrderResult.flag` ではなく `value vs referenceRange` から再計算される (AD-47)。observation モジュールの flag はヒントとして使われるが、referenceRange との整合性が優先。
 
+## 看護フローシート (AD-55 Base / AD-56 post_records)
+
+### 概要
+
+入院患者ごとに標準化された看護スコアを自動算出し、CIF・FHIR・CSV として出力する。
+常時有効 (always-on Base enricher)。スコア計算は純粋関数で、実装はデータ駆動
+(`reference_data/nursing_scores.yaml`)。
+
+### 提供スコア
+
+| スコア | 範囲 | 説明 | 権威出典 |
+|---|---|---|---|
+| **NEWS2** | 0–20 | National Early Warning Score 2。 RR / SpO2 / 体温 / 収縮期 BP / 心拍 / 意識 (AVPU) + 酸素投与の 7 要素 | Royal College of Physicians, 2017 |
+| **GCS** | 3–15 | Glasgow Coma Scale total。AVPU → ベース値 + 灌流状態デクリメント + 小 jitter | Teasdale & Jennett, 1974 |
+| **Braden** | 6–23 | 褥瘡リスク。感覚知覚・湿潤・活動性・可動性・栄養・摩擦ずれの 6 サブスケール。低スコア = 高リスク | Bergstrom et al., 1987 |
+| **Morse Fall Scale** | 0–125 | 転倒リスク。転倒歴・IV ライン・歩行障害・認知状態に基づくスコア + リスクレベル (low/moderate/high) | Morse, 1989 |
+
+### データ駆動設計
+
+スコアのしきい値・バンド・重みはすべて
+`clinosim/modules/observation/reference_data/nursing_scores.yaml` に集約されており、
+Python コードを変更せずに閾値調整が可能。各スコアのセクション構造:
+
+```yaml
+news2:
+  respiratory_rate:              # [low, high, points] バンドリスト
+    - [null, 8, 3]
+    - [12, 20, 0]
+    ...
+  consciousness:                 # AVPU 辞書 (A=0, V/P/U=3)
+    A: 0
+    ...
+braden:
+  barthel_to_subscale:           # Barthel (0-100) → サブスケール (1-4) 変換テーブル
+    - [0, 1]
+    ...
+morse:
+  history_of_falling: 25         # 項目別重み (公開済みスコアリング)
+  risk_levels:
+    - [25, "moderate"]
+    ...
+```
+
+### Enricher 実行 (AD-56 post_records)
+
+`clinosim/modules/observation/nursing_enricher.py` が Base enricher として
+`simulator/enrichers.py` の `register_builtin_enrichers()` に登録されており、
+`POST_RECORDS` ステージ (order=20) で実行される。
+
+**決定論的サブシード (AD-16)**:
+メインランダムストリームを汚染しないよう、`hashlib.sha256` ベースの専用サブシードを生成する。
+
+```python
+_NURSING_SEED_OFFSET = 0x4E55  # "NU"
+
+def _sub_seed(master_seed: int, key: str) -> int:
+    h = int.from_bytes(hashlib.sha256(key.encode()).digest()[:6], "big")
+    return (int(master_seed) + _NURSING_SEED_OFFSET + h) % (2**32)
+```
+
+患者 ID をキーとして patient ごとに独立した `numpy.random.Generator` を作成するため、
+既存の labs/vitals 数値・診断・I/O は変化しない。
+
+### API (nursing.py — 純粋関数)
+
+| 関数 | シグネチャ | 説明 |
+|---|---|---|
+| `compute_news2` | `(vs: dict) -> int` | バイタルサイン dict から NEWS2 スコアを返す。完全決定論的 (rng 不要) |
+| `compute_gcs` | `(consciousness_level: str, perfusion_status: float, rng) -> int` | AVPU + 灌流状態から GCS を返す |
+| `compute_braden` | `(adl: dict, consciousness_level: str, volume_status: float, rng) -> dict` | Braden 6 サブスケール + total を dict で返す |
+| `compute_morse_fall_risk` | `(age: int, adl: dict, consciousness_level: str, has_iv: bool, rng) -> tuple[int, str]` | Morse スコアとリスクレベルを返す |
+
+### CIF 表現
+
+**VitalSignRecord** (`clinosim/types/encounter.py`):
+
+```python
+@dataclass
+class VitalSignRecord:
+    ...
+    news2_score: int | None = None   # NEWS2 集計値 (0-20)
+    gcs_score:   int | None = None   # GCS 合計 (3-15)
+```
+
+**NursingRiskAssessment** (日次、`clinosim/types/encounter.py`):
+
+```python
+@dataclass
+class NursingRiskAssessment:
+    date:             date
+    braden_total:     int   # 6-23; 低スコア = 高リスク
+    braden_sensory:   int   # 1-4
+    braden_moisture:  int   # 1-4
+    braden_activity:  int   # 1-4
+    braden_mobility:  int   # 1-4
+    braden_nutrition: int   # 1-4
+    braden_friction:  int   # 1-3
+    morse_total:      int   # 0-125
+    fall_risk_level:  str   # "low" | "moderate" | "high"
+```
+
+`CIFPatientRecord.nursing_risk_assessments: list[NursingRiskAssessment]` に格納される。
+
+### FHIR 出力
+
+`_build_nursing_observations()` が `_BUNDLE_BUILDERS` に登録されており、
+`category=survey` の FHIR `Observation` リソースを生成する。
+
+| 観測値 | LOINC | 備考 |
+|---|---|---|
+| GCS total | `9269-2` | NLM 照合済み |
+| Braden scale total | `38227-5` | NLM 照合済み |
+| Morse fall risk | `59460-6` | NLM 照合済み |
+| Barthel index | `96761-2` | NLM 照合済み |
+| Fluid intake (24 h) | `9108-2` | NLM 照合済み |
+| Urine output (24 h) | `9192-6` | NLM 照合済み |
+| Fluid output total (24 h) | `9262-7` | NLM 照合済み |
+| **NEWS2** | *(なし)* | 権威 LOINC コードなし — `code.text` のみ発行 |
+
+合計 7 コードを NLM ICD-10CM API / LOINC ブラウザで照合・確認済み。
+
+### CSV 出力
+
+| ファイル | 追加カラム / 備考 |
+|---|---|
+| `vital_signs.csv` | `news2_score`, `gcs_score` 列を追加 |
+| `nursing_risk.csv` | 新規ファイル。`patient_id`, `date`, `braden_total`, `morse_total`, `fall_risk_level` |
+
+### 権威出典
+
+| スコア | 出典 |
+|---|---|
+| NEWS2 | Royal College of Physicians. *National Early Warning Score (NEWS) 2.* London: RCP, 2017. |
+| GCS | Teasdale G, Jennett B. "Assessment of coma and impaired consciousness." *Lancet* 1974. |
+| Braden | Bergstrom N et al. "The Braden Scale for Predicting Pressure Sore Risk." *Nursing Research* 1987. |
+| Morse Fall Scale | Morse JM et al. "Identifying the needs of the elderly in the community." *Canadian Journal on Aging* 1989. |
+| LOINC コード | NLM LOINC browser (`loinc.org`) — 全コード公式データベース照合済み |
+
+---
+
 ## ラボ名の正規化・パネル展開・微生物 (AD-55 / AD-57)
 
 `reference_data/`(データ駆動、コード変更不要):
