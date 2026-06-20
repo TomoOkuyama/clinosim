@@ -11,6 +11,7 @@ from datetime import date
 import numpy as np
 
 from clinosim.modules.population.engine import PersonRecord, _sample_given_name
+from clinosim.modules.physiology.engine import hba1c_from_glycemic_control
 from clinosim.locale.loader import load_names
 from clinosim.types.patient import (
     Allergy,
@@ -36,12 +37,6 @@ def _generate_stage(code: str, severity: str, rng: np.random.Generator) -> str:
         else:
             weights = [0.10, 0.30, 0.40, 0.20]
         return f"NYHA {str(rng.choice(nyha, p=weights))}"
-    if base in ("E11", "E10"):  # Diabetes
-        if severity == "mild":
-            hba1c = float(rng.uniform(6.5, 7.5))
-        else:
-            hba1c = float(rng.uniform(7.5, 9.5))
-        return f"HbA1c {hba1c:.1f}%"
     if base == "J44":  # COPD (GOLD)
         gold = ["GOLD 1", "GOLD 2", "GOLD 3", "GOLD 4"]
         weights = [0.20, 0.40, 0.30, 0.10]
@@ -176,8 +171,17 @@ def activate_patient(
         onset_month = int(rng.integers(1, 13))
         onset_day = int(rng.integers(1, 29))
         sev = "mild" if rng.random() < 0.6 else "moderate"
-        # Stage by ICD code
-        stage = _generate_stage(code, sev, rng)
+        # Stage by ICD code. For diabetes (E11/E10) the stage HbA1c, the lab HbA1c, and the
+        # Glucose baseline all derive from one continuous glycemic_control axis. We reuse the
+        # single float draw that _generate_stage's E11 branch used to consume (now reinterpreted
+        # here) so the main RNG stream is unperturbed (AD-16).
+        if code.split(".")[0] in ("E11", "E10"):
+            gc_draw = float(rng.random())          # replaces the removed E11 stage uniform (1 draw)
+            glycemic_control = 1.0 - gc_draw       # low draw -> good control
+            stage = f"HbA1c {hba1c_from_glycemic_control(glycemic_control):.1f}%"
+        else:
+            glycemic_control = None
+            stage = _generate_stage(code, sev, rng)
         conditions.append(ChronicCondition(
             code=code,
             system="icd-10-cm",
@@ -186,6 +190,7 @@ def activate_patient(
             controlled=rng.random() < 0.7,
             severity_score=float(rng.uniform(0.1, 0.4)),
             stage=stage,
+            glycemic_control=glycemic_control,
         ))
 
     # Allergies (~15% have at least one)
