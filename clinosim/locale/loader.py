@@ -1,13 +1,18 @@
 """Locale data loader — single access point for all country/language-specific data.
 
+Holds only culture/country-dependent data. Terminology/display files were migrated
+to clinosim/codes/ (international code systems); they no longer live under locale/.
+
 Directory structure (country-based):
   locale/
-    japan/
-      names.yaml, terminology_lab.yaml, code_mapping_lab.yaml, formatting.yaml
+    jp/
+      names.yaml, addresses.yaml, demographics.yaml, formatting.yaml,
+      identity.yaml, immunization_schedule.yaml, code_mapping_*.yaml
     us/
-      names.yaml, terminology_lab.yaml, code_mapping_lab.yaml, formatting.yaml
+      (same shape as jp/)
     shared/
-      naming_rules.yaml
+      naming_rules.yaml, chronic_medications.yaml, chronic_followup.yaml,
+      drug_names_ja.yaml
 """
 
 from __future__ import annotations
