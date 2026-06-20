@@ -327,3 +327,44 @@ def test_us_population_bmi_distribution_matches_yaml():
         f"Male BMI mean {np.mean(males):.1f} not within 2 std of {m_cfg['mean']}"
     assert abs(np.mean(females) - f_cfg["mean"]) < f_cfg["std"] * 2, \
         f"Female BMI mean {np.mean(females):.1f} not within 2 std of {f_cfg['mean']}"
+
+
+# ---------------------------------------------------------------------------
+# Glycemic control axis (DET-6): E11 stage HbA1c must match glycemic_control,
+# and sampling must be deterministic + stream-preserving.
+# ---------------------------------------------------------------------------
+
+def _make_diabetic_person(age: int = 60) -> PersonRecord:
+    p = _make_person(age=age)
+    p.chronic_conditions = ["E11.9"]
+    return p
+
+
+def test_e11_stage_hba1c_matches_glycemic_control():
+    from clinosim.modules.physiology.engine import hba1c_from_glycemic_control
+    person = _make_diabetic_person()
+    profile = activate_patient(person, np.random.default_rng(7), _minimal_demo_for_activate())
+    dm = next(c for c in profile.chronic_conditions if c.code.startswith("E11"))
+    assert dm.glycemic_control is not None
+    assert 0.0 <= dm.glycemic_control <= 1.0
+    expected = f"HbA1c {hba1c_from_glycemic_control(dm.glycemic_control):.1f}%"
+    assert dm.stage == expected
+
+
+def test_glycemic_control_deterministic_same_seed():
+    person1 = _make_diabetic_person()
+    person2 = _make_diabetic_person()
+    demo = _minimal_demo_for_activate()
+    p1 = activate_patient(person1, np.random.default_rng(123), demo)
+    p2 = activate_patient(person2, np.random.default_rng(123), demo)
+    gc1 = next(c for c in p1.chronic_conditions if c.code.startswith("E11")).glycemic_control
+    gc2 = next(c for c in p2.chronic_conditions if c.code.startswith("E11")).glycemic_control
+    assert gc1 == gc2
+
+
+def test_nondiabetic_condition_has_no_glycemic_control():
+    person = _make_person(age=60)
+    person.chronic_conditions = ["I10"]
+    profile = activate_patient(person, np.random.default_rng(7), _minimal_demo_for_activate())
+    ht = next(c for c in profile.chronic_conditions if c.code.startswith("I10"))
+    assert ht.glycemic_control is None

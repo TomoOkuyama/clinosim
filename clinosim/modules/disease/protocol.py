@@ -52,6 +52,11 @@ class DiseaseProtocol(BaseModel):
     # (e.g. DKA = metabolic → Kussmaul low pCO2; COPD = respiratory → compensatory high
     # HCO3). "metabolic" | "respiratory" | "mixed". AD-57.
     acid_base_type: str = "metabolic"
+    # Chronic glycemic control implied by the scenario (1.0=excellent .. 0.0=very poor).
+    # When set (e.g. DKA/HHS imply long-standing poor control), the inpatient simulator
+    # overrides the patient's sampled glycemic_control for this admission so HbA1c is
+    # coherently high even for new-onset diabetes (no prior E11 condition). AD-57.
+    chronic_glycemic_control: float | None = None
 
 
 def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
