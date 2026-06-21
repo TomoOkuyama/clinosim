@@ -1,0 +1,34 @@
+# Family history generation — country-neutral biology (AD-55 Base).
+# Country-specific base prevalence lives in locale/<country>/family_history_prevalence.yaml.
+
+# Relationship codes (HL7 v3-RoleCode) with display.
+relationships:
+  MTH: {en: "Mother", ja: "母"}
+  FTH: {en: "Father", ja: "父"}
+  NSIB: {en: "Sibling", ja: "兄弟姉妹"}
+
+# Sibling count distribution (weights for 0, 1, 2).
+sibling_count_weights: [0.4, 0.4, 0.2]
+
+# Relative age derivation from the patient's age (years).
+parent_age_offset: {min: 25, max: 35}     # parent is patient_age + [25, 35]
+sibling_age_offset: {min: -12, max: 12}
+
+# Probability a parent of derived age `a` is deceased: clamp((a-60)/40, 0, 0.9).
+parent_deceased_base_age: 60
+parent_deceased_span: 40
+parent_deceased_max: 0.9
+
+# Conditions: heritability multiplier (applied to a relative's prevalence when the
+# PATIENT carries the same base code) + optional sex restriction.
+conditions:
+  E11: {heritability: 2.0}                # diabetes
+  I10: {heritability: 1.8}                # hypertension
+  I25: {heritability: 2.0}                # coronary artery disease
+  I63: {heritability: 1.5}                # ischemic stroke
+  I64: {heritability: 1.5}                # stroke, unspecified
+  E78: {heritability: 1.8}                # dyslipidemia
+  C50: {heritability: 2.0, sex: female}   # breast cancer
+  C18: {heritability: 1.8}                # colorectal cancer
+  C34: {heritability: 1.5}                # lung cancer
+  C61: {heritability: 2.0, sex: male}     # prostate cancer

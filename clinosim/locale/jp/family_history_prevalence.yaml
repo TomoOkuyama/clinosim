@@ -1,0 +1,14 @@
+# Base lifetime prevalence in a first-degree relative, by age band and sex.
+# Approximate JP adult epidemiology (lower CAD/breast/prostate, higher stroke);
+# rates, not codes; audit-refined.
+prevalence:
+  E11:  {40-59: {male: 0.12, female: 0.07}, 60-120: {male: 0.20, female: 0.14}}
+  I10:  {40-59: {male: 0.30, female: 0.25}, 60-120: {male: 0.58, female: 0.60}}
+  I25:  {40-59: {male: 0.04, female: 0.02}, 60-120: {male: 0.12, female: 0.07}}
+  I63:  {40-59: {male: 0.03, female: 0.02}, 60-120: {male: 0.12, female: 0.11}}
+  I64:  {40-59: {male: 0.01, female: 0.01}, 60-120: {male: 0.05, female: 0.05}}
+  E78:  {40-59: {male: 0.30, female: 0.30}, 60-120: {male: 0.38, female: 0.42}}
+  C50:  {40-59: {male: 0.00, female: 0.03}, 60-120: {male: 0.00, female: 0.07}}
+  C18:  {40-59: {male: 0.01, female: 0.01}, 60-120: {male: 0.05, female: 0.04}}
+  C34:  {40-59: {male: 0.01, female: 0.01}, 60-120: {male: 0.06, female: 0.04}}
+  C61:  {40-59: {male: 0.00, female: 0.00}, 60-120: {male: 0.08, female: 0.00}}
