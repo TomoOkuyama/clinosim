@@ -151,3 +151,19 @@ codes:
   '257261003':
     en: Swab
     ja: スワブ検体
+
+  # === Resuscitation / code status (AD-55 Base) ===
+  # TODO: verify — SNOMED browser/Snowstorm API unreachable in this environment.
+  # Candidate concepts from domain knowledge; confirm preferred terms before release.
+  '304251008':
+    en: Resuscitation status
+    ja: 蘇生ステータス
+  '304252001':
+    en: For resuscitation
+    ja: 蘇生処置を行う
+  '304253006':
+    en: Not for resuscitation
+    ja: 蘇生処置を行わない（DNAR）
+  '103735009':
+    en: Palliative care
+    ja: 緩和ケア
