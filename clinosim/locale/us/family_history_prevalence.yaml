@@ -1,0 +1,13 @@
+# Base lifetime prevalence of each condition in a first-degree relative, by age
+# band and sex. Approximate US adult epidemiology (rates, not codes); audit-refined.
+prevalence:
+  E11:  {40-59: {male: 0.11, female: 0.10}, 60-120: {male: 0.22, female: 0.20}}
+  I10:  {40-59: {male: 0.32, female: 0.30}, 60-120: {male: 0.60, female: 0.62}}
+  I25:  {40-59: {male: 0.08, female: 0.04}, 60-120: {male: 0.22, female: 0.14}}
+  I63:  {40-59: {male: 0.02, female: 0.02}, 60-120: {male: 0.09, female: 0.09}}
+  I64:  {40-59: {male: 0.01, female: 0.01}, 60-120: {male: 0.04, female: 0.04}}
+  E78:  {40-59: {male: 0.34, female: 0.34}, 60-120: {male: 0.40, female: 0.45}}
+  C50:  {40-59: {male: 0.00, female: 0.04}, 60-120: {male: 0.00, female: 0.11}}
+  C18:  {40-59: {male: 0.01, female: 0.01}, 60-120: {male: 0.04, female: 0.04}}
+  C34:  {40-59: {male: 0.01, female: 0.01}, 60-120: {male: 0.06, female: 0.05}}
+  C61:  {40-59: {male: 0.01, female: 0.00}, 60-120: {male: 0.13, female: 0.00}}
