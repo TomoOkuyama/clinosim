@@ -1,0 +1,46 @@
+"""JP 要介護度 (long-term-care need level) assignment (AD-55 Base). Pure + seeded."""
+from __future__ import annotations
+
+from functools import lru_cache
+from pathlib import Path
+
+import numpy as np
+import yaml
+
+_HERE = Path(__file__).resolve().parent
+_LOCALE = _HERE.parents[1] / "locale"
+
+
+@lru_cache(maxsize=1)
+def load_reference() -> dict:
+    with open(_HERE / "reference_data" / "care_level.yaml") as f:
+        return yaml.safe_load(f) or {}
+
+
+@lru_cache(maxsize=2)
+def load_rates() -> dict:
+    with open(_LOCALE / "jp" / "care_level_rates.yaml") as f:
+        return (yaml.safe_load(f) or {}).get("weights", {})
+
+
+def _age_band(age: int, bands: list[str]) -> str:
+    for band in bands:
+        lo, hi = (int(x) for x in band.split("-"))
+        if lo <= age <= hi:
+            return band
+    return bands[-1]
+
+
+def assign_care_level(age: int, country: str, rng: np.random.Generator) -> str:
+    """Return the jp-care-level code (or "" for independent / non-JP). Deterministic."""
+    if str(country).upper() != "JP":
+        return ""
+    ref = load_reference()
+    levels = ref["levels"]
+    weights = list(load_rates().get(_age_band(int(age), ref["age_bands"]), []))
+    if not weights or sum(weights) <= 0:
+        return ""
+    probs = np.array(weights, dtype=float)
+    probs = probs / probs.sum()
+    code = levels[int(rng.choice(len(levels), p=probs))]
+    return "" if code == "independent" else code
