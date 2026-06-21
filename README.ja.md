@@ -52,6 +52,10 @@
 - **電解質 (Na) の疾患整合**: 血清 Na が疾患を反映 — 慢性心不全/肝硬変の希釈性低 Na、肺炎/心不全増悪の SIADH 低 Na、脱水の高 Na — を `sodium_status` 生理軸で実現 (疾患ドライバはデータ駆動)
 - **検査値生成の venue 横断統一** (AD-57): 入院/ED/外来とも physiology 由来 → 基礎疾患が全 venue に反映 (例: CKD 患者の ED Cr が上昇)
 - **日本の保険資格** (opt-in `--jp-insurance`): 職業駆動の社保/国保/後期高齢、検証番号付き番号、マイナ保険証 → JP Core `Coverage`。マイナンバーは非出力
+- **社会歴・SDOH**: 喫煙 (US Core, LOINC 72166-2 + SNOMED) / 飲酒 (LOINC 11331-6) の social-history `Observation`、および日本の **要介護度** (介護保険 区分、JP のみ、年齢駆動)
+- **家族歴**: 第1度近親 (母/父/兄弟姉妹) の疾患を locale 有病率 × 遺伝性で合成 (本人の慢性疾患と相関) → FHIR `FamilyMemberHistory` (心血管代謝系 + 主要がん)
+- **コードステータス** (蘇生方針): 4 段階 (Full Code/DNR/DNR+DNI/Comfort)、重篤 encounter (入院は全例、ED は重症/終末) に年齢・重症度駆動で付与 → FHIR survey `Observation` (SNOMED)
+- **看護フローシート** (NEWS2/GCS/Braden/Morse) + **成人予防接種歴** (CVX, US/JP) を FHIR Observation / `Immunization` で出力
 - **病棟・ベッド単位** の Location 階層、 PractitionerRole.location 紐付け
 - **Snapshot date** で「現在入院中」の患者を含む状態出力 (in-progress encounter)
 - **再入院チェイン** (30日以内、prior_encounter_id 紐付け)
@@ -228,7 +232,11 @@ output/fhir_r4/
 ├── _facility.json                  # Organization + Location マスター (Bundle)
 ├── Patient.ndjson                  # 1 患者 1 行
 ├── Encounter.ndjson                # 1 encounter 1 行
-├── Observation.ndjson              # labs + vitals + AVPU + O2 + 微生物 (LOINC/SNOMED)
+├── Observation.ndjson              # labs + vitals + AVPU + O2 + 微生物 + 看護スコア
+│                                   #   (NEWS2/GCS/Braden/Morse) + 社会歴 (職業/喫煙/飲酒/要介護度)
+│                                   #   + コードステータス (LOINC/SNOMED)
+├── FamilyMemberHistory.ndjson      # 第1度近親の疾患歴 (v3-RoleCode + ICD)
+├── Immunization.ndjson             # 成人予防接種歴 (CVX; US/JP スケジュール)
 ├── DiagnosticReport.ndjson         # 微生物培養レポート (感染症; + Specimen)
 ├── Specimen.ndjson                 # 培養検体 (血液/尿/喀痰/創部)
 ├── Condition.ndjson                # 主疾患 + 慢性疾患 (ICD-10-CM)
