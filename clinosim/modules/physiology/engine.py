@@ -380,6 +380,14 @@ def derive_lab_values(
 # Vital signs derivation
 # ---------------------------------------------------------------------------
 
+# Distributive (vasodilatory) shock hypotension, applied at vitals-derivation only
+# (does not mutate perfusion_status). Inflammation above the threshold lowers SBP
+# linearly (mmHg per unit inflammation above threshold); DBP drops at 0.6x.
+# Coefficient fixed by generation audit (sepsis SBP<90 target ~15-25%).
+DISTRIBUTIVE_THRESHOLD = 0.7
+DISTRIBUTIVE_SBP_COEFF = 60.0
+
+
 def derive_vital_signs(
     state: PhysiologicalState,
     baseline: BaselineVitals,
@@ -404,9 +412,15 @@ def derive_vital_signs(
     hr = clamp(hr, 40, 180)
 
     # Blood pressure
-    sbp = baseline.systolic_bp + vol * 15 - (1 - perf) * 40
+    # Distributive (vasodilatory) hypotension: severe systemic inflammation lowers
+    # BP — the mechanism of septic shock. Applied here, at the displayed vital, so
+    # it does NOT mutate perfusion_status (which feeds the clinical-course /
+    # complication / LOS / mortality RNG); that keeps the master stream stable while
+    # still producing hypotension coherent with the already-elevated sepsis labs.
+    distributive_drop = max(0.0, infl - DISTRIBUTIVE_THRESHOLD) * DISTRIBUTIVE_SBP_COEFF
+    sbp = baseline.systolic_bp + vol * 15 - (1 - perf) * 40 - distributive_drop
     sbp = clamp(sbp, 60, 220)
-    dbp = baseline.diastolic_bp + vol * 8 - (1 - perf) * 20
+    dbp = baseline.diastolic_bp + vol * 8 - (1 - perf) * 20 - distributive_drop * 0.6
     dbp = clamp(dbp, 30, 130)
 
     # Respiratory rate
