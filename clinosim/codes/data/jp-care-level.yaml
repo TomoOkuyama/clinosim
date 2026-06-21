@@ -1,0 +1,15 @@
+# JP long-term-care need level (要介護度). Authoritative classification: MHLW
+# 介護保険 区分 (厚生労働省). Local code system (no clean international code).
+metadata:
+  name: JP Long-term Care Need Level
+  uri: http://clinosim.example.org/CodeSystem/jp-care-level
+  source: "MHLW 介護保険 (要支援/要介護 区分)"
+codes:
+  independent: {en: "Independent (no certification)", ja: "自立"}
+  support1:    {en: "Support level 1", ja: "要支援1"}
+  support2:    {en: "Support level 2", ja: "要支援2"}
+  care1:       {en: "Care level 1", ja: "要介護1"}
+  care2:       {en: "Care level 2", ja: "要介護2"}
+  care3:       {en: "Care level 3", ja: "要介護3"}
+  care4:       {en: "Care level 4", ja: "要介護4"}
+  care5:       {en: "Care level 5", ja: "要介護5"}

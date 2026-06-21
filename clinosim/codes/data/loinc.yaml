@@ -295,3 +295,9 @@ codes:
   18996-1:
     en: Trimethoprim+Sulfamethoxazole [Susceptibility]
     ja: ST合剤感受性
+  72166-2:
+    en: Tobacco smoking status
+    ja: 喫煙状況
+  11331-6:
+    en: History of alcohol use
+    ja: 飲酒歴
