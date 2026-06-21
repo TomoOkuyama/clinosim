@@ -934,6 +934,20 @@ codes:
   C16.9:
     en: "Malignant neoplasm of stomach, unspecified"
     ja: "胃の悪性新生物、詳細不明"
+  # Cancer category codes for family history display (FamilyMemberHistory.condition,
+  # not emitted as billable patient Conditions). Names per NLM ICD-10-CM / WHO ICD-10.
+  C18:
+    en: "Malignant neoplasm of colon"
+    ja: "結腸の悪性新生物"
+  C34:
+    en: "Malignant neoplasm of bronchus and lung"
+    ja: "気管支および肺の悪性新生物"
+  C50:
+    en: "Malignant neoplasm of breast"
+    ja: "乳房の悪性新生物"
+  C61:
+    en: "Malignant neoplasm of prostate"
+    ja: "前立腺の悪性新生物"
   C71.9:
     en: "Malignant neoplasm of brain, unspecified"
     ja: "脳の悪性新生物、詳細不明"
