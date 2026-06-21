@@ -13,6 +13,8 @@ from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 
+from clinosim.modules.output._fhir_code_status import _build_code_status  # noqa: F401
+
 # FA-1 (Phases 1-13) split this adapter's leaf data, shared fragment helpers, and
 # per-theme resource builders into sibling _fhir_* modules. The blocks below are
 # re-imported here so existing `from ...fhir_r4_adapter import X` call sites keep
@@ -406,6 +408,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _build_nursing_observations,
     _build_immunizations,
     _build_family_history,
+    _build_code_status,
 ]
 
 
