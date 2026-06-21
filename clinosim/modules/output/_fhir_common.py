@@ -11,6 +11,7 @@ back through the adapter facade.
 from __future__ import annotations
 
 import uuid
+from dataclasses import dataclass
 from typing import Any
 
 from clinosim.codes import get_system_uri
@@ -29,6 +30,25 @@ from clinosim.modules.output._fhir_reference_data import (
     _ROUTE_SNOMED,
     _SEVERITY_SNOMED,
 )
+
+
+@dataclass
+class BundleContext:
+    """Shared inputs for FHIR resource builders (AD-56)."""
+
+    record: dict
+    country: str
+    roster_map: dict
+    hospital_config: dict
+    patient_data: dict
+    patient_id: str
+    is_readmission: bool
+    prior_encounter_id: Any
+    primary_dx_code: str
+    admit_dx_code: str
+    admit_dx_system: str
+    primary_enc_id: str
+    patient_sex: str
 
 
 def _micro_coding(system_key: str, code: str, lang: str) -> dict:

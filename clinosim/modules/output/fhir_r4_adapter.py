@@ -10,7 +10,6 @@ import json
 import os
 import uuid
 from collections.abc import Callable
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
@@ -26,6 +25,7 @@ from clinosim.locale.loader import load_code_mapping
 # purely as a compatibility facade; the # noqa keeps the facade stable as further
 # builders move out, without per-symbol import churn each phase.
 from clinosim.modules.output._fhir_common import (  # noqa: F401
+    BundleContext,
     _build_address,
     _build_diagnosis_codeable_concept,
     _build_dosage_instruction,
@@ -250,25 +250,6 @@ def convert_cif_to_fhir(
     finally:
         for w in writers.values():
             w.close()
-
-
-@dataclass
-class BundleContext:
-    """Shared inputs for FHIR resource builders (AD-56)."""
-
-    record: dict
-    country: str
-    roster_map: dict
-    hospital_config: dict
-    patient_data: dict
-    patient_id: str
-    is_readmission: bool
-    prior_encounter_id: Any
-    primary_dx_code: str
-    admit_dx_code: str
-    admit_dx_system: str
-    primary_enc_id: str
-    patient_sex: str
 
 
 # --- Resource builders: (ctx) -> list[resource]. Order here == emission order. ---
