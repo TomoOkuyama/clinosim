@@ -74,6 +74,10 @@ from clinosim.modules.output._fhir_localization import (  # noqa: F401
     _localize_interp,
     _procedure_display,
 )
+from clinosim.modules.output._fhir_medications import (  # noqa: F401
+    _build_medication_admin,
+    _build_medication_request,
+)
 from clinosim.modules.output._fhir_practitioner import (  # noqa: F401
     _build_practitioner,
     _build_practitioner_role,
@@ -1674,160 +1678,6 @@ def _build_vital_observations(
         entries.append(_entry(o2_obs))
 
     return entries
-
-
-def _build_medication_request(
-    order: dict, patient_id: str, country: str,
-    encounter_id: str = "", primary_dx_code: str = "",
-) -> dict:
-    """Build FHIR MedicationRequest resource."""
-    drug_name_raw = order.get("display_name", "Unknown medication")
-    # Strip protocol prefix (e.g. "DVT_prophylaxis:") from medicationCodeableConcept.text
-    # The prefix goes to dosageInstruction note instead.
-    drug_name_clean, protocol_category = _strip_protocol_prefix(drug_name_raw)
-    drug_name = _localize_drug_name(drug_name_clean, country)
-    # Strip dose info to get base drug name for code lookup (use cleaned name)
-    base_name = drug_name_clean.split(" ")[0] if drug_name_clean else ""
-
-    country_code = "JP" if country != "US" else "US"
-    lang = "ja" if country_code == "JP" else "en"
-    drug_codes = load_code_mapping("drug", country_code)  # name → RxNorm/YJ
-
-    code_value = drug_codes.get(base_name, "")
-    drug_system_key = "yj" if country_code == "JP" else "rxnorm"
-    display = code_lookup(drug_system_key, code_value, lang) if code_value else drug_name
-    if display == code_value:
-        display = drug_name
-    code_system = get_system_uri(drug_system_key)
-
-    med_concept: dict[str, Any] = {"text": drug_name}
-    if code_value:
-        med_concept["coding"] = [{
-            "system": code_system,
-            "code": code_value,
-            "display": display,
-        }]
-
-    # ID: prepend encounter_id to ensure global uniqueness across patient's
-    # multiple encounters (raw order_id is patient-scoped only)
-    base_oid = order.get("order_id") or str(uuid.uuid4())
-    enc_ref_id = order.get("encounter_id", "") or encounter_id
-    resource_id = f"{enc_ref_id}-{base_oid}" if enc_ref_id else base_oid
-
-    resource: dict[str, Any] = {
-        "resourceType": "MedicationRequest",
-        "id": resource_id,
-        "status": "active" if order.get("status") != "cancelled" else "cancelled",
-        "intent": "order",
-        "medicationCodeableConcept": med_concept,
-        "subject": {"reference": f"Patient/{patient_id}"},
-        "authoredOn": order.get("ordered_datetime", ""),
-    }
-
-    # Encounter reference
-    enc_ref = order.get("encounter_id", "") or encounter_id
-    if enc_ref:
-        resource["encounter"] = {"reference": f"Encounter/{enc_ref}"}
-
-    # Requester (ordering physician)
-    if order.get("ordered_by"):
-        resource["requester"] = {"reference": f"Practitioner/{order['ordered_by']}"}
-
-    # Dosage instruction
-    dosage = _build_dosage_instruction(order, country=country)
-    if dosage:
-        resource["dosageInstruction"] = [dosage]
-
-    # Reason reference (link to primary diagnosis Condition)
-    reason = order.get("reason_condition", "") or primary_dx_code
-    if reason:
-        cond_ref = f"cond-{encounter_id}-primary" if encounter_id else f"cond-{patient_id}-primary"
-        resource["reasonReference"] = [{
-            "reference": f"Condition/{cond_ref}",
-        }]
-
-    return resource
-
-
-def _build_medication_admin(
-    mar: dict, patient_id: str, index: int, country: str = "US",
-    encounter_id: str = "", primary_dx_code: str = "",
-) -> dict:
-    """Build FHIR MedicationAdministration resource."""
-    drug_name_raw = mar.get("drug_name", "")
-    drug_name_clean, _ = _strip_protocol_prefix(drug_name_raw)
-    drug_name = _localize_drug_name(drug_name_clean, country)
-    base_name = drug_name_clean.split(" ")[0] if drug_name_clean else ""
-    country_code = "JP" if country != "US" else "US"
-    lang = "ja" if country_code == "JP" else "en"
-    drug_codes = load_code_mapping("drug", country_code)
-    code_value = drug_codes.get(base_name, "")
-    drug_system_key = "yj" if country_code == "JP" else "rxnorm"
-    code_system = get_system_uri(drug_system_key)
-
-    med_concept: dict[str, Any] = {"text": drug_name}
-    if code_value:
-        display = code_lookup(drug_system_key, code_value, lang)
-        coding = {"system": code_system, "code": code_value}
-        if display and display != code_value:
-            coding["display"] = display
-        med_concept["coding"] = [coding]
-
-    resource: dict[str, Any] = {
-        "resourceType": "MedicationAdministration",
-        "id": f"mar-{encounter_id or patient_id}-{index:05d}",
-        "status": _map_mar_status(mar.get("status", "completed")),
-        "medicationCodeableConcept": med_concept,
-        "subject": {"reference": f"Patient/{patient_id}"},
-        "effectiveDateTime": mar.get("actual_datetime") or mar.get("scheduled_datetime", ""),
-    }
-
-    # Encounter context
-    if encounter_id:
-        resource["context"] = {"reference": f"Encounter/{encounter_id}"}
-
-    if mar.get("administered_by"):
-        resource["performer"] = [{"actor": {"reference": f"Practitioner/{mar['administered_by']}"}}]
-
-    # Dosage with structured dose + route
-    dose_text = mar.get("dose", "") or drug_name
-    dose_str = mar.get("dose", "")
-    parsed = _parse_dose_for_mar(dose_str or drug_name)
-    dosage: dict[str, Any] = {"text": dose_text}
-    if parsed.get("dose_quantity") is not None and parsed.get("dose_unit"):
-        dosage["dose"] = {
-            "value": parsed["dose_quantity"],
-            "unit": parsed["dose_unit"],
-            "system": get_system_uri("ucum"),
-        }
-    # Rate for continuous infusions
-    if "CONTINUOUS" in dose_text.upper() or "DRIP" in dose_text.upper() or "/h" in dose_text:
-        dosage["rateQuantity"] = {
-            "value": parsed.get("dose_quantity") or 1,
-            "unit": (parsed.get("dose_unit", "mL") + "/h"),
-            "system": get_system_uri("ucum"),
-        }
-    # Route
-    route = (mar.get("route") or parsed.get("route") or "").upper()
-    if route:
-        snomed = _ROUTE_SNOMED.get(route)
-        if snomed:
-            dosage["route"] = {
-                "coding": [{"system": get_system_uri("snomed-ct"), **snomed}],
-                "text": route,
-            }
-        else:
-            dosage["route"] = {"text": route}
-    resource["dosage"] = dosage
-
-    # Reason reference (link to primary diagnosis)
-    if primary_dx_code:
-        cond_ref = f"cond-{encounter_id}-primary" if encounter_id else f"cond-{patient_id}-primary"
-        resource["reasonReference"] = [{
-            "reference": f"Condition/{cond_ref}",
-        }]
-
-    return resource
 
 
 def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> dict:
