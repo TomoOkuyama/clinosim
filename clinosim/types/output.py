@@ -14,6 +14,7 @@ from clinosim.types.encounter import (
     MedicationAdministration, NursingRiskAssessment, Order, OrderResult,
     PrescriptionRecord, VitalSignRecord,
 )
+from clinosim.types.family_history import FamilyMemberHistoryRecord
 from clinosim.types.microbiology import MicrobiologyResult
 from clinosim.types.patient import PatientProfile
 from clinosim.types.procedure import ProcedureRecord, RehabSession
@@ -55,6 +56,7 @@ class CIFPatientRecord:
     adl_assessments: list[ADLAssessment] = field(default_factory=list)
     nursing_risk_assessments: list[NursingRiskAssessment] = field(default_factory=list)
     immunizations: list[ImmunizationRecord] = field(default_factory=list)
+    family_history: list[FamilyMemberHistoryRecord] = field(default_factory=list)  # AD-55 Base (codes only)
     microbiology: list[MicrobiologyResult] = field(default_factory=list)  # AD-55 Base (codes only)
     discharge_prescription: PrescriptionRecord | None = None
     icu_transferred: bool = False
