@@ -67,3 +67,22 @@ def _build_alcohol_use(ctx: BundleContext) -> list[dict]:
     o = _obs(f"alcohol-{ctx.patient_id}", ctx.country, "11331-6", text, "snomed-ct", code)
     o["subject"] = {"reference": f"Patient/{ctx.patient_id}"}
     return [o]
+
+
+def _build_care_level(ctx: BundleContext) -> list[dict]:
+    """JP 要介護度 (long-term-care need level) social-history Observation."""
+    code = ctx.record.get("care_level") or ""
+    if not code:
+        return []
+    lang = "ja" if ctx.country == "JP" else "en"
+    text = "要介護度" if ctx.country == "JP" else "Long-term care need level"
+    o: dict[str, Any] = {
+        "resourceType": "Observation",
+        "id": f"carelevel-{ctx.patient_id}",
+        "status": "final",
+        "category": _social_category(ctx.country),
+        "code": {"text": text},
+        "subject": {"reference": f"Patient/{ctx.patient_id}"},
+        "valueCodeableConcept": _value("jp-care-level", code, lang),
+    }
+    return [o]
