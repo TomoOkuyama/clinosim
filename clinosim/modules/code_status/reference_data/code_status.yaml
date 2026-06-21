@@ -1,0 +1,9 @@
+# Resuscitation-status observable + 4-tier values. SNOMED codes verified in the
+# codes task (Snowstorm API); `# TODO: verify` marks unconfirmed candidates.
+observable_snomed: "304251008"   # Resuscitation status  # TODO: verify
+age_bands: ["0-49", "50-69", "70-84", "85-120"]
+tiers:
+  - {key: "full_code", snomed: "304252001", en: "For resuscitation", ja: "蘇生処置を行う"}
+  - {key: "dnr",       snomed: "304253006", en: "Not for resuscitation", ja: "蘇生処置を行わない（DNAR）"}
+  - {key: "dnr_dni",   snomed: "304253006", en: "Not for resuscitation, not for intubation", ja: "蘇生・挿管を行わない"}  # TODO: verify (DNI granularity)
+  - {key: "comfort",   snomed: "103735009", en: "Comfort care (palliative)", ja: "緩和ケア（コンフォート）"}  # TODO: verify
