@@ -110,3 +110,16 @@ def register_builtin_enrichers() -> None:
             run=enrich_immunizations,
         )
     )
+
+    # Family history (AD-55 Base): first-degree relative disease history. Always-on.
+    from clinosim.modules.family_history.enricher import enrich_family_history
+
+    register_enricher(
+        Enricher(
+            name="family_history",
+            stage=POST_RECORDS,
+            order=40,
+            enabled=lambda c: True,
+            run=enrich_family_history,
+        )
+    )
