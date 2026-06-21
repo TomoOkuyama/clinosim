@@ -94,12 +94,6 @@ _PREFECTURE_CODE: dict[str, str] = {
 }
 
 
-_US_STATE_CODE: dict[str, str] = {
-    "MA": "25", "NY": "36", "CA": "06", "TX": "48", "FL": "12", "IL": "17",
-    "PA": "42", "OH": "39", "GA": "13", "NC": "37", "MI": "26", "NJ": "34",
-}
-
-
 _ENCOUNTER_TYPE_SNOMED: dict[str, dict[str, str]] = {
     "inpatient": {"code": "32485007", "display": "Hospital admission"},
     "emergency": {"code": "50849002", "display": "Emergency hospital admission"},
