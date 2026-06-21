@@ -110,7 +110,6 @@ from clinosim.modules.output._fhir_reference_data import (  # noqa: F401
     _ROUTE_SNOMED,
     _SEVERITY_SNOMED,
     _SPECIALTY_SNOMED,
-    _US_STATE_CODE,
 )
 
 
