@@ -118,7 +118,7 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 
 ## Current implementation phase
 
-**v0.1-beta** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 32 diseases, snapshot date support, and opt-in JP insurance enrollment (FHIR Coverage, AD-54).
+**v0.2** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 32 diseases + 46 ED/outpatient conditions, snapshot date support, opt-in JP insurance enrollment (FHIR Coverage, AD-54), and the complete **AD-55 Base data-enrichment set**: microbiology, cardiac markers, nursing flowsheets, immunization, family history, code status, and extended SDOH (smoking/alcohol/JP 要介護度). The FHIR adapter is split into per-theme `_fhir_*` builder modules (FA-1).
 
 See `TODO.md` for roadmap and remaining tasks.
 
@@ -135,8 +135,13 @@ clinosim/
   types/           <- All data type definitions (Pydantic / dataclass)
   modules/         <- Functional modules (one package per module, each with README)
     identity/      <- ★ Resident identifier & insurance numbering (JP, opt-in; AD-54)
+    immunization/  <- Adult vaccine history (AD-55 Base; AD-56 enricher)
+    family_history/<- First-degree-relative disease history (AD-55 Base)
+    code_status/   <- Resuscitation status on serious encounters (AD-55 Base)
+    care_level/    <- JP 要介護度 / long-term-care need level (AD-55 Base, JP only)
+    output/        <- CIF → format adapters; fhir_r4_adapter + per-theme _fhir_* builders (FA-1)
   simulator/       <- Top-level orchestration (run_beta, run_forced, CLI)
-    enrichers.py   <- ★ Enricher registry for opt-in module passes (AD-56)
+    enrichers.py   <- ★ Enricher registry for Base/opt-in module passes (AD-56)
 tests/             <- Test code (unit / integration / e2e)
 ```
 

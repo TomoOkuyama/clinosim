@@ -61,6 +61,10 @@ Primary use cases:
 - **Operating rooms** modeled as FHIR Locations; surgical procedures include category (SNOMED), performer.function (surgeon/anaesthetist), bodySite, outcome, and complications
 - **Occupational injuries**: 6 work-related conditions (crush injury, industrial burn, fall from height, electrical injury, eye foreign body, chemical exposure) with occupation-based risk multipliers
 - **Patient occupation** field (12 categories) with FHIR Observation (LOINC 11341-5, social-history)
+- **Social history & SDOH**: smoking status (US Core, LOINC 72166-2 + SNOMED) and alcohol use (LOINC 11331-6) social-history Observations, plus the Japanese long-term-care need level (**要介護度** / 介護保険 区分, JP only, age-driven)
+- **Family history**: first-degree relatives (mother/father/siblings) with disease history synthesized from locale prevalence × heritability (correlated with the patient's own chronic conditions) — FHIR `FamilyMemberHistory` (cardiometabolic + major cancers)
+- **Code status** (resuscitation status): 4-tier (Full Code / DNR / DNR+DNI / Comfort care) on serious encounters (inpatient always; ED when critical/terminal), age/acuity-driven — FHIR survey `Observation` (SNOMED)
+- **Nursing flowsheets** (NEWS2 / GCS / Braden / Morse) and **adult immunization history** (CVX, US/JP schedules) as FHIR Observation / `Immunization`
 - **Japanese insurance enrollment** (opt-in, `--jp-insurance`): occupation-driven 社保/国保/後期高齢者, valid 保険者番号/被保険者番号 check digits, マイナンバーカード・マイナ保険証 status — emitted as JP Core FHIR `Coverage` + 保険者 `Organization`. マイナンバー stays internal (never exported).
 - **Multilingual FHIR coding**: Condition and Procedure emit dual coding entries (primary language + interop language); Condition code.text includes clinical abbreviations (COPD, CHF, CKD, DM)
 - **Snapshot date** support — includes "currently admitted" patients (in-progress encounters)
@@ -359,10 +363,14 @@ output/fhir_r4/
 ├── manifest.json                    # Bulk Data manifest (transactionTime, output[])
 ├── Patient.ndjson                   # 1 patient per line
 ├── Encounter.ndjson                 # 1 encounter per line
-├── Observation.ndjson               # labs + vitals + AVPU + O2 + microbiology (LOINC/SNOMED)
+├── Observation.ndjson               # labs + vitals + AVPU + O2 + microbiology + nursing scores
+│                                    #   (NEWS2/GCS/Braden/Morse) + social history (occupation,
+│                                    #   smoking, alcohol, JP 要介護度) + code status (LOINC/SNOMED)
 ├── DiagnosticReport.ndjson          # Microbiology culture reports (infections; + Specimen)
 ├── Specimen.ndjson                  # Culture specimens (blood/urine/sputum/wound)
 ├── Condition.ndjson                 # Encounter dx + chronic conditions (ICD-10-CM / ICD-10)
+├── FamilyMemberHistory.ndjson       # First-degree-relative disease history (v3-RoleCode + ICD)
+├── Immunization.ndjson              # Adult vaccine history (CVX; US/JP schedules)
 ├── MedicationRequest.ndjson         # Prescriptions (RxNorm / YJ)
 ├── MedicationAdministration.ndjson  # MAR records
 ├── Procedure.ndjson                 # Surgery + bedside procedures (CPT / K-code + SNOMED CT metadata)
@@ -437,7 +445,7 @@ flowchart TD
     end
 
     subgraph stage3["Stage 3 — clinosim export-fhir"]
-        adapter["fhir_r4_adapter<br/>structural → 13 FHIR resource types<br/>narratives → DocumentReference (base64)<br/>display text via clinosim.codes"]
+        adapter["fhir_r4_adapter (+ per-theme _fhir_* builders)<br/>structural → 16 FHIR resource types<br/>narratives → DocumentReference (base64)<br/>display text via clinosim.codes"]
         fhir["output/fhir_r4/<br/>HL7 Bulk Data NDJSON + manifest.json"]
         adapter --> fhir
     end

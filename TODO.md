@@ -1,6 +1,6 @@
 # clinosim — TODO
 
-## Status (current as of 2026-04-20)
+## Status (current as of 2026-06-22)
 
 **v0.2 (Simulation realism + Japanese/English documents + Occupational injuries)** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 32 diseases + 46 ED/outpatient conditions, occupational injury support (6 work-related conditions + occupation field), snapshot date support, pluggable LLM providers (Ollama/Bedrock/Mock), three-stage CLI pipeline (`generate` → `narrate` → `export-fhir`), FHIR DocumentReference for 5 clinical document types (Tier A+B) in English and Japanese.
 
@@ -10,7 +10,7 @@ US full run (40K catchment, 50-bed hospital, seed=42):
 - 102,485 encounters (1,501 inpatient + 96,114 outpatient + 5,029 ED)
 - 3,344 Bedrock EN narrative documents (1,501 H&P + 1,501 DC + 181 Proc + 97 Op + 64 Death)
 - 15 in-progress encounters (snapshot date)
-- FHIR Bulk Data 2.0GB, 13 resource types + DocumentReference, 0 ID violations
+- FHIR Bulk Data 2.0GB, 14 resource types (+ FamilyMemberHistory) + DocumentReference, 0 ID violations
 
 JP full run (5K catchment, 50-bed hospital, seed=42):
 - 16,637 encounters (227 inpatient + 15,886 outpatient + 524 ED)
@@ -23,7 +23,13 @@ Code system coverage:
 - 349 ICD-10-CM codes, 306 ICD-10 (WHO) codes (EN + JA bilingual)
 - 65 LOINC, 68 RxNorm, 31 CPT, 25 K-codes, 39 YJ, 31 SNOMED CT
 - 120+ drug name JP translations (drug_names_ja.yaml)
-- 201 unit tests passing
+- 399 unit + 80 integration + 39 e2e tests passing
+
+**AD-55 Base data-enrichment roadmap complete (2026-06):** microbiology, cardiac
+markers, nursing flowsheets, immunization, family history, code status, extended
+SDOH (smoking/alcohol/JP 要介護度). The FHIR adapter was split from one 3015-line
+monolith into per-theme `_fhir_*` builder modules (FA-1, byte-identical). See
+`docs/reviews/2026-06-22-data-quality-audit.md` (clean).
 
 ## Architecture Decisions (current)
 
@@ -431,9 +437,9 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 - [ ] **`DiagnosticReport` grouping** — `output` adapter (+ `types/output`): group lab Observations into panels (CBC/BMP/LFT). Structural fidelity, no new clinical data.
 - [x] **Nursing flowsheets** — `observation/nursing.py` (純粋関数 NEWS2/GCS/Braden/Morse) + `nursing_enricher.py` (AD-56 Base post_records, 専用 hashlib サブシード → メインストリーム不変)。CIF: `VitalSignRecord.news2_score`/`gcs_score` + `NursingRiskAssessment` (Braden 6 サブスケール + Morse)。FHIR `category=survey` Observation 7 件 (NLM 照合済み LOINC: GCS 9269-2, Braden 38227-5, Morse 59460-6, Barthel 96761-2, 輸液 9108-2/9192-6/9262-7; NEWS2 は権威 LOINC なし → `code.text` のみ)。CSV: `nursing_risk.csv` 新規 + `vital_signs.csv` に NEWS2/GCS 列追加。thresholds はすべて `reference_data/nursing_scores.yaml` データ駆動。
 - [x] **Immunization history** — `modules/immunization/engine.py` (純粋関数 `load_schedule`/`generate_immunizations`) + `enricher.py` (AD-56 Base post_records, 専用 hashlib サブシード 0x494D → メインストリーム不変, AD-16)。CVX コード 10 件を CDC IIS で照合済み (`codes/data/cvx.yaml`、FHIR URI `http://hl7.org/fhir/sid/cvx`)。US adult schedule 5 ワクチン (Influenza/COVID-19/PPSV23/Tdap/Zoster-RZV) + JP 3 ワクチン (Influenza/COVID-19/PPSV23)。各ワクチンは `available_from` + `coverage_by_age_sex` (年齢帯×性別 接種率) 付き。AS-OF = snapshot_date または最新入院日 (AD-32)。CIF: `ImmunizationRecord` (vaccine_cvx/occurrence_date/status/primary_source)。FHIR R4 `Immunization` (US英語/JP日本語 display)。CSV: `immunizations.csv`。接種率出典: CDC FluVaxView/MMWR (US), MHLW 接種率統計 (JP) — 概数モデリングパラメータ。
-- [ ] **Family history** — `population` attribute (+ `types`); emit `FamilyMemberHistory` (DM/HTN/CAD/cancer). Base-light attribute, not a module.
-- [ ] **Code status / advance directive** — inpatient/ICU/death encounter attribute (+ `types/encounter`); emit `Observation`/`Consent`. Base-light.
-- [ ] **Extended SDOH incl. JP 要介護度** — `population`/`locale` demographics attributes (extends existing smoking/alcohol/occupation); emit SDOH `Observation`.
+- [x] **Family history** — `modules/family_history/` (engine 純粋関数 + `reference_data/family_history.yaml` 遺伝倍率/続柄) + `locale/{us,jp}/family_history_prevalence.yaml` (国別有病率)。AD-56 post_records enricher (person_id サブシード 0x4648 → メインストリーム不変, AD-16)。本人 chronic_conditions × locale 有病率 × 遺伝倍率で第1度近親 (母 MTH/父 FTH/兄弟姉妹 NSIB) の疾患を合成。心血管代謝系 (E11/I10/I25/I63/I64/E78) + 主要がん (C50/C18/C34/C61、性別制限)。FHIR `FamilyMemberHistory` (v3-RoleCode + ICD)、CSV `family_history.csv`。`CIFPatientRecord.family_history` typed field。PR #63。
+- [x] **Code status / resuscitation status** — `modules/code_status/` + `locale/{us,jp}/code_status_rates.yaml`。AD-56 post_records enricher (encounter_id サブシード 0x4353 → 主乱数列不変)。4 段階 (Full Code/DNR/DNR+DNI/Comfort)、入院=全例 + ED=`deceased`/`icu_transferred` のみ + 外来=なし。年齢×acuity (terminal>icu>routine) で確率割当。FHIR survey `Observation` (SNOMED resuscitation-status)、CSV `code_status.csv`。`CIFPatientRecord.code_status`。SNOMED は環境制約で `# TODO: verify`。PR #64。
+- [x] **Extended SDOH (smoking/alcohol/JP 要介護度)** — 喫煙 (US Core Smoking Status, LOINC 72166-2 + SNOMED) と飲酒 (LOINC 11331-6) を social-history `Observation` 化 (既存属性を読むだけ)。JP **要介護度** は新規 `modules/care_level/` (JP-only post_records enricher, person_id サブシード 0x434C, 年齢駆動) + `jp-care-level` ローカルコード体系 (MHLW 介護保険 区分)。新 `modules/output/_fhir_sdoh.py` (3 builder)、CSV `care_level.csv` + `alcohol_use` 列。`CIFPatientRecord.care_level`。alcohol SNOMED は `# TODO: verify`。PR #65。
 
 #### Modules — specialized / optional (opt-in, one theme each)
 
@@ -441,7 +447,7 @@ All 12 tasks complete. 1 pneumonia patient end-to-end.
 - [ ] **`modules/device/`** — device placement (central line / urinary catheter / ventilator / telemetry) + **HAI risk** (CLABSI/CAUTI/VAP) from dwell time; deps `procedure`/`types`; emit `Device`/`DeviceUseStatement` (+ HAI `Condition`). Flag-gated.
 - [ ] **`modules/care_coordination/`** — `CarePlan`/`CareTeam`/`Goal` for USCDI/Synthea interoperability completeness; deps `types`; reads CIF; flag-gated.
 
-Suggested order: ~~microbiology+markers~~ ✅ → ~~nursing flowsheets~~ ✅ → ~~immunization~~ ✅ → `DiagnosticReport` grouping → family-history/code-status/SDOH (Base) → `modules/billing` (JP DPC) → `modules/device` → `modules/care_coordination`.
+Suggested order: ~~microbiology+markers~~ ✅ → ~~nursing flowsheets~~ ✅ → ~~immunization~~ ✅ → ~~family-history~~ ✅ → ~~code-status~~ ✅ → ~~extended SDOH (要介護度)~~ ✅ → `DiagnosticReport` grouping → `modules/billing` (JP DPC) → `modules/device` → `modules/care_coordination`. **AD-55 Base roadmap complete** (only `DiagnosticReport` panel grouping remains, structural-only).
 
 ### v0.4 — Coverage expansion
 
