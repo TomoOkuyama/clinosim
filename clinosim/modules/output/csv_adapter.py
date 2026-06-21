@@ -39,6 +39,8 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str, country: str = "US") -> No
     rx_rows: list[dict] = []
     microbiology_rows: list[dict] = []
     imm_rows: list[dict] = []
+    fh_rows: list[dict] = []
+    _fh_seen: set[str] = set()  # de-dup patient-level family history across encounters
 
     for filename in sorted(os.listdir(structural_dir)):
         if not filename.endswith(".json"):
@@ -278,6 +280,18 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str, country: str = "US") -> No
                 "dose_number": imm.get("dose_number"),
             })
 
+        # Family history (one row per relative-condition; patient-level, de-duped)
+        if patient_id and patient_id not in _fh_seen:
+            _fh_seen.add(patient_id)
+            for fam in record.get("family_history", []):
+                rel = fam.get("relationship") if isinstance(fam, dict) else getattr(fam, "relationship", "")
+                sex = fam.get("sex") if isinstance(fam, dict) else getattr(fam, "sex", "")
+                dec = fam.get("deceased") if isinstance(fam, dict) else getattr(fam, "deceased", False)
+                codes = fam.get("condition_codes") if isinstance(fam, dict) else getattr(fam, "condition_codes", [])
+                for code in codes or []:
+                    fh_rows.append({"patient_id": patient_id, "relationship": rel,
+                                    "sex": sex, "deceased": dec, "condition_code": code})
+
         # Discharge prescription
         rx = record.get("discharge_prescription")
         if rx and rx.get("items"):
@@ -308,6 +322,7 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str, country: str = "US") -> No
     _write_csv(os.path.join(output_dir, "prescriptions.csv"), rx_rows)
     _write_csv(os.path.join(output_dir, "microbiology.csv"), microbiology_rows)
     _write_csv(os.path.join(output_dir, "immunizations.csv"), imm_rows)
+    _write_csv(os.path.join(output_dir, "family_history.csv"), fh_rows)
 
 
 def _write_csv(filepath: str, rows: list[dict]) -> None:

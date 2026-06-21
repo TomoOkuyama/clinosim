@@ -45,6 +45,7 @@ from clinosim.modules.output._fhir_conditions import _build_conditions  # noqa: 
 from clinosim.modules.output._fhir_documents import _build_document_reference  # noqa: F401
 from clinosim.modules.output._fhir_encounter import _build_encounter  # noqa: F401
 from clinosim.modules.output._fhir_facility import _build_facility_bundle  # noqa: F401
+from clinosim.modules.output._fhir_family_history import _build_family_history  # noqa: F401
 from clinosim.modules.output._fhir_localization import (  # noqa: F401
     _CATEGORY_DISPLAY_JA,
     _CLASS_DISPLAY_JA,
@@ -404,6 +405,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_practitioners,
     _build_nursing_observations,
     _build_immunizations,
+    _build_family_history,
 ]
 
 
