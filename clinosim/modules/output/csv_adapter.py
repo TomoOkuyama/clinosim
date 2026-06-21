@@ -42,6 +42,7 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str, country: str = "US") -> No
     fh_rows: list[dict] = []
     _fh_seen: set[str] = set()  # de-dup patient-level family history across encounters
     cs_rows: list[dict] = []
+    cl_rows: list[dict] = []
 
     for filename in sorted(os.listdir(structural_dir)):
         if not filename.endswith(".json"):
@@ -67,6 +68,7 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str, country: str = "US") -> No
             "bmi": patient.get("bmi"),
             "insurance_type": patient.get("insurance_type"),
             "smoking_status": patient.get("smoking_status"),
+            "alcohol_use": patient.get("alcohol_use"),
             "chronic_conditions": "|".join(c.get("code", "") for c in patient.get("chronic_conditions", [])),
         })
 
@@ -302,6 +304,12 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str, country: str = "US") -> No
                             "code": cs,
                             "display": get_display("snomed-ct", cs, country)})
 
+        # JP 要介護度 (care level)
+        cl = record.get("care_level")
+        if cl:
+            cl_rows.append({"patient_id": patient_id, "code": cl,
+                            "display": get_display("jp-care-level", cl, country)})
+
         # Discharge prescription
         rx = record.get("discharge_prescription")
         if rx and rx.get("items"):
@@ -334,6 +342,7 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str, country: str = "US") -> No
     _write_csv(os.path.join(output_dir, "immunizations.csv"), imm_rows)
     _write_csv(os.path.join(output_dir, "family_history.csv"), fh_rows)
     _write_csv(os.path.join(output_dir, "code_status.csv"), cs_rows)
+    _write_csv(os.path.join(output_dir, "care_level.csv"), cl_rows)
 
 
 def _write_csv(filepath: str, rows: list[dict]) -> None:
