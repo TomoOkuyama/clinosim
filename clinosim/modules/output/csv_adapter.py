@@ -41,6 +41,7 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str, country: str = "US") -> No
     imm_rows: list[dict] = []
     fh_rows: list[dict] = []
     _fh_seen: set[str] = set()  # de-dup patient-level family history across encounters
+    cs_rows: list[dict] = []
 
     for filename in sorted(os.listdir(structural_dir)):
         if not filename.endswith(".json"):
@@ -292,6 +293,15 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str, country: str = "US") -> No
                     fh_rows.append({"patient_id": patient_id, "relationship": rel,
                                     "sex": sex, "deceased": dec, "condition_code": code})
 
+        # Code status (one row per qualifying encounter)
+        cs = record.get("code_status")
+        if cs:
+            enc0 = (record.get("encounters") or [{}])[0]
+            cs_rows.append({"patient_id": patient_id,
+                            "encounter_id": enc0.get("encounter_id", ""),
+                            "code": cs,
+                            "display": get_display("snomed-ct", cs, country)})
+
         # Discharge prescription
         rx = record.get("discharge_prescription")
         if rx and rx.get("items"):
@@ -323,6 +333,7 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str, country: str = "US") -> No
     _write_csv(os.path.join(output_dir, "microbiology.csv"), microbiology_rows)
     _write_csv(os.path.join(output_dir, "immunizations.csv"), imm_rows)
     _write_csv(os.path.join(output_dir, "family_history.csv"), fh_rows)
+    _write_csv(os.path.join(output_dir, "code_status.csv"), cs_rows)
 
 
 def _write_csv(filepath: str, rows: list[dict]) -> None:
