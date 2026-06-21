@@ -1,142 +1,95 @@
-# Septic shock: distributive perfusion coupling
+# Septic shock: distributive hypotension
 
 **Date:** 2026-06-21
-**Status:** approved (design)
+**Status:** implemented
 **Type:** physiology model extension (data-quality follow-up A)
 
 ## Background
 
 The 2026-06-21 data-quality audit found that sepsis encounters are essentially
-never hypotensive: per-encounter min SBP median ~122 mmHg, and **0% reach septic
+never hypotensive: per-encounter min SBP median ~122 mmHg, **0% reach septic
 shock (SBP < 90)**. Yet `sepsis.yaml` codes `R65.21` (severe sepsis *with septic
-shock*) at probability 0.20 — so the diagnosis code and the physiology contradict
+shock*) at probability 0.20 — the diagnosis code and the physiology contradict
 each other.
 
 ### Root cause
 
-`perfusion_status` is a **derived** variable. In `apply_coupling_rules`
-(`physiology/engine.py`):
+`perfusion_status` is **derived** (`apply_coupling_rules`):
+`perfusion = clamp(cardiac*0.8 + 0.2 + volume_effect, 0, 1)`, and
+`apply_disease_onset` re-runs the coupling *after* a disease's
+`initial_state_impact`, overwriting any perfusion delta. Sepsis is not cardiogenic
+(cardiac ~1.0) and the volume drop (`-0.40`) does not reach the `volume_effect`
+threshold (`< -0.5`), so perfusion stays ~1.0 and
+`SBP = baseline + volume*15 - (1-perfusion)*40 ≈ baseline - 6`. There is no
+distributive (vasodilatory) path — the mechanism of septic shock.
+
+## What changed vs the first design (important)
+
+The original design lowered `perfusion_status` itself (a coupling term). **A
+generation audit of that implementation rejected it:**
+
+1. **Lab regression.** Driving perfusion < 0.4 to reach SBP < 90, over the
+   multi-day course, over-accumulated the existing cumulative renal/lactate
+   couplings: sepsis Creatinine median 2.9 → **8.1**, BUN 45 → **166**, Lactate
+   4.6 → **11.2** — clinically absurd for the median sepsis patient.
+2. **Master-stream perturbation.** `perfusion_status` feeds the
+   clinical-course / complication / LOS / mortality RNG branches. Changing it
+   shifted draw counts, and because the master RNG is threaded across patients,
+   **76% of (unrelated) patients' demographics changed and the population set
+   shifted** — a determinism (AD-16) violation, not a realism gain.
+3. **The labs were already coherent.** Master sepsis already has elevated Lactate
+   (4.6) and Creatinine (2.9) via `initial_state_impact` (renal −0.25, etc.). The
+   **only** missing piece was hypotension (SBP).
+
+## Design (implemented)
+
+Apply distributive hypotension **at vitals derivation only**, in
+`derive_vital_signs`, without mutating `perfusion_status`:
 
 ```python
-perfusion_status = clamp(cardiac_function * 0.8 + 0.2 + volume_effect, 0, 1)
+distributive_drop = max(0.0, inflammation_level - DISTRIBUTIVE_THRESHOLD) * DISTRIBUTIVE_SBP_COEFF
+sbp = baseline.systolic_bp + vol*15 - (1-perf)*40 - distributive_drop
+dbp = baseline.diastolic_bp + vol*8 - (1-perf)*20 - distributive_drop * 0.6
 ```
 
-and `apply_disease_onset` calls `apply_coupling_rules` *after* applying a disease's
-`initial_state_impact`, so any `perfusion_status` delta a scenario sets is
-**overwritten**. Sepsis is not cardiogenic, so `cardiac_function` stays ~1.0 →
-perfusion ~1.0. The volume drop (`-0.40`) does not reach the `volume_effect`
-threshold (`< -0.5`), so it does not lower perfusion either. SBP =
-`baseline + volume*15 - (1-perfusion)*40` ≈ `baseline - 6`.
-
-There is **no path for distributive (vasodilatory) shock** — the actual mechanism
-of septic shock, where inflammatory vasodilation drops perfusion independent of
-cardiac output and volume.
-
-## Goal
-
-Add a physiologically-correct distributive-shock path so that severe systemic
-inflammation lowers perfusion, producing coherent septic shock: low SBP +
-elevated lactate + AKI together. Calibrated so that:
-
-- Sepsis SBP < 90 occurs in roughly **15–25%** of sepsis encounters (consistent
-  with the `R65.21` ~20% coding), up from 0%.
-- `moderate` sepsis stays normal-to-borderline; only `severe` (and comparably
-  inflamed conditions) becomes hypotensive.
-- No flood of the SBP floor (`< 60` clamp); the distribution should look clinical,
-  not binary.
-
-## Design
-
-### Mechanism (single change in `apply_coupling_rules`)
-
-Add a distributive term to the perfusion calculation:
-
-```python
-# Distributive (vasodilatory) shock: severe systemic inflammation lowers
-# perfusion independent of cardiac function/volume — the mechanism of septic
-# shock. Couples through to SBP, lactate (pH), and renal function below.
-distributive = -max(0.0, state.inflammation_level - DISTRIBUTIVE_THRESHOLD) * DISTRIBUTIVE_COEFF
-state.perfusion_status = clamp(
-    state.cardiac_function * 0.8 + 0.2 + volume_effect + distributive, 0.0, 1.0
-)
-```
-
-The coefficients are module-level constants (named, audit-tuned, like the existing
-`HBA1C_*` constants), not magic numbers inline.
-
-### Coupling consequences (already in `apply_coupling_rules`, now reachable)
-
-Lowered perfusion already drives, in the same function:
-- **Lactate / metabolic acidosis** — `if perfusion_status < 0.4: lactic_acid ...`
-- **Pre-renal AKI** — `if perfusion_status < 0.5: renal_function -= ...`
-
-and at vitals-derivation time, lowered perfusion drives **SBP/DBP down and HR up**
-(`baseline + vol*15 - (1-perf)*40`). So one perfusion change yields the full
-coherent septic-shock picture without any ad-hoc per-vital logic — consistent with
-the BNP wall-stress and acid-base two-axis models.
+`DISTRIBUTIVE_THRESHOLD = 0.7`, `DISTRIBUTIVE_SBP_COEFF = 60.0` (audit-tuned).
+Because `perfusion_status` is untouched, the clinical-course/complication/LOS/
+mortality logic sees identical state — **no master-stream perturbation**. The
+already-elevated lactate/AKI labs are preserved, so the FHIR output is a coherent
+septic shock: SBP↓ + lactate↑ + creatinine↑. NEWS2 (which has SBP as a
+component) recomputes deterministically to reflect the hypotension.
 
 ### Scope of effect
 
-Only conditions whose `inflammation_level > DISTRIBUTIVE_THRESHOLD` are affected.
-With `THRESHOLD ≈ 0.7`:
+Only `inflammation > 0.7` conditions get hypotension: sepsis severe (0.85),
+severe bacterial/aspiration pneumonia (0.75), borderline severe UTI/pancreatitis
+(0.70). Moderate sepsis (0.65) and everything ≤ 0.6 are unchanged. Clinically
+correct — severe pneumonia and intra-abdominal sepsis can also cause septic shock.
 
-| condition (severity) | inflammation | affected? |
-|---|---|---|
-| sepsis severe | 0.85 | yes |
-| bacterial / aspiration pneumonia severe | 0.75 | yes |
-| UTI severe, acute pancreatitis severe | 0.70 | borderline (tune threshold) |
-| sepsis moderate, cellulitis | 0.65 | no |
-| everything ≤ 0.6 | ≤ 0.60 | no |
+### Calibration (audit, US p9000 seed 7, n=20 sepsis)
 
-This is clinically correct: severe pneumonia and severe intra-abdominal sepsis can
-also cause septic shock. The threshold is a calibration knob.
-
-### Coefficient calibration (audit-driven, like BNP/HbA1c)
-
-Start from `THRESHOLD = 0.7`, `COEFF = 4.0` and adjust via generation audit
-(US/JP, a few thousand patients):
-- Worked example: inflammation 0.85, baseline SBP 120, volume −0.40 →
-  `distributive = -(0.85-0.7)*4.0 = -0.60` → perfusion ≈ 0.40 → SBP ≈ 90.
-- Increasing `COEFF` deepens shock; raising `THRESHOLD` narrows which conditions
-  qualify. Tune both so sepsis SBP<90 lands ~15–25% and SBP<60 stays rare.
-
-Final coefficients are pinned in the spec/commit once the audit confirms them.
+`COEFF=60`: sepsis min SBP median 104, **SBP<90 = 25%** (target 15–25%,
+consistent with R65.21 ~20%), worst 82, **SBP<60 = 0%** (no floor flooding).
+Labs unchanged from master (Lactate 4.6, Creatinine 2.9). Non-inflammatory
+cohort (hip fracture) byte-identical.
 
 ## Determinism (AD-16)
 
-`distributive` is a deterministic function of the existing `inflammation_level`
-state variable. **No new RNG draw** is introduced, so the master random stream is
-unchanged. Outputs that depend on perfusion (SBP, DBP, HR, lactate, renal-derived
-labs/creatinine, pH) change — an intentional golden change — but the change is
-purely deterministic and affects only encounters with `inflammation > THRESHOLD`.
+`distributive_drop` is a pure function of the existing `inflammation_level`,
+computed at output time; it does not mutate state and adds no RNG draw. The master
+stream is unchanged. Byte-diff (same seed, master vs branch): **only
+Observation.ndjson differs** — Systolic/Diastolic blood pressure and the derived
+NEWS2 of `inflammation > 0.7` encounters. Patient, Condition, labs, all other
+resources are byte-identical (no cascade).
 
 ## Testing
 
-TDD, pure-function level on `apply_coupling_rules`:
-
-1. **High inflammation lowers perfusion** — a state with `inflammation_level` above
-   threshold and healthy cardiac/volume gets `perfusion_status` strictly below the
-   non-distributive baseline (`cardiac*0.8+0.2`).
-2. **Below threshold is unchanged** — `inflammation_level ≤ THRESHOLD` yields the
-   exact pre-change perfusion (byte-identical coupling).
-3. **Determinism** — same input state → same perfusion (no draw).
-4. **Coherent shock** — a severe-sepsis-like state yields SBP < 90 *and* depressed
-   perfusion driving the lactate/renal couplings (assert perfusion < 0.4 so the
-   existing lactate branch fires).
-
-## Verification
-
-- `pytest -m unit` / `-m integration` every iteration.
-- **Generation audit**: sepsis SBP distribution (median, p10, %<90, %<60) US + JP,
-  plus a regression check that a non-inflammatory cohort (e.g. hip fracture, AMI
-  with preserved perfusion) is unaffected.
-- **byte-diff** master vs branch: confirm only inflammation>threshold encounters'
-  perfusion-derived fields change; low-inflammation encounters byte-identical.
-- `pytest -m e2e` golden (CIF golden expected to change for affected vitals/labs;
-  inspect and re-bless if the change is the intended one).
+TDD on `derive_vital_signs`: high inflammation lowers SBP vs threshold; at/below
+threshold SBP unchanged; severe-shock state reaches SBP < 90; `perfusion_status`
+not mutated; determinism. Plus generation audit + golden byte-diff above.
 
 ## Out of scope
 
-- No new severity tier or `septic_shock` archetype in `sepsis.yaml`.
-- No change to `R65.x` coding logic.
-- No change to the SBP/HR derivation formulas themselves.
+- No change to `apply_coupling_rules`, `sepsis.yaml` severity tiers, or `R65.x`.
+- No re-architecture of the shared master RNG stream (the deeper cause of the
+  rejected design's cascade) — out of scope for this follow-up.
