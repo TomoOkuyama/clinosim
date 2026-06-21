@@ -116,6 +116,7 @@ from clinosim.modules.output._fhir_reference_data import (  # noqa: F401
 )
 from clinosim.modules.output._fhir_sdoh import (  # noqa: F401
     _build_alcohol_use,
+    _build_care_level,
     _build_smoking_status,
 )
 
@@ -415,6 +416,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _build_code_status,
     _build_smoking_status,
     _build_alcohol_use,
+    _build_care_level,
 ]
 
 
