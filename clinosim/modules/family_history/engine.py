@@ -26,6 +26,15 @@ def load_prevalence(country: str) -> dict:
         return (yaml.safe_load(f) or {}).get("prevalence", {})
 
 
+def _condition_code(c) -> str:
+    """Extract an ICD code string from a chronic condition (str | dict | object)."""
+    if isinstance(c, str):
+        return c
+    if isinstance(c, dict):
+        return str(c.get("code", ""))
+    return str(getattr(c, "code", ""))
+
+
 def _prevalence(prev: dict, code: str, sex: str, age: int) -> float:
     for band, rows in prev.get(code, {}).items():
         lo, hi = (int(x) for x in band.split("-"))
@@ -61,7 +70,11 @@ def generate_family_history(patient_age: int, patient_conditions: list[str],
     ref = load_reference()
     prev = load_prevalence(country)
     conditions = ref["conditions"]
-    patient_codes = {c.split(".")[0].upper() for c in (patient_conditions or [])}
+    patient_codes = {
+        _condition_code(c).split(".")[0].upper()
+        for c in (patient_conditions or [])
+        if _condition_code(c)
+    }
 
     po = ref["parent_age_offset"]
     out: list[FamilyMemberHistoryRecord] = []
