@@ -45,6 +45,18 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
     lang = "ja" if country_code == "JP" else "en"
     icd_system_key = "icd-10" if country_code == "JP" else "icd-10-cm"
 
+    # Chronic conditions the patient carries — used both to recognise a chronic
+    # primary diagnosis (active + chronic onset) and to emit problem-list items below.
+    chronic_list = record.get("patient", {}).get("chronic_conditions", [])
+    chronic_onset_by_base: dict[str, str] = {}
+    for _chronic in chronic_list:
+        if isinstance(_chronic, dict):
+            _cc = _chronic.get("code", "")
+            if _cc:
+                chronic_onset_by_base.setdefault(_cc.split(".")[0], _chronic.get("onset_date", "") or "")
+        elif isinstance(_chronic, str) and _chronic:
+            chronic_onset_by_base.setdefault(_chronic.split(".")[0], "")
+
     # --- Primary diagnosis (encounter diagnosis) ---
     dx_code = dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", "")
     if dx_code:
@@ -54,8 +66,16 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # Determine severity from physiological states
         severity = _infer_severity(record)
 
+        # A primary diagnosis that is one of the patient's chronic conditions
+        # (e.g. an outpatient diabetes follow-up coding E11.9) is ongoing, not
+        # resolved at the visit: mark it active with the chronic onset date.
+        is_chronic_primary = base_code in chronic_onset_by_base
+        chronic_onset = chronic_onset_by_base.get(base_code, "") if is_chronic_primary else ""
+
         # clinicalStatus: resolved if discharged alive, active if deceased (didn't resolve)
-        if is_inpatient:
+        if is_chronic_primary:
+            clinical_status = "active"
+        elif is_inpatient:
             clinical_status = "active" if deceased or not discharge_dt else "resolved"
         else:
             clinical_status = "resolved"
@@ -91,7 +111,14 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         if severity:
             cond["severity"] = _severity_coding(severity, country)
 
-        if admission_dt:
+        if chronic_onset:
+            # Chronic primary: onset is the disease onset date; recordedDate is the visit.
+            onset_str = chronic_onset if isinstance(chronic_onset, str) else str(chronic_onset)
+            cond["onsetDateTime"] = onset_str[:10]
+            if admission_dt:
+                cond["recordedDate"] = (admission_dt[:10] if isinstance(admission_dt, str)
+                                        else str(admission_dt)[:10])
+        elif admission_dt:
             cond["onsetDateTime"] = admission_dt[:10] if isinstance(admission_dt, str) else str(admission_dt)[:10]
             cond["recordedDate"] = cond["onsetDateTime"]
 
@@ -101,7 +128,6 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         conditions.append(cond)
 
     # --- Chronic conditions (from patient profile) ---
-    chronic_list = record.get("patient", {}).get("chronic_conditions", [])
     for i, chronic in enumerate(chronic_list):
         if isinstance(chronic, str):
             c_code = chronic
