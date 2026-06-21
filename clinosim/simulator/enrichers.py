@@ -123,3 +123,16 @@ def register_builtin_enrichers() -> None:
             run=enrich_family_history,
         )
     )
+
+    # Code status (AD-55 Base): resuscitation status on serious encounters. Always-on.
+    from clinosim.modules.code_status.enricher import enrich_code_status
+
+    register_enricher(
+        Enricher(
+            name="code_status",
+            stage=POST_RECORDS,
+            order=50,
+            enabled=lambda c: True,
+            run=enrich_code_status,
+        )
+    )
