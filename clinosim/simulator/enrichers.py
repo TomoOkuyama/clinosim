@@ -136,3 +136,16 @@ def register_builtin_enrichers() -> None:
             run=enrich_code_status,
         )
     )
+
+    # JP 要介護度 (AD-55 Base): long-term-care need level. JP only.
+    from clinosim.modules.care_level.enricher import enrich_care_level
+
+    register_enricher(
+        Enricher(
+            name="care_level",
+            stage=POST_RECORDS,
+            order=60,
+            enabled=lambda c: getattr(c, "country", "US") == "JP",
+            run=enrich_care_level,
+        )
+    )

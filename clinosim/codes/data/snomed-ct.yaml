@@ -167,3 +167,24 @@ codes:
   '103735009':
     en: Palliative care
     ja: 緩和ケア
+
+  # === Smoking status (US Core Smoking Status value set) ===
+  '266919005':
+    en: Never smoked tobacco
+    ja: 喫煙歴なし
+  '8517006':
+    en: Ex-smoker
+    ja: 元喫煙者
+  '449868002':
+    en: Current every day smoker
+    ja: 現在毎日喫煙
+  # === Alcohol use ===  # TODO: verify (SNOMED API unreachable offline)
+  '105542008':
+    en: Nondrinker of alcohol
+    ja: 非飲酒者
+  '160573003':
+    en: Alcohol intake within recommended limits
+    ja: 適度な飲酒
+  '86933000':
+    en: Heavy drinker
+    ja: 多量飲酒者

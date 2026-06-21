@@ -1,0 +1,4 @@
+# JP 要介護度 levels (order matches the weight vectors in locale rate tables).
+# "independent" maps to no Observation (care_level = "").
+levels: ["independent", "support1", "support2", "care1", "care2", "care3", "care4", "care5"]
+age_bands: ["0-64", "65-74", "75-84", "85-120"]
