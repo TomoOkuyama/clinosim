@@ -114,6 +114,10 @@ from clinosim.modules.output._fhir_reference_data import (  # noqa: F401
     _SEVERITY_SNOMED,
     _SPECIALTY_SNOMED,
 )
+from clinosim.modules.output._fhir_sdoh import (  # noqa: F401
+    _build_alcohol_use,
+    _build_smoking_status,
+)
 
 
 def convert_cif_to_fhir(
@@ -409,6 +413,8 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _build_immunizations,
     _build_family_history,
     _build_code_status,
+    _build_smoking_status,
+    _build_alcohol_use,
 ]
 
 
