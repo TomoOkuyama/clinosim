@@ -57,6 +57,7 @@ class CIFPatientRecord:
     nursing_risk_assessments: list[NursingRiskAssessment] = field(default_factory=list)
     immunizations: list[ImmunizationRecord] = field(default_factory=list)
     family_history: list[FamilyMemberHistoryRecord] = field(default_factory=list)  # AD-55 Base (codes only)
+    code_status: str = ""  # AD-55 Base: SNOMED resuscitation-status code (codes only)
     microbiology: list[MicrobiologyResult] = field(default_factory=list)  # AD-55 Base (codes only)
     discharge_prescription: PrescriptionRecord | None = None
     icu_transferred: bool = False
