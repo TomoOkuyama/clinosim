@@ -141,3 +141,73 @@ class TestGroupLabOrders:
             "lab-ENC-001-0001",   # Hct
             "lab-ENC-001-0000",   # Plt
         ]
+
+
+@pytest.mark.unit
+class TestBuildDrResource:
+    def _group(self):
+        from clinosim.modules.output._fhir_diagnostic_report import _GroupedPanel
+        return _GroupedPanel(
+            panel_name="CBC",
+            bucket="2026-05-12T14:28",
+            obs_refs=[
+                "lab-ENC-001-0000", "lab-ENC-001-0001",
+                "lab-ENC-001-0002", "lab-ENC-001-0003",
+            ],
+        )
+
+    def test_shape_us(self):
+        from clinosim.modules.output._fhir_diagnostic_report import build_dr_resource
+        r = build_dr_resource(
+            self._group(),
+            patient_id="POP-000002", encounter_id="ENC-001",
+            country="US", performer_ref="Practitioner/TECH-LAB-001",
+            issued="2026-05-12T14:28:39",
+            seq=0,
+        )
+        assert r["resourceType"] == "DiagnosticReport"
+        assert r["id"] == "dr-cbc-ENC-001-0"
+        assert r["status"] == "final"
+        cat = r["category"][0]["coding"][0]
+        assert cat["code"] == "LAB"
+        coding = r["code"]["coding"][0]
+        assert coding["system"] == "http://loinc.org"
+        assert coding["code"] == "58410-2"
+        assert "Complete blood count" in coding["display"]
+        assert r["subject"] == {"reference": "Patient/POP-000002"}
+        assert r["encounter"] == {"reference": "Encounter/ENC-001"}
+        assert r["effectiveDateTime"] == "2026-05-12T14:28:00"
+        assert r["issued"] == "2026-05-12T14:28:39"
+        assert r["performer"] == [{"reference": "Practitioner/TECH-LAB-001"}]
+        assert r["result"] == [
+            {"reference": "Observation/lab-ENC-001-0000"},
+            {"reference": "Observation/lab-ENC-001-0001"},
+            {"reference": "Observation/lab-ENC-001-0002"},
+            {"reference": "Observation/lab-ENC-001-0003"},
+        ]
+
+    def test_shape_jp_uses_japanese_display(self):
+        from clinosim.modules.output._fhir_diagnostic_report import build_dr_resource
+        r = build_dr_resource(
+            self._group(),
+            patient_id="POP-000002", encounter_id="ENC-001",
+            country="JP", performer_ref=None, issued=None, seq=0,
+        )
+        coding = r["code"]["coding"][0]
+        assert coding["display"] == "全血球計算パネル"
+        assert "performer" not in r
+
+    def test_seq_increments_per_call(self):
+        from clinosim.modules.output._fhir_diagnostic_report import build_dr_resource
+        r0 = build_dr_resource(
+            self._group(), patient_id="P", encounter_id="E",
+            country="US", performer_ref=None, issued=None, seq=0,
+        )
+        r1 = build_dr_resource(
+            self._group()._replace(bucket="2026-05-12T15:00"),
+            patient_id="P", encounter_id="E",
+            country="US", performer_ref=None, issued=None, seq=1,
+        )
+        assert r0["id"] != r1["id"]
+        assert r0["id"].endswith("-0")
+        assert r1["id"].endswith("-1")

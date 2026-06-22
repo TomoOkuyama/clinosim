@@ -16,6 +16,8 @@ from typing import NamedTuple
 
 import yaml
 
+from clinosim.codes import get_system_uri, lookup as _codes_lookup
+
 
 _PANEL_REF = Path(__file__).parent / "reference_data" / "lab_panel_groups.yaml"
 _PANELS_CACHE: dict[str, dict] | None = None
@@ -103,3 +105,68 @@ def group_lab_orders(orders: list[dict], encounter_id: str) -> list[_GroupedPane
                 panel_name=panel_name, bucket=bucket, obs_refs=obs_refs,
             ))
     return groups
+
+
+# ----------------------------------------------------------------------------
+# FHIR resource construction
+# ----------------------------------------------------------------------------
+
+_CATEGORY_LAB_SYSTEM = "http://terminology.hl7.org/CodeSystem/v2-0074"
+
+
+def build_dr_resource(
+    group: _GroupedPanel,
+    patient_id: str,
+    encounter_id: str,
+    country: str,
+    performer_ref: str | None,
+    issued: str | None,
+    seq: int,
+) -> dict:
+    """Build a single FHIR DiagnosticReport resource for a grouped panel.
+
+    Args:
+      group: a _GroupedPanel from group_lab_orders().
+      patient_id: CIF patient id (becomes Patient/{patient_id} subject).
+      encounter_id: CIF encounter id (becomes Encounter/{encounter_id}).
+      country: "US" or "JP" — selects English vs Japanese LOINC display.
+      performer_ref: optional FHIR-shaped reference (e.g. "Practitioner/TECH-LAB-001").
+      issued: optional ISO timestamp of report issuance; if None, omitted.
+      seq: encounter-scoped sequence number for id uniqueness when the
+        same panel emits at multiple draw-times.
+
+    Returns: a raw FHIR resource dict (no Bundle envelope).
+    """
+    panels = load_panel_groups()
+    panel = panels[group.panel_name]
+    lang = "ja" if country == "JP" else "en"
+    display = _codes_lookup("loinc", panel["loinc"], lang) or panel["display"]
+
+    res: dict[str, object] = {
+        "resourceType": "DiagnosticReport",
+        "id": f"dr-{group.panel_name.lower()}-{encounter_id}-{seq}",
+        "status": "final",
+        "category": [{
+            "coding": [{
+                "system": _CATEGORY_LAB_SYSTEM,
+                "code": "LAB",
+                "display": "Laboratory",
+            }],
+        }],
+        "code": {
+            "coding": [{
+                "system": get_system_uri("loinc"),
+                "code": panel["loinc"],
+                "display": display,
+            }],
+        },
+        "subject": {"reference": f"Patient/{patient_id}"},
+        "encounter": {"reference": f"Encounter/{encounter_id}"},
+        "effectiveDateTime": f"{group.bucket}:00",
+        "result": [{"reference": f"Observation/{ref}"} for ref in group.obs_refs],
+    }
+    if issued:
+        res["issued"] = issued
+    if performer_ref:
+        res["performer"] = [{"reference": performer_ref}]
+    return res
