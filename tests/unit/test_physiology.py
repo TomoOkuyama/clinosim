@@ -557,3 +557,19 @@ def test_hco3_metabolic_axis_matches_ada_bands():
         assert abs(labs["HCO3"] - target) < 0.10, (
             f"ph_status={ph:.2f} HCO3={labs['HCO3']:.2f} expected≈{target}"
         )
+
+
+@pytest.mark.unit
+def test_dka_moderate_acidosis_in_clinical_range():
+    """Moderate DKA admit should produce HCO3 ~10-15 (ADA moderate) and pH
+    ~7.0-7.27 with master's initial_state_impact. state unchanged; the
+    HCO3 gain change (24->31) is what lands the band."""
+    from clinosim.modules.disease.protocol import load_disease_protocol
+
+    proto = load_disease_protocol("diabetic_ketoacidosis")
+    state = initialize_state(PatientPhysiologicalProfile(), [], "pt")
+    # acid_base_type='metabolic' is the DKA default in apply_disease_onset.
+    state = apply_disease_onset(state, "moderate", proto.initial_state_impact)
+    labs = derive_lab_values(state, sex="M", age=55)
+    assert 10.0 <= labs["HCO3"] <= 15.5, f"HCO3={labs['HCO3']:.2f}"
+    assert labs["pH"] <= 7.27, f"pH={labs['pH']:.2f}"
