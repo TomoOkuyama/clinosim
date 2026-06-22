@@ -23,13 +23,24 @@ Code system coverage:
 - 349 ICD-10-CM codes, 306 ICD-10 (WHO) codes (EN + JA bilingual)
 - 65 LOINC, 68 RxNorm, 31 CPT, 25 K-codes, 39 YJ, 31 SNOMED CT
 - 120+ drug name JP translations (drug_names_ja.yaml)
-- 399 unit + 80 integration + 39 e2e tests passing
+- 404 unit + 80 integration + 39 e2e tests passing
 
 **AD-55 Base data-enrichment roadmap complete (2026-06):** microbiology, cardiac
 markers, nursing flowsheets, immunization, family history, code status, extended
 SDOH (smoking/alcohol/JP 要介護度). The FHIR adapter was split from one 3015-line
 monolith into per-theme `_fhir_*` builder modules (FA-1, byte-identical). See
 `docs/reviews/2026-06-22-data-quality-audit.md` (clean).
+
+**AKI Cr / DKA HCO3 surgical calibration (PR #69, 2026-06-22):** Two coefficients
+in `derive_lab_values()` (Cr low-renal slope 15→6.5, HCO3 metabolic-axis gain
+24→31) shift AKI admit Cr p50 from ESRD-domain (~5.6 US / 7.9 JP) into the KDIGO
+2-3 band (~3.3 US / 4.1 JP), and DKA admit HCO3 / pH into ADA-stratified bands,
+while leaving every state variable and disease YAML at master. BNP-pattern
+surgical fix (#28 / #62): byte-diff at US/JP p=2000 seed=42 confirms only
+`Observation.ndjson` differs and patient cohorts are preserved exactly. See
+`docs/reviews/2026-06-22-aki-dka-surgical-calibration-audit.md` (byte-diff +
+percentile audit) and `docs/reviews/2026-06-22-aki-dka-surgical-calibration-data-quality-review.md`
+(post-calibration FHIR/CIF data-quality review, clean).
 
 ## Architecture Decisions (current)
 
