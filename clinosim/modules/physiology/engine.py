@@ -323,7 +323,12 @@ def derive_lab_values(
     # raised, compensating HCO3 rather than both moving the same way off one axis.
     rf = clamp(state.respiratory_fraction, 0.0, 1.0)
     mf = 1.0 - rf
-    hco3 = 24.0 + ph * mf * 24.0   # metabolic load drives bicarbonate
+    # Metabolic-axis gain, BNP-pattern surgical calibration (2026-06-22). 24 left
+    # DKA moderate (ph_status=-0.35) at HCO3 ~15.6, outside the ADA moderate band
+    # (10-15). 31 lands moderate DKA at HCO3 ~13 (mid-band) and severe DKA at <10,
+    # while CKD chronic (ph_status~-0.10) drops only from 21.6 to 20.9. state is
+    # unchanged. Spec: docs/superpowers/specs/2026-06-22-aki-dka-surgical-calibration-design.md
+    hco3 = 24.0 + ph * mf * 31.0   # metabolic load drives bicarbonate
     pco2 = 40.0 - ph * rf * 40.0   # respiratory load drives CO2 (acidosis → retention)
     if mf > 0.0 and ph != 0.0:
         # Respiratory compensation for a metabolic disturbance (Winter's formula, ~80%).
