@@ -478,3 +478,40 @@ def test_initialize_state_seeds_glycemic_control_from_e11():
     # non-diabetic -> stays None
     st2 = initialize_state(prof, [], "pt-2")
     assert st2.glycemic_control is None
+
+
+@pytest.mark.unit
+def test_creatinine_curve_matches_clinical_bands():
+    """Pin the (state.renal_function -> Creatinine) curve to clinically realistic bands.
+
+    Guard against an accidental re-steepening of the low-renal slope. The 0.5
+    boundary value MUST stay continuous between the >0.5 (base_cr / renal) and
+    <=0.5 (linear) branches.
+    """
+    # Male baseline (base_cr = 0.9). State is fabricated directly so we exercise
+    # the formula independent of disease onset / coupling.
+    expected = {
+        # state.renal_function -> Cr (mg/dL), tolerance 0.05
+        0.0: 5.05,   # severe AKI (anuric state) - KDIGO 3 mid-high
+        0.1: 4.40,   # KDIGO 3
+        0.2: 3.75,   # KDIGO 2
+        0.3: 3.10,   # CKD3 typical
+        0.4: 2.45,   # early CKD
+        0.5: 1.80,   # baseline (boundary, continuous with renal>0.5 branch)
+    }
+    for renal, target in expected.items():
+        st = PhysiologicalState(patient_id="pt")
+        st.renal_function = renal
+        labs = derive_lab_values(st, sex="M", age=70)
+        assert abs(labs["Creatinine"] - target) < 0.05, (
+            f"renal={renal:.2f} Cr={labs['Creatinine']:.2f} expected~{target}"
+        )
+
+    # Continuity at the 0.5 boundary: top branch (base_cr / renal) and bottom
+    # branch (linear) must agree to within 0.01.
+    st = PhysiologicalState(patient_id="pt")
+    st.renal_function = 0.5
+    cr_at_05 = derive_lab_values(st, sex="M", age=70)["Creatinine"]
+    st.renal_function = 0.500001
+    cr_just_above = derive_lab_values(st, sex="M", age=70)["Creatinine"]
+    assert abs(cr_at_05 - cr_just_above) < 0.01
