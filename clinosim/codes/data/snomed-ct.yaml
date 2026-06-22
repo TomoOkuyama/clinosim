@@ -153,19 +153,20 @@ codes:
     ja: スワブ検体
 
   # === Resuscitation / code status (AD-55 Base) ===
-  # TODO: verify — SNOMED browser/Snowstorm API unreachable in this environment.
-  # Candidate concepts from domain knowledge; confirm preferred terms before release.
+  # Verified active against SNOMED CT International via HL7 FHIR terminology
+  # server (tx.fhir.org $lookup), 2026-06-22. Displays match each concept's FSN
+  # (semantic tag dropped).
   '304251008':
-    en: Resuscitation status
+    en: Resuscitation status        # FSN: Resuscitation status (observable entity)
     ja: 蘇生ステータス
   '304252001':
-    en: For resuscitation
+    en: For resuscitation           # FSN: For resuscitation (finding)
     ja: 蘇生処置を行う
   '304253006':
-    en: Not for resuscitation
+    en: Not for resuscitation       # FSN: Not for resuscitation (finding)
     ja: 蘇生処置を行わない（DNAR）
   '103735009':
-    en: Palliative care
+    en: Palliative care             # FSN: Palliative care (regime/therapy)
     ja: 緩和ケア
 
   # === Smoking status (US Core Smoking Status value set) ===
@@ -178,13 +179,17 @@ codes:
   '449868002':
     en: Current every day smoker
     ja: 現在毎日喫煙
-  # === Alcohol use ===  # TODO: verify (SNOMED API unreachable offline)
+  # === Alcohol use ===
+  # Verified active against SNOMED CT International via tx.fhir.org $lookup,
+  # 2026-06-22. NOTE: the former "social" code 160573003 was found INACTIVE and
+  # is the observable "Alcohol intake (observable entity)" — not a drinking
+  # pattern. Replaced with the active finding 28127009 Social drinker.
   '105542008':
-    en: Nondrinker of alcohol
+    en: Current non-drinker of alcohol   # FSN: Current non-drinker of alcohol (finding)
     ja: 非飲酒者
-  '160573003':
-    en: Alcohol intake within recommended limits
-    ja: 適度な飲酒
+  '28127009':
+    en: Social drinker                   # FSN: Social drinker (finding)
+    ja: 機会飲酒者
   '86933000':
-    en: Heavy drinker
+    en: Heavy drinker                    # FSN: Heavy drinker (finding)
     ja: 多量飲酒者
