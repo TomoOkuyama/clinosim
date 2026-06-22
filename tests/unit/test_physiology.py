@@ -535,3 +535,25 @@ def test_aki_creatinine_not_anuric_on_elderly_baseline():
             f"{severity}: state.renal={state.renal_function:.2f} "
             f"Cr={labs['Creatinine']:.2f} >= ceiling {ceiling}"
         )
+
+
+@pytest.mark.unit
+def test_hco3_metabolic_axis_matches_ada_bands():
+    """Pin the (state.ph_status -> HCO3) curve on the pure metabolic axis
+    (respiratory_fraction=0). Guards the DKA / sepsis / CKD HCO3 calibration."""
+    # state.ph_status -> HCO3 (mEq/L), tolerance 0.10
+    expected = {
+        0.00: 24.00,    # no disturbance
+        -0.10: 20.90,   # CKD chronic mild metabolic
+        -0.15: 19.35,   # severe sepsis
+        -0.35: 13.15,   # DKA moderate (ADA moderate band: 10-15)
+        -0.60: 5.40,    # DKA severe (ADA severe band: <10; clamped at 5.0 floor below -0.61)
+    }
+    for ph, target in expected.items():
+        st = PhysiologicalState(patient_id="pt")
+        st.respiratory_fraction = 0.0   # pure metabolic axis
+        st.ph_status = ph
+        labs = derive_lab_values(st, sex="M", age=55)
+        assert abs(labs["HCO3"] - target) < 0.10, (
+            f"ph_status={ph:.2f} HCO3={labs['HCO3']:.2f} expected≈{target}"
+        )
