@@ -231,12 +231,17 @@ below 500 — discriminates from acute decompensated HF.
 The I50 cohort mixes acute decompensated HF (BNP 800-1500+, the spec's HF
 band) with chronic stable HF follow-ups (BNP < 200). The p90 reaches
 417-1167 (acute-decomp range) and max saturates the assay clamp at 5000.
-**Open issue** — admit-day BNP central tendency for I50 is below the
-spec band, tracked in
-`docs/superpowers/plans/2026-06-20-bnp-hf-specificity.md` (HF
-discrimination). The byte-diff invariant guarantees this PR did NOT change
-any BNP value (the only Observations that differ are Cr / HCO3 / pCO2 / pH).
-**Not a regression — pre-existing.**
+
+**Update (closed by `docs/reviews/2026-06-22-i50-bnp-cohort-decomposition.md`):**
+Decomposing the I50 admit cohort by `condition_event.ground_truth_diseases`
+and `encounter_type` shows the BNP wall-stress formula is correct — inpatient
+encounters tagged with `heart_failure_exacerbation` admit at BNP p50 **603.6
+(US) / 931.8 (JP)**, squarely inside the ADHF 800-1500 band. The outpatient
+chronic-I50 follow-up subset (65% of US / 86% of JP I50-admit-primary
+encounters) admits at p50 68.6 / 74.9 — clinically expected for compensated
+stable HF on outpatient therapy. The mixed-cohort p50 of 95 / 79 was a
+cohort-decomposition artifact, not a formula deficiency. **Closed — no
+code change.**
 
 ### HbA1c (DM glycemic control, PR #44)
 
@@ -373,10 +378,12 @@ Two **pre-existing** items are observable but explicitly out of scope:
    while Japanese clinical convention is `mg/dL`. Documented as
    enrichment-only conversion (AD-42). Suggest a follow-up to align FHIR
    output with JP convention.
-2. **I50 BNP discrimination**: admit-day BNP p50 ~95 (US) / 79 (JP)
-   sits below the ADHF 800-1500 band because the I50 cohort mixes acute
-   decompensation with chronic stable follow-up. Tracked in
-   `docs/superpowers/plans/2026-06-20-bnp-hf-specificity.md`; the byte-diff
-   invariant proves the calibration PR did not change any BNP value.
+2. **I50 BNP discrimination** — **CLOSED 2026-06-22**: decomposition of the
+   I50 admit cohort by `condition_event.ground_truth_diseases` and
+   `encounter_type` shows the BNP wall-stress formula is correct (inpatient
+   HF exacerbation admit p50 = 603.6 US / 931.8 JP, inside the ADHF band).
+   The mixed-cohort p50 of 95 / 79 was a cohort-grouping artifact, not a
+   formula deficiency. See
+   `docs/reviews/2026-06-22-i50-bnp-cohort-decomposition.md`.
 
 The branch is ready to merge.
