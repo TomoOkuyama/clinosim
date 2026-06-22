@@ -1,0 +1,52 @@
+# Lab panel groupings for FHIR DiagnosticReport.result[] assembly.
+# Authoritative panel codes: LOINC (verified against Regenstrief, NLM
+# clinicaltables.nlm.nih.gov). Components are the *canonical* clinosim
+# analyte names (the same names that appear as lab_results.lab_name and as
+# the keys in derive_lab_values output).
+#
+# Grouping priority order (high to low; resolves analyte dual-membership):
+#   ABG > CBC > BMP > LFT > Lipid > Coag > UA
+
+panels:
+  ABG:
+    loinc: "24338-6"
+    display: "Gas panel - Arterial blood"
+    components: [pH, pCO2, pO2, HCO3]
+    min_components: 3
+
+  CBC:
+    loinc: "58410-2"
+    display: "Complete blood count (hemogram) panel - Blood by Automated count"
+    components: [WBC, Hb, Hct, Plt]
+    min_components: 3
+
+  BMP:
+    loinc: "51990-0"
+    display: "Basic metabolic 2000 panel - Serum or Plasma"
+    components: [Na, K, Cl, HCO3, BUN, Creatinine, Glucose, Ca]
+    min_components: 5
+
+  LFT:
+    loinc: "24325-3"
+    display: "Hepatic function 2000 panel - Serum or Plasma"
+    components: [AST, ALT, ALP, T_Bil, Albumin, TP, GGT, LDH]
+    min_components: 3
+
+  Lipid:
+    loinc: "57698-3"
+    display: "Lipid panel with direct LDL - Serum or Plasma"
+    components: [TC, LDL, HDL, TG]
+    min_components: 3
+
+  Coag:
+    loinc: "24373-3"
+    display: "Activated partial thromboplastin time (aPTT) and Prothrombin time (PT)/INR panel - Platelet poor plasma"
+    components: [PT, PT_INR, APTT]
+    min_components: 2
+
+  UA:
+    loinc: "24356-8"
+    display: "Urinalysis complete panel - Urine"
+    components: [Urine_pH, Urine_specific_gravity, Urine_protein, Urine_glucose, Urine_ketones, Urine_blood, Urine_nitrite, Urine_leukocyte_esterase]
+    min_components: 3
+    skip_if_no_components_present: true
