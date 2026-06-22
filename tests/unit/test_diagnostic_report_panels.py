@@ -57,11 +57,9 @@ class TestGroupLabOrders:
         ]
 
     def test_below_threshold_yields_no_group(self):
+        """A single CBC component (below CBC's min=2) yields no DR."""
         from clinosim.modules.output._fhir_diagnostic_report import group_lab_orders
-        orders = [
-            _order("WBC", "2026-05-12T14:28:38", 0),
-            _order("Hb",  "2026-05-12T14:28:39", 1),
-        ]
+        orders = [_order("WBC", "2026-05-12T14:28:38", 0)]
         assert group_lab_orders(orders, "ENC-001") == []
 
     def test_separate_minute_buckets_yield_separate_groups(self):
@@ -69,10 +67,8 @@ class TestGroupLabOrders:
         orders = [
             _order("WBC", "2026-05-12T14:28:38", 0),
             _order("Hb",  "2026-05-12T14:28:39", 1),
-            _order("Hct", "2026-05-12T14:28:40", 2),
-            _order("WBC", "2026-05-12T14:29:38", 3),
-            _order("Hb",  "2026-05-12T14:29:39", 4),
-            _order("Hct", "2026-05-12T14:29:40", 5),
+            _order("WBC", "2026-05-12T14:29:38", 2),
+            _order("Hb",  "2026-05-12T14:29:39", 3),
         ]
         groups = group_lab_orders(orders, "ENC-001")
         assert len(groups) == 2
@@ -211,3 +207,58 @@ class TestBuildDrResource:
         assert r0["id"] != r1["id"]
         assert r0["id"].endswith("-0")
         assert r1["id"].endswith("-1")
+
+
+@pytest.mark.unit
+class TestBuildLabPanelReports:
+    def _ctx(self, orders, country="US"):
+        from clinosim.modules.output._fhir_common import BundleContext
+        record = {
+            "patient": {"patient_id": "POP-000002"},
+            "orders": orders,
+        }
+        return BundleContext(
+            record=record,
+            country=country,
+            roster_map={},
+            hospital_config={},
+            patient_data={"patient_id": "POP-000002"},
+            patient_id="POP-000002",
+            is_readmission=False,
+            prior_encounter_id=None,
+            primary_dx_code="",
+            admit_dx_code="",
+            admit_dx_system="",
+            primary_enc_id="ENC-001",
+            patient_sex="F",
+        )
+
+    def test_cbc_panel_emits_one_dr(self):
+        from clinosim.modules.output._fhir_diagnostic_report import build_lab_panel_reports
+        orders = [
+            _order("WBC", "2026-05-12T14:28:38", 0),
+            _order("Hb",  "2026-05-12T14:28:39", 1),
+            _order("Hct", "2026-05-12T14:28:40", 2),
+            _order("Plt", "2026-05-12T14:28:41", 3),
+        ]
+        out = build_lab_panel_reports(self._ctx(orders))
+        assert len(out) == 1
+        r = out[0]
+        assert r["resourceType"] == "DiagnosticReport"
+        assert r["id"] == "dr-cbc-ENC-001-0"
+        assert len(r["result"]) == 4
+
+    def test_no_lab_orders_yields_empty_list(self):
+        from clinosim.modules.output._fhir_diagnostic_report import build_lab_panel_reports
+        assert build_lab_panel_reports(self._ctx([])) == []
+
+    def test_jp_locale_passes_through(self):
+        from clinosim.modules.output._fhir_diagnostic_report import build_lab_panel_reports
+        orders = [
+            _order("WBC", "2026-05-12T14:28:38", 0),
+            _order("Hb",  "2026-05-12T14:28:39", 1),
+            _order("Hct", "2026-05-12T14:28:40", 2),
+        ]
+        out = build_lab_panel_reports(self._ctx(orders, country="JP"))
+        assert len(out) == 1
+        assert out[0]["code"]["coding"][0]["display"] == "全血球計算パネル"

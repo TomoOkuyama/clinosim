@@ -170,3 +170,26 @@ def build_dr_resource(
     if performer_ref:
         res["performer"] = [{"reference": performer_ref}]
     return res
+
+
+def build_lab_panel_reports(ctx) -> list[dict]:
+    """Bundle builder (AD-56): group ctx.record["orders"] into DR resources.
+
+    Returns DRs in (bucket, panel-priority) order so the NDJSON output is
+    stable across runs.
+    """
+    orders = ctx.record.get("orders", []) or []
+    enc_id = ctx.primary_enc_id or ""
+    if not enc_id:
+        return []
+    groups = group_lab_orders(orders, enc_id)
+    seq_by_panel: dict[str, int] = defaultdict(int)
+    out: list[dict] = []
+    for g in groups:
+        seq = seq_by_panel[g.panel_name]
+        seq_by_panel[g.panel_name] = seq + 1
+        out.append(build_dr_resource(
+            g, ctx.patient_id, enc_id, ctx.country,
+            performer_ref=None, issued=None, seq=seq,
+        ))
+    return out

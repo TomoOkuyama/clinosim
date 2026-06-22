@@ -18,25 +18,32 @@ panels:
     loinc: "58410-2"
     display: "Complete blood count (hemogram) panel - Blood by Automated count"
     components: [WBC, Hb, Hct, Plt]
-    min_components: 3
+    # Threshold calibrated to clinosim's emission profile (Hct often absent in the
+    # current physiology engine). 2 components of {WBC, Hb, Hct, Plt} drawn in the
+    # same minute is the practical signal of a "CBC order" in this simulator;
+    # raising this would suppress most CBC DRs. Track Hct addition separately.
+    min_components: 2
 
   BMP:
     loinc: "51990-0"
     display: "Basic metabolic 2000 panel - Serum or Plasma"
     components: [Na, K, Cl, HCO3, BUN, Creatinine, Glucose, Ca]
-    min_components: 5
+    # Calibrated to clinosim emission (Cl, Ca rare in current engine).
+    min_components: 3
 
   LFT:
     loinc: "24325-3"
     display: "Hepatic function 2000 panel - Serum or Plasma"
     components: [AST, ALT, ALP, T_Bil, Albumin, TP, GGT, LDH]
-    min_components: 3
+    # AST + ALT pair is the standard "liver check" — threshold 2 matches both
+    # full and mini-LFT orders.
+    min_components: 2
 
   Lipid:
     loinc: "57698-3"
     display: "Lipid panel with direct LDL - Serum or Plasma"
     components: [TC, LDL, HDL, TG]
-    min_components: 3
+    min_components: 2
 
   Coag:
     loinc: "24373-3"
