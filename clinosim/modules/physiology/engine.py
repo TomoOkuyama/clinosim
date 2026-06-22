@@ -251,7 +251,13 @@ def derive_lab_values(
     if renal > 0.5:
         labs["Creatinine"] = base_cr / renal
     else:
-        labs["Creatinine"] = base_cr / 0.5 + (0.5 - renal) * 15
+        # Low-renal slope, BNP-pattern surgical calibration (2026-06-22). The
+        # earlier coefficient of 15 mapped state.renal_function=0 to Cr ~9
+        # (ESRD/dialysis), inconsistent with KDIGO 3 admit Cr (~5-6) and CKD3
+        # (renal~0.3) admit Cr (~2.5-3). 6.5 lands severe AKI at Cr ~5 and
+        # CKD3 at Cr ~3, leaving state and clinical_course untouched (avoids
+        # the master-RNG cascade documented in spec 2026-06-22-aki-dka-...).
+        labs["Creatinine"] = base_cr / 0.5 + (0.5 - renal) * 6.5
     labs["BUN"] = 15.0 / max(renal, 0.1)
     if state.volume_status < -0.3:
         labs["BUN"] *= 1.0 + abs(state.volume_status) * 0.5
