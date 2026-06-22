@@ -478,3 +478,98 @@ def test_initialize_state_seeds_glycemic_control_from_e11():
     # non-diabetic -> stays None
     st2 = initialize_state(prof, [], "pt-2")
     assert st2.glycemic_control is None
+
+
+@pytest.mark.unit
+def test_creatinine_curve_matches_clinical_bands():
+    """Pin the (state.renal_function -> Creatinine) curve to clinically realistic bands.
+
+    Guard against an accidental re-steepening of the low-renal slope. The 0.5
+    boundary value MUST stay continuous between the >0.5 (base_cr / renal) and
+    <=0.5 (linear) branches.
+    """
+    # Male baseline (base_cr = 0.9). State is fabricated directly so we exercise
+    # the formula independent of disease onset / coupling.
+    expected = {
+        # state.renal_function -> Cr (mg/dL), tolerance 0.05
+        0.0: 5.05,   # severe AKI (anuric state) - KDIGO 3 mid-high
+        0.1: 4.40,   # KDIGO 3
+        0.2: 3.75,   # KDIGO 2
+        0.3: 3.10,   # CKD3 typical
+        0.4: 2.45,   # early CKD
+        0.5: 1.80,   # baseline (boundary, continuous with renal>0.5 branch)
+    }
+    for renal, target in expected.items():
+        st = PhysiologicalState(patient_id="pt")
+        st.renal_function = renal
+        labs = derive_lab_values(st, sex="M", age=70)
+        assert abs(labs["Creatinine"] - target) < 0.05, (
+            f"renal={renal:.2f} Cr={labs['Creatinine']:.2f} expected~{target}"
+        )
+
+    # Continuity at the 0.5 boundary: top branch (base_cr / renal) and bottom
+    # branch (linear) must agree to within 0.01.
+    st = PhysiologicalState(patient_id="pt")
+    st.renal_function = 0.5
+    cr_at_05 = derive_lab_values(st, sex="M", age=70)["Creatinine"]
+    st.renal_function = 0.500001
+    cr_just_above = derive_lab_values(st, sex="M", age=70)["Creatinine"]
+    assert abs(cr_at_05 - cr_just_above) < 0.01
+
+
+@pytest.mark.unit
+def test_aki_creatinine_not_anuric_on_elderly_baseline():
+    """AKI on a typical elderly baseline (no CKD) should land Cr in the KDIGO 1-3
+    envelope, not pin Creatinine at dialysis/ESRD level. Ceilings track the
+    BNP-pattern surgical curve (Cr low-renal slope = 6.5). state is at master,
+    so this is a pure lab-formula assertion."""
+    from clinosim.modules.disease.protocol import load_disease_protocol
+
+    proto = load_disease_protocol("acute_kidney_injury")
+    for severity, ceiling in (("mild", 3.0), ("moderate", 4.5), ("severe", 5.5)):
+        prof = PatientPhysiologicalProfile(renal_reserve=0.60)  # elderly, no CKD
+        state = initialize_state(prof, [], "pt")
+        state = apply_disease_onset(state, severity, proto.initial_state_impact)
+        labs = derive_lab_values(state, sex="M", age=78)
+        assert labs["Creatinine"] < ceiling, (
+            f"{severity}: state.renal={state.renal_function:.2f} "
+            f"Cr={labs['Creatinine']:.2f} >= ceiling {ceiling}"
+        )
+
+
+@pytest.mark.unit
+def test_hco3_metabolic_axis_matches_ada_bands():
+    """Pin the (state.ph_status -> HCO3) curve on the pure metabolic axis
+    (respiratory_fraction=0). Guards the DKA / sepsis / CKD HCO3 calibration."""
+    # state.ph_status -> HCO3 (mEq/L), tolerance 0.10
+    expected = {
+        0.00: 24.00,    # no disturbance
+        -0.10: 20.90,   # CKD chronic mild metabolic
+        -0.15: 19.35,   # severe sepsis
+        -0.35: 13.15,   # DKA moderate (ADA moderate band: 10-15)
+        -0.60: 5.40,    # DKA severe (ADA severe band: <10; clamped at 5.0 floor below -0.61)
+    }
+    for ph, target in expected.items():
+        st = PhysiologicalState(patient_id="pt")
+        st.respiratory_fraction = 0.0   # pure metabolic axis
+        st.ph_status = ph
+        labs = derive_lab_values(st, sex="M", age=55)
+        assert abs(labs["HCO3"] - target) < 0.10, (
+            f"ph_status={ph:.2f} HCO3={labs['HCO3']:.2f} expected≈{target}"
+        )
+
+
+@pytest.mark.unit
+def test_dka_moderate_acidosis_in_clinical_range():
+    """Moderate DKA admit should produce HCO3 ~10-15 (ADA moderate) and pH
+    ~7.0-7.27 with master's initial_state_impact. state unchanged; the
+    HCO3 gain change (24->31) is what lands the band."""
+    from clinosim.modules.disease.protocol import load_disease_protocol
+
+    proto = load_disease_protocol("diabetic_ketoacidosis")
+    state = initialize_state(PatientPhysiologicalProfile(), [], "pt")
+    # acid_base_type='metabolic' is the DKA default in apply_disease_onset.
+    state = apply_disease_onset(state, "moderate", proto.initial_state_impact)
+    labs = derive_lab_values(state, sex="M", age=55)
+    assert 10.0 <= labs["HCO3"] <= 15.5, f"HCO3={labs['HCO3']:.2f}"
+    assert labs["pH"] <= 7.27, f"pH={labs['pH']:.2f}"

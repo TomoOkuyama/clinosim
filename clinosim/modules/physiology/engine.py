@@ -251,7 +251,13 @@ def derive_lab_values(
     if renal > 0.5:
         labs["Creatinine"] = base_cr / renal
     else:
-        labs["Creatinine"] = base_cr / 0.5 + (0.5 - renal) * 15
+        # Low-renal slope, BNP-pattern surgical calibration (2026-06-22). The
+        # earlier coefficient of 15 mapped state.renal_function=0 to Cr ~9
+        # (ESRD/dialysis), inconsistent with KDIGO 3 admit Cr (~5-6) and CKD3
+        # (renal~0.3) admit Cr (~2.5-3). 6.5 lands severe AKI at Cr ~5 and
+        # CKD3 at Cr ~3, leaving state and clinical_course untouched (avoids
+        # the master-RNG cascade documented in spec 2026-06-22-aki-dka-...).
+        labs["Creatinine"] = base_cr / 0.5 + (0.5 - renal) * 6.5
     labs["BUN"] = 15.0 / max(renal, 0.1)
     if state.volume_status < -0.3:
         labs["BUN"] *= 1.0 + abs(state.volume_status) * 0.5
@@ -317,7 +323,12 @@ def derive_lab_values(
     # raised, compensating HCO3 rather than both moving the same way off one axis.
     rf = clamp(state.respiratory_fraction, 0.0, 1.0)
     mf = 1.0 - rf
-    hco3 = 24.0 + ph * mf * 24.0   # metabolic load drives bicarbonate
+    # Metabolic-axis gain, BNP-pattern surgical calibration (2026-06-22). 24 left
+    # DKA moderate (ph_status=-0.35) at HCO3 ~15.6, outside the ADA moderate band
+    # (10-15). 31 lands moderate DKA at HCO3 ~13 (mid-band) and severe DKA at <10,
+    # while CKD chronic (ph_status~-0.10) drops only from 21.6 to 20.9. state is
+    # unchanged. Spec: docs/superpowers/specs/2026-06-22-aki-dka-surgical-calibration-design.md
+    hco3 = 24.0 + ph * mf * 31.0   # metabolic load drives bicarbonate
     pco2 = 40.0 - ph * rf * 40.0   # respiratory load drives CO2 (acidosis → retention)
     if mf > 0.0 and ph != 0.0:
         # Respiratory compensation for a metabolic disturbance (Winter's formula, ~80%).
