@@ -515,3 +515,23 @@ def test_creatinine_curve_matches_clinical_bands():
     st.renal_function = 0.500001
     cr_just_above = derive_lab_values(st, sex="M", age=70)["Creatinine"]
     assert abs(cr_at_05 - cr_just_above) < 0.01
+
+
+@pytest.mark.unit
+def test_aki_creatinine_not_anuric_on_elderly_baseline():
+    """AKI on a typical elderly baseline (no CKD) should land Cr in the KDIGO 1-3
+    envelope, not pin Creatinine at dialysis/ESRD level. Ceilings track the
+    BNP-pattern surgical curve (Cr low-renal slope = 6.5). state is at master,
+    so this is a pure lab-formula assertion."""
+    from clinosim.modules.disease.protocol import load_disease_protocol
+
+    proto = load_disease_protocol("acute_kidney_injury")
+    for severity, ceiling in (("mild", 3.0), ("moderate", 4.5), ("severe", 5.5)):
+        prof = PatientPhysiologicalProfile(renal_reserve=0.60)  # elderly, no CKD
+        state = initialize_state(prof, [], "pt")
+        state = apply_disease_onset(state, severity, proto.initial_state_impact)
+        labs = derive_lab_values(state, sex="M", age=78)
+        assert labs["Creatinine"] < ceiling, (
+            f"{severity}: state.renal={state.renal_function:.2f} "
+            f"Cr={labs['Creatinine']:.2f} >= ceiling {ceiling}"
+        )
