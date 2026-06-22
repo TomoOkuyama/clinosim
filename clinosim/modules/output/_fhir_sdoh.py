@@ -10,7 +10,7 @@ from clinosim.modules.output._fhir_common import BundleContext
 from clinosim.modules.output._fhir_localization import _CATEGORY_DISPLAY_JA, _localize_display
 
 _SMOKING_SNOMED = {"never": "266919005", "former": "8517006", "current": "449868002"}
-_ALCOHOL_SNOMED = {"none": "105542008", "social": "160573003", "heavy": "86933000"}
+_ALCOHOL_SNOMED = {"none": "105542008", "social": "28127009", "heavy": "86933000"}
 
 
 def _social_category(country: str) -> list[dict]:

@@ -11,9 +11,21 @@ def test_loinc_codes():
 
 
 @pytest.mark.parametrize("code", ["266919005", "8517006", "449868002",
-                                  "105542008", "160573003", "86933000"])
+                                  "105542008", "28127009", "86933000"])
 def test_snomed_values(code):
     assert lookup("snomed-ct", code, "en") not in ("", code)
+
+
+def test_alcohol_social_uses_active_concept():
+    # 160573003 is the INACTIVE observable "Alcohol intake (observable entity)",
+    # not a drinking-pattern finding — verified inactive via tx.fhir.org (SNOMED
+    # CT International). The "social" tier must use active 28127009 Social drinker.
+    from clinosim.modules.output._fhir_sdoh import _ALCOHOL_SNOMED
+
+    assert _ALCOHOL_SNOMED["social"] == "28127009"
+    assert "160573003" not in _ALCOHOL_SNOMED.values()
+    for code in _ALCOHOL_SNOMED.values():
+        assert lookup("snomed-ct", code, "en") not in ("", code)
 
 
 @pytest.mark.parametrize("code", ["independent", "support1", "support2",
