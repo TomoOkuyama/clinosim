@@ -20,6 +20,7 @@ APTT: "2B020"
 PT: "2B030"
 PT_INR: "2B030"
 Fibrinogen: "2B100"
+D_dimer: "2B140"
 ESR: "2Z010"
 
 # Proteins / enzymes
