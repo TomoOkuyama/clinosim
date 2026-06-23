@@ -92,11 +92,13 @@ That keeps the byte-diff envelope tight (see §4) and lets PR2 set
      any analyte not in `true_labs`).
    - Byte-diff invariant: see §4.
 
-4. **e2e golden** — accept a controlled update. The new CBC/BMP child orders
-   add new `Observation` and `DiagnosticReport` entries; existing entries keep
-   their ids (see §4). The golden delta should be reviewable line-by-line and
-   limited to those two NDJSONs plus the per-encounter `orders` / `lab_results`
-   CSVs.
+4. **e2e tests** — no golden file update is needed. clinosim's e2e suite
+   (`tests/e2e/`) asserts on patient counts, structural invariants, value
+   ranges, and reproducibility (`len(r1.lab_results) == len(r2.lab_results)`
+   compares two same-branch runs, not against a frozen baseline), not on
+   byte-equal NDJSON output. None of the existing assertions reads the
+   Observation or DiagnosticReport count. Run `pytest -m e2e -x` and confirm
+   it stays green.
 
 ### 2.2 Explicitly out of scope (deferred to PR2)
 
@@ -247,8 +249,9 @@ None at design time. All resolved during brainstorming:
       expansion.
 - [ ] Byte-diff invariant script in `scratchpad/`, results recorded in
       `docs/reviews/2026-06-23-cbc-bmp-byte-diff.md`.
-- [ ] e2e golden reblessed; PR description includes the diff summary
-      (NDJSON sizes before/after, new resource counts per type, confirmation
-      that non-Observation NDJSONs are byte-identical).
+- [ ] `pytest -m e2e -x` green without golden updates; PR description
+      includes the byte-diff summary (NDJSON sizes before/after, new
+      resource counts per type, confirmation that non-Observation NDJSONs
+      are byte-identical).
 - [ ] `pytest -x` green (unit, integration, e2e).
 - [ ] PR description references this spec and PR #72.
