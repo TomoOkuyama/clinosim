@@ -346,6 +346,31 @@ def derive_lab_values(
     # dedicated respiratory/oxygenation state variable exists — AD-57 follow-up).
     labs["pO2"] = clamp(95.0 - infl * 45.0, 45.0, 105.0)  # mm[Hg]
 
+    # --- Electrolytes: Cl and Ca complete BMP canonical 8 ---
+    # Cl reflects (a) Na linkage (electroneutrality) and (b) HCO3 reciprocity:
+    # in non-AG metabolic acidosis (diarrhea, RTA) Cl absorbs the HCO3 deficit
+    # 1:1 (hyperchloremic), while in high-AG acidosis (DKA, sepsis, uremia) the
+    # unmeasured anion (ketone/lactate/SO4/PO4) absorbs it and Cl stays near
+    # normal. The anion_gap_status axis routes between the two regimes. The
+    # axis does NOT mutate ph/HCO3/pCO2 or feed back into any state variable.
+    base_cl = 103.0 + state.sodium_status * 9.0
+    hco3_deficit = max(0.0, 24.0 - labs["HCO3"])
+    non_ag_fraction = clamp(1.0 - state.anion_gap_status, 0.0, 1.5)
+    labs["Cl"] = clamp(base_cl + hco3_deficit * non_ag_fraction, 80.0, 125.0)
+    # Total Ca — the lab-standard report (JCCLS 3H030 / LOINC 17861-6).
+    # Corrected Ca and ionized Ca (iCa) are physician-side computations from a
+    # second sample and out of scope here (Phase 2). Multi-axis linear coupling:
+    # sepsis (inflammation), CKD (renal), liver failure (hepatic) drop Ca;
+    # mild dehydration (high Na) lifts it slightly.
+    ca = (
+        9.5
+        - state.inflammation_level * 0.8
+        - (1.0 - state.renal_function) * 0.7
+        - (1.0 - state.hepatic_function) * 0.4
+        + state.sodium_status * 0.3
+    )
+    labs["Ca"] = clamp(ca, 5.5, 13.0)
+
     # --- Glucose (chronic diabetes baseline + acute glycemic state + diurnal variation) ---
     is_diabetic = has_diabetes or state.glycemic_control is not None
     gc = state.glycemic_control if state.glycemic_control is not None else GLYCEMIC_CONTROL_DEFAULT

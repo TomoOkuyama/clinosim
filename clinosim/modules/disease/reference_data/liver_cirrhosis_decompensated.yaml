@@ -107,6 +107,7 @@ initial_state_impact:
     volume_status: 0.15          # ascites/fluid retention
     hepatic_function: -0.30
     perfusion_status: -0.05
+    anion_gap_status: 0.2     # AG axis: impaired lactate clearance (mild)
   moderate:
     inflammation_level: 0.30
     volume_status: 0.25
@@ -114,6 +115,7 @@ initial_state_impact:
     perfusion_status: -0.10
     renal_function: -0.10
     coagulation_status: -0.15
+    anion_gap_status: 0.3     # AG axis: lactate accumulation + HRS contribution
   severe:
     inflammation_level: 0.45
     volume_status: 0.35
@@ -122,6 +124,7 @@ initial_state_impact:
     renal_function: -0.25
     coagulation_status: -0.25
     ph_status: -0.05
+    anion_gap_status: 0.4     # AG axis: severe HRS + lactate (AG 15-20)
 
 # ============================================================
 # ORDER PROTOCOLS

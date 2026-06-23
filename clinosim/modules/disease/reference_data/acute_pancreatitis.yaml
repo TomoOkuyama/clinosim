@@ -105,17 +105,20 @@ initial_state_impact:
   mild:
     inflammation_level: 0.20
     volume_status: -0.15
+    anion_gap_status: 0.1     # AG axis: mild SIRS contribution
   moderate:
     inflammation_level: 0.45
     volume_status: -0.30
     perfusion_status: -0.10
     renal_function: -0.10
+    anion_gap_status: 0.3     # AG axis: moderate SIRS / lactic acidosis
   severe:
     inflammation_level: 0.70
     volume_status: -0.40
     perfusion_status: -0.25
     renal_function: -0.20
     ph_status: -0.10
+    anion_gap_status: 0.5     # AG axis: severe necrotising pancreatitis (AG 15-20)
 
 # ============================================================
 # ORDER PROTOCOLS

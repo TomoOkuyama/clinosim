@@ -39,11 +39,13 @@ initial_state_impact:
     anemia_level: 0.10
     volume_status: -0.05
     perfusion_status: -0.05
+    anion_gap_status: 0.3     # AG axis: rhabdomyolysis (SO4/PO4 from muscle)
   severe:
     inflammation_level: 0.45
     anemia_level: 0.25
     volume_status: -0.15
     perfusion_status: -0.10
+    anion_gap_status: 0.4     # AG axis: severe rhabdo + AKI (AG 15-20)
 
 presenting_symptoms:
   - {name: "pain", probability: 1.0, severity_range: [0.8, 1.0]}

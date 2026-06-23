@@ -108,6 +108,7 @@ initial_state_impact:
     inflammation_level: 0.15
     cardiac_function: -0.05     # may be cardioembolic origin
     volume_status: -0.05
+    anion_gap_status: 0.1     # AG axis: minimal AG shift
   severe:
     perfusion_status: -0.40
     inflammation_level: 0.25
@@ -115,6 +116,7 @@ initial_state_impact:
     volume_status: -0.10
     renal_function: -0.05
     ph_status: -0.05
+    anion_gap_status: 0.2     # AG axis: large infarct lactate contribution
 
 # ============================================================
 # ORDER PROTOCOLS (what to order and when)
