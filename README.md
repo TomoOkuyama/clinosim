@@ -58,6 +58,7 @@ Primary use cases:
 - **Glycemic coherence**: HbA1c reflects each diabetic's chronic glycemic control (a `glycemic_control` axis, median ~6.8%, tail to ~12%), and Glucose baseline co-moves with it — so a poorly-controlled diabetic shows both high HbA1c and high glucose. Scenarios that imply poor control (DKA) drive HbA1c high even for new-onset diabetes, and the diabetes `Condition.stage` HbA1c display matches the labs.
 - **Unified physiology-driven labs across venues** (AD-57): inpatient, ED, and outpatient all derive lab true values from the patient's physiological state, so comorbidities are reflected everywhere (e.g. a CKD patient's ED creatinine is elevated, not a fixed normal)
 - **AKI / DKA admit-day calibration** to published clinical bands: AKI admit Creatinine sits in the KDIGO 2-3 envelope (p50 ~3.3 mg/dL US, ~4.1 JP — not ESRD-level), and DKA admit HCO₃ stratifies into the ADA severity bands (severe <10, moderate 10-15, mild 15-18 mEq/L). Surgical (formula-only) calibration: state variables, coupling rules, and disease YAMLs unchanged, so patient cohorts and downstream complications match master byte-for-byte at fixed seed
+- **FHIR `DiagnosticReport` panel grouping** (CBC / BMP / LFT / Lipid / Coag / UA / ABG) with authoritative LOINC panel codes: lab Observations drawn in the same encounter-day are grouped into one DR per panel, with `result[]` references back to the component Observations. Existing microbiology DRs (blood/urine/sputum/wound culture) continue to emit unchanged
 - **Ward + bed Location hierarchy** with PractitionerRole.location assignment
 - **Operating rooms** modeled as FHIR Locations; surgical procedures include category (SNOMED), performer.function (surgeon/anaesthetist), bodySite, outcome, and complications
 - **Occupational injuries**: 6 work-related conditions (crush injury, industrial burn, fall from height, electrical injury, eye foreign body, chemical exposure) with occupation-based risk multipliers
@@ -367,7 +368,7 @@ output/fhir_r4/
 ├── Observation.ndjson               # labs + vitals + AVPU + O2 + microbiology + nursing scores
 │                                    #   (NEWS2/GCS/Braden/Morse) + social history (occupation,
 │                                    #   smoking, alcohol, JP 要介護度) + code status (LOINC/SNOMED)
-├── DiagnosticReport.ndjson          # Microbiology culture reports (infections; + Specimen)
+├── DiagnosticReport.ndjson          # Lab panel reports (CBC/BMP/LFT/Lipid/Coag/UA/ABG, LOINC) + microbiology culture reports (+ Specimen)
 ├── Specimen.ndjson                  # Culture specimens (blood/urine/sputum/wound)
 ├── Condition.ndjson                 # Encounter dx + chronic conditions (ICD-10-CM / ICD-10)
 ├── FamilyMemberHistory.ndjson       # First-degree-relative disease history (v3-RoleCode + ICD)
