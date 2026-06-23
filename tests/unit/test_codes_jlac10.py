@@ -50,6 +50,8 @@ class TestJLAC10Integrity:
         # uses distinct codes (5902-2 PT, 6301-6 PT-INR).
         ("APTT", "2B020"), ("PT", "2B030"), ("PT_INR", "2B030"),
         ("Fibrinogen", "2B100"),
+        # --- Phase 2a addition (JSLM v137 row 2B140: D-Dダイマー / D-D dimer)
+        ("D_dimer", "2B140"),
     ])
     def test_verified_codes(self, analyte, code):
         """Codes confirmed against the JSLM JLAC10 master v137."""

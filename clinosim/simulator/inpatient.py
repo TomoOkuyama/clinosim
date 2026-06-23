@@ -40,6 +40,7 @@ from clinosim.modules.physiology.engine import (
     derive_lab_values,
     derive_observed_vitals,
     initialize_state,
+    scenario_flags_from_protocol,
     update,
 )
 from clinosim.modules.population.engine import LifeEvent
@@ -556,14 +557,17 @@ def _run_daily_loop(
 
         # Lab results (with temporal lag for slow markers like CRP)
         lab_hour = lab_time.hour if 'lab_time' in dir() else 6  # early morning default
-        mi_injury = bool(getattr(protocol, "causes_myocardial_injury", False))
-        true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, hour=lab_hour, myocardial_injury=mi_injury)
+        # J5 (Phase 2a): read every scenario flag (causes_myocardial_injury,
+        # causes_vte, future additions) via one helper and splat with **flags
+        # so every call site stays in sync. See physiology.engine docstring.
+        flags = scenario_flags_from_protocol(protocol)
+        true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, hour=lab_hour, **flags)
 
         # Apply temporal lag: CRP reflects inflammation from ~1 day ago
         if len(state_history) >= 2 and "CRP" in true_labs:
             lag_idx = max(0, len(state_history) - 2)
             lagged_state = state_history[lag_idx]
-            lagged_labs = derive_lab_values(lagged_state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, hour=lab_hour, myocardial_injury=mi_injury)
+            lagged_labs = derive_lab_values(lagged_state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, hour=lab_hour, **flags)
             true_labs["CRP"] = lagged_labs.get("CRP", true_labs["CRP"])
 
         # Expand panel orders (e.g. ABG → pH/pCO2/pO2/HCO3; CBC → WBC/Hb/Hct/Plt) into
@@ -1676,7 +1680,9 @@ def _simulate_unknown_condition(
                     status=OrderStatus.PLACED,
                 ))
 
-        # Generate lab results
+        # Generate lab results. _simulate_unknown_condition has no disease
+        # protocol by definition — scenario flags (causes_myocardial_injury,
+        # causes_vte) are all-False here, matching scenario_flags_from_protocol(None).
         true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes)
         for order in all_orders:
             if order.order_type.value == "lab" and order.status == OrderStatus.PLACED and order.display_name in true_labs:

@@ -3,6 +3,7 @@
 # against the most current published data before production use.
 
 disease_id: pulmonary_embolism
+causes_vte: true   # PE — clot generation + fibrinolysis → D-dimer ↑↑ (Phase 2a)
 chief_complaint:
   en: "Acute dyspnea, pleuritic chest pain, tachycardia"
   ja: "急性呼吸困難・胸膜痛・頻脈"

@@ -217,6 +217,36 @@ def apply_coupling_rules(state: PhysiologicalState) -> None:
 # Lab value derivation (Layer 2)
 # ---------------------------------------------------------------------------
 
+def scenario_flags_from_protocol(protocol) -> dict[str, bool]:
+    """Extract every `derive_lab_values` scenario flag from a disease YAML
+    protocol (dict, Pydantic object, or None).
+
+    Centralizes the `getattr(protocol, "causes_X", False)` / `protocol.get(...)`
+    reads so a new flag added to `derive_lab_values` only needs wiring in
+    ONE place — not at every call site across inpatient/emergency/outpatient.
+    Dict keys match `derive_lab_values` parameter names so callers can spread
+    with `**flags`.
+
+    Phase 2a (2026-06-24) introduces this helper to fix J5: pre-helper, only
+    inpatient.py:559-560 (Pass-1) read `causes_myocardial_injury`; the second
+    inpatient lab path, emergency.py, and outpatient.py passed nothing, so
+    MI patients in the ED had no troponin upshift. Same gap would have
+    occurred for any newly added scenario flag.
+    """
+    if protocol is None:
+        return {"myocardial_injury": False, "causes_vte": False}
+
+    def _read(name: str) -> bool:
+        if isinstance(protocol, dict):
+            return bool(protocol.get(name, False))
+        return bool(getattr(protocol, name, False))
+
+    return {
+        "myocardial_injury": _read("causes_myocardial_injury"),
+        "causes_vte": _read("causes_vte"),
+    }
+
+
 def derive_lab_values(
     state: PhysiologicalState,
     sex: str,
@@ -225,6 +255,7 @@ def derive_lab_values(
     rng: np.random.Generator | None = None,
     hour: int = 6,
     myocardial_injury: bool = False,
+    causes_vte: bool = False,
 ) -> dict[str, float]:
     """Derive lab values from physiological state. Returns 'true' values before noise."""
     labs: dict[str, float] = {}
@@ -338,6 +369,24 @@ def derive_lab_values(
         300.0 + infl * 250.0 - state.coagulation_status * 280.0,
         50.0, 800.0,
     )
+
+    # D-dimer (ug/mL FEU). Baseline 0.3 + age-adjustment (well-documented
+    # +0.005 / year above 50) + inflammation contribution (sepsis lifts
+    # modestly, non-VTE-specific) + coagulation_status (DIC/fibrinolysis
+    # lifts further). The decisive signal is `causes_vte`: PE/DVT/embolic
+    # stroke push D-dimer to clinically positive 5-20 ug/mL territory.
+    # Clamp floor 0.15 (laboratory detection floor), ceiling 20 (assay
+    # upper limit). AD-57 BNP-pattern surgical: scenario flag is the
+    # input, no state mutation, no master-RNG draw.
+    age_factor = max(0.0, age - 50) * 0.005
+    d_dimer = (
+        0.3
+        + age_factor
+        + infl * 0.5
+        + state.coagulation_status * 1.5
+        + (4.0 if causes_vte else 0.0)
+    )
+    labs["D_dimer"] = clamp(d_dimer, 0.15, 20.0)
 
     # --- Perfusion ---
     labs["Lactate"] = 1.0 + (1 - perfusion) * 12

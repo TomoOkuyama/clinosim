@@ -46,6 +46,11 @@ codes:
   2B100:
     en: Fibrinogen
     ja: フィブリノゲン
+  2B140:
+    # JSLM v137 sheet 「分析物コード」 row: 2B140 / D-Dダイマー /
+    # FDP Dダイマー / D-D dimer
+    en: D-D dimer
+    ja: D-Dダイマー
   2Z010:
     en: Erythrocyte sedimentation rate
     ja: 血沈

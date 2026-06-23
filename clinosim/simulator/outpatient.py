@@ -142,10 +142,15 @@ def _simulate_outpatient_visit(
     # Labs (if specified in followup schedule).
     # Comorbidity-aware true values via the same physiology path as inpatient (AD-57);
     # reuses `_state` initialized above for vitals.
-    from clinosim.modules.physiology.engine import derive_lab_values
+    from clinosim.modules.physiology.engine import derive_lab_values, scenario_flags_from_protocol
     from clinosim.modules.observation.engine import BASELINE_LAB_NORMALS
     _has_dm = any("E11" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
-    _true_labs = derive_lab_values(_state, sex=patient.sex, age=patient.age, has_diabetes=_has_dm)
+    # J5 (Phase 2a): outpatient follow-ups carry no acute scenario flag by
+    # design — causes_vte / causes_myocardial_injury describe acute events
+    # (ED / inpatient presentations), not chronic-disease monitoring visits.
+    # Explicit None makes the intent visible and pins the contract.
+    _flags = scenario_flags_from_protocol(None)
+    _true_labs = derive_lab_values(_state, sex=patient.sex, age=patient.age, has_diabetes=_has_dm, **_flags)
     # Reference-normal fallback for analytes physiology doesn't model (HbA1c, WBC, CRP, etc.
     # are physiology-modeled and resolve via _true_labs first). DET-6 single source.
     baseline_values = BASELINE_LAB_NORMALS
