@@ -37,6 +37,7 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 - Each module under `clinosim/modules/` can only depend on `clinosim/types/`, `clinosim/codes/`, `clinosim/locale/`, and other modules listed in its `README.md` Dependencies section.
 - **LLM calls only via `llm_service`** (AD-11) — no other module may call Ollama or Anthropic APIs directly.
 - **Deterministic with seed** (AD-16) — each module creates its own `numpy.random.Generator` from a sub-seed. Never use `random.random()` or shared global state.
+- **Per-order lab RNG isolation** (AD-59) — every lab order (panel children AND individual scalar orders) draws specimen-rejection / hemolysis / technician / noise from a per-order sub-rng (`simulator/seeding.py:panel_specimen_seed` / `individual_lab_seed`), NOT the patient-scoped master RNG. When extending `derive_lab_values` with a new analyte or adding a `{test:"X"}` order to a disease/encounter YAML, route any per-lab RNG draw through these helpers so YAML edits cannot shift unrelated patients' cohorts. Guard: `tests/integration/test_individual_lab_isolation.py`.
 
 ### EHR data enrichment — Base vs Module (AD-55) + extensibility (AD-56)
 
