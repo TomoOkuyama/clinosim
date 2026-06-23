@@ -691,6 +691,100 @@ def test_ca_dehydration_normal_upper_range():
         f"dehydration Ca should land in upper-normal (got {labs['Ca']})"
 
 
+# -----------------------------------------------------------------------------
+# Coagulation panel (LOINC 24373-3 + Fibrinogen) — APTT / PT / Fibrinogen.
+# AD-57 BNP-pattern surgical: formulas only, no new state field, no state
+# mutation. derived from existing coagulation_status + inflammation_level
+# axes (already populated by apply_coupling_rules: DIC, hepatic factor
+# depletion, sepsis acute-phase).
+# -----------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_aptt_healthy_state():
+    """APTT in healthy patient sits in the reference range 25-38 s."""
+    state = PhysiologicalState()
+    labs = derive_lab_values(state, sex="M", age=45)
+    assert "APTT" in labs
+    assert 25.0 <= labs["APTT"] <= 38.0, \
+        f"APTT={labs['APTT']} out of healthy range"
+
+
+@pytest.mark.unit
+def test_aptt_severe_dic_prolongation():
+    """Severe DIC (coagulation_status=1.0) → APTT > 65 s (markedly prolonged)."""
+    state = PhysiologicalState(coagulation_status=1.0)
+    labs = derive_lab_values(state, sex="M", age=45)
+    assert labs["APTT"] > 65.0, \
+        f"APTT={labs['APTT']} should be DIC-prolonged"
+    assert labs["APTT"] <= 150.0, "APTT must respect upper clamp"
+
+
+@pytest.mark.unit
+def test_pt_consistency_invariant_healthy():
+    """PT = 12 * PT_INR exactly (ISI=1.0 simplification) for any state. Tested
+    here for a healthy patient where PT_INR ≈ 1.0 → PT ≈ 12 s."""
+    state = PhysiologicalState()
+    labs = derive_lab_values(state, sex="M", age=45)
+    assert "PT" in labs
+    assert abs(labs["PT"] - 12.0 * labs["PT_INR"]) < 0.01, \
+        f"PT={labs['PT']} != 12 * PT_INR={labs['PT_INR']}"
+
+
+@pytest.mark.unit
+def test_pt_hepatic_failure_prolongation():
+    """Hepatic failure (hepatic_function=0.2): PT_INR ≈ 2.6, PT ≥ 17 s.
+
+    The PT_INR formula (line 307 of engine.py) is
+        PT_INR = 1.0 + (1 - hepatic) * 2.0 + coag * 1.5
+    so hepatic=0.2, coag=0 → PT_INR = 1.0 + 0.8*2 = 2.6 → PT = 31.2 s.
+    """
+    state = PhysiologicalState(hepatic_function=0.2)
+    labs = derive_lab_values(state, sex="M", age=45)
+    assert labs["PT"] >= 17.0, \
+        f"PT={labs['PT']} should be prolonged in hepatic failure"
+    assert abs(labs["PT"] - 12.0 * labs["PT_INR"]) < 0.01
+
+
+@pytest.mark.unit
+def test_fibrinogen_healthy_state():
+    """Healthy: ~300 mg/dL, in reference range 200-400."""
+    state = PhysiologicalState()
+    labs = derive_lab_values(state, sex="M", age=45)
+    assert "Fibrinogen" in labs
+    assert 200.0 <= labs["Fibrinogen"] <= 400.0, \
+        f"Fibrinogen={labs['Fibrinogen']} out of healthy band"
+
+
+@pytest.mark.unit
+def test_fibrinogen_severe_dic_consumption():
+    """Severe DIC (coag=1.0, no inflammation): Fibrinogen consumed to floor."""
+    state = PhysiologicalState(coagulation_status=1.0)
+    labs = derive_lab_values(state, sex="M", age=45)
+    assert labs["Fibrinogen"] <= 100.0, \
+        f"Fibrinogen={labs['Fibrinogen']} should be DIC-consumed below 100"
+    assert labs["Fibrinogen"] >= 50.0, "Fibrinogen must respect 50 mg/dL floor"
+
+
+@pytest.mark.unit
+def test_fibrinogen_acute_phase_elevation():
+    """Sepsis WITHOUT DIC (infl=0.85, coag=0): acute-phase reactant → ≥ 450."""
+    state = PhysiologicalState(inflammation_level=0.85)
+    labs = derive_lab_values(state, sex="M", age=45)
+    assert labs["Fibrinogen"] >= 450.0, \
+        f"Fibrinogen={labs['Fibrinogen']} should be acute-phase elevated"
+
+
+@pytest.mark.unit
+def test_fibrinogen_sepsis_dic_falls_below_baseline():
+    """Sepsis + early DIC (infl=0.85, coag=0.80): consumption outpaces
+    acute-phase rise; Fibrinogen lands at DIC-trending level (< 250)."""
+    state = PhysiologicalState(inflammation_level=0.85, coagulation_status=0.80)
+    labs = derive_lab_values(state, sex="M", age=45)
+    assert labs["Fibrinogen"] < 350.0, \
+        f"Fibrinogen={labs['Fibrinogen']} should show consumption overtaking acute-phase"
+
+
 @pytest.mark.unit
 def test_anion_gap_status_does_not_mutate_other_labs():
     """AG axis must NOT cascade. Compare derive output for AG=0 vs AG=1 with

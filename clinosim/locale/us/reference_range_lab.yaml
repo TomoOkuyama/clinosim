@@ -103,6 +103,10 @@ ranges:
   # === Coagulation ===
   PT_INR:
     - {low: 0.8, high: 1.1, unit: "{INR}", text: "Standard reference interval (no anticoagulation)"}
+  PT:
+    - {low: 11, high: 13, unit: "s", text: "Standard reference interval (PT, seconds)"}
+  APTT:
+    - {low: 25, high: 38, unit: "s", text: "Standard reference interval"}
   Fibrinogen:
     - {low: 200, high: 400, unit: "mg/dL", text: "Standard reference interval"}
 

@@ -139,7 +139,9 @@ codes:
     en: Inhaled oxygen flow rate
     ja: 吸入酸素流量
   3255-7:
-    en: Fibrinogen [Mass/volume] in Platelet poor plasma by Coagulation assay
+    # NLM COMPONENT="Fibrinogen"; clinosim convention uses clean short names
+    # (TestLoincDisplay guards against [Mass/volume] etc. in `display`).
+    en: Fibrinogen
     ja: フィブリノーゲン（血漿）
   32693-4:
     en: Lactate [Moles/volume] in Blood
@@ -326,3 +328,8 @@ codes:
   24338-6:
     en: Gas panel - Arterial blood
     ja: 動脈血ガスパネル
+  # NLM Clinical Tables verified (clinicaltables.nlm.nih.gov/api/loinc_items).
+  # PT 5902-2 already present above; Fibrinogen 3255-7 also already present.
+  14979-9:
+    en: aPTT
+    ja: 活性化部分トロンボプラスチン時間

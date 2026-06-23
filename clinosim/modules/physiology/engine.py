@@ -312,6 +312,33 @@ def derive_lab_values(
     labs["Hct"] = labs["Hb"] * 3.0
     labs["Plt"] = max(20, 250 - state.coagulation_status * 200)
 
+    # --- Coagulation panel (LOINC 24373-3 components + Fibrinogen adjunct) ---
+    # APTT (activated partial thromboplastin time, seconds). Normal 25-35;
+    # DIC 60-100+. Intrinsic-pathway sensitive; coagulation_status proxies
+    # DIC + hepatic factor depletion already aggregated upstream by
+    # apply_coupling_rules. State-unchanged formula per AD-57 BNP-pattern
+    # surgical; no new PhysiologicalState field.
+    labs["APTT"] = clamp(30.0 + state.coagulation_status * 55.0, 20.0, 150.0)
+
+    # PT (prothrombin time, seconds). Mathematically tied to PT_INR via
+    # INR = (PT / normal_PT)^ISI; with ISI ≈ 1.0 and normal_PT ≈ 12 s,
+    # PT ≈ 12 * PT_INR. Derived FROM PT_INR (not in parallel) so the two
+    # never numerically disagree.
+    labs["PT"] = clamp(12.0 * labs["PT_INR"], 9.0, 90.0)
+
+    # Fibrinogen (mg/dL). Biphasic: acute-phase reactant (inflammation ↑↑)
+    # AND consumed in DIC (coagulation_status ↑↑). Healthy baseline 200-400.
+    # Sepsis without DIC: rises to ~510 (acute-phase). Sepsis WITH DIC:
+    # consumption outpaces acute-phase and Fibrinogen falls below 350 (the
+    # DIC-trending signal clinicians look for). Floor 50 mg/dL (laboratory
+    # detection floor; clinically <100 indicates severe consumptive coagulopathy).
+    # Panel-external: LOINC 24373-3 Coag panel covers PT/PT_INR/APTT only;
+    # Fibrinogen 3255-7 emits as an individual Observation.
+    labs["Fibrinogen"] = clamp(
+        300.0 + infl * 250.0 - state.coagulation_status * 280.0,
+        50.0, 800.0,
+    )
+
     # --- Perfusion ---
     labs["Lactate"] = 1.0 + (1 - perfusion) * 12
 

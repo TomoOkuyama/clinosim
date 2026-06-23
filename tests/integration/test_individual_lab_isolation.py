@@ -73,6 +73,46 @@ def test_dka_individual_cl_order_now_resulted():
 
 
 @pytest.mark.integration
+def test_sepsis_individual_fibrinogen_order_now_resulted():
+    """Sepsis YAML orders {test:"Fibrinogen", urgency:"stat"} on admission
+    plus daily PT_INR. Before the Coag panel PR (2026-06-23), Fibrinogen
+    silently dropped (no derive); APTT also silently dropped on the MI/GI-
+    bleed/subdural paths. After this PR adds APTT / PT(seconds) / Fibrinogen
+    to derive_lab_values, all three must result with physiologic values.
+
+    Counterpart to test_dka_individual_cl_order_now_resulted (Cl) — same
+    invariant for the coag-panel additions on the individual-order path.
+    """
+    scenario = ForcedScenario(
+        disease_id="sepsis", count=3, severity="moderate",
+    )
+    cfg = SimulatorConfig(random_seed=42, country="US")
+    dataset = run_forced(scenario, cfg)
+
+    for record in dataset.patients:
+        fib_individual = [
+            o for o in record.orders
+            if o.display_name == "Fibrinogen"
+            and not (o.order_id.endswith("-Fibrinogen") and "-" in o.order_id[:-len("-Fibrinogen")])
+        ]
+        assert fib_individual, (
+            f"Sepsis patient {record.patient.patient_id} should have at least one "
+            f"individual Fibrinogen order (from sepsis.yaml admission_orders)"
+        )
+        resulted = [o for o in fib_individual if o.status == OrderStatus.RESULTED]
+        assert resulted, (
+            f"Sepsis patient {record.patient.patient_id}: every individual "
+            f"Fibrinogen order is non-RESULTED — derive_lab_values should now "
+            f"produce Fibrinogen so the order resolves."
+        )
+        for o in resulted:
+            assert o.result is not None and o.result.value is not None
+            assert 50 <= o.result.value <= 800, (
+                f"Fibrinogen value {o.result.value} out of physiological range"
+            )
+
+
+@pytest.mark.integration
 def test_simulator_deterministic_across_repeated_runs():
     """Same seed twice = byte-identical CIF output. Validates that the
     Pass 1 sub-RNG (individual_lab_seed) and Pass 2 sub-RNG
