@@ -303,3 +303,44 @@ class TestBuildLabPanelReports:
         out = build_lab_panel_reports(self._ctx(orders, country="JP"))
         assert len(out) == 1
         assert out[0]["code"]["coding"][0]["display"] == "全血球計算パネル"
+
+
+@pytest.mark.unit
+class TestPanelYAMLs:
+    """Improvements I1 / I2 / I3: panel YAMLs are aligned across input
+    (lab_panels.yaml = panel order expansion) and output
+    (lab_panel_groups.yaml = DR grouping)."""
+
+    def test_lab_panels_yaml_has_coag_lft_lipid_ua(self):
+        """I1: lab_panels.yaml (expansion source) gains Coag/LFT/Lipid/UA
+        to match lab_panel_groups.yaml (DR grouping source)."""
+        import yaml
+        from pathlib import Path
+        import clinosim
+        path = Path(clinosim.__file__).parent / "modules/observation/reference_data/lab_panels.yaml"
+        panels = yaml.safe_load(path.read_text())
+        assert panels["Coag"] == ["PT", "PT_INR", "APTT"]
+        assert panels["LFT"] == ["AST", "ALT", "ALP", "T_Bil", "Albumin", "TP", "GGT", "LDH"]
+        assert panels["Lipid"] == ["TC", "LDL", "HDL", "TG"]
+        assert "UA" in panels
+
+    def test_lab_panel_groups_documents_coag_authoritative_scope(self):
+        """I2: lab_panel_groups.yaml documents Fibrinogen exclusion + LOINC 24373-3 scope."""
+        from pathlib import Path
+        import clinosim
+        path = Path(clinosim.__file__).parent / "modules/output/reference_data/lab_panel_groups.yaml"
+        text = path.read_text()
+        assert "24373-3" in text
+        assert "Fibrinogen" in text  # documents why it's NOT in Coag components
+
+    def test_lab_panels_yaml_header_does_not_cite_clca_silent_drop(self):
+        """I3: stale 'e.g. Cl/Ca in BMP today' comment is removed (PR #78
+        added Cl/Ca derives; the example is now misleading)."""
+        from pathlib import Path
+        import clinosim
+        path = Path(clinosim.__file__).parent / "modules/observation/reference_data/lab_panels.yaml"
+        text = path.read_text()
+        # The stale phrasing referenced "Cl/Ca in BMP today" as a silent-drop
+        # example. After PR #78 (Cl/Ca added) that example is no longer
+        # accurate; UA's urine analytes are the only remaining silent-drops.
+        assert "Cl/Ca in BMP today" not in text
