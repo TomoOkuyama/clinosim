@@ -142,10 +142,10 @@ def report(dist) -> int:
         wp = buckets["with_parent"]
         co = buckets["coincidence"]
         print(f"\n=== {panel} ===")
-        print(f"  components-present distribution (with panel order):")
+        print("  components-present distribution (with panel order):")
         for n in sorted(wp):
             print(f"    {n} components: {wp[n]:5d}")
-        print(f"  components-present distribution (coincidence only):")
+        print("  components-present distribution (coincidence only):")
         for n in sorted(co):
             print(f"    {n} components: {co[n]:5d}")
         floor = percentile(wp, 5.0)
