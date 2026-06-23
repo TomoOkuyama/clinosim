@@ -29,13 +29,11 @@ panels:
     loinc: "51990-0"
     display: "Basic metabolic 2000 panel - Serum or Plasma"
     components: [Na, K, Cl, HCO3, BUN, Creatinine, Glucose, Ca]
-    # canonical N − 1 rule: BMP has 8 listed components but Cl and Ca
-    # are silently dropped at Pass 2 because derive_lab_values does not
-    # produce them yet, so the emit-able canonical N = 6 (Na, K, HCO3,
-    # BUN, Creatinine, Glucose). 6 − 1 = 5. When Cl/Ca are added to the
-    # physiology engine (separate backlog), an audit-driven PR can
-    # raise this to 7.
-    min_components: 5
+    # canonical N − 1 rule (PR #75): BMP has 8 listed components and as of
+    # the Cl/Ca physiology PR (2026-06-23), derive_lab_values produces all
+    # 8. The 5th-percentile bucket of "panel-order-placed" days now holds
+    # ≥ 7 components, validated by scratchpad/cbc_bmp_panel_audit.py.
+    min_components: 7
 
   LFT:
     loinc: "24325-3"
