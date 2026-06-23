@@ -43,12 +43,14 @@ initial_state_impact:
     volume_status: -0.25
     perfusion_status: -0.15
     renal_function: -0.05
+    anion_gap_status: 0.2     # AG axis: hemorrhagic shock contribution
   severe:
     inflammation_level: 0.60
     anemia_level: 0.40
     volume_status: -0.50
     perfusion_status: -0.35
     renal_function: -0.15
+    anion_gap_status: 0.3     # AG axis: severe shock lactate (AG 14-18)
 
 presenting_symptoms:
   - {name: "multiple_trauma", probability: 1.0, severity_range: [0.7, 1.0]}

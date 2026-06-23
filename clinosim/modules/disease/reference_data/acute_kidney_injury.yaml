@@ -108,18 +108,21 @@ initial_state_impact:
     renal_function: -0.25
     volume_status: 0.05      # fluid retention
     inflammation_level: 0.10
+    anion_gap_status: 0.2    # AG axis: mild uremic AG (AG 12-15)
   moderate:
     renal_function: -0.45
     volume_status: 0.15
     inflammation_level: 0.20
     ph_status: -0.05
     perfusion_status: -0.05
+    anion_gap_status: 0.4    # AG axis: moderate uremia + acidosis (AG 14-18)
   severe:
     renal_function: -0.65
     volume_status: 0.25
     inflammation_level: 0.35
     ph_status: -0.15
     perfusion_status: -0.15
+    anion_gap_status: 0.6    # AG axis: severe uremia (AG 18-22)
 
 # ============================================================
 # ORDER PROTOCOLS

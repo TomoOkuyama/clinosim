@@ -107,6 +107,7 @@ initial_state_impact:
     perfusion_status: -0.15
     inflammation_level: 0.15
     ph_status: -0.03
+    anion_gap_status: 0.1     # AG axis: minimal AG contribution (mild lactate)
   severe:
     cardiac_function: -0.50
     perfusion_status: -0.30
@@ -114,6 +115,7 @@ initial_state_impact:
     ph_status: -0.10
     renal_function: -0.10
     volume_status: -0.10
+    anion_gap_status: 0.3     # AG axis: cardiogenic shock with lactic acidosis (AG 13-16)
 
 # ============================================================
 # ORDER PROTOCOLS (what to order and when)

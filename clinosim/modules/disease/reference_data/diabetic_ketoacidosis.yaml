@@ -116,6 +116,7 @@ initial_state_impact:
     renal_function: -0.15       # prerenal AKI from volume depletion
     perfusion_status: -0.10     # tachycardia, mild hypotension
     electrolyte_status: -0.20   # total body K depleted despite normal/high serum K
+    anion_gap_status: 1.0       # AG axis: ketoacids drive high-AG (AG 20-30)
   severe:
     ph_status: -0.60            # severe acidosis (pH <7.00)
     volume_status: -0.60        # severe dehydration (6-9L deficit)
@@ -124,6 +125,7 @@ initial_state_impact:
     perfusion_status: -0.30     # hypotension, shock possible
     electrolyte_status: -0.40   # severe electrolyte derangement
     consciousness: -0.30        # obtunded or comatose
+    anion_gap_status: 1.0       # AG axis: severe DKA (AG 25-35)
 
 # ============================================================
 # ORDER PROTOCOLS (what to order and when)
