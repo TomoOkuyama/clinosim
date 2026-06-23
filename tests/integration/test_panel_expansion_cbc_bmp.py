@@ -15,8 +15,10 @@ from clinosim.types.config import ForcedScenario, SimulatorConfig
 from clinosim.types.encounter import OrderStatus
 
 CBC_COMPONENTS = {"WBC", "Hb", "Hct", "Plt"}
-BMP_COMPONENTS_EMITTED = {"Na", "K", "HCO3", "BUN", "Creatinine", "Glucose"}
-BMP_COMPONENTS_DROPPED = {"Cl", "Ca"}
+# Phase 1 (BMP Cl/Ca physiology) added Cl and Ca to derive_lab_values, so
+# BMP now emits the full canonical 8. Pre-Phase-1, the emit set was 6 and
+# Cl/Ca were silently dropped — see git log for the prior assertions.
+BMP_COMPONENTS_EMITTED = {"Na", "K", "Cl", "HCO3", "BUN", "Creatinine", "Glucose", "Ca"}
 
 
 def _emitted_lab_names(record) -> set[str]:
@@ -54,10 +56,10 @@ def test_cerebral_infarction_cbc_emits_four_components():
 
 
 @pytest.mark.integration
-def test_dka_bmp_emits_six_components_and_drops_cl_ca():
-    """A DKA patient orders {test: "BMP"} at admission; PR1 expands it into
-    eight child orders but the scalar-resulted path drops Cl/Ca (not in
-    derive_lab_values today). The other six components emit normally."""
+def test_dka_bmp_emits_eight_components_full_canonical():
+    """A DKA patient orders {test: "BMP"} at admission; PR1 expanded it into
+    eight child orders and Phase 1 (Cl/Ca added to derive_lab_values) makes
+    all eight components RESULT — full BMP canonical 8."""
     scenario = ForcedScenario(
         disease_id="diabetic_ketoacidosis", count=2, severity="moderate",
     )
@@ -67,12 +69,8 @@ def test_dka_bmp_emits_six_components_and_drops_cl_ca():
     for record in dataset.patients:
         emitted = _emitted_lab_names(record)
         assert BMP_COMPONENTS_EMITTED.issubset(emitted), (
-            f"Expected emitted BMP components {BMP_COMPONENTS_EMITTED}, "
+            f"Expected full canonical BMP components {BMP_COMPONENTS_EMITTED}, "
             f"got intersection {BMP_COMPONENTS_EMITTED & emitted}"
-        )
-        assert not (BMP_COMPONENTS_DROPPED & emitted), (
-            f"Cl/Ca should be silently dropped pending derive_lab_values "
-            f"extension, but found: {BMP_COMPONENTS_DROPPED & emitted}"
         )
 
 
@@ -123,11 +121,11 @@ def test_panel_children_cancellation_is_per_specimen():
 
 
 @pytest.mark.integration
-def test_dka_bmp_children_with_unrecognised_components_stay_placed():
-    """Cl and Ca BMP children are silently dropped at the panel sub-RNG pass
-    because derive_lab_values does not yet produce them. The dropped children
-    should remain PLACED (no result, no CANCELLED, no panic) so that adding
-    Cl/Ca to the engine later resurrects them with no further plumbing."""
+def test_dka_bmp_cl_ca_children_now_resulted():
+    """Phase 1 (Cl/Ca added to derive_lab_values) inverts the prior
+    behaviour: Cl and Ca BMP children — previously left at PLACED with no
+    result because derive_lab_values dropped them — now RESULT alongside
+    their six siblings, completing the canonical 8."""
     scenario = ForcedScenario(
         disease_id="diabetic_ketoacidosis", count=2, severity="moderate",
     )
@@ -148,18 +146,22 @@ def test_dka_bmp_children_with_unrecognised_components_stay_placed():
                 o for o in record.orders
                 if o.order_id == f"{parent.order_id}-Ca"
             ]
-            # When the specimen wasn't rejected, every panel parent should
-            # have child rows for Cl and Ca in PLACED status; if specimen
-            # was rejected, they'd be CANCELLED. They must not be RESULTED.
+            # Specimen acceptance path: every Cl/Ca child should be
+            # RESULTED with a numerical result. Specimen rejection path
+            # (per-parent sub-RNG cancels all children together) stays
+            # covered by test_panel_children_cancellation_is_per_specimen.
             for child in cl_children + ca_children:
-                assert child.status in {OrderStatus.PLACED, OrderStatus.CANCELLED}, (
+                if child.status == OrderStatus.CANCELLED:
+                    # Specimen rejected — siblings also CANCELLED, no result
+                    continue
+                assert child.status == OrderStatus.RESULTED, (
                     f"BMP child {child.order_id} ({child.display_name}) "
-                    f"unexpectedly RESULTED; derive_lab_values does not "
-                    f"produce {child.display_name} today."
+                    f"should be RESULTED after Phase 1 (Cl/Ca emit) — "
+                    f"got {child.status}."
                 )
-                assert child.result is None, (
+                assert child.result is not None, (
                     f"BMP child {child.order_id} ({child.display_name}) "
-                    f"carries a result despite not being in true_labs."
+                    f"has no result despite being RESULTED."
                 )
 
 

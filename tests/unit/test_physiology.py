@@ -595,3 +595,114 @@ def test_anion_gap_status_field_is_settable():
     assert state.anion_gap_status == 1.0
     state.anion_gap_status = -0.5
     assert state.anion_gap_status == -0.5
+
+
+def _healthy_state() -> PhysiologicalState:
+    return PhysiologicalState()
+
+
+def _dka_state() -> PhysiologicalState:
+    """DKA: severe metabolic acidosis with high AG (ketone bodies)."""
+    return PhysiologicalState(
+        ph_status=-0.5, respiratory_fraction=0.0,
+        anion_gap_status=1.0, glucose_status=0.6,
+        volume_status=-0.4, renal_function=0.85,
+    )
+
+
+def _sepsis_state() -> PhysiologicalState:
+    """Sepsis: high inflammation + lactic acidosis (high-AG mixed)."""
+    return PhysiologicalState(
+        inflammation_level=0.85, ph_status=-0.30,
+        respiratory_fraction=0.0, anion_gap_status=0.7,
+        perfusion_status=0.5,
+    )
+
+
+def _diarrhea_state() -> PhysiologicalState:
+    """Non-AG hyperchloremic acidosis from GI HCO3 loss."""
+    return PhysiologicalState(
+        inflammation_level=0.08, ph_status=-0.25,
+        respiratory_fraction=0.0, anion_gap_status=-0.5,
+        volume_status=-0.22,
+    )
+
+
+def _ckd_state() -> PhysiologicalState:
+    """CKD: low renal function with uremic mild AG."""
+    return PhysiologicalState(
+        renal_function=0.3, anion_gap_status=0.4,
+        ph_status=-0.1, respiratory_fraction=0.0,
+    )
+
+
+def _dehydration_state() -> PhysiologicalState:
+    """Mild dehydration (hyper-Na, no acid-base disturbance)."""
+    return PhysiologicalState(sodium_status=0.3, volume_status=-0.2)
+
+
+@pytest.mark.unit
+def test_cl_normal_healthy_state():
+    labs = derive_lab_values(_healthy_state(), sex="M", age=45)
+    assert 100 <= labs["Cl"] <= 106, f"healthy Cl out of range: {labs['Cl']}"
+
+
+@pytest.mark.unit
+def test_cl_high_ag_dka_keeps_normal():
+    """High AG: unmeasured anion absorbs HCO3 deficit, Cl stays near normal."""
+    labs = derive_lab_values(_dka_state(), sex="M", age=45)
+    assert labs["Cl"] <= 108, f"DKA should keep Cl near normal (got {labs['Cl']})"
+    ag = labs["Na"] - labs["Cl"] - labs["HCO3"]
+    assert ag >= 20, f"DKA AG should be >= 20 (got {ag})"
+
+
+@pytest.mark.unit
+def test_cl_non_ag_diarrhea_hyperchloremic():
+    """Non-AG: Cl absorbs the HCO3 deficit 1:1, hyperchloremic."""
+    labs = derive_lab_values(_diarrhea_state(), sex="M", age=45)
+    assert labs["Cl"] >= 108, \
+        f"diarrhea non-AG should give Cl >= 108 (got {labs['Cl']})"
+    ag = labs["Na"] - labs["Cl"] - labs["HCO3"]
+    assert 5 <= ag <= 14, f"diarrhea AG should be normal (got {ag})"
+
+
+@pytest.mark.unit
+def test_ca_normal_healthy_state():
+    labs = derive_lab_values(_healthy_state(), sex="M", age=45)
+    assert 9.0 <= labs["Ca"] <= 10.0, f"healthy Ca out of range: {labs['Ca']}"
+
+
+@pytest.mark.unit
+def test_ca_sepsis_low_calcium():
+    labs = derive_lab_values(_sepsis_state(), sex="M", age=45)
+    assert labs["Ca"] < 9.0, f"sepsis should give Ca < 9.0 (got {labs['Ca']})"
+
+
+@pytest.mark.unit
+def test_ca_ckd_low_calcium():
+    labs = derive_lab_values(_ckd_state(), sex="M", age=45)
+    assert labs["Ca"] < 9.2, f"CKD should give Ca < 9.2 (got {labs['Ca']})"
+
+
+@pytest.mark.unit
+def test_ca_dehydration_normal_upper_range():
+    labs = derive_lab_values(_dehydration_state(), sex="M", age=45)
+    assert 9.3 <= labs["Ca"] <= 10.0, \
+        f"dehydration Ca should land in upper-normal (got {labs['Ca']})"
+
+
+@pytest.mark.unit
+def test_anion_gap_status_does_not_mutate_other_labs():
+    """AG axis must NOT cascade. Compare derive output for AG=0 vs AG=1 with
+    all other state held equal — only Cl should change. In a healthy state
+    HCO3=24 so the AG term collapses; only the Cl value can shift between
+    the two via the (HCO3-deficit * non_ag_fraction) term, which is zero
+    when HCO3 is normal."""
+    base = _healthy_state()
+    high_ag = PhysiologicalState(anion_gap_status=1.0)
+    labs_base = derive_lab_values(base, sex="M", age=45)
+    labs_ag = derive_lab_values(high_ag, sex="M", age=45)
+    for key in ("HCO3", "pCO2", "pH", "K", "Na", "Creatinine", "BUN", "Ca",
+                "WBC", "CRP", "BNP", "Lactate", "Glucose", "HbA1c", "Cl"):
+        assert abs(labs_base[key] - labs_ag[key]) < 1e-9, \
+            f"AG axis should not affect {key} (base={labs_base[key]}, ag={labs_ag[key]})"
