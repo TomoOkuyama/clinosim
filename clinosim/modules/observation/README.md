@@ -561,8 +561,10 @@ class NursingRiskAssessment:
 - `lab_aliases.yaml` — オーダー名のバリアント → 正準 analyte。`canonical_lab_name(name)` が解決
   (例: `Troponin` / `Troponin_I_stat` / `Troponin_I_serial_6h` → `Troponin_I`、`ABG_repeat_1h` → `ABG`)。
 - `lab_panels.yaml` — パネル → 構成要素。`lab_panel_components(name)` が返す
-  (例: `ABG` → `[pH, pCO2, pO2, HCO3]`)。simulator がパネルオーダーを構成要素オーダーに展開し、
-  各要素が上記スカラー経路で結果化される。
+  (例: `ABG` → `[pH, pCO2, pO2, HCO3]`、`BMP` → canonical 8 = `[Na, K, Cl, HCO3, BUN, Creatinine, Glucose, Ca]`)。
+  simulator がパネルオーダーを構成要素オーダーに展開し、各要素が上記スカラー経路で結果化される。
+  panel child の specimen-rejection / hemolysis は per-parent sub-RNG
+  (`simulator/seeding.py:panel_specimen_seed`、AD-16/AD-59) で発生し、master stream を汚染しない。
 - `microbiology.yaml` — 培養/感受性の起因菌・検体・抗菌薬コード + 疾患別分布 (`microbiology.py`)。
 
 **venue 横断の真値源 (AD-57)**: 入院/ED/外来とも `physiology.derive_lab_values(state)` で真値生成し、
