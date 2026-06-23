@@ -76,7 +76,7 @@ from clinosim.simulator.helpers import (
     _disease_to_department,
     _evaluate_mortality,
 )
-from clinosim.simulator.seeding import panel_specimen_seed
+from clinosim.simulator.seeding import individual_lab_seed, panel_specimen_seed
 
 
 # ============================================================
@@ -598,24 +598,30 @@ def _run_daily_loop(
         all_orders.extend(_panel_children)
         _panel_child_ids = {c.order_id for c in _panel_children}
 
-        # === Pass 1: scalar + non-panel orders, drawn from the master patient-scoped RNG.
-        # Panel children are skipped here; they are resulted in Pass 2 against a
-        # deterministic sub-RNG keyed on the parent's order_id, so the master stream
-        # is unaffected by which (or how many) panels live in lab_panels.yaml.
+        # === Pass 1: scalar + non-panel orders, drawn from a per-order isolated
+        # sub-RNG (individual_lab_seed). This mirrors the panel-children Pass 2
+        # design: each individual lab order is one specimen, so specimen
+        # rejection, hemolysis, technician assignment, and noise must come from
+        # an isolated stream so YAML edits that flip a {test:"X"} order from
+        # "engine doesn't produce X" to "engine produces X" (e.g. Cl/Ca after
+        # derive_lab_values is extended) cannot shuffle unrelated patients'
+        # cohorts via the master stream (AD-16). Panel children are skipped
+        # here; they are resulted in Pass 2 against panel_specimen_seed.
         for order in all_orders:
             if order.order_id in _panel_child_ids:
                 continue
             canon = canonical_lab_name(order.display_name)
             if order.order_type.value == "lab" and order.status == OrderStatus.PLACED and canon in true_labs:
+                lab_rng = np.random.default_rng(individual_lab_seed(order.order_id))
                 # Pre-analytical issues: specimen rejection (~2%), hemolysis (~3% for K/LDH)
-                if rng.random() < 0.02:
+                if lab_rng.random() < 0.02:
                     order.status = OrderStatus.CANCELLED
                     continue  # specimen lost/rejected
-                if canon in ("K", "LDH") and rng.random() < 0.03:
+                if canon in ("K", "LDH") and lab_rng.random() < 0.03:
                     # Hemolyzed sample → falsely elevated K/LDH, flagged
-                    result_time = calculate_result_time_from_state(order, hospital_state, hospital_ops or {}, rng)
-                    hemolyzed_val = true_labs[canon] * float(rng.uniform(1.2, 1.8))
-                    lab_tech = assign_staff("lab_result", "", roster, rng).get("performing_technician", "TECH-001")
+                    result_time = calculate_result_time_from_state(order, hospital_state, hospital_ops or {}, lab_rng)
+                    hemolyzed_val = true_labs[canon] * float(lab_rng.uniform(1.2, 1.8))
+                    lab_tech = assign_staff("lab_result", "", roster, lab_rng).get("performing_technician", "TECH-001")
                     order.result = OrderResult(
                         result_datetime=result_time, performed_by=lab_tech,
                         lab_name=canon, value=round(hemolyzed_val, 1),
@@ -625,10 +631,10 @@ def _run_daily_loop(
                     all_lab_results.append(order.result)
                     continue
 
-                result_time = calculate_result_time_from_state(order, hospital_state, hospital_ops or {}, rng)
-                observed = generate_lab_result(canon, true_labs[canon], rng)
+                result_time = calculate_result_time_from_state(order, hospital_state, hospital_ops or {}, lab_rng)
+                observed = generate_lab_result(canon, true_labs[canon], lab_rng)
                 flag = determine_flag(canon, observed, sex=patient.sex)
-                lab_tech = assign_staff("lab_result", "", roster, rng).get("performing_technician", "TECH-001")
+                lab_tech = assign_staff("lab_result", "", roster, lab_rng).get("performing_technician", "TECH-001")
                 order.result = OrderResult(
                     result_datetime=result_time, performed_by=lab_tech,
                     lab_name=canon, value=observed,
