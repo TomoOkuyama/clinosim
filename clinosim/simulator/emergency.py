@@ -120,10 +120,17 @@ def _simulate_ed_visit(
         )
     _has_dm = any("E11" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
     _true_labs = derive_lab_values(_state, sex=patient.sex, age=patient.age, has_diabetes=_has_dm)
+    # AD-16: per-lab-order sub-RNG so probability skips / noise / timing draws
+    # cannot poison the patient master stream when derive_lab_values gains a new
+    # analyte (Cl/Ca emission, etc.). See inpatient.py Pass 1 for the parallel
+    # fix on the inpatient side.
+    from clinosim.simulator.seeding import individual_lab_seed
     for i, lab_spec in enumerate(lab_specs):
         test = lab_spec.get("test", "")
+        order_id = f"ORD-{patient.patient_id}-ED-L{i}"
+        lab_rng = np.random.default_rng(individual_lab_seed(order_id))
         prob = lab_spec.get("probability", 1.0)
-        if rng.random() > prob:
+        if lab_rng.random() > prob:
             continue
         # Skip non-quantitative diagnostics (e.g. ECG) misfiled under labs — not lab
         # analytes, must not get a fabricated value (AD-57 cleanup).
@@ -131,20 +138,20 @@ def _simulate_ed_visit(
         if canon not in _true_labs and canon not in baseline_values:
             continue
         order = Order(
-            order_id=f"ORD-{patient.patient_id}-ED-L{i}",
+            order_id=order_id,
             patient_id=patient.patient_id,
             order_type=OrderType.LAB,
             display_name=test, urgency="stat",
             clinical_intent=f"ED workup: {test}",
-            ordered_datetime=visit_time + timedelta(minutes=int(rng.normal(10, 5))),
+            ordered_datetime=visit_time + timedelta(minutes=int(lab_rng.normal(10, 5))),
             ordered_by=encounter.attending_physician_id,
             status=OrderStatus.PLACED,
         )
         true_val = _true_labs.get(canon, baseline_values.get(canon, 1.0))
-        observed = generate_lab_result(canon, true_val, rng)
+        observed = generate_lab_result(canon, true_val, lab_rng)
         flag = determine_flag(canon, observed, sex=patient.sex)
         order.result = OrderResult(
-            result_datetime=visit_time + timedelta(minutes=int(rng.normal(50, 15))),
+            result_datetime=visit_time + timedelta(minutes=int(lab_rng.normal(50, 15))),
             performed_by=lab_tech_id,
             lab_name=canon, value=observed,
             unit=get_lab_unit(canon), flag=flag,
