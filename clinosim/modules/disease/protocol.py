@@ -47,6 +47,12 @@ class DiseaseProtocol(BaseModel):
     # Acute coronary syndrome → primary myocardial necrosis (drives high troponin/CK-MB,
     # vs the mild type-2 elevation any cardiac dysfunction produces). AD-55.
     causes_myocardial_injury: bool = False
+    # VTE-spectrum scenario flag (PE / DVT / embolic ischemic stroke): pushes
+    # D-dimer into the clinically positive range. NOT for hemorrhagic_stroke
+    # (intracerebral fibrinolysis is captured by coagulation_status alone),
+    # and NOT for AF / sepsis / COPD that order D-dimer to screen for
+    # complications — their D-dimer rises only via inflammation / DIC. Phase 2a.
+    causes_vte: bool = False
     # Primary acid-base disturbance mechanism — routes the scenario's ph_status between the
     # metabolic (HCO3) and respiratory (pCO2) axes so blood gas + compensation are coherent
     # (e.g. DKA = metabolic → Kussmaul low pCO2; COPD = respiratory → compensatory high
