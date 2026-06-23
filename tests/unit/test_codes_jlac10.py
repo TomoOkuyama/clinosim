@@ -49,4 +49,6 @@ class TestJLAC10Integrity:
 
     def test_display_resolves(self):
         assert lookup("jlac10", "5C094", "en") == "Troponin I"
-        assert lookup("jlac10", "4A055", "ja") == "TSH"
+        # ja entry uses the official JCCLS Japanese name with the English
+        # abbreviation parenthesised (data-quality review 2026-06-23).
+        assert lookup("jlac10", "4A055", "ja") == "甲状腺刺激ホルモン(TSH)"
