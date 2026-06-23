@@ -53,6 +53,7 @@
 - **検査値生成の venue 横断統一** (AD-57): 入院/ED/外来とも physiology 由来 → 基礎疾患が全 venue に反映 (例: CKD 患者の ED Cr が上昇)
 - **AKI / DKA 入院時の臨床帯域校正**: AKI 入院時 Cr が KDIGO 2-3 帯 (p50 ~3.3 mg/dL US / ~4.1 JP — ESRD 値ではない)、DKA 入院時 HCO₃ が ADA 重症度帯 (severe <10、moderate 10-15、mild 15-18 mEq/L) に階層化。surgical (公式のみ) 校正: state 変数・coupling rules・disease YAML は不変、同一 seed で患者コホート・下流合併症が master と byte 単位一致
 - **FHIR `DiagnosticReport` パネル集約** (CBC / BMP / LFT / Lipid / Coag / UA / ABG、権威 LOINC パネルコード): 同一 encounter・同日に採取された検査 Observation を panel ごとに 1 つの DR に集約し、`result[]` で構成要素 Observation を参照。既存の microbiology DR (血液/尿/喀痰/創部培養) は不変で継続出力
+- **CBC / BMP パネルオーダーが正規構成要素を一括出力**(per-specimen RNG 分離):`{test:"CBC"}` の入院時オーダーは 1 specimen から WBC + Hb + Hct + Plt の 4 子 Observation を生成(`{test:"BMP"}` は 1 specimen から 6 個の派生可能 component)。specimen-rejection / hemolysis の RNG draw は per-parent sub-RNG(`panel_specimen_seed(parent_order_id)`)で発生するので、panel registry 編集が無関係 patient の cohort を再分配することがない(AD-16)。`min_components` 閾値は canonical N − 1 ルール(CBC = 3、BMP = 5)で audit-driven 検証済 — 旧閾値で誤検出されていた CBC DR 81 % / BMP DR 48 % が抑制された
 - **日本の保険資格** (opt-in `--jp-insurance`): 職業駆動の社保/国保/後期高齢、検証番号付き番号、マイナ保険証 → JP Core `Coverage`。マイナンバーは非出力
 - **社会歴・SDOH**: 喫煙 (US Core, LOINC 72166-2 + SNOMED) / 飲酒 (LOINC 11331-6) の social-history `Observation`、および日本の **要介護度** (介護保険 区分、JP のみ、年齢駆動)
 - **家族歴**: 第1度近親 (母/父/兄弟姉妹) の疾患を locale 有病率 × 遺伝性で合成 (本人の慢性疾患と相関) → FHIR `FamilyMemberHistory` (心血管代謝系 + 主要がん)
