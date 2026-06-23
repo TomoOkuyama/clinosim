@@ -53,13 +53,13 @@ codes:
     ja: クレアチンキナーゼ
   3B015:
     en: Creatine kinase-MB
-    ja: CK-MB
+    ja: クレアチンキナーゼMB(CK-MB)
   3B035:
     en: Aspartate aminotransferase
-    ja: AST
+    ja: アスパラギン酸アミノトランスフェラーゼ(AST)
   3B045:
     en: Alanine aminotransferase
-    ja: ALT
+    ja: アラニンアミノトランスフェラーゼ(ALT)
   3B050:
     en: Lactate dehydrogenase
     ja: LD
@@ -134,14 +134,14 @@ codes:
   # --- Endocrine (4x) ---
   4A055:
     en: Thyroid-stimulating hormone
-    ja: TSH
+    ja: 甲状腺刺激ホルモン(TSH)
   4Z271:
     en: Brain natriuretic polypeptide
     ja: ヒト脳性Na利尿ペプチド
   # --- Immunoserology / cardiac & inflammatory markers (5C) ---
   5C070:
     en: C-reactive protein
-    ja: CRP
+    ja: C反応性蛋白(CRP)
   5C094:
     en: Troponin I
     ja: トロポニンI
