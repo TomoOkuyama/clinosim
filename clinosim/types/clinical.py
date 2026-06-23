@@ -27,6 +27,17 @@ class PhysiologicalState:
     # respiratory (e.g. COPD/asthma CO2 retention). Set from the disease scenario's
     # acid_base_type or the patient's chronic respiratory conditions. AD-57.
     respiratory_fraction: float = 0.0  # 0.0–1.0
+    # Anion gap axis. Distinct from ph_status (acid-base magnitude) and
+    # respiratory_fraction (metabolic vs respiratory routing). Drives the Cl
+    # axis only — does NOT mutate pH/HCO3/pCO2 or feed apply_coupling_rules.
+    #  0.0 = normal AG (8-12 mEq/L), Cl follows HCO3 1:1 when HCO3 drops
+    #        (default healthy and most non-acid-base diseases)
+    # +1.0 = high-AG metabolic acidosis (DKA/sepsis/uremia/lactic). Unmeasured
+    #        anion (ketone/lactate/SO4/PO4) absorbs the HCO3 deficit, so Cl
+    #        stays near normal even with low HCO3.
+    # -1.0 = non-AG hyperchloremic acidosis (diarrhea, RTA, saline-induced).
+    #        Cl rises 1:1 with HCO3 deficit to maintain electroneutrality.
+    anion_gap_status: float = 0.0  # -1.0 to +1.0
     # Acute glycemic state: 0.0 = euglycemia, positive = hyperglycemia (DKA/HHS drives this
     # up, e.g. 0.6 ≈ 300–500 mg/dL), negative = hypoglycemia. Distinct from the chronic
     # diabetes baseline (has_diabetes). Set from the disease scenario. AD-57.

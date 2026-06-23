@@ -573,3 +573,25 @@ def test_dka_moderate_acidosis_in_clinical_range():
     labs = derive_lab_values(state, sex="M", age=55)
     assert 10.0 <= labs["HCO3"] <= 15.5, f"HCO3={labs['HCO3']:.2f}"
     assert labs["pH"] <= 7.27, f"pH={labs['pH']:.2f}"
+
+
+# ---------------------------------------------------------------------------
+# BMP Cl/Ca physiology — Phase 1 (anion_gap_status axis + Cl/Ca formulas)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_anion_gap_status_field_default_is_zero():
+    state = PhysiologicalState()
+    assert hasattr(state, "anion_gap_status"), \
+        "PhysiologicalState should have anion_gap_status field"
+    assert state.anion_gap_status == 0.0, \
+        "default anion_gap_status should be 0.0 (normal AG)"
+
+
+@pytest.mark.unit
+def test_anion_gap_status_field_is_settable():
+    state = PhysiologicalState(anion_gap_status=1.0)
+    assert state.anion_gap_status == 1.0
+    state.anion_gap_status = -0.5
+    assert state.anion_gap_status == -0.5
