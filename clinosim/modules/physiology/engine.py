@@ -329,6 +329,7 @@ def derive_lab_values(
     hour: int = 6,
     myocardial_injury: bool = False,
     causes_vte: bool = False,
+    on_warfarin: bool = False,
 ) -> dict[str, float]:
     """Derive lab values from physiological state. Returns 'true' values before noise."""
     labs: dict[str, float] = {}
@@ -408,7 +409,19 @@ def derive_lab_values(
     labs["AST"] = 25 + (1 - hepatic) * 500
     labs["ALT"] = 20 + (1 - hepatic) * 400
     labs["T_Bil"] = 0.8 + (1 - hepatic) * 15
-    labs["PT_INR"] = 1.0 + (1 - hepatic) * 2.0 + state.coagulation_status * 1.5
+    # PT_INR: hepatic (cirrhosis factor depletion) + coagulation_status (DIC
+    # consumption) drive baseline; therapeutic warfarin overrides to target
+    # the 2.0-3.0 clinical band. AC + comorbidity (DIC, cirrhosis) compounds
+    # bleeding risk in real practice, so base perturbation is added on top of
+    # the therapeutic center at reduced gain (x0.5).
+    # BNP-pattern surgical (AD-57): state untouched, formula-only change.
+    # Phase 2b (2026-06-24): on_warfarin sourced from
+    # medication_flags_from_context (sibling of scenario_flags_from_protocol).
+    base_inr = 1.0 + (1 - hepatic) * 2.0 + state.coagulation_status * 1.5
+    if on_warfarin:
+        labs["PT_INR"] = 2.5 + (base_inr - 1.0) * 0.5
+    else:
+        labs["PT_INR"] = base_inr
 
     # --- Anemia ---
     base_hb = 15.0 if sex == "M" else 13.0
