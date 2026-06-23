@@ -654,8 +654,12 @@ def _run_daily_loop(
                 canon = canonical_lab_name(child.display_name)
                 if canon not in true_labs:
                     continue  # silently dropped; status stays PLACED
-                result_time = calculate_result_time_from_state(child, hospital_state, hospital_ops or {}, sub_rng)
-                lab_tech = assign_staff("lab_result", "", roster, sub_rng).get("performing_technician", "TECH-001")
+                result_time = calculate_result_time_from_state(
+                    child, hospital_state, hospital_ops or {}, sub_rng,
+                )
+                lab_tech = assign_staff(
+                    "lab_result", "", roster, sub_rng,
+                ).get("performing_technician", "TECH-001")
                 if canon in ("K", "LDH") and sub_rng.random() < 0.03:
                     hemolyzed_val = true_labs[canon] * float(sub_rng.uniform(1.2, 1.8))
                     child.result = OrderResult(
