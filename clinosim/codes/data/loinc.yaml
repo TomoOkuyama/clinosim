@@ -301,3 +301,28 @@ codes:
   11331-6:
     en: History of alcohol use
     ja: 飲酒歴
+  # ---------------------------------------------------------------------------
+  # DiagnosticReport panel grouping codes (2026-06-22)
+  # Verified vs Regenstrief LOINC via NLM Clinical Tables API.
+  # ---------------------------------------------------------------------------
+  58410-2:
+    en: Complete blood count (hemogram) panel - Blood by Automated count
+    ja: 全血球計算パネル
+  51990-0:
+    en: Basic metabolic 2000 panel - Serum or Plasma
+    ja: 基本代謝パネル
+  24325-3:
+    en: Hepatic function 2000 panel - Serum or Plasma
+    ja: 肝機能パネル
+  57698-3:
+    en: Lipid panel with direct LDL - Serum or Plasma
+    ja: 脂質パネル
+  24373-3:
+    en: Activated partial thromboplastin time (aPTT) and Prothrombin time (PT)/INR panel - Platelet poor plasma
+    ja: 凝固検査パネル (PT/INR/APTT)
+  24356-8:
+    en: Urinalysis complete panel - Urine
+    ja: 尿検査パネル
+  24338-6:
+    en: Gas panel - Arterial blood
+    ja: 動脈血ガスパネル

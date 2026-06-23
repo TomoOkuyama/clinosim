@@ -44,6 +44,7 @@ from clinosim.modules.output._fhir_common import (  # noqa: F401
     _survey_category,
 )
 from clinosim.modules.output._fhir_conditions import _build_conditions  # noqa: F401
+from clinosim.modules.output._fhir_diagnostic_report import build_lab_panel_reports
 from clinosim.modules.output._fhir_documents import _build_document_reference  # noqa: F401
 from clinosim.modules.output._fhir_encounter import _build_encounter  # noqa: F401
 from clinosim.modules.output._fhir_facility import _build_facility_bundle  # noqa: F401
@@ -406,6 +407,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_labs,
     _bb_vitals,
     _bb_microbiology,
+    build_lab_panel_reports,
     _bb_medication_requests,
     _bb_medication_admins,
     _bb_procedures,
