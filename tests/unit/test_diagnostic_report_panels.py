@@ -114,6 +114,41 @@ class TestGroupLabOrders:
         ]
         assert group_lab_orders(orders, "ENC-001") == []
 
+    def test_bmp_seven_components_form_group(self):
+        """BMP min_components = 7 after Cl/Ca added to derive_lab_values
+        (canonical N − 1 = 8 − 1). Seven components (any 7 of canonical 8)
+        on the same day must group into a BMP DR."""
+        from clinosim.modules.output._fhir_diagnostic_report import group_lab_orders
+        orders = [
+            _order("Na",         "2026-05-12T14:28:00", 0),
+            _order("K",          "2026-05-12T14:28:01", 1),
+            _order("Cl",         "2026-05-12T14:28:02", 2),
+            _order("HCO3",       "2026-05-12T14:28:03", 3),
+            _order("BUN",        "2026-05-12T14:28:04", 4),
+            _order("Creatinine", "2026-05-12T14:28:05", 5),
+            _order("Glucose",    "2026-05-12T14:28:06", 6),
+        ]
+        groups = group_lab_orders(orders, "ENC-001")
+        assert [g.panel_name for g in groups] == ["BMP"]
+
+    def test_bmp_six_components_below_threshold(self):
+        """BMP threshold rose 5→7 (PR for Cl/Ca physiology). Six
+        components on the same day must NOT group into a BMP DR."""
+        from clinosim.modules.output._fhir_diagnostic_report import group_lab_orders
+        orders = [
+            _order("Na",         "2026-05-12T14:28:00", 0),
+            _order("K",          "2026-05-12T14:28:01", 1),
+            _order("HCO3",       "2026-05-12T14:28:02", 2),
+            _order("BUN",        "2026-05-12T14:28:03", 3),
+            _order("Creatinine", "2026-05-12T14:28:04", 4),
+            _order("Glucose",    "2026-05-12T14:28:05", 5),
+        ]
+        groups = group_lab_orders(orders, "ENC-001")
+        assert all(g.panel_name != "BMP" for g in groups), (
+            f"6 BMP components must be below the new threshold of 7; "
+            f"got groups: {[g.panel_name for g in groups]}"
+        )
+
     def test_ua_skip_when_no_components_present(self):
         from clinosim.modules.output._fhir_diagnostic_report import group_lab_orders
         orders = [
