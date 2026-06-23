@@ -1,4 +1,11 @@
 # Lab panels (AD-57): one order name → component analytes. A panel order expands into
 # one resulted lab order per component (each derived from physiology, emitted as its own
 # Observation). Data-driven; add a panel here, no code changes.
+#
+# NOTE: list the *canonical* analyte names that the physiology engine derives.
+# Components not in derive_lab_values() (e.g. Cl/Ca in BMP today) are silently
+# dropped at the scalar-resulted path in inpatient.py — that's the right shape
+# (the panel-expansion path stays declarative; the engine catches up later).
 ABG: [pH, pCO2, pO2, HCO3]
+CBC: [WBC, Hb, Hct, Plt]
+BMP: [Na, K, Cl, HCO3, BUN, Creatinine, Glucose, Ca]
