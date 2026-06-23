@@ -312,6 +312,14 @@ def derive_lab_values(
     labs["Hct"] = labs["Hb"] * 3.0
     labs["Plt"] = max(20, 250 - state.coagulation_status * 200)
 
+    # --- Coagulation panel (LOINC 24373-3 components + Fibrinogen adjunct) ---
+    # APTT (activated partial thromboplastin time, seconds). Normal 25-35;
+    # DIC 60-100+. Intrinsic-pathway sensitive; coagulation_status proxies
+    # DIC + hepatic factor depletion already aggregated upstream by
+    # apply_coupling_rules. State-unchanged formula per AD-57 BNP-pattern
+    # surgical; no new PhysiologicalState field.
+    labs["APTT"] = clamp(30.0 + state.coagulation_status * 55.0, 20.0, 150.0)
+
     # --- Perfusion ---
     labs["Lactate"] = 1.0 + (1 - perfusion) * 12
 
