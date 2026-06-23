@@ -76,6 +76,7 @@ from clinosim.simulator.helpers import (
     _disease_to_department,
     _evaluate_mortality,
 )
+from clinosim.simulator.seeding import panel_specimen_seed
 
 
 # ============================================================
@@ -565,27 +566,45 @@ def _run_daily_loop(
             lagged_labs = derive_lab_values(lagged_state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, hour=lab_hour, myocardial_injury=mi_injury)
             true_labs["CRP"] = lagged_labs.get("CRP", true_labs["CRP"])
 
-        # Expand panel orders (e.g. ABG → pH/pCO2/pO2/HCO3) into component lab orders so
-        # each component is resulted via the scalar path below (AD-57). Parent is marked
-        # RESULTED (no scalar result → no duplicate Observation).
-        _panel_children: list[Order] = []
+        # Expand panel orders (e.g. ABG → pH/pCO2/pO2/HCO3; CBC → WBC/Hb/Hct/Plt) into
+        # component child lab orders. The parent is marked RESULTED (no scalar result →
+        # no duplicate Observation). Children are kept *separate* from the master
+        # parent stream so their RNG draws can run on a per-parent isolated sub-RNG
+        # (see Pass 2 below), preventing panel-registry edits from cascading into
+        # unrelated patients' cohorts (AD-16).
+        _panel_children_by_parent: dict[str, list[Order]] = {}
         for order in all_orders:
             if order.order_type.value == "lab" and order.status == OrderStatus.PLACED:
                 comps = lab_panel_components(order.display_name)
+                if not comps:
+                    continue
+                children: list[Order] = []
                 for comp in comps:
-                    _panel_children.append(Order(
+                    children.append(Order(
                         order_id=f"{order.order_id}-{comp}", patient_id=order.patient_id,
                         order_type=OrderType.LAB, display_name=comp, urgency=order.urgency,
                         clinical_intent=order.clinical_intent,
                         ordered_datetime=order.ordered_datetime, ordered_by=order.ordered_by,
                         encounter_id=order.encounter_id, status=OrderStatus.PLACED,
                     ))
-                if comps:
-                    order.status = OrderStatus.RESULTED
-        all_orders.extend(_panel_children)
+                _panel_children_by_parent[order.order_id] = children
+                order.status = OrderStatus.RESULTED
 
+        # The flat list (preserves insertion order so downstream serialisers, e.g.
+        # _bb_labs in fhir_r4_adapter, retain a stable index for `lab-{enc}-{idx:04d}`).
+        _panel_children: list[Order] = [
+            c for kids in _panel_children_by_parent.values() for c in kids
+        ]
+        all_orders.extend(_panel_children)
+        _panel_child_ids = {c.order_id for c in _panel_children}
+
+        # === Pass 1: scalar + non-panel orders, drawn from the master patient-scoped RNG.
+        # Panel children are skipped here; they are resulted in Pass 2 against a
+        # deterministic sub-RNG keyed on the parent's order_id, so the master stream
+        # is unaffected by which (or how many) panels live in lab_panels.yaml.
         for order in all_orders:
-            # Resolve protocol order name → canonical analyte (stat/serial/alias → base).
+            if order.order_id in _panel_child_ids:
+                continue
             canon = canonical_lab_name(order.display_name)
             if order.order_type.value == "lab" and order.status == OrderStatus.PLACED and canon in true_labs:
                 # Pre-analytical issues: specimen rejection (~2%), hemolysis (~3% for K/LDH)
@@ -617,6 +636,43 @@ def _run_daily_loop(
                 )
                 order.status = OrderStatus.RESULTED
                 all_lab_results.append(order.result)
+
+        # === Pass 2: panel children, one isolated sub-RNG per parent specimen.
+        # Clinical model: a panel order is **one specimen**, so specimen-rejection
+        # fires at most once per parent and cancels every child of that parent.
+        # Per-analyte hemolysis is drawn after specimen acceptance. Components not
+        # present in true_labs (e.g. BMP Cl/Ca until derive_lab_values produces them)
+        # are silently skipped — the child stays PLACED with no result, matching
+        # the existing behaviour for any individual order that engine cannot result.
+        for parent_id, children in _panel_children_by_parent.items():
+            sub_rng = np.random.default_rng(panel_specimen_seed(parent_id))
+            if sub_rng.random() < 0.02:
+                for child in children:
+                    child.status = OrderStatus.CANCELLED
+                continue
+            for child in children:
+                canon = canonical_lab_name(child.display_name)
+                if canon not in true_labs:
+                    continue  # silently dropped; status stays PLACED
+                result_time = calculate_result_time_from_state(child, hospital_state, hospital_ops or {}, sub_rng)
+                lab_tech = assign_staff("lab_result", "", roster, sub_rng).get("performing_technician", "TECH-001")
+                if canon in ("K", "LDH") and sub_rng.random() < 0.03:
+                    hemolyzed_val = true_labs[canon] * float(sub_rng.uniform(1.2, 1.8))
+                    child.result = OrderResult(
+                        result_datetime=result_time, performed_by=lab_tech,
+                        lab_name=canon, value=round(hemolyzed_val, 1),
+                        unit=get_lab_unit(canon), flag="H*",
+                    )
+                else:
+                    observed = generate_lab_result(canon, true_labs[canon], sub_rng)
+                    flag = determine_flag(canon, observed, sex=patient.sex)
+                    child.result = OrderResult(
+                        result_datetime=result_time, performed_by=lab_tech,
+                        lab_name=canon, value=observed,
+                        unit=get_lab_unit(canon), flag=flag,
+                    )
+                child.status = OrderStatus.RESULTED
+                all_lab_results.append(child.result)
 
         # Diagnosis update
         if day >= 1:
