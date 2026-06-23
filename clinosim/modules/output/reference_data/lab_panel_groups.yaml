@@ -18,17 +18,26 @@ panels:
     loinc: "58410-2"
     display: "Complete blood count (hemogram) panel - Blood by Automated count"
     components: [WBC, Hb, Hct, Plt]
-    # Threshold calibrated to clinosim's emission profile (Hct often absent in the
-    # current physiology engine). 2 components of {WBC, Hb, Hct, Plt} drawn in the
-    # same minute is the practical signal of a "CBC order" in this simulator;
-    # raising this would suppress most CBC DRs. Track Hct addition separately.
+    # min_components is pinned to the pre-PR1 emission profile, where most CBCs
+    # were assembled post-hoc from individual {test: "WBC"}/"Hb"/"Plt" orders in
+    # protocols that lacked a CBC panel-expansion registry entry. After PR1 the
+    # four canonical components are emitted together from {test: "CBC"};
+    # a follow-up audit-driven PR will measure the new distribution and
+    # raise this threshold (likely to 3) to suppress accidental 2-component
+    # groupings from BMP/other co-occurrences.
     min_components: 2
 
   BMP:
     loinc: "51990-0"
     display: "Basic metabolic 2000 panel - Serum or Plasma"
     components: [Na, K, Cl, HCO3, BUN, Creatinine, Glucose, Ca]
-    # Calibrated to clinosim emission (Cl, Ca rare in current engine).
+    # min_components stays at 3 for PR1: derive_lab_values() does not yet
+    # produce Cl or Ca, so PR1's BMP panel emits at most 6 of 8 components
+    # ({Na, K, HCO3, BUN, Creatinine, Glucose}). Once Cl/Ca are added to
+    # the physiology engine (separate backlog), an audit-driven PR will
+    # likely raise this to 6 to suppress accidental groupings from
+    # individual {test: "Na"}/"K"/"Creatinine"/"Glucose"/"BUN"
+    # co-occurrences in non-DKA protocols.
     min_components: 3
 
   LFT:
