@@ -129,6 +129,61 @@ with the JSLM v137 canonical names. See
 `docs/reviews/2026-06-23-pr75-data-quality-review.md` and
 `scratchpad/dqr_pr75_review.py`.
 
+**Phase 2a — D-dimer (LOINC 48065-7 / JLAC10 2B140) + causes_vte flag
++ J5 wiring fix (2026-06-24):** Activates the D-dimer analyte by
+extending `physiology.derive_lab_values` with a multi-axis formula +
+a new `causes_vte` scenario flag (AD-57 BNP-pattern surgical, no new
+`PhysiologicalState` field):
+
+  age_factor = max(0, age - 50) * 0.005
+  D_dimer = clamp(0.3 + age_factor + infl*0.5 + coag*1.5
+                  + (4.0 if causes_vte else 0), 0.15, 20.0)
+
+Three disease YAMLs gain `causes_vte: true`: pulmonary_embolism,
+deep_vein_thrombosis, cerebral_infarction (embolic stroke). NOT
+hemorrhagic_stroke (intracerebral fibrinolysis is captured by
+coagulation_status alone). NOT AF / sepsis / COPD / acute_mi that
+order D-dimer to screen — their elevation should stay non-specific.
+
+**Improvement J5 bundled (same PR)**: introduces
+`physiology.engine.scenario_flags_from_protocol(protocol)` helper and
+replaces hardcoded `myocardial_injury=...` named arguments at every
+`derive_lab_values` call site with `**flags`. Pre-J5, only
+`inpatient.py:559-560` (Pass-1 daily loop) read `causes_myocardial_injury`;
+emergency.py and outpatient.py passed nothing — so MI patients
+presenting through the ED produced type-2 troponin only. The new
+`causes_vte` would have replicated this gap if simply added. The fix
+is structural (one helper, four sites) and future-proofs additional
+scenario flags. Outpatient explicitly passes `None` to pin the
+"acute scenario flags don't apply to chronic follow-ups" intent.
+
+Authoritative codes:
+- LOINC 48065-7 "Fibrin D-dimer FEU [Mass/volume] in PPP" — NLM
+  verified (the spec/plan candidate 30240-9 did not exist; replaced
+  with the authoritative FEU code matching locale reference range)
+- JLAC10 2B140 "D-Dダイマー" — JSLM v137 sheet 「分析物コード」 verified,
+  JCCLS-official ja per PR #76 rule
+
+Byte-diff vs master `b6bc8eab` @ p=2000 seed=42 (both US and JP):
+9 NDJSONs (Patient/Encounter/Condition/Medication*/Procedure/
+Imaging/Immunization/FamilyHistory) byte-identical; only Observation
+changes (+65 US / +15 JP, all D-dimer); DR unchanged (D-dimer is
+panel-external to Coag LOINC 24373-3). 3-axis DQR (US p=10000 +
+JP p=5000) all PASS — structural / clinical (PE/DVT/cerebral_infarction
+D-dimer p50 4.45-4.91 ug/mL FEU, sepsis non-specific p50 0.84-0.90) /
+JP language. See
+`docs/reviews/2026-06-24-phase2a-vte-data-quality-review.md`,
+`docs/superpowers/specs/2026-06-24-phase2a-vte-d-dimer-design.md`,
+`docs/superpowers/plans/2026-06-24-phase2a-vte-d-dimer.md`.
+
+Phase 2a deferred backlog → carried forward:
+- Phase 2b `on_anticoagulation` axis (warfarin/heparin INR therapeutic-
+  range modelling, I5) — three valid designs need their own brainstorming
+- I4 panel-YAML unification refactor
+- I6 `clinical_course.actions[].test` field disambiguation
+- I7 `platelet_status` axis independence
+- D-dimer LOS-mid analysis (cohort-level DIC trajectory)
+
 **Coag panel activation (LOINC 24373-3) + APTT/PT/Fibrinogen derives
 (2026-06-24):** Activates the previously-defined-but-dormant Coag
 DiagnosticReport panel (LOINC 24373-3) by extending
