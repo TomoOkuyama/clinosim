@@ -21,9 +21,9 @@ JP full run (5K catchment, 50-bed hospital, seed=42):
 
 Code system coverage:
 - 349 ICD-10-CM codes, 306 ICD-10 (WHO) codes (EN + JA bilingual)
-- 65 LOINC, 68 RxNorm, 31 CPT, 25 K-codes, 39 YJ, 31 SNOMED CT
+- 72 LOINC, 68 RxNorm, 31 CPT, 25 K-codes, 39 YJ, 31 SNOMED CT
 - 120+ drug name JP translations (drug_names_ja.yaml)
-- 404 unit + 80 integration + 39 e2e tests passing
+- 420 unit + 80 integration + 39 e2e tests passing
 
 **AD-55 Base data-enrichment roadmap complete (2026-06):** microbiology, cardiac
 markers, nursing flowsheets, immunization, family history, code status, extended
@@ -41,6 +41,38 @@ surgical fix (#28 / #62): byte-diff at US/JP p=2000 seed=42 confirms only
 `docs/reviews/2026-06-22-aki-dka-surgical-calibration-audit.md` (byte-diff +
 percentile audit) and `docs/reviews/2026-06-22-aki-dka-surgical-calibration-data-quality-review.md`
 (post-calibration FHIR/CIF data-quality review, clean).
+
+**BNP wall-stress historical-record + I50 cohort decomposition (PR #70/#71,
+2026-06-22):** The BNP wall-stress formula (already landed in commits
+`ac36ff63` / `1c22a3e6` on 2026-06-20) gets its spec + plan committed as
+design history (PR #70). The "I50 admit BNP below ADHF band" item from the
+PR #69 review is closed: decomposing the I50 cohort by
+`condition_event.ground_truth_diseases` + `encounter_type` shows inpatient
++ heart_failure_exacerbation admits at BNP p50 = 603.6 US / 931.8 JP (inside
+the ADHF 800-1500 band) and outpatient chronic-I50 follow-up at p50 = 68.6
+US / 74.9 JP (correctly mild for compensated HF). The mixed-cohort p50 was
+a grouping artifact, not a formula deficiency (PR #71). See
+`docs/reviews/2026-06-22-i50-bnp-cohort-decomposition.md`.
+
+**FHIR DiagnosticReport panel grouping (PR #72, 2026-06-23):** Post-hoc
+grouping of existing lab Observations into FHIR `DiagnosticReport`
+resources for 7 panels (CBC / BMP / LFT / Lipid / Coag / UA / ABG) with
+authoritative LOINC codes (`58410-2 / 51990-0 / 24325-3 / 57698-3 /
+24373-3 / 24356-8 / 24338-6`). Implemented as a new AD-56-registered
+bundle builder (`build_lab_panel_reports`) reading `ctx.record["orders"]`
+and emitting one DR per (panel, encounter, day) with `result[]`
+referencing the existing Observation ids. No CIF schema change, no
+observation-engine change, no new RNG. Byte-diff at US/JP p=2000 seed=42
+preserves every non-DR NDJSON identically; every existing microbiology
+DR record is preserved byte-identically as a complete JSON line.
+Referential integrity: 4025 US + 3502 JP panel DRs with 0 dangling
+references. Audit at US p=8000 / JP p=4000 yields ~15k panel DRs
+(LFT 5510 + CBC 5324 + ABG 2581 + BMP 2189 + Lipid 54 + microbiology 160
+on US). Two calibrations to simulator emission (vs spec) documented:
+day-resolution bucket (vs minute — the lab generator randomizes
+per-component timing) and lowered `min_components` (Hct/Cl/Ca absent
+from current physiology engine). See
+`docs/reviews/2026-06-22-diagnostic-report-panels-audit.md`.
 
 ## Architecture Decisions (current)
 
