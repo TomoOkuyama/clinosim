@@ -35,9 +35,17 @@ codes:
   2A050:
     en: Platelet count
     ja: 血小板数
+  2B020:
+    en: Activated partial thromboplastin time (aPTT)
+    ja: 活性化部分トロンボプラスチン時間
   2B030:
+    # JSLM v137 analyte: プロトロンビン時間 (PT). The 5-char analyte code does
+    # not distinguish PT seconds from PT-INR; both internal names map here.
     en: Prothrombin time
     ja: プロトロンビン時間
+  2B100:
+    en: Fibrinogen
+    ja: フィブリノゲン
   2Z010:
     en: Erythrocyte sedimentation rate
     ja: 血沈

@@ -42,6 +42,14 @@ class TestJLAC10Integrity:
         ("pH", "3H050"), ("pCO2", "3H055"), ("pO2", "3H060"), ("HCO3", "3G125"),
         ("Troponin_I", "5C094"), ("CK_MB", "3B015"), ("TSH", "4A055"), ("ESR", "2Z010"),
         ("LDL", "3F077"), ("HDL", "3F070"), ("TG", "3F015"), ("TC", "3F050"),
+        # --- Coagulation panel (LOINC 24373-3) additions; JSLM v137 verified.
+        # NOTE on PT: JLAC10 analyte codes capture the analyte only — PT seconds
+        # and PT-INR share `2B030` "プロトロンビン時間" because the result-
+        # representation distinction lives in the 17-char full code's result-
+        # identifier segment, not the 5-char analyte code. LOINC by contrast
+        # uses distinct codes (5902-2 PT, 6301-6 PT-INR).
+        ("APTT", "2B020"), ("PT", "2B030"), ("PT_INR", "2B030"),
+        ("Fibrinogen", "2B100"),
     ])
     def test_verified_codes(self, analyte, code):
         """Codes confirmed against the JSLM JLAC10 master v137."""

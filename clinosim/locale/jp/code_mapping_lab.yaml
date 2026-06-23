@@ -13,7 +13,13 @@ RBC: "2A020"
 Hb: "2A030"
 Hct: "2A040"
 Plt: "2A050"
+APTT: "2B020"
+# JLAC10 5-char analyte code 2B030 is the analyte "プロトロンビン時間"; both PT
+# (seconds) and PT-INR map here because the seconds-vs-INR distinction lives in
+# the 17-char full code's result-identifier segment, not the analyte segment.
+PT: "2B030"
 PT_INR: "2B030"
+Fibrinogen: "2B100"
 ESR: "2Z010"
 
 # Proteins / enzymes
