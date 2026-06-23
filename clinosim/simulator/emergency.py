@@ -42,6 +42,7 @@ def _simulate_ed_visit(
         derive_lab_values,
         derive_observed_vitals,
         initialize_state,
+        scenario_flags_from_protocol,
     )
 
     # Try to load detailed YAML protocol
@@ -119,7 +120,11 @@ def _simulate_ed_visit(
             acid_base_type=protocol.get("acid_base_type", "metabolic"),
         )
     _has_dm = any("E11" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
-    _true_labs = derive_lab_values(_state, sex=patient.sex, age=patient.age, has_diabetes=_has_dm)
+    # J5 (Phase 2a): wire all scenario flags (causes_myocardial_injury,
+    # causes_vte) through the helper. Pre-Phase-2a, the ED path passed no
+    # flag — ED-presentation MI patients had no troponin upshift.
+    _flags = scenario_flags_from_protocol(protocol)
+    _true_labs = derive_lab_values(_state, sex=patient.sex, age=patient.age, has_diabetes=_has_dm, **_flags)
     # AD-16: per-lab-order sub-RNG so probability skips / noise / timing draws
     # cannot poison the patient master stream when derive_lab_values gains a new
     # analyte (Cl/Ca emission, etc.). See inpatient.py Pass 1 for the parallel

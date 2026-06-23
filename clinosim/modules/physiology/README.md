@@ -189,6 +189,12 @@ APTT       = clamp(30 + coagulation_status*55, 20, 150)           # 秒、健常
 PT         = clamp(12 * PT_INR, 9, 90)                            # 秒、ISI=1.0 一貫不変
 Fibrinogen = clamp(300 + infl*250 - coagulation_status*280, 50, 800)
              # mg/dL、biphasic: 急性期反応で ↑、DIC で消費 ↓
+
+# D-dimer (Phase 2a 2026-06-24): VTE-spectrum 分析物
+age_factor = max(0, age - 50) * 0.005
+D_dimer    = clamp(0.3 + age_factor + infl*0.5 + coagulation_status*1.5
+                   + (4.0 if causes_vte else 0), 0.15, 20.0)
+             # ug/mL FEU; PE/DVT/塞栓性脳梗塞で causes_vte=True → 臨床的陽性
 ```
 
 凝固パネル軸(AD-57 BNP-pattern surgical、新 state 変数なし):
@@ -200,6 +206,17 @@ Fibrinogen = clamp(300 + infl*250 - coagulation_status*280, 50, 800)
   が独立軸として競合する**biphasic**な公式。健常 ~300、敗血症 acute-phase で ~512、敗血症 + DIC
   で ~289、重症 DIC で floor 50。Coag panel(LOINC 24373-3)外で個別 Observation として出力
   (LOINC panel 定義に Fibrinogen は含まれない)
+- `D_dimer`: `coagulation_status` + `inflammation_level` + 年齢 + 新 scenario flag `causes_vte` から導出。
+  PE / DVT / 塞栓性脳梗塞 (`causes_vte: true`) で p50 ≥ 4 ug/mL FEU の臨床的陽性、健常 ~0.3、敗血症
+  VTE なし非特異 < 1。年齢補正 +0.005/yr (50 歳以上)。出血性脳卒中はフラグ対象外
+  (頭蓋内 fibrinolysis = `coagulation_status` で表現、機序が異なる)
+
+### シナリオフラグ (Phase 2a 2026-06-24): `scenario_flags_from_protocol(protocol)` ヘルパ
+
+`derive_lab_values` のシナリオフラグ引数(`myocardial_injury` / `causes_vte` / 将来追加)は、disease YAML protocol
+(dict / Pydantic / None)から `scenario_flags_from_protocol()` ヘルパで一括抽出し、`**flags` でスプレッド渡しする。
+コールサイト(inpatient Pass-1 + lagged + emergency + outpatient)はすべてヘルパ経由で配線され、新フラグ追加時の
+配線忘れ(J5: emergency.py が `causes_myocardial_injury` を渡さず ED MI patient のトロポニン上昇が消えていた問題)を構造的に防ぐ。
 
 `respiratory_fraction` は疾患シナリオの `acid_base_type`(既定 `metabolic`、COPD/喘息は
 `respiratory`) または慢性 J44/J45 から設定される(エンジンにハードコードせずデータ駆動)。

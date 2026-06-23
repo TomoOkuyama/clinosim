@@ -333,3 +333,12 @@ codes:
   14979-9:
     en: aPTT
     ja: 活性化部分トロンボプラスチン時間
+  48065-7:
+    # NLM Clinical Tables LONG_COMMON_NAME = "Fibrin D-dimer FEU [Mass/volume]
+    # in Platelet poor plasma"; COMPONENT="Fibrin D-dimer FEU".
+    # clinosim convention uses clean short names (TestLoincDisplay guards
+    # against [Mass/volume] etc.). FEU is the canonical unit for clinosim's
+    # locale reference range (US 0.5 ug/mL / JP 1.0 ug/mL — both FEU,
+    # JCCLS 2022).
+    en: D-dimer
+    ja: D ダイマー
