@@ -320,6 +320,12 @@ def derive_lab_values(
     # surgical; no new PhysiologicalState field.
     labs["APTT"] = clamp(30.0 + state.coagulation_status * 55.0, 20.0, 150.0)
 
+    # PT (prothrombin time, seconds). Mathematically tied to PT_INR via
+    # INR = (PT / normal_PT)^ISI; with ISI ≈ 1.0 and normal_PT ≈ 12 s,
+    # PT ≈ 12 * PT_INR. Derived FROM PT_INR (not in parallel) so the two
+    # never numerically disagree.
+    labs["PT"] = clamp(12.0 * labs["PT_INR"], 9.0, 90.0)
+
     # --- Perfusion ---
     labs["Lactate"] = 1.0 + (1 - perfusion) * 12
 
