@@ -40,6 +40,7 @@ from clinosim.modules.physiology.engine import (
     derive_lab_values,
     derive_observed_vitals,
     initialize_state,
+    medication_flags_from_context,
     scenario_flags_from_protocol,
     update,
 )
@@ -560,7 +561,21 @@ def _run_daily_loop(
         # J5 (Phase 2a): read every scenario flag (causes_myocardial_injury,
         # causes_vte, future additions) via one helper and splat with **flags
         # so every call site stays in sync. See physiology.engine docstring.
-        flags = scenario_flags_from_protocol(protocol)
+        # Phase 2b (2026-06-24): sibling helper medication_flags_from_context
+        # detects chronic warfarin from current_medications AND in-hospital
+        # warfarin orders >= 3 days old (loading-dose 3-day rule). Both
+        # helpers spread as **flags so a new flag added to derive_lab_values
+        # reaches this site without touching the call.
+        _med_orders = [o for o in all_orders if o.order_type.value == "medication"]
+        flags = {
+            **scenario_flags_from_protocol(protocol),
+            **medication_flags_from_context(
+                patient,
+                medication_orders=_med_orders,
+                admission_date=admission_time.date(),
+                current_day=day,
+            ),
+        }
         true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, hour=lab_hour, **flags)
 
         # Apply temporal lag: CRP reflects inflammation from ~1 day ago
@@ -1683,7 +1698,12 @@ def _simulate_unknown_condition(
         # Generate lab results. _simulate_unknown_condition has no disease
         # protocol by definition — scenario flags (causes_myocardial_injury,
         # causes_vte) are all-False here, matching scenario_flags_from_protocol(None).
-        true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes)
+        # Phase 2b: chronic warfarin from patient.current_medications still
+        # applies (AF chronic patient hospitalized for unknown condition has
+        # therapeutic INR). Pass medication_orders=None / current_day=None so
+        # only the chronic detection path runs.
+        _flags_unknown = medication_flags_from_context(patient)
+        true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, **_flags_unknown)
         for order in all_orders:
             if order.order_type.value == "lab" and order.status == OrderStatus.PLACED and order.display_name in true_labs:
                 result_time = calculate_result_time_from_state(order, None, {}, rng)  # unknown condition: no hospital state
