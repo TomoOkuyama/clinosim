@@ -39,7 +39,7 @@ def load_panel_groups() -> dict[str, dict]:
 
 class _GroupedPanel(NamedTuple):
     panel_name: str
-    bucket: str            # "YYYY-MM-DDTHH:MM"
+    bucket: str            # "YYYY-MM-DD" (day-resolution; see group_lab_orders)
     obs_refs: list[str]    # Observation ids in YAML-component order
 
 
@@ -47,18 +47,28 @@ def group_lab_orders(orders: list[dict], encounter_id: str) -> list[_GroupedPane
     """Group lab orders into panel DiagnosticReport candidates.
 
     For each lab order with a result, derive (analyte_name, bucket, obs_id).
-    Then per minute-bucket, iterate panels in priority order; for each
+    Then per day-bucket, iterate panels in priority order; for each
     panel collect any matching analyte that has not already been consumed
     by a higher-priority panel at the same bucket. If at least
     ``min_components`` are matched (and, when ``skip_if_no_components_present``
     is set, at least one component was present), emit a ``_GroupedPanel``.
 
+    Day-resolution bucket (YYYY-MM-DD) is the right granularity here: the
+    clinosim lab generator randomizes per-component ``result_datetime`` even
+    inside one panel order (ABG components from a single order may span
+    multiple hours), so a minute- or hour-bucket would group almost nothing.
+    Repeat draws on the same day (e.g. q4-6h BMP in DKA) collapse into one
+    DR per panel per day — the FHIR DR result[] just grows accordingly. The
+    DR's effectiveDateTime is reported as a date-only value (FHIR R4 allows
+    partial-precision dateTime).
+
     Returns groups sorted by (bucket ascending, panel-priority order).
     """
     panels = load_panel_groups()
 
-    # Build: bucket -> lab_name -> [obs_ref]. Multiple obs per (bucket, name) is
-    # possible if the same analyte is drawn twice within a minute (rare).
+    # Build: bucket -> lab_name -> [obs_ref]. Same analyte drawn multiple times
+    # in a day (e.g. serial Cr) accumulates multiple refs; the first uncomsumed
+    # ref per panel-component is used (see consume loop below).
     by_bucket: dict[str, dict[str, list[str]]] = defaultdict(lambda: defaultdict(list))
     for idx, order in enumerate(orders):
         if order.get("order_type") != "lab":
@@ -66,8 +76,8 @@ def group_lab_orders(orders: list[dict], encounter_id: str) -> list[_GroupedPane
         result = order.get("result")
         if not result:
             continue
-        when = (result.get("result_datetime") or "")[:16]
-        if len(when) < 16:
+        when = (result.get("result_datetime") or "")[:10]
+        if len(when) < 10:
             continue
         lab_name = result.get("lab_name") or order.get("display_name") or ""
         if not lab_name:
@@ -162,7 +172,8 @@ def build_dr_resource(
         },
         "subject": {"reference": f"Patient/{patient_id}"},
         "encounter": {"reference": f"Encounter/{encounter_id}"},
-        "effectiveDateTime": f"{group.bucket}:00",
+        # group.bucket is YYYY-MM-DD; FHIR R4 dateTime allows date-only precision.
+        "effectiveDateTime": group.bucket,
         "result": [{"reference": f"Observation/{ref}"} for ref in group.obs_refs],
     }
     if issued:
