@@ -109,17 +109,20 @@ initial_state_impact:
     inflammation_level: 0.25
     volume_status: -0.10
     sodium_status: -0.10
+    anion_gap_status: 0.0     # AG axis: mild pneumonia — no AG shift
   moderate:
     inflammation_level: 0.50
     volume_status: -0.20
     perfusion_status: -0.05
     renal_function: -0.05
     sodium_status: -0.25
+    anion_gap_status: 0.2     # AG axis: moderate sepsis-like contribution
   severe:
     inflammation_level: 0.75
     volume_status: -0.30
     perfusion_status: -0.20
     renal_function: -0.15
+    anion_gap_status: 0.4     # AG axis: severe CAP / septic lactate (AG 14-18)
     ph_status: -0.10
     sodium_status: -0.40
 

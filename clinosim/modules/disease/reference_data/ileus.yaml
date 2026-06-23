@@ -103,17 +103,20 @@ initial_state_impact:
   mild:
     inflammation_level: 0.10
     volume_status: -0.10
+    anion_gap_status: 0.0     # AG axis: mild ileus — no AG shift
   moderate:
     inflammation_level: 0.25
     volume_status: -0.25
     perfusion_status: -0.05
     renal_function: -0.05
+    anion_gap_status: 0.2     # AG axis: dehydration + early lactate
   severe:
     inflammation_level: 0.50
     volume_status: -0.35
     perfusion_status: -0.15
     renal_function: -0.15
     ph_status: -0.10
+    anion_gap_status: 0.3     # AG axis: bowel ischemia / perforation risk (AG 14-18)
 
 # ============================================================
 # ORDER PROTOCOLS
