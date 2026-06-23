@@ -136,8 +136,6 @@ order_protocols:
       - {test: "HbA1c", urgency: "routine"}
       - {test: "Lipid_panel", urgency: "routine"}
       - {test: "TSH", urgency: "routine", probability: 0.50}
-      - {test: "Hb", urgency: "stat"}
-      - {test: "Plt", urgency: "stat"}
       - {test: "AST", urgency: "stat", probability: 0.80}
       - {test: "ALT", urgency: "stat", probability: 0.80}
       - {test: "D_dimer", urgency: "stat", probability: 0.40}
