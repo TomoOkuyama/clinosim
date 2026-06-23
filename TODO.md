@@ -74,6 +74,61 @@ per-component timing) and lowered `min_components` (Hct/Cl/Ca absent
 from current physiology engine). See
 `docs/reviews/2026-06-22-diagnostic-report-panels-audit.md`.
 
+**CBC / BMP panel registry + panel-children RNG isolation (PR #74,
+2026-06-23):** Two structural changes shipped together because PR #72's
+calibration comments misdiagnosed the gap. (1) `lab_panels.yaml` gains
+`CBC: [WBC, Hb, Hct, Plt]` and `BMP: [Na, K, Cl, HCO3, BUN, Creatinine,
+Glucose, Ca]` entries so 9 silently-dropped `{test:"CBC"}` /
+`{test:"BMP"}` orders in cerebral_infarction / DVT / hemorrhagic_stroke
+/ DKA finally emit their canonical children — including **Hct, which
+the engine already derived but had no emission path** (US count 3 →
+114, 38×). (2) `_run_daily_loop` splits the lab-resulting loop into
+Pass 1 (master RNG, non-panel-child orders — byte-identical to master)
+and Pass 2 (panel children, per-parent isolated sub-RNG seeded by
+`panel_specimen_seed(parent_order_id)` in the new `simulator/seeding.py`
+helper). This closes a latent AD-16 violation that PR #72's emission
+profile would have widened, and converts specimen rejection from
+per-analyte (clinically impossible — pH rejected while pCO2 from the
+same draw is fine) to per-specimen (one parent → all-or-nothing on
+children). Cohort drift on non-lab files within the structural-fix
+band; data-quality preserved (refRange 100%, display ≠ code 100%).
+See `docs/superpowers/specs/2026-06-23-cbc-bmp-panel-expansion-design.md`
+and `docs/reviews/2026-06-23-cbc-bmp-byte-diff.md`.
+
+**CBC / BMP min_components raise + cerebral_infarction redundancy
+removal (PR #75, 2026-06-23):** Audit-driven follow-up to PR #74.
+`lab_panel_groups.yaml` raises `CBC.min_components` 2 → 3 and
+`BMP.min_components` 3 → 5 per the canonical-N − 1 rule (one
+specimen-handling tolerance). Validated by a new audit script
+(`scratchpad/cbc_bmp_panel_audit.py`) at US p=4000 showing the
+5th-percentile floor of "panel-order-placed" days sits at the
+canonical maximum (4 / 6) — large margin above the chosen
+thresholds. Headline outcome: **CBC DR count drops 81 % (1466 → 274)
+and BMP DR 48 % (673 → 350) on US p=2000** as the new thresholds
+suppress coincidence-only groupings. `cerebral_infarction.yaml` lines
+139-140 lose their redundant `{test:"Hb"}` / `{test:"Plt"}` orders
+(pre-PR1 workaround now superseded by the CBC panel's children).
+Two existing DR-grouping unit tests expanded so their component
+counts continue to clear the new thresholds. See
+`docs/reviews/2026-06-23-cbc-bmp-pr2-audit.md`.
+
+**Post-PR #75 data-quality review + JP lab localization fix (PR #76,
+2026-06-23):** 3-axis review at US p=10000 + JP p=5000 (seed=42).
+Structural quality perfect on both populations (zero duplicate ids,
+zero unresolved references across 9.1 M + 1.1 M reference checks,
+refRange 100 %, display ≠ code 100 %). Clinical fidelity 13 / 14
+PASS on both (CKD SKIP is structural — chronic_followup cohort outside
+the inpatient walk); every per-disease admit-day band lands in the
+clinically expected range. JP localization: US bundle byte-clean of
+Japanese characters, JP `Condition.code.text` and `DiagnosticReport.code`
+display 100 % Japanese, JP CM-granular ICD-10 leaks zero. One defect
+detected and fixed in the same PR: five JLAC10 entries (3B015 CK-MB,
+3B035 AST, 3B045 ALT, 4A055 TSH, 5C070 CRP) had `ja` populated with
+the English abbreviation rather than the JCCLS Japanese name — replaced
+with the JSLM v137 canonical names. See
+`docs/reviews/2026-06-23-pr75-data-quality-review.md` and
+`scratchpad/dqr_pr75_review.py`.
+
 ## Architecture Decisions (current)
 
 | Decision | Date | Description |
@@ -128,6 +183,7 @@ from current physiology engine). See
 | **AD-48** | 2026-04-16 | **Procedure display via code dictionary (AD-30 strict)**: `procedure_name` removed from ProcedureRecord — display resolved at output time via `code_lookup("k-codes"|"cpt", code, lang)`. Both `procedure_code_jp` and `procedure_code_us` stored in CIF for multilingual FHIR output. |
 | **AD-49** | 2026-04-18 | **Condition code.text with clinical abbreviations**: `_CONDITION_SHORT_NAME` maps ICD base codes to search-friendly short names (COPD, CHF, CKD, DM, AF, etc.) in both EN and JA. `coding[].display` keeps official ICD name. |
 | **AD-50** | 2026-04-18 | **Medication protocol prefix stripping**: `_strip_protocol_prefix()` separates category prefixes (DVT_prophylaxis:, antipyretic:, etc.) from drug name in `medicationCodeableConcept.text`. Drug name only in text, protocol context in dosageInstruction. |
+| **AD-51** | 2026-06-23 | **Panel-children RNG isolation (one specimen, one RNG)**: every lab `Order` produced by panel expansion (`_run_daily_loop`'s Pass 2) draws specimen-rejection / hemolysis / staff-assignment / result-timing from a per-parent sub-RNG seeded by `panel_specimen_seed(parent_order_id)` (in `clinosim/simulator/seeding.py`), not from the patient-scoped master RNG. Two consequences: (a) editing `lab_panels.yaml` (e.g. registering CBC or BMP) cannot cascade into unrelated patients' cohorts — the master stream stays exactly the same length regardless of which panels are registered (AD-16 compliance). (b) Specimen rejection becomes per-specimen (one parent → all-or-nothing on children) rather than per-analyte, which is clinically correct because a panel order is one tube. PR #74. Tested by `tests/integration/test_panel_expansion_cbc_bmp.py::test_panel_children_cancellation_is_per_specimen` and `tests/unit/test_seeding.py::TestPanelSpecimenSeed::test_formula_is_pinned`. |
 
 ## Implementation Status
 
