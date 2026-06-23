@@ -785,6 +785,84 @@ def test_fibrinogen_sepsis_dic_falls_below_baseline():
         f"Fibrinogen={labs['Fibrinogen']} should show consumption overtaking acute-phase"
 
 
+# -----------------------------------------------------------------------------
+# D-dimer (Phase 2a 2026-06-24): VTE-spectrum analyte. Multi-axis derive
+# from coagulation_status + inflammation_level + age, with a scenario-flag
+# bump for actual VTE events (causes_vte=True on PE/DVT/embolic stroke).
+# AD-57 BNP-pattern surgical (formula only).
+# -----------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_d_dimer_healthy_state_low():
+    """Healthy adult: D-dimer near baseline ~0.3 ug/mL FEU."""
+    state = PhysiologicalState()
+    labs = derive_lab_values(state, sex="M", age=45)
+    assert "D_dimer" in labs
+    assert labs["D_dimer"] < 1.0, \
+        f"D-dimer={labs['D_dimer']} should be < 1.0 in a healthy adult"
+
+
+@pytest.mark.unit
+def test_d_dimer_age_adjusted_baseline():
+    """Older patients have slightly elevated baseline D-dimer (well-documented
+    age effect; 0.005 / year above 50)."""
+    state = PhysiologicalState()
+    young = derive_lab_values(state, sex="M", age=35)
+    old = derive_lab_values(state, sex="M", age=85)
+    assert old["D_dimer"] > young["D_dimer"], \
+        f"old D-dimer {old['D_dimer']} should exceed young {young['D_dimer']}"
+
+
+@pytest.mark.unit
+def test_d_dimer_vte_flag_elevates_to_positive_range():
+    """causes_vte=True puts D-dimer in the clinically positive range (>4)."""
+    state = PhysiologicalState()
+    labs_no_vte = derive_lab_values(state, sex="M", age=60)
+    labs_vte = derive_lab_values(state, sex="M", age=60, causes_vte=True)
+    assert labs_vte["D_dimer"] > 4.0, \
+        f"VTE D-dimer={labs_vte['D_dimer']} should be clinically positive (>4)"
+    assert labs_vte["D_dimer"] > labs_no_vte["D_dimer"] + 3.0, \
+        f"VTE flag should add ~4 to D-dimer, got delta " \
+        f"{labs_vte['D_dimer'] - labs_no_vte['D_dimer']}"
+
+
+@pytest.mark.unit
+def test_d_dimer_sepsis_without_vte_mildly_elevated():
+    """Sepsis without VTE: D-dimer rises modestly (inflammation contribution)
+    but stays below the VTE-positive threshold."""
+    state = PhysiologicalState(inflammation_level=0.85)
+    labs = derive_lab_values(state, sex="M", age=60)
+    assert labs["D_dimer"] < 2.0, \
+        f"sepsis no-VTE D-dimer={labs['D_dimer']} should stay non-specific"
+
+
+@pytest.mark.unit
+def test_d_dimer_dic_alone_can_reach_positive_without_vte():
+    """Severe DIC alone (no VTE) can lift D-dimer into the positive range —
+    clinically true (consumptive coagulopathy with fibrinolysis)."""
+    state = PhysiologicalState(inflammation_level=0.85, coagulation_status=1.0)
+    labs = derive_lab_values(state, sex="M", age=60)
+    assert labs["D_dimer"] >= 2.0, \
+        f"severe DIC D-dimer={labs['D_dimer']} should be elevated"
+
+
+@pytest.mark.unit
+def test_d_dimer_clamps_at_20():
+    """Hard ceiling at 20 ug/mL FEU (assay upper limit)."""
+    state = PhysiologicalState(inflammation_level=1.0, coagulation_status=1.0)
+    labs = derive_lab_values(state, sex="M", age=100, causes_vte=True)
+    assert labs["D_dimer"] <= 20.0
+
+
+@pytest.mark.unit
+def test_d_dimer_floor_at_0_15():
+    """Floor at 0.15 ug/mL (lab detection floor)."""
+    state = PhysiologicalState()
+    labs = derive_lab_values(state, sex="M", age=20)
+    assert labs["D_dimer"] >= 0.15
+
+
 @pytest.mark.unit
 def test_anion_gap_status_does_not_mutate_other_labs():
     """AG axis must NOT cascade. Compare derive output for AG=0 vs AG=1 with
