@@ -35,11 +35,11 @@ LOINC_TO_COMPONENT = {
     "6690-2": "WBC", "718-7": "Hb", "4544-3": "Hct", "777-3": "Plt",
     "2951-2": "Na", "2823-3": "K", "1963-8": "HCO3", "3094-0": "BUN",
     "2160-0": "Creatinine", "2345-7": "Glucose",
-    # Cl (2075-0) and Ca (17861-6) don't emit until derive_lab_values adds them.
+    "2075-0": "Cl", "17861-6": "Ca",  # added by BMP Cl/Ca physiology PR (2026-06-23)
 }
 
 CBC_COMPONENTS = {"WBC", "Hb", "Hct", "Plt"}
-BMP_COMPONENTS = {"Na", "K", "HCO3", "BUN", "Creatinine", "Glucose"}  # 6 emit-able
+BMP_COMPONENTS = {"Na", "K", "Cl", "HCO3", "BUN", "Creatinine", "Glucose", "Ca"}  # 8 emit-able
 
 
 def run_simulator(cwd: Path, out_dir: Path, country: str, n: int, seed: int = 42) -> None:
@@ -136,8 +136,8 @@ def percentile(counter, p: float) -> int:
 def report(dist) -> int:
     """Pretty-print + validate. Return number of failures."""
     failures = 0
-    plan = {"CBC": 3, "BMP": 5}
-    canonical = {"CBC": 4, "BMP": 6}
+    plan = {"CBC": 3, "BMP": 7}
+    canonical = {"CBC": 4, "BMP": 8}
     for panel, buckets in dist.items():
         wp = buckets["with_parent"]
         co = buckets["coincidence"]
