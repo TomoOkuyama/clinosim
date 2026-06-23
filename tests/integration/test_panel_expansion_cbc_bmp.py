@@ -14,7 +14,6 @@ from clinosim.simulator import run_forced
 from clinosim.types.config import ForcedScenario, SimulatorConfig
 from clinosim.types.encounter import OrderStatus
 
-
 CBC_COMPONENTS = {"WBC", "Hb", "Hct", "Plt"}
 BMP_COMPONENTS_EMITTED = {"Na", "K", "HCO3", "BUN", "Creatinine", "Glucose"}
 BMP_COMPONENTS_DROPPED = {"Cl", "Ca"}

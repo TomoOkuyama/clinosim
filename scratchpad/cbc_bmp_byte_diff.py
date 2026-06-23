@@ -16,7 +16,6 @@ Usage (from repo root):
     python scratchpad/cbc_bmp_byte_diff.py
 """
 import hashlib
-import os
 import shutil
 import subprocess
 import sys
