@@ -78,6 +78,93 @@ def test_dka_bmp_emits_six_components_and_drops_cl_ca():
 
 
 @pytest.mark.integration
+def test_panel_children_cancellation_is_per_specimen():
+    """Specimen rejection is a per-specimen event, not per-analyte: when a
+    panel parent's specimen is rejected, *every* child for that parent moves
+    to CANCELLED; when a specimen is accepted, no child of that parent gets
+    a per-analyte specimen rejection.
+
+    The per-parent sub-RNG (simulator/seeding.py panel_specimen_seed) draws
+    specimen rejection once per parent, so within a parent's child set the
+    cancellation pattern is all-or-nothing — never a mixture of CANCELLED
+    and RESULTED siblings.
+    """
+    scenario = ForcedScenario(
+        disease_id="cerebral_infarction", count=10, severity="moderate",
+    )
+    cfg = SimulatorConfig(random_seed=42, country="US")
+    dataset = run_forced(scenario, cfg)
+
+    for record in dataset.patients:
+        # Group panel children by parent (order_id pattern: f"{parent}-{comp}").
+        # A parent is any RESULTED panel order whose children are also in record.orders.
+        parents = {
+            o.order_id for o in record.orders
+            if o.display_name in {"CBC", "BMP", "ABG"}
+            and o.status == OrderStatus.RESULTED
+        }
+        for parent_id in parents:
+            children = [
+                o for o in record.orders
+                if o.order_id.startswith(parent_id + "-")
+            ]
+            if not children:
+                continue
+            statuses = {c.status for c in children}
+            # Either every child cancelled (specimen rejected) OR no child is
+            # cancelled (specimen accepted). The "Cl/Ca dropped" case stays
+            # at PLACED, not CANCELLED — those are silent drops, not rejections.
+            has_cancelled = any(c.status == OrderStatus.CANCELLED for c in children)
+            has_non_cancelled = any(c.status != OrderStatus.CANCELLED for c in children)
+            assert not (has_cancelled and has_non_cancelled), (
+                f"Mixed CANCELLED/non-CANCELLED siblings for parent "
+                f"{parent_id}: statuses={statuses}. Specimen rejection must "
+                f"be per-specimen, not per-analyte."
+            )
+
+
+@pytest.mark.integration
+def test_dka_bmp_children_with_unrecognised_components_stay_placed():
+    """Cl and Ca BMP children are silently dropped at the panel sub-RNG pass
+    because derive_lab_values does not yet produce them. The dropped children
+    should remain PLACED (no result, no CANCELLED, no panic) so that adding
+    Cl/Ca to the engine later resurrects them with no further plumbing."""
+    scenario = ForcedScenario(
+        disease_id="diabetic_ketoacidosis", count=2, severity="moderate",
+    )
+    cfg = SimulatorConfig(random_seed=42, country="US")
+    dataset = run_forced(scenario, cfg)
+
+    for record in dataset.patients:
+        bmp_parents = [
+            o for o in record.orders
+            if o.display_name == "BMP" and o.status == OrderStatus.RESULTED
+        ]
+        for parent in bmp_parents:
+            cl_children = [
+                o for o in record.orders
+                if o.order_id == f"{parent.order_id}-Cl"
+            ]
+            ca_children = [
+                o for o in record.orders
+                if o.order_id == f"{parent.order_id}-Ca"
+            ]
+            # When the specimen wasn't rejected, every panel parent should
+            # have child rows for Cl and Ca in PLACED status; if specimen
+            # was rejected, they'd be CANCELLED. They must not be RESULTED.
+            for child in cl_children + ca_children:
+                assert child.status in {OrderStatus.PLACED, OrderStatus.CANCELLED}, (
+                    f"BMP child {child.order_id} ({child.display_name}) "
+                    f"unexpectedly RESULTED; derive_lab_values does not "
+                    f"produce {child.display_name} today."
+                )
+                assert child.result is None, (
+                    f"BMP child {child.order_id} ({child.display_name}) "
+                    f"carries a result despite not being in true_labs."
+                )
+
+
+@pytest.mark.integration
 def test_panel_parents_marked_resulted_no_scalar_observation():
     """The PLACED→RESULTED transition on the parent CBC/BMP order
     (inpatient.py:584) is what prevents the parent itself from emitting a
