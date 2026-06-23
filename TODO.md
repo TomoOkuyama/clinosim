@@ -129,6 +129,66 @@ with the JSLM v137 canonical names. See
 `docs/reviews/2026-06-23-pr75-data-quality-review.md` and
 `scratchpad/dqr_pr75_review.py`.
 
+**Coag panel activation (LOINC 24373-3) + APTT/PT/Fibrinogen derives
+(2026-06-24):** Activates the previously-defined-but-dormant Coag
+DiagnosticReport panel (LOINC 24373-3) by extending
+`physiology.derive_lab_values` with three new analytes — all from
+existing state axes (no new `PhysiologicalState` field), AD-57
+BNP-pattern surgical:
+
+- `APTT = clamp(30 + coagulation_status*55, 20, 150)` (seconds; healthy
+  ~30, DIC ~85)
+- `PT = clamp(12 * PT_INR, 9, 90)` (seconds; ISI=1.0 consistency
+  invariant tying PT to the existing PT_INR)
+- `Fibrinogen = clamp(300 + infl*250 - coag*280, 50, 800)` (mg/dL;
+  **biphasic** — acute-phase reactant ↑ in inflammation, consumed ↓ in
+  DIC. Healthy ~300, sepsis-no-DIC ~512, sepsis+DIC ~289, severe DIC
+  floor 50.)
+
+Also adopts improvements (uniform rule
+`feedback_propose_improvements_to_existing`):
+- I1: `lab_panels.yaml` gains Coag/LFT/Lipid/UA (symmetry with
+  `lab_panel_groups.yaml` restored)
+- I2: `lab_panel_groups.yaml` Coag block documents LOINC 24373-3
+  authoritative scope (Fibrinogen/D-dimer panel-external)
+- I3: stale "Cl/Ca in BMP today" comment refreshed
+- I8: Fibrinogen "range exists, derive missing" gap closed
+
+Authoritative code data (NLM + JSLM v137 verified): LOINC 14979-9 APTT,
+5902-2 PT (existing entry reused), 3255-7 Fibrinogen (existing; `en`
+shortened to "Fibrinogen" per clean-display convention). JLAC10 2B020
+APTT, 2B100 Fibrinogen, 2B030 (existing — shared by PT seconds and
+PT-INR since the 5-char analyte code does not distinguish result
+representation).
+
+Byte-diff vs master `fbd80607` @ p=2000 seed=42 (both US and JP):
+nine NDJSONs (Patient/Encounter/Condition/Medication*/Procedure/
+Imaging/Immunization/FamilyHistory) byte-identical; only
+Observation.ndjson + DiagnosticReport.ndjson change (new APTT/PT/
+Fibrinogen Observations + new Coag DRs). 3-axis DQR (US p=10000 +
+JP p=5000) all PASS — structural / clinical (sepsis admit
+Fibrinogen p50 501-516 in 350-650 acute-phase band, APTT p75 31.1-31.9
+above upper reference) / JP language (zero US leak, 2760 JP
+instances, jlac10 `ja` JCCLS-official). See
+`docs/reviews/2026-06-24-coag-panel-data-quality-review.md`,
+`docs/superpowers/specs/2026-06-23-coag-panel-physiology-design.md`,
+`docs/superpowers/plans/2026-06-23-coag-panel-physiology.md`.
+
+Deferred to follow-up PRs (recorded as backlog):
+- **Phase 2**: `D_dimer` derive + `causes_vte` scenario flag for
+  PE/DVT/cerebral_infarction/hemorrhagic_stroke
+- **`on_anticoagulation` axis**: warfarin/heparin therapeutic-range INR
+  modelling (pair with D-dimer Phase 2 PR)
+- **I4 panel-YAML unification**: merge `lab_panels.yaml` and
+  `lab_panel_groups.yaml` to a single canonical analyte source
+- **I6 `clinical_course.actions[].test` field disambiguation**: separate
+  orderable test names from natural-language action descriptors
+- **I7 `platelet_status` axis**: decouple Plt from `coagulation_status`
+  so ITP/chemotherapy/MDS can be modelled separately
+- **LOS-mid DIC subset audit**: confirm Fibrinogen DIC-consumption tail
+  emerges in the sepsis subset that accumulates `coagulation_status`
+  over LOS
+
 **BMP Cl/Ca physiology + anion_gap_status axis + Pass 1 sub-RNG
 isolation (PR Cl/Ca, 2026-06-23):** Completes BMP canonical 8
 emission. `derive_lab_values` gains Cl (AG-aware: high-AG keeps Cl

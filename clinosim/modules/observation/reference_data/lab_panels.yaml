@@ -1,11 +1,22 @@
-# Lab panels (AD-57): one order name → component analytes. A panel order expands into
-# one resulted lab order per component (each derived from physiology, emitted as its own
-# Observation). Data-driven; add a panel here, no code changes.
+# Lab panels (AD-57): one order name → component analytes. A panel order
+# expands into one resulted lab order per component (each derived from
+# physiology, emitted as its own Observation). Data-driven; add a panel
+# here, no code changes.
 #
-# NOTE: list the *canonical* analyte names that the physiology engine derives.
-# Components not in derive_lab_values() (e.g. Cl/Ca in BMP today) are silently
-# dropped at the scalar-resulted path in inpatient.py — that's the right shape
-# (the panel-expansion path stays declarative; the engine catches up later).
+# Components must match the canonical analyte names produced by
+# physiology.derive_lab_values(). Missing components are silently dropped
+# at the scalar-resulted path (acceptable: the engine catches up later).
+#
+# As of 2026-06-23 (PR #78 BMP Cl/Ca + Coag panel PR) every listed
+# component above has a derive — EXCEPT UA's urine analytes, which are
+# documented silent-drops until the future UA-panel PR adds urine
+# physiology. New panel-component additions must add the derive in
+# physiology/engine.py FIRST (or accept silent-drop semantics explicitly).
+
 ABG: [pH, pCO2, pO2, HCO3]
 CBC: [WBC, Hb, Hct, Plt]
 BMP: [Na, K, Cl, HCO3, BUN, Creatinine, Glucose, Ca]
+Coag: [PT, PT_INR, APTT]
+LFT: [AST, ALT, ALP, T_Bil, Albumin, TP, GGT, LDH]
+Lipid: [TC, LDL, HDL, TG]
+UA: [Urine_pH, Urine_specific_gravity, Urine_protein, Urine_glucose, Urine_ketones, Urine_blood, Urine_nitrite, Urine_leukocyte_esterase]

@@ -183,7 +183,23 @@ non_ag_f   = clamp(1.0 - anion_gap_status, 0.0, 1.5)
 Cl         = clamp(base_cl + hco3_def * non_ag_f, 80, 125)        # AG-aware reciprocity
 Ca         = clamp(9.5 - infl*0.8 - (1-renal)*0.7
                    - (1-hepatic)*0.4 + sodium_status*0.3, 5.5, 13) # total Ca, 多軸結合
+
+# 凝固パネル (Coag panel LOINC 24373-3 完成 + Fibrinogen adjunct、2026-06-24)
+APTT       = clamp(30 + coagulation_status*55, 20, 150)           # 秒、健常~30 / DIC で延長
+PT         = clamp(12 * PT_INR, 9, 90)                            # 秒、ISI=1.0 一貫不変
+Fibrinogen = clamp(300 + infl*250 - coagulation_status*280, 50, 800)
+             # mg/dL、biphasic: 急性期反応で ↑、DIC で消費 ↓
 ```
+
+凝固パネル軸(AD-57 BNP-pattern surgical、新 state 変数なし):
+- `APTT`: `coagulation_status` 単軸由来。DIC + 肝合成低下を集約した既存上流(`apply_coupling_rules`)が
+  正確に駆動する
+- `PT` (秒): `PT_INR` から数学的に導出。LOINC では別コード(5902-2 PT vs 6301-6 PT-INR)、JLAC10
+  では同一分析物コード `2B030` を共有(秒/INR 区別は 17 桁フルコードの結果識別側で表現)
+- `Fibrinogen`: `inflammation_level`(急性期 reactant ↑)と `coagulation_status`(DIC で消費 ↓)
+  が独立軸として競合する**biphasic**な公式。健常 ~300、敗血症 acute-phase で ~512、敗血症 + DIC
+  で ~289、重症 DIC で floor 50。Coag panel(LOINC 24373-3)外で個別 Observation として出力
+  (LOINC panel 定義に Fibrinogen は含まれない)
 
 `respiratory_fraction` は疾患シナリオの `acid_base_type`(既定 `metabolic`、COPD/喘息は
 `respiratory`) または慢性 J44/J45 から設定される(エンジンにハードコードせずデータ駆動)。

@@ -112,6 +112,10 @@ ranges:
   # === 凝固 ===
   PT_INR:
     - {low: 0.85, high: 1.15, unit: "{INR}", text: "一般基準値（非ワーファリン服用）"}
+  PT:
+    - {low: 11, high: 13, unit: "s", text: "一般基準値（プロトロンビン時間、秒）"}
+  APTT:
+    - {low: 25, high: 38, unit: "s", text: "一般基準値"}
   Fibrinogen:
     - {low: 200, high: 400, unit: "mg/dL", text: "一般基準値"}
 
