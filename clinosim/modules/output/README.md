@@ -54,7 +54,7 @@ clinosim/modules/output/
 ├── AllergyIntolerance.ndjson    # アレルギー (JP: ペニシリン等)
 ├── Coverage.ndjson              # 保険資格 (JPのみ; JP Core 記号/番号/枝番, AD-54)
 ├── Observation.ndjson           # ラボ + バイタル + 職業 + 微生物 (referenceRange + interpretation)
-├── DiagnosticReport.ndjson      # 微生物培養レポート (感染症, AD-55)
+├── DiagnosticReport.ndjson      # 検査パネル DR (CBC/BMP/LFT/Lipid/Coag/UA/ABG) + 微生物培養 DR
 ├── Specimen.ndjson              # 培養検体 (血液/尿/喀痰/創部)
 ├── MedicationRequest.ndjson     # 処方 (protocol prefix stripped)
 ├── MedicationAdministration.ndjson # MAR (実投与)
