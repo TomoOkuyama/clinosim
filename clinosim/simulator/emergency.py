@@ -42,6 +42,7 @@ def _simulate_ed_visit(
         derive_lab_values,
         derive_observed_vitals,
         initialize_state,
+        medication_flags_from_context,
         scenario_flags_from_protocol,
     )
 
@@ -123,7 +124,13 @@ def _simulate_ed_visit(
     # J5 (Phase 2a): wire all scenario flags (causes_myocardial_injury,
     # causes_vte) through the helper. Pre-Phase-2a, the ED path passed no
     # flag — ED-presentation MI patients had no troponin upshift.
-    _flags = scenario_flags_from_protocol(protocol)
+    # Phase 2b (2026-06-24): also merge medication flags (on_warfarin).
+    # ED is admit-day; no in-hospital ramp (no MAR / day-into-stay applies) —
+    # chronic-only path runs via patient.current_medications.
+    _flags = {
+        **scenario_flags_from_protocol(protocol),
+        **medication_flags_from_context(patient),
+    }
     _true_labs = derive_lab_values(_state, sex=patient.sex, age=patient.age, has_diabetes=_has_dm, **_flags)
     # AD-16: per-lab-order sub-RNG so probability skips / noise / timing draws
     # cannot poison the patient master stream when derive_lab_values gains a new
