@@ -81,6 +81,53 @@ def test_sepsis_emits_pt_inr_and_fibrinogen():
 
 
 @pytest.mark.integration
+def test_pe_emits_clinically_positive_d_dimer():
+    """End-to-end: pulmonary_embolism patients emit D-dimer Observations
+    with median > 4 ug/mL FEU (clinically positive). Phase 2a."""
+    scenario = ForcedScenario(
+        disease_id="pulmonary_embolism", count=5, severity="moderate",
+    )
+    cfg = SimulatorConfig(random_seed=42, country="US")
+    dataset = run_forced(scenario, cfg)
+
+    values = []
+    for record in dataset.patients:
+        for o in record.orders:
+            if o.result is not None and o.result.lab_name == "D_dimer":
+                values.append(o.result.value)
+    assert values, "expected ≥1 D_dimer result across PE cohort"
+    median = sorted(values)[len(values) // 2]
+    assert median > 4.0, \
+        f"PE D-dimer median {median} should be clinically positive (>4)"
+
+
+@pytest.mark.integration
+def test_ed_mi_now_emits_high_troponin_after_j5_fix():
+    """J5 fix evidence: ED-route MI patients now produce MI-grade
+    troponin (>5 ng/mL) instead of the pre-fix type-2 background
+    (~0.5 ng/mL). Before the fix, emergency.py:122 called
+    derive_lab_values without myocardial_injury=True so MI never
+    upshifted troponin in the ED."""
+    scenario = ForcedScenario(
+        disease_id="acute_mi", count=5, severity="moderate",
+    )
+    cfg = SimulatorConfig(random_seed=42, country="US")
+    dataset = run_forced(scenario, cfg)
+
+    troponins = []
+    for record in dataset.patients:
+        for o in record.orders:
+            if o.result is not None and o.result.lab_name == "Troponin_I":
+                troponins.append(o.result.value)
+    assert troponins, "expected ≥1 Troponin_I result"
+    high = [v for v in troponins if v > 5.0]
+    assert high, (
+        f"expected at least one MI-grade troponin (>5 ng/mL) in acute_mi "
+        f"cohort after J5 fix; got values {sorted(troponins)[-5:]}"
+    )
+
+
+@pytest.mark.integration
 def test_gi_bleeding_emits_pt_inr_and_aptt():
     """gi_bleeding.yaml orders both PT_INR and APTT at admission — DIC
     coagulopathy + hepatic synthesis defect scenarios make this protocol's
