@@ -3,6 +3,7 @@
 # against the most current published data before production use.
 
 disease_id: deep_vein_thrombosis
+causes_vte: true   # DVT — same mechanism as PE (Phase 2a)
 chief_complaint:
   en: "Unilateral leg swelling, pain, warmth"
   ja: "一側下肢の腫脹・疼痛・熱感"

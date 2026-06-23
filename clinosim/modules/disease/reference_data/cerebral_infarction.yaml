@@ -3,6 +3,11 @@
 # against the most current published data before production use.
 
 disease_id: cerebral_infarction
+# Phase 2a: most cerebral infarctions are embolic (cardioembolic or large-
+# artery thrombo-embolic); D-dimer behaves like VTE. NOT appropriate for
+# hemorrhagic_stroke.yaml — that mechanism is intracerebral fibrinolysis,
+# captured by coagulation_status alone.
+causes_vte: true
 chief_complaint:
   en: "Sudden onset weakness, speech difficulty, facial droop"
   ja: "突然の片麻痺・構音障害・顔面麻痺"
