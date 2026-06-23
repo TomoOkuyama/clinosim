@@ -691,6 +691,35 @@ def test_ca_dehydration_normal_upper_range():
         f"dehydration Ca should land in upper-normal (got {labs['Ca']})"
 
 
+# -----------------------------------------------------------------------------
+# Coagulation panel (LOINC 24373-3 + Fibrinogen) — APTT / PT / Fibrinogen.
+# AD-57 BNP-pattern surgical: formulas only, no new state field, no state
+# mutation. derived from existing coagulation_status + inflammation_level
+# axes (already populated by apply_coupling_rules: DIC, hepatic factor
+# depletion, sepsis acute-phase).
+# -----------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_aptt_healthy_state():
+    """APTT in healthy patient sits in the reference range 25-38 s."""
+    state = PhysiologicalState()
+    labs = derive_lab_values(state, sex="M", age=45)
+    assert "APTT" in labs
+    assert 25.0 <= labs["APTT"] <= 38.0, \
+        f"APTT={labs['APTT']} out of healthy range"
+
+
+@pytest.mark.unit
+def test_aptt_severe_dic_prolongation():
+    """Severe DIC (coagulation_status=1.0) → APTT > 65 s (markedly prolonged)."""
+    state = PhysiologicalState(coagulation_status=1.0)
+    labs = derive_lab_values(state, sex="M", age=45)
+    assert labs["APTT"] > 65.0, \
+        f"APTT={labs['APTT']} should be DIC-prolonged"
+    assert labs["APTT"] <= 150.0, "APTT must respect upper clamp"
+
+
 @pytest.mark.unit
 def test_anion_gap_status_does_not_mutate_other_labs():
     """AG axis must NOT cascade. Compare derive output for AG=0 vs AG=1 with
