@@ -165,13 +165,35 @@ def check_clinical(csv_dir: Path, country: str):
 
     # patient → primary disease
     patient_disease: dict[str, str] = {}
+    # disease ICD prefix → disease_id (for code-based mapping when
+    # ground_truth_diseases is empty or unrecognised)
+    icd_to_disease = {
+        "E10.1": "diabetic_ketoacidosis", "E11.1": "diabetic_ketoacidosis",
+        "E13.1": "diabetic_ketoacidosis",
+        "I21":   "acute_mi",
+        "A41":   "sepsis", "R65.20": "sepsis", "R65.21": "sepsis",
+        "I50":   "heart_failure_exacerbation",
+        "N17":   "acute_kidney_injury",
+        "N18":   "ckd_stage_3",
+        "J15":   "bacterial_pneumonia", "J18": "bacterial_pneumonia",
+    }
     for row in csv.DictReader(open(csv_dir / "diagnoses.csv")):
         if patient_disease.get(row["patient_id"]):
             continue
-        # Heuristic: first non-empty primary_disease_id
-        d = row.get("ground_truth_disease_id") or row.get("disease_id") or ""
-        if d:
+        # ground_truth_diseases column is comma-separated list of disease_ids
+        # (introduced post-PR #75; older script used ground_truth_disease_id).
+        gtd = row.get("ground_truth_diseases", "") or ""
+        d = gtd.split(",")[0].strip() if gtd else ""
+        # Some rows still emit raw ICD codes — map via prefix lookup
+        if d and d in DISEASES_OF_INTEREST:
             patient_disease[row["patient_id"]] = d
+            continue
+        # Fall back to ICD prefix on admission_diagnosis_code
+        adm = row.get("admission_diagnosis_code", "")
+        for prefix, did in icd_to_disease.items():
+            if adm.startswith(prefix):
+                patient_disease[row["patient_id"]] = did
+                break
 
     # patient × analyte → list of values (admit-day = first row, day 0)
     # lab_results.csv columns: patient_id, encounter_id, lab_name, value,
