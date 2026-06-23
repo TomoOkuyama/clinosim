@@ -721,6 +721,32 @@ def test_aptt_severe_dic_prolongation():
 
 
 @pytest.mark.unit
+def test_pt_consistency_invariant_healthy():
+    """PT = 12 * PT_INR exactly (ISI=1.0 simplification) for any state. Tested
+    here for a healthy patient where PT_INR ≈ 1.0 → PT ≈ 12 s."""
+    state = PhysiologicalState()
+    labs = derive_lab_values(state, sex="M", age=45)
+    assert "PT" in labs
+    assert abs(labs["PT"] - 12.0 * labs["PT_INR"]) < 0.01, \
+        f"PT={labs['PT']} != 12 * PT_INR={labs['PT_INR']}"
+
+
+@pytest.mark.unit
+def test_pt_hepatic_failure_prolongation():
+    """Hepatic failure (hepatic_function=0.2): PT_INR ≈ 2.6, PT ≥ 17 s.
+
+    The PT_INR formula (line 307 of engine.py) is
+        PT_INR = 1.0 + (1 - hepatic) * 2.0 + coag * 1.5
+    so hepatic=0.2, coag=0 → PT_INR = 1.0 + 0.8*2 = 2.6 → PT = 31.2 s.
+    """
+    state = PhysiologicalState(hepatic_function=0.2)
+    labs = derive_lab_values(state, sex="M", age=45)
+    assert labs["PT"] >= 17.0, \
+        f"PT={labs['PT']} should be prolonged in hepatic failure"
+    assert abs(labs["PT"] - 12.0 * labs["PT_INR"]) < 0.01
+
+
+@pytest.mark.unit
 def test_anion_gap_status_does_not_mutate_other_labs():
     """AG axis must NOT cascade. Compare derive output for AG=0 vs AG=1 with
     all other state held equal — only Cl should change. In a healthy state
