@@ -561,10 +561,15 @@ class NursingRiskAssessment:
 - `lab_aliases.yaml` — オーダー名のバリアント → 正準 analyte。`canonical_lab_name(name)` が解決
   (例: `Troponin` / `Troponin_I_stat` / `Troponin_I_serial_6h` → `Troponin_I`、`ABG_repeat_1h` → `ABG`)。
 - `lab_panels.yaml` — パネル → 構成要素。`lab_panel_components(name)` が返す
-  (例: `ABG` → `[pH, pCO2, pO2, HCO3]`、`BMP` → canonical 8 = `[Na, K, Cl, HCO3, BUN, Creatinine, Glucose, Ca]`)。
+  (例: `ABG` → `[pH, pCO2, pO2, HCO3]`、`BMP` → canonical 8 = `[Na, K, Cl, HCO3, BUN, Creatinine, Glucose, Ca]`、
+  `Coag` → `[PT, PT_INR, APTT]`、`LFT` → `[AST, ALT, ALP, T_Bil, Albumin, TP, GGT, LDH]`、
+  `Lipid` → `[TC, LDL, HDL, TG]`、`UA` → `[Urine_pH, Urine_specific_gravity, ...]`)。
   simulator がパネルオーダーを構成要素オーダーに展開し、各要素が上記スカラー経路で結果化される。
   panel child の specimen-rejection / hemolysis は per-parent sub-RNG
   (`simulator/seeding.py:panel_specimen_seed`、AD-16/AD-59) で発生し、master stream を汚染しない。
+  UA の urine analyte 群は urine physiology が未実装の間 silent-drop される(将来の UA-panel PR で対応)。
+  panel order 展開源 (`lab_panels.yaml`) と FHIR DR 集約源 (`output/reference_data/lab_panel_groups.yaml`)
+  は責任が違うので別ファイル(前者 = 入力、後者 = 出力)で持つ — 7 panel すべて両側に存在し対称。
 - `microbiology.yaml` — 培養/感受性の起因菌・検体・抗菌薬コード + 疾患別分布 (`microbiology.py`)。
 
 **venue 横断の真値源 (AD-57)**: 入院/ED/外来とも `physiology.derive_lab_values(state)` で真値生成し、
