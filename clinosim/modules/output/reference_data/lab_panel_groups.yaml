@@ -52,7 +52,15 @@ panels:
   Coag:
     loinc: "24373-3"
     display: "Activated partial thromboplastin time (aPTT) and Prothrombin time (PT)/INR panel - Platelet poor plasma"
+    # LOINC 24373-3 is authoritatively the "aPTT and PT/INR panel" per
+    # Regenstrief. Fibrinogen (3255-7) and D-dimer (30240-9) are NOT part
+    # of this panel and emit as individual Observations. A broader DIC
+    # panel (e.g. LOINC 48995-7 "Coagulation panel") is a future
+    # enhancement and would be a separate entry here.
     components: [PT, PT_INR, APTT]
+    # min=2: PT_INR + APTT are derived by physiology in every patient; PT
+    # is derived too (= 12 * PT_INR) so panels with any 2 of these three
+    # are clinically meaningful and assemble reliably.
     min_components: 2
 
   UA:
