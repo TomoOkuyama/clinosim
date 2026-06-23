@@ -24,9 +24,12 @@ ed_stay_hours:
 # Acute physiological signature (AD-57): vomiting/diarrhea → dehydration (volume↓ →
 # BUN↑, BP↓/HR↑) plus mild inflammation; severe loss adds mild metabolic acidosis.
 initial_state_impact:
-  mild:     {inflammation_level: 0.06, volume_status: -0.10}
-  moderate: {inflammation_level: 0.12, volume_status: -0.22}
-  severe:   {inflammation_level: 0.16, volume_status: -0.38, ph_status: -0.05}
+  # AG axis: mixed diarrhea / vomiting — diarrhea-driven non-AG
+  # hyperchloremic acidosis dominates on average, slightly less negative
+  # than pure viral gastroenteritis.
+  mild:     {inflammation_level: 0.06, volume_status: -0.10, anion_gap_status: -0.2}
+  moderate: {inflammation_level: 0.12, volume_status: -0.22, anion_gap_status: -0.4}
+  severe:   {inflammation_level: 0.16, volume_status: -0.38, ph_status: -0.05, anion_gap_status: -0.5}
 
 workup:
   vitals: true

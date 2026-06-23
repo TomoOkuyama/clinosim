@@ -129,6 +129,35 @@ with the JSLM v137 canonical names. See
 `docs/reviews/2026-06-23-pr75-data-quality-review.md` and
 `scratchpad/dqr_pr75_review.py`.
 
+**BMP Cl/Ca physiology + anion_gap_status axis + Pass 1 sub-RNG
+isolation (PR Cl/Ca, 2026-06-23):** Completes BMP canonical 8
+emission. `derive_lab_values` gains Cl (AG-aware: high-AG keeps Cl
+near normal, non-AG diarrhea gives hyperchloremic Cl) and total Ca
+(multi-axis: sepsis / CKD / hepatic dysfunction drop it, mild
+dehydration lifts). A new `anion_gap_status` axis on
+`PhysiologicalState` (orthogonal to AD-57 acid-base 2-axis, does NOT
+affect pH/HCO3/pCO2) is set on 20 AG-disturbing disease YAMLs +
+2 encounters (viral GE / food poisoning) per textbook AG behaviour.
+BMP `min_components` raised 5 → 7 (canonical N − 1 = 8 − 1) with the
+5th-percentile floor of panel-order-placed days landing at 7.
+**Structural defect discovered + fixed in the same PR:** `inpatient.py`
+Pass 1 / `emergency.py` / `outpatient.py` lab loops were drawing
+specimen-rejection / hemolysis / technician / noise from the master
+RNG. PR #74 had isolated panel children only; individual (non-panel-child)
+lab orders remained on the master stream, so any YAML edit toggling a
+`{test:"X"}` order between "engine doesn't produce X" → "engine
+produces X" silently shuffled unrelated cohorts. Fixed via a new
+`simulator/seeding.py:individual_lab_seed(order_id)` mirroring
+`panel_specimen_seed`; the three lab loops now build a per-order rng
+from it. Integration tests guard the property
+(`tests/integration/test_individual_lab_isolation.py`). Data-quality
+review (US p=10000 + JP p=5000, seed=42): structural 100 % clean, JP
+localization 100 %, 7/8 clinical PASS, HF BNP `[FAIL]` is the same
+admit-day-mixing artifact documented in PR #71 (no BNP change in this
+PR). See `docs/reviews/2026-06-23-bmp-cl-ca-data-quality-review.md`,
+`docs/reviews/2026-06-23-bmp-cl-ca-audit.md`,
+`docs/superpowers/specs/2026-06-23-bmp-cl-ca-physiology-design.md`.
+
 ## Architecture Decisions (current)
 
 | Decision | Date | Description |

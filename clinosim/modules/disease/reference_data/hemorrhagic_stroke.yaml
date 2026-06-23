@@ -112,6 +112,7 @@ initial_state_impact:
     perfusion_status: -0.10
     neurological_status: -0.30
     volume_status: -0.05
+    anion_gap_status: 0.2     # AG axis: large ICH with perfusion compromise
   severe:
     inflammation_level: 0.35
     perfusion_status: -0.25
@@ -119,6 +120,7 @@ initial_state_impact:
     volume_status: -0.10
     ph_status: -0.05
     renal_function: -0.05
+    anion_gap_status: 0.3     # AG axis: severe ICH with lactate (AG 13-16)
 
 # ============================================================
 # ORDER PROTOCOLS

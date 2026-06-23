@@ -150,14 +150,20 @@ def _simulate_outpatient_visit(
     # are physiology-modeled and resolve via _true_labs first). DET-6 single source.
     baseline_values = BASELINE_LAB_NORMALS
     lab_tests = spec.get("labs", [])
+    # AD-16: per-lab-order sub-RNG — see inpatient.py Pass 1 / emergency.py
+    # for the parallel fix. Noise draws on the master rng would shuffle
+    # unrelated patients' cohorts whenever derive_lab_values gains an analyte.
+    from clinosim.simulator.seeding import individual_lab_seed
     for i, test_name in enumerate(lab_tests):
         # Skip non-quantitative diagnostics (e.g. ECG) misfiled under labs — they are
         # not lab analytes and must not get a fabricated value (AD-57 cleanup).
         canon = canonical_lab_name(test_name)
         if canon not in _true_labs and canon not in baseline_values:
             continue
+        order_id = f"ORD-{patient.patient_id}-OPD-L{i:02d}"
+        lab_rng = np.random.default_rng(individual_lab_seed(order_id))
         order = Order(
-            order_id=f"ORD-{patient.patient_id}-OPD-L{i:02d}",
+            order_id=order_id,
             patient_id=patient.patient_id,
             order_type=OrderType.LAB,
             display_name=test_name,
@@ -171,7 +177,7 @@ def _simulate_outpatient_visit(
 
         # Comorbidity-aware true value: physiology if modeled, else baseline normal.
         true_val = _true_labs.get(canon, baseline_values.get(canon, 1.0))
-        observed = generate_lab_result(canon, true_val, rng)
+        observed = generate_lab_result(canon, true_val, lab_rng)
         flag = determine_flag(canon, observed, sex=patient.sex)
         result = OrderResult(
             result_datetime=visit_date + timedelta(hours=2),
