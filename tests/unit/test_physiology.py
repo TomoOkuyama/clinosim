@@ -747,6 +747,45 @@ def test_pt_hepatic_failure_prolongation():
 
 
 @pytest.mark.unit
+def test_fibrinogen_healthy_state():
+    """Healthy: ~300 mg/dL, in reference range 200-400."""
+    state = PhysiologicalState()
+    labs = derive_lab_values(state, sex="M", age=45)
+    assert "Fibrinogen" in labs
+    assert 200.0 <= labs["Fibrinogen"] <= 400.0, \
+        f"Fibrinogen={labs['Fibrinogen']} out of healthy band"
+
+
+@pytest.mark.unit
+def test_fibrinogen_severe_dic_consumption():
+    """Severe DIC (coag=1.0, no inflammation): Fibrinogen consumed to floor."""
+    state = PhysiologicalState(coagulation_status=1.0)
+    labs = derive_lab_values(state, sex="M", age=45)
+    assert labs["Fibrinogen"] <= 100.0, \
+        f"Fibrinogen={labs['Fibrinogen']} should be DIC-consumed below 100"
+    assert labs["Fibrinogen"] >= 50.0, "Fibrinogen must respect 50 mg/dL floor"
+
+
+@pytest.mark.unit
+def test_fibrinogen_acute_phase_elevation():
+    """Sepsis WITHOUT DIC (infl=0.85, coag=0): acute-phase reactant → ≥ 450."""
+    state = PhysiologicalState(inflammation_level=0.85)
+    labs = derive_lab_values(state, sex="M", age=45)
+    assert labs["Fibrinogen"] >= 450.0, \
+        f"Fibrinogen={labs['Fibrinogen']} should be acute-phase elevated"
+
+
+@pytest.mark.unit
+def test_fibrinogen_sepsis_dic_falls_below_baseline():
+    """Sepsis + early DIC (infl=0.85, coag=0.80): consumption outpaces
+    acute-phase rise; Fibrinogen lands at DIC-trending level (< 250)."""
+    state = PhysiologicalState(inflammation_level=0.85, coagulation_status=0.80)
+    labs = derive_lab_values(state, sex="M", age=45)
+    assert labs["Fibrinogen"] < 350.0, \
+        f"Fibrinogen={labs['Fibrinogen']} should show consumption overtaking acute-phase"
+
+
+@pytest.mark.unit
 def test_anion_gap_status_does_not_mutate_other_labs():
     """AG axis must NOT cascade. Compare derive output for AG=0 vs AG=1 with
     all other state held equal — only Cl should change. In a healthy state
