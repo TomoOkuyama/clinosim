@@ -58,19 +58,23 @@ class TestGroupLabOrders:
         ]
 
     def test_below_threshold_yields_no_group(self):
-        """A single CBC component (below CBC's min=2) yields no DR."""
+        """A single CBC component (below CBC's min=3 per PR2) yields no DR."""
         from clinosim.modules.output._fhir_diagnostic_report import group_lab_orders
         orders = [_order("WBC", "2026-05-12T14:28:38", 0)]
         assert group_lab_orders(orders, "ENC-001") == []
 
     def test_separate_day_buckets_yield_separate_groups(self):
-        """Repeat draws on a different day produce separate DRs (e.g. daily CBC trend)."""
+        """Repeat draws on a different day produce separate DRs (e.g. daily CBC
+        trend). With CBC min_components=3 (PR2), each day needs at least 3
+        components to register as a CBC DR."""
         from clinosim.modules.output._fhir_diagnostic_report import group_lab_orders
         orders = [
             _order("WBC", "2026-05-12T14:28:38", 0),
             _order("Hb",  "2026-05-12T14:28:39", 1),
-            _order("WBC", "2026-05-13T09:30:00", 2),
-            _order("Hb",  "2026-05-13T09:30:01", 3),
+            _order("Hct", "2026-05-12T14:28:40", 2),
+            _order("WBC", "2026-05-13T09:30:00", 3),
+            _order("Hb",  "2026-05-13T09:30:01", 4),
+            _order("Hct", "2026-05-13T09:30:02", 5),
         ]
         groups = group_lab_orders(orders, "ENC-001")
         assert len(groups) == 2

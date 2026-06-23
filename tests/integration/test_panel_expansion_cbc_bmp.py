@@ -205,3 +205,51 @@ def test_panel_parents_marked_resulted_no_scalar_observation():
             f"{emitted & {'CBC', 'BMP'}} — the scalar fallback should "
             f"have skipped them."
         )
+
+
+@pytest.mark.integration
+def test_cerebral_infarction_individual_hb_plt_orders_removed():
+    """PR2: cerebral_infarction.yaml lines 139-140 (individual {test: "Hb"}
+    and {test: "Plt"} stat orders) are deleted. The CBC panel order at
+    line 126 supplies both analytes via its panel children, so no
+    individual Hb / Plt order should appear in any cerebral_infarction
+    patient's record. (Panel-child orders are allowed — their order_id
+    ends in "-Hb" or "-Plt".)"""
+    scenario = ForcedScenario(
+        disease_id="cerebral_infarction", count=5, severity="moderate",
+    )
+    cfg = SimulatorConfig(random_seed=42, country="US")
+    dataset = run_forced(scenario, cfg)
+    for record in dataset.patients:
+        for order in record.orders:
+            if order.display_name in {"Hb", "Plt"}:
+                comp = order.display_name
+                assert order.order_id.endswith(f"-{comp}"), (
+                    f"Found individual {comp} order {order.order_id} — "
+                    f"PR2 deletes these from cerebral_infarction.yaml "
+                    f"lines 139-140; only CBC panel children should "
+                    f"emit {comp} in this protocol."
+                )
+
+
+@pytest.mark.integration
+def test_cerebral_infarction_cbc_panel_still_emits_all_four_components():
+    """Regression guard: after PR2 removes individual Hb / Plt, the CBC
+    panel order at cerebral_infarction.yaml line 126 must still emit
+    all four canonical components via its children. This protects
+    against accidentally deleting too many lines in the YAML edit."""
+    scenario = ForcedScenario(
+        disease_id="cerebral_infarction", count=5, severity="moderate",
+    )
+    cfg = SimulatorConfig(random_seed=42, country="US")
+    dataset = run_forced(scenario, cfg)
+    for record in dataset.patients:
+        emitted = {
+            o.result.lab_name
+            for o in record.orders
+            if o.result is not None and o.result.lab_name in CBC_COMPONENTS
+        }
+        assert CBC_COMPONENTS.issubset(emitted), (
+            f"After PR2 cerebral_infarction must still emit "
+            f"{CBC_COMPONENTS}; missing {CBC_COMPONENTS - emitted}."
+        )

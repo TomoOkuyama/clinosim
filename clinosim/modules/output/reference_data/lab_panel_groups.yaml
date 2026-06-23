@@ -18,27 +18,24 @@ panels:
     loinc: "58410-2"
     display: "Complete blood count (hemogram) panel - Blood by Automated count"
     components: [WBC, Hb, Hct, Plt]
-    # min_components is pinned to the pre-PR1 emission profile, where most CBCs
-    # were assembled post-hoc from individual {test: "WBC"}/"Hb"/"Plt" orders in
-    # protocols that lacked a CBC panel-expansion registry entry. After PR1 the
-    # four canonical components are emitted together from {test: "CBC"};
-    # a follow-up audit-driven PR will measure the new distribution and
-    # raise this threshold (likely to 3) to suppress accidental 2-component
-    # groupings from BMP/other co-occurrences.
-    min_components: 2
+    # canonical N − 1 rule: CBC has 4 canonical components; one specimen-
+    # handling anomaly (an individual stat draw failing for an unrelated
+    # reason) is tolerated. Validated by scratchpad/cbc_bmp_panel_audit.py
+    # on master @ PR #74's head: the 5th-percentile bucket of
+    # "panel-order-placed" days was ≥ 3, so 3 accepts every real CBC.
+    min_components: 3
 
   BMP:
     loinc: "51990-0"
     display: "Basic metabolic 2000 panel - Serum or Plasma"
     components: [Na, K, Cl, HCO3, BUN, Creatinine, Glucose, Ca]
-    # min_components stays at 3 for PR1: derive_lab_values() does not yet
-    # produce Cl or Ca, so PR1's BMP panel emits at most 6 of 8 components
-    # ({Na, K, HCO3, BUN, Creatinine, Glucose}). Once Cl/Ca are added to
-    # the physiology engine (separate backlog), an audit-driven PR will
-    # likely raise this to 6 to suppress accidental groupings from
-    # individual {test: "Na"}/"K"/"Creatinine"/"Glucose"/"BUN"
-    # co-occurrences in non-DKA protocols.
-    min_components: 3
+    # canonical N − 1 rule: BMP has 8 listed components but Cl and Ca
+    # are silently dropped at Pass 2 because derive_lab_values does not
+    # produce them yet, so the emit-able canonical N = 6 (Na, K, HCO3,
+    # BUN, Creatinine, Glucose). 6 − 1 = 5. When Cl/Ca are added to the
+    # physiology engine (separate backlog), an audit-driven PR can
+    # raise this to 7.
+    min_components: 5
 
   LFT:
     loinc: "24325-3"
