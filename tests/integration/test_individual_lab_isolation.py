@@ -113,6 +113,44 @@ def test_sepsis_individual_fibrinogen_order_now_resulted():
 
 
 @pytest.mark.integration
+def test_pe_individual_d_dimer_order_now_resulted():
+    """pulmonary_embolism.yaml orders {test:"D_dimer", urgency:"stat"} at
+    admission. After Phase 2a D-dimer derives with the new causes_vte
+    flag and PE patients land in the clinically positive range
+    (>4 ug/mL FEU).
+
+    Counterpart to the Cl (PR #78) and Fibrinogen (PR #80) guards: same
+    AD-59 invariant exercised for the new VTE-flag path."""
+    scenario = ForcedScenario(
+        disease_id="pulmonary_embolism", count=3, severity="moderate",
+    )
+    cfg = SimulatorConfig(random_seed=42, country="US")
+    dataset = run_forced(scenario, cfg)
+
+    for record in dataset.patients:
+        dd = [
+            o for o in record.orders
+            if o.display_name == "D_dimer"
+            and not (o.order_id.endswith("-D_dimer") and "-" in o.order_id[:-len("-D_dimer")])
+        ]
+        assert dd, (
+            f"PE patient {record.patient.patient_id} should have ≥1 "
+            f"individual D_dimer order from pulmonary_embolism.yaml"
+        )
+        resulted = [o for o in dd if o.status == OrderStatus.RESULTED]
+        assert resulted, (
+            f"PE patient {record.patient.patient_id}: every D_dimer "
+            f"order is non-RESULTED — derive_lab_values must produce "
+            f"D_dimer so the order resolves"
+        )
+        for o in resulted:
+            assert o.result is not None and o.result.value is not None
+            assert 4.0 <= o.result.value <= 20.0, (
+                f"PE D-dimer {o.result.value} should be clinically positive"
+            )
+
+
+@pytest.mark.integration
 def test_simulator_deterministic_across_repeated_runs():
     """Same seed twice = byte-identical CIF output. Validates that the
     Pass 1 sub-RNG (individual_lab_seed) and Pass 2 sub-RNG
