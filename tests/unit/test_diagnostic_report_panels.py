@@ -40,18 +40,19 @@ def _order(lab_name: str, when: str, idx: int) -> dict:
 @pytest.mark.unit
 class TestGroupLabOrders:
     def test_cbc_full_panel_emits_one_group(self):
+        """Day-bucket: components can be hours apart but still group as one DR per day."""
         from clinosim.modules.output._fhir_diagnostic_report import group_lab_orders
         orders = [
             _order("WBC", "2026-05-12T14:28:38", 0),
-            _order("Hb",  "2026-05-12T14:28:39", 1),
-            _order("Hct", "2026-05-12T14:28:40", 2),
-            _order("Plt", "2026-05-12T14:28:41", 3),
+            _order("Hb",  "2026-05-12T15:30:39", 1),
+            _order("Hct", "2026-05-12T16:00:40", 2),
+            _order("Plt", "2026-05-12T17:10:41", 3),
         ]
         groups = group_lab_orders(orders, "ENC-001")
         assert len(groups) == 1
         g = groups[0]
         assert g.panel_name == "CBC"
-        assert g.bucket == "2026-05-12T14:28"
+        assert g.bucket == "2026-05-12"
         assert g.obs_refs == [
             "lab-ENC-001-0000", "lab-ENC-001-0001", "lab-ENC-001-0002", "lab-ENC-001-0003",
         ]
@@ -62,17 +63,18 @@ class TestGroupLabOrders:
         orders = [_order("WBC", "2026-05-12T14:28:38", 0)]
         assert group_lab_orders(orders, "ENC-001") == []
 
-    def test_separate_minute_buckets_yield_separate_groups(self):
+    def test_separate_day_buckets_yield_separate_groups(self):
+        """Repeat draws on a different day produce separate DRs (e.g. daily CBC trend)."""
         from clinosim.modules.output._fhir_diagnostic_report import group_lab_orders
         orders = [
             _order("WBC", "2026-05-12T14:28:38", 0),
             _order("Hb",  "2026-05-12T14:28:39", 1),
-            _order("WBC", "2026-05-12T14:29:38", 2),
-            _order("Hb",  "2026-05-12T14:29:39", 3),
+            _order("WBC", "2026-05-13T09:30:00", 2),
+            _order("Hb",  "2026-05-13T09:30:01", 3),
         ]
         groups = group_lab_orders(orders, "ENC-001")
         assert len(groups) == 2
-        assert {g.bucket for g in groups} == {"2026-05-12T14:28", "2026-05-12T14:29"}
+        assert {g.bucket for g in groups} == {"2026-05-12", "2026-05-13"}
 
     def test_abg_consumes_hco3_before_bmp(self):
         from clinosim.modules.output._fhir_diagnostic_report import group_lab_orders
@@ -145,7 +147,7 @@ class TestBuildDrResource:
         from clinosim.modules.output._fhir_diagnostic_report import _GroupedPanel
         return _GroupedPanel(
             panel_name="CBC",
-            bucket="2026-05-12T14:28",
+            bucket="2026-05-12",
             obs_refs=[
                 "lab-ENC-001-0000", "lab-ENC-001-0001",
                 "lab-ENC-001-0002", "lab-ENC-001-0003",
@@ -172,7 +174,7 @@ class TestBuildDrResource:
         assert "Complete blood count" in coding["display"]
         assert r["subject"] == {"reference": "Patient/POP-000002"}
         assert r["encounter"] == {"reference": "Encounter/ENC-001"}
-        assert r["effectiveDateTime"] == "2026-05-12T14:28:00"
+        assert r["effectiveDateTime"] == "2026-05-12"
         assert r["issued"] == "2026-05-12T14:28:39"
         assert r["performer"] == [{"reference": "Practitioner/TECH-LAB-001"}]
         assert r["result"] == [
@@ -200,7 +202,7 @@ class TestBuildDrResource:
             country="US", performer_ref=None, issued=None, seq=0,
         )
         r1 = build_dr_resource(
-            self._group()._replace(bucket="2026-05-12T15:00"),
+            self._group()._replace(bucket="2026-05-13"),
             patient_id="P", encounter_id="E",
             country="US", performer_ref=None, issued=None, seq=1,
         )
