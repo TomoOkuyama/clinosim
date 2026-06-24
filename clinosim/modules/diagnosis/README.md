@@ -288,6 +288,16 @@ Protocol が提供されればそれが優先、 無ければ built-in を使う
 - `clinosim.codes` — `lookup()` による診断コード表示名解決
 - `PyYAML` — `reference_data/builtin_differentials.yaml` 読み込み
 
+## Consumers
+
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/inpatient.py` | working diagnosis 推論 + discharge diagnosis 決定で diagnosis engine を呼出 | core (主 simulation loop) |
+| `tests/integration/test_clinical_pipeline.py` | 臨床 pipeline integration test | guard |
+| `tests/unit/test_diagnosis.py` | engine unit tests | guard |
+
 ## テスト
 
 ```bash
