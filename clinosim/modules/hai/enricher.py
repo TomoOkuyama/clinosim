@@ -27,7 +27,6 @@ from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.hai import HAIEvent
 from clinosim.types.microbiology import MicrobiologyResult
 
-
 _DEVICE_TO_HAI = {
     "cvc": "clabsi",
     "indwelling_catheter": "cauti",

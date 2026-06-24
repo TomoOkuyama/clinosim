@@ -15,7 +15,6 @@ from clinosim.modules.hai.engine import (
 )
 from clinosim.types.device import DeviceRecord
 
-
 pytestmark = pytest.mark.unit
 
 

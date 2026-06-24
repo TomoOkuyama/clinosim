@@ -17,7 +17,6 @@ import yaml
 
 from clinosim.types.device import DeviceRecord
 
-
 _DATA = Path(__file__).parent / "reference_data"
 
 
