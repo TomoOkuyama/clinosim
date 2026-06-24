@@ -49,6 +49,18 @@ generate_family_history(patient_age: int, patient_conditions: list, country: str
 `types/family_history`、`codes`(ICD/v3-RoleCode 表示)、`locale`(有病率)、
 `simulator/seeding`(`derive_sub_seed`)。
 
+## Consumers
+
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/enrichers.py` | `register_builtin_enrichers()` で post_records enricher 登録 | core (enricher registry) |
+| `modules/family_history/enricher.py` | 同 module 内の enricher 実装 | core |
+| `modules/output/_fhir_family_history.py` | FamilyMemberHistory リソース生成で family_history データ + reference 関数を参照 | medium (FHIR builder) |
+| `tests/integration/test_family_history_enricher.py` | enricher integration test | guard |
+| `tests/unit/test_family_history_engine.py` | engine unit tests | guard |
+
 ## 検証
 
 - 決定論: 同一 seed の US 生成で **byte-diff は新規 `FamilyMemberHistory.ndjson` のみ**、

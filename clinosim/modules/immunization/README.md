@@ -222,13 +222,18 @@ clinosim/modules/output/csv_adapter.py          # immunizations.csv
 | `numpy` | `random.Generator` によるカバレッジサンプリング |
 | `hashlib` | 決定論的サブシード生成 |
 
-本モジュールに依存する側:
+## Consumers
 
-| 依存側 | 用途 |
-|---|---|
-| `clinosim.simulator.enrichers` | `POST_RECORDS` での enricher 登録 |
-| `clinosim.modules.output.fhir_r4_adapter` | `_build_immunizations` で FHIR Immunization 生成 |
-| `clinosim.modules.output.csv_adapter` | `immunizations.csv` 書き出し |
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/enrichers.py` | `POST_RECORDS` 段階での enricher 登録 | core (enricher registry) |
+| `modules/immunization/enricher.py` | 同 module 内の enricher 実装 | core |
+| `modules/output/_fhir_observations.py` (or future `_fhir_immunization.py` after PR3 split) | `_build_immunizations` で FHIR Immunization 生成 | medium (FHIR builder) |
+| `modules/output/csv_adapter.py` (cross-ref) | `immunizations.csv` 書き出し | medium |
+| `tests/integration/test_immunization_enricher.py` | enricher integration test | guard |
+| `tests/unit/test_immunization.py` | engine unit tests | guard |
 
 ## テスト
 

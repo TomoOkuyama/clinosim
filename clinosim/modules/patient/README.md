@@ -281,10 +281,17 @@ elif country == "KR":  # 新規
 
 **依存しないもの**: locale/codes/disease/observation 等。本モジュールは純粋な Layer 変換関数に留まり、 臨床用語の解決は呼び出し側 (simulator / output adapter) が行う。
 
-本モジュールに依存する側:
+## Consumers
 
-- `clinosim.simulator` (入院開始時に `activate_patient` を呼ぶ)
-- 各種 e2e テスト (test_patient.py を直接インポート)
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/engine.py` | 入院開始時に `activate_patient()` を呼んで Layer 1 → Layer 2 変換 | core (主 simulation loop entry) |
+| `simulator/cli.py` | CLI 起動時の patient activation orchestration | core |
+| `simulator/outpatient.py` | outpatient followup encounter での patient 参照 | core |
+| `tests/integration/test_venue_hba1c.py` | venue-aware HbA1c integration test | guard |
+| `tests/unit/test_population_demographics.py` | demographics + activation tests | guard |
 
 ## テスト
 
