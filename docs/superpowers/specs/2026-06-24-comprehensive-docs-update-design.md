@@ -52,7 +52,9 @@ Map of finding → PR action:
 
 ### Hard guarantee
 
-This is a **pure documentation update**. No code changes, no FHIR/CSV output changes, no byte-diff verification needed. The existing 704 unit + integration tests should remain green simply because no code paths are touched.
+This is a **pure documentation update**. No code changes, no behavior changes. The existing 704 unit + integration tests should remain green simply because no code paths are touched.
+
+(Note: this PR does NOT require byte-diff verification because it makes no code changes. byte-diff is a refactor-PR concern — it verifies that mechanical code changes leave output unchanged. For PRs that *intentionally* change output, the verification gate is the **3-axis DQR** which checks the true project goals: FHIR R4 / JP Core compliance, clinical coherence, and JP language quality. PR_docs adds an explicit "PR verification guide" sub-section to `CONTRIBUTING-modules.md` documenting this distinction for future contributors — see Component 10.)
 
 ---
 
@@ -450,7 +452,37 @@ Line 1 currently English. Change to Japanese to match the project convention (Mo
 
 ---
 
-## 10. Component 8: `CONTRIBUTING-modules.md` typed-field-vs-extensions decision tree (G4 absorbed)
+## 10. Component 8a: `CONTRIBUTING-modules.md` PR verification guide (new sub-section)
+
+User clarification (2026-06-24): the **true project goal** is producing CIF data that converts to **FHIR R4 + JP Core compliant output** with clinical coherence. byte-diff is a refactor-PR mechanic, not a goal. Document this explicitly so future contributors know which verification gate applies to which PR shape.
+
+New sub-section in `docs/CONTRIBUTING-modules.md` (placed near the existing "決定論コントラクト" section):
+
+```markdown
+### PR 検証ガイド: byte-diff vs 3-axis DQR
+
+**真の goal**: CIF データを FHIR R4 + JP Core 準拠の正確な出力に変換すること + 臨床的整合性 + JP localization 品質。
+
+PR の性質によって適切な検証手段が異なります:
+
+| PR の性質 | 検証手段 | 何を保証するか |
+|---|---|---|
+| **Pure mechanical refactor** (例: 内部構造整理、helper 共通化、registry 中央化、ファイル分割) | **byte-diff** — master と branch で同 seed/設定で生成した 11 NDJSON が sha256 IDENTICAL | refactor 前後で **出力が一切変わっていない** = no-regression gate |
+| **新機能 / リアリティ改善** (例: 新 analyte 追加、scenario flag 追加、medication coupling 追加、新疾患追加) | **3-axis DQR** (`docs/reviews/<date>-<topic>-data-quality-review.md`) | **FHIR R4 / JP Core 適合性 + 臨床整合性 + JP language 品質** = goal achievement gate |
+| **Pure docs update** (例: README 更新、新 doc 作成) | regression check (テスト緑) + manual link review | code 変更がないこと |
+| **混合** (refactor + 小さな behavior change) | byte-diff で意図的変化のみあることを確認 + DQR で goal 維持を確認 | 両方 |
+
+**byte-diff は手段、3-axis DQR が真の goal テスト**:
+- refactor PR で byte-diff を使うのは「behavior 変えていない」を mechanical に確認する shortcut。output が変わると refactor の主張が嘘になるため。
+- 新機能 PR では byte-diff は **完全一致でなくて OK** (意図的に変わる)。3-axis DQR が真のゴール — FHIR/JP Core 規格適合性、臨床的妥当性 (warfarin patient の INR 2-3 等)、JP localization 品質 (display 文字列、JLAC10 ja の権威出典準拠) — を verify する。
+- 例: Phase 2a (D-dimer / causes_vte) は新機能なので、9 NDJSON は byte-identical で残り 2 つ (Observation / DR) が意図的に変化。3-axis DQR で PE/DVT/CI 患者の D-dimer が VTE-positive 帯にあるか + JLAC10 2B140 ja JCCLS 公式日本語名であるか等を verify。
+
+詳細手順:
+- byte-diff: `feedback_pr_merge_dqr_required` メモリ + PR1/PR2/PR_docs 例参照
+- 3-axis DQR: `feedback_pr_merge_dqr_required` メモリ + Phase 2a/2b DQR review docs 参照
+```
+
+## 10. Component 8b: `CONTRIBUTING-modules.md` typed-field-vs-extensions decision tree (G4 absorbed)
 
 Existing section "## CIF への書き込み: Base か extensions か" (around line 142) is currently a 4-line bullet list. Expand into decision-tree format:
 
@@ -534,14 +566,28 @@ Quick Navigation section at the top (after "Project overview"):
 
 ---
 
-## 12. Test strategy
+## 12. Verification strategy
 
 - **No new tests required** (pure docs, no code paths touched)
-- **Regression check**: `pytest tests/unit/ tests/integration/ -x -q` must remain green (704 baseline)
-- **byte-diff**: NOT required (no code, no FHIR output changes)
-- **Manual review**: each cross-reference link verified (e.g., `MODULES.md` link from `README.md` actually resolves)
+- **Regression check**: `pytest tests/unit/ tests/integration/ -x -q` must remain green (704 baseline) — sanity check that no doc edit accidentally broke a code path (e.g., an `__init__.py` docstring edit)
+- **Manual review**: each cross-reference link verified (e.g., `MODULES.md` link from `README.md` actually resolves to the new file)
+- **byte-diff / 3-axis DQR**: neither applies — byte-diff is for refactor PRs (no-change gate), 3-axis DQR is for feature PRs that change FHIR/JP Core output. This PR is pure docs.
 
 ---
+
+### Cross-reference from MODULES.md
+
+In `MODULES.md` "Where to Read Next" table, add row:
+
+```
+| `docs/CONTRIBUTING-modules.md` | Module-author playbook + PR verification guide (byte-diff vs 3-axis DQR) |
+```
+
+In `MODULES.md` "Typical Change Impact" table or footnote:
+
+```
+> 真の goal は FHIR R4 / JP Core 準拠 + 臨床整合性 + JP language 品質。詳細は CONTRIBUTING-modules.md "PR 検証ガイド" 参照。
+```
 
 ## 13. Plan task breakdown
 
@@ -555,7 +601,8 @@ Quick Navigation section at the top (after "Project overview"):
 8. **Batch B: 22 module READMEs に Consumers 追加 — 6 module** (immunization/family_history/code_status/microbiology/nursing/clinical_course)
 9. **Batch C: 22 module READMEs に Consumers 追加 — 5 module** (disease/encounter/order/observation/physiology = core simulation)
 10. **Batch D: 22 module READMEs に Consumers 追加 — 5 module** (patient/population/procedure/staff/output + facility + healthcare_system + llm_service + validator まで残り全部、count 調整)
-11. **`CONTRIBUTING-modules.md`** typed field vs extensions decision tree 拡張 (G4 absorbed)
+11a. **`CONTRIBUTING-modules.md`** PR 検証ガイド sub-section 追加 (byte-diff vs 3-axis DQR の判定軸明文化)
+11b. **`CONTRIBUTING-modules.md`** typed field vs extensions decision tree 拡張 (G4 absorbed)
 12. **Cross-reference 整備** — README.md / README.ja.md / DESIGN.md AD-56 / CLAUDE.md Quick Navigation / CONTRIBUTING-modules.md 冒頭
 13. **Regression** — 704 unit + integration green 維持確認
 14. **Manual review** — 全 cross-reference link が resolve することを目視確認
