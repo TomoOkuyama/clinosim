@@ -247,6 +247,79 @@ def scenario_flags_from_protocol(protocol) -> dict[str, bool]:
     }
 
 
+def medication_flags_from_context(
+    patient,
+    medication_orders=None,
+    admission_date=None,
+    current_day: int | None = None,
+) -> dict[str, bool]:
+    """Detect medication-driven lab effects from patient + encounter context.
+
+    Centralizes the medication → lab coupling reads so a new coupling added to
+    `derive_lab_values` only needs wiring in ONE place — same J5-prevention
+    rationale as `scenario_flags_from_protocol`. Dict keys match
+    `derive_lab_values` parameter names so callers can spread with `**flags`.
+
+    Phase 2b: returns `{"on_warfarin": bool}` only. Extend the dict for future
+    couplings (steroid → glucose, diuretic → K, antibiotic → CRP).
+
+    Detection rules:
+      (1) Chronic warfarin: ``patient.current_medications`` contains a
+          warfarin string (case-insensitive substring of "warfarin",
+          "ワルファリン", "coumadin").
+      (2) In-hospital warfarin: ``medication_orders`` contains a warfarin
+          order AND ``current_day - (order_date - admission_date).days >= 3``
+          (loading-dose 3-day rule).
+
+    DOAC (apixaban / rivaroxaban / edoxaban / dabigatran) is intentionally
+    NOT detected — INR is not clinically monitored for DOAC; modeling DOAC
+    INR lift would be clinically misleading.
+
+    All inputs are optional / defensive: ``None`` patient or missing
+    ``current_medications`` returns ``{"on_warfarin": False}``. ED and
+    outpatient call sites pass medication_orders=None / current_day=None;
+    only the chronic path runs.
+    """
+    _WARFARIN_NAMES = ("warfarin", "ワルファリン", "coumadin")
+
+    if patient is None:
+        return {"on_warfarin": False}
+
+    on_warfarin = False
+
+    # (1) Chronic warfarin from home meds
+    for med in (getattr(patient, "current_medications", None) or []):
+        if not isinstance(med, str):
+            continue
+        med_lower = med.lower()
+        if any(name in med_lower for name in _WARFARIN_NAMES):
+            on_warfarin = True
+            break
+
+    # (2) In-hospital warfarin ordered ≥ 3 days ago
+    if (
+        not on_warfarin
+        and medication_orders
+        and admission_date is not None
+        and current_day is not None
+        and current_day >= 3
+    ):
+        for o in medication_orders:
+            display = (getattr(o, "display_name", "") or "")
+            if not any(name in display.lower() for name in _WARFARIN_NAMES):
+                continue
+            ordered_dt = getattr(o, "ordered_datetime", None)
+            ordered_date = ordered_dt.date() if hasattr(ordered_dt, "date") else None
+            if ordered_date is None:
+                continue
+            days_since_order = current_day - (ordered_date - admission_date).days
+            if days_since_order >= 3:
+                on_warfarin = True
+                break
+
+    return {"on_warfarin": on_warfarin}
+
+
 def derive_lab_values(
     state: PhysiologicalState,
     sex: str,
@@ -256,6 +329,7 @@ def derive_lab_values(
     hour: int = 6,
     myocardial_injury: bool = False,
     causes_vte: bool = False,
+    on_warfarin: bool = False,
 ) -> dict[str, float]:
     """Derive lab values from physiological state. Returns 'true' values before noise."""
     labs: dict[str, float] = {}
@@ -335,7 +409,19 @@ def derive_lab_values(
     labs["AST"] = 25 + (1 - hepatic) * 500
     labs["ALT"] = 20 + (1 - hepatic) * 400
     labs["T_Bil"] = 0.8 + (1 - hepatic) * 15
-    labs["PT_INR"] = 1.0 + (1 - hepatic) * 2.0 + state.coagulation_status * 1.5
+    # PT_INR: hepatic (cirrhosis factor depletion) + coagulation_status (DIC
+    # consumption) drive baseline; therapeutic warfarin overrides to target
+    # the 2.0-3.0 clinical band. AC + comorbidity (DIC, cirrhosis) compounds
+    # bleeding risk in real practice, so base perturbation is added on top of
+    # the therapeutic center at reduced gain (x0.5).
+    # BNP-pattern surgical (AD-57): state untouched, formula-only change.
+    # Phase 2b (2026-06-24): on_warfarin sourced from
+    # medication_flags_from_context (sibling of scenario_flags_from_protocol).
+    base_inr = 1.0 + (1 - hepatic) * 2.0 + state.coagulation_status * 1.5
+    if on_warfarin:
+        labs["PT_INR"] = 2.5 + (base_inr - 1.0) * 0.5
+    else:
+        labs["PT_INR"] = base_inr
 
     # --- Anemia ---
     base_hb = 15.0 if sex == "M" else 13.0

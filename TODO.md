@@ -177,12 +177,73 @@ JP language. See
 `docs/superpowers/plans/2026-06-24-phase2a-vte-d-dimer.md`.
 
 Phase 2a deferred backlog → carried forward:
-- Phase 2b `on_anticoagulation` axis (warfarin/heparin INR therapeutic-
-  range modelling, I5) — three valid designs need their own brainstorming
 - I4 panel-YAML unification refactor
 - I6 `clinical_course.actions[].test` field disambiguation
 - I7 `platelet_status` axis independence
 - D-dimer LOS-mid analysis (cohort-level DIC trajectory)
+
+**Phase 2b — `on_warfarin` medication-physiology coupling for PT_INR
+therapeutic range (2026-06-24):** Extends Phase 2a by coupling warfarin
+medication state to PT_INR derivation, completing the admit → ramp →
+discharge → outpatient followup cohort trajectory for VTE / AF /
+embolic-CI patients.
+
+Sibling helper `medication_flags_from_context(patient, medication_orders,
+admission_date, current_day)` parallel to `scenario_flags_from_protocol`.
+Detection rules:
+1. Chronic warfarin: `patient.current_medications` contains warfarin /
+   ワルファリン / coumadin substring (chronic AF I48 + post-VTE I26 /
+   I82 / I63 via `chronic_medications.yaml`)
+2. In-hospital warfarin: a medication order with warfarin in display_name
+   ordered ≥ 3 days ago (loading-dose 3-day rule, `all_orders` peek)
+
+`derive_lab_values` PT_INR block:
+
+  base_inr = 1.0 + (1 - hepatic) * 2.0 + state.coagulation_status * 1.5
+  PT_INR = 2.5 + (base_inr - 1.0) * 0.5  if on_warfarin else base_inr
+
+DOAC (apixaban / rivaroxaban / edoxaban / dabigatran) intentionally
+NOT detected — INR is not clinically monitored for DOAC, and modeling
+DOAC INR lift would be clinically misleading.
+
+YAML data: `chronic_medications.yaml` gains 3 indications — I26 PE
+(DOAC 80% / warfarin 20%), I82 DVT (same), I63 embolic CI (60% AC +
+70% antiplatelet — combined therapy reflects clinical practice).
+`helpers.py` `chronic_prefixes = ("I", ...)` already covers all three.
+
+Byte-diff vs master `9e0b97a7` @ p=2000 seed=42 (US/JP): 8 of 9 NDJSONs
+sha256-identical (Patient/Encounter/Condition/MedicationRequest/
+MedicationAdministration/Procedure/Immunization/FamilyMemberHistory +
+DR). Observation same-count change (199,492 US / 163,662 JP lines
+preserved; 40/366 US PT_INR values shifted across 13 encounters, all
+upward — warfarin lifting INR into therapeutic).
+
+3-axis DQR (US p=10000 + JP p=5000) all PASS — structural (refRange
+100%, code lookup LOINC 6301-6 + JLAC10 2B030) / clinical (US warfarin
+p50 INR 2.70 therapeutic, DOAC p50 1.80 ≈ no-AC p50 1.70 unshifted,
+warfarin shifted +1.00 above no-AC; JP warfarin p50 3.00 mirror) / JP
+language (US 0 JP chars, JP warfarin ワルファリン + PT_INR
+プロトロンビン時間 intact). See
+`docs/reviews/2026-06-24-phase2b-anticoagulation-data-quality-review.md`,
+`docs/superpowers/specs/2026-06-24-phase2b-on-anticoagulation-design.md`,
+`docs/superpowers/plans/2026-06-24-phase2b-on-anticoagulation.md`.
+
+CLAUDE.md new architecture rule: `derive_lab_values` reads TWO flag
+dicts (scenario + medication); call sites merge via
+`{**scenario_flags, **medication_flags}` and splat as `**flags`. Never
+add a `flag=value` named arg directly at a call site (J5-prevention
+extended).
+
+Phase 2c backlog (anticoagulation deepening):
+- aPTT / heparin therapeutic monitoring (UFH IV drip → aPTT 60-80s target)
+- DOAC INR micro-effect (rivaroxaban 0.2-0.3 lift) — clinical practice
+  ignores, low realism gain, YAGNI
+- Warfarin linear ramp (day 1 → 5 continuous vs step at day 3)
+- HIT modeling (heparin-induced thrombocytopenia, PLT < 50% baseline
+  after day 4 of heparin)
+- Vitamin K reversal (PCC / FFP infusion drops INR within hours)
+- Activator AC-drug exclusivity (warfarin OR apixaban, not both —
+  pre-existing independent-probability draw limitation)
 
 **Coag panel activation (LOINC 24373-3) + APTT/PT/Fibrinogen derives
 (2026-06-24):** Activates the previously-defined-but-dormant Coag
