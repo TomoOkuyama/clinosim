@@ -11,4 +11,4 @@ hai_specimens:
   vap:
     specimen: "sputum"
     specimen_snomed: "119334006"   # Sputum specimen
-    test_loinc:      "624-7"       # Bacteria Spt Resp Cult
+    test_loinc:      "619-7"       # Bacteria identified in Sputum by Culture

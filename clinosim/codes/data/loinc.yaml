@@ -343,13 +343,6 @@ codes:
     en: D-dimer
     ja: D ダイマー
   # === HAI culture LOINCs (PR-B) ===
-  # All verified via NLM LOINC API.
-  '600-7':
-    en: "Blood culture result"
-    ja: "血液培養"
-  '630-4':
-    en: "Bacteria Ur Cult"
-    ja: "尿培養"
-  '624-7':
-    en: "Bacteria Spt Resp Cult"
-    ja: "喀痰培養"
+  # 600-7 (Blood), 630-4 (Urine), 619-7 (Sputum) are already registered
+  # above in the existing microbiology block; PR-B reuses those rather
+  # than introducing duplicates.
