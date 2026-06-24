@@ -1,0 +1,14 @@
+# Per-HAI culture specimen mapping. All codes verified at PR-B Task 1.
+hai_specimens:
+  clabsi:
+    specimen: "blood"
+    specimen_snomed: "119297000"   # Blood specimen
+    test_loinc:      "600-7"       # Blood culture result
+  cauti:
+    specimen: "urine"
+    specimen_snomed: "122575003"   # Urine specimen
+    test_loinc:      "630-4"       # Bacteria Ur Cult
+  vap:
+    specimen: "sputum"
+    specimen_snomed: "119334006"   # Sputum specimen
+    test_loinc:      "624-7"       # Bacteria Spt Resp Cult
