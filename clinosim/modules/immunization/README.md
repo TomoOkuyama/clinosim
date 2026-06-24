@@ -78,12 +78,14 @@ Enricher(
 メインランダムストリームを汚染しないよう、`hashlib.sha256` ベースの専用サブシードを使用する。
 
 ```python
-from clinosim.simulator.seeding import derive_sub_seed
+from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 
-_IMM_SEED_OFFSET = 0x494D  # "IM" — keep unique across modules (test_seeding guards this)
-
-rng = np.random.default_rng(derive_sub_seed(ctx.master_seed, _IMM_SEED_OFFSET, patient_id))
+rng = np.random.default_rng(
+    derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["immunization"], patient_id)
+)
 ```
+
+オフセット定数(`0x494D` = "IM")は `ENRICHER_SEED_OFFSETS` 中央 registry で管理(PR1 2026-06-24 foundation refactor)。重複は import 時 assert で検出。
 
 患者 ID をキーとして患者ごとに独立した `numpy.random.Generator` を生成するため、
 既存の labs / vitals / 診断 / 看護データは byte 不変。

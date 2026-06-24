@@ -14,21 +14,13 @@ from clinosim.modules.observation.nursing import (
     compute_morse_fall_risk,
     compute_news2,
 )
-from clinosim.simulator.seeding import derive_sub_seed
+from clinosim.modules._shared import get_attr_or_key as _get
+from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.encounter import NursingRiskAssessment
-
-_NURSING_SEED_OFFSET = 0x4E55  # "NU"
 
 # AVPU severity order: A (best/0) < V < P < U (worst/3).
 # Used to pick the most-impaired consciousness per day from same-day vitals.
 _AVPU_SEVERITY: dict[str, int] = {"A": 0, "V": 1, "P": 2, "U": 3}
-
-
-def _get(obj, name, default=None):
-    """Read attr or dict key (records may be dataclasses)."""
-    if isinstance(obj, dict):
-        return obj.get(name, default)
-    return getattr(obj, name, default)
 
 
 def enrich_nursing(ctx) -> None:
@@ -36,7 +28,7 @@ def enrich_nursing(ctx) -> None:
         patient = _get(rec, "patient")
         pid = _get(patient, "patient_id", "") if patient else ""
         age = int(_get(patient, "age", 70) or 70)
-        seed = derive_sub_seed(ctx.master_seed, _NURSING_SEED_OFFSET, pid or "x")
+        seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["nursing"], pid or "x")
         rng = np.random.default_rng(seed)
 
         # 1) NEWS2 + GCS on each vital record (NEWS2 deterministic; GCS small jitter)

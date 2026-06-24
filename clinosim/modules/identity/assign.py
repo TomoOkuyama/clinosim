@@ -13,10 +13,8 @@ import numpy as np
 
 from clinosim.locale.loader import load_identity_config
 from clinosim.modules.identity.registry import get_provider
+from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS
 from clinosim.types import IdentityTimeline
-
-# Dedicated offset so identity numbering draws from an independent stream.
-_IDENTITY_SEED_OFFSET = 540_054
 
 
 def assign_identities(registry: Any, country: str, master_seed: int) -> None:
@@ -30,7 +28,7 @@ def assign_identities(registry: Any, country: str, master_seed: int) -> None:
         return
 
     provider = get_provider(country)
-    rng = np.random.default_rng(master_seed + _IDENTITY_SEED_OFFSET)
+    rng = np.random.default_rng(master_seed + ENRICHER_SEED_OFFSETS["identity"])
 
     for household in registry.households:
         members = household.members
