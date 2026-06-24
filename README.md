@@ -405,6 +405,8 @@ output/fhir_r4/
 ├── Condition.ndjson                 # Encounter dx + chronic conditions (ICD-10-CM / ICD-10)
 ├── FamilyMemberHistory.ndjson       # First-degree-relative disease history (v3-RoleCode + ICD)
 ├── Immunization.ndjson              # Adult vaccine history (CVX; US/JP schedules)
+├── Device.ndjson                    # ICU device records (CVC / indwelling catheter / ventilator; SNOMED CT)
+├── DeviceUseStatement.ndjson        # Device usage periods (placement → removal; per ICU inpatient encounter)
 ├── MedicationRequest.ndjson         # Prescriptions (RxNorm / YJ)
 ├── MedicationAdministration.ndjson  # MAR records
 ├── Procedure.ndjson                 # Surgery + bedside procedures (CPT / K-code + SNOMED CT metadata)
