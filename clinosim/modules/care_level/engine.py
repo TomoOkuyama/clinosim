@@ -18,7 +18,13 @@ def load_reference() -> dict:
 
 
 @lru_cache(maxsize=2)
-def load_rates() -> dict:
+def load_rates(country: str = "JP") -> dict:
+    """Load care-level rates for ``country``. Returns ``{}`` for non-JP
+    (no-op path) — care_level is currently JP-only, but the signature
+    matches immunization / family_history / code_status so future locale
+    additions slot in without API churn."""
+    if str(country).upper() != "JP":
+        return {}
     with open(_LOCALE / "jp" / "care_level_rates.yaml") as f:
         return (yaml.safe_load(f) or {}).get("weights", {})
 
