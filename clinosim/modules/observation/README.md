@@ -354,6 +354,25 @@ panic["Glucose"] = (40, 500)
 | `clinosim.codes.lookup` | 検査名 display の多言語解決 |
 | `clinosim.modules.physiology` | 真値 (inflammation → CRP 等) を提供する上流 |
 
+## Consumers
+
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/inpatient.py` | Pass-1 lab loop で `generate_lab_result()` + `canonical_lab_name()` + `lab_panel_components()` を呼出 | core (主 simulation loop) |
+| `simulator/emergency.py` | ED visit で `generate_lab_result()` 呼出 | core |
+| `simulator/outpatient.py` | outpatient followup で同上 | core |
+| `simulator/enrichers.py` | nursing_enricher + microbiology 生成で observation を経由 | core (enricher registry) |
+| `tests/integration/test_clinical_pipeline.py` | 臨床 pipeline integration test | guard |
+| `tests/integration/test_nursing_enricher.py` | nursing flowsheet enricher test | guard |
+| `tests/unit/test_observation.py` | engine unit tests | guard |
+| `tests/unit/test_lab_panel_registry.py` | panel registry tests | guard |
+| `tests/unit/test_blood_markers.py` | 血液 marker tests | guard |
+| `tests/unit/test_microbiology.py` | microbiology tests | guard |
+| `tests/unit/test_nursing.py` | nursing assessment tests | guard |
+| `tests/unit/test_physiology.py` | physiology↔observation 連携 tests | guard |
+
 ## テスト
 
 ```bash

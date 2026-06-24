@@ -165,10 +165,14 @@ diagnosis_uri = get_system_uri(
 - `pyyaml` — YAML パース
 - **他の clinosim モジュールへの依存なし** — leaf module
 
-呼び出し元モジュール (依存する側):
+## Consumers
 
-- `simulator.py` — 起動時に 1 回ロード
-- `encounter`, `order`, `observation`, `output` モジュール — シミュレーション全体で参照
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/engine.py` | 起動時 1 回 `load_healthcare_system_config()` をロード | infrastructure (起動時のみ) |
+| `encounter`, `order`, `observation`, `output` モジュール (cross-ref) | シミュレーション全体で参照 (lab freq / dept names 等) | medium |
 
 ## テスト
 
