@@ -245,6 +245,23 @@ result_time = calculate_lab_result_time(order, rng)
 
 これにより **遅延がハードコード値ではなく病院リソース使用率から emerge する** 動的モデルになる。 多数患者を同時シミュレートすると自然に "混雑時間帯で結果が遅れる" 現象が現れる。
 
+## データ構造
+
+主要型 (`clinosim/types/encounter.py` に集約):
+
+| Type | 場所 | Key fields | 用途 |
+|---|---|---|---|
+| `Order` | `clinosim/types/encounter.py:133` (`@dataclass`) | `order_id`, `patient_id`, `encounter_id`, `order_type` (`OrderType`), `display_name`, `urgency`, `clinical_intent`, `ordered_datetime`, `ordered_by`, `status` (`OrderStatus`), `result` (`OrderResult \| None`), `dose_quantity`, `dose_unit` 等 | lab/medication/imaging/procedure/consultation 等の order 統合型 |
+| `OrderResult` | `clinosim/types/encounter.py:92` (`@dataclass`) | `result_datetime`, `performed_by`, `lab_name`, `value` (`float \| str \| None`), `unit`, `reference_range`, `flag` (H/L/critical), `interpretation`, `specimen_note` | lab order 結果 |
+| `OrderType` | `clinosim/types/encounter.py:71` (`str Enum`) | LAB / IMAGING / MEDICATION / PROCEDURE / CONSULTATION / DIET / THERAPY / INFECTION_CONTROL | order 種別 |
+| `OrderStatus` | `clinosim/types/encounter.py:82` (`str Enum`) | PLACED / ACCEPTED / IN_PROGRESS / RESULTED / CANCELED / SUSPENDED | order 状態 |
+| `PrescriptionRecord` | `clinosim/types/encounter.py:121` (`@dataclass`) | 退院処方 items | 退院処方用 |
+| `MedicationAdministration` | `clinosim/types/encounter.py:105` (`@dataclass`) | MAR (Medication Administration Record) | 投与記録 |
+
+> `clinosim/types/encounter.py` は **`Order` / `OrderResult` / `OrderType` / `OrderStatus` /
+> `Encounter` / `MedicationAdministration` / `VitalSignRecord` / `NursingRiskAssessment` 等を集約**。
+> import は `from clinosim.types.encounter import Order, OrderType, OrderStatus`。
+
 ## 使用例
 
 ### Simulator の admission フロー

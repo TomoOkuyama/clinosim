@@ -160,6 +160,19 @@ class DailyCycleEvent:
     data: dict[str, Any] = field(default_factory=dict)
 ```
 
+## データ構造
+
+主要型:
+
+| Type | 場所 | Key fields | 用途 |
+|---|---|---|---|
+| `EncounterConditionProtocol` | `clinosim/modules/encounter/protocol.py:16` (Pydantic `BaseModel`, `extra="allow"`) | `condition_id`, `icd10_code`, `icd10_display`, `chief_complaint` (multi-lang dict), `encounter_type` (emergency/outpatient), `department`, `severity_distribution`, `workup`, `treatment`, `discharge_instructions`, `initial_state_impact` (AD-57 ED 急性提示注入) | ED/outpatient encounter condition YAML load 結果型 |
+| `DailyCycleEvent` | `clinosim/modules/encounter/engine.py:17` (`@dataclass`) | encounter 内日次イベント | 内部利用 |
+
+> 既知の制約 (ENC-1): `load_encounter_condition()` 現状は `dict[str,Any]` を返却し
+> Pydantic validation は推奨実装。`extra="allow"` で段階導入可能。
+> 詳細は CONTRIBUTING-modules.md「YAML は Pydantic で validate する」セクション参照。
+
 ## YAML スキーマ
 
 ### Required metadata

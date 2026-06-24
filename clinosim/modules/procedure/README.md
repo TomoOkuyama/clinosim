@@ -324,6 +324,21 @@ rehabs = generate_rehab_sessions(
 )
 ```
 
+## データ構造
+
+主要型:
+
+| Type | 場所 | Key fields | 用途 |
+|---|---|---|---|
+| `ProcedureMeta` | `clinosim/modules/procedure/engine.py:181` (`@dataclass(frozen=True)`) | procedure metadata (code/display/category) | procedure registry 用 |
+| `ProcedureRecord` | `clinosim/types/output.py` 内 `CIFPatientRecord.procedures: list[ProcedureRecord]` 経由 | `procedure_code`, `procedure_code_jp`, `procedure_code_us`, performer, location, outcome 等 | CIF への procedure 記録 (AD-30 codes only) |
+| `RehabSession` | (engine.py 内、TYP-2 既知負債) | rehab セッション記録 | 内部 |
+
+> `ProcedureRecord` は CIF AD-30 (codes only) 規約に従い `procedure_name` を持たない
+> — 表示は output 時に `code_lookup()` で解決。
+> 既知負債 (MOD-5, TYP-2): `ProcedureMeta` / `RehabSession` は engine 内残存。
+> 将来 PR_C で `clinosim/types/procedure.py` への移行予定。
+
 ## 使用例
 
 ### Hip fracture フルパイプライン

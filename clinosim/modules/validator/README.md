@@ -90,6 +90,20 @@ class BenchmarkReport:
     def summary(self) -> str: ...
 ```
 
+## データ構造
+
+主要型:
+
+| Type | 場所 | Key fields | 用途 |
+|---|---|---|---|
+| `BenchmarkResult` | `clinosim/modules/validator/benchmarks.py:16` (`@dataclass`) | metric name, observed value, expected range, status (pass/warn/fail) | 個別 benchmark 検証結果 |
+| `BenchmarkReport` | `clinosim/modules/validator/benchmarks.py:38` (`@dataclass`) | list[BenchmarkResult], summary stats | benchmark 集約レポート |
+| `ConsistencyIssue` | `clinosim/modules/validator/consistency.py:21` (`@dataclass`) | issue type, description, affected records | consistency check で検出された個別問題 |
+| `ConsistencyReport` | `clinosim/modules/validator/consistency.py:31` (`@dataclass`) | list[ConsistencyIssue], summary | consistency check 集約レポート |
+
+> 既知負債 (TYP-2): validator 各種 dataclass は engine 内に残存。
+> 将来 PR_C で `clinosim/types/validator.py` への統合検討。
+
 ## 実装されているベンチマーク
 
 `run_benchmarks()` が現状チェックする項目:
