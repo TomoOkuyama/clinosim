@@ -24,11 +24,7 @@ _NURSING_SEED_OFFSET = 0x4E55  # "NU"
 _AVPU_SEVERITY: dict[str, int] = {"A": 0, "V": 1, "P": 2, "U": 3}
 
 
-def _get(obj, name, default=None):
-    """Read attr or dict key (records may be dataclasses)."""
-    if isinstance(obj, dict):
-        return obj.get(name, default)
-    return getattr(obj, name, default)
+from clinosim.modules._shared import get_attr_or_key as _get
 
 
 def enrich_nursing(ctx) -> None:

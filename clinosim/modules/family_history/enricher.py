@@ -7,16 +7,11 @@ from __future__ import annotations
 
 import numpy as np
 
+from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.family_history.engine import generate_family_history
 from clinosim.simulator.seeding import derive_sub_seed
 
 _FH_SEED_OFFSET = 0x4648  # "FH"
-
-
-def _get(obj, name, default=None):
-    if isinstance(obj, dict):
-        return obj.get(name, default)
-    return getattr(obj, name, default)
 
 
 def enrich_family_history(ctx) -> None:

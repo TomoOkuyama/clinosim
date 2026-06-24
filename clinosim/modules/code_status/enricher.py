@@ -7,16 +7,11 @@ from __future__ import annotations
 
 import numpy as np
 
+from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.code_status.engine import assign_code_status
 from clinosim.simulator.seeding import derive_sub_seed
 
 _CS_SEED_OFFSET = 0x4353  # "CS"
-
-
-def _get(obj, name, default=None):
-    if isinstance(obj, dict):
-        return obj.get(name, default)
-    return getattr(obj, name, default)
 
 
 def _qualifies(encounter_type: str, deceased: bool, icu: bool) -> bool:
