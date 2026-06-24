@@ -283,6 +283,16 @@ daily_patterns:
 
 他の clinosim モジュールには依存しない。 逆に `encounter`, `order`, `procedure` モジュールが本モジュールを呼び出して TAT を取得・queue を更新する。
 
+## Consumers
+
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/engine.py` | hospital_state initialization + simulation loop での bed/queue 更新 | core (主 simulation loop) |
+| `simulator/des_engine.py` | DES (Discrete Event Simulation) engine 内で facility 状態参照 | core |
+| `modules/encounter`, `modules/order`, `modules/procedure` (README cross-ref) | TAT 取得 + queue 更新 (`get_tat()` 等経由) | medium |
+
 ## 既知の制約
 
 - M/M/1 は単一サーバ近似。 実際は M/M/c (複数機器) だが capacity を簡略化して代替

@@ -185,6 +185,15 @@ def my_benchmarks(dataset):
 
 シミュレーションモジュールには依存しない (post-hoc 検証専用)。
 
+## Consumers
+
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `tests/e2e/test_beta.py` | e2e validation pipeline 内で `run_benchmarks()` + `run_consistency_check()` を呼ぶ | guard |
+| CLI `clinosim validate` (将来) | post-hoc data quality 検証 | optional (manual) |
+
 ## 権威ソース一覧
 
 - **JAMA** — [jamanetwork.com](https://jamanetwork.com/)

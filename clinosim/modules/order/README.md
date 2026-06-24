@@ -390,14 +390,17 @@ order_protocols:
 | `clinosim.simulator.helpers._determine_route` | 薬剤名からの経路ヒューリスティック (enrich_medication_order 内) |
 | `numpy` | RNG |
 
-本モジュールに依存する側:
+## Consumers
 
-| 依存側 | 用途 |
-|---|---|
-| `clinosim.simulator` | admission / daily cycle 時にオーダー発行 |
-| `clinosim.modules.encounter` | Daily cycle event (`morning_labs`) から呼ぶ |
-| `clinosim.modules.observation` | 結果時刻経過後に観測値生成をトリガ |
-| `clinosim.modules.procedure` | 手術・手技オーダーを拡張 |
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/inpatient.py` | admission orders + daily cycle 時にオーダー発行、Pass-1/Pass-2 lab loop でオーダー消費 | core (主 simulation loop) |
+| `simulator/emergency.py` | ED visit のオーダー発行 + lab 結果生成 | core |
+| `modules/encounter` | Daily cycle event (`morning_labs`) から `place_daily_lab_orders()` を呼ぶ | medium |
+| `modules/observation` (README cross-ref) | 結果時刻経過後に観測値生成をトリガ | medium |
+| `modules/procedure` (README cross-ref) | 手術・手技オーダーを拡張 | medium |
 
 ## テスト
 
