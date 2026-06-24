@@ -12,7 +12,6 @@ from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS
 from clinosim.types.encounter import Encounter, EncounterType
 from clinosim.types.output import CIFPatientRecord
 
-
 pytestmark = pytest.mark.unit
 
 

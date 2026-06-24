@@ -25,7 +25,6 @@ from clinosim.types.device import DeviceRecord
 from clinosim.types.encounter import Encounter, EncounterType
 from clinosim.types.output import CIFPatientRecord
 
-
 _DEVICES_YAML = Path(__file__).parent / "reference_data" / "devices.yaml"
 
 

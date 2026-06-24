@@ -9,7 +9,6 @@ import pytest
 from clinosim.types.device import DeviceRecord
 from clinosim.types.output import CIFPatientRecord
 
-
 pytestmark = pytest.mark.integration
 
 
