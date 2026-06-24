@@ -139,6 +139,19 @@ protocol.outcome_benchmarks["japan"]["median_los"]            # 7
 **Raises**: `FileNotFoundError` — `reference_data/<disease_id>.yaml` が存在しない場合
 **Raises**: `pydantic.ValidationError` — YAML スキーマが `DiseaseProtocol` に一致しない場合
 
+## データ構造
+
+主要型 — Pydantic で YAML を検証 (AD-18):
+
+| Type | 場所 | Key fields | 用途 |
+|---|---|---|---|
+| `DiseaseProtocol` | `clinosim/modules/disease/protocol.py:15` (Pydantic `BaseModel`) | `disease_id`, `chief_complaint` (multi-lang dict), `icd_codes` (primary + variants), `department`, `target_los`, `course_archetypes`, `outcome_benchmarks`, `causes_myocardial_injury` (Phase 2a), `causes_vte` (Phase 2a) | disease YAML load 結果型。`load_disease_protocol(disease_id)` が `model_validate()` で返却。 |
+
+> 各 disease YAML は `reference_data/<disease_id>.yaml` に置かれ、Pydantic で validate 後に
+> simulator/inpatient.py + clinical_course / observation / order 等が参照。
+> scenario flag (`causes_X`) は [SCENARIO_FLAGS.md](../../../SCENARIO_FLAGS.md) で
+> 集中管理。
+
 ## YAML スキーマ概要
 
 1 本の疾患 YAML は以下のセクションから構成される。
