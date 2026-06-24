@@ -8,10 +8,19 @@ stays distinct (so two enrichers never collide on the same sub-stream).
 
 import pytest
 
-from clinosim.modules.immunization.enricher import _IMM_SEED_OFFSET
-from clinosim.modules.observation.microbiology import _MICRO_SEED_OFFSET
-from clinosim.modules.observation.nursing_enricher import _NURSING_SEED_OFFSET
-from clinosim.simulator.seeding import derive_sub_seed, panel_specimen_seed
+from clinosim.simulator.seeding import (
+    ENRICHER_SEED_OFFSETS,
+    derive_sub_seed,
+    panel_specimen_seed,
+)
+
+# Local aliases preserve pre-existing test body unchanged.
+# (Modules previously exported these constants; PR1 refactor centralized
+# them in ENRICHER_SEED_OFFSETS — numerical values are identical, so all
+# precomputed-literal pins below continue to hold.)
+_IMM_SEED_OFFSET = ENRICHER_SEED_OFFSETS["immunization"]
+_MICRO_SEED_OFFSET = ENRICHER_SEED_OFFSETS["microbiology"]
+_NURSING_SEED_OFFSET = ENRICHER_SEED_OFFSETS["nursing"]
 
 
 @pytest.mark.unit

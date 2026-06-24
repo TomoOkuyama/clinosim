@@ -9,9 +9,7 @@ import numpy as np
 
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.code_status.engine import assign_code_status
-from clinosim.simulator.seeding import derive_sub_seed
-
-_CS_SEED_OFFSET = 0x4353  # "CS"
+from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 
 
 def _qualifies(encounter_type: str, deceased: bool, icu: bool) -> bool:
@@ -36,7 +34,7 @@ def enrich_code_status(ctx) -> None:
             patient = _get(rec, "patient")
             age = int(_get(patient, "age", 0) or 0) if patient else 0
             context = "terminal" if deceased else ("icu" if icu else "routine")
-            rng = np.random.default_rng(derive_sub_seed(ctx.master_seed, _CS_SEED_OFFSET, eid))
+            rng = np.random.default_rng(derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["code_status"], eid))
             code = assign_code_status(age, context, country, rng)
         if isinstance(rec, dict):
             rec["code_status"] = code

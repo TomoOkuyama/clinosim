@@ -15,11 +15,10 @@ from typing import Any
 import numpy as np
 import yaml
 
-from clinosim.simulator.seeding import derive_sub_seed
+from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types import MicrobiologyResult, SusceptibilityResult
 
 _REF = Path(__file__).parent / "reference_data" / "microbiology.yaml"
-_MICRO_SEED_OFFSET = 770_077
 _SIR = ("S", "I", "R")
 
 
@@ -52,7 +51,7 @@ def generate_microbiology(
     antibiotics = data.get("antibiotics") or {}
     organisms = data.get("organisms") or {}
 
-    rng = np.random.default_rng(derive_sub_seed(master_seed, _MICRO_SEED_OFFSET, encounter_id))
+    rng = np.random.default_rng(derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS["microbiology"], encounter_id))
 
     org_dist = disease.get("organisms") or {}
     org_ids = list(org_dist.keys())
