@@ -31,7 +31,7 @@ assign_care_level(age: int, country: str, rng: np.random.Generator) -> str
   **JP のみ** `enabled=lambda c: c.country=="JP"`): `enrich_care_level`。
   **person_id 由来サブシード**(`derive_sub_seed(master, 0x434C, person_id)`)で
   encounter 間安定 & 主乱数列不変(AD-16)。`CIFPatientRecord.care_level` に格納。
-- **FHIR**: `modules/output/_fhir_sdoh.py` の `_build_care_level` を `_BUNDLE_BUILDERS`
+- **FHIR**: `modules/output/_fhir_care_level.py` の `_build_care_level` を `_BUNDLE_BUILDERS`
   登録。social-history Observation、value=`jp-care-level` コード、id `carelevel-{pid}`。
 - **CSV**: `csv_adapter.py` が `care_level.csv` を出力。
 
