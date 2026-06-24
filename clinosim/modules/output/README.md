@@ -333,13 +333,16 @@ _BUNDLE_BUILDERS = [
 ]
 ```
 
-実例 (PR2 SDOH refactor で確立した単一責任分離パターン):
+実例 (PR2 SDOH + PR3 Observation-family refactor で確立した単一責任分離パターン):
 
 | ビルダーファイル | リソース | 特徴 |
 |---|---|---|
 | `_fhir_smoking_alcohol.py` | smoking_status / alcohol_use Observation | LOINC-keyed social-history |
 | `_fhir_care_level.py` | JP 要介護度 Observation | JP-only custom code system |
-| `_fhir_immunization.py` (将来 PR3 で `_fhir_observations.py` から分離予定) | Immunization | CVX coding |
+| `_fhir_microbiology.py` | Specimen + Observation + DiagnosticReport | 微生物検査 (PR3 で `_fhir_observations.py` から分離) |
+| `_fhir_nursing.py` | survey Observation (NEWS2/GCS/Braden/Morse/Barthel/I&O) | 看護フローシート (PR3 で `_fhir_observations.py` から分離) |
+| `_fhir_immunization.py` | Immunization | CVX coding (PR3 で `_fhir_observations.py` から分離) |
+| `_fhir_observations.py` | lab + vital Observation | canonical numeric Observation (PR3 後の残量) |
 | `_fhir_family_history.py` | FamilyMemberHistory | ICD coding (multilingual) |
 | `_fhir_code_status.py` | Code status Observation | SNOMED resuscitation status |
 | `_fhir_sdoh.py` (削除済、PR2 で 2 分割) | - | (history reference) |
