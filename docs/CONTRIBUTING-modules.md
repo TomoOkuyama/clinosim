@@ -240,17 +240,42 @@ ENRICHER_SEED_OFFSETS = {
 
 モジュール側はローカル定数を持たず、registry から import します。dict 末尾の `assert len(set(...values())) == len(...)` が重複オフセットを import 時に検出します(誤って既存モジュールの RNG ストリームを汚染するのを構造的に防ぐ)。
 
-### CIF への書き込み: Base か extensions か
+### CIF への書き込み: Base か extensions か (decision tree)
 
-- **Base データ** のみ `CIFPatientRecord` / `CIFDataset` に typed field を足せる。
-- **opt-in module は core 型を編集禁止**。`CIFPatientRecord.extensions[<module>]` に書く (AD-56)。
+判定フロー:
+
+1. **すべての EHR で必須のデータか?**
+   - YES → 質問 2 へ
+   - NO  → `extensions["module_name"]` (opt-in module data)
+2. **将来削除しないコアフィールドか?**
+   - YES → 質問 3 へ
+   - NO  → `extensions`
+3. **複数モジュール / FHIR builder が参照するか?**
+   - YES → `CIFPatientRecord` typed field
+   - NO  → `extensions`
+
+決定 matrix:
+
+| 軸 | typed field | extensions |
+|---|---|---|
+| Always-on Base data | ✓ | |
+| Opt-in module data | | ✓ |
+| 共通 core EHR field | ✓ | |
+| Theme-specific | | ✓ |
+| 例 | `immunizations` / `family_history` / `code_status` / `care_level` | `nursing` extensions (always-on だが specialized) |
+| Persistence | `asdict` で完全シリアライズ | dict、explicit シリアライズ |
+
+**例外明文化 (TYP-4)**: always-on の Base enricher で typed field を使ってよい (例 `nursing_risk_assessments`)。**新規 opt-in module は必ず `extensions[<module>]` を使う**。
+
+> **PR2 教訓 (data-only variant)**: `modules/sdoh/` のような data-only module variant は **データを CIF に書かない** — patient activator が `PatientProfile.smoking_status` 等の既存 field を更新するため、本質的に Base data。新モジュールで CIF 書き込みが不要なら、この判定フローはスキップ。
 
 ```python
 # opt-in module enricher 内
-rec.extensions["immunization"] = [asdict(r) for r in immunizations]
-```
+rec.extensions["my_module"] = [asdict(r) for r in my_records]
 
-> **例外の明文化 (TYP-4):** always-on の Base enricher (例 `nursing_risk_assessments`) は typed field に書いてよい。opt-in module enricher は必ず `extensions[<module>]` を使う。
+# always-on Base enricher 内 (例外: TYP-4)
+rec.my_typed_field = [asdict(r) for r in my_records]
+```
 
 ---
 
