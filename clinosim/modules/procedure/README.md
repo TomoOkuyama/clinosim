@@ -390,6 +390,18 @@ for key, delta in impacts.items():
 
 本モジュールは clinosim の他モジュールに **依存しない**。 disease protocol オブジェクトはダックタイピングで受ける (`hasattr(protocol, "procedure")`)。
 
+## Consumers
+
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/inpatient.py` | admission/discharge 時 + bedside event 時に procedure 生成 | core (主 simulation loop) |
+| `modules/procedure/__init__.py` | public API re-export | infrastructure |
+| `tests/unit/test_procedure.py` | engine unit tests | guard |
+| `tests/unit/test_procedure_types.py` | type unit tests | guard |
+| `tests/unit/test_procedure_fhir_fields.py` | FHIR field 整合性 unit tests | guard |
+
 ## 関連コード体系
 
 - **CPT** — [`clinosim/codes/data/cpt.yaml`](../../codes/data/cpt.yaml) ([AMA CPT](https://www.ama-assn.org/practice-management/cpt))
