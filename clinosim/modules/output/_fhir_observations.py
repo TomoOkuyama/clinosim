@@ -16,17 +16,14 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
-from clinosim.modules.output._fhir_common import (
-    BundleContext,
-    _build_reference_range,
-    _entry,
-)
+from clinosim.modules.output._fhir_common import _build_reference_range, _entry
 from clinosim.modules.output._fhir_localization import (
     _CATEGORY_DISPLAY_JA,
     _INTERPRETATION_DISPLAY_JA,
     _localize_display,
     _localize_interp,
 )
+
 
 def _build_lab_observation(
     order: dict, result: dict, patient_id: str, index: int,
