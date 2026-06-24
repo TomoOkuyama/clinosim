@@ -1,0 +1,23 @@
+# All codes verified at PR-B Task 1 against NLM ICD-10-CM API +
+# tx.fhir.org $lookup/$expand for SNOMED CT International.
+# JP folds CM-granular ICD codes to WHO 4-char via
+# locale/jp/code_mapping_diagnosis.yaml.
+hai_codes:
+  clabsi:
+    icd10_us_billable: "T80.211A"
+    icd10_jp_who:      "T80.2"
+    snomed:            "736442006"
+    display_en:        "Catheter related bloodstream infection"
+    display_ja:        "中心静脈カテーテル関連血流感染症"
+  cauti:
+    icd10_us_billable: "T83.511A"
+    icd10_jp_who:      "T83.5"
+    snomed:            "68566005"
+    display_en:        "Catheter-associated urinary tract infection"
+    display_ja:        "カテーテル関連尿路感染症"
+  vap:
+    icd10_us_billable: "J95.851"
+    icd10_jp_who:      "J95.8"
+    snomed:            "429271009"
+    display_en:        "Ventilator-associated pneumonia"
+    display_ja:        "人工呼吸器関連肺炎"

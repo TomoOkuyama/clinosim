@@ -1,0 +1,30 @@
+# CDC NHSN HAI Annual Report organism distributions.
+# All 11 SNOMED codes verified at PR-B Task 1 via tx.fhir.org $expand.
+# Weights sum to 1.0 per HAI type.
+hai_organisms:
+  clabsi:
+    - {snomed: "3092008",   weight: 0.20}   # S. aureus
+    - {snomed: "60875001",  weight: 0.18}   # S. epidermidis (CoNS exemplar)
+    - {snomed: "53326005",  weight: 0.15}   # C. albicans
+    - {snomed: "78065002",  weight: 0.13}   # E. faecalis
+    - {snomed: "56415008",  weight: 0.10}   # K. pneumoniae
+    - {snomed: "112283007", weight: 0.10}   # E. coli
+    - {snomed: "52499004",  weight: 0.09}   # P. aeruginosa
+    - {snomed: "3092008",   weight: 0.05}   # "other" → fall back to S. aureus
+  cauti:
+    - {snomed: "112283007", weight: 0.27}   # E. coli
+    - {snomed: "53326005",  weight: 0.18}   # C. albicans
+    - {snomed: "78065002",  weight: 0.16}   # E. faecalis
+    - {snomed: "56415008",  weight: 0.13}   # K. pneumoniae
+    - {snomed: "52499004",  weight: 0.10}   # P. aeruginosa
+    - {snomed: "73457008",  weight: 0.06}   # P. mirabilis
+    - {snomed: "112283007", weight: 0.10}   # "other" → fall back to E. coli
+  vap:
+    - {snomed: "3092008",   weight: 0.24}   # S. aureus
+    - {snomed: "52499004",  weight: 0.17}   # P. aeruginosa
+    - {snomed: "56415008",  weight: 0.10}   # K. pneumoniae
+    - {snomed: "112283007", weight: 0.08}   # E. coli
+    - {snomed: "14385002",  weight: 0.08}   # E. cloacae
+    - {snomed: "91288006",  weight: 0.05}   # A. baumannii
+    - {snomed: "113697002", weight: 0.04}   # S. maltophilia
+    - {snomed: "3092008",   weight: 0.24}   # "other" → fall back to S. aureus
