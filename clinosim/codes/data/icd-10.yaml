@@ -956,3 +956,14 @@ codes:
   U07.1:
     en: "COVID-19"
     ja: "新型コロナウイルス感染症"
+  # === HAI conditions (AD-55 Module: hai, PR-B) ===
+  # WHO ICD-10 4-character categories that the JP HAI Conditions fold to.
+  T80.2:
+    en: "Infections following infusion, transfusion and therapeutic injection"
+    ja: "輸液・輸血・治療目的注射後の感染症"
+  T83.5:
+    en: "Infection and inflammatory reaction due to prosthetic device, implant and graft in urinary system"
+    ja: "泌尿器系の人工器具、移植片、移植物の感染および炎症反応"
+  J95.8:
+    en: "Other postprocedural respiratory disorders"
+    ja: "その他の処置後呼吸器障害"

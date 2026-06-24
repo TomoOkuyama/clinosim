@@ -209,3 +209,43 @@ codes:
   '706172005':
     en: Ventilator
     ja: 人工呼吸器
+  # === HAI conditions (AD-55 Module: hai, PR-B) ===
+  # All verified via tx.fhir.org $lookup / $expand against SNOMED CT
+  # International edition. Spec's CLABSI tentative 433142000 and
+  # CAUTI tentative 425500004 were not present in International;
+  # CLABSI replaced with 736442006 (Catheter related bloodstream
+  # infection, verified via $expand); CAUTI replaced with 68566005
+  # (Urinary tract infectious disease, generic — CAUTI-specificity
+  # is conveyed via ICD-10-CM T83.511A + Condition.code.text).
+  '736442006':
+    en: Catheter related bloodstream infection
+    ja: 中心静脈カテーテル関連血流感染症
+  '68566005':
+    en: Urinary tract infectious disease
+    ja: カテーテル関連尿路感染症
+  '429271009':
+    en: Ventilator-associated pneumonia
+    ja: 人工呼吸器関連肺炎
+  # === HAI organisms (CDC NHSN top organisms, PR-B) ===
+  # All 11 verified via tx.fhir.org $expand text-search.
+  # S. aureus / E. coli / K. pneumoniae / P. aeruginosa / P. mirabilis /
+  # E. faecalis already registered above (PR3 microbiology section);
+  # not duplicated here. The 4 new HAI-specific organisms:
+  '60875001':
+    en: Staphylococcus epidermidis
+    ja: 表皮ブドウ球菌
+  '53326005':
+    en: Candida albicans
+    ja: カンジダ・アルビカンス
+  '14385002':
+    en: Enterobacter cloacae
+    ja: エンテロバクター・クロアカ
+  '91288006':
+    en: Acinetobacter baumannii
+    ja: アシネトバクター・バウマニ
+  '113697002':
+    en: Stenotrophomonas maltophilia
+    ja: ステノトロフォモナス・マルトフィリア
+  # === Culture specimens (PR-B) ===
+  # Blood / Urine / Sputum specimens already registered above (PR3
+  # microbiology section); not duplicated here.

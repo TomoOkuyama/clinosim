@@ -275,7 +275,7 @@ output/fhir_r4/
 ├── DeviceUseStatement.ndjson       # デバイス使用期間 (留置 → 抜去; ICU 入院 encounter 単位)
 ├── DiagnosticReport.ndjson         # 検査パネルレポート (CBC/BMP/LFT/Lipid/Coag/UA/ABG, LOINC) + 微生物培養レポート (+ Specimen)
 ├── Specimen.ndjson                 # 培養検体 (血液/尿/喀痰/創部)
-├── Condition.ndjson                # 主疾患 + 慢性疾患 (ICD-10-CM)
+├── Condition.ndjson                # 主疾患 + 慢性疾患 + 院内関連感染 (CLABSI/CAUTI/VAP) (ICD-10-CM / ICD-10 / SNOMED dual)
 ├── MedicationRequest.ndjson        # 処方 (RxNorm)
 ├── MedicationAdministration.ndjson # 投与記録 (MAR)
 ├── Procedure.ndjson                # 手術 + ベッドサイド処置 (CPT)

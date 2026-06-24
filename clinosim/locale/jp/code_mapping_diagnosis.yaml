@@ -135,3 +135,8 @@ V89.2XXA: "V89.2"
 # engine.py differential dx: CM codes absent from WHO → WHO ICD-10
 K56.9: "K56.7"
 R07.9: "R07.4"
+
+# === HAI conditions (AD-55 Module: hai, PR-B) — fold CM granular to WHO 4-char ===
+T80.211A: "T80.2"
+T83.511A: "T83.5"
+J95.851: "J95.8"

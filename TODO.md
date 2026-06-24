@@ -414,13 +414,55 @@ plausible bands. byte-diff supplement confirms zero regression on
 pre-existing NDJSON. See
 `docs/reviews/2026-06-24-device-module-data-quality-review.md`.
 
-Series context: PR-A (this, ✓ done) → PR-B (`modules/hai`, consumes
-`extensions["device"]` for CLABSI/CAUTI/VAP onset) → PR-C (helper
+Series context: PR-A (✓ done) → PR-B (✓ done) → PR-C (helper
 DRY if needed) → PR-D (comprehensive docs sync). Phase 1 simplifications
 acknowledged in DQR doc: ICU sub-period ≈ inpatient encounter LOS
 (over-estimates true line-days, calibratable in Phase 2); CVC + catheter
 always co-emit on ICU inpatient (criteria overlap by design); ventilator
 adoption ~82% of CVC (hypoxia proxy broader than true clinical need).
+
+**HAI module (PR-B) — 2026-06-24:** Phase 2 of the 4-PR device + HAI
+series. `modules/hai/` post_records enricher (order=80, after
+device=70) consumes PR-A `extensions["device"]` line-days and samples
+CLABSI/CAUTI/VAP onsets via CDC NHSN baseline per-line-day risk
+rates (0.0010 / 0.0014 / 0.0015 per device-day = 1.0/1.4/1.5 per
+1000 device-days):
+
+- CLABSI ← CVC (SNOMED 736442006 verified)
+- CAUTI ← indwelling catheter (SNOMED 68566005 verified, generic
+  UTI — CAUTI-specificity in ICD-10-CM T83.511A + text)
+- VAP ← ventilator (SNOMED 429271009 verified)
+
+Onset: cumulative `1 - (1 - per_day_risk)^line_days`; offset uniform
+over `[2, line_days)` per CDC ≥48h rule; snapshot in-progress device
+→ conservative `line_days=7`. Organism sampled from CDC NHSN top
+organism distribution per HAI type (S. aureus / E. coli / Candida /
+S. epidermidis / etc., 11 organism SNOMEDs total — 6 reused from PR3
+microbiology section, 5 new for HAI). Culture appended to
+`record.microbiology` so the existing `_fhir_microbiology.py` builder
+emits Specimen + Observation + DiagnosticReport without new wiring.
+
+ENRICHER_SEED_OFFSETS["hai"] = 0x4841 ("HA"). Codes verified at
+Task 1: NLM ICD-10-CM API (T80.211A / T83.511A / J95.851); WHO ICD-10
+(T80.2 / T83.5 / J95.8); tx.fhir.org $lookup/$expand for SNOMED HAI +
+organisms + specimens; existing PR3 microbiology section reused for
+LOINC 600-7 / 630-4 / 619-7 (blood / urine / sputum culture). New
+`clinosim/types/hai.py` (HAIEvent under `extensions["hai"]`). New
+`_fhir_hai.py` builder file emits only the HAI Condition (dual coding
+ICD-10 + SNOMED). 3-axis DQR PASS at US p=10000 + JP p=5000: US 4
+HAI (3 CAUTI + 1 VAP) within Poisson 2σ of expected ~3.2; JP 0 HAI
+acceptable rare event at p=5000 (P(X=0) ≈ 0.71). byte-diff supplement:
+all 37 pre-existing NDJSON byte-identical. See
+`docs/reviews/2026-06-24-hai-module-data-quality-review.md`.
+
+Series context: PR-A (✓ done) → PR-B (this, ✓ done) → PR-C (helper
+DRY if needed) → PR-D (comprehensive docs). Phase 2 simplifications:
+snapshot in-progress fallback line_days=7; at-most-one HAI per device;
+no antibiotic / susceptibility / mortality / WBC-CRP lift (all Phase 3).
+
+First clean implementation of cross-module enricher consumption pattern
+(PR-A device → PR-B hai); foundation for Phase 3+ device-consuming
+modules.
 
 Backlog: **PR_C type consolidation** — 7 modules currently define types
 in `engine.py` instead of `clinosim/types/` (CLAUDE.md "All types
