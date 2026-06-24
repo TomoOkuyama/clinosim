@@ -245,6 +245,37 @@ Phase 2c backlog (anticoagulation deepening):
 - Activator AC-drug exclusivity (warfarin OR apixaban, not both —
   pre-existing independent-probability draw limitation)
 
+**AD-55 Module Foundation Refactor PR1 (G1 structural DRY) — 2026-06-24:**
+Mechanical refactor preparing clean foundation for device + HAI feature
+modules (chosen first AD-55 Module from brainstorming session 13).
+Three structural-DRY items consolidated:
+
+- `_get(obj, name, default)` 6-way duplication -> `clinosim/modules/_shared.py:get_attr_or_key`
+  (5 enrichers + 1 FHIR builder import with `as _get` alias; -30 lines duplicate code)
+- 7-module sub-seed offsets -> `clinosim/simulator/seeding.py:ENRICHER_SEED_OFFSETS`
+  central registry (identity 540_054 + microbiology 770_077 grandfathered as
+  decimals; immunization 0x494D / code_status 0x4353 / family_history 0x4648 /
+  care_level 0x434C / nursing 0x4E55 use 16-bit hex ASCII convention)
+- `care_level.load_rates(country: str = "JP")` signature unified with
+  immunization / family_history / code_status + preserved @lru_cache
+
+Convention docs locked in: CLAUDE.md "AD-55 enricher patterns" subsection +
+docs/CONTRIBUTING-modules.md 3 sub-section edits (sub-seed registry, shared
+helper, locale signature regulation).
+
+Byte-diff vs master `dcb47ccc` @ p=2000 seed=42: all 11 NDJSON sha256-IDENTICAL
+for both US and JP (pure mechanical refactor; numerical identity preserved
+through registry). test_seeding.py precomputed-literal pins (914786652 /
+914785364 / 2694613518) continue to pass as cross-check. See
+`scratchpad/refactor_pr1_byte_diff_results.md`.
+
+Series context: PR1 of 4 (G1 done) → PR2 (G2 SDOH integrity: SDOH SNOMED
+hardcode → reference_data.yaml + _fhir_sdoh.py builder split) → PR3 (G3
+_fhir_observations.py 31KB → immunization extraction) → PR4 (G4 doctrine
+docs: identity enabled gate registry + typed field vs extensions decision
+tree) → then device + HAI feature work (2 modules with cross-module
+enricher consumption).
+
 **Coag panel activation (LOINC 24373-3) + APTT/PT/Fibrinogen derives
 (2026-06-24):** Activates the previously-defined-but-dormant Coag
 DiagnosticReport panel (LOINC 24373-3) by extending
