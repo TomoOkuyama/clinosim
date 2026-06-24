@@ -94,6 +94,27 @@ from clinosim.modules._shared import get_attr_or_key as _get
 
 `as _get` alias で短い local 名を維持し、call site の可読性も保ちます。新しい cross-module helper を追加する場合は **2 モジュール以上で実需が生じたタイミング**で `_shared.py` に昇格させます(YAGNI — 1 モジュールしか使わないなら local 定義のまま)。
 
+### データ専用モジュール (variant)
+
+`modules/sdoh/` のように、**reference データ + loader のみ** を持ち、generation / assignment logic を持たないモジュール variant も認められます (PR2 2026-06-24 で確立)。`clinosim/codes/` が同パターンの先例です。
+
+判定基準:
+- データは存在するが、generation / assignment は別の場所 (patient activator / FHIR output builder / 他モジュール enricher) で行われる
+- 複数の consumer から参照される共通参照データを集約したい
+- 将来同テーマのデータ拡張余地が高い
+
+レイアウト:
+
+```
+clinosim/modules/<name>/
+  __init__.py            <- public API (loader 関数を export)
+  engine.py              <- @lru_cache 付き loader のみ (assignment 関数なし OK)
+  reference_data/*.yaml  <- データ駆動の定義
+  README.md              <- 他モジュールと同型
+```
+
+enricher.py は **不要** (post_records enricher の登録なし)。`ENRICHER_SEED_OFFSETS` への登録も **不要** (RNG draw なし)。
+
 ### canonical な「pure-function engine」(MOD-13 が手本)
 
 `observation/engine.py` は **cross-module import がゼロ** で、physiology 値・reference range などすべての文脈を関数引数で受け取ります。新規 engine はこれを手本にしてください。

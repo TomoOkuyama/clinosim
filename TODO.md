@@ -276,6 +276,35 @@ docs: identity enabled gate registry + typed field vs extensions decision
 tree) → then device + HAI feature work (2 modules with cross-module
 enricher consumption).
 
+**AD-55 Module Foundation Refactor PR2 (G2 SDOH integrity) — 2026-06-24:**
+Mechanical SDOH integrity refactor preparing for future SDOH expansion
+(occupation / education / housing / food insecurity). Three items:
+
+1. 6 SNOMED enum->code mappings (3 smoking + 3 alcohol) moved from
+   Python dict hardcode in _fhir_sdoh.py to YAML in new lightweight
+   `clinosim/modules/sdoh/` module ("data-only module variant" —
+   reference data + loader only, no enricher / no ENRICHER_SEED_OFFSETS;
+   `clinosim/codes/` is the preexisting precedent).
+2. `_fhir_sdoh.py` 88-line file split into `_fhir_smoking_alcohol.py`
+   (LOINC-keyed pattern) + `_fhir_care_level.py` (JP-only, custom code
+   system). `_fhir_sdoh.py` deleted.
+3. `_social_category` + `_value` helpers promoted to `_fhir_common.py`
+   for future SDOH builder reuse (occupation / education / housing /
+   food insecurity will inherit).
+
+CONTRIBUTING-modules.md gains "データ専用モジュール (variant)" sub-section
+documenting the new module shape. DESIGN.md AD-56 entry extended.
+
+Byte-diff vs master `36ac9afd` @ p=2000 seed=42: all 11 NDJSON
+sha256-IDENTICAL for both US and JP (pure mechanical refactor;
+numerical identity preserved through YAML). See
+`scratchpad/refactor_pr2_byte_diff_results.md`.
+
+Series context: PR2 of 4 (G2 done) → PR3 (G3 _fhir_observations.py
+31KB split, immunization extraction) → PR4 (G4 doctrine docs:
+identity enabled gate registry + typed field vs extensions decision
+tree) → then device + HAI feature work.
+
 **Coag panel activation (LOINC 24373-3) + APTT/PT/Fibrinogen derives
 (2026-06-24):** Activates the previously-defined-but-dormant Coag
 DiagnosticReport panel (LOINC 24373-3) by extending
