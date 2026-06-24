@@ -149,3 +149,18 @@ def register_builtin_enrichers() -> None:
             run=enrich_care_level,
         )
     )
+
+    # ICU device placement (AD-55 Module, PR-A): CVC + indwelling catheter +
+    # ventilator on inpatient encounters where the patient transferred to ICU.
+    # Phase 2 hai enricher will consume extensions["device"]. Always-on.
+    from clinosim.modules.device.enricher import enrich_device
+
+    register_enricher(
+        Enricher(
+            name="device",
+            stage=POST_RECORDS,
+            order=70,
+            enabled=lambda c: True,
+            run=enrich_device,
+        )
+    )

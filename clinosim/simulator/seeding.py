@@ -88,6 +88,7 @@ ENRICHER_SEED_OFFSETS = {
     "family_history": 0x4648,     # "FH"
     "care_level":     0x434C,     # "CL"
     "nursing":        0x4E55,     # "NU"
+    "device":         0x4445,     # "DE" (PR-A)
 }
 
 assert len(set(ENRICHER_SEED_OFFSETS.values())) == len(ENRICHER_SEED_OFFSETS), \

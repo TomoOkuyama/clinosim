@@ -390,6 +390,38 @@ Clears the runway for device + HAI feature builders to land in clean
 per-theme files (`_fhir_device.py` / `_fhir_hai.py`) without inheriting
 a multi-theme blob.
 
+**Device module (PR-A) — 2026-06-24:** First phase of the 4-PR device +
+HAI series. `modules/device/` post_records enricher emits FHIR Device +
+DeviceUseStatement for ICU encounters with state-based placement
+criteria:
+
+- CVC (SNOMED 52124006) when severity_moderate_plus (ICU inpatient)
+- Indwelling catheter (SNOMED 23973005) when severity_moderate_plus OR
+  altered_consciousness (vital_signs[i].gcs_score < 13)
+- Ventilator (SNOMED 706172005) when hypoxia (perfusion_status < 0.4)
+  OR high_respiratory_demand (respiratory_fraction > 0.7)
+
+SNOMED codes verified via tx.fhir.org $expand text-search; spec's
+tentative 467021000 was not in SNOMED CT International — replaced
+with the verified 23973005 (PR #80 LOINC 2B010 fabrication precedent).
+ENRICHER_SEED_OFFSETS["device"] = 0x4445 ("DE"). New
+`clinosim/types/device.py` (`DeviceRecord` dataclass under
+`extensions["device"]`). `_fhir_device.py` builder file emits Device +
+DeviceUseStatement via _BUNDLE_BUILDERS list (PR3 theme-per-file
+pattern). 3-axis DQR PASS at US p=10000 + JP p=5000: 353 + 20 devices,
+all structural checks 100%, line-days p50 = 6 (US) / 13 (JP) within
+plausible bands. byte-diff supplement confirms zero regression on
+pre-existing NDJSON. See
+`docs/reviews/2026-06-24-device-module-data-quality-review.md`.
+
+Series context: PR-A (this, ✓ done) → PR-B (`modules/hai`, consumes
+`extensions["device"]` for CLABSI/CAUTI/VAP onset) → PR-C (helper
+DRY if needed) → PR-D (comprehensive docs sync). Phase 1 simplifications
+acknowledged in DQR doc: ICU sub-period ≈ inpatient encounter LOS
+(over-estimates true line-days, calibratable in Phase 2); CVC + catheter
+always co-emit on ICU inpatient (criteria overlap by design); ventilator
+adoption ~82% of CVC (hypoxia proxy broader than true clinical need).
+
 Backlog: **PR_C type consolidation** — 7 modules currently define types
 in `engine.py` instead of `clinosim/types/` (CLAUDE.md "All types
 defined in clinosim/types/" rule). Code refactor with byte-diff risk;
