@@ -18,9 +18,11 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping, load_reference_ranges
 from clinosim.modules.output._fhir_localization import (
+    _CATEGORY_DISPLAY_JA,
     _FREQ_JA,
     _ROUTE_JA,
     _SEVERITY_DISPLAY_JA,
+    _localize_display,
     _localize_dosage_terms,
     _localize_drug_name,
 )
@@ -82,6 +84,45 @@ def _loinc_coding(code: str, lang: str) -> dict:
     if disp and disp != code:
         entry["display"] = disp
     return entry
+
+
+def _social_category(country: str) -> list[dict]:
+    """FHIR Observation.category for social-history (US Core SDOH).
+
+    Returns the standard hl7-observation-category coding with localized
+    display + text — used by every social-history Observation builder
+    (smoking, alcohol, occupation, education, housing, ...). Promoted
+    from _fhir_sdoh.py in PR2 (G2 SDOH integrity refactor, 2026-06-24).
+    """
+    return [{
+        "coding": [{
+            "system": get_system_uri("hl7-observation-category"),
+            "code": "social-history",
+            "display": _localize_display("Social History", country, _CATEGORY_DISPLAY_JA),
+        }],
+        "text": "社会歴" if country == "JP" else "Social History",
+    }]
+
+
+def _value(system_key: str, code: str, lang: str) -> dict[str, Any]:
+    """Build a FHIR valueCodeableConcept with localized display.
+
+    Generic helper for any coded value whose display lives in
+    clinosim.codes. Returns a CodeableConcept fragment
+    {"coding": [{"system": ..., "code": ..., "display": ...}], "text": ...}
+    — distinct from _micro_coding() in this module which returns the
+    bare coding dict (no CodeableConcept wrapping). Used by SDOH
+    builders (smoking_status / alcohol_use / care_level) and any future
+    builder emitting a coded valueCodeableConcept.
+
+    Promoted from _fhir_sdoh.py in PR2 (G2 SDOH integrity refactor,
+    2026-06-24).
+    """
+    coding: dict[str, Any] = {"system": get_system_uri(system_key), "code": code}
+    disp = code_lookup(system_key, code, lang)
+    if disp and disp != code:
+        coding["display"] = disp
+    return {"coding": [coding], "text": disp or code}
 
 
 def _entry(resource: dict) -> dict:
