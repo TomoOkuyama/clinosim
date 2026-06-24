@@ -2,6 +2,8 @@
 
 このドキュメントは、新しいコントリビューターが clinosim に **モジュール/プラグインを追加し、データを生成し、どのデータ/コードを使うかを正しく選択する** ための実践 playbook です。アーキテクチャ原則 (ADR) は `DESIGN.md`、規約の総覧は `CLAUDE.md` を参照してください。本書はそれらと重複せず、**HOW-TO** に集中します。
 
+> **新規モジュール作成時**: [`.github/TEMPLATE_MODULE_README.md`](../.github/TEMPLATE_MODULE_README.md) をコピーして開始。全 22 module の俯瞰は [`MODULES.md`](../MODULES.md) を参照。PR 検証手段の選び方は本書の「PR 検証ガイド: byte-diff vs 3-axis DQR」セクション参照。
+
 実コードの正本パス:
 - Enricher registry: `clinosim/simulator/enrichers.py`
 - Output adapter registry: `clinosim/modules/output/adapter.py`
@@ -159,6 +161,43 @@ def generate_lab_result(canon: str, true_value: float, rng: np.random.Generator,
 - **`random.random()` / stdlib `random` 禁止** (AD-16, DET-8)。必ず引数で渡された `np.random.Generator` を使う。module-level の可変 global state も禁止。
   - **違反例 (DET-4):** `_generate_vitals._prev_diet` のように関数オブジェクト属性へ状態を溜めると、`FORCED-0001` 等の決定論 ID を共有する複数テスト呼び出しで stale 状態を読みます。状態は呼び出しスコープの local 変数に閉じること。
 
+### PR 検証ガイド: byte-diff vs 3-axis DQR
+
+**真の goal**: CIF データを **FHIR R4 + JP Core 準拠** の正確な出力に変換すること + 臨床的整合性 + JP localization 品質。
+
+PR の性質によって適切な検証手段が異なります:
+
+| PR の性質 | 検証手段 | 何を保証するか |
+|---|---|---|
+| **Pure mechanical refactor** (例: 内部構造整理、helper 共通化、registry 中央化、ファイル分割) | **byte-diff** — master と branch で同 seed/設定で生成した 11 NDJSON が sha256 IDENTICAL | refactor 前後で **出力が一切変わっていない** = no-regression gate |
+| **新機能 / リアリティ改善** (例: 新 analyte 追加、scenario flag 追加、medication coupling 追加、新疾患追加) | **3-axis DQR** (`docs/reviews/<date>-<topic>-data-quality-review.md`) | **FHIR R4 / JP Core 適合性 + 臨床整合性 + JP language 品質** = goal achievement gate |
+| **Pure docs update** (例: README 更新、新 doc 作成) | regression check (テスト緑) + manual link review | code 変更がないこと |
+| **混合** (refactor + 小さな behavior change) | byte-diff で意図的変化のみあることを確認 + DQR で goal 維持を確認 | 両方 |
+
+**byte-diff は手段、3-axis DQR が真の goal テスト**:
+
+- refactor PR で byte-diff を使うのは「behavior 変えていない」を mechanical に確認する shortcut。output が変わると refactor の主張が嘘になるため。
+- 新機能 PR では byte-diff は **完全一致でなくて OK** (意図的に変わる)。3-axis DQR が真のゴール — FHIR/JP Core 規格適合性、臨床的妥当性 (warfarin patient の INR 2-3 等)、JP localization 品質 (display 文字列、JLAC10 ja の権威出典準拠) — を verify する。
+- 例: Phase 2a (D-dimer / causes_vte) は新機能なので、9 NDJSON は byte-identical で残り 2 つ (Observation / DR) が意図的に変化。3-axis DQR で PE/DVT/CI 患者の D-dimer が VTE-positive 帯にあるか + JLAC10 2B140 ja JCCLS 公式日本語名であるか等を verify。
+
+#### byte-diff の実施手順
+
+1. master HEAD で `python -m clinosim.simulator.cli generate -p 2000 -s 42 --country US --format fhir-r4 -o scratchpad/<topic>_byte_diff/master/us` (JP も同様)
+2. branch HEAD で同じコマンドを `scratchpad/<topic>_byte_diff/branch/us` に出力
+3. sha256 比較スクリプトを実行 (PR1/PR2 の `scratchpad/refactor_pr*_byte_diff/compare.py` を template として参照)
+4. 全 11 NDJSON が IDENTICAL であることを確認 (refactor PR の gate)
+5. 結果を `scratchpad/<topic>_byte_diff_results.md` に書き、PR 本体に commit
+
+#### 3-axis DQR の実施手順
+
+1. US p≥10000 + JP p≥5000 で生成 (大規模 cohort で cohort-emergent 現象を捕捉)
+2. 3 軸監査スクリプトを実行 (Phase 2a/2b の `scratchpad/phase2*_dqr/dqr_audit.py` を template として参照):
+   - **構造**: refRange 100%, interpretation 100%, display≠code 100%, id 重複 0
+   - **臨床**: 期待される疾患ごとの lab 値域 (DKA HCO3 / ACS Troponin / VTE D-dimer / AF chronic INR therapeutic 等)
+   - **JP language**: US 日本語混入 0、JP display 文字列が JCCLS-JSLM / MHLW 等の権威出典準拠
+3. 全 axes PASS を確認
+4. 結果を `docs/reviews/<date>-<topic>-data-quality-review.md` に書き、PR 本体に commit
+
 ### physiology state から導出する
 
 可能な限り、lab/vital は患者の physiology state (true value) から導出します。生成 chain は次に funnel させてください:
@@ -203,17 +242,42 @@ ENRICHER_SEED_OFFSETS = {
 
 モジュール側はローカル定数を持たず、registry から import します。dict 末尾の `assert len(set(...values())) == len(...)` が重複オフセットを import 時に検出します(誤って既存モジュールの RNG ストリームを汚染するのを構造的に防ぐ)。
 
-### CIF への書き込み: Base か extensions か
+### CIF への書き込み: Base か extensions か (decision tree)
 
-- **Base データ** のみ `CIFPatientRecord` / `CIFDataset` に typed field を足せる。
-- **opt-in module は core 型を編集禁止**。`CIFPatientRecord.extensions[<module>]` に書く (AD-56)。
+判定フロー:
+
+1. **すべての EHR で必須のデータか?**
+   - YES → 質問 2 へ
+   - NO  → `extensions["module_name"]` (opt-in module data)
+2. **将来削除しないコアフィールドか?**
+   - YES → 質問 3 へ
+   - NO  → `extensions`
+3. **複数モジュール / FHIR builder が参照するか?**
+   - YES → `CIFPatientRecord` typed field
+   - NO  → `extensions`
+
+決定 matrix:
+
+| 軸 | typed field | extensions |
+|---|---|---|
+| Always-on Base data | ✓ | |
+| Opt-in module data | | ✓ |
+| 共通 core EHR field | ✓ | |
+| Theme-specific | | ✓ |
+| 例 | `immunizations` / `family_history` / `code_status` / `care_level` | `nursing` extensions (always-on だが specialized) |
+| Persistence | `asdict` で完全シリアライズ | dict、explicit シリアライズ |
+
+**例外明文化 (TYP-4)**: always-on の Base enricher で typed field を使ってよい (例 `nursing_risk_assessments`)。**新規 opt-in module は必ず `extensions[<module>]` を使う**。
+
+> **PR2 教訓 (data-only variant)**: `modules/sdoh/` のような data-only module variant は **データを CIF に書かない** — patient activator が `PatientProfile.smoking_status` 等の既存 field を更新するため、本質的に Base data。新モジュールで CIF 書き込みが不要なら、この判定フローはスキップ。
 
 ```python
 # opt-in module enricher 内
-rec.extensions["immunization"] = [asdict(r) for r in immunizations]
-```
+rec.extensions["my_module"] = [asdict(r) for r in my_records]
 
-> **例外の明文化 (TYP-4):** always-on の Base enricher (例 `nursing_risk_assessments`) は typed field に書いてよい。opt-in module enricher は必ず `extensions[<module>]` を使う。
+# always-on Base enricher 内 (例外: TYP-4)
+rec.my_typed_field = [asdict(r) for r in my_records]
+```
 
 ---
 

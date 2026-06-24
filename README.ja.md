@@ -37,6 +37,21 @@
 
 ---
 
+## モジュール一覧
+
+22 モジュール全体の俯瞰 (依存関係 + 典型的なコールチェーン + 5-step 新モジュール quick-start) は **[`MODULES.md`](MODULES.md)** を参照。
+
+その他ナビゲーション:
+
+| 探しているもの | Read |
+|---|---|
+| Scenario / medication flag | [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.md) |
+| アーキテクチャ + ADR 表 | [`DESIGN.md`](DESIGN.md) |
+| モジュール作者 HOW-TO + PR 検証ガイド | [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) |
+| 新モジュール template | [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md) |
+
+---
+
 ## 特徴
 
 - **HL7 FHIR Bulk Data Access 準拠** の NDJSON 出力 (Patient.ndjson, Encounter.ndjson, ...)

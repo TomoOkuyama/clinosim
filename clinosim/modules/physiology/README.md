@@ -458,6 +458,33 @@ print(f"CRP day 3: {labs['CRP']:.1f}, Temp: {vitals['temperature']}")
 
 **他モジュールへの依存なし** (physiology は leaf module)。
 
+## Consumers
+
+このモジュールに依存するもの (`derive_lab_values` / `derive_vital_signs` / `scenario_flags_from_protocol` / `medication_flags_from_context` 等):
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/inpatient.py:563-571` | Pass-1 lab loop で `derive_lab_values(state, ..., **flags)` 呼出 | core (主 simulation loop) |
+| `simulator/inpatient.py:~1701` | unknown-condition encounter での `derive_lab_values` 呼出 (chronic-only flags) | core |
+| `simulator/emergency.py:126-130` | ED admit lab derivation | core |
+| `simulator/outpatient.py:152-160` | outpatient chronic followup lab derivation | core |
+| `modules/patient/activator.py` | `PatientPhysiologicalProfile` 初期化で physiology types を参照 | core |
+| `modules/clinical_course/` (README cross-ref) | daily state evolution が `StateChangeDirective` 経由で physiology に作用 | core |
+| `tests/integration/test_clinical_pipeline.py` | 臨床 pipeline integration | guard |
+| `tests/integration/test_glycemic_scenario.py` | glycemic / DKA scenario | guard |
+| `tests/integration/test_sodium_axis.py` | dysnatremia integration | guard |
+| `tests/integration/test_phase2b_anticoagulation_scenarios.py` | warfarin INR scenarios (Phase 2b) | guard |
+| `tests/unit/test_physiology.py` | 全 derive_lab_values / state / coupling tests (72+) | guard |
+| `tests/unit/test_medication_flags.py` | medication_flags_from_context helper tests (PR Phase 2b) | guard |
+| `tests/unit/test_scenario_flags.py` | scenario_flags_from_protocol helper tests (PR Phase 2a) | guard |
+| `tests/unit/test_blood_markers.py` | 血液 marker derive tests | guard |
+| `tests/unit/test_distributive_shock.py` | distributive shock physiology tests | guard |
+| `tests/unit/test_encounter_features.py` | encounter feature が physiology を消費 | guard |
+| `tests/unit/test_population_demographics.py` | demographics + physiology baseline tests | guard |
+
+> 新 scenario / medication flag を追加する際の helper 経由配線は
+> [SCENARIO_FLAGS.md](../../../SCENARIO_FLAGS.md) を参照(J5 wiring defect 防止)。
+
 ## 修正ガイド
 
 ### よくある修正シナリオ

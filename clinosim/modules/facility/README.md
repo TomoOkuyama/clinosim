@@ -167,6 +167,18 @@ state = HospitalState()
 state.update_for_time(datetime.now(), ops)
 ```
 
+## データ構造
+
+主要型:
+
+| Type | 場所 | Key fields | 用途 |
+|---|---|---|---|
+| `HospitalState` | `clinosim/modules/facility/hospital_state.py:18` (`@dataclass`) | hospital 各 ward 別の bed occupancy / queue length / 各 staff 配置 | hospital 状態の runtime snapshot |
+
+> 既知負債 (MOD-4, TYP-2): `HospitalState` は engine 内 `facility/hospital_state.py` に
+> 定義 (CLAUDE.md "All types defined in clinosim/types/" 違反)。将来 PR_C 型統一で
+> `clinosim/types/facility.py` への移行予定。
+
 ## キューイングモデル — 直感的な解説
 
 M/M/1 待ち行列の平均滞在時間は `1 / (μ - λ)` で、 utilization `ρ = λ/μ` を使うと `T = (1/μ) / (1 - ρ)`。 ここから `congestion_factor = 1/(1-ρ)` を抽出している:
@@ -270,6 +282,16 @@ daily_patterns:
 - `pyyaml` — config ロード
 
 他の clinosim モジュールには依存しない。 逆に `encounter`, `order`, `procedure` モジュールが本モジュールを呼び出して TAT を取得・queue を更新する。
+
+## Consumers
+
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/engine.py` | hospital_state initialization + simulation loop での bed/queue 更新 | core (主 simulation loop) |
+| `simulator/des_engine.py` | DES (Discrete Event Simulation) engine 内で facility 状態参照 | core |
+| `modules/encounter`, `modules/order`, `modules/procedure` (README cross-ref) | TAT 取得 + queue 更新 (`get_tat()` 等経由) | medium |
 
 ## 既知の制約
 

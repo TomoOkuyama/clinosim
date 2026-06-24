@@ -40,6 +40,18 @@ assign_care_level(age: int, country: str, rng: np.random.Generator) -> str
 `types/output`(`care_level` フィールド)、`codes`(`jp-care-level` 表示)、
 `locale/jp`(レート)、`simulator/seeding`。
 
+## Consumers
+
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/enrichers.py` | `register_builtin_enrichers()` で post_records enricher 登録 | core (enricher registry) |
+| `modules/care_level/enricher.py` | 同 module 内の enricher 実装 | core |
+| `tests/integration/test_care_level_enricher.py` | enricher integration test | guard |
+| `tests/unit/test_care_level_engine.py` | engine unit tests | guard |
+| `modules/output/_fhir_care_level.py` (cross-ref) | care_level コードを FHIR Observation 化(PR2 で `_fhir_sdoh.py` から分離) | medium (FHIR builder) |
+
 ## 検証
 
 - 決定論: 同一 seed 生成で **byte-diff は新規 carelevel-* Observation のみ**

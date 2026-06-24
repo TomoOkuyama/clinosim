@@ -160,6 +160,19 @@ class DailyCycleEvent:
     data: dict[str, Any] = field(default_factory=dict)
 ```
 
+## データ構造
+
+主要型:
+
+| Type | 場所 | Key fields | 用途 |
+|---|---|---|---|
+| `EncounterConditionProtocol` | `clinosim/modules/encounter/protocol.py:16` (Pydantic `BaseModel`, `extra="allow"`) | `condition_id`, `icd10_code`, `icd10_display`, `chief_complaint` (multi-lang dict), `encounter_type` (emergency/outpatient), `department`, `severity_distribution`, `workup`, `treatment`, `discharge_instructions`, `initial_state_impact` (AD-57 ED 急性提示注入) | ED/outpatient encounter condition YAML load 結果型 |
+| `DailyCycleEvent` | `clinosim/modules/encounter/engine.py:17` (`@dataclass`) | encounter 内日次イベント | 内部利用 |
+
+> 既知の制約 (ENC-1): `load_encounter_condition()` 現状は `dict[str,Any]` を返却し
+> Pydantic validation は推奨実装。`extra="allow"` で段階導入可能。
+> 詳細は CONTRIBUTING-modules.md「YAML は Pydantic で validate する」セクション参照。
+
 ## YAML スキーマ
 
 ### Required metadata
@@ -358,6 +371,20 @@ display_ja = lookup("icd-10-cm", cond["icd10_code"], "ja")
 | `clinosim.modules.order` | Encounter × 条件プロトコルから検査・薬剤オーダーを生成 |
 | `clinosim.modules.observation` | Daily cycle の `morning_labs` / `morning_vitals` をトリガ |
 | `clinosim.modules.clinical_course` | Day 単位の進行を駆動 |
+
+## Consumers
+
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/emergency.py` | ED visit 時に `load_encounter_condition()` で YAML protocol を読込 | core (主 simulation loop) |
+| `simulator/outpatient.py` | outpatient visit 時に同上 | core |
+| `simulator/inpatient.py` | inpatient encounter 構築で encounter type / status を利用 | core |
+| `simulator/engine.py` | encounter registry orchestration | core |
+| `simulator/cli.py` | CLI 起動時の encounter type validation | core |
+| `tests/unit/test_encounter_features.py` | encounter type + status features tests | guard |
+| `tests/unit/test_encounter_protocol_validation.py` | 46 YAML protocol 構造検証 (Pydantic / dict schema check) | guard |
 
 ## テスト
 

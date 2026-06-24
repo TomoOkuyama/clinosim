@@ -1,6 +1,6 @@
 # clinosim/modules/sdoh
 
-AD-55 Base SDOH (social determinants of health) module.
+AD-55 Base SDOH (social determinants of health = 社会的決定要因) モジュール。
 
 データ専用モジュール (variant) — generation / assignment logic を持たず、
 **reference データ + loader のみ** を提供する軽量モジュール (PR2 2026-06-24
@@ -51,9 +51,14 @@ clinosim/modules/sdoh/
 
 ## Consumers
 
-- `clinosim/modules/output/_fhir_smoking_alcohol.py` — smoking + alcohol
-  FHIR Observation builder
-- (将来) `clinosim/modules/output/_fhir_occupation.py` 等
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `modules/output/_fhir_smoking_alcohol.py` | `load_social_history()` で SNOMED + LOINC mapping を取得して FHIR Observation 化 (smoking + alcohol) | medium (FHIR builder) |
+| `tests/unit/test_sdoh_engine.py` | loader unit tests (7 件、PR2 で作成) | guard |
+| `tests/unit/test_sdoh_codes.py` | SNOMED コード authority + active concept 検証 (PR #68 + PR2 update) | guard |
+| (将来) `modules/output/_fhir_occupation.py` 等 | 将来 SDOH 拡張時の同型 builder | optional |
 
 ## 将来の SDOH 拡張
 

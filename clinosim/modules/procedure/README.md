@@ -324,6 +324,21 @@ rehabs = generate_rehab_sessions(
 )
 ```
 
+## データ構造
+
+主要型:
+
+| Type | 場所 | Key fields | 用途 |
+|---|---|---|---|
+| `ProcedureMeta` | `clinosim/modules/procedure/engine.py:181` (`@dataclass(frozen=True)`) | procedure metadata (code/display/category) | procedure registry 用 |
+| `ProcedureRecord` | `clinosim/types/output.py` 内 `CIFPatientRecord.procedures: list[ProcedureRecord]` 経由 | `procedure_code`, `procedure_code_jp`, `procedure_code_us`, performer, location, outcome 等 | CIF への procedure 記録 (AD-30 codes only) |
+| `RehabSession` | (engine.py 内、TYP-2 既知負債) | rehab セッション記録 | 内部 |
+
+> `ProcedureRecord` は CIF AD-30 (codes only) 規約に従い `procedure_name` を持たない
+> — 表示は output 時に `code_lookup()` で解決。
+> 既知負債 (MOD-5, TYP-2): `ProcedureMeta` / `RehabSession` は engine 内残存。
+> 将来 PR_C で `clinosim/types/procedure.py` への移行予定。
+
 ## 使用例
 
 ### Hip fracture フルパイプライン
@@ -374,6 +389,18 @@ for key, delta in impacts.items():
 - `clinosim.codes` (間接) — CPT/K-code の表示テキスト解決は出力時に行う
 
 本モジュールは clinosim の他モジュールに **依存しない**。 disease protocol オブジェクトはダックタイピングで受ける (`hasattr(protocol, "procedure")`)。
+
+## Consumers
+
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/inpatient.py` | admission/discharge 時 + bedside event 時に procedure 生成 | core (主 simulation loop) |
+| `modules/procedure/__init__.py` | public API re-export | infrastructure |
+| `tests/unit/test_procedure.py` | engine unit tests | guard |
+| `tests/unit/test_procedure_types.py` | type unit tests | guard |
+| `tests/unit/test_procedure_fhir_fields.py` | FHIR field 整合性 unit tests | guard |
 
 ## 関連コード体系
 
