@@ -47,6 +47,26 @@ register_enricher(Enricher(
 
 > **注意 (EXT-5):** 現状 `module_enabled()` は production で未配線で、`modules` dict は dead key になっています。新規 module は上記のように `module_enabled` 経由で gate し、advertised な AD-56 ゲートを実際に有効化してください。`default=True` を保てば既存 golden は不変です。
 
+### locale 依存の signature 規約
+
+locale 別データ(国別 prevalence、reference range、code mapping 等)をロードする関数は、**`country: str` パラメータを必ず受け取り**、対象外の国では `{}` / `""` 等の no-op 値を早期 return します:
+
+```python
+from functools import lru_cache
+
+@lru_cache(maxsize=2)
+def load_rates(country: str = "JP") -> dict:
+    """Load rates for ``country``. Returns {} for unsupported countries."""
+    if str(country).upper() != "JP":
+        return {}
+    with open(_LOCALE / "jp" / "...") as f:
+        return yaml.safe_load(f)
+```
+
+理由 — モジュールが現状 1 国対応(例: care_level は JP 専用)であっても、signature を統一しておけば将来 US 対応を追加する際に caller の API を変えずに済みます。`_LOCALE / "jp" / ...` のように country 引数なしでハードコードするのは consistency bug です。
+
+`@lru_cache(maxsize=...)` を併用して反復ロードを避ける(他モジュール — immunization / family_history / code_status — もこのパターン)。
+
 ---
 
 ## モジュールの構造
@@ -63,6 +83,16 @@ clinosim/modules/<name>/
   reference_data/*.yaml  <- データ駆動の定義 (Pydantic で検証)
   README.md              <- 日本語 + 英語技術用語。## Dependencies を持つ
 ```
+
+### 共有ヘルパは `clinosim/modules/_shared.py` に集約する
+
+複数 enricher で同じ helper を持つ場合(例: `get_attr_or_key(obj, name, default)` で dict / dataclass 両対応の属性アクセス)、各モジュールに local 定義を書かず **`clinosim/modules/_shared.py`** に置きます。新規モジュールも以下のように import します:
+
+```python
+from clinosim.modules._shared import get_attr_or_key as _get
+```
+
+`as _get` alias で短い local 名を維持し、call site の可読性も保ちます。新しい cross-module helper を追加する場合は **2 モジュール以上で実需が生じたタイミング**で `_shared.py` に昇格させます(YAGNI — 1 モジュールしか使わないなら local 定義のまま)。
 
 ### canonical な「pure-function engine」(MOD-13 が手本)
 
@@ -122,22 +152,35 @@ order → canonical_lab_name → generate_lab_result(true_value, rng) → determ
 
 ### sub-seed 導出ルール (コピーすべき正確なパターン)
 
-各 enricher/module は **master seed から自分専用の sub-stream を導出** し、メイン random stream には触れません。現状 3 箇所 (`immunization/enricher.py:19`, `observation/nursing_enricher.py:28`, `observation/microbiology.py:39`) が同一式を copy-paste しています。**新規コードはこの式を踏襲** してください (将来的には `simulator/helpers.py` の `derive_sub_seed(master, module_offset, key)` に集約予定 — DET-2/EXT-4)。
+各 enricher/module は **master seed から自分専用の sub-stream を導出** し、メイン random stream には触れません。derive 式は `clinosim/simulator/seeding.py:derive_sub_seed(master, module_offset, key)` に集約済 (AD-16 / AD-59)。
 
 ```python
-import hashlib
-
-_MODULE_OFFSET = 0x494D  # ★ module ごとに一意な定数を選ぶ (既存と衝突させない)
-
-def _sub_seed(master_seed: int, key: str) -> int:
-    h = int.from_bytes(hashlib.sha256(key.encode()).digest()[:6], "big")
-    return (master_seed + _MODULE_OFFSET + h) % (2**32)
+from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 
 # 患者/encounter ごとに fresh な Generator を作る
-rng = np.random.default_rng(_sub_seed(ctx.master_seed, patient_id))
+rng = np.random.default_rng(
+    derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["my_module"], patient_id)
+)
 ```
 
 `key` には patient_id / household_id / encounter_id など **per-entity な一意キー** を必ず混ぜます (DET-3: identity module は integer-only の sub-seed で per-patient keying を欠く既知の不整合)。
+
+**新モジュールのオフセット登録**: モジュール作成時、sub-seed の数値オフセットを **`clinosim/simulator/seeding.py:ENRICHER_SEED_OFFSETS`** に登録します。convention は **16-bit hex ASCII (2 文字)** — モジュール名から覚えやすい 2 文字を選ぶ:
+
+```python
+ENRICHER_SEED_OFFSETS = {
+    "identity":       540_054,    # 例外: legacy decimal (grandfathered)
+    "microbiology":   770_077,    # 例外: legacy decimal (grandfathered)
+    "immunization":   0x494D,     # "IM"
+    "code_status":    0x4353,     # "CS"
+    "family_history": 0x4648,     # "FH"
+    "care_level":     0x434C,     # "CL"
+    "nursing":        0x4E55,     # "NU"
+    # 新モジュール例: "device" = 0x4456 ("DV"), "hai" = 0x4841 ("HA")
+}
+```
+
+モジュール側はローカル定数を持たず、registry から import します。dict 末尾の `assert len(set(...values())) == len(...)` が重複オフセットを import 時に検出します(誤って既存モジュールの RNG ストリームを汚染するのを構造的に防ぐ)。
 
 ### CIF への書き込み: Base か extensions か
 

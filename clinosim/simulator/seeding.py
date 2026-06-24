@@ -64,3 +64,31 @@ def individual_lab_seed(order_id: str) -> int:
     salt = "clinosim:individual-lab:v1"
     digest = hashlib.sha256(f"{salt}|{order_id}".encode()).digest()[:6]
     return int.from_bytes(digest, "big") % (2**32)
+
+
+# AD-55 Module enricher sub-seed offsets.
+#
+# Convention (PR1 2026-06-24): new modules MUST use a 16-bit hex ASCII
+# offset (2 letters), e.g. 0x4944 = "ID". Identity (540_054) and
+# microbiology (770_077) are grandfathered at their legacy decimal values
+# to preserve byte-identical output for the 2026-06-24 master. Future
+# device + HAI modules will follow the hex-ASCII convention (e.g.,
+# device = 0x4456 "DV", hai = 0x4841 "HA").
+#
+# All values must be unique — duplicates would silently collide two
+# modules' RNG streams. The assert below catches accidental clashes at
+# import time. See docs/CONTRIBUTING-modules.md for the contributor
+# rules and CLAUDE.md "AD-55 enricher patterns" for the architectural
+# rule.
+ENRICHER_SEED_OFFSETS = {
+    "identity":       540_054,    # legacy decimal (grandfathered)
+    "microbiology":   770_077,    # legacy decimal (grandfathered)
+    "immunization":   0x494D,     # "IM"
+    "code_status":    0x4353,     # "CS"
+    "family_history": 0x4648,     # "FH"
+    "care_level":     0x434C,     # "CL"
+    "nursing":        0x4E55,     # "NU"
+}
+
+assert len(set(ENRICHER_SEED_OFFSETS.values())) == len(ENRICHER_SEED_OFFSETS), \
+    f"ENRICHER_SEED_OFFSETS contains duplicate values: {ENRICHER_SEED_OFFSETS!r}"
