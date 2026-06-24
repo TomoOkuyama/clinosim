@@ -164,3 +164,22 @@ def register_builtin_enrichers() -> None:
             run=enrich_device,
         )
     )
+
+    # Hospital-acquired infection (AD-55 Module, PR-B): CLABSI/CAUTI/VAP
+    # onset sampling from PR-A device line-days using CDC NHSN baseline
+    # per-line-day risk rates. Reads extensions["device"], writes
+    # extensions["hai"] + appends MicrobiologyResult to record.microbiology
+    # (existing _fhir_microbiology.py emits the culture chain). Always-on.
+    # Order 80 ensures hai runs AFTER device (70) so extensions["device"]
+    # is populated by the time hai walks it.
+    from clinosim.modules.hai.enricher import enrich_hai
+
+    register_enricher(
+        Enricher(
+            name="hai",
+            stage=POST_RECORDS,
+            order=80,
+            enabled=lambda c: True,
+            run=enrich_hai,
+        )
+    )
