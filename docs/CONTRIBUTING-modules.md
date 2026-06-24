@@ -2,6 +2,8 @@
 
 このドキュメントは、新しいコントリビューターが clinosim に **モジュール/プラグインを追加し、データを生成し、どのデータ/コードを使うかを正しく選択する** ための実践 playbook です。アーキテクチャ原則 (ADR) は `DESIGN.md`、規約の総覧は `CLAUDE.md` を参照してください。本書はそれらと重複せず、**HOW-TO** に集中します。
 
+> **新規モジュール作成時**: [`.github/TEMPLATE_MODULE_README.md`](../.github/TEMPLATE_MODULE_README.md) をコピーして開始。全 22 module の俯瞰は [`MODULES.md`](../MODULES.md) を参照。PR 検証手段の選び方は本書の「PR 検証ガイド: byte-diff vs 3-axis DQR」セクション参照。
+
 実コードの正本パス:
 - Enricher registry: `clinosim/simulator/enrichers.py`
 - Output adapter registry: `clinosim/modules/output/adapter.py`
