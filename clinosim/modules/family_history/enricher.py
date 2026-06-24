@@ -9,9 +9,7 @@ import numpy as np
 
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.family_history.engine import generate_family_history
-from clinosim.simulator.seeding import derive_sub_seed
-
-_FH_SEED_OFFSET = 0x4648  # "FH"
+from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 
 
 def enrich_family_history(ctx) -> None:
@@ -21,7 +19,7 @@ def enrich_family_history(ctx) -> None:
         pid = _get(patient, "patient_id", "") if patient else ""
         age = int(_get(patient, "age", 0) or 0) if patient else 0
         conditions = _get(patient, "chronic_conditions", []) if patient else []
-        rng = np.random.default_rng(derive_sub_seed(ctx.master_seed, _FH_SEED_OFFSET, pid or "x"))
+        rng = np.random.default_rng(derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["family_history"], pid or "x"))
         fams = generate_family_history(age, conditions, country, rng)
         if isinstance(rec, dict):
             rec["family_history"] = fams
