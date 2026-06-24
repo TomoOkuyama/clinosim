@@ -193,3 +193,19 @@ codes:
   '86933000':
     en: Heavy drinker                    # FSN: Heavy drinker (finding)
     ja: 多量飲酒者
+  # === ICU devices (AD-55 Module: device, PR-A) ===
+  # All three verified via tx.fhir.org $expand text-search against
+  # SNOMED CT International edition, 2026-06-24. The spec's tentative
+  # 467021000 (indwelling urinary catheter) was not present in the
+  # International edition — replaced with the verified 23973005.
+  # The spec's "Mechanical ventilator" display was returned as the
+  # SNOMED preferred term "Ventilator" — using authoritative display.
+  '52124006':
+    en: Central venous catheter
+    ja: 中心静脈カテーテル
+  '23973005':
+    en: Indwelling urinary catheter
+    ja: 膀胱留置カテーテル
+  '706172005':
+    en: Ventilator
+    ja: 人工呼吸器

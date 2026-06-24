@@ -1,0 +1,23 @@
+# AD-55 Module: device — SNOMED CT codes + placement criteria.
+# All three SNOMED codes verified via tx.fhir.org $expand text-search
+# against SNOMED CT International edition at PR-A Task 1
+# (see clinosim/codes/data/snomed-ct.yaml for the authoritative entries).
+devices:
+  cvc:
+    snomed_code: "52124006"
+    snomed_display_en: "Central venous catheter"
+    snomed_display_ja: "中心静脈カテーテル"
+    placement_criteria:
+      - any: ["severity_moderate_plus"]
+  indwelling_catheter:
+    snomed_code: "23973005"
+    snomed_display_en: "Indwelling urinary catheter"
+    snomed_display_ja: "膀胱留置カテーテル"
+    placement_criteria:
+      - any: ["severity_moderate_plus", "altered_consciousness"]
+  mechanical_ventilator:
+    snomed_code: "706172005"
+    snomed_display_en: "Ventilator"
+    snomed_display_ja: "人工呼吸器"
+    placement_criteria:
+      - any: ["hypoxia", "high_respiratory_demand"]

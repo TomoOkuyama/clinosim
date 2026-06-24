@@ -346,6 +346,7 @@ _BUNDLE_BUILDERS = [
 | `_fhir_family_history.py` | FamilyMemberHistory | ICD coding (multilingual) |
 | `_fhir_code_status.py` | Code status Observation | SNOMED resuscitation status |
 | `_fhir_sdoh.py` (削除済、PR2 で 2 分割) | - | (history reference) |
+| `_fhir_device.py` | Device + DeviceUseStatement | SNOMED-coded ICU devices (PR-A、Phase 1 of device+HAI series) |
 
 ### 2. 新しい出力フォーマットの追加 (AD-58 adapter registry)
 

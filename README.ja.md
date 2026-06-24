@@ -271,6 +271,8 @@ output/fhir_r4/
 │                                   #   + コードステータス (LOINC/SNOMED)
 ├── FamilyMemberHistory.ndjson      # 第1度近親の疾患歴 (v3-RoleCode + ICD)
 ├── Immunization.ndjson             # 成人予防接種歴 (CVX; US/JP スケジュール)
+├── Device.ndjson                   # ICU デバイス記録 (中心静脈カテーテル / 膀胱留置カテーテル / 人工呼吸器; SNOMED CT)
+├── DeviceUseStatement.ndjson       # デバイス使用期間 (留置 → 抜去; ICU 入院 encounter 単位)
 ├── DiagnosticReport.ndjson         # 検査パネルレポート (CBC/BMP/LFT/Lipid/Coag/UA/ABG, LOINC) + 微生物培養レポート (+ Specimen)
 ├── Specimen.ndjson                 # 培養検体 (血液/尿/喀痰/創部)
 ├── Condition.ndjson                # 主疾患 + 慢性疾患 (ICD-10-CM)
