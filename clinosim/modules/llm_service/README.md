@@ -438,7 +438,20 @@ IAM ポリシー例:
 
 外部依存ゼロでテスト可能 (`MockProvider` 使用時)。
 
-本モジュールは clinosim の他モジュールに **依存しない**。 逆に他モジュール (output/narrative_generator, encounter 等) が本モジュールに依存する。
+本モジュールは clinosim の他モジュールに **依存しない**。
+
+## Consumers
+
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `modules/output/narrative_generator.py` | 退院サマリ・H&P 等の narrative 生成で LLM provider を呼出 | optional (narrative path) |
+| `modules/output/document_generator.py` | clinical document (discharge / death / op note 等) 生成 | optional |
+| `simulator/cli.py` | `--narrative` フラグ時に LLM service を起動 | optional (CLI) |
+| `tests/e2e/test_narrative_generation.py` | narrative pipeline e2e test | guard |
+| `tests/unit/test_clinical_documents.py` | document 生成 unit tests | guard |
+| `tests/unit/test_llm_service.py` | provider + cache unit tests | guard |
 
 ## 権威ソース
 

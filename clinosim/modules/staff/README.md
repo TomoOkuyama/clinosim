@@ -228,6 +228,20 @@ case "physiotherapy":
 
 新しい role を使う場合は `generate_roster()` に生成ロジックも追加。
 
+## Consumers
+
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/engine.py` | hospital startup 時に `generate_roster()` を呼出、各 simulation で参照 | core (主 simulation loop) |
+| `simulator/inpatient.py` | admission / discharge / round 等で `assign_staff()` を呼出 | core |
+| `simulator/emergency.py` | ED visit で staff assignment | core |
+| `simulator/outpatient.py` | outpatient visit で staff assignment | core |
+| `simulator/cli.py` | CLI 起動時の roster orchestration | core |
+| `modules/staff/__init__.py` | public API re-export | infrastructure |
+| `tests/unit/test_staff_types.py` | StaffRoster / StaffMember type tests | guard |
+
 ## テスト
 
 ```bash

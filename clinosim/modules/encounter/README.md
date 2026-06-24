@@ -372,6 +372,20 @@ display_ja = lookup("icd-10-cm", cond["icd10_code"], "ja")
 | `clinosim.modules.observation` | Daily cycle の `morning_labs` / `morning_vitals` をトリガ |
 | `clinosim.modules.clinical_course` | Day 単位の進行を駆動 |
 
+## Consumers
+
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/emergency.py` | ED visit 時に `load_encounter_condition()` で YAML protocol を読込 | core (主 simulation loop) |
+| `simulator/outpatient.py` | outpatient visit 時に同上 | core |
+| `simulator/inpatient.py` | inpatient encounter 構築で encounter type / status を利用 | core |
+| `simulator/engine.py` | encounter registry orchestration | core |
+| `simulator/cli.py` | CLI 起動時の encounter type validation | core |
+| `tests/unit/test_encounter_features.py` | encounter type + status features tests | guard |
+| `tests/unit/test_encounter_protocol_validation.py` | 46 YAML protocol 構造検証 (Pydantic / dict schema check) | guard |
+
 ## テスト
 
 ```bash

@@ -572,6 +572,20 @@ Mixed / unknown のサポートにより、 診断フィードバックループ
 | `clinosim.modules.validator.benchmarks` | `outcome_benchmarks` 検証 |
 | `clinosim.modules.population` | `incidence`, `risk_multipliers` 使用 |
 
+## Consumers
+
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/inpatient.py` | inpatient encounter 開始時に `load_disease_protocol(disease_id)` 呼出 | core (主 simulation loop) |
+| `simulator/engine.py` | run_beta / run_forced で disease registry 参照 | core |
+| `simulator/helpers.py` | `_load_all_disease_protocols()` で全 protocol を cache load | core |
+| `modules/order/README.md` (cross-ref) | disease YAML の `order_protocols` を消費 | medium |
+| `tests/integration/test_glycemic_scenario.py` | DKA / glycemic disease integration test | guard |
+| `tests/integration/test_sodium_axis.py` | sodium dysnatremia integration test | guard |
+| `tests/unit/test_physiology.py` | disease の `causes_X` scenario flag テスト | guard |
+
 ## テスト
 
 ```bash

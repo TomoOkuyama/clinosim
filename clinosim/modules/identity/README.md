@@ -32,11 +32,21 @@
 - `clinosim/locale/` — `locale/<cc>/identity.yaml` (付番率・保険者代表セット・法別番号)
 - `clinosim/codes/` — FHIR system URI (`get_system_uri`)
 
-呼び出し元:
+## Consumers
 
-- `modules/population/engine.py` — 人口生成後の別パスで `assign_*()` を呼び `PersonRecord` に格納
-- `modules/patient/activator.py` — `PatientProfile` へ引き継ぎ、受診日で有効資格を選択
-- `modules/output/` (FHIR) — `InsuranceEnrollment` から `Coverage` + 保険者 Organization を生成
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/enrichers.py` | `--jp-insurance` 有効時に identity enricher 登録(opt-in、JP only) | optional (JP) |
+| `modules/identity/assign.py` | 同 module 内 + provider 実装 | core |
+| `modules/identity/registry.py` | country-pluggable provider registry | core |
+| `modules/identity/providers/jp.py` | JP 保険番号 + マイナンバー生成 (provider 実装) | core |
+| `modules/identity/__init__.py` | public API re-export | infrastructure |
+| `modules/population/engine.py` (README cross-ref) | 人口生成後の別パスで `assign_*()` を呼び `PersonRecord` に格納 | core |
+| `modules/patient/activator.py` (README cross-ref) | `PatientProfile` へ引き継ぎ、受診日で有効資格を選択 | core |
+| `modules/output/` (FHIR) | `InsuranceEnrollment` から `Coverage` + 保険者 Organization を生成 | medium (FHIR Coverage builder) |
+| `tests/unit/test_identity.py` | provider + assign + registry unit tests | guard |
 
 ## API リファレンス
 
