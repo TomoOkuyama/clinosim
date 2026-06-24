@@ -358,6 +358,48 @@ LifeEvent/HospitalizationSummary), facility (HospitalState), procedure
 protocol type), staff (StaffMember/StaffRoster), validator (4 dataclass
 reports). DiseaseProtocol is already in protocol.py — different concern.
 
+**Master HEAD Comprehensive 3-axis DQR — 2026-06-24:** First post-PR_docs
+goal verification using the new "PR 検証ガイド" framework. **All 3 axes
+PASS for both US and JP** at the project's true goal: FHIR R4 / JP Core
+compliance + 臨床整合性 + JP localization 品質.
+
+- US p=10,000 + JP p=5,000, seed=42, format=CIF + fhir-r4
+- Structural: 0 errors, 0 warnings (3.4M US + 434K JP Observations,
+  id uniqueness 100%, reference integrity 100%, refRange/interp 87.2%
+  with the 12.8% being legitimate O2 admin + 24h I/O)
+- Clinical: US warfarin INR shift +1.00, HbA1c×Glucose r=0.636; JP
+  JLAC10 全 17 主要 lab (Cr/Glucose/WBC/AST/ALT/Hb/K/Na/CRP/PT_INR/
+  HCO3/Plt/pH/pCO2/pO2/D-dimer/Troponin) 全て臨床的妥当帯
+- JP Language: US 全 10 NDJSON で日本語混入 0; JP 100% 日本語化
+  (Cond/DR/Med/Imm/care_level/smoking/alcohol); JLAC10 with JCCLS-JSLM
+  公式日本語表示 (クレアチニン / プロトロンビン時間 等); CM-granular
+  ICD 漏洩 0
+
+**Audit findings clarified (not defects)**:
+- DOAC INR delta = 0.60 (US) / 1.10 (JP) was an audit-script false-
+  negative caused by `_derive_home_medications` independent-draw
+  artifact (Phase 2c backlog). JP has 0 DOAC-only patients; the
+  warfarin-only cohort (n=4) shows correct therapeutic INR p50=2.70.
+- JP DR text=0% was an audit-script bug (checked `code.text` instead
+  of `code.coding[].display`); actual display is 100% Japanese
+  ("肝機能パネル" 等).
+- JP non-INR labs n=0 was audit-script's US-LOINC-only filter
+  limitation; manual JLAC10 query confirmed all bands valid.
+
+Report: `docs/reviews/2026-06-24-master-comprehensive-dqr.md` —
+includes per-axis evidence tables and the top-15 JLAC10 codes with
+counts + JCCLS Japanese display verification.
+
+**Audit script enhancements queued (next DQR cycle)**:
+- Add JLAC10 code support (currently only LOINC; JP non-INR labs
+  silently return n=0 without JLAC10 hardcoded)
+- Fix JP DR display check (read `code.coding[].display` not `code.text`)
+- DOAC cohort separation: filter out warfarin co-prescription so
+  "DOAC-only" INR baseline can be measured cleanly
+
+These are non-blocking; the manual JLAC10 confirmation in this DQR
+already validated JP clinical bands.
+
 **Coag panel activation (LOINC 24373-3) + APTT/PT/Fibrinogen derives
 (2026-06-24):** Activates the previously-defined-but-dormant Coag
 DiagnosticReport panel (LOINC 24373-3) by extending
