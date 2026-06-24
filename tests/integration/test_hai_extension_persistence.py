@@ -9,7 +9,6 @@ import pytest
 from clinosim.types.hai import HAIEvent
 from clinosim.types.output import CIFPatientRecord
 
-
 pytestmark = pytest.mark.integration
 
 

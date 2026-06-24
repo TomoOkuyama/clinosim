@@ -10,7 +10,6 @@ from clinosim.modules.hai.engine import (
     load_hai_specimens,
 )
 
-
 pytestmark = pytest.mark.unit
 
 
