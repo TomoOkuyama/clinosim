@@ -4,14 +4,9 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.codes import get_system_uri
+from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.family_history.engine import load_reference
 from clinosim.modules.output._fhir_common import BundleContext, _build_diagnosis_codeable_concept
-
-
-def _get(obj, name, default=None):
-    if isinstance(obj, dict):
-        return obj.get(name, default)
-    return getattr(obj, name, default)
 
 
 def _build_family_history(ctx: BundleContext) -> list[dict]:

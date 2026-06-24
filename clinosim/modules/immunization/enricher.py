@@ -10,16 +10,11 @@ from datetime import date, datetime
 
 import numpy as np
 
+from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.immunization.engine import generate_immunizations, load_schedule
 from clinosim.simulator.seeding import derive_sub_seed
 
 _IMM_SEED_OFFSET = 0x494D  # "IM"
-
-
-def _get(obj, name, default=None):
-    if isinstance(obj, dict):
-        return obj.get(name, default)
-    return getattr(obj, name, default)
 
 
 def _as_of(ctx, rec) -> date:
