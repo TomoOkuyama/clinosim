@@ -39,6 +39,21 @@ Primary use cases:
 
 ---
 
+## Module Map
+
+For a single-page overview of all 22 modules, their dependencies, typical call chains, and a 5-step new-module quick-start, see **[`MODULES.md`](MODULES.md)**.
+
+Other navigation:
+
+| Looking for | Read |
+|---|---|
+| Scenario / medication flags | [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.md) |
+| Architecture + ADR table | [`DESIGN.md`](DESIGN.md) |
+| Module author HOW-TO + PR verification guide | [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) |
+| New module template | [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md) |
+
+---
+
 ## Features
 
 - **HL7 FHIR Bulk Data Access** compliant NDJSON output (Patient.ndjson, Encounter.ndjson, ...)
