@@ -50,6 +50,12 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 - **Modules must NOT edit `CIFPatientRecord`** — write to `CIFPatientRecord.extensions[<module>]`. Only Base data adds typed fields to the core type.
 - Refactors of these paths must preserve golden/e2e output and determinism.
 
+### AD-55 enricher patterns (PR1 foundation refactor, 2026-06-24)
+
+- **Sub-seed offset convention** — new enricher modules MUST register their sub-seed in `clinosim/simulator/seeding.py:ENRICHER_SEED_OFFSETS` with a 16-bit hex-ASCII offset (e.g. `0x4944` = "ID", `0x4841` = "HA"). Identity (decimal 540_054) and microbiology (decimal 770_077) are grandfathered to preserve byte-identical output. The dict has a module-level assert that catches accidental duplicates at import. Modules import via `from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS` and use `derive_sub_seed(master, ENRICHER_SEED_OFFSETS["my_module"], key)`.
+- **DRY helpers** — cross-module utilities used by 2+ enrichers live in `clinosim/modules/_shared.py`. Don't redefine inline; import from `_shared`. Current: `get_attr_or_key(obj, name, default)` for dict / dataclass dual access.
+- **Locale loader signature** — modules with locale-specific data MUST accept a `country: str` parameter and return `{}` for unsupported countries (no-op early return). Hardcoded country literals in path joins (e.g., `_LOCALE / "jp" / "..."` without country gating) are a consistency bug.
+
 ### Code system module (`clinosim/codes/`)
 
 - **English-first principle**: every code in `codes/data/*.yaml` MUST have an `en` field. Other languages (`ja`, etc.) are optional translation attributes.
