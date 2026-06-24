@@ -20,11 +20,14 @@ def test_alcohol_social_uses_active_concept():
     # 160573003 is the INACTIVE observable "Alcohol intake (observable entity)",
     # not a drinking-pattern finding — verified inactive via tx.fhir.org (SNOMED
     # CT International). The "social" tier must use active 28127009 Social drinker.
-    from clinosim.modules.output._fhir_sdoh import _ALCOHOL_SNOMED
+    from clinosim.modules.sdoh import load_social_history
 
-    assert _ALCOHOL_SNOMED["social"] == "28127009"
-    assert "160573003" not in _ALCOHOL_SNOMED.values()
-    for code in _ALCOHOL_SNOMED.values():
+    alcohol = load_social_history()["alcohol_use"]["values"]
+    codes = {tier: entry["snomed"] for tier, entry in alcohol.items()}
+
+    assert codes["social"] == "28127009"
+    assert "160573003" not in codes.values()
+    for code in codes.values():
         assert lookup("snomed-ct", code, "en") not in ("", code)
 
 
