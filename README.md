@@ -54,6 +54,18 @@ Other navigation:
 
 ---
 
+## Quality & Compliance
+
+clinosim's true goal is **FHIR R4 + JP Core compliant output with clinical coherence and JP localization quality**. PRs that change output data are gated by a 3-axis Data Quality Review (structural / clinical / JP language) — see [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) "PR 検証ガイド".
+
+Latest comprehensive review: [`docs/reviews/2026-06-24-master-comprehensive-dqr.md`](docs/reviews/2026-06-24-master-comprehensive-dqr.md) — **all 3 axes PASS** on master @ p=10,000 (US) + p=5,000 (JP):
+
+- **Structural**: 3.4M + 434K Observations across 10 FHIR resource types; id uniqueness 100%; reference integrity 100%
+- **Clinical**: 17 major lab analytes in clinically valid bands for both locales (DKA acidosis, ACS troponin, sepsis WBC/CRP/lactate, HF BNP, VTE D-dimer, AF warfarin therapeutic INR, etc.)
+- **JP Language**: 100% Japanese display across Condition / DR / Med / Immunization / care_level / smoking / alcohol; JLAC10 codes with JCCLS-JSLM authoritative display; 0 US-locale Japanese leakage
+
+---
+
 ## Features
 
 - **HL7 FHIR Bulk Data Access** compliant NDJSON output (Patient.ndjson, Encounter.ndjson, ...)
