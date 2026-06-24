@@ -1,0 +1,40 @@
+"""FHIR JP 要介護度 (long-term-care need level) social-history Observation
+builder (AD-55 Base, JP only).
+
+Extracted from the former _fhir_sdoh.py (PR2 G2 SDOH integrity refactor,
+2026-06-24) for single-responsibility separation. care_level uses a
+custom JP code system (jp-care-level, MHLW 介護保険 区分) and has a
+different shape from the LOINC-keyed smoking/alcohol observations, so
+it deserves its own file.
+
+Data source: ctx.record.care_level (set by clinosim/modules/care_level/
+enricher during post-records pass for JP patients only).
+"""
+from __future__ import annotations
+
+from typing import Any
+
+from clinosim.modules.output._fhir_common import (
+    BundleContext,
+    _social_category,
+    _value,
+)
+
+
+def _build_care_level(ctx: BundleContext) -> list[dict]:
+    """JP 要介護度 (long-term-care need level) social-history Observation."""
+    code = ctx.record.get("care_level") or ""
+    if not code:
+        return []
+    lang = "ja" if ctx.country == "JP" else "en"
+    text = "要介護度" if ctx.country == "JP" else "Long-term care need level"
+    o: dict[str, Any] = {
+        "resourceType": "Observation",
+        "id": f"carelevel-{ctx.patient_id}",
+        "status": "final",
+        "category": _social_category(ctx.country),
+        "code": {"text": text},
+        "subject": {"reference": f"Patient/{ctx.patient_id}"},
+        "valueCodeableConcept": _value("jp-care-level", code, lang),
+    }
+    return [o]
