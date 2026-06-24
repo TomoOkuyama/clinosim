@@ -1,6 +1,6 @@
 # clinosim/modules/sdoh
 
-AD-55 Base SDOH (social determinants of health) module.
+AD-55 Base SDOH (social determinants of health = 社会的決定要因) モジュール。
 
 データ専用モジュール (variant) — generation / assignment logic を持たず、
 **reference データ + loader のみ** を提供する軽量モジュール (PR2 2026-06-24
