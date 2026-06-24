@@ -305,6 +305,59 @@ Series context: PR2 of 4 (G2 done) → PR3 (G3 _fhir_observations.py
 identity enabled gate registry + typed field vs extensions decision
 tree) → then device + HAI feature work.
 
+**Comprehensive Documentation Update (G4 absorbed) — 2026-06-24:**
+Pure documentation PR (no code changes; no byte-diff / DQR required).
+Five-fold improvement to first-time-viewer onboarding + module-
+relationship visibility:
+
+1. **MODULES.md** (new top-level) — 22-module inventory + dependency
+   tree + 3 typical call chains + 5-step new-module quick-start.
+2. **SCENARIO_FLAGS.md** (new top-level) — central reference for all
+   scenario + medication flags routed through derive_lab_values
+   (currently myocardial_injury / causes_vte / on_warfarin) + helper
+   architecture + 5-step new-flag guide.
+3. **.github/TEMPLATE_MODULE_README.md** (new) — standardized template
+   for new module READMEs with canonical section order.
+4. **All 22 module READMEs gained `## Consumers` section** — reverse-
+   dependency visibility (impact tier core/medium/guard) so contributors
+   can assess downstream impact of any module change. 4 batches (A:
+   small / B: small-medium / C: medium / D: large).
+5. **7 weak READMEs** gained `## データ構造` section (disease/encounter/
+   order/facility/procedure/validator/population; population already
+   had one and was skipped).
+
+Additional fixes:
+- `output/README.md` gained "拡張方法 (Extensibility) 総合ガイド" section
+  (register_bundle_builder + register_output_adapter patterns + common
+  helper list documented).
+- `sdoh/README.md` language consistency fix (line 3 was English).
+- `CONTRIBUTING-modules.md` gained "PR 検証ガイド: byte-diff vs 3-axis
+  DQR" sub-section — clarifies that the TRUE goal is FHIR R4 / JP Core
+  compliance + 臨床整合性 + JP language quality; byte-diff is a
+  refactor-PR no-regression mechanic only. Captures user feedback:
+  "byte-diffってなんのため？CIFにある情報は、適切にFHIRやJP COREに
+  準拠したFHIR R4にするのがゴールだよ？"
+- `CONTRIBUTING-modules.md` typed-field-vs-extensions decision tree
+  extended (G4 doctrine docs absorbed): 3-question judgment flow +
+  decision matrix table + PR2 data-only variant lesson.
+- Cross-reference integration: README EN/JP gain Module Map section;
+  DESIGN.md AD-56 extended with PR_docs note; CLAUDE.md gets new
+  "Quick navigation" table at top; CONTRIBUTING-modules.md header
+  link directs new contributors to TEMPLATE + MODULES + PR verification.
+
+Series context: PR1 (G1, merged) + PR2 (G2, merged) + **PR_docs (G4
+absorbed, this PR) ✓**. Remaining: PR3 (G3 `_fhir_observations.py`
+31KB split, immunization extraction) → then device + HAI feature work.
+
+Backlog: **PR_C type consolidation** — 7 modules currently define types
+in `engine.py` instead of `clinosim/types/` (CLAUDE.md "All types
+defined in clinosim/types/" rule). Code refactor with byte-diff risk;
+separate concern from docs work. Modules: population (PersonRecord/
+LifeEvent/HospitalizationSummary), facility (HospitalState), procedure
+(ProcedureMeta/ProcedureRecord/RehabSession), encounter (no Pydantic
+protocol type), staff (StaffMember/StaffRoster), validator (4 dataclass
+reports). DiseaseProtocol is already in protocol.py — different concern.
+
 **Coag panel activation (LOINC 24373-3) + APTT/PT/Fibrinogen derives
 (2026-06-24):** Activates the previously-defined-but-dormant Coag
 DiagnosticReport panel (LOINC 24373-3) by extending
