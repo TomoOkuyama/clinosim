@@ -270,3 +270,87 @@ register_output_adapter(SsMixAdapter())
 
 `--format ss-mix` で利用可能になる。`OutputContext` は country / narrative_version 等の
 共通文脈を渡す。組み込み（csv / fhir-r4）は `adapters_builtin.py`。
+
+## 拡張方法 (Extensibility) 総合ガイド
+
+clinosim の output 層は **2 種類の registry** で拡張可能 — 既存ファイル
+(`fhir_r4_adapter.py` / CLI dispatch) を **編集しません**。
+
+### 1. 新しい FHIR リソースの追加 (AD-56 builder registry)
+
+新規 builder ファイルを作成し、`_BUNDLE_BUILDERS` に登録します。
+
+```python
+# clinosim/modules/output/_fhir_my_resource.py
+from clinosim.modules.output._fhir_common import (
+    BundleContext, _social_category, _value,
+)
+
+def _build_my_resource(ctx: BundleContext) -> list[dict]:
+    """Build FHIR MyResource resources from CIF data.
+
+    Reads ctx.record / ctx.patient_data / ctx.country, returns a list
+    of FHIR resource dicts (NOT Bundle entries — _entry() wraps them).
+    """
+    return [{
+        "resourceType": "MyResource",
+        "id": f"myresource-{ctx.patient_id}",
+        "subject": {"reference": f"Patient/{ctx.patient_id}"},
+        # ... fields ...
+    }]
+```
+
+`fhir_r4_adapter.py` 末尾の `_BUNDLE_BUILDERS` リストに append (将来 entry-point discovery 化予定):
+
+```python
+from clinosim.modules.output._fhir_my_resource import _build_my_resource  # noqa: F401
+
+_BUNDLE_BUILDERS = [
+    ...,
+    _build_my_resource,
+]
+```
+
+実例 (PR2 SDOH refactor で確立した単一責任分離パターン):
+
+| ビルダーファイル | リソース | 特徴 |
+|---|---|---|
+| `_fhir_smoking_alcohol.py` | smoking_status / alcohol_use Observation | LOINC-keyed social-history |
+| `_fhir_care_level.py` | JP 要介護度 Observation | JP-only custom code system |
+| `_fhir_immunization.py` (将来 PR3 で `_fhir_observations.py` から分離予定) | Immunization | CVX coding |
+| `_fhir_family_history.py` | FamilyMemberHistory | ICD coding (multilingual) |
+| `_fhir_code_status.py` | Code status Observation | SNOMED resuscitation status |
+| `_fhir_sdoh.py` (削除済、PR2 で 2 分割) | - | (history reference) |
+
+### 2. 新しい出力フォーマットの追加 (AD-58 adapter registry)
+
+`OutputAdapter` サブクラスを `register_output_adapter()` で登録 → CLI `--format` が自動拡張
+(詳細は上記「出力フォーマットの追加 (AD-58)」セクション参照)。
+
+### 3. 共通 helper (`_fhir_common.py`)
+
+複数 builder で使う helper は `_fhir_common.py` に集約済。各 builder 側で
+import して再利用:
+
+| Helper | 用途 |
+|---|---|
+| `_social_category(country)` | social-history Observation.category (smoking/alcohol/occupation 等で再利用) |
+| `_value(system_key, code, lang)` | CodeableConcept ラップ済 valueCodeableConcept (display lookup 経由) |
+| `_micro_coding(system_key, code, lang)` | bare coding (CodeableConcept ラップなし、microbiology 等) |
+| `_loinc_coding(code, lang)` | LOINC coding entry |
+| `_survey_category()` | survey Observation.category |
+| `_build_diagnosis_codeable_concept(code, system_key, country)` | 多言語 ICD coding (Condition/Procedure) |
+| `_entry(resource)` | Bundle entry wrapper (currently used for FHIR R3 fallback) |
+| `_severity_coding(severity, country)` | severity SNOMED with JP localization |
+| `_infer_severity(record)` | physiology peak-inflammation から severity 推定 |
+| `_map_diagnosis_code(code, country)` | 内部診断コード → locale billable コード変換 |
+
+新しい helper を `_fhir_common.py` に追加する基準: **2 builder 以上で実需が生じた**タイミング
+(YAGNI — 1 builder しか使わないなら local 定義のまま)。
+
+### 関連
+
+- [AD-56 enricher registry](../../../DESIGN.md)
+- [AD-58 output adapter registry](../../../DESIGN.md)
+- [docs/CONTRIBUTING-modules.md](../../../docs/CONTRIBUTING-modules.md) 「拡張点の使い方」
+- [MODULES.md](../../../MODULES.md) — 全 module 俯瞰
