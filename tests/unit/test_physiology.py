@@ -878,3 +878,53 @@ def test_anion_gap_status_does_not_mutate_other_labs():
                 "WBC", "CRP", "BNP", "Lactate", "Glucose", "HbA1c", "Cl"):
         assert abs(labs_base[key] - labs_ag[key]) < 1e-9, \
             f"AG axis should not affect {key} (base={labs_base[key]}, ag={labs_ag[key]})"
+
+
+# ---------------------------------------------------------------------------
+# Phase 2b: PT_INR on warfarin (medication-physiology coupling)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.unit
+def test_pt_inr_on_warfarin_healthy_baseline_therapeutic():
+    """Healthy patient (no hepatic / DIC stress) on warfarin → INR ~2.5."""
+    state = PhysiologicalState()  # all defaults: hepatic=1.0, coag=0.0
+    labs = derive_lab_values(state, sex="M", age=60, on_warfarin=True)
+    assert 2.4 <= labs["PT_INR"] <= 2.6
+
+
+@pytest.mark.unit
+def test_pt_inr_off_warfarin_unchanged():
+    """Existing formula path: healthy → INR 1.0."""
+    state = PhysiologicalState()
+    labs = derive_lab_values(state, sex="M", age=60, on_warfarin=False)
+    assert labs["PT_INR"] == pytest.approx(1.0, abs=0.01)
+
+
+@pytest.mark.unit
+def test_pt_inr_on_warfarin_with_dic_comorbidity_lift():
+    """warfarin + DIC (coag_status=0.5): therapeutic + comorbidity lift ≈ 2.875."""
+    state = PhysiologicalState()
+    state.coagulation_status = 0.5
+    labs = derive_lab_values(state, sex="M", age=60, on_warfarin=True)
+    # base_inr = 1.0 + 0 + 0.5*1.5 = 1.75
+    # on warfarin: 2.5 + (1.75 - 1.0) * 0.5 = 2.875
+    assert 2.8 <= labs["PT_INR"] <= 2.95
+
+
+@pytest.mark.unit
+def test_pt_inr_on_warfarin_with_cirrhosis_over_anticoagulation():
+    """warfarin + cirrhosis (hepatic=0.4): INR ~3.1 (over-AC bleeding risk visible)."""
+    state = PhysiologicalState()
+    state.hepatic_function = 0.4
+    labs = derive_lab_values(state, sex="M", age=60, on_warfarin=True)
+    # base_inr = 1.0 + 0.6*2.0 + 0 = 2.2
+    # on warfarin: 2.5 + (2.2 - 1.0) * 0.5 = 3.1
+    assert 3.0 <= labs["PT_INR"] <= 3.2
+
+
+@pytest.mark.unit
+def test_pt_derived_consistency_with_warfarin_shift():
+    """PT = 12 * PT_INR invariant maintained when warfarin shifts INR."""
+    state = PhysiologicalState()
+    labs = derive_lab_values(state, sex="M", age=60, on_warfarin=True)
+    assert labs["PT"] == pytest.approx(12.0 * labs["PT_INR"], abs=0.01)

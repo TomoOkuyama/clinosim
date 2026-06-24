@@ -100,6 +100,42 @@ F00:  # Dementia / Alzheimer's
   notes:
     - "Increased delirium risk during hospitalization"
 
+# Phase 2b (2026-06-24): post-discharge anticoagulation for VTE/embolic CI.
+# Drug probabilities reflect modern ACCP 2020 / ESC 2019 guideline: DOAC
+# (rivaroxaban/apixaban) is first-line for non-valvular indications;
+# warfarin remains for severe renal impairment, mechanical valves, cost.
+# Note: existing activator (_derive_home_medications) draws each entry's
+# probability independently — a patient can end up on warfarin AND apixaban
+# (~few percent of AC-indicated patients). This is a pre-existing limitation
+# logged for Phase 2c (activator AC-drug exclusivity). For Phase 2b's
+# warfarin-detection purpose this is benign (any warfarin presence triggers
+# on_warfarin=True correctly).
+I26:  # Pulmonary embolism — post-discharge AC (>=3 mo, indefinite if unprovoked)
+  medications:
+    - {drug: "Rivaroxaban 20mg", drug_ja: "リバーロキサバン15mg", route: "PO", frequency: "daily", probability: 0.5}
+    - {drug: "Apixaban 5mg", drug_ja: "アピキサバン5mg", route: "PO", frequency: "bid", probability: 0.3}
+    - {drug: "Warfarin 3mg", drug_ja: "ワルファリン3mg", route: "PO", frequency: "daily", probability: 0.2}
+  monitoring:
+    - {test: "PT-INR", frequency: "monthly", intent: "Warfarin therapeutic monitoring (if on warfarin)"}
+    - {test: "Cr", frequency: "every_6_months", intent: "DOAC renal monitoring (if on DOAC)"}
+
+I82:  # Deep vein thrombosis — same duration logic as I26
+  medications:
+    - {drug: "Rivaroxaban 20mg", drug_ja: "リバーロキサバン15mg", route: "PO", frequency: "daily", probability: 0.5}
+    - {drug: "Apixaban 5mg", drug_ja: "アピキサバン5mg", route: "PO", frequency: "bid", probability: 0.3}
+    - {drug: "Warfarin 3mg", drug_ja: "ワルファリン3mg", route: "PO", frequency: "daily", probability: 0.2}
+  monitoring:
+    - {test: "PT-INR", frequency: "monthly", intent: "Warfarin therapeutic monitoring (if on warfarin)"}
+
+I63:  # Cerebral infarction — embolic source (AF/cardiac) gets AC; non-embolic gets antiplatelet
+  medications:
+    - {drug: "Warfarin 3mg", drug_ja: "ワルファリン3mg", route: "PO", frequency: "daily", probability: 0.3}
+    - {drug: "Apixaban 5mg", drug_ja: "アピキサバン5mg", route: "PO", frequency: "bid", probability: 0.3}
+    - {drug: "Aspirin 100mg", drug_ja: "アスピリン100mg", route: "PO", frequency: "daily", probability: 0.7}
+    - {drug: "Clopidogrel 75mg", drug_ja: "クロピドグレル75mg", route: "PO", frequency: "daily", probability: 0.3}
+  monitoring:
+    - {test: "PT-INR", frequency: "monthly", intent: "Warfarin therapeutic monitoring (if on warfarin)"}
+
 G20:  # Parkinson's disease
   medications:
     - {drug: "Levodopa/Carbidopa 100/25mg", drug_ja: "レボドパ・カルビドパ100/25mg", route: "PO", frequency: "tid"}
