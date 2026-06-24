@@ -1,0 +1,29 @@
+# AD-55 Base SDOH social-history reference (PR2 2026-06-24).
+#
+# US Core profiles:
+#   - Smoking Status: http://hl7.org/fhir/us/core/StructureDefinition/us-core-smokingstatus
+#     LOINC 72166-2 "Tobacco smoking status NHIS"
+#     SNOMED CT values per US Core IG (3 simplified tiers)
+#   - Alcohol use: LOINC 11331-6 "History of Alcohol use"
+#     SNOMED CT values per HL7 social history (3 simplified tiers)
+#
+# Display strings for SNOMED codes are resolved at FHIR output time via
+# clinosim.codes.lookup("snomed-ct", code, lang) — NOT duplicated here.
+# All 6 SNOMED codes are registered in codes/data/snomed-ct.yaml with
+# `en` + `ja` displays (verified by PR #68 SNOMED CT authority crosswalk).
+
+smoking_status:
+  loinc: "72166-2"
+  category: "social-history"
+  values:
+    never:   {snomed: "266919005"}  # Never smoked tobacco
+    former:  {snomed: "8517006"}    # Ex-smoker
+    current: {snomed: "449868002"}  # Current every day smoker
+
+alcohol_use:
+  loinc: "11331-6"
+  category: "social-history"
+  values:
+    none:   {snomed: "105542008"}   # Current non-drinker of alcohol
+    social: {snomed: "28127009"}    # Social drinker
+    heavy:  {snomed: "86933000"}    # Heavy drinker
