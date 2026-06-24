@@ -402,7 +402,7 @@ output/fhir_r4/
 │                                    #   smoking, alcohol, JP 要介護度) + code status (LOINC/SNOMED)
 ├── DiagnosticReport.ndjson          # Lab panel reports (CBC/BMP/LFT/Lipid/Coag/UA/ABG, LOINC) + microbiology culture reports (+ Specimen)
 ├── Specimen.ndjson                  # Culture specimens (blood/urine/sputum/wound)
-├── Condition.ndjson                 # Encounter dx + chronic conditions (ICD-10-CM / ICD-10)
+├── Condition.ndjson                 # Encounter dx + chronic conditions + HAI (CLABSI/CAUTI/VAP) (ICD-10-CM / ICD-10 / SNOMED dual)
 ├── FamilyMemberHistory.ndjson       # First-degree-relative disease history (v3-RoleCode + ICD)
 ├── Immunization.ndjson              # Adult vaccine history (CVX; US/JP schedules)
 ├── Device.ndjson                    # ICU device records (CVC / indwelling catheter / ventilator; SNOMED CT)

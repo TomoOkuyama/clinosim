@@ -63,7 +63,7 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 
 ### AD-55 enricher patterns (PR1 foundation refactor, 2026-06-24)
 
-- **Sub-seed offset convention** — new enricher modules MUST register their sub-seed in `clinosim/simulator/seeding.py:ENRICHER_SEED_OFFSETS` with a 16-bit hex-ASCII offset (e.g. `0x494D` = "IM", `0x4445` = "DE"). Identity (decimal 540_054) and microbiology (decimal 770_077) are grandfathered to preserve byte-identical output. The dict has a module-level assert that catches accidental duplicates at import. Modules import via `from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS` and use `derive_sub_seed(master, ENRICHER_SEED_OFFSETS["my_module"], key)`.
+- **Sub-seed offset convention** — new enricher modules MUST register their sub-seed in `clinosim/simulator/seeding.py:ENRICHER_SEED_OFFSETS` with a 16-bit hex-ASCII offset (e.g. `0x494D` = "IM", `0x4445` = "DE", `0x4841` = "HA"). Identity (decimal 540_054) and microbiology (decimal 770_077) are grandfathered to preserve byte-identical output. The dict has a module-level assert that catches accidental duplicates at import. Modules import via `from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS` and use `derive_sub_seed(master, ENRICHER_SEED_OFFSETS["my_module"], key)`.
 - **DRY helpers** — cross-module utilities used by 2+ enrichers live in `clinosim/modules/_shared.py`. Don't redefine inline; import from `_shared`. Current: `get_attr_or_key(obj, name, default)` for dict / dataclass dual access.
 - **Locale loader signature** — modules with locale-specific data MUST accept a `country: str` parameter and return `{}` for unsupported countries (no-op early return). Hardcoded country literals in path joins (e.g., `_LOCALE / "jp" / "..."` without country gating) are a consistency bug.
 
@@ -160,6 +160,7 @@ clinosim/
     code_status/   <- Resuscitation status on serious encounters (AD-55 Base)
     care_level/    <- JP 要介護度 / long-term-care need level (AD-55 Base, JP only)
     device/        <- ★ ICU device placement (CVC/catheter/ventilator, AD-55 Module, PR-A)
+    hai/           <- ★ CDC NHSN HAI sampling (CLABSI/CAUTI/VAP, AD-55 Module, PR-B; consumes extensions["device"])
     output/        <- CIF → format adapters; fhir_r4_adapter + per-theme _fhir_* builders (FA-1)
   simulator/       <- Top-level orchestration (run_beta, run_forced, CLI)
     enrichers.py   <- ★ Enricher registry for Base/opt-in module passes (AD-56)
