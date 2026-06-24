@@ -1,0 +1,178 @@
+# hai — 病院関連感染 (CLABSI / CAUTI / VAP) サンプリング
+
+> AD-55 Module: PR-A `extensions["device"]` を consume して CDC NHSN baseline per-line-day risk rate で CLABSI / CAUTI / VAP の発症を確率サンプリングし、FHIR Condition + culture chain を emit する opt-in 軽量モジュール。device + HAI 4-PR シリーズ Phase 2、PR-A で確立した cross-module dependency point の初の利用例。
+
+## 概要 / 役割
+
+- post_records enricher として各 `CIFPatientRecord.extensions["device"]` を walk し、各 device の line-days × CDC NHSN per-day risk rate (0.0010-0.0015) で確率発症を判定。
+- 発症時:
+  1. `HAIEvent` を `extensions["hai"]` に append (ICD + SNOMED + onset_date + organism + source_device_id)
+  2. `MicrobiologyResult` を `record.microbiology` に append (specimen + organism + culture)
+- 既存の `_fhir_microbiology.py` builder が culture chain (Specimen + Observation + DiagnosticReport) を **自動 emit** = 新 culture builder 不要。
+- 新 `_fhir_hai.py` builder は HAI Condition のみ emit (ICD-10 + SNOMED dual coding、US billable / JP WHO 4-char)。
+- main RNG stream は触らず、`ENRICHER_SEED_OFFSETS["hai"] = 0x4841` から導出した patient-id-scoped sub-seed のみ消費。AD-16 / AD-56 完全準拠。
+
+## 設計原則
+
+| Principle | Source |
+|---|---|
+| AD-16 deterministic (per-patient sub-seed) | DESIGN.md AD-16 |
+| AD-55 Module opt-in (post_records enricher, `extensions` slot) | DESIGN.md AD-55 / AD-56 |
+| AD-56 builder + enricher registry | DESIGN.md AD-56 |
+| BNP-pattern surgical: physiology state 不変、observation-time formula | DESIGN.md AD-57 |
+| sub-seed 16-bit hex ASCII convention (`0x4841` = "HA") | CLAUDE.md "AD-55 enricher patterns" |
+| Cross-module dependency: PR-A → PR-B one-way (hai reads device, never writes) | spec §"Cross-module dependency point" |
+| CDC NHSN baseline rate calibration | `reference_data/hai_rates.yaml` |
+| CDC ≥48h HAI definition (onset_offset ≥ 2) | engine.py `sample_hai_onset` |
+
+## ディレクトリ構造
+
+```
+clinosim/modules/hai/
+  __init__.py            # public API
+  engine.py              # pure functions (sampling + organism + date arithmetic)
+  enricher.py            # AD-56 post_records enricher (enrich_hai)
+  reference_data/
+    hai_rates.yaml       # CDC NHSN per-line-day risk rates (CLABSI/CAUTI/VAP)
+    hai_codes.yaml       # ICD-10-CM + WHO ICD-10 + SNOMED for 3 HAI conditions
+    hai_organisms.yaml   # CDC NHSN top organism distributions per HAI type
+    hai_specimens.yaml   # Specimen SNOMED + culture LOINC per HAI type
+  README.md              # this file
+```
+
+## API Reference
+
+```python
+def load_hai_rates() -> dict[str, Any]:
+    """reference_data/hai_rates.yaml を @lru_cache で読み込み返す。"""
+
+def load_hai_codes() -> dict[str, Any]:
+    """reference_data/hai_codes.yaml を @lru_cache で読み込み返す。"""
+
+def load_hai_organisms() -> dict[str, Any]:
+    """reference_data/hai_organisms.yaml を @lru_cache で読み込み返す。"""
+
+def load_hai_specimens() -> dict[str, Any]:
+    """reference_data/hai_specimens.yaml を @lru_cache で読み込み返す。"""
+
+def sample_hai_onset(
+    device: DeviceRecord, rate_cfg: dict, rng: np.random.Generator,
+) -> tuple[bool, int | None]:
+    """1 device に対する HAI 発症判定。
+
+    Returns (False, None) 発症なし
+            (True, k)     placement_date + k 日目に発症 (k は 2 ≤ k < line_days)
+    """
+
+def enrich_hai(ctx) -> None:
+    """post_records enricher entry point.
+
+    ctx.records を巡り、各患者の extensions["device"] から HAI を sample、
+    extensions["hai"] (list[HAIEvent]) + record.microbiology
+    (MicrobiologyResult append) を書く。
+    """
+```
+
+## データ構造
+
+| Type | 場所 | Key fields | 用途 |
+|---|---|---|---|
+| `HAIEvent` | `clinosim/types/hai.py` (`@dataclass`) | `hai_id`, `encounter_id`, `hai_type`, `source_device_id`, `icd10_code`, `snomed_code`, `onset_date`, `organism_snomed`, `culture_specimen_id` | `CIFPatientRecord.extensions["hai"]` 配下 |
+| `MicrobiologyResult` (既存) | `clinosim/types/microbiology.py` | `encounter_id`, `specimen`, `specimen_snomed`, `test_loinc`, `organism_snomed`, `growth`, `quantitation` | `record.microbiology` append、既存 `_fhir_microbiology.py` で自動 emit |
+
+CIF 上の location:
+- HAI metadata: `CIFPatientRecord.extensions["hai"]: list[HAIEvent]` (typed dataclass を extensions slot に格納)
+- Culture chain: `CIFPatientRecord.microbiology: list[MicrobiologyResult]` (Base typed field、append のみ)
+
+## CDC NHSN baseline rates
+
+`reference_data/hai_rates.yaml` (per-line-day risk):
+
+| HAI | per_day_risk | source_device_type | CDC NHSN per 1000 days |
+|---|---|---|---|
+| CLABSI | 0.0010 | cvc | 1.0 |
+| CAUTI | 0.0014 | indwelling_catheter | 1.4 |
+| VAP | 0.0015 | mechanical_ventilator | 1.5 |
+
+出典: CDC NHSN Annual HAI Report 2018-2020 ICU mixed wards average (https://www.cdc.gov/nhsn/datastat)
+
+## Organism distribution
+
+`reference_data/hai_organisms.yaml` (weight sums to 1.0 per HAI type, CDC NHSN HAI Annual Report):
+
+- **CLABSI 主要菌**: S. aureus 0.20 / S. epidermidis 0.18 / C. albicans 0.15 / E. faecalis 0.13 / K. pneumoniae 0.10 / E. coli 0.10 / P. aeruginosa 0.09
+- **CAUTI 主要菌**: E. coli 0.27 / C. albicans 0.18 / E. faecalis 0.16 / K. pneumoniae 0.13 / P. aeruginosa 0.10 / P. mirabilis 0.06
+- **VAP 主要菌**: S. aureus 0.24 / P. aeruginosa 0.17 / K. pneumoniae 0.10 / E. coli 0.08 / E. cloacae 0.08 / A. baumannii 0.05 / S. maltophilia 0.04
+
+全 11 organism SNOMED は tx.fhir.org `$expand` で照合済 (Task 1)。
+
+## Dependencies
+
+| Dependency | Why |
+|---|---|
+| `clinosim/types/hai` | HAIEvent |
+| `clinosim/types/device` | DeviceRecord (consumed from extensions["device"]) |
+| `clinosim/types/microbiology` | MicrobiologyResult (appended to record.microbiology) |
+| `clinosim/codes/` | (FHIR builder + culture builder 経由) ICD-10-CM/WHO/SNOMED/LOINC lookup |
+| `clinosim/simulator/seeding` | ENRICHER_SEED_OFFSETS, derive_sub_seed |
+| `clinosim/modules/_shared` | get_attr_or_key (dict/dataclass dual access) |
+| `clinosim/modules/device` (data flow only) | PR-A の extensions["device"] を読む |
+
+## Consumers
+
+| Caller | How it uses this module | Impact tier |
+|---|---|---|
+| `clinosim/simulator/enrichers.py` | `register_builtin_enrichers()` で `enrich_hai` を post_records phase に登録 (order=80) | core (build pipeline) |
+| `clinosim/modules/output/_fhir_hai.py` | `extensions["hai"]` を読んで HAI Condition を emit | medium (FHIR output) |
+| `clinosim/modules/output/_fhir_microbiology.py` (既存) | `record.microbiology` を読んで HAI culture (Specimen + Observation + DR) を emit | medium (cross-cutting; PR-B が culture を append しても既存 builder が変更なく動く) |
+| `tests/unit/test_hai_engine.py` | engine unit tests (9) | guard |
+| `tests/unit/test_hai_enricher.py` | enricher unit tests (6) | guard |
+| `tests/unit/test_hai_codes_coverage.py` | code coverage smoke (9 parametrize) | guard |
+| `tests/integration/test_hai_extension_persistence.py` | CIF JSON round-trip | guard |
+| `tests/integration/test_hai_fhir_output.py` | 小規模 ICU cohort full pipeline | guard |
+
+## Cross-module dependency pattern (PR-A → PR-B)
+
+PR-A `modules/device` is the **upstream**, PR-B `modules/hai` is the **downstream**:
+
+```
+device enricher (order=70) → record.extensions["device"] = list[DeviceRecord]
+                                      ↓ (read only)
+hai enricher    (order=80) → record.extensions["hai"]    = list[HAIEvent]
+                            + record.microbiology       = list[MicrobiologyResult]
+```
+
+これは clinosim で初めて確立された cross-module enricher consumption pattern。Phase 3+ の device-consuming module (例: HAI 治療 antibiotic order、薬剤耐性) は同パターンを踏襲する。
+
+## Phase 2 simplifications (scope cap)
+
+- **Snapshot in-progress device**: `device.removal_date is None` のとき `line_days = 7` の conservative fallback。Phase 3 で simulator snapshot date と統合。
+- **At-most-one HAI per device**: 1 DeviceRecord から 1 HAIEvent しか sample しない。Phase 3 で繰り返し感染 (e.g. CRBSI relapse) 対応。
+- **Antibiotic empirical / narrow-spectrum order chain**: HAI 発症で経験的 antibiotic order → culture 結果で narrow という臨床 chain は **未実装** (Phase 3)。
+- **Susceptibility (S/I/R)**: `MicrobiologyResult.susceptibilities = []` (Phase 3 antimicrobial resistance work で fill)。
+- **WBC/CRP shift**: HAI 発症後の lab 反応は **未実装** (BNP-pattern surgical formula で実装可、Phase 3)。
+- **Mortality 影響**: HAI 発症 → 死亡率 + は未実装 (Phase 3 outcome benchmarks 連動)。
+- **Peripheral IV / arterial line HAI**: Phase 1 device scope 外。
+
+## 拡張ガイド
+
+新規 HAI type を追加するときは (例: SSI 手術部位感染、付与 device は不要だが encounter-attached):
+1. `clinosim/codes/data/icd-10-cm.yaml` + `icd-10.yaml` + `snomed-ct.yaml` に新コード追加 (NLM/WHO/tx.fhir.org 照合必須)
+2. `reference_data/hai_codes.yaml` に新エントリ追加
+3. `reference_data/hai_rates.yaml` に per_day_risk + source 追加 (SSI は line-days でなく surgery 経過日数)
+4. `engine.py:_DEVICE_TO_HAI` mapping 拡張 or 新 sampling 関数追加
+5. 既存 unit test + 新 type 用テストケース追加
+6. 3-axis DQR cohort で新 type の出現分布を audit
+
+詳細は [docs/CONTRIBUTING-modules.md](../../../docs/CONTRIBUTING-modules.md) 参照。
+
+## 関連
+
+- [DESIGN.md](../../../DESIGN.md) AD-55 / AD-56 / AD-57
+- [docs/CONTRIBUTING-modules.md](../../../docs/CONTRIBUTING-modules.md) — モジュール作成 + PR 検証ガイド
+- [MODULES.md](../../../MODULES.md) — 全 module 俯瞰
+- 関連モジュール: `output/_fhir_hai.py` (HAI Condition builder)、`output/_fhir_microbiology.py` (culture emit、既存)、`modules/device` (upstream)
+- 関連 spec / plan:
+  - `docs/superpowers/specs/2026-06-24-hai-module-design.md`
+  - `docs/superpowers/plans/2026-06-24-hai-module-prb.md`
+- DQR review: `docs/reviews/2026-06-24-hai-module-data-quality-review.md`
