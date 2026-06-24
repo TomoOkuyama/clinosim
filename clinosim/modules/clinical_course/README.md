@@ -290,6 +290,17 @@ for day in range(0, los_days):
 
 **他モジュールへの依存なし** (physiology の状態を直接読み書きしない、 directive ベースで疎結合)。
 
+## Consumers
+
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/inpatient.py` | daily cycle で archetype 駆動の状態進行を `update_state()` 経由で適用 | core (主 simulation loop) |
+| `tests/integration/test_clinical_pipeline.py` | 臨床 pipeline integration test | guard |
+| `tests/unit/test_clinical_course.py` | archetype + directive logic unit tests | guard |
+| `tests/unit/test_diagnosis_feedback.py` | diagnosis feedback loop test | guard |
+
 ## 修正ガイド
 
 ### よくある修正シナリオ

@@ -49,6 +49,19 @@ assign_code_status(age: int, context: str, country: str,
 `types/output`(`code_status` フィールド)、`codes`(SNOMED 表示)、`locale`(レート)、
 `simulator/seeding`(`derive_sub_seed`)。
 
+## Consumers
+
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/enrichers.py` | `register_builtin_enrichers()` で post_records enricher 登録 | core (enricher registry) |
+| `modules/code_status/enricher.py` | 同 module 内の enricher 実装 | core |
+| `modules/output/_fhir_code_status.py` | SNOMED 304251008 系の survey Observation を生成 | medium (FHIR builder) |
+| `tests/integration/test_code_status_enricher.py` | enricher integration test | guard |
+| `tests/unit/test_code_status_engine.py` | engine unit tests | guard |
+| `tests/unit/test_code_status_codes.py` | SNOMED コード authority + active concept 検証 (PR #68) | guard |
+
 ## 検証
 
 - 決定論: 同一 seed US 生成で **byte-diff は新規 codestatus-* Observation のみ**
