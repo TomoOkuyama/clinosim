@@ -313,6 +313,21 @@ for event in sorted(all_events, key=lambda e: e.timestamp):
 - `numpy` — RNG と weighted choice
 - **他モジュールへの依存なし** (出力 `LifeEvent` を encounter モジュールが consume)
 
+## Consumers
+
+このモジュールに依存するもの:
+
+| Caller | How | Impact |
+|---|---|---|
+| `simulator/engine.py` | run_beta で `load_population()` → 全 person 生成 | core (Layer 1 entry) |
+| `simulator/cli.py` | CLI 起動時の population orchestration | core |
+| `simulator/inpatient.py` | inpatient encounter で PersonRecord 参照 | core |
+| `simulator/helpers.py` | `_activate_cached()` で patient activation の前段 | core |
+| `modules/patient/activator.py` | Layer 1 (PersonRecord) → Layer 2 (PatientProfile) 変換の入力 | core |
+| `tests/unit/test_population_demographics.py` | demographics + chronic_conditions tests | guard |
+| `tests/unit/test_population_types.py` | PersonRecord / LifeEvent type tests | guard |
+| `tests/unit/test_identity.py` | identity assignment が PersonRecord に格納される確認 | guard |
+
 ## テスト
 
 ```bash
