@@ -269,11 +269,9 @@ through registry). test_seeding.py precomputed-literal pins (914786652 /
 914785364 / 2694613518) continue to pass as cross-check. See
 `scratchpad/refactor_pr1_byte_diff_results.md`.
 
-Series context: PR1 of 4 (G1 done) → PR2 (G2 SDOH integrity: SDOH SNOMED
-hardcode → reference_data.yaml + _fhir_sdoh.py builder split) → PR3 (G3
-_fhir_observations.py 31KB → immunization extraction) → PR4 (G4 doctrine
-docs: identity enabled gate registry + typed field vs extensions decision
-tree) → then device + HAI feature work (2 modules with cross-module
+Series context: PR1 of 4 (G1 done) → PR2 (G2 SDOH integrity done) → PR3
+(G3 `_fhir_observations.py` theme split done) → PR_docs (G4 absorbed
+done) → next: device + HAI feature work (2 modules with cross-module
 enricher consumption).
 
 **AD-55 Module Foundation Refactor PR2 (G2 SDOH integrity) — 2026-06-24:**
@@ -300,10 +298,8 @@ sha256-IDENTICAL for both US and JP (pure mechanical refactor;
 numerical identity preserved through YAML). See
 `scratchpad/refactor_pr2_byte_diff_results.md`.
 
-Series context: PR2 of 4 (G2 done) → PR3 (G3 _fhir_observations.py
-31KB split, immunization extraction) → PR4 (G4 doctrine docs:
-identity enabled gate registry + typed field vs extensions decision
-tree) → then device + HAI feature work.
+Series context: PR2 of 4 (G2 done) → PR3 (G3 done) → PR_docs (G4
+absorbed, done) → next: device + HAI feature work.
 
 **Comprehensive Documentation Update (G4 absorbed) — 2026-06-24:**
 Pure documentation PR (no code changes; no byte-diff / DQR required).
@@ -346,8 +342,53 @@ Additional fixes:
   link directs new contributors to TEMPLATE + MODULES + PR verification.
 
 Series context: PR1 (G1, merged) + PR2 (G2, merged) + **PR_docs (G4
-absorbed, this PR) ✓**. Remaining: PR3 (G3 `_fhir_observations.py`
-31KB split, immunization extraction) → then device + HAI feature work.
+absorbed, merged) ✓** + **PR3 (G3 Observation-family split, this PR) ✓**.
+**AD-55 Module Foundation Refactor series complete** — next: device +
+HAI feature work.
+
+**AD-55 Module Foundation Refactor PR3 (G3 Observation-family split) — 2026-06-24:**
+Pure mechanical refactor — the final structural piece of the foundation
+refactor series. Three items:
+
+1. `_fhir_observations.py` (727 lines / 31 KB) decomposed into three
+   new per-theme files matching PR2's precedent:
+   - `_fhir_microbiology.py` (~110 lines) — Specimen + Observation +
+     DiagnosticReport (`_bb_microbiology`), plus the file-private
+     `_SUSCEPTIBILITY_DISPLAY` constant.
+   - `_fhir_nursing.py` (~210 lines) — NEWS2 / GCS / Braden / Morse /
+     Barthel / I&O survey Observations (`_build_nursing_observations`).
+   - `_fhir_immunization.py` (~70 lines) — CVX Immunization
+     (`_build_immunizations`).
+2. Residual `_fhir_observations.py` (~380 lines) is now the canonical
+   numeric Observation builder (lab helper + vital builder); module
+   docstring trimmed to reflect the final scope; three unused imports
+   (`_micro_coding`, `_loinc_coding`, `_survey_category`) and now-unused
+   `BundleContext` pruned.
+3. `fhir_r4_adapter.py` import block rewired: `_build_immunizations` from
+   `_fhir_immunization`, `_bb_microbiology` + `_SUSCEPTIBILITY_DISPLAY`
+   from `_fhir_microbiology`, `_build_nursing_observations` from
+   `_fhir_nursing`, and only `_build_lab_observation` +
+   `_build_vital_observations` from `_fhir_observations`. Down-stream
+   re-export surface preserved via `noqa: F401` (every existing
+   `from ...fhir_r4_adapter import X` keeps working).
+
+No `_fhir_common.py` helper promotion needed (PR2 already promoted
+what was required). `_BUNDLE_BUILDERS` registration order unchanged
+(byte-diff prerequisite).
+
+Byte-diff vs master `0ed65f86` @ p=2000 seed=42: **all 33 NDJSON files
+(US 16 + JP 17) sha256-IDENTICAL** for both countries. pytest
+`unit or integration` 604 passed. See `scratchpad/pr3_byte_diff_results.md`.
+
+DESIGN.md AD-56 entry extended with PR3 continuation. CLAUDE.md output
+directory description unchanged (the "per-theme `_fhir_*` builders"
+phrasing already covered the new files). `output/README.md`
+Extensibility section's per-theme builder table updated with the three
+new files + residual `_fhir_observations.py`.
+
+Clears the runway for device + HAI feature builders to land in clean
+per-theme files (`_fhir_device.py` / `_fhir_hai.py`) without inheriting
+a multi-theme blob.
 
 Backlog: **PR_C type consolidation** — 7 modules currently define types
 in `engine.py` instead of `clinosim/types/` (CLAUDE.md "All types
