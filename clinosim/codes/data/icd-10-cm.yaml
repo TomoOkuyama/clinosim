@@ -1119,3 +1119,14 @@ codes:
   U07.1:
     en: "COVID-19"
     ja: "新型コロナウイルス感染症"
+  # === HAI conditions (AD-55 Module: hai, PR-B) ===
+  # All verified via NLM ICD-10-CM API. PR #80 fab prevention applied.
+  T80.211A:
+    en: "Bloodstream infection due to central venous catheter, initial encounter"
+    ja: "中心静脈カテーテル関連血流感染症、初診"
+  T83.511A:
+    en: "Infection and inflammatory reaction due to indwelling urethral catheter, initial encounter"
+    ja: "膀胱留置カテーテルに伴う感染および炎症反応、初診"
+  J95.851:
+    en: "Ventilator associated pneumonia"
+    ja: "人工呼吸器関連肺炎"

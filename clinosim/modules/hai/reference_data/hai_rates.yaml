@@ -1,0 +1,14 @@
+# CDC NHSN device-associated infection rates per 1000 device-days
+# (2018-2020 ICU mixed wards average; NHSN annual reports,
+# https://www.cdc.gov/nhsn/datastat).
+# Per-day risk = rate / 1000.
+hai_rates:
+  clabsi:
+    per_day_risk: 0.0010
+    source_device_type: cvc
+  cauti:
+    per_day_risk: 0.0014
+    source_device_type: indwelling_catheter
+  vap:
+    per_day_risk: 0.0015
+    source_device_type: mechanical_ventilator

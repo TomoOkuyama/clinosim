@@ -122,6 +122,7 @@ from clinosim.modules.output._fhir_device import (  # noqa: F401
     _build_device,
     _build_device_use,
 )
+from clinosim.modules.output._fhir_hai import _build_hai_conditions  # noqa: F401
 from clinosim.modules.output._fhir_smoking_alcohol import (  # noqa: F401
     _build_alcohol_use,
     _build_smoking_status,
@@ -427,6 +428,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _build_care_level,
     _build_device,
     _build_device_use,
+    _build_hai_conditions,
 ]
 
 

@@ -347,6 +347,7 @@ _BUNDLE_BUILDERS = [
 | `_fhir_code_status.py` | Code status Observation | SNOMED resuscitation status |
 | `_fhir_sdoh.py` (削除済、PR2 で 2 分割) | - | (history reference) |
 | `_fhir_device.py` | Device + DeviceUseStatement | SNOMED-coded ICU devices (PR-A、Phase 1 of device+HAI series) |
+| `_fhir_hai.py` | Condition (HAI) | CLABSI/CAUTI/VAP dual ICD-10+SNOMED coding; cultures reuse existing `_fhir_microbiology.py` (PR-B、Phase 2 of device+HAI series) |
 
 ### 2. 新しい出力フォーマットの追加 (AD-58 adapter registry)
 

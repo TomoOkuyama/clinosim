@@ -342,3 +342,7 @@ codes:
     # JCCLS 2022).
     en: D-dimer
     ja: D ダイマー
+  # === HAI culture LOINCs (PR-B) ===
+  # 600-7 (Blood), 630-4 (Urine), 619-7 (Sputum) are already registered
+  # above in the existing microbiology block; PR-B reuses those rather
+  # than introducing duplicates.
