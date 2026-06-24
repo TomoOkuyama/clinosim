@@ -5,7 +5,6 @@ import pytest
 
 from clinosim.codes import lookup
 
-
 pytestmark = pytest.mark.unit
 
 

@@ -14,9 +14,8 @@ from clinosim.modules.device.engine import (
 )
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.device import DeviceRecord
-from clinosim.types.encounter import Encounter, EncounterType, VitalSignRecord
+from clinosim.types.encounter import Encounter, EncounterType
 from clinosim.types.output import CIFPatientRecord
-
 
 pytestmark = pytest.mark.unit
 
