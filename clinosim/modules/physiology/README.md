@@ -218,6 +218,41 @@ D_dimer    = clamp(0.3 + age_factor + infl*0.5 + coagulation_status*1.5
 コールサイト(inpatient Pass-1 + lagged + emergency + outpatient)はすべてヘルパ経由で配線され、新フラグ追加時の
 配線忘れ(J5: emergency.py が `causes_myocardial_injury` を渡さず ED MI patient のトロポニン上昇が消えていた問題)を構造的に防ぐ。
 
+### 医薬品フラグ (Phase 2b 2026-06-24): `medication_flags_from_context(patient, medication_orders, admission_date, current_day)` ヘルパ
+
+シナリオフラグの **シブリングヘルパ**。`derive_lab_values` の医薬品駆動フラグ(`on_warfarin` / 将来追加)を
+患者+エンカウンタコンテキストから検出する。Phase 2b は `{"on_warfarin": bool}` のみ返却。
+
+**検出ルール**:
+1. **慢性 warfarin**:`patient.current_medications` に warfarin 文字列(case-insensitive substring: `"warfarin"` / `"ワルファリン"` / `"coumadin"`)が含まれる
+2. **院内 warfarin**:`medication_orders` に warfarin オーダーがあり、かつ `current_day - (ordered_date - admission_date).days >= 3`(ローディング 3 日ルール)
+
+```python
+from clinosim.modules.physiology.engine import (
+    derive_lab_values, scenario_flags_from_protocol, medication_flags_from_context,
+)
+
+# inpatient Pass-1
+flags = {
+    **scenario_flags_from_protocol(protocol),
+    **medication_flags_from_context(
+        patient, medication_orders=[o for o in all_orders if o.order_type.value == "medication"],
+        admission_date=admission_time.date(), current_day=day,
+    ),
+}
+true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, **flags)
+
+# ED / outpatient = 慢性のみ(MAR/day なし)
+flags = {**scenario_flags_from_protocol(protocol), **medication_flags_from_context(patient)}
+```
+
+**DOAC(apixaban / rivaroxaban / edoxaban / dabigatran)は意図的に検出しない** — DOAC では INR を臨床的に
+モニターしない実態に忠実(rivaroxaban に PT 微影響あるが治療目標監視には使わない)。
+
+将来の医薬品-検査値カップリング(ステロイド → glucose、利尿薬 → K、抗生剤 → CRP 等)は本ヘルパの
+返却 dict を拡張するだけで全コールサイトに到達する。`derive_lab_values` に直接 `flag=value` 名前付き引数
+を渡してはいけない(J5 同型 wiring defect 防止)。
+
 `respiratory_fraction` は疾患シナリオの `acid_base_type`(既定 `metabolic`、COPD/喘息は
 `respiratory`) または慢性 J44/J45 から設定される(エンジンにハードコードせずデータ駆動)。
 
