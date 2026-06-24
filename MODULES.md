@@ -1,6 +1,6 @@
 # clinosim Module Map
 
-A single-page overview of clinosim's 23 modules: what each one does, what
+A single-page overview of clinosim's 24 modules: what each one does, what
 it depends on, who depends on it, and how data flows through the
 simulator end-to-end. **Read this first** if you're new to the project.
 
@@ -70,6 +70,7 @@ quality. See [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md)
 │  care_level       JP 要介護度 (JP only)                  │
 │  sdoh             smoking + alcohol reference data       │
 │  device           ICU device placement (CVC/catheter/vent)│
+│  hai              CLABSI / CAUTI / VAP (consumes device)  │
 └──────────────────────────────────────────────────────────┘
             ↓                ↓               ↓
 ┌─ Output ─────────────────────────────────────────────────┐
@@ -81,7 +82,7 @@ quality. See [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md)
 
 ## Module Inventory
 
-23 modules total. Click the `Module` link for the per-module README.
+24 modules total. Click the `Module` link for the per-module README.
 
 | Module | 役割 | Layer | 主 Dependencies | 主 Consumers | Tier |
 |---|---|---|---|---|---|
@@ -106,7 +107,8 @@ quality. See [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md)
 | [code_status](clinosim/modules/code_status/README.md) | DNR/Full Code SNOMED resuscitation status (enricher) | enrichment | types/codes | simulator/enrichers.py, output | optional |
 | [care_level](clinosim/modules/care_level/README.md) | JP 要介護度 long-term-care need level (JP-only enricher) | enrichment | types/codes/locale | simulator/enrichers.py, output | optional (JP) |
 | [sdoh](clinosim/modules/sdoh/README.md) | smoking + alcohol enum→SNOMED reference (data-only variant) | enrichment | codes | output (_fhir_smoking_alcohol.py) | foundational |
-| [device](clinosim/modules/device/README.md) | ICU device placement (CVC / indwelling catheter / ventilator) | enrichment | types/codes | simulator/enrichers.py, output (_fhir_device.py) | optional |
+| [device](clinosim/modules/device/README.md) | ICU device placement (CVC / indwelling catheter / ventilator) | enrichment | types/codes | simulator/enrichers.py, output (_fhir_device.py), modules/hai | optional |
+| [hai](clinosim/modules/hai/README.md) | Hospital-acquired infection (CLABSI / CAUTI / VAP) via CDC NHSN baseline | enrichment | types/codes + modules/device | simulator/enrichers.py, output (_fhir_hai.py + reuses _fhir_microbiology.py) | optional |
 | [output](clinosim/modules/output/README.md) | CIF → FHIR R4 NDJSON / CSV adapters (registry-based) | output | 全 module (via builders) | CLI (clinosim generate) | core |
 | [llm_service](clinosim/modules/llm_service/README.md) | optional narrative generation (Ollama/Bedrock/Anthropic) | output | codes | output (narrative path), simulator | optional |
 | [validator](clinosim/modules/validator/README.md) | data quality tier framework | output | types | CLI (clinosim validate) | optional |
@@ -151,6 +153,7 @@ code_status/    ├── types/, codes/
 care_level/     ├── types/, codes/, locale/
 sdoh/           └── codes/  (data-only variant, no enricher)
 device/         ├── types/, codes/
+hai/            ├── types/, codes/, modules/device  (cross-module consume)
 
 output/         └── 全 module  (via _BUNDLE_BUILDERS + registry)
 llm_service/    └── codes/
