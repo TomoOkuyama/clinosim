@@ -44,6 +44,12 @@ def test_run_forced_registers_post_encounter_enrichers():
         "modules/hai not registered in POST_ENCOUNTER stage "
         "(run_forced is missing register_builtin_enrichers)"
     )
+    # PR-93 adversarial review fix: also pin antibiotic registration
+    # so a future PR cannot remove it without the test catching it.
+    assert "antibiotic" in names_in_post_encounter, (
+        "modules/antibiotic not registered in POST_ENCOUNTER stage "
+        "(register_builtin_enrichers regression)"
+    )
 
 
 @pytest.mark.integration

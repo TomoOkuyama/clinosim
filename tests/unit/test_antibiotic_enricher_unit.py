@@ -136,6 +136,20 @@ def test_enrich_antibiotic_skips_future_onset_hai_ad32():
 
 
 @pytest.mark.unit
+def test_resolve_snapshot_handles_empty_time_range():
+    """PR-93 adversarial review fix: empty time_range tuple must NOT raise."""
+    from clinosim.modules.antibiotic.enricher import _resolve_snapshot
+    cfg_empty_tuple = SimpleNamespace(snapshot_date=None, time_range=())
+    cfg_none = SimpleNamespace(snapshot_date=None, time_range=None)
+    cfg_missing = SimpleNamespace(snapshot_date=None)
+    cfg_garbage = SimpleNamespace(snapshot_date=None, time_range=("garbage",))
+    # All four must return a valid datetime, no IndexError / TypeError
+    for cfg in (cfg_empty_tuple, cfg_none, cfg_missing, cfg_garbage):
+        out = _resolve_snapshot(cfg)
+        assert out == datetime(2099, 12, 31)
+
+
+@pytest.mark.unit
 def test_enrich_antibiotic_present_and_future_hai_mixed():
     """Present-onset HAI emits orders; future-onset HAI in same record is skipped."""
     present_ev = HAIEvent(
