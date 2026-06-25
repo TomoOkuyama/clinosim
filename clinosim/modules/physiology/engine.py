@@ -7,7 +7,6 @@ are derived from the hidden physiological state, not generated independently.
 from __future__ import annotations
 
 import math
-from datetime import datetime, timedelta
 
 import numpy as np
 
@@ -330,6 +329,7 @@ def derive_lab_values(
     myocardial_injury: bool = False,
     causes_vte: bool = False,
     on_warfarin: bool = False,
+    hai_inflammation_lift: float = 0.0,
 ) -> dict[str, float]:
     """Derive lab values from physiological state. Returns 'true' values before noise."""
     labs: dict[str, float] = {}
@@ -342,12 +342,19 @@ def derive_lab_values(
     ph = state.ph_status
 
     # --- Inflammation ---
-    # CRP: infl 0→0.3, 0.3→11, 0.5→50, 0.7→138, 1.0→400 mg/L
-    labs["CRP"] = 0.3 + 400 * infl ** 3
-    if infl < 0.8:
-        labs["WBC"] = 7000 + infl * 12000
+    # Phase 3a: HAI WBC + CRP lift via effective_infl. Other inflammation-driven
+    # analytes (PCT, Albumin, Fibrinogen, pO2, Ca, Temp, SBP/DBP) continue to
+    # read state.inflammation_level directly; they will be revisited in Phase 3c
+    # as part of the sepsis-cascade extension.
+    effective_infl = min(1.0, infl + hai_inflammation_lift)
+    # CRP: effective_infl 0→0.3, 0.4→26, 0.6→87, 0.75→169, 1.0→400 mg/L
+    labs["CRP"] = 0.3 + 400 * effective_infl ** 3
+    if effective_infl < 0.8:
+        labs["WBC"] = 7000 + effective_infl * 12000
     else:
-        labs["WBC"] = max(1500, 7000 + 0.8 * 12000 - (infl - 0.8) * 30000)
+        labs["WBC"] = max(
+            1500, 7000 + 0.8 * 12000 - (effective_infl - 0.8) * 30000
+        )
     labs["PCT"] = 0.03 * math.exp(infl * 7)
     labs["Albumin"] = max(1.0, 4.2 - infl * 2.0 - (1 - hepatic) * 1.5)
 
