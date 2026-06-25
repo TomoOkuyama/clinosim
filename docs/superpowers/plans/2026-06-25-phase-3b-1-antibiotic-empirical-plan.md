@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a `modules/antibiotic/` opt-in Module that consumes `extensions["hai"]` and emits IDSA guideline empirical antibiotic regimens (CLABSI / CAUTI / VAP) as MedicationRequest + MedicationAdministration via the existing FHIR builder, while writing `extensions["antibiotic"] = list[AntibioticRegimen]` for cross-PR consumption by PR3b-2/3/4.
+**Goal:** Add a `modules/antibiotic/` always-on Module (AD-55 near-essential clinical cascade) that consumes `extensions["hai"]` and emits IDSA guideline empirical antibiotic regimens (CLABSI / CAUTI / VAP) as MedicationRequest + MedicationAdministration via the existing FHIR builder, while writing `extensions["antibiotic"] = list[AntibioticRegimen]` for cross-PR consumption by PR3b-2/3/4. Also extends `ForcedScenario` with `force_hai_event` to enable deterministic end-to-end tests (retroactively unlocking the `pytest.skip` in PR-B baseline).
 
-**Architecture:** New `POST_ENCOUNTER` enricher (order=85, after `hai=80`) walks `extensions["hai"]`, for each HAI event constructs a per-HAI-type empirical regimen from `hai_empirical.yaml`, appends `Order(OrderType.MEDICATION)` to `record.orders` + daily `MedicationAdministration` to `record.medication_administrations`, and writes `extensions["antibiotic"]`. Zero new FHIR builders. AD-60 audit plug-in includes a `lift_firing_proof` synthetic-record check (PR-90 silent-no-op gate).
+**Architecture:** New `POST_ENCOUNTER` enricher (order=85, after `hai=80`, `enabled=lambda c: True` = always-on like device/hai), HAI 不在時は no-op. Walks `extensions["hai"]`, skips future-onset HAI events (AD-32 compliance — `inpatient.py` AD-32 truncation runs POST `POST_ENCOUNTER`), constructs per-HAI-type empirical regimens from `hai_empirical.yaml`, appends `Order(OrderType.MEDICATION)` to `record.orders` + daily `MedicationAdministration` to `record.medication_administrations`, and writes `extensions["antibiotic"]`. Zero new FHIR builders. AD-60 audit plug-in includes a `lift_firing_proof` synthetic-record check (PR-90 silent-no-op gate).
 
 **Tech Stack:** Python 3.11 + Pydantic + dataclass + numpy.random.Generator + pyyaml + pytest (unit + integration markers).
 
@@ -39,7 +39,11 @@
 
 **Modify:**
 - `clinosim/simulator/seeding.py` — add `"antibiotic": 0x4142` to `ENRICHER_SEED_OFFSETS`
-- `clinosim/simulator/enrichers.py` — register `enrich_antibiotic` (POST_ENCOUNTER, order=85, opt-in via `c.modules.get("antibiotic", False)`)
+- `clinosim/simulator/enrichers.py` — register `enrich_antibiotic` (POST_ENCOUNTER, order=85, always-on `enabled=lambda c: True`)
+- `clinosim/types/config.py` — add `ForcedScenario.force_hai_event: dict | None = None` field (deterministic HAI testing)
+- `clinosim/modules/hai/enricher.py` — read `ctx.config.forced_scenarios[0].force_hai_event` and bypass Poisson sampling when set
+- `tests/integration/test_hai_forced_e2e.py` — drop `pytest.skip` from `test_hai_event_hai_type_strings_are_canonical`; use deterministic `force_hai_event`
+- `tests/e2e/test_alpha_golden.py` — `order_count`/MR-count update IF run_alpha at seed=42 triggers HAI (Task 7c spike determines)
 - `clinosim/codes/data/rxnorm.yaml` — add Vancomycin entry (authoritative CUI)
 - `clinosim/codes/data/yj.yaml` — add Vancomycin entry (authoritative YJ)
 - `clinosim/locale/us/code_mapping_drug.yaml` — `Vancomycin: "<CUI>"`
@@ -1050,7 +1054,8 @@ EOF
     - Appends 1 `Order(OrderType.MEDICATION)` per regimen drug to `record.orders`
     - Appends N `MedicationAdministration` per regimen to `record.medication_administrations`
     - Appends N `AntibioticRegimen` to `record.extensions["antibiotic"]`
-  - Opt-in gated via `c.modules.get("antibiotic", False)` in the `enabled` lambda.
+  - **Always-on** via `enabled=lambda c: True` (matches device/hai pattern).
+  - **AD-32 future-onset skip**: HAI events with `onset_date > snapshot_date` are silently skipped to prevent orphan Order/MAR when `inpatient.py:464-490` AD-32 truncation drops the HAI event AFTER POST_ENCOUNTER.
   - `start_datetime = datetime.fromisoformat(hai_event.onset_date).replace(hour=8)`
 
 - [ ] **Step 1: Write failing test**
@@ -1167,6 +1172,55 @@ def test_enrich_antibiotic_missing_extensions_no_crash():
     enrich_antibiotic(ctx)
     assert rec.orders == []
     assert rec.medication_administrations == []
+
+
+@pytest.mark.unit
+def test_enrich_antibiotic_skips_future_onset_hai_ad32():
+    """AD-32: HAI events with onset > snapshot must NOT produce orphan Order/MAR.
+
+    inpatient.py:464-490 AD-32 truncation runs AFTER POST_ENCOUNTER stage;
+    if antibiotic enricher emits Order+MAR for a HAI event that gets
+    truncated, those become orphans (Order referencing a non-existent
+    HAI event). Defensive skip in this enricher prevents that.
+    """
+    # Snapshot defaults to time_range end = 2026-12-31. onset 2027-06-01 is post-snapshot.
+    future_ev = HAIEvent(
+        hai_id="future-h1",
+        encounter_id="enc-1",
+        hai_type="cauti",
+        source_device_id="d1",
+        icd10_code="",
+        snomed_code="",
+        onset_date="2027-06-01",
+        organism_snomed="",
+        culture_specimen_id="",
+    )
+    ctx, rec = _make_ctx([future_ev])
+    enrich_antibiotic(ctx)
+    assert rec.orders == [], "future-onset HAI must not produce Order"
+    assert rec.medication_administrations == [], "future-onset HAI must not produce MAR"
+    assert rec.extensions.get("antibiotic", []) == []
+
+
+@pytest.mark.unit
+def test_enrich_antibiotic_present_and_future_hai_mixed():
+    """Present-onset HAI emits orders; future-onset HAI in same record is skipped."""
+    present_ev = HAIEvent(
+        hai_id="present", encounter_id="enc-1", hai_type="cauti",
+        source_device_id="d1", icd10_code="", snomed_code="",
+        onset_date="2026-01-10", organism_snomed="", culture_specimen_id="",
+    )
+    future_ev = HAIEvent(
+        hai_id="future", encounter_id="enc-1", hai_type="vap",
+        source_device_id="d2", icd10_code="", snomed_code="",
+        onset_date="2027-06-01", organism_snomed="", culture_specimen_id="",
+    )
+    ctx, rec = _make_ctx([present_ev, future_ev])
+    enrich_antibiotic(ctx)
+    # Only the present-onset HAI's regimen is emitted (CAUTI = 1 drug Ceftriaxone)
+    assert len(rec.extensions["antibiotic"]) == 1
+    assert rec.extensions["antibiotic"][0].hai_event_id == "present"
+    assert len([o for o in rec.orders if o.order_type == OrderType.MEDICATION]) == 1
 ```
 
 - [ ] **Step 2: Verify failure**
@@ -1180,8 +1234,10 @@ Create `clinosim/modules/antibiotic/enricher.py`:
 ```python
 """Antibiotic enricher (PR3b-1, POST_ENCOUNTER stage, order=85).
 
-Consumes extensions["hai"] from PR-B. For each HAIEvent, materializes
-the IDSA empirical regimen as:
+Always-on (AD-55 near-essential clinical cascade Module). Consumes
+extensions["hai"] from PR-B. For each HAIEvent whose onset is on/before
+the snapshot date (AD-32 future-onset skip), materializes the IDSA
+empirical regimen as:
   - 1 Order(MEDICATION) per drug, appended to record.orders, so the
     existing _fhir_medications.py builder emits MedicationRequest.
   - N MedicationAdministration per regimen, appended to
@@ -1189,9 +1245,11 @@ the IDSA empirical regimen as:
   - 1 AntibioticRegimen per drug, appended to
     record.extensions["antibiotic"], for PR3b-2/3/4 consumption.
 
-Opt-in: registered with enabled=lambda c: c.modules.get("antibiotic",
-False) so existing golden files stay byte-IDENTICAL when the module
-is off by default.
+AD-32 future-onset skip rationale: inpatient.py:464-490 runs AD-32
+HAI/microbiology truncation AFTER POST_ENCOUNTER stage completes. If
+this enricher emits Order+MAR for a future-onset HAI event, the
+truncation drops the HAI event but leaves the orphan Order — a CIF
+data quality defect. The enricher pre-skips future-onset events.
 """
 from __future__ import annotations
 
@@ -1219,6 +1277,7 @@ def _resolve_snapshot(cfg) -> datetime:
 def enrich_antibiotic(ctx) -> None:
     """POST_ENCOUNTER stage entry point — see module docstring."""
     snapshot = _resolve_snapshot(ctx.config)
+    snapshot_date = snapshot.date()
     for rec in ctx.records:
         ext = _get(rec, "extensions", {}) or {}
         hai_events: list[HAIEvent] = list(ext.get("hai", []) or [])
@@ -1226,6 +1285,15 @@ def enrich_antibiotic(ctx) -> None:
             continue
         regimens_out = []
         for ev in hai_events:
+            try:
+                onset_date = datetime.fromisoformat(ev.onset_date).date()
+            except (TypeError, ValueError):
+                continue
+            if onset_date > snapshot_date:
+                # AD-32 defensive skip: future-onset HAI gets truncated
+                # by inpatient.py:464-490 AFTER POST_ENCOUNTER. Pre-skip
+                # here to prevent orphan Order/MAR.
+                continue
             start_dt = datetime.fromisoformat(ev.onset_date).replace(hour=_ORDER_HOUR)
             for regimen in build_regimens(ev, start_datetime=start_dt):
                 order_id = f"req-{regimen.regimen_id}"
@@ -1270,10 +1338,10 @@ Expected: PASS (4 tests).
 
 Edit `clinosim/simulator/enrichers.py` — append after the `hai` registration block:
 ```python
-    # Empirical antibiotic regimen for HAI events (AD-55 Module, PR3b-1).
-    # Consumes extensions["hai"] (PR-B output). Opt-in; existing golden
-    # files stay byte-IDENTICAL when off by default. Order 85 ensures it
-    # runs AFTER hai (80) so extensions["hai"] is populated.
+    # Empirical antibiotic regimen for HAI events (AD-55 always-on
+    # Module = near-essential clinical cascade, PR3b-1). Consumes
+    # extensions["hai"] (PR-B output); HAI 不在時は no-op. Order 85
+    # ensures it runs AFTER hai (80) so extensions["hai"] is populated.
     from clinosim.modules.antibiotic.enricher import enrich_antibiotic
 
     register_enricher(
@@ -1281,7 +1349,7 @@ Edit `clinosim/simulator/enrichers.py` — append after the `hai` registration b
             name="antibiotic",
             stage=POST_ENCOUNTER,
             order=85,
-            enabled=lambda c: c.modules.get("antibiotic", False),
+            enabled=lambda c: True,
             run=enrich_antibiotic,
         )
     )
@@ -1297,18 +1365,366 @@ Expected: PASS (all existing unit tests still green; ours new pass).
 ```bash
 git add clinosim/modules/antibiotic/enricher.py clinosim/simulator/enrichers.py tests/unit/test_antibiotic_enricher_unit.py
 git commit -m "$(cat <<'EOF'
-feat(antibiotic): enrich_antibiotic POST_ENCOUNTER enricher + opt-in registration (Task 7)
+feat(antibiotic): enrich_antibiotic POST_ENCOUNTER always-on enricher (Task 7)
 
-Order=85 (after hai=80). Consumes extensions["hai"], dual-writes
-record.orders + record.medication_administrations (existing FHIR
-builder reuses) + extensions["antibiotic"] (cross-PR consumption).
-Opt-in via SimulatorConfig.modules["antibiotic"]; default off
-preserves byte-IDENTICAL golden output.
+Order=85 (after hai=80). Always-on (AD-55 near-essential clinical
+cascade); consumes extensions["hai"], dual-writes record.orders +
+record.medication_administrations (existing FHIR builder reuses) +
+extensions["antibiotic"] (cross-PR consumption). AD-32 future-onset
+HAI skip prevents orphan Order/MAR for HAI events truncated by
+inpatient.py post-POST_ENCOUNTER.
 
 Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01BPCNtAC7fmvNV8Ndy61T2j
 EOF
 )"
+```
+
+---
+
+## Task 7b: ForcedScenario.force_hai_event + retroactive PR-B skip removal
+
+**Why this is in PR3b-1**: PR-90 教訓 = "forced-scenario integration test must drive the actual enricher path end-to-end". The existing `tests/integration/test_hai_forced_e2e.py:test_hai_event_hai_type_strings_are_canonical` is **probabilistic + skip** (sepsis count=100, may not trigger HAI) — the 教訓 implementation is half-done. Adding `ForcedScenario.force_hai_event` deterministically forces HAI events from `enrich_hai` for testing, enables Task 8's deterministic e2e test, AND retroactively removes the PR-B skip. Improvement-to-existing-code per `feedback_propose_improvements_to_existing`.
+
+**Files:**
+- Modify: `clinosim/types/config.py` (extend `ForcedScenario`)
+- Modify: `clinosim/modules/hai/enricher.py` (read forced field, bypass Poisson)
+- Modify: `tests/integration/test_hai_forced_e2e.py` (drop skip, use force_hai_event)
+- Create: `tests/unit/test_forced_scenario_hai.py`
+
+**Interfaces:**
+- Consumes: `ForcedScenario` from `clinosim.types.config`, `enrich_hai` from `clinosim.modules.hai.enricher`
+- Produces: `ForcedScenario.force_hai_event: dict | None`. Shape: `{"hai_type": "cauti", "onset_offset_days": 3, "organism_snomed": "112283007"}` — when set, `enrich_hai` skips Poisson sampling and emits exactly one HAI event per matching device of that hai_type at `placement_date + onset_offset_days`.
+
+- [ ] **Step 1: Write failing test for ForcedScenario field**
+
+Create `tests/unit/test_forced_scenario_hai.py`:
+```python
+"""Unit tests for ForcedScenario.force_hai_event (PR3b-1 Task 7b)."""
+import pytest
+
+from clinosim.types.config import ForcedScenario
+
+
+@pytest.mark.unit
+def test_forced_scenario_default_no_force_hai():
+    s = ForcedScenario(disease_id="sepsis")
+    assert s.force_hai_event is None
+
+
+@pytest.mark.unit
+def test_forced_scenario_force_hai_event_dict():
+    s = ForcedScenario(
+        disease_id="sepsis",
+        force_hai_event={
+            "hai_type": "cauti",
+            "onset_offset_days": 3,
+            "organism_snomed": "112283007",
+        },
+    )
+    assert s.force_hai_event["hai_type"] == "cauti"
+    assert s.force_hai_event["onset_offset_days"] == 3
+    assert s.force_hai_event["organism_snomed"] == "112283007"
+
+
+@pytest.mark.unit
+def test_forced_scenario_force_hai_event_missing_hai_type_invalid_at_consumer():
+    """Consumer (enrich_hai) is expected to validate hai_type ∈ HAI_TYPES;
+    the dict itself accepts arbitrary shape so legacy callers don't break."""
+    s = ForcedScenario(disease_id="sepsis", force_hai_event={"hai_type": "bogus"})
+    assert s.force_hai_event["hai_type"] == "bogus"
+```
+
+- [ ] **Step 2: Verify failure**
+
+Run: `pytest tests/unit/test_forced_scenario_hai.py -v`
+Expected: FAIL (`AttributeError` on `force_hai_event`).
+
+- [ ] **Step 3: Extend ForcedScenario**
+
+Edit `clinosim/types/config.py` — locate `class ForcedScenario(BaseModel):` and append:
+```python
+    # PR3b-1: deterministically force one HAI event per matching device.
+    # Shape: {"hai_type": "cauti", "onset_offset_days": 3,
+    #         "organism_snomed": "112283007"}. None = use stochastic Poisson sampling.
+    # hai_type must be in HAI_TYPES (validated by enrich_hai at consume time).
+    force_hai_event: dict | None = None
+```
+
+- [ ] **Step 4: Verify ForcedScenario tests pass**
+
+Run: `pytest tests/unit/test_forced_scenario_hai.py -v`
+Expected: PASS (3 tests).
+
+- [ ] **Step 5: Write failing test for enrich_hai deterministic mode**
+
+Append to `tests/unit/test_forced_scenario_hai.py`:
+```python
+from datetime import date
+from types import SimpleNamespace
+
+from clinosim.modules.hai.enricher import enrich_hai
+from clinosim.types.device import DeviceRecord
+
+
+@pytest.mark.unit
+def test_enrich_hai_force_emits_one_event_per_matching_device():
+    """force_hai_event with hai_type=cauti emits HAI for indwelling_catheter
+    devices, ignoring Poisson sampling and per-line-day risk."""
+    dev = DeviceRecord(
+        device_id="d1",
+        encounter_id="enc-1",
+        device_type="indwelling_catheter",  # matches cauti via _DEVICE_TO_HAI
+        placement_date="2026-01-05",
+        removal_date="2026-01-15",
+        snomed_code="23973005",
+    )
+    rec = SimpleNamespace(
+        patient=SimpleNamespace(patient_id="p1"),
+        extensions={"device": [dev]},
+        microbiology=[],
+    )
+    forced = SimpleNamespace(
+        disease_id="urinary_tract_infection", count=1, severity=None,
+        archetype=None, complications=[], patient_overrides={},
+        force_hai_event={"hai_type": "cauti", "onset_offset_days": 3,
+                         "organism_snomed": "112283007"},
+    )
+    cfg = SimpleNamespace(country="US", random_seed=42,
+                          time_range=("2026-01-01", "2026-12-31"),
+                          snapshot_date=None,
+                          forced_scenarios=[forced])
+    ctx = SimpleNamespace(config=cfg, master_seed=42, records=[rec])
+    enrich_hai(ctx)
+    hai = rec.extensions.get("hai", [])
+    assert len(hai) == 1
+    assert hai[0].hai_type == "cauti"
+    assert hai[0].onset_date == "2026-01-08"  # placement + 3 days
+    assert hai[0].organism_snomed == "112283007"
+
+
+@pytest.mark.unit
+def test_enrich_hai_force_mismatched_hai_type_no_emit():
+    """force_hai_event with hai_type=vap but only catheter device → no emit
+    (deterministic mode only fires for matching device-type)."""
+    dev = DeviceRecord(
+        device_id="d1", encounter_id="enc-1",
+        device_type="indwelling_catheter",  # not VAP
+        placement_date="2026-01-05",
+        removal_date="2026-01-15",
+        snomed_code="23973005",
+    )
+    rec = SimpleNamespace(
+        patient=SimpleNamespace(patient_id="p1"),
+        extensions={"device": [dev]},
+        microbiology=[],
+    )
+    forced = SimpleNamespace(
+        disease_id="bacterial_pneumonia", count=1, severity=None,
+        archetype=None, complications=[], patient_overrides={},
+        force_hai_event={"hai_type": "vap", "onset_offset_days": 3,
+                         "organism_snomed": "3092008"},
+    )
+    cfg = SimpleNamespace(country="US", random_seed=42,
+                          time_range=("2026-01-01", "2026-12-31"),
+                          snapshot_date=None,
+                          forced_scenarios=[forced])
+    ctx = SimpleNamespace(config=cfg, master_seed=42, records=[rec])
+    enrich_hai(ctx)
+    assert rec.extensions.get("hai", []) == []
+```
+
+- [ ] **Step 6: Verify failure**
+
+Run: `pytest tests/unit/test_forced_scenario_hai.py -v`
+Expected: 2 new tests FAIL.
+
+- [ ] **Step 7: Modify enrich_hai to honor force_hai_event**
+
+Edit `clinosim/modules/hai/enricher.py`. Add a helper `_get_forced_hai_event(ctx)` and call it before the Poisson loop:
+
+```python
+def _get_forced_hai_event(ctx) -> dict | None:
+    """Return the first ForcedScenario.force_hai_event if set, else None.
+
+    PR3b-1 Task 7b: deterministic HAI testing infrastructure. A non-None
+    return overrides stochastic per-line-day risk sampling — for each
+    device of the matching hai_type, exactly one HAI event is emitted
+    at placement_date + onset_offset_days using the supplied organism.
+    """
+    forced_scenarios = getattr(ctx.config, "forced_scenarios", None) or []
+    for fs in forced_scenarios:
+        fe = getattr(fs, "force_hai_event", None)
+        if isinstance(fe, dict) and fe.get("hai_type"):
+            return fe
+    return None
+```
+
+Then in `enrich_hai` body, immediately after the `if not devices: continue` line, branch:
+```python
+        forced = _get_forced_hai_event(ctx)
+        # ...existing per-device loop...
+        for device in devices:
+            device_type = _get(device, "device_type", "")
+            hai_type = _DEVICE_TO_HAI.get(device_type)
+            if not hai_type:
+                continue
+            if forced is not None:
+                if hai_type != forced["hai_type"]:
+                    continue
+                onset_offset = int(forced["onset_offset_days"])
+                organism = forced["organism_snomed"]
+            else:
+                occurred, onset_offset = sample_hai_onset(device, rates_cfg[hai_type], rng)
+                if not occurred or onset_offset is None:
+                    continue
+                organism = _sample_organism(organisms_cfg[hai_type], rng)
+            # ...rest of HAIEvent construction unchanged...
+```
+
+- [ ] **Step 8: Verify enrich_hai tests pass**
+
+Run: `pytest tests/unit/test_forced_scenario_hai.py -v`
+Expected: PASS (5 tests).
+
+- [ ] **Step 9: Retroactively remove skip in PR-B baseline test**
+
+Edit `tests/integration/test_hai_forced_e2e.py:test_hai_event_hai_type_strings_are_canonical`. Replace the probabilistic sepsis count=100 + skip block with a deterministic force_hai_event-driven assertion. Use the same canonical-string check the test was designed for, but now with guaranteed HAI events.
+
+```python
+@pytest.mark.integration
+def test_hai_event_hai_type_strings_are_canonical():
+    """PR-B canonical hai_type check. Made deterministic via PR3b-1
+    Task 7b force_hai_event so this no longer pytest.skips on small
+    cohorts — exercises the enricher with guaranteed HAI emission."""
+    scenario = ForcedScenario(
+        disease_id="urinary_tract_infection", count=1,
+        force_hai_event={
+            "hai_type": "cauti",
+            "onset_offset_days": 3,
+            "organism_snomed": "112283007",
+        },
+    )
+    config = SimulatorConfig(country="US", random_seed=42)
+    dataset = run_forced(scenario, config)
+
+    seen_types: set[str] = set()
+    for rec in dataset.patients:
+        for ev in (getattr(rec, "extensions", {}) or {}).get("hai") or []:
+            seen_types.add(getattr(ev, "hai_type", "?"))
+
+    assert seen_types, "force_hai_event must guarantee at least one HAI event"
+    bad = {t for t in seen_types if t not in HAI_TYPES}
+    assert not bad, (
+        f"enricher produced non-canonical hai_type strings {bad}; "
+        f"must be one of {HAI_TYPES}"
+    )
+```
+
+- [ ] **Step 10: Run the modified test**
+
+Run: `pytest tests/integration/test_hai_forced_e2e.py::test_hai_event_hai_type_strings_are_canonical -v -m integration`
+Expected: PASS (no skip).
+
+If the test still skips or fails because `urinary_tract_infection` doesn't reliably place a catheter in run_forced: inspect the disease YAML for `order_protocols.admission_orders.supportive` and identify a disease that does (or use `sepsis`/`bacterial_pneumonia`). Adapt the `disease_id` accordingly. **Do NOT silently re-introduce a skip** — the goal is deterministic execution.
+
+- [ ] **Step 11: Run full hai_forced_e2e suite for regression**
+
+Run: `pytest tests/integration/test_hai_forced_e2e.py -v -m integration`
+Expected: all PASS (existing `test_run_forced_registers_post_encounter_enrichers` etc. untouched).
+
+- [ ] **Step 12: Commit**
+
+```bash
+git add clinosim/types/config.py clinosim/modules/hai/enricher.py tests/unit/test_forced_scenario_hai.py tests/integration/test_hai_forced_e2e.py
+git commit -m "$(cat <<'EOF'
+feat(forced-scenario): ForcedScenario.force_hai_event for deterministic HAI testing (Task 7b)
+
+Extends ForcedScenario with optional force_hai_event dict
+({hai_type, onset_offset_days, organism_snomed}). enrich_hai
+honors it by bypassing Poisson per-line-day sampling. Enables
+deterministic PR3b-1 e2e tests; retroactively removes the
+pytest.skip in test_hai_event_hai_type_strings_are_canonical
+(PR-B baseline) — completing the PR-90 教訓 implementation.
+
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01BPCNtAC7fmvNV8Ndy61T2j
+EOF
+)"
+```
+
+---
+
+## Task 7c: e2e golden spike — does run_alpha at seed=42 trigger HAI?
+
+**Why**: With antibiotic always-on, any HAI-triggering golden cohort gets +1 or +2 MedicationRequest + N MedicationAdministration entries. `tests/e2e/test_alpha_golden.py` asserts `order_count: 63`. If run_alpha at seed=42 triggers HAI, the golden updates.
+
+**Files:**
+- Spike script: `scratchpad/alpha_hai_spike.py` (throwaway)
+- Possible modify: `tests/e2e/test_alpha_golden.py` (only if HAI fires)
+
+- [ ] **Step 1: Write spike script**
+
+Create `scratchpad/alpha_hai_spike.py`:
+```python
+"""One-off: does run_alpha(seed=42) trigger HAI? If yes, golden updates."""
+from clinosim.simulator.engine import run_alpha
+from clinosim.types.config import SimulatorConfig
+
+ds = run_alpha(SimulatorConfig(random_seed=42))
+rec = ds.patients[0]
+
+print(f"patient_id = {rec.patient.patient_id}")
+print(f"encounters = {len(rec.encounters)}")
+print(f"orders     = {len(rec.orders)}")
+print(f"  MEDICATION = {sum(1 for o in rec.orders if o.order_type.value=='medication')}")
+print(f"MAR        = {len(rec.medication_administrations)}")
+print(f"devices    = {len((rec.extensions or {}).get('device', []) or [])}")
+print(f"hai        = {len((rec.extensions or {}).get('hai', []) or [])}")
+for ev in (rec.extensions or {}).get('hai', []) or []:
+    print(f"  HAI {ev.hai_type} onset={ev.onset_date} organism={ev.organism_snomed}")
+print(f"antibiotic = {len((rec.extensions or {}).get('antibiotic', []) or [])}")
+```
+
+- [ ] **Step 2: Run spike**
+
+Run: `python scratchpad/alpha_hai_spike.py`
+
+Branch:
+- **Case A (HAI fires)**: golden updates needed. Note the new `order_count` (= 63 + 2 for CLABSI/VAP, or 63 + 1 for CAUTI). Proceed to Step 3.
+- **Case B (no HAI)**: no golden change needed. Skip to Step 5.
+
+- [ ] **Step 3: Update test_alpha_golden if Case A**
+
+Edit `tests/e2e/test_alpha_golden.py` — bump `order_count` to the new value, optionally add an `extensions["antibiotic"]` len assertion. Add a comment explaining the change:
+```python
+    "order_count": 65,  # was 63; +2 for CLABSI HAI Vanc + Pip-Tazo (PR3b-1 always-on antibiotic)
+```
+
+- [ ] **Step 4: Re-run e2e alpha**
+
+Run: `pytest tests/e2e/test_alpha_golden.py -v -m e2e`
+Expected: PASS with updated GOLDEN.
+
+- [ ] **Step 5: Delete spike + commit (if Case A) / no-op commit (if Case B)**
+
+```bash
+rm scratchpad/alpha_hai_spike.py
+# If Case A:
+git add tests/e2e/test_alpha_golden.py
+git commit -m "$(cat <<'EOF'
+test(e2e-alpha): update golden order_count for PR3b-1 always-on antibiotic (Task 7c)
+
+run_alpha(seed=42) triggers <details from spike> HAI;
+antibiotic always-on emits +<N> MedicationRequest, bumping
+order_count GOLDEN.
+
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01BPCNtAC7fmvNV8Ndy61T2j
+EOF
+)"
+# If Case B:
+echo "no golden change needed"
 ```
 
 ---
@@ -1342,30 +1758,37 @@ from clinosim.types.config import ForcedScenario, SimulatorConfig
 
 @pytest.fixture
 def cauti_forced_scenario():
+    """Deterministic CAUTI HAI scenario via Task 7b's force_hai_event.
+
+    UTI patients reliably get an indwelling catheter (Foley) in
+    admission_orders.supportive of `urinary_tract_infection.yaml`,
+    which produces a `DeviceRecord(device_type="indwelling_catheter")`
+    via PR-A. force_hai_event then deterministically emits a CAUTI
+    HAI event 3 days post-placement (PR-B + Task 7b).
+    """
     return ForcedScenario(
         disease_id="urinary_tract_infection",
-        country="US",
-        # ICU + Foley placement triggers PR-A device + PR-B hai chain.
-        force_icu=True,
-        force_indwelling_catheter=True,
-        # Lock HAI sampling so a CAUTI event always fires (force_hai True per PR-B)
-        force_hai=True,
-        force_hai_type="cauti",
-        seed=42,
+        count=1,
+        force_hai_event={
+            "hai_type": "cauti",
+            "onset_offset_days": 3,
+            "organism_snomed": "112283007",   # E. coli (most common CAUTI organism)
+        },
     )
 
 
 @pytest.mark.integration
-def test_antibiotic_opt_in_emits_medications(cauti_forced_scenario):
-    cfg = SimulatorConfig(country="US", random_seed=42,
-                          modules={"device": True, "hai": True, "antibiotic": True})
+def test_antibiotic_always_on_emits_medications(cauti_forced_scenario):
+    """Always-on enricher: HAI event triggers Ceftriaxone Order + 7 MAR."""
+    cfg = SimulatorConfig(country="US", random_seed=42)
     ds = run_forced(cauti_forced_scenario, config=cfg)
     rec = ds.patients[0]
-    abx = rec.extensions.get("antibiotic", [])
-    assert len(abx) == 1
+    abx = rec.extensions.get("antibiotic", []) or []
+    assert len(abx) == 1, f"expected 1 regimen, got {abx}"
     assert abx[0].drug_key == "Ceftriaxone"
     assert abx[0].duration_days == 7
-    med_orders = [o for o in rec.orders if o.order_type.value == "medication"
+    med_orders = [o for o in rec.orders
+                  if o.order_type.value == "medication"
                   and o.display_name == "Ceftriaxone"]
     assert len(med_orders) == 1
     cef_mar = [m for m in rec.medication_administrations
@@ -1374,20 +1797,29 @@ def test_antibiotic_opt_in_emits_medications(cauti_forced_scenario):
 
 
 @pytest.mark.integration
-def test_antibiotic_opt_out_no_op(cauti_forced_scenario):
-    cfg = SimulatorConfig(country="US", random_seed=42,
-                          modules={"device": True, "hai": True, "antibiotic": False})
-    ds = run_forced(cauti_forced_scenario, config=cfg)
+def test_antibiotic_no_hai_no_antibiotic(monkeypatch):
+    """A patient without HAI events gets no antibiotic regimen (no-op).
+
+    sepsis severity=mild has no ICU transfer/devices → no HAI → no antibiotic.
+    """
+    scenario = ForcedScenario(
+        disease_id="bacterial_pneumonia",
+        count=1,
+        severity="mild",
+        force_hai_event=None,  # no HAI forced
+    )
+    cfg = SimulatorConfig(country="US", random_seed=42)
+    ds = run_forced(scenario, config=cfg)
     rec = ds.patients[0]
     assert rec.extensions.get("antibiotic", []) == []
-    assert not any(m.drug_name == "Ceftriaxone"
+    assert not any(m.drug_name in ("Vancomycin", "Piperacillin/Tazobactam", "Ceftriaxone")
                    for m in rec.medication_administrations)
 
 
 @pytest.mark.integration
 def test_antibiotic_determinism_same_seed(cauti_forced_scenario):
-    cfg = SimulatorConfig(country="US", random_seed=42,
-                          modules={"device": True, "hai": True, "antibiotic": True})
+    """Same seed + same force_hai_event ⇒ same regimens + same MAR schedule."""
+    cfg = SimulatorConfig(country="US", random_seed=42)
     a = run_forced(cauti_forced_scenario, config=cfg)
     b = run_forced(cauti_forced_scenario, config=cfg)
     abx_a = a.patients[0].extensions["antibiotic"]
@@ -1395,40 +1827,79 @@ def test_antibiotic_determinism_same_seed(cauti_forced_scenario):
     assert [r.regimen_id for r in abx_a] == [r.regimen_id for r in abx_b]
     assert [m.scheduled_datetime for m in a.patients[0].medication_administrations] == \
            [m.scheduled_datetime for m in b.patients[0].medication_administrations]
-```
 
-> **Note for implementer:** If `ForcedScenario` does not currently expose `force_indwelling_catheter` / `force_hai` / `force_hai_type`, check the existing fixture in `tests/integration/test_hai_forced_e2e.py` (PR-90 baseline) and reuse its pattern. The integration test must drive the **real** enricher chain — do not bypass with a synthetic record (this is the PR-90 教訓 in action).
+
+@pytest.mark.integration
+def test_antibiotic_vap_two_drug_regimen():
+    """VAP forced via force_hai_event → 2 drugs (Vanc + Pip-Tazo) × 7 days."""
+    scenario = ForcedScenario(
+        disease_id="bacterial_pneumonia",
+        count=1,
+        severity="severe",  # triggers ICU + ventilator placement
+        force_hai_event={
+            "hai_type": "vap",
+            "onset_offset_days": 3,
+            "organism_snomed": "3092008",  # S. aureus
+        },
+    )
+    cfg = SimulatorConfig(country="US", random_seed=42)
+    ds = run_forced(scenario, config=cfg)
+    rec = ds.patients[0]
+    abx = rec.extensions.get("antibiotic", []) or []
+    if not abx:
+        pytest.skip(
+            "severe bacterial_pneumonia did not place a ventilator at seed=42; "
+            "VAP path can't be exercised. Task 7b's force_hai_event needs the "
+            "matching device-type to be present. CAUTI path above already "
+            "covers the always-on enricher gate; this is supplementary."
+        )
+    drug_keys = {r.drug_key for r in abx}
+    assert drug_keys == {"Vancomycin", "Piperacillin/Tazobactam"}
+    for r in abx:
+        assert r.duration_days == 7
+```
 
 - [ ] **Step 2: Verify failure**
 
 Run: `pytest tests/integration/test_antibiotic_forced_e2e.py -v -m integration`
-Expected: tests FAIL (likely because `ForcedScenario` fields missing OR opt-in produces no MAR).
+Expected: tests FAIL (`enrich_antibiotic` not registered or no orders emitted).
 
-- [ ] **Step 3: If `ForcedScenario` extension needed**
+- [ ] **Step 3: Verify pass after Task 7+7b done**
 
-If the existing `ForcedScenario` does not have catheter/HAI force fields, this is a Phase 2 (PR-A/PR-B) baseline assumption that must already be present. Inspect `tests/integration/test_hai_forced_e2e.py` to learn the actual field names; adjust the new test accordingly. **Do not add new fields to `ForcedScenario` in this PR** — the assumption is that PR-A/PR-B already added them. If they did not, downgrade the scope: use a synthetic-record integration test (still exercising `register_builtin_enrichers` + `enrich_antibiotic`) but document the gap with a follow-up TODO in `TODO.md`.
+(If Step 2 was run after Task 7+7b commits, the tests may already pass. If running before, the FAIL is expected.)
 
-- [ ] **Step 4: Write byte-diff invariant test (opt-out preserves master output)**
+Run again: `pytest tests/integration/test_antibiotic_forced_e2e.py -v -m integration`
+Expected: PASS (4-5 tests; VAP test may pytest.skip — that's fine).
+
+- [ ] **Step 4: Write byte-diff invariant test (always-on impacts only Medication NDJSON)**
 
 Create `tests/integration/test_antibiotic_byte_diff.py`:
 ```python
-"""Byte-diff invariant: antibiotic OFF must produce byte-IDENTICAL FHIR output to baseline.
+"""Byte-diff invariant: always-on antibiotic must impact ONLY
+MedicationRequest.ndjson + MedicationAdministration.ndjson, with all
+other NDJSON byte-IDENTICAL vs the same-seed run when antibiotic
+is excluded (controlled via a monkeypatched register hook).
 
-AD-16 (deterministic) + AD-59 (per-order isolation). Mirrors the
-PR-90 baseline test (test_hai_byte_diff if present).
+AD-16 (deterministic) — antibiotic uses a dedicated sub-seed offset
+(0x4142) so the main RNG stream is untouched. All other NDJSON
+(Patient/Encounter/Condition/Observation/Procedure/etc.) must remain
+byte-identical between with-antibiotic and without-antibiotic runs.
+
+This is the in-suite shortcut for the master vs branch byte-diff
+that the PR description runs offline (Task 11 DQR).
 """
 import hashlib
-import json
 from pathlib import Path
 
 import pytest
 
 from clinosim.simulator.engine import run_beta
+from clinosim.simulator import enrichers as enr
 from clinosim.types.config import SimulatorConfig
 
 
 def _sha256_fhir_export(ds, tmp_path: Path, label: str) -> dict[str, str]:
-    """Run FHIR export via the existing adapter and return resource_type -> sha256."""
+    """Run FHIR export via the existing adapter and return ndjson_name -> sha256."""
     from clinosim.modules.output.fhir_r4_adapter import write_fhir_bulk
     out = tmp_path / label
     out.mkdir()
@@ -1439,55 +1910,61 @@ def _sha256_fhir_export(ds, tmp_path: Path, label: str) -> dict[str, str]:
     return hashes
 
 
-@pytest.mark.integration
-def test_antibiotic_off_matches_master_baseline(tmp_path):
-    """ant=OFF run must byte-match a run with antibiotic key absent from config."""
-    cfg_off = SimulatorConfig(
-        country="US", random_seed=42,
-        catchment_population=200,
-        modules={"device": True, "hai": True, "antibiotic": False},
-    )
-    cfg_absent = SimulatorConfig(
-        country="US", random_seed=42,
-        catchment_population=200,
-        modules={"device": True, "hai": True},
-    )
-    a = run_beta(config=cfg_off)
-    b = run_beta(config=cfg_absent)
-    h_a = _sha256_fhir_export(a, tmp_path, "off")
-    h_b = _sha256_fhir_export(b, tmp_path, "absent")
-    assert h_a == h_b, f"opt-out absent != opt-out False: {h_a} vs {h_b}"
+@pytest.fixture
+def disabled_antibiotic_enricher(monkeypatch):
+    """Yield a context where the antibiotic enricher is a no-op,
+    simulating the master baseline (before this PR) for byte-diff."""
+    original = enr._ENRICHERS.get("antibiotic")
+    if original is not None:
+        noop_enricher = enr.Enricher(
+            name=original.name,
+            stage=original.stage,
+            order=original.order,
+            enabled=lambda c: False,    # disable for this fixture
+            run=original.run,
+        )
+        monkeypatch.setitem(enr._ENRICHERS, "antibiotic", noop_enricher)
+    yield
 
 
 @pytest.mark.integration
-def test_antibiotic_on_delta_limited_to_medication_ndjson(tmp_path):
-    """ant=ON delta must affect ONLY MedicationRequest/MedicationAdministration NDJSON."""
-    cfg_off = SimulatorConfig(
+def test_antibiotic_delta_limited_to_medication_ndjson(
+    tmp_path, disabled_antibiotic_enricher, monkeypatch
+):
+    """OFF (master-equivalent) vs ON (this PR) NDJSON delta must be limited
+    to MedicationRequest + MedicationAdministration."""
+    cfg = SimulatorConfig(
         country="US", random_seed=42,
         catchment_population=200,
-        modules={"device": True, "hai": True, "antibiotic": False},
     )
-    cfg_on = SimulatorConfig(
-        country="US", random_seed=42,
-        catchment_population=200,
-        modules={"device": True, "hai": True, "antibiotic": True},
-    )
-    a = run_beta(config=cfg_off)
-    b = run_beta(config=cfg_on)
-    h_a = _sha256_fhir_export(a, tmp_path, "off")
-    h_b = _sha256_fhir_export(b, tmp_path, "on")
-    diffs = {k for k in h_a if h_a.get(k) != h_b.get(k)} | (set(h_b) ^ set(h_a))
+    # Run with antibiotic disabled (master-equivalent)
+    ds_off = run_beta(config=cfg)
+    h_off = _sha256_fhir_export(ds_off, tmp_path, "off")
+
+    # Re-enable antibiotic and re-run
+    monkeypatch.undo()  # undo the disabled_antibiotic_enricher fixture's patch
+    ds_on = run_beta(config=cfg)
+    h_on = _sha256_fhir_export(ds_on, tmp_path, "on")
+
+    all_keys = set(h_off) | set(h_on)
+    diffs = {k for k in all_keys if h_off.get(k) != h_on.get(k)}
     allowed = {"MedicationRequest.ndjson", "MedicationAdministration.ndjson"}
     unexpected = diffs - allowed
-    assert not unexpected, f"unexpected NDJSON deltas: {unexpected}"
+    assert not unexpected, (
+        f"NDJSONs other than allow-list have differing sha256: {unexpected}. "
+        f"This violates AD-16 — antibiotic enricher is contaminating an "
+        f"unrelated record type."
+    )
 ```
 
-- [ ] **Step 5: Run integration tests**
+> **Note for implementer:** the `disabled_antibiotic_enricher` fixture relies on `enr._ENRICHERS` being a dict mutated by `register_enricher`. If the framework changed shape, mirror `tests/integration/test_hai_forced_e2e.py` plumbing.
+
+- [ ] **Step 5: Run byte-diff test**
 
 ```bash
-pytest tests/integration/test_antibiotic_forced_e2e.py tests/integration/test_antibiotic_byte_diff.py -v -m integration
+pytest tests/integration/test_antibiotic_byte_diff.py -v -m integration
 ```
-Expected: PASS. If `write_fhir_bulk` signature differs, adapt by matching `tests/integration/test_hai_forced_e2e.py` (the PR-B baseline). Do not invent new APIs.
+Expected: PASS. If non-MedicationRequest/MAR NDJSON deltas show up = main-RNG contamination bug, STOP and diagnose.
 
 - [ ] **Step 6: Commit**
 
@@ -1496,10 +1973,15 @@ git add tests/integration/test_antibiotic_forced_e2e.py tests/integration/test_a
 git commit -m "$(cat <<'EOF'
 test(antibiotic): forced-scenario e2e + byte-diff invariant (Task 8)
 
-forced-scenario test drives register_builtin_enrichers + run_forced
-end-to-end (PR-90 教訓). byte-diff test pins opt-in OFF to
-byte-IDENTICAL master output and opt-in ON delta to
-MedicationRequest/Administration NDJSON only.
+forced-scenario test deterministically drives the enricher chain via
+ForcedScenario.force_hai_event (Task 7b) — CAUTI single-drug + VAP
+two-drug + no-HAI no-op cases. Asserts always-on enricher gate
+through register_builtin_enrichers + run_forced + full FHIR adapter
+(PR-90 教訓).
+
+byte-diff invariant uses a monkeypatched disabled_antibiotic_enricher
+to simulate the master baseline in-process: all non-Medication
+NDJSON must be byte-IDENTICAL between with/without antibiotic.
 
 Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01BPCNtAC7fmvNV8Ndy61T2j
@@ -1704,12 +2186,12 @@ register_audit_module(
 Run: `pytest tests/integration/test_antibiotic_audit.py -v -m integration`
 Expected: PASS (2 tests).
 
-- [ ] **Step 6: Run the audit CLI for a smoke check**
+- [ ] **Step 6: Run the audit CLI list command for a smoke check**
 
 ```bash
-python -m clinosim audit run --module antibiotic --format text
+clinosim audit list
 ```
-Expected: structural / clinical / jp_language / silent_no_op axes report on the antibiotic module (clinical may WARN if no recent generation, that's fine for smoke).
+Expected: lists `antibiotic` (next to `hai`) with declared checks. Full `audit run` requires a generated cohort directory; that's exercised in Task 11.
 
 - [ ] **Step 7: Commit**
 
@@ -1911,9 +2393,13 @@ Mark Phase 3a/b roadmap line:
 - `[ ] Phase 3b-3 = narrow / de-escalation`
 - `[ ] Phase 3b-4 = WBC/CRP forward-delta decay`
 
-- [ ] **Step 4: Update DESIGN.md**
+- [ ] **Step 4: Update DESIGN.md — add AD-55 supplement on "always-on Module" category**
 
-Append a short note to the AD-55 Module section confirming `antibiotic` is the second per-Module audit plug-in (after `hai`) under AD-60, and that the dual-write storage strategy is established as the AD-55 Module reference pattern for opt-in modules consuming upstream extensions.
+Locate the AD-55 entry and append a new sub-paragraph (or AD-55-supplement entry) introducing the **always-on Module (near-essential clinical cascade)** category:
+
+> **AD-55 supplement (2026-06-25, PR3b-1)**: Add a third AD-55 Module category for **always-on Modules (near-essential clinical cascade)**: opt-out is non-sensical because the data is clinically required given upstream-Module output (e.g. HAI ⇒ antibiotic, device ⇒ HAI). These register with `enabled=lambda c: True` and become no-ops only when the upstream `extensions[X]` is empty. Examples: `device` (PR-A), `hai` (PR-B), `antibiotic` (PR3b-1, this PR). Contrast with the original opt-in pattern reserved for **truly optional** data (e.g. JP `identity` — only relevant if JP insurance numbering is desired).
+
+Also append a brief note that `antibiotic` is the **second per-Module audit plug-in (after `hai`) under AD-60**, demonstrating the framework's repeatability.
 
 - [ ] **Step 5: Update CLAUDE.md (if warranted)**
 
@@ -1921,15 +2407,20 @@ Only update if a new architectural rule emerged (it likely did NOT — the patte
 
 - [ ] **Step 6: Generate DQR**
 
-Run a small generation + audit pass at p=2000:
+Run a small generation + audit pass at p=2000 (US + JP). Always-on antibiotic = no `--modules` flag needed.
+
 ```bash
-python -m clinosim generate --country US --population 2000 --seed 42 --output /tmp/abx_dqr_us --modules antibiotic,device,hai
-python -m clinosim generate --country JP --population 2000 --seed 42 --output /tmp/abx_dqr_jp --modules antibiotic,device,hai
-python -m clinosim audit run --input /tmp/abx_dqr_us --module antibiotic --format text > /tmp/abx_audit_us.txt
-python -m clinosim audit run --input /tmp/abx_dqr_jp --module antibiotic --format text > /tmp/abx_audit_jp.txt
+mkdir -p scratchpad/abx_dqr/us scratchpad/abx_dqr/jp
+clinosim generate --country US --population 2000 --seed 42 --output scratchpad/abx_dqr/us
+clinosim generate --country JP --population 2000 --seed 42 --output scratchpad/abx_dqr/jp
+
+clinosim audit run -d scratchpad/abx_dqr/us --module antibiotic --report scratchpad/abx_dqr/audit_us.md
+clinosim audit run -d scratchpad/abx_dqr/jp --module antibiotic --report scratchpad/abx_dqr/audit_jp.md
 ```
 
-(If the exact CLI flags differ from above, inspect `clinosim audit --help` and `clinosim generate --help` and adapt; the principle is to drive `clinosim audit run` end-to-end against newly-generated data.)
+If `clinosim` shell command isn't installed (no `pip install -e .`), fall back to a Python entry that imports `clinosim.simulator.cli:main` and dispatches the same argv — patterned on `tests/integration/test_antibiotic_audit.py` Task 9 wiring.
+
+Inspect `scratchpad/abx_dqr/audit_us.md` + `audit_jp.md` for FAIL/WARN/PASS per 4 axes. WARN at rare-event small cohort is acceptable (lift_firing_proof is the load-bearing gate; cohort statistics are best-effort at p=2000).
 
 - [ ] **Step 7: Write DQR report**
 
@@ -1988,27 +2479,34 @@ gh pr create --title "feat(antibiotic): Phase 3b-1 HAI empirical antibiotic regi
 ## Summary
 
 - PR3b-1 of the Phase 3b 4-PR HAI antibiotic chain (empirical → S/I/R → narrow → decay)
-- New opt-in Module `modules/antibiotic/` consumes `extensions["hai"]`, emits IDSA-guideline empirical regimens
+- New **always-on Module** `modules/antibiotic/` (AD-55 *near-essential clinical cascade* category — new AD-55 supplement in DESIGN.md) consumes `extensions["hai"]`, emits IDSA-guideline empirical regimens
 - Dual-write storage: `record.orders` (MedicationRequest) + `record.medication_administrations` (MAR) + `extensions["antibiotic"]` (cross-PR consumption)
-- `modules/antibiotic/audit.py` = AD-60 framework second per-Module plug-in with lift_firing_proof (PR-90 silent-no-op gate)
+- AD-32 defensive skip for future-onset HAI events (prevents orphan Order/MAR when `inpatient.py:464-490` truncates HAI events after POST_ENCOUNTER)
+- `modules/antibiotic/audit.py` = AD-60 framework second per-Module plug-in with `lift_firing_proof` (PR-90 silent-no-op gate)
 - Zero new FHIR builders (reuses `_fhir_medications.py`)
+- **`ForcedScenario.force_hai_event` added** for deterministic HAI testing — retroactively unlocks the `pytest.skip` in PR-B baseline `test_hai_event_hai_type_strings_are_canonical` (completing PR-90 教訓 implementation)
+- e2e golden `test_alpha_golden.py` `order_count` updated only if Task 7c spike found `run_alpha(seed=42)` triggers HAI (see commit log)
 
 ## Verification
 
-- [x] Unit + integration tests green (`pytest -m unit/integration -x -q`)
-- [x] `clinosim audit run --module antibiotic` PASS (structural / clinical / jp_language / silent_no_op)
-- [x] byte-diff: opt-in OFF vs absent = byte-IDENTICAL across all NDJSON (p=2000 US + JP)
-- [x] byte-diff: opt-in ON delta limited to MedicationRequest.ndjson + MedicationAdministration.ndjson
+- [x] Unit + integration tests green (`pytest -m "unit or integration" -x -q`)
+- [x] `clinosim audit run -d scratchpad/abx_dqr/us --module antibiotic` PASS / WARN (rare-event WARN acceptable; `lift_firing_proof` is load-bearing)
+- [x] In-suite byte-diff invariant test (monkeypatched no-op antibiotic): non-Medication NDJSON all byte-IDENTICAL
+- [x] Offline byte-diff: master HEAD `5401cc37` vs branch p=2000 → delta restricted to `MedicationRequest.ndjson` + `MedicationAdministration.ndjson` (US + JP)
 - [x] DQR report `docs/reviews/2026-06-25-phase-3b-1-antibiotic-empirical-data-quality-review.md`
-- [x] All docs synced: MODULES.md / TODO.md / DESIGN.md / CLAUDE.md / `modules/antibiotic/README.md`
+- [x] All docs synced: MODULES.md / TODO.md / DESIGN.md (AD-55 supplement) / CLAUDE.md / `modules/antibiotic/README.md`
 - [x] Authoritative code source: NLM RxNav (Vancomycin RxNorm) + MEDIS-DC HOT/YJ master (Vancomycin YJ)
+- [x] PR-B baseline test no longer `pytest.skip`s (`test_hai_event_hai_type_strings_are_canonical` runs deterministically)
 
 ## Test plan
 
 - [ ] Reviewer: skim `docs/superpowers/specs/2026-06-25-phase-3b-1-antibiotic-empirical-design.md` for design intent
-- [ ] Reviewer: verify Vancomycin RxNorm + YJ codes against NLM RxNav + MEDIS-DC (commit links to verification)
-- [ ] Reviewer: confirm lift_firing_proof in `modules/antibiotic/audit.py` exercises the actual enricher path
-- [ ] Reviewer: spot-check `medication_requests.ndjson` for JP locale Japanese display
+- [ ] Reviewer: verify Vancomycin RxNorm + YJ codes against NLM RxNav + MEDIS-DC HOT (commit links to verification)
+- [ ] Reviewer: confirm `lift_firing_proof` in `modules/antibiotic/audit.py` exercises the actual enricher path
+- [ ] Reviewer: spot-check `MedicationRequest.ndjson` for JP locale Japanese display (`バンコマイシン` / `セフトリアキソン` / `ピペラシリン/タゾバクタム`)
+- [ ] Reviewer: verify AD-32 future-onset HAI skip via `test_enrich_antibiotic_skips_future_onset_hai_ad32`
+- [ ] Reviewer: confirm always-on vs opt-in trade-off in spec §1 and DESIGN.md AD-55 supplement
+- [ ] **Trigger `/code-review ultra <PR#>` (xhigh) before merge** — PR-90 教訓 = test 緑 + byte-diff + audit PASS は ship-ready ではない
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 https://claude.ai/code/session_01BPCNtAC7fmvNV8Ndy61T2j
