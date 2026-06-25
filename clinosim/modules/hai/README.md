@@ -122,7 +122,8 @@ CIF 上の location:
 
 | Caller | How it uses this module | Impact tier |
 |---|---|---|
-| `clinosim/simulator/enrichers.py` | `register_builtin_enrichers()` で `enrich_hai` を post_records phase に登録 (order=80) | core (build pipeline) |
+| `clinosim/simulator/enrichers.py` | `register_builtin_enrichers()` で `enrich_hai` を **POST_ENCOUNTER** phase に登録 (order=80、Phase 3a で POST_RECORDS から移行) | core (build pipeline) |
+| `clinosim/simulator/inpatient.py` | encounter 完了直後に `run_stage(POST_ENCOUNTER, ...)` で hai を発火させ、続けて `apply_hai_lab_lift(record, encounter, state_history, admission_time)` で同 encounter の WBC + CRP に forward-delta 適用 (Phase 3a) | core (build pipeline) |
 | `clinosim/modules/output/_fhir_hai.py` | `extensions["hai"]` を読んで HAI Condition を emit | medium (FHIR output) |
 | `clinosim/modules/output/_fhir_microbiology.py` (既存) | `record.microbiology` を読んで HAI culture (Specimen + Observation + DR) を emit | medium (cross-cutting; PR-B が culture を append しても既存 builder が変更なく動く) |
 | `tests/unit/test_hai_engine.py` | engine unit tests (9) | guard |
@@ -150,9 +151,34 @@ hai enricher    (order=80) → record.extensions["hai"]    = list[HAIEvent]
 - **At-most-one HAI per device**: 1 DeviceRecord から 1 HAIEvent しか sample しない。Phase 3 で繰り返し感染 (e.g. CRBSI relapse) 対応。
 - **Antibiotic empirical / narrow-spectrum order chain**: HAI 発症で経験的 antibiotic order → culture 結果で narrow という臨床 chain は **未実装** (Phase 3)。
 - **Susceptibility (S/I/R)**: `MicrobiologyResult.susceptibilities = []` (Phase 3 antimicrobial resistance work で fill)。
-- **WBC/CRP shift**: HAI 発症後の lab 反応は **未実装** (BNP-pattern surgical formula で実装可、Phase 3)。
-- **Mortality 影響**: HAI 発症 → 死亡率 + は未実装 (Phase 3 outcome benchmarks 連動)。
+- **WBC/CRP shift**: ~~未実装~~ → **Phase 3a (2026-06-25) で実装済**。`modules/hai/lab_lift.apply_hai_lab_lift` が encounter daily-loop 完了直後に発火、`reference_data/hai_lab_lift.yaml` (CLABSI/VAP 0.35, CAUTI 0.20、ramp 2 日) と per-day state_history から forward-delta を計算し、既存 WBC + CRP 観測値に加算。詳細は下の "Phase 3a" section 参照。
+- **Mortality 影響**: HAI 発症 → 死亡率 + は未実装 (Phase 3c outcome benchmarks 連動)。
 - **Peripheral IV / arterial line HAI**: Phase 1 device scope 外。
+
+## Phase 3a: WBC + CRP 観測時 forward-delta lift (2026-06-25)
+
+`extensions["hai"]` を立てた本モジュールに対し、`modules/hai/lab_lift.py` の `apply_hai_lab_lift()` が daily loop 完了直後に encounter の既存 WBC + CRP 値を読み取り、forward 公式で計算した delta を加算する。
+
+**設計 rationale**:
+- device + hai の sampling は `record.icu_transferred` + GCS / perfusion 等 daily loop の outcome に依存 → daily loop の **後** に走る必要がある(POST_ENCOUNTER stage)
+- HAI 発症が確定した後、同 encounter の WBC + CRP は炎症マーカーなので上昇させたい
+- 観測値を直接 reverse-engineer すると noise / circadian を失う → forward-delta で対応:
+  - `delta = derive_lab_values(state_snap, lift>0) - derive_lab_values(state_snap, lift=0)`
+  - `obs.value += delta`
+- `state_snap` は per-day `state_history` から取得 → 当日の真の inflammation level に基づく forward 計算
+
+**公式**:
+- `effective_infl = min(1.0, infl + lift_value * ramp_factor)`
+- `ramp_factor = min(1.0, max(0, days_since_onset) / ramp_peak_days)` (= 0/0.5/1.0 at day 0/1/2+)
+- `lift_value` = `hai_lab_lift.yaml[hai_type]` (CLABSI/VAP 0.35, CAUTI 0.20)
+- WBC + CRP は `derive_lab_values` の既存式に `effective_infl` を渡すだけ
+
+**スコープ**:
+- 対象 analyte は WBC + CRP のみ。Lactate / Plt / 体温 / SBP は Phase 3c sepsis cascade で同 forward-delta pattern を拡張
+- antibiotic empirical → narrow + susceptibility (S/I/R) + WBC/CRP decay phase は Phase 3b
+- HAI mortality coupling は Phase 3c
+
+**byte-diff invariant**: main RNG 不動、device + hai per-patient sub-seed 不変。p=2000 cohort では HAI が 0 件 (Poisson rare-event) → Observation 全 byte-IDENTICAL。p=10000 DQR で HAI 発症 cohort の WBC + CRP delta を確認。
 
 ## 拡張ガイド
 
