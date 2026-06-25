@@ -75,3 +75,16 @@ def test_hex_ascii_values_match_module_names():
     for name, expected in expected_ascii.items():
         assert ENRICHER_SEED_OFFSETS[name] == expected, \
             f"{name}: {ENRICHER_SEED_OFFSETS[name]:#x} != {expected:#x}"
+
+
+@pytest.mark.unit
+def test_antibiotic_offset_registered():
+    """PR3b-1 registers ENRICHER_SEED_OFFSETS["antibiotic"] = 0x4142 ("AB")."""
+    assert ENRICHER_SEED_OFFSETS["antibiotic"] == 0x4142
+
+
+@pytest.mark.unit
+def test_antibiotic_offset_does_not_collide():
+    """Antibiotic's 0x4142 ("AB") must not collide with any sibling offset."""
+    other_values = {v for k, v in ENRICHER_SEED_OFFSETS.items() if k != "antibiotic"}
+    assert 0x4142 not in other_values
