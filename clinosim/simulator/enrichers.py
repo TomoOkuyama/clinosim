@@ -207,3 +207,19 @@ def register_builtin_enrichers() -> None:
             run=enrich_hai,
         )
     )
+
+    # Empirical antibiotic regimen for HAI events (AD-55 always-on
+    # Module = near-essential clinical cascade, PR3b-1). Consumes
+    # extensions["hai"] (PR-B output); HAI 不在時は no-op. Order 85
+    # ensures it runs AFTER hai (80) so extensions["hai"] is populated.
+    from clinosim.modules.antibiotic.enricher import enrich_antibiotic
+
+    register_enricher(
+        Enricher(
+            name="antibiotic",
+            stage=POST_ENCOUNTER,
+            order=85,
+            enabled=lambda c: True,
+            run=enrich_antibiotic,
+        )
+    )

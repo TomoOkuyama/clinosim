@@ -34,16 +34,37 @@ _DEVICE_TO_HAI = {
 }
 
 
+def _get_forced_hai_event(ctx) -> dict | None:
+    """Return the first ForcedScenario.force_hai_event if set, else None.
+
+    PR3b-1 Task 7b: deterministic HAI testing infrastructure. A non-None
+    return overrides stochastic per-line-day risk sampling — for each
+    device of the matching hai_type, exactly one HAI event is emitted
+    at placement_date + onset_offset_days using the supplied organism.
+    """
+    forced_scenarios = getattr(ctx.config, "forced_scenarios", None) or []
+    for fs in forced_scenarios:
+        fe = getattr(fs, "force_hai_event", None)
+        if isinstance(fe, dict) and fe.get("hai_type"):
+            return fe
+    return None
+
+
 def enrich_hai(ctx) -> None:
     """post_records enricher entry point.
 
     Walks ctx.records, samples HAI per device, writes
     extensions["hai"] + appends culture MicrobiologyResults.
+
+    PR3b-1 Task 7b: if any ForcedScenario.force_hai_event is set, bypass
+    Poisson per-line-day sampling for matching devices (deterministic
+    test infrastructure).
     """
     rates_cfg = load_hai_rates()["hai_rates"]
     codes_cfg = load_hai_codes()["hai_codes"]
     organisms_cfg = load_hai_organisms()["hai_organisms"]
     specimens_cfg = load_hai_specimens()["hai_specimens"]
+    forced = _get_forced_hai_event(ctx)
     for rec in ctx.records:
         patient = _get(rec, "patient")
         pid = _get(patient, "patient_id", "") if patient else ""
@@ -64,10 +85,16 @@ def enrich_hai(ctx) -> None:
             hai_type = _DEVICE_TO_HAI.get(device_type)
             if not hai_type:
                 continue
-            occurred, onset_offset = sample_hai_onset(device, rates_cfg[hai_type], rng)
-            if not occurred or onset_offset is None:
-                continue
-            organism = _sample_organism(organisms_cfg[hai_type], rng)
+            if forced is not None:
+                if hai_type != forced["hai_type"]:
+                    continue
+                onset_offset = int(forced["onset_offset_days"])
+                organism = forced["organism_snomed"]
+            else:
+                occurred, onset_offset = sample_hai_onset(device, rates_cfg[hai_type], rng)
+                if not occurred or onset_offset is None:
+                    continue
+                organism = _sample_organism(organisms_cfg[hai_type], rng)
             enc_id = _get(device, "encounter_id", "")
             placement_date = _get(device, "placement_date", "")
             hai_id = f"hai-{enc_id}-{hai_type}-{len(hai_events)}"

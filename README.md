@@ -41,7 +41,7 @@ Primary use cases:
 
 ## Module Map
 
-For a single-page overview of all 22 modules, their dependencies, typical call chains, and a 5-step new-module quick-start, see **[`MODULES.md`](MODULES.md)**.
+For a single-page overview of all 25 modules, their dependencies, typical call chains, and a 5-step new-module quick-start, see **[`MODULES.md`](MODULES.md)**.
 
 Other navigation:
 
