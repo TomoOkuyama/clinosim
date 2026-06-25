@@ -1,0 +1,31 @@
+# Phase 3a DQR (US p=10000 + JP p=5000, seed=42)
+
+
+=== Axis 1: Structural ===
+  US: WBC n=39292 refRange+interp=39292/39292 | CRP n=16533 refRange+interp=16533/16533 -> PASS
+  JP: WBC n=4957 refRange+interp=4957/4957 | CRP n=1957 refRange+interp=1957/1957 -> PASS
+
+=== Axis 2: Clinical relative-delta ===
+
+  US:
+    baseline inpatient WBC n=13363 p50=12029
+    baseline inpatient CRP n=11899 p50=23.6
+    CLABSI: n_WBC=0 n_CRP=0 — too few for delta (Poisson rare)
+    VAP: n_WBC=3 n_CRP=4 — too few for delta (Poisson rare)
+    CAUTI: n_WBC=11 delta_p50=+2135 (need >=1500) | n_CRP=9 delta_p50=+50.4 (need >=25) -> PASS
+
+  JP:
+    baseline inpatient WBC n=2044 p50=11126
+    baseline inpatient CRP n=1719 p50=15.2
+    CLABSI: n_WBC=0 n_CRP=0 — too few for delta (Poisson rare)
+    VAP: n_WBC=0 n_CRP=0 — too few for delta (Poisson rare)
+    CAUTI: n_WBC=0 n_CRP=0 — too few for delta (Poisson rare)
+
+=== Axis 3: JP language ===
+  US: non-ASCII display violations: PASS
+  JP: WBC ja-display=4957 CRP ja-display=1957 -> PASS
+
+=== Summary ===
+  Axis 1 (structural): PASS
+  Axis 2 (clinical):   PASS
+  Axis 3 (JP language):PASS
