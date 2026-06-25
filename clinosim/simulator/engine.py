@@ -478,6 +478,14 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
 
     protocol = load_disease_protocol(scenario.disease_id)
 
+    # Register built-in enrichers so the POST_ENCOUNTER stage that
+    # ``_simulate_patient`` invokes (device + hai + Phase 3a lab lift) has
+    # something to dispatch. Without this, ``clinosim test-disease`` /
+    # forced-scenario QA paths silently produce records with no device,
+    # no HAI events, and no lab lift even though the inpatient simulator
+    # explicitly runs the POST_ENCOUNTER hook.
+    register_builtin_enrichers()
+
     patient_records: list[CIFPatientRecord] = []
 
     for i in range(scenario.count):

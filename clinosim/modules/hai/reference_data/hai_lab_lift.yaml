@@ -1,15 +1,22 @@
 # clinosim/modules/hai/reference_data/hai_lab_lift.yaml
 # Phase 3a: HAI WBC + CRP lift via inflammation_level offset.
-# Read at observation time by physiology.engine.hai_flags_from_record.
+# Read at observation time by modules/hai/lab_lift.apply_hai_lab_lift.
+#
+# IMPORTANT: keys here MUST match the lowercase canonical hai_type strings
+# that modules/hai/enricher._DEVICE_TO_HAI writes to HAIEvent.hai_type.
+# A previous draft used uppercase here while the enricher writes lowercase,
+# which silently no-op'd the entire lift in production (the lookup always
+# returned 0.0). Canonical constants now live in modules/hai/__init__.HAI_TYPES
+# and a YAML integrity test (test_hai_lab_lift_yaml.py) pins the consistency.
 #
 # CDC NHSN clinical severity proxy:
-#   CLABSI = bacteremia       (strong systemic response)
-#   VAP    = severe pneumonia (strong systemic response)
-#   CAUTI  = urinary tract    (moderate, often localized)
+#   clabsi = bacteremia       (strong systemic response)
+#   vap    = severe pneumonia (strong systemic response)
+#   cauti  = urinary tract    (moderate, often localized)
 #
 # Calibration (baseline infl=0.4, typical inpatient):
-#   CLABSI/VAP lift 0.35 -> effective_infl=0.75 -> CRP ~169 mg/L, WBC ~16,000
-#   CAUTI       lift 0.20 -> effective_infl=0.60 -> CRP ~87 mg/L,  WBC ~14,200
+#   clabsi/vap lift 0.35 -> effective_infl=0.75 -> CRP ~169 mg/L, WBC ~16,000
+#   cauti      lift 0.20 -> effective_infl=0.60 -> CRP ~87 mg/L,  WBC ~14,200
 #
 # Ramp: lift_factor = min(1.0, max(0, days_since_onset) / ramp_peak_days)
 #   day 0 (onset)  -> 0.0 lift
@@ -18,6 +25,6 @@
 ramp_peak_days: 2
 
 hai_lift:
-  CLABSI: 0.35
-  VAP: 0.35
-  CAUTI: 0.20
+  clabsi: 0.35
+  vap: 0.35
+  cauti: 0.20
