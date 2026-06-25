@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 import numpy as np
 
 from clinosim.modules._shared import get_attr_or_key as _get
+from clinosim.modules.hai import HAI_TYPES
 from clinosim.modules.hai.engine import (
     _add_days,
     _sample_organism,
@@ -34,19 +35,44 @@ _DEVICE_TO_HAI = {
 }
 
 
+_REQUIRED_FORCE_HAI_KEYS = ("hai_type", "onset_offset_days", "organism_snomed")
+
+
 def _get_forced_hai_event(ctx) -> dict | None:
-    """Return the first ForcedScenario.force_hai_event if set, else None.
+    """Return the first ForcedScenario.force_hai_event if set + valid, else None.
 
     PR3b-1 Task 7b: deterministic HAI testing infrastructure. A non-None
     return overrides stochastic per-line-day risk sampling — for each
     device of the matching hai_type, exactly one HAI event is emitted
     at placement_date + onset_offset_days using the supplied organism.
+
+    PR-93 adversarial review fix: validate ``hai_type`` against the
+    canonical ``HAI_TYPES`` tuple AT CONSUME TIME so case-mismatch /
+    typo (e.g. ``"CAUTI"`` uppercase, ``"cauti "`` trailing space)
+    raises ``ValueError`` loudly instead of silently no-op'ing every
+    device. Also validates required keys are present.
     """
     forced_scenarios = getattr(ctx.config, "forced_scenarios", None) or []
     for fs in forced_scenarios:
         fe = getattr(fs, "force_hai_event", None)
-        if isinstance(fe, dict) and fe.get("hai_type"):
-            return fe
+        if not isinstance(fe, dict):
+            continue
+        if not fe.get("hai_type"):
+            continue
+        missing = [k for k in _REQUIRED_FORCE_HAI_KEYS if k not in fe]
+        if missing:
+            raise ValueError(
+                f"ForcedScenario.force_hai_event missing required keys "
+                f"{missing}; required={list(_REQUIRED_FORCE_HAI_KEYS)}, "
+                f"got={sorted(fe.keys())}"
+            )
+        if fe["hai_type"] not in HAI_TYPES:
+            raise ValueError(
+                f"ForcedScenario.force_hai_event hai_type "
+                f"{fe['hai_type']!r} not in canonical HAI_TYPES "
+                f"{HAI_TYPES} (case-sensitive)"
+            )
+        return fe
     return None
 
 
@@ -86,6 +112,17 @@ def enrich_hai(ctx) -> None:
             if not hai_type:
                 continue
             if forced is not None:
+                # PR-93 adversarial review fix (AD-16 RNG isolation):
+                # consume the SAME number of rng draws the non-forced
+                # path would consume so downstream rng consumers see an
+                # identical stream offset. sample_hai_onset does 1
+                # random() + (conditionally) 1 integers(); _sample_organism
+                # does 1 choice(). Drain unconditionally so the forced
+                # path is byte-equivalent to non-forced from any
+                # downstream rng consumer's perspective.
+                _ = rng.random()
+                _ = rng.integers(0, 1024)
+                _ = rng.random()
                 if hai_type != forced["hai_type"]:
                     continue
                 onset_offset = int(forced["onset_offset_days"])
@@ -133,6 +170,9 @@ def _append_hai_culture(rec, hai: HAIEvent, spec_cfg: dict, onset_date: str) -> 
         organism_snomed=hai.organism_snomed,
         quantitation="positive",
         susceptibilities=[],
+        # PR3b-2 forward-compat (PR-93 fix): backref so PR3b-2 can match
+        # MicrobiologyResult → HAIEvent → AntibioticRegimen in O(1).
+        hai_event_id=hai.hai_id,
     )
     if isinstance(rec, dict):
         rec.setdefault("microbiology", []).append(micro)
