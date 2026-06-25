@@ -35,9 +35,12 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
 
     per_code_n: dict[str, int] = {c: 0 for c in wanted}
     per_code_full: dict[str, int] = {c: 0 for c in wanted}
-    seen_ids: dict[str, str] = {}  # id -> country
 
     for country in cohort.countries():
+        # Per-country id namespace — US and JP are independent FHIR
+        # exports, so an ID legitimately existing in both is not a
+        # collision. We only catch duplicates within a single cohort.
+        seen_ids: set[str] = set()
         for row in cohort.ndjson(country, "Observation"):
             codes = {
                 c.get("code", "")
@@ -54,11 +57,10 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
             if rid in seen_ids:
                 result.findings.append(AuditFinding(
                     Severity.FAIL,
-                    f"duplicate Observation id {rid!r} in {country} "
-                    f"(also seen in {seen_ids[rid]})",
+                    f"duplicate Observation id {rid!r} in {country}",
                 ))
             else:
-                seen_ids[rid] = country
+                seen_ids.add(rid)
             for c in (row.get("code") or {}).get("coding", []):
                 code = c.get("code", "")
                 display = c.get("display", "")
