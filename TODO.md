@@ -516,10 +516,26 @@ Verification: lift-firing proof (closed-form delta matches actual
 37/37 IDENTICAL preserved. See
 `docs/reviews/2026-06-25-phase3a-hai-lab-lift-data-quality-review-post-fix.md`.
 
-Phase 3b backlog (Phase 3a deferred items):
-- antibiotic empirical → narrow + culture-driven antibiotic narrowing
-- susceptibility S/I/R per organism × antibiotic
-- WBC/CRP decay phase coupled with antibiotic-day count
+**Phase 3b-1 HAI empirical antibiotic regimen — 2026-06-25 (✓ done)**:
+First of the 4-PR Phase 3b series. `modules/antibiotic/` always-on
+Module (AD-55 *near-essential clinical cascade* category — new AD-55
+supplement in DESIGN.md). Consumes `extensions["hai"]`, emits IDSA
+2009/2016 guideline empirical regimens (CLABSI = Vanc q12h + Pip-Tazo
+q6h × 14d / CAUTI = Ceftriaxone q24h × 7d / VAP = Vanc q12h + Pip-Tazo
+q6h × 7d). Dual-write storage: `record.orders` (MedicationRequest) +
+`record.medication_administrations` (MAR) + `extensions["antibiotic"]`
+(cross-PR consumption). Zero new FHIR builders (reuses
+`_fhir_medications.py`). AD-32 future-onset HAI defensive skip in
+enricher prevents orphan Order/MAR. `modules/antibiotic/audit.py` =
+second AD-60 plug-in with closed-form lift_firing_proof (Ceftriaxone
+q24h × 7d delta). `ForcedScenario.force_hai_event` added (Task 7b) for
+deterministic HAI testing. Vancomycin RxNorm 11124 + YJ 6113400
+centralized (existing repo usage). 12 commits across 12 tasks.
+
+Phase 3b backlog (remaining):
+- PR3b-2: culture-driven S/I/R per organism × antibiotic (susceptibility)
+- PR3b-3: narrow / de-escalation chain after S report
+- PR3b-4: WBC/CRP decay phase coupled with antibiotic-day count
 
 Phase 3c backlog:
 - HAI → outcome_benchmarks mortality coupling
@@ -537,8 +553,8 @@ byte-IDENTICAL — audit framework is pure read-only consumer. See
 `docs/reviews/2026-06-25-clinosim-audit-baseline.md`.
 
 Per-Module audit.py backlog for Phase 3b/c:
-- modules/antibiotic/audit.py (Phase 3b: empirical → narrow chain)
-- modules/decay/audit.py (Phase 3b: WBC/CRP antibiotic-day decay)
+- modules/antibiotic/audit.py ✓ done 2026-06-25 (PR3b-1, empirical regimen + lift_firing_proof)
+- modules/decay/audit.py (Phase 3b-4: WBC/CRP antibiotic-day decay)
 - modules/mortality/audit.py (Phase 3c: HAI → outcome coupling)
 - modules/sepsis_cascade/audit.py (Phase 3c: Lactate/Plt/Temp/SBP)
 Each Module's own PR adds its audit.py alongside the feature.
