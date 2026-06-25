@@ -1,0 +1,30 @@
+# IDSA guideline-based empirical antibiotic regimens for HAI (PR3b-1).
+#
+# Sources (authoritative, never fabricated):
+#   CLABSI:  Mermel LA et al. IDSA 2009 Clinical Practice Guidelines for the
+#            Diagnosis and Management of Intravascular Catheter-Related Infection.
+#            Clin Infect Dis 49(1):1-45. doi:10.1086/599376
+#   CAUTI:   Hooton TM et al. IDSA 2009 Diagnosis, Prevention, and Treatment of
+#            Catheter-Associated Urinary Tract Infection.
+#            Clin Infect Dis 50(5):625-63. doi:10.1086/650482
+#   VAP:     Kalil AC et al. IDSA/ATS 2016 Management of Adults With HAP/VAP.
+#            Clin Infect Dis 63(5):e61-e111. doi:10.1093/cid/ciw353
+#
+# Doses use IDSA + UpToDate average adult ICU dosing without renal adjustment
+# (PR3b-1 simplification; future PR will add eGFR-based modification).
+
+hai_empirical:
+  clabsi:
+    duration_days: 14
+    drugs:
+      - {drug_key: "Vancomycin",              dose: "1g",     route: "IV", frequency: "q12h"}
+      - {drug_key: "Piperacillin/Tazobactam", dose: "3.375g", route: "IV", frequency: "q6h"}
+  cauti:
+    duration_days: 7
+    drugs:
+      - {drug_key: "Ceftriaxone",             dose: "1g",     route: "IV", frequency: "q24h"}
+  vap:
+    duration_days: 7
+    drugs:
+      - {drug_key: "Vancomycin",              dose: "1g",     route: "IV", frequency: "q12h"}
+      - {drug_key: "Piperacillin/Tazobactam", dose: "3.375g", route: "IV", frequency: "q6h"}
