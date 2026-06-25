@@ -451,6 +451,38 @@ def _simulate_patient(
         ),
     )
 
+    # AD-32 snapshot truncation for encounter-bound Modules. The earlier
+    # filter (lines 386-390) ran BEFORE POST_ENCOUNTER, so device + HAI
+    # outputs need their own snapshot pass: drop HAI events whose onset_date
+    # is past the snapshot (the patient hasn't acquired it yet as of the
+    # snapshot date), drop HAI cultures whose reported_datetime is past the
+    # snapshot, and re-run the microbiology truncation to catch HAI-appended
+    # cultures the pre-POST_ENCOUNTER filter missed.
+    if snapshot_dt is not None:
+        from datetime import date as _date
+        snapshot_date = snapshot_dt.date()
+        ext = record.extensions or {}
+        ext_hai = ext.get("hai") or []
+        if ext_hai:
+            kept_hai = []
+            for ev in ext_hai:
+                onset_str = getattr(ev, "onset_date", None) or ""
+                try:
+                    onset = _date.fromisoformat(onset_str)
+                except (TypeError, ValueError):
+                    kept_hai.append(ev)
+                    continue
+                if onset > snapshot_date:
+                    continue
+                kept_hai.append(ev)
+            if len(kept_hai) != len(ext_hai):
+                ext["hai"] = kept_hai
+        if record.microbiology:
+            record.microbiology = [
+                m for m in record.microbiology
+                if m.reported_datetime is None or m.reported_datetime <= snapshot_dt
+            ]
+
     # Phase 3a (2026-06-25): apply HAI WBC + CRP forward-delta lift to
     # existing lab_results for any encounter day on/after each HAI
     # event's onset_date. Uses the per-day state_history to compute the
@@ -1779,7 +1811,16 @@ def _simulate_unknown_condition(
         discharge_code = "R50.9" if "fever" in event.disease_id else "R68.8"
         discharge_name = complaint.title() + " (under investigation, outpatient follow-up)"
 
-    record = CIFPatientRecord(
+    # Note: unknown-condition encounters intentionally do NOT run the
+    # POST_ENCOUNTER stage (device + hai). _simulate_unknown_condition never
+    # sets record.icu_transferred = True (line 511 default), and modules/
+    # device/engine.place_devices_for_encounter early-returns [] when
+    # icu_transferred is False. So the enrichers + apply_hai_lab_lift would
+    # uniformly no-op here; the post-PR-90 xhigh review caught a 29-line
+    # dead block at this spot and it was removed. If a future requirement
+    # adds ICU transfer to unknown-condition simulation, gate the hook on
+    # icu_transferred just like every other AD-32-aware code path.
+    return CIFPatientRecord(
         patient=patient, encounters=[encounter],
         orders=all_orders, vital_signs=all_vitals, lab_results=all_lab_results,
         medication_administrations=all_mars,
@@ -1794,32 +1835,3 @@ def _simulate_unknown_condition(
         ),
         physiological_states=state_history,
     )
-
-    # POST_ENCOUNTER stage + Phase 3a HAI lift (see _simulate_patient for full
-    # rationale). Unknown-condition encounters can also transfer to ICU and
-    # contract HAIs, so the same hook applies. Skips silently when config is
-    # None (test fixtures or legacy callers).
-    if config is not None:
-        from clinosim.modules.hai.lab_lift import apply_hai_lab_lift
-        from clinosim.simulator.enrichers import (
-            POST_ENCOUNTER,
-            EnricherContext,
-            run_stage,
-        )
-
-        run_stage(
-            POST_ENCOUNTER,
-            EnricherContext(
-                config=config,
-                master_seed=config.random_seed,
-                records=[record],
-            ),
-        )
-        apply_hai_lab_lift(
-            record=record,
-            encounter=encounter,
-            state_history=state_history,
-            admission_time=admission_time,
-        )
-
-    return record

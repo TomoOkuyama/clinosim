@@ -7,12 +7,8 @@ are derived from the hidden physiological state, not generated independently.
 from __future__ import annotations
 
 import math
-from datetime import date, datetime, timedelta
-from functools import lru_cache
-from pathlib import Path
 
 import numpy as np
-import yaml
 
 from clinosim.types.clinical import PhysiologicalState, StateChangeDirective
 from clinosim.types.patient import BaselineVitals, ChronicCondition, PatientPhysiologicalProfile
@@ -321,74 +317,6 @@ def medication_flags_from_context(
                 break
 
     return {"on_warfarin": on_warfarin}
-
-
-@lru_cache(maxsize=1)
-def _load_hai_lift_config() -> tuple[float, dict[str, float]]:
-    """Load `modules/hai/reference_data/hai_lab_lift.yaml` once."""
-    import clinosim.modules.hai as _hai_pkg
-
-    cfg_path = Path(_hai_pkg.__file__).parent / "reference_data" / "hai_lab_lift.yaml"
-    data = yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
-    return float(data["ramp_peak_days"]), dict(data["hai_lift"])
-
-
-def hai_flags_from_record(
-    record,
-    encounter_id: str | None,
-    current_day,
-) -> dict[str, float]:
-    """Detect HAI-driven inflammation lift from ``extensions["hai"]`` context.
-
-    Phase 3a sibling of `scenario_flags_from_protocol` and
-    `medication_flags_from_context`. Centralises the HAI -> lab coupling reads
-    so new HAI lift dimensions added to `derive_lab_values` only need wiring
-    in ONE place (J5-prevention). Dict keys match `derive_lab_values`
-    parameter names so callers can spread with ``**flags``.
-
-    Returns ``{"hai_inflammation_lift": 0.0}`` when:
-      - record has no ``extensions["hai"]`` (HAI module disabled / non-HAI)
-      - ``encounter_id`` is ``None``
-      - ``current_day`` is ``None``
-      - no event matches ``encounter_id``
-      - all matching events have ``onset_date > current_day`` (pre-onset)
-
-    Otherwise returns ``max(lift_value * ramp_factor)`` over matching events:
-      ramp_factor = min(1.0, max(0, days_since_onset) / ramp_peak_days)
-      lift_value  = hai_lab_lift.yaml[hai_type]   # CLABSI=0.35, VAP=0.35, CAUTI=0.20
-
-    Read-only consume of PR #89 ``extensions["hai"]``; never mutates state.
-    """
-    if encounter_id is None or current_day is None:
-        return {"hai_inflammation_lift": 0.0}
-
-    events = (getattr(record, "extensions", None) or {}).get("hai", [])
-    if not events:
-        return {"hai_inflammation_lift": 0.0}
-
-    ramp_peak_days, lift_table = _load_hai_lift_config()
-    best = 0.0
-    for ev in events:
-        if getattr(ev, "encounter_id", None) != encounter_id:
-            continue
-        onset_str = getattr(ev, "onset_date", None)
-        if not onset_str:
-            continue
-        try:
-            onset_dt = date.fromisoformat(onset_str)
-        except (TypeError, ValueError):
-            continue
-        days_since = (current_day - onset_dt).days
-        if days_since < 0:
-            continue
-        ramp_factor = (
-            min(1.0, days_since / ramp_peak_days) if ramp_peak_days > 0 else 1.0
-        )
-        lift_value = lift_table.get(getattr(ev, "hai_type", ""), 0.0)
-        effective = lift_value * ramp_factor
-        if effective > best:
-            best = effective
-    return {"hai_inflammation_lift": best}
 
 
 def derive_lab_values(
