@@ -73,6 +73,12 @@ class ForcedScenario(BaseModel):
     complications: list[str] = []  # force specific complications to occur
     patient_overrides: dict = {}  # override patient attributes: {"age": 82, "sex": "M", ...}
 
+    # PR3b-1 Task 7b: deterministically force one HAI event per matching device.
+    # Shape: {"hai_type": "cauti", "onset_offset_days": 3,
+    #         "organism_snomed": "112283007"}. None = use stochastic Poisson sampling.
+    # hai_type must be in HAI_TYPES (validated by enrich_hai at consume time).
+    force_hai_event: dict | None = None
+
 
 class SimulatorConfig(BaseModel):
     """Top-level simulation configuration (AD-19: preset + override)."""
