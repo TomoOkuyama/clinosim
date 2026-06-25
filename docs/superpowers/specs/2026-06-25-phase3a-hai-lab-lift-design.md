@@ -459,13 +459,55 @@ Threshold は §7.2 unit-test calibration から導出(baseline infl=0.4 で CLA
 
 ---
 
-## 12. Open questions
+## 12. Design pivot (2026-06-25, mid-execution)
 
-なし。設計確定。
+実装中に重要な前提誤りを発見:現状 `modules/device` + `modules/hai` は `POST_RECORDS` stage 登録 = **全 patient の全 encounter 生成が終わった後**に走るため、daily loop 内の `derive_lab_values` 時点で `extensions["hai"]` は常に空。spec §2 の前提「helper が `extensions["hai"]` を read-only consume」は post_records 設計のままでは成立しない。
+
+### 採用 pivot: B-2 v3 = POST_ENCOUNTER stage(daily loop **直後** 走) + forward-delta lift
+
+実装中に **二段階の発見** があった:
+1. (第一発見)device + hai は POST_RECORDS で全 patient 完了後に走るため、daily loop 内 `derive_lab_values` 時点で `extensions["hai"]` は空。
+2. (第二発見)device + hai の sampling は **clinical course の outcome に依存**(`record.icu_transferred` は ICU 転送の有無 = daily loop 中の disease severity 進行で確定、GCS / perfusion_status / respiratory_fraction も daily loop の state 派生)。よって device + hai は loop の **前** には走れない。
+
+正しい timing は **「daily loop 完了直後 + 最終 CIFPatientRecord 返却前」**。これを `POST_ENCOUNTER` の semantics として定義する。
+
+### 採用 pivot: B-2 v3 = enricher framework に POST_ENCOUNTER stage を追加
+
+| 設計点 | 採用 | 4 軸根拠 |
+|---|---|---|
+| enricher stage 構成 | `POST_RECORDS` に加え新規 `POST_ENCOUNTER` を追加 | コンセプト ◎(forward-derivation 哲学整合、post-hoc CIF mutation 回避)、メンテ ◎(Phase 3b/c の足場)、データ品質 ◎(formula forward 評価、逆算なし)|
+| device + hai migrate | `POST_RECORDS` → `POST_ENCOUNTER` | encounter-bound semantics に正分類、Phase 2 の post_records 配置は実は Phase 3 の lab consume を見越していなかった結果 |
+| 呼出 hook | `simulator/inpatient.py` で daily loop 完了直後、最終 record 返却前に `run_stage(POST_ENCOUNTER, ...)` を呼ぶ | device + hai は full clinical course outcome に依存できる、HAI events が見える状態で次の lift step が走る |
+| HAI lift 適用方式 | **forward-delta**: `_apply_hai_lab_lift(record, encounter, state_history)` が state_history(daily loop が保存)を使って WBC + CRP の各 obs で `delta = derive(state, lift>0) - derive(state, lift=0)` を計算 → 既存 obs.value_numeric に加算 | A 案の逆算 noise loss を回避、forward formula 数学整合、既存 noise + circadian 保持 = byte-diff も「HAI cohort obs.value_numeric のみ change」で clean |
+| AD-55 Module 分類 refine | "encounter-bound Module"(device/hai, post-loop sampling)vs "cross-record Module"(immunization/family_history/code_status/care_level/sdoh, post-everything walk)| 将来 Module 追加時の判断軸が明示。Phase 3b/c の antibiotic empirical / sepsis cascade も同じ POST_ENCOUNTER + delta pattern で清潔に拡張可 |
+
+**byte-diff invariant 維持の根拠**: device + hai enricher の per-patient sub-seed は `derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS[name], patient_id)` で導出され、enricher の **走るタイミングが変わっても sub-seed は不変** = same RNG sequence → same device placements + same HAI events。違いが出るとすれば `_id` 生成が encounter 巡回順に依存する場合のみ(現状 hai_id は encounter_id + hai_type + counter で構成、device_id も encounter-scoped → 安定)。
+
+### 却下案
+
+- **A 案(enricher 内 post-hoc lift)**: 逆算 noise loss + Phase 3b/c で post-hoc mutation 連鎖 → メンテ性 / コンセプト適切性で劣る
+- **B-1 案(state snapshot を CIF type に保存)**: forward 数学整合は得られるがメモリ 5% 増 + CIF type 変更 + 既存 test 影響 → 過剰投資
+- **B-3 lite 案(framework 介さず直接呼出)**: pragmatic だが「enricher は inpatient.py が直接呼ぶ」前例が pattern を崩す
+
+### 既存 spec sections への影響
+
+- §2 architecture: アーキ図は **新規 forward-delta path に置換**:
+  - 旧: `extensions["hai"]` → `hai_flags_from_record` → derive_lab_values 5 sites
+  - 新: daily loop → state_history → POST_ENCOUNTER (device → hai) → `_apply_hai_lab_lift` (forward delta via derive_lab_values)
+- §3 helper(`hai_flags_from_record`): **未使用に変化**(Phase 3a で wire しない)。Phase 3b/c で antibiotic_flags_from_record などの sibling と共に再利用候補。本 PR では実装維持 + 13 unit tests も維持(将来再利用の primitive)
+- §4 derive_lab_values: **不変**(kwarg は `_apply_hai_lab_lift` 内部で forward 評価に使われる、5 site wire しない)
+- §5 YAML: 不変
+- §6 wiring (5 sites): **削除**(forward-delta 設計では derive_lab_values 5 site の wire は不要)。J5 prevention は別の statemic guard(全 derive sites を wire しないが、新 `_apply_hai_lab_lift` 呼出は 1 ヶ所のみ)
+- §8 byte-diff: device + hai migrate による NDJSON 差異の予想を refine — Patient/Encounter/Condition/MedReq/MedAdmin/Procedure/Imaging/Immunization/FamilyHistory/**Device/DeviceUseStatement/HAI Condition/Specimen/DiagnosticReport** は IDENTICAL を期待(per-patient sub-seed 同一、device + hai outcomes 同一)、Observation のみ HAI cohort の WBC + CRP が delta shift
+- §10 docs sync: AD-55 / AD-56 の "encounter-bound vs cross-record Module" 分類を追加、`CLAUDE.md` "AD-55 enricher patterns" に POST_ENCOUNTER stage 説明追加、`_apply_hai_lab_lift` 設計を physiology/README に
+
+## 13. Open questions
+
+なし。設計確定(B-2 採用、2026-06-25 mid-execution pivot)。
 
 ---
 
-## 13. References
+## 14. References
 
 - Phase 2a spec: `docs/superpowers/specs/2026-06-24-phase2a-vte-d-dimer-design.md`
 - Phase 2b spec: `docs/superpowers/specs/2026-06-24-phase2b-on-anticoagulation-design.md`

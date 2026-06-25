@@ -190,7 +190,7 @@ def run_beta(
 
         # Unknown condition
         if event.condition_type == "unknown" or disease_id.startswith("unknown_"):
-            record = _simulate_unknown_condition(patient, event, rng, healthcare, roster, hospital_ops=hospital_ops)
+            record = _simulate_unknown_condition(patient, event, rng, healthcare, roster, hospital_ops=hospital_ops, config=config)
             if record:
                 patient_records.append(record)
                 person.has_visited_hospital = True
