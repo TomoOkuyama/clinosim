@@ -148,109 +148,154 @@ def test_enrich_hai_force_missing_keys_raises():
         enrich_hai(ctx)
 
 
-@pytest.mark.unit
-def test_enrich_hai_force_consumes_same_rng_draws_ad16():
-    """PR-93 fix (AD-16 RNG isolation): forced path must consume the SAME
-    number of rng draws as the non-forced path so downstream rng consumers
-    see an identical stream offset.
+class _CapturingRNG:
+    """Wraps np.random.Generator and logs each draw method called."""
+    def __init__(self, inner, log):
+        self._inner = inner
+        self._log = log
 
-    Specifically: an unrelated rng consumer fed the same sub-seed must
-    observe the SAME state after enrich_hai runs in both modes.
+    def random(self, *a, **k):
+        self._log.append("random")
+        return self._inner.random(*a, **k)
+
+    def integers(self, *a, **k):
+        self._log.append("integers")
+        return self._inner.integers(*a, **k)
+
+    def choice(self, *a, **k):
+        self._log.append("choice")
+        return self._inner.choice(*a, **k)
+
+    def __getattr__(self, name):
+        return getattr(self._inner, name)
+
+
+def _capture_enrich_hai_draws(make_ctx_fn):
+    """Run enrich_hai with rng capture; return ordered list of draw methods."""
+    import numpy as np
+    from clinosim.modules.hai import enricher as enricher_mod
+    orig_default_rng = np.random.default_rng
+    log: list[str] = []
+
+    def capture_rng(*args, **kwargs):
+        return _CapturingRNG(orig_default_rng(*args, **kwargs), log)
+
+    enricher_mod.np.random.default_rng = capture_rng
+    try:
+        ctx, rec = make_ctx_fn()
+        enrich_hai(ctx)
+        return list(log), rec
+    finally:
+        enricher_mod.np.random.default_rng = orig_default_rng
+
+
+@pytest.mark.unit
+def test_enrich_hai_force_consumes_exact_firing_path_sequence():
+    """PR-94 adversarial review fix (AD-16 RNG isolation, STRICT):
+    forced path's rng-method sequence must EXACTLY equal the non-forced
+    FIRING path's known sequence: random (sample_hai_onset Poisson check)
+    + integers (sample_hai_onset onset_offset) + choice (_sample_organism).
+    Earlier permissive `>=` accepted over-draining; the over-drained
+    earlier draws (random, integers, random) didn't even use choice as
+    the 3rd-call equivalent of _sample_organism.
+    """
+    forced_log, _ = _capture_enrich_hai_draws(lambda: _make_ctx_with_device(
+        device_type="indwelling_catheter",
+        force_hai_event={"hai_type": "cauti", "onset_offset_days": 3,
+                         "organism_snomed": "112283007"},
+    ))
+    # The exact firing-path sequence (sample_hai_onset always-on random +
+    # firing-branch integers, then _sample_organism's choice):
+    assert forced_log == ["random", "integers", "choice"], (
+        f"forced path rng-method sequence is {forced_log}; "
+        "must be ['random', 'integers', 'choice'] to match the non-forced "
+        "firing path exactly (AD-16 RNG isolation)"
+    )
+
+
+@pytest.mark.unit
+def test_enrich_hai_non_forced_firing_path_sequence_matches_forced():
+    """Verify the firing-path sequence is indeed ['random','integers','choice'].
+
+    Uses a monkeypatched 100% firing rate via direct rates_cfg patch in
+    enrich_hai module so the non-forced path deterministically fires.
     """
     import numpy as np
-    from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
-
-    def post_enrich_rng_draw(force: bool) -> float:
-        # Recreate the same pid-specific sub-seed enrich_hai uses, then
-        # observe what the next draw value is AFTER enrich_hai has run.
-        ctx, _ = _make_ctx_with_device(
-            device_type="indwelling_catheter",
-            force_hai_event=({
-                "hai_type": "cauti",
-                "onset_offset_days": 3,
-                "organism_snomed": "112283007",
-            } if force else None),
-        )
-        enrich_hai(ctx)
-        # Now create the SAME rng a downstream consumer would have used
-        # if it shared the same sub-seed; the divergent stream count
-        # between forced/non-forced would show up here.
-        # Note: enrich_hai instantiates rng locally; this draws indirectly
-        # by re-instantiating with the same seed and consuming N draws
-        # to simulate where the stream would be after enrich_hai finishes.
-        # The test is structural: both paths must reach the same draw count.
-        # We assert by direct rng instantiation count comparison.
-        return 1.0  # placeholder; the real check is the assert below
-
-    # Direct check: instrument enrich_hai's rng via patch
     from clinosim.modules.hai import enricher as enricher_mod
-    captured = {}
+
+    captured: list[str] = []
     orig_default_rng = np.random.default_rng
 
     def capture_rng(*args, **kwargs):
-        rng = orig_default_rng(*args, **kwargs)
-        return _CapturingRNG(rng, captured.setdefault("draws", []))
+        return _CapturingRNG(orig_default_rng(*args, **kwargs), captured)
 
-    class _CapturingRNG:
-        def __init__(self, inner, log):
-            self._inner = inner
-            self._log = log
-
-        def random(self, *a, **k):
-            self._log.append("random")
-            return self._inner.random(*a, **k)
-
-        def integers(self, *a, **k):
-            self._log.append("integers")
-            return self._inner.integers(*a, **k)
-
-        def choice(self, *a, **k):
-            self._log.append("choice")
-            return self._inner.choice(*a, **k)
-
-        def __getattr__(self, name):
-            return getattr(self._inner, name)
-
-    # Run non-forced
-    captured["draws"] = []
-    nonforced_draws = list()
-    enricher_mod_np = enricher_mod.np
-    enricher_mod.np.random.default_rng = capture_rng
-    try:
-        ctx, _ = _make_ctx_with_device(device_type="indwelling_catheter", force_hai_event=None)
-        # Non-forced may stochastically choose not to fire (Poisson rare)
-        # but our concern is draw count, not whether HAI fires.
-        enrich_hai(ctx)
-        nonforced_draws = list(captured["draws"])
-    finally:
-        enricher_mod.np.random.default_rng = orig_default_rng
-
-    # Run forced
-    captured["draws"] = []
-    forced_draws = list()
+    # Patch load_hai_rates AT THE CALLSITE in enricher_mod (it was
+    # imported via `from ... import load_hai_rates` so the name is
+    # bound in enricher's namespace).
+    rates_high = {"hai_rates": {hai: {"per_day_risk": 1.0}
+                                for hai in ("clabsi", "cauti", "vap")}}
+    orig_load = enricher_mod.load_hai_rates
+    enricher_mod.load_hai_rates = lambda: rates_high
     enricher_mod.np.random.default_rng = capture_rng
     try:
         ctx, _ = _make_ctx_with_device(
-            device_type="indwelling_catheter",
-            force_hai_event={
-                "hai_type": "cauti",
-                "onset_offset_days": 3,
-                "organism_snomed": "112283007",
-            },
+            device_type="indwelling_catheter", force_hai_event=None,
         )
         enrich_hai(ctx)
-        forced_draws = list(captured["draws"])
     finally:
+        enricher_mod.load_hai_rates = orig_load
         enricher_mod.np.random.default_rng = orig_default_rng
 
-    # Both paths must consume the SAME number + sequence of draws
-    # (random / integers / choice / random for non-forced when fires,
-    # or random for non-forced when doesn't fire — but forced unconditionally
-    # consumes all three to match the "fires" non-forced path).
-    # The minimum invariant: forced path must consume at least as many
-    # draws as the non-forced path so subsequent rng consumers see no
-    # earlier divergence.
-    assert len(forced_draws) >= len(nonforced_draws), (
-        f"forced path consumed fewer rng draws ({len(forced_draws)}) than "
-        f"non-forced ({len(nonforced_draws)}); AD-16 RNG isolation violated"
+    assert captured == ["random", "integers", "choice"], (
+        f"non-forced firing path sequence is {captured}; expected "
+        "['random','integers','choice']. If this differs, the forced "
+        "drain in enrich_hai's forced branch is out of sync."
     )
+
+
+@pytest.mark.unit
+def test_enrich_hai_force_short_line_days_skips_no_drain():
+    """PR-94 adversarial review fix: when device.line_days < 2, the
+    non-forced path returns BEFORE drawing any rng. The forced path
+    must also short-circuit with 0 draws — NOT drain 3.
+    """
+    import numpy as np
+    from clinosim.modules.hai import enricher as enricher_mod
+    from clinosim.types.device import DeviceRecord
+
+    log: list[str] = []
+    orig = np.random.default_rng
+    enricher_mod.np.random.default_rng = lambda *a, **k: _CapturingRNG(orig(*a, **k), log)
+    try:
+        # device line_days = 1 (< 2)
+        dev = DeviceRecord(
+            device_id="d1", encounter_id="enc-1",
+            device_type="indwelling_catheter",
+            snomed_code="23973005",
+            placement_date="2026-01-05",
+            removal_date="2026-01-06",   # 1 day
+            placement_indication="test",
+        )
+        rec = SimpleNamespace(
+            patient=SimpleNamespace(patient_id="p1"),
+            extensions={"device": [dev]}, microbiology=[],
+        )
+        forced = SimpleNamespace(
+            disease_id="x", count=1, severity=None, archetype=None,
+            complications=[], patient_overrides={},
+            force_hai_event={"hai_type": "cauti", "onset_offset_days": 3,
+                             "organism_snomed": "112283007"},
+        )
+        cfg = SimpleNamespace(country="US", random_seed=42,
+                              time_range=("2026-01-01", "2026-12-31"),
+                              snapshot_date=None, forced_scenarios=[forced])
+        ctx = SimpleNamespace(config=cfg, master_seed=42, records=[rec])
+        enrich_hai(ctx)
+    finally:
+        enricher_mod.np.random.default_rng = orig
+
+    assert log == [], (
+        f"forced path on a < 2-day device line consumed rng draws {log!r}; "
+        "must short-circuit before any draw to match non-forced behaviour"
+    )
+    assert rec.extensions.get("hai", []) == []
