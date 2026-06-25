@@ -1,0 +1,1 @@
+Task 7c spike result: run_alpha(seed=42) FORCED-0001 has icu_transferred=False, 0 devices/HAI/antibiotic. No golden change needed (order_count in GOLDEN dict is unasserted).
