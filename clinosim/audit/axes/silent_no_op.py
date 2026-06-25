@@ -116,42 +116,89 @@ def _check_proof(spec: ModuleAuditSpec, result: AxisResult) -> None:
             )
         )
         return
+
+    # Two supported proof formats:
+    #
+    # 1. **Observation-delta** (Phase 3a HAI lift pattern):
+    #    {apply_fn, record, encounter, state_history, admission_time,
+    #     expected: list[tuple[obs, pre_value, expected_delta]]}
+    #
+    # 2. **Equality-check** (PR3b-1 antibiotic pattern, post-fix):
+    #    {equality_checks: list[tuple[label, actual, expected]]}
+    #    For modules whose verification is structural (Order count, MAR count,
+    #    regimen properties) rather than Observation-value delta. The factory
+    #    runs the production code path itself, captures actuals, and returns
+    #    a label/actual/expected tuple per assertion. Hard equality only —
+    #    no tolerance (it's the load-bearing PR-90 gate; mismatches must FAIL).
+    #
+    # A proof returning NEITHER format silently skips (preserves previous
+    # behavior for stubs); the spec.lift_firing_proof being defined but
+    # producing no checks is itself an audit failure though, recorded
+    # below for visibility.
     apply_fn = proof.get("apply_fn")
-    # expected: list[tuple[obs, pre_value, expected_delta]]
-    expected = proof.get("expected") or []
-    if apply_fn is None or not expected:
-        return
-    try:
-        apply_fn(
-            proof.get("record"),
-            proof.get("encounter"),
-            proof.get("state_history") or [],
-            proof.get("admission_time"),
-        )
-    except Exception as e:
+    obs_expected = proof.get("expected") or []
+    equality_checks = proof.get("equality_checks") or []
+
+    has_obs_format = apply_fn is not None and obs_expected
+    has_eq_format = bool(equality_checks)
+
+    if not has_obs_format and not has_eq_format:
         result.findings.append(
             AuditFinding(
                 Severity.FAIL,
-                f"lift_firing_proof apply_fn raised: {type(e).__name__}: {e}",
+                "lift_firing_proof returned neither Observation-delta "
+                "(apply_fn + expected) nor equality_checks format — proof is a "
+                "no-op silent skip (PR-90 class of bug in the audit framework "
+                "itself). Producing module: " + spec.name,
             )
         )
         return
-    for obs, pre_value, expected_delta in expected:
-        new_value = obs.value
-        observed_delta = new_value - pre_value
-        analyte = getattr(obs, "lab_name", None)
-        tol = _PROOF_TOLERANCE.get(analyte, _PROOF_DEFAULT_TOLERANCE)
-        if abs(observed_delta - expected_delta) > tol:
+
+    if has_obs_format:
+        try:
+            apply_fn(
+                proof.get("record"),
+                proof.get("encounter"),
+                proof.get("state_history") or [],
+                proof.get("admission_time"),
+            )
+        except Exception as e:
             result.findings.append(
                 AuditFinding(
                     Severity.FAIL,
-                    f"lift-firing proof delta mismatch for {analyte}: "
-                    f"observed {observed_delta:.2f}, expected {expected_delta:.2f} "
-                    f"(tolerance ±{tol})",
+                    f"lift_firing_proof apply_fn raised: {type(e).__name__}: {e}",
                 )
             )
-        else:
-            result.info[f"proof_{analyte}_delta"] = round(observed_delta, 2)
+            return
+        for obs, pre_value, expected_delta in obs_expected:
+            new_value = obs.value
+            observed_delta = new_value - pre_value
+            analyte = getattr(obs, "lab_name", None)
+            tol = _PROOF_TOLERANCE.get(analyte, _PROOF_DEFAULT_TOLERANCE)
+            if abs(observed_delta - expected_delta) > tol:
+                result.findings.append(
+                    AuditFinding(
+                        Severity.FAIL,
+                        f"lift-firing proof delta mismatch for {analyte}: "
+                        f"observed {observed_delta:.2f}, expected {expected_delta:.2f} "
+                        f"(tolerance ±{tol})",
+                    )
+                )
+            else:
+                result.info[f"proof_{analyte}_delta"] = round(observed_delta, 2)
+
+    if has_eq_format:
+        for label, actual, expected in equality_checks:
+            if actual != expected:
+                result.findings.append(
+                    AuditFinding(
+                        Severity.FAIL,
+                        f"lift-firing equality_check {label!r}: "
+                        f"actual={actual!r} != expected={expected!r}",
+                    )
+                )
+            else:
+                result.info[f"proof_eq_{label}"] = repr(actual)
 
 
 def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
