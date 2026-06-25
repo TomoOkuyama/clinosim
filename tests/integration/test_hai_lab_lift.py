@@ -10,9 +10,7 @@ Two layers:
 """
 from __future__ import annotations
 
-import statistics
-from copy import deepcopy
-from datetime import date, datetime
+from datetime import datetime
 from types import SimpleNamespace
 
 import pytest
