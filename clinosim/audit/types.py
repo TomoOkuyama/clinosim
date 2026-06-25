@@ -7,13 +7,14 @@ This module defines:
 - AuditResult: aggregate across (axis, module) pairs; overall_status = worst
 - Cohort: lazy NDJSON reader rooted at a FHIR R4 cohort directory
 """
+
 from __future__ import annotations
 
 import json
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Iterator
 
 
 class Severity(str, Enum):
@@ -68,22 +69,21 @@ class AuditResult:
 
 class Cohort:
     """Lazy NDJSON reader rooted at a cohort directory. Expected layout:
-        <root>/<country>/fhir_r4/<ResourceType>.ndjson
+    <root>/<country>/fhir_r4/<ResourceType>.ndjson
     """
 
     def __init__(self, root: Path):
         self.root = root
 
     @classmethod
-    def open(cls, root: Path | str) -> "Cohort":
+    def open(cls, root: Path | str) -> Cohort:
         return cls(Path(root))
 
     def countries(self) -> list[str]:
         if not self.root.exists():
             return []
         return sorted(
-            p.name for p in self.root.iterdir()
-            if p.is_dir() and (p / "fhir_r4").exists()
+            p.name for p in self.root.iterdir() if p.is_dir() and (p / "fhir_r4").exists()
         )
 
     def ndjson(self, country: str, resource: str) -> Iterator[dict]:

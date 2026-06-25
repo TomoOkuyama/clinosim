@@ -6,6 +6,7 @@ Subcommands:
   smoke  silent_no_op axis only, intended for CI plumbing
   list   Print discovered modules + their available checks
 """
+
 from __future__ import annotations
 
 import argparse
@@ -21,7 +22,8 @@ def add_audit_subparser(subparsers: argparse._SubParsersAction) -> None:
     audit_sub = audit.add_subparsers(dest="audit_command")
 
     run_p = audit_sub.add_parser(
-        "run", help="Run the audit framework over a generated cohort",
+        "run",
+        help="Run the audit framework over a generated cohort",
     )
     run_p.add_argument("-d", "--cohort-dir", required=True, type=Path)
     run_p.add_argument("--module", action="append", default=None)
@@ -29,7 +31,8 @@ def add_audit_subparser(subparsers: argparse._SubParsersAction) -> None:
     run_p.add_argument("--report", type=Path, default=None)
 
     smoke = audit_sub.add_parser(
-        "smoke", help="Fast plumbing check — silent_no_op only",
+        "smoke",
+        help="Fast plumbing check — silent_no_op only",
     )
     smoke.add_argument("-d", "--cohort-dir", required=True, type=Path)
 

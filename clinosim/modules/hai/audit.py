@@ -16,6 +16,7 @@ Registered checks:
 - lift_firing_proof: synthetic CAUTI record returns the same
   closed-form delta apply_hai_lab_lift produces
 """
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -29,9 +30,7 @@ from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import Order, OrderResult, OrderType
 from clinosim.types.hai import HAIEvent
 
-_HAI_LIFT_YAML = (
-    Path(__file__).parent / "reference_data" / "hai_lab_lift.yaml"
-)
+_HAI_LIFT_YAML = Path(__file__).parent / "reference_data" / "hai_lab_lift.yaml"
 
 
 def _build_cauti_proof():
@@ -43,27 +42,35 @@ def _build_cauti_proof():
     draw_hour = 6
 
     wbc_obs = OrderResult(
-        result_datetime=obs_dt, lab_name="WBC", value=11760.0,
+        result_datetime=obs_dt,
+        lab_name="WBC",
+        value=11760.0,
     )
     wbc_order = Order(
-        order_id="o-wbc", order_type=OrderType.LAB, display_name="WBC",
+        order_id="o-wbc",
+        order_type=OrderType.LAB,
+        display_name="WBC",
         ordered_datetime=datetime(2026, 1, 12, draw_hour, 30),
     )
     wbc_order.result = wbc_obs
 
     record = SimpleNamespace(
         patient=SimpleNamespace(sex="M"),
-        extensions={"hai": [HAIEvent(
-            hai_id="h-cauti-1",
-            encounter_id="enc-1",
-            hai_type="cauti",
-            source_device_id="d1",
-            icd10_code="T83.511A",
-            snomed_code="68566005",
-            onset_date="2026-01-10",
-            organism_snomed="112283007",
-            culture_specimen_id="s1",
-        )]},
+        extensions={
+            "hai": [
+                HAIEvent(
+                    hai_id="h-cauti-1",
+                    encounter_id="enc-1",
+                    hai_type="cauti",
+                    source_device_id="d1",
+                    icd10_code="T83.511A",
+                    snomed_code="68566005",
+                    onset_date="2026-01-10",
+                    organism_snomed="112283007",
+                    culture_specimen_id="s1",
+                )
+            ]
+        },
         lab_results=[wbc_obs],
         orders=[wbc_order],
     )
@@ -81,32 +88,34 @@ def _build_cauti_proof():
     }
 
 
-register_audit_module(ModuleAuditSpec(
-    name="hai",
-    canonical_constants={"hai_type": HAI_TYPES},
-    yaml_keys_to_validate={
-        str(_HAI_LIFT_YAML): ("hai_lift",),
-    },
-    structural_obs_codes={
-        "WBC": ("6690-2", "2A010"),
-        "CRP": ("1988-5", "5C070"),
-    },
-    clinical_acceptance={
-        "cauti": {
-            "icd10_code": "T83.511A",
-            "WBC_delta_p50": 1500,
-            "CRP_delta_p50": 25,
+register_audit_module(
+    ModuleAuditSpec(
+        name="hai",
+        canonical_constants={"hai_type": HAI_TYPES},
+        yaml_keys_to_validate={
+            str(_HAI_LIFT_YAML): ("hai_lift",),
         },
-        "clabsi": {
-            "icd10_code": "T80.211A",
-            "WBC_delta_p50": 3000,
-            "CRP_delta_p50": 50,
+        structural_obs_codes={
+            "WBC": ("6690-2", "2A010"),
+            "CRP": ("1988-5", "5C070"),
         },
-        "vap": {
-            "icd10_code": "J95.851",
-            "WBC_delta_p50": 3000,
-            "CRP_delta_p50": 50,
+        clinical_acceptance={
+            "cauti": {
+                "icd10_code": "T83.511A",
+                "WBC_delta_p50": 1500,
+                "CRP_delta_p50": 25,
+            },
+            "clabsi": {
+                "icd10_code": "T80.211A",
+                "WBC_delta_p50": 3000,
+                "CRP_delta_p50": 50,
+            },
+            "vap": {
+                "icd10_code": "J95.851",
+                "WBC_delta_p50": 3000,
+                "CRP_delta_p50": 50,
+            },
         },
-    },
-    lift_firing_proof=_build_cauti_proof,
-))
+        lift_firing_proof=_build_cauti_proof,
+    )
+)

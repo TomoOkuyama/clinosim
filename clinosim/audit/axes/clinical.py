@@ -17,6 +17,7 @@ Per-event observed-vs-theoretical verification is deferred to Phase 2
 (requires CIF state_history walk; the silent_no_op axis already
 provides the load-bearing per-event check via lift_firing_proof).
 """
+
 from __future__ import annotations
 
 import statistics
@@ -52,14 +53,10 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
     if not spec.clinical_acceptance:
         return result  # N/A
 
-    icd_to_type = {
-        v["icd10_code"]: k for k, v in spec.clinical_acceptance.items()
-    }
+    icd_to_type = {v["icd10_code"]: k for k, v in spec.clinical_acceptance.items()}
 
     for country in cohort.countries():
-        cohort_enc: dict[str, set[str]] = {
-            k: set() for k in spec.clinical_acceptance
-        }
+        cohort_enc: dict[str, set[str]] = {k: set() for k in spec.clinical_acceptance}
         for row in cohort.ndjson(country, "Condition"):
             codes = _condition_code_set(row)
             for icd, hai_type in icd_to_type.items():
@@ -113,30 +110,36 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
             result.info[f"{country}_{hai_type}_n_WBC"] = n_w
             result.info[f"{country}_{hai_type}_n_CRP"] = n_c
             if n_w < 5 and n_c < 5:
-                result.findings.append(AuditFinding(
-                    Severity.WARN,
-                    f"{country}/{hai_type}: cohort too small for delta "
-                    f"(n_WBC={n_w}, n_CRP={n_c}); acceptance not verified at "
-                    "cohort level (silent_no_op axis covers this).",
-                ))
+                result.findings.append(
+                    AuditFinding(
+                        Severity.WARN,
+                        f"{country}/{hai_type}: cohort too small for delta "
+                        f"(n_WBC={n_w}, n_CRP={n_c}); acceptance not verified at "
+                        "cohort level (silent_no_op axis covers this).",
+                    )
+                )
                 continue
             if w and b_wbc_p50 is not None:
                 dw = statistics.median(w) - b_wbc_p50
                 result.info[f"{country}_{hai_type}_WBC_delta_p50"] = round(dw, 1)
                 need = acceptance.get("WBC_delta_p50")
                 if need is not None and dw < need:
-                    result.findings.append(AuditFinding(
-                        Severity.FAIL,
-                        f"{country}/{hai_type}: WBC delta p50 = {dw:.0f} < required {need}",
-                    ))
+                    result.findings.append(
+                        AuditFinding(
+                            Severity.FAIL,
+                            f"{country}/{hai_type}: WBC delta p50 = {dw:.0f} < required {need}",
+                        )
+                    )
             if c and b_crp_p50 is not None:
                 dc = statistics.median(c) - b_crp_p50
                 result.info[f"{country}_{hai_type}_CRP_delta_p50"] = round(dc, 1)
                 need = acceptance.get("CRP_delta_p50")
                 if need is not None and dc < need:
-                    result.findings.append(AuditFinding(
-                        Severity.FAIL,
-                        f"{country}/{hai_type}: CRP delta p50 = {dc:.1f} < required {need}",
-                    ))
+                    result.findings.append(
+                        AuditFinding(
+                            Severity.FAIL,
+                            f"{country}/{hai_type}: CRP delta p50 = {dc:.1f} < required {need}",
+                        )
+                    )
 
     return result

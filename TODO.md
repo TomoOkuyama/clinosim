@@ -526,14 +526,22 @@ Phase 3c backlog:
 - Lactate / Plt / 体温 / SBP sepsis cascade using same forward-delta pattern
 - LOS extension from HAI
 
-DQR audit-script strengthening (post PR-90 review learning):
-- Per-event observed-vs-theoretical lift comparison (not just cohort
-  median — disease-state confound can mask both silent no-op AND
-  fully-firing lift).
-- "lift fired" counter per axis (zero = audit fails loudly instead of
-  hiding behind rare-event acceptance).
-- Cross-verify hai_type strings against `HAI_TYPES` at DQR time so
-  enricher-output drift surfaces immediately.
+DQR audit-script strengthening (post PR-90 review learning) ✓ done
+2026-06-25: clinosim audit framework Phase 1 (AD-60). New CLI subcommand
+`clinosim audit run` absorbs the previous 3-axis DQR scripts and adds a
+silent_no_op axis (canonical-constants cross-check + lift-firing proof) —
+the load-bearing verification PR-90 was missing. Per-Module checks
+co-locate in `clinosim/modules/<name>/audit.py`. First plug-in:
+`modules/hai/audit.py`. byte-diff vs master @ p=2000: 37/37 NDJSON
+byte-IDENTICAL — audit framework is pure read-only consumer. See
+`docs/reviews/2026-06-25-clinosim-audit-baseline.md`.
+
+Per-Module audit.py backlog for Phase 3b/c:
+- modules/antibiotic/audit.py (Phase 3b: empirical → narrow chain)
+- modules/decay/audit.py (Phase 3b: WBC/CRP antibiotic-day decay)
+- modules/mortality/audit.py (Phase 3c: HAI → outcome coupling)
+- modules/sepsis_cascade/audit.py (Phase 3c: Lactate/Plt/Temp/SBP)
+Each Module's own PR adds its audit.py alongside the feature.
 
 Backlog: **PR_C type consolidation** — 7 modules currently define types
 in `engine.py` instead of `clinosim/types/` (CLAUDE.md "All types

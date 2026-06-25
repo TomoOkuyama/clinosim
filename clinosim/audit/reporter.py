@@ -4,6 +4,7 @@ Renders the per-module x per-axis grid + axis-level findings into a
 Markdown string suitable for committing under docs/reviews/. The
 reporter is pure — it does not mutate the AuditResult.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -11,8 +12,6 @@ from pathlib import Path
 from clinosim.audit.types import (
     AuditFinding,
     AuditResult,
-    AxisResult,
-    Severity,
 )
 
 
@@ -57,7 +56,8 @@ def render_markdown(result: AuditResult) -> str:
 
     for module in result.modules:
         passed = sum(
-            1 for axis in result.axes
+            1
+            for axis in result.axes
             if (r := result.results.get((axis, module))) and r.status == "PASS"
         )
         parts.append(f"## {module} ({passed}/{len(result.axes)} PASS)\n")
