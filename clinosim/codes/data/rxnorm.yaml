@@ -24,8 +24,13 @@ codes:
     en: Fluticasone/Salmeterol (Advair)
     ja: フルチカゾン/サルメテロール（アドエア）
   '11124':
-    en: Warfarin
-    ja: ワルファリン
+    # NLM RxNav verified 2026-06-25 (PR3b-1 Task 5): name=vancomycin, tty=IN.
+    # Authoritative endpoint: /REST/rxcui/11124/properties.json. Existing
+    # repo usage in sepsis.yaml / cellulitis.yaml was already pointing at
+    # this CUI for Vancomycin; the previous Warfarin label was an orphan
+    # bug (Warfarin's correct CUI is 11289, already mapped elsewhere).
+    en: Vancomycin
+    ja: バンコマイシン
   '1116635':
     en: Ampicillin / Sulbactam Injectable Product
     ja: アンピシリン・スルバクタム注

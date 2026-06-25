@@ -34,6 +34,13 @@ codes:
   '6131700':
     en: Piperacillin/Tazobactam (Zosyn)
     ja: ピペラシリン/タゾバクタム（ゾシン）
+  '6113400':
+    # 厚労省 薬効分類 6113 = glycopeptide antibacterial agents (グリコペプチド系抗菌剤).
+    # Existing repo usage in sepsis.yaml already maps Vancomycin -> 6113400
+    # (drugs.first_line.japan section). Added here for code lookup centralization
+    # (PR3b-1 Task 5). Authoritative class: MHLW 薬価基準収載品目リスト.
+    en: Vancomycin (Vancocin)
+    ja: バンコマイシン塩酸塩（バンコマイシン）
   '2139007':
     en: Furosemide (Lasix)
     ja: フロセミド（ラシックス）
