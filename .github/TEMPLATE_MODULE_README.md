@@ -85,6 +85,27 @@ def public_function(arg: type) -> ReturnType:
 
 詳細は [docs/CONTRIBUTING-modules.md](../../../docs/CONTRIBUTING-modules.md) 参照。
 
+## Audit (該当時)
+
+Module-specific verification checks live at `clinosim/modules/<name>/audit.py`
+and register a `ModuleAuditSpec` with the `clinosim audit` framework
+(AD-60). Available checks:
+
+- `canonical_constants` — Python-side authoritative string tuples (e.g.
+  `HAI_TYPES = ("clabsi", "cauti", "vap")`)
+- `yaml_keys_to_validate` — reference YAML files whose keys are
+  cross-checked against `canonical_constants` at import time (catches the
+  PR-90 case-mismatch class of bug)
+- `structural_obs_codes` — analyte → (LOINC, JLAC10, …) tuples for the
+  structural axis
+- `clinical_acceptance` — cohort identification (ICD code) + acceptance
+  thresholds for the clinical axis
+- `lift_firing_proof` — synthetic record + expected delta (load-bearing
+  verification that catches silent-no-op bugs cohort medians can't)
+
+See `clinosim/modules/hai/audit.py` for the canonical example. Run with
+`clinosim audit run -d <cohort_dir> --module <name>`.
+
 ## 関連
 
 - [DESIGN.md](../../../DESIGN.md) ADxx (該当 ADR)
