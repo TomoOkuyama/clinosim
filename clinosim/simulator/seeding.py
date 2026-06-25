@@ -90,6 +90,7 @@ ENRICHER_SEED_OFFSETS = {
     "nursing":        0x4E55,     # "NU"
     "device":         0x4445,     # "DE" (PR-A)
     "hai":            0x4841,     # "HA" (PR-B)
+    "antibiotic":     0x4142,     # "AB" (PR3b-1)
 }
 
 assert len(set(ENRICHER_SEED_OFFSETS.values())) == len(ENRICHER_SEED_OFFSETS), \
