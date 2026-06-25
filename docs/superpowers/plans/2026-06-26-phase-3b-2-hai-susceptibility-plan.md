@@ -241,13 +241,32 @@ EOF
 - Consumes: cefepime LOINC verified in Task 0.
 - Produces: `clinosim.modules.antibiotic.ANTIBIOTIC_LOINC_LOOKUP: dict[str, str]` — canonical antibiotic_key → LOINC map covering at least the 8 antibiotics used by PR3b-2 (vancomycin, piperacillin_tazobactam, ceftriaxone, cefazolin, cefepime, meropenem, ciprofloxacin, trimethoprim_sulfamethoxazole).
 
-- [ ] **Step 1: Add cefepime LOINC to microbiology.yaml**
+- [ ] **Step 1: Fix orphan ciprofloxacin LOINC + add cefepime LOINC to microbiology.yaml**
 
-Edit `clinosim/modules/observation/reference_data/microbiology.yaml`. In the `antibiotics:` block, after `ceftriaxone:`, add:
+Edit `clinosim/modules/observation/reference_data/microbiology.yaml`.
+
+**1a. Orphan-bug fix** (discovered during Task 0 — `microbiology.yaml:22` currently
+has `ciprofloxacin: "18879-7"` but 18879-7 is in fact "Cefepime [Susceptibility]";
+the true Ciprofloxacin LOINC is **18906-8** "Ciprofloxacin Susc Islt", verified
+at NLM `clinicaltables.nlm.nih.gov/api/loinc_items/v3/search?sf=LONG_COMMON_NAME&terms=ciprofloxacin+susceptibility` plus tx.fhir.org $lookup). Replace:
 ```yaml
-  cefepime: "<verified-LOINC-from-task-0>"
+  ciprofloxacin: "18879-7"
 ```
-Add an inline comment: `# Verified NLM LOINC / tx.fhir.org $lookup YYYY-MM-DD`.
+with:
+```yaml
+  ciprofloxacin: "18906-8"  # Verified NLM + tx.fhir.org 2026-06-26 (was incorrectly 18879-7 = Cefepime)
+```
+
+**1b. Add cefepime entry**. After the `ceftriaxone:` line, add:
+```yaml
+  cefepime: "18879-7"  # Verified NLM + tx.fhir.org $lookup 2026-06-26 (Task 0 §6.1)
+```
+
+Note: this is the only place `ciprofloxacin: "18879-7"` appears; the antibiogram tables
+elsewhere in this YAML reference `ciprofloxacin` by key (not by LOINC), so the orphan fix
+propagates correctly. Same pattern as the PR-93 Vancomycin RxNorm 11124 orphan fix
+(memory `feedback_propose_improvements_to_existing` — existing yaml display bugs
+discovered during related work get folded into the natural-scope PR).
 
 - [ ] **Step 2: Write the failing test for `ANTIBIOTIC_LOINC_LOOKUP`**
 
