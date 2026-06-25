@@ -303,12 +303,20 @@ already maps 9 antibiotic keys → LOINC. PR3b-2 needs 8 keys, 7 of which
 exist (`vancomycin`, `piperacillin_tazobactam`, `ceftriaxone`, `cefazolin`,
 `meropenem`, `ciprofloxacin`, `trimethoprim_sulfamethoxazole`).
 
-**Missing key**: `cefepime` (the 8th). Add the LOINC for "Cefepime
-[Susceptibility]". A first guess is **18874-8** but this MUST be verified
-against NLM LOINC search as Plan Task 0 (authoritative lookup is a hard
-prerequisite per memory `feedback_verify_before_asserting` — never
-fabricate codes). If 18874-8 is wrong, substitute the verified LOINC and
-update spec accordingly before implementation begins.
+**Missing key**: `cefepime` (the 8th). Add LOINC **18879-7** "Cefepime
+[Susceptibility]" to `microbiology.yaml`'s `antibiotics:` section.
+
+_Verification record (Task 0, 2026-06-26)_: The initial guess 18874-8 was
+**incorrect** — tx.fhir.org `$lookup` confirmed it is "Cefaclor
+[Susceptibility]" (a different cephalosporin). The correct code was
+determined as follows:
+- NLM LOINC API (`clinicaltables.nlm.nih.gov/api/loinc_items/v3/search?sf=LONG_COMMON_NAME&terms=cefepime+susceptibility`)
+  returned 18879-7 "Cefepime Susc Islt" as the first active susceptibility result.
+- Cross-checked via `https://tx.fhir.org/r4/CodeSystem/$lookup?system=http://loinc.org&code=18879-7`:
+  display = "Cefepime [Susceptibility]", status = ACTIVE.
+- Also verified 6644-9 = "Cefepime [Susceptibility] by Minimum inhibitory
+  concentration (MIC)" (MIC-specific variant; 18879-7 is the interpreted
+  S/I/R result code, which is the correct choice for susceptibility panels).
 
 A new module-level loader in `clinosim/modules/antibiotic/__init__.py`
 exposes `ANTIBIOTIC_LOINC_LOOKUP: dict[str, str]` by reading
