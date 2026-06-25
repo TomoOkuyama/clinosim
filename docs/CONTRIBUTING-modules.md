@@ -170,7 +170,7 @@ PR の性質によって適切な検証手段が異なります:
 | PR の性質 | 検証手段 | 何を保証するか |
 |---|---|---|
 | **Pure mechanical refactor** (例: 内部構造整理、helper 共通化、registry 中央化、ファイル分割) | **byte-diff** — master と branch で同 seed/設定で生成した 11 NDJSON が sha256 IDENTICAL | refactor 前後で **出力が一切変わっていない** = no-regression gate |
-| **新機能 / リアリティ改善** (例: 新 analyte 追加、scenario flag 追加、medication coupling 追加、新疾患追加) | **3-axis DQR** (`docs/reviews/<date>-<topic>-data-quality-review.md`) | **FHIR R4 / JP Core 適合性 + 臨床整合性 + JP language 品質** = goal achievement gate |
+| **新機能 / リアリティ改善** (例: 新 analyte 追加、scenario flag 追加、medication coupling 追加、新疾患追加) | **`clinosim audit run`** — 4 軸 (structural / clinical / jp_language / silent_no_op) を一括検証。Module 著者は `clinosim/modules/<name>/audit.py` に `ModuleAuditSpec` を register する。レポートは `docs/reviews/<date>-<topic>-audit.md` に保存 | **FHIR R4 / JP Core 適合性 + 臨床整合性 + JP language 品質 + silent-no-op gate** (PR-90 class of bug 再発防止) = goal achievement gate |
 | **Pure docs update** (例: README 更新、新 doc 作成) | regression check (テスト緑) + manual link review | code 変更がないこと |
 | **混合** (refactor + 小さな behavior change) | byte-diff で意図的変化のみあることを確認 + DQR で goal 維持を確認 | 両方 |
 

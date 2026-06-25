@@ -56,7 +56,10 @@
 
 clinosim の真のゴールは **FHIR R4 + JP Core 準拠の出力 + 臨床整合性 + JP localization 品質** です。出力データを変更する PR は 3 軸データ品質レビュー (構造 / 臨床 / JP language) で gate される — 詳細は [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) 「PR 検証ガイド」参照。
 
+検証フレームワーク: `clinosim audit run` (AD-60) は新機能 PR の統一 gate — 4 軸 (structural / clinical / jp_language / silent_no_op) + Module 所有 audit.py プラグイン。byte-diff は refactor PR 用の独立 mechanic として残置。
+
 最新レビュー:
+- [`docs/reviews/2026-06-25-clinosim-audit-baseline.md`](docs/reviews/2026-06-25-clinosim-audit-baseline.md) — 初回 `clinosim audit run` baseline (`modules/hai` の全 4 軸; structural / jp_language / silent_no_op PASS, clinical は p=2000 rare-event で WARN)
 - [`docs/reviews/2026-06-25-phase3a-hai-lab-lift-data-quality-review-post-fix.md`](docs/reviews/2026-06-25-phase3a-hai-lab-lift-data-quality-review-post-fix.md) — Phase 3a HAI lift (xhigh コードレビュー後の hardening、**全 3 軸 PASS** + byte-diff 37/37 IDENTICAL + closed-form lift firing 検証)
 - [`docs/reviews/2026-06-25-phase3a-hai-lab-lift-data-quality-review.md`](docs/reviews/2026-06-25-phase3a-hai-lab-lift-data-quality-review.md) — Phase 3a 初回 DQR(fix 前、上記 post-fix で更新済)
 - [`docs/reviews/2026-06-24-master-comprehensive-dqr.md`](docs/reviews/2026-06-24-master-comprehensive-dqr.md) — 包括 master review (2026 年 6 月)、**全 3 軸 PASS** (master @ US p=10,000 + JP p=5,000):

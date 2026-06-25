@@ -129,7 +129,16 @@ def main() -> None:
     te.add_argument("--age", type=int, default=None, help="Force patient age")
     te.add_argument("--sex", default=None, help="Force patient sex (M/F)")
 
+    # === audit: verification framework ===
+    from clinosim.audit.cli import add_audit_subparser
+    add_audit_subparser(sub)
+
     args = parser.parse_args()
+
+    if args.command == "audit":
+        from clinosim.audit.cli import dispatch_audit
+        import sys
+        sys.exit(dispatch_audit(args))
 
     if args.command == "list-diseases":
         protocols = _load_all_disease_protocols()
