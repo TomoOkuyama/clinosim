@@ -51,7 +51,7 @@ def test_enrich_antibiotic_cauti_writes_orders_and_mar():
     assert len(rec.medication_administrations) == 7
     assert len(rec.extensions["antibiotic"]) == 1
     r = rec.extensions["antibiotic"][0]
-    assert r.drug_key == "Ceftriaxone"
+    assert r.drug_key == "ceftriaxone"
     assert r.hai_event_id == "h1"
     assert r.encounter_id == "enc-1"
     assert r.start_datetime == datetime(2026, 1, 10, 8)

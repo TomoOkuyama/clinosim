@@ -22,6 +22,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from clinosim.modules._shared import get_attr_or_key as _get
+from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS
 from clinosim.modules.antibiotic.engine import build_regimens, generate_mar_doses
 from clinosim.types.encounter import Order, OrderStatus, OrderType
 from clinosim.types.hai import HAIEvent
@@ -68,7 +69,9 @@ def enrich_antibiotic(ctx) -> None:
                     encounter_id=regimen.encounter_id,
                     patient_id=_get(_get(rec, "patient", None), "patient_id", ""),
                     order_type=OrderType.MEDICATION,
-                    display_name=regimen.drug_key,
+                    display_name=ANTIBIOTIC_DRUGS.get(regimen.drug_key, {}).get(
+                        "name", regimen.drug_key
+                    ),
                     ordered_datetime=regimen.start_datetime,
                     status=OrderStatus.ACCEPTED,
                     dose_unit=regimen.dose,
