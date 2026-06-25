@@ -16,7 +16,7 @@
 
 ## 判断: Base か Module か
 
-新しいデータ/機能を追加するとき、最初に **Base (always-on, core を拡張)** か **opt-in Module (`SimulatorConfig.modules` + `config.module_enabled()` でゲート)** かを決めます (AD-55)。
+新しいデータ/機能を追加するとき、最初に **Base (always-on, core を拡張)** か **opt-in Module (`SimulatorConfig.modules` + `config.module_enabled()` でゲート)** か **always-on Module = near-essential clinical cascade**(AD-55 PR3b-1 supplement、2026-06-25 追加: 上流 `extensions[X]` の存在を前提に clinically coherent な拡張を不可避的に出すモジュール。例 `device`/`hai`/`antibiotic`)を決めます (AD-55)。
 
 ### 決定チェックリスト
 
