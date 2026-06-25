@@ -7,6 +7,7 @@ for the design rationale. Public exports:
 - Severity, AuditFinding, AxisResult, AuditResult: result types
 - Cohort: lazy NDJSON reader
 """
+
 from clinosim.audit.registry import (
     ModuleAuditSpec,
     register_audit_module,

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from clinosim.audit.engine import AuditEngine, _BUILTIN_AXES
+from clinosim.audit.engine import _BUILTIN_AXES, AuditEngine
 from clinosim.audit.registry import (
     ModuleAuditSpec,
     _reset_for_test,

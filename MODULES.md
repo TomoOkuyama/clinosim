@@ -116,6 +116,7 @@ quality. See [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md)
 | [output](clinosim/modules/output/README.md) | CIF → FHIR R4 NDJSON / CSV adapters (registry-based) | output | 全 module (via builders) | CLI (clinosim generate) | core |
 | [llm_service](clinosim/modules/llm_service/README.md) | optional narrative generation (Ollama/Bedrock/Anthropic) | output | codes | output (narrative path), simulator | optional |
 | [validator](clinosim/modules/validator/README.md) | data quality tier framework | output | types | CLI (clinosim validate) | optional |
+| [audit](clinosim/audit/) | clinosim audit framework — 4 軸 (structural / clinical / jp_language / silent_no_op) verification gate; per-Module audit.py plug-ins | verification | clinosim/codes/, all modules with audit.py | CLI (clinosim audit) | guard |
 
 **Tier 凡例**:
 - `foundational` — used by almost everything; changes ripple widely

@@ -11,6 +11,7 @@ Code values are checked against the LOINC and JLAC10 tuples in
 spec.structural_obs_codes so this axis is reusable for any Module that
 declares its observation codes.
 """
+
 from __future__ import annotations
 
 from clinosim.audit.registry import ModuleAuditSpec
@@ -43,10 +44,12 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                     break
         result.info["us_non_ascii_display_violations"] = us_violations
         if us_violations > 0:
-            result.findings.append(AuditFinding(
-                Severity.FAIL,
-                f"US output has {us_violations} Observations with non-ASCII display",
-            ))
+            result.findings.append(
+                AuditFinding(
+                    Severity.FAIL,
+                    f"US output has {us_violations} Observations with non-ASCII display",
+                )
+            )
 
     # JP: each requested analyte must have at least one localized display
     if "jp" not in countries or not spec.structural_obs_codes:
@@ -69,9 +72,11 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
         result.info[f"jp_{analyte}_localized"] = jp_localized[analyte]
         result.info[f"jp_{analyte}_total"] = total
         if jp_localized[analyte] == 0:
-            result.findings.append(AuditFinding(
-                Severity.FAIL,
-                f"{analyte}: 0 of {total} JP Observations have a localized display",
-            ))
+            result.findings.append(
+                AuditFinding(
+                    Severity.FAIL,
+                    f"{analyte}: 0 of {total} JP Observations have a localized display",
+                )
+            )
 
     return result

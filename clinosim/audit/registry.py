@@ -4,10 +4,11 @@ ModuleAuditSpec is the per-Module contract; modules/<name>/audit.py
 side-effect-imports register_audit_module(spec) at import time. The
 audit engine calls discover() before iterating registered modules.
 """
+
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable
 
 
 @dataclass

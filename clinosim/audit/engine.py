@@ -4,6 +4,7 @@ Discovery walks clinosim/modules/*/audit.py and side-effect-registers
 each Module's spec. The engine then iterates the selected module x
 axis matrix, calling each axis's run() with the spec + Cohort.
 """
+
 from __future__ import annotations
 
 from pathlib import Path

@@ -29,6 +29,7 @@ any subset:
    discovery is Phase 2 backlog) — the axis runs the constants +
    proof checks only.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -37,7 +38,6 @@ import yaml
 
 from clinosim.audit.registry import ModuleAuditSpec
 from clinosim.audit.types import AuditFinding, AxisResult, Cohort, Severity
-
 
 # Per-analyte tolerance band for lift-firing proof comparison.
 _PROOF_TOLERANCE = {"WBC": 2.0, "CRP": 0.5}
@@ -64,33 +64,41 @@ def _check_constants(spec: ModuleAuditSpec, result: AxisResult) -> None:
     for yaml_path, key_path in spec.yaml_keys_to_validate.items():
         p = Path(yaml_path)
         if not p.exists():
-            result.findings.append(AuditFinding(
-                Severity.FAIL,
-                f"canonical-constants source {yaml_path!r} not found",
-            ))
+            result.findings.append(
+                AuditFinding(
+                    Severity.FAIL,
+                    f"canonical-constants source {yaml_path!r} not found",
+                )
+            )
             continue
         try:
             data = yaml.safe_load(p.read_text(encoding="utf-8"))
         except Exception as e:
-            result.findings.append(AuditFinding(
-                Severity.FAIL,
-                f"canonical-constants source {yaml_path!r} unparseable: {e}",
-            ))
+            result.findings.append(
+                AuditFinding(
+                    Severity.FAIL,
+                    f"canonical-constants source {yaml_path!r} unparseable: {e}",
+                )
+            )
             continue
         node = _yaml_keys_at_path(data, key_path)
         if node is None:
-            result.findings.append(AuditFinding(
-                Severity.FAIL,
-                f"key path {key_path} not found in {yaml_path}",
-            ))
+            result.findings.append(
+                AuditFinding(
+                    Severity.FAIL,
+                    f"key path {key_path} not found in {yaml_path}",
+                )
+            )
             continue
         unknown = set(node) - canonical_union
         if unknown:
-            result.findings.append(AuditFinding(
-                Severity.FAIL,
-                f"canonical-constants drift in {yaml_path}: keys {sorted(unknown)} "
-                f"not in canonical set {sorted(canonical_union)}",
-            ))
+            result.findings.append(
+                AuditFinding(
+                    Severity.FAIL,
+                    f"canonical-constants drift in {yaml_path}: keys {sorted(unknown)} "
+                    f"not in canonical set {sorted(canonical_union)}",
+                )
+            )
         else:
             result.info[f"constants_pass_{p.name}"] = "ok"
 
@@ -101,10 +109,12 @@ def _check_proof(spec: ModuleAuditSpec, result: AxisResult) -> None:
     try:
         proof = spec.lift_firing_proof()
     except Exception as e:
-        result.findings.append(AuditFinding(
-            Severity.FAIL,
-            f"lift_firing_proof factory raised: {type(e).__name__}: {e}",
-        ))
+        result.findings.append(
+            AuditFinding(
+                Severity.FAIL,
+                f"lift_firing_proof factory raised: {type(e).__name__}: {e}",
+            )
+        )
         return
     apply_fn = proof.get("apply_fn")
     # expected: list[tuple[obs, pre_value, expected_delta]]
@@ -119,10 +129,12 @@ def _check_proof(spec: ModuleAuditSpec, result: AxisResult) -> None:
             proof.get("admission_time"),
         )
     except Exception as e:
-        result.findings.append(AuditFinding(
-            Severity.FAIL,
-            f"lift_firing_proof apply_fn raised: {type(e).__name__}: {e}",
-        ))
+        result.findings.append(
+            AuditFinding(
+                Severity.FAIL,
+                f"lift_firing_proof apply_fn raised: {type(e).__name__}: {e}",
+            )
+        )
         return
     for obs, pre_value, expected_delta in expected:
         new_value = obs.value
@@ -130,12 +142,14 @@ def _check_proof(spec: ModuleAuditSpec, result: AxisResult) -> None:
         analyte = getattr(obs, "lab_name", None)
         tol = _PROOF_TOLERANCE.get(analyte, _PROOF_DEFAULT_TOLERANCE)
         if abs(observed_delta - expected_delta) > tol:
-            result.findings.append(AuditFinding(
-                Severity.FAIL,
-                f"lift-firing proof delta mismatch for {analyte}: "
-                f"observed {observed_delta:.2f}, expected {expected_delta:.2f} "
-                f"(tolerance ±{tol})",
-            ))
+            result.findings.append(
+                AuditFinding(
+                    Severity.FAIL,
+                    f"lift-firing proof delta mismatch for {analyte}: "
+                    f"observed {observed_delta:.2f}, expected {expected_delta:.2f} "
+                    f"(tolerance ±{tol})",
+                )
+            )
         else:
             result.info[f"proof_{analyte}_delta"] = round(observed_delta, 2)
 
