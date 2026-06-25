@@ -1,0 +1,23 @@
+# clinosim/modules/hai/reference_data/hai_lab_lift.yaml
+# Phase 3a: HAI WBC + CRP lift via inflammation_level offset.
+# Read at observation time by physiology.engine.hai_flags_from_record.
+#
+# CDC NHSN clinical severity proxy:
+#   CLABSI = bacteremia       (strong systemic response)
+#   VAP    = severe pneumonia (strong systemic response)
+#   CAUTI  = urinary tract    (moderate, often localized)
+#
+# Calibration (baseline infl=0.4, typical inpatient):
+#   CLABSI/VAP lift 0.35 -> effective_infl=0.75 -> CRP ~169 mg/L, WBC ~16,000
+#   CAUTI       lift 0.20 -> effective_infl=0.60 -> CRP ~87 mg/L,  WBC ~14,200
+#
+# Ramp: lift_factor = min(1.0, max(0, days_since_onset) / ramp_peak_days)
+#   day 0 (onset)  -> 0.0 lift
+#   day 1          -> 0.5 lift
+#   day 2+ (peak)  -> 1.0 lift (no decay in Phase 3a; antibiotic chain -> Phase 3b)
+ramp_peak_days: 2
+
+hai_lift:
+  CLABSI: 0.35
+  VAP: 0.35
+  CAUTI: 0.20
