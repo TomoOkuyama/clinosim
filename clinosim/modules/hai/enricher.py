@@ -112,17 +112,40 @@ def enrich_hai(ctx) -> None:
             if not hai_type:
                 continue
             if forced is not None:
-                # PR-93 adversarial review fix (AD-16 RNG isolation):
-                # consume the SAME number of rng draws the non-forced
-                # path would consume so downstream rng consumers see an
-                # identical stream offset. sample_hai_onset does 1
-                # random() + (conditionally) 1 integers(); _sample_organism
-                # does 1 choice(). Drain unconditionally so the forced
-                # path is byte-equivalent to non-forced from any
-                # downstream rng consumer's perspective.
+                # PR-94 adversarial review fix (AD-16 RNG isolation):
+                # mirror the non-forced firing path's EXACT rng-method
+                # sequence so downstream consumers see an identical
+                # stream offset. The non-forced firing path executes:
+                #   sample_hai_onset:  rng.random() [always]
+                #                      rng.integers(2, line_days) [when fires]
+                #   _sample_organism:  rng.choice(snomeds, p=weights)
+                # When line_days < 2 the non-forced path returns BEFORE
+                # any draws (no firing possible), so the forced path
+                # must also short-circuit (a forced HAI on a < 2-day
+                # device line is clinically impossible anyway).
+                from datetime import date as _d
+                placement = _d.fromisoformat(_get(device, "placement_date", ""))
+                removal_raw = _get(device, "removal_date", None)
+                line_days = (
+                    (_d.fromisoformat(removal_raw) - placement).days
+                    if removal_raw else 7   # snapshot in-progress fallback
+                )
+                if line_days < 2:
+                    continue
+                # Mirror sample_hai_onset's exact draws (firing branch)
                 _ = rng.random()
-                _ = rng.integers(0, 1024)
-                _ = rng.random()
+                _ = rng.integers(2, line_days)
+                # Mirror _sample_organism's exact draw via choice with
+                # the matching weight distribution for this hai_type
+                _organism_weights = [
+                    o.get("weight", 0.0)
+                    for o in organisms_cfg.get(hai_type, [])
+                ]
+                if _organism_weights:
+                    _total = sum(_organism_weights)
+                    if _total > 0:
+                        _probs = [w / _total for w in _organism_weights]
+                        _ = rng.choice(len(_organism_weights), p=_probs)
                 if hai_type != forced["hai_type"]:
                     continue
                 onset_offset = int(forced["onset_offset_days"])
