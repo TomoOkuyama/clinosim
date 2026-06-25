@@ -63,14 +63,18 @@ quality. See [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md)
 │  healthcare_system  country-scoped operational params    │
 └──────────────────────────────────────────────────────────┘
             ↓                ↓               ↓
-┌─ Enrichment (AD-55 Base post-records) ───────────────────┐
+┌─ Enrichment ─────────────────────────────────────────────┐
+│  POST_ENCOUNTER stage (per-encounter, post-loop):        │
+│  device           ICU device placement (CVC/catheter/vent)│
+│  hai              CLABSI / CAUTI / VAP (Phase 3a WBC+CRP) │
+│                                                          │
+│  POST_RECORDS stage (cross-record, post-all):            │
+│  nursing          NEWS2 / GCS / Braden / Morse           │
 │  immunization     CVX vaccine history                    │
 │  family_history   first-degree relative disease history  │
 │  code_status      DNR/Full Code resuscitation status     │
 │  care_level       JP 要介護度 (JP only)                  │
 │  sdoh             smoking + alcohol reference data       │
-│  device           ICU device placement (CVC/catheter/vent)│
-│  hai              CLABSI / CAUTI / VAP (consumes device)  │
 └──────────────────────────────────────────────────────────┘
             ↓                ↓               ↓
 ┌─ Output ─────────────────────────────────────────────────┐
@@ -107,8 +111,8 @@ quality. See [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md)
 | [code_status](clinosim/modules/code_status/README.md) | DNR/Full Code SNOMED resuscitation status (enricher) | enrichment | types/codes | simulator/enrichers.py, output | optional |
 | [care_level](clinosim/modules/care_level/README.md) | JP 要介護度 long-term-care need level (JP-only enricher) | enrichment | types/codes/locale | simulator/enrichers.py, output | optional (JP) |
 | [sdoh](clinosim/modules/sdoh/README.md) | smoking + alcohol enum→SNOMED reference (data-only variant) | enrichment | codes | output (_fhir_smoking_alcohol.py) | foundational |
-| [device](clinosim/modules/device/README.md) | ICU device placement (CVC / indwelling catheter / ventilator) | enrichment | types/codes | simulator/enrichers.py, output (_fhir_device.py), modules/hai | optional |
-| [hai](clinosim/modules/hai/README.md) | Hospital-acquired infection (CLABSI / CAUTI / VAP) via CDC NHSN baseline | enrichment | types/codes + modules/device | simulator/enrichers.py, output (_fhir_hai.py + reuses _fhir_microbiology.py) | optional |
+| [device](clinosim/modules/device/README.md) | ICU device placement (CVC / indwelling catheter / ventilator) | enrichment | types/codes | simulator/enrichers.py (POST_ENCOUNTER), output (_fhir_device.py), modules/hai | optional |
+| [hai](clinosim/modules/hai/README.md) | Hospital-acquired infection (CLABSI / CAUTI / VAP) via CDC NHSN baseline + Phase 3a WBC + CRP forward-delta lift | enrichment | types/codes + modules/device + physiology.engine (Phase 3a) | simulator/enrichers.py (POST_ENCOUNTER), simulator/inpatient.py (apply_hai_lab_lift), output (_fhir_hai.py + reuses _fhir_microbiology.py) | optional |
 | [output](clinosim/modules/output/README.md) | CIF → FHIR R4 NDJSON / CSV adapters (registry-based) | output | 全 module (via builders) | CLI (clinosim generate) | core |
 | [llm_service](clinosim/modules/llm_service/README.md) | optional narrative generation (Ollama/Bedrock/Anthropic) | output | codes | output (narrative path), simulator | optional |
 | [validator](clinosim/modules/validator/README.md) | data quality tier framework | output | types | CLI (clinosim validate) | optional |
