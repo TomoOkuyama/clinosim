@@ -23,7 +23,7 @@ def test_antibiotic_lift_firing_proof_passes_silent_no_op_axis():
     assert spec.lift_firing_proof is not None
     proof = spec.lift_firing_proof()
     assert proof["ext_antibiotic_count"] == 1
-    assert proof["ext_antibiotic_drug"] == "Ceftriaxone"
+    assert proof["ext_antibiotic_drug"] == "ceftriaxone"  # drug_key is lowercase snake_case
     assert proof["ext_antibiotic_duration_days"] == 7
     assert proof["orders_medication_count"] == 1
     assert proof["mar_count"] == 7

@@ -85,11 +85,11 @@ def _build_synthetic_proof():
         "mar_last_dt": mar[-1].scheduled_datetime if mar else None,
         "expected": {
             "ext_antibiotic_count": 1,
-            "ext_antibiotic_drug": "Ceftriaxone",
+            "ext_antibiotic_drug": "ceftriaxone",  # lowercase snake_case drug_key (PR3b-2 refactor)
             "ext_antibiotic_duration_days": 7,
             "orders_medication_count": 1,
             "mar_count": 7,
-            "mar_drug": "Ceftriaxone",
+            "mar_drug": "Ceftriaxone",  # display name from ANTIBIOTIC_DRUGS["ceftriaxone"]["name"]
             "mar_first_dt": datetime(2026, 1, 10, 8),
             "mar_last_dt": datetime(2026, 1, 16, 8),
         },
@@ -101,7 +101,7 @@ register_audit_module(
         name="antibiotic",
         canonical_constants={
             "hai_type": HAI_TYPES,
-            "drug_key": ANTIBIOTIC_DRUGS,
+            "drug_key": tuple(ANTIBIOTIC_DRUGS.keys()),
         },
         yaml_keys_to_validate={
             str(_HAI_EMPIRICAL_YAML): ("hai_empirical",),
@@ -109,19 +109,19 @@ register_audit_module(
         clinical_acceptance={
             "clabsi": {
                 "icd10_code": "T80.211A",
-                "expected_drugs": ("Vancomycin", "Piperacillin/Tazobactam"),
+                "expected_drugs": ("vancomycin", "piperacillin_tazobactam"),
                 "expected_duration_days": 14,
                 "min_mar_per_event": 14 * 2 + 14 * 4,  # Vanc q12h + Pip-Tazo q6h
             },
             "cauti": {
                 "icd10_code": "T83.511A",
-                "expected_drugs": ("Ceftriaxone",),
+                "expected_drugs": ("ceftriaxone",),
                 "expected_duration_days": 7,
                 "min_mar_per_event": 7,
             },
             "vap": {
                 "icd10_code": "J95.851",
-                "expected_drugs": ("Vancomycin", "Piperacillin/Tazobactam"),
+                "expected_drugs": ("vancomycin", "piperacillin_tazobactam"),
                 "expected_duration_days": 7,
                 "min_mar_per_event": 7 * 2 + 7 * 4,
             },

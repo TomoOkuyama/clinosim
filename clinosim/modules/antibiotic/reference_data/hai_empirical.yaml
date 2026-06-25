@@ -17,14 +17,14 @@ hai_empirical:
   clabsi:
     duration_days: 14
     drugs:
-      - {drug_key: "Vancomycin",              dose: "1g",     route: "IV", frequency: "q12h"}
-      - {drug_key: "Piperacillin/Tazobactam", dose: "3.375g", route: "IV", frequency: "q6h"}
+      - {drug_key: "vancomycin",              dose: "1g",     route: "IV", frequency: "q12h"}
+      - {drug_key: "piperacillin_tazobactam", dose: "3.375g", route: "IV", frequency: "q6h"}
   cauti:
     duration_days: 7
     drugs:
-      - {drug_key: "Ceftriaxone",             dose: "1g",     route: "IV", frequency: "q24h"}
+      - {drug_key: "ceftriaxone",             dose: "1g",     route: "IV", frequency: "q24h"}
   vap:
     duration_days: 7
     drugs:
-      - {drug_key: "Vancomycin",              dose: "1g",     route: "IV", frequency: "q12h"}
-      - {drug_key: "Piperacillin/Tazobactam", dose: "3.375g", route: "IV", frequency: "q6h"}
+      - {drug_key: "vancomycin",              dose: "1g",     route: "IV", frequency: "q12h"}
+      - {drug_key: "piperacillin_tazobactam", dose: "3.375g", route: "IV", frequency: "q6h"}

@@ -51,8 +51,8 @@ def test_antibiotic_always_on_emits_medications(cauti_forced_scenario):
             "cover the enricher path."
         )
     abx = rec_with_abx.extensions["antibiotic"]
-    assert any(r.drug_key == "Ceftriaxone" for r in abx)
-    cef = next(r for r in abx if r.drug_key == "Ceftriaxone")
+    assert any(r.drug_key == "ceftriaxone" for r in abx)
+    cef = next(r for r in abx if r.drug_key == "ceftriaxone")
     assert cef.duration_days == 7
     cef_orders = [o for o in rec_with_abx.orders
                   if o.order_type.value == "medication"

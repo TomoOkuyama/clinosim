@@ -18,12 +18,12 @@ def test_load_hai_empirical_clabsi_idsa_2009():
     clabsi = data["clabsi"]
     assert clabsi["duration_days"] == 14
     drugs = {d["drug_key"]: d for d in clabsi["drugs"]}
-    assert set(drugs.keys()) == {"Vancomycin", "Piperacillin/Tazobactam"}
-    assert drugs["Vancomycin"]["dose"] == "1g"
-    assert drugs["Vancomycin"]["route"] == "IV"
-    assert drugs["Vancomycin"]["frequency"] == "q12h"
-    assert drugs["Piperacillin/Tazobactam"]["dose"] == "3.375g"
-    assert drugs["Piperacillin/Tazobactam"]["frequency"] == "q6h"
+    assert set(drugs.keys()) == {"vancomycin", "piperacillin_tazobactam"}
+    assert drugs["vancomycin"]["dose"] == "1g"
+    assert drugs["vancomycin"]["route"] == "IV"
+    assert drugs["vancomycin"]["frequency"] == "q12h"
+    assert drugs["piperacillin_tazobactam"]["dose"] == "3.375g"
+    assert drugs["piperacillin_tazobactam"]["frequency"] == "q6h"
 
 
 @pytest.mark.unit
@@ -32,7 +32,7 @@ def test_load_hai_empirical_cauti_idsa_2009():
     cauti = data["cauti"]
     assert cauti["duration_days"] == 7
     assert len(cauti["drugs"]) == 1
-    assert cauti["drugs"][0]["drug_key"] == "Ceftriaxone"
+    assert cauti["drugs"][0]["drug_key"] == "ceftriaxone"
     assert cauti["drugs"][0]["frequency"] == "q24h"
     assert cauti["drugs"][0]["dose"] == "1g"
 
@@ -43,7 +43,7 @@ def test_load_hai_empirical_vap_idsa_2016():
     vap = data["vap"]
     assert vap["duration_days"] == 7
     drug_keys = {d["drug_key"] for d in vap["drugs"]}
-    assert drug_keys == {"Vancomycin", "Piperacillin/Tazobactam"}
+    assert drug_keys == {"vancomycin", "piperacillin_tazobactam"}
 
 
 @pytest.mark.unit
