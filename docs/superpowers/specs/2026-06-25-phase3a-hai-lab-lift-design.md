@@ -507,6 +507,51 @@ Threshold は §7.2 unit-test calibration から導出(baseline infl=0.4 で CLA
 
 ---
 
+## 13a. Post-PR-90 xhigh review hardening (2026-06-25 second pass)
+
+PR #90 was opened with **byte-diff 37/37 IDENTICAL + 3-axis DQR PASS + 691 tests** — but a workflow-backed xhigh code review caught **13 confirmed + 2 plausible bugs**. The critical one: YAML hai_type keys were UPPERCASE (`CLABSI`/`VAP`/`CAUTI`) while the enricher writes lowercase (`clabsi`/`cauti`/`vap`), so `lift_table.get` always returned 0.0 — **the entire Phase 3a lift was a silent no-op in production**, and the DQR's +2,135 WBC / +50.4 CRP CAUTI delta was a confounder of UTI disease state, not the lift code.
+
+### Why all three gates missed it
+
+| Gate | Why it missed |
+|---|---|
+| Unit + integration tests | Constructed HAIEvent with UPPERCASE by hand, accidentally matching the YAML; the enricher path was never driven end-to-end. |
+| byte-diff at p=2000 | HAI is Poisson rare (~0 events at p=2000) → the lift code never ran. |
+| 3-axis DQR at p=10k | The CAUTI cohort delta vs non-HAI baseline looked plausible, but UTI patients have elevated WBC + CRP regardless — the metric was confounded with disease state, not pinned to the lift formula. |
+
+### Fixes applied (commit `4dd36a55`)
+
+| # | Severity | Fix |
+|---|---|---|
+| 1 | critical | `modules/hai/__init__.HAI_TYPES = ('clabsi','cauti','vap')` single source of truth; YAML keys lowercased; `load_hai_lab_lift_config` validates keys against `HAI_TYPES` at import → raises on mismatch. |
+| 2 | high | Multi-event lift = `max(effective_lift)` over matching events (not sum). Refactored to iterate observations first, then find the best lift across events. |
+| 3 | high | `state_history[day_index + 1]` (post-day-N state — index 0 is admission). |
+| 4 | high | `obs.flag` recomputed via `determine_flag` after lift. |
+| 5 | medium | `round_to_precision(lab_name, ...)` so WBC stays integer. |
+| 6 | medium | Draw hour from `order.ordered_datetime`, not `obs.result_datetime`. |
+| 7 | high | Snapshot-date truncation runs again after POST_ENCOUNTER to drop HAI events + cultures past snapshot. |
+| 8 | critical | `run_forced` calls `register_builtin_enrichers()` so `clinosim test-disease` actually fires the POST_ENCOUNTER stage. |
+| 9 | critical | Removed the 29-line dead POST_ENCOUNTER block from `_simulate_unknown_condition` (icu_transferred never set there). |
+| 10 / 11 / 13 / 15 | medium | `hai_flags_from_record` deleted (dead code, module-boundary violation, type contract conflict — all gone at once). |
+| 12 | medium | `_hai_lift_delta` closed-form (~10 lines) replaces double-`derive_lab_values` (30+ analyte pipeline). |
+| 14 | high | Closed-form approach makes the recompute moot — only WBC + CRP need re-evaluation, no scenario / medication flags involved. |
+
+### New regression guards
+
+- `tests/integration/test_hai_lab_lift.py` rewritten (13 cases) — pins state_history index, multi-event max, draw-hour, integer precision, flag recompute, YAML integrity, and closed-form-vs-derive_lab_values equivalence.
+- `tests/integration/test_hai_forced_e2e.py` new — drives the actual enricher path through `run_forced` and asserts the POST_ENCOUNTER registry has `device` + `hai`. Catches the Finding 8 class of bug.
+
+### Audit-script strengthening (next-session backlog)
+
+The DQR script's CAUTI delta acceptance is **confounded with disease state** (UTI patients have elevated WBC + CRP regardless). To catch the silent-no-op class of bug at the gate, the DQR should:
+- Cross-verify hai_type strings against `HAI_TYPES` and fail loudly if any unexpected key appears in the cohort.
+- Compute the **theoretical** lift from `_hai_lift_delta` per affected obs and assert observed-minus-baseline ≥ theoretical-minus-baseline × 0.5 (not just a baseline-vs-cohort gap which can come from disease state alone).
+- Add a "lift fired" counter that the DQR prints — zero indicates the lift code is a no-op even when the cohort shows a positive delta.
+
+These are filed in `[[project_realism_gaps]]` as "DQR script strengthening" and recorded in PR #90's TODO follow-up.
+
+---
+
 ## 14. References
 
 - Phase 2a spec: `docs/superpowers/specs/2026-06-24-phase2a-vte-d-dimer-design.md`
