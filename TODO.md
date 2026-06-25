@@ -464,6 +464,49 @@ First clean implementation of cross-module enricher consumption pattern
 (PR-A device → PR-B hai); foundation for Phase 3+ device-consuming
 modules.
 
+**Phase 3a HAI WBC + CRP forward-delta lift — 2026-06-25 (✓ done)**:
+Closes the clinical chain HAI 発症 → 炎症マーカー上昇 left open by
+PR-B. Adds new `POST_ENCOUNTER` enricher stage to
+`simulator/enrichers.py` (alongside `POST_POPULATION` and
+`POST_RECORDS`) which runs per-encounter immediately after the daily
+loop completes, inside the encounter simulator. Migrates `device`
+(order=70) + `hai` (order=80) from POST_RECORDS to POST_ENCOUNTER —
+their sampling depends on icu_transferred + GCS + perfusion which
+are only known after the loop, and their output (HAI events) is then
+consumed by `clinosim/modules/hai/lab_lift.apply_hai_lab_lift` which
+walks `extensions["hai"]` and adds a forward-delta to existing
+WBC + CRP `obs.value` using per-day state_history snapshots
+(`delta = derive(state, lift>0) - derive(state, lift=0)`, preserving
+original noise + circadian). New `clinosim/modules/hai/reference_data/
+hai_lab_lift.yaml`: CDC severity proxy CLABSI/VAP=0.35, CAUTI=0.20,
+ramp_peak_days=2.
+
+The `derive_lab_values` signature gains one new kwarg
+`hai_inflammation_lift: float = 0.0` (routed only to CRP + WBC via
+`effective_infl = min(1.0, infl + lift)`). PCT / Albumin / Fibrinogen /
+pO2 / Ca / Temperature / SBP-DBP continue to read
+`state.inflammation_level` directly — Phase 3a scope guard, Phase 3c
+will revisit. The 3-helper merge primitive `hai_flags_from_record`
+exists but is unused in Phase 3a (kept for Phase 3b reuse such as
+`antibiotic_flags_from_record`).
+
+AD-55 Module classification refined:
+**"encounter-bound Module"** (device/hai — POST_ENCOUNTER) vs
+**"cross-record Module"** (nursing/immunization/family_history/
+code_status/care_level/sdoh — POST_RECORDS). byte-diff PASS: 37/37
+NDJSON byte-identical at US p=2000 + JP p=2000 (HAI Poisson rare at
+this size; lift exercised at p=10000 DQR).
+
+Phase 3b backlog (Phase 3a deferred items):
+- antibiotic empirical → narrow + culture-driven antibiotic narrowing
+- susceptibility S/I/R per organism × antibiotic
+- WBC/CRP decay phase coupled with antibiotic-day count
+
+Phase 3c backlog:
+- HAI → outcome_benchmarks mortality coupling
+- Lactate / Plt / 体温 / SBP sepsis cascade using same forward-delta pattern
+- LOS extension from HAI
+
 Backlog: **PR_C type consolidation** — 7 modules currently define types
 in `engine.py` instead of `clinosim/types/` (CLAUDE.md "All types
 defined in clinosim/types/" rule). Code refactor with byte-diff risk;

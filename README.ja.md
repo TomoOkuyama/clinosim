@@ -56,7 +56,10 @@
 
 clinosim の真のゴールは **FHIR R4 + JP Core 準拠の出力 + 臨床整合性 + JP localization 品質** です。出力データを変更する PR は 3 軸データ品質レビュー (構造 / 臨床 / JP language) で gate される — 詳細は [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) 「PR 検証ガイド」参照。
 
-最新の包括レビュー: [`docs/reviews/2026-06-24-master-comprehensive-dqr.md`](docs/reviews/2026-06-24-master-comprehensive-dqr.md) — **全 3 軸 PASS** (master @ US p=10,000 + JP p=5,000):
+最新レビュー:
+- [`docs/reviews/2026-06-25-phase3a-hai-lab-lift-data-quality-review-post-fix.md`](docs/reviews/2026-06-25-phase3a-hai-lab-lift-data-quality-review-post-fix.md) — Phase 3a HAI lift (xhigh コードレビュー後の hardening、**全 3 軸 PASS** + byte-diff 37/37 IDENTICAL + closed-form lift firing 検証)
+- [`docs/reviews/2026-06-25-phase3a-hai-lab-lift-data-quality-review.md`](docs/reviews/2026-06-25-phase3a-hai-lab-lift-data-quality-review.md) — Phase 3a 初回 DQR(fix 前、上記 post-fix で更新済)
+- [`docs/reviews/2026-06-24-master-comprehensive-dqr.md`](docs/reviews/2026-06-24-master-comprehensive-dqr.md) — 包括 master review (2026 年 6 月)、**全 3 軸 PASS** (master @ US p=10,000 + JP p=5,000):
 
 - **構造**: 10 FHIR リソース型で US 3.4M + JP 434K Observations、id 一意性 100%、reference integrity 100%
 - **臨床**: 主要 17 lab analyte が両 locale で臨床的妥当帯 (DKA アシドーシス、ACS troponin、敗血症 WBC/CRP/lactate、HF BNP、VTE D-dimer、AF warfarin therapeutic INR 等)

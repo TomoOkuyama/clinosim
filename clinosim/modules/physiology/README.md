@@ -262,6 +262,22 @@ flags = {**scenario_flags_from_protocol(protocol), **medication_flags_from_conte
 - `-1.0` = non-AG hyperchloremic アシドーシス(下痢 / RTA): Cl が HCO3 欠損を 1:1 で補填
 - disease YAML の `initial_state_impact.anion_gap_status` で疾患シナリオから設定(20 疾患 + 2 encounter)、`apply_coupling_rules` で他 state に波及しない
 
+### HAI lift プリミティブ (Phase 3a 2026-06-25): `hai_flags_from_record(record, encounter_id, current_day)` ヘルパ
+
+`scenario_flags_from_protocol` / `medication_flags_from_context` の **3 番目の sibling**。`record.extensions["hai"]` (POST_ENCOUNTER stage の hai enricher が populate) を read-only consume し、`{"hai_inflammation_lift": float in [0.0, 0.35]}` を返す。
+
+- `encounter_id == None` / `current_day == None` / no matching event / pre-onset → `0.0`
+- otherwise: `max(lift_value * ramp_factor)` over matching events
+  - `ramp_factor = min(1.0, max(0, days_since_onset) / ramp_peak_days)` (= 2 日)
+  - `lift_value` = `modules/hai/reference_data/hai_lab_lift.yaml[hai_type]` (CLABSI/VAP 0.35、CAUTI 0.20)
+
+**Phase 3a での用途**: 本 PR では daily-loop の `derive_lab_values` 4 sites には wire されていない(`extensions["hai"]` が daily loop の **後** に populate されるため、daily loop 内で読んでも常に空)。代わりに `modules/hai/lab_lift.apply_hai_lab_lift` が daily loop 完了後に呼ばれ、既存 lab observation 値に forward-delta を加算する。`hai_flags_from_record` は Phase 3b/c で `antibiotic_flags_from_record` などの sibling として再利用するためのプリミティブとして保持。
+
+**derive_lab_values の HAI kwarg**: `derive_lab_values(state, ..., hai_inflammation_lift: float = 0.0)` を Phase 3a で追加。`effective_infl = min(1.0, infl + hai_inflammation_lift)` を CRP + WBC 公式のみに渡す:
+- CRP: `0.3 + 400 * effective_infl ** 3` mg/L (cubic)
+- WBC: `7000 + effective_infl * 12000` (effective_infl < 0.8) / `max(1500, 7000 + 0.8*12000 - (effective_infl - 0.8)*30000)` (>= 0.8)
+- 他 analyte (PCT / Albumin / Fibrinogen / pO2 / Ca / Temp / SBP-DBP) は `state.inflammation_level` を直読(Phase 3a scope guard、Phase 3c sepsis cascade で revisit)
+
 ### `derive_vital_signs(state, baseline, timestamp) -> dict[str, float]`
 
 Baseline vitals + hidden state からその時刻のバイタルを計算する (circadian 変動込み)。

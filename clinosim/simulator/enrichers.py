@@ -9,8 +9,31 @@ simulation random stream.
 Stages:
   - ``post_population`` — runs after the population is generated, before simulation
     (mutates ``ctx.population``). Example: resident identifier / insurance numbering.
-  - ``post_records``    — runs after patient records are simulated (reads/extends
-    ``ctx.records``; modules write to ``CIFPatientRecord.extensions[<module>]``).
+  - ``post_encounter`` — runs **per encounter, immediately after the daily loop
+    completes** but **inside** the encounter simulator (before the final
+    ``CIFPatientRecord`` is returned to the global ``patient_records`` list).
+    The encounter's complete clinical course (lab_results, vital_signs, ICU
+    transfer flag, full state history) is available, but no other patient's
+    records are. Phase 3a (2026-06-25) uses this stage for the encounter-bound
+    Module pair device/hai whose probabilistic sampling depends on the
+    encounter's icu_transferred + state and whose output (HAI events) the
+    physiology layer post-applies as a forward delta to existing WBC + CRP
+    lab values (via state-history-derived recompute). ``EnricherContext.records``
+    is passed with **exactly one** partial ``CIFPatientRecord`` for the
+    encounter being generated.
+  - ``post_records``    — runs after **all** patient records are simulated
+    (reads/extends ``ctx.records``; modules write to
+    ``CIFPatientRecord.extensions[<module>]``). Use for cross-record Modules
+    (immunization / family_history / code_status / care_level / sdoh) and Base
+    enrichers (nursing).
+
+Module classification:
+  - **encounter-bound Module** (device, hai): runs in ``POST_ENCOUNTER`` so
+    physiology layer's ``derive_lab_values`` can consume the output at
+    observation time.
+  - **cross-record Module** (immunization, family_history, code_status,
+    care_level): runs in ``POST_RECORDS`` after the full patient timeline
+    is built (these read patient-wide history, not single-encounter context).
 """
 
 from __future__ import annotations
@@ -23,6 +46,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 POST_POPULATION = "post_population"
+POST_ENCOUNTER = "post_encounter"
 POST_RECORDS = "post_records"
 
 
@@ -158,7 +182,7 @@ def register_builtin_enrichers() -> None:
     register_enricher(
         Enricher(
             name="device",
-            stage=POST_RECORDS,
+            stage=POST_ENCOUNTER,
             order=70,
             enabled=lambda c: True,
             run=enrich_device,
@@ -177,7 +201,7 @@ def register_builtin_enrichers() -> None:
     register_enricher(
         Enricher(
             name="hai",
-            stage=POST_RECORDS,
+            stage=POST_ENCOUNTER,
             order=80,
             enabled=lambda c: True,
             run=enrich_hai,
