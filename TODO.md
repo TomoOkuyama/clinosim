@@ -486,16 +486,35 @@ The `derive_lab_values` signature gains one new kwarg
 `effective_infl = min(1.0, infl + lift)`). PCT / Albumin / Fibrinogen /
 pO2 / Ca / Temperature / SBP-DBP continue to read
 `state.inflammation_level` directly — Phase 3a scope guard, Phase 3c
-will revisit. The 3-helper merge primitive `hai_flags_from_record`
-exists but is unused in Phase 3a (kept for Phase 3b reuse such as
-`antibiotic_flags_from_record`).
+will revisit.
 
 AD-55 Module classification refined:
 **"encounter-bound Module"** (device/hai — POST_ENCOUNTER) vs
 **"cross-record Module"** (nursing/immunization/family_history/
 code_status/care_level/sdoh — POST_RECORDS). byte-diff PASS: 37/37
 NDJSON byte-identical at US p=2000 + JP p=2000 (HAI Poisson rare at
-this size; lift exercised at p=10000 DQR).
+this size; lift verified by closed-form proof script — see post-fix
+DQR review).
+
+**xhigh code review hardening (PR-90, 2026-06-25 second pass)**:
+A workflow-backed xhigh review on the merged PR-90 surfaced 13
+confirmed + 2 plausible bugs. The critical one: YAML hai_type keys
+were UPPERCASE (`CLABSI`/`VAP`/`CAUTI`) while the enricher writes
+lowercase, silently no-op'ing the entire lift in production. The
++2,135 WBC / +50.4 CRP CAUTI delta in the DQR was a UTI disease
+confounder, not the lift code. Fixes applied (commit `4dd36a55`):
+single-source-of-truth `HAI_TYPES = ("clabsi","cauti","vap")` +
+import-time YAML validation; `run_forced` calls
+`register_builtin_enrichers()`; closed-form `_hai_lift_delta` replaces
+double-`derive_lab_values`; multi-event = max; `state_history[N+1]`
+off-by-one fix; `obs.flag` recomputed via `determine_flag`; draw hour
+from order.ordered_datetime; snapshot_dt truncation extended to HAI
+events + cultures; `hai_flags_from_record` deleted as dead code;
+29-line dead block removed from `_simulate_unknown_condition`.
+Verification: lift-firing proof (closed-form delta matches actual
+`apply_hai_lab_lift` output exactly), DQR 3-axis still PASS, byte-diff
+37/37 IDENTICAL preserved. See
+`docs/reviews/2026-06-25-phase3a-hai-lab-lift-data-quality-review-post-fix.md`.
 
 Phase 3b backlog (Phase 3a deferred items):
 - antibiotic empirical → narrow + culture-driven antibiotic narrowing
@@ -506,6 +525,15 @@ Phase 3c backlog:
 - HAI → outcome_benchmarks mortality coupling
 - Lactate / Plt / 体温 / SBP sepsis cascade using same forward-delta pattern
 - LOS extension from HAI
+
+DQR audit-script strengthening (post PR-90 review learning):
+- Per-event observed-vs-theoretical lift comparison (not just cohort
+  median — disease-state confound can mask both silent no-op AND
+  fully-firing lift).
+- "lift fired" counter per axis (zero = audit fails loudly instead of
+  hiding behind rare-event acceptance).
+- Cross-verify hai_type strings against `HAI_TYPES` at DQR time so
+  enricher-output drift surfaces immediately.
 
 Backlog: **PR_C type consolidation** — 7 modules currently define types
 in `engine.py` instead of `clinosim/types/` (CLAUDE.md "All types
