@@ -58,7 +58,9 @@ Other navigation:
 
 clinosim's true goal is **FHIR R4 + JP Core compliant output with clinical coherence and JP localization quality**. PRs that change output data are gated by a 3-axis Data Quality Review (structural / clinical / JP language) — see [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) "PR 検証ガイド".
 
-Latest comprehensive review: [`docs/reviews/2026-06-24-master-comprehensive-dqr.md`](docs/reviews/2026-06-24-master-comprehensive-dqr.md) — **all 3 axes PASS** on master @ p=10,000 (US) + p=5,000 (JP):
+Latest reviews:
+- [`docs/reviews/2026-06-25-phase3a-hai-lab-lift-data-quality-review.md`](docs/reviews/2026-06-25-phase3a-hai-lab-lift-data-quality-review.md) — Phase 3a HAI WBC + CRP forward-delta lift, **all 3 axes PASS** + byte-diff 37/37 NDJSON IDENTICAL at p=2,000
+- [`docs/reviews/2026-06-24-master-comprehensive-dqr.md`](docs/reviews/2026-06-24-master-comprehensive-dqr.md) — comprehensive master review (June 2026), **all 3 axes PASS** on master @ p=10,000 (US) + p=5,000 (JP):
 
 - **Structural**: 3.4M + 434K Observations across 10 FHIR resource types; id uniqueness 100%; reference integrity 100%
 - **Clinical**: 17 major lab analytes in clinically valid bands for both locales (DKA acidosis, ACS troponin, sepsis WBC/CRP/lactate, HF BNP, VTE D-dimer, AF warfarin therapeutic INR, etc.)
