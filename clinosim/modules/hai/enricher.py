@@ -149,7 +149,7 @@ def enrich_hai(ctx) -> None:
                     for o in organisms_cfg.get(hai_type, [])
                 ]
                 if _organism_weights and sum(_organism_weights) > 0:
-                    _probs = normalize_probabilities(_organism_weights)
+                    _probs = normalize_probabilities(_organism_weights, fallback="raise")
                     _ = rng.choice(len(_organism_weights), p=_probs)
                 if hai_type != forced["hai_type"]:
                     continue
@@ -222,7 +222,7 @@ def _append_hai_culture(
         probs_arr = np.asarray(sir_probs, dtype=float)
         if probs_arr.sum() <= 0:
             continue
-        probs = normalize_probabilities(sir_probs)
+        probs = normalize_probabilities(sir_probs, fallback="raise")
         interp = _SIR[int(rng.choice(len(_SIR), p=probs))]
         micro.susceptibilities.append(
             SusceptibilityResult(antibiotic_loinc=str(loinc), interpretation=interp)

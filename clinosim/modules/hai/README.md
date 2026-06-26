@@ -51,7 +51,20 @@ def load_hai_codes() -> dict[str, Any]:
     """reference_data/hai_codes.yaml を @lru_cache で読み込み返す。"""
 
 def load_hai_organisms() -> dict[str, Any]:
-    """reference_data/hai_organisms.yaml を @lru_cache で読み込み返す。"""
+    """reference_data/hai_organisms.yaml を @lru_cache で読み込み返す。
+
+    Import 時に `_validate_hai_organisms(data)` を実行(本 PR 2026-06-27 追加):
+    - top-level key `hai_organisms` が dict
+    - 各 hai_type ⊆ `HAI_TYPES = ("clabsi", "cauti", "vap")` canonical set
+    - 各 hai_type の organism list non-empty
+    - 各 entry の `snomed` が non-empty string
+    - 各 entry の `weight` が numeric かつ >= 0
+    - 各 hai_type の weight sum > 0(= `_sample_organism` の
+      `normalize_probabilities(..., fallback="raise")` 前提条件)
+
+    silent-no-op 防御 3 層の上流(import-time)層。後方層 = `engine.py:85`
+    `_sample_organism` の `fallback="raise"`。
+    """
 
 def load_hai_specimens() -> dict[str, Any]:
     """reference_data/hai_specimens.yaml を @lru_cache で読み込み返す。"""

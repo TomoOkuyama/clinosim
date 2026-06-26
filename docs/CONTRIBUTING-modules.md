@@ -154,10 +154,12 @@ idx = int(rng.choice(len(items), p=probs))
 YAML data に外部 ID(SNOMED / LOINC / antibiotic key 等)を埋めるモジュールは、**load 時に canonical 集合へ cross-check** し、未知のキーは `ValueError` で loud-fail します(silent-no-op の構造的防御 — PR-90 教訓)。先例:
 
 - `clinosim/modules/hai/__init__.py:load_hai_antibiogram` — `HAI_TYPES` × `hai_organisms.yaml` SNOMED × `ANTIBIOTIC_LOINC_LOOKUP` の 3-way 検証
-- `clinosim/modules/observation/microbiology.py:_validate_microbiology` — organism antibiogram key を `antibiotics` set と照合(PR-A 2026-06-26 で silent skip から ValueError へ移行)
+- `clinosim/modules/observation/microbiology.py:_validate_microbiology` — organism antibiogram key を `antibiotics` set と照合(PR-A 2026-06-26 で silent skip から ValueError へ移行、Fix #100/#101 で 7 cross-refs に拡張)
 - `clinosim/modules/antibiotic/audit.py:_validate_nhsn_resistance_bands` — `_NHSN_RESISTANCE_BANDS` の cohort/antibiotic を canonical に対し検証
+- `clinosim/modules/hai/engine.py:_validate_hai_organisms` — `hai_organisms.yaml` を `HAI_TYPES` × SNOMED non-empty × non-negative weight × non-zero-sum で検証(本 PR 2026-06-27)
+- `clinosim/locale/loader.py:_validate_demographics` / `_validate_names` / `_validate_addresses` — `demographics.yaml` の lifestyle_distribution + `names.yaml` の surnames/given_names + `addresses.yaml` の cities を、各 weight の非負 + sum > 0 で検証(本 PR 2026-06-27、4 主要 loader 完備)
 
-新規 module で外部 ID 参照 YAML を作る場合は同パターンを必須化してください。
+新規 module で外部 ID 参照 YAML または確率重み YAML を作る場合は同パターンを必須化してください(`_validate_X(data)` を `load_X` 内で wire、`fallback="raise"` と組み合わせて後方防御も同時に確保)。
 
 ### データ専用モジュール (variant)
 

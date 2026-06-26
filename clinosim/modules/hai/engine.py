@@ -27,6 +27,81 @@ def _load_yaml(name: str) -> dict[str, Any]:
         return yaml.safe_load(f)
 
 
+def _validate_hai_organisms(data: dict) -> None:
+    """Validate hai_organisms.yaml at load time — fail loud on cross-ref violations.
+
+    Cross-references (silent-no-op risks) covered:
+    1. top-level key 'hai_organisms' must exist and be a dict
+    2. each hai_type ⊆ HAI_TYPES canonical set
+    3. each organism list non-empty
+    4. each weight numeric and >= 0
+    5. each weight sum > 0 (zero-sum is the precondition that
+       normalize_probabilities(fallback="raise") raises at runtime)
+    6. each organism's snomed non-empty string
+
+    HAI_TYPES is imported lazily inside the function to avoid the
+    engine ↔ hai/__init__ circular import (engine is imported BY
+    hai/__init__ during package init, so a top-level import here would
+    fail at module load).
+    """
+    from clinosim.modules.hai import HAI_TYPES
+
+    if not isinstance(data, dict):
+        raise ValueError(
+            f"hai_organisms.yaml: top-level must be a dict, "
+            f"got {type(data).__name__}"
+        )
+    organisms_map = data.get("hai_organisms")
+    if not isinstance(organisms_map, dict):
+        raise ValueError(
+            "hai_organisms.yaml: 'hai_organisms' must be a dict of "
+            f"{{hai_type: [organisms]}}, got {type(organisms_map).__name__}"
+        )
+    valid_types = set(HAI_TYPES)
+    for hai_type, organism_list in organisms_map.items():
+        if hai_type not in valid_types:
+            raise ValueError(
+                f"hai_organisms.yaml: unknown HAI type {hai_type!r}; "
+                f"expected one of {sorted(valid_types)}"
+            )
+        if not isinstance(organism_list, list) or not organism_list:
+            raise ValueError(
+                f"hai_organisms.yaml: hai_type {hai_type!r} has empty "
+                f"organism list"
+            )
+        weights: list[float] = []
+        for entry in organism_list:
+            if not isinstance(entry, dict):
+                raise ValueError(
+                    f"hai_organisms.yaml: {hai_type!r} entry must be a "
+                    f"dict, got {entry!r}"
+                )
+            snomed = entry.get("snomed")
+            if not isinstance(snomed, str) or not snomed:
+                raise ValueError(
+                    f"hai_organisms.yaml: {hai_type!r} entry has empty "
+                    f"SNOMED {snomed!r}"
+                )
+            try:
+                w = float(entry.get("weight", 0))
+            except (TypeError, ValueError) as exc:
+                raise ValueError(
+                    f"hai_organisms.yaml: {hai_type!r}/{snomed!r} weight "
+                    f"non-numeric: {entry.get('weight')!r}"
+                ) from exc
+            if w < 0:
+                raise ValueError(
+                    f"hai_organisms.yaml: {hai_type!r}/{snomed!r} has "
+                    f"negative weight {w}"
+                )
+            weights.append(w)
+        if sum(weights) <= 0:
+            raise ValueError(
+                f"hai_organisms.yaml: {hai_type!r} has zero-sum "
+                f"weights {weights}"
+            )
+
+
 @lru_cache(maxsize=1)
 def load_hai_rates() -> dict[str, Any]:
     return _load_yaml("hai_rates.yaml")
@@ -39,7 +114,9 @@ def load_hai_codes() -> dict[str, Any]:
 
 @lru_cache(maxsize=1)
 def load_hai_organisms() -> dict[str, Any]:
-    return _load_yaml("hai_organisms.yaml")
+    data = _load_yaml("hai_organisms.yaml")
+    _validate_hai_organisms(data)
+    return data
 
 
 @lru_cache(maxsize=1)
@@ -82,7 +159,7 @@ def sample_hai_onset(
 def _sample_organism(weights: list[dict], rng: np.random.Generator) -> str:
     """Weighted choice over [{snomed, weight}, ...] returning the snomed."""
     snomeds = [w["snomed"] for w in weights]
-    p = normalize_probabilities([w["weight"] for w in weights])
+    p = normalize_probabilities([w["weight"] for w in weights], fallback="raise")
     return str(rng.choice(snomeds, p=p))
 
 
