@@ -98,7 +98,7 @@ def select_archetype(
 
     # Normalize
     names = list(probs.keys())
-    weights = normalize_probabilities([max(0.001, probs[n]) for n in names])
+    weights = normalize_probabilities([max(0.001, probs[n]) for n in names], fallback="raise")
 
     return str(rng.choice(names, p=weights))
 

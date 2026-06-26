@@ -82,7 +82,7 @@ def sample_hai_onset(
 def _sample_organism(weights: list[dict], rng: np.random.Generator) -> str:
     """Weighted choice over [{snomed, weight}, ...] returning the snomed."""
     snomeds = [w["snomed"] for w in weights]
-    p = normalize_probabilities([w["weight"] for w in weights])
+    p = normalize_probabilities([w["weight"] for w in weights], fallback="raise")
     return str(rng.choice(snomeds, p=p))
 
 
