@@ -31,7 +31,7 @@ def _ceftriaxone_regimen() -> AntibioticRegimen:
         regimen_id="abx-h1-ceftriaxone",
         hai_event_id="h1",
         encounter_id="enc-1",
-        drug_key="Ceftriaxone",
+        drug_key="ceftriaxone",
         dose="1g",
         route="IV",
         frequency="q24h",
@@ -52,7 +52,7 @@ def test_build_regimens_cauti_single_drug():
     r = regs[0]
     assert r.hai_event_id == "h1"
     assert r.encounter_id == "enc-1"
-    assert r.drug_key == "Ceftriaxone"
+    assert r.drug_key == "ceftriaxone"
     assert r.dose == "1g"
     assert r.route == "IV"
     assert r.frequency == "q24h"
@@ -67,7 +67,7 @@ def test_build_regimens_clabsi_two_drugs():
     ev = _make_event("clabsi", hai_id="h2")
     regs = build_regimens(ev, start_datetime=datetime(2026, 2, 1, 8))
     drug_keys = {r.drug_key for r in regs}
-    assert drug_keys == {"Vancomycin", "Piperacillin/Tazobactam"}
+    assert drug_keys == {"vancomycin", "piperacillin_tazobactam"}
     for r in regs:
         assert r.duration_days == 14
         assert r.start_datetime == datetime(2026, 2, 1, 8)
@@ -123,7 +123,7 @@ def test_generate_mar_doses_vancomycin_q12h_14days():
         regimen_id="abx-h2-vancomycin",
         hai_event_id="h2",
         encounter_id="enc-2",
-        drug_key="Vancomycin",
+        drug_key="vancomycin",
         dose="1g",
         route="IV",
         frequency="q12h",
@@ -145,7 +145,7 @@ def test_generate_mar_doses_pip_tazo_q6h_14days():
         regimen_id="abx-h3-pip",
         hai_event_id="h3",
         encounter_id="enc-3",
-        drug_key="Piperacillin/Tazobactam",
+        drug_key="piperacillin_tazobactam",
         dose="3.375g",
         route="IV",
         frequency="q6h",

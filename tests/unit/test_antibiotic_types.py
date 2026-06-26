@@ -8,9 +8,22 @@ from clinosim.types.antibiotic import AntibioticRegimen
 
 
 @pytest.mark.unit
-def test_antibiotic_drugs_canonical_tuple():
-    assert isinstance(ANTIBIOTIC_DRUGS, tuple)
-    assert ANTIBIOTIC_DRUGS == ("Vancomycin", "Piperacillin/Tazobactam", "Ceftriaxone")
+def test_antibiotic_drugs_canonical_dict():
+    assert isinstance(ANTIBIOTIC_DRUGS, dict)
+    # PR3b-1 core drugs (always-on empirical regimens)
+    assert "vancomycin" in ANTIBIOTIC_DRUGS
+    assert "piperacillin_tazobactam" in ANTIBIOTIC_DRUGS
+    assert "ceftriaxone" in ANTIBIOTIC_DRUGS
+    # PR3b-2 panel expansion
+    assert "cefepime" in ANTIBIOTIC_DRUGS
+    assert "ciprofloxacin" in ANTIBIOTIC_DRUGS
+    assert "meropenem" in ANTIBIOTIC_DRUGS
+    assert "cefazolin" in ANTIBIOTIC_DRUGS
+    assert "trimethoprim_sulfamethoxazole" in ANTIBIOTIC_DRUGS
+    # Each entry has a display name
+    assert ANTIBIOTIC_DRUGS["vancomycin"]["name"] == "Vancomycin"
+    assert ANTIBIOTIC_DRUGS["piperacillin_tazobactam"]["name"] == "Piperacillin/Tazobactam"
+    assert ANTIBIOTIC_DRUGS["ceftriaxone"]["name"] == "Ceftriaxone"
 
 
 @pytest.mark.unit

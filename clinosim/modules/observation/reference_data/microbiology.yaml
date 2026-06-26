@@ -14,12 +14,15 @@ specimens:
   sputum: { snomed: "119334006", test_loinc: "619-7" }   # Sputum specimen / Bacteria id'd in Sputum by Culture
   wound:  { snomed: "257261003", test_loinc: "634-6" }   # Swab / Bacteria id'd in Wound by Culture
 
-# Antibiotics: key -> LOINC "<drug> [Susceptibility]" test code.  # TODO: verify
+# Antibiotics: key -> LOINC "<drug> [Susceptibility]" test code.
+# All LOINCs verified at NLM clinicaltables.nlm.nih.gov/api/loinc_items/v3/search
+# and tx.fhir.org $lookup (Task 0 §6.1, 2026-06-26).
 antibiotics:
   ampicillin: "18862-3"
   cefazolin: "18866-4"
   ceftriaxone: "18895-3"
-  ciprofloxacin: "18879-7"
+  cefepime: "18879-7"  # Verified NLM + tx.fhir.org $lookup 2026-06-26 (Task 0 §6.1)
+  ciprofloxacin: "18906-8"  # Verified NLM + tx.fhir.org 2026-06-26 (was incorrectly 18879-7 = Cefepime)
   gentamicin: "18908-4"
   vancomycin: "18991-2"
   piperacillin_tazobactam: "18949-0"

@@ -471,6 +471,15 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
     if config is None:
         config = SimulatorConfig()
 
+    # AD-60 / PR-90 class silent-no-op gate: ensure force_hai_event-carrying
+    # scenarios reach enrich_hai, which reads from ctx.config.forced_scenarios
+    # (not from the run_forced scenario argument). Without this injection,
+    # force_hai_event is silently ignored.
+    if scenario.force_hai_event is not None and scenario not in config.forced_scenarios:
+        config = config.model_copy(
+            update={"forced_scenarios": [*config.forced_scenarios, scenario]}
+        )
+
     rng = np.random.default_rng(config.random_seed)
     healthcare = load_healthcare_config(config.country)
     roster = generate_roster(config.hospital_scale, config.country, rng)

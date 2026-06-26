@@ -1,0 +1,125 @@
+# CDC NHSN Antimicrobial Resistance Report 2018-2020 (US national pooled).
+# Source: https://www.cdc.gov/nhsn/datastat/index.html (AR report
+#   "Antimicrobial Resistance Patterns in Acute Care Hospitals", 2018-2020).
+#
+# Per-entry semantics: hai_antibiogram[hai_type][organism_snomed][antibiotic_key]
+#   = [P(S), P(I), P(R)] — must sum to 1.0 (validated at load time, Task 4).
+#
+# Antibiotic panel: PR3b-1 empirical (vancomycin, piperacillin_tazobactam,
+# ceftriaxone) + PR3b-3 narrow candidates (cefazolin, cefepime, meropenem,
+# ciprofloxacin, trimethoprim_sulfamethoxazole).
+#
+# An organism × antibiotic combination is omitted when the combination is
+# clinically irrelevant (intrinsic resistance such as P. aeruginosa ×
+# ceftriaxone). Omitted = "do not sample" = no S/I/R Observation emitted.
+
+hai_antibiogram:
+  clabsi:
+    # S. aureus, CLABSI ~47% MRSA (NHSN 2018-2020 Table 2)
+    "3092008":
+      vancomycin: [1.00, 0.00, 0.00]
+      cefazolin: [0.53, 0.00, 0.47]
+      ceftriaxone: [0.53, 0.00, 0.47]
+      cefepime: [0.53, 0.00, 0.47]
+      ciprofloxacin: [0.55, 0.05, 0.40]
+      trimethoprim_sulfamethoxazole: [0.95, 0.02, 0.03]
+    # S. epidermidis (CoNS), CLABSI ~80% MRSE (NHSN 2018-2020)
+    "60875001":
+      vancomycin: [1.00, 0.00, 0.00]
+      cefazolin: [0.20, 0.00, 0.80]
+      ceftriaxone: [0.20, 0.00, 0.80]
+      cefepime: [0.20, 0.00, 0.80]
+    # E. coli, CLABSI ~11% ESBL (NHSN 2018-2020 Table 4)
+    "112283007":
+      ceftriaxone: [0.89, 0.02, 0.09]
+      cefepime: [0.92, 0.02, 0.06]
+      meropenem: [0.99, 0.00, 0.01]
+      piperacillin_tazobactam: [0.92, 0.04, 0.04]
+      ciprofloxacin: [0.70, 0.05, 0.25]
+      trimethoprim_sulfamethoxazole: [0.70, 0.02, 0.28]
+    # K. pneumoniae, CLABSI ~14% ESBL, ~3% CRE (NHSN 2018-2020)
+    "56415008":
+      ceftriaxone: [0.84, 0.02, 0.14]
+      cefepime: [0.88, 0.02, 0.10]
+      meropenem: [0.97, 0.00, 0.03]
+      piperacillin_tazobactam: [0.88, 0.06, 0.06]
+      ciprofloxacin: [0.80, 0.05, 0.15]
+    # E. faecalis (no routine S/I/R panel for our 8-abx scope — omit)
+    # C. albicans (fungal — omit, separate antifungal panel)
+    # P. aeruginosa, CLABSI (NHSN 2018-2020)
+    "52499004":
+      cefepime: [0.80, 0.05, 0.15]
+      meropenem: [0.83, 0.04, 0.13]
+      piperacillin_tazobactam: [0.85, 0.05, 0.10]
+      ciprofloxacin: [0.78, 0.04, 0.18]
+  cauti:
+    # E. coli, CAUTI ~17% ESBL (NHSN 2018-2020)
+    "112283007":
+      ceftriaxone: [0.83, 0.02, 0.15]
+      cefepime: [0.90, 0.02, 0.08]
+      meropenem: [0.99, 0.00, 0.01]
+      ciprofloxacin: [0.70, 0.05, 0.25]
+      trimethoprim_sulfamethoxazole: [0.70, 0.02, 0.28]
+    # K. pneumoniae, CAUTI ~13% ESBL (NHSN 2018-2020)
+    "56415008":
+      ceftriaxone: [0.85, 0.02, 0.13]
+      cefepime: [0.89, 0.02, 0.09]
+      meropenem: [0.98, 0.00, 0.02]
+      ciprofloxacin: [0.82, 0.05, 0.13]
+    # E. faecalis (omit — narrow panel not in 8-abx scope)
+    # C. albicans (fungal — omit)
+    # P. aeruginosa, CAUTI (NHSN 2018-2020)
+    "52499004":
+      cefepime: [0.82, 0.05, 0.13]
+      meropenem: [0.85, 0.04, 0.11]
+      piperacillin_tazobactam: [0.86, 0.05, 0.09]
+      ciprofloxacin: [0.78, 0.04, 0.18]
+    # P. mirabilis (NHSN 2018-2020)
+    "73457008":
+      ceftriaxone: [0.92, 0.02, 0.06]
+      cefepime: [0.95, 0.02, 0.03]
+      meropenem: [0.99, 0.00, 0.01]
+      ciprofloxacin: [0.85, 0.05, 0.10]
+  vap:
+    # S. aureus, VAP ~35% MRSA (NHSN 2018-2020)
+    "3092008":
+      vancomycin: [1.00, 0.00, 0.00]
+      cefazolin: [0.65, 0.00, 0.35]
+      ceftriaxone: [0.65, 0.00, 0.35]
+      cefepime: [0.65, 0.00, 0.35]
+      ciprofloxacin: [0.65, 0.05, 0.30]
+      trimethoprim_sulfamethoxazole: [0.95, 0.02, 0.03]
+    # P. aeruginosa, VAP (NHSN 2018-2020)
+    "52499004":
+      cefepime: [0.75, 0.05, 0.20]
+      meropenem: [0.78, 0.04, 0.18]
+      piperacillin_tazobactam: [0.85, 0.05, 0.10]
+      ciprofloxacin: [0.75, 0.05, 0.20]
+    # K. pneumoniae, VAP ~17% ESBL, ~5% CRE (NHSN 2018-2020)
+    "56415008":
+      ceftriaxone: [0.80, 0.03, 0.17]
+      cefepime: [0.85, 0.03, 0.12]
+      meropenem: [0.94, 0.01, 0.05]
+      piperacillin_tazobactam: [0.85, 0.06, 0.09]
+      ciprofloxacin: [0.78, 0.05, 0.17]
+    # E. coli, VAP (NHSN 2018-2020)
+    "112283007":
+      ceftriaxone: [0.88, 0.02, 0.10]
+      cefepime: [0.92, 0.02, 0.06]
+      meropenem: [0.99, 0.00, 0.01]
+      piperacillin_tazobactam: [0.92, 0.04, 0.04]
+    # E. cloacae, VAP (intrinsic AmpC; NHSN 2018-2020)
+    "14385002":
+      cefepime: [0.85, 0.05, 0.10]
+      meropenem: [0.96, 0.01, 0.03]
+      piperacillin_tazobactam: [0.70, 0.10, 0.20]
+      ciprofloxacin: [0.85, 0.05, 0.10]
+    # A. baumannii, VAP (NHSN 2018-2020)
+    "91288006":
+      cefepime: [0.55, 0.05, 0.40]
+      meropenem: [0.50, 0.05, 0.45]
+      piperacillin_tazobactam: [0.50, 0.05, 0.45]
+      ciprofloxacin: [0.40, 0.10, 0.50]
+    # S. maltophilia (intrinsic R to most beta-lactams; only TMP/SMX tested)
+    "113697002":
+      trimethoprim_sulfamethoxazole: [0.92, 0.02, 0.06]

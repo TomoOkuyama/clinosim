@@ -14,6 +14,10 @@ class AntibioticRegimen:
     links each regimen back to the HAIEvent (extensions["hai"]) that
     triggered it — this is the cross-module consumption point for
     PR3b-2 (S/I/R), PR3b-3 (narrow), and PR3b-4 (WBC/CRP decay).
+
+    discontinuation_datetime is None for PR3b-1 empirical regimens that
+    ran their full duration. PR3b-3 narrow will set it when the broad
+    regimen is truncated.
     """
 
     regimen_id: str = ""
@@ -26,9 +30,4 @@ class AntibioticRegimen:
     start_datetime: datetime = field(default_factory=lambda: datetime(1970, 1, 1))
     duration_days: int = 0
     intent: str = "empirical"  # "empirical" | "narrowed" (PR3b-3 reserves)
-    # PR3b-3 forward-compat reserve (PR-93 adversarial review fix): when
-    # narrow / de-escalation discontinues an empirical regimen mid-course,
-    # PR3b-3 sets this to the changeover datetime; generate_mar_doses
-    # truncates MAR at this point. Empirical regimens running to full
-    # duration leave this as None.
     discontinuation_datetime: datetime | None = None
