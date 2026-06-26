@@ -95,10 +95,108 @@ def _validate_demographics(data: dict) -> None:
                 )
 
 
+def _validate_names(data: dict) -> None:
+    """Validate names.yaml — surnames + given_names lists with non-negative weights.
+
+    Tolerates the ``_FALLBACK_NAMES`` dict (which has small but valid weights).
+    For each list present (``surnames`` / ``given_names_male`` /
+    ``given_names_female``), requires each weight to be non-negative and the sum
+    to be > 0 (precondition for ``normalize_probabilities(..., fallback="raise")``
+    in population/engine.py callsites :485 and :517). An absent list is OK
+    (validator does not require all three).
+    """
+    if not isinstance(data, dict):
+        raise ValueError(
+            f"names.yaml: top-level must be a dict, got {type(data).__name__}"
+        )
+    for key in ("surnames", "given_names_male", "given_names_female"):
+        items = data.get(key)
+        if items is None:
+            continue  # OK: optional list absent
+        if not isinstance(items, list):
+            raise ValueError(
+                f"names.yaml: {key!r} must be a list, got {type(items).__name__}"
+            )
+        if not items:
+            continue  # OK: empty list (upstream normalize_probabilities raises on empty)
+        weights: list[float] = []
+        for entry in items:
+            if not isinstance(entry, dict):
+                raise ValueError(
+                    f"names.yaml: {key!r} entry must be a dict, got {entry!r}"
+                )
+            try:
+                w = float(entry.get("weight", 0))
+            except (TypeError, ValueError) as exc:
+                raise ValueError(
+                    f"names.yaml: {key!r}.{entry.get('name')!r} weight non-numeric: "
+                    f"{entry.get('weight')!r}"
+                ) from exc
+            if w < 0:
+                raise ValueError(
+                    f"names.yaml: {key!r}.{entry.get('name')!r} has negative "
+                    f"weight {w}"
+                )
+            weights.append(w)
+        if weights and sum(weights) <= 0:
+            raise ValueError(
+                f"names.yaml: {key!r} has zero-sum weights"
+            )
+
+
+def _validate_addresses(data: dict) -> None:
+    """Validate addresses.yaml — cities list with non-negative weights.
+
+    Tolerates missing / empty cities (upstream ``_generate_household_address``
+    has a ``if not cities: return`` guard). When cities are present, requires
+    non-negative weights with sum > 0 (precondition for
+    ``normalize_probabilities(..., fallback="raise")`` at
+    population/engine.py:664).
+    """
+    if not isinstance(data, dict):
+        raise ValueError(
+            f"addresses.yaml: top-level must be a dict, got {type(data).__name__}"
+        )
+    cities = data.get("cities")
+    if cities is None:
+        return  # OK: empty fallback ({}) takes this path
+    if not isinstance(cities, list):
+        raise ValueError(
+            f"addresses.yaml: 'cities' must be a list, got {type(cities).__name__}"
+        )
+    if not cities:
+        return  # OK: empty list (upstream guards against use)
+    weights: list[float] = []
+    for entry in cities:
+        if not isinstance(entry, dict):
+            raise ValueError(
+                f"addresses.yaml: cities entry must be a dict, got {entry!r}"
+            )
+        try:
+            w = float(entry.get("weight", 1))
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"addresses.yaml: cities entry {entry.get('city')!r} weight "
+                f"non-numeric: {entry.get('weight')!r}"
+            ) from exc
+        if w < 0:
+            raise ValueError(
+                f"addresses.yaml: cities entry {entry.get('city')!r} has negative "
+                f"weight {w}"
+            )
+        weights.append(w)
+    if sum(weights) <= 0:
+        raise ValueError(
+            "addresses.yaml: cities has zero-sum weights"
+        )
+
+
 @lru_cache(maxsize=16)
 def load_names(country: str) -> dict[str, Any]:
     """Load person name data for a country."""
-    return _load_yaml(_country_dir(country) / "names.yaml", fallback=_FALLBACK_NAMES)
+    data = _load_yaml(_country_dir(country) / "names.yaml", fallback=_FALLBACK_NAMES)
+    _validate_names(data)
+    return data
 
 
 @lru_cache(maxsize=16)
@@ -163,7 +261,9 @@ def load_chronic_medications() -> dict[str, Any]:
 @lru_cache(maxsize=8)
 def load_addresses(country: str) -> dict[str, Any]:
     """Load address/phone data for a country."""
-    return _load_yaml(_country_dir(country) / "addresses.yaml", fallback={})
+    data = _load_yaml(_country_dir(country) / "addresses.yaml", fallback={})
+    _validate_addresses(data)
+    return data
 
 
 @lru_cache(maxsize=8)

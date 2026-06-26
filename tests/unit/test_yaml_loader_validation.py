@@ -106,3 +106,68 @@ def test_validate_demographics_rejects_negative_alcohol_weight():
     }
     with pytest.raises(ValueError, match="negative weight"):
         _validate_demographics(bad)
+
+
+# =========================================================================
+# Task 4: _validate_names + _validate_addresses (locale/loader.py)
+# =========================================================================
+
+def test_validate_names_passes_current_us_yaml():
+    from clinosim.locale.loader import load_names
+    data = load_names("US")
+    assert "surnames" in data
+
+
+def test_validate_names_passes_current_jp_yaml():
+    from clinosim.locale.loader import load_names
+    data = load_names("JP")
+    assert "surnames" in data
+
+
+def test_validate_names_rejects_non_dict():
+    from clinosim.locale.loader import _validate_names
+    with pytest.raises(ValueError, match="must be a dict"):
+        _validate_names([])  # type: ignore[arg-type]
+
+
+def test_validate_names_rejects_zero_sum_surname_weights():
+    from clinosim.locale.loader import _validate_names
+    bad = {"surnames": [{"name": "A", "weight": 0}, {"name": "B", "weight": 0}]}
+    with pytest.raises(ValueError, match="zero-sum"):
+        _validate_names(bad)
+
+
+def test_validate_names_rejects_negative_given_name_weight():
+    from clinosim.locale.loader import _validate_names
+    bad = {
+        "surnames": [{"name": "OK", "weight": 1}],
+        "given_names_male": [{"name": "Bad", "weight": -1}],
+    }
+    with pytest.raises(ValueError, match="negative weight"):
+        _validate_names(bad)
+
+
+def test_validate_addresses_passes_current_us_yaml():
+    from clinosim.locale.loader import load_addresses
+    data = load_addresses("US")
+    assert "cities" in data
+
+
+def test_validate_addresses_rejects_non_dict():
+    from clinosim.locale.loader import _validate_addresses
+    with pytest.raises(ValueError, match="must be a dict"):
+        _validate_addresses([])  # type: ignore[arg-type]
+
+
+def test_validate_addresses_rejects_zero_sum_city_weights():
+    from clinosim.locale.loader import _validate_addresses
+    bad = {"cities": [{"city": "A", "weight": 0}, {"city": "B", "weight": 0}]}
+    with pytest.raises(ValueError, match="zero-sum"):
+        _validate_addresses(bad)
+
+
+def test_validate_addresses_rejects_negative_city_weight():
+    from clinosim.locale.loader import _validate_addresses
+    bad = {"cities": [{"city": "Bad", "weight": -1}]}
+    with pytest.raises(ValueError, match="negative weight"):
+        _validate_addresses(bad)
