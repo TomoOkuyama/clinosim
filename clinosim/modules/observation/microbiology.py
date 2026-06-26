@@ -28,12 +28,57 @@ def _validate_microbiology(data: dict[str, Any]) -> None:
     """Validate microbiology.yaml at load time — fail loud on orphan keys.
 
     Mirrors the validation pattern from ``clinosim.modules.hai.load_hai_antibiogram``.
-    A typo in any ``organism.antibiogram`` key would otherwise silently produce a
-    no-op susceptibility (PR-90 class silent-no-op).
+    Covers the following cross-references (all silent-no-op risks):
+
+    1. organism.antibiogram[abx_key] → antibiotics keys
+    2. disease.organisms[org_id]    → organisms keys
+    3. disease.cultures[i].specimen → specimens keys
+    4. organism.snomed              → SNOMED system (non-empty string contract)
+    5. specimen.snomed              → SNOMED system (non-empty string contract)
+    6. specimen.test_loinc          → LOINC system (non-empty string contract)
+    7. antibiotics[key] value       → LOINC system (non-empty string contract)
     """
     antibiotics = data.get("antibiotics") or {}
+    organisms = data.get("organisms") or {}
+    specimens = data.get("specimens") or {}
+    diseases = data.get("diseases") or {}
+
     valid_antibiotic_keys = set(antibiotics.keys())
-    for organism_id, organism in (data.get("organisms") or {}).items():
+    valid_organism_keys = set(organisms.keys())
+    valid_specimen_keys = set(specimens.keys())
+
+    # Check antibiotic LOINC values are non-empty strings (#7)
+    for abx_key, loinc in antibiotics.items():
+        if not isinstance(loinc, str) or not loinc:
+            raise ValueError(
+                f"microbiology.yaml: antibiotic {abx_key!r} has invalid LOINC "
+                f"value {loinc!r}"
+            )
+
+    # Check specimen.snomed + test_loinc are non-empty (#5 + #6)
+    for spec_id, spec in specimens.items():
+        if not isinstance(spec, dict):
+            continue
+        if not isinstance(spec.get("snomed"), str) or not spec["snomed"]:
+            raise ValueError(
+                f"microbiology.yaml: specimen {spec_id!r} has invalid SNOMED "
+                f"{spec.get('snomed')!r}"
+            )
+        if not isinstance(spec.get("test_loinc"), str) or not spec["test_loinc"]:
+            raise ValueError(
+                f"microbiology.yaml: specimen {spec_id!r} has invalid test_loinc "
+                f"{spec.get('test_loinc')!r}"
+            )
+
+    for organism_id, organism in organisms.items():
+        # Check organism.snomed non-empty (#4)
+        if isinstance(organism, dict):
+            if not isinstance(organism.get("snomed"), str) or not organism["snomed"]:
+                raise ValueError(
+                    f"microbiology.yaml: organism {organism_id!r} has invalid "
+                    f"SNOMED {organism.get('snomed')!r}"
+                )
+        # Check organism.antibiogram keys → antibiotics (#1)
         antibiogram = (organism or {}).get("antibiogram") or {}
         for abx_key in antibiogram.keys():
             if abx_key not in valid_antibiotic_keys:
@@ -41,6 +86,26 @@ def _validate_microbiology(data: dict[str, Any]) -> None:
                     f"microbiology.yaml: organism {organism_id!r} antibiogram "
                     f"references unknown antibiotic key {abx_key!r}; expected "
                     f"one of {sorted(valid_antibiotic_keys)}"
+                )
+
+    # Check disease.organisms keys → organisms set (#2) + disease.cultures[i].specimen → specimens (#3)
+    for disease_id, disease in diseases.items():
+        if not isinstance(disease, dict):
+            continue
+        for org_id in (disease.get("organisms") or {}).keys():
+            if org_id not in valid_organism_keys:
+                raise ValueError(
+                    f"microbiology.yaml: disease {disease_id!r} references "
+                    f"unknown organism {org_id!r}; expected one of "
+                    f"{sorted(valid_organism_keys)}"
+                )
+        for culture in disease.get("cultures") or []:
+            spec_key = culture.get("specimen") if isinstance(culture, dict) else None
+            if spec_key and spec_key not in valid_specimen_keys:
+                raise ValueError(
+                    f"microbiology.yaml: disease {disease_id!r} culture references "
+                    f"unknown specimen {spec_key!r}; expected one of "
+                    f"{sorted(valid_specimen_keys)}"
                 )
 
 
