@@ -77,6 +77,16 @@ clinosim/locale/
 
 全 API は `clinosim.locale.loader` に集約されており、 LRU キャッシュ付きのため何度呼んでも実際の YAML 読み込みは 1 回のみ。
 
+### Import-time validators(本 PR 2026-06-27 追加)
+
+`locale/loader.py` の 3 主要 loader に `_validate_*(data)` を追加(`_validate_microbiology` 同型 pattern)。 1 回目の load 時に `ValueError` を loud-raise し、silent uniform fallback(PR-90 class bug)を構造的に防ぐ:
+
+- **`_validate_demographics(data)`**: `demographics.yaml` の optional `lifestyle_distribution.{smoking, alcohol}.<sex>` block を検証(本 block が存在する場合、各 weight が非負 + sum > 0)。`_FALLBACK_DEMOGRAPHICS` は lifestyle block を持たないため fallback path も valid。
+- **`_validate_names(data)`**: `names.yaml` の optional `surnames` / `given_names_male` / `given_names_female` list の各 entry の `weight` が非負 + sum > 0(`_FALLBACK_NAMES` も valid)。
+- **`_validate_addresses(data)`**: `addresses.yaml` の optional `cities` list の各 entry の `weight` が非負 + sum > 0(空 fallback `{}` も valid、上流 caller が空 list を guard)。
+
+silent-no-op 防御 3 層の上流(import-time)層。後方層 = `clinosim/modules/population/engine.py` の `normalize_probabilities(..., fallback="raise")`(10 callsite 完備)。canonical constants 層 = `HAI_TYPES` 等の module-level 定数。
+
 ### `load_names(country: str) -> dict[str, Any]`
 
 姓・名リストと頻度ウェイトを返す。
