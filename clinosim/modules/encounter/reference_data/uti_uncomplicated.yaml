@@ -39,7 +39,7 @@ workup:
     - {test: "CT_Abdomen_Pelvis", probability: 0.05}  # only if complicated UTI suspected
 
 treatment:
-  - {name: "Trimethoprim-sulfamethoxazole 160/800mg", probability: 0.4, route: "PO", intent: "antibiotic"}
+  - {name: "Trimethoprim/Sulfamethoxazole 160/800mg", probability: 0.4, route: "PO", intent: "antibiotic"}
   - {name: "Nitrofurantoin 100mg", probability: 0.35, route: "PO", intent: "antibiotic"}
   - {name: "Ciprofloxacin 500mg", probability: 0.15, route: "PO", intent: "antibiotic (if resistance concern)"}
   - {name: "Phenazopyridine 200mg", probability: 0.3, route: "PO", intent: "urinary analgesic"}
@@ -52,7 +52,7 @@ discharge_instructions:
   - "Return if fever, flank pain, vomiting, or symptoms not improving after 48 hours"
 
 discharge_prescriptions:
-  - {drug: "Trimethoprim-sulfamethoxazole 160/800mg", route: "PO", frequency: "bid", duration_days: 3, probability: 0.4}
+  - {drug: "Trimethoprim/Sulfamethoxazole 160/800mg", route: "PO", frequency: "bid", duration_days: 3, probability: 0.4}
   - {drug: "Nitrofurantoin 100mg", route: "PO", frequency: "bid", duration_days: 5, probability: 0.35}
   - {drug: "Ciprofloxacin 500mg", route: "PO", frequency: "bid", duration_days: 3, probability: 0.15}
   - {drug: "Phenazopyridine 200mg", route: "PO", frequency: "tid", duration_days: 2, probability: 0.3}
