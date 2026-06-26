@@ -18,7 +18,7 @@ _HERE = Path(__file__).resolve().parent
 _LOCALE = _HERE.parents[1] / "locale"
 
 
-@lru_cache(maxsize=4)
+@lru_cache(maxsize=2)
 def load_schedule(country: str) -> dict:
     key = "jp" if str(country).upper() == "JP" else "us"
     with open(_LOCALE / key / "immunization_schedule.yaml") as f:
