@@ -24,6 +24,15 @@ def test_antibiotic_drugs_canonical_dict():
     assert ANTIBIOTIC_DRUGS["vancomycin"]["name"] == "Vancomycin"
     assert ANTIBIOTIC_DRUGS["piperacillin_tazobactam"]["name"] == "Piperacillin/Tazobactam"
     assert ANTIBIOTIC_DRUGS["ceftriaxone"]["name"] == "Ceftriaxone"
+    assert ANTIBIOTIC_DRUGS["cefazolin"]["name"] == "Cefazolin"
+    assert ANTIBIOTIC_DRUGS["cefepime"]["name"] == "Cefepime"
+    assert ANTIBIOTIC_DRUGS["meropenem"]["name"] == "Meropenem"
+    assert ANTIBIOTIC_DRUGS["ciprofloxacin"]["name"] == "Ciprofloxacin"
+    assert ANTIBIOTIC_DRUGS["trimethoprim_sulfamethoxazole"]["name"] == (
+        "Trimethoprim/Sulfamethoxazole"
+    )
+    assert ANTIBIOTIC_DRUGS["ampicillin"]["name"] == "Ampicillin"
+    assert ANTIBIOTIC_DRUGS["gentamicin"]["name"] == "Gentamicin"
 
 
 @pytest.mark.unit
@@ -78,7 +87,7 @@ def test_antibiotic_regimen_full_construction():
         regimen_id="abx-h1-vancomycin",
         hai_event_id="h1",
         encounter_id="enc-1",
-        drug_key="Vancomycin",
+        drug_key="vancomycin",
         dose="1g",
         route="IV",
         frequency="q12h",
@@ -86,6 +95,6 @@ def test_antibiotic_regimen_full_construction():
         duration_days=14,
         intent="empirical",
     )
-    assert r.drug_key == "Vancomycin"
+    assert r.drug_key == "vancomycin"
     assert r.duration_days == 14
     assert r.intent == "empirical"

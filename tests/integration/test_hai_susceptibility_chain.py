@@ -64,9 +64,12 @@ def test_force_hai_event_populates_susceptibilities(
             "organism_snomed": organism_snomed,
         },
     )
-    # force_hai_event is read by enrich_hai from ctx.config.forced_scenarios,
-    # so the scenario must also appear in the config (not just as the
-    # run_forced scenario argument).
+    # Wiring note: enrich_hai reads force_hai_event from ctx.config.forced_scenarios.
+    # run_forced auto-injects the scenario into config.forced_scenarios when
+    # force_hai_event is set (PR #97 Fix PR3b-2 Adv #4 F1 closure / Task 6 fix).
+    # This test ALSO manually pre-injects (forced_scenarios=[scenario]) as
+    # belt-and-suspenders; the dedup check in run_forced prevents double-injection.
+    # New tests should NOT need to pre-inject.
     cfg = SimulatorConfig(
         country="US",
         random_seed=42,

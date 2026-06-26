@@ -11,6 +11,7 @@ HAIEvent, asserting:
 PR3b-2 extension: combined proof adds antibiogram_firing_proof checks:
   - Synthetic CLABSI/S. aureus HAIEvent → 6 susceptibility results
   - Vancomycin (LOINC via ANTIBIOTIC_LOINC_LOOKUP) always S ([1.00, 0.00, 0.00])
+  - Cefazolin seed=0 deterministic interpretation = S (non-degenerate probe)
 
 This is the load-bearing PR-90 silent-no-op gate for PR3b-1 + PR3b-2.
 
@@ -30,8 +31,8 @@ Registered checks:
   resistance-band population-level checks deferred to PR3b-3.
 - lift_firing_proof (_build_combined_proof): merged PR3b-1 + PR3b-2.
     PR3b-1 (regimen): CAUTI ceftriaxone — 8 equality_checks.
-    PR3b-2 (antibiogram): CLABSI S. aureus susceptibility chain — 2 checks.
-  All 10 equality_checks run in one silent_no_op axis pass.
+    PR3b-2 (antibiogram): CLABSI S. aureus susceptibility chain — 3 checks.
+  All 11 equality_checks run in one silent_no_op axis pass.
 """
 
 from __future__ import annotations
@@ -66,6 +67,10 @@ _ABX_LOINCS: frozenset[str] = frozenset(ANTIBIOTIC_LOINC_LOOKUP.values())
 # For now (PR3b-2), the bands are reported but not gating. The
 # antibiogram_firing_proof in silent_no_op axis remains the load-bearing
 # PR-90-class silent-no-op gate.
+# Cohort string convention: "<hai_type>/<organism_snomed>" (exactly 2 components).
+# Parse with: hai_type, org_snomed = band["cohort"].split("/", maxsplit=1)
+# Adding a 3rd dimension (e.g., "clabsi/3092008/icu") requires changing to a
+# structured type (dataclass or TypedDict). Do NOT use split("/") without maxsplit.
 #
 # PR3b-2: NHSN Antimicrobial Resistance Report 2018-2020 acceptance bands.
 # Sources: CDC NHSN "Antimicrobial Resistance Patterns in Acute Care Hospitals" 2018-2020.
@@ -224,28 +229,50 @@ def _antibiogram_firing_proof_checks() -> list[tuple[str, Any, Any]]:
         (s.interpretation for s in susc if s.antibiotic_loinc == vanc_loinc),
         None,
     )
+    cefaz_loinc = ANTIBIOTIC_LOINC_LOOKUP["cefazolin"]
+    cefaz_interp: str | None = next(
+        (s.interpretation for s in susc if s.antibiotic_loinc == cefaz_loinc),
+        None,
+    )
     return [
         # CLABSI/S. aureus antibiogram has exactly 6 drugs — count verifies no silent omission.
         ("clabsi_saureus_susceptibility_count", len(susc), 6),
         # Vancomycin [1.00, 0.00, 0.00] is always S; any other value = antibiogram load bug.
         ("clabsi_saureus_vancomycin_is_S", vanc_interp, "S"),
+        # PR3b-2 Adv #6 F3: cefazolin probs are [0.53, 0.00, 0.47] — non-degenerate.
+        # At rng seed=0: deterministic outcome is "S". If YAML key order shifts,
+        # the rng draws a different probability row → different interpretation.
+        ("clabsi_saureus_cefazolin_seed0_interp", cefaz_interp, "S"),
     ]
 
 
+# TODO(PR3b-3): Replace single lift_firing_proof with lift_firing_proofs: list[Callable]
+# in ModuleAuditSpec so each sub-proof runs independently. Currently the combined
+# proof's try/except below isolates exceptions but conflates results in a single
+# equality_checks list (per-finding failures already independent at the
+# silent_no_op._check_proof level — only factory-level exceptions need isolation).
 def _build_combined_proof() -> dict[str, Any]:
     """Combined proof: PR3b-1 antibiotic regimen + PR3b-2 antibiogram S/I/R chain.
 
     Merges equality_checks from both sub-proofs so the silent_no_op axis
     verifies the full PR3b-1 + PR3b-2 pipeline in a single pass.
 
-    Produces 10 equality_checks total:
+    Produces 11 equality_checks total:
       8 from _build_synthetic_proof  — CAUTI ceftriaxone regimen
-      2 from _antibiogram_firing_proof_checks — CLABSI S. aureus susceptibility
+      3 from _antibiogram_firing_proof_checks — CLABSI S. aureus susceptibility
     """
     regimen_result = _build_synthetic_proof()
-    antibiogram_checks = _antibiogram_firing_proof_checks()
+    try:
+        antibiogram_checks = _antibiogram_firing_proof_checks()
+    except Exception as e:
+        antibiogram_checks = [
+            ("antibiogram_firing_proof_raised", f"{type(e).__name__}: {e}", "no exception"),
+        ]
     return {
-        "equality_checks": (list(regimen_result.get("equality_checks") or []) + antibiogram_checks),
+        "equality_checks": (
+            list(regimen_result.get("equality_checks") or [])
+            + list(antibiogram_checks)
+        ),
     }
 
 
@@ -298,3 +325,50 @@ register_audit_module(
         lift_firing_proof=_build_combined_proof,
     )
 )
+
+
+# PR-90 lesson: validate canonical-constants references at import time.
+def _validate_nhsn_resistance_bands() -> None:
+    """Cross-check _NHSN_RESISTANCE_BANDS entries against canonical constants.
+
+    Adv #7 F3: a typo in band["cohort"] / band["antibiotic"] would silently
+    fail to match downstream cohorts at PR3b-3 wiring. Validate at import.
+    """
+    from clinosim.modules.hai import HAI_TYPES as _HAI_TYPES
+    from clinosim.modules.hai import load_hai_organisms as _load_hai_organisms
+
+    valid_hai_types = set(_HAI_TYPES)
+    valid_antibiotics = set(ANTIBIOTIC_DRUGS.keys())
+    raw = _load_hai_organisms()
+    organisms_table = raw.get("hai_organisms", {})
+
+    for band in _NHSN_RESISTANCE_BANDS:
+        cohort = band["cohort"]
+        if "/" not in cohort:
+            raise ValueError(
+                f"_NHSN_RESISTANCE_BANDS cohort {cohort!r} must be "
+                f"<hai_type>/<organism_snomed>"
+            )
+        hai_type, organism = cohort.split("/", maxsplit=1)
+        if hai_type not in valid_hai_types:
+            raise ValueError(
+                f"_NHSN_RESISTANCE_BANDS cohort hai_type {hai_type!r} "
+                f"not in HAI_TYPES {sorted(valid_hai_types)}"
+            )
+        valid_organisms = {
+            str(entry["snomed"]) for entry in organisms_table.get(hai_type, [])
+        }
+        if organism not in valid_organisms:
+            raise ValueError(
+                f"_NHSN_RESISTANCE_BANDS organism {organism!r} not in "
+                f"hai_organisms.yaml[{hai_type}]"
+            )
+        abx_key = band["antibiotic"]
+        if abx_key not in valid_antibiotics:
+            raise ValueError(
+                f"_NHSN_RESISTANCE_BANDS antibiotic {abx_key!r} not in "
+                f"ANTIBIOTIC_DRUGS"
+            )
+
+
+_validate_nhsn_resistance_bands()

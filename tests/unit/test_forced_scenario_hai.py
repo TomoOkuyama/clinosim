@@ -157,15 +157,20 @@ class _CapturingRNG:
         self._log = log
 
     def random(self, *a, **k):
-        self._log.append("random")
+        self._log.append(("random", None))
         return self._inner.random(*a, **k)
 
     def integers(self, *a, **k):
-        self._log.append("integers")
+        self._log.append(("integers", None))
         return self._inner.integers(*a, **k)
 
     def choice(self, *a, **k):
-        self._log.append("choice")
+        # PR3b-2 Adv #6 F1: log p=probs to detect YAML key-order shifts.
+        p = k.get("p")
+        if p is not None:
+            self._log.append(("choice", tuple(round(float(x), 4) for x in p)))
+        else:
+            self._log.append(("choice", None))
         return self._inner.choice(*a, **k)
 
     def __getattr__(self, name):
@@ -178,7 +183,7 @@ def _capture_enrich_hai_draws(make_ctx_fn):
 
     from clinosim.modules.hai import enricher as enricher_mod
     orig_default_rng = np.random.default_rng
-    log: list[str] = []
+    log: list[tuple] = []
 
     def capture_rng(*args, **kwargs):
         return _CapturingRNG(orig_default_rng(*args, **kwargs), log)
@@ -213,7 +218,21 @@ def test_enrich_hai_force_consumes_exact_firing_path_sequence():
     # ceftriaxone, cefepime, meropenem, ciprofloxacin, trimethoprim_sulfamethoxazole
     # 3 (PR-95 baseline) + 5 (antibiogram cauti/112283007) = 8 total
     n_abx_cauti_ecoli = 5
-    expected_draws = ["random", "integers", "choice"] + ["choice"] * n_abx_cauti_ecoli
+    # CAUTI organism weights from hai_organisms.yaml (7 entries, sum=1.00)
+    _cauti_org_probs = (0.27, 0.18, 0.16, 0.13, 0.1, 0.06, 0.1)
+    # CAUTI/E.coli (112283007) antibiogram probs from hai_antibiogram.yaml
+    # Order: ceftriaxone, cefepime, meropenem, ciprofloxacin, trimethoprim_sulfamethoxazole
+    _cauti_ecoli_abg_probs = [
+        (0.83, 0.02, 0.15),  # ceftriaxone
+        (0.9, 0.02, 0.08),   # cefepime
+        (0.99, 0.0, 0.01),   # meropenem
+        (0.7, 0.05, 0.25),   # ciprofloxacin
+        (0.7, 0.02, 0.28),   # trimethoprim_sulfamethoxazole
+    ]
+    expected_draws = (
+        [("random", None), ("integers", None), ("choice", _cauti_org_probs)]
+        + [("choice", probs) for probs in _cauti_ecoli_abg_probs]
+    )
 
     forced_log, _ = _capture_enrich_hai_draws(lambda: _make_ctx_with_device(
         device_type="indwelling_catheter",
@@ -223,7 +242,7 @@ def test_enrich_hai_force_consumes_exact_firing_path_sequence():
     assert forced_log == expected_draws, (
         f"forced path rng-method sequence is {forced_log}; "
         f"must be {expected_draws} to match the non-forced firing path "
-        "exactly (AD-16 RNG isolation). "
+        "exactly (AD-16 RNG isolation). Each tuple is (method, p_or_None). "
         "3 baseline draws (PR-95) + 5 antibiogram draws (PR3b-2 cauti/112283007)."
     )
 
@@ -250,7 +269,7 @@ def test_enrich_hai_non_forced_firing_path_baseline_sequence():
     import numpy as np
     from clinosim.modules.hai import enricher as enricher_mod
 
-    captured: list[str] = []
+    captured: list[tuple] = []
     orig_default_rng = np.random.default_rng
 
     def capture_rng(*args, **kwargs):
@@ -275,9 +294,11 @@ def test_enrich_hai_non_forced_firing_path_baseline_sequence():
 
     # seed=42 / p1 selects E. faecalis (78065002) — 0 antibiogram entries.
     # Total stays at 3 draws (baseline PR-95 sequence; no PR3b-2 extension here).
-    assert captured == ["random", "integers", "choice"], (
+    _cauti_org_probs = (0.27, 0.18, 0.16, 0.13, 0.1, 0.06, 0.1)
+    assert captured == [("random", None), ("integers", None), ("choice", _cauti_org_probs)], (
         f"non-forced firing path sequence is {captured}; expected "
-        "['random','integers','choice']. If this differs, either the forced "
+        "[('random',None),('integers',None),('choice',_cauti_org_probs)]. "
+        "If this differs, either the forced "
         "drain in enrich_hai's forced branch is out of sync (AD-16), or "
         "the stochastic organism selection changed (seed shift)."
     )

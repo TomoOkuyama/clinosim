@@ -72,7 +72,12 @@ def _dispatch_list(_args) -> int:
         if spec.structural_obs_codes:
             checks.append(f"structural ({len(spec.structural_obs_codes)} analytes)")
         if spec.clinical_acceptance:
-            checks.append(f"clinical ({len(spec.clinical_acceptance)} cohorts)")
+            n_cohorts = sum(
+                1 for v in spec.clinical_acceptance.values()
+                if isinstance(v, dict) and "icd10_code" in v
+            )
+            n_metadata = len(spec.clinical_acceptance) - n_cohorts
+            checks.append(f"clinical ({n_cohorts} cohorts, {n_metadata} metadata keys)")
         if spec.lift_firing_proof is not None:
             checks.append("lift-firing proof")
         if spec.yaml_keys_to_validate:
