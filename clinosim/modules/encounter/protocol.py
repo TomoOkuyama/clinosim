@@ -8,7 +8,8 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, ConfigDict
 
-_REFERENCE_DATA_DIR = Path(__file__).parent / "reference_data"
+_HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
 
 _cache: dict[str, dict[str, Any]] | None = None
 
@@ -37,7 +38,7 @@ def load_encounter_condition(condition_id: str) -> dict[str, Any]:
     Returns the raw dict (callers expect a dict); validation guards against
     malformed YAML by raising a clear Pydantic error.
     """
-    path = _REFERENCE_DATA_DIR / f"{condition_id}.yaml"
+    path = _REF_DIR / f"{condition_id}.yaml"
     if not path.exists():
         raise FileNotFoundError(f"Encounter condition not found: {path}")
     with open(path) as f:
@@ -52,7 +53,7 @@ def load_all_encounter_conditions() -> dict[str, dict[str, Any]]:
     if _cache is not None:
         return _cache
     conditions: dict[str, dict[str, Any]] = {}
-    for yaml_file in sorted(_REFERENCE_DATA_DIR.glob("*.yaml")):
+    for yaml_file in sorted(_REF_DIR.glob("*.yaml")):
         data = yaml.safe_load(yaml_file.read_text())
         try:
             EncounterConditionProtocol.model_validate(data)

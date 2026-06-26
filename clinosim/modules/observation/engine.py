@@ -12,22 +12,24 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-_ALIAS_REF = Path(__file__).parent / "reference_data" / "lab_aliases.yaml"
-_PANEL_REF = Path(__file__).parent / "reference_data" / "lab_panels.yaml"
+_HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
 
 
 @lru_cache(maxsize=1)
 def _lab_aliases() -> dict[str, str]:
-    if _ALIAS_REF.exists():
-        with open(_ALIAS_REF) as f:
+    path = _REF_DIR / "lab_aliases.yaml"
+    if path.exists():
+        with open(path) as f:
             return yaml.safe_load(f) or {}
     return {}
 
 
 @lru_cache(maxsize=1)
 def _lab_panels() -> dict[str, list[str]]:
-    if _PANEL_REF.exists():
-        with open(_PANEL_REF) as f:
+    path = _REF_DIR / "lab_panels.yaml"
+    if path.exists():
+        with open(path) as f:
             return yaml.safe_load(f) or {}
     return {}
 

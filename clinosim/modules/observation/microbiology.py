@@ -15,19 +15,44 @@ from typing import Any
 import numpy as np
 import yaml
 
+from clinosim.modules._shared import normalize_probabilities
 from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types import MicrobiologyResult, SusceptibilityResult
 
-_REF = Path(__file__).parent / "reference_data" / "microbiology.yaml"
+_HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
 _SIR = ("S", "I", "R")
+
+
+def _validate_microbiology(data: dict[str, Any]) -> None:
+    """Validate microbiology.yaml at load time — fail loud on orphan keys.
+
+    Mirrors the validation pattern from ``clinosim.modules.hai.load_hai_antibiogram``.
+    A typo in any ``organism.antibiogram`` key would otherwise silently produce a
+    no-op susceptibility (PR-90 class silent-no-op).
+    """
+    antibiotics = data.get("antibiotics") or {}
+    valid_antibiotic_keys = set(antibiotics.keys())
+    for organism_id, organism in (data.get("organisms") or {}).items():
+        antibiogram = (organism or {}).get("antibiogram") or {}
+        for abx_key in antibiogram.keys():
+            if abx_key not in valid_antibiotic_keys:
+                raise ValueError(
+                    f"microbiology.yaml: organism {organism_id!r} antibiogram "
+                    f"references unknown antibiotic key {abx_key!r}; expected "
+                    f"one of {sorted(valid_antibiotic_keys)}"
+                )
 
 
 @lru_cache(maxsize=1)
 def _load() -> dict[str, Any]:
-    if not _REF.exists():
+    path = _REF_DIR / "microbiology.yaml"
+    if not path.exists():
         return {}
-    with open(_REF) as f:
-        return yaml.safe_load(f) or {}
+    with open(path) as f:
+        data = yaml.safe_load(f) or {}
+    _validate_microbiology(data)
+    return data
 
 
 def has_microbiology(disease_id: str) -> bool:
@@ -55,9 +80,11 @@ def generate_microbiology(
 
     org_dist = disease.get("organisms") or {}
     org_ids = list(org_dist.keys())
-    org_probs = np.array([float(org_dist[k]) for k in org_ids], dtype=float)
-    if org_probs.sum() > 0:
-        org_probs = org_probs / org_probs.sum()
+    org_probs = (
+        normalize_probabilities([float(org_dist[k]) for k in org_ids])
+        if org_ids
+        else np.array([], dtype=float)
+    )
 
     results: list[MicrobiologyResult] = []
     for culture in disease.get("cultures") or []:
@@ -88,10 +115,12 @@ def generate_microbiology(
             for abx_key, sir in (org.get("antibiogram") or {}).items():
                 loinc = antibiotics.get(abx_key)
                 if not loinc:
-                    continue
-                probs = np.array([float(x) for x in sir], dtype=float)
-                if probs.sum() > 0:
-                    probs = probs / probs.sum()
+                    raise ValueError(
+                        f"microbiology generate: antibiogram references unknown "
+                        f"antibiotic key {abx_key!r}; expected one of "
+                        f"{sorted(antibiotics.keys())}"
+                    )
+                probs = normalize_probabilities([float(x) for x in sir])
                 interp = _SIR[int(rng.choice(len(_SIR), p=probs))]
                 result.susceptibilities.append(
                     SusceptibilityResult(antibiotic_loinc=str(loinc), interpretation=interp)

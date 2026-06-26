@@ -7,17 +7,20 @@ from pathlib import Path
 import numpy as np
 import yaml
 
+from clinosim.modules._shared import normalize_probabilities
+
 _HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
 _LOCALE = _HERE.parents[1] / "locale"
 
 
 @lru_cache(maxsize=1)
 def load_reference() -> dict:
-    with open(_HERE / "reference_data" / "code_status.yaml") as f:
+    with open(_REF_DIR / "code_status.yaml") as f:
         return yaml.safe_load(f) or {}
 
 
-@lru_cache(maxsize=4)
+@lru_cache(maxsize=2)
 def load_rates(country: str) -> dict:
     key = "jp" if str(country).upper() == "JP" else "us"
     with open(_LOCALE / key / "code_status_rates.yaml") as f:
@@ -45,5 +48,5 @@ def assign_code_status(age: int, context: str, country: str,
     weights = rates.get(context, rates["routine"]).get(band)
     if not weights:
         weights = rates["routine"][ref["age_bands"][-1]]
-    idx = int(rng.choice(len(tiers), p=weights))
+    idx = int(rng.choice(len(tiers), p=normalize_probabilities(weights)))
     return str(tiers[idx]["snomed"])

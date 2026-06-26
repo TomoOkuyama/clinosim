@@ -15,13 +15,15 @@ from typing import Any
 import numpy as np
 import yaml
 
+from clinosim.modules._shared import normalize_probabilities
 from clinosim.types.device import DeviceRecord
 
-_DATA = Path(__file__).parent / "reference_data"
+_HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
 
 
 def _load_yaml(name: str) -> dict[str, Any]:
-    with (_DATA / name).open() as f:
+    with (_REF_DIR / name).open() as f:
         return yaml.safe_load(f)
 
 
@@ -80,8 +82,7 @@ def sample_hai_onset(
 def _sample_organism(weights: list[dict], rng: np.random.Generator) -> str:
     """Weighted choice over [{snomed, weight}, ...] returning the snomed."""
     snomeds = [w["snomed"] for w in weights]
-    p = np.array([w["weight"] for w in weights], dtype=float)
-    p = p / p.sum()
+    p = normalize_probabilities([w["weight"] for w in weights])
     return str(rng.choice(snomeds, p=p))
 
 

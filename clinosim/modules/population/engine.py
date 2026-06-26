@@ -11,6 +11,7 @@ from datetime import date, timedelta
 
 import numpy as np
 
+from clinosim.modules._shared import normalize_probabilities
 from clinosim.types.population import HospitalizationSummary, LifeEvent, PersonRecord
 
 __all__ = ["HospitalizationSummary", "PersonRecord", "LifeEvent"]
@@ -166,8 +167,7 @@ def generate_population(
             smoking_dist = (lifestyle.get("smoking") or {}).get(sex_key, {})
             if smoking_dist:
                 sk = list(smoking_dist.keys())
-                sp = np.array([smoking_dist[k] for k in sk], dtype=float)
-                sp /= sp.sum()
+                sp = normalize_probabilities([smoking_dist[k] for k in sk])
                 smoking_status = str(rng.choice(sk, p=sp))
             else:
                 smoking_status = str(rng.choice(
@@ -177,8 +177,7 @@ def generate_population(
             alcohol_dist = (lifestyle.get("alcohol") or {}).get(sex_key, {})
             if alcohol_dist:
                 ak = list(alcohol_dist.keys())
-                ap = np.array([alcohol_dist[k] for k in ak], dtype=float)
-                ap /= ap.sum()
+                ap = normalize_probabilities([alcohol_dist[k] for k in ak])
                 alcohol_use = str(rng.choice(ak, p=ap))
             else:
                 alcohol_use = str(rng.choice(
@@ -483,8 +482,7 @@ def _load_name_data(country: str) -> dict:
 def _sample_surname(name_data: dict, rng: np.random.Generator) -> dict:
     """Sample a surname using weighted probability."""
     surnames = name_data.get("surnames", [])
-    weights = np.array([s["weight"] for s in surnames], dtype=float)
-    weights /= weights.sum()
+    weights = normalize_probabilities([s["weight"] for s in surnames])
     idx = int(rng.choice(len(surnames), p=weights))
     return surnames[idx]
 
@@ -508,8 +506,7 @@ def _sample_occupation(demo: dict, age: int, sex: str, rng: np.random.Generator)
     if age <= young_max and rng.random() < young_prob:
         return "student"
     keys = list(dist.keys())
-    weights = np.array([dist[k] for k in keys], dtype=float)
-    weights /= weights.sum()
+    weights = normalize_probabilities([dist[k] for k in keys])
     return str(rng.choice(keys, p=weights))
 
 
@@ -517,8 +514,7 @@ def _sample_given_name(name_data: dict, sex: str, rng: np.random.Generator) -> d
     """Sample a given name appropriate for sex."""
     key = "given_names_male" if sex == "M" else "given_names_female"
     names = name_data.get(key, [])
-    weights = np.array([n["weight"] for n in names], dtype=float)
-    weights /= weights.sum()
+    weights = normalize_probabilities([n["weight"] for n in names])
     idx = int(rng.choice(len(names), p=weights))
     return names[idx]
 
@@ -665,9 +661,7 @@ def _generate_household_address(addr_data: dict, rng: np.random.Generator) -> di
     if not cities:
         return {"postal_code": "", "state": "", "city": "", "line": ""}
 
-    weights = [c.get("weight", 1) for c in cities]
-    total = sum(weights)
-    probs = [w / total for w in weights]
+    probs = normalize_probabilities([c.get("weight", 1) for c in cities])
     city_data = cities[int(rng.choice(len(cities), p=probs))]
 
     city = city_data.get("city", "")
