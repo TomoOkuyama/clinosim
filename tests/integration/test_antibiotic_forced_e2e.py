@@ -76,11 +76,27 @@ def test_antibiotic_no_hai_no_antibiotic():
     ds = run_forced(scenario, config=cfg)
     rec = ds.patients[0]
     assert rec.extensions.get("antibiotic", []) == []
-    # mild bacterial_pneumonia at seed=42 should not produce any of these
+    # mild bacterial_pneumonia at seed=42 should not produce any HAI
+    # empirical antibiotic via the enricher path.
+    # PR-93 adversarial review fix: removed the inner ``m.drug_name == "Vancomycin"``
+    # filter that previously nullified the membership test for
+    # Ceftriaxone / Piperacillin/Tazobactam (which can also be produced
+    # by disease YAML drugs sections, so we check the enricher attribution
+    # via extensions["antibiotic"] above being empty).
     hai_abx_names = {"Vancomycin", "Piperacillin/Tazobactam", "Ceftriaxone"}
-    assert not any(m.drug_name in hai_abx_names for m in rec.medication_administrations
-                   if m.drug_name == "Vancomycin"), \
-        "mild pneumonia without HAI should not get HAI empirical antibiotic"
+    enricher_mar_drug_names = {
+        m.drug_name for m in rec.medication_administrations
+        if any(
+            o.order_id == m.order_id
+            and (o.order_id or "").startswith("req-abx-")
+            for o in rec.orders
+        )
+    }
+    unexpected = enricher_mar_drug_names & hai_abx_names
+    assert not unexpected, (
+        f"mild pneumonia without HAI should not get HAI empirical antibiotic "
+        f"via enricher path, but found {unexpected}"
+    )
 
 
 @pytest.mark.integration

@@ -40,6 +40,9 @@ _DEVICE_TO_HAI = {
 _REQUIRED_FORCE_HAI_KEYS = ("hai_type", "onset_offset_days", "organism_snomed")
 
 
+_REQUIRED_FORCE_HAI_KEYS = ("hai_type", "onset_offset_days", "organism_snomed")
+
+
 def _get_forced_hai_event(ctx) -> dict | None:
     """Return the first ForcedScenario.force_hai_event if set + valid, else None.
 
@@ -48,7 +51,7 @@ def _get_forced_hai_event(ctx) -> dict | None:
     device of the matching hai_type, exactly one HAI event is emitted
     at placement_date + onset_offset_days using the supplied organism.
 
-    PR-94 adversarial review fix: validate ``hai_type`` against the
+    PR-93 adversarial review fix: validate ``hai_type`` against the
     canonical ``HAI_TYPES`` tuple AT CONSUME TIME so case-mismatch /
     typo (e.g. ``"CAUTI"`` uppercase, ``"cauti "`` trailing space)
     raises ``ValueError`` loudly instead of silently no-op'ing every

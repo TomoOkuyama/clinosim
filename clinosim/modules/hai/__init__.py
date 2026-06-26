@@ -13,6 +13,8 @@ import yaml
 # keys + lowercase enricher writes) silently no-op'd the entire Phase 3a
 # lift in production; a YAML integrity test plus this single source of truth
 # prevents that class of regression.
+# Defined BEFORE submodule imports so enricher can import it without circular
+# dependency (PR-93 adversarial review fix).
 HAI_TYPES: tuple[str, ...] = ("clabsi", "cauti", "vap")
 
 from clinosim.modules.hai.engine import (  # noqa: E402

@@ -31,14 +31,29 @@ from clinosim.types.hai import HAIEvent
 _ORDER_HOUR = 8  # empirical = "AM round" same day as onset
 
 
+_DEFAULT_SNAPSHOT_FALLBACK = "2099-12-31"
+
+
 def _resolve_snapshot(cfg) -> datetime:
-    """Return the simulation snapshot datetime (AD-32)."""
+    """Return the simulation snapshot datetime (AD-32).
+
+    PR-93 adversarial review fix: guard against empty / malformed
+    ``time_range``. Previously ``time_range=()`` would raise IndexError
+    on ``[-1]``; now falls back to the hardcoded 2099-12-31 sentinel
+    (matching the no-time_range default behaviour).
+    """
     snap = _get(cfg, "snapshot_date", None)
     if snap:
         return datetime.fromisoformat(snap)
-    # Fall back to end of time_range (existing pattern)
-    end = _get(cfg, "time_range", ("2099-12-31",))[-1]
-    return datetime.fromisoformat(end)
+    time_range = _get(cfg, "time_range", None) or ()
+    if isinstance(time_range, (list, tuple)) and time_range:
+        end = time_range[-1]
+    else:
+        end = _DEFAULT_SNAPSHOT_FALLBACK
+    try:
+        return datetime.fromisoformat(end)
+    except (TypeError, ValueError):
+        return datetime.fromisoformat(_DEFAULT_SNAPSHOT_FALLBACK)
 
 
 def enrich_antibiotic(ctx) -> None:

@@ -238,7 +238,6 @@ def test_enrich_hai_non_forced_firing_path_sequence_matches_forced():
     as PR-95 baseline, no antibiogram extension for this organism).
     """
     import numpy as np
-
     from clinosim.modules.hai import enricher as enricher_mod
 
     captured: list[str] = []
@@ -281,7 +280,6 @@ def test_enrich_hai_force_short_line_days_skips_no_drain():
     0 draws — NOT drain 3.
     """
     import numpy as np
-
     from clinosim.modules.hai import enricher as enricher_mod
     from clinosim.types.device import DeviceRecord
 
