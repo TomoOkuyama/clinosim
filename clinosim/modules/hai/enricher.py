@@ -15,6 +15,7 @@ import numpy as np
 
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
+from clinosim.modules.hai import HAI_TYPES
 from clinosim.modules.hai.engine import (
     _add_days,
     _sample_organism,
@@ -36,20 +37,44 @@ _DEVICE_TO_HAI = {
     "mechanical_ventilator": "vap",
 }
 
+_REQUIRED_FORCE_HAI_KEYS = ("hai_type", "onset_offset_days", "organism_snomed")
+
 
 def _get_forced_hai_event(ctx) -> dict | None:
-    """Return the first ForcedScenario.force_hai_event if set, else None.
+    """Return the first ForcedScenario.force_hai_event if set + valid, else None.
 
     PR3b-1 Task 7b: deterministic HAI testing infrastructure. A non-None
     return overrides stochastic per-line-day risk sampling — for each
     device of the matching hai_type, exactly one HAI event is emitted
     at placement_date + onset_offset_days using the supplied organism.
+
+    PR-94 adversarial review fix: validate ``hai_type`` against the
+    canonical ``HAI_TYPES`` tuple AT CONSUME TIME so case-mismatch /
+    typo (e.g. ``"CAUTI"`` uppercase, ``"cauti "`` trailing space)
+    raises ``ValueError`` loudly instead of silently no-op'ing every
+    device. Also validates required keys are present.
     """
     forced_scenarios = getattr(ctx.config, "forced_scenarios", None) or []
     for fs in forced_scenarios:
         fe = getattr(fs, "force_hai_event", None)
-        if isinstance(fe, dict) and fe.get("hai_type"):
-            return fe
+        if not isinstance(fe, dict):
+            continue
+        if not fe.get("hai_type"):
+            continue
+        missing = [k for k in _REQUIRED_FORCE_HAI_KEYS if k not in fe]
+        if missing:
+            raise ValueError(
+                f"ForcedScenario.force_hai_event missing required keys "
+                f"{missing}; required={list(_REQUIRED_FORCE_HAI_KEYS)}, "
+                f"got={sorted(fe.keys())}"
+            )
+        if fe["hai_type"] not in HAI_TYPES:
+            raise ValueError(
+                f"ForcedScenario.force_hai_event hai_type "
+                f"{fe['hai_type']!r} not in canonical HAI_TYPES "
+                f"{HAI_TYPES} (case-sensitive)"
+            )
+        return fe
     return None
 
 
@@ -93,6 +118,40 @@ def enrich_hai(ctx) -> None:
             if not hai_type:
                 continue
             if forced is not None:
+                # PR-95 adversarial review fix (AD-16 RNG isolation):
+                # mirror the non-forced firing path's EXACT rng-method
+                # sequence so downstream consumers see an identical
+                # stream offset. The non-forced firing path executes:
+                #   sample_hai_onset:  rng.random() [always]
+                #                      rng.integers(2, line_days) [when fires]
+                #   _sample_organism:  rng.choice(snomeds, p=weights)
+                # When line_days < 2 the non-forced path returns BEFORE
+                # any draws (no firing possible), so the forced path
+                # must also short-circuit (a forced HAI on a < 2-day
+                # device line is clinically impossible anyway).
+                from datetime import date as _d
+                placement = _d.fromisoformat(_get(device, "placement_date", ""))
+                removal_raw = _get(device, "removal_date", None)
+                line_days = (
+                    (_d.fromisoformat(removal_raw) - placement).days
+                    if removal_raw else 7  # snapshot in-progress fallback
+                )
+                if line_days < 2:
+                    continue
+                # Mirror sample_hai_onset's exact draws (firing branch)
+                _ = rng.random()
+                _ = rng.integers(2, line_days)
+                # Mirror _sample_organism's exact draw via choice with
+                # the matching weight distribution for this hai_type
+                _organism_weights = [
+                    o.get("weight", 0.0)
+                    for o in organisms_cfg.get(hai_type, [])
+                ]
+                if _organism_weights:
+                    _total = sum(_organism_weights)
+                    if _total > 0:
+                        _probs = [w / _total for w in _organism_weights]
+                        _ = rng.choice(len(_organism_weights), p=_probs)
                 if hai_type != forced["hai_type"]:
                     continue
                 onset_offset = int(forced["onset_offset_days"])
