@@ -130,6 +130,94 @@ def test_disease_culture_references_unknown_specimen_raises(monkeypatch, tmp_pat
 
 
 @pytest.mark.unit
+def test_specimen_missing_snomed_raises(monkeypatch, tmp_path):
+    """Cross-reference #5: specimen.snomed must be a non-empty string."""
+    bad = """
+    specimens:
+      blood: {snomed: "", test_loinc: "600-7"}
+    antibiotics:
+      vancomycin: "18991-2"
+    organisms:
+      staph:
+        snomed: "3092008"
+        antibiogram:
+          vancomycin: [1.0, 0.0, 0.0]
+    diseases:
+      sepsis:
+        organisms: {staph: 1.0}
+        cultures:
+          - {specimen: blood, order_prob: 1.0, growth_prob: 0.5}
+    """
+    yaml_path = _write_yaml(tmp_path, bad)
+    monkeypatch.setattr(micro_mod, "_REF_DIR", yaml_path.parent)
+    micro_mod._load.cache_clear()  # noqa: SLF001
+    try:
+        with pytest.raises(ValueError, match="invalid SNOMED"):
+            micro_mod._load()
+    finally:
+        micro_mod._load.cache_clear()  # noqa: SLF001
+
+
+@pytest.mark.unit
+def test_specimen_missing_test_loinc_raises(monkeypatch, tmp_path):
+    """Cross-reference #6: specimen.test_loinc must be a non-empty string."""
+    bad = """
+    specimens:
+      blood: {snomed: "119297000", test_loinc: ""}
+    antibiotics:
+      vancomycin: "18991-2"
+    organisms:
+      staph:
+        snomed: "3092008"
+        antibiogram:
+          vancomycin: [1.0, 0.0, 0.0]
+    diseases:
+      sepsis:
+        organisms: {staph: 1.0}
+        cultures:
+          - {specimen: blood, order_prob: 1.0, growth_prob: 0.5}
+    """
+    yaml_path = _write_yaml(tmp_path, bad)
+    monkeypatch.setattr(micro_mod, "_REF_DIR", yaml_path.parent)
+    micro_mod._load.cache_clear()  # noqa: SLF001
+    try:
+        with pytest.raises(ValueError, match="invalid test_loinc"):
+            micro_mod._load()
+    finally:
+        micro_mod._load.cache_clear()  # noqa: SLF001
+
+
+@pytest.mark.unit
+def test_disease_organisms_as_list_raises_valueerror(monkeypatch, tmp_path):
+    """disease.organisms as list (not dict) must raise ValueError, not AttributeError."""
+    bad = """
+    specimens:
+      blood: {snomed: "119297000", test_loinc: "600-7"}
+    antibiotics:
+      vancomycin: "18991-2"
+    organisms:
+      staph:
+        snomed: "3092008"
+        antibiogram:
+          vancomycin: [1.0, 0.0, 0.0]
+    diseases:
+      sepsis:
+        organisms:
+          - staph
+        cultures:
+          - {specimen: blood, order_prob: 1.0, growth_prob: 0.5}
+    """
+    yaml_path = _write_yaml(tmp_path, bad)
+    monkeypatch.setattr(micro_mod, "_REF_DIR", yaml_path.parent)
+    micro_mod._load.cache_clear()  # noqa: SLF001
+    try:
+        with pytest.raises(ValueError, match="'organisms' must be a mapping"):
+            micro_mod._load()
+    finally:
+        micro_mod._load.cache_clear()  # noqa: SLF001
+
+
+@pytest.mark.unit
 def test_organism_missing_snomed_raises(monkeypatch, tmp_path):
     """Cross-reference #4: organism.snomed must be a non-empty string."""
     bad = """
