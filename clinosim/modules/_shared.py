@@ -54,10 +54,14 @@ def normalize_probabilities(
     with the pre-existing code, not identity on already-normalized arrays.
 
     Raises:
-        ValueError: if any weight is negative, or if the input sums to zero and
-            ``fallback="raise"``.
+        ValueError: if the input is empty, if any weight is negative, or if the
+            input sums to zero and ``fallback="raise"``.
     """
     arr = np.asarray(probs, dtype=float)
+    if len(arr) == 0:
+        raise ValueError(
+            "normalize_probabilities: empty weight vector; cannot normalize"
+        )
     if (arr < 0).any():
         raise ValueError(
             f"normalize_probabilities: negative weight in {list(arr)}"

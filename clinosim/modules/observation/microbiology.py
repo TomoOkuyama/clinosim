@@ -199,9 +199,9 @@ def generate_microbiology(
                 loinc = antibiotics.get(abx_key)
                 if not loinc:
                     raise ValueError(
-                        f"microbiology generate: antibiogram references unknown "
-                        f"antibiotic key {abx_key!r}; expected one of "
-                        f"{sorted(antibiotics.keys())}"
+                        f"microbiology generate: antibiotic key {abx_key!r} has null/empty "
+                        f"LOINC value {loinc!r}; should have been caught at load time by "
+                        f"_validate_microbiology"
                     )
                 probs = normalize_probabilities([float(x) for x in sir], fallback="raise")
                 interp = _SIR[int(rng.choice(len(_SIR), p=probs))]
