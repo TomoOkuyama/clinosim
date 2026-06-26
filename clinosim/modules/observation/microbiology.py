@@ -24,13 +24,35 @@ _REF_DIR = _HERE / "reference_data"
 _SIR = ("S", "I", "R")
 
 
+def _validate_microbiology(data: dict[str, Any]) -> None:
+    """Validate microbiology.yaml at load time — fail loud on orphan keys.
+
+    Mirrors the validation pattern from ``clinosim.modules.hai.load_hai_antibiogram``.
+    A typo in any ``organism.antibiogram`` key would otherwise silently produce a
+    no-op susceptibility (PR-90 class silent-no-op).
+    """
+    antibiotics = data.get("antibiotics") or {}
+    valid_antibiotic_keys = set(antibiotics.keys())
+    for organism_id, organism in (data.get("organisms") or {}).items():
+        antibiogram = (organism or {}).get("antibiogram") or {}
+        for abx_key in antibiogram.keys():
+            if abx_key not in valid_antibiotic_keys:
+                raise ValueError(
+                    f"microbiology.yaml: organism {organism_id!r} antibiogram "
+                    f"references unknown antibiotic key {abx_key!r}; expected "
+                    f"one of {sorted(valid_antibiotic_keys)}"
+                )
+
+
 @lru_cache(maxsize=1)
 def _load() -> dict[str, Any]:
     path = _REF_DIR / "microbiology.yaml"
     if not path.exists():
         return {}
     with open(path) as f:
-        return yaml.safe_load(f) or {}
+        data = yaml.safe_load(f) or {}
+    _validate_microbiology(data)
+    return data
 
 
 def has_microbiology(disease_id: str) -> bool:
@@ -93,7 +115,11 @@ def generate_microbiology(
             for abx_key, sir in (org.get("antibiogram") or {}).items():
                 loinc = antibiotics.get(abx_key)
                 if not loinc:
-                    continue
+                    raise ValueError(
+                        f"microbiology generate: antibiogram references unknown "
+                        f"antibiotic key {abx_key!r}; expected one of "
+                        f"{sorted(antibiotics.keys())}"
+                    )
                 probs = normalize_probabilities([float(x) for x in sir])
                 interp = _SIR[int(rng.choice(len(_SIR), p=probs))]
                 result.susceptibilities.append(
