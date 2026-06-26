@@ -34,6 +34,67 @@ def _country_dir(country: str) -> Path:
     return _LOCALE_DIR / dir_name
 
 
+def _validate_demographics(data: dict) -> None:
+    """Validate demographics.yaml at load time — fail loud on weight violations.
+
+    Checks the OPTIONAL lifestyle_distribution block (smoking + alcohol per
+    sex_key). The fallback ``_FALLBACK_DEMOGRAPHICS`` has no lifestyle block,
+    so a missing block is a valid state (skip). When the block IS present,
+    validate that each distribution has only non-negative weights with sum > 0 —
+    these are the preconditions for
+    ``normalize_probabilities(..., fallback="raise")`` at the
+    ``population/engine.py`` callsites (smoking_dist :170, alcohol_dist :180).
+    """
+    if not isinstance(data, dict):
+        raise ValueError(
+            f"demographics.yaml: top-level must be a dict, "
+            f"got {type(data).__name__}"
+        )
+    lifestyle = data.get("lifestyle_distribution")
+    if lifestyle is None:
+        return  # OK: optional block absent
+    if not isinstance(lifestyle, dict):
+        raise ValueError(
+            f"demographics.yaml: lifestyle_distribution must be a dict, "
+            f"got {type(lifestyle).__name__}"
+        )
+    for behavior in ("smoking", "alcohol"):
+        per_sex = lifestyle.get(behavior)
+        if per_sex is None:
+            continue  # OK: behavior absent
+        if not isinstance(per_sex, dict):
+            raise ValueError(
+                f"demographics.yaml: lifestyle_distribution.{behavior} must be "
+                f"a dict, got {type(per_sex).__name__}"
+            )
+        for sex_key, dist in per_sex.items():
+            if not isinstance(dist, dict):
+                raise ValueError(
+                    f"demographics.yaml: lifestyle_distribution.{behavior}."
+                    f"{sex_key!r} must be a dict, got {type(dist).__name__}"
+                )
+            weights: list[float] = []
+            for level, w in dist.items():
+                try:
+                    w_f = float(w)
+                except (TypeError, ValueError) as exc:
+                    raise ValueError(
+                        f"demographics.yaml: lifestyle_distribution.{behavior}."
+                        f"{sex_key!r}.{level!r} weight non-numeric: {w!r}"
+                    ) from exc
+                if w_f < 0:
+                    raise ValueError(
+                        f"demographics.yaml: lifestyle_distribution.{behavior}."
+                        f"{sex_key!r}.{level!r} has negative weight {w_f}"
+                    )
+                weights.append(w_f)
+            if weights and sum(weights) <= 0:
+                raise ValueError(
+                    f"demographics.yaml: lifestyle_distribution.{behavior}."
+                    f"{sex_key!r} has zero-sum weights {weights}"
+                )
+
+
 @lru_cache(maxsize=16)
 def load_names(country: str) -> dict[str, Any]:
     """Load person name data for a country."""
@@ -75,7 +136,9 @@ def load_formatting(country: str) -> dict[str, Any]:
 @lru_cache(maxsize=8)
 def _load_demographics_cached(country: str) -> dict[str, Any]:
     """Internal cached loader for raw demographics YAML (no mutation)."""
-    return _load_yaml(_country_dir(country) / "demographics.yaml", fallback=_FALLBACK_DEMOGRAPHICS)
+    data = _load_yaml(_country_dir(country) / "demographics.yaml", fallback=_FALLBACK_DEMOGRAPHICS)
+    _validate_demographics(data)
+    return data
 
 
 def load_demographics(country: str) -> dict[str, Any]:
