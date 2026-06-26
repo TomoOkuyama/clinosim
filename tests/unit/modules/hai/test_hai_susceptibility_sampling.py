@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from clinosim.modules.hai import HAI_TYPES, load_hai_antibiogram
+from clinosim.modules.hai import load_hai_antibiogram
 from clinosim.modules.hai.enricher import _append_hai_culture
 from clinosim.types.hai import HAIEvent
 
@@ -51,7 +51,7 @@ def test_hai_event_id_backref_set(antibiogram):
     assert rec["microbiology"][0].hai_event_id == "hai-test-id"
 
 
-def test_vancomycin_always_S_for_saureus(antibiogram):
+def test_vancomycin_always_s_for_saureus(antibiogram):
     """vancomycin row is [1.00, 0.00, 0.00] in clabsi/3092008."""
     for seed in range(20):
         rec = {}
@@ -73,7 +73,7 @@ def test_organism_not_in_antibiogram_yields_empty_susceptibilities(antibiogram):
     assert rec["microbiology"][0].susceptibilities == []
 
 
-def test_empirical_S_distribution_for_clabsi_ecoli(antibiogram):
+def test_empirical_s_distribution_for_clabsi_ecoli(antibiogram):
     """E. coli ceftriaxone is [0.89, 0.02, 0.09] — 5000 trials → ~89% S."""
     s_count = 0
     n = 5000
