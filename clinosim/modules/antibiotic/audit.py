@@ -4,7 +4,7 @@ Mirrors modules/hai/audit.py but the lift_firing_proof exercises the
 real enricher path (enrich_antibiotic) against a synthetic CAUTI
 HAIEvent, asserting:
   - extensions["antibiotic"] has exactly 1 regimen
-  - regimen.drug_key == "Ceftriaxone", duration_days == 7
+  - regimen.drug_key == "ceftriaxone", duration_days == 7
   - record.orders has 1 MEDICATION order with display_name "Ceftriaxone"
   - record.medication_administrations has 7 MAR entries (q24h × 7d)
 
@@ -37,9 +37,16 @@ _HAI_EMPIRICAL_YAML = Path(__file__).parent / "reference_data" / "hai_empirical.
 def _build_synthetic_proof():
     """Drive enrich_antibiotic against a synthetic CAUTI record.
 
-    Returns a dict the silent_no_op axis asserts against. PR-90 教訓:
-    canonical strings + actual enricher invocation, NOT a fixture
-    bypass.
+    Uses the **equality_checks** proof format (silent_no_op axis post-fix
+    extension), which the AD-60 framework iterates and asserts hard
+    equality on. This format is appropriate for structural verification
+    (Order count, MAR count, regimen properties) where the Phase 3a
+    Observation-delta format does not fit.
+
+    PR-90 教訓: canonical strings + actual enricher invocation, NOT a
+    fixture bypass; AND the proof MUST be consumed by the axis (the
+    PR-93 first attempt returned a plain dict that silent_no_op skipped
+    without raising — itself a PR-90 class bug in the proof harness).
     """
     ev = HAIEvent(
         hai_id="h-cauti-proof",
@@ -74,25 +81,20 @@ def _build_synthetic_proof():
         if getattr(o.order_type, "value", "") == "medication"
     ]
     mar = rec.medication_administrations
+
     return {
-        "ext_antibiotic_count": len(abx),
-        "ext_antibiotic_drug": abx[0].drug_key if abx else None,
-        "ext_antibiotic_duration_days": abx[0].duration_days if abx else None,
-        "orders_medication_count": len(med_orders),
-        "mar_count": len(mar),
-        "mar_drug": mar[0].drug_name if mar else None,
-        "mar_first_dt": mar[0].scheduled_datetime if mar else None,
-        "mar_last_dt": mar[-1].scheduled_datetime if mar else None,
-        "expected": {
-            "ext_antibiotic_count": 1,
-            "ext_antibiotic_drug": "ceftriaxone",  # lowercase snake_case drug_key (PR3b-2 refactor)
-            "ext_antibiotic_duration_days": 7,
-            "orders_medication_count": 1,
-            "mar_count": 7,
-            "mar_drug": "Ceftriaxone",  # display name from ANTIBIOTIC_DRUGS["ceftriaxone"]["name"]
-            "mar_first_dt": datetime(2026, 1, 10, 8),
-            "mar_last_dt": datetime(2026, 1, 16, 8),
-        },
+        # equality_checks format: list[tuple[label, actual, expected]]
+        # The silent_no_op axis iterates and asserts hard equality on each.
+        "equality_checks": [
+            ("ext_antibiotic_count",        len(abx),                              1),
+            ("ext_antibiotic_drug",         abx[0].drug_key if abx else None,      "ceftriaxone"),
+            ("ext_antibiotic_duration_days", abx[0].duration_days if abx else None, 7),
+            ("orders_medication_count",     len(med_orders),                       1),
+            ("mar_count",                   len(mar),                              7),
+            ("mar_drug",                    mar[0].drug_name if mar else None,     "Ceftriaxone"),
+            ("mar_first_dt",                mar[0].scheduled_datetime if mar else None, datetime(2026, 1, 10, 8)),
+            ("mar_last_dt",                 mar[-1].scheduled_datetime if mar else None, datetime(2026, 1, 16, 8)),
+        ],
     }
 
 
