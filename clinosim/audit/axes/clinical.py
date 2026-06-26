@@ -53,10 +53,21 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
     if not spec.clinical_acceptance:
         return result  # N/A
 
-    icd_to_type = {v["icd10_code"]: k for k, v in spec.clinical_acceptance.items()}
+    # Filter to HAI-type entries only (dict with "icd10_code").
+    # Top-level metadata keys (e.g. "hai_resistance_bands", "hai_empty_susceptibilities_max_rate")
+    # are skipped here; PR3b-3 will add active enforcement for those keys.
+    hai_acceptance = {
+        k: v
+        for k, v in spec.clinical_acceptance.items()
+        if isinstance(v, dict) and "icd10_code" in v
+    }
+    if not hai_acceptance:
+        return result  # N/A — no HAI-type entries
+
+    icd_to_type = {v["icd10_code"]: k for k, v in hai_acceptance.items()}
 
     for country in cohort.countries():
-        cohort_enc: dict[str, set[str]] = {k: set() for k in spec.clinical_acceptance}
+        cohort_enc: dict[str, set[str]] = {k: set() for k in hai_acceptance}
         for row in cohort.ndjson(country, "Condition"):
             codes = _condition_code_set(row)
             for icd, hai_type in icd_to_type.items():
@@ -73,8 +84,8 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
             if cls == "IMP" and eid not in all_cohort_enc:
                 baseline_enc.add(eid)
 
-        cohort_wbc: dict[str, list[float]] = {k: [] for k in spec.clinical_acceptance}
-        cohort_crp: dict[str, list[float]] = {k: [] for k in spec.clinical_acceptance}
+        cohort_wbc: dict[str, list[float]] = {k: [] for k in hai_acceptance}
+        cohort_crp: dict[str, list[float]] = {k: [] for k in hai_acceptance}
         base_wbc: list[float] = []
         base_crp: list[float] = []
         for row in cohort.ndjson(country, "Observation"):
@@ -103,7 +114,7 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
         result.info[f"{country}_baseline_WBC_p50"] = b_wbc_p50
         result.info[f"{country}_baseline_CRP_p50"] = b_crp_p50
 
-        for hai_type, acceptance in spec.clinical_acceptance.items():
+        for hai_type, acceptance in hai_acceptance.items():
             w = cohort_wbc[hai_type]
             c = cohort_crp[hai_type]
             n_w, n_c = len(w), len(c)
