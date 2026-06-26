@@ -22,12 +22,43 @@
 
 ```
 clinosim/modules/<name>/
-  __init__.py            # public API export
+  __init__.py            # public API export (空にしない — MOD-1)
   engine.py              # core logic / loaders
   enricher.py            # (該当時) AD-56 post_records enricher
   reference_data/*.yaml  # data-driven definitions
   README.md              # this file
 ```
+
+### モジュール頭の正規 boilerplate (PR-A 2026-06-26)
+
+```python
+from functools import lru_cache
+from pathlib import Path
+
+from clinosim.modules._shared import normalize_probabilities  # 確率サンプリングする場合
+
+_HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"        # reference_data/ を持つなら
+_LOCALE = _HERE.parents[1] / "locale"      # clinosim/locale/ を参照するなら
+
+
+@lru_cache(maxsize=1)                       # no-param loader → maxsize=1
+def load_reference() -> dict:
+    with open(_REF_DIR / "X.yaml") as f:
+        data = yaml.safe_load(f) or {}
+    _validate(data)                         # canonical-constants cross-check 必須(silent-no-op 防御)
+    return data
+
+
+@lru_cache(maxsize=2)                       # country-param loader → maxsize=2
+def load_rates(country: str) -> dict:
+    if str(country).upper() not in {"US", "JP"}:
+        return {}                            # no-op early return
+    with open(_LOCALE / country.lower() / "rates.yaml") as f:
+        return yaml.safe_load(f) or {}
+```
+
+詳細は `docs/CONTRIBUTING-modules.md` の「パス定数の正規形」「`@lru_cache` の `maxsize` 規約」「確率サンプリング規約」「Import 時 cross-validation」参照。
 
 ## API Reference
 

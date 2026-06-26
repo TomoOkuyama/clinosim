@@ -96,6 +96,69 @@ from clinosim.modules._shared import get_attr_or_key as _get
 
 `as _get` alias で短い local 名を維持し、call site の可読性も保ちます。新しい cross-module helper を追加する場合は **2 モジュール以上で実需が生じたタイミング**で `_shared.py` に昇格させます(YAGNI — 1 モジュールしか使わないなら local 定義のまま)。
 
+現在 `_shared.py` に集約されている helper(PR-A 2026-06-26 で `normalize_probabilities` 追加):
+
+- `get_attr_or_key(obj, name, default)` — dict/dataclass 両対応の属性アクセス
+- `normalize_probabilities(probs, fallback="uniform") -> np.ndarray` — 確率配列を 1.0 へ正規化(下記「確率サンプリング規約」参照)
+
+### パス定数の正規形(PR-A 2026-06-26 で確立)
+
+モジュールが reference_data や locale データを読み込むときの**正規パターン**:
+
+```python
+from pathlib import Path
+
+_HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"        # reference_data/ を持つなら
+_LOCALE = _HERE.parents[1] / "locale"      # clinosim/locale/ を参照するなら
+```
+
+call site では `_REF_DIR / "X.yaml"` / `_LOCALE / country / "X.yaml"` で path を組み立て、`Path(__file__).parent / ...` の inline を避けます。理由:
+
+- `_HERE` を起点にすると `parents[N]` の `N` が module の深さに依存しないので **fragile な `.parents[2]` 問題**(immunization の旧パターン)が避けられます。
+- 命名統一(`_REFERENCE_DATA_DIR` / `_DATA` / `_HAI_REF_DIR` のような揺れを廃止)で grep / refactor が容易。
+- データ専用 module variant も同じ`_HERE` + `_REF_DIR` を採用。
+
+### `@lru_cache` の `maxsize` 規約(PR-A 2026-06-26 で確立)
+
+| loader の signature | `maxsize` |
+|---|---|
+| `load_X() -> dict`(no parameter) | `1` |
+| `load_X(country: str) -> dict` | `2`(US + JP) |
+| `load_X(country: str, language: str)` | `4`(将来の多言語拡張用、現在は未使用) |
+
+`maxsize` は eviction policy にしか効きませんが、**意図を読みやすくする load-bearing な signal** です。`maxsize=4` を country-only loader に付けるとレビュアーが「将来 4 国対応?」と誤解します。
+
+### 確率サンプリング規約(PR-A 2026-06-26 で確立)
+
+`rng.choice(items, p=weights)` を呼ぶ前に **必ず `normalize_probabilities()` でラップ**します:
+
+```python
+from clinosim.modules._shared import normalize_probabilities
+
+probs = normalize_probabilities(weights)   # idempotent on already-normalized arrays
+idx = int(rng.choice(len(items), p=probs))
+```
+
+理由:`numpy.random.Generator.choice` は `p=` を**自動正規化しません**(sum ≠ 1.0 で `ValueError`)。YAML を手作業で正規化していると、編集ミスで sum が崩れた瞬間に silent regression / runtime crash になります。`normalize_probabilities` は
+
+- すでに正規化済みなら `np.asarray(probs, dtype=float)` と byte-identical(byte-diff invariant 保持)
+- 非正規化なら正規化
+- sum=0 なら uniform fallback(`fallback="raise"` で `ValueError` も可)
+- 負の重みは `ValueError`
+
+の挙動。inline literal(`p=[0.6, 0.4]` 等)は正規化済が自明なので migration 不要です。
+
+### Import 時 cross-validation(canonical-constants gate)
+
+YAML data に外部 ID(SNOMED / LOINC / antibiotic key 等)を埋めるモジュールは、**load 時に canonical 集合へ cross-check** し、未知のキーは `ValueError` で loud-fail します(silent-no-op の構造的防御 — PR-90 教訓)。先例:
+
+- `clinosim/modules/hai/__init__.py:load_hai_antibiogram` — `HAI_TYPES` × `hai_organisms.yaml` SNOMED × `ANTIBIOTIC_LOINC_LOOKUP` の 3-way 検証
+- `clinosim/modules/observation/microbiology.py:_validate_microbiology` — organism antibiogram key を `antibiotics` set と照合(PR-A 2026-06-26 で silent skip から ValueError へ移行)
+- `clinosim/modules/antibiotic/audit.py:_validate_nhsn_resistance_bands` — `_NHSN_RESISTANCE_BANDS` の cohort/antibiotic を canonical に対し検証
+
+新規 module で外部 ID 参照 YAML を作る場合は同パターンを必須化してください。
+
 ### データ専用モジュール (variant)
 
 `modules/sdoh/` のように、**reference データ + loader のみ** を持ち、generation / assignment logic を持たないモジュール variant も認められます (PR2 2026-06-24 で確立)。`clinosim/codes/` が同パターンの先例です。
