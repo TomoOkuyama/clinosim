@@ -80,12 +80,23 @@ def _validate_microbiology(data: dict[str, Any]) -> None:
                 )
         # Check organism.antibiogram keys → antibiotics (#1)
         antibiogram = (organism or {}).get("antibiogram") or {}
-        for abx_key in antibiogram.keys():
+        for abx_key, triple in antibiogram.items():
             if abx_key not in valid_antibiotic_keys:
                 raise ValueError(
                     f"microbiology.yaml: organism {organism_id!r} antibiogram "
                     f"references unknown antibiotic key {abx_key!r}; expected "
                     f"one of {sorted(valid_antibiotic_keys)}"
+                )
+            # Check SIR triple shape and sum (#8) — guards normalize_probabilities(fallback="raise")
+            if not isinstance(triple, list) or len(triple) != 3:
+                raise ValueError(
+                    f"microbiology.yaml: organism {organism_id!r} antibiogram[{abx_key!r}] "
+                    f"must be a 3-element [S, I, R] list, got {triple!r}"
+                )
+            if sum(float(x) for x in triple) <= 0:
+                raise ValueError(
+                    f"microbiology.yaml: organism {organism_id!r} antibiogram[{abx_key!r}] "
+                    f"SIR triple sums to zero {triple!r}"
                 )
 
     # Check disease.organisms keys → organisms set (#2)
@@ -93,7 +104,13 @@ def _validate_microbiology(data: dict[str, Any]) -> None:
     for disease_id, disease in diseases.items():
         if not isinstance(disease, dict):
             continue
-        for org_id in (disease.get("organisms") or {}).keys():
+        org_dict = disease.get("organisms")
+        if org_dict is not None and not isinstance(org_dict, dict):
+            raise ValueError(
+                f"microbiology.yaml: disease {disease_id!r} 'organisms' must be a "
+                f"mapping, got {type(org_dict).__name__!r}"
+            )
+        for org_id in (org_dict or {}).keys():
             if org_id not in valid_organism_keys:
                 raise ValueError(
                     f"microbiology.yaml: disease {disease_id!r} references "
@@ -182,11 +199,11 @@ def generate_microbiology(
                 loinc = antibiotics.get(abx_key)
                 if not loinc:
                     raise ValueError(
-                        f"microbiology generate: antibiogram references unknown "
-                        f"antibiotic key {abx_key!r}; expected one of "
-                        f"{sorted(antibiotics.keys())}"
+                        f"microbiology generate: antibiotic key {abx_key!r} has null/empty "
+                        f"LOINC value {loinc!r}; should have been caught at load time by "
+                        f"_validate_microbiology"
                     )
-                probs = normalize_probabilities([float(x) for x in sir])
+                probs = normalize_probabilities([float(x) for x in sir], fallback="raise")
                 interp = _SIR[int(rng.choice(len(_SIR), p=probs))]
                 result.susceptibilities.append(
                     SusceptibilityResult(antibiotic_loinc=str(loinc), interpretation=interp)

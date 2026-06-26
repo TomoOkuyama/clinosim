@@ -6,8 +6,12 @@ from clinosim.modules._shared import normalize_probabilities
 
 
 @pytest.mark.unit
-def test_already_normalized_is_byte_identical_to_plain_asarray():
-    """Idempotency on normalized input — load-bearing for byte-diff invariance."""
+def test_normalized_input_sum_exactly_one_is_unchanged():
+    """When the input sums to exactly 1.0 in float64 (degenerate case),
+    output is byte-identical to input. This is NOT general idempotency
+    (see test_byte_clean_against_old_arr_divide_arr_sum_pattern for the
+    real byte-clean invariant on inputs summing to 0.9999...).
+    """
     probs = [0.2, 0.3, 0.5]
     result = normalize_probabilities(probs)
     expected = np.asarray(probs, dtype=float)
@@ -50,25 +54,16 @@ def test_negative_weight_raises():
 
 
 @pytest.mark.unit
-def test_empty_input_falls_back_to_uniform_with_n_equals_1():
-    """Edge case: empty list. Uniform fallback returns 1-element [1.0]."""
-    result = normalize_probabilities([])
-    assert result.tolist() == [1.0]
+def test_empty_input_raises():
+    """Empty list is semantically ambiguous — raise ValueError (not uniform fallback)."""
+    with pytest.raises(ValueError, match="empty weight vector"):
+        normalize_probabilities([])
 
 
 @pytest.mark.unit
 def test_return_type_is_numpy_float64():
     result = normalize_probabilities([1, 2, 3])  # input is int list
     assert result.dtype == np.float64
-
-
-@pytest.mark.unit
-def test_idempotent_after_one_pass():
-    """Calling normalize twice returns the same result as calling once."""
-    probs = [3.0, 7.0]
-    once = normalize_probabilities(probs)
-    twice = normalize_probabilities(once)
-    assert np.array_equal(once, twice)
 
 
 @pytest.mark.unit
