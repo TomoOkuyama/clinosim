@@ -20,7 +20,7 @@ def load_reference() -> dict:
         return yaml.safe_load(f) or {}
 
 
-@lru_cache(maxsize=4)
+@lru_cache(maxsize=2)
 def load_prevalence(country: str) -> dict:
     key = "jp" if str(country).upper() == "JP" else "us"
     with open(_LOCALE / key / "family_history_prevalence.yaml") as f:
