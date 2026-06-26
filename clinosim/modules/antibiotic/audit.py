@@ -97,9 +97,19 @@ _NHSN_RESISTANCE_BANDS: list[dict[str, Any]] = [
     },
 ]
 
-# Maximum acceptable rate of HAI cultures with zero susceptibilities (sanity cap).
-# Cultures with empty panels are expected only for organisms in the no-panel set
-# (E. faecalis, C. albicans). Rate < 5% for the HAI cohort is the acceptance bound.
+# Empty-susceptibilities rate acceptance bound.
+#
+# Denominator: PANEL-ELIGIBLE HAI cultures only — those whose organism appears
+# in hai_antibiogram.yaml. Excludes no-panel organisms:
+#   - 78065002 (E. faecalis)  — different antibiotic panel (Phase 3c)
+#   - 53326005 (C. albicans)  — fungal, separate antifungal panel
+#
+# Rationale: CLABSI has ~28% no-panel organism weight (0.15 C.albicans + 0.13
+# E.faecalis); CAUTI has ~34%. Computing empty rate over ALL cultures would
+# make the gate always-FAIL. The 5% threshold is 10× the measured rate at p=10k
+# (0.5%) to give safety margin for small-p Bernoulli noise.
+#
+# TODO(PR3b-3): wire this in clinical.py with the panel-eligible filter.
 HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE: float = 0.05
 
 

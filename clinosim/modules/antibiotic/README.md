@@ -47,7 +47,7 @@ CLABSI / CAUTI / VAP の 3 HAI type に対し、IDSA guideline に沿う経験�
 ## Public API
 
 - `clinosim.modules.antibiotic.ANTIBIOTIC_DRUGS: dict[str, dict[str, str]]` — canonical drug metadata dict; key = lowercase snake_case drug key (e.g. `"vancomycin"`), value = `{"name": str, "rxnorm": str, "yj": str}`. Phase 3b-2 refactor: tuple → dict (byte-identity preserved; FHIR emission unchanged).
-- `clinosim.modules.antibiotic.ANTIBIOTIC_LOINC_LOOKUP: dict[str, str]` — antibiotic_key → susceptibility LOINC code, loaded from `observation/reference_data/microbiology.yaml` at import time. Used by `load_hai_antibiogram()` cross-validation + `_append_hai_culture()` for Observation code. Example: `{"vancomycin": "18991-2", "cefepime": "18906-8", ...}`.
+- `clinosim.modules.antibiotic.ANTIBIOTIC_LOINC_LOOKUP: dict[str, str]` — antibiotic_key → susceptibility LOINC code, loaded from `observation/reference_data/microbiology.yaml` at import time. Used by `load_hai_antibiogram()` cross-validation + `_append_hai_culture()` for Observation code. Example: `{"vancomycin": "18991-2", "cefepime": "18879-7", ...}`.
 - `clinosim.modules.antibiotic.engine.load_hai_empirical()` — YAML loader + import-time validation
 - `clinosim.modules.antibiotic.engine.build_regimens(hai_event, start_datetime)` — HAIEvent → `list[AntibioticRegimen]`
 - `clinosim.modules.antibiotic.engine.generate_mar_doses(regimen, snapshot_datetime, order_id)` — regimen → `list[MedicationAdministration]`(snapshot truncation 適用)
