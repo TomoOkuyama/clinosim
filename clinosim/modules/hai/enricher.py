@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 import numpy as np
 
 from clinosim.modules._shared import get_attr_or_key as _get
+from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
 from clinosim.modules.hai import HAI_TYPES
 from clinosim.modules.hai.engine import (
     _add_days,
@@ -26,14 +27,15 @@ from clinosim.modules.hai.engine import (
 )
 from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.hai import HAIEvent
-from clinosim.types.microbiology import MicrobiologyResult
+from clinosim.types.microbiology import MicrobiologyResult, SusceptibilityResult
+
+_SIR = ("S", "I", "R")
 
 _DEVICE_TO_HAI = {
     "cvc": "clabsi",
     "indwelling_catheter": "cauti",
     "mechanical_ventilator": "vap",
 }
-
 
 _REQUIRED_FORCE_HAI_KEYS = ("hai_type", "onset_offset_days", "organism_snomed")
 
@@ -86,10 +88,14 @@ def enrich_hai(ctx) -> None:
     Poisson per-line-day sampling for matching devices (deterministic
     test infrastructure).
     """
+    # Local import to break the hai/__init__ → enricher → hai circular chain.
+    from clinosim.modules.hai import load_hai_antibiogram  # noqa: PLC0415
+
     rates_cfg = load_hai_rates()["hai_rates"]
     codes_cfg = load_hai_codes()["hai_codes"]
     organisms_cfg = load_hai_organisms()["hai_organisms"]
     specimens_cfg = load_hai_specimens()["hai_specimens"]
+    antibiogram_cfg = load_hai_antibiogram()
     forced = _get_forced_hai_event(ctx)
     for rec in ctx.records:
         patient = _get(rec, "patient")
@@ -112,7 +118,7 @@ def enrich_hai(ctx) -> None:
             if not hai_type:
                 continue
             if forced is not None:
-                # PR-94 adversarial review fix (AD-16 RNG isolation):
+                # PR-95 adversarial review fix (AD-16 RNG isolation):
                 # mirror the non-forced firing path's EXACT rng-method
                 # sequence so downstream consumers see an identical
                 # stream offset. The non-forced firing path executes:
@@ -128,7 +134,7 @@ def enrich_hai(ctx) -> None:
                 removal_raw = _get(device, "removal_date", None)
                 line_days = (
                     (_d.fromisoformat(removal_raw) - placement).days
-                    if removal_raw else 7   # snapshot in-progress fallback
+                    if removal_raw else 7  # snapshot in-progress fallback
                 )
                 if line_days < 2:
                     continue
@@ -171,7 +177,8 @@ def enrich_hai(ctx) -> None:
                 culture_specimen_id=f"spec-hai-{hai_id}",
             )
             hai_events.append(ev)
-            _append_hai_culture(rec, ev, specimens_cfg[hai_type], onset_date)
+            _append_hai_culture(rec, ev, specimens_cfg[hai_type], onset_date,
+                                antibiogram_cfg, rng)
         if hai_events:
             if isinstance(rec, dict):
                 rec.setdefault("extensions", {})["hai"] = hai_events
@@ -179,8 +186,19 @@ def enrich_hai(ctx) -> None:
                 rec.extensions["hai"] = hai_events
 
 
-def _append_hai_culture(rec, hai: HAIEvent, spec_cfg: dict, onset_date: str) -> None:
-    """Append a MicrobiologyResult so _fhir_microbiology.py emits the culture."""
+def _append_hai_culture(
+    rec,
+    hai: HAIEvent,
+    spec_cfg: dict,
+    onset_date: str,
+    antibiogram_cfg: dict,
+    rng: np.random.Generator,
+) -> None:
+    """Append a MicrobiologyResult so _fhir_microbiology.py emits the culture.
+
+    Populates susceptibilities via NHSN-anchored antibiogram lookup keyed by
+    (hai_type, organism_snomed). Sets hai_event_id as a backref for PR3b-3.
+    """
     onset_dt = datetime.fromisoformat(onset_date)
     micro = MicrobiologyResult(
         encounter_id=hai.encounter_id,
@@ -193,10 +211,23 @@ def _append_hai_culture(rec, hai: HAIEvent, spec_cfg: dict, onset_date: str) -> 
         organism_snomed=hai.organism_snomed,
         quantitation="positive",
         susceptibilities=[],
-        # PR3b-2 forward-compat (PR-93 fix): backref so PR3b-2 can match
-        # MicrobiologyResult → HAIEvent → AntibioticRegimen in O(1).
         hai_event_id=hai.hai_id,
     )
+    organism_table = (
+        antibiogram_cfg.get(hai.hai_type, {}).get(hai.organism_snomed, {})
+    )
+    for abx_key, sir_probs in organism_table.items():
+        loinc = ANTIBIOTIC_LOINC_LOOKUP.get(abx_key)
+        if not loinc:
+            continue  # unreachable at runtime (Task 4 validates load time)
+        probs = np.array(sir_probs, dtype=float)
+        if probs.sum() <= 0:
+            continue
+        probs = probs / probs.sum()
+        interp = _SIR[int(rng.choice(len(_SIR), p=probs))]
+        micro.susceptibilities.append(
+            SusceptibilityResult(antibiotic_loinc=str(loinc), interpretation=interp)
+        )
     if isinstance(rec, dict):
         rec.setdefault("microbiology", []).append(micro)
     else:

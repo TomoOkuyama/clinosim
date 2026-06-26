@@ -532,9 +532,21 @@ q24h × 7d delta). `ForcedScenario.force_hai_event` added (Task 7b) for
 deterministic HAI testing. Vancomycin RxNorm 11124 + YJ 6113400
 centralized (existing repo usage). 12 commits across 12 tasks.
 
+**Phase 3b-2 HAI culture S/I/R — 2026-06-26 (✓ done)**:
+`_append_hai_culture` extended with antibiogram-driven susceptibility sampling.
+`hai_antibiogram.yaml` (CDC NHSN AR 2018-2020) as source of truth; import-time
+3-way cross-validation (HAI_TYPES + hai_organisms + ANTIBIOTIC_LOINC_LOOKUP).
+`MicrobiologyResult.hai_event_id` backref + `AntibioticRegimen.discontinuation_datetime`
+forward-compat reserves shipped. `ANTIBIOTIC_DRUGS` tuple → dict refactor +
+`ANTIBIOTIC_LOINC_LOOKUP` companion. LOINC orphan fix (ciprofloxacin → cefepime).
+`run_forced` force_hai_event injection gap closed. Audit: `antibiogram_firing_proof`
+(PR-94 equality_checks format). DQR:
+`docs/reviews/2026-06-26-phase-3b-2-hai-susceptibility-data-quality-review.md`
+
 Phase 3b backlog (remaining):
-- PR3b-2: culture-driven S/I/R per organism × antibiotic (susceptibility)
-- PR3b-3: narrow / de-escalation chain after S report
+- PR3b-3 (next candidate): narrow / de-escalation chain after S report; must wire
+  `hai_resistance_bands` + `hai_empty_susceptibilities_max_rate` from
+  `modules/antibiotic/audit.py` into clinical axis enforcement (TODO comment in audit.py)
 - PR3b-4: WBC/CRP decay phase coupled with antibiotic-day count
 
 Phase 3c backlog:
@@ -554,6 +566,8 @@ byte-IDENTICAL — audit framework is pure read-only consumer. See
 
 Per-Module audit.py backlog for Phase 3b/c:
 - modules/antibiotic/audit.py ✓ done 2026-06-25 (PR3b-1, empirical regimen + lift_firing_proof)
+- modules/antibiotic/audit.py ✓ extended 2026-06-26 (PR3b-2: _ABX_LOINCS + _NHSN_RESISTANCE_BANDS + HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE + antibiogram_firing_proof)
+- modules/antibiotic/audit.py — PR3b-3: enforce clinical axis with hai_resistance_bands + hai_empty_susceptibilities_max_rate (TODO comment in audit.py)
 - modules/decay/audit.py (Phase 3b-4: WBC/CRP antibiotic-day decay)
 - modules/mortality/audit.py (Phase 3c: HAI → outcome coupling)
 - modules/sepsis_cascade/audit.py (Phase 3c: Lactate/Plt/Temp/SBP)

@@ -23,7 +23,12 @@ class SusceptibilityResult:
 
 @dataclass
 class MicrobiologyResult:
-    """A single culture: specimen → organism (or no growth) → susceptibilities."""
+    """A single culture: specimen → organism (or no growth) → susceptibilities.
+
+    hai_event_id links HAI-derived cultures back to their HAIEvent
+    (extensions['hai']) — populated by modules/hai/enricher. Empty for
+    community cultures.
+    """
 
     encounter_id: str = ""
     specimen: str = ""  # controlled key: "blood" | "urine" | "sputum" | "wound"
@@ -35,8 +40,4 @@ class MicrobiologyResult:
     organism_snomed: str = ""  # organism SNOMED code; "" if no growth
     quantitation: str = ""  # e.g. ">100,000 CFU/mL" (urine); free measurement, not display
     susceptibilities: list[SusceptibilityResult] = field(default_factory=list)
-    # PR3b-2 forward-compat reserve (PR-93 adversarial review fix): backref
-    # to the HAI event that triggered this culture, so PR3b-2 can match
-    # MicrobiologyResult → HAIEvent → AntibioticRegimen in O(1) instead of
-    # an O(n²) walk via culture_specimen_id. Empty string for non-HAI cultures.
     hai_event_id: str = ""

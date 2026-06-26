@@ -591,7 +591,7 @@ class NursingRiskAssessment:
   UA の urine analyte 群は urine physiology が未実装の間 silent-drop される(将来の UA-panel PR で対応)。
   panel order 展開源 (`lab_panels.yaml`) と FHIR DR 集約源 (`output/reference_data/lab_panel_groups.yaml`)
   は責任が違うので別ファイル(前者 = 入力、後者 = 出力)で持つ — 7 panel すべて両側に存在し対称。
-- `microbiology.yaml` — 培養/感受性の起因菌・検体・抗菌薬コード + 疾患別分布 (`microbiology.py`)。
+- `microbiology.yaml` — 培養/感受性の起因菌・検体・抗菌薬コード + 疾患別分布 (`microbiology.py`)。**Phase 3b-2 補足**: `microbiology.yaml` の antibiotic key → LOINC mapping は `modules/antibiotic.ANTIBIOTIC_LOINC_LOOKUP` として export され、`modules/hai.load_hai_antibiogram()` の import-time cross-validation に使用される。community microbiology の organism/specimen/panel 配布 (`microbiology.py`) は Phase 3b-2 で変更なし — HAI susceptibility は `modules/hai/reference_data/hai_antibiogram.yaml` (CDC NHSN AR 専用 YAML) が担当し、`microbiology.yaml` の community 配布とは独立している。
 
 **venue 横断の真値源 (AD-57)**: 入院/ED/外来とも `physiology.derive_lab_values(state)` で真値生成し、
 基礎疾患が全 venue に反映される。本モジュールは正準化・ノイズ・flag・単位・コード解決を担う。

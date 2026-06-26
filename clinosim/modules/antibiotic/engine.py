@@ -122,7 +122,9 @@ def generate_mar_doses(
             break
         out.append(MedicationAdministration(
             order_id=order_id,
-            drug_name=regimen.drug_key,
+            drug_name=ANTIBIOTIC_DRUGS.get(regimen.drug_key, {}).get(
+                "name", regimen.drug_key
+            ),
             scheduled_datetime=sched,
             actual_datetime=sched,
             status="given",
