@@ -81,7 +81,7 @@ def generate_microbiology(
     org_dist = disease.get("organisms") or {}
     org_ids = list(org_dist.keys())
     org_probs = (
-        normalize_probabilities([float(org_dist[k]) for k in org_ids])
+        normalize_probabilities([float(org_dist[k]) for k in org_ids], fallback="raise")
         if org_ids
         else np.array([], dtype=float)
     )

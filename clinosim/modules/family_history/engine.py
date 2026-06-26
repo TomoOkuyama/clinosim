@@ -87,7 +87,7 @@ def generate_family_history(patient_age: int, patient_conditions: list[str],
         deceased = rng.random() < dp
         out.append(_relative(prev, conditions, patient_codes, rel, sex, age, deceased, rng))
 
-    n_sib = int(rng.choice([0, 1, 2], p=normalize_probabilities(ref["sibling_count_weights"])))
+    n_sib = int(rng.choice([0, 1, 2], p=normalize_probabilities(ref["sibling_count_weights"], fallback="raise")))
     so = ref["sibling_age_offset"]
     for _ in range(n_sib):
         sex = "male" if rng.random() < 0.5 else "female"

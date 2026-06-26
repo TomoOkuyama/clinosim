@@ -49,6 +49,6 @@ def assign_care_level(age: int, country: str, rng: np.random.Generator) -> str:
     weights = list(load_rates().get(_age_band(int(age), ref["age_bands"]), []))
     if not weights or sum(weights) <= 0:
         return ""
-    probs = normalize_probabilities(weights)
+    probs = normalize_probabilities(weights, fallback="raise")
     code = levels[int(rng.choice(len(levels), p=probs))]
     return "" if code == "independent" else code
