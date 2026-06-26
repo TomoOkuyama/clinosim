@@ -56,9 +56,21 @@ _HAI_EMPIRICAL_YAML = Path(__file__).parent / "reference_data" / "hai_empirical.
 # structural_obs_codes because categorical observations have no referenceRange.
 _ABX_LOINCS: frozenset[str] = frozenset(ANTIBIOTIC_LOINC_LOOKUP.values())
 
+# TODO(PR3b-3): _NHSN_RESISTANCE_BANDS and HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE
+# are surfaced in clinical_acceptance metadata for the audit clinical axis,
+# but not actively enforced. PR3b-3 (narrow / de-escalation) will:
+#   - extend clinical.py to compute observed R-rate per (hai_type, organism,
+#     antibiotic) cohort and compare against expected_R_min/expected_R_max.
+#   - extend clinical.py to compute empty-susceptibilities rate per HAI cohort
+#     and compare against hai_empty_susceptibilities_max_rate.
+# For now (PR3b-2), the bands are reported but not gating. The
+# antibiogram_firing_proof in silent_no_op axis remains the load-bearing
+# PR-90-class silent-no-op gate.
+#
 # PR3b-2: NHSN Antimicrobial Resistance Report 2018-2020 acceptance bands.
 # Sources: CDC NHSN "Antimicrobial Resistance Patterns in Acute Care Hospitals" 2018-2020.
-# Stored as metadata in clinical_acceptance["*"]["nhsn_r_bands"]. The clinical axis
+# Stored as top-level clinical_acceptance["hai_resistance_bands"] AND as per-HAI-type
+# clinical_acceptance["*"]["nhsn_r_bands"] for convenience. The clinical axis
 # reads WBC/CRP delta keys only; population-level R-rate checks deferred to PR3b-3
 # (requires walking Observation.ndjson for susceptibility LOINCs).
 _NHSN_RESISTANCE_BANDS: list[dict[str, Any]] = [
@@ -238,6 +250,11 @@ register_audit_module(
             str(_HAI_EMPIRICAL_YAML): ("hai_empirical",),
         },
         clinical_acceptance={
+            # Top-level metadata: full band list + empty-rate cap surfaced for
+            # the clinical axis. PR3b-3 will add active enforcement (R-rate gate
+            # + empty-rate gate). Keys verified by audit registry assertions.
+            "hai_resistance_bands": _NHSN_RESISTANCE_BANDS,
+            "hai_empty_susceptibilities_max_rate": HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE,
             "clabsi": {
                 "icd10_code": "T80.211A",
                 "expected_drugs": ("vancomycin", "piperacillin_tazobactam"),
