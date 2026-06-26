@@ -8,12 +8,13 @@ import numpy as np
 import yaml
 
 _HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
 _LOCALE = _HERE.parents[1] / "locale"
 
 
 @lru_cache(maxsize=1)
 def load_reference() -> dict:
-    with open(_HERE / "reference_data" / "code_status.yaml") as f:
+    with open(_REF_DIR / "code_status.yaml") as f:
         return yaml.safe_load(f) or {}
 
 

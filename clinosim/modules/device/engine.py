@@ -25,13 +25,14 @@ from clinosim.types.device import DeviceRecord
 from clinosim.types.encounter import Encounter, EncounterType
 from clinosim.types.output import CIFPatientRecord
 
-_DEVICES_YAML = Path(__file__).parent / "reference_data" / "devices.yaml"
+_HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
 
 
 @lru_cache(maxsize=1)
 def load_devices_config() -> dict[str, Any]:
     """Load device reference data from devices.yaml (cached)."""
-    with _DEVICES_YAML.open() as f:
+    with (_REF_DIR / "devices.yaml").open() as f:
         data = yaml.safe_load(f)
     return data
 
