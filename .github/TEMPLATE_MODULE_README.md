@@ -57,6 +57,11 @@ def _validate(data: dict) -> None:
                     f"{ref_key!r}; expected one of {sorted(valid_keys)}"
                 )
     """
+    raise NotImplementedError(
+        "Implement _validate: add canonical-constants cross-checks against "
+        "your YAML keys. See docstring example. This MUST raise ValueError "
+        "on unknown keys (PR-90 silent-no-op defense)."
+    )
 
 
 @lru_cache(maxsize=1)                       # no-param loader → maxsize=1
