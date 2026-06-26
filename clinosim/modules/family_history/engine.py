@@ -10,12 +10,13 @@ import yaml
 from clinosim.types.family_history import FamilyMemberHistoryRecord
 
 _HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
 _LOCALE = _HERE.parents[1] / "locale"
 
 
 @lru_cache(maxsize=1)
 def load_reference() -> dict:
-    with open(_HERE / "reference_data" / "family_history.yaml") as f:
+    with open(_REF_DIR / "family_history.yaml") as f:
         return yaml.safe_load(f) or {}
 
 

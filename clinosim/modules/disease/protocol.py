@@ -9,7 +9,8 @@ import yaml
 from pydantic import BaseModel
 
 # reference_data is in the same package: clinosim/modules/disease/reference_data/
-_REFERENCE_DATA_DIR = Path(__file__).parent / "reference_data"
+_HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
 
 
 class DiseaseProtocol(BaseModel):
@@ -68,7 +69,7 @@ class DiseaseProtocol(BaseModel):
 def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
     """Load a disease protocol YAML and validate."""
     filename = f"{disease_id}.yaml"
-    protocol_path = _REFERENCE_DATA_DIR / filename
+    protocol_path = _REF_DIR / filename
     if not protocol_path.exists():
         raise FileNotFoundError(f"Disease protocol not found: {protocol_path}")
 

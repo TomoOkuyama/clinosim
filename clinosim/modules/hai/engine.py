@@ -17,11 +17,12 @@ import yaml
 
 from clinosim.types.device import DeviceRecord
 
-_DATA = Path(__file__).parent / "reference_data"
+_HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
 
 
 def _load_yaml(name: str) -> dict[str, Any]:
-    with (_DATA / name).open() as f:
+    with (_REF_DIR / name).open() as f:
         return yaml.safe_load(f)
 
 

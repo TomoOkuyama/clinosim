@@ -14,7 +14,8 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-_LOCALE = Path(__file__).resolve().parents[2] / "locale"
+_HERE = Path(__file__).resolve().parent
+_LOCALE = _HERE.parents[1] / "locale"
 
 
 @lru_cache(maxsize=4)

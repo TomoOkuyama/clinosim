@@ -18,15 +18,17 @@ import yaml
 from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types import MicrobiologyResult, SusceptibilityResult
 
-_REF = Path(__file__).parent / "reference_data" / "microbiology.yaml"
+_HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
 _SIR = ("S", "I", "R")
 
 
 @lru_cache(maxsize=1)
 def _load() -> dict[str, Any]:
-    if not _REF.exists():
+    path = _REF_DIR / "microbiology.yaml"
+    if not path.exists():
         return {}
-    with open(_REF) as f:
+    with open(path) as f:
         return yaml.safe_load(f) or {}
 
 
