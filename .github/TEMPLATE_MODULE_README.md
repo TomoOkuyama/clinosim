@@ -35,11 +35,28 @@ clinosim/modules/<name>/
 from functools import lru_cache
 from pathlib import Path
 
+import yaml
+
 from clinosim.modules._shared import normalize_probabilities  # 確率サンプリングする場合
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"        # reference_data/ を持つなら
 _LOCALE = _HERE.parents[1] / "locale"      # clinosim/locale/ を参照するなら
+
+
+def _validate(data: dict) -> None:
+    """Validate X.yaml at load time — fail loud on orphan keys (PR-90 防御).
+
+    Example cross-check pattern (customize for your data):
+        valid_keys = set(data.get("canonical_section") or {})
+        for item_id, item in (data.get("items") or {}).items():
+            ref_key = (item or {}).get("ref_field")
+            if ref_key and ref_key not in valid_keys:
+                raise ValueError(
+                    f"X.yaml: item {item_id!r} references unknown key "
+                    f"{ref_key!r}; expected one of {sorted(valid_keys)}"
+                )
+    """
 
 
 @lru_cache(maxsize=1)                       # no-param loader → maxsize=1

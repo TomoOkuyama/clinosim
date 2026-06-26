@@ -30,7 +30,9 @@ from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import Order, OrderResult, OrderType
 from clinosim.types.hai import HAIEvent
 
-_HAI_LIFT_YAML = Path(__file__).parent / "reference_data" / "hai_lab_lift.yaml"
+_HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
+_HAI_LIFT_YAML = _REF_DIR / "hai_lab_lift.yaml"
 
 
 def _build_cauti_proof():
