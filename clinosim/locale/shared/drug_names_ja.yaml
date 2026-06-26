@@ -5,16 +5,19 @@
 # Sources: 医薬品添付文書 (PMDA), 薬価基準収載医薬品コード (YJ code)
 
 # --- Antibiotics / 抗菌薬 ---
+Ampicillin: "アンピシリン"
 Ampicillin/Sulbactam: "アンピシリン/スルバクタム"
 Amoxicillin: "アモキシシリン"
 Amoxicillin/Clavulanate: "アモキシシリン/クラブラン酸"
 Cefazolin: "セファゾリン"
+Cefepime: "セフェピム"
 Cefcapene pivoxil: "セフカペンピボキシル"
 Cefditoren pivoxil: "セフジトレンピボキシル"
 Cefmetazole: "セフメタゾール"
 Ceftriaxone: "セフトリアキソン"
 Cephalexin: "セファレキシン"
 Ciprofloxacin: "シプロフロキサシン"
+Gentamicin: "ゲンタマイシン"
 Levofloxacin: "レボフロキサシン"
 Meropenem: "メロペネム"
 Metronidazole: "メトロニダゾール"
@@ -22,6 +25,7 @@ Micafungin: "ミカファンギン"
 Nitrofurantoin: "ニトロフラントイン"
 Piperacillin/Tazobactam: "ピペラシリン/タゾバクタム"
 Trimethoprim-sulfamethoxazole: "スルファメトキサゾール/トリメトプリム"
+Trimethoprim/Sulfamethoxazole: "スルファメトキサゾール/トリメトプリム"
 Vancomycin: "バンコマイシン"
 
 # --- Antiviral / 抗ウイルス薬 ---
