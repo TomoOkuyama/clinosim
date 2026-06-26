@@ -11,12 +11,13 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-_DATA = Path(__file__).parent / "reference_data" / "nursing_scores.yaml"
+_HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
 
 
 @lru_cache(maxsize=1)
 def _scores() -> dict:
-    with open(_DATA) as f:
+    with open(_REF_DIR / "nursing_scores.yaml") as f:
         return yaml.safe_load(f) or {}
 
 

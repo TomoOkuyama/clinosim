@@ -7,19 +7,21 @@ from pathlib import Path
 import numpy as np
 import yaml
 
+from clinosim.modules._shared import normalize_probabilities
 from clinosim.types.family_history import FamilyMemberHistoryRecord
 
 _HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
 _LOCALE = _HERE.parents[1] / "locale"
 
 
 @lru_cache(maxsize=1)
 def load_reference() -> dict:
-    with open(_HERE / "reference_data" / "family_history.yaml") as f:
+    with open(_REF_DIR / "family_history.yaml") as f:
         return yaml.safe_load(f) or {}
 
 
-@lru_cache(maxsize=4)
+@lru_cache(maxsize=2)
 def load_prevalence(country: str) -> dict:
     key = "jp" if str(country).upper() == "JP" else "us"
     with open(_LOCALE / key / "family_history_prevalence.yaml") as f:
@@ -85,7 +87,7 @@ def generate_family_history(patient_age: int, patient_conditions: list[str],
         deceased = rng.random() < dp
         out.append(_relative(prev, conditions, patient_codes, rel, sex, age, deceased, rng))
 
-    n_sib = int(rng.choice([0, 1, 2], p=ref["sibling_count_weights"]))
+    n_sib = int(rng.choice([0, 1, 2], p=normalize_probabilities(ref["sibling_count_weights"])))
     so = ref["sibling_age_offset"]
     for _ in range(n_sib):
         sex = "male" if rng.random() < 0.5 else "female"

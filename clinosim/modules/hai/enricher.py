@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 import numpy as np
 
 from clinosim.modules._shared import get_attr_or_key as _get
+from clinosim.modules._shared import normalize_probabilities
 from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
 from clinosim.modules.hai import HAI_TYPES
 from clinosim.modules.hai.engine import (
@@ -147,11 +148,9 @@ def enrich_hai(ctx) -> None:
                     o.get("weight", 0.0)
                     for o in organisms_cfg.get(hai_type, [])
                 ]
-                if _organism_weights:
-                    _total = sum(_organism_weights)
-                    if _total > 0:
-                        _probs = [w / _total for w in _organism_weights]
-                        _ = rng.choice(len(_organism_weights), p=_probs)
+                if _organism_weights and sum(_organism_weights) > 0:
+                    _probs = normalize_probabilities(_organism_weights)
+                    _ = rng.choice(len(_organism_weights), p=_probs)
                 if hai_type != forced["hai_type"]:
                     continue
                 onset_offset = int(forced["onset_offset_days"])
@@ -220,10 +219,10 @@ def _append_hai_culture(
         loinc = ANTIBIOTIC_LOINC_LOOKUP.get(abx_key)
         if not loinc:
             continue  # unreachable at runtime (Task 4 validates load time)
-        probs = np.array(sir_probs, dtype=float)
-        if probs.sum() <= 0:
+        probs_arr = np.asarray(sir_probs, dtype=float)
+        if probs_arr.sum() <= 0:
             continue
-        probs = probs / probs.sum()
+        probs = normalize_probabilities(sir_probs)
         interp = _SIR[int(rng.choice(len(_SIR), p=probs))]
         micro.susceptibilities.append(
             SusceptibilityResult(antibiotic_loinc=str(loinc), interpretation=interp)

@@ -14,6 +14,7 @@ from pathlib import Path
 import yaml
 
 _HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
 
 
 @lru_cache(maxsize=1)
@@ -31,5 +32,5 @@ def load_social_history() -> dict:
     Display strings are NOT in this YAML — resolved at FHIR output time
     via ``clinosim.codes.lookup("snomed-ct", code, lang)``.
     """
-    with open(_HERE / "reference_data" / "social_history.yaml") as f:
+    with open(_REF_DIR / "social_history.yaml") as f:
         return yaml.safe_load(f) or {}
