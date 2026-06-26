@@ -104,7 +104,13 @@ def _validate_microbiology(data: dict[str, Any]) -> None:
     for disease_id, disease in diseases.items():
         if not isinstance(disease, dict):
             continue
-        for org_id in (disease.get("organisms") or {}).keys():
+        org_dict = disease.get("organisms")
+        if org_dict is not None and not isinstance(org_dict, dict):
+            raise ValueError(
+                f"microbiology.yaml: disease {disease_id!r} 'organisms' must be a "
+                f"mapping, got {type(org_dict).__name__!r}"
+            )
+        for org_id in (org_dict or {}).keys():
             if org_id not in valid_organism_keys:
                 raise ValueError(
                     f"microbiology.yaml: disease {disease_id!r} references "
