@@ -30,6 +30,7 @@ PR-A → Fix #100 → Fix #101 で確立した **silent-no-op 防御 3 層**(`_v
 
 - #1 PR-B(global `_cache` → `@lru_cache` + 空 `__init__.py` MOD-1 exports)= 別 PR
 - `clinical_course/engine.py:101` の上流 protocol YAML loader validation = `disease/loader.py` 改修必要、別 PR で natural
+- `population/engine.py:145` の blood_type sampling(`rng.choice(p=list(bt.values()))` で直接、`normalize_probabilities` 経由でない)= 本 PR の scope は `normalize_probabilities` 経由の callsite のみ。blood_type 含む直接 `rng.choice(p=)` callsite の `normalize_probabilities` 化は別 PR で natural
 - 新機能追加なし、臨床 model 変更なし、AD-55/56/60 拡張なし
 
 ---
@@ -62,10 +63,10 @@ PR-A → Fix #100 → Fix #101 で確立した **silent-no-op 防御 3 層**(`_v
 
 | commit | 対象 loader | `_validate_*` 関数 | catch する cross-references |
 |---|---|---|---|
-| C2 | `hai/engine.py:load_hai_organisms` | `_validate_hai_organisms(data)` | (a) keys ⊆ HAI_TYPES、(b) 各 hai_type に organism リスト non-empty、(c) 各 weight ≥ 0、(d) sum > 0、(e) SNOMED が `clinosim.codes.lookup("snomed-ct", code)` で解決可能 |
-| C3 | `locale/loader.py:load_demographics` | `_validate_demographics(data)` | (a) smoking_dist keys が canonical set、(b) alcohol_dist keys が canonical set、(c) 各 dist non-empty + sum > 0、(d) blood_type weight 全 0 でない |
-| C4a | `locale/loader.py:load_names` | `_validate_names(data)` | (a) surnames リスト non-empty、(b) first_names per-sex リスト non-empty、(c) 各 weight ≥ 0、(d) 各 sum > 0 |
-| C4b | `locale/loader.py:load_addresses` | `_validate_addresses(data)` | (a) cities リスト non-empty、(b) 各 weight ≥ 0、(c) sum > 0 |
+| 2 | `hai/engine.py:load_hai_organisms` | `_validate_hai_organisms(data)` | (a) keys ⊆ HAI_TYPES、(b) 各 hai_type に organism リスト non-empty、(c) 各 weight ≥ 0、(d) sum > 0、(e) SNOMED が `clinosim.codes.lookup("snomed-ct", code)` で解決可能 |
+| 3 | `locale/loader.py:load_demographics` | `_validate_demographics(data)` | (a) smoking_dist keys が canonical set、(b) alcohol_dist keys が canonical set、(c) 各 dist non-empty + sum > 0 |
+| 4 | `locale/loader.py:load_names` | `_validate_names(data)` | (a) surnames リスト non-empty、(b) first_names per-sex リスト non-empty、(c) 各 weight ≥ 0、(d) 各 sum > 0 |
+| 4 | `locale/loader.py:load_addresses` | `_validate_addresses(data)` | (a) cities リスト non-empty、(b) 各 weight ≥ 0、(c) sum > 0 |
 
 **配置原則**:
 - `_validate_*` は `load_*` 内部から呼ぶ(1 回目の load で 1 回 validate、`@lru_cache` 済の loader はパフォーマンス影響なし)
@@ -161,7 +162,7 @@ def load_hai_organisms() -> dict[str, Any]:
 | `docs/CONTRIBUTING-modules.md` | "Import-time canonical-constants validation" セクションに「4 主要 loader で完備」を明記、新規 loader 追加時のチェックリストに `_validate_*` 必須を強化 |
 | `.github/TEMPLATE_MODULE_README.md` | Fix #101 で `_validate` stub fail-loud 化済 — 変更なし(現状確認のみ) |
 | `clinosim/modules/hai/README.md` | `_validate_hai_organisms` の cross-references(HAI_TYPES / SNOMED / weight)を列挙 |
-| `clinosim/locale/README.md`(存在すれば、なければ TODO 言及のみ) | `_validate_demographics` / `_validate_names` / `_validate_addresses` 列挙 |
+| `clinosim/locale/README.md`(存在確認済) | `_validate_demographics` / `_validate_names` / `_validate_addresses` の cross-references を列挙 |
 | `clinosim/modules/_shared.py` docstring | `fallback="raise"` を YAML-sourced callsites の標準として明示(Fix #100 の docstring を強化) |
 
 ---
