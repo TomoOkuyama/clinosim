@@ -52,6 +52,9 @@ import yaml
 from clinosim.modules.hai import HAI_TYPES
 from clinosim.modules.observation.engine import determine_flag, round_to_precision
 
+_HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
+
 _HAI_LIFT_ANALYTES = ("WBC", "CRP")
 
 
@@ -64,8 +67,7 @@ def load_hai_lab_lift_config() -> tuple[float, dict[str, float]]:
     case-mismatch class of bug at import time rather than silently
     no-op'ing every lookup.
     """
-    cfg_path = Path(__file__).parent / "reference_data" / "hai_lab_lift.yaml"
-    data = yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
+    data = yaml.safe_load((_REF_DIR / "hai_lab_lift.yaml").read_text(encoding="utf-8"))
     ramp_peak_days = float(data["ramp_peak_days"])
     lift_table = dict(data["hai_lift"])
     unknown = set(lift_table) - set(HAI_TYPES)

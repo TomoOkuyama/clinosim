@@ -14,7 +14,8 @@ import yaml
 
 from clinosim.codes import lookup
 
-_REFERENCE_DATA = Path(__file__).parent / "reference_data" / "builtin_differentials.yaml"
+_HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
 
 
 def _load_reference_data() -> tuple[
@@ -26,7 +27,7 @@ def _load_reference_data() -> tuple[
 
     Display names are not stored; they are resolved at use time via clinosim.codes.
     """
-    with open(_REFERENCE_DATA) as f:
+    with open(_REF_DIR / "builtin_differentials.yaml") as f:
         data = yaml.safe_load(f) or {}
     differentials = data.get("differentials", {})
     progression = {
