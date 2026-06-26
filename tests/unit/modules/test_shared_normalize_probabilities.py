@@ -54,10 +54,10 @@ def test_negative_weight_raises():
 
 
 @pytest.mark.unit
-def test_empty_input_falls_back_to_uniform_with_n_equals_1():
-    """Edge case: empty list. Uniform fallback returns 1-element [1.0]."""
-    result = normalize_probabilities([])
-    assert result.tolist() == [1.0]
+def test_empty_input_raises():
+    """Empty list is semantically ambiguous — raise ValueError (not uniform fallback)."""
+    with pytest.raises(ValueError, match="empty weight vector"):
+        normalize_probabilities([])
 
 
 @pytest.mark.unit
