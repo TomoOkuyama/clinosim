@@ -10,6 +10,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.modules._shared import normalize_probabilities
 from clinosim.types.clinical import StateChangeDirective
 from clinosim.types.patient import PatientPhysiologicalProfile
 
@@ -97,9 +98,7 @@ def select_archetype(
 
     # Normalize
     names = list(probs.keys())
-    weights = [max(0.001, probs[n]) for n in names]
-    total = sum(weights)
-    weights = [w / total for w in weights]
+    weights = normalize_probabilities([max(0.001, probs[n]) for n in names])
 
     return str(rng.choice(names, p=weights))
 

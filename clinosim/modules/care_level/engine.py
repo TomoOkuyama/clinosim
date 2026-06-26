@@ -7,6 +7,8 @@ from pathlib import Path
 import numpy as np
 import yaml
 
+from clinosim.modules._shared import normalize_probabilities
+
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 _LOCALE = _HERE.parents[1] / "locale"
@@ -47,7 +49,6 @@ def assign_care_level(age: int, country: str, rng: np.random.Generator) -> str:
     weights = list(load_rates().get(_age_band(int(age), ref["age_bands"]), []))
     if not weights or sum(weights) <= 0:
         return ""
-    probs = np.array(weights, dtype=float)
-    probs = probs / probs.sum()
+    probs = normalize_probabilities(weights)
     code = levels[int(rng.choice(len(levels), p=probs))]
     return "" if code == "independent" else code

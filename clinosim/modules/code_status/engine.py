@@ -7,6 +7,8 @@ from pathlib import Path
 import numpy as np
 import yaml
 
+from clinosim.modules._shared import normalize_probabilities
+
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 _LOCALE = _HERE.parents[1] / "locale"
@@ -46,5 +48,5 @@ def assign_code_status(age: int, context: str, country: str,
     weights = rates.get(context, rates["routine"]).get(band)
     if not weights:
         weights = rates["routine"][ref["age_bands"][-1]]
-    idx = int(rng.choice(len(tiers), p=weights))
+    idx = int(rng.choice(len(tiers), p=normalize_probabilities(weights)))
     return str(tiers[idx]["snomed"])
