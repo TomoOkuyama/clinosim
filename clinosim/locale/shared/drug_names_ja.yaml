@@ -24,6 +24,9 @@ Metronidazole: "メトロニダゾール"
 Micafungin: "ミカファンギン"
 Nitrofurantoin: "ニトロフラントイン"
 Piperacillin/Tazobactam: "ピペラシリン/タゾバクタム"
+# DEPRECATED 2026-06-27 — Trimethoprim-sulfamethoxazole hyphen form is legacy
+# alias; use slash form Trimethoprim/Sulfamethoxazole everywhere. Remove this
+# alias after one release cycle if no new callers appear.
 Trimethoprim-sulfamethoxazole: "スルファメトキサゾール/トリメトプリム"
 Trimethoprim/Sulfamethoxazole: "スルファメトキサゾール/トリメトプリム"
 Vancomycin: "バンコマイシン"
