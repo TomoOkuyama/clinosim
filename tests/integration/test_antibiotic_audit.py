@@ -5,8 +5,6 @@ silent_no_op axis actually consumes the proof (the original PR-93
 returned a plain dict that the axis silently skipped without raising
 — PR-90 class bug in the audit harness itself).
 """
-from datetime import datetime
-
 import pytest
 
 from clinosim.audit.axes.silent_no_op import _check_proof
