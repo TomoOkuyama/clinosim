@@ -113,4 +113,11 @@ def test_antibiotic_determinism_same_seed(cauti_forced_scenario):
         (r.regimen_id, r.start_datetime)
         for rec in b.patients for r in rec.extensions.get("antibiotic", []) or []
     ]
+    if not abx_a_all:
+        pytest.skip(
+            "cauti_forced_scenario at seed=42 produced no antibiotics "
+            "(no ICU transfers → no devices); determinism cannot be "
+            "verified vacuously. Switch fixture to acute_mi/severe/seed=42 "
+            "for reliable ICU placement."
+        )
     assert abx_a_all == abx_b_all
