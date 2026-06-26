@@ -38,17 +38,15 @@ Registered checks:
 from __future__ import annotations
 
 from datetime import datetime
-from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
 from clinosim.audit.registry import ModuleAuditSpec, register_audit_module
 from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS, ANTIBIOTIC_LOINC_LOOKUP
+from clinosim.modules.antibiotic.engine import _HAI_EMPIRICAL_YAML
 from clinosim.modules.antibiotic.enricher import enrich_antibiotic
 from clinosim.modules.hai import HAI_TYPES
 from clinosim.types.hai import HAIEvent
-
-_HAI_EMPIRICAL_YAML = Path(__file__).parent / "reference_data" / "hai_empirical.yaml"
 
 # PR3b-2: All antibiotic susceptibility LOINC codes emitted by _append_hai_culture.
 # These codes appear as Observation.code.coding[].code in FHIR output for

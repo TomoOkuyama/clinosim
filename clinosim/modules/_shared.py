@@ -41,10 +41,17 @@ def normalize_probabilities(
     Returns:
         np.ndarray of dtype float64 summing to 1.0.
 
-    Idempotency: if the input already sums to 1.0 (within float tolerance),
-    the returned array is byte-identical to ``np.asarray(probs, dtype=float)``.
-    This makes migration from no-op normalization to this helper byte-clean
-    for any well-formed (hand-normalized) YAML weight data.
+    Byte-clean migration property: for the typical pre-A3 pattern
+    ``arr = np.asarray(probs, dtype=float); arr / arr.sum()`` (numpy
+    float64 sum) this helper produces a byte-identical output, because
+    ``float(np.float64)`` is bit-preserving for finite values, so the
+    divisor bit pattern matches and the resulting float64 array matches.
+
+    NOTE: this is NOT pure idempotency. An input that sums to ``0.9999...``
+    in float64 (e.g. ``[0.27, 0.18, 0.16, 0.13, 0.10, 0.06, 0.10]``) is
+    NOT returned unchanged; it is divided by ``0.9999...`` and gets a small
+    perturbation (~1e-17 per element). The byte-clean property is symmetry
+    with the pre-existing code, not identity on already-normalized arrays.
 
     Raises:
         ValueError: if any weight is negative, or if the input sums to zero and

@@ -69,3 +69,119 @@ def test_organism_antibiogram_with_typo_raises_at_load_time(monkeypatch, tmp_pat
             micro_mod._load()
     finally:
         micro_mod._load.cache_clear()  # noqa: SLF001
+
+
+@pytest.mark.unit
+def test_disease_references_unknown_organism_raises(monkeypatch, tmp_path):
+    """Cross-reference #2: disease.organisms key not in organisms section."""
+    bad = """
+    specimens:
+      blood: {snomed: "119297000", test_loinc: "600-7"}
+    antibiotics:
+      vancomycin: "18991-2"
+    organisms:
+      staph:
+        snomed: "3092008"
+        antibiogram:
+          vancomycin: [1.0, 0.0, 0.0]
+    diseases:
+      sepsis:
+        organisms: {stapph: 1.0}
+        cultures:
+          - {specimen: blood, order_prob: 1.0, growth_prob: 0.5}
+    """
+    yaml_path = _write_yaml(tmp_path, bad)
+    monkeypatch.setattr(micro_mod, "_REF_DIR", yaml_path.parent)
+    micro_mod._load.cache_clear()  # noqa: SLF001
+    try:
+        with pytest.raises(ValueError, match="unknown organism 'stapph'"):
+            micro_mod._load()
+    finally:
+        micro_mod._load.cache_clear()  # noqa: SLF001
+
+
+@pytest.mark.unit
+def test_disease_culture_references_unknown_specimen_raises(monkeypatch, tmp_path):
+    """Cross-reference #3: disease.cultures[i].specimen not in specimens section."""
+    bad = """
+    specimens:
+      blood: {snomed: "119297000", test_loinc: "600-7"}
+    antibiotics:
+      vancomycin: "18991-2"
+    organisms:
+      staph:
+        snomed: "3092008"
+        antibiogram:
+          vancomycin: [1.0, 0.0, 0.0]
+    diseases:
+      sepsis:
+        organisms: {staph: 1.0}
+        cultures:
+          - {specimen: blod, order_prob: 1.0, growth_prob: 0.5}
+    """
+    yaml_path = _write_yaml(tmp_path, bad)
+    monkeypatch.setattr(micro_mod, "_REF_DIR", yaml_path.parent)
+    micro_mod._load.cache_clear()  # noqa: SLF001
+    try:
+        with pytest.raises(ValueError, match="unknown specimen 'blod'"):
+            micro_mod._load()
+    finally:
+        micro_mod._load.cache_clear()  # noqa: SLF001
+
+
+@pytest.mark.unit
+def test_organism_missing_snomed_raises(monkeypatch, tmp_path):
+    """Cross-reference #4: organism.snomed must be a non-empty string."""
+    bad = """
+    specimens:
+      blood: {snomed: "119297000", test_loinc: "600-7"}
+    antibiotics:
+      vancomycin: "18991-2"
+    organisms:
+      staph:
+        snomed: ""
+        antibiogram:
+          vancomycin: [1.0, 0.0, 0.0]
+    diseases:
+      sepsis:
+        organisms: {staph: 1.0}
+        cultures:
+          - {specimen: blood, order_prob: 1.0, growth_prob: 0.5}
+    """
+    yaml_path = _write_yaml(tmp_path, bad)
+    monkeypatch.setattr(micro_mod, "_REF_DIR", yaml_path.parent)
+    micro_mod._load.cache_clear()  # noqa: SLF001
+    try:
+        with pytest.raises(ValueError, match="invalid SNOMED"):
+            micro_mod._load()
+    finally:
+        micro_mod._load.cache_clear()  # noqa: SLF001
+
+
+@pytest.mark.unit
+def test_antibiotic_empty_loinc_raises(monkeypatch, tmp_path):
+    """Cross-reference #7: antibiotics[key] value must be non-empty string (LOINC)."""
+    bad = """
+    specimens:
+      blood: {snomed: "119297000", test_loinc: "600-7"}
+    antibiotics:
+      vancomycin: ""
+    organisms:
+      staph:
+        snomed: "3092008"
+        antibiogram:
+          vancomycin: [1.0, 0.0, 0.0]
+    diseases:
+      sepsis:
+        organisms: {staph: 1.0}
+        cultures:
+          - {specimen: blood, order_prob: 1.0, growth_prob: 0.5}
+    """
+    yaml_path = _write_yaml(tmp_path, bad)
+    monkeypatch.setattr(micro_mod, "_REF_DIR", yaml_path.parent)
+    micro_mod._load.cache_clear()  # noqa: SLF001
+    try:
+        with pytest.raises(ValueError, match="invalid LOINC value"):
+            micro_mod._load()
+    finally:
+        micro_mod._load.cache_clear()  # noqa: SLF001

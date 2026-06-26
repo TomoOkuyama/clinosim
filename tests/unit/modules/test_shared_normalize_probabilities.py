@@ -69,3 +69,24 @@ def test_idempotent_after_one_pass():
     once = normalize_probabilities(probs)
     twice = normalize_probabilities(once)
     assert np.array_equal(once, twice)
+
+
+@pytest.mark.unit
+def test_byte_clean_against_old_arr_divide_arr_sum_pattern():
+    """Real-world YAML weights whose float64 sum is not exactly 1.0
+    must produce identical output to the old pattern (arr / arr.sum()).
+
+    CAUTI sibling_count_weights [0.27, 0.18, 0.16, 0.13, 0.10, 0.06, 0.10]
+    sum to 0.9999... in float64 — NOT exactly 1.0. The helper must be
+    byte-identical to the old pre-A3 pattern, NOT byte-identical to the
+    input. This verifies the byte-clean migration property claimed in the
+    normalize_probabilities docstring.
+    """
+    probs = [0.27, 0.18, 0.16, 0.13, 0.10, 0.06, 0.10]
+    arr = np.asarray(probs, dtype=float)
+    old_result = arr / arr.sum()
+    new_result = normalize_probabilities(probs)
+    assert np.array_equal(new_result, old_result), (
+        "normalize_probabilities must be byte-identical to "
+        "arr / arr.sum() for CAUTI-style weights summing to 0.9999..."
+    )

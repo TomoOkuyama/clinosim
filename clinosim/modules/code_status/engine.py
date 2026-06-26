@@ -48,5 +48,5 @@ def assign_code_status(age: int, context: str, country: str,
     weights = rates.get(context, rates["routine"]).get(band)
     if not weights:
         weights = rates["routine"][ref["age_bands"][-1]]
-    idx = int(rng.choice(len(tiers), p=normalize_probabilities(weights)))
+    idx = int(rng.choice(len(tiers), p=normalize_probabilities(weights, fallback="raise")))
     return str(tiers[idx]["snomed"])
