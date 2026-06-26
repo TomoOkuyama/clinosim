@@ -1,6 +1,6 @@
 """Unit tests for microbiology load-time validation (PR-A Task 4)."""
-from pathlib import Path
 import textwrap
+from pathlib import Path
 
 import pytest
 
