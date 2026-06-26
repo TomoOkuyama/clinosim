@@ -61,6 +61,7 @@ clinosim's true goal is **FHIR R4 + JP Core compliant output with clinical coher
 Verification framework: `clinosim audit run` (AD-60) is the unified new-feature gate — 4 axes (structural / clinical / jp_language / silent_no_op) + Module-owned audit.py plug-ins. byte-diff stays as a separate refactor-PR mechanic.
 
 Latest reviews:
+- [`docs/reviews/2026-06-26-phase-3b-2-hai-susceptibility-data-quality-review.md`](docs/reviews/2026-06-26-phase-3b-2-hai-susceptibility-data-quality-review.md) — Phase 3b-2 HAI culture S/I/R susceptibility chain: **all 3 axes PASS** + antibiogram firing proof + byte-diff NDJSON IDENTICAL
 - [`docs/reviews/2026-06-25-clinosim-audit-baseline.md`](docs/reviews/2026-06-25-clinosim-audit-baseline.md) — first `clinosim audit run` baseline (all 4 axes for `modules/hai`; structural / jp_language / silent_no_op PASS, clinical WARN at p=2000 rare-event)
 - [`docs/reviews/2026-06-25-phase3a-hai-lab-lift-data-quality-review-post-fix.md`](docs/reviews/2026-06-25-phase3a-hai-lab-lift-data-quality-review-post-fix.md) — Phase 3a HAI lift after the xhigh code-review hardening: **all 3 axes PASS** + byte-diff 37/37 NDJSON IDENTICAL + closed-form lift firing proof
 - [`docs/reviews/2026-06-25-phase3a-hai-lab-lift-data-quality-review.md`](docs/reviews/2026-06-25-phase3a-hai-lab-lift-data-quality-review.md) — Phase 3a initial DQR (pre-fix; superseded by the post-fix review above)
