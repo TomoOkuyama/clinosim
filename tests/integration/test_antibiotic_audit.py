@@ -32,11 +32,23 @@ def test_antibiotic_proof_factory_returns_equality_checks():
         "the original dict-of-actuals-and-'expected'-dict format is silently "
         "skipped by the silent_no_op axis"
     )
-    # Spot-check a couple of canonical checks
+    # Spot-check PR3b-1 canonical checks
     labels = {label for label, _, _ in proof["equality_checks"]}
     assert "ext_antibiotic_count" in labels
     assert "mar_count" in labels
     assert "mar_first_dt" in labels
+    # PR3b-2 antibiogram checks — a broken proof returning [] would silently pass
+    # without these assertions (PR-90 class silent no-op gate).
+    assert "clabsi_saureus_susceptibility_count" in labels, (
+        "PR3b-2 antibiogram count check missing — silent no-op"
+    )
+    assert "clabsi_saureus_vancomycin_is_S" in labels, (
+        "PR3b-2 vancomycin-S check missing — silent no-op"
+    )
+    assert len(proof["equality_checks"]) == 10, (
+        f"Expected 10 equality_checks (8 PR3b-1 + 2 PR3b-2), "
+        f"got {len(proof['equality_checks'])}"
+    )
 
 
 @pytest.mark.integration
@@ -63,6 +75,14 @@ def test_antibiotic_silent_no_op_axis_actually_runs_proof():
     assert eq_info_keys, (
         "silent_no_op axis did not consume any equality_checks — "
         "the axis is silently no-op'ing the antibiotic proof"
+    )
+    # PR3b-2 specific info keys — a broken antibiogram proof returning []
+    # would silently pass without these (PR-90 class silent no-op gate).
+    assert "proof_eq_clabsi_saureus_susceptibility_count" in result.info, (
+        "silent_no_op axis did not surface PR3b-2 count proof"
+    )
+    assert "proof_eq_clabsi_saureus_vancomycin_is_S" in result.info, (
+        "silent_no_op axis did not surface PR3b-2 vancomycin proof"
     )
 
 
