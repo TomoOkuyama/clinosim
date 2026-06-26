@@ -37,6 +37,7 @@ clinosim/modules/hai/
     hai_codes.yaml       # ICD-10-CM + WHO ICD-10 + SNOMED for 3 HAI conditions
     hai_organisms.yaml   # CDC NHSN top organism distributions per HAI type
     hai_specimens.yaml   # Specimen SNOMED + culture LOINC per HAI type
+    hai_antibiogram.yaml # CDC NHSN AR 2018-2020 susceptibility rates per organism (Phase 3b-2)
   README.md              # this file
 ```
 
@@ -55,6 +56,15 @@ def load_hai_organisms() -> dict[str, Any]:
 def load_hai_specimens() -> dict[str, Any]:
     """reference_data/hai_specimens.yaml を @lru_cache で読み込み返す。"""
 
+def load_hai_antibiogram() -> dict[str, Any]:
+    """reference_data/hai_antibiogram.yaml を @lru_cache で読み込み返す (Phase 3b-2)。
+
+    形式: {hai_type: {organism_snomed: {antibiotic_key: [S_rate, I_rate, R_rate]}}}
+    Import 時に HAI_TYPES + hai_organisms.yaml (有効 SNOMED) + ANTIBIOTIC_LOINC_LOOKUP
+    (有効 antibiotic key) の 3-way cross-validation を実行。不整合は ImportError を raise。
+    出典: CDC NHSN Antibiotic Resistance 2018-2020 AR report。
+    """
+
 def sample_hai_onset(
     device: DeviceRecord, rate_cfg: dict, rng: np.random.Generator,
 ) -> tuple[bool, int | None]:
@@ -69,7 +79,8 @@ def enrich_hai(ctx) -> None:
 
     ctx.records を巡り、各患者の extensions["device"] から HAI を sample、
     extensions["hai"] (list[HAIEvent]) + record.microbiology
-    (MicrobiologyResult append) を書く。
+    (MicrobiologyResult append) を書く。Phase 3b-2 では _append_hai_culture が
+    antibiogram を参照して MicrobiologyResult.susceptibilities を populate する。
     """
 ```
 
@@ -78,11 +89,13 @@ def enrich_hai(ctx) -> None:
 | Type | 場所 | Key fields | 用途 |
 |---|---|---|---|
 | `HAIEvent` | `clinosim/types/hai.py` (`@dataclass`) | `hai_id`, `encounter_id`, `hai_type`, `source_device_id`, `icd10_code`, `snomed_code`, `onset_date`, `organism_snomed`, `culture_specimen_id` | `CIFPatientRecord.extensions["hai"]` 配下 |
-| `MicrobiologyResult` (既存) | `clinosim/types/microbiology.py` | `encounter_id`, `specimen`, `specimen_snomed`, `test_loinc`, `organism_snomed`, `growth`, `quantitation` | `record.microbiology` append、既存 `_fhir_microbiology.py` で自動 emit |
+| `MicrobiologyResult` (既存) | `clinosim/types/microbiology.py` | `encounter_id`, `specimen`, `specimen_snomed`, `test_loinc`, `organism_snomed`, `growth`, `quantitation`, **`hai_event_id`** (Phase 3b-2), `susceptibilities` | `record.microbiology` append、既存 `_fhir_microbiology.py` で自動 emit |
 
 CIF 上の location:
 - HAI metadata: `CIFPatientRecord.extensions["hai"]: list[HAIEvent]` (typed dataclass を extensions slot に格納)
 - Culture chain: `CIFPatientRecord.microbiology: list[MicrobiologyResult]` (Base typed field、append のみ)
+
+**`hai_event_id` backref convention (Phase 3b-2)**: HAI 由来の `MicrobiologyResult` は `hai_event_id = HAIEvent.hai_id` をセットする。これにより FHIR 出力層が同一 HAI event に紐づく Condition と DiagnosticReport を相互参照できる。Community microbiology (非 HAI culture — sepsis/pneumonia/UTI の通常経路) は `hai_event_id = ""` のままで今後も変更なし。
 
 ## CDC NHSN baseline rates
 
@@ -117,6 +130,7 @@ CIF 上の location:
 | `clinosim/simulator/seeding` | ENRICHER_SEED_OFFSETS, derive_sub_seed |
 | `clinosim/modules/_shared` | get_attr_or_key (dict/dataclass dual access) |
 | `clinosim/modules/device` (data flow only) | PR-A の extensions["device"] を読む |
+| `clinosim/modules/antibiotic` (Phase 3b-2) | `ANTIBIOTIC_LOINC_LOOKUP` — antibiogram antibiotic_key → LOINC の照合に使用 (import-time cross-validation) |
 
 ## Consumers
 
@@ -150,10 +164,37 @@ hai enricher    (order=80) → record.extensions["hai"]    = list[HAIEvent]
 - **Snapshot in-progress device**: `device.removal_date is None` のとき `line_days = 7` の conservative fallback。Phase 3 で simulator snapshot date と統合。
 - **At-most-one HAI per device**: 1 DeviceRecord から 1 HAIEvent しか sample しない。Phase 3 で繰り返し感染 (e.g. CRBSI relapse) 対応。
 - **Antibiotic empirical / narrow-spectrum order chain**: HAI 発症で経験的 antibiotic order → culture 結果で narrow という臨床 chain は **未実装** (Phase 3)。
-- **Susceptibility (S/I/R)**: `MicrobiologyResult.susceptibilities = []` (Phase 3 antimicrobial resistance work で fill)。
+- **Susceptibility (S/I/R)**: ~~`MicrobiologyResult.susceptibilities = []`~~ → **Phase 3b-2 (2026-06-26) で実装済**。`_append_hai_culture` が `load_hai_antibiogram()` を参照し、organism × antibiotic の CDC NHSN AR 2018-2020 比率から S/I/R をサンプリングして `susceptibilities` に populate。既存 `_fhir_microbiology.py` builder が susceptibility Observation (`category=laboratory`) として自動 emit。PR3b-3 が `hai_resistance_bands` + `hai_empty_susceptibilities_max_rate` を clinical audit axis に組み込む予定 (TODO comment in `modules/antibiotic/audit.py`)。
 - **WBC/CRP shift**: ~~未実装~~ → **Phase 3a (2026-06-25) で実装済**。`modules/hai/lab_lift.apply_hai_lab_lift` が encounter daily-loop 完了直後に発火、`reference_data/hai_lab_lift.yaml` (CLABSI/VAP 0.35, CAUTI 0.20、ramp 2 日) と per-day state_history から forward-delta を計算し、既存 WBC + CRP 観測値に加算。詳細は下の "Phase 3a" section 参照。
 - **Mortality 影響**: HAI 発症 → 死亡率 + は未実装 (Phase 3c outcome benchmarks 連動)。
 - **Peripheral IV / arterial line HAI**: Phase 1 device scope 外。
+
+## Phase 3b-2: HAI culture S/I/R susceptibility chain (2026-06-26)
+
+`_append_hai_culture()` が `load_hai_antibiogram()` を呼び出し、サンプリングされた organism の S/I/R 比率を `MicrobiologyResult.susceptibilities` に populate する。既存の `_fhir_microbiology.py` builder が susceptibility Observation として FHIR emit する (変更なし)。
+
+**`hai_antibiogram.yaml` フォーマット**:
+```yaml
+# reference_data/hai_antibiogram.yaml
+# Source: CDC NHSN Antibiotic Resistance Annual Report 2018-2020
+clabsi:
+  "3092008":   # Staphylococcus aureus SNOMED
+    vancomycin: [1.00, 0.00, 0.00]  # [S_rate, I_rate, R_rate]
+    ...
+cauti:
+  ...
+vap:
+  ...
+```
+
+- `hai_type` キーは `HAI_TYPES = ("clabsi", "cauti", "vap")` の lowercase 定数と照合(import-time validation)
+- organism SNOMED は `hai_organisms.yaml` 有効 SNOMED セットと照合
+- antibiotic_key は `ANTIBIOTIC_LOINC_LOOKUP` キーセットと照合
+- `[S, I, R]` は合計 1.0 に近似(浮動小数点許容); import 時に sum 検証
+
+**RNG 使用**: `_append_hai_culture` の S/I/R サンプリングは既存の HAI per-patient sub-rng を再利用(新 RNG ストリーム不要)。main RNG 不動 = AD-16 保証継続。
+
+**Audit**: `modules/antibiotic/audit.py` の `antibiogram_firing_proof` が `_append_hai_culture` を synthetic CLABSI S. aureus record に対して drive し、Vancomycin susceptibility = S ([1.00, 0.00, 0.00]) の closed-form delta を `equality_checks` (PR-94 形式) で検証。`_NHSN_RESISTANCE_BANDS` + `HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE` は PR3b-3 clinical audit axis に移植予定 (TODO comment in audit.py)。
 
 ## Phase 3a: WBC + CRP 観測時 forward-delta lift (2026-06-25)
 
@@ -197,8 +238,11 @@ hai enricher    (order=80) → record.extensions["hai"]    = list[HAIEvent]
 - [DESIGN.md](../../../DESIGN.md) AD-55 / AD-56 / AD-57
 - [docs/CONTRIBUTING-modules.md](../../../docs/CONTRIBUTING-modules.md) — モジュール作成 + PR 検証ガイド
 - [MODULES.md](../../../MODULES.md) — 全 module 俯瞰
-- 関連モジュール: `output/_fhir_hai.py` (HAI Condition builder)、`output/_fhir_microbiology.py` (culture emit、既存)、`modules/device` (upstream)
+- 関連モジュール: `output/_fhir_hai.py` (HAI Condition builder)、`output/_fhir_microbiology.py` (culture emit、既存)、`modules/device` (upstream)、`modules/antibiotic` (ANTIBIOTIC_LOINC_LOOKUP 供給 + downstream consumer)
 - 関連 spec / plan:
   - `docs/superpowers/specs/2026-06-24-hai-module-design.md`
   - `docs/superpowers/plans/2026-06-24-hai-module-prb.md`
-- DQR review: `docs/reviews/2026-06-24-hai-module-data-quality-review.md`
+- DQR reviews:
+  - `docs/reviews/2026-06-24-hai-module-data-quality-review.md` (Phase PR-B)
+  - `docs/reviews/2026-06-26-phase-3b-2-hai-susceptibility-data-quality-review.md` (Phase 3b-2)
+- **PR3b-3 forward-compat reserves**: `MicrobiologyResult.hai_event_id` + `AntibioticRegimen.discontinuation_datetime` は Phase 3b-3 (narrow / de-escalation chain) が消費予定。現在は non-empty / None のままで発行される。
