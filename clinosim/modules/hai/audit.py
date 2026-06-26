@@ -61,7 +61,7 @@ def _build_cauti_proof():
                 HAIEvent(
                     hai_id="h-cauti-1",
                     encounter_id="enc-1",
-                    hai_type="cauti",
+                    hai_type=HAI_TYPES[1],
                     source_device_id="d1",
                     icd10_code="T83.511A",
                     snomed_code="68566005",

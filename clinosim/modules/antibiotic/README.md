@@ -121,7 +121,7 @@ ForcedScenario(
 - `lift_firing_proof`: 合成 CAUTI record を `enrich_antibiotic` で drive、closed-form delta(Ceftriaxone q24h × 7d = 7 MAR、first/last datetime 厳密一致)= PR-90 class silent no-op gate
 
 **Phase 3b-2 拡張 (`audit.py`)**:
-- `_ABX_LOINCS: frozenset[str]` — `ANTIBIOTIC_LOINC_LOOKUP.values()` 全 8 susceptibility LOINC の frozenset。structural axis で Observation.code 照合に使用。
+- `_ABX_LOINCS: frozenset[str]` — PR3b-3 までは未配線の deferred placeholder。audit.py 内でコメント参照のみ；structural_obs_codes には未登録（categorical S/I/R Observation は numeric structural check 非対象、判断は audit.py の design docstring 参照）。
 - `_NHSN_RESISTANCE_BANDS: list[dict]` — CDC NHSN AR 2018-2020 推奨バンド (CLABSI MRSA 40-55%、CAUTI ESBL 12-22%、VAP MRSA 30-45%)。PR3b-3 で clinical axis に組み込み予定 (TODO comment in audit.py)。
 - `HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE: float = 0.05` — susceptibilities が空の MicrobiologyResult の比率上限。PR3b-3 clinical axis で enforcement 予定。
 - `antibiogram_firing_proof`: PR-94 `equality_checks` 形式の closed-form proof。合成 CLABSI S. aureus record を `_append_hai_culture` に drive、Vancomycin susceptibility = S (`[1.00, 0.00, 0.00]`) を `ANTIBIOTIC_LOINC_LOOKUP["vancomycin"]` (非 hardcode) で参照して厳密一致確認。

@@ -1,16 +1,21 @@
+import pytest
+
 from clinosim.types.microbiology import MicrobiologyResult
 
 
+@pytest.mark.unit
 def test_hai_event_id_defaults_to_empty_string():
     result = MicrobiologyResult()
     assert result.hai_event_id == ""
 
 
+@pytest.mark.unit
 def test_hai_event_id_can_be_populated():
     result = MicrobiologyResult(hai_event_id="hai-enc1-clabsi-0")
     assert result.hai_event_id == "hai-enc1-clabsi-0"
 
 
+@pytest.mark.unit
 def test_hai_event_id_does_not_break_existing_fields():
     result = MicrobiologyResult(
         encounter_id="enc1",
