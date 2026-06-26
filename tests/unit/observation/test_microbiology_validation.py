@@ -159,6 +159,64 @@ def test_organism_missing_snomed_raises(monkeypatch, tmp_path):
 
 
 @pytest.mark.unit
+def test_organism_antibiogram_sir_triple_wrong_length_raises(monkeypatch, tmp_path):
+    """Cross-reference #8: organism.antibiogram[key] must be exactly 3 elements [S, I, R]."""
+    bad = """
+    specimens:
+      blood: {snomed: "119297000", test_loinc: "600-7"}
+    antibiotics:
+      vancomycin: "18991-2"
+    organisms:
+      staph:
+        snomed: "3092008"
+        antibiogram:
+          vancomycin: [1.0, 0.0]
+    diseases:
+      sepsis:
+        organisms: {staph: 1.0}
+        cultures:
+          - {specimen: blood, order_prob: 1.0, growth_prob: 0.5}
+    """
+    yaml_path = _write_yaml(tmp_path, bad)
+    monkeypatch.setattr(micro_mod, "_REF_DIR", yaml_path.parent)
+    micro_mod._load.cache_clear()  # noqa: SLF001
+    try:
+        with pytest.raises(ValueError, match="3-element \\[S, I, R\\] list"):
+            micro_mod._load()
+    finally:
+        micro_mod._load.cache_clear()  # noqa: SLF001
+
+
+@pytest.mark.unit
+def test_organism_antibiogram_sir_triple_zero_sum_raises(monkeypatch, tmp_path):
+    """Cross-reference #8: organism.antibiogram[key] SIR triple must sum > 0."""
+    bad = """
+    specimens:
+      blood: {snomed: "119297000", test_loinc: "600-7"}
+    antibiotics:
+      vancomycin: "18991-2"
+    organisms:
+      staph:
+        snomed: "3092008"
+        antibiogram:
+          vancomycin: [0.0, 0.0, 0.0]
+    diseases:
+      sepsis:
+        organisms: {staph: 1.0}
+        cultures:
+          - {specimen: blood, order_prob: 1.0, growth_prob: 0.5}
+    """
+    yaml_path = _write_yaml(tmp_path, bad)
+    monkeypatch.setattr(micro_mod, "_REF_DIR", yaml_path.parent)
+    micro_mod._load.cache_clear()  # noqa: SLF001
+    try:
+        with pytest.raises(ValueError, match="SIR triple sums to zero"):
+            micro_mod._load()
+    finally:
+        micro_mod._load.cache_clear()  # noqa: SLF001
+
+
+@pytest.mark.unit
 def test_antibiotic_empty_loinc_raises(monkeypatch, tmp_path):
     """Cross-reference #7: antibiotics[key] value must be non-empty string (LOINC)."""
     bad = """
