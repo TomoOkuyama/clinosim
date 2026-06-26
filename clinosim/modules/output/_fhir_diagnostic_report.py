@@ -19,7 +19,9 @@ import yaml
 from clinosim.codes import get_system_uri, lookup as _codes_lookup
 
 
-_PANEL_REF = Path(__file__).parent / "reference_data" / "lab_panel_groups.yaml"
+_HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
+_PANEL_REF = _REF_DIR / "lab_panel_groups.yaml"
 _PANELS_CACHE: dict[str, dict] | None = None
 
 

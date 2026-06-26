@@ -26,9 +26,10 @@ from clinosim.modules.hai.engine import (  # noqa: E402
 )
 from clinosim.modules.hai.enricher import enrich_hai  # noqa: E402
 
-_HAI_REF_DIR = Path(__file__).parent / "reference_data"
-_HAI_ANTIBIOGRAM_PATH = _HAI_REF_DIR / "hai_antibiogram.yaml"
-_HAI_ORGANISMS_PATH = _HAI_REF_DIR / "hai_organisms.yaml"
+_HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
+_HAI_ANTIBIOGRAM_PATH = _REF_DIR / "hai_antibiogram.yaml"
+_HAI_ORGANISMS_PATH = _REF_DIR / "hai_organisms.yaml"
 
 
 def _organisms_by_hai_type() -> dict[str, set[str]]:

@@ -21,7 +21,9 @@ from clinosim.types.antibiotic import AntibioticRegimen
 from clinosim.types.encounter import MedicationAdministration
 from clinosim.types.hai import HAIEvent
 
-_HAI_EMPIRICAL_YAML = Path(__file__).parent / "reference_data" / "hai_empirical.yaml"
+_HERE = Path(__file__).resolve().parent
+_REF_DIR = _HERE / "reference_data"
+_HAI_EMPIRICAL_YAML = _REF_DIR / "hai_empirical.yaml"
 
 
 FREQ_PER_DAY: dict[str, int] = {
