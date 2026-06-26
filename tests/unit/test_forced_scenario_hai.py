@@ -194,11 +194,15 @@ def _capture_enrich_hai_draws(make_ctx_fn):
 
 @pytest.mark.unit
 def test_enrich_hai_force_consumes_exact_firing_path_sequence():
-    """PR-95 + PR3b-2 Task 7 (AD-16 RNG isolation, STRICT):
-    forced path's rng-method sequence must EXACTLY equal the non-forced
-    FIRING path's sequence: random (sample_hai_onset Poisson check)
-    + integers (sample_hai_onset onset_offset) + choice (_sample_organism)
-    + choice × N_abx (_append_hai_culture antibiogram draws).
+    """PR-95 + PR3b-2 Task 7 (AD-16 RNG isolation, FORCED PATH ONLY):
+    Verifies the forced path's own rng-method sequence is deterministic and
+    accounts for the forced organism's antibiogram (CAUTI/E.coli/5 ABX → 8 draws).
+
+    NOTE: forced and non-forced sequences are only equal when the forced
+    organism has the same antibiogram size as the randomly-selected organism.
+    For full AD-16 isolation tests, use a forced organism whose ABX count
+    matches the known random outcome for this seed (CAUTI/E.faecalis would
+    require 0 ABX to match the non-forced path's seed=42 outcome).
 
     Fixture: hai_type=cauti, organism=112283007 (E. coli).
     CAUTI/E.coli antibiogram has 5 entries (ceftriaxone, cefepime, meropenem,
@@ -225,7 +229,7 @@ def test_enrich_hai_force_consumes_exact_firing_path_sequence():
 
 
 @pytest.mark.unit
-def test_enrich_hai_non_forced_firing_path_sequence_matches_forced():
+def test_enrich_hai_non_forced_firing_path_baseline_sequence():
     """Verify the non-forced firing-path sequence has the correct structure.
 
     Uses a monkeypatched 100% firing rate via direct rates_cfg patch in
@@ -234,8 +238,14 @@ def test_enrich_hai_non_forced_firing_path_sequence_matches_forced():
     With seed=42 / patient_id='p1', _sample_organism for CAUTI selects
     E. faecalis (SNOMED 78065002), which has NO antibiogram entries in
     hai_antibiogram.yaml — so _append_hai_culture adds 0 additional choice
-    draws. Total sequence: ['random', 'integers', 'choice'] (3 draws, same
-    as PR-95 baseline, no antibiogram extension for this organism).
+    draws. Total sequence: ['random', 'integers', 'choice'] (3 draws).
+
+    NOTE: forced and non-forced sequences are only equal when the forced
+    organism has the same antibiogram size as the randomly-selected organism.
+    E.g., the forced CAUTI/E.coli path draws 8 (3 baseline + 5 antibiogram),
+    while this non-forced CAUTI/E.faecalis path draws 3 (0 antibiogram).
+    They are NOT equal in the common case; this test verifies the non-forced
+    baseline structure only, not equality with the forced path.
     """
     import numpy as np
     from clinosim.modules.hai import enricher as enricher_mod
@@ -319,3 +329,56 @@ def test_enrich_hai_force_short_line_days_skips_no_drain():
         "must short-circuit before any draw to match non-forced behaviour"
     )
     assert rec.extensions.get("hai", []) == []
+
+
+# ===== F-CRIT-2: PR3b-2 adversarial review — Task 6 run_forced injection gate =====
+
+
+@pytest.mark.unit
+def test_run_forced_auto_injects_force_hai_event_into_config(monkeypatch):
+    """Task 6 fix (PR3b-2 Adv #4 F1): run_forced MUST inject force_hai_event
+    scenario into config.forced_scenarios so enrich_hai can read it (PR-90
+    class silent-no-op gate). This test does NOT require ICU transfers —
+    we patch the registered "hai" enricher's run function to capture the
+    ctx it receives and assert the scenario appears in
+    ctx.config.forced_scenarios. Reverting the injection fix in engine.py
+    (lines 478-481) should make this test FAIL loudly.
+    """
+    from clinosim.simulator import enrichers as enrichers_mod
+    from clinosim.simulator.engine import run_forced
+    from clinosim.types.config import ForcedScenario, SimulatorConfig
+
+    # Ensure the enricher registry is initialised so _ENRICHERS["hai"] exists.
+    enrichers_mod.register_builtin_enrichers()
+
+    captured_configs: list = []
+    orig_run = enrichers_mod._ENRICHERS["hai"].run
+
+    def capture_ctx(ctx):
+        captured_configs.append(list(getattr(ctx.config, "forced_scenarios", [])))
+        return orig_run(ctx)
+
+    # Monkeypatch the stored .run attribute; monkeypatch restores after test.
+    monkeypatch.setattr(enrichers_mod._ENRICHERS["hai"], "run", capture_ctx)
+
+    scenario = ForcedScenario(
+        disease_id="bacterial_pneumonia", count=1,
+        force_hai_event={
+            "hai_type": "cauti",
+            "onset_offset_days": 3,
+            "organism_snomed": "112283007",
+        },
+    )
+    config = SimulatorConfig(country="US", random_seed=42)
+    run_forced(scenario, config=config)
+
+    assert any(scenario in c for c in captured_configs), (
+        "run_forced did not inject force_hai_event scenario into "
+        "ctx.config.forced_scenarios — Task 6 injection is broken "
+        "(PR-90 class silent no-op recurrence)"
+    )
+    # Caller's config must NOT be mutated
+    assert config.forced_scenarios == [], (
+        "run_forced mutated caller's config.forced_scenarios; "
+        "expected model_copy to leave caller untouched"
+    )
