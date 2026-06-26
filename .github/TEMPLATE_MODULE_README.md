@@ -37,7 +37,7 @@ from pathlib import Path
 
 import yaml
 
-from clinosim.modules._shared import normalize_probabilities  # 確率サンプリングする場合
+# 確率サンプリングする場合のみ追加: from clinosim.modules._shared import normalize_probabilities
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"        # reference_data/ を持つなら
@@ -75,10 +75,18 @@ def load_reference() -> dict:
 @lru_cache(maxsize=2)                       # country-param loader → maxsize=2
 def load_rates(country: str) -> dict:
     if str(country).upper() not in {"US", "JP"}:
-        return {}                            # no-op early return
+        return {}                            # no-op early return for unsupported countries
     with open(_LOCALE / country.lower() / "rates.yaml") as f:
         return yaml.safe_load(f) or {}
 ```
+
+> **Locale loader signature variants** — modules that have data for both
+> US AND JP use the `{}` no-op pattern above. Modules that always have
+> data and intentionally default unsupported countries to US use the
+> alternative `key = "jp" if str(country).upper() == "JP" else "us"`
+> pattern (see `code_status/engine.py`, `family_history/engine.py`,
+> `immunization/engine.py`). Pick based on data availability — if your
+> data covers fewer countries, prefer `{}` no-op.
 
 詳細は `docs/CONTRIBUTING-modules.md` の「パス定数の正規形」「`@lru_cache` の `maxsize` 規約」「確率サンプリング規約」「Import 時 cross-validation」参照。
 
