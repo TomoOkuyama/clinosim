@@ -13,6 +13,11 @@
 # clinically irrelevant (intrinsic resistance such as P. aeruginosa ×
 # ceftriaxone). Omitted = "do not sample" = no S/I/R Observation emitted.
 
+# KEY ORDER WITHIN EACH ORGANISM IS LOAD-BEARING (AD-16 RNG determinism).
+# Do not re-sort antibiotic keys per organism. See test_hai_antibiogram.py:
+#   test_clabsi_saureus_antibiogram_key_order_is_canonical
+#   test_cauti_ecoli_antibiotic_key_order_is_canonical
+#   test_vap_saureus_antibiogram_key_order_is_canonical
 hai_antibiogram:
   clabsi:
     # S. aureus, CLABSI ~47% MRSA (NHSN 2018-2020 Table 2)
