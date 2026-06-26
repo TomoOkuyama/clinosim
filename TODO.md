@@ -533,15 +533,31 @@ deterministic HAI testing. Vancomycin RxNorm 11124 + YJ 6113400
 centralized (existing repo usage). 12 commits across 12 tasks.
 
 **Phase 3b-2 HAI culture S/I/R — 2026-06-26 (✓ done)**:
+PR #96 + adversarial fan-out fix PRs #97 + #98.
 `_append_hai_culture` extended with antibiogram-driven susceptibility sampling.
 `hai_antibiogram.yaml` (CDC NHSN AR 2018-2020) as source of truth; import-time
-3-way cross-validation (HAI_TYPES + hai_organisms + ANTIBIOTIC_LOINC_LOOKUP).
+3-way cross-validation (HAI_TYPES + hai_organisms + ANTIBIOTIC_LOINC_LOOKUP) +
+`_NHSN_RESISTANCE_BANDS` import-time validation (PR #98 MED-4).
 `MicrobiologyResult.hai_event_id` backref + `AntibioticRegimen.discontinuation_datetime`
 forward-compat reserves shipped. `ANTIBIOTIC_DRUGS` tuple → dict refactor +
 `ANTIBIOTIC_LOINC_LOOKUP` companion. LOINC orphan fix (ciprofloxacin → cefepime).
-`run_forced` force_hai_event injection gap closed. Audit: `antibiogram_firing_proof`
-(PR-94 equality_checks format). DQR:
+`run_forced` force_hai_event injection gap closed (PR #96 Task 6 + PR #97 F-CRIT-2
+load-bearing test). Audit: `antibiogram_firing_proof` (PR-94 equality_checks format)
++ non-degenerate cefazolin sentinel (PR #98 LOW-1) + sub-proof exception isolation
+(PR #98 MED-3). AD-16 hardening: `_CapturingRNG` logs `p=` array; YAML key-order pin
+tests for clabsi/cauti/vap pinned organisms; YAML header LOAD-BEARING comment
+(PR #98 MED-1+MED-2). DQR:
 `docs/reviews/2026-06-26-phase-3b-2-hai-susceptibility-data-quality-review.md`
+
+**Post-merge adversarial fan-out (8 agents)** found 30+ findings the per-task
++ final whole-branch reviews missed, including 2 CRITICAL (mypy strict 11 errors
+in `clinosim/audit/registry.py:23` `clinical_acceptance` type; Task 6 run_forced
+injection had zero load-bearing test — reverting passed all tests = PR-90 class
+silent-no-op recurrence) + 1 MAJOR (HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE denominator
+undefined → PR3b-3 gate would always-FAIL). Fix PR #97 closed all 7 load-bearing
+findings; Fix PR #98 closed 25+ MEDIUM/LOW/MINOR. Validates `feedback_iterative_adversarial_review`
+memory: test green + final review APPROVE is not ship-ready; fix PRs themselves
+need adversarial review (3-stage chain pattern from PR-93/#94/#95 re-confirmed).
 
 Phase 3b backlog (remaining):
 - PR3b-3 (next candidate): narrow / de-escalation chain after S report; must wire
