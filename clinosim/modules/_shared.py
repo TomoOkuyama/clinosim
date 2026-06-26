@@ -38,12 +38,15 @@ def normalize_probabilities(
         fallback: "uniform" (default) returns equal weight on non-positive sum;
             "raise" raises ValueError instead.
 
-    Conventions (PR-A / Fix #100 / 本 PR 2026-06-27 確立):
+    Conventions (PR-A / Fix #100 / PR #102 2026-06-27 確立):
 
     - **YAML-sourced callsites MUST use ``fallback="raise"``** so a YAML edit
       accident (e.g. all weights set to 0) is caught loudly at runtime instead
       of silently defaulting to uniform sampling (= PR-90 class silent-no-op).
-      All 10 YAML-sourced callsites have been migrated as of 2026-06-27.
+      All 15 YAML-sourced callsites have been migrated as of 2026-06-27
+      (PR #102 added 10 callsites in hai / population / clinical_course;
+      pre-PR migration covered 5 in code_status / family_history / care_level
+      / observation/microbiology via PR-A Fix #100/#101).
     - **Inline literal weight callsites MAY use ``fallback="uniform"``** (the
       default), since literal weight lists cannot zero out via YAML editing.
     - Upstream validators (``_validate_microbiology``,
