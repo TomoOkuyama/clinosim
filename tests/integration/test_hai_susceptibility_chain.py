@@ -129,6 +129,7 @@ def test_community_culture_has_no_hai_event_id_backref() -> None:
     ds = run_forced(scenario, config=cfg)
 
     community = [m for r in ds.patients for m in r.microbiology if not r.extensions.get("hai")]
+    assert len(community) > 0, "no community cultures generated"
     for m in community:
         assert m.hai_event_id == "", (
             f"community culture has unexpected hai_event_id {m.hai_event_id!r}"
