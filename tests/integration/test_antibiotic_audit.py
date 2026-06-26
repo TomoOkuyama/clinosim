@@ -43,8 +43,9 @@ def test_antibiotic_proof_factory_returns_equality_checks():
     assert "clabsi_saureus_vancomycin_is_S" in labels, (
         "PR3b-2 vancomycin-S check missing — silent no-op"
     )
-    assert len(proof["equality_checks"]) == 10, (
-        f"Expected 10 equality_checks (8 PR3b-1 + 2 PR3b-2), "
+    assert len(proof["equality_checks"]) == 11, (
+        f"Expected 11 equality_checks (8 PR3b-1 + 3 PR3b-2: "
+        f"susceptibility_count + vancomycin_is_S + cefazolin_seed0_interp), "
         f"got {len(proof['equality_checks'])}"
     )
 

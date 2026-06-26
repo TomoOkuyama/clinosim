@@ -15,6 +15,7 @@ from typing import Any
 import numpy as np
 import yaml
 
+from clinosim.modules._shared import normalize_probabilities
 from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types import MicrobiologyResult, SusceptibilityResult
 
@@ -57,9 +58,11 @@ def generate_microbiology(
 
     org_dist = disease.get("organisms") or {}
     org_ids = list(org_dist.keys())
-    org_probs = np.array([float(org_dist[k]) for k in org_ids], dtype=float)
-    if org_probs.sum() > 0:
-        org_probs = org_probs / org_probs.sum()
+    org_probs = (
+        normalize_probabilities([float(org_dist[k]) for k in org_ids])
+        if org_ids
+        else np.array([], dtype=float)
+    )
 
     results: list[MicrobiologyResult] = []
     for culture in disease.get("cultures") or []:
@@ -91,9 +94,7 @@ def generate_microbiology(
                 loinc = antibiotics.get(abx_key)
                 if not loinc:
                     continue
-                probs = np.array([float(x) for x in sir], dtype=float)
-                if probs.sum() > 0:
-                    probs = probs / probs.sum()
+                probs = normalize_probabilities([float(x) for x in sir])
                 interp = _SIR[int(rng.choice(len(_SIR), p=probs))]
                 result.susceptibilities.append(
                     SusceptibilityResult(antibiotic_loinc=str(loinc), interpretation=interp)

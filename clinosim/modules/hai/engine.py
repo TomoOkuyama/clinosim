@@ -15,6 +15,7 @@ from typing import Any
 import numpy as np
 import yaml
 
+from clinosim.modules._shared import normalize_probabilities
 from clinosim.types.device import DeviceRecord
 
 _HERE = Path(__file__).resolve().parent
@@ -81,8 +82,7 @@ def sample_hai_onset(
 def _sample_organism(weights: list[dict], rng: np.random.Generator) -> str:
     """Weighted choice over [{snomed, weight}, ...] returning the snomed."""
     snomeds = [w["snomed"] for w in weights]
-    p = np.array([w["weight"] for w in weights], dtype=float)
-    p = p / p.sum()
+    p = normalize_probabilities([w["weight"] for w in weights])
     return str(rng.choice(snomeds, p=p))
 
 
