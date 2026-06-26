@@ -40,9 +40,6 @@ _DEVICE_TO_HAI = {
 _REQUIRED_FORCE_HAI_KEYS = ("hai_type", "onset_offset_days", "organism_snomed")
 
 
-_REQUIRED_FORCE_HAI_KEYS = ("hai_type", "onset_offset_days", "organism_snomed")
-
-
 def _get_forced_hai_event(ctx) -> dict | None:
     """Return the first ForcedScenario.force_hai_event if set + valid, else None.
 
