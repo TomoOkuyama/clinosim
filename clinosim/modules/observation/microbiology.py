@@ -88,7 +88,8 @@ def _validate_microbiology(data: dict[str, Any]) -> None:
                     f"one of {sorted(valid_antibiotic_keys)}"
                 )
 
-    # Check disease.organisms keys → organisms set (#2) + disease.cultures[i].specimen → specimens (#3)
+    # Check disease.organisms keys → organisms set (#2)
+    # and disease.cultures[i].specimen → specimens (#3)
     for disease_id, disease in diseases.items():
         if not isinstance(disease, dict):
             continue
