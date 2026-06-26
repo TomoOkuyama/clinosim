@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass
@@ -20,7 +21,7 @@ class ModuleAuditSpec:
     per_event_check: dict[str, Callable] = field(default_factory=dict)
     lift_firing_proof: Callable | None = None
     structural_obs_codes: dict[str, tuple[str, ...]] = field(default_factory=dict)
-    clinical_acceptance: dict[str, dict[str, float]] = field(default_factory=dict)
+    clinical_acceptance: dict[str, Any] = field(default_factory=dict)
 
 
 _MODULES: dict[str, ModuleAuditSpec] = {}
