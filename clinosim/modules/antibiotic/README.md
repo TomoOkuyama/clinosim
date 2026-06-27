@@ -70,7 +70,7 @@ CLABSI / CAUTI / VAP の 3 HAI type に対し、IDSA guideline に沿う経験�
 **audit gates**(`clinosim/audit/axes/clinical.py:run()` 3 ブロック):
 1. **NHSN R-rate** per (hai_type, antibiotic) cohort — `_NHSN_RESISTANCE_BANDS` 配線、MRSA / ESBL+ / etc. の population-level R-rate を NHSN AR 2018-2020 band で gate
 2. **empty susceptibility rate** per HAI cohort — `HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE` 配線、panel-eligible cultures(E.faecalis / C.albicans 除外)で empty rate ≤ 5%
-3. **narrow rate** per (hai_type, organism) cohort — 新 `_NARROW_RATE_BANDS`、narrow が発火した event 比率を band で gate(MSSA CLABSI 40-60% / E.coli CAUTI 10-30% / etc.)
+3. **narrow rate** per hai_type aggregate — `_NARROW_RATE_BANDS`、narrow が発火した event 比率を band で gate(CLABSI [0.60-1.00] / CAUTI [0.50-1.00] / VAP [0.60-1.00] = aggregate per hai_type、vancomycin always-S ELIMINATION + ladder SWITCH の合算)。adversarial-1 C-1 fix で per-(hai_type, organism) → per-hai_type に realign(per-organism filter は post-PR3b-3 TODO、`clinical.py` の TODO comment 参照)。
 
 各 gate は `n < 30` で WARN、それ以外で PASS/FAIL、per-cohort observed 値を `result.info` に記録(DQR visibility)。
 

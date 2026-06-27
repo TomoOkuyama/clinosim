@@ -25,6 +25,7 @@ from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS
 from clinosim.modules.antibiotic.engine import (
     NarrowOutcome,
+    _drug_slug,
     build_regimens,
     generate_mar_doses,
     load_narrow_ladder,
@@ -127,11 +128,6 @@ def enrich_antibiotic(ctx) -> None:
 # ---------------------------------------------------------------------------
 # PR3b-3 Pass 2 helpers
 # ---------------------------------------------------------------------------
-
-
-def _drug_slug(drug_key: str) -> str:
-    """Mirror engine._drug_slug — local copy avoids importing private helper."""
-    return drug_key.lower().replace("/", "_")
 
 
 def _truncate_mar(record, regimen: AntibioticRegimen) -> None:

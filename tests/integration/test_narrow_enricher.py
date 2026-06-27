@@ -273,3 +273,38 @@ def test_fhir_medicationrequest_status_cancelled_pin() -> None:
     assert _map_order_status_to_fhir("placed") == "active"
     # Unknown / future values fall back to "active" — documented in helper
     assert _map_order_status_to_fhir("future_status") == "active"
+
+
+@pytest.mark.integration
+def test_fhir_medicationrequest_status_exhaustive_enum_coverage() -> None:
+    """Stage-3 fix (adversarial-2 Agent A1 I-4): assert _map_order_status_to_fhir
+    exhaustively maps every current OrderStatus value to a deliberate FHIR
+    status (not silently falling through to 'active'). Adding a new OrderStatus
+    enum value WITHOUT updating the mapping will trip this test."""
+    from clinosim.modules.output._fhir_medications import _map_order_status_to_fhir
+    from clinosim.types.encounter import OrderStatus
+
+    # Every current OrderStatus value must have an explicit mapping entry.
+    # 'cancelled' → 'cancelled', 'stopped' → 'stopped', everything else → 'active'.
+    # If a new enum value is added without mapping update, the test still passes
+    # (falls through to 'active'); the stronger assertion below catches that.
+    EXPECTED = {
+        "placed": "active",
+        "accepted": "active",
+        "in_progress": "active",
+        "resulted": "active",
+        "reviewed": "active",
+        "cancelled": "cancelled",
+        "stopped": "stopped",
+    }
+    actual_enum_values = {s.value for s in OrderStatus}
+    expected_keys = set(EXPECTED.keys())
+    assert actual_enum_values == expected_keys, (
+        f"OrderStatus enum drift: expected {expected_keys}, got "
+        f"{actual_enum_values}. Update _map_order_status_to_fhir + this test."
+    )
+    for status_value, expected_fhir in EXPECTED.items():
+        assert _map_order_status_to_fhir(status_value) == expected_fhir, (
+            f"{status_value} → expected {expected_fhir}, "
+            f"got {_map_order_status_to_fhir(status_value)}"
+        )
