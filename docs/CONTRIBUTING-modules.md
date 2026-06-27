@@ -129,6 +129,8 @@ call site では `_REF_DIR / "X.yaml"` / `_LOCALE / country / "X.yaml"` で path
 
 `maxsize` は eviction policy にしか効きませんが、**意図を読みやすくする load-bearing な signal** です。`maxsize=4` を country-only loader に付けるとレビュアーが「将来 4 国対応?」と誤解します。
 
+**PR-B1 (2026-06-27) で完成**: 残存していた hand-rolled cache pattern(`global X; if X is None: ... else return X` を 3 file で使用: `encounter/protocol.py` / `simulator/helpers.py` / `output/_fhir_diagnostic_report.py`)を撤廃し、全 module の loader が `@lru_cache` 標準。新規 module で global mutable `_cache` 変数を導入することは禁止(`test_*` で `load_X.cache_clear()` を使う標準テスト pattern と相反するため)。同 PR で `simulator/helpers.py:_load_all_disease_protocols` の `try/except pass` silent skip も削除済(silent-no-op 防御強化、PR #102 silent-no-op 防御 3 層との整合)。
+
 ### 確率サンプリング規約(PR-A 2026-06-26 で確立)
 
 `rng.choice(items, p=weights)` を呼ぶ前に **必ず `normalize_probabilities()` でラップ**します:
