@@ -9,17 +9,19 @@ typed records the enricher attaches to the CIF record.
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+from enum import Enum
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 import yaml
 
-from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS
+from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS, ANTIBIOTIC_LOINC_LOOKUP
 from clinosim.modules.hai import HAI_TYPES
 from clinosim.types.antibiotic import AntibioticRegimen
 from clinosim.types.encounter import MedicationAdministration
 from clinosim.types.hai import HAIEvent
+from clinosim.types.microbiology import SusceptibilityResult
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
@@ -185,3 +187,58 @@ def generate_mar_doses(
             route=regimen.route,
         ))
     return out
+
+
+# ---------------------------------------------------------------------------
+# PR3b-3: narrow / de-escalation pure helpers (consumed by enricher Pass 2)
+# ---------------------------------------------------------------------------
+
+
+class NarrowOutcome(Enum):
+    """Three dispatched outcomes of narrow_outcome (PR3b-3 spec §2.4)."""
+    NO_CHANGE = "no_change"     # case (iii): no target or target == single empirical
+    ELIMINATION = "elimination"  # case (ii): target in multi-drug empirical, keep target
+    SWITCH = "switch"            # case (i): target is a new drug not in empirical
+
+
+def select_narrow_target(
+    susceptibilities: list[SusceptibilityResult],
+    ladder_for_organism: list[str],
+) -> str | None:
+    """Walk ladder top-down. Return the first drug_key whose
+    SusceptibilityResult.interpretation == 'S'. Returns None if no S in
+    ladder (all-non-S, empty ladder, or empty susceptibilities)."""
+    susc_by_loinc = {s.antibiotic_loinc: s.interpretation for s in susceptibilities}
+    for drug_key in ladder_for_organism:
+        loinc = ANTIBIOTIC_LOINC_LOOKUP.get(drug_key)
+        if loinc is None:
+            continue  # defensive: drug_key not in central LOINC lookup
+        if susc_by_loinc.get(loinc) == "S":
+            return drug_key
+    return None
+
+
+def narrow_outcome(
+    narrow_target: str | None,
+    empirical_regimens: list[AntibioticRegimen],
+) -> NarrowOutcome:
+    """Dispatch the three narrowing-by-elimination cases (PR3b-3 spec §2.4)."""
+    if narrow_target is None:
+        return NarrowOutcome.NO_CHANGE
+    empirical_drug_keys = {r.drug_key for r in empirical_regimens}
+    if narrow_target not in empirical_drug_keys:
+        return NarrowOutcome.SWITCH
+    # narrow_target in empirical_drug_keys
+    if len(empirical_drug_keys) == 1:
+        # case (iii): single empirical equals target → nothing to narrow
+        return NarrowOutcome.NO_CHANGE
+    # case (ii): multi-empirical, keep target drop others
+    return NarrowOutcome.ELIMINATION
+
+
+def narrow_duration_days(
+    empirical_start: datetime, reported: datetime, total_course: int,
+) -> int:
+    """Total course minus elapsed empirical days. Clamps at 0 (no negative)."""
+    elapsed = (reported - empirical_start).days
+    return max(0, total_course - elapsed)
