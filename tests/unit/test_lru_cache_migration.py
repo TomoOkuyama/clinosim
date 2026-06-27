@@ -119,6 +119,49 @@ def test_no_module_level_cache_in_fhir_localization():
     assert not hasattr(mod, "_department_display"), "module-level _department_display should be gone"
 
 
+# ---------- Optional-file fallback paths (Fix PR-2 = Agent 5 Important) ----------
+# Each _fhir_localization loader has an `if yaml_path.exists()` branch with a
+# fallback empty structure. Verify the fallback path returns the documented
+# shape so production never crashes if a locale file is missing.
+
+
+def test_load_med_terms_ja_fallback_when_yaml_missing(monkeypatch):
+    """When the optional med_terms_ja.yaml is missing, return the empty
+    `{categories: {}, terms: {}}` shape."""
+    from pathlib import Path
+
+    from clinosim.modules.output import _fhir_localization
+    _fhir_localization._load_med_terms_ja.cache_clear()
+    monkeypatch.setattr(Path, "exists", lambda self: False)
+    data = _fhir_localization._load_med_terms_ja()
+    assert data == {"categories": {}, "terms": {}}
+    _fhir_localization._load_med_terms_ja.cache_clear()  # leave clean for sibling tests
+
+
+def test_load_drug_names_ja_fallback_when_yaml_missing(monkeypatch):
+    """When the optional drug_names_ja.yaml is missing, return an empty dict."""
+    from pathlib import Path
+
+    from clinosim.modules.output import _fhir_localization
+    _fhir_localization._load_drug_names_ja.cache_clear()
+    monkeypatch.setattr(Path, "exists", lambda self: False)
+    data = _fhir_localization._load_drug_names_ja()
+    assert data == {}
+    _fhir_localization._load_drug_names_ja.cache_clear()
+
+
+def test_load_department_display_fallback_when_yaml_missing(monkeypatch):
+    """When the optional department_display.yaml is missing, return an empty dict."""
+    from pathlib import Path
+
+    from clinosim.modules.output import _fhir_localization
+    _fhir_localization._load_department_display.cache_clear()
+    monkeypatch.setattr(Path, "exists", lambda self: False)
+    data = _fhir_localization._load_department_display()
+    assert data == {}
+    _fhir_localization._load_department_display.cache_clear()
+
+
 # ---------- Silent skip removal: invalid YAML must raise ----------
 
 def test_load_all_disease_protocols_raises_on_invalid_yaml(monkeypatch):
