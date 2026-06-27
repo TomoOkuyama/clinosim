@@ -143,6 +143,28 @@ def test_lift_firing_proof_pr3b3_narrow_chain_six_checks_pass() -> None:
 
 
 @pytest.mark.integration
+def test_clinical_axis_wires_pr3b3_gates_on_empty_cohort() -> None:
+    """PR3b-3: smoke-verify clinical axis runs without crashing even with an
+    empty cohort. Real population-scale gate firing is covered by the DQR
+    (Task 8). This test guarantees the 3 new enforcement blocks (NHSN R-rate,
+    empty rate, narrow rate) don't NPE on empty data."""
+    import tempfile
+    from pathlib import Path
+
+    from clinosim.audit.axes import clinical as clinical_axis
+    from clinosim.audit.types import Cohort
+
+    discover()
+    spec = get_registered()["antibiotic"]
+    with tempfile.TemporaryDirectory() as tmp:
+        cohort = Cohort(root=Path(tmp))
+        result = clinical_axis.run(spec, cohort)
+        # Axis must complete without raising; result is well-formed
+        assert isinstance(result.findings, list)
+        assert isinstance(result.info, dict)
+
+
+@pytest.mark.integration
 def test_audit_clinical_acceptance_has_narrow_rate_bands() -> None:
     """PR3b-3: narrow_rate_bands key surfaced in clinical_acceptance for
     Task 6 active enforcement."""
