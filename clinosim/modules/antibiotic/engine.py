@@ -24,6 +24,7 @@ from clinosim.types.hai import HAIEvent
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 _HAI_EMPIRICAL_YAML = _REF_DIR / "hai_empirical.yaml"
+_NARROW_LADDER_YAML = _REF_DIR / "narrow_ladder.yaml"
 
 
 FREQ_PER_DAY: dict[str, int] = {
@@ -33,6 +34,56 @@ FREQ_PER_DAY: dict[str, int] = {
     "q6h":  4,
     "q4h":  6,
 }
+
+
+def _validate_narrow_ladder(data: dict[str, dict[str, list[str]]]) -> None:
+    """3-way cross-validation: every (hai_type, organism, drug_key) entry must
+    be in HAI_TYPES + hai_antibiogram + ANTIBIOTIC_DRUGS. Raises ValueError
+    at load time to surface silent-no-op risk (PR-90 教訓 / CLAUDE.md
+    silent-no-op defense triplet)."""
+    from clinosim.modules.hai import load_hai_antibiogram  # local: avoid circular import
+
+    antibiogram = load_hai_antibiogram()
+    valid_hai_types = set(HAI_TYPES)
+    valid_drugs = set(ANTIBIOTIC_DRUGS.keys())
+
+    for hai_type, organism_map in data.items():
+        if hai_type not in valid_hai_types:
+            raise ValueError(
+                f"narrow_ladder.yaml: unknown hai_type {hai_type!r}, "
+                f"expected one of {sorted(valid_hai_types)}"
+            )
+        for organism_snomed, drug_list in organism_map.items():
+            if organism_snomed not in antibiogram.get(hai_type, {}):
+                raise ValueError(
+                    f"narrow_ladder.yaml: organism {organism_snomed!r} "
+                    f"not in antibiogram for hai_type {hai_type!r}"
+                )
+            antibiogram_drugs = set(antibiogram[hai_type][organism_snomed].keys())
+            for drug_key in drug_list:
+                if drug_key not in valid_drugs:
+                    raise ValueError(
+                        f"narrow_ladder.yaml: drug_key {drug_key!r} "
+                        f"not in ANTIBIOTIC_DRUGS"
+                    )
+                if drug_key not in antibiogram_drugs:
+                    raise ValueError(
+                        f"narrow_ladder.yaml: drug_key {drug_key!r} for "
+                        f"{hai_type}/{organism_snomed} not in antibiogram "
+                        f"(combination is clinically irrelevant — see "
+                        f"hai_antibiogram.yaml omission rationale)"
+                    )
+
+
+@lru_cache(maxsize=1)
+def load_narrow_ladder() -> dict[str, dict[str, list[str]]]:
+    """Load + 3-way validate the PR3b-3 narrow ladder. Returns
+    ``{hai_type: {organism_snomed: [drug_key, ...]}}`` where the list is the
+    narrow→broad preference order."""
+    raw = yaml.safe_load(_NARROW_LADDER_YAML.read_text(encoding="utf-8"))
+    data = {k: dict(v) for k, v in dict(raw["narrow_ladder"]).items()}
+    _validate_narrow_ladder(data)
+    return data
 
 
 @lru_cache(maxsize=1)
