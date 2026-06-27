@@ -61,12 +61,17 @@ PR-A → Fix #100 → Fix #101 で確立した **silent-no-op 防御 3 層**(`_v
 
 ### 2.2 上流防御: `_validate_*` 4 loaders
 
-| commit | 対象 loader | `_validate_*` 関数 | catch する cross-references |
+| commit | 対象 loader | `_validate_*` 関数 | catch する cross-references(実装) |
 |---|---|---|---|
-| 2 | `hai/engine.py:load_hai_organisms` | `_validate_hai_organisms(data)` | (a) keys ⊆ HAI_TYPES、(b) 各 hai_type に organism リスト non-empty、(c) 各 weight ≥ 0、(d) sum > 0、(e) SNOMED が `clinosim.codes.lookup("snomed-ct", code)` で解決可能 |
-| 3 | `locale/loader.py:load_demographics` | `_validate_demographics(data)` | (a) smoking_dist keys が canonical set、(b) alcohol_dist keys が canonical set、(c) 各 dist non-empty + sum > 0 |
-| 4 | `locale/loader.py:load_names` | `_validate_names(data)` | (a) surnames リスト non-empty、(b) first_names per-sex リスト non-empty、(c) 各 weight ≥ 0、(d) 各 sum > 0 |
-| 4 | `locale/loader.py:load_addresses` | `_validate_addresses(data)` | (a) cities リスト non-empty、(b) 各 weight ≥ 0、(c) sum > 0 |
+| 2 | `hai/engine.py:load_hai_organisms` | `_validate_hai_organisms(data)` | (a) top-level shape(dict)、(b) keys ⊆ HAI_TYPES、(c) organism list が list 型 + non-empty、(d) 各 entry が dict、(e) 各 weight numeric + 非負、(f) sum > 0、(g) snomed が non-empty string |
+| 3 | `locale/loader.py:load_demographics` | `_validate_demographics(data)` | optional `lifestyle_distribution` block を検証 — (a) lifestyle が dict、(b) `smoking`/`alcohol` が dict、(c) 各 sex 配下が dict、(d) 各 weight numeric + 非負、(e) sum > 0(weight 列が存在する場合)。blocks/keys 自体は absent 許容 |
+| 4 | `locale/loader.py:load_names` | `_validate_names(data)` | optional `surnames` / `given_names_male` / `given_names_female` list を検証 — (a) top-level dict、(b) 各 key が list 型、(c) 各 entry が dict、(d) 各 weight numeric + 非負、(e) sum > 0(weight 列が存在する場合)。list 自体は absent / empty 許容(上流 `normalize_probabilities` が empty で raise) |
+| 4 | `locale/loader.py:load_addresses` | `_validate_addresses(data)` | optional `cities` を検証 — (a) top-level dict、(b) `cities` が list 型、(c) 各 entry が dict、(d) 各 weight numeric + 非負、(e) sum > 0。`cities` 自体は absent / empty 許容(上流 caller が `if not cities: return` で guard) |
+
+**設計判断**: 各 validator は **structural shape + numeric / non-negative weight + non-zero-sum** の **3 種類** を catch する。一方、(i) optional block の absent、(ii) optional list の empty、(iii) "canonical key 集合" の enforcement は **実装しない**。理由:
+- 上流 caller が `if not X: ...` などの guard を持つ場合、empty は実害ゼロ
+- canonical key 集合(例:smoking levels = `{never, former, current}`)は YAML 駆動の柔軟性を損なうため、**zero-sum 検出のみ**で silent uniform fallback を防ぐ方が合理的
+- spec の以前の "non-empty / canonical set" claim は overshoot — 実装は安全側でこれらを skip(adversarial review 2026-06-27 Agent 2 [Important] #2/#3 に対応した spec 修正)
 
 **配置原則**:
 - `_validate_*` は `load_*` 内部から呼ぶ(1 回目の load で 1 回 validate、`@lru_cache` 済の loader はパフォーマンス影響なし)
