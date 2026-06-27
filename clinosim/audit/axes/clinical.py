@@ -234,11 +234,24 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                 if _is_susceptibility_observation(row) is not None:
                     enc_has_susc[eid] = True
             total = len(enc_has_susc)
+            result.info[f"{country}_hai_empty_susc_n"] = total
             if total > 0:
                 empty_count = sum(1 for v in enc_has_susc.values() if not v)
                 empty_rate = empty_count / total
                 result.info[f"{country}_hai_empty_susc_rate"] = round(empty_rate, 3)
-                if empty_rate > empty_max:
+                # n<30 → WARN (consistent with R-rate + narrow-rate gates).
+                # Below this threshold the empty rate is dominated by
+                # rare-organism noise (E.faecalis / C.albicans HAI events have
+                # no S/I/R panel — at small N these inflate the rate well above
+                # the production 5% bound that assumed panel-eligible denominator).
+                if total < 30:
+                    result.findings.append(AuditFinding(
+                        Severity.WARN,
+                        f"{country}: empty-susceptibility cohort too small "
+                        f"(n={total}); rate gate not enforced "
+                        f"(observed={empty_rate:.3f}, max={empty_max})",
+                    ))
+                elif empty_rate > empty_max:
                     result.findings.append(AuditFinding(
                         Severity.FAIL,
                         f"{country}: empty-susceptibility rate {empty_rate:.3f} "
