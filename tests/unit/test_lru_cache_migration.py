@@ -70,3 +70,23 @@ def test_no_module_level_cache_in_fhir_diagnostic_report():
     """Module-level `_PANELS_CACHE: ... | None = None` must be removed."""
     import clinosim.modules.output._fhir_diagnostic_report as mod
     assert not hasattr(mod, "_PANELS_CACHE"), "module-level _PANELS_CACHE should be gone"
+
+
+# ---------- Silent skip removal: invalid YAML must raise ----------
+
+def test_load_all_disease_protocols_raises_on_invalid_yaml(monkeypatch):
+    """After silent-skip removal: invalid YAML must propagate the error
+    instead of being silently dropped (PR-A silent-no-op defense pattern)."""
+    from clinosim.modules.disease import protocol as disease_protocol
+    from clinosim.simulator import helpers
+
+    helpers._load_all_disease_protocols.cache_clear()
+
+    def fake_loader(disease_id: str):
+        if disease_id == "sepsis":
+            raise ValueError("synthetic invalid YAML")
+        return disease_protocol.load_disease_protocol(disease_id)
+
+    monkeypatch.setattr(helpers, "load_disease_protocol", fake_loader)
+    with pytest.raises(ValueError, match="synthetic invalid YAML"):
+        helpers._load_all_disease_protocols()
