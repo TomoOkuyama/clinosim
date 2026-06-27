@@ -23,7 +23,16 @@ from datetime import datetime
 
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS
-from clinosim.modules.antibiotic.engine import build_regimens, generate_mar_doses
+from clinosim.modules.antibiotic.engine import (
+    NarrowOutcome,
+    build_regimens,
+    generate_mar_doses,
+    load_narrow_ladder,
+    narrow_duration_days,
+    narrow_outcome,
+    select_narrow_target,
+)
+from clinosim.types.antibiotic import AntibioticRegimen
 from clinosim.types.encounter import Order, OrderStatus, OrderType
 from clinosim.types.hai import HAIEvent
 
@@ -111,3 +120,173 @@ def enrich_antibiotic(ctx) -> None:
                 rec.setdefault("extensions", {}).setdefault("antibiotic", []).extend(regimens_out)
             else:
                 rec.extensions.setdefault("antibiotic", []).extend(regimens_out)
+        # PR3b-3 Pass 2: narrow / de-escalation
+        _apply_pass2(rec, snapshot)
+
+
+# ---------------------------------------------------------------------------
+# PR3b-3 Pass 2 helpers
+# ---------------------------------------------------------------------------
+
+
+def _drug_slug(drug_key: str) -> str:
+    """Mirror engine._drug_slug — local copy avoids importing private helper."""
+    return drug_key.lower().replace("/", "_")
+
+
+def _truncate_mar(record, regimen: AntibioticRegimen) -> None:
+    """Drop MAR entries for this regimen scheduled after discontinuation_datetime.
+    Identifies regimen's MAR by matching order_id = f'req-{regimen.regimen_id}'."""
+    if regimen.discontinuation_datetime is None:
+        return
+    order_id = f"req-{regimen.regimen_id}"
+    if isinstance(record, dict):
+        mars = record.get("medication_administrations", [])
+    else:
+        mars = record.medication_administrations
+    kept = [m for m in mars if not (
+        m.order_id == order_id
+        and m.scheduled_datetime > regimen.discontinuation_datetime
+    )]
+    if isinstance(record, dict):
+        record["medication_administrations"] = kept
+    else:
+        record.medication_administrations = kept
+
+
+def _mark_order_stopped(record, regimen: AntibioticRegimen) -> None:
+    """Set the matching Order.status to OrderStatus.STOPPED."""
+    order_id = f"req-{regimen.regimen_id}"
+    orders = record.orders if not isinstance(record, dict) else record.get("orders", [])
+    for o in orders:
+        if o.order_id == order_id:
+            o.status = OrderStatus.STOPPED
+            return
+
+
+def _narrow_dose_frequency(drug_key: str) -> tuple[str, str]:
+    """Default narrow-target dose + frequency. Simplified per PR3b-1 (no eGFR
+    adjustment; future PR). Frequencies match hai_empirical.yaml conventions."""
+    table = {
+        "vancomycin":                    ("1g",     "q12h"),
+        "cefazolin":                     ("1g",     "q8h"),
+        "ceftriaxone":                   ("1g",     "q24h"),
+        "cefepime":                      ("1g",     "q8h"),
+        "piperacillin_tazobactam":       ("3.375g", "q6h"),
+        "meropenem":                     ("1g",     "q8h"),
+        "ciprofloxacin":                 ("400mg",  "q12h"),
+        "trimethoprim_sulfamethoxazole": ("160mg",  "q12h"),
+        "ampicillin":                    ("2g",     "q6h"),
+        "gentamicin":                    ("80mg",   "q8h"),
+    }
+    return table.get(drug_key, ("1g", "q12h"))
+
+
+def _apply_pass2(rec, snapshot: datetime) -> None:
+    """PR3b-3 Pass 2: walk extensions['antibiotic'] empirical regimens, look
+    up the HAI culture via MicrobiologyResult.hai_event_id, pick narrow target
+    via ladder, dispatch one of the three outcomes (spec §2.4)."""
+    ladder = load_narrow_ladder()
+    ext = _get(rec, "extensions", {}) or {}
+    regimens: list[AntibioticRegimen] = list(ext.get("antibiotic", []) or [])
+    if not regimens:
+        return
+    micro_list = _get(rec, "microbiology", []) or []
+
+    # Group empirical regimens by hai_event_id
+    by_event: dict[str, list[AntibioticRegimen]] = {}
+    for r in regimens:
+        if r.intent != "empirical":
+            continue
+        by_event.setdefault(r.hai_event_id, []).append(r)
+
+    hai_events = ext.get("hai", []) or []
+    hai_by_id = {ev.hai_id: ev for ev in hai_events}
+
+    new_regimens: list[AntibioticRegimen] = []
+    for hai_id, empirical_regimens in by_event.items():
+        ev = hai_by_id.get(hai_id)
+        if ev is None:
+            continue  # defensive: hai event vanished (should not happen)
+        micro = next(
+            (m for m in micro_list if m.hai_event_id == hai_id),
+            None,
+        )
+        if micro is None or micro.reported_datetime is None:
+            continue
+        if micro.reported_datetime > snapshot:
+            continue  # AD-32: report not available by snapshot
+
+        target = select_narrow_target(
+            micro.susceptibilities,
+            ladder.get(ev.hai_type, {}).get(ev.organism_snomed, []),
+        )
+        outcome = narrow_outcome(target, empirical_regimens)
+
+        if outcome == NarrowOutcome.NO_CHANGE:
+            continue
+
+        reported = micro.reported_datetime
+        if outcome == NarrowOutcome.ELIMINATION:
+            for r in empirical_regimens:
+                if r.drug_key == target:
+                    continue  # keep target unchanged
+                r.discontinuation_datetime = reported
+                _truncate_mar(rec, r)
+                _mark_order_stopped(rec, r)
+
+        elif outcome == NarrowOutcome.SWITCH:
+            # Discontinue every empirical regimen, then build new narrowed regimen
+            for r in empirical_regimens:
+                r.discontinuation_datetime = reported
+                _truncate_mar(rec, r)
+                _mark_order_stopped(rec, r)
+            template = empirical_regimens[0]
+            narrow_dur = narrow_duration_days(
+                template.start_datetime, reported, template.duration_days
+            )
+            narrow_dose, narrow_freq = _narrow_dose_frequency(target)
+            slug = _drug_slug(target)
+            new_regimen = AntibioticRegimen(
+                regimen_id=f"abx-{hai_id}-{slug}-narrowed",
+                hai_event_id=hai_id,
+                encounter_id=template.encounter_id,
+                drug_key=target,
+                dose=narrow_dose,
+                route="IV",
+                frequency=narrow_freq,
+                start_datetime=reported,
+                duration_days=narrow_dur,
+                intent="narrowed",
+            )
+            new_regimens.append(new_regimen)
+            order_id = f"req-{new_regimen.regimen_id}"
+            order = Order(
+                order_id=order_id,
+                encounter_id=template.encounter_id,
+                patient_id=_get(_get(rec, "patient", None), "patient_id", ""),
+                order_type=OrderType.MEDICATION,
+                display_name=ANTIBIOTIC_DRUGS.get(target, {}).get("name", target),
+                ordered_datetime=reported,
+                status=OrderStatus.ACCEPTED,
+                dose_unit=narrow_dose,
+                frequency=narrow_freq,
+                route="IV",
+                duration_days=narrow_dur,
+                reason_condition=hai_id,
+            )
+            if isinstance(rec, dict):
+                rec.setdefault("orders", []).append(order)
+            else:
+                rec.orders.append(order)
+            mars = generate_mar_doses(new_regimen, snapshot_datetime=snapshot, order_id=order_id)
+            if isinstance(rec, dict):
+                rec.setdefault("medication_administrations", []).extend(mars)
+            else:
+                rec.medication_administrations.extend(mars)
+
+    if new_regimens:
+        if isinstance(rec, dict):
+            rec.setdefault("extensions", {}).setdefault("antibiotic", []).extend(new_regimens)
+        else:
+            rec.extensions.setdefault("antibiotic", []).extend(new_regimens)
