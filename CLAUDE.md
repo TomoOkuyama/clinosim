@@ -153,6 +153,8 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 
 **v0.2** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 32 diseases + 46 ED/outpatient conditions, snapshot date support, opt-in JP insurance enrollment (FHIR Coverage, AD-54), and the complete **AD-55 Base data-enrichment set**: microbiology, cardiac markers, nursing flowsheets, immunization, family history, code status, and extended SDOH (smoking/alcohol/JP 要介護度). The FHIR adapter is split into per-theme `_fhir_*` builder modules (FA-1).
 
+**Silent-no-op defense triplet** is fully wired across the codebase (PR #102 / #103 2026-06-27): (1) canonical constants(例 `HAI_TYPES`)を module-level に定義、(2) `_validate_*(data) -> None` を 5 主要 YAML loader(`_validate_microbiology` PR-A 7 cross-refs + `_validate_hai_organisms` + `_validate_demographics` + `_validate_names` + `_validate_addresses`)に wire(import 時 fail-loud)、(3) `normalize_probabilities(..., fallback="raise")` を全 **15 YAML-sourced callsites** に適用(7 modules: code_status / population / clinical_course / hai / family_history / observation / care_level)。test 補強 + 4-stage adversarial chain converged で検証済(unit / integration / e2e: 1020 passed, 4 skipped)。
+
 See `TODO.md` for roadmap and remaining tasks.
 
 ## Key directories
