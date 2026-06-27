@@ -72,6 +72,53 @@ def test_no_module_level_cache_in_fhir_diagnostic_report():
     assert not hasattr(mod, "_PANELS_CACHE"), "module-level _PANELS_CACHE should be gone"
 
 
+# ---------- L4-L6: _fhir_localization.py 3 sibling loaders (Fix PR-1) ----------
+
+def test_l4_load_med_terms_ja_uses_lru_cache():
+    from clinosim.modules.output._fhir_localization import _load_med_terms_ja
+    _load_med_terms_ja.cache_clear()
+    info0 = _load_med_terms_ja.cache_info()
+    assert info0.hits == 0
+    data1 = _load_med_terms_ja()
+    data2 = _load_med_terms_ja()
+    info1 = _load_med_terms_ja.cache_info()
+    assert info1.hits >= 1
+    assert data1 is data2
+
+
+def test_l5_load_drug_names_ja_uses_lru_cache():
+    from clinosim.modules.output._fhir_localization import _load_drug_names_ja
+    _load_drug_names_ja.cache_clear()
+    info0 = _load_drug_names_ja.cache_info()
+    assert info0.hits == 0
+    data1 = _load_drug_names_ja()
+    data2 = _load_drug_names_ja()
+    info1 = _load_drug_names_ja.cache_info()
+    assert info1.hits >= 1
+    assert data1 is data2
+
+
+def test_l6_load_department_display_uses_lru_cache():
+    from clinosim.modules.output._fhir_localization import _load_department_display
+    _load_department_display.cache_clear()
+    info0 = _load_department_display.cache_info()
+    assert info0.hits == 0
+    data1 = _load_department_display()
+    data2 = _load_department_display()
+    info1 = _load_department_display.cache_info()
+    assert info1.hits >= 1
+    assert data1 is data2
+
+
+def test_no_module_level_cache_in_fhir_localization():
+    """Module-level `_med_terms_ja` / `_drug_names_ja` / `_department_display`
+    sentinel variables must be removed (replaced by @lru_cache)."""
+    import clinosim.modules.output._fhir_localization as mod
+    assert not hasattr(mod, "_med_terms_ja"), "module-level _med_terms_ja should be gone"
+    assert not hasattr(mod, "_drug_names_ja"), "module-level _drug_names_ja should be gone"
+    assert not hasattr(mod, "_department_display"), "module-level _department_display should be gone"
+
+
 # ---------- Silent skip removal: invalid YAML must raise ----------
 
 def test_load_all_disease_protocols_raises_on_invalid_yaml(monkeypatch):
