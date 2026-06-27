@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -10,8 +11,6 @@ from pydantic import BaseModel, ConfigDict
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
-
-_cache: dict[str, dict[str, Any]] | None = None
 
 
 class EncounterConditionProtocol(BaseModel):
@@ -47,11 +46,9 @@ def load_encounter_condition(condition_id: str) -> dict[str, Any]:
     return data
 
 
+@lru_cache(maxsize=1)
 def load_all_encounter_conditions() -> dict[str, dict[str, Any]]:
     """Auto-discover, validate, and load all encounter condition YAMLs. Cached."""
-    global _cache
-    if _cache is not None:
-        return _cache
     conditions: dict[str, dict[str, Any]] = {}
     for yaml_file in sorted(_REF_DIR.glob("*.yaml")):
         data = yaml.safe_load(yaml_file.read_text())
@@ -61,5 +58,4 @@ def load_all_encounter_conditions() -> dict[str, dict[str, Any]]:
             raise ValueError(f"Invalid encounter condition YAML: {yaml_file.name}") from exc
         cid = data.get("condition_id", yaml_file.stem)
         conditions[cid] = data
-    _cache = conditions
     return conditions

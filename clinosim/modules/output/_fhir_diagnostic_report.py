@@ -11,6 +11,7 @@ Spec: docs/superpowers/specs/2026-06-22-diagnostic-report-panels-design.md
 from __future__ import annotations
 
 from collections import defaultdict
+from functools import lru_cache
 from pathlib import Path
 from typing import NamedTuple
 
@@ -22,21 +23,18 @@ from clinosim.codes import get_system_uri, lookup as _codes_lookup
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 _PANEL_REF = _REF_DIR / "lab_panel_groups.yaml"
-_PANELS_CACHE: dict[str, dict] | None = None
 
 
+@lru_cache(maxsize=1)
 def load_panel_groups() -> dict[str, dict]:
     """Return the panel definitions from lab_panel_groups.yaml (cached).
 
     Key order matches the YAML insertion order, which is the grouping
     priority (ABG > CBC > BMP > LFT > Lipid > Coag > UA).
     """
-    global _PANELS_CACHE
-    if _PANELS_CACHE is None:
-        with open(_PANEL_REF) as f:
-            data = yaml.safe_load(f) or {}
-        _PANELS_CACHE = data.get("panels") or {}
-    return _PANELS_CACHE
+    with open(_PANEL_REF) as f:
+        data = yaml.safe_load(f) or {}
+    return data.get("panels") or {}
 
 
 class _GroupedPanel(NamedTuple):

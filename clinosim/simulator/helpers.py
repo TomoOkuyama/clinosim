@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from functools import lru_cache
 from typing import Any
 
 import numpy as np
@@ -14,14 +15,9 @@ from clinosim.types.output import CIFPatientRecord
 from clinosim.types.patient import PatientProfile
 
 
-_protocol_cache: dict[str, DiseaseProtocol] | None = None
-
-
+@lru_cache(maxsize=1)
 def _load_all_disease_protocols() -> dict[str, DiseaseProtocol]:
     """Auto-discover and load all disease protocol YAMLs. Cached after first call."""
-    global _protocol_cache
-    if _protocol_cache is not None:
-        return _protocol_cache
     from pathlib import Path
     ref_dir = Path(__file__).parent.parent / "modules" / "disease" / "reference_data"
     protocols: dict[str, DiseaseProtocol] = {}
@@ -31,7 +27,6 @@ def _load_all_disease_protocols() -> dict[str, DiseaseProtocol]:
             protocols[disease_id] = load_disease_protocol(disease_id)
         except Exception:
             pass
-    _protocol_cache = protocols
     return protocols
 
 
