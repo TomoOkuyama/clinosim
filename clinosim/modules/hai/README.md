@@ -153,6 +153,7 @@ CIF 上の location:
 | `clinosim/simulator/inpatient.py` | encounter 完了直後に `run_stage(POST_ENCOUNTER, ...)` で hai を発火させ、続けて `apply_hai_lab_lift(record, encounter, state_history, admission_time)` で同 encounter の WBC + CRP に forward-delta 適用 (Phase 3a) | core (build pipeline) |
 | `clinosim/modules/output/_fhir_hai.py` | `extensions["hai"]` を読んで HAI Condition を emit | medium (FHIR output) |
 | `clinosim/modules/output/_fhir_microbiology.py` (既存) | `record.microbiology` を読んで HAI culture (Specimen + Observation + DR) を emit | medium (cross-cutting; PR-B が culture を append しても既存 builder が変更なく動く) |
+| `clinosim/modules/antibiotic/enricher.py` (PR3b-3 Pass 2) | `MicrobiologyResult.hai_event_id` backref を読んで empirical → narrow de-escalation を選定 (`extensions["hai"]` 経由で hai_type + organism_snomed を参照) | medium (downstream consumer; HAI のみが culture + organism を produce する責務) |
 | `tests/unit/test_hai_engine.py` | engine unit tests (9) | guard |
 | `tests/unit/test_hai_enricher.py` | enricher unit tests (6) | guard |
 | `tests/unit/test_hai_codes_coverage.py` | code coverage smoke (9 parametrize) | guard |
@@ -258,4 +259,4 @@ vap:
 - DQR reviews:
   - `docs/reviews/2026-06-24-hai-module-data-quality-review.md` (Phase PR-B)
   - `docs/reviews/2026-06-26-phase-3b-2-hai-susceptibility-data-quality-review.md` (Phase 3b-2)
-- **PR3b-3 forward-compat reserves**: `MicrobiologyResult.hai_event_id` + `AntibioticRegimen.discontinuation_datetime` は Phase 3b-3 (narrow / de-escalation chain) が消費予定。現在は non-empty / None のままで発行される。
+- ~~PR3b-3 forward-compat reserves~~: ✓ done 2026-06-27 — `MicrobiologyResult.hai_event_id` + `AntibioticRegimen.discontinuation_datetime` + `intent="narrowed"` を Phase 3b-3 (narrow / de-escalation chain) で load-bearing 消費。hai_event_id は antibiotic enricher Pass 2 の backref lookup として、discontinuation_datetime は empirical truncation の時刻として、intent="narrowed" は switch case の新 regimen marker として使用。
