@@ -560,9 +560,12 @@ memory: test green + final review APPROVE is not ship-ready; fix PRs themselves
 need adversarial review (3-stage chain pattern from PR-93/#94/#95 re-confirmed).
 
 Phase 3b backlog (remaining):
-- PR3b-3 (next candidate): narrow / de-escalation chain after S report; must wire
-  `hai_resistance_bands` + `hai_empty_susceptibilities_max_rate` from
-  `modules/antibiotic/audit.py` into clinical axis enforcement (TODO comment in audit.py)
+- ~~PR3b-3~~: ✓ done 2026-06-27 — narrow / de-escalation chain. Same `enrich_antibiotic`
+  Pass 2 reads `MicrobiologyResult.hai_event_id` backref → ladder walk → 3 outcomes
+  (SWITCH / ELIMINATION / NO_CHANGE). New `narrow_ladder.yaml` (3-way validated).
+  `OrderStatus.STOPPED` + FHIR `MedicationRequest.status="stopped"` wiring.
+  Audit clinical axis active enforcement: NHSN R-rate + empty rate + new narrow rate.
+  `lift_firing_proof` extended to 17 equality_checks (8+3+6).
 - PR3b-4: WBC/CRP decay phase coupled with antibiotic-day count
 
 Phase 3c backlog:
@@ -583,7 +586,7 @@ byte-IDENTICAL — audit framework is pure read-only consumer. See
 Per-Module audit.py backlog for Phase 3b/c:
 - modules/antibiotic/audit.py ✓ done 2026-06-25 (PR3b-1, empirical regimen + lift_firing_proof)
 - modules/antibiotic/audit.py ✓ extended 2026-06-26 (PR3b-2: _ABX_LOINCS + _NHSN_RESISTANCE_BANDS + HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE + antibiogram_firing_proof)
-- modules/antibiotic/audit.py — PR3b-3: enforce clinical axis with hai_resistance_bands + hai_empty_susceptibilities_max_rate (TODO comment in audit.py)
+- modules/antibiotic/audit.py ✓ extended 2026-06-27 (PR3b-3: _NARROW_RATE_BANDS + _pr3b3_narrow_proof_checks (6 checks) + load_narrow_ladder import-time touch; clinical axis active enforcement of all 3 gates in clinosim/audit/axes/clinical.py)
 - modules/decay/audit.py (Phase 3b-4: WBC/CRP antibiotic-day decay)
 - modules/mortality/audit.py (Phase 3c: HAI → outcome coupling)
 - modules/sepsis_cascade/audit.py (Phase 3c: Lactate/Plt/Temp/SBP)
