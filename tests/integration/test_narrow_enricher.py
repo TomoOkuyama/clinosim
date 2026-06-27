@@ -258,3 +258,18 @@ def test_fhir_medicationrequest_status_stopped_for_discontinued_empirical() -> N
     active_count = sum(1 for _, s in statuses if s == "active")
     assert stopped_count == 2
     assert active_count == 1
+
+
+@pytest.mark.integration
+def test_fhir_medicationrequest_status_cancelled_pin() -> None:
+    """Regression pin (adversarial-1 I-C1): cancelled OrderStatus must map to
+    FHIR MedicationRequest.status='cancelled' (existing behavior; previously
+    not pinned by any test so a future _map_order_status_to_fhir edit could
+    silently drop the mapping)."""
+    from clinosim.modules.output._fhir_medications import _map_order_status_to_fhir
+    assert _map_order_status_to_fhir("cancelled") == "cancelled"
+    assert _map_order_status_to_fhir("stopped") == "stopped"
+    assert _map_order_status_to_fhir("accepted") == "active"
+    assert _map_order_status_to_fhir("placed") == "active"
+    # Unknown / future values fall back to "active" — documented in helper
+    assert _map_order_status_to_fhir("future_status") == "active"

@@ -28,10 +28,24 @@ from clinosim.modules.output._fhir_reference_data import _ROUTE_SNOMED
 
 def _map_order_status_to_fhir(status: str) -> str:
     """Map clinosim OrderStatus to FHIR R4 MedicationRequest.status.
-    PR3b-3 adds 'stopped' mapping for discontinued empirical regimens."""
+    PR3b-3 adds 'stopped' mapping for discontinued empirical regimens.
+
+    PR3b-3 adversarial-1 I-C2 fix: known OrderStatus values map deterministically;
+    unknown values still fall back to "active" (FHIR valid) but the mapping is
+    explicit so a future enum addition is caught by mypy strict / code review.
+    """
+    # All OrderStatus values exhaustively mapped (matches clinosim/types/encounter.py).
+    # Adding a new OrderStatus enum value requires updating this mapping —
+    # the comment + explicit listing surface the silent-no-op risk loud at
+    # code review time (adversarial-1 I-C2).
     mapping = {
+        "placed": "active",       # order placed but not yet acted on
+        "accepted": "active",     # default operational state
+        "in_progress": "active",  # in progress
+        "resulted": "active",     # not normally used for MedicationRequest (lab path)
+        "reviewed": "active",     # not normally used for MedicationRequest (lab path)
         "cancelled": "cancelled",
-        "stopped": "stopped",  # PR3b-3: narrowed / de-escalated empirical
+        "stopped": "stopped",     # PR3b-3: narrowed / de-escalated empirical
     }
     return mapping.get(status, "active")
 
