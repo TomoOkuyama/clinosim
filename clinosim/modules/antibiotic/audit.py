@@ -18,21 +18,26 @@ This is the load-bearing PR-90 silent-no-op gate for PR3b-1 + PR3b-2.
 Registered checks:
 - canonical_constants: HAI_TYPES + ANTIBIOTIC_DRUGS cross-validate
   against hai_empirical.yaml at import time (via load_hai_empirical).
+  PR3b-3 adds load_narrow_ladder() touch with 4-way validation (forward
+  + reverse-coverage + empty-container) at audit module import.
 - structural_obs_codes: empty — susceptibility Observations use
   valueCodeableConcept (categorical S/I/R) rather than valueQuantity +
   referenceRange + interpretation; the structural axis numeric-coverage
-  check does not apply to categorical observations. LOINC presence is
-  verified end-to-end by the combined proof (silent_no_op axis). See
-  _ABX_LOINCS for the full set. PR3b-3 will extend the clinical axis to
-  run population-level R-rate checks against these LOINCs.
+  check does not apply to categorical observations. See _ABX_LOINCS for
+  the full set. PR3b-3 extended the clinical axis with population-level
+  R-rate gate against these LOINCs (per-organism filter deferred to
+  follow-up; see clinical.py TODO).
 - clinical_acceptance: per-HAI-type expected drug set + duration +
-  min_mar_per_event + NHSN resistance band metadata (nhsn_r_bands key).
-  The clinical axis reads WBC_delta_p50 / CRP_delta_p50 keys only;
-  resistance-band population-level checks deferred to PR3b-3.
-- lift_firing_proof (_build_combined_proof): merged PR3b-1 + PR3b-2.
+  min_mar_per_event + NHSN resistance band metadata (nhsn_r_bands key) +
+  PR3b-3 narrow_rate_bands (per-hai_type aggregate) +
+  hai_empty_susceptibilities_max_rate. The clinical axis enforces all
+  three gates (R-rate + empty-rate + narrow-rate) with n<30 → WARN
+  guards.
+- lift_firing_proof (_build_combined_proof): merged PR3b-1 + PR3b-2 + PR3b-3.
     PR3b-1 (regimen): CAUTI ceftriaxone — 8 equality_checks.
     PR3b-2 (antibiogram): CLABSI S. aureus susceptibility chain — 3 checks.
-  All 11 equality_checks run in one silent_no_op axis pass.
+    PR3b-3 (narrow): CLABSI MSSA SWITCH → cefazolin — 6 checks.
+  All 17 equality_checks run in one silent_no_op axis pass.
 """
 
 from __future__ import annotations
@@ -55,27 +60,30 @@ from clinosim.types.hai import HAIEvent
 # structural_obs_codes because categorical observations have no referenceRange.
 _ABX_LOINCS: frozenset[str] = frozenset(ANTIBIOTIC_LOINC_LOOKUP.values())
 
-# TODO(PR3b-3): _NHSN_RESISTANCE_BANDS and HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE
-# are surfaced in clinical_acceptance metadata for the audit clinical axis,
-# but not actively enforced. PR3b-3 (narrow / de-escalation) will:
-#   - extend clinical.py to compute observed R-rate per (hai_type, organism,
-#     antibiotic) cohort and compare against expected_R_min/expected_R_max.
-#   - extend clinical.py to compute empty-susceptibilities rate per HAI cohort
-#     and compare against hai_empty_susceptibilities_max_rate.
-# For now (PR3b-2), the bands are reported but not gating. The
-# antibiogram_firing_proof in silent_no_op axis remains the load-bearing
-# PR-90-class silent-no-op gate.
-# Cohort string convention: "<hai_type>/<organism_snomed>" (exactly 2 components).
-# Parse with: hai_type, org_snomed = band["cohort"].split("/", maxsplit=1)
-# Adding a 3rd dimension (e.g., "clabsi/3092008/icu") requires changing to a
-# structured type (dataclass or TypedDict). Do NOT use split("/") without maxsplit.
+# PR3b-3 (2026-06-27) wired active enforcement of these bands in
+# clinosim/audit/axes/clinical.py:
+#   - NHSN R-rate gate (per-(hai_type, antibiotic) cohort) — see clinical.py
+#     "PR3b-3: NHSN R-rate gate" block. TODO: per-organism filter requires
+#     DiagnosticReport walk; documented in clinical.py.
+#   - empty-susceptibilities rate gate (per panel-eligible HAI cohort) — see
+#     clinical.py "PR3b-3: empty-susceptibilities rate gate" block. n<30 →
+#     WARN guard added in adversarial-1 fix for consistency.
+#   - narrow-rate gate (per-hai_type aggregate) — see clinical.py
+#     "PR3b-3: narrow-rate gate" block. Cohort key format is per-hai_type
+#     only (single string), not per-(hai_type, organism) — adversarial-1
+#     C-1 fix corrected the format mismatch.
 #
-# PR3b-2: NHSN Antimicrobial Resistance Report 2018-2020 acceptance bands.
+# Cohort string convention (NHSN R-bands): "<hai_type>/<organism_snomed>"
+# (exactly 2 components). Parse with: hai_type, org_snomed = band["cohort"]
+# .split("/", maxsplit=1). Adding a 3rd dimension (e.g., "clabsi/3092008/icu")
+# requires changing to a structured type (dataclass or TypedDict). Do NOT
+# use split("/") without maxsplit.
+#
+# Cohort string convention (narrow rate bands, PR3b-3 adv-1):
+# "<hai_type>" only. Single string, no slash. Validated by
+# _validate_narrow_rate_bands.
+#
 # Sources: CDC NHSN "Antimicrobial Resistance Patterns in Acute Care Hospitals" 2018-2020.
-# Stored as top-level clinical_acceptance["hai_resistance_bands"] AND as per-HAI-type
-# clinical_acceptance["*"]["nhsn_r_bands"] for convenience. The clinical axis
-# reads WBC/CRP delta keys only; population-level R-rate checks deferred to PR3b-3
-# (requires walking Observation.ndjson for susceptibility LOINCs).
 _NHSN_RESISTANCE_BANDS: list[dict[str, Any]] = [
     {
         "cohort": "clabsi/3092008",  # S. aureus CLABSI
@@ -112,7 +120,11 @@ _NHSN_RESISTANCE_BANDS: list[dict[str, Any]] = [
 # make the gate always-FAIL. The 5% threshold is 10× the measured rate at p=10k
 # (0.5%) to give safety margin for small-p Bernoulli noise.
 #
-# TODO(PR3b-3): wire this in clinical.py with the panel-eligible filter.
+# PR3b-3 (2026-06-27) wired the empty-rate gate in clinical.py (without the
+# panel-eligible filter — the n<30 WARN guard provides safety until the filter
+# is added). TODO(post-PR3b-3): implement panel-eligible filter by walking
+# DiagnosticReport.ndjson for organism per cohort encounter and excluding
+# E.faecalis 78065002 + C.albicans 53326005 from the denominator.
 HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE: float = 0.05
 
 
@@ -360,28 +372,90 @@ def _build_combined_proof() -> dict[str, Any]:
     }
 
 
-# PR3b-3 narrow rate bands (per cohort), derived from antibiogram S-rates.
-# Used by the audit clinical axis (Task 6) for active enforcement.
+# PR3b-3 narrow rate bands per hai_type (adversarial-1 C-1 + C-2 fix:
+# previously the cohort key was "<hai_type>/<organism_snomed>" but the
+# clinical-axis gate parsed and DISCARDED organism, filtering only by hai_type.
+# Bands were calibrated as if per-organism but enforced per-hai_type → would
+# FAIL at production n≥30 on correct behavior. Realign cohort format to match
+# what the gate actually measures: per-hai_type aggregate narrow rate.
+#
+# Aggregate narrow rate per hai_type (Pass 2 fires when culture has S in ladder
+# AND the S drug differs from any existing empirical OR there's a multi-drug
+# empirical with an S target = ELIMINATION; vancomycin S → MRSA ELIMINATION
+# always fires on multi-drug CLABSI/VAP empirical):
+#   - CLABSI: ~75-95% (vancomycin always S → ELIMINATION fires on every
+#     CLABSI with multi-drug empirical; cefazolin S adds SWITCH ~25%;
+#     gram-neg organisms get SWITCH ~85-92%; E.faecalis/C.albicans no panel
+#     = NO_CHANGE; weighted average ~75-90%)
+#   - CAUTI: ~60-95% (ceftriaxone single-drug empirical; narrow targets via
+#     TMP-SMX / cipro / cefepime / meropenem ladder; only when ladder picks
+#     ceftriaxone itself = NO_CHANGE)
+#   - VAP: ~75-95% (multi-drug vanc + pip-tazo empirical; vancomycin always S
+#     → ELIMINATION on every VAP with S.aureus / S.epidermidis; gram-neg
+#     coverage mostly SWITCH)
 _NARROW_RATE_BANDS: list[dict[str, Any]] = [
     {
-        "cohort": "clabsi/3092008",
-        "expected_narrow_rate_min": 0.40,
-        "expected_narrow_rate_max": 0.60,
-        "source": "antibiogram-derived (cefazolin S = 53% → narrow_rate ≈ 53%)",
+        "cohort": "clabsi",
+        "expected_narrow_rate_min": 0.60,
+        "expected_narrow_rate_max": 1.00,
+        "source": "Aggregate per-hai_type: vancomycin always-S ELIMINATION + "
+                  "cefazolin SWITCH + gram-neg SWITCH (NHSN AR 2018-2020 weighted)",
     },
     {
-        "cohort": "cauti/112283007",
-        "expected_narrow_rate_min": 0.10,
-        "expected_narrow_rate_max": 0.30,
-        "source": "antibiogram-derived (NHSN AR 2018-2020 ceftriaxone R = 12-22%)",
+        "cohort": "cauti",
+        "expected_narrow_rate_min": 0.50,
+        "expected_narrow_rate_max": 1.00,
+        "source": "Aggregate per-hai_type: ceftriaxone single-empirical, ladder "
+                  "walk picks narrower target ~80-95% of E.coli / K.pneumoniae "
+                  "(NHSN AR 2018-2020 weighted)",
     },
     {
-        "cohort": "vap/3092008",
-        "expected_narrow_rate_min": 0.40,
-        "expected_narrow_rate_max": 0.60,
-        "source": "antibiogram-derived (cefazolin S = 65% → narrow_rate ≈ 65%)",
+        "cohort": "vap",
+        "expected_narrow_rate_min": 0.60,
+        "expected_narrow_rate_max": 1.00,
+        "source": "Aggregate per-hai_type: vancomycin always-S ELIMINATION on "
+                  "S.aureus VAP + cefazolin SWITCH (MSSA) + gram-neg ladder SWITCH",
     },
 ]
+
+
+# adversarial-1 I-G3 fix: validate _NARROW_RATE_BANDS at import time so a typo
+# in cohort string (e.g. "clabis" instead of "clabsi") raises ValueError
+# instead of silently no-op'ing the gate (matches _validate_nhsn_resistance_bands
+# pattern). Cohort format is per-hai_type only (no slash).
+def _validate_narrow_rate_bands() -> None:
+    """Cross-check _NARROW_RATE_BANDS cohort + band shape (adversarial-1 I-G3)."""
+    valid_hai_types = set(HAI_TYPES)
+    for band in _NARROW_RATE_BANDS:
+        cohort = band.get("cohort", "")
+        if "/" in cohort:
+            raise ValueError(
+                f"_NARROW_RATE_BANDS cohort {cohort!r} must be <hai_type> only "
+                f"(no slash) — adversarial-1 C-1 fix realigned cohort format to "
+                f"per-hai_type aggregate"
+            )
+        if cohort not in valid_hai_types:
+            raise ValueError(
+                f"_NARROW_RATE_BANDS cohort {cohort!r} not in HAI_TYPES "
+                f"{sorted(valid_hai_types)}"
+            )
+        for required_key in ("expected_narrow_rate_min", "expected_narrow_rate_max", "source"):
+            if required_key not in band:
+                raise ValueError(
+                    f"_NARROW_RATE_BANDS band {cohort!r} missing required key {required_key!r}"
+                )
+        mn = band["expected_narrow_rate_min"]
+        mx = band["expected_narrow_rate_max"]
+        if not (0.0 <= mn <= mx <= 1.0):
+            raise ValueError(
+                f"_NARROW_RATE_BANDS band {cohort!r} invalid range "
+                f"[{mn}, {mx}] (must satisfy 0 ≤ min ≤ max ≤ 1)"
+            )
+
+
+# adversarial-1 I-D3 fix: validators now run BEFORE register_audit_module so that
+# a band-shape failure prevents stale spec from registering.
+_validate_narrow_rate_bands()
 
 
 register_audit_module(

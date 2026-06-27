@@ -186,8 +186,14 @@ def _check_medication_holds(
             # Skip hold instructions (these contain "metformin" but are not administration)
             if "hold" in intent or "held" in intent:
                 continue
-            # Skip cancelled orders (held/cancelled during admission)
-            if hasattr(order, 'status') and order.status.value in ('cancelled', 'discontinued'):
+            # Skip cancelled / stopped orders (held / discontinued during admission).
+            # 'discontinued' is not a real OrderStatus value (was a typo in prior
+            # versions, dead code retained for defensive matching).
+            # 'stopped' added in PR3b-3 (adversarial-1 I-G2 fix) for narrow /
+            # de-escalation chain — these orders are not active medications.
+            if hasattr(order, 'status') and order.status.value in (
+                'cancelled', 'discontinued', 'stopped'
+            ):
                 continue
             if "metformin" in name:
                 report.add(ConsistencyIssue(

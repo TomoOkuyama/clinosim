@@ -174,6 +174,20 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
 
         # ---------------------------------------------------------------
         # PR3b-3: NHSN R-rate gate per (hai_type, antibiotic) cohort
+        #
+        # TODO(post-PR3b-3): per-organism filter. The bands in
+        # _NHSN_RESISTANCE_BANDS have a cohort key "<hai_type>/<organism>"
+        # (e.g. clabsi/3092008 = S.aureus only) but this implementation
+        # filters by hai_type only — organism is parsed (next line) but not
+        # used in the cohort_enc_set lookup. At production n≥30 this could
+        # mis-attribute R-rates (e.g. cefazolin R% averaged over S.aureus +
+        # CoNS + E.coli encounters instead of S.aureus only). Currently safe
+        # behind n<30 WARN guard. Proper fix requires walking
+        # DiagnosticReport.ndjson per cohort encounter to map organism →
+        # encounter set, then filtering. Deferred to a follow-up PR (the
+        # adversarial-1 narrow-rate gate fix takes the simpler approach of
+        # dropping organism from cohort key; for R-rate the organism IS the
+        # measurement basis so cannot be dropped).
         # ---------------------------------------------------------------
         r_bands = spec.clinical_acceptance.get("hai_resistance_bands") or []
         if r_bands:
@@ -259,12 +273,17 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                     ))
 
         # ---------------------------------------------------------------
-        # PR3b-3: narrow-rate gate per cohort
+        # PR3b-3: narrow-rate gate per hai_type (adversarial-1 C-1 fix:
+        # cohort format is now just "<hai_type>", not "<hai_type>/<organism>";
+        # the gate measures per-hai_type aggregate narrow rate, which matches
+        # what bands are calibrated against). Brittle "stopped" filter narrowed
+        # to require the abx-hai- id prefix so non-antibiotic stops don't
+        # inflate narrow_count (adversarial-1 I-G2 fix).
         # ---------------------------------------------------------------
         narrow_bands = spec.clinical_acceptance.get("narrow_rate_bands") or []
         if narrow_bands:
             for band in narrow_bands:
-                hai_type_b, _organism_b = band["cohort"].split("/", maxsplit=1)
+                hai_type_b = band["cohort"]  # per-hai_type only (no organism)
                 cohort_enc_set = cohort_enc.get(hai_type_b, set())
                 if not cohort_enc_set:
                     result.info[f"{country}_{band['cohort']}_narrow_n"] = 0
@@ -274,7 +293,14 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                     eid = _enc_id(row)
                     if eid not in enc_narrowed:
                         continue
-                    if row.get("status") == "stopped" or row.get("id", "").endswith("-narrowed"):
+                    rid = row.get("id", "")
+                    # Antibiotic order ids are prefixed with the encounter id,
+                    # then "req-abx-hai-..." or "req-abx-hai-...-narrowed".
+                    # Filter to antibiotic origin so future non-abx stopped
+                    # orders cannot inflate narrow_count.
+                    if "req-abx-hai-" not in rid:
+                        continue
+                    if row.get("status") == "stopped" or rid.endswith("-narrowed"):
                         enc_narrowed[eid] = True
                 total = len(enc_narrowed)
                 narrow_count = sum(1 for v in enc_narrowed.values() if v)
