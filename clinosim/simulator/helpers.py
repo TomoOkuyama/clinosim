@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from functools import lru_cache
 from typing import Any
 
 import numpy as np
@@ -14,24 +15,23 @@ from clinosim.types.output import CIFPatientRecord
 from clinosim.types.patient import PatientProfile
 
 
-_protocol_cache: dict[str, DiseaseProtocol] | None = None
-
-
+@lru_cache(maxsize=1)
 def _load_all_disease_protocols() -> dict[str, DiseaseProtocol]:
-    """Auto-discover and load all disease protocol YAMLs. Cached after first call."""
-    global _protocol_cache
-    if _protocol_cache is not None:
-        return _protocol_cache
+    """Auto-discover and load all disease protocol YAMLs. Cached after first call.
+
+    No silent skip: an invalid YAML raises ValueError loudly (silent-no-op
+    defense, PR-A lesson — `try/except pass` was hiding YAML editing
+    accidents in production until they surfaced as missing-disease bugs
+    downstream). Production assumption: every clinosim/modules/disease/
+    reference_data/*.yaml file loads cleanly via load_disease_protocol().
+    Verified at byte-diff Full (US p=10000 + JP p=5000, seed=42).
+    """
     from pathlib import Path
     ref_dir = Path(__file__).parent.parent / "modules" / "disease" / "reference_data"
     protocols: dict[str, DiseaseProtocol] = {}
     for yaml_file in sorted(ref_dir.glob("*.yaml")):
         disease_id = yaml_file.stem
-        try:
-            protocols[disease_id] = load_disease_protocol(disease_id)
-        except Exception:
-            pass
-    _protocol_cache = protocols
+        protocols[disease_id] = load_disease_protocol(disease_id)
     return protocols
 
 
