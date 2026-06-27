@@ -39,23 +39,39 @@ FREQ_PER_DAY: dict[str, int] = {
 
 
 def _validate_narrow_ladder(data: dict[str, dict[str, list[str]]]) -> None:
-    """3-way cross-validation: every (hai_type, organism, drug_key) entry must
-    be in HAI_TYPES + hai_antibiogram + ANTIBIOTIC_DRUGS. Raises ValueError
-    at load time to surface silent-no-op risk (PR-90 教訓 / CLAUDE.md
-    silent-no-op defense triplet)."""
+    """4-way cross-validation: every (hai_type, organism, drug_key) entry must
+    be in HAI_TYPES + hai_antibiogram + ANTIBIOTIC_DRUGS, AND every
+    (hai_type, organism) in the antibiogram MUST have a ladder entry
+    (reverse-coverage = adversarial-1 fix). Empty top-level / empty drug
+    list also rejected. Raises ValueError at load time to surface
+    silent-no-op risk (PR-90 教訓 / CLAUDE.md silent-no-op defense triplet)."""
     from clinosim.modules.hai import load_hai_antibiogram  # local: avoid circular import
+
+    if not data:
+        raise ValueError("narrow_ladder.yaml: empty narrow_ladder (PR-90 class silent no-op)")
 
     antibiogram = load_hai_antibiogram()
     valid_hai_types = set(HAI_TYPES)
     valid_drugs = set(ANTIBIOTIC_DRUGS.keys())
 
+    # Forward: every ladder entry is valid
     for hai_type, organism_map in data.items():
         if hai_type not in valid_hai_types:
             raise ValueError(
                 f"narrow_ladder.yaml: unknown hai_type {hai_type!r}, "
                 f"expected one of {sorted(valid_hai_types)}"
             )
+        if not organism_map:
+            raise ValueError(
+                f"narrow_ladder.yaml: hai_type {hai_type!r} has empty "
+                f"organism map (PR-90 class silent no-op)"
+            )
         for organism_snomed, drug_list in organism_map.items():
+            if not drug_list:
+                raise ValueError(
+                    f"narrow_ladder.yaml: empty drug list for "
+                    f"{hai_type}/{organism_snomed} (PR-90 class silent no-op)"
+                )
             if organism_snomed not in antibiogram.get(hai_type, {}):
                 raise ValueError(
                     f"narrow_ladder.yaml: organism {organism_snomed!r} "
@@ -75,6 +91,21 @@ def _validate_narrow_ladder(data: dict[str, dict[str, list[str]]]) -> None:
                         f"(combination is clinically irrelevant — see "
                         f"hai_antibiogram.yaml omission rationale)"
                     )
+
+    # Reverse: every (hai_type, organism) in antibiogram must have a ladder entry
+    # (adversarial-1 fix). Otherwise a new antibiogram organism silently no-ops
+    # narrow attempts for that organism — exact PR-90 class regression.
+    for hai_type, organisms in antibiogram.items():
+        ladder_organisms = set(data.get(hai_type, {}).keys())
+        missing = set(organisms.keys()) - ladder_organisms
+        if missing:
+            raise ValueError(
+                f"narrow_ladder.yaml: hai_type {hai_type!r} missing ladder "
+                f"entries for antibiogram organism(s) {sorted(missing)}. "
+                f"Every (hai_type, organism) in hai_antibiogram.yaml MUST have "
+                f"a corresponding ladder entry, otherwise narrow Pass 2 "
+                f"silently no-ops for that organism (PR-90 class regression)."
+            )
 
 
 @lru_cache(maxsize=1)
