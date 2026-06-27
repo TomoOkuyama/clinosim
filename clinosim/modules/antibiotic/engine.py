@@ -9,21 +9,24 @@ typed records the enricher attaches to the CIF record.
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+from enum import Enum
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 import yaml
 
-from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS
+from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS, ANTIBIOTIC_LOINC_LOOKUP
 from clinosim.modules.hai import HAI_TYPES
 from clinosim.types.antibiotic import AntibioticRegimen
 from clinosim.types.encounter import MedicationAdministration
 from clinosim.types.hai import HAIEvent
+from clinosim.types.microbiology import SusceptibilityResult
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 _HAI_EMPIRICAL_YAML = _REF_DIR / "hai_empirical.yaml"
+_NARROW_LADDER_YAML = _REF_DIR / "narrow_ladder.yaml"
 
 
 FREQ_PER_DAY: dict[str, int] = {
@@ -33,6 +36,56 @@ FREQ_PER_DAY: dict[str, int] = {
     "q6h":  4,
     "q4h":  6,
 }
+
+
+def _validate_narrow_ladder(data: dict[str, dict[str, list[str]]]) -> None:
+    """3-way cross-validation: every (hai_type, organism, drug_key) entry must
+    be in HAI_TYPES + hai_antibiogram + ANTIBIOTIC_DRUGS. Raises ValueError
+    at load time to surface silent-no-op risk (PR-90 教訓 / CLAUDE.md
+    silent-no-op defense triplet)."""
+    from clinosim.modules.hai import load_hai_antibiogram  # local: avoid circular import
+
+    antibiogram = load_hai_antibiogram()
+    valid_hai_types = set(HAI_TYPES)
+    valid_drugs = set(ANTIBIOTIC_DRUGS.keys())
+
+    for hai_type, organism_map in data.items():
+        if hai_type not in valid_hai_types:
+            raise ValueError(
+                f"narrow_ladder.yaml: unknown hai_type {hai_type!r}, "
+                f"expected one of {sorted(valid_hai_types)}"
+            )
+        for organism_snomed, drug_list in organism_map.items():
+            if organism_snomed not in antibiogram.get(hai_type, {}):
+                raise ValueError(
+                    f"narrow_ladder.yaml: organism {organism_snomed!r} "
+                    f"not in antibiogram for hai_type {hai_type!r}"
+                )
+            antibiogram_drugs = set(antibiogram[hai_type][organism_snomed].keys())
+            for drug_key in drug_list:
+                if drug_key not in valid_drugs:
+                    raise ValueError(
+                        f"narrow_ladder.yaml: drug_key {drug_key!r} "
+                        f"not in ANTIBIOTIC_DRUGS"
+                    )
+                if drug_key not in antibiogram_drugs:
+                    raise ValueError(
+                        f"narrow_ladder.yaml: drug_key {drug_key!r} for "
+                        f"{hai_type}/{organism_snomed} not in antibiogram "
+                        f"(combination is clinically irrelevant — see "
+                        f"hai_antibiogram.yaml omission rationale)"
+                    )
+
+
+@lru_cache(maxsize=1)
+def load_narrow_ladder() -> dict[str, dict[str, list[str]]]:
+    """Load + 3-way validate the PR3b-3 narrow ladder. Returns
+    ``{hai_type: {organism_snomed: [drug_key, ...]}}`` where the list is the
+    narrow→broad preference order."""
+    raw = yaml.safe_load(_NARROW_LADDER_YAML.read_text(encoding="utf-8"))
+    data = {k: dict(v) for k, v in dict(raw["narrow_ladder"]).items()}
+    _validate_narrow_ladder(data)
+    return data
 
 
 @lru_cache(maxsize=1)
@@ -134,3 +187,58 @@ def generate_mar_doses(
             route=regimen.route,
         ))
     return out
+
+
+# ---------------------------------------------------------------------------
+# PR3b-3: narrow / de-escalation pure helpers (consumed by enricher Pass 2)
+# ---------------------------------------------------------------------------
+
+
+class NarrowOutcome(Enum):
+    """Three dispatched outcomes of narrow_outcome (PR3b-3 spec §2.4)."""
+    NO_CHANGE = "no_change"     # case (iii): no target or target == single empirical
+    ELIMINATION = "elimination"  # case (ii): target in multi-drug empirical, keep target
+    SWITCH = "switch"            # case (i): target is a new drug not in empirical
+
+
+def select_narrow_target(
+    susceptibilities: list[SusceptibilityResult],
+    ladder_for_organism: list[str],
+) -> str | None:
+    """Walk ladder top-down. Return the first drug_key whose
+    SusceptibilityResult.interpretation == 'S'. Returns None if no S in
+    ladder (all-non-S, empty ladder, or empty susceptibilities)."""
+    susc_by_loinc = {s.antibiotic_loinc: s.interpretation for s in susceptibilities}
+    for drug_key in ladder_for_organism:
+        loinc = ANTIBIOTIC_LOINC_LOOKUP.get(drug_key)
+        if loinc is None:
+            continue  # defensive: drug_key not in central LOINC lookup
+        if susc_by_loinc.get(loinc) == "S":
+            return drug_key
+    return None
+
+
+def narrow_outcome(
+    narrow_target: str | None,
+    empirical_regimens: list[AntibioticRegimen],
+) -> NarrowOutcome:
+    """Dispatch the three narrowing-by-elimination cases (PR3b-3 spec §2.4)."""
+    if narrow_target is None:
+        return NarrowOutcome.NO_CHANGE
+    empirical_drug_keys = {r.drug_key for r in empirical_regimens}
+    if narrow_target not in empirical_drug_keys:
+        return NarrowOutcome.SWITCH
+    # narrow_target in empirical_drug_keys
+    if len(empirical_drug_keys) == 1:
+        # case (iii): single empirical equals target → nothing to narrow
+        return NarrowOutcome.NO_CHANGE
+    # case (ii): multi-empirical, keep target drop others
+    return NarrowOutcome.ELIMINATION
+
+
+def narrow_duration_days(
+    empirical_start: datetime, reported: datetime, total_course: int,
+) -> int:
+    """Total course minus elapsed empirical days. Clamps at 0 (no negative)."""
+    elapsed = (reported - empirical_start).days
+    return max(0, total_course - elapsed)

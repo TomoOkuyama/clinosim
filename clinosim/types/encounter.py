@@ -86,6 +86,7 @@ class OrderStatus(str, Enum):
     RESULTED = "resulted"
     REVIEWED = "reviewed"
     CANCELLED = "cancelled"
+    STOPPED = "stopped"  # PR3b-3: medication order discontinued (narrow / de-escalation)
 
 
 @dataclass
