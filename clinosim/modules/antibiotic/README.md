@@ -109,7 +109,7 @@ class AntibioticRegimen:
 
 `extensions["antibiotic"] = list[AntibioticRegimen]` で保持。
 
-**`discontinuation_datetime` forward-compat reserve (Phase 3b-2)**: PR3b-3 (narrow / de-escalation chain) が empirical → narrowed de-escalation を materialize する際に set する予定。PR3b-1/3b-2 では常に `None`。PR3b-3 が `intent == "empirical"` を読んで de-escalation 候補を選定し、`discontinuation_datetime` + 後継 `intent="narrowed"` regimen を emit する。
+**`discontinuation_datetime` forward-compat reserve (Phase 3b-2)** ✓ **load-bearing in PR3b-3 (2026-06-27)**: PR3b-3 (narrow / de-escalation chain) sets this on empirical regimens that are discontinued by Pass 2 (case ii ELIMINATION = non-target empirical / case i SWITCH = all empirical). FHIR `MedicationRequest.status` is mapped from this via `_map_order_status_to_fhir` (stopped → "stopped").
 
 ## Reference data
 
@@ -155,9 +155,9 @@ ForcedScenario(
 - `lift_firing_proof`: 合成 CAUTI record を `enrich_antibiotic` で drive、closed-form delta(Ceftriaxone q24h × 7d = 7 MAR、first/last datetime 厳密一致)= PR-90 class silent no-op gate
 
 **Phase 3b-2 拡張 (`audit.py`)**:
-- `_ABX_LOINCS: frozenset[str]` — PR3b-3 までは未配線の deferred placeholder。audit.py 内でコメント参照のみ；structural_obs_codes には未登録（categorical S/I/R Observation は numeric structural check 非対象、判断は audit.py の design docstring 参照）。
-- `_NHSN_RESISTANCE_BANDS: list[dict]` — CDC NHSN AR 2018-2020 推奨バンド (CLABSI MRSA 40-55%、CAUTI ESBL 12-22%、VAP MRSA 30-45%)。PR3b-3 で clinical axis に組み込み予定 (TODO comment in audit.py)。
-- `HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE: float = 0.05` — susceptibilities が空の MicrobiologyResult の比率上限。PR3b-3 clinical axis で enforcement 予定。
+- `_ABX_LOINCS: frozenset[str]` — categorical S/I/R Observations の LOINC 集合。structural_obs_codes には未登録(categorical Observation は numeric structural check 非対象、PR3b-3 clinical axis の R-rate gate で active enforcement されている)。
+- `_NHSN_RESISTANCE_BANDS: list[dict]` ✓ **active enforcement in PR3b-3 (2026-06-27)** — CDC NHSN AR 2018-2020 推奨バンド (CLABSI MRSA 40-55%、CAUTI ESBL 12-22%、VAP MRSA 30-45%)。clinical axis の R-rate gate で per-(hai_type, antibiotic) cohort 単位に enforcement。per-organism filter は post-PR3b-3 TODO(現状は n<30 WARN guard で保護、`clinical.py` の TODO comment 参照)。
+- `HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE: float = 0.05` ✓ **active enforcement in PR3b-3 (2026-06-27)** — susceptibilities が空の MicrobiologyResult の比率上限。clinical axis の empty-rate gate で per-HAI cohort 単位に enforcement。panel-eligible filter(E.faecalis / C.albicans 除外)は post-PR3b-3 TODO、現状は n<30 WARN guard で保護。
 - `antibiogram_firing_proof`: PR-94 `equality_checks` 形式の closed-form proof。合成 CLABSI S. aureus record を `_append_hai_culture` に drive、Vancomycin susceptibility = S (`[1.00, 0.00, 0.00]`) を `ANTIBIOTIC_LOINC_LOOKUP["vancomycin"]` (非 hardcode) で参照して厳密一致確認。
 
 ## Test
