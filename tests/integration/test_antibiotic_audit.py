@@ -43,10 +43,9 @@ def test_antibiotic_proof_factory_returns_equality_checks():
     assert "clabsi_saureus_vancomycin_is_S" in labels, (
         "PR3b-2 vancomycin-S check missing — silent no-op"
     )
-    assert len(proof["equality_checks"]) == 11, (
-        f"Expected 11 equality_checks (8 PR3b-1 + 3 PR3b-2: "
-        f"susceptibility_count + vancomycin_is_S + cefazolin_seed0_interp), "
-        f"got {len(proof['equality_checks'])}"
+    assert len(proof["equality_checks"]) == 17, (
+        f"Expected 17 equality_checks (8 PR3b-1 + 3 PR3b-2 + 6 PR3b-3 "
+        f"narrow chain), got {len(proof['equality_checks'])}"
     )
 
 
@@ -120,3 +119,63 @@ def test_silent_no_op_axis_fails_on_equality_mismatch():
     _check_proof(bad_spec, result)
     fails = [f for f in result.findings if f.severity == Severity.FAIL]
     assert any("equality_check 'count'" in f.message for f in fails)
+
+
+@pytest.mark.integration
+def test_lift_firing_proof_pr3b3_narrow_chain_six_checks_pass() -> None:
+    """The combined proof now includes 6 PR3b-3 equality_checks: narrow target,
+    each empirical discontinuation_datetime, narrowed regimen count, drug,
+    intent. All 6 must pass under synthetic CLABSI/MSSA case."""
+    from clinosim.modules.antibiotic.audit import _build_combined_proof
+
+    proof = _build_combined_proof()
+    labels = [label for label, _, _ in proof["equality_checks"]]
+    pr3b3_labels = [l for l in labels if l.startswith("pr3b3_")]
+    assert len(pr3b3_labels) == 6, (
+        f"expected 6 pr3b3_* checks, got {len(pr3b3_labels)}: {pr3b3_labels}"
+    )
+    # Verify each check passes (actual == expected)
+    for label, actual, expected in proof["equality_checks"]:
+        if label.startswith("pr3b3_"):
+            assert actual == expected, (
+                f"{label}: actual={actual!r} != expected={expected!r}"
+            )
+
+
+@pytest.mark.integration
+def test_clinical_axis_wires_pr3b3_gates_on_empty_cohort() -> None:
+    """PR3b-3: smoke-verify clinical axis runs without crashing even with an
+    empty cohort. Real population-scale gate firing is covered by the DQR
+    (Task 8). This test guarantees the 3 new enforcement blocks (NHSN R-rate,
+    empty rate, narrow rate) don't NPE on empty data."""
+    import tempfile
+    from pathlib import Path
+
+    from clinosim.audit.axes import clinical as clinical_axis
+    from clinosim.audit.types import Cohort
+
+    discover()
+    spec = get_registered()["antibiotic"]
+    with tempfile.TemporaryDirectory() as tmp:
+        cohort = Cohort(root=Path(tmp))
+        result = clinical_axis.run(spec, cohort)
+        # Axis must complete without raising; result is well-formed
+        assert isinstance(result.findings, list)
+        assert isinstance(result.info, dict)
+
+
+@pytest.mark.integration
+def test_audit_clinical_acceptance_has_narrow_rate_bands() -> None:
+    """PR3b-3: narrow_rate_bands key surfaced in clinical_acceptance for
+    Task 6 active enforcement."""
+    discover()
+    spec = get_registered()["antibiotic"]
+    bands = spec.clinical_acceptance.get("narrow_rate_bands")
+    assert bands is not None
+    assert isinstance(bands, list)
+    assert len(bands) >= 3  # at least 3 cohort bands
+    for band in bands:
+        assert "cohort" in band
+        assert "expected_narrow_rate_min" in band
+        assert "expected_narrow_rate_max" in band
+        assert "source" in band

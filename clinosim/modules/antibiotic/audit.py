@@ -244,20 +244,99 @@ def _antibiogram_firing_proof_checks() -> list[tuple[str, Any, Any]]:
     ]
 
 
-# TODO(PR3b-3): Replace single lift_firing_proof with lift_firing_proofs: list[Callable]
-# in ModuleAuditSpec so each sub-proof runs independently. Currently the combined
-# proof's try/except below isolates exceptions but conflates results in a single
-# equality_checks list (per-finding failures already independent at the
-# silent_no_op._check_proof level — only factory-level exceptions need isolation).
+def _pr3b3_narrow_proof_checks() -> list[tuple[str, Any, Any]]:
+    """Synthetic CLABSI/MSSA (cefazolin S) → SWITCH outcome verification.
+
+    Drives the full enrich_antibiotic chain (Pass 1 empirical + Pass 2 narrow)
+    against a record that has both the HAI event AND a pre-built culture with
+    cefazolin S, vancomycin S, piperacillin_tazobactam S. Verifies:
+      1. narrow_target chosen = cefazolin
+      2. empirical vancomycin discontinuation_datetime is set
+      3. empirical pip-tazo discontinuation_datetime is set
+      4. new narrowed regimen count == 1
+      5. new narrowed regimen drug_key == "cefazolin"
+      6. new narrowed regimen intent == "narrowed"
+    """
+    from datetime import datetime as _dt
+    from types import SimpleNamespace
+
+    from clinosim.types.microbiology import MicrobiologyResult, SusceptibilityResult
+
+    onset_date = "2026-01-10"
+    reported_dt = _dt(2026, 1, 12)
+    ev = HAIEvent(
+        hai_id="hai-pr3b3-proof",
+        encounter_id="enc-pr3b3",
+        hai_type=HAI_TYPES[0],  # clabsi
+        source_device_id="dev-proof",
+        icd10_code="T80.211A",
+        snomed_code="431193003",
+        onset_date=onset_date,
+        organism_snomed="3092008",  # S.aureus
+        culture_specimen_id="spec-proof",
+    )
+    micro = MicrobiologyResult(
+        encounter_id="enc-pr3b3",
+        specimen="blood", specimen_snomed="119297000", test_loinc="600-7",
+        collected_datetime=_dt.fromisoformat(onset_date),
+        reported_datetime=reported_dt,
+        growth=True,
+        organism_snomed="3092008",
+        susceptibilities=[
+            SusceptibilityResult(antibiotic_loinc=ANTIBIOTIC_LOINC_LOOKUP["vancomycin"], interpretation="S"),
+            SusceptibilityResult(antibiotic_loinc=ANTIBIOTIC_LOINC_LOOKUP["cefazolin"], interpretation="S"),
+            SusceptibilityResult(antibiotic_loinc=ANTIBIOTIC_LOINC_LOOKUP["piperacillin_tazobactam"], interpretation="S"),
+        ],
+        hai_event_id=ev.hai_id,
+    )
+    rec = SimpleNamespace(
+        patient=SimpleNamespace(patient_id="p-pr3b3-proof"),
+        encounters=[],
+        orders=[],
+        medication_administrations=[],
+        microbiology=[micro],
+        extensions={"hai": [ev]},
+    )
+    cfg = SimpleNamespace(
+        country="US",
+        snapshot_date="2026-12-31",
+        time_range=("2026-01-01", "2026-12-31"),
+    )
+    ctx = SimpleNamespace(config=cfg, master_seed=42, records=[rec])
+    enrich_antibiotic(ctx)
+
+    regimens = rec.extensions.get("antibiotic", [])
+    empirical = [r for r in regimens if r.intent == "empirical"]
+    narrowed = [r for r in regimens if r.intent == "narrowed"]
+    vanc = next((r for r in empirical if r.drug_key == "vancomycin"), None)
+    pip = next((r for r in empirical if r.drug_key == "piperacillin_tazobactam"), None)
+
+    return [
+        ("pr3b3_narrow_target_drug",
+         narrowed[0].drug_key if narrowed else None, "cefazolin"),
+        ("pr3b3_empirical_vancomycin_discontinued_at",
+         vanc.discontinuation_datetime if vanc else None, reported_dt),
+        ("pr3b3_empirical_pip_tazo_discontinued_at",
+         pip.discontinuation_datetime if pip else None, reported_dt),
+        ("pr3b3_new_narrowed_regimen_count", len(narrowed), 1),
+        ("pr3b3_new_narrowed_regimen_drug",
+         narrowed[0].drug_key if narrowed else None, "cefazolin"),
+        ("pr3b3_new_narrowed_regimen_intent",
+         narrowed[0].intent if narrowed else None, "narrowed"),
+    ]
+
+
 def _build_combined_proof() -> dict[str, Any]:
-    """Combined proof: PR3b-1 antibiotic regimen + PR3b-2 antibiogram S/I/R chain.
+    """Combined proof: PR3b-1 antibiotic regimen + PR3b-2 antibiogram S/I/R chain
+    + PR3b-3 narrow / de-escalation chain.
 
-    Merges equality_checks from both sub-proofs so the silent_no_op axis
-    verifies the full PR3b-1 + PR3b-2 pipeline in a single pass.
+    Merges equality_checks from sub-proofs so the silent_no_op axis verifies
+    the full PR3b-1 + PR3b-2 + PR3b-3 pipeline in a single pass.
 
-    Produces 11 equality_checks total:
-      8 from _build_synthetic_proof  — CAUTI ceftriaxone regimen
-      3 from _antibiogram_firing_proof_checks — CLABSI S. aureus susceptibility
+    Produces 17 equality_checks total:
+      8 from _build_synthetic_proof  — CAUTI ceftriaxone regimen (PR3b-1)
+      3 from _antibiogram_firing_proof_checks — CLABSI S. aureus susc (PR3b-2)
+      6 from _pr3b3_narrow_proof_checks — CLABSI MSSA SWITCH (PR3b-3)
     """
     regimen_result = _build_synthetic_proof()
     try:
@@ -266,12 +345,43 @@ def _build_combined_proof() -> dict[str, Any]:
         antibiogram_checks = [
             ("antibiogram_firing_proof_raised", f"{type(e).__name__}: {e}", "no exception"),
         ]
+    try:
+        narrow_checks = _pr3b3_narrow_proof_checks()
+    except Exception as e:
+        narrow_checks = [
+            ("pr3b3_narrow_proof_raised", f"{type(e).__name__}: {e}", "no exception"),
+        ]
     return {
         "equality_checks": (
             list(regimen_result.get("equality_checks") or [])
             + list(antibiogram_checks)
+            + list(narrow_checks)
         ),
     }
+
+
+# PR3b-3 narrow rate bands (per cohort), derived from antibiogram S-rates.
+# Used by the audit clinical axis (Task 6) for active enforcement.
+_NARROW_RATE_BANDS: list[dict[str, Any]] = [
+    {
+        "cohort": "clabsi/3092008",
+        "expected_narrow_rate_min": 0.40,
+        "expected_narrow_rate_max": 0.60,
+        "source": "antibiogram-derived (cefazolin S = 53% → narrow_rate ≈ 53%)",
+    },
+    {
+        "cohort": "cauti/112283007",
+        "expected_narrow_rate_min": 0.10,
+        "expected_narrow_rate_max": 0.30,
+        "source": "antibiogram-derived (NHSN AR 2018-2020 ceftriaxone R = 12-22%)",
+    },
+    {
+        "cohort": "vap/3092008",
+        "expected_narrow_rate_min": 0.40,
+        "expected_narrow_rate_max": 0.60,
+        "source": "antibiogram-derived (cefazolin S = 65% → narrow_rate ≈ 65%)",
+    },
+]
 
 
 register_audit_module(
@@ -290,6 +400,9 @@ register_audit_module(
             # + empty-rate gate). Keys verified by audit registry assertions.
             "hai_resistance_bands": _NHSN_RESISTANCE_BANDS,
             "hai_empty_susceptibilities_max_rate": HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE,
+            # PR3b-3: narrow rate per (hai_type, organism) cohort. Consumed by
+            # audit clinical axis active enforcement (Task 6).
+            "narrow_rate_bands": _NARROW_RATE_BANDS,
             "clabsi": {
                 "icd10_code": "T80.211A",
                 "expected_drugs": ("vancomycin", "piperacillin_tazobactam"),
@@ -370,3 +483,15 @@ def _validate_nhsn_resistance_bands() -> None:
 
 
 _validate_nhsn_resistance_bands()
+
+
+def _validate_narrow_ladder_at_import() -> None:
+    """PR3b-3: touch load_narrow_ladder() at module import to surface any
+    3-way validation failure BEFORE audit harness runs. Otherwise an unknown
+    hai_type / organism / drug_key would silently no-op the narrow chain
+    (PR-90 教訓 / silent-no-op defense triplet)."""
+    from clinosim.modules.antibiotic.engine import load_narrow_ladder
+    load_narrow_ladder()
+
+
+_validate_narrow_ladder_at_import()

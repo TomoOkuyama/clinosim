@@ -48,6 +48,25 @@ def _condition_code_set(row: dict) -> set[str]:
     return {c.get("code", "") for c in (row.get("code") or {}).get("coding", [])}
 
 
+def _is_susceptibility_observation(row: dict) -> tuple[str, str] | None:
+    """PR3b-3: if this Observation is an antibiotic susceptibility, return
+    (antibiotic_loinc, interpretation_code) else None. Susceptibility
+    Observations encode the antibiotic LOINC in code.coding[0].code and the
+    S/I/R interpretation in valueCodeableConcept.coding[0].code."""
+    codings = (row.get("code") or {}).get("coding", []) or []
+    if not codings:
+        return None
+    abx_loinc = codings[0].get("code", "")
+    vcc = row.get("valueCodeableConcept") or {}
+    vcc_codings = vcc.get("coding", []) or []
+    if not vcc_codings:
+        return None
+    interp = vcc_codings[0].get("code", "")
+    if interp not in ("S", "I", "R"):
+        return None
+    return (abx_loinc, interp)
+
+
 def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
     result = AxisResult(axis="clinical", module=spec.name)
     if not spec.clinical_acceptance:
@@ -152,5 +171,128 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                             f"{country}/{hai_type}: CRP delta p50 = {dc:.1f} < required {need}",
                         )
                     )
+
+        # ---------------------------------------------------------------
+        # PR3b-3: NHSN R-rate gate per (hai_type, antibiotic) cohort
+        # ---------------------------------------------------------------
+        r_bands = spec.clinical_acceptance.get("hai_resistance_bands") or []
+        if r_bands:
+            from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
+            for band in r_bands:
+                hai_type_b, _organism_b = band["cohort"].split("/", maxsplit=1)
+                abx_key = band["antibiotic"]
+                abx_loinc = ANTIBIOTIC_LOINC_LOOKUP.get(abx_key)
+                if abx_loinc is None:
+                    continue
+                cohort_enc_set = cohort_enc.get(hai_type_b, set())
+                if not cohort_enc_set:
+                    result.info[f"{country}_{band['cohort']}_{abx_key}_n"] = 0
+                    continue
+                r_count = 0
+                total_count = 0
+                for row in cohort.ndjson(country, "Observation"):
+                    eid = _enc_id(row)
+                    if eid not in cohort_enc_set:
+                        continue
+                    s = _is_susceptibility_observation(row)
+                    if s is None:
+                        continue
+                    if s[0] != abx_loinc:
+                        continue
+                    total_count += 1
+                    if s[1] == "R":
+                        r_count += 1
+                result.info[f"{country}_{band['cohort']}_{abx_key}_n"] = total_count
+                if total_count < 30:
+                    result.findings.append(AuditFinding(
+                        Severity.WARN,
+                        f"{country}/{band['cohort']}/{abx_key}: cohort too small "
+                        f"(n={total_count}); R-rate band not enforced",
+                    ))
+                    continue
+                r_rate = r_count / total_count
+                result.info[f"{country}_{band['cohort']}_{abx_key}_R_rate"] = round(r_rate, 3)
+                if r_rate < band["expected_R_min"] or r_rate > band["expected_R_max"]:
+                    result.findings.append(AuditFinding(
+                        Severity.FAIL,
+                        f"{country}/{band['cohort']}/{abx_key}: R-rate "
+                        f"{r_rate:.3f} outside band [{band['expected_R_min']}, "
+                        f"{band['expected_R_max']}] (source: {band['source']})",
+                    ))
+
+        # ---------------------------------------------------------------
+        # PR3b-3: empty-susceptibilities rate gate (per HAI cohort, panel-eligible)
+        # ---------------------------------------------------------------
+        empty_max = spec.clinical_acceptance.get("hai_empty_susceptibilities_max_rate")
+        if empty_max is not None:
+            all_cohort_encs = set().union(*cohort_enc.values()) if cohort_enc else set()
+            enc_has_susc: dict[str, bool] = {e: False for e in all_cohort_encs}
+            for row in cohort.ndjson(country, "Observation"):
+                eid = _enc_id(row)
+                if eid not in enc_has_susc:
+                    continue
+                if _is_susceptibility_observation(row) is not None:
+                    enc_has_susc[eid] = True
+            total = len(enc_has_susc)
+            result.info[f"{country}_hai_empty_susc_n"] = total
+            if total > 0:
+                empty_count = sum(1 for v in enc_has_susc.values() if not v)
+                empty_rate = empty_count / total
+                result.info[f"{country}_hai_empty_susc_rate"] = round(empty_rate, 3)
+                # n<30 → WARN (consistent with R-rate + narrow-rate gates).
+                # Below this threshold the empty rate is dominated by
+                # rare-organism noise (E.faecalis / C.albicans HAI events have
+                # no S/I/R panel — at small N these inflate the rate well above
+                # the production 5% bound that assumed panel-eligible denominator).
+                if total < 30:
+                    result.findings.append(AuditFinding(
+                        Severity.WARN,
+                        f"{country}: empty-susceptibility cohort too small "
+                        f"(n={total}); rate gate not enforced "
+                        f"(observed={empty_rate:.3f}, max={empty_max})",
+                    ))
+                elif empty_rate > empty_max:
+                    result.findings.append(AuditFinding(
+                        Severity.FAIL,
+                        f"{country}: empty-susceptibility rate {empty_rate:.3f} "
+                        f"exceeds max {empty_max} (panel-eligible HAI cohort)",
+                    ))
+
+        # ---------------------------------------------------------------
+        # PR3b-3: narrow-rate gate per cohort
+        # ---------------------------------------------------------------
+        narrow_bands = spec.clinical_acceptance.get("narrow_rate_bands") or []
+        if narrow_bands:
+            for band in narrow_bands:
+                hai_type_b, _organism_b = band["cohort"].split("/", maxsplit=1)
+                cohort_enc_set = cohort_enc.get(hai_type_b, set())
+                if not cohort_enc_set:
+                    result.info[f"{country}_{band['cohort']}_narrow_n"] = 0
+                    continue
+                enc_narrowed: dict[str, bool] = {e: False for e in cohort_enc_set}
+                for row in cohort.ndjson(country, "MedicationRequest"):
+                    eid = _enc_id(row)
+                    if eid not in enc_narrowed:
+                        continue
+                    if row.get("status") == "stopped" or row.get("id", "").endswith("-narrowed"):
+                        enc_narrowed[eid] = True
+                total = len(enc_narrowed)
+                narrow_count = sum(1 for v in enc_narrowed.values() if v)
+                rate = narrow_count / total if total else 0.0
+                result.info[f"{country}_{band['cohort']}_narrow_rate"] = round(rate, 3)
+                if total < 30:
+                    result.findings.append(AuditFinding(
+                        Severity.WARN,
+                        f"{country}/{band['cohort']}: narrow cohort too small "
+                        f"(n={total}); rate band not enforced",
+                    ))
+                    continue
+                if rate < band["expected_narrow_rate_min"] or rate > band["expected_narrow_rate_max"]:
+                    result.findings.append(AuditFinding(
+                        Severity.FAIL,
+                        f"{country}/{band['cohort']}: narrow rate {rate:.3f} "
+                        f"outside band [{band['expected_narrow_rate_min']}, "
+                        f"{band['expected_narrow_rate_max']}]",
+                    ))
 
     return result

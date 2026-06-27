@@ -26,6 +26,16 @@ from clinosim.modules.output._fhir_localization import _localize_drug_name
 from clinosim.modules.output._fhir_reference_data import _ROUTE_SNOMED
 
 
+def _map_order_status_to_fhir(status: str) -> str:
+    """Map clinosim OrderStatus to FHIR R4 MedicationRequest.status.
+    PR3b-3 adds 'stopped' mapping for discontinued empirical regimens."""
+    mapping = {
+        "cancelled": "cancelled",
+        "stopped": "stopped",  # PR3b-3: narrowed / de-escalated empirical
+    }
+    return mapping.get(status, "active")
+
+
 def _build_medication_request(
     order: dict, patient_id: str, country: str,
     encounter_id: str = "", primary_dx_code: str = "",
@@ -67,7 +77,7 @@ def _build_medication_request(
     resource: dict[str, Any] = {
         "resourceType": "MedicationRequest",
         "id": resource_id,
-        "status": "active" if order.get("status") != "cancelled" else "cancelled",
+        "status": _map_order_status_to_fhir(order.get("status", "")),
         "intent": "order",
         "medicationCodeableConcept": med_concept,
         "subject": {"reference": f"Patient/{patient_id}"},
