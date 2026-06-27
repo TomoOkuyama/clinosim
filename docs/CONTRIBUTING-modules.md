@@ -160,8 +160,10 @@ YAML data に外部 ID(SNOMED / LOINC / antibiotic key 等)を埋めるモジュ
 - `clinosim/modules/antibiotic/audit.py:_validate_nhsn_resistance_bands` — `_NHSN_RESISTANCE_BANDS` の cohort/antibiotic を canonical に対し検証
 - `clinosim/modules/hai/engine.py:_validate_hai_organisms` — `hai_organisms.yaml` を `HAI_TYPES` × SNOMED non-empty × non-negative weight × non-zero-sum で検証(本 PR 2026-06-27)
 - `clinosim/locale/loader.py:_validate_demographics` / `_validate_names` / `_validate_addresses` — `demographics.yaml` の lifestyle_distribution + `names.yaml` の surnames/given_names + `addresses.yaml` の cities を、各 weight の非負 + sum > 0 で検証(本 PR 2026-06-27、4 主要 loader 完備)
+- `clinosim/modules/antibiotic/engine.py:_validate_narrow_ladder` — `narrow_ladder.yaml` を **4-way 検証**: `HAI_TYPES` × `hai_antibiogram.yaml` (forward + reverse-coverage) × `ANTIBIOTIC_DRUGS` + 空コンテナ(top-level / drug list)拒否(PR3b-3 + adversarial-2 stage-3、reverse-coverage は新組織追加時の silent no-op 防御)
+- `clinosim/modules/antibiotic/audit.py:_validate_narrow_rate_bands` — `_NARROW_RATE_BANDS` cohort string format (per-hai_type のみ、no slash) + 必須 key + [0, 1] 範囲 + 空 list 拒否(PR3b-3 adversarial-1 / 2、cohort string typo 防御)
 
-新規 module で外部 ID 参照 YAML または確率重み YAML を作る場合は同パターンを必須化してください(`_validate_X(data)` を `load_X` 内で wire、`fallback="raise"` と組み合わせて後方防御も同時に確保)。
+新規 module で外部 ID 参照 YAML または確率重み YAML を作る場合は同パターンを必須化してください(`_validate_X(data)` を `load_X` 内で wire、`fallback="raise"` と組み合わせて後方防御も同時に確保)。**Reverse-coverage**(canonical set ⊆ data set)も忘れずに wire — adv-1 stage-2 sibling sweep で発覚した通り、forward-only validation は新 canonical 追加時の silent no-op を防げない。
 
 ### データ専用モジュール (variant)
 

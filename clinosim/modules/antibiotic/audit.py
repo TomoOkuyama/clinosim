@@ -424,7 +424,18 @@ _NARROW_RATE_BANDS: list[dict[str, Any]] = [
 # instead of silently no-op'ing the gate (matches _validate_nhsn_resistance_bands
 # pattern). Cohort format is per-hai_type only (no slash).
 def _validate_narrow_rate_bands() -> None:
-    """Cross-check _NARROW_RATE_BANDS cohort + band shape (adversarial-1 I-G3)."""
+    """Cross-check _NARROW_RATE_BANDS cohort + band shape (adversarial-1 I-G3).
+
+    Stage-3 fix (adversarial-2 Agent A1 I-3): also rejects empty
+    _NARROW_RATE_BANDS = [] which previously silent-passed the loop and
+    combined with `if narrow_bands:` short-circuit in clinical.py would
+    silently disable the entire narrow rate gate.
+    """
+    if not _NARROW_RATE_BANDS:
+        raise ValueError(
+            "_NARROW_RATE_BANDS is empty — narrow rate gate would be silently "
+            "disabled (PR-90 class silent no-op)"
+        )
     valid_hai_types = set(HAI_TYPES)
     for band in _NARROW_RATE_BANDS:
         cohort = band.get("cohort", "")
