@@ -155,6 +155,8 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 
 **Silent-no-op defense triplet** is fully wired across the codebase (PR #102 / #103 2026-06-27): (1) canonical constants(例 `HAI_TYPES`)を module-level に定義、(2) `_validate_*(data) -> None` を 5 主要 YAML loader(`_validate_microbiology` PR-A 7 cross-refs + `_validate_hai_organisms` + `_validate_demographics` + `_validate_names` + `_validate_addresses`)に wire(import 時 fail-loud)、(3) `normalize_probabilities(..., fallback="raise")` を全 **15 YAML-sourced callsites** に適用(7 modules: code_status / population / clinical_course / hai / family_history / observation / care_level)。test 補強 + 4-stage adversarial chain converged で検証済(unit / integration / e2e: 1020 passed, 4 skipped)。
 
+**Foundation polish complete** — PR-B1 chain (PR #104 / #105 / #106 2026-06-27): hand-rolled `global X; if X is None: ... else return X` sentinel pattern を **全 6 loader**(`clinosim/modules/encounter/protocol.py:load_all_encounter_conditions` / `clinosim/simulator/helpers.py:_load_all_disease_protocols` / `clinosim/modules/output/_fhir_diagnostic_report.py:load_panel_groups` / `clinosim/modules/output/_fhir_localization.py` の `_load_med_terms_ja` + `_load_drug_names_ja` + `_load_department_display`)で撤廃し `@lru_cache(maxsize=1)` 統一済。同時に `_load_all_disease_protocols` の `try/except pass` silent skip を削除(silent-no-op 防御強化、PR #102 triplet との整合)。byte-diff invariant 保持(37/37 NDJSON sha256 IDENTICAL)+ 4-stage adversarial chain converged で検証済(1031 passed, 4 skipped)。残 PR-B2 = 16 module の `__init__.py` に `__all__` + re-export (MOD-1 柔軟解釈、callers 不変)。
+
 See `TODO.md` for roadmap and remaining tasks.
 
 ## Key directories
