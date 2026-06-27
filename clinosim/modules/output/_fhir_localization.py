@@ -11,57 +11,39 @@ This module must NOT import ``fhir_r4_adapter`` (no circular import).
 from __future__ import annotations
 
 import re
+from functools import lru_cache
 from pathlib import Path
 
 from clinosim.codes import lookup as code_lookup
 
-# Lazy-loaded drug name dictionary for Japanese localization
-_drug_names_ja: dict[str, str] | None = None
 
-# Lazy-loaded department display table ({key: {en, ja}}) — see
-# locale/shared/department_display.yaml
-_department_display: dict[str, dict[str, str]] | None = None
-
-# Lazy-loaded JP medication-term tables ({"categories": {...}, "terms": {...}})
-# — see locale/shared/med_terms_ja.yaml
-_med_terms_ja: dict[str, dict[str, str]] | None = None
-
+@lru_cache(maxsize=1)
 def _load_med_terms_ja() -> dict[str, dict[str, str]]:
     """Load JP medication-term tables ({"categories": {...}, "terms": {...}}).
 
     Order is preserved from the YAML (substitutions are order-sensitive).
     """
-    global _med_terms_ja
-    if _med_terms_ja is not None:
-        return _med_terms_ja
     import yaml
     yaml_path = Path(__file__).resolve().parent.parent.parent \
         / "locale" / "shared" / "med_terms_ja.yaml"
     if yaml_path.exists():
         raw = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
-        _med_terms_ja = {
+        return {
             "categories": raw.get("categories", {}) or {},
             "terms": raw.get("terms", {}) or {},
         }
-    else:
-        _med_terms_ja = {"categories": {}, "terms": {}}
-    return _med_terms_ja
+    return {"categories": {}, "terms": {}}
 
 
-
+@lru_cache(maxsize=1)
 def _load_drug_names_ja() -> dict[str, str]:
     """Load English→Japanese drug name mapping (case-insensitive keys)."""
-    global _drug_names_ja
-    if _drug_names_ja is not None:
-        return _drug_names_ja
     import yaml
     yaml_path = Path(__file__).resolve().parent.parent.parent / "locale" / "shared" / "drug_names_ja.yaml"
     if yaml_path.exists():
         raw = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
-        _drug_names_ja = {k.lower(): v for k, v in raw.items()}
-    else:
-        _drug_names_ja = {}
-    return _drug_names_ja
+        return {k.lower(): v for k, v in raw.items()}
+    return {}
 
 
 def _localize_dosage_terms(text: str) -> str:
@@ -130,20 +112,16 @@ def _localize_drug_name(drug_name: str, country: str) -> str:
     return _localize_dosage_terms(result).strip() if changed or result != drug_name else _localize_dosage_terms(drug_name).strip()
 
 
+@lru_cache(maxsize=1)
 def _load_department_display() -> dict[str, dict[str, str]]:
     """Load department display table ({key: {en, ja}}, case-insensitive keys)."""
-    global _department_display
-    if _department_display is not None:
-        return _department_display
     import yaml
     yaml_path = Path(__file__).resolve().parent.parent.parent \
         / "locale" / "shared" / "department_display.yaml"
     if yaml_path.exists():
         raw = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
-        _department_display = raw.get("departments", {}) or {}
-    else:
-        _department_display = {}
-    return _department_display
+        return raw.get("departments", {}) or {}
+    return {}
 
 
 def _dept_display(dept: str, country: str) -> str:
