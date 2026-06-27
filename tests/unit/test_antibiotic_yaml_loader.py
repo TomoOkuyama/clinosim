@@ -80,17 +80,51 @@ def test_unknown_hai_key_raises_value_error(tmp_path, monkeypatch):
 
 @pytest.mark.unit
 def test_unknown_drug_key_raises_value_error(tmp_path, monkeypatch):
-    """YAML with a drug_key not in ANTIBIOTIC_DRUGS must raise at load time."""
+    """YAML with a drug_key not in ANTIBIOTIC_DRUGS must raise at load time.
+
+    Stage-4 fix (adversarial-3): fixture must include all HAI_TYPES entries
+    so the new reverse-coverage check (adv-2 stage-3 _validate_hai_empirical
+    addition) passes and the per-drug-key validation is reached. The
+    BogusAbx drug_key is placed under cauti — the other HAI_TYPES use valid
+    drugs so the test isolates the drug_key check.
+    """
     bad_yaml = tmp_path / "bad.yaml"
     bad_yaml.write_text(
         "hai_empirical:\n"
+        "  clabsi:\n"
+        "    duration_days: 14\n"
+        "    drugs: [{drug_key: vancomycin, dose: 1g, route: IV, frequency: q12h}]\n"
         "  cauti:\n"
         "    duration_days: 7\n"
         "    drugs: [{drug_key: BogusAbx, dose: 1g, route: IV, frequency: q24h}]\n"
+        "  vap:\n"
+        "    duration_days: 7\n"
+        "    drugs: [{drug_key: vancomycin, dose: 1g, route: IV, frequency: q12h}]\n"
     )
     from clinosim.modules.antibiotic import engine
     engine.load_hai_empirical.cache_clear()
     monkeypatch.setattr(engine, "_HAI_EMPIRICAL_YAML", bad_yaml)
     with pytest.raises(ValueError, match="unknown drug_key"):
+        engine.load_hai_empirical()
+    engine.load_hai_empirical.cache_clear()
+
+
+@pytest.mark.unit
+def test_missing_hai_type_raises_value_error(tmp_path, monkeypatch):
+    """Stage-4 (adversarial-3): pin the reverse-coverage path that broke
+    test_unknown_drug_key_raises_value_error in stage-3. A YAML missing any
+    HAI_TYPES member must raise loudly (silent-no-op gate; adv-2 stage-3
+    sibling sweep of narrow_ladder reverse-coverage pattern)."""
+    bad_yaml = tmp_path / "bad.yaml"
+    bad_yaml.write_text(
+        "hai_empirical:\n"
+        "  cauti:\n"
+        "    duration_days: 7\n"
+        "    drugs: [{drug_key: vancomycin, dose: 1g, route: IV, frequency: q12h}]\n"
+    )
+    from clinosim.modules.antibiotic import engine
+    engine.load_hai_empirical.cache_clear()
+    monkeypatch.setattr(engine, "_HAI_EMPIRICAL_YAML", bad_yaml)
+    with pytest.raises(ValueError, match="missing HAI_TYPES"):
         engine.load_hai_empirical()
     engine.load_hai_empirical.cache_clear()
