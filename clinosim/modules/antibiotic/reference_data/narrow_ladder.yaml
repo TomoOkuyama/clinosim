@@ -1,0 +1,39 @@
+# PR3b-3 narrow / de-escalation ladder per (hai_type, organism_snomed).
+# Each list is the narrow→broad preference order: walk top-down, accept the
+# first drug whose susceptibility result is "S". "I" / "R" / missing skip
+# to the next ladder entry. Empty / all-non-S → empirical continues.
+#
+# Every (hai_type, organism_snomed, drug_key) entry MUST be present in
+# hai_antibiogram.yaml (3-way validation at load time). The validation also
+# verifies hai_type ∈ HAI_TYPES and drug_key ∈ ANTIBIOTIC_DRUGS.
+#
+# Clinical narrow→broad rationale:
+#   G+ (S.aureus, S.epidermidis): cefazolin (MSSA narrow) → vancomycin (MRSA)
+#   G- bloodstream (CLABSI/VAP): ceftriaxone → ciprofloxacin → cefepime →
+#                                piperacillin_tazobactam → meropenem
+#   G- urinary (CAUTI): trimethoprim_sulfamethoxazole (PO UTI standard) →
+#                       ciprofloxacin → ceftriaxone → cefepime → meropenem
+#   P.aeruginosa: cefepime → piperacillin_tazobactam → ciprofloxacin → meropenem
+#                 (no ceftriaxone — intrinsic R)
+#   S.maltophilia: trimethoprim_sulfamethoxazole only (intrinsic R to β-lactams)
+
+narrow_ladder:
+  clabsi:
+    "3092008": [cefazolin, vancomycin]                                              # S. aureus
+    "60875001": [cefazolin, vancomycin]                                             # S. epidermidis (CoNS)
+    "112283007": [ceftriaxone, ciprofloxacin, cefepime, piperacillin_tazobactam, meropenem]  # E. coli
+    "56415008":  [ceftriaxone, ciprofloxacin, cefepime, piperacillin_tazobactam, meropenem]  # K. pneumoniae
+    "52499004":  [cefepime, piperacillin_tazobactam, ciprofloxacin, meropenem]      # P. aeruginosa
+  cauti:
+    "112283007": [trimethoprim_sulfamethoxazole, ciprofloxacin, ceftriaxone, cefepime, meropenem]  # E. coli
+    "56415008":  [ciprofloxacin, ceftriaxone, cefepime, meropenem]                  # K. pneumoniae (TMP-SMX absent from CAUTI Kp antibiogram)
+    "52499004":  [cefepime, piperacillin_tazobactam, ciprofloxacin, meropenem]      # P. aeruginosa
+    "73457008":  [ceftriaxone, ciprofloxacin, cefepime, meropenem]                  # P. mirabilis
+  vap:
+    "3092008":   [cefazolin, vancomycin]                                            # S. aureus
+    "52499004":  [cefepime, piperacillin_tazobactam, ciprofloxacin, meropenem]      # P. aeruginosa
+    "56415008":  [ceftriaxone, ciprofloxacin, cefepime, piperacillin_tazobactam, meropenem]  # K. pneumoniae
+    "112283007": [ceftriaxone, cefepime, piperacillin_tazobactam, meropenem]        # E. coli (ciprofloxacin absent from VAP Ec antibiogram)
+    "14385002":  [cefepime, ciprofloxacin, piperacillin_tazobactam, meropenem]      # E. cloacae (AmpC — skip ceftriaxone)
+    "91288006":  [ciprofloxacin, cefepime, piperacillin_tazobactam, meropenem]      # A. baumannii (MDR-prone)
+    "113697002": [trimethoprim_sulfamethoxazole]                                    # S. maltophilia (intrinsic R to β-lactams)
