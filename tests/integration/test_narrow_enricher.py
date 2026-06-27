@@ -223,3 +223,38 @@ def test_snapshot_before_reported_no_narrow() -> None:
     regimens = rec.extensions["antibiotic"]
     assert len(regimens) == 1
     assert regimens[0].discontinuation_datetime is None  # narrow skipped
+
+
+@pytest.mark.integration
+def test_fhir_medicationrequest_status_stopped_for_discontinued_empirical() -> None:
+    """SWITCH case: empirical orders get FHIR status='stopped',
+    narrowed order gets FHIR status='active'."""
+    from dataclasses import asdict
+
+    from clinosim.modules.output._fhir_medications import _build_medication_request
+
+    rec = _make_record(
+        hai_type=HAI_TYPES[0],
+        organism_snomed="3092008",
+        susc=[
+            ("vancomycin", "S"),
+            ("cefazolin", "S"),
+            ("piperacillin_tazobactam", "S"),
+        ],
+    )
+    ctx = _make_ctx([rec])
+    enrich_antibiotic(ctx)
+
+    med_orders = [o for o in rec.orders if o.order_type.value == "medication"]
+    statuses = []
+    for o in med_orders:
+        d = asdict(o)
+        d["status"] = o.status.value
+        d["order_type"] = o.order_type.value
+        mr = _build_medication_request(d, "p-test", "US", encounter_id="enc-test")
+        statuses.append((d["display_name"], mr["status"]))
+
+    stopped_count = sum(1 for _, s in statuses if s == "stopped")
+    active_count = sum(1 for _, s in statuses if s == "active")
+    assert stopped_count == 2
+    assert active_count == 1
