@@ -138,6 +138,19 @@ def load_hai_empirical() -> dict[str, dict[str, Any]]:
             f"(case-sensitive)"
         )
 
+    # Adversarial-2 stage-3 fix (Agent A2 sibling sweep): reverse-coverage.
+    # Every HAI_TYPES member MUST have an empirical regimen, otherwise a new
+    # HAI_TYPE addition (e.g., 'ssi') would silently no-op PR3b-1 empirical
+    # emission for that type until first KeyError at runtime. Matches the
+    # same defense pattern adv-1 introduced for narrow_ladder (PR-90 class).
+    missing_hai = set(HAI_TYPES) - set(data)
+    if missing_hai:
+        raise ValueError(
+            f"hai_empirical.yaml missing HAI_TYPES key(s) {sorted(missing_hai)}. "
+            f"Every HAI_TYPES member MUST have an empirical regimen, otherwise "
+            f"PR3b-1 enricher silently no-ops for that type (PR-90 class)."
+        )
+
     for hai_type, cfg in data.items():
         for drug in cfg["drugs"]:
             if drug["drug_key"] not in ANTIBIOTIC_DRUGS:
