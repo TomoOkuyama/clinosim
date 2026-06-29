@@ -24,6 +24,14 @@ import statistics
 
 from clinosim.audit.registry import ModuleAuditSpec
 from clinosim.audit.types import AuditFinding, AxisResult, Cohort, Severity
+from clinosim.codes import get_system_uri
+from clinosim.modules.output._fhir_microbiology import MB_ORG_ID_PREFIX
+
+# Canonical SNOMED CT URI (PR3b-3 stage-1 adversarial finding C3): substring
+# match against "snomed" silently broke on OID form
+# (urn:oid:2.16.840.1.113883.6.96) or uppercase variants — same class as
+# PR-90's hai_type case-mismatch silent no-op. Use canonical equality.
+_SNOMED_URI = get_system_uri("snomed-ct")
 
 _WBC_CODE = "6690-2"
 _WBC_CODE_JP = "2A010"
@@ -82,7 +90,7 @@ def _organism_per_encounter(cohort: Cohort, country: str) -> dict[str, set[str]]
     out: dict[str, set[str]] = {}
     for row in cohort.ndjson(country, "Observation"):
         rid = row.get("id", "")
-        if not rid.startswith("mb-org-"):
+        if not rid.startswith(MB_ORG_ID_PREFIX):
             continue
         eid = _enc_id(row)
         if not eid:
@@ -91,7 +99,7 @@ def _organism_per_encounter(cohort: Cohort, country: str) -> dict[str, set[str]]
         codings = vcc.get("coding", []) or []
         for c in codings:
             sys_uri = c.get("system", "") or ""
-            if "snomed" in sys_uri:
+            if sys_uri == _SNOMED_URI:
                 code = c.get("code", "") or ""
                 if code:
                     out.setdefault(eid, set()).add(code)
