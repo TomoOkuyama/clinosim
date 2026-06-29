@@ -60,14 +60,14 @@ from clinosim.types.hai import HAIEvent
 # structural_obs_codes because categorical observations have no referenceRange.
 _ABX_LOINCS: frozenset[str] = frozenset(ANTIBIOTIC_LOINC_LOOKUP.values())
 
-# PR3b-3 (2026-06-27) wired active enforcement of these bands in
-# clinosim/audit/axes/clinical.py:
-#   - NHSN R-rate gate (per-(hai_type, antibiotic) cohort) — see clinical.py
-#     "PR3b-3: NHSN R-rate gate" block. TODO: per-organism filter requires
-#     DiagnosticReport walk; documented in clinical.py.
-#   - empty-susceptibilities rate gate (per panel-eligible HAI cohort) — see
-#     clinical.py "PR3b-3: empty-susceptibilities rate gate" block. n<30 →
-#     WARN guard added in adversarial-1 fix for consistency.
+# PR3b-3 wired active enforcement of these bands in
+# clinosim/audit/axes/clinical.py (complete 2026-06-29):
+#   - NHSN R-rate gate per-(hai_type, organism, antibiotic) cohort — uses
+#     _organism_per_encounter to filter cohort by per-organism culture so
+#     bands measure pure per-organism resistance rates.
+#   - empty-susceptibilities rate gate per panel-eligible HAI cohort —
+#     uses _panel_eligible_organisms to restrict denominator to encounters
+#     with at least one organism that has an antibiogram S/I/R panel.
 #   - narrow-rate gate (per-hai_type aggregate) — see clinical.py
 #     "PR3b-3: narrow-rate gate" block. Cohort key format is per-hai_type
 #     only (single string), not per-(hai_type, organism) — adversarial-1
@@ -108,23 +108,17 @@ _NHSN_RESISTANCE_BANDS: list[dict[str, Any]] = [
     },
 ]
 
-# Empty-susceptibilities rate acceptance bound.
+# Empty-susceptibilities rate acceptance bound (PR3b-3 D2 complete, 2026-06-29).
 #
 # Denominator: PANEL-ELIGIBLE HAI cultures only — those whose organism appears
-# in hai_antibiogram.yaml. Excludes no-panel organisms:
-#   - 78065002 (E. faecalis)  — different antibiotic panel (Phase 3c)
-#   - 53326005 (C. albicans)  — fungal, separate antifungal panel
+# in hai_antibiogram.yaml. Excludes no-panel organisms (E.faecalis 78065002,
+# C.albicans 53326005) automatically via clinical.py:_panel_eligible_organisms,
+# which derives the eligible set from load_hai_antibiogram() keys.
 #
 # Rationale: CLABSI has ~28% no-panel organism weight (0.15 C.albicans + 0.13
 # E.faecalis); CAUTI has ~34%. Computing empty rate over ALL cultures would
 # make the gate always-FAIL. The 5% threshold is 10× the measured rate at p=10k
 # (0.5%) to give safety margin for small-p Bernoulli noise.
-#
-# PR3b-3 (2026-06-27) wired the empty-rate gate in clinical.py (without the
-# panel-eligible filter — the n<30 WARN guard provides safety until the filter
-# is added). TODO(post-PR3b-3): implement panel-eligible filter by walking
-# DiagnosticReport.ndjson for organism per cohort encounter and excluding
-# E.faecalis 78065002 + C.albicans 53326005 from the denominator.
 HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE: float = 0.05
 
 

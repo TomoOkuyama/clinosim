@@ -280,12 +280,27 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                     ))
 
         # ---------------------------------------------------------------
-        # PR3b-3: empty-susceptibilities rate gate (per HAI cohort, panel-eligible)
+        # PR3b-3 D2 complete (2026-06-29): empty-susceptibilities rate gate.
+        # Denominator restricted to panel-eligible HAI cohort encounters —
+        # those with at least one culture organism that has an antibiogram
+        # entry (via _panel_eligible_organisms, derived from
+        # load_hai_antibiogram() keys). No-panel organisms
+        # (E.faecalis 78065002, C.albicans 53326005) are auto-excluded —
+        # no hard-coded exclusion list. Restores NHSN denominator definition
+        # the 5% threshold was calibrated against.
+        # n<30 → WARN guard retained for rare-event safety.
         # ---------------------------------------------------------------
         empty_max = spec.clinical_acceptance.get("hai_empty_susceptibilities_max_rate")
         if empty_max is not None:
-            all_cohort_encs = set().union(*cohort_enc.values()) if cohort_enc else set()
-            enc_has_susc: dict[str, bool] = {e: False for e in all_cohort_encs}
+            panel_orgs = _panel_eligible_organisms()
+            panel_eligible_encs: set[str] = set()
+            for hai_type, encs in cohort_enc.items():
+                eligible = panel_orgs.get(hai_type, set())
+                for e in encs:
+                    if any(org in eligible for org in org_per_enc.get(e, set())):
+                        panel_eligible_encs.add(e)
+
+            enc_has_susc: dict[str, bool] = {e: False for e in panel_eligible_encs}
             for row in cohort.ndjson(country, "Observation"):
                 eid = _enc_id(row)
                 if eid not in enc_has_susc:
@@ -298,11 +313,6 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                 empty_count = sum(1 for v in enc_has_susc.values() if not v)
                 empty_rate = empty_count / total
                 result.info[f"{country}_hai_empty_susc_rate"] = round(empty_rate, 3)
-                # n<30 → WARN (consistent with R-rate + narrow-rate gates).
-                # Below this threshold the empty rate is dominated by
-                # rare-organism noise (E.faecalis / C.albicans HAI events have
-                # no S/I/R panel — at small N these inflate the rate well above
-                # the production 5% bound that assumed panel-eligible denominator).
                 if total < 30:
                     result.findings.append(AuditFinding(
                         Severity.WARN,
