@@ -592,12 +592,16 @@ remains"):
   Sibling to the Phase 3a HAI lift pattern; antibiotic start_day initiates
   a forward decay on WBC + CRP observed values mirroring the lift profile.
   Independent of PR3b-3 / PR3b-5 — purely new realism work.
-- Sibling YAML loader sweep (hai_lab_lift / hai_rates / hai_codes /
-  hai_specimens / hai_organisms additional reverse-coverage): apply the
-  silent-no-op defense pattern established by PR3b-3 chain to all
-  remaining hai_*.yaml loaders. Scope-tiny pattern application. **This is
-  the next user-declared breakpoint after PR3b-5** (区切り = PR3b-5 +
-  sibling sweep 両 chain CLOSED).
+- ~~Sibling YAML loader sweep~~: ✓ done 2026-06-29 (this PR + adversarial
+  chain) — `_validate_hai_rates` + `_validate_hai_codes` +
+  `_validate_hai_specimens` + `_validate_hai_lab_lift_config` (refactor
+  inline → function) + `_validate_hai_organisms` forward-coverage
+  strengthen. **6-layer silent-no-op defense now applied to all 6
+  hai_*.yaml loaders** (antibiogram + organisms + lab_lift + rates +
+  codes + specimens). YAML data unchanged; byte-diff verified zero
+  (NDJSON identical, only manifest.json transactionTime differs).
+  **区切り達成宣言可能** (PR3b-3 + PR3b-5 + sibling sweep 3 chain
+  CLOSED).
 - audit registry `_reset_for_test` ordering bug: 10 fail master baseline
   (production code healthy, test isolation issue only). Tests that call
   `discover()` end up with empty registry after another test's
