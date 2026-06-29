@@ -90,6 +90,7 @@ from clinosim.modules.output._fhir_microbiology import (  # noqa: F401
 )
 from clinosim.modules.output._fhir_nursing import _build_nursing_observations  # noqa: F401
 from clinosim.modules.output._fhir_observations import (  # noqa: F401
+    _bb_labs,
     _build_lab_observation,
     _build_vital_observations,
 )
@@ -316,16 +317,6 @@ def _bb_occupation(ctx: BundleContext) -> list[dict]:
             return [occ_obs]
     return []
 
-
-def _bb_labs(ctx: BundleContext) -> list[dict]:
-    out: list[dict] = []
-    for i, order in enumerate(ctx.record.get("orders", [])):
-        if order.get("order_type") == "lab" and order.get("result"):
-            obs = _build_lab_observation(order, order["result"], ctx.patient_id, i,
-                                          ctx.country, ctx.patient_sex, ctx.primary_enc_id)
-            if obs:
-                out.append(obs)
-    return out
 
 
 def _bb_vitals(ctx: BundleContext) -> list[dict]:

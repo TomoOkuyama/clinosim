@@ -11,18 +11,21 @@ from _fhir_common, so this module never imports back through the adapter
 
 from __future__ import annotations
 
+import dataclasses
 from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
-from clinosim.modules.output._fhir_common import _build_reference_range, _entry
+from clinosim.modules.output._fhir_common import BundleContext, _build_reference_range, _entry
 from clinosim.modules.output._fhir_localization import (
     _CATEGORY_DISPLAY_JA,
     _INTERPRETATION_DISPLAY_JA,
     _localize_display,
     _localize_interp,
 )
+from clinosim.modules.output._fhir_service_request import build_panel_counter, order_to_sr_id
+from clinosim.types.encounter import Order, OrderType
 
 
 def _build_lab_observation(
@@ -377,3 +380,62 @@ def _build_vital_observations(
         entries.append(_entry(o2_obs))
 
     return entries
+
+
+def _bb_labs(ctx: BundleContext) -> list[dict[str, Any]]:
+    """Build FHIR Observation resources for lab results.
+
+    Each lab Observation carries a ``basedOn`` reference to the ServiceRequest
+    for the originating Order. Panel member Observations all share the panel
+    SR id (e.g. 4 CBC components → all reference sr-enc1-CBC-1). Stand-alone
+    Observations reference their own SR.
+
+    Dual-access: supports Order dataclass objects (test harness and future
+    direct-object pipeline) and JSON-deserialized dicts (current production
+    CIF path). The ``basedOn`` field is only populated for Order objects;
+    dict-based production records omit it (same as prior behaviour, to be
+    resolved when the CIF pipeline retains typed objects).
+    """
+    orders = ctx.record.get("orders", []) or []
+
+    # Build panel counter from Order dataclass instances only — needed to
+    # derive deterministic panel SR ids via order_to_sr_id (PR1 canonical
+    # writer↔reader shared id derivation, parallel to _bb_service_requests).
+    lab_order_objects: list[Order] = [
+        o for o in orders if isinstance(o, Order) and o.order_type == OrderType.LAB
+    ]
+    panel_counter = build_panel_counter(lab_order_objects)
+
+    out: list[dict[str, Any]] = []
+    for i, order in enumerate(orders):
+        if isinstance(order, Order):
+            # Order dataclass path (tests + future direct-object pipeline).
+            if order.order_type != OrderType.LAB or order.result is None:
+                continue
+            # Convert to dict for _build_lab_observation (which uses dict.get access).
+            order_dict = dataclasses.asdict(order)
+            result_dict: dict[str, Any] = order_dict.get("result") or {}
+            sr_id: str | None = order_to_sr_id(order, panel_counter)
+        elif isinstance(order, dict):
+            # JSON-deserialized dict path (production CIF loaded from json.load).
+            if order.get("order_type") not in ("lab", OrderType.LAB):
+                continue
+            result_data = order.get("result")
+            if not result_data:
+                continue
+            order_dict = order
+            result_dict = result_data if isinstance(result_data, dict) else {}
+            # Panel counter not computable for dicts; basedOn omitted on this path.
+            sr_id = None
+        else:
+            continue
+
+        obs = _build_lab_observation(
+            order_dict, result_dict, ctx.patient_id, i,
+            ctx.country, ctx.patient_sex, ctx.primary_enc_id,
+        )
+        if obs:
+            if sr_id is not None:
+                obs["basedOn"] = [{"reference": f"ServiceRequest/{sr_id}"}]
+            out.append(obs)
+    return out
