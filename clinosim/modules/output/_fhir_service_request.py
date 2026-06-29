@@ -248,7 +248,12 @@ def _build_standalone_sr(o: Any, lang: str, country: str) -> dict[str, Any]:
     # country arrives lowercase ("us"/"jp"); load_code_mapping expects uppercase.
     country_code = "JP" if country == "jp" else "US"
     code_map = load_code_mapping("lab", country_code)
-    resolved_code = code_map.get(display_name, raw_code) or raw_code
+    resolved_code = code_map.get(display_name)
+    # Two-tier fallback: when JP map missing entry, try LOINC (US) map.
+    if not resolved_code and country_code == "JP":
+        us_map = load_code_mapping("lab", "US")
+        resolved_code = us_map.get(display_name)
+    resolved_code = resolved_code or raw_code
 
     # Display text comes from the code system (LOINC for US, JLAC10 for JP).
     code_system_key = "jlac10" if country_code == "JP" else "loinc"
