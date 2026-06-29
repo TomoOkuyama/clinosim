@@ -265,9 +265,14 @@ def _build_sr_skeleton(
         "臨床検査" if lang == "ja" else "Laboratory procedure"
     )
     # ordered_datetime may arrive as a datetime object (dataclass path) or an
-    # ISO string (JSON-deserialized dict path).
+    # ISO string (JSON-deserialized dict path). If None, authoredOn is omitted.
     dt = _o(anchor, "ordered_datetime")
-    authored_on: str = dt if isinstance(dt, str) else dt.isoformat()
+    if dt is None:
+        authored_on = ""
+    elif isinstance(dt, str):
+        authored_on = dt
+    else:
+        authored_on = dt.isoformat()
 
     sr: dict[str, Any] = {
         "resourceType": "ServiceRequest",
@@ -318,8 +323,9 @@ def _build_sr_skeleton(
         },
         "subject": {"reference": f"Patient/{_o(anchor, 'patient_id', '')}"},
         "encounter": {"reference": f"Encounter/{_o(anchor, 'encounter_id', '')}"},
-        "authoredOn": authored_on,
     }
+    if authored_on:
+        sr["authoredOn"] = authored_on
     ordered_by = _o(anchor, "ordered_by", "")
     if ordered_by:
         sr["requester"] = {"reference": f"Practitioner/{ordered_by}"}

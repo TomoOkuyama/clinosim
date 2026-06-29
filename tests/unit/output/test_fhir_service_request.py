@@ -341,3 +341,27 @@ def test_bb_service_requests_dict_skips_non_lab_string_type():
     orders = [{"order_id": "M1", "order_type": "medication", "panel_key": "", "result": None}]
     ctx = _make_ctx(orders)  # type: ignore[arg-type]
     assert _bb_service_requests(ctx) == []
+
+
+def test_bb_service_requests_missing_ordered_datetime_omits_authored_on():
+    """Production-safe: a malformed order with ordered_datetime=None must NOT
+    crash; the resource is built and authoredOn is simply omitted."""
+    order_dict = {
+        "order_id": "ORD-bad",
+        "encounter_id": "enc1",
+        "patient_id": "pt1",
+        "order_type": "lab",
+        "order_code": "X",
+        "display_name": "BadOrder",
+        "urgency": "routine",
+        "clinical_intent": "",
+        "ordered_datetime": None,  # ← the gap
+        "ordered_by": "doc1",
+        "status": "placed",
+        "panel_key": "",
+        "result": None,
+    }
+    ctx = _make_ctx([order_dict])  # type: ignore[arg-type]
+    resources = _bb_service_requests(ctx)
+    assert len(resources) == 1
+    assert "authoredOn" not in resources[0]
