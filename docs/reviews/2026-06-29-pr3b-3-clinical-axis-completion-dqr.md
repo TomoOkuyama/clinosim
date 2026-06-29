@@ -93,6 +93,14 @@ observed-vs-theoretical) — separately tracked, out of PR3b-3 chain scope.
 
 ## Known approximation (deferred refinement)
 
+> **RESOLVED via PR3b-5** (2026-06-29). The specimen-based susc → organism
+> join + `HAI_EVENT_ID_SYSTEM` identifier filter eliminate both C1
+> (multi-organism encounter double-count) and C2 (community + HAI
+> culture co-occurrence) attribution defects documented below.
+> See `docs/reviews/2026-06-29-pr3b-5-attribution-refinement-dqr.md`.
+>
+> The original approximation text is retained for historical context.
+
 Both D1 and D2 join susceptibility / organism information to a cohort
 encounter via the **encounter reference** alone. The FHIR microbiology
 builder writes a per-specimen backref
