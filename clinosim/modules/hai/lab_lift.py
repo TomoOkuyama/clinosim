@@ -58,26 +58,59 @@ _REF_DIR = _HERE / "reference_data"
 _HAI_LIFT_ANALYTES = ("WBC", "CRP")
 
 
+def _validate_hai_lab_lift_config(data: dict) -> None:
+    """Validate hai_lab_lift.yaml at load time (sibling sweep, 2026-06-29).
+
+    6-layer silent-no-op defense:
+    1. top-level empty guard
+    2. ramp_peak_days numeric and > 0
+    3. hai_lift bucket non-empty
+    4. each hai_type ⊆ HAI_TYPES
+    5. each lift value numeric and ∈ [0, 1]
+    6. HAI_TYPES forward-coverage
+    """
+    if not isinstance(data, dict) or not data:
+        raise ValueError("hai_lab_lift.yaml empty — silent no-op risk")
+    ramp = data.get("ramp_peak_days")
+    if not isinstance(ramp, (int, float)) or float(ramp) <= 0:
+        raise ValueError(
+            f"hai_lab_lift.yaml: ramp_peak_days {ramp!r} must be > 0"
+        )
+    lift_table = data.get("hai_lift") or {}
+    if not lift_table:
+        raise ValueError(
+            "hai_lab_lift.yaml: hai_lift bucket empty — silent no-op risk"
+        )
+    valid_types = set(HAI_TYPES)
+    for hai_type, value in lift_table.items():
+        if hai_type not in valid_types:
+            raise ValueError(
+                f"hai_lab_lift.yaml has unknown hai_type keys {hai_type!r} — "
+                f"must use HAI_TYPES {HAI_TYPES} (case-sensitive)"
+            )
+        if not isinstance(value, (int, float)) or not (0.0 <= float(value) <= 1.0):
+            raise ValueError(
+                f"hai_lab_lift.yaml: {hai_type!r} lift value {value!r} "
+                f"not in [0, 1]"
+            )
+    missing = valid_types - set(lift_table.keys())
+    if missing:
+        raise ValueError(
+            f"hai_lab_lift.yaml missing HAI_TYPES: {sorted(missing)!r}"
+        )
+
+
 @lru_cache(maxsize=1)
 def load_hai_lab_lift_config() -> tuple[float, dict[str, float]]:
     """Load reference_data/hai_lab_lift.yaml once.
 
-    Returns ``(ramp_peak_days, {hai_type: lift_value})``. The hai_type
-    keys are validated against ``modules.hai.HAI_TYPES`` to surface the
-    case-mismatch class of bug at import time rather than silently
-    no-op'ing every lookup.
+    Returns ``(ramp_peak_days, {hai_type: lift_value})``. Validation by
+    ``_validate_hai_lab_lift_config`` covers the 6-layer silent-no-op
+    defense pattern (sibling sweep, 2026-06-29).
     """
     data = yaml.safe_load((_REF_DIR / "hai_lab_lift.yaml").read_text(encoding="utf-8"))
-    ramp_peak_days = float(data["ramp_peak_days"])
-    lift_table = dict(data["hai_lift"])
-    unknown = set(lift_table) - set(HAI_TYPES)
-    if unknown:
-        raise ValueError(
-            f"hai_lab_lift.yaml has unknown hai_type keys "
-            f"{sorted(unknown)} - must use HAI_TYPES "
-            f"{HAI_TYPES} (case-sensitive)"
-        )
-    return ramp_peak_days, lift_table
+    _validate_hai_lab_lift_config(data)
+    return float(data["ramp_peak_days"]), dict(data["hai_lift"])
 
 
 def _wbc_pre_circadian(infl: float) -> float:
