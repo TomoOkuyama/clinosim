@@ -17,6 +17,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
+from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.output._fhir_common import BundleContext, _build_reference_range, _entry
 from clinosim.modules.output._fhir_localization import (
     _CATEGORY_DISPLAY_JA,
@@ -26,6 +27,11 @@ from clinosim.modules.output._fhir_localization import (
 )
 from clinosim.modules.output._fhir_service_request import build_panel_counter, order_to_sr_id
 from clinosim.types.encounter import Order, OrderType
+
+
+def _o(order: Any, name: str, default: Any = None) -> Any:
+    """Dual-access helper: dataclass attribute OR dict key (production path)."""
+    return get_attr_or_key(order, name, default)
 
 
 def _build_lab_observation(
@@ -390,19 +396,19 @@ def _bb_labs(ctx: BundleContext) -> list[dict[str, Any]]:
     SR id (e.g. 4 CBC components → all reference sr-enc1-CBC-1). Stand-alone
     Observations reference their own SR.
 
-    Dual-access: supports Order dataclass objects (test harness and future
-    direct-object pipeline) and JSON-deserialized dicts (current production
-    CIF path). The ``basedOn`` field is only populated for Order objects;
-    dict-based production records omit it (same as prior behaviour, to be
-    resolved when the CIF pipeline retains typed objects).
+    Dual-access: supports both Order dataclass objects (test harness and
+    future direct-object pipeline) and JSON-deserialized dicts (production
+    CIF path via json.load). ``basedOn`` is now populated on BOTH paths via
+    the dict-compatible ``build_panel_counter`` + ``order_to_sr_id`` helpers
+    (Fix 2 — closes the silent basedOn omission on production dict path).
     """
     orders = ctx.record.get("orders", []) or []
 
-    # Build panel counter from Order dataclass instances only — needed to
-    # derive deterministic panel SR ids via order_to_sr_id (PR1 canonical
-    # writer↔reader shared id derivation, parallel to _bb_service_requests).
-    lab_order_objects: list[Order] = [
-        o for o in orders if isinstance(o, Order) and o.order_type == OrderType.LAB
+    # Build panel counter from all lab orders (dataclass OR dict — both accepted
+    # after Fix 1 refactored build_panel_counter to use _o dual-access).
+    lab_order_objects = [
+        o for o in orders
+        if _o(o, "order_type") in (OrderType.LAB, "lab")
     ]
     panel_counter = build_panel_counter(lab_order_objects)
 
@@ -425,8 +431,8 @@ def _bb_labs(ctx: BundleContext) -> list[dict[str, Any]]:
                 continue
             order_dict = order
             result_dict = result_data if isinstance(result_data, dict) else {}
-            # Panel counter not computable for dicts; basedOn omitted on this path.
-            sr_id = None
+            # Now computable for dicts via dict-compatible panel_counter (Fix 1+2).
+            sr_id = order_to_sr_id(order, panel_counter)
         else:
             continue
 
