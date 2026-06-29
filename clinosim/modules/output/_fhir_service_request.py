@@ -36,6 +36,12 @@ LAB_CATEGORY_V2_0074 = "LAB"
 # System URIs derived from the canonical registry (never hardcode per CLAUDE.md).
 V2_0203_SYSTEM = get_system_uri("hl7-v2-0203")
 V2_0074_SYSTEM = get_system_uri("hl7-diagnostic-service-section")
+SNOMED_CT_SYSTEM = get_system_uri("snomed-ct")
+
+# HL7 v2 administrative labels ("Placer Identifier", "Laboratory") are NOT
+# in clinosim/codes/data/ — they are FHIR-spec-defined administrative
+# strings. Hardcoded in _build_sr_skeleton; a future locale extension could
+# move these to a per-locale YAML if JP-display variants are desired.
 
 # Stand-alone Order priority → SR.priority pass-through.
 _PRIORITY_MAP = {
@@ -238,7 +244,7 @@ def _build_sr_skeleton(
             {
                 "coding": [
                     {
-                        "system": get_system_uri("snomed-ct"),
+                        "system": SNOMED_CT_SYSTEM,
                         "code": LAB_CATEGORY_SNOMED,
                         "display": snomed_display,
                     },
