@@ -134,3 +134,66 @@ def test_full_pipeline_diagnostic_report_basedon():
                     f"DiagnosticReport/{dr.get('id')} basedOn {ref!r} → "
                     f"ServiceRequest/{sr_id} not found in ServiceRequest.ndjson"
                 )
+
+
+def _run_generate(country: str, n: int, seed: int, out: Path) -> None:
+    """Run the generate pipeline and assert zero exit code."""
+    result = subprocess.run(
+        [
+            "python", "-m", "clinosim.simulator.cli", "generate",
+            "--country", country,
+            "--population", str(n),
+            "--seed", str(seed),
+            "--format", "fhir-r4",
+            "--output", str(out),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, (
+        f"generate failed (returncode={result.returncode}):\n{result.stderr}"
+    )
+
+
+@pytest.mark.integration
+def test_run_beta_emits_service_request_ndjson_us():
+    """run_beta US 100-patient cohort emits non-empty ServiceRequest.ndjson."""
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp) / "out"
+        _run_generate("US", 100, 42, out)
+        sr_files = list(out.rglob("ServiceRequest.ndjson"))
+        assert sr_files, "ServiceRequest.ndjson not found under output"
+        lines = [ln for ln in sr_files[0].read_text().splitlines() if ln.strip()]
+        assert len(lines) > 0, "ServiceRequest.ndjson must be non-empty"
+        # Validate structure of first resource.
+        sr = json.loads(lines[0])
+        assert sr["resourceType"] == "ServiceRequest"
+        assert sr["intent"] == "order"
+        assert "identifier" in sr
+        plac = sr["identifier"][0]["type"]["coding"][0]
+        assert plac["code"] == "PLAC"
+
+
+@pytest.mark.integration
+def test_run_beta_emits_service_request_jp_with_ja_display():
+    """JP cohort: SR.category SNOMED display is in Japanese (臨床検査)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp) / "out"
+        _run_generate("JP", 100, 42, out)
+        sr_files = list(out.rglob("ServiceRequest.ndjson"))
+        assert sr_files, "ServiceRequest.ndjson not found for JP cohort"
+        for line in sr_files[0].read_text().splitlines():
+            if not line.strip():
+                continue
+            sr = json.loads(line)
+            # Category SNOMED coding (108252007) display must be Japanese.
+            snomed = next(
+                c
+                for entry in sr["category"]
+                for c in entry["coding"]
+                if c["code"] == "108252007"
+            )
+            assert snomed["display"] == "臨床検査", (
+                f"Expected '臨床検査', got {snomed['display']!r}"
+            )
+            break  # one sample is sufficient
