@@ -26,7 +26,10 @@ from clinosim.audit.registry import ModuleAuditSpec
 from clinosim.audit.types import AuditFinding, AxisResult, Cohort, Severity
 from clinosim.codes import get_system_uri
 from clinosim.modules.antibiotic.engine import ABX_NARROW_SUFFIX, ABX_ORDER_ID_PREFIX
-from clinosim.modules.output._fhir_microbiology import MB_ORG_ID_PREFIX
+from clinosim.modules.output._fhir_microbiology import (
+    HAI_EVENT_ID_SYSTEM,
+    MB_ORG_ID_PREFIX,
+)
 
 # Canonical SNOMED CT URI (PR3b-3 stage-1 adversarial finding C3): substring
 # match against "snomed" silently broke on OID form
@@ -119,6 +122,67 @@ def _panel_eligible_organisms() -> dict[str, set[str]]:
     from clinosim.modules.hai import load_hai_antibiogram  # local: avoids any potential cycle
     abg = load_hai_antibiogram()
     return {hai_type: set(organism_map.keys()) for hai_type, organism_map in abg.items()}
+
+
+def _organism_per_specimen(cohort: Cohort, country: str) -> dict[str, str]:
+    """Return {specimen_id: organism_snomed} from microbiology Observations.
+
+    PR3b-5: walks Observation.ndjson, filters to mb-org-* with both a
+    Specimen reference AND a valueCodeableConcept SNOMED coding (growth).
+    Used by the PR3b-5 D1 R-rate gate for true per-organism susc
+    attribution (replaces the encounter-level approximation from
+    PR3b-3 / _organism_per_encounter).
+
+    No-growth observations, missing specimen ref, missing encounter,
+    non-mb-org ids, and non-canonical SNOMED URIs are skipped.
+    """
+    out: dict[str, str] = {}
+    for row in cohort.ndjson(country, "Observation"):
+        rid = row.get("id", "")
+        if not rid.startswith(MB_ORG_ID_PREFIX):
+            continue
+        spec_ref = (row.get("specimen") or {}).get("reference", "") or ""
+        spec_id = spec_ref.split("/")[-1] if spec_ref else ""
+        if not spec_id:
+            continue
+        vcc = row.get("valueCodeableConcept") or {}
+        codings = vcc.get("coding", []) or []
+        for c in codings:
+            sys_uri = c.get("system", "") or ""
+            if sys_uri == _SNOMED_URI:
+                code = c.get("code", "") or ""
+                if code:
+                    out[spec_id] = code
+                    break
+    return out
+
+
+def _hai_specimens(cohort: Cohort, country: str) -> set[str]:
+    """Return set of specimen_ids that are HAI-derived.
+
+    PR3b-5: walks Observation.ndjson, filters to mb-org-* with a non-empty
+    identifier carrying the canonical HAI_EVENT_ID_SYSTEM URI. Used by the
+    PR3b-5 D1 R-rate gate to exclude community-acquired culture
+    susceptibilities that share an encounter with a HAI event (C2
+    resolution).
+    """
+    hai_specs: set[str] = set()
+    for row in cohort.ndjson(country, "Observation"):
+        rid = row.get("id", "")
+        if not rid.startswith(MB_ORG_ID_PREFIX):
+            continue
+        identifiers = row.get("identifier") or []
+        is_hai = any(
+            i.get("system") == HAI_EVENT_ID_SYSTEM and i.get("value")
+            for i in identifiers
+        )
+        if not is_hai:
+            continue
+        spec_ref = (row.get("specimen") or {}).get("reference", "") or ""
+        spec_id = spec_ref.split("/")[-1] if spec_ref else ""
+        if spec_id:
+            hai_specs.add(spec_id)
+    return hai_specs
 
 
 def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:

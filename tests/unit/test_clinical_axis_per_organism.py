@@ -288,3 +288,197 @@ def test_mb_org_id_prefix_canonical_constant() -> None:
     # an import-time NameError in clinical.py, not a silent no-op.
     import clinosim.audit.axes.clinical as _mod
     assert _mod.MB_ORG_ID_PREFIX is MB_ORG_ID_PREFIX
+
+
+# ----------------------------------------------------------------------------
+# PR3b-5 specimen-based helpers
+# ----------------------------------------------------------------------------
+
+
+def _mb_org_with_specimen(
+    enc: str, idx: int, organism_snomed: str | None,
+    spec_id: str | None = None, hai_event_id: str = "",
+) -> dict:
+    """mb-org-* Observation with explicit specimen reference + optional HAI
+    identifier. PR3b-5 helpers join susc → specimen → organism so the
+    specimen ref is the load-bearing field, not the encounter ref."""
+    obs: dict = {
+        "resourceType": "Observation",
+        "id": f"mb-org-{enc}-{idx}",
+        "encounter": {"reference": f"Encounter/{enc}"},
+        "code": {"coding": [{"code": "600-7"}]},
+    }
+    if spec_id is not None:
+        obs["specimen"] = {"reference": f"Specimen/{spec_id}"}
+    if organism_snomed:
+        obs["valueCodeableConcept"] = {
+            "coding": [{"system": "http://snomed.info/sct", "code": organism_snomed}]
+        }
+    else:
+        obs["valueString"] = "No growth"
+    if hai_event_id:
+        from clinosim.modules.output._fhir_microbiology import HAI_EVENT_ID_SYSTEM
+        obs["identifier"] = [{"system": HAI_EVENT_ID_SYSTEM, "value": hai_event_id}]
+    return obs
+
+
+@pytest.mark.unit
+def test_organism_per_specimen_basic(tmp_path: Path) -> None:
+    _write(tmp_path, "us", "Observation.ndjson", [
+        _mb_org_with_specimen("E1", 0, "3092008", spec_id="spec-E1-0"),
+        _mb_org_with_specimen("E2", 0, "112283007", spec_id="spec-E2-0"),
+    ])
+    out = clinical._organism_per_specimen(Cohort.open(tmp_path), "us")
+    assert out == {"spec-E1-0": "3092008", "spec-E2-0": "112283007"}
+
+
+@pytest.mark.unit
+def test_organism_per_specimen_multi_specimen_same_encounter(tmp_path: Path) -> None:
+    """C1 resolution precondition: an encounter with 2 specimens (S.aureus +
+    S.epidermidis) → 2 distinct specimen_id → organism mappings, not 1
+    encounter → organism set. This is the load-bearing difference from
+    _organism_per_encounter."""
+    _write(tmp_path, "us", "Observation.ndjson", [
+        _mb_org_with_specimen("E1", 0, "3092008",  spec_id="spec-E1-0"),
+        _mb_org_with_specimen("E1", 1, "60875001", spec_id="spec-E1-1"),
+    ])
+    out = clinical._organism_per_specimen(Cohort.open(tmp_path), "us")
+    assert out == {"spec-E1-0": "3092008", "spec-E1-1": "60875001"}
+
+
+@pytest.mark.unit
+def test_organism_per_specimen_skips_no_growth(tmp_path: Path) -> None:
+    _write(tmp_path, "us", "Observation.ndjson", [
+        _mb_org_with_specimen("E1", 0, None, spec_id="spec-E1-0"),
+    ])
+    out = clinical._organism_per_specimen(Cohort.open(tmp_path), "us")
+    assert out == {}
+
+
+@pytest.mark.unit
+def test_organism_per_specimen_skips_missing_specimen_ref(tmp_path: Path) -> None:
+    """mb-org-* without specimen reference cannot be joined → skip."""
+    _write(tmp_path, "us", "Observation.ndjson", [
+        _mb_org_with_specimen("E1", 0, "3092008", spec_id=None),
+    ])
+    out = clinical._organism_per_specimen(Cohort.open(tmp_path), "us")
+    assert out == {}
+
+
+@pytest.mark.unit
+def test_organism_per_specimen_skips_non_canonical_snomed(tmp_path: Path) -> None:
+    """Canonical SNOMED URI equality from PR #113 C3 fix: non-canonical
+    system URIs are rejected, not substring-matched."""
+    _write(tmp_path, "us", "Observation.ndjson", [
+        {
+            "resourceType": "Observation",
+            "id": "mb-org-E1-0",
+            "encounter": {"reference": "Encounter/E1"},
+            "specimen": {"reference": "Specimen/spec-E1-0"},
+            "code": {"coding": [{"code": "600-7"}]},
+            "valueCodeableConcept": {
+                "coding": [{"system": "urn:oid:2.16.840.1.113883.6.96",
+                            "code": "3092008"}],
+            },
+        },
+    ])
+    out = clinical._organism_per_specimen(Cohort.open(tmp_path), "us")
+    assert out == {}
+
+
+@pytest.mark.unit
+def test_organism_per_specimen_skips_non_mb_observations(tmp_path: Path) -> None:
+    _write(tmp_path, "us", "Observation.ndjson", [
+        {
+            "resourceType": "Observation",
+            "id": "lab-E1-0001",
+            "specimen": {"reference": "Specimen/spec-E1-X"},
+            "encounter": {"reference": "Encounter/E1"},
+            "code": {"coding": [{"code": "6690-2"}]},
+            "valueQuantity": {"value": 14000},
+        },
+    ])
+    out = clinical._organism_per_specimen(Cohort.open(tmp_path), "us")
+    assert out == {}
+
+
+@pytest.mark.unit
+def test_organism_per_specimen_empty_file(tmp_path: Path) -> None:
+    (tmp_path / "us" / "fhir_r4").mkdir(parents=True)
+    out = clinical._organism_per_specimen(Cohort.open(tmp_path), "us")
+    assert out == {}
+
+
+@pytest.mark.unit
+def test_hai_specimens_includes_hai_identifier(tmp_path: Path) -> None:
+    _write(tmp_path, "us", "Observation.ndjson", [
+        _mb_org_with_specimen("E1", 0, "3092008",
+                              spec_id="spec-E1-0",
+                              hai_event_id="hai-clabsi-1"),
+        _mb_org_with_specimen("E2", 0, "112283007",
+                              spec_id="spec-E2-0"),  # community, no identifier
+    ])
+    out = clinical._hai_specimens(Cohort.open(tmp_path), "us")
+    assert out == {"spec-E1-0"}
+
+
+@pytest.mark.unit
+def test_hai_specimens_rejects_wrong_system(tmp_path: Path) -> None:
+    """Canonical equality on HAI_EVENT_ID_SYSTEM — same defense pattern
+    as canonical SNOMED URI from PR #113 C3."""
+    _write(tmp_path, "us", "Observation.ndjson", [
+        {
+            "resourceType": "Observation",
+            "id": "mb-org-E1-0",
+            "encounter": {"reference": "Encounter/E1"},
+            "specimen": {"reference": "Specimen/spec-E1-0"},
+            "code": {"coding": [{"code": "600-7"}]},
+            "valueCodeableConcept": {
+                "coding": [{"system": "http://snomed.info/sct", "code": "3092008"}],
+            },
+            "identifier": [{"system": "http://other/system",
+                            "value": "hai-clabsi-1"}],
+        },
+    ])
+    out = clinical._hai_specimens(Cohort.open(tmp_path), "us")
+    assert out == set()
+
+
+@pytest.mark.unit
+def test_hai_specimens_rejects_empty_value(tmp_path: Path) -> None:
+    """Identifier with correct system but empty value is not a HAI marker."""
+    from clinosim.modules.output._fhir_microbiology import HAI_EVENT_ID_SYSTEM
+    _write(tmp_path, "us", "Observation.ndjson", [
+        {
+            "resourceType": "Observation",
+            "id": "mb-org-E1-0",
+            "encounter": {"reference": "Encounter/E1"},
+            "specimen": {"reference": "Specimen/spec-E1-0"},
+            "code": {"coding": [{"code": "600-7"}]},
+            "valueCodeableConcept": {
+                "coding": [{"system": "http://snomed.info/sct", "code": "3092008"}],
+            },
+            "identifier": [{"system": HAI_EVENT_ID_SYSTEM, "value": ""}],
+        },
+    ])
+    out = clinical._hai_specimens(Cohort.open(tmp_path), "us")
+    assert out == set()
+
+
+@pytest.mark.unit
+def test_hai_specimens_empty_file(tmp_path: Path) -> None:
+    (tmp_path / "us" / "fhir_r4").mkdir(parents=True)
+    out = clinical._hai_specimens(Cohort.open(tmp_path), "us")
+    assert out == set()
+
+
+@pytest.mark.unit
+def test_hai_event_id_system_canonical_constant_shared() -> None:
+    """Canonical-constant contract: writer (_fhir_microbiology) and reader
+    (clinical) import the same HAI_EVENT_ID_SYSTEM. Renaming triggers
+    ImportError downstream, not a silent gate skip."""
+    from clinosim.audit.axes import clinical as clinical_axis
+    from clinosim.modules.output._fhir_microbiology import HAI_EVENT_ID_SYSTEM
+
+    assert HAI_EVENT_ID_SYSTEM == "http://clinosim/identifier/hai-event-id"
+    assert clinical_axis.HAI_EVENT_ID_SYSTEM is HAI_EVENT_ID_SYSTEM
