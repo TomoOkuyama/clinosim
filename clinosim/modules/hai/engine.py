@@ -101,6 +101,13 @@ def _validate_hai_organisms(data: dict) -> None:
                 f"weights {weights}"
             )
 
+    # Forward-coverage (sibling sweep, 2026-06-29): every HAI_TYPE must have an entry.
+    missing = valid_types - set(organisms_map.keys())
+    if missing:
+        raise ValueError(
+            f"hai_organisms.yaml missing HAI_TYPES: {sorted(missing)!r}"
+        )
+
 
 def _validate_hai_rates(data: dict) -> None:
     """Validate hai_rates.yaml at load time (sibling sweep, 2026-06-29).

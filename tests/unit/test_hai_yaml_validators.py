@@ -341,3 +341,27 @@ def test_hai_lab_lift_rejects_out_of_range_lift_value(monkeypatch) -> None:
     })
     with pytest.raises(ValueError, match="lift"):
         lab_lift_mod.load_hai_lab_lift_config()
+
+
+# ----------------------------------------------------------------------------
+# _validate_hai_organisms (existing) — forward-coverage strengthen
+# ----------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_hai_organisms_real_yaml_loads_clean() -> None:
+    data = hai_engine.load_hai_organisms()
+    assert "hai_organisms" in data
+    assert set(data["hai_organisms"].keys()) >= {"clabsi", "cauti", "vap"}
+
+
+@pytest.mark.unit
+def test_hai_organisms_rejects_missing_hai_type_forward_coverage(monkeypatch) -> None:
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {
+        "hai_organisms": {
+            "clabsi": [{"snomed": "3092008", "weight": 1.0}],
+            # cauti + vap missing — must fail forward-coverage
+        }
+    })
+    with pytest.raises(ValueError, match="missing HAI_TYPES"):
+        hai_engine.load_hai_organisms()
