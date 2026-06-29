@@ -83,7 +83,7 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
         lab_name = _o(result, "lab_name") or _o(order, "display_name") or ""
         if not lab_name:
             continue
-        obs_id = f"lab-{encounter_id}-{idx:04d}"
+        obs_id = _lab_obs_id(encounter_id, idx)
         by_bucket[when][lab_name].append(obs_id)
 
     groups: list[_GroupedPanel] = []
@@ -123,6 +123,37 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
 # ----------------------------------------------------------------------------
 
 _CATEGORY_LAB_SYSTEM = "http://terminology.hl7.org/CodeSystem/v2-0074"
+
+# Canonical Observation id format shared by writer (group_lab_orders) and reader
+# (_sr_ids_for_group).  LOAD-BEARING: changing this format silently breaks
+# basedOn linkage (PR-90 silent-no-op class).  Both helpers below MUST be
+# used at every write and parse site — never inline the format string.
+_OBS_ID_FORMAT = "lab-{enc}-{idx:04d}"
+
+
+def _lab_obs_id(encounter_id: str, idx: int) -> str:
+    """Build the canonical Observation id for a lab Order at position *idx*.
+
+    LOAD-BEARING: this format is parsed by _parse_lab_obs_id to map a
+    DiagnosticReport's component Observation refs back to the originating
+    Order list index.  Do NOT change this format without updating the parser.
+    """
+    return _OBS_ID_FORMAT.format(enc=encounter_id, idx=idx)
+
+
+def _parse_lab_obs_id(obs_id: str, encounter_id: str) -> int | None:
+    """Extract the Order list index from a lab Observation id.
+
+    Returns None if the obs_id doesn't match the expected format for this
+    encounter (defensive against future format drift).
+    """
+    prefix = f"lab-{encounter_id}-"
+    if not obs_id.startswith(prefix):
+        return None
+    try:
+        return int(obs_id[len(prefix):])
+    except ValueError:
+        return None
 
 
 def build_dr_resource(
@@ -187,31 +218,30 @@ def build_dr_resource(
 def _sr_ids_for_group(
     group: _GroupedPanel,
     orders: list[Any],
-    lab_orders: list[Any],
     panel_counter: dict,
     enc_id: str,
 ) -> list[str]:
     """Derive ServiceRequest ids for the contributing Orders of a panel group.
 
-    obs_refs in a _GroupedPanel use the format ``lab-{enc_id}-{idx:04d}`` where
-    ``idx`` is the 0-based position in the full ``orders`` list passed to
-    ``group_lab_orders``.  We extract those indices to look up the exact Order
-    objects, then derive their SR ids deterministically.  This handles both panel
-    orders (panel_key set → SR id = sr-{enc}-{panel}-N) and stand-alone orders
-    (panel_key="" → SR id = sr-{order_id}) without any panel_key filter that
-    would silently miss stand-alone tests grouped into a panel DR.
+    obs_refs in a _GroupedPanel use the format produced by ``_lab_obs_id``
+    (``lab-{enc_id}-{idx:04d}``) where ``idx`` is the 0-based position in the
+    full ``orders`` list passed to ``group_lab_orders``.  We parse those indices
+    via ``_parse_lab_obs_id`` to look up the exact Order objects, then derive
+    their SR ids deterministically.  This handles both panel orders (panel_key
+    set → SR id = sr-{enc}-{panel}-N) and stand-alone orders (panel_key="" →
+    SR id = sr-{order_id}) without any panel_key filter that would silently miss
+    stand-alone tests grouped into a panel DR.
     """
-    prefix = f"lab-{enc_id}-"
     contributing: list[Any] = []
     for obs_id in group.obs_refs:
-        if not obs_id.startswith(prefix):
-            continue
-        try:
-            idx = int(obs_id[len(prefix):])
-        except ValueError:
-            continue
-        if 0 <= idx < len(orders):
-            contributing.append(orders[idx])
+        idx = _parse_lab_obs_id(obs_id, enc_id)
+        if idx is None or idx >= len(orders):
+            continue  # obs_id doesn't match this encounter or out of range
+        contributing.append(orders[idx])
+    assert contributing, (
+        f"_sr_ids_for_group: no contributing orders for panel {group.panel_name!r} "
+        f"in encounter {enc_id!r} — obs_id format drift? obs_refs={group.obs_refs!r}"
+    )
     return sorted({order_to_sr_id(o, panel_counter) for o in contributing})
 
 
@@ -255,7 +285,7 @@ def build_lab_panel_reports(ctx) -> list[dict]:
         # each obs_ref ("lab-{enc_id}-{idx:04d}").  This handles both panel orders
         # (panel_key set) and stand-alone orders (panel_key="") — either way the
         # SR id is derived correctly via order_to_sr_id + panel_counter.
-        sr_ids = _sr_ids_for_group(g, orders, lab_orders, panel_counter, enc_id)
+        sr_ids = _sr_ids_for_group(g, orders, panel_counter, enc_id)
         report["basedOn"] = [{"reference": f"ServiceRequest/{sid}"} for sid in sr_ids]
         out.append(report)
     return out

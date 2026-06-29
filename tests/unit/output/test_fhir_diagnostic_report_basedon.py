@@ -163,6 +163,62 @@ def test_diagnostic_report_empty_enc_id_returns_empty():
     assert build_lab_panel_reports(ctx) == []
 
 
+def test_diagnostic_report_basedon_standalone_orders_form_panel():
+    """Motivating scenario: orders with panel_key='' (stand-alone) that
+    group_lab_orders assembles into a CBC DR via analyte-name matching.
+    basedOn must reference individual sr-{order_id} SRs, not panel SR ids."""
+    # 4 stand-alone lab orders (panel_key="") whose lab_name values match CBC
+    # components.  group_lab_orders groups them into a CBC DR via analyte
+    # matching; _sr_ids_for_group must return sr-{order_id} for each.
+    orders = [
+        {
+            "order_id": f"ORD-pt1-ADM-L{i:02d}",
+            "encounter_id": _ENC_ID,
+            "patient_id": _PATIENT_ID,
+            "order_type": "lab",
+            "order_code": loinc,
+            "display_name": name,
+            "urgency": "routine",
+            "clinical_intent": "test",
+            "ordered_datetime": _T_ISO,
+            "ordered_by": "doc1",
+            "status": "resulted",
+            "panel_key": "",  # stand-alone, NOT a panel order
+            "result": {
+                "result_datetime": _T_ISO,
+                "performed_by": "tech1",
+                "lab_name": name,
+                "value": 6.0,
+                "unit": "u",
+            },
+        }
+        for i, (name, loinc) in enumerate([
+            ("WBC", "6690-2"),
+            ("Hb", "718-7"),
+            ("Hct", "4544-3"),
+            ("Plt", "777-3"),
+        ])
+    ]
+    ctx = _make_ctx(orders)
+    reports = build_lab_panel_reports(ctx)
+    cbc_reports = [
+        r for r in reports
+        if r.get("code", {}).get("coding", [{}])[0].get("code") == "58410-2"
+    ]
+    assert len(cbc_reports) >= 1, "group_lab_orders should detect a CBC panel from stand-alone orders"
+    based_on_refs = {e["reference"] for e in cbc_reports[0]["basedOn"]}
+    # Stand-alone orders → sr-{order_id} pattern (not sr-{enc}-CBC-N)
+    expected = {
+        "ServiceRequest/sr-ORD-pt1-ADM-L00",
+        "ServiceRequest/sr-ORD-pt1-ADM-L01",
+        "ServiceRequest/sr-ORD-pt1-ADM-L02",
+        "ServiceRequest/sr-ORD-pt1-ADM-L03",
+    }
+    assert based_on_refs == expected, (
+        f"Expected individual-order SR refs for stand-alone orders, got: {based_on_refs}"
+    )
+
+
 def test_diagnostic_report_basedon_multi_day_two_srs_dict():
     """Same panel ordered on two days → 2 DRs, each referencing its own SR."""
     t1 = "2026-06-29T08:05:00"
