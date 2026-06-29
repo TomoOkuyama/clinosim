@@ -131,6 +131,11 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
     icd_to_type = {v["icd10_code"]: k for k, v in hai_acceptance.items()}
 
     for country in cohort.countries():
+        # PR3b-3 D1/D2 (2026-06-29): per-country per-encounter organism map.
+        # Built ONCE and reused by D1 (R-rate per-organism filter) + D2
+        # (panel-eligible denominator filter) — single Observation.ndjson walk.
+        org_per_enc = _organism_per_encounter(cohort, country)
+
         cohort_enc: dict[str, set[str]] = {k: set() for k in hai_acceptance}
         for row in cohort.ndjson(country, "Condition"):
             codes = _condition_code_set(row)
@@ -218,32 +223,27 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                     )
 
         # ---------------------------------------------------------------
-        # PR3b-3: NHSN R-rate gate per (hai_type, antibiotic) cohort
-        #
-        # TODO(post-PR3b-3): per-organism filter. The bands in
-        # _NHSN_RESISTANCE_BANDS have a cohort key "<hai_type>/<organism>"
-        # (e.g. clabsi/3092008 = S.aureus only) but this implementation
-        # filters by hai_type only — organism is parsed (next line) but not
-        # used in the cohort_enc_set lookup. At production n≥30 this could
-        # mis-attribute R-rates (e.g. cefazolin R% averaged over S.aureus +
-        # CoNS + E.coli encounters instead of S.aureus only). Currently safe
-        # behind n<30 WARN guard. Proper fix requires walking
-        # DiagnosticReport.ndjson per cohort encounter to map organism →
-        # encounter set, then filtering. Deferred to a follow-up PR (the
-        # adversarial-1 narrow-rate gate fix takes the simpler approach of
-        # dropping organism from cohort key; for R-rate the organism IS the
-        # measurement basis so cannot be dropped).
+        # PR3b-3 D1 complete (2026-06-29): NHSN R-rate gate per
+        # (hai_type, organism, antibiotic) cohort. Cohort encounters are
+        # filtered by per-organism culture (via org_per_enc above) so bands
+        # measure the true per-organism resistance rate (e.g.
+        # clabsi/3092008/cefazolin = S.aureus only, not the mixed S.aureus +
+        # S.epidermidis + E.coli cohort that would breach the MRSA band).
+        # n<30 → WARN guard retained for rare-event safety.
         # ---------------------------------------------------------------
         r_bands = spec.clinical_acceptance.get("hai_resistance_bands") or []
         if r_bands:
             from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
             for band in r_bands:
-                hai_type_b, _organism_b = band["cohort"].split("/", maxsplit=1)
+                hai_type_b, organism_b = band["cohort"].split("/", maxsplit=1)
                 abx_key = band["antibiotic"]
                 abx_loinc = ANTIBIOTIC_LOINC_LOOKUP.get(abx_key)
                 if abx_loinc is None:
                     continue
-                cohort_enc_set = cohort_enc.get(hai_type_b, set())
+                base_set = cohort_enc.get(hai_type_b, set())
+                cohort_enc_set = {
+                    e for e in base_set if organism_b in org_per_enc.get(e, set())
+                }
                 if not cohort_enc_set:
                     result.info[f"{country}_{band['cohort']}_{abx_key}_n"] = 0
                     continue
