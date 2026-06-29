@@ -18,6 +18,8 @@ from typing import Any
 
 import yaml
 
+from clinosim.codes.loader import _load_system
+
 _HERE = Path(__file__).resolve().parent
 # Canonical YAML location (moved from output/reference_data/ in this task to
 # unify panel data ownership; "panel" is fundamentally an ordering concept).
@@ -34,6 +36,25 @@ Verified against the YAML header comment at import time via
 """
 
 
+def _code_in_data(system: str, code: str) -> bool:
+    """Direct membership check in codes/data/<system>.yaml.
+
+    ``lookup()`` returns the code itself as fallback for unknown entries (not None),
+    so it cannot distinguish "code exists" from "code absent". Direct ``cs.codes``
+    membership IS the authoritative check (same pattern as ``hai/engine.py``).
+
+    Raises:
+        ValueError: if the system itself is not registered in codes/data/.
+    """
+    cs = _load_system(system)
+    if cs is None:
+        raise ValueError(
+            f"_code_in_data: code system {system!r} not registered in "
+            f"clinosim/codes/data/ — system itself is missing, not the code"
+        )
+    return code in cs.codes
+
+
 def _validate_panel_definitions(panels: dict[str, dict[str, Any]]) -> None:
     """Validate panel YAML schema + canonical-constant cross-reference.
 
@@ -43,7 +64,9 @@ def _validate_panel_definitions(panels: dict[str, dict[str, Any]]) -> None:
     (3) unknown YAML keys rejected (YAML panels not in PANEL_PRIORITY_ORDER)
     (4) PANEL_PRIORITY_ORDER forward-coverage (every constant has YAML entry)
     (5) range/type checks (min_components positive int, components non-empty list)
-    (6) authoritative cross-validation (required fields present)
+    (6) authoritative cross-validation: LOINC code resolves via ``_code_in_data``
+        + YAML key order matches PANEL_PRIORITY_ORDER (iteration-order is
+        load-bearing for ``group_lab_orders`` priority grouping)
 
     Raises:
         ValueError: on any validation failure.
@@ -71,8 +94,19 @@ def _validate_panel_definitions(panels: dict[str, dict[str, Any]]) -> None:
             f"(silent-no-op risk): {sorted(extra_in_yaml)}"
         )
 
+    # Layer 6 (key-order): YAML insertion order must match PANEL_PRIORITY_ORDER.
+    # group_lab_orders iterates panels.items() — a hand-reorder of the YAML would
+    # silently break priority grouping (e.g. BMP would steal HCO3 from ABG).
+    yaml_order = tuple(panels.keys())
+    if yaml_order != PANEL_PRIORITY_ORDER:
+        raise ValueError(
+            f"lab_panel_groups.yaml key order {yaml_order} does not match "
+            f"PANEL_PRIORITY_ORDER {PANEL_PRIORITY_ORDER}. "
+            f"Iteration-order is load-bearing for grouping priority."
+        )
+
     for name, panel in panels.items():
-        # Layer 2: per-bucket empty guard + Layer 6: required-field presence
+        # Layer 2: per-bucket empty guard + required-field presence
         for field in ("loinc", "components", "min_components"):
             if field not in panel:
                 raise ValueError(f"Panel '{name}' missing required field '{field}'")
@@ -82,6 +116,15 @@ def _validate_panel_definitions(panels: dict[str, dict[str, Any]]) -> None:
             raise ValueError(f"Panel '{name}' has empty or non-list components")
         if not isinstance(panel["min_components"], int) or panel["min_components"] < 1:
             raise ValueError(f"Panel '{name}' min_components must be positive int")
+
+        # Layer 6 (LOINC): authoritative cross-validation — code must resolve in
+        # codes/data/loinc.yaml. PR-90 lesson: a typo'd LOINC passes required-field
+        # check (Layer 2) but should fail at import time, not only at test-time.
+        if not _code_in_data("loinc", panel["loinc"]):
+            raise ValueError(
+                f"Panel '{name}' has unknown LOINC code '{panel['loinc']}' "
+                f"(not in clinosim/codes/data/loinc.yaml)"
+            )
 
 
 @lru_cache(maxsize=1)
@@ -134,7 +177,6 @@ def classify_lab_specs(
     """
     # Pass A: priority-first matching — iterate specs, assign to first matching panel
     panel_match_candidates: dict[str, list[dict[str, Any]]] = {}
-    assigned_ids: set[int] = set()
     for lab_spec in lab_specs:
         test_name = lab_spec.get("test", "")
         for panel_name in PANEL_PRIORITY_ORDER:
@@ -142,7 +184,6 @@ def classify_lab_specs(
                 continue
             if test_name in panels[panel_name]["components"]:
                 panel_match_candidates.setdefault(panel_name, []).append(lab_spec)
-                assigned_ids.add(id(lab_spec))
                 break  # priority-first: stop at first matching panel
 
     # Pass B: min_components gate — reject panels below threshold

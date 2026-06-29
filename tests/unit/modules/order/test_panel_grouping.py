@@ -98,3 +98,11 @@ def test_unknown_test_falls_to_standalone():
     panel_groups, stand_alones = classify_lab_specs(specs, panels)
     assert panel_groups == {}
     assert len(stand_alones) == 1
+
+
+def test_classify_empty_input_returns_empty():
+    """Empty lab_specs → empty panel_groups + empty stand_alones."""
+    panels = load_panel_definitions()
+    panel_groups, stand_alones = classify_lab_specs([], panels)
+    assert panel_groups == {}
+    assert stand_alones == []
