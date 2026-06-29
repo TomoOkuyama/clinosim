@@ -71,3 +71,58 @@ def test_lab_observation_has_basedon_standalone():
     ctx = _make_ctx([o])
     obs = _bb_labs(ctx)
     assert obs[0]["basedOn"] == [{"reference": "ServiceRequest/sr-ORD-pt1-ADM-L05"}]
+
+
+# === Production-path dict tests (Fix 2: basedOn now populated for dict orders) ===
+# These tests verify that the previously silent omission (sr_id = None on dict path)
+# is fixed. Dict orders are what json.load() produces in production CIF.
+
+def _make_dict_lab_order(order_id: str, panel_key: str, lab_name: str,
+                          value: float) -> dict:
+    """Dict-style order with a result, matching json.load() CIF output."""
+    t = "2026-06-29T08:05:00"
+    return {
+        "order_id": order_id,
+        "encounter_id": "enc1",
+        "patient_id": "pt1",
+        "order_type": "lab",
+        "order_code": "6690-2",
+        "display_name": lab_name,
+        "urgency": "routine",
+        "clinical_intent": "test",
+        "ordered_datetime": t,
+        "ordered_by": "doc1",
+        "status": "resulted",
+        "panel_key": panel_key,
+        "result": {
+            "result_datetime": t,
+            "performed_by": "tech1",
+            "lab_name": lab_name,
+            "value": value,
+            "unit": "x10^3/uL",
+        },
+    }
+
+
+def test_lab_observation_basedon_dict_input_panel():
+    """Production-path: Observation.basedOn populated for dict-style panel Orders."""
+    orders = [
+        _make_dict_lab_order(f"O{i}", "CBC", name, 6.0)
+        for i, name in enumerate(["WBC", "Hb", "Hct", "Plt"])
+    ]
+    ctx = _make_ctx(orders)  # type: ignore[arg-type]
+    obs = _bb_labs(ctx)
+    lab_obs = [o for o in obs if o.get("resourceType") == "Observation"]
+    assert len(lab_obs) > 0
+    for o in lab_obs:
+        assert "basedOn" in o, f"basedOn missing from {o.get('id')}"
+        assert o["basedOn"][0]["reference"] == "ServiceRequest/sr-enc1-CBC-1"
+
+
+def test_lab_observation_basedon_dict_input_standalone():
+    """Production-path: Observation.basedOn populated for dict-style stand-alone Order."""
+    orders = [_make_dict_lab_order("ORD-pt1-ADM-L05", "", "Troponin_I", 0.05)]
+    ctx = _make_ctx(orders)  # type: ignore[arg-type]
+    obs = _bb_labs(ctx)
+    assert len(obs) > 0
+    assert obs[0]["basedOn"] == [{"reference": "ServiceRequest/sr-ORD-pt1-ADM-L05"}]

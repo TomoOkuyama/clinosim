@@ -258,3 +258,86 @@ def test_bb_service_requests_skips_non_lab_orders():
     o_img.order_type = OrderType.IMAGING
     ctx = _make_ctx([o_med, o_img])
     assert _bb_service_requests(ctx) == []
+
+
+# === Production-path dict tests (Fix 1: PR-90 silent-no-op prevention) ===
+# These tests use JSON-deserialized dict orders matching json.load() output,
+# which is the ACTUAL production path. The above dataclass tests were passing
+# while production code was broken (AttributeError on dict.order_type).
+
+def _make_dict_order(order_id="O1", panel_key="", status="placed",
+                     encounter_id="enc1", ordered_datetime="2026-06-29T08:05:00",
+                     display_name="WBC", order_code="6690-2") -> dict:
+    """Produce a dict matching json.load() CIF output (no dataclass instances)."""
+    return {
+        "order_id": order_id,
+        "encounter_id": encounter_id,
+        "patient_id": "pt1",
+        "order_type": "lab",  # plain string, not OrderType enum
+        "order_code": order_code,
+        "display_name": display_name,
+        "urgency": "routine",
+        "clinical_intent": "test",
+        "ordered_datetime": ordered_datetime,  # ISO string, not datetime object
+        "ordered_by": "doc1",
+        "status": status,  # plain string, not OrderStatus enum
+        "panel_key": panel_key,
+        "result": None,
+    }
+
+
+def test_bb_service_requests_dict_input_panel():
+    """Production-path: orders are JSON-deserialized dicts (not Order dataclasses)."""
+    t = "2026-06-29T08:05:00"
+    orders = [
+        _make_dict_order(order_id=f"O{i}", panel_key="CBC",
+                         ordered_datetime=t, display_name=name)
+        for i, name in enumerate(["WBC", "Hb", "Hct", "Plt"])
+    ]
+    ctx = _make_ctx(orders)  # type: ignore[arg-type]
+    resources = _bb_service_requests(ctx)
+    assert len(resources) == 1
+    assert resources[0]["resourceType"] == "ServiceRequest"
+    assert resources[0]["id"] == "sr-enc1-CBC-1"
+    assert resources[0]["code"]["text"] == "CBC"
+
+
+def test_bb_service_requests_dict_input_standalone():
+    """Production-path stand-alone Order (dict)."""
+    orders = [_make_dict_order(
+        order_id="ORD-pt1-ADM-L05",
+        panel_key="",
+        order_code="67151-1",
+        display_name="Troponin_I",
+    )]
+    ctx = _make_ctx(orders)  # type: ignore[arg-type]
+    resources = _bb_service_requests(ctx)
+    assert len(resources) == 1
+    assert resources[0]["id"] == "sr-ORD-pt1-ADM-L05"
+
+
+def test_bb_service_requests_dict_input_authored_on_iso():
+    """Production-path: authoredOn must be the ISO string directly (no .isoformat() crash)."""
+    t = "2026-06-29T08:05:00"
+    orders = [_make_dict_order(ordered_datetime=t)]
+    ctx = _make_ctx(orders)  # type: ignore[arg-type]
+    sr = _bb_service_requests(ctx)[0]
+    assert sr["authoredOn"] == t
+
+
+def test_bb_service_requests_dict_status_string_aggregation():
+    """Production-path: string status values ('placed', 'resulted') aggregate correctly."""
+    orders = [
+        _make_dict_order(order_id=f"O{i}", panel_key="BMP", status="resulted")
+        for i in range(4)
+    ]
+    ctx = _make_ctx(orders)  # type: ignore[arg-type]
+    sr = _bb_service_requests(ctx)[0]
+    assert sr["status"] == "completed"
+
+
+def test_bb_service_requests_dict_skips_non_lab_string_type():
+    """Production-path: order_type='medication' string → skipped."""
+    orders = [{"order_id": "M1", "order_type": "medication", "panel_key": "", "result": None}]
+    ctx = _make_ctx(orders)  # type: ignore[arg-type]
+    assert _bb_service_requests(ctx) == []
