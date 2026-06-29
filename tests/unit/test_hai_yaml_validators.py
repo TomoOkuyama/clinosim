@@ -191,3 +191,83 @@ def test_hai_codes_rejects_unknown_snomed(monkeypatch) -> None:
     })
     with pytest.raises(ValueError, match="snomed"):
         hai_engine.load_hai_codes()
+
+
+# ----------------------------------------------------------------------------
+# _validate_hai_specimens
+# ----------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_hai_specimens_real_yaml_loads_clean() -> None:
+    data = hai_engine.load_hai_specimens()
+    assert "hai_specimens" in data
+    assert set(data["hai_specimens"].keys()) >= {"clabsi", "cauti", "vap"}
+
+
+@pytest.mark.unit
+def test_hai_specimens_rejects_empty_top_level(monkeypatch) -> None:
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {"hai_specimens": {}})
+    with pytest.raises(ValueError, match="hai_specimens.yaml top-level empty"):
+        hai_engine.load_hai_specimens()
+
+
+@pytest.mark.unit
+def test_hai_specimens_rejects_unknown_hai_type(monkeypatch) -> None:
+    base = {
+        "clabsi": {"specimen": "blood", "specimen_snomed": "119297000",
+                   "test_loinc": "600-7"},
+        "cauti": {"specimen": "urine", "specimen_snomed": "122575003",
+                  "test_loinc": "630-4"},
+        "vap": {"specimen": "sputum", "specimen_snomed": "119334006",
+                "test_loinc": "619-7"},
+    }
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {
+        "hai_specimens": {**base, "INVALID": base["clabsi"]}
+    })
+    with pytest.raises(ValueError, match="unknown hai_type 'INVALID'"):
+        hai_engine.load_hai_specimens()
+
+
+@pytest.mark.unit
+def test_hai_specimens_rejects_missing_hai_type_forward_coverage(monkeypatch) -> None:
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {
+        "hai_specimens": {
+            "clabsi": {"specimen": "blood", "specimen_snomed": "119297000",
+                       "test_loinc": "600-7"},
+        }
+    })
+    with pytest.raises(ValueError, match="missing HAI_TYPES"):
+        hai_engine.load_hai_specimens()
+
+
+@pytest.mark.unit
+def test_hai_specimens_rejects_unknown_snomed(monkeypatch) -> None:
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {
+        "hai_specimens": {
+            "clabsi": {"specimen": "blood", "specimen_snomed": "9999999999",
+                       "test_loinc": "600-7"},
+            "cauti": {"specimen": "urine", "specimen_snomed": "122575003",
+                      "test_loinc": "630-4"},
+            "vap": {"specimen": "sputum", "specimen_snomed": "119334006",
+                    "test_loinc": "619-7"},
+        }
+    })
+    with pytest.raises(ValueError, match="specimen_snomed"):
+        hai_engine.load_hai_specimens()
+
+
+@pytest.mark.unit
+def test_hai_specimens_rejects_unknown_loinc(monkeypatch) -> None:
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {
+        "hai_specimens": {
+            "clabsi": {"specimen": "blood", "specimen_snomed": "119297000",
+                       "test_loinc": "99999-99"},
+            "cauti": {"specimen": "urine", "specimen_snomed": "122575003",
+                      "test_loinc": "630-4"},
+            "vap": {"specimen": "sputum", "specimen_snomed": "119334006",
+                    "test_loinc": "619-7"},
+        }
+    })
+    with pytest.raises(ValueError, match="test_loinc"):
+        hai_engine.load_hai_specimens()
