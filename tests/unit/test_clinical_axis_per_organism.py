@@ -130,3 +130,43 @@ def test_organism_per_encounter_skips_non_snomed_coding(tmp_path: Path) -> None:
     ])
     out = clinical._organism_per_encounter(Cohort.open(tmp_path), "us")
     assert out == {}
+
+
+@pytest.mark.unit
+def test_panel_eligible_organisms_includes_antibiogram_keys() -> None:
+    """All organisms in hai_antibiogram.yaml appear in the per-hai_type set."""
+    from clinosim.modules.hai import load_hai_antibiogram
+
+    out = clinical._panel_eligible_organisms()
+    abg = load_hai_antibiogram()
+    for hai_type, organism_map in abg.items():
+        assert hai_type in out
+        assert set(organism_map.keys()) == out[hai_type], (
+            f"{hai_type}: panel-eligible set {out[hai_type]} != "
+            f"antibiogram keys {set(organism_map.keys())}"
+        )
+
+
+@pytest.mark.unit
+def test_panel_eligible_organisms_excludes_no_panel_organisms() -> None:
+    """E.faecalis 78065002 + C.albicans 53326005 are not in any
+    panel-eligible set (no antibiogram entry → auto-excluded)."""
+    out = clinical._panel_eligible_organisms()
+    for hai_type, orgs in out.items():
+        assert "78065002" not in orgs, (
+            f"{hai_type}: E.faecalis 78065002 leaked into panel-eligible set"
+        )
+        assert "53326005" not in orgs, (
+            f"{hai_type}: C.albicans 53326005 leaked into panel-eligible set"
+        )
+
+
+@pytest.mark.unit
+def test_panel_eligible_organisms_returns_known_hai_types() -> None:
+    """Smoke: every HAI_TYPES constant entry has at least one panel-eligible org."""
+    from clinosim.modules.hai import HAI_TYPES
+
+    out = clinical._panel_eligible_organisms()
+    for hai_type in HAI_TYPES:
+        assert hai_type in out
+        assert out[hai_type], f"{hai_type}: empty panel-eligible set"

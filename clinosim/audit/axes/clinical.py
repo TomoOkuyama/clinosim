@@ -98,6 +98,20 @@ def _organism_per_encounter(cohort: Cohort, country: str) -> dict[str, set[str]]
     return out
 
 
+def _panel_eligible_organisms() -> dict[str, set[str]]:
+    """Per-hai_type set of organisms with antibiogram entries (panel-eligible).
+
+    Derived from load_hai_antibiogram() keys. Organisms without an antibiogram
+    entry (E.faecalis 78065002, C.albicans 53326005, future no-panel additions)
+    are automatically excluded — no hard-coded exclusion list. Used by the D2
+    empty-rate gate to restrict the denominator to encounters whose culture
+    organism actually has a S/I/R panel.
+    """
+    from clinosim.modules.hai import load_hai_antibiogram  # local: avoids any potential cycle
+    abg = load_hai_antibiogram()
+    return {hai_type: set(organism_map.keys()) for hai_type, organism_map in abg.items()}
+
+
 def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
     result = AxisResult(axis="clinical", module=spec.name)
     if not spec.clinical_acceptance:
