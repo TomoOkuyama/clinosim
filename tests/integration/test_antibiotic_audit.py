@@ -290,6 +290,138 @@ def test_clinical_axis_r_rate_gate_no_double_count_multi_organism_encounter(
 
 
 @pytest.mark.integration
+def test_clinical_axis_d1_warn_when_hai_specimens_empty(tmp_path) -> None:
+    """pr117-adv-1 Agent 2 MAJOR-1: D1 symmetric WARN guard. When HAI
+    cohort encounters exist (Condition rows with HAI ICD) but the
+    HAI specimen set is empty (writer-side identifier emit regression /
+    HAI_EVENT_ID_SYSTEM drift), the gate must WARN. Mirrors D2 I1 from
+    PR #114."""
+    import json
+
+    from clinosim.audit.axes import clinical as clinical_axis
+    from clinosim.audit.types import Cohort
+
+    discover()
+    spec = get_registered()["antibiotic"]
+
+    def _w(file: str, rows: list[dict]) -> None:
+        p = tmp_path / "us" / "fhir_r4" / file
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with p.open("a") as f:
+            for r in rows:
+                f.write(json.dumps(r) + "\n")
+
+    # HAI cohort encounters present (Condition rows) but NO mb-org-*
+    # with HAI identifier → hai_specimens empty
+    _w("Encounter.ndjson", [
+        {"resourceType": "Encounter", "id": f"E{i}", "class": {"code": "IMP"}}
+        for i in range(5)
+    ])
+    _w("Condition.ndjson", [
+        {"resourceType": "Condition", "id": f"c{i}",
+         "code": {"coding": [{"code": "T80.211A"}]},
+         "encounter": {"reference": f"Encounter/E{i}"}}
+        for i in range(5)
+    ])
+    # mb-org-* present but NO HAI identifier (regression scenario)
+    _w("Observation.ndjson", [
+        {
+            "resourceType": "Observation", "id": f"mb-org-E{i}-0",
+            "encounter": {"reference": f"Encounter/E{i}"},
+            "specimen": {"reference": f"Specimen/spec-E{i}-0"},
+            "code": {"coding": [{"code": "600-7"}]},
+            "valueCodeableConcept": {
+                "coding": [{"system": "http://snomed.info/sct", "code": "3092008"}]},
+        }
+        for i in range(5)
+    ])
+
+    result = clinical_axis.run(spec, Cohort.open(tmp_path))
+    warns = [f for f in result.findings if f.severity.name == "WARN"
+             and "HAI specimen set empty" in f.message]
+    assert warns, (
+        f"D1 must WARN when HAI Conditions exist but HAI_EVENT_ID_SYSTEM "
+        f"identifier emit is missing; got {result.findings!r}"
+    )
+
+
+@pytest.mark.integration
+def test_clinical_axis_r_rate_gate_compound_multi_organism_plus_community(
+    tmp_path,
+) -> None:
+    """pr117-adv-1 Agent 3 LOW: compound C1+C2 case. CLABSI encounter
+    with 3 specimens (HAI S.aureus + HAI S.epidermidis + community
+    S.aureus). Only the HAI S.aureus specimen counts under the S.aureus
+    band: HAI S.epidermidis correctly attributed to its own (unbanded)
+    organism via specimen→organism map; community S.aureus excluded by
+    HAI-only filter."""
+    import json
+
+    from clinosim.audit.axes import clinical as clinical_axis
+    from clinosim.audit.types import Cohort
+    from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
+
+    discover()
+    spec = get_registered()["antibiotic"]
+
+    def _w(file: str, rows: list[dict]) -> None:
+        p = tmp_path / "us" / "fhir_r4" / file
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with p.open("a") as f:
+            for r in rows:
+                f.write(json.dumps(r) + "\n")
+
+    cefaz = ANTIBIOTIC_LOINC_LOOKUP["cefazolin"]
+    enc_rows: list[dict] = []
+    cond_rows: list[dict] = []
+    obs_rows: list[dict] = []
+    for i in range(30):
+        eid = f"E{i}"
+        enc_rows.append({"resourceType": "Encounter", "id": eid,
+                         "class": {"code": "IMP"}})
+        cond_rows.append({"resourceType": "Condition", "id": f"c{i}",
+                          "code": {"coding": [{"code": "T80.211A"}]},
+                          "encounter": {"reference": f"Encounter/{eid}"}})
+        # HAI S.aureus — cefazolin R (true HAI MRSA)
+        obs_rows.extend(_write_obs_with_specimen(
+            eid, "0",
+            organism_snomed="3092008", abx_loinc=cefaz, interpretation="R",
+            hai_event_id=f"hai-{eid}-sa",
+        ))
+        # HAI S.epidermidis — cefazolin S (other HAI organism, not banded)
+        obs_rows.extend(_write_obs_with_specimen(
+            eid, "1",
+            organism_snomed="60875001", abx_loinc=cefaz, interpretation="S",
+            hai_event_id=f"hai-{eid}-se",
+        ))
+        # Community S.aureus — cefazolin S (would inflate S.aureus band
+        # pre-PR3b-5; HAI-only filter excludes)
+        obs_rows.extend(_write_obs_with_specimen(
+            eid, "2",
+            organism_snomed="3092008", abx_loinc=cefaz, interpretation="S",
+            hai_event_id="",
+        ))
+    _w("Encounter.ndjson", enc_rows)
+    _w("Condition.ndjson", cond_rows)
+    _w("Observation.ndjson", obs_rows)
+
+    result = clinical_axis.run(spec, Cohort.open(tmp_path))
+    n = result.info.get("us_clabsi/3092008_cefazolin_n")
+    r_rate = result.info.get("us_clabsi/3092008_cefazolin_R_rate")
+    # PR3b-5: ONLY the 30 HAI S.aureus specimens count. n=30, R-rate=1.0
+    # (S.epidermidis HAI rejected by organism match; community S.aureus
+    # rejected by HAI-only filter.)
+    assert n == 30, (
+        f"compound scenario must yield n=30 (HAI S.aureus only); got {n}. "
+        f"Pre-PR3b-5 encounter-level join would yield 90 (mixed)."
+    )
+    assert r_rate == 1.0, (
+        f"compound scenario R-rate must be 1.0; got {r_rate}. "
+        f"Pre-PR3b-5 would yield ~0.33 (1 R + 2 S of 3)."
+    )
+
+
+@pytest.mark.integration
 def test_clinical_axis_r_rate_gate_excludes_community_culture(tmp_path) -> None:
     """C2 resolution: CLABSI encounter with HAI S.aureus specimen + community
     S.aureus specimen (no HAI identifier). The S.aureus band must NOT count
