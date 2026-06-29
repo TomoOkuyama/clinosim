@@ -29,10 +29,10 @@ in production NDJSON output.
 from __future__ import annotations
 
 from datetime import datetime
-from types import SimpleNamespace
-from typing import Any, cast
+from typing import Any
 
 from clinosim.audit.registry import ModuleAuditSpec, register_audit_module
+from clinosim.modules.order.panel_grouping import PANEL_PRIORITY_ORDER
 from clinosim.modules.output._fhir_common import BundleContext
 from clinosim.modules.output._fhir_service_request import (
     LAB_CATEGORY_SNOMED,
@@ -87,21 +87,32 @@ def _build_order_proof() -> dict[str, Any]:
     panel_sr_id = order_to_sr_id(o_panel_1, counter)
     standalone_sr_id = order_to_sr_id(o_standalone, counter)
 
-    # Build a minimal BundleContext-like namespace that _bb_service_requests accepts.
-    # _bb_service_requests uses ctx.record.get("orders", []) and ctx.country.
-    record = {"orders": lab_orders}
-    ctx = SimpleNamespace(
-        record=record,
+    # Use a real BundleContext (not SimpleNamespace) so future field additions
+    # are caught at proof time rather than at production runtime.
+    ctx = BundleContext(
+        record={"orders": lab_orders},
         country="US",
-        patient=SimpleNamespace(encounter_id="enc-1"),
+        roster_map={},
+        hospital_config={},
+        patient_data={},
+        patient_id="pt-test",
+        is_readmission=False,
+        prior_encounter_id=None,
+        primary_dx_code="",
+        admit_dx_code="",
+        admit_dx_system="icd-10-cm",
+        primary_enc_id="enc-1",
+        patient_sex="M",
     )
-    srs = _bb_service_requests(cast(BundleContext, ctx))  # duck-types BundleContext
+    srs = _bb_service_requests(ctx)
 
-    # Count panel SRs from builder output (ids contain encounter_id prefix).
+    # Count panel SRs by matching panel-name suffix (e.g. "-CBC-", "-BMP-") rather
+    # than relying on "enc-" prefix in the encounter_id.  Robust to any synthetic
+    # encounter_id string used in tests.
     panel_sr_ids = {
         sr["id"]
         for sr in srs
-        if sr.get("id", "").startswith(f"{SR_ID_PREFIX}enc-")
+        if any(f"-{panel_name}-" in sr.get("id", "") for panel_name in PANEL_PRIORITY_ORDER)
     }
 
     return {

@@ -256,6 +256,10 @@ def _check_lab_obs_basedon(cohort: Cohort, country: str, result: AxisResult) -> 
 
     n_warn_threshold = 30
     if lab_obs_count < n_warn_threshold:
+        result.info[f"basedon_coverage_{country}"] = (
+            f"{lab_obs_count - missing_basedon}/{lab_obs_count} LAB Observations have basedOn "
+            f"(n<{n_warn_threshold}; rare-event WARN; missing={missing_basedon})"
+        )
         result.findings.append(
             AuditFinding(
                 Severity.WARN,

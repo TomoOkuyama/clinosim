@@ -19,6 +19,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.output._fhir_common import BundleContext, _build_reference_range, _entry
+from clinosim.modules.output._fhir_diagnostic_report import lab_obs_id
 from clinosim.modules.output._fhir_localization import (
     _CATEGORY_DISPLAY_JA,
     _INTERPRETATION_DISPLAY_JA,
@@ -60,11 +61,16 @@ def _build_lab_observation(
         display_name = lab_name
     code_system = get_system_uri(code_system_key)
 
-    # Use encounter_id-scoped IDs to avoid collisions across patient's multiple encounters
-    enc_scope = encounter_id or patient_id
+    # encounter_id must be non-empty: the production path always provides ctx.primary_enc_id,
+    # and the diagnostic-report reader (parse_lab_obs_id) matches on the same encounter_id.
+    # A patient_id fallback would silently break basedOn linkage (PR-90 silent-no-op class).
+    assert encounter_id, (
+        "_build_lab_observation: encounter_id must be non-empty. "
+        "All call sites pass ctx.primary_enc_id which is validated before the loop."
+    )
     resource: dict[str, Any] = {
         "resourceType": "Observation",
-        "id": f"lab-{enc_scope}-{index:04d}",
+        "id": lab_obs_id(encounter_id, index),
         "status": "final",
         "category": [{
             "coding": [{
