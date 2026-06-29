@@ -11,8 +11,8 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.modules.order.panel_grouping import classify_lab_specs, load_panel_definitions
 from clinosim.types.encounter import Order, OrderStatus, OrderType
-
 
 # Mapping: text frequency token → times per day
 _FREQ_PER_DAY: dict[str, int] = {
@@ -136,14 +136,51 @@ def place_admission_orders(
         first_line_list = [first_line_list]
     admission["medications"] = {"first_line": {country: first_line_list}}
 
-    # Lab orders (probability field: 1.0=mandatory, <1.0=optional)
-    for i, lab_spec in enumerate(admission.get("labs", [])):
+    # Lab orders (panel-aware grouping for PR1 ServiceRequest).
+    # Probability filter runs before classify_lab_specs so that borderline
+    # panels (optional components dropping below min_components) resolve
+    # correctly — the classifier only sees specs that will actually be ordered.
+    panels = load_panel_definitions()
+    lab_specs: list[dict[str, Any]] = []
+    for lab_spec in admission.get("labs", []):
         prob = lab_spec.get("probability", 1.0)
         if prob < 1.0 and rng.random() > prob:
             continue  # optional test, not ordered this time
+        lab_specs.append(lab_spec)
 
+    panel_groups, stand_alones = classify_lab_specs(lab_specs, panels)
+
+    # Emit panel Orders: all members share ordered_datetime for the same panel.
+    # Urgency is taken from the first/anchor member of each panel — all members
+    # are part of the same draw, so mixing urgency within a panel SR is ambiguous.
+    # sorted() ensures deterministic emission order (AD-16).
+    order_seq = 0
+    for panel_name in sorted(panel_groups.keys()):
+        members = panel_groups[panel_name]
+        panel_time = admission_time + timedelta(minutes=int(rng.normal(5, 3)))
+        panel_urgency = members[0].get("urgency", "routine")
+        for lab_spec in members:
+            order = Order(
+                order_id=f"ORD-{patient_id}-ADM-L{order_seq:02d}",
+                encounter_id=encounter_id,
+                patient_id=patient_id,
+                order_type=OrderType.LAB,
+                order_code=lab_spec.get("code_loinc", lab_spec.get("test", "")),
+                display_name=lab_spec["test"],
+                urgency=panel_urgency,
+                clinical_intent=f"Admission workup: {lab_spec['test']}",
+                ordered_datetime=panel_time,
+                ordered_by=ordered_by,
+                status=OrderStatus.PLACED,
+                panel_key=panel_name,
+            )
+            orders.append(order)
+            order_seq += 1
+
+    # Emit stand-alone Orders: each test has its own independent datetime.
+    for lab_spec in stand_alones:
         order = Order(
-            order_id=f"ORD-{patient_id}-ADM-L{i:02d}",
+            order_id=f"ORD-{patient_id}-ADM-L{order_seq:02d}",
             encounter_id=encounter_id,
             patient_id=patient_id,
             order_type=OrderType.LAB,
@@ -154,8 +191,10 @@ def place_admission_orders(
             ordered_datetime=admission_time + timedelta(minutes=int(rng.normal(5, 3))),
             ordered_by=ordered_by,
             status=OrderStatus.PLACED,
+            panel_key="",
         )
         orders.append(order)
+        order_seq += 1
 
     # Medication orders (all first-line drugs, not just the first)
     meds = admission.get("medications", {})
@@ -269,7 +308,11 @@ def place_daily_lab_orders(
         {"test": "Creatinine", "frequency": "daily"},
     ])
 
-    for i, lab_spec in enumerate(daily_labs):
+    # Build effective_specs (post-filter) before classify_lab_specs so that
+    # borderline panels resolve on the actually-ordered set (same pattern as
+    # place_admission_orders, see comment there).
+    effective_specs: list[dict[str, Any]] = []
+    for lab_spec in daily_labs:
         freq = lab_spec.get("frequency", "daily")
         jp_mod = lab_spec.get("japan_modifier", 1.0)
 
@@ -288,8 +331,39 @@ def place_daily_lab_orders(
             if rng.random() > effective_freq:
                 continue
 
-        order = Order(
-            order_id=f"ORD-{patient_id}-D{day_number:02d}-L{i:02d}",
+        effective_specs.append(lab_spec)
+
+    # Panel-aware grouping — daily monitoring typically yields stand-alone Orders
+    # (1-3 tests rarely meet any panel's min_components), but the same code path
+    # handles both correctly.  sorted() ensures deterministic emission (AD-16).
+    panels = load_panel_definitions()
+    panel_groups, stand_alones = classify_lab_specs(effective_specs, panels)
+
+    order_seq = 0
+    for panel_name in sorted(panel_groups.keys()):
+        members = panel_groups[panel_name]
+        # Daily monitoring panels share the morning round order_time.
+        panel_urgency = members[0].get("urgency", "routine")
+        for lab_spec in members:
+            orders.append(Order(
+                order_id=f"ORD-{patient_id}-D{day_number:02d}-L{order_seq:02d}",
+                encounter_id=encounter_id,
+                patient_id=patient_id,
+                order_type=OrderType.LAB,
+                order_code=lab_spec.get("code_loinc", lab_spec.get("test", "")),
+                display_name=lab_spec["test"],
+                urgency=panel_urgency,
+                clinical_intent=f"Day {day_number} monitoring: {lab_spec['test']}",
+                ordered_datetime=order_time,
+                ordered_by=ordered_by,
+                status=OrderStatus.PLACED,
+                panel_key=panel_name,
+            ))
+            order_seq += 1
+
+    for lab_spec in stand_alones:
+        orders.append(Order(
+            order_id=f"ORD-{patient_id}-D{day_number:02d}-L{order_seq:02d}",
             encounter_id=encounter_id,
             patient_id=patient_id,
             order_type=OrderType.LAB,
@@ -300,8 +374,9 @@ def place_daily_lab_orders(
             ordered_datetime=order_time,
             ordered_by=ordered_by,
             status=OrderStatus.PLACED,
-        )
-        orders.append(order)
+            panel_key="",
+        ))
+        order_seq += 1
 
     return orders
 
