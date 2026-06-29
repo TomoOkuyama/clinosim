@@ -475,8 +475,9 @@ register_audit_module(
         },
         clinical_acceptance={
             # Top-level metadata: full band list + empty-rate cap surfaced for
-            # the clinical axis. PR3b-3 will add active enforcement (R-rate gate
-            # + empty-rate gate). Keys verified by audit registry assertions.
+            # the clinical axis. R-rate gate + empty-rate gate are wired with
+            # per-(hai_type, organism, antibiotic) filter + panel-eligible
+            # denominator (PR3b-3 D1+D2 complete, 2026-06-29).
             "hai_resistance_bands": _NHSN_RESISTANCE_BANDS,
             "hai_empty_susceptibilities_max_rate": HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE,
             # PR3b-3: narrow rate per (hai_type, organism) cohort. Consumed by
@@ -487,8 +488,9 @@ register_audit_module(
                 "expected_drugs": ("vancomycin", "piperacillin_tazobactam"),
                 "expected_duration_days": 14,
                 "min_mar_per_event": 14 * 2 + 14 * 4,  # Vanc q12h + Pip-Tazo q6h
-                # PR3b-2: NHSN resistance-band metadata (clinical axis reads
-                # WBC/CRP only; R-rate checks deferred to PR3b-3).
+                # PR3b-2: NHSN resistance-band metadata. R-rate checks wired
+                # in clinical axis per-(hai_type, organism, antibiotic) cohort
+                # (PR3b-3 D1 complete, 2026-06-29).
                 "nhsn_r_bands": [
                     b for b in _NHSN_RESISTANCE_BANDS if b["cohort"].startswith("clabsi/")
                 ],

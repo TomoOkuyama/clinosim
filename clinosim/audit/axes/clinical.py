@@ -126,8 +126,10 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
         return result  # N/A
 
     # Filter to HAI-type entries only (dict with "icd10_code").
-    # Top-level metadata keys (e.g. "hai_resistance_bands", "hai_empty_susceptibilities_max_rate")
-    # are skipped here; PR3b-3 will add active enforcement for those keys.
+    # Top-level metadata keys (e.g. "hai_resistance_bands",
+    # "hai_empty_susceptibilities_max_rate", "narrow_rate_bands") are
+    # consumed by the dedicated R-rate / empty-rate / narrow-rate gate blocks
+    # below (PR3b-3 D1+D2 complete, 2026-06-29).
     hai_acceptance = {
         k: v
         for k, v in spec.clinical_acceptance.items()
