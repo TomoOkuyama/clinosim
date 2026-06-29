@@ -6,6 +6,7 @@ from clinosim.modules.output._fhir_service_request import (
     LAB_CATEGORY_SNOMED,
     LAB_CATEGORY_V2_0074,
     PLACER_ORDER_NUMBER_SYSTEM,
+    SNOMED_CT_SYSTEM,
     SR_ID_PREFIX,
     V2_0203_SYSTEM,
     _bb_service_requests,
@@ -75,6 +76,28 @@ def test_panel_counter_increments_per_panel_instance():
     assert counter[("enc1", "CBC", t2)] == 2
     assert order_to_sr_id(orders[0], counter) == "sr-enc1-CBC-1"
     assert order_to_sr_id(orders[4], counter) == "sr-enc1-CBC-2"
+
+
+def test_build_panel_counter_input_order_independent():
+    """build_panel_counter sorts internally; counter result is the same
+    regardless of input list ordering."""
+    t1 = datetime(2026, 6, 29, 8, 5)
+    t2 = datetime(2026, 7, 2, 8, 5)
+    orders_chronological = [
+        _make_order(order_id=f"O{i}", panel_key="CBC",
+                    encounter_id="enc1", ordered_datetime=t1) for i in range(4)
+    ] + [
+        _make_order(order_id=f"O{i+10}", panel_key="CBC",
+                    encounter_id="enc1", ordered_datetime=t2) for i in range(4)
+    ]
+    # Reverse the input
+    orders_reversed = list(reversed(orders_chronological))
+    counter_chrono = build_panel_counter(orders_chronological)
+    counter_reversed = build_panel_counter(orders_reversed)
+    assert counter_chrono == counter_reversed
+    # Both must assign the same N to the t1 and t2 panel instances
+    assert counter_chrono[("enc1", "CBC", t1)] == 1
+    assert counter_chrono[("enc1", "CBC", t2)] == 2
 
 
 def test_aggregate_panel_status_all_resulted():
@@ -192,6 +215,8 @@ def test_bb_service_requests_identifier_plac():
     ident = sr["identifier"][0]
     assert ident["system"] == PLACER_ORDER_NUMBER_SYSTEM
     assert ident["type"]["coding"][0]["code"] == "PLAC"
+    # Verify both the emitted URI AND that the canonical constant matches the spec
+    assert ident["type"]["coding"][0]["system"] == "http://terminology.hl7.org/CodeSystem/v2-0203"
     assert ident["type"]["coding"][0]["system"] == V2_0203_SYSTEM
 
 
@@ -203,6 +228,10 @@ def test_bb_service_requests_category_dual_coding():
     coding = sr["category"][0]["coding"]
     codes = {c["code"] for c in coding}
     assert codes == {LAB_CATEGORY_SNOMED, LAB_CATEGORY_V2_0074}
+    # Verify SNOMED URI
+    snomed_coding = next(c for c in coding if c["code"] == LAB_CATEGORY_SNOMED)
+    assert snomed_coding["system"] == "http://snomed.info/sct"
+    assert snomed_coding["system"] == SNOMED_CT_SYSTEM
 
 
 def test_bb_service_requests_jp_locale_uses_ja_snomed_display():
