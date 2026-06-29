@@ -102,9 +102,66 @@ def _validate_hai_organisms(data: dict) -> None:
             )
 
 
+def _validate_hai_rates(data: dict) -> None:
+    """Validate hai_rates.yaml at load time (sibling sweep, 2026-06-29).
+
+    6-layer silent-no-op defense:
+    1. top-level 'hai_rates' must exist and be non-empty
+    2. each hai_type ⊆ HAI_TYPES canonical set (no unknown keys)
+    3. per-bucket non-empty
+    4. HAI_TYPES forward-coverage (every canonical hai_type present)
+    5. per_day_risk numeric and ∈ [0, 1]
+    6. source_device_type ∈ load_devices_config()["devices"] (authoritative)
+    """
+    from clinosim.modules.device.engine import load_devices_config
+    from clinosim.modules.hai import HAI_TYPES
+
+    if not isinstance(data, dict):
+        raise ValueError(
+            f"hai_rates.yaml: top-level must be a dict, "
+            f"got {type(data).__name__}"
+        )
+    rates = data.get("hai_rates") or {}
+    if not rates:
+        raise ValueError(
+            "hai_rates.yaml top-level empty — silent no-op risk"
+        )
+    valid_types = set(HAI_TYPES)
+    device_table = load_devices_config().get("devices", {})
+    for hai_type, bucket in rates.items():
+        if hai_type not in valid_types:
+            raise ValueError(
+                f"hai_rates.yaml: unknown hai_type {hai_type!r}, "
+                f"expected one of {sorted(valid_types)}"
+            )
+        if not isinstance(bucket, dict) or not bucket:
+            raise ValueError(
+                f"hai_rates.yaml: {hai_type!r} bucket empty"
+            )
+        risk = bucket.get("per_day_risk")
+        if not isinstance(risk, (int, float)) or not (0.0 <= float(risk) <= 1.0):
+            raise ValueError(
+                f"hai_rates.yaml: {hai_type!r} per_day_risk {risk!r} "
+                f"not in [0, 1]"
+            )
+        src = bucket.get("source_device_type", "")
+        if src not in device_table:
+            raise ValueError(
+                f"hai_rates.yaml: {hai_type!r} source_device_type {src!r} "
+                f"not in devices.yaml ({sorted(device_table.keys())})"
+            )
+    missing = valid_types - set(rates.keys())
+    if missing:
+        raise ValueError(
+            f"hai_rates.yaml missing HAI_TYPES: {sorted(missing)!r}"
+        )
+
+
 @lru_cache(maxsize=1)
 def load_hai_rates() -> dict[str, Any]:
-    return _load_yaml("hai_rates.yaml")
+    data = _load_yaml("hai_rates.yaml")
+    _validate_hai_rates(data)
+    return data
 
 
 @lru_cache(maxsize=1)
