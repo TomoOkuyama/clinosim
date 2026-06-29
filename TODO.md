@@ -572,8 +572,10 @@ Phase 3b backlog (remaining):
   + panel-eligible empty-rate denominator via `_panel_eligible_organisms`.
   Both TODO markers removed (clinical.py + antibiotic/audit.py). 6-layer
   silent-no-op defense complete. PR3b-3 original-spec deferred TODOs = 0.
-- ~~PR3b-5~~: ✓ done 2026-06-29 — specimen-based susc → organism join +
-  FHIR HAI_EVENT_ID_SYSTEM identifier emission resolved the PR3b-3 D1
+- ~~PR3b-5~~: ✓ done 2026-06-29 (PR #117 + adv-1 #118 + adv-2 #119 =
+  3-stage adversarial chain converged) — specimen-based susc → organism
+  join + FHIR HAI_EVENT_ID_SYSTEM identifier emission
+  (`urn:clinosim:identifier:hai-event-id`) resolved the PR3b-3 D1
   encounter-level attribution approximation. C1 (multi-organism encounter
   double-count) and C2 (community + HAI culture co-occurrence) both
   mechanically excluded. New helpers `_organism_per_specimen` +
