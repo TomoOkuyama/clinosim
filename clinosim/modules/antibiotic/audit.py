@@ -424,6 +424,13 @@ def _validate_narrow_rate_bands() -> None:
     _NARROW_RATE_BANDS = [] which previously silent-passed the loop and
     combined with `if narrow_bands:` short-circuit in clinical.py would
     silently disable the entire narrow rate gate.
+
+    pr112-adv-3 fix (Agent 2 MEDIUM): also enforce **forward-coverage** —
+    every HAI_TYPES entry must have at least one band. If a new HAI_TYPE
+    were added without a corresponding _NARROW_RATE_BANDS entry, the
+    narrow rate gate would silently no-op for that hai_type. Matches the
+    silent-no-op defense layer 4 reverse-coverage pattern adv-1 applied
+    to _NHSN_RESISTANCE_BANDS.
     """
     if not _NARROW_RATE_BANDS:
         raise ValueError(
@@ -431,6 +438,7 @@ def _validate_narrow_rate_bands() -> None:
             "disabled (PR-90 class silent no-op)"
         )
     valid_hai_types = set(HAI_TYPES)
+    banded_hai_types: set[str] = set()
     for band in _NARROW_RATE_BANDS:
         cohort = band.get("cohort", "")
         if "/" in cohort:
@@ -456,6 +464,17 @@ def _validate_narrow_rate_bands() -> None:
                 f"_NARROW_RATE_BANDS band {cohort!r} invalid range "
                 f"[{mn}, {mx}] (must satisfy 0 ≤ min ≤ max ≤ 1)"
             )
+        banded_hai_types.add(cohort)
+
+    # pr112-adv-3 forward-coverage: every HAI_TYPE must have a band.
+    missing = valid_hai_types - banded_hai_types
+    if missing:
+        raise ValueError(
+            f"_NARROW_RATE_BANDS forward-coverage gap: HAI_TYPES {sorted(missing)!r} "
+            f"have no narrow rate band. Adding a new hai_type to HAI_TYPES requires "
+            f"a corresponding _NARROW_RATE_BANDS entry — otherwise the narrow rate "
+            f"gate silently no-ops for that hai_type (silent-no-op defense layer 4)."
+        )
 
 
 # adversarial-1 I-D3 fix + pr112-adv-2 ordering fix: ALL validators

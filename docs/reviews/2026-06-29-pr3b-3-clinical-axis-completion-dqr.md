@@ -115,9 +115,16 @@ Concrete edge cases (adv-1 finding C1+C2, deferred to PR3b-5):
   encounter ref. The S.aureus MRSA band counts community-side
   susceptibilities too.
 
-Production materiality estimate (per-HAI encounter):
-- Multi-HAI per encounter: <1% (negligible)
-- Community + HAI co-occurrence: ~5-15% of HAI encounters (sepsis-then-HAI pattern)
+Production materiality estimate (per p=5000 US scratch sample, adv-3 spot
+check `scratchpad/pr3b3_dqr_v2/us/fhir_r4/`):
+- Multi-organism per encounter (≥2 distinct organism cultures): <1% (negligible)
+- ≥2 specimens per encounter (any mix, community + HAI): ~15-20% of
+  microbiology encounters at p=5000 (revised upward from initial ~5-15%
+  estimate after adv-3 Agent 2 spot check). The dominant pattern is
+  sepsis-admitted patient with community blood culture + later HAI event
+  on the same encounter — these are NOT necessarily distinct organisms,
+  but the susc rows from one specimen flow into the per-organism band of
+  the other organism on encounter-ref join.
 
 The "encounter-level filter" is a defensible first-stage approximation —
 the per-organism antibiogram resistance is biologically the same drug ×
