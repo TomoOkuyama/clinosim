@@ -476,6 +476,91 @@ def test_nhsn_reverse_coverage_exempt_no_stale_entries() -> None:
 
 
 @pytest.mark.integration
+def test_fhir_microbiology_emits_hai_event_id_identifier() -> None:
+    """PR3b-5 Task 1: MicrobiologyResult.hai_event_id non-empty → FHIR
+    Specimen / mb-org-* Observation / mb-sus-* Observation /
+    DiagnosticReport all carry identifier[].system == HAI_EVENT_ID_SYSTEM
+    with value == hai_event_id. Empty hai_event_id → no identifier field
+    (byte-identical to pre-PR3b-5 community-culture output)."""
+    from clinosim.modules.output._fhir_common import BundleContext
+    from clinosim.modules.output._fhir_microbiology import (
+        HAI_EVENT_ID_SYSTEM,
+        _bb_microbiology,
+    )
+
+    # HAI culture: hai_event_id set
+    hai_mb = {
+        "specimen": "blood",
+        "specimen_snomed": "119297000",
+        "test_loinc": "600-7",
+        "collected_datetime": "2026-01-10T08:00:00",
+        "reported_datetime": "2026-01-12T08:00:00",
+        "growth": True,
+        "organism_snomed": "3092008",
+        "susceptibilities": [
+            {"antibiotic_loinc": "10-9", "interpretation": "S"},
+        ],
+        "hai_event_id": "hai-clabsi-E1-1",
+    }
+    # Community culture: hai_event_id empty
+    comm_mb = {
+        "specimen": "urine",
+        "specimen_snomed": "122575003",
+        "test_loinc": "630-4",
+        "collected_datetime": "2026-01-10T08:00:00",
+        "reported_datetime": "2026-01-12T08:00:00",
+        "growth": True,
+        "organism_snomed": "112283007",
+        "susceptibilities": [],
+        "hai_event_id": "",
+    }
+    ctx = BundleContext(
+        record={"microbiology": [hai_mb, comm_mb]},
+        country="US",
+        roster_map={},
+        hospital_config={},
+        patient_data={},
+        patient_id="p1",
+        is_readmission=False,
+        prior_encounter_id=None,
+        primary_dx_code="",
+        admit_dx_code="",
+        admit_dx_system="icd-10-cm",
+        primary_enc_id="E1",
+        patient_sex="",
+    )
+    resources = _bb_microbiology(ctx)
+
+    spec_hai = next(r for r in resources if r["resourceType"] == "Specimen"
+                    and r["id"] == "spec-E1-0")
+    spec_comm = next(r for r in resources if r["resourceType"] == "Specimen"
+                     and r["id"] == "spec-E1-1")
+    org_hai = next(r for r in resources if r["id"] == "mb-org-E1-0")
+    org_comm = next(r for r in resources if r["id"] == "mb-org-E1-1")
+    sus_hai = next(r for r in resources if r["id"] == "mb-sus-E1-0-0")
+    dr_hai = next(r for r in resources if r["id"] == "dr-mb-E1-0")
+    dr_comm = next(r for r in resources if r["id"] == "dr-mb-E1-1")
+
+    # HAI side: identifier present, system + value correct
+    for res in (spec_hai, org_hai, sus_hai, dr_hai):
+        ident = res.get("identifier") or []
+        assert len(ident) == 1, f"{res['id']}: expected 1 identifier, got {ident}"
+        assert ident[0]["system"] == HAI_EVENT_ID_SYSTEM, (
+            f"{res['id']}: identifier.system mismatch"
+        )
+        assert ident[0]["value"] == "hai-clabsi-E1-1", (
+            f"{res['id']}: identifier.value mismatch"
+        )
+
+    # Community side: no identifier field at all (byte-identical pre-PR3b-5)
+    for res in (spec_comm, org_comm, dr_comm):
+        assert "identifier" not in res, (
+            f"{res['id']}: community culture must NOT emit identifier "
+            f"(byte-identical invariant), got {res.get('identifier')!r}"
+        )
+
+
+@pytest.mark.integration
 def test_narrow_rate_bands_forward_coverage_complete() -> None:
     """pr112-adv-3 Agent 2 MEDIUM: _NARROW_RATE_BANDS must cover every
     HAI_TYPES entry — sibling pattern to _NHSN_RESISTANCE_BANDS reverse-
