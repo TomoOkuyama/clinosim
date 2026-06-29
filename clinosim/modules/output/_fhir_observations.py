@@ -11,18 +11,28 @@ from _fhir_common, so this module never imports back through the adapter
 
 from __future__ import annotations
 
+import dataclasses
 from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
-from clinosim.modules.output._fhir_common import _build_reference_range, _entry
+from clinosim.modules._shared import get_attr_or_key
+from clinosim.modules.output._fhir_common import BundleContext, _build_reference_range, _entry
+from clinosim.modules.output._fhir_diagnostic_report import lab_obs_id
 from clinosim.modules.output._fhir_localization import (
     _CATEGORY_DISPLAY_JA,
     _INTERPRETATION_DISPLAY_JA,
     _localize_display,
     _localize_interp,
 )
+from clinosim.modules.output._fhir_service_request import build_panel_counter, order_to_sr_id
+from clinosim.types.encounter import Order, OrderType
+
+
+def _o(order: Any, name: str, default: Any = None) -> Any:
+    """Dual-access helper: dataclass attribute OR dict key (production path)."""
+    return get_attr_or_key(order, name, default)
 
 
 def _build_lab_observation(
@@ -51,11 +61,16 @@ def _build_lab_observation(
         display_name = lab_name
     code_system = get_system_uri(code_system_key)
 
-    # Use encounter_id-scoped IDs to avoid collisions across patient's multiple encounters
-    enc_scope = encounter_id or patient_id
+    # encounter_id must be non-empty: the production path always provides ctx.primary_enc_id,
+    # and the diagnostic-report reader (parse_lab_obs_id) matches on the same encounter_id.
+    # A patient_id fallback would silently break basedOn linkage (PR-90 silent-no-op class).
+    assert encounter_id, (
+        "_build_lab_observation: encounter_id must be non-empty. "
+        "All call sites pass ctx.primary_enc_id which is validated before the loop."
+    )
     resource: dict[str, Any] = {
         "resourceType": "Observation",
-        "id": f"lab-{enc_scope}-{index:04d}",
+        "id": lab_obs_id(encounter_id, index),
         "status": "final",
         "category": [{
             "coding": [{
@@ -377,3 +392,62 @@ def _build_vital_observations(
         entries.append(_entry(o2_obs))
 
     return entries
+
+
+def _bb_labs(ctx: BundleContext) -> list[dict[str, Any]]:
+    """Build FHIR Observation resources for lab results.
+
+    Each lab Observation carries a ``basedOn`` reference to the ServiceRequest
+    for the originating Order. Panel member Observations all share the panel
+    SR id (e.g. 4 CBC components → all reference sr-enc1-CBC-1). Stand-alone
+    Observations reference their own SR.
+
+    Dual-access: supports both Order dataclass objects (test harness and
+    future direct-object pipeline) and JSON-deserialized dicts (production
+    CIF path via json.load). ``basedOn`` is now populated on BOTH paths via
+    the dict-compatible ``build_panel_counter`` + ``order_to_sr_id`` helpers
+    (Fix 2 — closes the silent basedOn omission on production dict path).
+    """
+    orders = ctx.record.get("orders", []) or []
+
+    # Build panel counter from all lab orders (dataclass OR dict — both accepted
+    # after Fix 1 refactored build_panel_counter to use _o dual-access).
+    lab_order_objects = [
+        o for o in orders
+        if _o(o, "order_type") in (OrderType.LAB, "lab")
+    ]
+    panel_counter = build_panel_counter(lab_order_objects)
+
+    out: list[dict[str, Any]] = []
+    for i, order in enumerate(orders):
+        if isinstance(order, Order):
+            # Order dataclass path (tests + future direct-object pipeline).
+            if order.order_type != OrderType.LAB or order.result is None:
+                continue
+            # Convert to dict for _build_lab_observation (which uses dict.get access).
+            order_dict = dataclasses.asdict(order)
+            result_dict: dict[str, Any] = order_dict.get("result") or {}
+            sr_id: str | None = order_to_sr_id(order, panel_counter)
+        elif isinstance(order, dict):
+            # JSON-deserialized dict path (production CIF loaded from json.load).
+            if order.get("order_type") not in ("lab", OrderType.LAB):
+                continue
+            result_data = order.get("result")
+            if not result_data:
+                continue
+            order_dict = order
+            result_dict = result_data if isinstance(result_data, dict) else {}
+            # Now computable for dicts via dict-compatible panel_counter (Fix 1+2).
+            sr_id = order_to_sr_id(order, panel_counter)
+        else:
+            continue
+
+        obs = _build_lab_observation(
+            order_dict, result_dict, ctx.patient_id, i,
+            ctx.country, ctx.patient_sex, ctx.primary_enc_id,
+        )
+        if obs:
+            if sr_id is not None:
+                obs["basedOn"] = [{"reference": f"ServiceRequest/{sr_id}"}]
+            out.append(obs)
+    return out
