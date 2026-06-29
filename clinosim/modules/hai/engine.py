@@ -179,11 +179,21 @@ def _code_in_data(system: str, code: str) -> bool:
     fallback for unknown entries (not None), so it can't distinguish
     "code exists" from "code absent". Direct `cs.codes` membership IS
     the authoritative check.
+
+    pr121-adv-1 fix (Agent 1 Minor #2): raise ValueError when the
+    system itself is unregistered, rather than collapsing into "code
+    missing". Prevents a future codes/ rename / deletion from
+    masquerading as per-code errors across every hai YAML validator.
     """
     from clinosim.codes.loader import _load_system
 
     cs = _load_system(system)
-    return cs is not None and code in cs.codes
+    if cs is None:
+        raise ValueError(
+            f"_code_in_data: code system {system!r} not registered in "
+            f"clinosim/codes/data/ — system itself is missing, not the code"
+        )
+    return code in cs.codes
 
 
 def _validate_hai_codes(data: dict) -> None:

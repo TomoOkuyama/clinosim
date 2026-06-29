@@ -365,3 +365,72 @@ def test_hai_organisms_rejects_missing_hai_type_forward_coverage(monkeypatch) ->
     })
     with pytest.raises(ValueError, match="missing HAI_TYPES"):
         hai_engine.load_hai_organisms()
+
+
+# ----------------------------------------------------------------------------
+# pr121-adv-1 stage-1 fix tests
+# ----------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_code_in_data_raises_on_unregistered_system() -> None:
+    """pr121-adv-1 Agent 1 Minor #2: _code_in_data raises ValueError when
+    the code system itself is missing, rather than collapsing into "code
+    not found". Prevents codes/ rename from masquerading as per-code
+    errors."""
+    with pytest.raises(ValueError, match="not registered"):
+        hai_engine._code_in_data("nonexistent-system", "any-code")
+
+
+@pytest.mark.unit
+def test_hai_rates_rejects_missing_per_day_risk_field(monkeypatch) -> None:
+    """pr121-adv-1 Agent 1 Minor #3: missing required field test."""
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {
+        "hai_rates": {
+            "clabsi": {"source_device_type": "cvc"},  # per_day_risk missing
+            "cauti": {"per_day_risk": 0.001, "source_device_type": "indwelling_catheter"},
+            "vap": {"per_day_risk": 0.001, "source_device_type": "mechanical_ventilator"},
+        }
+    })
+    with pytest.raises(ValueError, match="per_day_risk"):
+        hai_engine.load_hai_rates()
+
+
+@pytest.mark.unit
+def test_hai_codes_rejects_missing_icd10_us_field(monkeypatch) -> None:
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {
+        "hai_codes": {
+            "clabsi": {"icd10_jp_who": "T80.2", "snomed": "736442006"},  # us missing
+            "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5",
+                      "snomed": "68566005"},
+            "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8",
+                    "snomed": "429271009"},
+        }
+    })
+    with pytest.raises(ValueError, match="icd10_us_billable"):
+        hai_engine.load_hai_codes()
+
+
+@pytest.mark.unit
+def test_hai_specimens_rejects_missing_specimen_snomed_field(monkeypatch) -> None:
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {
+        "hai_specimens": {
+            "clabsi": {"specimen": "blood", "test_loinc": "600-7"},  # snomed missing
+            "cauti": {"specimen": "urine", "specimen_snomed": "122575003",
+                      "test_loinc": "630-4"},
+            "vap": {"specimen": "sputum", "specimen_snomed": "119334006",
+                    "test_loinc": "619-7"},
+        }
+    })
+    with pytest.raises(ValueError, match="specimen_snomed"):
+        hai_engine.load_hai_specimens()
+
+
+@pytest.mark.unit
+def test_hai_lab_lift_rejects_missing_ramp_peak_days_field(monkeypatch) -> None:
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {
+        # ramp_peak_days missing
+        "hai_lift": {"clabsi": 0.35, "cauti": 0.20, "vap": 0.35},
+    })
+    with pytest.raises(ValueError, match="ramp_peak_days"):
+        lab_lift_mod.load_hai_lab_lift_config()
