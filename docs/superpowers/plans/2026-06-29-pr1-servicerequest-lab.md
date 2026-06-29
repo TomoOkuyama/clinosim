@@ -160,18 +160,26 @@ EOF
 
 ---
 
-## Task 2: Panel detection helper module
+## Task 2: Panel detection helper module + YAML/loader unification
 
 **Files:**
 - Create: `clinosim/modules/order/panel_grouping.py`
+- Move: `clinosim/modules/output/reference_data/lab_panel_groups.yaml` → `clinosim/modules/order/reference_data/lab_panel_groups.yaml`
+- Modify: `clinosim/modules/output/_fhir_diagnostic_report.py` — delete local `load_panel_groups()`, import canonical loader from `panel_grouping`
 - Test: `tests/unit/modules/order/test_panel_grouping.py`
 
+**Unification rationale**: per user directive「データ参照やデータ生成のロジックは、統一するように」, the YAML + loader + priority constant become **single source of truth** in `panel_grouping.py`. The YAML is moved to `order/reference_data/` because the panel concept is fundamentally about ordering (CBC = an order placed by a clinician). `_fhir_diagnostic_report.py`'s output-time assembly (`group_lab_orders`, `build_dr_resource`) keeps its own bucket-by-day logic but consumes the unified loader + priority constant.
+
 **Interfaces:**
-- Consumes: `lab_panel_groups.yaml`(既存)経由で panel definitions
+- Consumes: `lab_panel_groups.yaml`(relocated to `order/reference_data/`)
 - Produces:
-  - `PANEL_PRIORITY_ORDER: tuple[str, ...]` = `("ABG", "CBC", "BMP", "LFT", "Lipid", "Coag", "UA")`
-  - `classify_lab_specs(lab_specs: list[dict], panels_yaml: dict) -> tuple[dict[str, list[dict]], list[dict]]` — returns `(panel_groups, stand_alones)`
-  - `load_panel_definitions() -> dict[str, dict]` — `lab_panel_groups.yaml` reader, lru_cache
+  - `PANEL_PRIORITY_ORDER: tuple[str, ...]` = `("ABG", "CBC", "BMP", "LFT", "Lipid", "Coag", "UA")` — **canonical priority constant**
+  - `classify_lab_specs(lab_specs: list[dict], panels_yaml: dict) -> tuple[dict[str, list[dict]], list[dict]]` — returns `(panel_groups, stand_alones)` for ordering-time classification
+  - `load_panel_definitions() -> dict[str, dict]` — **canonical YAML loader**, `lru_cache(maxsize=1)`, import-time validation (forward + reverse coverage against `PANEL_PRIORITY_ORDER`)
+- Consumed-by (downstream):
+  - `clinosim/modules/order/engine.py` (Task 3) — ordering-time classification
+  - `clinosim/modules/output/_fhir_diagnostic_report.py` (this task) — output-time assembly (replaces local `load_panel_groups()`)
+  - `clinosim/modules/output/_fhir_service_request.py` (Task 4) — SR builder reads panel LOINC from panel definitions
 
 - [ ] **Step 1: Write failing tests for panel detection**
 
@@ -311,14 +319,12 @@ from typing import Any
 import yaml
 
 _HERE = Path(__file__).resolve().parent
-# Cross-module read: lab_panel_groups.yaml is the canonical master already
-# consumed by output/_fhir_diagnostic_report.py. We read directly from the YAML
-# file (no Python import from output/) to keep a single source of truth and
-# avoid a circular import (order/ ← output/_fhir_service_request.py imports
-# classify_lab_specs from here, so order/ must NOT depend on output/).
-# A future refactor PR may move the YAML to a more neutral location
-# (clinosim/locale/shared/ or clinosim/modules/order/reference_data/).
-_PANEL_YAML = _HERE.parent / "output" / "reference_data" / "lab_panel_groups.yaml"
+# Canonical YAML location (moved from output/reference_data/ in this task to
+# unify panel data ownership; "panel" is fundamentally an ordering concept).
+# Following the canonical _HERE / "reference_data" path constant convention
+# (CLAUDE.md Path constant canonical form, PR-A 2026-06-26).
+_REF_DIR = _HERE / "reference_data"
+_PANEL_YAML = _REF_DIR / "lab_panel_groups.yaml"
 
 PANEL_PRIORITY_ORDER: tuple[str, ...] = ("ABG", "CBC", "BMP", "LFT", "Lipid", "Coag", "UA")
 """Priority order for panel matching (header of lab_panel_groups.yaml).
@@ -419,6 +425,33 @@ def classify_lab_specs(
 Run: `pytest tests/unit/modules/order/test_panel_grouping.py -v`
 Expected: PASS (10 tests)
 
+- [ ] **Step 4.5: Move YAML + replace `_fhir_diagnostic_report.py` loader (unification)**
+
+```bash
+# 1. Create destination directory
+mkdir -p clinosim/modules/order/reference_data
+# 2. Move YAML (preserves git history with -k= force, but `git mv` is cleaner)
+git mv clinosim/modules/output/reference_data/lab_panel_groups.yaml \
+       clinosim/modules/order/reference_data/lab_panel_groups.yaml
+```
+
+Edit `clinosim/modules/output/_fhir_diagnostic_report.py`:
+1. Delete the local `_HERE`/`_REF_DIR`/`_PANEL_REF` constants AND the `load_panel_groups()` function (lines around 23-37) — they are replaced by the canonical loader.
+2. Add import at the top of imports section:
+   ```python
+   from clinosim.modules.order.panel_grouping import (
+       PANEL_PRIORITY_ORDER,
+       load_panel_definitions,
+   )
+   ```
+3. Replace every `load_panel_groups()` call with `load_panel_definitions()`. There are 2 call sites (`group_lab_orders` line ~67 and `build_dr_resource` line ~150).
+4. Verify the YAML key-iteration order semantics are preserved: existing code relies on `for panel_name, panel in panels.items():` matching PANEL_PRIORITY_ORDER (YAML insertion order). `load_panel_definitions()` returns dict from `yaml.safe_load` which preserves insertion order in Python 3.7+ — same behavior.
+5. Run the existing diagnostic report tests to confirm no regression:
+   ```
+   pytest tests/unit/output -k "diagnostic" -v
+   ```
+   Expected: PASS (or same pre-existing failures as on master).
+
 - [ ] **Step 5: Add module __init__.py re-export**
 
 Edit `clinosim/modules/order/__init__.py` to add:
@@ -446,15 +479,25 @@ Expected: prints `('ABG', 'CBC', 'BMP', 'LFT', 'Lipid', 'Coag', 'UA')`
 - [ ] **Step 7: Commit**
 
 ```bash
-git add clinosim/modules/order/panel_grouping.py clinosim/modules/order/__init__.py tests/unit/modules/order/test_panel_grouping.py
+git add clinosim/modules/order/panel_grouping.py clinosim/modules/order/__init__.py \
+        clinosim/modules/order/reference_data/lab_panel_groups.yaml \
+        clinosim/modules/output/_fhir_diagnostic_report.py \
+        tests/unit/modules/order/test_panel_grouping.py
+git rm clinosim/modules/output/reference_data/lab_panel_groups.yaml 2>/dev/null || true
 git commit -m "$(cat <<'EOF'
-feat(order): add panel_grouping helper for lab ServiceRequest
+feat(order): unify panel definitions + add classify_lab_specs
 
-2-pass deterministic algorithm: (A) priority-first matching using
-PANEL_PRIORITY_ORDER (ABG > CBC > BMP > LFT > Lipid > Coag > UA),
-(B) min_components gate. Reuses existing lab_panel_groups.yaml
-master (already consumed by _fhir_diagnostic_report.py). Import-time
-3-way validation: forward-coverage + reverse-coverage + schema.
+User-directed unification ("データ参照やデータ生成のロジックは統一"):
+- Move lab_panel_groups.yaml from output/reference_data/ to
+  order/reference_data/ (panel = ordering concept, canonical home).
+- Canonical loader load_panel_definitions() in panel_grouping.py
+  (lru_cache(maxsize=1), import-time forward+reverse coverage validation
+  against PANEL_PRIORITY_ORDER).
+- output/_fhir_diagnostic_report.py deletes its local load_panel_groups()
+  and imports the canonical loader — single source of truth.
+- New classify_lab_specs(lab_specs, panels): 2-pass deterministic algo
+  (A) priority-first matching using PANEL_PRIORITY_ORDER, (B) min_components
+  gate. Reuses YAML insertion-order semantics (Python 3.7+).
 
 Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01JJA6Md2Y85h7vVcfUGxLze
