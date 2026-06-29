@@ -24,6 +24,10 @@ from datetime import datetime
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS
 from clinosim.modules.antibiotic.engine import (
+    ABX_NARROW_SUFFIX,
+    ABX_ORDER_ID_PREFIX,
+    ABX_ORDER_REQ_PREFIX,
+    ABX_REGIMEN_ID_PREFIX,
     NarrowOutcome,
     _drug_slug,
     build_regimens,
@@ -88,7 +92,7 @@ def enrich_antibiotic(ctx) -> None:
                 continue
             start_dt = datetime.fromisoformat(ev.onset_date).replace(hour=_ORDER_HOUR)
             for regimen in build_regimens(ev, start_datetime=start_dt):
-                order_id = f"req-{regimen.regimen_id}"
+                order_id = f"{ABX_ORDER_REQ_PREFIX}{regimen.regimen_id}"
                 order = Order(
                     order_id=order_id,
                     encounter_id=regimen.encounter_id,
@@ -244,7 +248,7 @@ def _apply_pass2(rec, snapshot: datetime) -> None:
             narrow_dose, narrow_freq = _narrow_dose_frequency(target)
             slug = _drug_slug(target)
             new_regimen = AntibioticRegimen(
-                regimen_id=f"abx-{hai_id}-{slug}-narrowed",
+                regimen_id=f"{ABX_REGIMEN_ID_PREFIX}{hai_id}-{slug}{ABX_NARROW_SUFFIX}",
                 hai_event_id=hai_id,
                 encounter_id=template.encounter_id,
                 drug_key=target,
@@ -256,7 +260,7 @@ def _apply_pass2(rec, snapshot: datetime) -> None:
                 intent="narrowed",
             )
             new_regimens.append(new_regimen)
-            order_id = f"req-{new_regimen.regimen_id}"
+            order_id = f"{ABX_ORDER_REQ_PREFIX}{new_regimen.regimen_id}"
             order = Order(
                 order_id=order_id,
                 encounter_id=template.encounter_id,
