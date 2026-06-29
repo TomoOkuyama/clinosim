@@ -94,7 +94,7 @@ quality. See [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md)
 | [locale](clinosim/locale/README.md) | 国別文化データ (names/addresses/reference ranges/code_mapping) | foundation | codes | patient/observation/output/identity | foundational |
 | [physiology](clinosim/modules/physiology/README.md) | 患者生理学状態 + lab/vital derivation (15+ state axes) | simulation | types | observation, simulator/* (4 sites) | core |
 | [observation](clinosim/modules/observation/README.md) | lab/vital result generation (panels, microbiology, nursing) | simulation | physiology/codes/locale | simulator/*, output | core |
-| [order](clinosim/modules/order/README.md) | lab/medication/imaging order placement | simulation | observation/codes | simulator/* | core |
+| [order](clinosim/modules/order/README.md) | lab/medication/imaging order placement; panel-aware lab Order generation (PR1 ServiceRequest foundation) | simulation | observation/codes | simulator/*, output (_fhir_service_request.py) | core |
 | [clinical_course](clinosim/modules/clinical_course/README.md) | archetype rule-based daily evolution + complications | simulation | physiology | simulator/inpatient.py | core |
 | [diagnosis](clinosim/modules/diagnosis/README.md) | working/discharge diagnosis with Bayesian likelihood ratios | simulation | codes | simulator/inpatient.py | core |
 | [procedure](clinosim/modules/procedure/README.md) | surgical + bedside procedures + rehab | simulation | codes/locale/types | simulator/inpatient.py | core |

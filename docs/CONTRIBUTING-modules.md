@@ -411,6 +411,37 @@ register_bundle_builder(_bb_my_resource)
 - `Resource.id` は型内で globally unique に。encounter-scoped id (`lab-{encounter_id}-...`) を使う (FA-7)。
 - **double-wrap 注意 (FA-3):** builder は raw resource dict を返す。`_entry()` を builder 内で呼ばない。
 
+**Canonical example — `_bb_service_requests` (PR1, 2026-06-29, `_fhir_service_request.py`):**
+
+```python
+# clinosim/modules/output/_fhir_service_request.py
+from clinosim.modules.output.fhir_r4_adapter import register_bundle_builder, BundleContext
+from clinosim.modules.order.panel_grouping import classify_lab_specs
+
+def _bb_service_requests(ctx: BundleContext) -> list[dict]:
+    """Emit 1 ServiceRequest per panel instance + 1 per stand-alone lab order."""
+    resources: list[dict] = []
+    orders = _collect_lab_orders(ctx.record)       # walk all encounters' orders
+    for group_key, group_orders in _group_by_panel(orders):
+        sr = _build_service_request(group_key, group_orders, ctx)
+        resources.append(sr)
+    return resources
+
+register_bundle_builder(_bb_service_requests)
+```
+
+Key patterns illustrated:
+- `ctx.record` is the `CIFPatientRecord` (dict in production JSON path, dataclass in tests).
+  Always access fields via `_o(order, "field_name", default)` (`get_attr_or_key` wrapper, see
+  `clinosim/modules/_shared.py`) to support both paths — unit tests may pass dataclass
+  instances while the production path deserializes to dict.
+- Panel grouping logic lives in `clinosim/modules/order/panel_grouping.py:classify_lab_specs`.
+  Never inline a panel-detection if/elif in the builder. [AD-61]
+- Both dict-path and dataclass-path MUST be covered by tests: a subprocess integration smoke
+  test exercises the production dict path (see `tests/integration/test_service_request.py`).
+
+See [`clinosim/modules/output/_fhir_service_request.py`](../clinosim/modules/output/_fhir_service_request.py) for the full implementation.
+
 ### B. 出力フォーマットを追加する (`register_output_adapter`, AD-58)
 
 CLI の `--format` dispatch を編集しない。`OutputAdapter` Protocol を満たすクラスを `adapters_builtin.py` パターンで登録します。adapter は **CIF + `clinosim.codes` + `clinosim.locale` のみ** に依存できます。

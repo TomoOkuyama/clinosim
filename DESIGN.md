@@ -2272,3 +2272,26 @@ Both `procedure_code_jp` and `procedure_code_us` are stored for multilingual out
 
 All have `probability` (for ED weighted selection) and age_rates/sex_ratio (for inpatient
 incidence). Occupation risk multipliers concentrate events in industrial workers.
+
+---
+
+### AD-61: Lab ServiceRequest emission, panel-aware grouping
+
+**Status:** Accepted (PR1, 2026-06-29)
+**Context:** EHR/EMR sample dataset target (Tier 1 #1) requires FHIR
+ServiceRequest for lab order lifecycle. JP Core / US Core idiomatic
+emission is panel-level (1 SR per CBC, not 1 SR per WBC/Hb/Hct/Plt).
+**Decision:** Add `Order.panel_key` 1 field (empty = stand-alone). Order
+engine reuses lab_panel_groups.yaml (canonical loader unified in
+`order/panel_grouping.py`) to assign panel_key + shared ordered_datetime
+to panel members. New `_fhir_service_request.py` builder groups Orders by
+`(encounter_id, panel_key, ordered_datetime)` to emit 1 SR per panel
+instance; stand-alone Orders emit 1 SR each. JP Core compliance via HL7
+v2-0203 PLAC identifier type + dual category coding (SNOMED 108252007 +
+v2-0074 LAB).
+**Consequences:** rng draw count change for lab orders (per-panel rather
+than per-test draw). e2e attribute-based tests unchanged (run_alpha golden
+patient FORCED-0001 not affected). Production scale verified at US p=10k
++ JP p=5k (362k+42k SR, 0 dangling refs, audit silent_no_op 7/7 PASS).
+ServiceRequest is the foundation for Tier 1 #2-#7 (Imaging / NutritionOrder
+/ ADT / DocumentReference / Appointment / CarePlan).
