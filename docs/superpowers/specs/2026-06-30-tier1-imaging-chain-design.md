@@ -235,6 +235,99 @@ LAB の panel-aware grouping(1 SR + 4 Observation)に対し、imaging は **1 SR
 - 同一 study 内の multi-series は enricher が `imaging_views` から expand
 - `Order.panel_key` は LAB only、imaging は `Order.imaging_views` で series 展開(異なる mechanism)
 
+### 3.4 CIF → FHIR field emission matrix(★ no-drop invariant)
+
+**原則:CIF に存在する情報は FHIR 出力に必ず emit する**(silent drop 禁止)。本表で全 CIF field × FHIR target を書面化、implementation plan が drop しないことを保証。
+
+#### Order(imaging-related fields)
+
+| CIF field | FHIR emission | 解説 |
+|---|---|---|
+| `Order.order_id` | `SR.identifier(PLAC).value` + SR.id 由来(`sr-{order_id}`) | placer order number |
+| `Order.encounter_id` | `SR.encounter` | reference |
+| `Order.patient_id` | `SR.subject` | reference |
+| `Order.order_type=IMAGING` | `SR.category`(imaging dual coding) | dispatch trigger |
+| `Order.order_code` | `SR.code.coding[].code`(LOINC/CPT/JP-K resolved) | procedure code |
+| `Order.display_name` | `SR.code.coding[].display` + `SR.code.text` | localized procedure name |
+| `Order.urgency` | `SR.priority` | routine/urgent/stat/asap |
+| `Order.clinical_intent` | `SR.reasonCode.text` | clinical indication |
+| `Order.ordered_datetime` | `SR.authoredOn` | ISO |
+| `Order.ordered_by` | `SR.requester` Practitioner reference | optional |
+| `Order.status` | `SR.status`(map: placed/accepted/in_progress → active, cancelled/stopped → revoked, resulted/reviewed → completed) | enum mapping |
+| `Order.imaging_modality` | (enricher 経由 → `ImagingStudy.modality`) | DCM code |
+| `Order.imaging_body_site_code` | `SR.bodySite.coding[]`(SNOMED)+ (enricher 経由 → `Series.bodySite`) | dual emit |
+| `Order.imaging_views` | (enricher 経由 → `Series.description` per-view) | view names → series description |
+
+#### ImagingStudyRecord
+
+| CIF field | FHIR emission | 解説 |
+|---|---|---|
+| `study_id` | `ImagingStudy.id`(`imgst-{study_id}`) | resource id |
+| `study_instance_uid` | `ImagingStudy.identifier[0]`(system=`urn:dicom:uid`, value=`urn:oid:{uid}`) | DICOM Study UID |
+| `encounter_id` | `ImagingStudy.encounter` | reference |
+| `patient_id` | `ImagingStudy.subject` | reference |
+| `order_id` | `ImagingStudy.basedOn[0]`(`ServiceRequest/sr-{order_id}` resolved) | back-ref |
+| `status` | `ImagingStudy.status` | available/registered/cancelled |
+| `started_datetime` | `ImagingStudy.started` | ISO |
+| `modality_code` | `ImagingStudy.modality[0]`(system=`DICOM modality`, code=`CR`/`CT`) | DCM modality |
+| `body_site_snomed` | (top-level、Series 経由 emit、Study 直接 emit なし — denormalized for query 用)| see note |
+| `series[]` | `ImagingStudy.series[]` | per-series field emit(下表) |
+| `endpoint_id` | `ImagingStudy.endpoint[0]`(`Endpoint/{endpoint_id}` resolved) | reference |
+| `report` | (DiagnosticReport(radiology)に展開) | 別 resource |
+
+**Note**: `ImagingStudyRecord.body_site_snomed` は FHIR ImagingStudy spec に top-level `bodySite` field が **存在しない**(R4)= series 経由でのみ emit。CIF top-level の保持理由は「Study-level query 効率 + multi-series で異なる body_site の場合の primary body site 記録(将来拡張余地)」、現 PR1 は単一 body_site only なので Series 経由で完全 cover、no-drop invariant 充足。
+
+#### ImagingSeries
+
+| CIF field | FHIR emission | 解説 |
+|---|---|---|
+| `series_uid` | `series.uid` | DICOM Series UID |
+| `series_number` | `series.number` | int |
+| `modality_code` | `series.modality.coding[]` | DCM code(Study 同 or 異なり可) |
+| `body_site_snomed` | `series.bodySite.coding[].code` | SNOMED |
+| `body_site_display` | `series.bodySite.coding[].display`(locale 解決後) | localized |
+| `description` | `series.description`(例:"PA view" / "axial 5mm") | text |
+| `instance_count` | `series.numberOfInstances` | int |
+
+#### RadiologyReport
+
+| CIF field | FHIR emission | 解説 |
+|---|---|---|
+| `report_id` | `DR.id`(`imgrpt-{report_id}`) | resource id |
+| `status` | `DR.status` | registered/preliminary/final/amended |
+| `findings_text` | `DR.text.div`(styled HTML、findings + impression 結合)| ★ FHIR radiology IG 標準、`text.status=generated` |
+| `impression_text` | `DR.conclusion` | 短い clinical 結論 |
+| `findings_codes` | `DR.conclusionCode[]`(populate されたら emit、PR1 では空) | 任意 SNOMED finding codes(将来拡張、PR1 = 空 list、emit skip) |
+
+加えて DR は CIF backref(基底) field を resolve:
+| 基底 ref | FHIR emission |
+|---|---|
+| (study.patient_id) | `DR.subject` |
+| (study.encounter_id) | `DR.encounter` |
+| (study.started_datetime) | `DR.effectiveDateTime` + `DR.issued` |
+| (study.order_id) | `DR.basedOn[0]`(`ServiceRequest/sr-{order_id}`) |
+| (study.study_id) | `DR.imagingStudy[0]`(`ImagingStudy/imgst-{study_id}`) |
+| (study.modality_code + body_site_snomed 由来 procedure code) | `DR.code.coding[]`(LOINC / CPT / JP-K)+ `DR.code.text` |
+
+#### Endpoint
+
+| CIF field | FHIR emission | 解説 |
+|---|---|---|
+| `study.endpoint_id` | `Endpoint.id` | resource id |
+| (hospital_config.imaging.wado_base_url + study_instance_uid) | `Endpoint.address` | WADO-RS URL placeholder |
+
+#### No-drop verification
+
+implementation plan + audit step で以下を gate:
+- 全 CIF Order(IMAGING)→ ServiceRequest emit、count 一致(no drop)
+- 全 CIF ImagingStudyRecord → ImagingStudy emit、count 一致
+- 全 CIF ImagingStudyRecord → Endpoint emit、count 一致(1:1 invariant)
+- `report != None` な ImagingStudyRecord → DiagnosticReport(radiology)emit、count 一致
+- `RadiologyReport.findings_text` 非空 → `DR.text.div` 非空(no silent drop)
+- `RadiologyReport.findings_codes` 非空 → `DR.conclusionCode[]` 非空(PR1 では発火しない、将来拡張時 gate 自動有効化)
+
+これらは Section 9.4 audit `lift_firing_proof` の equality_checks に追加(下記)。
+
 ## 4. Reference data + disease YAML
 
 ### 4.1 `modalities.yaml`(PR1 scope = CR + CT)
@@ -466,7 +559,20 @@ RADIOLOGY_CATEGORY_V2_0074 = "RAD"
 
 既存 `_bb_diagnostic_reports` に LAB panel DR + Radiology DR の dispatch を追加:
 - LAB panel DR: 既存 path
-- Radiology DR: 各 ImagingStudy の `report` field から生成、category dual coding(SNOMED 394914008 + v2-0074 RAD)、`basedOn: ServiceRequest`、`imagingStudy: ImagingStudy`、`conclusion: impression_text`
+- Radiology DR: 各 ImagingStudy の `report` field から生成、category dual coding(SNOMED 394914008 + v2-0074 RAD)、`basedOn: ServiceRequest`、`imagingStudy: ImagingStudy`、`conclusion: impression_text`、**`text.div: <styled HTML of findings + impression>`** + `text.status: "generated"`(★ findings_text の no-drop emission、Section 3.4 emission matrix 準拠)
+
+text.div HTML format(deterministic、AD-30 整合で escape 必須):
+
+```html
+<div xmlns="http://www.w3.org/1999/xhtml">
+  <h5>Findings</h5>
+  <p>{findings_text(html-escaped)}</p>
+  <h5>Impression</h5>
+  <p>{impression_text(html-escaped)}</p>
+</div>
+```
+
+`findings_codes` が非空(将来拡張時)→ `DR.conclusionCode[]` に SNOMED coding emit、空(PR1 default)→ field 不在(R4 optional 整合)。
 
 ### 5.4 `_fhir_endpoint.py`(新)
 
@@ -589,6 +695,12 @@ register_audit_module(ModuleAuditSpec(
             "every basedOn → ServiceRequest ref resolves in NDJSON",
             "every ImagingStudy.endpoint → Endpoint ref resolves in NDJSON",
             "ImagingStudy.id prefix disjoint from Endpoint.id prefix (no collision)",
+            # ★ no-drop invariants (Section 3.4 CIF → FHIR emission matrix)
+            "every CIF RadiologyReport.findings_text non-empty → DR.text.div non-empty (no silent drop)",
+            "every CIF RadiologyReport.impression_text non-empty → DR.conclusion non-empty",
+            "every CIF Order(IMAGING) → exactly one ServiceRequest with category=imaging",
+            "every CIF ImagingSeries.body_site_snomed populated → series[].bodySite emitted",
+            "if CIF RadiologyReport.findings_codes non-empty → DR.conclusionCode[] non-empty (conditional gate; PR1 expected n=0)",
         ],
     },
 ))
@@ -681,7 +793,7 @@ R4 spec で各 resource が持つ optional fields のうち、imaging-PR1 が **
 | `result` | tabular result = lab DR で使用、radiology DR では narrative conclusion で十分 |
 | `imagingStudy[]` multi-study | 単一 Study リンク(本 PR scope)、multi-study DR は Tier 2 |
 | `media` | thumbnail / sample image = 外部画像生成 AI 統合後の Tier 2 |
-| `conclusionCode` | SNOMED-coded conclusion = Tier 2 NLP/IE 高度化 |
+| `conclusionCode` | CIF schema 確立(`RadiologyReport.findings_codes`)+ FHIR emission 配線済(populate 時自動 emit)、PR1 では template が finding codes を populate しないため空 list = R4 optional skip。将来 NLP/IE 高度化で template が SNOMED finding code を出力するとき gate 自動有効化 |
 | `presentedForm` | PDF report attachment = Tier 1 #5 DocumentReference Stage 2 |
 
 #### ServiceRequest(imaging category、emit する: id / identifier(PLAC)/ status / intent / category / priority / code / subject / encounter / authoredOn / requester / reasonCode / bodySite)
