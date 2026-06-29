@@ -30,9 +30,10 @@ from __future__ import annotations
 
 from datetime import datetime
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, cast
 
 from clinosim.audit.registry import ModuleAuditSpec, register_audit_module
+from clinosim.modules.output._fhir_common import BundleContext
 from clinosim.modules.output._fhir_service_request import (
     LAB_CATEGORY_SNOMED,
     LAB_CATEGORY_V2_0074,
@@ -94,7 +95,7 @@ def _build_order_proof() -> dict[str, Any]:
         country="US",
         patient=SimpleNamespace(encounter_id="enc-1"),
     )
-    srs = _bb_service_requests(ctx)
+    srs = _bb_service_requests(cast(BundleContext, ctx))  # duck-types BundleContext
 
     # Count panel SRs from builder output (ids contain encounter_id prefix).
     panel_sr_ids = {
@@ -135,9 +136,9 @@ def _build_order_proof() -> dict[str, Any]:
                 len(panel_sr_ids) > 0,
                 True,
             ),
-            # 6. every basedOn ref resolves (panel SR id starts with SR_ID_PREFIX)
+            # 6. every panel SR id is well-formed (starts with SR_ID_PREFIX)
             (
-                "every basedOn ref resolves (panel id well-formed)",
+                "every panel SR id is well-formed (starts with SR_ID_PREFIX)",
                 panel_sr_id.startswith(SR_ID_PREFIX),
                 True,
             ),

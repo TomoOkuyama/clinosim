@@ -64,7 +64,7 @@ def test_lift_firing_proof_has_required_equality_checks():
         "LAB",
         "ServiceRequest count > 0 when lab Order count > 0",
         "panel SR count > 0",
-        "every basedOn ref resolves",
+        "every panel SR id is well-formed",
         "SR id schemes are disjoint",
     ]
     for substring in expected_substrings:
