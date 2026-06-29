@@ -85,7 +85,9 @@ def aggregate_panel_status(member_orders: list[Any]) -> str:
     if not member_orders:
         return "active"
     statuses = {_status_value(_o(o, "status")) for o in member_orders}
-    if statuses & _NON_TERMINAL_STATUSES:
+    # Treat None/unknown status (normalised to "") as non-terminal — conservative:
+    # an unresolvable status should not be classified as terminal.
+    if "" in statuses or statuses & _NON_TERMINAL_STATUSES:
         return "active"
     if statuses <= _CANCELLED_STATUSES:
         return "revoked"
@@ -185,7 +187,7 @@ def _bb_service_requests(ctx: BundleContext) -> list[dict[str, Any]]:
         panel_def = panels[_o(anchor, "panel_key", "")]
         sr = _build_panel_sr(sr_id, anchor, members, panel_def, lang)
         resources.append(sr)
-    for o in standalone_orders:
+    for o in sorted(standalone_orders, key=lambda x: _o(x, "order_id", "")):
         sr = _build_standalone_sr(o, lang)
         resources.append(sr)
     return resources

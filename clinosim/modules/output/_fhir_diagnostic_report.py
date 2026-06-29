@@ -83,7 +83,7 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
         lab_name = _o(result, "lab_name") or _o(order, "display_name") or ""
         if not lab_name:
             continue
-        obs_id = _lab_obs_id(encounter_id, idx)
+        obs_id = lab_obs_id(encounter_id, idx)
         by_bucket[when][lab_name].append(obs_id)
 
     groups: list[_GroupedPanel] = []
@@ -124,24 +124,28 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
 
 _CATEGORY_LAB_SYSTEM = "http://terminology.hl7.org/CodeSystem/v2-0074"
 
-# Canonical Observation id format shared by writer (group_lab_orders) and reader
-# (_sr_ids_for_group).  LOAD-BEARING: changing this format silently breaks
-# basedOn linkage (PR-90 silent-no-op class).  Both helpers below MUST be
+# Canonical Observation id format shared by writer (_fhir_observations._build_lab_observation)
+# and reader (_sr_ids_for_group).  LOAD-BEARING: changing this format silently breaks
+# basedOn linkage (PR-90 silent-no-op class).  Both public helpers below MUST be
 # used at every write and parse site — never inline the format string.
-_OBS_ID_FORMAT = "lab-{enc}-{idx:04d}"
+# Public (no leading underscore) so _fhir_observations.py can import + use the same
+# canonical format.  Writer/reader shared = PR-90 silent-no-op defense: a future
+# maintainer who changes the format on one side causes an ImportError, not a silent miss.
+OBS_ID_FORMAT = "lab-{enc}-{idx:04d}"
 
 
-def _lab_obs_id(encounter_id: str, idx: int) -> str:
+def lab_obs_id(encounter_id: str, idx: int) -> str:
     """Build the canonical Observation id for a lab Order at position *idx*.
 
-    LOAD-BEARING: this format is parsed by _parse_lab_obs_id to map a
+    LOAD-BEARING: this format is parsed by parse_lab_obs_id to map a
     DiagnosticReport's component Observation refs back to the originating
-    Order list index.  Do NOT change this format without updating the parser.
+    Order list index.  Both the writer (_fhir_observations._build_lab_observation)
+    AND the reader (_sr_ids_for_group) MUST call this helper — never inline.
     """
-    return _OBS_ID_FORMAT.format(enc=encounter_id, idx=idx)
+    return OBS_ID_FORMAT.format(enc=encounter_id, idx=idx)
 
 
-def _parse_lab_obs_id(obs_id: str, encounter_id: str) -> int | None:
+def parse_lab_obs_id(obs_id: str, encounter_id: str) -> int | None:
     """Extract the Order list index from a lab Observation id.
 
     Returns None if the obs_id doesn't match the expected format for this
@@ -223,10 +227,10 @@ def _sr_ids_for_group(
 ) -> list[str]:
     """Derive ServiceRequest ids for the contributing Orders of a panel group.
 
-    obs_refs in a _GroupedPanel use the format produced by ``_lab_obs_id``
+    obs_refs in a _GroupedPanel use the format produced by ``lab_obs_id``
     (``lab-{enc_id}-{idx:04d}``) where ``idx`` is the 0-based position in the
     full ``orders`` list passed to ``group_lab_orders``.  We parse those indices
-    via ``_parse_lab_obs_id`` to look up the exact Order objects, then derive
+    via ``parse_lab_obs_id`` to look up the exact Order objects, then derive
     their SR ids deterministically.  This handles both panel orders (panel_key
     set → SR id = sr-{enc}-{panel}-N) and stand-alone orders (panel_key="" →
     SR id = sr-{order_id}) without any panel_key filter that would silently miss
@@ -234,7 +238,7 @@ def _sr_ids_for_group(
     """
     contributing: list[Any] = []
     for obs_id in group.obs_refs:
-        idx = _parse_lab_obs_id(obs_id, enc_id)
+        idx = parse_lab_obs_id(obs_id, enc_id)
         if idx is None or idx >= len(orders):
             continue  # obs_id doesn't match this encounter or out of range
         contributing.append(orders[idx])
