@@ -134,17 +134,50 @@ def test_organism_per_encounter_skips_non_snomed_coding(tmp_path: Path) -> None:
 
 @pytest.mark.unit
 def test_panel_eligible_organisms_includes_antibiogram_keys() -> None:
-    """All organisms in hai_antibiogram.yaml appear in the per-hai_type set."""
-    from clinosim.modules.hai import load_hai_antibiogram
+    """All organisms in hai_antibiogram.yaml appear in the per-hai_type set.
 
+    PR3b-3 stage-1 adversarial finding I4 fix: previously this test imported
+    `load_hai_antibiogram` and asserted equality against the helper, which
+    used the same loader — a bug swapping nested levels in either side
+    would still pass. Now compares against a HARD-CODED expected set that
+    must be updated in lockstep with hai_antibiogram.yaml. A nesting-swap
+    bug (e.g. helper returning {hai_type: {antibiotic: organism}} instead
+    of {hai_type: {organism: ...}}) would now FAIL.
+    """
     out = clinical._panel_eligible_organisms()
-    abg = load_hai_antibiogram()
-    for hai_type, organism_map in abg.items():
-        assert hai_type in out
-        assert set(organism_map.keys()) == out[hai_type], (
-            f"{hai_type}: panel-eligible set {out[hai_type]} != "
-            f"antibiogram keys {set(organism_map.keys())}"
-        )
+    # Hard-coded expected — must match hai_antibiogram.yaml top-level shape
+    # {hai_type: {organism_snomed: {antibiotic_key: [S, I, R]}}}. Adding an
+    # organism to the YAML requires updating this set too; the lockstep
+    # forces both sides to be deliberate.
+    expected = {
+        "clabsi": {
+            "3092008",    # S.aureus
+            "60875001",   # CoNS (Coagulase-negative Staphylococci)
+            "112283007",  # E.coli
+            "56415008",   # K.pneumoniae
+            "52499004",   # P.aeruginosa
+        },
+        "cauti": {
+            "112283007",  # E.coli
+            "56415008",   # K.pneumoniae
+            "52499004",   # P.aeruginosa
+            "73457008",   # P.mirabilis
+        },
+        "vap": {
+            "3092008",    # S.aureus
+            "52499004",   # P.aeruginosa
+            "56415008",   # K.pneumoniae
+            "112283007",  # E.coli
+            "14385002",   # Enterobacter
+            "91288006",   # A.baumannii
+            "113697002",  # S.maltophilia
+        },
+    }
+    assert out == expected, (
+        f"panel_eligible_organisms diverged from expected lockstep set; "
+        f"got {out!r}, expected {expected!r}. If hai_antibiogram.yaml was "
+        f"intentionally extended, update the expected set here in lockstep."
+    )
 
 
 @pytest.mark.unit
