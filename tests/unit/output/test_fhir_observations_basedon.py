@@ -43,7 +43,7 @@ def _make_ctx(orders):
         primary_dx_code="",
         admit_dx_code="",
         admit_dx_system="",
-        primary_enc_id="",
+        primary_enc_id="enc1",  # must match order.encounter_id (assert in _build_lab_observation)
         patient_sex="",
     )
 

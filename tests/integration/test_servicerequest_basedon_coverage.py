@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+from clinosim.modules.output._fhir_service_request import LAB_CATEGORY_V2_0074
 from tests.integration._sr_helpers import find_ndjson, load_ndjson, run_generate
 
 # Microbiology observation IDs use these prefixes (from _fhir_microbiology.py).
@@ -21,7 +22,7 @@ def _is_lab_category(resource: dict) -> bool:
     """Return True if the resource has a LAB category coding."""
     for entry in resource.get("category", []):
         for c in entry.get("coding", []):
-            if c.get("code") in {"laboratory", "LAB"}:
+            if c.get("code") in {"laboratory", LAB_CATEGORY_V2_0074}:
                 return True
     return False
 
@@ -132,3 +133,61 @@ def test_panel_members_share_sr_id():
                 "No CBC panel with 3+ co-timed analytes sharing one SR ref found "
                 "in 200-patient cohort (rare event at this cohort size)"
             )
+
+
+@pytest.mark.integration
+def test_service_request_outgoing_references_resolve():
+    """SR.subject / SR.encounter / SR.requester all resolve within NDJSON export.
+
+    Verifies referential integrity of ServiceRequest outgoing refs:
+    - SR.subject.reference = "Patient/{id}" → id must be in Patient.ndjson
+    - SR.encounter.reference = "Encounter/{id}" → id must be in Encounter.ndjson
+    - SR.requester.reference = "Practitioner/{id}" (when present) → id in Practitioner.ndjson
+
+    Guards against the _build_sr_skeleton "Patient/" empty-ref class of bug (PR-90
+    silent-no-op lesson applied to outgoing reference integrity).
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp) / "out"
+        run_generate("US", 100, 42, out)
+
+        patient_ids = {r["id"] for r in load_ndjson(find_ndjson(out, "Patient.ndjson"))}
+        encounter_ids = {r["id"] for r in load_ndjson(find_ndjson(out, "Encounter.ndjson"))}
+        practitioner_ids = {r["id"] for r in load_ndjson(find_ndjson(out, "Practitioner.ndjson"))}
+        srs = load_ndjson(find_ndjson(out, "ServiceRequest.ndjson"))
+
+        assert srs, "ServiceRequest.ndjson is empty"
+
+        for sr in srs:
+            sr_id = sr.get("id", "?")
+
+            # subject → Patient
+            subj = sr.get("subject", {}).get("reference", "")
+            assert subj.startswith("Patient/"), (
+                f"SR/{sr_id} subject reference must start with 'Patient/': {subj!r}"
+            )
+            pid = subj.removeprefix("Patient/")
+            assert pid in patient_ids, (
+                f"SR/{sr_id} dangling Patient ref Patient/{pid}"
+            )
+
+            # encounter → Encounter
+            enc = sr.get("encounter", {}).get("reference", "")
+            assert enc.startswith("Encounter/"), (
+                f"SR/{sr_id} encounter reference must start with 'Encounter/': {enc!r}"
+            )
+            eid = enc.removeprefix("Encounter/")
+            assert eid in encounter_ids, (
+                f"SR/{sr_id} dangling Encounter ref Encounter/{eid}"
+            )
+
+            # requester → Practitioner (optional)
+            req = sr.get("requester", {}).get("reference", "")
+            if req:
+                assert req.startswith("Practitioner/"), (
+                    f"SR/{sr_id} requester reference must start with 'Practitioner/': {req!r}"
+                )
+                pract_id = req.removeprefix("Practitioner/")
+                assert pract_id in practitioner_ids, (
+                    f"SR/{sr_id} dangling Practitioner ref Practitioner/{pract_id}"
+                )

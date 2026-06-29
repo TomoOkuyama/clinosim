@@ -31,6 +31,7 @@ from clinosim.modules.output._fhir_microbiology import (
     MB_ORG_ID_PREFIX,
     MB_SUS_ID_PREFIX,
 )
+from clinosim.modules.output._fhir_service_request import LAB_CATEGORY_V2_0074
 
 # Canonical SNOMED CT URI (PR3b-3 stage-1 adversarial finding C3): substring
 # match against "snomed" silently broke on OID form
@@ -229,7 +230,7 @@ def _check_lab_obs_basedon(cohort: Cohort, country: str, result: AxisResult) -> 
     for row in cohort.ndjson(country, "Observation"):
         # Detect LAB category via v2-0074 code OR "laboratory" code.
         is_lab = any(
-            c.get("code") in {"laboratory", "LAB"}
+            c.get("code") in {"laboratory", LAB_CATEGORY_V2_0074}
             for cat_entry in row.get("category", [])
             for c in cat_entry.get("coding", [])
         )

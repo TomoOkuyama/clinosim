@@ -60,6 +60,7 @@ def _build_order_proof() -> dict[str, Any]:
     o_panel_1 = Order(
         order_id="o-wbc",
         encounter_id="enc-1",
+        patient_id="pt-test",
         order_type=OrderType.LAB,
         display_name="WBC",
         ordered_datetime=dt,
@@ -68,6 +69,7 @@ def _build_order_proof() -> dict[str, Any]:
     o_panel_2 = Order(
         order_id="o-hgb",
         encounter_id="enc-1",
+        patient_id="pt-test",
         order_type=OrderType.LAB,
         display_name="HGB",
         ordered_datetime=dt,
@@ -76,6 +78,7 @@ def _build_order_proof() -> dict[str, Any]:
     o_standalone = Order(
         order_id="o-crp",
         encounter_id="enc-1",
+        patient_id="pt-test",
         order_type=OrderType.LAB,
         display_name="CRP",
         ordered_datetime=dt,

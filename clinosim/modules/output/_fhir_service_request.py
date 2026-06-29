@@ -23,6 +23,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.order.panel_grouping import load_panel_definitions
 from clinosim.modules.output._fhir_common import BundleContext
@@ -82,8 +83,11 @@ def aggregate_panel_status(member_orders: list[Any]) -> str:
     Accepts both Order dataclass instances (test/direct-object path) and
     JSON-deserialized dicts (production CIF path).
     """
-    if not member_orders:
-        return "active"
+    assert member_orders, (
+        "aggregate_panel_status: member_orders must be non-empty. "
+        "Stand-alone callers pass [o] (single-element list); panel callers always "
+        "have ≥1 member — empty list is a caller bug."
+    )
     statuses = {_status_value(_o(o, "status")) for o in member_orders}
     # Treat None/unknown status (normalised to "") as non-terminal — conservative:
     # an unresolvable status should not be classified as terminal.
@@ -188,7 +192,7 @@ def _bb_service_requests(ctx: BundleContext) -> list[dict[str, Any]]:
         sr = _build_panel_sr(sr_id, anchor, members, panel_def, lang)
         resources.append(sr)
     for o in sorted(standalone_orders, key=lambda x: _o(x, "order_id", "")):
-        sr = _build_standalone_sr(o, lang)
+        sr = _build_standalone_sr(o, lang, country)
         resources.append(sr)
     return resources
 
@@ -221,8 +225,14 @@ def _build_panel_sr(
     )
 
 
-def _build_standalone_sr(o: Any, lang: str) -> dict[str, Any]:
+def _build_standalone_sr(o: Any, lang: str, country: str) -> dict[str, Any]:
     """Build one ServiceRequest resource for a stand-alone test.
+
+    Applies the same internal-name → standard-code resolution as
+    ``_build_lab_observation``: looks up ``display_name`` in the locale
+    code mapping (code_mapping_lab.yaml) so that an order whose
+    ``order_code`` is an internal test name (e.g. ``"WBC"``) resolves to
+    the real LOINC / JLAC10 code (e.g. ``"6690-2"``).
 
     Accepts both Order dataclass instances and JSON-deserialized dicts.
     """
@@ -230,15 +240,28 @@ def _build_standalone_sr(o: Any, lang: str) -> dict[str, Any]:
     sr_id = f"{SR_ID_PREFIX}{order_id}"
     placer_value = order_id
     status = aggregate_panel_status([o])
-    order_code = _o(o, "order_code", "")
+    raw_code = _o(o, "order_code", "")
     display_name = _o(o, "display_name", "")
-    loinc_display = code_lookup("loinc", order_code, lang) or display_name
+
+    # Resolve internal test name → real standard code via locale mapping.
+    # Mirrors _build_lab_observation (code_map.get(lab_name, order_code)).
+    # country arrives lowercase ("us"/"jp"); load_code_mapping expects uppercase.
+    country_code = "JP" if country == "jp" else "US"
+    code_map = load_code_mapping("lab", country_code)
+    resolved_code = code_map.get(display_name, raw_code) or raw_code
+
+    # Display text comes from the code system (LOINC for US, JLAC10 for JP).
+    code_system_key = "jlac10" if country_code == "JP" else "loinc"
+    loinc_display = code_lookup(code_system_key, resolved_code, lang) or display_name
+    if loinc_display == resolved_code:  # no translation found
+        loinc_display = display_name
+
     return _build_sr_skeleton(
         sr_id=sr_id,
         placer_value=placer_value,
         status=status,
         priority=_PRIORITY_MAP.get(_o(o, "urgency", "routine"), "routine"),
-        loinc_code=order_code,
+        loinc_code=resolved_code,
         loinc_display=loinc_display,
         loinc_text=display_name,
         anchor=o,
@@ -263,6 +286,16 @@ def _build_sr_skeleton(
     Accepts both Order dataclass instances and JSON-deserialized dicts.
     ``anchor.ordered_datetime`` may be a ``datetime`` object or an ISO string.
     """
+    # Fail-loud on empty subject/encounter — "Patient/" is FHIR-invalid (PR-90 lesson).
+    patient_id = _o(anchor, "patient_id", "")
+    encounter_id_val = _o(anchor, "encounter_id", "")
+    assert patient_id, (
+        f"_build_sr_skeleton: patient_id must be non-empty (sr_id={sr_id!r})"
+    )
+    assert encounter_id_val, (
+        f"_build_sr_skeleton: encounter_id must be non-empty (sr_id={sr_id!r})"
+    )
+
     snomed_display = code_lookup("snomed-ct", LAB_CATEGORY_SNOMED, lang) or (
         "臨床検査" if lang == "ja" else "Laboratory procedure"
     )
@@ -323,8 +356,8 @@ def _build_sr_skeleton(
             ],
             "text": loinc_text,
         },
-        "subject": {"reference": f"Patient/{_o(anchor, 'patient_id', '')}"},
-        "encounter": {"reference": f"Encounter/{_o(anchor, 'encounter_id', '')}"},
+        "subject": {"reference": f"Patient/{patient_id}"},
+        "encounter": {"reference": f"Encounter/{encounter_id_val}"},
     }
     if authored_on:
         sr["authoredOn"] = authored_on

@@ -21,6 +21,8 @@ from clinosim.codes import lookup as _codes_lookup
 from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.order.panel_grouping import load_panel_definitions
 from clinosim.modules.output._fhir_service_request import (
+    LAB_CATEGORY_V2_0074,
+    V2_0074_SYSTEM,
     build_panel_counter,
     order_to_sr_id,
 )
@@ -122,8 +124,6 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
 # FHIR resource construction
 # ----------------------------------------------------------------------------
 
-_CATEGORY_LAB_SYSTEM = "http://terminology.hl7.org/CodeSystem/v2-0074"
-
 # Canonical Observation id format shared by writer (_fhir_observations._build_lab_observation)
 # and reader (_sr_ids_for_group).  LOAD-BEARING: changing this format silently breaks
 # basedOn linkage (PR-90 silent-no-op class).  Both public helpers below MUST be
@@ -194,8 +194,8 @@ def build_dr_resource(
         "status": "final",
         "category": [{
             "coding": [{
-                "system": _CATEGORY_LAB_SYSTEM,
-                "code": "LAB",
+                "system": V2_0074_SYSTEM,
+                "code": LAB_CATEGORY_V2_0074,
                 "display": "Laboratory",
             }],
         }],
