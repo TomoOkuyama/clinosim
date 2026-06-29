@@ -67,6 +67,51 @@ def _is_susceptibility_observation(row: dict) -> tuple[str, str] | None:
     return (abx_loinc, interp)
 
 
+def _organism_per_encounter(cohort: Cohort, country: str) -> dict[str, set[str]]:
+    """Return {encounter_id: {organism_snomed, ...}} from microbiology Observations.
+
+    Walks Observation.ndjson once, filters to mb-org-* organism observations
+    that carry a valueCodeableConcept SNOMED code (growth observations).
+    No-growth observations (valueString="No growth"/"発育なし"), non-mb
+    Observations, missing encounter refs, and non-SNOMED valueCodeableConcept
+    codings are skipped.
+
+    Used by the PR3b-3 R-rate gate (per-(hai_type, organism) cohort filter)
+    and empty-rate gate (panel-eligible denominator filter).
+    """
+    out: dict[str, set[str]] = {}
+    for row in cohort.ndjson(country, "Observation"):
+        rid = row.get("id", "")
+        if not rid.startswith("mb-org-"):
+            continue
+        eid = _enc_id(row)
+        if not eid:
+            continue
+        vcc = row.get("valueCodeableConcept") or {}
+        codings = vcc.get("coding", []) or []
+        for c in codings:
+            sys_uri = c.get("system", "") or ""
+            if "snomed" in sys_uri:
+                code = c.get("code", "") or ""
+                if code:
+                    out.setdefault(eid, set()).add(code)
+    return out
+
+
+def _panel_eligible_organisms() -> dict[str, set[str]]:
+    """Per-hai_type set of organisms with antibiogram entries (panel-eligible).
+
+    Derived from load_hai_antibiogram() keys. Organisms without an antibiogram
+    entry (E.faecalis 78065002, C.albicans 53326005, future no-panel additions)
+    are automatically excluded — no hard-coded exclusion list. Used by the D2
+    empty-rate gate to restrict the denominator to encounters whose culture
+    organism actually has a S/I/R panel.
+    """
+    from clinosim.modules.hai import load_hai_antibiogram  # local: avoids any potential cycle
+    abg = load_hai_antibiogram()
+    return {hai_type: set(organism_map.keys()) for hai_type, organism_map in abg.items()}
+
+
 def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
     result = AxisResult(axis="clinical", module=spec.name)
     if not spec.clinical_acceptance:
@@ -86,6 +131,11 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
     icd_to_type = {v["icd10_code"]: k for k, v in hai_acceptance.items()}
 
     for country in cohort.countries():
+        # PR3b-3 D1/D2 (2026-06-29): per-country per-encounter organism map.
+        # Built ONCE and reused by D1 (R-rate per-organism filter) + D2
+        # (panel-eligible denominator filter) — single Observation.ndjson walk.
+        org_per_enc = _organism_per_encounter(cohort, country)
+
         cohort_enc: dict[str, set[str]] = {k: set() for k in hai_acceptance}
         for row in cohort.ndjson(country, "Condition"):
             codes = _condition_code_set(row)
@@ -173,32 +223,27 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                     )
 
         # ---------------------------------------------------------------
-        # PR3b-3: NHSN R-rate gate per (hai_type, antibiotic) cohort
-        #
-        # TODO(post-PR3b-3): per-organism filter. The bands in
-        # _NHSN_RESISTANCE_BANDS have a cohort key "<hai_type>/<organism>"
-        # (e.g. clabsi/3092008 = S.aureus only) but this implementation
-        # filters by hai_type only — organism is parsed (next line) but not
-        # used in the cohort_enc_set lookup. At production n≥30 this could
-        # mis-attribute R-rates (e.g. cefazolin R% averaged over S.aureus +
-        # CoNS + E.coli encounters instead of S.aureus only). Currently safe
-        # behind n<30 WARN guard. Proper fix requires walking
-        # DiagnosticReport.ndjson per cohort encounter to map organism →
-        # encounter set, then filtering. Deferred to a follow-up PR (the
-        # adversarial-1 narrow-rate gate fix takes the simpler approach of
-        # dropping organism from cohort key; for R-rate the organism IS the
-        # measurement basis so cannot be dropped).
+        # PR3b-3 D1 complete (2026-06-29): NHSN R-rate gate per
+        # (hai_type, organism, antibiotic) cohort. Cohort encounters are
+        # filtered by per-organism culture (via org_per_enc above) so bands
+        # measure the true per-organism resistance rate (e.g.
+        # clabsi/3092008/cefazolin = S.aureus only, not the mixed S.aureus +
+        # S.epidermidis + E.coli cohort that would breach the MRSA band).
+        # n<30 → WARN guard retained for rare-event safety.
         # ---------------------------------------------------------------
         r_bands = spec.clinical_acceptance.get("hai_resistance_bands") or []
         if r_bands:
             from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
             for band in r_bands:
-                hai_type_b, _organism_b = band["cohort"].split("/", maxsplit=1)
+                hai_type_b, organism_b = band["cohort"].split("/", maxsplit=1)
                 abx_key = band["antibiotic"]
                 abx_loinc = ANTIBIOTIC_LOINC_LOOKUP.get(abx_key)
                 if abx_loinc is None:
                     continue
-                cohort_enc_set = cohort_enc.get(hai_type_b, set())
+                base_set = cohort_enc.get(hai_type_b, set())
+                cohort_enc_set = {
+                    e for e in base_set if organism_b in org_per_enc.get(e, set())
+                }
                 if not cohort_enc_set:
                     result.info[f"{country}_{band['cohort']}_{abx_key}_n"] = 0
                     continue
@@ -235,12 +280,27 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                     ))
 
         # ---------------------------------------------------------------
-        # PR3b-3: empty-susceptibilities rate gate (per HAI cohort, panel-eligible)
+        # PR3b-3 D2 complete (2026-06-29): empty-susceptibilities rate gate.
+        # Denominator restricted to panel-eligible HAI cohort encounters —
+        # those with at least one culture organism that has an antibiogram
+        # entry (via _panel_eligible_organisms, derived from
+        # load_hai_antibiogram() keys). No-panel organisms
+        # (E.faecalis 78065002, C.albicans 53326005) are auto-excluded —
+        # no hard-coded exclusion list. Restores NHSN denominator definition
+        # the 5% threshold was calibrated against.
+        # n<30 → WARN guard retained for rare-event safety.
         # ---------------------------------------------------------------
         empty_max = spec.clinical_acceptance.get("hai_empty_susceptibilities_max_rate")
         if empty_max is not None:
-            all_cohort_encs = set().union(*cohort_enc.values()) if cohort_enc else set()
-            enc_has_susc: dict[str, bool] = {e: False for e in all_cohort_encs}
+            panel_orgs = _panel_eligible_organisms()
+            panel_eligible_encs: set[str] = set()
+            for hai_type, encs in cohort_enc.items():
+                eligible = panel_orgs.get(hai_type, set())
+                for e in encs:
+                    if any(org in eligible for org in org_per_enc.get(e, set())):
+                        panel_eligible_encs.add(e)
+
+            enc_has_susc: dict[str, bool] = {e: False for e in panel_eligible_encs}
             for row in cohort.ndjson(country, "Observation"):
                 eid = _enc_id(row)
                 if eid not in enc_has_susc:
@@ -253,11 +313,6 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                 empty_count = sum(1 for v in enc_has_susc.values() if not v)
                 empty_rate = empty_count / total
                 result.info[f"{country}_hai_empty_susc_rate"] = round(empty_rate, 3)
-                # n<30 → WARN (consistent with R-rate + narrow-rate gates).
-                # Below this threshold the empty rate is dominated by
-                # rare-organism noise (E.faecalis / C.albicans HAI events have
-                # no S/I/R panel — at small N these inflate the rate well above
-                # the production 5% bound that assumed panel-eligible denominator).
                 if total < 30:
                     result.findings.append(AuditFinding(
                         Severity.WARN,

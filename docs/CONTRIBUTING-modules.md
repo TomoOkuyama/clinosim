@@ -165,6 +165,15 @@ YAML data に外部 ID(SNOMED / LOINC / antibiotic key 等)を埋めるモジュ
 
 新規 module で外部 ID 参照 YAML または確率重み YAML を作る場合は同パターンを必須化してください(`_validate_X(data)` を `load_X` 内で wire、`fallback="raise"` と組み合わせて後方防御も同時に確保)。**Reverse-coverage**(canonical set ⊆ data set)も忘れずに wire — adv-1 stage-2 sibling sweep で発覚した通り、forward-only validation は新 canonical 追加時の silent no-op を防げない。
 
+### Per-dimensional cohort filter(PR3b-3 D1+D2, 2026-06-29)
+
+監査 clinical-axis の gate が per-(dim1, dim2, ...) cohort の threshold で calibrate されているが gate filter が dimension を捨てている場合、production scale で threshold の意味が崩壊する(現状は n<30 WARN guard でマスクされる)。例: PR3b-3 D1 は band `clabsi/3092008/cefazolin`(S.aureus only)を `hai_type` only で filter していた = S.aureus + S.epidermidis + E.coli 混在計測。D2 は empty-rate threshold(5%)が NHSN panel-eligible denominator 想定なのに全 HAI cohort denominator で計測 = E.faecalis / C.albicans no-panel が分子・分母 inflate。
+
+**新ルール**: 監査 gate を実装するとき、band cohort key の各 dimension を gate filter が消費しているか確認する。消費していない dimension は cohort key から除くか、その dimension の lookup map を build して filter に組込む。**lookup map は (country, audit-run) 内で 1 回 build して複数 gate で再利用**(D1 R-rate + D2 empty-rate が `_organism_per_encounter` を共有する pattern が precedent)。
+
+- 先例: `clinosim/audit/axes/clinical.py:_organism_per_encounter` — `Observation.ndjson` mb-org-* を 1 pass 走査して `{enc_id: {organism_snomed, ...}}` を build、D1 + D2 で再利用
+- 先例: `clinosim/audit/axes/clinical.py:_panel_eligible_organisms` — `load_hai_antibiogram()` keys から panel-eligible set を derive(no-panel は hard-coded list でなく antibiogram 不在で auto-exclude)
+
 ### データ専用モジュール (variant)
 
 `modules/sdoh/` のように、**reference データ + loader のみ** を持ち、generation / assignment logic を持たないモジュール variant も認められます (PR2 2026-06-24 で確立)。`clinosim/codes/` が同パターンの先例です。
