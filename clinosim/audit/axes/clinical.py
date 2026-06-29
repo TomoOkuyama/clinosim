@@ -162,11 +162,17 @@ def _organism_per_specimen(cohort: Cohort, country: str) -> dict[str, str]:
 def _hai_specimens(cohort: Cohort, country: str) -> set[str]:
     """Return set of specimen_ids that are HAI-derived.
 
-    PR3b-5: walks Observation.ndjson, filters to mb-org-* with a non-empty
-    identifier carrying the canonical HAI_EVENT_ID_SYSTEM URI. Used by the
-    PR3b-5 D1 R-rate gate to exclude community-acquired culture
-    susceptibilities that share an encounter with a HAI event (C2
-    resolution).
+    PR3b-5: walks Observation.ndjson, filters to mb-org-* with a
+    well-formed identifier carrying the canonical HAI_EVENT_ID_SYSTEM
+    URI. Used by the PR3b-5 D1 R-rate gate to exclude community-acquired
+    culture susceptibilities that share an encounter with a HAI event
+    (C2 resolution).
+
+    pr117-adv-1 fix (Agent 1 IMPORTANT #3): value must match the
+    `HAIEvent.hai_id` convention (starts with "hai-"). Truthy-only check
+    accepted whitespace / arbitrary placeholders, which would silently
+    inflate hai_specs in a misconfigured fixture or writer regression.
+    Format check is the second layer beyond the canonical SYSTEM gate.
     """
     hai_specs: set[str] = set()
     for row in cohort.ndjson(country, "Observation"):
@@ -175,7 +181,8 @@ def _hai_specimens(cohort: Cohort, country: str) -> set[str]:
             continue
         identifiers = row.get("identifier") or []
         is_hai = any(
-            i.get("system") == HAI_EVENT_ID_SYSTEM and i.get("value")
+            i.get("system") == HAI_EVENT_ID_SYSTEM
+            and (i.get("value") or "").startswith("hai-")
             for i in identifiers
         )
         if not is_hai:
@@ -318,6 +325,27 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
         # ---------------------------------------------------------------
         r_bands = spec.clinical_acceptance.get("hai_resistance_bands") or []
         if r_bands:
+            # pr117-adv-1 fix MAJOR-1: D1 symmetric "expected HAI but got 0"
+            # WARN guard (mirrors D2 I1 from PR #114). If any HAI cohort
+            # encounter exists but _hai_specimens is empty, the writer-side
+            # HAI_EVENT_ID_SYSTEM emit or the mb-org coverage has likely
+            # regressed — silent-no-op defense signal.
+            total_hai_encs = sum(len(encs) for encs in cohort_enc.values())
+            if total_hai_encs > 0 and not hai_specimens:
+                result.findings.append(AuditFinding(
+                    Severity.WARN,
+                    f"{country}: HAI specimen set empty "
+                    f"(total_hai_encounters={total_hai_encs}) — verify "
+                    f"HAI_EVENT_ID_SYSTEM identifier emit on Observation/"
+                    f"Specimen + mb-org-* coverage",
+                ))
+            if total_hai_encs > 0 and not org_per_specimen:
+                result.findings.append(AuditFinding(
+                    Severity.WARN,
+                    f"{country}: specimen→organism map empty "
+                    f"(total_hai_encounters={total_hai_encs}) — verify "
+                    f"mb-org-* specimen.reference + SNOMED valueCodeableConcept",
+                ))
             from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
             for band in r_bands:
                 hai_type_b, organism_b = band["cohort"].split("/", maxsplit=1)
