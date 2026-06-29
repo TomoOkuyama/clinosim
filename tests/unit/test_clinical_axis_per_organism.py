@@ -170,3 +170,88 @@ def test_panel_eligible_organisms_returns_known_hai_types() -> None:
     for hai_type in HAI_TYPES:
         assert hai_type in out
         assert out[hai_type], f"{hai_type}: empty panel-eligible set"
+
+
+# ----------------------------------------------------------------------------
+# PR3b-3 stage-1 adversarial fixes (PR #112 post-merge fan-out)
+# ----------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_organism_per_encounter_uses_canonical_snomed_uri_not_substring(tmp_path: Path) -> None:
+    """C3 fix: substring `"snomed" in sys_uri` matched bogus URIs like
+    `"http://example.com/has-snomed-prefix"`. Canonical equality must reject
+    any URI other than the official SNOMED CT URI."""
+    _write(tmp_path, "us", "Observation.ndjson", [
+        {
+            "resourceType": "Observation",
+            "id": "mb-org-E1-0",
+            "encounter": {"reference": "Encounter/E1"},
+            "code": {"coding": [{"code": "600-7"}]},
+            "valueCodeableConcept": {
+                "coding": [{
+                    "system": "http://example.com/has-snomed-prefix",
+                    "code": "3092008",
+                }],
+            },
+        },
+        {
+            "resourceType": "Observation",
+            "id": "mb-org-E2-0",
+            "encounter": {"reference": "Encounter/E2"},
+            "code": {"coding": [{"code": "600-7"}]},
+            "valueCodeableConcept": {
+                "coding": [{
+                    "system": "urn:oid:2.16.840.1.113883.6.96",  # OID form of SNOMED CT
+                    "code": "3092008",
+                }],
+            },
+        },
+    ])
+    out = clinical._organism_per_encounter(Cohort.open(tmp_path), "us")
+    # Both should be excluded under canonical-equality semantics. The OID
+    # form is also legit SNOMED but we choose the URL canonical (matches the
+    # FHIR builder + codes/loader.get_system_uri("snomed-ct")). If we ever
+    # need the OID form, add it to a canonical set with deliberate intent
+    # rather than accept it implicitly via substring match.
+    assert out == {}, f"non-canonical SNOMED URIs must be excluded; got {out}"
+
+
+@pytest.mark.unit
+def test_organism_per_encounter_accepts_canonical_snomed_uri_only(tmp_path: Path) -> None:
+    """C3 fix: only `http://snomed.info/sct` (the canonical URL) is accepted."""
+    from clinosim.codes import get_system_uri
+
+    canonical = get_system_uri("snomed-ct")
+    assert canonical == "http://snomed.info/sct"
+
+    _write(tmp_path, "us", "Observation.ndjson", [
+        {
+            "resourceType": "Observation",
+            "id": "mb-org-E1-0",
+            "encounter": {"reference": "Encounter/E1"},
+            "code": {"coding": [{"code": "600-7"}]},
+            "valueCodeableConcept": {
+                "coding": [{"system": canonical, "code": "3092008"}],
+            },
+        },
+    ])
+    out = clinical._organism_per_encounter(Cohort.open(tmp_path), "us")
+    assert out == {"E1": {"3092008"}}
+
+
+@pytest.mark.unit
+def test_mb_org_id_prefix_canonical_constant() -> None:
+    """C4 fix: the mb-org id prefix is now a shared canonical constant
+    imported by both the FHIR builder (writer) and the audit helper
+    (reader). Pins the contract so a rename in either side raises an
+    ImportError at module load instead of silently no-op'ing the gate."""
+    from clinosim.audit.axes import clinical as clinical_axis
+    from clinosim.modules.output._fhir_microbiology import MB_ORG_ID_PREFIX
+
+    assert MB_ORG_ID_PREFIX == "mb-org-"
+    # The audit helper must import the same constant — proving they're
+    # coupled and a future rename in _fhir_microbiology.py will trigger
+    # an import-time NameError in clinical.py, not a silent no-op.
+    import clinosim.audit.axes.clinical as _mod
+    assert _mod.MB_ORG_ID_PREFIX is MB_ORG_ID_PREFIX

@@ -20,6 +20,15 @@ _SUSCEPTIBILITY_DISPLAY = {
     "R": {"en": "Resistant", "ja": "耐性"},
 }
 
+# Canonical id prefixes for microbiology resources. Imported by readers
+# (e.g. clinosim.audit.axes.clinical._organism_per_encounter) to avoid the
+# silent-no-op coupling where a rename here would silently break downstream
+# consumers (PR3b-3 stage-1 adversarial finding C4).
+MB_ORG_ID_PREFIX = "mb-org-"
+MB_SUS_ID_PREFIX = "mb-sus-"
+MB_SPECIMEN_ID_PREFIX = "spec-"
+MB_DR_ID_PREFIX = "dr-mb-"
+
 
 def _bb_microbiology(ctx: BundleContext) -> list[dict]:
     """Microbiology cultures → Specimen + Observation(s) + DiagnosticReport (AD-55)."""
@@ -37,7 +46,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
 
     for i, mb in enumerate(cultures):
         base = f"{ctx.primary_enc_id or ctx.patient_id}-{i}"
-        spec_id = f"spec-{base}"
+        spec_id = f"{MB_SPECIMEN_ID_PREFIX}{base}"
         specimen: dict[str, Any] = {"resourceType": "Specimen", "id": spec_id, "subject": subject}
         if mb.get("specimen_snomed"):
             specimen["type"] = {"coding": [_micro_coding("snomed-ct", mb["specimen_snomed"], lang)]}
@@ -50,7 +59,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                         if culture_loinc else {"text": "Culture"})
         result_refs: list[dict] = []
 
-        org_id = f"mb-org-{base}"
+        org_id = f"{MB_ORG_ID_PREFIX}{base}"
         org_obs: dict[str, Any] = {
             "resourceType": "Observation", "id": org_id, "status": "final",
             "category": lab_category, "code": culture_code, "subject": subject,
@@ -74,7 +83,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         for j, sus in enumerate(mb.get("susceptibilities") or []):
             interp = sus.get("interpretation", "")
             disp = _SUSCEPTIBILITY_DISPLAY.get(interp, {})
-            sus_id = f"mb-sus-{base}-{j}"
+            sus_id = f"{MB_SUS_ID_PREFIX}{base}-{j}"
             sus_obs: dict[str, Any] = {
                 "resourceType": "Observation", "id": sus_id, "status": "final",
                 "category": lab_category,
@@ -93,7 +102,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             result_refs.append({"reference": f"Observation/{sus_id}"})
 
         report: dict[str, Any] = {
-            "resourceType": "DiagnosticReport", "id": f"dr-mb-{base}", "status": "final",
+            "resourceType": "DiagnosticReport", "id": f"{MB_DR_ID_PREFIX}{base}", "status": "final",
             "category": [{"coding": [{
                 "system": get_system_uri("hl7-diagnostic-service-section"),
                 "code": "MB", "display": "Microbiology",
