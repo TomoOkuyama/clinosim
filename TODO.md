@@ -1380,3 +1380,80 @@ Suggested order: ~~microbiology+markers~~ ✅ → ~~nursing flowsheets~~ ✅ →
 | F-3 | DI/Registry pattern for module wiring | Low | Manual wiring is fine for now |
 | F-4 | More languages in codes module (de, zh, ko, fr) | Low | Just add language keys to YAML entries |
 | F-5 | UCUM module in codes/ for unit display translation | Low | Currently units are bare strings |
+
+---
+
+## PR1 ServiceRequest follow-ups (Tier 1 backlog)
+
+### PR2 — ServiceRequest for PROCEDURE
+- Procedure orders currently flow through ProcedureRecord (no Order intermediate).
+- Path: extend `_fhir_procedures.py` builder to emit ServiceRequest preceding each Procedure,
+  link via ProcedureRecord.procedure_id.
+
+### PR3 — ServiceRequest for REFERRAL / CONSULTATION
+- New CIF data required (no current source).
+- Path: extend disease YAML with `referrals:` field, generate Orders with
+  OrderType.REFERRAL (or CONSULTATION), new SR category (SNOMED 308540006 + HL7 v2-0074 REF).
+
+### Tier 1 #2 — ServiceRequest for IMAGING
+- Bundled with full Imaging chain (ImagingStudy + DiagnosticReport(rad) + Endpoint stub).
+
+### Out-of-scope permanent — ServiceRequest for MEDICATION
+- FHIR `MedicationRequest` is the correct resource; ServiceRequest not used.
+
+### Tier 2 — ServiceRequest for HAI microbiology culture
+- MicrobiologyResult is a separate type from Order; bundle with general microbiology ordering
+  refactor.
+- Note: PR1 audit gate (`clinical.py:_check_lab_obs_basedon`) excludes mb-org-* / mb-sus-*
+  Observations via MB_ORG_ID_PREFIX / MB_SUS_ID_PREFIX. Re-include when microbiology SR lands.
+
+### Tier 1 #6 — ServiceRequest.requisition (Identifier) for cross-resource grouping
+- Defer until Appointment/Schedule introduces multi-SR batch requisition.
+
+### Tier 1 #5 — Lab requisition workflow narrative
+- Defer to DocumentReference Stage 2.
+
+### Tier 2 — ServiceRequest.performer (lab technician/department)
+- Bundle with CareTeam.
+
+### Tier 2 — Filler order number `FILL` identifier
+- Lab interface specifics; placer alone sufficient for PR1.
+
+### M-6 — Disease YAML `code_loinc:` field backfill
+- Many disease YAMLs lack `code_loinc:` on lab entries → `order_code` ends up as internal
+  test name ("CRP", "WBC") or empty string → JP cohort SR.code.coding[].display falls back
+  to English. Affects ~105 of 42k JP SRs (~0.25%).
+- Backfill `code_loinc:` field on every lab entry in
+  `clinosim/modules/disease/reference_data/*.yaml`. Touches ~30 disease YAMLs; source LOINC
+  codes via NLM API per CLAUDE.md authoritative-source rule.
+
+### M-7 — Order status not updated on last simulation day at snapshot boundary
+Some stand-alone Orders retain `OrderStatus.PLACED` even after a result Observation is
+written, when the simulation truncates at the snapshot boundary. Discovered as pre-existing
+bug during PR1 Stage 2 adversarial review (commit 57285e2126). The expected invariant:
+PLACED Orders MUST have no result Observation (and conversely, RESULTED Orders MUST have a
+result Observation).
+
+**Fix path:** Update Order.status during snapshot truncation in `clinosim/modules/inpatient.py`
+(or wherever the snapshot day handling lives) — propagate the order_status transition
+consistently with the result emission.
+
+**Currently gated by:** `tests/integration/test_servicerequest_snapshot.py::test_snapshot_placed_orders_have_no_observation`
+marked `pytest.mark.xfail(strict=False)`. When the bug is fixed, remove the xfail marker.
+
+**Discovered:** PR1 stage 3 Minor fixes (2026-06-30).
+
+### `_code_in_data` LOINC-existence helper — promote to public API
+- Now exists in 3 places: `hai/engine.py`, `panel_grouping.py`, and this TODO.
+- Path: promote to `clinosim/codes/loader.py:code_exists(system, code)` and migrate all 3
+  consumers.
+
+### `_o` dual-access helper — promote to `_shared.py` public API
+- Now exists in `_fhir_service_request.py` + `_fhir_observations.py` (PR1 added second+third
+  consumers).
+- Path: promote to `clinosim/modules/_shared.py` as `o(obj, name, default)` and migrate.
+
+### Audit framework — `_BUNDLE_BUILDERS` dict-compat sweep
+- `test_device_fhir_output.py::test_device_extension_through_fhir_pipeline` progresses past
+  AttributeError post-fix but fails for a different reason (device count = 0 at p=300).
+  Sweep all builders for dict-compat (dataclass vs dict dual-access pattern).

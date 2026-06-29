@@ -29,7 +29,9 @@ from clinosim.modules.antibiotic.engine import ABX_NARROW_SUFFIX, ABX_ORDER_ID_P
 from clinosim.modules.output._fhir_microbiology import (
     HAI_EVENT_ID_SYSTEM,
     MB_ORG_ID_PREFIX,
+    MB_SUS_ID_PREFIX,
 )
+from clinosim.modules.output._fhir_service_request import LAB_CATEGORY_V2_0074
 
 # Canonical SNOMED CT URI (PR3b-3 stage-1 adversarial finding C3): substring
 # match against "snomed" silently broke on OID form
@@ -202,10 +204,105 @@ def _hai_specimens(cohort: Cohort, country: str) -> set[str]:
     return hai_specs
 
 
+def _check_lab_obs_basedon(cohort: Cohort, country: str, result: AxisResult) -> None:
+    """PR1 clinical gate: every LAB Observation must carry basedOn → ServiceRequest.
+
+    Walks Observation.ndjson + ServiceRequest.ndjson for one country.
+    Adds WARN findings when n < 30 (rare-event tolerated); adds FAIL
+    findings when coverage < 100% on a cohort of 30+ LAB Observations.
+
+    Silent-no-op guard (PR-90 lesson): a ServiceRequest builder that
+    emits zero resources without raising would produce lab_obs_count=N
+    with missing_basedon=N → FAIL on cohorts of 30+, surfacing the
+    production gap that unit-test-only coverage missed.
+    """
+    # Collect ServiceRequest ids from NDJSON.
+    sr_ids: set[str] = set()
+    for row in cohort.ndjson(country, "ServiceRequest"):
+        rid = row.get("id", "")
+        if rid:
+            sr_ids.add(rid)
+
+    # Walk Observations, filter to LAB category, check basedOn.
+    lab_obs_count = 0
+    missing_basedon = 0
+    dangling_refs: list[str] = []
+    for row in cohort.ndjson(country, "Observation"):
+        # Detect LAB category via v2-0074 code OR "laboratory" code.
+        is_lab = any(
+            c.get("code") in {"laboratory", LAB_CATEGORY_V2_0074}
+            for cat_entry in row.get("category", [])
+            for c in cat_entry.get("coding", [])
+        )
+        if not is_lab:
+            continue
+        # Exclude microbiology Observations (PR1 scope = lab panel orders only).
+        # mb-org-* and mb-sus-* carry "laboratory" category but have no basedOn
+        # (microbiology SR support is Tier 2 backlog).
+        obs_id = row.get("id", "")
+        if obs_id.startswith(MB_ORG_ID_PREFIX) or obs_id.startswith(MB_SUS_ID_PREFIX):
+            continue
+        lab_obs_count += 1
+        based_on = row.get("basedOn") or []
+        if not based_on:
+            missing_basedon += 1
+            continue
+        for ref in based_on:
+            ref_str = ref.get("reference", "")
+            if not ref_str.startswith("ServiceRequest/"):
+                continue
+            sr_id = ref_str.removeprefix("ServiceRequest/")
+            if sr_id not in sr_ids:
+                dangling_refs.append(sr_id)
+
+    n_warn_threshold = 30
+    if lab_obs_count < n_warn_threshold:
+        result.info[f"basedon_coverage_{country}"] = (
+            f"{lab_obs_count - missing_basedon}/{lab_obs_count} LAB Observations have basedOn "
+            f"(n<{n_warn_threshold}; rare-event WARN; missing={missing_basedon})"
+        )
+        result.findings.append(
+            AuditFinding(
+                Severity.WARN,
+                f"{country}: lab_obs_count={lab_obs_count} < {n_warn_threshold} "
+                f"(rare-event tolerated; basedOn coverage not enforced); "
+                f"missing_basedon={missing_basedon}",
+            )
+        )
+        return
+
+    if missing_basedon > 0:
+        result.findings.append(
+            AuditFinding(
+                Severity.FAIL,
+                f"{country}: {missing_basedon}/{lab_obs_count} LAB Observations "
+                f"missing basedOn ServiceRequest reference",
+            )
+        )
+    if dangling_refs:
+        result.findings.append(
+            AuditFinding(
+                Severity.FAIL,
+                f"{country}: {len(dangling_refs)} dangling basedOn refs "
+                f"(SR id not in ServiceRequest.ndjson); sample={dangling_refs[:5]}",
+            )
+        )
+    if missing_basedon == 0 and not dangling_refs:
+        result.info[f"basedon_coverage_{country}"] = (
+            f"{lab_obs_count}/{lab_obs_count} LAB Observations have valid basedOn"
+        )
+
+
 def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
     result = AxisResult(axis="clinical", module=spec.name)
     if not spec.clinical_acceptance:
         return result  # N/A
+
+    # PR1 basedOn coverage gate: run before HAI block so it fires even
+    # for non-HAI modules (order_service_request has no "icd10_code" entry).
+    if "basedon_coverage" in spec.clinical_acceptance:
+        for country in cohort.countries():
+            _check_lab_obs_basedon(cohort, country, result)
 
     # Filter to HAI-type entries only (dict with "icd10_code").
     # Top-level metadata keys (e.g. "hai_resistance_bands",
@@ -218,7 +315,7 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
         if isinstance(v, dict) and "icd10_code" in v
     }
     if not hai_acceptance:
-        return result  # N/A — no HAI-type entries
+        return result  # N/A — no HAI-type entries (basedon_coverage already handled above)
 
     icd_to_type = {v["icd10_code"]: k for k, v in hai_acceptance.items()}
 
@@ -518,7 +615,10 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                         f"(n={total}); rate band not enforced",
                     ))
                     continue
-                if rate < band["expected_narrow_rate_min"] or rate > band["expected_narrow_rate_max"]:
+                if (
+                    rate < band["expected_narrow_rate_min"]
+                    or rate > band["expected_narrow_rate_max"]
+                ):
                     result.findings.append(AuditFinding(
                         Severity.FAIL,
                         f"{country}/{band['cohort']}: narrow rate {rate:.3f} "

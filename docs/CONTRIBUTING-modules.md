@@ -2,6 +2,8 @@
 
 このドキュメントは、新しいコントリビューターが clinosim に **モジュール/プラグインを追加し、データを生成し、どのデータ/コードを使うかを正しく選択する** ための実践 playbook です。アーキテクチャ原則 (ADR) は `DESIGN.md`、規約の総覧は `CLAUDE.md` を参照してください。本書はそれらと重複せず、**HOW-TO** に集中します。
 
+> **本書は CIF 生成 layer(Layers 1-3 = 参照 YAML、loader、CIF generation module)が中心** です。**FHIR builder layer(Layer 4 = `_fhir_*.py`)を追加・拡張する場合は** [`docs/design-guides/fhir-data-generation-logic.md`](design-guides/fhir-data-generation-logic.md) を参照してください(BundleContext / code_lookup / 多言語 display / identifier system 規約 / register_bundle_builder)。
+
 > **新規モジュール作成時**: [`.github/TEMPLATE_MODULE_README.md`](../.github/TEMPLATE_MODULE_README.md) をコピーして開始。全 22 module の俯瞰は [`MODULES.md`](../MODULES.md) を参照。PR 検証手段の選び方は本書の「PR 検証ガイド: byte-diff vs 3-axis DQR」セクション参照。
 
 実コードの正本パス:
@@ -408,6 +410,37 @@ register_bundle_builder(_bb_my_resource)
 - 命名は `_bb_*` prefix で統一 (EXT-6: `_build_nursing_observations` 等は旧式)。
 - `Resource.id` は型内で globally unique に。encounter-scoped id (`lab-{encounter_id}-...`) を使う (FA-7)。
 - **double-wrap 注意 (FA-3):** builder は raw resource dict を返す。`_entry()` を builder 内で呼ばない。
+
+**Canonical example — `_bb_service_requests` (PR1, 2026-06-29, `_fhir_service_request.py`):**
+
+```python
+# clinosim/modules/output/_fhir_service_request.py
+from clinosim.modules.output.fhir_r4_adapter import register_bundle_builder, BundleContext
+from clinosim.modules.order.panel_grouping import classify_lab_specs
+
+def _bb_service_requests(ctx: BundleContext) -> list[dict]:
+    """Emit 1 ServiceRequest per panel instance + 1 per stand-alone lab order."""
+    resources: list[dict] = []
+    orders = _collect_lab_orders(ctx.record)       # walk all encounters' orders
+    for group_key, group_orders in _group_by_panel(orders):
+        sr = _build_service_request(group_key, group_orders, ctx)
+        resources.append(sr)
+    return resources
+
+register_bundle_builder(_bb_service_requests)
+```
+
+Key patterns illustrated:
+- `ctx.record` is the `CIFPatientRecord` (dict in production JSON path, dataclass in tests).
+  Always access fields via `_o(order, "field_name", default)` (`get_attr_or_key` wrapper, see
+  `clinosim/modules/_shared.py`) to support both paths — unit tests may pass dataclass
+  instances while the production path deserializes to dict.
+- Panel grouping logic lives in `clinosim/modules/order/panel_grouping.py:classify_lab_specs`.
+  Never inline a panel-detection if/elif in the builder. [AD-61]
+- Both dict-path and dataclass-path MUST be covered by tests: a subprocess integration smoke
+  test exercises the production dict path (see `tests/integration/test_service_request.py`).
+
+See [`clinosim/modules/output/_fhir_service_request.py`](../clinosim/modules/output/_fhir_service_request.py) for the full implementation.
 
 ### B. 出力フォーマットを追加する (`register_output_adapter`, AD-58)
 

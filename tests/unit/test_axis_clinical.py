@@ -10,6 +10,7 @@ import pytest
 from clinosim.audit.axes import clinical
 from clinosim.audit.registry import ModuleAuditSpec
 from clinosim.audit.types import Cohort
+from clinosim.modules.output._fhir_microbiology import MB_ORG_ID_PREFIX, MB_SUS_ID_PREFIX
 
 
 def _write(path: Path, country: str, file: str, rows: list[dict]):
@@ -134,3 +135,47 @@ def test_clinical_na_when_spec_has_no_acceptance(tmp_path: Path):
     )
     result = clinical.run(spec, Cohort.open(tmp_path))
     assert result.status == "N/A"
+
+
+@pytest.mark.unit
+def test_check_lab_obs_basedon_excludes_microbiology(tmp_path: Path):
+    """Microbiology Observations (mb-org-*, mb-sus-*) MUST NOT be counted
+    by the basedOn coverage gate even though they carry 'laboratory' category.
+
+    Rationale: PR1 scope = lab panel orders only.  Microbiology SR support
+    is Tier 2 backlog.  Without this exclusion the gate would FAIL on any
+    cohort with HAI events, masking genuine basedOn gaps.
+    """
+    lab_category = {
+        "coding": [{"system": "http://terminology.hl7.org/CodeSystem/v2-0074", "code": "LAB"}]
+    }
+
+    def _mb_obs(obs_id: str) -> dict:
+        return {
+            "resourceType": "Observation",
+            "id": obs_id,
+            "category": [lab_category],
+            "code": {"coding": [{"code": "some-mb-code"}]},
+            # intentionally NO basedOn
+        }
+
+    # Write 1 mb-org-* + 1 mb-sus-* Observation with no basedOn, empty SR file.
+    _write(tmp_path, "us", "Observation.ndjson", [
+        _mb_obs(f"{MB_ORG_ID_PREFIX}enc-001-0"),
+        _mb_obs(f"{MB_SUS_ID_PREFIX}enc-001-0-0"),
+    ])
+    _write(tmp_path, "us", "ServiceRequest.ndjson", [])
+
+    spec = ModuleAuditSpec(
+        name="order_service_request",
+        structural_obs_codes={},
+        clinical_acceptance={"basedon_coverage": {}},
+    )
+    result = clinical.run(spec, Cohort.open(tmp_path))
+
+    # lab_obs_count should be 0 (both mb-* observations excluded) →
+    # gate emits a WARN (n < 30) not a FAIL.
+    assert result.status == "WARN", (
+        f"Expected WARN (microbiology excluded → lab_obs_count=0 < 30), "
+        f"got {result.status!r}. Findings: {result.findings}"
+    )

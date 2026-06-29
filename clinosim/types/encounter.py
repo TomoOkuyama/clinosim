@@ -152,6 +152,11 @@ class Order:
     route: str = ""  # "PO" | "IV" | "SC" | "IM" | "SL" | "topical"
     duration_days: int | None = None
     reason_condition: str = ""  # ICD code or condition reference
+    # PR1: Panel-aware grouping for ServiceRequest emission.
+    # Empty = stand-alone test (1 SR per Order). Non-empty = panel name
+    # ("CBC"/"BMP"/"LFT"/"ABG"/"Lipid"/"Coag"/"UA") — Orders sharing the same
+    # (encounter_id, panel_key, ordered_datetime) tuple emit a single ServiceRequest.
+    panel_key: str = ""
 
 
 @dataclass

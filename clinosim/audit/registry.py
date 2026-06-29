@@ -47,12 +47,22 @@ def discover() -> None:
 
     Each import side-effects register_audit_module(...). Modules with
     no audit.py are silently skipped. Repeated calls are idempotent
-    (importlib caches; register_audit_module is last-wins).
+    (register_audit_module is last-wins).
+
+    Implementation: uses importlib.reload() when a module is already in
+    sys.modules so that register_audit_module() fires again after
+    _reset_for_test() clears _MODULES. First-time imports use
+    import_module() (same net effect, avoids the no-op pitfall).
     """
-    from importlib import import_module
+    import sys
+    from importlib import import_module, reload
     from pathlib import Path
 
     modules_root = Path(__file__).parent.parent / "modules"
     for audit_file in sorted(modules_root.glob("*/audit.py")):
         module_name = audit_file.parent.name
-        import_module(f"clinosim.modules.{module_name}.audit")
+        full_name = f"clinosim.modules.{module_name}.audit"
+        if full_name in sys.modules:
+            reload(sys.modules[full_name])
+        else:
+            import_module(full_name)

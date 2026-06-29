@@ -38,16 +38,17 @@ def test_l2_load_all_disease_protocols_uses_lru_cache():
     assert data1 is data2
 
 
-# ---------- L3: output/_fhir_diagnostic_report.py load_panel_groups ----------
+# ---------- L3: order/panel_grouping.py load_panel_definitions ----------
+# (Task 2 unification: canonical loader moved from output/_fhir_diagnostic_report.py)
 
-def test_l3_load_panel_groups_uses_lru_cache():
-    from clinosim.modules.output._fhir_diagnostic_report import load_panel_groups
-    load_panel_groups.cache_clear()
-    info0 = load_panel_groups.cache_info()
+def test_l3_load_panel_definitions_uses_lru_cache():
+    from clinosim.modules.order.panel_grouping import load_panel_definitions
+    load_panel_definitions.cache_clear()
+    info0 = load_panel_definitions.cache_info()
     assert info0.hits == 0
-    data1 = load_panel_groups()
-    data2 = load_panel_groups()
-    info1 = load_panel_groups.cache_info()
+    data1 = load_panel_definitions()
+    data2 = load_panel_definitions()
+    info1 = load_panel_definitions.cache_info()
     assert info1.hits >= 1
     assert data1 is data2
 
