@@ -184,6 +184,18 @@ YAML data に外部 ID(SNOMED / LOINC / antibiotic key 等)を埋めるモジュ
 
 regression test pattern:`inspect.getsource()` で source 内 `_validate_*()` 呼び出し position が `register_audit_module(` よりも小さいことを assert(`tests/integration/test_antibiotic_audit.py:test_validators_run_before_register_audit_module` precedent)。
 
+### Cross-module canonical URI constants(PR3b-5, 2026-06-29)
+
+FHIR builder と audit reader が共有する canonical URI(system / identifier
+URI 等)を hard-coded literal で書かないこと。**writer 側 module(`clinosim/modules/output/_fhir_*.py`)に module-level 定数として定義 + reader 側がそれを import する pattern**を踏襲。rename 時に reader 側で ImportError が triggered され、silent-no-op skip を防御する(同パターン:`MB_ORG_ID_PREFIX` PR #113 / `ABX_ORDER_ID_PREFIX` PR #114 / `HAI_EVENT_ID_SYSTEM` PR3b-5)。
+
+定数命名規約:
+- ID prefix:`<BUILDER_PREFIX>_<RESOURCE>_ID_PREFIX = "..."`(例 `MB_ORG_ID_PREFIX`)
+- system URI(canonical):`<DOMAIN>_<CONCEPT>_SYSTEM = "..."`(例 `HAI_EVENT_ID_SYSTEM`)
+- 内部 URI には `http://clinosim/identifier/<purpose>` または `http://clinosim/<resource>/<purpose>` を使用(JP Core / US Core / HL7 IG に登録ない概念のみ)
+
+contract test pattern:`assert clinical_axis.CONSTANT is mb_builder.CONSTANT`(同一 object identity 確認、import path 一致を pin)。先例 `tests/unit/test_clinical_axis_per_organism.py:test_hai_event_id_system_canonical_constant_shared`。
+
 ### データ専用モジュール (variant)
 
 `modules/sdoh/` のように、**reference データ + loader のみ** を持ち、generation / assignment logic を持たないモジュール variant も認められます (PR2 2026-06-24 で確立)。`clinosim/codes/` が同パターンの先例です。

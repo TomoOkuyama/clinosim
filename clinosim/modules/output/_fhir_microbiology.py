@@ -29,6 +29,16 @@ MB_SUS_ID_PREFIX = "mb-sus-"
 MB_SPECIMEN_ID_PREFIX = "spec-"
 MB_DR_ID_PREFIX = "dr-mb-"
 
+# Canonical URI for HAI event cross-reference identifiers (PR3b-5,
+# 2026-06-29). Emitted on Specimen + mb-org-*/mb-sus-* Observation +
+# DiagnosticReport when MicrobiologyResult.hai_event_id is non-empty.
+# Internal-only — clinosim simulator cross-reference, not registered in
+# JP Core / US Core / HL7 IGs. Audit reader (clinosim.audit.axes.clinical)
+# imports this same constant; a rename here triggers ImportError downstream
+# rather than a silent gate skip (same defense pattern as MB_ORG_ID_PREFIX
+# and ABX_ORDER_ID_PREFIX).
+HAI_EVENT_ID_SYSTEM = "http://clinosim/identifier/hai-event-id"
+
 
 def _bb_microbiology(ctx: BundleContext) -> list[dict]:
     """Microbiology cultures → Specimen + Observation(s) + DiagnosticReport (AD-55)."""
@@ -47,7 +57,15 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
     for i, mb in enumerate(cultures):
         base = f"{ctx.primary_enc_id or ctx.patient_id}-{i}"
         spec_id = f"{MB_SPECIMEN_ID_PREFIX}{base}"
+        # PR3b-5: build identifier list once per culture; empty when not HAI.
+        hai_event_id = mb.get("hai_event_id", "")
+        hai_identifier = (
+            [{"system": HAI_EVENT_ID_SYSTEM, "value": hai_event_id}]
+            if hai_event_id else []
+        )
         specimen: dict[str, Any] = {"resourceType": "Specimen", "id": spec_id, "subject": subject}
+        if hai_identifier:
+            specimen["identifier"] = hai_identifier
         if mb.get("specimen_snomed"):
             specimen["type"] = {"coding": [_micro_coding("snomed-ct", mb["specimen_snomed"], lang)]}
         if mb.get("collected_datetime"):
@@ -65,6 +83,8 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             "category": lab_category, "code": culture_code, "subject": subject,
             "specimen": {"reference": f"Specimen/{spec_id}"},
         }
+        if hai_identifier:
+            org_obs["identifier"] = hai_identifier
         if enc_ref:
             org_obs["encounter"] = enc_ref
         if mb.get("reported_datetime"):
@@ -96,6 +116,8 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                     "display": disp.get(lang, disp.get("en", interp)),
                 }]},
             }
+            if hai_identifier:
+                sus_obs["identifier"] = hai_identifier
             if enc_ref:
                 sus_obs["encounter"] = enc_ref
             out.append(sus_obs)
@@ -111,6 +133,8 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             "specimen": [{"reference": f"Specimen/{spec_id}"}],
             "result": result_refs,
         }
+        if hai_identifier:
+            report["identifier"] = hai_identifier
         if enc_ref:
             report["encounter"] = enc_ref
         if mb.get("reported_datetime"):

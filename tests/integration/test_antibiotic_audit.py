@@ -181,6 +181,180 @@ def test_audit_clinical_acceptance_has_narrow_rate_bands() -> None:
         assert "source" in band
 
 
+def _write_obs_with_specimen(
+    enc: str, spec_suffix: str,
+    organism_snomed: str, abx_loinc: str, interpretation: str,
+    hai_event_id: str = "",
+) -> list[dict]:
+    """Build a triple (Specimen, mb-org-*, mb-sus-*) wired with the same
+    specimen reference, optionally with HAI identifier."""
+    from clinosim.modules.output._fhir_microbiology import HAI_EVENT_ID_SYSTEM
+    spec_id = f"spec-{enc}-{spec_suffix}"
+    rows: list[dict] = []
+    spec: dict = {"resourceType": "Specimen", "id": spec_id}
+    org_obs: dict = {
+        "resourceType": "Observation",
+        "id": f"mb-org-{enc}-{spec_suffix}",
+        "encounter": {"reference": f"Encounter/{enc}"},
+        "specimen": {"reference": f"Specimen/{spec_id}"},
+        "code": {"coding": [{"code": "600-7"}]},
+        "valueCodeableConcept": {
+            "coding": [{"system": "http://snomed.info/sct", "code": organism_snomed}],
+        },
+    }
+    sus_obs: dict = {
+        "resourceType": "Observation",
+        "id": f"mb-sus-{enc}-{spec_suffix}-0",
+        "encounter": {"reference": f"Encounter/{enc}"},
+        "specimen": {"reference": f"Specimen/{spec_id}"},
+        "code": {"coding": [{"code": abx_loinc}]},
+        "valueCodeableConcept": {"coding": [{"code": interpretation}]},
+    }
+    if hai_event_id:
+        ident = [{"system": HAI_EVENT_ID_SYSTEM, "value": hai_event_id}]
+        spec["identifier"] = ident
+        org_obs["identifier"] = ident
+        sus_obs["identifier"] = ident
+    rows.append(spec)
+    rows.append(org_obs)
+    rows.append(sus_obs)
+    return rows
+
+
+@pytest.mark.integration
+def test_clinical_axis_r_rate_gate_no_double_count_multi_organism_encounter(
+    tmp_path,
+) -> None:
+    """C1 resolution: CLABSI encounter with 2 specimens (S.aureus +
+    S.epidermidis HAI), each with its own cefazolin susc. The S.aureus
+    band counts ONLY the S.aureus-specimen susc (not the S.epidermidis-
+    specimen susc). PR3b-3 encounter-level join double-counted;
+    PR3b-5 specimen-based join attributes correctly."""
+    import json
+
+    from clinosim.audit.axes import clinical as clinical_axis
+    from clinosim.audit.types import Cohort
+    from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
+
+    discover()
+    spec = get_registered()["antibiotic"]
+
+    def _w(file: str, rows: list[dict]) -> None:
+        p = tmp_path / "us" / "fhir_r4" / file
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with p.open("a") as f:
+            for r in rows:
+                f.write(json.dumps(r) + "\n")
+
+    cefaz = ANTIBIOTIC_LOINC_LOOKUP["cefazolin"]
+    enc_rows: list[dict] = []
+    cond_rows: list[dict] = []
+    obs_rows: list[dict] = []
+    for i in range(30):
+        eid = f"E{i}"
+        enc_rows.append({"resourceType": "Encounter", "id": eid,
+                         "class": {"code": "IMP"}})
+        cond_rows.append({"resourceType": "Condition", "id": f"c{i}",
+                          "code": {"coding": [{"code": "T80.211A"}]},
+                          "encounter": {"reference": f"Encounter/{eid}"}})
+        # S.aureus specimen — cefazolin R (HAI)
+        obs_rows.extend(_write_obs_with_specimen(
+            eid, "0",
+            organism_snomed="3092008", abx_loinc=cefaz, interpretation="R",
+            hai_event_id=f"hai-{eid}-sa",
+        ))
+        # S.epidermidis specimen — cefazolin S (HAI, but would inflate
+        # S.aureus band under encounter-level join)
+        obs_rows.extend(_write_obs_with_specimen(
+            eid, "1",
+            organism_snomed="60875001", abx_loinc=cefaz, interpretation="S",
+            hai_event_id=f"hai-{eid}-se",
+        ))
+    _w("Encounter.ndjson", enc_rows)
+    _w("Condition.ndjson", cond_rows)
+    _w("Observation.ndjson", obs_rows)
+
+    result = clinical_axis.run(spec, Cohort.open(tmp_path))
+    n = result.info.get("us_clabsi/3092008_cefazolin_n")
+    r_rate = result.info.get("us_clabsi/3092008_cefazolin_R_rate")
+    # PR3b-5: 30 S.aureus-specimen susc, all R → rate = 1.0, n = 30.
+    # (S.epidermidis-specimen susc NOT counted under S.aureus band.)
+    assert n == 30, (
+        f"S.aureus band cohort must be 30 (S.aureus specimens only); "
+        f"got {n}. Pre-PR3b-5 encounter-level join would yield 60."
+    )
+    assert r_rate == 1.0, (
+        f"S.aureus band R-rate must be 1.0 (true per-specimen rate); "
+        f"got {r_rate}. Pre-PR3b-5 would yield 0.5 (false, mixed)."
+    )
+
+
+@pytest.mark.integration
+def test_clinical_axis_r_rate_gate_excludes_community_culture(tmp_path) -> None:
+    """C2 resolution: CLABSI encounter with HAI S.aureus specimen + community
+    S.aureus specimen (no HAI identifier). The S.aureus band must NOT count
+    the community S.aureus susc — same organism but different specimen
+    + different provenance (community). PR3b-5 HAI-only filter excludes
+    community specimens entirely."""
+    import json
+
+    from clinosim.audit.axes import clinical as clinical_axis
+    from clinosim.audit.types import Cohort
+    from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
+
+    discover()
+    spec = get_registered()["antibiotic"]
+
+    def _w(file: str, rows: list[dict]) -> None:
+        p = tmp_path / "us" / "fhir_r4" / file
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with p.open("a") as f:
+            for r in rows:
+                f.write(json.dumps(r) + "\n")
+
+    cefaz = ANTIBIOTIC_LOINC_LOOKUP["cefazolin"]
+    enc_rows: list[dict] = []
+    cond_rows: list[dict] = []
+    obs_rows: list[dict] = []
+    for i in range(30):
+        eid = f"E{i}"
+        enc_rows.append({"resourceType": "Encounter", "id": eid,
+                         "class": {"code": "IMP"}})
+        cond_rows.append({"resourceType": "Condition", "id": f"c{i}",
+                          "code": {"coding": [{"code": "T80.211A"}]},
+                          "encounter": {"reference": f"Encounter/{eid}"}})
+        # HAI S.aureus specimen — cefazolin R (true HAI MRSA)
+        obs_rows.extend(_write_obs_with_specimen(
+            eid, "0",
+            organism_snomed="3092008", abx_loinc=cefaz, interpretation="R",
+            hai_event_id=f"hai-{eid}-sa",
+        ))
+        # Community S.aureus specimen — cefazolin S (would inflate via
+        # encounter-level join in pre-PR3b-5; same organism but no HAI marker)
+        obs_rows.extend(_write_obs_with_specimen(
+            eid, "1",
+            organism_snomed="3092008", abx_loinc=cefaz, interpretation="S",
+            hai_event_id="",  # community
+        ))
+    _w("Encounter.ndjson", enc_rows)
+    _w("Condition.ndjson", cond_rows)
+    _w("Observation.ndjson", obs_rows)
+
+    result = clinical_axis.run(spec, Cohort.open(tmp_path))
+    n = result.info.get("us_clabsi/3092008_cefazolin_n")
+    r_rate = result.info.get("us_clabsi/3092008_cefazolin_R_rate")
+    # PR3b-5: only HAI-derived S.aureus specimens count. 30 HAI S.aureus
+    # specimens, all R → rate = 1.0, n = 30. (Community S.aureus excluded.)
+    assert n == 30, (
+        f"HAI-only filter must exclude community specimens; got n={n}. "
+        f"Pre-PR3b-5 would yield 60 (HAI + community mixed)."
+    )
+    assert r_rate == 1.0, (
+        f"HAI-only R-rate must be 1.0 (pure HAI); got {r_rate}. "
+        f"Pre-PR3b-5 would yield 0.5 (HAI + community mixed)."
+    )
+
+
 @pytest.mark.integration
 def test_clinical_axis_r_rate_gate_filters_per_organism(tmp_path) -> None:
     """D1: R-rate gate cohort must include ONLY encounters whose organism
@@ -219,35 +393,52 @@ def test_clinical_axis_r_rate_gate_filters_per_organism(tmp_path) -> None:
          "encounter": {"reference": f"Encounter/E{i}"}}
         for i in range(35)
     ]
+    # PR3b-5: include specimen.reference + HAI identifier on both
+    # mb-org-* and mb-sus-* so the specimen-based join + HAI-only filter
+    # finds these. (Pre-PR3b-5 the gate joined via encounter ref alone.)
+    from clinosim.modules.output._fhir_microbiology import HAI_EVENT_ID_SYSTEM
+
     organism_obs = []
     susc_obs = []
-    for i in range(30):  # S.aureus
+    for i in range(30):  # S.aureus HAI
+        spec_id = f"spec-E{i}-0"
+        ident = [{"system": HAI_EVENT_ID_SYSTEM, "value": f"hai-{i}-sa"}]
         organism_obs.append({
             "resourceType": "Observation", "id": f"mb-org-E{i}-0",
             "encounter": {"reference": f"Encounter/E{i}"},
+            "specimen": {"reference": f"Specimen/{spec_id}"},
             "code": {"coding": [{"code": "600-7"}]},
             "valueCodeableConcept": {
                 "coding": [{"system": "http://snomed.info/sct", "code": "3092008"}]},
+            "identifier": ident,
         })
         susc_obs.append({
             "resourceType": "Observation", "id": f"mb-sus-E{i}-0",
             "encounter": {"reference": f"Encounter/E{i}"},
+            "specimen": {"reference": f"Specimen/{spec_id}"},
             "code": {"coding": [{"code": cefaz_loinc}]},
             "valueCodeableConcept": {"coding": [{"code": "R" if i < 15 else "S"}]},
+            "identifier": ident,
         })
-    for i in range(30, 35):  # S.epidermidis, all R
+    for i in range(30, 35):  # S.epidermidis HAI, all R
+        spec_id = f"spec-E{i}-0"
+        ident = [{"system": HAI_EVENT_ID_SYSTEM, "value": f"hai-{i}-se"}]
         organism_obs.append({
             "resourceType": "Observation", "id": f"mb-org-E{i}-0",
             "encounter": {"reference": f"Encounter/E{i}"},
+            "specimen": {"reference": f"Specimen/{spec_id}"},
             "code": {"coding": [{"code": "600-7"}]},
             "valueCodeableConcept": {
                 "coding": [{"system": "http://snomed.info/sct", "code": "11638008"}]},
+            "identifier": ident,
         })
         susc_obs.append({
             "resourceType": "Observation", "id": f"mb-sus-E{i}-0",
             "encounter": {"reference": f"Encounter/E{i}"},
+            "specimen": {"reference": f"Specimen/{spec_id}"},
             "code": {"coding": [{"code": cefaz_loinc}]},
             "valueCodeableConcept": {"coding": [{"code": "R"}]},
+            "identifier": ident,
         })
 
     _w("us", "Encounter.ndjson", encounters)
@@ -472,6 +663,91 @@ def test_nhsn_reverse_coverage_exempt_no_stale_entries() -> None:
             f"stale _NHSN_REVERSE_COVERAGE_EXEMPT entry {pair!r} — not in "
             f"hai_antibiogram.yaml. Validator should already raise; this "
             f"test pins the invariant explicitly."
+        )
+
+
+@pytest.mark.integration
+def test_fhir_microbiology_emits_hai_event_id_identifier() -> None:
+    """PR3b-5 Task 1: MicrobiologyResult.hai_event_id non-empty → FHIR
+    Specimen / mb-org-* Observation / mb-sus-* Observation /
+    DiagnosticReport all carry identifier[].system == HAI_EVENT_ID_SYSTEM
+    with value == hai_event_id. Empty hai_event_id → no identifier field
+    (byte-identical to pre-PR3b-5 community-culture output)."""
+    from clinosim.modules.output._fhir_common import BundleContext
+    from clinosim.modules.output._fhir_microbiology import (
+        HAI_EVENT_ID_SYSTEM,
+        _bb_microbiology,
+    )
+
+    # HAI culture: hai_event_id set
+    hai_mb = {
+        "specimen": "blood",
+        "specimen_snomed": "119297000",
+        "test_loinc": "600-7",
+        "collected_datetime": "2026-01-10T08:00:00",
+        "reported_datetime": "2026-01-12T08:00:00",
+        "growth": True,
+        "organism_snomed": "3092008",
+        "susceptibilities": [
+            {"antibiotic_loinc": "10-9", "interpretation": "S"},
+        ],
+        "hai_event_id": "hai-clabsi-E1-1",
+    }
+    # Community culture: hai_event_id empty
+    comm_mb = {
+        "specimen": "urine",
+        "specimen_snomed": "122575003",
+        "test_loinc": "630-4",
+        "collected_datetime": "2026-01-10T08:00:00",
+        "reported_datetime": "2026-01-12T08:00:00",
+        "growth": True,
+        "organism_snomed": "112283007",
+        "susceptibilities": [],
+        "hai_event_id": "",
+    }
+    ctx = BundleContext(
+        record={"microbiology": [hai_mb, comm_mb]},
+        country="US",
+        roster_map={},
+        hospital_config={},
+        patient_data={},
+        patient_id="p1",
+        is_readmission=False,
+        prior_encounter_id=None,
+        primary_dx_code="",
+        admit_dx_code="",
+        admit_dx_system="icd-10-cm",
+        primary_enc_id="E1",
+        patient_sex="",
+    )
+    resources = _bb_microbiology(ctx)
+
+    spec_hai = next(r for r in resources if r["resourceType"] == "Specimen"
+                    and r["id"] == "spec-E1-0")
+    spec_comm = next(r for r in resources if r["resourceType"] == "Specimen"
+                     and r["id"] == "spec-E1-1")
+    org_hai = next(r for r in resources if r["id"] == "mb-org-E1-0")
+    org_comm = next(r for r in resources if r["id"] == "mb-org-E1-1")
+    sus_hai = next(r for r in resources if r["id"] == "mb-sus-E1-0-0")
+    dr_hai = next(r for r in resources if r["id"] == "dr-mb-E1-0")
+    dr_comm = next(r for r in resources if r["id"] == "dr-mb-E1-1")
+
+    # HAI side: identifier present, system + value correct
+    for res in (spec_hai, org_hai, sus_hai, dr_hai):
+        ident = res.get("identifier") or []
+        assert len(ident) == 1, f"{res['id']}: expected 1 identifier, got {ident}"
+        assert ident[0]["system"] == HAI_EVENT_ID_SYSTEM, (
+            f"{res['id']}: identifier.system mismatch"
+        )
+        assert ident[0]["value"] == "hai-clabsi-E1-1", (
+            f"{res['id']}: identifier.value mismatch"
+        )
+
+    # Community side: no identifier field at all (byte-identical pre-PR3b-5)
+    for res in (spec_comm, org_comm, dr_comm):
+        assert "identifier" not in res, (
+            f"{res['id']}: community culture must NOT emit identifier "
+            f"(byte-identical invariant), got {res.get('identifier')!r}"
         )
 
 
