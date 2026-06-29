@@ -95,3 +95,99 @@ def test_hai_rates_rejects_unknown_device_type(monkeypatch) -> None:
     })
     with pytest.raises(ValueError, match="source_device_type"):
         hai_engine.load_hai_rates()
+
+
+# ----------------------------------------------------------------------------
+# _validate_hai_codes
+# ----------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_hai_codes_real_yaml_loads_clean() -> None:
+    data = hai_engine.load_hai_codes()
+    assert "hai_codes" in data
+    assert set(data["hai_codes"].keys()) >= {"clabsi", "cauti", "vap"}
+
+
+@pytest.mark.unit
+def test_hai_codes_rejects_empty_top_level(monkeypatch) -> None:
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {"hai_codes": {}})
+    with pytest.raises(ValueError, match="hai_codes.yaml top-level empty"):
+        hai_engine.load_hai_codes()
+
+
+@pytest.mark.unit
+def test_hai_codes_rejects_unknown_hai_type(monkeypatch) -> None:
+    base = {
+        "clabsi": {"icd10_us_billable": "T80.211A", "icd10_jp_who": "T80.2",
+                   "snomed": "736442006"},
+        "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5",
+                  "snomed": "68566005"},
+        "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8",
+                "snomed": "429271009"},
+    }
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {
+        "hai_codes": {**base, "INVALID": base["clabsi"]}
+    })
+    with pytest.raises(ValueError, match="unknown hai_type 'INVALID'"):
+        hai_engine.load_hai_codes()
+
+
+@pytest.mark.unit
+def test_hai_codes_rejects_missing_hai_type_forward_coverage(monkeypatch) -> None:
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {
+        "hai_codes": {
+            "clabsi": {"icd10_us_billable": "T80.211A", "icd10_jp_who": "T80.2",
+                       "snomed": "736442006"},
+        }
+    })
+    with pytest.raises(ValueError, match="missing HAI_TYPES"):
+        hai_engine.load_hai_codes()
+
+
+@pytest.mark.unit
+def test_hai_codes_rejects_unknown_icd10_us(monkeypatch) -> None:
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {
+        "hai_codes": {
+            "clabsi": {"icd10_us_billable": "BOGUS.99", "icd10_jp_who": "T80.2",
+                       "snomed": "736442006"},
+            "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5",
+                      "snomed": "68566005"},
+            "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8",
+                    "snomed": "429271009"},
+        }
+    })
+    with pytest.raises(ValueError, match="icd10_us_billable"):
+        hai_engine.load_hai_codes()
+
+
+@pytest.mark.unit
+def test_hai_codes_rejects_unknown_icd10_jp(monkeypatch) -> None:
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {
+        "hai_codes": {
+            "clabsi": {"icd10_us_billable": "T80.211A", "icd10_jp_who": "Z99.9",
+                       "snomed": "736442006"},
+            "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5",
+                      "snomed": "68566005"},
+            "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8",
+                    "snomed": "429271009"},
+        }
+    })
+    with pytest.raises(ValueError, match="icd10_jp_who"):
+        hai_engine.load_hai_codes()
+
+
+@pytest.mark.unit
+def test_hai_codes_rejects_unknown_snomed(monkeypatch) -> None:
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {
+        "hai_codes": {
+            "clabsi": {"icd10_us_billable": "T80.211A", "icd10_jp_who": "T80.2",
+                       "snomed": "9999999999"},
+            "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5",
+                      "snomed": "68566005"},
+            "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8",
+                    "snomed": "429271009"},
+        }
+    })
+    with pytest.raises(ValueError, match="snomed"):
+        hai_engine.load_hai_codes()
