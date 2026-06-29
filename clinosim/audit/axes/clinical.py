@@ -67,6 +67,37 @@ def _is_susceptibility_observation(row: dict) -> tuple[str, str] | None:
     return (abx_loinc, interp)
 
 
+def _organism_per_encounter(cohort: Cohort, country: str) -> dict[str, set[str]]:
+    """Return {encounter_id: {organism_snomed, ...}} from microbiology Observations.
+
+    Walks Observation.ndjson once, filters to mb-org-* organism observations
+    that carry a valueCodeableConcept SNOMED code (growth observations).
+    No-growth observations (valueString="No growth"/"発育なし"), non-mb
+    Observations, missing encounter refs, and non-SNOMED valueCodeableConcept
+    codings are skipped.
+
+    Used by the PR3b-3 R-rate gate (per-(hai_type, organism) cohort filter)
+    and empty-rate gate (panel-eligible denominator filter).
+    """
+    out: dict[str, set[str]] = {}
+    for row in cohort.ndjson(country, "Observation"):
+        rid = row.get("id", "")
+        if not rid.startswith("mb-org-"):
+            continue
+        eid = _enc_id(row)
+        if not eid:
+            continue
+        vcc = row.get("valueCodeableConcept") or {}
+        codings = vcc.get("coding", []) or []
+        for c in codings:
+            sys_uri = c.get("system", "") or ""
+            if "snomed" in sys_uri:
+                code = c.get("code", "") or ""
+                if code:
+                    out.setdefault(eid, set()).add(code)
+    return out
+
+
 def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
     result = AxisResult(axis="clinical", module=spec.name)
     if not spec.clinical_acceptance:
