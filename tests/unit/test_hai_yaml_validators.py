@@ -271,3 +271,73 @@ def test_hai_specimens_rejects_unknown_loinc(monkeypatch) -> None:
     })
     with pytest.raises(ValueError, match="test_loinc"):
         hai_engine.load_hai_specimens()
+
+
+# ----------------------------------------------------------------------------
+# _validate_hai_lab_lift_config
+# ----------------------------------------------------------------------------
+
+
+from clinosim.modules.hai import lab_lift as lab_lift_mod
+
+
+@pytest.fixture(autouse=True)
+def _clear_lab_lift_cache():
+    """Reset lab_lift cache around each test (validator runs inside the loader)."""
+    lab_lift_mod.load_hai_lab_lift_config.cache_clear()
+    yield
+    lab_lift_mod.load_hai_lab_lift_config.cache_clear()
+
+
+@pytest.mark.unit
+def test_hai_lab_lift_real_yaml_loads_clean() -> None:
+    ramp, lift = lab_lift_mod.load_hai_lab_lift_config()
+    assert ramp > 0
+    assert set(lift.keys()) >= {"clabsi", "cauti", "vap"}
+
+
+@pytest.mark.unit
+def test_hai_lab_lift_rejects_empty_top_level(monkeypatch) -> None:
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {})
+    with pytest.raises(ValueError, match="hai_lab_lift.yaml empty"):
+        lab_lift_mod.load_hai_lab_lift_config()
+
+
+@pytest.mark.unit
+def test_hai_lab_lift_rejects_zero_ramp(monkeypatch) -> None:
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {
+        "ramp_peak_days": 0,
+        "hai_lift": {"clabsi": 0.35, "cauti": 0.20, "vap": 0.35},
+    })
+    with pytest.raises(ValueError, match="ramp_peak_days"):
+        lab_lift_mod.load_hai_lab_lift_config()
+
+
+@pytest.mark.unit
+def test_hai_lab_lift_rejects_unknown_hai_type(monkeypatch) -> None:
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {
+        "ramp_peak_days": 2,
+        "hai_lift": {"clabsi": 0.35, "cauti": 0.20, "vap": 0.35, "INVALID": 0.5},
+    })
+    with pytest.raises(ValueError, match="unknown"):
+        lab_lift_mod.load_hai_lab_lift_config()
+
+
+@pytest.mark.unit
+def test_hai_lab_lift_rejects_missing_hai_type_forward_coverage(monkeypatch) -> None:
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {
+        "ramp_peak_days": 2,
+        "hai_lift": {"clabsi": 0.35},  # cauti + vap missing
+    })
+    with pytest.raises(ValueError, match="missing HAI_TYPES"):
+        lab_lift_mod.load_hai_lab_lift_config()
+
+
+@pytest.mark.unit
+def test_hai_lab_lift_rejects_out_of_range_lift_value(monkeypatch) -> None:
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {
+        "ramp_peak_days": 2,
+        "hai_lift": {"clabsi": 1.5, "cauti": 0.20, "vap": 0.35},
+    })
+    with pytest.raises(ValueError, match="lift"):
+        lab_lift_mod.load_hai_lab_lift_config()
