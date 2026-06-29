@@ -5,13 +5,14 @@ import pytest
 @pytest.mark.unit
 class TestLoadPanelGroups:
     def test_yaml_loads_with_all_seven_panels(self):
-        from clinosim.modules.output._fhir_diagnostic_report import load_panel_groups
-        panels = load_panel_groups()
+        # Canonical loader now lives in order.panel_grouping (Task 2 unification).
+        from clinosim.modules.order.panel_grouping import load_panel_definitions
+        panels = load_panel_definitions()
         assert set(panels.keys()) == {"ABG", "CBC", "BMP", "LFT", "Lipid", "Coag", "UA"}
 
     def test_each_panel_has_loinc_components_threshold(self):
-        from clinosim.modules.output._fhir_diagnostic_report import load_panel_groups
-        for name, panel in load_panel_groups().items():
+        from clinosim.modules.order.panel_grouping import load_panel_definitions
+        for name, panel in load_panel_definitions().items():
             assert "loinc" in panel and panel["loinc"]
             assert "display" in panel and panel["display"]
             assert isinstance(panel["components"], list) and panel["components"]
@@ -19,8 +20,8 @@ class TestLoadPanelGroups:
 
     def test_each_loinc_resolves_via_codes_lookup(self):
         from clinosim.codes import lookup
-        from clinosim.modules.output._fhir_diagnostic_report import load_panel_groups
-        for name, panel in load_panel_groups().items():
+        from clinosim.modules.order.panel_grouping import load_panel_definitions
+        for name, panel in load_panel_definitions().items():
             disp = lookup("loinc", panel["loinc"], "en")
             assert disp and disp != panel["loinc"], (
                 f"panel={name} loinc={panel['loinc']} did not resolve to a display"
@@ -325,10 +326,14 @@ class TestPanelYAMLs:
         assert "UA" in panels
 
     def test_lab_panel_groups_documents_coag_authoritative_scope(self):
-        """I2: lab_panel_groups.yaml documents Fibrinogen exclusion + LOINC 24373-3 scope."""
+        """I2: lab_panel_groups.yaml documents Fibrinogen exclusion + LOINC 24373-3 scope.
+
+        YAML moved to order/reference_data/ in Task 2 (unification: panel = ordering concept).
+        """
         from pathlib import Path
         import clinosim
-        path = Path(clinosim.__file__).parent / "modules/output/reference_data/lab_panel_groups.yaml"
+        # Canonical YAML location: order/reference_data/ (moved from output/reference_data/)
+        path = Path(clinosim.__file__).parent / "modules/order/reference_data/lab_panel_groups.yaml"
         text = path.read_text()
         assert "24373-3" in text
         assert "Fibrinogen" in text  # documents why it's NOT in Coag components

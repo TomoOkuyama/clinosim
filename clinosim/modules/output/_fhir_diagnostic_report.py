@@ -7,34 +7,18 @@ read, no Observation-resource mutation. The bundle builder appends new
 DRs.
 
 Spec: docs/superpowers/specs/2026-06-22-diagnostic-report-panels-design.md
+
+Panel YAML + canonical loader live in ``clinosim.modules.order.panel_grouping``
+(single source of truth per user directive: "データ参照やデータ生成のロジックは統一").
 """
 from __future__ import annotations
 
 from collections import defaultdict
-from functools import lru_cache
-from pathlib import Path
 from typing import NamedTuple
 
-import yaml
-
-from clinosim.codes import get_system_uri, lookup as _codes_lookup
-
-
-_HERE = Path(__file__).resolve().parent
-_REF_DIR = _HERE / "reference_data"
-_PANEL_REF = _REF_DIR / "lab_panel_groups.yaml"
-
-
-@lru_cache(maxsize=1)
-def load_panel_groups() -> dict[str, dict]:
-    """Return the panel definitions from lab_panel_groups.yaml (cached).
-
-    Key order matches the YAML insertion order, which is the grouping
-    priority (ABG > CBC > BMP > LFT > Lipid > Coag > UA).
-    """
-    with open(_PANEL_REF) as f:
-        data = yaml.safe_load(f) or {}
-    return data.get("panels") or {}
+from clinosim.codes import get_system_uri
+from clinosim.codes import lookup as _codes_lookup
+from clinosim.modules.order.panel_grouping import load_panel_definitions
 
 
 class _GroupedPanel(NamedTuple):
@@ -64,7 +48,7 @@ def group_lab_orders(orders: list[dict], encounter_id: str) -> list[_GroupedPane
 
     Returns groups sorted by (bucket ascending, panel-priority order).
     """
-    panels = load_panel_groups()
+    panels = load_panel_definitions()
 
     # Build: bucket -> lab_name -> [obs_ref]. Same analyte drawn multiple times
     # in a day (e.g. serial Cr) accumulates multiple refs; the first uncomsumed
@@ -147,7 +131,7 @@ def build_dr_resource(
 
     Returns: a raw FHIR resource dict (no Bundle envelope).
     """
-    panels = load_panel_groups()
+    panels = load_panel_definitions()
     panel = panels[group.panel_name]
     lang = "ja" if country == "JP" else "en"
     display = _codes_lookup("loinc", panel["loinc"], lang) or panel["display"]
