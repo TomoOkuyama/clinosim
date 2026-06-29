@@ -97,6 +97,68 @@ def test_snapshot_inprogress_encounters_have_srs():
         )
 
 
+@pytest.mark.integration
+@pytest.mark.xfail(
+    strict=False,
+    reason=(
+        "Known pre-existing inconsistency: some stand-alone orders at the snapshot "
+        "boundary retain PLACED status while having a result Observation (the snapshot "
+        "logic does not guarantee status=RESULTED for day-boundary results). "
+        "Fixing the order-status semantics at snapshot time is tracked in TODO.md and "
+        "is out of scope for the Stage 2 adversarial review. This test documents the "
+        "intended invariant so it can gate a future fix."
+    ),
+)
+def test_snapshot_placed_orders_have_no_observation():
+    """Stand-alone active SRs (single PLACED order) should have no result Observations.
+
+    AD-32 intended invariant: a stand-alone order in PLACED status has no result
+    Observation yet. Its SR is 'active', and the SR id should appear in NO Observation's
+    basedOn list.
+
+    Currently marked xfail because the snapshot boundary (end-of-day on --end date)
+    can leave some orders with status=PLACED even after a result Observation was written
+    (order status is set by the simulation loop; the snapshot cuts at day-end but some
+    orders may not have their status updated in the last day).
+    """
+    from clinosim.modules.order.panel_grouping import PANEL_PRIORITY_ORDER
+
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp) / "out"
+        run_generate("US", 200, 42, out, end="2025-02-28")
+
+        srs = load_ndjson(find_ndjson(out, "ServiceRequest.ndjson"))
+
+        # Identify stand-alone SRs: id has no "-{PanelName}-" segment.
+        def _is_standalone(sr: dict) -> bool:
+            sr_id = sr.get("id", "")
+            return not any(f"-{p}-" in sr_id for p in PANEL_PRIORITY_ORDER)
+
+        active_standalone_ids = {
+            s["id"] for s in srs
+            if s.get("status") == "active" and _is_standalone(s)
+        }
+
+        if not active_standalone_ids:
+            pytest.skip(
+                "No active stand-alone SRs in 200-patient snapshot cohort (end=2025-02-28). "
+                "Increase population if this fires repeatedly."
+            )
+
+        obs = load_ndjson(find_ndjson(out, "Observation.ndjson"))
+        pointing_at_active: list[str] = []
+        for o in obs:
+            for ref in o.get("basedOn", []):
+                sr_ref = ref.get("reference", "").removeprefix("ServiceRequest/")
+                if sr_ref in active_standalone_ids:
+                    pointing_at_active.append(o.get("id", "?"))
+
+        assert not pointing_at_active, (
+            f"{len(pointing_at_active)} Observations reference stand-alone active "
+            f"(PLACED) SRs — snapshot semantics violated: {pointing_at_active[:5]}"
+        )
+
+
 @pytest.mark.skip(
     reason=(
         "--snapshot-time flag not available in current CLI (day-granular --end only). "

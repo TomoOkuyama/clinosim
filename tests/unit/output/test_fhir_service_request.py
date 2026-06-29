@@ -365,3 +365,61 @@ def test_bb_service_requests_missing_ordered_datetime_omits_authored_on():
     resources = _bb_service_requests(ctx)
     assert len(resources) == 1
     assert "authoredOn" not in resources[0]
+
+
+def test_bb_service_requests_standalone_resolves_internal_name_via_code_map():
+    """Stand-alone SR.code.coding[].code is resolved via locale code_map
+    (internal test name → real LOINC/JLAC10), NOT the raw internal name.
+
+    Fixes Critical finding from adv-3: production Orders have order_code =
+    internal test name (e.g. "WBC") when disease YAML lacks code_loinc:.
+    Without code_map lookup the SR emits "code": "WBC" (FHIR-invalid).
+    """
+    # Simulate the production scenario: order_code = internal name "WBC"
+    orders = [_make_dict_order(
+        order_id="ORD-pt1-ADM-L10",
+        panel_key="",
+        order_code="WBC",   # internal name, not LOINC
+        display_name="WBC",
+    )]
+    ctx = _make_ctx(orders, country="us")  # type: ignore[arg-type]
+    resources = _bb_service_requests(ctx)
+    assert len(resources) == 1
+    sr = resources[0]
+    code_obj = sr["code"]
+    coding = code_obj["coding"][0]
+    # Must resolve to real LOINC, NOT the internal name
+    assert coding["code"] != "WBC", (
+        "Stand-alone SR.code.coding[].code must be a LOINC code, not the "
+        f"internal test name. Got {coding['code']!r}"
+    )
+    assert coding["code"] == "6690-2", (
+        f"WBC must resolve to LOINC 6690-2 via US code_map. Got {coding['code']!r}"
+    )
+    # FHIR rule: display must not equal code
+    assert coding["code"] != coding["display"], (
+        f"SR.code.coding display must not equal code. Got display={coding['display']!r}"
+    )
+    # text field carries the human-readable internal name
+    assert code_obj["text"] == "WBC"
+
+
+def test_bb_service_requests_standalone_code_map_not_found_falls_back_to_order_code():
+    """Stand-alone SR with display_name not in code_map falls back to order_code.
+
+    Defensive: if a new analyte isn't yet in code_mapping_lab.yaml, the SR
+    uses the raw order_code rather than crashing.
+    """
+    orders = [_make_dict_order(
+        order_id="ORD-pt1-ADM-L11",
+        panel_key="",
+        order_code="999-UNKNOWN",   # raw code set by caller (not in code_map)
+        display_name="UnknownAnalyte",  # not in US code_map
+    )]
+    ctx = _make_ctx(orders, country="us")  # type: ignore[arg-type]
+    resources = _bb_service_requests(ctx)
+    assert len(resources) == 1
+    sr = resources[0]
+    coding = sr["code"]["coding"][0]
+    # Falls back to order_code when display_name not in code_map
+    assert coding["code"] == "999-UNKNOWN"

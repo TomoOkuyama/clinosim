@@ -119,7 +119,7 @@ def _validate_panel_definitions(panels: dict[str, dict[str, Any]]) -> None:
         if not isinstance(panel["min_components"], int) or panel["min_components"] < 1:
             raise ValueError(f"Panel '{name}' min_components must be positive int")
 
-        # Layer 6 (LOINC): authoritative cross-validation — code must resolve in
+        # Layer 6a (LOINC): authoritative cross-validation — code must resolve in
         # codes/data/loinc.yaml. PR-90 lesson: a typo'd LOINC passes required-field
         # check (Layer 2) but should fail at import time, not only at test-time.
         if not _code_in_data("loinc", panel["loinc"]):
@@ -127,6 +127,27 @@ def _validate_panel_definitions(panels: dict[str, dict[str, Any]]) -> None:
                 f"Panel '{name}' has unknown LOINC code '{panel['loinc']}' "
                 f"(not in clinosim/codes/data/loinc.yaml)"
             )
+
+    # Layer 6b: cross-validate components against lab_panels.yaml (observation engine).
+    # A typo in lab_panel_groups.yaml components (e.g. "AST" → "ASTx") passes layers
+    # 1-6a but silently causes group_lab_orders to miss that analyte from the panel DR.
+    # Safe lazy import: observation/engine.py has no imports from panel_grouping.py.
+    try:
+        from clinosim.modules.observation.engine import lab_panel_components as _lab_comps
+    except ImportError:
+        _lab_comps = None  # type: ignore[assignment]
+    if _lab_comps is not None:
+        for name, panel in panels.items():
+            canonical = _lab_comps(name)
+            if canonical:  # skip panels not present in lab_panels.yaml (e.g. UA silent-drops)
+                groups_comps = set(panel["components"])
+                canonical_comps = set(canonical)
+                drift = groups_comps.symmetric_difference(canonical_comps)
+                if drift:
+                    raise ValueError(
+                        f"Panel '{name}' component mismatch between "
+                        f"lab_panel_groups.yaml and lab_panels.yaml: {sorted(drift)}"
+                    )
 
 
 @lru_cache(maxsize=1)
