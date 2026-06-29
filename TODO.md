@@ -566,7 +566,23 @@ Phase 3b backlog (remaining):
   `OrderStatus.STOPPED` + FHIR `MedicationRequest.status="stopped"` wiring.
   Audit clinical axis active enforcement: NHSN R-rate + empty rate + new narrow rate.
   `lift_firing_proof` extended to 17 equality_checks (8+3+6).
+- ~~PR3b-3 D1+D2~~: ✓ done 2026-06-29 (PR #112 + #113 + #114) — clinical axis
+  per-(hai_type, organism, antibiotic) R-rate filter via `_organism_per_encounter`
+  + panel-eligible empty-rate denominator via `_panel_eligible_organisms`.
+  Both TODO markers removed (clinical.py + antibiotic/audit.py). 4-stage
+  adversarial chain converged. PR3b-3 original-spec deferred TODOs = 0.
 - PR3b-4: WBC/CRP decay phase coupled with antibiotic-day count
+- **PR3b-5**: specimen-organism susceptibility attribution refinement. PR3b-3 D1
+  filters cohort encounters per-organism via `_organism_per_encounter`, but the
+  susceptibility counting loop joins susc → cohort via encounter ref alone. A
+  multi-organism encounter (e.g. CLABSI with both S.aureus + S.epidermidis)
+  double-counts susc rows under both organism bands; community + HAI culture
+  co-occurrence (~15-20% of HAI encounters per p=5k cohort) attaches community
+  susceptibilities to HAI bands. Clean fix joins susc → specimen → organism via
+  `Observation.specimen.reference` (the FHIR microbiology builder already writes
+  the specimen backref). New finding from PR3b-3 adv review (not original
+  backlog). See `docs/reviews/2026-06-29-pr3b-3-clinical-axis-completion-dqr.md`
+  §"Known approximation".
 
 Phase 3c backlog:
 - HAI → outcome_benchmarks mortality coupling
