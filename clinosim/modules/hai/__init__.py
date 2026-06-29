@@ -56,6 +56,15 @@ def load_hai_antibiogram() -> dict:  # type: ignore[type-arg]
     with open(_HAI_ANTIBIOGRAM_PATH) as f:
         raw = yaml.safe_load(f) or {}
     abg = raw.get("hai_antibiogram") or {}
+    # PR3b-3 stage-1 adversarial finding I2: empty top-level antibiogram would
+    # silently disable downstream consumers (PR3b-3 D2 panel-eligible
+    # filter — _panel_eligible_organisms returns {} → D2 skips all
+    # encounters). Fail loud at load time (silent-no-op defense layer 2).
+    if not abg:
+        raise ValueError(
+            "hai_antibiogram.yaml top-level is empty — would silently disable "
+            "PR3b-3 D2 panel-eligible filter (PR-90 class silent no-op)"
+        )
     valid_hai_types = set(HAI_TYPES)
     valid_organisms = _organisms_by_hai_type()
     valid_antibiotics = set(ANTIBIOTIC_LOINC_LOOKUP.keys())
