@@ -631,6 +631,28 @@ remains"):
   the 7-layer silent-no-op defense pattern (including
   `HAI_EVENT_ID_SYSTEM` from PR3b-5) and the AD-55 near-essential clinical
   cascade extension is a documentation polish item.
+- **Sepsis SBP<90 過少 (septic shock 過少 fire)** — clinical realism gap.
+  Memory `project_realism_gaps` and session 23 DQR
+  (`docs/reviews/2026-06-29-session23-breakpoint-dqr.md`) both observe
+  that sepsis cohort SBP distribution has too few values <90 mmHg at p=10000
+  (60 sepsis patients, SBP median 116 / p95 142 — low tail thin despite
+  R65.21 septic shock conditions in cohort). PR #62 fixed this once via
+  `derive_vital_signs` SBP/DBP surgical edit (`-(infl-0.7)*60` term) but
+  the magnitude / fire-rate needs strengthening. Recommended approach:
+  PR #62 BNP-pattern surgical pattern continued — increase inflammation
+  coupling slope OR add `causes_septic_shock` scenario flag with
+  encounter-bound SBP suppression. **DO NOT alter `perfusion_status` state
+  variable** — PR #62 教訓 documents this would re-trigger clinical_course
+  RNG cascade affecting unrelated patients (AD-16 violation, ~76% cohort
+  contamination). Verify via DQR per-cohort SBP<90% target ~20-30% for
+  R65.21 patients.
+- **HAI cohort rare-event regime**(by-design, NOT a TODO fix item — recorded
+  as decision rationale): hai_rates.yaml uses 0.001-0.0015/device-day per CDC
+  NHSN AR 2018-2020. At p=10000 this yields CAUTI n=14 / CLABSI 0 / VAP 0 —
+  matches CDC truth but production-scale band firing (n≥30 per cohort) requires
+  p≥50k or `ForcedScenario.force_hai_event` injection. This is **usability vs
+  realism trade-off, not a data quality bug**. Do not rate-inflate. If
+  production-scale band testing needed, use ForcedScenario harness instead.
 
 Phase 3c backlog:
 - HAI → outcome_benchmarks mortality coupling
