@@ -244,7 +244,7 @@ def _check_lab_obs_basedon(cohort: Cohort, country: str, result: AxisResult) -> 
             if not ref_str.startswith("ServiceRequest/"):
                 continue
             sr_id = ref_str.removeprefix("ServiceRequest/")
-            if sr_ids and sr_id not in sr_ids:
+            if sr_id not in sr_ids:
                 dangling_refs.append(sr_id)
 
     n_warn_threshold = 30
