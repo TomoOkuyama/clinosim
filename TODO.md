@@ -572,18 +572,59 @@ Phase 3b backlog (remaining):
   + panel-eligible empty-rate denominator via `_panel_eligible_organisms`.
   Both TODO markers removed (clinical.py + antibiotic/audit.py). 6-layer
   silent-no-op defense complete. PR3b-3 original-spec deferred TODOs = 0.
-- PR3b-4: WBC/CRP decay phase coupled with antibiotic-day count
-- **PR3b-5**: specimen-organism susceptibility attribution refinement. PR3b-3 D1
-  filters cohort encounters per-organism via `_organism_per_encounter`, but the
-  susceptibility counting loop joins susc → cohort via encounter ref alone. A
-  multi-organism encounter (e.g. CLABSI with both S.aureus + S.epidermidis)
-  double-counts susc rows under both organism bands; community + HAI culture
-  co-occurrence (~15-20% of HAI encounters per p=5k cohort) attaches community
-  susceptibilities to HAI bands. Clean fix joins susc → specimen → organism via
-  `Observation.specimen.reference` (the FHIR microbiology builder already writes
-  the specimen backref). New finding from PR3b-3 adv review (not original
-  backlog). See `docs/reviews/2026-06-29-pr3b-3-clinical-axis-completion-dqr.md`
-  §"Known approximation".
+- ~~PR3b-5~~: ✓ done 2026-06-29 — specimen-based susc → organism join +
+  FHIR HAI_EVENT_ID_SYSTEM identifier emission resolved the PR3b-3 D1
+  encounter-level attribution approximation. C1 (multi-organism encounter
+  double-count) and C2 (community + HAI culture co-occurrence) both
+  mechanically excluded. New helpers `_organism_per_specimen` +
+  `_hai_specimens` in `clinosim/audit/axes/clinical.py`. FHIR identifier
+  emission added to Specimen + mb-org-* / mb-sus-* Observation +
+  DiagnosticReport (`clinosim/modules/output/_fhir_microbiology.py`). See
+  `docs/reviews/2026-06-29-pr3b-5-attribution-refinement-dqr.md`.
+
+Out-of-scope items deferred from PR3b-5 (formal tracking — each one
+required so the chain closure can honestly claim "no half-finished state
+remains"):
+
+- PR3b-4: WBC/CRP forward-delta decay coupled with antibiotic-day count.
+  Sibling to the Phase 3a HAI lift pattern; antibiotic start_day initiates
+  a forward decay on WBC + CRP observed values mirroring the lift profile.
+  Independent of PR3b-3 / PR3b-5 — purely new realism work.
+- Sibling YAML loader sweep (hai_lab_lift / hai_rates / hai_codes /
+  hai_specimens / hai_organisms additional reverse-coverage): apply the
+  silent-no-op defense pattern established by PR3b-3 chain to all
+  remaining hai_*.yaml loaders. Scope-tiny pattern application. **This is
+  the next user-declared breakpoint after PR3b-5** (区切り = PR3b-5 +
+  sibling sweep 両 chain CLOSED).
+- audit registry `_reset_for_test` ordering bug: 10 fail master baseline
+  (production code healthy, test isolation issue only). Tests that call
+  `discover()` end up with empty registry after another test's
+  `_reset_for_test`. Fix candidate: autouse fixture in conftest that
+  re-discovers before each integration test.
+- audit clinical axis Phase 2 (per-event observed-vs-theoretical
+  enforcement): new axis-level enforcement walking CIF state_history per
+  event for closed-form delta verification. Currently the silent_no_op
+  axis lift_firing_proof covers this at synthetic-fixture level; Phase 2
+  would enforce per-real-event at audit run time.
+- NHSN clinical-accuracy band verification (CoNS / K.pneumoniae VAP /
+  A.baumannii VAP exempt entries): adv-2 Agent 1 (PR #114 review) flagged
+  that NHSN AR 2018-2020 may publish stable population bands for organisms
+  currently in `_NHSN_REVERSE_COVERAGE_EXEMPT`. Verify against the NHSN
+  tables and either ADD a band (preferred) or tighten the exempt rationale.
+- I1 WARN per-country diagnostic improvement: current WARN message fires
+  per country with identical wording; symptom (antibiogram corruption /
+  mb-org drift / SNOMED URI drift) is global. Improve by probing
+  individual root cause and emitting one global WARN with specific
+  dispatch.
+- Unused MB_*_PREFIX cleanup (MB_SUS / MB_SPECIMEN / MB_DR): extracted
+  in PR #113 for consistency but currently no reader imports them.
+  YAGNI cleanup once a reader appears (or remove if no reader added by
+  the next refactor).
+- DESIGN.md AD-55 / AD-60 PR3b-3 supplement extended ADR text: brief
+  closure note already in AD-60. A longer ADR-quality narrative covering
+  the 7-layer silent-no-op defense pattern (including
+  `HAI_EVENT_ID_SYSTEM` from PR3b-5) and the AD-55 near-essential clinical
+  cascade extension is a documentation polish item.
 
 Phase 3c backlog:
 - HAI → outcome_benchmarks mortality coupling

@@ -110,6 +110,8 @@ CIF 上の location:
 
 **`hai_event_id` backref convention (Phase 3b-2)**: HAI 由来の `MicrobiologyResult` は `hai_event_id = HAIEvent.hai_id` をセットする。これにより FHIR 出力層が同一 HAI event に紐づく Condition と DiagnosticReport を相互参照できる。Community microbiology (非 HAI culture — sepsis/pneumonia/UTI の通常経路) は `hai_event_id = ""` のままで今後も変更なし。
 
+**PR3b-5 FHIR emission (2026-06-29)**: `MicrobiologyResult.hai_event_id` が non-empty なとき、`Observation.identifier[].system = HAI_EVENT_ID_SYSTEM` + matching value を Specimen / mb-org-* / mb-sus-* / DiagnosticReport の 4 FHIR resource type に emit する。Community culture (`hai_event_id == ""`) は identifier 不在で出力 byte-identical 維持。audit clinical axis D1 R-rate gate は `_hai_specimens` 経由でこの identifier を読んで community-acquired culture susceptibilities を HAI band から除外(C2 解消)。
+
 ## CDC NHSN baseline rates
 
 `reference_data/hai_rates.yaml` (per-line-day risk):
