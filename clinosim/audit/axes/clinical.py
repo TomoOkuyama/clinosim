@@ -24,6 +24,14 @@ import statistics
 
 from clinosim.audit.registry import ModuleAuditSpec
 from clinosim.audit.types import AuditFinding, AxisResult, Cohort, Severity
+from clinosim.codes import get_system_uri
+from clinosim.modules.output._fhir_microbiology import MB_ORG_ID_PREFIX
+
+# Canonical SNOMED CT URI (PR3b-3 stage-1 adversarial finding C3): substring
+# match against "snomed" silently broke on OID form
+# (urn:oid:2.16.840.1.113883.6.96) or uppercase variants — same class as
+# PR-90's hai_type case-mismatch silent no-op. Use canonical equality.
+_SNOMED_URI = get_system_uri("snomed-ct")
 
 _WBC_CODE = "6690-2"
 _WBC_CODE_JP = "2A010"
@@ -82,7 +90,7 @@ def _organism_per_encounter(cohort: Cohort, country: str) -> dict[str, set[str]]
     out: dict[str, set[str]] = {}
     for row in cohort.ndjson(country, "Observation"):
         rid = row.get("id", "")
-        if not rid.startswith("mb-org-"):
+        if not rid.startswith(MB_ORG_ID_PREFIX):
             continue
         eid = _enc_id(row)
         if not eid:
@@ -91,7 +99,7 @@ def _organism_per_encounter(cohort: Cohort, country: str) -> dict[str, set[str]]
         codings = vcc.get("coding", []) or []
         for c in codings:
             sys_uri = c.get("system", "") or ""
-            if "snomed" in sys_uri:
+            if sys_uri == _SNOMED_URI:
                 code = c.get("code", "") or ""
                 if code:
                     out.setdefault(eid, set()).add(code)
@@ -118,8 +126,10 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
         return result  # N/A
 
     # Filter to HAI-type entries only (dict with "icd10_code").
-    # Top-level metadata keys (e.g. "hai_resistance_bands", "hai_empty_susceptibilities_max_rate")
-    # are skipped here; PR3b-3 will add active enforcement for those keys.
+    # Top-level metadata keys (e.g. "hai_resistance_bands",
+    # "hai_empty_susceptibilities_max_rate", "narrow_rate_bands") are
+    # consumed by the dedicated R-rate / empty-rate / narrow-rate gate blocks
+    # below (PR3b-3 D1+D2 complete, 2026-06-29).
     hai_acceptance = {
         k: v
         for k, v in spec.clinical_acceptance.items()
@@ -309,6 +319,22 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                     enc_has_susc[eid] = True
             total = len(enc_has_susc)
             result.info[f"{country}_hai_empty_susc_n"] = total
+
+            # PR3b-3 stage-1 adversarial finding I1: panel_eligible_encs=0 with
+            # any HAI cohort encounter present signals antibiogram corruption /
+            # mb-org prefix drift / canonical SNOMED URI drift. Silent skip here
+            # masks the same silent-no-op class of bug the panel-eligible filter
+            # is meant to surface. WARN explicitly (not FAIL — at rare-event
+            # scale this can also be legitimate "all-no-panel cohort").
+            total_hai_encs = sum(len(encs) for encs in cohort_enc.values())
+            if total == 0 and total_hai_encs > 0:
+                result.findings.append(AuditFinding(
+                    Severity.WARN,
+                    f"{country}: panel-eligible cohort empty "
+                    f"(total_hai_encounters={total_hai_encs}) — verify "
+                    f"antibiogram + mb-org-* coverage + canonical SNOMED URI",
+                ))
+
             if total > 0:
                 empty_count = sum(1 for v in enc_has_susc.values() if not v)
                 empty_rate = empty_count / total

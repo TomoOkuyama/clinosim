@@ -397,6 +397,47 @@ def test_clinical_axis_empty_rate_gate_excludes_no_panel_organisms(tmp_path) -> 
 
 
 @pytest.mark.integration
+def test_load_hai_antibiogram_rejects_empty_top_level(monkeypatch) -> None:
+    """I2 fix: empty antibiogram top-level must raise ValueError, not
+    silently return {} (which would disable D2 panel-eligible filter)."""
+    import yaml
+
+    import clinosim.modules.hai as hai_mod
+
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {"hai_antibiogram": {}})
+    hai_mod.load_hai_antibiogram.cache_clear()
+    try:
+        with pytest.raises(ValueError, match="hai_antibiogram.yaml top-level is empty"):
+            hai_mod.load_hai_antibiogram()
+    finally:
+        hai_mod.load_hai_antibiogram.cache_clear()
+
+
+@pytest.mark.integration
+def test_nhsn_resistance_bands_reverse_coverage_complete() -> None:
+    """I3 fix: every (hai_type, organism) pair in hai_antibiogram.yaml must
+    either be banded by _NHSN_RESISTANCE_BANDS OR explicitly listed in
+    _NHSN_REVERSE_COVERAGE_EXEMPT. If a new organism is added to the
+    antibiogram without either, _validate_nhsn_resistance_bands must raise."""
+    from clinosim.modules.antibiotic.audit import (
+        _NHSN_RESISTANCE_BANDS,
+        _NHSN_REVERSE_COVERAGE_EXEMPT,
+    )
+    from clinosim.modules.hai import load_hai_antibiogram
+
+    abg = load_hai_antibiogram()
+    banded = {tuple(b["cohort"].split("/", maxsplit=1)) for b in _NHSN_RESISTANCE_BANDS}
+    for hai_type, organism_map in abg.items():
+        for organism_snomed in organism_map.keys():
+            pair = (hai_type, organism_snomed)
+            assert pair in banded or pair in _NHSN_REVERSE_COVERAGE_EXEMPT, (
+                f"reverse-coverage gap: {pair} has panel but no band and "
+                f"no exempt entry. Validator should already raise; this "
+                f"test asserts the invariant explicitly for future contributors."
+            )
+
+
+@pytest.mark.integration
 def test_clinical_axis_empty_rate_gate_skips_when_all_no_panel(tmp_path) -> None:
     """D2: cohort containing only no-panel organisms → panel_eligible_encs
     is empty → gate skipped cleanly (total=0, no info entry change)."""
@@ -441,3 +482,11 @@ def test_clinical_axis_empty_rate_gate_skips_when_all_no_panel(tmp_path) -> None
     fails = [f for f in result.findings if f.severity.name == "FAIL"
              and "empty-susceptibility" in f.message]
     assert not fails, f"empty panel-eligible cohort must not FAIL; got {fails!r}"
+    # PR3b-3 stage-1 fix I1: total=0 with cohort_enc populated must WARN
+    # (signal of antibiogram corruption / mb-org drift / SNOMED URI drift)
+    warns = [f for f in result.findings if f.severity.name == "WARN"
+             and "panel-eligible cohort empty" in f.message]
+    assert warns, (
+        "all-no-panel cohort with HAI condition rows must WARN about "
+        f"panel-eligible coverage gap; got findings: {result.findings!r}"
+    )
