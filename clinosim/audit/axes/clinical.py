@@ -88,8 +88,10 @@ def _organism_per_encounter(cohort: Cohort, country: str) -> dict[str, set[str]]
     Observations, missing encounter refs, and non-SNOMED valueCodeableConcept
     codings are skipped.
 
-    Used by the PR3b-3 R-rate gate (per-(hai_type, organism) cohort filter)
-    and empty-rate gate (panel-eligible denominator filter).
+    Used by the PR3b-5 D2 empty-rate gate (panel-eligible denominator
+    filter via _panel_eligible_organisms). The PR3b-5 D1 R-rate gate uses
+    _organism_per_specimen + _hai_specimens for specimen-based per-organism
+    attribution that resolves the PR3b-3 encounter-level approximation.
     """
     out: dict[str, set[str]] = {}
     for row in cohort.ndjson(country, "Observation"):
@@ -206,10 +208,14 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
     icd_to_type = {v["icd10_code"]: k for k, v in hai_acceptance.items()}
 
     for country in cohort.countries():
-        # PR3b-3 D1/D2 (2026-06-29): per-country per-encounter organism map.
-        # Built ONCE and reused by D1 (R-rate per-organism filter) + D2
-        # (panel-eligible denominator filter) — single Observation.ndjson walk.
+        # PR3b-5 D1 (2026-06-29): per-country per-specimen organism map +
+        # HAI-only specimen set. Built ONCE and reused by the R-rate gate
+        # (susc → specimen → organism join, HAI-only filter). D2 empty-
+        # rate gate continues to use _organism_per_encounter (encounter-
+        # level panel-eligibility semantics unchanged).
         org_per_enc = _organism_per_encounter(cohort, country)
+        org_per_specimen = _organism_per_specimen(cohort, country)
+        hai_specimens = _hai_specimens(cohort, country)
 
         cohort_enc: dict[str, set[str]] = {k: set() for k in hai_acceptance}
         for row in cohort.ndjson(country, "Condition"):
@@ -298,13 +304,17 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                     )
 
         # ---------------------------------------------------------------
-        # PR3b-3 D1 complete (2026-06-29): NHSN R-rate gate per
-        # (hai_type, organism, antibiotic) cohort. Cohort encounters are
-        # filtered by per-organism culture (via org_per_enc above) so bands
-        # measure the true per-organism resistance rate (e.g.
-        # clabsi/3092008/cefazolin = S.aureus only, not the mixed S.aureus +
-        # S.epidermidis + E.coli cohort that would breach the MRSA band).
-        # n<30 → WARN guard retained for rare-event safety.
+        # PR3b-5 D1 (2026-06-29): NHSN R-rate gate per (hai_type, organism,
+        # antibiotic) cohort. Resolves the PR3b-3 encounter-level
+        # approximation by joining susc → specimen → organism via
+        # Observation.specimen.reference, and filtering to HAI-derived
+        # specimens via the new HAI_EVENT_ID_SYSTEM identifier.
+        # - C1 fix: multi-organism encounter no longer double-counts.
+        # - C2 fix: community-acquired culture susceptibilities are
+        #   excluded from HAI bands.
+        # n<30 → WARN guard retained for rare-event safety. Cohort
+        # encounter pre-filter retained as defense in depth (re-verify
+        # via _enc_id(row) in cohort_enc_set).
         # ---------------------------------------------------------------
         r_bands = spec.clinical_acceptance.get("hai_resistance_bands") or []
         if r_bands:
@@ -315,23 +325,32 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                 abx_loinc = ANTIBIOTIC_LOINC_LOOKUP.get(abx_key)
                 if abx_loinc is None:
                     continue
-                base_set = cohort_enc.get(hai_type_b, set())
-                cohort_enc_set = {
-                    e for e in base_set if organism_b in org_per_enc.get(e, set())
-                }
+                cohort_enc_set = cohort_enc.get(hai_type_b, set())
                 if not cohort_enc_set:
                     result.info[f"{country}_{band['cohort']}_{abx_key}_n"] = 0
                     continue
                 r_count = 0
                 total_count = 0
                 for row in cohort.ndjson(country, "Observation"):
-                    eid = _enc_id(row)
-                    if eid not in cohort_enc_set:
-                        continue
                     s = _is_susceptibility_observation(row)
                     if s is None:
                         continue
                     if s[0] != abx_loinc:
+                        continue
+                    # PR3b-5: specimen-based join
+                    spec_ref = (row.get("specimen") or {}).get("reference", "") or ""
+                    spec_id = spec_ref.split("/")[-1] if spec_ref else ""
+                    if not spec_id:
+                        continue
+                    # PR3b-5: HAI-only filter
+                    if spec_id not in hai_specimens:
+                        continue
+                    # PR3b-5: per-organism match
+                    if org_per_specimen.get(spec_id) != organism_b:
+                        continue
+                    # Defense in depth: re-verify encounter is in HAI cohort
+                    eid = _enc_id(row)
+                    if eid and eid not in cohort_enc_set:
                         continue
                     total_count += 1
                     if s[1] == "R":
