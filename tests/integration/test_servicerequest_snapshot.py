@@ -18,53 +18,12 @@ Tested behaviour:
   3. SR resourceType + status are structurally valid.
 """
 
-import json
-import subprocess
 import tempfile
 from pathlib import Path
 
 import pytest
 
-
-def _run_generate(
-    country: str,
-    n: int,
-    seed: int,
-    out: Path,
-    *,
-    end: str | None = None,
-) -> None:
-    """Run the generate pipeline; assert zero exit code.
-
-    When ``end`` is provided without ``--start``, the CLI defaults start to
-    (end - 1 year), producing a full-year cohort truncated at the snapshot.
-    """
-    cmd = [
-        "python", "-m", "clinosim.simulator.cli", "generate",
-        "--country", country,
-        "--population", str(n),
-        "--seed", str(seed),
-        "--format", "fhir-r4",
-        "--output", str(out),
-    ]
-    if end:
-        cmd += ["--end", end]
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    assert result.returncode == 0, (
-        f"generate failed (returncode={result.returncode}):\n{result.stderr}"
-    )
-
-
-def _find_ndjson(out: Path, name: str) -> Path:
-    """Locate a named NDJSON file anywhere under the output directory."""
-    files = list(out.rglob(name))
-    assert files, f"{name} not found under {out}"
-    return files[0]
-
-
-def _load_ndjson(path: Path) -> list[dict]:
-    with path.open() as f:
-        return [json.loads(line) for line in f if line.strip()]
+from tests.integration._sr_helpers import find_ndjson, load_ndjson, run_generate
 
 
 @pytest.mark.integration
@@ -78,10 +37,10 @@ def test_snapshot_yields_active_sr_for_inprogress_orders():
     """
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "out"
-        _run_generate("US", 200, 42, out, end="2025-02-28")
+        run_generate("US", 200, 42, out, end="2025-02-28")
 
-        sr_file = _find_ndjson(out, "ServiceRequest.ndjson")
-        srs = _load_ndjson(sr_file)
+        sr_file = find_ndjson(out, "ServiceRequest.ndjson")
+        srs = load_ndjson(sr_file)
         assert srs, "ServiceRequest.ndjson is empty — no lab orders emitted"
 
         active = [s for s in srs if s.get("status") == "active"]
@@ -109,9 +68,9 @@ def test_snapshot_inprogress_encounters_have_srs():
     """
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "out"
-        _run_generate("US", 200, 42, out, end="2025-02-28")
+        run_generate("US", 200, 42, out, end="2025-02-28")
 
-        encs = _load_ndjson(_find_ndjson(out, "Encounter.ndjson"))
+        encs = load_ndjson(find_ndjson(out, "Encounter.ndjson"))
         in_progress_ids = {e["id"] for e in encs if e.get("status") == "in-progress"}
 
         if not in_progress_ids:
@@ -120,34 +79,39 @@ def test_snapshot_inprogress_encounters_have_srs():
                 "Increase population or adjust end date if this fires repeatedly."
             )
 
-        srs = _load_ndjson(_find_ndjson(out, "ServiceRequest.ndjson"))
-        sr_id_set = {s["id"] for s in srs}
+        srs = load_ndjson(find_ndjson(out, "ServiceRequest.ndjson"))
 
         sr_for_inprogress = [
             s for s in srs
             if s.get("encounter", {}).get("reference", "").removeprefix("Encounter/")
             in in_progress_ids
         ]
-        # If in-progress encounters have orders, all SR ids must be present.
-        for sr in sr_for_inprogress:
-            assert sr["id"] in sr_id_set, (
-                f"ServiceRequest/{sr['id']} for in-progress encounter not in SR.ndjson"
-            )
+        # Verify in-progress encounters actually have at least one SR.
+        assert sr_for_inprogress, (
+            f"No ServiceRequests linked to {len(in_progress_ids)} in-progress Encounters"
+        )
+        # Spot-check: SRs for in-progress encounters should include some 'active' status.
+        active_for_inprogress = [s for s in sr_for_inprogress if s.get("status") == "active"]
+        assert active_for_inprogress, (
+            "Expected at least one 'active' SR for in-progress encounters"
+        )
 
 
-@pytest.mark.integration
-def test_snapshot_midday_hour_granular_skipped():
+@pytest.mark.skip(
+    reason=(
+        "--snapshot-time flag not available in current CLI (day-granular --end only). "
+        "Deferred until CLI gains hour-granular snapshot support; see TODO.md."
+    )
+)
+def test_snapshot_midday_hour_granular():
     """Hour-granular mid-day snapshot (--snapshot-time) is not yet supported by CLI.
 
-    Deferred requirement: once the CLI gains a --snapshot-time flag, re-implement
-    this test to verify that lab orders PLACED before the snapshot hour but with a
-    TAT extending past it yield SR.status='active' with no corresponding
+    Deferred requirement: once the CLI gains a --snapshot-time flag, this test
+    should verify that lab orders PLACED before the snapshot hour but with a TAT
+    extending past it yield SR.status='active' with no corresponding
     Observation.basedOn reference.
 
     Current behavior: snapshot_dt = 23:59:59 of --end, so same-day results are
     always retained and order status is already 'resulted' by day-end.
     """
-    pytest.skip(
-        "--snapshot-time flag not available in current CLI (day-granular --end only). "
-        "Deferred until CLI gains hour-granular snapshot support."
-    )
+    ...  # implement when --snapshot-time is added to CLI

@@ -29,6 +29,7 @@ from clinosim.modules.antibiotic.engine import ABX_NARROW_SUFFIX, ABX_ORDER_ID_P
 from clinosim.modules.output._fhir_microbiology import (
     HAI_EVENT_ID_SYSTEM,
     MB_ORG_ID_PREFIX,
+    MB_SUS_ID_PREFIX,
 )
 
 # Canonical SNOMED CT URI (PR3b-3 stage-1 adversarial finding C3): substring
@@ -233,6 +234,12 @@ def _check_lab_obs_basedon(cohort: Cohort, country: str, result: AxisResult) -> 
             for c in cat_entry.get("coding", [])
         )
         if not is_lab:
+            continue
+        # Exclude microbiology Observations (PR1 scope = lab panel orders only).
+        # mb-org-* and mb-sus-* carry "laboratory" category but have no basedOn
+        # (microbiology SR support is Tier 2 backlog).
+        obs_id = row.get("id", "")
+        if obs_id.startswith(MB_ORG_ID_PREFIX) or obs_id.startswith(MB_SUS_ID_PREFIX):
             continue
         lab_obs_count += 1
         based_on = row.get("basedOn") or []
@@ -603,7 +610,10 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                         f"(n={total}); rate band not enforced",
                     ))
                     continue
-                if rate < band["expected_narrow_rate_min"] or rate > band["expected_narrow_rate_max"]:
+                if (
+                    rate < band["expected_narrow_rate_min"]
+                    or rate > band["expected_narrow_rate_max"]
+                ):
                     result.findings.append(AuditFinding(
                         Severity.FAIL,
                         f"{country}/{band['cohort']}: narrow rate {rate:.3f} "

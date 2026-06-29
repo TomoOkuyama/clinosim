@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from clinosim.modules.output.fhir_r4_adapter import available_builders
+from tests.integration._sr_helpers import run_generate
 
 
 @pytest.mark.integration
@@ -136,31 +137,12 @@ def test_full_pipeline_diagnostic_report_basedon():
                 )
 
 
-def _run_generate(country: str, n: int, seed: int, out: Path) -> None:
-    """Run the generate pipeline and assert zero exit code."""
-    result = subprocess.run(
-        [
-            "python", "-m", "clinosim.simulator.cli", "generate",
-            "--country", country,
-            "--population", str(n),
-            "--seed", str(seed),
-            "--format", "fhir-r4",
-            "--output", str(out),
-        ],
-        capture_output=True,
-        text=True,
-    )
-    assert result.returncode == 0, (
-        f"generate failed (returncode={result.returncode}):\n{result.stderr}"
-    )
-
-
 @pytest.mark.integration
 def test_run_beta_emits_service_request_ndjson_us():
     """run_beta US 100-patient cohort emits non-empty ServiceRequest.ndjson."""
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "out"
-        _run_generate("US", 100, 42, out)
+        run_generate("US", 100, 42, out)
         sr_files = list(out.rglob("ServiceRequest.ndjson"))
         assert sr_files, "ServiceRequest.ndjson not found under output"
         lines = [ln for ln in sr_files[0].read_text().splitlines() if ln.strip()]
@@ -179,7 +161,7 @@ def test_run_beta_emits_service_request_jp_with_ja_display():
     """JP cohort: SR.category SNOMED display is in Japanese (臨床検査)."""
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "out"
-        _run_generate("JP", 100, 42, out)
+        run_generate("JP", 100, 42, out)
         sr_files = list(out.rglob("ServiceRequest.ndjson"))
         assert sr_files, "ServiceRequest.ndjson not found for JP cohort"
         for line in sr_files[0].read_text().splitlines():
@@ -188,10 +170,16 @@ def test_run_beta_emits_service_request_jp_with_ja_display():
             sr = json.loads(line)
             # Category SNOMED coding (108252007) display must be Japanese.
             snomed = next(
-                c
-                for entry in sr["category"]
-                for c in entry["coding"]
-                if c["code"] == "108252007"
+                (
+                    c
+                    for entry in sr["category"]
+                    for c in entry["coding"]
+                    if c["code"] == "108252007"
+                ),
+                None,
+            )
+            assert snomed is not None, (
+                f"SNOMED 108252007 not found in {sr['category']!r}"
             )
             assert snomed["display"] == "臨床検査", (
                 f"Expected '臨床検査', got {snomed['display']!r}"
