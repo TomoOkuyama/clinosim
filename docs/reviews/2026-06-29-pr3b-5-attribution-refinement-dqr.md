@@ -116,6 +116,30 @@ per-(hai_type, organism, abx) cohorts fall in the n<30 WARN-guard regime
 against a band. The PR3b-5 chain is a semantic refinement of the existing
 PR3b-3 D1 gate; band thresholds remain unchanged.
 
+## adv-1 follow-ups (PR #117 post-merge)
+
+Stage-1 adversarial review surfaced 3 load-bearing findings that were
+fixed in `fix/pr117-adversarial-1`:
+
+- **MAJOR-1**: D1 lacks symmetric "expected HAI but got 0" WARN guard
+  (mirror of D2 I1). Fixed: D1 now emits WARN when HAI cohort encounters
+  exist but `_hai_specimens` is empty (writer-side identifier emit
+  regression / HAI_EVENT_ID_SYSTEM drift signal).
+- **Important #3**: `_hai_specimens` truthy-only check accepted any
+  non-empty value as HAI marker. Fixed: value must start with `"hai-"`
+  matching the `HAIEvent.hai_id` convention (silent-no-op layer 2
+  defense beyond the canonical SYSTEM gate).
+- **Important #1 (URI scheme inconsistency)**: `http://clinosim/...`
+  form conflicted with existing `urn:clinosim:staff` convention. Fixed:
+  `HAI_EVENT_ID_SYSTEM = "urn:clinosim:identifier:hai-event-id"` aligns
+  with the codebase's urn-form internal identifier convention.
+
+The DQR cohort scale limitation (zero HAI at p=5000) was confirmed as a
+genuine rare-event regime, not a writer-side regression. Production
+firing requires p≥1M or `ForcedScenario.force_hai_event` injection —
+both outside this DQR's scope; the silent_no_op axis lift_firing_proof
+(17/17 PASS) provides the load-bearing single-event verification path.
+
 ## Verdict
 
 **PR3b-5 attribution refinement: VERIFIED.**

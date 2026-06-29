@@ -33,11 +33,14 @@ MB_DR_ID_PREFIX = "dr-mb-"
 # 2026-06-29). Emitted on Specimen + mb-org-*/mb-sus-* Observation +
 # DiagnosticReport when MicrobiologyResult.hai_event_id is non-empty.
 # Internal-only — clinosim simulator cross-reference, not registered in
-# JP Core / US Core / HL7 IGs. Audit reader (clinosim.audit.axes.clinical)
-# imports this same constant; a rename here triggers ImportError downstream
-# rather than a silent gate skip (same defense pattern as MB_ORG_ID_PREFIX
-# and ABX_ORDER_ID_PREFIX).
-HAI_EVENT_ID_SYSTEM = "http://clinosim/identifier/hai-event-id"
+# JP Core / US Core / HL7 IGs. Uses `urn:clinosim:...` convention
+# matching the existing internal identifier in _fhir_practitioner.py
+# (`urn:clinosim:staff`) — adversarial-1 finding consolidated the
+# convention to urn-form to avoid two parallel patterns. Audit reader
+# (clinosim.audit.axes.clinical) imports this same constant; a rename
+# here triggers ImportError downstream rather than a silent gate skip
+# (same defense pattern as MB_ORG_ID_PREFIX and ABX_ORDER_ID_PREFIX).
+HAI_EVENT_ID_SYSTEM = "urn:clinosim:identifier:hai-event-id"
 
 
 def _bb_microbiology(ctx: BundleContext) -> list[dict]:

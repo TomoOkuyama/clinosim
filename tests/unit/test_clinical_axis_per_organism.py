@@ -466,6 +466,69 @@ def test_hai_specimens_rejects_empty_value(tmp_path: Path) -> None:
 
 
 @pytest.mark.unit
+def test_hai_specimens_rejects_malformed_value(tmp_path: Path) -> None:
+    """pr117-adv-1 Agent 1 IMPORTANT #3: identifier with correct system but
+    value not matching the `hai-` prefix convention is not a HAI marker.
+    Truthy-only check accepted whitespace / arbitrary placeholders, which
+    would silently inflate hai_specs."""
+    from clinosim.modules.output._fhir_microbiology import HAI_EVENT_ID_SYSTEM
+    _write(tmp_path, "us", "Observation.ndjson", [
+        {
+            "resourceType": "Observation",
+            "id": "mb-org-E1-0",
+            "encounter": {"reference": "Encounter/E1"},
+            "specimen": {"reference": "Specimen/spec-E1-0"},
+            "code": {"coding": [{"code": "600-7"}]},
+            "valueCodeableConcept": {
+                "coding": [{"system": "http://snomed.info/sct", "code": "3092008"}],
+            },
+            # Malformed: not starting with "hai-"
+            "identifier": [{"system": HAI_EVENT_ID_SYSTEM, "value": "placeholder"}],
+        },
+        {
+            "resourceType": "Observation",
+            "id": "mb-org-E2-0",
+            "encounter": {"reference": "Encounter/E2"},
+            "specimen": {"reference": "Specimen/spec-E2-0"},
+            "code": {"coding": [{"code": "600-7"}]},
+            "valueCodeableConcept": {
+                "coding": [{"system": "http://snomed.info/sct", "code": "3092008"}],
+            },
+            # Whitespace-only
+            "identifier": [{"system": HAI_EVENT_ID_SYSTEM, "value": " "}],
+        },
+    ])
+    out = clinical._hai_specimens(Cohort.open(tmp_path), "us")
+    assert out == set(), (
+        f"malformed identifier value must be rejected (silent-no-op defense); "
+        f"got {out}"
+    )
+
+
+@pytest.mark.unit
+def test_hai_specimens_skips_missing_specimen_ref(tmp_path: Path) -> None:
+    """pr117-adv-1 Agent 3 LOW: defensive `if spec_id:` branch — mb-org-*
+    with HAI identifier but no specimen.reference must skip silently
+    (rather than add empty string to the set)."""
+    from clinosim.modules.output._fhir_microbiology import HAI_EVENT_ID_SYSTEM
+    _write(tmp_path, "us", "Observation.ndjson", [
+        {
+            "resourceType": "Observation",
+            "id": "mb-org-E1-0",
+            "encounter": {"reference": "Encounter/E1"},
+            # no specimen.reference
+            "code": {"coding": [{"code": "600-7"}]},
+            "valueCodeableConcept": {
+                "coding": [{"system": "http://snomed.info/sct", "code": "3092008"}],
+            },
+            "identifier": [{"system": HAI_EVENT_ID_SYSTEM, "value": "hai-orphan-1"}],
+        },
+    ])
+    out = clinical._hai_specimens(Cohort.open(tmp_path), "us")
+    assert out == set()
+
+
+@pytest.mark.unit
 def test_hai_specimens_empty_file(tmp_path: Path) -> None:
     (tmp_path / "us" / "fhir_r4").mkdir(parents=True)
     out = clinical._hai_specimens(Cohort.open(tmp_path), "us")
@@ -480,5 +543,5 @@ def test_hai_event_id_system_canonical_constant_shared() -> None:
     from clinosim.audit.axes import clinical as clinical_axis
     from clinosim.modules.output._fhir_microbiology import HAI_EVENT_ID_SYSTEM
 
-    assert HAI_EVENT_ID_SYSTEM == "http://clinosim/identifier/hai-event-id"
+    assert HAI_EVENT_ID_SYSTEM == "urn:clinosim:identifier:hai-event-id"
     assert clinical_axis.HAI_EVENT_ID_SYSTEM is HAI_EVENT_ID_SYSTEM
