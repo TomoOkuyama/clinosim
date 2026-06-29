@@ -192,7 +192,7 @@ URI 等)を hard-coded literal で書かないこと。**writer 側 module(`clin
 定数命名規約:
 - ID prefix:`<BUILDER_PREFIX>_<RESOURCE>_ID_PREFIX = "..."`(例 `MB_ORG_ID_PREFIX`)
 - system URI(canonical):`<DOMAIN>_<CONCEPT>_SYSTEM = "..."`(例 `HAI_EVENT_ID_SYSTEM`)
-- 内部 URI には `http://clinosim/identifier/<purpose>` または `http://clinosim/<resource>/<purpose>` を使用(JP Core / US Core / HL7 IG に登録ない概念のみ)
+- 内部 URI には **urn-form** を使用:`urn:clinosim:identifier:<purpose>`(identifier system 用、例 `HAI_EVENT_ID_SYSTEM = "urn:clinosim:identifier:hai-event-id"`)または `urn:clinosim:<resource>:<concept>`(その他 resource 用、例 `_fhir_practitioner.py` の `"urn:clinosim:staff"`)。pr117-adv-1 で http-form と urn-form が両方混在していた状態を urn-form に統一(JP Core / US Core / HL7 IG に登録ない内部 concept のみ urn-form を許容)
 
 contract test pattern:`assert clinical_axis.CONSTANT is mb_builder.CONSTANT`(同一 object identity 確認、import path 一致を pin)。先例 `tests/unit/test_clinical_axis_per_organism.py:test_hai_event_id_system_canonical_constant_shared`。
 

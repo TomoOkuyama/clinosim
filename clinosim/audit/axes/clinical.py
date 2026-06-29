@@ -137,6 +137,14 @@ def _organism_per_specimen(cohort: Cohort, country: str) -> dict[str, str]:
 
     No-growth observations, missing specimen ref, missing encounter,
     non-mb-org ids, and non-canonical SNOMED URIs are skipped.
+
+    Invariant (pr117-adv-2 Minor): 1 specimen → 1 organism. The PR3b-2
+    `_append_hai_culture` writer produces exactly one mb-org-* per
+    Specimen. If a future writer change produces multiple SNOMED
+    organisms per specimen, the last-wins overwrite below would silently
+    drop the earlier organism. Today's writer guarantees this never
+    happens; a future divergence should add either an assertion or a
+    set-valued return type.
     """
     out: dict[str, str] = {}
     for row in cohort.ndjson(country, "Observation"):
