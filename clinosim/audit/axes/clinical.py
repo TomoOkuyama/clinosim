@@ -319,6 +319,22 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                     enc_has_susc[eid] = True
             total = len(enc_has_susc)
             result.info[f"{country}_hai_empty_susc_n"] = total
+
+            # PR3b-3 stage-1 adversarial finding I1: panel_eligible_encs=0 with
+            # any HAI cohort encounter present signals antibiogram corruption /
+            # mb-org prefix drift / canonical SNOMED URI drift. Silent skip here
+            # masks the same silent-no-op class of bug the panel-eligible filter
+            # is meant to surface. WARN explicitly (not FAIL — at rare-event
+            # scale this can also be legitimate "all-no-panel cohort").
+            total_hai_encs = sum(len(encs) for encs in cohort_enc.values())
+            if total == 0 and total_hai_encs > 0:
+                result.findings.append(AuditFinding(
+                    Severity.WARN,
+                    f"{country}: panel-eligible cohort empty "
+                    f"(total_hai_encounters={total_hai_encs}) — verify "
+                    f"antibiogram + mb-org-* coverage + canonical SNOMED URI",
+                ))
+
             if total > 0:
                 empty_count = sum(1 for v in enc_has_susc.values() if not v)
                 empty_rate = empty_count / total

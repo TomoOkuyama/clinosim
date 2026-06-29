@@ -525,8 +525,18 @@ def _validate_nhsn_resistance_bands() -> None:
 
     Adv #7 F3: a typo in band["cohort"] / band["antibiotic"] would silently
     fail to match downstream cohorts at PR3b-3 wiring. Validate at import.
+
+    PR3b-3 stage-1 adversarial finding I3 (2026-06-29): reverse-coverage
+    check — every (hai_type, organism) in `hai_antibiogram.yaml` that has
+    panel data SHOULD have at least one band covering it, OR be explicitly
+    exempted in _NHSN_REVERSE_COVERAGE_EXEMPT below. Otherwise adding a
+    new organism to the antibiogram silently grows the panel-eligible set
+    + D1 per-organism cohort without any band firing → silent
+    under-enforcement. Matches the 4-layer silent-no-op defense pattern
+    established in PR3b-3 stages 1-4.
     """
     from clinosim.modules.hai import HAI_TYPES as _HAI_TYPES
+    from clinosim.modules.hai import load_hai_antibiogram as _load_hai_antibiogram
     from clinosim.modules.hai import load_hai_organisms as _load_hai_organisms
 
     valid_hai_types = set(_HAI_TYPES)
@@ -561,6 +571,77 @@ def _validate_nhsn_resistance_bands() -> None:
                 f"_NHSN_RESISTANCE_BANDS antibiotic {abx_key!r} not in "
                 f"ANTIBIOTIC_DRUGS"
             )
+
+    # Reverse-coverage: every panel-bearing (hai_type, organism) pair should
+    # have at least one band. Pairs we deliberately don't band must be in
+    # the exempt set with a documented rationale.
+    abg = _load_hai_antibiogram()
+    banded_pairs = {tuple(b["cohort"].split("/", maxsplit=1)) for b in _NHSN_RESISTANCE_BANDS}
+    for hai_type, organism_map in abg.items():
+        for organism_snomed in organism_map.keys():
+            pair = (hai_type, organism_snomed)
+            if pair in banded_pairs:
+                continue
+            if pair in _NHSN_REVERSE_COVERAGE_EXEMPT:
+                continue
+            raise ValueError(
+                f"_NHSN_RESISTANCE_BANDS reverse-coverage gap: "
+                f"hai_antibiogram.yaml has (hai_type={hai_type!r}, "
+                f"organism={organism_snomed!r}) with a panel but no band "
+                f"covers it. Either add a band or include in "
+                f"_NHSN_REVERSE_COVERAGE_EXEMPT with rationale."
+            )
+
+
+# PR3b-3 stage-1 adversarial finding I3 (2026-06-29): organisms intentionally
+# not banded in _NHSN_RESISTANCE_BANDS but present in hai_antibiogram.yaml.
+# Each entry MUST include a one-line rationale comment so a future contributor
+# understands why the silent-no-op exemption is intentional. SNOMED codes
+# verified against hai_antibiogram.yaml current state.
+_NHSN_REVERSE_COVERAGE_EXEMPT: frozenset[tuple[str, str]] = frozenset({
+    # CoNS (Coagulase-negative Staphylococci) is a frequent CLABSI organism
+    # but its empirical R% varies widely by hospital and is contamination-
+    # confounded; NHSN AR 2018-2020 does not publish a stable population
+    # band for this proxy.
+    ("clabsi", "60875001"),
+    # E.coli CLABSI is uncommon (line infection by enteric is unusual
+    # outside ICU); NHSN does not publish a CLABSI-specific E.coli band.
+    # CAUTI band already covers the dominant E.coli rate.
+    ("clabsi", "112283007"),
+    # K.pneumoniae CLABSI: same rationale as E.coli — NHSN bands focus on
+    # CAUTI-side enteric resistance.
+    ("clabsi", "56415008"),
+    # P.aeruginosa CLABSI: low incidence; resistance varies widely. CAUTI +
+    # VAP bands focus on Pseudo where it dominates.
+    ("clabsi", "52499004"),
+    # K.pneumoniae CAUTI: covered indirectly via ESBL proxy on E.coli
+    # ceftriaxone band; K.pneumoniae-specific NHSN band not published at
+    # this granularity.
+    ("cauti", "56415008"),
+    # P.aeruginosa CAUTI: highly variable resistance; NHSN bands focus on
+    # VAP Pseudo.
+    ("cauti", "52499004"),
+    # Proteus mirabilis CAUTI: secondary uropathogen; NHSN does not publish
+    # a P.mirabilis-specific resistance band.
+    ("cauti", "73457008"),
+    # E.coli VAP: rare; not banded.
+    ("vap", "112283007"),
+    # K.pneumoniae VAP: covered indirectly by VAP MRSA + Pseudo bands as
+    # the primary enforcement targets.
+    ("vap", "56415008"),
+    # P.aeruginosa VAP: high variability per facility; NHSN AR 2018-2020
+    # focuses on MRSA proxy for VAP at population scale.
+    ("vap", "52499004"),
+    # Enterobacter VAP: secondary organism; not banded by NHSN AR
+    # 2018-2020 at this granularity.
+    ("vap", "14385002"),
+    # Acinetobacter baumannii VAP: highly variable resistance pattern, not
+    # banded by NHSN at the proxy level used here.
+    ("vap", "91288006"),
+    # Stenotrophomonas maltophilia VAP: ICU-only, low incidence; NHSN does
+    # not publish a population band.
+    ("vap", "113697002"),
+})
 
 
 _validate_nhsn_resistance_bands()
