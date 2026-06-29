@@ -311,3 +311,133 @@ def test_clinical_axis_r_rate_gate_zero_for_absent_organism(tmp_path) -> None:
     fails = [f for f in result.findings if f.severity.name == "FAIL"
              and "clabsi/3092008/cefazolin" in f.message]
     assert not fails, f"Absent-organism cohort must not FAIL; got {fails!r}"
+
+
+@pytest.mark.integration
+def test_clinical_axis_empty_rate_gate_excludes_no_panel_organisms(tmp_path) -> None:
+    """D2: empty-rate denominator must EXCLUDE encounters whose only culture
+    is a no-panel organism (E.faecalis 78065002 / C.albicans 53326005).
+
+    Cohort: 30 panel-eligible CLABSI encounters (S.aureus, all with susc) +
+    10 no-panel CLABSI encounters (E.faecalis, never get a S/I/R panel).
+    Pre-D2: denominator = 40, empty count = 10, rate = 25% > 5% → FAIL.
+    Post-D2: denominator = 30 (panel-eligible only), empty count = 0,
+    rate = 0% < 5% → PASS.
+    """
+    import json
+
+    from clinosim.audit.axes import clinical as clinical_axis
+    from clinosim.audit.types import Cohort
+    from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
+
+    discover()
+    spec = get_registered()["antibiotic"]
+
+    def _w(country: str, file: str, rows: list[dict]) -> None:
+        p = tmp_path / country / "fhir_r4" / file
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with p.open("a") as f:
+            for r in rows:
+                f.write(json.dumps(r) + "\n")
+
+    vanc_loinc = ANTIBIOTIC_LOINC_LOOKUP["vancomycin"]
+
+    encounters = [{"resourceType": "Encounter", "id": f"E{i}", "class": {"code": "IMP"}}
+                  for i in range(40)]
+    conditions = [
+        {"resourceType": "Condition", "id": f"c{i}",
+         "code": {"coding": [{"code": "T80.211A"}]},  # CLABSI
+         "encounter": {"reference": f"Encounter/E{i}"}}
+        for i in range(40)
+    ]
+    org_obs = []
+    susc_obs = []
+    # 30 panel-eligible (S.aureus) + susceptibilities → not empty
+    for i in range(30):
+        org_obs.append({
+            "resourceType": "Observation", "id": f"mb-org-E{i}-0",
+            "encounter": {"reference": f"Encounter/E{i}"},
+            "code": {"coding": [{"code": "600-7"}]},
+            "valueCodeableConcept": {
+                "coding": [{"system": "http://snomed.info/sct", "code": "3092008"}]},
+        })
+        susc_obs.append({
+            "resourceType": "Observation", "id": f"mb-sus-E{i}-0",
+            "encounter": {"reference": f"Encounter/E{i}"},
+            "code": {"coding": [{"code": vanc_loinc}]},
+            "valueCodeableConcept": {"coding": [{"code": "S"}]},
+        })
+    # 10 no-panel (E.faecalis) → no susc → would be empty pre-D2
+    for i in range(30, 40):
+        org_obs.append({
+            "resourceType": "Observation", "id": f"mb-org-E{i}-0",
+            "encounter": {"reference": f"Encounter/E{i}"},
+            "code": {"coding": [{"code": "600-7"}]},
+            "valueCodeableConcept": {
+                "coding": [{"system": "http://snomed.info/sct", "code": "78065002"}]},
+        })
+    _w("us", "Encounter.ndjson", encounters)
+    _w("us", "Condition.ndjson", conditions)
+    _w("us", "Observation.ndjson", org_obs + susc_obs)
+
+    result = clinical_axis.run(spec, Cohort.open(tmp_path))
+    total = result.info.get("us_hai_empty_susc_n")
+    rate = result.info.get("us_hai_empty_susc_rate")
+    assert total == 30, (
+        f"panel-eligible denominator must exclude E.faecalis cohort; "
+        f"expected 30, got {total}"
+    )
+    assert rate == 0.0, (
+        f"all 30 panel-eligible encounters have S susceptibility, "
+        f"empty rate must be 0.0; got {rate}"
+    )
+    fails = [f for f in result.findings if f.severity.name == "FAIL"
+             and "empty-susceptibility" in f.message]
+    assert not fails, f"0% empty rate must PASS; got {fails!r}"
+
+
+@pytest.mark.integration
+def test_clinical_axis_empty_rate_gate_skips_when_all_no_panel(tmp_path) -> None:
+    """D2: cohort containing only no-panel organisms → panel_eligible_encs
+    is empty → gate skipped cleanly (total=0, no info entry change)."""
+    import json
+
+    from clinosim.audit.axes import clinical as clinical_axis
+    from clinosim.audit.types import Cohort
+
+    discover()
+    spec = get_registered()["antibiotic"]
+
+    def _w(country: str, file: str, rows: list[dict]) -> None:
+        p = tmp_path / country / "fhir_r4" / file
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with p.open("a") as f:
+            for r in rows:
+                f.write(json.dumps(r) + "\n")
+
+    encounters = [{"resourceType": "Encounter", "id": f"E{i}", "class": {"code": "IMP"}}
+                  for i in range(5)]
+    conditions = [
+        {"resourceType": "Condition", "id": f"c{i}",
+         "code": {"coding": [{"code": "T80.211A"}]},
+         "encounter": {"reference": f"Encounter/E{i}"}}
+        for i in range(5)
+    ]
+    # All C.albicans (no panel)
+    organism_obs = [{
+        "resourceType": "Observation", "id": f"mb-org-E{i}-0",
+        "encounter": {"reference": f"Encounter/E{i}"},
+        "code": {"coding": [{"code": "600-7"}]},
+        "valueCodeableConcept": {
+            "coding": [{"system": "http://snomed.info/sct", "code": "53326005"}]},
+    } for i in range(5)]
+    _w("us", "Encounter.ndjson", encounters)
+    _w("us", "Condition.ndjson", conditions)
+    _w("us", "Observation.ndjson", organism_obs)
+
+    result = clinical_axis.run(spec, Cohort.open(tmp_path))
+    total = result.info.get("us_hai_empty_susc_n", -1)
+    assert total == 0, f"all-no-panel cohort denominator must be 0, got {total}"
+    fails = [f for f in result.findings if f.severity.name == "FAIL"
+             and "empty-susceptibility" in f.message]
+    assert not fails, f"empty panel-eligible cohort must not FAIL; got {fails!r}"
