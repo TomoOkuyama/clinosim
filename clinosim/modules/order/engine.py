@@ -95,6 +95,40 @@ def parse_dose_string(dose_str: str) -> dict[str, Any]:
     return result
 
 
+def _build_lab_order(
+    *,
+    order_id: str,
+    encounter_id: str,
+    patient_id: str,
+    lab_spec: dict,
+    ordered_datetime: datetime,
+    ordered_by: str,
+    panel_key: str,
+    clinical_intent: str,
+) -> Order:
+    """Build a single LAB Order (shared by admission + daily, panel + stand-alone).
+
+    Urgency defaults to ``lab_spec.get("urgency", "routine")`` so YAML-declared
+    urgency is honoured uniformly across all four call sites (admission panel,
+    admission stand-alone, daily panel, daily stand-alone).  RNG draws happen at
+    the call site BEFORE this helper is invoked, so the RNG sequence is unchanged.
+    """
+    return Order(
+        order_id=order_id,
+        encounter_id=encounter_id,
+        patient_id=patient_id,
+        order_type=OrderType.LAB,
+        order_code=lab_spec.get("code_loinc", lab_spec.get("test", "")),
+        display_name=lab_spec["test"],
+        urgency=lab_spec.get("urgency", "routine"),
+        clinical_intent=clinical_intent,
+        ordered_datetime=ordered_datetime,
+        ordered_by=ordered_by,
+        status=OrderStatus.PLACED,
+        panel_key=panel_key,
+    )
+
+
 def place_admission_orders(
     protocol: dict,
     patient_id: str,
@@ -158,42 +192,31 @@ def place_admission_orders(
     for panel_name in sorted(panel_groups.keys()):
         members = panel_groups[panel_name]
         panel_time = admission_time + timedelta(minutes=int(rng.normal(5, 3)))
-        panel_urgency = members[0].get("urgency", "routine")
         for lab_spec in members:
-            order = Order(
+            orders.append(_build_lab_order(
                 order_id=f"ORD-{patient_id}-ADM-L{order_seq:02d}",
                 encounter_id=encounter_id,
                 patient_id=patient_id,
-                order_type=OrderType.LAB,
-                order_code=lab_spec.get("code_loinc", lab_spec.get("test", "")),
-                display_name=lab_spec["test"],
-                urgency=panel_urgency,
-                clinical_intent=f"Admission workup: {lab_spec['test']}",
+                lab_spec=lab_spec,
                 ordered_datetime=panel_time,
                 ordered_by=ordered_by,
-                status=OrderStatus.PLACED,
                 panel_key=panel_name,
-            )
-            orders.append(order)
+                clinical_intent=f"Admission workup: {lab_spec['test']}",
+            ))
             order_seq += 1
 
     # Emit stand-alone Orders: each test has its own independent datetime.
     for lab_spec in stand_alones:
-        order = Order(
+        orders.append(_build_lab_order(
             order_id=f"ORD-{patient_id}-ADM-L{order_seq:02d}",
             encounter_id=encounter_id,
             patient_id=patient_id,
-            order_type=OrderType.LAB,
-            order_code=lab_spec.get("code_loinc", lab_spec.get("test", "")),
-            display_name=lab_spec["test"],
-            urgency=lab_spec.get("urgency", "routine"),
-            clinical_intent=f"Admission workup: {lab_spec['test']}",
+            lab_spec=lab_spec,
             ordered_datetime=admission_time + timedelta(minutes=int(rng.normal(5, 3))),
             ordered_by=ordered_by,
-            status=OrderStatus.PLACED,
             panel_key="",
-        )
-        orders.append(order)
+            clinical_intent=f"Admission workup: {lab_spec['test']}",
+        ))
         order_seq += 1
 
     # Medication orders (all first-line drugs, not just the first)
@@ -343,38 +366,29 @@ def place_daily_lab_orders(
     for panel_name in sorted(panel_groups.keys()):
         members = panel_groups[panel_name]
         # Daily monitoring panels share the morning round order_time.
-        panel_urgency = members[0].get("urgency", "routine")
         for lab_spec in members:
-            orders.append(Order(
+            orders.append(_build_lab_order(
                 order_id=f"ORD-{patient_id}-D{day_number:02d}-L{order_seq:02d}",
                 encounter_id=encounter_id,
                 patient_id=patient_id,
-                order_type=OrderType.LAB,
-                order_code=lab_spec.get("code_loinc", lab_spec.get("test", "")),
-                display_name=lab_spec["test"],
-                urgency=panel_urgency,
-                clinical_intent=f"Day {day_number} monitoring: {lab_spec['test']}",
+                lab_spec=lab_spec,
                 ordered_datetime=order_time,
                 ordered_by=ordered_by,
-                status=OrderStatus.PLACED,
                 panel_key=panel_name,
+                clinical_intent=f"Day {day_number} monitoring: {lab_spec['test']}",
             ))
             order_seq += 1
 
     for lab_spec in stand_alones:
-        orders.append(Order(
+        orders.append(_build_lab_order(
             order_id=f"ORD-{patient_id}-D{day_number:02d}-L{order_seq:02d}",
             encounter_id=encounter_id,
             patient_id=patient_id,
-            order_type=OrderType.LAB,
-            order_code=lab_spec.get("code_loinc", lab_spec.get("test", "")),
-            display_name=lab_spec["test"],
-            urgency="routine",
-            clinical_intent=f"Day {day_number} monitoring: {lab_spec['test']}",
+            lab_spec=lab_spec,
             ordered_datetime=order_time,
             ordered_by=ordered_by,
-            status=OrderStatus.PLACED,
             panel_key="",
+            clinical_intent=f"Day {day_number} monitoring: {lab_spec['test']}",
         ))
         order_seq += 1
 
