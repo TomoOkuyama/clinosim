@@ -25,6 +25,7 @@ import statistics
 from clinosim.audit.registry import ModuleAuditSpec
 from clinosim.audit.types import AuditFinding, AxisResult, Cohort, Severity
 from clinosim.codes import get_system_uri
+from clinosim.modules.antibiotic.engine import ABX_NARROW_SUFFIX, ABX_ORDER_ID_PREFIX
 from clinosim.modules.output._fhir_microbiology import MB_ORG_ID_PREFIX
 
 # Canonical SNOMED CT URI (PR3b-3 stage-1 adversarial finding C3): substring
@@ -375,13 +376,17 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                     if eid not in enc_narrowed:
                         continue
                     rid = row.get("id", "")
-                    # Antibiotic order ids are prefixed with the encounter id,
-                    # then "req-abx-hai-..." or "req-abx-hai-...-narrowed".
-                    # Filter to antibiotic origin so future non-abx stopped
-                    # orders cannot inflate narrow_count.
-                    if "req-abx-hai-" not in rid:
+                    # pr112-adv-2 fix F3: antibiotic order ids are prefixed with
+                    # the encounter id, then ABX_ORDER_ID_PREFIX + hai_id +
+                    # ... + optional ABX_NARROW_SUFFIX. Filter to antibiotic
+                    # origin so future non-abx stopped orders cannot inflate
+                    # narrow_count. Constants imported from
+                    # clinosim.modules.antibiotic.engine — a rename there
+                    # triggers an ImportError downstream rather than a silent
+                    # gate skip (same defense pattern as MB_ORG_ID_PREFIX, C4).
+                    if ABX_ORDER_ID_PREFIX not in rid:
                         continue
-                    if row.get("status") == "stopped" or rid.endswith("-narrowed"):
+                    if row.get("status") == "stopped" or rid.endswith(ABX_NARROW_SUFFIX):
                         enc_narrowed[eid] = True
                 total = len(enc_narrowed)
                 narrow_count = sum(1 for v in enc_narrowed.values() if v)

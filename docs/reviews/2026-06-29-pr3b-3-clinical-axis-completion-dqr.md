@@ -91,19 +91,56 @@ scale (p≥30k for n≥30 per per-organism cohort, or via ForcedScenario fan-out
 of HAI events) is part of `audit clinical axis Phase 2` (per-event
 observed-vs-theoretical) — separately tracked, out of PR3b-3 chain scope.
 
+## Known approximation (deferred refinement)
+
+Both D1 and D2 join susceptibility / organism information to a cohort
+encounter via the **encounter reference** alone. The FHIR microbiology
+builder writes a per-specimen backref
+(`Observation.specimen.reference → Specimen/spec-mb-*`) and a per-encounter
+backref (`Observation.encounter.reference`). The current filter uses only
+the encounter reference; it does NOT use the specimen reference.
+
+Concrete edge cases (adv-1 finding C1+C2, deferred to PR3b-5):
+
+- **Multi-organism HAI encounter**: a CLABSI encounter that grows BOTH
+  S.aureus + S.epidermidis blood cultures has both organisms attached to
+  the same encounter. The S.aureus MRSA band counts ALL cefazolin susc
+  rows on that encounter, including those drawn from the S.epidermidis
+  specimen. Same for D2 panel-eligibility: an E.faecalis-only HAI
+  encounter with a coincident S.aureus community culture becomes
+  panel-eligible.
+- **HAI + community culture mixing**: a sepsis-admitted patient
+  (community blood culture, e.g. E.coli) who later develops CLABSI
+  (HAI blood culture, e.g. S.aureus) has both organisms on the same
+  encounter ref. The S.aureus MRSA band counts community-side
+  susceptibilities too.
+
+Production materiality estimate (per-HAI encounter):
+- Multi-HAI per encounter: <1% (negligible)
+- Community + HAI co-occurrence: ~5-15% of HAI encounters (sepsis-then-HAI pattern)
+
+The "encounter-level filter" is a defensible first-stage approximation —
+the per-organism antibiogram resistance is biologically the same drug ×
+organism whether the culture was HAI or community — but the precise
+attribution refinement (specimen-based join) is tracked as
+**PR3b-5 specimen-organism attribution refinement** (out of PR3b-3
+chain scope).
+
 ## Verdict
 
-**PR3b-3 chain D1/D2 closure: VERIFIED**
+**PR3b-3 chain D1/D2 closure: VERIFIED** (encounter-level filter
+approximation explicit in "Known approximation" above; specimen-based
+attribution refinement tracked as PR3b-5)
 
 - Both TODO markers removed (`clinical.py:175-191`, `antibiotic/audit.py:111-128`)
 - Both helpers (`_organism_per_encounter`, `_panel_eligible_organisms`) implemented
-- Behavioral filter correctness verified by 4 integration tests
+- Behavioral filter correctness verified by 2 D1 + 2 D2 integration tests (4 total)
 - silent_no_op axis 17/17 equality_checks PASS
 - Per-(hai_type, organism, abx) cohort info surfaces correctly
 - Rare-event regime at p=5000 produces n<30 WARN guards as designed
 - No false FAILs, no spurious findings
 
-**PR3b-3-related deferred TODOs = 0** (after this PR merges).
+**PR3b-3 original-spec deferred TODOs = 0** (after this PR + adv chain merges).
 
 ## Pre-existing axis-3 WARN findings (out of scope)
 

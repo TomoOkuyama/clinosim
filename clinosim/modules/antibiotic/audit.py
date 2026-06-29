@@ -458,11 +458,188 @@ def _validate_narrow_rate_bands() -> None:
             )
 
 
-# adversarial-1 I-D3 fix: validators now run BEFORE register_audit_module so that
-# a band-shape failure prevents stale spec from registering.
+# adversarial-1 I-D3 fix + pr112-adv-2 ordering fix: ALL validators
+# (_validate_narrow_rate_bands, _validate_nhsn_resistance_bands,
+# _validate_narrow_ladder_at_import) MUST run BEFORE register_audit_module so
+# that ANY band-shape / canonical-constants / reverse-coverage failure
+# prevents stale spec from registering into the audit registry.
+#
+# PR3b-3 stage-2 adversarial finding (Agent 1 CRITICAL): the original adv-1
+# placed only _validate_narrow_rate_bands before register; the new
+# _validate_nhsn_resistance_bands (with I3 reverse-coverage check) and the
+# pre-existing _validate_narrow_ladder_at_import were still invoked at the
+# bottom of the module → AFTER register_audit_module. A reverse-coverage
+# gap would have raised AFTER the stale spec entered the registry. Fixed
+# by moving all 3 validators (+ their dependent constants + function
+# bodies) ABOVE register_audit_module.
+
+# PR3b-3 stage-1 adversarial finding I3 (2026-06-29): organisms intentionally
+# not banded in _NHSN_RESISTANCE_BANDS but present in hai_antibiogram.yaml.
+# Each entry MUST include a one-line rationale comment so a future contributor
+# understands why the silent-no-op exemption is intentional. SNOMED codes
+# verified against hai_antibiogram.yaml current state.
+#
+# NHSN clinical-accuracy note: each rationale references "NHSN AR 2018-2020
+# does not publish a population band" or "covered indirectly by sibling band".
+# If a future contributor finds an NHSN-published band for any exempt pair,
+# the correct action is to ADD the band (with NHSN Table # citation) and
+# REMOVE the exempt entry — NOT to leave the exempt with a stale rationale.
+_NHSN_REVERSE_COVERAGE_EXEMPT: frozenset[tuple[str, str]] = frozenset({
+    # CoNS (Coagulase-negative Staphylococci) is a frequent CLABSI organism
+    # but its empirical R% varies widely by hospital and is contamination-
+    # confounded; NHSN AR 2018-2020 does not publish a stable population
+    # band for this proxy.
+    ("clabsi", "60875001"),
+    # E.coli CLABSI is uncommon (line infection by enteric is unusual
+    # outside ICU); NHSN does not publish a CLABSI-specific E.coli band.
+    # CAUTI band already covers the dominant E.coli rate.
+    ("clabsi", "112283007"),
+    # K.pneumoniae CLABSI: same rationale as E.coli — NHSN bands focus on
+    # CAUTI-side enteric resistance.
+    ("clabsi", "56415008"),
+    # P.aeruginosa CLABSI: low incidence; resistance varies widely. CAUTI +
+    # VAP bands focus on Pseudo where it dominates.
+    ("clabsi", "52499004"),
+    # K.pneumoniae CAUTI: covered indirectly via ESBL proxy on E.coli
+    # ceftriaxone band; K.pneumoniae-specific NHSN band not published at
+    # this granularity.
+    ("cauti", "56415008"),
+    # P.aeruginosa CAUTI: highly variable resistance; NHSN bands focus on
+    # VAP Pseudo.
+    ("cauti", "52499004"),
+    # Proteus mirabilis CAUTI: secondary uropathogen; NHSN does not publish
+    # a P.mirabilis-specific resistance band.
+    ("cauti", "73457008"),
+    # E.coli VAP: rare; not banded.
+    ("vap", "112283007"),
+    # K.pneumoniae VAP: covered indirectly by VAP MRSA + Pseudo bands as
+    # the primary enforcement targets.
+    ("vap", "56415008"),
+    # P.aeruginosa VAP: high variability per facility; NHSN AR 2018-2020
+    # focuses on MRSA proxy for VAP at population scale.
+    ("vap", "52499004"),
+    # Enterobacter VAP: secondary organism; not banded by NHSN AR
+    # 2018-2020 at this granularity.
+    ("vap", "14385002"),
+    # Acinetobacter baumannii VAP: highly variable resistance pattern, not
+    # banded by NHSN at the proxy level used here.
+    ("vap", "91288006"),
+    # Stenotrophomonas maltophilia VAP: ICU-only, low incidence; NHSN does
+    # not publish a population band.
+    ("vap", "113697002"),
+})
+
+
+# PR-90 lesson: validate canonical-constants references at import time.
+def _validate_nhsn_resistance_bands() -> None:
+    """Cross-check _NHSN_RESISTANCE_BANDS entries against canonical constants.
+
+    Adv #7 F3: a typo in band["cohort"] / band["antibiotic"] would silently
+    fail to match downstream cohorts at PR3b-3 wiring. Validate at import.
+
+    PR3b-3 stage-1 adversarial finding I3 (2026-06-29): reverse-coverage
+    check — every (hai_type, organism) in `hai_antibiogram.yaml` that has
+    panel data SHOULD have at least one band covering it, OR be explicitly
+    exempted in _NHSN_REVERSE_COVERAGE_EXEMPT below. Otherwise adding a
+    new organism to the antibiogram silently grows the panel-eligible set
+    + D1 per-organism cohort without any band firing → silent
+    under-enforcement.
+
+    PR3b-3 stage-2 adversarial finding (Agent 2 MED): also check exempt
+    list freshness — every entry in _NHSN_REVERSE_COVERAGE_EXEMPT must
+    correspond to an actual (hai_type, organism) pair in the antibiogram,
+    so that dropping an organism from the YAML doesn't leave a stale
+    exempt entry that nobody notices. Symmetric coverage with the
+    forward-direction reverse-coverage check.
+    """
+    from clinosim.modules.hai import HAI_TYPES as _HAI_TYPES
+    from clinosim.modules.hai import load_hai_antibiogram as _load_hai_antibiogram
+    from clinosim.modules.hai import load_hai_organisms as _load_hai_organisms
+
+    valid_hai_types = set(_HAI_TYPES)
+    valid_antibiotics = set(ANTIBIOTIC_DRUGS.keys())
+    raw = _load_hai_organisms()
+    organisms_table = raw.get("hai_organisms", {})
+
+    for band in _NHSN_RESISTANCE_BANDS:
+        cohort = band["cohort"]
+        if "/" not in cohort:
+            raise ValueError(
+                f"_NHSN_RESISTANCE_BANDS cohort {cohort!r} must be "
+                f"<hai_type>/<organism_snomed>"
+            )
+        hai_type, organism = cohort.split("/", maxsplit=1)
+        if hai_type not in valid_hai_types:
+            raise ValueError(
+                f"_NHSN_RESISTANCE_BANDS cohort hai_type {hai_type!r} "
+                f"not in HAI_TYPES {sorted(valid_hai_types)}"
+            )
+        valid_organisms = {
+            str(entry["snomed"]) for entry in organisms_table.get(hai_type, [])
+        }
+        if organism not in valid_organisms:
+            raise ValueError(
+                f"_NHSN_RESISTANCE_BANDS organism {organism!r} not in "
+                f"hai_organisms.yaml[{hai_type}]"
+            )
+        abx_key = band["antibiotic"]
+        if abx_key not in valid_antibiotics:
+            raise ValueError(
+                f"_NHSN_RESISTANCE_BANDS antibiotic {abx_key!r} not in "
+                f"ANTIBIOTIC_DRUGS"
+            )
+
+    # Reverse-coverage (forward): every panel-bearing (hai_type, organism)
+    # pair should have at least one band. Pairs we deliberately don't band
+    # must be in the exempt set with a documented rationale.
+    abg = _load_hai_antibiogram()
+    banded_pairs = {tuple(b["cohort"].split("/", maxsplit=1)) for b in _NHSN_RESISTANCE_BANDS}
+    antibiogram_pairs = {(ht, o) for ht, om in abg.items() for o in om.keys()}
+    for pair in antibiogram_pairs:
+        if pair in banded_pairs:
+            continue
+        if pair in _NHSN_REVERSE_COVERAGE_EXEMPT:
+            continue
+        hai_type, organism_snomed = pair
+        raise ValueError(
+            f"_NHSN_RESISTANCE_BANDS reverse-coverage gap: "
+            f"hai_antibiogram.yaml has (hai_type={hai_type!r}, "
+            f"organism={organism_snomed!r}) with a panel but no band "
+            f"covers it. Either add a band or include in "
+            f"_NHSN_REVERSE_COVERAGE_EXEMPT with rationale."
+        )
+
+    # Reverse-coverage (staleness, pr112-adv-2 Agent 2 MED): every exempt
+    # entry must correspond to a present antibiogram pair, so dropping an
+    # organism from the YAML doesn't leave a stale exempt.
+    for pair in _NHSN_REVERSE_COVERAGE_EXEMPT:
+        if pair not in antibiogram_pairs:
+            hai_type, organism_snomed = pair
+            raise ValueError(
+                f"_NHSN_REVERSE_COVERAGE_EXEMPT contains stale entry "
+                f"(hai_type={hai_type!r}, organism={organism_snomed!r}) "
+                f"not present in hai_antibiogram.yaml. Remove the exempt "
+                f"entry — it would silently mask a future re-introduction."
+            )
+
+
+def _validate_narrow_ladder_at_import() -> None:
+    """PR3b-3: touch load_narrow_ladder() at module import to surface any
+    3-way validation failure BEFORE audit harness runs. Otherwise an unknown
+    hai_type / organism / drug_key would silently no-op the narrow chain
+    (PR-90 教訓 / silent-no-op defense triplet)."""
+    from clinosim.modules.antibiotic.engine import load_narrow_ladder
+    load_narrow_ladder()
+
+
+# Invoke ALL validators BEFORE register_audit_module so that any failure
+# prevents stale spec from registering into _MODULES.
 _validate_narrow_rate_bands()
+_validate_nhsn_resistance_bands()
+_validate_narrow_ladder_at_import()
 
 
+# --- register module spec (validators above must have passed) ---
 register_audit_module(
     ModuleAuditSpec(
         name="antibiotic",
@@ -517,143 +694,3 @@ register_audit_module(
         lift_firing_proof=_build_combined_proof,
     )
 )
-
-
-# PR-90 lesson: validate canonical-constants references at import time.
-def _validate_nhsn_resistance_bands() -> None:
-    """Cross-check _NHSN_RESISTANCE_BANDS entries against canonical constants.
-
-    Adv #7 F3: a typo in band["cohort"] / band["antibiotic"] would silently
-    fail to match downstream cohorts at PR3b-3 wiring. Validate at import.
-
-    PR3b-3 stage-1 adversarial finding I3 (2026-06-29): reverse-coverage
-    check — every (hai_type, organism) in `hai_antibiogram.yaml` that has
-    panel data SHOULD have at least one band covering it, OR be explicitly
-    exempted in _NHSN_REVERSE_COVERAGE_EXEMPT below. Otherwise adding a
-    new organism to the antibiogram silently grows the panel-eligible set
-    + D1 per-organism cohort without any band firing → silent
-    under-enforcement. Matches the 4-layer silent-no-op defense pattern
-    established in PR3b-3 stages 1-4.
-    """
-    from clinosim.modules.hai import HAI_TYPES as _HAI_TYPES
-    from clinosim.modules.hai import load_hai_antibiogram as _load_hai_antibiogram
-    from clinosim.modules.hai import load_hai_organisms as _load_hai_organisms
-
-    valid_hai_types = set(_HAI_TYPES)
-    valid_antibiotics = set(ANTIBIOTIC_DRUGS.keys())
-    raw = _load_hai_organisms()
-    organisms_table = raw.get("hai_organisms", {})
-
-    for band in _NHSN_RESISTANCE_BANDS:
-        cohort = band["cohort"]
-        if "/" not in cohort:
-            raise ValueError(
-                f"_NHSN_RESISTANCE_BANDS cohort {cohort!r} must be "
-                f"<hai_type>/<organism_snomed>"
-            )
-        hai_type, organism = cohort.split("/", maxsplit=1)
-        if hai_type not in valid_hai_types:
-            raise ValueError(
-                f"_NHSN_RESISTANCE_BANDS cohort hai_type {hai_type!r} "
-                f"not in HAI_TYPES {sorted(valid_hai_types)}"
-            )
-        valid_organisms = {
-            str(entry["snomed"]) for entry in organisms_table.get(hai_type, [])
-        }
-        if organism not in valid_organisms:
-            raise ValueError(
-                f"_NHSN_RESISTANCE_BANDS organism {organism!r} not in "
-                f"hai_organisms.yaml[{hai_type}]"
-            )
-        abx_key = band["antibiotic"]
-        if abx_key not in valid_antibiotics:
-            raise ValueError(
-                f"_NHSN_RESISTANCE_BANDS antibiotic {abx_key!r} not in "
-                f"ANTIBIOTIC_DRUGS"
-            )
-
-    # Reverse-coverage: every panel-bearing (hai_type, organism) pair should
-    # have at least one band. Pairs we deliberately don't band must be in
-    # the exempt set with a documented rationale.
-    abg = _load_hai_antibiogram()
-    banded_pairs = {tuple(b["cohort"].split("/", maxsplit=1)) for b in _NHSN_RESISTANCE_BANDS}
-    for hai_type, organism_map in abg.items():
-        for organism_snomed in organism_map.keys():
-            pair = (hai_type, organism_snomed)
-            if pair in banded_pairs:
-                continue
-            if pair in _NHSN_REVERSE_COVERAGE_EXEMPT:
-                continue
-            raise ValueError(
-                f"_NHSN_RESISTANCE_BANDS reverse-coverage gap: "
-                f"hai_antibiogram.yaml has (hai_type={hai_type!r}, "
-                f"organism={organism_snomed!r}) with a panel but no band "
-                f"covers it. Either add a band or include in "
-                f"_NHSN_REVERSE_COVERAGE_EXEMPT with rationale."
-            )
-
-
-# PR3b-3 stage-1 adversarial finding I3 (2026-06-29): organisms intentionally
-# not banded in _NHSN_RESISTANCE_BANDS but present in hai_antibiogram.yaml.
-# Each entry MUST include a one-line rationale comment so a future contributor
-# understands why the silent-no-op exemption is intentional. SNOMED codes
-# verified against hai_antibiogram.yaml current state.
-_NHSN_REVERSE_COVERAGE_EXEMPT: frozenset[tuple[str, str]] = frozenset({
-    # CoNS (Coagulase-negative Staphylococci) is a frequent CLABSI organism
-    # but its empirical R% varies widely by hospital and is contamination-
-    # confounded; NHSN AR 2018-2020 does not publish a stable population
-    # band for this proxy.
-    ("clabsi", "60875001"),
-    # E.coli CLABSI is uncommon (line infection by enteric is unusual
-    # outside ICU); NHSN does not publish a CLABSI-specific E.coli band.
-    # CAUTI band already covers the dominant E.coli rate.
-    ("clabsi", "112283007"),
-    # K.pneumoniae CLABSI: same rationale as E.coli — NHSN bands focus on
-    # CAUTI-side enteric resistance.
-    ("clabsi", "56415008"),
-    # P.aeruginosa CLABSI: low incidence; resistance varies widely. CAUTI +
-    # VAP bands focus on Pseudo where it dominates.
-    ("clabsi", "52499004"),
-    # K.pneumoniae CAUTI: covered indirectly via ESBL proxy on E.coli
-    # ceftriaxone band; K.pneumoniae-specific NHSN band not published at
-    # this granularity.
-    ("cauti", "56415008"),
-    # P.aeruginosa CAUTI: highly variable resistance; NHSN bands focus on
-    # VAP Pseudo.
-    ("cauti", "52499004"),
-    # Proteus mirabilis CAUTI: secondary uropathogen; NHSN does not publish
-    # a P.mirabilis-specific resistance band.
-    ("cauti", "73457008"),
-    # E.coli VAP: rare; not banded.
-    ("vap", "112283007"),
-    # K.pneumoniae VAP: covered indirectly by VAP MRSA + Pseudo bands as
-    # the primary enforcement targets.
-    ("vap", "56415008"),
-    # P.aeruginosa VAP: high variability per facility; NHSN AR 2018-2020
-    # focuses on MRSA proxy for VAP at population scale.
-    ("vap", "52499004"),
-    # Enterobacter VAP: secondary organism; not banded by NHSN AR
-    # 2018-2020 at this granularity.
-    ("vap", "14385002"),
-    # Acinetobacter baumannii VAP: highly variable resistance pattern, not
-    # banded by NHSN at the proxy level used here.
-    ("vap", "91288006"),
-    # Stenotrophomonas maltophilia VAP: ICU-only, low incidence; NHSN does
-    # not publish a population band.
-    ("vap", "113697002"),
-})
-
-
-_validate_nhsn_resistance_bands()
-
-
-def _validate_narrow_ladder_at_import() -> None:
-    """PR3b-3: touch load_narrow_ladder() at module import to surface any
-    3-way validation failure BEFORE audit harness runs. Otherwise an unknown
-    hai_type / organism / drug_key would silently no-op the narrow chain
-    (PR-90 教訓 / silent-no-op defense triplet)."""
-    from clinosim.modules.antibiotic.engine import load_narrow_ladder
-    load_narrow_ladder()
-
-
-_validate_narrow_ladder_at_import()
