@@ -70,6 +70,14 @@ def load_hai_antibiogram() -> dict:  # type: ignore[type-arg]
     valid_antibiotics = set(ANTIBIOTIC_LOINC_LOOKUP.keys())
 
     for hai_type, organisms in abg.items():
+        # pr112-adv-3 Agent 1 cosmetic fix: check hai_type validity FIRST so
+        # `{INVALID_TYPE: {}}` reports the more-actionable "unknown hai_type"
+        # error before falling through to "bucket empty".
+        if hai_type not in valid_hai_types:
+            raise ValueError(
+                f"hai_antibiogram.yaml: unknown hai_type {hai_type!r}, "
+                f"expected one of {sorted(valid_hai_types)}"
+            )
         # PR3b-3 stage-2 adversarial finding (Agent 2 HIGH): per-hai_type
         # bucket empty is same silent-no-op class as I2 top-level empty —
         # `{hai_antibiogram: {clabsi: {}}}` would silently disable
@@ -80,11 +88,6 @@ def load_hai_antibiogram() -> dict:  # type: ignore[type-arg]
                 f"hai_antibiogram.yaml: {hai_type!r} bucket empty — would "
                 f"silently disable PR3b-3 D2 panel-eligible filter for "
                 f"that hai_type (PR-90 class silent no-op)"
-            )
-        if hai_type not in valid_hai_types:
-            raise ValueError(
-                f"hai_antibiogram.yaml: unknown hai_type {hai_type!r}, "
-                f"expected one of {sorted(valid_hai_types)}"
             )
         for snomed, abx_table in organisms.items():
             allowed_snomeds = valid_organisms.get(hai_type, set())

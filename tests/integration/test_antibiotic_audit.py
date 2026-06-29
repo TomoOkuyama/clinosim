@@ -476,6 +476,25 @@ def test_nhsn_reverse_coverage_exempt_no_stale_entries() -> None:
 
 
 @pytest.mark.integration
+def test_narrow_rate_bands_forward_coverage_complete() -> None:
+    """pr112-adv-3 Agent 2 MEDIUM: _NARROW_RATE_BANDS must cover every
+    HAI_TYPES entry — sibling pattern to _NHSN_RESISTANCE_BANDS reverse-
+    coverage from adv-1 I3. Adding a new HAI_TYPE without a corresponding
+    _NARROW_RATE_BANDS entry would silently no-op the narrow rate gate for
+    that hai_type (silent-no-op defense layer 4 forward-coverage)."""
+    from clinosim.modules.antibiotic.audit import _NARROW_RATE_BANDS
+    from clinosim.modules.hai import HAI_TYPES
+
+    banded_hai_types = {b["cohort"] for b in _NARROW_RATE_BANDS}
+    missing = set(HAI_TYPES) - banded_hai_types
+    assert not missing, (
+        f"_NARROW_RATE_BANDS forward-coverage gap: HAI_TYPES {sorted(missing)!r} "
+        f"have no narrow rate band. Validator should already raise; this test "
+        f"asserts the invariant explicitly for future contributors."
+    )
+
+
+@pytest.mark.integration
 def test_abx_order_id_canonical_constant() -> None:
     """pr112-adv-2 F3 fix: ABX_ORDER_ID_PREFIX shared between writer (enricher)
     and reader (audit clinical.py). A rename in engine.py triggers ImportError
