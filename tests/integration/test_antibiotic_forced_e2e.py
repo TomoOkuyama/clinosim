@@ -13,6 +13,7 @@ lift_firing_proof cover the enricher path even when devices don't fire.
 """
 import pytest
 
+from clinosim.modules.antibiotic.engine import ABX_ORDER_ID_PREFIX
 from clinosim.simulator.engine import run_forced
 from clinosim.types.config import ForcedScenario, SimulatorConfig
 
@@ -88,7 +89,7 @@ def test_antibiotic_no_hai_no_antibiotic():
         m.drug_name for m in rec.medication_administrations
         if any(
             o.order_id == m.order_id
-            and (o.order_id or "").startswith("req-abx-")
+            and (o.order_id or "").startswith(ABX_ORDER_ID_PREFIX)
             for o in rec.orders
         )
     }
