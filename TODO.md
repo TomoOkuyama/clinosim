@@ -566,11 +566,12 @@ Phase 3b backlog (remaining):
   `OrderStatus.STOPPED` + FHIR `MedicationRequest.status="stopped"` wiring.
   Audit clinical axis active enforcement: NHSN R-rate + empty rate + new narrow rate.
   `lift_firing_proof` extended to 17 equality_checks (8+3+6).
-- ~~PR3b-3 D1+D2~~: ✓ done 2026-06-29 (PR #112 + #113 + #114) — clinical axis
+- ~~PR3b-3 D1+D2~~: ✓ done 2026-06-29 (PR #112 + adv-1 #113 + adv-2 #114
+  + adv-3 #115 = 4-stage adversarial chain converged) — clinical axis
   per-(hai_type, organism, antibiotic) R-rate filter via `_organism_per_encounter`
   + panel-eligible empty-rate denominator via `_panel_eligible_organisms`.
-  Both TODO markers removed (clinical.py + antibiotic/audit.py). 4-stage
-  adversarial chain converged. PR3b-3 original-spec deferred TODOs = 0.
+  Both TODO markers removed (clinical.py + antibiotic/audit.py). 6-layer
+  silent-no-op defense complete. PR3b-3 original-spec deferred TODOs = 0.
 - PR3b-4: WBC/CRP decay phase coupled with antibiotic-day count
 - **PR3b-5**: specimen-organism susceptibility attribution refinement. PR3b-3 D1
   filters cohort encounters per-organism via `_organism_per_encounter`, but the

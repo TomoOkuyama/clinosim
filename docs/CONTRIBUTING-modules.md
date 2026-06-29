@@ -178,11 +178,11 @@ YAML data に外部 ID(SNOMED / LOINC / antibiotic key 等)を埋めるモジュ
 
 監査 module の `audit.py` が canonical-constants validator + reverse-coverage validator を定義する場合、以下 3 原則を守ること:
 
-1. **All validators MUST run BEFORE `register_audit_module`**: validator が失敗したときに stale spec が registry に入らないことを保証する。先例 `clinosim/modules/antibiotic/audit.py:637-640` で `_validate_narrow_rate_bands` + `_validate_nhsn_resistance_bands` + `_validate_narrow_ladder_at_import` が全て register の前に invoked。
+1. **All validators MUST run BEFORE `register_audit_module`**: validator が失敗したときに stale spec が registry に入らないことを保証する。先例 `clinosim/modules/antibiotic/audit.py:656-658` で `_validate_narrow_rate_bands` + `_validate_nhsn_resistance_bands` + `_validate_narrow_ladder_at_import` が全て register の前に invoked。
 2. **Forward-coverage + reverse-coverage の対称性**: band 集合が "every (dim1, dim2) in canonical YAML が covered or explicitly exempt" を要求する場合(reverse)、同じ集合に "every canonical HAI_TYPE has at least one band"(forward)も要求する。両方 missing → 新 dimension 追加時の silent no-op risk。先例 `_validate_narrow_rate_bands`(forward)+ `_validate_nhsn_resistance_bands`(reverse + forward via band)。
 3. **Reverse-coverage の staleness check**: exempt list を持つ validator は「exempt 中の entry が現 YAML データに本当に存在するか」も check。dropping an organism from YAML が stale exempt を残す silent risk を防ぐ。先例 `_validate_nhsn_resistance_bands` の `_NHSN_REVERSE_COVERAGE_EXEMPT` staleness ループ。
 
-regression test pattern:`inspect.getsource()` で source 内 `_validate_*()` 呼び出し position が `register_audit_module(` よりも小さいことを assert(`clinosim/tests/integration/test_antibiotic_audit.py:test_validators_run_before_register_audit_module` precedent)。
+regression test pattern:`inspect.getsource()` で source 内 `_validate_*()` 呼び出し position が `register_audit_module(` よりも小さいことを assert(`tests/integration/test_antibiotic_audit.py:test_validators_run_before_register_audit_module` precedent)。
 
 ### データ専用モジュール (variant)
 
