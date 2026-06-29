@@ -13,6 +13,7 @@ from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 
+from clinosim.modules.output._fhir_care_level import _build_care_level  # noqa: F401
 from clinosim.modules.output._fhir_code_status import _build_code_status  # noqa: F401
 
 # FA-1 (Phases 1-13) split this adapter's leaf data, shared fragment helpers, and
@@ -44,11 +45,17 @@ from clinosim.modules.output._fhir_common import (  # noqa: F401
     _survey_category,
 )
 from clinosim.modules.output._fhir_conditions import _build_conditions  # noqa: F401
+from clinosim.modules.output._fhir_device import (  # noqa: F401
+    _build_device,
+    _build_device_use,
+)
 from clinosim.modules.output._fhir_diagnostic_report import build_lab_panel_reports
 from clinosim.modules.output._fhir_documents import _build_document_reference  # noqa: F401
 from clinosim.modules.output._fhir_encounter import _build_encounter  # noqa: F401
 from clinosim.modules.output._fhir_facility import _build_facility_bundle  # noqa: F401
 from clinosim.modules.output._fhir_family_history import _build_family_history  # noqa: F401
+from clinosim.modules.output._fhir_hai import _build_hai_conditions  # noqa: F401
+from clinosim.modules.output._fhir_immunization import _build_immunizations  # noqa: F401
 from clinosim.modules.output._fhir_localization import (  # noqa: F401
     _CATEGORY_DISPLAY_JA,
     _CLASS_DISPLAY_JA,
@@ -77,7 +84,6 @@ from clinosim.modules.output._fhir_medications import (  # noqa: F401
     _build_medication_admin,
     _build_medication_request,
 )
-from clinosim.modules.output._fhir_immunization import _build_immunizations  # noqa: F401
 from clinosim.modules.output._fhir_microbiology import (  # noqa: F401
     _SUSCEPTIBILITY_DISPLAY,
     _bb_microbiology,
@@ -106,9 +112,6 @@ from clinosim.modules.output._fhir_practitioner import (  # noqa: F401
     _build_practitioner_role,
 )
 from clinosim.modules.output._fhir_procedures import _build_procedure  # noqa: F401
-from clinosim.modules.output._fhir_service_request import (  # noqa: F401
-    _bb_service_requests,
-)
 from clinosim.modules.output._fhir_reference_data import (  # noqa: F401
     _ALLERGEN_RXNORM,
     _CONDITION_SHORT_NAME,
@@ -120,12 +123,9 @@ from clinosim.modules.output._fhir_reference_data import (  # noqa: F401
     _SEVERITY_SNOMED,
     _SPECIALTY_SNOMED,
 )
-from clinosim.modules.output._fhir_care_level import _build_care_level  # noqa: F401
-from clinosim.modules.output._fhir_device import (  # noqa: F401
-    _build_device,
-    _build_device_use,
+from clinosim.modules.output._fhir_service_request import (  # noqa: F401
+    _bb_service_requests,
 )
-from clinosim.modules.output._fhir_hai import _build_hai_conditions  # noqa: F401
 from clinosim.modules.output._fhir_smoking_alcohol import (  # noqa: F401
     _build_alcohol_use,
     _build_smoking_status,
