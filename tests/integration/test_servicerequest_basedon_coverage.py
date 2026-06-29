@@ -5,45 +5,12 @@ silently does nothing the coverage asserts fire immediately, rather than
 requiring a visual audit of the NDJSON output.
 """
 
-import json
-import subprocess
 import tempfile
 from pathlib import Path
 
 import pytest
 
-
-def _run_generate(country: str, n: int, seed: int, out: Path) -> None:
-    """Run the full generate pipeline and assert zero exit code."""
-    result = subprocess.run(
-        [
-            "python", "-m", "clinosim.simulator.cli", "generate",
-            "--country", country,
-            "--population", str(n),
-            "--seed", str(seed),
-            "--format", "fhir-r4",
-            "--output", str(out),
-        ],
-        capture_output=True,
-        text=True,
-    )
-    assert result.returncode == 0, (
-        f"generate failed (returncode={result.returncode}):\n{result.stderr}"
-    )
-
-
-def _load_ndjson(path: Path) -> list[dict]:
-    """Load all non-empty NDJSON lines from path."""
-    with path.open() as f:
-        return [json.loads(line) for line in f if line.strip()]
-
-
-def _find_ndjson(out: Path, name: str) -> Path:
-    """Locate a named NDJSON file anywhere under the output directory."""
-    files = list(out.rglob(name))
-    assert files, f"{name} not found under {out}"
-    return files[0]
-
+from tests.integration._sr_helpers import find_ndjson, load_ndjson, run_generate
 
 # Microbiology observation IDs use these prefixes (from _fhir_microbiology.py).
 # PR1 covers lab panel orders only; microbiology ServiceRequests are future work.
@@ -77,10 +44,10 @@ def test_lab_observation_basedon_coverage_us():
     """
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "out"
-        _run_generate("US", 200, 42, out)
+        run_generate("US", 200, 42, out)
 
-        sr_ids = {r["id"] for r in _load_ndjson(_find_ndjson(out, "ServiceRequest.ndjson"))}
-        obs = _load_ndjson(_find_ndjson(out, "Observation.ndjson"))
+        sr_ids = {r["id"] for r in load_ndjson(find_ndjson(out, "ServiceRequest.ndjson"))}
+        obs = load_ndjson(find_ndjson(out, "Observation.ndjson"))
         lab_obs = [
             o for o in obs
             if _is_lab_category(o) and not _is_microbiology_obs(o)
@@ -108,10 +75,10 @@ def test_diagnostic_report_basedon_coverage_us():
     """Every lab DiagnosticReport carries basedOn pointing to existing SR(s)."""
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "out"
-        _run_generate("US", 200, 42, out)
+        run_generate("US", 200, 42, out)
 
-        sr_ids = {r["id"] for r in _load_ndjson(_find_ndjson(out, "ServiceRequest.ndjson"))}
-        reports = _load_ndjson(_find_ndjson(out, "DiagnosticReport.ndjson"))
+        sr_ids = {r["id"] for r in load_ndjson(find_ndjson(out, "ServiceRequest.ndjson"))}
+        reports = load_ndjson(find_ndjson(out, "DiagnosticReport.ndjson"))
         # Filter to lab panel DRs (not microbiology).
         lab_reports = [
             r for r in reports
@@ -138,9 +105,9 @@ def test_panel_members_share_sr_id():
     """In a CBC panel, the 3-4 component Observations share a single basedOn SR ref."""
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "out"
-        _run_generate("US", 200, 42, out)
+        run_generate("US", 200, 42, out)
 
-        obs = _load_ndjson(_find_ndjson(out, "Observation.ndjson"))
+        obs = load_ndjson(find_ndjson(out, "Observation.ndjson"))
 
         # Group CBC analytes by (encounter, timestamp) — shared SR test.
         by_slot: dict[tuple[str, str], list[dict]] = {}
