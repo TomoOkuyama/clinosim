@@ -179,3 +179,135 @@ def test_audit_clinical_acceptance_has_narrow_rate_bands() -> None:
         assert "expected_narrow_rate_min" in band
         assert "expected_narrow_rate_max" in band
         assert "source" in band
+
+
+@pytest.mark.integration
+def test_clinical_axis_r_rate_gate_filters_per_organism(tmp_path) -> None:
+    """D1: R-rate gate cohort must include ONLY encounters whose organism
+    matches the band's cohort key.
+
+    Synthetic CLABSI cohort with 35 encounters:
+      - 30 with S.aureus (3092008): 15 cefazolin R, 15 cefazolin S → 50% R
+      - 5 with S.epidermidis (11638008): all cefazolin R → 100% R (would
+        skew the mixed cohort outside the MRSA band).
+    The band "clabsi/3092008" (cefazolin 40-55% R) must measure 50%, NOT
+    the mixed 57%.
+    """
+    import json
+
+    from clinosim.audit.axes import clinical as clinical_axis
+    from clinosim.audit.types import Cohort
+    from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
+
+    discover()
+    spec = get_registered()["antibiotic"]
+
+    def _w(country: str, file: str, rows: list[dict]) -> None:
+        p = tmp_path / country / "fhir_r4" / file
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with p.open("a") as f:
+            for r in rows:
+                f.write(json.dumps(r) + "\n")
+
+    cefaz_loinc = ANTIBIOTIC_LOINC_LOOKUP["cefazolin"]
+
+    encounters = [{"resourceType": "Encounter", "id": f"E{i}", "class": {"code": "IMP"}}
+                  for i in range(35)]
+    conditions = [
+        {"resourceType": "Condition", "id": f"c{i}",
+         "code": {"coding": [{"code": "T80.211A"}]},  # CLABSI ICD
+         "encounter": {"reference": f"Encounter/E{i}"}}
+        for i in range(35)
+    ]
+    organism_obs = []
+    susc_obs = []
+    for i in range(30):  # S.aureus
+        organism_obs.append({
+            "resourceType": "Observation", "id": f"mb-org-E{i}-0",
+            "encounter": {"reference": f"Encounter/E{i}"},
+            "code": {"coding": [{"code": "600-7"}]},
+            "valueCodeableConcept": {
+                "coding": [{"system": "http://snomed.info/sct", "code": "3092008"}]},
+        })
+        susc_obs.append({
+            "resourceType": "Observation", "id": f"mb-sus-E{i}-0",
+            "encounter": {"reference": f"Encounter/E{i}"},
+            "code": {"coding": [{"code": cefaz_loinc}]},
+            "valueCodeableConcept": {"coding": [{"code": "R" if i < 15 else "S"}]},
+        })
+    for i in range(30, 35):  # S.epidermidis, all R
+        organism_obs.append({
+            "resourceType": "Observation", "id": f"mb-org-E{i}-0",
+            "encounter": {"reference": f"Encounter/E{i}"},
+            "code": {"coding": [{"code": "600-7"}]},
+            "valueCodeableConcept": {
+                "coding": [{"system": "http://snomed.info/sct", "code": "11638008"}]},
+        })
+        susc_obs.append({
+            "resourceType": "Observation", "id": f"mb-sus-E{i}-0",
+            "encounter": {"reference": f"Encounter/E{i}"},
+            "code": {"coding": [{"code": cefaz_loinc}]},
+            "valueCodeableConcept": {"coding": [{"code": "R"}]},
+        })
+
+    _w("us", "Encounter.ndjson", encounters)
+    _w("us", "Condition.ndjson", conditions)
+    _w("us", "Observation.ndjson", organism_obs + susc_obs)
+
+    result = clinical_axis.run(spec, Cohort.open(tmp_path))
+    n = result.info.get("us_clabsi/3092008_cefazolin_n")
+    r_rate = result.info.get("us_clabsi/3092008_cefazolin_R_rate")
+    assert n == 30, f"S.aureus cohort must be 30, got {n} (per-organism filter not applied)"
+    assert r_rate == 0.5, f"S.aureus cohort R-rate must be 0.5, got {r_rate}"
+    fails = [f for f in result.findings if f.severity.name == "FAIL"
+             and "clabsi/3092008/cefazolin" in f.message]
+    assert not fails, f"50% should be inside [0.40, 0.55] band; got FAIL: {fails!r}"
+
+
+@pytest.mark.integration
+def test_clinical_axis_r_rate_gate_zero_for_absent_organism(tmp_path) -> None:
+    """D1: a band whose organism appears in NO cohort encounter yields n=0
+    (not a spurious FAIL). Cohort = only E.coli CAUTI; verify CLABSI/S.aureus
+    band yields n=0 cleanly."""
+    import json
+
+    from clinosim.audit.axes import clinical as clinical_axis
+    from clinosim.audit.types import Cohort
+
+    discover()
+    spec = get_registered()["antibiotic"]
+
+    def _w(country: str, file: str, rows: list[dict]) -> None:
+        p = tmp_path / country / "fhir_r4" / file
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with p.open("a") as f:
+            for r in rows:
+                f.write(json.dumps(r) + "\n")
+
+    encounters = [{"resourceType": "Encounter", "id": f"E{i}", "class": {"code": "IMP"}}
+                  for i in range(10)]
+    conditions = [
+        {"resourceType": "Condition", "id": f"c{i}",
+         "code": {"coding": [{"code": "T83.511A"}]},  # CAUTI ICD only
+         "encounter": {"reference": f"Encounter/E{i}"}}
+        for i in range(10)
+    ]
+    # Only E.coli organisms — no S.aureus / S.epidermidis
+    organism_obs = [{
+        "resourceType": "Observation", "id": f"mb-org-E{i}-0",
+        "encounter": {"reference": f"Encounter/E{i}"},
+        "code": {"coding": [{"code": "600-7"}]},
+        "valueCodeableConcept": {
+            "coding": [{"system": "http://snomed.info/sct", "code": "112283007"}]},
+    } for i in range(10)]
+    _w("us", "Encounter.ndjson", encounters)
+    _w("us", "Condition.ndjson", conditions)
+    _w("us", "Observation.ndjson", organism_obs)
+
+    result = clinical_axis.run(spec, Cohort.open(tmp_path))
+    # CLABSI/S.aureus band should report n=0, no FAIL
+    n = result.info.get("us_clabsi/3092008_cefazolin_n")
+    assert n == 0
+    fails = [f for f in result.findings if f.severity.name == "FAIL"
+             and "clabsi/3092008/cefazolin" in f.message]
+    assert not fails, f"Absent-organism cohort must not FAIL; got {fails!r}"
