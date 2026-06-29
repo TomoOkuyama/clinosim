@@ -14,11 +14,22 @@ Panel YAML + canonical loader live in ``clinosim.modules.order.panel_grouping``
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as _codes_lookup
+from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.order.panel_grouping import load_panel_definitions
+from clinosim.modules.output._fhir_service_request import (
+    build_panel_counter,
+    order_to_sr_id,
+)
+from clinosim.types.encounter import OrderType
+
+
+def _o(obj: Any, name: str, default: Any = None) -> Any:
+    """Dual-access helper: dataclass attribute OR dict key (production path)."""
+    return get_attr_or_key(obj, name, default)
 
 
 class _GroupedPanel(NamedTuple):
@@ -27,7 +38,7 @@ class _GroupedPanel(NamedTuple):
     obs_refs: list[str]    # Observation ids in YAML-component order
 
 
-def group_lab_orders(orders: list[dict], encounter_id: str) -> list[_GroupedPanel]:
+def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel]:
     """Group lab orders into panel DiagnosticReport candidates.
 
     For each lab order with a result, derive (analyte_name, bucket, obs_id).
@@ -46,6 +57,9 @@ def group_lab_orders(orders: list[dict], encounter_id: str) -> list[_GroupedPane
     DR's effectiveDateTime is reported as a date-only value (FHIR R4 allows
     partial-precision dateTime).
 
+    Accepts both Order dataclass instances and JSON-deserialized dicts
+    (production CIF path). Uses _o() for dual dict/dataclass field access.
+
     Returns groups sorted by (bucket ascending, panel-priority order).
     """
     panels = load_panel_definitions()
@@ -55,15 +69,18 @@ def group_lab_orders(orders: list[dict], encounter_id: str) -> list[_GroupedPane
     # ref per panel-component is used (see consume loop below).
     by_bucket: dict[str, dict[str, list[str]]] = defaultdict(lambda: defaultdict(list))
     for idx, order in enumerate(orders):
-        if order.get("order_type") != "lab":
+        ot = _o(order, "order_type")
+        if ot not in (OrderType.LAB, "lab"):
             continue
-        result = order.get("result")
+        result = _o(order, "result")
         if not result:
             continue
-        when = (result.get("result_datetime") or "")[:10]
+        # result_datetime may be a datetime object (dataclass) or ISO string (dict).
+        dt_raw = _o(result, "result_datetime")
+        when = str(dt_raw)[:10] if dt_raw else ""
         if len(when) < 10:
             continue
-        lab_name = result.get("lab_name") or order.get("display_name") or ""
+        lab_name = _o(result, "lab_name") or _o(order, "display_name") or ""
         if not lab_name:
             continue
         obs_id = f"lab-{encounter_id}-{idx:04d}"
@@ -167,24 +184,78 @@ def build_dr_resource(
     return res
 
 
+def _sr_ids_for_group(
+    group: _GroupedPanel,
+    orders: list[Any],
+    lab_orders: list[Any],
+    panel_counter: dict,
+    enc_id: str,
+) -> list[str]:
+    """Derive ServiceRequest ids for the contributing Orders of a panel group.
+
+    obs_refs in a _GroupedPanel use the format ``lab-{enc_id}-{idx:04d}`` where
+    ``idx`` is the 0-based position in the full ``orders`` list passed to
+    ``group_lab_orders``.  We extract those indices to look up the exact Order
+    objects, then derive their SR ids deterministically.  This handles both panel
+    orders (panel_key set → SR id = sr-{enc}-{panel}-N) and stand-alone orders
+    (panel_key="" → SR id = sr-{order_id}) without any panel_key filter that
+    would silently miss stand-alone tests grouped into a panel DR.
+    """
+    prefix = f"lab-{enc_id}-"
+    contributing: list[Any] = []
+    for obs_id in group.obs_refs:
+        if not obs_id.startswith(prefix):
+            continue
+        try:
+            idx = int(obs_id[len(prefix):])
+        except ValueError:
+            continue
+        if 0 <= idx < len(orders):
+            contributing.append(orders[idx])
+    return sorted({order_to_sr_id(o, panel_counter) for o in contributing})
+
+
 def build_lab_panel_reports(ctx) -> list[dict]:
     """Bundle builder (AD-56): group ctx.record["orders"] into DR resources.
 
     Returns DRs in (bucket, panel-priority) order so the NDJSON output is
-    stable across runs.
+    stable across runs. Each DR carries ``basedOn`` referencing the
+    ServiceRequest(s) for the contributing Orders (PR1: consistent
+    writer↔reader derivation via build_panel_counter + order_to_sr_id).
+
+    Accepts both Order dataclass instances and JSON-deserialized dicts
+    (production CIF path). Uses _o() for dual dict/dataclass field access.
     """
     orders = ctx.record.get("orders", []) or []
     enc_id = ctx.primary_enc_id or ""
     if not enc_id:
         return []
+
+    # Collect lab orders with dual-access type check (dict + dataclass).
+    lab_orders = [
+        o for o in orders
+        if _o(o, "order_type") in (OrderType.LAB, "lab")
+    ]
+
+    # Pre-compute panel counter once — same derivation as _bb_service_requests
+    # so the SR ids produced here match those emitted in ServiceRequest.ndjson.
+    panel_counter = build_panel_counter(lab_orders)
+
     groups = group_lab_orders(orders, enc_id)
     seq_by_panel: dict[str, int] = defaultdict(int)
     out: list[dict] = []
     for g in groups:
         seq = seq_by_panel[g.panel_name]
         seq_by_panel[g.panel_name] = seq + 1
-        out.append(build_dr_resource(
+        report = build_dr_resource(
             g, ctx.patient_id, enc_id, ctx.country,
             performer_ref=None, issued=None, seq=seq,
-        ))
+        )
+        # basedOn: look up contributing orders via the obs_id index embedded in
+        # each obs_ref ("lab-{enc_id}-{idx:04d}").  This handles both panel orders
+        # (panel_key set) and stand-alone orders (panel_key="") — either way the
+        # SR id is derived correctly via order_to_sr_id + panel_counter.
+        sr_ids = _sr_ids_for_group(g, orders, lab_orders, panel_counter, enc_id)
+        report["basedOn"] = [{"reference": f"ServiceRequest/{sid}"} for sid in sr_ids]
+        out.append(report)
     return out
