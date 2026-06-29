@@ -29,6 +29,18 @@ _HAI_EMPIRICAL_YAML = _REF_DIR / "hai_empirical.yaml"
 _NARROW_LADDER_YAML = _REF_DIR / "narrow_ladder.yaml"
 
 
+# Canonical id prefixes for antibiotic regimens / orders (PR3b-3 stage-2
+# adversarial finding F3, 2026-06-29). Audit gates that filter MedicationRequest
+# by antibiotic origin (clinosim/audit/axes/clinical.py narrow-rate gate) import
+# these constants instead of duplicating literals, so a rename here triggers an
+# ImportError downstream rather than a silent gate skip — same defense pattern
+# as MB_ORG_ID_PREFIX in _fhir_microbiology.py.
+ABX_REGIMEN_ID_PREFIX = "abx-"                                  # AntibioticRegimen.regimen_id
+ABX_ORDER_REQ_PREFIX = "req-"                                   # Order.order_id = "req-" + regimen_id
+ABX_ORDER_ID_PREFIX = ABX_ORDER_REQ_PREFIX + ABX_REGIMEN_ID_PREFIX  # composed prefix for readers
+ABX_NARROW_SUFFIX = "-narrowed"                                 # narrowed regimen id suffix
+
+
 FREQ_PER_DAY: dict[str, int] = {
     "q24h": 1,
     "q12h": 2,
@@ -185,7 +197,7 @@ def build_regimens(
     for drug in cfg["drugs"]:
         slug = _drug_slug(drug["drug_key"])
         out.append(AntibioticRegimen(
-            regimen_id=f"abx-{hai_event.hai_id}-{slug}",
+            regimen_id=f"{ABX_REGIMEN_ID_PREFIX}{hai_event.hai_id}-{slug}",
             hai_event_id=hai_event.hai_id,
             encounter_id=hai_event.encounter_id,
             drug_key=drug["drug_key"],

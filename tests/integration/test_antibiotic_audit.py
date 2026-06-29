@@ -414,6 +414,90 @@ def test_load_hai_antibiogram_rejects_empty_top_level(monkeypatch) -> None:
 
 
 @pytest.mark.integration
+def test_load_hai_antibiogram_rejects_empty_per_hai_type_bucket(monkeypatch) -> None:
+    """pr112-adv-2 Agent 2 HIGH: per-hai_type bucket empty is same silent-no-op
+    class as I2 top-level empty. `{hai_antibiogram: {clabsi: {}}}` would
+    silently disable _panel_eligible_organisms for clabsi."""
+    import yaml
+
+    import clinosim.modules.hai as hai_mod
+
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {"hai_antibiogram": {"clabsi": {}}})
+    hai_mod.load_hai_antibiogram.cache_clear()
+    try:
+        with pytest.raises(ValueError, match="'clabsi' bucket empty"):
+            hai_mod.load_hai_antibiogram()
+    finally:
+        hai_mod.load_hai_antibiogram.cache_clear()
+
+
+@pytest.mark.integration
+def test_validators_run_before_register_audit_module() -> None:
+    """pr112-adv-2 Agent 1 CRITICAL: all canonical-constants / reverse-coverage
+    validators must run BEFORE register_audit_module so a band-shape failure
+    prevents stale spec from registering. Re-import the module and confirm
+    the spec is fully registered (validators succeeded) AND the module-level
+    invocation order is correct."""
+    import inspect
+
+    import clinosim.modules.antibiotic.audit as A
+    from clinosim.audit.registry import get_registered
+
+    src = inspect.getsource(A)
+    register_idx = src.index("register_audit_module(")
+    val1_idx = src.rindex("_validate_narrow_rate_bands()")
+    val2_idx = src.rindex("_validate_nhsn_resistance_bands()")
+    val3_idx = src.rindex("_validate_narrow_ladder_at_import()")
+    assert val1_idx < register_idx, "_validate_narrow_rate_bands() must run before register"
+    assert val2_idx < register_idx, "_validate_nhsn_resistance_bands() must run before register"
+    assert val3_idx < register_idx, "_validate_narrow_ladder_at_import() must run before register"
+
+    # Spec is registered (validators passed)
+    assert "antibiotic" in get_registered()
+
+
+@pytest.mark.integration
+def test_nhsn_reverse_coverage_exempt_no_stale_entries() -> None:
+    """pr112-adv-2 Agent 2 MED: every entry in _NHSN_REVERSE_COVERAGE_EXEMPT
+    must correspond to a present (hai_type, organism) pair in
+    hai_antibiogram.yaml — staleness defense. _validate_nhsn_resistance_bands
+    raises on stale entries; this test asserts the invariant explicitly."""
+    from clinosim.modules.antibiotic.audit import _NHSN_REVERSE_COVERAGE_EXEMPT
+    from clinosim.modules.hai import load_hai_antibiogram
+
+    abg = load_hai_antibiogram()
+    antibiogram_pairs = {(ht, o) for ht, om in abg.items() for o in om.keys()}
+    for pair in _NHSN_REVERSE_COVERAGE_EXEMPT:
+        assert pair in antibiogram_pairs, (
+            f"stale _NHSN_REVERSE_COVERAGE_EXEMPT entry {pair!r} — not in "
+            f"hai_antibiogram.yaml. Validator should already raise; this "
+            f"test pins the invariant explicitly."
+        )
+
+
+@pytest.mark.integration
+def test_abx_order_id_canonical_constant() -> None:
+    """pr112-adv-2 F3 fix: ABX_ORDER_ID_PREFIX shared between writer (enricher)
+    and reader (audit clinical.py). A rename in engine.py triggers ImportError
+    downstream instead of a silent gate skip — same defense pattern as C4."""
+    from clinosim.audit.axes import clinical as clinical_axis
+    from clinosim.modules.antibiotic.engine import (
+        ABX_NARROW_SUFFIX,
+        ABX_ORDER_ID_PREFIX,
+        ABX_ORDER_REQ_PREFIX,
+        ABX_REGIMEN_ID_PREFIX,
+    )
+
+    assert ABX_REGIMEN_ID_PREFIX == "abx-"
+    assert ABX_ORDER_REQ_PREFIX == "req-"
+    assert ABX_ORDER_ID_PREFIX == "req-abx-"
+    assert ABX_NARROW_SUFFIX == "-narrowed"
+    # The audit gate imports the same constants — proving the coupling
+    assert clinical_axis.ABX_ORDER_ID_PREFIX is ABX_ORDER_ID_PREFIX
+    assert clinical_axis.ABX_NARROW_SUFFIX is ABX_NARROW_SUFFIX
+
+
+@pytest.mark.integration
 def test_nhsn_resistance_bands_reverse_coverage_complete() -> None:
     """I3 fix: every (hai_type, organism) pair in hai_antibiogram.yaml must
     either be banded by _NHSN_RESISTANCE_BANDS OR explicitly listed in

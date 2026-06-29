@@ -70,6 +70,17 @@ def load_hai_antibiogram() -> dict:  # type: ignore[type-arg]
     valid_antibiotics = set(ANTIBIOTIC_LOINC_LOOKUP.keys())
 
     for hai_type, organisms in abg.items():
+        # PR3b-3 stage-2 adversarial finding (Agent 2 HIGH): per-hai_type
+        # bucket empty is same silent-no-op class as I2 top-level empty —
+        # `{hai_antibiogram: {clabsi: {}}}` would silently disable
+        # _panel_eligible_organisms for clabsi → D2 skips every CLABSI
+        # encounter. Fail loud per-bucket too.
+        if not organisms:
+            raise ValueError(
+                f"hai_antibiogram.yaml: {hai_type!r} bucket empty — would "
+                f"silently disable PR3b-3 D2 panel-eligible filter for "
+                f"that hai_type (PR-90 class silent no-op)"
+            )
         if hai_type not in valid_hai_types:
             raise ValueError(
                 f"hai_antibiogram.yaml: unknown hai_type {hai_type!r}, "
