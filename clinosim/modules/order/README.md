@@ -34,10 +34,84 @@
 ```
 clinosim/modules/order/
 ├── __init__.py
-├── engine.py      # 全ロジック (約 460 行)
+├── engine.py          # order placement + result timing (≈ 460 行)
+├── panel_grouping.py  # classify_lab_specs — panel-aware Order generation (PR1)
+├── reference_data/
+│   └── lab_panel_groups.yaml  # panel → member tests canonical mapping
 ├── README.md
 └── SPEC.md
 ```
+
+## パネル集約 Order 生成 (PR1, 2026-06-29)
+
+`panel_grouping.py` は lab Order をパネルメンバーか単独オーダーかに分類し、
+FHIR `ServiceRequest` 生成 (`_fhir_service_request.py`) と結果タイミング計算の
+**シングル編集ポイント** を提供する (AD-61)。
+
+### `Order.panel_key` フィールド
+
+`clinosim/types/encounter.py` の `Order` dataclass に追加された 1 フィールド:
+
+| フィールド | 型 | セマンティクス |
+|---|---|---|
+| `panel_key` | `str` | 空文字 = 単独オーダー。非空 = パネル識別子 (e.g. `"CBC"`, `"BMP"`) |
+
+同一 encounter-day のパネルメンバーは同じ `panel_key` + `ordered_datetime` を共有する。
+これにより `_fhir_service_request.py` が `(encounter_id, panel_key, ordered_datetime)` を
+グループキーとして 1 SR に集約できる (AD-61)。
+
+### `classify_lab_specs(specs, rng) -> list[ClassifiedOrder]`
+
+```python
+from clinosim.modules.order.panel_grouping import classify_lab_specs
+
+specs = [
+    {"test": "CBC", "probability": 1.0, "urgency": "stat"},
+    {"test": "CRP", "probability": 0.8, "urgency": "routine"},
+]
+classified = classify_lab_specs(specs, rng)
+# CBC spec → panel_key="CBC", shared ordered_datetime (同一 panel で揃える)
+# CRP spec → panel_key=""   (CBC パネルの member ではない)
+```
+
+**2-pass アルゴリズム:**
+
+1. **Pass 1 (パネル検出)** — `lab_panel_groups.yaml` でパネルメンバーを確認し、
+   マッチしたメンバーに `panel_key` とパネル共有 `ordered_datetime` を割り当てる。
+   RNG draw はパネル単位で 1 回 (AD-16)。
+2. **Pass 2 (単独オーダー)** — パネルに未参加の spec に `panel_key=""` と
+   個別 `ordered_datetime` を割り当てる。
+
+`place_admission_orders` と `place_daily_lab_orders` はいずれも `classify_lab_specs`
+を経由する。コールサイトにパネル検出 if/elif をインラインで書かない — `lab_panel_groups.yaml`
+に新パネルを追加するだけで全オーダーサイトに自動到達する
+(`scenario_flags_from_protocol` / `medication_flags_from_context` と同じ DRY パターン)。
+
+### `lab_panel_groups.yaml` (canonical loader)
+
+`order/reference_data/lab_panel_groups.yaml` がパネル → メンバーテスト名のマスター。
+ロードは `panel_grouping.load_panel_groups()` (`@lru_cache(maxsize=1)`) のみ経由。
+出力側 `_fhir_service_request.py` も同一 loader を使う (single source of truth)。
+
+```yaml
+CBC:
+  loinc_panel: "58410-2"
+  members: [WBC, Hb, Hct, Plt]
+BMP:
+  loinc_panel: "24323-8"
+  members: [Na, K, Cl, HCO3, BUN, Creatinine, Glucose, Ca]
+```
+
+### FHIR ServiceRequest との契約
+
+`_fhir_service_request.py` は `CIFPatientRecord` の全 encounter の orders を走査し:
+
+- `panel_key` が非空のオーダーを `(encounter_id, panel_key, ordered_datetime)` でグループ化
+  → 1 SR per group
+- `panel_key` が空 (単独) オーダー → 1 SR each
+
+SR の `basedOn[]` は同グループの Observation を参照。
+`authoredOn` はグループ共通 `ordered_datetime`。
 
 ## 権威ソース
 
@@ -389,6 +463,7 @@ order_protocols:
 | `clinosim.types.encounter` | `Order`, `OrderType`, `OrderStatus` |
 | `clinosim.simulator.helpers._determine_route` | 薬剤名からの経路ヒューリスティック (enrich_medication_order 内) |
 | `numpy` | RNG |
+| `order/reference_data/lab_panel_groups.yaml` | パネル → メンバー canonical mapping (PR1, panel_grouping.py) |
 
 ## Consumers
 
@@ -401,6 +476,7 @@ order_protocols:
 | `modules/encounter` | Daily cycle event (`morning_labs`) から `place_daily_lab_orders()` を呼ぶ | medium |
 | `modules/observation` (README cross-ref) | 結果時刻経過後に観測値生成をトリガ | medium |
 | `modules/procedure` (README cross-ref) | 手術・手技オーダーを拡張 | medium |
+| `modules/output/_fhir_service_request.py` | `classify_lab_specs` + `load_panel_groups()` を使い FHIR ServiceRequest を生成 (PR1, AD-61) | medium |
 
 ## テスト
 
