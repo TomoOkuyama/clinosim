@@ -106,6 +106,9 @@ from clinosim.modules.output._fhir_practitioner import (  # noqa: F401
     _build_practitioner_role,
 )
 from clinosim.modules.output._fhir_procedures import _build_procedure  # noqa: F401
+from clinosim.modules.output._fhir_service_request import (  # noqa: F401
+    _bb_service_requests,
+)
 from clinosim.modules.output._fhir_reference_data import (  # noqa: F401
     _ALLERGEN_RXNORM,
     _CONDITION_SHORT_NAME,
@@ -411,6 +414,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_conditions,
     _bb_allergies,
     _bb_occupation,
+    _bb_service_requests,
     _bb_labs,
     _bb_vitals,
     _bb_microbiology,
