@@ -447,6 +447,8 @@ def _simulate_patient(
     #   - modules/hai samples CLABSI / CAUTI / VAP onsets from device
     #     line-days (CDC NHSN baseline), appends MicrobiologyResult for
     #     culture, and writes list[HAIEvent] under extensions["hai"].
+    #   - modules/imaging derives ImagingStudyRecord (FHIR) from Order(IMAGING)
+    #     and writes list[ImagingStudyRecord] under extensions["imaging"].
     # Per-patient sub-seed via ENRICHER_SEED_OFFSETS so the main RNG is
     # untouched (AD-16).
     from clinosim.simulator.enrichers import (
@@ -454,6 +456,13 @@ def _simulate_patient(
         EnricherContext,
         run_stage,
     )
+
+    # Store disease_id in extensions for enrichers that need it (e.g. imaging
+    # enricher for impression template selection). Modules read via:
+    #   disease_id = (record.extensions or {}).get("_disease_id", "")
+    if not record.extensions:
+        record.extensions = {}
+    record.extensions["_disease_id"] = disease_id
 
     run_stage(
         POST_ENCOUNTER,

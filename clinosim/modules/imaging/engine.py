@@ -350,7 +350,15 @@ def imaging_enricher(ctx: Any) -> None:
         if not imaging_orders:
             continue
 
-        disease_id: str = _o(record, "disease_id", "") or ""
+        # disease_id: stored in extensions._disease_id by inpatient simulation
+        # (Task 8 fix: enrichers run after record creation, disease_id not in CIF core).
+        # Fallback to direct record.disease_id for tests (SimpleNamespace fixtures).
+        extensions = _o(record, "extensions", {}) or {}
+        disease_id: str = (
+            extensions.get("_disease_id", "")
+            or _o(record, "disease_id", "")
+            or ""
+        )
         severity: str = _o(record, "severity", "moderate") or "moderate"
         studies: list[ImagingStudyRecord] = list(
             (_o(record, "extensions", {}) or {}).get("imaging", [])
