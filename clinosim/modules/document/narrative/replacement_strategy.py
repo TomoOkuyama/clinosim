@@ -91,6 +91,20 @@ def _apply_template_seed_strategy(
 
     Sections not in llm_enabled_sections are passed through unchanged.
     Cache is checked before each provider call; hit → skip provider.
+
+    ★ Invariant for downstream consumers (e.g. Task 9 FHIR builders):
+      - ``sections[<key>]`` is the authoritative content for that section
+        (LLM-generated when ``llm_enabled_sections`` includes ``<key>``, else
+        template-generated).
+      - ``raw_text`` is preserved as the **unmodified template base** — DO NOT
+        treat ``raw_text`` as the authoritative narrative for COMPOSITION format
+        documents. ``raw_text`` is intended for FREE_TEXT documents only (e.g.
+        PROGRESS_NOTE), where no section replacement occurs and the full text is
+        rendered directly.
+      - If you need a flat reconstruction of all (possibly-replaced) sections,
+        join them: ``"\\n\\n".join(output.sections.values())``.
+      - When ``llm_enabled_sections`` is empty, no provider call is made and the
+        returned output is byte-identical to ``template_output`` (safe no-op).
     """
     # Build demographic bucket for cache key
     demo_bucket = demographics_bucket(ctx.patient)
