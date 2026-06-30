@@ -6,11 +6,30 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 # reference_data is in the same package: clinosim/modules/disease/reference_data/
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
+
+
+class ImagingOrderSpec(BaseModel):
+    """Imaging order entry inside DiseaseProtocol (Tier 1 #2 PR1).
+
+    One entry = one imaging study ordered at a specific day in the admission.
+    The imaging enricher (Task 4) uses ``abnormal_rate_by_severity`` to sample
+    whether the study is normal or abnormal and pick an impression template.
+    """
+
+    modality: str
+    body_site: str
+    views: list[str] = Field(default_factory=list)
+    urgency: str = "routine"
+    clinical_indication: str = ""
+    day: int = 0
+    contrast: bool = False
+    only_if_severity: list[str] = Field(default_factory=list)
+    abnormal_rate_by_severity: dict[str, float] = Field(default_factory=dict)
 
 
 class DiseaseProtocol(BaseModel):
@@ -64,6 +83,10 @@ class DiseaseProtocol(BaseModel):
     # overrides the patient's sampled glycemic_control for this admission so HbA1c is
     # coherently high even for new-onset diabetes (no prior E11 condition). AD-57.
     chronic_glycemic_control: float | None = None
+    # Imaging orders (Tier 1 #2 PR1, AD-56): list of imaging studies to place at
+    # specified admission days. Optional default = [] so existing disease YAMLs without
+    # imaging_orders: remain valid (no-op safe Pydantic optional field).
+    imaging_orders: list[ImagingOrderSpec] = Field(default_factory=list)
 
 
 def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
