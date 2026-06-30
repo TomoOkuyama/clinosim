@@ -34,6 +34,7 @@ from clinosim.modules.order.engine import (
     calculate_result_time_from_state,
     place_admission_orders,
     place_daily_lab_orders,
+    place_imaging_orders,
 )
 from clinosim.modules.physiology.engine import (
     apply_disease_onset,
@@ -210,6 +211,17 @@ def _simulate_patient(
         admission_time, country=country_key, rng=rng, ordered_by=attending_id,
     )
 
+    # Imaging orders from disease YAML imaging_orders[] (Tier 1 #2 PR1).
+    # Counter is threaded across admission (day=0) + daily loop (day>=1) to
+    # guarantee unique order_ids within the encounter.
+    imaging_seq_counter: dict[str, int] = {"I": 0}
+    adm_imaging = place_imaging_orders(
+        protocol, patient.patient_id, encounter.encounter_id,
+        admission_time, day_index=0, severity=severity, rng=rng,
+        sequence_counter=imaging_seq_counter,
+    )
+    admission_orders.extend(adm_imaging)
+
     # Home medication orders (chronic condition continuation)
     home_med_orders, chronic_monitoring = _generate_home_medication_orders(
         patient, encounter.encounter_id, admission_time, attending_id, rng,
@@ -279,6 +291,7 @@ def _simulate_patient(
         encounter_id=encounter.encounter_id,
         department=department,
         severity=severity,
+        imaging_seq_counter=imaging_seq_counter,
     )
 
     # Unpack results
@@ -527,10 +540,15 @@ def _run_daily_loop(
     department: str = "internal_medicine",
     severity: str = "moderate",
     encounter_id: str = "",
+    imaging_seq_counter: dict[str, int] | None = None,
 ) -> dict:
     """Run the day-by-day simulation loop. Returns all generated data."""
 
     all_orders = list(admission_orders)
+    # Thread imaging sequence counter from caller (initialized at day=0 in
+    # simulate_inpatient_encounter). Fallback to {"I": 0} for callers that
+    # don't pass it (backward-compat for direct test calls of _run_daily_loop).
+    _img_seq: dict[str, int] = imaging_seq_counter if imaging_seq_counter is not None else {"I": 0}
     all_lab_results: list[OrderResult] = []
     all_vitals: list[VitalSignRecord] = []
     all_mars: list[MedicationAdministration] = []
@@ -619,6 +637,16 @@ def _run_daily_loop(
                 freq_mod, rng, ordered_by=attending_id,
             )
             all_orders.extend(daily_orders)
+
+            # Imaging orders for day >= 1 (day=0 handled pre-loop in
+            # simulate_inpatient_encounter). Counter threads from admission
+            # call so IDs are unique across the full encounter.
+            daily_imaging = place_imaging_orders(
+                protocol, patient.patient_id, encounter_id,
+                admission_time, day_index=day, severity=severity, rng=rng,
+                sequence_counter=_img_seq,
+            )
+            all_orders.extend(daily_imaging)
 
         # Chronic condition monitoring labs (additional to disease protocol)
         if chronic_monitoring and day >= 1:
