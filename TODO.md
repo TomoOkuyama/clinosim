@@ -1398,6 +1398,9 @@ Suggested order: ~~microbiology+markers~~ ✅ → ~~nursing flowsheets~~ ✅ →
 ### Tier 1 #2 — ServiceRequest for IMAGING
 - Bundled with full Imaging chain (ImagingStudy + DiagnosticReport(rad) + Endpoint stub).
 
+### imaging chain JP language axis
+- **ModuleAuditSpec** lacks `jp_language_checks` field. `clinosim/modules/imaging/audit.py` deferred 6 JP language audit checks (modality / bodySite / DR.code / conclusion / text.div / SR.code displays in ja for JP cohort). When framework gains the field, wire these checks. Spec Section 9.4 brief includes the full list.
+
 ### Legacy IMAGING order emission sites need migration to Task 3 path
 - **Issue:** `clinosim/simulator/inpatient.py` lines 852, 1737, 1781 + `clinosim/simulator/emergency.py` line 183 emit Order(OrderType.IMAGING) without `imaging_modality` / `imaging_body_site_code`.
 - **Current workaround:** Task 4 imaging_enricher silently skips these via filter (test_enricher_skips_legacy_orders_without_imaging_metadata) to avoid breakage.
