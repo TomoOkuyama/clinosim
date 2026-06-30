@@ -159,4 +159,6 @@ _BUILTIN_URIS: dict[str, str] = {
     "us-core-documentreference-category":
         "http://hl7.org/fhir/us/core/CodeSystem/us-core-documentreference-category",
     "occupation-category": "http://clinosim.example.org/CodeSystem/occupation-category",
+    # DICOM code systems (Tier 1 #2 Imaging, PR1)
+    "dicom-modality": "http://dicom.nema.org/resources/ontology/DCM",
 }
