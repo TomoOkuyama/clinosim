@@ -53,6 +53,22 @@ class BundleContext:
     patient_sex: str
 
 
+def _escape_html(s: str) -> str:
+    """Escape HTML special characters for safe embedding in FHIR text.div.
+
+    Escapes &, <, >, " — sufficient for plain-text clinical content that
+    may contain lab values, units, or angle brackets (e.g. "PaO2 < 80 & SpO2 > 90").
+    Shared across _fhir_diagnostic_report.py and _fhir_composition.py (DRY, CLAUDE.md
+    unification rule — no inline duplication).
+    """
+    return (
+        s.replace("&", "&amp;")
+         .replace("<", "&lt;")
+         .replace(">", "&gt;")
+         .replace('"', "&quot;")
+    )
+
+
 def _micro_coding(system_key: str, code: str, lang: str) -> dict:
     """Build a coding with display resolved via codes (never display == code)."""
     coding: dict[str, Any] = {"system": get_system_uri(system_key), "code": code}

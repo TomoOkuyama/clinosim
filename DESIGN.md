@@ -2342,9 +2342,9 @@ schema was 3-field (allergen string only); upgrade to 8-field SNOMED-coded schem
 (allergen code + reaction manifestation + category + criticality + clinical status +
 verification status + onset period + note) per JP Core Allergy profile.
 
-**Decision:** Two new always-on POST_RECORDS Modules (same `enabled=lambda c: True`
+**Decision:** Two new always-on Modules (same `enabled=lambda c: True`
 pattern as device/hai/antibiotic/imaging):
-- `allergy` (order=65): replaces activator.py inline 15% allergy sampling with a
+- `allergy` (POST_POPULATION order=10): replaces activator.py inline 15% allergy sampling with a
   proper enricher that writes `PersonRecord.allergies: list[Allergy] | None`
   (None = not-yet-enriched sentinel; [] = no allergy after sampling). Produces
   SNOMED-coded `AllergyIntolerance` via new `_fhir_allergy_intolerance.py` builder.
@@ -2359,21 +2359,21 @@ required for Composition.section[] reconstruction) and `format_type: str` (dispa
 for builder selection: "free_text" vs "composition").
 
 Three new FHIR builders:
-- `_fhir_document_reference.py` (DOC_REFERENCE_ID_PREFIX = "doc-")
+- `_fhir_documents.py` (DOC_REFERENCE_ID_PREFIX = "doc-")
 - `_fhir_composition.py` (COMPOSITION_ID_PREFIX = "comp-")
 - `_fhir_clinical_impression.py` (CLINICAL_IMPRESSION_ID_PREFIX = "ci-")
 
 **Consequences:**
 - Stage 1 `generate` now emits 3 document-class FHIR resource types by default,
   closing the EHR sample dataset document-density gap without requiring `narrate`
-- Legacy `narrative_generator.py` / `document_generator.py` / activator.py allergy
-  block coexist until Task 15 migration (same branch, pending at ADR write time).
-  `fhir_r4_adapter.py:written_ids` dedup guard prevents double-emit.
+- Task 15 (same branch) completed the migration: legacy `narrative_generator.py` /
+  `document_generator.py` are deleted; activator.py allergy inline sampling is removed.
+  No dedup guard needed — no coexistence path remains.
 - CIF→FHIR no-drop invariant enforced via `ClinicalDocument.sections` field:
   Composition builder reads sections directly without re-parsing raw_text (Task 8
   fix lesson — "sections authoritative for COMPOSITION; raw_text for FREE_TEXT only")
 - AD-55 always-on Module count increases to 6 (device, hai, antibiotic, imaging,
-  allergy, document). POST_RECORDS stages: allergy=65 → document=95
+  allergy, document). Stages: allergy (POST_POPULATION order=10) → document (POST_ENCOUNTER order=95)
 - 17-check `lift_firing_proof` (AD-60 audit) verifies 4 canonical ID prefixes,
   4 emission gates, 3 ID-prefix format checks, 5 no-drop invariants (spec §3.4)
 - Future phases: α-min-2 (nursing narratives / ED note / SOAP note / Composition.author),

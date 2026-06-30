@@ -144,13 +144,16 @@ clinosim generate -o ./output \
   --hospital-config clinosim/config/hospital_small.yaml \
   -p 12000
 
-# === Stage 2: 臨床文書生成 (LLM) ===
-
-# 日本語ナラティブ (AWS Bedrock)
-clinosim narrate --cif-dir ./output/cif \
-  --llm-config clinosim/config/llm_service.bedrock.yaml \
-  --language ja \
-  --version-id bedrock_ja_v1
+# === Stage 2: 臨床文書生成 (DEPRECATED — 以下注意) ===
+# α-min-1 (2026-07-01) 以降、DocumentReference / Composition / ClinicalImpression は
+# Stage 1 (clinosim generate --format fhir-r4) で自動生成されます。
+# clinosim narrate サブコマンドは廃止済みでエラー終了します。
+# Stage 2 LLM ナラティブ統合は β-JP-1 chain に延期 (TODO.md 参照)。
+#
+# 旧 narrate コマンド例 (参照のみ — 現在は使用不可):
+#   clinosim narrate --cif-dir ./output/cif \
+#     --llm-config clinosim/config/llm_service.bedrock.yaml \
+#     --language ja --version-id bedrock_ja_v1
 
 # === Stage 3: FHIR Bulk Data 出力 ===
 
@@ -351,12 +354,9 @@ flowchart TD
         pop --> act --> enc --> loop --> cif_s
     end
 
-    subgraph stage2["Stage 2 — clinosim narrate"]
-        ext["hospital_course_extractor<br/>CIF から事実を確定的抽出"]
-        gen["document_generator<br/>Admission H&P (34117-2)<br/>Operative Note (11504-8)<br/>Procedure Note (28570-0)<br/>Discharge Summary (18842-5)<br/>Death Note (69730-0)"]
-        llm["LLMService.generate<br/>PromptRegistry (YAML)<br/>PromptCache (SHA256)<br/>Provider (Ollama / Bedrock / Mock)"]
-        cif_n["CIF narratives/&lt;version&gt;/documents/"]
-        ext --> gen --> llm --> cif_n
+    subgraph stage2["Stage 2 — clinosim narrate (廃止済)"]
+        gen2["document_enricher (document モジュール)<br/>Stage 1 組み込み: DR + Composition + ClinicalImpression<br/>テンプレートベース、完全決定論的"]
+        llm2["LLM ナラティブ統合は β-JP-1 chain に延期<br/>(narrate サブコマンド削除済)"]
     end
 
     subgraph stage3["Stage 3 — clinosim export-fhir"]
@@ -365,9 +365,7 @@ flowchart TD
         adapter --> fhir
     end
 
-    cif_s --> ext
     cif_s --> adapter
-    cif_n --> adapter
 ```
 
 ### Snapshot semantics

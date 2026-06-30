@@ -33,6 +33,7 @@ from clinosim.modules.imaging.engine import (
     load_body_sites,
 )
 from clinosim.modules.order.panel_grouping import load_panel_definitions
+from clinosim.modules.output._fhir_common import _escape_html
 from clinosim.modules.output._fhir_service_request import (
     LAB_CATEGORY_V2_0074,
     SR_ID_PREFIX,
@@ -345,20 +346,6 @@ def _bb_diagnostic_reports(ctx: Any) -> list[dict]:
         if report:
             resources.append(_build_radiology_dr(study, report, ctx))
     return resources
-
-
-def _escape_html(s: str) -> str:
-    """Escape HTML special characters for safe embedding in FHIR text.div.
-
-    Escapes &, <, >, " — sufficient for plain-text findings/impression
-    content that may contain lab values, units, or angle brackets.
-    """
-    return (
-        s.replace("&", "&amp;")
-         .replace("<", "&lt;")
-         .replace(">", "&gt;")
-         .replace('"', "&quot;")
-    )
 
 
 def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:

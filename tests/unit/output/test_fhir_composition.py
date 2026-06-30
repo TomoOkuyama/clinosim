@@ -201,11 +201,14 @@ def test_multiple_docs_only_composition_type_emitted():
         _sample_doc_dict(format_type="composition"),
         _sample_doc_dict(format_type="free_text"),
     ]
-    docs[0]["document_id"] = "doc-A"
+    # Use production-format document_id with DOC_REFERENCE_ID_PREFIX ("doc-"); I-3 fix
+    # strips "doc-" before prepending COMPOSITION_ID_PREFIX → "comp-enc-A" not "comp-doc-enc-A".
+    from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
+    docs[0]["document_id"] = f"{DOC_REFERENCE_ID_PREFIX}enc-A"
     ctx = _make_ctx(docs)
     resources = _bb_compositions(ctx)
     assert len(resources) == 1
-    assert resources[0]["id"] == f"{COMPOSITION_ID_PREFIX}doc-A"
+    assert resources[0]["id"] == f"{COMPOSITION_ID_PREFIX}enc-A"
 
 
 def test_multiple_composition_docs_all_emitted():
@@ -230,3 +233,52 @@ def test_jp_locale_composition_language_field():
     ctx = _make_ctx([doc], country="jp")
     r = _bb_compositions(ctx)[0]
     assert r["language"] == "ja"
+
+
+# --- I-1 regression: XHTML escaping in section text.div ---
+
+def test_composition_section_text_escapes_xhtml_special_chars():
+    """I-1 regression: section narrative text must escape <, >, &, " before
+    interpolation into xhtml div (latent FHIR R4 conformance gap).
+
+    Synthetic content with lab values: 'PaO2 < 80, PaCO2 > 45 & pH < 7.30'
+    must emit &lt;, &gt;, &amp; — raw characters would produce invalid XHTML.
+    """
+    doc = _sample_doc_dict()
+    doc["sections"] = {
+        "Clinical Assessment": 'PaO2 < 80, PaCO2 > 45 & pH < 7.30 "borderline"',
+    }
+    ctx = _make_ctx([doc])
+    r = _bb_compositions(ctx)[0]
+    section = r["section"][0]
+    div = section["text"]["div"]
+
+    # Raw special chars must NOT appear unescaped
+    assert " < " not in div, "Raw '<' in div — XHTML invalid"
+    assert " > " not in div, "Raw '>' in div — XHTML invalid"
+    assert " & " not in div, "Raw '&' in div — XHTML invalid"
+    assert '"borderline"' not in div, "Raw '\"' in div — XHTML invalid"
+
+    # Escaped forms must be present
+    assert "&lt;" in div
+    assert "&gt;" in div
+    assert "&amp;" in div
+    assert "&quot;" in div
+
+
+# --- I-3 regression: Composition.id double-prefix ---
+
+def test_composition_id_strips_doc_prefix_from_document_id():
+    """I-3 regression: production document_id carries 'doc-' prefix from
+    DOC_REFERENCE_ID_PREFIX. Composition.id must NOT double-prefix to
+    'comp-doc-{enc}-{seq}'; it should be 'comp-{enc}-{seq}'.
+    """
+    from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
+    doc = _sample_doc_dict()
+    doc["document_id"] = f"{DOC_REFERENCE_ID_PREFIX}enc-test-01"  # production format
+    ctx = _make_ctx([doc])
+    r = _bb_compositions(ctx)[0]
+    assert r["id"] == f"{COMPOSITION_ID_PREFIX}enc-test-01", (
+        f"Expected 'comp-enc-test-01', got '{r['id']}' — double-prefix defect"
+    )
+    assert "doc-" not in r["id"], "DOC_REFERENCE_ID_PREFIX leaked into Composition.id"
