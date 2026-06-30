@@ -257,3 +257,20 @@ def register_builtin_enrichers() -> None:
             run=imaging_enricher,
         )
     )
+
+    # Document module (Tier 1 #3 α-min-1, AD-55 always-on Module). Generates
+    # ClinicalDocument stubs (Stage 1 template text) + ClinicalImpressionRecord
+    # entries for each inpatient encounter. Locale-gated via specs_for_country().
+    # Order 95 ensures it runs after imaging (90) — document enricher is
+    # independent of the HAI / imaging cascades and runs last in POST_ENCOUNTER.
+    from clinosim.modules.document.engine import document_enricher
+
+    register_enricher(
+        Enricher(
+            name="document",
+            stage=POST_ENCOUNTER,
+            order=95,
+            enabled=lambda c: True,
+            run=document_enricher,
+        )
+    )
