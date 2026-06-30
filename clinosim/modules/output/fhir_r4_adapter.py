@@ -53,7 +53,10 @@ from clinosim.modules.output._fhir_diagnostic_report import (  # noqa: F401
     _bb_diagnostic_reports,
     build_lab_panel_reports,  # kept for backward compat (tests + external callers)
 )
-from clinosim.modules.output._fhir_documents import _build_document_reference  # noqa: F401
+from clinosim.modules.output._fhir_documents import (  # noqa: F401
+    _bb_document_references,
+    _build_document_reference,
+)
 from clinosim.modules.output._fhir_encounter import _build_encounter  # noqa: F401
 from clinosim.modules.output._fhir_facility import _build_facility_bundle  # noqa: F401
 from clinosim.modules.output._fhir_family_history import _build_family_history  # noqa: F401
@@ -446,6 +449,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _build_device,
     _build_device_use,
     _build_hai_conditions,
+    _bb_document_references,   # Task 10: DocumentReference from record.documents (free_text, §2.2)
     _bb_compositions,          # Task 9: Composition (section-structured H&P / Discharge)
 ]
 
