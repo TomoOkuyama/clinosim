@@ -158,25 +158,19 @@ clinosim generate -o ./output \
   --hospital-config clinosim/config/hospital_small.yaml \
   -p 12000
 
-# === Stage 2: clinical documents (optional — requires CIF from Stage 1) ===
-
-# Template mode (no LLM, deterministic, instant sanity check)
-clinosim narrate --cif-dir ./output/cif --version-id template_v1
-
-# Local Ollama
-clinosim narrate --cif-dir ./output/cif \
-  --llm-config clinosim/config/llm_service.yaml \
-  --version-id ollama_en_v1
-
-# Japanese documents via AWS Bedrock (requires EC2 + Bedrock access)
-clinosim narrate --cif-dir ./output/cif \
-  --llm-config clinosim/config/llm_service.bedrock.yaml \
-  --language ja \
-  --version-id bedrock_ja_v1
-
-# Only a subset of document types
-clinosim narrate --cif-dir ./output/cif \
-  --tasks discharge_summary,operative_note
+# === Stage 2: clinical documents (DEPRECATED — see note below) ===
+# As of α-min-1 (2026-07-01), DocumentReference / Composition / ClinicalImpression are
+# generated automatically during Stage 1 (clinosim generate --format fhir-r4).
+# The clinosim narrate subcommand is deprecated and will exit with an error.
+# Stage 2 LLM narrative integration is deferred to the β-JP-1 chain (see TODO.md).
+#
+# Legacy narrate examples (for reference only — these commands NO LONGER WORK):
+#   clinosim narrate --cif-dir ./output/cif --version-id template_v1
+#   clinosim narrate --cif-dir ./output/cif \
+#     --llm-config clinosim/config/llm_service.yaml --version-id ollama_en_v1
+#   clinosim narrate --cif-dir ./output/cif \
+#     --llm-config clinosim/config/llm_service.bedrock.yaml --language ja \
+#     --version-id bedrock_ja_v1
 
 # === Stage 3: FHIR Bulk Data export ===
 
@@ -496,12 +490,9 @@ flowchart TD
         pop --> act --> enc --> loop --> cif_s
     end
 
-    subgraph stage2["Stage 2 — clinosim narrate"]
-        ext["hospital_course_extractor<br/>deterministic fact extraction"]
-        gen["document_generator<br/>Admission H&P (34117-2)<br/>Operative Note (11504-8)<br/>Procedure Note (28570-0)<br/>Discharge Summary (18842-5)<br/>Death Note (69730-0)"]
-        llm["LLMService.generate<br/>PromptRegistry (YAML)<br/>PromptCache (SHA256)<br/>Provider (Ollama / Bedrock / Mock)"]
-        cif_n["CIF narratives/documents/"]
-        ext --> gen --> llm --> cif_n
+    subgraph stage2["Stage 2 — clinosim narrate (DEPRECATED)"]
+        gen2["document_enricher (document module)<br/>Stage 1 built-in: DR + Composition + ClinicalImpression<br/>template-based, fully deterministic"]
+        llm2["LLM narrative deferred to β-JP-1 chain<br/>(narrate subcommand removed)"]
     end
 
     subgraph stage3["Stage 3 — clinosim export-fhir"]
@@ -510,17 +501,15 @@ flowchart TD
         adapter --> fhir
     end
 
-    cif_s --> ext
     cif_s --> adapter
-    cif_n --> adapter
 ```
 
 **Why three stages?**
 
-- **Reproducibility** — Stage 1 is fully deterministic from a seed. Stage 2 is cached by SHA256(prompt). Stage 3 is a pure function of CIF.
-- **Cost control** — Stage 2 is the only stage that may call a paid LLM API. Bedrock runs can be isolated to a single EC2 invocation.
-- **Experimentation** — Multiple narrative versions (different models, different prompt versions) can be generated from the same structural CIF and compared.
-- **Remote execution** — Stage 2 can be run on a machine with network access to the LLM (e.g. EC2 for Bedrock), while Stage 1 and Stage 3 stay local.
+- **Reproducibility** — Stage 1 is fully deterministic from a seed (includes built-in document enricher). Stage 3 is a pure function of CIF.
+- **Extensibility** — Stage 2 LLM narrative integration (Ollama / Bedrock) is deferred to the β-JP-1 chain; the architecture is preserved for future wiring.
+- **Cost control** — When LLM narratives land, Stage 2 will be the only stage that may call a paid LLM API. Bedrock runs can be isolated to a single EC2 invocation.
+- **Remote execution** — Future Stage 2 can be run on a machine with network access to the LLM (e.g. EC2 for Bedrock), while Stage 1 and Stage 3 stay local.
 
 ### Snapshot Semantics
 
@@ -600,7 +589,6 @@ clinosim/
 │   │   ├── cif_writer.py              # CIF structural writer
 │   │   ├── fhir_r4_adapter.py         # FHIR R4 Bulk NDJSON (incl. DocumentReference)
 │   │   ├── csv_adapter.py             # CSV tables
-│   │   ├── document_generator.py      # ★ Stage 2: narrative CIF writer
 │   │   └── hospital_course_extractor.py  # ★ deterministic event extraction
 │   ├── llm_service/          # All LLM access (AD-11)
 │   │   ├── engine.py                  # LLMService, LLMTaskType, PatientSummary

@@ -101,7 +101,7 @@ def test_jp_document_reference_type_display_in_ja() -> None:
 def test_jp_allergy_intolerance_display_in_ja() -> None:
     """JP cohort: AllergyIntolerance.code.coding[0].display must be Japanese.
 
-    AllergyIntolerance from the Task 9 builder (id prefix 'allergy-{pid}-al-'):
+    AllergyIntolerance from the Task 9 builder (id prefix 'allergy-{pid}-{idx}'):
     SNOMED code → resolved via code_lookup("snomed-ct", code, "ja").
     Example: SNOMED 387207008 (Penicillin) → "ペニシリン".
     """

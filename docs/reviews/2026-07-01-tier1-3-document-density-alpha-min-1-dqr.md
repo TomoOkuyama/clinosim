@@ -12,7 +12,7 @@
 Tier 1 #3 α-min-1 closes the Stage 1 document density gap by:
 
 1. **DocumentReference** — free-text clinical documents (Admission H&P + daily Progress Note +
-   Discharge Summary templates) emitted via `clinosim/modules/document/` POST_RECORDS enricher
+   Discharge Summary templates) emitted via `clinosim/modules/document/` POST_ENCOUNTER enricher
    for all inpatient/ICU/rehab encounters. Base64-encoded text/plain content with LOINC coding.
 2. **Composition** — structured discharge summaries emitted as FHIR Composition with section[]
    breakdown (chief_complaint / hpi / physical_exam / hospital_course / discharge_medications /
@@ -26,11 +26,11 @@ Tier 1 #3 α-min-1 closes the Stage 1 document density gap by:
    that writes `PersonRecord.allergies: list[Allergy] | None` (None = not-yet-enriched sentinel,
    [] = no-allergy after sampling).
 
-This chain introduces 2 new always-on POST_RECORDS modules (`document` at order=95, `allergy` at
-order=65) and 3 new FHIR builder modules (`_fhir_document_reference.py`,
-`_fhir_composition.py`, `_fhir_clinical_impression.py`). The existing `_fhir_patient.py`
-AllergyIntolerance builder is preserved as a coexistence path until Task 15 migration; the
-`fhir_r4_adapter.py` `written_ids` dedup guard ensures no double-emit for matching IDs.
+This chain introduces 2 new always-on Modules: `allergy` (POST_POPULATION order=10) +
+`document` (POST_ENCOUNTER order=95), and 3 new FHIR builder modules (`_fhir_documents.py`,
+`_fhir_composition.py`, `_fhir_clinical_impression.py`). Task 15 (same branch) completed the
+migration: the legacy activator.py allergy inline block is removed, and `_fhir_patient.py`
+AllergyIntolerance dead code is superseded by `_fhir_allergy_intolerance.py`.
 
 ## Cohort run commands
 
@@ -75,7 +75,7 @@ clinosim audit run -d scratchpad/doc_alpha1_jp5k  > scratchpad/doc_alpha1_jp5k_a
 Prior to this chain, `clinosim generate` (Stage 1 without `narrate`) emitted 0
 DocumentReference resources. The `narrate` CLI subcommand existed for LLM-driven narrative
 generation, but Stage 1 had no default template-based document emission. This chain adds
-a new `document` module enricher (POST_RECORDS order=95) that:
+a new `document` module enricher (POST_ENCOUNTER order=95) that:
 
 - Emits a free-text DocumentReference for every inpatient-day of every inpatient/ICU/rehab
   encounter (Admission H&P on day 0, Progress Note on days 1..N-1, Discharge Summary on last day).

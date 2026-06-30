@@ -85,10 +85,11 @@ def _build_document_proof() -> dict[str, Any]:
     }
 
     # Synthetic composition ClinicalDocument (DISCHARGE_SUMMARY, LOINC 18842-5).
-    # _build_composition constructs id = f"{COMPOSITION_ID_PREFIX}{doc_id}"
-    # so document_id should NOT include the prefix (to avoid "comp-comp-...").
+    # Production document_id carries DOC_REFERENCE_ID_PREFIX ("doc-enc-proof-ds").
+    # _build_composition strips the "doc-" prefix before prepending COMPOSITION_ID_PREFIX,
+    # so Composition.id = "comp-enc-proof-ds" (I-3 fix verifies no double-prefix).
     composition_doc = {
-        "document_id": "enc-proof-ds",
+        "document_id": f"{DOC_REFERENCE_ID_PREFIX}enc-proof-ds",
         "task_type": "discharge_summary",
         "loinc_code": "18842-5",
         "patient_id": "pt-proof",

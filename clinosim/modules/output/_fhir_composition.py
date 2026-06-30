@@ -25,8 +25,8 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules.document import COMPOSITION_ID_PREFIX
-from clinosim.modules.output._fhir_common import BundleContext
+from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
+from clinosim.modules.output._fhir_common import BundleContext, _escape_html
 
 __all__ = [
     "COMPOSITION_ID_PREFIX",
@@ -57,9 +57,13 @@ def _build_composition(doc: Any, lang: str) -> dict[str, Any]:
     encounter_id = _o(doc, "encounter_id", "")
     language = _o(doc, "language", "en")
 
+    # Strip DOC_REFERENCE_ID_PREFIX ("doc-") before prepending COMPOSITION_ID_PREFIX
+    # ("comp-") so production ids ("doc-{enc}-{seq}") become "comp-{enc}-{seq}" instead
+    # of "comp-doc-{enc}-{seq}" (double-prefix defect, I-3 fix).
+    enc_part = doc_id[len(DOC_REFERENCE_ID_PREFIX):] if doc_id.startswith(DOC_REFERENCE_ID_PREFIX) else doc_id
     res: dict[str, Any] = {
         "resourceType": "Composition",
-        "id": f"{COMPOSITION_ID_PREFIX}{doc_id}",
+        "id": f"{COMPOSITION_ID_PREFIX}{enc_part}",
         "status": "final",
         "type": {
             "coding": [{
@@ -89,7 +93,7 @@ def _build_composition(doc: Any, lang: str) -> dict[str, Any]:
             "title": section_title,
             "text": {
                 "status": "generated",
-                "div": f"<div xmlns='http://www.w3.org/1999/xhtml'>{section_text}</div>",
+                "div": f"<div xmlns='http://www.w3.org/1999/xhtml'>{_escape_html(section_text)}</div>",
             },
         })
     if sections:
