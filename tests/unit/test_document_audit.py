@@ -159,3 +159,23 @@ def test_lift_firing_proof_includes_no_drop_invariants():
         f"Matching labels: {[label for label, _, _ in no_drop_checks]}\n"
         f"All labels: {[label for label, _, _ in checks]}"
     )
+
+
+@pytest.mark.unit
+def test_clinical_acceptance_has_5_spec_mandated_keys():
+    """Spec §9.3 mandates 5 separate clinical acceptance keys (per-doc-type
+    granularity for Task 12 DQR observed-rate computation)."""
+    discover()
+    spec = get_registered()["document_chain"]
+    expected_keys = {
+        "h_and_p_per_inpatient_encounter",
+        "progress_note_per_day_per_inpatient",
+        "discharge_summary_per_completed_inpatient",
+        "clinical_impression_per_day_per_inpatient",
+        "allergy_per_patient_distribution",
+    }
+    assert set(spec.clinical_acceptance.keys()) == expected_keys, (
+        f"clinical_acceptance keys mismatch.\n"
+        f"  Expected: {sorted(expected_keys)}\n"
+        f"  Got:      {sorted(spec.clinical_acceptance.keys())}"
+    )

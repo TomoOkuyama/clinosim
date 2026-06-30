@@ -301,18 +301,12 @@ register_audit_module(
         },
         lift_firing_proof=_build_document_proof,
         clinical_acceptance={
-            "doc_count_per_encounter": (
-                "Each inpatient encounter emits >= 1 DocumentReference (ADMISSION_HP or "
-                "PROGRESS_NOTE) and >= 1 Composition (DISCHARGE_SUMMARY); "
-                "n<30 DocumentReference count -> WARN per rare-event acceptance pattern."
-            ),
-            "clinical_impression_daily_coverage": (
-                "ClinicalImpression emitted for each inpatient day (day_index 0..LOS-1); "
-                "verified by Task 12 DQR gate audit run."
-            ),
-            "allergy_intolerance_distribution": (
-                "AllergyIntolerance emitted for each Allergy in patient.allergies; "
-                "medication category expected in >= 70% of allergy records."
+            "h_and_p_per_inpatient_encounter": "== 1",
+            "progress_note_per_day_per_inpatient": ">= 0.8",
+            "discharge_summary_per_completed_inpatient": "== 1",
+            "clinical_impression_per_day_per_inpatient": ">= 0.8",
+            "allergy_per_patient_distribution": (
+                "matches allergens.yaml prevalence ±0.05 (overall 15% ±0.05 baseline-calibrated Task 2)"
             ),
         },
     )
