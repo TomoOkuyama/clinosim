@@ -251,6 +251,14 @@ codes:
   '113697002':
     en: Stenotrophomonas maltophilia
     ja: ステノトロフォモナス・マルトフィリア
+  # === Body sites for Imaging (Tier 1 #2 PR1) ===
+  # Verified via SNOMED International browser (https://browser.ihtsdotools.org/).
+  '51185008':
+    en: Thoracic structure
+    ja: 胸部
+  '69536005':
+    en: Head structure
+    ja: 頭部
   # === Culture specimens (PR-B) ===
   # Blood / Urine / Sputum specimens already registered above (PR3
   # microbiology section); not duplicated here.

@@ -127,6 +127,12 @@ from clinosim.modules.output._fhir_reference_data import (  # noqa: F401
 from clinosim.modules.output._fhir_service_request import (  # noqa: F401
     _bb_service_requests,
 )
+from clinosim.modules.output._fhir_endpoint import (  # noqa: F401
+    _bb_endpoints,
+)
+from clinosim.modules.output._fhir_imaging_study import (  # noqa: F401
+    _bb_imaging_studies,
+)
 from clinosim.modules.output._fhir_smoking_alcohol import (  # noqa: F401
     _build_alcohol_use,
     _build_smoking_status,
@@ -406,6 +412,8 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_allergies,
     _bb_occupation,
     _bb_service_requests,
+    _bb_endpoints,           # Imaging: emit after SR, before ImagingStudy (reference resolve order)
+    _bb_imaging_studies,     # Imaging: emit after Endpoint (endpoint[] ref resolve)
     _bb_labs,
     _bb_vitals,
     _bb_microbiology,
