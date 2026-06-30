@@ -31,7 +31,7 @@ SUPPORTED_IMAGING_DISEASES: frozenset[str] = frozenset({
 
 
 def _validate_modalities(data: dict[str, Any]) -> None:
-    """Fail-loud validation of modalities.yaml (silent-no-op defense Layer 3-5)."""
+    """Fail-loud validation of modalities.yaml (silent-no-op defense Layer 3-6)."""
     if not data:
         raise ValueError("modalities.yaml: empty top-level")
     modalities = data.get("modalities")
@@ -117,6 +117,8 @@ def _validate_impression_templates(data: dict[str, Any]) -> None:
     Forward-coverage: every SUPPORTED_IMAGING_DISEASES entry must have a templates
     bucket. Each disease × modality_body_site bucket must have either 'normal' or
     'abnormal' (or both). Each leaf must carry findings_en/ja + impression_en/ja.
+    Reverse-coverage: no stale entries beyond SUPPORTED_IMAGING_DISEASES (silent-no-op
+    defense Layer 4 staleness check).
     """
     if not data:
         raise ValueError("impression_templates.yaml: empty top-level")
