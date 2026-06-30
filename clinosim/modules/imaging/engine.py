@@ -426,3 +426,9 @@ def imaging_enricher(ctx: Any) -> None:
             record.extensions = {}
             extensions = record.extensions
         extensions["imaging"] = studies
+
+    # Cleanup transient IPC key (Task 8 review I-1). _disease_id is set by
+    # inpatient.py for enricher consumption only; do NOT leak into FHIR output.
+    for record in ctx.records:
+        extensions = _o(record, "extensions", {}) or {}
+        extensions.pop("_disease_id", None)

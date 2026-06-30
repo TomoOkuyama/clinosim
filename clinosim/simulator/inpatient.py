@@ -460,6 +460,8 @@ def _simulate_patient(
     # Store disease_id in extensions for enrichers that need it (e.g. imaging
     # enricher for impression template selection). Modules read via:
     #   disease_id = (record.extensions or {}).get("_disease_id", "")
+    # Transient IPC key for inpatient simulator → enricher communication; cleaned up at
+    # end of enricher run (e.g. imaging_enricher); NOT included in FHIR output (AD-30).
     if not record.extensions:
         record.extensions = {}
     record.extensions["_disease_id"] = disease_id
