@@ -265,3 +265,43 @@ codes:
   # === Culture specimens (PR-B) ===
   # Blood / Urine / Sputum specimens already registered above (PR3
   # microbiology section); not duplicated here.
+
+  # === Allergen substances (Tier 1 #3 α-min-1 PR1, allergy module) ===
+  # Verified via SNOMED International browser
+  # (https://browser.ihtsdotools.org/), 2026-07-01.
+  '387207008':
+    en: Penicillin
+    ja: ペニシリン
+  '372687004':
+    en: Aspirin
+    ja: アスピリン
+  '303408005':
+    en: Sulfonamide        # FSN: Sulfonamide (substance) — common name: Sulfa drugs
+    ja: サルファ剤
+  '227037002':
+    en: Egg                # FSN: Egg (substance) — display: Eggs
+    ja: 卵
+  '256349002':
+    en: Wheat              # FSN: Wheat (substance)
+    ja: 小麦
+  '256262001':
+    en: Tree pollen        # FSN: Tree pollen (substance) — display: Pollen
+    ja: 花粉
+  '260219005':
+    en: House dust mite    # FSN: House dust mite (organism)
+    ja: ハウスダスト・ダニ
+
+  # === Allergic reaction manifestations (Tier 1 #3 α-min-1 PR1) ===
+  # Verified via SNOMED International browser, 2026-07-01.
+  '247472004':
+    en: Rash               # FSN: Rash (disorder)
+    ja: 発疹
+  '39579001':
+    en: Anaphylaxis        # FSN: Anaphylaxis (disorder)
+    ja: アナフィラキシー
+  '21719001':
+    en: Allergic rhinitis  # FSN: Allergic rhinitis (disorder)
+    ja: アレルギー性鼻炎
+  '21522001':
+    en: Abdominal pain     # FSN: Abdominal pain (finding)
+    ja: 腹痛
