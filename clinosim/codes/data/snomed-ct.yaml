@@ -17,11 +17,14 @@ codes:
   '277132007':
     en: Therapeutic procedure
     ja: 治療的処置
-  # === ServiceRequest category (PR1 lab orders) ===
+  # === ServiceRequest category (PR1 lab orders, Tier 1 #2 imaging orders) ===
   # Verified via SNOMED International browser (https://browser.ihtsdotools.org/).
   '108252007':
     en: Laboratory procedure
     ja: 臨床検査
+  '363679005':
+    en: Imaging procedure
+    ja: 画像診断
 
   # === Performer function (role) ===
   '304292004':
