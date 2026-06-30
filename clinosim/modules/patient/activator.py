@@ -13,14 +13,23 @@ import numpy as np
 from clinosim.modules.population.engine import PersonRecord, _sample_given_name
 from clinosim.modules.physiology.engine import hba1c_from_glycemic_control
 from clinosim.locale.loader import load_names
+from clinosim.types.allergy import Allergy, AllergyReaction
 from clinosim.types.patient import (
-    Allergy,
     BaselineVitals,
     ChronicCondition,
     PatientPhysiologicalProfile,
     PersonName,
     PatientProfile,
 )
+
+# Substance → SNOMED CT code mapping for legacy activator allergy sampling.
+# Task 15 will migrate this block to a dedicated allergy enricher module.
+_LEGACY_SUBSTANCE_SNOMED: dict[str, str] = {
+    "Penicillin": "387207008",
+    "Sulfonamide": "303408005",
+    "NSAIDs": "372687004",    # mapped to Aspirin SNOMED as closest match
+    "Cephalosporin": "318336004",  # TODO: verify 318336004 = Cephalosporin antibacterial
+}
 
 def _generate_stage(code: str, severity: str, rng: np.random.Generator) -> str:
     """Generate clinical staging text for a chronic condition by ICD code."""
@@ -196,12 +205,22 @@ def activate_patient(
         ))
 
     # Allergies (~15% have at least one)
+    # Task 15: migrate this block to allergy enricher module; activator becomes no-op.
     allergies = []
     if rng.random() < 0.15:
+        substance = str(rng.choice(["Penicillin", "Sulfonamide", "NSAIDs", "Cephalosporin"]))
         allergies.append(Allergy(
-            substance=str(rng.choice(["Penicillin", "Sulfonamide", "NSAIDs", "Cephalosporin"])),
-            reaction_type="rash",
-            severity="mild",
+            allergy_id=f"al-{person.person_id}-1",
+            allergen_code=_LEGACY_SUBSTANCE_SNOMED[substance],
+            allergen_display=substance,
+            category="medication",
+            criticality="low",
+            verification_status="confirmed",
+            reactions=[AllergyReaction(
+                manifestation_snomed="247472004",
+                manifestation_display="Rash",
+                severity="mild",
+            )],
         ))
 
     # Baseline vitals

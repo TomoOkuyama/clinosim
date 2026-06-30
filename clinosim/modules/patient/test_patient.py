@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from datetime import date
 
+from clinosim.types.allergy import Allergy, AllergyReaction
 from clinosim.types.patient import (
-    Allergy,
     BaselineVitals,
     ChronicCondition,
     PatientPhysiologicalProfile,
@@ -52,7 +52,19 @@ def create_test_patient() -> PatientProfile:
             ),
         ],
         allergies=[
-            Allergy(substance="Sulfonamide", reaction_type="rash", severity="mild"),
+            Allergy(
+                allergy_id="al-P-ALPHA-001-1",
+                allergen_code="303408005",
+                allergen_display="Sulfonamide",
+                category="medication",
+                criticality="low",
+                verification_status="confirmed",
+                reactions=[AllergyReaction(
+                    manifestation_snomed="247472004",
+                    manifestation_display="Rash",
+                    severity="mild",
+                )],
+            ),
         ],
         current_medications=["Amlodipine 5mg", "Metformin 500mg BID"],
         smoking_status="never",
