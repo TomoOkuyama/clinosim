@@ -72,4 +72,5 @@ class ImagingStudyRecord:
 
     endpoint_id: str = ""               # back-ref to Endpoint.id(1 study : 1 Endpoint)
 
+    contrast: bool = False               # True = contrast-enhanced CT (propagated from Order.imaging_spec_meta)
     report: RadiologyReport | None = None  # snapshot mid-study = None

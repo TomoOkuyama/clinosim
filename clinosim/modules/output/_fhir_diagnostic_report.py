@@ -29,6 +29,7 @@ from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.imaging.engine import (
     IMAGING_STUDY_ID_PREFIX,
     RADIOLOGY_REPORT_ID_PREFIX,
+    _resolve_imaging_procedure_code_key,
     load_body_sites,
 )
 from clinosim.modules.order.panel_grouping import load_panel_definitions
@@ -390,20 +391,28 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     started = _o(study, "started_datetime")
     started_iso = started.isoformat() if hasattr(started, "isoformat") else str(started or "")
 
-    # Procedure code resolution: match body_site + modality via body_sites.yaml.
+    # Procedure code resolution: contrast-aware via _resolve_imaging_procedure_code_key
+    # (canonical owner: imaging/engine.py). Replaces startswith() fallback that
+    # silently picks the wrong variant when CT_with_contrast is added (I-2 fix, 2026-06-30).
     body_sites = load_body_sites()
     proc_code = ""
     proc_display = ""
-    for bs_def in body_sites.values():
-        if bs_def["snomed"] == body_site_snomed:
-            # Find first procedure code whose key starts with the modality code
-            # (e.g. modality_code="CR" matches pc_key="CR_PA_Lateral").
-            for pc_key, pc in bs_def.get("procedure_codes", {}).items():
-                if pc_key.startswith(modality_code):
-                    proc_code = pc.get("loinc", "")
-                    proc_display = pc.get(f"display_{lang}") or pc["display_en"]
-                    break
+    _body_site_key: str | None = None
+    for _bsk, _bsv in body_sites.items():
+        if _bsv["snomed"] == body_site_snomed:
+            _body_site_key = _bsk
             break
+    if _body_site_key is not None:
+        try:
+            contrast: bool = bool(get_attr_or_key(study, "contrast", False))
+            code_key = _resolve_imaging_procedure_code_key(
+                modality_code, _body_site_key, [], contrast
+            )
+            _proc = (body_sites[_body_site_key].get("procedure_codes") or {}).get(code_key, {})
+            proc_code = _proc.get("loinc", "")
+            proc_display = _proc.get(f"display_{lang}") or _proc.get("display_en", "")
+        except ValueError:
+            pass  # Unknown combination — proc_code stays ""; forward-compat for new modalities
 
     # Locale-bound findings + impression text (JP cohort → ja fields).
     findings_text = (

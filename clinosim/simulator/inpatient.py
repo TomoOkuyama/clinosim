@@ -475,6 +475,14 @@ def _simulate_patient(
         ),
     )
 
+    # Cleanup transient IPC key _disease_id (I-6 fix, 2026-06-30). Moved here
+    # from imaging_enricher so cleanup is exception-safe (fires even if enricher
+    # raises mid-loop) and future POST_ENCOUNTER enrichers at order > 90 can
+    # still read _disease_id during run_stage. Underscore prefix signals transient
+    # IPC key; must NOT leak into FHIR output (AD-30).
+    if record.extensions:
+        record.extensions.pop("_disease_id", None)
+
     # AD-32 snapshot truncation for encounter-bound Modules. The earlier
     # filter (lines 386-390) ran BEFORE POST_ENCOUNTER, so device + HAI
     # outputs need their own snapshot pass: drop HAI events whose onset_date

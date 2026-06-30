@@ -52,7 +52,10 @@ def test_places_cr_chest_order_on_admission_day():
     assert o.clinical_intent == "Suspected pneumonia"
     # order_code must be the resolved procedure code (LOINC for default lookup, e.g. CR_PA_Lateral)
     assert o.order_code == "36572-6"   # LOINC for "Chest X-ray PA and Lateral"
-    assert o.imaging_spec_meta == {"abnormal_rate_by_severity": {"mild": 0.85, "moderate": 0.95, "severe": 1.0}}
+    assert o.imaging_spec_meta == {
+        "abnormal_rate_by_severity": {"mild": 0.85, "moderate": 0.95, "severe": 1.0},
+        "contrast": False,
+    }
 
 
 def test_skips_when_only_if_severity_unsatisfied():

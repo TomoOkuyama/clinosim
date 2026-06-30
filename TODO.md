@@ -1462,6 +1462,51 @@ The following FHIR fields / features were **explicitly out of scope** for the α
 - **Current workaround:** Task 4 imaging_enricher silently skips these via filter (test_enricher_skips_legacy_orders_without_imaging_metadata) to avoid breakage.
 - **Fix path:** Migrate these emission sites to use `place_imaging_orders` so they emit ImagingStudy + radiology DiagnosticReport + Endpoint resources through the normal Task 3/4 pipeline.
 - **Scope:** Out of scope for Tier 1 #2 PR1 (imaging chain α-min), track for follow-up sweep PR.
+- **TODO #1 (whole-branch review, 2026-06-30):** Legacy `bacterial_pneumonia.yaml:152-153` style
+  entries (`imaging: [Chest_Xray_PA_Lateral]`) still emit `Order(IMAGING)` without metadata, causing
+  ~17,691 orphan SRs in US p=10k cohort (98% of SR(RAD)). Migration plan:
+  (a) Extend imaging_chain audit module to flag orphan ratio > N% as WARN.
+  (b) Log a warning in enricher when IMAGING order lacks metadata (currently silent skip).
+  (c) Disease YAML migration sweep: replace `imaging: [name]` with `imaging_orders: [...]` for all
+  30 disease YAMLs. Sites: `bacterial_pneumonia.yaml` + all diseases with legacy `imaging:` field.
+
+### TODO #2 (whole-branch review, 2026-06-30): JP language audit gate
+- **ModuleAuditSpec** lacks `jp_language_checks` field. `clinosim/modules/imaging/audit.py` deferred
+  6 JP language audit checks (modality / bodySite / DR.code / conclusion / text.div / SR.code
+  displays in ja for JP cohort). When framework gains the field, wire these checks.
+  Spec Section 9.4 brief includes the full list. Extension proposal:
+  (a) Add `jp_language_checks: list[str]` field to `ModuleAuditSpec`.
+  (b) Wire into JP language axis dispatcher.
+  (c) Implement imaging_chain JP checks + add to other always-on Modules.
+
+### TODO #3 (whole-branch review, 2026-06-30): Adversarial fan-out chain deferred
+- Per memory `feedback_iterative_adversarial_review`, PR-class precedent calls for post-impl
+  5-lens parallel adversarial fan-out review. Imaging chain ran per-task reviews + 1 final
+  whole-branch review. Adversarial fan-out (5 reviewers × silent-no-op / data unification /
+  FHIR-JP Core / AD-16 + scale / spec adherence) deferred to post-merge per chain length +
+  user roadmap re-evaluation timing (memory `project_ehr_sample_dataset_roadmap`).
+
+### TODO #4 (whole-branch review, 2026-06-30): Spec deviations to document
+- Update spec `docs/superpowers/specs/2026-06-30-tier1-imaging-chain-design.md`:
+  (a) `ENRICHER_SEED_OFFSETS["imaging"] = 0x4947 ("IG")` — actual vs spec's 0x494D ("IM").
+  (b) `Order.imaging_spec_meta: dict[str, Any]` — 4th imaging field not in original spec.
+  (c) `RadiologyReport.findings_text_ja` / `impression_text_ja` — lang-keyed fields.
+
+### TODO #5 (whole-branch review, 2026-06-30): `views=[]` fallback edge in place_imaging_orders
+- `place_imaging_orders` increments `sequence_counter["I"]` even when views=[] and
+  `default_views_by_body_site` lookup fails for a modality+body_site combo. Future modality
+  additions could trip silently. Add `_validate_modalities` Layer-5 invariant: every
+  (modality, supported body_site) pair has a `default_views_by_body_site` entry.
+
+### TODO #6 (whole-branch review, 2026-06-30): Integration test population size
+- `run_generate("US", 100, 42, ...)` integration tests skip when no studies emit. n=100 is
+  fragile — raise to 200 where DQR shows enough disease distribution for stable coverage.
+  Files: `tests/integration/test_imaging_chain.py`, `test_imaging_basedon_coverage.py`, etc.
+
+### TODO #7 (whole-branch review, 2026-06-30): DQR phrasing "1/4 PASS" is misleading
+- DQR Axis 4 summary had "1/4 PASS" when structural/jp_language axes are N/A (not applicable).
+  Replace with explicit "clinical PASS + silent_no_op PASS (structural/jp_language N/A — no
+  module-specific gates)" to clarify the 4-axis accounting. Fixed to "2/4 PASS" post I-3 fix.
 
 ### Out-of-scope permanent — ServiceRequest for MEDICATION
 - FHIR `MedicationRequest` is the correct resource; ServiceRequest not used.

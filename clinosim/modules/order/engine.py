@@ -12,7 +12,11 @@ from typing import Any
 import numpy as np
 
 from clinosim.modules._shared import get_attr_or_key as _s
-from clinosim.modules.imaging.engine import load_body_sites, load_modalities
+from clinosim.modules.imaging.engine import (
+    _resolve_imaging_procedure_code_key,
+    load_body_sites,
+    load_modalities,
+)
 from clinosim.modules.order.panel_grouping import classify_lab_specs, load_panel_definitions
 from clinosim.types.encounter import Order, OrderStatus, OrderType
 
@@ -25,27 +29,6 @@ _FREQ_PER_DAY: dict[str, int] = {
     "q4h": 6, "q3h": 8, "q2h": 12,
     "continuous": 24, "drip": 24,
 }
-
-
-def _resolve_imaging_procedure_code_key(
-    modality: str, body_site: str, views: list[str], contrast: bool,
-) -> str:
-    """Resolve (modality, body_site, views, contrast) → procedure_codes key.
-
-    PR1 mapping:
-      - CR + chest + (PA + Lateral) → "CR_PA_Lateral"
-      - CT + any body_site + non-contrast → "CT_non_contrast"
-      - CT + any body_site + contrast → "CT_with_contrast"
-    Future modalities / variants extend this map.
-    """
-    if modality == "CR" and body_site == "chest":
-        return "CR_PA_Lateral"
-    if modality == "CT":
-        return "CT_with_contrast" if contrast else "CT_non_contrast"
-    raise ValueError(
-        f"Unsupported imaging combination: modality={modality} "
-        f"body_site={body_site} views={views} contrast={contrast}"
-    )
 
 
 def place_imaging_orders(
@@ -141,7 +124,7 @@ def place_imaging_orders(
             imaging_modality=modality_key,
             imaging_body_site_code=body_site["snomed"],
             imaging_views=views,
-            imaging_spec_meta={"abnormal_rate_by_severity": abnormal_rate},
+            imaging_spec_meta={"abnormal_rate_by_severity": abnormal_rate, "contrast": contrast},
         )
         orders.append(order)
 

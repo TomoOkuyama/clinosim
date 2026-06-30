@@ -82,9 +82,17 @@ class Cohort:
     def countries(self) -> list[str]:
         if not self.root.exists():
             return []
-        return sorted(
+        multi = sorted(
             p.name for p in self.root.iterdir() if p.is_dir() and (p / "fhir_r4").exists()
         )
+        if multi:
+            return multi
+        # Flat layout: single-country cohort generated without country subdir
+        # (e.g. <root>/fhir_r4/*.ndjson). Return "" so ndjson("", resource)
+        # resolves to root/fhir_r4/ (Path / "" / "..." = Path / "..." on POSIX).
+        if (self.root / "fhir_r4").exists():
+            return [""]
+        return []
 
     def ndjson(self, country: str, resource: str) -> Iterator[dict]:
         path = self.root / country / "fhir_r4" / f"{resource}.ndjson"
