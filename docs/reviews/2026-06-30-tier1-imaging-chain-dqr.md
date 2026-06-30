@@ -148,7 +148,7 @@ Canonical constants verified in NDJSON:
 
 ## Test sweep results
 
-- **Unit tests**: 1,301 PASS, 6 skipped, 1 xfailed (7:22)
+- **Unit + integration tests**: 1,301 PASS, 6 skipped, 1 xfailed (7:22)
 - **Integration tests**: 199 PASS, 6 skipped, 1 xfailed (6:46) [from prior run in session]
 - **e2e tests**: 39 PASS (9:15)
 - **US 10k audit**: Overall PASS (imaging_chain 1/4 PASS, silent_no_op 15/15)
