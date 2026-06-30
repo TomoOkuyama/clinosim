@@ -97,6 +97,35 @@ def test_load_raises_on_missing_required_field() -> None:
         reg_module._validate_document_type_specs(bad_data)
 
 
+def test_load_raises_on_null_entry() -> None:
+    """6-layer validator Layer 3: per-bucket null entry raises ValueError."""
+    import clinosim.modules.document.narrative.registry as reg_module
+
+    bad_data = {
+        "specs": {
+            "admission_hp": None,  # null entry
+            "progress_note": {
+                "loinc_code": "11506-3",
+                "display_en": "Progress note",
+                "display_ja": "経過記録",
+                "format_type": "free_text",
+                "countries_supported": ["us", "jp"],
+                "generation_frequency": "daily",
+            },
+            "discharge_summary": {
+                "loinc_code": "18842-5",
+                "display_en": "Discharge summary",
+                "display_ja": "退院サマリ",
+                "format_type": "composition",
+                "countries_supported": ["us", "jp"],
+                "generation_frequency": "discharge_once",
+            },
+        }
+    }
+    with pytest.raises(ValueError, match="admission_hp.*empty entry"):
+        reg_module._validate_document_type_specs(bad_data)
+
+
 def test_load_raises_on_empty_countries_supported() -> None:
     """6-layer validator fires on empty countries_supported list."""
     import clinosim.modules.document.narrative.registry as reg_module
