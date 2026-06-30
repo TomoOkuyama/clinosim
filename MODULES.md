@@ -86,7 +86,7 @@ quality. See [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md)
 
 ## Module Inventory
 
-25 modules total. Click the `Module` link for the per-module README.
+26 modules total. Click the `Module` link for the per-module README.
 
 | Module | 役割 | Layer | 主 Dependencies | 主 Consumers | Tier |
 |---|---|---|---|---|---|
@@ -114,6 +114,7 @@ quality. See [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md)
 | [device](clinosim/modules/device/README.md) | ICU device placement (CVC / indwelling catheter / ventilator) | enrichment | types/codes | simulator/enrichers.py (POST_ENCOUNTER), output (_fhir_device.py), modules/hai | optional |
 | [hai](clinosim/modules/hai/README.md) | Hospital-acquired infection (CLABSI / CAUTI / VAP) via CDC NHSN baseline + Phase 3a WBC + CRP forward-delta lift + Phase 3b-2 antibiogram-driven S/I/R susceptibility population (`hai_antibiogram.yaml`); `MicrobiologyResult.hai_event_id` backref is **load-bearing for Phase 3b-3 antibiotic Pass 2 narrow / de-escalation consumer** | enrichment | types/codes + modules/device + modules/antibiotic (ANTIBIOTIC_LOINC_LOOKUP) + physiology.engine (Phase 3a) | simulator/enrichers.py (POST_ENCOUNTER), simulator/inpatient.py (apply_hai_lab_lift), output (_fhir_hai.py + reuses _fhir_microbiology.py), **modules/antibiotic enricher Pass 2 (Phase 3b-3)** | optional |
 | [antibiotic](clinosim/modules/antibiotic/README.md) | HAI empirical antibiotic regimen (IDSA 2009/2016) — emits MedicationRequest + MAR (Phase 3b-1, always-on); `ANTIBIOTIC_LOINC_LOOKUP` (Phase 3b-2) provides antibiotic key → LOINC for susceptibility Observations; **Phase 3b-3 narrow / de-escalation chain** (same enricher Pass 2, `narrow_ladder.yaml`, 3 outcomes SWITCH/ELIMINATION/NO_CHANGE, FHIR `MedicationRequest.status="stopped"`, audit clinical axis active enforcement of NHSN R-rate + empty rate + narrow rate) | enrichment | types/codes + modules/hai | simulator/enrichers.py (POST_ENCOUNTER order=85), output (reuses _fhir_medications.py), audit/axes/clinical.py | optional |
+| [imaging](clinosim/modules/imaging/README.md) | Imaging metadata-only chain (ImagingStudy + Endpoint + radiology DR + imaging SR dispatch); Tier 1 #2 always-on Module [AD-62] | enrichment | types/codes/locale + order | simulator/enrichers.py (POST_ENCOUNTER order=90), output (_fhir_imaging_study.py + _fhir_endpoint.py + _fhir_diagnostic_report.py radiology variant + _fhir_service_request.py imaging dispatch) | optional |
 | [output](clinosim/modules/output/README.md) | CIF → FHIR R4 NDJSON / CSV adapters (registry-based) | output | 全 module (via builders) | CLI (clinosim generate) | core |
 | [llm_service](clinosim/modules/llm_service/README.md) | optional narrative generation (Ollama/Bedrock/Anthropic) | output | codes | output (narrative path), simulator | optional |
 | [validator](clinosim/modules/validator/README.md) | data quality tier framework | output | types | CLI (clinosim validate) | optional |
@@ -160,6 +161,8 @@ care_level/     ├── types/, codes/, locale/
 sdoh/           └── codes/  (data-only variant, no enricher)
 device/         ├── types/, codes/
 hai/            ├── types/, codes/, modules/device, modules/antibiotic (ANTIBIOTIC_LOINC_LOOKUP)
+antibiotic/     ├── types/, codes/, modules/hai
+imaging/        ├── types/, codes/, locale/, modules/order
 
 output/         └── 全 module  (via _BUNDLE_BUILDERS + registry)
 llm_service/    └── codes/
@@ -178,7 +181,7 @@ simulator/  (top-level orchestration)
   ├── procedure/       (surgical/bedside)
   ├── staff/           (assignment)
   ├── facility/        (beds/wards)
-  ├── enrichers.py     (post_records: immunization/family_history/code_status/care_level/nursing)
+  ├── enrichers.py     (post_encounter: device/hai/antibiotic/imaging; post_records: immunization/family_history/code_status/care_level/nursing)
   └── output/          (CIF → FHIR/CSV)
 ```
 
