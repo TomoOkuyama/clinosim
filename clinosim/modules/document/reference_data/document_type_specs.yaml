@@ -1,0 +1,51 @@
+# DocumentTypeSpec registry source (α-min-1 scope = 3 doc types)
+# 後続 phase で追加 (本 chain では拡張禁止)
+# LOINC codes: 34117-2 / 11506-3 / 18842-5 (verified in clinosim/codes/data/loinc.yaml)
+
+specs:
+  admission_hp:
+    loinc_code: "34117-2"
+    display_en: "History and physical note"
+    display_ja: "入院時記録"
+    format_type: composition
+    countries_supported: [us, jp]
+    generation_frequency: admission_once
+    composition_sections:
+      - chief_complaint
+      - hpi
+      - past_medical_history
+      - medications_at_home
+      - allergies
+      - social_history
+      - family_history
+      - physical_examination
+      - assessment_and_plan
+    stage2_strategy: template_seed
+    llm_enabled_sections: [hpi, assessment_and_plan]
+
+  progress_note:
+    loinc_code: "11506-3"
+    display_en: "Progress note"
+    display_ja: "経過記録"
+    format_type: free_text
+    countries_supported: [us, jp]
+    generation_frequency: daily
+    stage2_strategy: template_only
+    llm_enabled_sections: []
+
+  discharge_summary:
+    loinc_code: "18842-5"
+    display_en: "Discharge summary"
+    display_ja: "退院サマリ"
+    format_type: composition
+    countries_supported: [us, jp]
+    generation_frequency: discharge_once
+    composition_sections:
+      - admission_summary
+      - hospital_course
+      - discharge_diagnoses
+      - discharge_medications
+      - discharge_instructions
+      - follow_up
+    stage2_strategy: template_seed
+    llm_enabled_sections: [hospital_course, discharge_instructions]
