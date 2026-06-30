@@ -70,6 +70,9 @@ def _build_composition(doc: Any, lang: str) -> dict[str, Any]:
         },
         "subject": {"reference": f"Patient/{patient_id}"},
         "date": authored_dt,
+        # TODO(Task 10/15): document enricher must always populate author_practitioner_id.
+        # FHIR R4 requires Composition.author 1..* — empty [] is non-conformant but
+        # acceptable for α-min-1 since Task 8 doesn't yet plumb practitioner refs.
         "author": [{"reference": f"Practitioner/{author_id}"}] if author_id else [],
         "title": loinc_display or loinc_code,
         "language": language,

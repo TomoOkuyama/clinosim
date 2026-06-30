@@ -36,7 +36,7 @@ __all__ = [
 def _bb_clinical_impressions(ctx: BundleContext) -> list[dict[str, Any]]:
     """Emit one ClinicalImpression per entry in extensions['clinical_impressions']."""
     ext = _o(ctx.record, "extensions", {}) or {}
-    impressions = ext.get("clinical_impressions") or []
+    impressions = _o(ext, "clinical_impressions", []) or []
     if not impressions:
         return []
     return [_build_clinical_impression(imp, ctx.patient_id) for imp in impressions]

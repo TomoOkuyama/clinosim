@@ -31,6 +31,7 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.codes import get_system_uri
+from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document import ALLERGY_ID_PREFIX
 from clinosim.modules.output._fhir_common import BundleContext
@@ -66,16 +67,17 @@ def _bb_allergy_intolerances(ctx: BundleContext) -> list[dict[str, Any]]:
     allergies = _o(patient_data, "allergies", []) or []
     if not allergies:
         return []
+    lang = "ja" if ctx.country.lower() == "jp" else "en"
     return [
         r for r in (
-            _build_allergy_intolerance(a, ctx.patient_id)
+            _build_allergy_intolerance(a, ctx.patient_id, lang)
             for a in allergies
         )
         if r is not None
     ]
 
 
-def _build_allergy_intolerance(allergy: Any, patient_id: str) -> dict[str, Any] | None:
+def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") -> dict[str, Any] | None:
     """Build one FHIR R4 AllergyIntolerance from an Allergy (dataclass or dict)."""
     allergen_code = _o(allergy, "allergen_code", "") or ""
     allergen_display = _o(allergy, "allergen_display", "") or ""
@@ -91,12 +93,21 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str) -> dict[str, Any] 
 
     snomed_system = get_system_uri("snomed-ct")
 
-    code: dict[str, Any] = {"text": allergen_display or allergen_code}
+    # Resolve allergen display via code_lookup (locale-aware).
+    # code_lookup returns the code itself when not found, so compare against
+    # allergen_code to detect "not found" and fall through to allergen_display.
+    if allergen_code:
+        _r = code_lookup("snomed-ct", allergen_code, lang)
+        resolved_display = _r if _r != allergen_code else (allergen_display or allergen_code)
+    else:
+        resolved_display = allergen_display or allergen_code
+
+    code: dict[str, Any] = {"text": resolved_display}
     if allergen_code:
         code["coding"] = [{
             "system": snomed_system,
             "code": allergen_code,
-            "display": allergen_display or allergen_code,
+            "display": resolved_display,
         }]
 
     ver_display = _VERIFICATION_STATUS_DISPLAY.get(verification_status, verification_status)
@@ -138,14 +149,21 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str) -> dict[str, Any] 
         manifestation_display = _o(rxn, "manifestation_display", "") or ""
         severity = _o(rxn, "severity", "mild") or "mild"
 
+        # Resolve manifestation display via code_lookup (locale-aware).
+        if manifestation_snomed:
+            _rm = code_lookup("snomed-ct", manifestation_snomed, lang)
+            resolved_manifestation = _rm if _rm != manifestation_snomed else (manifestation_display or manifestation_snomed)
+        else:
+            resolved_manifestation = manifestation_display
+
         manifestation: dict[str, Any] = {}
-        if manifestation_display:
-            manifestation["text"] = manifestation_display
+        if resolved_manifestation:
+            manifestation["text"] = resolved_manifestation
         if manifestation_snomed:
             manifestation["coding"] = [{
                 "system": snomed_system,
                 "code": manifestation_snomed,
-                "display": manifestation_display or manifestation_snomed,
+                "display": resolved_manifestation or manifestation_snomed,
             }]
 
         rxn_entry: dict[str, Any] = {

@@ -138,12 +138,14 @@ def test_criticality_high():
 
 
 def test_code_snomed_allergen():
+    # allergen_code "372687004" = Aspirin in SNOMED. code_lookup resolves to "Aspirin"
+    # (locale-aware, overrides the fixture's allergen_display "Amoxicillin").
     ctx = _make_ctx([_sample_allergy_dataclass()])
     r = _bb_allergy_intolerances(ctx)[0]
     coding = r["code"]["coding"][0]
     assert coding["code"] == "372687004"
     assert "snomed" in coding["system"].lower() or "snomed.info" in coding["system"]
-    assert r["code"]["text"] == "Amoxicillin"
+    assert r["code"]["text"] == "Aspirin"
 
 
 def test_patient_reference():
@@ -220,6 +222,39 @@ def test_no_reactions_omits_reaction_field():
     ctx = _make_ctx([a])
     r = _bb_allergy_intolerances(ctx)[0]
     assert "reaction" not in r
+
+
+# --- JP locale ---
+
+def test_jp_locale_resolves_snomed_display_to_ja():
+    """JP cohort: allergen_code 387207008 (Penicillin) resolved to ペニシリン via code_lookup."""
+    a = _sample_allergy_dataclass()
+    a.allergen_code = "387207008"
+    a.allergen_display = "Penicillin"
+    ctx = _make_ctx([a], country="JP")
+    r = _bb_allergy_intolerances(ctx)[0]
+    assert r["code"]["coding"][0]["display"] == "ペニシリン"
+    assert r["code"]["text"] == "ペニシリン"
+
+
+def test_jp_locale_resolves_reaction_manifestation_to_ja():
+    """JP cohort: manifestation_snomed 247472004 (Rash) resolved to 発疹 via code_lookup."""
+    a = _sample_allergy_dataclass()
+    a.allergen_code = "387207008"
+    a.allergen_display = "Penicillin"
+    a.reactions = [
+        AllergyReaction(
+            manifestation_snomed="247472004",
+            manifestation_display="Rash",
+            severity="moderate",
+        )
+    ]
+    ctx = _make_ctx([a], country="JP")
+    r = _bb_allergy_intolerances(ctx)[0]
+    rxn = r["reaction"][0]
+    manifestation = rxn["manifestation"][0]
+    assert manifestation["coding"][0]["display"] == "発疹"
+    assert manifestation["text"] == "発疹"
 
 
 # --- Multiple allergies ---
