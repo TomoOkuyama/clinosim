@@ -167,7 +167,9 @@ def document_enricher(ctx: Any) -> None:
                 continue  # AD-32: cancelled encounters produce no documents
 
             encounter_id: str = _o(encounter, "encounter_id", "") or ""
-            admission_dt: datetime = _o(encounter, "admission_datetime", datetime.now())
+            # AD-16: datetime.now() is non-deterministic; use fixed sentinel as fallback.
+            # In production every encounter has admission_datetime so this path is defensive.
+            admission_dt: datetime = _o(encounter, "admission_datetime", None) or datetime(2000, 1, 1)
             discharge_dt: datetime | None = _o(encounter, "discharge_datetime", None)
             attending_id: str = _o(encounter, "attending_physician_id", "") or ""
             is_in_progress = discharge_dt is None
@@ -203,6 +205,8 @@ def document_enricher(ctx: Any) -> None:
                         language=lang,
                         text=_narrative_to_text(output, spec.format_type),
                         text_source=output.metadata.get("generator", "template"),
+                        sections=dict(output.sections),
+                        format_type=spec.format_type.value,
                     ))
                     doc_seq += 1
 
@@ -231,6 +235,8 @@ def document_enricher(ctx: Any) -> None:
                             language=lang,
                             text=_narrative_to_text(output, spec.format_type),
                             text_source=output.metadata.get("generator", "template"),
+                            sections=dict(output.sections),
+                            format_type=spec.format_type.value,
                         ))
                         doc_seq += 1
 
@@ -260,6 +266,8 @@ def document_enricher(ctx: Any) -> None:
                         language=lang,
                         text=_narrative_to_text(output, spec.format_type),
                         text_source=output.metadata.get("generator", "template"),
+                        sections=dict(output.sections),
+                        format_type=spec.format_type.value,
                     ))
                     doc_seq += 1
 

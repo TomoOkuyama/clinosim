@@ -144,6 +144,14 @@ class ClinicalDocument:
     cache_hit: bool = False
     generated_at: str = ""
     fallback_reason: str = ""
+    # Tier 1 #3 α-min-1 PR1 Task 8 fix: preserve narrative sections for
+    # COMPOSITION format FHIR builders (Task 9). text field remains as the
+    # joined-string fallback for FREE_TEXT consumers / DocumentReference.
+    sections: dict[str, str] = field(default_factory=dict)
+    # Tier 1 #3 α-min-1 PR1 Task 8 fix: explicit FHIR resource shape hint
+    # for Task 9 dispatch. Values: "free_text" | "composition" |
+    # "questionnaire_response" (matches FormatType enum values).
+    format_type: str = ""
 
 
 @dataclass
