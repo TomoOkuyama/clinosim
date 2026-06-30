@@ -1,4 +1,4 @@
-"""ServiceRequest FHIR R4 builder (PR1: lab orders, panel-aware grouping).
+"""ServiceRequest FHIR R4 builder (PR1: lab + imaging orders).
 
 Reads CIF Orders (with ``order_type=OrderType.LAB`` and Order.panel_key
 populated by the order engine), emits one ServiceRequest per panel
@@ -7,13 +7,21 @@ uses the LOINC panel code (58410-2 for CBC etc.) sourced from
 ``lab_panel_groups.yaml``; stand-alone uses Order.order_code (individual
 LOINC for the analyte).
 
+For IMAGING orders, emits one ServiceRequest per Order (1 Order = 1 SR;
+multi-series is handled on the ImagingStudy side). Category uses SNOMED
+363679005 + HL7 v2-0074 RAD dual coding (AD-46). bodySite is populated
+from Order.imaging_body_site_code (SNOMED).
+
 Compliance:
-- US Core ServiceRequest profile (LAB category via SNOMED 108252007).
+- US Core ServiceRequest profile (LAB category via SNOMED 108252007;
+  Imaging category via SNOMED 363679005).
 - JP Core ServiceRequest profile (placerOrderNumber via v2-0203 PLAC
   identifier.type.coding).
 - Status aggregation rule (panel SR): any non-terminal member → active;
   all CANCELLED/STOPPED → revoked; otherwise (all terminal, at least one
   RESULTED/REVIEWED) → completed.
+- Imaging SR status: 1:1 mapping (PLACED/ACCEPTED/IN_PROGRESS → active;
+  CANCELLED/STOPPED → revoked; otherwise → completed).
 """
 
 from __future__ import annotations
@@ -34,6 +42,11 @@ SR_ID_PREFIX = "sr-"
 PLACER_ORDER_NUMBER_SYSTEM = "urn:clinosim:placer-order-number"
 LAB_CATEGORY_SNOMED = "108252007"
 LAB_CATEGORY_V2_0074 = "LAB"
+# === Imaging category constants (Tier 1 #2 PR1) ===
+# SNOMED CT 363679005 "Imaging procedure" — owner: this file (builder that emits imaging SRs).
+IMAGING_CATEGORY_SNOMED = "363679005"
+# HL7 v2-0074 "Radiology" — owner: this file.
+IMAGING_CATEGORY_V2_0074 = "RAD"
 # System URIs derived from the canonical registry (never hardcode per CLAUDE.md).
 V2_0203_SYSTEM = get_system_uri("hl7-v2-0203")
 V2_0074_SYSTEM = get_system_uri("hl7-diagnostic-service-section")
@@ -155,7 +168,11 @@ def order_to_sr_id(
 
 
 def _bb_service_requests(ctx: BundleContext) -> list[dict[str, Any]]:
-    """Builder entry point — emit ServiceRequest resources for LAB orders.
+    """Builder entry point — emit ServiceRequest resources for LAB + IMAGING orders.
+
+    Polymorphic dispatch (Tier 1 #2 PR1):
+    - LAB orders  → panel-aware grouping (existing PR1 path, unchanged).
+    - IMAGING orders → 1 Order = 1 SR (multi-series handled by ImagingStudy).
 
     Returns a list of raw FHIR ServiceRequest resources to be appended to
     the per-resource NDJSON files by ``_build_bundle``.
@@ -164,13 +181,27 @@ def _bb_service_requests(ctx: BundleContext) -> list[dict[str, Any]]:
     JSON-deserialized dicts (production CIF path via json.load).
     """
     orders: list[Any] = ctx.record.get("orders", []) or []
-    lab_orders = [
-        o for o in orders
-        if _o(o, "order_type") in (OrderType.LAB, "lab")
-    ]
-    if not lab_orders:
-        return []
+    resources: list[dict[str, Any]] = []
 
+    lab_orders = [o for o in orders if _o(o, "order_type") in (OrderType.LAB, "lab")]
+    if lab_orders:
+        resources.extend(_build_lab_service_requests(lab_orders, ctx))
+
+    imaging_orders = [
+        o for o in orders if _o(o, "order_type") in (OrderType.IMAGING, "imaging")
+    ]
+    if imaging_orders:
+        resources.extend(_build_imaging_service_requests(imaging_orders, ctx))
+
+    return resources
+
+
+def _build_lab_service_requests(lab_orders: list[Any], ctx: BundleContext) -> list[dict[str, Any]]:
+    """Emit ServiceRequest resources for LAB orders (PR1 panel-aware path).
+
+    Extracted from the original ``_bb_service_requests`` body — logic unchanged.
+    Accepts both Order dataclass instances and JSON-deserialized dicts.
+    """
     counter = build_panel_counter(lab_orders)
     panels = load_panel_definitions()
     country = ctx.country.lower()
@@ -195,6 +226,167 @@ def _bb_service_requests(ctx: BundleContext) -> list[dict[str, Any]]:
         sr = _build_standalone_sr(o, lang, country)
         resources.append(sr)
     return resources
+
+
+def _map_order_status_to_sr_status(status: Any) -> str:
+    """Map OrderStatus → SR.status for imaging (1:1 Order:SR, no aggregation).
+
+    Imaging SRs use simple 1:1 status mapping (unlike LAB panel SRs which
+    aggregate member statuses). Rule mirrors aggregate_panel_status but
+    operates on a single Order status value.
+
+    Accepts both OrderStatus enum instances (dataclass path) and plain
+    strings (JSON-deserialized dict path).
+    """
+    s = _status_value(status)
+    if s in _NON_TERMINAL_STATUSES or s == "":
+        return "active"
+    if s in _CANCELLED_STATUSES:
+        return "revoked"
+    return "completed"
+
+
+def _build_imaging_service_requests(orders: list[Any], ctx: BundleContext) -> list[dict[str, Any]]:
+    """Emit one ServiceRequest per IMAGING Order.
+
+    1 Order = 1 SR. Multi-series imaging (e.g. PA + Lateral CXR) is
+    modelled as multiple ImagingSeries under one ImagingStudy — the SR
+    references the study as a whole, not individual series.
+
+    Accepts both Order dataclass instances and JSON-deserialized dicts.
+    """
+    lang = "ja" if ctx.country.lower() == "jp" else "en"
+    country = ctx.country.lower()
+    return [
+        _build_imaging_sr(o, lang, country)
+        for o in sorted(orders, key=lambda x: _o(x, "order_id", ""))
+    ]
+
+
+def _build_imaging_sr(order: Any, lang: str, country: str) -> dict[str, Any]:
+    """Build one ServiceRequest resource for an IMAGING Order.
+
+    Accepts both Order dataclass instances and JSON-deserialized dicts
+    (production CIF path). Uses ``_o()`` for dual field access.
+
+    category: SNOMED 363679005 + HL7 v2-0074 RAD (AD-46 dual coding).
+    bodySite: SNOMED from imaging_body_site_code.
+    code: LOINC from order_code with display from body_sites.yaml when
+      the code is not in clinosim/codes/data/loinc.yaml (imaging LOINC
+      codes have limited ja entries; body_sites.yaml carries authoritative
+      display_ja / display_en for the supported procedure+modality combos).
+    """
+    # Lazy import avoids circular dependency at module level.
+    from clinosim.modules.imaging.engine import load_body_sites
+
+    sr_id = f"{SR_ID_PREFIX}{_o(order, 'order_id', '')}"
+    body_sites = load_body_sites()
+    body_site_snomed = _o(order, "imaging_body_site_code", "")
+    loinc_code = _o(order, "order_code", "")
+
+    body_site_display = ""
+    proc_display_from_bs = ""
+    for bs_def in body_sites.values():
+        if bs_def["snomed"] == body_site_snomed:
+            body_site_display = bs_def.get(f"display_{lang}") or bs_def["display_en"]
+            # Also try to find procedure display from procedure_codes for this
+            # body site — exact LOINC match preferred; first entry as fallback.
+            for pc in bs_def.get("procedure_codes", {}).values():
+                if pc.get("loinc") == loinc_code:
+                    proc_display_from_bs = pc.get(f"display_{lang}") or pc["display_en"]
+                    break
+            if not proc_display_from_bs:
+                # Fallback: first procedure_codes entry for this body site + lang.
+                for pc in bs_def.get("procedure_codes", {}).values():
+                    proc_display_from_bs = pc.get(f"display_{lang}") or pc["display_en"]
+                    break
+            break
+
+    # Display resolution: LOINC lookup → body_sites procedure display → Order.display_name.
+    # For imaging LOINC codes not in clinosim/codes/data/loinc.yaml, the lookup
+    # returns the code itself (not a meaningful display); body_sites.yaml is more
+    # authoritative for the supported (modality, body_site) combos.
+    raw_loinc_display = code_lookup("loinc", loinc_code, lang)
+    loinc_display = (
+        raw_loinc_display
+        if (raw_loinc_display and raw_loinc_display != loinc_code)
+        else (proc_display_from_bs or _o(order, "display_name", ""))
+    )
+
+    snomed_imaging_display = code_lookup("snomed-ct", IMAGING_CATEGORY_SNOMED, lang) or (
+        "画像診断" if lang == "ja" else "Imaging procedure"
+    )
+
+    # Fail-loud on empty subject/encounter (PR-90 lesson: "Patient/" is FHIR-invalid).
+    patient_id = _o(order, "patient_id", "")
+    encounter_id_val = _o(order, "encounter_id", "")
+    assert patient_id, f"_build_imaging_sr: patient_id must be non-empty (sr_id={sr_id!r})"
+    assert encounter_id_val, f"_build_imaging_sr: encounter_id must be non-empty (sr_id={sr_id!r})"
+
+    sr: dict[str, Any] = {
+        "resourceType": "ServiceRequest",
+        "id": sr_id,
+        "identifier": [{
+            "type": {
+                "coding": [{
+                    "system": V2_0203_SYSTEM,
+                    "code": "PLAC",
+                    "display": "Placer Identifier",
+                }],
+            },
+            "system": PLACER_ORDER_NUMBER_SYSTEM,
+            "value": _o(order, "order_id", ""),
+        }],
+        "status": _map_order_status_to_sr_status(_o(order, "status")),
+        "intent": "order",
+        "category": [{
+            "coding": [
+                {
+                    "system": SNOMED_CT_SYSTEM,
+                    "code": IMAGING_CATEGORY_SNOMED,
+                    "display": snomed_imaging_display,
+                },
+                {
+                    "system": V2_0074_SYSTEM,
+                    "code": IMAGING_CATEGORY_V2_0074,
+                    "display": "Radiology",
+                },
+            ],
+        }],
+        "priority": _PRIORITY_MAP.get(_o(order, "urgency", "routine"), "routine"),
+        "code": {
+            "coding": [{
+                "system": get_system_uri("loinc"),
+                "code": loinc_code,
+                "display": loinc_display,
+            }],
+            "text": _o(order, "display_name", ""),
+        },
+        "subject": {"reference": f"Patient/{patient_id}"},
+        "encounter": {"reference": f"Encounter/{encounter_id_val}"},
+    }
+
+    # bodySite: emit when imaging_body_site_code is populated.
+    if body_site_snomed:
+        sr["bodySite"] = [{
+            "coding": [{
+                "system": SNOMED_CT_SYSTEM,
+                "code": body_site_snomed,
+                "display": body_site_display,
+            }],
+        }]
+
+    # Optional fields
+    dt = _o(order, "ordered_datetime")
+    if dt is not None:
+        sr["authoredOn"] = dt.isoformat() if hasattr(dt, "isoformat") else str(dt)
+    ordered_by = _o(order, "ordered_by", "")
+    if ordered_by:
+        sr["requester"] = {"reference": f"Practitioner/{ordered_by}"}
+    clinical_intent = _o(order, "clinical_intent", "")
+    if clinical_intent:
+        sr["reasonCode"] = [{"text": clinical_intent}]
+    return sr
 
 
 def _build_panel_sr(
