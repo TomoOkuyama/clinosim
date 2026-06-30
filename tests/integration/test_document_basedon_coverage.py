@@ -51,6 +51,9 @@ def test_document_reference_subject_and_encounter_refs_resolve() -> None:
         assert any(d.get("subject") for d in drefs), (
             "No DocumentReference has a subject field — silent-no-op in builder"
         )
+        assert any(
+            dr.get("context", {}).get("encounter") for dr in drefs
+        ), "No DocumentReference has context.encounter — silent-no-op in builder?"
 
         dangling_subject: list[str] = []
         dangling_encounter: list[str] = []
@@ -106,6 +109,9 @@ def test_composition_subject_and_encounter_refs_resolve() -> None:
         assert any(c.get("subject") for c in comps), (
             "No Composition has a subject field — silent-no-op in builder"
         )
+        assert any(comp.get("encounter") for comp in comps), (
+            "No Composition has an encounter field — silent-no-op in builder?"
+        )
 
         dangling_subject: list[str] = []
         dangling_encounter: list[str] = []
@@ -155,6 +161,9 @@ def test_clinical_impression_subject_and_encounter_refs_resolve() -> None:
         )
         assert any(ci.get("subject") for ci in impressions), (
             "No ClinicalImpression has a subject field — silent-no-op in builder"
+        )
+        assert any(ci.get("encounter") for ci in impressions), (
+            "No ClinicalImpression has an encounter field — silent-no-op in builder?"
         )
 
         dangling_subject: list[str] = []
