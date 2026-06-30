@@ -2352,7 +2352,7 @@ pattern as device/hai/antibiotic/imaging):
   composition for Composition) via a `TemplateNarrativeGenerator` 5-step fallback chain.
   LLM-driven generation deferred (Task 15 will wire the existing LLM provider integration).
 
-CIF extension: `CIFPatientRecord.extensions["document"]` stores `list[ClinicalDocument]`;
+CIF storage: `CIFPatientRecord.documents` (typed field) stores `list[ClinicalDocument]`;
 `extensions["clinical_impressions"]` stores `list[ClinicalImpressionRecord]`. Core type
 `ClinicalDocument` gains two fields: `sections: dict[str, str]` (section name → text,
 required for Composition.section[] reconstruction) and `format_type: str` (dispatch key

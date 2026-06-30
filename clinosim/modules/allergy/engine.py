@@ -12,6 +12,7 @@ from typing import Any
 import numpy as np
 import yaml
 
+from clinosim.modules._shared import normalize_probabilities
 from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.allergy import Allergy, AllergyReaction
 
@@ -116,7 +117,10 @@ def allergy_enricher(ctx: Any) -> None:
             continue
 
         # category-weighted single-allergy (future: extend to multi-allergy)
-        category = str(rng.choice(categories, p=weights))
+        # normalize_probabilities guard: numpy.random.Generator.choice does NOT
+        # auto-normalize; YAML pre-normalization is fragile. Helper is idempotent
+        # on already-normalized arrays (CLAUDE.md AD-55 rule, PR-A 2026-06-26).
+        category = str(rng.choice(categories, p=normalize_probabilities(weights, fallback="raise")))
         entries = allergens[category]
         entry = entries[int(rng.integers(0, len(entries)))]
         reaction_entry = entry["common_reactions"][0]

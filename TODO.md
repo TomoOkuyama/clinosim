@@ -1735,8 +1735,8 @@ adversarial fan-out review.)
   should be `# Encounter (clinosim.types.encounter)`.
 - **Task 1 M-2**: misleading test name `test_narrative_context_default_constructible` —
   rename to `test_narrative_context_fully_specified_construction`.
-- **Task 2 M-1**: `normalize_probabilities` not used for `CATEGORY_WEIGHTS` in allergy enricher
-  (already sums to 1.0 but convention requires it).
+- **Task 2 M-1**: ~~`normalize_probabilities` not used for `CATEGORY_WEIGHTS` in allergy enricher~~
+  RESOLVED: G-1 fix (post-PR-128 adv fan-out) added `normalize_probabilities(weights, fallback="raise")` guard.
 - **Task 2 M-2**: reaction entry per-field validator absent (HAI `_validate_hai_organisms`
   pattern would be tighter).
 - **Task 3 M-1**: `field(default_factory=tuple)` → `= ()` simplification in frozen dataclass.
@@ -1749,8 +1749,79 @@ adversarial fan-out review.)
 - **Task 9 M-1**: `AllergyIntolerance.category` validation comment missing — add inline
   comment referencing FHIR R4 category binding.
 - **Task 10 M-1**: `import base64` module-level hoist (currently inline in builder function).
-- **Task 10 M-3**: `docStatus` assertion absent in test — add `docStatus` coverage to
-  DocumentReference unit test.
+- **Task 10 M-3**: `docStatus` was "preliminary" for all Stage 1 docs — E-1 fix (post-PR-128
+  adv fan-out) changed to unconditional "final". `docStatus` coverage was added to test update
+  in post-PR-128 composition test (assertion for `docStatus="final"` should be added to
+  `test_fhir_documents.py` to pin the Stage-1="final" invariant).
 - **Task 12 M-3**: dead code in determinism test.
 - **Task 12 M-4**: `"python"` literal in `_sr_helpers.py` should be `sys.executable`.
+
+## Tier 1 #3 α-min-1 post-merge adversarial fan-out findings (2026-07-01)
+
+5-lens parallel adversarial review of PR #128 surfaced 3 Critical + 15 Important. High-impact
++ low-risk subset applied in fix commit (post-PR-128 adversarial review branch). Deferred items:
+
+### Deferred Important findings
+
+- **Lens 1 I-2**: `_build_dref_from_clinical_doc` silently returns `None` on empty `text`
+  or missing `loinc_code`; consider adding a `warnings.warn()` or log so silent skips are
+  visible in production runs (currently only surfaced by `DocumentReference.ndjson` count
+  being lower than expected).
+
+- **Lens 2 I-1/I-2/I-3 (27-YAML boilerplate refactor)**: 27 disease YAML files each repeat
+  a `narrative.discharge_instructions` baseline block ("Diet: General diet as tolerated...").
+  Refactor: hoist shared baseline to `modules/document/reference_data/physical_exam_findings.yaml`
+  and `discharge_instructions.yaml`; keep only disease-specific overrides in each YAML.
+  Separate finding: `uncomplicated_improvement` archetype name in disease YAMLs does not
+  match `smooth_recovery` in some template generator branches — audit archetype name
+  consistency (`complicated_deterioration` / `uncomplicated_improvement` / `smooth_recovery`
+  across all 32 disease YAMLs + `template_generator.py` lookup paths).
+
+- **Lens 3 I-3 JP Composition.section.title locale dict**: `Composition.section[].title`
+  currently uses the English section key as-is (e.g. `"chief_complaint"`) for JP output.
+  Add a JP locale dict mapping section keys to Japanese titles (e.g. `"主訴"`) + wire it
+  in `_fhir_composition.py` section builder. Prerequisite: JP section.title spec in
+  β-JP-1 locale dict.
+
+- **Lens 4 I-1 LLMNarrativeGenerator singleton**: `LLMNarrativeGenerator` is instantiated
+  once per `document_enricher` call (per patient in POST_ENCOUNTER loop). At Stage 2
+  (β-JP-1) with real LLM calls, this incurs per-patient setup overhead. Refactor to module-
+  level singleton or pass the generator as a parameter from the enricher registry. Stage 1
+  (template-only) unaffected since constructor is lightweight.
+
+- **Lens 4 I-3 allergen prevalence field sampling**: `allergens.yaml` carries a `prevalence`
+  field per allergen entry (adult rate 0..1), validated at load time. Current enricher ignores
+  it and samples entries uniformly (`rng.integers(0, len(entries))`). Either implement
+  prevalence-weighted choice (more clinically realistic) OR remove the field from YAML and
+  validator to avoid misleading it is used. Deferring to α-min-2 allergy density phase.
+
+- **Lens 5 I-3 AD-30 allergen_display CIF field**: `Allergy.allergen_display` stores English
+  text (e.g. `"Penicillin"`), violating AD-30 (CIF stores codes only; display resolved at
+  output time via `clinosim.codes`). Pragmatic exception because `_fhir_allergy_intolerance.py`
+  uses `allergen_display` as fallback when SNOMED lookup yields no result. Options: (a) remove
+  the field and resolve display purely via `code_lookup("snomed-ct", allergen_code, lang)` at
+  FHIR export time; (b) document as pragmatic exception in CLAUDE.md with a `# noqa: AD-30`
+  comment. Strict fix preferred (option a) but requires verifying all emitted SNOMED codes are
+  in `codes/data/snomed-ct.yaml`.
+
+### Deferred Minor (stale doc cross-references)
+
+- **M-1 DESIGN.md ADR summary stale stage**: DESIGN.md ADR summary row for AD-63 says
+  "POST_RECORDS" but allergy is POST_POPULATION and document is POST_ENCOUNTER. Fix to
+  "POST_POPULATION (allergy, order=10) + POST_ENCOUNTER (document, order=95)".
+- **M-2 DQR Composition gap explanation stale**: DQR Known Limitations item 4 says
+  `author: []` for empty attending; now `Practitioner/UNKNOWN` placeholder (A-1 fix). Update.
+- **M-3 MODULES.md document row misclassification**: MODULES.md may classify the document
+  module as POST_RECORDS; correct to POST_ENCOUNTER order=95.
+- **M-4 fhir-data-generation-logic.md cross-refs stale**: check `docs/design-guides/` for
+  references to `extensions["document"]` or `docStatus="preliminary"` and update.
+- **M-5 DQR Known Limitations 4+5 stale post-Task-15**: post-Task-15 notes in DQR may
+  reference legacy activator.py allergy path (now deleted). Verify and remove stale references.
+- **M-6 C-1 archetype/severity not wired**: `document_enricher` now resolves `disease_protocol`
+  from `_disease_id` IPC key but still uses default `severity="moderate"` and
+  `clinical_course_archetype="uncomplicated_improvement"`. Wire `severity` and `archetype` by
+  storing them in `record.extensions["_severity"]` / `record.extensions["_archetype"]` in
+  `inpatient.py` alongside `_disease_id`, then read in `document_enricher` (same IPC pattern).
+  This activates the `physical_exam_findings[archetype][day_N]` and course-archetype-specific
+  assessment blocks in `template_generator.py`.
 
