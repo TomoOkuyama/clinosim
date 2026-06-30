@@ -52,7 +52,10 @@ def _build_composition(doc: Any, lang: str) -> dict[str, Any]:
 
     doc_id = _o(doc, "document_id", "")
     author_id = _o(doc, "author_practitioner_id", "")
-    authored_dt = _o(doc, "authored_datetime", "")
+    # FHIR R4 Composition.date 1..1 dateTime; empty string is invalid.
+    # Sentinel "2000-01-01T00:00:00" matches engine.py:172 admission_dt fallback
+    # so FHIR consumers see the same epoch value as the encounter.
+    authored_dt = _o(doc, "authored_datetime", "") or "2000-01-01T00:00:00"
     patient_id = _o(doc, "patient_id", "")
     encounter_id = _o(doc, "encounter_id", "")
     language = _o(doc, "language", "en")
@@ -71,13 +74,17 @@ def _build_composition(doc: Any, lang: str) -> dict[str, Any]:
                 "code": loinc_code,
                 "display": loinc_display or loinc_code,
             }],
+            "text": loinc_display or loinc_code,
         },
         "subject": {"reference": f"Patient/{patient_id}"},
         "date": authored_dt,
+        # FHIR R4 Composition.author cardinality 1..*; empty [] is non-conformant.
+        # Production fallback: inpatient.py:184 sets attending_id=DR-001 so this
+        # branch should never fire in production. Placeholder surfaces failures via
+        # reference integrity audit (dangling Practitioner/UNKNOWN) rather than
+        # silently emitting [] (non-conformant) or hiding the bug.
         # TODO(Task 10/15): document enricher must always populate author_practitioner_id.
-        # FHIR R4 requires Composition.author 1..* — empty [] is non-conformant but
-        # acceptable for α-min-1 since Task 8 doesn't yet plumb practitioner refs.
-        "author": [{"reference": f"Practitioner/{author_id}"}] if author_id else [],
+        "author": [{"reference": f"Practitioner/{author_id}"}] if author_id else [{"reference": "Practitioner/UNKNOWN"}],
         "title": loinc_display or loinc_code,
         "language": language,
     }

@@ -65,14 +65,16 @@ def _build_document_proof() -> dict[str, Any]:
     from clinosim.modules.output._fhir_documents import _bb_document_references
     from clinosim.modules.output._fhir_common import BundleContext
 
-    # Synthetic free-text ClinicalDocument (ADMISSION_HP, LOINC 34117-2).
+    # Synthetic free-text ClinicalDocument (PROGRESS_NOTE, LOINC 11506-3).
+    # This is the actual production free_text format (DocumentReference path).
+    # admission_hp is composition format in production (→ Composition, not DocumentReference).
     # document_id already carries DOC_REFERENCE_ID_PREFIX so _build_dref_from_clinical_doc
     # returns id == document_id (Stage 1 path; resource_id = _o(doc, "document_id", "")),
     # which starts with "doc-" (DOC_REFERENCE_ID_PREFIX).
     free_text_doc = {
         "document_id": f"{DOC_REFERENCE_ID_PREFIX}enc-proof-hp",
-        "task_type": "admission_hp",
-        "loinc_code": "34117-2",
+        "task_type": "progress_note",
+        "loinc_code": "11506-3",
         "patient_id": "pt-proof",
         "encounter_id": "enc-proof",
         "author_practitioner_id": "dr-proof",
@@ -269,7 +271,7 @@ def _build_document_proof() -> dict[str, Any]:
             (
                 "no_drop: ClinicalDocument.loinc_code -> DocumentReference.type.coding[0].code",
                 dref["type"]["coding"][0]["code"],
-                "34117-2",
+                "11506-3",
             ),
             (
                 "no_drop: patient.allergies[].allergen_code -> AllergyIntolerance.code.coding[0].code",
