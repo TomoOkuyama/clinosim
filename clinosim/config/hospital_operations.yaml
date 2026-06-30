@@ -14,6 +14,10 @@ recommended_population:
               # (Earlier 5K value based on bed density alone gave ~17% occupancy)
   default: 40000
 
+# Imaging infrastructure (WADO base URL for Endpoint emission)
+imaging:
+  wado_base_url: "https://wado.clinosim.example/dicomweb"
+
 # Available departments at this hospital (50-bed community hospital).
 # Granular sub-specialties roll up via department_rollup below.
 available_departments:
