@@ -446,12 +446,12 @@ IAM ポリシー例:
 
 | Caller | How | Impact |
 |---|---|---|
-| `modules/output/narrative_generator.py` | 退院サマリ・H&P 等の narrative 生成で LLM provider を呼出 | optional (narrative path) |
-| `modules/output/document_generator.py` | clinical document (discharge / death / op note 等) 生成 | optional |
-| `simulator/cli.py` | `--narrative` フラグ時に LLM service を起動 | optional (CLI) |
-| `tests/e2e/test_narrative_generation.py` | narrative pipeline e2e test | guard |
-| `tests/unit/test_clinical_documents.py` | document 生成 unit tests | guard |
+| `modules/document/engine.py` | document_enricher POST_ENCOUNTER で template/LLM 生成 | always-on |
+| `tests/unit/test_clinical_documents.py` | PromptRegistry / LLMService / hospital_course_extractor unit tests | guard |
 | `tests/unit/test_llm_service.py` | provider + cache unit tests | guard |
+
+Note: `narrative_generator.py` / `document_generator.py` は Task 15 で削除。`narrate` CLI subcommand は deprecated。
+Stage 2 LLM provider 統合は β-JP-1 chain に延期 (TODO.md)。
 
 ## 権威ソース
 

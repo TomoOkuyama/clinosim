@@ -3,11 +3,10 @@
 Reads CIF record.patient.allergies: list[Allergy] (Task 2 8-field schema).
 Emits one AllergyIntolerance resource per Allergy entry.
 
-Note: the legacy _fhir_patient._build_allergy_intolerance (3-field bare schema,
-reads patient_data["allergies"] as list[dict]) coexists with this builder;
-different IDs (allergy-{patient_id}-{index:02d} vs allergy-{patient_id}-{allergy_id}).
-Task 15 will clean up the legacy path. Both emit AllergyIntolerance resources
-and the FHIR de-dup in fhir_r4_adapter.write() deduplicates by id.
+This is the sole AllergyIntolerance emit path since Task 15.
+The legacy _fhir_patient._build_allergy_intolerance (3-field bare schema,
+`allergy-{patient_id}-{index:02d}` ID) was removed from _BUNDLE_BUILDERS in Task 15.
+_fhir_patient._build_allergy_intolerance is retained as a private utility but not called.
 
 No-drop invariant (CIF → FHIR):
   allergy_id           -> AllergyIntolerance.id (allergy- prefix + patient_id + allergy_id)

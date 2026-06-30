@@ -1407,7 +1407,15 @@ Suggested order: ~~microbiology+markers~~ ✅ → ~~nursing flowsheets~~ ✅ →
   AllergyIntolerance 8-field SNOMED upgrade. 2 always-on POST_RECORDS modules (`allergy` + `document`).
   3 new FHIR builders. silent_no_op 17/17 PASS. US p=10k + JP p=5k cohorts verified.
   DQR: `docs/reviews/2026-07-01-tier1-3-document-density-alpha-min-1-dqr.md`.
-  Task 15 (generator migration) pending at DQR write time (same branch).
+  Task 15 (generator migration / cleanup) completed on same branch.
+
+### Stage 2 LLM provider integration (β-JP-1 chain, deferred)
+- `narrate` CLI subcommand deprecated in Task 15. Stage 1 enricher (document_enricher
+  POST_ENCOUNTER) is the sole DocumentReference emit path.
+- Stage 2 = re-running LLM narrative over existing CIF for higher-quality text. Deferred to β-JP-1
+  chain (or later). Design: document_enricher should have a Stage 2 hook that accepts an LLMService
+  and overwrites template text with LLM output. The `narrate` subcommand may be re-introduced
+  pointing to this hook instead of the deleted document_generator.py.
 
 ### Imaging chain OOS formal entries (Tier 1 #2 PR1 scope-out)
 

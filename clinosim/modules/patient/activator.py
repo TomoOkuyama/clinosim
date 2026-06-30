@@ -13,7 +13,6 @@ import numpy as np
 from clinosim.locale.loader import load_names
 from clinosim.modules.physiology.engine import hba1c_from_glycemic_control
 from clinosim.modules.population.engine import PersonRecord, _sample_given_name
-from clinosim.types.allergy import Allergy, AllergyReaction
 from clinosim.types.patient import (
     BaselineVitals,
     ChronicCondition,
@@ -22,14 +21,7 @@ from clinosim.types.patient import (
     PersonName,
 )
 
-# Substance → SNOMED CT code mapping for legacy activator allergy sampling.
-# Task 15 will migrate this block to a dedicated allergy enricher module.
-_LEGACY_SUBSTANCE_SNOMED: dict[str, str] = {
-    "Penicillin": "387207008",
-    "Sulfonamide": "303408005",
-    "NSAIDs": "372687004",    # mapped to Aspirin SNOMED as closest match
-    "Cephalosporin": "318336004",  # TODO: verify 318336004 = Cephalosporin antibacterial
-}
+
 
 def _generate_stage(code: str, severity: str, rng: np.random.Generator) -> str:
     """Generate clinical staging text for a chronic condition by ICD code."""
@@ -204,34 +196,15 @@ def activate_patient(
             glycemic_control=glycemic_control,
         ))
 
-    # Allergies (~15% have at least one)
-    # Tier 1 #3 α-min-1: if the allergy enricher (POST_POPULATION) already populated
-    # person.allergies, use those directly (preserves enricher's calibrated sampling).
-    # Task 15: deprecate this activator block entirely; enricher becomes sole source.
+    # Allergies — allergy_enricher (POST_POPULATION, order=10) populates person.allergies
+    # before activate_patient is called in production (engine.py run_stage then _activate_cached).
+    # For the debug test-encounter CLI path (no enricher), default to empty list.
     person_allergies = getattr(person, "allergies", None)
-    # I-1 fix: must check is not None (not truthiness) so [] (enricher ran, no allergy)
-    # is distinct from None (enricher hasn't run → fall through to legacy sampling).
-    # Task 15 will delete the else: block entirely once enricher is sole source.
     if person_allergies is not None:
         allergies = list(person_allergies)  # enricher path — use as-is (incl. empty list)
     else:
-        # Legacy fallback path (removed by Task 15 once enricher is sole source)
+        # Enricher did not run (debug test-encounter path); no legacy sampling needed.
         allergies = []
-        if rng.random() < 0.15:
-            substance = str(rng.choice(["Penicillin", "Sulfonamide", "NSAIDs", "Cephalosporin"]))
-            allergies.append(Allergy(
-                allergy_id=f"al-{person.person_id}-1",
-                allergen_code=_LEGACY_SUBSTANCE_SNOMED[substance],
-                allergen_display=substance,
-                category="medication",
-                criticality="low",
-                verification_status="confirmed",
-                reactions=[AllergyReaction(
-                    manifestation_snomed="247472004",
-                    manifestation_display="Rash",
-                    severity="mild",
-                )],
-            ))
 
     # Baseline vitals
     hr_base = 72 if sex == "M" else 78
