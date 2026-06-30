@@ -138,8 +138,12 @@ def test_admission_hp_present_for_inprogress_encounters() -> None:
         else:
             # Accept partial coverage for rare-event safety (some in-progress encounters
             # may be outpatient / ED types excluded from α-min-1 scope).
-            assert not missing or len(missing) < len(in_progress_ids), (
-                f"{len(missing)}/{len(in_progress_ids)} in-progress encounters lack ADMISSION_HP"
+            # Threshold: ≤25% missing is acceptable; >25% signals silent enricher failure.
+            missing_rate = len(missing) / len(in_progress_ids)
+            assert missing_rate <= 0.25, (
+                f"{len(missing)}/{len(in_progress_ids)} in-progress encounters lack ADMISSION_HP "
+                f"(rate={missing_rate:.0%}, threshold=25%). Document enricher may not fire "
+                "for some in-progress encounter types or AD-32 path is broken."
             )
 
 
