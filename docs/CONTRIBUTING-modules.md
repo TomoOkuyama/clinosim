@@ -18,7 +18,13 @@
 
 ## 判断: Base か Module か
 
-新しいデータ/機能を追加するとき、最初に **Base (always-on, core を拡張)** か **opt-in Module (`SimulatorConfig.modules` + `config.module_enabled()` でゲート)** か **always-on Module = near-essential clinical cascade**(AD-55 PR3b-1 supplement、2026-06-25 追加: 上流 `extensions[X]` の存在を前提に clinically coherent な拡張を不可避的に出すモジュール。例 `device`/`hai`/`antibiotic`)を決めます (AD-55)。
+新しいデータ/機能を追加するとき、最初に **Base (always-on, core を拡張)** か **opt-in Module (`SimulatorConfig.modules` + `config.module_enabled()` でゲート)** か **always-on Module = near-essential clinical cascade**(AD-55 PR3b-1 supplement、2026-06-25 追加: 上流 `extensions[X]` の存在を前提に clinically coherent な拡張を不可避的に出すモジュール。例 `device`/`hai`/`antibiotic`/`imaging`)を決めます (AD-55)。
+
+**always-on Module 先例 (2026-06-30 時点):**
+- `device` (PR-A): ICU デバイス配置 (POST_ENCOUNTER order=70)
+- `hai` (PR-B): CDC NHSN HAI サンプリング (POST_ENCOUNTER order=80)。`extensions["device"]` の存在を前提。
+- `antibiotic` (PR3b-1): HAI 経験的抗菌薬 (POST_ENCOUNTER order=85)。`extensions["hai"]` の存在を前提。
+- `imaging` (Tier 1 #2, AD-62): 画像診断メタデータチェーン (POST_ENCOUNTER order=90)。disease YAML の `imaging_orders` が存在する encounter でのみ `extensions["imaging"]` を生成し、ImagingStudy + Endpoint + 放射線科 DR + imaging SR を emit する。upstream extensions に依存しない (device/hai とは独立)。
 
 ### 決定チェックリスト
 

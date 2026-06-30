@@ -1,10 +1,17 @@
-"""FHIR DiagnosticReport panel grouping (AD-56 builder).
+"""FHIR DiagnosticReport panel grouping + radiology variant (AD-56 builder).
 
 Post-hoc grouping of lab Observations into DiagnosticReport resources at
 emit time. Pure function over the CIF orders list: no RNG, no CIF schema
 read, no Observation-resource mutation. The bundle builder appends new
 ``dr-{panel}-{enc}-{seq}`` DRs after the existing microbiology ``dr-mb-*``
 DRs.
+
+Also emits radiology DiagnosticReports (Tier 1 #2 PR1) for ImagingStudy
+records that carry a RadiologyReport. Radiology DRs use SNOMED 394914008
++ HL7 v2-0074 RAD dual coding (AD-46). text.div narrative carries
+findings_text + impression_text (FHIR Radiology IG standard). conclusion
+= impression_text. conclusionCode emitted only when findings_codes non-empty
+(forward-compat slot for NLP/IE enrichment, PR1 default empty → gate skipped).
 
 Spec: docs/superpowers/specs/2026-06-22-diagnostic-report-panels-design.md
 
@@ -19,14 +26,30 @@ from typing import Any, NamedTuple
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as _codes_lookup
 from clinosim.modules._shared import get_attr_or_key
+from clinosim.modules.imaging.engine import (
+    IMAGING_STUDY_ID_PREFIX,
+    RADIOLOGY_REPORT_ID_PREFIX,
+    _resolve_imaging_procedure_code_key,
+    load_body_sites,
+)
 from clinosim.modules.order.panel_grouping import load_panel_definitions
 from clinosim.modules.output._fhir_service_request import (
     LAB_CATEGORY_V2_0074,
+    SR_ID_PREFIX,
     V2_0074_SYSTEM,
     build_panel_counter,
     order_to_sr_id,
 )
 from clinosim.types.encounter import OrderType
+
+# === Radiology DR constants (Tier 1 #2 PR1) ===
+# RADIOLOGY_REPORT_ID_PREFIX is canonical in imaging/engine.py; this alias
+# provides a stable import path for consumers of _fhir_diagnostic_report.
+RADIOLOGY_DR_ID_PREFIX = RADIOLOGY_REPORT_ID_PREFIX
+# SNOMED CT 394914008 "Radiology" — owner: this file (builder that emits radiology DRs).
+RADIOLOGY_CATEGORY_SNOMED = "394914008"
+# HL7 v2-0074 "Radiology" — owner: this file.
+RADIOLOGY_CATEGORY_V2_0074 = "RAD"
 
 
 def _o(obj: Any, name: str, default: Any = None) -> Any:
@@ -293,3 +316,175 @@ def build_lab_panel_reports(ctx) -> list[dict]:
         report["basedOn"] = [{"reference": f"ServiceRequest/{sid}"} for sid in sr_ids]
         out.append(report)
     return out
+
+
+# ---------------------------------------------------------------------------
+# Polymorphic bundle builder entry point (Tier 1 #2 PR1)
+# ---------------------------------------------------------------------------
+
+
+def _bb_diagnostic_reports(ctx: Any) -> list[dict]:
+    """Bundle builder (AD-56): emit LAB panel DRs + radiology DRs.
+
+    Dispatches to:
+    1. ``build_lab_panel_reports(ctx)`` — existing panel DR path (unchanged).
+    2. Radiology DR for each ImagingStudy with a non-None ``report`` field.
+
+    Returns resources in LAB-then-radiology order for stable NDJSON output.
+
+    Accepts both Order dataclass instances and JSON-deserialized dicts
+    (production CIF path). Uses _o() for dual dict/dataclass field access.
+    """
+    resources: list[dict] = []
+    # Existing LAB panel DR path (unchanged logic, delegated to existing function).
+    resources.extend(build_lab_panel_reports(ctx))
+    # Radiology DR for each ImagingStudy with a report.
+    studies = (_o(ctx.record, "extensions", {}) or {}).get("imaging") or []
+    for study in studies:
+        report = _o(study, "report")
+        if report:
+            resources.append(_build_radiology_dr(study, report, ctx))
+    return resources
+
+
+def _escape_html(s: str) -> str:
+    """Escape HTML special characters for safe embedding in FHIR text.div.
+
+    Escapes &, <, >, " — sufficient for plain-text findings/impression
+    content that may contain lab values, units, or angle brackets.
+    """
+    return (
+        s.replace("&", "&amp;")
+         .replace("<", "&lt;")
+         .replace(">", "&gt;")
+         .replace('"', "&quot;")
+    )
+
+
+def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
+    """Build one radiology DiagnosticReport resource for an ImagingStudy.
+
+    Canonical constant ownership (silent-no-op defense Layer 2):
+    - RADIOLOGY_DR_ID_PREFIX: this module (alias of RADIOLOGY_REPORT_ID_PREFIX
+      from imaging/engine.py — engine is the canonical owner).
+    - RADIOLOGY_CATEGORY_SNOMED / RADIOLOGY_CATEGORY_V2_0074: this module.
+    - SR_ID_PREFIX / IMAGING_STUDY_ID_PREFIX: imported from canonical owners.
+
+    No-drop invariant (CIF → FHIR):
+    - findings_text  → text.div (FHIR Radiology IG narrative requirement).
+    - impression_text → conclusion.
+    - findings_codes → conclusionCode when non-empty (PR1 default empty → gate skipped).
+    - started_datetime → effectiveDateTime + issued.
+    - order_id → basedOn[ServiceRequest].
+    - study_id → imagingStudy[ImagingStudy].
+
+    Accepts both ImagingStudyRecord dataclass instances and JSON-deserialized
+    dicts (production CIF path). Uses _o() for dual field access.
+    """
+    lang = "ja" if ctx.country.lower() == "jp" else "en"
+
+    rep_id = _o(report, "report_id", "")
+    study_id = _o(study, "study_id", "")
+    order_id = _o(study, "order_id", "")
+    body_site_snomed = _o(study, "body_site_snomed", "")
+    modality_code = _o(study, "modality_code", "")
+    started = _o(study, "started_datetime")
+    started_iso = started.isoformat() if hasattr(started, "isoformat") else str(started or "")
+
+    # Procedure code resolution: contrast-aware via _resolve_imaging_procedure_code_key
+    # (canonical owner: imaging/engine.py). Replaces startswith() fallback that
+    # silently picks the wrong variant when CT_with_contrast is added (I-2 fix, 2026-06-30).
+    body_sites = load_body_sites()
+    proc_code = ""
+    proc_display = ""
+    _body_site_key: str | None = None
+    for _bsk, _bsv in body_sites.items():
+        if _bsv["snomed"] == body_site_snomed:
+            _body_site_key = _bsk
+            break
+    if _body_site_key is not None:
+        try:
+            contrast: bool = bool(get_attr_or_key(study, "contrast", False))
+            code_key = _resolve_imaging_procedure_code_key(
+                modality_code, _body_site_key, [], contrast
+            )
+            _proc = (body_sites[_body_site_key].get("procedure_codes") or {}).get(code_key, {})
+            proc_code = _proc.get("loinc", "")
+            proc_display = _proc.get(f"display_{lang}") or _proc.get("display_en", "")
+        except ValueError:
+            pass  # Unknown combination — proc_code stays ""; forward-compat for new modalities
+
+    # Locale-bound findings + impression text (JP cohort → ja fields).
+    findings_text = (
+        _o(report, "findings_text_ja", "") if lang == "ja"
+        else _o(report, "findings_text", "")
+    )
+    impression_text = (
+        _o(report, "impression_text_ja", "") if lang == "ja"
+        else _o(report, "impression_text", "")
+    )
+
+    # Fall back to en text when ja fields are empty (e.g. test stubs).
+    if lang == "ja" and not findings_text:
+        findings_text = _o(report, "findings_text", "")
+    if lang == "ja" and not impression_text:
+        impression_text = _o(report, "impression_text", "")
+
+    # Build text.div (FHIR Narrative, Radiology IG requirement).
+    div = (
+        '<div xmlns="http://www.w3.org/1999/xhtml">'
+        f"<h5>Findings</h5><p>{_escape_html(findings_text)}</p>"
+        f"<h5>Impression</h5><p>{_escape_html(impression_text)}</p>"
+        "</div>"
+    )
+
+    snomed_radiology_display = _codes_lookup("snomed-ct", RADIOLOGY_CATEGORY_SNOMED, lang) or (
+        "放射線科" if lang == "ja" else "Radiology"
+    )
+
+    dr: dict = {
+        "resourceType": "DiagnosticReport",
+        "id": f"{RADIOLOGY_DR_ID_PREFIX}{rep_id}",
+        "status": _o(report, "status", "final"),
+        "text": {"status": "generated", "div": div},
+        "category": [{
+            "coding": [
+                {
+                    "system": get_system_uri("snomed-ct"),
+                    "code": RADIOLOGY_CATEGORY_SNOMED,
+                    "display": snomed_radiology_display,
+                },
+                {
+                    "system": V2_0074_SYSTEM,
+                    "code": RADIOLOGY_CATEGORY_V2_0074,
+                    "display": "Radiology",
+                },
+            ],
+        }],
+        "code": {
+            "coding": [{
+                "system": get_system_uri("loinc"),
+                "code": proc_code,
+                "display": proc_display,
+            }],
+            "text": proc_display,
+        },
+        "subject": {"reference": f"Patient/{_o(study, 'patient_id', '')}"},
+        "encounter": {"reference": f"Encounter/{_o(study, 'encounter_id', '')}"},
+        "basedOn": [{"reference": f"ServiceRequest/{SR_ID_PREFIX}{order_id}"}],
+        "imagingStudy": [{"reference": f"ImagingStudy/{IMAGING_STUDY_ID_PREFIX}{study_id}"}],
+        "conclusion": impression_text,
+    }
+
+    if started_iso:
+        dr["effectiveDateTime"] = started_iso
+        dr["issued"] = started_iso
+
+    # conclusionCode: emit only when findings_codes is populated (PR1 default: empty → skipped).
+    findings_codes = _o(report, "findings_codes", []) or []
+    if findings_codes:
+        dr["conclusionCode"] = [
+            {"coding": [{"system": get_system_uri("snomed-ct"), "code": code}]}
+            for code in findings_codes
+        ]
+    return dr

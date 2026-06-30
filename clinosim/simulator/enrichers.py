@@ -223,3 +223,21 @@ def register_builtin_enrichers() -> None:
             run=enrich_antibiotic,
         )
     )
+
+    # Imaging study enricher (Tier 1 #2, AD-55 always-on Module). Consumes
+    # Order(IMAGING) from record.orders; skips CANCELLED. Writes
+    # extensions["imaging"] = list[ImagingStudyRecord]. Order 90 ensures
+    # it runs after antibiotic (85) — imaging is independent of HAI cascade
+    # but runs last in the POST_ENCOUNTER stage to avoid interfering with
+    # WBC/CRP lab-lift logic.
+    from clinosim.modules.imaging.engine import imaging_enricher
+
+    register_enricher(
+        Enricher(
+            name="imaging",
+            stage=POST_ENCOUNTER,
+            order=90,
+            enabled=lambda c: True,
+            run=imaging_enricher,
+        )
+    )

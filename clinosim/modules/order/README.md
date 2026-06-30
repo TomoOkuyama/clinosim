@@ -113,6 +113,31 @@ BMP:
 SR の `basedOn[]` は同グループの Observation を参照。
 `authoredOn` はグループ共通 `ordered_datetime`。
 
+## 画像オーダー固有フィールド (Tier 1 #2, AD-62)
+
+`Order` dataclass に追加された imaging-specific フィールド群:
+
+| フィールド | 型 | セマンティクス |
+|---|---|---|
+| `imaging_modality` | `str` | DCM コード (CR / CT / MR / US / NM / ...) |
+| `imaging_body_site_code` | `str` | SNOMED CT 身体構造コード (例: 51185008 = 胸部構造) |
+| `imaging_views` | `list[str]` | ビューラベル (例: `["PA", "Lateral"]`)。Imaging enricher が ImagingStudy.series に展開する。空のときは `modalities.yaml:default_views_by_body_site` からフォールバック |
+| `imaging_spec_meta` | `dict` | 画像オーダー固有のメタデータ (例: `abnormal_rate_by_severity`)。Imaging enricher が DiagnosticReport 所見テンプレート選択に使用 |
+
+### FHIR ServiceRequest との契約 (imaging)
+
+`_fhir_service_request._build_imaging_service_requests` は IMAGING OrderType のオーダーを走査し:
+
+- `imaging_modality` が非空 → 通常の imaging SR を emit
+- `imaging_modality` が空 (legacy Chest_Xray / CT 等) → SR は emit されるが ImagingStudy は生成されない (imaging enricher がスキップ)
+- 1 Order = 1 SR。マルチシリーズ (PA + Lateral CXR 等) は 1 ImagingStudy の series[] で表現
+
+### `place_imaging_orders(protocol, patient_id, encounter_id, admission_time, rng) -> list[Order]`
+
+Disease YAML の `imaging_orders[]` から imaging-metadata-filled Order を生成する。
+各 Order に `imaging_modality` / `imaging_body_site_code` / `imaging_views` / `imaging_spec_meta` を設定するシングル編集ポイント (AD-62)。
+コールサイトで imaging_modality を直接セットしない — この関数経由のみ (classify_lab_specs / scenario_flags_from_protocol と同じ DRY パターン)。
+
 ## 権威ソース
 
 | データ | ソース |
