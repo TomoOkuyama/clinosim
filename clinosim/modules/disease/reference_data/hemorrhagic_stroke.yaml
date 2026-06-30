@@ -525,6 +525,19 @@ target_los:
     severe: {mean: 14, sd: 5, min: 7, max: 30}
 
 # ============================================================
+# IMAGING ORDERS
+# ============================================================
+imaging_orders:
+  - modality: CT
+    body_site: head
+    contrast: false
+    urgency: stat
+    clinical_indication: "Suspected intracranial hemorrhage"
+    day: 0
+    abnormal_rate_by_severity:
+      any: 1.0
+
+# ============================================================
 # OUTCOME BENCHMARKS
 # Source: AHA/ASA, Feigin et al. Lancet Neurol 2009, JP 脳卒中DB
 # ============================================================

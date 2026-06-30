@@ -535,6 +535,31 @@ target_los:
     severe: {mean: 12, sd: 4, min: 7, max: 21}
 
 # ============================================================
+# IMAGING ORDERS
+# ============================================================
+imaging_orders:
+  - modality: CR
+    body_site: chest
+    views: [PA, Lateral]
+    urgency: routine
+    clinical_indication: "Suspected aspiration pneumonia"
+    day: 0
+    abnormal_rate_by_severity:
+      mild: 0.80
+      moderate: 0.92
+      severe: 0.98
+  - modality: CT
+    body_site: chest
+    contrast: false
+    urgency: routine
+    clinical_indication: "Evaluate extent and rule out empyema"
+    day: 1
+    only_if_severity: [moderate, severe]
+    abnormal_rate_by_severity:
+      moderate: 0.88
+      severe: 0.98
+
+# ============================================================
 # OUTCOME BENCHMARKS
 # ============================================================
 outcome_benchmarks:

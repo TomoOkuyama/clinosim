@@ -517,6 +517,31 @@ target_los:
     moderate: {mean: 5, sd: 2, min: 3, max: 8}
     severe: {mean: 8, sd: 3, min: 5, max: 14}
 
+# ============================================================
+# IMAGING ORDERS
+# ============================================================
+imaging_orders:
+  - modality: CR
+    body_site: chest
+    views: [PA, Lateral]
+    urgency: routine
+    clinical_indication: "Suspected pneumonia, evaluate consolidation"
+    day: 0
+    abnormal_rate_by_severity:
+      mild: 0.85
+      moderate: 0.95
+      severe: 1.0
+  - modality: CT
+    body_site: chest
+    contrast: false
+    urgency: routine
+    clinical_indication: "Confirm extent of consolidation"
+    day: 1
+    only_if_severity: [moderate, severe]
+    abnormal_rate_by_severity:
+      moderate: 0.9
+      severe: 1.0
+
 # OUTCOME BENCHMARKS
 # For validating generated data against reality
 # ============================================================
