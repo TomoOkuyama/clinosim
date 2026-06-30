@@ -3,6 +3,10 @@
 
 recommended_population: 12000  # 10-bed clinic, ~80% occupancy
 
+# Imaging infrastructure (WADO base URL for Endpoint emission)
+imaging:
+  wado_base_url: "https://wado.clinosim.example/dicomweb"
+
 # Tiny clinic — only 内科 + 救急 + プライマリケア.
 # Surgical/orthopedic cases referred to larger hospital.
 available_departments:
