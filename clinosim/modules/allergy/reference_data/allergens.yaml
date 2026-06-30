@@ -1,0 +1,98 @@
+# Allergen catalog (PR1 scope = medication + food + environment 3 category)
+# Each entry: allergen_code (SNOMED CT) + display + prevalence (age-group reference)
+#             + criticality + common_reactions
+# Sampling: 15% patient overall_prob gate → category-weighted single allergy
+# 6-layer validator is applied in engine.py (_validate_allergens)
+#
+# SNOMED CT codes verified via SNOMED International browser
+# (https://browser.ihtsdotools.org/) and tx.fhir.org $lookup, 2026-07-01.
+# Allergen substance codes: SNOMED CT International edition.
+# Reaction manifestation codes: SNOMED CT findings / disorders.
+
+allergens:
+  medication:
+    - allergen_code: "387207008"
+      allergen_display_en: "Penicillin"
+      allergen_display_ja: "ペニシリン"
+      prevalence:
+        adult: 0.08              # 8% population
+      criticality: high
+      common_reactions:
+        - manifestation_snomed: "247472004"
+          manifestation_display_en: "Rash"
+          manifestation_display_ja: "発疹"
+          severity: mild
+        - manifestation_snomed: "39579001"
+          manifestation_display_en: "Anaphylaxis"
+          manifestation_display_ja: "アナフィラキシー"
+          severity: severe
+    - allergen_code: "372687004"
+      allergen_display_en: "Aspirin"
+      allergen_display_ja: "アスピリン"
+      prevalence:
+        adult: 0.03
+      criticality: low
+      common_reactions:
+        - manifestation_snomed: "247472004"
+          manifestation_display_en: "Rash"
+          manifestation_display_ja: "発疹"
+          severity: mild
+    - allergen_code: "303408005"
+      allergen_display_en: "Sulfa drugs"
+      allergen_display_ja: "サルファ剤"
+      prevalence:
+        adult: 0.03
+      criticality: high
+      common_reactions:
+        - manifestation_snomed: "247472004"
+          manifestation_display_en: "Rash"
+          manifestation_display_ja: "発疹"
+          severity: moderate
+
+  food:
+    - allergen_code: "227037002"
+      allergen_display_en: "Eggs"
+      allergen_display_ja: "卵"
+      prevalence:
+        adult: 0.02
+      criticality: low
+      common_reactions:
+        - manifestation_snomed: "247472004"
+          manifestation_display_en: "Rash"
+          manifestation_display_ja: "発疹"
+          severity: mild
+    - allergen_code: "256349002"
+      allergen_display_en: "Wheat"
+      allergen_display_ja: "小麦"
+      prevalence:
+        adult: 0.01
+      criticality: low
+      common_reactions:
+        - manifestation_snomed: "21522001"
+          manifestation_display_en: "Abdominal pain"
+          manifestation_display_ja: "腹痛"
+          severity: mild
+
+  environment:
+    - allergen_code: "256262001"
+      allergen_display_en: "Pollen"
+      allergen_display_ja: "花粉"
+      prevalence:
+        adult: 0.20              # 20% — 高頻度
+      criticality: low
+      common_reactions:
+        - manifestation_snomed: "21719001"
+          manifestation_display_en: "Allergic rhinitis"
+          manifestation_display_ja: "アレルギー性鼻炎"
+          severity: mild
+    - allergen_code: "260219005"
+      allergen_display_en: "House dust mite"
+      allergen_display_ja: "ハウスダスト・ダニ"
+      prevalence:
+        adult: 0.15
+      criticality: low
+      common_reactions:
+        - manifestation_snomed: "21719001"
+          manifestation_display_en: "Allergic rhinitis"
+          manifestation_display_ja: "アレルギー性鼻炎"
+          severity: mild

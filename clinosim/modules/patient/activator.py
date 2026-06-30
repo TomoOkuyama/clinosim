@@ -10,16 +10,16 @@ from datetime import date
 
 import numpy as np
 
-from clinosim.modules.population.engine import PersonRecord, _sample_given_name
-from clinosim.modules.physiology.engine import hba1c_from_glycemic_control
 from clinosim.locale.loader import load_names
+from clinosim.modules.physiology.engine import hba1c_from_glycemic_control
+from clinosim.modules.population.engine import PersonRecord, _sample_given_name
 from clinosim.types.allergy import Allergy, AllergyReaction
 from clinosim.types.patient import (
     BaselineVitals,
     ChronicCondition,
     PatientPhysiologicalProfile,
-    PersonName,
     PatientProfile,
+    PersonName,
 )
 
 # Substance → SNOMED CT code mapping for legacy activator allergy sampling.
@@ -205,23 +205,30 @@ def activate_patient(
         ))
 
     # Allergies (~15% have at least one)
-    # Task 15: migrate this block to allergy enricher module; activator becomes no-op.
-    allergies = []
-    if rng.random() < 0.15:
-        substance = str(rng.choice(["Penicillin", "Sulfonamide", "NSAIDs", "Cephalosporin"]))
-        allergies.append(Allergy(
-            allergy_id=f"al-{person.person_id}-1",
-            allergen_code=_LEGACY_SUBSTANCE_SNOMED[substance],
-            allergen_display=substance,
-            category="medication",
-            criticality="low",
-            verification_status="confirmed",
-            reactions=[AllergyReaction(
-                manifestation_snomed="247472004",
-                manifestation_display="Rash",
-                severity="mild",
-            )],
-        ))
+    # Tier 1 #3 α-min-1: if the allergy enricher (POST_POPULATION) already populated
+    # person.allergies, use those directly (preserves enricher's calibrated sampling).
+    # Task 15: deprecate this activator block entirely; enricher becomes sole source.
+    person_allergies = getattr(person, "allergies", None)
+    if person_allergies:
+        allergies = list(person_allergies)  # enricher path — use as-is
+    else:
+        # Legacy fallback path (removed by Task 15 once enricher is sole source)
+        allergies = []
+        if rng.random() < 0.15:
+            substance = str(rng.choice(["Penicillin", "Sulfonamide", "NSAIDs", "Cephalosporin"]))
+            allergies.append(Allergy(
+                allergy_id=f"al-{person.person_id}-1",
+                allergen_code=_LEGACY_SUBSTANCE_SNOMED[substance],
+                allergen_display=substance,
+                category="medication",
+                criticality="low",
+                verification_status="confirmed",
+                reactions=[AllergyReaction(
+                    manifestation_snomed="247472004",
+                    manifestation_display="Rash",
+                    severity="mild",
+                )],
+            ))
 
     # Baseline vitals
     hr_base = 72 if sex == "M" else 78
@@ -408,6 +415,7 @@ def _derive_home_medications(
     Returns a list of drug name strings. JP uses drug_ja if available.
     """
     from pathlib import Path
+
     import yaml
 
     yaml_path = Path(__file__).resolve().parent.parent.parent / "locale" / "shared" / "chronic_medications.yaml"
