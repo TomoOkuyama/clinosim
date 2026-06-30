@@ -20,11 +20,13 @@
 
 新しいデータ/機能を追加するとき、最初に **Base (always-on, core を拡張)** か **opt-in Module (`SimulatorConfig.modules` + `config.module_enabled()` でゲート)** か **always-on Module = near-essential clinical cascade**(AD-55 PR3b-1 supplement、2026-06-25 追加: 上流 `extensions[X]` の存在を前提に clinically coherent な拡張を不可避的に出すモジュール。例 `device`/`hai`/`antibiotic`/`imaging`)を決めます (AD-55)。
 
-**always-on Module 先例 (2026-06-30 時点):**
+**always-on Module 先例 (2026-07-01 時点):**
 - `device` (PR-A): ICU デバイス配置 (POST_ENCOUNTER order=70)
 - `hai` (PR-B): CDC NHSN HAI サンプリング (POST_ENCOUNTER order=80)。`extensions["device"]` の存在を前提。
 - `antibiotic` (PR3b-1): HAI 経験的抗菌薬 (POST_ENCOUNTER order=85)。`extensions["hai"]` の存在を前提。
 - `imaging` (Tier 1 #2, AD-62): 画像診断メタデータチェーン (POST_ENCOUNTER order=90)。disease YAML の `imaging_orders` が存在する encounter でのみ `extensions["imaging"]` を生成し、ImagingStudy + Endpoint + 放射線科 DR + imaging SR を emit する。upstream extensions に依存しない (device/hai とは独立)。
+- `allergy` (Tier 1 #3, AD-63): AllergyIntolerance 8-field SNOMED-coded スキーマ upgrade (POST_RECORDS order=65)。`PersonRecord.allergies: list[Allergy] | None` に 15% prevalence で allergy サンプリングし、`_fhir_allergy_intolerance.py` builder が emit。activator.py inline sampling を置換。
+- `document` (Tier 1 #3, AD-63): Stage 1 テンプレート起動の臨床文書 emit (POST_RECORDS order=95)。`extensions["document"]` + `extensions["clinical_impressions"]` に ClinicalDocument / ClinicalImpressionRecord を書き込み、3 FHIR builder (`_fhir_document_reference.py` / `_fhir_composition.py` / `_fhir_clinical_impression.py`) が emit。`enabled=lambda c: True`、upstream `extensions["allergy"]` に依存しない(患者アレルギー情報はビルダーが `patient.allergies` を直接参照)。
 
 ### 決定チェックリスト
 
