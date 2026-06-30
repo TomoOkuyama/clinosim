@@ -92,7 +92,6 @@ class TestRunExports:
             cif_dir=str(tmp_path / "cif"),
             output_root=str(tmp_path),
             country="JP",
-            narrative_version="v1",
         )
         assert len(calls) == 1
         assert calls[0][1].endswith("/rec")
@@ -112,14 +111,14 @@ class TestRunExports:
                 seen.append(out_dir)
 
         register_output_adapter(FhirSpy())  # replaces builtin for this test
-        _run_exports(["fhir"], str(tmp_path / "cif"), str(tmp_path), "US", "")
+        _run_exports(["fhir"], str(tmp_path / "cif"), str(tmp_path), "US")
         assert seen and seen[0].endswith("/fhir_r4")
 
     def test_unknown_format_raises_valueerror(self, tmp_path):
         from clinosim.simulator.cli import _run_exports
 
         with pytest.raises(ValueError, match="Unknown output format"):
-            _run_exports(["nope"], str(tmp_path / "cif"), str(tmp_path), "US", "")
+            _run_exports(["nope"], str(tmp_path / "cif"), str(tmp_path), "US")
 
 
 @pytest.mark.unit
@@ -158,7 +157,6 @@ class TestExportFhirRoutesThroughRegistry:
             def convert(self, cif_dir, out_dir, ctx):
                 seen["out_dir"] = out_dir
                 seen["country"] = ctx.country
-                seen["nv"] = ctx.narrative_version
 
         register_output_adapter(FhirSpy())
 
@@ -168,11 +166,9 @@ class TestExportFhirRoutesThroughRegistry:
             cif_dir=str(cif_dir),
             output=str(tmp_path / "out"),
             country="JP",
-            narrative_version="v2",
         )
         cli._run_export_fhir(args)
         assert seen["country"] == "JP"
-        assert seen["nv"] == "v2"
         # export-fhir's original semantics: --output is the FHIR dir itself (not a root).
         assert seen["out_dir"] == str(tmp_path / "out")
 
@@ -194,7 +190,7 @@ class TestExportFhirRoutesThroughRegistry:
         register_output_adapter(FhirSpy())
         cif_dir = tmp_path / "cif"
         (cif_dir / "structural" / "patients").mkdir(parents=True)
-        args = Namespace(cif_dir=str(cif_dir), output=None, country="US", narrative_version=None)
+        args = Namespace(cif_dir=str(cif_dir), output=None, country="US")
         cli._run_export_fhir(args)
         # default: <cif parent>/fhir_r4
         assert seen["out_dir"] == str(tmp_path / "fhir_r4")

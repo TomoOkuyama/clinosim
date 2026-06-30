@@ -10,17 +10,18 @@ from datetime import date
 
 import numpy as np
 
-from clinosim.modules.population.engine import PersonRecord, _sample_given_name
-from clinosim.modules.physiology.engine import hba1c_from_glycemic_control
 from clinosim.locale.loader import load_names
+from clinosim.modules.physiology.engine import hba1c_from_glycemic_control
+from clinosim.modules.population.engine import PersonRecord, _sample_given_name
 from clinosim.types.patient import (
-    Allergy,
     BaselineVitals,
     ChronicCondition,
     PatientPhysiologicalProfile,
-    PersonName,
     PatientProfile,
+    PersonName,
 )
+
+
 
 def _generate_stage(code: str, severity: str, rng: np.random.Generator) -> str:
     """Generate clinical staging text for a chronic condition by ICD code."""
@@ -195,14 +196,15 @@ def activate_patient(
             glycemic_control=glycemic_control,
         ))
 
-    # Allergies (~15% have at least one)
-    allergies = []
-    if rng.random() < 0.15:
-        allergies.append(Allergy(
-            substance=str(rng.choice(["Penicillin", "Sulfonamide", "NSAIDs", "Cephalosporin"])),
-            reaction_type="rash",
-            severity="mild",
-        ))
+    # Allergies — allergy_enricher (POST_POPULATION, order=10) populates person.allergies
+    # before activate_patient is called in production (engine.py run_stage then _activate_cached).
+    # For the debug test-encounter CLI path (no enricher), default to empty list.
+    person_allergies = getattr(person, "allergies", None)
+    if person_allergies is not None:
+        allergies = list(person_allergies)  # enricher path — use as-is (incl. empty list)
+    else:
+        # Enricher did not run (debug test-encounter path); no legacy sampling needed.
+        allergies = []
 
     # Baseline vitals
     hr_base = 72 if sex == "M" else 78
@@ -389,6 +391,7 @@ def _derive_home_medications(
     Returns a list of drug name strings. JP uses drug_ja if available.
     """
     from pathlib import Path
+
     import yaml
 
     yaml_path = Path(__file__).resolve().parent.parent.parent / "locale" / "shared" / "chronic_medications.yaml"

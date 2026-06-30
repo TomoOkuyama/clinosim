@@ -92,6 +92,8 @@ ENRICHER_SEED_OFFSETS = {
     "hai":            0x4841,     # "HA" (PR-B)
     "antibiotic":     0x4142,     # "AB" (PR3b-1)
     "imaging":        0x4947,     # "IG" (Tier 1 #2 PR1, imaging chain)
+    "allergy":        0x414C,     # "AL" (Tier 1 #3 α-min-1 PR1, allergy module)
+    "document":       0x444F,     # "DO" (Tier 1 #3 α-min-1 PR1, document module)
 }
 
 assert len(set(ENRICHER_SEED_OFFSETS.values())) == len(ENRICHER_SEED_OFFSETS), \

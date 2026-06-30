@@ -35,11 +35,14 @@ clinosim/modules/output/
 ├── README.md                    # 本ドキュメント
 ├── SPEC.md
 ├── cif_writer.py                # Stage 1: CIFDataset → JSON ファイル群
-├── document_generator.py        # Stage 2: 構造 CIF → narrative CIF (5 doc types)
-├── hospital_course_extractor.py # Stage 2: CIF → deterministic clinical facts
+├── hospital_course_extractor.py # CIF → deterministic clinical facts (document_enricher 用)
 ├── fhir_r4_adapter.py           # Stage 3a: CIF → FHIR R4 NDJSON (Bulk Data)
 └── csv_adapter.py               # Stage 3b: CIF → 平たい CSV テーブル群
 ```
+
+Note: `document_generator.py` と `narrative_generator.py` は Task 15 (Tier 1 #3 α-min-1) で削除。
+Stage 2 narrative 生成は `clinosim/modules/document/` モジュール (document_enricher POST_ENCOUNTER) に移行済。
+`narrate` CLI サブコマンドは deprecated (TODO: β-JP-1 chain で Stage 2 LLM provider 統合予定)。
 
 ## FHIR R4 出力の詳細
 
@@ -175,14 +178,12 @@ A/B テストで LLM が十分に翻訳できることを確認済み (AD-44)。
 | 関数 | ファイル | 役割 |
 |---|---|---|
 | `_resolve_procedure_name(proc, lang)` | hospital_course_extractor.py | code_lookup で手術名解決 |
-| `_home_meds(patient)` | document_generator.py | 常用薬リスト (英語) |
-| `_allergies(patient)` | document_generator.py | アレルギーリスト (英語) |
-| `_initial_labs(record, language)` | document_generator.py | 異常ラボ抽出 (CRP変換のみ locale) |
-| `_pmh(patient, language)` | document_generator.py | 既往歴 (code_lookup で表示名解決) |
-| `_resolve_dx(code, system, language)` | document_generator.py | 診断名 (code_lookup) |
 | `extract_hospital_course(record, language)` | hospital_course_extractor.py | 入院経過ファクト |
 | `format_lab_trends(trends, language)` | hospital_course_extractor.py | ラボ動向 (CRP変換) |
 | `extract_treatment_timeline(record)` | hospital_course_extractor.py | 治療タイムライン (英語) |
+
+Note: `_home_meds`, `_allergies`, `_initial_labs`, `_pmh`, `_resolve_dx` は Task 15 で削除された
+`document_generator.py` に属していた。相当機能は `clinosim/modules/document/engine.py` を参照。
 
 ## 依存関係
 

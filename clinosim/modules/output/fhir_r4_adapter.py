@@ -53,7 +53,9 @@ from clinosim.modules.output._fhir_diagnostic_report import (  # noqa: F401
     _bb_diagnostic_reports,
     build_lab_panel_reports,  # kept for backward compat (tests + external callers)
 )
-from clinosim.modules.output._fhir_documents import _build_document_reference  # noqa: F401
+from clinosim.modules.output._fhir_documents import (  # noqa: F401
+    _bb_document_references,
+)
 from clinosim.modules.output._fhir_encounter import _build_encounter  # noqa: F401
 from clinosim.modules.output._fhir_facility import _build_facility_bundle  # noqa: F401
 from clinosim.modules.output._fhir_family_history import _build_family_history  # noqa: F401
@@ -104,7 +106,6 @@ from clinosim.modules.output._fhir_patient import (  # noqa: F401
     _MARITAL_DISPLAY_JA,
     _ORG_TYPE_SYSTEM,
     _SUBSCRIBER_REL_SYSTEM,
-    _build_allergy_intolerance,
     _build_coverage_resources,
     _build_occupation_observation,
     _build_patient,
@@ -136,6 +137,15 @@ from clinosim.modules.output._fhir_endpoint import (  # noqa: F401
 from clinosim.modules.output._fhir_imaging_study import (  # noqa: F401
     _bb_imaging_studies,
 )
+from clinosim.modules.output._fhir_allergy_intolerance import (  # noqa: F401
+    _bb_allergy_intolerances,
+)
+from clinosim.modules.output._fhir_clinical_impression import (  # noqa: F401
+    _bb_clinical_impressions,
+)
+from clinosim.modules.output._fhir_composition import (  # noqa: F401
+    _bb_compositions,
+)
 from clinosim.modules.output._fhir_smoking_alcohol import (  # noqa: F401
     _build_alcohol_use,
     _build_smoking_status,
@@ -146,7 +156,6 @@ def convert_cif_to_fhir(
     cif_dir: str,
     output_dir: str,
     country: str = "US",
-    narrative_version: str | None = None,
 ) -> None:
     """Read CIF structural data and write FHIR R4 Bulk Data Export NDJSON files.
 
@@ -154,37 +163,20 @@ def convert_cif_to_fhir(
     one NDJSON file per resource type (Patient.ndjson, Encounter.ndjson, etc.).
     Each line is a single FHIR resource (no Bundle wrapping).
 
+    DocumentReference resources are emitted from record.documents (populated
+    by document_enricher at POST_ENCOUNTER, Task 8). The legacy narrate-walk
+    path (--narrative-version / document_generator.py) was removed in Task 15.
+
     Args:
-        cif_dir: path to a cif/ directory containing structural/ and
-            (optionally) narratives/<version>/documents/.
+        cif_dir: path to a cif/ directory containing structural/.
         output_dir: directory to write the FHIR NDJSON files.
         country: "US" or "JP" — selects display language and code systems.
-        narrative_version: if set, reads narrative CIF documents from
-            cif_dir/narratives/<narrative_version>/documents/ and emits them
-            as DocumentReference resources. When None (or "current"),
-            the pointer at cif_dir/narratives/current_version.txt is used.
-            When the directory does not exist, no DocumentReferences are
-            emitted (graceful degradation).
     """
     os.makedirs(output_dir, exist_ok=True)
 
     structural_dir = os.path.join(cif_dir, "structural", "patients")
     if not os.path.exists(structural_dir):
         raise FileNotFoundError(f"CIF structural directory not found: {structural_dir}")
-
-    # Resolve narrative version (current_version.txt pointer)
-    narrative_docs_dir: str | None = None
-    if narrative_version:
-        if narrative_version == "current":
-            current_link = os.path.join(cif_dir, "narratives", "current_version.txt")
-            if os.path.exists(current_link):
-                with open(current_link) as _f:
-                    narrative_version = _f.read().strip()
-        candidate = os.path.join(
-            cif_dir, "narratives", narrative_version, "documents"
-        )
-        if os.path.isdir(candidate):
-            narrative_docs_dir = candidate
 
     # Load hospital data (Practitioner roster + Organization/Location config)
     roster_map: dict[str, dict] = {}
@@ -238,38 +230,10 @@ def convert_cif_to_fhir(
             for entry in bundle.get("entry", []):
                 write(entry["resource"])
 
-            # === DocumentReference resources (narrative CIF) ===
-            if narrative_docs_dir:
-                enc_id = (
-                    (record.get("encounters") or [{}])[0].get("encounter_id", "")
-                )
-                if enc_id:
-                    enc_docs_dir = os.path.join(narrative_docs_dir, enc_id)
-                    if os.path.isdir(enc_docs_dir):
-                        patient_id = (
-                            record.get("patient", {}).get("patient_id", "")
-                        )
-                        for doc_file in sorted(os.listdir(enc_docs_dir)):
-                            if not doc_file.endswith(".json"):
-                                continue
-                            with open(
-                                os.path.join(enc_docs_dir, doc_file),
-                                encoding="utf-8",
-                            ) as df:
-                                doc_data = json.load(df)
-                            docref = _build_document_reference(
-                                doc_data, patient_id, country
-                            )
-                            if docref:
-                                write(docref)
-
         # Manifest (FHIR Bulk Data spec)
-        request_desc = f"clinosim generate (country={country})"
-        if narrative_version:
-            request_desc += f" narrative={narrative_version}"
         manifest = {
             "transactionTime": datetime.now().isoformat(),
-            "request": request_desc,
+            "request": f"clinosim generate (country={country})",
             "requiresAccessToken": False,
             "output": [
                 {"type": rt, "url": f"{rt}.ndjson"}
@@ -305,16 +269,6 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
 
 def _bb_conditions(ctx: BundleContext) -> list[dict]:
     return list(_build_conditions(ctx.record, ctx.patient_id, ctx.country))
-
-
-def _bb_allergies(ctx: BundleContext) -> list[dict]:
-    out: list[dict] = []
-    for i, allergy in enumerate(ctx.patient_data.get("allergies", []) or []):
-        if isinstance(allergy, dict):
-            ai = _build_allergy_intolerance(allergy, ctx.patient_id, i, ctx.country)
-            if ai:
-                out.append(ai)
-    return out
 
 
 def _bb_occupation(ctx: BundleContext) -> list[dict]:
@@ -412,7 +366,8 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_coverage,
     _bb_encounters,
     _bb_conditions,
-    _bb_allergies,
+    _bb_allergy_intolerances,  # Task 9 / Task 15: 8-field SNOMED-coded schema (sole emit path)
+    _bb_clinical_impressions,  # Task 9: ClinicalImpression (daily working diagnosis)
     _bb_occupation,
     _bb_service_requests,
     _bb_endpoints,           # Imaging: emit after SR, before ImagingStudy (reference resolve order)
@@ -435,6 +390,8 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _build_device,
     _build_device_use,
     _build_hai_conditions,
+    _bb_document_references,   # Task 10: DocumentReference from record.documents (free_text, §2.2)
+    _bb_compositions,          # Task 9: Composition (section-structured H&P / Discharge)
 ]
 
 
