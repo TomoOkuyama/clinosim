@@ -684,6 +684,18 @@ course_archetypes:
     order_modifications: {}
     treatment_modifications: {}
 
+    daily_trajectory:
+      day_0:
+        subjective: "症状あり"
+        objective: "バイタル安定、検査所見あり"
+        assessment: "初期診断確定、治療開始"
+        plan: "治療継続、経過観察"
+      day_1:
+        subjective: "症状緩和傾向"
+        objective: "バイタル安定、検査所見改善"
+        assessment: "治療反応良好"
+        plan: "治療継続"
+
   dip_then_recovery:
     probability: 0.20
     description: "Initial worsening (SBP or volume overload) then improvement with treatment"
@@ -917,3 +929,43 @@ complications:
       test: "CAM_screening"
       finding: "positive"
     actions: ["differentiate_from_encephalopathy", "avoid_benzodiazepines", "thiamine_if_alcohol"]
+
+# ============================================================
+# NARRATIVE SPEC (Tier 1 #3 α-min-1)
+# Consumed by TemplateNarrativeGenerator (Task 6)
+# ============================================================
+narrative:
+  hpi_template:
+    onset_pattern:
+      mild: "症状は数日前より緩徐に出現。"
+      moderate: "症状は数日前より出現し漸次増悪。"
+      severe: "症状急速に増悪、本日受診。"
+    trigger_options:
+      - "急性発症"
+  physical_exam_findings:
+    smooth_recovery:
+      day_0:
+        general:
+          all: "意識清明、苦痛様"
+        cardiovascular:
+          all: "整、心雑音なし"
+        respiratory:
+          all: "肺音清明"
+        abdominal: "平坦、軟、圧痛なし"
+        neurological: "麻痺なし、項部硬直なし"
+  discharge_instructions:
+    follow_up:
+      en: "Follow up with PCP in 7-10 days."
+      ja: "退院後 1-2 週間以内に外来受診をお願いします。"
+    activity:
+      en: "Gradual return to normal activity."
+      ja: "徐々に通常活動を再開してください。"
+    medications:
+      en: "Complete prescribed medications as directed."
+      ja: "処方された薬を指示通り内服してください。"
+    emergency:
+      en: "Return to ER if symptoms worsen."
+      ja: "症状悪化があれば速やかに救急受診してください。"
+    diet_lifestyle:
+      en: "Maintain balanced diet and adequate hydration."
+      ja: "バランスの良い食事と十分な水分摂取を心がけてください。"

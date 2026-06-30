@@ -604,6 +604,18 @@ course_archetypes:
     order_modifications: {}
     treatment_modifications: {}
 
+    daily_trajectory:
+      day_0:
+        subjective: "症状あり"
+        objective: "バイタル安定、検査所見あり"
+        assessment: "初期診断確定、治療開始"
+        plan: "治療継続、経過観察"
+      day_1:
+        subjective: "症状緩和傾向"
+        objective: "バイタル安定、検査所見改善"
+        assessment: "治療反応良好"
+        plan: "治療継続"
+
   dip_then_recovery:
     probability: 0.20
     description: "Chemical pneumonitis phase worsens Day 1-3, then bacterial component treated"
@@ -875,3 +887,58 @@ complications:
       perfusion_status: -0.20
       ph_status: -0.05
     actions: ["ct_angiography", "anticoagulation", "consider_icu"]
+
+# ============================================================
+# NARRATIVE SPEC (Tier 1 #3 α-min-1)
+# ============================================================
+narrative:
+  hpi_template:
+    onset_pattern:
+      mild: "食事・飲水時のむせ・咳込みが続いており、徐々に発熱・咳嗽が出現。"
+      moderate: "誤嚥エピソード後に発熱・咳嗽・呼吸困難が出現し受診。"
+      severe: "意識障害下での誤嚥後、急速に呼吸状態が悪化し救急搬入。"
+    trigger_options:
+      - "嚥下障害あり"
+      - "脳梗塞後遺症"
+      - "意識障害下での誤嚥"
+      - "高齢者施設入所中"
+  physical_exam_findings:
+    smooth_recovery:
+      day_0:
+        general:
+          mild: "意識清明、軽度苦痛様"
+          moderate: "意識やや低下、中等度苦痛様"
+          severe: "意識障害、高度苦痛様"
+        cardiovascular:
+          all: "頻脈、心雑音なし"
+        respiratory:
+          mild: "右側優位の湿性ラ音"
+          moderate: "両側下肺野で湿性ラ音、SpO2 低下"
+          severe: "広範なラ音、呼吸補助筋使用、SpO2 著明低下"
+        abdominal: "平坦、軟"
+        neurological: "嚥下反射低下、麻痺の程度は基礎疾患による"
+      day_3:
+        general:
+          all: "意識レベル改善傾向"
+        cardiovascular:
+          all: "頻脈改善"
+        respiratory:
+          all: "湿性ラ音軽減、SpO2 改善"
+        abdominal: "平坦、軟"
+        neurological: "嚥下評価を継続"
+  discharge_instructions:
+    follow_up:
+      en: "Follow up in 7-14 days. Swallowing evaluation recommended before discharge and at follow-up."
+      ja: "退院後 7-14 日以内に外来受診。退院前および外来で嚥下評価を行ってください。"
+    activity:
+      en: "Supervised eating and positioning. Head of bed elevated 30-45 degrees during meals."
+      ja: "食事の際は監視下で座位を保ち、頭側 30-45 度挙上して食事してください。"
+    medications:
+      en: "Complete antibiotics as prescribed. Review medications that impair swallowing."
+      ja: "処方された抗菌薬を最後まで内服してください。嚥下機能に影響する薬剤の見直しを行います。"
+    emergency:
+      en: "Return to ER if fever returns, breathing worsens, or inability to swallow safely."
+      ja: "発熱再燃、呼吸困難増悪、安全な嚥下が困難な場合は速やかに救急受診してください。"
+    diet_lifestyle:
+      en: "Dysphagia diet as recommended by speech therapist. Thickened liquids if indicated."
+      ja: "言語聴覚士の指示による嚥下食・とろみ付き水分を継続してください。"

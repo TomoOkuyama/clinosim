@@ -593,6 +593,18 @@ course_archetypes:
     order_modifications: {}
     treatment_modifications: {}
 
+    daily_trajectory:
+      day_0:
+        subjective: "症状あり"
+        objective: "バイタル安定、検査所見あり"
+        assessment: "初期診断確定、治療開始"
+        plan: "治療継続、経過観察"
+      day_1:
+        subjective: "症状緩和傾向"
+        objective: "バイタル安定、検査所見改善"
+        assessment: "治療反応良好"
+        plan: "治療継続"
+
   dip_then_recovery:
     probability: 0.20
     description: "Mild hematoma expansion or edema Day 2-4, then stabilization and gradual recovery"
@@ -824,3 +836,56 @@ complications:
       test: "CAM_screening"
       finding: "positive"
     actions: ["reorientation", "sleep_hygiene", "avoid_benzodiazepines"]
+
+# ============================================================
+# NARRATIVE SPEC (Tier 1 #3 α-min-1)
+# ============================================================
+narrative:
+  hpi_template:
+    onset_pattern:
+      mild: "数時間前より急激な頭痛・嘔吐が出現、軽度の片麻痺を認め救急受診。"
+      moderate: "突然の激しい頭痛・嘔吐と意識障害が出現し救急搬入。"
+      severe: "突然の意識消失・著明な神経症状を伴い救急搬入。GCS 著明低下。"
+    trigger_options:
+      - "高血圧の既往あり"
+      - "抗凝固薬内服中"
+      - "活動中に発症"
+      - "血圧管理不良"
+  physical_exam_findings:
+    smooth_recovery:
+      day_0:
+        general:
+          mild: "意識清明ないし軽度混濁"
+          moderate: "意識障害（GCS 9-12）、苦痛顔貌"
+          severe: "意識障害（GCS <9）、呼吸不整"
+        cardiovascular:
+          all: "高血圧（SBP 160-220 mmHg）、頻脈または徐脈"
+        respiratory:
+          all: "呼吸数増加、酸素化は血圧・脳浮腫の程度による"
+        abdominal: "平坦、腸蠕動音正常"
+        neurological: "片麻痺・半盲・失語・顔面神経麻痺（部位による）、瞳孔不同の有無確認"
+      day_3:
+        general:
+          all: "意識レベル改善傾向"
+        cardiovascular:
+          all: "血圧コントロール中（目標 SBP <140 mmHg）"
+        respiratory:
+          all: "呼吸状態安定"
+        abdominal: "平坦、軟"
+        neurological: "神経症状の評価継続、リハビリ開始"
+  discharge_instructions:
+    follow_up:
+      en: "Neurology/neurosurgery follow-up within 2-4 weeks. Repeat imaging per plan."
+      ja: "退院後 2-4 週以内に神経内科・脳神経外科外来を受診してください。画像フォローアップを行います。"
+    activity:
+      en: "Activity restrictions per neurologist. Early rehabilitation as tolerated."
+      ja: "神経科医の指示に従い活動制限を守ってください。耐えられる範囲でリハビリを継続してください。"
+    medications:
+      en: "Strict blood pressure control is essential. Do NOT restart anticoagulants without specialist approval."
+      ja: "血圧を厳格にコントロールしてください。抗凝固薬の再開は専門医の判断が必要です。"
+    emergency:
+      en: "Return to ER immediately for: sudden severe headache, new or worsening weakness/speech difficulty, altered consciousness."
+      ja: "突然の激しい頭痛、麻痺・言語障害の新規出現または増悪、意識障害があれば速やかに救急受診してください。"
+    diet_lifestyle:
+      en: "Low-sodium diet. Blood pressure home monitoring twice daily."
+      ja: "減塩食を心がけてください。自宅で 1 日 2 回血圧を測定してください。"
