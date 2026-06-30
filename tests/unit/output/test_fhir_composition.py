@@ -154,7 +154,10 @@ def test_empty_sections_omits_section_key():
     assert "section" not in r
 
 
-def test_no_author_omits_empty_author():
+def test_no_author_yields_empty_author_array():
+    """Composition.author is 1..* in FHIR R4; α-min-1 emits [] when no practitioner ref.
+    Key is present (not omitted) to surface the conformance gap clearly.
+    See TODO in _fhir_composition.py for Task 10/15 fix plan."""
     doc = _sample_doc_dataclass()
     doc.author_practitioner_id = ""
     ctx = _make_ctx([doc])
