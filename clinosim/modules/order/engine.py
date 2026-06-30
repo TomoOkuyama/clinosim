@@ -50,8 +50,8 @@ def _resolve_imaging_procedure_code_key(
 
 def place_imaging_orders(
     disease_protocol: Any,
-    patient_id: str,
     encounter_id: str,
+    patient_id: str,
     admission_dt: datetime,
     day_index: int,
     severity: str,
