@@ -1850,6 +1850,15 @@ def _simulate_unknown_condition(
         discharge_code = "R50.9" if "fever" in event.disease_id else "R68.8"
         discharge_name = complaint.title() + " (under investigation, outpatient follow-up)"
 
+    # Set encounter_id for all orders that don't have one — mirrors the
+    # identical loop in simulate_inpatient (line 361-363). Without this,
+    # _fhir_service_request._build_sr_skeleton raises AssertionError on
+    # JP cohorts where unknown-condition patients generate ADM-L orders
+    # without encounter_id, causing FHIR export to fail.
+    for o in all_orders:
+        if not o.encounter_id:
+            o.encounter_id = encounter.encounter_id
+
     # Note: unknown-condition encounters intentionally do NOT run the
     # POST_ENCOUNTER stage (device + hai). _simulate_unknown_condition never
     # sets record.icu_transferred = True (line 511 default), and modules/

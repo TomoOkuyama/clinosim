@@ -1395,8 +1395,64 @@ Suggested order: ~~microbiology+markers~~ ✅ → ~~nursing flowsheets~~ ✅ →
 - Path: extend disease YAML with `referrals:` field, generate Orders with
   OrderType.REFERRAL (or CONSULTATION), new SR category (SNOMED 308540006 + HL7 v2-0074 REF).
 
-### Tier 1 #2 — ServiceRequest for IMAGING
-- Bundled with full Imaging chain (ImagingStudy + DiagnosticReport(rad) + Endpoint stub).
+### Tier 1 #2 — ServiceRequest for IMAGING [DONE 2026-06-30]
+- ~~Bundled with full Imaging chain (ImagingStudy + DiagnosticReport(rad) + Endpoint stub).~~
+- **COMPLETED**: Imaging chain α-min delivered (AD-62). ImagingStudy + Endpoint + radiology DR +
+  imaging SR. US p=10k + JP p=5k production cohort generated and audited. DQR: 4 axes PASS.
+
+### Imaging chain OOS formal entries (Tier 1 #2 PR1 scope-out)
+
+The following FHIR fields / features were **explicitly out of scope** for the α-min imaging chain
+(per spec Section 11). Each is a valid future extension:
+
+#### ImagingStudy field-level OOS
+
+- **ImagingStudy.numberOfSeries / numberOfInstances**: field values deferred; always-present
+  `series[]` array is the canonical count source at α-min.
+- **ImagingStudy.series[].instance[]**: DICOM SOP Instance UID expansion. Each series contains
+  one conceptual instance at α-min; real PACS integration will expand to per-slice.
+- **ImagingStudy.series[].number**: DICOM series number (integer) — ordinal within study.
+- **ImagingStudy.interpreter**: radiologist practitioner reference. Deferred to Phase 2 when
+  radiology staff roster is added.
+- **ImagingStudy.referrer**: ordering clinician reference — already available as
+  `Order.ordered_by`; FHIR wire deferred.
+- **ImagingStudy.availability**: ONLINE / OFFLINE / NEARLINE / UNAVAILABLE. Deferred; Endpoint
+  presence implies ONLINE semantics.
+- **ImagingStudy.encounter**: explicit Encounter reference on the ImagingStudy. Deferred; can
+  be derived from basedOn SR's encounter.
+- **ImagingStudy.location**: imaging suite Location resource. Deferred to Location hierarchy PR.
+- **ImagingStudy.reason**: clinical indication reference (Condition). Deferred; reason text is
+  present in the imaging SR.
+- **ImagingStudy.procedureCode**: SNOMED CT procedure code for the imaging study type. Tier 2.
+- **ImagingStudy.series[].performer**: technician who acquired the series. Tier 2 (radiology
+  staff roster).
+- **ImagingStudy.series[].laterality**: body laterality SNOMED code (right/left/bilateral).
+  Tier 2; body site only at α-min.
+- **ImagingStudy.note**: free-text annotation at study level. Tier 3.
+
+#### Endpoint field-level OOS
+
+- **Endpoint.connectionType**: hardcoded to DICOM WADO-RS at α-min. Future: DICOMweb STOW-RS
+  for push-based upload integration.
+- **Endpoint.payloadMimeType**: DICOM media type list deferred. Tier 2.
+- **Endpoint.header**: HTTP auth headers for PACS auth. Out of scope for placeholder URL.
+
+#### DiagnosticReport (radiology) field-level OOS
+
+- **DiagnosticReport.resultsInterpreter**: radiologist practitioner. Tied to interpreter on
+  ImagingStudy — both deferred to Phase 2 staff roster.
+- **DiagnosticReport.presentedForm**: base64-encoded PDF or HTML for structured radiology
+  report export. Deferred; text.div + conclusion covers α-min needs.
+- **DiagnosticReport.media**: key images as Attachment. Deferred until image-gen AI integration.
+- **DiagnosticReport.effectiveDateTime**: date of imaging procedure. Wire from
+  `ImagingStudyRecord.study_datetime` — deferred to pass 2.
+
+#### Disease YAML imaging coverage OOS
+
+- **aspiration_pneumonia.yaml**: imaging_orders exists for CR (Chest_Xray) but no YAML
+  for aspiration pneumonia → imaging chain skips it (legacy order path). Tier 2.
+- Additional diseases (COPD / sepsis / hip fracture / etc.): imaging_orders not yet in YAML.
+  Bundle with legacy migration sweep PR (see "Legacy IMAGING order emission sites" item below).
 
 ### imaging chain JP language axis
 - **ModuleAuditSpec** lacks `jp_language_checks` field. `clinosim/modules/imaging/audit.py` deferred 6 JP language audit checks (modality / bodySite / DR.code / conclusion / text.div / SR.code displays in ja for JP cohort). When framework gains the field, wire these checks. Spec Section 9.4 brief includes the full list.
