@@ -23,7 +23,9 @@ def test_radiology_report_defaults_carry_empty_findings():
     assert r.report_id == ""
     assert r.status == "final"
     assert r.findings_text == ""
+    assert r.findings_text_ja == ""
     assert r.impression_text == ""
+    assert r.impression_text_ja == ""
     assert r.findings_codes == []
 
 

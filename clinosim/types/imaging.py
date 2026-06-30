@@ -41,8 +41,10 @@ class RadiologyReport:
 
     report_id: str = ""                 # "imgrpt-{enc}-{n}"
     status: str = "final"               # FHIR registered/preliminary/final/amended
-    findings_text: str = ""             # 構造化 findings narrative
-    impression_text: str = ""           # clinical impression / conclusion
+    findings_text: str = ""             # 構造化 findings narrative (en)
+    findings_text_ja: str = ""          # ja copy for JP cohort (Task 6 FHIR builder picks by lang)
+    impression_text: str = ""           # clinical impression / conclusion (en)
+    impression_text_ja: str = ""        # ja copy for JP cohort (Task 6 FHIR builder picks by lang)
     findings_codes: list[str] = field(default_factory=list)  # 任意 SNOMED finding codes
 
 
