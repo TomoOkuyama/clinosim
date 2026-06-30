@@ -4,14 +4,11 @@ Verifies that a full run-beta pipeline emits the 5 document-chain resource
 types (DocumentReference, Composition, ClinicalImpression, AllergyIntolerance,
 and sanity-check Encounter) and that basic count invariants hold.
 
-AllergyIntolerance coexistence note:
-  Task 9 introduced a new SNOMED-coded builder (_bb_allergy_intolerances) that
-  coexists with the legacy 3-field builder (_bb_allergies from _fhir_patient.py).
-  Both emit AllergyIntolerance but with DIFFERENT ids:
-    - legacy: allergy-{patient_id}-{index:02d}
-    - new:    allergy-{patient_id}-al-{patient_id}-1
-  Because ids differ, the FHIR writer's written_ids dedup does NOT collapse
-  them.  Expected total ≈ 2 × baseline_15% × P.  Task 15 will clean this up.
+AllergyIntolerance single-source note (Task 15):
+  Task 15 removed the legacy activator allergy block; allergy_enricher
+  (POST_POPULATION) is the sole source. _bb_allergy_intolerances (Task 9)
+  is the sole FHIR emit path. Expected count ≈ 15% × P (single allergy per
+  patient where the enricher gate fires).
 """
 
 from __future__ import annotations
@@ -133,13 +130,12 @@ def test_clinical_impression_count_consistent_with_encounter_count() -> None:
 
 @pytest.mark.integration
 def test_allergy_intolerance_baseline_prevalence() -> None:
-    """AllergyIntolerance count must fall within expected range.
+    """AllergyIntolerance count must fall within single-source expected range.
 
-    Baseline allergy prevalence = 15%.  Due to Task 9 coexistence (legacy +
-    new builder emit different IDs), patients with allergies each produce 2
-    AllergyIntolerance resources.  Expected count ≈ 30% × P.
-    Assertion range 10% – 50% of patient count allows for sampling noise
-    at n=200.  Task 15 will tighten this after deprecating the legacy path.
+    Task 15: allergy_enricher (POST_POPULATION) is the sole source; activator
+    legacy sampling removed. _bb_allergy_intolerances (Task 9) is the sole FHIR
+    emit path. Expected count ≈ 15% × P (single allergy per patient where gate
+    fires). Assertion range 10–25% allows for n=200 sampling noise.
     """
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "out"
@@ -151,9 +147,9 @@ def test_allergy_intolerance_baseline_prevalence() -> None:
         if patient_count == 0:
             pytest.skip("No Patient resources emitted")
         rate_pct = ai_count / patient_count * 100
-        assert 10 <= rate_pct <= 50, (
-            f"AllergyIntolerance rate {rate_pct:.1f}% is outside expected 10-50% range "
+        assert 10 <= rate_pct <= 25, (
+            f"AllergyIntolerance rate {rate_pct:.1f}% is outside expected 10-25% range "
             f"(ai_count={ai_count}, patients={patient_count}). "
-            "Coexistence: legacy path + Task 9 builder both emit (different IDs). "
-            "Expected ~30% for n=200 with 15% allergy prevalence."
+            "Single source: allergy_enricher (POST_POPULATION) + _bb_allergy_intolerances. "
+            "Expected ~15% for n=200 with 15% allergy prevalence."
         )

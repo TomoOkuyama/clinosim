@@ -273,7 +273,13 @@ Population-driven simulation. Produces the structural CIF and optionally runs St
 | `--narrative-version ID` | auto | Narrative version id used when exporting FHIR |
 | `--narrative-model NAME` | `qwen:7b` | Legacy Ollama model name (ignored if `--llm-config` is set) |
 
-### `clinosim narrate` — Stage 2 (clinical documents)
+### `clinosim narrate` — Stage 2 (clinical documents) **[DEPRECATED]**
+
+> **Deprecated (Task 15, 2026-07-01)**: `clinosim narrate` is no longer functional.
+> DocumentReference resources are now generated automatically during simulation
+> by the `document_enricher` module (Stage 1). Run `clinosim generate --format fhir-r4`
+> to get DocumentReferences without a separate narrate step.
+> Stage 2 LLM provider integration is deferred to the β-JP-1 chain (see TODO.md).
 
 Reads an existing CIF directory and generates clinical documents via the LLM service. Writes a new narrative version to `<cif>/narratives/<version_id>/`.
 
@@ -299,14 +305,14 @@ See [docs/clinical_documents.md](docs/clinical_documents.md) for details.
 
 ### `clinosim export-fhir` — Stage 3 (FHIR R4 NDJSON)
 
-Reads an existing CIF directory (optionally with a narrative version) and writes FHIR R4 Bulk Data NDJSON files.
+Reads an existing CIF directory and writes FHIR R4 Bulk Data NDJSON files.
+DocumentReference resources are emitted from `record.documents` (Stage 1 enricher output).
 
 | Option | Default | Description |
 |---|---|---|
 | `--cif-dir DIR` | **required** | Path to an existing CIF directory |
 | `-o, --output DIR` | `<cif>/../fhir_r4` | Output directory |
 | `--country CODE` | `US` | Country code (display language) |
-| `--narrative-version ID` | (none) | Narrative version to include as `DocumentReference.ndjson`. Use `current` to read the pointer at `<cif>/narratives/current_version.txt` |
 
 ### `clinosim test-disease DISEASE_ID`
 

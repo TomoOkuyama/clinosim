@@ -255,7 +255,7 @@ source .venv/bin/activate && python -m pytest tests/unit/test_staff.py -v
 ### スタッフ名とFHIR出力の関係
 
 - CIF `hospital.json` にスタッフロスター (staff_id, name, department) が格納される
-- ナラティブ生成時: `document_generator._load_staff_names()` がロスターを読み込み、staff_id を実名に変換
+- ナラティブ生成時: `document_enricher` (Task 8) が hospital_course_extractor 経由で staff_id を実名に変換
   - JP: `佐伯 紬医師` (family given + 「医師」suffix)
   - US: `Dr. Smith`
 - FHIR: `Practitioner.ndjson` にスタッフリソースとして出力
@@ -266,7 +266,7 @@ source .venv/bin/activate && python -m pytest tests/unit/test_staff.py -v
 |---|---|
 | `locale` | `names.yaml` からスタッフ名を生成 (国別 surname/given) |
 | `hospital_config` | `available_departments` でどの科のスタッフを生成するか決定 |
-| `output/document_generator` | ナラティブで staff_id → name 変換 |
+| `modules/document/engine.py` | document_enricher で staff_id → name 変換 (Task 15 で document_generator.py から移行) |
 | `output/fhir_r4_adapter` | Practitioner + PractitionerRole FHIR リソース |
 
 ### 新しい診療科のスタッフを追加する

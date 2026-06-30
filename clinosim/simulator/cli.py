@@ -42,8 +42,6 @@ def main() -> None:
         help="Output formats: cif, csv, fhir-r4 (alias: fhir). "
              "Add more by registering an OutputAdapter (AD-58).",
     )
-    gen.add_argument("--narrative", action="store_true", help="Generate narrative layer (requires Ollama)")
-    gen.add_argument("--narrative-model", default="qwen:7b", help="Ollama model for narratives")
     gen.add_argument("--hospital-config", default=None, help="Hospital operations YAML (default: config/hospital_operations.yaml)")
     gen.add_argument(
         "--jp-insurance",
@@ -52,18 +50,6 @@ def main() -> None:
         help="(JP only) Include Japanese insurance enrollment / 被保険者番号 "
              "(emitted as FHIR Coverage). Use --no-jp-insurance to omit. "
              "Ignored for non-JP countries.",
-    )
-    gen.add_argument(
-        "--narrative-version",
-        default=None,
-        help="Narrative version directory name to include in FHIR export "
-             "as DocumentReference (used only when --format includes fhir)",
-    )
-    gen.add_argument(
-        "--llm-config",
-        default=None,
-        help="LLM service YAML config (used when --narrative is set). "
-             "Defaults to a local Ollama template setup.",
     )
 
     # === test-disease: generate specific disease/archetype ===
@@ -86,26 +72,23 @@ def main() -> None:
     # === list-diseases: show available disease protocols ===
     sub.add_parser("list-diseases", help="List all available disease protocols")
 
-    # === narrate: Stage 2 — generate clinical documents from CIF ===
+    # === narrate: DEPRECATED (Task 15) ===
+    # Stage 2 LLM provider integration deferred to β-JP-1 chain.
+    # DocumentReference is now emitted via document_enricher POST_ENCOUNTER (Stage 1).
     nr = sub.add_parser(
         "narrate",
-        help="Generate clinical documents (discharge/death/op/H&P/procedure notes) from an existing CIF directory",
+        help="[DEPRECATED] Stage 2 LLM document generation — use Stage 1 enricher output instead",
     )
-    nr.add_argument("--cif-dir", required=True, help="Path to an existing CIF directory (contains structural/)")
-    nr.add_argument("--llm-config", default=None, help="LLM service YAML config (default: template mode)")
-    nr.add_argument("--version-id", default=None, help="Narrative version directory name (default: auto-generated)")
-    nr.add_argument("--language", default="en", help="Document language (en|ja)")
-    nr.add_argument(
-        "--tasks",
-        default=None,
-        help="Comma-separated list of LLMTaskType values to generate "
-             "(default: all Tier A+B types)",
-    )
+    nr.add_argument("--cif-dir", required=True, help="(deprecated, ignored)")
+    nr.add_argument("--llm-config", default=None, help="(deprecated, ignored)")
+    nr.add_argument("--version-id", default=None, help="(deprecated, ignored)")
+    nr.add_argument("--language", default="en", help="(deprecated, ignored)")
+    nr.add_argument("--tasks", default=None, help="(deprecated, ignored)")
 
-    # === export-fhir: Stage 3 — convert CIF (+narrative) to FHIR NDJSON ===
+    # === export-fhir: Stage 3 — convert CIF to FHIR NDJSON ===
     ef = sub.add_parser(
         "export-fhir",
-        help="Convert an existing CIF directory (with optional narrative version) to FHIR R4 Bulk Data NDJSON",
+        help="Convert an existing CIF directory to FHIR R4 Bulk Data NDJSON",
     )
     ef.add_argument("--cif-dir", required=True, help="Path to an existing CIF directory")
     ef.add_argument(
@@ -113,12 +96,6 @@ def main() -> None:
         help="FHIR output directory (default: <cif-dir>/../fhir_r4)",
     )
     ef.add_argument("--country", default="US", help="Country code (US or JP)")
-    ef.add_argument(
-        "--narrative-version",
-        default=None,
-        help="Narrative version to include as DocumentReference. Use 'current' "
-             "to read the pointer at <cif-dir>/narratives/current_version.txt.",
-    )
 
     # === test-encounter: debug single encounter condition ===
     te = sub.add_parser("test-encounter", help="Simulate one patient for an encounter condition (debug)")
@@ -228,42 +205,13 @@ def main() -> None:
     cif_dir = os.path.join(args.output, "cif")
     write_cif(dataset, cif_dir)
 
-    # Narrative layer (Stage 2, optional) — runs BEFORE FHIR export so that
-    # DocumentReference can reference the freshly generated version.
-    narrative_version = getattr(args, "narrative_version", None)
-    if getattr(args, "narrative", False):
-        from clinosim.modules.llm_service.engine import LLMService
-        from clinosim.modules.llm_service.factory import build_from_config_file
-        from clinosim.modules.output.document_generator import generate_documents
-
-        lang = "ja" if getattr(args, "country", "US") == "JP" else "en"
-        llm_config = getattr(args, "llm_config", None)
-        if llm_config:
-            llm = build_from_config_file(llm_config)
-            print(f"  Using LLM config: {llm_config}")
-        else:
-            from clinosim.modules.llm_service.providers.ollama import OllamaProvider
-            model = getattr(args, "narrative_model", "qwen:7b")
-            print(f"  Generating narratives with local Ollama model={model}")
-            llm = LLMService(
-                mode="llm",
-                narrative_provider=OllamaProvider({"model": model}),
-                narrative_model_map={"small": model, "medium": model},
-                provider_name_narrative="ollama",
-            )
-        narrative_version = generate_documents(
-            cif_dir, llm, version_id=narrative_version, language=lang
-        )
-        print(f"  Narrative version: {narrative_version}")
-        print(f"  LLM cost report: {llm.cost_report()}")
-
     # Format exports via the adapter registry (AD-58). Add a format = register an adapter.
+    # DocumentReference resources are emitted from record.documents (Stage 1 enricher).
     _run_exports(
         args.format,
         cif_dir,
         args.output,
         getattr(args, "country", "US"),
-        narrative_version or "",
     )
 
     # Summary
@@ -293,7 +241,6 @@ def _run_exports(
     cif_dir: str,
     output_root: str,
     country: str,
-    narrative_version: str,
 ) -> None:
     """Run each requested export format through the adapter registry (AD-58).
 
@@ -302,7 +249,7 @@ def _run_exports(
     """
     from clinosim.modules.output.adapter import OutputContext, get_adapter
 
-    ctx = OutputContext(country=country, narrative_version=narrative_version or "")
+    ctx = OutputContext(country=country)
     for fmt in formats:
         fmt = _FORMAT_ALIASES.get(fmt, fmt)
         if fmt == "cif":
@@ -566,60 +513,25 @@ def _print_debug_record(record: CIFPatientRecord, index: int = 1) -> None:
 
 
 def _run_narrate(args: Any) -> None:
-    """Stage 2 handler: read an existing CIF and generate clinical documents."""
-    from clinosim.modules.llm_service.engine import LLMService
-    from clinosim.modules.llm_service.factory import build_from_config_file
-    from clinosim.modules.output.document_generator import generate_documents
+    """DEPRECATED (Task 15): Stage 2 LLM document generation removed.
 
-    cif_dir = args.cif_dir
-    if not os.path.isdir(os.path.join(cif_dir, "structural", "patients")):
-        print(f"❌ CIF directory not valid: {cif_dir} (missing structural/patients/)")
-        return
+    DocumentReference resources are now emitted automatically via
+    document_enricher at POST_ENCOUNTER (Stage 1). Stage 2 LLM provider
+    integration is deferred to β-JP-1 chain.
 
-    # Build LLMService
-    if args.llm_config:
-        print(f"clinosim narrate: loading LLM config {args.llm_config}")
-        llm = build_from_config_file(args.llm_config)
-    else:
-        print("clinosim narrate: no --llm-config provided, using template mode")
-        llm = LLMService(mode="template")
-
-    tasks = None
-    if args.tasks:
-        tasks = [t.strip() for t in args.tasks.split(",") if t.strip()]
-
-    print(f"  CIF directory: {cif_dir}")
-    print(f"  Language:      {args.language}")
-    print(f"  Mode:          {llm.mode}")
-    print(f"  Tasks:         {tasks or 'all Tier A+B'}")
-
-    version_id = generate_documents(
-        cif_dir,
-        llm,
-        version_id=args.version_id,
-        language=args.language,
-        tasks=tasks,
+    See TODO.md entry: 'Stage 2 LLM provider integration (β-JP-1 chain)'.
+    """
+    print(
+        "ERROR: 'clinosim narrate' is deprecated (Task 15).\n"
+        "\n"
+        "DocumentReference resources are now generated automatically by the\n"
+        "document_enricher module during simulation (Stage 1).\n"
+        "Run 'clinosim generate --format fhir-r4 ...' to get DocumentReferences.\n"
+        "\n"
+        "Stage 2 LLM provider integration is deferred to the β-JP-1 chain.\n"
+        "See TODO.md for the roadmap entry."
     )
-
-    import json as _json
-    manifest_path = os.path.join(cif_dir, "narratives", version_id, "manifest.json")
-    if os.path.exists(manifest_path):
-        with open(manifest_path) as f:
-            manifest = _json.load(f)
-        print("\n  === Narrative Generation Summary ===")
-        print(f"  Version ID:       {version_id}")
-        print(f"  Patients:         {manifest.get('patient_count', 0)}")
-        print(f"  Total documents:  {manifest.get('total_documents', 0)}")
-        counts = manifest.get("document_counts_by_type", {})
-        for tname, n in sorted(counts.items()):
-            print(f"    {tname:20s} {n}")
-        cost = manifest.get("llm_cost_report", {})
-        if cost:
-            print(f"  LLM calls:        {cost.get('total_calls', 0)}")
-            print(f"  LLM input tokens: {cost.get('total_input_tokens', 0):,}")
-            print(f"  LLM output tokens:{cost.get('total_output_tokens', 0):,}")
-            print(f"  Fallbacks:        {cost.get('fallback_count', 0)}")
-            print(f"  Cache hits:       {cost.get('cache_hit_count', 0)}")
+    raise SystemExit(1)
 
 
 def _run_export_fhir(args: Any) -> None:
@@ -643,15 +555,11 @@ def _run_export_fhir(args: Any) -> None:
     print(f"  CIF directory:      {cif_dir}")
     print(f"  Output:             {output_dir}")
     print(f"  Country:            {args.country}")
-    print(f"  Narrative version:  {args.narrative_version or '(none)'}")
 
     get_adapter("fhir-r4").convert(
         cif_dir,
         output_dir,
-        OutputContext(
-            country=getattr(args, "country", "US"),
-            narrative_version=getattr(args, "narrative_version", None) or "",
-        ),
+        OutputContext(country=getattr(args, "country", "US")),
     )
 
     # Summarize output

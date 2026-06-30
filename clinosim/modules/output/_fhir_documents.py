@@ -3,19 +3,11 @@
 Extracted verbatim from ``fhir_r4_adapter``. Self-contained: imports only
 leaf data, shared helpers, and stdlib/first-party deps — never the adapter.
 
-Stage 1 default (Task 10): _bb_document_references reads record.documents
+Stage 1 (Task 10 / Task 15): _bb_document_references reads record.documents
 (populated by document_enricher POST_ENCOUNTER, Task 8) where
-format_type='free_text' (PROGRESS_NOTE, ADMISSION_HP).
-
-Legacy Stage 2 path (preserved for narrate subcommand): _build_document_reference
-is invoked by fhir_r4_adapter.py:225-260 walk loop when narrative_docs_dir
-is set via --narrative-version arg. The two paths can coexist:
-  - Default run: only Stage 1 fires (record.documents path)
-  - --narrative-version run: legacy walk also fires, emitting duplicate ids
-    that match _bb_document_references (both use DOC_REFERENCE_ID_PREFIX +
-    document_id). The FHIR writer's de-dup guard (written_ids set, first-write
-    wins) prevents actual duplicates in the output file. Task 15 will
-    deprecate the legacy path entirely.
+format_type='free_text' (PROGRESS_NOTE, ADMISSION_HP). This is the sole
+DocumentReference emit path; the legacy narrate-walk path was removed in
+Task 15 (narrate subcommand deprecated, document_generator.py deleted).
 """
 
 from __future__ import annotations
@@ -35,7 +27,6 @@ from clinosim.modules.output._fhir_common import BundleContext, _sha1_b64
 
 __all__ = [
     "_bb_document_references",
-    "_build_document_reference",
 ]
 
 
@@ -149,118 +140,3 @@ def _build_dref_from_clinical_doc(doc: Any, patient_id: str, country: str) -> di
     return resource
 
 
-# === LEGACY: Stage 2 narrate-walk path (preserved — Task 15 will deprecate) ===
-
-def _build_document_reference(
-    doc: dict[str, Any],
-    patient_id: str,
-    country: str,
-) -> dict[str, Any] | None:
-    """Build a FHIR R4 DocumentReference resource from a narrative CIF document.
-
-    LEGACY path — preserved for fhir_r4_adapter.py:225-260 narrate-walk loop
-    (fires only when --narrative-version / narrative_docs_dir is set).
-    Task 15 will deprecate this in favour of _bb_document_references.
-
-    The narrative CIF format is defined by ClinicalDocument in
-    clinosim/types/clinical.py and written by document_generator.py.
-    """
-
-    text = doc.get("text", "") or ""
-    if not text:
-        # Empty stubs (Stage 1 only, no Stage 2 run) are not emitted —
-        # per FHIR R4 spec, DocumentReference requires at least one
-        # content.attachment, and an empty attachment would be useless
-        # to downstream consumers.
-        return None
-
-    loinc_code = doc.get("loinc_code", "")
-    if not loinc_code:
-        return None
-    lang = doc.get("language") or ("ja" if country == "JP" else "en")
-    type_display = code_lookup("loinc", loinc_code, lang) or loinc_code
-
-    # DocumentReference.id must be unique; ClinicalDocument.document_id
-    # already follows doc-<encounter_id>-<task_type>[-suffix]
-    resource_id = doc.get("document_id") or (
-        f"doc-{doc.get('encounter_id','unknown')}-{doc.get('task_type','note')}"
-    )
-
-    # base64 encode the content
-    encoded = base64.b64encode(text.encode("utf-8")).decode("ascii")
-
-    resource: dict[str, Any] = {
-        "resourceType": "DocumentReference",
-        "id": resource_id,
-        "status": "current",
-        "docStatus": "final" if doc.get("text_source") != "template" else "preliminary",
-        "type": {
-            "coding": [
-                {
-                    "system": get_system_uri("loinc"),
-                    "code": loinc_code,
-                    "display": type_display,
-                }
-            ],
-            "text": type_display,
-        },
-        "category": [
-            {
-                "coding": [
-                    {
-                        "system": get_system_uri("us-core-documentreference-category"),
-                        "code": "clinical-note",
-                        "display": "Clinical Note",
-                    }
-                ]
-            }
-        ],
-        "subject": {"reference": f"Patient/{patient_id}"},
-        "date": doc.get("authored_datetime", "") or doc.get("generated_at", ""),
-        "content": [
-            {
-                "attachment": {
-                    "contentType": doc.get(
-                        "content_type", "text/plain; charset=utf-8"
-                    ),
-                    "language": lang,
-                    "data": encoded,
-                    "title": type_display,
-                    "size": len(text.encode("utf-8")),
-                    "hash": _sha1_b64(text),
-                }
-            }
-        ],
-    }
-
-    # Author (Practitioner reference)
-    author_id = doc.get("author_practitioner_id", "")
-    if author_id:
-        resource["author"] = [{"reference": f"Practitioner/{author_id}"}]
-
-    # Encounter context
-    enc_id = doc.get("encounter_id", "")
-    if enc_id:
-        context: dict[str, Any] = {"encounter": [{"reference": f"Encounter/{enc_id}"}]}
-        period_start = doc.get("period_start", "")
-        period_end = doc.get("period_end", "")
-        if period_start and period_end:
-            context["period"] = {"start": period_start, "end": period_end}
-        elif period_start:
-            context["period"] = {"start": period_start}
-
-        # Related procedure (for operative / procedure notes).
-        # Procedure.id in the FHIR export is encounter-scoped: "<enc_id>-<base_procedure_id>"
-        # (see _build_procedure). Apply the same scoping here so the reference resolves.
-        related_proc = doc.get("related_procedure_id", "")
-        if related_proc:
-            scoped_proc_id = (
-                f"{enc_id}-{related_proc}" if enc_id and not related_proc.startswith(enc_id)
-                else related_proc
-            )
-            context["related"] = [
-                {"reference": f"Procedure/{scoped_proc_id}"}
-            ]
-        resource["context"] = context
-
-    return resource
