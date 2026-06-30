@@ -234,6 +234,60 @@ def test_document_enricher_locale_gating_us_excludes_jp_only_specs() -> None:
         assert record_jp.documents[0].language == "ja"
 
 
+def test_document_enricher_preserves_sections_for_composition() -> None:
+    """C-1 regression: ClinicalDocument.sections must hold the narrative
+    sections dict for COMPOSITION format (Task 9 Composition builder reads this).
+    Task 8 fix: enricher now passes sections=dict(output.sections) at all 3 emission sites.
+    """
+    record = _make_record()
+    ctx = _make_ctx(record)
+    document_enricher(ctx)
+
+    # ADMISSION_HP is format_type=composition → sections must be populated
+    hp_docs = [d for d in record.documents if d.task_type == "admission_hp"]
+    assert len(hp_docs) == 1
+    hp = hp_docs[0]
+    assert isinstance(hp.sections, dict), "sections must be a dict"
+    assert len(hp.sections) > 0, "COMPOSITION doc must have non-empty sections"
+    # At least one expected composition section key must be present
+    expected_keys = {"chief_complaint", "hpi", "assessment_and_plan"}
+    assert expected_keys & hp.sections.keys(), (
+        f"No expected section key found in sections={list(hp.sections.keys())}"
+    )
+
+
+def test_document_enricher_sets_format_type_for_dispatch() -> None:
+    """I-1 regression: ClinicalDocument.format_type must match the
+    DocumentTypeSpec.format_type.value so Task 9 builder can dispatch.
+    Task 8 fix: enricher now passes format_type=spec.format_type.value at all 3 emission sites.
+    """
+    record = _make_record()
+    ctx = _make_ctx(record)
+    document_enricher(ctx)
+
+    # PROGRESS_NOTE → free_text
+    progress_docs = [d for d in record.documents if d.task_type == "progress_note"]
+    assert len(progress_docs) > 0
+    for d in progress_docs:
+        assert d.format_type == "free_text", (
+            f"progress_note must have format_type='free_text', got '{d.format_type}'"
+        )
+
+    # ADMISSION_HP → composition
+    hp_docs = [d for d in record.documents if d.task_type == "admission_hp"]
+    assert len(hp_docs) == 1
+    assert hp_docs[0].format_type == "composition", (
+        f"admission_hp must have format_type='composition', got '{hp_docs[0].format_type}'"
+    )
+
+    # DISCHARGE_SUMMARY → composition
+    ds_docs = [d for d in record.documents if d.task_type == "discharge_summary"]
+    assert len(ds_docs) == 1
+    assert ds_docs[0].format_type == "composition", (
+        f"discharge_summary must have format_type='composition', got '{ds_docs[0].format_type}'"
+    )
+
+
 def test_document_enricher_deterministic() -> None:
     """Same master_seed + same encounter → identical document IDs, task types, and text."""
 
