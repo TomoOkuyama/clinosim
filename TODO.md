@@ -1567,3 +1567,39 @@ marked `pytest.mark.xfail(strict=False)`. When the bug is fixed, remove the xfai
 - `test_device_fhir_output.py::test_device_extension_through_fhir_pipeline` progresses past
   AttributeError post-fix but fails for a different reason (device count = 0 at p=300).
   Sweep all builders for dict-compat (dataclass vs dict dual-access pattern).
+
+## SS-MIX2 output adapter(セッション25 deferred)
+
+**Decision:** User deferred SS-MIX2 implementation 2026-06-30 セッション25。実 EHR データ density 充実(問診 / 検査 / 手術 / 処方の event 記録)を先に進めるため。
+
+**Scope:**
+- 新 output adapter via AD-58 `register_output_adapter`(FHIR と並行出力、CIF read-only consume)
+- HL7 v2.5 segment-based、厚労省 SS-MIX2 標準準拠
+- 主要 message types:
+  - **ADT**(Admit/Discharge/Transfer):A01 admit、A03 discharge、A02 transfer、A04 register
+  - **OML**(Order Lab):検査依頼 message
+  - **OUL**(Observation Unsolicited Lab):検査結果 message
+  - **ORM**(Order Pharmacy):処方依頼 message
+  - **RDE**(Pharmacy/Treatment Encoded Order):処方詳細 message
+  - **MDM**(Medical Document Management):文書 message
+- 既存 `hospital_config` の各 hospital identifier(MEDIS / JANIS / etc.)を SS-MIX2 hospital ID にマップ
+
+**Target consumers(JP EHR vendor debug datasets):**
+- 富士通 HOPE LifeMark / EGMAIN-GX
+- NEC MegaOakHR
+- SSI Hyper-S
+- IBM HOPE / IBM 医療情報システム
+- 厚労省 医療情報連携基盤 connectivity test
+
+**推定 PR:** 4-6 PR(adapter skeleton + 主要 6 message types + 厚労省仕様検証 + 既存 hospital_config 連動)
+
+**Precondition:**
+- ★ Event density 5 chain(Document / MAR / Procedure / LabDR / Nursing)完了後に着手推奨
+- 理由:SS-MIX2 は CIF を消費するだけなので CIF の event records 充実が直接 SS-MIX2 dataset 価値に反映
+
+**関連 memory:**
+- `project_event_density_strategy.md` — セッション25 戦略軸転換
+- `project_ehr_event_emphasis.md` — セッション25 戦略再確認
+
+**Discovered:** セッション25(2026-06-30)。User goal が 病院 event 記録充実 = 並行 SS-MIX2 出力より優先。
+
