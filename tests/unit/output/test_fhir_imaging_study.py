@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from types import SimpleNamespace
-
-import pytest
 
 from clinosim.modules.output._fhir_imaging_study import (
     DICOM_UID_SYSTEM,
@@ -33,6 +30,7 @@ def _make_ctx(studies, country="us", hospital_config=None):
 
 
 def _sample_study():
+    from datetime import datetime
     return ImagingStudyRecord(
         study_id="enc1-1",
         study_instance_uid="2.25.42",
@@ -77,6 +75,9 @@ def test_basedon_and_endpoint_refs():
     r = _bb_imaging_studies(ctx)[0]
     assert r["basedOn"] == [{"reference": "ServiceRequest/sr-ord1"}]
     assert r["endpoint"] == [{"reference": "Endpoint/endpoint-2.25.42"}]
+    assert r["endpoint"][0]["reference"].removeprefix("Endpoint/").startswith(
+        ENDPOINT_ID_PREFIX
+    )
 
 
 def test_number_of_series_and_instances():
@@ -106,3 +107,30 @@ def test_jp_locale_resolves_modality_and_body_site_ja():
     assert "単純X線撮影" in r["modality"][0]["display"]
     # bodySite display via series — chest SNOMED resolved
     assert "胸部" in r["series"][0]["bodySite"]["display"]
+
+
+def test_emits_imaging_study_from_dict_path():
+    """Production CIF is json.load() -> dict; verify _o() dict-access path."""
+    study_dict = {
+        "study_id": "enc1-1", "study_instance_uid": "2.25.42",
+        "encounter_id": "enc1", "patient_id": "pt1", "order_id": "ord1",
+        "status": "available", "started_datetime": "2026-06-30T10:00:00",
+        "modality_code": "CR", "body_site_snomed": "51185008",
+        "series": [{
+            "series_uid": "2.25.43", "series_number": 1,
+            "modality_code": "CR", "body_site_snomed": "51185008",
+            "body_site_display": "Thoracic structure",
+            "description": "PA view", "instance_count": 1,
+        }],
+        "endpoint_id": "endpoint-2.25.42",
+    }
+    ctx = _make_ctx([study_dict])
+    resources = _bb_imaging_studies(ctx)
+    assert len(resources) == 1
+    r = resources[0]
+    assert r["id"] == "imgst-enc1-1"
+    assert r["identifier"][0]["value"] == "urn:oid:2.25.42"
+    assert r["series"][0]["uid"] == "2.25.43"
+    assert r["series"][0]["description"] == "PA view"
+    assert r["basedOn"] == [{"reference": "ServiceRequest/sr-ord1"}]
+    assert r["endpoint"] == [{"reference": "Endpoint/endpoint-2.25.42"}]

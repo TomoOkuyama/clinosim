@@ -19,7 +19,7 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules.imaging.engine import ENDPOINT_ID_PREFIX  # canonical owner: engine.py; re-exported
+from clinosim.modules.imaging.engine import ENDPOINT_ID_PREFIX
 from clinosim.modules.output._fhir_common import BundleContext
 
 # Writer-owned constant — unique to Endpoint builder, not in engine.py.

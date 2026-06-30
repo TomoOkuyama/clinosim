@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from types import SimpleNamespace
 
 from clinosim.modules.output._fhir_endpoint import (
@@ -45,6 +44,7 @@ def test_emits_one_endpoint_per_study():
     e = r[0]
     assert e["resourceType"] == "Endpoint"
     assert e["id"] == "endpoint-2.25.42"
+    assert e["id"].startswith(ENDPOINT_ID_PREFIX)
     assert e["status"] == "active"
     assert e["connectionType"]["code"] == DICOM_WADO_RS_CONNECTION_TYPE
     assert e["payloadMimeType"] == ["application/dicom"]
@@ -70,3 +70,18 @@ def test_resolve_wado_base_url_returns_default_on_empty():
 def test_resolve_wado_base_url_returns_configured():
     url = _resolve_wado_base_url({"imaging": {"wado_base_url": "https://my.pacs/wado"}})
     assert url == "https://my.pacs/wado"
+
+
+def test_emits_endpoint_from_dict_path():
+    """Production CIF is json.load() -> dict; verify _o() dict-access path."""
+    study_dict = {
+        "study_id": "enc1-1", "study_instance_uid": "2.25.42",
+        "encounter_id": "enc1", "patient_id": "pt1", "order_id": "ord1",
+        "endpoint_id": "endpoint-2.25.42",
+    }
+    ctx = _make_ctx([study_dict])
+    resources = _bb_endpoints(ctx)
+    assert len(resources) == 1
+    e = resources[0]
+    assert e["id"] == "endpoint-2.25.42"
+    assert e["address"].endswith("/studies/2.25.42")
