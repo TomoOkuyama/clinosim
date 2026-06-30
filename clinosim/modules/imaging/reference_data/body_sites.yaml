@@ -1,0 +1,34 @@
+# Body site reference + procedure code lookup (PR1 scope = chest + head).
+# procedure_codes keyed by "{modality_dicom_code}_{variant}" — e.g. CR_PA_Lateral,
+# CT_non_contrast — and carry LOINC + CPT + JP K-code for billing/interop.
+
+body_sites:
+  chest:
+    snomed: "51185008"
+    display_en: "Thoracic structure"
+    display_ja: "胸部"
+    procedure_codes:
+      CR_PA_Lateral:                             # 2-view chest X-ray
+        loinc: "36572-6"                         # NLM clinicaltables verified
+        cpt: "71046"                             # AMA verified
+        jp_k_code: "E001"                        # MHLW 単純撮影
+        display_en: "Chest X-ray PA and Lateral"
+        display_ja: "胸部単純X線撮影 正面・側面"
+      CT_non_contrast:
+        loinc: "30794-3"
+        cpt: "71250"
+        jp_k_code: "E200"                        # MHLW CT 単純
+        display_en: "CT Chest without contrast"
+        display_ja: "胸部CT 単純"
+
+  head:
+    snomed: "69536005"
+    display_en: "Head structure"
+    display_ja: "頭部"
+    procedure_codes:
+      CT_non_contrast:
+        loinc: "30799-1"
+        cpt: "70450"
+        jp_k_code: "E200"
+        display_en: "CT Head without contrast"
+        display_ja: "頭部CT 単純"

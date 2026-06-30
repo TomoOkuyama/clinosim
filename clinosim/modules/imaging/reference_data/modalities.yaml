@@ -1,0 +1,23 @@
+# DICOM modality reference (PR1 scope = CR + CT).
+# Each entry: dicom_code, localized display, typical instance count range,
+# default views per body site. Validated at import time by _validate_modalities().
+
+modalities:
+  CR:                                            # Computed Radiography (plain X-ray)
+    dicom_code: "CR"
+    display_en: "Plain X-ray"
+    display_ja: "単純X線撮影"
+    typical_instances_per_view_range: [1, 1]     # 1 view = 1 instance
+    default_views_by_body_site:
+      chest: ["PA", "Lateral"]
+
+  CT:                                            # Computed Tomography
+    dicom_code: "CT"
+    display_en: "Computed Tomography"
+    display_ja: "コンピュータ断層撮影"
+    typical_instances_per_series_range:
+      head: [180, 280]                           # axial 5mm ≈ ~200 slices
+      chest: [220, 340]                          # axial 1mm ≈ ~280 slices
+    default_views_by_body_site:
+      head: ["axial"]
+      chest: ["axial"]

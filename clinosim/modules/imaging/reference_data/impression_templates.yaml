@@ -1,0 +1,65 @@
+# Radiology report templates keyed by disease_id × "{modality}_{body_site}".
+# normal/abnormal sub-keys carry findings (detail narrative) + impression
+# (clinical conclusion) in en + ja. Tier 1 #5 LLM 統合点(本 template が prompt seed).
+
+templates:
+  bacterial_pneumonia:
+    CR_chest:
+      normal:
+        findings_en: "Lungs are clear bilaterally. No focal consolidation, effusion, or pneumothorax."
+        findings_ja: "両肺野に明らかなconsolidation、胸水、気胸を認めず、明らかな異常所見なし。"
+        impression_en: "No acute cardiopulmonary process."
+        impression_ja: "急性心肺疾患を示唆する所見なし。"
+      abnormal:
+        findings_en: "Focal opacity in the right lower lobe consistent with consolidation. No effusion."
+        findings_ja: "右下肺野に浸潤影を認め、肺炎像と矛盾せず。胸水は認めない。"
+        impression_en: "Findings consistent with right lower lobe pneumonia."
+        impression_ja: "右下葉肺炎像。"
+    CT_chest:
+      normal:
+        findings_en: "No focal consolidation, ground-glass opacity, or effusion."
+        findings_ja: "consolidation、ground-glass opacity、胸水いずれも認めない。"
+        impression_en: "No acute pulmonary process."
+        impression_ja: "急性肺疾患を示唆する所見なし。"
+      abnormal:
+        findings_en: "Consolidation in the right lower lobe with surrounding ground-glass opacity, consistent with pneumonia."
+        findings_ja: "右下葉にconsolidationおよび周囲のground-glass opacityを認め、肺炎像と矛盾せず。"
+        impression_en: "Right lower lobe pneumonia with surrounding inflammation."
+        impression_ja: "右下葉肺炎、周囲炎症像を伴う。"
+
+  aspiration_pneumonia:
+    CR_chest:
+      normal:
+        findings_en: "No focal consolidation."
+        findings_ja: "明らかな浸潤影を認めず。"
+        impression_en: "No radiographic evidence of aspiration pneumonia."
+        impression_ja: "誤嚥性肺炎を示唆する所見なし。"
+      abnormal:
+        findings_en: "Patchy opacity in the right lower lobe and posterior segments, consistent with aspiration pneumonia."
+        findings_ja: "右下葉および背側区域にpatchy浸潤影を認め、誤嚥性肺炎像と矛盾せず。"
+        impression_en: "Findings consistent with aspiration pneumonia."
+        impression_ja: "誤嚥性肺炎像。"
+    CT_chest:
+      normal:
+        findings_en: "No focal consolidation or aspiration findings."
+        findings_ja: "consolidationまたは誤嚥所見は認めない。"
+        impression_en: "No acute pulmonary process."
+        impression_ja: "急性肺疾患を示唆する所見なし。"
+      abnormal:
+        findings_en: "Right lower lobe and posterior segment consolidation with surrounding ground-glass opacity, consistent with aspiration."
+        findings_ja: "右下葉および背側区域にconsolidationおよび周囲ground-glass opacityを認め、誤嚥性と矛盾せず。"
+        impression_en: "Aspiration pneumonia, right lower lobe predominant."
+        impression_ja: "誤嚥性肺炎、右下葉優位。"
+
+  hemorrhagic_stroke:
+    CT_head:
+      normal:
+        findings_en: "No acute intracranial hemorrhage or mass effect."
+        findings_ja: "急性期頭蓋内出血や mass effect を認めない。"
+        impression_en: "No acute intracranial process."
+        impression_ja: "急性頭蓋内疾患を示唆する所見なし。"
+      abnormal:
+        findings_en: "Acute parenchymal hemorrhage in the right basal ganglia with surrounding edema and 5mm midline shift."
+        findings_ja: "右側基底核に急性期実質出血を認め、周囲浮腫および5mmの正中偏位を伴う。"
+        impression_en: "Acute right basal ganglia intracerebral hemorrhage with mass effect."
+        impression_ja: "右側基底核急性脳出血、mass effect を伴う。"
