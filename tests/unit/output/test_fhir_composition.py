@@ -154,15 +154,17 @@ def test_empty_sections_omits_section_key():
     assert "section" not in r
 
 
-def test_no_author_yields_empty_author_array():
-    """Composition.author is 1..* in FHIR R4; α-min-1 emits [] when no practitioner ref.
-    Key is present (not omitted) to surface the conformance gap clearly.
-    See TODO in _fhir_composition.py for Task 10/15 fix plan."""
+def test_no_author_yields_placeholder_author_array():
+    """A-1 fix (post-PR-128 adv): empty author_id → placeholder [{"reference": "Practitioner/UNKNOWN"}].
+    FHIR R4 Composition.author is 1..*; empty [] is non-conformant. Production path never fires
+    (inpatient.py:184 sets attending_id=DR-001); placeholder surfaces via reference integrity
+    audit (dangling Practitioner/UNKNOWN) rather than silent invalid [].
+    See TODO in _fhir_composition.py for Task 10/15 full practitioner-ref fix plan."""
     doc = _sample_doc_dataclass()
     doc.author_practitioner_id = ""
     ctx = _make_ctx([doc])
     r = _bb_compositions(ctx)[0]
-    assert r["author"] == []
+    assert r["author"] == [{"reference": "Practitioner/UNKNOWN"}]
 
 
 def test_no_encounter_omits_encounter_field():

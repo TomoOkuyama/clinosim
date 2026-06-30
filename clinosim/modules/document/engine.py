@@ -36,6 +36,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.disease.protocol import load_disease_protocol
 from clinosim.modules.document import (
     CLINICAL_IMPRESSION_ID_PREFIX,
     DOC_REFERENCE_ID_PREFIX,
@@ -177,6 +178,25 @@ def document_enricher(ctx: Any) -> None:
             physiological_states = list(_o(record, "physiological_states", []) or [])
             los_days = _compute_los_days(admission_dt, discharge_dt, physiological_states)
 
+            # C-1 (Lens 4 I-2): resolve disease_protocol for this encounter so that
+            # 32 disease YAML narrative blocks (hpi_template / physical_exam_findings /
+            # discharge_instructions / chief_complaint) become reachable.
+            # Source: _disease_id IPC key set by inpatient.py before POST_ENCOUNTER stage;
+            # cleaned up after run_stage returns. Same access pattern as imaging_enricher.
+            # Fallback: None (unchanged default) if disease_id is unknown or YAML missing.
+            extensions_data = _o(record, "extensions", {}) or {}
+            disease_id: str = (
+                extensions_data.get("_disease_id", "")
+                or _o(record, "disease_id", "")  # SimpleNamespace test fixture fallback
+                or ""
+            )
+            disease_protocol: Any | None = None
+            if disease_id:
+                try:
+                    disease_protocol = load_disease_protocol(disease_id)
+                except (FileNotFoundError, Exception):
+                    disease_protocol = None  # unknown disease_id → fall through to defaults
+
             # ── Document generation (per spec) ───────────────────────────────
             for spec in specs:
                 freq = spec.generation_frequency
@@ -190,6 +210,7 @@ def document_enricher(ctx: Any) -> None:
                         day_index=0,
                         country=country,
                         los_days=los_days,
+                        disease_protocol=disease_protocol,
                     )
                     output = generator.generate(ctx_n, spec)
                     documents.append(ClinicalDocument(
@@ -211,6 +232,11 @@ def document_enricher(ctx: Any) -> None:
                     doc_seq += 1
 
                 elif freq == "daily":
+                    # Spec §7: PROGRESS_NOTE skipped for LOS=1 same-day encounters.
+                    # A same-day admission/discharge has an H&P and discharge summary;
+                    # a progress note in between is clinically redundant.
+                    if los_days <= 1:
+                        continue
                     for day in range(los_days):
                         day_dt = admission_dt + timedelta(days=day)
                         ctx_n = build_narrative_context(
@@ -220,6 +246,7 @@ def document_enricher(ctx: Any) -> None:
                             day_index=day,
                             country=country,
                             los_days=los_days,
+                            disease_protocol=disease_protocol,
                         )
                         output = generator.generate(ctx_n, spec)
                         documents.append(ClinicalDocument(
@@ -251,6 +278,7 @@ def document_enricher(ctx: Any) -> None:
                         day_index=los_days - 1,
                         country=country,
                         los_days=los_days,
+                        disease_protocol=disease_protocol,
                     )
                     output = generator.generate(ctx_n, spec)
                     documents.append(ClinicalDocument(
@@ -274,6 +302,9 @@ def document_enricher(ctx: Any) -> None:
             # ── ClinicalImpression generation (per LOS day, always) ──────────
             for day in range(los_days):
                 day_dt = admission_dt + timedelta(days=day)
+                # AD-32: the last day of an in-progress encounter is "in-progress"
+                # (encounter still open; prior days remain "completed").
+                last_day_of_in_progress = is_in_progress and (day == los_days - 1)
                 clinical_impressions.append(ClinicalImpressionRecord(
                     impression_id=f"{CLINICAL_IMPRESSION_ID_PREFIX}{encounter_id}-{day}",
                     encounter_id=encounter_id,
@@ -281,6 +312,7 @@ def document_enricher(ctx: Any) -> None:
                     day_index=day,
                     description=f"Day {day + 1} clinical assessment",
                     practitioner_id=attending_id,
+                    is_in_progress=last_day_of_in_progress,
                 ))
 
         # ── Write back to record ─────────────────────────────────────────────

@@ -173,3 +173,7 @@ class ClinicalImpressionRecord:
     finding_refs: list[str] = field(default_factory=list)        # Condition id refs
     prognosis: str = ""
     practitioner_id: str = ""            # 主治医
+    # AD-32 snapshot semantics: True only for the current (latest) day of an in-progress
+    # encounter. All prior days remain "completed" (clinical picture was fully documented).
+    # Drives ClinicalImpression.status "in-progress" vs "completed" in _fhir_clinical_impression.py.
+    is_in_progress: bool = False

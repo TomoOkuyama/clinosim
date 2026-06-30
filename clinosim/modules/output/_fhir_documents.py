@@ -82,7 +82,9 @@ def _build_dref_from_clinical_doc(doc: Any, patient_id: str, country: str) -> di
         "resourceType": "DocumentReference",
         "id": resource_id,
         "status": "current",
-        "docStatus": "final" if _o(doc, "text_source", "none") != "template" else "preliminary",
+        # Stage 1 (template) output IS production; "preliminary" would imply draft.
+        # Stage 2 (LLM-augmented, β-JP-1) will re-evaluate this when llm_service is wired.
+        "docStatus": "final",
         "type": {
             "coding": [
                 {
