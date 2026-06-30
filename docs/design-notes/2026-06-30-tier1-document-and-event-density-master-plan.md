@@ -723,3 +723,156 @@ PR1 LAB chain + Imaging chain で確立した patterns:
 
 **This document is the master plan for the entire document + event density chain.**
 **It is intentionally exhaustive — future sessions can read it cold and resume.**
+
+---
+
+## Appendix A: CIF schema gap analysis(FHIR 生成 vs 現 CIF、user 質問への回答 セッション25)
+
+FHIR emit が増える = CIF が情報を持つ必要がある。Phase 別に **新規必要 CIF type + 既存拡張 field** を一覧化。
+
+### Phase α-min-1 新 CIF types(2 個 + field 拡張)
+
+| 新 CIF type | 必要 FHIR | core fields |
+|---|---|---|
+| **`Allergy`**(`clinosim/types/allergy.py` new) | AllergyIntolerance | allergen_code(SNOMED)+ reaction + severity + onset_date + verification_status |
+| **`ClinicalImpressionRecord`**(`clinosim/types/clinical.py` 拡張) | ClinicalImpression | description + summary + investigation_refs + finding_refs + prognosis + date |
+
+既存 dataclass 拡張:
+- `PatientProfile.allergies: list[Allergy] = field(default_factory=list)`
+- `EncounterRecord.clinical_impressions: list[ClinicalImpressionRecord] = field(default_factory=list)`
+
+### Phase α-min-2 新 CIF types(2 個)
+
+| 新 CIF type | 必要 FHIR | core fields |
+|---|---|---|
+| **`CareTeamMember`** new | CareTeam | practitioner_id + role(attending/primary_nurse/specialist)+ period |
+| **`EDTriageRecord`** new | Encounter.priority + Flag + ServiceRequest(urgency) | jtas_level / esi_level + arrival_mode + triage_time + chief_concern |
+
+既存拡張:
+- `EncounterRecord.care_team: list[CareTeamMember]`
+- `EncounterRecord.triage: EDTriageRecord | None`(ED encounter のみ)
+
+### Phase β-JP-1 新 CIF types(5 個、★ JP-only fields)
+
+| 新 CIF type | 必要 FHIR | core fields |
+|---|---|---|
+| **`InpatientTreatmentPlan`**(JP only) | QuestionnaireResponse(入院診療計画書) | primary_dx + planned_los + planned_treatment + estimated_dpc_point + team_assignment |
+| **`NursingNecessityScore`**(JP only) | QuestionnaireResponse + Observation | A_items(monitoring)+ B_items(ADL)+ C_items(procedure)scores + day_index |
+| **`NutritionAssessment`** | QuestionnaireResponse + NutritionOrder | bmi + swallowing_function + diet_content + plan + reassessment_schedule |
+| **`RehabPlan`** | QuestionnaireResponse + ServiceRequest(rehab) | functional_goal + eval_method + schedule + responsible_therapist |
+| **`MultidisciplinaryTeamAllocation`**(CareTeamMember 拡張型) | CareTeam(拡張) | 主治医 + 受持看護師 + 担当薬剤師 + 担当栄養士 + 担当リハ + 担当 MSW staff IDs |
+
+既存拡張:
+- `EncounterRecord.inpatient_plan: InpatientTreatmentPlan | None`(JP cohort + INPATIENT のみ)
+- `EncounterRecord.nursing_necessity_daily: list[NursingNecessityScore]`(JP cohort のみ)
+- `EncounterRecord.nutrition_plan: NutritionAssessment | None`
+- `EncounterRecord.rehab_plan: RehabPlan | None`
+
+### Phase β-2 新 CIF types(4 個 + Procedure refactor)
+
+| 新 CIF type | 必要 FHIR | core fields |
+|---|---|---|
+| **`OperativeFindings`**(`ProcedureRecord` 拡張) | Composition(手術記録)+ Procedure | preop_dx + intraop_findings + procedure_detail + postop_dx + complication |
+| **`AnesthesiaRecord`** new | Composition(麻酔記録)+ Observation(vital chart) | anesthesia_method + drugs(list)+ intervention_events + start/end times + complication |
+| **`InformedConsent`** new | Consent / QuestionnaireResponse(同意書) | explained_items + consent_items + family_witness_id + consent_date + witness_signature |
+| **`MedicationDispenseEvent`** new | MedicationDispense | dispense_time + lot_number + quantity + pharmacy_practitioner_id |
+
+既存拡張:
+- `ProcedureRecord` に `operative_findings: OperativeFindings | None` + `anesthesia_record: AnesthesiaRecord | None`
+- `EncounterRecord.informed_consents: list[InformedConsent]`
+- `EncounterRecord.medication_dispenses: list[MedicationDispenseEvent]`
+
+### Phase γ 新 CIF types(7 個)
+
+| 新 CIF type | 必要 FHIR | core fields |
+|---|---|---|
+| **`AppointmentRecord`** new(Tier 1 #6 統合) | Appointment + AppointmentResponse | start + end + status + appointment_type + referral_id + visit_purpose |
+| **`ReferralLetterOut`** new | Composition(紹介状)+ ServiceRequest(referral) | recipient_facility + recipient_physician + purpose + contents + ICD codes |
+| **`ReferralLetterIn`** new | Composition(紹介状受け)+ Encounter.basedOn | source_facility + source_physician + purpose + arrival_summary |
+| **`Flag`** new(or 既存 data から derive) | Flag | category + code + status + period + reason |
+| **`CommunicationEvent`** new | Communication | sender + recipient + sent_time + topic + payload_summary |
+| **`CareOpinionLetter`**(JP only、主治医意見書) | QuestionnaireResponse | adl + cognitive + judgment + life_situation + needs(介護保険) |
+| **`MSWConsultation`** new | DocumentReference + Composition | msw_practitioner_id + assessment + discharge_planning + family_dynamics |
+
+既存拡張:
+- `PatientProfile.appointments: list[AppointmentRecord]` + `flags: list[Flag]`
+- `EncounterRecord.referrals_out + referrals_in: list` + `msw_consultation: MSWConsultation | None`
+- `PatientProfile.communications: list[CommunicationEvent]`
+
+### Phase δ 新 CIF types(11 個)
+
+| 新 CIF type | 必要 FHIR | core fields |
+|---|---|---|
+| **`PathologyReport`** new(癌 cohort のみ) | Composition(病理診断)+ DiagnosticReport | specimen_id + gross_description + microscopic + diagnosis + IHC_results + grade / stage |
+| **`CytologyReport`** new | Composition(細胞診)+ DiagnosticReport | sample_type + classification(Bethesda 等)+ findings |
+| **`CarePlan`** new(Tier 1 #7 統合) | CarePlan | category + goals + activities + period + intent + status |
+| **`Goal`** new(Tier 1 #7 統合) | Goal | description + start_date + target_date + status + outcome |
+| **`EpisodeOfCare`** new(Tier 1 #7 統合) | EpisodeOfCare | type + period + diagnosis + managing_organization + care_team + status |
+| **`AdverseEventRecord`** new | AdverseEvent | event_date + category + severity + outcome + recorder |
+| **`DetectedIssueRecord`** new | DetectedIssue | category + severity + identified_date + mitigated |
+| **`PreOpEvaluation`** new | Composition(術前評価) | risk_assessment + reserve_function + airway + complications |
+| **`PostOpEvaluation`** new | Composition(術後評価) | pain_status + complications + recovery_milestones |
+| **`ORNursingRecord`** new | Composition(手術看護記録) | OR_nurse_id + position + skin_prep + count_check + complications |
+| **`DeathCertificate`**(JP only) | QuestionnaireResponse(死亡診断書) | direct_cause + intermediate_cause + ultimate_cause + autopsy + time_of_death |
+
+既存拡張:
+- `PatientProfile.episodes_of_care: list[EpisodeOfCare]` + `care_plans: list[CarePlan]` + `goals: list[Goal]`
+- `EncounterRecord.adverse_events: list[AdverseEventRecord]` + `detected_issues: list[DetectedIssueRecord]`
+- `EncounterRecord` 既存に pre_op + post_op + or_nursing + pathology_reports field 追加
+
+### Phase ε 新 CIF types(3 個 + MAR refactor)
+
+| 新 CIF type | 必要 FHIR | core fields |
+|---|---|---|
+| **`LocationTransferEvent`** new(Tier 1 #4 統合) | Encounter.location[] | from_ward + to_ward + transfer_time + reason + ordering_physician |
+| **`SpecimenRecord`**(独立 resource として) | Specimen | collection_time + collection_method + type + container + fasting_status + collector_id |
+| **`MedicationAdministrationEvent`**(MAR refactor、per-dose) | MedicationAdministration(per-dose × scheduled times) | scheduled_time + actual_time + status(given/held/refused)+ administered_by + dose |
+
+既存拡張:
+- `EncounterRecord.ward_id: str`(single)→ `location_history: list[LocationTransferEvent]`
+- `EncounterRecord.specimens: list[SpecimenRecord]`
+- 既存 `MedicationAdministration` を per-dose record に refactor + `EncounterRecord.mar_events: list[MedicationAdministrationEvent]`
+- Vital sign frequency 拡張(既存 `EncounterRecord.vital_signs` の sampling timing engine 拡張)
+
+### CIF schema gap 合計
+
+| Phase | 新 CIF type | 既存 field 拡張 |
+|---|---|---|
+| α-min-1 | 2 | PatientProfile + EncounterRecord 各 1 list field |
+| α-min-2 | 2 | EncounterRecord 2 field |
+| β-JP-1 | 5(JP-only)| EncounterRecord 4 field(JP gating)|
+| β-2 | 4 + ProcedureRecord 拡張 | ProcedureRecord 2 nested field + EncounterRecord 2 list field |
+| γ | 7 | PatientProfile 2 list + EncounterRecord 3 field |
+| δ | 11(うち 2 = JP-only) | PatientProfile 3 list + EncounterRecord 4 field |
+| ε | 3 + MAR refactor | EncounterRecord ward_id → location_history、新 specimens + mar_events |
+| **合計** | **~32 新規 CIF type + ~5 既存 dataclass の大幅 field 拡張** | — |
+
+### CIF 設計原則(本 master plan 適用)
+
+1. **Phase precedent 維持**:CIF 拡張は **対応 FHIR emit と同 chain で同時実装**(切り離し禁止 = 中途半端 CIF 防止)
+2. **`clinosim/types/` に集約**(AD-18 — never define data types inside module code)
+3. **既存 dataclass 再利用優先**:新規追加前に既存 dataclass 拡張可能性を grep で確認
+4. **CIF → FHIR no-drop invariant**(memory `feedback_cif_to_fhir_no_drop`):CIF field 追加時、FHIR target を spec emission matrix に必ず記載
+5. **Lazy emission for backward compat**:Phase α で field 追加するが populate しない(default empty list)→ Phase β で populate logic 追加 = 既存 cohort 不変
+6. **Pydantic vs dataclass**:YAML-loaded data は Pydantic、runtime types は dataclass(AD-18 既存原則)
+7. **JP-only fields**:Pydantic / dataclass schema level では allow、emission level で locale filter(`countries_supported` の registry pattern)
+
+### Per-phase CIF + Document + Event emit の三位一体 chain pattern
+
+各 phase は以下の order で task slice:
+
+```
+1. Add new CIF type(s) to clinosim/types/<area>.py + Pydantic schema
+2. Add corresponding fields to PatientProfile + EncounterRecord(+ Pydantic)
+3. Add populate logic in appropriate module(or new module)+ enricher registration
+4. Add reference data YAML if needed(disease YAML 拡張 / 新 reference_data file)
+5. Update Disease/Encounter YAML Pydantic schema for new fields
+6. Add FHIR builder(s)+ register in _BUNDLE_BUILDERS
+7. Add AD-60 audit module + lift_firing_proof equality_checks(canonical constants + emission count + no-drop matrix)
+8. Add unit + integration tests(both dict + dataclass paths per PR-90 lesson)
+9. Update emission matrix in spec(CIF → FHIR no-drop)
+10. DQR + 8 docs sync
+11. 5-lens adversarial fan-out
+```
+
+これにより **CIF schema completeness が次の Phase の起点になる** = lazy gap 無し。
