@@ -15,6 +15,10 @@ from clinosim.modules.document.narrative.registry import (
     load_document_type_specs,
     specs_for_country,
 )
+from clinosim.modules.document.reference_data_loaders import (
+    load_discharge_instructions,
+    load_physical_exam_findings,
+)
 from clinosim.types.document import (
     DocumentType,
     FormatType,
@@ -42,6 +46,8 @@ __all__ = [
     "NarrativeOutput",
     "load_document_type_specs",
     "specs_for_country",
+    "load_physical_exam_findings",
+    "load_discharge_instructions",
     "DOC_REFERENCE_ID_PREFIX",
     "COMPOSITION_ID_PREFIX",
     "ALLERGY_ID_PREFIX",

@@ -1,0 +1,65 @@
+# Discharge instructions catalog (Tier 1 #3 α-min-1 PR1 Task 5)
+#
+# baseline       = disease-agnostic fallback instructions (always applied)
+# disease_specific = per-disease override / supplement instructions
+#
+# Each entry must have BOTH 'en' (English) and 'ja' (Japanese) fields.
+# Required baseline keys: hydrate, rest, follow_up
+#
+# Task 6 TemplateNarrativeGenerator merges baseline + disease_specific,
+# with disease_specific taking precedence for shared keys.
+
+baseline:
+  hydrate:
+    en: "Drink plenty of fluids."
+    ja: "十分な水分摂取を心がけてください。"
+  rest:
+    en: "Get adequate rest and avoid overexertion."
+    ja: "十分な休息をとり、無理な活動は控えてください。"
+  follow_up:
+    en: "Follow up with your primary care provider within 7-10 days."
+    ja: "退院後 1-2 週間以内にかかりつけ医を受診してください。"
+  medications:
+    en: "Take all prescribed medications as directed. Do not stop early without consulting your doctor."
+    ja: "処方された薬はすべて指示通りに内服してください。医師に相談なく中止しないでください。"
+  emergency:
+    en: "Return to the emergency department if symptoms worsen significantly."
+    ja: "症状が著しく悪化した場合は速やかに救急受診してください。"
+  diet:
+    en: "Resume a normal diet gradually as tolerated."
+    ja: "食事は体調に合わせて徐々に通常食に戻してください。"
+
+# Per-disease overrides — supplement or replace baseline entries.
+# Only bacterial_pneumonia is populated in Task 5 as structural demonstration.
+
+disease_specific:
+  bacterial_pneumonia:
+    follow_up:
+      en: "Follow up with your primary care provider in 7-10 days for chest X-ray reassessment."
+      ja: "退院後 1-2 週間以内に外来受診し、胸部 X-P 再検をお願いします。"
+    activity:
+      en: "Gradual return to normal activity; avoid strenuous exercise for 2 weeks."
+      ja: "徐々に通常活動に戻してください。激しい運動は 2 週間控えてください。"
+    medications:
+      en: "Complete the full prescribed antibiotic course even if you feel better."
+      ja: "症状が改善しても処方された抗菌薬を最後まで内服してください。"
+    emergency:
+      en: "Return to the ER if fever recurs, breathing worsens, or chest pain develops."
+      ja: "発熱再出現・呼吸困難悪化・胸痛が現れた場合は速やかに救急受診してください。"
+    smoking:
+      en: "Smoking significantly delays recovery. Strongly consider cessation."
+      ja: "喫煙は回復を著しく遅らせます。禁煙を強くお勧めします。"
+
+  aspiration_pneumonia:
+    follow_up:
+      en: "Follow up with your physician in 1 week; swallowing evaluation may be recommended."
+      ja: "1 週間以内に外来受診をお願いします。嚥下機能評価を勧める場合があります。"
+    diet:
+      en: "Follow the thickened liquid or pureed diet as instructed to reduce aspiration risk."
+      ja: "誤嚥リスク軽減のため、指示されたとろみ食・ペースト食を守ってください。"
+    activity:
+      en: "Maintain upright posture during and for 30 minutes after meals."
+      ja: "食事中および食後 30 分は上体を起こした姿勢を保ってください。"
+    emergency:
+      en: "Return to the ER if fever recurs, breathing worsens, or you are unable to swallow."
+      ja: "発熱再出現・呼吸困難・嚥下困難が悪化した場合は速やかに救急受診してください。"
