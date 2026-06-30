@@ -52,6 +52,7 @@ def test_places_cr_chest_order_on_admission_day():
     assert o.clinical_intent == "Suspected pneumonia"
     # order_code must be the resolved procedure code (LOINC for default lookup, e.g. CR_PA_Lateral)
     assert o.order_code == "36572-6"   # LOINC for "Chest X-ray PA and Lateral"
+    assert o.imaging_spec_meta == {"abnormal_rate_by_severity": {"mild": 0.85, "moderate": 0.95, "severe": 1.0}}
 
 
 def test_skips_when_only_if_severity_unsatisfied():
@@ -107,3 +108,29 @@ def test_ct_head_uses_correct_procedure_code():
     assert o.order_code == "30799-1"                # LOINC CT Head non-contrast
     # Empty views → default_views_by_body_site applied
     assert o.imaging_views == ["axial"]
+
+
+def test_raises_on_unknown_body_site():
+    spec = _make_spec(body_site="unknown_site")
+    protocol = _StubProtocol([spec])
+    rng = np.random.default_rng(42)
+    with pytest.raises(ValueError, match="body_sites.yaml"):
+        place_imaging_orders(
+            protocol, encounter_id="enc1", patient_id="pt1",
+            admission_dt=datetime(2026, 6, 30, 8, 0),
+            day_index=0, severity="moderate", rng=rng,
+            sequence_counter={"L": 0, "I": 0},
+        )
+
+
+def test_raises_on_unknown_modality():
+    spec = _make_spec(modality="XR")  # XR not in modalities.yaml (only CR + CT)
+    protocol = _StubProtocol([spec])
+    rng = np.random.default_rng(42)
+    with pytest.raises(ValueError, match="modalities.yaml"):
+        place_imaging_orders(
+            protocol, encounter_id="enc1", patient_id="pt1",
+            admission_dt=datetime(2026, 6, 30, 8, 0),
+            day_index=0, severity="moderate", rng=rng,
+            sequence_counter={"L": 0, "I": 0},
+        )

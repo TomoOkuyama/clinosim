@@ -216,7 +216,7 @@ def _simulate_patient(
     # guarantee unique order_ids within the encounter.
     imaging_seq_counter: dict[str, int] = {"I": 0}
     adm_imaging = place_imaging_orders(
-        protocol, patient.patient_id, encounter.encounter_id,
+        protocol, encounter.encounter_id, patient.patient_id,
         admission_time, day_index=0, severity=severity, rng=rng,
         sequence_counter=imaging_seq_counter,
     )
@@ -642,7 +642,7 @@ def _run_daily_loop(
             # simulate_inpatient_encounter). Counter threads from admission
             # call so IDs are unique across the full encounter.
             daily_imaging = place_imaging_orders(
-                protocol, patient.patient_id, encounter_id,
+                protocol, encounter_id, patient.patient_id,
                 admission_time, day_index=day, severity=severity, rng=rng,
                 sequence_counter=_img_seq,
             )
