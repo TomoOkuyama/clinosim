@@ -62,10 +62,13 @@ def _build_clinical_impression(imp: Any, patient_id: str) -> dict[str, Any]:
     else:
         effective_dt = ""
 
+    # AD-32 snapshot semantics: the last day of an in-progress encounter is "in-progress".
+    # All prior days (and all days of completed encounters) are "completed".
+    is_in_progress = _o(imp, "is_in_progress", False)
     res: dict[str, Any] = {
         "resourceType": "ClinicalImpression",
         "id": impression_id if impression_id.startswith(CLINICAL_IMPRESSION_ID_PREFIX) else f"{CLINICAL_IMPRESSION_ID_PREFIX}{impression_id}",
-        "status": "completed",
+        "status": "in-progress" if is_in_progress else "completed",
         "subject": {"reference": f"Patient/{patient_id}"},
     }
 
