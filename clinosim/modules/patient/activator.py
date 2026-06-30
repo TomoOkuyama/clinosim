@@ -209,8 +209,11 @@ def activate_patient(
     # person.allergies, use those directly (preserves enricher's calibrated sampling).
     # Task 15: deprecate this activator block entirely; enricher becomes sole source.
     person_allergies = getattr(person, "allergies", None)
-    if person_allergies:
-        allergies = list(person_allergies)  # enricher path — use as-is
+    # I-1 fix: must check is not None (not truthiness) so [] (enricher ran, no allergy)
+    # is distinct from None (enricher hasn't run → fall through to legacy sampling).
+    # Task 15 will delete the else: block entirely once enricher is sole source.
+    if person_allergies is not None:
+        allergies = list(person_allergies)  # enricher path — use as-is (incl. empty list)
     else:
         # Legacy fallback path (removed by Task 15 once enricher is sole source)
         allergies = []
