@@ -591,6 +591,18 @@ course_archetypes:
     order_modifications: {}
     treatment_modifications: {}
 
+    daily_trajectory:
+      day_0:
+        subjective: "症状あり"
+        objective: "バイタル安定、検査所見あり"
+        assessment: "初期診断確定、治療開始"
+        plan: "治療継続、経過観察"
+      day_1:
+        subjective: "症状緩和傾向"
+        objective: "バイタル安定、検査所見改善"
+        assessment: "治療反応良好"
+        plan: "治療継続"
+
   dip_then_recovery:
     probability: 0.20
     description: "Worsening Day 1-3, then gradual improvement"
@@ -839,3 +851,58 @@ complications:
 #         age: 82
 #         sex: "M"
 #         chronic_conditions: ["I50", "N18"]
+
+# ============================================================
+# NARRATIVE SPEC (Tier 1 #3 α-min-1)
+# ============================================================
+narrative:
+  hpi_template:
+    onset_pattern:
+      mild: "数日前より咳嗽・微熱が出現。徐々に増悪し受診。"
+      moderate: "発熱・咳嗽・喀痰が出現し、SpO2 低下を認め緊急受診。"
+      severe: "高熱・呼吸困難が急速に増悪、SpO2 著明低下にて救急搬入。"
+    trigger_options:
+      - "上気道感染後"
+      - "誤嚥歴なし"
+      - "喫煙歴あり"
+      - "免疫抑制状態"
+  physical_exam_findings:
+    smooth_recovery:
+      day_0:
+        general:
+          mild: "意識清明、軽度苦痛様"
+          moderate: "意識清明、中等度苦痛様、発汗あり"
+          severe: "意識レベル低下傾向、高度苦痛様"
+        cardiovascular:
+          all: "頻脈（心拍数 90-110）、心雑音なし"
+        respiratory:
+          mild: "呼吸数軽度増加、右下肺で湿性ラ音"
+          moderate: "呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める"
+          severe: "呼吸数著明増加（>30/分）、広範な湿性ラ音・呼吸補助筋使用"
+        abdominal: "平坦、軟、圧痛なし"
+        neurological: "麻痺なし"
+      day_3:
+        general:
+          all: "意識清明、苦痛軽減"
+        cardiovascular:
+          all: "頻脈改善傾向"
+        respiratory:
+          all: "呼吸数改善、湿性ラ音軽減"
+        abdominal: "平坦、軟"
+        neurological: "麻痺なし"
+  discharge_instructions:
+    follow_up:
+      en: "Follow up with pulmonologist or PCP in 7-10 days. Repeat CXR in 6-8 weeks."
+      ja: "退院後 7-10 日以内に呼吸器科または内科外来を受診してください。6-8 週後に胸部 X 線再撮影予定。"
+    activity:
+      en: "Gradual return to activity. Avoid strenuous exercise for 2 weeks."
+      ja: "徐々に活動を再開してください。2 週間は激しい運動を避けてください。"
+    medications:
+      en: "Complete the full course of oral antibiotics. Do not stop early even if feeling better."
+      ja: "処方された抗菌薬は症状が改善しても最後まで内服してください。"
+    emergency:
+      en: "Return to ER if: fever >38.5C persists, shortness of breath worsens, or SpO2 drops."
+      ja: "発熱（38.5℃超）の持続、呼吸困難の増悪、SpO2 低下があれば速やかに救急受診してください。"
+    diet_lifestyle:
+      en: "Adequate hydration, balanced nutrition. Smoking cessation strongly recommended."
+      ja: "十分な水分摂取と栄養補給を心がけてください。禁煙を強くお勧めします。"
