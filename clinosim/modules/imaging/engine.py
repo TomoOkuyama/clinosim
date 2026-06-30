@@ -8,11 +8,17 @@ Layer 3-6).
 
 from __future__ import annotations
 
+import hashlib
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import yaml
+
+from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.types.encounter import OrderStatus, OrderType
+from clinosim.types.imaging import ImagingSeries, ImagingStudyRecord, RadiologyReport
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
@@ -199,15 +205,6 @@ RADIOLOGY_REPORT_ID_PREFIX = "imgrpt-"
 # POST_ENCOUNTER enricher: Order(IMAGING) → ImagingStudyRecord
 # ---------------------------------------------------------------------------
 
-import hashlib  # noqa: E402 — placed here to keep loader section clean
-
-import numpy as np  # noqa: E402
-
-from clinosim.modules._shared import get_attr_or_key as _o  # noqa: E402
-from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed  # noqa: E402
-from clinosim.types.encounter import OrderStatus, OrderType  # noqa: E402
-from clinosim.types.imaging import ImagingSeries, ImagingStudyRecord, RadiologyReport  # noqa: E402
-
 
 def _study_uid_from(sub_seed: int, kind: str = "study") -> str:
     """Generate a deterministic DICOM-style UID from sub_seed.
@@ -336,6 +333,9 @@ def imaging_enricher(ctx: Any) -> None:
       ctx.records      — list with exactly 1 CIFPatientRecord-like object
       ctx.config       — SimulatorConfig-like object
     """
+    # Lazy import to avoid circular dependency with seeding module.
+    from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
+
     for record in ctx.records:
         orders = _o(record, "orders", []) or []
         imaging_orders = [
