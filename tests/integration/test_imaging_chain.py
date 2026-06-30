@@ -7,7 +7,6 @@ and that the 1:1 ImagingStudy : Endpoint invariant holds.
 
 from __future__ import annotations
 
-import json
 import tempfile
 from pathlib import Path
 
