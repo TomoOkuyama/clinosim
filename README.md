@@ -61,6 +61,7 @@ clinosim's true goal is **FHIR R4 + JP Core compliant output with clinical coher
 Verification framework: `clinosim audit run` (AD-60) is the unified new-feature gate — 4 axes (structural / clinical / jp_language / silent_no_op) + Module-owned audit.py plug-ins. byte-diff stays as a separate refactor-PR mechanic.
 
 Latest reviews:
+- [`docs/reviews/2026-07-01-tier1-3-document-density-alpha-min-1-dqr.md`](docs/reviews/2026-07-01-tier1-3-document-density-alpha-min-1-dqr.md) — Tier 1 #3 Document Density α-min-1: **1/4 axes PASS** (silent_no_op 17/17 PASS; structural/jp_language/clinical N/A per ModuleAuditSpec API deferral). DocumentReference 0 → 23,760 (US) / 3,909 (JP); Composition 0 → 9,275 / 474; ClinicalImpression 0 → 23,760 / 3,909. AllergyIntolerance SNOMED upgrade, baseline 15.3% → 15.0% (±0.05 tolerance). [AD-63] — see [master plan](docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md)
 - [`docs/reviews/2026-06-30-tier1-imaging-chain-dqr.md`](docs/reviews/2026-06-30-tier1-imaging-chain-dqr.md) — Tier 1 #2 Imaging chain α-min: **4 axes PASS** (structural / clinical / JP language / silent_no_op) on JP p=5k + US p=10k. ImagingStudy + Endpoint + radiology DR + imaging SR. 15/15 lift_firing_proof PASS. Bug found+fixed: encounter_id invariant for `_simulate_unknown_condition`. [AD-62]
 - [`docs/reviews/2026-06-29-pr1-servicerequest-lab-dqr.md`](docs/reviews/2026-06-29-pr1-servicerequest-lab-dqr.md) — PR1 ServiceRequest lab order lifecycle: **4 axes PASS** on US p=10k + JP p=5k. 362k + 42k SR, panel SR 5.3%. [AD-61]
 - [`docs/reviews/2026-06-26-phase-3b-2-hai-susceptibility-data-quality-review.md`](docs/reviews/2026-06-26-phase-3b-2-hai-susceptibility-data-quality-review.md) — Phase 3b-2 HAI culture S/I/R susceptibility chain: **all 3 axes PASS** + antibiogram firing proof + byte-diff NDJSON IDENTICAL
@@ -97,6 +98,7 @@ Latest reviews:
 - **FHIR `DiagnosticReport` panel grouping** (CBC / BMP / LFT / Lipid / Coag / UA / ABG) with authoritative LOINC panel codes: lab Observations drawn in the same encounter-day are grouped into one DR per panel, with `result[]` references back to the component Observations. Existing microbiology DRs (blood/urine/sputum/wound culture) continue to emit unchanged
 - **FHIR `ServiceRequest` lab order lifecycle** (PR1, 2026-06-29) — panel-aware grouping (CBC/BMP/LFT/ABG/Lipid/Coag/UA): 1 SR per panel instance, stand-alone orders emit 1 SR each. JP Core PLAC identifier (HL7 v2-0203), dual category coding (SNOMED 108252007 + v2-0074 LAB). US p=10k: 362k SR; JP p=5k: 42k SR; panel SR 5.3%. [AD-61]
 - **Imaging metadata chain** (Tier 1 #2, 2026-06-30) — ImagingStudy (DCM modality, multi-series, urn:dicom:uid identifier), Endpoint (WADO-RS URL placeholder for future PACS / image-gen AI integration), radiology DiagnosticReport (findings + impression in `text.div` + `conclusion`), and ServiceRequest with imaging category (SNOMED 363679005 + v2-0074 RAD). PR1 scope: CR (X-ray) + CT modalities, chest + head body sites, bacterial / aspiration pneumonia + hemorrhagic stroke. [AD-62]
+- **Document Density chain α-min-1** (Tier 1 #3, 2026-07-01) — Stage 1 default template-based clinical document emission: DocumentReference (Admission H&P + Progress Note + Discharge Summary, LOINC-coded, base64-encoded), Composition (structured discharge summary with 7 sections), and ClinicalImpression (daily clinical impression) for all inpatient/ICU/rehab encounters. AllergyIntolerance upgraded to 8-field SNOMED-coded schema (allergen SNOMED + reaction + category + criticality + clinical/verification status). US p=10k: 23,760 DR + 9,275 Composition + 23,760 CI; JP p=5k: 3,909 DR + 474 Composition + 3,909 CI. [AD-63] — see [master plan](docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md)
 - **CBC / BMP panel orders emit canonical children** with **per-specimen RNG isolation**: a `{test:"CBC"}` admission order produces WBC + Hb + Hct + Plt as four child Observations from one specimen (and `{test:"BMP"}` produces the **full canonical 8** — Na/K/Cl/HCO3/BUN/Cr/Glucose/Ca — from one specimen), with the panel's specimen-rejection / hemolysis draws sourced from a per-parent sub-RNG (`panel_specimen_seed(parent_order_id)`) so a panel registry edit cannot cascade into unrelated patients' cohorts (AD-16). Per-panel `min_components` thresholds follow the canonical-N − 1 rule (**CBC = 3, BMP = 7** post Cl/Ca physiology PR) — validated by audit. **Individual (non-panel-child) lab orders** are likewise isolated via `individual_lab_seed(order_id)`, so any future analyte added to `derive_lab_values` cannot leak through the master stream
 - **Anion-gap-aware chloride** (`anion_gap_status` axis): Cl follows Na for electroneutrality plus HCO3 reciprocity gated by the AG axis — high-AG acidosis (DKA / sepsis / uremia) keeps Cl near normal as unmeasured anion absorbs the HCO3 deficit, non-AG acidosis (diarrhea / RTA) gives hyperchloremic Cl. The axis is orthogonal to the AD-57 acid-base 2-axis (does NOT affect pH/HCO3/pCO2) and disease YAMLs set it where AG is recorded as varying in real-world BMPs
 - **Coag panel activation** (LOINC 24373-3 = aPTT and PT/INR panel): `APTT`, `PT` (seconds = 12 × PT_INR ISI=1.0 invariant), and `Fibrinogen` all derive from existing `coagulation_status` + `inflammation_level` axes — APTT proportional to DIC severity, PT mathematically tied to the existing PT_INR, Fibrinogen **biphasic** (acute-phase reactant ↑ in inflammation, consumed ↓ in DIC). PR also adds `Coag` / `LFT` / `Lipid` / `UA` to `lab_panels.yaml` so panel orders can expand symmetrically with `lab_panel_groups.yaml`. AD-57 BNP-pattern surgical (formula-only, no new state field) + AD-59 per-order RNG isolation keep all additions cohort-neutral (byte-diff vs master @ p=2000 seed=42 shows zero shift in Patient/Encounter/Condition/Med/Procedure/Imaging/Immunization/FamilyHistory NDJSONs)
@@ -156,25 +158,19 @@ clinosim generate -o ./output \
   --hospital-config clinosim/config/hospital_small.yaml \
   -p 12000
 
-# === Stage 2: clinical documents (optional — requires CIF from Stage 1) ===
-
-# Template mode (no LLM, deterministic, instant sanity check)
-clinosim narrate --cif-dir ./output/cif --version-id template_v1
-
-# Local Ollama
-clinosim narrate --cif-dir ./output/cif \
-  --llm-config clinosim/config/llm_service.yaml \
-  --version-id ollama_en_v1
-
-# Japanese documents via AWS Bedrock (requires EC2 + Bedrock access)
-clinosim narrate --cif-dir ./output/cif \
-  --llm-config clinosim/config/llm_service.bedrock.yaml \
-  --language ja \
-  --version-id bedrock_ja_v1
-
-# Only a subset of document types
-clinosim narrate --cif-dir ./output/cif \
-  --tasks discharge_summary,operative_note
+# === Stage 2: clinical documents (DEPRECATED — see note below) ===
+# As of α-min-1 (2026-07-01), DocumentReference / Composition / ClinicalImpression are
+# generated automatically during Stage 1 (clinosim generate --format fhir-r4).
+# The clinosim narrate subcommand is deprecated and will exit with an error.
+# Stage 2 LLM narrative integration is deferred to the β-JP-1 chain (see TODO.md).
+#
+# Legacy narrate examples (for reference only — these commands NO LONGER WORK):
+#   clinosim narrate --cif-dir ./output/cif --version-id template_v1
+#   clinosim narrate --cif-dir ./output/cif \
+#     --llm-config clinosim/config/llm_service.yaml --version-id ollama_en_v1
+#   clinosim narrate --cif-dir ./output/cif \
+#     --llm-config clinosim/config/llm_service.bedrock.yaml --language ja \
+#     --version-id bedrock_ja_v1
 
 # === Stage 3: FHIR Bulk Data export ===
 
@@ -271,7 +267,13 @@ Population-driven simulation. Produces the structural CIF and optionally runs St
 | `--narrative-version ID` | auto | Narrative version id used when exporting FHIR |
 | `--narrative-model NAME` | `qwen:7b` | Legacy Ollama model name (ignored if `--llm-config` is set) |
 
-### `clinosim narrate` — Stage 2 (clinical documents)
+### `clinosim narrate` — Stage 2 (clinical documents) **[DEPRECATED]**
+
+> **Deprecated (Task 15, 2026-07-01)**: `clinosim narrate` is no longer functional.
+> DocumentReference resources are now generated automatically during simulation
+> by the `document_enricher` module (Stage 1). Run `clinosim generate --format fhir-r4`
+> to get DocumentReferences without a separate narrate step.
+> Stage 2 LLM provider integration is deferred to the β-JP-1 chain (see TODO.md).
 
 Reads an existing CIF directory and generates clinical documents via the LLM service. Writes a new narrative version to `<cif>/narratives/<version_id>/`.
 
@@ -297,14 +299,14 @@ See [docs/clinical_documents.md](docs/clinical_documents.md) for details.
 
 ### `clinosim export-fhir` — Stage 3 (FHIR R4 NDJSON)
 
-Reads an existing CIF directory (optionally with a narrative version) and writes FHIR R4 Bulk Data NDJSON files.
+Reads an existing CIF directory and writes FHIR R4 Bulk Data NDJSON files.
+DocumentReference resources are emitted from `record.documents` (Stage 1 enricher output).
 
 | Option | Default | Description |
 |---|---|---|
 | `--cif-dir DIR` | **required** | Path to an existing CIF directory |
 | `-o, --output DIR` | `<cif>/../fhir_r4` | Output directory |
 | `--country CODE` | `US` | Country code (display language) |
-| `--narrative-version ID` | (none) | Narrative version to include as `DocumentReference.ndjson`. Use `current` to read the pointer at `<cif>/narratives/current_version.txt` |
 
 ### `clinosim test-disease DISEASE_ID`
 
@@ -488,12 +490,9 @@ flowchart TD
         pop --> act --> enc --> loop --> cif_s
     end
 
-    subgraph stage2["Stage 2 — clinosim narrate"]
-        ext["hospital_course_extractor<br/>deterministic fact extraction"]
-        gen["document_generator<br/>Admission H&P (34117-2)<br/>Operative Note (11504-8)<br/>Procedure Note (28570-0)<br/>Discharge Summary (18842-5)<br/>Death Note (69730-0)"]
-        llm["LLMService.generate<br/>PromptRegistry (YAML)<br/>PromptCache (SHA256)<br/>Provider (Ollama / Bedrock / Mock)"]
-        cif_n["CIF narratives/documents/"]
-        ext --> gen --> llm --> cif_n
+    subgraph stage2["Stage 2 — clinosim narrate (DEPRECATED)"]
+        gen2["document_enricher (document module)<br/>Stage 1 built-in: DR + Composition + ClinicalImpression<br/>template-based, fully deterministic"]
+        llm2["LLM narrative deferred to β-JP-1 chain<br/>(narrate subcommand removed)"]
     end
 
     subgraph stage3["Stage 3 — clinosim export-fhir"]
@@ -502,17 +501,15 @@ flowchart TD
         adapter --> fhir
     end
 
-    cif_s --> ext
     cif_s --> adapter
-    cif_n --> adapter
 ```
 
 **Why three stages?**
 
-- **Reproducibility** — Stage 1 is fully deterministic from a seed. Stage 2 is cached by SHA256(prompt). Stage 3 is a pure function of CIF.
-- **Cost control** — Stage 2 is the only stage that may call a paid LLM API. Bedrock runs can be isolated to a single EC2 invocation.
-- **Experimentation** — Multiple narrative versions (different models, different prompt versions) can be generated from the same structural CIF and compared.
-- **Remote execution** — Stage 2 can be run on a machine with network access to the LLM (e.g. EC2 for Bedrock), while Stage 1 and Stage 3 stay local.
+- **Reproducibility** — Stage 1 is fully deterministic from a seed (includes built-in document enricher). Stage 3 is a pure function of CIF.
+- **Extensibility** — Stage 2 LLM narrative integration (Ollama / Bedrock) is deferred to the β-JP-1 chain; the architecture is preserved for future wiring.
+- **Cost control** — When LLM narratives land, Stage 2 will be the only stage that may call a paid LLM API. Bedrock runs can be isolated to a single EC2 invocation.
+- **Remote execution** — Future Stage 2 can be run on a machine with network access to the LLM (e.g. EC2 for Bedrock), while Stage 1 and Stage 3 stay local.
 
 ### Snapshot Semantics
 
@@ -592,7 +589,6 @@ clinosim/
 │   │   ├── cif_writer.py              # CIF structural writer
 │   │   ├── fhir_r4_adapter.py         # FHIR R4 Bulk NDJSON (incl. DocumentReference)
 │   │   ├── csv_adapter.py             # CSV tables
-│   │   ├── document_generator.py      # ★ Stage 2: narrative CIF writer
 │   │   └── hospital_course_extractor.py  # ★ deterministic event extraction
 │   ├── llm_service/          # All LLM access (AD-11)
 │   │   ├── engine.py                  # LLMService, LLMTaskType, PatientSummary

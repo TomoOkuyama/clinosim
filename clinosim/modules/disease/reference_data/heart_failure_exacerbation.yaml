@@ -208,3 +208,59 @@ outcome_benchmarks:
     thirty_day_readmission: 0.23
     mean_age_admitted: 73
     male_ratio: 0.50
+
+# ============================================================
+# NARRATIVE SPEC (Tier 1 #3 α-min-1)
+# ============================================================
+narrative:
+  hpi_template:
+    onset_pattern:
+      mild: "数日前より下腿浮腫・労作時呼吸困難が増悪し受診。"
+      moderate: "安静時呼吸困難・起坐呼吸・浮腫の増悪を認め緊急受診。"
+      severe: "急性肺水腫・著明な呼吸困難にて救急搬入。"
+    trigger_options:
+      - "塩分・水分制限の不徹底"
+      - "内服コンプライアンス不良"
+      - "感染症の合併"
+      - "心房細動の発症"
+      - "腎機能低下"
+  physical_exam_findings:
+    smooth_recovery:
+      day_0:
+        general:
+          mild: "意識清明、軽度苦痛様"
+          moderate: "意識清明、中等度苦痛様、起坐呼吸"
+          severe: "意識混濁、高度苦痛様、著明な呼吸困難"
+        cardiovascular:
+          all: "頻脈、心雑音（MR）、頸静脈怒張、末梢浮腫"
+        respiratory:
+          mild: "両側下肺野に軽度湿性ラ音"
+          moderate: "両側湿性ラ音、SpO2 低下"
+          severe: "広範な湿性ラ音・ピンク色泡沫状喀痰、SpO2 著明低下"
+        abdominal: "肝腫大・腹水の有無確認"
+        neurological: "意識レベル評価"
+      day_3:
+        general:
+          all: "意識清明、浮腫軽減傾向"
+        cardiovascular:
+          all: "頻脈改善、頸静脈怒張軽減"
+        respiratory:
+          all: "肺音改善、SpO2 安定"
+        abdominal: "肝腫大軽減、腹水減少"
+        neurological: "麻痺なし"
+  discharge_instructions:
+    follow_up:
+      en: "Cardiology follow-up within 7-14 days post-discharge. Daily weight monitoring at home."
+      ja: "退院後 7-14 日以内に循環器科外来を受診してください。毎朝同じ条件で体重を測定してください。"
+    activity:
+      en: "Gradually increase activity. Cardiac rehabilitation recommended. Rest when dyspneic."
+      ja: "徐々に活動を増やしてください。心臓リハビリへの参加をお勧めします。息切れ時は休息してください。"
+    medications:
+      en: "Take all heart failure medications as directed. Do NOT stop diuretics without physician guidance."
+      ja: "心不全薬は全て指示通り内服してください。利尿薬は医師の指示なしに中断しないでください。"
+    emergency:
+      en: "Return immediately if: weight gain >2kg in 2 days, worsening dyspnea, leg swelling increases."
+      ja: "2 日で 2 kg 以上の体重増加、呼吸困難の増悪、下腿浮腫の増悪があれば速やかに受診してください。"
+    diet_lifestyle:
+      en: "Strict sodium restriction (<2g/day). Fluid restriction per cardiologist. Daily weight monitoring."
+      ja: "厳格な塩分制限（1 日 2 g 未満）を守ってください。水分制限は循環器科医の指示に従い、毎日体重を記録してください。"

@@ -96,6 +96,22 @@ def register_builtin_enrichers() -> None:
         return
     _BUILTINS_REGISTERED = True
 
+    # Patient allergy sampling (Tier 1 #3 α-min-1, AD-55 Base). Always-on.
+    # 15% patient-level overall gate + category-weighted single allergy.
+    # POST_POPULATION order=10 so allergies are available to all downstream
+    # enrichers and simulation stages.
+    from clinosim.modules.allergy.engine import allergy_enricher
+
+    register_enricher(
+        Enricher(
+            name="allergy",
+            stage=POST_POPULATION,
+            order=10,
+            enabled=lambda c: True,
+            run=allergy_enricher,
+        )
+    )
+
     # Resident identifier & insurance numbering (AD-54). JP-only, opt-out via config.
     from clinosim.modules.identity import assign_identities
 
@@ -239,5 +255,22 @@ def register_builtin_enrichers() -> None:
             order=90,
             enabled=lambda c: True,
             run=imaging_enricher,
+        )
+    )
+
+    # Document module (Tier 1 #3 α-min-1, AD-55 always-on Module). Generates
+    # ClinicalDocument stubs (Stage 1 template text) + ClinicalImpressionRecord
+    # entries for each inpatient encounter. Locale-gated via specs_for_country().
+    # Order 95 ensures it runs after imaging (90) — document enricher is
+    # independent of the HAI / imaging cascades and runs last in POST_ENCOUNTER.
+    from clinosim.modules.document.engine import document_enricher
+
+    register_enricher(
+        Enricher(
+            name="document",
+            stage=POST_ENCOUNTER,
+            order=95,
+            enabled=lambda c: True,
+            run=document_enricher,
         )
     )

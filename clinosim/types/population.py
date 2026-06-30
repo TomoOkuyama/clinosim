@@ -9,8 +9,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
+from typing import TYPE_CHECKING
 
 from clinosim.types.identity import IdentityTimeline
+
+if TYPE_CHECKING:
+    from clinosim.types.allergy import Allergy
 
 __all__ = ["HospitalizationSummary", "PersonRecord", "LifeEvent"]
 
@@ -69,6 +73,11 @@ class PersonRecord:
     # Resident identifier & insurance enrollment (AD-54); populated by a separate
     # post-generation pass (clinosim.modules.identity.assign_identities).
     identity: IdentityTimeline | None = None
+    # Allergy history (Tier 1 #3 α-min-1); populated by allergy enricher
+    # (POST_POPULATION). activator.py reads this instead of generating its own.
+    # None = enricher hasn't run; [] = enricher ran, patient has no allergy.
+    # Task 15 will make the enricher the sole source and remove the activator block.
+    allergies: list[Allergy] | None = None
 
 
 @dataclass

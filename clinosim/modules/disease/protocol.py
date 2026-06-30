@@ -13,6 +13,77 @@ _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 
 
+# ---------------------------------------------------------------------------
+# Narrative spec models (Tier 1 #3 α-min-1 Task 4)
+# ---------------------------------------------------------------------------
+
+
+class PhysicalExamSystemFindings(BaseModel):
+    """Severity-stratified physical exam findings for a single organ system.
+
+    Use ``all`` for severity-agnostic findings (e.g. "整、心雑音なし").
+    Use ``mild`` / ``moderate`` / ``severe`` for severity-specific wording.
+    """
+
+    mild: str = ""
+    moderate: str = ""
+    severe: str = ""
+    all: str | None = None  # severity-agnostic override
+
+
+class PhysicalExamDayFindings(BaseModel):
+    """Physical exam findings for a single clinical day grouped by organ system."""
+
+    general: PhysicalExamSystemFindings = Field(default_factory=PhysicalExamSystemFindings)
+    cardiovascular: PhysicalExamSystemFindings = Field(
+        default_factory=PhysicalExamSystemFindings
+    )
+    respiratory: PhysicalExamSystemFindings = Field(default_factory=PhysicalExamSystemFindings)
+    abdominal: str = ""
+    neurological: str = ""
+
+
+class HpiTemplate(BaseModel):
+    """HPI (history of present illness) template parameters."""
+
+    onset_pattern: dict[str, str] = Field(default_factory=dict)  # mild/moderate/severe → text
+    trigger_options: list[str] = Field(default_factory=list)
+
+
+class DischargeInstructions(BaseModel):
+    """Discharge instruction texts keyed by language (``en`` / ``ja``)."""
+
+    follow_up: dict[str, str] = Field(default_factory=dict)
+    activity: dict[str, str] = Field(default_factory=dict)
+    medications: dict[str, str] = Field(default_factory=dict)
+    emergency: dict[str, str] = Field(default_factory=dict)
+    diet_lifestyle: dict[str, str] = Field(default_factory=dict)
+
+
+class NarrativeSpec(BaseModel):
+    """Top-level narrative specification stored under ``DiseaseProtocol.narrative``.
+
+    Consumed by TemplateNarrativeGenerator (Task 6) to produce per-disease
+    clinical narratives rather than generic boilerplate.
+    ``physical_exam_findings`` maps:  archetype_name → day_str → PhysicalExamDayFindings
+    """
+
+    hpi_template: HpiTemplate = Field(default_factory=HpiTemplate)
+    physical_exam_findings: dict[str, dict[str, PhysicalExamDayFindings]] = Field(
+        default_factory=dict
+    )
+    discharge_instructions: DischargeInstructions = Field(default_factory=DischargeInstructions)
+
+
+class DailyTrajectoryEntry(BaseModel):
+    """SOAP-structured clinical note entry for a single inpatient day."""
+
+    subjective: str = ""
+    objective: str = ""
+    assessment: str = ""
+    plan: str = ""
+
+
 class ImagingOrderSpec(BaseModel):
     """Imaging order entry inside DiseaseProtocol (Tier 1 #2 PR1).
 
@@ -87,6 +158,10 @@ class DiseaseProtocol(BaseModel):
     # specified admission days. Optional default = [] so existing disease YAMLs without
     # imaging_orders: remain valid (no-op safe Pydantic optional field).
     imaging_orders: list[ImagingOrderSpec] = Field(default_factory=list)
+    # Narrative spec (Tier 1 #3 α-min-1 Task 4): hpi_template, physical_exam_findings,
+    # discharge_instructions.  Optional default = None so existing disease YAMLs without
+    # a narrative: block continue to validate without error.
+    narrative: NarrativeSpec | None = None
 
 
 def load_disease_protocol(disease_id: str) -> DiseaseProtocol:

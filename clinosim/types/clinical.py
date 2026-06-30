@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 
 
 @dataclass
@@ -144,3 +144,32 @@ class ClinicalDocument:
     cache_hit: bool = False
     generated_at: str = ""
     fallback_reason: str = ""
+    # Tier 1 #3 α-min-1 PR1 Task 8 fix: preserve narrative sections for
+    # COMPOSITION format FHIR builders (Task 9). text field remains as the
+    # joined-string fallback for FREE_TEXT consumers / DocumentReference.
+    sections: dict[str, str] = field(default_factory=dict)
+    # Tier 1 #3 α-min-1 PR1 Task 8 fix: explicit FHIR resource shape hint
+    # for Task 9 dispatch. Values: "free_text" | "composition" |
+    # "questionnaire_response" (matches FormatType enum values).
+    format_type: str = ""
+
+
+@dataclass
+class ClinicalImpressionRecord:
+    """Daily working diagnosis update(Tier 1 #3 α-min-1).
+
+    FHIR ClinicalImpression resource への source data。
+    入院 daily emit、CIFPatientRecord.extensions["clinical_impressions"]
+    に格納(AD-55 Module pattern)。
+    """
+
+    impression_id: str = ""              # "ci-{enc}-{day}"
+    encounter_id: str = ""
+    date: date = field(default_factory=date.today)
+    day_index: int = 0
+    description: str = ""                # 短い要約
+    summary: str = ""                    # 詳細
+    investigation_refs: list[str] = field(default_factory=list)  # Observation id refs
+    finding_refs: list[str] = field(default_factory=list)        # Condition id refs
+    prognosis: str = ""
+    practitioner_id: str = ""            # 主治医

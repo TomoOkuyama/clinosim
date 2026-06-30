@@ -11,14 +11,15 @@
 
 セッション 25 user 戦略確認 = clinosim は **病院で発生する event 記録を実 EHR レベル density で生成する EHR/EMR sample dataset generator**。本 chain は **narrative document** + **structured event records** 両 dimension の foundation を確立。
 
-実測 gap(US p=10k DQR):
-- DocumentReference 0.00 件/encounter vs 実 EHR 5-15 件 = **完全空白**
-- AllergyIntolerance 0 件 = **完全空白**
+実測 gap(US p=10k baseline、セッション 26 pre-flight verification 結果、`scratchpad/preflight_baseline_us10k/`):
+- DocumentReference 0.00 件/encounter vs 実 EHR 5-15 件 = **Stage 1 default で完全空白**(Stage 2 `narrate` LLM 経由なら既存 `document_generator.py:951` + `_fhir_documents.py:_build_document_reference` で emit 可、本 chain で Stage 1 default ON に統合)
 - ClinicalImpression 0 件 = **完全空白**
+- Composition 0 件 = **完全空白**
+- AllergyIntolerance 3,781 件 / 24,763 patients = **15.3% prevalence で既に emit 中**(activator.py:201 + `_fhir_patient.py:_build_allergy_intolerance` 経由)。Gap は emission 件数ではなく schema = 3-field bare(substance + reaction_type + severity)で JP-Core / US-Core profile 不準拠(SNOMED code 欠落、AllergyReaction 構造化欠落、verification_status + criticality + onsetDateTime 欠落)。本 chain で 8-field SNOMED-coded schema に upgrade + activator allergy 部分を allergy module enricher へ migrate(Task 15)。
 
 α-min-1 で foundation 確立 → α-min-2(看護 / 外来 / ED)→ β-JP-1(JP 厚労省必須)→ β-2 〜 ε で **84-105 PR / 12-15 セッション**かけて 200 床 JP 急性期病院 realistic density 達成(master plan §2)。
 
-α-min-1 scope = **入院 3 doc emission + Allergy + ClinicalImpression + 統一 narrative infrastructure**。
+α-min-1 scope = **入院 3 doc emission + Allergy schema upgrade + activator → enricher migration + ClinicalImpression + 統一 narrative infrastructure**。
 
 ## 1. Scope decisions(6 軸評価)
 
@@ -619,6 +620,8 @@ pytest tests/unit tests/integration -m "unit or integration"
 | Test fixture が dataclass-only で production dict path bug | PR-90 教訓 = dict + dataclass 両 path test 必須 |
 | LOINC code が codes/data/loinc.yaml に不在 | 既存 entry 確認(34117-2 / 11506-3 / 18842-5 verified existing)、不足は事前追加 |
 | 既存 e2e golden 変動 | 新 resource 追加 = 意図的 byte-diff、golden 再生成 |
+| 既存 Allergy schema 置換による activator + _fhir_patient 影響 | Task 15 で activator.py allergy 部分 deprecate + allergy enricher に migrate、_fhir_patient._build_allergy_intolerance を新 `_fhir_allergy_intolerance.py` に置換、unit + integration test で AllergyIntolerance 件数 baseline 同等(±0.05)維持を gate |
+| 既存 document_generator.py(951 行)+ narrative_generator.py(205 行)の新 module 移行 regression | Task 15 で 1 source of truth migration、`narrate` CLI subcommand path 機能保全(同 `--narrative-version` arg で同一 output 期待)+ 新 module の Stage 1 default ON path を追加 |
 
 ## 11. Out-of-scope(★ TODO.md formal entry)
 

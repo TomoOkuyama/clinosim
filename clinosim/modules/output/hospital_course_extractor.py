@@ -247,8 +247,8 @@ def _procedure_events(
 ) -> list[HospitalCourseFact]:
     """Only surface invasive bedside procedures that warrant mention in hospital course.
 
-    Note: this set is intentionally broader than _PROCEDURE_NOTE_TYPES in
-    document_generator.py. arterial_line appears in the hospital course but
+    Note: this set is intentionally broader than the document_enricher's
+    procedure note set. arterial_line appears in the hospital course but
     does NOT generate a standalone Procedure Note, because arterial line
     insertion is typically documented in a nursing flow sheet rather than a
     formal procedure note.

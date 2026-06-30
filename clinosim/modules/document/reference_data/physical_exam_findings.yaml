@@ -1,0 +1,133 @@
+# Physical exam findings catalog (Tier 1 #3 α-min-1 PR1 Task 5)
+#
+# baseline  = disease-agnostic fallback used when per-disease override absent
+# findings  = per-disease per-archetype per-day per-system per-severity entries
+#
+# System keys (required ≥1 per day_N entry):
+#   general | cardiovascular | respiratory | abdominal | neurological
+#
+# Severity keys per system: mild | moderate | severe | all
+#   Use "all" when severity does not differentiate the finding.
+#   Use a plain string (not a dict) when a single value applies regardless of severity.
+#
+# Day keys: day_0 (admission), day_3 (early recovery), day_7 (late recovery)
+#   Task 6 TemplateNarrativeGenerator picks nearest earlier day ≤ current_day.
+#
+# Structure is intentionally human-readable; Task 6 is the consumer.
+
+baseline:
+  uncomplicated_improvement:
+    day_0:
+      general:
+        mild: "意識清明、軽度全身倦怠感"
+        moderate: "意識清明、苦痛様"
+        severe: "意識やや低下、苦痛強い"
+      cardiovascular:
+        all: "整、心雑音なし"
+      respiratory:
+        mild: "呼吸音清明"
+        moderate: "呼吸音清明、呼吸数軽度上昇"
+        severe: "呼吸促迫、補助呼吸筋使用"
+      abdominal: "平坦、軟、圧痛なし"
+      neurological: "麻痺なし、項部硬直なし"
+    day_3:
+      general:
+        all: "意識清明、症状改善傾向"
+      cardiovascular:
+        all: "整、心雑音なし"
+      respiratory:
+        all: "呼吸音清明、呼吸数正常"
+      abdominal: "平坦、軟、圧痛なし"
+      neurological: "麻痺なし"
+    day_7:
+      general:
+        all: "意識清明、全身状態良好"
+      cardiovascular:
+        all: "整、心雑音なし"
+      respiratory:
+        all: "呼吸音清明"
+      abdominal: "平坦、軟"
+      neurological: "神経学的異常なし"
+
+  complicated_deterioration:
+    day_0:
+      general:
+        mild: "意識清明、全身倦怠感"
+        moderate: "意識清明、苦痛様"
+        severe: "JCS I-1〜2、苦痛強い"
+      cardiovascular:
+        mild: "整、心雑音なし"
+        moderate: "頻脈傾向"
+        severe: "頻脈、血圧低下傾向"
+      respiratory:
+        mild: "呼吸音清明"
+        moderate: "呼吸促迫傾向"
+        severe: "呼吸促迫、SpO₂低下"
+      abdominal: "平坦、軟、圧痛なし"
+      neurological: "麻痺なし"
+    day_3:
+      general:
+        all: "症状遷延中"
+      cardiovascular:
+        all: "バイタル経過観察中"
+      respiratory:
+        all: "呼吸状態経過観察中"
+      abdominal: "平坦、軟"
+      neurological: "麻痺なし"
+
+# Per-disease overrides (supplement or replace baseline when present)
+# Only bacterial_pneumonia is populated in Task 5 as structural demonstration.
+# Other priority diseases (aspiration_pneumonia, hemorrhagic_stroke,
+# acute_MI, heart_failure) carry their findings in narrative.physical_exam_findings
+# within their disease YAML (Task 4). Task 6 merges both sources.
+
+findings:
+  bacterial_pneumonia:
+    uncomplicated_improvement:
+      day_0:
+        general:
+          mild: "意識清明、軽度倦怠感"
+          moderate: "意識清明、倦怠感"
+          severe: "JCS I-1、呼吸促迫"
+        respiratory:
+          mild: "右下肺野に軽度水泡音"
+          moderate: "両下肺野に水泡音"
+          severe: "両肺に水泡音、補助呼吸筋使用"
+        cardiovascular:
+          all: "整、心雑音なし"
+        abdominal: "平坦、軟、圧痛なし"
+        neurological: "麻痺なし、項部硬直なし"
+      day_3:
+        general:
+          all: "改善傾向、解熱"
+        respiratory:
+          all: "右下肺野水泡音残存するも減少"
+        cardiovascular:
+          all: "整、心雑音なし"
+        abdominal: "平坦、軟、圧痛なし"
+        neurological: "麻痺なし"
+      day_7:
+        general:
+          all: "全身状態良好、解熱"
+        respiratory:
+          all: "呼吸音ほぼ清明"
+        cardiovascular:
+          all: "整、心雑音なし"
+        abdominal: "平坦、軟"
+        neurological: "神経学的異常なし"
+    complicated_deterioration:
+      day_0:
+        general:
+          mild: "意識清明、倦怠感"
+          moderate: "JCS I-1、苦痛様"
+          severe: "JCS I-2、高度苦痛"
+        respiratory:
+          mild: "右下肺野に水泡音"
+          moderate: "両下肺野に著明な水泡音"
+          severe: "両肺に水泡音、呼吸促迫著明"
+        cardiovascular:
+          mild: "整、心雑音なし"
+          moderate: "頻脈"
+          severe: "頻脈、血圧低下"
+        abdominal: "平坦、軟、圧痛なし"
+        neurological: "麻痺なし"

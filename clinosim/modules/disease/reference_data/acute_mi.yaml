@@ -720,6 +720,18 @@ course_archetypes:
     order_modifications: {}
     treatment_modifications: {}
 
+    daily_trajectory:
+      day_0:
+        subjective: "症状あり"
+        objective: "バイタル安定、検査所見あり"
+        assessment: "初期診断確定、治療開始"
+        plan: "治療継続、経過観察"
+      day_1:
+        subjective: "症状緩和傾向"
+        objective: "バイタル安定、検査所見改善"
+        assessment: "治療反応良好"
+        plan: "治療継続"
+
   dip_then_recovery:
     probability: 0.15
     description: "Post-PCI transient worsening (reperfusion injury, transient HF), then recovery"
@@ -1041,3 +1053,60 @@ differential_diagnosis:
 #         age: 72
 #         sex: "M"
 #         chronic_conditions: ["I10", "E11", "E78"]
+
+# ============================================================
+# NARRATIVE SPEC (Tier 1 #3 α-min-1)
+# ============================================================
+narrative:
+  hpi_template:
+    onset_pattern:
+      mild: "数時間前より前胸部の締め付け感が断続的に出現。"
+      moderate: "突然の胸痛（前胸部圧迫感・絞扼感）、冷汗、悪心を認め救急受診。"
+      severe: "突然の強烈な胸痛・呼吸困難・意識消失傾向にて救急搬入。"
+    trigger_options:
+      - "労作中に発症"
+      - "安静時に発症"
+      - "早朝に発症"
+      - "左腕・顎への放散痛あり"
+  physical_exam_findings:
+    smooth_recovery:
+      day_0:
+        general:
+          mild: "意識清明、軽度不安様"
+          moderate: "意識清明、蒼白、冷汗、苦悶様"
+          severe: "意識混濁傾向、ショック様"
+        cardiovascular:
+          mild: "頻脈、心雑音なし"
+          moderate: "頻脈・不整脈、心雑音の有無確認（MR・VSD 合併を除外）"
+          severe: "頻脈・低血圧、Killip 分類 III-IV"
+        respiratory:
+          mild: "肺音清明"
+          moderate: "軽度の湿性ラ音（左背下部）"
+          severe: "広範な肺水腫所見"
+        abdominal: "平坦、軟"
+        neurological: "麻痺なし"
+      day_3:
+        general:
+          all: "意識清明、状態安定"
+        cardiovascular:
+          all: "整脈に改善、血圧安定"
+        respiratory:
+          all: "肺音清明"
+        abdominal: "平坦、軟"
+        neurological: "麻痺なし"
+  discharge_instructions:
+    follow_up:
+      en: "Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended."
+      ja: "退院後 1-2 週以内に循環器科外来を受診してください。心臓リハビリへの参加を強くお勧めします。"
+    activity:
+      en: "Restricted activity for 4-6 weeks. Avoid heavy lifting. Gradual return per cardiologist guidance."
+      ja: "4-6 週間は活動制限を守ってください。重い物の持ち上げは禁止。循環器科医の指示に従い徐々に活動を再開してください。"
+    medications:
+      en: "Take ALL cardiac medications as prescribed: aspirin, statin, beta-blocker, ACE inhibitor/ARB. Do NOT stop without consulting cardiologist."
+      ja: "アスピリン・スタチン・β 遮断薬・ACE 阻害薬/ARB など全ての心臓病薬を指示通り内服してください。循環器科医に相談せずに中断しないでください。"
+    emergency:
+      en: "Call 119 immediately for: chest pain, severe shortness of breath, palpitations, syncope."
+      ja: "胸痛、著明な呼吸困難、動悸、失神があれば直ちに 119 番に電話してください。"
+    diet_lifestyle:
+      en: "Low-fat, low-sodium diet. Smoking cessation mandatory. Limit alcohol. Weight management."
+      ja: "低脂肪・低塩分食を守ってください。禁煙は必須です。飲酒を控え、適正体重を維持してください。"

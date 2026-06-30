@@ -1400,6 +1400,23 @@ Suggested order: ~~microbiology+markers~~ ✅ → ~~nursing flowsheets~~ ✅ →
 - **COMPLETED**: Imaging chain α-min delivered (AD-62). ImagingStudy + Endpoint + radiology DR +
   imaging SR. US p=10k + JP p=5k production cohort generated and audited. DQR: 4 axes PASS.
 
+### Tier 1 #3 — Document Density α-min-1 [DONE 2026-07-01]
+- ~~Stage 1 default template-based document emission (DocumentReference / Composition / ClinicalImpression) + AllergyIntolerance schema upgrade.~~
+- **COMPLETED**: Document Density chain α-min-1 delivered (AD-63). DocumentReference 0 → 23,760
+  (US) / 3,909 (JP); Composition 0 → 9,275 / 474; ClinicalImpression 0 → 23,760 / 3,909.
+  AllergyIntolerance 8-field SNOMED upgrade. 2 always-on POST_RECORDS modules (`allergy` + `document`).
+  3 new FHIR builders. silent_no_op 17/17 PASS. US p=10k + JP p=5k cohorts verified.
+  DQR: `docs/reviews/2026-07-01-tier1-3-document-density-alpha-min-1-dqr.md`.
+  Task 15 (generator migration / cleanup) completed on same branch.
+
+### Stage 2 LLM provider integration (β-JP-1 chain, deferred)
+- `narrate` CLI subcommand deprecated in Task 15. Stage 1 enricher (document_enricher
+  POST_ENCOUNTER) is the sole DocumentReference emit path.
+- Stage 2 = re-running LLM narrative over existing CIF for higher-quality text. Deferred to β-JP-1
+  chain (or later). Design: document_enricher should have a Stage 2 hook that accepts an LLMService
+  and overwrites template text with LLM output. The `narrate` subcommand may be re-introduced
+  pointing to this hook instead of the deleted document_generator.py.
+
 ### Imaging chain OOS formal entries (Tier 1 #2 PR1 scope-out)
 
 The following FHIR fields / features were **explicitly out of scope** for the α-min imaging chain
@@ -1602,4 +1619,138 @@ marked `pytest.mark.xfail(strict=False)`. When the bug is fixed, remove the xfai
 - `project_ehr_event_emphasis.md` — セッション25 戦略再確認
 
 **Discovered:** セッション25(2026-06-30)。User goal が 病院 event 記録充実 = 並行 SS-MIX2 出力より優先。
+
+---
+
+## Tier 1 #3 α-min-1 Document Density Chain — OOS formal entries (2026-07-01)
+
+These items were **explicitly out of scope** for the α-min-1 document density chain
+(per spec §11). Each has a formal phase assignment for the master plan phases:
+[docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md](docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md)
+
+### α-min-2 phase (next chain) — Document types
+
+- **看護 narrative** (Admission nursing assessment / Nursing shift note / Discharge nursing
+  summary) — require nursing flowsheet data from `extensions["nursing"]`. POST_RECORDS order=95
+  currently skips nursing records. Bundle with nursing module enricher integration.
+- **外来 SOAP note** — outpatient encounter DocumentReference + Composition. Currently document
+  enricher only emits for inpatient/ICU/rehab encounter types. Add encounter_type gate.
+- **ED note + ED triage note** — emergency encounter DocumentReference. Same encounter_type gate.
+- **CareTeam (多職種)** — required by Composition.author for multi-provider documents.
+  Attending physician / attending nurse / pharmacist / nutritionist / rehab / MSW roles.
+- **Composition.author wiring** — currently `"author": []` (FHIR R4 cardinality 1..* violation).
+  Requires CareTeam resource + Practitioner ref lookup via `ctx.roster`.
+
+### β-JP-1 phase — JP localization + 厚労省必須文書
+
+- **QuestionnaireResponse active emission** — `_fhir_questionnaire_response.py` builder for
+  structured intake forms. Currently a stub; no CIF data source for questionnaire answers.
+- **入院診療計画書** (Admission care plan document) — 厚労省施設基準 mandatory for 7:1 / 10:1
+  wards. DocumentReference(LOINC 18776-5) + Composition with 10 required sections.
+- **看護必要度 D 表** (Nursing dependency D-form) — DPC algorithm-based scoring, mandatory
+  for acute care hospitals. Requires `extensions["nursing"]` GCS/ADL scores.
+- **栄養管理計画書** (Nutrition care plan) — mandatory for all hospital admissions > 7 days.
+  Requires nutritionist staff role + NutritionOrder foundation.
+- **リハビリテーション計画書** (Rehabilitation plan) — mandatory for rehab wards. Requires
+  `extensions["procedure"]` rehab sessions.
+- **JP section text full localization** — `past_medical_history` / `medications_at_home` /
+  `discharge_medications` sections currently English-only in α-min-1. Full JP: condition names
+  via `code_lookup(..., "ja")`, drug names via `_localize_drug_name()`.
+- **ClinicalImpression.description JP localization** — currently English-only.
+- **多職種 staff allocation** — 主治医 / 担当看護師 / 薬剤師 / 栄養士 / リハ / MSW per
+  encounter, required for CareTeam + Composition.author wiring.
+
+### β-2 phase — Clinical event density
+
+- **手術記録** (Operative note) — LOINC 11504-8, existing Stage 2 LLM path; Stage 1 template
+  for surgical encounters via `_simulate_surgery` path.
+- **麻酔記録** (Anesthesia record) — intra-op vital signs, drug administration. Requires
+  anesthesiologist staff role.
+- **IC document** (Informed consent documentation) — pre-procedure consent form.
+  LOINC 64280-2. Triggered by procedure scheduling.
+- **薬剤管理指導記録** (Pharmaceutical care record) — pharmacist intervention notes per
+  encounter day. Requires pharmacist staff role.
+- **リハビリ実施記録** (Rehabilitation session record) — per-session narrative linked to
+  ProcedureRecord of type rehab.
+- **多職種カンファレンス記録** (Multidisciplinary conference note) — weekly MDT note.
+  Triggered by LOS > 7 days or HAI + antibiotic cascade.
+- **家族説明記録** (Family explanation / consent note) — end-of-life / ICU transition.
+  Linked to code_status enricher.
+- **MedicationDispense (pharmacy 払出)** — pharmacy dispense records per MAR cycle.
+  Requires pharmacy staff role.
+- **Procedure density 強化** — bedside procedures (central line insertion, intubation,
+  lumbar puncture) + surgical catalog for OR encounters.
+
+### γ phase — Transitions + communication
+
+- **MSW / Discharge planning document** — social work assessment + discharge plan.
+  LOINC 18776-5 variant.
+- **紹介状** (Referral letter / Reply letter) — inter-facility communication.
+  LOINC 57133-1 / 57134-9.
+- **主治医意見書** (Physician's opinion report for long-term care assessment) — JP 介護保険
+  mandatory document.
+- **初診時記録** (Initial visit record) — first outpatient encounter narrative.
+- **Appointment + AppointmentResponse** — outpatient scheduling cycle.
+- **Communication** — patient/provider messaging. FHIR R4 Communication resource.
+- **Flag** — clinical alert flags (allergy / fall risk / isolation).
+
+### δ phase — Advanced clinical documentation
+
+- **Pathology / Cytology report** — biopsy / PAP smear / FNAB results.
+  Linked to Procedure + Specimen resources.
+- **CarePlan** (goal-oriented care coordination) — multi-encounter goal tracking.
+- **Goal** — patient-specific care goals linked to CarePlan.
+- **EpisodeOfCare** — chronic disease episode tracking across readmission chain.
+- **AdverseEvent** — drug adverse event documentation.
+- **DetectedIssue** — clinical decision support alerts.
+- **死亡診断書** (Death certificate) — JP mandatory document for deceased encounters.
+  Requires `cause_of_death` enricher.
+- **Pre/Post-op evaluation** — anesthesia consult note pre-surgery.
+- **OR nursing record** — circulating/scrub nurse intra-op documentation.
+
+### ε phase — Infrastructure event granularity
+
+- **ADT location transfer** — ward transfer records as Encounter.location[] events.
+  Requires admission/transfer/discharge event CIF extension.
+- **Vital frequency 拡張** — ICU vitals q1h / q30min / continuous monitoring stream.
+  Requires monitor data integration.
+- **Specimen 独立** — Specimen resource as independent resource (not embedded in DiagnosticReport).
+  Required for cross-lab specimen tracking.
+- **Per-dose MAR refactor** — current MAR is per-day; upgrade to per-dose with exact
+  administration datetime, route, dose, nurse ID.
+
+### Infrastructure — LLM provider integration (separate chain)
+
+- **Bedrock / Ollama / Anthropic 実装** — infrastructure is prepared in `llm_service/`;
+  template fallback is the default. LLM integration for Stage 1 document narrative (higher
+  quality clinical notes) is a separate chain from document density chain. Integration testing
+  requires API key / Ollama install; not part of α-min chain gate.
+
+### α-min-1 per-task Minor findings (carry-over for adversarial fan-out)
+
+(All Minor findings from Tasks 1-12 progress ledger, to be addressed in post-merge
+adversarial fan-out review.)
+
+- **Task 1 M-1**: stale `# EncounterRecord` comment in `clinosim/types/document.py:46`
+  should be `# Encounter (clinosim.types.encounter)`.
+- **Task 1 M-2**: misleading test name `test_narrative_context_default_constructible` —
+  rename to `test_narrative_context_fully_specified_construction`.
+- **Task 2 M-1**: `normalize_probabilities` not used for `CATEGORY_WEIGHTS` in allergy enricher
+  (already sums to 1.0 but convention requires it).
+- **Task 2 M-2**: reaction entry per-field validator absent (HAI `_validate_hai_organisms`
+  pattern would be tighter).
+- **Task 3 M-1**: `field(default_factory=tuple)` → `= ()` simplification in frozen dataclass.
+- **Task 3 M-2**: `display_ja` "退院サマリ" vs `loinc.yaml` "退院時サマリー" — registry-internal
+  label; FHIR output uses `code_lookup` (AD-30 compliant). Verify canonical form.
+- **Task 5 M-3**: baseline YAML `complicated_deterioration` has day_7 gap — add day_7 entry
+  for YAML completeness even if not clinically needed at α-min.
+- **Task 6 M-1**: `_build_social_history` false-positive `facts_used` marker when
+  `occupation=""` — suppress for empty string.
+- **Task 9 M-1**: `AllergyIntolerance.category` validation comment missing — add inline
+  comment referencing FHIR R4 category binding.
+- **Task 10 M-1**: `import base64` module-level hoist (currently inline in builder function).
+- **Task 10 M-3**: `docStatus` assertion absent in test — add `docStatus` coverage to
+  DocumentReference unit test.
+- **Task 12 M-3**: dead code in determinism test.
+- **Task 12 M-4**: `"python"` literal in `_sr_helpers.py` should be `sys.executable`.
 

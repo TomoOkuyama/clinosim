@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date
 
+from clinosim.types.allergy import Allergy  # noqa: F401 — re-exported for callers
 from clinosim.types.identity import IdentityTimeline
 
 
@@ -80,12 +81,6 @@ class ChronicCondition:
     stage: str = ""  # e.g., "CKD G3a", "NYHA II", "HbA1c 7.2%"
     glycemic_control: float | None = None  # E11/E10 only; 1.0=excellent .. 0.0=very poor
 
-
-@dataclass
-class Allergy:
-    substance: str = ""
-    reaction_type: str = "rash"
-    severity: str = "mild"
 
 
 @dataclass
