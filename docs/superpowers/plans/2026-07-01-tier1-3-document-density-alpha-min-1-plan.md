@@ -450,20 +450,20 @@ class ClinicalImpressionRecord:
     practitioner_id: str = ""            # 主治医
 ```
 
-- [ ] **Step 6: Add `allergies` field to `clinosim/types/patient.py:PatientProfile`**
+- [ ] **Step 6: Replace existing `Allergy` in `clinosim/types/patient.py` with import from `clinosim/types/allergy.py`**
 
-Locate `PatientProfile` dataclass(grep `class PatientProfile`)。Add field after existing fields:
+★ **Pre-flight verification 結果(セッション 26)**:`clinosim/types/patient.py:85` に既存 `Allergy(substance, reaction_type, severity)` 3-field 旧 schema あり、`PatientProfile.allergies: list[Allergy] = field(default_factory=list)` は line 129 で既に定義済。`clinosim/modules/patient/activator.py:201` が旧 schema で 15% prevalence sampling 中。
 
-```python
-    # PR docalpha1: allergies(AD-55 Base + AD-30 code-only)
-    allergies: list[Allergy] = field(default_factory=list)
-```
+実施手順:
+1. `clinosim/types/patient.py` で 旧 `@dataclass class Allergy: substance / reaction_type / severity` block(line 84-88 付近)を **削除**
+2. ファイル top で import 追加:`from clinosim.types.allergy import Allergy`(field type hint と activator backward-compat 用)
+3. `PatientProfile.allergies` field(line 129)は既存のまま保持(default_factory 不変)、type hint だけ新 `Allergy` を指す
+4. `clinosim/modules/patient/activator.py:201` の `Allergy(substance="...", reaction_type="rash", severity="mild")` 呼び出しを新 schema にマップ:`Allergy(allergy_id=f"al-{patient_id}-1", allergen_code=<SNOMED for substance>, allergen_display=<substance>, category="medication", criticality="low", verification_status="confirmed", reactions=[AllergyReaction(manifestation_snomed="247472004", manifestation_display="Rash", severity="mild")])`
+5. activator.py import を更新:`from clinosim.types.allergy import Allergy, AllergyReaction`(旧 `from clinosim.types.patient import ..., Allergy, ...` から Allergy を外す)
 
-Add import at top of file:
+NOTE: activator 内 sampling は **Task 15 で allergy module enricher に migrate して activator から完全に切り離す**。本 Task 1 では activator の Allergy 呼び出しを新 schema に「型合わせ」するのみ(機能不変、deprecation step は Task 15)。
 
-```python
-from clinosim.types.allergy import Allergy
-```
+★ **Verification**:`pytest clinosim/modules/patient/test_patient.py` で既存 activator allergy test(line 55 周辺、`Allergy(substance="Sulfonamide", ...)` を使用)も新 schema に書換える必要あり。implementer subagent が test fixture を新 schema に migrate して PASS させる。
 
 - [ ] **Step 7: Run tests to verify pass**
 
@@ -484,16 +484,22 @@ Expected: no new failures(`PatientProfile.allergies` default empty = no-op safe)
 - [ ] **Step 9: Commit**
 
 ```
-git add clinosim/types/allergy.py clinosim/types/document.py clinosim/types/clinical.py clinosim/types/patient.py tests/unit/test_types_allergy.py tests/unit/test_types_document.py tests/unit/test_types_clinical_impression.py
+git add clinosim/types/allergy.py clinosim/types/document.py clinosim/types/clinical.py clinosim/types/patient.py clinosim/modules/patient/activator.py clinosim/modules/patient/test_patient.py tests/unit/test_types_allergy.py tests/unit/test_types_document.py tests/unit/test_types_clinical_impression.py
 git commit -m "$(cat <<'EOF'
-feat(types): add Allergy + NarrativeContext + ClinicalImpressionRecord CIF types
+feat(types): add Allergy + NarrativeContext + ClinicalImpressionRecord CIF types + replace legacy Allergy
 
 Tier 1 #3 α-min-1 Document Density Chain foundation:
-- Allergy + AllergyReaction (clinosim/types/allergy.py)
+- Allergy + AllergyReaction (clinosim/types/allergy.py) — 8-field SNOMED-coded
+  schema, replaces legacy 3-field (substance/reaction_type/severity) in
+  clinosim/types/patient.py:85 (pre-flight verification: legacy emits 15.3%
+  prevalence but JP-Core / US-Core unconformant)
 - NarrativeContext + NarrativeOutput + DocumentType + FormatType
   (clinosim/types/document.py) — 統一 narrative generator interface
 - ClinicalImpressionRecord (extends clinosim/types/clinical.py)
-- PatientProfile.allergies: list[Allergy] = default_factory
+- PatientProfile.allergies: list[Allergy] type hint upgraded to new schema
+- activator.py:201 Allergy() call mapped to new schema (機能不変、Task 15 で
+  enricher に migrate して activator から切り離す)
+- test_patient.py fixture migrated to new Allergy schema
 
 DocumentType enum α-min-1 scope: ADMISSION_HP + PROGRESS_NOTE +
 DISCHARGE_SUMMARY only (後続 phase で拡張、本 chain で追加禁止 = scope
@@ -645,9 +651,24 @@ __all__ = ["Allergy", "AllergyReaction"]
 
 - [ ] **Step 4: Create `clinosim/modules/allergy/reference_data/allergens.yaml`**
 
+★ **Prevalence calibration**(pre-flight verification 反映):baseline(activator path)= 24,763 patients 中 3,781 件 = **15.3% prevalence at patient level**。Task 13 DQR で同等を gate(±0.05 = 10.3% 〜 20.3%)。Plan Step 5 sampling rule で **two-stage**:(1)patient-level overall prevalence gate = 15% bernoulli、(2)gate 成立した patient のみで category-weighted sampling。
+
+Sampling formula(Step 5 で実装):
+```
+overall_prob = 0.15   # baseline 一致
+if rng.random() >= overall_prob: return []   # 85% は no allergy
+# 15% の patient のみ:category-weighted single-allergy(将来 multi-allergy へ拡張可)
+category = rng.choice(["medication", "food", "environment"],
+                      p=[0.50, 0.25, 0.25])
+entry = rng.choice(allergens[category])  # uniform within category
+```
+
+YAML 内 `prevalence.adult` field は documentation 目的(category-level base rate 参考)、actual sampling は overall_prob で gate される設計。Implementer subagent は本 calibration を verify(US p=500 cohort test で 14-17% 範囲を assertion)。
+
 ```yaml
 # Allergen catalog(PR1 scope = medication + food + environment 3 category)
-# Each entry: allergen_code(SNOMED) + display + prevalence(age-group)+ reactions
+# Each entry: allergen_code(SNOMED) + display + prevalence(age-group reference)+ reactions
+# Sampling: 15% patient overall_prob gate → category-weighted single allergy
 # 6-layer validator は engine.py で適用
 
 allergens:
@@ -816,42 +837,50 @@ def load_allergens() -> dict[str, Any]:
     return data["allergens"]
 
 
+OVERALL_ALLERGY_PREVALENCE = 0.15   # baseline calibrated(see Step 4 prevalence calibration)
+CATEGORY_WEIGHTS = {"medication": 0.50, "food": 0.25, "environment": 0.25}
+
+
 def allergy_enricher(ctx) -> None:
     """POST_POPULATION enricher: sample allergies per patient.
 
     Determinism via derive_sub_seed(master, ENRICHER_SEED_OFFSETS["allergy"],
     patient_id)。Master stream 不変。
 
-    Sampling rule(α-min-1 simple):
-      For each category, for each entry, check prevalence — bernoulli sample
-      per patient。Sampled entry → Allergy record with one common reaction。
+    Sampling rule(α-min-1 baseline-calibrated):
+      1. patient-level overall prob gate (15%、activator baseline 一致)
+      2. gate 成立 patient のみ category-weighted single allergy(後続 phase で
+         multi-allergy に拡張可)
     """
     allergens = load_allergens()
+    categories = list(CATEGORY_WEIGHTS.keys())
+    weights = [CATEGORY_WEIGHTS[c] for c in categories]
     for patient in ctx.population.patients:
         sub_seed = derive_sub_seed(
             ctx.master_seed, ENRICHER_SEED_OFFSETS["allergy"], patient.patient_id
         )
         rng = np.random.default_rng(sub_seed)
-        sampled: list[Allergy] = []
-        for category, entries in allergens.items():
-            for entry in entries:
-                if rng.random() < entry["prevalence"]["adult"]:
-                    reaction_entry = entry["common_reactions"][0]
-                    sampled.append(Allergy(
-                        allergy_id=f"al-{patient.patient_id}-{len(sampled) + 1}",
-                        allergen_code=entry["allergen_code"],
-                        allergen_display=entry["allergen_display_en"],
-                        category=category,
-                        criticality=entry["criticality"],
-                        verification_status="confirmed",
-                        onset_date=None,
-                        reactions=[AllergyReaction(
-                            manifestation_snomed=reaction_entry["manifestation_snomed"],
-                            manifestation_display=reaction_entry["manifestation_display_en"],
-                            severity=reaction_entry["severity"],
-                        )],
-                    ))
-        patient.allergies = sampled
+        if rng.random() >= OVERALL_ALLERGY_PREVALENCE:
+            patient.allergies = []   # 85% は no allergy
+            continue
+        category = str(rng.choice(categories, p=weights))
+        entries = allergens[category]
+        entry = entries[int(rng.integers(0, len(entries)))]
+        reaction_entry = entry["common_reactions"][0]
+        patient.allergies = [Allergy(
+            allergy_id=f"al-{patient.patient_id}-1",
+            allergen_code=entry["allergen_code"],
+            allergen_display=entry["allergen_display_en"],
+            category=category,
+            criticality=entry["criticality"],
+            verification_status="confirmed",
+            onset_date=None,
+            reactions=[AllergyReaction(
+                manifestation_snomed=reaction_entry["manifestation_snomed"],
+                manifestation_display=reaction_entry["manifestation_display_en"],
+                severity=reaction_entry["severity"],
+            )],
+        )]
 ```
 
 - [ ] **Step 6: Add `ENRICHER_SEED_OFFSETS["allergy"]` to seeding.py**
@@ -1746,6 +1775,62 @@ Same pattern as imaging chain Task 12:
 
 ---
 
+### Task 15: Generator migration — narrative_generator + document_generator + activator allergy → 新 module
+
+**Pre-flight verification 結果反映**(Conflict #2 = B 採択):本 chain では 951 行 `clinosim/modules/output/document_generator.py` + 205 行 `clinosim/modules/output/narrative_generator.py` + `clinosim/modules/patient/activator.py:201` allergy 部分 を新 module(`clinosim/modules/document/` + `clinosim/modules/allergy/`)に migrate。`_fhir_documents.py` は Task 10 で refactor 済、本 Task では generator 側を統一。
+
+**Files:**
+- Delete: `clinosim/modules/output/narrative_generator.py`(機能を `clinosim/modules/document/narrative/` に分解 + Task 6 template_generator に統合済)
+- Delete: `clinosim/modules/output/document_generator.py`(機能を `clinosim/modules/document/engine.py` に enricher 化 + Task 8 完了済)
+- Modify: `clinosim/modules/patient/activator.py`(allergy 生成 5-10 行 block を削除 — Task 2 allergy_enricher が POST_POPULATION で生成)
+- Modify: `clinosim/simulator/cli.py:_run_narrate`(削除済 generator path を新 module の Stage 2 hook に dispatch、または narrate subcommand 自体を deprecate して Stage 1 enricher 経由のみに統一 — implementer subagent が判断)
+- Modify: `clinosim/modules/output/fhir_r4_adapter.py:225-260`(narrative_docs_dir walk path を新 module 経由に refactor。Stage 1 enricher 生成 `record.documents` を直接読む path に切替)
+- Update: 既存 `tests/integration/test_narrate_*.py` + `tests/unit/test_document_generator.py` 等を新 module test に migrate or delete
+- Update: `docs/CONTRIBUTING-modules.md`、`README.md` 内 `narrate` subcommand 言及を更新
+
+**Migration strategy:**
+1. **Verify equivalence first**:Task 8 完了後の `record.documents` 出力(Stage 1 template_generator 経由)が、旧 path(`narrate` subcommand → `document_generator.generate_documents`)の出力と clinical content として同等であることを確認。同等であれば旧 path は dead code として削除可。
+2. **Activator allergy block deletion**:Task 1 で新 schema にマップ済、Task 2 で allergy_enricher が同 prevalence で生成可。activator 生成タイミング(population 生成内)と enricher 生成タイミング(POST_POPULATION)で差異あり = enricher pass 完了時に patient.allergies に最終値が入る。activator 側 block 削除で重複 sampling を排除。
+3. **`narrate` CLI subcommand handling**:
+   - Option A: subcommand 維持、Stage 2 LLM hook 経由で document module の llm_generator を再呼び出し(re-generation path)
+   - Option B: subcommand deprecate、Stage 1 enricher の出力のみを使う(LLM 統合は別 chain)
+   - **Implementer subagent 判断**:本 chain scope discipline 重視なら Option B(deprecate)が推奨、TODO に「Stage 2 LLM provider 統合別 chain」記載
+4. **DQR equivalence**:Task 13 DQR で AllergyIntolerance 件数が baseline 15.3% (±0.05)以内、DocumentReference + Composition + ClinicalImpression 件数が plan 期待値以上(現状 0 件)を確認。
+
+**Test plan(本 Task で追加 + 既存 test migration):**
+- `tests/unit/modules/patient/test_activator.py`:既存 allergy block test を削除(allergy_enricher test に統合済)
+- `tests/integration/test_allergy_baseline_equivalence.py`(NEW):activator path 削除前後で AllergyIntolerance 件数 ±0.05 同等を verify。**Pre-condition**:Task 15 開始時に master + branch 両方で US p=500 cohort 生成し件数差を計測、`<5%` 内であることを assertion。
+- `tests/unit/test_narrate_cli.py`:`narrate` subcommand deprecate(Option B 採択)なら xfail or skip。Option A なら新 module hook 経由動作を verify。
+- 既存 `tests/integration/test_narrative_*.py` 系:Stage 2 LLM 関連 test を新 module path に migrate。
+
+**Commit message template:**
+```
+refactor(document,allergy): migrate legacy narrative_generator + document_generator + activator allergy to new modules
+
+Tier 1 #3 α-min-1 PR1 Task 15 - generator unification:
+- Delete clinosim/modules/output/narrative_generator.py (機能 → clinosim/modules/document/narrative/)
+- Delete clinosim/modules/output/document_generator.py (機能 → clinosim/modules/document/engine.py enricher)
+- Remove allergy generation block from clinosim/modules/patient/activator.py
+  (now handled by clinosim/modules/allergy/engine.py:allergy_enricher at POST_POPULATION)
+- Refactor clinosim/modules/output/fhir_r4_adapter.py to read record.documents directly
+  (Stage 1 enricher 経由、narrate subcommand 経由でない)
+- `narrate` CLI subcommand: <Option A: 新 module hook 経由維持 / Option B: deprecate + TODO 化>
+
+Migration verifies AllergyIntolerance baseline 同等(15.3% ±0.05)+ Document
+density 0 → expected emission per spec。CLAUDE.md "データロジック統一" 規則
+遵守、1 source of truth 達成。
+
+Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CcmzXRy4w3YQt9jxi5QYom
+```
+
+**Risk + Mitigation:**
+- 旧 `narrate` subcommand 使用 user(downstream)が breaking change を受ける → TODO に migration guide 作成
+- AllergyIntolerance count drift → integration test `test_allergy_baseline_equivalence.py` で fail-loud gate
+- e2e golden 変動 → 既存 test 修正 or property-based assertion で対応(imaging chain Task 11 precedent)
+
+---
+
 ## Plan Self-Review
 
 **1. Spec coverage:** Each spec section maps to a task:
@@ -1787,7 +1872,7 @@ Plan complete and saved to `docs/superpowers/plans/2026-07-01-tier1-3-document-d
 
 1. PR #127 imaging chain merge(user)
 2. Branch creation:`git checkout -b feature/tier1-document-density-alpha-min-1` from updated master
-3. SDD execution(superpowers:subagent-driven-development):14 task chain
+3. SDD execution(superpowers:subagent-driven-development):15 task chain(Task 15 = generator migration、pre-flight verification 反映)
 4. 5-lens adversarial fan-out
 5. PR open
 
