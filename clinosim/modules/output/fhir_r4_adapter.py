@@ -136,6 +136,15 @@ from clinosim.modules.output._fhir_endpoint import (  # noqa: F401
 from clinosim.modules.output._fhir_imaging_study import (  # noqa: F401
     _bb_imaging_studies,
 )
+from clinosim.modules.output._fhir_allergy_intolerance import (  # noqa: F401
+    _bb_allergy_intolerances,
+)
+from clinosim.modules.output._fhir_clinical_impression import (  # noqa: F401
+    _bb_clinical_impressions,
+)
+from clinosim.modules.output._fhir_composition import (  # noqa: F401
+    _bb_compositions,
+)
 from clinosim.modules.output._fhir_smoking_alcohol import (  # noqa: F401
     _build_alcohol_use,
     _build_smoking_status,
@@ -412,7 +421,9 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_coverage,
     _bb_encounters,
     _bb_conditions,
-    _bb_allergies,
+    _bb_allergies,           # legacy 3-field AllergyIntolerance (Task 15 will clean up)
+    _bb_allergy_intolerances,  # Task 9: 8-field SNOMED-coded schema (coexists with legacy)
+    _bb_clinical_impressions,  # Task 9: ClinicalImpression (daily working diagnosis)
     _bb_occupation,
     _bb_service_requests,
     _bb_endpoints,           # Imaging: emit after SR, before ImagingStudy (reference resolve order)
@@ -435,6 +446,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _build_device,
     _build_device_use,
     _build_hai_conditions,
+    _bb_compositions,          # Task 9: Composition (section-structured H&P / Discharge)
 ]
 
 
