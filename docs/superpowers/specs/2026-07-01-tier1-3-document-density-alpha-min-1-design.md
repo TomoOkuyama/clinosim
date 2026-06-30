@@ -694,6 +694,26 @@ docalpha1-2 〜 ε:後続 chain(master plan §2 参照)
 - `CLAUDE.md`:統一 narrative interface DRY rule + Allergy module + Document module DRY rules
 - `docs/design-guides/fhir-data-generation-logic.md`:Composition + AllergyIntolerance + ClinicalImpression precedent 追加
 
+## 14.5 ★ Scope discipline(memory `feedback_scope_discipline`、セッション 25 user 明示)
+
+**本 chain で絶対遵守する原則**:
+
+> 「スコープが拡大すると、永遠に終わらないので、スコープの拡大はせずに、データ品質や臨床的整合性の観点で必要な追加のみスコープ内で対応すること」(user セッション 25 明示)
+
+### 適用方針
+
+1. **Spec scope = 確定**:本 spec の §1 / §11 で示した scope ⊆ + OOS が contract、実装中追加禁止
+2. **Implementer subagent**:brief 外項目を発見したら追加せず `DONE_WITH_CONCERNS` で報告(controller triage)
+3. **Reviewer finding**:Critical/Important triage:
+   - **scope 内 fix**:既存 invariant 違反 / 現 scope deliverable 成立に必須 / データ品質損なう bug / 臨床整合性違反
+   - **OOS = TODO entry 化**:optimization / refactor / 新 feature / 既存 feature 拡張 / "consider adding"
+4. **Adversarial fan-out**:同基準で triage、scope 拡張要望は ALL TODO 化
+5. **Pre-merge 判定**:残 issue が "scope 拡張要望" のみ = ship-ready(現 scope の deliverable 完了)
+
+### Master plan との関係
+
+`docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md` §2 の Phase 境界 = OOS の正規 boundary。本 chain で出る "α-min-2 / β-JP-1 で実装すべきもの" は全部 OOS、TODO 化して後続 phase へ。
+
 ## 15. References
 
 - Master plan:`docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md`(本 chain の上位戦略 + Appendix A CIF gap)
