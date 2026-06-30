@@ -198,6 +198,34 @@ def test_unknown_strategy_falls_back_to_template() -> None:
 # ─────────────────────────────────────────────────────────────────
 
 
+def test_template_seed_with_empty_llm_enabled_sections_returns_template_unchanged() -> None:
+    """If stage2_strategy is template_seed but llm_enabled_sections is empty,
+    the strategy must safely return the template output unchanged (no
+    provider call, no section mutation).
+
+    Verifies the invariant documented in _apply_template_seed_strategy:
+    'When llm_enabled_sections is empty, no provider call is made and the
+    returned output is byte-identical to template_output (safe no-op).'
+
+    Note: ctx must be a real NarrativeContext (not None) because
+    apply_replacement_strategy calls demographics_bucket(ctx.patient)
+    before the section loop regardless of llm_enabled_sections length.
+    """
+    spec = _make_spec(
+        stage2_strategy="template_seed",
+        llm_enabled_sections=(),  # ★ empty
+        format_type=FormatType.COMPOSITION,
+    )
+    template_output = _make_template_output({"section_a": "template content"})
+    ctx = _make_ctx()
+    provider = _mock_provider()  # should NOT be called
+
+    result = apply_replacement_strategy(template_output, ctx, spec, provider)
+
+    provider.generate.assert_not_called()
+    assert result.sections["section_a"] == "template content"
+
+
 def test_template_seed_strategy_uses_cache_on_hit() -> None:
     """Cache hit: provider not called on second request with same key."""
     from clinosim.modules.document.narrative.cache import NarrativeCache

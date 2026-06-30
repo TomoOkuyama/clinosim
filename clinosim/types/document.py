@@ -72,7 +72,12 @@ class NarrativeContext:
 
 @dataclass
 class NarrativeOutput:
-    """Generator 戻り値、emit builder の入力。"""
+    """Generator 戻り値、emit builder の入力。
+
+    ★ Invariant: ``sections[key]`` is authoritative per section (LLM-replaced
+    when applicable); ``raw_text`` is the unmodified template base for FREE_TEXT
+    documents only. COMPOSITION builders must iterate ``sections``, not ``raw_text``.
+    """
 
     raw_text: str = ""                       # FREE_TEXT 用
     sections: dict[str, str] = field(default_factory=dict)    # COMPOSITION 用
