@@ -22,6 +22,11 @@ Registered checks:
   15 equality_checks:
     4 canonical constants + 3 emission counts + 3 ref integrity +
     5 no-drop invariants (Section 3.4 emission matrix).
+
+TODO(jp_language_audit): jp_language_checks not implemented — ModuleAuditSpec
+does not have a jp_language_checks field. Deferred to a follow-up sweep
+(see TODO.md: "imaging chain JP language axis"). When the field is added,
+verify: modality / bodySite / DR.code / conclusion / text.div / SR.code in ja.
 """
 
 from __future__ import annotations
@@ -35,6 +40,7 @@ from clinosim.modules.imaging.engine import (
     IMAGING_STUDY_ID_PREFIX,
     RADIOLOGY_REPORT_ID_PREFIX,
 )
+from clinosim.modules.output._fhir_diagnostic_report import _bb_diagnostic_reports
 from clinosim.modules.output._fhir_endpoint import DICOM_WADO_RS_CONNECTION_TYPE
 from clinosim.modules.output._fhir_imaging_study import DICOM_UID_SYSTEM
 from clinosim.modules.output._fhir_service_request import (
@@ -60,7 +66,6 @@ def _build_imaging_proof() -> dict[str, Any]:
     # Lazy imports: defer FHIR builder import to proof time (avoids import-time
     # overhead; same pattern as antibiotic/audit.py _build_combined_proof).
     from clinosim.modules.output._fhir_common import BundleContext
-    from clinosim.modules.output._fhir_diagnostic_report import _build_radiology_dr
     from clinosim.modules.output._fhir_endpoint import _bb_endpoints
     from clinosim.modules.output._fhir_imaging_study import _bb_imaging_studies
 
@@ -119,7 +124,10 @@ def _build_imaging_proof() -> dict[str, Any]:
 
     studies_out = _bb_imaging_studies(ctx)
     endpoints_out = _bb_endpoints(ctx)
-    dr = _build_radiology_dr(study, study.report, ctx)
+    all_drs = _bb_diagnostic_reports(ctx)
+    radiology_drs = [r for r in all_drs if r.get("id", "").startswith(RADIOLOGY_REPORT_ID_PREFIX)]
+    assert radiology_drs, "imaging proof: _bb_diagnostic_reports returned no radiology DR for the synthetic input"
+    dr = radiology_drs[0]
 
     # Collect sets for reference integrity checks.
     endpoint_ids: set[str] = {e["id"] for e in endpoints_out}
@@ -154,7 +162,7 @@ def _build_imaging_proof() -> dict[str, Any]:
             ),
             # --- 3 emission count invariants ---
             (
-                "ImagingStudy count > 0 when imaging Order count > 0",
+                "ImagingStudy count > 0 when ImagingStudyRecord in extensions[imaging]",
                 len(studies_out) > 0,
                 True,
             ),
