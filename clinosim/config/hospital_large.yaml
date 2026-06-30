@@ -3,6 +3,10 @@
 
 recommended_population: 50000
 
+# Imaging infrastructure (WADO base URL for Endpoint emission)
+imaging:
+  wado_base_url: "https://pacs.large-hospital.clinosim.example/dicomweb"
+
 resource_capacity:
   lab_analyzers: 5
   ct_scanners: 2

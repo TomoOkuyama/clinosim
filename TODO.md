@@ -1395,8 +1395,118 @@ Suggested order: ~~microbiology+markers~~ ✅ → ~~nursing flowsheets~~ ✅ →
 - Path: extend disease YAML with `referrals:` field, generate Orders with
   OrderType.REFERRAL (or CONSULTATION), new SR category (SNOMED 308540006 + HL7 v2-0074 REF).
 
-### Tier 1 #2 — ServiceRequest for IMAGING
-- Bundled with full Imaging chain (ImagingStudy + DiagnosticReport(rad) + Endpoint stub).
+### Tier 1 #2 — ServiceRequest for IMAGING [DONE 2026-06-30]
+- ~~Bundled with full Imaging chain (ImagingStudy + DiagnosticReport(rad) + Endpoint stub).~~
+- **COMPLETED**: Imaging chain α-min delivered (AD-62). ImagingStudy + Endpoint + radiology DR +
+  imaging SR. US p=10k + JP p=5k production cohort generated and audited. DQR: 4 axes PASS.
+
+### Imaging chain OOS formal entries (Tier 1 #2 PR1 scope-out)
+
+The following FHIR fields / features were **explicitly out of scope** for the α-min imaging chain
+(per spec Section 11). Each is a valid future extension:
+
+#### ImagingStudy field-level OOS
+
+- **ImagingStudy.numberOfSeries / numberOfInstances**: field values deferred; always-present
+  `series[]` array is the canonical count source at α-min.
+- **ImagingStudy.series[].instance[]**: DICOM SOP Instance UID expansion. Each series contains
+  one conceptual instance at α-min; real PACS integration will expand to per-slice.
+- **ImagingStudy.series[].number**: DICOM series number (integer) — ordinal within study.
+- **ImagingStudy.interpreter**: radiologist practitioner reference. Deferred to Phase 2 when
+  radiology staff roster is added.
+- **ImagingStudy.referrer**: ordering clinician reference — already available as
+  `Order.ordered_by`; FHIR wire deferred.
+- **ImagingStudy.availability**: ONLINE / OFFLINE / NEARLINE / UNAVAILABLE. Deferred; Endpoint
+  presence implies ONLINE semantics.
+- **ImagingStudy.encounter**: explicit Encounter reference on the ImagingStudy. Deferred; can
+  be derived from basedOn SR's encounter.
+- **ImagingStudy.location**: imaging suite Location resource. Deferred to Location hierarchy PR.
+- **ImagingStudy.reason**: clinical indication reference (Condition). Deferred; reason text is
+  present in the imaging SR.
+- **ImagingStudy.procedureCode**: SNOMED CT procedure code for the imaging study type. Tier 2.
+- **ImagingStudy.series[].performer**: technician who acquired the series. Tier 2 (radiology
+  staff roster).
+- **ImagingStudy.series[].laterality**: body laterality SNOMED code (right/left/bilateral).
+  Tier 2; body site only at α-min.
+- **ImagingStudy.note**: free-text annotation at study level. Tier 3.
+
+#### Endpoint field-level OOS
+
+- **Endpoint.connectionType**: hardcoded to DICOM WADO-RS at α-min. Future: DICOMweb STOW-RS
+  for push-based upload integration.
+- **Endpoint.payloadMimeType**: DICOM media type list deferred. Tier 2.
+- **Endpoint.header**: HTTP auth headers for PACS auth. Out of scope for placeholder URL.
+
+#### DiagnosticReport (radiology) field-level OOS
+
+- **DiagnosticReport.resultsInterpreter**: radiologist practitioner. Tied to interpreter on
+  ImagingStudy — both deferred to Phase 2 staff roster.
+- **DiagnosticReport.presentedForm**: base64-encoded PDF or HTML for structured radiology
+  report export. Deferred; text.div + conclusion covers α-min needs.
+- **DiagnosticReport.media**: key images as Attachment. Deferred until image-gen AI integration.
+- **DiagnosticReport.effectiveDateTime**: date of imaging procedure. Wire from
+  `ImagingStudyRecord.study_datetime` — deferred to pass 2.
+
+#### Disease YAML imaging coverage OOS
+
+- **aspiration_pneumonia.yaml**: imaging_orders exists for CR (Chest_Xray) but no YAML
+  for aspiration pneumonia → imaging chain skips it (legacy order path). Tier 2.
+- Additional diseases (COPD / sepsis / hip fracture / etc.): imaging_orders not yet in YAML.
+  Bundle with legacy migration sweep PR (see "Legacy IMAGING order emission sites" item below).
+
+### imaging chain JP language axis
+- **ModuleAuditSpec** lacks `jp_language_checks` field. `clinosim/modules/imaging/audit.py` deferred 6 JP language audit checks (modality / bodySite / DR.code / conclusion / text.div / SR.code displays in ja for JP cohort). When framework gains the field, wire these checks. Spec Section 9.4 brief includes the full list.
+
+### Legacy IMAGING order emission sites need migration to Task 3 path
+- **Issue:** `clinosim/simulator/inpatient.py` lines 852, 1737, 1781 + `clinosim/simulator/emergency.py` line 183 emit Order(OrderType.IMAGING) without `imaging_modality` / `imaging_body_site_code`.
+- **Current workaround:** Task 4 imaging_enricher silently skips these via filter (test_enricher_skips_legacy_orders_without_imaging_metadata) to avoid breakage.
+- **Fix path:** Migrate these emission sites to use `place_imaging_orders` so they emit ImagingStudy + radiology DiagnosticReport + Endpoint resources through the normal Task 3/4 pipeline.
+- **Scope:** Out of scope for Tier 1 #2 PR1 (imaging chain α-min), track for follow-up sweep PR.
+- **TODO #1 (whole-branch review, 2026-06-30):** Legacy `bacterial_pneumonia.yaml:152-153` style
+  entries (`imaging: [Chest_Xray_PA_Lateral]`) still emit `Order(IMAGING)` without metadata, causing
+  ~17,691 orphan SRs in US p=10k cohort (98% of SR(RAD)). Migration plan:
+  (a) Extend imaging_chain audit module to flag orphan ratio > N% as WARN.
+  (b) Log a warning in enricher when IMAGING order lacks metadata (currently silent skip).
+  (c) Disease YAML migration sweep: replace `imaging: [name]` with `imaging_orders: [...]` for all
+  30 disease YAMLs. Sites: `bacterial_pneumonia.yaml` + all diseases with legacy `imaging:` field.
+
+### TODO #2 (whole-branch review, 2026-06-30): JP language audit gate
+- **ModuleAuditSpec** lacks `jp_language_checks` field. `clinosim/modules/imaging/audit.py` deferred
+  6 JP language audit checks (modality / bodySite / DR.code / conclusion / text.div / SR.code
+  displays in ja for JP cohort). When framework gains the field, wire these checks.
+  Spec Section 9.4 brief includes the full list. Extension proposal:
+  (a) Add `jp_language_checks: list[str]` field to `ModuleAuditSpec`.
+  (b) Wire into JP language axis dispatcher.
+  (c) Implement imaging_chain JP checks + add to other always-on Modules.
+
+### TODO #3 (whole-branch review, 2026-06-30): Adversarial fan-out chain deferred
+- Per memory `feedback_iterative_adversarial_review`, PR-class precedent calls for post-impl
+  5-lens parallel adversarial fan-out review. Imaging chain ran per-task reviews + 1 final
+  whole-branch review. Adversarial fan-out (5 reviewers × silent-no-op / data unification /
+  FHIR-JP Core / AD-16 + scale / spec adherence) deferred to post-merge per chain length +
+  user roadmap re-evaluation timing (memory `project_ehr_sample_dataset_roadmap`).
+
+### TODO #4 (whole-branch review, 2026-06-30): Spec deviations to document
+- Update spec `docs/superpowers/specs/2026-06-30-tier1-imaging-chain-design.md`:
+  (a) `ENRICHER_SEED_OFFSETS["imaging"] = 0x4947 ("IG")` — actual vs spec's 0x494D ("IM").
+  (b) `Order.imaging_spec_meta: dict[str, Any]` — 4th imaging field not in original spec.
+  (c) `RadiologyReport.findings_text_ja` / `impression_text_ja` — lang-keyed fields.
+
+### TODO #5 (whole-branch review, 2026-06-30): `views=[]` fallback edge in place_imaging_orders
+- `place_imaging_orders` increments `sequence_counter["I"]` even when views=[] and
+  `default_views_by_body_site` lookup fails for a modality+body_site combo. Future modality
+  additions could trip silently. Add `_validate_modalities` Layer-5 invariant: every
+  (modality, supported body_site) pair has a `default_views_by_body_site` entry.
+
+### TODO #6 (whole-branch review, 2026-06-30): Integration test population size
+- `run_generate("US", 100, 42, ...)` integration tests skip when no studies emit. n=100 is
+  fragile — raise to 200 where DQR shows enough disease distribution for stable coverage.
+  Files: `tests/integration/test_imaging_chain.py`, `test_imaging_basedon_coverage.py`, etc.
+
+### TODO #7 (whole-branch review, 2026-06-30): DQR phrasing "1/4 PASS" is misleading
+- DQR Axis 4 summary had "1/4 PASS" when structural/jp_language axes are N/A (not applicable).
+  Replace with explicit "clinical PASS + silent_no_op PASS (structural/jp_language N/A — no
+  module-specific gates)" to clarify the 4-axis accounting. Fixed to "2/4 PASS" post I-3 fix.
 
 ### Out-of-scope permanent — ServiceRequest for MEDICATION
 - FHIR `MedicationRequest` is the correct resource; ServiceRequest not used.
@@ -1457,3 +1567,39 @@ marked `pytest.mark.xfail(strict=False)`. When the bug is fixed, remove the xfai
 - `test_device_fhir_output.py::test_device_extension_through_fhir_pipeline` progresses past
   AttributeError post-fix but fails for a different reason (device count = 0 at p=300).
   Sweep all builders for dict-compat (dataclass vs dict dual-access pattern).
+
+## SS-MIX2 output adapter(セッション25 deferred)
+
+**Decision:** User deferred SS-MIX2 implementation 2026-06-30 セッション25。実 EHR データ density 充実(問診 / 検査 / 手術 / 処方の event 記録)を先に進めるため。
+
+**Scope:**
+- 新 output adapter via AD-58 `register_output_adapter`(FHIR と並行出力、CIF read-only consume)
+- HL7 v2.5 segment-based、厚労省 SS-MIX2 標準準拠
+- 主要 message types:
+  - **ADT**(Admit/Discharge/Transfer):A01 admit、A03 discharge、A02 transfer、A04 register
+  - **OML**(Order Lab):検査依頼 message
+  - **OUL**(Observation Unsolicited Lab):検査結果 message
+  - **ORM**(Order Pharmacy):処方依頼 message
+  - **RDE**(Pharmacy/Treatment Encoded Order):処方詳細 message
+  - **MDM**(Medical Document Management):文書 message
+- 既存 `hospital_config` の各 hospital identifier(MEDIS / JANIS / etc.)を SS-MIX2 hospital ID にマップ
+
+**Target consumers(JP EHR vendor debug datasets):**
+- 富士通 HOPE LifeMark / EGMAIN-GX
+- NEC MegaOakHR
+- SSI Hyper-S
+- IBM HOPE / IBM 医療情報システム
+- 厚労省 医療情報連携基盤 connectivity test
+
+**推定 PR:** 4-6 PR(adapter skeleton + 主要 6 message types + 厚労省仕様検証 + 既存 hospital_config 連動)
+
+**Precondition:**
+- ★ Event density 5 chain(Document / MAR / Procedure / LabDR / Nursing)完了後に着手推奨
+- 理由:SS-MIX2 は CIF を消費するだけなので CIF の event records 充実が直接 SS-MIX2 dataset 価値に反映
+
+**関連 memory:**
+- `project_event_density_strategy.md` — セッション25 戦略軸転換
+- `project_ehr_event_emphasis.md` — セッション25 戦略再確認
+
+**Discovered:** セッション25(2026-06-30)。User goal が 病院 event 記録充実 = 並行 SS-MIX2 出力より優先。
+

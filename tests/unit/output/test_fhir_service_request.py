@@ -250,13 +250,15 @@ def test_bb_service_requests_empty_orders_returns_empty():
     assert _bb_service_requests(ctx) == []
 
 
-def test_bb_service_requests_skips_non_lab_orders():
-    """MEDICATION / IMAGING / etc. Orders are ignored."""
+def test_bb_service_requests_skips_medication_orders():
+    """MEDICATION Orders (and other non-LAB/non-IMAGING types) are skipped.
+
+    Note: IMAGING orders now emit SRs via the polymorphic dispatch path
+    added in Tier 1 #2 PR1 — see test_fhir_service_request_imaging.py.
+    """
     o_med = _make_order(order_id="M1")
     o_med.order_type = OrderType.MEDICATION
-    o_img = _make_order(order_id="I1")
-    o_img.order_type = OrderType.IMAGING
-    ctx = _make_ctx([o_med, o_img])
+    ctx = _make_ctx([o_med])
     assert _bb_service_requests(ctx) == []
 
 

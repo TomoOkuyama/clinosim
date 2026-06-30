@@ -17,11 +17,14 @@ codes:
   '277132007':
     en: Therapeutic procedure
     ja: 治療的処置
-  # === ServiceRequest category (PR1 lab orders) ===
+  # === ServiceRequest category (PR1 lab orders, Tier 1 #2 imaging orders) ===
   # Verified via SNOMED International browser (https://browser.ihtsdotools.org/).
   '108252007':
     en: Laboratory procedure
     ja: 臨床検査
+  '363679005':
+    en: Imaging procedure
+    ja: 画像診断
 
   # === Performer function (role) ===
   '304292004':
@@ -251,6 +254,14 @@ codes:
   '113697002':
     en: Stenotrophomonas maltophilia
     ja: ステノトロフォモナス・マルトフィリア
+  # === Body sites for Imaging (Tier 1 #2 PR1) ===
+  # Verified via SNOMED International browser (https://browser.ihtsdotools.org/).
+  '51185008':
+    en: Thoracic structure
+    ja: 胸部
+  '69536005':
+    en: Head structure
+    ja: 頭部
   # === Culture specimens (PR-B) ===
   # Blood / Urine / Sputum specimens already registered above (PR3
   # microbiology section); not duplicated here.

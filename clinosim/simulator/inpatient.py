@@ -34,6 +34,7 @@ from clinosim.modules.order.engine import (
     calculate_result_time_from_state,
     place_admission_orders,
     place_daily_lab_orders,
+    place_imaging_orders,
 )
 from clinosim.modules.physiology.engine import (
     apply_disease_onset,
@@ -210,6 +211,17 @@ def _simulate_patient(
         admission_time, country=country_key, rng=rng, ordered_by=attending_id,
     )
 
+    # Imaging orders from disease YAML imaging_orders[] (Tier 1 #2 PR1).
+    # Counter is threaded across admission (day=0) + daily loop (day>=1) to
+    # guarantee unique order_ids within the encounter.
+    imaging_seq_counter: dict[str, int] = {"I": 0}
+    adm_imaging = place_imaging_orders(
+        protocol, encounter.encounter_id, patient.patient_id,
+        admission_time, day_index=0, severity=severity, rng=rng,
+        sequence_counter=imaging_seq_counter,
+    )
+    admission_orders.extend(adm_imaging)
+
     # Home medication orders (chronic condition continuation)
     home_med_orders, chronic_monitoring = _generate_home_medication_orders(
         patient, encounter.encounter_id, admission_time, attending_id, rng,
@@ -279,6 +291,7 @@ def _simulate_patient(
         encounter_id=encounter.encounter_id,
         department=department,
         severity=severity,
+        imaging_seq_counter=imaging_seq_counter,
     )
 
     # Unpack results
@@ -434,6 +447,8 @@ def _simulate_patient(
     #   - modules/hai samples CLABSI / CAUTI / VAP onsets from device
     #     line-days (CDC NHSN baseline), appends MicrobiologyResult for
     #     culture, and writes list[HAIEvent] under extensions["hai"].
+    #   - modules/imaging derives ImagingStudyRecord (FHIR) from Order(IMAGING)
+    #     and writes list[ImagingStudyRecord] under extensions["imaging"].
     # Per-patient sub-seed via ENRICHER_SEED_OFFSETS so the main RNG is
     # untouched (AD-16).
     from clinosim.simulator.enrichers import (
@@ -441,6 +456,15 @@ def _simulate_patient(
         EnricherContext,
         run_stage,
     )
+
+    # Store disease_id in extensions for enrichers that need it (e.g. imaging
+    # enricher for impression template selection). Modules read via:
+    #   disease_id = (record.extensions or {}).get("_disease_id", "")
+    # Transient IPC key for inpatient simulator → enricher communication; cleaned up at
+    # end of enricher run (e.g. imaging_enricher); NOT included in FHIR output (AD-30).
+    if not record.extensions:
+        record.extensions = {}
+    record.extensions["_disease_id"] = disease_id
 
     run_stage(
         POST_ENCOUNTER,
@@ -450,6 +474,14 @@ def _simulate_patient(
             records=[record],
         ),
     )
+
+    # Cleanup transient IPC key _disease_id (I-6 fix, 2026-06-30). Moved here
+    # from imaging_enricher so cleanup is exception-safe (fires even if enricher
+    # raises mid-loop) and future POST_ENCOUNTER enrichers at order > 90 can
+    # still read _disease_id during run_stage. Underscore prefix signals transient
+    # IPC key; must NOT leak into FHIR output (AD-30).
+    if record.extensions:
+        record.extensions.pop("_disease_id", None)
 
     # AD-32 snapshot truncation for encounter-bound Modules. The earlier
     # filter (lines 386-390) ran BEFORE POST_ENCOUNTER, so device + HAI
@@ -527,10 +559,15 @@ def _run_daily_loop(
     department: str = "internal_medicine",
     severity: str = "moderate",
     encounter_id: str = "",
+    imaging_seq_counter: dict[str, int] | None = None,
 ) -> dict:
     """Run the day-by-day simulation loop. Returns all generated data."""
 
     all_orders = list(admission_orders)
+    # Thread imaging sequence counter from caller (initialized at day=0 in
+    # simulate_inpatient_encounter). Fallback to {"I": 0} for callers that
+    # don't pass it (backward-compat for direct test calls of _run_daily_loop).
+    _img_seq: dict[str, int] = imaging_seq_counter if imaging_seq_counter is not None else {"I": 0}
     all_lab_results: list[OrderResult] = []
     all_vitals: list[VitalSignRecord] = []
     all_mars: list[MedicationAdministration] = []
@@ -619,6 +656,16 @@ def _run_daily_loop(
                 freq_mod, rng, ordered_by=attending_id,
             )
             all_orders.extend(daily_orders)
+
+            # Imaging orders for day >= 1 (day=0 handled pre-loop in
+            # simulate_inpatient_encounter). Counter threads from admission
+            # call so IDs are unique across the full encounter.
+            daily_imaging = place_imaging_orders(
+                protocol, encounter_id, patient.patient_id,
+                admission_time, day_index=day, severity=severity, rng=rng,
+                sequence_counter=_img_seq,
+            )
+            all_orders.extend(daily_imaging)
 
         # Chronic condition monitoring labs (additional to disease protocol)
         if chronic_monitoring and day >= 1:
@@ -1810,6 +1857,15 @@ def _simulate_unknown_condition(
         # Partially resolved: nonspecific diagnosis assigned
         discharge_code = "R50.9" if "fever" in event.disease_id else "R68.8"
         discharge_name = complaint.title() + " (under investigation, outpatient follow-up)"
+
+    # Set encounter_id for all orders that don't have one — mirrors the
+    # identical loop in simulate_inpatient (line 361-363). Without this,
+    # _fhir_service_request._build_sr_skeleton raises AssertionError on
+    # JP cohorts where unknown-condition patients generate ADM-L orders
+    # without encounter_id, causing FHIR export to fail.
+    for o in all_orders:
+        if not o.encounter_id:
+            o.encounter_id = encounter.encounter_id
 
     # Note: unknown-condition encounters intentionally do NOT run the
     # POST_ENCOUNTER stage (device + hai). _simulate_unknown_condition never

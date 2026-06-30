@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from enum import Enum
+from typing import Any
 
 
 class EncounterType(str, Enum):
@@ -157,6 +158,12 @@ class Order:
     # ("CBC"/"BMP"/"LFT"/"ABG"/"Lipid"/"Coag"/"UA") — Orders sharing the same
     # (encounter_id, panel_key, ordered_datetime) tuple emit a single ServiceRequest.
     panel_key: str = ""
+    # PR2(Tier 1 #2 imaging chain)— imaging-only fields. LAB / MED / 他 OrderType
+    # では default ("" / [])のまま、FHIR 出力に影響しない(no-op safe)。
+    imaging_modality: str = ""              # DCM code(CR/CT/MR/US/NM/...)
+    imaging_body_site_code: str = ""        # SNOMED body structure
+    imaging_views: list[str] = field(default_factory=list)
+    imaging_spec_meta: dict[str, Any] = field(default_factory=dict)  # abnormal_rate_by_severity etc. (Task 4)
 
 
 @dataclass

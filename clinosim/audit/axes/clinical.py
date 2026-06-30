@@ -293,6 +293,87 @@ def _check_lab_obs_basedon(cohort: Cohort, country: str, result: AxisResult) -> 
         )
 
 
+def _check_imaging_basedon(cohort: Cohort, country: str, result: AxisResult) -> None:
+    """Tier 1 #2 PR1 clinical gate: ImagingStudy basedOn + endpoint ref integrity.
+
+    Walks ImagingStudy.ndjson for one country. Verifies:
+    - every ImagingStudy.basedOn[].reference resolves to a ServiceRequest id
+      in ServiceRequest.ndjson.
+    - every ImagingStudy.endpoint[].reference resolves to an Endpoint id in
+      Endpoint.ndjson.
+
+    n < 30 ImagingStudy resources -> WARN (rare-event tolerated; imaging
+    emission is disease-gated so small cohorts may have few studies).
+    Dangling refs on cohort >= 30 -> FAIL (PR-90 class silent-no-op).
+    """
+    n_warn_threshold = 30
+
+    # Collect ServiceRequest ids and Endpoint ids from NDJSON.
+    sr_ids: set[str] = {
+        row["id"] for row in cohort.ndjson(country, "ServiceRequest") if row.get("id")
+    }
+    endpoint_ids: set[str] = {
+        row["id"] for row in cohort.ndjson(country, "Endpoint") if row.get("id")
+    }
+
+    # Walk ImagingStudy, verify basedOn and endpoint refs.
+    study_count = 0
+    dangling_sr: list[str] = []
+    dangling_ep: list[str] = []
+    for row in cohort.ndjson(country, "ImagingStudy"):
+        study_count += 1
+        for ref in row.get("basedOn", []):
+            ref_str = ref.get("reference", "")
+            if not ref_str.startswith("ServiceRequest/"):
+                continue
+            sr_id = ref_str.removeprefix("ServiceRequest/")
+            if sr_id not in sr_ids:
+                dangling_sr.append(sr_id)
+        for ref in row.get("endpoint", []):
+            ref_str = ref.get("reference", "")
+            if not ref_str.startswith("Endpoint/"):
+                continue
+            ep_id = ref_str.removeprefix("Endpoint/")
+            if ep_id not in endpoint_ids:
+                dangling_ep.append(ep_id)
+
+    if study_count < n_warn_threshold:
+        result.info[f"imaging_basedon_{country}"] = (
+            f"n={study_count} ImagingStudy < {n_warn_threshold}; "
+            f"rare-event WARN (imaging is disease-gated); "
+            f"dangling_sr={len(dangling_sr)}, dangling_ep={len(dangling_ep)}"
+        )
+        result.findings.append(
+            AuditFinding(
+                Severity.WARN,
+                f"{country}: ImagingStudy count={study_count} < {n_warn_threshold} "
+                f"(rare-event tolerated; basedOn/endpoint coverage not enforced)",
+            )
+        )
+        return
+
+    if dangling_sr:
+        result.findings.append(
+            AuditFinding(
+                Severity.FAIL,
+                f"{country}: {len(dangling_sr)} ImagingStudy.basedOn dangling SR refs "
+                f"(not in ServiceRequest.ndjson); sample={dangling_sr[:5]}",
+            )
+        )
+    if dangling_ep:
+        result.findings.append(
+            AuditFinding(
+                Severity.FAIL,
+                f"{country}: {len(dangling_ep)} ImagingStudy.endpoint dangling Endpoint refs "
+                f"(not in Endpoint.ndjson); sample={dangling_ep[:5]}",
+            )
+        )
+    if not dangling_sr and not dangling_ep:
+        result.info[f"imaging_basedon_{country}"] = (
+            f"{study_count}/{study_count} ImagingStudy basedOn + endpoint refs resolve"
+        )
+
+
 def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
     result = AxisResult(axis="clinical", module=spec.name)
     if not spec.clinical_acceptance:
@@ -303,6 +384,11 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
     if "basedon_coverage" in spec.clinical_acceptance:
         for country in cohort.countries():
             _check_lab_obs_basedon(cohort, country, result)
+
+    # Tier 1 #2 PR1 imaging basedOn + endpoint coverage gate.
+    if "imaging_basedon_coverage" in spec.clinical_acceptance:
+        for country in cohort.countries():
+            _check_imaging_basedon(cohort, country, result)
 
     # Filter to HAI-type entries only (dict with "icd10_code").
     # Top-level metadata keys (e.g. "hai_resistance_bands",

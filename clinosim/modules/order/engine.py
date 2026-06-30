@@ -11,6 +11,12 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.modules._shared import get_attr_or_key as _s
+from clinosim.modules.imaging.engine import (
+    _resolve_imaging_procedure_code_key,
+    load_body_sites,
+    load_modalities,
+)
 from clinosim.modules.order.panel_grouping import classify_lab_specs, load_panel_definitions
 from clinosim.types.encounter import Order, OrderStatus, OrderType
 
@@ -23,6 +29,106 @@ _FREQ_PER_DAY: dict[str, int] = {
     "q4h": 6, "q3h": 8, "q2h": 12,
     "continuous": 24, "drip": 24,
 }
+
+
+def place_imaging_orders(
+    disease_protocol: Any,
+    encounter_id: str,
+    patient_id: str,
+    admission_dt: datetime,
+    day_index: int,
+    severity: str,
+    rng: np.random.Generator,
+    sequence_counter: dict[str, int],
+) -> list[Order]:
+    """Emit one Order(OrderType.IMAGING) per matching imaging_orders[] entry.
+
+    Filter rules:
+      - spec.day must equal day_index (admission day = 0, next day = 1, …)
+      - if spec.only_if_severity is non-empty, severity must be in the list
+    No Order is emitted for non-matching specs.
+
+    For matching specs:
+      - resolve procedure_code via body_sites.yaml[body_site].procedure_codes[key].loinc
+      - emit one Order per spec; multi-view info is preserved in Order.imaging_views
+        and expanded into ImagingStudy Series by the imaging enricher (Task 4)
+      - sequence_counter["I"] is incremented per-Order and used in order_id (threads
+        across admission + daily calls so IDs are unique within the encounter)
+      - if spec.views is empty, fall back to modalities.yaml[modality].default_views_by_body_site
+
+    Spec access is via _s() (get_attr_or_key) so this function accepts both:
+      - ImagingOrderSpec Pydantic objects (production path from DiseaseProtocol)
+      - plain dicts (unit test stubs via _StubProtocol)
+    """
+    imaging_specs = getattr(disease_protocol, "imaging_orders", None) or []
+    if not imaging_specs:
+        return []
+
+    body_sites = load_body_sites()
+    modalities = load_modalities()
+    orders: list[Order] = []
+
+    for spec in imaging_specs:
+        if _s(spec, "day", 0) != day_index:
+            continue
+        only_if = _s(spec, "only_if_severity", [])
+        if only_if and severity not in only_if:
+            continue
+
+        modality_key: str = _s(spec, "modality", "")
+        body_site_key: str = _s(spec, "body_site", "")
+        contrast: bool = _s(spec, "contrast", False)
+        urgency: str = _s(spec, "urgency", "routine")
+        clinical_indication: str = _s(spec, "clinical_indication", "")
+        abnormal_rate: dict = dict(_s(spec, "abnormal_rate_by_severity", {}))
+
+        body_site = body_sites.get(body_site_key)
+        if not body_site:
+            raise ValueError(
+                f"imaging_orders[].body_site='{body_site_key}' not found in body_sites.yaml"
+            )
+        modality_def = modalities.get(modality_key)
+        if not modality_def:
+            raise ValueError(
+                f"imaging_orders[].modality='{modality_key}' not found in modalities.yaml"
+            )
+
+        views: list[str] = list(_s(spec, "views", []))
+        if not views:
+            views = list(
+                (modality_def.get("default_views_by_body_site") or {}).get(body_site_key, [])
+            )
+
+        code_key = _resolve_imaging_procedure_code_key(modality_key, body_site_key, views, contrast)
+        proc = (body_site.get("procedure_codes") or {}).get(code_key)
+        if not proc:
+            raise ValueError(
+                f"body_sites.yaml[{body_site_key}].procedure_codes['{code_key}'] not found"
+            )
+
+        sequence_counter["I"] = sequence_counter.get("I", 0) + 1
+        ordered_dt = admission_dt + timedelta(
+            days=day_index, minutes=int(rng.normal(15, 5))
+        )
+        order = Order(
+            order_id=f"ORD-{patient_id}-{encounter_id}-I{sequence_counter['I']:02d}",
+            encounter_id=encounter_id,
+            patient_id=patient_id,
+            order_type=OrderType.IMAGING,
+            order_code=proc["loinc"],
+            display_name=proc["display_en"],
+            urgency=urgency,
+            clinical_intent=clinical_indication,
+            ordered_datetime=ordered_dt,
+            status=OrderStatus.PLACED,
+            imaging_modality=modality_key,
+            imaging_body_site_code=body_site["snomed"],
+            imaging_views=views,
+            imaging_spec_meta={"abnormal_rate_by_severity": abnormal_rate, "contrast": contrast},
+        )
+        orders.append(order)
+
+    return orders
 
 
 def enrich_medication_order(order: Order, dose_str: str = "") -> Order:
