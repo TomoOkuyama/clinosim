@@ -36,7 +36,10 @@ def test_every_imaging_study_basedon_resolves() -> None:
             pytest.skip("No ImagingStudy resources emitted — cannot verify basedOn")
         dangling: list[str] = []
         for study in studies:
-            for ref in study.get("basedOn", []):
+            assert study.get("basedOn"), (
+                f"ImagingStudy/{study.get('id')} missing basedOn ref (silent-no-op)"
+            )
+            for ref in study["basedOn"]:
                 sr_id = ref["reference"].removeprefix("ServiceRequest/")
                 if sr_id not in sr_ids:
                     dangling.append(f"ImagingStudy/{study['id']} -> ServiceRequest/{sr_id}")
@@ -58,7 +61,10 @@ def test_every_imaging_study_endpoint_resolves() -> None:
             pytest.skip("No ImagingStudy resources emitted — cannot verify endpoint refs")
         dangling: list[str] = []
         for study in studies:
-            for ref in study.get("endpoint", []):
+            assert study.get("endpoint"), (
+                f"ImagingStudy/{study.get('id')} missing endpoint ref (silent-no-op)"
+            )
+            for ref in study["endpoint"]:
                 ep_id = ref["reference"].removeprefix("Endpoint/")
                 if ep_id not in endpoint_ids:
                     dangling.append(f"ImagingStudy/{study['id']} -> Endpoint/{ep_id}")
@@ -81,7 +87,10 @@ def test_every_radiology_dr_basedon_resolves() -> None:
             pytest.skip("No radiology DiagnosticReport resources emitted")
         dangling: list[str] = []
         for dr in rad_drs:
-            for ref in dr.get("basedOn", []):
+            assert dr.get("basedOn"), (
+                f"DiagnosticReport/{dr['id']} missing basedOn ref (silent-no-op)"
+            )
+            for ref in dr["basedOn"]:
                 sr_id = ref["reference"].removeprefix("ServiceRequest/")
                 if sr_id not in sr_ids:
                     dangling.append(f"DiagnosticReport/{dr['id']} -> ServiceRequest/{sr_id}")
@@ -104,7 +113,10 @@ def test_every_radiology_dr_imagingstudy_resolves() -> None:
             pytest.skip("No radiology DiagnosticReport resources emitted")
         dangling: list[str] = []
         for dr in rad_drs:
-            for ref in dr.get("imagingStudy", []):
+            assert dr.get("imagingStudy"), (
+                f"DiagnosticReport/{dr['id']} missing imagingStudy ref (silent-no-op)"
+            )
+            for ref in dr["imagingStudy"]:
                 st_id = ref["reference"].removeprefix("ImagingStudy/")
                 if st_id not in study_ids:
                     dangling.append(f"DiagnosticReport/{dr['id']} -> ImagingStudy/{st_id}")
