@@ -916,3 +916,25 @@ imaging-PR2-N: Tier 1 #2 後続 disease + modality sweep
 - 既存 reference data:`clinosim/modules/output/reference_data/lab_panel_groups.yaml`(panel-aware pattern)
 - FHIR R4:`ImagingStudy`(https://hl7.org/fhir/R4/imagingstudy.html)/ `Endpoint`(https://hl7.org/fhir/R4/endpoint.html)/ `ServiceRequest`(https://hl7.org/fhir/R4/servicerequest.html)/ `DiagnosticReport`(https://hl7.org/fhir/R4/diagnosticreport.html)
 - 認証 sources:NLM clinicaltables(LOINC + CPT + ICD)/ AMA(CPT)/ MHLW(JP K-code)/ tx.fhir.org(SNOMED)/ JCCLS-JSLM v137(JLAC10)
+
+## 16. Implementation deviations from spec (whole-branch review, 2026-06-30)
+
+Known deviations discovered during final whole-branch review — noted here for
+spec completeness. None affect correctness for PR1 scope.
+
+**(a) `ENRICHER_SEED_OFFSETS["imaging"] = 0x4947` (actual) vs `0x494D` (spec)**
+- Spec Section 2 and seeding.py pseudocode used `0x494D` ("IM").
+- Actual implementation chose `0x4947` ("IG" = ImaGing) to avoid collision with
+  an existing offset. See `clinosim/simulator/seeding.py:ENRICHER_SEED_OFFSETS`.
+- Impact: byte-identical output with actual value; spec pseudocode was illustrative.
+
+**(b) `Order.imaging_spec_meta: dict[str, Any]` — 4th imaging field**
+- Spec defines 3 imaging-specific Order fields: `imaging_modality`, `imaging_body_site_code`,
+  `imaging_views`. Implementation added a 4th: `imaging_spec_meta` carrying
+  `abnormal_rate_by_severity` (from disease YAML) and `contrast` (I-2 fix).
+- This field is IPC between `place_imaging_orders` and `imaging_enricher`; not in FHIR output.
+
+**(c) `RadiologyReport.findings_text_ja` / `impression_text_ja` — lang-keyed fields**
+- Spec Section 4 shows `findings_text: str` + `impression_text: str`. Implementation added
+  `findings_text_ja` + `impression_text_ja` as siblings for JP localization (Task 6 FHIR
+  builder selects by `lang="ja"`). Same pattern as `body_site_display` (en/ja via loader).

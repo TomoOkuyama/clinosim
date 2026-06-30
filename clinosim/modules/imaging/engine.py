@@ -193,6 +193,37 @@ def load_impression_templates() -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# Procedure code key resolution — single source of truth (silent-no-op defense
+# Layer 2). Order engine + FHIR DR builder both import from here; do NOT
+# duplicate the mapping inline at call sites (I-2 time bomb fix, 2026-06-30).
+# ---------------------------------------------------------------------------
+
+
+def _resolve_imaging_procedure_code_key(
+    modality: str, body_site: str, views: list[str], contrast: bool,
+) -> str:
+    """Resolve (modality, body_site, views, contrast) → procedure_codes key.
+
+    PR1 mapping:
+      - CR + chest + (PA + Lateral) → "CR_PA_Lateral"
+      - CT + any body_site + non-contrast → "CT_non_contrast"
+      - CT + any body_site + contrast → "CT_with_contrast"
+    Future modalities / variants extend this map.
+
+    ``views`` is accepted for forward-compat but not used in current mapping;
+    contrast is the discriminating field for CT variants.
+    """
+    if modality == "CR" and body_site == "chest":
+        return "CR_PA_Lateral"
+    if modality == "CT":
+        return "CT_with_contrast" if contrast else "CT_non_contrast"
+    raise ValueError(
+        f"Unsupported imaging combination: modality={modality} "
+        f"body_site={body_site} views={views} contrast={contrast}"
+    )
+
+
+# ---------------------------------------------------------------------------
 # Canonical ID prefixes (writer-owned; Task 5 FHIR builders import from here).
 # Shared constant pattern = silent-no-op defense Layer 2 (writer↔reader).
 # ---------------------------------------------------------------------------
@@ -384,10 +415,11 @@ def imaging_enricher(ctx: Any) -> None:
 
             study_uid = _study_uid_from(sub_seed, "study")
 
-            # abnormal_rate_by_severity is carried on Order via imaging_spec_meta
-            # (set by place_imaging_orders, Task 3 Step 5).
+            # abnormal_rate_by_severity + contrast are carried on Order via imaging_spec_meta
+            # (set by place_imaging_orders, Task 3 Step 5 + I-2 fix 2026-06-30).
             spec_meta: dict[str, Any] = _o(order, "imaging_spec_meta", {}) or {}
             abnormal_rate: dict[str, float] = spec_meta.get("abnormal_rate_by_severity", {})
+            contrast: bool = bool(spec_meta.get("contrast", False))
 
             _variant, template = _select_report_template(
                 disease_id, modality, body_site_key, severity, abnormal_rate, rng,
@@ -416,6 +448,7 @@ def imaging_enricher(ctx: Any) -> None:
                 body_site_snomed=body_site_snomed,
                 series=series,
                 endpoint_id=f"{ENDPOINT_ID_PREFIX}{study_uid}",
+                contrast=contrast,
                 report=report,
             )
             studies.append(study)
@@ -427,8 +460,6 @@ def imaging_enricher(ctx: Any) -> None:
             extensions = record.extensions
         extensions["imaging"] = studies
 
-    # Cleanup transient IPC key (Task 8 review I-1). _disease_id is set by
-    # inpatient.py for enricher consumption only; do NOT leak into FHIR output.
-    for record in ctx.records:
-        extensions = _o(record, "extensions", {}) or {}
-        extensions.pop("_disease_id", None)
+    # _disease_id IPC cleanup moved to inpatient.py (I-6 fix, 2026-06-30).
+    # Cleanup now fires unconditionally after run_stage() returns so it is
+    # exception-safe and accessible to future POST_ENCOUNTER enrichers at order > 90.

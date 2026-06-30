@@ -64,7 +64,7 @@ def _isoformat_or_str(dt: Any) -> str:
 
 def _bb_imaging_studies(ctx: BundleContext) -> list[dict[str, Any]]:
     """Emit one ImagingStudy per ImagingStudyRecord in extensions['imaging']."""
-    studies = _o(ctx.record, "extensions", {}).get("imaging") or []
+    studies = (_o(ctx.record, "extensions", {}) or {}).get("imaging") or []
     if not studies:
         return []
     lang = "ja" if ctx.country.lower() == "jp" else "en"

@@ -97,14 +97,19 @@ gains the field.
 
 ## Axis 4: Silent-no-op
 
-`clinosim audit run -d scratchpad/imaging_pr1_jp5k/fhir_r4/` output:
+`clinosim audit run -d scratchpad/imaging_pr1_jp5k/` output (I-3 fix, 2026-06-30: Cohort.countries()
+now supports flat layout so _check_imaging_basedon actually runs):
 
 ```
 Overall: PASS
 
-| Module         | structural | jp_language | clinical | silent_no_op |
-| imaging_chain  | N/A        | N/A         | N/A      | PASS         |
+| Module        | structural | jp_language | clinical | silent_no_op |
+| imaging_chain | N/A        | N/A         | PASS     | PASS         |
 ```
+
+Clinical axis detail:
+- JP 5k: `imaging_basedon_=39/39 ImagingStudy basedOn + endpoint refs resolve`
+- US 10k: `imaging_basedon_=315/315 ImagingStudy basedOn + endpoint refs resolve`
 
 15 lift_firing_proof equality_checks — all PASS:
 
@@ -151,8 +156,8 @@ Canonical constants verified in NDJSON:
 - **Unit + integration tests**: 1,301 PASS, 6 skipped, 1 xfailed (7:22)
 - **Integration tests**: 199 PASS, 6 skipped, 1 xfailed (6:46) [from prior run in session]
 - **e2e tests**: 39 PASS (9:15)
-- **US 10k audit**: Overall PASS (imaging_chain 1/4 PASS, silent_no_op 15/15)
-- **JP 5k audit**: Overall PASS (imaging_chain 1/4 PASS, silent_no_op 15/15)
+- **US 10k audit**: Overall PASS (imaging_chain 2/4 PASS, clinical PASS 315/315 refs + silent_no_op 15/15)
+- **JP 5k audit**: Overall PASS (imaging_chain 2/4 PASS, clinical PASS 39/39 refs + silent_no_op 15/15)
 
 ## Conclusion
 
@@ -168,8 +173,13 @@ Tier 1 #2 imaging chain α-min audit:
 - **Axis 4 (Silent-no-op)**: PASS — 15/15 lift_firing_proof equality_checks PASS on
   both JP 5k + US 10k, canonical constants verified in NDJSON
 
-**Bug fixed**: encounter_id invariant for `_simulate_unknown_condition` (2026-06-30).
-Rule added to CLAUDE.md. Future: migrate legacy IMAGING orders (Chest_Xray without
-imaging_modality) to `place_imaging_orders` path (see TODO.md).
-
-Ready for adversarial fan-out review.
+**Bugs fixed (2026-06-30)**:
+1. encounter_id invariant for `_simulate_unknown_condition`. Rule added to CLAUDE.md.
+2. Audit clinical axis showing N/A (I-3): `Cohort.countries()` flat-layout detection added;
+   `_check_imaging_basedon` now fires for single-country cohorts in `<root>/fhir_r4/` layout.
+3. I-2 contrast time bomb: `_build_radiology_dr` now uses `_resolve_imaging_procedure_code_key`
+   (canonical owner: `imaging/engine.py`); `contrast` propagated through `ImagingStudyRecord`.
+4. I-6 _disease_id IPC: cleanup moved from `imaging_enricher` to `inpatient.py` post-run_stage.
+5. Minor #1 `or {}` guard: `_fhir_imaging_study.py` + `_fhir_endpoint.py` match DR pattern.
+Future: migrate legacy IMAGING orders (Chest_Xray without imaging_modality) to
+`place_imaging_orders` path (see TODO.md). Adversarial fan-out deferred (see TODO.md).

@@ -44,7 +44,7 @@ def _resolve_wado_base_url(hospital_config: dict) -> str:
 
 def _bb_endpoints(ctx: BundleContext) -> list[dict[str, Any]]:
     """Emit one Endpoint per ImagingStudyRecord in extensions['imaging']."""
-    studies = _o(ctx.record, "extensions", {}).get("imaging") or []
+    studies = (_o(ctx.record, "extensions", {}) or {}).get("imaging") or []
     if not studies:
         return []
     base_url = _resolve_wado_base_url(getattr(ctx, "hospital_config", {}) or {})
