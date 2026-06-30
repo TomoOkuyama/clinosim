@@ -2328,3 +2328,53 @@ dispatches LAB + IMAGING category from one builder.
   `imaging_modality` metadata) are silently skipped by the enricher and
   remain as Order-only records without ImagingStudy (tracked for migration
   in TODO.md)
+
+### AD-63: Document narrative + structured event density foundation
+
+**Status:** Accepted (Tier 1 #3 α-min-1, 2026-07-01)
+**Context:** Tier 1 #3 EHR/EMR sample dataset extension required clinical
+document density foundation. Pre-chain baseline: DocumentReference = 0 (Stage 1
+`generate` only; Stage 2 `narrate` required separate LLM step), Composition = 0,
+ClinicalImpression = 0. Target: default Stage 1 template-based emission of the
+3 core document types for all inpatient/ICU/rehab encounters. AllergyIntolerance
+schema was 3-field (allergen string only); upgrade to 8-field SNOMED-coded schema
+(allergen code + reaction manifestation + category + criticality + clinical status +
+verification status + onset period + note) per JP Core Allergy profile.
+
+**Decision:** Two new always-on POST_RECORDS Modules (same `enabled=lambda c: True`
+pattern as device/hai/antibiotic/imaging):
+- `allergy` (order=65): replaces activator.py inline 15% allergy sampling with a
+  proper enricher that writes `PersonRecord.allergies: list[Allergy] | None`
+  (None = not-yet-enriched sentinel; [] = no allergy after sampling). Produces
+  SNOMED-coded `AllergyIntolerance` via new `_fhir_allergy_intolerance.py` builder.
+- `document` (order=95): emits `ClinicalDocument` records (free_text for DR + CI,
+  composition for Composition) via a `TemplateNarrativeGenerator` 5-step fallback chain.
+  LLM-driven generation deferred (Task 15 will wire the existing LLM provider integration).
+
+CIF extension: `CIFPatientRecord.extensions["document"]` stores `list[ClinicalDocument]`;
+`extensions["clinical_impressions"]` stores `list[ClinicalImpressionRecord]`. Core type
+`ClinicalDocument` gains two fields: `sections: dict[str, str]` (section name → text,
+required for Composition.section[] reconstruction) and `format_type: str` (dispatch key
+for builder selection: "free_text" vs "composition").
+
+Three new FHIR builders:
+- `_fhir_document_reference.py` (DOC_REFERENCE_ID_PREFIX = "doc-")
+- `_fhir_composition.py` (COMPOSITION_ID_PREFIX = "comp-")
+- `_fhir_clinical_impression.py` (CLINICAL_IMPRESSION_ID_PREFIX = "ci-")
+
+**Consequences:**
+- Stage 1 `generate` now emits 3 document-class FHIR resource types by default,
+  closing the EHR sample dataset document-density gap without requiring `narrate`
+- Legacy `narrative_generator.py` / `document_generator.py` / activator.py allergy
+  block coexist until Task 15 migration (same branch, pending at ADR write time).
+  `fhir_r4_adapter.py:written_ids` dedup guard prevents double-emit.
+- CIF→FHIR no-drop invariant enforced via `ClinicalDocument.sections` field:
+  Composition builder reads sections directly without re-parsing raw_text (Task 8
+  fix lesson — "sections authoritative for COMPOSITION; raw_text for FREE_TEXT only")
+- AD-55 always-on Module count increases to 6 (device, hai, antibiotic, imaging,
+  allergy, document). POST_RECORDS stages: allergy=65 → document=95
+- 17-check `lift_firing_proof` (AD-60 audit) verifies 4 canonical ID prefixes,
+  4 emission gates, 3 ID-prefix format checks, 5 no-drop invariants (spec §3.4)
+- Future phases: α-min-2 (nursing narratives / ED note / SOAP note / Composition.author),
+  β-JP-1 (full JP localization / QuestionnaireResponse / 厚労省必須文書),
+  β-2 (手術記録 / MedicationDispense / Procedure density)
