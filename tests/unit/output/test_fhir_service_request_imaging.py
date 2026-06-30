@@ -22,7 +22,6 @@ from clinosim.modules.output._fhir_service_request import (
     IMAGING_CATEGORY_SNOMED,
     IMAGING_CATEGORY_V2_0074,
     LAB_CATEGORY_SNOMED,
-    LAB_CATEGORY_V2_0074,
     SR_ID_PREFIX,
     _bb_service_requests,
 )
@@ -195,3 +194,14 @@ def test_imaging_sr_from_dict_path():
     assert sr.get("bodySite") and sr["bodySite"][0]["coding"][0]["code"] == "51185008"
     # status maps correctly
     assert sr["status"] == "active"
+
+
+def test_imaging_sr_no_body_site_when_code_empty():
+    """bodySite gate: empty imaging_body_site_code -> no bodySite field
+    (silent-no-op defense against future regression where empty code emits
+    `bodySite: [{"coding": [{"code": "", ...}]}]` = FHIR-invalid)."""
+    o = _imaging_order()
+    o.imaging_body_site_code = ""
+    ctx = _make_ctx([o])
+    sr = _bb_service_requests(ctx)[0]
+    assert "bodySite" not in sr

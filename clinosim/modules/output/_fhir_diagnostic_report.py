@@ -26,7 +26,11 @@ from typing import Any, NamedTuple
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as _codes_lookup
 from clinosim.modules._shared import get_attr_or_key
-from clinosim.modules.imaging.engine import RADIOLOGY_REPORT_ID_PREFIX  # canonical owner
+from clinosim.modules.imaging.engine import (
+    IMAGING_STUDY_ID_PREFIX,
+    RADIOLOGY_REPORT_ID_PREFIX,
+    load_body_sites,
+)
 from clinosim.modules.order.panel_grouping import load_panel_definitions
 from clinosim.modules.output._fhir_service_request import (
     LAB_CATEGORY_V2_0074,
@@ -334,7 +338,7 @@ def _bb_diagnostic_reports(ctx: Any) -> list[dict]:
     # Existing LAB panel DR path (unchanged logic, delegated to existing function).
     resources.extend(build_lab_panel_reports(ctx))
     # Radiology DR for each ImagingStudy with a report.
-    studies = (ctx.record.get("extensions") or {}).get("imaging") or []
+    studies = (_o(ctx.record, "extensions", {}) or {}).get("imaging") or []
     for study in studies:
         report = _o(study, "report")
         if report:
@@ -376,9 +380,6 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     Accepts both ImagingStudyRecord dataclass instances and JSON-deserialized
     dicts (production CIF path). Uses _o() for dual field access.
     """
-    # Lazy imports to avoid circular dependency at module level.
-    from clinosim.modules.imaging.engine import IMAGING_STUDY_ID_PREFIX, load_body_sites
-
     lang = "ja" if ctx.country.lower() == "jp" else "en"
 
     rep_id = _o(report, "report_id", "")
