@@ -77,6 +77,8 @@ def _validate_document_type_specs(data: dict[str, Any]) -> None:
         "generation_frequency",
     )
     for key, entry in specs.items():
+        if not entry:
+            raise ValueError(f"document_type_specs.yaml[{key}]: empty entry")
         for f in required:
             if f not in entry:
                 raise ValueError(f"document_type_specs.yaml[{key}]: missing {f}")
