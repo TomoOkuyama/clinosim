@@ -1,0 +1,159 @@
+"""Integration tests: document chain end-to-end emission (Tier 1 #3 α-min-1).
+
+Verifies that a full run-beta pipeline emits the 5 document-chain resource
+types (DocumentReference, Composition, ClinicalImpression, AllergyIntolerance,
+and sanity-check Encounter) and that basic count invariants hold.
+
+AllergyIntolerance coexistence note:
+  Task 9 introduced a new SNOMED-coded builder (_bb_allergy_intolerances) that
+  coexists with the legacy 3-field builder (_bb_allergies from _fhir_patient.py).
+  Both emit AllergyIntolerance but with DIFFERENT ids:
+    - legacy: allergy-{patient_id}-{index:02d}
+    - new:    allergy-{patient_id}-al-{patient_id}-1
+  Because ids differ, the FHIR writer's written_ids dedup does NOT collapse
+  them.  Expected total ≈ 2 × baseline_15% × P.  Task 15 will clean this up.
+"""
+
+from __future__ import annotations
+
+import tempfile
+from pathlib import Path
+
+import pytest
+
+from clinosim.modules.output.fhir_r4_adapter import available_builders
+from tests.integration._sr_helpers import find_ndjson, load_ndjson, run_generate
+
+_LOINC_PROGRESS_NOTE = "11506-3"
+_LOINC_ADMISSION_HP = "34117-2"
+_LOINC_DISCHARGE_SUMMARY = "18842-5"
+
+
+@pytest.mark.integration
+def test_document_builders_registered() -> None:
+    """All 4 document-chain bundle builders must appear in the registry."""
+    builders = available_builders()
+    for name in (
+        "_bb_document_references",
+        "_bb_compositions",
+        "_bb_allergy_intolerances",
+        "_bb_clinical_impressions",
+    ):
+        assert name in builders, (
+            f"{name} not registered — check fhir_r4_adapter.py imports"
+        )
+
+
+@pytest.mark.integration
+def test_us_cohort_emits_5_document_resource_types() -> None:
+    """All 5 document-chain NDJSON files must exist and be non-empty (p=200)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp) / "out"
+        run_generate("US", 200, 42, out)
+        for resource in (
+            "DocumentReference",
+            "Composition",
+            "ClinicalImpression",
+            "AllergyIntolerance",
+            "Encounter",  # sanity check — baseline resource unchanged
+        ):
+            f = find_ndjson(out, f"{resource}.ndjson")
+            assert f.exists(), f"{resource}.ndjson missing"
+            assert f.stat().st_size > 0, f"{resource}.ndjson empty"
+
+
+@pytest.mark.integration
+def test_document_reference_contains_progress_notes() -> None:
+    """DocumentReference.ndjson must contain at least one PROGRESS_NOTE (LOINC 11506-3)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp) / "out"
+        run_generate("US", 200, 42, out)
+        drefs = load_ndjson(find_ndjson(out, "DocumentReference.ndjson"))
+        progress_notes = [
+            d for d in drefs
+            if any(
+                c.get("code") == _LOINC_PROGRESS_NOTE
+                for c in d.get("type", {}).get("coding", [])
+            )
+        ]
+        assert progress_notes, (
+            "No PROGRESS_NOTE DocumentReferences (LOINC 11506-3) found in "
+            "DocumentReference.ndjson for n=200 cohort. Document enricher may "
+            "not be firing for any inpatient encounter in this cohort."
+        )
+
+
+@pytest.mark.integration
+def test_composition_contains_admission_hp_and_discharge_summary() -> None:
+    """Composition.ndjson must contain both ADMISSION_HP and DISCHARGE_SUMMARY types."""
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp) / "out"
+        run_generate("US", 200, 42, out)
+        comps = load_ndjson(find_ndjson(out, "Composition.ndjson"))
+        found_loinc = {
+            c.get("code")
+            for comp in comps
+            for c in comp.get("type", {}).get("coding", [])
+        }
+        assert _LOINC_ADMISSION_HP in found_loinc, (
+            f"ADMISSION_HP (LOINC {_LOINC_ADMISSION_HP}) missing from Composition.ndjson"
+        )
+        assert _LOINC_DISCHARGE_SUMMARY in found_loinc, (
+            f"DISCHARGE_SUMMARY (LOINC {_LOINC_DISCHARGE_SUMMARY}) missing from "
+            "Composition.ndjson — expected for completed inpatient encounters"
+        )
+
+
+@pytest.mark.integration
+def test_clinical_impression_count_consistent_with_encounter_count() -> None:
+    """ClinicalImpression count must be ≥ number of inpatient Encounters.
+
+    Each inpatient encounter generates at least 1 ClinicalImpression (for LOS ≥ 1).
+    ClinicalImpression count may be much higher (multi-day LOS).
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp) / "out"
+        run_generate("US", 200, 42, out)
+        impressions = load_ndjson(find_ndjson(out, "ClinicalImpression.ndjson"))
+        encs = load_ndjson(find_ndjson(out, "Encounter.ndjson"))
+        inpatient_encs = [
+            e for e in encs
+            if e.get("class", {}).get("code", "") in {"IMP", "ACUTE", "OBSENC"}
+        ]
+        if not inpatient_encs:
+            pytest.skip(
+                "No inpatient Encounters found for n=200 cohort "
+                "(unexpected — check FHIR Encounter.class filter)"
+            )
+        assert len(impressions) >= len(inpatient_encs), (
+            f"ClinicalImpression count {len(impressions)} < inpatient encounter count "
+            f"{len(inpatient_encs)} — expected at least one impression per encounter"
+        )
+
+
+@pytest.mark.integration
+def test_allergy_intolerance_baseline_prevalence() -> None:
+    """AllergyIntolerance count must fall within expected range.
+
+    Baseline allergy prevalence = 15%.  Due to Task 9 coexistence (legacy +
+    new builder emit different IDs), patients with allergies each produce 2
+    AllergyIntolerance resources.  Expected count ≈ 30% × P.
+    Assertion range 10% – 50% of patient count allows for sampling noise
+    at n=200.  Task 15 will tighten this after deprecating the legacy path.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp) / "out"
+        run_generate("US", 200, 42, out)
+        allergies = load_ndjson(find_ndjson(out, "AllergyIntolerance.ndjson"))
+        patients = load_ndjson(find_ndjson(out, "Patient.ndjson"))
+        patient_count = len(patients)
+        ai_count = len(allergies)
+        if patient_count == 0:
+            pytest.skip("No Patient resources emitted")
+        rate_pct = ai_count / patient_count * 100
+        assert 10 <= rate_pct <= 50, (
+            f"AllergyIntolerance rate {rate_pct:.1f}% is outside expected 10-50% range "
+            f"(ai_count={ai_count}, patients={patient_count}). "
+            "Coexistence: legacy path + Task 9 builder both emit (different IDs). "
+            "Expected ~30% for n=200 with 15% allergy prevalence."
+        )
