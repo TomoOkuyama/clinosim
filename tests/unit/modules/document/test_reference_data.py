@@ -84,6 +84,33 @@ def test_physical_exam_findings_validator_raises_on_missing_required_field() -> 
         rdl._validate_physical_exam_findings(bad)
 
 
+def test_physical_exam_findings_validator_raises_on_missing_day_0() -> None:
+    """Layer 4: archetype without day_0 raises ValueError."""
+    bad = {
+        "baseline": {"uncomplicated_improvement": {"day_3": {"general": "ok"}}},
+        "findings": {},
+    }
+    with pytest.raises(ValueError, match="day_0"):
+        rdl._validate_physical_exam_findings(bad)
+
+
+def test_physical_exam_findings_validator_raises_on_no_body_system() -> None:
+    """Layer 5: day_0 with no recognised body-system key raises ValueError."""
+    bad = {
+        "baseline": {"uncomplicated_improvement": {"day_0": {"unknown_sys": "ok"}}},
+        "findings": {},
+    }
+    with pytest.raises(ValueError, match="body-system"):
+        rdl._validate_physical_exam_findings(bad)
+
+
+def test_physical_exam_findings_validator_raises_on_missing_findings_key() -> None:
+    """Layer 6: top-level findings key missing raises ValueError."""
+    bad = {"baseline": {"uncomplicated_improvement": {"day_0": {"general": "ok"}}}}
+    with pytest.raises(ValueError, match="findings"):
+        rdl._validate_physical_exam_findings(bad)
+
+
 def test_physical_exam_findings_cached_lru() -> None:
     """@lru_cache(maxsize=1): two calls return the same object."""
     rdl.load_physical_exam_findings.cache_clear()
@@ -175,6 +202,24 @@ def test_discharge_instructions_validator_raises_on_missing_en_field() -> None:
         "disease_specific": {},
     }
     with pytest.raises(ValueError, match="missing 'en'"):
+        rdl._validate_discharge_instructions(bad)
+
+
+def test_discharge_instructions_validator_raises_on_disease_specific_missing_ja() -> None:
+    """disease_specific entry missing 'ja' key raises ValueError."""
+    bad = {
+        "baseline": {
+            "hydrate": {"en": "Drink fluids.", "ja": "水分を取りましょう。"},
+            "rest": {"en": "Rest.", "ja": "休息を。"},
+            "follow_up": {"en": "Follow up.", "ja": "受診を。"},
+        },
+        "disease_specific": {
+            "bacterial_pneumonia": {
+                "follow_up": {"en": "Follow up with PCP."},  # missing ja
+            },
+        },
+    }
+    with pytest.raises(ValueError, match="ja"):
         rdl._validate_discharge_instructions(bad)
 
 
