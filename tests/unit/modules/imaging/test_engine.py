@@ -5,11 +5,8 @@ from __future__ import annotations
 from datetime import datetime
 from types import SimpleNamespace
 
-import pytest
-
 from clinosim.modules.imaging.engine import imaging_enricher
 from clinosim.types.encounter import Order, OrderStatus, OrderType
-from clinosim.types.imaging import ImagingStudyRecord
 
 
 def _make_ctx(record, master_seed=42):
@@ -143,3 +140,27 @@ def test_enricher_ct_head_emits_axial_series_with_instance_range():
     assert series.modality_code == "CT"
     # CT head instance range = [180, 280]
     assert 180 <= series.instance_count <= 280
+
+
+def test_enricher_skips_legacy_orders_without_imaging_metadata():
+    """Pre-Task3 IMAGING orders without imaging_body_site_code/imaging_modality
+    are silently skipped (legacy emission sites still exist in inpatient.py +
+    emergency.py and would otherwise raise ValueError in body_site lookup).
+    """
+    legacy_order = Order(
+        order_id="ORD-legacy",
+        encounter_id="enc1", patient_id="pt1",
+        order_type=OrderType.IMAGING,
+        order_code="CT-HEAD", display_name="CT Head",
+        urgency="stat", clinical_intent="Stroke workup",
+        ordered_datetime=datetime(2026, 6, 30, 8, 30),
+        status=OrderStatus.PLACED,
+        # imaging_modality and imaging_body_site_code intentionally absent
+    )
+    record = SimpleNamespace(
+        patient_id="pt1", orders=[legacy_order],
+        extensions={}, disease_id="hemorrhagic_stroke", severity="severe",
+    )
+    ctx = _make_ctx(record)
+    imaging_enricher(ctx)
+    assert record.extensions.get("imaging", []) == []
