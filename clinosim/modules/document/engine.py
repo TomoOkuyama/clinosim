@@ -58,7 +58,7 @@ from clinosim.modules.document import (
 from clinosim.modules.document.narrative.context import build_narrative_context
 from clinosim.modules.document.narrative.llm_generator import LLMNarrativeGenerator
 from clinosim.types.clinical import ClinicalDocument, ClinicalImpressionRecord
-from clinosim.types.document import DocumentType, FormatType, NarrativeOutput
+from clinosim.types.document import DocumentType
 
 # Encounter types that receive daily ClinicalImpressionRecords (spec §3.3).
 # CI is a "daily working diagnosis update" — only meaningful for multi-day inpatient stays.
@@ -113,21 +113,6 @@ def _compute_los_days(
     # In-progress: physiological_states has one entry per day + admission state
     n = len(physiological_states)
     return max(1, n - 1) if n > 1 else 1
-
-
-def _narrative_to_text(output: NarrativeOutput, format_type: FormatType) -> str:
-    """Flatten NarrativeOutput to a plain-text string for ClinicalDocument.text.
-
-    FREE_TEXT  → output.raw_text (SOAP note or equivalent)
-    COMPOSITION → sections concatenated as "[section_key]\\ntext" blocks
-    QUESTIONNAIRE_RESPONSE → empty (structured; FHIR builder reads output.structured)
-    """
-    if format_type == FormatType.FREE_TEXT:
-        return output.raw_text or ""
-    if format_type == FormatType.COMPOSITION:
-        parts = [f"[{k}]\n{v}" for k, v in output.sections.items() if v]
-        return "\n\n".join(parts)
-    return ""
 
 
 # ---------------------------------------------------------------------------
@@ -253,7 +238,9 @@ def document_enricher(ctx: Any) -> None:
                         period_start=admission_dt.isoformat(),
                         period_end=admission_dt.isoformat(),
                         language=lang,
-                        text=_narrative_to_text(output, spec.format_type),
+                        # TODO(Task 3): removed in AD-65 — _narrative_to_text deleted;
+                        # this branch is refactored in Task 3 to populate
+                        # ClinicalDocument.narrative (stub-only here) instead of text=.
                         text_source=output.metadata.get("generator", "template"),
                         sections=dict(output.sections),
                         format_type=spec.format_type.value,
@@ -289,7 +276,9 @@ def document_enricher(ctx: Any) -> None:
                             period_start=day_dt.isoformat(),
                             period_end=day_dt.isoformat(),
                             language=lang,
-                            text=_narrative_to_text(output, spec.format_type),
+                            # TODO(Task 3): removed in AD-65 — _narrative_to_text deleted;
+                            # this branch is refactored in Task 3 to populate
+                            # ClinicalDocument.narrative (stub-only here) instead of text=.
                             text_source=output.metadata.get("generator", "template"),
                             sections=dict(output.sections),
                             format_type=spec.format_type.value,
@@ -321,7 +310,9 @@ def document_enricher(ctx: Any) -> None:
                         period_start=admission_dt.isoformat(),
                         period_end=end_dt.isoformat(),
                         language=lang,
-                        text=_narrative_to_text(output, spec.format_type),
+                        # TODO(Task 3): removed in AD-65 — _narrative_to_text deleted;
+                        # this branch is refactored in Task 3 to populate
+                        # ClinicalDocument.narrative (stub-only here) instead of text=.
                         text_source=output.metadata.get("generator", "template"),
                         sections=dict(output.sections),
                         format_type=spec.format_type.value,
@@ -355,7 +346,9 @@ def document_enricher(ctx: Any) -> None:
                         period_start=admission_dt.isoformat(),
                         period_end=end_dt.isoformat(),
                         language=lang,
-                        text=_narrative_to_text(output, spec.format_type),
+                        # TODO(Task 3): removed in AD-65 — _narrative_to_text deleted;
+                        # this branch is refactored in Task 3 to populate
+                        # ClinicalDocument.narrative (stub-only here) instead of text=.
                         text_source=output.metadata.get("generator", "template"),
                         sections=dict(output.sections),
                         format_type=spec.format_type.value,
