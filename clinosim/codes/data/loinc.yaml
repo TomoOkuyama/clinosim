@@ -32,6 +32,42 @@ codes:
   28570-0:
     en: Procedure note
     ja: 処置記録
+  # === α-min-2 document types (Tier 1 #3, 2026-07) ===
+  # All 6 codes verified 2026-07-01 via NLM Clinical Table Search Service
+  # https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search?terms=<code>&df=code,LONG_COMMON_NAME
+  78390-2:
+    # Verified: LONG_COMMON_NAME = "Nurse Admission history and physical note"
+    # NOTE: DocumentType enum initially commented 34820-1 ("Pharmacology Consult note" — wrong)
+    # and 34119-8 ("Nursing facility Initial evaluation note" — SNF, not hospital).
+    # 78390-2 is the authoritative code for hospital nursing admission assessment.
+    en: Nurse Admission history and physical note
+    ja: 看護入院アセスメント
+  34746-8:
+    # Verified: LONG_COMMON_NAME = "Nurse Note"
+    # Used for both NURSING_SHIFT_NOTE (shift-level free text) and as
+    # the base note type for nursing documentation.
+    en: Nurse Note
+    ja: 看護記録
+  34745-0:
+    # Verified: LONG_COMMON_NAME = "Nurse Discharge summary"
+    en: Nurse Discharge summary
+    ja: 看護退院サマリー
+  34131-3:
+    # Verified 2026-07-01: LONG_COMMON_NAME = "Outpatient Progress note"
+    # Chosen over 11488-4 ("Consult note") and 34120-6 ("Outpatient Initial evaluation note")
+    # because OUTPATIENT_SOAP is a SOAP-structured outpatient progress note, not a consult.
+    en: Outpatient Progress note
+    ja: 外来経過記録（SOAP）
+  34878-9:
+    # Verified: LONG_COMMON_NAME = "Emergency medicine Note"
+    # NOTE: 51841-6 was the initial candidate but returned no result from NLM API.
+    # 34878-9 is the authoritative ED physician note code.
+    en: Emergency medicine Note
+    ja: 救急科記録
+  54094-8:
+    # Verified: LONG_COMMON_NAME = "Emergency department Triage note"
+    en: Emergency department Triage note
+    ja: トリアージ記録
   # === Lab codes ===
   11580-8:
     en: Thyroid stimulating hormone [Units/volume] in Serum or Plasma

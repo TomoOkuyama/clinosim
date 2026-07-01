@@ -32,12 +32,12 @@ class DocumentType(str, Enum):
     PROGRESS_NOTE = "progress_note"          # LOINC 11506-3
     DISCHARGE_SUMMARY = "discharge_summary"  # LOINC 18842-5
     # α-min-2 scope(new)
-    ADMISSION_NURSING_ASSESSMENT = "admission_nursing_assessment"  # LOINC 34820-1
-    NURSING_SHIFT_NOTE = "nursing_shift_note"                      # LOINC 34746-8
-    NURSING_DISCHARGE_SUMMARY = "nursing_discharge_summary"        # LOINC 34746-8 variant
-    OUTPATIENT_SOAP = "outpatient_soap"                            # LOINC 11488-4
-    ED_NOTE = "ed_note"                                            # LOINC 34878-9
-    ED_TRIAGE_NOTE = "ed_triage_note"                             # LOINC 54094-8
+    ADMISSION_NURSING_ASSESSMENT = "admission_nursing_assessment"  # LOINC 78390-2 (verified 2026-07)
+    NURSING_SHIFT_NOTE = "nursing_shift_note"                      # LOINC 34746-8 (verified 2026-07)
+    NURSING_DISCHARGE_SUMMARY = "nursing_discharge_summary"        # LOINC 34745-0 (verified 2026-07)
+    OUTPATIENT_SOAP = "outpatient_soap"                            # LOINC 34131-3 (verified 2026-07)
+    ED_NOTE = "ed_note"                                            # LOINC 34878-9 (verified 2026-07)
+    ED_TRIAGE_NOTE = "ed_triage_note"                             # LOINC 54094-8 (verified 2026-07)
 
 
 @dataclass
