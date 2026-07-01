@@ -68,14 +68,27 @@ class CIFReader:
         self.cif_dir = cif_dir
         self.structural_dir = os.path.join(cif_dir, "structural", "patients")
 
-        # 明示 version 指定は resolve 前に validation する必要がある(F-1 fix)
+        # F-1 fix: 3 cases for the resolved narrative_version → raise policy:
+        # 1. Explicit version (not "current"): user requested a specific version;
+        #    if its dir is missing, raise (typo in --narrative-version = xhigh
+        #    silent-no-op root cause).
+        # 2. "current" alias with pointer file: pointer says "version X"; if X's
+        #    dir missing, raise (broken generate/narrate flow).
+        # 3. "current" alias without pointer: fall back to "template"; if template
+        #    dir also missing, this is a legitimate "structural-only CIF" case
+        #    (e.g. a test fixture, or a pre-narrate export step) — log a warning
+        #    and continue with `_narrative_available=False`. Silent no-op merge
+        #    is acceptable here because the user did NOT request a specific
+        #    version; they get whatever is there.
         explicit_version = narrative_version != "current"
+        pointer_used = False
 
         if narrative_version == "current":
             pointer = os.path.join(cif_dir, "narratives", "current_version.txt")
             if os.path.exists(pointer):
                 with open(pointer, encoding="utf-8") as f:
                     narrative_version = f.read().strip() or _DEFAULT_NARRATIVE_VERSION_FALLBACK
+                pointer_used = True
             else:
                 narrative_version = _DEFAULT_NARRATIVE_VERSION_FALLBACK
         self.narrative_version = narrative_version
@@ -84,23 +97,21 @@ class CIFReader:
         )
         self._narrative_available = os.path.isdir(self.narrative_docs_dir)
 
-        # F-1 fix: 明示指定された version が見つからない場合は raise。
-        # "current" 経由(pointer missing → template fallback)でも解決先が
-        # 存在しない場合は同じく raise — silent-no-op(空 DocumentReference /
-        # Composition 排出)を防ぐ。CLI ``--narrative-version`` typo が
-        # xhigh review で silent-no-op を作っていた root cause。
         if not self._narrative_available:
-            if explicit_version:
+            if explicit_version or pointer_used:
                 raise FileNotFoundError(
                     f"CIFReader: narrative version {narrative_version!r} not "
                     f"found under {cif_dir}/narratives/ — check the "
                     f"--narrative-version arg or run `clinosim narrate` first"
                 )
-            raise FileNotFoundError(
-                f"CIFReader: narrative directory {self.narrative_docs_dir} "
-                f"not found (no current_version.txt pointer and no fallback "
-                f"'{_DEFAULT_NARRATIVE_VERSION_FALLBACK}' dir) — run "
-                "`clinosim narrate` before exporting"
+            # Case 3: no pointer, fallback dir also missing → structural-only
+            # mode. Log a warning so the user sees this is not a silent no-op,
+            # but don't raise (backward-compat with pre-AD-65 structural CIF).
+            logger.warning(
+                "CIFReader: no narrative directory found under %s/narratives/ — "
+                "structural-only mode (documents will retain narrative=None). "
+                "Run `clinosim narrate` if narrative content is expected.",
+                cif_dir,
             )
 
     def iter_patients(self) -> Iterator[dict[str, Any]]:

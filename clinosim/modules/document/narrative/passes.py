@@ -17,8 +17,6 @@ from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-import numpy as np
-
 from clinosim.modules.document import specs_for_country
 from clinosim.modules.document.narrative.fact_extractor import extract_all_facts
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
@@ -255,8 +253,12 @@ class TemplateNarrativePass(NarrativePass):
         tasks: list[str] | None = None,
         rng_seed: int = 42,
     ):
+        # F-5 adv-1: `self._rng` was allocated here from rng_seed but never
+        # consumed — TemplateNarrativeGenerator is deterministic modulo
+        # rng_seed via `_deterministic_timestamp` and fact ordering only.
+        # Removed to eliminate the aspirational-scaffold no-op wiring
+        # (β-JP-1 LLMNarrativePass will re-allocate if it needs one).
         super().__init__(cif_dir, version_id, country, tasks, rng_seed)
-        self._rng = np.random.default_rng(rng_seed)
         self.generator = TemplateNarrativeGenerator()
 
     def _generate(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:

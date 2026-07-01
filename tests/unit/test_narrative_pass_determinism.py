@@ -4,13 +4,6 @@ from pathlib import Path
 import pytest
 
 from clinosim.modules.document.narrative.passes import TemplateNarrativePass
-from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS
-
-
-@pytest.mark.unit
-def test_narrative_template_seed_offset_registered():
-    assert "narrative_template" in ENRICHER_SEED_OFFSETS
-    assert ENRICHER_SEED_OFFSETS["narrative_template"] == 0x4e54
 
 
 def _cohort(tmp_path):

@@ -99,16 +99,40 @@ def test_reader_explicit_missing_version_raises(tmp_path):
 
 
 @pytest.mark.unit
-def test_reader_current_no_pointer_no_template_raises(tmp_path):
-    """F-1 fix: 'current' alias falls back to 'template' when pointer is
-    missing, but if 'template/' directory ALSO does not exist we raise
-    rather than silently emit narrative-less FHIR."""
+def test_reader_current_pointer_missing_version_raises(tmp_path):
+    """F-1 fix: 'current' pointer file exists but points at a missing
+    directory (broken generate/narrate flow) must raise — this is NOT
+    the same as the pointer-absent fallback case."""
     structural = tmp_path / "structural" / "patients"
     structural.mkdir(parents=True)
     (structural / "ENC-1.json").write_text("{}")
-    # No narratives/ dir at all
-    with pytest.raises(FileNotFoundError):
-        CIFReader(str(tmp_path))  # default narrative_version="current"
+    narratives = tmp_path / "narratives"
+    narratives.mkdir()
+    (narratives / "current_version.txt").write_text("missing_v")
+    with pytest.raises(FileNotFoundError, match="missing_v"):
+        CIFReader(str(tmp_path))
+
+
+@pytest.mark.unit
+def test_reader_current_no_pointer_no_template_warns_but_reads(tmp_path, caplog):
+    """F-1 fix: 'current' with no pointer AND no 'template/' dir is a
+    legitimate structural-only mode (pre-narrate export, or a hand-built
+    test fixture). Log a warning but don't raise — silent no-op is
+    acceptable when the user did not request a specific version."""
+    import logging
+
+    structural = tmp_path / "structural" / "patients"
+    structural.mkdir(parents=True)
+    (structural / "ENC-1.json").write_text(json.dumps({
+        "encounters": [{"encounter_id": "ENC-1"}],
+        "documents": [{"document_id": "doc-1", "narrative": None}],
+    }))
+    with caplog.at_level(logging.WARNING):
+        r = CIFReader(str(tmp_path))
+    assert any("structural-only" in rec.message for rec in caplog.records)
+    # Reader is still usable; structural fields load, docs retain narrative=None.
+    patients = list(r.iter_patients())
+    assert patients[0]["documents"][0]["narrative"] is None
 
 
 @pytest.mark.unit
