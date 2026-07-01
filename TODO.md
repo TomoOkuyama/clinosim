@@ -1867,3 +1867,46 @@ adversarial fan-out review.)
   This activates the `physical_exam_findings[archetype][day_N]` and course-archetype-specific
   assessment blocks in `template_generator.py`.
 
+## AD-65 Bug A residual gap — disease YAML English narrative content (2026-07-02)
+
+Discovered while implementing Task 11 (Bug A integration test + audit gate) of the AD-65
+two-pass CIF architecture chain. Task 9 fixed the code-level locale-routing bug
+(`_pick_localized` helper) and Task 10 populated every missing `_en` YAML peer — but **only**
+for fields that actually carry a `<key>_en` / `<key>_ja` suffix pair (`ed_note_template.*`,
+`outpatient_soap_template.*` in the 46 encounter YAMLs). Both tasks explicitly flagged (see
+`.superpowers/sdd/task-9-report.md` §6 concern 2, `task-10-report.md` §7) that two disease-YAML
+narrative sources used by ADMISSION_HP (inpatient H&P, LOINC 34117-2) have **no per-language
+split at all** — not even a missing `_en` sibling, the data model itself is severity/day-keyed
+with Japanese-only content:
+
+- `disease_protocol.narrative.hpi_template.onset_pattern` (keyed by `mild`/`moderate`/`severe`)
+- `disease_protocol.narrative.physical_exam_findings` + the shared baseline
+  `clinosim/modules/document/reference_data/physical_exam_findings.yaml` (keyed by
+  `clinical_course_archetype` × `day_N`, further nested by body system)
+
+`_build_hpi` / `_build_physical_examination` in `template_generator.py` tag `facts_used` with
+the module's documented `:ja_only_fallback` suffix when this path fires for a non-`ja` locale
+(so the fallback is auditable, not silent) — but the actual section TEXT emitted for a US
+cohort is still Japanese. Verified empirically: US p=100 cohort → 15 ADMISSION_HP documents,
+630 Japanese characters, 100% located in `physical_examination` (none in `hpi` for this
+seed/config, since `ctx.disease_protocol` was `None` for every generated admission_hp
+encounter in that run — see the α-min-3-scope `document_enricher` archetype/severity wiring
+gap in "M-6 C-1" above; once that's fixed, `hpi` will very likely start emitting Japanese too).
+
+**Task 11 resolution (interim, shipped)**: `clinosim/modules/document/audit.py`'s
+`KNOWN_JA_ONLY_FALLBACK_SECTIONS = {"hpi", "physical_examination"}` and the companion
+`tests/integration/test_bug_a_us_hp_english_only.py` both exclude these two sections from
+the zero-ja-chars assertion so the gate tracks the actual Bug-A locale-routing fix (any OTHER
+section leaking Japanese still fails hard) rather than perpetually red on a known, separate,
+tracked issue.
+
+**Follow-up needed to fully close Bug A for ADMISSION_HP**: author English content for
+`hpi_template.onset_pattern` (3 severity keys × 32 diseases) and `physical_exam_findings`
+(N archetypes × N days × 5 body systems × 32 diseases + the shared baseline file) — this is a
+data-model change (add a language axis to structures that currently have none), not a simple
+`_en` sibling-key addition, so it is a distinctly larger undertaking than Task 10's 46-file
+sweep. Recommend a dedicated chain (own SDD task set) rather than folding into AD-65 Bug A.
+Once the data gap closes, remove `hpi` / `physical_examination` from
+`KNOWN_JA_ONLY_FALLBACK_SECTIONS` and re-verify both the audit gate and the integration test
+still pass with the exclusion removed (expect them to pass unconditionally at that point).
+

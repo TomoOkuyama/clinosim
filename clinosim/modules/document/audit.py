@@ -1,11 +1,12 @@
-"""Document chain AD-60 audit module (Tier 1 #3 α-min-1 Task 11; α-min-2 Task 13).
+"""Document chain AD-60 audit module (Tier 1 #3 α-min-1 Task 11; α-min-2 Task 13;
+AD-65 Bug A Task 11).
 
 AD-60 plug-in #5 (after hai, antibiotic, order_service_request, imaging).
 
 Verifies CIF -> FHIR emission integrity for the document pipeline:
 DocumentReference / Composition / AllergyIntolerance / ClinicalImpression / CareTeam.
 
-24+ equality_checks in lift_firing_proof guard canonical constants and
+25+ equality_checks in lift_firing_proof guard canonical constants and
 no-drop emission paths against PR-90 class silent-no-op regression.
 
 Registered checks:
@@ -24,16 +25,35 @@ Registered checks:
     1 canonical constant (CARE_TEAM_ID_PREFIX) + 2 emission/prefix invariants +
     2 CIF→FHIR no-drop for CareTeam fields + 3 dispatch no-drop invariants
     (outpatient/emergency/inpatient specs_for_encounter_type coverage).
+  AD-65 Bug A +1 equality_check (total = 25):
+    `us_admission_hp_zero_ja_chars` — see `_count_us_hp_ja_chars` /
+    `_proof_us_hp_ja_chars` docstrings. Companion integration test:
+    `tests/integration/test_bug_a_us_hp_english_only.py`.
 
 TODO(jp_language_audit): jp_language_checks not implemented — ModuleAuditSpec
 does not have a jp_language_checks field. Deferred to a follow-up sweep
 (see TODO.md: "document chain JP language axis"). When the field is added,
 verify: DocumentReference.type.coding[].display in ja / Composition.section[].title
 in ja / AllergyIntolerance.code.text in ja / ClinicalImpression.description in ja.
+
+TODO(AD-65 Bug A residual gap): `hpi_template.onset_pattern` (disease YAML) and
+`physical_exam_findings` (disease YAML + `reference_data/physical_exam_findings.yaml`)
+carry no per-language split at all — a data-authoring gap across all 32 disease
+YAMLs, out of scope for the Task 9 code fix / Task 10 YAML `_en` population sweep
+(both explicitly deferred this; see task-9-report.md / task-10-report.md). Until
+closed, `KNOWN_JA_ONLY_FALLBACK_SECTIONS` intentionally excludes `hpi` +
+`physical_examination` from the ja-char count so this gate tracks the actual
+Bug-A locale-routing fix rather than perpetually failing on a known, tracked,
+separate issue. See TODO.md "disease YAML English narrative content" entry.
 """
 
 from __future__ import annotations
 
+import glob
+import json
+import os
+import re
+import tempfile
 from typing import Any
 
 from clinosim.audit.registry import ModuleAuditSpec, register_audit_module
@@ -44,6 +64,126 @@ from clinosim.modules.document import (
     DOC_REFERENCE_ID_PREFIX,
 )
 from clinosim.modules.output._fhir_care_team import CARE_TEAM_ID_PREFIX
+
+# AD-65 Bug A (US H&P Japanese contamination, Task 11): ja char range used by
+# both this module's gate and tests/integration/test_bug_a_us_hp_english_only.py.
+_JA_CHAR_RE = re.compile(r"[぀-ゟ゠-ヿ一-鿿]")
+
+# Two ADMISSION_HP composition_sections ("hpi", "physical_examination") draw
+# from disease-YAML source data (`hpi_template.onset_pattern` /
+# `physical_exam_findings`) that carries no per-language split at all — a
+# separate, tracked, deferred data-authoring gap discovered while
+# implementing the AD-65 Bug A code fix (see
+# .superpowers/sdd/task-9-report.md §6 concern 2 and task-10-report.md §7;
+# TODO.md follow-up entry). Both builder sites tag `facts_used` with the
+# module's documented `:ja_only_fallback` suffix at generation time
+# (`clinosim/modules/document/narrative/template_generator.py`
+# `_build_hpi` / `_build_physical_examination`). These two sections are
+# therefore excluded from the ja-char count below; Japanese chars in any
+# OTHER ADMISSION_HP section indicate a genuine Bug-A-class locale-routing
+# regression and ARE counted.
+KNOWN_JA_ONLY_FALLBACK_SECTIONS = frozenset({"hpi", "physical_examination"})
+
+
+def _count_us_hp_ja_chars(cif_dir: str) -> int:
+    """Count (regression-relevant) Japanese chars in US ADMISSION_HP narrative sections.
+
+    Walks `cif_dir/structural/patients/*.json` to find every document stub
+    with `task_type == "admission_hp"`, then reads the matching file under
+    `cif_dir/narratives/template/documents/<encounter_id>/<document_id>.json`
+    (Stage 1 template narrative tree — AD-65 two-pass architecture;
+    `NarrativePass._filename_for` keys files by `document_id`, NOT
+    `task_type`, so a naive `documents/<enc>/admission_hp.json` guess would
+    silently match nothing). Sums `_JA_CHAR_RE` matches across every section
+    text EXCEPT `KNOWN_JA_ONLY_FALLBACK_SECTIONS` (see module-level comment).
+
+    Returns 0 if the CIF directory doesn't have the expected structural or
+    narrative subtree (defensive default, mirrors other loader helpers in
+    this codebase — e.g. `load_hai_antibiogram`'s no-panel-eligible default).
+    """
+    structural_dir = os.path.join(cif_dir, "structural", "patients")
+    narrative_dir = os.path.join(cif_dir, "narratives", "template", "documents")
+    if not os.path.isdir(structural_dir) or not os.path.isdir(narrative_dir):
+        return 0
+
+    total = 0
+    for patient_path in glob.glob(os.path.join(structural_dir, "*.json")):
+        with open(patient_path, encoding="utf-8") as f:
+            patient = json.load(f)
+        encounters = patient.get("encounters") or []
+        encounter_id = encounters[0].get("encounter_id", "") if encounters else ""
+        for doc in patient.get("documents") or []:
+            if doc.get("task_type") != "admission_hp":
+                continue
+            document_id = doc.get("document_id", "")
+            narrative_path = os.path.join(narrative_dir, encounter_id, f"{document_id}.json")
+            if not os.path.exists(narrative_path):
+                continue
+            with open(narrative_path, encoding="utf-8") as f:
+                narrative_doc = json.load(f)
+            sections = (narrative_doc.get("narrative") or {}).get("sections") or {}
+            for section_name, text in sections.items():
+                if section_name in KNOWN_JA_ONLY_FALLBACK_SECTIONS:
+                    continue
+                total += len(_JA_CHAR_RE.findall(text or ""))
+    return total
+
+
+def _proof_us_hp_ja_chars() -> int:
+    """Zero-arg synthetic fixture exercising `_count_us_hp_ja_chars` end to end.
+
+    `lift_firing_proof` is a zero-arg factory (called with no arguments by
+    `clinosim/audit/axes/silent_no_op.py:_check_proof`) so it cannot receive
+    a real cohort's `cif_dir`. This builds a minimal on-disk structural +
+    narrative-tree pair for one synthetic admission_hp document (same
+    pattern as `_build_document_proof`'s in-memory synthetic ClinicalDocument
+    dicts, extended to disk since `_count_us_hp_ja_chars` is a file-walking
+    helper): clean English text in every counted section, PLUS intentional
+    Japanese text in the excluded `physical_examination` section. A naive
+    "count every section" implementation would return > 0 here — proving
+    the known-gap exclusion (and the document_id/task_type cross-reference)
+    is load-bearing, not just a happy-path count of 0.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        structural_dir = os.path.join(tmp, "structural", "patients")
+        narrative_dir = os.path.join(tmp, "narratives", "template", "documents", "enc-proof-hp")
+        os.makedirs(structural_dir, exist_ok=True)
+        os.makedirs(narrative_dir, exist_ok=True)
+
+        with open(os.path.join(structural_dir, "pt-proof-hp.json"), "w", encoding="utf-8") as f:
+            json.dump(
+                {
+                    "encounters": [{"encounter_id": "enc-proof-hp"}],
+                    "documents": [
+                        {"document_id": "doc-enc-proof-hp-01", "task_type": "admission_hp"}
+                    ],
+                },
+                f,
+            )
+
+        with open(
+            os.path.join(narrative_dir, "doc-enc-proof-hp-01.json"), "w", encoding="utf-8"
+        ) as f:
+            json.dump(
+                {
+                    "document_id": "doc-enc-proof-hp-01",
+                    "encounter_id": "enc-proof-hp",
+                    "narrative": {
+                        "sections": {
+                            "chief_complaint": "Chest pain",
+                            "hpi": "Patient presented with chest pain.",
+                            "physical_examination": (
+                                "General: 意識清明. "
+                                "Cardiovascular: regular rate, no murmurs."
+                            ),
+                            "assessment_and_plan": "Assessment: stable. Plan: monitor.",
+                        }
+                    },
+                },
+                f,
+            )
+
+        return _count_us_hp_ja_chars(tmp)
 
 
 def _build_document_proof() -> dict[str, Any]:
@@ -396,6 +536,12 @@ def _build_document_proof() -> dict[str, Any]:
                 "no_drop: encounter_type='inpatient' → 3 nursing doc types dispatched",
                 _nursing_type_keys.issubset(inpatient_type_keys),
                 True,
+            ),
+            # === AD-65 Bug A addition (Task 11) — 1 new check; total = 25 ===
+            (
+                "us_admission_hp_zero_ja_chars",
+                _proof_us_hp_ja_chars(),
+                0,
             ),
         ]
     }
