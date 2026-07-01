@@ -49,3 +49,21 @@ probability: 0.10  # relative frequency among ED visits
 age_distribution: all
 sex_ratio_female: 1.1
 seasonal: {1: 1.1, 2: 1.0, 3: 0.9, 4: 1.0, 5: 1.1, 6: 1.2, 7: 1.2, 8: 1.1, 9: 1.1, 10: 1.0, 11: 1.0, 12: 1.1}
+
+narrative:
+  ed_note_template:
+    chief_complaint_ja: 足関節捻挫（転倒後）
+    hpi_ja: '{injury_time_ja}に{mechanism_ja}にて足関節を捻挫。直後より疼痛・腫脹出現、荷重不能〜可能。Ottawa足関節ルール：{ottawa_result_ja}。開放創・神経症状なし。'
+    physical_exam_ja:
+      general: 意識清明、軽度疼痛様
+      cardiovascular: 心拍数正常
+      respiratory: 呼吸数正常
+      abdominal: 腹部：評価不要
+      musculoskeletal: 右/左足関節：腫脹（+）、皮下出血（{ecchymosis_ja}）、前距腓靭帯部圧痛（+）、踵骨・内外くるぶし圧痛（{bone_pain_ja}）。ROM制限あり。神経血管正常。
+      neurological: 遠位神経・血管正常
+    ed_workup_summary_ja: 足関節X線（{xray_views_ja}）：{xray_result_ja}。骨折なし/骨折確認。
+    disposition_ja: '{disposition_display_ja}。RICE療法指導・{support_ja}固定。整形外科外来1週間後受診。'
+  ed_triage_template:
+    common_triage_levels:
+    - '4'
+    - '5'

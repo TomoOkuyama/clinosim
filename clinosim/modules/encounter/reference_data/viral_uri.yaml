@@ -84,3 +84,20 @@ probability: 0.10  # relative frequency among ED visits
 age_distribution: all
 sex_ratio_female: 1.0
 seasonal: {1: 1.4, 2: 1.3, 3: 1.2, 4: 0.8, 5: 0.7, 6: 0.6, 7: 0.6, 8: 0.6, 9: 0.8, 10: 1.0, 11: 1.2, 12: 1.4}
+
+narrative:
+  ed_note_template:
+    chief_complaint_ja: 発熱・咽頭痛・咳嗽・鼻汁
+    hpi_ja: '{onset_days}日前より発熱・咽頭痛・咳嗽・鼻汁が出現。最高体温：{max_temp_ja}℃。接触歴：{contact_history_ja}。インフルエンザ予防接種歴：{flu_vax_ja}。呼吸困難・胸痛・意識変容なし。'
+    physical_exam_ja:
+      general: 意識清明、{severity_desc_ja}、体温{temp}℃
+      cardiovascular: 心拍数正常〜軽度頻脈、心音整
+      respiratory: 呼吸数正常、肺野清明（肺炎所見なし）
+      abdominal: 平坦、軟、圧痛なし
+      neurological: 麻痺なし、髄膜刺激徴候なし
+    ed_workup_summary_ja: 迅速溶連菌検査：{strep_result_ja}。{lab_summary_ja}。胸部X線（咳嗽強い場合）：{cxr_result_ja}。
+    disposition_ja: ウイルス性上気道炎の診断にて帰宅。解熱・対症療法処方。3日以上の高熱持続・呼吸困難出現時は再診指示。
+  ed_triage_template:
+    common_triage_levels:
+    - '4'
+    - '5'
