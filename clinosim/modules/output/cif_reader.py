@@ -16,13 +16,20 @@ Merge semantics:
     from a disease/encounter YAML) → warn + drop (never invent a stub).
 
 ``narrative_version="current"`` resolves via the ``current_version.txt``
-pointer file (``cif/narratives/current_version.txt``); if the pointer is
-missing, it falls back to ``"template"`` (the Stage 2 default writer,
-Task 3). If the resolved directory (explicit or fallback) does not exist,
-``__init__`` **raises FileNotFoundError** rather than silently emitting
-without narrative content (F-1 adv-1 fix — a typo in the CLI
-``--narrative-version`` arg previously produced empty DocumentReference /
-Composition output with no error signal).
+pointer file (``cif/narratives/current_version.txt``). Silent-no-op defense
+(F-1 adv-1 fix — a typo in the CLI ``--narrative-version`` arg previously
+produced empty DocumentReference / Composition output with no error signal)
+follows a 3-case policy in ``__init__``:
+
+1. Explicit ``narrative_version != "current"`` → resolved directory MUST
+   exist; raises ``FileNotFoundError`` otherwise.
+2. ``narrative_version="current"`` with pointer file present → the pointed
+   version MUST exist; raises ``FileNotFoundError`` otherwise.
+3. ``narrative_version="current"`` with pointer file absent AND no
+   fallback ``"template"`` directory → structural-only mode: warn + continue
+   (``_narrative_available=False``). Downstream FHIR builders emit
+   structural-only output cleanly; typo protection is not needed here
+   because there is no user-supplied version to typo.
 """
 
 from __future__ import annotations
