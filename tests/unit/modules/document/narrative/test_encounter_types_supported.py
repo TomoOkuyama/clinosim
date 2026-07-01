@@ -65,9 +65,19 @@ def test_specs_for_encounter_type_empty_default_matches_outpatient() -> None:
 
 
 def test_specs_for_encounter_type_empty_default_matches_emergency() -> None:
-    """Default () specs are returned even for emergency (no restriction applies)."""
+    """Default () specs are returned even for emergency (no restriction applies).
+
+    After α-min-2: 3 α-min-1 (no restriction) + 2 ED-specific = 5 total.
+    """
     result = specs_for_encounter_type("emergency")
-    assert len(result) == 3  # all three α-min-1 specs have no restriction
+    type_keys = [s.type_key for s in result]
+    # α-min-1 specs (no restriction) are always included regardless of encounter type
+    assert "admission_hp" in type_keys
+    assert "progress_note" in type_keys
+    assert "discharge_summary" in type_keys
+    # α-min-2 ED specs are also included for emergency
+    assert "ed_note" in type_keys
+    assert "ed_triage_note" in type_keys
 
 
 # ---------------------------------------------------------------------------
