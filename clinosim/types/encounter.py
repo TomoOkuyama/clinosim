@@ -68,6 +68,11 @@ class Encounter:
     # Tier 1 #3 α-min-2 additions
     primary_nurse_id: str = ""              # nursing_enricher が set(inpatient のみ)
     triage_data: TriageData | None = None   # triage_enricher が set(ED のみ)
+    # AD-65 Bug C fix: severity sampled in emergency.py ("mild"/"moderate"/"severe"),
+    # consumed by triage_enricher.pick_triage_level(). Previously sampled but never
+    # stored on Encounter -> triage_enricher always defaulted to "moderate" -> no
+    # L1/L5 triage levels ever emitted (see clinosim/simulator/emergency.py:82-87).
+    severity: str = ""
 
     def __post_init__(self) -> None:
         if self.time_resolution is None:
