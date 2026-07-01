@@ -162,20 +162,23 @@ def test_lift_firing_proof_includes_no_drop_invariants():
 
 
 @pytest.mark.unit
-def test_clinical_acceptance_has_5_spec_mandated_keys():
-    """Spec §9.3 mandates 5 separate clinical acceptance keys (per-doc-type
-    granularity for Task 12 DQR observed-rate computation)."""
+def test_clinical_acceptance_has_alpha1_keys():
+    """Spec §9.3 α-min-1 keys must be present in clinical_acceptance.
+
+    Uses issubset (not ==) so that α-min-2 additions do not break this check.
+    """
     discover()
     spec = get_registered()["document_chain"]
-    expected_keys = {
+    expected_alpha1_keys = {
         "h_and_p_per_inpatient_encounter",
         "progress_note_per_day_per_inpatient",
         "discharge_summary_per_completed_inpatient",
         "clinical_impression_per_day_per_inpatient",
         "allergy_per_patient_distribution",
     }
-    assert set(spec.clinical_acceptance.keys()) == expected_keys, (
-        f"clinical_acceptance keys mismatch.\n"
-        f"  Expected: {sorted(expected_keys)}\n"
-        f"  Got:      {sorted(spec.clinical_acceptance.keys())}"
+    actual_keys = set(spec.clinical_acceptance.keys())
+    assert expected_alpha1_keys.issubset(actual_keys), (
+        f"α-min-1 clinical_acceptance keys missing.\n"
+        f"  Expected subset: {sorted(expected_alpha1_keys)}\n"
+        f"  Got:             {sorted(actual_keys)}"
     )
