@@ -106,52 +106,62 @@ class ClinicalDiagnosis:
 
 
 @dataclass
+class ClinicalDocumentNarrative:
+    """Narrative subtree of a ClinicalDocument (AD-65).
+
+    Serialization boundary:
+      - Written to cif/narratives/<version>/documents/<enc>/<doc_type>.json
+      - NEVER written to structural CIF (cif_writer strips this)
+      - Loaded and merged by CIFReader at FHIR emit time.
+    """
+
+    text: str = ""
+    sections: dict[str, str] = field(default_factory=dict)
+    structured: dict = field(default_factory=dict)
+    generator: str = "none"
+    generator_metadata: dict = field(default_factory=dict)
+    generated_at: str = ""
+    facts_used: list[str] = field(default_factory=list)
+
+
+@dataclass
 class ClinicalDocument:
-    """A clinical document intended for FHIR DocumentReference output.
-
-    Lifecycle:
-      1. Stage 1 (simulation): created as a stub with `text=""` and
-         deterministic metadata (who authored, when, for which encounter).
-      2. Stage 2 (narrative): `text` is filled by LLMService via a
-         task-specific prompt and stored in the narrative CIF.
-      3. Stage 3 (FHIR adapter): rendered as a FHIR R4 DocumentReference
-         resource, with `text` base64-encoded into Attachment.data.
-
-    CIF storage principle (AD-30): this object holds the LOINC code only;
-    the display text is resolved at output time via clinosim.codes.
+    """Two-pass lifecycle (AD-65):
+    1. document_enricher (POST_ENCOUNTER) creates stub with narrative=None.
+    2. TemplateNarrativePass populates `narrative`.
+    3. CIFReader merges structural + narrative before FHIR emit.
     """
 
     document_id: str = ""
-    task_type: str = ""            # LLMTaskType value
-    loinc_code: str = ""           # e.g. "18842-5"
+    task_type: str = ""  # LLMTaskType value
+    loinc_code: str = ""  # e.g. "18842-5"
     patient_id: str = ""
     encounter_id: str = ""
     author_practitioner_id: str = ""
     related_procedure_id: str = ""  # set for operative_note / procedure_note
-    authored_datetime: str = ""     # ISO 8601
+    authored_datetime: str = ""  # ISO 8601
     period_start: str = ""
     period_end: str = ""
     language: str = "en"
     content_type: str = "text/plain; charset=utf-8"
-    text: str = ""                 # empty in Stage 1; filled in Stage 2
-    # Provenance (filled in Stage 2)
-    text_source: str = "none"      # "llm" | "template" | "cache" | "none"
-    llm_model: str = ""
-    llm_provider: str = ""
-    llm_input_tokens: int = 0
-    llm_output_tokens: int = 0
-    prompt_version: int = 0
-    cache_hit: bool = False
-    generated_at: str = ""
-    fallback_reason: str = ""
-    # Tier 1 #3 α-min-1 PR1 Task 8 fix: preserve narrative sections for
-    # COMPOSITION format FHIR builders (Task 9). text field remains as the
-    # joined-string fallback for FREE_TEXT consumers / DocumentReference.
-    sections: dict[str, str] = field(default_factory=dict)
-    # Tier 1 #3 α-min-1 PR1 Task 8 fix: explicit FHIR resource shape hint
-    # for Task 9 dispatch. Values: "free_text" | "composition" |
-    # "questionnaire_response" (matches FormatType enum values).
     format_type: str = ""
+    narrative: ClinicalDocumentNarrative | None = None
+
+
+@dataclass
+class NarrativeVersionManifest:
+    """cif/narratives/<version>/manifest.json shape."""
+
+    version_id: str
+    generator: str
+    generator_config: dict
+    generated_at: str
+    encounter_count: int
+    document_count: int
+    document_counts_by_type: dict[str, int]
+    doc_types_enabled: list[str]
+    languages_used: list[str]
+    llm_cost_report: dict
 
 
 @dataclass
@@ -163,16 +173,16 @@ class ClinicalImpressionRecord:
     に格納(AD-55 Module pattern)。
     """
 
-    impression_id: str = ""              # "ci-{enc}-{day}"
+    impression_id: str = ""  # "ci-{enc}-{day}"
     encounter_id: str = ""
     date: date = field(default_factory=date.today)
     day_index: int = 0
-    description: str = ""                # 短い要約
-    summary: str = ""                    # 詳細
+    description: str = ""  # 短い要約
+    summary: str = ""  # 詳細
     investigation_refs: list[str] = field(default_factory=list)  # Observation id refs
-    finding_refs: list[str] = field(default_factory=list)        # Condition id refs
+    finding_refs: list[str] = field(default_factory=list)  # Condition id refs
     prognosis: str = ""
-    practitioner_id: str = ""            # 主治医
+    practitioner_id: str = ""  # 主治医
     # AD-32 snapshot semantics: True only for the current (latest) day of an in-progress
     # encounter. All prior days remain "completed" (clinical picture was fully documented).
     # Drives ClinicalImpression.status "in-progress" vs "completed" in _fhir_clinical_impression.py.
