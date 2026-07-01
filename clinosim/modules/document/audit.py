@@ -87,10 +87,21 @@ def _build_document_proof() -> dict[str, Any]:
         "author_practitioner_id": "dr-proof",
         "authored_datetime": "2026-01-10T08:00:00",
         "language": "en",
-        "text": "Chief complaint: chest pain. History of present illness: ...",
-        "text_source": "template",
         "format_type": "free_text",
         "content_type": "text/plain; charset=utf-8",
+        # AD-65 Task 4: content lives in the narrative subtree (merged in by
+        # CIFReader in production); the proof supplies it directly so the
+        # builder is exercised on a "narrative already generated" stub, same
+        # as what CIFReader hands to builders after a NarrativePass has run.
+        "narrative": {
+            "text": "Chief complaint: chest pain. History of present illness: ...",
+            "sections": {},
+            "structured": {},
+            "generator": "template",
+            "generator_metadata": {},
+            "generated_at": "2026-01-10T08:00:00Z",
+            "facts_used": [],
+        },
     }
 
     # Synthetic composition ClinicalDocument (DISCHARGE_SUMMARY, LOINC 18842-5).
@@ -106,14 +117,22 @@ def _build_document_proof() -> dict[str, Any]:
         "author_practitioner_id": "dr-proof",
         "authored_datetime": "2026-01-15T10:00:00",
         "language": "en",
-        "text": "",
-        "sections": {
-            "Discharge Diagnosis": "Community-acquired pneumonia",
-            "Disposition": "Home with oral antibiotics",
-        },
-        "text_source": "template",
         "format_type": "composition",
         "content_type": "text/plain; charset=utf-8",
+        # AD-65 Task 4: sections live in the narrative subtree (see free_text_doc
+        # comment above for the CIFReader-parity rationale).
+        "narrative": {
+            "text": "",
+            "sections": {
+                "Discharge Diagnosis": "Community-acquired pneumonia",
+                "Disposition": "Home with oral antibiotics",
+            },
+            "structured": {},
+            "generator": "template",
+            "generator_metadata": {},
+            "generated_at": "2026-01-15T10:00:00Z",
+            "facts_used": [],
+        },
     }
 
     # Synthetic Allergy (Penicillin SNOMED 372687004, in clinosim/codes/data/snomed-ct.yaml).
@@ -295,12 +314,12 @@ def _build_document_proof() -> dict[str, Any]:
             ),
             # --- 5 no-drop invariants (Section 3.4 CIF→FHIR emission matrix) ---
             (
-                "no_drop: ClinicalDocument.text -> DocumentReference.content.attachment.data (base64)",
+                "no_drop: doc.narrative.text -> DocumentReference.content.attachment.data (base64)",
                 bool(dref.get("content", [{}])[0].get("attachment", {}).get("data")),
                 True,
             ),
             (
-                "no_drop: ClinicalDocument.sections -> Composition.section[] non-empty",
+                "no_drop: doc.narrative.sections -> Composition.section[] non-empty",
                 len(comp.get("section", [])) > 0,
                 True,
             ),
