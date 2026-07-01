@@ -1,8 +1,25 @@
-"""Composition FHIR R4 builder (Tier 1 #3 α-min-1 Task 9).
+"""Composition FHIR R4 builder (Tier 1 #3 α-min-1 Task 9, extended α-min-2 Task 12).
 
 Reads CIF record.documents where format_type='composition'. Emits one
 Composition resource per matching ClinicalDocument. Section structure is
 derived from ClinicalDocument.sections (dict[section_title, section_text]).
+
+α-min-1 COMPOSITION doc types (Task 9):
+  ADMISSION_HP (LOINC 34117-2), DISCHARGE_SUMMARY (LOINC 18842-5)
+
+α-min-2 COMPOSITION doc types (Task 12 — automatically dispatched via format_type
+string match; no engine code changes required):
+  ADMISSION_NURSING_ASSESSMENT (LOINC 78390-2)
+  NURSING_DISCHARGE_SUMMARY    (LOINC 34745-0)
+  OUTPATIENT_SOAP              (LOINC 34131-3)
+  ED_NOTE                      (LOINC 34878-9)
+
+Section rendering (ClinicalDocument.sections dict → Composition.section[]) is
+unchanged; TemplateNarrativeGenerator (Task 6 α-min-1 + Task 8 α-min-2) is the
+source of sections dict content.
+
+JP section.title locale mapping is deferred to β-JP-1 per α-min-1 adv-1 Lens 3
+I-3 TODO (section titles remain as English snake_case keys).
 
 No-drop invariant (CIF → FHIR):
   document_id         -> Composition.id (comp- prefix)
