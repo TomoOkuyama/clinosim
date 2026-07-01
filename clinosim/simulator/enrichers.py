@@ -258,6 +258,23 @@ def register_builtin_enrichers() -> None:
         )
     )
 
+    # Triage enricher (Tier 1 #3 α-min-2, AD-55 always-on Base Module).
+    # Populates EncounterRecord.triage_data on ED (emergency) encounters.
+    # Country-gated: JP→JTAS, US→ESI. Per-encounter sub-seed via
+    # derive_sub_seed(master, TRIAGE_SEED, encounter_id). Order 93 ensures
+    # it runs after imaging (90) and before document (95).
+    from clinosim.modules.triage.engine import triage_enricher
+
+    register_enricher(
+        Enricher(
+            name="triage",
+            stage=POST_ENCOUNTER,
+            order=93,
+            enabled=lambda c: True,
+            run=triage_enricher,
+        )
+    )
+
     # Document module (Tier 1 #3 α-min-1, AD-55 always-on Module). Generates
     # ClinicalDocument stubs (Stage 1 template text) + ClinicalImpressionRecord
     # entries for each inpatient encounter. Locale-gated via specs_for_country().
