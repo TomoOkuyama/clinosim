@@ -566,6 +566,133 @@ pytest tests/unit/test_diagnosis_code_coverage.py
 
 ---
 
+## Regen scope matrix: Local iteration cycles (AD-65, 2026-07-02)
+
+The two-pass CIF generation architecture (`clinosim generate` → Stage 1 structural + auto Stage 2 template narratives) + dev facility (`test-disease --format`, `narrate` verb) enables fast iteration on different change types. Use this matrix to select the fastest workflow for your change.
+
+### Change types and iteration time
+
+| Change target | Fastest regen command | Estimated time | Notes |
+|---|---|---|---|
+| **Simulator engine / enricher** (population, disease, encounter logic) | `clinosim generate -p N -o /tmp/cX` | 5-50 min | Full cohort → CIF output. Proportional to N. |
+| **Template narrative generator** (TemplateNarrativeGenerator, bug A pattern) | `clinosim narrate --cif-dir /tmp/cX --version-id template` → `clinosim export-fhir --cif-dir /tmp/cX` | ~30 sec + 5 min | Reuse existing structural CIF. Stage 2 only. |
+| **FHIR builder** (bug C pattern) | `clinosim export-fhir --cif-dir /tmp/cX` | ~5 min | Reuse existing CIF. Stage 3 only. |
+| **Locale display / code resolution** | `clinosim export-fhir --cif-dir /tmp/cX` | ~5 min | No CIF change, Stage 3 only. |
+| **1 disease scenario** (bug B pattern: structural CIF bug within 1 disease) | `clinosim test-disease <disease_id> -n 5 --format all -o /tmp/verify` | ~10 seconds | Structural CIF + Stage 2 narratives + Stage 3 FHIR, 5 patients. |
+| **1 encounter condition** (bug B pattern: structural CIF bug within 1 ED/outpatient condition) | `clinosim test-encounter <condition_id> --format all -o /tmp/verify` | ~5 seconds | Same 3 stages, ~3 patients. |
+
+### Case 1: Template narrative generator bug (AD-65 Tier 1 #3)
+
+**Symptom:** H&P Progress Note HPI section contains Japanese characters in US cohort (bug A pattern).
+
+**Workflow:**
+
+1. **Diagnose** via `test-disease` (structural CIF only):
+   ```bash
+   clinosim test-disease acute_mi -n 1 --format cif -o /tmp/test
+   # Verify structural CIF has correct encounter/patient data
+   ```
+
+2. **Fix** in code: `clinosim/modules/document/narrative/template_generator.py`
+   - Locate builder function (`_build_hpi`, `_build_physical_examination`)
+   - Check `_pick_localized(tmpl, key, lang)` call is routing to `en` field for US language
+   - Verify Disease YAML `narrative.physical_examination_en` field is populated
+
+3. **Verify fix** via fast Stage 2 regen (skip expensive full cohort):
+   ```bash
+   # Reuse structural CIF from step 1
+   clinosim narrate --cif-dir /tmp/test --version-id template
+   clinosim export-fhir --cif-dir /tmp/test
+   # Check output Composition resource's text field has zero Japanese
+   ```
+
+4. **Full validation** (once confident):
+   ```bash
+   clinosim generate -p 500 --country US -o /tmp/us500
+   clinosim audit run --cif-dir /tmp/us500
+   # Gate: "us_admission_hp_zero_ja_chars" = 0
+   ```
+
+**Total iteration time:** ~35 seconds per fix attempt (10 sec `test-disease` + 25 sec `narrate`+`export-fhir`).
+
+---
+
+### Case 2: Structural/author bug (encounter/order/enricher logic)
+
+**Symptom:** Nursing notes have physician as author instead of primary nurse (bug B pattern).
+
+**Workflow:**
+
+1. **Diagnose** via unit test:
+   ```bash
+   pytest tests/unit/test_document_author_selection.py -xvs
+   # Verify _pick_document_author(spec, encounter) returns correct id
+   ```
+
+2. **Fix** in code: `clinosim/modules/document/engine.py`
+   - Locate `_emit_doc()` function
+   - Replace hardcoded `attending_id = encounter.attending_physician_id`
+   - Call helper `_pick_document_author(spec, encounter)` instead
+
+3. **Verify fix** via `test-disease --format all` (includes structural + narrative + FHIR):
+   ```bash
+   clinosim test-disease acute_mi -n 3 --format all -o /tmp/verify
+   # Check FHIR Composition.author field
+   # Check CIF Composition.subject.type has nursing LOINC + author is nurse_id
+   ```
+
+4. **Integration test** on production cohort:
+   ```bash
+   clinosim generate -p 500 --country US -o /tmp/us500
+   clinosim audit run --cif-dir /tmp/us500
+   # Gate: "nursing_doc_author_is_nurse_ratio" = 1.0
+   ```
+
+**Total iteration time:** ~8 seconds per fix attempt (3 sec `test-disease`, 5 sec integration).
+
+---
+
+### Case 3: FHIR builder bug
+
+**Symptom:** Composition resource is missing a required section, or reference integrity is broken.
+
+**Workflow:**
+
+1. **Diagnose** via unit test on builder:
+   ```bash
+   pytest tests/unit/test_fhir_composition.py -xvs -k "missing_section"
+   # Unit test on builder logic
+   ```
+
+2. **Fix** in code: `clinosim/modules/output/_fhir_composition.py`
+   - Check `_bb_compositions()` reads `doc.narrative.sections` (post-AD-65 structure)
+   - Verify reference integrity: all `reference` URIs resolve to resources in manifest
+
+3. **Quick structural check** (FHIR builder doesn't change structural CIF):
+   ```bash
+   # Reuse existing /tmp/us500 CIF from case 2
+   clinosim export-fhir --cif-dir /tmp/us500
+   # Inspect Composition.ndjson for correct section[] content
+   ```
+
+4. **Validation**:
+   ```bash
+   pytest tests/unit/test_fhir_composition.py -xvs
+   pytest -m integration -xvs tests/integration/test_fhir_reference_integrity.py
+   ```
+
+**Total iteration time:** ~5 minutes per fix attempt (all Stage 3 only, no CIF regen).
+
+---
+
+### Determinism & reproducibility
+
+- **Seed pinning:** All structural + narrative generation uses deterministic seed (default 42). Use `--seed N` to reproduce exact cohort across runs.
+- **Narrative version pointer:** `cif/narratives/current_version.txt` tracks active narrative version. Export defaults to `current`, or specify `--narrative-version <id>`.
+- **Backwards compat:** Old CIF without narrative dir → `export-fhir` emits empty narrative and warns. `test-disease --format cif` writes structural CIF only (no narrative, consistent with `generate` Stage 1 output).
+
+---
+
 ## よくある落とし穴
 
 **Do**
