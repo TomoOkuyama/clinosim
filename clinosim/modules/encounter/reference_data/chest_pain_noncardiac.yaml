@@ -93,7 +93,7 @@ narrative:
     ed_workup_summary_ja: ECG：{ecg_result_ja}。心筋トロポニン：{troponin_result_ja}（3時間後再検）。胸部X線：{cxr_result_ja}。ACS除外基準を評価。
     disposition_ja: 連続トロポニン陰性・ECG変化なしにてACS除外。{disposition_display_ja}。2週間以内に内科外来受診。
     chief_complaint_en: Chest pain (rule out acute coronary syndrome)
-    hpi_en: 'Chest pain onset {onset_ja}. Character: {pain_quality_en}, location: retrosternal to anterior chest, radiation: {radiation_en}. Associated symptoms: dyspnea, diaphoresis, and nausea assessed. Cardiac history and risk factors (hypertension, diabetes, smoking, dyslipidemia) reviewed.'
+    hpi_en: 'Chest pain onset {onset_en}. Character: {pain_quality_en}, location: retrosternal to anterior chest, radiation: {radiation_en}. Associated symptoms: dyspnea, diaphoresis, and nausea assessed. Cardiac history and risk factors (hypertension, diabetes, smoking, dyslipidemia) reviewed.'
     physical_exam_en:
       general: Alert and oriented, in distress
       cardiovascular: 'BP {sbp}/{dbp} mmHg, HR {hr}/min, regular heart sounds, no murmurs, no jugular venous distension'
