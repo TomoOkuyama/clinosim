@@ -1,6 +1,6 @@
 # clinosim Module Map
 
-A single-page overview of clinosim's 25 modules: what each one does, what
+A single-page overview of clinosim's 27 modules: what each one does, what
 it depends on, who depends on it, and how data flows through the
 simulator end-to-end. **Read this first** if you're new to the project.
 
@@ -72,8 +72,14 @@ quality. See [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md)
 │  hai              CLABSI / CAUTI / VAP (Phase 3a WBC+CRP) │
 │  antibiotic       HAI empirical + narrow de-escalation   │
 │  imaging          ImagingStudy metadata chain (AD-62)    │
+│  triage           JTAS/ESI triage level + arrival_mode   │
+│                   (ED-only, AD-64, order=93)             │
+│  nursing_assign   primary nurse assignment (order=94)    │
+│                   (inpatient; do NOT confuse w/ POST_RECORDS│
+│                   nursing which handles NEWS2/GCS/Braden)│
 │  document         Stage 1 clinical documents (95)        │
 │                   DR + Composition + ClinicalImpression  │
+│                   + 6 α-min-2 nursing/outpatient/ED types│
 │                                                          │
 │  POST_RECORDS stage (cross-record, post-all):            │
 │  nursing          NEWS2 / GCS / Braden / Morse           │
@@ -93,7 +99,7 @@ quality. See [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md)
 
 ## Module Inventory
 
-26 modules total. Click the `Module` link for the per-module README.
+27 modules total. Click the `Module` link for the per-module README.
 
 | Module | 役割 | Layer | 主 Dependencies | 主 Consumers | Tier |
 |---|---|---|---|---|---|
@@ -123,7 +129,9 @@ quality. See [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md)
 | [antibiotic](clinosim/modules/antibiotic/README.md) | HAI empirical antibiotic regimen (IDSA 2009/2016) — emits MedicationRequest + MAR (Phase 3b-1, always-on); `ANTIBIOTIC_LOINC_LOOKUP` (Phase 3b-2) provides antibiotic key → LOINC for susceptibility Observations; **Phase 3b-3 narrow / de-escalation chain** (same enricher Pass 2, `narrow_ladder.yaml`, 3 outcomes SWITCH/ELIMINATION/NO_CHANGE, FHIR `MedicationRequest.status="stopped"`, audit clinical axis active enforcement of NHSN R-rate + empty rate + narrow rate) | enrichment | types/codes + modules/hai | simulator/enrichers.py (POST_ENCOUNTER order=85), output (reuses _fhir_medications.py), audit/axes/clinical.py | optional |
 | [imaging](clinosim/modules/imaging/README.md) | Imaging metadata-only chain (ImagingStudy + Endpoint + radiology DR + imaging SR dispatch); Tier 1 #2 always-on Module [AD-62] | enrichment | types/codes/locale + order | simulator/enrichers.py (POST_ENCOUNTER order=90), output (_fhir_imaging_study.py + _fhir_endpoint.py + _fhir_diagnostic_report.py radiology variant + _fhir_service_request.py imaging dispatch) | optional |
 | [allergy](clinosim/modules/allergy/README.md) | AllergyIntolerance 8-field SNOMED-coded enricher (allergen SNOMED + reaction + category + criticality + clinical/verification status); POST_POPULATION order=10, 15% prevalence, replaces activator.py inline sampling (Tier 1 #3 α-min-1) | enrichment | types/codes + patient | simulator/enrichers.py (POST_POPULATION order=10), output (_fhir_allergy_intolerance.py) | always-on |
-| [document](clinosim/modules/document/README.md) | Stage 1 template-based clinical document generation: DocumentReference (H&P / Progress Note / Discharge Summary) + Composition (structured discharge summary) + ClinicalImpression (daily impression); POST_ENCOUNTER order=95; Tier 1 #3 α-min-1 always-on Module [AD-63] | enrichment | types/codes/locale + allergy | simulator/enrichers.py (POST_ENCOUNTER order=95), output (_fhir_documents.py + _fhir_composition.py + _fhir_clinical_impression.py) | always-on |
+| [triage](clinosim/modules/triage/README.md) | ED triage level (JTAS/JP / ESI/US) + arrival_mode + acuity_score; POST_ENCOUNTER order=93 (ED-only); always-on Module (AD-64). Writes `EncounterRecord.triage_data`; consumed by document_enricher for ED_TRIAGE_NOTE generation. | enrichment | types/codes/locale | simulator/enrichers.py (POST_ENCOUNTER order=93), document_enricher | always-on |
+| [nursing_assignment](clinosim/modules/nursing/README.md) | Primary nurse assignment for inpatient/ICU/rehab encounters; POST_ENCOUNTER order=94; always-on Module (AD-64). Writes `EncounterRecord.primary_nurse_id`; consumed by CareTeam builder (`_fhir_care_team.py`). **Do NOT confuse** with the POST_RECORDS `nursing` module (NEWS2/GCS/Braden/Morse flowsheets) — same directory, different enricher function. | enrichment | types + staff | simulator/enrichers.py (POST_ENCOUNTER order=94), output (_fhir_care_team.py) | always-on |
+| [document](clinosim/modules/document/README.md) | Stage 1 template-based clinical document generation: 9 DocumentType specs (α-min-1 3 + α-min-2 6); encounter_type gating via `DocumentTypeSpec.encounter_types_supported`; POST_ENCOUNTER order=95; Tier 1 #3 α-min-1+2 always-on Module [AD-63, AD-64] | enrichment | types/codes/locale + allergy + triage | simulator/enrichers.py (POST_ENCOUNTER order=95), output (_fhir_documents.py + _fhir_composition.py + _fhir_clinical_impression.py) | always-on |
 | [output](clinosim/modules/output/README.md) | CIF → FHIR R4 NDJSON / CSV adapters (registry-based) | output | 全 module (via builders) | CLI (clinosim generate) | core |
 | [llm_service](clinosim/modules/llm_service/README.md) | optional narrative generation (Ollama/Bedrock/Anthropic) | output | codes | output (narrative path), simulator | optional |
 | [validator](clinosim/modules/validator/README.md) | data quality tier framework | output | types | CLI (clinosim validate) | optional |
@@ -192,7 +200,7 @@ simulator/  (top-level orchestration)
   ├── procedure/       (surgical/bedside)
   ├── staff/           (assignment)
   ├── facility/        (beds/wards)
-  ├── enrichers.py     (post_population: allergy; post_encounter: device/hai/antibiotic/imaging/document; post_records: nursing/immunization/family_history/code_status/care_level)
+  ├── enrichers.py     (post_population: allergy; post_encounter: device/hai/antibiotic/imaging/triage/nursing_assignment/document; post_records: nursing/immunization/family_history/code_status/care_level)
   └── output/          (CIF → FHIR/CSV)
 ```
 
