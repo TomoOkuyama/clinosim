@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.modules._shared import get_attr_or_key
 from clinosim.types.document import FactTag
 
 
@@ -42,15 +43,20 @@ def extract_encounter_facts(encounter_dict: dict[str, Any]) -> list[FactTag]:
 
 
 def extract_lab_facts(lab_results: list[Any]) -> list[FactTag]:
+    """F-9 adv-1: use get_attr_or_key for dict/dataclass dual access.
+
+    Prior `getattr(lab, "value", None) or (lab.get("value") if isinstance(lab,
+    dict) else None)` short-circuited on falsy values: a dataclass fixture
+    with ``value=0.0`` produced ``0.0 or None → None`` and the fact was
+    silently dropped. Dict-from-JSON path worked correctly (0.0 stays 0.0).
+    Silent divergence between test fixtures and production is exactly the
+    β-JP-1 LLM hallucination surface AD-65 is trying to prevent.
+    """
     facts: list[FactTag] = []
     for lab in lab_results or []:
-        name = getattr(lab, "test_name", None) or (
-            lab.get("test_name") if isinstance(lab, dict) else None
-        )
-        value = getattr(lab, "value", None) or (lab.get("value") if isinstance(lab, dict) else None)
-        day = getattr(lab, "day_index", None) or (
-            lab.get("day_index") if isinstance(lab, dict) else None
-        )
+        name = get_attr_or_key(lab, "test_name", None)
+        value = get_attr_or_key(lab, "value", None)
+        day = get_attr_or_key(lab, "day_index", None)
         if name and value is not None:
             facts.append(
                 FactTag(
@@ -65,10 +71,8 @@ def extract_lab_facts(lab_results: list[Any]) -> list[FactTag]:
 def extract_medication_facts(medications: list[Any]) -> list[FactTag]:
     facts: list[FactTag] = []
     for m in medications or []:
-        name = getattr(m, "drug_name", None) or (
-            m.get("drug_name") if isinstance(m, dict) else None
-        )
-        dose = getattr(m, "dose", None) or (m.get("dose") if isinstance(m, dict) else None)
+        name = get_attr_or_key(m, "drug_name", None)
+        dose = get_attr_or_key(m, "dose", None)
         if name:
             facts.append(
                 FactTag(
