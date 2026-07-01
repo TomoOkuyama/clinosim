@@ -1,6 +1,6 @@
 # clinosim Module Map
 
-A single-page overview of clinosim's 27 modules: what each one does, what
+A single-page overview of clinosim's 26 modules: what each one does, what
 it depends on, who depends on it, and how data flows through the
 simulator end-to-end. **Read this first** if you're new to the project.
 
@@ -17,7 +17,7 @@ simulator end-to-end. **Read this first** if you're new to the project.
 ## TL;DR
 
 clinosim is a population-driven, physiology-based synthetic EHR data simulator,
-organized into 23 themed modules across 3 layers:
+organized into 22 themed modules across 3 layers:
 
 1. **Foundation** — `clinosim/codes/` + `clinosim/locale/` + `clinosim/types/`
    (no clinosim cross-dependencies)
@@ -99,7 +99,7 @@ quality. See [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md)
 
 ## Module Inventory
 
-27 modules total. Click the `Module` link for the per-module README.
+26 modules total. Click the `Module` link for the per-module README.
 
 | Module | 役割 | Layer | 主 Dependencies | 主 Consumers | Tier |
 |---|---|---|---|---|---|
@@ -131,8 +131,7 @@ quality. See [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md)
 | [allergy](clinosim/modules/allergy/README.md) | AllergyIntolerance 8-field SNOMED-coded enricher (allergen SNOMED + reaction + category + criticality + clinical/verification status); POST_POPULATION order=10, 15% prevalence, replaces activator.py inline sampling (Tier 1 #3 α-min-1) | enrichment | types/codes + patient | simulator/enrichers.py (POST_POPULATION order=10), output (_fhir_allergy_intolerance.py) | always-on |
 | [triage](clinosim/modules/triage/README.md) | ED triage level (JTAS/JP / ESI/US) + arrival_mode + acuity_score; POST_ENCOUNTER order=93 (ED-only); always-on Module (AD-64). Writes `EncounterRecord.triage_data`; consumed by document_enricher for ED_TRIAGE_NOTE generation. | enrichment | types/codes/locale | simulator/enrichers.py (POST_ENCOUNTER order=93), document_enricher | always-on |
 | [nursing_assignment](clinosim/modules/nursing/README.md) | Primary nurse assignment for inpatient/ICU/rehab encounters; POST_ENCOUNTER order=94; always-on Module (AD-64). Writes `EncounterRecord.primary_nurse_id`; consumed by CareTeam builder (`_fhir_care_team.py`). **Do NOT confuse** with the POST_RECORDS `nursing` module (NEWS2/GCS/Braden/Morse flowsheets) — same directory, different enricher function. | enrichment | types + staff | simulator/enrichers.py (POST_ENCOUNTER order=94), output (_fhir_care_team.py) | always-on |
-| [document](clinosim/modules/document/README.md) | **Stage 1 enricher** — ClinicalDocument stub generation (metadata + author + narrative=None) for 9 DocumentType specs (α-min-1 3 + α-min-2 6); encounter_type gating via `DocumentTypeSpec.encounter_types_supported`; POST_ENCOUNTER order=95; always-on Module (AD-63, AD-64). **See narrative_pass for Stage 2 narrative generation.** | enrichment | types/codes/locale + allergy + triage | simulator/enrichers.py (POST_ENCOUNTER order=95), output (_fhir_documents.py + _fhir_composition.py + _fhir_clinical_impression.py), narrative_pass | always-on |
-| [narrative_pass](clinosim/modules/document/narrative/README.md) | **Stage 2 post-simulation narrative generation** — loads structural CIF, populates `ClinicalDocumentNarrative` for each document stub via `NarrativePass` base class (TemplateNarrativePass default, LLMNarrativePass deferred to β-JP-1); writes versioned narrative dir `cif/narratives/<version>/documents/` (AD-65); two-pass CIF architecture invariant | enrichment | types/codes/locale + document stubs | CLI (`narrate` verb), simulator/cli.py (`generate` auto-invoke), output (CIFReader for FHIR merge) | optional (default template) |
+| [document](clinosim/modules/document/README.md) | Two-role Module (AD-65): **Stage 1 enricher** — ClinicalDocument stub generation (metadata + author + narrative=None) for 9 DocumentType specs (α-min-1 3 + α-min-2 6); encounter_type gating via `DocumentTypeSpec.encounter_types_supported`; POST_ENCOUNTER order=95; always-on Module (AD-63, AD-64). **Stage 2 narrative pass** (`clinosim/modules/document/narrative/` sub-package) — loads structural CIF, populates `ClinicalDocumentNarrative` via `NarrativePass` base class (TemplateNarrativePass default, LLMNarrativePass deferred to β-JP-1); writes versioned narrative dir `cif/narratives/<version>/documents/`; two-pass CIF architecture invariant. See `document/README.md` AD-65 section for the full Stage 1 / Stage 2 boundary. | enrichment | types/codes/locale + allergy + triage | simulator/enrichers.py (POST_ENCOUNTER order=95), output (_fhir_documents.py + _fhir_composition.py + _fhir_clinical_impression.py), CLI (`narrate` verb) | always-on |
 | [output](clinosim/modules/output/README.md) | CIF → FHIR R4 NDJSON / CSV adapters (registry-based) | output | 全 module (via builders) | CLI (clinosim generate) | core |
 | [llm_service](clinosim/modules/llm_service/README.md) | optional narrative generation (Ollama/Bedrock/Anthropic) | output | codes | output (narrative path), simulator | optional |
 | [validator](clinosim/modules/validator/README.md) | data quality tier framework | output | types | CLI (clinosim validate) | optional |

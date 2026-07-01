@@ -1932,3 +1932,72 @@ Once the data gap closes, remove `hpi` / `physical_examination` from
 `KNOWN_JA_ONLY_FALLBACK_SECTIONS` and re-verify both the audit gate and the integration test
 still pass with the exclusion removed (expect them to pass unconditionally at that point).
 
+## AD-65 adv-1 deferred (2026-07-02)
+
+Findings from PR #131 (`feature/tier1-narrative-stage2-architecture`) adv-1 5-lens
+adversarial review that were triaged as out-of-scope for the fix chain. All are pre-existing
+concerns or β-JP-1 (LLM narrative pass) scope, not landing in the AD-65 fix work.
+
+- **L3 I-1 `Practitioner/UNKNOWN` fallback dangling reference**: `_bb_care_teams` emits
+  `member.reference = "Practitioner/UNKNOWN"` when the attending id is empty. FHIR R4
+  reference integrity says every reference must resolve to an emitted resource — no
+  `Practitioner/UNKNOWN` resource is emitted anywhere. Pre-existing broader design issue
+  (predates AD-65); options are (a) emit a synthetic UNKNOWN Practitioner, (b) skip the
+  participant entirely, (c) use `identifier.value="UNKNOWN"` without a reference. Decision
+  needs cross-team alignment.
+- **L3 I-2 `Patient/` empty-id dangling reference**: similar pattern where an encounter with
+  no patient id emits `Patient/`. Pre-existing; the boundary-raise approach (fail early
+  when patient_id empty) is preferred over silent fallback.
+- **L3 I-4 Bug A partial — HPI + physical_examination YAML restructure**: already tracked in
+  the "AD-65 Bug A residual gap — disease YAML English narrative content" section above.
+- **L4 IMPT-2 `_deterministic_timestamp` constant-per-pass → per-doc mix**: current impl
+  returns the SAME timestamp for every document in a single narrative pass (base + rng_seed
+  offset only). Realism would be per-doc seeded from `(doc.document_id, rng_seed)`. Session
+  28 tracked as separate follow-up.
+- **L4 IMPT-3 re-narrate orphan file cleanup on same version_id**: re-running narrate on the
+  same version_id after a disease/encounter YAML edit that DROPPED a document leaves the
+  stale narrative file on disk. CIFReader logs it as orphan but doesn't unlink. Add a
+  pre-run cleanup pass or a `--overwrite` flag.
+- **L4 IMPT-4 β-JP-1 `NarrativeOutput.metadata.get("generator", ...)` override hook +
+  `doc_status` field**: LLMNarrativePass needs a way to signal `preliminary` vs `final`
+  narrative status; wire `NarrativeOutput.metadata["doc_status"]` → CIF stub
+  `doc_status` field → FHIR `DocumentReference.docStatus` / `Composition.status`. Defer to
+  β-JP-1 planning.
+- **L2 I-4 Encounter YAML `_en/_ja` peer requirement CI enforcement**: Task 10 (α-min-2)
+  populated missing `_en` peers for all 46 encounter YAMLs; add a `_validate_*` gate at
+  `load_encounter_condition` time so a future YAML edit that adds a `_ja`-only key raises
+  at import.
+- **L2 I-5 `current_version.txt` write helper (4-site DRY refactor)**: `open(..., "w") as f:
+  f.write("template")` appears in CLI test-disease-generate, test-encounter-generate,
+  generate, and narrate. Extract a helper in `cif_writer.py` /
+  `clinosim/modules/document/narrative/passes.py`.
+- **L2 M-4 `nursing_enricher` function rename to `nursing_assignment_enricher`**:
+  CLAUDE.md AD-64 rule already spells out the naming convention (`nursing_assignment`
+  for POST_ENCOUNTER order=94 vs `nursing_flowsheets` for POST_RECORDS order=20). Code
+  hasn't been renamed yet; the enricher name in `enrichers.py:register_builtin_enrichers`
+  is still `nursing`. Cosmetic, low priority.
+- **L2 M-5 Integration tests using `ForcedScenario` instead of subprocess p=800**:
+  `tests/integration/test_bug_c_triage_all_levels.py` and siblings launch the CLI via
+  `subprocess.run` with p=800 which is slow (~30s each). Migrate to
+  `ForcedScenario(disease_id=..., count=800)` + `run_forced` for a ~5x speedup.
+- **L3 M-1 through M-8 β-JP-1 concerns**: (a) section title JP localization,
+  (b) section.code LOINC dispatch, (c) docStatus dispatch, (d) DocumentReference.identifier
+  emission, (e) US Core category tag, (f) XHTML `<br/>` escaping, (g) empty div status handling,
+  (h) `Encounter.priority` JTAS/ESI mapping. All defer to β-JP-1.
+- **L1 M-1 through M-4 cosmetic**: (a) CIFReader multi-encounter walk (currently walks
+  encounters[0] only for narrative merge — a multi-encounter patient with narratives on
+  encounters[1] would silently drop them; matters for the follow-up-visit scenario),
+  (b) `--narrative-version` typo warn (already raise-fired via F-1, cosmetic UX enhancement
+  possible), (c) test fixture format_type sanity, (d) manifest timestamp pin.
+- **L5 Minor-1 through Minor-6 TODO.md missing entries for Task 3 known issues**: Task 3
+  landed several known issues (e.g. sanity check on progress note LOS bounds, discharge
+  summary conditional on discharge_datetime) that never made it into TODO.md as formal
+  entries.
+- **L1 M-1 `NURSING_LOINCS` inline in integration test file (Lens 2 M-1)**: at least one
+  integration test hardcodes `{"78390-2", "34746-8", "34745-0"}` instead of importing
+  `NURSING_LOINCS` from `clinosim.modules.document`. Should import; low-impact but drift
+  risk once the YAML changes.
+
+Full triage report: `/private/tmp/claude-*/adv1_ad65/triage.md` in the fix session
+(reproducible from the 5-lens pass over PR #131 HEAD `c61914c716`).
+
