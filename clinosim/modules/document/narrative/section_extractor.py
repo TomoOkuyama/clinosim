@@ -7,6 +7,7 @@ Provides section_facts[<section_key>] for each COMPOSITION section
 
 from __future__ import annotations
 
+from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative.fact_extractor import (
     extract_encounter_facts,
     extract_lab_facts,
@@ -42,16 +43,16 @@ def _facts_for_section(section_key: str, ctx: NarrativeContext) -> list[FactTag]
     if section_key in ("chief_complaint", "hpi", "history_of_present_illness"):
         return extract_encounter_facts(
             {
-                "admission_diagnosis_code": getattr(ctx.encounter, "admission_diagnosis_code", ""),
+                "admission_diagnosis_code": _o(ctx.encounter, "admission_diagnosis_code", ""),
             }
         )
     if section_key in ("past_medical_history", "chronic_conditions"):
         return extract_patient_facts(
             {
                 "patient": {
-                    "age": getattr(ctx.patient, "age", None),
-                    "sex": getattr(ctx.patient, "sex", None),
-                    "chronic_conditions": getattr(ctx.patient, "chronic_conditions", []),
+                    "age": _o(ctx.patient, "age", None),
+                    "sex": _o(ctx.patient, "sex", None),
+                    "chronic_conditions": _o(ctx.patient, "chronic_conditions", []),
                 }
             }
         )
