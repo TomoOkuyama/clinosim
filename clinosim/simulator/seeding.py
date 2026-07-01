@@ -95,6 +95,7 @@ ENRICHER_SEED_OFFSETS = {
     "allergy":        0x414C,     # "AL" (Tier 1 #3 α-min-1 PR1, allergy module)
     "document":       0x444F,     # "DO" (Tier 1 #3 α-min-1 PR1, document module)
     "triage":         0x5452,     # "TR" (Tier 1 #3 α-min-2 PR1, triage module)
+    "narrative_template": 0x4E54, # "NT" (AD-65 TemplateNarrativePass)
 }
 
 assert len(set(ENRICHER_SEED_OFFSETS.values())) == len(ENRICHER_SEED_OFFSETS), \
