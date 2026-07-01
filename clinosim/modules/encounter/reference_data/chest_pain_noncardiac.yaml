@@ -79,3 +79,20 @@ probability: 0.15  # relative frequency among ED visits
 age_distribution: adults  # predominantly 40+
 sex_ratio_female: 0.6  # more men
 seasonal: {1: 1.1, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.1}
+
+narrative:
+  ed_note_template:
+    chief_complaint_ja: 胸痛（急性冠症候群除外目的）
+    hpi_ja: '{onset_ja}より胸痛出現。性状：{pain_quality_ja}、部位：胸骨後部〜前胸部、放散痛：{radiation_ja}。随伴症状：息切れ・冷汗・嘔気の有無を確認。心疾患既往・危険因子（高血圧・糖尿病・喫煙・脂質異常症）を聴取。'
+    physical_exam_ja:
+      general: 意識清明、苦痛様
+      cardiovascular: 血圧{sbp}/{dbp}mmHg、心拍数{hr}/分、心音整、雑音なし、頸静脈怒張なし
+      respiratory: 呼吸数正常、肺野清明、胸膜摩擦音なし
+      abdominal: 平坦、軟、圧痛なし
+      neurological: 麻痺なし
+    ed_workup_summary_ja: ECG：{ecg_result_ja}。心筋トロポニン：{troponin_result_ja}（3時間後再検）。胸部X線：{cxr_result_ja}。ACS除外基準を評価。
+    disposition_ja: 連続トロポニン陰性・ECG変化なしにてACS除外。{disposition_display_ja}。2週間以内に内科外来受診。
+  ed_triage_template:
+    common_triage_levels:
+    - '2'
+    - '3'

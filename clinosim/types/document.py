@@ -20,15 +20,24 @@ class FormatType(str, Enum):
 
 
 class DocumentType(str, Enum):
-    """Document types in scope for current chain phase.
+    """Document types.
 
-    α-min-1 scope: ADMISSION_HP + PROGRESS_NOTE + DISCHARGE_SUMMARY。
-    後続 phase で enum 値追加(本 chain では拡張禁止 — scope discipline)。
+    α-min-1 scope: ADMISSION_HP + PROGRESS_NOTE + DISCHARGE_SUMMARY.
+    α-min-2 scope: +6 nursing/outpatient/ED entries below.
+    後続 phase で enum 値追加(β-JP-1 で JP 厚労省必須 doc)。
     """
 
+    # α-min-1 scope(既存)
     ADMISSION_HP = "admission_hp"            # LOINC 34117-2
     PROGRESS_NOTE = "progress_note"          # LOINC 11506-3
     DISCHARGE_SUMMARY = "discharge_summary"  # LOINC 18842-5
+    # α-min-2 scope(new)
+    ADMISSION_NURSING_ASSESSMENT = "admission_nursing_assessment"  # LOINC 78390-2 (verified 2026-07)
+    NURSING_SHIFT_NOTE = "nursing_shift_note"                      # LOINC 34746-8 (verified 2026-07)
+    NURSING_DISCHARGE_SUMMARY = "nursing_discharge_summary"        # LOINC 34745-0 (verified 2026-07)
+    OUTPATIENT_SOAP = "outpatient_soap"                            # LOINC 34131-3 (verified 2026-07)
+    ED_NOTE = "ed_note"                                            # LOINC 34878-9 (verified 2026-07)
+    ED_TRIAGE_NOTE = "ed_triage_note"                             # LOINC 54094-8 (verified 2026-07)
 
 
 @dataclass

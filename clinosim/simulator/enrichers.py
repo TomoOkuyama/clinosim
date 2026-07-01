@@ -56,6 +56,7 @@ class EnricherContext:
     master_seed: int
     population: Any = None
     records: list[Any] = field(default_factory=list)
+    roster: Any = None  # StaffRoster | None — passed by inpatient simulator for nursing_enricher
 
 
 @dataclass
@@ -255,6 +256,39 @@ def register_builtin_enrichers() -> None:
             order=90,
             enabled=lambda c: True,
             run=imaging_enricher,
+        )
+    )
+
+    # Triage enricher (Tier 1 #3 α-min-2, AD-55 always-on Base Module).
+    # Populates EncounterRecord.triage_data on ED (emergency) encounters.
+    # Country-gated: JP→JTAS, US→ESI. Per-encounter sub-seed via
+    # derive_sub_seed(master, TRIAGE_SEED, encounter_id). Order 93 ensures
+    # it runs after imaging (90) and before document (95).
+    from clinosim.modules.triage.engine import triage_enricher
+
+    register_enricher(
+        Enricher(
+            name="triage",
+            stage=POST_ENCOUNTER,
+            order=93,
+            enabled=lambda c: True,
+            run=triage_enricher,
+        )
+    )
+
+    # Nursing primary-nurse assignment (Tier 1 #3 α-min-2, AD-55 always-on Module).
+    # Sets EncounterRecord.primary_nurse_id for inpatient/icu/rehab_inpatient encounters
+    # by sampling uniformly from ctx.roster nurses. Falls back to "" when roster is None.
+    # Order 94 ensures it runs after triage (93) and before document (95).
+    from clinosim.modules.nursing.engine import nursing_enricher
+
+    register_enricher(
+        Enricher(
+            name="nursing_assignment",
+            stage=POST_ENCOUNTER,
+            order=94,
+            enabled=lambda c: True,
+            run=nursing_enricher,
         )
     )
 

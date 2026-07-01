@@ -37,3 +37,10 @@ incidence_modifier: 1.0
 age_distribution: women_40plus
 sex_ratio_female: 1.0
 seasonal: {1: 0.9, 2: 0.9, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 0.9, 8: 0.9, 9: 1.0, 10: 1.3, 11: 1.1, 12: 0.9}
+
+narrative:
+  outpatient_soap_template:
+    subjective_ja: '{chief_complaint_ja}の訴え、{onset_days}日前より'
+    objective_ja: バイタル安定、身体所見特記事項なし
+    assessment_ja: '{primary_dx_display_ja}'
+    plan_ja: '{workup_summary_ja}、{follow_up_ja}'

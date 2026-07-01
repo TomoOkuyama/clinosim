@@ -5,9 +5,22 @@ leaf data, shared helpers, and stdlib/first-party deps — never the adapter.
 
 Stage 1 (Task 10 / Task 15): _bb_document_references reads record.documents
 (populated by document_enricher POST_ENCOUNTER, Task 8) where
-format_type='free_text' (PROGRESS_NOTE, ADMISSION_HP). This is the sole
-DocumentReference emit path; the legacy narrate-walk path was removed in
-Task 15 (narrate subcommand deprecated, document_generator.py deleted).
+format_type='free_text'. This is the sole DocumentReference emit path; the
+legacy narrate-walk path was removed in Task 15 (narrate subcommand
+deprecated, document_generator.py deleted).
+
+α-min-1 FREE_TEXT doc types (Task 10 / Task 15):
+  PROGRESS_NOTE (LOINC 11506-3)
+
+α-min-2 FREE_TEXT doc types (Task 12 — automatically dispatched via
+format_type string match; no engine code changes required):
+  NURSING_SHIFT_NOTE (LOINC 34746-8)
+  ED_TRIAGE_NOTE     (LOINC 54094-8)
+
+COMPOSITION format docs (ADMISSION_HP, DISCHARGE_SUMMARY, ADMISSION_NURSING_
+ASSESSMENT, NURSING_DISCHARGE_SUMMARY, OUTPATIENT_SOAP, ED_NOTE) are handled
+by _fhir_composition.py; this builder skips them. QUESTIONNAIRE_RESPONSE is
+infrastructure-stub (Task 7) and not yet emitted.
 """
 
 from __future__ import annotations

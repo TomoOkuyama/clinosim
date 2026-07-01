@@ -1,0 +1,104 @@
+# Nursing assessment scaffolding (Tier 1 #3 α-min-2, AD-64)
+#
+# adl_categories: keys MUST exactly match SUPPORTED_ADL_CATEGORIES in engine.py
+# risk_assessments: keys MUST exactly match SUPPORTED_RISK_ASSESSMENTS in engine.py
+#
+# disease_specific_nursing_focus keys match disease_id in disease/reference_data/*.yaml
+# baseline: fallback when no disease-specific focus is defined
+#
+# import-time 6-layer validator: _validate_nursing_assessment() in engine.py
+
+adl_categories:
+  eating: [independent, partial_assist, full_assist]
+  bathing: [independent, partial_assist, full_assist]
+  dressing: [independent, partial_assist, full_assist]
+  toileting: [independent, partial_assist, full_assist]
+  mobility: [independent, walker, wheelchair, bed_bound]
+
+risk_assessments:
+  fall_risk: [low, moderate, high]
+  pressure_ulcer_risk: [low, moderate, high]
+  aspiration_risk: [low, moderate, high]
+
+# Disease-specific nursing focus (5 priority entries + disease-specific baseline)
+# KEY ORDER is NOT load-bearing (dict, not probability array) — re-sort freely
+disease_specific_nursing_focus:
+  bacterial_pneumonia:
+    focus: "呼吸状態観察 / 排痰援助 / 酸素療法管理 / 発熱・脱水管理"
+    interventions_ja:
+      - "体位変換2h"
+      - "SpO2モニタリング"
+      - "痰吸引"
+      - "水分in-out管理"
+  aspiration_pneumonia:
+    focus: "誤嚥リスク管理 / 呼吸状態観察 / 口腔ケア / 体位管理"
+    interventions_ja:
+      - "30度ヘッドアップ"
+      - "口腔ケア3回/日"
+      - "嚥下評価"
+      - "SpO2モニタリング"
+  hemorrhagic_stroke:
+    focus: "神経学的変化モニタリング / 血圧管理 / 安静管理 / 合併症予防"
+    interventions_ja:
+      - "意識レベル観察q1h"
+      - "血圧モニタリング"
+      - "安静保持"
+      - "転落防止"
+  acute_mi:
+    focus: "心電図モニタリング / 胸痛観察 / 安静管理 / 不整脈早期発見"
+    interventions_ja:
+      - "12誘導ECG"
+      - "胸痛VAS評価"
+      - "床上安静"
+      - "心電図モニタリング継続"
+  heart_failure_exacerbation:
+    focus: "水分・Na制限 / 体重測定 / 浮腫管理 / 呼吸困難モニタリング"
+    interventions_ja:
+      - "体重朝夕測定"
+      - "水分in-out管理"
+      - "浮腫観察"
+      - "SpO2モニタリング"
+  sepsis:
+    focus: "感染源コントロール / バンドル遵守 / 乳酸値・臓器機能モニタリング"
+    interventions_ja:
+      - "qSOFA評価q2h"
+      - "抗菌薬投与時間厳守"
+      - "尿量観察q1h"
+      - "意識レベル・皮膚色観察"
+  cerebral_infarction:
+    focus: "神経症状観察 / 嚥下機能評価 / リハビリ連携 / 二次性脳卒中予防"
+    interventions_ja:
+      - "NIHSS評価q4h"
+      - "嚥下スクリーニング"
+      - "抗血栓療法管理"
+      - "早期離床計画"
+  copd_exacerbation:
+    focus: "呼吸困難管理 / 気管支拡張薬吸入援助 / 酸素療法 / 禁煙支援"
+    interventions_ja:
+      - "SpO2・呼吸数モニタリング"
+      - "吸入器使用確認"
+      - "酸素流量管理"
+      - "呼吸リハビリ"
+  diabetic_ketoacidosis:
+    focus: "血糖・電解質管理 / インスリン持続点滴管理 / 水分補充 / 意識観察"
+    interventions_ja:
+      - "血糖測定q1h"
+      - "インスリン投与速度確認"
+      - "尿量・ケトン尿観察"
+      - "電解質補正確認"
+  hip_fracture:
+    focus: "疼痛管理 / DVT予防 / 安静管理 / 術後リハビリ連携"
+    interventions_ja:
+      - "疼痛VAS評価q4h"
+      - "弾性ストッキング確認"
+      - "体位変換2h"
+      - "早期離床計画"
+
+# Fallback when no disease-specific entry matches
+baseline:
+  focus: "バイタル・意識・水分・排泄管理 / 感染予防 / 転倒予防"
+  interventions_ja:
+    - "バイタル4回/日"
+    - "食事摂取量確認"
+    - "ADL支援"
+    - "服薬確認"

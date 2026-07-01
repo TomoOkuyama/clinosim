@@ -80,3 +80,20 @@ probability: 0.08
 age_distribution: all
 sex_ratio_female: 1.2
 seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
+
+narrative:
+  ed_note_template:
+    chief_complaint_ja: '{chief_complaint_ja}の訴え'
+    hpi_ja: '{onset_days}日前より腹痛・嘔気が出現。部位：臍周囲〜下腹部、性質：持続性・間欠性。発熱・下痢・血便はなし。既往歴・手術歴は問診票参照。'
+    physical_exam_ja:
+      general: 意識清明、{severity_desc_ja}
+      cardiovascular: 心拍数正常〜軽度頻脈、心音整
+      respiratory: 呼吸数正常、呼吸音清明
+      abdominal: 腹部：平坦〜軽度膨満、腸音減弱〜亢進。圧痛：{pain_site_ja}。腹膜刺激徴候：{peritoneal_sign_ja}。Murphy徴候陰性。
+      neurological: 麻痺なし、意識障害なし
+    ed_workup_summary_ja: 血液検査（WBC・CRP・肝酵素・クレアチニン）施行。{imaging_summary_ja}。尿検査：{ua_result_ja}。
+    disposition_ja: '{disposition_display_ja}。外来フォローアップ：症状増悪時・発熱出現時は再診。'
+  ed_triage_template:
+    common_triage_levels:
+    - '3'
+    - '4'

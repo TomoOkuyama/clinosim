@@ -1,8 +1,8 @@
-"""Document module POST_ENCOUNTER enricher (Tier 1 #3 α-min-1 Task 8, AD-55).
+"""Document module POST_ENCOUNTER enricher (Tier 1 #3 α-min-2 Task 10, AD-55).
 
 Generates ClinicalDocument stubs (Stage 1 text via TemplateNarrativeGenerator)
 and ClinicalImpressionRecord entries (daily working-diagnosis updates) for each
-inpatient encounter.
+encounter that has applicable document specs.
 
 Architecture:
 - POST_ENCOUNTER order=95 (after imaging=90)
@@ -10,17 +10,29 @@ Architecture:
 - Writes to record.documents (list[ClinicalDocument]) and
   record.extensions["clinical_impressions"] (list[ClinicalImpressionRecord])
 - Locale gating via specs_for_country(country) — only applicable specs emitted
+- Encounter-type gating via specs_for_encounter_type(enc_type) — per-spec allowlist
+  (DocumentTypeSpec.encounter_types_supported); α-min-1 specs declare [inpatient,
+  icu, rehab_inpatient]; α-min-2 outpatient/ED specs declare their own allowlists
 - All field reads via _o() for dict/dataclass dual access (silent-no-op defense)
 - DOC_REFERENCE_ID_PREFIX + CLINICAL_IMPRESSION_ID_PREFIX from __init__.py
   are the writer-owned canonical constants (reader Task 9 imports from here)
 
-Encounter type restriction (α-min-1 scope):
-  INPATIENT / ICU / REHAB_INPATIENT → documents + impressions generated.
-  OUTPATIENT / EMERGENCY / other types → skipped (future phases extend).
+Supported generation_frequency values (α-min-2):
+  admission_once  → 1 document at day 0 (inpatient H&P, nursing assessment)
+  daily           → 1 document per LOS day (progress note, nursing shift)
+  discharge_once  → 1 document at final day, skipped if in-progress (AD-32)
+  encounter_once  → 1 document at day 0 for outpatient/ED encounters
+
+ClinicalImpression gating (spec §3.3):
+  INPATIENT / ICU / REHAB_INPATIENT → ClinicalImpressionRecord daily (unchanged).
+  OUTPATIENT / EMERGENCY / other types → NO ClinicalImpression
+  (CI is "daily working diagnosis update"; not applicable for single-visit encounters).
 
 AD-32 snapshot compliance:
   DISCHARGE_SUMMARY (generation_frequency="discharge_once") is skipped when
   encounter.discharge_datetime is None (in-progress / snapshot truncation).
+  For encounter_once specs (outpatient/ED) with discharge_datetime=None, the
+  document is emitted anyway (single-visit context; AD-32 in-progress is rare).
 
 Stage 1 / Stage 2 lifecycle:
   Stage 1 (this module): text filled by TemplateNarrativeGenerator via
@@ -41,15 +53,17 @@ from clinosim.modules.document import (
     CLINICAL_IMPRESSION_ID_PREFIX,
     DOC_REFERENCE_ID_PREFIX,
     specs_for_country,
+    specs_for_encounter_type,
 )
 from clinosim.modules.document.narrative.context import build_narrative_context
 from clinosim.modules.document.narrative.llm_generator import LLMNarrativeGenerator
 from clinosim.types.clinical import ClinicalDocument, ClinicalImpressionRecord
 from clinosim.types.document import DocumentType, FormatType, NarrativeOutput
 
-# α-min-1 scope: multi-day encounter types only.
-# OUTPATIENT / EMERGENCY are future phases (β / γ).
-_INPATIENT_ENCOUNTER_TYPES: frozenset[str] = frozenset({
+# Encounter types that receive daily ClinicalImpressionRecords (spec §3.3).
+# CI is a "daily working diagnosis update" — only meaningful for multi-day inpatient stays.
+# Outpatient / Emergency encounters do NOT receive ClinicalImpression entries.
+_CI_ENCOUNTER_TYPES: frozenset[str] = frozenset({
     "inpatient",
     "icu",
     "rehab_inpatient",
@@ -124,11 +138,12 @@ def _narrative_to_text(output: NarrativeOutput, format_type: FormatType) -> str:
 def document_enricher(ctx: Any) -> None:
     """POST_ENCOUNTER enricher: emit ClinicalDocument stubs + ClinicalImpressionRecords.
 
-    Per inpatient encounter in ctx.records:
-      - admission_once specs → 1 document at day 0
-      - daily specs          → 1 document per LOS day
-      - discharge_once specs → 1 document at day LOS-1, skipped if in-progress (AD-32)
-      - ClinicalImpressionRecord → 1 per LOS day (always; locale-independent)
+    Per encounter in ctx.records (country × encounter_type intersection applied):
+      - admission_once specs  → 1 document at day 0
+      - daily specs           → 1 document per LOS day (skipped for LOS=1; spec §7)
+      - discharge_once specs  → 1 document at day LOS-1, skipped if in-progress (AD-32)
+      - encounter_once specs  → 1 document at day 0 (outpatient / ED single-visit)
+      - ClinicalImpressionRecord → 1 per LOS day (inpatient/icu/rehab_inpatient only; spec §3.3)
 
     EnricherContext interface (POST_ENCOUNTER):
       ctx.master_seed  — int
@@ -136,9 +151,13 @@ def document_enricher(ctx: Any) -> None:
       ctx.config       — SimulatorConfig-like; ctx.config.country = "us" | "jp"
     """
     country: str = str(_o(ctx.config, "country", "us") or "us").lower()
-    specs = specs_for_country(country)
     lang = "ja" if country == "jp" else "en"
     generator = LLMNarrativeGenerator()
+
+    # Pre-compute country spec key set once per enricher call (lru_cache hit on repeated calls).
+    country_spec_keys: frozenset[str] = frozenset(
+        s.type_key for s in specs_for_country(country)
+    )
 
     for record in ctx.records:
         patient = _o(record, "patient", None)
@@ -160,12 +179,22 @@ def document_enricher(ctx: Any) -> None:
 
         for encounter in _o(record, "encounters", []) or []:
             enc_type_val = _enc_type_value(_o(encounter, "encounter_type", None))
-            if enc_type_val not in _INPATIENT_ENCOUNTER_TYPES:
-                continue  # outpatient / emergency → future phases
 
             enc_status_val = _enc_status_value(_o(encounter, "status", None))
             if enc_status_val in _CANCELLED_STATUSES:
                 continue  # AD-32: cancelled encounters produce no documents
+
+            # Per-spec encounter-type × country intersection.
+            # specs_for_encounter_type is lru_cache(maxsize=4); cheap repeated call.
+            applicable_specs = [
+                s for s in specs_for_encounter_type(enc_type_val)
+                if s.type_key in country_spec_keys
+            ]
+
+            emit_ci = enc_type_val in _CI_ENCOUNTER_TYPES
+
+            if not applicable_specs and not emit_ci:
+                continue  # unknown encounter type or no specs + no CI → skip
 
             encounter_id: str = _o(encounter, "encounter_id", "") or ""
             # AD-16: datetime.now() is non-deterministic; use fixed sentinel as fallback.
@@ -197,8 +226,8 @@ def document_enricher(ctx: Any) -> None:
                 except (FileNotFoundError, Exception):
                     disease_protocol = None  # unknown disease_id → fall through to defaults
 
-            # ── Document generation (per spec) ───────────────────────────────
-            for spec in specs:
+            # ── Document generation (per applicable spec) ────────────────────
+            for spec in applicable_specs:
                 freq = spec.generation_frequency
                 doc_type = DocumentType(spec.type_key)
 
@@ -232,9 +261,9 @@ def document_enricher(ctx: Any) -> None:
                     doc_seq += 1
 
                 elif freq == "daily":
-                    # Spec §7: PROGRESS_NOTE skipped for LOS=1 same-day encounters.
+                    # Spec §7: daily notes skipped for LOS=1 same-day encounters.
                     # A same-day admission/discharge has an H&P and discharge summary;
-                    # a progress note in between is clinically redundant.
+                    # intermediate notes are clinically redundant.
                     if los_days <= 1:
                         continue
                     for day in range(los_days):
@@ -299,21 +328,56 @@ def document_enricher(ctx: Any) -> None:
                     ))
                     doc_seq += 1
 
-            # ── ClinicalImpression generation (per LOS day, always) ──────────
-            for day in range(los_days):
-                day_dt = admission_dt + timedelta(days=day)
-                # AD-32: the last day of an in-progress encounter is "in-progress"
-                # (encounter still open; prior days remain "completed").
-                last_day_of_in_progress = is_in_progress and (day == los_days - 1)
-                clinical_impressions.append(ClinicalImpressionRecord(
-                    impression_id=f"{CLINICAL_IMPRESSION_ID_PREFIX}{encounter_id}-{day}",
-                    encounter_id=encounter_id,
-                    date=day_dt.date(),
-                    day_index=day,
-                    description=f"Day {day + 1} clinical assessment",
-                    practitioner_id=attending_id,
-                    is_in_progress=last_day_of_in_progress,
-                ))
+                elif freq == "encounter_once":
+                    # Single-visit encounters (outpatient SOAP, ED note, ED triage note).
+                    # Emit at day 0; period covers full encounter duration.
+                    # AD-32: if discharge_dt is None (rare in-progress outpatient/ED),
+                    # still emit — single-visit context makes partial data meaningful.
+                    end_dt = discharge_dt or admission_dt
+                    ctx_n = build_narrative_context(
+                        record=record,
+                        encounter=encounter,
+                        document_type=doc_type,
+                        day_index=0,
+                        country=country,
+                        los_days=los_days,
+                        disease_protocol=disease_protocol,
+                    )
+                    output = generator.generate(ctx_n, spec)
+                    documents.append(ClinicalDocument(
+                        document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
+                        task_type=spec.type_key,
+                        loinc_code=spec.loinc_code,
+                        patient_id=pid,
+                        encounter_id=encounter_id,
+                        author_practitioner_id=attending_id,
+                        authored_datetime=admission_dt.isoformat(),
+                        period_start=admission_dt.isoformat(),
+                        period_end=end_dt.isoformat(),
+                        language=lang,
+                        text=_narrative_to_text(output, spec.format_type),
+                        text_source=output.metadata.get("generator", "template"),
+                        sections=dict(output.sections),
+                        format_type=spec.format_type.value,
+                    ))
+                    doc_seq += 1
+
+            # ── ClinicalImpression generation (inpatient types only; spec §3.3) ─
+            if emit_ci:
+                for day in range(los_days):
+                    day_dt = admission_dt + timedelta(days=day)
+                    # AD-32: the last day of an in-progress encounter is "in-progress"
+                    # (encounter still open; prior days remain "completed").
+                    last_day_of_in_progress = is_in_progress and (day == los_days - 1)
+                    clinical_impressions.append(ClinicalImpressionRecord(
+                        impression_id=f"{CLINICAL_IMPRESSION_ID_PREFIX}{encounter_id}-{day}",
+                        encounter_id=encounter_id,
+                        date=day_dt.date(),
+                        day_index=day,
+                        description=f"Day {day + 1} clinical assessment",
+                        practitioner_id=attending_id,
+                        is_in_progress=last_day_of_in_progress,
+                    ))
 
         # ── Write back to record ─────────────────────────────────────────────
         # documents: typed field on CIFPatientRecord; assignable on both dict and object.

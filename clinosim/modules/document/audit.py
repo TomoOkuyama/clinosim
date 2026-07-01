@@ -1,25 +1,29 @@
-"""Document chain AD-60 audit module (Tier 1 #3 α-min-1 Task 11).
+"""Document chain AD-60 audit module (Tier 1 #3 α-min-1 Task 11; α-min-2 Task 13).
 
 AD-60 plug-in #5 (after hai, antibiotic, order_service_request, imaging).
 
 Verifies CIF -> FHIR emission integrity for the document pipeline:
-DocumentReference / Composition / AllergyIntolerance / ClinicalImpression.
+DocumentReference / Composition / AllergyIntolerance / ClinicalImpression / CareTeam.
 
-15+ equality_checks in lift_firing_proof guard canonical constants and
+24+ equality_checks in lift_firing_proof guard canonical constants and
 no-drop emission paths against PR-90 class silent-no-op regression.
 
 Registered checks:
 - canonical_constants: DOC_REFERENCE_ID_PREFIX / COMPOSITION_ID_PREFIX /
-  ALLERGY_ID_PREFIX / CLINICAL_IMPRESSION_ID_PREFIX
-  (4 constants, import-time ownership enforced via import from clinosim.modules.document).
+  ALLERGY_ID_PREFIX / CLINICAL_IMPRESSION_ID_PREFIX / CARE_TEAM_ID_PREFIX
+  (5 constants, import-time ownership enforced via import from module writers).
 - clinical_acceptance: per-encounter doc count + ClinicalImpression daily
-  emission + AllergyIntolerance distribution targets for Task 12 DQR gate.
-- lift_firing_proof (_build_document_proof): exercises _bb_document_references,
-  _bb_compositions, _bb_allergy_intolerances, _bb_clinical_impressions on
-  synthetic ClinicalDocument / Allergy / ClinicalImpressionRecord inputs.
-  17 equality_checks:
+  emission + AllergyIntolerance distribution targets + CareTeam/triage/nursing/
+  outpatient/ED per-encounter targets for Task 12+ DQR gate (13 keys total).
+- lift_firing_proof (_build_document_proof): exercises FHIR builders on
+  synthetic CIF inputs.
+  α-min-1 17 equality_checks:
     4 canonical constants + 4 emission counts + 3 ID-prefix invariants +
     5 no-drop invariants (Section 3.4 CIF→FHIR emission matrix) + 1 extra.
+  α-min-2 +7 equality_checks (total = 24):
+    1 canonical constant (CARE_TEAM_ID_PREFIX) + 2 emission/prefix invariants +
+    2 CIF→FHIR no-drop for CareTeam fields + 3 dispatch no-drop invariants
+    (outpatient/emergency/inpatient specs_for_encounter_type coverage).
 
 TODO(jp_language_audit): jp_language_checks not implemented — ModuleAuditSpec
 does not have a jp_language_checks field. Deferred to a follow-up sweep
@@ -39,6 +43,7 @@ from clinosim.modules.document import (
     COMPOSITION_ID_PREFIX,
     DOC_REFERENCE_ID_PREFIX,
 )
+from clinosim.modules.output._fhir_care_team import CARE_TEAM_ID_PREFIX
 
 
 def _build_document_proof() -> dict[str, Any]:
@@ -60,10 +65,12 @@ def _build_document_proof() -> dict[str, Any]:
     # Lazy imports: defer FHIR builder imports to proof time (avoids import-time
     # overhead; same pattern as imaging/audit.py _build_imaging_proof).
     from clinosim.modules.output._fhir_allergy_intolerance import _bb_allergy_intolerances
+    from clinosim.modules.output._fhir_care_team import _bb_care_teams
     from clinosim.modules.output._fhir_clinical_impression import _bb_clinical_impressions
     from clinosim.modules.output._fhir_composition import _bb_compositions
     from clinosim.modules.output._fhir_documents import _bb_document_references
     from clinosim.modules.output._fhir_common import BundleContext
+    from clinosim.modules.document import specs_for_encounter_type
 
     # Synthetic free-text ClinicalDocument (PROGRESS_NOTE, LOINC 11506-3).
     # This is the actual production free_text format (DocumentReference path).
@@ -141,7 +148,19 @@ def _build_document_proof() -> dict[str, Any]:
         "practitioner_id": "dr-proof",
     }
 
+    # Synthetic encounter for CareTeam proof (α-min-2 Task 13).
+    # nurse_id is non-empty so _bb_care_teams emits participant[1] (nurse slot).
+    proof_encounter = {
+        "encounter_id": "enc-ct-proof",
+        "attending_physician_id": "dr-attending-proof",
+        "primary_nurse_id": "nurse-001-proof",
+        "admission_datetime": "2026-01-10T08:00:00",
+        "discharge_datetime": None,
+    }
+
     # Build BundleContext with dict record (production JSON-deserialized CIF path).
+    # encounters list is added for CareTeam builder proof; existing builders
+    # (documents / allergy / clinical_impressions) ignore it.
     ctx = BundleContext(
         record={
             "documents": [free_text_doc, composition_doc],
@@ -152,6 +171,7 @@ def _build_document_proof() -> dict[str, Any]:
             "extensions": {
                 "clinical_impressions": [clinical_impression],
             },
+            "encounters": [proof_encounter],
         },
         country="US",
         roster_map={},
@@ -167,11 +187,12 @@ def _build_document_proof() -> dict[str, Any]:
         patient_sex="M",
     )
 
-    # Run all four builders.
+    # Run all five builders.
     dref_out = _bb_document_references(ctx)
     comp_out = _bb_compositions(ctx)
     allergy_out = _bb_allergy_intolerances(ctx)
     ci_out = _bb_clinical_impressions(ctx)
+    ct_out = _bb_care_teams(ctx)
 
     # Validate builder outputs before building equality_checks
     # (assert early so failures are surfaced as errors, not silent list-index failures).
@@ -191,11 +212,26 @@ def _build_document_proof() -> dict[str, Any]:
         "document proof: _bb_clinical_impressions returned empty list for synthetic input; "
         "builder may be silently no-op (PR-90 class)"
     )
+    assert ct_out, (
+        "document proof: _bb_care_teams returned empty list for synthetic encounter input; "
+        "builder may be silently no-op (PR-90 class)"
+    )
 
     dref = dref_out[0]
     comp = comp_out[0]
     allergy = allergy_out[0]
     ci = ci_out[0]
+    ct = ct_out[0]
+
+    # α-min-2: encounter-type dispatch proof via specs_for_encounter_type.
+    outpatient_type_keys = {s.type_key for s in specs_for_encounter_type("outpatient")}
+    emergency_type_keys = {s.type_key for s in specs_for_encounter_type("emergency")}
+    inpatient_type_keys = {s.type_key for s in specs_for_encounter_type("inpatient")}
+    _nursing_type_keys: set[str] = {
+        "admission_nursing_assessment",
+        "nursing_shift_note",
+        "nursing_discharge_summary",
+    }
 
     return {
         "equality_checks": [
@@ -289,6 +325,59 @@ def _build_document_proof() -> dict[str, Any]:
                 ci["id"].startswith(CLINICAL_IMPRESSION_ID_PREFIX),
                 True,
             ),
+            # === α-min-2 additions (Task 13) — 7 new checks; total = 24 ===
+            # --- 1 canonical constant: CARE_TEAM_ID_PREFIX ---
+            (
+                "CARE_TEAM_ID_PREFIX",
+                CARE_TEAM_ID_PREFIX,
+                "careteam-",
+            ),
+            # --- 2 emission + ID-prefix invariants for CareTeam ---
+            (
+                "CareTeam emitted when encounter in record.encounters",
+                len(ct_out) > 0,
+                True,
+            ),
+            (
+                "no_drop: encounter.encounter_id → CareTeam.id starts with CARE_TEAM_ID_PREFIX",
+                ct["id"].startswith(CARE_TEAM_ID_PREFIX),
+                True,
+            ),
+            # --- 2 CIF → FHIR no-drop invariants for CareTeam fields ---
+            (
+                "no_drop: encounter.attending_physician_id → CareTeam.participant[0].member.reference",
+                ct["participant"][0]["member"]["reference"],
+                "Practitioner/dr-attending-proof",
+            ),
+            (
+                "no_drop: encounter.primary_nurse_id → CareTeam.participant[1].member.reference",
+                len(ct["participant"]) >= 2,
+                True,
+            ),
+            # --- 3 encounter-type dispatch no-drop invariants ---
+            (
+                "no_drop: encounter_type='outpatient' → OUTPATIENT_SOAP spec dispatched",
+                "outpatient_soap" in outpatient_type_keys,
+                True,
+            ),
+            (
+                "no_drop: encounter_type='emergency' → ED_NOTE + ED_TRIAGE_NOTE dispatched",
+                {"ed_note", "ed_triage_note"}.issubset(emergency_type_keys),
+                True,
+            ),
+            (
+                "no_drop: triage_data.level → ED_TRIAGE_NOTE LOINC 54094-8 in emergency dispatch",
+                any(
+                    s.loinc_code == "54094-8"
+                    for s in specs_for_encounter_type("emergency")
+                ),
+                True,
+            ),
+            (
+                "no_drop: encounter_type='inpatient' → 3 nursing doc types dispatched",
+                _nursing_type_keys.issubset(inpatient_type_keys),
+                True,
+            ),
         ]
     }
 
@@ -301,9 +390,12 @@ register_audit_module(
             "composition_id_prefix": (COMPOSITION_ID_PREFIX,),
             "allergy_id_prefix": (ALLERGY_ID_PREFIX,),
             "clinical_impression_id_prefix": (CLINICAL_IMPRESSION_ID_PREFIX,),
+            # α-min-2 addition (Task 13)
+            "care_team_id_prefix": (CARE_TEAM_ID_PREFIX,),
         },
         lift_firing_proof=_build_document_proof,
         clinical_acceptance={
+            # α-min-1 (5 keys)
             "h_and_p_per_inpatient_encounter": "== 1",
             "progress_note_per_day_per_inpatient": ">= 0.8",
             "discharge_summary_per_completed_inpatient": "== 1",
@@ -311,6 +403,15 @@ register_audit_module(
             "allergy_per_patient_distribution": (
                 "matches allergens.yaml prevalence ±0.05 (overall 15% ±0.05 baseline-calibrated Task 2)"
             ),
+            # α-min-2 additions (8 keys, Task 13 per spec §9.3)
+            "care_team_per_encounter": "== 1",
+            "triage_data_per_ed_encounter": "== 1",
+            "admission_nursing_assessment_per_inpatient_encounter": "== 1",
+            "nursing_shift_note_per_day_per_inpatient": ">= 0.8",
+            "nursing_discharge_summary_per_completed_inpatient": "== 1",
+            "outpatient_soap_per_outpatient_encounter": "== 1",
+            "ed_note_per_ed_encounter": "== 1",
+            "ed_triage_note_per_ed_encounter": "== 1",
         },
     )
 )

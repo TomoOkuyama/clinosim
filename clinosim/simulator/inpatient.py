@@ -472,6 +472,7 @@ def _simulate_patient(
             config=config,
             master_seed=config.random_seed,
             records=[record],
+            roster=roster,  # nursing_enricher (order=94) samples primary_nurse_id from roster
         ),
     )
 
