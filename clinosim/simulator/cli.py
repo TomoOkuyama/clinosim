@@ -10,13 +10,12 @@ import numpy as np
 
 from clinosim.modules.patient.activator import activate_patient
 from clinosim.modules.staff.engine import generate_roster
-from clinosim.types.config import ForcedScenario, SimulatorConfig
-from clinosim.types.encounter import EncounterType
-from clinosim.types.output import CIFDataset, CIFPatientRecord
-
 from clinosim.simulator.emergency import _simulate_ed_visit
 from clinosim.simulator.engine import run_beta, run_forced
 from clinosim.simulator.helpers import _load_all_disease_protocols
+from clinosim.types.config import ForcedScenario, SimulatorConfig
+from clinosim.types.encounter import EncounterType
+from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord
 
 
 def main() -> None:
@@ -33,26 +32,43 @@ def main() -> None:
     gen = sub.add_parser("generate", help="Generate patient data from population simulation")
     gen.add_argument("-o", "--output", default="./output", help="Output directory")
     gen.add_argument(
-        "-p", "--population", type=int, default=argparse.SUPPRESS,
+        "-p",
+        "--population",
+        type=int,
+        default=argparse.SUPPRESS,
         help="Catchment population (default: hospital recommended)",
     )
     gen.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
     gen.add_argument("--country", default="US", help="Country code (US or JP)")
-    gen.add_argument("--start", default=None, help="Simulation start date YYYY-MM-DD (default: 1 year before --end)")
-    gen.add_argument("--end", default=None, help="Simulation end date / snapshot date YYYY-MM-DD (default: today). Inpatients still admitted on this date have no discharge.")
     gen.add_argument(
-        "--format", nargs="+", default=["cif"],
-        help="Output formats: cif, csv, fhir-r4 (alias: fhir). "
-             "Add more by registering an OutputAdapter (AD-58).",
+        "--start",
+        default=None,
+        help="Simulation start date YYYY-MM-DD (default: 1 year before --end)",
     )
-    gen.add_argument("--hospital-config", default=None, help="Hospital operations YAML (default: config/hospital_operations.yaml)")
+    gen.add_argument(
+        "--end",
+        default=None,
+        help="Simulation end date / snapshot date YYYY-MM-DD (default: today). Inpatients still admitted on this date have no discharge.",
+    )
+    gen.add_argument(
+        "--format",
+        nargs="+",
+        default=["cif"],
+        help="Output formats: cif, csv, fhir-r4 (alias: fhir). "
+        "Add more by registering an OutputAdapter (AD-58).",
+    )
+    gen.add_argument(
+        "--hospital-config",
+        default=None,
+        help="Hospital operations YAML (default: config/hospital_operations.yaml)",
+    )
     gen.add_argument(
         "--jp-insurance",
         action=argparse.BooleanOptionalAction,
         default=True,
         help="(JP only) Include Japanese insurance enrollment / 被保険者番号 "
-             "(emitted as FHIR Coverage). Use --no-jp-insurance to omit. "
-             "Ignored for non-JP countries.",
+        "(emitted as FHIR Coverage). Use --no-jp-insurance to omit. "
+        "Ignored for non-JP countries.",
     )
 
     # === test-disease: generate specific disease/archetype ===
@@ -68,12 +84,16 @@ def main() -> None:
     # 10-second targeted verify without regenerating a full cohort. When -o is
     # omitted (default), the original stdout debug print is unchanged.
     td.add_argument(
-        "--format", nargs="+", default=None,
+        "--format",
+        nargs="+",
+        default=None,
         choices=["cif", "fhir-r4", "csv", "all"],
         help="Output formats (requires -o/--output; if omitted, stdout debug only)",
     )
     td.add_argument(
-        "-o", "--output", default=None,
+        "-o",
+        "--output",
+        default=None,
         help="Output directory (required when --format is set)",
     )
 
@@ -91,21 +111,27 @@ def main() -> None:
         "narrate",
         help="Generate narrative CIF from a structural CIF directory (AD-65 Stage 2)",
     )
-    nr.add_argument("--cif-dir", required=True,
-                    help="Path to structural CIF directory")
-    nr.add_argument("--provider", default="template",
-                    choices=["template", "bedrock", "ollama"],
-                    help="Narrative generator (β-JP-1 for LLM providers)")
-    nr.add_argument("--version-id", default=None,
-                    help="Narrative version directory name (default: template)")
-    nr.add_argument("--tasks", default=None,
-                    help="Comma-separated LLMTaskType filter (default: all)")
+    nr.add_argument("--cif-dir", required=True, help="Path to structural CIF directory")
+    nr.add_argument(
+        "--provider",
+        default="template",
+        choices=["template", "bedrock", "ollama"],
+        help="Narrative generator (β-JP-1 for LLM providers)",
+    )
+    nr.add_argument(
+        "--version-id", default=None, help="Narrative version directory name (default: template)"
+    )
+    nr.add_argument(
+        "--tasks", default=None, help="Comma-separated LLMTaskType filter (default: all)"
+    )
     nr.add_argument("--country", default="US")
-    nr.add_argument("--set-current", action=argparse.BooleanOptionalAction,
-                    default=True,
-                    help="Update current_version.txt to point to the new version")
-    nr.add_argument("--seed", type=int, default=42,
-                    help="RNG seed for determinism")
+    nr.add_argument(
+        "--set-current",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Update current_version.txt to point to the new version",
+    )
+    nr.add_argument("--seed", type=int, default=42, help="RNG seed for determinism")
 
     # === export-fhir: Stage 3 — convert CIF to FHIR NDJSON ===
     ef = sub.add_parser(
@@ -114,33 +140,60 @@ def main() -> None:
     )
     ef.add_argument("--cif-dir", required=True, help="Path to an existing CIF directory")
     ef.add_argument(
-        "-o", "--output", default=None,
+        "-o",
+        "--output",
+        default=None,
         help="FHIR output directory (default: <cif-dir>/../fhir_r4)",
     )
     ef.add_argument("--country", default="US", help="Country code (US or JP)")
     ef.add_argument(
-        "--narrative-version", default="current",
+        "--narrative-version",
+        default="current",
         help="Narrative version to select (default: current from pointer file)",
     )
 
     # === test-encounter: debug single encounter condition ===
-    te = sub.add_parser("test-encounter", help="Simulate one patient for an encounter condition (debug)")
-    te.add_argument("condition_id", help="Condition ID (e.g., chest_pain_noncardiac, flu_vaccination)")
+    te = sub.add_parser(
+        "test-encounter", help="Simulate one patient for an encounter condition (debug)"
+    )
+    te.add_argument(
+        "condition_id", help="Condition ID (e.g., chest_pain_noncardiac, flu_vaccination)"
+    )
     te.add_argument("-n", "--count", type=int, default=1, help="Number of patients")
     te.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
     te.add_argument("--country", default="US", help="Country code")
     te.add_argument("--age", type=int, default=None, help="Force patient age")
     te.add_argument("--sex", default=None, help="Force patient sex (M/F)")
+    # AD-65 Phase 4 (Task 17): mirrors test-disease pattern — when -o is set, run the
+    # full 3-stage pipeline (structural CIF + template narrative + FHIR/CSV) for a tiny
+    # encounter-specific cohort. When -o is omitted (default), original stdout debug
+    # print is unchanged.
+    te.add_argument(
+        "--format",
+        nargs="+",
+        default=None,
+        choices=["cif", "fhir-r4", "csv", "all"],
+        help="Output formats (requires -o/--output; if omitted, stdout debug only)",
+    )
+    te.add_argument(
+        "-o",
+        "--output",
+        default=None,
+        help="Output directory (required when --format is set)",
+    )
 
     # === audit: verification framework ===
     from clinosim.audit.cli import add_audit_subparser
+
     add_audit_subparser(sub)
 
     args = parser.parse_args()
 
     if args.command == "audit":
-        from clinosim.audit.cli import dispatch_audit
         import sys
+
+        from clinosim.audit.cli import dispatch_audit
+
         sys.exit(dispatch_audit(args))
 
     if args.command == "list-diseases":
@@ -151,6 +204,7 @@ def main() -> None:
             print(f"  {name:35s} | {p.chief_complaint[:50]}")
 
         from clinosim.modules.encounter.protocol import load_all_encounter_conditions
+
         ed_conditions = load_all_encounter_conditions()
         print(f"\n{len(ed_conditions)} ED/outpatient encounter conditions:")
         for name in sorted(ed_conditions.keys()):
@@ -159,6 +213,8 @@ def main() -> None:
         return
 
     if args.command == "test-encounter":
+        if args.format and not args.output:
+            parser.error("--format requires -o/--output to be set")
         _run_test_encounter(args)
         return
 
@@ -179,7 +235,8 @@ def main() -> None:
     if args.command == "validate":
         config = SimulatorConfig(
             catchment_population=args.population,
-            random_seed=args.seed, country=args.country,
+            random_seed=args.seed,
+            country=args.country,
         )
         print(f"clinosim validate: pop={args.population}, country={args.country}")
         dataset = run_beta(config)
@@ -188,12 +245,16 @@ def main() -> None:
 
     if args.command == "generate":
         _validate_formats(args.format, parser)  # fail fast on bad --format (AD-58)
-        from datetime import date, timedelta as _td
+        from datetime import date
+        from datetime import timedelta as _td
+
         # Default end = today, default start = end - 1 year
-        end_date = (datetime.strptime(args.end, "%Y-%m-%d").date()
-                    if args.end else date.today())
-        start_date = (datetime.strptime(args.start, "%Y-%m-%d").date()
-                      if args.start else end_date - _td(days=365))
+        end_date = datetime.strptime(args.end, "%Y-%m-%d").date() if args.end else date.today()
+        start_date = (
+            datetime.strptime(args.start, "%Y-%m-%d").date()
+            if args.start
+            else end_date - _td(days=365)
+        )
         end = end_date.strftime("%Y-%m-%d")
         start = start_date.strftime("%Y-%m-%d")
         # Bug D fix: -p uses argparse.SUPPRESS as default, so args.population is only
@@ -210,7 +271,9 @@ def main() -> None:
         )
         hospital_cfg = getattr(args, "hospital_config", None)
         pop_label = str(population_arg) if population_arg is not None else "hospital recommended"
-        print(f"clinosim generate: population={pop_label}, seed={args.seed}, country={args.country}, period={start}~{end}")
+        print(
+            f"clinosim generate: population={pop_label}, seed={args.seed}, country={args.country}, period={start}~{end}"
+        )
         if args.country == "JP":
             status = "on" if args.jp_insurance else "off"
             print(f"  JP insurance numbers (被保険者番号): {status}")
@@ -224,6 +287,7 @@ def main() -> None:
 
     # Output
     from clinosim.modules.output.cif_writer import write_cif
+
     cif_dir = os.path.join(args.output, "cif")
     write_cif(dataset, cif_dir)
 
@@ -231,8 +295,11 @@ def main() -> None:
     # always emit-ready. `clinosim narrate` remains available to regenerate
     # (or LLM-narrate, once β-JP-1 lands) on top of an existing structural CIF.
     from clinosim.modules.document.narrative.passes import TemplateNarrativePass
+
     _narrative_pass = TemplateNarrativePass(
-        cif_dir=cif_dir, version_id="template", country=args.country,
+        cif_dir=cif_dir,
+        version_id="template",
+        country=args.country,
         rng_seed=args.seed,
     )
     _narrative_pass.run()
@@ -301,19 +368,27 @@ def _print_summary(dataset: CIFDataset, output_dir: str) -> None:
     from collections import Counter, defaultdict
 
     all_records = dataset.patients
-    inpatients = [r for r in all_records if r.encounters and r.encounters[0].encounter_type.value == "inpatient"]
-    outpatients = [r for r in all_records if r.encounters and r.encounters[0].encounter_type.value == "outpatient"]
+    inpatients = [
+        r
+        for r in all_records
+        if r.encounters and r.encounters[0].encounter_type.value == "inpatient"
+    ]
+    outpatients = [
+        r
+        for r in all_records
+        if r.encounters and r.encounters[0].encounter_type.value == "outpatient"
+    ]
     readmits = [r for r in inpatients if r.is_readmission]
     deceased = [r for r in all_records if r.deceased]
 
-    print(f"\n{'='*50}")
-    print(f"  clinosim generation complete")
-    print(f"{'='*50}")
+    print(f"\n{'=' * 50}")
+    print("  clinosim generation complete")
+    print(f"{'=' * 50}")
     print(f"  Total records:  {len(all_records)}")
     print(f"    Inpatient:    {len(inpatients)} ({len(readmits)} readmissions)")
     print(f"    Outpatient:   {len(outpatients)}")
     print(f"    Deceased:     {len(deceased)}")
-    print(f"  Data volume:")
+    print("  Data volume:")
     print(f"    Lab results:  {sum(len(r.lab_results) for r in all_records):,}")
     print(f"    Vital signs:  {sum(len(r.vital_signs) for r in all_records):,}")
     print(f"    MAR entries:  {sum(len(r.medication_administrations) for r in all_records):,}")
@@ -324,12 +399,16 @@ def _print_summary(dataset: CIFDataset, output_dir: str) -> None:
     by_disease = Counter()
     los_by_disease = defaultdict(list)
     for r in inpatients:
-        d = r.condition_event.ground_truth_diseases[0] if r.condition_event.ground_truth_diseases else "?"
+        d = (
+            r.condition_event.ground_truth_diseases[0]
+            if r.condition_event.ground_truth_diseases
+            else "?"
+        )
         by_disease[d] += 1
         los_by_disease[d].append(len(r.physiological_states) - 1)
 
     if by_disease:
-        print(f"\n  Disease distribution (inpatient):")
+        print("\n  Disease distribution (inpatient):")
         for d, n in by_disease.most_common(10):
             avg_los = sum(los_by_disease[d]) / len(los_by_disease[d])
             print(f"    {d:30s} {n:4d}  (LOS avg {avg_los:.1f}d)")
@@ -342,14 +421,28 @@ def _run_quality_checks(dataset: CIFDataset) -> None:
     from collections import Counter
 
     records = dataset.patients
-    inpatients = [r for r in records if r.encounters and r.encounters[0].encounter_type == EncounterType.INPATIENT]
-    outpatients = [r for r in records if r.encounters and r.encounters[0].encounter_type == EncounterType.OUTPATIENT]
-    ed_visits = [r for r in records if r.encounters and r.encounters[0].encounter_type == EncounterType.EMERGENCY]
+    inpatients = [
+        r
+        for r in records
+        if r.encounters and r.encounters[0].encounter_type == EncounterType.INPATIENT
+    ]
+    outpatients = [
+        r
+        for r in records
+        if r.encounters and r.encounters[0].encounter_type == EncounterType.OUTPATIENT
+    ]
+    ed_visits = [
+        r
+        for r in records
+        if r.encounters and r.encounters[0].encounter_type == EncounterType.EMERGENCY
+    ]
 
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print("  Data Quality Report")
-    print(f"{'='*50}")
-    print(f"  Records: {len(records)} (inp={len(inpatients)}, opd={len(outpatients)}, ed={len(ed_visits)})")
+    print(f"{'=' * 50}")
+    print(
+        f"  Records: {len(records)} (inp={len(inpatients)}, opd={len(outpatients)}, ed={len(ed_visits)})"
+    )
 
     issues = 0
 
@@ -359,7 +452,7 @@ def _run_quality_checks(dataset: CIFDataset) -> None:
         print(f"  ❌ Labs missing units: {no_unit}")
         issues += 1
     else:
-        print(f"  ✅ All labs have units")
+        print("  ✅ All labs have units")
 
     # Check: all records have diagnosis
     no_dx = sum(1 for r in records if not r.clinical_diagnosis.discharge_diagnosis_code)
@@ -367,7 +460,7 @@ def _run_quality_checks(dataset: CIFDataset) -> None:
         print(f"  ❌ Records missing diagnosis: {no_dx}")
         issues += 1
     else:
-        print(f"  ✅ All records have diagnosis codes")
+        print("  ✅ All records have diagnosis codes")
 
     # Check: inpatients have vitals, labs, MARs
     inp_no_vitals = sum(1 for r in inpatients if not r.vital_signs)
@@ -382,8 +475,11 @@ def _run_quality_checks(dataset: CIFDataset) -> None:
 
     # Check: ward/bed
     inp_no_ward = sum(1 for r in inpatients if not r.encounters[0].ward_id)
-    print(f"  {'❌' if inp_no_ward else '✅'} Ward/bed assignment: {len(inpatients)-inp_no_ward}/{len(inpatients)}")
-    if inp_no_ward: issues += 1
+    print(
+        f"  {'❌' if inp_no_ward else '✅'} Ward/bed assignment: {len(inpatients) - inp_no_ward}/{len(inpatients)}"
+    )
+    if inp_no_ward:
+        issues += 1
 
     # Check: pain scores
     vitals_with_pain = sum(1 for r in records for v in r.vital_signs if v.pain_score is not None)
@@ -393,7 +489,11 @@ def _run_quality_checks(dataset: CIFDataset) -> None:
 
     # Check: ADL for inpatients
     adl_count = sum(len(r.adl_assessments) for r in inpatients)
-    print(f"  ✅ ADL assessments: {adl_count} (avg {adl_count/len(inpatients):.1f}/patient)" if inpatients else "  - No inpatients")
+    print(
+        f"  ✅ ADL assessments: {adl_count} (avg {adl_count / len(inpatients):.1f}/patient)"
+        if inpatients
+        else "  - No inpatients"
+    )
 
     # Check: I/O for inpatients
     io_count = sum(len(r.intake_output_records) for r in inpatients)
@@ -406,13 +506,17 @@ def _run_quality_checks(dataset: CIFDataset) -> None:
     # Disease distribution
     by_disease = Counter()
     for r in inpatients:
-        d = r.condition_event.ground_truth_diseases[0] if r.condition_event.ground_truth_diseases else "?"
+        d = (
+            r.condition_event.ground_truth_diseases[0]
+            if r.condition_event.ground_truth_diseases
+            else "?"
+        )
         by_disease[d] += 1
     print(f"\n  Disease distribution ({len(by_disease)} types):")
     for d, n in by_disease.most_common(5):
         print(f"    {d:30s} {n:4d}")
     if len(by_disease) > 5:
-        print(f"    ... and {len(by_disease)-5} more")
+        print(f"    ... and {len(by_disease) - 5} more")
 
     # Readmission check
     readmits = sum(1 for r in inpatients if r.is_readmission)
@@ -428,7 +532,21 @@ def _run_quality_checks(dataset: CIFDataset) -> None:
 
 
 def _run_test_encounter(args: Any) -> None:
-    """Debug CLI: simulate patients for a specific encounter condition."""
+    """test-encounter dispatch (AD-65 Phase 4 / Task 17).
+
+    -o omitted (default): original stdout debug print, unchanged.
+    -o set: mini-generate (N patients of one encounter condition) through the full
+    3-stage pipeline (structural CIF + template narrative + FHIR/CSV export) so a
+    bug can be verified in ~10s without regenerating a full cohort.
+    """
+    if args.output:
+        _run_test_encounter_generate(args)
+        return
+    _run_test_encounter_debug(args)
+
+
+def _run_test_encounter_debug(args: Any) -> None:
+    """Original test-encounter behavior: simulate + print debug record per patient."""
     from clinosim.modules.encounter.protocol import load_encounter_condition
     from clinosim.modules.population.engine import PersonRecord
 
@@ -444,30 +562,128 @@ def _run_test_encounter(args: Any) -> None:
         return
 
     enc_type = protocol.get("encounter_type", "emergency")
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  test-encounter: {args.condition_id}")
     print(f"  Type: {enc_type} | Dept: {protocol.get('department', '?')}")
     print(f"  Chief: {protocol.get('chief_complaint', '?')}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     from clinosim.locale.loader import load_demographics as _ld
+
     _demo = _ld(args.country)
     for i in range(args.count):
         # Create patient
         age = args.age or int(rng.integers(30, 85))
         sex = args.sex or str(rng.choice(["M", "F"]))
         person = PersonRecord(
-            person_id=f"TEST-{i+1:04d}",
-            household_id=f"HH-TEST-{i+1:04d}",
-            age=age, sex=sex,
+            person_id=f"TEST-{i + 1:04d}",
+            household_id=f"HH-TEST-{i + 1:04d}",
+            age=age,
+            sex=sex,
             date_of_birth=__import__("datetime").date(2024 - age, 1, 1),
         )
         patient = activate_patient(person, rng, _demo)
 
         visit_time = datetime(2024, 6, 15, int(rng.integers(8, 20)), int(rng.integers(0, 60)))
-        record = _simulate_ed_visit(patient, protocol, visit_time, roster, rng, country=args.country)
+        record = _simulate_ed_visit(
+            patient, protocol, visit_time, roster, rng, country=args.country
+        )
 
         _print_debug_record(record, i + 1)
+
+
+def _run_test_encounter_generate(args: Any) -> None:
+    """Mini-generate: N patients of a specific encounter condition + CIF + narrative + FHIR/CSV.
+
+    Produces the same on-disk layout as `clinosim generate` (cif/structural,
+    cif/narratives/template, fhir_r4/*.ndjson, csv/*) but scoped to one encounter
+    condition and a tiny cohort — the AD-65 Phase 4 dev facility for 10-second
+    targeted verify.
+    """
+    from clinosim.locale.loader import load_demographics as _ld
+    from clinosim.modules.document.narrative.passes import TemplateNarrativePass
+    from clinosim.modules.encounter.protocol import load_encounter_condition
+    from clinosim.modules.output.cif_writer import write_cif
+    from clinosim.modules.population.engine import PersonRecord
+
+    cif_dir = os.path.join(args.output, "cif")
+
+    rng = np.random.default_rng(args.seed)
+    roster = generate_roster("medium", args.country, rng)
+
+    # Load protocol
+    try:
+        protocol = load_encounter_condition(args.condition_id)
+    except FileNotFoundError:
+        print(f"❌ Encounter condition '{args.condition_id}' not found.")
+        print("Run 'clinosim list-diseases' to see available conditions.")
+        return
+
+    print(
+        f"clinosim test-encounter (generate): {args.condition_id} x{args.count}, "
+        f"country={args.country} -> {args.output}"
+    )
+
+    _demo = _ld(args.country)
+
+    records: list[CIFPatientRecord] = []
+    for i in range(args.count):
+        # Create patient
+        age = args.age or int(rng.integers(30, 85))
+        sex = args.sex or str(rng.choice(["M", "F"]))
+        person = PersonRecord(
+            person_id=f"TEST-{i + 1:04d}",
+            household_id=f"HH-TEST-{i + 1:04d}",
+            age=age,
+            sex=sex,
+            date_of_birth=__import__("datetime").date(2024 - age, 1, 1),
+        )
+        patient = activate_patient(person, rng, _demo)
+
+        visit_time = datetime(2024, 6, 15, int(rng.integers(8, 20)), int(rng.integers(0, 60)))
+        record = _simulate_ed_visit(
+            patient, protocol, visit_time, roster, rng, country=args.country
+        )
+        records.append(record)
+
+    # Build CIFDataset for this encounter cohort
+    dataset = CIFDataset(
+        metadata=CIFMetadata(
+            clinosim_version="0.2",
+            generation_timestamp=datetime.now(),
+            random_seed=args.seed,
+            country=args.country,
+            hospital_scale="medium",
+            total_patients_generated=len(records),
+        ),
+        patients=records,
+        hospital_roster=list(roster.members),
+        hospital_config={},
+    )
+
+    write_cif(dataset, cif_dir)
+
+    # Stage 2 (AD-65): always run the template narrative pass, mirroring `generate`'s
+    # auto-invoke, so the mini-cohort is emit-ready regardless of which export
+    # format(s) were requested.
+    TemplateNarrativePass(
+        cif_dir=cif_dir,
+        version_id="template",
+        country=args.country,
+        rng_seed=args.seed,
+    ).run()
+    os.makedirs(os.path.join(cif_dir, "narratives"), exist_ok=True)
+    with open(os.path.join(cif_dir, "narratives", "current_version.txt"), "w") as f:
+        f.write("template")
+
+    # Format exports via the adapter registry (AD-58) — reuse the same `_run_exports`
+    # dispatch as `generate` (single edit point for adding a new output format).
+    formats = args.format or []
+    if "all" in formats:
+        formats = ["fhir-r4", "csv"]
+    _run_exports(formats, cif_dir, args.output, args.country)
+
+    _print_summary(dataset, args.output)
 
 
 def _run_test_disease(args: Any) -> None:
@@ -535,7 +751,10 @@ def _run_test_disease_generate(args: Any) -> None:
     # auto-invoke, so the mini-cohort is emit-ready regardless of which export
     # format(s) were requested.
     TemplateNarrativePass(
-        cif_dir=cif_dir, version_id="template", country=args.country, rng_seed=args.seed,
+        cif_dir=cif_dir,
+        version_id="template",
+        country=args.country,
+        rng_seed=args.seed,
     ).run()
     os.makedirs(os.path.join(cif_dir, "narratives"), exist_ok=True)
     with open(os.path.join(cif_dir, "narratives", "current_version.txt"), "w") as f:
@@ -558,7 +777,9 @@ def _print_debug_record(record: CIFPatientRecord, index: int = 1) -> None:
     los = len(r.physiological_states) - 1 if r.physiological_states else 0
 
     print(f"\n--- Patient {index}: {r.patient.patient_id} ---")
-    print(f"  {r.patient.age}yo {r.patient.sex} | Chronic: {[c.code for c in r.patient.chronic_conditions]}")
+    print(
+        f"  {r.patient.age}yo {r.patient.sex} | Chronic: {[c.code for c in r.patient.chronic_conditions]}"
+    )
     if enc:
         print(f"  Encounter: {enc.encounter_type.value} | {enc.encounter_id}")
         print(f"  Chief: {enc.chief_complaint}")
@@ -569,6 +790,7 @@ def _print_debug_record(record: CIFPatientRecord, index: int = 1) -> None:
     if los > 0:
         print(f"  LOS: {los} days | Deceased: {r.deceased}")
     from clinosim.codes import lookup as _code_lookup
+
     _dx_name = _code_lookup(
         r.clinical_diagnosis.discharge_diagnosis_system or "icd-10-cm",
         r.clinical_diagnosis.discharge_diagnosis_code,
@@ -596,8 +818,10 @@ def _print_debug_record(record: CIFPatientRecord, index: int = 1) -> None:
     if r.vital_signs:
         v = r.vital_signs[0]
         print(f"\n  Vitals (first of {len(r.vital_signs)}):")
-        print(f"    T={v.temperature_celsius}C HR={v.heart_rate} BP={v.systolic_bp}/{v.diastolic_bp} "
-              f"RR={v.respiratory_rate} SpO2={v.spo2} Pain={v.pain_score}")
+        print(
+            f"    T={v.temperature_celsius}C HR={v.heart_rate} BP={v.systolic_bp}/{v.diastolic_bp} "
+            f"RR={v.respiratory_rate} SpO2={v.spo2} Pain={v.pain_score}"
+        )
         if v.nursing_note:
             print(f"    Note: {v.nursing_note}")
 
@@ -616,14 +840,18 @@ def _print_debug_record(record: CIFPatientRecord, index: int = 1) -> None:
 
     # ADL
     if r.adl_assessments:
-        print(f"\n  ADL: {len(r.adl_assessments)} assessments, "
-              f"Barthel {r.adl_assessments[0].barthel_score}→{r.adl_assessments[-1].barthel_score}")
+        print(
+            f"\n  ADL: {len(r.adl_assessments)} assessments, "
+            f"Barthel {r.adl_assessments[0].barthel_score}→{r.adl_assessments[-1].barthel_score}"
+        )
 
     # I/O
     if r.intake_output_records:
         io = r.intake_output_records[0]
-        print(f"\n  I/O (Day 1): IV={io.intake_iv_ml}ml Oral={io.intake_oral_ml}ml "
-              f"Urine={io.output_urine_ml}ml Net={io.net_balance_ml:+d}ml")
+        print(
+            f"\n  I/O (Day 1): IV={io.intake_iv_ml}ml Oral={io.intake_oral_ml}ml "
+            f"Urine={io.output_urine_ml}ml Net={io.net_balance_ml:+d}ml"
+        )
 
     print()
 
@@ -641,13 +869,14 @@ def _run_narrate(args: Any) -> None:
 
     if args.provider == "template":
         pass_impl = TemplateNarrativePass(
-            cif_dir=args.cif_dir, version_id=version_id, country=args.country,
-            tasks=tasks, rng_seed=args.seed,
+            cif_dir=args.cif_dir,
+            version_id=version_id,
+            country=args.country,
+            tasks=tasks,
+            rng_seed=args.seed,
         )
     elif args.provider in ("bedrock", "ollama"):
-        raise NotImplementedError(
-            f"provider={args.provider} deferred to β-JP-1 (LLMNarrativePass)"
-        )
+        raise NotImplementedError(f"provider={args.provider} deferred to β-JP-1 (LLMNarrativePass)")
     else:
         raise ValueError(f"unknown provider: {args.provider}")
 
@@ -680,7 +909,7 @@ def _run_export_fhir(args: Any) -> None:
         output_dir = os.path.join(parent, "fhir_r4")
 
     narrative_version = getattr(args, "narrative_version", "current")
-    print(f"clinosim export-fhir:")
+    print("clinosim export-fhir:")
     print(f"  CIF directory:      {cif_dir}")
     print(f"  Output:             {output_dir}")
     print(f"  Country:            {args.country}")
@@ -699,10 +928,9 @@ def _run_export_fhir(args: Any) -> None:
     if not os.path.isdir(output_dir):
         return
     files = sorted(
-        f for f in os.listdir(output_dir)
-        if f.endswith(".ndjson") or f == "manifest.json"
+        f for f in os.listdir(output_dir) if f.endswith(".ndjson") or f == "manifest.json"
     )
-    print(f"\n  === FHIR Export Summary ===")
+    print("\n  === FHIR Export Summary ===")
     for name in files:
         path = os.path.join(output_dir, name)
         size = os.path.getsize(path)
