@@ -19,7 +19,7 @@ from types import SimpleNamespace
 
 from clinosim.modules.document import COMPOSITION_ID_PREFIX
 from clinosim.modules.output._fhir_composition import _bb_compositions
-from clinosim.types.clinical import ClinicalDocument
+from clinosim.types.clinical import ClinicalDocument, ClinicalDocumentNarrative
 
 
 def _make_ctx(docs, country="us"):
@@ -53,13 +53,16 @@ def _sample_nursing_assessment_dataclass() -> ClinicalDocument:
         authored_datetime="2026-07-01T08:00:00",
         language="en",
         format_type="composition",
-        sections={
-            "nursing_history": "Patient has a history of diabetes managed with insulin.",
-            "adl_assessment": "Independent in ADLs prior to admission.",
-            "risk_assessments": "Braden score 18: low pressure injury risk.",
-            "nursing_diagnosis": "Risk for infection related to altered skin integrity.",
-            "care_plan": "Monitor blood glucose QID. Skin care protocol initiated.",
-        },
+        narrative=ClinicalDocumentNarrative(
+            sections={
+                "nursing_history": "Patient has a history of diabetes managed with insulin.",
+                "adl_assessment": "Independent in ADLs prior to admission.",
+                "risk_assessments": "Braden score 18: low pressure injury risk.",
+                "nursing_diagnosis": "Risk for infection related to altered skin integrity.",
+                "care_plan": "Monitor blood glucose QID. Skin care protocol initiated.",
+            },
+            generator="template",
+        ),
     )
 
 
@@ -73,12 +76,20 @@ def _sample_nursing_assessment_dict() -> dict:
         "authored_datetime": "2026-07-01T08:00:00",
         "language": "en",
         "format_type": "composition",
-        "sections": {
-            "nursing_history": "Patient has a history of diabetes managed with insulin.",
-            "adl_assessment": "Independent in ADLs prior to admission.",
-            "risk_assessments": "Braden score 18: low pressure injury risk.",
-            "nursing_diagnosis": "Risk for infection related to altered skin integrity.",
-            "care_plan": "Monitor blood glucose QID. Skin care protocol initiated.",
+        "narrative": {
+            "text": "",
+            "sections": {
+                "nursing_history": "Patient has a history of diabetes managed with insulin.",
+                "adl_assessment": "Independent in ADLs prior to admission.",
+                "risk_assessments": "Braden score 18: low pressure injury risk.",
+                "nursing_diagnosis": "Risk for infection related to altered skin integrity.",
+                "care_plan": "Monitor blood glucose QID. Skin care protocol initiated.",
+            },
+            "structured": {},
+            "generator": "template",
+            "generator_metadata": {},
+            "generated_at": "",
+            "facts_used": [],
         },
     }
 
@@ -155,11 +166,19 @@ def _sample_nursing_discharge_dict() -> dict:
         "authored_datetime": "2026-07-05T10:00:00",
         "language": "en",
         "format_type": "composition",
-        "sections": {
-            "admission_status": "Admitted for pneumonia. Initial SpO2 88%.",
-            "nursing_interventions_provided": "Oxygen therapy. IV antibiotics administered.",
-            "patient_education": "Taught breathing exercises. Medication compliance discussed.",
-            "discharge_readiness": "Patient ambulates independently. Afebrile x 24h.",
+        "narrative": {
+            "text": "",
+            "sections": {
+                "admission_status": "Admitted for pneumonia. Initial SpO2 88%.",
+                "nursing_interventions_provided": "Oxygen therapy. IV antibiotics administered.",
+                "patient_education": "Taught breathing exercises. Medication compliance discussed.",
+                "discharge_readiness": "Patient ambulates independently. Afebrile x 24h.",
+            },
+            "structured": {},
+            "generator": "template",
+            "generator_metadata": {},
+            "generated_at": "",
+            "facts_used": [],
         },
     }
 
@@ -211,11 +230,19 @@ def _sample_outpatient_soap_dict() -> dict:
         "authored_datetime": "2026-07-02T14:00:00",
         "language": "en",
         "format_type": "composition",
-        "sections": {
-            "subjective": "Patient reports persistent cough for 2 weeks.",
-            "objective": "Lungs: scattered wheeze. SpO2 96%.",
-            "assessment": "Exacerbation of asthma.",
-            "plan": "Increase SABA, add ICS. Follow up in 2 weeks.",
+        "narrative": {
+            "text": "",
+            "sections": {
+                "subjective": "Patient reports persistent cough for 2 weeks.",
+                "objective": "Lungs: scattered wheeze. SpO2 96%.",
+                "assessment": "Exacerbation of asthma.",
+                "plan": "Increase SABA, add ICS. Follow up in 2 weeks.",
+            },
+            "structured": {},
+            "generator": "template",
+            "generator_metadata": {},
+            "generated_at": "",
+            "facts_used": [],
         },
     }
 
@@ -267,14 +294,22 @@ def _sample_ed_note_dict() -> dict:
         "authored_datetime": "2026-07-01T22:30:00",
         "language": "en",
         "format_type": "composition",
-        "sections": {
-            "chief_complaint": "Chest pain radiating to left arm, onset 1 hour ago.",
-            "hpi": "65yo male with hx of CAD presents with acute onset chest pain.",
-            "triage_details": "Triage level: ESI 2. Immediate assessment initiated.",
-            "physical_exam": "HR 102 bpm. Diaphoresis. Muffled heart sounds.",
-            "ed_workup": "ECG: ST elevation leads II, III, aVF. Troponin I pending.",
-            "assessment": "STEMI — inferior wall.",
-            "disposition": "Emergent PCI. Transfer to cath lab.",
+        "narrative": {
+            "text": "",
+            "sections": {
+                "chief_complaint": "Chest pain radiating to left arm, onset 1 hour ago.",
+                "hpi": "65yo male with hx of CAD presents with acute onset chest pain.",
+                "triage_details": "Triage level: ESI 2. Immediate assessment initiated.",
+                "physical_exam": "HR 102 bpm. Diaphoresis. Muffled heart sounds.",
+                "ed_workup": "ECG: ST elevation leads II, III, aVF. Troponin I pending.",
+                "assessment": "STEMI — inferior wall.",
+                "disposition": "Emergent PCI. Transfer to cath lab.",
+            },
+            "structured": {},
+            "generator": "template",
+            "generator_metadata": {},
+            "generated_at": "",
+            "facts_used": [],
         },
     }
 

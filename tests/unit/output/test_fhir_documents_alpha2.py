@@ -18,7 +18,7 @@ from types import SimpleNamespace
 
 from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
 from clinosim.modules.output._fhir_documents import _bb_document_references
-from clinosim.types.clinical import ClinicalDocument
+from clinosim.types.clinical import ClinicalDocument, ClinicalDocumentNarrative
 
 
 def _make_ctx(docs, country="us"):
@@ -52,8 +52,10 @@ def _sample_shift_note_dataclass() -> ClinicalDocument:
         authored_datetime="2026-07-01T07:00:00",
         language="en",
         format_type="free_text",
-        text="Day 1/3 shift: Patient rested comfortably. Vitals stable. IV line patent.",
-        text_source="template",
+        narrative=ClinicalDocumentNarrative(
+            text="Day 1/3 shift: Patient rested comfortably. Vitals stable. IV line patent.",
+            generator="template",
+        ),
     )
 
 
@@ -67,8 +69,15 @@ def _sample_shift_note_dict() -> dict:
         "authored_datetime": "2026-07-01T07:00:00",
         "language": "en",
         "format_type": "free_text",
-        "text": "Day 1/3 shift: Patient rested comfortably. Vitals stable. IV line patent.",
-        "text_source": "template",
+        "narrative": {
+            "text": "Day 1/3 shift: Patient rested comfortably. Vitals stable. IV line patent.",
+            "sections": {},
+            "structured": {},
+            "generator": "template",
+            "generator_metadata": {},
+            "generated_at": "",
+            "facts_used": [],
+        },
     }
 
 
@@ -149,8 +158,10 @@ def _sample_ed_triage_dataclass() -> ClinicalDocument:
         authored_datetime="2026-07-01T22:15:00",
         language="en",
         format_type="free_text",
-        text="Triage level: ESI 2. Chief complaint: chest pain. Acuity: high.",
-        text_source="template",
+        narrative=ClinicalDocumentNarrative(
+            text="Triage level: ESI 2. Chief complaint: chest pain. Acuity: high.",
+            generator="template",
+        ),
     )
 
 
@@ -164,8 +175,15 @@ def _sample_ed_triage_dict() -> dict:
         "authored_datetime": "2026-07-01T22:15:00",
         "language": "en",
         "format_type": "free_text",
-        "text": "Triage level: ESI 2. Chief complaint: chest pain. Acuity: high.",
-        "text_source": "template",
+        "narrative": {
+            "text": "Triage level: ESI 2. Chief complaint: chest pain. Acuity: high.",
+            "sections": {},
+            "structured": {},
+            "generator": "template",
+            "generator_metadata": {},
+            "generated_at": "",
+            "facts_used": [],
+        },
     }
 
 
@@ -250,7 +268,7 @@ def test_multiple_nursing_shift_notes_all_emitted():
     doc1 = _sample_shift_note_dict()
     doc2 = _sample_shift_note_dict()
     doc2["document_id"] = "doc-enc1-nursing_shift-2"
-    doc2["text"] = "Day 2/3 shift: Patient improving. SpO2 98%."
+    doc2["narrative"]["text"] = "Day 2/3 shift: Patient improving. SpO2 98%."
     ctx = _make_ctx([doc1, doc2])
     resources = _bb_document_references(ctx)
     assert len(resources) == 2
@@ -262,6 +280,6 @@ def test_multiple_nursing_shift_notes_all_emitted():
 def test_ed_triage_note_skips_empty_text():
     """ED_TRIAGE_NOTE with empty text → skipped (FHIR R4 requires attachment content)."""
     doc = _sample_ed_triage_dict()
-    doc["text"] = ""
+    doc["narrative"]["text"] = ""
     ctx = _make_ctx([doc])
     assert _bb_document_references(ctx) == []

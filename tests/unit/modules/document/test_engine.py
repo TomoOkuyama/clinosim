@@ -234,25 +234,29 @@ def test_document_enricher_locale_gating_us_excludes_jp_only_specs() -> None:
         assert record_jp.documents[0].language == "ja"
 
 
-def test_document_enricher_preserves_sections_for_composition() -> None:
-    """C-1 regression: ClinicalDocument.sections must hold the narrative
-    sections dict for COMPOSITION format (Task 9 Composition builder reads this).
-    Task 8 fix: enricher now passes sections=dict(output.sections) at all 3 emission sites.
+# NOTE (AD-65): the former test_document_enricher_preserves_sections_for_composition
+# asserted that document_enricher populates ClinicalDocument.sections with composition
+# content. That is no longer this stage's responsibility: per the AD-65 two-pass
+# architecture, document_enricher (POST_ENCOUNTER) only creates structural stubs with
+# narrative=None; TemplateNarrativePass (Stage 2) is what populates
+# ClinicalDocument.narrative.sections. That behavior is covered at the correct
+# boundary by tests/unit/test_template_narrative_pass.py. Deleted rather than
+# force-passed against a stub.
+
+
+def test_document_enricher_stub_has_no_narrative() -> None:
+    """AD-65 Stage 1/Stage 2 boundary: document_enricher only creates structural
+    stubs; narrative content (text/sections) is populated later by
+    TemplateNarrativePass, not by the enricher. Every doc emitted here must
+    carry narrative=None regardless of format_type.
     """
     record = _make_record()
     ctx = _make_ctx(record)
     document_enricher(ctx)
 
-    # ADMISSION_HP is format_type=composition → sections must be populated
-    hp_docs = [d for d in record.documents if d.task_type == "admission_hp"]
-    assert len(hp_docs) == 1
-    hp = hp_docs[0]
-    assert isinstance(hp.sections, dict), "sections must be a dict"
-    assert len(hp.sections) > 0, "COMPOSITION doc must have non-empty sections"
-    # At least one expected composition section key must be present
-    expected_keys = {"chief_complaint", "hpi", "assessment_and_plan"}
-    assert expected_keys & hp.sections.keys(), (
-        f"No expected section key found in sections={list(hp.sections.keys())}"
+    assert len(record.documents) > 0
+    assert all(d.narrative is None for d in record.documents), (
+        "document_enricher must not populate narrative — that is Stage 2's job"
     )
 
 
@@ -289,7 +293,14 @@ def test_document_enricher_sets_format_type_for_dispatch() -> None:
 
 
 def test_document_enricher_deterministic() -> None:
-    """Same master_seed + same encounter → identical document IDs, task types, and text."""
+    """Same master_seed + same encounter → identical document IDs and task types.
+
+    AD-65 note: narrative text is no longer produced by document_enricher (it
+    stays None until TemplateNarrativePass runs), so text-equality is no
+    longer part of this stage's determinism contract; see
+    tests/unit/test_template_narrative_pass.py::test_template_pass_deterministic
+    for narrative-stage determinism coverage.
+    """
 
     def _run(seed: int) -> tuple[list[ClinicalDocument], list[ClinicalImpressionRecord]]:
         record = _make_record(encounter=_make_encounter())
@@ -307,7 +318,6 @@ def test_document_enricher_deterministic() -> None:
     for d1, d2 in zip(docs1, docs2):
         assert d1.document_id == d2.document_id
         assert d1.task_type == d2.task_type
-        assert d1.text == d2.text
         assert d1.language == d2.language
 
     assert len(imps1) == len(imps2)
