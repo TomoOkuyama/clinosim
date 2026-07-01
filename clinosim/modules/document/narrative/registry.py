@@ -44,11 +44,19 @@ class DocumentTypeSpec:
     """
 
 
-# α-min-1 scope = 3 doc types (本 chain では追加禁止 — scope discipline)
+# α-min-2 scope = 9 doc types (α-min-1 3 + α-min-2 6)
 SUPPORTED_DOCUMENT_TYPES: frozenset[DocumentType] = frozenset({
+    # α-min-1
     DocumentType.ADMISSION_HP,
     DocumentType.PROGRESS_NOTE,
     DocumentType.DISCHARGE_SUMMARY,
+    # α-min-2 additions
+    DocumentType.ADMISSION_NURSING_ASSESSMENT,
+    DocumentType.NURSING_SHIFT_NOTE,
+    DocumentType.NURSING_DISCHARGE_SUMMARY,
+    DocumentType.OUTPATIENT_SOAP,
+    DocumentType.ED_NOTE,
+    DocumentType.ED_TRIAGE_NOTE,
 })
 
 
