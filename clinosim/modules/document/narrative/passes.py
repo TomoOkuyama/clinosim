@@ -125,9 +125,10 @@ class NarrativePass(ABC):
         allowed = getattr(spec, "encounter_types_supported", ()) or ()
         if not allowed:
             return True
-        enc_type = (
-            (patient_dict.get("encounters") or [{}])[0].get("encounter_type", {}) or {}
-        ).get("value") or ""
+        raw = (patient_dict.get("encounters") or [{}])[0].get("encounter_type", "") or ""
+        # write_cif serializes EncounterType as a plain string ("inpatient");
+        # some test fixtures use the pre-serialization enum shape {"value": "inpatient"}.
+        enc_type = raw.get("value", "") if isinstance(raw, dict) else raw
         return enc_type in allowed
 
     def _build_context(
