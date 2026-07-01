@@ -30,6 +30,7 @@ def _simulate_ed_visit(
     roster: StaffRoster,
     rng: np.random.Generator,
     country: str = "US",
+    config: object | None = None,
 ) -> CIFPatientRecord:
     """Simulate an ED visit using YAML protocol if available, else basic."""
     from clinosim.modules.observation.engine import (
@@ -243,7 +244,7 @@ def _simulate_ed_visit(
     icd_code = (protocol or condition).get("icd10_code", "R69")  # R69 = Illness, unspecified
     icd_display = (protocol or condition).get("icd10_display", chief or cond_name)
 
-    return CIFPatientRecord(
+    record = CIFPatientRecord(
         patient=patient,
         encounters=[encounter],
         orders=orders,
@@ -261,3 +262,25 @@ def _simulate_ed_visit(
             discharge_diagnosis_system="icd-10" if country == "JP" else "icd-10-cm",
         ),
     )
+
+    # POST_ENCOUNTER stage for ED encounters (α-min-2 Task 14 fix)
+    # triage_enricher (order=93) populates triage_data; document_enricher (order=95)
+    # dispatches ED_NOTE + ED_TRIAGE_NOTE for EMERGENCY encounters.
+    # Only fires when config is provided (engine.py passes it; cli test-ed does not).
+    if config is not None:
+        from clinosim.simulator.enrichers import (
+            POST_ENCOUNTER,
+            EnricherContext,
+            run_stage,
+        )
+        run_stage(
+            POST_ENCOUNTER,
+            EnricherContext(
+                config=config,
+                master_seed=config.random_seed,  # type: ignore[attr-defined]
+                records=[record],
+                roster=roster,
+            ),
+        )
+
+    return record

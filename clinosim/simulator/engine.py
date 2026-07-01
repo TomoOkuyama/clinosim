@@ -320,7 +320,7 @@ def run_beta(
         opd_record = _simulate_outpatient_visit(
             _activate_cached(person), "post_discharge", followup_date, roster, rng,
             followup_spec=merged_spec, post_discharge_disease=disease_id,
-            country=config.country,
+            country=config.country, config=config,
         )
         patient_records.append(opd_record)
 
@@ -361,7 +361,7 @@ def run_beta(
             opd_record = _simulate_outpatient_visit(
                 patient, "chronic_followup", visit_time, roster, rng,
                 chronic_code=event.disease_id, followup_spec=merged_spec,
-                country=config.country,
+                country=config.country, config=config,
             )
         elif event.event_type == "health_screening":
             opd_record = _simulate_outpatient_visit(
@@ -369,7 +369,7 @@ def run_beta(
                 chronic_code="annual_health_screening",
                 followup_spec={"labs": ["WBC", "Hb", "Glucose", "Creatinine", "AST", "ALT"],
                                "visit_reason": "Annual health screening"},
-                country=config.country,
+                country=config.country, config=config,
             )
         else:
             continue
@@ -434,7 +434,7 @@ def run_beta(
                 continue
 
             ed_record = _simulate_ed_visit(
-                patient, cond, ed_time, roster, rng, country=config.country,
+                patient, cond, ed_time, roster, rng, country=config.country, config=config,
             )
             patient_records.append(ed_record)
         print(f"  ED visits (not admitted): {n_ed} generated", flush=True)

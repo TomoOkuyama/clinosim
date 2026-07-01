@@ -114,15 +114,15 @@ invariant is verified by the audit clinical axis and integration tests.
 The actual delta source is exclusively `NURSING_SHIFT_NOTE` (34746-8). In the US p=10k cohort:
 - PROGRESS_NOTE count: 23,279 (vs α-min-1 baseline 23,760 — small variation due to population size diff)
 - NURSING_SHIFT_NOTE: 23,279 (new, 1:1 with PROGRESS_NOTE as both are daily per LOS day)
-- **Outpatient SOAP (34131-3): 0** ← See §8 Known Limitations
-- **ED note (34878-9): 0** ← See §8 Known Limitations
-- **ED triage note (54094-8): 0** ← See §8 Known Limitations
+- **Outpatient SOAP (34131-3): ~430 per p=100 cohort** ← RESOLVED (Task 14 fix)
+- **ED note (34878-9): ~47 per p=100 cohort** ← RESOLVED (Task 14 fix)
+- **ED triage note (54094-8): ~47 per p=100 cohort** ← RESOLVED (Task 14 fix)
 
-The delta description "+22,798 (nursing shift + outpatient + ED triage)" in the planning documents
-was PREMATURE. Actual production δ is nursing shift only. Outpatient/ED document types are
-defined in `document_type_specs.yaml` and the dispatch logic is correct, but the outpatient.py
-and emergency.py simulators do not invoke POST_ENCOUNTER enrichers — a production gap tracked in
-§8.
+**RESOLVED (Task 14 fix):** `run_stage(POST_ENCOUNTER, ...)` was added to `outpatient.py` and
+`emergency.py` before `return CIFPatientRecord`. Counts now > 0. ED_TRIAGE_NOTE emits as
+DocumentReference (format_type=free_text); ED_NOTE and OUTPATIENT_SOAP emit as Composition
+(format_type=composition). US p=100 seed=42 verified: 430 OUTPATIENT_SOAP + 47 ED_NOTE in
+Composition.ndjson; 47 ED_TRIAGE_NOTE in DocumentReference.ndjson. See Known Limitation §1 RESOLVED.
 
 ### Composition +8,671 (nursing 2 types + α-min-1 ongoing)
 
@@ -228,31 +228,30 @@ pytest tests/unit tests/integration -m "unit or integration" -x -q
 
 ## Known Limitations
 
-### 1. Outpatient SOAP + ED note + ED triage note: 0 resources in production (CRITICAL concern)
+### 1. ~~Outpatient SOAP + ED note + ED triage note: 0 resources in production (CRITICAL concern)~~ RESOLVED
 
-**Root cause:** `clinosim/simulator/outpatient.py` and `clinosim/simulator/emergency.py` do NOT
-invoke `run_stage(POST_ENCOUNTER, ...)`. Only `clinosim/simulator/inpatient.py` calls POST_ENCOUNTER
+**RESOLVED — Task 14 fix (scope-in critical fix per spec §14.5 "現 scope deliverable 成立に必須").**
+
+**Root cause was:** `clinosim/simulator/outpatient.py` and `clinosim/simulator/emergency.py` did NOT
+invoke `run_stage(POST_ENCOUNTER, ...)`. Only `clinosim/simulator/inpatient.py` called POST_ENCOUNTER
 enrichers (lines 443-493). Therefore, all POST_ENCOUNTER Modules (device, hai, antibiotic,
-imaging, triage, nursing_assignment, document) are NEVER invoked for outpatient or emergency
+imaging, triage, nursing_assignment, document) were NEVER invoked for outpatient or emergency
 encounters in the production pipeline.
 
-**Scope discipline:** This fix requires adding POST_ENCOUNTER `run_stage()` calls to
-outpatient.py and emergency.py + ensuring correct enricher ordering for the triage-before-document
-dependency. Out of scope for Task 14 (integration tests + DQR + docs sync only).
+**Fix applied:** `config` parameter added (optional, default=None) to both `_simulate_outpatient_visit`
+and `_simulate_ed_visit`. `run_stage(POST_ENCOUNTER, EnricherContext(config=config, ...))` added just
+before `return CIFPatientRecord(...)` in both functions. All three `engine.py` call sites updated to
+pass `config=config`. `cli.py` test-ed path unaffected (config=None → enricher skipped).
+
+**Verified (US p=100 seed=42):**
+- OUTPATIENT_SOAP (34131-3): 430 Compositions
+- ED_NOTE (34878-9): 47 Compositions
+- ED_TRIAGE_NOTE (54094-8): 47 DocumentReferences
+
+Expected at p=10k scale: OUTPATIENT_SOAP ~140k, ED_NOTE ~14k, ED_TRIAGE_NOTE ~14k.
 
 **Audit note:** The audit's `proof_eq_no_drop: encounter_type='outpatient' → OUTPATIENT_SOAP spec
-dispatched=True` check uses synthetic unit test fixtures. It verifies the dispatch logic is
-correct but does NOT verify that the production pipeline actually emits outpatient documents.
-
-**Impact:** US p=10k has 140,296 AMB + 13,994 EMER encounters (154,290 total). If outpatient.py
-and emergency.py were fixed to call POST_ENCOUNTER enrichers:
-- OUTPATIENT_SOAP Compositions: ~140,296 expected
-- ED_NOTE Compositions: ~13,994 expected
-- ED_TRIAGE_NOTE DocumentReferences: ~13,994 expected
-
-This would bring DocumentReference ~200k and Composition ~170k.
-
-**Tracking:** Formal TODO entry added to `TODO.md` § "Tier 1 #3 α-min-2 OOS formal entries".
+dispatched=True` check at unit-fixture level is now also verified at production pipeline level.
 
 ### 2. Nursing shift: daily 1 vs realistic 3-per-day
 
@@ -299,14 +298,12 @@ spec §13).
 (α-min-1 was 1/4; α-min-2 improved to 2/4 = progression). 27 new integration tests PASS.
 0 regressions in 1,500+ test suite.
 
-The outpatient/ED POST_ENCOUNTER gap (Known Limitation §1) is a significant clinical content
-gap but does not block the α-min-2 phase boundary because:
-1. CareTeam (primary gap) is fully closed (158,811 resources)
-2. Nursing documents (admission/shift/discharge) are fully emitting for inpatient
-3. The outpatient/ED gap is documented, tracked in TODO.md, and correctness-proven at
-   the dispatch layer (audit proof checks 22-25)
-4. The production fix (2 lines in outpatient.py + 2 lines in emergency.py + enricher
-   ordering) is well-understood and targeted for α-min-3 or β-JP-1
+Known Limitation §1 (outpatient/ED POST_ENCOUNTER gap) is now RESOLVED by the Task 14 scope-in
+critical fix. All spec §1.2 deliverables now emit > 0 in production:
+1. CareTeam fully closed (158,811 resources)
+2. Nursing documents (admission/shift/discharge) fully emitting for inpatient
+3. OUTPATIENT_SOAP (34131-3) now emitting for outpatient encounters
+4. ED_NOTE (34878-9) + ED_TRIAGE_NOTE (54094-8) now emitting for emergency encounters
 
 **10th converged adversarial chain target** — this DQR serves as the adversarial fan-out seed
 for the post-merge review (PR-90 lessons: verify at-scale first, then fan-out adversarial review).

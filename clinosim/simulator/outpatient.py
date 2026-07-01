@@ -39,6 +39,7 @@ def _simulate_outpatient_visit(
     followup_spec: dict | None = None,
     post_discharge_disease: str = "",
     country: str = "US",
+    config: object | None = None,
 ) -> CIFPatientRecord:
     """Simulate a single outpatient visit (chronic follow-up or post-discharge).
 
@@ -269,7 +270,7 @@ def _simulate_outpatient_visit(
         discharge_diagnosis_system="icd-10" if country == "JP" else "icd-10-cm",
     )
 
-    return CIFPatientRecord(
+    record = CIFPatientRecord(
         patient=patient,
         encounters=[encounter],
         orders=orders,
@@ -280,3 +281,24 @@ def _simulate_outpatient_visit(
         discharge_prescription=rx,
         physiological_states=[],
     )
+
+    # POST_ENCOUNTER stage for outpatient encounters (α-min-2 Task 14 fix)
+    # document_enricher (order=95) dispatches OUTPATIENT_SOAP for OUTPATIENT encounters.
+    # Only fires when config is provided (engine.py passes it; cli test-ed does not).
+    if config is not None:
+        from clinosim.simulator.enrichers import (
+            POST_ENCOUNTER,
+            EnricherContext,
+            run_stage,
+        )
+        run_stage(
+            POST_ENCOUNTER,
+            EnricherContext(
+                config=config,
+                master_seed=config.random_seed,  # type: ignore[attr-defined]
+                records=[record],
+                roster=roster,
+            ),
+        )
+
+    return record
