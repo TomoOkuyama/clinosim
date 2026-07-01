@@ -164,8 +164,6 @@ def test_questionnaire_response_returns_structured_dict() -> None:
     spec = DocumentTypeSpec(
         type_key="test_qr",
         loinc_code="99999-9",
-        display_en="Test QR",
-        display_ja="テスト QR",
         format_type=FormatType.QUESTIONNAIRE_RESPONSE,
         countries_supported=("jp", "us"),
         generation_frequency="once",

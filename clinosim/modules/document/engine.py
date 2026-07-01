@@ -50,6 +50,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
+from functools import lru_cache
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -60,21 +61,47 @@ from clinosim.modules.document import (
     specs_for_encounter_type,
 )
 from clinosim.types.clinical import ClinicalDocument, ClinicalImpressionRecord
+from clinosim.types.document import DocumentType
 
 logger = logging.getLogger(__name__)
 
-# AD-65 Bug B: nursing-authored document types (LOINC codes).
-# 78390-2 = admission_nursing_assessment, 34746-8 = nursing_shift_note,
-# 34745-0 = nursing_discharge_summary (document_type_specs.yaml is the
-# authoritative source; clinosim/codes/data/loinc.yaml 78390-2 comment
-# documents that 34119-8 — used in early Task-8 drafts of this task — was
-# REJECTED as the wrong code, "Nursing facility Initial evaluation note"
-# (SNF, not hospital); using it here would silently leave
-# nursing_discharge_summary author unfixed, exactly the class of bug this
-# task exists to close).
-# Used by _pick_document_author to dispatch author_practitioner_id to
-# encounter.primary_nurse_id instead of encounter.attending_physician_id.
-NURSING_LOINCS = frozenset({"34746-8", "78390-2", "34745-0"})
+# AD-65 Bug B: nursing-authored document types (LOINC codes) — DERIVED FROM
+# document_type_specs.yaml (F-7 adv-1 fix). Pre-fix this was a hardcoded
+# frozenset({"34746-8", "78390-2", "34745-0"}) that duplicated the YAML
+# values, so a future LOINC swap in the YAML would silently leave the
+# author-dispatch gate reading stale codes (single-edit-point rule).
+# clinosim/codes/data/loinc.yaml 78390-2 comment documents the rationale
+# for those specific codes (34119-8 was rejected as SNF, not hospital).
+_NURSING_DOC_TYPE_KEYS = frozenset({
+    "admission_nursing_assessment",
+    "nursing_shift_note",
+    "nursing_discharge_summary",
+})
+
+
+@lru_cache(maxsize=1)
+def _load_nursing_loincs() -> frozenset[str]:
+    """Derive the nursing LOINC set from document_type_specs.yaml at import time.
+
+    Late-bound (lru_cache) to avoid circular import: `document/__init__.py`
+    imports NURSING_LOINCS from this module, and `load_document_type_specs`
+    reads a YAML that gets its schema from the same __init__ package. The
+    cache means one YAML round-trip per process.
+    """
+    from clinosim.modules.document.narrative.registry import load_document_type_specs
+
+    specs = load_document_type_specs()
+    result = frozenset(
+        specs[DocumentType(k)].loinc_code for k in _NURSING_DOC_TYPE_KEYS
+    )
+    assert len(result) == 3, (
+        f"expected 3 distinct nursing LOINCs from document_type_specs.yaml, "
+        f"got {sorted(result)}"
+    )
+    return result
+
+
+NURSING_LOINCS = _load_nursing_loincs()
 
 # Encounter types that receive daily ClinicalImpressionRecords (spec §3.3).
 # CI is a "daily working diagnosis update" — only meaningful for multi-day inpatient stays.
