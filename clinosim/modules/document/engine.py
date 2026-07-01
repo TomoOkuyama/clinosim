@@ -48,6 +48,7 @@ Two-pass lifecycle (AD-65):
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -60,6 +61,21 @@ from clinosim.modules.document import (
 )
 from clinosim.types.clinical import ClinicalDocument, ClinicalImpressionRecord
 
+logger = logging.getLogger(__name__)
+
+# AD-65 Bug B: nursing-authored document types (LOINC codes).
+# 78390-2 = admission_nursing_assessment, 34746-8 = nursing_shift_note,
+# 34745-0 = nursing_discharge_summary (document_type_specs.yaml is the
+# authoritative source; clinosim/codes/data/loinc.yaml 78390-2 comment
+# documents that 34119-8 — used in early Task-8 drafts of this task — was
+# REJECTED as the wrong code, "Nursing facility Initial evaluation note"
+# (SNF, not hospital); using it here would silently leave
+# nursing_discharge_summary author unfixed, exactly the class of bug this
+# task exists to close).
+# Used by _pick_document_author to dispatch author_practitioner_id to
+# encounter.primary_nurse_id instead of encounter.attending_physician_id.
+NURSING_LOINCS = frozenset({"34746-8", "78390-2", "34745-0"})
+
 # Encounter types that receive daily ClinicalImpressionRecords (spec §3.3).
 # CI is a "daily working diagnosis update" — only meaningful for multi-day inpatient stays.
 # Outpatient / Emergency encounters do NOT receive ClinicalImpression entries.
@@ -70,6 +86,34 @@ _CI_ENCOUNTER_TYPES: frozenset[str] = frozenset({
 })
 
 _CANCELLED_STATUSES: frozenset[str] = frozenset({"cancelled"})
+
+
+def _pick_document_author(spec: Any, encounter: Any) -> str:
+    """AD-65 Bug B fix: author dispatch by document type.
+
+    Session 27 clinical-integrity review found 23,279 nursing docs (LOINC
+    34746-8 / 78390-2 / 34745-0) had ``author_practitioner_id`` set to the
+    attending physician instead of the assigned nurse — clinically incorrect
+    (a nursing assessment/shift note/discharge summary is authored by
+    nursing staff, not the physician of record).
+
+    Nursing docs (``spec.loinc_code`` in `NURSING_LOINCS`) → ``encounter.primary_nurse_id``.
+    All other (physician) docs → ``encounter.attending_physician_id`` (unchanged behavior).
+    Fallback: if a nursing doc's encounter has no assigned nurse (e.g. the
+    nursing_assignment enricher didn't fire), fall back to the attending and
+    log a warning — this should be rare and worth investigating if seen at
+    volume, but must not raise (blank author is worse than a physician author).
+    """
+    loinc = _o(spec, "loinc_code", "")
+    if loinc in NURSING_LOINCS:
+        nurse = _o(encounter, "primary_nurse_id", "") or ""
+        if nurse:
+            return nurse
+        logger.warning(
+            "nursing doc %s falling back to attending (primary_nurse_id missing)",
+            loinc,
+        )
+    return _o(encounter, "attending_physician_id", "") or ""
 
 
 # ---------------------------------------------------------------------------
@@ -206,7 +250,7 @@ def document_enricher(ctx: Any) -> None:
                         loinc_code=spec.loinc_code,
                         patient_id=pid,
                         encounter_id=encounter_id,
-                        author_practitioner_id=attending_id,
+                        author_practitioner_id=_pick_document_author(spec, encounter),
                         authored_datetime=admission_dt.isoformat(),
                         period_start=admission_dt.isoformat(),
                         period_end=admission_dt.isoformat(),
@@ -230,7 +274,7 @@ def document_enricher(ctx: Any) -> None:
                             loinc_code=spec.loinc_code,
                             patient_id=pid,
                             encounter_id=encounter_id,
-                            author_practitioner_id=attending_id,
+                            author_practitioner_id=_pick_document_author(spec, encounter),
                             authored_datetime=day_dt.isoformat(),
                             period_start=day_dt.isoformat(),
                             period_end=day_dt.isoformat(),
@@ -250,7 +294,7 @@ def document_enricher(ctx: Any) -> None:
                         loinc_code=spec.loinc_code,
                         patient_id=pid,
                         encounter_id=encounter_id,
-                        author_practitioner_id=attending_id,
+                        author_practitioner_id=_pick_document_author(spec, encounter),
                         authored_datetime=end_dt.isoformat(),
                         period_start=admission_dt.isoformat(),
                         period_end=end_dt.isoformat(),
@@ -272,7 +316,7 @@ def document_enricher(ctx: Any) -> None:
                         loinc_code=spec.loinc_code,
                         patient_id=pid,
                         encounter_id=encounter_id,
-                        author_practitioner_id=attending_id,
+                        author_practitioner_id=_pick_document_author(spec, encounter),
                         authored_datetime=admission_dt.isoformat(),
                         period_start=admission_dt.isoformat(),
                         period_end=end_dt.isoformat(),
