@@ -2451,3 +2451,59 @@ as device/hai/antibiotic/imaging precedents):
 - Production cohort: US p=10k (158,811 CareTeam + 46,558 DR + 17,946 Composition) +
   JP p=5k (16,046 CareTeam + 7,416 DR + 970 Composition). DQR:
   `docs/reviews/2026-07-01-tier1-3-document-density-alpha-min-2-dqr.md`
+
+### AD-65: Structural + Narrative CIF file separation (two-pass generation)
+
+**Status:** Accepted (Tier 1 #3 α-min-2b, 2026-07-02, session 28)
+
+**Context:**
+- clinosim's initial architecture (`clinosim/modules/output/SPEC.md`) defines a three-stage
+  pipeline: structural CIF Stage 1 (immutable) / narrative Stage 2 (separate version dir) /
+  Stage 3 (adapter merge).
+- α-min-1 Task 15 (commit `2c09b6a099`) removed the legacy narrative subsystem
+  (`document_generator.py` 951 lines, `narrative_generator.py` 205 lines) and folded narrative
+  generation into `document_enricher`. At the time, this closure of Stage 1 default-emission gaps
+  was correct; however, as a long-term Stage 2 replacement architecture, it was a premature
+  deletion, causing drift from the `clinosim/modules/output/SPEC.md` Stage 2 design.
+- Session 27 Clinical Integrity review uncovered three Critical narrative bugs. The inline-only
+  pattern requires full cohort regeneration to fix them, destroying development velocity.
+- User explicitly indicated (session 27→28): the original design assumed structural CIF and
+  narrative CIF as separate files = restoration of the SPEC.md original design.
+
+**Decision:**
+1. Refactor `ClinicalDocument` to stub-only: metadata + author + encounter binding, with
+   `narrative: ClinicalDocumentNarrative | None` field (new type). Narrative content
+   (text/sections/facts_used) population is forbidden in Stage 1.
+2. Restore two-pass CIF generation pipeline (SPEC.md original design intent, fully restored).
+3. Reinstate `clinosim narrate` CLI verb (template mode as fallback; LLM actual invocation deferred
+   to β-JP-1).
+4. Establish Bedrock prompt-cache-friendly walk order contract: `NarrativePass` base class
+   guarantees `(doc_type, language)` group serial iteration.
+5. Extend `NarrativeContext` with three enhancements: `NarrativeSpine` (scenario anchoring),
+   `materialized_facts` (fact-first generation), `section_facts` (COMPOSITION section extraction).
+6. Fix silent CLI override (Bug D): `-p` explicit values no longer silently overridden by
+   `recommended_population`.
+7. Add dev iteration facility: `test-disease --format` + `test-encounter --format` +
+   `--output` flag + standalone `narrate` verb enable narrative bug verification cycle to
+   10–30 seconds (vs. 5–50 min full generate).
+
+**Consequences:**
+- Narrative bug verification: `narrate --tasks <task>` (~30 sec) + structural via `test-disease
+  --format all` (~10 sec) = 100× faster development cycle.
+- FHIR builders now exclusively access narrative content via `doc.narrative.*` → single source
+  of truth (prevents `document_enricher` and Stage 2 pass from conflicting).
+- β-JP-1 can implement `LLMNarrativePass` as drop-in subclass of `NarrativePass` base class,
+  inheriting Bedrock walk-order contract without modification.
+- All 39 existing e2e goldens require full regeneration (no backwards compatibility).
+- Five new AD-65 rules added to `CLAUDE.md` (prevents next-session drift: two-pass invariant,
+  stub-only enricher, narrative post-simulation, walk order, FHIR builder wrapper).
+
+**Alternatives considered:**
+- **Approach A** (Inline populate + writer split): Lower silent-no-op risk; weaker Stage 2
+  replacement symmetry → rejected.
+- **Approach B** (Explicit two-pass without auto-invoke): Larger UX change → rejected in favor
+  of inline default (preserves `clinosim generate` user experience).
+- **Approach C** (Flat field + physical split without wrapper): Weaker defense-in-depth → rejected
+  in favor of `ClinicalDocumentNarrative` wrapper type.
+
+**Related ADRs:** AD-30 / AD-55 / AD-56 / AD-60 / AD-63 / AD-64
