@@ -32,7 +32,10 @@ def main() -> None:
     # === generate: population-driven simulation ===
     gen = sub.add_parser("generate", help="Generate patient data from population simulation")
     gen.add_argument("-o", "--output", default="./output", help="Output directory")
-    gen.add_argument("-p", "--population", type=int, default=10_000, help="Catchment population (default: from hospital config)")
+    gen.add_argument(
+        "-p", "--population", type=int, default=argparse.SUPPRESS,
+        help="Catchment population (default: hospital recommended)",
+    )
     gen.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
     gen.add_argument("--country", default="US", help="Country code (US or JP)")
     gen.add_argument("--start", default=None, help="Simulation start date YYYY-MM-DD (default: 1 year before --end)")
@@ -176,8 +179,12 @@ def main() -> None:
                       if args.start else end_date - _td(days=365))
         end = end_date.strftime("%Y-%m-%d")
         start = start_date.strftime("%Y-%m-%d")
+        # Bug D fix: -p uses argparse.SUPPRESS as default, so args.population is only
+        # present when the user explicitly passed -p/--population. None → engine.py
+        # resolves to the hospital's recommended_population; never a silent sentinel.
+        population_arg = getattr(args, "population", None)
         config = SimulatorConfig(
-            catchment_population=args.population,
+            catchment_population=population_arg,
             time_range=(start, end),
             random_seed=args.seed,
             country=args.country,
@@ -185,7 +192,8 @@ def main() -> None:
             jp_insurance_numbers=args.jp_insurance,
         )
         hospital_cfg = getattr(args, "hospital_config", None)
-        print(f"clinosim generate: population={args.population}, seed={args.seed}, country={args.country}, period={start}~{end}")
+        pop_label = str(population_arg) if population_arg is not None else "hospital recommended"
+        print(f"clinosim generate: population={pop_label}, seed={args.seed}, country={args.country}, period={start}~{end}")
         if args.country == "JP":
             status = "on" if args.jp_insurance else "off"
             print(f"  JP insurance numbers (被保険者番号): {status}")
