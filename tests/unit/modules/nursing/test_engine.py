@@ -177,3 +177,113 @@ def test_assign_primary_nurse_returns_str():
     rng = np.random.default_rng(42)
     result = assign_primary_nurse(enc, roster, rng)
     assert isinstance(result, str)
+
+
+def test_assign_primary_nurse_none_roster_returns_empty():
+    """None roster → returns "" without crashing (production path before roster wired)."""
+    from types import SimpleNamespace
+
+    enc = SimpleNamespace(encounter_id="e1", encounter_type="inpatient")
+    rng = np.random.default_rng(42)
+    result = assign_primary_nurse(enc, None, rng)
+    assert result == ""
+
+
+# ---------------------------------------------------------------------------
+# nursing_enricher (Task 5)
+# ---------------------------------------------------------------------------
+
+
+def _make_ctx(encounter_type: str, encounter_id: str = "e1", roster=None):
+    """Build a minimal ctx SimpleNamespace for nursing_enricher tests."""
+    from types import SimpleNamespace
+
+    enc = SimpleNamespace(
+        encounter_id=encounter_id,
+        encounter_type=encounter_type,
+        primary_nurse_id="",
+    )
+    record = SimpleNamespace(encounters=[enc])
+    return SimpleNamespace(master_seed=42, records=[record], roster=roster), enc
+
+
+def test_nursing_enricher_populates_inpatient():
+    """Inpatient encounter with nurse roster → primary_nurse_id is set."""
+    from clinosim.modules.nursing.engine import nursing_enricher
+
+    roster = _make_roster_with_nurses()
+    ctx, enc = _make_ctx("inpatient", roster=roster)
+    nursing_enricher(ctx)
+    assert enc.primary_nurse_id in {"NS-001", "NS-002"}
+
+
+def test_nursing_enricher_populates_icu():
+    """ICU encounter → primary_nurse_id is set (INPATIENT_ENCOUNTER_TYPES includes icu)."""
+    from clinosim.modules.nursing.engine import nursing_enricher
+
+    roster = _make_roster_with_nurses()
+    ctx, enc = _make_ctx("icu", roster=roster)
+    nursing_enricher(ctx)
+    assert enc.primary_nurse_id in {"NS-001", "NS-002"}
+
+
+def test_nursing_enricher_populates_rehab_inpatient():
+    """rehab_inpatient → primary_nurse_id is set."""
+    from clinosim.modules.nursing.engine import nursing_enricher
+
+    roster = _make_roster_with_nurses()
+    ctx, enc = _make_ctx("rehab_inpatient", roster=roster)
+    nursing_enricher(ctx)
+    assert enc.primary_nurse_id in {"NS-001", "NS-002"}
+
+
+def test_nursing_enricher_skips_outpatient():
+    """Outpatient encounter → primary_nurse_id remains ""."""
+    from clinosim.modules.nursing.engine import nursing_enricher
+
+    roster = _make_roster_with_nurses()
+    ctx, enc = _make_ctx("outpatient", roster=roster)
+    nursing_enricher(ctx)
+    assert enc.primary_nurse_id == ""
+
+
+def test_nursing_enricher_skips_emergency():
+    """Emergency encounter → primary_nurse_id remains ""."""
+    from clinosim.modules.nursing.engine import nursing_enricher
+
+    roster = _make_roster_with_nurses()
+    ctx, enc = _make_ctx("emergency", roster=roster)
+    nursing_enricher(ctx)
+    assert enc.primary_nurse_id == ""
+
+
+def test_nursing_enricher_deterministic():
+    """Same master_seed + encounter_id → same primary_nurse_id on repeated calls."""
+    from clinosim.modules.nursing.engine import nursing_enricher
+
+    roster = _make_roster_with_nurses()
+
+    ctx1, enc1 = _make_ctx("inpatient", encounter_id="enc-001", roster=roster)
+    ctx2, enc2 = _make_ctx("inpatient", encounter_id="enc-001", roster=roster)
+    nursing_enricher(ctx1)
+    nursing_enricher(ctx2)
+    assert enc1.primary_nurse_id == enc2.primary_nurse_id
+
+
+def test_nursing_enricher_empty_roster_fallback():
+    """Roster with no nurses → primary_nurse_id remains ""."""
+    from clinosim.modules.nursing.engine import nursing_enricher
+
+    roster = _make_empty_roster()
+    ctx, enc = _make_ctx("inpatient", roster=roster)
+    nursing_enricher(ctx)
+    assert enc.primary_nurse_id == ""
+
+
+def test_nursing_enricher_none_roster_fallback():
+    """No roster in ctx → primary_nurse_id remains ""."""
+    from clinosim.modules.nursing.engine import nursing_enricher
+
+    ctx, enc = _make_ctx("inpatient", roster=None)
+    nursing_enricher(ctx)
+    assert enc.primary_nurse_id == ""

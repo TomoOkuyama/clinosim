@@ -56,6 +56,7 @@ class EnricherContext:
     master_seed: int
     population: Any = None
     records: list[Any] = field(default_factory=list)
+    roster: Any = None  # StaffRoster | None — passed by inpatient simulator for nursing_enricher
 
 
 @dataclass
@@ -272,6 +273,22 @@ def register_builtin_enrichers() -> None:
             order=93,
             enabled=lambda c: True,
             run=triage_enricher,
+        )
+    )
+
+    # Nursing primary-nurse assignment (Tier 1 #3 α-min-2, AD-55 always-on Module).
+    # Sets EncounterRecord.primary_nurse_id for inpatient/icu/rehab_inpatient encounters
+    # by sampling uniformly from ctx.roster nurses. Falls back to "" when roster is None.
+    # Order 94 ensures it runs after triage (93) and before document (95).
+    from clinosim.modules.nursing.engine import nursing_enricher
+
+    register_enricher(
+        Enricher(
+            name="nursing_assignment",
+            stage=POST_ENCOUNTER,
+            order=94,
+            enabled=lambda c: True,
+            run=nursing_enricher,
         )
     )
 
