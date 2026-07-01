@@ -1,4 +1,5 @@
-"""FHIR R4 DocumentReference resource builder (FA-1 documents).
+"""FHIR R4 DocumentReference resource builder (FA-1 documents,
+refactored to two-layer CIF in AD-65 Task 4).
 
 Extracted verbatim from ``fhir_r4_adapter``. Self-contained: imports only
 leaf data, shared helpers, and stdlib/first-party deps — never the adapter.
@@ -8,6 +9,12 @@ Stage 1 (Task 10 / Task 15): _bb_document_references reads record.documents
 format_type='free_text'. This is the sole DocumentReference emit path; the
 legacy narrate-walk path was removed in Task 15 (narrate subcommand
 deprecated, document_generator.py deleted).
+
+AD-65 Task 4: the flat ClinicalDocument.text field was removed in Task 1;
+content now lives at doc["narrative"]["text"], merged in by CIFReader
+(Task 4) before builders run. A stub whose narrative is still None (Stage 2
+narrative pass hasn't run for this doc yet) is skipped with a warning
+rather than emitting an empty-attachment DocumentReference.
 
 α-min-1 FREE_TEXT doc types (Task 10 / Task 15):
   PROGRESS_NOTE (LOINC 11506-3)
@@ -26,6 +33,7 @@ infrastructure-stub (Task 7) and not yet emitted.
 from __future__ import annotations
 
 import base64
+import logging
 from typing import Any
 
 from clinosim.codes import (
@@ -37,6 +45,8 @@ from clinosim.codes import (
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
 from clinosim.modules.output._fhir_common import BundleContext, _sha1_b64
+
+logger = logging.getLogger(__name__)
 
 __all__ = [
     "_bb_document_references",
@@ -54,26 +64,46 @@ def _bb_document_references(ctx: BundleContext) -> list[dict[str, Any]]:
 
     Called by _BUNDLE_BUILDERS registry (fhir_r4_adapter.py) after ImagingStudy
     and before Composition, per spec §2.2 ordering.
+
+    Skips (with a warning) any stub whose narrative subtree is still None —
+    i.e. the Stage 2 narrative pass has not (yet) generated content for this
+    document_id. This is expected for documents produced between `generate`
+    and `narrate` runs, not a data-quality defect.
     """
     raw_docs = _o(ctx.record, "documents", []) or []
     patient_id = _o(_o(ctx.record, "patient", {}), "patient_id", "")
     country = ctx.country or "us"
     out: list[dict[str, Any]] = []
     for doc in raw_docs:
-        if _o(doc, "format_type", "") == "free_text":
-            resource = _build_dref_from_clinical_doc(doc, patient_id, country)
-            if resource:
-                out.append(resource)
+        if _o(doc, "format_type", "") != "free_text":
+            continue
+        narrative = _o(doc, "narrative", None)
+        if not narrative:
+            logger.warning(
+                "document reference stub %s has no narrative (Stage 2 pass not "
+                "run for this document) — skipping",
+                _o(doc, "document_id", ""),
+            )
+            continue
+        resource = _build_dref_from_clinical_doc(doc, narrative, patient_id, country)
+        if resource:
+            out.append(resource)
     return out
 
 
-def _build_dref_from_clinical_doc(doc: Any, patient_id: str, country: str) -> dict[str, Any] | None:
-    """Build DocumentReference from Task 8 ClinicalDocument (Stage 1 path).
+def _build_dref_from_clinical_doc(
+    doc: Any, narrative: Any, patient_id: str, country: str
+) -> dict[str, Any] | None:
+    """Build DocumentReference from a ClinicalDocument stub + its narrative.
+
+    ``narrative`` is the already-resolved ``doc["narrative"]`` subtree
+    (extracted by ``_bb_document_references`` so this function stays
+    narrative-presence agnostic and testable in isolation).
 
     Returns None if text is empty (FHIR R4 requires attachment content) or if
     loinc_code is missing (no meaningful type coding possible).
     """
-    text = _o(doc, "text", "") or ""
+    text = _o(narrative, "text", "") or ""
     if not text:
         return None
 
@@ -120,7 +150,7 @@ def _build_dref_from_clinical_doc(doc: Any, patient_id: str, country: str) -> di
             }
         ],
         "subject": {"reference": f"Patient/{patient_id}"},
-        "date": _o(doc, "authored_datetime", "") or _o(doc, "generated_at", ""),
+        "date": _o(doc, "authored_datetime", "") or _o(narrative, "generated_at", ""),
         "content": [
             {
                 "attachment": {

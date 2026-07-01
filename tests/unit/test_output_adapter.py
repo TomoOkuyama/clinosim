@@ -51,7 +51,9 @@ class TestAdapterRegistry:
     def test_output_context_defaults(self):
         ctx = OutputContext()
         assert ctx.country == "US"
-        assert ctx.narrative_version == ""
+        # AD-65 Task 4: "current" is the CIFReader default (resolved via
+        # cif/narratives/current_version.txt, falling back to "template").
+        assert ctx.narrative_version == "current"
         assert ctx.options == {}
 
 

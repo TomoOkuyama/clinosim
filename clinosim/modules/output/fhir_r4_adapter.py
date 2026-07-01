@@ -15,6 +15,7 @@ from typing import Any
 
 from clinosim.modules.output._fhir_care_level import _build_care_level  # noqa: F401
 from clinosim.modules.output._fhir_code_status import _build_code_status  # noqa: F401
+from clinosim.modules.output.cif_reader import CIFReader
 
 # FA-1 (Phases 1-13) split this adapter's leaf data, shared fragment helpers, and
 # per-theme resource builders into sibling _fhir_* modules. The blocks below are
@@ -159,6 +160,7 @@ def convert_cif_to_fhir(
     cif_dir: str,
     output_dir: str,
     country: str = "US",
+    narrative_version: str = "current",
 ) -> None:
     """Read CIF structural data and write FHIR R4 Bulk Data Export NDJSON files.
 
@@ -166,20 +168,23 @@ def convert_cif_to_fhir(
     one NDJSON file per resource type (Patient.ndjson, Encounter.ndjson, etc.).
     Each line is a single FHIR resource (no Bundle wrapping).
 
-    DocumentReference resources are emitted from record.documents (populated
-    by document_enricher at POST_ENCOUNTER, Task 8). The legacy narrate-walk
-    path (--narrative-version / document_generator.py) was removed in Task 15.
+    DocumentReference / Composition resources are emitted from
+    record.documents, merged with narrative content by CIFReader (AD-65 Task
+    4): structural stubs are created by document_enricher at POST_ENCOUNTER
+    (Task 8); narrative text/sections are populated by a separate Stage 2
+    NarrativePass (Task 3) and merged in at read time here.
 
     Args:
         cif_dir: path to a cif/ directory containing structural/.
         output_dir: directory to write the FHIR NDJSON files.
         country: "US" or "JP" — selects display language and code systems.
+        narrative_version: narrative layer to merge in — "current" (default,
+            resolved via cif/narratives/current_version.txt, falling back to
+            "template") or an explicit version_id.
     """
     os.makedirs(output_dir, exist_ok=True)
 
-    structural_dir = os.path.join(cif_dir, "structural", "patients")
-    if not os.path.exists(structural_dir):
-        raise FileNotFoundError(f"CIF structural directory not found: {structural_dir}")
+    reader = CIFReader(cif_dir, narrative_version=narrative_version)
 
     # Load hospital data (Practitioner roster + Organization/Location config)
     roster_map: dict[str, dict] = {}
@@ -222,13 +227,9 @@ def convert_cif_to_fhir(
         for entry in facility_bundle.get("entry", []):
             write(entry["resource"])
 
-        # Walk patient records, build per-record FHIR resources, write each line
-        for filename in sorted(os.listdir(structural_dir)):
-            if not filename.endswith(".json"):
-                continue
-            with open(os.path.join(structural_dir, filename)) as f:
-                record = json.load(f)
-
+        # Walk patient records (structural + merged narrative), build per-record
+        # FHIR resources, write each line
+        for record in reader.iter_patients():
             bundle = _build_bundle(record, country, roster_map, hospital_config)
             for entry in bundle.get("entry", []):
                 write(entry["resource"])
