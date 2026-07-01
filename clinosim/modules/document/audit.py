@@ -21,20 +21,21 @@ Registered checks:
   α-min-1 17 equality_checks:
     4 canonical constants + 4 emission counts + 3 ID-prefix invariants +
     5 no-drop invariants (Section 3.4 CIF→FHIR emission matrix) + 1 extra.
-  α-min-2 +7 equality_checks (total = 24):
+  α-min-2 +9 equality_checks (total = 26):
     1 canonical constant (CARE_TEAM_ID_PREFIX) + 2 emission/prefix invariants +
-    2 CIF→FHIR no-drop for CareTeam fields + 3 dispatch no-drop invariants
-    (outpatient/emergency/inpatient specs_for_encounter_type coverage).
-  AD-65 Bug A +1 equality_check (total = 25):
+    2 CIF→FHIR no-drop for CareTeam fields + 4 dispatch no-drop invariants
+    (outpatient/emergency/inpatient specs_for_encounter_type coverage +
+    LOINC 54094-8 dispatch gate).
+  AD-65 Bug A +1 equality_check (total = 27):
     `us_admission_hp_zero_ja_chars` — see `_count_us_hp_ja_chars` /
     `_proof_us_hp_ja_chars` docstrings. Companion integration test:
     `tests/integration/test_bug_a_us_hp_english_only.py`.
-  AD-65 Bug B +1 equality_check (total = 26):
+  AD-65 Bug B +1 equality_check (total = 28):
     `nursing_doc_author_is_nurse_ratio` — see `_nursing_author_ratio` /
     `_proof_nursing_author_ratio` docstrings. Companion unit test:
     `tests/unit/test_document_author_selection.py`; companion integration
     test: `tests/integration/test_bug_b_nurse_author.py`.
-  PR #131 adv-1 F-6 + F-6b (total = 34):
+  PR #131 adv-1 F-6 + F-6b (+6, total = 34):
     F-6 (spec §5.5 named gates): `narrative_pass_populated_narrative_ratio` /
       `structural_cif_zero_narrative_content` /
       `triage_levels_1_and_5_ratio_min` (delegate to triage_chain proof) /

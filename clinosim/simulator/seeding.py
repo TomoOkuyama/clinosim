@@ -81,8 +81,8 @@ def individual_lab_seed(order_id: str) -> int:
 # rules and CLAUDE.md "AD-55 enricher patterns" for the architectural
 # rule.
 #
-# NOTE: narrative_pass seeds are caller-supplied (--narrative-seed CLI
-# arg → TemplateNarrativePass(rng_seed=...)), NOT enricher offsets.
+# NOTE: narrative_pass seeds are caller-supplied (--seed CLI arg →
+# TemplateNarrativePass(rng_seed=...)), NOT enricher offsets.
 # TemplateNarrativePass is a Stage 2 post-simulation pass, not a
 # POST_ENCOUNTER / POST_RECORDS enricher. β-JP-1 LLMNarrativePass will
 # derive its own sub-seed here if it needs one (LLM randomness lives
