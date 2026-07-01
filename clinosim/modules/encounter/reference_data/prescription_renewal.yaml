@@ -36,3 +36,10 @@ incidence_modifier: 1.0
 age_distribution: adults_all
 sex_ratio_female: 1.1
 seasonal: {1: 1.1, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.1}
+
+narrative:
+  outpatient_soap_template:
+    subjective_ja: 処方更新目的の定期受診。現在服用中の薬剤：{current_medications_ja}。副作用・困困感なし。コントロール状態は良好とのこと。
+    objective_ja: バイタル安定（BP {sbp}/{dbp}、HR {hr}、BW {weight}kg）。全身状態良好、特記事項なし。前回検査結果（{last_lab_date}）：{lab_summary_ja}。
+    assessment_ja: '{primary_dx_display_ja}にて内服加療中。現処方継続が妥当と判断。'
+    plan_ja: 現行処方を{duration_days}日分処方継続。次回受診：{next_visit_ja}。異常・自覚症状出現時は早期受診。

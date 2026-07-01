@@ -1,0 +1,70 @@
+# Triage protocols(JTAS/ESI + arrival_mode)
+# JTAS 1-5 = 日本臨床救急医学会 JTAS 2017
+# ESI 1-5 = AHRQ ESI Version 4
+
+triage_systems:
+  JTAS:
+    levels:
+      "1": {name_ja: "蘇生", eng: "Resuscitation", target_wait_min: 0}
+      "2": {name_ja: "緊急", eng: "Emergent", target_wait_min: 15}
+      "3": {name_ja: "準緊急", eng: "Urgent", target_wait_min: 30}
+      "4": {name_ja: "低緊急", eng: "Less Urgent", target_wait_min: 60}
+      "5": {name_ja: "非緊急", eng: "Non-Urgent", target_wait_min: 120}
+  ESI:
+    levels:
+      "1": {name_en: "Resuscitation", target_wait_min: 0}
+      "2": {name_en: "Emergent", target_wait_min: 10}
+      "3": {name_en: "Urgent", target_wait_min: 30}
+      "4": {name_en: "Semi-Urgent", target_wait_min: 60}
+      "5": {name_en: "Non-Urgent", target_wait_min: 120}
+
+arrival_modes:
+  - walk-in
+  - ambulance
+  - police
+  - helicopter
+  - private_vehicle
+
+# severity → triage_level 分布(country-independent)
+severity_to_triage_distribution:
+  mild:
+    "3": 0.15
+    "4": 0.55
+    "5": 0.30
+  moderate:
+    "2": 0.15
+    "3": 0.60
+    "4": 0.25
+  severe:
+    "1": 0.20
+    "2": 0.55
+    "3": 0.25
+
+# arrival_mode base rate(severity で修正、下記 severity_multipliers 適用)
+arrival_mode_base_distribution:
+  walk-in: 0.55
+  ambulance: 0.35
+  private_vehicle: 0.08
+  police: 0.01
+  helicopter: 0.01
+
+# severity severe → ambulance +30% shift
+arrival_mode_severity_multipliers:
+  mild:
+    walk-in: 1.4
+    ambulance: 0.4
+    private_vehicle: 1.0
+    police: 1.0
+    helicopter: 0.0
+  moderate:
+    walk-in: 1.0
+    ambulance: 1.0
+    private_vehicle: 1.0
+    police: 1.0
+    helicopter: 1.0
+  severe:
+    walk-in: 0.3
+    ambulance: 2.0
+    private_vehicle: 0.5
+    police: 2.0
+    helicopter: 5.0

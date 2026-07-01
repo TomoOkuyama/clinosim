@@ -3,7 +3,7 @@
 統一 narrative generation interface + ClinicalImpression daily generation。
 
 Public exports:
-- DocumentTypeSpec / load_document_type_specs / specs_for_country
+- DocumentTypeSpec / load_document_type_specs / specs_for_country / specs_for_encounter_type
 - NarrativeContext / NarrativeOutput / DocumentType / FormatType (re-export from types)
 - Canonical FHIR resource ID-prefix constants (writer-owned; readers import)
 """
@@ -14,6 +14,7 @@ from clinosim.modules.document.narrative.registry import (
     DocumentTypeSpec,
     load_document_type_specs,
     specs_for_country,
+    specs_for_encounter_type,
 )
 from clinosim.modules.document.reference_data_loaders import (
     load_discharge_instructions,
@@ -46,6 +47,7 @@ __all__ = [
     "NarrativeOutput",
     "load_document_type_specs",
     "specs_for_country",
+    "specs_for_encounter_type",
     "load_physical_exam_findings",
     "load_discharge_instructions",
     "DOC_REFERENCE_ID_PREFIX",

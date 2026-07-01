@@ -1404,10 +1404,22 @@ Suggested order: ~~microbiology+markers~~ ✅ → ~~nursing flowsheets~~ ✅ →
 - ~~Stage 1 default template-based document emission (DocumentReference / Composition / ClinicalImpression) + AllergyIntolerance schema upgrade.~~
 - **COMPLETED**: Document Density chain α-min-1 delivered (AD-63). DocumentReference 0 → 23,760
   (US) / 3,909 (JP); Composition 0 → 9,275 / 474; ClinicalImpression 0 → 23,760 / 3,909.
-  AllergyIntolerance 8-field SNOMED upgrade. 2 always-on POST_RECORDS modules (`allergy` + `document`).
+  AllergyIntolerance 8-field SNOMED upgrade. 2 always-on POST_ENCOUNTER modules (`allergy` (POST_POPULATION) + `document` (POST_ENCOUNTER)).
   3 new FHIR builders. silent_no_op 17/17 PASS. US p=10k + JP p=5k cohorts verified.
   DQR: `docs/reviews/2026-07-01-tier1-3-document-density-alpha-min-1-dqr.md`.
   Task 15 (generator migration / cleanup) completed on same branch.
+
+### Tier 1 #3 — Document Density α-min-2 [DONE 2026-07-01]
+- ~~Nursing domain narratives (admission nursing assessment / nursing shift note / discharge nursing summary) + CareTeam + triage infrastructure + 46 encounter YAML narrative extensions.~~
+- **COMPLETED**: Document Density chain α-min-2 delivered (AD-64). CareTeam 0 → 158,811 US /
+  16,046 JP (1:1 with Encounter, ★ GAP CLOSED). DocumentReference +22,798 (nursing shift daily
+  notes). Composition +8,671 (nursing admission + nursing discharge). 3 new always-on POST_ENCOUNTER
+  Modules (`triage` order=93 + `nursing_assignment` order=94 + extended `document` order=95).
+  CareTeam FHIR builder. 6 new DocumentType specs (78390-2/34746-8/34745-0/34131-3/34878-9/54094-8).
+  silent_no_op 25/25 PASS. clinical axis PASS (CareTeam 1:1 with Encounter). 27 integration tests.
+  DQR: `docs/reviews/2026-07-01-tier1-3-document-density-alpha-min-2-dqr.md`.
+  **Known gap**: outpatient.py + emergency.py do not invoke POST_ENCOUNTER enrichers → outpatient
+  SOAP, ED note, ED triage note produce 0 resources in production (fix targeted for α-min-3).
 
 ### Stage 2 LLM provider integration (β-JP-1 chain, deferred)
 - `narrate` CLI subcommand deprecated in Task 15. Stage 1 enricher (document_enricher
@@ -1628,18 +1640,48 @@ These items were **explicitly out of scope** for the α-min-1 document density c
 (per spec §11). Each has a formal phase assignment for the master plan phases:
 [docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md](docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md)
 
-### α-min-2 phase (next chain) — Document types
+### α-min-2 phase (COMPLETED 2026-07-01) — Document types
 
-- **看護 narrative** (Admission nursing assessment / Nursing shift note / Discharge nursing
-  summary) — require nursing flowsheet data from `extensions["nursing"]`. POST_RECORDS order=95
-  currently skips nursing records. Bundle with nursing module enricher integration.
-- **外来 SOAP note** — outpatient encounter DocumentReference + Composition. Currently document
-  enricher only emits for inpatient/ICU/rehab encounter types. Add encounter_type gate.
-- **ED note + ED triage note** — emergency encounter DocumentReference. Same encounter_type gate.
-- **CareTeam (多職種)** — required by Composition.author for multi-provider documents.
-  Attending physician / attending nurse / pharmacist / nutritionist / rehab / MSW roles.
+- ~~看護 narrative (Admission nursing assessment / Nursing shift note / Discharge nursing summary)~~ — **DONE** (AD-64: 78390-2/34746-8/34745-0, inpatient-only)
+- ~~CareTeam (2-name: attending + primary nurse)~~ — **DONE** (AD-64: 1:1 Encounter, 158,811 US)
+- ~~Triage infrastructure (JTAS/ESI + arrival_mode)~~ — **DONE** (AD-64: triage module POST_ENCOUNTER order=93)
+- ~~46 encounter YAML narrative extensions~~ — **DONE**
+
+## Tier 1 #3 α-min-2 Document Density Chain — OOS formal entries (2026-07-01)
+
+These items were **explicitly out of scope** for the α-min-2 document density chain.
+
+### α-min-3 phase (next chain) — Outpatient/ED POST_ENCOUNTER gap
+
+- **CRITICAL: outpatient.py + emergency.py do NOT call POST_ENCOUNTER enrichers** — root cause
+  of 0 outpatient SOAP / 0 ED note / 0 ED triage note in production. Fix: add
+  `run_stage(POST_ENCOUNTER, ...)` call at the end of `_simulate_outpatient_visit` and
+  `_simulate_emergency_visit`. Ensure triage (order=93) runs before document (order=95) for ED.
+  Expected output gain: ~140k outpatient SOAP + ~14k ED note + ~14k ED triage note (US p=10k).
+
+- **Nursing shift 3-per-day** — current implementation emits 1 NURSING_SHIFT_NOTE per LOS day.
+  Realistic acute-care cadence is 3 per day (day/evening/night). Extend `nursing_enricher` to
+  emit 3 shift notes per day with time offsets (08:00/16:00/00:00). Frequency:
+  `daily_3shift` new enum value in DocumentTypeSpec.generation_frequency.
+
 - **Composition.author wiring** — currently `"author": []` (FHIR R4 cardinality 1..* violation).
-  Requires CareTeam resource + Practitioner ref lookup via `ctx.roster`.
+  Requires CareTeam.participant[] Practitioner ref lookup via `ctx.roster`. Prerequisite: fix
+  the POST_ENCOUNTER gap above (outpatient encounters need CareTeam before author can be wired).
+
+### β-JP-1 phase — CareTeam multi-disciplinary expansion
+
+- **CareTeam 6-name multi-disciplinary** — attending physician / attending nurse / pharmacist /
+  nutritionist / rehab therapist / MSW roles. Requires expanding StaffRoster to include non-MD
+  non-nursing roles. Prerequisite: Practitioner roster expansion (Practitioner count 85 → 150+).
+
+- **JP section.title locale mapping** — `Composition.section[].title` currently uses English
+  section key (e.g. `"nursing_history"`) for JP output. Add JP locale dict mapping to Japanese
+  titles (e.g. `"看護歴"`) in `_fhir_composition.py` section builder.
+
+- **JTAS/ESI system URI formalization** — `triage_protocols.yaml` uses LOINC 54094-8 for triage
+  level coding but does not formalize JTAS (`http://hl7fhir.jp/standards/jtas`) or ESI
+  (`http://acep.org/esi`) system URIs as canonical constants. Add to a new `triage_constants.py`
+  (mirrors `CARE_TEAM_ID_PREFIX` / `DOC_REFERENCE_ID_PREFIX` pattern).
 
 ### β-JP-1 phase — JP localization + 厚労省必須文書
 

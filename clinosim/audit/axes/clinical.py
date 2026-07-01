@@ -204,6 +204,121 @@ def _hai_specimens(cohort: Cohort, country: str) -> set[str]:
     return hai_specs
 
 
+def _check_care_team_coverage(cohort: Cohort, country: str, result: AxisResult) -> None:
+    """Tier 1 #3 α-min-2 Task 13 clinical gate: CareTeam ref integrity.
+
+    Walks CareTeam.ndjson for one country. Verifies:
+    - each CareTeam.subject.reference resolves to a Patient id in Patient.ndjson
+    - each CareTeam.encounter.reference resolves to an Encounter id in Encounter.ndjson
+    - each CareTeam.participant[].member.reference resolves to a Practitioner id
+      in Practitioner.ndjson (or is the ``Practitioner/UNKNOWN`` placeholder
+      emitted when attending_physician_id is absent — surfaces as WARN, not FAIL,
+      since UNKNOWN is an intentional proxy).
+
+    n < 30 CareTeam resources → WARN (rare-event tolerated; care teams are
+    per-encounter so small cohorts may have few records).
+    Dangling refs on cohort >= 30 → FAIL (PR-90 class silent-no-op).
+    """
+    n_warn_threshold = 30
+
+    # Collect anchor id sets.
+    patient_ids: set[str] = {
+        row["id"] for row in cohort.ndjson(country, "Patient") if row.get("id")
+    }
+    encounter_ids: set[str] = {
+        row["id"] for row in cohort.ndjson(country, "Encounter") if row.get("id")
+    }
+    practitioner_ids: set[str] = {
+        row["id"] for row in cohort.ndjson(country, "Practitioner") if row.get("id")
+    }
+
+    care_team_count = 0
+    dangling_patient: list[str] = []
+    dangling_encounter: list[str] = []
+    dangling_practitioner: list[str] = []
+    unknown_attending_count = 0
+
+    for row in cohort.ndjson(country, "CareTeam"):
+        care_team_count += 1
+
+        # subject → Patient
+        subj_ref = (row.get("subject") or {}).get("reference", "")
+        if subj_ref.startswith("Patient/"):
+            pt_id = subj_ref.removeprefix("Patient/")
+            if pt_id not in patient_ids:
+                dangling_patient.append(pt_id)
+
+        # encounter → Encounter
+        enc_ref = (row.get("encounter") or {}).get("reference", "")
+        if enc_ref.startswith("Encounter/"):
+            enc_id = enc_ref.removeprefix("Encounter/")
+            if enc_id not in encounter_ids:
+                dangling_encounter.append(enc_id)
+
+        # participant[].member → Practitioner
+        for participant in row.get("participant") or []:
+            member_ref = (participant.get("member") or {}).get("reference", "")
+            if not member_ref.startswith("Practitioner/"):
+                continue
+            prac_id = member_ref.removeprefix("Practitioner/")
+            if prac_id == "UNKNOWN":
+                unknown_attending_count += 1
+                continue
+            if prac_id not in practitioner_ids:
+                dangling_practitioner.append(prac_id)
+
+    result.info[f"care_team_count_{country}"] = care_team_count
+    if unknown_attending_count:
+        result.info[f"care_team_unknown_attending_{country}"] = unknown_attending_count
+
+    if care_team_count < n_warn_threshold:
+        result.info[f"care_team_coverage_{country}"] = (
+            f"n={care_team_count} CareTeam < {n_warn_threshold}; rare-event WARN"
+        )
+        result.findings.append(
+            AuditFinding(
+                Severity.WARN,
+                f"{country}: CareTeam count={care_team_count} < {n_warn_threshold} "
+                f"(rare-event tolerated; ref integrity not enforced); "
+                f"dangling_pt={len(dangling_patient)}, "
+                f"dangling_enc={len(dangling_encounter)}, "
+                f"dangling_prac={len(dangling_practitioner)}",
+            )
+        )
+        return
+
+    if dangling_patient:
+        result.findings.append(
+            AuditFinding(
+                Severity.FAIL,
+                f"{country}: {len(dangling_patient)} CareTeam.subject dangling Patient refs "
+                f"(not in Patient.ndjson); sample={dangling_patient[:5]}",
+            )
+        )
+    if dangling_encounter:
+        result.findings.append(
+            AuditFinding(
+                Severity.FAIL,
+                f"{country}: {len(dangling_encounter)} CareTeam.encounter dangling Encounter refs "
+                f"(not in Encounter.ndjson); sample={dangling_encounter[:5]}",
+            )
+        )
+    if dangling_practitioner:
+        result.findings.append(
+            AuditFinding(
+                Severity.FAIL,
+                f"{country}: {len(dangling_practitioner)} CareTeam.participant.member dangling "
+                f"Practitioner refs (not in Practitioner.ndjson and not UNKNOWN placeholder); "
+                f"sample={dangling_practitioner[:5]}",
+            )
+        )
+    if not dangling_patient and not dangling_encounter and not dangling_practitioner:
+        result.info[f"care_team_coverage_{country}"] = (
+            f"{care_team_count}/{care_team_count} CareTeam subject/encounter/participant refs resolve "
+            f"(unknown_attending={unknown_attending_count})"
+        )
+
+
 def _check_lab_obs_basedon(cohort: Cohort, country: str, result: AxisResult) -> None:
     """PR1 clinical gate: every LAB Observation must carry basedOn → ServiceRequest.
 
@@ -389,6 +504,11 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
     if "imaging_basedon_coverage" in spec.clinical_acceptance:
         for country in cohort.countries():
             _check_imaging_basedon(cohort, country, result)
+
+    # Tier 1 #3 α-min-2 CareTeam ref integrity gate.
+    if "care_team_per_encounter" in spec.clinical_acceptance:
+        for country in cohort.countries():
+            _check_care_team_coverage(cohort, country, result)
 
     # Filter to HAI-type entries only (dict with "icd10_code").
     # Top-level metadata keys (e.g. "hai_resistance_bands",

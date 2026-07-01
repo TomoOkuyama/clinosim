@@ -7,6 +7,8 @@ from datetime import date, datetime, timedelta
 from enum import Enum
 from typing import Any
 
+from clinosim.types.triage import TriageData
+
 
 class EncounterType(str, Enum):
     OUTPATIENT = "outpatient"
@@ -63,6 +65,9 @@ class Encounter:
     admit_source: str = ""  # "emd" | "hosp-trans" | "gp" | "mp" | "nursing" | "outp"
     discharge_disposition: str = ""  # "home" | "hosp" | "other-hcf" | "exp" | "snf"
     priority: str = ""  # "EM" (emergency) | "UR" (urgent) | "R" (routine)
+    # Tier 1 #3 α-min-2 additions
+    primary_nurse_id: str = ""              # nursing_enricher が set(inpatient のみ)
+    triage_data: TriageData | None = None   # triage_enricher が set(ED のみ)
 
     def __post_init__(self) -> None:
         if self.time_resolution is None:
