@@ -1,12 +1,12 @@
 """Document chain AD-60 audit module (Tier 1 #3 α-min-1 Task 11; α-min-2 Task 13;
-AD-65 Bug A Task 11).
+AD-65 Bug A Task 11; AD-65 Bug B Task 12).
 
 AD-60 plug-in #5 (after hai, antibiotic, order_service_request, imaging).
 
 Verifies CIF -> FHIR emission integrity for the document pipeline:
 DocumentReference / Composition / AllergyIntolerance / ClinicalImpression / CareTeam.
 
-25+ equality_checks in lift_firing_proof guard canonical constants and
+26+ equality_checks in lift_firing_proof guard canonical constants and
 no-drop emission paths against PR-90 class silent-no-op regression.
 
 Registered checks:
@@ -29,6 +29,11 @@ Registered checks:
     `us_admission_hp_zero_ja_chars` — see `_count_us_hp_ja_chars` /
     `_proof_us_hp_ja_chars` docstrings. Companion integration test:
     `tests/integration/test_bug_a_us_hp_english_only.py`.
+  AD-65 Bug B +1 equality_check (total = 26):
+    `nursing_doc_author_is_nurse_ratio` — see `_nursing_author_ratio` /
+    `_proof_nursing_author_ratio` docstrings. Companion unit test:
+    `tests/unit/test_document_author_selection.py`; companion integration
+    test: `tests/integration/test_bug_b_nurse_author.py`.
 
 TODO(jp_language_audit): jp_language_checks not implemented — ModuleAuditSpec
 does not have a jp_language_checks field. Deferred to a follow-up sweep
@@ -62,6 +67,7 @@ from clinosim.modules.document import (
     CLINICAL_IMPRESSION_ID_PREFIX,
     COMPOSITION_ID_PREFIX,
     DOC_REFERENCE_ID_PREFIX,
+    NURSING_LOINCS,
 )
 from clinosim.modules.output._fhir_care_team import CARE_TEAM_ID_PREFIX
 
@@ -184,6 +190,102 @@ def _proof_us_hp_ja_chars() -> int:
             )
 
         return _count_us_hp_ja_chars(tmp)
+
+
+def _nursing_author_ratio(cif_dir: str) -> float:
+    """AD-65 Bug B (Task 12): fraction of nursing docs authored by the assigned nurse.
+
+    Walks `cif_dir/structural/patients/*.json` and, for every
+    `ClinicalDocument` whose `loinc_code` is in `NURSING_LOINCS`
+    (admission_nursing_assessment 78390-2 / nursing_shift_note 34746-8 /
+    nursing_discharge_summary 34745-0), checks whether
+    `author_practitioner_id` equals that document's encounter's
+    `primary_nurse_id`. Non-nursing documents are ignored entirely (they
+    are expected to be authored by `attending_physician_id`, unchanged).
+
+    Returns 1.0 (vacuously) if the CIF directory doesn't have the expected
+    structural subtree, or if the cohort has no nursing documents at all —
+    same defensive-default convention as `_count_us_hp_ja_chars` /
+    `load_hai_antibiogram`'s no-panel-eligible default.
+    """
+    structural_dir = os.path.join(cif_dir, "structural", "patients")
+    if not os.path.isdir(structural_dir):
+        return 1.0
+
+    total = 0
+    correct = 0
+    for patient_path in glob.glob(os.path.join(structural_dir, "*.json")):
+        with open(patient_path, encoding="utf-8") as f:
+            patient = json.load(f)
+        nurse_by_encounter = {
+            enc.get("encounter_id", ""): enc.get("primary_nurse_id", "") or ""
+            for enc in (patient.get("encounters") or [])
+        }
+        for doc in patient.get("documents") or []:
+            if doc.get("loinc_code") not in NURSING_LOINCS:
+                continue
+            total += 1
+            author = doc.get("author_practitioner_id", "") or ""
+            nurse_id = nurse_by_encounter.get(doc.get("encounter_id", ""), "")
+            if author and author == nurse_id:
+                correct += 1
+    return (correct / total) if total else 1.0
+
+
+def _proof_nursing_author_ratio() -> float:
+    """Zero-arg synthetic fixture exercising `_nursing_author_ratio` end to end.
+
+    `lift_firing_proof` is a zero-arg factory (see `_proof_us_hp_ja_chars`
+    docstring for the same constraint), so this builds a minimal on-disk
+    structural CIF fixture directly (same pattern) rather than receiving a
+    real cohort's `cif_dir`.
+
+    Fixture has ONE encounter with a nurse assigned (`NS-IM-001`) and TWO
+    documents:
+      - a nursing doc (LOINC 78390-2) correctly authored by the nurse
+      - a physician doc (LOINC 11506-3, progress note) authored by the
+        attending (`DR-IM-001`) — included specifically to prove the ratio
+        helper actually FILTERS by `NURSING_LOINCS` rather than checking
+        every document's author against the nurse: a naive
+        "check all docs" implementation would count the physician doc as a
+        mismatch and return 0.5, not 1.0.
+    Expected ratio: 1.0.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        structural_dir = os.path.join(tmp, "structural", "patients")
+        os.makedirs(structural_dir, exist_ok=True)
+
+        with open(os.path.join(structural_dir, "pt-proof-nurse.json"), "w", encoding="utf-8") as f:
+            json.dump(
+                {
+                    "encounters": [
+                        {
+                            "encounter_id": "enc-nurse-proof",
+                            "attending_physician_id": "DR-IM-001",
+                            "primary_nurse_id": "NS-IM-001",
+                        }
+                    ],
+                    "documents": [
+                        {
+                            "document_id": "doc-enc-nurse-proof-01",
+                            "task_type": "admission_nursing_assessment",
+                            "loinc_code": "78390-2",
+                            "encounter_id": "enc-nurse-proof",
+                            "author_practitioner_id": "NS-IM-001",
+                        },
+                        {
+                            "document_id": "doc-enc-nurse-proof-02",
+                            "task_type": "progress_note",
+                            "loinc_code": "11506-3",
+                            "encounter_id": "enc-nurse-proof",
+                            "author_practitioner_id": "DR-IM-001",
+                        },
+                    ],
+                },
+                f,
+            )
+
+        return _nursing_author_ratio(tmp)
 
 
 def _build_document_proof() -> dict[str, Any]:
@@ -542,6 +644,12 @@ def _build_document_proof() -> dict[str, Any]:
                 "us_admission_hp_zero_ja_chars",
                 _proof_us_hp_ja_chars(),
                 0,
+            ),
+            # === AD-65 Bug B addition (Task 12) — 1 new check; total = 26 ===
+            (
+                "nursing_doc_author_is_nurse_ratio",
+                _proof_nursing_author_ratio(),
+                1.0,
             ),
         ]
     }
