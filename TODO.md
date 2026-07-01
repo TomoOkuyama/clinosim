@@ -1421,13 +1421,35 @@ Suggested order: ~~microbiology+markers~~ ✅ → ~~nursing flowsheets~~ ✅ →
   **Known gap**: outpatient.py + emergency.py do not invoke POST_ENCOUNTER enrichers → outpatient
   SOAP, ED note, ED triage note produce 0 resources in production (fix targeted for α-min-3).
 
-### Stage 2 LLM provider integration (β-JP-1 chain, deferred)
-- `narrate` CLI subcommand deprecated in Task 15. Stage 1 enricher (document_enricher
-  POST_ENCOUNTER) is the sole DocumentReference emit path.
-- Stage 2 = re-running LLM narrative over existing CIF for higher-quality text. Deferred to β-JP-1
-  chain (or later). Design: document_enricher should have a Stage 2 hook that accepts an LLMService
-  and overwrites template text with LLM output. The `narrate` subcommand may be re-introduced
-  pointing to this hook instead of the deleted document_generator.py.
+### β-JP-1: LLMNarrativePass 実装(AD-65 base 上に drop-in)
+
+- `LLMNarrativePass(NarrativePass)` subclass 実装 — AD-65 `NarrativePass` base の上に Bedrock/Ollama LLM integration を layer
+- Bedrock Sonnet-4 provider + Ollama qwen:7b provider 対応 + localhost fallback
+- Bedrock prompt cache(5 分 TTL)発火の実測 verify + cost reduction report
+- `facts_used` gate 有効化 — template facts vs LLM-rephrased facts の audit diff
+- `docStatus` 4 状態化:
+  - `"final"` (template完全生成)
+  - `"final"` (LLM完全生成)
+  - `"preliminary"` (LLM fallback to template)
+  - `"amended"` (human reviewed)
+- `Composition.author` extension で AI-assisted attribution 明示
+- Section-level LLM replacement 発火の条件化 (section 例外リスト + LLM-capable section list by doctype)
+- `clinosim narrate --patient-filter POP-000001` 対応 — single-patient iterative loop for testing
+
+### Post-AD-65 fixture library (α-min-2c or β-2 chain)
+
+- `clinosim/tests/fixtures/patient_profiles/` canonical fixture YAML gallery (10-15 exemplar profiles)
+- Clinical archetypes:
+  - Healthy outpatient (no chronic conditions, preventive care only)
+  - Simple chronic (1 stable disease, routine medication, no complications)
+  - Complex polypharmacy (3+ conditions, drug interactions, high-acuity potential)
+  - Acute-on-chronic (exacerbation of known disease + unrelated ED visit)
+  - HAI cohort (ICU-to-discharge with CLABSI/CAUTI/VAP lifecycle)
+  - Multilinguality testing (JP locale + JP-language narrative validation)
+- `clinosim test-disease --patient-profile <yaml>` CLI 対応 — fixture profile を入力に selected-disease simulation 実行
+- Fixture profile schema: patient_id / demographics / chronic_medications / initial_labs / encounter_sequence / narrative_expectations
+- Fixture 選定は臨床医 review loop 必須(小児科医 + 内科医 +看護師 validation per archetype)
+- CI regression suite として integrate — narrative generation + FHIR export の determinism + bug tail tracking
 
 ### Imaging chain OOS formal entries (Tier 1 #2 PR1 scope-out)
 
