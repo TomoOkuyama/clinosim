@@ -155,8 +155,6 @@ def _make_nursing_assessment_spec() -> DocumentTypeSpec:
     return DocumentTypeSpec(
         type_key="admission_nursing_assessment",
         loinc_code="78390-2",
-        display_en="Nurse Admission history and physical note",
-        display_ja="看護入院アセスメント",
         format_type=FormatType.COMPOSITION,
         countries_supported=("jp", "us"),
         generation_frequency="once",
@@ -175,8 +173,6 @@ def _make_nursing_discharge_spec() -> DocumentTypeSpec:
     return DocumentTypeSpec(
         type_key="nursing_discharge_summary",
         loinc_code="34745-0",
-        display_en="Nurse Discharge summary",
-        display_ja="看護退院サマリー",
         format_type=FormatType.COMPOSITION,
         countries_supported=("jp", "us"),
         generation_frequency="once",
@@ -194,8 +190,6 @@ def _make_outpatient_soap_spec() -> DocumentTypeSpec:
     return DocumentTypeSpec(
         type_key="outpatient_soap",
         loinc_code="34131-3",
-        display_en="Outpatient Progress note",
-        display_ja="外来経過記録（SOAP）",
         format_type=FormatType.COMPOSITION,
         countries_supported=("jp", "us"),
         generation_frequency="per_visit",
@@ -208,8 +202,6 @@ def _make_ed_note_spec() -> DocumentTypeSpec:
     return DocumentTypeSpec(
         type_key="ed_note",
         loinc_code="34878-9",
-        display_en="Emergency medicine Note",
-        display_ja="救急科記録",
         format_type=FormatType.COMPOSITION,
         countries_supported=("jp", "us"),
         generation_frequency="once",
@@ -230,8 +222,6 @@ def _make_nursing_shift_spec() -> DocumentTypeSpec:
     return DocumentTypeSpec(
         type_key="nursing_shift_note",
         loinc_code="34746-8",
-        display_en="Nurse Note",
-        display_ja="看護記録",
         format_type=FormatType.FREE_TEXT,
         countries_supported=("jp", "us"),
         generation_frequency="per_shift",
@@ -243,8 +233,6 @@ def _make_ed_triage_spec() -> DocumentTypeSpec:
     return DocumentTypeSpec(
         type_key="ed_triage_note",
         loinc_code="54094-8",
-        display_en="Emergency department Triage note",
-        display_ja="トリアージ記録",
         format_type=FormatType.FREE_TEXT,
         countries_supported=("jp", "us"),
         generation_frequency="once",

@@ -206,8 +206,6 @@ def test_document_enricher_locale_gating_us_excludes_jp_only_specs() -> None:
     jp_only_spec = DocumentTypeSpec(
         type_key="admission_hp",       # valid DocumentType value
         loinc_code="34117-2",
-        display_en="JP-only H&P",
-        display_ja="JP限定入院記録",
         format_type=FormatType.COMPOSITION,
         countries_supported=("jp",),
         generation_frequency="admission_once",
@@ -325,3 +323,29 @@ def test_document_enricher_deterministic() -> None:
         assert i1.impression_id == i2.impression_id
         assert i1.day_index == i2.day_index
         assert i1.date == i2.date
+
+
+def test_nursing_loincs_derived_from_yaml() -> None:
+    """F-7 adv-1: NURSING_LOINCS is derived from document_type_specs.yaml, not hardcoded.
+
+    Prior state was a hardcoded frozenset({"34746-8", "78390-2", "34745-0"})
+    that duplicated the YAML values. A future LOINC swap in the YAML would
+    silently leave the author-dispatch gate reading stale codes. Verify the
+    derived set matches the current YAML content.
+    """
+    from clinosim.modules.document.engine import (
+        _NURSING_DOC_TYPE_KEYS,
+        NURSING_LOINCS,
+        _load_nursing_loincs,
+    )
+    from clinosim.modules.document.narrative.registry import load_document_type_specs
+    from clinosim.types.document import DocumentType
+
+    specs = load_document_type_specs()
+    expected = {specs[DocumentType(k)].loinc_code for k in _NURSING_DOC_TYPE_KEYS}
+    assert NURSING_LOINCS == expected
+    # Cross-check derivation still returns the same value (cache is populated).
+    _load_nursing_loincs.cache_clear()
+    assert _load_nursing_loincs() == NURSING_LOINCS
+    # 3 distinct nursing document types → 3 distinct LOINC codes.
+    assert len(NURSING_LOINCS) == 3

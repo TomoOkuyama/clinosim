@@ -2,12 +2,14 @@
 # LOINC codes: 34117-2 / 11506-3 / 18842-5 (verified in clinosim/codes/data/loinc.yaml)
 # α-min-1 specs now carry explicit encounter_types_supported to prevent
 # leaking into outpatient / emergency encounters (Task 10 data-quality fix).
+#
+# F-8 adv-1 (PR #131): display_en / display_ja removed. Display text is
+# resolved at output time via clinosim.codes.lookup("loinc", loinc_code,
+# language) — see clinosim/codes/data/loinc.yaml (authoritative source).
 
 specs:
   admission_hp:
     loinc_code: "34117-2"
-    display_en: "History and physical note"
-    display_ja: "入院時記録"
     format_type: composition
     countries_supported: [us, jp]
     encounter_types_supported: [inpatient, icu, rehab_inpatient]
@@ -27,8 +29,6 @@ specs:
 
   progress_note:
     loinc_code: "11506-3"
-    display_en: "Progress note"
-    display_ja: "経過記録"
     format_type: free_text
     countries_supported: [us, jp]
     encounter_types_supported: [inpatient, icu, rehab_inpatient]
@@ -38,8 +38,6 @@ specs:
 
   discharge_summary:
     loinc_code: "18842-5"
-    display_en: "Discharge summary"
-    display_ja: "退院サマリ"
     format_type: composition
     countries_supported: [us, jp]
     encounter_types_supported: [inpatient, icu, rehab_inpatient]
@@ -58,8 +56,6 @@ specs:
 
   admission_nursing_assessment:
     loinc_code: "78390-2"
-    display_en: "Nurse admission history and physical note"
-    display_ja: "入院時看護アセスメント"
     format_type: composition
     countries_supported: [us, jp]
     encounter_types_supported: [inpatient, icu, rehab_inpatient]
@@ -75,8 +71,6 @@ specs:
 
   nursing_shift_note:
     loinc_code: "34746-8"
-    display_en: "Nurse note"
-    display_ja: "看護経過記録"
     format_type: free_text
     countries_supported: [us, jp]
     encounter_types_supported: [inpatient, icu, rehab_inpatient]
@@ -86,8 +80,6 @@ specs:
 
   nursing_discharge_summary:
     loinc_code: "34745-0"
-    display_en: "Nurse discharge summary"
-    display_ja: "退院時看護サマリ"
     format_type: composition
     countries_supported: [us, jp]
     encounter_types_supported: [inpatient, icu, rehab_inpatient]
@@ -102,8 +94,6 @@ specs:
 
   outpatient_soap:
     loinc_code: "34131-3"
-    display_en: "Outpatient note"
-    display_ja: "外来 SOAP 記録"
     format_type: composition
     countries_supported: [us, jp]
     encounter_types_supported: [outpatient]
@@ -118,8 +108,6 @@ specs:
 
   ed_note:
     loinc_code: "34878-9"
-    display_en: "Emergency department note"
-    display_ja: "救急記録"
     format_type: composition
     countries_supported: [us, jp]
     encounter_types_supported: [emergency]
@@ -137,8 +125,6 @@ specs:
 
   ed_triage_note:
     loinc_code: "54094-8"
-    display_en: "Triage note"
-    display_ja: "トリアージ記録"
     format_type: free_text
     countries_supported: [us, jp]
     encounter_types_supported: [emergency]
