@@ -26,9 +26,10 @@
 
 ### Chain size
 
-- SDD tasks: **18-20**(architecture 6-8 + bug fix 8-9 + dev facility 3 + doc 3)
+- **SDD tasks: 23**(architecture 6 + doc 7 + bug fix 7 + dev facility 2 + test 1、詳細は Appendix A)
 - Expected session count: 1-1.5(session 28 内収束予定、adv-1 fan-out 別途)
 - Test coverage delta: +50-60 unit / +10-15 integration / 39 e2e regenerate / +6 audit gates
+- 比較 baseline:session 26 α-min-1 = 15 SDD task、session 27 α-min-2 = 15 SDD task、本 chain = 23(bug fix + dev facility + doc の 分の増分)
 
 ### User decision summary(brainstorming ログ)
 
@@ -593,8 +594,9 @@ def _run_narrate(args) -> None:
 
 ### 3.6 `generate` verb auto-invoke(inline UX 維持)
 
+`clinosim/simulator/cli.py` の `main()` 関数内、`write_cif(dataset, cif_dir)` 呼出 直後 + `_run_exports(...)` 呼出 直前 に以下を挿入:
+
 ```python
-# main() の write_cif 直後(cli.py:210 付近):
 from clinosim.modules.document.narrative.passes import TemplateNarrativePass
 pass_impl = TemplateNarrativePass(
     cif_dir=cif_dir, version_id="template", country=args.country, rng_seed=args.seed,
@@ -755,22 +757,18 @@ if config.catchment_population == 10_000:  # CLI default sentinel
 
 **Post-AD-65 defer(α-min-2c 別 chain)**:patient profile fixture library(10-15 canonical YAML)、`--patient-profile <yaml>` 対応、narrative regression CI suite integration。
 
-### 4.6 SDD task breakdown(全 12 bug-fix + facility 系 tasks)
+### 4.6 SDD task breakdown
 
-| # | Task | Category | 概算行数 |
-|---|---|---|---|
-| T1 | `_pick_localized` helper + 8 builder refactor(Bug A code)| Bug A | +80/-40 |
-| T2 | Disease YAML narrative en field audit + CI script(Bug A data)| Bug A | ~100 YAML edits + 30 script |
-| T3 | Bug A integration test + audit gate | Bug A | +30 |
-| T4 | `_pick_document_author` helper + 4 branch refactor + NURSING_LOINCS 定数(Bug B)| Bug B | +30/-15 |
-| T5 | Bug B integration test + audit gate | Bug B | +25 |
-| T6 | Bug C diagnosis(severity distribution 実測 script)| Bug C | +10 script |
-| T7 | Bug C fix(候補 (i) or (ii)、T6 依存)| Bug C | 30-200 |
-| T8 | Bug D CLI + config + engine.py sentinel 撤廃 + integration test | Bug D | +30/-15 |
-| T9 | `test-disease --format + -o` | Dev facility | +50 |
-| T10 | `test-encounter --format + -o` | Dev facility | +40 |
-| T11 | `CONTRIBUTING-modules.md` regen scope matrix | Dev facility | +50 doc |
-| T12 | 4 bug audit gate 追加(`document/audit.py:lift_firing_proof`)| Audit | +25 |
+Bug fix + dev facility 系 tasks の詳細は Appendix A(全 chain SDD task 統合表)を参照。本節では bug 別の task 数のみ summary:
+
+| Bug / Category | SDD task 数 | 概算総行数 |
+|---|---|---|
+| Bug A(H&P locale)| 3(refactor + YAML audit + integration test)| +110/-40 + 100 YAML edits + 30 script |
+| Bug B(nurse author)| 1(helper + refactor + audit gate + test 同 commit)| +55/-15 |
+| Bug C(triage L1/5)| 2(diagnosis script + fix)| +10 script + 30-200 fix |
+| Bug D(CLI silent)| 1(CLI + config + engine.py + test 同 commit)| +45/-15 |
+| Dev facility(test-* --format + doc)| 3(test-disease / test-encounter / CONTRIBUTING doc)| +90 + 50 doc |
+| Audit gate 追加(6 gate)| 1(`document/audit.py:lift_firing_proof`)| +25 |
 
 ## 5. Testing & Migration
 
@@ -1007,48 +1005,54 @@ Session 27 format 継承。完了事項 / Gap closure verified / 特筆事項 / 
 Chain 完了直前 sanity check:
 
 ```bash
-# Every AD-65 rule in CLAUDE.md is grep-able from at least 1 source file
-for rule in "TemplateNarrativePass" "ClinicalDocumentNarrative" "cif/narratives" \
-            "narrate --provider" "walk 順序"; do
-    grep -rn "$rule" clinosim/ tests/ docs/ CLAUDE.md DESIGN.md MODULES.md
+# Every AD-65 rule in CLAUDE.md is grep-able from at least 1 source file.
+# All grep targets are English tokens intentionally.
+for rule in "TemplateNarrativePass" "ClinicalDocumentNarrative" \
+            "cif/narratives" "narrate --provider" "narrative_version"; do
+    grep -rn "$rule" clinosim/ tests/ docs/ CLAUDE.md DESIGN.md MODULES.md \
+        || echo "MISSING: $rule"
 done
 ```
 
 ## Appendix A: Complete SDD Task Breakdown
 
-18-20 SDD tasks 全体:
+**単一 canonical task table**(全 chain 実行 order、各 task に依存 phase 記載):
 
-| # | Task | Category | Section 参照 |
-|---|---|---|---|
-| **T_DOC1** | CLAUDE.md AD-65 rules 5 個追加(T1 と同 commit)| Doc | 6.2 |
-| T1 | ClinicalDocumentNarrative wrapper + ClinicalDocument stub refactor | Architecture | 2 |
-| T2 | cif_writer.py structural-only + `_narrative_to_text` 削除 | Architecture | 3 |
-| T3 | `passes.py`(NarrativePass base + TemplateNarrativePass)+ fact_extractor + section_extractor + scenario_spine | Architecture | 3 |
-| T4 | `cif_reader.py` + `_fhir_composition.py` / `_fhir_documents.py` refactor to wrapper 経由 | Architecture | 3 |
-| T5 | `narrate` CLI verb 復活 + `export-fhir --narrative-version` + `generate` auto-invoke | Architecture | 3 |
-| T6 | ENRICHER_SEED_OFFSETS "narrative_template" = 0x4e54 追加 + determinism test | Architecture | 3.7 |
-| **T_DOC2** | DESIGN.md AD-65 ADR 追加 | Doc | 6.3 |
-| **T_DOC3** | SPEC.md Current Implementation Status + Change Log 追加 | Doc | 6.4 |
-| T7 | Bug A `_pick_localized` helper + 8 builder refactor | Bug A | 4.1 |
-| T8 | Bug A Disease YAML en field audit + CI script | Bug A | 4.1 |
-| T9 | Bug A integration test + audit gate | Bug A | 4.1 |
-| T10 | Bug B `_pick_document_author` helper + 4 branch refactor + audit gate | Bug B | 4.2 |
-| T11 | Bug C diagnosis(severity distribution script)| Bug C | 4.3 |
-| T12 | Bug C fix + audit gate | Bug C | 4.3 |
-| T13 | Bug D CLI + config + engine.py sentinel 撤廃 + audit gate | Bug D | 4.4 |
-| T14 | `test-disease --format + -o` | Dev facility | 4.5 |
-| T15 | `test-encounter --format + -o` | Dev facility | 4.5 |
-| **T_DOC4** | `MODULES.md` document module revise | Doc | 6.5 |
-| **T_DOC5** | `clinosim/modules/document/README.md` + `output/README.md` 更新 | Doc | 6.6 |
-| **T_DOC6** | `TODO.md` update | Doc | 6.8 |
-| **T_DOC7 = T11**(重複)| `CONTRIBUTING-modules.md` Regen scope matrix | Doc / Dev facility | 6.7 |
-| T16 | e2e goldens 全 regenerate + human eyeball review | Test | 5.4 |
-| T17 | Audit gate 6 個追加(`document/audit.py:lift_firing_proof`)| Audit | 5.5 |
-| T_FINAL | memory `project_session_28_end_state.md` + PR body | Doc / memory | 6.9 |
+| # | Task | Category | Phase | Section 参照 |
+|---|---|---|---|---|
+| T1 | `ClinicalDocumentNarrative` wrapper + `ClinicalDocument` stub refactor + `NarrativeVersionManifest` 追加 + CLAUDE.md AD-65 rules 5 個追加(同 commit) | Architecture + Doc | 1 | 2, 6.2 |
+| T2 | `cif_writer.py` structural-only(narrative content strip)+ `_narrative_to_text` 削除 | Architecture | 1 | 3 |
+| T3 | `passes.py`(NarrativePass base + TemplateNarrativePass)+ `fact_extractor.py` + `section_extractor.py` + `scenario_spine.py` 追加 | Architecture | 1 | 3.3, 3.2 |
+| T4 | `cif_reader.py` + `_fhir_composition.py` / `_fhir_documents.py` を wrapper 経由に refactor | Architecture | 1 | 3.4 |
+| T5 | `narrate` CLI verb 復活 + `export-fhir --narrative-version` + `generate` auto-invoke | Architecture | 1 | 3.5, 3.6 |
+| T6 | `ENRICHER_SEED_OFFSETS["narrative_template"] = 0x4e54` 追加 + determinism unit test | Architecture | 1 | 3.7 |
+| T7 | `DESIGN.md` AD-65 ADR 追加 | Doc | 2 | 6.3 |
+| T8 | `SPEC.md` Current Implementation Status + Change Log 追加 | Doc | 2 | 6.4 |
+| T9 | Bug A `_pick_localized` helper + 8 builder refactor + unit test | Bug A | 3 | 4.1 |
+| T10 | Bug A Disease YAML en field audit + CI script + missing en 補填 | Bug A | 3 | 4.1 |
+| T11 | Bug A integration test(US p=100 zero ja chars)+ audit gate | Bug A | 3 | 4.1, 5.5 |
+| T12 | Bug B `_pick_document_author` helper + 4 branch refactor + `NURSING_LOINCS` 定数 + unit + integration + audit gate | Bug B | 3 | 4.2, 5.5 |
+| T13 | Bug C diagnosis(severity distribution 実測 script)| Bug C | 3 | 4.3 |
+| T14 | Bug C fix(T13 依存)+ integration test + audit gate | Bug C | 3 | 4.3, 5.5 |
+| T15 | Bug D CLI(argparse SUPPRESS)+ config(catchment_population Optional)+ engine.py sentinel 撤廃 + unit + integration + audit gate | Bug D | 3 | 4.4, 5.5 |
+| T16 | `test-disease` に `--format cif\|fhir-r4\|all` + `-o` 追加 + unit test | Dev facility | 4 | 4.5 |
+| T17 | `test-encounter` に同拡張 + unit test | Dev facility | 4 | 4.5 |
+| T18 | `docs/CONTRIBUTING-modules.md` に Regen scope matrix + 使用例 3 個追加 | Doc / Dev facility | 4 | 6.7 |
+| T19 | e2e goldens 39 全 regenerate + human eyeball review | Test | 5 | 5.4 |
+| T20 | `MODULES.md` document module 2 role 記述 + narrative_pass 一覧追加 | Doc | 6 | 6.5 |
+| T21 | `clinosim/modules/document/README.md` + `output/README.md` 3 節追加 | Doc | 6 | 6.6 |
+| T22 | `TODO.md` update(β-JP-1 + α-min-2c fixture library entry)| Doc | 6 | 6.8 |
+| T23 | memory `project_session_28_end_state.md` 作成 + PR body draft | Doc / memory | 6 | 6.9 |
 
-**合計 SDD task: 24 個**(architecture 6 + bug fix 7 + dev facility 2 + doc 7 + test 1 + audit 1 + final 0)。
+**合計 SDD tasks: 23**(architecture 6 + doc 7 + bug fix 7 + dev facility 2 + test 1)。
 
-**修正:** 上記 = 実質 18-20 の実装 task と `T_DOC*` を含む 24 milestones。T_DOC7 = T11 の重複を除き、実質 **23 milestones**。実行順序は依存グラフに基づく。
+Phase mapping:
+- **Phase 1**(T1-T6)= Architecture + CLAUDE.md rule land(rule と実装同時 land = drift 防止)
+- **Phase 2**(T7-T8)= Doc mid(DESIGN.md AD-65 + SPEC.md sync)
+- **Phase 3**(T9-T15)= Bug fixes(A/B/C/D)
+- **Phase 4**(T16-T18)= Dev facility
+- **Phase 5**(T19)= Test regeneration
+- **Phase 6**(T20-T23)= Doc final + session memory
 
 ## Appendix B: Chain execution flow
 
@@ -1060,53 +1064,55 @@ done
           │
           ▼
 ┌──────────────────────────────────────────┐
-│ Phase 1: Architecture(T1-T6 + T_DOC1)   │
-│  - Wrapper + stub refactor               │
-│  - passes.py + cif_reader.py             │
-│  - narrate verb + generate auto-invoke   │
-│  - determinism setup                     │
-│  - CLAUDE.md AD-65 rules(T1 と同 commit)│
+│ Phase 1: Architecture(T1-T6)            │
+│  - T1 Wrapper + stub refactor +          │
+│       CLAUDE.md AD-65 rules(同 commit)  │
+│  - T2 cif_writer.py structural-only      │
+│  - T3 passes.py + fact/section/spine     │
+│  - T4 cif_reader.py + FHIR builder ref   │
+│  - T5 narrate verb + generate auto       │
+│  - T6 determinism setup + walk order test│
 └─────────┬────────────────────────────────┘
           │
           ▼
 ┌──────────────────────────────────────────┐
-│ Phase 2: Doc mid(T_DOC2-3)              │
-│  - DESIGN.md AD-65 ADR                   │
-│  - SPEC.md status + change log           │
+│ Phase 2: Doc mid(T7-T8)                 │
+│  - T7 DESIGN.md AD-65 ADR                │
+│  - T8 SPEC.md status + change log        │
 └─────────┬────────────────────────────────┘
           │
           ▼
 ┌──────────────────────────────────────────┐
-│ Phase 3: Bug fixes(T7-T13)              │
-│  - Bug A(3 SDD tasks)                   │
-│  - Bug B(1 SDD task)                    │
-│  - Bug C(2 SDD tasks)                   │
-│  - Bug D(1 SDD task)                    │
+│ Phase 3: Bug fixes(T9-T15)              │
+│  - T9-T11 Bug A(H&P locale)             │
+│  - T12   Bug B(nurse author)            │
+│  - T13-T14 Bug C(triage L1/5)           │
+│  - T15   Bug D(CLI silent)              │
+│  ★ audit gate 6 個は T11/T12/T14/T15 内  │
 └─────────┬────────────────────────────────┘
           │
           ▼
 ┌──────────────────────────────────────────┐
-│ Phase 4: Dev facility(T14-T15 + T_DOC7) │
-│  - test-disease --format                 │
-│  - test-encounter --format               │
-│  - CONTRIBUTING regen scope matrix       │
+│ Phase 4: Dev facility(T16-T18)          │
+│  - T16 test-disease --format             │
+│  - T17 test-encounter --format           │
+│  - T18 CONTRIBUTING regen scope matrix   │
 └─────────┬────────────────────────────────┘
           │
           ▼
 ┌──────────────────────────────────────────┐
-│ Phase 5: Test + Audit(T16-T17)          │
-│  - e2e goldens regenerate                │
-│  - 6 audit gate 追加                     │
+│ Phase 5: Test regeneration(T19)         │
+│  - T19 e2e goldens 39 全 regenerate      │
 └─────────┬────────────────────────────────┘
           │
           ▼
 ┌──────────────────────────────────────────┐
-│ Phase 6: Doc final(T_DOC4-6, T_FINAL)   │
-│  - MODULES.md revise                     │
-│  - module READMEs                        │
-│  - TODO.md update                        │
-│  - memory project_session_28_end_state   │
-│  - PR body                               │
+│ Phase 6: Doc final(T20-T23)             │
+│  - T20 MODULES.md revise                 │
+│  - T21 module READMEs                    │
+│  - T22 TODO.md update                    │
+│  - T23 memory project_session_28_end +   │
+│         PR body                          │
 └─────────┬────────────────────────────────┘
           │
           ▼
