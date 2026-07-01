@@ -58,13 +58,24 @@ def main() -> None:
     # === test-disease: generate specific disease/archetype ===
     td = sub.add_parser("test-disease", help="Generate data for a specific disease and archetype")
     td.add_argument("disease_id", help="Disease ID (e.g., bacterial_pneumonia)")
-    td.add_argument("-o", "--output", default="./output", help="Output directory")
     td.add_argument("-n", "--count", type=int, default=3, help="Number of patients")
     td.add_argument("--severity", default=None, help="Force severity: mild/moderate/severe")
     td.add_argument("--archetype", default=None, help="Force archetype name")
     td.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
     td.add_argument("--country", default="US", help="Country code (US or JP)")
-    td.add_argument("--format", nargs="+", default=["cif", "csv"], help="Output formats")
+    # AD-65 Phase 4 (Task 16): when -o is set, run the full 3-stage pipeline
+    # (structural + narrative + FHIR/CSV) for a tiny disease-specific cohort — a
+    # 10-second targeted verify without regenerating a full cohort. When -o is
+    # omitted (default), the original stdout debug print is unchanged.
+    td.add_argument(
+        "--format", nargs="+", default=None,
+        choices=["cif", "fhir-r4", "csv", "all"],
+        help="Output formats (requires -o/--output; if omitted, stdout debug only)",
+    )
+    td.add_argument(
+        "-o", "--output", default=None,
+        help="Output directory (required when --format is set)",
+    )
 
     # === validate: run quality checks on generated data ===
     val = sub.add_parser("validate", help="Run data quality checks on generated data")
@@ -151,6 +162,12 @@ def main() -> None:
         _run_test_encounter(args)
         return
 
+    if args.command == "test-disease":
+        if args.format and not args.output:
+            parser.error("--format requires -o/--output to be set")
+        _run_test_disease(args)
+        return
+
     if args.command == "narrate":
         _run_narrate(args)
         return
@@ -200,21 +217,6 @@ def main() -> None:
         if hospital_cfg:
             print(f"  Hospital config: {hospital_cfg}")
         dataset = run_beta(config, hospital_config_path=hospital_cfg)
-
-    elif args.command == "test-disease":
-        scenario = ForcedScenario(
-            disease_id=args.disease_id,
-            count=args.count,
-            severity=args.severity,
-            archetype=args.archetype,
-        )
-        config = SimulatorConfig(random_seed=args.seed, country=args.country)
-        print(f"clinosim test-disease: {args.disease_id} x{args.count}, country={args.country}")
-        dataset = run_forced(scenario, config)
-
-        # Debug output for each patient
-        for i, record in enumerate(dataset.patients):
-            _print_debug_record(record, i + 1)
 
     else:
         parser.print_help()
@@ -466,6 +468,87 @@ def _run_test_encounter(args: Any) -> None:
         record = _simulate_ed_visit(patient, protocol, visit_time, roster, rng, country=args.country)
 
         _print_debug_record(record, i + 1)
+
+
+def _run_test_disease(args: Any) -> None:
+    """test-disease dispatch (AD-65 Phase 4 / Task 16).
+
+    -o omitted (default): original stdout debug print, unchanged.
+    -o set: mini-generate (N patients of one disease) through the full 3-stage
+    pipeline (structural CIF + template narrative + FHIR/CSV export) so a bug
+    can be verified in ~10s without regenerating a full cohort.
+    """
+    if args.output:
+        _run_test_disease_generate(args)
+        return
+    _run_test_disease_debug(args)
+
+
+def _run_test_disease_debug(args: Any) -> None:
+    """Original test-disease behavior: simulate + print debug record per patient."""
+    scenario = ForcedScenario(
+        disease_id=args.disease_id,
+        count=args.count,
+        severity=args.severity,
+        archetype=args.archetype,
+    )
+    config = SimulatorConfig(random_seed=args.seed, country=args.country)
+    print(f"clinosim test-disease: {args.disease_id} x{args.count}, country={args.country}")
+    dataset = run_forced(scenario, config)
+
+    for i, record in enumerate(dataset.patients):
+        _print_debug_record(record, i + 1)
+
+
+def _run_test_disease_generate(args: Any) -> None:
+    """Mini-generate: N patients of a specific disease + CIF + narrative + FHIR/CSV.
+
+    Produces the same on-disk layout as `clinosim generate` (cif/structural,
+    cif/narratives/template, fhir_r4/*.ndjson, csv/*) but scoped to one disease and
+    a tiny cohort — the AD-65 Phase 4 dev facility for 10-second targeted verify.
+    """
+    from clinosim.modules.document.narrative.passes import TemplateNarrativePass
+    from clinosim.modules.output.cif_writer import write_cif
+
+    cif_dir = os.path.join(args.output, "cif")
+
+    scenario = ForcedScenario(
+        disease_id=args.disease_id,
+        count=args.count,
+        severity=args.severity,
+        archetype=args.archetype,
+    )
+    config = SimulatorConfig(
+        random_seed=args.seed,
+        country=args.country,
+        catchment_population=args.count,  # tiny cohort, no need for hospital-recommended size
+    )
+    print(
+        f"clinosim test-disease (generate): {args.disease_id} x{args.count}, "
+        f"country={args.country} -> {args.output}"
+    )
+    dataset = run_forced(scenario, config)
+
+    write_cif(dataset, cif_dir)
+
+    # Stage 2 (AD-65): always run the template narrative pass, mirroring `generate`'s
+    # auto-invoke, so the mini-cohort is emit-ready regardless of which export
+    # format(s) were requested.
+    TemplateNarrativePass(
+        cif_dir=cif_dir, version_id="template", country=args.country, rng_seed=args.seed,
+    ).run()
+    os.makedirs(os.path.join(cif_dir, "narratives"), exist_ok=True)
+    with open(os.path.join(cif_dir, "narratives", "current_version.txt"), "w") as f:
+        f.write("template")
+
+    # Format exports via the adapter registry (AD-58) — reuse the same `_run_exports`
+    # dispatch as `generate` (single edit point for adding a new output format).
+    formats = args.format or []
+    if "all" in formats:
+        formats = ["fhir-r4", "csv"]
+    _run_exports(formats, cif_dir, args.output, args.country)
+
+    _print_summary(dataset, args.output)
 
 
 def _print_debug_record(record: CIFPatientRecord, index: int = 1) -> None:
