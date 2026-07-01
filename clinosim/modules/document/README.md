@@ -40,8 +40,114 @@ FHIR builder (Task 9) はこれらをインポートして使用する。
 - Task 8 enricher: `load_document_type_specs()` + `specs_for_country()` で生成対象文書を決定
 - Task 9 FHIR builder: ID-prefix 定数でリソース ID を構築
 
+## Architecture: Two-Pass Generation (AD-65)
+
+clinosim narrative generation は structural CIF と narrative CIF の **物理ファイル分離** により、
+narrative version を独立に差し替え可能 にする (Stage 1 immutable + Stage 2 versioned)。
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│ clinosim generate ...                                            │
+│                                                                  │
+│  Stage 1: Simulate + write structural CIF                        │
+│  ──────────────────────────────────────                          │
+│  simulator/run_beta                                              │
+│    └─ per patient: inpatient/emergency/outpatient simulate       │
+│       └─ run_stage(POST_ENCOUNTER)                               │
+│           └─ document_enricher(★ AD-65 revised)                 │
+│               → append ClinicalDocument STUB(metadata + author + │
+│                 encounter_id + narrative=None) to record.documents│
+│           └─ triage_enricher / nursing_enricher(unchanged)       │
+│  write_cif(dataset, cif_dir)                                     │
+│    → cif/structural/patients/<enc_id>.json                       │
+│                                                                  │
+│  Stage 2: Template narrative pass(★ new, can be re-run)         │
+│  ──────────────────────────────────────                          │
+│  TemplateNarrativePass.run(cif_dir, version_id="template")       │
+│    ├─ scan structural CIF                                        │
+│    ├─ collect (doc_stub, structural_ctx) pairs                   │
+│    ├─ group by (doc_type, language) for Bedrock-cache            │
+│    ├─ for each group:                                            │
+│    │    for each patient:                                        │
+│    │       build NarrativeContext(patient + encounter + labs +   │
+│    │                              conditions + medications + ...)│
+│    │       TemplateNarrativeGenerator.generate(ctx, spec)        │
+│    │       → NarrativeOutput(raw_text, sections, facts_used)     │
+│    │    write cif/narratives/template/documents/<enc>/<doc>.json │
+│    └─ write cif/narratives/template/manifest.json                │
+│    write cif/narratives/current_version.txt = "template"         │
+│                                                                  │
+│  Stage 3: FHIR export                                            │
+│  ─────────────────                                               │
+│  get_adapter("fhir-r4").convert(cif_dir, output_dir, ctx)        │
+│    ├─ CIFReader(cif_dir, narrative_version="current")           │
+│    │    → merge structural + narrative → CIFPatientRecord        │
+│    ├─ _bb_compositions(ctx)     [reads doc.narrative.sections]   │
+│    ├─ _bb_document_references() [reads doc.narrative.text]       │
+│    └─ writes fhir_r4/*.ndjson + manifest.json                    │
+└──────────────────────────────────────────────────────────────────┘
+
+Later opt-in (β-JP-1):
+┌──────────────────────────────────────────────────────────────────┐
+│ clinosim narrate --cif-dir ./output/cif --provider bedrock      │
+│                  --version-id "sonnet4-2026-07-02"               │
+│   → LLMNarrativePass.run(...) — drop-in on NarrativePass base   │
+│   → cif/narratives/sonnet4-2026-07-02/documents/<enc>/<doc>.json│
+│                                                                  │
+│ clinosim export-fhir --cif-dir ./output/cif                      │
+│                      --narrative-version sonnet4-2026-07-02      │
+│   → 同 structural CIF + 選択 narrative version で再 emit         │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Key invariants
+
+- `document_enricher` (Stage 1) は `ClinicalDocument` stub のみ生成。`narrative` field は `None` に固定。
+  narrative content の populate 禁止（Stage 2 差替時 silent-no-op risk）。
+- `NarrativePass.run()` (Stage 2) は structural CIF を read → patient profile + labs + conditions +
+  medications + scenario_spine を input として narrative を導出 → `narratives/<version>/documents/<enc>/<doc>.json` 書出。
+- walk 順序 = `(doc_type, language)` group 単位 serial(Bedrock prompt cache 5 分 TTL の hit rate 最大化)。
+  `NarrativePass` base class で契約確定 → β-JP-1 の LLMNarrativePass が drop-in。
+- FHIR builders は `doc.narrative.sections` / `doc.narrative.text` 経由のみ。ClinicalDocument flat field
+  (`doc.text` / `doc.sections`) は AD-65 で削除。
+
+## LLMNarrativeGenerator Roadmap
+
+テンプレート生成は α-min-1/2 で完成。LLM-powered narrative generation は **β-JP-1 chain** で実装予定:
+
+- `LLMNarrativePass(NarrativePass)` — Bedrock Claude Sonnet 4 provider。Stage 2 の drop-in 置換。
+- Prompt cache 実装 — prefix cache 5 分 TTL で同 (doc_type, language) group 内は cache hit 継続。
+- Fact-first generation (`E2` enhancement) — `facts_used` tag で hallucination 防御。
+- Section-level LLM replacement (`E3` enhancement) — `DocumentTypeSpec.llm_enabled_sections` で section 単位で
+  template ↔ LLM 切り替え可能。
+- Longitudinal chart summary — 複数日 encounter で前日所見からの変化を追跡（後期 phase）。
+
+現在は `TemplateNarrativePass` で全 task_type を scaffold 状態で動作。LLM invocation は β-JP-1 で有効化。
+
+## Bug Fix Log (AD-65 Chain)
+
+### Bug A: US H&P Japanese Contamination
+
+**現象**: US p=10k cohort の全 ADMISSION_HP の HPI + Physical Examination section が日本語で emit (4,507 doc)。
+
+**根因**: `narrative/template_generator.py` の複数 builder が `_ja` field を unconditional access。
+Disease YAML の narrative field(hpi_en / physical_examination_en)が未 populate → ja fallback → US cohort silently ja 化。
+
+**修正**: `_pick_localized(tmpl, key_base, lang) -> str` helper で lang dispatch、片方 missing なら explicit warn log + empty string。
+全 32 disease YAML の narrative field audit + missing en 補填。
+
+### Bug B: Nurse Notes に Physician が author
+
+**現象**: LOINC 34746-8 (NURSING_SHIFT_NOTE) + 78390-2 (ADMISSION_NURSING_ASSESSMENT) +
+34119-8 (NURSING_DISCHARGE_SUMMARY) 全て `author = attending_physician_id` (23,279 doc)。
+primary_nurse_id 無視 → α-min-2 nursing_assignment enricher との author mismatch。
+
+**修正**: `_pick_document_author(spec, encounter) -> str` helper で nursing LOINC 判定 → nursing 時は
+primary_nurse_id 優先。4 branch 内の hardcoded attending_id 直接使用を全て helper 経由に置換。
+
 ## 関連
 
+- 設計: `docs/superpowers/specs/2026-07-02-tier1-3-narrative-stage2-architecture-design.md` (AD-65)
 - 仕様: `docs/spec/tier1-document-density-alpha-min-1-spec.md`
 - マスタープラン: `docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md`
-- 設計: `DESIGN.md` (AD-55, AD-62)
+- DESIGN.md (AD-55, AD-62, AD-63, AD-65)
