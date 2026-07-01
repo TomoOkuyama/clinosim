@@ -83,8 +83,14 @@ def _simulate_ed_visit(
         stay_cfg = protocol.get("ed_stay_hours", {}).get(severity, {"mean": 3, "sd": 1})
         ed_hours = float(rng.normal(stay_cfg["mean"], stay_cfg["sd"]))
     else:
+        severity = "moderate"
         ed_hours = float(rng.normal(3.5, 1.0))
     encounter.discharge_datetime = visit_time + timedelta(hours=max(1, ed_hours))
+    # AD-65 Bug C fix: persist sampled severity onto the Encounter so the
+    # POST_ENCOUNTER triage_enricher (clinosim/modules/triage/engine.py) can read
+    # it instead of silently defaulting to "moderate" for every ED encounter
+    # (root cause of all-L2-L4, zero-L1/L5 triage_level distribution).
+    encounter.severity = severity
 
     # Pre-assign a lab tech for this visit's labs
     lab_tech_assignment = assign_staff("lab_collection", "laboratory", roster, rng)
