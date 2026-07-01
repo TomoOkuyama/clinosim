@@ -140,6 +140,9 @@ from clinosim.modules.output._fhir_imaging_study import (  # noqa: F401
 from clinosim.modules.output._fhir_allergy_intolerance import (  # noqa: F401
     _bb_allergy_intolerances,
 )
+from clinosim.modules.output._fhir_care_team import (  # noqa: F401
+    _bb_care_teams,
+)
 from clinosim.modules.output._fhir_clinical_impression import (  # noqa: F401
     _bb_clinical_impressions,
 )
@@ -365,6 +368,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_patient,
     _bb_coverage,
     _bb_encounters,
+    _bb_care_teams,            # α-min-2 Task 11: 1 CareTeam per encounter (attending + nurse)
     _bb_conditions,
     _bb_allergy_intolerances,  # Task 9 / Task 15: 8-field SNOMED-coded schema (sole emit path)
     _bb_clinical_impressions,  # Task 9: ClinicalImpression (daily working diagnosis)
