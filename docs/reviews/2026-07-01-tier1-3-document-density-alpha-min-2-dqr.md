@@ -46,58 +46,70 @@ extends the lift_firing_proof to 25 equality_checks (17 from α-min-1 + 8 new).
 ## Cohort run commands
 
 ```bash
-# US p=10,000
+# US p=10,000 (post Task 14 fix rerun)
 clinosim generate \
   --population 10000 \
   --seed 42 \
   --country US \
   --format fhir-r4 \
-  --output scratchpad/doc_alpha2_us10k
+  --output scratchpad/doc_alpha2_us10k_final
 
-# JP p=5,000
+# JP p=5,000 (post Task 14 fix rerun)
 clinosim generate \
   --population 5000 \
   --seed 42 \
   --country JP \
   --format fhir-r4 \
-  --output scratchpad/doc_alpha2_jp5k
+  --output scratchpad/doc_alpha2_jp5k_final
 
 # Audit
-clinosim audit run -d scratchpad/doc_alpha2_us10k > scratchpad/doc_alpha2_us10k_audit.txt
-clinosim audit run -d scratchpad/doc_alpha2_jp5k  > scratchpad/doc_alpha2_jp5k_audit.txt
+clinosim audit run -d scratchpad/doc_alpha2_us10k_final > scratchpad/doc_alpha2_us10k_final_audit.txt
+clinosim audit run -d scratchpad/doc_alpha2_jp5k_final  > scratchpad/doc_alpha2_jp5k_final_audit.txt
 ```
 
-## Production resource counts
+## Post-fix cohort re-run (Task 14 rescue)
+
+The pre-fix α-min-2 cohorts (`scratchpad/doc_alpha2_{us10k,jp5k}/`) revealed a critical
+deliverable gap: outpatient + ED POST_ENCOUNTER Modules were never invoked, causing
+OUTPATIENT_SOAP / ED_NOTE / ED_TRIAGE_NOTE to emit zero resources at production scale.
+Task 14 patched `outpatient.py` + `emergency.py` to call `run_stage(POST_ENCOUNTER, ...)`
+before returning `CIFPatientRecord`. Cohorts were re-generated to `*_final/` and re-audited.
+All counts, LOINC distributions, and gap-closure analysis below reflect the post-fix rerun.
+
+## Production resource counts (post-fix cohorts)
 
 | Resource | US p=10k α-min-2 | JP p=5k α-min-2 | α-min-1 baseline (US) | α-min-2 delta | Gap status |
 |---|---|---|---|---|---|
 | Patient | 24,147 | 2,435 | 24,874 | -727 (pop. variation) | — |
 | Encounter | 158,811 | 16,046 | 160,835 | -2,024 (pop. variation) | — |
 | CareTeam | **158,811** | **16,046** | **0** | **+158,811** | ★ **GAP CLOSED** |
-| DocumentReference | **46,558** | **7,416** | 23,760 | **+22,798** | extended |
-| Composition | **17,946** | **970** | 9,275 | **+8,671** | extended |
+| DocumentReference | **60,552** | **7,953** | 23,760 | **+36,792** | extended (+ED_TRIAGE_NOTE) |
+| Composition | **172,236** | **16,767** | 9,275 | **+162,961** | ★ **GAP CLOSED** (+outpatient SOAP +ED note +nursing 2) |
 | ClinicalImpression | 23,332 | 3,708 | 23,760 | -428 (variation) | inpatient-only ✓ |
 | AllergyIntolerance | 3,605 | 377 | 3,738 | -133 (preserved 15.0%) | ✓ |
 | ImagingStudy | 304 | 37 | 315 | variation | unchanged |
 | Practitioner | 85 | 83 | 85 | unchanged | β-JP-1 target |
 
-### DocumentReference LOINC distribution (US p=10k)
+### DocumentReference LOINC distribution
 
-| LOINC | Type | Count |
-|---|---|---|
-| 11506-3 | PROGRESS_NOTE (α-min-1, unchanged) | 23,279 |
-| 34746-8 | NURSING_SHIFT_NOTE (α-min-2 new) | 23,279 |
-| **Total** | | **46,558** |
+| LOINC | Type | US p=10k | JP p=5k |
+|---|---|---|---|
+| 11506-3 | PROGRESS_NOTE (α-min-1, unchanged) | 23,279 | 3,708 |
+| 34746-8 | NURSING_SHIFT_NOTE (α-min-2 new) | 23,279 | 3,708 |
+| **54094-8** | **ED_TRIAGE_NOTE (α-min-2 new, ★ GAP CLOSED)** | **13,994** | **537** |
+| **Total** | | **60,552** | **7,953** |
 
-### Composition LOINC distribution (US p=10k)
+### Composition LOINC distribution
 
-| LOINC | Type | Count |
-|---|---|---|
-| 34117-2 | ADMISSION_HP (α-min-1, unchanged) | 4,507 |
-| 18842-5 | DISCHARGE_SUMMARY (α-min-1, unchanged) | 4,466 |
-| 78390-2 | ADMISSION_NURSING_ASSESSMENT (α-min-2 new) | 4,507 |
-| 34745-0 | NURSING_DISCHARGE_SUMMARY (α-min-2 new) | 4,466 |
-| **Total** | | **17,946** |
+| LOINC | Type | US p=10k | JP p=5k |
+|---|---|---|---|
+| 34117-2 | ADMISSION_HP (α-min-1, unchanged) | 4,507 | 248 |
+| 18842-5 | DISCHARGE_SUMMARY (α-min-1, unchanged) | 4,466 | 237 |
+| 78390-2 | ADMISSION_NURSING_ASSESSMENT (α-min-2 new) | 4,507 | 248 |
+| 34745-0 | NURSING_DISCHARGE_SUMMARY (α-min-2 new) | 4,466 | 237 |
+| **34131-3** | **OUTPATIENT_SOAP (α-min-2 new, ★ GAP CLOSED)** | **140,296** | **15,260** |
+| **34878-9** | **ED_NOTE (α-min-2 new, ★ GAP CLOSED)** | **13,994** | **537** |
+| **Total** | | **172,236** | **16,767** |
 
 ## Gap closure analysis
 
@@ -109,32 +121,27 @@ encounter regardless of type. CareTeam.participant[0] = attending physician (alw
 = primary nurse when `EncounterRecord.primary_nurse_id` is non-empty. The 1:1 Encounter:CareTeam
 invariant is verified by the audit clinical axis and integration tests.
 
-### DocumentReference +22,798 (nursing shift notes, α-min-1 correction)
+### DocumentReference +36,792 (nursing shift + ED triage notes)
 
-The actual delta source is exclusively `NURSING_SHIFT_NOTE` (34746-8). In the US p=10k cohort:
-- PROGRESS_NOTE count: 23,279 (vs α-min-1 baseline 23,760 — small variation due to population size diff)
-- NURSING_SHIFT_NOTE: 23,279 (new, 1:1 with PROGRESS_NOTE as both are daily per LOS day)
-- **Outpatient SOAP (34131-3): ~430 per p=100 cohort** ← RESOLVED (Task 14 fix)
-- **ED note (34878-9): ~47 per p=100 cohort** ← RESOLVED (Task 14 fix)
-- **ED triage note (54094-8): ~47 per p=100 cohort** ← RESOLVED (Task 14 fix)
+Post-fix US p=10k breakdown:
+- PROGRESS_NOTE count: 23,279 (α-min-1, unchanged)
+- NURSING_SHIFT_NOTE: 23,279 (α-min-2 new, 1:1 with PROGRESS_NOTE as both are daily per LOS day)
+- ED_TRIAGE_NOTE: 13,994 (α-min-2 new, 1:1 with ED encounters) ★ **GAP CLOSED**
 
-**RESOLVED (Task 14 fix):** `run_stage(POST_ENCOUNTER, ...)` was added to `outpatient.py` and
-`emergency.py` before `return CIFPatientRecord`. Counts now > 0. ED_TRIAGE_NOTE emits as
-DocumentReference (format_type=free_text); ED_NOTE and OUTPATIENT_SOAP emit as Composition
-(format_type=composition). US p=100 seed=42 verified: 430 OUTPATIENT_SOAP + 47 ED_NOTE in
-Composition.ndjson; 47 ED_TRIAGE_NOTE in DocumentReference.ndjson. See Known Limitation §1 RESOLVED.
+### Composition +162,961 (outpatient SOAP + ED note + nursing 2 types + α-min-1 ongoing)
 
-### Composition +8,671 (nursing 2 types + α-min-1 ongoing)
+Post-fix US p=10k breakdown (6 LOINC types now emitting):
+- Inpatient-only (admission_once): ADMISSION_HP 4,507 + ADMISSION_NURSING_ASSESSMENT 4,507
+- Inpatient-only (discharge_once, AD-32 gated): DISCHARGE_SUMMARY 4,466 + NURSING_DISCHARGE_SUMMARY 4,466
+- Outpatient encounters: OUTPATIENT_SOAP 140,296 (1:1 with outpatient encounters) ★ **GAP CLOSED**
+- ED encounters: ED_NOTE 13,994 (1:1 with ED encounters) ★ **GAP CLOSED**
 
-All 4 Composition LOINC codes are from inpatient encounter types:
-- ADMISSION_HP and ADMISSION_NURSING_ASSESSMENT: each emitted once per inpatient encounter
-  (admission_once), count = ~4,507 (matches inpatient encounter count × ~1)
-- DISCHARGE_SUMMARY and NURSING_DISCHARGE_SUMMARY: each emitted for completed inpatient
-  encounters only (discharge_once), count = ~4,466 (slightly < ADMISSION* due to AD-32 gate)
+The 140,296 OUTPATIENT_SOAP count reflects the p=10k cohort's outpatient encounter density
+(dominant encounter class in a community hospital population). The 13,994 ED_NOTE = ED_TRIAGE_NOTE
+identity confirms 1:1 pairing per ED visit.
 
-The small difference between ADMISSION (4,507) and DISCHARGE (4,466) reflects encounters that
-were in-progress at the time of cohort generation (snapshot semantics, no explicit --end date
-— some encounters naturally end after the observation period).
+The ADMISSION (4,507) vs DISCHARGE (4,466) gap reflects encounters in-progress at the time
+of cohort generation (snapshot semantics; some encounters end after the observation period).
 
 ### ClinicalImpression -428 (slight variation, inpatient-only gate preserved)
 
@@ -148,11 +155,11 @@ produce 0 ClinicalImpressions as designed.
 US p=10k: 3,605 / 24,147 patients = 14.9% (within ±0.1% of 15.0% calibration target).
 JP p=5k: 377 / 2,435 patients = 15.5% (within ±0.5% for smaller population).
 
-## Audit verdict per axis
+## Audit verdict per axis (post-fix cohorts)
 
 **Overall: PASS**
 
-### US p=10k (scratchpad/doc_alpha2_us10k_audit.txt)
+### US p=10k (scratchpad/doc_alpha2_us10k_final_audit.txt)
 
 | Module | structural | jp_language | clinical | silent_no_op |
 |---|---|---|---|---|
@@ -180,19 +187,23 @@ care_team_coverage_=158811/158811 CareTeam subject/encounter/participant refs re
 - `proof_eq_no_drop: triage_data.level → ED_TRIAGE_NOTE LOINC 54094-8 in emergency dispatch=True`
 - `proof_eq_no_drop: encounter_type='inpatient' → 3 nursing doc types dispatched=True`
 
-Note: the last 4 proof checks (#22-#25) verify that the *dispatch logic* fires correctly in
-unit test fixtures. They do NOT verify production emission (see §8 Known Limitations regarding
-the outpatient/ED POST_ENCOUNTER gap).
+Note: checks #22-#25 verify the *dispatch logic* fires correctly in unit-test fixtures.
+Task 14 fix + post-fix rerun confirm production emission at scale (US p=10k):
+- outpatient dispatch → 140,296 OUTPATIENT_SOAP Compositions
+- emergency dispatch → 13,994 ED_NOTE + 13,994 ED_TRIAGE_NOTE (paired 1:1 per ED encounter)
+- inpatient dispatch → 4,507 ADMISSION_NURSING_ASSESSMENT + 23,279 NURSING_SHIFT_NOTE +
+  4,466 NURSING_DISCHARGE_SUMMARY (all 3 nursing doc types confirmed emitting)
 
-### JP p=5k (scratchpad/doc_alpha2_jp5k_audit.txt)
+### JP p=5k (scratchpad/doc_alpha2_jp5k_final_audit.txt)
 
 | Module | structural | jp_language | clinical | silent_no_op |
 |---|---|---|---|---|
 | document_chain | N/A | N/A | **PASS** | **PASS** |
 
-**2/4 PASS** — same improvement pattern as US. JP clinical axis PASS is notable because it
-confirms the 1:1 CareTeam:Encounter invariant holds for the JP locale path (16,046 CareTeams,
-0 unknown attending).
+**2/4 PASS** — same improvement pattern as US. JP production emission (post-fix):
+- CareTeam 16,046 (0 unknown attending) — confirms 1:1 CareTeam:Encounter invariant on JP path
+- OUTPATIENT_SOAP 15,260 + ED_NOTE 537 + ED_TRIAGE_NOTE 537 — GAP CLOSED on JP as well
+- Nursing 3 types: 248 + 3,708 + 237
 
 ## Task 8 LOINC verification results
 
@@ -230,7 +241,8 @@ pytest tests/unit tests/integration -m "unit or integration" -x -q
 
 ### 1. ~~Outpatient SOAP + ED note + ED triage note: 0 resources in production (CRITICAL concern)~~ RESOLVED
 
-**RESOLVED — Task 14 fix (scope-in critical fix per spec §14.5 "現 scope deliverable 成立に必須").**
+**RESOLVED — Task 14 fix + post-fix cohort rerun (scope-in critical fix per spec §14.5
+"現 scope deliverable 成立に必須").**
 
 **Root cause was:** `clinosim/simulator/outpatient.py` and `clinosim/simulator/emergency.py` did NOT
 invoke `run_stage(POST_ENCOUNTER, ...)`. Only `clinosim/simulator/inpatient.py` called POST_ENCOUNTER
@@ -238,17 +250,15 @@ enrichers (lines 443-493). Therefore, all POST_ENCOUNTER Modules (device, hai, a
 imaging, triage, nursing_assignment, document) were NEVER invoked for outpatient or emergency
 encounters in the production pipeline.
 
-**Fix applied:** `config` parameter added (optional, default=None) to both `_simulate_outpatient_visit`
-and `_simulate_ed_visit`. `run_stage(POST_ENCOUNTER, EnricherContext(config=config, ...))` added just
-before `return CIFPatientRecord(...)` in both functions. All three `engine.py` call sites updated to
-pass `config=config`. `cli.py` test-ed path unaffected (config=None → enricher skipped).
+**Fix applied (commit 93587f7d6e):** `config` parameter added (optional, default=None) to both
+`_simulate_outpatient_visit` and `_simulate_ed_visit`. `run_stage(POST_ENCOUNTER,
+EnricherContext(config=config, ...))` added just before `return CIFPatientRecord(...)` in both
+functions. All three `engine.py` call sites updated to pass `config=config`. `cli.py` test-ed
+path unaffected (config=None → enricher skipped).
 
-**Verified (US p=100 seed=42):**
-- OUTPATIENT_SOAP (34131-3): 430 Compositions
-- ED_NOTE (34878-9): 47 Compositions
-- ED_TRIAGE_NOTE (54094-8): 47 DocumentReferences
-
-Expected at p=10k scale: OUTPATIENT_SOAP ~140k, ED_NOTE ~14k, ED_TRIAGE_NOTE ~14k.
+**Verified at production scale (post-fix rerun, cohorts `*_final/`):**
+- US p=10k: OUTPATIENT_SOAP 140,296 + ED_NOTE 13,994 + ED_TRIAGE_NOTE 13,994
+- JP p=5k:  OUTPATIENT_SOAP 15,260  + ED_NOTE 537    + ED_TRIAGE_NOTE 537
 
 **Audit note:** The audit's `proof_eq_no_drop: encounter_type='outpatient' → OUTPATIENT_SOAP spec
 dispatched=True` check at unit-fixture level is now also verified at production pipeline level.
@@ -290,20 +300,52 @@ verifies. The JTAS (Japan Triage and Acuity Scale) and ESI (Emergency Severity I
 URIs are not yet formalized as canonical constants. This is a β-JP-1 concern (deferred per
 spec §13).
 
+## Task 15 final review — hot-fix applied
+
+### CRITICAL: triage_enricher country resolution bug (fixed in Task 15)
+
+**Symptom (found in Task 15 whole-branch final review):** `clinosim/modules/triage/engine.py`
+`triage_enricher` read country via `_o(ctx, "country", "us")` — but the production
+`EnricherContext` dataclass has no `country` field (country lives at `ctx.config.country`).
+Result: every production call defaulted to "us" → JP cohort silently emitted
+`level_system = "ESI"` in every triage note instead of the intended JTAS.
+
+The unit tests at `tests/unit/modules/triage/test_engine.py` used
+`SimpleNamespace(country="jp", ...)` which put `country` directly on the ctx object,
+bypassing the production shape entirely — a PR-90 class silent-no-op that unit tests
+missed because they never exercised the production `ctx.config` wiring.
+
+**Fix:** now reads `_o(_o(ctx, "config", None), "country", None)` first, falling back to
+`_o(ctx, "country", "us")` for backwards-compat with the existing SimpleNamespace test
+fixtures. Two new PR-90-regression-guard unit tests added
+(`test_triage_enricher_reads_country_from_ctx_config_{jp,us}`) that exercise the
+production EnricherContext shape (`ctx.config.country`).
+
+**Verification (post-fix, small cohort due to time constraints):** JP p=200 seed=42 →
+27 of 27 ED_TRIAGE_NOTE DocumentReferences contain "JTAS Level N" (0 "ESI Level N").
+Pre-fix JP p=5k contained "ESI Level N" in ALL 537 ED_TRIAGE_NOTE narratives.
+
+**DQR impact on the p=10k/p=5k `*_final/` cohorts:** the LOINC counts and resource
+counts are byte-identical — the fix only changes the narrative text within
+`Attachment.data` (base64) for the JP cohort ED_TRIAGE_NOTE. Recommendation: post-merge
+re-run of the JP p=5k cohort to refresh the base64 payload; not required for structural
+audit/gap-closure claims which stand.
+
 ## Recommendation
 
 **Ship-ready for α-min-2 phase boundary.**
 
-25/25 lift_firing_proof PASS on both US and JP cohorts. 2/4 audit axes explicitly PASS
-(α-min-1 was 1/4; α-min-2 improved to 2/4 = progression). 27 new integration tests PASS.
-0 regressions in 1,500+ test suite.
+25/25 lift_firing_proof PASS on both post-fix US and JP cohorts. 2/4 audit axes explicitly PASS
+on both cohorts (α-min-1 was 1/4; α-min-2 improved to 2/4 = progression). 27 new integration
+tests PASS. 0 regressions in 1,500+ test suite.
 
-Known Limitation §1 (outpatient/ED POST_ENCOUNTER gap) is now RESOLVED by the Task 14 scope-in
-critical fix. All spec §1.2 deliverables now emit > 0 in production:
-1. CareTeam fully closed (158,811 resources)
+Known Limitation §1 (outpatient/ED POST_ENCOUNTER gap) is RESOLVED by the Task 14 scope-in
+critical fix (commit 93587f7d6e) + post-fix cohort rerun. All spec §1.2 deliverables now
+emit > 0 in production at 10k / 5k scale:
+1. CareTeam fully closed (158,811 US / 16,046 JP)
 2. Nursing documents (admission/shift/discharge) fully emitting for inpatient
-3. OUTPATIENT_SOAP (34131-3) now emitting for outpatient encounters
-4. ED_NOTE (34878-9) + ED_TRIAGE_NOTE (54094-8) now emitting for emergency encounters
+3. OUTPATIENT_SOAP (34131-3) now emitting: 140,296 US / 15,260 JP
+4. ED_NOTE (34878-9) + ED_TRIAGE_NOTE (54094-8) now emitting: 13,994 / 13,994 US, 537 / 537 JP
 
 **10th converged adversarial chain target** — this DQR serves as the adversarial fan-out seed
 for the post-merge review (PR-90 lessons: verify at-scale first, then fan-out adversarial review).

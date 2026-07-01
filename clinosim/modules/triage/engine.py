@@ -123,8 +123,18 @@ def triage_enricher(ctx: Any) -> None:
     Country-gated: JP→JTAS、US→ESI。
     Determinism via derive_sub_seed(master, ENRICHER_SEED_OFFSETS["triage"],
     encounter_id)。Master stream 不変。
+
+    Country resolution: primary source is ``ctx.config.country`` (production
+    EnricherContext shape; matches document_enricher). Falls back to
+    ``ctx.country`` for test-fixture SimpleNamespace ctx that sets country
+    directly on the ctx object (backwards-compat with pre-2026-07-01 tests).
     """
-    country = (_o(ctx, "country", "us") or "us").lower()
+    # Prefer ctx.config.country (production EnricherContext shape); fall back to
+    # ctx.country (SimpleNamespace test fixtures). Without the ctx.config path
+    # every production call defaulted to "us" → JP cohort silently produced ESI
+    # instead of JTAS (PR-90 class silent-no-op; fixed 2026-07-01).
+    config = _o(ctx, "config", None)
+    country = (_o(config, "country", None) or _o(ctx, "country", "us") or "us").lower()
     level_system = "JTAS" if country == "jp" else "ESI"
     records = _o(ctx, "records", []) or []
     for record in records:

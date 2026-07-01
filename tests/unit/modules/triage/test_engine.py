@@ -150,3 +150,64 @@ def test_triage_enricher_deterministic():
     b = ctx2.records[0].encounters[0].triage_data
     assert a.level == b.level
     assert a.arrival_mode == b.arrival_mode
+
+
+def test_triage_enricher_reads_country_from_ctx_config_jp():
+    """Production EnricherContext shape carries country at ctx.config.country
+    (NOT ctx.country). This test pins the ctx.config.country resolution path
+    so the JP cohort actually emits JTAS instead of silently defaulting to
+    ESI (PR-90 class silent-no-op regression guard; fixed 2026-07-01).
+    """
+    from types import SimpleNamespace
+
+    from clinosim.modules.triage.engine import triage_enricher
+
+    ed_enc = SimpleNamespace(
+        encounter_id="ed-prod-jp",
+        encounter_type="emergency",
+        severity="moderate",
+        triage_data=None,
+    )
+    record = SimpleNamespace(
+        patient=SimpleNamespace(patient_id="pt1"),
+        encounters=[ed_enc],
+    )
+    # Production EnricherContext-shape ctx: country lives at ctx.config.country,
+    # NOT at ctx.country.
+    ctx = SimpleNamespace(
+        master_seed=42,
+        config=SimpleNamespace(country="JP"),
+        records=[record],
+    )
+    triage_enricher(ctx)
+    assert ed_enc.triage_data is not None
+    assert ed_enc.triage_data.level_system == "JTAS", (
+        "JP cohort must resolve country from ctx.config.country → JTAS "
+        "(PR-90 regression guard)"
+    )
+
+
+def test_triage_enricher_reads_country_from_ctx_config_us():
+    """Symmetric US production-shape test."""
+    from types import SimpleNamespace
+
+    from clinosim.modules.triage.engine import triage_enricher
+
+    ed_enc = SimpleNamespace(
+        encounter_id="ed-prod-us",
+        encounter_type="emergency",
+        severity="moderate",
+        triage_data=None,
+    )
+    record = SimpleNamespace(
+        patient=SimpleNamespace(patient_id="pt1"),
+        encounters=[ed_enc],
+    )
+    ctx = SimpleNamespace(
+        master_seed=42,
+        config=SimpleNamespace(country="US"),
+        records=[record],
+    )
+    triage_enricher(ctx)
+    assert ed_enc.triage_data is not None
+    assert ed_enc.triage_data.level_system == "ESI"
