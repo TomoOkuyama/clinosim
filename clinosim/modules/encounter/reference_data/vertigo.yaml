@@ -57,6 +57,12 @@ narrative:
       general: 意識清明、苦痛様
     ed_workup_summary_ja: '{lab_summary_ja}、{imaging_summary_ja}'
     disposition_ja: '{disposition_display_ja}'
+    chief_complaint_en: '{chief_complaint_en} complaint'
+    hpi_en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
+    physical_exam_en:
+      general: Alert and oriented, in visible distress
+    ed_workup_summary_en: '{lab_summary_en}, {imaging_summary_en}'
+    disposition_en: '{disposition_display_en}'
   ed_triage_template:
     common_triage_levels:
     - '3'

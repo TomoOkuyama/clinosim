@@ -43,3 +43,7 @@ narrative:
     objective_ja: バイタル安定（BP {sbp}/{dbp}、HR {hr}、BW {weight}kg）。全身状態良好、特記事項なし。前回検査結果（{last_lab_date}）：{lab_summary_ja}。
     assessment_ja: '{primary_dx_display_ja}にて内服加療中。現処方継続が妥当と判断。'
     plan_ja: 現行処方を{duration_days}日分処方継続。次回受診：{next_visit_ja}。異常・自覚症状出現時は早期受診。
+    subjective_en: 'Routine visit for prescription renewal. Current medications: {current_medications_en}. No side effects or concerns reported. Patient states control is good.'
+    objective_en: 'Vital signs stable (BP {sbp}/{dbp}, HR {hr}, BW {weight}kg). Overall condition good, no acute findings. Prior lab results ({last_lab_date}): {lab_summary_en}.'
+    assessment_en: '{primary_dx_display_en}, on ongoing oral therapy. Continuation of current prescription judged appropriate.'
+    plan_en: 'Continue current prescription for {duration_days} days. Next visit: {next_visit_en}. Return sooner if new symptoms or abnormalities develop.'

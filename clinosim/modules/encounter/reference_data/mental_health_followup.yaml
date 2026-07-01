@@ -46,3 +46,7 @@ narrative:
     objective_ja: バイタル安定、身体所見特記事項なし
     assessment_ja: '{primary_dx_display_ja}'
     plan_ja: '{workup_summary_ja}、{follow_up_ja}'
+    subjective_en: '{chief_complaint_en} complaint, onset {onset_days} day(s) ago'
+    objective_en: Vital signs stable; physical exam unremarkable
+    assessment_en: '{primary_dx_display_en}'
+    plan_en: '{workup_summary_en}, {follow_up_en}'
