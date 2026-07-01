@@ -65,6 +65,10 @@ def test_reader_current_version_default_falls_back_to_template(tmp_path):
 
 @pytest.mark.unit
 def test_reader_no_narrative_dir_leaves_stubs(tmp_path):
+    """When narratives/<version>/documents/ exists but has no per-encounter
+    subdirectory (e.g. narrate pass ran but skipped this encounter), stubs
+    stay ``narrative=None`` — no crash, no silent write.
+    """
     structural = tmp_path / "structural" / "patients"
     structural.mkdir(parents=True)
     (structural / "ENC-1.json").write_text(json.dumps({
@@ -72,9 +76,39 @@ def test_reader_no_narrative_dir_leaves_stubs(tmp_path):
         "encounters": [{"encounter_id": "ENC-1"}],
         "documents": [{"document_id": "doc-1", "narrative": None}],
     }))
+    # narratives/template/documents/ exists so CIFReader init doesn't raise;
+    # the per-encounter subdir ENC-1/ does NOT exist, so merge is a no-op.
+    (tmp_path / "narratives" / "template" / "documents").mkdir(parents=True)
     r = CIFReader(str(tmp_path), narrative_version="template")
     patients = list(r.iter_patients())
     assert patients[0]["documents"][0]["narrative"] is None
+
+
+@pytest.mark.unit
+def test_reader_explicit_missing_version_raises(tmp_path):
+    """F-1 fix: passing an explicit narrative_version whose directory does
+    not exist must raise FileNotFoundError. Prior silent-no-op behavior
+    produced empty DocumentReference / Composition FHIR output when a user
+    typo'd the --narrative-version CLI arg (xhigh review root-cause).
+    """
+    structural = tmp_path / "structural" / "patients"
+    structural.mkdir(parents=True)
+    (structural / "ENC-1.json").write_text("{}")
+    with pytest.raises(FileNotFoundError, match="typo_v1"):
+        CIFReader(str(tmp_path), narrative_version="typo_v1")
+
+
+@pytest.mark.unit
+def test_reader_current_no_pointer_no_template_raises(tmp_path):
+    """F-1 fix: 'current' alias falls back to 'template' when pointer is
+    missing, but if 'template/' directory ALSO does not exist we raise
+    rather than silently emit narrative-less FHIR."""
+    structural = tmp_path / "structural" / "patients"
+    structural.mkdir(parents=True)
+    (structural / "ENC-1.json").write_text("{}")
+    # No narratives/ dir at all
+    with pytest.raises(FileNotFoundError):
+        CIFReader(str(tmp_path))  # default narrative_version="current"
 
 
 @pytest.mark.unit

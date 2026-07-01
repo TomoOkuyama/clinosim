@@ -70,6 +70,7 @@ from clinosim.modules.document import (
     NURSING_LOINCS,
 )
 from clinosim.modules.output._fhir_care_team import CARE_TEAM_ID_PREFIX
+from clinosim.modules.output.cif_reader import resolve_current_narrative_dir
 
 # AD-65 Bug A (US H&P Japanese contamination, Task 11): ja char range used by
 # both this module's gate and tests/integration/test_bug_a_us_hp_english_only.py.
@@ -108,7 +109,10 @@ def _count_us_hp_ja_chars(cif_dir: str) -> int:
     this codebase — e.g. `load_hai_antibiogram`'s no-panel-eligible default).
     """
     structural_dir = os.path.join(cif_dir, "structural", "patients")
-    narrative_dir = os.path.join(cif_dir, "narratives", "template", "documents")
+    # F-3 fix: `narratives/current_version.txt` pointer 経由で解決するので、
+    # LLMNarrativePass 導入(β-JP-1)後は "template" 以外の version にも
+    # 追従する。pointer 無 → "template" fallback で後方互換。
+    narrative_dir = resolve_current_narrative_dir(cif_dir)
     if not os.path.isdir(structural_dir) or not os.path.isdir(narrative_dir):
         return 0
 
