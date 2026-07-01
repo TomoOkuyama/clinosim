@@ -80,3 +80,52 @@ def test_test_encounter_outpatient_condition(tmp_path):
     assert r.returncode == 0, r.stderr
     assert (out / "cif" / "structural" / "patients").exists()
     assert (out / "cif" / "narratives" / "current_version.txt").exists()
+
+
+@pytest.mark.unit
+def test_test_encounter_ed_runs_post_encounter_stage(tmp_path):
+    """F-2 adv-1 fix: test-encounter --format must run POST_ENCOUNTER stage
+    so ED encounters get triage_data + ED_NOTE / ED_TRIAGE_NOTE documents.
+
+    Without a SimulatorConfig, emergency.py:276 (`if config is not None`)
+    short-circuits POST_ENCOUNTER; the mini-cohort silently drops the
+    α-min-2 doc generation the dev facility exists to catch. Verified by
+    reading the CIF and checking documents + triage_data are populated.
+    """
+    import json
+
+    out = tmp_path / "verify_ed_post_encounter"
+    r = subprocess.run(
+        [
+            sys.executable, "-m", "clinosim.simulator.cli", "test-encounter",
+            "chest_pain_noncardiac", "-n", "2", "--format", "cif", "-o", str(out),
+            "--country", "US",
+        ],
+        capture_output=True, text=True, timeout=120,
+    )
+    assert r.returncode == 0, r.stderr
+
+    patient_files = list((out / "cif" / "structural" / "patients").glob("*.json"))
+    assert patient_files, "no patient CIF files produced"
+
+    total_docs = 0
+    total_with_triage = 0
+    for pf in patient_files:
+        record = json.loads(pf.read_text())
+        docs = record.get("documents") or []
+        total_docs += len(docs)
+        for enc in record.get("encounters") or []:
+            if enc.get("triage_data"):
+                total_with_triage += 1
+
+    # POST_ENCOUNTER stage produces documents (ED_NOTE + ED_TRIAGE_NOTE
+    # for emergency encounters). Zero would mean POST_ENCOUNTER never ran.
+    assert total_docs > 0, (
+        f"POST_ENCOUNTER stage did not run: 0 documents on {len(patient_files)} "
+        "ED patients. This is exactly the α-min-2 F-2 silent-no-op regression."
+    )
+    # triage_enricher runs at POST_ENCOUNTER order=93 for ED encounters.
+    assert total_with_triage > 0, (
+        f"triage_enricher did not run: 0/{len(patient_files)} ED encounters "
+        "have triage_data. POST_ENCOUNTER stage not wired to test-encounter."
+    )
