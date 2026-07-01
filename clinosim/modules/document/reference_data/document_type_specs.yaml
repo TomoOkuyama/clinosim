@@ -1,6 +1,7 @@
-# DocumentTypeSpec registry source (α-min-1 scope = 3 doc types)
-# 後続 phase で追加 (本 chain では拡張禁止)
+# DocumentTypeSpec registry source (α-min-2 scope = 9 doc types)
 # LOINC codes: 34117-2 / 11506-3 / 18842-5 (verified in clinosim/codes/data/loinc.yaml)
+# α-min-1 specs now carry explicit encounter_types_supported to prevent
+# leaking into outpatient / emergency encounters (Task 10 data-quality fix).
 
 specs:
   admission_hp:
@@ -9,6 +10,7 @@ specs:
     display_ja: "入院時記録"
     format_type: composition
     countries_supported: [us, jp]
+    encounter_types_supported: [inpatient, icu, rehab_inpatient]
     generation_frequency: admission_once
     composition_sections:
       - chief_complaint
@@ -29,6 +31,7 @@ specs:
     display_ja: "経過記録"
     format_type: free_text
     countries_supported: [us, jp]
+    encounter_types_supported: [inpatient, icu, rehab_inpatient]
     generation_frequency: daily
     stage2_strategy: template_only
     llm_enabled_sections: []
@@ -39,6 +42,7 @@ specs:
     display_ja: "退院サマリ"
     format_type: composition
     countries_supported: [us, jp]
+    encounter_types_supported: [inpatient, icu, rehab_inpatient]
     generation_frequency: discharge_once
     composition_sections:
       - admission_summary
