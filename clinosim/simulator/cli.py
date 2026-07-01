@@ -605,6 +605,13 @@ def _run_test_encounter_generate(args: Any) -> None:
     from clinosim.modules.encounter.protocol import load_encounter_condition
     from clinosim.modules.output.cif_writer import write_cif
     from clinosim.modules.population.engine import PersonRecord
+    from clinosim.simulator.enrichers import register_builtin_enrichers
+
+    # F-2 fix (adv-1): enricher registry only fills up on demand — full
+    # `run_beta` orchestrator calls this, but the mini test-encounter path
+    # bypasses run_beta. Without this, POST_ENCOUNTER runs zero enrichers
+    # even with a config passed to _simulate_ed_visit.
+    register_builtin_enrichers()
 
     cif_dir = os.path.join(args.output, "cif")
 
@@ -626,6 +633,19 @@ def _run_test_encounter_generate(args: Any) -> None:
 
     _demo = _ld(args.country)
 
+    # F-2 fix (adv-1): mirror _run_test_disease_generate — build a
+    # SimulatorConfig so _simulate_ed_visit runs the POST_ENCOUNTER stage
+    # (triage_enricher + document_enricher). Without a config the ED-only
+    # POST_ENCOUNTER gate in emergency.py:276 short-circuits, producing
+    # zero triage_data and zero ED_NOTE / ED_TRIAGE_NOTE documents on the
+    # generated CIF — exactly the α-min-2 gap this dev facility exists to
+    # catch, silently reintroduced.
+    config = SimulatorConfig(
+        random_seed=args.seed,
+        country=args.country,
+        catchment_population=args.count,
+    )
+
     records: list[CIFPatientRecord] = []
     for i in range(args.count):
         # Create patient
@@ -642,7 +662,8 @@ def _run_test_encounter_generate(args: Any) -> None:
 
         visit_time = datetime(2024, 6, 15, int(rng.integers(8, 20)), int(rng.integers(0, 60)))
         record = _simulate_ed_visit(
-            patient, protocol, visit_time, roster, rng, country=args.country
+            patient, protocol, visit_time, roster, rng,
+            country=args.country, config=config,
         )
         records.append(record)
 
