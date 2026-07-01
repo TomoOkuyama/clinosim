@@ -9,7 +9,7 @@
 1. **primary_nurse 割り当て** (`assign_primary_nurse`) — StaffRoster から看護師を uniform sampling
 2. **看護アセスメント scaffolding** (`load_nursing_assessment`) — ADL / リスクアセスメント / 疾患別 nursing focus の YAML 読込み + 6-layer validation
 
-nursing_enricher（POST_ENCOUNTER order=94）は **Task 5** が実装する。
+nursing_enricher（POST_ENCOUNTER order=94）は α-min-2 で実装済み。
 
 ## Dependencies
 
@@ -69,11 +69,11 @@ def assign_primary_nurse(encounter, roster: StaffRoster, rng: np.random.Generato
 - RNG の seeding 責任は **呼び出し元**（nursing_enricher）が持つ
 - `derive_sub_seed(master, ENRICHER_SEED_OFFSETS["nursing"], encounter_id)` パターンを Task 5 で適用
 
-## Enricher 登録（Task 5 で行う）
+## Enricher 登録（α-min-2 完了）
 
 ```python
-# clinosim/simulator/enrichers.py に追加
-register_enricher(EnricherStage.POST_ENCOUNTER, nursing_enricher, order=94)
+# clinosim/simulator/enrichers.py に登録済み
+register_enricher(EnricherStage.POST_ENCOUNTER, nursing_enricher, order=94, name="nursing_assignment")
 ```
 
 ## Seeding

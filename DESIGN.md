@@ -2376,6 +2376,78 @@ Three new FHIR builders:
   allergy, document). Stages: allergy (POST_POPULATION order=10) → document (POST_ENCOUNTER order=95)
 - 17-check `lift_firing_proof` (AD-60 audit) verifies 4 canonical ID prefixes,
   4 emission gates, 3 ID-prefix format checks, 5 no-drop invariants (spec §3.4)
-- Future phases: α-min-2 (nursing narratives / ED note / SOAP note / Composition.author),
+- Future phases: α-min-3 (outpatient/ED POST_ENCOUNTER gap fix + Practitioner roster expansion),
   β-JP-1 (full JP localization / QuestionnaireResponse / 厚労省必須文書),
   β-2 (手術記録 / MedicationDispense / Procedure density)
+
+### AD-64: Nursing + Outpatient + ED + CareTeam density foundation
+
+**Status:** Accepted (Tier 1 #3 α-min-2, 2026-07-01)
+**Context:** α-min-1 (AD-63) established the Stage 1 document emission infrastructure for
+inpatient encounters only. Three major gaps remained: (1) CareTeam = 0 across all encounter
+types, (2) nursing domain documents = 0 (no nursing-domain always-on Module), (3) outpatient /
+emergency encounter documents = 0 (no outpatient SOAP / ED note / triage note). The EHR/EMR
+sample dataset target requires nurse-authored document density and primary team allocation for
+all encounter types.
+
+**Decision:** Three new always-on POST_ENCOUNTER Modules (same `enabled=lambda c: True` pattern
+as device/hai/antibiotic/imaging precedents):
+
+1. **`triage` (POST_ENCOUNTER order=93)**: ED-only enricher. Samples JTAS (JP) / ESI (US) triage
+   level, arrival_mode (ambulance/walk-in), and acuity_score from `triage_protocols.yaml`.
+   Writes `EncounterRecord.triage_data` (new field). Consumed by document_enricher for
+   `ED_TRIAGE_NOTE` LOINC 54094-8 dispatch.
+
+2. **`nursing_assignment` (POST_ENCOUNTER order=94)**: Inpatient/ICU/rehab enricher. Assigns a
+   primary nurse from the StaffRoster for the encounter's ward. Writes
+   `EncounterRecord.primary_nurse_id` (new field). Consumed by `_fhir_care_team.py` builder
+   for CareTeam.participant[1]. **Naming note**: the module directory is `modules/nursing/` but
+   the enricher function is `nursing_enricher` (POST_ENCOUNTER). The existing POST_RECORDS nursing
+   module (`observation/nursing.py`) handles NEWS2/GCS/Braden/Morse — these are DIFFERENT modules
+   registered in DIFFERENT stages under the same directory.
+
+3. **`_fhir_care_team.py` builder**: New FHIR builder registered via `register_bundle_builder()`
+   as `_bb_care_teams`. Emits one CareTeam resource per encounter (ALL encounter types). Two-name
+   scope: participant[0] = attending physician, participant[1] = primary nurse (when assigned).
+   CareTeam ID = `careteam-{encounter_id}` (CARE_TEAM_ID_PREFIX canonical constant).
+
+4. **6 new DocumentType specs** in `document_type_specs.yaml`:
+   - `admission_nursing_assessment` (78390-2, Composition, admission_once, inpatient)
+   - `nursing_shift_note` (34746-8, DocumentReference free_text, daily, inpatient)
+   - `nursing_discharge_summary` (34745-0, Composition, discharge_once, inpatient)
+   - `outpatient_soap` (34131-3, Composition, encounter_once, outpatient)
+   - `ed_note` (34878-9, Composition, encounter_once, emergency)
+   - `ed_triage_note` (54094-8, DocumentReference free_text, encounter_once, emergency)
+
+   `DocumentTypeSpec.encounter_types_supported` field (introduced in α-min-2 Task 10) controls
+   dispatch per encounter_type. α-min-1 specs now carry explicit `[inpatient, icu, rehab_inpatient]`
+   allowlists (Task 10 data-quality fix: prevents leaking inpatient docs into outpatient/ED).
+
+5. **46 encounter YAML narrative extensions**: All 46 encounter YAML files received a `narrative:`
+   block with outpatient_soap / ed_note / ed_triage templates for outpatient_soap + ED encounter
+   types. 5 priority conditions have detailed narrative; 41 use baseline template text.
+
+6. **Task 8 LOINC verification**: 3 of 6 candidate LOINC codes were corrected via NLM
+   verification (ADMISSION_NURSING_ASSESSMENT 34820-1→78390-2, OUTPATIENT_SOAP 11488-4→34131-3,
+   ED_NOTE 51841-6→34878-9). All codes registered in `codes/data/loinc.yaml` (EN + JA bilingual).
+
+**Consequences:**
+- CIF → FHIR no-drop invariant: CareTeam (1:1 with Encounter) + 3 nursing document types
+  (1:1 with inpatient encounters) enforced via lift_firing_proof equality_checks 18-25
+- AD-55 always-on Module count increases to 8 (device, hai, antibiotic, imaging, triage,
+  nursing_assignment, allergy, document). POST_ENCOUNTER ordering: 70/80/85/90/93/94/95
+- **Known production gap**: outpatient.py + emergency.py do NOT invoke POST_ENCOUNTER enrichers
+  (only inpatient.py does). OUTPATIENT_SOAP / ED_NOTE / ED_TRIAGE_NOTE produce 0 resources in
+  production. Dispatch logic is correct (verified by audit proof checks 22-25); fix requires
+  adding `run_stage(POST_ENCOUNTER, ...)` to outpatient.py + emergency.py (targeted for α-min-3).
+- **Naming collision guard**: `modules/nursing/` contains both `nursing_enricher` (POST_ENCOUNTER
+  order=94, primary_nurse assignment) and `nursery_enricher` (POST_RECORDS observation).
+  Always specify the enricher name when referencing. `nursing_assignment` = POST_ENCOUNTER.
+  `nursing` (observation) = POST_RECORDS.
+- **CareTeam 2-name scope**: β-JP-1 will expand to 6-name multi-disciplinary team
+  (pharmacist / nutritionist / rehab / MSW / charge nurse). AD-64 scope = physician + nurse only.
+- 25-check `lift_firing_proof` (17 α-min-1 + 8 α-min-2). silent_no_op PASS both US + JP cohorts.
+  Clinical axis PASS: 158,811 US / 16,046 JP CareTeam, 0 unknown_attending.
+- Production cohort: US p=10k (158,811 CareTeam + 46,558 DR + 17,946 Composition) +
+  JP p=5k (16,046 CareTeam + 7,416 DR + 970 Composition). DQR:
+  `docs/reviews/2026-07-01-tier1-3-document-density-alpha-min-2-dqr.md`
