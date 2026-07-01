@@ -90,3 +90,16 @@ probability: 0.05  # relative frequency among ED visits
 age_distribution: all
 sex_ratio_female: 1.0
 seasonal: {1: 0.8, 2: 0.8, 3: 0.9, 4: 1.0, 5: 1.1, 6: 1.3, 7: 1.4, 8: 1.4, 9: 1.2, 10: 1.0, 11: 0.9, 12: 0.8}
+
+narrative:
+  ed_note_template:
+    chief_complaint_ja: '{chief_complaint_ja}の訴え'
+    hpi_ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+    physical_exam_ja:
+      general: 意識清明、苦痛様
+    ed_workup_summary_ja: '{lab_summary_ja}、{imaging_summary_ja}'
+    disposition_ja: '{disposition_display_ja}'
+  ed_triage_template:
+    common_triage_levels:
+    - '3'
+    - '4'

@@ -45,3 +45,16 @@ probability: 0.04
 age_distribution: adults
 sex_ratio_female: 0.45
 seasonal: {1: 1.2, 2: 1.2, 3: 1.0, 4: 1.0, 5: 1.0, 6: 0.9, 7: 0.9, 8: 0.9, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.2}
+
+narrative:
+  ed_note_template:
+    chief_complaint_ja: '{chief_complaint_ja}の訴え'
+    hpi_ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+    physical_exam_ja:
+      general: 意識清明、苦痛様
+    ed_workup_summary_ja: '{lab_summary_ja}、{imaging_summary_ja}'
+    disposition_ja: '{disposition_display_ja}'
+  ed_triage_template:
+    common_triage_levels:
+    - '3'
+    - '4'
