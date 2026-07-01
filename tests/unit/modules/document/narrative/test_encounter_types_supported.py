@@ -32,52 +32,69 @@ def _make_spec(type_key: str, encounter_types_supported: tuple[str, ...] = ()) -
 
 
 # ---------------------------------------------------------------------------
-# Test 1: existing α-min-1 specs get default encounter_types_supported = ()
+# Test 1: α-min-1 specs have explicit inpatient/icu/rehab_inpatient gating (Task 10 fix)
 # ---------------------------------------------------------------------------
 
-def test_encounter_types_supported_default_empty_tuple() -> None:
-    """Backwards-compat: α-min-1 specs without encounter_types_supported field → ()."""
+def test_encounter_types_supported_alpha_min1_specs_explicit_inpatient() -> None:
+    """Task 10 data-quality fix: α-min-1 specs now carry explicit encounter_types_supported
+    = ('inpatient', 'icu', 'rehab_inpatient') to prevent leaking into outpatient/emergency.
+    """
     specs = load_document_type_specs()
+    expected = frozenset({"inpatient", "icu", "rehab_inpatient"})
     for dt in (DocumentType.ADMISSION_HP, DocumentType.PROGRESS_NOTE, DocumentType.DISCHARGE_SUMMARY):
-        assert specs[dt].encounter_types_supported == (), (
-            f"{dt.value} should have default encounter_types_supported=()"
+        actual = frozenset(specs[dt].encounter_types_supported)
+        assert actual == expected, (
+            f"{dt.value} encounter_types_supported must be {expected}, got {actual}"
         )
 
 
 # ---------------------------------------------------------------------------
-# Test 2: default () = no restriction → matches any encounter_type
+# Test 2: encounter-type gating returns correct specs per encounter type
 # ---------------------------------------------------------------------------
 
-def test_specs_for_encounter_type_empty_default_matches_inpatient() -> None:
-    """Specs with encounter_types_supported=() match any encounter_type (no restriction)."""
+def test_specs_for_encounter_type_inpatient_returns_inpatient_specs() -> None:
+    """inpatient → α-min-1 specs + nursing specs; NOT outpatient/ED specs."""
     result = specs_for_encounter_type("inpatient")
     type_keys = [s.type_key for s in result]
     assert "admission_hp" in type_keys
     assert "progress_note" in type_keys
     assert "discharge_summary" in type_keys
+    assert "admission_nursing_assessment" in type_keys
+    # outpatient/ED specs must NOT appear for inpatient
+    assert "outpatient_soap" not in type_keys
+    assert "ed_note" not in type_keys
+    assert "ed_triage_note" not in type_keys
 
 
-def test_specs_for_encounter_type_empty_default_matches_outpatient() -> None:
-    """Default () specs are returned even for outpatient (no restriction applies)."""
+def test_specs_for_encounter_type_outpatient_excludes_inpatient_specs() -> None:
+    """outpatient → OUTPATIENT_SOAP only; NO α-min-1 inpatient or ED specs."""
     result = specs_for_encounter_type("outpatient")
     type_keys = [s.type_key for s in result]
-    assert "admission_hp" in type_keys
+    # outpatient spec
+    assert "outpatient_soap" in type_keys
+    # inpatient/nursing specs must not leak into outpatient
+    assert "admission_hp" not in type_keys
+    assert "progress_note" not in type_keys
+    assert "discharge_summary" not in type_keys
+    assert "admission_nursing_assessment" not in type_keys
+    # ED specs also excluded
+    assert "ed_note" not in type_keys
+    assert "ed_triage_note" not in type_keys
 
 
-def test_specs_for_encounter_type_empty_default_matches_emergency() -> None:
-    """Default () specs are returned even for emergency (no restriction applies).
-
-    After α-min-2: 3 α-min-1 (no restriction) + 2 ED-specific = 5 total.
-    """
+def test_specs_for_encounter_type_emergency_returns_ed_specs_only() -> None:
+    """emergency → ED_NOTE + ED_TRIAGE_NOTE; NO inpatient or outpatient specs."""
     result = specs_for_encounter_type("emergency")
     type_keys = [s.type_key for s in result]
-    # α-min-1 specs (no restriction) are always included regardless of encounter type
-    assert "admission_hp" in type_keys
-    assert "progress_note" in type_keys
-    assert "discharge_summary" in type_keys
-    # α-min-2 ED specs are also included for emergency
+    # ED specs included
     assert "ed_note" in type_keys
     assert "ed_triage_note" in type_keys
+    # inpatient specs excluded (Task 10 fix: explicit encounter_types_supported)
+    assert "admission_hp" not in type_keys
+    assert "progress_note" not in type_keys
+    assert "discharge_summary" not in type_keys
+    # outpatient spec excluded
+    assert "outpatient_soap" not in type_keys
 
 
 # ---------------------------------------------------------------------------
