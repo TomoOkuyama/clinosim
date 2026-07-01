@@ -6,7 +6,7 @@ AD-60 plug-in #5 (after hai, antibiotic, order_service_request, imaging).
 Verifies CIF -> FHIR emission integrity for the document pipeline:
 DocumentReference / Composition / AllergyIntolerance / ClinicalImpression / CareTeam.
 
-32 equality_checks in lift_firing_proof guard canonical constants and
+34 equality_checks in lift_firing_proof guard canonical constants and
 no-drop emission paths against PR-90 class silent-no-op regression.
 
 Registered checks:
@@ -34,7 +34,7 @@ Registered checks:
     `_proof_nursing_author_ratio` docstrings. Companion unit test:
     `tests/unit/test_document_author_selection.py`; companion integration
     test: `tests/integration/test_bug_b_nurse_author.py`.
-  PR #131 adv-1 F-6 + F-6b (total = 32):
+  PR #131 adv-1 F-6 + F-6b (total = 34):
     F-6 (spec §5.5 named gates): `narrative_pass_populated_narrative_ratio` /
       `structural_cif_zero_narrative_content` /
       `triage_levels_1_and_5_ratio_min` (delegate to triage_chain proof) /
