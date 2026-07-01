@@ -97,6 +97,16 @@ narrative:
       neurological: 麻痺なし、髄膜刺激徴候なし
     ed_workup_summary_ja: 迅速溶連菌検査：{strep_result_ja}。{lab_summary_ja}。胸部X線（咳嗽強い場合）：{cxr_result_ja}。
     disposition_ja: ウイルス性上気道炎の診断にて帰宅。解熱・対症療法処方。3日以上の高熱持続・呼吸困難出現時は再診指示。
+    chief_complaint_en: Fever, sore throat, cough, rhinorrhea
+    hpi_en: 'Fever, sore throat, cough, and rhinorrhea began {onset_days} day(s) ago. Peak temperature: {max_temp_en}C. Contact history: {contact_history_en}. Influenza vaccination history: {flu_vax_en}. No dyspnea, chest pain, or altered mentation.'
+    physical_exam_en:
+      general: 'Alert and oriented, {severity_desc_en}, temperature {temp}C'
+      cardiovascular: Normal to mildly tachycardic, regular heart sounds
+      respiratory: Respiratory rate normal, lungs clear (no findings of pneumonia)
+      abdominal: Flat, soft, non-tender
+      neurological: No paralysis, no meningeal signs
+    ed_workup_summary_en: 'Rapid strep test: {strep_result_en}. {lab_summary_en}. Chest X-ray (if cough prominent): {cxr_result_en}.'
+    disposition_en: Discharged home with diagnosis of viral upper respiratory infection. Antipyretic and symptomatic treatment prescribed. Return if high fever persists beyond 3 days or dyspnea develops.
   ed_triage_template:
     common_triage_levels:
     - '4'

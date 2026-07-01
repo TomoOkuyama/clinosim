@@ -92,6 +92,16 @@ narrative:
       neurological: 麻痺なし
     ed_workup_summary_ja: ECG：{ecg_result_ja}。心筋トロポニン：{troponin_result_ja}（3時間後再検）。胸部X線：{cxr_result_ja}。ACS除外基準を評価。
     disposition_ja: 連続トロポニン陰性・ECG変化なしにてACS除外。{disposition_display_ja}。2週間以内に内科外来受診。
+    chief_complaint_en: Chest pain (rule out acute coronary syndrome)
+    hpi_en: 'Chest pain onset {onset_ja}. Character: {pain_quality_en}, location: retrosternal to anterior chest, radiation: {radiation_en}. Associated symptoms: dyspnea, diaphoresis, and nausea assessed. Cardiac history and risk factors (hypertension, diabetes, smoking, dyslipidemia) reviewed.'
+    physical_exam_en:
+      general: Alert and oriented, in distress
+      cardiovascular: 'BP {sbp}/{dbp} mmHg, HR {hr}/min, regular heart sounds, no murmurs, no jugular venous distension'
+      respiratory: Respiratory rate normal, lungs clear, no pleural friction rub
+      abdominal: Flat, soft, non-tender
+      neurological: No paralysis
+    ed_workup_summary_en: 'ECG: {ecg_result_en}. Cardiac troponin: {troponin_result_en} (repeat at 3 hours). Chest X-ray: {cxr_result_en}. ACS rule-out criteria assessed.'
+    disposition_en: 'ACS ruled out with serial negative troponins and no ECG changes. {disposition_display_en}. Internal medicine follow-up within 2 weeks.'
   ed_triage_template:
     common_triage_levels:
     - '2'
