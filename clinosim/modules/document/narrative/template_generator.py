@@ -36,7 +36,7 @@ from clinosim.modules.document.reference_data_loaders import (
     load_discharge_instructions,
     load_physical_exam_findings,
 )
-from clinosim.types.document import FormatType, NarrativeContext, NarrativeOutput
+from clinosim.types.document import DocumentType, FormatType, NarrativeContext, NarrativeOutput
 
 # Generic fallback phrases per locale
 _GENERIC_FALLBACK_JA = "特記事項なし"
@@ -45,6 +45,48 @@ _GENERIC_ASSESSMENT_JA = "経過観察中"
 _GENERIC_ASSESSMENT_EN = "Clinical assessment ongoing"
 _GENERIC_PLAN_JA = "治療継続"
 _GENERIC_PLAN_EN = "Continue current management"
+
+# α-min-2: Nursing section fallback phrases
+_NURSING_HISTORY_FALLBACK_JA = "入院目的・既往歴：特記事項なし"
+_NURSING_HISTORY_FALLBACK_EN = "Nursing history: no significant findings"
+_ADL_FALLBACK_JA = "ADL：自立（問題なし）"
+_ADL_FALLBACK_EN = "ADL: independent (no issues noted)"
+_RISK_FALLBACK_JA = "転倒・褥瘡リスク：評価中"
+_RISK_FALLBACK_EN = "Fall / pressure ulcer risk: assessment pending"
+_NURSING_DX_FALLBACK_JA = "看護診断：特記事項なし"
+_NURSING_DX_FALLBACK_EN = "Nursing diagnosis: no significant findings"
+_CARE_PLAN_FALLBACK_JA = "看護計画：標準的ケア継続"
+_CARE_PLAN_FALLBACK_EN = "Care plan: continue standard nursing care"
+_INTERVENTIONS_FALLBACK_JA = "実施した看護介入：特記事項なし"
+_INTERVENTIONS_FALLBACK_EN = "Nursing interventions provided: no significant findings"
+_PATIENT_EDUCATION_FALLBACK_JA = "患者教育：退院指導実施"
+_PATIENT_EDUCATION_FALLBACK_EN = "Patient education: discharge instructions provided"
+_DISCHARGE_READINESS_FALLBACK_JA = "退院準備：退院基準を満たす"
+_DISCHARGE_READINESS_FALLBACK_EN = "Discharge readiness: criteria met"
+
+# α-min-2: ED section fallback phrases
+_ED_WORKUP_FALLBACK_JA = "検査・処置：特記事項なし"
+_ED_WORKUP_FALLBACK_EN = "ED workup: no significant findings"
+_DISPOSITION_FALLBACK_JA = "帰宅または入院加療"
+_DISPOSITION_FALLBACK_EN = "Disposition: to be determined"
+_TRIAGE_FALLBACK_JA = "トリアージ情報：未記録"
+_TRIAGE_FALLBACK_EN = "Triage information: not recorded"
+
+# α-min-2: Arrival mode display
+_ARRIVAL_MODE_JA: dict[str, str] = {
+    "ambulance": "救急車搬送",
+    "walk-in": "自来院（Walk-in）",
+    "helicopter": "ドクターヘリ搬送",
+    "police": "警察搬送",
+    "private_vehicle": "自家用車来院",
+}
+_ARRIVAL_MODE_EN: dict[str, str] = {
+    "ambulance": "ambulance",
+    "walk-in": "walk-in",
+    "helicopter": "helicopter/air transport",
+    "police": "police transport",
+    "private_vehicle": "private vehicle",
+}
 
 # NKDA phrases per locale
 _NKDA_JA = "薬物アレルギーなし（NKDA）"
@@ -110,7 +152,21 @@ class TemplateNarrativeGenerator:
     # ─────────────────────────────────────────────────────────────────
 
     def _render_free_text(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
-        """Build a SOAP-style progress note as plain text."""
+        """Build free-text narrative, dispatching on ctx.document_type.
+
+        α-min-2 new types dispatch to specialized renderers; everything else
+        falls through to the existing PROGRESS_NOTE SOAP renderer.
+        """
+        if ctx.document_type == DocumentType.NURSING_SHIFT_NOTE:
+            return self._render_nursing_shift_note_text(ctx, spec)
+        if ctx.document_type == DocumentType.ED_TRIAGE_NOTE:
+            return self._render_ed_triage_note_text(ctx, spec)
+        return self._render_progress_note_text(ctx, spec)
+
+    def _render_progress_note_text(
+        self, ctx: NarrativeContext, spec: DocumentTypeSpec
+    ) -> NarrativeOutput:
+        """Build a SOAP-style progress note as plain text (PROGRESS_NOTE)."""
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
@@ -161,7 +217,7 @@ class TemplateNarrativeGenerator:
         )
 
     # ─────────────────────────────────────────────────────────────────
-    # Renderer: COMPOSITION (ADMISSION_HP, DISCHARGE_SUMMARY)
+    # Renderer: COMPOSITION (ADMISSION_HP, DISCHARGE_SUMMARY + α-min-2)
     # ─────────────────────────────────────────────────────────────────
 
     def _render_composition_sections(
@@ -172,6 +228,7 @@ class TemplateNarrativeGenerator:
         sections: dict[str, str] = {}
 
         section_builders = {
+            # α-min-1 sections
             "chief_complaint": self._build_chief_complaint,
             "hpi": self._build_hpi,
             "past_medical_history": self._build_past_medical_history,
@@ -187,6 +244,27 @@ class TemplateNarrativeGenerator:
             "discharge_medications": self._build_discharge_medications,
             "discharge_instructions": self._build_discharge_instructions,
             "follow_up": self._build_follow_up,
+            # α-min-2: ADMISSION_NURSING_ASSESSMENT sections
+            "nursing_history": self._build_nursing_history,
+            "adl_assessment": self._build_adl_assessment,
+            "risk_assessments": self._build_risk_assessments,
+            "nursing_diagnosis": self._build_nursing_diagnosis,
+            "care_plan": self._build_care_plan,
+            # α-min-2: NURSING_DISCHARGE_SUMMARY sections
+            "admission_status": self._build_nursing_admission_status,
+            "nursing_interventions_provided": self._build_nursing_interventions_provided,
+            "patient_education": self._build_patient_education,
+            "discharge_readiness": self._build_discharge_readiness,
+            # α-min-2: OUTPATIENT_SOAP sections (reads encounter_protocol.narrative)
+            "subjective": self._build_outpatient_subjective,
+            "objective": self._build_outpatient_objective,
+            "assessment": self._build_outpatient_assessment,
+            "plan": self._build_outpatient_plan,
+            # α-min-2: ED_NOTE sections
+            "triage_details": self._build_triage_details,
+            "physical_exam": self._build_ed_physical_exam,
+            "ed_workup": self._build_ed_workup,
+            "disposition": self._build_ed_disposition,
         }
 
         for section in spec.composition_sections:
@@ -235,11 +313,27 @@ class TemplateNarrativeGenerator:
     def _build_chief_complaint(
         self, ctx: NarrativeContext
     ) -> tuple[str, list[str]]:
-        """Build chief_complaint section from disease_protocol."""
+        """Build chief_complaint section.
+
+        For ED_NOTE: reads from encounter_protocol.narrative.ed_note_template.chief_complaint_ja
+        (with fallback to generic). For all other document types: reads from disease_protocol.
+        """
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
         fallback = "発熱・全身倦怠感" if is_ja else "Chief complaint not specified"
+
+        # α-min-2: ED_NOTE reads from ed_note_template
+        if ctx.document_type == DocumentType.ED_NOTE:
+            ed_tmpl = self._get_ed_note_template(ctx)
+            if ed_tmpl is not None:
+                text = _o(ed_tmpl, "chief_complaint_ja", "") or ""
+                if text:
+                    facts.append(
+                        "encounter_protocol.narrative.ed_note_template.chief_complaint_ja"
+                    )
+                    return text, facts
+            return fallback, facts
 
         proto = ctx.disease_protocol
         if proto is None:
@@ -264,7 +358,11 @@ class TemplateNarrativeGenerator:
         return text, facts
 
     def _build_hpi(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build HPI from narrative.hpi_template.onset_pattern[severity]."""
+        """Build HPI section.
+
+        For ED_NOTE: reads from encounter_protocol.narrative.ed_note_template.hpi_ja.
+        For all other document types: reads from narrative.hpi_template.onset_pattern[severity].
+        """
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
@@ -272,6 +370,18 @@ class TemplateNarrativeGenerator:
             f"{ctx.severity}の症状で受診。" if is_ja
             else f"Patient presented with {ctx.severity} symptoms."
         )
+
+        # α-min-2: ED_NOTE reads from ed_note_template
+        if ctx.document_type == DocumentType.ED_NOTE:
+            ed_tmpl = self._get_ed_note_template(ctx)
+            if ed_tmpl is not None:
+                text = _o(ed_tmpl, "hpi_ja", "") or ""
+                if text:
+                    facts.append(
+                        "encounter_protocol.narrative.ed_note_template.hpi_ja"
+                    )
+                    return text, facts
+            return fallback, facts
 
         proto = ctx.disease_protocol
         narrative = _o(proto, "narrative", None) if proto is not None else None
@@ -598,6 +708,425 @@ class TemplateNarrativeGenerator:
                 else "Follow up with outpatient provider"
             )
         return text, ["discharge_instructions.follow_up"]
+
+    # ─────────────────────────────────────────────────────────────────
+    # α-min-2: Free-text renderers (NURSING_SHIFT_NOTE, ED_TRIAGE_NOTE)
+    # ─────────────────────────────────────────────────────────────────
+
+    def _render_nursing_shift_note_text(
+        self, ctx: NarrativeContext, spec: DocumentTypeSpec
+    ) -> NarrativeOutput:
+        """Build NURSING_SHIFT_NOTE as free text.
+
+        Includes: day/shift info, primary_nurse_id (graceful when absent),
+        and a generic per-shift status summary.
+
+        EN locale note: nursing shift data is JP-primary in α-min-2. EN locale
+        produces an English summary using the same CIF fields.
+        """
+        facts: list[str] = []
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+
+        day_num = ctx.day_index + 1  # 1-based display
+        los = ctx.los_days or 1
+
+        nurse_id = _o(ctx.encounter, "primary_nurse_id", "") or ""
+        nurse_line = ""
+        if nurse_id:
+            facts.append("encounter.primary_nurse_id")
+            if is_ja:
+                nurse_line = f"担当看護師: {nurse_id}"
+            else:
+                nurse_line = f"Nurse: {nurse_id}"
+
+        if is_ja:
+            header = f"【看護記録】 入院 {day_num} 日目 / 入院予定 {los} 日間"
+            status = "患者状態：バイタルサイン安定。観察・ケア継続。"
+            observations = "特記事項：特記事項なし。"
+        else:
+            header = f"[Nursing Shift Note] Day {day_num} / LOS {los} days"
+            status = "Patient status: vital signs stable. Observation and care ongoing."
+            observations = "Notes: no significant findings."
+
+        lines = [header]
+        if nurse_line:
+            lines.append(nurse_line)
+        lines.extend([status, observations])
+        raw_text = "\n".join(lines)
+
+        facts.append("ctx.day_index")
+        facts.append("ctx.los_days")
+
+        return NarrativeOutput(
+            raw_text=raw_text,
+            metadata={"generator": "template", "lang": lang, "day_index": ctx.day_index},
+            facts_used=facts,
+        )
+
+    def _render_ed_triage_note_text(
+        self, ctx: NarrativeContext, spec: DocumentTypeSpec
+    ) -> NarrativeOutput:
+        """Build ED_TRIAGE_NOTE as free text from encounter.triage_data.
+
+        Reads TriageData fields (level, level_system, arrival_mode,
+        chief_complaint_summary). Gracefully falls back to a generic phrase
+        when triage_data is None.
+
+        EN locale note: arrival_mode and chief_complaint_summary from CIF are
+        used directly; level_system labels (ESI/JTAS) are system codes (no
+        translation needed). EN output uses the same field values but with
+        English grammatical framing.
+        """
+        facts: list[str] = []
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+
+        triage = _o(ctx.encounter, "triage_data", None)
+
+        if triage is None:
+            raw_text = _TRIAGE_FALLBACK_JA if is_ja else _TRIAGE_FALLBACK_EN
+            return NarrativeOutput(
+                raw_text=raw_text,
+                metadata={"generator": "template", "lang": lang},
+                facts_used=facts,
+            )
+
+        facts.append("encounter.triage_data")
+
+        level = _o(triage, "level", "") or ""
+        level_system = _o(triage, "level_system", "") or ""
+        arrival_mode = _o(triage, "arrival_mode", "") or ""
+        cc_summary = _o(triage, "chief_complaint_summary", "") or ""
+
+        arrival_mode_display_map = _ARRIVAL_MODE_JA if is_ja else _ARRIVAL_MODE_EN
+        arrival_display = arrival_mode_display_map.get(arrival_mode, arrival_mode)
+
+        if is_ja:
+            level_line = (
+                f"トリアージレベル: {level_system} Level {level}" if level_system and level
+                else "トリアージレベル: 未評価"
+            )
+            arrival_line = f"来院形態: {arrival_display}" if arrival_display else "来院形態: 不明"
+            cc_line = f"主訴: {cc_summary}" if cc_summary else "主訴: 未記録"
+            raw_text = "\n".join([level_line, arrival_line, cc_line])
+        else:
+            level_line = (
+                f"Triage level: {level_system} Level {level}" if level_system and level
+                else "Triage level: not assessed"
+            )
+            arrival_line = f"Arrival mode: {arrival_display}" if arrival_display else "Arrival mode: unknown"
+            cc_line = f"Chief complaint: {cc_summary}" if cc_summary else "Chief complaint: not recorded"
+            raw_text = "\n".join([level_line, arrival_line, cc_line])
+
+        return NarrativeOutput(
+            raw_text=raw_text,
+            metadata={"generator": "template", "lang": lang},
+            facts_used=facts,
+        )
+
+    # ─────────────────────────────────────────────────────────────────
+    # α-min-2: ADMISSION_NURSING_ASSESSMENT section builders
+    # ─────────────────────────────────────────────────────────────────
+
+    def _build_nursing_history(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """Build nursing_history — admission reason + primary_nurse_id."""
+        facts: list[str] = []
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+
+        nurse_id = _o(ctx.encounter, "primary_nurse_id", "") or ""
+        if nurse_id:
+            facts.append("encounter.primary_nurse_id")
+            if is_ja:
+                nurse_part = f"担当看護師: {nurse_id}。"
+            else:
+                nurse_part = f"Assigned nurse: {nurse_id}. "
+        else:
+            nurse_part = ""
+
+        base = _NURSING_HISTORY_FALLBACK_JA if is_ja else _NURSING_HISTORY_FALLBACK_EN
+        return f"{nurse_part}{base}", facts
+
+    def _build_adl_assessment(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """Build adl_assessment — generic placeholder for α-min-2."""
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+        return _ADL_FALLBACK_JA if is_ja else _ADL_FALLBACK_EN, []
+
+    def _build_risk_assessments(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """Build risk_assessments — generic placeholder for α-min-2."""
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+        return _RISK_FALLBACK_JA if is_ja else _RISK_FALLBACK_EN, []
+
+    def _build_nursing_diagnosis(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """Build nursing_diagnosis — generic placeholder for α-min-2."""
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+        return _NURSING_DX_FALLBACK_JA if is_ja else _NURSING_DX_FALLBACK_EN, []
+
+    def _build_care_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """Build care_plan — generic placeholder for α-min-2."""
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+        return _CARE_PLAN_FALLBACK_JA if is_ja else _CARE_PLAN_FALLBACK_EN, []
+
+    # ─────────────────────────────────────────────────────────────────
+    # α-min-2: NURSING_DISCHARGE_SUMMARY section builders
+    # ─────────────────────────────────────────────────────────────────
+
+    def _build_nursing_admission_status(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """Build admission_status for NURSING_DISCHARGE_SUMMARY."""
+        facts: list[str] = []
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+
+        los = ctx.los_days or 1
+        facts.append("ctx.los_days")
+
+        if is_ja:
+            text = f"入院期間: {los} 日間。入院目的達成後、退院となった。"
+        else:
+            text = f"Hospital stay: {los} days. Discharge criteria met."
+
+        return text, facts
+
+    def _build_nursing_interventions_provided(
+        self, ctx: NarrativeContext
+    ) -> tuple[str, list[str]]:
+        """Build nursing_interventions_provided — generic placeholder for α-min-2."""
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+        return _INTERVENTIONS_FALLBACK_JA if is_ja else _INTERVENTIONS_FALLBACK_EN, []
+
+    def _build_patient_education(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """Build patient_education — generic placeholder for α-min-2."""
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+        return _PATIENT_EDUCATION_FALLBACK_JA if is_ja else _PATIENT_EDUCATION_FALLBACK_EN, []
+
+    def _build_discharge_readiness(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """Build discharge_readiness — generic placeholder for α-min-2."""
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+        return _DISCHARGE_READINESS_FALLBACK_JA if is_ja else _DISCHARGE_READINESS_FALLBACK_EN, []
+
+    # ─────────────────────────────────────────────────────────────────
+    # α-min-2: OUTPATIENT_SOAP section builders
+    # Reads from encounter_protocol.narrative.outpatient_soap_template (ja-only).
+    # EN locale falls back to the Japanese source text (ja_only_fallback pattern)
+    # or generic English phrase when the soap template itself is absent.
+    # ─────────────────────────────────────────────────────────────────
+
+    def _get_soap_template(self, ctx: NarrativeContext) -> Any | None:
+        """Extract outpatient_soap_template from encounter_protocol (or None)."""
+        ep = ctx.encounter_protocol
+        if ep is None:
+            return None
+        narrative = _o(ep, "narrative", None)
+        if narrative is None:
+            return None
+        return _o(narrative, "outpatient_soap_template", None)
+
+    def _build_outpatient_subjective(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """Build SOAP subjective from outpatient_soap_template.subjective_ja."""
+        facts: list[str] = []
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+        fallback = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
+
+        soap = self._get_soap_template(ctx)
+        if soap is None:
+            return fallback, facts
+
+        text = _o(soap, "subjective_ja", "") or ""
+        if not text:
+            return fallback, facts
+
+        facts.append("encounter_protocol.narrative.outpatient_soap_template.subjective_ja")
+        return text, facts
+
+    def _build_outpatient_objective(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """Build SOAP objective from outpatient_soap_template.objective_ja."""
+        facts: list[str] = []
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+        fallback = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
+
+        soap = self._get_soap_template(ctx)
+        if soap is None:
+            return fallback, facts
+
+        text = _o(soap, "objective_ja", "") or ""
+        if not text:
+            return fallback, facts
+
+        facts.append("encounter_protocol.narrative.outpatient_soap_template.objective_ja")
+        return text, facts
+
+    def _build_outpatient_assessment(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """Build SOAP assessment from outpatient_soap_template.assessment_ja.
+
+        Also handles ED_NOTE context (falls back to generic if no encounter_protocol).
+        """
+        facts: list[str] = []
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+
+        # ED_NOTE: read from ed_note_template (no separate assessment field in current schema;
+        # use generic assessment fallback — ED assessment is embedded in ed_workup)
+        if ctx.document_type == DocumentType.ED_NOTE:
+            fallback = _GENERIC_ASSESSMENT_JA if is_ja else _GENERIC_ASSESSMENT_EN
+            return fallback, facts
+
+        fallback = _GENERIC_ASSESSMENT_JA if is_ja else _GENERIC_ASSESSMENT_EN
+        soap = self._get_soap_template(ctx)
+        if soap is None:
+            return fallback, facts
+
+        text = _o(soap, "assessment_ja", "") or ""
+        if not text:
+            return fallback, facts
+
+        facts.append("encounter_protocol.narrative.outpatient_soap_template.assessment_ja")
+        return text, facts
+
+    def _build_outpatient_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """Build SOAP plan from outpatient_soap_template.plan_ja."""
+        facts: list[str] = []
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+        fallback = _GENERIC_PLAN_JA if is_ja else _GENERIC_PLAN_EN
+
+        soap = self._get_soap_template(ctx)
+        if soap is None:
+            return fallback, facts
+
+        text = _o(soap, "plan_ja", "") or ""
+        if not text:
+            return fallback, facts
+
+        facts.append("encounter_protocol.narrative.outpatient_soap_template.plan_ja")
+        return text, facts
+
+    # ─────────────────────────────────────────────────────────────────
+    # α-min-2: ED_NOTE section builders
+    # chief_complaint + hpi are shared with ADMISSION_HP (existing builders).
+    # triage_details, physical_exam, ed_workup, disposition are new.
+    # ─────────────────────────────────────────────────────────────────
+
+    def _get_ed_note_template(self, ctx: NarrativeContext) -> Any | None:
+        """Extract ed_note_template from encounter_protocol (or None)."""
+        ep = ctx.encounter_protocol
+        if ep is None:
+            return None
+        narrative = _o(ep, "narrative", None)
+        if narrative is None:
+            return None
+        return _o(narrative, "ed_note_template", None)
+
+    def _build_triage_details(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """Build triage_details from encounter.triage_data."""
+        facts: list[str] = []
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+        fallback = _TRIAGE_FALLBACK_JA if is_ja else _TRIAGE_FALLBACK_EN
+
+        triage = _o(ctx.encounter, "triage_data", None)
+        if triage is None:
+            return fallback, facts
+
+        facts.append("encounter.triage_data")
+        level = _o(triage, "level", "") or ""
+        level_system = _o(triage, "level_system", "") or ""
+        arrival_mode = _o(triage, "arrival_mode", "") or ""
+        arrival_map = _ARRIVAL_MODE_JA if is_ja else _ARRIVAL_MODE_EN
+        arrival_display = arrival_map.get(arrival_mode, arrival_mode)
+
+        if level_system and level:
+            level_text = f"{level_system} Level {level}"
+        else:
+            level_text = "未評価" if is_ja else "not assessed"
+
+        if is_ja:
+            text = (
+                f"トリアージレベル: {level_text}。"
+                f"来院形態: {arrival_display or '不明'}。"
+            )
+        else:
+            text = (
+                f"Triage level: {level_text}. "
+                f"Arrival mode: {arrival_display or 'unknown'}."
+            )
+
+        return text, facts
+
+    def _build_ed_physical_exam(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """Build physical_exam for ED_NOTE from ed_note_template.physical_exam_ja."""
+        facts: list[str] = []
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+        fallback = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
+
+        ed_tmpl = self._get_ed_note_template(ctx)
+        if ed_tmpl is None:
+            return fallback, facts
+
+        pe = _o(ed_tmpl, "physical_exam_ja", None)
+        if pe is None:
+            return fallback, facts
+
+        # Collect non-empty body system findings
+        systems = ("general", "cardiovascular", "respiratory", "abdominal", "neurological")
+        parts = []
+        for sys_key in systems:
+            val = _o(pe, sys_key, "") or ""
+            if val:
+                parts.append(val)
+
+        if parts:
+            facts.append("encounter_protocol.narrative.ed_note_template.physical_exam_ja")
+            sep = "。" if is_ja else ". "
+            return sep.join(parts), facts
+
+        return fallback, facts
+
+    def _build_ed_workup(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """Build ed_workup from ed_note_template.ed_workup_summary_ja."""
+        facts: list[str] = []
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+        fallback = _ED_WORKUP_FALLBACK_JA if is_ja else _ED_WORKUP_FALLBACK_EN
+
+        ed_tmpl = self._get_ed_note_template(ctx)
+        if ed_tmpl is None:
+            return fallback, facts
+
+        text = _o(ed_tmpl, "ed_workup_summary_ja", "") or ""
+        if not text:
+            return fallback, facts
+
+        facts.append("encounter_protocol.narrative.ed_note_template.ed_workup_summary_ja")
+        return text, facts
+
+    def _build_ed_disposition(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """Build disposition from ed_note_template.disposition_ja."""
+        facts: list[str] = []
+        lang = ctx.target_lang
+        is_ja = lang == "ja"
+        fallback = _DISPOSITION_FALLBACK_JA if is_ja else _DISPOSITION_FALLBACK_EN
+
+        ed_tmpl = self._get_ed_note_template(ctx)
+        if ed_tmpl is None:
+            return fallback, facts
+
+        text = _o(ed_tmpl, "disposition_ja", "") or ""
+        if not text:
+            return fallback, facts
+
+        facts.append("encounter_protocol.narrative.ed_note_template.disposition_ja")
+        return text, facts
 
     # ─────────────────────────────────────────────────────────────────
     # Fallback helpers
