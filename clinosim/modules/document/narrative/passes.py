@@ -76,22 +76,20 @@ class NarrativePass(ABC):
                     if not self._spec_applies(spec, patient_dict):
                         continue
                     encounter_dict = (patient_dict.get("encounters") or [{}])[0]
-                    ctx = self._build_context(patient_dict, encounter_dict, spec, language)
-                    output = self._generate(ctx, spec)
-                    stub = self._find_matching_stub(patient_dict, spec)
-                    if stub is None:
+                    stubs = self._find_matching_stubs(patient_dict, spec)
+                    if not stubs:
                         continue
-                    wrapper = self._output_to_wrapper(output, generator=self._generator_name())
-                    self._write(
-                        narrative_dir,
-                        encounter_dict.get("encounter_id", ""),
-                        stub,
-                        wrapper,
-                        spec,
-                    )
-                    doc_counts[spec.type_key] = doc_counts.get(spec.type_key, 0) + 1
-                    languages_used.add(language)
-                    encounters_touched.add(encounter_dict.get("encounter_id", ""))
+                    ctx = self._build_context(patient_dict, encounter_dict, spec, language)
+                    encounter_id = encounter_dict.get("encounter_id", "")
+                    for stub in stubs:
+                        output = self._generate(ctx, spec)
+                        wrapper = self._output_to_wrapper(
+                            output, generator=self._generator_name()
+                        )
+                        self._write(narrative_dir, encounter_id, stub, wrapper, spec)
+                        doc_counts[spec.type_key] = doc_counts.get(spec.type_key, 0) + 1
+                        languages_used.add(language)
+                        encounters_touched.add(encounter_id)
 
         manifest = NarrativeVersionManifest(
             version_id=self.version_id,
@@ -171,14 +169,19 @@ class NarrativePass(ABC):
             ctx.section_facts = extract_for_composition(ctx, spec)
         return ctx
 
-    def _find_matching_stub(
+    def _find_matching_stubs(
         self, patient_dict: dict[str, Any], spec: DocumentTypeSpec
-    ) -> dict[str, Any] | None:
+    ) -> list[dict[str, Any]]:
+        """Return ALL stubs matching ``spec.type_key``, in document-list order.
+
+        A single encounter can carry multiple stubs with the same
+        ``task_type`` (e.g. ``progress_note`` × ``los_days`` for a
+        multi-day inpatient stay — see ``document_enricher``'s ``daily``
+        branch in ``engine.py``). Returning only the first match silently
+        drops every subsequent day's narrative (PR-90 class silent-no-op).
+        """
         docs: list[dict[str, Any]] = patient_dict.get("documents", []) or []
-        for doc in docs:
-            if doc.get("task_type") == spec.type_key:
-                return doc
-        return None
+        return [doc for doc in docs if doc.get("task_type") == spec.type_key]
 
     def _deterministic_timestamp(self) -> str:
         """Deterministic per-document ``generated_at`` (AD-16).
@@ -229,7 +232,15 @@ class NarrativePass(ABC):
             json.dump(payload, f, indent=2, ensure_ascii=False)
 
     def _filename_for(self, stub: dict[str, Any], spec: DocumentTypeSpec) -> str:
-        return f"{stub.get('task_type', 'unknown')}.json"
+        """Filename keyed by ``document_id`` (unique per stub).
+
+        Keying by ``task_type`` alone silently overwrites every stub past the
+        first when an encounter carries N stubs of the same task_type (e.g.
+        ``progress_note`` on a multi-day inpatient stay). ``document_id`` is
+        unique per stub (e.g. ``doc-ENC-1-progress_note-day-1``) and is
+        already filesystem-safe (letters/digits/hyphens/underscores only).
+        """
+        return f"{stub.get('document_id', 'unknown')}.json"
 
 
 class TemplateNarrativePass(NarrativePass):
