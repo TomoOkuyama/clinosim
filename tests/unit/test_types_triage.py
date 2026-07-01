@@ -47,8 +47,8 @@ def test_document_type_alpha2_enum_values():
     assert DocumentType.ED_TRIAGE_NOTE.value == "ed_triage_note"
 
 
-def test_encounter_record_alpha2_fields():
-    from clinosim.types.encounter import EncounterRecord
-    e = EncounterRecord()
+def test_encounter_alpha2_fields():
+    from clinosim.types.encounter import Encounter
+    e = Encounter()
     assert e.primary_nurse_id == ""
     assert e.triage_data is None

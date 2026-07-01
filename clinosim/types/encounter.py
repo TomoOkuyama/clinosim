@@ -65,6 +65,9 @@ class Encounter:
     admit_source: str = ""  # "emd" | "hosp-trans" | "gp" | "mp" | "nursing" | "outp"
     discharge_disposition: str = ""  # "home" | "hosp" | "other-hcf" | "exp" | "snf"
     priority: str = ""  # "EM" (emergency) | "UR" (urgent) | "R" (routine)
+    # Tier 1 #3 α-min-2 additions
+    primary_nurse_id: str = ""              # nursing_enricher が set(inpatient のみ)
+    triage_data: TriageData | None = None   # triage_enricher が set(ED のみ)
 
     def __post_init__(self) -> None:
         if self.time_resolution is None:
@@ -245,16 +248,3 @@ class ImmunizationRecord:
     status: str = "completed"
     primary_source: bool = True
     dose_number: int | None = None
-
-
-@dataclass
-class EncounterRecord:
-    """Encounter-level CIF record augmented by enricher modules.
-
-    Modules write into this record (nursing → primary_nurse_id, triage → triage_data).
-    All fields default to empty / None for backwards-compatible construction.
-    """
-
-    # Tier 1 #3 α-min-2 additions
-    primary_nurse_id: str = ""              # nursing_enricher が set(inpatient のみ)
-    triage_data: TriageData | None = None   # triage_enricher が set(ED のみ)
