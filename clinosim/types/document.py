@@ -78,6 +78,11 @@ class NarrativeContext:
     target_lang: str                     # "en" / "ja"
     locale: str                          # "us" / "jp"
 
+    # === AD-65 enhancements ===
+    narrative_spine: NarrativeSpine | None = None  # E1 scenario anchoring
+    materialized_facts: list[FactTag] = field(default_factory=list)  # E2 fact-first
+    section_facts: dict[str, SectionFacts] = field(default_factory=dict)  # E3 per-section
+
 
 @dataclass
 class NarrativeOutput:
@@ -93,3 +98,33 @@ class NarrativeOutput:
     structured: dict = field(default_factory=dict)            # QUESTIONNAIRE_RESPONSE 用
     metadata: dict = field(default_factory=dict)              # {generator, lang, ...}
     facts_used: list[str] = field(default_factory=list)       # 使用 CIF field(audit 用)
+
+
+@dataclass(frozen=True)
+class FactTag:
+    """Deterministic fact tag extracted from structural CIF (AD-65 E2 fact grounding)."""
+
+    key: str  # "lab.troponin_i.day0"
+    value: str  # "0.12 ng/mL"
+    source: str  # "structural.observations" | "profile.demographics" | "scenario.archetype"
+
+
+@dataclass
+class NarrativeSpine:
+    """DiseaseProtocol.narrative.* / EncounterProtocol.narrative.* canonical spine (E1)."""
+
+    archetype: str = ""
+    key_events: list[str] = field(default_factory=list)
+    complications_expected: list[str] = field(default_factory=list)
+    outcome_benchmark: str = ""
+    disease_narrative_hints: dict[str, str] = field(default_factory=dict)
+
+
+@dataclass
+class SectionFacts:
+    """Per-section extract for COMPOSITION docs (E3 section-level extraction)."""
+
+    section_key: str = ""
+    facts: list[FactTag] = field(default_factory=list)
+    scenario_hint: str = ""
+    llm_replaceable: bool = False

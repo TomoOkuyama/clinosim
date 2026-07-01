@@ -1,8 +1,10 @@
-"""Document module POST_ENCOUNTER enricher (Tier 1 #3 α-min-2 Task 10, AD-55).
+"""Document module POST_ENCOUNTER enricher (Tier 1 #3 α-min-2 Task 10, AD-55;
+refactored to stub-only in AD-65 Task 3).
 
-Generates ClinicalDocument stubs (Stage 1 text via TemplateNarrativeGenerator)
-and ClinicalImpressionRecord entries (daily working-diagnosis updates) for each
-encounter that has applicable document specs.
+Generates ClinicalDocument STRUCTURAL STUBS (narrative=None) and
+ClinicalImpressionRecord entries (daily working-diagnosis updates) for each
+encounter that has applicable document specs. Narrative text generation is
+NOT performed here — see the "Two-pass lifecycle" note below.
 
 Architecture:
 - POST_ENCOUNTER order=95 (after imaging=90)
@@ -34,12 +36,14 @@ AD-32 snapshot compliance:
   For encounter_once specs (outpatient/ED) with discharge_datetime=None, the
   document is emitted anyway (single-visit context; AD-32 in-progress is rare).
 
-Stage 1 / Stage 2 lifecycle:
-  Stage 1 (this module): text filled by TemplateNarrativeGenerator via
-  LLMNarrativeGenerator wrapper (default OFF). ClinicalDocument.text_source
-  = "template" for all Stage 1 documents.
-  Stage 2 (future Task 15 / llm_service wiring): LLMNarrativeGenerator
-  calls llm_service for llm_enabled_sections when CLINOSIM_NARRATIVE_LLM=on.
+Two-pass lifecycle (AD-65):
+  Pass 1 (this module): emits STRUCTURAL STUBS ONLY — ClinicalDocument with
+  narrative=None. No text/sections population happens here.
+  Pass 2 (clinosim/modules/document/narrative/passes.py — TemplateNarrativePass,
+  future LLMNarrativePass): a separate Stage 2 pass reads the written
+  structural CIF, builds NarrativeContext per stub, runs the generator, and
+  writes cif/narratives/<version>/documents/<enc>/<doc_type>.json. CIFReader
+  merges structural + narrative trees before FHIR emit.
 """
 
 from __future__ import annotations
@@ -48,17 +52,13 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules.disease.protocol import load_disease_protocol
 from clinosim.modules.document import (
     CLINICAL_IMPRESSION_ID_PREFIX,
     DOC_REFERENCE_ID_PREFIX,
     specs_for_country,
     specs_for_encounter_type,
 )
-from clinosim.modules.document.narrative.context import build_narrative_context
-from clinosim.modules.document.narrative.llm_generator import LLMNarrativeGenerator
 from clinosim.types.clinical import ClinicalDocument, ClinicalImpressionRecord
-from clinosim.types.document import DocumentType
 
 # Encounter types that receive daily ClinicalImpressionRecords (spec §3.3).
 # CI is a "daily working diagnosis update" — only meaningful for multi-day inpatient stays.
@@ -137,7 +137,6 @@ def document_enricher(ctx: Any) -> None:
     """
     country: str = str(_o(ctx.config, "country", "us") or "us").lower()
     lang = "ja" if country == "jp" else "en"
-    generator = LLMNarrativeGenerator()
 
     # Pre-compute country spec key set once per enricher call (lru_cache hit on repeated calls).
     country_spec_keys: frozenset[str] = frozenset(
@@ -192,41 +191,15 @@ def document_enricher(ctx: Any) -> None:
             physiological_states = list(_o(record, "physiological_states", []) or [])
             los_days = _compute_los_days(admission_dt, discharge_dt, physiological_states)
 
-            # C-1 (Lens 4 I-2): resolve disease_protocol for this encounter so that
-            # 32 disease YAML narrative blocks (hpi_template / physical_exam_findings /
-            # discharge_instructions / chief_complaint) become reachable.
-            # Source: _disease_id IPC key set by inpatient.py before POST_ENCOUNTER stage;
-            # cleaned up after run_stage returns. Same access pattern as imaging_enricher.
-            # Fallback: None (unchanged default) if disease_id is unknown or YAML missing.
-            extensions_data = _o(record, "extensions", {}) or {}
-            disease_id: str = (
-                extensions_data.get("_disease_id", "")
-                or _o(record, "disease_id", "")  # SimpleNamespace test fixture fallback
-                or ""
-            )
-            disease_protocol: Any | None = None
-            if disease_id:
-                try:
-                    disease_protocol = load_disease_protocol(disease_id)
-                except (FileNotFoundError, Exception):
-                    disease_protocol = None  # unknown disease_id → fall through to defaults
-
             # ── Document generation (per applicable spec) ────────────────────
+            # AD-65 two-pass architecture: this enricher creates STRUCTURAL STUBS
+            # only (narrative=None). Narrative text/sections population moved to
+            # TemplateNarrativePass (clinosim/modules/document/narrative/passes.py),
+            # which runs as a separate Stage 2 pass over the written structural CIF.
             for spec in applicable_specs:
                 freq = spec.generation_frequency
-                doc_type = DocumentType(spec.type_key)
 
                 if freq == "admission_once":
-                    ctx_n = build_narrative_context(
-                        record=record,
-                        encounter=encounter,
-                        document_type=doc_type,
-                        day_index=0,
-                        country=country,
-                        los_days=los_days,
-                        disease_protocol=disease_protocol,
-                    )
-                    output = generator.generate(ctx_n, spec)
                     documents.append(ClinicalDocument(
                         document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
                         task_type=spec.type_key,
@@ -238,12 +211,8 @@ def document_enricher(ctx: Any) -> None:
                         period_start=admission_dt.isoformat(),
                         period_end=admission_dt.isoformat(),
                         language=lang,
-                        # TODO(Task 3): removed in AD-65 — _narrative_to_text deleted;
-                        # this branch is refactored in Task 3 to populate
-                        # ClinicalDocument.narrative (stub-only here) instead of text=.
-                        text_source=output.metadata.get("generator", "template"),
-                        sections=dict(output.sections),
                         format_type=spec.format_type.value,
+                        narrative=None,
                     ))
                     doc_seq += 1
 
@@ -255,16 +224,6 @@ def document_enricher(ctx: Any) -> None:
                         continue
                     for day in range(los_days):
                         day_dt = admission_dt + timedelta(days=day)
-                        ctx_n = build_narrative_context(
-                            record=record,
-                            encounter=encounter,
-                            document_type=doc_type,
-                            day_index=day,
-                            country=country,
-                            los_days=los_days,
-                            disease_protocol=disease_protocol,
-                        )
-                        output = generator.generate(ctx_n, spec)
                         documents.append(ClinicalDocument(
                             document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
                             task_type=spec.type_key,
@@ -276,12 +235,8 @@ def document_enricher(ctx: Any) -> None:
                             period_start=day_dt.isoformat(),
                             period_end=day_dt.isoformat(),
                             language=lang,
-                            # TODO(Task 3): removed in AD-65 — _narrative_to_text deleted;
-                            # this branch is refactored in Task 3 to populate
-                            # ClinicalDocument.narrative (stub-only here) instead of text=.
-                            text_source=output.metadata.get("generator", "template"),
-                            sections=dict(output.sections),
                             format_type=spec.format_type.value,
+                            narrative=None,
                         ))
                         doc_seq += 1
 
@@ -289,16 +244,6 @@ def document_enricher(ctx: Any) -> None:
                     if is_in_progress:
                         continue  # AD-32: no discharge summary while encounter is open
                     end_dt = discharge_dt or admission_dt  # discharge_dt is non-None here
-                    ctx_n = build_narrative_context(
-                        record=record,
-                        encounter=encounter,
-                        document_type=doc_type,
-                        day_index=los_days - 1,
-                        country=country,
-                        los_days=los_days,
-                        disease_protocol=disease_protocol,
-                    )
-                    output = generator.generate(ctx_n, spec)
                     documents.append(ClinicalDocument(
                         document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
                         task_type=spec.type_key,
@@ -310,12 +255,8 @@ def document_enricher(ctx: Any) -> None:
                         period_start=admission_dt.isoformat(),
                         period_end=end_dt.isoformat(),
                         language=lang,
-                        # TODO(Task 3): removed in AD-65 — _narrative_to_text deleted;
-                        # this branch is refactored in Task 3 to populate
-                        # ClinicalDocument.narrative (stub-only here) instead of text=.
-                        text_source=output.metadata.get("generator", "template"),
-                        sections=dict(output.sections),
                         format_type=spec.format_type.value,
+                        narrative=None,
                     ))
                     doc_seq += 1
 
@@ -325,16 +266,6 @@ def document_enricher(ctx: Any) -> None:
                     # AD-32: if discharge_dt is None (rare in-progress outpatient/ED),
                     # still emit — single-visit context makes partial data meaningful.
                     end_dt = discharge_dt or admission_dt
-                    ctx_n = build_narrative_context(
-                        record=record,
-                        encounter=encounter,
-                        document_type=doc_type,
-                        day_index=0,
-                        country=country,
-                        los_days=los_days,
-                        disease_protocol=disease_protocol,
-                    )
-                    output = generator.generate(ctx_n, spec)
                     documents.append(ClinicalDocument(
                         document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
                         task_type=spec.type_key,
@@ -346,12 +277,8 @@ def document_enricher(ctx: Any) -> None:
                         period_start=admission_dt.isoformat(),
                         period_end=end_dt.isoformat(),
                         language=lang,
-                        # TODO(Task 3): removed in AD-65 — _narrative_to_text deleted;
-                        # this branch is refactored in Task 3 to populate
-                        # ClinicalDocument.narrative (stub-only here) instead of text=.
-                        text_source=output.metadata.get("generator", "template"),
-                        sections=dict(output.sections),
                         format_type=spec.format_type.value,
+                        narrative=None,
                     ))
                     doc_seq += 1
 
