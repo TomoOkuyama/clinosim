@@ -102,3 +102,54 @@ def pick_arrival_mode(severity: str, rng: np.random.Generator) -> str:
     modes = list(weights.keys())
     probs = normalize_probabilities([weights[m] for m in modes], fallback="raise")
     return str(rng.choice(modes, p=probs))
+
+
+# ---------------------------------------------------------------------------
+# POST_ENCOUNTER enricher (Task 3)
+# ---------------------------------------------------------------------------
+
+from datetime import datetime  # noqa: E402 — kept here to avoid circular import at module top
+
+from clinosim.modules._shared import get_attr_or_key as _o  # noqa: E402
+from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed  # noqa: E402
+from clinosim.types.triage import TriageData  # noqa: E402
+
+ED_ENCOUNTER_TYPES: frozenset[str] = frozenset({"emergency"})
+
+
+def triage_enricher(ctx: Any) -> None:
+    """POST_ENCOUNTER enricher: populate triage_data on ED encounters.
+
+    Country-gated: JP→JTAS、US→ESI。
+    Determinism via derive_sub_seed(master, ENRICHER_SEED_OFFSETS["triage"],
+    encounter_id)。Master stream 不変。
+    """
+    country = (_o(ctx, "country", "us") or "us").lower()
+    level_system = "JTAS" if country == "jp" else "ESI"
+    records = _o(ctx, "records", []) or []
+    for record in records:
+        encounters = _o(record, "encounters", []) or []
+        for enc in encounters:
+            enc_type = _o(enc, "encounter_type", "")
+            # enum vs str dual-access
+            enc_type_str = enc_type.value if hasattr(enc_type, "value") else str(enc_type)
+            if enc_type_str.lower() not in ED_ENCOUNTER_TYPES:
+                continue
+            severity = _o(enc, "severity", "moderate") or "moderate"
+            enc_id = _o(enc, "encounter_id", "")
+            sub_seed = derive_sub_seed(
+                ctx.master_seed, ENRICHER_SEED_OFFSETS["triage"], enc_id
+            )
+            rng = np.random.default_rng(sub_seed)
+            level = pick_triage_level(severity, level_system, rng)
+            arrival_mode = pick_arrival_mode(severity, rng)
+            admission_dt = _o(enc, "admission_datetime", None)
+            triage_time = admission_dt if isinstance(admission_dt, datetime) else None
+            enc.triage_data = TriageData(
+                level=level,
+                level_system=level_system,
+                arrival_mode=arrival_mode,
+                triage_time=triage_time,
+                acuity_score=None,  # acuity_score は α-min-2 で未 populate、β-JP-1 で追加
+                chief_complaint_summary=_o(enc, "chief_complaint", "") or "",
+            )

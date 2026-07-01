@@ -59,3 +59,94 @@ def test_pick_triage_level_deterministic():
     rng1 = np.random.default_rng(42)
     rng2 = np.random.default_rng(42)
     assert pick_triage_level("mild", "JTAS", rng1) == pick_triage_level("mild", "JTAS", rng2)
+
+
+def test_triage_enricher_populates_ed_encounters():
+    from types import SimpleNamespace
+    from clinosim.modules.triage.engine import triage_enricher
+
+    ed_enc = SimpleNamespace(
+        encounter_id="ed1",
+        encounter_type="emergency",
+        severity="moderate",
+        triage_data=None,
+    )
+    outpatient_enc = SimpleNamespace(
+        encounter_id="op1",
+        encounter_type="outpatient",
+        severity="mild",
+        triage_data=None,
+    )
+    inpatient_enc = SimpleNamespace(
+        encounter_id="inp1",
+        encounter_type="inpatient",
+        severity="severe",
+        triage_data=None,
+    )
+    record = SimpleNamespace(
+        patient=SimpleNamespace(patient_id="pt1"),
+        encounters=[ed_enc, outpatient_enc, inpatient_enc],
+    )
+    ctx = SimpleNamespace(
+        master_seed=42,
+        country="jp",
+        records=[record],
+    )
+    triage_enricher(ctx)
+    # ED encounter → triage_data populated
+    assert ed_enc.triage_data is not None
+    assert ed_enc.triage_data.level in {"1", "2", "3", "4", "5"}
+    assert ed_enc.triage_data.level_system == "JTAS"  # JP → JTAS
+    # non-ED → not touched
+    assert outpatient_enc.triage_data is None
+    assert inpatient_enc.triage_data is None
+
+
+def test_triage_enricher_country_gates_esi_for_us():
+    from types import SimpleNamespace
+    from clinosim.modules.triage.engine import triage_enricher
+
+    ed_enc = SimpleNamespace(
+        encounter_id="ed1",
+        encounter_type="emergency",
+        severity="moderate",
+        triage_data=None,
+    )
+    record = SimpleNamespace(
+        patient=SimpleNamespace(patient_id="pt1"),
+        encounters=[ed_enc],
+    )
+    ctx = SimpleNamespace(
+        master_seed=42,
+        country="us",
+        records=[record],
+    )
+    triage_enricher(ctx)
+    assert ed_enc.triage_data.level_system == "ESI"
+
+
+def test_triage_enricher_deterministic():
+    from types import SimpleNamespace
+    from clinosim.modules.triage.engine import triage_enricher
+
+    def _make():
+        ed_enc = SimpleNamespace(
+            encounter_id="ed1",
+            encounter_type="emergency",
+            severity="moderate",
+            triage_data=None,
+        )
+        record = SimpleNamespace(
+            patient=SimpleNamespace(patient_id="pt1"),
+            encounters=[ed_enc],
+        )
+        return SimpleNamespace(master_seed=42, country="jp", records=[record])
+
+    ctx1 = _make()
+    ctx2 = _make()
+    triage_enricher(ctx1)
+    triage_enricher(ctx2)
+    a = ctx1.records[0].encounters[0].triage_data
+    b = ctx2.records[0].encounters[0].triage_data
+    assert a.level == b.level
+    assert a.arrival_mode == b.arrival_mode
