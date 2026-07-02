@@ -1105,7 +1105,7 @@ narrative:
       en: "Take ALL cardiac medications as prescribed: aspirin, statin, beta-blocker, ACE inhibitor/ARB. Do NOT stop without consulting cardiologist."
       ja: "アスピリン・スタチン・β 遮断薬・ACE 阻害薬/ARB など全ての心臓病薬を指示通り内服してください。循環器科医に相談せずに中断しないでください。"
     emergency:
-      en: "Call 119 immediately for: chest pain, severe shortness of breath, palpitations, syncope."
+      en: "Call 911 immediately for: chest pain, severe shortness of breath, palpitations, syncope."
       ja: "胸痛、著明な呼吸困難、動悸、失神があれば直ちに 119 番に電話してください。"
     diet_lifestyle:
       en: "Low-fat, low-sodium diet. Smoking cessation mandatory. Limit alcohol. Weight management."
