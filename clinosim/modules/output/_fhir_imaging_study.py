@@ -33,6 +33,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules._shared import resolve_lang
 from clinosim.modules.imaging.engine import (  # canonical owners; re-exported below
     ENDPOINT_ID_PREFIX,
     IMAGING_STUDY_ID_PREFIX,
@@ -67,7 +68,7 @@ def _bb_imaging_studies(ctx: BundleContext) -> list[dict[str, Any]]:
     studies = (_o(ctx.record, "extensions", {}) or {}).get("imaging") or []
     if not studies:
         return []
-    lang = "ja" if ctx.country.lower() == "jp" else "en"
+    lang = resolve_lang(ctx.country)
     return [_build_imaging_study(s, lang) for s in studies]
 
 

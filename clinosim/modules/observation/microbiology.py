@@ -138,6 +138,17 @@ def _load() -> dict[str, Any]:
     return data
 
 
+def antibiotic_loinc_lookup() -> dict[str, str]:
+    """Return antibiotic_key -> LOINC map from the cached microbiology.yaml.
+
+    Single source of truth for antibiotic LOINC codes, shared with
+    ``modules/antibiotic`` (avoids a second cross-module raw YAML parse of the
+    same file). Returns a fresh dict each call; the underlying YAML is cached
+    and validated by ``_load`` / ``_validate_microbiology``.
+    """
+    return {str(k): str(v) for k, v in (_load().get("antibiotics") or {}).items()}
+
+
 def has_microbiology(disease_id: str) -> bool:
     """Whether the disease has a microbiology profile (i.e. is a culture-relevant infection)."""
     return disease_id in (_load().get("diseases") or {})

@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-from clinosim.modules._shared import normalize_probabilities
+from clinosim.modules._shared import is_jp, normalize_probabilities
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
@@ -22,7 +22,7 @@ def load_reference() -> dict:
 
 @lru_cache(maxsize=2)
 def load_rates(country: str) -> dict:
-    key = "jp" if str(country).upper() == "JP" else "us"
+    key = "jp" if is_jp(country) else "us"
     with open(_LOCALE / key / "code_status_rates.yaml") as f:
         return (yaml.safe_load(f) or {}).get("weights", {})
 

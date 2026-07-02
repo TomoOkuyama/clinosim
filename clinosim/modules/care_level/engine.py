@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-from clinosim.modules._shared import normalize_probabilities
+from clinosim.modules._shared import is_jp, normalize_probabilities
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
@@ -26,7 +26,7 @@ def load_rates(country: str = "JP") -> dict:
     (no-op path) — care_level is currently JP-only, but the signature
     matches immunization / family_history / code_status so future locale
     additions slot in without API churn."""
-    if str(country).upper() != "JP":
+    if not is_jp(country):
         return {}
     with open(_LOCALE / "jp" / "care_level_rates.yaml") as f:
         return (yaml.safe_load(f) or {}).get("weights", {})
@@ -42,7 +42,7 @@ def _age_band(age: int, bands: list[str]) -> str:
 
 def assign_care_level(age: int, country: str, rng: np.random.Generator) -> str:
     """Return the jp-care-level code (or "" for independent / non-JP). Deterministic."""
-    if str(country).upper() != "JP":
+    if not is_jp(country):
         return ""
     ref = load_reference()
     levels = ref["levels"]

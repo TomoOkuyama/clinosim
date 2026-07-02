@@ -8,6 +8,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.modules._shared import is_jp
 from clinosim.modules.patient.activator import activate_patient
 from clinosim.modules.staff.engine import generate_roster
 from clinosim.simulator.emergency import _simulate_ed_visit
@@ -274,7 +275,7 @@ def main() -> None:
         print(
             f"clinosim generate: population={pop_label}, seed={args.seed}, country={args.country}, period={start}~{end}"
         )
-        if args.country == "JP":
+        if is_jp(args.country):
             status = "on" if args.jp_insurance else "off"
             print(f"  JP insurance numbers (被保険者番号): {status}")
         if hospital_cfg:

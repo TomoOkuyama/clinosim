@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules._shared import resolve_lang
 from clinosim.types.document import DocumentType, NarrativeContext
 
 
@@ -25,7 +26,7 @@ def build_narrative_context(
     Generator (template / LLM) は本 ctx のみ参照。day_index で daily generation
     の段階を渡す (progress note は 0..LOS、H&P = 0、Discharge = LOS-1)。
     """
-    lang = "ja" if country.lower() == "jp" else "en"
+    lang = resolve_lang(country)
     locale = country.lower()
     patient = _o(record, "patient", None)
     allergies: list[Any] = _o(patient, "allergies", []) if patient is not None else []

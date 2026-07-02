@@ -14,10 +14,10 @@ from __future__ import annotations
 import dataclasses
 from typing import Any
 
-from clinosim.codes import get_system_uri
+from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
-from clinosim.modules._shared import get_attr_or_key
+from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.output._fhir_common import BundleContext, _build_reference_range, _entry
 from clinosim.modules.output._fhir_diagnostic_report import lab_obs_id
 from clinosim.modules.output._fhir_localization import (
@@ -50,12 +50,12 @@ def _build_lab_observation(
 
     # test_name → code mapping still lives in locale (internal name → standard code)
     country_code = "JP" if country != "US" else "US"
-    lang = "ja" if country_code == "JP" else "en"
+    lang = resolve_lang(country_code)
     code_map = load_code_mapping("lab", country_code)
     code_value = code_map.get(lab_name, order.get("order_code", ""))
 
     # Display text comes from codes module (via standard code)
-    code_system_key = "jlac10" if country_code == "JP" else "loinc"
+    code_system_key = system_key_for("lab", country_code)
     display_name = code_lookup(code_system_key, code_value, lang) if code_value else lab_name
     if display_name == code_value:  # no translation found
         display_name = lab_name
@@ -186,7 +186,7 @@ def _build_vital_observations(
     ]
 
     for field, loinc, display_en, display_ja, unit, low, high, crit_low, crit_high, offset_sec in _vital_map:
-        display = display_ja if country == "JP" else display_en
+        display = display_ja if is_jp(country) else display_en
         value = vs.get(field)
         if value is None:
             continue
@@ -237,8 +237,8 @@ def _build_vital_observations(
             obs["performer"] = [{"reference": f"Practitioner/{performer_id}"}]
 
         # Reference range — normal range (always) + critical range (when defined)
-        range_text = "成人正常範囲" if country == "JP" else "Normal adult range"
-        crit_text = "パニック値" if country == "JP" else "Critical range"
+        range_text = "成人正常範囲" if is_jp(country) else "Normal adult range"
+        crit_text = "パニック値" if is_jp(country) else "Critical range"
         ref_ranges = [{
             "low": {"value": low, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
             "high": {"value": high, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
@@ -246,7 +246,7 @@ def _build_vital_observations(
                 "coding": [{
                     "system": get_system_uri("hl7-referencerange-meaning"),
                     "code": "normal",
-                    "display": "正常範囲" if country == "JP" else "Normal Range",
+                    "display": "正常範囲" if is_jp(country) else "Normal Range",
                 }],
             },
             "text": range_text,
@@ -258,7 +258,7 @@ def _build_vital_observations(
                     "coding": [{
                         "system": get_system_uri("hl7-referencerange-meaning"),
                         "code": "treatment",
-                        "display": "パニック範囲" if country == "JP" else "Critical Range",
+                        "display": "パニック範囲" if is_jp(country) else "Critical Range",
                     }],
                 },
                 "text": crit_text,
@@ -302,7 +302,7 @@ def _build_vital_observations(
         }
         loc_display, loc_snomed = loc_display_map.get(loc, ("Alert", "248234008"))
         loc_label_ja = {"A": "意識清明", "V": "呼びかけに反応", "P": "痛み刺激に反応", "U": "無反応"}
-        display = loc_label_ja.get(loc, loc_display) if country == "JP" else loc_display
+        display = loc_label_ja.get(loc, loc_display) if is_jp(country) else loc_display
         loc_obs: dict[str, Any] = {
             "resourceType": "Observation",
             "id": f"vs-{encounter_id or patient_id}-{index:04d}-loc",
@@ -321,7 +321,7 @@ def _build_vital_observations(
                     "code": "80288-4",
                     "display": "Level of consciousness AVPU",
                 }],
-                "text": "意識レベル (AVPU)" if country == "JP" else "Level of consciousness (AVPU)",
+                "text": "意識レベル (AVPU)" if is_jp(country) else "Level of consciousness (AVPU)",
             },
             "subject": {"reference": f"Patient/{patient_id}"},
             "valueCodeableConcept": {
@@ -362,7 +362,7 @@ def _build_vital_observations(
                     "code": "3151-8",
                     "display": "Inhaled oxygen flow rate",
                 }],
-                "text": "酸素投与量" if country == "JP" else "Supplemental oxygen flow rate",
+                "text": "酸素投与量" if is_jp(country) else "Supplemental oxygen flow rate",
             },
             "subject": {"reference": f"Patient/{patient_id}"},
         }

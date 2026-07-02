@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-from clinosim.modules._shared import normalize_probabilities
+from clinosim.modules._shared import is_jp, normalize_probabilities
 from clinosim.types.family_history import FamilyMemberHistoryRecord
 
 _HERE = Path(__file__).resolve().parent
@@ -23,7 +23,7 @@ def load_reference() -> dict:
 
 @lru_cache(maxsize=2)
 def load_prevalence(country: str) -> dict:
-    key = "jp" if str(country).upper() == "JP" else "us"
+    key = "jp" if is_jp(country) else "us"
     with open(_LOCALE / key / "family_history_prevalence.yaml") as f:
         return (yaml.safe_load(f) or {}).get("prevalence", {})
 

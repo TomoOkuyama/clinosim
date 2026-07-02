@@ -11,6 +11,7 @@ from datetime import date
 import numpy as np
 
 from clinosim.locale.loader import load_names
+from clinosim.modules._shared import is_jp, normalize_probabilities, resolve_lang
 from clinosim.modules.physiology.engine import hba1c_from_glycemic_control
 from clinosim.modules.population.engine import PersonRecord, _sample_given_name
 from clinosim.types.patient import (
@@ -113,8 +114,9 @@ def _sample_insurance(demo: dict, age: int, rng: np.random.Generator) -> str:
             weights_dict = band.get("weights") or {}
             if weights_dict:
                 keys = list(weights_dict.keys())
-                probs = np.array([weights_dict[k] for k in keys], dtype=float)
-                probs /= probs.sum()
+                probs = normalize_probabilities(
+                    [weights_dict[k] for k in keys], fallback="raise"
+                )
                 return str(rng.choice(keys, p=probs))
     # Fallback: no matching band
     return ""
@@ -151,7 +153,7 @@ def activate_patient(
         immune_reactivity=float(rng.beta(5, 5)),
         drug_metabolism_rate=str(rng.choice(
             ["poor", "normal", "rapid", "ultra_rapid"],
-            p=[0.15, 0.65, 0.15, 0.05] if country == "JP" else [0.07, 0.70, 0.15, 0.08],
+            p=[0.15, 0.65, 0.15, 0.05] if is_jp(country) else [0.07, 0.70, 0.15, 0.08],
         )),
         renal_reserve=max(0.1, float(rng.beta(8, 2)) - age_penalty),
         cardiac_reserve=max(0.1, float(rng.beta(8, 2)) - age_penalty),
@@ -232,7 +234,7 @@ def activate_patient(
         vitals.heart_rate -= int(rng.integers(3, 8))  # bradycardia tendency
 
     # Build PersonName from Layer 1 data
-    if country == "JP":
+    if is_jp(country):
         display = f"{person.family_name} {person.given_name}"
     else:
         display = f"{person.given_name} {person.family_name}"
@@ -241,7 +243,7 @@ def activate_patient(
         family_name=person.family_name,
         given_name=person.given_name,
         display_name=display,
-        name_script="ja" if country == "JP" else "en",
+        name_script=resolve_lang(country),
         phonetic=person.phonetic,
     )
 
@@ -290,7 +292,7 @@ def activate_patient(
             given_name = given.get("kanji") or given.get("name", "")
             if not given_name:
                 raise ValueError("empty given name")
-            if country == "JP":
+            if is_jp(country):
                 emergency_name = f"{name.family_name} {given_name}"
             else:
                 emergency_name = f"{given_name} {name.family_name}"
@@ -320,7 +322,7 @@ def activate_patient(
         marital_status = str(rng.choice(["M", "W", "D", "S"], p=[0.50, 0.35, 0.10, 0.05]))
 
     # Preferred language (BCP-47)
-    preferred_language = "ja-JP" if country == "JP" else "en-US"
+    preferred_language = "ja-JP" if is_jp(country) else "en-US"
 
     # Insurance type from YAML age bands
     insurance_type = _sample_insurance(demo, age, rng)
@@ -335,14 +337,12 @@ def activate_patient(
     race_dist = demo.get("race_distribution") or {}
     if race_dist:
         rk = list(race_dist.keys())
-        rp = np.array([race_dist[k] for k in rk], dtype=float)
-        rp /= rp.sum()
+        rp = normalize_probabilities([race_dist[k] for k in rk], fallback="raise")
         race = str(rng.choice(rk, p=rp))
         eth_dist = demo.get("ethnicity_distribution") or {}
         if eth_dist:
             ek = list(eth_dist.keys())
-            ep = np.array([eth_dist[k] for k in ek], dtype=float)
-            ep /= ep.sum()
+            ep = normalize_probabilities([eth_dist[k] for k in ek], fallback="raise")
             ethnicity = str(rng.choice(ek, p=ep))
         else:
             ethnicity = ""
@@ -390,14 +390,9 @@ def _derive_home_medications(
 
     Returns a list of drug name strings. JP uses drug_ja if available.
     """
-    from pathlib import Path
+    from clinosim.locale.loader import load_chronic_medications
 
-    import yaml
-
-    yaml_path = Path(__file__).resolve().parent.parent.parent / "locale" / "shared" / "chronic_medications.yaml"
-    if not yaml_path.exists():
-        return []
-    data = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
+    data = load_chronic_medications()
 
     meds: list[str] = []
     seen: set[str] = set()
@@ -411,7 +406,7 @@ def _derive_home_medications(
             continue
         for drug_spec in spec.get("medications", []):
             name = drug_spec.get("drug", "")
-            if country == "JP":
+            if is_jp(country):
                 name = drug_spec.get("drug_ja", name)
             if not name or name in seen:
                 continue

@@ -25,7 +25,7 @@ from typing import Any, NamedTuple
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as _codes_lookup
-from clinosim.modules._shared import get_attr_or_key
+from clinosim.modules._shared import get_attr_or_key, resolve_lang
 from clinosim.modules.imaging.engine import (
     IMAGING_STUDY_ID_PREFIX,
     RADIOLOGY_REPORT_ID_PREFIX,
@@ -209,7 +209,7 @@ def build_dr_resource(
     """
     panels = load_panel_definitions()
     panel = panels[group.panel_name]
-    lang = "ja" if country == "JP" else "en"
+    lang = resolve_lang(country)
     display = _codes_lookup("loinc", panel["loinc"], lang) or panel["display"]
 
     res: dict[str, object] = {
@@ -368,7 +368,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     Accepts both ImagingStudyRecord dataclass instances and JSON-deserialized
     dicts (production CIF path). Uses _o() for dual field access.
     """
-    lang = "ja" if ctx.country.lower() == "jp" else "en"
+    lang = resolve_lang(ctx.country)
 
     rep_id = _o(report, "report_id", "")
     study_id = _o(study, "study_id", "")

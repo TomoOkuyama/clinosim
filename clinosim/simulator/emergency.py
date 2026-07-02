@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 import numpy as np
 
+from clinosim.codes import system_key_for
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import get_lab_unit
 from clinosim.modules.staff.engine import StaffRoster, assign_staff
@@ -263,9 +264,9 @@ def _simulate_ed_visit(
         ),
         clinical_diagnosis=ClinicalDiagnosis(
             admission_diagnosis_code=icd_code,
-            admission_diagnosis_system="icd-10" if country == "JP" else "icd-10-cm",
+            admission_diagnosis_system=system_key_for("diagnosis", country),
             discharge_diagnosis_code=icd_code,
-            discharge_diagnosis_system="icd-10" if country == "JP" else "icd-10-cm",
+            discharge_diagnosis_system=system_key_for("diagnosis", country),
         ),
     )
 

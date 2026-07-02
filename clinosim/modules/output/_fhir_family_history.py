@@ -3,8 +3,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from clinosim.codes import get_system_uri
+from clinosim.codes import get_system_uri, system_key_for
 from clinosim.modules._shared import get_attr_or_key as _get
+from clinosim.modules._shared import resolve_lang
 from clinosim.modules.family_history.engine import load_reference
 from clinosim.modules.output._fhir_common import BundleContext, _build_diagnosis_codeable_concept
 
@@ -19,8 +20,8 @@ def _build_family_history(ctx: BundleContext) -> list[dict]:
     fams = ctx.record.get("family_history") or []
     if not fams:
         return []
-    lang = "ja" if ctx.country == "JP" else "en"
-    icd_system_key = "icd-10" if ctx.country == "JP" else "icd-10-cm"
+    lang = resolve_lang(ctx.country)
+    icd_system_key = system_key_for("diagnosis", ctx.country)
     rel_display = load_reference()["relationships"]
     out: list[dict] = []
     for i, fam in enumerate(fams):
