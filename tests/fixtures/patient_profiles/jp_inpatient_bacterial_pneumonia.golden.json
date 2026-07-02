@@ -296,7 +296,7 @@
       },
       "sections": {
         "admission_summary": "主訴: 発熱・咳嗽・呼吸困難。入院日: 1 日目現在。",
-        "discharge_diagnoses": "J12.9",
+        "discharge_diagnoses": "ウイルス性肺炎、詳細不明（J12.9）",
         "discharge_instructions": "十分な水分摂取を心がけてください。 十分な休息をとり、無理な活動は控えてください。 退院後 7-10 日以内に呼吸器科または内科外来を受診してください。6-8 週後に胸部 X 線再撮影予定。 処方された抗菌薬は症状が改善しても最後まで内服してください。 発熱（38.5℃超）の持続、呼吸困難の増悪、SpO2 低下があれば速やかに救急受診してください。 食事は体調に合わせて徐々に通常食に戻してください。 徐々に活動を再開してください。2 週間は激しい運動を避けてください。 喫煙は回復を著しく遅らせます。禁煙を強くお勧めします。 十分な水分摂取と栄養補給を心がけてください。禁煙を強くお勧めします。",
         "discharge_medications": "Ampicillin/Sulbactam; IV_fluid: NS 80-125 mL/h; antipyretic: Acetaminophen 500mg PO q6h PRN temp >= 38.5; DVT_prophylaxis: Enoxaparin 2000IU SC daily; Meropenem 1g IV q8h; Amoxicillin",
         "follow_up": "退院後 7-10 日以内に呼吸器科または内科外来を受診してください。6-8 週後に胸部 X 線再撮影予定。",
