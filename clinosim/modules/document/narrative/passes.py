@@ -28,7 +28,7 @@ from clinosim.types.clinical import (
     ClinicalDocumentNarrative,
     NarrativeVersionManifest,
 )
-from clinosim.types.document import NarrativeContext, NarrativeOutput
+from clinosim.types.document import NarrativeContext, NarrativeGenerator, NarrativeOutput
 
 
 class NarrativePass(ABC):
@@ -36,6 +36,11 @@ class NarrativePass(ABC):
 
     Walk order is (spec, language, patient) — β-JP-1 LLMNarrativePass groups
     by (doc_type, language) to maximize Bedrock prompt cache hits.
+
+    N-1 (N-chain): the content generator is constructor-injected as a
+    ``NarrativeGenerator`` (Protocol in ``clinosim/types/document.py``); the
+    base ``_generate`` delegates to it. Subclasses supply the generator and
+    the manifest identity via ``_generator_name``.
     """
 
     def __init__(
@@ -45,12 +50,15 @@ class NarrativePass(ABC):
         country: str,
         tasks: list[str] | None = None,
         rng_seed: int = 42,
+        *,
+        generator: NarrativeGenerator,
     ):
         self.cif_dir = cif_dir
         self.version_id = version_id
         self.country = country
         self.tasks_filter = set(tasks) if tasks else None
         self.rng_seed = rng_seed
+        self.generator = generator
 
     def run(self) -> NarrativeVersionManifest:
         specs = specs_for_country(self.country)
@@ -113,8 +121,9 @@ class NarrativePass(ABC):
             json.dump(asdict(manifest), f, indent=2, ensure_ascii=False)
         return manifest
 
-    @abstractmethod
-    def _generate(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput: ...
+    def _generate(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
+        """Default: delegate to the injected NarrativeGenerator (N-1)."""
+        return self.generator.generate(ctx, spec)
 
     @abstractmethod
     def _generator_name(self) -> str: ...
@@ -259,17 +268,21 @@ class TemplateNarrativePass(NarrativePass):
         country: str = "US",
         tasks: list[str] | None = None,
         rng_seed: int = 42,
+        generator: NarrativeGenerator | None = None,
     ):
         # F-5 adv-1: `self._rng` was allocated here from rng_seed but never
         # consumed — TemplateNarrativeGenerator is deterministic modulo
         # rng_seed via `_deterministic_timestamp` and fact ordering only.
         # Removed to eliminate the aspirational-scaffold no-op wiring
         # (β-JP-1 LLMNarrativePass will re-allocate if it needs one).
-        super().__init__(cif_dir, version_id, country, tasks, rng_seed)
-        self.generator = TemplateNarrativeGenerator()
-
-    def _generate(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
-        return self.generator.generate(ctx, spec)
+        super().__init__(
+            cif_dir,
+            version_id,
+            country,
+            tasks,
+            rng_seed,
+            generator=generator if generator is not None else TemplateNarrativeGenerator(),
+        )
 
     def _generator_name(self) -> str:
         return "template"

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 
 
 class FormatType(str, Enum):
@@ -38,6 +38,41 @@ class DocumentType(str, Enum):
     OUTPATIENT_SOAP = "outpatient_soap"                            # LOINC 34131-3 (verified 2026-07)
     ED_NOTE = "ed_note"                                            # LOINC 34878-9 (verified 2026-07)
     ED_TRIAGE_NOTE = "ed_triage_note"                             # LOINC 54094-8 (verified 2026-07)
+
+
+@dataclass(frozen=True)
+class DocumentTypeSpec:
+    """Document type registry entry.
+
+    Moved from ``clinosim/modules/document/narrative/registry.py`` in the
+    N-chain (2026-07-02) per the types rule ("all types defined in
+    ``clinosim/types/``"); ``registry.py`` keeps the loader + a
+    backwards-compat re-export.
+
+    F-8 adv-1: removed ``display_en`` / ``display_ja`` fields. The display
+    text for a document type is resolved at output time via
+    ``code_lookup("loinc", spec.loinc_code, language)`` from
+    ``clinosim/codes/data/loinc.yaml`` (the authoritative source). The
+    spec's job is code + format + policy metadata only.
+    """
+
+    type_key: str
+    loinc_code: str
+    format_type: FormatType
+    countries_supported: tuple[str, ...]
+    generation_frequency: str
+    composition_sections: tuple[str, ...] = field(default_factory=tuple)
+    structured_form_yaml: str | None = None
+    stage2_strategy: str = "template_only"
+    llm_enabled_sections: tuple[str, ...] = field(default_factory=tuple)
+    encounter_types_supported: tuple[str, ...] = field(default_factory=tuple)
+    """Encounter types this spec applies to.
+
+    Empty tuple (default) = no restriction; matches all encounter types (backwards-compat for
+    α-min-1 specs like ADMISSION_HP / PROGRESS_NOTE / DISCHARGE_SUMMARY).
+    Non-empty = explicit allowlist; values must be lowercase (e.g. 'inpatient', 'outpatient',
+    'emergency'). Populated by Task 9 for the 6 new encounter-scoped document types.
+    """
 
 
 @dataclass
@@ -134,3 +169,19 @@ class SectionFacts:
     facts: list[FactTag] = field(default_factory=list)
     scenario_hint: str = ""
     llm_replaceable: bool = False
+
+
+@runtime_checkable
+class NarrativeGenerator(Protocol):
+    """Unified narrative generator contract (N-1, N-chain 2026-07-02).
+
+    Every Stage 2 generator (TemplateNarrativeGenerator, LLMNarrativeGenerator,
+    test stubs) satisfies this structural interface. ``NarrativePass`` holds a
+    ``NarrativeGenerator`` by constructor injection and delegates ``_generate``
+    to it — the walk order / CIF I/O stays in the pass, the content production
+    stays in the generator.
+    """
+
+    def generate(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
+        """Produce a NarrativeOutput for one document stub."""
+        ...

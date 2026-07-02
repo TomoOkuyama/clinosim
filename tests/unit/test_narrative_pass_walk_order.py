@@ -28,17 +28,20 @@ def _cohort(tmp_path: Path, encounter_ids: list[str]):
         }))
 
 
-class _RecordingPass(NarrativePass):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class _RecordingGenerator:
+    """NarrativeGenerator stub that records (doc_type, language) call order (N-1)."""
+
+    def __init__(self) -> None:
         self.calls: list[tuple[str, str]] = []
 
-    def _generate(self, ctx, spec):
+    def generate(self, ctx: Any, spec: Any):
         from clinosim.types.document import NarrativeOutput
         self.calls.append((spec.type_key, ctx.target_lang))
         return NarrativeOutput(raw_text="", sections={"stub": ""}, structured={},
                                metadata={}, facts_used=[])
 
+
+class _RecordingPass(NarrativePass):
     def _generator_name(self) -> str:
         return "recording"
 
@@ -47,17 +50,19 @@ class _RecordingPass(NarrativePass):
 def test_walk_order_groups_by_doc_type_then_language(tmp_path):
     """AD-65 Bedrock cache contract: same (doc_type, language) group runs contiguously."""
     _cohort(tmp_path, ["ENC-1", "ENC-2", "ENC-3"])
+    gen = _RecordingGenerator()
     p = _RecordingPass(cif_dir=str(tmp_path), version_id="v",
-                       country="US", tasks=["admission_hp", "progress_note"])
+                       country="US", tasks=["admission_hp", "progress_note"],
+                       generator=gen)
     p.run()
     # For US country, language = "en" only → each spec is 1 group.
     # Boundaries between groups = number of unique (doc_type, lang) pairs - 1
-    unique_pairs = list(dict.fromkeys(p.calls))
-    boundaries = sum(1 for a, b in zip(p.calls, p.calls[1:]) if a != b)
+    unique_pairs = list(dict.fromkeys(gen.calls))
+    boundaries = sum(1 for a, b in zip(gen.calls, gen.calls[1:]) if a != b)
     assert boundaries == len(unique_pairs) - 1, (
-        f"walk order not grouped: calls={p.calls}, unique={unique_pairs}")
+        f"walk order not grouped: calls={gen.calls}, unique={unique_pairs}")
     # Also assert group contiguity: same pair contiguous
     for pair in unique_pairs:
-        indices = [i for i, c in enumerate(p.calls) if c == pair]
+        indices = [i for i, c in enumerate(gen.calls) if c == pair]
         assert indices == list(range(min(indices), max(indices) + 1)), (
             f"pair {pair} not contiguous: indices={indices}")
