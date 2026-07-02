@@ -1436,7 +1436,7 @@ Suggested order: ~~microbiology+markers~~ ✅ → ~~nursing flowsheets~~ ✅ →
 - Section-level LLM replacement 発火の条件化 (section 例外リスト + LLM-capable section list by doctype)
 - `clinosim narrate --patient-filter POP-000001` 対応 — single-patient iterative loop for testing
 
-### Post-AD-65 fixture library (α-min-2c) — ✅ COMPLETED (session 30, PR #NNN)
+### Post-AD-65 fixture library (α-min-2c) — ✅ COMPLETED (session 30, PR #132)
 
 Shipped in α-min-2c chain (AD-66):
 - `tests/fixtures/patient_profiles/` with 6 canonical disease-based inpatient/ICU profiles
@@ -1461,6 +1461,9 @@ Shipped in α-min-2c chain (AD-66):
 - Pre-existing structural CIF nondeterminism (issue_date / MAR timestamp
   wall-clock) — narrative regression scope-clean, but structural byte-diff
   requires fix for full pipeline determinism
+- Re-add `PatientProfile.chronic_medications` / `time_range` WITH actual
+  consumption (removed in adv-1 F-1 as unwired fields — they were declared but
+  nothing consumed them, defeating the extra=forbid typo defense)
 
 ### Imaging chain OOS formal entries (Tier 1 #2 PR1 scope-out)
 

@@ -14,7 +14,7 @@ from clinosim.modules.staff.engine import generate_roster
 from clinosim.simulator.emergency import _simulate_ed_visit
 from clinosim.simulator.engine import run_beta, run_forced
 from clinosim.simulator.helpers import _load_all_disease_protocols
-from clinosim.types.config import ForcedScenario, SimulatorConfig
+from clinosim.types.config import ForcedScenario, PatientProfile, SimulatorConfig
 from clinosim.types.encounter import EncounterType
 from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord
 
@@ -86,11 +86,25 @@ def main() -> None:
         help="Patient profile fixture name or path (AD-66); "
         "CLI args override profile fields with stderr WARN",
     )
-    td.add_argument("-n", "--count", type=int, default=3, help="Number of patients")
+    # adv-1 F-2: -n/--seed/--country default to None (not 3/42/US) so an EXPLICIT
+    # value equal to the old default is distinguishable from "flag omitted" when
+    # resolving against a --patient-profile. Legacy defaults are applied in
+    # _resolve_test_disease_defaults when the flag is omitted and no profile
+    # supplies a value — non-profile behavior is unchanged.
+    td.add_argument(
+        "-n", "--count", type=int, default=None,
+        help="Number of patients (default: 3, or profile count)",
+    )
     td.add_argument("--severity", default=None, help="Force severity: mild/moderate/severe")
     td.add_argument("--archetype", default=None, help="Force archetype name")
-    td.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
-    td.add_argument("--country", default="US", help="Country code (US or JP)")
+    td.add_argument(
+        "-s", "--seed", type=int, default=None,
+        help="Random seed (default: 42, or profile random_seed)",
+    )
+    td.add_argument(
+        "--country", default=None,
+        help="Country code (US or JP; default: US, or profile country)",
+    )
     # AD-65 Phase 4 (Task 16): when -o is set, run the full 3-stage pipeline
     # (structural + narrative + FHIR/CSV) for a tiny disease-specific cohort — a
     # 10-second targeted verify without regenerating a full cohort. When -o is
@@ -740,6 +754,28 @@ def _run_test_encounter_generate(args: Any) -> None:
     _print_summary(dataset, args.output)
 
 
+# test-disease legacy defaults (adv-1 F-2). Kept out of the argparse defaults so
+# an explicit `--seed 42` / `--country US` / `-n 3` is distinguishable from
+# "flag omitted" when resolving against a --patient-profile.
+_TD_DEFAULT_COUNT = 3
+_TD_DEFAULT_SEED = 42
+_TD_DEFAULT_COUNTRY = "US"
+
+
+def _resolve_test_disease_defaults(args: Any) -> None:
+    """Apply legacy test-disease defaults to omitted CLI flags (non-profile path).
+
+    adv-1 F-2: argparse defaults for -n/--seed/--country are None; this restores
+    the pre-F-2 defaults (3 / 42 / US) so non-profile behavior is byte-identical.
+    """
+    if args.count is None:
+        args.count = _TD_DEFAULT_COUNT
+    if args.seed is None:
+        args.seed = _TD_DEFAULT_SEED
+    if args.country is None:
+        args.country = _TD_DEFAULT_COUNTRY
+
+
 def _run_test_disease(args: Any) -> None:
     """test-disease dispatch (AD-65 Phase 4 / Task 16).
 
@@ -756,6 +792,7 @@ def _run_test_disease(args: Any) -> None:
 
 def _run_test_disease_debug(args: Any) -> None:
     """Original test-disease behavior: simulate + print debug record per patient."""
+    _resolve_test_disease_defaults(args)
     scenario = ForcedScenario(
         disease_id=args.disease_id,
         count=args.count,
@@ -768,6 +805,37 @@ def _run_test_disease_debug(args: Any) -> None:
 
     for i, record in enumerate(dataset.patients):
         _print_debug_record(record, i + 1)
+
+
+def _apply_profile_cli_overrides(args: Any, profile: PatientProfile) -> PatientProfile:
+    """Resolve explicit CLI values against a loaded PatientProfile (adv-1 F-2).
+
+    Resolution order: explicit CLI value (stderr WARN when it overrides a
+    differing profile value) > profile value. Because the argparse defaults for
+    -n/--seed/--country are None, an explicit `--seed 42` overrides a profile
+    with random_seed=99 even though 42 equals the legacy default (Bug D lesson:
+    explicit user input wins, and must be distinguishable from "omitted").
+    """
+    overrides: list[tuple[str, str, Any]] = [
+        ("positional disease_id", "disease_id", args.disease_id),
+        ("--severity", "severity", args.severity),
+        ("--archetype", "archetype", args.archetype),
+        ("--seed", "random_seed", args.seed),
+        ("--country", "country", args.country),
+        ("-n/--count", "count", args.count),
+    ]
+    for label, field, cli_value in overrides:
+        if cli_value is None:
+            continue
+        profile_value = getattr(profile, field)
+        if cli_value != profile_value:
+            print(
+                f"WARN: {label}={cli_value!r} differs from profile {field}="
+                f"{profile_value!r}; using {label}",
+                file=sys.stderr,
+            )
+            profile = profile.model_copy(update={field: cli_value})
+    return profile
 
 
 def _run_test_disease_generate(args: Any) -> None:
@@ -783,7 +851,7 @@ def _run_test_disease_generate(args: Any) -> None:
     """
     from clinosim.modules.document.narrative.passes import TemplateNarrativePass
     from clinosim.modules.output.cif_writer import write_cif
-    from clinosim.types.config import PatientProfile, load_patient_profile
+    from clinosim.types.config import load_patient_profile
 
     cif_dir = os.path.join(args.output, "cif")
 
@@ -798,42 +866,9 @@ def _run_test_disease_generate(args: Any) -> None:
             print(f"ERROR: invalid patient profile: {e}", file=sys.stderr)
             sys.exit(2)
 
-        # CLI arg overrides profile (Bug D lesson: explicit CLI > implicit YAML)
-        if args.disease_id and args.disease_id != profile.disease_id:
-            print(
-                f"WARN: positional disease_id={args.disease_id!r} differs from "
-                f"--patient-profile disease_id={profile.disease_id!r}; using positional",
-                file=sys.stderr,
-            )
-            profile = profile.model_copy(update={"disease_id": args.disease_id})
-        if args.severity is not None and args.severity != profile.severity:
-            print(
-                f"WARN: --severity={args.severity!r} differs from profile severity="
-                f"{profile.severity!r}; using --severity",
-                file=sys.stderr,
-            )
-            profile = profile.model_copy(update={"severity": args.severity})
-        if args.archetype is not None and args.archetype != profile.archetype:
-            print(
-                f"WARN: --archetype={args.archetype!r} differs from profile archetype="
-                f"{profile.archetype!r}; using --archetype",
-                file=sys.stderr,
-            )
-            profile = profile.model_copy(update={"archetype": args.archetype})
-        if args.seed != 42 and args.seed != profile.random_seed:
-            print(
-                f"WARN: --seed={args.seed} differs from profile random_seed="
-                f"{profile.random_seed}; using --seed",
-                file=sys.stderr,
-            )
-            profile = profile.model_copy(update={"random_seed": args.seed})
-        if args.country != "US" and args.country != profile.country:
-            print(
-                f"WARN: --country={args.country!r} differs from profile country="
-                f"{profile.country!r}; using --country",
-                file=sys.stderr,
-            )
-            profile = profile.model_copy(update={"country": args.country})
+        # Explicit CLI value > profile value, with stderr WARN (adv-1 F-2;
+        # Bug D lesson: explicit CLI > implicit YAML)
+        profile = _apply_profile_cli_overrides(args, profile)
 
         scenario = profile.to_forced_scenario()
         config = SimulatorConfig(
@@ -852,6 +887,7 @@ def _run_test_disease_generate(args: Any) -> None:
                 file=sys.stderr,
             )
             sys.exit(2)
+        _resolve_test_disease_defaults(args)
         scenario = ForcedScenario(
             disease_id=args.disease_id,
             count=args.count,

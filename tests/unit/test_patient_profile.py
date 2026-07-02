@@ -30,7 +30,6 @@ def test_patient_profile_minimal_construction():
     assert profile.hospital_scale == "medium"
     assert profile.patient_overrides == {}
     assert profile.force_hai_event is None
-    assert profile.chronic_medications == []
 
 
 def test_patient_profile_full_construction():
@@ -50,13 +49,11 @@ def test_patient_profile_full_construction():
             "onset_offset_days": 3,
             "organism_snomed": "3092008",
         },
-        chronic_medications=["6809"],  # metformin RxNorm code
         description="Full test profile",
         clinical_notes="Multi-line\nclinical notes",
     )
     assert profile.country == "JP"
     assert profile.force_hai_event["hai_type"] == "clabsi"
-    assert profile.chronic_medications == ["6809"]
 
 
 # --- Validation: extras forbidden ---
@@ -71,6 +68,31 @@ def test_patient_profile_rejects_unknown_keys():
         )
     # Pydantic v2 raises ValidationError; be liberal on match
     assert "typo_field" in str(exc_info.value) or "extra" in str(exc_info.value).lower()
+
+
+def test_patient_profile_rejects_removed_unwired_fields():
+    """adv-1 F-1: `chronic_medications` / `time_range` were removed as unwired.
+
+    They were declared but consumed by NOTHING (to_forced_scenario() omitted
+    both; CLI built SimulatorConfig without time_range) — a profile author
+    setting them got a silent no-op (PR-90 class). extra=forbid must now
+    reject them loudly.
+    """
+    with pytest.raises(Exception) as exc_info:
+        PatientProfile(
+            profile_id="removed_field_meds",
+            disease_id="bacterial_pneumonia",
+            chronic_medications=["6809"],
+        )
+    assert "chronic_medications" in str(exc_info.value)
+
+    with pytest.raises(Exception) as exc_info:
+        PatientProfile(
+            profile_id="removed_field_range",
+            disease_id="bacterial_pneumonia",
+            time_range=("2024-04-01", "2025-03-31"),
+        )
+    assert "time_range" in str(exc_info.value)
 
 
 # --- Validation: country enum ---

@@ -115,8 +115,12 @@ class PatientProfile(BaseModel):
     # Optional overrides
     patient_overrides: dict = {}
     force_hai_event: dict | None = None
-    chronic_medications: list[str] = []
-    time_range: tuple[str, str] = ("2024-04-01", "2025-03-31")
+    # NOTE (adv-1 F-1): `chronic_medications` and `time_range` were removed as
+    # unwired fields — nothing consumed them (to_forced_scenario() omitted both,
+    # CLI built SimulatorConfig without time_range), so declaring them defeated
+    # the extra=forbid typo defense: a profile author setting them got a silent
+    # no-op (PR-90 class). extra=forbid now rejects them loudly at load time.
+    # β-JP-1 should re-add them together WITH actual consumption.
 
     # Documentation
     description: str = ""
