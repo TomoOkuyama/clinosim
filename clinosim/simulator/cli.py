@@ -142,11 +142,27 @@ def main() -> None:
     nr.add_argument(
         "--provider",
         default="template",
-        choices=["template", "bedrock", "ollama"],
-        help="Narrative generator (β-JP-1 for LLM providers)",
+        choices=["template", "bedrock", "ollama", "mock"],
+        help=(
+            "Narrative generator: 'template' (default, deterministic) or an "
+            "LLM provider run through LLMNarrativePass — 'bedrock' / 'ollama' "
+            "(configured via config/llm_service*.yaml or --llm-config) or "
+            "'mock' (deterministic MockProvider, dev/test only)"
+        ),
     )
     nr.add_argument(
-        "--version-id", default=None, help="Narrative version directory name (default: template)"
+        "--llm-config",
+        default=None,
+        help=(
+            "Path to an LLM service YAML (see clinosim/config/llm_service*.yaml). "
+            "Default: bedrock -> config/llm_service.bedrock.yaml, "
+            "ollama -> config/llm_service.yaml, mock -> in-code MockProvider"
+        ),
+    )
+    nr.add_argument(
+        "--version-id",
+        default=None,
+        help="Narrative version directory name (default: provider name)",
     )
     nr.add_argument(
         "--tasks", default=None, help="Comma-separated LLMTaskType filter (default: all)"
@@ -1089,17 +1105,50 @@ def _print_debug_record(record: CIFPatientRecord, index: int = 1) -> None:
     print()
 
 
+def _build_llm_service_for_narrate(provider: str, llm_config: str | None) -> Any:
+    """Construct the LLMService behind ``narrate --provider <llm>`` (N-chain).
+
+    Resolution order: explicit ``--llm-config PATH`` wins; otherwise
+    bedrock → ``config/llm_service.bedrock.yaml``, ollama →
+    ``config/llm_service.yaml``, mock → in-code MockProvider (no YAML).
+    """
+    from clinosim.modules.llm_service.factory import build_from_config_file
+
+    if llm_config:
+        return build_from_config_file(llm_config)
+    if provider == "mock":
+        from clinosim.modules.llm_service.engine import LLMService
+        from clinosim.modules.llm_service.providers import MockProvider
+
+        return LLMService(
+            mode="llm",
+            narrative_provider=MockProvider(),
+            narrative_model_map={"medium": "mock"},
+            provider_name_narrative="mock",
+        )
+    import clinosim
+
+    config_dir = os.path.join(os.path.dirname(os.path.abspath(clinosim.__file__)), "config")
+    filename = "llm_service.bedrock.yaml" if provider == "bedrock" else "llm_service.yaml"
+    return build_from_config_file(os.path.join(config_dir, filename))
+
+
 def _run_narrate(args: Any) -> None:
     """Stage 2 handler (AD-65): run a NarrativePass over a structural CIF directory.
 
-    --provider template runs TemplateNarrativeGenerator today. bedrock/ollama
-    (LLM-backed NarrativePass) are deferred to the β-JP-1 chain.
+    --provider template runs TemplateNarrativeGenerator (deterministic,
+    default). bedrock / ollama / mock run LLMNarrativePass backed by an
+    LLMService (AD-11) built from config/llm_service*.yaml (or --llm-config).
     """
-    from clinosim.modules.document.narrative.passes import TemplateNarrativePass
+    from clinosim.modules.document.narrative.passes import (
+        LLMNarrativePass,
+        TemplateNarrativePass,
+    )
 
-    version_id = args.version_id or "template"
+    version_id = args.version_id or ("template" if args.provider == "template" else args.provider)
     tasks = [t.strip() for t in args.tasks.split(",")] if args.tasks else None
 
+    pass_impl: TemplateNarrativePass | LLMNarrativePass
     if args.provider == "template":
         pass_impl = TemplateNarrativePass(
             cif_dir=args.cif_dir,
@@ -1108,10 +1157,16 @@ def _run_narrate(args: Any) -> None:
             tasks=tasks,
             rng_seed=args.seed,
         )
-    elif args.provider in ("bedrock", "ollama"):
-        raise NotImplementedError(f"provider={args.provider} deferred to β-JP-1 (LLMNarrativePass)")
     else:
-        raise ValueError(f"unknown provider: {args.provider}")
+        llm = _build_llm_service_for_narrate(args.provider, args.llm_config)
+        pass_impl = LLMNarrativePass(
+            cif_dir=args.cif_dir,
+            llm=llm,
+            version_id=version_id,
+            country=args.country,
+            tasks=tasks,
+            rng_seed=args.seed,
+        )
 
     manifest = pass_impl.run()
     if args.set_current:
