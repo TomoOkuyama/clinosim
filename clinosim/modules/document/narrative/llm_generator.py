@@ -61,6 +61,9 @@ class LLMNarrativeGenerator:
         one narrate run.
     """
 
+    #: Bound on sampled fallback exception reasons (manifest stays small).
+    _MAX_FALLBACK_REASONS = 3
+
     def __init__(
         self,
         template_generator: TemplateNarrativeGenerator | None = None,
@@ -70,11 +73,36 @@ class LLMNarrativeGenerator:
         self.template = template_generator or TemplateNarrativeGenerator()
         self.llm = llm
         self.cache = cache if cache is not None else NarrativeCache()
+        # I-2 (N-chain adv-1): generator-level fallback counters. Without
+        # these, a dead provider produces exit 0 + llm_cost_report
+        # {total_calls: 0, fallback_count: 0} — the all-template cohort is
+        # invisible in the manifest. LLMNarrativePass merges them into the
+        # manifest llm_cost_report (generator_* keys).
+        self.llm_docs = 0
+        self.eligible_docs = 0
+        self.fallback_docs = 0
+        self.fallback_reasons: list[str] = []
+
+    def _record_fallback(self, reason: str) -> None:
+        self.fallback_docs += 1
+        if (
+            len(self.fallback_reasons) < self._MAX_FALLBACK_REASONS
+            and reason not in self.fallback_reasons
+        ):
+            self.fallback_reasons.append(reason)
 
     def generate(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
         """Produce NarrativeOutput, optionally with LLM-enhanced sections."""
         # Stage 1: always run template generator
         template_output = self.template.generate(ctx, spec)
+
+        # "llm" only when the spec actually routes sections to the LLM —
+        # template_only / empty llm_enabled_sections stay "template".
+        llm_eligible = (
+            spec.stage2_strategy == "template_seed" and bool(spec.llm_enabled_sections)
+        )
+        if llm_eligible:
+            self.eligible_docs += 1
 
         # Path 1: LLM not configured → template fallback + WARN
         if self.llm is None:
@@ -84,6 +112,8 @@ class LLMNarrativeGenerator:
                 ctx.document_type,
                 ctx.target_lang,
             )
+            if llm_eligible:
+                self._record_fallback("no LLMService configured")
             template_output.metadata["generator"] = "template_fallback"
             return template_output
 
@@ -100,12 +130,9 @@ class LLMNarrativeGenerator:
                 cache_get=self.cache.get,
                 cache_put=self.cache.put,
             )
-            # "llm" only when the spec actually routes sections to the LLM —
-            # template_only / empty llm_enabled_sections stay "template".
-            llm_eligible = (
-                spec.stage2_strategy == "template_seed" and bool(spec.llm_enabled_sections)
-            )
             llm_output.metadata["generator"] = "llm" if llm_eligible else "template"
+            if llm_eligible:
+                self.llm_docs += 1
             return llm_output
         except Exception as exc:
             # Path 3: strategy failed → template fallback + WARN
@@ -117,5 +144,6 @@ class LLMNarrativeGenerator:
                 ctx.document_type,
                 ctx.target_lang,
             )
+            self._record_fallback(f"{type(exc).__name__}: {exc}")
             template_output.metadata["generator"] = "template_fallback"
             return template_output

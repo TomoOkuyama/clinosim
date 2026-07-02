@@ -20,9 +20,10 @@ Two cache layers (complementary, NOT duplicates):
 
 1. ``NarrativeCache`` (this layer, via ``cache_get``/``cache_put``): in-memory,
    keyed by clinical context (disease/archetype/day/severity/demographics
-   bucket/lang/section). Enables cross-patient reuse — two different patients
-   with the same clinical bucket share one generated section without even
-   rendering a prompt.
+   bucket/lang/section) PLUS a hash of the template seed text (C-1, N-chain
+   adv-1). Enables cross-patient reuse — two different patients with the same
+   clinical bucket AND identical template seed share one generated section
+   without even rendering a prompt; differing seeds never collide.
 2. ``PromptCache`` (inside ``LLMService``): on-disk, keyed by
    sha256(system+user+model). Survives process restarts and dedupes exact
    prompt repeats across runs (cost containment for cloud providers).
@@ -31,7 +32,11 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from clinosim.modules.document.narrative.cache import cache_key, demographics_bucket
+from clinosim.modules.document.narrative.cache import (
+    cache_key,
+    demographics_bucket,
+    template_seed_hash,
+)
 from clinosim.modules.llm_service.engine import LLMService, LLMTaskType
 from clinosim.types.document import DocumentTypeSpec, NarrativeContext, NarrativeOutput
 
@@ -132,7 +137,11 @@ def _apply_template_seed_strategy(
     for section in spec.llm_enabled_sections:
         template_text = new_sections.get(section, "")
 
-        # Layer-1 cache lookup (NarrativeCache, clinical-context key)
+        # Layer-1 cache lookup (NarrativeCache, clinical-context key).
+        # seed_hash (C-1, N-chain adv-1): hashing the template seed text into
+        # the key makes a cache hit ⇔ identical seed — wrong-patient reuse is
+        # structurally impossible even when the clinical-context components
+        # degenerate (e.g. disease_id="" on the production pass path).
         c_key = cache_key(
             disease=disease_id,
             archetype=ctx.clinical_course_archetype,
@@ -141,6 +150,7 @@ def _apply_template_seed_strategy(
             demographics_bucket=demo_bucket,
             lang=ctx.target_lang,
             section=section,
+            seed_hash=template_seed_hash(template_text),
         )
         if cache_get is not None:
             cached = cache_get(c_key)

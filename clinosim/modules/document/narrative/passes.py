@@ -326,12 +326,37 @@ class LLMNarrativePass(NarrativePass):
         from clinosim.modules.document.narrative.llm_generator import LLMNarrativeGenerator
 
         self.llm = llm
-        generator = LLMNarrativeGenerator(
+        self._llm_generator = LLMNarrativeGenerator(
             template_generator=TemplateNarrativeGenerator(),
             llm=llm,
             cache=NarrativeCache(),
         )
-        super().__init__(cif_dir, version_id, country, tasks, rng_seed, generator=generator)
+        super().__init__(
+            cif_dir, version_id, country, tasks, rng_seed, generator=self._llm_generator
+        )
+
+    def run(self) -> NarrativeVersionManifest:
+        """Base walk + loud all-fallback detection (I-2, N-chain adv-1).
+
+        A dead provider (e.g. Ollama server down) must not pass silently:
+        when at least one processed doc was template_seed-eligible and ZERO
+        docs got LLM content, every call failed — print a stderr WARNING.
+        Not an exception: ``narrate`` must remain usable offline (the
+        template fallback output itself is valid).
+        """
+        import sys
+
+        manifest = super().run()
+        gen = self._llm_generator
+        if gen.eligible_docs > 0 and gen.llm_docs == 0:
+            print(
+                f"WARNING: narrate produced 0 LLM documents out of "
+                f"{gen.eligible_docs} template_seed-eligible docs — every LLM "
+                f"call fell back to template output. Check provider "
+                f"connectivity/config. Sampled reasons: {gen.fallback_reasons}",
+                file=sys.stderr,
+            )
+        return manifest
 
     def _generator_name(self) -> str:
         return f"llm-{self.llm.provider_name_narrative or 'none'}"
@@ -344,4 +369,15 @@ class LLMNarrativePass(NarrativePass):
         }
 
     def _llm_cost_report(self) -> dict[str, Any]:
-        return self.llm.cost_report()
+        """Service-level cost report + generator-level fallback counters (I-2).
+
+        The service counters (total_calls / fallback_count) only see calls
+        that REACHED the service; the generator counters expose docs whose
+        LLM path never fired or fell back to template.
+        """
+        report = dict(self.llm.cost_report())
+        gen = self._llm_generator
+        report["generator_llm_docs"] = gen.llm_docs
+        report["generator_fallback_docs"] = gen.fallback_docs
+        report["generator_fallback_reasons"] = list(gen.fallback_reasons)
+        return report

@@ -262,6 +262,67 @@ def test_template_seed_strategy_uses_cache_on_hit() -> None:
     assert provider.call_count == 1  # still 1, not 2
 
 
+def test_template_seed_different_patients_different_seeds_no_cache_collision() -> None:
+    """C-1 pin (N-chain adv-1): distinct patients with distinct template seeds
+    must produce distinct cache keys → one provider call EACH.
+
+    Before the fix, dict patients all bucketed to "0s-U" and the key collapsed
+    to (lang, section): the whole cohort shared one cache entry per section
+    (2 patients → 1 provider call, identical hpi text = cross-patient
+    narrative contamination).
+    """
+    from clinosim.modules.document.narrative.cache import NarrativeCache
+    cache = NarrativeCache()
+
+    spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
+    provider = MockProvider()
+    llm = _mock_llm(provider)
+
+    # Production pass path shape: ctx.patient is a JSON-deserialized dict.
+    ctx_a = _make_ctx()
+    ctx_a.patient = {"age": 55, "sex": "M"}
+    ctx_b = _make_ctx()
+    ctx_b.patient = {"age": 82, "sex": "F"}
+
+    out_a = _apply(
+        _make_template_output({"hpi": "HPI for patient A, 55M, pneumonia"}),
+        ctx_a, spec, llm, cache_get=cache.get, cache_put=cache.put,
+    )
+    out_b = _apply(
+        _make_template_output({"hpi": "HPI for patient B, 82F, heart failure"}),
+        ctx_b, spec, llm, cache_get=cache.get, cache_put=cache.put,
+    )
+
+    assert provider.call_count == 2, "second patient must NOT hit the first's cache entry"
+    assert out_a.sections["hpi"] != out_b.sections["hpi"]
+    assert len(cache) == 2  # two distinct cache keys stored
+
+
+def test_template_seed_identical_seed_and_bucket_reuses_cache() -> None:
+    """C-1: genuinely identical seeds in the same clinical bucket still share
+    one cache entry (cross-patient reuse preserved) — 1 provider call total.
+    """
+    from clinosim.modules.document.narrative.cache import NarrativeCache
+    cache = NarrativeCache()
+
+    spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
+    provider = MockProvider()
+    llm = _mock_llm(provider)
+
+    ctx_a = _make_ctx()
+    ctx_a.patient = {"age": 55, "sex": "M"}
+    ctx_b = _make_ctx()
+    ctx_b.patient = {"age": 57, "sex": "M"}  # same 50s-M bucket
+
+    shared = {"hpi": "Identical template seed text"}
+    _apply(_make_template_output(dict(shared)), ctx_a, spec, llm,
+           cache_get=cache.get, cache_put=cache.put)
+    _apply(_make_template_output(dict(shared)), ctx_b, spec, llm,
+           cache_get=cache.get, cache_put=cache.put)
+
+    assert provider.call_count == 1  # cache hit: identical seed + bucket
+
+
 def test_local_llm_provider_protocol_deleted() -> None:
     """N-2: the module-local LLMProvider Protocol is removed (AD-11 unification)."""
     import clinosim.modules.document.narrative.replacement_strategy as mod

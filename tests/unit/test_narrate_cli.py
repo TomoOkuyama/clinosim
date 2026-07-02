@@ -34,6 +34,8 @@ def test_narrate_template_writes_dir_and_pointer(tmp_path):
     assert (tmp_path / "narratives/template/documents/ENC-1").exists()
     pointer = (tmp_path / "narratives/current_version.txt").read_text().strip()
     assert pointer == "template"
+    # M-3: pointer updates are always announced on stdout
+    assert "current -> template" in r.stdout
 
 
 @pytest.mark.unit
@@ -98,5 +100,44 @@ def test_narrate_mock_provider_writes_llm_version_dir(tmp_path):
     assert (tmp_path / "narratives/mock/documents/ENC-1/doc-1.json").exists()
     manifest = json.loads((tmp_path / "narratives/mock/manifest.json").read_text())
     assert manifest["generator"] == "llm-mock"
+    # M-3: LLM providers do NOT repoint production exports by default
+    assert not (tmp_path / "narratives/current_version.txt").exists()
+
+
+# === M-3 (N-chain adv-1): --set-current tri-state default ===
+
+
+@pytest.mark.unit
+def test_narrate_mock_default_does_not_repoint_existing_pointer(tmp_path):
+    """M-3 pin: a mock/LLM trial without flags must NOT silently repoint
+    current_version.txt — a subsequent export-fhir (default "current") would
+    emit mock narratives in a production export."""
+    _write_tiny_structural(tmp_path)
+    (tmp_path / "narratives").mkdir(exist_ok=True)
+    (tmp_path / "narratives" / "current_version.txt").write_text("template")
+    r = subprocess.run(
+        [sys.executable, "-m", "clinosim.simulator.cli", "narrate",
+         "--cif-dir", str(tmp_path), "--provider", "mock",
+         "--country", "US"],
+        capture_output=True, text=True,
+    )
+    assert r.returncode == 0, r.stderr
+    pointer = (tmp_path / "narratives/current_version.txt").read_text().strip()
+    assert pointer == "template"  # untouched
+    assert "current ->" not in r.stdout
+
+
+@pytest.mark.unit
+def test_narrate_mock_explicit_set_current_updates_pointer(tmp_path):
+    """M-3: explicit --set-current always wins, even for LLM providers."""
+    _write_tiny_structural(tmp_path)
+    r = subprocess.run(
+        [sys.executable, "-m", "clinosim.simulator.cli", "narrate",
+         "--cif-dir", str(tmp_path), "--provider", "mock",
+         "--country", "US", "--set-current"],
+        capture_output=True, text=True,
+    )
+    assert r.returncode == 0, r.stderr
     pointer = (tmp_path / "narratives/current_version.txt").read_text().strip()
     assert pointer == "mock"
+    assert "current -> mock" in r.stdout
