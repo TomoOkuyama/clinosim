@@ -32,6 +32,7 @@ import logging
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
 from clinosim.modules.document.reference_data_loaders import (
     load_discharge_instructions,
@@ -807,21 +808,30 @@ class TemplateNarrativeGenerator:
     def _build_discharge_medications(
         self, ctx: NarrativeContext
     ) -> tuple[str, list[str]]:
-        """Build discharge_medications from ctx.medications (status=given)."""
+        """Build discharge_medications from ctx.discharge_medications (rx only).
+
+        adv-1 I-1: reads ONLY the normalized discharge_prescription items —
+        never ctx.medications (MAR), whose in-hospital entries (ICU drips,
+        protocol-prefixed orders) previously leaked into this section.
+        Protocol prefixes ("DVT_prophylaxis:", "antipyretic:", ...) are
+        stripped via the shared AD-50 helper (same normalization as the FHIR
+        medication builders).
+        """
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
         none_text = "退院処方なし" if is_ja else "No discharge medications"
 
-        meds = ctx.medications or []
+        meds = getattr(ctx, "discharge_medications", None) or []
         if not meds:
             return none_text, facts
 
-        facts.append("ctx.medications")
+        facts.append("ctx.discharge_medications")
         seen: set[str] = set()
         drug_names = []
         for med in meds:
             drug = _o(med, "drug_name", "") or ""
+            drug, _protocol_category = strip_protocol_prefix(drug)
             if drug and drug not in seen:
                 seen.add(drug)
                 drug_names.append(drug)
