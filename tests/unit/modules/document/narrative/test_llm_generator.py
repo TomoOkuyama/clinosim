@@ -1,28 +1,29 @@
-"""Tests for LLMNarrativeGenerator (Task 7, Tier 1 #3 α-min-1).
+"""Tests for LLMNarrativeGenerator (Task 7 α-min-1; migrated to the N-chain IF).
 
-Tests cover:
-- Default OFF: env var absent → template output returned unchanged
-- Opt-in (CLINOSIM_NARRATIVE_LLM=on) with mocked provider
-- Provider unavailable → template fallback + warning
-- Only llm_enabled_sections are replaced
-- metadata records generator=llm / template / template_fallback
+The CLINOSIM_NARRATIVE_LLM env gate is deleted — opt-in is the explicit
+construction of an LLMService. Three paths:
+- llm=None → template output, generator=template_fallback, WARN
+- llm configured → apply_replacement_strategy (MockProvider-backed LLMService)
+- strategy raises → template output, generator=template_fallback, WARN
 """
 from __future__ import annotations
 
 import logging
 from types import SimpleNamespace
-from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
-from clinosim.modules.document.narrative.llm_generator import (
-    LLMNarrativeGenerator,
-    is_llm_enabled,
+from clinosim.modules.document.narrative.llm_generator import LLMNarrativeGenerator
+from clinosim.modules.llm_service.engine import LLMService
+from clinosim.modules.llm_service.providers import MockProvider
+from clinosim.types.document import (
+    DocumentType,
+    DocumentTypeSpec,
+    FormatType,
+    NarrativeContext,
+    NarrativeOutput,
 )
-from clinosim.modules.document.narrative.registry import DocumentTypeSpec
-from clinosim.types.document import DocumentType, FormatType, NarrativeContext, NarrativeOutput
-
 
 # ─────────────────────────────────────────────────────────────────
 # Helpers
@@ -38,7 +39,7 @@ def _make_spec(
         loinc_code="34117-2",
         format_type=FormatType.COMPOSITION,
         countries_supported=("jp", "us"),
-        generation_frequency="once_on_admission",
+        generation_frequency="admission_once",
         composition_sections=("hpi", "assessment_and_plan"),
         stage2_strategy=stage2_strategy,
         llm_enabled_sections=llm_enabled_sections,
@@ -80,213 +81,148 @@ def _mock_template_generator(sections: dict[str, str] | None = None) -> MagicMoc
     return tg
 
 
-def _mock_provider(return_value: str = "LLM-generated mock content") -> MagicMock:
-    provider = MagicMock()
-    provider.generate.return_value = return_value
-    return provider
+class _RaisingProvider:
+    """Provider whose complete() always raises (exhausts LLMService retries)."""
+
+    def complete(self, prompt, model=None, max_tokens=1000, system_prompt="",
+                 temperature=0.4, stop_sequences=None):
+        raise RuntimeError("LLM connection refused")
+
+    def health_check(self) -> bool:
+        return False
+
+
+def _mock_llm_service(provider=None) -> LLMService:
+    return LLMService(
+        mode="llm",
+        narrative_provider=provider if provider is not None else MockProvider(),
+        narrative_model_map={"medium": "mock"},
+        provider_name_narrative="mock",
+        retry_attempts=1,
+        retry_backoff_seconds=0.0,
+    )
 
 
 # ─────────────────────────────────────────────────────────────────
-# is_llm_enabled
+# Path 1 — llm=None → template fallback + WARN
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_is_llm_enabled_default_off() -> None:
-    """No CLINOSIM_NARRATIVE_LLM env var → disabled."""
-    with patch.dict("os.environ", {}, clear=False):
-        import os
-        os.environ.pop("CLINOSIM_NARRATIVE_LLM", None)
-        assert is_llm_enabled() is False
-
-
-def test_is_llm_enabled_on() -> None:
-    """CLINOSIM_NARRATIVE_LLM=on → enabled."""
-    with patch.dict("os.environ", {"CLINOSIM_NARRATIVE_LLM": "on"}):
-        assert is_llm_enabled() is True
-
-
-def test_is_llm_enabled_case_insensitive() -> None:
-    """CLINOSIM_NARRATIVE_LLM=ON or On → enabled (case-insensitive)."""
-    with patch.dict("os.environ", {"CLINOSIM_NARRATIVE_LLM": "ON"}):
-        assert is_llm_enabled() is True
-
-
-def test_is_llm_enabled_other_value_off() -> None:
-    """CLINOSIM_NARRATIVE_LLM=yes → NOT enabled (only 'on' activates)."""
-    with patch.dict("os.environ", {"CLINOSIM_NARRATIVE_LLM": "yes"}):
-        assert is_llm_enabled() is False
-
-
-# ─────────────────────────────────────────────────────────────────
-# LLMNarrativeGenerator — default OFF path
-# ─────────────────────────────────────────────────────────────────
-
-
-def test_llm_generator_default_off_returns_template_output_unchanged() -> None:
-    """No env var set: generator returns template generator's NarrativeOutput verbatim."""
+def test_llm_generator_no_service_falls_back_to_template_with_warning(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     tg = _mock_template_generator()
-    gen = LLMNarrativeGenerator(template_generator=tg)
-    spec = _make_spec()
+    gen = LLMNarrativeGenerator(template_generator=tg, llm=None)
+    spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
     ctx = _make_ctx()
 
-    with patch.dict("os.environ", {}, clear=False):
-        import os
-        os.environ.pop("CLINOSIM_NARRATIVE_LLM", None)
+    with caplog.at_level(logging.WARNING):
         result = gen.generate(ctx, spec)
 
     tg.generate.assert_called_once_with(ctx, spec)
     assert result.sections["hpi"] == "template hpi"
+    assert result.metadata["generator"] == "template_fallback"
+    assert any("LLMService" in rec.message or "llm" in rec.message.lower()
+               for rec in caplog.records)
+
+
+def test_llm_generator_default_llm_is_none() -> None:
+    gen = LLMNarrativeGenerator()
+    assert gen.llm is None
+
+
+# ─────────────────────────────────────────────────────────────────
+# Path 2 — llm configured → strategy applied
+# ─────────────────────────────────────────────────────────────────
+
+
+def test_llm_generator_with_service_replaces_enabled_sections() -> None:
+    tg = _mock_template_generator({"hpi": "template hpi", "assessment_and_plan": "template a&p"})
+    provider = MockProvider()
+    gen = LLMNarrativeGenerator(template_generator=tg, llm=_mock_llm_service(provider))
+    spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
+    ctx = _make_ctx()
+
+    result = gen.generate(ctx, spec)
+
+    assert provider.call_count == 1
+    assert result.sections["hpi"].startswith("[Mock LLM response")
+    assert result.sections["assessment_and_plan"] == "template a&p"
+    assert result.metadata["generator"] == "llm"
+
+
+def test_llm_generator_template_only_spec_keeps_template_metadata() -> None:
+    """template_only spec: no LLM call, metadata stays 'template' (not 'llm')."""
+    tg = _mock_template_generator()
+    provider = MockProvider()
+    gen = LLMNarrativeGenerator(template_generator=tg, llm=_mock_llm_service(provider))
+    spec = _make_spec(stage2_strategy="template_only")
+    ctx = _make_ctx()
+
+    result = gen.generate(ctx, spec)
+
+    assert provider.call_count == 0
+    assert result.sections["hpi"] == "template hpi"
     assert result.metadata["generator"] == "template"
 
 
-def test_llm_generator_default_off_records_template_metadata() -> None:
-    """Default OFF: metadata.generator = 'template'."""
-    tg = _mock_template_generator()
-    gen = LLMNarrativeGenerator(template_generator=tg)
-    spec = _make_spec()
-    ctx = _make_ctx()
-
-    with patch.dict("os.environ", {}, clear=False):
-        import os
-        os.environ.pop("CLINOSIM_NARRATIVE_LLM", None)
-        result = gen.generate(ctx, spec)
-
-    assert result.metadata.get("generator") == "template"
-
-
-# ─────────────────────────────────────────────────────────────────
-# LLMNarrativeGenerator — opt-in path
-# ─────────────────────────────────────────────────────────────────
-
-
-def test_llm_generator_opt_in_calls_provider() -> None:
-    """CLINOSIM_NARRATIVE_LLM=on + mocked provider → provider invoked, output updated."""
-    tg = _mock_template_generator({"hpi": "template hpi", "assessment_and_plan": "template a&p"})
-    provider = _mock_provider()
-    gen = LLMNarrativeGenerator(template_generator=tg, provider=provider)
-    spec = _make_spec(
-        stage2_strategy="template_seed",
-        llm_enabled_sections=("hpi",),
-    )
-    ctx = _make_ctx()
-
-    with patch.dict("os.environ", {"CLINOSIM_NARRATIVE_LLM": "on"}):
-        result = gen.generate(ctx, spec)
-
-    provider.generate.assert_called_once()
-    assert result.sections["hpi"] == "LLM-generated mock content"
-
-
-def test_llm_generator_opt_in_records_llm_metadata() -> None:
-    """CLINOSIM_NARRATIVE_LLM=on: metadata.generator = 'llm'."""
-    tg = _mock_template_generator()
-    provider = _mock_provider()
-    gen = LLMNarrativeGenerator(template_generator=tg, provider=provider)
+def test_llm_generator_template_seed_prompt_contains_seed_text() -> None:
+    """Idea D pin: the seed prompt sent to the provider embeds template text."""
+    tg = _mock_template_generator({"hpi": "UNIQUE-SEED-TEXT", "assessment_and_plan": "a&p"})
+    provider = MockProvider()
+    gen = LLMNarrativeGenerator(template_generator=tg, llm=_mock_llm_service(provider))
     spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
     ctx = _make_ctx()
 
-    with patch.dict("os.environ", {"CLINOSIM_NARRATIVE_LLM": "on"}):
-        result = gen.generate(ctx, spec)
+    gen.generate(ctx, spec)
 
-    assert result.metadata.get("generator") == "llm"
-
-
-def test_llm_generator_only_replaces_llm_enabled_sections() -> None:
-    """Only llm_enabled_sections replaced; others remain template text."""
-    tg = _mock_template_generator({
-        "hpi": "template hpi",
-        "assessment_and_plan": "template a&p",
-    })
-    provider = _mock_provider()
-    gen = LLMNarrativeGenerator(template_generator=tg, provider=provider)
-    spec = _make_spec(
-        stage2_strategy="template_seed",
-        llm_enabled_sections=("hpi",),  # only hpi
-    )
-    ctx = _make_ctx()
-
-    with patch.dict("os.environ", {"CLINOSIM_NARRATIVE_LLM": "on"}):
-        result = gen.generate(ctx, spec)
-
-    assert result.sections["hpi"] == "LLM-generated mock content"
-    assert result.sections["assessment_and_plan"] == "template a&p"
+    assert "UNIQUE-SEED-TEXT" in provider.last_prompt
 
 
 # ─────────────────────────────────────────────────────────────────
-# LLMNarrativeGenerator — provider unavailable
+# Path 3 — strategy raises → template fallback + WARN
 # ─────────────────────────────────────────────────────────────────
-
-
-def test_llm_generator_provider_unavailable_falls_back_to_template_with_warning(
-    caplog: pytest.LogCaptureFixture,
-) -> None:
-    """Opt-in but provider=None → template output returned + warning logged."""
-    tg = _mock_template_generator()
-    gen = LLMNarrativeGenerator(template_generator=tg, provider=None)
-    spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
-    ctx = _make_ctx()
-
-    with patch.dict("os.environ", {"CLINOSIM_NARRATIVE_LLM": "on"}):
-        with caplog.at_level(logging.WARNING):
-            result = gen.generate(ctx, spec)
-
-    # Template output preserved
-    assert result.sections["hpi"] == "template hpi"
-    # Warning logged
-    assert any("provider" in rec.message.lower() for rec in caplog.records)
-    # Metadata records fallback
-    assert result.metadata.get("generator") == "template_fallback"
 
 
 def test_llm_generator_provider_raises_falls_back_to_template_with_warning(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Opt-in but provider.generate raises → template output returned + warning logged."""
     tg = _mock_template_generator()
-    provider = MagicMock()
-    provider.generate.side_effect = RuntimeError("LLM connection refused")
-    gen = LLMNarrativeGenerator(template_generator=tg, provider=provider)
+    gen = LLMNarrativeGenerator(
+        template_generator=tg, llm=_mock_llm_service(_RaisingProvider())
+    )
     spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
     ctx = _make_ctx()
 
-    with patch.dict("os.environ", {"CLINOSIM_NARRATIVE_LLM": "on"}):
-        with caplog.at_level(logging.WARNING):
-            result = gen.generate(ctx, spec)
+    with caplog.at_level(logging.WARNING):
+        result = gen.generate(ctx, spec)
 
     assert result.sections["hpi"] == "template hpi"
-    assert any("LLM" in rec.message or "provider" in rec.message.lower() for rec in caplog.records)
-    assert result.metadata.get("generator") == "template_fallback"
+    assert result.metadata["generator"] == "template_fallback"
+    assert any("fall" in rec.message.lower() for rec in caplog.records)
 
 
 # ─────────────────────────────────────────────────────────────────
-# LLMNarrativeGenerator — metadata correctness
+# Cache wiring
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_llm_generator_records_metadata_template_path() -> None:
-    """Default OFF path: generator=template in metadata."""
+def test_llm_generator_uses_narrative_cache_across_calls() -> None:
+    """Second generate() with the same clinical bucket hits the layer-1 cache."""
     tg = _mock_template_generator()
-    gen = LLMNarrativeGenerator(template_generator=tg)
-    spec = _make_spec()
-    ctx = _make_ctx()
-
-    with patch.dict("os.environ", {}, clear=False):
-        import os
-        os.environ.pop("CLINOSIM_NARRATIVE_LLM", None)
-        result = gen.generate(ctx, spec)
-
-    assert result.metadata["generator"] == "template"
-
-
-def test_llm_generator_records_metadata_llm_path() -> None:
-    """Opt-in path: generator=llm in metadata."""
-    tg = _mock_template_generator()
-    provider = _mock_provider()
-    gen = LLMNarrativeGenerator(template_generator=tg, provider=provider)
+    provider = MockProvider()
+    gen = LLMNarrativeGenerator(template_generator=tg, llm=_mock_llm_service(provider))
     spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
     ctx = _make_ctx()
 
-    with patch.dict("os.environ", {"CLINOSIM_NARRATIVE_LLM": "on"}):
-        result = gen.generate(ctx, spec)
+    gen.generate(ctx, spec)
+    gen.generate(ctx, spec)
 
-    assert result.metadata["generator"] == "llm"
+    assert provider.call_count == 1  # second call served from NarrativeCache
+
+
+def test_llm_generator_env_gate_removed() -> None:
+    """The CLINOSIM_NARRATIVE_LLM env gate is deleted (silent-switch class)."""
+    import clinosim.modules.document.narrative.llm_generator as mod
+
+    assert not hasattr(mod, "is_llm_enabled")

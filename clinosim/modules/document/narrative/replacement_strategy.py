@@ -1,48 +1,49 @@
-"""Replacement strategy dispatch (Tier 1 #3 α-min-1 PR1 Task 7).
+"""Replacement strategy dispatch (Tier 1 #3 α-min-1 Task 7; unified in N-chain).
 
 Maps DocumentTypeSpec.stage2_strategy to per-section replacement logic:
 
 - ``"template_only"`` → return template output verbatim (no LLM call).
 - ``"template_seed"`` → for each section in spec.llm_enabled_sections, pass the
   template's section text as a seed/context to the LLM prompt (Idea D from spec
-  §1.3 decision #13). The provider receives a prompt that includes the existing
-  template-generated text so the LLM can improve upon it rather than generating
+  §1.3 decision #13). The LLM receives a prompt that includes the existing
+  template-generated text so it can improve upon it rather than generating
   from scratch.
 - Unknown strategy → safe default (return template output).
 
-The ``LLMProvider`` Protocol defined here is intentionally minimal:
-``generate(prompt: str) -> str``. This differs from ``clinosim.modules.llm_service``
-providers (which use ``complete(...)`` returning ``ProviderResponse``). Task 15
-will provide a thin adapter wrapping ``llm_service`` to satisfy this Protocol;
-for α-min-1, unit tests use ``unittest.mock.MagicMock`` to satisfy it.
+N-2 (N-chain, 2026-07-02): all LLM calls go through
+``LLMService.complete_prompt`` (AD-11) — the local ``LLMProvider`` Protocol
+that this module used to define is deleted. The service supplies retry,
+disk PromptCache, and token/cost accounting; this module supplies the
+clinical-context cache (``NarrativeCache``) and the seed prompt.
+
+Two cache layers (complementary, NOT duplicates):
+
+1. ``NarrativeCache`` (this layer, via ``cache_get``/``cache_put``): in-memory,
+   keyed by clinical context (disease/archetype/day/severity/demographics
+   bucket/lang/section). Enables cross-patient reuse — two different patients
+   with the same clinical bucket share one generated section without even
+   rendering a prompt.
+2. ``PromptCache`` (inside ``LLMService``): on-disk, keyed by
+   sha256(system+user+model). Survives process restarts and dedupes exact
+   prompt repeats across runs (cost containment for cloud providers).
 """
 from __future__ import annotations
 
-from typing import Callable, Protocol
+from collections.abc import Callable
 
 from clinosim.modules.document.narrative.cache import cache_key, demographics_bucket
-from clinosim.modules.document.narrative.registry import DocumentTypeSpec
-from clinosim.types.document import NarrativeContext, NarrativeOutput
-
-
-class LLMProvider(Protocol):
-    """Minimal protocol for provider mocking and eventual llm_service wrap.
-
-    Real provider integration via clinosim.modules.llm_service is deferred to
-    Task 15. For Task 7 (infrastructure), unit tests supply a MagicMock that
-    satisfies this Protocol.
-    """
-
-    def generate(self, prompt: str) -> str:
-        """Generate text from a prompt string. Raises on error."""
-        ...
+from clinosim.modules.llm_service.engine import LLMService, LLMTaskType
+from clinosim.types.document import DocumentTypeSpec, NarrativeContext, NarrativeOutput
 
 
 def apply_replacement_strategy(
     template_output: NarrativeOutput,
     ctx: NarrativeContext,
     spec: DocumentTypeSpec,
-    provider: LLMProvider,
+    llm: LLMService,
+    *,
+    task_type: LLMTaskType,
+    language: str,
     cache_get: Callable[[str], str | None] | None = None,
     cache_put: Callable[[str, str], None] | None = None,
 ) -> NarrativeOutput:
@@ -57,12 +58,18 @@ def apply_replacement_strategy(
         Narrative context supplying patient + encounter data.
     spec:
         DocumentTypeSpec carrying ``stage2_strategy`` + ``llm_enabled_sections``.
-    provider:
-        LLMProvider instance to call for LLM-enabled sections.
-    cache_get:
-        Optional cache lookup callable ``(key) -> str | None``.
-    cache_put:
-        Optional cache store callable ``(key, value) -> None``.
+    llm:
+        LLMService instance (AD-11); section replacement goes through
+        ``llm.complete_prompt``. Raises ``LLMCompletionError`` on provider
+        absence / retry exhaustion — the caller (``LLMNarrativeGenerator``)
+        owns the template fallback.
+    task_type:
+        LLMTaskType for provider/model selection + accounting.
+    language:
+        Target language ("en" / "ja"); selects the narrative_seed prompt.
+    cache_get / cache_put:
+        Optional ``NarrativeCache`` callables (layer 1, clinical-context key —
+        see module docstring).
 
     Returns
     -------
@@ -72,7 +79,9 @@ def apply_replacement_strategy(
         return template_output
     elif spec.stage2_strategy == "template_seed":
         return _apply_template_seed_strategy(
-            template_output, ctx, spec, provider, cache_get, cache_put
+            template_output, ctx, spec, llm,
+            task_type=task_type, language=language,
+            cache_get=cache_get, cache_put=cache_put,
         )
     else:
         # Unknown strategy → safe default: template output unchanged
@@ -83,14 +92,17 @@ def _apply_template_seed_strategy(
     template_output: NarrativeOutput,
     ctx: NarrativeContext,
     spec: DocumentTypeSpec,
-    provider: LLMProvider,
+    llm: LLMService,
+    *,
+    task_type: LLMTaskType,
+    language: str,
     cache_get: Callable[[str], str | None] | None,
     cache_put: Callable[[str, str], None] | None,
 ) -> NarrativeOutput:
     """Idea D: for each llm_enabled_sections, pass template text as seed to LLM.
 
     Sections not in llm_enabled_sections are passed through unchanged.
-    Cache is checked before each provider call; hit → skip provider.
+    Cache is checked before each LLM call; hit → skip the call.
 
     ★ Invariant for downstream consumers (e.g. Task 9 FHIR builders):
       - ``sections[<key>]`` is the authoritative content for that section
@@ -103,7 +115,7 @@ def _apply_template_seed_strategy(
         rendered directly.
       - If you need a flat reconstruction of all (possibly-replaced) sections,
         join them: ``"\\n\\n".join(output.sections.values())``.
-      - When ``llm_enabled_sections`` is empty, no provider call is made and the
+      - When ``llm_enabled_sections`` is empty, no LLM call is made and the
         returned output is byte-identical to ``template_output`` (safe no-op).
     """
     # Build demographic bucket for cache key
@@ -120,7 +132,7 @@ def _apply_template_seed_strategy(
     for section in spec.llm_enabled_sections:
         template_text = new_sections.get(section, "")
 
-        # Cache lookup
+        # Layer-1 cache lookup (NarrativeCache, clinical-context key)
         c_key = cache_key(
             disease=disease_id,
             archetype=ctx.clinical_course_archetype,
@@ -136,11 +148,18 @@ def _apply_template_seed_strategy(
                 new_sections[section] = cached
                 continue
 
-        # Cache miss — invoke provider with template seed (Idea D)
-        prompt = _build_seed_prompt(section, template_text, ctx)
-        generated = provider.generate(prompt)
+        # Cache miss — invoke the LLM with template seed (Idea D) via the
+        # unified AD-11 path (retry + PromptCache + cost accounting inside).
+        system_prompt, user_prompt = _build_seed_prompt(section, template_text, ctx)
+        response = llm.complete_prompt(
+            system_prompt,
+            user_prompt,
+            language=language,
+            task_type=task_type,
+        )
+        generated = response.text or ""
 
-        # Store in cache
+        # Store in layer-1 cache
         if cache_put is not None:
             cache_put(c_key, generated)
 
@@ -155,18 +174,26 @@ def _apply_template_seed_strategy(
     )
 
 
-def _build_seed_prompt(section: str, template_text: str, ctx: NarrativeContext) -> str:
-    """Build a prompt that includes the template-generated section text as a seed.
+def _build_seed_prompt(
+    section: str, template_text: str, ctx: NarrativeContext
+) -> tuple[str, str]:
+    """Build (system, user) prompts embedding the template section as a seed.
 
     The prompt instructs the LLM to use the seed as a starting point and improve
     upon it for the given patient context (Idea D: template-as-seed).
+
+    N-3 will move this inline prose to ``prompts/{en,ja}/narrative_seed.yaml``
+    rendered via ``PromptRegistry``.
     """
     lang_label = "Japanese" if ctx.target_lang == "ja" else "English"
-    return (
-        f"You are generating a clinical document section '{section}' in {lang_label}.\n"
+    system = (
+        f"You are generating a clinical document section '{section}' in {lang_label}."
+    )
+    user = (
         f"Patient severity: {ctx.severity}. Day of care: {ctx.day_index}.\n"
         f"Use the following template-generated text as a seed/starting point and "
         f"improve its clinical language and specificity:\n\n"
         f"--- TEMPLATE SEED ---\n{template_text}\n--- END SEED ---\n\n"
         f"Generate an improved version of this section:"
     )
+    return system, user
