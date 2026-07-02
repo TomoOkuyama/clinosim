@@ -148,3 +148,20 @@ def test_canonical_constants_includes_care_team_prefix():
         f"care_team_id_prefix canonical_constants value mismatch: "
         f"got {cc['care_team_id_prefix']!r}, expected {(CARE_TEAM_ID_PREFIX,)!r}"
     )
+
+
+@pytest.mark.unit
+def test_lift_firing_proof_includes_3shift_cadence_checks():
+    """α-min-3: 3-per-day nursing shift cadence proof checks present and passing."""
+    proof = _build_proof()
+    labels = {c[0]: c for c in proof["equality_checks"]}
+    for name in (
+        "nursing_shift_note_3_per_day_count",
+        "nursing_shift_note_shift_keys_complete",
+        "nursing_shift_note_shift_hour_offsets",
+    ):
+        assert name in labels, f"missing α-min-3 proof check {name!r}"
+        _, actual, expected = labels[name]
+        assert actual == expected, (
+            f"α-min-3 proof check {name!r} failed: {actual!r} != {expected!r}"
+        )

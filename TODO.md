@@ -1418,8 +1418,11 @@ Suggested order: ~~microbiology+markers~~ ✅ → ~~nursing flowsheets~~ ✅ →
   CareTeam FHIR builder. 6 new DocumentType specs (78390-2/34746-8/34745-0/34131-3/34878-9/54094-8).
   silent_no_op 25/25 PASS. clinical axis PASS (CareTeam 1:1 with Encounter). 27 integration tests.
   DQR: `docs/reviews/2026-07-01-tier1-3-document-density-alpha-min-2-dqr.md`.
-  **Known gap**: outpatient.py + emergency.py do not invoke POST_ENCOUNTER enrichers → outpatient
-  SOAP, ED note, ED triage note produce 0 resources in production (fix targeted for α-min-3).
+  **Known gap → RESOLVED (α-min-2 Task 14 fix, verified 2026-07-02)**: outpatient.py +
+  emergency.py DO invoke `run_stage(POST_ENCOUNTER)` (both carry the "α-min-2 Task 14 fix"
+  block). Production-verified at US p=500 seed=42: OUTPATIENT_SOAP 1,841 Composition +
+  ED_NOTE 210 Composition + ED_TRIAGE_NOTE 210 DocumentReference. The α-min-3 section
+  below no longer contains this item.
 
 ### β-JP-1: LLMNarrativePass 実装(AD-65 base 上に drop-in)
 
@@ -1687,22 +1690,25 @@ These items were **explicitly out of scope** for the α-min-1 document density c
 
 These items were **explicitly out of scope** for the α-min-2 document density chain.
 
-### α-min-3 phase (next chain) — Outpatient/ED POST_ENCOUNTER gap
+### α-min-3 phase — status audit 2026-07-02 (all 3 items closed)
 
-- **CRITICAL: outpatient.py + emergency.py do NOT call POST_ENCOUNTER enrichers** — root cause
-  of 0 outpatient SOAP / 0 ED note / 0 ED triage note in production. Fix: add
-  `run_stage(POST_ENCOUNTER, ...)` call at the end of `_simulate_outpatient_visit` and
-  `_simulate_emergency_visit`. Ensure triage (order=93) runs before document (order=95) for ED.
-  Expected output gain: ~140k outpatient SOAP + ~14k ED note + ~14k ED triage note (US p=10k).
+- ~~**CRITICAL: outpatient.py + emergency.py do NOT call POST_ENCOUNTER enrichers**~~ —
+  **STALE / RESOLVED**: the α-min-2 Task 14 fix already wired both simulators
+  (`outpatient.py` + `emergency.py` "POST_ENCOUNTER stage" blocks). Production-verified
+  2026-07-02 at US p=500 seed=42: OUTPATIENT_SOAP 1,841 / ED_NOTE 210 / ED_TRIAGE_NOTE 210.
 
-- **Nursing shift 3-per-day** — current implementation emits 1 NURSING_SHIFT_NOTE per LOS day.
-  Realistic acute-care cadence is 3 per day (day/evening/night). Extend `nursing_enricher` to
-  emit 3 shift notes per day with time offsets (08:00/16:00/00:00). Frequency:
-  `daily_3shift` new enum value in DocumentTypeSpec.generation_frequency.
+- ~~**Nursing shift 3-per-day**~~ — **DONE (α-min-3 PR, 2026-07-02)**: `daily_3shift`
+  generation_frequency implemented in `document/engine.py` + `document_type_specs.yaml`
+  (day 08:00 / evening 16:00 / night 00:00, shift key on the stub, ja labels
+  日勤/準夜/深夜 in Stage 2). Production-verified: NURSING_SHIFT_NOTE = exactly 3× per
+  LOS day (US p=200: 750 vs 250 progress notes). 6 profile goldens regenerated (AD-66 Rule 1).
 
-- **Composition.author wiring** — currently `"author": []` (FHIR R4 cardinality 1..* violation).
-  Requires CareTeam.participant[] Practitioner ref lookup via `ctx.roster`. Prerequisite: fix
-  the POST_ENCOUNTER gap above (outpatient encounters need CareTeam before author can be wired).
+- ~~**Composition.author wiring**~~ — **RESOLVED earlier than documented**:
+  `_fhir_composition.py` emits `author[]` from `ClinicalDocument.author_practitioner_id`
+  (populated by `_pick_document_author` at every emission site); `Practitioner/UNKNOWN` is a
+  defensive fallback only — production count 0 at US p=500 + JP p=300 (2026-07-02). The
+  remaining design question (whether the UNKNOWN fallback should raise instead) stays in
+  "AD-65 adv-1 deferred" (Practitioner/UNKNOWN dangling ref).
 
 ### β-JP-1 phase — CareTeam multi-disciplinary expansion
 

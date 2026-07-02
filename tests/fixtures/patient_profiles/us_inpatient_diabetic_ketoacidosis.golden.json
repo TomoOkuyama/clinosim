@@ -141,11 +141,12 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-000001-07": {
-    "document_id": "doc-ENC-FORCED-0001-000001-07",
+  "doc-ENC-FORCED-0001-000001-07-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-07-night",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
+        "ctx.shift",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -154,18 +155,20 @@
       "generator_metadata": {
         "day_index": 0,
         "generator": "template",
-        "lang": "en"
+        "lang": "en",
+        "shift": "night"
       },
       "sections": {},
       "structured": {},
-      "text": "[Nursing Shift Note] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-000001-08": {
-    "document_id": "doc-ENC-FORCED-0001-000001-08",
+  "doc-ENC-FORCED-0001-000001-08-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-08-day",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
+        "ctx.shift",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -174,18 +177,20 @@
       "generator_metadata": {
         "day_index": 0,
         "generator": "template",
-        "lang": "en"
+        "lang": "en",
+        "shift": "day"
       },
       "sections": {},
       "structured": {},
-      "text": "[Nursing Shift Note] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-000001-09": {
-    "document_id": "doc-ENC-FORCED-0001-000001-09",
+  "doc-ENC-FORCED-0001-000001-09-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-09-evening",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
+        "ctx.shift",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -194,15 +199,148 @@
       "generator_metadata": {
         "day_index": 0,
         "generator": "template",
-        "lang": "en"
+        "lang": "en",
+        "shift": "evening"
       },
       "sections": {},
       "structured": {},
-      "text": "[Nursing Shift Note] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-000001-10": {
-    "document_id": "doc-ENC-FORCED-0001-000001-10",
+  "doc-ENC-FORCED-0001-000001-10-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-10-night",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "en",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - night shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-11-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-11-day",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-12-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-12-evening",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-13-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-13-night",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "en",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - night shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-14-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-14-day",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-15-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-15-evening",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-16": {
+    "document_id": "doc-ENC-FORCED-0001-000001-16",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [

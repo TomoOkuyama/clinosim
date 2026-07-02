@@ -145,6 +145,11 @@ class ClinicalDocument:
     language: str = "en"
     content_type: str = "text/plain; charset=utf-8"
     format_type: str = ""
+    # α-min-3: neutral nursing shift key ("night" / "day" / "evening") for
+    # daily_3shift documents; "" for all other frequencies. Metadata only —
+    # localized labels (日勤/準夜/深夜) are resolved at Stage 2 render time
+    # by language (AD-30 spirit: no display text in structural CIF).
+    shift: str = ""
     narrative: ClinicalDocumentNarrative | None = None
 
 

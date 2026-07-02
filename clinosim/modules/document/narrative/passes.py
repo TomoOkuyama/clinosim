@@ -81,6 +81,12 @@ class NarrativePass(ABC):
                     ctx = self._build_context(patient_dict, encounter_dict, spec, language)
                     encounter_id = encounter_dict.get("encounter_id", "")
                     for stub in stubs:
+                        # α-min-3: per-stub shift key (daily_3shift stubs carry
+                        # "night"/"day"/"evening"; all other stubs ""). ctx is
+                        # shared across this patient's stubs, so set per stub
+                        # before generating — the renderer resolves the
+                        # localized label from this neutral key (AD-30 spirit).
+                        ctx.shift = str(stub.get("shift", "") or "")
                         output = self._generate(ctx, spec)
                         wrapper = self._output_to_wrapper(
                             output, generator=self._generator_name()
