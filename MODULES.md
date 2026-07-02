@@ -1,8 +1,10 @@
 # clinosim Module Map
 
-A single-page overview of clinosim's 26 modules: what each one does, what
-it depends on, who depends on it, and how data flows through the
-simulator end-to-end. **Read this first** if you're new to the project.
+A single-page overview of clinosim's 30 modules (counting rule: packages
+under `clinosim/modules/`; non-package files like `_shared.py` excluded):
+what each one does, what it depends on, who depends on it, and how data
+flows through the simulator end-to-end. **Read this first** if you're new
+to the project.
 
 ## このドキュメントの読み方
 
@@ -17,7 +19,8 @@ simulator end-to-end. **Read this first** if you're new to the project.
 ## TL;DR
 
 clinosim is a population-driven, physiology-based synthetic EHR data simulator,
-organized into 22 themed modules across 3 layers:
+organized into 30 themed modules (packages under `clinosim/modules/`) across
+3 layers:
 
 1. **Foundation** — `clinosim/codes/` + `clinosim/locale/` + `clinosim/types/`
    (no clinosim cross-dependencies)
@@ -99,7 +102,10 @@ quality. See [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md)
 
 ## Module Inventory
 
-26 modules total. Click the `Module` link for the per-module README.
+30 modules total (packages under `clinosim/modules/`; the table below additionally
+lists the `codes` / `locale` foundation packages, and `nursing_assignment` shares the
+`clinosim/modules/nursing/` package with the flowsheet enricher). Click the `Module`
+link for the per-module README.
 
 | Module | 役割 | Layer | 主 Dependencies | 主 Consumers | Tier |
 |---|---|---|---|---|---|

@@ -1,6 +1,6 @@
 # clinosim — TODO
 
-## Status (current as of 2026-06-22)
+## Status (current as of 2026-07-02)
 
 **v0.2 (Simulation realism + Japanese/English documents + Occupational injuries)** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 32 diseases + 46 ED/outpatient conditions, occupational injury support (6 work-related conditions + occupation field), snapshot date support, pluggable LLM providers (Ollama/Bedrock/Mock), three-stage CLI pipeline (`generate` → `narrate` → `export-fhir`), FHIR DocumentReference for 5 clinical document types (Tier A+B) in English and Japanese.
 
@@ -2001,3 +2001,78 @@ concerns or β-JP-1 (LLM narrative pass) scope, not landing in the AD-65 fix wor
 Full triage report: `/private/tmp/claude-*/adv1_ad65/triage.md` in the fix session
 (reproducible from the 5-lens pass over PR #131 HEAD `c61914c716`).
 
+
+## Common-logic unification review — deferred chains (2026-07-02, session 31)
+
+Source: 4-lens module-wide audit (loader / code-mapping+i18n / generation+narrative IF /
+docs) + `docs/design-notes/2026-07-02-grand-design-review-and-roadmap.md` (§3, canonical
+prioritization). The byte-identical subset (R1-R7) landed on
+`refactor/common-logic-unification`; everything below changes behavior/schema and needs
+its own chain.
+
+### ★★★ N-chain: Narrative interface unification (β-JP-1 prerequisite)
+
+- **N-1 generator contract**: add `NarrativeGenerator` Protocol to `clinosim/types/document.py`
+  (`generate(ctx, spec) -> NarrativeOutput`); `TemplateNarrativePass` takes the generator by
+  constructor injection (currently hardcodes `TemplateNarrativeGenerator()` at
+  `document/narrative/passes.py:262`). Decide fate of the ORPHANED α-min-1 Task 7 machinery
+  (`llm_generator.py` / `replacement_strategy.py` / `cache.py` — `apply_replacement_strategy`,
+  `NarrativeCache`, `DocumentTypeSpec.stage2_strategy` / `llm_enabled_sections` are all
+  currently unreachable): wire it under `NarrativePass` per master plan §3 (D template-as-seed
+  + E cache + B section-level) or delete it. Aspirational scaffold = PR-90 class risk.
+  Also: export public API from empty `llm_service/__init__.py`.
+- **N-2 provider unification**: two incompatible protocols share the name `LLMProvider`
+  (`narrative/replacement_strategy.py:28 generate(prompt)->str` vs
+  `llm_service/providers/base.py:24 complete(...)->ProviderResponse`). Keep the llm_service
+  one; thin adapter on the narrative side. Structurally guarantees AD-11.
+- **N-3 prompt ownership**: prompts live ONLY in `llm_service/prompts/{en,ja}/*.yaml` (AD-40),
+  consumed via PromptRegistry keyed by (doc_type, language); replace `_build_seed_prompt`
+  inline assembly. Unify `DocumentType` (9) vs `LLMTaskType` narrative subset drift.
+- **N-4 (optional, incremental)**: data-drive `template_generator.py` (1446-line Python string
+  assembly) into per-section YAML templates so new doc types need no Python edits.
+
+### ★★ AD-30 chain: display-in-CIF removal (CIF schema change + golden regen)
+
+- `types/allergy.py:18,28` `manifestation_display`/`allergen_display` (populated at
+  `allergy/engine.py:132,140`; builder already re-resolves via code_lookup → dead data).
+- `types/imaging.py:27` `body_site_display` (populated from `display_en` at
+  `imaging/engine.py:277`).
+
+### ★★ Determinism chain: wall-clock removal (extends session-30 TODO)
+
+Byte-diff-measured live fields: `discharge_prescription.issue_date` +
+`physiological_states[].timestamp` (+ metadata generation_timestamp, by design). New finds:
+`diagnosis/engine.py:173 datetime.now()` (live in inpatient path), `immunization/enricher.py:30
+date.today()` fallback, `default_factory=datetime.now` across `types/clinical.py` /
+`types/encounter.py` / `types/procedure.py`. ALSO: fix `locale/jp/demographics.yaml` blood_type
+weights (sum = 0.9999999999999999) then wrap population blood_type sampling with
+`normalize_probabilities(fallback="raise")` (the one site R6 had to skip byte-safely).
+Outcome: full byte-diff incl. structural CIF.
+
+### ★ Display-dict → codes YAML migration
+
+Python clinical display dicts to migrate to `codes/data/*.yaml` (en+ja) + `code_lookup`:
+`_fhir_reference_data.py` (`_CONDITION_SHORT_NAME`, `_ENCOUNTER_TYPE_SNOMED_JA`),
+`_fhir_patient.py` (marital/lang), `_fhir_microbiology.py` (`_SUSCEPTIBILITY_DISPLAY`),
+`_fhir_allergy_intolerance.py` (status displays), `_fhir_care_team.py` (category en/ja),
+`_fhir_endpoint.py` hardcoded displays ("DICOM WADO-RS").
+
+### ★ Dual-access sweep
+
+- Read side: remaining `isinstance(x, dict)` branches → `_o()` (`_fhir_observations.py:431`,
+  `csv_adapter.py:290-293`, `_fhir_conditions.py:53,136,183`, `_fhir_device.py:23`,
+  `_fhir_hai.py:24`, `_fhir_immunization.py:31`, `observation/nursing_enricher.py:36,70`).
+- Write side: NO shared helper exists; `if isinstance(rec, dict): rec["x"]=... else: rec.x=...`
+  scattered across 7+ enrichers → add `set_attr_or_key()` to `_shared.py` and sweep.
+
+### Single items (ride along with related chains)
+
+- Move `DiagnosisCandidate` / `DifferentialDiagnosis` (`diagnosis/engine.py:51,60`) to
+  `clinosim/types/` (types rule).
+- `inpatient.py:1826` unknown-condition path: call `scenario_flags_from_protocol(None)` in the
+  merge instead of comment-justified omission (J5-class risk).
+- Unify locale-loader unsupported-country contract to "return {}" (immunization / code_status /
+  family_history currently silently fall back to US; care_level is the compliant precedent).
+- Root `spec.md` (2026-06-05): add historical-document header pointing to DESIGN.md +
+  `clinosim/modules/output/SPEC.md`.
+- DESIGN.md: note AD-1/2/12/14/15/27 numbering gaps as reserved/withdrawn; sort compact table.
