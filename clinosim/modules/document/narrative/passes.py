@@ -15,7 +15,10 @@ import os
 from abc import ABC, abstractmethod
 from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from clinosim.modules.llm_service.engine import LLMService
 
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.document import specs_for_country
@@ -114,7 +117,7 @@ class NarrativePass(ABC):
             document_counts_by_type=doc_counts,
             doc_types_enabled=sorted(doc_counts.keys()),
             languages_used=sorted(languages_used),
-            llm_cost_report={},
+            llm_cost_report=self._llm_cost_report(),
         )
         manifest_path = os.path.join(self.cif_dir, "narratives", self.version_id, "manifest.json")
         with open(manifest_path, "w") as f:
@@ -129,6 +132,13 @@ class NarrativePass(ABC):
     def _generator_name(self) -> str: ...
 
     def _generator_config(self) -> dict[str, Any]:
+        return {}
+
+    def _llm_cost_report(self) -> dict[str, Any]:
+        """Manifest ``llm_cost_report`` hook — overridden by LLMNarrativePass.
+
+        Base returns ``{}`` so the template path manifest stays byte-identical.
+        """
         return {}
 
     def _languages_for_spec(self, spec: DocumentTypeSpec) -> list[str]:
@@ -286,3 +296,52 @@ class TemplateNarrativePass(NarrativePass):
 
     def _generator_name(self) -> str:
         return "template"
+
+
+class LLMNarrativePass(NarrativePass):
+    """Stage 2 LLM-backed narrative pass (N-1b, N-chain 2026-07-02).
+
+    Wraps ``LLMNarrativeGenerator`` (template base + per-section LLM
+    replacement per ``DocumentTypeSpec.stage2_strategy``) around the base
+    walk order — (doc_type, language) group serial is inherited unchanged,
+    which keeps Bedrock prompt cache hit rates maximal (AD-65).
+
+    All LLM traffic goes through the injected ``LLMService`` (AD-11):
+    retry, disk PromptCache and token accounting live in the service; the
+    in-memory ``NarrativeCache`` (layer 1, clinical-context key) is owned
+    per pass instance for cross-patient reuse within one run. The manifest
+    ``llm_cost_report`` is wired from ``LLMService.cost_report()``.
+    """
+
+    def __init__(
+        self,
+        cif_dir: str,
+        llm: LLMService,
+        version_id: str = "llm",
+        country: str = "US",
+        tasks: list[str] | None = None,
+        rng_seed: int = 42,
+    ):
+        from clinosim.modules.document.narrative.cache import NarrativeCache
+        from clinosim.modules.document.narrative.llm_generator import LLMNarrativeGenerator
+
+        self.llm = llm
+        generator = LLMNarrativeGenerator(
+            template_generator=TemplateNarrativeGenerator(),
+            llm=llm,
+            cache=NarrativeCache(),
+        )
+        super().__init__(cif_dir, version_id, country, tasks, rng_seed, generator=generator)
+
+    def _generator_name(self) -> str:
+        return f"llm-{self.llm.provider_name_narrative or 'none'}"
+
+    def _generator_config(self) -> dict[str, Any]:
+        return {
+            "provider": self.llm.provider_name_narrative,
+            "mode": self.llm.mode,
+            "narrative_model_map": dict(self.llm.narrative_model_map),
+        }
+
+    def _llm_cost_report(self) -> dict[str, Any]:
+        return self.llm.cost_report()
