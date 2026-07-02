@@ -1,0 +1,31 @@
+profile_id: jp_icu_sepsis_hai_clabsi
+disease_id: sepsis
+country: JP
+severity: severe
+archetype: dip_then_recovery
+count: 1
+random_seed: 42
+hospital_scale: large
+
+patient_overrides:
+  age: 74
+  sex: M
+
+force_hai_event:
+  hai_type: clabsi
+  onset_offset_days: 3
+  organism_snomed: "3092008"  # S. aureus, CLABSI (verified against hai_organisms.yaml)
+
+description: |
+  Severe JP ICU sepsis case with iatrogenic CLABSI onset day 3.
+  Dip-then-recovery trajectory: initial deterioration → HAI complication
+  → antibiotic de-escalation → recovery. Exercises the full HAI cascade
+  narrative (culture reporting, empirical antibiotic switch, de-escalation).
+  β-JP-1 target: JP ICU narrative + HAI event narrative.
+clinical_notes: |
+  Primary: sepsis (source: pneumonia)
+  ICU admission day 0
+  CVC placed for pressor support
+  HAI CLABSI day 3 — S. aureus
+  Empirical: vancomycin + piperacillin-tazobactam
+  De-escalation on culture susceptibility
