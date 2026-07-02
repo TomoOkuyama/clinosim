@@ -95,7 +95,7 @@ master plan 7 phase(α-min-1 ✅ / α-min-2 ✅ / β-JP-1 / β-2 / γ / δ / ε)
 |---|---|---|
 | 0 | **PR #132 merge**(α-min-2c fixture library、adv-1 5-lens or 直接) | β-JP-1 regression 基盤。open のまま放置が最大リスク |
 | 1 | **本 refactor branch merge**(common-logic unification + guide refine) | 以降の全 chain の前提となる canonical helper 群 |
-| 2 | **α-min-3: outpatient/ED POST_ENCOUNTER 配線** | 実装済 spec が production 0 件のまま = データ品質の最大 gap(US p=10k で ~154k resource 増)。小 PR で最大リターン |
+| 2 | **α-min-3(2026-07-02 実測で scope 縮小)** | 状態監査の結果、POST_ENCOUNTER 配線は α-min-2 Task 14 で解決済(US p=500 で SOAP 1,841 / ED 210+210 実測)、Composition.author も配線済(UNKNOWN fallback の production 発火 0)。実残 = **nursing 3-shift 化のみ**(同日中に `daily_3shift` として実装、goldens 再生成済) |
 | 3 | **N-chain(3.1)N-1〜N-3** | β-JP-1 の直接前提。孤立 scaffold の解消は PR-90 型リスク低減 |
 | 4 | **β-JP-1 LLMNarrativePass**(master plan どおり) | fixture library(#132)+ N-chain 完了で最短経路。JP 4 帳票 + LLM narrative |
 | 5 | **Determinism chain(3.3)** | β-JP-1 の LLM 出力比較(semantic diff)整備と同時期に、structural 側の full byte-diff を確立すると検証系が完成する |
