@@ -690,6 +690,20 @@ class TemplateNarrativeGenerator:
             ctx, ctx.clinical_course_archetype, 0
         )
         if traj_src:
+            # daily_trajectory (disease YAML) has no per-language split —
+            # Japanese-sourced text only (same data-authoring gap class as
+            # hpi_template.onset_pattern / physical_exam_findings). Tag + warn
+            # for EN-locale auditability (AD-65 Bug A documented
+            # ja_only_fallback convention — see module docstring; β-JP-1
+            # chain 1a: this section only started emitting trajectory text
+            # once ctx.disease_protocol was wired).
+            if not is_ja:
+                traj_src += ":ja_only_fallback"
+                logger.warning(
+                    "daily_trajectory has no English variant; falling back to "
+                    "Japanese source text for archetype=%s",
+                    ctx.clinical_course_archetype,
+                )
             facts.append(traj_src)
 
         _generic_a = _GENERIC_ASSESSMENT_JA if is_ja else _GENERIC_ASSESSMENT_EN
@@ -745,8 +759,20 @@ class TemplateNarrativeGenerator:
     def _build_discharge_diagnoses(
         self, ctx: NarrativeContext
     ) -> tuple[str, list[str]]:
-        """Build discharge_diagnoses from ctx.diagnoses."""
+        """Build discharge_diagnoses from ctx.diagnoses.
+
+        β-JP-1 chain 1a: ctx.diagnoses is now wired (clinical_diagnosis), so
+        this section resolves display text at render time via
+        ``clinosim.codes.lookup`` (AD-30 — CIF stores codes only; a bare
+        "I63.9" in a JP narrative fails the JP language gate). Format:
+        ``<display>（<code>）`` (ja) / ``<display> (<code>)`` (en); when the
+        code has no authoritative entry, ``lookup`` returns the code itself
+        and the section emits the code alone.
+        """
+        from clinosim.codes import lookup as code_lookup
+
         facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
 
         diagnoses = ctx.diagnoses or []
         if not diagnoses:
@@ -755,14 +781,24 @@ class TemplateNarrativeGenerator:
             return cc_text, []
 
         facts.append("ctx.diagnoses")
-        codes = []
+        parts = []
         for dx in diagnoses:
             code = _o(dx, "discharge_diagnosis_code", "") or _o(dx, "admission_diagnosis_code", "")
-            if code:
-                codes.append(code)
+            if not code:
+                continue
+            system = (
+                _o(dx, "discharge_diagnosis_system", "")
+                or _o(dx, "admission_diagnosis_system", "")
+                or ("icd-10" if is_ja else "icd-10-cm")
+            )
+            display = code_lookup(system, code, ctx.target_lang)
+            if display and display != code:
+                parts.append(f"{display}（{code}）" if is_ja else f"{display} ({code})")
+            else:
+                parts.append(code)
 
-        if codes:
-            return "; ".join(codes), facts
+        if parts:
+            return "; ".join(parts), facts
 
         # No codes — fall back
         cc_text, _ = self._build_chief_complaint(ctx)
