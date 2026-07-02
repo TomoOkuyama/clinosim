@@ -5,6 +5,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.modules._shared import resolve_lang
 from clinosim.modules.code_status.engine import load_reference
 from clinosim.modules.output._fhir_common import BundleContext, _survey_category
 
@@ -13,7 +14,7 @@ def _build_code_status(ctx: BundleContext) -> list[dict]:
     code = ctx.record.get("code_status") or ""
     if not code:
         return []
-    lang = "ja" if ctx.country == "JP" else "en"
+    lang = resolve_lang(ctx.country)
     enc = ctx.primary_enc_id
     observable = load_reference()["observable_snomed"]
     snomed_uri = get_system_uri("snomed-ct")

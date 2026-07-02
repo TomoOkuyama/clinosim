@@ -12,6 +12,7 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.codes import get_system_uri
+from clinosim.modules._shared import resolve_lang
 from clinosim.modules.output._fhir_common import BundleContext, _micro_coding
 
 _SUSCEPTIBILITY_DISPLAY = {
@@ -48,7 +49,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
     cultures = ctx.record.get("microbiology") or []
     if not cultures:
         return []
-    lang = "ja" if ctx.country == "JP" else "en"
+    lang = resolve_lang(ctx.country)
     subject = {"reference": f"Patient/{ctx.patient_id}"}
     enc_ref = {"reference": f"Encounter/{ctx.primary_enc_id}"} if ctx.primary_enc_id else None
     lab_category = [{"coding": [{

@@ -11,7 +11,7 @@ from datetime import date, timedelta
 
 import numpy as np
 
-from clinosim.modules._shared import normalize_probabilities
+from clinosim.modules._shared import is_jp, normalize_probabilities
 from clinosim.types.population import HospitalizationSummary, LifeEvent, PersonRecord
 
 __all__ = ["HospitalizationSummary", "PersonRecord", "LifeEvent"]
@@ -469,7 +469,7 @@ def _disease_monthly_rate_from_locale(
 
 def _sample_age_band(demo: dict, rng: np.random.Generator) -> tuple[int, int]:
     bands, probs = _parse_age_distribution(demo)
-    idx = int(rng.choice(len(bands), p=probs))
+    idx = int(rng.choice(len(bands), p=normalize_probabilities(probs, fallback="raise")))
     return bands[idx]
 
 
@@ -670,7 +670,7 @@ def _generate_household_address(addr_data: dict, rng: np.random.Generator) -> di
     postal_code = str(rng.choice(zips))
 
     country = addr_data.get("country", "US")
-    if country == "JP":
+    if is_jp(country):
         towns = addr_data.get("towns", ["本町"])
         town = str(rng.choice(towns))
         chome = int(rng.integers(1, 6))
@@ -699,7 +699,7 @@ def _generate_phone(addr_data: dict, phone_type: str, rng: np.random.Generator) 
     phone_cfg = addr_data.get("phone", {})
     country = addr_data.get("country", "US")
 
-    if country == "JP":
+    if is_jp(country):
         if phone_type == "mobile":
             prefixes = phone_cfg.get("mobile_prefix", ["090"])
             prefix = str(rng.choice(prefixes))

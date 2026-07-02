@@ -14,6 +14,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.modules._shared import resolve_lang
 from clinosim.modules.output._fhir_common import BundleContext
 
 
@@ -24,7 +25,7 @@ def _build_immunizations(ctx: BundleContext) -> list[dict]:
     Display text is resolved via lookup("cvx", code, lang); never emitted as display == code.
     US output contains no Japanese characters; JP output uses Japanese display when available.
     """
-    lang = "ja" if ctx.country == "JP" else "en"
+    lang = resolve_lang(ctx.country)
     out: list[dict] = []
 
     for i, imm in enumerate(ctx.record.get("immunizations") or []):

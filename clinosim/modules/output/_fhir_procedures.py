@@ -10,19 +10,21 @@ from typing import Any
 
 from clinosim.codes import (
     get_system_uri,
+    system_key_for,
 )
 from clinosim.codes import (
     lookup as code_lookup,
 )
+from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output._fhir_localization import _procedure_display
 
 
 def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> dict:
     """Build FHIR Procedure resource."""
-    code_system_key = "k-codes" if country == "JP" else "cpt"
+    code_system_key = system_key_for("procedure", country)
     code_system = get_system_uri(code_system_key)
     sct_uri = get_system_uri("snomed-ct")
-    lang = "ja" if country == "JP" else "en"
+    lang = resolve_lang(country)
 
     # Use performedDateTime for point-in-time procedures, performedPeriod for longer ones
     start = proc.get("start_datetime", "")
@@ -41,7 +43,7 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
     fallback = proc_type or "(procedure)"
 
     # Resolve displays via code dictionaries (k-codes.yaml / cpt.yaml)
-    primary_lang = "ja" if country == "JP" else "en"
+    primary_lang = resolve_lang(country)
     primary_display = _procedure_display(primary_code, primary_lang, fallback)
 
     coding_entries: list[dict[str, Any]] = [{
@@ -51,7 +53,7 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
     }]
 
     # Secondary coding: the OTHER country's code system for international interop
-    if country == "JP" and proc_code_us:
+    if is_jp(country) and proc_code_us:
         us_display = _procedure_display(proc_code_us, "en", fallback)
         coding_entries.append({
             "system": get_system_uri("cpt"),

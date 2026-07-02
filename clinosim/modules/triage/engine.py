@@ -13,7 +13,7 @@ from typing import Any
 import numpy as np
 import yaml
 
-from clinosim.modules._shared import normalize_probabilities
+from clinosim.modules._shared import is_jp, normalize_probabilities
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
@@ -135,7 +135,7 @@ def triage_enricher(ctx: Any) -> None:
     # instead of JTAS (PR-90 class silent-no-op; fixed 2026-07-01).
     config = _o(ctx, "config", None)
     country = (_o(config, "country", None) or _o(ctx, "country", "us") or "us").lower()
-    level_system = "JTAS" if country == "jp" else "ESI"
+    level_system = "JTAS" if is_jp(country) else "ESI"
     records = _o(ctx, "records", []) or []
     for record in records:
         encounters = _o(record, "encounters", []) or []

@@ -14,6 +14,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.locale.loader import load_identity_config
+from clinosim.modules._shared import is_jp
 from clinosim.modules.output._fhir_common import _build_address, _build_telecom
 from clinosim.modules.output._fhir_localization import (
     _CATEGORY_DISPLAY_JA,
@@ -28,9 +29,9 @@ from clinosim.modules.output._fhir_reference_data import _ALLERGEN_RXNORM
 _IDENTITY_CFG_CACHE: dict[str, dict] = {}
 
 # FHIR R4 standard: payer organization type
-_ORG_TYPE_SYSTEM = "http://terminology.hl7.org/CodeSystem/organization-type"
+_ORG_TYPE_SYSTEM = get_system_uri("hl7-organization-type")
 # FHIR R4 standard: beneficiary's relationship to the policy subscriber
-_SUBSCRIBER_REL_SYSTEM = "http://terminology.hl7.org/CodeSystem/subscriber-relationship"
+_SUBSCRIBER_REL_SYSTEM = get_system_uri("hl7-subscriber-relationship")
 
 
 def _identity_cfg(country: str) -> dict:
@@ -153,7 +154,7 @@ def _build_patient(p: dict, country: str) -> dict:
     # Build FHIR HumanName
     fhir_name: dict[str, Any] = {"family": family, "given": [given]}
     phonetic = name_data.get("phonetic")
-    if phonetic and country == "JP":
+    if phonetic and is_jp(country):
         # JP: add phonetic representation (katakana)
         fhir_name["extension"] = [{
             "url": "http://hl7.org/fhir/StructureDefinition/iso21090-EN-representation",
@@ -164,7 +165,7 @@ def _build_patient(p: dict, country: str) -> dict:
     # Hospital MRN identifier system (country-specific)
     mrn_system = (
         "urn:oid:1.2.392.100495.20.3.51.1"  # JP example MRN OID
-        if country == "JP"
+        if is_jp(country)
         else "http://hospital.example.org/identifiers/mrn"
     )
     resource: dict[str, Any] = {
@@ -178,7 +179,7 @@ def _build_patient(p: dict, country: str) -> dict:
                     "code": "MR",
                     "display": "Medical Record Number",
                 }],
-                "text": "MRN" if country != "JP" else "診療録番号",
+                "text": "診療録番号" if is_jp(country) else "MRN",
             },
             "system": mrn_system,
             "value": pid,
@@ -220,7 +221,7 @@ def _build_patient(p: dict, country: str) -> dict:
             "coding": [{
                 "system": get_system_uri("hl7-v3-maritalstatus"),
                 "code": marital,
-                "display": (_MARITAL_DISPLAY_JA if country == "JP" else _MARITAL_DISPLAY).get(marital, ""),
+                "display": (_MARITAL_DISPLAY_JA if is_jp(country) else _MARITAL_DISPLAY).get(marital, ""),
             }],
         }
 
@@ -296,9 +297,9 @@ def _build_occupation_observation(
     """
     if not occupation:
         return None
-    display_map = _OCCUPATION_DISPLAY_JA if country == "JP" else _OCCUPATION_DISPLAY_EN
+    display_map = _OCCUPATION_DISPLAY_JA if is_jp(country) else _OCCUPATION_DISPLAY_EN
     display = display_map.get(occupation, occupation.title())
-    category_text = "社会歴" if country == "JP" else "Social History"
+    category_text = "社会歴" if is_jp(country) else "Social History"
     return {
         "resourceType": "Observation",
         "id": f"occupation-{patient_id}",
@@ -317,7 +318,7 @@ def _build_occupation_observation(
                 "code": "11341-5",
                 "display": "History of Occupation",
             }],
-            "text": "職業" if country == "JP" else "Occupation",
+            "text": "職業" if is_jp(country) else "Occupation",
         },
         "subject": {"reference": f"Patient/{patient_id}"},
         "valueCodeableConcept": {
@@ -340,7 +341,7 @@ def _build_allergy_intolerance(
         return None
 
     # Localize substance display for JP
-    substance_display = _localize_drug_name(substance, country) if country == "JP" else substance
+    substance_display = _localize_drug_name(substance, country) if is_jp(country) else substance
 
     rxnorm = _ALLERGEN_RXNORM.get(substance, "")
     code: dict[str, Any] = {"text": substance_display}

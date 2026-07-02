@@ -14,13 +14,15 @@ from pathlib import Path
 import numpy as np
 import yaml
 
+from clinosim.modules._shared import is_jp
+
 _HERE = Path(__file__).resolve().parent
 _LOCALE = _HERE.parents[1] / "locale"
 
 
 @lru_cache(maxsize=2)
 def load_schedule(country: str) -> dict:
-    key = "jp" if str(country).upper() == "JP" else "us"
+    key = "jp" if is_jp(country) else "us"
     with open(_LOCALE / key / "immunization_schedule.yaml") as f:
         return (yaml.safe_load(f) or {}).get("vaccines", {})
 

@@ -11,11 +11,13 @@ from typing import Any
 
 from clinosim.codes import (
     get_system_uri,
+    system_key_for,
 )
 from clinosim.codes import (
     lookup as code_lookup,
 )
 from clinosim.locale.loader import load_code_mapping
+from clinosim.modules._shared import resolve_lang
 from clinosim.modules.output._fhir_common import (
     _build_dosage_instruction,
     _map_mar_status,
@@ -64,11 +66,11 @@ def _build_medication_request(
     base_name = drug_name_clean.split(" ")[0] if drug_name_clean else ""
 
     country_code = "JP" if country != "US" else "US"
-    lang = "ja" if country_code == "JP" else "en"
+    lang = resolve_lang(country_code)
     drug_codes = load_code_mapping("drug", country_code)  # name → RxNorm/YJ
 
     code_value = drug_codes.get(base_name, "")
-    drug_system_key = "yj" if country_code == "JP" else "rxnorm"
+    drug_system_key = system_key_for("drug", country_code)
     display = code_lookup(drug_system_key, code_value, lang) if code_value else drug_name
     if display == code_value:
         display = drug_name
@@ -133,10 +135,10 @@ def _build_medication_admin(
     drug_name = _localize_drug_name(drug_name_clean, country)
     base_name = drug_name_clean.split(" ")[0] if drug_name_clean else ""
     country_code = "JP" if country != "US" else "US"
-    lang = "ja" if country_code == "JP" else "en"
+    lang = resolve_lang(country_code)
     drug_codes = load_code_mapping("drug", country_code)
     code_value = drug_codes.get(base_name, "")
-    drug_system_key = "yj" if country_code == "JP" else "rxnorm"
+    drug_system_key = system_key_for("drug", country_code)
     code_system = get_system_uri(drug_system_key)
 
     med_concept: dict[str, Any] = {"text": drug_name}
