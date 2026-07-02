@@ -124,7 +124,7 @@
       "facts_used": [
         "disease_protocol.chief_complaint.en",
         "ctx.diagnoses",
-        "ctx.medications",
+        "ctx.discharge_medications",
         "discharge_instructions.baseline",
         "discharge_instructions.disease_specific.acute_mi",
         "discharge_instructions.follow_up"
@@ -138,8 +138,8 @@
       "sections": {
         "admission_summary": "Chief complaint: Chest pain, diaphoresis, dyspnea. Admitted for inpatient care.",
         "discharge_diagnoses": "Acute myocardial infarction, unspecified (I21.9)",
-        "discharge_instructions": "Drink plenty of fluids. Get adequate rest and avoid overexertion. Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended. Take ALL cardiac medications as prescribed: aspirin, statin, beta-blocker, ACE inhibitor/ARB. Do NOT stop without consulting cardiologist. Call 119 immediately for: chest pain, severe shortness of breath, palpitations, syncope. Resume a normal diet gradually as tolerated. Restricted activity for 4-6 weeks. Avoid heavy lifting. Gradual return per cardiologist guidance. Low-fat, low-sodium diet. Smoking cessation mandatory. Limit alcohol. Weight management.",
-        "discharge_medications": "Aspirin; Ticagrelor; Heparin; Nitroglycerin; Dobutamine 2-20ug/kg/min IV drip; Norepinephrine 0.05-0.3ug/kg/min IV drip; Atorvastatin",
+        "discharge_instructions": "Drink plenty of fluids. Get adequate rest and avoid overexertion. Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended. Take ALL cardiac medications as prescribed: aspirin, statin, beta-blocker, ACE inhibitor/ARB. Do NOT stop without consulting cardiologist. Call 911 immediately for: chest pain, severe shortness of breath, palpitations, syncope. Resume a normal diet gradually as tolerated. Restricted activity for 4-6 weeks. Avoid heavy lifting. Gradual return per cardiologist guidance. Low-fat, low-sodium diet. Smoking cessation mandatory. Limit alcohol. Weight management.",
+        "discharge_medications": "Aspirin; Ticagrelor; Atorvastatin",
         "follow_up": "Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended.",
         "hospital_course": "The patient was hospitalized for 4 days. Clinical course was favorable with improvement in presenting symptoms."
       },

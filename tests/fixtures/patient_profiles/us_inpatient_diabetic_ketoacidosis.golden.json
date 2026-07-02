@@ -107,7 +107,7 @@
       "facts_used": [
         "disease_protocol.chief_complaint.en",
         "ctx.diagnoses",
-        "ctx.medications",
+        "ctx.discharge_medications",
         "discharge_instructions.baseline",
         "discharge_instructions.disease_specific.diabetic_ketoacidosis",
         "discharge_instructions.follow_up"
@@ -122,7 +122,7 @@
         "admission_summary": "Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Admitted for inpatient care.",
         "discharge_diagnoses": "Type 2 diabetes mellitus with hyperglycemia (E11.65)",
         "discharge_instructions": "Drink plenty of fluids. Get adequate rest and avoid overexertion. Follow up with PCP in 7-10 days. Complete prescribed medications as directed. Return to ER if symptoms worsen. Resume a normal diet gradually as tolerated. Gradual return to normal activity. Maintain balanced diet and adequate hydration.",
-        "discharge_medications": "Regular insulin (continuous IV); Normal saline (0.9% NaCl); Potassium chloride; IV_fluid: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h; IV_insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3); K_replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0; DVT_prophylaxis: Enoxaparin 2000IU SC daily (once hemodynamically stable); Insulin glargine",
+        "discharge_medications": "Insulin glargine",
         "follow_up": "Follow up with PCP in 7-10 days.",
         "hospital_course": "The patient was hospitalized for 3 days. Clinical course was favorable with improvement in presenting symptoms."
       },

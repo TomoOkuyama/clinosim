@@ -250,7 +250,7 @@
       "facts_used": [
         "disease_protocol.chief_complaint.ja",
         "ctx.diagnoses",
-        "ctx.medications",
+        "ctx.discharge_medications",
         "discharge_instructions.baseline",
         "discharge_instructions.disease_specific.copd_exacerbation",
         "discharge_instructions.follow_up"
@@ -265,7 +265,7 @@
         "admission_summary": "主訴: 呼吸困難増悪・喀痰増加・喘鳴。入院日: 1 日目現在。",
         "discharge_diagnoses": "COPD急性増悪（J44.1）",
         "discharge_instructions": "十分な水分摂取を心がけてください。 十分な休息をとり、無理な活動は控えてください。 退院後 1-2 週間以内に外来受診をお願いします。 処方された薬を指示通り内服してください。 症状悪化があれば速やかに救急受診してください。 食事は体調に合わせて徐々に通常食に戻してください。 徐々に通常活動を再開してください。 バランスの良い食事と十分な水分摂取を心がけてください。",
-        "discharge_medications": "Salbutamol; Ipratropium; Prednisolone; bronchodilator: Salbutamol 2.5mg nebulizer q4h (q1h PRN acute); bronchodilator: Ipratropium 0.5mg nebulizer q6h; steroid: Prednisolone 40mg PO daily x5 days; antipyretic: Acetaminophen 500mg PO q6h PRN temp >= 38.5; DVT_prophylaxis: Enoxaparin 2000IU SC daily; Ceftriaxone 1g IV daily; Meropenem 1g IV q8h; Amoxicillin/Clavulanate",
+        "discharge_medications": "Prednisolone; Amoxicillin/Clavulanate",
         "follow_up": "退院後 1-2 週間以内に外来受診をお願いします。",
         "hospital_course": "入院 10 日間の治療を経て経過良好。症状は改善し退院となった。"
       },

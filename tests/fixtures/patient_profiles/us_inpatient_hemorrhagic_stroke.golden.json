@@ -103,7 +103,6 @@
       "facts_used": [
         "disease_protocol.chief_complaint.en",
         "ctx.diagnoses",
-        "ctx.medications",
         "discharge_instructions.baseline",
         "discharge_instructions.disease_specific.hemorrhagic_stroke",
         "discharge_instructions.follow_up"
@@ -118,7 +117,7 @@
         "admission_summary": "Chief complaint: Sudden severe headache, vomiting, altered consciousness. Admitted for inpatient care.",
         "discharge_diagnoses": "Nontraumatic intracerebral hemorrhage, unspecified (I61.9)",
         "discharge_instructions": "Drink plenty of fluids. Get adequate rest and avoid overexertion. Neurology/neurosurgery follow-up within 2-4 weeks. Repeat imaging per plan. Strict blood pressure control is essential. Do NOT restart anticoagulants without specialist approval. Return to ER immediately for: sudden severe headache, new or worsening weakness/speech difficulty, altered consciousness. Resume a normal diet gradually as tolerated. Activity restrictions per neurologist. Early rehabilitation as tolerated. Low-sodium diet. Blood pressure home monitoring twice daily.",
-        "discharge_medications": "Nicardipine; Labetalol; IV_fluid: NS 80 mL/h; DVT_prophylaxis: Pneumatic compression devices (SCDs) — delay pharmacologic prophylaxis 24-48h",
+        "discharge_medications": "No discharge medications",
         "follow_up": "Neurology/neurosurgery follow-up within 2-4 weeks. Repeat imaging per plan.",
         "hospital_course": "The patient was hospitalized for 3 days. Clinical course was favorable with improvement in presenting symptoms."
       },
