@@ -9,7 +9,7 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 
 | Looking for | Read |
 |---|---|
-| Module overview (22 modules at a glance) | [`MODULES.md`](MODULES.md) |
+| Module overview (30 modules at a glance) | [`MODULES.md`](MODULES.md) |
 | Scenario / medication flags (`causes_X` / `on_warfarin`) | [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.md) |
 | Architecture + ADR table (55+ entries) | [`DESIGN.md`](DESIGN.md) |
 | Module author HOW-TO + PR verification guide | [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) |
