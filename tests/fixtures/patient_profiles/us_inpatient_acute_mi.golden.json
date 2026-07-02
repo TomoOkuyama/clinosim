@@ -4,10 +4,13 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
+        "disease_protocol.chief_complaint.en",
+        "disease_protocol.narrative.hpi_template.onset_pattern.severe:ja_only_fallback",
+        "disease_protocol.narrative.hpi_template.trigger_options[0]",
         "ctx.patient.smoking_status",
         "ctx.patient.alcohol_use",
         "ctx.patient.occupation",
-        "physical_exam_findings..day_0:ja_only_fallback"
+        "physical_exam_findings.plateau.day_0:ja_only_fallback"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
@@ -18,12 +21,12 @@
       "sections": {
         "allergies": "No known drug allergies (NKDA)",
         "assessment_and_plan": "Assessment: Clinical assessment ongoing. Plan: Continue current management.",
-        "chief_complaint": "Chief complaint not specified",
+        "chief_complaint": "Chest pain, diaphoresis, dyspnea",
         "family_history": "No significant family history",
-        "hpi": "Patient presented with  symptoms.",
+        "hpi": "突然の強烈な胸痛・呼吸困難・意識消失傾向にて救急搬入。 労作中に発症",
         "medications_at_home": "No home medications",
         "past_medical_history": "No significant past medical history",
-        "physical_examination": "General: 意識清明、苦痛様. Cardiovascular: 整、心雑音なし. Respiratory: 呼吸音清明、呼吸数軽度上昇. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし",
+        "physical_examination": "General: 意識やや低下、苦痛強い. Cardiovascular: 整、心雑音なし. Respiratory: 呼吸促迫、補助呼吸筋使用. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし",
         "social_history": "Smoking: Non-smoker; Alcohol: Non-drinker; Occupation: other"
       },
       "structured": {},
@@ -35,7 +38,7 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
-        "physical_exam_findings..day_0",
+        "physical_exam_findings.plateau.day_0",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -48,7 +51,7 @@
       },
       "sections": {},
       "structured": {},
-      "text": "S: No special findings\nO: No special findings. General: 意識清明、苦痛様. Cardiovascular: 整、心雑音なし. Respiratory: 呼吸音清明、呼吸数軽度上昇. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし\nA: Clinical assessment ongoing\nP: Continue current management"
+      "text": "S: No special findings\nO: No special findings. General: 意識やや低下、苦痛強い. Cardiovascular: 整、心雑音なし. Respiratory: 呼吸促迫、補助呼吸筋使用. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし\nA: Clinical assessment ongoing\nP: Continue current management"
     }
   },
   "doc-ENC-FORCED-0001-000001-03": {
@@ -56,20 +59,20 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
-        "physical_exam_findings..day_0",
+        "physical_exam_findings.plateau.day_1",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 1,
         "generator": "template",
         "lang": "en"
       },
       "sections": {},
       "structured": {},
-      "text": "S: No special findings\nO: No special findings. General: 意識清明、苦痛様. Cardiovascular: 整、心雑音なし. Respiratory: 呼吸音清明、呼吸数軽度上昇. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし\nA: Clinical assessment ongoing\nP: Continue current management"
+      "text": "S: No special findings\nO: No special findings. General: 意識やや低下、苦痛強い. Cardiovascular: 整、心雑音なし. Respiratory: 呼吸促迫、補助呼吸筋使用. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし\nA: Clinical assessment ongoing\nP: Continue current management"
     }
   },
   "doc-ENC-FORCED-0001-000001-04": {
@@ -77,20 +80,20 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
-        "physical_exam_findings..day_0",
+        "physical_exam_findings.plateau.day_2",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 2,
         "generator": "template",
         "lang": "en"
       },
       "sections": {},
       "structured": {},
-      "text": "S: No special findings\nO: No special findings. General: 意識清明、苦痛様. Cardiovascular: 整、心雑音なし. Respiratory: 呼吸音清明、呼吸数軽度上昇. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし\nA: Clinical assessment ongoing\nP: Continue current management"
+      "text": "S: No special findings\nO: No special findings. General: 意識やや低下、苦痛強い. Cardiovascular: 整、心雑音なし. Respiratory: 呼吸促迫、補助呼吸筋使用. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし\nA: Clinical assessment ongoing\nP: Continue current management"
     }
   },
   "doc-ENC-FORCED-0001-000001-05": {
@@ -98,20 +101,20 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
-        "physical_exam_findings..day_0",
+        "physical_exam_findings.plateau.day_3",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 3,
         "generator": "template",
         "lang": "en"
       },
       "sections": {},
       "structured": {},
-      "text": "S: No special findings\nO: No special findings. General: 意識清明、苦痛様. Cardiovascular: 整、心雑音なし. Respiratory: 呼吸音清明、呼吸数軽度上昇. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし\nA: Clinical assessment ongoing\nP: Continue current management"
+      "text": "S: No special findings\nO: No special findings. General: 意識清明、症状改善傾向. Cardiovascular: 整、心雑音なし. Respiratory: 呼吸音清明、呼吸数正常. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし\nA: Clinical assessment ongoing\nP: Continue current management"
     }
   },
   "doc-ENC-FORCED-0001-000001-06": {
@@ -119,7 +122,11 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
+        "disease_protocol.chief_complaint.en",
+        "ctx.diagnoses",
+        "ctx.medications",
         "discharge_instructions.baseline",
+        "discharge_instructions.disease_specific.acute_mi",
         "discharge_instructions.follow_up"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
@@ -129,12 +136,12 @@
         "lang": "en"
       },
       "sections": {
-        "admission_summary": "Chief complaint: Chief complaint not specified. Admitted for inpatient care.",
-        "discharge_diagnoses": "Chief complaint not specified",
-        "discharge_instructions": "Drink plenty of fluids. Get adequate rest and avoid overexertion. Follow up with your primary care provider within 7-10 days. Take all prescribed medications as directed. Do not stop early without consulting your doctor. Return to the emergency department if symptoms worsen significantly. Resume a normal diet gradually as tolerated.",
-        "discharge_medications": "No discharge medications",
-        "follow_up": "Follow up with your primary care provider within 7-10 days.",
-        "hospital_course": "The patient was hospitalized for 1 days. Clinical course was favorable with improvement in presenting symptoms."
+        "admission_summary": "Chief complaint: Chest pain, diaphoresis, dyspnea. Admitted for inpatient care.",
+        "discharge_diagnoses": "I21.9",
+        "discharge_instructions": "Drink plenty of fluids. Get adequate rest and avoid overexertion. Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended. Take ALL cardiac medications as prescribed: aspirin, statin, beta-blocker, ACE inhibitor/ARB. Do NOT stop without consulting cardiologist. Call 119 immediately for: chest pain, severe shortness of breath, palpitations, syncope. Resume a normal diet gradually as tolerated. Restricted activity for 4-6 weeks. Avoid heavy lifting. Gradual return per cardiologist guidance. Low-fat, low-sodium diet. Smoking cessation mandatory. Limit alcohol. Weight management.",
+        "discharge_medications": "Aspirin; Ticagrelor; Heparin; Nitroglycerin; Dobutamine 2-20ug/kg/min IV drip; Norepinephrine 0.05-0.3ug/kg/min IV drip; Atorvastatin",
+        "follow_up": "Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended.",
+        "hospital_course": "The patient was hospitalized for 4 days. Clinical course was favorable with improvement in presenting symptoms."
       },
       "structured": {},
       "text": ""
@@ -181,7 +188,7 @@
       },
       "sections": {},
       "structured": {},
-      "text": "[Nursing Shift Note - night shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 1 / LOS 4 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-000001-09-day": {
@@ -203,7 +210,7 @@
       },
       "sections": {},
       "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 4 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-000001-10-evening": {
@@ -225,7 +232,7 @@
       },
       "sections": {},
       "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 4 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-000001-11-night": {
@@ -240,14 +247,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 1,
         "generator": "template",
         "lang": "en",
         "shift": "night"
       },
       "sections": {},
       "structured": {},
-      "text": "[Nursing Shift Note - night shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 4 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-000001-12-day": {
@@ -262,14 +269,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 1,
         "generator": "template",
         "lang": "en",
         "shift": "day"
       },
       "sections": {},
       "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 4 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-000001-13-evening": {
@@ -284,14 +291,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 1,
         "generator": "template",
         "lang": "en",
         "shift": "evening"
       },
       "sections": {},
       "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 4 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-000001-14-night": {
@@ -306,14 +313,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 2,
         "generator": "template",
         "lang": "en",
         "shift": "night"
       },
       "sections": {},
       "structured": {},
-      "text": "[Nursing Shift Note - night shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 3 / LOS 4 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-000001-15-day": {
@@ -328,14 +335,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 2,
         "generator": "template",
         "lang": "en",
         "shift": "day"
       },
       "sections": {},
       "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 4 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-000001-16-evening": {
@@ -350,14 +357,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 2,
         "generator": "template",
         "lang": "en",
         "shift": "evening"
       },
       "sections": {},
       "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 3 / LOS 4 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-000001-17-night": {
@@ -372,14 +379,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 3,
         "generator": "template",
         "lang": "en",
         "shift": "night"
       },
       "sections": {},
       "structured": {},
-      "text": "[Nursing Shift Note - night shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 4 / LOS 4 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-000001-18-day": {
@@ -394,14 +401,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 3,
         "generator": "template",
         "lang": "en",
         "shift": "day"
       },
       "sections": {},
       "structured": {},
-      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 4 / LOS 4 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-000001-19-evening": {
@@ -416,14 +423,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 3,
         "generator": "template",
         "lang": "en",
         "shift": "evening"
       },
       "sections": {},
       "structured": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 1 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 4 / LOS 4 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-000001-20": {
@@ -440,7 +447,7 @@
         "lang": "en"
       },
       "sections": {
-        "admission_status": "Hospital stay: 1 days. Discharge criteria met.",
+        "admission_status": "Hospital stay: 4 days. Discharge criteria met.",
         "discharge_readiness": "Discharge readiness: criteria met",
         "nursing_interventions_provided": "Nursing interventions provided: no significant findings",
         "patient_education": "Patient education: discharge instructions provided"
