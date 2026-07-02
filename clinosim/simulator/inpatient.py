@@ -174,6 +174,12 @@ def _simulate_patient(
         chief_complaint=chief_complaint,
         visit_number=readmission_number + 1,
     )
+    # β-JP-1 chain 1a (spec §2a): persist the selected severity + archetype on
+    # the Encounter so Stage 2 narrative generation reads them from structural
+    # CIF (they were previously in scope here but never written → every
+    # narrative rendered severity-/archetype-agnostic).
+    encounter.severity = severity
+    encounter.clinical_course_archetype = archetype
 
     # Department resolution: granular YAML specialty → hospital's available department
     from clinosim.simulator.helpers import resolve_department, pick_ward

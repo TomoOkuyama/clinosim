@@ -4,10 +4,14 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
+        "disease_protocol.chief_complaint.ja",
+        "disease_protocol.narrative.hpi_template.onset_pattern.moderate",
+        "disease_protocol.narrative.hpi_template.trigger_options[0]",
         "ctx.patient.smoking_status",
         "ctx.patient.alcohol_use",
         "ctx.patient.occupation",
-        "physical_exam_findings..day_0"
+        "physical_exam_findings.smooth_recovery.day_0",
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_0"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
@@ -17,13 +21,13 @@
       },
       "sections": {
         "allergies": "薬物アレルギーなし（NKDA）",
-        "assessment_and_plan": "評価: 経過観察中。方針: 治療継続。",
-        "chief_complaint": "発熱・全身倦怠感",
+        "assessment_and_plan": "評価: 初期診断確定、治療開始。方針: 治療継続、経過観察。",
+        "chief_complaint": "発熱・咳嗽・呼吸困難",
         "family_history": "特記家族歴なし",
-        "hpi": "の症状で受診。",
+        "hpi": "発熱・咳嗽・喀痰が出現し、SpO2 低下を認め緊急受診。 上気道感染後",
         "medications_at_home": "常用薬なし",
         "past_medical_history": "特記既往歴なし",
-        "physical_examination": "一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "physical_examination": "一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "social_history": "喫煙歴: 非喫煙者; 飲酒歴: 飲酒なし; 職業: other"
       },
       "structured": {},
@@ -35,7 +39,8 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
-        "physical_exam_findings..day_0",
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_0",
+        "physical_exam_findings.smooth_recovery.day_0",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -48,7 +53,7 @@
       },
       "sections": {},
       "structured": {},
-      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+      "text": "S（主観） 症状あり\nO（客観） バイタル安定、検査所見あり。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） 初期診断確定、治療開始\nP（計画） 治療継続、経過観察"
     }
   },
   "doc-ENC-FORCED-0001-000001-03": {
@@ -56,20 +61,21 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
-        "physical_exam_findings..day_0",
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "physical_exam_findings.smooth_recovery.day_1",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 1,
         "generator": "template",
         "lang": "ja"
       },
       "sections": {},
       "structured": {},
-      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+      "text": "S（主観） 症状緩和傾向\nO（客観） バイタル安定、検査所見改善。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） 治療反応良好\nP（計画） 治療継続"
     }
   },
   "doc-ENC-FORCED-0001-000001-04": {
@@ -77,20 +83,21 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
-        "physical_exam_findings..day_0",
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "physical_exam_findings.smooth_recovery.day_2",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 2,
         "generator": "template",
         "lang": "ja"
       },
       "sections": {},
       "structured": {},
-      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+      "text": "S（主観） 症状緩和傾向\nO（客観） バイタル安定、検査所見改善。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） 治療反応良好\nP（計画） 治療継続"
     }
   },
   "doc-ENC-FORCED-0001-000001-05": {
@@ -98,20 +105,21 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
-        "physical_exam_findings..day_0",
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "physical_exam_findings.smooth_recovery.day_3",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 3,
         "generator": "template",
         "lang": "ja"
       },
       "sections": {},
       "structured": {},
-      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+      "text": "S（主観） 症状緩和傾向\nO（客観） バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） 治療反応良好\nP（計画） 治療継続"
     }
   },
   "doc-ENC-FORCED-0001-000001-06": {
@@ -119,20 +127,21 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
-        "physical_exam_findings..day_0",
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "physical_exam_findings.smooth_recovery.day_4",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 4,
         "generator": "template",
         "lang": "ja"
       },
       "sections": {},
       "structured": {},
-      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+      "text": "S（主観） 症状緩和傾向\nO（客観） バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） 治療反応良好\nP（計画） 治療継続"
     }
   },
   "doc-ENC-FORCED-0001-000001-07": {
@@ -140,20 +149,21 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
-        "physical_exam_findings..day_0",
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "physical_exam_findings.smooth_recovery.day_5",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 5,
         "generator": "template",
         "lang": "ja"
       },
       "sections": {},
       "structured": {},
-      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+      "text": "S（主観） 症状緩和傾向\nO（客観） バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） 治療反応良好\nP（計画） 治療継続"
     }
   },
   "doc-ENC-FORCED-0001-000001-08": {
@@ -161,20 +171,21 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
-        "physical_exam_findings..day_0",
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "physical_exam_findings.smooth_recovery.day_6",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 6,
         "generator": "template",
         "lang": "ja"
       },
       "sections": {},
       "structured": {},
-      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+      "text": "S（主観） 症状緩和傾向\nO（客観） バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） 治療反応良好\nP（計画） 治療継続"
     }
   },
   "doc-ENC-FORCED-0001-000001-09": {
@@ -182,20 +193,21 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
-        "physical_exam_findings..day_0",
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "physical_exam_findings.smooth_recovery.day_7",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 7,
         "generator": "template",
         "lang": "ja"
       },
       "sections": {},
       "structured": {},
-      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+      "text": "S（主観） 症状緩和傾向\nO（客観） バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） 治療反応良好\nP（計画） 治療継続"
     }
   },
   "doc-ENC-FORCED-0001-000001-10": {
@@ -203,20 +215,21 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
-        "physical_exam_findings..day_0",
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "physical_exam_findings.smooth_recovery.day_8",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 8,
         "generator": "template",
         "lang": "ja"
       },
       "sections": {},
       "structured": {},
-      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+      "text": "S（主観） 症状緩和傾向\nO（客観） バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） 治療反応良好\nP（計画） 治療継続"
     }
   },
   "doc-ENC-FORCED-0001-000001-11": {
@@ -224,20 +237,21 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
-        "physical_exam_findings..day_0",
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "physical_exam_findings.smooth_recovery.day_9",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 9,
         "generator": "template",
         "lang": "ja"
       },
       "sections": {},
       "structured": {},
-      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+      "text": "S（主観） 症状緩和傾向\nO（客観） バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） 治療反応良好\nP（計画） 治療継続"
     }
   },
   "doc-ENC-FORCED-0001-000001-12": {
@@ -245,20 +259,21 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
-        "physical_exam_findings..day_0",
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "physical_exam_findings.smooth_recovery.day_10",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 10,
         "generator": "template",
         "lang": "ja"
       },
       "sections": {},
       "structured": {},
-      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+      "text": "S（主観） 症状緩和傾向\nO（客観） バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） 治療反応良好\nP（計画） 治療継続"
     }
   },
   "doc-ENC-FORCED-0001-000001-13": {
@@ -266,7 +281,11 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
+        "disease_protocol.chief_complaint.ja",
+        "ctx.diagnoses",
+        "ctx.medications",
         "discharge_instructions.baseline",
+        "discharge_instructions.disease_specific.bacterial_pneumonia",
         "discharge_instructions.follow_up"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
@@ -276,12 +295,12 @@
         "lang": "ja"
       },
       "sections": {
-        "admission_summary": "主訴: 発熱・全身倦怠感。入院日: 1 日目現在。",
-        "discharge_diagnoses": "発熱・全身倦怠感",
-        "discharge_instructions": "十分な水分摂取を心がけてください。 十分な休息をとり、無理な活動は控えてください。 退院後 1-2 週間以内にかかりつけ医を受診してください。 処方された薬はすべて指示通りに内服してください。医師に相談なく中止しないでください。 症状が著しく悪化した場合は速やかに救急受診してください。 食事は体調に合わせて徐々に通常食に戻してください。",
-        "discharge_medications": "退院処方なし",
-        "follow_up": "退院後 1-2 週間以内にかかりつけ医を受診してください。",
-        "hospital_course": "入院 1 日間の治療を経て経過良好。症状は改善し退院となった。"
+        "admission_summary": "主訴: 発熱・咳嗽・呼吸困難。入院日: 1 日目現在。",
+        "discharge_diagnoses": "ウイルス性肺炎、詳細不明（J12.9）",
+        "discharge_instructions": "十分な水分摂取を心がけてください。 十分な休息をとり、無理な活動は控えてください。 退院後 7-10 日以内に呼吸器科または内科外来を受診してください。6-8 週後に胸部 X 線再撮影予定。 処方された抗菌薬は症状が改善しても最後まで内服してください。 発熱（38.5℃超）の持続、呼吸困難の増悪、SpO2 低下があれば速やかに救急受診してください。 食事は体調に合わせて徐々に通常食に戻してください。 徐々に活動を再開してください。2 週間は激しい運動を避けてください。 喫煙は回復を著しく遅らせます。禁煙を強くお勧めします。 十分な水分摂取と栄養補給を心がけてください。禁煙を強くお勧めします。",
+        "discharge_medications": "Ampicillin/Sulbactam; IV_fluid: NS 80-125 mL/h; antipyretic: Acetaminophen 500mg PO q6h PRN temp >= 38.5; DVT_prophylaxis: Enoxaparin 2000IU SC daily; Meropenem 1g IV q8h; Amoxicillin",
+        "follow_up": "退院後 7-10 日以内に呼吸器科または内科外来を受診してください。6-8 週後に胸部 X 線再撮影予定。",
+        "hospital_course": "入院 11 日間の治療を経て経過良好。症状は改善し退院となった。"
       },
       "structured": {},
       "text": ""
@@ -328,7 +347,7 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-16-day": {
@@ -350,7 +369,7 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-17-evening": {
@@ -372,7 +391,7 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-18-night": {
@@ -387,14 +406,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 1,
         "generator": "template",
         "lang": "ja",
         "shift": "night"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 2 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-19-day": {
@@ -409,14 +428,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 1,
         "generator": "template",
         "lang": "ja",
         "shift": "day"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 2 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-20-evening": {
@@ -431,14 +450,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 1,
         "generator": "template",
         "lang": "ja",
         "shift": "evening"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 2 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-21-night": {
@@ -453,14 +472,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 2,
         "generator": "template",
         "lang": "ja",
         "shift": "night"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 3 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-22-day": {
@@ -475,14 +494,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 2,
         "generator": "template",
         "lang": "ja",
         "shift": "day"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 3 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-23-evening": {
@@ -497,14 +516,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 2,
         "generator": "template",
         "lang": "ja",
         "shift": "evening"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 3 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-24-night": {
@@ -519,14 +538,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 3,
         "generator": "template",
         "lang": "ja",
         "shift": "night"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 4 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-25-day": {
@@ -541,14 +560,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 3,
         "generator": "template",
         "lang": "ja",
         "shift": "day"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 4 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-26-evening": {
@@ -563,14 +582,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 3,
         "generator": "template",
         "lang": "ja",
         "shift": "evening"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 4 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-27-night": {
@@ -585,14 +604,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 4,
         "generator": "template",
         "lang": "ja",
         "shift": "night"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 5 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-28-day": {
@@ -607,14 +626,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 4,
         "generator": "template",
         "lang": "ja",
         "shift": "day"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 5 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-29-evening": {
@@ -629,14 +648,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 4,
         "generator": "template",
         "lang": "ja",
         "shift": "evening"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 5 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-30-night": {
@@ -651,14 +670,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 5,
         "generator": "template",
         "lang": "ja",
         "shift": "night"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 6 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-31-day": {
@@ -673,14 +692,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 5,
         "generator": "template",
         "lang": "ja",
         "shift": "day"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 6 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-32-evening": {
@@ -695,14 +714,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 5,
         "generator": "template",
         "lang": "ja",
         "shift": "evening"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 6 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-33-night": {
@@ -717,14 +736,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 6,
         "generator": "template",
         "lang": "ja",
         "shift": "night"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 7 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-34-day": {
@@ -739,14 +758,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 6,
         "generator": "template",
         "lang": "ja",
         "shift": "day"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 7 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-35-evening": {
@@ -761,14 +780,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 6,
         "generator": "template",
         "lang": "ja",
         "shift": "evening"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 7 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-36-night": {
@@ -783,14 +802,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 7,
         "generator": "template",
         "lang": "ja",
         "shift": "night"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 8 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-37-day": {
@@ -805,14 +824,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 7,
         "generator": "template",
         "lang": "ja",
         "shift": "day"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 8 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-38-evening": {
@@ -827,14 +846,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 7,
         "generator": "template",
         "lang": "ja",
         "shift": "evening"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 8 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-39-night": {
@@ -849,14 +868,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 8,
         "generator": "template",
         "lang": "ja",
         "shift": "night"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 9 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-40-day": {
@@ -871,14 +890,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 8,
         "generator": "template",
         "lang": "ja",
         "shift": "day"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 9 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-41-evening": {
@@ -893,14 +912,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 8,
         "generator": "template",
         "lang": "ja",
         "shift": "evening"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 9 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-42-night": {
@@ -915,14 +934,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 9,
         "generator": "template",
         "lang": "ja",
         "shift": "night"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 10 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-43-day": {
@@ -937,14 +956,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 9,
         "generator": "template",
         "lang": "ja",
         "shift": "day"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 10 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-44-evening": {
@@ -959,14 +978,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 9,
         "generator": "template",
         "lang": "ja",
         "shift": "evening"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 10 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-45-night": {
@@ -981,14 +1000,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 10,
         "generator": "template",
         "lang": "ja",
         "shift": "night"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 11 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-46-day": {
@@ -1003,14 +1022,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 10,
         "generator": "template",
         "lang": "ja",
         "shift": "day"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 11 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-47-evening": {
@@ -1025,14 +1044,14 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 0,
+        "day_index": 10,
         "generator": "template",
         "lang": "ja",
         "shift": "evening"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 11 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-000001-48": {
@@ -1049,7 +1068,7 @@
         "lang": "ja"
       },
       "sections": {
-        "admission_status": "入院期間: 1 日間。入院目的達成後、退院となった。",
+        "admission_status": "入院期間: 11 日間。入院目的達成後、退院となった。",
         "discharge_readiness": "退院準備：退院基準を満たす",
         "nursing_interventions_provided": "実施した看護介入：特記事項なし",
         "patient_education": "患者教育：退院指導実施"
