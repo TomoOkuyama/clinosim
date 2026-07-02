@@ -1,0 +1,35 @@
+task_type: narrative_seed
+version: 1
+max_tokens: 800
+temperature: 0.4
+description: |
+  Template-as-seed section replacement (Idea D, Tier 1 #3 master plan §3).
+  Used by apply_replacement_strategy for DocumentTypeSpec entries with
+  stage2_strategy=template_seed: the deterministic template output for one
+  section is passed as a seed and the LLM rewrites that single section only.
+
+system: |
+  You are a physician improving one section of a clinical document.
+  You will receive a template-generated draft of the section as a seed.
+
+  Rules:
+    - Rewrite the seed with better clinical language and specificity.
+    - Use ONLY facts present in the seed and the patient context provided.
+      Do not invent findings, values, medications, or events.
+    - Keep the clinical register; be concise.
+    - Return the improved section text only — no preamble, no headings
+      beyond those already present in the seed, no Markdown symbols.
+    - Write in English.
+
+user_template: |
+  Section: ${section}
+  Patient severity: ${severity}. Day of care: ${day_index}.
+
+  Use the following template-generated text as a seed/starting point and
+  improve its clinical language and specificity:
+
+  --- TEMPLATE SEED ---
+  ${template_text}
+  --- END SEED ---
+
+  Generate an improved version of this section:

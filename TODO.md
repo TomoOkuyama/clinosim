@@ -2051,6 +2051,20 @@ its own chain.
 - **N-4 (optional, incremental)**: data-drive `template_generator.py` (1446-line Python string
   assembly) into per-section YAML templates so new doc types need no Python edits.
 
+#### N-chain adv-1 deferred
+
+- **`narrative/cache.py get_default_cache()` singleton = test-only dead seam**: no production
+  code path uses the module-level `_default_cache` (LLMNarrativePass owns a per-run
+  `NarrativeCache` instance; LLMNarrativeGenerator defaults to a fresh instance). Remove the
+  singleton + its test, or wire it deliberately, in a later cleanup.
+- **`NarrativePass._build_context` degenerate context fields** (adv-1 reviewer note):
+  the production pass path passes `disease_protocol=None` / `clinical_course_archetype`
+  fallback `""` / `severity` fallback `""` / `day_index=0` into `NarrativeContext` —
+  already documented as spec §6 deferred (structural CIF does not yet carry per-day
+  clinical-course context for Stage 2). Cross-reference: the C-1 fix (adv-1) made the
+  layer-1 cache safe against this degeneration by adding the template-seed hash to the
+  cache key, but richer per-day context remains deferred to spec §6.
+
 ### ★★ AD-30 chain: display-in-CIF removal (CIF schema change + golden regen)
 
 - `types/allergy.py:18,28` `manifestation_display`/`allergen_display` (populated at
