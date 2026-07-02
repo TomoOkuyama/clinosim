@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+from typing import Literal
+
 from pydantic import BaseModel
 
 
@@ -78,6 +81,91 @@ class ForcedScenario(BaseModel):
     #         "organism_snomed": "112283007"}. None = use stochastic Poisson sampling.
     # hai_type must be in HAI_TYPES (validated by enrich_hai at consume time).
     force_hai_event: dict | None = None
+
+
+# --- AD-66 α-min-2c: Canonical Patient Profile fixture library ---
+
+_PATIENT_PROFILE_DIR: Path = (
+    Path(__file__).parent.parent.parent / "tests" / "fixtures" / "patient_profiles"
+)
+
+
+class PatientProfile(BaseModel):
+    """Canonical patient scenario fixture for narrative regression testing (α-min-2c, AD-66).
+
+    Loaded from tests/fixtures/patient_profiles/<name>.yaml. Transformed to
+    ForcedScenario at CLI dispatch via .to_forced_scenario(). β-JP-1 extends
+    with LLM-specific fields (llm_seed, expected_sections, ...).
+    """
+
+    model_config = {"extra": "forbid"}
+
+    # Identity
+    profile_id: str
+
+    # Simulation inputs
+    disease_id: str
+    country: Literal["US", "JP"] = "US"
+    severity: Literal["mild", "moderate", "severe"] | None = None
+    archetype: str | None = None
+    count: int = 1
+    random_seed: int = 42
+    hospital_scale: Literal["small", "medium", "large"] = "medium"
+
+    # Optional overrides
+    patient_overrides: dict = {}
+    force_hai_event: dict | None = None
+    chronic_medications: list[str] = []
+    time_range: tuple[str, str] = ("2024-04-01", "2025-03-31")
+
+    # Documentation
+    description: str = ""
+    clinical_notes: str = ""
+
+    def to_forced_scenario(self) -> ForcedScenario:
+        return ForcedScenario(
+            disease_id=self.disease_id,
+            count=self.count,
+            severity=self.severity,
+            archetype=self.archetype,
+            patient_overrides=self.patient_overrides,
+            force_hai_event=self.force_hai_event,
+        )
+
+
+def load_patient_profile(name_or_path: str) -> PatientProfile:
+    """Resolve a patient profile by name or absolute path.
+
+    - If ``name_or_path`` exists as a file → load directly.
+    - Otherwise → resolve as ``tests/fixtures/patient_profiles/<name>.yaml``.
+
+    Raises:
+        FileNotFoundError: unresolvable name / missing file
+        pydantic.ValidationError: schema mismatch (extra keys, wrong types, etc.)
+        ValueError: profile_id does not match filename stem
+    """
+    import yaml
+
+    p = Path(name_or_path)
+    if not p.is_file():
+        p = _PATIENT_PROFILE_DIR / f"{name_or_path}.yaml"
+        if not p.is_file():
+            raise FileNotFoundError(
+                f"patient profile not found: {name_or_path!r} "
+                f"(looked in {_PATIENT_PROFILE_DIR} and as literal path)"
+            )
+
+    data = yaml.safe_load(p.read_text())
+    profile = PatientProfile(**data)
+
+    expected_stem = p.stem
+    if profile.profile_id != expected_stem:
+        raise ValueError(
+            f"profile_id {profile.profile_id!r} does not match filename stem "
+            f"{expected_stem!r} in {p} (silent-no-op defense)"
+        )
+
+    return profile
 
 
 class SimulatorConfig(BaseModel):
