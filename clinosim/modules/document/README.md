@@ -23,6 +23,21 @@ Task 6+ で template generator、Task 8 で POST_ENCOUNTER enricher、Task 9 で
 
 α-min-1 scope = `ADMISSION_HP` / `PROGRESS_NOTE` / `DISCHARGE_SUMMARY` の 3 種。本 chain では追加禁止 (scope discipline)。
 
+## generation_frequency 値(canonical allowlist = `registry.GENERATION_FREQUENCIES`)
+
+| 値 | 発行 cadence | 使用 doc type |
+|---|---|---|
+| `admission_once` | day 0 に 1 通 | ADMISSION_HP / ADMISSION_NURSING_ASSESSMENT |
+| `daily` | LOS 日ごとに 1 通(LOS=1 skip) | PROGRESS_NOTE |
+| `daily_3shift` | LOS 日ごとに 3 通(深夜 00:00 / 日勤 08:00 / 準夜 16:00、`engine.SHIFT_SCHEDULE`。LOS=1 skip、AD-32 同様)| NURSING_SHIFT_NOTE(α-min-3) |
+| `discharge_once` | 最終日に 1 通(in-progress は AD-32 で skip) | DISCHARGE_SUMMARY / NURSING_DISCHARGE_SUMMARY |
+| `encounter_once` | day 0 に 1 通(外来/ED 単回受診) | OUTPATIENT_SOAP / ED_NOTE / ED_TRIAGE_NOTE |
+
+未知の値は `registry._validate_document_type_specs` Layer 7 が YAML load 時に fail-loud
+(engine dispatch は if/elif のため、allowlist なしでは typo が silent no-op になる — PR-90 class)。
+`daily_3shift` の stub は neutral shift key(`ClinicalDocument.shift` = night/day/evening)を保持し、
+localized label(en: night/day/evening、ja: 深夜/日勤/準夜)は Stage 2 render 時に解決(AD-30 spirit)。
+
 ## Canonical ID-prefix constants
 
 | 定数 | 値 | 対応 FHIR resource |

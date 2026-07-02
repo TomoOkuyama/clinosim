@@ -74,7 +74,12 @@ specs:
     format_type: free_text
     countries_supported: [us, jp]
     encounter_types_supported: [inpatient, icu, rehab_inpatient]
-    generation_frequency: daily
+    # α-min-3: realistic acute-care cadence = 3 notes per LOS day
+    # (night 00:00 / day 08:00 / evening 16:00). Dispatch + shift schedule
+    # live in engine.py (SHIFT_SCHEDULE); neutral shift key is stored on the
+    # stub and translated at Stage 2 render time (en day/evening/night,
+    # ja 日勤/準夜/深夜).
+    generation_frequency: daily_3shift
     stage2_strategy: template_only
     llm_enabled_sections: []
 

@@ -19,9 +19,12 @@ Architecture:
 - DOC_REFERENCE_ID_PREFIX + CLINICAL_IMPRESSION_ID_PREFIX from __init__.py
   are the writer-owned canonical constants (reader Task 9 imports from here)
 
-Supported generation_frequency values (α-min-2):
+Supported generation_frequency values (α-min-2, extended in α-min-3):
   admission_once  → 1 document at day 0 (inpatient H&P, nursing assessment)
-  daily           → 1 document per LOS day (progress note, nursing shift)
+  daily           → 1 document per LOS day (progress note)
+  daily_3shift    → 3 documents per LOS day at night 00:00 / day 08:00 /
+                    evening 16:00 (nursing shift note, α-min-3); mirrors
+                    `daily` skip rules (LOS=1 skip, AD-32 in-progress proxy)
   discharge_once  → 1 document at final day, skipped if in-progress (AD-32)
   encounter_once  → 1 document at day 0 for outpatient/ED encounters
 
@@ -49,7 +52,7 @@ Two-pass lifecycle (AD-65):
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 from functools import lru_cache
 from typing import Any
 
@@ -114,6 +117,20 @@ _CI_ENCOUNTER_TYPES: frozenset[str] = frozenset({
 })
 
 _CANCELLED_STATUSES: frozenset[str] = frozenset({"cancelled"})
+
+# α-min-3: acute-care nursing 3-shift schedule for `daily_3shift` specs.
+# Writer-owned canonical constant (single edit point — sibling to
+# DOC_REFERENCE_ID_PREFIX ownership). Neutral shift keys are stored in
+# structural CIF (`ClinicalDocument.shift`); localized labels (JP 深夜/日勤/
+# 準夜) are resolved at Stage 2 render time by language (AD-30 spirit).
+# Order is chronological within the calendar day so authored_datetime is
+# monotonic with document sequence: night 00:00-08:00 / day 08:00-16:00 /
+# evening 16:00-24:00.
+SHIFT_SCHEDULE: tuple[tuple[str, int], ...] = (
+    ("night", 0),
+    ("day", 8),
+    ("evening", 16),
+)
 
 
 def _pick_document_author(spec: Any, encounter: Any) -> str:
@@ -198,6 +215,8 @@ def document_enricher(ctx: Any) -> None:
     Per encounter in ctx.records (country × encounter_type intersection applied):
       - admission_once specs  → 1 document at day 0
       - daily specs           → 1 document per LOS day (skipped for LOS=1; spec §7)
+      - daily_3shift specs    → 3 documents per LOS day (night/day/evening;
+                                same LOS=1 skip; α-min-3)
       - discharge_once specs  → 1 document at day LOS-1, skipped if in-progress (AD-32)
       - encounter_once specs  → 1 document at day 0 (outpatient / ED single-visit)
       - ClinicalImpressionRecord → 1 per LOS day (inpatient/icu/rehab_inpatient only; spec §3.3)
@@ -311,6 +330,38 @@ def document_enricher(ctx: Any) -> None:
                             narrative=None,
                         ))
                         doc_seq += 1
+
+                elif freq == "daily_3shift":
+                    # α-min-3: 3 notes per LOS day (night 00:00 / day 08:00 /
+                    # evening 16:00). Mirrors the `daily` branch: skipped for
+                    # LOS=1 same-day encounters (spec §7), and in-progress
+                    # encounters (AD-32) use the same los_days proxy — partial
+                    # data up to the snapshot day only.
+                    if los_days <= 1:
+                        continue
+                    for day in range(los_days):
+                        day_date = (admission_dt + timedelta(days=day)).date()
+                        for shift_key, shift_hour in SHIFT_SCHEDULE:
+                            shift_dt = datetime.combine(day_date, time(hour=shift_hour))
+                            documents.append(ClinicalDocument(
+                                document_id=(
+                                    f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}"
+                                    f"-{doc_seq:02d}-{shift_key}"
+                                ),
+                                task_type=spec.type_key,
+                                loinc_code=spec.loinc_code,
+                                patient_id=pid,
+                                encounter_id=encounter_id,
+                                author_practitioner_id=_pick_document_author(spec, encounter),
+                                authored_datetime=shift_dt.isoformat(),
+                                period_start=shift_dt.isoformat(),
+                                period_end=shift_dt.isoformat(),
+                                language=lang,
+                                format_type=spec.format_type.value,
+                                shift=shift_key,
+                                narrative=None,
+                            ))
+                            doc_seq += 1
 
                 elif freq == "discharge_once":
                     if is_in_progress:
