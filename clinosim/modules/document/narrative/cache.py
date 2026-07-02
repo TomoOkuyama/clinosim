@@ -2,7 +2,19 @@
 
 Cache key = hash(disease + archetype + day + severity + demographics_bucket + lang + section).
 In-memory only; no eviction — flushed on process exit (session-lifetime cache).
-In-process LRU replay: same context inputs → identical hash → no provider re-call.
+In-process LRU replay: same context inputs → identical hash → no LLM re-call.
+
+Two-layer cache design (N-chain, 2026-07-02):
+
+- ``NarrativeCache`` (THIS module) = layer 1: in-memory, clinical-context key.
+  Enables cross-patient reuse — two patients in the same clinical bucket share
+  one generated section without even rendering a prompt.
+- ``clinosim.modules.llm_service.cache.PromptCache`` = layer 2: on-disk,
+  sha256(system+user+model) key inside ``LLMService``. Survives process
+  restarts and dedupes exact prompt repeats across runs (cloud cost control).
+
+The layers are complementary, not duplicates: layer 1 fires before prompt
+construction (coarse clinical key), layer 2 fires after (exact prompt key).
 """
 from __future__ import annotations
 

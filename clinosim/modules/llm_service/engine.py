@@ -19,6 +19,15 @@ from .providers import ProviderResponse  # noqa: F401
 from .providers.ollama import OllamaProvider  # noqa: F401  (back-compat)
 
 
+class LLMCompletionError(RuntimeError):
+    """Raised by ``LLMService.complete_prompt`` when no provider is configured
+    or all retry attempts are exhausted.
+
+    This API intentionally has NO template fallback — the caller (e.g.
+    ``LLMNarrativeGenerator``) owns the fallback decision (N-2, N-chain).
+    """
+
+
 class LLMTaskCategory(str, Enum):
     JUDGMENT = "judgment"
     NARRATIVE = "narrative"
@@ -290,7 +299,101 @@ class LLMService:
 
         model = model_map.get("medium", model_map.get("small", "")) or ""
 
-        # Cache lookup
+        try:
+            resp = self._complete_with_retry(
+                provider=provider,
+                provider_name=provider_name,
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                model=model,
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
+            resp.prompt_version = prompt_version
+            return resp
+        except LLMCompletionError as e:
+            # All retries exhausted — fall back to template
+            self.fallback_count += 1
+            resp = self._template_generate(task_type, event, language)
+            resp.fallback_reason = f"provider_error:{e}"[:200]
+            return resp
+
+    # ------------------------------------------------------------
+    # Raw pre-built-prompt path (N-2, N-chain)
+    # ------------------------------------------------------------
+    def complete_prompt(
+        self,
+        system: str,
+        user: str,
+        *,
+        language: str,
+        task_type: LLMTaskType,
+        max_tokens: int | None = None,
+        temperature: float | None = None,
+    ) -> LLMResponse:
+        """Execute a pre-built (system, user) prompt with retry + PromptCache
+        + token accounting — and NO template fallback.
+
+        This is the single low-level public API for callers that build their
+        own prompts (e.g. the narrative ``apply_replacement_strategy``, which
+        renders ``prompts/<lang>/narrative_seed.yaml``). Provider selection
+        follows ``TASK_CATEGORY[task_type]`` (judgment vs narrative), the
+        model comes from the corresponding model map.
+
+        Error contract: raises ``LLMCompletionError`` when no provider is
+        configured for the task category OR all ``retry_attempts`` are
+        exhausted. The caller owns the fallback decision (AD-11 keeps the
+        transport concerns — retry, disk PromptCache, cost accounting — in
+        this service; content-level fallback stays with the caller).
+
+        ``language`` is informational today (prompt text is already built);
+        it is part of the signature for future per-language model routing.
+        """
+        del language  # reserved for per-language model routing
+        if TASK_CATEGORY[task_type] == LLMTaskCategory.JUDGMENT:
+            provider = self.judgment_provider
+            model_map = self.judgment_model_map
+            provider_name = self.provider_name_judgment
+        else:
+            provider = self.narrative_provider
+            model_map = self.narrative_model_map
+            provider_name = self.provider_name_narrative
+
+        if provider is None:
+            raise LLMCompletionError(
+                f"no provider configured for task_type={task_type.value!r} "
+                f"(category={TASK_CATEGORY[task_type].value})"
+            )
+
+        model = model_map.get("medium", model_map.get("small", "")) or ""
+        return self._complete_with_retry(
+            provider=provider,
+            provider_name=provider_name,
+            system_prompt=system,
+            user_prompt=user,
+            model=model,
+            max_tokens=max_tokens if max_tokens is not None else 1500,
+            temperature=temperature if temperature is not None else 0.4,
+        )
+
+    def _complete_with_retry(
+        self,
+        provider: Any,
+        provider_name: str,
+        system_prompt: str,
+        user_prompt: str,
+        model: str,
+        max_tokens: int,
+        temperature: float,
+    ) -> LLMResponse:
+        """Shared transport core: PromptCache lookup → provider retry loop →
+        token accounting → PromptCache store.
+
+        Raises ``LLMCompletionError`` on retry exhaustion (callers decide the
+        fallback: ``_llm_generate`` falls back to template, ``complete_prompt``
+        propagates).
+        """
+        # Cache lookup (layer 2: prompt-hash-keyed disk cache — see PromptCache)
         if self.cache is not None:
             cached = self.cache.get(system_prompt, user_prompt, model)
             if cached is not None:
@@ -302,11 +405,9 @@ class LLMService:
                     provider=provider_name,
                     input_tokens=cached.input_tokens,
                     output_tokens=cached.output_tokens,
-                    prompt_version=prompt_version,
                     cache_hit=True,
                 )
 
-        # Call with retry
         last_error = ""
         for attempt in range(self.retry_attempts):
             try:
@@ -331,23 +432,15 @@ class LLMService:
                     provider=provider_name,
                     input_tokens=response.input_tokens,
                     output_tokens=response.output_tokens,
-                    prompt_version=prompt_version,
                 )
             except Exception as e:
                 last_error = f"{type(e).__name__}: {e}"
                 if attempt == self.retry_attempts - 1:
-                    # All retries exhausted — fall back to template
-                    self.fallback_count += 1
-                    resp = self._template_generate(task_type, event, language)
-                    resp.fallback_reason = f"provider_error:{last_error}"[:200]
-                    return resp
+                    break
                 import time
                 time.sleep(self.retry_backoff_seconds * (attempt + 1))
 
-        # Unreachable but for type-checkers
-        resp = self._template_generate(task_type, event, language)
-        resp.fallback_reason = f"unknown:{last_error}"
-        return resp
+        raise LLMCompletionError(last_error or "no attempts made")
 
     def cost_report(self) -> dict:
         return {
