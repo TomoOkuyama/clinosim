@@ -17,6 +17,11 @@ Task 6+ で template generator、Task 8 で POST_ENCOUNTER enricher、Task 9 で
   loader + 後方互換 re-export)
 - `clinosim/types/allergy.py` — `Allergy` (NarrativeContext.allergies)
 - `clinosim/modules/_shared.py` — `get_attr_or_key` (dual-access helper for dict / dataclass)
+- `clinosim/modules/disease/` — `load_disease_protocol`(β-JP-1 chain 1a:
+  `NarrativePass._build_context` が `condition_event.condition_type == "known_disease"` の
+  patient の disease_protocol を解決。lru_cache 済 / shared instance は read-only)
+- `clinosim/modules/encounter/` — `load_encounter_condition`(β-JP-1 chain 1a:
+  `condition_type == "ed_visit"` の encounter_protocol 解決。未知 id は WARN + None fallback)
 - `clinosim/modules/llm_service/` — `LLMService.complete_prompt`(AD-11 経由の LLM 呼出し。
   `LLMNarrativeGenerator` / `apply_replacement_strategy` / `LLMNarrativePass` のみが使用、
   template 経路は依存しない)
