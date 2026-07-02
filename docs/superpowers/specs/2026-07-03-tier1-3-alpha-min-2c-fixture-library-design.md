@@ -16,6 +16,7 @@ Non-goals (deferred to β-JP-1 or later):
 - Clinical review loop (per-profile 臨床医 review)
 - FHIR output regression (existing e2e goldens already cover)
 - LLM model comparison suite
+- **ED / outpatient encounter-based profiles** — `run_forced` (invoked by `test-disease`) only dispatches disease modules via `load_disease_protocol`. Adding encounter profile support requires either extending `test-disease` dispatch to also accept encounter_condition_ids OR adding `test-encounter --patient-profile` symmetric CLI. Both are fresh scope. α-min-2c ships **6 disease-based inpatient/ICU profiles**; β-JP-1 or a follow-up chain adds encounter profile support
 
 ## 1. Design decisions (brainstorming outcomes)
 
@@ -176,7 +177,7 @@ else:
 - Profile invalid schema → `sys.exit(2)` with Pydantic error message
 - Profile `disease_id` unknown to disease_protocol / encounter_condition registries → `sys.exit(2)` with error message
 
-**Non-Q4 subcommand**: `test-encounter` NOT extended in α-min-2c. Profile #4 (`us_ed_chest_pain_noncardiac`) uses `test-disease --patient-profile` where `chest_pain_noncardiac` is dispatched to encounter-simulation path. If not currently supported, add a scope-in fix (verify at Task 8 time).
+**Non-Q4 subcommand**: `test-encounter` NOT extended in α-min-2c. All 6 profiles use disease modules only (see §6). Extending `test-encounter --patient-profile` is a symmetric follow-up for β-JP-1 or later chain when ED/outpatient profiles are added.
 
 ## 5. Regression pytest suite
 
@@ -263,20 +264,24 @@ def test_profile_narrative_byte_diff(profile_id: str, tmp_path: Path) -> None:
 
 ## 6. Initial 6 profiles (clinical content)
 
+All profiles are **disease-based inpatient/ICU** to dispatch via `test-disease` → `run_forced` → `load_disease_protocol` (verified in `clinosim/simulator/engine.py:run_forced`). ED / outpatient encounter profiles are deferred per §0 non-goals.
+
 | # | profile_id | disease_id | severity | archetype | country | Verification focus |
 |---|---|---|---|---|---|---|
-| 1 | `jp_inpatient_bacterial_pneumonia` | `bacterial_pneumonia` | moderate | `uncomplicated_improvement` | JP | Multi-day progress note (3-5 days LOS), JP linguistic expression |
-| 2 | `us_inpatient_mi` | `acute_myocardial_infarction` | severe | `pci_complicated` | US | Troponin trajectory + PCI narrative, US H&P + Discharge summary |
-| 3 | `jp_icu_sepsis_hai_clabsi` | `sepsis` | severe | `icu_prolonged` | JP | `force_hai_event={"hai_type":"clabsi","onset_offset_days":3,"organism_snomed":"3092008"}` = HAI + antibiotic de-escalation |
-| 4 | `us_ed_chest_pain_noncardiac` | `chest_pain_noncardiac` | moderate | — | US | ED triage narrative (ESI) + ED note, single-encounter |
-| 5 | `jp_outpatient_dm_type2` | `diabetes_type2` | mild | — | JP | Outpatient SOAP + JP chronic med list |
-| 6 | `us_inpatient_dka` | `dka` | severe | `insulin_drip_recovery` | US | Glucose trajectory + insulin drip, H&P + progress + discharge |
+| 1 | `jp_inpatient_bacterial_pneumonia` | `bacterial_pneumonia` | moderate | `smooth_recovery` | JP | Multi-day progress note (3-5 days LOS), JP linguistic expression |
+| 2 | `us_inpatient_acute_mi` | `acute_mi` | severe | `plateau` | US | Troponin trajectory + PCI narrative, US H&P + Discharge summary |
+| 3 | `jp_icu_sepsis_hai_clabsi` | `sepsis` | severe | `dip_then_recovery` | JP | `force_hai_event={"hai_type":"clabsi","onset_offset_days":3,"organism_snomed":"3092008"}` = HAI + antibiotic de-escalation |
+| 4 | `us_inpatient_diabetic_ketoacidosis` | `diabetic_ketoacidosis` | severe | `smooth_recovery` | US | Glucose trajectory + insulin drip, H&P + progress + discharge |
+| 5 | `jp_inpatient_copd_exacerbation` | `copd_exacerbation` | moderate | `dip_then_recovery` | JP | JP chronic care narrative, respiratory decline + recovery |
+| 6 | `us_inpatient_hemorrhagic_stroke` | `hemorrhagic_stroke` | severe | `dip_then_recovery` | US | Neuro-critical narrative, GCS + neuro exam sequence |
 
-**Encounter path verification** (Task 8): Profile 4's `disease_id=chest_pain_noncardiac` is a `condition_id` (encounter registry), not `disease_id` (disease registry). `test-disease` currently dispatches by disease_protocol lookup — if `chest_pain_noncardiac` is NOT in that registry, Task 8 MUST decide: (a) extend `test-disease` dispatch to fall back to encounter_condition registry, OR (b) rename profile to `us_ed_encounter_chest_pain_noncardiac` + use `test-encounter --patient-profile`. Preferred = (a), single CLI verb.
+**Registry validity** (verified at spec-write time via `ls clinosim/modules/disease/reference_data/`): all 6 disease_ids exist. Archetype names `smooth_recovery` / `dip_then_recovery` / `plateau` are canonical across the disease modules used.
 
-**Archetype validity** (Tasks 5-10): Each `archetype` MUST exist in the target disease YAML's `course_archetypes`. Task 4 must verify before authoring profile YAMLs — grep disease YAML, use exact archetype name.
+**Archetype validity** (Tasks 5-10): Each `archetype` MUST exist in the target disease YAML's `course_archetypes`. Grep at authoring time. If archetype absent from a disease YAML, adjust to `smooth_recovery` (universally present).
 
 **Determinism** (Tasks 5-10): Every profile MUST include `random_seed: 42` (or a documented alternative). Golden bootstrap runs with this seed; test suite runs with this seed; determinism verified via `test-disease` byte-diff invariant.
+
+**HAI ORGANISM verification** (Task 7): profile 3's `organism_snomed: "3092008"` (S. aureus) MUST be in `clinosim/modules/hai/reference_data/hai_organisms.yaml` under the CLABSI section. Verify at Task 7 time; substitute a canonical CLABSI SNOMED if not present.
 
 ## 7. Documentation deliverables
 
@@ -308,11 +313,11 @@ def test_profile_narrative_byte_diff(profile_id: str, tmp_path: Path) -> None:
 | T3 | `regenerate-goldens` CLI subcommand + unit tests | ~150 lines |
 | T4 | `tests/fixtures/patient_profiles/README.md` + directory bootstrap | ~100 lines docs |
 | T5 | Profile #1 JP inpatient bacterial pneumonia + golden bootstrap | ~30 YAML + N JSON |
-| T6 | Profile #2 US inpatient MI + golden bootstrap | 同 |
-| T7 | Profile #3 JP ICU sepsis HAI CLABSI + golden bootstrap | 同 |
-| T8 | Profile #4 US ED chest_pain (encounter path verify or scope-in fix) + golden bootstrap | 同 + dispatch verify |
-| T9 | Profile #5 JP outpatient DM_type2 + golden bootstrap | 同 |
-| T10 | Profile #6 US inpatient DKA + golden bootstrap | 同 |
+| T6 | Profile #2 US inpatient acute MI + golden bootstrap | 同 |
+| T7 | Profile #3 JP ICU sepsis HAI CLABSI + golden bootstrap + HAI organism verify | 同 |
+| T8 | Profile #4 US inpatient DKA + golden bootstrap | 同 |
+| T9 | Profile #5 JP inpatient COPD exacerbation + golden bootstrap | 同 |
+| T10 | Profile #6 US inpatient hemorrhagic stroke + golden bootstrap | 同 |
 | T11 | `tests/regression/conftest.py` + `test_narrative_profiles.py` pytest suite | ~150 lines |
 | T12 | `docs/CONTRIBUTING-modules.md` addendum + DESIGN.md AD-66 ADR | ~200 lines docs |
 | T13 | CLAUDE.md AD-66 rules (1-2) + TODO.md fixture library entry COMPLETED update | ~30 lines |
@@ -355,7 +360,7 @@ def test_profile_narrative_byte_diff(profile_id: str, tmp_path: Path) -> None:
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Profile 4 (`chest_pain_noncardiac`) is encounter_id not disease_id → `test-disease` dispatch fails | High (Task 8 blocker) | Scope-in verify at T8; extend dispatch OR rename profile |
+| Profile mix (all 6 disease-based) misses ED / outpatient narrative coverage | Medium (β-JP-1 must add later) | Explicit deferral in §0 non-goals; β-JP-1 gets `test-encounter --patient-profile` symmetric extension when adding ED/outpatient profiles |
 | Golden JSON is nondeterministic across runs (RNG drift) | Critical (regression flaky) | Fixed seed 42; investigate any nondeterminism via `test_narrative_pass_determinism.py`-style test |
 | Multi-day progress notes produce different filenames on re-run | Medium (session 28 special note #1 lesson) | Filename derived from document_id; `_find_matching_stubs` returns list; verified at T5 |
 | PatientProfile schema drift from ForcedScenario | Low | Unit test at T1: `PatientProfile.to_forced_scenario()` round-trip = identity |
