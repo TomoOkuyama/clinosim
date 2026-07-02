@@ -29,6 +29,7 @@ complex date arithmetic.
 from __future__ import annotations
 
 import logging
+import string
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -75,52 +76,60 @@ def _pick_localized(
     return text
 
 
-class _PlaceholderDefaults(dict[str, str]):
-    """format_map mapping that never raises KeyError (unknown → fallback)."""
-
-    def __init__(self, mapping: dict[str, str], fallback: str):
-        super().__init__(mapping)
-        self._fallback = fallback
-
-    def __missing__(self, key: str) -> str:
-        return self._fallback
+# Placeholders _fill_template_placeholders can resolve today (chain 1a).
+# Everything else ({sbp}, {lab_summary_ja}, ...) makes the whole section fall
+# back to the locale generic phrase — chain 1b derives vitals from ctx.vitals.
+_KNOWN_PLACEHOLDERS = frozenset({"onset_days", "chief_complaint_ja", "chief_complaint_en"})
 
 
 def _fill_template_placeholders(text: str, ctx: NarrativeContext, lang: str) -> str:
     """Substitute `{placeholder}` tokens in encounter-template text (chain 1a).
 
-    Known placeholders:
+    Known placeholders (``_KNOWN_PLACEHOLDERS``):
       - ``{onset_days}`` → fixed default 3 (α-min-1 convention, see module
         docstring: computed values use a fixed reasonable default until they
         can be derived from CIF).
       - ``{chief_complaint_ja}`` / ``{chief_complaint_en}`` → the encounter
         protocol's own ``chief_complaint`` multi-language dict.
 
-    Every other placeholder (``{lab_summary_ja}``, ``{severity_desc_en}``,
-    ...) resolves to the locale generic phrase — raw braces must never leak
-    into narrative output, and a generic phrase is the pre-chain-1a behavior
-    for those slots (β-JP-1 chain 1b may derive real values from CIF).
+    adv-1 I-2: if the text carries ANY placeholder outside the known set
+    (``{sbp}``, ``{lab_summary_ja}``, ``{severity_desc_en}``, ...), the WHOLE
+    text falls back to the locale generic phrase — pre-chain-1a parity. The
+    earlier per-placeholder generic substitution produced broken sentences
+    ("BP No special findings/No special findings mmHg"). Deriving real vitals
+    values for those slots from ctx.vitals is β-JP-1 chain 1b (TODO.md).
     """
     if "{" not in text:
         return text
     is_ja = lang == "ja"
+    generic = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
+    try:
+        fields = {
+            fname
+            for _, fname, _, _ in string.Formatter().parse(text)
+            if fname is not None
+        }
+    except ValueError:
+        # Malformed braces (e.g. literal "{" in clinical text) — emit as-is
+        # rather than raise; never fail narrative generation on template data.
+        return text
+    if not fields:
+        return text
+    if not fields <= _KNOWN_PLACEHOLDERS:
+        return generic
     cc = _o(ctx.encounter_protocol, "chief_complaint", {}) if ctx.encounter_protocol else {}
     if not isinstance(cc, dict):
         cc = {}
-    generic = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
-    mapping = _PlaceholderDefaults(
-        {
-            "onset_days": "3",
-            "chief_complaint_ja": str(cc.get("ja") or "") or generic,
-            "chief_complaint_en": str(cc.get("en") or "") or generic,
-        },
-        generic,
-    )
+    mapping = {
+        "onset_days": "3",
+        "chief_complaint_ja": str(cc.get("ja") or "") or generic,
+        "chief_complaint_en": str(cc.get("en") or "") or generic,
+    }
     try:
         return text.format_map(mapping)
-    except (ValueError, IndexError):
-        # Malformed braces (e.g. literal "{" in clinical text) — emit as-is
-        # rather than raise; never fail narrative generation on template data.
+    except (KeyError, ValueError, IndexError):
+        # Positional "{}" fields or an unexpected format spec — emit as-is;
+        # never fail narrative generation on template data.
         return text
 
 
@@ -1287,13 +1296,18 @@ class TemplateNarrativeGenerator:
 
         # Collect non-empty body system findings (placeholder-substituted —
         # encounter YAML physical_exam_<lang> strings carry {severity_desc_*}
-        # etc.; β-JP-1 chain 1a, same policy as _pick_localized).
+        # etc.; β-JP-1 chain 1a, same policy as _pick_localized). adv-1 I-2:
+        # a part whose unknown placeholders collapsed it to the generic phrase
+        # carries no information and would repeat per body system — drop it;
+        # if every part collapses, the section-level fallback below fires once.
         systems = ("general", "cardiovascular", "respiratory", "abdominal", "neurological")
         parts = []
         for sys_key in systems:
             val = _o(pe, sys_key, "") or ""
             if val:
-                parts.append(_fill_template_placeholders(str(val), ctx, lang))
+                filled = _fill_template_placeholders(str(val), ctx, lang)
+                if filled and filled != fallback:
+                    parts.append(filled)
 
         if parts:
             facts.append(f"encounter_protocol.narrative.ed_note_template.{field}")
