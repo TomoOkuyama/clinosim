@@ -72,7 +72,16 @@ class Encounter:
     # consumed by triage_enricher.pick_triage_level(). Previously sampled but never
     # stored on Encounter -> triage_enricher always defaulted to "moderate" -> no
     # L1/L5 triage levels ever emitted (see clinosim/simulator/emergency.py:82-87).
+    # β-JP-1 chain 1a (2026-07-03): also written by the inpatient simulator so
+    # Stage 2 narrative generation (NarrativePass._build_context) can read it
+    # from structural CIF instead of defaulting to "".
     severity: str = ""
+    # β-JP-1 chain 1a (spec §2a): clinical course archetype selected in
+    # inpatient.py (e.g. "uncomplicated_improvement" / "treatment_resistant").
+    # Internal enum-like key, not display text — AD-30 compliant. Default ""
+    # keeps pre-1a structural CIF JSON loading unchanged (backward compat);
+    # unknown-condition and ED/outpatient paths leave it "".
+    clinical_course_archetype: str = ""
 
     def __post_init__(self) -> None:
         if self.time_resolution is None:
