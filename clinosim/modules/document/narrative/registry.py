@@ -6,47 +6,27 @@ Source = document_type_specs.yaml。countries_supported field で locale gating
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 import yaml
 
-from clinosim.types.document import DocumentType, FormatType
+# DocumentTypeSpec moved to clinosim/types/document.py (N-chain, types rule);
+# re-exported here so all historical imports keep working.
+from clinosim.types.document import DocumentType, DocumentTypeSpec, FormatType
+
+__all__ = [
+    "DocumentTypeSpec",
+    "GENERATION_FREQUENCIES",
+    "SUPPORTED_DOCUMENT_TYPES",
+    "load_document_type_specs",
+    "specs_for_country",
+    "specs_for_encounter_type",
+]
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE.parent / "reference_data"
-
-
-@dataclass(frozen=True)
-class DocumentTypeSpec:
-    """Document type registry entry.
-
-    F-8 adv-1: removed ``display_en`` / ``display_ja`` fields. The display
-    text for a document type is resolved at output time via
-    ``code_lookup("loinc", spec.loinc_code, language)`` from
-    ``clinosim/codes/data/loinc.yaml`` (the authoritative source). The
-    spec's job is code + format + policy metadata only.
-    """
-
-    type_key: str
-    loinc_code: str
-    format_type: FormatType
-    countries_supported: tuple[str, ...]
-    generation_frequency: str
-    composition_sections: tuple[str, ...] = field(default_factory=tuple)
-    structured_form_yaml: str | None = None
-    stage2_strategy: str = "template_only"
-    llm_enabled_sections: tuple[str, ...] = field(default_factory=tuple)
-    encounter_types_supported: tuple[str, ...] = field(default_factory=tuple)
-    """Encounter types this spec applies to.
-
-    Empty tuple (default) = no restriction; matches all encounter types (backwards-compat for
-    α-min-1 specs like ADMISSION_HP / PROGRESS_NOTE / DISCHARGE_SUMMARY).
-    Non-empty = explicit allowlist; values must be lowercase (e.g. 'inpatient', 'outpatient',
-    'emergency'). Populated by Task 9 for the 6 new encounter-scoped document types.
-    """
 
 
 # α-min-3: canonical allowlist of generation_frequency values. The engine
