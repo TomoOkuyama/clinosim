@@ -304,3 +304,35 @@ def test_encounter_once_generation_frequency_recognized() -> None:
     assert specs[DocumentType.OUTPATIENT_SOAP].generation_frequency == "encounter_once"
     assert specs[DocumentType.ED_NOTE].generation_frequency == "encounter_once"
     assert specs[DocumentType.ED_TRIAGE_NOTE].generation_frequency == "encounter_once"
+
+
+def test_daily_3shift_generation_frequency_recognized() -> None:
+    """α-min-3: nursing_shift_note carries daily_3shift and loads without error."""
+    load_document_type_specs.cache_clear()
+    specs = load_document_type_specs()
+    assert specs[DocumentType.NURSING_SHIFT_NOTE].generation_frequency == "daily_3shift"
+
+
+def test_generation_frequencies_allowlist_contains_all_yaml_values() -> None:
+    """Every YAML frequency value must be in the canonical allowlist (Layer 7 sanity)."""
+    from clinosim.modules.document.narrative.registry import GENERATION_FREQUENCIES
+
+    load_document_type_specs.cache_clear()
+    for spec in load_document_type_specs().values():
+        assert spec.generation_frequency in GENERATION_FREQUENCIES
+
+
+def test_load_raises_on_unknown_generation_frequency() -> None:
+    """α-min-3 Layer 7: an unknown generation_frequency raises fail-loud ValueError.
+
+    Without this layer a typo like "daily3shift" would fall through the engine
+    if/elif dispatch and silently emit zero documents (PR-90 class silent no-op).
+    """
+    import clinosim.modules.document.narrative.registry as reg_module
+
+    ref_dir = Path(reg_module.__file__).resolve().parent.parent / "reference_data"
+    with (ref_dir / "document_type_specs.yaml").open() as f:
+        data = yaml.safe_load(f)
+    data["specs"]["nursing_shift_note"]["generation_frequency"] = "daily3shift"
+    with pytest.raises(ValueError, match="unknown generation_frequency"):
+        reg_module._validate_document_type_specs(data)

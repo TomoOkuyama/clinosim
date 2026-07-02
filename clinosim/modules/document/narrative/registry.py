@@ -49,6 +49,20 @@ class DocumentTypeSpec:
     """
 
 
+# α-min-3: canonical allowlist of generation_frequency values. The engine
+# dispatch (engine.py document_enricher) is an if/elif chain — an unknown
+# frequency value would fall through and silently emit ZERO documents for
+# that spec (PR-90 class silent no-op). Fail-loud here at YAML load time so
+# a typo (e.g. "daily3shift") raises before any simulation runs. Adding a
+# new frequency requires BOTH the engine branch and this allowlist entry.
+GENERATION_FREQUENCIES: frozenset[str] = frozenset({
+    "admission_once",
+    "daily",
+    "daily_3shift",  # α-min-3: 3 nursing notes per LOS day (night/day/evening)
+    "discharge_once",
+    "encounter_once",
+})
+
 # α-min-2 scope = 9 doc types (α-min-1 3 + α-min-2 6)
 SUPPORTED_DOCUMENT_TYPES: frozenset[DocumentType] = frozenset({
     # α-min-1
@@ -66,7 +80,7 @@ SUPPORTED_DOCUMENT_TYPES: frozenset[DocumentType] = frozenset({
 
 
 def _validate_document_type_specs(data: dict[str, Any]) -> None:
-    """Fail-loud 6-layer validation of document_type_specs.yaml.
+    """Fail-loud 7-layer validation of document_type_specs.yaml.
 
     Layer 1: empty top-level guard
     Layer 2: missing 'specs' key guard
@@ -74,6 +88,8 @@ def _validate_document_type_specs(data: dict[str, Any]) -> None:
     Layer 4: forward + reverse coverage vs SUPPORTED_DOCUMENT_TYPES
     Layer 5: required-field check per entry
     Layer 6: countries_supported non-empty guard
+    Layer 7: generation_frequency ∈ GENERATION_FREQUENCIES allowlist (α-min-3;
+             unknown value would silently no-op in the engine dispatch)
     """
     if not data:
         raise ValueError("document_type_specs.yaml: empty top-level")
@@ -103,6 +119,12 @@ def _validate_document_type_specs(data: dict[str, Any]) -> None:
                 raise ValueError(f"document_type_specs.yaml[{key}]: missing {f}")
         if not entry["countries_supported"]:
             raise ValueError(f"document_type_specs.yaml[{key}]: countries_supported empty")
+        if entry["generation_frequency"] not in GENERATION_FREQUENCIES:
+            raise ValueError(
+                f"document_type_specs.yaml[{key}]: unknown generation_frequency "
+                f"{entry['generation_frequency']!r} — engine dispatch would silently "
+                f"emit no documents. Allowed: {sorted(GENERATION_FREQUENCIES)}"
+            )
 
 
 @lru_cache(maxsize=1)

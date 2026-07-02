@@ -90,6 +90,22 @@ _PATIENT_EDUCATION_FALLBACK_EN = "Patient education: discharge instructions prov
 _DISCHARGE_READINESS_FALLBACK_JA = "退院準備：退院基準を満たす"
 _DISCHARGE_READINESS_FALLBACK_EN = "Discharge readiness: criteria met"
 
+# α-min-3: nursing shift labels, keyed by the neutral shift key stored in
+# structural CIF (ClinicalDocument.shift → NarrativeContext.shift). Labels are
+# resolved here at render time by language (AD-30 spirit — never baked into
+# CIF). Keys must cover engine.SHIFT_SCHEDULE exactly (guarded by
+# tests/unit/modules/document/narrative/test_template_generator_3shift.py).
+_SHIFT_LABELS_JA: dict[str, str] = {
+    "night": "深夜",
+    "day": "日勤",
+    "evening": "準夜",
+}
+_SHIFT_LABELS_EN: dict[str, str] = {
+    "night": "night",
+    "day": "day",
+    "evening": "evening",
+}
+
 # α-min-2: ED section fallback phrases
 _ED_WORKUP_FALLBACK_JA = "検査・処置：特記事項なし"
 _ED_WORKUP_FALLBACK_EN = "ED workup: no significant findings"
@@ -772,6 +788,13 @@ class TemplateNarrativeGenerator:
         Includes: day/shift info, primary_nurse_id (graceful when absent),
         and a generic per-shift status summary.
 
+        α-min-3: when ``ctx.shift`` carries a neutral shift key
+        ("night"/"day"/"evening" from a daily_3shift stub), the localized
+        shift label (en: night/day/evening, ja: 深夜/日勤/準夜) is resolved
+        here at render time and included in the header, so the 3 per-day
+        notes differ at least by the shift label. ``ctx.shift == ""``
+        (legacy callers) keeps the pre-α-min-3 header unchanged.
+
         EN locale note: nursing shift data is JP-primary in α-min-2. EN locale
         produces an English summary using the same CIF fields.
         """
@@ -781,6 +804,14 @@ class TemplateNarrativeGenerator:
 
         day_num = ctx.day_index + 1  # 1-based display
         los = ctx.los_days or 1
+
+        shift_key = ctx.shift or ""
+        shift_label = ""
+        if shift_key:
+            facts.append("ctx.shift")
+            labels = _SHIFT_LABELS_JA if is_ja else _SHIFT_LABELS_EN
+            # Unknown key → render the neutral key itself (never drop silently).
+            shift_label = labels.get(shift_key, shift_key)
 
         nurse_id = _o(ctx.encounter, "primary_nurse_id", "") or ""
         nurse_line = ""
@@ -792,11 +823,16 @@ class TemplateNarrativeGenerator:
                 nurse_line = f"Nurse: {nurse_id}"
 
         if is_ja:
-            header = f"【看護記録】 入院 {day_num} 日目 / 入院予定 {los} 日間"
+            title = f"【看護記録({shift_label})】" if shift_label else "【看護記録】"
+            header = f"{title} 入院 {day_num} 日目 / 入院予定 {los} 日間"
             status = "患者状態：バイタルサイン安定。観察・ケア継続。"
             observations = "特記事項：特記事項なし。"
         else:
-            header = f"[Nursing Shift Note] Day {day_num} / LOS {los} days"
+            title = (
+                f"[Nursing Shift Note - {shift_label} shift]" if shift_label
+                else "[Nursing Shift Note]"
+            )
+            header = f"{title} Day {day_num} / LOS {los} days"
             status = "Patient status: vital signs stable. Observation and care ongoing."
             observations = "Notes: no significant findings."
 
@@ -809,9 +845,17 @@ class TemplateNarrativeGenerator:
         facts.append("ctx.day_index")
         facts.append("ctx.los_days")
 
+        metadata: dict[str, Any] = {
+            "generator": "template",
+            "lang": lang,
+            "day_index": ctx.day_index,
+        }
+        if shift_key:
+            metadata["shift"] = shift_key
+
         return NarrativeOutput(
             raw_text=raw_text,
-            metadata={"generator": "template", "lang": lang, "day_index": ctx.day_index},
+            metadata=metadata,
             facts_used=facts,
         )
 
