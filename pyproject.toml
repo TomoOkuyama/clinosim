@@ -50,6 +50,7 @@ markers = [
     "unit: Unit tests (per module, fast)",
     "integration: Integration tests (module chains)",
     "e2e: End-to-end tests (full simulation, slow)",
+    "regression: Narrative regression suite (AD-66 α-min-2c, opt-in)",
 ]
 
 [tool.ruff]
