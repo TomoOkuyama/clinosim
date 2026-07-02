@@ -83,6 +83,12 @@ class NarrativeContext:
     materialized_facts: list[FactTag] = field(default_factory=list)  # E2 fact-first
     section_facts: dict[str, SectionFacts] = field(default_factory=dict)  # E3 per-section
 
+    # === α-min-3: nursing 3-shift cadence ===
+    # Neutral shift key from ClinicalDocument.shift ("night"/"day"/"evening"
+    # for daily_3shift stubs; "" otherwise). NarrativePass sets this per stub;
+    # the generator resolves the localized label at render time (AD-30 spirit).
+    shift: str = ""
+
 
 @dataclass
 class NarrativeOutput:

@@ -1,12 +1,12 @@
 """Document chain AD-60 audit module (Tier 1 #3 α-min-1 Task 11; α-min-2 Task 13;
-AD-65 Bug A Task 11; AD-65 Bug B Task 12; PR #131 adv-1 F-6/F-6b).
+AD-65 Bug A Task 11; AD-65 Bug B Task 12; PR #131 adv-1 F-6/F-6b; α-min-3 3-shift).
 
 AD-60 plug-in #5 (after hai, antibiotic, order_service_request, imaging).
 
 Verifies CIF -> FHIR emission integrity for the document pipeline:
 DocumentReference / Composition / AllergyIntolerance / ClinicalImpression / CareTeam.
 
-34 equality_checks in lift_firing_proof guard canonical constants and
+37 equality_checks in lift_firing_proof guard canonical constants and
 no-drop emission paths against PR-90 class silent-no-op regression.
 
 Registered checks:
@@ -46,6 +46,13 @@ Registered checks:
       clean input); `nursing_author_fallback_fires_on_missing_nurse`
       verifies the fallback branch actually picks the attending id when
       the encounter has no primary_nurse_id.
+  α-min-3 nursing 3-shift cadence (+3, total = 37):
+    `nursing_shift_note_3_per_day_count` (LOS=3 → 9 stubs, proving the
+    daily_3shift dispatch actually fires — a silently-unknown frequency
+    value would emit 0), `nursing_shift_note_shift_keys_complete`
+    (neutral keys night/day/evening on every stub) and
+    `nursing_shift_note_shift_hour_offsets` (authored at 00:00/08:00/16:00).
+    See `_proof_nursing_shift_3_per_day`.
 
 TODO(jp_language_audit): jp_language_checks not implemented — ModuleAuditSpec
 does not have a jp_language_checks field. Deferred to a follow-up sweep
@@ -532,6 +539,63 @@ def _proof_explicit_population_respected() -> bool:
     return cfg.catchment_population == 1234
 
 
+def _proof_nursing_shift_3_per_day() -> dict[str, Any]:
+    """α-min-3: prove the daily_3shift dispatch fires with the 3-per-day cadence.
+
+    Runs `document_enricher` on a synthetic LOS=3 completed inpatient
+    encounter (dict record — production JSON-deserialized CIF path) and
+    summarizes the emitted nursing_shift_note stubs. A regression that
+    leaves `daily_3shift` unhandled in the engine dispatch would silently
+    emit 0 stubs (PR-90 class: unknown frequency values fall through the
+    if/elif with no error) — the count check catches exactly that.
+
+    Returns {"count", "shift_keys", "hours", "ids_unique"} consumed by the
+    equality_checks in `_build_document_proof`.
+    """
+    from datetime import datetime
+    from types import SimpleNamespace
+
+    from clinosim.modules.document.engine import document_enricher
+
+    record: dict[str, Any] = {
+        "patient": {"patient_id": "pt-3shift-proof"},
+        "encounters": [
+            {
+                "encounter_id": "enc-3shift-proof",
+                "encounter_type": "inpatient",
+                "status": "completed",
+                "admission_datetime": datetime(2026, 7, 1, 10, 0),
+                "discharge_datetime": datetime(2026, 7, 4, 10, 0),
+                "attending_physician_id": "dr-3shift-proof",
+                "primary_nurse_id": "ns-3shift-proof",
+            }
+        ],
+        "documents": [],
+        "extensions": {},
+        "physiological_states": [],
+    }
+    ctx = SimpleNamespace(
+        master_seed=42,
+        records=[record],
+        config=SimpleNamespace(country="us"),
+    )
+    document_enricher(ctx)
+
+    notes = [
+        d for d in record["documents"]
+        if getattr(d, "task_type", "") == "nursing_shift_note"
+    ]
+    ids = [d.document_id for d in notes]
+    return {
+        "count": len(notes),
+        "shift_keys": sorted({d.shift for d in notes}),
+        "hours": sorted({
+            datetime.fromisoformat(d.authored_datetime).hour for d in notes
+        }),
+        "ids_unique": len(ids) == len(set(ids)),
+    }
+
+
 def _build_document_proof() -> dict[str, Any]:
     """Zero-arg factory: run document FHIR builders on synthetic data.
 
@@ -738,6 +802,9 @@ def _build_document_proof() -> dict[str, Any]:
         "nursing_discharge_summary",
     }
 
+    # α-min-3: nursing 3-shift cadence proof (synthetic LOS=3 → 9 stubs).
+    _shift_proof = _proof_nursing_shift_3_per_day()
+
     return {
         "equality_checks": [
             # --- 4 canonical constants (silent-no-op defense Layer 1-2) ---
@@ -930,6 +997,22 @@ def _build_document_proof() -> dict[str, Any]:
                 _proof_nursing_author_fallback_fires_on_missing_nurse(),
                 True,
             ),
+            # === α-min-3 nursing 3-shift cadence (+3, total = 37) ===
+            (
+                "nursing_shift_note_3_per_day_count",
+                _shift_proof["count"],
+                9,  # LOS=3 days × 3 shifts
+            ),
+            (
+                "nursing_shift_note_shift_keys_complete",
+                _shift_proof["shift_keys"],
+                ["day", "evening", "night"],
+            ),
+            (
+                "nursing_shift_note_shift_hour_offsets",
+                _shift_proof["hours"],
+                [0, 8, 16],
+            ),
         ]
     }
 
@@ -959,7 +1042,9 @@ register_audit_module(
             "care_team_per_encounter": "== 1",
             "triage_data_per_ed_encounter": "== 1",
             "admission_nursing_assessment_per_inpatient_encounter": "== 1",
-            "nursing_shift_note_per_day_per_inpatient": ">= 0.8",
+            # α-min-3: daily_3shift cadence = 3 notes/day (night/day/evening);
+            # 0.8 tolerance factor retained from the 1/day era → 3 × 0.8 = 2.4.
+            "nursing_shift_note_per_day_per_inpatient": ">= 2.4",
             "nursing_discharge_summary_per_completed_inpatient": "== 1",
             "outpatient_soap_per_outpatient_encounter": "== 1",
             "ed_note_per_ed_encounter": "== 1",

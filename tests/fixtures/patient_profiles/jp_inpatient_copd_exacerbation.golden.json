@@ -288,11 +288,12 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-000001-14": {
-    "document_id": "doc-ENC-FORCED-0001-000001-14",
+  "doc-ENC-FORCED-0001-000001-14-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-14-night",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
+        "ctx.shift",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -301,18 +302,20 @@
       "generator_metadata": {
         "day_index": 0,
         "generator": "template",
-        "lang": "ja"
+        "lang": "ja",
+        "shift": "night"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-15": {
-    "document_id": "doc-ENC-FORCED-0001-000001-15",
+  "doc-ENC-FORCED-0001-000001-15-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-15-day",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
+        "ctx.shift",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -321,18 +324,20 @@
       "generator_metadata": {
         "day_index": 0,
         "generator": "template",
-        "lang": "ja"
+        "lang": "ja",
+        "shift": "day"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-16": {
-    "document_id": "doc-ENC-FORCED-0001-000001-16",
+  "doc-ENC-FORCED-0001-000001-16-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-16-evening",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
+        "ctx.shift",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -341,18 +346,20 @@
       "generator_metadata": {
         "day_index": 0,
         "generator": "template",
-        "lang": "ja"
+        "lang": "ja",
+        "shift": "evening"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-17": {
-    "document_id": "doc-ENC-FORCED-0001-000001-17",
+  "doc-ENC-FORCED-0001-000001-17-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-17-night",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
+        "ctx.shift",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -361,18 +368,20 @@
       "generator_metadata": {
         "day_index": 0,
         "generator": "template",
-        "lang": "ja"
+        "lang": "ja",
+        "shift": "night"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-18": {
-    "document_id": "doc-ENC-FORCED-0001-000001-18",
+  "doc-ENC-FORCED-0001-000001-18-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-18-day",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
+        "ctx.shift",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -381,18 +390,20 @@
       "generator_metadata": {
         "day_index": 0,
         "generator": "template",
-        "lang": "ja"
+        "lang": "ja",
+        "shift": "day"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-19": {
-    "document_id": "doc-ENC-FORCED-0001-000001-19",
+  "doc-ENC-FORCED-0001-000001-19-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-19-evening",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
+        "ctx.shift",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -401,18 +412,20 @@
       "generator_metadata": {
         "day_index": 0,
         "generator": "template",
-        "lang": "ja"
+        "lang": "ja",
+        "shift": "evening"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-20": {
-    "document_id": "doc-ENC-FORCED-0001-000001-20",
+  "doc-ENC-FORCED-0001-000001-20-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-20-night",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
+        "ctx.shift",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -421,18 +434,20 @@
       "generator_metadata": {
         "day_index": 0,
         "generator": "template",
-        "lang": "ja"
+        "lang": "ja",
+        "shift": "night"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-21": {
-    "document_id": "doc-ENC-FORCED-0001-000001-21",
+  "doc-ENC-FORCED-0001-000001-21-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-21-day",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
+        "ctx.shift",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -441,18 +456,20 @@
       "generator_metadata": {
         "day_index": 0,
         "generator": "template",
-        "lang": "ja"
+        "lang": "ja",
+        "shift": "day"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-22": {
-    "document_id": "doc-ENC-FORCED-0001-000001-22",
+  "doc-ENC-FORCED-0001-000001-22-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-22-evening",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
+        "ctx.shift",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -461,18 +478,20 @@
       "generator_metadata": {
         "day_index": 0,
         "generator": "template",
-        "lang": "ja"
+        "lang": "ja",
+        "shift": "evening"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-23": {
-    "document_id": "doc-ENC-FORCED-0001-000001-23",
+  "doc-ENC-FORCED-0001-000001-23-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-23-night",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
+        "ctx.shift",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -481,15 +500,456 @@
       "generator_metadata": {
         "day_index": 0,
         "generator": "template",
-        "lang": "ja"
+        "lang": "ja",
+        "shift": "night"
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-24": {
-    "document_id": "doc-ENC-FORCED-0001-000001-24",
+  "doc-ENC-FORCED-0001-000001-24-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-24-day",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-25-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-25-evening",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-26-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-26-night",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-27-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-27-day",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-28-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-28-evening",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-29-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-29-night",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-30-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-30-day",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-31-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-31-evening",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-32-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-32-night",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-33-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-33-day",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-34-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-34-evening",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-35-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-35-night",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-36-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-36-day",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-37-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-37-evening",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-38-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-38-night",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-39-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-39-day",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-40-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-40-evening",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-41-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-41-night",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-42-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-42-day",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-43-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-43-evening",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-44": {
+    "document_id": "doc-ENC-FORCED-0001-000001-44",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
