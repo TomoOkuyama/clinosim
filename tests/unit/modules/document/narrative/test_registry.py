@@ -336,3 +336,72 @@ def test_load_raises_on_unknown_generation_frequency() -> None:
     data["specs"]["nursing_shift_note"]["generation_frequency"] = "daily3shift"
     with pytest.raises(ValueError, match="unknown generation_frequency"):
         reg_module._validate_document_type_specs(data)
+
+
+# === N-chain adv-1 I-1: Layers 8 + 9 (stage2_strategy validation) ===
+
+
+def _load_production_yaml() -> dict:
+    import clinosim.modules.document.narrative.registry as reg_module
+
+    ref_dir = Path(reg_module.__file__).resolve().parent.parent / "reference_data"
+    with (ref_dir / "document_type_specs.yaml").open() as f:
+        return yaml.safe_load(f)
+
+
+def test_load_raises_on_unknown_stage2_strategy() -> None:
+    """Layer 8: a typo like "template-seed" must raise at YAML load.
+
+    Without this layer, replacement_strategy's unknown-strategy branch
+    silently returns template output — the whole LLM path becomes a
+    silent no-op (PR-90 class).
+    """
+    import clinosim.modules.document.narrative.registry as reg_module
+
+    data = _load_production_yaml()
+    data["specs"]["admission_hp"]["stage2_strategy"] = "template-seed"  # typo
+    with pytest.raises(ValueError, match="unknown stage2_strategy"):
+        reg_module._validate_document_type_specs(data)
+
+
+def test_load_raises_on_template_seed_with_empty_llm_enabled_sections() -> None:
+    """Layer 9: template_seed with no llm_enabled_sections = dead LLM wiring."""
+    import clinosim.modules.document.narrative.registry as reg_module
+
+    data = _load_production_yaml()
+    data["specs"]["admission_hp"]["llm_enabled_sections"] = []
+    with pytest.raises(ValueError, match="llm_enabled_sections"):
+        reg_module._validate_document_type_specs(data)
+
+
+def test_load_raises_on_llm_enabled_section_not_in_composition_sections() -> None:
+    """Layer 9: llm_enabled_sections ⊄ composition_sections would fabricate a
+    section that no template renders (empty-seed hallucination risk).
+    """
+    import clinosim.modules.document.narrative.registry as reg_module
+
+    data = _load_production_yaml()
+    data["specs"]["admission_hp"]["llm_enabled_sections"] = ["hpi", "nonexistent_section"]
+    with pytest.raises(ValueError, match="nonexistent_section"):
+        reg_module._validate_document_type_specs(data)
+
+
+def test_load_raises_on_template_seed_with_free_text_format() -> None:
+    """Layer 9: free_text renderers emit NO sections (raw_text only) — the
+    per-section seed replacement has nothing to seed from, so template_seed
+    on a non-composition spec is forbidden at load time.
+    """
+    import clinosim.modules.document.narrative.registry as reg_module
+
+    data = _load_production_yaml()
+    data["specs"]["progress_note"]["stage2_strategy"] = "template_seed"
+    data["specs"]["progress_note"]["llm_enabled_sections"] = ["subjective"]
+    with pytest.raises(ValueError, match="composition"):
+        reg_module._validate_document_type_specs(data)
+
+
+def test_production_yaml_passes_stage2_validation() -> None:
+    """Positive: the shipped document_type_specs.yaml passes Layers 8 + 9."""
+    import clinosim.modules.document.narrative.registry as reg_module
+
+    reg_module._validate_document_type_specs(_load_production_yaml())

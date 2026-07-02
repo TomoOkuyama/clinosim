@@ -171,8 +171,14 @@ def main() -> None:
     nr.add_argument(
         "--set-current",
         action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Update current_version.txt to point to the new version",
+        default=None,
+        help=(
+            "Update current_version.txt to point to the new version. "
+            "Default: yes for --provider template, no for LLM providers "
+            "(bedrock/ollama/mock) so a trial run cannot silently repoint "
+            "production exports (M-3, N-chain adv-1). Explicit "
+            "--set-current / --no-set-current always wins"
+        ),
     )
     nr.add_argument("--seed", type=int, default=42, help="RNG seed for determinism")
 
@@ -1169,10 +1175,19 @@ def _run_narrate(args: Any) -> None:
         )
 
     manifest = pass_impl.run()
-    if args.set_current:
+    # M-3 (N-chain adv-1): tri-state --set-current. None (no flag) resolves to
+    # True only for the template provider — an LLM/mock trial must not
+    # silently repoint current_version.txt (export-fhir defaults to "current",
+    # so a repointed trial would leak mock narratives into production
+    # exports). Explicit --set-current / --no-set-current always wins.
+    set_current = (
+        args.set_current if args.set_current is not None else args.provider == "template"
+    )
+    if set_current:
         os.makedirs(os.path.join(args.cif_dir, "narratives"), exist_ok=True)
         with open(os.path.join(args.cif_dir, "narratives", "current_version.txt"), "w") as f:
             f.write(version_id)
+        print(f"narrate: current -> {version_id}")
     print(
         f"narrate: wrote {manifest.document_count} narrative documents across "
         f"{manifest.encounter_count} encounters → narratives/{version_id}/"

@@ -221,6 +221,66 @@ def test_llm_generator_uses_narrative_cache_across_calls() -> None:
     assert provider.call_count == 1  # second call served from NarrativeCache
 
 
+# ─────────────────────────────────────────────────────────────────
+# I-2 (N-chain adv-1) — generator-level fallback counters
+# ─────────────────────────────────────────────────────────────────
+
+
+def test_llm_generator_counters_all_calls_fail(caplog: pytest.LogCaptureFixture) -> None:
+    """Provider down: every eligible doc falls back → llm_docs stays 0,
+    fallback_docs == eligible doc count, exception reasons sampled."""
+    tg = _mock_template_generator()
+    gen = LLMNarrativeGenerator(
+        template_generator=tg, llm=_mock_llm_service(_RaisingProvider())
+    )
+    spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
+    ctx = _make_ctx()
+
+    with caplog.at_level(logging.WARNING):
+        gen.generate(ctx, spec)
+        gen.generate(ctx, spec)
+
+    assert gen.llm_docs == 0
+    assert gen.eligible_docs == 2
+    assert gen.fallback_docs == 2
+    assert gen.fallback_reasons  # at least one sampled reason
+    assert any("LLM connection refused" in r or "LLMCompletionError" in r
+               for r in gen.fallback_reasons)
+
+
+def test_llm_generator_counters_healthy_provider() -> None:
+    """Healthy provider: llm_docs counts eligible docs, fallback_docs stays 0."""
+    tg = _mock_template_generator()
+    gen = LLMNarrativeGenerator(template_generator=tg, llm=_mock_llm_service())
+    eligible_spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
+    template_only_spec = _make_spec(stage2_strategy="template_only")
+    ctx = _make_ctx()
+
+    gen.generate(ctx, eligible_spec)
+    gen.generate(ctx, template_only_spec)  # not eligible — no counter change
+
+    assert gen.llm_docs == 1
+    assert gen.eligible_docs == 1
+    assert gen.fallback_docs == 0
+    assert gen.fallback_reasons == []
+
+
+def test_llm_generator_fallback_reasons_capped_at_3() -> None:
+    """Reason sampling is bounded (~3) so manifests stay small."""
+    tg = _mock_template_generator()
+    gen = LLMNarrativeGenerator(
+        template_generator=tg, llm=_mock_llm_service(_RaisingProvider())
+    )
+    spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
+    ctx = _make_ctx()
+
+    for _ in range(6):
+        gen.generate(ctx, spec)
+
+    assert gen.fallback_docs == 6
+    assert len(gen.fallback_reasons) <= 3
+
+
 def test_llm_generator_env_gate_removed() -> None:
     """The CLINOSIM_NARRATIVE_LLM env gate is deleted (silent-switch class)."""
     import clinosim.modules.document.narrative.llm_generator as mod

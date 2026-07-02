@@ -126,7 +126,7 @@ print(resp.text, resp.source)  # source: "llm" | "template" | "none"
 ### `LLMTaskType` — タスク種別
 
 JUDGMENT 4 種(`diagnostic_reasoning` / `treatment_decision` / `clinical_judgment` /
-`consistency_review`、常に英語)+ NARRATIVE 14 種。document を produce する NARRATIVE
+`consistency_review`、常に英語)+ NARRATIVE 13 種。document を produce する NARRATIVE
 task は `DOCUMENT_LOINC` に LOINC を持つ:
 
 | LOINC | TaskType | 説明 | 生成条件 |

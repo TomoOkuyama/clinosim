@@ -135,3 +135,69 @@ def test_template_pass_manifest_cost_report_stays_empty(tmp_path):
     _write_tiny_structural(tmp_path)
     manifest = TemplateNarrativePass(cif_dir=str(tmp_path), country="US").run()
     assert manifest.llm_cost_report == {}
+
+
+# ─────────────────────────────────────────────────────────────────
+# I-2 (N-chain adv-1) — generator fallback visibility in the manifest
+# ─────────────────────────────────────────────────────────────────
+
+
+class _RaisingProvider:
+    """Provider whose complete() always raises (exhausts LLMService retries)."""
+
+    def complete(self, prompt, model=None, max_tokens=1000, system_prompt="",
+                 temperature=0.4, stop_sequences=None):
+        raise RuntimeError("LLM connection refused")
+
+    def health_check(self) -> bool:
+        return False
+
+
+def _raising_llm() -> LLMService:
+    return LLMService(
+        mode="llm",
+        narrative_provider=_RaisingProvider(),
+        narrative_model_map={"medium": "mock"},
+        provider_name_narrative="mock",
+        retry_attempts=1,
+        retry_backoff_seconds=0.0,
+    )
+
+
+@pytest.mark.unit
+def test_llm_pass_manifest_exposes_generator_fallback_when_provider_down(tmp_path, capsys):
+    """I-2 pin: provider down must be VISIBLE — before the fix the run exited
+    0 with llm_cost_report={total_calls:0, fallback_count:0} and everything
+    silently template."""
+    _write_tiny_structural(tmp_path)
+    manifest = LLMNarrativePass(
+        cif_dir=str(tmp_path), llm=_raising_llm(), version_id="llmdown", country="US"
+    ).run()
+
+    report = manifest.llm_cost_report
+    # admission_hp is the only template_seed-eligible doc in the fixture
+    assert report["generator_llm_docs"] == 0
+    assert report["generator_fallback_docs"] == 1
+    assert report["generator_fallback_reasons"]
+    # Loud stderr WARNING: eligible docs > 0 and every LLM call failed
+    err = capsys.readouterr().err
+    assert "WARNING" in err
+    # Persisted in manifest.json too
+    m = json.loads((tmp_path / "narratives/llmdown/manifest.json").read_text())
+    assert m["llm_cost_report"]["generator_fallback_docs"] == 1
+
+
+@pytest.mark.unit
+def test_llm_pass_manifest_generator_counters_healthy(tmp_path, capsys):
+    """Healthy provider: generator_llm_docs > 0, generator_fallback_docs == 0,
+    no stderr WARNING."""
+    _write_tiny_structural(tmp_path)
+    manifest = LLMNarrativePass(
+        cif_dir=str(tmp_path), llm=_mock_llm(), version_id="llmok", country="US"
+    ).run()
+
+    report = manifest.llm_cost_report
+    assert report["generator_llm_docs"] > 0
+    assert report["generator_fallback_docs"] == 0
+    assert report["generator_fallback_reasons"] == []
+    assert "WARNING" not in capsys.readouterr().err
