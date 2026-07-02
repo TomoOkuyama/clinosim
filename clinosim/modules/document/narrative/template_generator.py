@@ -29,9 +29,11 @@ complex date arithmetic.
 from __future__ import annotations
 
 import logging
+import string
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
 from clinosim.modules.document.reference_data_loaders import (
     load_discharge_instructions,
@@ -42,7 +44,9 @@ from clinosim.types.document import DocumentType, FormatType, NarrativeContext, 
 logger = logging.getLogger(__name__)
 
 
-def _pick_localized(tmpl: Any, key_base: str, lang: str) -> str:
+def _pick_localized(
+    tmpl: Any, key_base: str, lang: str, ctx: NarrativeContext | None = None
+) -> str:
     """AD-65 Bug A fix: locale-aware field access.
 
     Reads `<key_base>_<lang>` from tmpl (attribute or dict access), returning
@@ -50,6 +54,11 @@ def _pick_localized(tmpl: Any, key_base: str, lang: str) -> str:
     previously caused US (en) narratives to contain Japanese characters is
     retired: a structurally empty section is preferable to silent locale
     contamination.
+
+    β-JP-1 chain 1a: when ``ctx`` is provided, ``{placeholder}`` tokens in the
+    template text are substituted via ``_fill_template_placeholders`` (the
+    encounter YAML narrative templates carry them; they never reached output
+    before chain 1a wired ctx.encounter_protocol).
     """
     if tmpl is None:
         return ""
@@ -61,7 +70,67 @@ def _pick_localized(tmpl: Any, key_base: str, lang: str) -> str:
     if value is None or value == "":
         logger.warning("template locale field %s missing on %s", field, type(tmpl).__name__)
         return ""
-    return str(value)
+    text = str(value)
+    if ctx is not None:
+        text = _fill_template_placeholders(text, ctx, lang)
+    return text
+
+
+# Placeholders _fill_template_placeholders can resolve today (chain 1a).
+# Everything else ({sbp}, {lab_summary_ja}, ...) makes the whole section fall
+# back to the locale generic phrase — chain 1b derives vitals from ctx.vitals.
+_KNOWN_PLACEHOLDERS = frozenset({"onset_days", "chief_complaint_ja", "chief_complaint_en"})
+
+
+def _fill_template_placeholders(text: str, ctx: NarrativeContext, lang: str) -> str:
+    """Substitute `{placeholder}` tokens in encounter-template text (chain 1a).
+
+    Known placeholders (``_KNOWN_PLACEHOLDERS``):
+      - ``{onset_days}`` → fixed default 3 (α-min-1 convention, see module
+        docstring: computed values use a fixed reasonable default until they
+        can be derived from CIF).
+      - ``{chief_complaint_ja}`` / ``{chief_complaint_en}`` → the encounter
+        protocol's own ``chief_complaint`` multi-language dict.
+
+    adv-1 I-2: if the text carries ANY placeholder outside the known set
+    (``{sbp}``, ``{lab_summary_ja}``, ``{severity_desc_en}``, ...), the WHOLE
+    text falls back to the locale generic phrase — pre-chain-1a parity. The
+    earlier per-placeholder generic substitution produced broken sentences
+    ("BP No special findings/No special findings mmHg"). Deriving real vitals
+    values for those slots from ctx.vitals is β-JP-1 chain 1b (TODO.md).
+    """
+    if "{" not in text:
+        return text
+    is_ja = lang == "ja"
+    generic = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
+    try:
+        fields = {
+            fname
+            for _, fname, _, _ in string.Formatter().parse(text)
+            if fname is not None
+        }
+    except ValueError:
+        # Malformed braces (e.g. literal "{" in clinical text) — emit as-is
+        # rather than raise; never fail narrative generation on template data.
+        return text
+    if not fields:
+        return text
+    if not fields <= _KNOWN_PLACEHOLDERS:
+        return generic
+    cc = _o(ctx.encounter_protocol, "chief_complaint", {}) if ctx.encounter_protocol else {}
+    if not isinstance(cc, dict):
+        cc = {}
+    mapping = {
+        "onset_days": "3",
+        "chief_complaint_ja": str(cc.get("ja") or "") or generic,
+        "chief_complaint_en": str(cc.get("en") or "") or generic,
+    }
+    try:
+        return text.format_map(mapping)
+    except (KeyError, ValueError, IndexError):
+        # Positional "{}" fields or an unexpected format spec — emit as-is;
+        # never fail narrative generation on template data.
+        return text
 
 
 # Generic fallback phrases per locale
@@ -370,7 +439,7 @@ class TemplateNarrativeGenerator:
         if ctx.document_type == DocumentType.ED_NOTE:
             ed_tmpl = self._get_ed_note_template(ctx)
             if ed_tmpl is not None:
-                text = _pick_localized(ed_tmpl, "chief_complaint", lang)
+                text = _pick_localized(ed_tmpl, "chief_complaint", lang, ctx)
                 if text:
                     facts.append(
                         f"encounter_protocol.narrative.ed_note_template.chief_complaint_{lang}"
@@ -419,7 +488,7 @@ class TemplateNarrativeGenerator:
         if ctx.document_type == DocumentType.ED_NOTE:
             ed_tmpl = self._get_ed_note_template(ctx)
             if ed_tmpl is not None:
-                text = _pick_localized(ed_tmpl, "hpi", lang)
+                text = _pick_localized(ed_tmpl, "hpi", lang, ctx)
                 if text:
                     facts.append(
                         f"encounter_protocol.narrative.ed_note_template.hpi_{lang}"
@@ -631,6 +700,20 @@ class TemplateNarrativeGenerator:
             ctx, ctx.clinical_course_archetype, 0
         )
         if traj_src:
+            # daily_trajectory (disease YAML) has no per-language split —
+            # Japanese-sourced text only (same data-authoring gap class as
+            # hpi_template.onset_pattern / physical_exam_findings). Tag + warn
+            # for EN-locale auditability (AD-65 Bug A documented
+            # ja_only_fallback convention — see module docstring; β-JP-1
+            # chain 1a: this section only started emitting trajectory text
+            # once ctx.disease_protocol was wired).
+            if not is_ja:
+                traj_src += ":ja_only_fallback"
+                logger.warning(
+                    "daily_trajectory has no English variant; falling back to "
+                    "Japanese source text for archetype=%s",
+                    ctx.clinical_course_archetype,
+                )
             facts.append(traj_src)
 
         _generic_a = _GENERIC_ASSESSMENT_JA if is_ja else _GENERIC_ASSESSMENT_EN
@@ -686,8 +769,20 @@ class TemplateNarrativeGenerator:
     def _build_discharge_diagnoses(
         self, ctx: NarrativeContext
     ) -> tuple[str, list[str]]:
-        """Build discharge_diagnoses from ctx.diagnoses."""
+        """Build discharge_diagnoses from ctx.diagnoses.
+
+        β-JP-1 chain 1a: ctx.diagnoses is now wired (clinical_diagnosis), so
+        this section resolves display text at render time via
+        ``clinosim.codes.lookup`` (AD-30 — CIF stores codes only; a bare
+        "I63.9" in a JP narrative fails the JP language gate). Format:
+        ``<display>（<code>）`` (ja) / ``<display> (<code>)`` (en); when the
+        code has no authoritative entry, ``lookup`` returns the code itself
+        and the section emits the code alone.
+        """
+        from clinosim.codes import lookup as code_lookup
+
         facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
 
         diagnoses = ctx.diagnoses or []
         if not diagnoses:
@@ -696,14 +791,24 @@ class TemplateNarrativeGenerator:
             return cc_text, []
 
         facts.append("ctx.diagnoses")
-        codes = []
+        parts = []
         for dx in diagnoses:
             code = _o(dx, "discharge_diagnosis_code", "") or _o(dx, "admission_diagnosis_code", "")
-            if code:
-                codes.append(code)
+            if not code:
+                continue
+            system = (
+                _o(dx, "discharge_diagnosis_system", "")
+                or _o(dx, "admission_diagnosis_system", "")
+                or ("icd-10" if is_ja else "icd-10-cm")
+            )
+            display = code_lookup(system, code, ctx.target_lang)
+            if display and display != code:
+                parts.append(f"{display}（{code}）" if is_ja else f"{display} ({code})")
+            else:
+                parts.append(code)
 
-        if codes:
-            return "; ".join(codes), facts
+        if parts:
+            return "; ".join(parts), facts
 
         # No codes — fall back
         cc_text, _ = self._build_chief_complaint(ctx)
@@ -712,21 +817,30 @@ class TemplateNarrativeGenerator:
     def _build_discharge_medications(
         self, ctx: NarrativeContext
     ) -> tuple[str, list[str]]:
-        """Build discharge_medications from ctx.medications (status=given)."""
+        """Build discharge_medications from ctx.discharge_medications (rx only).
+
+        adv-1 I-1: reads ONLY the normalized discharge_prescription items —
+        never ctx.medications (MAR), whose in-hospital entries (ICU drips,
+        protocol-prefixed orders) previously leaked into this section.
+        Protocol prefixes ("DVT_prophylaxis:", "antipyretic:", ...) are
+        stripped via the shared AD-50 helper (same normalization as the FHIR
+        medication builders).
+        """
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
         none_text = "退院処方なし" if is_ja else "No discharge medications"
 
-        meds = ctx.medications or []
+        meds = getattr(ctx, "discharge_medications", None) or []
         if not meds:
             return none_text, facts
 
-        facts.append("ctx.medications")
+        facts.append("ctx.discharge_medications")
         seen: set[str] = set()
         drug_names = []
         for med in meds:
             drug = _o(med, "drug_name", "") or ""
+            drug, _protocol_category = strip_protocol_prefix(drug)
             if drug and drug not in seen:
                 seen.add(drug)
                 drug_names.append(drug)
@@ -1037,7 +1151,7 @@ class TemplateNarrativeGenerator:
         if soap is None:
             return fallback, facts
 
-        text = _pick_localized(soap, "subjective", lang)
+        text = _pick_localized(soap, "subjective", lang, ctx)
         if not text:
             return fallback, facts
 
@@ -1055,7 +1169,7 @@ class TemplateNarrativeGenerator:
         if soap is None:
             return fallback, facts
 
-        text = _pick_localized(soap, "objective", lang)
+        text = _pick_localized(soap, "objective", lang, ctx)
         if not text:
             return fallback, facts
 
@@ -1082,7 +1196,7 @@ class TemplateNarrativeGenerator:
         if soap is None:
             return fallback, facts
 
-        text = _pick_localized(soap, "assessment", lang)
+        text = _pick_localized(soap, "assessment", lang, ctx)
         if not text:
             return fallback, facts
 
@@ -1100,7 +1214,7 @@ class TemplateNarrativeGenerator:
         if soap is None:
             return fallback, facts
 
-        text = _pick_localized(soap, "plan", lang)
+        text = _pick_localized(soap, "plan", lang, ctx)
         if not text:
             return fallback, facts
 
@@ -1180,13 +1294,20 @@ class TemplateNarrativeGenerator:
             logger.warning("template locale field %s missing on %s", field, type(ed_tmpl).__name__)
             return fallback, facts
 
-        # Collect non-empty body system findings
+        # Collect non-empty body system findings (placeholder-substituted —
+        # encounter YAML physical_exam_<lang> strings carry {severity_desc_*}
+        # etc.; β-JP-1 chain 1a, same policy as _pick_localized). adv-1 I-2:
+        # a part whose unknown placeholders collapsed it to the generic phrase
+        # carries no information and would repeat per body system — drop it;
+        # if every part collapses, the section-level fallback below fires once.
         systems = ("general", "cardiovascular", "respiratory", "abdominal", "neurological")
         parts = []
         for sys_key in systems:
             val = _o(pe, sys_key, "") or ""
             if val:
-                parts.append(val)
+                filled = _fill_template_placeholders(str(val), ctx, lang)
+                if filled and filled != fallback:
+                    parts.append(filled)
 
         if parts:
             facts.append(f"encounter_protocol.narrative.ed_note_template.{field}")
@@ -1206,7 +1327,7 @@ class TemplateNarrativeGenerator:
         if ed_tmpl is None:
             return fallback, facts
 
-        text = _pick_localized(ed_tmpl, "ed_workup_summary", lang)
+        text = _pick_localized(ed_tmpl, "ed_workup_summary", lang, ctx)
         if not text:
             return fallback, facts
 
@@ -1224,7 +1345,7 @@ class TemplateNarrativeGenerator:
         if ed_tmpl is None:
             return fallback, facts
 
-        text = _pick_localized(ed_tmpl, "disposition", lang)
+        text = _pick_localized(ed_tmpl, "disposition", lang, ctx)
         if not text:
             return fallback, facts
 

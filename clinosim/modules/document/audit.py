@@ -104,11 +104,22 @@ _JA_CHAR_RE = re.compile(r"[぀-ゟ゠-ヿ一-鿿]")
 # TODO.md follow-up entry). Both builder sites tag `facts_used` with the
 # module's documented `:ja_only_fallback` suffix at generation time
 # (`clinosim/modules/document/narrative/template_generator.py`
-# `_build_hpi` / `_build_physical_examination`). These two sections are
+# `_build_hpi` / `_build_physical_examination`). These sections are
 # therefore excluded from the ja-char count below; Japanese chars in any
 # OTHER ADMISSION_HP section indicate a genuine Bug-A-class locale-routing
 # regression and ARE counted.
-KNOWN_JA_ONLY_FALLBACK_SECTIONS = frozenset({"hpi", "physical_examination"})
+#
+# β-JP-1 chain 1a: "assessment_and_plan" joins the set. Its source
+# (`course_archetypes[*].daily_trajectory` in disease YAMLs) has the same
+# no-per-language-split data-authoring gap; the section only started
+# emitting that text once ctx.disease_protocol was wired (pre-1a it always
+# fell back to generic English). `_build_assessment_and_plan` tags
+# `:ja_only_fallback` at generation time, mirroring `_build_hpi`.
+KNOWN_JA_ONLY_FALLBACK_SECTIONS = frozenset({
+    "hpi",
+    "physical_examination",
+    "assessment_and_plan",
+})
 
 
 def _count_us_hp_ja_chars(cif_dir: str) -> int:

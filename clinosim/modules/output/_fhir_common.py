@@ -17,7 +17,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping, load_reference_ranges
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules._shared import is_jp, resolve_lang, strip_protocol_prefix
 from clinosim.modules.output._fhir_localization import (
     _CATEGORY_DISPLAY_JA,
     _FREQ_JA,
@@ -409,21 +409,10 @@ def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any
     return dosage if dosage else None
 
 
-def _strip_protocol_prefix(name: str) -> tuple[str, str]:
-    """Strip protocol/category prefix from drug order text.
-
-    "DVT_prophylaxis: Enoxaparin 2000IU SC daily" → ("Enoxaparin 2000IU SC daily", "DVT prophylaxis")
-    "antipyretic: Acetaminophen 500mg PO q6h PRN temp >= 38.5" → ("Acetaminophen 500mg PO q6h PRN temp >= 38.5", "antipyretic")
-    "Ceftriaxone 1g IV q8h" → ("Ceftriaxone 1g IV q8h", "")
-
-    Returns (cleaned_name, protocol_category).
-    """
-    if ":" in name:
-        prefix, rest = name.split(":", 1)
-        rest = rest.strip()
-        if rest:
-            return rest, prefix.replace("_", " ").strip()
-    return name, ""
+# Promoted to clinosim/modules/_shared.py (β-JP-1 chain 1a adv-1 I-1) so the
+# narrative renderer shares the same normalization; kept as an alias here for
+# the existing FHIR-builder import sites.
+_strip_protocol_prefix = strip_protocol_prefix
 
 
 def _parse_dose_for_mar(text: str) -> dict[str, Any]:

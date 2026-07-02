@@ -11,6 +11,7 @@ friendliness automatically.
 from __future__ import annotations
 
 import json
+import logging
 import os
 from abc import ABC, abstractmethod
 from dataclasses import asdict
@@ -20,6 +21,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from clinosim.modules.llm_service.engine import LLMService
 
+from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.document import specs_for_country
 from clinosim.modules.document.narrative.fact_extractor import extract_all_facts
@@ -32,6 +34,20 @@ from clinosim.types.clinical import (
     NarrativeVersionManifest,
 )
 from clinosim.types.document import NarrativeContext, NarrativeGenerator, NarrativeOutput
+
+logger = logging.getLogger(__name__)
+
+
+def _parse_dt(value: Any) -> datetime | None:
+    """Parse a structural-CIF datetime value (ISO string / datetime / None)."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value
+    try:
+        return datetime.fromisoformat(str(value))
+    except ValueError:
+        return None
 
 
 class NarrativePass(ABC):
@@ -98,6 +114,11 @@ class NarrativePass(ABC):
                         # before generating — the renderer resolves the
                         # localized label from this neutral key (AD-30 spirit).
                         ctx.shift = str(stub.get("shift", "") or "")
+                        # β-JP-1 chain 1a: per-stub hospital day (mirrors the
+                        # ctx.shift pattern) — daily notes previously all
+                        # rendered as day 0 because ctx was built once per
+                        # patient with day_index=0.
+                        ctx.day_index = self._stub_day_index(stub, encounter_dict)
                         output = self._generate(ctx, spec)
                         wrapper = self._output_to_wrapper(
                             output, generator=self._generator_name()
@@ -162,37 +183,186 @@ class NarrativePass(ABC):
         spec: DocumentTypeSpec,
         language: str,
     ) -> NarrativeContext:
+        """Assemble the per-patient NarrativeContext from real structural CIF keys.
+
+        β-JP-1 chain 1a (spec §2b): every field is wired to the actual
+        structural JSON schema (``vital_signs`` / ``medication_administrations``
+        + ``discharge_prescription`` / ``clinical_diagnosis`` /
+        ``patient.allergies`` / ``encounter.severity`` /
+        ``encounter.clinical_course_archetype``). Pre-1a JSON without the new
+        Stage 1 fields degrades to the old defaults (""/[]/None) — never raise.
+
+        ``day_index`` is a per-stub value: ``run()`` overrides it per stub
+        (mirroring ``ctx.shift``) via ``_stub_day_index``; the value set here
+        is only the day-0 base.
+        """
         from clinosim.modules.document import DocumentType
+
+        condition_event = patient_dict.get("condition_event") or {}
+        disease_protocol = self._resolve_disease_protocol(condition_event)
+        encounter_protocol = self._resolve_encounter_protocol(condition_event)
+        archetype = str(encounter_dict.get("clinical_course_archetype", "") or "")
+        clinical_diagnosis = patient_dict.get("clinical_diagnosis") or None
 
         ctx = NarrativeContext(
             patient=patient_dict.get("patient"),
             encounter=encounter_dict,
-            encounter_type=None,
-            disease_protocol=None,
-            encounter_protocol=None,
-            clinical_course_archetype=patient_dict.get("clinical_course_archetype", ""),
-            severity=patient_dict.get("severity", ""),
+            encounter_type=encounter_dict.get("encounter_type"),
+            disease_protocol=disease_protocol,
+            encounter_protocol=encounter_protocol,
+            clinical_course_archetype=archetype,
+            severity=str(encounter_dict.get("severity", "") or ""),
             day_index=0,
-            los_days=0,
-            vitals=patient_dict.get("vitals", []),
-            lab_results=patient_dict.get("lab_results", []),
-            medications=patient_dict.get("medications", []),
-            diagnoses=patient_dict.get("diagnoses", []),
-            procedures=patient_dict.get("procedures", []),
-            allergies=patient_dict.get("allergies", []),
+            los_days=self._compute_los_days(patient_dict, encounter_dict),
+            vitals=patient_dict.get("vital_signs", []) or [],
+            lab_results=patient_dict.get("lab_results", []) or [],
+            medications=self._collect_medications(patient_dict),
+            discharge_medications=self._collect_discharge_medications(patient_dict),
+            diagnoses=[clinical_diagnosis] if clinical_diagnosis else [],
+            procedures=patient_dict.get("procedures", []) or [],
+            allergies=_o(patient_dict.get("patient") or {}, "allergies", []) or [],
             document_type=DocumentType(spec.type_key),
             target_lang=language,
             locale="jp" if is_jp(self.country) else "us",
         )
         ctx.narrative_spine = build_narrative_spine(
-            None,
-            None,
-            ctx.clinical_course_archetype,
+            disease_protocol,
+            encounter_protocol,
+            archetype,
         )
         ctx.materialized_facts = extract_all_facts(patient_dict, encounter_dict, ctx)
         if spec.format_type.value == "composition":
             ctx.section_facts = extract_for_composition(ctx, spec)
         return ctx
+
+    @staticmethod
+    def _resolve_disease_protocol(condition_event: Any) -> Any | None:
+        """Resolve the DiseaseProtocol for a known_disease condition event.
+
+        Only ``condition_type == "known_disease"`` carries a disease id in
+        ``ground_truth_diseases[0]`` (ED stores an encounter condition id;
+        outpatient follow-ups store ICD codes). ``load_disease_protocol`` is
+        lru_cached (PR #133) so the per-patient call is cheap; the returned
+        protocol is a SHARED instance and must not be mutated.
+        """
+        if str(_o(condition_event, "condition_type", "") or "") != "known_disease":
+            return None
+        gt = _o(condition_event, "ground_truth_diseases", []) or []
+        if not gt:
+            return None
+        disease_id = str(gt[0])
+        from clinosim.modules.disease.protocol import load_disease_protocol
+
+        try:
+            return load_disease_protocol(disease_id)
+        except FileNotFoundError:
+            logger.warning(
+                "narrative context: unknown disease id %r in condition_event — "
+                "disease_protocol falls back to None", disease_id,
+            )
+            return None
+
+    @staticmethod
+    def _resolve_encounter_protocol(condition_event: Any) -> Any | None:
+        """Resolve the encounter condition protocol for an ed_visit event.
+
+        ``simulate_ed_visit`` stores the encounter condition id in
+        ``ground_truth_diseases[0]`` with ``condition_type="ed_visit"`` (both
+        EMERGENCY and outpatient-typed encounter-YAML visits go through it).
+        Outpatient chronic/post-discharge follow-ups store ICD codes instead —
+        not recoverable; encounter_protocol stays None there (spec §3 TODO).
+        """
+        if str(_o(condition_event, "condition_type", "") or "") != "ed_visit":
+            return None
+        gt = _o(condition_event, "ground_truth_diseases", []) or []
+        if not gt:
+            return None
+        condition_id = str(gt[0])
+        from clinosim.modules.encounter.protocol import load_encounter_condition
+
+        try:
+            return load_encounter_condition(condition_id)
+        except FileNotFoundError:
+            logger.warning(
+                "narrative context: unknown encounter condition id %r in "
+                "condition_event — encounter_protocol falls back to None", condition_id,
+            )
+            return None
+
+    @staticmethod
+    def _collect_medications(patient_dict: dict[str, Any]) -> list[Any]:
+        """MAR entries only as ``ctx.medications`` (in-hospital administrations).
+
+        adv-1 I-1: ``discharge_prescription.items`` were previously merged in
+        here, which leaked ICU drips (Dobutamine / Norepinephrine) and
+        protocol-prefixed in-hospital orders into the discharge_medications
+        narrative section. In-hospital consumers
+        (``extract_medication_facts`` / ``section_extractor``) read the MAR
+        shape ``drug_name`` (+ optional ``dose``); discharge prescriptions are
+        collected separately by ``_collect_discharge_medications``.
+        """
+        return list(patient_dict.get("medication_administrations", []) or [])
+
+    @staticmethod
+    def _collect_discharge_medications(patient_dict: dict[str, Any]) -> list[Any]:
+        """``discharge_prescription.items`` normalized to the consumer shape.
+
+        Only source for ``ctx.discharge_medications`` (adv-1 I-1). Inpatient
+        rx items carry ``drug_name`` (``simulator/inpatient.py``
+        ``_build_discharge_prescription``) while outpatient renewal items
+        carry ``drug`` (``simulator/outpatient.py``); both shapes are
+        normalized to ``{"drug_name", "dose"}`` here (spec §2b decision:
+        adapt the source to the consumer contract, not vice versa).
+        """
+        rx = patient_dict.get("discharge_prescription") or None
+        if rx is None:
+            return []
+        items: list[Any] = []
+        for item in _o(rx, "items", []) or []:
+            drug = str(_o(item, "drug_name", "") or _o(item, "drug", "") or "")
+            if drug:
+                items.append(
+                    {"drug_name": drug, "dose": str(_o(item, "dose", "") or "")}
+                )
+        return items
+
+    @staticmethod
+    def _compute_los_days(
+        patient_dict: dict[str, Any], encounter_dict: dict[str, Any]
+    ) -> int:
+        """LOS in whole days from admission→discharge dates.
+
+        In-progress encounters (AD-32 snapshot truncation) reuse the document
+        engine's physiological_states proxy — single edit point, no duplicated
+        proxy rule (``clinosim.modules.document.engine._compute_los_days``).
+        """
+        from clinosim.modules.document.engine import (
+            _compute_los_days as _engine_los,
+        )
+
+        admission_dt = _parse_dt(encounter_dict.get("admission_datetime"))
+        if admission_dt is None:
+            return 1
+        discharge_dt = _parse_dt(encounter_dict.get("discharge_datetime"))
+        states = patient_dict.get("physiological_states", []) or []
+        return _engine_los(admission_dt, discharge_dt, list(states))
+
+    @staticmethod
+    def _stub_day_index(stub: dict[str, Any], encounter_dict: dict[str, Any]) -> int:
+        """0-based hospital day of one document stub (spec §2b per-stub day).
+
+        Derived from the stub's ``period_start`` (fallback:
+        ``authored_datetime``) minus the encounter admission date. Missing /
+        unparseable dates → 0 (pre-1a behavior); negative deltas are clamped
+        to 0 (defensive — stubs never precede admission in production).
+        """
+        stub_dt = _parse_dt(stub.get("period_start")) or _parse_dt(
+            stub.get("authored_datetime")
+        )
+        admission_dt = _parse_dt(encounter_dict.get("admission_datetime"))
+        if stub_dt is None or admission_dt is None:
+            return 0
+        return max(0, (stub_dt.date() - admission_dt.date()).days)
 
     def _find_matching_stubs(
         self, patient_dict: dict[str, Any], spec: DocumentTypeSpec
