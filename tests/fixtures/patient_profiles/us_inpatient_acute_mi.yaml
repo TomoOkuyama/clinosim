@@ -1,0 +1,24 @@
+profile_id: us_inpatient_acute_mi
+disease_id: acute_mi
+country: US
+severity: severe
+archetype: plateau
+count: 1
+random_seed: 42
+hospital_scale: medium
+
+patient_overrides:
+  age: 62
+  sex: M
+
+description: |
+  Severe acute MI in a middle-aged US male, plateau trajectory
+  (delayed recovery, sustained cardiac dysfunction). Multi-day
+  inpatient admission with troponin trajectory, PCI procedure
+  documentation, and complex discharge planning.
+  β-JP-1 target: US H&P + procedure documentation + discharge summary.
+clinical_notes: |
+  ECG: STEMI (anterior)
+  Troponin rise-and-fall pattern expected
+  Coronary angiography + PCI
+  Post-procedure: dual antiplatelet therapy

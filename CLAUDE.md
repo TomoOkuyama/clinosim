@@ -68,6 +68,20 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
   が structural + narrative を merge して `doc.narrative` を fill、builders は
   wrapper 経由のみ。
 
+### Canonical patient profile fixture library (AD-66, 2026-07-03, session 30)
+
+- **AD-66 Rule 1**: Profile YAML changes MUST regenerate golden + commit both together。
+  `tests/fixtures/patient_profiles/<name>.yaml` を編集したら必ず `clinosim
+  regenerate-goldens --profile <name>` で `<name>.golden.json` を再生成 + 両方
+  同一 commit に含める。片方だけ commit すると次の `pytest -m regression`
+  実行時に regression suite が失敗する = ship-blocker。
+- **AD-66 Rule 2**: Unexpected `git diff` on goldens after intentional template
+  changes = regression suspicion。narrative template logic を意図的に変更
+  (例:H&P に新 section 追加)して `clinosim regenerate-goldens --all` を回した
+  時、意図した profile 以外の goldens にも diff が入ったら narrative pass の
+  regression の疑い。commit 前に必ず調査。「全部再生成したから green」= silent
+  regression 隠蔽の常套手段(PR-90 教訓)。
+
 ### Module independence
 
 - Each module under `clinosim/modules/` can only depend on `clinosim/types/`, `clinosim/codes/`, `clinosim/locale/`, and other modules listed in its `README.md` Dependencies section.

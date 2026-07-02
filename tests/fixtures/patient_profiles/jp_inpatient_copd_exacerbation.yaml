@@ -1,0 +1,23 @@
+profile_id: jp_inpatient_copd_exacerbation
+disease_id: copd_exacerbation
+country: JP
+severity: moderate
+archetype: dip_then_recovery
+count: 1
+random_seed: 42
+hospital_scale: medium
+
+patient_overrides:
+  age: 78
+  sex: M
+
+description: |
+  JP elderly COPD exacerbation, dip-then-recovery trajectory.
+  Chronic respiratory care scenario. Exercises O2 titration,
+  nebulizer therapy, and steroid taper narratives.
+  β-JP-1 target: JP chronic respiratory narrative.
+clinical_notes: |
+  History: 40 pack-year smoking, home O2 dependent
+  Presentation: dyspnea, increased sputum
+  Treatment: bronchodilators, systemic steroids, O2
+  Recovery: gradual dyspnea improvement

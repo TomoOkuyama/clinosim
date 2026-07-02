@@ -1,0 +1,25 @@
+profile_id: us_inpatient_hemorrhagic_stroke
+disease_id: hemorrhagic_stroke
+country: US
+severity: severe
+archetype: dip_then_recovery
+count: 1
+random_seed: 42
+hospital_scale: large
+
+patient_overrides:
+  age: 71
+  sex: F
+
+description: |
+  US neuro-critical hemorrhagic stroke, dip-then-recovery trajectory.
+  Small hematoma, initial deterioration, then stabilization and
+  gradual neuro recovery. Exercises GCS trajectory, neuro exam
+  narrative, and rehab transfer planning.
+  β-JP-1 target: US neuro-critical narrative + rehab handoff.
+clinical_notes: |
+  Presentation: sudden severe headache, left-sided weakness
+  CT: right basal ganglia intracerebral hemorrhage
+  ICU admission for neuro monitoring
+  BP control, GCS q1h
+  Recovery: stabilization by day 3, rehab consult

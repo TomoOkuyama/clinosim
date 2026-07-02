@@ -2507,3 +2507,69 @@ as device/hai/antibiotic/imaging precedents):
   in favor of `ClinicalDocumentNarrative` wrapper type.
 
 **Related ADRs:** AD-30 / AD-55 / AD-56 / AD-60 / AD-63 / AD-64
+
+---
+
+### AD-66 · Canonical patient profile fixture library for narrative regression
+
+**Date:** 2026-07-03 (α-min-2c chain)
+
+**Status:** Accepted
+
+**Context:**
+The AD-65 two-pass CIF architecture enables template narrative output to be
+compared against a canonical baseline. β-JP-1 will introduce `LLMNarrativePass`
+which produces non-deterministic LLM output. To detect narrative regression
+(template drift, LLM drift, semantic changes), we need a canonical set of
+deterministic patient profiles + expected narrative outputs to diff against.
+
+**Decision:**
+Ship 6 canonical patient profile YAML fixtures in `tests/fixtures/patient_profiles/`,
+each accompanied by a `<profile>.golden.json` file containing the expected
+template narrative output at seed 42. A `pytest -m regression` suite
+subprocess-invokes `clinosim test-disease --patient-profile <id>` and byte-diffs
+the generated narrative against the golden.
+
+Introduce a new `PatientProfile` Pydantic type in `clinosim/types/config.py`
+with `.to_forced_scenario()` transform, and a `clinosim regenerate-goldens`
+CLI subcommand for bootstrap + re-generation.
+
+Scope-in for α-min-2c: 6 disease-based inpatient/ICU profiles only.
+Scope-out (deferred to β-JP-1 or later): ED/outpatient encounter profiles
+(requires symmetric `test-encounter --patient-profile` extension), LLM
+semantic diff mechanism, GitHub Actions CI integration, clinical review loop.
+
+**Consequences:**
+
+Positive:
+- β-JP-1 unblocked — deterministic canonical patients for template vs LLM narrative regression
+- Adding new profiles is a documented workflow (regenerate + review + commit)
+- Determinism enforced at seed 42 via existing AD-16 discipline
+
+Negative:
+- Additional maintenance burden when template narrative logic changes
+  (all goldens need regeneration)
+- Fixture library is separate from disease YAMLs (contributors need to
+  understand both)
+
+Neutral:
+- 6 profiles × ~10-76 documents/profile × N sections = ~100-500 KB of golden
+  JSON checked into git (acceptable)
+
+**Alternatives considered:**
+
+- **Input + narrative expectations in single YAML**: rejected — LLM output
+  cannot be represented as expected substrings without semantic diff engine
+  (deferred to β-JP-1 scope)
+- **Input + reference golden narrative embedded (base64 in YAML)**: rejected
+  — YAML would grow to 100-500 lines/profile, git diff becomes noisy, LLM
+  parallel storage difficult
+- **Integrated into existing AD-60 `audit run` framework**: rejected —
+  fixture regression is per-profile deterministic byte-diff, not cohort
+  statistics; overloading audit purpose
+
+**Related ADRs:** AD-16 / AD-56 / AD-63 / AD-65
+
+**Related documents:**
+- Spec: `docs/superpowers/specs/2026-07-03-tier1-3-alpha-min-2c-fixture-library-design.md`
+- Plan: `docs/superpowers/plans/2026-07-03-tier1-3-alpha-min-2c-fixture-library-plan.md`
