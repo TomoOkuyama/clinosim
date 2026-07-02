@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from datetime import datetime
 from typing import Any
 
@@ -14,7 +15,7 @@ from clinosim.modules.staff.engine import generate_roster
 from clinosim.simulator.emergency import _simulate_ed_visit
 from clinosim.simulator.engine import run_beta, run_forced
 from clinosim.simulator.helpers import _load_all_disease_protocols
-from clinosim.types.config import ForcedScenario, SimulatorConfig
+from clinosim.types.config import ForcedScenario, PatientProfile, SimulatorConfig
 from clinosim.types.encounter import EncounterType
 from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord
 
@@ -74,12 +75,37 @@ def main() -> None:
 
     # === test-disease: generate specific disease/archetype ===
     td = sub.add_parser("test-disease", help="Generate data for a specific disease and archetype")
-    td.add_argument("disease_id", help="Disease ID (e.g., bacterial_pneumonia)")
-    td.add_argument("-n", "--count", type=int, default=3, help="Number of patients")
+    td.add_argument(
+        "disease_id",
+        nargs="?",
+        default=None,
+        help="Disease ID (e.g., bacterial_pneumonia); optional when --patient-profile is set",
+    )
+    td.add_argument(
+        "--patient-profile",
+        default=None,
+        help="Patient profile fixture name or path (AD-66); "
+        "CLI args override profile fields with stderr WARN",
+    )
+    # adv-1 F-2: -n/--seed/--country default to None (not 3/42/US) so an EXPLICIT
+    # value equal to the old default is distinguishable from "flag omitted" when
+    # resolving against a --patient-profile. Legacy defaults are applied in
+    # _resolve_test_disease_defaults when the flag is omitted and no profile
+    # supplies a value — non-profile behavior is unchanged.
+    td.add_argument(
+        "-n", "--count", type=int, default=None,
+        help="Number of patients (default: 3, or profile count)",
+    )
     td.add_argument("--severity", default=None, help="Force severity: mild/moderate/severe")
     td.add_argument("--archetype", default=None, help="Force archetype name")
-    td.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
-    td.add_argument("--country", default="US", help="Country code (US or JP)")
+    td.add_argument(
+        "-s", "--seed", type=int, default=None,
+        help="Random seed (default: 42, or profile random_seed)",
+    )
+    td.add_argument(
+        "--country", default=None,
+        help="Country code (US or JP; default: US, or profile country)",
+    )
     # AD-65 Phase 4 (Task 16): when -o is set, run the full 3-stage pipeline
     # (structural + narrative + FHIR/CSV) for a tiny disease-specific cohort — a
     # 10-second targeted verify without regenerating a full cohort. When -o is
@@ -183,6 +209,23 @@ def main() -> None:
         help="Output directory (required when --format is set)",
     )
 
+    # === regenerate-goldens: AD-66 α-min-2c golden narrative bootstrap ===
+    rg = sub.add_parser(
+        "regenerate-goldens",
+        help="Regenerate narrative goldens for canonical patient profiles (AD-66)",
+    )
+    rg_group = rg.add_mutually_exclusive_group(required=True)
+    rg_group.add_argument(
+        "--profile",
+        default=None,
+        help="Regenerate a single profile by name",
+    )
+    rg_group.add_argument(
+        "--all",
+        action="store_true",
+        help="Regenerate goldens for all profiles in the fixtures dir",
+    )
+
     # === audit: verification framework ===
     from clinosim.audit.cli import add_audit_subparser
 
@@ -223,6 +266,10 @@ def main() -> None:
         if args.format and not args.output:
             parser.error("--format requires -o/--output to be set")
         _run_test_disease(args)
+        return
+
+    if args.command == "regenerate-goldens":
+        _run_regenerate_goldens(args)
         return
 
     if args.command == "narrate":
@@ -708,6 +755,28 @@ def _run_test_encounter_generate(args: Any) -> None:
     _print_summary(dataset, args.output)
 
 
+# test-disease legacy defaults (adv-1 F-2). Kept out of the argparse defaults so
+# an explicit `--seed 42` / `--country US` / `-n 3` is distinguishable from
+# "flag omitted" when resolving against a --patient-profile.
+_TD_DEFAULT_COUNT = 3
+_TD_DEFAULT_SEED = 42
+_TD_DEFAULT_COUNTRY = "US"
+
+
+def _resolve_test_disease_defaults(args: Any) -> None:
+    """Apply legacy test-disease defaults to omitted CLI flags (non-profile path).
+
+    adv-1 F-2: argparse defaults for -n/--seed/--country are None; this restores
+    the pre-F-2 defaults (3 / 42 / US) so non-profile behavior is byte-identical.
+    """
+    if args.count is None:
+        args.count = _TD_DEFAULT_COUNT
+    if args.seed is None:
+        args.seed = _TD_DEFAULT_SEED
+    if args.country is None:
+        args.country = _TD_DEFAULT_COUNTRY
+
+
 def _run_test_disease(args: Any) -> None:
     """test-disease dispatch (AD-65 Phase 4 / Task 16).
 
@@ -724,6 +793,7 @@ def _run_test_disease(args: Any) -> None:
 
 def _run_test_disease_debug(args: Any) -> None:
     """Original test-disease behavior: simulate + print debug record per patient."""
+    _resolve_test_disease_defaults(args)
     scenario = ForcedScenario(
         disease_id=args.disease_id,
         count=args.count,
@@ -738,32 +808,105 @@ def _run_test_disease_debug(args: Any) -> None:
         _print_debug_record(record, i + 1)
 
 
+def _apply_profile_cli_overrides(args: Any, profile: PatientProfile) -> PatientProfile:
+    """Resolve explicit CLI values against a loaded PatientProfile (adv-1 F-2).
+
+    Resolution order: explicit CLI value (stderr WARN when it overrides a
+    differing profile value) > profile value. Because the argparse defaults for
+    -n/--seed/--country are None, an explicit `--seed 42` overrides a profile
+    with random_seed=99 even though 42 equals the legacy default (Bug D lesson:
+    explicit user input wins, and must be distinguishable from "omitted").
+    """
+    overrides: list[tuple[str, str, Any]] = [
+        ("positional disease_id", "disease_id", args.disease_id),
+        ("--severity", "severity", args.severity),
+        ("--archetype", "archetype", args.archetype),
+        ("--seed", "random_seed", args.seed),
+        ("--country", "country", args.country),
+        ("-n/--count", "count", args.count),
+    ]
+    for label, field, cli_value in overrides:
+        if cli_value is None:
+            continue
+        profile_value = getattr(profile, field)
+        if cli_value != profile_value:
+            print(
+                f"WARN: {label}={cli_value!r} differs from profile {field}="
+                f"{profile_value!r}; using {label}",
+                file=sys.stderr,
+            )
+            profile = profile.model_copy(update={field: cli_value})
+    return profile
+
+
 def _run_test_disease_generate(args: Any) -> None:
     """Mini-generate: N patients of a specific disease + CIF + narrative + FHIR/CSV.
 
     Produces the same on-disk layout as `clinosim generate` (cif/structural,
     cif/narratives/template, fhir_r4/*.ndjson, csv/*) but scoped to one disease and
     a tiny cohort — the AD-65 Phase 4 dev facility for 10-second targeted verify.
+
+    AD-66 α-min-2c: when --patient-profile is set, the profile YAML feeds
+    ForcedScenario + SimulatorConfig; CLI args override profile fields with
+    stderr WARN (Bug D lesson — explicit user input wins).
     """
     from clinosim.modules.document.narrative.passes import TemplateNarrativePass
     from clinosim.modules.output.cif_writer import write_cif
+    from clinosim.types.config import load_patient_profile
 
     cif_dir = os.path.join(args.output, "cif")
 
-    scenario = ForcedScenario(
-        disease_id=args.disease_id,
-        count=args.count,
-        severity=args.severity,
-        archetype=args.archetype,
-    )
-    config = SimulatorConfig(
-        random_seed=args.seed,
-        country=args.country,
-        catchment_population=args.count,  # tiny cohort, no need for hospital-recommended size
-    )
+    profile: PatientProfile | None = None
+    if getattr(args, "patient_profile", None):
+        try:
+            profile = load_patient_profile(args.patient_profile)
+        except FileNotFoundError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            sys.exit(2)
+        except Exception as e:
+            print(f"ERROR: invalid patient profile: {e}", file=sys.stderr)
+            sys.exit(2)
+
+        # Explicit CLI value > profile value, with stderr WARN (adv-1 F-2;
+        # Bug D lesson: explicit CLI > implicit YAML)
+        profile = _apply_profile_cli_overrides(args, profile)
+
+        scenario = profile.to_forced_scenario()
+        config = SimulatorConfig(
+            random_seed=profile.random_seed,
+            country=profile.country,
+            hospital_scale=profile.hospital_scale,
+            catchment_population=profile.count,
+        )
+        effective_disease_id = profile.disease_id
+        effective_count = profile.count
+        effective_country = profile.country
+    else:
+        if not args.disease_id:
+            print(
+                "ERROR: either positional disease_id or --patient-profile must be provided",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+        _resolve_test_disease_defaults(args)
+        scenario = ForcedScenario(
+            disease_id=args.disease_id,
+            count=args.count,
+            severity=args.severity,
+            archetype=args.archetype,
+        )
+        config = SimulatorConfig(
+            random_seed=args.seed,
+            country=args.country,
+            catchment_population=args.count,
+        )
+        effective_disease_id = args.disease_id
+        effective_count = args.count
+        effective_country = args.country
+
     print(
-        f"clinosim test-disease (generate): {args.disease_id} x{args.count}, "
-        f"country={args.country} -> {args.output}"
+        f"clinosim test-disease (generate): {effective_disease_id} x{effective_count}, "
+        f"country={effective_country} -> {args.output}"
     )
     dataset = run_forced(scenario, config)
 
@@ -772,11 +915,12 @@ def _run_test_disease_generate(args: Any) -> None:
     # Stage 2 (AD-65): always run the template narrative pass, mirroring `generate`'s
     # auto-invoke, so the mini-cohort is emit-ready regardless of which export
     # format(s) were requested.
+    effective_seed = profile.random_seed if profile is not None else args.seed
     TemplateNarrativePass(
         cif_dir=cif_dir,
         version_id="template",
-        country=args.country,
-        rng_seed=args.seed,
+        country=effective_country,
+        rng_seed=effective_seed,
     ).run()
     os.makedirs(os.path.join(cif_dir, "narratives"), exist_ok=True)
     with open(os.path.join(cif_dir, "narratives", "current_version.txt"), "w") as f:
@@ -787,9 +931,76 @@ def _run_test_disease_generate(args: Any) -> None:
     formats = args.format or []
     if "all" in formats:
         formats = ["fhir-r4", "csv"]
-    _run_exports(formats, cif_dir, args.output, args.country)
+    _run_exports(formats, cif_dir, args.output, effective_country)
 
     _print_summary(dataset, args.output)
+
+
+def _run_regenerate_goldens(args: Any) -> None:
+    """AD-66 α-min-2c T3: regenerate narrative goldens for canonical profiles.
+
+    For each target profile: run test-disease pipeline into a tmpdir, walk
+    cif/narratives/template/documents/**/*.json, write the merged dict to
+    <profile>.golden.json in the fixture dir. Emits stderr note prompting
+    user to `git diff + commit if intentional`.
+    """
+    import json
+    import subprocess
+    import tempfile
+
+    from clinosim.types.config import _PATIENT_PROFILE_DIR
+
+    # Support env var override for test isolation
+    fixture_dir_env = os.environ.get("CLINOSIM_PATIENT_PROFILE_DIR")
+    from pathlib import Path
+
+    fixture_dir = Path(fixture_dir_env) if fixture_dir_env else _PATIENT_PROFILE_DIR
+
+    if args.all:
+        profile_paths = sorted(fixture_dir.glob("*.yaml"))
+    else:
+        p = fixture_dir / f"{args.profile}.yaml"
+        if not p.is_file():
+            print(f"ERROR: profile not found: {p}", file=sys.stderr)
+            sys.exit(2)
+        profile_paths = [p]
+
+    if not profile_paths:
+        print(f"ERROR: no profiles found in {fixture_dir}", file=sys.stderr)
+        sys.exit(2)
+
+    count = 0
+    for profile_path in profile_paths:
+        profile_id = profile_path.stem
+        with tempfile.TemporaryDirectory() as tmpdir:
+            subprocess.run(
+                [sys.executable, "-m", "clinosim.simulator.cli", "test-disease",
+                 "--patient-profile", str(profile_path),
+                 "--format", "cif", "-o", str(tmpdir)],
+                check=True, capture_output=True, text=True,
+            )
+            narr_dir = Path(tmpdir) / "cif" / "narratives" / "template" / "documents"
+            actual: dict[str, dict] = {}
+            if narr_dir.is_dir():
+                for enc_dir in sorted(narr_dir.iterdir()):
+                    if not enc_dir.is_dir():
+                        continue
+                    for doc_file in sorted(enc_dir.iterdir()):
+                        if doc_file.suffix != ".json":
+                            continue
+                        actual[doc_file.stem] = json.loads(doc_file.read_text())
+
+            golden_path = fixture_dir / f"{profile_id}.golden.json"
+            golden_path.write_text(
+                json.dumps(actual, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
+            )
+            count += 1
+            print(f"regenerated: {golden_path}", file=sys.stderr)
+
+    print(
+        f"Regenerated {count} golden(s). Review + git diff + commit if intentional.",
+        file=sys.stderr,
+    )
 
 
 def _print_debug_record(record: CIFPatientRecord, index: int = 1) -> None:

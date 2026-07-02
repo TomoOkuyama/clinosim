@@ -1436,20 +1436,34 @@ Suggested order: ~~microbiology+markers~~ ✅ → ~~nursing flowsheets~~ ✅ →
 - Section-level LLM replacement 発火の条件化 (section 例外リスト + LLM-capable section list by doctype)
 - `clinosim narrate --patient-filter POP-000001` 対応 — single-patient iterative loop for testing
 
-### Post-AD-65 fixture library (α-min-2c or β-2 chain)
+### Post-AD-65 fixture library (α-min-2c) — ✅ COMPLETED (session 30, PR #132)
 
-- `clinosim/tests/fixtures/patient_profiles/` canonical fixture YAML gallery (10-15 exemplar profiles)
-- Clinical archetypes:
-  - Healthy outpatient (no chronic conditions, preventive care only)
-  - Simple chronic (1 stable disease, routine medication, no complications)
-  - Complex polypharmacy (3+ conditions, drug interactions, high-acuity potential)
-  - Acute-on-chronic (exacerbation of known disease + unrelated ED visit)
-  - HAI cohort (ICU-to-discharge with CLABSI/CAUTI/VAP lifecycle)
-  - Multilinguality testing (JP locale + JP-language narrative validation)
-- `clinosim test-disease --patient-profile <yaml>` CLI 対応 — fixture profile を入力に selected-disease simulation 実行
-- Fixture profile schema: patient_id / demographics / chronic_medications / initial_labs / encounter_sequence / narrative_expectations
-- Fixture 選定は臨床医 review loop 必須(小児科医 + 内科医 +看護師 validation per archetype)
-- CI regression suite として integrate — narrative generation + FHIR export の determinism + bug tail tracking
+Shipped in α-min-2c chain (AD-66):
+- `tests/fixtures/patient_profiles/` with 6 canonical disease-based inpatient/ICU profiles
+- `PatientProfile` Pydantic type in `clinosim/types/config.py`
+- `test-disease --patient-profile` CLI + `regenerate-goldens` CLI
+- `pytest -m regression` suite (opt-in, marker=regression)
+- Determinism at seed 42 verified for narrative output
+
+### Post-α-min-2c fixture library extensions (β-JP-1 or later)
+
+- Encounter-based profiles (ED / outpatient) — requires symmetric
+  `test-encounter --patient-profile` extension + `PatientProfile.condition_id`
+  field, or unified `test-profile` verb
+- Additional disease-based profiles beyond α-min-2c 6 (as β-JP-1 LLM
+  regression scope grows)
+- LLM semantic diff mechanism — byte-diff insufficient for LLM output
+  (fuzzy match, tolerance thresholds, expected phrase substrings)
+- Clinical review loop — per-profile physician + nurse validation
+- CI GitHub Actions workflow for automated regression at PR time
+- LLM parallel goldens (`<profile>.llm-<model>.golden.json`) alongside
+  `<profile>.golden.json`
+- Pre-existing structural CIF nondeterminism (issue_date / MAR timestamp
+  wall-clock) — narrative regression scope-clean, but structural byte-diff
+  requires fix for full pipeline determinism
+- Re-add `PatientProfile.chronic_medications` / `time_range` WITH actual
+  consumption (removed in adv-1 F-1 as unwired fields — they were declared but
+  nothing consumed them, defeating the extra=forbid typo defense)
 
 ### Imaging chain OOS formal entries (Tier 1 #2 PR1 scope-out)
 
