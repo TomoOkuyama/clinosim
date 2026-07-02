@@ -39,7 +39,13 @@ class LLMTaskType(str, Enum):
     TREATMENT_DECISION = "treatment_decision"
     CLINICAL_JUDGMENT = "clinical_judgment"
     CONSISTENCY_REVIEW = "consistency_review"
-    # NARRATIVE — clinical documents (produce FHIR DocumentReference)
+    # NARRATIVE — clinical documents (produce FHIR DocumentReference /
+    # Composition). N-3 (N-chain): kept in sync with
+    # clinosim.types.document.DocumentType — every DocumentType value MUST
+    # exist here as a NARRATIVE task (validated at import, see
+    # _validate_document_task_sync). LLMTaskType-only extras (death_summary,
+    # operative_note, procedure_note, chief_complaint) are reserved for
+    # future document phases.
     CHIEF_COMPLAINT = "chief_complaint"
     ADMISSION_HP = "admission_hp"           # LOINC 34117-2
     PROGRESS_NOTE = "progress_note"          # LOINC 11506-3
@@ -47,7 +53,13 @@ class LLMTaskType(str, Enum):
     DEATH_SUMMARY = "death_summary"          # LOINC 69730-0
     OPERATIVE_NOTE = "operative_note"        # LOINC 11504-8
     PROCEDURE_NOTE = "procedure_note"        # LOINC 28570-0
-    NURSING_NOTE = "nursing_note"
+    # α-min-2/3 document types (N-3 enum sync; coarse NURSING_NOTE removed)
+    ADMISSION_NURSING_ASSESSMENT = "admission_nursing_assessment"  # LOINC 78390-2
+    NURSING_SHIFT_NOTE = "nursing_shift_note"                      # LOINC 34746-8
+    NURSING_DISCHARGE_SUMMARY = "nursing_discharge_summary"        # LOINC 34745-0
+    OUTPATIENT_SOAP = "outpatient_soap"                            # LOINC 34131-3
+    ED_NOTE = "ed_note"                                            # LOINC 34878-9
+    ED_TRIAGE_NOTE = "ed_triage_note"                              # LOINC 54094-8
 
 
 TASK_CATEGORY: dict[LLMTaskType, LLMTaskCategory] = {
@@ -62,13 +74,21 @@ TASK_CATEGORY: dict[LLMTaskType, LLMTaskCategory] = {
     LLMTaskType.DEATH_SUMMARY: LLMTaskCategory.NARRATIVE,
     LLMTaskType.OPERATIVE_NOTE: LLMTaskCategory.NARRATIVE,
     LLMTaskType.PROCEDURE_NOTE: LLMTaskCategory.NARRATIVE,
-    LLMTaskType.NURSING_NOTE: LLMTaskCategory.NARRATIVE,
+    LLMTaskType.ADMISSION_NURSING_ASSESSMENT: LLMTaskCategory.NARRATIVE,
+    LLMTaskType.NURSING_SHIFT_NOTE: LLMTaskCategory.NARRATIVE,
+    LLMTaskType.NURSING_DISCHARGE_SUMMARY: LLMTaskCategory.NARRATIVE,
+    LLMTaskType.OUTPATIENT_SOAP: LLMTaskCategory.NARRATIVE,
+    LLMTaskType.ED_NOTE: LLMTaskCategory.NARRATIVE,
+    LLMTaskType.ED_TRIAGE_NOTE: LLMTaskCategory.NARRATIVE,
 }
 
 
 # ============================================================
 # Clinical document metadata
 # LOINC codes from Regenstrief LOINC Reference (https://loinc.org/)
+# α-min-2 additions NLM-verified 2026-07 (Task 8); values MUST match
+# clinosim/modules/document/reference_data/document_type_specs.yaml —
+# pinned by tests/unit/test_llm_task_enum_sync.py.
 # ============================================================
 
 DOCUMENT_LOINC: dict[LLMTaskType, str] = {
@@ -78,12 +98,62 @@ DOCUMENT_LOINC: dict[LLMTaskType, str] = {
     LLMTaskType.DEATH_SUMMARY: "69730-0",      # Death note
     LLMTaskType.OPERATIVE_NOTE: "11504-8",     # Surgical operation note
     LLMTaskType.PROCEDURE_NOTE: "28570-0",     # Procedure note
+    LLMTaskType.ADMISSION_NURSING_ASSESSMENT: "78390-2",  # Nursing admission evaluation note
+    LLMTaskType.NURSING_SHIFT_NOTE: "34746-8",            # Nurse Note
+    LLMTaskType.NURSING_DISCHARGE_SUMMARY: "34745-0",     # Nurse Discharge summary
+    LLMTaskType.OUTPATIENT_SOAP: "34131-3",               # Outpatient Note
+    LLMTaskType.ED_NOTE: "34878-9",                       # Emergency medicine Note
+    LLMTaskType.ED_TRIAGE_NOTE: "54094-8",                # Emergency department Triage note
 }
 
 
 def loinc_for(task_type: LLMTaskType) -> str | None:
     """Return the LOINC code for a document-producing task type, or None."""
     return DOCUMENT_LOINC.get(task_type)
+
+
+def _validate_document_task_sync(
+    document_type_values: frozenset[str] | None = None,
+    narrative_task_values: frozenset[str] | None = None,
+) -> None:
+    """Import-time canonical-constants sync (N-3, PR-90 discipline).
+
+    Every ``clinosim.types.document.DocumentType`` value MUST exist as a
+    NARRATIVE-category ``LLMTaskType`` value — otherwise the Stage 2 LLM path
+    for that document type would silently fall back to template output
+    (``LLMTaskType(doc_type.value)`` raising inside the generator's broad
+    fallback except). Fail loud at import instead.
+
+    The reverse direction (LLMTaskType-only values such as ``death_summary``)
+    is allowed: those are reserved for future document phases.
+
+    Parameters exist for negative testing only; production callers pass None.
+    """
+    from clinosim.types.document import DocumentType
+
+    doc_values = (
+        document_type_values
+        if document_type_values is not None
+        else frozenset(d.value for d in DocumentType)
+    )
+    narrative_values = (
+        narrative_task_values
+        if narrative_task_values is not None
+        else frozenset(
+            t.value for t in LLMTaskType if TASK_CATEGORY[t] == LLMTaskCategory.NARRATIVE
+        )
+    )
+    missing = doc_values - narrative_values
+    if missing:
+        raise ImportError(
+            f"DocumentType ↔ LLMTaskType drift: DocumentType value(s) "
+            f"{sorted(missing)} have no NARRATIVE LLMTaskType counterpart. "
+            f"Add the member(s) to LLMTaskType + TASK_CATEGORY (+ DOCUMENT_LOINC "
+            f"if document-producing) in clinosim/modules/llm_service/engine.py."
+        )
+
+
+_validate_document_task_sync()
 
 
 @dataclass

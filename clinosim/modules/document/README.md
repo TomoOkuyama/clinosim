@@ -11,9 +11,15 @@ Task 6+ で template generator、Task 8 で POST_ENCOUNTER enricher、Task 9 で
 
 ## Dependencies
 
-- `clinosim/types/document.py` — `DocumentType` / `FormatType` / `NarrativeContext` / `NarrativeOutput`
+- `clinosim/types/document.py` — `DocumentType` / `FormatType` / `DocumentTypeSpec` /
+  `NarrativeContext` / `NarrativeOutput` / `NarrativeGenerator` Protocol(N-chain で
+  `DocumentTypeSpec` と generator 契約を types へ移設。`narrative/registry.py` は
+  loader + 後方互換 re-export)
 - `clinosim/types/allergy.py` — `Allergy` (NarrativeContext.allergies)
 - `clinosim/modules/_shared.py` — `get_attr_or_key` (dual-access helper for dict / dataclass)
+- `clinosim/modules/llm_service/` — `LLMService.complete_prompt`(AD-11 経由の LLM 呼出し。
+  `LLMNarrativeGenerator` / `apply_replacement_strategy` / `LLMNarrativePass` のみが使用、
+  template 経路は依存しない)
 
 ## Reference data
 
@@ -102,12 +108,18 @@ narrative version を独立に差し替え可能 にする (Stage 1 immutable + 
 │    └─ writes fhir_r4/*.ndjson + manifest.json                    │
 └──────────────────────────────────────────────────────────────────┘
 
-Later opt-in (β-JP-1):
+LLM opt-in (N-chain wired; prompt quality tuning = β-JP-1):
 ┌──────────────────────────────────────────────────────────────────┐
 │ clinosim narrate --cif-dir ./output/cif --provider bedrock      │
 │                  --version-id "sonnet4-2026-07-02"               │
+│                  [--llm-config config/llm_service.bedrock.yaml]  │
 │   → LLMNarrativePass.run(...) — drop-in on NarrativePass base   │
+│      generator = LLMNarrativeGenerator(template base +           │
+│        LLMService.complete_prompt + NarrativeCache)              │
 │   → cif/narratives/sonnet4-2026-07-02/documents/<enc>/<doc>.json│
+│   → manifest.llm_cost_report = LLMService.cost_report()          │
+│   (--provider ollama = config/llm_service.yaml、                 │
+│    --provider mock = MockProvider dev/test 用・network 不要)     │
 │                                                                  │
 │ clinosim export-fhir --cif-dir ./output/cif                      │
 │                      --narrative-version sonnet4-2026-07-02      │
@@ -126,18 +138,25 @@ Later opt-in (β-JP-1):
 - FHIR builders は `doc.narrative.sections` / `doc.narrative.text` 経由のみ。ClinicalDocument flat field
   (`doc.text` / `doc.sections`) は AD-65 で削除。
 
-## LLMNarrativeGenerator Roadmap
+## Unified narrative interface (N-chain, 2026-07-02)
 
-テンプレート生成は α-min-1/2 で完成。LLM-powered narrative generation は **β-JP-1 chain** で実装予定:
+Stage 2 は単一契約 `NarrativeGenerator` Protocol(`clinosim/types/document.py`:
+`generate(ctx, spec) -> NarrativeOutput`)に統一。`NarrativePass` base が generator を
+constructor injection で保持し、walk order / CIF I/O と content 生成を分離する。
 
-- `LLMNarrativePass(NarrativePass)` — Bedrock Claude Sonnet 4 provider。Stage 2 の drop-in 置換。
-- Prompt cache 実装 — prefix cache 5 分 TTL で同 (doc_type, language) group 内は cache hit 継続。
-- Fact-first generation (`E2` enhancement) — `facts_used` tag で hallucination 防御。
-- Section-level LLM replacement (`E3` enhancement) — `DocumentTypeSpec.llm_enabled_sections` で section 単位で
-  template ↔ LLM 切り替え可能。
-- Longitudinal chart summary — 複数日 encounter で前日所見からの変化を追跡（後期 phase）。
+| 部品 | 役割 |
+|---|---|
+| `TemplateNarrativePass` | default。`TemplateNarrativeGenerator`(決定的、LLM 依存なし) |
+| `LLMNarrativePass` | `LLMNarrativeGenerator`(template base + section 置換)。`narrate --provider bedrock\|ollama\|mock` |
+| `LLMNarrativeGenerator` | 3 経路: llm=None → template_fallback WARN / llm 構成済 → `apply_replacement_strategy` / 例外 → template_fallback WARN |
+| `apply_replacement_strategy` | `stage2_strategy` dispatch。`template_seed` は `llm_enabled_sections` のみ `LLMService.complete_prompt` で置換(prompt = `prompts/{en,ja}/narrative_seed.yaml`) |
+| cache 2 層 | layer 1 = `NarrativeCache`(in-memory、臨床 context key、cross-patient 再利用)/ layer 2 = `PromptCache`(disk、prompt-hash key、`LLMService` 内) |
 
-現在は `TemplateNarrativePass` で全 task_type を scaffold 状態で動作。LLM invocation は β-JP-1 で有効化。
+- LLM 呼出しは `LLMService.complete_prompt` 1 本(AD-11)。retry / PromptCache / token
+  集計は service 側、template fallback は generator 側の責務。
+- `CLINOSIM_NARRATIVE_LLM` env gate は削除済 — opt-in は CLI `--provider` の明示選択のみ。
+- 残 β-JP-1 scope: bedrock/ollama 実プロンプト品質チューニング + `<profile>.llm-<model>.golden.json`
+  + semantic diff。Longitudinal chart summary は後期 phase。
 
 ## Bug Fix Log (AD-65 Chain)
 
