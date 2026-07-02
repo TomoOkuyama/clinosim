@@ -12,6 +12,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.modules._shared import is_jp
 from clinosim.types.procedure import ProcedureRecord, RehabSession
 
 __all__ = ["ProcedureRecord", "RehabSession"]
@@ -37,7 +38,7 @@ def simulate_surgery(
     proc_data = protocol.procedure if hasattr(protocol, "procedure") and protocol.procedure else {}
 
     # Time to surgery
-    if country == "JP":
+    if is_jp(country):
         hours_to_surgery = max(12, float(rng.normal(48, 24)))  # JP: Day 1-2
     else:
         hours_to_surgery = max(6, float(rng.normal(24, 12)))  # US: target < 24h
@@ -96,7 +97,7 @@ def simulate_surgery(
         implants = []
 
     # Primary code for this country
-    proc_code = proc_code_jp if country == "JP" else proc_code_us
+    proc_code = proc_code_jp if is_jp(country) else proc_code_us
 
     # Surgical approach from disease YAML (protocol.procedure.approach)
     approach_map = proc_data.get("approach", {}) or {}
@@ -343,7 +344,7 @@ def generate_bedside_procedures(
             continue
 
         _, cpt, kcode, _name_en, _name_ja, anesthesia = spec
-        code = kcode if country == "JP" else cpt
+        code = kcode if is_jp(country) else cpt
         # Names not stored — FHIR adapter resolves via code_lookup (AD-30)
 
         # Timing: most bedside procedures happen within first 24h
@@ -390,7 +391,7 @@ def generate_rehab_sessions(
 
     # Rehab starts POD 1 (day after surgery)
     start_day = 1
-    duration = 40 if country == "JP" else 30
+    duration = 40 if is_jp(country) else 30
 
     activities_by_phase = {
         "early": ["bed exercises", "sitting up", "standing with assist"],

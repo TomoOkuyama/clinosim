@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from clinosim.codes import get_system_uri
+from clinosim.modules._shared import is_jp
 from clinosim.modules.output._fhir_common import _entry
 from clinosim.modules.output._fhir_localization import (
     _LOCATION_NAME_JA,
@@ -27,7 +28,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     beds = hospital_config.get("resource_capacity", {}).get("inpatient_beds", 0)
 
     # Root hospital Organization
-    hosp_name = "Community Hospital" if country != "JP" else "総合病院"
+    hosp_name = "総合病院" if is_jp(country) else "Community Hospital"
     root_org = {
         "resourceType": "Organization",
         "id": "hospital-main",
@@ -84,7 +85,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 "resourceType": "Location",
                 "id": f"loc-ward-{ward}",
                 "status": "active",
-                "name": (f"{ward}病棟" if country == "JP" else f"Ward {ward}") if ward not in ("ER", "OPD") else _localize_display(phys_display, country, _LOCATION_NAME_JA),
+                "name": (f"{ward}病棟" if is_jp(country) else f"Ward {ward}") if ward not in ("ER", "OPD") else _localize_display(phys_display, country, _LOCATION_NAME_JA),
                 "physicalType": {
                     "coding": [{
                         "system": get_system_uri("hl7-location-physical-type"),
@@ -105,7 +106,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                         "resourceType": "Location",
                         "id": f"loc-bed-{bed_id}",
                         "status": "active",
-                        "name": f"{bed_id}号室" if country == "JP" else f"Bed {bed_id}",
+                        "name": f"{bed_id}号室" if is_jp(country) else f"Bed {bed_id}",
                         "physicalType": {
                             "coding": [{
                                 "system": get_system_uri("hl7-location-physical-type"),
@@ -132,7 +133,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 "resourceType": "Location",
                 "id": f"loc-or-{i}",
                 "status": "active",
-                "name": (f"手術室 {i}" if country == "JP" else f"Operating Room {i}"),
+                "name": (f"手術室 {i}" if is_jp(country) else f"Operating Room {i}"),
                 "physicalType": {
                     "coding": [{
                         "system": get_system_uri("hl7-location-physical-type"),

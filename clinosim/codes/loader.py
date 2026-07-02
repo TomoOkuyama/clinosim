@@ -114,6 +114,39 @@ def get_system_uri(system: str) -> str:
     return _BUILTIN_URIS.get(system, f"urn:clinosim:{system}")
 
 
+# Country → code-system key selection for clinical data kinds (common-logic
+# unification, 2026-07-02). Single source of truth for the "JP uses
+# JLAC10 / ICD-10 / YJ / K-codes, everyone else uses LOINC / ICD-10-CM /
+# RxNorm / CPT" selection previously inlined at each builder / simulator site.
+_COUNTRY_SYSTEM_KEYS: dict[str, dict[str, str]] = {
+    "lab": {"jp": "jlac10", "default": "loinc"},
+    "diagnosis": {"jp": "icd-10", "default": "icd-10-cm"},
+    "drug": {"jp": "yj", "default": "rxnorm"},
+    "procedure": {"jp": "k-codes", "default": "cpt"},
+}
+
+
+def system_key_for(kind: str, country: str) -> str:
+    """Return the code-system key a country uses for a clinical data kind.
+
+    Args:
+        kind: one of ``"lab"``, ``"diagnosis"``, ``"drug"``, ``"procedure"``.
+        country: country code (``"US"`` / ``"JP"``, case-insensitive).
+
+    Raises:
+        KeyError: on unknown ``kind`` — fail loud rather than silently
+            falling back to a wrong code system (PR-90 silent-no-op class).
+    """
+    if kind not in _COUNTRY_SYSTEM_KEYS:
+        raise KeyError(
+            f"system_key_for: unknown kind {kind!r}; expected one of "
+            f"{sorted(_COUNTRY_SYSTEM_KEYS)}"
+        )
+    entry = _COUNTRY_SYSTEM_KEYS[kind]
+    # JP test inlined (codes/ must not import from modules/ — dependency direction).
+    return entry["jp"] if str(country).strip().lower() == "jp" else entry["default"]
+
+
 # Built-in fallback URIs when the yaml doesn't define one
 _BUILTIN_URIS: dict[str, str] = {
     "icd-10-cm": "http://hl7.org/fhir/sid/icd-10-cm",
@@ -156,6 +189,12 @@ _BUILTIN_URIS: dict[str, str] = {
     "hl7-allergyintolerance-clinical":
         "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
     "hl7-admit-source": "http://terminology.hl7.org/CodeSystem/admit-source",
+    "hl7-endpoint-connection-type":
+        "http://terminology.hl7.org/CodeSystem/endpoint-connection-type",
+    "hl7-endpoint-payload-type":
+        "http://terminology.hl7.org/CodeSystem/endpoint-payload-type",
+    "hl7-subscriber-relationship":
+        "http://terminology.hl7.org/CodeSystem/subscriber-relationship",
     "us-core-documentreference-category":
         "http://hl7.org/fhir/us/core/CodeSystem/us-core-documentreference-category",
     "occupation-category": "http://clinosim.example.org/CodeSystem/occupation-category",

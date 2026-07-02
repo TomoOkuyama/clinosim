@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.codes import get_system_uri
+from clinosim.modules._shared import is_jp
 from clinosim.modules.output._fhir_localization import _ROLE_PREFIX_MAP_JA
 from clinosim.modules.output._fhir_reference_data import (
     _ROLE_PREFIX_MAP,
@@ -43,7 +44,7 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
             family, given = full_name, ""
 
         name_obj: dict[str, Any] = {"family": family, "given": [given] if given else []}
-        if role in ("physician", "radiologist") and country != "JP":
+        if role in ("physician", "radiologist") and not is_jp(country):
             name_obj["prefix"] = ["Dr."]
         resource["name"] = [name_obj]
 
@@ -64,7 +65,7 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
             resource["telecom"] = telecoms
 
         # Qualification
-        qual = (_ROLE_PREFIX_MAP_JA if country == "JP" else _ROLE_PREFIX_MAP).get(role)
+        qual = (_ROLE_PREFIX_MAP_JA if is_jp(country) else _ROLE_PREFIX_MAP).get(role)
         if qual:
             qualification: dict[str, Any] = {
                 "code": {

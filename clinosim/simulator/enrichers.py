@@ -43,6 +43,8 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
+from clinosim.modules._shared import is_jp
+
 logger = logging.getLogger(__name__)
 
 POST_POPULATION = "post_population"
@@ -121,7 +123,7 @@ def register_builtin_enrichers() -> None:
             name="identity",
             stage=POST_POPULATION,
             order=10,
-            enabled=lambda c: c.country == "JP" and c.jp_insurance_numbers,
+            enabled=lambda c: is_jp(c.country) and c.jp_insurance_numbers,
             run=lambda ctx: assign_identities(ctx.population, ctx.config.country, ctx.master_seed),
         )
     )
@@ -186,7 +188,7 @@ def register_builtin_enrichers() -> None:
             name="care_level",
             stage=POST_RECORDS,
             order=60,
-            enabled=lambda c: getattr(c, "country", "US") == "JP",
+            enabled=lambda c: is_jp(getattr(c, "country", "US")),
             run=enrich_care_level,
         )
     )

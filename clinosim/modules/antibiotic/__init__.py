@@ -9,10 +9,7 @@ ANTIBIOTIC_DRUGS keys are lowercase snake_case (e.g. "vancomycin",
 section and the ANTIBIOTIC_LOINC_LOOKUP. The "name" value holds the
 display name used for Order.display_name and MedicationAdministration.drug_name.
 """
-from functools import lru_cache
-from pathlib import Path
-
-import yaml
+from clinosim.modules.observation.microbiology import antibiotic_loinc_lookup
 
 ANTIBIOTIC_DRUGS: dict[str, dict[str, str]] = {
     "vancomycin": {"name": "Vancomycin"},
@@ -27,21 +24,7 @@ ANTIBIOTIC_DRUGS: dict[str, dict[str, str]] = {
     "cefepime": {"name": "Cefepime"},
 }
 
-_MICRO_REF = (
-    Path(__file__).parent.parent
-    / "observation"
-    / "reference_data"
-    / "microbiology.yaml"
-)
-
-
-@lru_cache(maxsize=1)
-def _load_antibiotic_loinc_lookup() -> dict[str, str]:
-    """Load antibiotic_key -> LOINC from microbiology.yaml (single source of truth)."""
-    with open(_MICRO_REF) as f:
-        data = yaml.safe_load(f) or {}
-    table = data.get("antibiotics") or {}
-    return {str(k): str(v) for k, v in table.items()}
-
-
-ANTIBIOTIC_LOINC_LOOKUP: dict[str, str] = _load_antibiotic_loinc_lookup()
+# antibiotic_key -> LOINC, sourced from the cached + validated microbiology.yaml
+# loader in the observation module (single source of truth; avoids re-parsing
+# the same YAML with a hardcoded cross-module path).
+ANTIBIOTIC_LOINC_LOOKUP: dict[str, str] = antibiotic_loinc_lookup()

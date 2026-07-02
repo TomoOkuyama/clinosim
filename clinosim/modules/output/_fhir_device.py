@@ -13,7 +13,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
-from clinosim.modules._shared import get_attr_or_key
+from clinosim.modules._shared import get_attr_or_key, resolve_lang
 from clinosim.modules.output._fhir_common import BundleContext
 
 
@@ -32,7 +32,7 @@ def _build_device(ctx: BundleContext) -> list[dict]:
     devices = _extensions_device_list(ctx)
     if not devices:
         return []
-    lang = "ja" if ctx.country == "JP" else "en"
+    lang = resolve_lang(ctx.country)
     out: list[dict] = []
     for d in devices:
         snomed = get_attr_or_key(d, "snomed_code", "")

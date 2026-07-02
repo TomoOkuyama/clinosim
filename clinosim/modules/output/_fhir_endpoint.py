@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.codes import get_system_uri
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.imaging.engine import ENDPOINT_ID_PREFIX
 from clinosim.modules.output._fhir_common import BundleContext
@@ -59,13 +60,13 @@ def _build_endpoint(study: Any, base_url: str) -> dict[str, Any]:
         "id": _o(study, "endpoint_id", ""),
         "status": "active",
         "connectionType": {
-            "system": "http://terminology.hl7.org/CodeSystem/endpoint-connection-type",
+            "system": get_system_uri("hl7-endpoint-connection-type"),
             "code": DICOM_WADO_RS_CONNECTION_TYPE,
             "display": "DICOM WADO-RS",
         },
         "payloadType": [{
             "coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/endpoint-payload-type",
+                "system": get_system_uri("hl7-endpoint-payload-type"),
                 "code": "any",
                 "display": "Any",
             }],

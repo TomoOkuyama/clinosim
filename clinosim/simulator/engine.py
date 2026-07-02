@@ -8,6 +8,7 @@ from datetime import date, datetime, timedelta
 import numpy as np
 
 from clinosim.locale.loader import load_demographics
+from clinosim.modules._shared import is_jp
 from clinosim.modules.disease.protocol import load_disease_protocol
 from clinosim.modules.healthcare_system.loader import load_healthcare_config
 from clinosim.modules.patient.activator import activate_patient
@@ -528,8 +529,8 @@ def run_forced(scenario: ForcedScenario, config: SimulatorConfig | None = None) 
             age=age,
             sex=sex,
             date_of_birth=date(2024 - age, 1, 1),
-            family_name="テスト" if config.country == "JP" else "Test",
-            given_name=f"患者{i+1}" if config.country == "JP" else f"Patient{i+1}",
+            family_name="テスト" if is_jp(config.country) else "Test",
+            given_name=f"患者{i+1}" if is_jp(config.country) else f"Patient{i+1}",
             chronic_conditions=scenario.patient_overrides.get("chronic_conditions", []),
         )
         patient = activate_patient(person, rng, _demo)

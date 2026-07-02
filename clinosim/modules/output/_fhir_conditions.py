@@ -8,7 +8,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from clinosim.codes import get_system_uri
+from clinosim.codes import get_system_uri, system_key_for
+from clinosim.modules._shared import resolve_lang
 from clinosim.modules.output._fhir_common import (
     _build_diagnosis_codeable_concept,
     _infer_severity,
@@ -42,8 +43,8 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
     deceased = record.get("deceased", False)
 
     country_code = "JP" if country != "US" else "US"
-    lang = "ja" if country_code == "JP" else "en"
-    icd_system_key = "icd-10" if country_code == "JP" else "icd-10-cm"
+    lang = resolve_lang(country_code)
+    icd_system_key = system_key_for("diagnosis", country_code)
 
     # Chronic conditions the patient carries — used both to recognise a chronic
     # primary diagnosis (active + chronic onset) and to emit problem-list items below.

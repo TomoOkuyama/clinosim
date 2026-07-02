@@ -95,11 +95,15 @@ class EncounterConditionProtocol(BaseModel):
     narrative: EncounterNarrativeSpec | None = None
 
 
+@lru_cache(maxsize=64)
 def load_encounter_condition(condition_id: str) -> dict[str, Any]:
     """Load and validate a single encounter condition YAML.
 
     Returns the raw dict (callers expect a dict); validation guards against
-    malformed YAML by raising a clear Pydantic error.
+    malformed YAML by raising a clear Pydantic error. Cached (maxsize=64 covers
+    the ~46 conditions with margin); the returned dict is a SHARED read-only
+    instance — no call site mutates it (verified by grep during the
+    loader-commonization refactor).
     """
     path = _REF_DIR / f"{condition_id}.yaml"
     if not path.exists():

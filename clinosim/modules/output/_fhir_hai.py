@@ -15,7 +15,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
-from clinosim.modules._shared import get_attr_or_key
+from clinosim.modules._shared import get_attr_or_key, resolve_lang
 from clinosim.modules.output._fhir_common import BundleContext, _map_diagnosis_code
 
 
@@ -34,7 +34,7 @@ def _build_hai_conditions(ctx: BundleContext) -> list[dict]:
     if not hais:
         return []
     country = ctx.country
-    lang = "ja" if country == "JP" else "en"
+    lang = resolve_lang(country)
     out: list[dict] = []
     for h in hais:
         icd_internal = get_attr_or_key(h, "icd10_code", "")

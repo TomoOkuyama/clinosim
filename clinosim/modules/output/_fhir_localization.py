@@ -11,39 +11,18 @@ This module must NOT import ``fhir_r4_adapter`` (no circular import).
 from __future__ import annotations
 
 import re
-from functools import lru_cache
-from pathlib import Path
 
 from clinosim.codes import lookup as code_lookup
+from clinosim.locale.loader import load_department_display as _load_department_display
+from clinosim.locale.loader import load_drug_names_ja as _load_drug_names_ja
+from clinosim.locale.loader import load_med_terms_ja as _load_med_terms_ja
+from clinosim.modules._shared import is_jp, resolve_lang
 
-
-@lru_cache(maxsize=1)
-def _load_med_terms_ja() -> dict[str, dict[str, str]]:
-    """Load JP medication-term tables ({"categories": {...}, "terms": {...}}).
-
-    Order is preserved from the YAML (substitutions are order-sensitive).
-    """
-    import yaml
-    yaml_path = Path(__file__).resolve().parent.parent.parent \
-        / "locale" / "shared" / "med_terms_ja.yaml"
-    if yaml_path.exists():
-        raw = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
-        return {
-            "categories": raw.get("categories", {}) or {},
-            "terms": raw.get("terms", {}) or {},
-        }
-    return {"categories": {}, "terms": {}}
-
-
-@lru_cache(maxsize=1)
-def _load_drug_names_ja() -> dict[str, str]:
-    """Load English→Japanese drug name mapping (case-insensitive keys)."""
-    import yaml
-    yaml_path = Path(__file__).resolve().parent.parent.parent / "locale" / "shared" / "drug_names_ja.yaml"
-    if yaml_path.exists():
-        raw = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
-        return {k.lower(): v for k, v in raw.items()}
-    return {}
+# ``_load_med_terms_ja`` / ``_load_drug_names_ja`` / ``_load_department_display``
+# are thin re-export aliases of the canonical cached locale loaders. They are
+# re-exported by ``fhir_r4_adapter.py`` (public import path) and exercised by
+# tests via ``.cache_clear()`` / ``.cache_info()`` — sharing the underlying
+# lru_cache object keeps those APIs working.
 
 
 def _localize_dosage_terms(text: str) -> str:
@@ -112,24 +91,12 @@ def _localize_drug_name(drug_name: str, country: str) -> str:
     return _localize_dosage_terms(result).strip() if changed or result != drug_name else _localize_dosage_terms(drug_name).strip()
 
 
-@lru_cache(maxsize=1)
-def _load_department_display() -> dict[str, dict[str, str]]:
-    """Load department display table ({key: {en, ja}}, case-insensitive keys)."""
-    import yaml
-    yaml_path = Path(__file__).resolve().parent.parent.parent \
-        / "locale" / "shared" / "department_display.yaml"
-    if yaml_path.exists():
-        raw = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
-        return raw.get("departments", {}) or {}
-    return {}
-
-
 def _dept_display(dept: str, country: str) -> str:
     """Resolve a department key to its display name for the target country.
 
     Falls back to a title-cased key when the department is not in the table.
     """
-    lang = "ja" if country == "JP" else "en"
+    lang = resolve_lang(country)
     entry = _load_department_display().get(dept, {})
     return entry.get(lang) or dept.replace("_", " ").title()
 
@@ -258,14 +225,14 @@ def _procedure_display(code: str, lang: str, fallback: str = "") -> str:
 def _localize_display(value: str, country: str, dictionary: dict[str, str]) -> str:
     """Look up JP display for an English value when country=JP.
     Returns original value if no mapping exists."""
-    if country != "JP" or not value:
+    if not is_jp(country) or not value:
         return value
     return dictionary.get(value, value)
 
 
 def _localize_interp(coded: dict[str, str], country: str) -> dict[str, str]:
     """Localize interpretation display dict in place (returns new dict)."""
-    if country != "JP":
+    if not is_jp(country):
         return coded
     d = dict(coded)
     d["display"] = _INTERPRETATION_DISPLAY_JA.get(d.get("code", ""), d.get("display", ""))

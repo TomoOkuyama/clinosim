@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 import numpy as np
 
+from clinosim.codes import system_key_for
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import (
     canonical_lab_name,
@@ -265,9 +266,9 @@ def _simulate_outpatient_visit(
     )
     clinical_diagnosis = ClinicalDiagnosis(
         admission_diagnosis_code=dx_code,
-        admission_diagnosis_system="icd-10" if country == "JP" else "icd-10-cm",
+        admission_diagnosis_system=system_key_for("diagnosis", country),
         discharge_diagnosis_code=dx_code,
-        discharge_diagnosis_system="icd-10" if country == "JP" else "icd-10-cm",
+        discharge_diagnosis_system=system_key_for("diagnosis", country),
     )
 
     record = CIFPatientRecord(

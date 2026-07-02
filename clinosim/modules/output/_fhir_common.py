@@ -17,6 +17,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping, load_reference_ranges
+from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output._fhir_localization import (
     _CATEGORY_DISPLAY_JA,
     _FREQ_JA,
@@ -116,7 +117,7 @@ def _social_category(country: str) -> list[dict]:
             "code": "social-history",
             "display": _localize_display("Social History", country, _CATEGORY_DISPLAY_JA),
         }],
-        "text": "社会歴" if country == "JP" else "Social History",
+        "text": "社会歴" if is_jp(country) else "Social History",
     }]
 
 
@@ -168,7 +169,7 @@ def _build_diagnosis_codeable_concept(
     (e.g. "COPD" instead of "Other chronic obstructive pulmonary disease"),
     enabling search by common clinical abbreviations.
     """
-    primary_lang = "ja" if country != "US" else "en"
+    primary_lang = resolve_lang(country)
     primary_system = get_system_uri(system_key)
 
     # Look up display in primary language (with cross-system fallback)
@@ -256,7 +257,7 @@ def _severity_coding(severity: str, country: str = "US") -> dict[str, Any]:
     """Build FHIR severity CodeableConcept from severity string."""
     sev = severity.lower()
     snomed = dict(_SEVERITY_SNOMED.get(sev, _SEVERITY_SNOMED.get("moderate")))
-    if country == "JP":
+    if is_jp(country):
         orig_display = snomed.get("display", "")
         snomed["display"] = _SEVERITY_DISPLAY_JA.get(orig_display, orig_display)
     return {
@@ -277,7 +278,7 @@ def _build_address(addr: dict, country: str) -> dict[str, Any] | None:
     country_code = addr.get("country", country)
 
     # Build full address line
-    if country_code == "JP":
+    if is_jp(country_code):
         # JP: 都道府県+市区町村+番地
         line = f"{state_name}{addr.get('city', '')}{addr.get('line1', '')}"
     else:
@@ -293,7 +294,7 @@ def _build_address(addr: dict, country: str) -> dict[str, Any] | None:
     }
 
     # State: use code for JP (JIS X 0401), abbreviation for US
-    if country_code == "JP":
+    if is_jp(country_code):
         code = _PREFECTURE_CODE.get(state_name, "")
         if code:
             fhir_addr["state"] = code
@@ -391,19 +392,19 @@ def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any
 
     # Text summary
     if parts:
-        if country == "JP":
+        if is_jp(country):
             ja_parts = []
             for p in parts:
                 p_upper = p.upper()
                 ja_parts.append(_ROUTE_JA.get(p_upper) or _FREQ_JA.get(p_upper) or _FREQ_JA.get(p) or p)
             text = " ".join(ja_parts)
             # Final pass through dosage term translator for any remaining English
-            dosage["text"] = _localize_dosage_terms(text) if country == "JP" else text
+            dosage["text"] = _localize_dosage_terms(text) if is_jp(country) else text
         else:
             dosage["text"] = " ".join(parts)
     elif order.get("display_name"):
         name = order["display_name"]
-        dosage["text"] = _localize_drug_name(name, country) if country == "JP" else name
+        dosage["text"] = _localize_drug_name(name, country) if is_jp(country) else name
 
     return dosage if dosage else None
 

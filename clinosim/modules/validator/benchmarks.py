@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from statistics import mean, median
 
+from clinosim.modules._shared import is_jp
 from clinosim.types.output import CIFDataset
 
 
@@ -106,16 +107,16 @@ def run_benchmarks(dataset: CIFDataset, country: str = "JP") -> BenchmarkReport:
             name="median_los",
             metric="Median LOS (days)",
             generated_value=median(los_days),
-            expected_value=14 if country == "JP" else 4.5,
-            expected_range=(10, 20) if country == "JP" else (3, 7),
+            expected_value=14 if is_jp(country) else 4.5,
+            expected_range=(10, 20) if is_jp(country) else (3, 7),
         ))
 
         report.add(BenchmarkResult(
             name="mean_los",
             metric="Mean LOS (days)",
             generated_value=mean(los_days),
-            expected_value=15 if country == "JP" else 5,
-            expected_range=(10, 22) if country == "JP" else (3, 8),
+            expected_value=15 if is_jp(country) else 5,
+            expected_range=(10, 22) if is_jp(country) else (3, 8),
         ))
 
     # --- Data volume per patient ---

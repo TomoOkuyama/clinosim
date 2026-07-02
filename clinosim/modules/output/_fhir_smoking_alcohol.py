@@ -17,6 +17,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output._fhir_common import (
     BundleContext,
     _social_category,
@@ -34,7 +35,7 @@ def _obs(obs_id: str, country: str, loinc: str, loinc_text: str,
     and alcohol — care_level uses a custom JP code system and has a
     different shape, so promoting this would be premature.
     """
-    lang = "ja" if country == "JP" else "en"
+    lang = resolve_lang(country)
     return {
         "resourceType": "Observation",
         "id": obs_id,
@@ -53,7 +54,7 @@ def _build_smoking_status(ctx: BundleContext) -> list[dict]:
     entry = data["values"].get(status)
     if not entry:
         return []
-    text = "喫煙状況" if ctx.country == "JP" else "Tobacco smoking status"
+    text = "喫煙状況" if is_jp(ctx.country) else "Tobacco smoking status"
     o = _obs(f"smoking-{ctx.patient_id}", ctx.country, data["loinc"], text,
              "snomed-ct", entry["snomed"])
     o["subject"] = {"reference": f"Patient/{ctx.patient_id}"}
@@ -66,7 +67,7 @@ def _build_alcohol_use(ctx: BundleContext) -> list[dict]:
     entry = data["values"].get(use)
     if not entry:
         return []
-    text = "飲酒歴" if ctx.country == "JP" else "History of alcohol use"
+    text = "飲酒歴" if is_jp(ctx.country) else "History of alcohol use"
     o = _obs(f"alcohol-{ctx.patient_id}", ctx.country, data["loinc"], text,
              "snomed-ct", entry["snomed"])
     o["subject"] = {"reference": f"Patient/{ctx.patient_id}"}

@@ -32,6 +32,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import ALLERGY_ID_PREFIX
 from clinosim.modules.output._fhir_common import BundleContext
 
@@ -40,8 +41,8 @@ __all__ = [
     "_bb_allergy_intolerances",
 ]
 
-_CLINICAL_STATUS_SYSTEM = "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical"
-_VERIFICATION_STATUS_SYSTEM = "http://terminology.hl7.org/CodeSystem/allergyintolerance-verification"
+_CLINICAL_STATUS_SYSTEM = get_system_uri("hl7-allergyintolerance-clinical")
+_VERIFICATION_STATUS_SYSTEM = get_system_uri("hl7-allergyintolerance-verification")
 
 # Canonical display for clinical/verification status (FHIR R4 standard)
 _CLINICAL_STATUS_DISPLAY: dict[str, str] = {
@@ -66,7 +67,7 @@ def _bb_allergy_intolerances(ctx: BundleContext) -> list[dict[str, Any]]:
     allergies = _o(patient_data, "allergies", []) or []
     if not allergies:
         return []
-    lang = "ja" if ctx.country.lower() == "jp" else "en"
+    lang = resolve_lang(ctx.country)
     return [
         r for r in (
             _build_allergy_intolerance(a, ctx.patient_id, lang)
