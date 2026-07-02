@@ -103,18 +103,19 @@ def test_vitals_read_from_vital_signs_key():
     assert ctx.vitals[0]["heart_rate"] == 92
 
 
-def test_medications_include_mars_and_discharge_prescription_items():
+def test_medications_are_mar_only_and_rx_goes_to_discharge_medications():
+    """adv-1 I-1: sources separated — MAR never leaks into discharge meds."""
     ctx = _build_ctx(_patient_dict())
-    drug_names = [m.get("drug_name", "") for m in ctx.medications]
-    assert "Ceftriaxone" in drug_names
-    # discharge_prescription items are normalized to the MAR consumer shape
-    # (drug_name key) — see spec §2b medications decision.
-    assert "Amoxicillin 500mg" in drug_names
+    assert [m.get("drug_name", "") for m in ctx.medications] == ["Ceftriaxone"]
+    # discharge_prescription items are normalized to the consumer shape
+    # (drug_name key) on the dedicated field — see spec §2b + adv-1 I-1.
+    assert [m["drug_name"] for m in ctx.discharge_medications] == ["Amoxicillin 500mg"]
 
 
 def test_medications_without_discharge_prescription():
     ctx = _build_ctx(_patient_dict(discharge_prescription=None))
     assert [m["drug_name"] for m in ctx.medications] == ["Ceftriaxone"]
+    assert ctx.discharge_medications == []
 
 
 def test_diagnoses_wrap_clinical_diagnosis_dict():
