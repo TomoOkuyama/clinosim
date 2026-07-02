@@ -1,0 +1,24 @@
+# AD-66 canonical patient profile fixture — α-min-2c
+profile_id: jp_inpatient_bacterial_pneumonia
+disease_id: bacterial_pneumonia
+country: JP
+severity: moderate
+archetype: smooth_recovery
+count: 1
+random_seed: 42
+hospital_scale: medium
+
+patient_overrides:
+  age: 68
+  sex: F
+
+description: |
+  Community-acquired bacterial pneumonia in an elderly JP patient with
+  smooth recovery trajectory. Multi-day inpatient admission with
+  admission H&P, daily progress notes, and discharge summary.
+  β-JP-1 target: JP linguistic narrative expression for common
+  inpatient pneumonia case.
+clinical_notes: |
+  Chest X-ray: RLL consolidation
+  Sputum culture: Streptococcus pneumoniae
+  Empirical antibiotic: ceftriaxone
