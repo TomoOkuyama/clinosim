@@ -12,7 +12,6 @@ from clinosim.types.config import (
     load_patient_profile,
 )
 
-
 # --- Basic construction ---
 
 def test_patient_profile_minimal_construction():
