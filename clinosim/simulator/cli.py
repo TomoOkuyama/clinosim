@@ -194,6 +194,23 @@ def main() -> None:
         help="Output directory (required when --format is set)",
     )
 
+    # === regenerate-goldens: AD-66 α-min-2c golden narrative bootstrap ===
+    rg = sub.add_parser(
+        "regenerate-goldens",
+        help="Regenerate narrative goldens for canonical patient profiles (AD-66)",
+    )
+    rg_group = rg.add_mutually_exclusive_group(required=True)
+    rg_group.add_argument(
+        "--profile",
+        default=None,
+        help="Regenerate a single profile by name",
+    )
+    rg_group.add_argument(
+        "--all",
+        action="store_true",
+        help="Regenerate goldens for all profiles in the fixtures dir",
+    )
+
     # === audit: verification framework ===
     from clinosim.audit.cli import add_audit_subparser
 
@@ -234,6 +251,10 @@ def main() -> None:
         if args.format and not args.output:
             parser.error("--format requires -o/--output to be set")
         _run_test_disease(args)
+        return
+
+    if args.command == "regenerate-goldens":
+        _run_regenerate_goldens(args)
         return
 
     if args.command == "narrate":
@@ -876,6 +897,73 @@ def _run_test_disease_generate(args: Any) -> None:
     _run_exports(formats, cif_dir, args.output, effective_country)
 
     _print_summary(dataset, args.output)
+
+
+def _run_regenerate_goldens(args: Any) -> None:
+    """AD-66 α-min-2c T3: regenerate narrative goldens for canonical profiles.
+
+    For each target profile: run test-disease pipeline into a tmpdir, walk
+    cif/narratives/template/documents/**/*.json, write the merged dict to
+    <profile>.golden.json in the fixture dir. Emits stderr note prompting
+    user to `git diff + commit if intentional`.
+    """
+    import json
+    import subprocess
+    import tempfile
+
+    from clinosim.types.config import _PATIENT_PROFILE_DIR
+
+    # Support env var override for test isolation
+    fixture_dir_env = os.environ.get("CLINOSIM_PATIENT_PROFILE_DIR")
+    from pathlib import Path
+
+    fixture_dir = Path(fixture_dir_env) if fixture_dir_env else _PATIENT_PROFILE_DIR
+
+    if args.all:
+        profile_paths = sorted(fixture_dir.glob("*.yaml"))
+    else:
+        p = fixture_dir / f"{args.profile}.yaml"
+        if not p.is_file():
+            print(f"ERROR: profile not found: {p}", file=sys.stderr)
+            sys.exit(2)
+        profile_paths = [p]
+
+    if not profile_paths:
+        print(f"ERROR: no profiles found in {fixture_dir}", file=sys.stderr)
+        sys.exit(2)
+
+    count = 0
+    for profile_path in profile_paths:
+        profile_id = profile_path.stem
+        with tempfile.TemporaryDirectory() as tmpdir:
+            subprocess.run(
+                [sys.executable, "-m", "clinosim.simulator.cli", "test-disease",
+                 "--patient-profile", str(profile_path),
+                 "--format", "cif", "-o", str(tmpdir)],
+                check=True, capture_output=True, text=True,
+            )
+            narr_dir = Path(tmpdir) / "cif" / "narratives" / "template" / "documents"
+            actual: dict[str, dict] = {}
+            if narr_dir.is_dir():
+                for enc_dir in sorted(narr_dir.iterdir()):
+                    if not enc_dir.is_dir():
+                        continue
+                    for doc_file in sorted(enc_dir.iterdir()):
+                        if doc_file.suffix != ".json":
+                            continue
+                        actual[doc_file.stem] = json.loads(doc_file.read_text())
+
+            golden_path = fixture_dir / f"{profile_id}.golden.json"
+            golden_path.write_text(
+                json.dumps(actual, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
+            )
+            count += 1
+            print(f"regenerated: {golden_path}", file=sys.stderr)
+
+    print(
+        f"Regenerated {count} golden(s). Review + git diff + commit if intentional.",
+        file=sys.stderr,
+    )
 
 
 def _print_debug_record(record: CIFPatientRecord, index: int = 1) -> None:
