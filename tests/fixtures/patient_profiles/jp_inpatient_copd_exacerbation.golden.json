@@ -1,0 +1,514 @@
+{
+  "doc-ENC-FORCED-0001-000001-01": {
+    "document_id": "doc-ENC-FORCED-0001-000001-01",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.patient.smoking_status",
+        "ctx.patient.alcohol_use",
+        "ctx.patient.occupation",
+        "physical_exam_findings..day_0"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {
+        "allergies": "薬物アレルギーなし（NKDA）",
+        "assessment_and_plan": "評価: 経過観察中。方針: 治療継続。",
+        "chief_complaint": "発熱・全身倦怠感",
+        "family_history": "特記家族歴なし",
+        "hpi": "の症状で受診。",
+        "medications_at_home": "常用薬なし",
+        "past_medical_history": "特記既往歴なし",
+        "physical_examination": "一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "social_history": "喫煙歴: 非喫煙者; 飲酒歴: 飲酒なし; 職業: other"
+      },
+      "structured": {},
+      "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-02": {
+    "document_id": "doc-ENC-FORCED-0001-000001-02",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "physical_exam_findings..day_0",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-03": {
+    "document_id": "doc-ENC-FORCED-0001-000001-03",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "physical_exam_findings..day_0",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-04": {
+    "document_id": "doc-ENC-FORCED-0001-000001-04",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "physical_exam_findings..day_0",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-05": {
+    "document_id": "doc-ENC-FORCED-0001-000001-05",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "physical_exam_findings..day_0",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-06": {
+    "document_id": "doc-ENC-FORCED-0001-000001-06",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "physical_exam_findings..day_0",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-07": {
+    "document_id": "doc-ENC-FORCED-0001-000001-07",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "physical_exam_findings..day_0",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-08": {
+    "document_id": "doc-ENC-FORCED-0001-000001-08",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "physical_exam_findings..day_0",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-09": {
+    "document_id": "doc-ENC-FORCED-0001-000001-09",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "physical_exam_findings..day_0",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-10": {
+    "document_id": "doc-ENC-FORCED-0001-000001-10",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "physical_exam_findings..day_0",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-11": {
+    "document_id": "doc-ENC-FORCED-0001-000001-11",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "physical_exam_findings..day_0",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-12": {
+    "document_id": "doc-ENC-FORCED-0001-000001-12",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "discharge_instructions.baseline",
+        "discharge_instructions.follow_up"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {
+        "admission_summary": "主訴: 発熱・全身倦怠感。入院日: 1 日目現在。",
+        "discharge_diagnoses": "発熱・全身倦怠感",
+        "discharge_instructions": "十分な水分摂取を心がけてください。 十分な休息をとり、無理な活動は控えてください。 退院後 1-2 週間以内にかかりつけ医を受診してください。 処方された薬はすべて指示通りに内服してください。医師に相談なく中止しないでください。 症状が著しく悪化した場合は速やかに救急受診してください。 食事は体調に合わせて徐々に通常食に戻してください。",
+        "discharge_medications": "退院処方なし",
+        "follow_up": "退院後 1-2 週間以内にかかりつけ医を受診してください。",
+        "hospital_course": "入院 1 日間の治療を経て経過良好。症状は改善し退院となった。"
+      },
+      "structured": {},
+      "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-13": {
+    "document_id": "doc-ENC-FORCED-0001-000001-13",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {
+        "adl_assessment": "ADL：自立（問題なし）",
+        "care_plan": "看護計画：標準的ケア継続",
+        "nursing_diagnosis": "看護診断：特記事項なし",
+        "nursing_history": "入院目的・既往歴：特記事項なし",
+        "risk_assessments": "転倒・褥瘡リスク：評価中"
+      },
+      "structured": {},
+      "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-14": {
+    "document_id": "doc-ENC-FORCED-0001-000001-14",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-15": {
+    "document_id": "doc-ENC-FORCED-0001-000001-15",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-16": {
+    "document_id": "doc-ENC-FORCED-0001-000001-16",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-17": {
+    "document_id": "doc-ENC-FORCED-0001-000001-17",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-18": {
+    "document_id": "doc-ENC-FORCED-0001-000001-18",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-19": {
+    "document_id": "doc-ENC-FORCED-0001-000001-19",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-20": {
+    "document_id": "doc-ENC-FORCED-0001-000001-20",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-21": {
+    "document_id": "doc-ENC-FORCED-0001-000001-21",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-22": {
+    "document_id": "doc-ENC-FORCED-0001-000001-22",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-23": {
+    "document_id": "doc-ENC-FORCED-0001-000001-23",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "【看護記録】 入院 1 日目 / 入院予定 1 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-24": {
+    "document_id": "doc-ENC-FORCED-0001-000001-24",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {
+        "admission_status": "入院期間: 1 日間。入院目的達成後、退院となった。",
+        "discharge_readiness": "退院準備：退院基準を満たす",
+        "nursing_interventions_provided": "実施した看護介入：特記事項なし",
+        "patient_education": "患者教育：退院指導実施"
+      },
+      "structured": {},
+      "text": ""
+    }
+  }
+}
