@@ -32,8 +32,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules._shared import resolve_lang
 from clinosim.modules.output._fhir_common import BundleContext
 
 __all__ = [
@@ -45,7 +47,7 @@ CARE_TEAM_ID_PREFIX = "careteam-"
 
 # SNOMED CT "Clinical team" — verified via SNOMED International browser, 2026-07-01.
 # Registered in clinosim/codes/data/snomed-ct.yaml (Task 11 addition).
-_CARE_TEAM_CATEGORY_SYSTEM = "http://snomed.info/sct"
+_CARE_TEAM_CATEGORY_SYSTEM = get_system_uri("snomed-ct")
 _CARE_TEAM_CATEGORY_CODE = "424535000"
 _CARE_TEAM_CATEGORY_EN = "Clinical team"
 _CARE_TEAM_CATEGORY_JA = "臨床チーム"
@@ -60,7 +62,7 @@ def _bb_care_teams(ctx: BundleContext) -> list[dict[str, Any]]:
     encounters = _o(ctx.record, "encounters", []) or []
     if not encounters:
         return []
-    lang = "ja" if ctx.country.lower() == "jp" else "en"
+    lang = resolve_lang(ctx.country)
     patient_id = _o(_o(ctx.record, "patient", {}) or {}, "patient_id", "") or ctx.patient_id
     return [_build_care_team(enc, patient_id, lang) for enc in encounters]
 

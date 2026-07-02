@@ -13,6 +13,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output._fhir_common import (
     BundleContext,
     _loinc_coding,
@@ -34,7 +35,7 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
     - Fluid output total 24h (LOINC 9262-7)
     """
     enc = ctx.primary_enc_id
-    lang = "ja" if ctx.country == "JP" else "en"
+    lang = resolve_lang(ctx.country)
     subject: dict[str, Any] = {"reference": f"Patient/{ctx.patient_id}"}
     enc_ref: dict[str, Any] | None = (
         {"reference": f"Encounter/{enc}"} if enc else None
@@ -119,10 +120,10 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
                 code_val, display_en, display_ja = _fall_interp.get(
                     str(fall_level).lower(), ("N", "Normal", "通常")
                 )
-                interp_display = display_ja if ctx.country == "JP" else display_en
+                interp_display = display_ja if is_jp(ctx.country) else display_en
                 interp_text = (
                     f"転倒リスク: {fall_level}"
-                    if ctx.country == "JP"
+                    if is_jp(ctx.country)
                     else f"Fall risk: {fall_level}"
                 )
                 obs["interpretation"] = [{

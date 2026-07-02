@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -164,8 +165,16 @@ class DiseaseProtocol(BaseModel):
     narrative: NarrativeSpec | None = None
 
 
+@lru_cache(maxsize=64)
 def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
-    """Load a disease protocol YAML and validate."""
+    """Load a disease protocol YAML and validate.
+
+    Cached (maxsize=64 covers the ~32 diseases with margin). The returned
+    ``DiseaseProtocol`` is a SHARED instance — callers MUST treat it as
+    read-only (Pydantic models are mutable by default, but no call site mutates
+    the loaded protocol; verified by grep during the loader-commonization
+    refactor). Called per scenario in the simulation hot path.
+    """
     filename = f"{disease_id}.yaml"
     protocol_path = _REF_DIR / filename
     if not protocol_path.exists():
@@ -175,3 +184,20 @@ def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
         data = yaml.safe_load(f)
 
     return DiseaseProtocol(**data)
+
+
+@lru_cache(maxsize=1)
+def load_all_disease_protocols() -> dict[str, DiseaseProtocol]:
+    """Auto-discover and load all disease protocol YAMLs in this package. Cached.
+
+    Globs ``_REF_DIR`` (this module's own ``reference_data/``) in sorted order
+    and delegates each file to ``load_disease_protocol``. No silent skip: an
+    invalid YAML raises loudly (silent-no-op defense, PR-A lesson). Canonical
+    home for the aggregate loader that used to live cross-package in
+    ``simulator/helpers.py``.
+    """
+    protocols: dict[str, DiseaseProtocol] = {}
+    for yaml_file in sorted(_REF_DIR.glob("*.yaml")):
+        disease_id = yaml_file.stem
+        protocols[disease_id] = load_disease_protocol(disease_id)
+    return protocols

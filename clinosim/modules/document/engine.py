@@ -54,6 +54,7 @@ from functools import lru_cache
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import (
     CLINICAL_IMPRESSION_ID_PREFIX,
     DOC_REFERENCE_ID_PREFIX,
@@ -207,7 +208,7 @@ def document_enricher(ctx: Any) -> None:
       ctx.config       — SimulatorConfig-like; ctx.config.country = "us" | "jp"
     """
     country: str = str(_o(ctx.config, "country", "us") or "us").lower()
-    lang = "ja" if country == "jp" else "en"
+    lang = resolve_lang(country)
 
     # Pre-compute country spec key set once per enricher call (lru_cache hit on repeated calls).
     country_spec_keys: frozenset[str] = frozenset(

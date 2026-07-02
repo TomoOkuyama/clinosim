@@ -282,6 +282,35 @@ def load_chronic_followup() -> dict[str, Any]:
     return _load_yaml(_LOCALE_DIR / "shared" / "chronic_followup.yaml", fallback={})
 
 
+@lru_cache(maxsize=1)
+def load_med_terms_ja() -> dict[str, dict[str, str]]:
+    """Load JP medication-term tables ({"categories": {...}, "terms": {...}}).
+
+    Order is preserved from the YAML (substitutions are order-sensitive).
+    Canonical loader for the FHIR adapter localization layer (was previously a
+    raw ``yaml.safe_load`` inlined in ``output/_fhir_localization.py``).
+    """
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "med_terms_ja.yaml", fallback={})
+    return {
+        "categories": raw.get("categories", {}) or {},
+        "terms": raw.get("terms", {}) or {},
+    }
+
+
+@lru_cache(maxsize=1)
+def load_drug_names_ja() -> dict[str, str]:
+    """Load English→Japanese drug name mapping (case-insensitive lowercased keys)."""
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "drug_names_ja.yaml", fallback={})
+    return {k.lower(): v for k, v in raw.items()}
+
+
+@lru_cache(maxsize=1)
+def load_department_display() -> dict[str, dict[str, str]]:
+    """Load department display table ({key: {en, ja}})."""
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "department_display.yaml", fallback={})
+    return raw.get("departments", {}) or {}
+
+
 @lru_cache(maxsize=8)
 def load_identity_config(country: str) -> dict[str, Any]:
     """Load resident identifier / insurance numbering config for a country (AD-54).

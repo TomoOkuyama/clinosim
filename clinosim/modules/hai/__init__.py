@@ -29,13 +29,13 @@ from clinosim.modules.hai.enricher import enrich_hai  # noqa: E402
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 _HAI_ANTIBIOGRAM_PATH = _REF_DIR / "hai_antibiogram.yaml"
-_HAI_ORGANISMS_PATH = _REF_DIR / "hai_organisms.yaml"
 
 
 def _organisms_by_hai_type() -> dict[str, set[str]]:
-    with open(_HAI_ORGANISMS_PATH) as f:
-        data = yaml.safe_load(f) or {}
-    table = data.get("hai_organisms") or {}
+    # Reuse the cached + validated canonical loader (engine.load_hai_organisms,
+    # imported above) instead of re-reading hai_organisms.yaml raw. Returns a
+    # fresh dict each call; the cached YAML is only read.
+    table = load_hai_organisms().get("hai_organisms") or {}
     return {
         hai_type: {str(entry["snomed"]) for entry in entries}
         for hai_type, entries in table.items()

@@ -12,6 +12,26 @@ from typing import Any
 import numpy as np
 
 
+def is_jp(country: str) -> bool:
+    """True when the country code refers to Japan (case-insensitive).
+
+    Canonical JP-gating predicate (common-logic unification, 2026-07-02).
+    Replaces the divergent inline idioms (``country == "JP"`` /
+    ``country.lower() == "jp"`` / ``str(country).upper() == "JP"``) so every
+    module gates on the same normalization.
+    """
+    return str(country).strip().lower() == "jp"
+
+
+def resolve_lang(country: str) -> str:
+    """Display language for a country: ``"ja"`` for JP, ``"en"`` otherwise.
+
+    Single edit point for the ``lang = "ja" if <country is JP> else "en"``
+    selection previously inlined at each FHIR builder / enricher call site.
+    """
+    return "ja" if is_jp(country) else "en"
+
+
 def get_attr_or_key(obj: Any, name: str, default: Any = None) -> Any:
     """Read ``name`` from ``obj`` whether ``obj`` is a dict or has attributes.
 

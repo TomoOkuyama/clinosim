@@ -17,6 +17,7 @@ from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.document import specs_for_country
 from clinosim.modules.document.narrative.fact_extractor import extract_all_facts
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
@@ -117,7 +118,7 @@ class NarrativePass(ABC):
 
     def _languages_for_spec(self, spec: DocumentTypeSpec) -> list[str]:
         # US → en, JP → ja. β-JP-1 で bilingual 可能に拡張。
-        return ["ja"] if self.country == "JP" else ["en"]
+        return [resolve_lang(self.country)]
 
     def _spec_applies(self, spec: DocumentTypeSpec, patient_dict: dict[str, Any]) -> bool:
         allowed = getattr(spec, "encounter_types_supported", ()) or ()
@@ -156,7 +157,7 @@ class NarrativePass(ABC):
             allergies=patient_dict.get("allergies", []),
             document_type=DocumentType(spec.type_key),
             target_lang=language,
-            locale="jp" if self.country == "JP" else "us",
+            locale="jp" if is_jp(self.country) else "us",
         )
         ctx.narrative_spine = build_narrative_spine(
             None,

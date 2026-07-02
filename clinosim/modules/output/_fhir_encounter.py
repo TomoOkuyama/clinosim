@@ -13,6 +13,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output._fhir_common import _make_participant, _map_encounter_status
 from clinosim.modules.output._fhir_localization import (
     _CLASS_DISPLAY_JA,
@@ -61,7 +62,7 @@ def _build_encounter(
     type_info = _ENCOUNTER_TYPE_SNOMED.get(enc_type)
     if type_info:
         coding = {"system": get_system_uri("snomed-ct"), **type_info}
-        if country == "JP" and enc_type in _ENCOUNTER_TYPE_SNOMED_JA:
+        if is_jp(country) and enc_type in _ENCOUNTER_TYPE_SNOMED_JA:
             coding["display"] = _ENCOUNTER_TYPE_SNOMED_JA[enc_type]
         resource["type"] = [{"coding": [coding]}]
 
@@ -111,7 +112,7 @@ def _build_encounter(
     if enc.get("chief_complaint"):
         # reasonCode: use diagnosis display in target language (codes module)
         # Falls back to English chief_complaint text if no code available
-        lang = "ja" if country == "JP" else "en"
+        lang = resolve_lang(country)
         if admit_dx_code:
             reason_text = code_lookup(admit_dx_system, admit_dx_code, lang)
             if reason_text == admit_dx_code:
@@ -185,7 +186,7 @@ def _build_encounter(
                 "code": "R",
                 "display": "Re-admission",
             }],
-            "text": "再入院" if country == "JP" else "Re-admission",
+            "text": "再入院" if is_jp(country) else "Re-admission",
         }
     if hosp:
         resource["hospitalization"] = hosp
@@ -205,7 +206,7 @@ def _build_encounter(
         locations.append({
             "location": {
                 "reference": f"Location/loc-bed-{bed_number}",
-                "display": f"{bed_number}号室" if country == "JP" else f"Bed {bed_number}",
+                "display": f"{bed_number}号室" if is_jp(country) else f"Bed {bed_number}",
             },
             "status": "completed" if enc.get("discharge_datetime") else "active",
         })
@@ -214,7 +215,7 @@ def _build_encounter(
         locations.append({
             "location": {
                 "reference": f"Location/loc-ward-{ward_id}",
-                "display": f"{ward_id}病棟" if country == "JP" else f"Ward {ward_id}",
+                "display": f"{ward_id}病棟" if is_jp(country) else f"Ward {ward_id}",
             },
             "status": "completed" if enc.get("discharge_datetime") else "active",
         })

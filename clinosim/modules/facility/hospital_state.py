@@ -8,10 +8,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+_HERE = Path(__file__).resolve().parent
+_HOSPITAL_OPERATIONS_PATH = _HERE.parents[1] / "config" / "hospital_operations.yaml"
 
 
 @dataclass
@@ -186,10 +190,15 @@ class HospitalState:
             setattr(self, queue_attr, max(0.0, current - 1.0 / cap))
 
 
+@lru_cache(maxsize=1)
 def load_hospital_operations() -> dict[str, Any]:
-    """Load hospital operations config."""
-    config_path = Path(__file__).parent.parent.parent / "config" / "hospital_operations.yaml"
-    if config_path.exists():
-        with open(config_path) as f:
+    """Load the default hospital operations config.
+
+    Cached: the returned dict is a shared read-only instance — callers must not
+    mutate it. (The custom ``--hospital-config PATH`` path in ``engine.py`` loads
+    a fresh dict directly and is unaffected by this cache.)
+    """
+    if _HOSPITAL_OPERATIONS_PATH.exists():
+        with open(_HOSPITAL_OPERATIONS_PATH) as f:
             return yaml.safe_load(f) or {}
     return {}

@@ -43,6 +43,7 @@ from clinosim.codes import (
     lookup as code_lookup,
 )
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
 from clinosim.modules.output._fhir_common import BundleContext, _sha1_b64
 
@@ -111,7 +112,7 @@ def _build_dref_from_clinical_doc(
     if not loinc_code:
         return None
 
-    lang = _o(doc, "language", "") or ("ja" if country.upper() == "JP" else "en")
+    lang = _o(doc, "language", "") or resolve_lang(country)
     type_display = code_lookup("loinc", loinc_code, lang) or loinc_code
 
     resource_id = _o(doc, "document_id", "") or (

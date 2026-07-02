@@ -29,10 +29,10 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any
 
-from clinosim.codes import get_system_uri
+from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
-from clinosim.modules._shared import get_attr_or_key
+from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.order.panel_grouping import load_panel_definitions
 from clinosim.modules.output._fhir_common import BundleContext
 from clinosim.types.encounter import OrderStatus, OrderType
@@ -205,7 +205,7 @@ def _build_lab_service_requests(lab_orders: list[Any], ctx: BundleContext) -> li
     counter = build_panel_counter(lab_orders)
     panels = load_panel_definitions()
     country = ctx.country.lower()
-    lang = "ja" if country == "jp" else "en"
+    lang = resolve_lang(country)
 
     # Group panel orders by SR id; stand-alone Orders emit 1 SR each.
     panel_buckets: dict[str, list[Any]] = defaultdict(list)
@@ -255,7 +255,7 @@ def _build_imaging_service_requests(orders: list[Any], ctx: BundleContext) -> li
 
     Accepts both Order dataclass instances and JSON-deserialized dicts.
     """
-    lang = "ja" if ctx.country.lower() == "jp" else "en"
+    lang = resolve_lang(ctx.country)
     country = ctx.country.lower()
     return [
         _build_imaging_sr(o, lang, country)
@@ -438,17 +438,17 @@ def _build_standalone_sr(o: Any, lang: str, country: str) -> dict[str, Any]:
     # Resolve internal test name → real standard code via locale mapping.
     # Mirrors _build_lab_observation (code_map.get(lab_name, order_code)).
     # country arrives lowercase ("us"/"jp"); load_code_mapping expects uppercase.
-    country_code = "JP" if country == "jp" else "US"
+    country_code = "JP" if is_jp(country) else "US"
     code_map = load_code_mapping("lab", country_code)
     resolved_code = code_map.get(display_name)
     # Two-tier fallback: when JP map missing entry, try LOINC (US) map.
-    if not resolved_code and country_code == "JP":
+    if not resolved_code and is_jp(country_code):
         us_map = load_code_mapping("lab", "US")
         resolved_code = us_map.get(display_name)
     resolved_code = resolved_code or raw_code
 
     # Display text comes from the code system (LOINC for US, JLAC10 for JP).
-    code_system_key = "jlac10" if country_code == "JP" else "loinc"
+    code_system_key = system_key_for("lab", country_code)
     loinc_display = code_lookup(code_system_key, resolved_code, lang) or display_name
     if loinc_display == resolved_code:  # no translation found
         loinc_display = display_name

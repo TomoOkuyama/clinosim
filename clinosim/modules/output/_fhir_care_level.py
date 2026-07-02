@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output._fhir_common import (
     BundleContext,
     _social_category,
@@ -26,8 +27,8 @@ def _build_care_level(ctx: BundleContext) -> list[dict]:
     code = ctx.record.get("care_level") or ""
     if not code:
         return []
-    lang = "ja" if ctx.country == "JP" else "en"
-    text = "要介護度" if ctx.country == "JP" else "Long-term care need level"
+    lang = resolve_lang(ctx.country)
+    text = "要介護度" if is_jp(ctx.country) else "Long-term care need level"
     o: dict[str, Any] = {
         "resourceType": "Observation",
         "id": f"carelevel-{ctx.patient_id}",

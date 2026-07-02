@@ -50,6 +50,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
 from clinosim.modules.output._fhir_common import BundleContext, _escape_html
 
@@ -70,7 +71,7 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
     and `narrate` runs, not a data-quality defect.
     """
     raw_docs = _o(ctx.record, "documents", []) or []
-    lang = "ja" if ctx.country.lower() == "jp" else "en"
+    lang = resolve_lang(ctx.country)
     out: list[dict[str, Any]] = []
     for doc in raw_docs:
         if _o(doc, "format_type", "") != "composition":

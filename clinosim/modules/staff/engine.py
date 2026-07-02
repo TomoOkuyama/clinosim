@@ -9,6 +9,7 @@ from __future__ import annotations
 import numpy as np
 
 from clinosim.locale.loader import load_names
+from clinosim.modules._shared import is_jp
 from clinosim.types.staff import StaffMember, StaffRoster
 
 __all__ = ["StaffMember", "StaffRoster", "generate_roster", "assign_staff"]
@@ -16,7 +17,7 @@ __all__ = ["StaffMember", "StaffRoster", "generate_roster", "assign_staff"]
 
 def _gen_phone(country: str, rng: np.random.Generator) -> str:
     """Generate a fake work phone number."""
-    if country == "JP":
+    if is_jp(country):
         return f"03-{int(rng.integers(3000, 6000))}-{int(rng.integers(1000, 9999))}"
     return f"({int(rng.integers(200, 999))}) {int(rng.integers(200, 999))}-{int(rng.integers(1000, 9999))}"
 
@@ -242,6 +243,6 @@ def _generate_name(sex: str, country: str, rng: np.random.Generator) -> str:
     surname = rng.choice(surname_list)
     given = rng.choice(given_list)
 
-    if country == "JP":
+    if is_jp(country):
         return f"{surname} {given}"
     return f"{given} {surname}"

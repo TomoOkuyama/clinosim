@@ -167,17 +167,24 @@ def test_load_department_display_fallback_when_yaml_missing(monkeypatch):
 
 def test_load_all_disease_protocols_raises_on_invalid_yaml(monkeypatch):
     """After silent-skip removal: invalid YAML must propagate the error
-    instead of being silently dropped (PR-A silent-no-op defense pattern)."""
-    from clinosim.modules.disease import protocol as disease_protocol
-    from clinosim.simulator import helpers
+    instead of being silently dropped (PR-A silent-no-op defense pattern).
 
-    helpers._load_all_disease_protocols.cache_clear()
+    The aggregate loader was relocated from simulator/helpers.py to the
+    canonical modules/disease/protocol.py (loader-commonization refactor);
+    helpers._load_all_disease_protocols is now a re-export alias of it, so the
+    monkeypatch targets the loader's own module namespace.
+    """
+    from clinosim.modules.disease import protocol as disease_protocol
+
+    disease_protocol.load_all_disease_protocols.cache_clear()
+    real_loader = disease_protocol.load_disease_protocol
 
     def fake_loader(disease_id: str):
         if disease_id == "sepsis":
             raise ValueError("synthetic invalid YAML")
-        return disease_protocol.load_disease_protocol(disease_id)
+        return real_loader(disease_id)
 
-    monkeypatch.setattr(helpers, "load_disease_protocol", fake_loader)
+    monkeypatch.setattr(disease_protocol, "load_disease_protocol", fake_loader)
     with pytest.raises(ValueError, match="synthetic invalid YAML"):
-        helpers._load_all_disease_protocols()
+        disease_protocol.load_all_disease_protocols()
+    disease_protocol.load_all_disease_protocols.cache_clear()
