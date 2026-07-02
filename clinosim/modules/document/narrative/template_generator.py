@@ -28,6 +28,7 @@ complex date arithmetic.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -37,6 +38,31 @@ from clinosim.modules.document.reference_data_loaders import (
     load_physical_exam_findings,
 )
 from clinosim.types.document import DocumentType, FormatType, NarrativeContext, NarrativeOutput
+
+logger = logging.getLogger(__name__)
+
+
+def _pick_localized(tmpl: Any, key_base: str, lang: str) -> str:
+    """AD-65 Bug A fix: locale-aware field access.
+
+    Reads `<key_base>_<lang>` from tmpl (attribute or dict access), returning
+    an empty string + a warning log on missing. The silent ja fallback that
+    previously caused US (en) narratives to contain Japanese characters is
+    retired: a structurally empty section is preferable to silent locale
+    contamination.
+    """
+    if tmpl is None:
+        return ""
+    field = f"{key_base}_{lang}"
+    if isinstance(tmpl, dict):
+        value = tmpl.get(field)
+    else:
+        value = getattr(tmpl, field, None)
+    if value is None or value == "":
+        logger.warning("template locale field %s missing on %s", field, type(tmpl).__name__)
+        return ""
+    return str(value)
+
 
 # Generic fallback phrases per locale
 _GENERIC_FALLBACK_JA = "特記事項なし"
@@ -315,7 +341,8 @@ class TemplateNarrativeGenerator:
     ) -> tuple[str, list[str]]:
         """Build chief_complaint section.
 
-        For ED_NOTE: reads from encounter_protocol.narrative.ed_note_template.chief_complaint_ja
+        For ED_NOTE: reads from
+        encounter_protocol.narrative.ed_note_template.chief_complaint_<lang>
         (with fallback to generic). For all other document types: reads from disease_protocol.
         """
         facts: list[str] = []
@@ -327,10 +354,10 @@ class TemplateNarrativeGenerator:
         if ctx.document_type == DocumentType.ED_NOTE:
             ed_tmpl = self._get_ed_note_template(ctx)
             if ed_tmpl is not None:
-                text = _o(ed_tmpl, "chief_complaint_ja", "") or ""
+                text = _pick_localized(ed_tmpl, "chief_complaint", lang)
                 if text:
                     facts.append(
-                        "encounter_protocol.narrative.ed_note_template.chief_complaint_ja"
+                        f"encounter_protocol.narrative.ed_note_template.chief_complaint_{lang}"
                     )
                     return text, facts
             return fallback, facts
@@ -360,8 +387,9 @@ class TemplateNarrativeGenerator:
     def _build_hpi(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build HPI section.
 
-        For ED_NOTE: reads from encounter_protocol.narrative.ed_note_template.hpi_ja.
-        For all other document types: reads from narrative.hpi_template.onset_pattern[severity].
+        For ED_NOTE: reads from encounter_protocol.narrative.ed_note_template.hpi_<lang>.
+        For all other document types: reads from narrative.hpi_template.onset_pattern[severity]
+        (onset_pattern has no per-language split; see ja_only_fallback tagging below).
         """
         facts: list[str] = []
         lang = ctx.target_lang
@@ -375,10 +403,10 @@ class TemplateNarrativeGenerator:
         if ctx.document_type == DocumentType.ED_NOTE:
             ed_tmpl = self._get_ed_note_template(ctx)
             if ed_tmpl is not None:
-                text = _o(ed_tmpl, "hpi_ja", "") or ""
+                text = _pick_localized(ed_tmpl, "hpi", lang)
                 if text:
                     facts.append(
-                        "encounter_protocol.narrative.ed_note_template.hpi_ja"
+                        f"encounter_protocol.narrative.ed_note_template.hpi_{lang}"
                     )
                     return text, facts
             return fallback, facts
@@ -403,9 +431,19 @@ class TemplateNarrativeGenerator:
 
         if onset_text:
             text = f"{onset_text} {trigger}".strip() if trigger else onset_text
-            facts.append(
-                f"disease_protocol.narrative.hpi_template.onset_pattern.{ctx.severity}"
-            )
+            fact = f"disease_protocol.narrative.hpi_template.onset_pattern.{ctx.severity}"
+            # hpi_template.onset_pattern (disease YAML) has no per-language split —
+            # only severity keys (mild/moderate/severe), Japanese-sourced text.
+            # Tag + warn for EN-locale auditability (AD-65 Bug A, documented
+            # ja_only_fallback convention — see module docstring).
+            if not is_ja:
+                fact += ":ja_only_fallback"
+                logger.warning(
+                    "hpi_template.onset_pattern has no English variant; falling back "
+                    "to Japanese source text for severity=%s",
+                    ctx.severity,
+                )
+            facts.append(fact)
             if trigger:
                 facts.append("disease_protocol.narrative.hpi_template.trigger_options[0]")
         else:
@@ -542,9 +580,22 @@ class TemplateNarrativeGenerator:
             ctx, ctx.clinical_course_archetype, ctx.day_index
         )
         if phys_exam:
-            facts.append(
-                f"physical_exam_findings.{ctx.clinical_course_archetype}.day_{ctx.day_index}"
-            )
+            fact = f"physical_exam_findings.{ctx.clinical_course_archetype}.day_{ctx.day_index}"
+            # physical_exam_findings (disease YAML + reference_data) carries no
+            # per-language split at all (data-authoring gap, tracked separately
+            # from this code fix) — content is always Japanese-sourced clinical
+            # text. Tag + warn so EN-locale (US) narratives are auditable
+            # instead of silently emitting Japanese with no trace (AD-65 Bug A,
+            # documented ja_only_fallback convention — see module docstring).
+            if not is_ja:
+                fact += ":ja_only_fallback"
+                logger.warning(
+                    "physical_exam_findings has no English variant; falling back to "
+                    "Japanese source text for archetype=%s day=%s",
+                    ctx.clinical_course_archetype,
+                    ctx.day_index,
+                )
+            facts.append(fact)
 
         text = self._format_physical_exam(phys_exam, ctx.severity, is_ja)
         if not text:
@@ -914,9 +965,11 @@ class TemplateNarrativeGenerator:
 
     # ─────────────────────────────────────────────────────────────────
     # α-min-2: OUTPATIENT_SOAP section builders
-    # Reads from encounter_protocol.narrative.outpatient_soap_template (ja-only).
-    # EN locale falls back to the Japanese source text (ja_only_fallback pattern)
-    # or generic English phrase when the soap template itself is absent.
+    # Reads from encounter_protocol.narrative.outpatient_soap_template via
+    # _pick_localized(soap, "<field>", ctx.target_lang) (AD-65 Bug A fix).
+    # A missing "<field>_en" (currently the case for all encounter YAMLs —
+    # data-authoring gap, not a code bug) yields a generic English fallback
+    # phrase with a warn log, instead of silently emitting Japanese text.
     # ─────────────────────────────────────────────────────────────────
 
     def _get_soap_template(self, ctx: NarrativeContext) -> Any | None:
@@ -930,7 +983,7 @@ class TemplateNarrativeGenerator:
         return _o(narrative, "outpatient_soap_template", None)
 
     def _build_outpatient_subjective(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build SOAP subjective from outpatient_soap_template.subjective_ja."""
+        """Build SOAP subjective from outpatient_soap_template.subjective_<lang>."""
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
@@ -940,15 +993,15 @@ class TemplateNarrativeGenerator:
         if soap is None:
             return fallback, facts
 
-        text = _o(soap, "subjective_ja", "") or ""
+        text = _pick_localized(soap, "subjective", lang)
         if not text:
             return fallback, facts
 
-        facts.append("encounter_protocol.narrative.outpatient_soap_template.subjective_ja")
+        facts.append(f"encounter_protocol.narrative.outpatient_soap_template.subjective_{lang}")
         return text, facts
 
     def _build_outpatient_objective(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build SOAP objective from outpatient_soap_template.objective_ja."""
+        """Build SOAP objective from outpatient_soap_template.objective_<lang>."""
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
@@ -958,15 +1011,15 @@ class TemplateNarrativeGenerator:
         if soap is None:
             return fallback, facts
 
-        text = _o(soap, "objective_ja", "") or ""
+        text = _pick_localized(soap, "objective", lang)
         if not text:
             return fallback, facts
 
-        facts.append("encounter_protocol.narrative.outpatient_soap_template.objective_ja")
+        facts.append(f"encounter_protocol.narrative.outpatient_soap_template.objective_{lang}")
         return text, facts
 
     def _build_outpatient_assessment(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build SOAP assessment from outpatient_soap_template.assessment_ja.
+        """Build SOAP assessment from outpatient_soap_template.assessment_<lang>.
 
         Also handles ED_NOTE context (falls back to generic if no encounter_protocol).
         """
@@ -985,15 +1038,15 @@ class TemplateNarrativeGenerator:
         if soap is None:
             return fallback, facts
 
-        text = _o(soap, "assessment_ja", "") or ""
+        text = _pick_localized(soap, "assessment", lang)
         if not text:
             return fallback, facts
 
-        facts.append("encounter_protocol.narrative.outpatient_soap_template.assessment_ja")
+        facts.append(f"encounter_protocol.narrative.outpatient_soap_template.assessment_{lang}")
         return text, facts
 
     def _build_outpatient_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build SOAP plan from outpatient_soap_template.plan_ja."""
+        """Build SOAP plan from outpatient_soap_template.plan_<lang>."""
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
@@ -1003,11 +1056,11 @@ class TemplateNarrativeGenerator:
         if soap is None:
             return fallback, facts
 
-        text = _o(soap, "plan_ja", "") or ""
+        text = _pick_localized(soap, "plan", lang)
         if not text:
             return fallback, facts
 
-        facts.append("encounter_protocol.narrative.outpatient_soap_template.plan_ja")
+        facts.append(f"encounter_protocol.narrative.outpatient_soap_template.plan_{lang}")
         return text, facts
 
     # ─────────────────────────────────────────────────────────────────
@@ -1063,7 +1116,7 @@ class TemplateNarrativeGenerator:
         return text, facts
 
     def _build_ed_physical_exam(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build physical_exam for ED_NOTE from ed_note_template.physical_exam_ja."""
+        """Build physical_exam for ED_NOTE from ed_note_template.physical_exam_<lang>."""
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
@@ -1073,8 +1126,14 @@ class TemplateNarrativeGenerator:
         if ed_tmpl is None:
             return fallback, facts
 
-        pe = _o(ed_tmpl, "physical_exam_ja", None)
+        # physical_exam_<lang> is a structured per-body-system object, not a plain
+        # string, so it is resolved inline rather than via _pick_localized (which
+        # coerces its result to str). Same locale-routing semantics: warn + fall
+        # back on a missing lang-suffixed field instead of silently reading _ja.
+        field = f"physical_exam_{lang}"
+        pe = _o(ed_tmpl, field, None)
         if pe is None:
+            logger.warning("template locale field %s missing on %s", field, type(ed_tmpl).__name__)
             return fallback, facts
 
         # Collect non-empty body system findings
@@ -1086,14 +1145,14 @@ class TemplateNarrativeGenerator:
                 parts.append(val)
 
         if parts:
-            facts.append("encounter_protocol.narrative.ed_note_template.physical_exam_ja")
+            facts.append(f"encounter_protocol.narrative.ed_note_template.{field}")
             sep = "。" if is_ja else ". "
             return sep.join(parts), facts
 
         return fallback, facts
 
     def _build_ed_workup(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build ed_workup from ed_note_template.ed_workup_summary_ja."""
+        """Build ed_workup from ed_note_template.ed_workup_summary_<lang>."""
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
@@ -1103,15 +1162,15 @@ class TemplateNarrativeGenerator:
         if ed_tmpl is None:
             return fallback, facts
 
-        text = _o(ed_tmpl, "ed_workup_summary_ja", "") or ""
+        text = _pick_localized(ed_tmpl, "ed_workup_summary", lang)
         if not text:
             return fallback, facts
 
-        facts.append("encounter_protocol.narrative.ed_note_template.ed_workup_summary_ja")
+        facts.append(f"encounter_protocol.narrative.ed_note_template.ed_workup_summary_{lang}")
         return text, facts
 
     def _build_ed_disposition(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build disposition from ed_note_template.disposition_ja."""
+        """Build disposition from ed_note_template.disposition_<lang>."""
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
@@ -1121,11 +1180,11 @@ class TemplateNarrativeGenerator:
         if ed_tmpl is None:
             return fallback, facts
 
-        text = _o(ed_tmpl, "disposition_ja", "") or ""
+        text = _pick_localized(ed_tmpl, "disposition", lang)
         if not text:
             return fallback, facts
 
-        facts.append("encounter_protocol.narrative.ed_note_template.disposition_ja")
+        facts.append(f"encounter_protocol.narrative.ed_note_template.disposition_{lang}")
         return text, facts
 
     # ─────────────────────────────────────────────────────────────────

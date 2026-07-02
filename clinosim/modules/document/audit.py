@@ -1,11 +1,12 @@
-"""Document chain AD-60 audit module (Tier 1 #3 α-min-1 Task 11; α-min-2 Task 13).
+"""Document chain AD-60 audit module (Tier 1 #3 α-min-1 Task 11; α-min-2 Task 13;
+AD-65 Bug A Task 11; AD-65 Bug B Task 12; PR #131 adv-1 F-6/F-6b).
 
 AD-60 plug-in #5 (after hai, antibiotic, order_service_request, imaging).
 
 Verifies CIF -> FHIR emission integrity for the document pipeline:
 DocumentReference / Composition / AllergyIntolerance / ClinicalImpression / CareTeam.
 
-24+ equality_checks in lift_firing_proof guard canonical constants and
+34 equality_checks in lift_firing_proof guard canonical constants and
 no-drop emission paths against PR-90 class silent-no-op regression.
 
 Registered checks:
@@ -20,20 +21,56 @@ Registered checks:
   α-min-1 17 equality_checks:
     4 canonical constants + 4 emission counts + 3 ID-prefix invariants +
     5 no-drop invariants (Section 3.4 CIF→FHIR emission matrix) + 1 extra.
-  α-min-2 +7 equality_checks (total = 24):
+  α-min-2 +9 equality_checks (total = 26):
     1 canonical constant (CARE_TEAM_ID_PREFIX) + 2 emission/prefix invariants +
-    2 CIF→FHIR no-drop for CareTeam fields + 3 dispatch no-drop invariants
-    (outpatient/emergency/inpatient specs_for_encounter_type coverage).
+    2 CIF→FHIR no-drop for CareTeam fields + 4 dispatch no-drop invariants
+    (outpatient/emergency/inpatient specs_for_encounter_type coverage +
+    LOINC 54094-8 dispatch gate).
+  AD-65 Bug A +1 equality_check (total = 27):
+    `us_admission_hp_zero_ja_chars` — see `_count_us_hp_ja_chars` /
+    `_proof_us_hp_ja_chars` docstrings. Companion integration test:
+    `tests/integration/test_bug_a_us_hp_english_only.py`.
+  AD-65 Bug B +1 equality_check (total = 28):
+    `nursing_doc_author_is_nurse_ratio` — see `_nursing_author_ratio` /
+    `_proof_nursing_author_ratio` docstrings. Companion unit test:
+    `tests/unit/test_document_author_selection.py`; companion integration
+    test: `tests/integration/test_bug_b_nurse_author.py`.
+  PR #131 adv-1 F-6 + F-6b (+6, total = 34):
+    F-6 (spec §5.5 named gates): `narrative_pass_populated_narrative_ratio` /
+      `structural_cif_zero_narrative_content` /
+      `triage_levels_1_and_5_ratio_min` (delegate to triage_chain proof) /
+      `explicit_population_respected` (Bug D).
+    F-6b (fixture-strengthening — Bug A / Bug B proofs were happy-path only):
+      `us_hp_ja_gate_detects_contamination` verifies the count helper
+      actually FAILS on a contaminated fixture (not just returns 0 for
+      clean input); `nursing_author_fallback_fires_on_missing_nurse`
+      verifies the fallback branch actually picks the attending id when
+      the encounter has no primary_nurse_id.
 
 TODO(jp_language_audit): jp_language_checks not implemented — ModuleAuditSpec
 does not have a jp_language_checks field. Deferred to a follow-up sweep
 (see TODO.md: "document chain JP language axis"). When the field is added,
 verify: DocumentReference.type.coding[].display in ja / Composition.section[].title
 in ja / AllergyIntolerance.code.text in ja / ClinicalImpression.description in ja.
+
+TODO(AD-65 Bug A residual gap): `hpi_template.onset_pattern` (disease YAML) and
+`physical_exam_findings` (disease YAML + `reference_data/physical_exam_findings.yaml`)
+carry no per-language split at all — a data-authoring gap across all 32 disease
+YAMLs, out of scope for the Task 9 code fix / Task 10 YAML `_en` population sweep
+(both explicitly deferred this; see task-9-report.md / task-10-report.md). Until
+closed, `KNOWN_JA_ONLY_FALLBACK_SECTIONS` intentionally excludes `hpi` +
+`physical_examination` from the ja-char count so this gate tracks the actual
+Bug-A locale-routing fix rather than perpetually failing on a known, tracked,
+separate issue. See TODO.md "disease YAML English narrative content" entry.
 """
 
 from __future__ import annotations
 
+import glob
+import json
+import os
+import re
+import tempfile
 from typing import Any
 
 from clinosim.audit.registry import ModuleAuditSpec, register_audit_module
@@ -42,8 +79,457 @@ from clinosim.modules.document import (
     CLINICAL_IMPRESSION_ID_PREFIX,
     COMPOSITION_ID_PREFIX,
     DOC_REFERENCE_ID_PREFIX,
+    NURSING_LOINCS,
 )
 from clinosim.modules.output._fhir_care_team import CARE_TEAM_ID_PREFIX
+from clinosim.modules.output.cif_reader import resolve_current_narrative_dir
+
+# AD-65 Bug A (US H&P Japanese contamination, Task 11): ja char range used by
+# both this module's gate and tests/integration/test_bug_a_us_hp_english_only.py.
+_JA_CHAR_RE = re.compile(r"[぀-ゟ゠-ヿ一-鿿]")
+
+# Two ADMISSION_HP composition_sections ("hpi", "physical_examination") draw
+# from disease-YAML source data (`hpi_template.onset_pattern` /
+# `physical_exam_findings`) that carries no per-language split at all — a
+# separate, tracked, deferred data-authoring gap discovered while
+# implementing the AD-65 Bug A code fix (see
+# .superpowers/sdd/task-9-report.md §6 concern 2 and task-10-report.md §7;
+# TODO.md follow-up entry). Both builder sites tag `facts_used` with the
+# module's documented `:ja_only_fallback` suffix at generation time
+# (`clinosim/modules/document/narrative/template_generator.py`
+# `_build_hpi` / `_build_physical_examination`). These two sections are
+# therefore excluded from the ja-char count below; Japanese chars in any
+# OTHER ADMISSION_HP section indicate a genuine Bug-A-class locale-routing
+# regression and ARE counted.
+KNOWN_JA_ONLY_FALLBACK_SECTIONS = frozenset({"hpi", "physical_examination"})
+
+
+def _count_us_hp_ja_chars(cif_dir: str) -> int:
+    """Count (regression-relevant) Japanese chars in US ADMISSION_HP narrative sections.
+
+    Walks `cif_dir/structural/patients/*.json` to find every document stub
+    with `task_type == "admission_hp"`, then reads the matching file under
+    `cif_dir/narratives/template/documents/<encounter_id>/<document_id>.json`
+    (Stage 1 template narrative tree — AD-65 two-pass architecture;
+    `NarrativePass._filename_for` keys files by `document_id`, NOT
+    `task_type`, so a naive `documents/<enc>/admission_hp.json` guess would
+    silently match nothing). Sums `_JA_CHAR_RE` matches across every section
+    text EXCEPT `KNOWN_JA_ONLY_FALLBACK_SECTIONS` (see module-level comment).
+
+    Returns 0 if the CIF directory doesn't have the expected structural or
+    narrative subtree (defensive default, mirrors other loader helpers in
+    this codebase — e.g. `load_hai_antibiogram`'s no-panel-eligible default).
+    """
+    structural_dir = os.path.join(cif_dir, "structural", "patients")
+    # F-3 fix: `narratives/current_version.txt` pointer 経由で解決するので、
+    # LLMNarrativePass 導入(β-JP-1)後は "template" 以外の version にも
+    # 追従する。pointer 無 → "template" fallback で後方互換。
+    narrative_dir = resolve_current_narrative_dir(cif_dir)
+    if not os.path.isdir(structural_dir) or not os.path.isdir(narrative_dir):
+        return 0
+
+    total = 0
+    for patient_path in glob.glob(os.path.join(structural_dir, "*.json")):
+        with open(patient_path, encoding="utf-8") as f:
+            patient = json.load(f)
+        encounters = patient.get("encounters") or []
+        encounter_id = encounters[0].get("encounter_id", "") if encounters else ""
+        for doc in patient.get("documents") or []:
+            if doc.get("task_type") != "admission_hp":
+                continue
+            document_id = doc.get("document_id", "")
+            narrative_path = os.path.join(narrative_dir, encounter_id, f"{document_id}.json")
+            if not os.path.exists(narrative_path):
+                continue
+            with open(narrative_path, encoding="utf-8") as f:
+                narrative_doc = json.load(f)
+            sections = (narrative_doc.get("narrative") or {}).get("sections") or {}
+            for section_name, text in sections.items():
+                if section_name in KNOWN_JA_ONLY_FALLBACK_SECTIONS:
+                    continue
+                total += len(_JA_CHAR_RE.findall(text or ""))
+    return total
+
+
+def _proof_us_hp_ja_chars() -> int:
+    """Zero-arg synthetic fixture exercising `_count_us_hp_ja_chars` end to end.
+
+    `lift_firing_proof` is a zero-arg factory (called with no arguments by
+    `clinosim/audit/axes/silent_no_op.py:_check_proof`) so it cannot receive
+    a real cohort's `cif_dir`. This builds a minimal on-disk structural +
+    narrative-tree pair for one synthetic admission_hp document (same
+    pattern as `_build_document_proof`'s in-memory synthetic ClinicalDocument
+    dicts, extended to disk since `_count_us_hp_ja_chars` is a file-walking
+    helper): clean English text in every counted section, PLUS intentional
+    Japanese text in the excluded `physical_examination` section. A naive
+    "count every section" implementation would return > 0 here — proving
+    the known-gap exclusion (and the document_id/task_type cross-reference)
+    is load-bearing, not just a happy-path count of 0.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        _write_us_hp_fixture(tmp, contaminate_counted_section=False)
+        return _count_us_hp_ja_chars(tmp)
+
+
+def _proof_us_hp_ja_gate_detects_contamination() -> bool:
+    """F-6b adv-1: verify the Bug A gate can FAIL on a regression.
+
+    The clean fixture in `_proof_us_hp_ja_chars` returns 0 whether or not
+    the count logic actually excludes JA-only fallback sections. A second
+    synthetic case with Japanese in a COUNTED section (`chief_complaint`,
+    not in `KNOWN_JA_ONLY_FALLBACK_SECTIONS`) should return > 0. If both
+    fixtures return 0, the counter is silent-no-op and this gate must fail.
+
+    Returns True when contamination is correctly detected (count > 0).
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        _write_us_hp_fixture(tmp, contaminate_counted_section=True)
+        return _count_us_hp_ja_chars(tmp) > 0
+
+
+def _write_us_hp_fixture(tmp: str, *, contaminate_counted_section: bool) -> None:
+    """内部: on-disk fixture (structural + narrative)を書き出す。
+
+    contaminate_counted_section=True で `chief_complaint`(counted section)に
+    日本語を注入し、gate の sensitivity を検証する(F-6b adv-1)。
+    """
+    structural_dir = os.path.join(tmp, "structural", "patients")
+    narrative_dir = os.path.join(tmp, "narratives", "template", "documents", "enc-proof-hp")
+    os.makedirs(structural_dir, exist_ok=True)
+    os.makedirs(narrative_dir, exist_ok=True)
+
+    with open(os.path.join(structural_dir, "pt-proof-hp.json"), "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "encounters": [{"encounter_id": "enc-proof-hp"}],
+                "documents": [
+                    {"document_id": "doc-enc-proof-hp-01", "task_type": "admission_hp"}
+                ],
+            },
+            f,
+        )
+
+    # `chief_complaint` は counted section — clean 時は ASCII のみ、
+    # contaminate 時は日本語混入で Bug A regression 相当。
+    chief_complaint = "胸痛" if contaminate_counted_section else "Chest pain"
+
+    with open(
+        os.path.join(narrative_dir, "doc-enc-proof-hp-01.json"), "w", encoding="utf-8"
+    ) as f:
+        json.dump(
+            {
+                "document_id": "doc-enc-proof-hp-01",
+                "encounter_id": "enc-proof-hp",
+                "narrative": {
+                    "sections": {
+                        "chief_complaint": chief_complaint,
+                        "hpi": "Patient presented with chest pain.",
+                        "physical_examination": (
+                            "General: 意識清明. "
+                            "Cardiovascular: regular rate, no murmurs."
+                        ),
+                        "assessment_and_plan": "Assessment: stable. Plan: monitor.",
+                    }
+                },
+            },
+            f,
+            ensure_ascii=False,
+        )
+
+
+def _nursing_author_ratio(cif_dir: str) -> float:
+    """AD-65 Bug B (Task 12): fraction of nursing docs authored by the assigned nurse.
+
+    Walks `cif_dir/structural/patients/*.json` and, for every
+    `ClinicalDocument` whose `loinc_code` is in `NURSING_LOINCS`
+    (admission_nursing_assessment 78390-2 / nursing_shift_note 34746-8 /
+    nursing_discharge_summary 34745-0), checks whether
+    `author_practitioner_id` equals that document's encounter's
+    `primary_nurse_id`. Non-nursing documents are ignored entirely (they
+    are expected to be authored by `attending_physician_id`, unchanged).
+
+    Returns 1.0 (vacuously) if the CIF directory doesn't have the expected
+    structural subtree, or if the cohort has no nursing documents at all —
+    same defensive-default convention as `_count_us_hp_ja_chars` /
+    `load_hai_antibiogram`'s no-panel-eligible default.
+    """
+    structural_dir = os.path.join(cif_dir, "structural", "patients")
+    if not os.path.isdir(structural_dir):
+        return 1.0
+
+    total = 0
+    correct = 0
+    for patient_path in glob.glob(os.path.join(structural_dir, "*.json")):
+        with open(patient_path, encoding="utf-8") as f:
+            patient = json.load(f)
+        nurse_by_encounter = {
+            enc.get("encounter_id", ""): enc.get("primary_nurse_id", "") or ""
+            for enc in (patient.get("encounters") or [])
+        }
+        for doc in patient.get("documents") or []:
+            if doc.get("loinc_code") not in NURSING_LOINCS:
+                continue
+            total += 1
+            author = doc.get("author_practitioner_id", "") or ""
+            nurse_id = nurse_by_encounter.get(doc.get("encounter_id", ""), "")
+            if author and author == nurse_id:
+                correct += 1
+    return (correct / total) if total else 1.0
+
+
+def _proof_nursing_author_ratio() -> float:
+    """Zero-arg synthetic fixture exercising `_nursing_author_ratio` end to end.
+
+    `lift_firing_proof` is a zero-arg factory (see `_proof_us_hp_ja_chars`
+    docstring for the same constraint), so this builds a minimal on-disk
+    structural CIF fixture directly (same pattern) rather than receiving a
+    real cohort's `cif_dir`.
+
+    Fixture has ONE encounter with a nurse assigned (`NS-IM-001`) and TWO
+    documents:
+      - a nursing doc (LOINC 78390-2) correctly authored by the nurse
+      - a physician doc (LOINC 11506-3, progress note) authored by the
+        attending (`DR-IM-001`) — included specifically to prove the ratio
+        helper actually FILTERS by `NURSING_LOINCS` rather than checking
+        every document's author against the nurse: a naive
+        "check all docs" implementation would count the physician doc as a
+        mismatch and return 0.5, not 1.0.
+    Expected ratio: 1.0.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        _write_nursing_author_fixture(
+            tmp, encounter_id="enc-nurse-proof", nurse_id="NS-IM-001",
+        )
+        return _nursing_author_ratio(tmp)
+
+
+def _proof_nursing_author_fallback_fires_on_missing_nurse() -> bool:
+    """F-6b adv-1: verify _pick_document_author falls back to attending when nurse missing.
+
+    Bug B fix relies on a fallback: nursing doc with empty
+    `primary_nurse_id` on the encounter should log a warning and use
+    `attending_physician_id` — not blank. This proof exercises the
+    fallback branch directly (importing `_pick_document_author`) rather
+    than round-tripping through fixture files, since the ratio helper
+    counts an empty-nurse case as a mismatch (denominator counts, author
+    != nurse). Returns True iff fallback picks the attending id.
+    """
+    from clinosim.modules.document.engine import _pick_document_author
+
+    spec = {"loinc_code": "78390-2"}  # nursing spec
+    enc = {
+        "encounter_id": "enc-fallback-proof",
+        "attending_physician_id": "DR-IM-002",
+        "primary_nurse_id": "",  # 欠損 nurse → 落ちるはず
+    }
+    author = _pick_document_author(spec, enc)
+    return author == "DR-IM-002"
+
+
+def _write_nursing_author_fixture(
+    tmp: str, *, encounter_id: str, nurse_id: str,
+) -> None:
+    """内部: nurse assignment 有 fixture(1 nursing doc + 1 physician doc)を書き出す。"""
+    structural_dir = os.path.join(tmp, "structural", "patients")
+    os.makedirs(structural_dir, exist_ok=True)
+
+    with open(
+        os.path.join(structural_dir, f"pt-{encounter_id}.json"), "w", encoding="utf-8"
+    ) as f:
+        json.dump(
+            {
+                "encounters": [
+                    {
+                        "encounter_id": encounter_id,
+                        "attending_physician_id": "DR-IM-001",
+                        "primary_nurse_id": nurse_id,
+                    }
+                ],
+                "documents": [
+                    {
+                        "document_id": f"doc-{encounter_id}-01",
+                        "task_type": "admission_nursing_assessment",
+                        "loinc_code": "78390-2",
+                        "encounter_id": encounter_id,
+                        "author_practitioner_id": nurse_id,
+                    },
+                    {
+                        "document_id": f"doc-{encounter_id}-02",
+                        "task_type": "progress_note",
+                        "loinc_code": "11506-3",
+                        "encounter_id": encounter_id,
+                        "author_practitioner_id": "DR-IM-001",
+                    },
+                ],
+            },
+            f,
+        )
+
+
+def _proof_narrative_pass_populated_ratio() -> float:
+    """F-6 adv-1 gate: TemplateNarrativePass populates ClinicalDocument stubs
+    with actual narrative content.
+
+    Builds a minimal structural CIF (1 US inpatient patient with 1
+    admission_hp stub), runs TemplateNarrativePass, then reads back the
+    resulting narrative file and verifies it has either `text` or
+    `sections` populated. Returns the ratio populated / total.
+
+    silent-no-op regression: a future refactor that leaves narrative
+    generation returning empty NarrativeOutput would produce 0.0 here.
+    """
+    from clinosim.modules.document.narrative.passes import TemplateNarrativePass
+
+    with tempfile.TemporaryDirectory() as tmp:
+        structural = os.path.join(tmp, "structural", "patients")
+        os.makedirs(structural, exist_ok=True)
+        with open(
+            os.path.join(structural, "ENC-narrate-proof.json"),
+            "w", encoding="utf-8",
+        ) as f:
+            json.dump(
+                {
+                    "patient": {"patient_id": "POP-narrate", "age": 65, "sex": "M"},
+                    "encounters": [
+                        {
+                            "encounter_id": "ENC-narrate-proof",
+                            "encounter_type": {"value": "inpatient"},
+                        }
+                    ],
+                    "documents": [
+                        {
+                            "document_id": "doc-narrate-01",
+                            "task_type": "admission_hp",
+                            "loinc_code": "34117-2",
+                            "format_type": "composition",
+                            "narrative": None,
+                        }
+                    ],
+                    "vitals": [],
+                    "lab_results": [],
+                    "medications": [],
+                    "diagnoses": [],
+                    "procedures": [],
+                    "allergies": [],
+                },
+                f, ensure_ascii=False,
+            )
+
+        TemplateNarrativePass(cif_dir=tmp, country="US", rng_seed=42).run()
+
+        narr_path = os.path.join(
+            tmp, "narratives", "template", "documents",
+            "ENC-narrate-proof", "doc-narrate-01.json",
+        )
+        if not os.path.exists(narr_path):
+            return 0.0
+
+        with open(narr_path, encoding="utf-8") as f:
+            data = json.load(f)
+        narrative = data.get("narrative") or {}
+        # composition ADMISSION_HP は sections が primary、text は empty のことが多い
+        populated = bool(narrative.get("text") or narrative.get("sections"))
+        return 1.0 if populated else 0.0
+
+
+def _proof_structural_cif_zero_narrative_content() -> int:
+    """F-6 adv-1 gate: structural CIF must have zero narrative content leak.
+
+    write_cif strips `narrative` from every ClinicalDocument stub (AD-65
+    two-pass invariant). Runs write_cif on a synthetic CIFDataset with a
+    populated narrative field and counts leaks (should be 0).
+    """
+    from datetime import date, datetime
+
+    from clinosim.modules.output.cif_writer import write_cif
+    from clinosim.types.clinical import ClinicalDocument, ClinicalDocumentNarrative
+    from clinosim.types.encounter import Encounter
+    from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord
+    from clinosim.types.patient import PatientProfile
+
+    with tempfile.TemporaryDirectory() as tmp:
+        doc = ClinicalDocument(
+            document_id="doc-leak-01",
+            task_type="admission_hp",
+            loinc_code="34117-2",
+            encounter_id="ENC-leak-1",
+            format_type="composition",
+            narrative=ClinicalDocumentNarrative(
+                text="このテキストは structural CIF に leak してはならない。",
+                sections={"hpi": "leak content should not appear"},
+                generator="template",
+            ),
+        )
+        patient = PatientProfile(
+            patient_id="POP-leak",
+            age=65, sex="M",
+            date_of_birth=date(1961, 1, 1),
+        )
+        enc = Encounter(encounter_id="ENC-leak-1")
+        record = CIFPatientRecord(
+            patient=patient,
+            encounters=[enc],
+            documents=[doc],
+        )
+        dataset = CIFDataset(
+            metadata=CIFMetadata(
+                clinosim_version="0.2",
+                generation_timestamp=datetime.now(),
+                random_seed=42,
+                country="US",
+                hospital_scale="medium",
+                total_patients_generated=1,
+            ),
+            patients=[record],
+            hospital_roster=[],
+            hospital_config={},
+        )
+        write_cif(dataset, tmp)
+
+        leak_count = 0
+        struct_dir = os.path.join(tmp, "structural", "patients")
+        for fn in os.listdir(struct_dir):
+            with open(os.path.join(struct_dir, fn), encoding="utf-8") as f:
+                data = json.load(f)
+            for d in data.get("documents") or []:
+                # narrative is None (stripped) OR key missing altogether — both OK.
+                if d.get("narrative") is not None:
+                    leak_count += 1
+        return leak_count
+
+
+def _proof_triage_levels_1_and_5_ratio_min() -> bool:
+    """F-6 adv-1 alias gate: canonical named key for triage L1+L5 sensitivity.
+
+    Delegates to the triage_chain audit spec's proof — this key exists so
+    a grep for `triage_levels_1_and_5_ratio_min` finds the gate in the
+    document_chain proof output too (spec §5.5 promised name). The actual
+    L1/L5 computation lives in `clinosim/modules/triage/audit.py:
+    _build_triage_severity_proof`; here we just call that helper and
+    verify both L1 (severe → level 1) and L5 (mild → level 5) fire.
+    """
+    from clinosim.modules.triage.audit import _build_triage_severity_proof
+
+    proof = _build_triage_severity_proof()
+    checks = {label: actual for label, actual, _expected in proof["equality_checks"]}
+    severe_l1 = any("level '1'" in k and checks[k] for k in checks)
+    mild_l5 = any("level '5'" in k and checks[k] for k in checks)
+    return severe_l1 and mild_l5
+
+
+def _proof_explicit_population_respected() -> bool:
+    """F-6 adv-1 gate (Bug D): SimulatorConfig honors explicit catchment_population.
+
+    Bug D root cause: pre-fix engine.py had a `== 10_000` sentinel that
+    silently replaced any explicit CLI value equalling the argparse
+    default. The fix removed the sentinel — this proof pins the fixed
+    behavior by constructing a SimulatorConfig with an unusual population
+    value and asserting the model preserves it untouched.
+    """
+    from clinosim.types.config import SimulatorConfig
+
+    cfg = SimulatorConfig(random_seed=42, country="US", catchment_population=1234)
+    return cfg.catchment_population == 1234
 
 
 def _build_document_proof() -> dict[str, Any]:
@@ -87,10 +573,21 @@ def _build_document_proof() -> dict[str, Any]:
         "author_practitioner_id": "dr-proof",
         "authored_datetime": "2026-01-10T08:00:00",
         "language": "en",
-        "text": "Chief complaint: chest pain. History of present illness: ...",
-        "text_source": "template",
         "format_type": "free_text",
         "content_type": "text/plain; charset=utf-8",
+        # AD-65 Task 4: content lives in the narrative subtree (merged in by
+        # CIFReader in production); the proof supplies it directly so the
+        # builder is exercised on a "narrative already generated" stub, same
+        # as what CIFReader hands to builders after a NarrativePass has run.
+        "narrative": {
+            "text": "Chief complaint: chest pain. History of present illness: ...",
+            "sections": {},
+            "structured": {},
+            "generator": "template",
+            "generator_metadata": {},
+            "generated_at": "2026-01-10T08:00:00Z",
+            "facts_used": [],
+        },
     }
 
     # Synthetic composition ClinicalDocument (DISCHARGE_SUMMARY, LOINC 18842-5).
@@ -106,14 +603,22 @@ def _build_document_proof() -> dict[str, Any]:
         "author_practitioner_id": "dr-proof",
         "authored_datetime": "2026-01-15T10:00:00",
         "language": "en",
-        "text": "",
-        "sections": {
-            "Discharge Diagnosis": "Community-acquired pneumonia",
-            "Disposition": "Home with oral antibiotics",
-        },
-        "text_source": "template",
         "format_type": "composition",
         "content_type": "text/plain; charset=utf-8",
+        # AD-65 Task 4: sections live in the narrative subtree (see free_text_doc
+        # comment above for the CIFReader-parity rationale).
+        "narrative": {
+            "text": "",
+            "sections": {
+                "Discharge Diagnosis": "Community-acquired pneumonia",
+                "Disposition": "Home with oral antibiotics",
+            },
+            "structured": {},
+            "generator": "template",
+            "generator_metadata": {},
+            "generated_at": "2026-01-15T10:00:00Z",
+            "facts_used": [],
+        },
     }
 
     # Synthetic Allergy (Penicillin SNOMED 372687004, in clinosim/codes/data/snomed-ct.yaml).
@@ -295,12 +800,12 @@ def _build_document_proof() -> dict[str, Any]:
             ),
             # --- 5 no-drop invariants (Section 3.4 CIF→FHIR emission matrix) ---
             (
-                "no_drop: ClinicalDocument.text -> DocumentReference.content.attachment.data (base64)",
+                "no_drop: doc.narrative.text -> DocumentReference.content.attachment.data (base64)",
                 bool(dref.get("content", [{}])[0].get("attachment", {}).get("data")),
                 True,
             ),
             (
-                "no_drop: ClinicalDocument.sections -> Composition.section[] non-empty",
+                "no_drop: doc.narrative.sections -> Composition.section[] non-empty",
                 len(comp.get("section", [])) > 0,
                 True,
             ),
@@ -376,6 +881,53 @@ def _build_document_proof() -> dict[str, Any]:
             (
                 "no_drop: encounter_type='inpatient' → 3 nursing doc types dispatched",
                 _nursing_type_keys.issubset(inpatient_type_keys),
+                True,
+            ),
+            # === AD-65 Bug A addition (Task 11) — 1 new check; total = 25 ===
+            (
+                "us_admission_hp_zero_ja_chars",
+                _proof_us_hp_ja_chars(),
+                0,
+            ),
+            # === AD-65 Bug B addition (Task 12) — 1 new check; total = 26 ===
+            (
+                "nursing_doc_author_is_nurse_ratio",
+                _proof_nursing_author_ratio(),
+                1.0,
+            ),
+            # === adv-1 F-6 additions (spec §5.5 promised gates) ===
+            # 4 named gates so grep-by-canonical-name finds them:
+            (
+                "narrative_pass_populated_narrative_ratio",
+                _proof_narrative_pass_populated_ratio(),
+                1.0,
+            ),
+            (
+                "structural_cif_zero_narrative_content",
+                _proof_structural_cif_zero_narrative_content(),
+                0,
+            ),
+            (
+                "triage_levels_1_and_5_ratio_min",
+                _proof_triage_levels_1_and_5_ratio_min(),
+                True,
+            ),
+            (
+                "explicit_population_respected",
+                _proof_explicit_population_respected(),
+                True,
+            ),
+            # === adv-1 F-6b fixture-strengthening gates ===
+            # Prove the existing Bug A / Bug B proofs are actually load-bearing,
+            # not tautologies that pass regardless of implementation.
+            (
+                "us_hp_ja_gate_detects_contamination",
+                _proof_us_hp_ja_gate_detects_contamination(),
+                True,
+            ),
+            (
+                "nursing_author_fallback_fires_on_missing_nurse",
+                _proof_nursing_author_fallback_fires_on_missing_nurse(),
                 True,
             ),
         ]

@@ -63,6 +63,17 @@ narrative:
       neurological: 遠位神経・血管正常
     ed_workup_summary_ja: 足関節X線（{xray_views_ja}）：{xray_result_ja}。骨折なし/骨折確認。
     disposition_ja: '{disposition_display_ja}。RICE療法指導・{support_ja}固定。整形外科外来1週間後受診。'
+    chief_complaint_en: Ankle sprain (after fall)
+    hpi_en: 'Ankle sprain sustained {injury_time_en} via {mechanism_en}. Pain and swelling appeared immediately, with variable weight-bearing tolerance. Ottawa Ankle Rule: {ottawa_result_en}. No open wound or neurologic symptoms.'
+    physical_exam_en:
+      general: Alert and oriented, mild distress
+      cardiovascular: Heart rate normal
+      respiratory: Respiratory rate normal
+      abdominal: 'Abdomen: assessment not indicated'
+      musculoskeletal: 'Right/left ankle: swelling (+), ecchymosis ({ecchymosis_en}), tenderness over anterior talofibular ligament (+), malleolar/calcaneal tenderness ({bone_pain_en}). Limited ROM. Neurovascularly intact.'
+      neurological: Distal neurovascular status intact
+    ed_workup_summary_en: 'Ankle X-ray ({xray_views_en}): {xray_result_en}. No fracture identified / fracture confirmed.'
+    disposition_en: '{disposition_display_en}. RICE therapy instructed, {support_en} immobilization. Orthopedic follow-up in 1 week.'
   ed_triage_template:
     common_triage_levels:
     - '4'

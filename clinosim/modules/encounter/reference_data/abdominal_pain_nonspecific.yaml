@@ -93,6 +93,16 @@ narrative:
       neurological: 麻痺なし、意識障害なし
     ed_workup_summary_ja: 血液検査（WBC・CRP・肝酵素・クレアチニン）施行。{imaging_summary_ja}。尿検査：{ua_result_ja}。
     disposition_ja: '{disposition_display_ja}。外来フォローアップ：症状増悪時・発熱出現時は再診。'
+    chief_complaint_en: '{chief_complaint_en} complaint'
+    hpi_en: 'Onset {onset_days} day(s) ago: abdominal pain with nausea. Location: periumbilical to lower abdomen, character: constant to intermittent. No fever, diarrhea, or hematochezia. See intake questionnaire for past medical/surgical history.'
+    physical_exam_en:
+      general: Alert and oriented, {severity_desc_en}
+      cardiovascular: Normal to mildly tachycardic, regular heart sounds
+      respiratory: Respiratory rate normal, breath sounds clear
+      abdominal: 'Abdomen: flat to mildly distended, hypoactive to hyperactive bowel sounds. Tenderness: {pain_site_en}. Peritoneal signs: {peritoneal_sign_en}. Murphy sign negative.'
+      neurological: No paralysis, no altered mentation
+    ed_workup_summary_en: 'Labs obtained (WBC, CRP, liver enzymes, creatinine). {imaging_summary_en}. Urinalysis: {ua_result_en}.'
+    disposition_en: '{disposition_display_en}. Outpatient follow-up: return if symptoms worsen or fever develops.'
   ed_triage_template:
     common_triage_levels:
     - '3'

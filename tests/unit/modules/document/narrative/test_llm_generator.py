@@ -36,8 +36,6 @@ def _make_spec(
     return DocumentTypeSpec(
         type_key="admission_hp",
         loinc_code="34117-2",
-        display_en="History & Physical",
-        display_ja="入院時病歴・身体所見",
         format_type=FormatType.COMPOSITION,
         countries_supported=("jp", "us"),
         generation_frequency="once_on_admission",

@@ -87,7 +87,11 @@ class SimulatorConfig(BaseModel):
     country: str = "US"  # default: US (English). Use "JP" for Japanese.
     hospital_scale: str = "medium"
     disease_modules: list[str] = ["bacterial_pneumonia"]
-    catchment_population: int = 50_000
+    # None = use hospital's recommended_population (see hospital_operations.yaml).
+    # Explicit int = honored as-is (Bug D fix: previously a `== 10_000` sentinel
+    # silently replaced any explicit CLI value that happened to equal the old
+    # argparse default, dropping user-requested population sizes).
+    catchment_population: int | None = None
     random_seed: int = 42
     time_range: tuple[str, str] = ("2024-04-01", "2025-03-31")
     snapshot_date: str | None = None  # YYYY-MM-DD; ongoing inpatients have no discharge_datetime as of this date

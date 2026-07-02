@@ -39,6 +39,15 @@ COMPOSITION_ID_PREFIX = "comp-"
 ALLERGY_ID_PREFIX = "allergy-"
 CLINICAL_IMPRESSION_ID_PREFIX = "ci-"
 
+# AD-65 Bug B (Task 12): nursing-authored document LOINC codes, used by
+# clinosim.modules.document.engine._pick_document_author to dispatch author
+# to encounter.primary_nurse_id instead of encounter.attending_physician_id.
+# Imported here (after the constants above are defined) rather than at the
+# top of the module to avoid a circular import: engine.py imports the
+# constants above FROM this package, so importing engine.py itself must
+# happen only after those names already exist in this module's namespace.
+from clinosim.modules.document.engine import NURSING_LOINCS  # noqa: E402
+
 __all__ = [
     "DocumentType",
     "FormatType",
@@ -54,4 +63,5 @@ __all__ = [
     "COMPOSITION_ID_PREFIX",
     "ALLERGY_ID_PREFIX",
     "CLINICAL_IMPRESSION_ID_PREFIX",
+    "NURSING_LOINCS",
 ]

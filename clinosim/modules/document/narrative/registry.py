@@ -21,12 +21,17 @@ _REF_DIR = _HERE.parent / "reference_data"
 
 @dataclass(frozen=True)
 class DocumentTypeSpec:
-    """Document type registry entry."""
+    """Document type registry entry.
+
+    F-8 adv-1: removed ``display_en`` / ``display_ja`` fields. The display
+    text for a document type is resolved at output time via
+    ``code_lookup("loinc", spec.loinc_code, language)`` from
+    ``clinosim/codes/data/loinc.yaml`` (the authoritative source). The
+    spec's job is code + format + policy metadata only.
+    """
 
     type_key: str
     loinc_code: str
-    display_en: str
-    display_ja: str
     format_type: FormatType
     countries_supported: tuple[str, ...]
     generation_frequency: str
@@ -86,8 +91,6 @@ def _validate_document_type_specs(data: dict[str, Any]) -> None:
         )
     required = (
         "loinc_code",
-        "display_en",
-        "display_ja",
         "format_type",
         "countries_supported",
         "generation_frequency",
@@ -113,8 +116,6 @@ def load_document_type_specs() -> dict[DocumentType, DocumentTypeSpec]:
         result[DocumentType(key)] = DocumentTypeSpec(
             type_key=key,
             loinc_code=entry["loinc_code"],
-            display_en=entry["display_en"],
-            display_ja=entry["display_ja"],
             format_type=FormatType(entry["format_type"]),
             countries_supported=tuple(entry["countries_supported"]),
             generation_frequency=entry["generation_frequency"],

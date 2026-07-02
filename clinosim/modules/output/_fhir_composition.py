@@ -1,8 +1,14 @@
-"""Composition FHIR R4 builder (Tier 1 #3 α-min-1 Task 9, extended α-min-2 Task 12).
+"""Composition FHIR R4 builder (Tier 1 #3 α-min-1 Task 9, extended α-min-2 Task 12,
+refactored to two-layer CIF in AD-65 Task 4).
 
 Reads CIF record.documents where format_type='composition'. Emits one
 Composition resource per matching ClinicalDocument. Section structure is
-derived from ClinicalDocument.sections (dict[section_title, section_text]).
+derived from doc["narrative"]["sections"] (dict[section_title, section_text])
+— the flat ClinicalDocument.sections field was removed in AD-65 Task 1; the
+narrative subtree is merged in by CIFReader (Task 4) before builders run.
+A stub whose narrative is still None (Stage 2 narrative pass hasn't run for
+this doc yet) is skipped with a warning rather than emitting an empty
+Composition.
 
 α-min-1 COMPOSITION doc types (Task 9):
   ADMISSION_HP (LOINC 34117-2), DISCHARGE_SUMMARY (LOINC 18842-5)
@@ -14,9 +20,10 @@ string match; no engine code changes required):
   OUTPATIENT_SOAP              (LOINC 34131-3)
   ED_NOTE                      (LOINC 34878-9)
 
-Section rendering (ClinicalDocument.sections dict → Composition.section[]) is
-unchanged; TemplateNarrativeGenerator (Task 6 α-min-1 + Task 8 α-min-2) is the
-source of sections dict content.
+Section rendering (doc["narrative"]["sections"] dict → Composition.section[])
+is otherwise unchanged; TemplateNarrativeGenerator (Task 6 α-min-1 + Task 8
+α-min-2, invoked by TemplateNarrativePass Task 3) is the source of sections
+dict content.
 
 JP section.title locale mapping is deferred to β-JP-1 per α-min-1 adv-1 Lens 3
 I-3 TODO (section titles remain as English snake_case keys).
@@ -29,7 +36,7 @@ No-drop invariant (CIF → FHIR):
   author_practitioner_id -> Composition.author[]
   authored_datetime   -> Composition.date
   language            -> Composition.language
-  sections            -> Composition.section[*] (title + text.div)
+  narrative.sections  -> Composition.section[*] (title + text.div)
 
 Canonical constant ownership:
 - COMPOSITION_ID_PREFIX: clinosim.modules.document (writer-owner), imported here.
@@ -37,6 +44,7 @@ Canonical constant ownership:
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from clinosim.codes import get_system_uri
@@ -45,6 +53,8 @@ from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
 from clinosim.modules.output._fhir_common import BundleContext, _escape_html
 
+logger = logging.getLogger(__name__)
+
 __all__ = [
     "COMPOSITION_ID_PREFIX",
     "_bb_compositions",
@@ -52,18 +62,39 @@ __all__ = [
 
 
 def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
-    """Emit one Composition per ClinicalDocument with format_type='composition'."""
+    """Emit one Composition per ClinicalDocument with format_type='composition'.
+
+    Skips (with a warning) any stub whose narrative subtree is still None —
+    i.e. the Stage 2 narrative pass has not (yet) generated content for this
+    document_id. This is expected for documents produced between `generate`
+    and `narrate` runs, not a data-quality defect.
+    """
     raw_docs = _o(ctx.record, "documents", []) or []
     lang = "ja" if ctx.country.lower() == "jp" else "en"
     out: list[dict[str, Any]] = []
     for doc in raw_docs:
-        if _o(doc, "format_type", "") == "composition":
-            out.append(_build_composition(doc, lang))
+        if _o(doc, "format_type", "") != "composition":
+            continue
+        narrative = _o(doc, "narrative", None)
+        if not narrative:
+            logger.warning(
+                "composition stub %s has no narrative (Stage 2 pass not run "
+                "for this document) — skipping",
+                _o(doc, "document_id", ""),
+            )
+            continue
+        sections = _o(narrative, "sections", {}) or {}
+        out.append(_build_composition(doc, sections, lang))
     return out
 
 
-def _build_composition(doc: Any, lang: str) -> dict[str, Any]:
-    """Build one FHIR R4 Composition resource from a ClinicalDocument."""
+def _build_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[str, Any]:
+    """Build one FHIR R4 Composition resource from a ClinicalDocument + its sections.
+
+    ``sections`` is the already-resolved ``doc["narrative"]["sections"]`` dict
+    (extracted by ``_bb_compositions`` so this function stays narrative-shape
+    agnostic and testable in isolation).
+    """
     loinc_code = _o(doc, "loinc_code", "")
     loinc_display = code_lookup("loinc", loinc_code, lang) if loinc_code else ""
 
@@ -109,18 +140,17 @@ def _build_composition(doc: Any, lang: str) -> dict[str, Any]:
     if encounter_id:
         res["encounter"] = {"reference": f"Encounter/{encounter_id}"}
 
-    # Build section[] from ClinicalDocument.sections dict
-    sections_dict = _o(doc, "sections", {}) or {}
-    sections: list[dict[str, Any]] = []
-    for section_title, section_text in sections_dict.items():
-        sections.append({
+    # Build section[] from doc["narrative"]["sections"] (passed in as `sections`)
+    section_entries: list[dict[str, Any]] = []
+    for section_title, section_text in sections.items():
+        section_entries.append({
             "title": section_title,
             "text": {
                 "status": "generated",
                 "div": f"<div xmlns='http://www.w3.org/1999/xhtml'>{_escape_html(section_text)}</div>",
             },
         })
-    if sections:
-        res["section"] = sections
+    if section_entries:
+        res["section"] = section_entries
 
     return res

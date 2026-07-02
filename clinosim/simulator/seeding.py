@@ -80,6 +80,16 @@ def individual_lab_seed(order_id: str) -> int:
 # import time. See docs/CONTRIBUTING-modules.md for the contributor
 # rules and CLAUDE.md "AD-55 enricher patterns" for the architectural
 # rule.
+#
+# NOTE: narrative_pass seeds are caller-supplied (--seed CLI arg →
+# TemplateNarrativePass(rng_seed=...)), NOT enricher offsets.
+# TemplateNarrativePass is a Stage 2 post-simulation pass, not a
+# POST_ENCOUNTER / POST_RECORDS enricher. β-JP-1 LLMNarrativePass will
+# derive its own sub-seed here if it needs one (LLM randomness lives
+# server-side; the pass RNG is only for local sampling like fact-order
+# permutation, currently unused). Adding an aspirational scaffold
+# offset that no code path calls is a PR-90 class "green tripwire"
+# risk (see PR #131 adv-1 F-5 for the removal rationale).
 ENRICHER_SEED_OFFSETS = {
     "identity":       540_054,    # legacy decimal (grandfathered)
     "microbiology":   770_077,    # legacy decimal (grandfathered)
