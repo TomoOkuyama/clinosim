@@ -1,0 +1,24 @@
+profile_id: us_inpatient_diabetic_ketoacidosis
+disease_id: diabetic_ketoacidosis
+country: US
+severity: severe
+archetype: smooth_recovery
+count: 1
+random_seed: 42
+hospital_scale: medium
+
+patient_overrides:
+  age: 34
+  sex: F
+
+description: |
+  Severe US DKA case, smooth recovery trajectory. Young adult female
+  with new-onset or exacerbated T1DM. Exercises glucose trajectory
+  narrative, insulin drip management, and multi-day monitoring.
+  β-JP-1 target: US inpatient endocrine narrative + drip protocol.
+clinical_notes: |
+  Presentation: nausea, vomiting, altered mental status
+  Initial glucose > 400 mg/dL
+  Ketones present, anion gap acidosis
+  Insulin drip protocol
+  Electrolyte replacement (K+, phos)
