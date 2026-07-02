@@ -712,3 +712,19 @@ The two-pass CIF generation architecture (`clinosim generate` → Stage 1 struct
 - ❌ コードを fabricate しない / `except Exception: pass` で YAML エラーを握り潰さない (CODES-7, ENC-1)。
 - ❌ `ctx.country` を捨てない (FA-9)。`determine_flag()` に locale reference range を渡し忘れない (OBS-3)。
 - ❌ venue ごとに baseline 値や lookup table を別定義して乖離させない (DET-6, DUP-1)。
+
+## Adding a new patient profile fixture (AD-66)
+
+See `tests/fixtures/patient_profiles/README.md` for the full workflow.
+Quick summary:
+
+1. Copy an existing profile YAML as a template
+2. Edit `profile_id` (must match filename stem), `disease_id`, `country`, `severity`, `archetype`, `patient_overrides`
+3. Run `clinosim regenerate-goldens --profile <new_profile_id>` to bootstrap the golden
+4. Manually review `<new_profile_id>.golden.json`
+5. Run `pytest -m regression -k <new_profile_id> -q` to verify
+6. Commit YAML + golden together (AD-66 rule 1)
+
+**AD-66 policy** (see `CLAUDE.md` for canonical wording):
+- Profile YAML changes MUST regenerate golden + commit both together
+- Unexpected `git diff` on goldens after intentional template changes = regression suspicion
