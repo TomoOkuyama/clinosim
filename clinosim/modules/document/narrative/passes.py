@@ -15,7 +15,10 @@ import os
 from abc import ABC, abstractmethod
 from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from clinosim.modules.llm_service.engine import LLMService
 
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.document import specs_for_country
@@ -28,7 +31,7 @@ from clinosim.types.clinical import (
     ClinicalDocumentNarrative,
     NarrativeVersionManifest,
 )
-from clinosim.types.document import NarrativeContext, NarrativeOutput
+from clinosim.types.document import NarrativeContext, NarrativeGenerator, NarrativeOutput
 
 
 class NarrativePass(ABC):
@@ -36,6 +39,11 @@ class NarrativePass(ABC):
 
     Walk order is (spec, language, patient) — β-JP-1 LLMNarrativePass groups
     by (doc_type, language) to maximize Bedrock prompt cache hits.
+
+    N-1 (N-chain): the content generator is constructor-injected as a
+    ``NarrativeGenerator`` (Protocol in ``clinosim/types/document.py``); the
+    base ``_generate`` delegates to it. Subclasses supply the generator and
+    the manifest identity via ``_generator_name``.
     """
 
     def __init__(
@@ -45,12 +53,15 @@ class NarrativePass(ABC):
         country: str,
         tasks: list[str] | None = None,
         rng_seed: int = 42,
+        *,
+        generator: NarrativeGenerator,
     ):
         self.cif_dir = cif_dir
         self.version_id = version_id
         self.country = country
         self.tasks_filter = set(tasks) if tasks else None
         self.rng_seed = rng_seed
+        self.generator = generator
 
     def run(self) -> NarrativeVersionManifest:
         specs = specs_for_country(self.country)
@@ -106,20 +117,28 @@ class NarrativePass(ABC):
             document_counts_by_type=doc_counts,
             doc_types_enabled=sorted(doc_counts.keys()),
             languages_used=sorted(languages_used),
-            llm_cost_report={},
+            llm_cost_report=self._llm_cost_report(),
         )
         manifest_path = os.path.join(self.cif_dir, "narratives", self.version_id, "manifest.json")
         with open(manifest_path, "w") as f:
             json.dump(asdict(manifest), f, indent=2, ensure_ascii=False)
         return manifest
 
-    @abstractmethod
-    def _generate(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput: ...
+    def _generate(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
+        """Default: delegate to the injected NarrativeGenerator (N-1)."""
+        return self.generator.generate(ctx, spec)
 
     @abstractmethod
     def _generator_name(self) -> str: ...
 
     def _generator_config(self) -> dict[str, Any]:
+        return {}
+
+    def _llm_cost_report(self) -> dict[str, Any]:
+        """Manifest ``llm_cost_report`` hook — overridden by LLMNarrativePass.
+
+        Base returns ``{}`` so the template path manifest stays byte-identical.
+        """
         return {}
 
     def _languages_for_spec(self, spec: DocumentTypeSpec) -> list[str]:
@@ -259,17 +278,106 @@ class TemplateNarrativePass(NarrativePass):
         country: str = "US",
         tasks: list[str] | None = None,
         rng_seed: int = 42,
+        generator: NarrativeGenerator | None = None,
     ):
         # F-5 adv-1: `self._rng` was allocated here from rng_seed but never
         # consumed — TemplateNarrativeGenerator is deterministic modulo
         # rng_seed via `_deterministic_timestamp` and fact ordering only.
         # Removed to eliminate the aspirational-scaffold no-op wiring
         # (β-JP-1 LLMNarrativePass will re-allocate if it needs one).
-        super().__init__(cif_dir, version_id, country, tasks, rng_seed)
-        self.generator = TemplateNarrativeGenerator()
-
-    def _generate(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
-        return self.generator.generate(ctx, spec)
+        super().__init__(
+            cif_dir,
+            version_id,
+            country,
+            tasks,
+            rng_seed,
+            generator=generator if generator is not None else TemplateNarrativeGenerator(),
+        )
 
     def _generator_name(self) -> str:
         return "template"
+
+
+class LLMNarrativePass(NarrativePass):
+    """Stage 2 LLM-backed narrative pass (N-1b, N-chain 2026-07-02).
+
+    Wraps ``LLMNarrativeGenerator`` (template base + per-section LLM
+    replacement per ``DocumentTypeSpec.stage2_strategy``) around the base
+    walk order — (doc_type, language) group serial is inherited unchanged,
+    which keeps Bedrock prompt cache hit rates maximal (AD-65).
+
+    All LLM traffic goes through the injected ``LLMService`` (AD-11):
+    retry, disk PromptCache and token accounting live in the service; the
+    in-memory ``NarrativeCache`` (layer 1, clinical-context key) is owned
+    per pass instance for cross-patient reuse within one run. The manifest
+    ``llm_cost_report`` is wired from ``LLMService.cost_report()``.
+    """
+
+    def __init__(
+        self,
+        cif_dir: str,
+        llm: LLMService,
+        version_id: str = "llm",
+        country: str = "US",
+        tasks: list[str] | None = None,
+        rng_seed: int = 42,
+    ):
+        from clinosim.modules.document.narrative.cache import NarrativeCache
+        from clinosim.modules.document.narrative.llm_generator import LLMNarrativeGenerator
+
+        self.llm = llm
+        self._llm_generator = LLMNarrativeGenerator(
+            template_generator=TemplateNarrativeGenerator(),
+            llm=llm,
+            cache=NarrativeCache(),
+        )
+        super().__init__(
+            cif_dir, version_id, country, tasks, rng_seed, generator=self._llm_generator
+        )
+
+    def run(self) -> NarrativeVersionManifest:
+        """Base walk + loud all-fallback detection (I-2, N-chain adv-1).
+
+        A dead provider (e.g. Ollama server down) must not pass silently:
+        when at least one processed doc was template_seed-eligible and ZERO
+        docs got LLM content, every call failed — print a stderr WARNING.
+        Not an exception: ``narrate`` must remain usable offline (the
+        template fallback output itself is valid).
+        """
+        import sys
+
+        manifest = super().run()
+        gen = self._llm_generator
+        if gen.eligible_docs > 0 and gen.llm_docs == 0:
+            print(
+                f"WARNING: narrate produced 0 LLM documents out of "
+                f"{gen.eligible_docs} template_seed-eligible docs — every LLM "
+                f"call fell back to template output. Check provider "
+                f"connectivity/config. Sampled reasons: {gen.fallback_reasons}",
+                file=sys.stderr,
+            )
+        return manifest
+
+    def _generator_name(self) -> str:
+        return f"llm-{self.llm.provider_name_narrative or 'none'}"
+
+    def _generator_config(self) -> dict[str, Any]:
+        return {
+            "provider": self.llm.provider_name_narrative,
+            "mode": self.llm.mode,
+            "narrative_model_map": dict(self.llm.narrative_model_map),
+        }
+
+    def _llm_cost_report(self) -> dict[str, Any]:
+        """Service-level cost report + generator-level fallback counters (I-2).
+
+        The service counters (total_calls / fallback_count) only see calls
+        that REACHED the service; the generator counters expose docs whose
+        LLM path never fired or fell back to template.
+        """
+        report = dict(self.llm.cost_report())
+        gen = self._llm_generator
+        report["generator_llm_docs"] = gen.llm_docs
+        report["generator_fallback_docs"] = gen.fallback_docs
+        report["generator_fallback_reasons"] = list(gen.fallback_reasons)
+        return report

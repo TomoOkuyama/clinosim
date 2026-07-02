@@ -1,24 +1,24 @@
-"""Tests for apply_replacement_strategy (Task 7, Tier 1 #3 α-min-1).
+"""Tests for apply_replacement_strategy (Task 7 α-min-1; migrated to N-chain IF).
 
-Tests cover:
-- template_only strategy returns template unchanged (no provider call)
-- template_seed strategy passes template text as seed to provider
-- unknown strategy falls back to template (safe default)
-- only llm_enabled_sections are replaced
+The local LLMProvider Protocol is deleted — the strategy takes an LLMService
+and calls complete_prompt (AD-11). Tests use MockProvider-backed LLMService.
 """
 from __future__ import annotations
 
 from types import SimpleNamespace
-from typing import Any
-from unittest.mock import MagicMock
 
-from clinosim.modules.document.narrative.registry import DocumentTypeSpec
 from clinosim.modules.document.narrative.replacement_strategy import (
-    LLMProvider,
     apply_replacement_strategy,
 )
-from clinosim.types.document import DocumentType, FormatType, NarrativeContext, NarrativeOutput
-
+from clinosim.modules.llm_service.engine import LLMService, LLMTaskType
+from clinosim.modules.llm_service.providers import MockProvider
+from clinosim.types.document import (
+    DocumentType,
+    DocumentTypeSpec,
+    FormatType,
+    NarrativeContext,
+    NarrativeOutput,
+)
 
 # ─────────────────────────────────────────────────────────────────
 # Helpers
@@ -35,7 +35,7 @@ def _make_spec(
         loinc_code="34117-2",
         format_type=format_type,
         countries_supported=("jp", "us"),
-        generation_frequency="once_on_admission",
+        generation_frequency="admission_once",
         composition_sections=("hpi", "assessment_and_plan"),
         stage2_strategy=stage2_strategy,
         llm_enabled_sections=llm_enabled_sections,
@@ -78,10 +78,24 @@ def _make_ctx() -> NarrativeContext:
     )
 
 
-def _mock_provider(return_value: str = "LLM-generated mock content") -> MagicMock:
-    provider = MagicMock()
-    provider.generate.return_value = return_value
-    return provider
+def _mock_llm(provider: MockProvider | None = None) -> LLMService:
+    return LLMService(
+        mode="llm",
+        narrative_provider=provider if provider is not None else MockProvider(),
+        narrative_model_map={"medium": "mock"},
+        provider_name_narrative="mock",
+        retry_attempts=1,
+        retry_backoff_seconds=0.0,
+    )
+
+
+def _apply(template_output, ctx, spec, llm, **kwargs):
+    return apply_replacement_strategy(
+        template_output, ctx, spec, llm,
+        task_type=LLMTaskType.ADMISSION_HP,
+        language=ctx.target_lang,
+        **kwargs,
+    )
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -90,16 +104,16 @@ def _mock_provider(return_value: str = "LLM-generated mock content") -> MagicMoc
 
 
 def test_template_only_strategy_returns_template_unchanged() -> None:
-    """template_only: template output returned verbatim, provider not called."""
+    """template_only: template output returned verbatim, LLM not called."""
     spec = _make_spec(stage2_strategy="template_only")
     template_output = _make_template_output()
-    provider = _mock_provider()
+    provider = MockProvider()
     ctx = _make_ctx()
 
-    result = apply_replacement_strategy(template_output, ctx, spec, provider)
+    result = _apply(template_output, ctx, spec, _mock_llm(provider))
 
     assert result is template_output
-    provider.generate.assert_not_called()
+    assert provider.call_count == 0
 
 
 def test_template_only_strategy_preserves_all_fields() -> None:
@@ -107,9 +121,8 @@ def test_template_only_strategy_preserves_all_fields() -> None:
     spec = _make_spec(stage2_strategy="template_only")
     template_output = _make_template_output({"hpi": "original hpi"})
     ctx = _make_ctx()
-    provider = _mock_provider()
 
-    result = apply_replacement_strategy(template_output, ctx, spec, provider)
+    result = _apply(template_output, ctx, spec, _mock_llm())
 
     assert result.sections["hpi"] == "original hpi"
     assert result.metadata["generator"] == "template"
@@ -120,21 +133,22 @@ def test_template_only_strategy_preserves_all_fields() -> None:
 # ─────────────────────────────────────────────────────────────────
 
 
-def test_template_seed_strategy_passes_template_as_seed_to_provider() -> None:
-    """template_seed: provider.generate receives a prompt containing the template text."""
+def test_template_seed_strategy_passes_template_as_seed_to_llm() -> None:
+    """template_seed: the LLM receives a prompt containing the template text."""
     spec = _make_spec(
         stage2_strategy="template_seed",
         llm_enabled_sections=("hpi",),
     )
-    template_output = _make_template_output({"hpi": "Template HPI text", "assessment_and_plan": "A&P"})
+    template_output = _make_template_output(
+        {"hpi": "Template HPI text", "assessment_and_plan": "A&P"}
+    )
     ctx = _make_ctx()
-    provider = _mock_provider()
+    provider = MockProvider()
 
-    apply_replacement_strategy(template_output, ctx, spec, provider)
+    _apply(template_output, ctx, spec, _mock_llm(provider))
 
-    provider.generate.assert_called_once()
-    call_args = provider.generate.call_args[0][0]  # first positional arg = prompt str
-    assert "Template HPI text" in call_args  # template seed included in prompt
+    assert provider.call_count == 1
+    assert "Template HPI text" in provider.last_prompt  # template seed in prompt
 
 
 def test_template_seed_strategy_only_replaces_llm_enabled_sections() -> None:
@@ -148,29 +162,32 @@ def test_template_seed_strategy_only_replaces_llm_enabled_sections() -> None:
         "assessment_and_plan": "Template A&P text",
     })
     ctx = _make_ctx()
-    provider = _mock_provider("LLM-generated mock content")
+    provider = MockProvider()
 
-    result = apply_replacement_strategy(template_output, ctx, spec, provider)
+    result = _apply(template_output, ctx, spec, _mock_llm(provider))
 
     # LLM-enabled section replaced
-    assert result.sections["hpi"] == "LLM-generated mock content"
+    assert result.sections["hpi"].startswith("[Mock LLM response")
     # Non-LLM section unchanged
     assert result.sections["assessment_and_plan"] == "Template A&P text"
+    # raw_text / facts_used preserved (unmodified template base)
+    assert result.raw_text == template_output.raw_text
+    assert result.facts_used == template_output.facts_used
 
 
-def test_template_seed_strategy_calls_provider_per_enabled_section() -> None:
-    """template_seed: provider called once per enabled section."""
+def test_template_seed_strategy_calls_llm_per_enabled_section() -> None:
+    """template_seed: one LLM call per enabled section."""
     spec = _make_spec(
         stage2_strategy="template_seed",
         llm_enabled_sections=("hpi", "assessment_and_plan"),
     )
     template_output = _make_template_output()
     ctx = _make_ctx()
-    provider = _mock_provider()
+    provider = MockProvider()
 
-    apply_replacement_strategy(template_output, ctx, spec, provider)
+    _apply(template_output, ctx, spec, _mock_llm(provider))
 
-    assert provider.generate.call_count == 2
+    assert provider.call_count == 2
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -183,12 +200,12 @@ def test_unknown_strategy_falls_back_to_template() -> None:
     spec = _make_spec(stage2_strategy="future_unknown_strategy")
     template_output = _make_template_output()
     ctx = _make_ctx()
-    provider = _mock_provider()
+    provider = MockProvider()
 
-    result = apply_replacement_strategy(template_output, ctx, spec, provider)
+    result = _apply(template_output, ctx, spec, _mock_llm(provider))
 
     assert result is template_output
-    provider.generate.assert_not_called()
+    assert provider.call_count == 0
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -199,15 +216,11 @@ def test_unknown_strategy_falls_back_to_template() -> None:
 def test_template_seed_with_empty_llm_enabled_sections_returns_template_unchanged() -> None:
     """If stage2_strategy is template_seed but llm_enabled_sections is empty,
     the strategy must safely return the template output unchanged (no
-    provider call, no section mutation).
+    LLM call, no section mutation).
 
     Verifies the invariant documented in _apply_template_seed_strategy:
-    'When llm_enabled_sections is empty, no provider call is made and the
+    'When llm_enabled_sections is empty, no LLM call is made and the
     returned output is byte-identical to template_output (safe no-op).'
-
-    Note: ctx must be a real NarrativeContext (not None) because
-    apply_replacement_strategy calls demographics_bucket(ctx.patient)
-    before the section loop regardless of llm_enabled_sections length.
     """
     spec = _make_spec(
         stage2_strategy="template_seed",
@@ -216,16 +229,16 @@ def test_template_seed_with_empty_llm_enabled_sections_returns_template_unchange
     )
     template_output = _make_template_output({"section_a": "template content"})
     ctx = _make_ctx()
-    provider = _mock_provider()  # should NOT be called
+    provider = MockProvider()  # should NOT be called
 
-    result = apply_replacement_strategy(template_output, ctx, spec, provider)
+    result = _apply(template_output, ctx, spec, _mock_llm(provider))
 
-    provider.generate.assert_not_called()
+    assert provider.call_count == 0
     assert result.sections["section_a"] == "template content"
 
 
 def test_template_seed_strategy_uses_cache_on_hit() -> None:
-    """Cache hit: provider not called on second request with same key."""
+    """NarrativeCache hit: LLM not called on second request with same key."""
     from clinosim.modules.document.narrative.cache import NarrativeCache
     cache = NarrativeCache()
 
@@ -235,18 +248,83 @@ def test_template_seed_strategy_uses_cache_on_hit() -> None:
     )
     template_output = _make_template_output({"hpi": "Template HPI text"})
     ctx = _make_ctx()
-    provider = _mock_provider("LLM-generated mock content")
+    provider = MockProvider()
+    llm = _mock_llm(provider)
 
-    # First call — cache miss → provider invoked
-    apply_replacement_strategy(
-        template_output, ctx, spec, provider,
-        cache_get=cache.get, cache_put=cache.put,
-    )
-    assert provider.generate.call_count == 1
+    # First call — cache miss → LLM invoked
+    _apply(template_output, ctx, spec, llm,
+           cache_get=cache.get, cache_put=cache.put)
+    assert provider.call_count == 1
 
-    # Second call — same context → cache hit → provider NOT invoked again
-    apply_replacement_strategy(
-        template_output, ctx, spec, provider,
-        cache_get=cache.get, cache_put=cache.put,
+    # Second call — same context → cache hit → LLM NOT invoked again
+    _apply(template_output, ctx, spec, llm,
+           cache_get=cache.get, cache_put=cache.put)
+    assert provider.call_count == 1  # still 1, not 2
+
+
+def test_template_seed_different_patients_different_seeds_no_cache_collision() -> None:
+    """C-1 pin (N-chain adv-1): distinct patients with distinct template seeds
+    must produce distinct cache keys → one provider call EACH.
+
+    Before the fix, dict patients all bucketed to "0s-U" and the key collapsed
+    to (lang, section): the whole cohort shared one cache entry per section
+    (2 patients → 1 provider call, identical hpi text = cross-patient
+    narrative contamination).
+    """
+    from clinosim.modules.document.narrative.cache import NarrativeCache
+    cache = NarrativeCache()
+
+    spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
+    provider = MockProvider()
+    llm = _mock_llm(provider)
+
+    # Production pass path shape: ctx.patient is a JSON-deserialized dict.
+    ctx_a = _make_ctx()
+    ctx_a.patient = {"age": 55, "sex": "M"}
+    ctx_b = _make_ctx()
+    ctx_b.patient = {"age": 82, "sex": "F"}
+
+    out_a = _apply(
+        _make_template_output({"hpi": "HPI for patient A, 55M, pneumonia"}),
+        ctx_a, spec, llm, cache_get=cache.get, cache_put=cache.put,
     )
-    assert provider.generate.call_count == 1  # still 1, not 2
+    out_b = _apply(
+        _make_template_output({"hpi": "HPI for patient B, 82F, heart failure"}),
+        ctx_b, spec, llm, cache_get=cache.get, cache_put=cache.put,
+    )
+
+    assert provider.call_count == 2, "second patient must NOT hit the first's cache entry"
+    assert out_a.sections["hpi"] != out_b.sections["hpi"]
+    assert len(cache) == 2  # two distinct cache keys stored
+
+
+def test_template_seed_identical_seed_and_bucket_reuses_cache() -> None:
+    """C-1: genuinely identical seeds in the same clinical bucket still share
+    one cache entry (cross-patient reuse preserved) — 1 provider call total.
+    """
+    from clinosim.modules.document.narrative.cache import NarrativeCache
+    cache = NarrativeCache()
+
+    spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
+    provider = MockProvider()
+    llm = _mock_llm(provider)
+
+    ctx_a = _make_ctx()
+    ctx_a.patient = {"age": 55, "sex": "M"}
+    ctx_b = _make_ctx()
+    ctx_b.patient = {"age": 57, "sex": "M"}  # same 50s-M bucket
+
+    shared = {"hpi": "Identical template seed text"}
+    _apply(_make_template_output(dict(shared)), ctx_a, spec, llm,
+           cache_get=cache.get, cache_put=cache.put)
+    _apply(_make_template_output(dict(shared)), ctx_b, spec, llm,
+           cache_get=cache.get, cache_put=cache.put)
+
+    assert provider.call_count == 1  # cache hit: identical seed + bucket
+
+
+def test_local_llm_provider_protocol_deleted() -> None:
+    """N-2: the module-local LLMProvider Protocol is removed (AD-11 unification)."""
+    import clinosim.modules.document.narrative.replacement_strategy as mod
+
+    assert not hasattr(mod, "LLMProvider")
