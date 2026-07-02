@@ -32,6 +32,31 @@ def resolve_lang(country: str) -> str:
     return "ja" if is_jp(country) else "en"
 
 
+def strip_protocol_prefix(name: str) -> tuple[str, str]:
+    """Strip protocol/category prefix from drug order text (AD-50).
+
+    "DVT_prophylaxis: Enoxaparin 2000IU SC daily"
+        → ("Enoxaparin 2000IU SC daily", "DVT prophylaxis")
+    "antipyretic: Acetaminophen 500mg PO q6h PRN temp >= 38.5"
+        → ("Acetaminophen 500mg PO q6h PRN temp >= 38.5", "antipyretic")
+    "Ceftriaxone 1g IV q8h" → ("Ceftriaxone 1g IV q8h", "")
+
+    Returns (cleaned_name, protocol_category).
+
+    Promoted from ``modules/output/_fhir_common.py`` (β-JP-1 chain 1a adv-1
+    I-1): narrative rendering (``modules/document``) needs the same
+    normalization as the FHIR medication builders — single edit point per the
+    data-logic unification rule. ``_fhir_common._strip_protocol_prefix`` is an
+    alias of this function.
+    """
+    if ":" in name:
+        prefix, rest = name.split(":", 1)
+        rest = rest.strip()
+        if rest:
+            return rest, prefix.replace("_", " ").strip()
+    return name, ""
+
+
 def get_attr_or_key(obj: Any, name: str, default: Any = None) -> Any:
     """Read ``name`` from ``obj`` whether ``obj`` is a dict or has attributes.
 

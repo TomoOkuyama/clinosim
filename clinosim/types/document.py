@@ -124,6 +124,13 @@ class NarrativeContext:
     # the generator resolves the localized label at render time (AD-30 spirit).
     shift: str = ""
 
+    # === β-JP-1 chain 1a adv-1 (I-1): discharge prescription, separated ===
+    # Normalized discharge_prescription.items ({"drug_name", "dose"} per
+    # entry). ONLY source for the discharge_medications narrative section —
+    # ctx.medications above stays MAR-only (in-hospital administrations) so
+    # ICU drips / protocol orders never leak into discharge medication lists.
+    discharge_medications: list[Any] = field(default_factory=list)
+
 
 @dataclass
 class NarrativeOutput:

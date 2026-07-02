@@ -1439,6 +1439,38 @@ Suggested order: ~~microbiology+markers~~ ✅ → ~~nursing flowsheets~~ ✅ →
 - Section-level LLM replacement 発火の条件化 (section 例外リスト + LLM-capable section list by doctype)
 - `clinosim narrate --patient-filter POP-000001` 対応 — single-patient iterative loop for testing
 
+#### β-JP-1 chain 1a adv-1 deferred (2026-07-03)
+
+Findings triaged out of the chain-1a adv-1 fix PR (scope discipline rule):
+
+- **Small-p roster export gap**: p=100 cohort audit shows 5 dangling nurse
+  Practitioner references in CareTeam. PROVEN pre-existing (same refs dangle
+  in the α-min-2-era p=100 cohort; US p=10k / JP p=5k production audits
+  pass). Needs a roster-export-at-small-p fix decision (export full staff
+  roster regardless of cohort size vs. clamp assignments to exported staff).
+- **outpatient.py chronic-followup severity**: the chronic-followup path
+  leaves `encounter.severity=""` (no value in scope). Decide a severity
+  source (condition state? stable default?) and wire it.
+- **`narrative/context.py:build_narrative_context` delete-or-unify**: the
+  parallel ctx factory has ZERO production callers and diverges from
+  `NarrativePass._build_context` (e.g. no `discharge_medications` /
+  MAR-only split from adv-1 I-1). Delete it or unify both on a single
+  factory before β-JP-1 builds on the ctx contract.
+- **Chain 1b — real vitals placeholders**: derive `{sbp}` / `{dbp}` / `{hr}`
+  / `{temp}` (and `{lab_summary_*}` etc.) from `ctx.vitals` / `ctx.lab_results`
+  so encounter-template sections stop falling back to the whole-section
+  generic phrase (adv-1 I-2 follow-up; `_KNOWN_PLACEHOLDERS` in
+  `template_generator.py` is the extension point).
+- **ctx.medications MAR dedupe for LLM constraint lists** (adv-1 M-3): MAR
+  entries repeat per administration; LLM prompt constraint lists built from
+  `ctx.medications` may want per-drug dedupe (+ merge with discharge rx
+  where the prompt needs "all meds this stay").
+- **`KNOWN_JA_ONLY_FALLBACK_SECTIONS` blanket-name exemption** (adv-1 M-2):
+  the ja-leak audit gate exempts whole section names; a section that later
+  gains proper en templates keeps its exemption silently. Future: tag-based
+  matching (exempt only sections actually rendered via `ja_only_fallback`
+  facts_used tags).
+
 ### Post-AD-65 fixture library (α-min-2c) — ✅ COMPLETED (session 30, PR #132)
 
 Shipped in α-min-2c chain (AD-66):
