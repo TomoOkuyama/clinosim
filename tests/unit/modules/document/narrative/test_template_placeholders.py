@@ -5,8 +5,13 @@ outpatient_soap_template) carry `{placeholder}` tokens (e.g. `{onset_days}`,
 `{chief_complaint_en}`, `{lab_summary_ja}`). Until chain 1a these templates
 never reached output (ctx.encounter_protocol was always None), so nothing
 substituted them. Now that the protocol is wired, raw braces must not leak
-into narrative text: known placeholders get real/default values, unknown
-ones fall back to the locale generic phrase.
+into narrative text: known placeholders get real/default values.
+
+adv-1 I-2: a template that still carries UNKNOWN placeholders falls back to
+the whole-section generic phrase (pre-1a parity) — per-placeholder generic
+substitution produced broken sentences ("BP No special findings/No special
+findings mmHg"). Deriving real values for {sbp}/{hr}/{temp} from ctx.vitals
+is chain 1b (TODO.md).
 """
 
 from __future__ import annotations
@@ -75,12 +80,57 @@ def test_ed_hpi_substitutes_onset_days_and_chief_complaint():
     assert "3 day(s) ago" in hpi  # documented fixed default (module docstring)
 
 
-def test_ed_unknown_placeholder_falls_back_to_generic_phrase():
+def test_ed_unknown_placeholder_falls_back_to_whole_section_generic():
+    """adv-1 I-2: unknown placeholder → whole-section generic phrase.
+
+    Per-placeholder substitution ("Labs obtained. No special findings.")
+    produced broken sentences on numeric slots; the section falls back to the
+    single coherent pre-1a generic phrase instead.
+    """
     gen = TemplateNarrativeGenerator()
     out = gen.generate(_ctx(DocumentType.ED_NOTE, _ED_PROTOCOL), _spec("ed_note"))
     workup = out.sections["ed_workup"]
-    assert "{" not in workup and "}" not in workup
-    assert "no significant findings" in workup.lower() or "Labs obtained" in workup
+    assert workup == "No special findings"
+
+
+def test_numeric_placeholders_fall_back_to_whole_section_generic_en():
+    """adv-1 I-2 regression pin: no 'BP No special findings/... mmHg' output."""
+    proto = {
+        "condition_id": "chest_pain_noncardiac",
+        "chief_complaint": {"en": "Chest pain", "ja": "胸痛"},
+        "narrative": {
+            "ed_note_template": {
+                "ed_workup_summary_en": "BP {sbp}/{dbp} mmHg, HR {hr}/min.",
+            },
+        },
+    }
+    gen = TemplateNarrativeGenerator()
+    out = gen.generate(_ctx(DocumentType.ED_NOTE, proto), _spec("ed_note"))
+    workup = out.sections["ed_workup"]
+    assert workup == "No special findings"
+    assert "mmHg" not in workup
+
+
+def test_numeric_placeholders_fall_back_to_whole_section_generic_ja():
+    proto = {
+        "condition_id": "prescription_renewal",
+        "chief_complaint": {"en": "Prescription renewal", "ja": "処方継続"},
+        "narrative": {
+            "outpatient_soap_template": {
+                "subjective_ja": "処方継続希望",
+                "objective_ja": "バイタル安定（BP {sbp}/{dbp}、HR {hr}）。",
+                "assessment_ja": "状態安定",
+                "plan_ja": "処方継続",
+            },
+        },
+    }
+    ctx = _ctx(DocumentType.OUTPATIENT_SOAP, proto, lang="ja")
+    ctx.encounter_type = "outpatient"
+    gen = TemplateNarrativeGenerator()
+    out = gen.generate(ctx, _spec("outpatient_soap", "jp"))
+    obj = out.sections["objective"]
+    assert obj == "特記事項なし"
+    assert "mmHg" not in obj and "BP" not in obj
 
 
 def test_ed_text_without_placeholders_unchanged():
@@ -110,11 +160,38 @@ def test_soap_subjective_substitutes_placeholders_ja():
     assert "{" not in subj
     assert "健康診断" in subj
     assert "3日前より" in subj
-    # unknown placeholder-only section → generic phrase, no braces
-    assert "{" not in out.sections["assessment"]
+    # unknown placeholder-only section → whole-section generic phrase (I-2)
+    assert out.sections["assessment"] == "特記事項なし"
 
 
-def test_ed_physical_exam_substitutes_placeholders():
+def test_ed_physical_exam_mixed_parts_keeps_resolved_drops_unresolved():
+    """adv-1 I-2: per-body-system parts with unknown placeholders are dropped.
+
+    A part that falls back to the generic phrase carries no information and
+    would repeat ("No special findings. No special findings.") — it is
+    filtered; fully-resolvable parts are kept.
+    """
+    proto = {
+        "condition_id": "abdominal_pain_nonspecific",
+        "chief_complaint": {"en": "Abdominal pain", "ja": "腹痛"},
+        "narrative": {
+            "ed_note_template": {
+                "physical_exam_en": {
+                    "general": "Alert and oriented",
+                    "cardiovascular": "BP {sbp}/{dbp} mmHg, HR {hr}/min",
+                    "abdominal": "Tenderness: {pain_site_en}.",
+                },
+            },
+        },
+    }
+    gen = TemplateNarrativeGenerator()
+    out = gen.generate(_ctx(DocumentType.ED_NOTE, proto), _spec("ed_note"))
+    pe = out.sections["physical_exam"]
+    assert "{" not in pe and "}" not in pe
+    assert pe == "Alert and oriented"
+
+
+def test_ed_physical_exam_all_parts_unresolved_falls_back_once():
     proto = {
         "condition_id": "abdominal_pain_nonspecific",
         "chief_complaint": {"en": "Abdominal pain", "ja": "腹痛"},
@@ -129,6 +206,5 @@ def test_ed_physical_exam_substitutes_placeholders():
     }
     gen = TemplateNarrativeGenerator()
     out = gen.generate(_ctx(DocumentType.ED_NOTE, proto), _spec("ed_note"))
-    pe = out.sections["physical_exam"]
-    assert "{" not in pe and "}" not in pe
-    assert "Alert and oriented" in pe
+    # single whole-section generic phrase, not one per body system
+    assert out.sections["physical_exam"] == "No special findings"
