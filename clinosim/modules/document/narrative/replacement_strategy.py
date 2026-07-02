@@ -150,12 +150,26 @@ def _apply_template_seed_strategy(
 
         # Cache miss — invoke the LLM with template seed (Idea D) via the
         # unified AD-11 path (retry + PromptCache + cost accounting inside).
-        system_prompt, user_prompt = _build_seed_prompt(section, template_text, ctx)
+        # Prompt ownership (N-3): prompts/{en,ja}/narrative_seed.yaml rendered
+        # via the service's PromptRegistry (en fallback for other languages).
+        # A missing/invalid prompt raises (FileNotFoundError / KeyError) and
+        # propagates to LLMNarrativeGenerator's template fallback.
+        prompt_spec = llm.prompt_registry.get("narrative_seed", language)
+        system_prompt, user_prompt = prompt_spec.render(
+            {
+                "section": section,
+                "template_text": template_text,
+                "severity": ctx.severity,
+                "day_index": ctx.day_index,
+            }
+        )
         response = llm.complete_prompt(
             system_prompt,
             user_prompt,
             language=language,
             task_type=task_type,
+            max_tokens=prompt_spec.max_tokens,
+            temperature=prompt_spec.temperature,
         )
         generated = response.text or ""
 
@@ -172,28 +186,3 @@ def _apply_template_seed_strategy(
         metadata=dict(template_output.metadata),
         facts_used=list(template_output.facts_used),
     )
-
-
-def _build_seed_prompt(
-    section: str, template_text: str, ctx: NarrativeContext
-) -> tuple[str, str]:
-    """Build (system, user) prompts embedding the template section as a seed.
-
-    The prompt instructs the LLM to use the seed as a starting point and improve
-    upon it for the given patient context (Idea D: template-as-seed).
-
-    N-3 will move this inline prose to ``prompts/{en,ja}/narrative_seed.yaml``
-    rendered via ``PromptRegistry``.
-    """
-    lang_label = "Japanese" if ctx.target_lang == "ja" else "English"
-    system = (
-        f"You are generating a clinical document section '{section}' in {lang_label}."
-    )
-    user = (
-        f"Patient severity: {ctx.severity}. Day of care: {ctx.day_index}.\n"
-        f"Use the following template-generated text as a seed/starting point and "
-        f"improve its clinical language and specificity:\n\n"
-        f"--- TEMPLATE SEED ---\n{template_text}\n--- END SEED ---\n\n"
-        f"Generate an improved version of this section:"
-    )
-    return system, user
