@@ -17,8 +17,11 @@ class OutputContext:
     """Shared, format-agnostic context passed to every adapter."""
 
     country: str = "US"
-    # optional narrative dir folded into output (e.g. FHIR DocumentReference)
-    narrative_version: str = ""
+    # Narrative layer to merge in via CIFReader (AD-65 Task 4) — "current"
+    # resolves cif/narratives/current_version.txt (falling back to "template"
+    # when absent); an explicit version_id may also be passed. Task 5 wires
+    # this from the CLI (`export-fhir --narrative-version`).
+    narrative_version: str = "current"
     # format-specific extras (forward-compatible)
     options: dict[str, object] = field(default_factory=dict)
 

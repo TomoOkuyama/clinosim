@@ -3,26 +3,31 @@
 from __future__ import annotations
 
 import csv
-import json
 import os
-from datetime import datetime
-from pathlib import Path
-from typing import Any
 
 from clinosim.codes import get_display
+from clinosim.modules.output.cif_reader import CIFReader
 
 
-def convert_cif_to_csv(cif_dir: str, output_dir: str, country: str = "US") -> None:
+def convert_cif_to_csv(
+    cif_dir: str,
+    output_dir: str,
+    country: str = "US",
+    narrative_version: str = "current",
+) -> None:
     """Read CIF structural data and write flat CSV files.
 
     `country` selects the display language for resolved code names (US -> en, JP -> ja);
     CIF stores codes only, so diagnosis names are resolved here via clinosim.codes (AD-30).
+
+    Uses CIFReader (AD-65 Task 4) for consistency with the FHIR adapter, even
+    though the CSV tables emitted here do not currently include narrative
+    content — a future documents.csv export would otherwise need a second,
+    inconsistent load path.
     """
     os.makedirs(output_dir, exist_ok=True)
 
-    structural_dir = os.path.join(cif_dir, "structural", "patients")
-    if not os.path.exists(structural_dir):
-        raise FileNotFoundError(f"CIF structural directory not found: {structural_dir}")
+    reader = CIFReader(cif_dir, narrative_version=narrative_version)
 
     patients_rows: list[dict] = []
     encounters_rows: list[dict] = []
@@ -44,12 +49,7 @@ def convert_cif_to_csv(cif_dir: str, output_dir: str, country: str = "US") -> No
     cs_rows: list[dict] = []
     cl_rows: list[dict] = []
 
-    for filename in sorted(os.listdir(structural_dir)):
-        if not filename.endswith(".json"):
-            continue
-        with open(os.path.join(structural_dir, filename)) as f:
-            record = json.load(f)
-
+    for record in reader.iter_patients():
         patient = record.get("patient", {})
         patient_id = patient.get("patient_id", "")
 

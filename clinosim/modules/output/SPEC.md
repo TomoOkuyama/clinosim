@@ -15,6 +15,16 @@ Key properties:
   - Each narrative generation is versioned and stored alongside structural data.
 ```
 
+## Current Implementation Status
+
+| SPEC section | Status | Notes |
+|---|---|---|
+| Stage 1: CIF Writer | ✅ IMPLEMENTED | `cif_writer.py`, structural only |
+| Stage 2: Narrative Generation | ✅ IMPLEMENTED (AD-65) | `document/narrative/passes.py:TemplateNarrativePass` |
+| Stage 3: Format Adapters | ✅ IMPLEMENTED | `fhir_r4_adapter.py` (via `cif_reader.py`), `csv_adapter.py` |
+| Folder structure | ✅ MATCHES SPEC | `cif/{structural,narratives/{template,<v>}}` |
+| CIFReader | ✅ IMPLEMENTED | AD-65: `cif_reader.py` new, `narrative_version="current"` selector |
+
 ## Inputs
 - Stage 1: `SimulationResult` (from simulator — in-memory)
 - Stage 2: CIF structural files on disk + LLM config
@@ -677,3 +687,20 @@ CIF files can be:
 - Hidden state data (PhysiologicalState, DiseaseEvent archetype) is preserved in CIF for validation and debugging, but adapters for clinical formats (FHIR, HL7v2) ignore these fields.
 - LLM provenance (which calls were made, cache hit/miss) is in CIF for audit but not in clinical outputs.
 - The same CIF can be converted to different country coding systems — useful for cross-border research scenarios.
+
+## Change Log
+
+### AD-65 (2026-07-02): Two-Pass CIF Generation Architecture Restoration
+
+**Context**: SPEC.md defined a three-stage pipeline with structural/narrative file separation. α-min-1 Task 15 consolidated narrative generation into `document_enricher` (Stage 1) for immediate implementation, but this introduced coupling that made Stage 2 narrative regeneration infeasible. Session 27 revealed three critical narrative bugs with full-cohort re-simulation as the only recovery path.
+
+**Changes**:
+- Restored file-level separation: `cif/structural/patients/<enc>.json` (immutable) and `cif/narratives/<version>/documents/<enc>/<doc>.json` (re-generatable)
+- Introduced `ClinicalDocumentNarrative` wrapper type for narrative layer
+- `document_enricher` now emits stub documents (`narrative=None`) only
+- New `TemplateNarrativePass` module for post-simulation narrative generation
+- New `CIFReader` for merging structural + narrative versions at read time
+- Added `clinosim narrate` verb for standalone narrative generation
+- Bedrock prompt cache-friendly walk order contract: `(doc_type, language)` group serial
+
+**Impact**: Narrative bug verification cycle reduced from 50 min (full cohort re-sim) to 30 sec (re-narrate only). Stage 2 LLM swap enabled without simulation re-run.

@@ -256,6 +256,91 @@ FHIR adapter が `code_lookup` で自動使用。
 `clinosim/locale/jp/reference_range_lab.yaml` (JP) / `us/reference_range_lab.yaml` (US) にエントリ追加。
 sex-specific range は `sex: "M"` / `sex: "F"` で区別。
 
+## CIF Layout (AD-65 Two-Pass Separation)
+
+CIF は structural + narrative の **物理ファイル分離** により、narrative version を独立に差し替え可能:
+
+```
+output/cif/
+├── metadata.json                    (unchanged)
+├── hospital.json                    (unchanged)
+├── structural/
+│   └── patients/
+│       ├── <enc_id_1>.json          (★ ClinicalDocument stubs + narrative=None)
+│       └── ...
+├── narratives/
+│   ├── current_version.txt          (★ pointer file、"template" or LLM version id)
+│   ├── template/                    (★ Stage 1 default)
+│   │   ├── manifest.json            (NarrativeVersionManifest serialized)
+│   │   └── documents/
+│   │       ├── <enc_id_1>/
+│   │       │   ├── admission_hp.json         (ClinicalDocumentNarrative serialized)
+│   │       │   ├── progress_note_day_1.json
+│   │       │   ├── discharge_summary.json
+│   │       │   └── ...
+│   │       └── ...
+│   └── sonnet4-2026-07-02/          (opt-in、β-JP-1 で narrate verb 経由)
+│       ├── manifest.json
+│       └── documents/
+│           └── ...
+```
+
+- `current_version.txt` = plain text pointer (symlink 不使用、Windows compat + git friendly)
+- Filename convention: `<task_type>[_suffix].json` 
+  - `admission_hp.json`, `progress_note_day_{n}.json`, `discharge_summary.json`, 等
+- 1 encounter = 1 dir、複数 doc/encounter 並列格納
+- narrative file content = `ClinicalDocumentNarrative` の JSON serialize
+
+## CIFReader API
+
+FHIR adapters は `CIFReader` 経由で structural + narrative を merge した `CIFPatientRecord` を取得:
+
+```python
+from clinosim.modules.output.cif_reader import CIFReader
+
+# Signature
+class CIFReader:
+    def __init__(
+        self,
+        cif_dir: str,
+        narrative_version: str | Literal["current"] = "current"
+    ) -> None:
+        """
+        Args:
+            cif_dir: CIF root directory (containing structural/, narratives/, metadata.json)
+            narrative_version: "current" (reads pointer from current_version.txt),
+                             or explicit version_id ("template", "sonnet4-2026-07-02", etc.)
+                             Default "current" → falls back to "template" if pointer missing.
+        """
+
+    def iter_patients(self) -> Iterator[CIFPatientRecord]:
+        """Yields CIFPatientRecord with merged narrative."""
+
+    def _merge_narrative_into(self, record: dict) -> None:
+        """Merges narrative CIF into structural record.
+        
+        Silent-no-op 防護:
+          - narrative dir 無し → record.documents 全て narrative=None のまま
+                                → FHIR builders が warn/skip
+          - narrative file 見つからず → 1 stub 分だけ narrative=None、warn log
+          - 過剰 narrative file(structural に stub なし)→ warn log、drop
+        """
+```
+
+**使用例** (FHIR adapter):
+
+```python
+reader = CIFReader(cif_dir, narrative_version="current")
+for record in reader.iter_patients():
+    for doc in record.documents:
+        if doc.narrative is None:
+            logger.warning(f"doc {doc.document_id} has no narrative")
+            continue
+        text = doc.narrative.text
+        sections = doc.narrative.sections
+        # FHIR resource construction
+```
+
 ## 出力フォーマット仕様の権威ソース
 
 | フォーマット | 仕様 |

@@ -15,7 +15,7 @@ from types import SimpleNamespace
 
 from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
 from clinosim.modules.output._fhir_documents import _bb_document_references
-from clinosim.types.clinical import ClinicalDocument
+from clinosim.types.clinical import ClinicalDocument, ClinicalDocumentNarrative
 
 
 def _make_ctx(docs, country="us"):
@@ -46,8 +46,10 @@ def _sample_doc_dataclass(format_type="free_text") -> ClinicalDocument:
         authored_datetime="2026-07-01T09:00:00",
         language="en",
         format_type=format_type,
-        text="Patient is stable. Vitals within normal limits. No acute distress.",
-        text_source="template",
+        narrative=ClinicalDocumentNarrative(
+            text="Patient is stable. Vitals within normal limits. No acute distress.",
+            generator="template",
+        ),
     )
 
 
@@ -61,8 +63,15 @@ def _sample_doc_dict(format_type="free_text") -> dict:
         "authored_datetime": "2026-07-01T09:00:00",
         "language": "en",
         "format_type": format_type,
-        "text": "Patient is stable. Vitals within normal limits. No acute distress.",
-        "text_source": "template",
+        "narrative": {
+            "text": "Patient is stable. Vitals within normal limits. No acute distress.",
+            "sections": {},
+            "structured": {},
+            "generator": "template",
+            "generator_metadata": {},
+            "generated_at": "",
+            "facts_used": [],
+        },
     }
 
 
@@ -130,7 +139,7 @@ def test_bb_document_references_empty_input_returns_empty_list():
 def test_bb_document_references_skips_empty_text():
     """ClinicalDocument with text='' → not emitted (FHIR R4 requires attachment content)."""
     doc = _sample_doc_dataclass()
-    doc.text = ""
+    doc.narrative.text = ""
     ctx = _make_ctx([doc])
     assert _bb_document_references(ctx) == []
 

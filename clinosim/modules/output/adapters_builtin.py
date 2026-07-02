@@ -17,7 +17,14 @@ class CsvAdapter:
     def convert(self, cif_dir: str, out_dir: str, ctx: OutputContext) -> None:
         from clinosim.modules.output.csv_adapter import convert_cif_to_csv
 
-        convert_cif_to_csv(cif_dir, out_dir, country=ctx.country)
+        # F-4 fix: thread narrative_version through so `--narrative-version <v>`
+        # on the CLI reaches CIFReader in the CSV path too (previously silently
+        # dropped, causing the CSV output to always merge from the "current"
+        # pointer even when a specific version was requested).
+        convert_cif_to_csv(
+            cif_dir, out_dir, country=ctx.country,
+            narrative_version=ctx.narrative_version,
+        )
 
 
 class FhirR4Adapter:
@@ -28,7 +35,9 @@ class FhirR4Adapter:
     def convert(self, cif_dir: str, out_dir: str, ctx: OutputContext) -> None:
         from clinosim.modules.output.fhir_r4_adapter import convert_cif_to_fhir
 
-        convert_cif_to_fhir(cif_dir, out_dir, country=ctx.country)
+        convert_cif_to_fhir(
+            cif_dir, out_dir, country=ctx.country, narrative_version=ctx.narrative_version
+        )
 
 
 register_output_adapter(CsvAdapter())

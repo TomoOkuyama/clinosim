@@ -43,6 +43,31 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 - **CIF stores codes only, not display text** (AD-30) — `ClinicalDiagnosis.admission_diagnosis_code` + `_system`, no `_name`. Display is resolved at output time via `clinosim.codes`.
 - **Code is the truth** — Internal test names (e.g., `"WBC"`) are mapped to standard codes (LOINC) via `locale/<country>/code_mapping_*.yaml`. Display text comes from `clinosim/codes/data/<system>.yaml`.
 
+### Two-pass CIF generation invariant(AD-65, 2026-07-02, session 28)
+
+- **CIF は structural + narrative の 2 層 file 分離**:`cif/structural/patients/<enc>.json`
+  (構造化データ、Stage 1 で immutable)と `cif/narratives/<version>/documents/<enc>/<doc>.json`
+  (narrative、Stage 2 で version 化可能)を **必ず file-level 分離**。inline 混在禁止。
+  session 25/26/27 で drift した過去実装から復元、SPEC.md `Stage 2: Narrative Generation`
+  節が canonical。
+- **`document_enricher`(POST_ENCOUNTER)は `ClinicalDocument` stub のみ生成**:metadata +
+  author + encounter binding + `narrative=None`。narrative content(text / sections /
+  facts_used)を populate 禁止。populate すると Stage 2 差替時 silent-no-op risk。
+- **narrative は post-simulation two-pass で生成**:`TemplateNarrativePass.run(cif_dir,
+  version_id)` は structural CIF を read → patient profile + labs + conditions +
+  medications + scenario_spine を input として narrative を導出 →
+  `narratives/<version>/documents/<enc>/<doc>.json` 書出。simulation loop 中の
+  narrative content 生成禁止。α-min-1 Task 15 で SPEC.md 元設計から drift、
+  AD-65(session 28)で復元。
+- **`NarrativePass` walk 順序は (doc_type, language) group 単位**:同 prompt prefix を
+  共有する batch 単位で patient を逐次処理 → Bedrock prompt cache(5 分 TTL)hit rate
+  最大化。LLMNarrativePass(β-JP-1)は同 base class を継承 = drop-in で cache-friendly。
+- **FHIR builders は `doc.narrative.sections` / `doc.narrative.text` 経由必須**:
+  `ClinicalDocument` の flat field(`doc.text` / `doc.sections`)は AD-65 で削除、
+  wrapper `ClinicalDocumentNarrative` に集約。`CIFReader(narrative_version="current")`
+  が structural + narrative を merge して `doc.narrative` を fill、builders は
+  wrapper 経由のみ。
+
 ### Module independence
 
 - Each module under `clinosim/modules/` can only depend on `clinosim/types/`, `clinosim/codes/`, `clinosim/locale/`, and other modules listed in its `README.md` Dependencies section.

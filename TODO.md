@@ -1421,13 +1421,35 @@ Suggested order: ~~microbiology+markers~~ ✅ → ~~nursing flowsheets~~ ✅ →
   **Known gap**: outpatient.py + emergency.py do not invoke POST_ENCOUNTER enrichers → outpatient
   SOAP, ED note, ED triage note produce 0 resources in production (fix targeted for α-min-3).
 
-### Stage 2 LLM provider integration (β-JP-1 chain, deferred)
-- `narrate` CLI subcommand deprecated in Task 15. Stage 1 enricher (document_enricher
-  POST_ENCOUNTER) is the sole DocumentReference emit path.
-- Stage 2 = re-running LLM narrative over existing CIF for higher-quality text. Deferred to β-JP-1
-  chain (or later). Design: document_enricher should have a Stage 2 hook that accepts an LLMService
-  and overwrites template text with LLM output. The `narrate` subcommand may be re-introduced
-  pointing to this hook instead of the deleted document_generator.py.
+### β-JP-1: LLMNarrativePass 実装(AD-65 base 上に drop-in)
+
+- `LLMNarrativePass(NarrativePass)` subclass 実装 — AD-65 `NarrativePass` base の上に Bedrock/Ollama LLM integration を layer
+- Bedrock Sonnet-4 provider + Ollama qwen:7b provider 対応 + localhost fallback
+- Bedrock prompt cache(5 分 TTL)発火の実測 verify + cost reduction report
+- `facts_used` gate 有効化 — template facts vs LLM-rephrased facts の audit diff
+- `docStatus` 4 状態化:
+  - `"final"` (template完全生成)
+  - `"final"` (LLM完全生成)
+  - `"preliminary"` (LLM fallback to template)
+  - `"amended"` (human reviewed)
+- `Composition.author` extension で AI-assisted attribution 明示
+- Section-level LLM replacement 発火の条件化 (section 例外リスト + LLM-capable section list by doctype)
+- `clinosim narrate --patient-filter POP-000001` 対応 — single-patient iterative loop for testing
+
+### Post-AD-65 fixture library (α-min-2c or β-2 chain)
+
+- `clinosim/tests/fixtures/patient_profiles/` canonical fixture YAML gallery (10-15 exemplar profiles)
+- Clinical archetypes:
+  - Healthy outpatient (no chronic conditions, preventive care only)
+  - Simple chronic (1 stable disease, routine medication, no complications)
+  - Complex polypharmacy (3+ conditions, drug interactions, high-acuity potential)
+  - Acute-on-chronic (exacerbation of known disease + unrelated ED visit)
+  - HAI cohort (ICU-to-discharge with CLABSI/CAUTI/VAP lifecycle)
+  - Multilinguality testing (JP locale + JP-language narrative validation)
+- `clinosim test-disease --patient-profile <yaml>` CLI 対応 — fixture profile を入力に selected-disease simulation 実行
+- Fixture profile schema: patient_id / demographics / chronic_medications / initial_labs / encounter_sequence / narrative_expectations
+- Fixture 選定は臨床医 review loop 必須(小児科医 + 内科医 +看護師 validation per archetype)
+- CI regression suite として integrate — narrative generation + FHIR export の determinism + bug tail tracking
 
 ### Imaging chain OOS formal entries (Tier 1 #2 PR1 scope-out)
 
@@ -1866,4 +1888,116 @@ adversarial fan-out review.)
   `inpatient.py` alongside `_disease_id`, then read in `document_enricher` (same IPC pattern).
   This activates the `physical_exam_findings[archetype][day_N]` and course-archetype-specific
   assessment blocks in `template_generator.py`.
+
+## AD-65 Bug A residual gap — disease YAML English narrative content (2026-07-02)
+
+Discovered while implementing Task 11 (Bug A integration test + audit gate) of the AD-65
+two-pass CIF architecture chain. Task 9 fixed the code-level locale-routing bug
+(`_pick_localized` helper) and Task 10 populated every missing `_en` YAML peer — but **only**
+for fields that actually carry a `<key>_en` / `<key>_ja` suffix pair (`ed_note_template.*`,
+`outpatient_soap_template.*` in the 46 encounter YAMLs). Both tasks explicitly flagged (see
+`.superpowers/sdd/task-9-report.md` §6 concern 2, `task-10-report.md` §7) that two disease-YAML
+narrative sources used by ADMISSION_HP (inpatient H&P, LOINC 34117-2) have **no per-language
+split at all** — not even a missing `_en` sibling, the data model itself is severity/day-keyed
+with Japanese-only content:
+
+- `disease_protocol.narrative.hpi_template.onset_pattern` (keyed by `mild`/`moderate`/`severe`)
+- `disease_protocol.narrative.physical_exam_findings` + the shared baseline
+  `clinosim/modules/document/reference_data/physical_exam_findings.yaml` (keyed by
+  `clinical_course_archetype` × `day_N`, further nested by body system)
+
+`_build_hpi` / `_build_physical_examination` in `template_generator.py` tag `facts_used` with
+the module's documented `:ja_only_fallback` suffix when this path fires for a non-`ja` locale
+(so the fallback is auditable, not silent) — but the actual section TEXT emitted for a US
+cohort is still Japanese. Verified empirically: US p=100 cohort → 15 ADMISSION_HP documents,
+630 Japanese characters, 100% located in `physical_examination` (none in `hpi` for this
+seed/config, since `ctx.disease_protocol` was `None` for every generated admission_hp
+encounter in that run — see the α-min-3-scope `document_enricher` archetype/severity wiring
+gap in "M-6 C-1" above; once that's fixed, `hpi` will very likely start emitting Japanese too).
+
+**Task 11 resolution (interim, shipped)**: `clinosim/modules/document/audit.py`'s
+`KNOWN_JA_ONLY_FALLBACK_SECTIONS = {"hpi", "physical_examination"}` and the companion
+`tests/integration/test_bug_a_us_hp_english_only.py` both exclude these two sections from
+the zero-ja-chars assertion so the gate tracks the actual Bug-A locale-routing fix (any OTHER
+section leaking Japanese still fails hard) rather than perpetually red on a known, separate,
+tracked issue.
+
+**Follow-up needed to fully close Bug A for ADMISSION_HP**: author English content for
+`hpi_template.onset_pattern` (3 severity keys × 32 diseases) and `physical_exam_findings`
+(N archetypes × N days × 5 body systems × 32 diseases + the shared baseline file) — this is a
+data-model change (add a language axis to structures that currently have none), not a simple
+`_en` sibling-key addition, so it is a distinctly larger undertaking than Task 10's 46-file
+sweep. Recommend a dedicated chain (own SDD task set) rather than folding into AD-65 Bug A.
+Once the data gap closes, remove `hpi` / `physical_examination` from
+`KNOWN_JA_ONLY_FALLBACK_SECTIONS` and re-verify both the audit gate and the integration test
+still pass with the exclusion removed (expect them to pass unconditionally at that point).
+
+## AD-65 adv-1 deferred (2026-07-02)
+
+Findings from PR #131 (`feature/tier1-narrative-stage2-architecture`) adv-1 5-lens
+adversarial review that were triaged as out-of-scope for the fix chain. All are pre-existing
+concerns or β-JP-1 (LLM narrative pass) scope, not landing in the AD-65 fix work.
+
+- **L3 I-1 `Practitioner/UNKNOWN` fallback dangling reference**: `_bb_care_teams` emits
+  `member.reference = "Practitioner/UNKNOWN"` when the attending id is empty. FHIR R4
+  reference integrity says every reference must resolve to an emitted resource — no
+  `Practitioner/UNKNOWN` resource is emitted anywhere. Pre-existing broader design issue
+  (predates AD-65); options are (a) emit a synthetic UNKNOWN Practitioner, (b) skip the
+  participant entirely, (c) use `identifier.value="UNKNOWN"` without a reference. Decision
+  needs cross-team alignment.
+- **L3 I-2 `Patient/` empty-id dangling reference**: similar pattern where an encounter with
+  no patient id emits `Patient/`. Pre-existing; the boundary-raise approach (fail early
+  when patient_id empty) is preferred over silent fallback.
+- **L3 I-4 Bug A partial — HPI + physical_examination YAML restructure**: already tracked in
+  the "AD-65 Bug A residual gap — disease YAML English narrative content" section above.
+- **L4 IMPT-2 `_deterministic_timestamp` constant-per-pass → per-doc mix**: current impl
+  returns the SAME timestamp for every document in a single narrative pass (base + rng_seed
+  offset only). Realism would be per-doc seeded from `(doc.document_id, rng_seed)`. Session
+  28 tracked as separate follow-up.
+- **L4 IMPT-3 re-narrate orphan file cleanup on same version_id**: re-running narrate on the
+  same version_id after a disease/encounter YAML edit that DROPPED a document leaves the
+  stale narrative file on disk. CIFReader logs it as orphan but doesn't unlink. Add a
+  pre-run cleanup pass or a `--overwrite` flag.
+- **L4 IMPT-4 β-JP-1 `NarrativeOutput.metadata.get("generator", ...)` override hook +
+  `doc_status` field**: LLMNarrativePass needs a way to signal `preliminary` vs `final`
+  narrative status; wire `NarrativeOutput.metadata["doc_status"]` → CIF stub
+  `doc_status` field → FHIR `DocumentReference.docStatus` / `Composition.status`. Defer to
+  β-JP-1 planning.
+- **L2 I-4 Encounter YAML `_en/_ja` peer requirement CI enforcement**: Task 10 (α-min-2)
+  populated missing `_en` peers for all 46 encounter YAMLs; add a `_validate_*` gate at
+  `load_encounter_condition` time so a future YAML edit that adds a `_ja`-only key raises
+  at import.
+- **L2 I-5 `current_version.txt` write helper (4-site DRY refactor)**: `open(..., "w") as f:
+  f.write("template")` appears in CLI test-disease-generate, test-encounter-generate,
+  generate, and narrate. Extract a helper in `cif_writer.py` /
+  `clinosim/modules/document/narrative/passes.py`.
+- **L2 M-4 `nursing_enricher` function rename to `nursing_assignment_enricher`**:
+  CLAUDE.md AD-64 rule already spells out the naming convention (`nursing_assignment`
+  for POST_ENCOUNTER order=94 vs `nursing_flowsheets` for POST_RECORDS order=20). Code
+  hasn't been renamed yet; the enricher name in `enrichers.py:register_builtin_enrichers`
+  is still `nursing`. Cosmetic, low priority.
+- **L2 M-5 Integration tests using `ForcedScenario` instead of subprocess p=800**:
+  `tests/integration/test_bug_c_triage_all_levels.py` and siblings launch the CLI via
+  `subprocess.run` with p=800 which is slow (~30s each). Migrate to
+  `ForcedScenario(disease_id=..., count=800)` + `run_forced` for a ~5x speedup.
+- **L3 M-1 through M-8 β-JP-1 concerns**: (a) section title JP localization,
+  (b) section.code LOINC dispatch, (c) docStatus dispatch, (d) DocumentReference.identifier
+  emission, (e) US Core category tag, (f) XHTML `<br/>` escaping, (g) empty div status handling,
+  (h) `Encounter.priority` JTAS/ESI mapping. All defer to β-JP-1.
+- **L1 M-1 through M-4 cosmetic**: (a) CIFReader multi-encounter walk (currently walks
+  encounters[0] only for narrative merge — a multi-encounter patient with narratives on
+  encounters[1] would silently drop them; matters for the follow-up-visit scenario),
+  (b) `--narrative-version` typo warn (already raise-fired via F-1, cosmetic UX enhancement
+  possible), (c) test fixture format_type sanity, (d) manifest timestamp pin.
+- **L5 Minor-1 through Minor-6 TODO.md missing entries for Task 3 known issues**: Task 3
+  landed several known issues (e.g. sanity check on progress note LOS bounds, discharge
+  summary conditional on discharge_datetime) that never made it into TODO.md as formal
+  entries.
+- **L1 M-1 `NURSING_LOINCS` inline in integration test file (Lens 2 M-1)**: at least one
+  integration test hardcodes `{"78390-2", "34746-8", "34745-0"}` instead of importing
+  `NURSING_LOINCS` from `clinosim.modules.document`. Should import; low-impact but drift
+  risk once the YAML changes.
+
+Full triage report: `/private/tmp/claude-*/adv1_ad65/triage.md` in the fix session
+(reproducible from the 5-lens pass over PR #131 HEAD `c61914c716`).
 

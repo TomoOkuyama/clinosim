@@ -1,8 +1,10 @@
-"""Document module POST_ENCOUNTER enricher (Tier 1 #3 α-min-2 Task 10, AD-55).
+"""Document module POST_ENCOUNTER enricher (Tier 1 #3 α-min-2 Task 10, AD-55;
+refactored to stub-only in AD-65 Task 3).
 
-Generates ClinicalDocument stubs (Stage 1 text via TemplateNarrativeGenerator)
-and ClinicalImpressionRecord entries (daily working-diagnosis updates) for each
-encounter that has applicable document specs.
+Generates ClinicalDocument STRUCTURAL STUBS (narrative=None) and
+ClinicalImpressionRecord entries (daily working-diagnosis updates) for each
+encounter that has applicable document specs. Narrative text generation is
+NOT performed here — see the "Two-pass lifecycle" note below.
 
 Architecture:
 - POST_ENCOUNTER order=95 (after imaging=90)
@@ -34,31 +36,72 @@ AD-32 snapshot compliance:
   For encounter_once specs (outpatient/ED) with discharge_datetime=None, the
   document is emitted anyway (single-visit context; AD-32 in-progress is rare).
 
-Stage 1 / Stage 2 lifecycle:
-  Stage 1 (this module): text filled by TemplateNarrativeGenerator via
-  LLMNarrativeGenerator wrapper (default OFF). ClinicalDocument.text_source
-  = "template" for all Stage 1 documents.
-  Stage 2 (future Task 15 / llm_service wiring): LLMNarrativeGenerator
-  calls llm_service for llm_enabled_sections when CLINOSIM_NARRATIVE_LLM=on.
+Two-pass lifecycle (AD-65):
+  Pass 1 (this module): emits STRUCTURAL STUBS ONLY — ClinicalDocument with
+  narrative=None. No text/sections population happens here.
+  Pass 2 (clinosim/modules/document/narrative/passes.py — TemplateNarrativePass,
+  future LLMNarrativePass): a separate Stage 2 pass reads the written
+  structural CIF, builds NarrativeContext per stub, runs the generator, and
+  writes cif/narratives/<version>/documents/<enc>/<doc_type>.json. CIFReader
+  merges structural + narrative trees before FHIR emit.
 """
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timedelta
+from functools import lru_cache
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules.disease.protocol import load_disease_protocol
 from clinosim.modules.document import (
     CLINICAL_IMPRESSION_ID_PREFIX,
     DOC_REFERENCE_ID_PREFIX,
     specs_for_country,
     specs_for_encounter_type,
 )
-from clinosim.modules.document.narrative.context import build_narrative_context
-from clinosim.modules.document.narrative.llm_generator import LLMNarrativeGenerator
 from clinosim.types.clinical import ClinicalDocument, ClinicalImpressionRecord
-from clinosim.types.document import DocumentType, FormatType, NarrativeOutput
+from clinosim.types.document import DocumentType
+
+logger = logging.getLogger(__name__)
+
+# AD-65 Bug B: nursing-authored document types (LOINC codes) — DERIVED FROM
+# document_type_specs.yaml (F-7 adv-1 fix). Pre-fix this was a hardcoded
+# frozenset({"34746-8", "78390-2", "34745-0"}) that duplicated the YAML
+# values, so a future LOINC swap in the YAML would silently leave the
+# author-dispatch gate reading stale codes (single-edit-point rule).
+# clinosim/codes/data/loinc.yaml 78390-2 comment documents the rationale
+# for those specific codes (34119-8 was rejected as SNF, not hospital).
+_NURSING_DOC_TYPE_KEYS = frozenset({
+    "admission_nursing_assessment",
+    "nursing_shift_note",
+    "nursing_discharge_summary",
+})
+
+
+@lru_cache(maxsize=1)
+def _load_nursing_loincs() -> frozenset[str]:
+    """Derive the nursing LOINC set from document_type_specs.yaml at import time.
+
+    Late-bound (lru_cache) to avoid circular import: `document/__init__.py`
+    imports NURSING_LOINCS from this module, and `load_document_type_specs`
+    reads a YAML that gets its schema from the same __init__ package. The
+    cache means one YAML round-trip per process.
+    """
+    from clinosim.modules.document.narrative.registry import load_document_type_specs
+
+    specs = load_document_type_specs()
+    result = frozenset(
+        specs[DocumentType(k)].loinc_code for k in _NURSING_DOC_TYPE_KEYS
+    )
+    assert len(result) == 3, (
+        f"expected 3 distinct nursing LOINCs from document_type_specs.yaml, "
+        f"got {sorted(result)}"
+    )
+    return result
+
+
+NURSING_LOINCS = _load_nursing_loincs()
 
 # Encounter types that receive daily ClinicalImpressionRecords (spec §3.3).
 # CI is a "daily working diagnosis update" — only meaningful for multi-day inpatient stays.
@@ -70,6 +113,34 @@ _CI_ENCOUNTER_TYPES: frozenset[str] = frozenset({
 })
 
 _CANCELLED_STATUSES: frozenset[str] = frozenset({"cancelled"})
+
+
+def _pick_document_author(spec: Any, encounter: Any) -> str:
+    """AD-65 Bug B fix: author dispatch by document type.
+
+    Session 27 clinical-integrity review found 23,279 nursing docs (LOINC
+    34746-8 / 78390-2 / 34745-0) had ``author_practitioner_id`` set to the
+    attending physician instead of the assigned nurse — clinically incorrect
+    (a nursing assessment/shift note/discharge summary is authored by
+    nursing staff, not the physician of record).
+
+    Nursing docs (``spec.loinc_code`` in `NURSING_LOINCS`) → ``encounter.primary_nurse_id``.
+    All other (physician) docs → ``encounter.attending_physician_id`` (unchanged behavior).
+    Fallback: if a nursing doc's encounter has no assigned nurse (e.g. the
+    nursing_assignment enricher didn't fire), fall back to the attending and
+    log a warning — this should be rare and worth investigating if seen at
+    volume, but must not raise (blank author is worse than a physician author).
+    """
+    loinc = _o(spec, "loinc_code", "")
+    if loinc in NURSING_LOINCS:
+        nurse = _o(encounter, "primary_nurse_id", "") or ""
+        if nurse:
+            return nurse
+        logger.warning(
+            "nursing doc %s falling back to attending (primary_nurse_id missing)",
+            loinc,
+        )
+    return _o(encounter, "attending_physician_id", "") or ""
 
 
 # ---------------------------------------------------------------------------
@@ -115,21 +186,6 @@ def _compute_los_days(
     return max(1, n - 1) if n > 1 else 1
 
 
-def _narrative_to_text(output: NarrativeOutput, format_type: FormatType) -> str:
-    """Flatten NarrativeOutput to a plain-text string for ClinicalDocument.text.
-
-    FREE_TEXT  → output.raw_text (SOAP note or equivalent)
-    COMPOSITION → sections concatenated as "[section_key]\\ntext" blocks
-    QUESTIONNAIRE_RESPONSE → empty (structured; FHIR builder reads output.structured)
-    """
-    if format_type == FormatType.FREE_TEXT:
-        return output.raw_text or ""
-    if format_type == FormatType.COMPOSITION:
-        parts = [f"[{k}]\n{v}" for k, v in output.sections.items() if v]
-        return "\n\n".join(parts)
-    return ""
-
-
 # ---------------------------------------------------------------------------
 # Enricher entry point
 # ---------------------------------------------------------------------------
@@ -152,7 +208,6 @@ def document_enricher(ctx: Any) -> None:
     """
     country: str = str(_o(ctx.config, "country", "us") or "us").lower()
     lang = "ja" if country == "jp" else "en"
-    generator = LLMNarrativeGenerator()
 
     # Pre-compute country spec key set once per enricher call (lru_cache hit on repeated calls).
     country_spec_keys: frozenset[str] = frozenset(
@@ -207,56 +262,28 @@ def document_enricher(ctx: Any) -> None:
             physiological_states = list(_o(record, "physiological_states", []) or [])
             los_days = _compute_los_days(admission_dt, discharge_dt, physiological_states)
 
-            # C-1 (Lens 4 I-2): resolve disease_protocol for this encounter so that
-            # 32 disease YAML narrative blocks (hpi_template / physical_exam_findings /
-            # discharge_instructions / chief_complaint) become reachable.
-            # Source: _disease_id IPC key set by inpatient.py before POST_ENCOUNTER stage;
-            # cleaned up after run_stage returns. Same access pattern as imaging_enricher.
-            # Fallback: None (unchanged default) if disease_id is unknown or YAML missing.
-            extensions_data = _o(record, "extensions", {}) or {}
-            disease_id: str = (
-                extensions_data.get("_disease_id", "")
-                or _o(record, "disease_id", "")  # SimpleNamespace test fixture fallback
-                or ""
-            )
-            disease_protocol: Any | None = None
-            if disease_id:
-                try:
-                    disease_protocol = load_disease_protocol(disease_id)
-                except (FileNotFoundError, Exception):
-                    disease_protocol = None  # unknown disease_id → fall through to defaults
-
             # ── Document generation (per applicable spec) ────────────────────
+            # AD-65 two-pass architecture: this enricher creates STRUCTURAL STUBS
+            # only (narrative=None). Narrative text/sections population moved to
+            # TemplateNarrativePass (clinosim/modules/document/narrative/passes.py),
+            # which runs as a separate Stage 2 pass over the written structural CIF.
             for spec in applicable_specs:
                 freq = spec.generation_frequency
-                doc_type = DocumentType(spec.type_key)
 
                 if freq == "admission_once":
-                    ctx_n = build_narrative_context(
-                        record=record,
-                        encounter=encounter,
-                        document_type=doc_type,
-                        day_index=0,
-                        country=country,
-                        los_days=los_days,
-                        disease_protocol=disease_protocol,
-                    )
-                    output = generator.generate(ctx_n, spec)
                     documents.append(ClinicalDocument(
                         document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
                         task_type=spec.type_key,
                         loinc_code=spec.loinc_code,
                         patient_id=pid,
                         encounter_id=encounter_id,
-                        author_practitioner_id=attending_id,
+                        author_practitioner_id=_pick_document_author(spec, encounter),
                         authored_datetime=admission_dt.isoformat(),
                         period_start=admission_dt.isoformat(),
                         period_end=admission_dt.isoformat(),
                         language=lang,
-                        text=_narrative_to_text(output, spec.format_type),
-                        text_source=output.metadata.get("generator", "template"),
-                        sections=dict(output.sections),
                         format_type=spec.format_type.value,
+                        narrative=None,
                     ))
                     doc_seq += 1
 
@@ -268,31 +295,19 @@ def document_enricher(ctx: Any) -> None:
                         continue
                     for day in range(los_days):
                         day_dt = admission_dt + timedelta(days=day)
-                        ctx_n = build_narrative_context(
-                            record=record,
-                            encounter=encounter,
-                            document_type=doc_type,
-                            day_index=day,
-                            country=country,
-                            los_days=los_days,
-                            disease_protocol=disease_protocol,
-                        )
-                        output = generator.generate(ctx_n, spec)
                         documents.append(ClinicalDocument(
                             document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
                             task_type=spec.type_key,
                             loinc_code=spec.loinc_code,
                             patient_id=pid,
                             encounter_id=encounter_id,
-                            author_practitioner_id=attending_id,
+                            author_practitioner_id=_pick_document_author(spec, encounter),
                             authored_datetime=day_dt.isoformat(),
                             period_start=day_dt.isoformat(),
                             period_end=day_dt.isoformat(),
                             language=lang,
-                            text=_narrative_to_text(output, spec.format_type),
-                            text_source=output.metadata.get("generator", "template"),
-                            sections=dict(output.sections),
                             format_type=spec.format_type.value,
+                            narrative=None,
                         ))
                         doc_seq += 1
 
@@ -300,31 +315,19 @@ def document_enricher(ctx: Any) -> None:
                     if is_in_progress:
                         continue  # AD-32: no discharge summary while encounter is open
                     end_dt = discharge_dt or admission_dt  # discharge_dt is non-None here
-                    ctx_n = build_narrative_context(
-                        record=record,
-                        encounter=encounter,
-                        document_type=doc_type,
-                        day_index=los_days - 1,
-                        country=country,
-                        los_days=los_days,
-                        disease_protocol=disease_protocol,
-                    )
-                    output = generator.generate(ctx_n, spec)
                     documents.append(ClinicalDocument(
                         document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
                         task_type=spec.type_key,
                         loinc_code=spec.loinc_code,
                         patient_id=pid,
                         encounter_id=encounter_id,
-                        author_practitioner_id=attending_id,
+                        author_practitioner_id=_pick_document_author(spec, encounter),
                         authored_datetime=end_dt.isoformat(),
                         period_start=admission_dt.isoformat(),
                         period_end=end_dt.isoformat(),
                         language=lang,
-                        text=_narrative_to_text(output, spec.format_type),
-                        text_source=output.metadata.get("generator", "template"),
-                        sections=dict(output.sections),
                         format_type=spec.format_type.value,
+                        narrative=None,
                     ))
                     doc_seq += 1
 
@@ -334,31 +337,19 @@ def document_enricher(ctx: Any) -> None:
                     # AD-32: if discharge_dt is None (rare in-progress outpatient/ED),
                     # still emit — single-visit context makes partial data meaningful.
                     end_dt = discharge_dt or admission_dt
-                    ctx_n = build_narrative_context(
-                        record=record,
-                        encounter=encounter,
-                        document_type=doc_type,
-                        day_index=0,
-                        country=country,
-                        los_days=los_days,
-                        disease_protocol=disease_protocol,
-                    )
-                    output = generator.generate(ctx_n, spec)
                     documents.append(ClinicalDocument(
                         document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
                         task_type=spec.type_key,
                         loinc_code=spec.loinc_code,
                         patient_id=pid,
                         encounter_id=encounter_id,
-                        author_practitioner_id=attending_id,
+                        author_practitioner_id=_pick_document_author(spec, encounter),
                         authored_datetime=admission_dt.isoformat(),
                         period_start=admission_dt.isoformat(),
                         period_end=end_dt.isoformat(),
                         language=lang,
-                        text=_narrative_to_text(output, spec.format_type),
-                        text_source=output.metadata.get("generator", "template"),
-                        sections=dict(output.sections),
                         format_type=spec.format_type.value,
+                        narrative=None,
                     ))
                     doc_seq += 1
 

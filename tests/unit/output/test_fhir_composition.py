@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 from clinosim.modules.document import COMPOSITION_ID_PREFIX
 from clinosim.modules.output._fhir_composition import _bb_compositions
-from clinosim.types.clinical import ClinicalDocument
+from clinosim.types.clinical import ClinicalDocument, ClinicalDocumentNarrative
 
 
 def _make_ctx(docs, country="us"):
@@ -37,10 +37,13 @@ def _sample_doc_dataclass(format_type="composition") -> ClinicalDocument:
         authored_datetime="2026-07-01T08:00:00",
         language="en",
         format_type=format_type,
-        sections={
-            "History of Present Illness": "Patient presents with fever and cough.",
-            "Physical Exam": "Temperature 38.5°C. Lungs: crackles bilaterally.",
-        },
+        narrative=ClinicalDocumentNarrative(
+            sections={
+                "History of Present Illness": "Patient presents with fever and cough.",
+                "Physical Exam": "Temperature 38.5°C. Lungs: crackles bilaterally.",
+            },
+            generator="template",
+        ),
     )
 
 
@@ -54,9 +57,17 @@ def _sample_doc_dict(format_type="composition") -> dict:
         "authored_datetime": "2026-07-01T08:00:00",
         "language": "en",
         "format_type": format_type,
-        "sections": {
-            "History of Present Illness": "Patient presents with fever and cough.",
-            "Physical Exam": "Temperature 38.5°C. Lungs: crackles bilaterally.",
+        "narrative": {
+            "text": "",
+            "sections": {
+                "History of Present Illness": "Patient presents with fever and cough.",
+                "Physical Exam": "Temperature 38.5°C. Lungs: crackles bilaterally.",
+            },
+            "structured": {},
+            "generator": "template",
+            "generator_metadata": {},
+            "generated_at": "",
+            "facts_used": [],
         },
     }
 
@@ -148,7 +159,7 @@ def test_composition_section_text_div():
 
 def test_empty_sections_omits_section_key():
     doc = _sample_doc_dataclass()
-    doc.sections = {}
+    doc.narrative.sections = {}
     ctx = _make_ctx([doc])
     r = _bb_compositions(ctx)[0]
     assert "section" not in r
@@ -247,7 +258,7 @@ def test_composition_section_text_escapes_xhtml_special_chars():
     must emit &lt;, &gt;, &amp; — raw characters would produce invalid XHTML.
     """
     doc = _sample_doc_dict()
-    doc["sections"] = {
+    doc["narrative"]["sections"] = {
         "Clinical Assessment": 'PaO2 < 80, PaCO2 > 45 & pH < 7.30 "borderline"',
     }
     ctx = _make_ctx([doc])

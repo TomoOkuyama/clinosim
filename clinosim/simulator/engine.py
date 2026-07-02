@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from datetime import date, datetime, timedelta
 
 import numpy as np
@@ -80,17 +81,31 @@ def run_beta(
     roster = generate_roster(config.hospital_scale, config.country, rng, hospital_config=hospital_ops)
     hospital_state = HospitalState()
 
-    # Population: use hospital's recommended_population unless overridden by CLI
-    pop_size = config.catchment_population
+    # Population: use hospital's recommended_population only when the user did not
+    # supply an explicit value (Bug D fix — retires the old `== 10_000` sentinel,
+    # which silently discarded any explicit CLI -p value equal to the former
+    # argparse default). config.catchment_population is None unless the user (or a
+    # preset) set it explicitly.
+    pop_size: int
     recommended_raw = hospital_ops.get("recommended_population")
     if recommended_raw:
         if isinstance(recommended_raw, dict):
             # Country-specific: {US: 40000, JP: 5000, default: 40000}
-            recommended = recommended_raw.get(config.country) or recommended_raw.get("default", 40000)
+            recommended = int(recommended_raw.get(config.country) or recommended_raw.get("default", 40000))
         else:
             recommended = int(recommended_raw)
-        if config.catchment_population == 10_000:  # CLI default unchanged → use hospital config
+        if config.catchment_population is None:
             pop_size = recommended
+        else:
+            pop_size = config.catchment_population
+            if config.catchment_population != recommended:
+                print(
+                    f"⚠️  User-specified -p {config.catchment_population} used as-is "
+                    f"(hospital recommended: {recommended} for {config.country})",
+                    file=sys.stderr,
+                )
+    else:
+        pop_size = config.catchment_population or 40000
     beds = hospital_ops.get("resource_capacity", {}).get("inpatient_beds", 50)
     print(f"  Hospital: {beds} beds", flush=True)
 

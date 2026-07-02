@@ -22,8 +22,6 @@ def _make_spec(type_key: str, encounter_types_supported: tuple[str, ...] = ()) -
     return DocumentTypeSpec(
         type_key=type_key,
         loinc_code="99999-9",
-        display_en="Test spec",
-        display_ja="テスト",
         format_type=FormatType.FREE_TEXT,
         countries_supported=("us", "jp"),
         generation_frequency="admission_once",
