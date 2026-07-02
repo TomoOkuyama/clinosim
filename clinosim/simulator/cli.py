@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from datetime import datetime
 from typing import Any
 
@@ -73,7 +74,18 @@ def main() -> None:
 
     # === test-disease: generate specific disease/archetype ===
     td = sub.add_parser("test-disease", help="Generate data for a specific disease and archetype")
-    td.add_argument("disease_id", help="Disease ID (e.g., bacterial_pneumonia)")
+    td.add_argument(
+        "disease_id",
+        nargs="?",
+        default=None,
+        help="Disease ID (e.g., bacterial_pneumonia); optional when --patient-profile is set",
+    )
+    td.add_argument(
+        "--patient-profile",
+        default=None,
+        help="Patient profile fixture name or path (AD-66); "
+        "CLI args override profile fields with stderr WARN",
+    )
     td.add_argument("-n", "--count", type=int, default=3, help="Number of patients")
     td.add_argument("--severity", default=None, help="Force severity: mild/moderate/severe")
     td.add_argument("--archetype", default=None, help="Force archetype name")
@@ -743,26 +755,100 @@ def _run_test_disease_generate(args: Any) -> None:
     Produces the same on-disk layout as `clinosim generate` (cif/structural,
     cif/narratives/template, fhir_r4/*.ndjson, csv/*) but scoped to one disease and
     a tiny cohort — the AD-65 Phase 4 dev facility for 10-second targeted verify.
+
+    AD-66 α-min-2c: when --patient-profile is set, the profile YAML feeds
+    ForcedScenario + SimulatorConfig; CLI args override profile fields with
+    stderr WARN (Bug D lesson — explicit user input wins).
     """
     from clinosim.modules.document.narrative.passes import TemplateNarrativePass
     from clinosim.modules.output.cif_writer import write_cif
+    from clinosim.types.config import PatientProfile, load_patient_profile
 
     cif_dir = os.path.join(args.output, "cif")
 
-    scenario = ForcedScenario(
-        disease_id=args.disease_id,
-        count=args.count,
-        severity=args.severity,
-        archetype=args.archetype,
-    )
-    config = SimulatorConfig(
-        random_seed=args.seed,
-        country=args.country,
-        catchment_population=args.count,  # tiny cohort, no need for hospital-recommended size
-    )
+    profile: PatientProfile | None = None
+    if getattr(args, "patient_profile", None):
+        try:
+            profile = load_patient_profile(args.patient_profile)
+        except FileNotFoundError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            sys.exit(2)
+        except Exception as e:
+            print(f"ERROR: invalid patient profile: {e}", file=sys.stderr)
+            sys.exit(2)
+
+        # CLI arg overrides profile (Bug D lesson: explicit CLI > implicit YAML)
+        if args.disease_id and args.disease_id != profile.disease_id:
+            print(
+                f"WARN: positional disease_id={args.disease_id!r} differs from "
+                f"--patient-profile disease_id={profile.disease_id!r}; using positional",
+                file=sys.stderr,
+            )
+            profile = profile.model_copy(update={"disease_id": args.disease_id})
+        if args.severity is not None and args.severity != profile.severity:
+            print(
+                f"WARN: --severity={args.severity!r} differs from profile severity="
+                f"{profile.severity!r}; using --severity",
+                file=sys.stderr,
+            )
+            profile = profile.model_copy(update={"severity": args.severity})
+        if args.archetype is not None and args.archetype != profile.archetype:
+            print(
+                f"WARN: --archetype={args.archetype!r} differs from profile archetype="
+                f"{profile.archetype!r}; using --archetype",
+                file=sys.stderr,
+            )
+            profile = profile.model_copy(update={"archetype": args.archetype})
+        if args.seed != 42 and args.seed != profile.random_seed:
+            print(
+                f"WARN: --seed={args.seed} differs from profile random_seed="
+                f"{profile.random_seed}; using --seed",
+                file=sys.stderr,
+            )
+            profile = profile.model_copy(update={"random_seed": args.seed})
+        if args.country != "US" and args.country != profile.country:
+            print(
+                f"WARN: --country={args.country!r} differs from profile country="
+                f"{profile.country!r}; using --country",
+                file=sys.stderr,
+            )
+            profile = profile.model_copy(update={"country": args.country})
+
+        scenario = profile.to_forced_scenario()
+        config = SimulatorConfig(
+            random_seed=profile.random_seed,
+            country=profile.country,
+            hospital_scale=profile.hospital_scale,
+            catchment_population=profile.count,
+        )
+        effective_disease_id = profile.disease_id
+        effective_count = profile.count
+        effective_country = profile.country
+    else:
+        if not args.disease_id:
+            print(
+                "ERROR: either positional disease_id or --patient-profile must be provided",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+        scenario = ForcedScenario(
+            disease_id=args.disease_id,
+            count=args.count,
+            severity=args.severity,
+            archetype=args.archetype,
+        )
+        config = SimulatorConfig(
+            random_seed=args.seed,
+            country=args.country,
+            catchment_population=args.count,
+        )
+        effective_disease_id = args.disease_id
+        effective_count = args.count
+        effective_country = args.country
+
     print(
-        f"clinosim test-disease (generate): {args.disease_id} x{args.count}, "
-        f"country={args.country} -> {args.output}"
+        f"clinosim test-disease (generate): {effective_disease_id} x{effective_count}, "
+        f"country={effective_country} -> {args.output}"
     )
     dataset = run_forced(scenario, config)
 
@@ -771,11 +857,12 @@ def _run_test_disease_generate(args: Any) -> None:
     # Stage 2 (AD-65): always run the template narrative pass, mirroring `generate`'s
     # auto-invoke, so the mini-cohort is emit-ready regardless of which export
     # format(s) were requested.
+    effective_seed = profile.random_seed if profile is not None else args.seed
     TemplateNarrativePass(
         cif_dir=cif_dir,
         version_id="template",
-        country=args.country,
-        rng_seed=args.seed,
+        country=effective_country,
+        rng_seed=effective_seed,
     ).run()
     os.makedirs(os.path.join(cif_dir, "narratives"), exist_ok=True)
     with open(os.path.join(cif_dir, "narratives", "current_version.txt"), "w") as f:
@@ -786,7 +873,7 @@ def _run_test_disease_generate(args: Any) -> None:
     formats = args.format or []
     if "all" in formats:
         formats = ["fhir-r4", "csv"]
-    _run_exports(formats, cif_dir, args.output, args.country)
+    _run_exports(formats, cif_dir, args.output, effective_country)
 
     _print_summary(dataset, args.output)
 
