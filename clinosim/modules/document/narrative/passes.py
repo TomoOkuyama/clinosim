@@ -217,6 +217,7 @@ class NarrativePass(ABC):
             vitals=patient_dict.get("vital_signs", []) or [],
             lab_results=patient_dict.get("lab_results", []) or [],
             medications=self._collect_medications(patient_dict),
+            discharge_medications=self._collect_discharge_medications(patient_dict),
             diagnoses=[clinical_diagnosis] if clinical_diagnosis else [],
             procedures=patient_dict.get("procedures", []) or [],
             allergies=_o(patient_dict.get("patient") or {}, "allergies", []) or [],
@@ -290,25 +291,40 @@ class NarrativePass(ABC):
 
     @staticmethod
     def _collect_medications(patient_dict: dict[str, Any]) -> list[Any]:
-        """MAR entries + discharge_prescription items as ctx.medications.
+        """MAR entries only as ``ctx.medications`` (in-hospital administrations).
 
-        Consumers (``_build_discharge_medications`` / ``extract_medication_facts``)
-        read ``drug_name`` (+ optional ``dose``) per entry — the MAR shape.
-        ``discharge_prescription.items`` carry ``{"drug": ...}`` instead, so
-        they are normalized to the consumer shape here (spec §2b decision:
+        adv-1 I-1: ``discharge_prescription.items`` were previously merged in
+        here, which leaked ICU drips (Dobutamine / Norepinephrine) and
+        protocol-prefixed in-hospital orders into the discharge_medications
+        narrative section. In-hospital consumers
+        (``extract_medication_facts`` / ``section_extractor``) read the MAR
+        shape ``drug_name`` (+ optional ``dose``); discharge prescriptions are
+        collected separately by ``_collect_discharge_medications``.
+        """
+        return list(patient_dict.get("medication_administrations", []) or [])
+
+    @staticmethod
+    def _collect_discharge_medications(patient_dict: dict[str, Any]) -> list[Any]:
+        """``discharge_prescription.items`` normalized to the consumer shape.
+
+        Only source for ``ctx.discharge_medications`` (adv-1 I-1). Inpatient
+        rx items carry ``drug_name`` (``simulator/inpatient.py``
+        ``_build_discharge_prescription``) while outpatient renewal items
+        carry ``drug`` (``simulator/outpatient.py``); both shapes are
+        normalized to ``{"drug_name", "dose"}`` here (spec §2b decision:
         adapt the source to the consumer contract, not vice versa).
         """
-        medications: list[Any] = list(
-            patient_dict.get("medication_administrations", []) or []
-        )
         rx = patient_dict.get("discharge_prescription") or None
-        for item in (_o(rx, "items", []) or []) if rx is not None else []:
-            drug = str(_o(item, "drug", "") or _o(item, "drug_name", "") or "")
+        if rx is None:
+            return []
+        items: list[Any] = []
+        for item in _o(rx, "items", []) or []:
+            drug = str(_o(item, "drug_name", "") or _o(item, "drug", "") or "")
             if drug:
-                medications.append(
+                items.append(
                     {"drug_name": drug, "dose": str(_o(item, "dose", "") or "")}
                 )
-        return medications
+        return items
 
     @staticmethod
     def _compute_los_days(
