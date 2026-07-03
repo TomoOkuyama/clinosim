@@ -2226,17 +2226,6 @@ its own chain.
 - `types/imaging.py:27` `body_site_display` (populated from `display_en` at
   `imaging/engine.py:277`).
 
-### ★★ Determinism chain: wall-clock removal (extends session-30 TODO)
-
-Byte-diff-measured live fields: `discharge_prescription.issue_date` +
-`physiological_states[].timestamp` (+ metadata generation_timestamp, by design). New finds:
-`diagnosis/engine.py:173 datetime.now()` (live in inpatient path), `immunization/enricher.py:30
-date.today()` fallback, `default_factory=datetime.now` across `types/clinical.py` /
-`types/encounter.py` / `types/procedure.py`. ALSO: fix `locale/jp/demographics.yaml` blood_type
-weights (sum = 0.9999999999999999) then wrap population blood_type sampling with
-`normalize_probabilities(fallback="raise")` (the one site R6 had to skip byte-safely).
-Outcome: full byte-diff incl. structural CIF.
-
 ### ★ Display-dict → codes YAML migration
 
 Python clinical display dicts to migrate to `codes/data/*.yaml` (en+ja) + `code_lookup`:
