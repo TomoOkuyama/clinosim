@@ -467,3 +467,20 @@ def test_production_yaml_passes_stage2_validation() -> None:
     import clinosim.modules.document.narrative.registry as reg_module
 
     reg_module._validate_document_type_specs(_load_production_yaml())
+
+
+# === chain 2: nutrition_care_plan (LOINC 80791-7) ===
+
+
+def test_nutrition_care_plan_loinc_code_resolves() -> None:
+    """LOINC 80791-7 ('Nutrition and dietetics Plan of care note') must
+    resolve in both languages — verified against loinc.org during design
+    (spec §2)."""
+    from clinosim.codes import lookup as code_lookup
+
+    assert code_lookup("loinc", "80791-7", "en") == "Nutrition and dietetics Plan of care note"
+    assert code_lookup("loinc", "80791-7", "ja") == "栄養管理計画書"
+
+
+def test_document_type_has_nutrition_care_plan() -> None:
+    assert DocumentType.NUTRITION_CARE_PLAN.value == "nutrition_care_plan"

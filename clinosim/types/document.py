@@ -40,6 +40,7 @@ class DocumentType(str, Enum):
     ED_TRIAGE_NOTE = "ed_triage_note"                             # LOINC 54094-8 (verified 2026-07)
     # β-JP-1 chain 2 (厚労省4帳票, first sub-project)
     ADMISSION_CARE_PLAN = "admission_care_plan"                   # LOINC 18776-5 (verified 2026-07-03)
+    NUTRITION_CARE_PLAN = "nutrition_care_plan"                   # LOINC 80791-7 (verified 2026-07-03)
 
 
 @dataclass(frozen=True)
