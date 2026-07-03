@@ -9,6 +9,8 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 
 | Looking for | Read |
 |---|---|
+| ★ Project concept + pipeline catch-up (read first) | [`docs/design-guides/project-concept-and-design.md`](docs/design-guides/project-concept-and-design.md) |
+| ★ Implementation rules distilled (must-follow invariants) | [`docs/design-guides/implementation-rules.md`](docs/design-guides/implementation-rules.md) |
 | Module overview (30 modules at a glance) | [`MODULES.md`](MODULES.md) |
 | Scenario / medication flags (`causes_X` / `on_warfarin`) | [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.md) |
 | Architecture + ADR table (55+ entries) | [`DESIGN.md`](DESIGN.md) |
