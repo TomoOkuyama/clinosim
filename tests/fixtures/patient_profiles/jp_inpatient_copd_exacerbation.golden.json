@@ -1010,5 +1010,39 @@
       "structured": {},
       "text": ""
     }
+  },
+  "doc-ENC-FORCED-0001-000001-46": {
+    "document_id": "doc-ENC-FORCED-0001-000001-46",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "encounter.ward_id",
+        "encounter.attending_physician_id",
+        "patient.bmi",
+        "patient.weight_kg"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {
+        "dietary_content": "食事内容：常食",
+        "dietitian": "担当なし",
+        "discharge_evaluation": "退院時及び終了時の総合的評価：退院時に評価予定",
+        "dysphagia_diet": "嚥下調整食の必要性：なし",
+        "nutrition_assessment": "栄養状態の評価と課題：特記事項なし",
+        "nutrition_counseling": "栄養食事相談：必要に応じて実施",
+        "nutrition_goals": "栄養管理計画の目標：現在の栄養状態を維持",
+        "nutrition_risk": "低栄養リスク：低（BMI 22.0、リスクなし）",
+        "nutrition_supply": "エネルギー：1746kcal／日　たんぱく質：69.9g／日　補給方法：経口",
+        "other_issues": "その他栄養管理上の課題：特記事項なし",
+        "reassessment_timing": "栄養状態の再評価：入院後1週間を目安に実施",
+        "ward_and_physician": "病棟：4E　担当医師：DR-IM-001"
+      },
+      "structured": {},
+      "text": ""
+    }
   }
 }

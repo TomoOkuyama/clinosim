@@ -163,3 +163,36 @@ specs:
       - other_plans
     stage2_strategy: template_only
     llm_enabled_sections: []
+
+  # === chain 2 (厚労省4帳票, second sub-project, 2026-07-03) ===
+  # LOINC 80791-7 verified via web search (loinc.org) — "Nutrition and
+  # dietetics Plan of care note" is a specific, strong match. MHLW form
+  # 別紙23 (https://www.dietitian.or.jp/assets/data/medical-fee/0000196315_292.pdf)
+  # confirmed the fields below (design spec §2). JP-only, inpatient/icu only.
+  # generation_frequency=admission_once_los_gt_7: MHLW mandates this document
+  # only for admissions > 7 days (design spec §3a) — see document/engine.py
+  # dispatch branch. MVP: only ward_and_physician / nutrition_risk /
+  # nutrition_supply are data-driven (PatientProfile.bmi / weight_kg); the
+  # other 9 sections are fixed fallback strings pending future subsystems
+  # (dietitian staff role, real nutrition assessment data) — see TODO.md.
+  nutrition_care_plan:
+    loinc_code: "80791-7"
+    format_type: composition
+    countries_supported: [jp]
+    encounter_types_supported: [inpatient, icu]
+    generation_frequency: admission_once_los_gt_7
+    composition_sections:
+      - ward_and_physician
+      - dietitian
+      - nutrition_risk
+      - nutrition_assessment
+      - nutrition_goals
+      - nutrition_supply
+      - dysphagia_diet
+      - dietary_content
+      - nutrition_counseling
+      - other_issues
+      - reassessment_timing
+      - discharge_evaluation
+    stage2_strategy: template_only
+    llm_enabled_sections: []

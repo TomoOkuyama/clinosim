@@ -26,6 +26,9 @@ codes:
   18776-5:
     en: Plan of care note
     ja: 入院診療計画書
+  80791-7:
+    en: Nutrition and dietetics Plan of care note
+    ja: 栄養管理計画書
   69730-0:
     en: Death note
     ja: 死亡時記録
