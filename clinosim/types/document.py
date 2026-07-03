@@ -183,8 +183,9 @@ class SemanticCheckFinding:
     """One semantic-check violation (β-JP-1 chain 1b T2).
 
     ``axis`` ∈ {"structure", "facts", "forbidden_pattern", "phrase",
-    "numeric", "expectations"} — the 5 check axes plus expectations-schema
-    problems detected at check time.
+    "numeric"} — the 5 check axes. Expectations-YAML schema problems are
+    NOT findings: ``load_expectations`` raises fail-loud at load time
+    (``check-narratives`` exits 2 before any document is checked).
     """
 
     axis: str = ""

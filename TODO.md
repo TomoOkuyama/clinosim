@@ -1456,11 +1456,19 @@ Findings triaged out of the chain-1a adv-1 fix PR (scope discipline rule):
   `NarrativePass._build_context` (e.g. no `discharge_medications` /
   MAR-only split from adv-1 I-1). Delete it or unify both on a single
   factory before β-JP-1 builds on the ctx contract.
-- **Chain 1b — real vitals placeholders**: derive `{sbp}` / `{dbp}` / `{hr}`
-  / `{temp}` (and `{lab_summary_*}` etc.) from `ctx.vitals` / `ctx.lab_results`
-  so encounter-template sections stop falling back to the whole-section
-  generic phrase (adv-1 I-2 follow-up; `_KNOWN_PLACEHOLDERS` in
-  `template_generator.py` is the extension point).
+- **Remaining encounter-template placeholders** (chain 1b T4 shipped the
+  vitals subset — `{sbp}` / `{dbp}` / `{hr}` / `{temp}` / `{spo2}` / `{rr}`
+  now resolve from `ctx.vitals`): everything else in the encounter YAML
+  inventory still triggers the whole-section generic fallback (adv-1 I-2
+  follow-up; `_KNOWN_PLACEHOLDERS` / `_VITAL_PLACEHOLDER_FIELDS` in
+  `template_generator.py` are the extension points). Remaining inventory
+  (grep over `modules/encounter/reference_data/*.yaml`, 2026-07-03):
+  high-frequency `{disposition_display_*}` (28) / `{lab_summary_*}` (27) /
+  `{imaging_summary_*}` (26) / `{primary_dx_display_*}` (17) /
+  `{workup_summary_*}` (16) / `{follow_up_*}` (16); low-frequency
+  `{weight}` `{severity_desc_*}` `{last_lab_date}` `{duration_days}`
+  `{cxr_result_*}` + ~25 one-off condition-specific tokens
+  (`{ua_result_*}`, `{troponin_result_*}`, `{ottawa_result_*}`, ...).
 - **ctx.medications MAR dedupe for LLM constraint lists** (adv-1 M-3): MAR
   entries repeat per administration; LLM prompt constraint lists built from
   `ctx.medications` may want per-drug dedupe (+ merge with discharge rx
@@ -1470,6 +1478,35 @@ Findings triaged out of the chain-1a adv-1 fix PR (scope discipline rule):
   gains proper en templates keeps its exemption silently. Future: tag-based
   matching (exempt only sections actually rendered via `ja_only_fallback`
   facts_used tags).
+
+#### β-JP-1 chain 1b adv-1 deferred (2026-07-03)
+
+Findings triaged out of the chain-1b adv-1 fix PR (scope discipline rule):
+
+- **MockProvider call_count couples llm-mock goldens to global walk order**
+  (adv-1 M-1): the mock stub text embeds a per-run `call_count`, so ANY
+  change to the (doc_type, language, patient) walk order — or adding a doc
+  type — shifts every subsequent mock golden byte. Consider
+  order-insensitive stubs keyed on a prompt hash (e.g.
+  `[Mock:{sha1(prompt)[:8]}]`) so goldens only change when the prompt for
+  THAT document changes.
+- **Vitals placeholder per-field nearest-reading can mix timepoints**
+  (adv-1 M-4): `_resolve_vital_placeholders` picks the nearest non-null
+  reading PER placeholder, so one sentence can combine `{sbp}` from day 2
+  with `{hr}` from day 3 when readings are sparse. Prefer single-reading
+  resolution: pick the best reading for the stub's day once, resolve all
+  placeholders from it, and fall back whole-section if it lacks any wanted
+  field.
+- **ja-leak check gaps** (adv-1 M-5, known data gap): the semantic-check
+  ja-leak axis is disabled for mixed-language cohorts, and free-text
+  (non-composition) document bodies are not checked for language leaks at
+  all.
+- **I-1 residual — export-time partial-version guard**: `export-fhir` on a
+  partial "current" version still emits with a per-doc WARN only (narrate
+  now guards set-current and merge writes; manifest carries
+  `partial: true`). Consider a version-level guard at export time: read
+  `manifest.json.partial` and require an explicit flag (or hard-fail) when
+  exporting a partial narrative version.
 
 ### Post-AD-65 fixture library (α-min-2c) — ✅ COMPLETED (session 30, PR #132)
 
