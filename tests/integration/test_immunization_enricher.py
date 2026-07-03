@@ -40,3 +40,21 @@ def test_enricher_deterministic():
     enrich_immunizations(_ctx([r2], seed=99))
     k = lambda recs: [(x.vaccine_cvx, x.occurrence_date) for x in recs]
     assert k(r1.immunizations) == k(r2.immunizations)
+
+
+def test_as_of_raises_when_no_deterministic_reference():
+    """No snapshot_date AND no encounters with a valid admission_datetime is a
+    caller/test-setup gap, not a real simulation path — fail loud instead of
+    silently falling back to date.today() (determinism chain, 2026-07-04)."""
+    from clinosim.modules.immunization.enricher import enrich_immunizations
+    from clinosim.types.output import CIFPatientRecord
+    from clinosim.types.patient import PatientProfile
+    from datetime import date
+
+    rec = CIFPatientRecord(
+        patient=PatientProfile(patient_id="p1", age=80, sex="F",
+                                date_of_birth=date(1946, 3, 1)),
+        encounters=[],
+    )
+    with pytest.raises(ValueError, match="snapshot_date"):
+        enrich_immunizations(_ctx([rec], snapshot=None))
