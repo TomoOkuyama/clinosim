@@ -172,6 +172,10 @@ class NarrativeVersionManifest:
     # `regenerate-goldens` refuses filters, and consumers can detect that a
     # version does not cover the whole cohort.
     patient_filter: str = ""
+    # β-JP-1 chain 1b adv-1 I-1: True ⇔ patient_filter was set for this run.
+    # Cheap partial-version detection for downstream consumers (export
+    # guards, tooling) without inspecting the regex string.
+    partial: bool = False
 
 
 @dataclass
