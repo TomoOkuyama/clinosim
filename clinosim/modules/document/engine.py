@@ -307,6 +307,28 @@ def document_enricher(ctx: Any) -> None:
                     ))
                     doc_seq += 1
 
+                elif freq == "admission_once_los_gt_7":
+                    # MHLW mandate: 栄養管理計画書 required only for admissions
+                    # > 7 days (design spec §3a). Mirrors the `daily` branch's
+                    # LOS-skip pattern below.
+                    if los_days <= 7:
+                        continue
+                    documents.append(ClinicalDocument(
+                        document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
+                        task_type=spec.type_key,
+                        loinc_code=spec.loinc_code,
+                        patient_id=pid,
+                        encounter_id=encounter_id,
+                        author_practitioner_id=_pick_document_author(spec, encounter),
+                        authored_datetime=admission_dt.isoformat(),
+                        period_start=admission_dt.isoformat(),
+                        period_end=admission_dt.isoformat(),
+                        language=lang,
+                        format_type=spec.format_type.value,
+                        narrative=None,
+                    ))
+                    doc_seq += 1
+
                 elif freq == "daily":
                     # Spec §7: daily notes skipped for LOS=1 same-day encounters.
                     # A same-day admission/discharge has an H&P and discharge summary;
