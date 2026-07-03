@@ -219,3 +219,20 @@ def test_admission_care_plan_excludes_rehab_inpatient() -> None:
     assert "admission_care_plan" not in rehab_keys
     assert "admission_care_plan" not in outpatient_keys
     assert "admission_care_plan" not in emergency_keys
+
+
+def test_nutrition_care_plan_excludes_rehab_inpatient() -> None:
+    """Mirrors admission_care_plan's inpatient/icu-only scope (spec §3b)."""
+    from clinosim.modules.document.narrative.registry import load_document_type_specs
+    from clinosim.types.document import DocumentType
+
+    specs = load_document_type_specs()
+    ncp = specs[DocumentType.NUTRITION_CARE_PLAN]
+    assert set(ncp.encounter_types_supported) == {"inpatient", "icu"}
+
+    inpatient_keys = {s.type_key for s in specs_for_encounter_type("inpatient")}
+    icu_keys = {s.type_key for s in specs_for_encounter_type("icu")}
+    rehab_keys = {s.type_key for s in specs_for_encounter_type("rehab_inpatient")}
+    assert "nutrition_care_plan" in inpatient_keys
+    assert "nutrition_care_plan" in icu_keys
+    assert "nutrition_care_plan" not in rehab_keys
