@@ -245,6 +245,22 @@ _RISK_FALLBACK_JA = "転倒・褥瘡リスク：評価中"
 _RISK_FALLBACK_EN = "Fall / pressure ulcer risk: assessment pending"
 _NURSING_DX_FALLBACK_JA = "看護診断：特記事項なし"
 _NURSING_DX_FALLBACK_EN = "Nursing diagnosis: no significant findings"
+
+# chain 2: ADMISSION_CARE_PLAN fallback phrases
+_ACP_WARD_ROOM_FALLBACK_JA = "病棟・病室：未定"
+_ACP_WARD_ROOM_FALLBACK_EN = "Ward/Room: not yet assigned"
+_ACP_OTHER_STAFF_FALLBACK_JA = "担当なし"
+_ACP_OTHER_STAFF_FALLBACK_EN = "No additional staff assigned"
+_ACP_TEST_SCHEDULE_FALLBACK_JA = "検査：担当医の判断により決定"
+_ACP_TEST_SCHEDULE_FALLBACK_EN = "Tests: to be determined by the attending physician"
+_ACP_SURGERY_NONE_JA = "手術：予定なし"
+_ACP_SURGERY_NONE_EN = "Surgery: none planned"
+_ACP_NUTRITION_NO_JA = "特別な栄養管理の必要性：無"
+_ACP_NUTRITION_NO_EN = "Special nutritional management required: No"
+_ACP_OTHER_PLANS_JA = "その他：看護計画・リハビリテーション等の計画については看護記録を参照。"
+_ACP_OTHER_PLANS_EN = (
+    "Other: see nursing documentation for the nursing care plan and rehabilitation plan."
+)
 _CARE_PLAN_FALLBACK_JA = "看護計画：標準的ケア継続"
 _CARE_PLAN_FALLBACK_EN = "Care plan: continue standard nursing care"
 _INTERVENTIONS_FALLBACK_JA = "実施した看護介入：特記事項なし"
@@ -471,6 +487,17 @@ class TemplateNarrativeGenerator:
             "physical_exam": self._build_ed_physical_exam,
             "ed_workup": self._build_ed_workup,
             "disposition": self._build_ed_disposition,
+            # chain 2: ADMISSION_CARE_PLAN sections (LOINC 18776-5)
+            "ward_and_room": self._build_acp_ward_and_room,
+            "other_staff": self._build_acp_other_staff,
+            "diagnosis": self._build_acp_diagnosis,
+            "symptoms": self._build_acp_symptoms,
+            "treatment_plan": self._build_acp_treatment_plan,
+            "test_schedule": self._build_acp_test_schedule,
+            "surgery_schedule": self._build_acp_surgery_schedule,
+            "estimated_los": self._build_acp_estimated_los,
+            "special_nutrition_management": self._build_acp_special_nutrition_management,
+            "other_plans": self._build_acp_other_plans,
         }
 
         for section in spec.composition_sections:
@@ -1175,6 +1202,165 @@ class TemplateNarrativeGenerator:
         lang = ctx.target_lang
         is_ja = lang == "ja"
         return _CARE_PLAN_FALLBACK_JA if is_ja else _CARE_PLAN_FALLBACK_EN, []
+
+    # ─────────────────────────────────────────────────────────────────
+    # chain 2: ADMISSION_CARE_PLAN section builders (入院診療計画書, LOINC 18776-5)
+    #
+    # MHLW form 別紙２ (10 core fields, verified 2026-07-03 — design spec §2).
+    # JP-only doc type (countries_supported=[jp]); both language branches are
+    # implemented for consistency with every other builder in this file, even
+    # though only target_lang="ja" is ever reached through the registry gate.
+    # ─────────────────────────────────────────────────────────────────
+
+    def _build_acp_ward_and_room(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """病棟（病室）— Encounter.ward_id + bed_number."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        ward = str(_o(ctx.encounter, "ward_id", "") or "")
+        bed = str(_o(ctx.encounter, "bed_number", "") or "")
+        if not ward and not bed:
+            return (_ACP_WARD_ROOM_FALLBACK_JA if is_ja else _ACP_WARD_ROOM_FALLBACK_EN), facts
+        if ward:
+            facts.append("encounter.ward_id")
+        if bed:
+            facts.append("encounter.bed_number")
+        if is_ja:
+            return f"病棟：{ward or '未定'}　病室：{bed or '未定'}", facts
+        return f"Ward: {ward or 'TBD'}, Room: {bed or 'TBD'}", facts
+
+    def _build_acp_other_staff(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """主治医以外の担当者名 — Encounter.primary_nurse_id (same field AD-64 CareTeam uses)."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        nurse_id = str(_o(ctx.encounter, "primary_nurse_id", "") or "")
+        if not nurse_id:
+            return (_ACP_OTHER_STAFF_FALLBACK_JA if is_ja else _ACP_OTHER_STAFF_FALLBACK_EN), facts
+        facts.append("encounter.primary_nurse_id")
+        return (f"担当看護師：{nurse_id}" if is_ja else f"Assigned nurse: {nurse_id}"), facts
+
+    def _build_acp_diagnosis(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """病名（他に考え得る病名）— ctx.diagnoses, admission code preferred
+        (discharge dx is not yet known when this document is written at
+        admission — unlike _build_discharge_diagnoses which prefers discharge)."""
+        from clinosim.codes import lookup as code_lookup
+
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        diagnoses = ctx.diagnoses or []
+        if not diagnoses:
+            return self._build_chief_complaint(ctx)
+
+        facts.append("ctx.diagnoses")
+        parts: list[str] = []
+        for dx in diagnoses:
+            admission_code = _o(dx, "admission_diagnosis_code", "")
+            discharge_code = _o(dx, "discharge_diagnosis_code", "")
+            code = str(admission_code or discharge_code or "")
+            if not code:
+                continue
+            system = str(
+                _o(dx, "admission_diagnosis_system", "")
+                or _o(dx, "discharge_diagnosis_system", "")
+                or ("icd-10" if is_ja else "icd-10-cm")
+            )
+            display = code_lookup(system, code, ctx.target_lang)
+            if display and display != code:
+                parts.append(f"{display}（{code}）" if is_ja else f"{display} ({code})")
+            else:
+                parts.append(code)
+
+        if parts:
+            return "; ".join(parts), facts
+        return self._build_chief_complaint(ctx)
+
+    def _build_acp_symptoms(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """症状 — reuses chief_complaint extraction (presenting symptom)."""
+        return self._build_chief_complaint(ctx)
+
+    def _build_acp_treatment_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """治療計画 — reuses assessment_and_plan extraction (admission_hp precedent)."""
+        return self._build_assessment_and_plan(ctx)
+
+    def _build_acp_test_schedule(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """検査内容及び日程 — distinct test names from ctx.lab_results.
+
+        ctx has no separate "orders" field (only already-resulted lab_results);
+        distinct test names is the best available data-driven proxy within
+        NarrativeContext's existing schema (spec §3b decision)."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        names: set[str] = set()
+        for lab in ctx.lab_results or []:
+            name = _o(lab, "test_name", None)
+            if name:
+                names.add(str(name))
+        if not names:
+            fallback = _ACP_TEST_SCHEDULE_FALLBACK_JA if is_ja else _ACP_TEST_SCHEDULE_FALLBACK_EN
+            return fallback, facts
+        facts.append("ctx.lab_results")
+        joined = "、".join(sorted(names)) if is_ja else ", ".join(sorted(names))
+        return (f"検査項目：{joined} を実施予定" if is_ja else f"Planned tests: {joined}"), facts
+
+    def _build_acp_surgery_schedule(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """手術内容及び日程 — ctx.procedures filtered to category_code=387713003 (surgical)."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        surgical = [
+            p for p in (ctx.procedures or [])
+            if str(_o(p, "category_code", "") or "") == "387713003"
+        ]
+        if not surgical:
+            return (_ACP_SURGERY_NONE_JA if is_ja else _ACP_SURGERY_NONE_EN), facts
+        facts.append("ctx.procedures")
+        types = [
+            str(_o(p, "procedure_type", "") or "") for p in surgical if _o(p, "procedure_type", "")
+        ]
+        joined = "、".join(types) if is_ja else ", ".join(types)
+        return (f"手術予定：{joined}" if is_ja else f"Planned surgery: {joined}"), facts
+
+    def _build_acp_estimated_los(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """推定される入院期間 — disease_protocol.target_los[country][severity].mean
+        when available: a genuine day-0 estimate, RNG-free (target_los is a static
+        YAML dict, read directly with no sampling — adv-1 finding: the original
+        implementation used ctx.los_days, the already-realized LOS, which is
+        tautologically 100% accurate and therefore unrealistic for a document
+        meant to represent an AT-ADMISSION prediction). Falls back to ctx.los_days
+        only when disease_protocol is unavailable (e.g. unknown-condition path)."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        los: float = 0
+        proto = ctx.disease_protocol
+        if proto is not None:
+            country_key = "japan" if ctx.locale == "jp" else "us"
+            target_los = _o(proto, "target_los", {}) or {}
+            los_cfg = (target_los.get(country_key) or {}).get(ctx.severity) or {}
+            if "mean" in los_cfg:
+                los = los_cfg["mean"]
+                facts.append("disease_protocol.target_los")
+        if not los:
+            los = ctx.los_days or 1
+            facts.append("ctx.los_days")
+        los_days = round(los)
+        if is_ja:
+            return f"推定入院期間：約{los_days}日間", facts
+        return f"Estimated length of stay: approximately {los_days} days", facts
+
+    def _build_acp_special_nutrition_management(
+        self, ctx: NarrativeContext
+    ) -> tuple[str, list[str]]:
+        """特別な栄養管理の必要性 — MVP: always「無」(no NutritionOrder subsystem
+        exists yet; TODO.md tracks the future nutrition subsystem chain)."""
+        is_ja = ctx.target_lang == "ja"
+        return (_ACP_NUTRITION_NO_JA if is_ja else _ACP_NUTRITION_NO_EN), []
+
+    def _build_acp_other_plans(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """その他（看護計画・リハビリテーション等の計画）— fixed cross-reference
+        phrase. NarrativeContext does not carry other stub types' rendered
+        content at this call site (each spec walked independently), so this
+        section cannot dynamically pull admission_nursing_assessment content
+        without a larger architecture change (out of scope, see plan)."""
+        is_ja = ctx.target_lang == "ja"
+        return (_ACP_OTHER_PLANS_JA if is_ja else _ACP_OTHER_PLANS_EN), []
 
     # ─────────────────────────────────────────────────────────────────
     # α-min-2: NURSING_DISCHARGE_SUMMARY section builders

@@ -1385,6 +1385,39 @@
       "text": ""
     }
   },
+  "doc-ENC-FORCED-0001-000001-149": {
+    "document_id": "doc-ENC-FORCED-0001-000001-149",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "encounter.ward_id",
+        "encounter.bed_number",
+        "ctx.diagnoses",
+        "disease_protocol.chief_complaint.ja",
+        "disease_protocol.target_los"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {
+        "diagnosis": "敗血症、詳細不明（A41.9）",
+        "estimated_los": "推定入院期間：約35日間",
+        "other_plans": "その他：看護計画・リハビリテーション等の計画については看護記録を参照。",
+        "other_staff": "担当なし",
+        "special_nutrition_management": "特別な栄養管理の必要性：無",
+        "surgery_schedule": "手術：予定なし",
+        "symptoms": "発熱・意識変容・低血圧",
+        "test_schedule": "検査：担当医の判断により決定",
+        "treatment_plan": "評価: 経過観察中。方針: 治療継続。",
+        "ward_and_room": "病棟：4E　病室：4E-09"
+      },
+      "structured": {},
+      "text": ""
+    }
+  },
   "doc-ENC-FORCED-0001-000001-15": {
     "document_id": "doc-ENC-FORCED-0001-000001-15",
     "encounter_id": "ENC-FORCED-0001-000001",

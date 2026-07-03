@@ -165,3 +165,26 @@ def test_lift_firing_proof_includes_3shift_cadence_checks():
         assert actual == expected, (
             f"α-min-3 proof check {name!r} failed: {actual!r} != {expected!r}"
         )
+
+
+@pytest.mark.unit
+def test_lift_firing_proof_includes_admission_care_plan_checks():
+    """chain 2: admission_care_plan dispatch proof (JP-only, inpatient/icu gate).
+
+    adv-1 finding: the original proof omitted the icu case despite icu being
+    one of only two encounter_types_supported values — jp_icu_count added.
+    """
+    proof = _build_proof()
+    labels = {c[0]: c for c in proof["equality_checks"]}
+    assert "admission_care_plan_jp_inpatient_count" in labels
+    assert "admission_care_plan_jp_icu_count" in labels
+    assert "admission_care_plan_us_inpatient_count" in labels
+    assert "admission_care_plan_jp_rehab_inpatient_count" in labels
+    for label in (
+        "admission_care_plan_jp_inpatient_count",
+        "admission_care_plan_jp_icu_count",
+        "admission_care_plan_us_inpatient_count",
+        "admission_care_plan_jp_rehab_inpatient_count",
+    ):
+        _, actual, expected = labels[label]
+        assert actual == expected, f"{label}: {actual!r} != {expected!r}"
