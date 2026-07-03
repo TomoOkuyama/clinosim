@@ -82,6 +82,26 @@ class TestAlphaGolden:
             == record.discharge_prescription.issue_date
         )
 
+    def test_state_and_prescription_timestamps_reproducible_across_runs(self, alpha_result):
+        """Two independent run_alpha(seed=42) calls, with real wall-clock time
+        elapsed between them, must produce byte-identical
+        physiological_states[].timestamp and discharge_prescription.issue_date.
+        This is the end-to-end proof that the determinism chain (2026-07-04)
+        closed both byte-diff-measured live fields — if either still read
+        datetime.now() under the hood, this test would be flaky (values would
+        differ by however many milliseconds/seconds elapsed between the two
+        calls below)."""
+        result2 = run_alpha(SimulatorConfig(random_seed=42))
+        r1 = alpha_result.patients[0]
+        r2 = result2.patients[0]
+
+        assert [s.timestamp for s in r1.physiological_states] == \
+            [s.timestamp for s in r2.physiological_states]
+
+        assert r1.discharge_prescription is not None
+        assert r2.discharge_prescription is not None
+        assert r1.discharge_prescription.issue_date == r2.discharge_prescription.issue_date
+
     def test_cif_output(self, alpha_result, tmp_path):
         from clinosim.modules.output.cif_writer import write_cif
         import json
