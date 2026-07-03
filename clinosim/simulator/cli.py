@@ -247,6 +247,32 @@ def main() -> None:
         action="store_true",
         help="Regenerate goldens for all profiles in the fixtures dir",
     )
+    # β-JP-1 chain 1b T1: LLM parallel goldens. template (default) keeps the
+    # historical <name>.golden.json naming; LLM providers write
+    # <name>.llm-<tag>.golden.json via a `narrate --provider` subprocess step.
+    rg.add_argument(
+        "--provider",
+        default="template",
+        choices=["template", "mock", "bedrock", "ollama"],
+        help=(
+            "Narrative generator for the golden run: 'template' (default, "
+            "writes <name>.golden.json — unchanged) or an LLM provider "
+            "(mock/bedrock/ollama, writes <name>.llm-<tag>.golden.json)"
+        ),
+    )
+    rg.add_argument(
+        "--llm-config",
+        default=None,
+        help="LLM service YAML passed through to narrate (LLM providers only)",
+    )
+    rg.add_argument(
+        "--model-tag",
+        default=None,
+        help=(
+            "Filename tag for LLM goldens: <name>.llm-<tag>.golden.json "
+            "(default: provider name, e.g. mock). LLM providers only"
+        ),
+    )
 
     # === audit: verification framework ===
     from clinosim.audit.cli import add_audit_subparser
@@ -962,15 +988,31 @@ def _run_regenerate_goldens(args: Any) -> None:
     """AD-66 α-min-2c T3: regenerate narrative goldens for canonical profiles.
 
     For each target profile: run test-disease pipeline into a tmpdir, walk
-    cif/narratives/template/documents/**/*.json, write the merged dict to
-    <profile>.golden.json in the fixture dir. Emits stderr note prompting
-    user to `git diff + commit if intentional`.
+    cif/narratives/<version>/documents/**/*.json, write the merged dict to
+    the golden path in the fixture dir. Emits stderr note prompting user to
+    `git diff + commit if intentional`.
+
+    β-JP-1 chain 1b T1: ``--provider mock|bedrock|ollama`` inserts a
+    ``narrate --provider`` subprocess step on top of the structural CIF and
+    writes ``<profile>.llm-<tag>.golden.json`` instead (template golden
+    naming unchanged). ``<tag>`` defaults to the provider name; override
+    with ``--model-tag`` (e.g. a real model id on the remote LLM server).
     """
     import json
     import subprocess
     import tempfile
 
-    from clinosim.types.config import _PATIENT_PROFILE_DIR
+    from clinosim.types.config import _PATIENT_PROFILE_DIR, load_patient_profile
+
+    provider: str = getattr(args, "provider", "template")
+    if provider == "template" and (args.model_tag or args.llm_config):
+        print(
+            "ERROR: --model-tag / --llm-config require an LLM --provider "
+            "(mock/bedrock/ollama); they have no effect with --provider template",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+    tag = args.model_tag or provider
 
     # Support env var override for test isolation
     fixture_dir_env = os.environ.get("CLINOSIM_PATIENT_PROFILE_DIR")
@@ -979,7 +1021,10 @@ def _run_regenerate_goldens(args: Any) -> None:
     fixture_dir = Path(fixture_dir_env) if fixture_dir_env else _PATIENT_PROFILE_DIR
 
     if args.all:
-        profile_paths = sorted(fixture_dir.glob("*.yaml"))
+        profile_paths = sorted(
+            p for p in fixture_dir.glob("*.yaml")
+            if not p.name.endswith(".llm-expectations.yaml")
+        )
     else:
         p = fixture_dir / f"{args.profile}.yaml"
         if not p.is_file():
@@ -991,17 +1036,48 @@ def _run_regenerate_goldens(args: Any) -> None:
         print(f"ERROR: no profiles found in {fixture_dir}", file=sys.stderr)
         sys.exit(2)
 
+    def _run_step(cmd: list[str], label: str) -> None:
+        """Run one pipeline subprocess; fail loud with its stderr on error."""
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        if result.returncode != 0:
+            print(f"ERROR: {label} failed (exit {result.returncode}):", file=sys.stderr)
+            print(result.stderr, file=sys.stderr)
+            sys.exit(1)
+
     count = 0
     for profile_path in profile_paths:
         profile_id = profile_path.stem
         with tempfile.TemporaryDirectory() as tmpdir:
-            subprocess.run(
+            _run_step(
                 [sys.executable, "-m", "clinosim.simulator.cli", "test-disease",
                  "--patient-profile", str(profile_path),
                  "--format", "cif", "-o", str(tmpdir)],
-                check=True, capture_output=True, text=True,
+                label=f"test-disease ({profile_id})",
             )
-            narr_dir = Path(tmpdir) / "cif" / "narratives" / "template" / "documents"
+            cif_dir = Path(tmpdir) / "cif"
+
+            if provider == "template":
+                narr_version = "template"
+                golden_path = fixture_dir / f"{profile_id}.golden.json"
+            else:
+                # LLM golden: narrate the structural CIF with the requested
+                # provider. Country/seed come from the profile (the pipeline
+                # subprocess above already used them for Stage 1).
+                narr_version = f"llm-{tag}"
+                profile = load_patient_profile(str(profile_path))
+                narrate_cmd = [
+                    sys.executable, "-m", "clinosim.simulator.cli", "narrate",
+                    "--cif-dir", str(cif_dir), "--provider", provider,
+                    "--country", profile.country,
+                    "--seed", str(profile.random_seed),
+                    "--version-id", narr_version, "--no-set-current",
+                ]
+                if args.llm_config:
+                    narrate_cmd += ["--llm-config", args.llm_config]
+                _run_step(narrate_cmd, label=f"narrate --provider {provider} ({profile_id})")
+                golden_path = fixture_dir / f"{profile_id}.llm-{tag}.golden.json"
+
+            narr_dir = cif_dir / "narratives" / narr_version / "documents"
             actual: dict[str, dict] = {}
             if narr_dir.is_dir():
                 for enc_dir in sorted(narr_dir.iterdir()):
@@ -1012,7 +1088,6 @@ def _run_regenerate_goldens(args: Any) -> None:
                             continue
                         actual[doc_file.stem] = json.loads(doc_file.read_text())
 
-            golden_path = fixture_dir / f"{profile_id}.golden.json"
             golden_path.write_text(
                 json.dumps(actual, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
             )

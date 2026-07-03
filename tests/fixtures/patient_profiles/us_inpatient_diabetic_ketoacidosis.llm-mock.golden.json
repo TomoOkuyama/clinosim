@@ -1,0 +1,376 @@
+{
+  "doc-ENC-FORCED-0001-000001-01": {
+    "document_id": "doc-ENC-FORCED-0001-000001-01",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "disease_protocol.chief_complaint.en",
+        "disease_protocol.narrative.hpi_template.onset_pattern.severe:ja_only_fallback",
+        "disease_protocol.narrative.hpi_template.trigger_options[0]",
+        "ctx.patient.smoking_status",
+        "ctx.patient.alcohol_use",
+        "ctx.patient.occupation",
+        "physical_exam_findings.smooth_recovery.day_0:ja_only_fallback",
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_0:ja_only_fallback"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "generator": "llm",
+        "lang": "en"
+      },
+      "sections": {
+        "allergies": "No known drug allergies (NKDA)",
+        "assessment_and_plan": "[Mock LLM response #2]\nModel: mock\nFirst prompt line: Section: assessment_and_plan",
+        "chief_complaint": "Nausea, vomiting, abdominal pain, polyuria, altered consciousness",
+        "family_history": "No significant family history",
+        "hpi": "[Mock LLM response #1]\nModel: mock\nFirst prompt line: Section: hpi",
+        "medications_at_home": "No home medications",
+        "past_medical_history": "No significant past medical history",
+        "physical_examination": "General: 意識清明、苦痛様. Cardiovascular: 整、心雑音なし. Respiratory: 肺音清明. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし",
+        "social_history": "Smoking: Non-smoker; Alcohol: Non-drinker; Occupation: other"
+      },
+      "structured": {},
+      "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-02": {
+    "document_id": "doc-ENC-FORCED-0001-000001-02",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_0",
+        "physical_exam_findings.smooth_recovery.day_0",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "en"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "S: 症状あり\nO: バイタル安定、検査所見あり. General: 意識清明、苦痛様. Cardiovascular: 整、心雑音なし. Respiratory: 肺音清明. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし\nA: 初期診断確定、治療開始\nP: 治療継続、経過観察"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-03": {
+    "document_id": "doc-ENC-FORCED-0001-000001-03",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "physical_exam_findings.smooth_recovery.day_1",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 1,
+        "generator": "template",
+        "lang": "en"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "S: 症状緩和傾向\nO: バイタル安定、検査所見改善. General: 意識清明、苦痛様. Cardiovascular: 整、心雑音なし. Respiratory: 肺音清明. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし\nA: 治療反応良好\nP: 治療継続"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-04": {
+    "document_id": "doc-ENC-FORCED-0001-000001-04",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
+        "physical_exam_findings.smooth_recovery.day_2",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 2,
+        "generator": "template",
+        "lang": "en"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "S: 症状緩和傾向\nO: バイタル安定、検査所見改善. General: 意識清明、苦痛様. Cardiovascular: 整、心雑音なし. Respiratory: 肺音清明. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし\nA: 治療反応良好\nP: 治療継続"
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-05": {
+    "document_id": "doc-ENC-FORCED-0001-000001-05",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "disease_protocol.chief_complaint.en",
+        "ctx.diagnoses",
+        "ctx.discharge_medications",
+        "discharge_instructions.baseline",
+        "discharge_instructions.disease_specific.diabetic_ketoacidosis",
+        "discharge_instructions.follow_up"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "generator": "llm",
+        "lang": "en"
+      },
+      "sections": {
+        "admission_summary": "Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Admitted for inpatient care.",
+        "discharge_diagnoses": "Type 2 diabetes mellitus with hyperglycemia (E11.65)",
+        "discharge_instructions": "[Mock LLM response #4]\nModel: mock\nFirst prompt line: Section: discharge_instructions",
+        "discharge_medications": "Insulin glargine",
+        "follow_up": "Follow up with PCP in 7-10 days.",
+        "hospital_course": "[Mock LLM response #3]\nModel: mock\nFirst prompt line: Section: hospital_course"
+      },
+      "structured": {},
+      "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-06": {
+    "document_id": "doc-ENC-FORCED-0001-000001-06",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "en"
+      },
+      "sections": {
+        "adl_assessment": "ADL: independent (no issues noted)",
+        "care_plan": "Care plan: continue standard nursing care",
+        "nursing_diagnosis": "Nursing diagnosis: no significant findings",
+        "nursing_history": "Nursing history: no significant findings",
+        "risk_assessments": "Fall / pressure ulcer risk: assessment pending"
+      },
+      "structured": {},
+      "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-07-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-07-night",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "en",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - night shift] Day 1 / LOS 3 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-08-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-08-day",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 3 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-09-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-09-evening",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 0,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 3 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-10-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-10-night",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 1,
+        "generator": "template",
+        "lang": "en",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 3 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-11-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-11-day",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 1,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 3 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-12-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-12-evening",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 1,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 3 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-13-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-13-night",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 2,
+        "generator": "template",
+        "lang": "en",
+        "shift": "night"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - night shift] Day 3 / LOS 3 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-14-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-14-day",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 2,
+        "generator": "template",
+        "lang": "en",
+        "shift": "day"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 3 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-15-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-15-evening",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.day_index",
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 2,
+        "generator": "template",
+        "lang": "en",
+        "shift": "evening"
+      },
+      "sections": {},
+      "structured": {},
+      "text": "[Nursing Shift Note - evening shift] Day 3 / LOS 3 days\nPatient status: vital signs stable. Observation and care ongoing.\nNotes: no significant findings."
+    }
+  },
+  "doc-ENC-FORCED-0001-000001-16": {
+    "document_id": "doc-ENC-FORCED-0001-000001-16",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "ctx.los_days"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "en"
+      },
+      "sections": {
+        "admission_status": "Hospital stay: 3 days. Discharge criteria met.",
+        "discharge_readiness": "Discharge readiness: criteria met",
+        "nursing_interventions_provided": "Nursing interventions provided: no significant findings",
+        "patient_education": "Patient education: discharge instructions provided"
+      },
+      "structured": {},
+      "text": ""
+    }
+  }
+}
