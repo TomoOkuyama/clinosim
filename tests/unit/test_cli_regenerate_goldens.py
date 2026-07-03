@@ -203,6 +203,20 @@ def test_regenerate_template_rejects_llm_only_flags(tmp_path: Path):
         assert "provider" in result.stderr.lower()
 
 
+def test_regenerate_rejects_patient_filter(tmp_path: Path):
+    """T3: regenerate-goldens + --patient-filter = partial-golden hazard → exit 2."""
+    fixture_dir = tmp_path / "patient_profiles"
+    fixture_dir.mkdir()
+    result = subprocess.run(
+        [sys.executable, "-m", "clinosim.simulator.cli", "regenerate-goldens",
+         "--profile", "whatever", "--patient-filter", "ENC-1"],
+        capture_output=True, text=True, check=False,
+        env=_env_with(fixture_dir),
+    )
+    assert result.returncode == 2
+    assert "partial goldens" in result.stderr
+
+
 def test_regenerate_mock_provider_is_idempotent(tmp_path: Path):
     """Two --provider mock runs yield byte-identical llm-mock goldens (AD-16)."""
     fixture_dir = tmp_path / "patient_profiles"

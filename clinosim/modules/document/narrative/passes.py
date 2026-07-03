@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 from abc import ABC, abstractmethod
 from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
@@ -71,6 +72,7 @@ class NarrativePass(ABC):
         rng_seed: int = 42,
         *,
         generator: NarrativeGenerator,
+        patient_filter: str | None = None,
     ):
         self.cif_dir = cif_dir
         self.version_id = version_id
@@ -78,6 +80,13 @@ class NarrativePass(ABC):
         self.tasks_filter = set(tasks) if tasks else None
         self.rng_seed = rng_seed
         self.generator = generator
+        # β-JP-1 chain 1b T3: optional regex over patient filename stem OR
+        # patient_id — remote per-patient iteration support. Compiled here so
+        # an invalid regex fails loud at construction, not mid-walk.
+        self.patient_filter = patient_filter or ""
+        self._patient_filter_re: re.Pattern[str] | None = (
+            re.compile(patient_filter) if patient_filter else None
+        )
 
     def run(self) -> NarrativeVersionManifest:
         specs = specs_for_country(self.country)
@@ -94,6 +103,8 @@ class NarrativePass(ABC):
 
         # ★ Bedrock cache walk order: (doc_type, language) group serial
         patient_files = sorted(f for f in os.listdir(structural_dir) if f.endswith(".json"))
+        if self._patient_filter_re is not None:
+            patient_files = self._apply_patient_filter(structural_dir, patient_files)
         for spec in specs:
             for language in self._languages_for_spec(spec):
                 for pf in patient_files:
@@ -139,11 +150,36 @@ class NarrativePass(ABC):
             doc_types_enabled=sorted(doc_counts.keys()),
             languages_used=sorted(languages_used),
             llm_cost_report=self._llm_cost_report(),
+            patient_filter=self.patient_filter,
         )
         manifest_path = os.path.join(self.cif_dir, "narratives", self.version_id, "manifest.json")
         with open(manifest_path, "w") as f:
             json.dump(asdict(manifest), f, indent=2, ensure_ascii=False)
         return manifest
+
+    def _apply_patient_filter(
+        self, structural_dir: str, patient_files: list[str]
+    ) -> list[str]:
+        """T3: keep files whose stem OR patient_id matches ``patient_filter``.
+
+        One extra JSON read per patient, only when a filter is set (the
+        default None path costs nothing). Order is preserved (sorted input →
+        sorted output) so the walk stays deterministic and any selected
+        patient's output is byte-identical to the unfiltered run (AD-16).
+        """
+        assert self._patient_filter_re is not None
+        selected: list[str] = []
+        for pf in patient_files:
+            stem = pf[: -len(".json")]
+            if self._patient_filter_re.search(stem):
+                selected.append(pf)
+                continue
+            with open(os.path.join(structural_dir, pf)) as f:
+                patient_dict = json.load(f)
+            patient_id = str(_o(patient_dict.get("patient") or {}, "patient_id", "") or "")
+            if patient_id and self._patient_filter_re.search(patient_id):
+                selected.append(pf)
+        return selected
 
     def _generate(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
         """Default: delegate to the injected NarrativeGenerator (N-1)."""
@@ -449,6 +485,7 @@ class TemplateNarrativePass(NarrativePass):
         tasks: list[str] | None = None,
         rng_seed: int = 42,
         generator: NarrativeGenerator | None = None,
+        patient_filter: str | None = None,
     ):
         # F-5 adv-1: `self._rng` was allocated here from rng_seed but never
         # consumed — TemplateNarrativeGenerator is deterministic modulo
@@ -462,6 +499,7 @@ class TemplateNarrativePass(NarrativePass):
             tasks,
             rng_seed,
             generator=generator if generator is not None else TemplateNarrativeGenerator(),
+            patient_filter=patient_filter,
         )
 
     def _generator_name(self) -> str:
@@ -491,6 +529,7 @@ class LLMNarrativePass(NarrativePass):
         country: str = "US",
         tasks: list[str] | None = None,
         rng_seed: int = 42,
+        patient_filter: str | None = None,
     ):
         from clinosim.modules.document.narrative.cache import NarrativeCache
         from clinosim.modules.document.narrative.llm_generator import LLMNarrativeGenerator
@@ -502,7 +541,8 @@ class LLMNarrativePass(NarrativePass):
             cache=NarrativeCache(),
         )
         super().__init__(
-            cif_dir, version_id, country, tasks, rng_seed, generator=self._llm_generator
+            cif_dir, version_id, country, tasks, rng_seed,
+            generator=self._llm_generator, patient_filter=patient_filter,
         )
 
     def run(self) -> NarrativeVersionManifest:
