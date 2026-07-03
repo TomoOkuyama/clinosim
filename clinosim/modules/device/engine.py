@@ -101,7 +101,7 @@ def _peak_state_for_encounter(
     """
     if record.physiological_states:
         return record.physiological_states[0]
-    return PhysiologicalState()
+    return PhysiologicalState(timestamp=encounter.admission_datetime)
 
 
 def place_devices_for_encounter(
