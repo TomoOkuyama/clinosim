@@ -15,14 +15,14 @@ from typing import Any
 from clinosim.modules.document.engine import document_enricher
 
 
-def _make_record(encounter_type: str, country_encounter_status: str = "completed") -> dict[str, Any]:
+def _make_record(encounter_type: str, status: str = "completed") -> dict[str, Any]:
     return {
         "patient": {"patient_id": "pt-acp-engine-test"},
         "encounters": [
             {
                 "encounter_id": "enc-acp-engine-test",
                 "encounter_type": encounter_type,
-                "status": country_encounter_status,
+                "status": status,
                 "admission_datetime": datetime(2026, 7, 1, 10, 0),
                 "discharge_datetime": datetime(2026, 7, 5, 10, 0),
                 "attending_physician_id": "dr-acp-engine-test",
