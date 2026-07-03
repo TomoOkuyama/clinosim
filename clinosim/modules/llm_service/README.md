@@ -483,8 +483,13 @@ IAM ポリシー例:
 | `tests/unit/test_clinical_documents.py` | PromptRegistry / LLMService / hospital_course_extractor unit tests | guard |
 | `tests/unit/test_llm_service.py` | provider + cache unit tests | guard |
 
-Note: `narrative_generator.py` / `document_generator.py` は Task 15 で削除。`narrate` CLI subcommand は deprecated。
-Stage 2 LLM provider 統合は β-JP-1 chain に延期 (TODO.md)。
+Note: `narrative_generator.py` / `document_generator.py` は Task 15 で削除。
+Stage 2 LLM provider 統合は N-chain + β-JP-1 chain 1a/1b で wired 済 — `clinosim narrate
+--provider bedrock|ollama|mock [--llm-config PATH] [--patient-filter REGEX]` が
+`LLMNarrativePass` 経由で本モジュールの `LLMService.complete_prompt` を呼ぶ(AD-11)。
+実 LLM 出力の検証 gate は `clinosim check-narratives`(semantic check)、LLM golden は
+`clinosim regenerate-goldens --provider <p> --model-tag <tag>`。リモート実行手順は
+`docs/design-notes/2026-07-03-remote-llm-narrative-workflow.md` 参照。
 
 ## 権威ソース
 
