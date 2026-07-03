@@ -400,6 +400,22 @@ def test_load_raises_on_template_seed_with_free_text_format() -> None:
         reg_module._validate_document_type_specs(data)
 
 
+# === chain 2: admission_care_plan (LOINC 18776-5) ===
+
+
+def test_admission_care_plan_loinc_code_resolves() -> None:
+    """LOINC 18776-5 ('Plan of care note') must resolve in both languages —
+    verified against loinc.org / findacode.com during design (spec §2)."""
+    from clinosim.codes import lookup as code_lookup
+
+    assert code_lookup("loinc", "18776-5", "en") == "Plan of care note"
+    assert code_lookup("loinc", "18776-5", "ja") == "入院診療計画書"
+
+
+def test_document_type_has_admission_care_plan() -> None:
+    assert DocumentType.ADMISSION_CARE_PLAN.value == "admission_care_plan"
+
+
 def test_production_yaml_passes_stage2_validation() -> None:
     """Positive: the shipped document_type_specs.yaml passes Layers 8 + 9."""
     import clinosim.modules.document.narrative.registry as reg_module

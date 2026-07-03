@@ -77,6 +77,37 @@ Edit `clinosim/types/document.py`, in the `DocumentType` class, after the `ED_TR
     ADMISSION_CARE_PLAN = "admission_care_plan"                   # LOINC 18776-5 (verified 2026-07-03)
 ```
 
+- [ ] **Step 4b (discovered during execution): sync `LLMTaskType` in `llm_service/engine.py`**
+
+Not anticipated by the original plan — `clinosim/modules/llm_service/engine.py` runs an
+import-time validator (`_validate_document_task_sync()`, N-3 N-chain work) that requires
+every `DocumentType` value to also exist as a NARRATIVE-category `LLMTaskType`. Adding the
+enum value in Step 4 alone breaks test collection project-wide (`ImportError` at import time)
+until this is added too. Add to `clinosim/modules/llm_service/engine.py`:
+
+```python
+    ED_TRIAGE_NOTE = "ed_triage_note"                              # LOINC 54094-8
+    # chain 2 (厚労省4帳票, N-3 enum sync)
+    ADMISSION_CARE_PLAN = "admission_care_plan"                    # LOINC 18776-5
+```
+
+in the `LLMTaskType` enum, plus:
+
+```python
+    LLMTaskType.ADMISSION_CARE_PLAN: LLMTaskCategory.NARRATIVE,
+```
+
+in `TASK_CATEGORY`, plus:
+
+```python
+    LLMTaskType.ADMISSION_CARE_PLAN: "18776-5",           # Plan of care note
+```
+
+in `DOCUMENT_LOINC` (required — the doc-producing / has-a-LOINC-code branch per
+`_validate_document_task_sync`'s docstring). This also means `tests/unit/test_llm_task_enum_sync.py`
+must pass with no changes (it's fully generic, no hardcoded per-type assertions) —
+run it as part of Step 5 below.
+
 - [ ] **Step 5: Run test to verify it passes**
 
 Run: `pytest tests/unit/modules/document/narrative/test_registry.py -v`
