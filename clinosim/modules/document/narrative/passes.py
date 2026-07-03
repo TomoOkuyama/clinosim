@@ -151,6 +151,7 @@ class NarrativePass(ABC):
             languages_used=sorted(languages_used),
             llm_cost_report=self._llm_cost_report(),
             patient_filter=self.patient_filter,
+            partial=bool(self.patient_filter),
         )
         manifest_path = os.path.join(self.cif_dir, "narratives", self.version_id, "manifest.json")
         with open(manifest_path, "w") as f:

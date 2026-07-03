@@ -176,8 +176,10 @@ def main() -> None:
             "Update current_version.txt to point to the new version. "
             "Default: yes for --provider template, no for LLM providers "
             "(bedrock/ollama/mock) so a trial run cannot silently repoint "
-            "production exports (M-3, N-chain adv-1). Explicit "
-            "--set-current / --no-set-current always wins"
+            "production exports (M-3, N-chain adv-1), and no for ANY "
+            "provider when --patient-filter is set (a partial version "
+            "must not silently become current — chain 1b adv-1 I-1). "
+            "Explicit --set-current / --no-set-current always wins"
         ),
     )
     nr.add_argument("--seed", type=int, default=42, help="RNG seed for determinism")
@@ -188,6 +190,18 @@ def main() -> None:
             "Regex over patient filename stem / patient_id — narrate only "
             "matching patients (remote per-patient iteration, chain 1b T3). "
             "The version manifest records the filter. Default: all patients"
+        ),
+    )
+    nr.add_argument(
+        "--merge-into-version",
+        action="store_true",
+        help=(
+            "With --patient-filter: allow writing into an existing version "
+            "directory that already contains documents (iterate-one-patient "
+            "loop). Files from previous runs remain on disk and "
+            "manifest.json reflects only the last run. Without this flag a "
+            "filtered write into a non-empty version is refused "
+            "(chain 1b adv-1 I-1)"
         ),
     )
 
@@ -1291,6 +1305,32 @@ def _run_narrate(args: Any) -> None:
     version_id = args.version_id or ("template" if args.provider == "template" else args.provider)
     tasks = [t.strip() for t in args.tasks.split(",")] if args.tasks else None
 
+    # I-1 (chain 1b adv-1): a filtered write into a version dir that already
+    # contains documents leaves stale files from the previous generation on
+    # disk (mixed version; manifest records only the last run) — refuse
+    # unless the user explicitly opts in with --merge-into-version.
+    if args.patient_filter:
+        documents_dir = os.path.join(args.cif_dir, "narratives", version_id, "documents")
+        has_existing_docs = os.path.isdir(documents_dir) and any(os.scandir(documents_dir))
+        if has_existing_docs and not args.merge_into_version:
+            print(
+                f"narrate: ERROR: --patient-filter would write into existing "
+                f"version 'narratives/{version_id}/' which already contains "
+                "documents. Files not matched by the filter would remain from "
+                "the previous generation (stale mixed version) and "
+                "manifest.json would record only this run. Use a fresh "
+                "--version-id, or pass --merge-into-version to opt in.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+        if has_existing_docs:
+            print(
+                f"narrate: NOTICE: merging filtered run into existing version "
+                f"'narratives/{version_id}/' — mixed-generation files may "
+                "coexist and manifest.json reflects only this run.",
+                file=sys.stderr,
+            )
+
     pass_impl: TemplateNarrativePass | LLMNarrativePass
     if args.provider == "template":
         pass_impl = TemplateNarrativePass(
@@ -1318,10 +1358,21 @@ def _run_narrate(args: Any) -> None:
     # True only for the template provider — an LLM/mock trial must not
     # silently repoint current_version.txt (export-fhir defaults to "current",
     # so a repointed trial would leak mock narratives into production
-    # exports). Explicit --set-current / --no-set-current always wins.
-    set_current = (
-        args.set_current if args.set_current is not None else args.provider == "template"
-    )
+    # exports). I-1 (chain 1b adv-1): with --patient-filter the default is
+    # False for ALL providers — a partial version must not silently become
+    # current. Explicit --set-current / --no-set-current always wins.
+    if args.set_current is not None:
+        set_current = args.set_current
+    else:
+        set_current = args.provider == "template" and not args.patient_filter
+    if set_current and args.patient_filter:
+        print(
+            f"narrate: WARNING: partial version set as current — "
+            f"'narratives/{version_id}/' was generated with --patient-filter "
+            f"{args.patient_filter!r}; export-fhir (default 'current') will "
+            "find narratives only for matched patients.",
+            file=sys.stderr,
+        )
     if set_current:
         os.makedirs(os.path.join(args.cif_dir, "narratives"), exist_ok=True)
         with open(os.path.join(args.cif_dir, "narratives", "current_version.txt"), "w") as f:
