@@ -10,6 +10,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 
+# See clinosim/types/clinical.py for rationale (determinism chain, 2026-07-04).
+_UNSET_DATETIME = datetime(1970, 1, 1)
+
 __all__ = ["ProcedureRecord", "RehabSession"]
 
 
@@ -28,8 +31,8 @@ class ProcedureRecord:
     # in CIF. Consumers resolve via code_lookup("k-codes"|"cpt", code, lang).
 
     # Timing
-    start_datetime: datetime = field(default_factory=datetime.now)
-    end_datetime: datetime = field(default_factory=datetime.now)
+    start_datetime: datetime = field(default_factory=lambda: _UNSET_DATETIME)
+    end_datetime: datetime = field(default_factory=lambda: _UNSET_DATETIME)
     duration_minutes: int = 90
 
     # Team
@@ -72,7 +75,7 @@ class RehabSession:
     patient_id: str = ""
     encounter_id: str = ""
     therapy_type: str = "PT"  # "PT" | "OT" | "ST"
-    session_date: datetime = field(default_factory=datetime.now)
+    session_date: datetime = field(default_factory=lambda: _UNSET_DATETIME)
     duration_minutes: int = 40
     day_post_op: int = 0
     activities: list[str] = field(default_factory=list)
