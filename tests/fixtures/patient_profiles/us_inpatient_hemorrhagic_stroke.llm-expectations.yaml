@@ -1,0 +1,11 @@
+# Semantic-check expectations for us_inpatient_hemorrhagic_stroke
+# (β-JP-1 chain 1b T2). Minimal clinical anchors — see us_inpatient_acute_mi
+# expectations header for authoring policy.
+admission_hp:
+  chief_complaint:
+    all_of: ["headache"]
+discharge_summary:
+  discharge_diagnoses:
+    all_of: ["intracerebral hemorrhage", "I61.9"]
+  hospital_course:
+    any_of: ["improve", "discharged", "hospitalized"]

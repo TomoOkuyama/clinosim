@@ -176,11 +176,34 @@ def main() -> None:
             "Update current_version.txt to point to the new version. "
             "Default: yes for --provider template, no for LLM providers "
             "(bedrock/ollama/mock) so a trial run cannot silently repoint "
-            "production exports (M-3, N-chain adv-1). Explicit "
-            "--set-current / --no-set-current always wins"
+            "production exports (M-3, N-chain adv-1), and no for ANY "
+            "provider when --patient-filter is set (a partial version "
+            "must not silently become current — chain 1b adv-1 I-1). "
+            "Explicit --set-current / --no-set-current always wins"
         ),
     )
     nr.add_argument("--seed", type=int, default=42, help="RNG seed for determinism")
+    nr.add_argument(
+        "--patient-filter",
+        default=None,
+        help=(
+            "Regex over patient filename stem / patient_id — narrate only "
+            "matching patients (remote per-patient iteration, chain 1b T3). "
+            "The version manifest records the filter. Default: all patients"
+        ),
+    )
+    nr.add_argument(
+        "--merge-into-version",
+        action="store_true",
+        help=(
+            "With --patient-filter: allow writing into an existing version "
+            "directory that already contains documents (iterate-one-patient "
+            "loop). Files from previous runs remain on disk and "
+            "manifest.json reflects only the last run. Without this flag a "
+            "filtered write into a non-empty version is refused "
+            "(chain 1b adv-1 I-1)"
+        ),
+    )
 
     # === export-fhir: Stage 3 — convert CIF to FHIR NDJSON ===
     ef = sub.add_parser(
@@ -247,6 +270,72 @@ def main() -> None:
         action="store_true",
         help="Regenerate goldens for all profiles in the fixtures dir",
     )
+    # β-JP-1 chain 1b T1: LLM parallel goldens. template (default) keeps the
+    # historical <name>.golden.json naming; LLM providers write
+    # <name>.llm-<tag>.golden.json via a `narrate --provider` subprocess step.
+    rg.add_argument(
+        "--provider",
+        default="template",
+        choices=["template", "mock", "bedrock", "ollama"],
+        help=(
+            "Narrative generator for the golden run: 'template' (default, "
+            "writes <name>.golden.json — unchanged) or an LLM provider "
+            "(mock/bedrock/ollama, writes <name>.llm-<tag>.golden.json)"
+        ),
+    )
+    rg.add_argument(
+        "--llm-config",
+        default=None,
+        help="LLM service YAML passed through to narrate (LLM providers only)",
+    )
+    rg.add_argument(
+        "--model-tag",
+        default=None,
+        help=(
+            "Filename tag for LLM goldens: <name>.llm-<tag>.golden.json "
+            "(default: provider name, e.g. mock). LLM providers only"
+        ),
+    )
+    # T3 guard: declared ONLY so that combining it with regenerate-goldens is
+    # rejected loudly (goldens must always cover the full profile cohort —
+    # a partial golden would silently pass byte-diff on the subset).
+    rg.add_argument(
+        "--patient-filter",
+        default=None,
+        help="NOT allowed here — goldens must never be partial. Use `narrate --patient-filter`",
+    )
+
+    # === check-narratives: β-JP-1 chain 1b T2 semantic check ===
+    cn = sub.add_parser(
+        "check-narratives",
+        help=(
+            "Semantic check of a narrative version (5 axes; the LLM-output "
+            "gate where byte-diff does not apply). Exit 0 = pass, 1 = findings"
+        ),
+    )
+    cn.add_argument("--cif-dir", required=True, help="Path to a CIF directory")
+    cn.add_argument(
+        "--version", required=True,
+        help="Narrative version id to check (e.g. llm-mock, ollama)",
+    )
+    cn.add_argument(
+        "--profile",
+        default=None,
+        help=(
+            "Patient profile name — resolves expectations to "
+            "tests/fixtures/patient_profiles/<name>.llm-expectations.yaml"
+        ),
+    )
+    cn.add_argument(
+        "--expectations",
+        default=None,
+        help="Explicit expectations YAML path (overrides --profile resolution)",
+    )
+    cn.add_argument(
+        "--report",
+        default=None,
+        help="Write the full SemanticCheckReport as JSON to this path",
+    )
 
     # === audit: verification framework ===
     from clinosim.audit.cli import add_audit_subparser
@@ -296,6 +385,10 @@ def main() -> None:
 
     if args.command == "narrate":
         _run_narrate(args)
+        return
+
+    if args.command == "check-narratives":
+        _run_check_narratives(args)
         return
 
     if args.command == "export-fhir":
@@ -962,15 +1055,40 @@ def _run_regenerate_goldens(args: Any) -> None:
     """AD-66 α-min-2c T3: regenerate narrative goldens for canonical profiles.
 
     For each target profile: run test-disease pipeline into a tmpdir, walk
-    cif/narratives/template/documents/**/*.json, write the merged dict to
-    <profile>.golden.json in the fixture dir. Emits stderr note prompting
-    user to `git diff + commit if intentional`.
+    cif/narratives/<version>/documents/**/*.json, write the merged dict to
+    the golden path in the fixture dir. Emits stderr note prompting user to
+    `git diff + commit if intentional`.
+
+    β-JP-1 chain 1b T1: ``--provider mock|bedrock|ollama`` inserts a
+    ``narrate --provider`` subprocess step on top of the structural CIF and
+    writes ``<profile>.llm-<tag>.golden.json`` instead (template golden
+    naming unchanged). ``<tag>`` defaults to the provider name; override
+    with ``--model-tag`` (e.g. a real model id on the remote LLM server).
     """
     import json
     import subprocess
     import tempfile
 
-    from clinosim.types.config import _PATIENT_PROFILE_DIR
+    from clinosim.types.config import _PATIENT_PROFILE_DIR, load_patient_profile
+
+    if getattr(args, "patient_filter", None):
+        print(
+            "ERROR: regenerate-goldens must never write partial goldens — "
+            "--patient-filter is not allowed here. Iterate with "
+            "`clinosim narrate --patient-filter`, then regenerate WITHOUT a filter",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
+    provider: str = getattr(args, "provider", "template")
+    if provider == "template" and (args.model_tag or args.llm_config):
+        print(
+            "ERROR: --model-tag / --llm-config require an LLM --provider "
+            "(mock/bedrock/ollama); they have no effect with --provider template",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+    tag = args.model_tag or provider
 
     # Support env var override for test isolation
     fixture_dir_env = os.environ.get("CLINOSIM_PATIENT_PROFILE_DIR")
@@ -979,7 +1097,10 @@ def _run_regenerate_goldens(args: Any) -> None:
     fixture_dir = Path(fixture_dir_env) if fixture_dir_env else _PATIENT_PROFILE_DIR
 
     if args.all:
-        profile_paths = sorted(fixture_dir.glob("*.yaml"))
+        profile_paths = sorted(
+            p for p in fixture_dir.glob("*.yaml")
+            if not p.name.endswith(".llm-expectations.yaml")
+        )
     else:
         p = fixture_dir / f"{args.profile}.yaml"
         if not p.is_file():
@@ -991,17 +1112,48 @@ def _run_regenerate_goldens(args: Any) -> None:
         print(f"ERROR: no profiles found in {fixture_dir}", file=sys.stderr)
         sys.exit(2)
 
+    def _run_step(cmd: list[str], label: str) -> None:
+        """Run one pipeline subprocess; fail loud with its stderr on error."""
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        if result.returncode != 0:
+            print(f"ERROR: {label} failed (exit {result.returncode}):", file=sys.stderr)
+            print(result.stderr, file=sys.stderr)
+            sys.exit(1)
+
     count = 0
     for profile_path in profile_paths:
         profile_id = profile_path.stem
         with tempfile.TemporaryDirectory() as tmpdir:
-            subprocess.run(
+            _run_step(
                 [sys.executable, "-m", "clinosim.simulator.cli", "test-disease",
                  "--patient-profile", str(profile_path),
                  "--format", "cif", "-o", str(tmpdir)],
-                check=True, capture_output=True, text=True,
+                label=f"test-disease ({profile_id})",
             )
-            narr_dir = Path(tmpdir) / "cif" / "narratives" / "template" / "documents"
+            cif_dir = Path(tmpdir) / "cif"
+
+            if provider == "template":
+                narr_version = "template"
+                golden_path = fixture_dir / f"{profile_id}.golden.json"
+            else:
+                # LLM golden: narrate the structural CIF with the requested
+                # provider. Country/seed come from the profile (the pipeline
+                # subprocess above already used them for Stage 1).
+                narr_version = f"llm-{tag}"
+                profile = load_patient_profile(str(profile_path))
+                narrate_cmd = [
+                    sys.executable, "-m", "clinosim.simulator.cli", "narrate",
+                    "--cif-dir", str(cif_dir), "--provider", provider,
+                    "--country", profile.country,
+                    "--seed", str(profile.random_seed),
+                    "--version-id", narr_version, "--no-set-current",
+                ]
+                if args.llm_config:
+                    narrate_cmd += ["--llm-config", args.llm_config]
+                _run_step(narrate_cmd, label=f"narrate --provider {provider} ({profile_id})")
+                golden_path = fixture_dir / f"{profile_id}.llm-{tag}.golden.json"
+
+            narr_dir = cif_dir / "narratives" / narr_version / "documents"
             actual: dict[str, dict] = {}
             if narr_dir.is_dir():
                 for enc_dir in sorted(narr_dir.iterdir()):
@@ -1012,7 +1164,6 @@ def _run_regenerate_goldens(args: Any) -> None:
                             continue
                         actual[doc_file.stem] = json.loads(doc_file.read_text())
 
-            golden_path = fixture_dir / f"{profile_id}.golden.json"
             golden_path.write_text(
                 json.dumps(actual, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
             )
@@ -1154,6 +1305,32 @@ def _run_narrate(args: Any) -> None:
     version_id = args.version_id or ("template" if args.provider == "template" else args.provider)
     tasks = [t.strip() for t in args.tasks.split(",")] if args.tasks else None
 
+    # I-1 (chain 1b adv-1): a filtered write into a version dir that already
+    # contains documents leaves stale files from the previous generation on
+    # disk (mixed version; manifest records only the last run) — refuse
+    # unless the user explicitly opts in with --merge-into-version.
+    if args.patient_filter:
+        documents_dir = os.path.join(args.cif_dir, "narratives", version_id, "documents")
+        has_existing_docs = os.path.isdir(documents_dir) and any(os.scandir(documents_dir))
+        if has_existing_docs and not args.merge_into_version:
+            print(
+                f"narrate: ERROR: --patient-filter would write into existing "
+                f"version 'narratives/{version_id}/' which already contains "
+                "documents. Files not matched by the filter would remain from "
+                "the previous generation (stale mixed version) and "
+                "manifest.json would record only this run. Use a fresh "
+                "--version-id, or pass --merge-into-version to opt in.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+        if has_existing_docs:
+            print(
+                f"narrate: NOTICE: merging filtered run into existing version "
+                f"'narratives/{version_id}/' — mixed-generation files may "
+                "coexist and manifest.json reflects only this run.",
+                file=sys.stderr,
+            )
+
     pass_impl: TemplateNarrativePass | LLMNarrativePass
     if args.provider == "template":
         pass_impl = TemplateNarrativePass(
@@ -1162,6 +1339,7 @@ def _run_narrate(args: Any) -> None:
             country=args.country,
             tasks=tasks,
             rng_seed=args.seed,
+            patient_filter=args.patient_filter,
         )
     else:
         llm = _build_llm_service_for_narrate(args.provider, args.llm_config)
@@ -1172,6 +1350,7 @@ def _run_narrate(args: Any) -> None:
             country=args.country,
             tasks=tasks,
             rng_seed=args.seed,
+            patient_filter=args.patient_filter,
         )
 
     manifest = pass_impl.run()
@@ -1179,10 +1358,21 @@ def _run_narrate(args: Any) -> None:
     # True only for the template provider — an LLM/mock trial must not
     # silently repoint current_version.txt (export-fhir defaults to "current",
     # so a repointed trial would leak mock narratives into production
-    # exports). Explicit --set-current / --no-set-current always wins.
-    set_current = (
-        args.set_current if args.set_current is not None else args.provider == "template"
-    )
+    # exports). I-1 (chain 1b adv-1): with --patient-filter the default is
+    # False for ALL providers — a partial version must not silently become
+    # current. Explicit --set-current / --no-set-current always wins.
+    if args.set_current is not None:
+        set_current = args.set_current
+    else:
+        set_current = args.provider == "template" and not args.patient_filter
+    if set_current and args.patient_filter:
+        print(
+            f"narrate: WARNING: partial version set as current — "
+            f"'narratives/{version_id}/' was generated with --patient-filter "
+            f"{args.patient_filter!r}; export-fhir (default 'current') will "
+            "find narratives only for matched patients.",
+            file=sys.stderr,
+        )
     if set_current:
         os.makedirs(os.path.join(args.cif_dir, "narratives"), exist_ok=True)
         with open(os.path.join(args.cif_dir, "narratives", "current_version.txt"), "w") as f:
@@ -1192,6 +1382,66 @@ def _run_narrate(args: Any) -> None:
         f"narrate: wrote {manifest.document_count} narrative documents across "
         f"{manifest.encounter_count} encounters → narratives/{version_id}/"
     )
+
+
+def _run_check_narratives(args: Any) -> None:
+    """β-JP-1 chain 1b T2: semantic check CLI over one narrative version.
+
+    Expectations resolution: explicit ``--expectations PATH`` wins; else
+    ``--profile <name>`` resolves ``<fixtures>/<name>.llm-expectations.yaml``
+    (CLINOSIM_PATIENT_PROFILE_DIR env override respected, mirroring
+    regenerate-goldens); neither → builtin axes only. Exit code: 0 = pass,
+    1 = findings, 2 = bad inputs (missing/invalid expectations file).
+    """
+    import json
+    from pathlib import Path
+
+    from clinosim.modules.document.narrative.semantic_check import (
+        check_narratives,
+        load_expectations,
+    )
+    from clinosim.types.config import _PATIENT_PROFILE_DIR
+
+    expectations = None
+    expectations_path: Path | None = None
+    if args.expectations:
+        expectations_path = Path(args.expectations)
+    elif args.profile:
+        fixture_dir_env = os.environ.get("CLINOSIM_PATIENT_PROFILE_DIR")
+        fixture_dir = Path(fixture_dir_env) if fixture_dir_env else _PATIENT_PROFILE_DIR
+        expectations_path = fixture_dir / f"{args.profile}.llm-expectations.yaml"
+
+    if expectations_path is not None:
+        try:
+            expectations = load_expectations(expectations_path)
+        except FileNotFoundError:
+            print(f"ERROR: expectations file not found: {expectations_path}", file=sys.stderr)
+            sys.exit(2)
+        except ValueError as e:
+            print(f"ERROR: invalid expectations file: {e}", file=sys.stderr)
+            sys.exit(2)
+
+    report = check_narratives(args.cif_dir, args.version, expectations)
+
+    if args.report:
+        with open(args.report, "w", encoding="utf-8") as f:
+            json.dump(report.to_dict(), f, indent=2, ensure_ascii=False)
+        print(f"check-narratives: report written to {args.report}")
+
+    print(
+        f"check-narratives: version={args.version} documents={report.document_count} "
+        f"findings={len(report.findings)} generator={report.info.get('generator', '?')}"
+    )
+    for finding in report.findings:
+        loc = finding.document_id or "-"
+        if finding.section:
+            loc += f"/{finding.section}"
+        print(f"  [{finding.axis}] {loc}: {finding.message}")
+
+    if not report.passed:
+        print("check-narratives: FAIL", file=sys.stderr)
+        sys.exit(1)
+    print("check-narratives: PASS")
 
 
 def _run_export_fhir(args: Any) -> None:

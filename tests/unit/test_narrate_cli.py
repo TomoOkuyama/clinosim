@@ -141,3 +141,102 @@ def test_narrate_mock_explicit_set_current_updates_pointer(tmp_path):
     pointer = (tmp_path / "narratives/current_version.txt").read_text().strip()
     assert pointer == "mock"
     assert "current -> mock" in r.stdout
+
+
+# === I-1 (chain 1b adv-1): partial (--patient-filter) run guards ===
+
+
+def _narrate(tmp_path: Path, *extra: str) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        [sys.executable, "-m", "clinosim.simulator.cli", "narrate",
+         "--cif-dir", str(tmp_path), "--country", "US", *extra],
+        capture_output=True, text=True,
+    )
+
+
+@pytest.mark.unit
+def test_narrate_filtered_default_does_not_set_current(tmp_path):
+    """I-1(a) pin: with --patient-filter, the set-current default resolves to
+    False for ALL providers (template included) — a partial run must never
+    silently become 'current' for export-fhir."""
+    _write_tiny_structural(tmp_path)
+    r = _narrate(tmp_path, "--provider", "template", "--patient-filter", "ENC-1")
+    assert r.returncode == 0, r.stderr
+    assert not (tmp_path / "narratives/current_version.txt").exists()
+    assert "current ->" not in r.stdout
+
+
+@pytest.mark.unit
+def test_narrate_filtered_explicit_set_current_warns(tmp_path):
+    """I-1: explicit --set-current with a filter proceeds but warns loudly."""
+    _write_tiny_structural(tmp_path)
+    r = _narrate(
+        tmp_path, "--provider", "template",
+        "--patient-filter", "ENC-1", "--set-current",
+    )
+    assert r.returncode == 0, r.stderr
+    pointer = (tmp_path / "narratives/current_version.txt").read_text().strip()
+    assert pointer == "template"
+    assert "WARNING" in r.stderr and "partial" in r.stderr
+
+
+@pytest.mark.unit
+def test_narrate_filtered_into_existing_version_refused(tmp_path):
+    """I-1(b) pin: a filtered write into a version dir that already contains
+    documents is refused (stale mixed-generation files) without
+    --merge-into-version."""
+    _write_tiny_structural(tmp_path)
+    full = _narrate(tmp_path, "--provider", "template", "--no-set-current")
+    assert full.returncode == 0, full.stderr
+    manifest_before = (tmp_path / "narratives/template/manifest.json").read_text()
+    r = _narrate(tmp_path, "--provider", "template", "--patient-filter", "ENC-1")
+    assert r.returncode != 0
+    assert "--merge-into-version" in r.stderr
+    # Refusal happens before the pass runs: manifest untouched
+    assert (tmp_path / "narratives/template/manifest.json").read_text() == manifest_before
+
+
+@pytest.mark.unit
+def test_narrate_filtered_merge_into_version_opt_in(tmp_path):
+    """I-1: --merge-into-version opts in to the iterate-one-patient loop,
+    with a notice that mixed-generation files may coexist."""
+    _write_tiny_structural(tmp_path)
+    full = _narrate(tmp_path, "--provider", "template", "--no-set-current")
+    assert full.returncode == 0, full.stderr
+    r = _narrate(
+        tmp_path, "--provider", "template",
+        "--patient-filter", "ENC-1", "--merge-into-version",
+    )
+    assert r.returncode == 0, r.stderr
+    assert "NOTICE" in r.stderr
+    assert (tmp_path / "narratives/template/documents/ENC-1").exists()
+
+
+@pytest.mark.unit
+def test_narrate_filtered_fresh_version_needs_no_flag(tmp_path):
+    """I-1: a filtered run into a fresh (or empty) version dir needs no flag."""
+    _write_tiny_structural(tmp_path)
+    r = _narrate(
+        tmp_path, "--provider", "template",
+        "--version-id", "trial-1", "--patient-filter", "ENC-1",
+    )
+    assert r.returncode == 0, r.stderr
+    assert (tmp_path / "narratives/trial-1/documents/ENC-1").exists()
+
+
+@pytest.mark.unit
+def test_narrate_manifest_partial_flag(tmp_path):
+    """I-1: the manifest records partial=true for filtered runs, false else."""
+    _write_tiny_structural(tmp_path)
+    r = _narrate(
+        tmp_path, "--provider", "template",
+        "--version-id", "trial-1", "--patient-filter", "ENC-1",
+    )
+    assert r.returncode == 0, r.stderr
+    partial = json.loads((tmp_path / "narratives/trial-1/manifest.json").read_text())
+    assert partial["partial"] is True
+    assert partial["patient_filter"] == "ENC-1"
+    full = _narrate(tmp_path, "--provider", "template", "--no-set-current")
+    assert full.returncode == 0, full.stderr
+    manifest = json.loads((tmp_path / "narratives/template/manifest.json").read_text())
+    assert manifest["partial"] is False

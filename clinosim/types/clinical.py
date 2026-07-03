@@ -167,6 +167,15 @@ class NarrativeVersionManifest:
     doc_types_enabled: list[str]
     languages_used: list[str]
     llm_cost_report: dict
+    # β-JP-1 chain 1b T3: regex passed via `narrate --patient-filter` ("" =
+    # full cohort). Recorded so a partial version is self-describing —
+    # `regenerate-goldens` refuses filters, and consumers can detect that a
+    # version does not cover the whole cohort.
+    patient_filter: str = ""
+    # β-JP-1 chain 1b adv-1 I-1: True ⇔ patient_filter was set for this run.
+    # Cheap partial-version detection for downstream consumers (export
+    # guards, tooling) without inspecting the regex string.
+    partial: bool = False
 
 
 @dataclass
