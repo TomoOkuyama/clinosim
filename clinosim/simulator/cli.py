@@ -181,6 +181,15 @@ def main() -> None:
         ),
     )
     nr.add_argument("--seed", type=int, default=42, help="RNG seed for determinism")
+    nr.add_argument(
+        "--patient-filter",
+        default=None,
+        help=(
+            "Regex over patient filename stem / patient_id — narrate only "
+            "matching patients (remote per-patient iteration, chain 1b T3). "
+            "The version manifest records the filter. Default: all patients"
+        ),
+    )
 
     # === export-fhir: Stage 3 — convert CIF to FHIR NDJSON ===
     ef = sub.add_parser(
@@ -272,6 +281,14 @@ def main() -> None:
             "Filename tag for LLM goldens: <name>.llm-<tag>.golden.json "
             "(default: provider name, e.g. mock). LLM providers only"
         ),
+    )
+    # T3 guard: declared ONLY so that combining it with regenerate-goldens is
+    # rejected loudly (goldens must always cover the full profile cohort —
+    # a partial golden would silently pass byte-diff on the subset).
+    rg.add_argument(
+        "--patient-filter",
+        default=None,
+        help="NOT allowed here — goldens must never be partial. Use `narrate --patient-filter`",
     )
 
     # === check-narratives: β-JP-1 chain 1b T2 semantic check ===
@@ -1040,6 +1057,15 @@ def _run_regenerate_goldens(args: Any) -> None:
 
     from clinosim.types.config import _PATIENT_PROFILE_DIR, load_patient_profile
 
+    if getattr(args, "patient_filter", None):
+        print(
+            "ERROR: regenerate-goldens must never write partial goldens — "
+            "--patient-filter is not allowed here. Iterate with "
+            "`clinosim narrate --patient-filter`, then regenerate WITHOUT a filter",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
     provider: str = getattr(args, "provider", "template")
     if provider == "template" and (args.model_tag or args.llm_config):
         print(
@@ -1273,6 +1299,7 @@ def _run_narrate(args: Any) -> None:
             country=args.country,
             tasks=tasks,
             rng_seed=args.seed,
+            patient_filter=args.patient_filter,
         )
     else:
         llm = _build_llm_service_for_narrate(args.provider, args.llm_config)
@@ -1283,6 +1310,7 @@ def _run_narrate(args: Any) -> None:
             country=args.country,
             tasks=tasks,
             rng_seed=args.seed,
+            patient_filter=args.patient_filter,
         )
 
     manifest = pass_impl.run()
