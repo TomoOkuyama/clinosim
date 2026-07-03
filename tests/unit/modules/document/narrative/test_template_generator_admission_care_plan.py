@@ -68,6 +68,10 @@ def _make_procedure(category_code: str = "387713003", procedure_type: str = "app
     )
 
 
+def _make_disease_protocol(target_los: dict[str, Any]) -> Any:
+    return SimpleNamespace(target_los=target_los)
+
+
 def _make_ctx(
     encounter: Any = None,
     diagnoses: list[Any] | None = None,
@@ -76,15 +80,17 @@ def _make_ctx(
     los_days: int = 7,
     target_lang: str = "ja",
     locale: str = "jp",
+    disease_protocol: Any = None,
+    severity: str = "moderate",
 ) -> NarrativeContext:
     return NarrativeContext(
         patient=PatientProfile(patient_id="pt-acp-test"),
         encounter=encounter or _make_encounter(),
         encounter_type=SimpleNamespace(value="inpatient"),
-        disease_protocol=None,
+        disease_protocol=disease_protocol,
         encounter_protocol=None,
         clinical_course_archetype="uncomplicated_improvement",
-        severity="moderate",
+        severity=severity,
         day_index=0,
         los_days=los_days,
         vitals=[],
@@ -201,12 +207,44 @@ def test_surgery_schedule_none_planned_when_no_procedures() -> None:
     assert out.sections["surgery_schedule"].strip() != ""
 
 
-def test_estimated_los_uses_ctx_los_days() -> None:
+def test_estimated_los_falls_back_to_ctx_los_days_without_disease_protocol() -> None:
+    """No disease_protocol (e.g. unknown-condition path) -> fall back to the
+    realized ctx.los_days (adv-1: only a fallback now, not the primary source)."""
     spec = _make_spec()
-    ctx = _make_ctx(los_days=12)
+    ctx = _make_ctx(los_days=12, disease_protocol=None)
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
     assert "12" in out.sections["estimated_los"]
+
+
+def test_estimated_los_uses_disease_protocol_target_los_mean_when_available() -> None:
+    """adv-1 finding: estimated_los must be a genuine at-admission PREDICTION
+    (disease_protocol.target_los[country][severity].mean), not the realized
+    ctx.los_days — using the realized LOS made the "estimate" tautologically
+    100% accurate, which is unrealistic. 15 (target_los mean) must differ from
+    and take precedence over los_days=7 (the realized LOS) here."""
+    spec = _make_spec()
+    proto = _make_disease_protocol(
+        target_los={"japan": {"moderate": {"mean": 15, "sd": 3, "min": 8, "max": 25}}}
+    )
+    ctx = _make_ctx(los_days=7, disease_protocol=proto, severity="moderate", locale="jp")
+    gen = TemplateNarrativeGenerator()
+    out = gen.generate(ctx, spec)
+    assert "15" in out.sections["estimated_los"]
+    assert "7" not in out.sections["estimated_los"]
+
+
+def test_estimated_los_falls_back_when_severity_not_in_target_los() -> None:
+    """disease_protocol present but target_los has no entry for ctx.severity
+    -> fall back to ctx.los_days rather than crashing or emitting a blank."""
+    spec = _make_spec()
+    proto = _make_disease_protocol(
+        target_los={"japan": {"mild": {"mean": 5, "sd": 1, "min": 3, "max": 8}}}
+    )
+    ctx = _make_ctx(los_days=9, disease_protocol=proto, severity="severe", locale="jp")
+    gen = TemplateNarrativeGenerator()
+    out = gen.generate(ctx, spec)
+    assert "9" in out.sections["estimated_los"]
 
 
 def test_special_nutrition_management_is_always_no() -> None:

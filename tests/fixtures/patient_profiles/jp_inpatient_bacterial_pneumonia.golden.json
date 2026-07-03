@@ -1087,7 +1087,7 @@
         "ctx.diagnoses",
         "disease_protocol.chief_complaint.ja",
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_0",
-        "ctx.los_days"
+        "disease_protocol.target_los"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
@@ -1097,7 +1097,7 @@
       },
       "sections": {
         "diagnosis": "肺炎、詳細不明（J18.9）",
-        "estimated_los": "推定入院期間：約11日間",
+        "estimated_los": "推定入院期間：約14日間",
         "other_plans": "その他：看護計画・リハビリテーション等の計画については看護記録を参照。",
         "other_staff": "担当なし",
         "special_nutrition_management": "特別な栄養管理の必要性：無",

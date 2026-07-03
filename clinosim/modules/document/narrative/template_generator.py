@@ -1319,15 +1319,31 @@ class TemplateNarrativeGenerator:
         return (f"手術予定：{joined}" if is_ja else f"Planned surgery: {joined}"), facts
 
     def _build_acp_estimated_los(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """推定される入院期間 — ctx.los_days (the actual computed LOS for this
-        admission; simpler and RNG-free vs re-reading disease_protocol.target_los
-        distributions — deliberate spec deviation, see implementation plan)."""
-        facts = ["ctx.los_days"]
+        """推定される入院期間 — disease_protocol.target_los[country][severity].mean
+        when available: a genuine day-0 estimate, RNG-free (target_los is a static
+        YAML dict, read directly with no sampling — adv-1 finding: the original
+        implementation used ctx.los_days, the already-realized LOS, which is
+        tautologically 100% accurate and therefore unrealistic for a document
+        meant to represent an AT-ADMISSION prediction). Falls back to ctx.los_days
+        only when disease_protocol is unavailable (e.g. unknown-condition path)."""
+        facts: list[str] = []
         is_ja = ctx.target_lang == "ja"
-        los = ctx.los_days or 1
+        los: float = 0
+        proto = ctx.disease_protocol
+        if proto is not None:
+            country_key = "japan" if ctx.locale == "jp" else "us"
+            target_los = _o(proto, "target_los", {}) or {}
+            los_cfg = (target_los.get(country_key) or {}).get(ctx.severity) or {}
+            if "mean" in los_cfg:
+                los = los_cfg["mean"]
+                facts.append("disease_protocol.target_los")
+        if not los:
+            los = ctx.los_days or 1
+            facts.append("ctx.los_days")
+        los_days = round(los)
         if is_ja:
-            return f"推定入院期間：約{los}日間", facts
-        return f"Estimated length of stay: approximately {los} days", facts
+            return f"推定入院期間：約{los_days}日間", facts
+        return f"Estimated length of stay: approximately {los_days} days", facts
 
     def _build_acp_special_nutrition_management(
         self, ctx: NarrativeContext

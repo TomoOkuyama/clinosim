@@ -1827,6 +1827,27 @@ staff role), revisit this section to derive a real yes/no signal (e.g. from
 BMI, albumin lab values, or disease-specific nutrition risk flags) instead
 of the hardcoded default.
 
+### chain 2 deferred: `section_builders` dict lacks cross-spec key-collision validation
+
+`TemplateNarrativeGenerator._render_composition_sections`'s `section_builders`
+dict (`template_generator.py`) is one flat global namespace shared by every
+COMPOSITION document type; each new doc type adds more string keys into it
+(chain 2 added `ward_and_room` / `diagnosis` / `symptoms` / `test_schedule` /
+etc.). `registry.py`'s Layer 1-9 validators check per-spec coherence (e.g.
+`llm_enabled_sections ⊆ composition_sections`) but nothing validates that a
+NEW doc type's `composition_sections` keys don't collide with an EXISTING,
+unrelated doc type's key already registered in this dict — a plain Python
+dict literal silently keeps the last definition on a duplicate key, so a
+colliding key would silently steal another doc type's renderer with no
+error (adv-1 finding on PR #138, not a live bug today — verified no
+collision currently exists across all registered specs — but the
+architecture has no guard against a future one). Add an import-time
+uniqueness check (mirrors the `registry.py` Layer 1-9 pattern) that walks
+every `DocumentTypeSpec.composition_sections` list and asserts each section
+key maps to at most one doc type's intended semantics, OR restructure
+`section_builders` to be keyed by `(doc_type, section)` instead of bare
+`section` so collisions become structurally impossible.
+
 ### β-2 phase — Clinical event density
 
 - **手術記録** (Operative note) — LOINC 11504-8, existing Stage 2 LLM path; Stage 1 template
