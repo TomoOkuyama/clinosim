@@ -9,6 +9,10 @@ from typing import Any
 
 from clinosim.types.triage import TriageData
 
+# See clinosim/types/clinical.py for rationale (determinism chain, 2026-07-04).
+_UNSET_DATETIME = datetime(1970, 1, 1)
+_UNSET_DATE = date(1970, 1, 1)
+
 
 class EncounterType(str, Enum):
     OUTPATIENT = "outpatient"
@@ -54,7 +58,7 @@ class Encounter:
     attending_physician_id: str = ""
     admitting_physician_id: str = ""
     discharging_physician_id: str = ""
-    admission_datetime: datetime = field(default_factory=datetime.now)
+    admission_datetime: datetime = field(default_factory=lambda: _UNSET_DATETIME)
     discharge_datetime: datetime | None = None
     chief_complaint: str = ""
     disease_event_id: str = ""
@@ -111,7 +115,7 @@ class OrderStatus(str, Enum):
 
 @dataclass
 class OrderResult:
-    result_datetime: datetime = field(default_factory=datetime.now)
+    result_datetime: datetime = field(default_factory=lambda: _UNSET_DATETIME)
     performed_by: str = ""
     lab_name: str = ""  # display name of the test (e.g., "CRP", "WBC")
     value: float | str | None = None
@@ -128,7 +132,7 @@ class MedicationAdministration:
 
     order_id: str = ""
     drug_name: str = ""
-    scheduled_datetime: datetime = field(default_factory=datetime.now)
+    scheduled_datetime: datetime = field(default_factory=lambda: _UNSET_DATETIME)
     actual_datetime: datetime | None = None
     status: str = "given"  # "given" | "held" | "refused" | "not_available"
     dose: str = ""
@@ -145,7 +149,7 @@ class PrescriptionRecord:
     prescription_id: str = ""
     patient_id: str = ""
     prescriber_id: str = ""
-    issue_date: datetime = field(default_factory=datetime.now)
+    issue_date: datetime = field(default_factory=lambda: _UNSET_DATETIME)
     items: list[dict] = field(default_factory=list)
     # Each item: {drug_name, dose, frequency, route, days_supply, generic_name}
 
@@ -160,7 +164,7 @@ class Order:
     display_name: str = ""
     urgency: str = "routine"
     clinical_intent: str = ""
-    ordered_datetime: datetime = field(default_factory=datetime.now)
+    ordered_datetime: datetime = field(default_factory=lambda: _UNSET_DATETIME)
     ordered_by: str = ""
     status: OrderStatus = OrderStatus.PLACED
     result: OrderResult | None = None
@@ -187,7 +191,7 @@ class Order:
 
 @dataclass
 class VitalSignRecord:
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime = field(default_factory=lambda: _UNSET_DATETIME)
     temperature_celsius: float | None = None
     heart_rate: int | None = None
     systolic_bp: int | None = None
@@ -209,7 +213,7 @@ class VitalSignRecord:
 @dataclass
 class ADLAssessment:
     """Activities of Daily Living assessment (Barthel Index, scored 0-100)."""
-    date: date = field(default_factory=date.today)
+    date: date = field(default_factory=lambda: _UNSET_DATE)
     barthel_score: int = 100  # 0=totally dependent, 100=fully independent
     feeding: int = 10  # 0/5/10
     bathing: int = 5  # 0/5
@@ -226,7 +230,7 @@ class ADLAssessment:
 @dataclass
 class NursingRiskAssessment:
     """Daily nursing risk assessment: Braden (pressure ulcer) + Morse (fall) scales."""
-    date: date = field(default_factory=date.today)
+    date: date = field(default_factory=lambda: _UNSET_DATE)
     braden_total: int = 23          # 6-23; lower = higher pressure-ulcer risk
     braden_sensory: int = 4         # 1-4
     braden_moisture: int = 4        # 1-4
@@ -241,7 +245,7 @@ class NursingRiskAssessment:
 @dataclass
 class IntakeOutputRecord:
     """Daily fluid balance record (nursing documentation)."""
-    date: date = field(default_factory=date.today)
+    date: date = field(default_factory=lambda: _UNSET_DATE)
     intake_iv_ml: int = 0  # IV fluid
     intake_oral_ml: int = 0  # oral intake
     intake_other_ml: int = 0  # blood products, tube feeding
@@ -258,7 +262,7 @@ class ImmunizationRecord:
     CIF stores the CVX code only; display resolved at output via clinosim.codes (AD-30).
     """
     vaccine_cvx: str = ""
-    occurrence_date: date = field(default_factory=date.today)
+    occurrence_date: date = field(default_factory=lambda: _UNSET_DATE)
     status: str = "completed"
     primary_source: bool = True
     dose_number: int | None = None

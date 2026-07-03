@@ -5,12 +5,20 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date, datetime
 
+# Deliberately obvious non-real sentinel — replaces the former datetime.now()/
+# date.today() default that made byte-diff output depend on wall-clock
+# execution time (determinism chain, 2026-07-04). Fields using this default
+# are either always overridden by the caller or never read downstream; if
+# this value surfaces in real output, that indicates a missing override.
+_UNSET_DATETIME = datetime(1970, 1, 1)
+_UNSET_DATE = date(1970, 1, 1)
+
 
 @dataclass
 class PhysiologicalState:
     """Snapshot of all hidden state variables at a point in time."""
 
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime = field(default_factory=lambda: _UNSET_DATETIME)
     patient_id: str = ""
 
     inflammation_level: float = 0.03  # 0.0–1.0
@@ -53,7 +61,7 @@ class PhysiologicalState:
 class StateChangeDirective:
     """Instruction to update physiological state variables."""
 
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime = field(default_factory=lambda: _UNSET_DATETIME)
     patient_id: str = ""
     source: str = ""  # "disease_progression" | "treatment_effect" | "complication"
     changes: dict[str, float] = field(default_factory=dict)
@@ -189,7 +197,7 @@ class ClinicalImpressionRecord:
 
     impression_id: str = ""  # "ci-{enc}-{day}"
     encounter_id: str = ""
-    date: date = field(default_factory=date.today)
+    date: date = field(default_factory=lambda: _UNSET_DATE)
     day_index: int = 0
     description: str = ""  # 短い要約
     summary: str = ""  # 詳細
