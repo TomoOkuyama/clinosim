@@ -274,6 +274,38 @@ def main() -> None:
         ),
     )
 
+    # === check-narratives: β-JP-1 chain 1b T2 semantic check ===
+    cn = sub.add_parser(
+        "check-narratives",
+        help=(
+            "Semantic check of a narrative version (5 axes; the LLM-output "
+            "gate where byte-diff does not apply). Exit 0 = pass, 1 = findings"
+        ),
+    )
+    cn.add_argument("--cif-dir", required=True, help="Path to a CIF directory")
+    cn.add_argument(
+        "--version", required=True,
+        help="Narrative version id to check (e.g. llm-mock, ollama)",
+    )
+    cn.add_argument(
+        "--profile",
+        default=None,
+        help=(
+            "Patient profile name — resolves expectations to "
+            "tests/fixtures/patient_profiles/<name>.llm-expectations.yaml"
+        ),
+    )
+    cn.add_argument(
+        "--expectations",
+        default=None,
+        help="Explicit expectations YAML path (overrides --profile resolution)",
+    )
+    cn.add_argument(
+        "--report",
+        default=None,
+        help="Write the full SemanticCheckReport as JSON to this path",
+    )
+
     # === audit: verification framework ===
     from clinosim.audit.cli import add_audit_subparser
 
@@ -322,6 +354,10 @@ def main() -> None:
 
     if args.command == "narrate":
         _run_narrate(args)
+        return
+
+    if args.command == "check-narratives":
+        _run_check_narratives(args)
         return
 
     if args.command == "export-fhir":
@@ -1267,6 +1303,66 @@ def _run_narrate(args: Any) -> None:
         f"narrate: wrote {manifest.document_count} narrative documents across "
         f"{manifest.encounter_count} encounters → narratives/{version_id}/"
     )
+
+
+def _run_check_narratives(args: Any) -> None:
+    """β-JP-1 chain 1b T2: semantic check CLI over one narrative version.
+
+    Expectations resolution: explicit ``--expectations PATH`` wins; else
+    ``--profile <name>`` resolves ``<fixtures>/<name>.llm-expectations.yaml``
+    (CLINOSIM_PATIENT_PROFILE_DIR env override respected, mirroring
+    regenerate-goldens); neither → builtin axes only. Exit code: 0 = pass,
+    1 = findings, 2 = bad inputs (missing/invalid expectations file).
+    """
+    import json
+    from pathlib import Path
+
+    from clinosim.modules.document.narrative.semantic_check import (
+        check_narratives,
+        load_expectations,
+    )
+    from clinosim.types.config import _PATIENT_PROFILE_DIR
+
+    expectations = None
+    expectations_path: Path | None = None
+    if args.expectations:
+        expectations_path = Path(args.expectations)
+    elif args.profile:
+        fixture_dir_env = os.environ.get("CLINOSIM_PATIENT_PROFILE_DIR")
+        fixture_dir = Path(fixture_dir_env) if fixture_dir_env else _PATIENT_PROFILE_DIR
+        expectations_path = fixture_dir / f"{args.profile}.llm-expectations.yaml"
+
+    if expectations_path is not None:
+        try:
+            expectations = load_expectations(expectations_path)
+        except FileNotFoundError:
+            print(f"ERROR: expectations file not found: {expectations_path}", file=sys.stderr)
+            sys.exit(2)
+        except ValueError as e:
+            print(f"ERROR: invalid expectations file: {e}", file=sys.stderr)
+            sys.exit(2)
+
+    report = check_narratives(args.cif_dir, args.version, expectations)
+
+    if args.report:
+        with open(args.report, "w", encoding="utf-8") as f:
+            json.dump(report.to_dict(), f, indent=2, ensure_ascii=False)
+        print(f"check-narratives: report written to {args.report}")
+
+    print(
+        f"check-narratives: version={args.version} documents={report.document_count} "
+        f"findings={len(report.findings)} generator={report.info.get('generator', '?')}"
+    )
+    for finding in report.findings:
+        loc = finding.document_id or "-"
+        if finding.section:
+            loc += f"/{finding.section}"
+        print(f"  [{finding.axis}] {loc}: {finding.message}")
+
+    if not report.passed:
+        print("check-narratives: FAIL", file=sys.stderr)
+        sys.exit(1)
+    print("check-narratives: PASS")
 
 
 def _run_export_fhir(args: Any) -> None:

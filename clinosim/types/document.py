@@ -178,6 +178,59 @@ class SectionFacts:
     llm_replaceable: bool = False
 
 
+@dataclass
+class SemanticCheckFinding:
+    """One semantic-check violation (β-JP-1 chain 1b T2).
+
+    ``axis`` ∈ {"structure", "facts", "forbidden_pattern", "phrase",
+    "numeric", "expectations"} — the 5 check axes plus expectations-schema
+    problems detected at check time.
+    """
+
+    axis: str = ""
+    document_id: str = ""
+    section: str = ""
+    message: str = ""
+
+
+@dataclass
+class SemanticCheckReport:
+    """Result of ``check_narratives`` over one narrative version (chain 1b T2).
+
+    ``passed`` ⇔ no findings. ``info`` carries non-failing diagnostics
+    (generator counts, skipped-for-mock counters, document totals).
+    """
+
+    cif_dir: str = ""
+    version_id: str = ""
+    document_count: int = 0
+    findings: list[SemanticCheckFinding] = field(default_factory=list)
+    info: dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def passed(self) -> bool:
+        return not self.findings
+
+    def to_dict(self) -> dict[str, Any]:
+        """JSON-serializable shape for ``check-narratives --report PATH``."""
+        return {
+            "cif_dir": self.cif_dir,
+            "version_id": self.version_id,
+            "document_count": self.document_count,
+            "passed": self.passed,
+            "findings": [
+                {
+                    "axis": f.axis,
+                    "document_id": f.document_id,
+                    "section": f.section,
+                    "message": f.message,
+                }
+                for f in self.findings
+            ],
+            "info": self.info,
+        }
+
+
 @runtime_checkable
 class NarrativeGenerator(Protocol):
     """Unified narrative generator contract (N-1, N-chain 2026-07-02).
