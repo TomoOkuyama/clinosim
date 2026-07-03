@@ -103,16 +103,21 @@ def _jp_inpatient_patient_dict(patient_id: str, encounter_type: str = "inpatient
 
 
 @pytest.mark.integration
-def test_jp_inpatient_produces_admission_care_plan_composition() -> None:
+@pytest.mark.parametrize("encounter_type", ["inpatient", "icu"])
+def test_jp_inpatient_produces_admission_care_plan_composition(encounter_type: str) -> None:
+    """Covers both supported encounter types (adv-1 finding: the original test
+    only exercised inpatient, despite the design spec explicitly requiring
+    'JP inpatient + JP ICU' coverage in this integration test)."""
     with tempfile.TemporaryDirectory() as tmp:
-        patient_dict = _jp_inpatient_patient_dict("pt-chain-jp-inpatient")
+        patient_id = f"pt-chain-jp-{encounter_type}"
+        patient_dict = _jp_inpatient_patient_dict(patient_id, encounter_type=encounter_type)
         _write_structural_cif(tmp, patient_dict)
 
         manifest = TemplateNarrativePass(tmp, version_id="v1", country="jp").run()
         assert manifest.document_counts_by_type.get("admission_care_plan") == 1
 
         narrative_dir = os.path.join(
-            tmp, "narratives", "v1", "documents", "enc-pt-chain-jp-inpatient"
+            tmp, "narratives", "v1", "documents", f"enc-{patient_id}"
         )
         acp_stub = next(
             d for d in patient_dict["documents"] if d["task_type"] == "admission_care_plan"

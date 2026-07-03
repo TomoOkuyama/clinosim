@@ -6,7 +6,7 @@ AD-60 plug-in #5 (after hai, antibiotic, order_service_request, imaging).
 Verifies CIF -> FHIR emission integrity for the document pipeline:
 DocumentReference / Composition / AllergyIntolerance / ClinicalImpression / CareTeam.
 
-40 equality_checks in lift_firing_proof guard canonical constants and
+41 equality_checks in lift_firing_proof guard canonical constants and
 no-drop emission paths against PR-90 class silent-no-op regression.
 
 Registered checks:
@@ -53,11 +53,13 @@ Registered checks:
     (neutral keys night/day/evening on every stub) and
     `nursing_shift_note_shift_hour_offsets` (authored at 00:00/08:00/16:00).
     See `_proof_nursing_shift_3_per_day`.
-  chain 2 admission_care_plan gate (+3, total = 40):
-    `admission_care_plan_jp_inpatient_count` / `admission_care_plan_us_inpatient_count` /
-    `admission_care_plan_jp_rehab_inpatient_count` — proves the JP-only +
-    inpatient/icu-only gate fires (not silently emitting for US or rehab_inpatient).
-    See `_proof_admission_care_plan`.
+  chain 2 admission_care_plan gate (+4, total = 41):
+    `admission_care_plan_jp_inpatient_count` / `admission_care_plan_jp_icu_count` /
+    `admission_care_plan_us_inpatient_count` / `admission_care_plan_jp_rehab_inpatient_count`
+    — proves the JP-only + inpatient/icu-only gate fires for BOTH supported
+    encounter types (not silently emitting for US or rehab_inpatient; adv-1
+    finding: the original proof omitted the icu case despite icu being one
+    of only two encounter_types_supported values). See `_proof_admission_care_plan`.
 
 TODO(jp_language_audit): jp_language_checks not implemented — ModuleAuditSpec
 does not have a jp_language_checks field. Deferred to a follow-up sweep
@@ -654,6 +656,7 @@ def _proof_admission_care_plan() -> dict[str, Any]:
 
     return {
         "jp_inpatient_count": _run("inpatient", "jp"),
+        "jp_icu_count": _run("icu", "jp"),
         "us_inpatient_count": _run("inpatient", "us"),
         "jp_rehab_inpatient_count": _run("rehab_inpatient", "jp"),
     }
@@ -1079,10 +1082,15 @@ def _build_document_proof() -> dict[str, Any]:
                 _shift_proof["hours"],
                 [0, 8, 16],
             ),
-            # === chain 2: admission_care_plan gate proof (+3, total = 40) ===
+            # === chain 2: admission_care_plan gate proof (+4, total = 41) ===
             (
                 "admission_care_plan_jp_inpatient_count",
                 _acp_proof["jp_inpatient_count"],
+                1,
+            ),
+            (
+                "admission_care_plan_jp_icu_count",
+                _acp_proof["jp_icu_count"],
                 1,
             ),
             (
