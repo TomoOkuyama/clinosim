@@ -136,3 +136,30 @@ specs:
     generation_frequency: encounter_once
     stage2_strategy: template_only
     llm_enabled_sections: []
+
+  # === chain 2 (厚労省4帳票, first sub-project, 2026-07-03) ===
+  # LOINC 18776-5 verified via web search (loinc.org / findacode.com) —
+  # "Plan of care note" is the correct generic match; MHLW form 別紙２
+  # (https://www.mhlw.go.jp/bunya/iryouhoken/iryouhoken15/dl/h24_02-07-40.pdf)
+  # confirmed the 10 core sections below (design spec §2). JP-only — the
+  # first jp-only entry in this registry. rehab_inpatient uses a different
+  # MHLW form (別紙２の２) and is intentionally excluded.
+  admission_care_plan:
+    loinc_code: "18776-5"
+    format_type: composition
+    countries_supported: [jp]
+    encounter_types_supported: [inpatient, icu]
+    generation_frequency: admission_once
+    composition_sections:
+      - ward_and_room
+      - other_staff
+      - diagnosis
+      - symptoms
+      - treatment_plan
+      - test_schedule
+      - surgery_schedule
+      - estimated_los
+      - special_nutrition_management
+      - other_plans
+    stage2_strategy: template_only
+    llm_enabled_sections: []

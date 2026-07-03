@@ -123,6 +123,12 @@ def test_load_raises_on_missing_required_field() -> None:
                 "countries_supported": ["us", "jp"],
                 "generation_frequency": "encounter_once",
             },
+            "admission_care_plan": {
+                "loinc_code": "18776-5",
+                "format_type": "composition",
+                "countries_supported": ["jp"],
+                "generation_frequency": "admission_once",
+            },
         }
     }
     with pytest.raises(ValueError, match="missing countries_supported"):
@@ -183,6 +189,12 @@ def test_load_raises_on_null_entry() -> None:
                 "format_type": "free_text",
                 "countries_supported": ["us", "jp"],
                 "generation_frequency": "encounter_once",
+            },
+            "admission_care_plan": {
+                "loinc_code": "18776-5",
+                "format_type": "composition",
+                "countries_supported": ["jp"],
+                "generation_frequency": "admission_once",
             },
         }
     }
@@ -250,6 +262,12 @@ def test_load_raises_on_empty_countries_supported() -> None:
                 "countries_supported": ["us", "jp"],
                 "generation_frequency": "encounter_once",
             },
+            "admission_care_plan": {
+                "loinc_code": "18776-5",
+                "format_type": "composition",
+                "countries_supported": ["jp"],
+                "generation_frequency": "admission_once",
+            },
         }
     }
     with pytest.raises(ValueError, match="countries_supported empty"):
@@ -258,16 +276,16 @@ def test_load_raises_on_empty_countries_supported() -> None:
 
 # === α-min-2 tests ===
 
-def test_load_specs_returns_9_total() -> None:
-    """3 α-min-1 + 6 α-min-2 = 9 total specs loaded from YAML."""
+def test_load_specs_returns_10_total() -> None:
+    """3 α-min-1 + 6 α-min-2 + 1 chain-2 = 10 total specs loaded from YAML."""
     load_document_type_specs.cache_clear()
     specs = load_document_type_specs()
-    assert len(specs) == 9, f"Expected 9 specs (3 α-min-1 + 6 α-min-2), got {len(specs)}"
+    assert len(specs) == 10, f"Expected 10 specs (3 α-min-1 + 6 α-min-2 + 1 chain-2), got {len(specs)}"
 
 
-def test_supported_document_types_covers_9_entries() -> None:
-    """SUPPORTED_DOCUMENT_TYPES frozenset has 9 members (α-min-1 3 + α-min-2 6)."""
-    assert len(SUPPORTED_DOCUMENT_TYPES) == 9
+def test_supported_document_types_covers_10_entries() -> None:
+    """SUPPORTED_DOCUMENT_TYPES frozenset has 10 members (α-min-1 3 + α-min-2 6 + chain-2 1)."""
+    assert len(SUPPORTED_DOCUMENT_TYPES) == 10
 
 
 def test_specs_for_encounter_type_outpatient_returns_only_outpatient_soap() -> None:
@@ -281,11 +299,12 @@ def test_specs_for_encounter_type_outpatient_returns_only_outpatient_soap() -> N
     assert keys == ["outpatient_soap"], f"Expected only outpatient_soap in restricted set, got {keys}"
 
 
-def test_specs_for_encounter_type_inpatient_returns_6_specs() -> None:
-    """3 α-min-1 (no restriction, matches all) + 3 nursing specs = 6 total for inpatient."""
+def test_specs_for_encounter_type_inpatient_returns_7_specs() -> None:
+    """3 α-min-1 (no restriction, matches all) + 3 nursing specs + 1 admission_care_plan
+    (chain 2) = 7 total for inpatient."""
     load_document_type_specs.cache_clear()
     inpatient_specs = specs_for_encounter_type("inpatient")
-    assert len(inpatient_specs) == 6, f"Expected 6 inpatient specs, got {len(inpatient_specs)}"
+    assert len(inpatient_specs) == 7, f"Expected 7 inpatient specs, got {len(inpatient_specs)}"
 
 
 def test_specs_for_encounter_type_emergency_returns_2_ed_specs() -> None:
@@ -398,6 +417,49 @@ def test_load_raises_on_template_seed_with_free_text_format() -> None:
     data["specs"]["progress_note"]["llm_enabled_sections"] = ["subjective"]
     with pytest.raises(ValueError, match="composition"):
         reg_module._validate_document_type_specs(data)
+
+
+# === chain 2: admission_care_plan (LOINC 18776-5) ===
+
+
+def test_admission_care_plan_loinc_code_resolves() -> None:
+    """LOINC 18776-5 ('Plan of care note') must resolve in both languages —
+    verified against loinc.org / findacode.com during design (spec §2)."""
+    from clinosim.codes import lookup as code_lookup
+
+    assert code_lookup("loinc", "18776-5", "en") == "Plan of care note"
+    assert code_lookup("loinc", "18776-5", "ja") == "入院診療計画書"
+
+
+def test_document_type_has_admission_care_plan() -> None:
+    assert DocumentType.ADMISSION_CARE_PLAN.value == "admission_care_plan"
+
+
+def test_registry_covers_admission_care_plan() -> None:
+    specs = load_document_type_specs()
+    assert DocumentType.ADMISSION_CARE_PLAN in specs
+
+
+def test_admission_care_plan_spec_metadata() -> None:
+    specs = load_document_type_specs()
+    acp = specs[DocumentType.ADMISSION_CARE_PLAN]
+    assert acp.loinc_code == "18776-5"
+    assert acp.format_type == FormatType.COMPOSITION
+    assert acp.countries_supported == ("jp",)
+    assert acp.generation_frequency == "admission_once"
+    assert acp.stage2_strategy == "template_only"
+    assert set(acp.composition_sections) == {
+        "ward_and_room", "other_staff", "diagnosis", "symptoms",
+        "treatment_plan", "test_schedule", "surgery_schedule",
+        "estimated_los", "special_nutrition_management", "other_plans",
+    }
+
+
+def test_admission_care_plan_is_jp_only() -> None:
+    us_specs = specs_for_country("us")
+    jp_specs = specs_for_country("jp")
+    assert "admission_care_plan" not in [s.type_key for s in us_specs]
+    assert "admission_care_plan" in [s.type_key for s in jp_specs]
 
 
 def test_production_yaml_passes_stage2_validation() -> None:

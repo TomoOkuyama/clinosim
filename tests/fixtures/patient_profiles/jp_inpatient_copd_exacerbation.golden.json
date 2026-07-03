@@ -977,5 +977,38 @@
       "structured": {},
       "text": ""
     }
+  },
+  "doc-ENC-FORCED-0001-000001-45": {
+    "document_id": "doc-ENC-FORCED-0001-000001-45",
+    "encounter_id": "ENC-FORCED-0001-000001",
+    "narrative": {
+      "facts_used": [
+        "encounter.ward_id",
+        "encounter.bed_number",
+        "ctx.diagnoses",
+        "disease_protocol.chief_complaint.ja",
+        "disease_protocol.target_los"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {
+        "diagnosis": "COPD急性増悪（J44.1）",
+        "estimated_los": "推定入院期間：約12日間",
+        "other_plans": "その他：看護計画・リハビリテーション等の計画については看護記録を参照。",
+        "other_staff": "担当なし",
+        "special_nutrition_management": "特別な栄養管理の必要性：無",
+        "surgery_schedule": "手術：予定なし",
+        "symptoms": "呼吸困難増悪・喀痰増加・喘鳴",
+        "test_schedule": "検査：担当医の判断により決定",
+        "treatment_plan": "評価: 経過観察中。方針: 治療継続。",
+        "ward_and_room": "病棟：4E　病室：4E-08"
+      },
+      "structured": {},
+      "text": ""
+    }
   }
 }

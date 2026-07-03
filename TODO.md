@@ -1798,8 +1798,12 @@ These items were **explicitly out of scope** for the α-min-2 document density c
 
 - **QuestionnaireResponse active emission** — `_fhir_questionnaire_response.py` builder for
   structured intake forms. Currently a stub; no CIF data source for questionnaire answers.
-- **入院診療計画書** (Admission care plan document) — 厚労省施設基準 mandatory for 7:1 / 10:1
-  wards. DocumentReference(LOINC 18776-5) + Composition with 10 required sections.
+- ~~**入院診療計画書** (Admission care plan document)~~ — **DONE (chain 2, 2026-07-03)**:
+  LOINC 18776-5, Composition, 10 sections per MHLW 別紙２, JP-only,
+  inpatient/icu only (rehab_inpatient uses the 別紙２の２ variant, out of
+  scope). `special_nutrition_management` is hardcoded "無" pending a future
+  nutrition subsystem chain (see below) — no NutritionOrder/nutritionist
+  data source exists yet to derive a real value.
 - **看護必要度 D 表** (Nursing dependency D-form) — DPC algorithm-based scoring, mandatory
   for acute care hospitals. Requires `extensions["nursing"]` GCS/ADL scores.
 - **栄養管理計画書** (Nutrition care plan) — mandatory for all hospital admissions > 7 days.
@@ -1812,6 +1816,37 @@ These items were **explicitly out of scope** for the α-min-2 document density c
 - **ClinicalImpression.description JP localization** — currently English-only.
 - **多職種 staff allocation** — 主治医 / 担当看護師 / 薬剤師 / 栄養士 / リハ / MSW per
   encounter, required for CareTeam + Composition.author wiring.
+
+### chain 2 deferred: admission_care_plan real nutrition-need derivation
+
+`_build_acp_special_nutrition_management` (`template_generator.py`) always
+renders "無" (no special nutritional management needed) — an MVP
+simplification, not a real clinical derivation. When the 栄養管理計画書
+(nutrition care plan) subsystem chain lands (NutritionOrder + nutritionist
+staff role), revisit this section to derive a real yes/no signal (e.g. from
+BMI, albumin lab values, or disease-specific nutrition risk flags) instead
+of the hardcoded default.
+
+### chain 2 deferred: `section_builders` dict lacks cross-spec key-collision validation
+
+`TemplateNarrativeGenerator._render_composition_sections`'s `section_builders`
+dict (`template_generator.py`) is one flat global namespace shared by every
+COMPOSITION document type; each new doc type adds more string keys into it
+(chain 2 added `ward_and_room` / `diagnosis` / `symptoms` / `test_schedule` /
+etc.). `registry.py`'s Layer 1-9 validators check per-spec coherence (e.g.
+`llm_enabled_sections ⊆ composition_sections`) but nothing validates that a
+NEW doc type's `composition_sections` keys don't collide with an EXISTING,
+unrelated doc type's key already registered in this dict — a plain Python
+dict literal silently keeps the last definition on a duplicate key, so a
+colliding key would silently steal another doc type's renderer with no
+error (adv-1 finding on PR #138, not a live bug today — verified no
+collision currently exists across all registered specs — but the
+architecture has no guard against a future one). Add an import-time
+uniqueness check (mirrors the `registry.py` Layer 1-9 pattern) that walks
+every `DocumentTypeSpec.composition_sections` list and asserts each section
+key maps to at most one doc type's intended semantics, OR restructure
+`section_builders` to be keyed by `(doc_type, section)` instead of bare
+`section` so collisions become structurally impossible.
 
 ### β-2 phase — Clinical event density
 

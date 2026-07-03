@@ -23,6 +23,9 @@ codes:
   18842-5:
     en: Discharge summary note
     ja: 退院時サマリー
+  18776-5:
+    en: Plan of care note
+    ja: 入院診療計画書
   69730-0:
     en: Death note
     ja: 死亡時記録

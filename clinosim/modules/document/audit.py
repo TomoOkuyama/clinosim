@@ -6,7 +6,7 @@ AD-60 plug-in #5 (after hai, antibiotic, order_service_request, imaging).
 Verifies CIF -> FHIR emission integrity for the document pipeline:
 DocumentReference / Composition / AllergyIntolerance / ClinicalImpression / CareTeam.
 
-37 equality_checks in lift_firing_proof guard canonical constants and
+41 equality_checks in lift_firing_proof guard canonical constants and
 no-drop emission paths against PR-90 class silent-no-op regression.
 
 Registered checks:
@@ -53,6 +53,13 @@ Registered checks:
     (neutral keys night/day/evening on every stub) and
     `nursing_shift_note_shift_hour_offsets` (authored at 00:00/08:00/16:00).
     See `_proof_nursing_shift_3_per_day`.
+  chain 2 admission_care_plan gate (+4, total = 41):
+    `admission_care_plan_jp_inpatient_count` / `admission_care_plan_jp_icu_count` /
+    `admission_care_plan_us_inpatient_count` / `admission_care_plan_jp_rehab_inpatient_count`
+    — proves the JP-only + inpatient/icu-only gate fires for BOTH supported
+    encounter types (not silently emitting for US or rehab_inpatient; adv-1
+    finding: the original proof omitted the icu case despite icu being one
+    of only two encounter_types_supported values). See `_proof_admission_care_plan`.
 
 TODO(jp_language_audit): jp_language_checks not implemented — ModuleAuditSpec
 does not have a jp_language_checks field. Deferred to a follow-up sweep
@@ -607,6 +614,54 @@ def _proof_nursing_shift_3_per_day() -> dict[str, Any]:
     }
 
 
+def _proof_admission_care_plan() -> dict[str, Any]:
+    """chain 2: prove the admission_care_plan JP-only / inpatient+icu gate fires.
+
+    Three synthetic encounters (JP inpatient, US inpatient, JP rehab_inpatient)
+    run through document_enricher; a regression that widens countries_supported
+    or encounter_types_supported would silently leak this legally-scoped
+    document into the wrong cohort (PR-90 class — same pattern as the α-min-1
+    Task 10 encounter_types_supported fix).
+    """
+    from datetime import datetime
+    from types import SimpleNamespace
+
+    from clinosim.modules.document.engine import document_enricher
+
+    def _run(encounter_type: str, country: str) -> int:
+        record: dict[str, Any] = {
+            "patient": {"patient_id": f"pt-acp-proof-{encounter_type}-{country}"},
+            "encounters": [
+                {
+                    "encounter_id": f"enc-acp-proof-{encounter_type}-{country}",
+                    "encounter_type": encounter_type,
+                    "status": "completed",
+                    "admission_datetime": datetime(2026, 7, 1, 10, 0),
+                    "discharge_datetime": datetime(2026, 7, 5, 10, 0),
+                    "attending_physician_id": "dr-acp-proof",
+                    "primary_nurse_id": "ns-acp-proof",
+                }
+            ],
+            "documents": [],
+            "extensions": {},
+            "physiological_states": [],
+        }
+        ctx = SimpleNamespace(
+            master_seed=42, records=[record], config=SimpleNamespace(country=country)
+        )
+        document_enricher(ctx)
+        return len([
+            d for d in record["documents"] if getattr(d, "task_type", "") == "admission_care_plan"
+        ])
+
+    return {
+        "jp_inpatient_count": _run("inpatient", "jp"),
+        "jp_icu_count": _run("icu", "jp"),
+        "us_inpatient_count": _run("inpatient", "us"),
+        "jp_rehab_inpatient_count": _run("rehab_inpatient", "jp"),
+    }
+
+
 def _build_document_proof() -> dict[str, Any]:
     """Zero-arg factory: run document FHIR builders on synthetic data.
 
@@ -816,6 +871,9 @@ def _build_document_proof() -> dict[str, Any]:
     # α-min-3: nursing 3-shift cadence proof (synthetic LOS=3 → 9 stubs).
     _shift_proof = _proof_nursing_shift_3_per_day()
 
+    # chain 2: admission_care_plan JP-only / inpatient+icu gate proof.
+    _acp_proof = _proof_admission_care_plan()
+
     return {
         "equality_checks": [
             # --- 4 canonical constants (silent-no-op defense Layer 1-2) ---
@@ -1023,6 +1081,27 @@ def _build_document_proof() -> dict[str, Any]:
                 "nursing_shift_note_shift_hour_offsets",
                 _shift_proof["hours"],
                 [0, 8, 16],
+            ),
+            # === chain 2: admission_care_plan gate proof (+4, total = 41) ===
+            (
+                "admission_care_plan_jp_inpatient_count",
+                _acp_proof["jp_inpatient_count"],
+                1,
+            ),
+            (
+                "admission_care_plan_jp_icu_count",
+                _acp_proof["jp_icu_count"],
+                1,
+            ),
+            (
+                "admission_care_plan_us_inpatient_count",
+                _acp_proof["us_inpatient_count"],
+                0,
+            ),
+            (
+                "admission_care_plan_jp_rehab_inpatient_count",
+                _acp_proof["jp_rehab_inpatient_count"],
+                0,
             ),
         ]
     }

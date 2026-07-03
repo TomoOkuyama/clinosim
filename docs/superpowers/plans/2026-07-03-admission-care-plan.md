@@ -77,6 +77,37 @@ Edit `clinosim/types/document.py`, in the `DocumentType` class, after the `ED_TR
     ADMISSION_CARE_PLAN = "admission_care_plan"                   # LOINC 18776-5 (verified 2026-07-03)
 ```
 
+- [ ] **Step 4b (discovered during execution): sync `LLMTaskType` in `llm_service/engine.py`**
+
+Not anticipated by the original plan — `clinosim/modules/llm_service/engine.py` runs an
+import-time validator (`_validate_document_task_sync()`, N-3 N-chain work) that requires
+every `DocumentType` value to also exist as a NARRATIVE-category `LLMTaskType`. Adding the
+enum value in Step 4 alone breaks test collection project-wide (`ImportError` at import time)
+until this is added too. Add to `clinosim/modules/llm_service/engine.py`:
+
+```python
+    ED_TRIAGE_NOTE = "ed_triage_note"                              # LOINC 54094-8
+    # chain 2 (厚労省4帳票, N-3 enum sync)
+    ADMISSION_CARE_PLAN = "admission_care_plan"                    # LOINC 18776-5
+```
+
+in the `LLMTaskType` enum, plus:
+
+```python
+    LLMTaskType.ADMISSION_CARE_PLAN: LLMTaskCategory.NARRATIVE,
+```
+
+in `TASK_CATEGORY`, plus:
+
+```python
+    LLMTaskType.ADMISSION_CARE_PLAN: "18776-5",           # Plan of care note
+```
+
+in `DOCUMENT_LOINC` (required — the doc-producing / has-a-LOINC-code branch per
+`_validate_document_task_sync`'s docstring). This also means `tests/unit/test_llm_task_enum_sync.py`
+must pass with no changes (it's fully generic, no hardcoded per-type assertions) —
+run it as part of Step 5 below.
+
 - [ ] **Step 5: Run test to verify it passes**
 
 Run: `pytest tests/unit/modules/document/narrative/test_registry.py -v`
@@ -224,6 +255,21 @@ SUPPORTED_DOCUMENT_TYPES: frozenset[DocumentType] = frozenset({
 
 Run: `pytest tests/unit/modules/document/narrative/test_registry.py tests/unit/modules/document/narrative/test_encounter_types_supported.py -v`
 Expected: PASS (all tests, including the pre-existing `test_registry_covers_α_min_1_doc_types` etc. — the Layer 4 forward/reverse-coverage validator now passes since YAML and enum agree).
+
+- [ ] **Step 5b (discovered during execution): update 3 pre-existing hardcoded fixtures + 3 count assertions**
+
+`test_load_raises_on_missing_required_field` / `test_load_raises_on_null_entry` /
+`test_load_raises_on_empty_countries_supported` each hardcode a full 9-entry `bad_data["specs"]`
+dict to exercise one specific validator layer. Once `SUPPORTED_DOCUMENT_TYPES` has 10 members,
+the Layer-4 forward/reverse-coverage check (which runs BEFORE the per-field loop) fires first
+on these 9-entry dicts with a "drift: missing=['admission_care_plan']" error instead of the
+message each test expects — added a 10th valid `admission_care_plan` entry to all 3 dicts so
+the intended validator layer is what actually fires. Also updated 3 count-assertion tests that
+hardcoded the pre-chain-2 totals: `test_load_specs_returns_9_total` → `..._10_total`,
+`test_supported_document_types_covers_9_entries` → `..._10_entries`,
+`test_specs_for_encounter_type_inpatient_returns_6_specs` → `..._7_specs` (admission_care_plan
+adds one more inpatient-restricted spec). None of this was anticipated in the original plan —
+caught by running the full registry test file, not just the 2 new test functions.
 
 - [ ] **Step 6: Commit**
 
@@ -1139,6 +1185,18 @@ Run:
 clinosim regenerate-goldens --profile jp_inpatient_bacterial_pneumonia
 clinosim regenerate-goldens --profile jp_icu_sepsis_hai_clabsi
 clinosim regenerate-goldens --profile jp_inpatient_copd_exacerbation
+```
+
+- [ ] **Step 1b (discovered during execution): also regenerate the `.llm-mock` golden legs**
+
+`pytest -m regression` failed after Step 1 with 3 `test_profile_narrative_llm_mock_byte_diff`
+failures — the regression suite has a template leg AND an llm-mock leg per profile
+(`<profile>.llm-mock.golden.json`), and `--provider mock` must be regenerated separately
+(the plain `regenerate-goldens --profile X` only refreshes the template golden). Run:
+```bash
+clinosim regenerate-goldens --profile jp_inpatient_bacterial_pneumonia --provider mock
+clinosim regenerate-goldens --profile jp_icu_sepsis_hai_clabsi --provider mock
+clinosim regenerate-goldens --profile jp_inpatient_copd_exacerbation --provider mock
 ```
 
 - [ ] **Step 2: Categorize the golden diff (AD-66 Rule 2)**
