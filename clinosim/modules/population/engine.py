@@ -141,8 +141,7 @@ def generate_population(
             male_prob = (demo.get("sex_ratio") or {}).get("male", 0.49)
             sex = "M" if rng.random() < male_prob else "F"
             dob = date(base_year - age, int(rng.integers(1, 13)), int(rng.integers(1, 29)))
-            bt = demo.get("blood_type", {"O": 0.44, "A": 0.42, "B": 0.10, "AB": 0.04})
-            blood_type = str(rng.choice(list(bt.keys()), p=list(bt.values())))
+            blood_type = _sample_blood_type(demo, rng)
 
             # BMI and height from physiology section
             phys = demo.get("physiology") or {}
@@ -471,6 +470,20 @@ def _sample_age_band(demo: dict, rng: np.random.Generator) -> tuple[int, int]:
     bands, probs = _parse_age_distribution(demo)
     idx = int(rng.choice(len(bands), p=normalize_probabilities(probs, fallback="raise")))
     return bands[idx]
+
+
+def _sample_blood_type(demo: dict, rng: np.random.Generator) -> str:
+    """Sample blood type using weighted probability from demographics.
+
+    Routes YAML-sourced weights through normalize_probabilities(fallback="raise")
+    to handle floating-point summation artifacts (e.g., 0.40+0.30+0.20+0.10
+    sums to 0.9999999999999999 in float64, not exactly 1.0).
+    """
+    bt = demo.get("blood_type", {"O": 0.44, "A": 0.42, "B": 0.10, "AB": 0.04})
+    keys = list(bt.keys())
+    weights = normalize_probabilities([bt[k] for k in keys], fallback="raise")
+    idx = int(rng.choice(len(keys), p=weights))
+    return keys[idx]
 
 
 def _load_name_data(country: str) -> dict:
