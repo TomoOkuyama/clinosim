@@ -213,6 +213,7 @@ def _simulate_outpatient_visit(
         rx = PrescriptionRecord(
             prescription_id=f"RX-{patient.patient_id}-OPD",
             prescriber_id=encounter.attending_physician_id,
+            issue_date=visit_date,
             items=[{"drug": med, "duration_days": 30} for med in patient.current_medications],
         )
 

@@ -356,7 +356,7 @@ def _simulate_patient(
     # Discharge prescription
     final_renal = state.renal_function if state else 1.0
     discharge_rx = _build_discharge_rx(
-        patient, disease_id, protocol, attending_id, rng,
+        patient, disease_id, protocol, attending_id, admission_time, rng,
         country_key=country_key, final_renal_function=final_renal,
     ) if not death_occurred else None
 
@@ -1621,6 +1621,7 @@ def _build_discharge_rx(
     disease_id: str,
     protocol: DiseaseProtocol,
     prescriber_id: str,
+    admission_time: datetime,
     rng: np.random.Generator,
     country_key: str = "japan",
     final_renal_function: float = 1.0,
@@ -1668,6 +1669,7 @@ def _build_discharge_rx(
         prescription_id=f"RX-{patient.patient_id}-DC",
         patient_id=patient.patient_id,
         prescriber_id=prescriber_id,
+        issue_date=admission_time,
         items=items,
     )
 

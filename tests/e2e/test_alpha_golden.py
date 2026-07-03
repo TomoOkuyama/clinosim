@@ -4,10 +4,14 @@ Verifies that seed=42 produces identical structural data across runs.
 Golden values updated when simulator behavior changes intentionally.
 """
 
+from datetime import datetime
+
 import pytest
 
 from clinosim.simulator import run_alpha
 from clinosim.types.config import SimulatorConfig
+
+_SENTINEL_DATETIME = datetime(1970, 1, 1)
 
 GOLDEN = {
     "patient_id": "FORCED-0001",
@@ -67,6 +71,16 @@ class TestAlphaGolden:
         r1 = alpha_result.patients[0]
         r2 = result2.patients[0]
         assert len(r1.lab_results) == len(r2.lab_results)
+
+    def test_discharge_prescription_issue_date_is_deterministic(self, alpha_result):
+        record = alpha_result.patients[0]
+        assert record.discharge_prescription is not None
+        assert record.discharge_prescription.issue_date != _SENTINEL_DATETIME
+        result2 = run_alpha(SimulatorConfig(random_seed=42))
+        assert (
+            result2.patients[0].discharge_prescription.issue_date
+            == record.discharge_prescription.issue_date
+        )
 
     def test_cif_output(self, alpha_result, tmp_path):
         from clinosim.modules.output.cif_writer import write_cif
