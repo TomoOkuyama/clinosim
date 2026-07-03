@@ -38,6 +38,8 @@ class DocumentType(str, Enum):
     OUTPATIENT_SOAP = "outpatient_soap"                            # LOINC 34131-3 (verified 2026-07)
     ED_NOTE = "ed_note"                                            # LOINC 34878-9 (verified 2026-07)
     ED_TRIAGE_NOTE = "ed_triage_note"                             # LOINC 54094-8 (verified 2026-07)
+    # β-JP-1 chain 2 (厚労省4帳票, first sub-project)
+    ADMISSION_CARE_PLAN = "admission_care_plan"                   # LOINC 18776-5 (verified 2026-07-03)
 
 
 @dataclass(frozen=True)

@@ -60,6 +60,8 @@ class LLMTaskType(str, Enum):
     OUTPATIENT_SOAP = "outpatient_soap"                            # LOINC 34131-3
     ED_NOTE = "ed_note"                                            # LOINC 34878-9
     ED_TRIAGE_NOTE = "ed_triage_note"                              # LOINC 54094-8
+    # chain 2 (厚労省4帳票, N-3 enum sync)
+    ADMISSION_CARE_PLAN = "admission_care_plan"                    # LOINC 18776-5
 
 
 TASK_CATEGORY: dict[LLMTaskType, LLMTaskCategory] = {
@@ -80,6 +82,7 @@ TASK_CATEGORY: dict[LLMTaskType, LLMTaskCategory] = {
     LLMTaskType.OUTPATIENT_SOAP: LLMTaskCategory.NARRATIVE,
     LLMTaskType.ED_NOTE: LLMTaskCategory.NARRATIVE,
     LLMTaskType.ED_TRIAGE_NOTE: LLMTaskCategory.NARRATIVE,
+    LLMTaskType.ADMISSION_CARE_PLAN: LLMTaskCategory.NARRATIVE,
 }
 
 
@@ -104,6 +107,7 @@ DOCUMENT_LOINC: dict[LLMTaskType, str] = {
     LLMTaskType.OUTPATIENT_SOAP: "34131-3",               # Outpatient Note
     LLMTaskType.ED_NOTE: "34878-9",                       # Emergency medicine Note
     LLMTaskType.ED_TRIAGE_NOTE: "54094-8",                # Emergency department Triage note
+    LLMTaskType.ADMISSION_CARE_PLAN: "18776-5",           # Plan of care note
 }
 
 
