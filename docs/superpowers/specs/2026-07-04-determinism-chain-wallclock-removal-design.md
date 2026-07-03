@@ -98,3 +98,55 @@ field. This is expected, in-scope churn (not a side effect to minimize) — thos
 tests were relying on wall-clock defaults, which is exactly the anti-pattern this
 chain removes; fixing them to pass explicit deterministic values is part of the
 work, not a regression.
+
+## 7. Addendum (session 34, planning phase) — two mechanism refinements
+
+Investigation during `writing-plans` (exact call-site counts, not available at
+spec-approval time) surfaced two facts that changed *how* §3 is implemented,
+without changing the spec's goal or scope:
+
+**7a. Sentinel-default mechanism, not default removal.** `PhysiologicalState()`
+alone has 90+ existing test call sites that construct it with no `timestamp=`
+kwarg (pure physiology-math unit tests, unrelated to timestamps). Removing the
+`default_factory` entirely (§3 item 7's original wording, "field-ordering rules
+require moving the now-required field to the front") would force meaningless
+`timestamp=...` edits onto all of them for zero benefit. **User-approved
+revision:** keep every field's `default_factory`, but change the factory itself
+from `datetime.now`/`date.today` to a fixed, obviously-fake sentinel constant
+(`datetime(1970, 1, 1)` / `date(1970, 1, 1)`) defined once per type file. This
+still eliminates 100% of wall-clock reads (the stated goal) with zero
+call-site/test churn for currently-dead fields, and a sentinel value showing up
+in real output is self-evidently a bug (unlike a wall-clock default, which looks
+deceptively plausible). The §3 items that are genuinely live still get the real
+deterministic value threaded in explicitly, overriding the sentinel — that part
+of §3 is unchanged.
+
+**7b. `StateChangeDirective.timestamp` and `DifferentialDiagnosis.timestamp` are
+fully dead, not merely "currently live via a separate mechanism."** Grepping
+every consumer confirmed neither field is ever read anywhere outside its own
+class definition (`StateChangeDirective.timestamp`: `physiology/engine.py:update()`
+only reads `directive.changes`, never `.timestamp`) or the one call site that used
+to reassign it (`DifferentialDiagnosis.timestamp` is written by
+`update_differential()` but the `DifferentialDiagnosis` object itself is never
+serialized to CIF — only derived strings like `get_current_diagnosis_code()`'s
+output are). §3 items 2 and 4 originally called for threading `admission_datetime`
+into `get_daily_directive()` / `initialize_differential()` / `update_differential()`
+as new required parameters. **Revised:** since neither field is read by anything,
+the sentinel-default fix (7a) alone fully resolves both — no signature changes to
+these functions. The one live side effect, the explicit `diff.timestamp =
+datetime.now()` line inside `update_differential()`, is deleted outright (it was
+a real wall-clock call whose result nothing consumed).
+
+**Also folded into the §3 item 7 sweep** (discovered while reading the full
+content of `clinosim/types/encounter.py` and `clinosim/types/clinical.py`,
+mechanical, zero call-site risk — every one of these was already confirmed
+explicit at its sole production call site): `ADLAssessment.date`,
+`NursingRiskAssessment.date`, `IntakeOutputRecord.date`,
+`ImmunizationRecord.occurrence_date` (all `default_factory=date.today` in
+`encounter.py`), and `ClinicalImpressionRecord.date` (`default_factory=date.today`
+in `clinical.py`). Same bug class, same files already being edited — leaving
+these out would defeat the "no reachable wall-clock reads remain" grep-sweep
+verification goal in §5 for no reason.
+
+See `docs/superpowers/plans/2026-07-04-determinism-chain-wallclock-removal.md`
+for the resulting task breakdown.
