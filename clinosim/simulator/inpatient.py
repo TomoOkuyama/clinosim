@@ -168,6 +168,7 @@ def _simulate_patient(
     adm_minute = int(rng.integers(0, 60))
     admission_time = datetime(event.timestamp.year, event.timestamp.month, event.timestamp.day,
                                adm_hour, adm_minute)
+    state.timestamp = admission_time
     chief_complaint = _disease_chief_complaint(protocol, country=config.country)
     encounter = create_inpatient_encounter(
         patient.patient_id, admission_time,
@@ -1723,6 +1724,7 @@ def _simulate_unknown_condition(
 
     admission_time = datetime(event.timestamp.year, event.timestamp.month, event.timestamp.day,
                                int(rng.integers(8, 22)), 0)
+    state.timestamp = admission_time
     complaint = event.disease_id.replace("unknown_", "").replace("_", " ")
     encounter = create_inpatient_encounter(patient.patient_id, admission_time, chief_complaint=complaint)
     # Unknown conditions are managed by internal medicine — resolve via hospital config

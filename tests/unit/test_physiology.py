@@ -481,6 +481,16 @@ def test_initialize_state_seeds_glycemic_control_from_e11():
 
 
 @pytest.mark.unit
+def test_initialize_state_timestamp_is_sentinel_not_wall_clock():
+    """initialize_state() itself must not read the wall clock — callers are
+    responsible for overwriting .timestamp with a real deterministic value
+    right after this call returns (determinism chain, 2026-07-04)."""
+    prof = PatientPhysiologicalProfile()
+    st = initialize_state(prof, [], "p1")
+    assert st.timestamp == datetime(1970, 1, 1)
+
+
+@pytest.mark.unit
 def test_creatinine_curve_matches_clinical_bands():
     """Pin the (state.renal_function -> Creatinine) curve to clinically realistic bands.
 
