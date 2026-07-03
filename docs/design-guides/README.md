@@ -1,11 +1,13 @@
 # Design Guides — 新規モジュール著者のための読書パス
 
-clinosim にモジュールを追加する新規開発者向けの索引です。以下の順に読んでください。
-(1)〜(4) は全員必読、(5)〜(7) は触る領域に応じて読みます。
+clinosim にモジュールを追加する新規開発者/実装 AI 向けの索引です。以下の順に読んでください。
+(0)〜(4) は全員必読、(5)〜(7) は触る領域に応じて読みます。
 
 | # | ドキュメント | いつ読むか |
 |---|---|---|
-| 1 | [`MODULES.md`](../../MODULES.md) | 最初に。全 30 module(`clinosim/modules/` 配下の package)の俯瞰・依存関係・データフローを 1 ページで把握する |
+| 0a | [`project-concept-and-design.md`](project-concept-and-design.md) | **一番最初**。プロジェクトのコンセプト(9 要求)・パイプライン全体像・ナラティブ 2 層設計・現在地とロードマップのキャッチアップ |
+| 0b | [`implementation-rules.md`](implementation-rules.md) | **コードを書く前に必ず**。全実装者が守る不変則の蒸留版(workflow 規律 / 決定性 / canonical helpers / silent-no-op 防御 / 検証 gate) |
+| 1 | [`MODULES.md`](../../MODULES.md) | 全 30 module(`clinosim/modules/` 配下の package)の俯瞰・依存関係・データフローを 1 ページで把握する |
 | 2 | [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.md) | 実装前に。Base/Module 判定、正準 layout、loader / sub-seed / registry / 検証 (byte-diff vs DQR) の実践 playbook |
 | 3 | [`.github/TEMPLATE_MODULE_README.md`](../../.github/TEMPLATE_MODULE_README.md) | モジュールの skeleton を作るとき。README + パス定数などの boilerplate をここからコピーする |
 | 4 | [`DESIGN.md`](../../DESIGN.md) の curated ADR | 設計判断の背景が必要なとき。まず AD-16 / AD-17 / AD-25 / AD-30 / AD-55 / AD-56 / AD-59 / AD-60 / AD-65 の 9 つ(一言サマリは CONTRIBUTING-modules.md「最初に読む ADR」参照)|
