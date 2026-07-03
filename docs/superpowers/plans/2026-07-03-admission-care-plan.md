@@ -1187,6 +1187,18 @@ clinosim regenerate-goldens --profile jp_icu_sepsis_hai_clabsi
 clinosim regenerate-goldens --profile jp_inpatient_copd_exacerbation
 ```
 
+- [ ] **Step 1b (discovered during execution): also regenerate the `.llm-mock` golden legs**
+
+`pytest -m regression` failed after Step 1 with 3 `test_profile_narrative_llm_mock_byte_diff`
+failures — the regression suite has a template leg AND an llm-mock leg per profile
+(`<profile>.llm-mock.golden.json`), and `--provider mock` must be regenerated separately
+(the plain `regenerate-goldens --profile X` only refreshes the template golden). Run:
+```bash
+clinosim regenerate-goldens --profile jp_inpatient_bacterial_pneumonia --provider mock
+clinosim regenerate-goldens --profile jp_icu_sepsis_hai_clabsi --provider mock
+clinosim regenerate-goldens --profile jp_inpatient_copd_exacerbation --provider mock
+```
+
 - [ ] **Step 2: Categorize the golden diff (AD-66 Rule 2)**
 
 Run: `git diff --stat tests/fixtures/patient_profiles/*.golden.json`
