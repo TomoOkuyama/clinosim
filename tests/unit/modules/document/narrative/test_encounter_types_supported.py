@@ -193,3 +193,29 @@ def test_specs_for_encounter_type_importable_from_module_init() -> None:
     from clinosim.modules.document import specs_for_encounter_type as fn  # noqa: F401
 
     assert callable(fn)
+
+
+# ---------------------------------------------------------------------------
+# chain 2: admission_care_plan encounter-type gating (rehab_inpatient excluded —
+# uses a different MHLW form 別紙２の２, not this spec's target)
+# ---------------------------------------------------------------------------
+
+def test_admission_care_plan_excludes_rehab_inpatient() -> None:
+    """rehab_inpatient uses the MHLW 別紙２の２ variant form, not this spec (design §2)."""
+    from clinosim.modules.document.narrative.registry import load_document_type_specs
+    from clinosim.types.document import DocumentType
+
+    specs = load_document_type_specs()
+    acp = specs[DocumentType.ADMISSION_CARE_PLAN]
+    assert set(acp.encounter_types_supported) == {"inpatient", "icu"}
+
+    inpatient_keys = {s.type_key for s in specs_for_encounter_type("inpatient")}
+    icu_keys = {s.type_key for s in specs_for_encounter_type("icu")}
+    rehab_keys = {s.type_key for s in specs_for_encounter_type("rehab_inpatient")}
+    outpatient_keys = {s.type_key for s in specs_for_encounter_type("outpatient")}
+    emergency_keys = {s.type_key for s in specs_for_encounter_type("emergency")}
+    assert "admission_care_plan" in inpatient_keys
+    assert "admission_care_plan" in icu_keys
+    assert "admission_care_plan" not in rehab_keys
+    assert "admission_care_plan" not in outpatient_keys
+    assert "admission_care_plan" not in emergency_keys
