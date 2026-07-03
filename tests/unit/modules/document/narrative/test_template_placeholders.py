@@ -10,8 +10,12 @@ into narrative text: known placeholders get real/default values.
 adv-1 I-2: a template that still carries UNKNOWN placeholders falls back to
 the whole-section generic phrase (pre-1a parity) — per-placeholder generic
 substitution produced broken sentences ("BP No special findings/No special
-findings mmHg"). Deriving real values for {sbp}/{hr}/{temp} from ctx.vitals
-is chain 1b (TODO.md).
+findings mmHg").
+
+β-JP-1 chain 1b T4: {sbp}/{dbp}/{hr}/{temp}/{spo2}/{rr} now resolve from
+ctx.vitals (nearest non-null reading for the stub's day). No resolvable
+reading → the I-2 whole-section fallback stays (pinned below with empty
+vitals).
 """
 
 from __future__ import annotations
@@ -94,7 +98,8 @@ def test_ed_unknown_placeholder_falls_back_to_whole_section_generic():
 
 
 def test_numeric_placeholders_fall_back_to_whole_section_generic_en():
-    """adv-1 I-2 regression pin: no 'BP No special findings/... mmHg' output."""
+    """adv-1 I-2 regression pin (chain 1b T4 refinement): EMPTY vitals →
+    whole-section fallback stays — no 'BP No special findings/... mmHg'."""
     proto = {
         "condition_id": "chest_pain_noncardiac",
         "chief_complaint": {"en": "Chest pain", "ja": "胸痛"},
@@ -189,6 +194,148 @@ def test_ed_physical_exam_mixed_parts_keeps_resolved_drops_unresolved():
     pe = out.sections["physical_exam"]
     assert "{" not in pe and "}" not in pe
     assert pe == "Alert and oriented"
+
+
+# --- β-JP-1 chain 1b T4: vitals placeholders from ctx.vitals ---
+
+
+_VITALS_PROTOCOL = {
+    "condition_id": "chest_pain_noncardiac",
+    "chief_complaint": {"en": "Chest pain", "ja": "胸痛"},
+    "narrative": {
+        "ed_note_template": {
+            "ed_workup_summary_en": (
+                "BP {sbp}/{dbp} mmHg, HR {hr}/min, T {temp}C, SpO2 {spo2}%, RR {rr}/min."
+            ),
+        },
+    },
+}
+
+
+def _vital(timestamp: str, **values):
+    base = {
+        "timestamp": timestamp,
+        "temperature_celsius": None,
+        "heart_rate": None,
+        "systolic_bp": None,
+        "diastolic_bp": None,
+        "respiratory_rate": None,
+        "spo2": None,
+    }
+    base.update(values)
+    return base
+
+
+def test_vitals_placeholders_resolve_from_ctx_vitals():
+    ctx = _ctx(DocumentType.ED_NOTE, _VITALS_PROTOCOL)
+    ctx.encounter = {"encounter_id": "ENC-1", "admission_datetime": "2025-01-10T09:00:00"}
+    ctx.vitals = [_vital(
+        "2025-01-10T10:00:00",
+        systolic_bp=132, diastolic_bp=84, heart_rate=88,
+        temperature_celsius=37.25, spo2=97.0, respiratory_rate=18,
+    )]
+    gen = TemplateNarrativeGenerator()
+    out = gen.generate(ctx, _spec("ed_note"))
+    workup = out.sections["ed_workup"]
+    assert workup == "BP 132/84 mmHg, HR 88/min, T 37.2C, SpO2 97%, RR 18/min."
+
+
+def test_vitals_placeholders_pick_nearest_day_reading():
+    """day_index selects the reading closest to admission + N days."""
+    proto = {
+        "condition_id": "chest_pain_noncardiac",
+        "chief_complaint": {"en": "Chest pain", "ja": "胸痛"},
+        "narrative": {
+            "ed_note_template": {"ed_workup_summary_en": "HR {hr}/min."},
+        },
+    }
+    ctx = _ctx(DocumentType.ED_NOTE, proto)
+    ctx.encounter = {"encounter_id": "ENC-1", "admission_datetime": "2025-01-10T09:00:00"}
+    ctx.day_index = 1
+    ctx.vitals = [
+        _vital("2025-01-10T10:00:00", heart_rate=110),  # day 0
+        _vital("2025-01-11T10:00:00", heart_rate=92),   # day 1 ← nearest
+        _vital("2025-01-12T10:00:00", heart_rate=78),   # day 2
+    ]
+    gen = TemplateNarrativeGenerator()
+    out = gen.generate(ctx, _spec("ed_note"))
+    assert out.sections["ed_workup"] == "HR 92/min."
+
+
+def test_vitals_placeholder_skips_null_reading_to_next_nearest():
+    """A null field on the nearest reading falls through to the next one."""
+    proto = {
+        "condition_id": "viral_uri",
+        "chief_complaint": {"en": "Sore throat", "ja": "咽頭痛"},
+        "narrative": {
+            "ed_note_template": {"ed_workup_summary_en": "T {temp}C, HR {hr}/min."},
+        },
+    }
+    ctx = _ctx(DocumentType.ED_NOTE, proto)
+    ctx.encounter = {"encounter_id": "ENC-1", "admission_datetime": "2025-01-10T09:00:00"}
+    ctx.vitals = [
+        _vital("2025-01-10T10:00:00", heart_rate=104),                 # temp null here
+        _vital("2025-01-10T16:00:00", temperature_celsius=38.6),      # temp from here
+    ]
+    gen = TemplateNarrativeGenerator()
+    out = gen.generate(ctx, _spec("ed_note"))
+    assert out.sections["ed_workup"] == "T 38.6C, HR 104/min."
+
+
+def test_vitals_placeholder_unresolvable_keeps_section_fallback():
+    """All readings null for a needed field → I-2 whole-section fallback stays."""
+    proto = {
+        "condition_id": "chest_pain_noncardiac",
+        "chief_complaint": {"en": "Chest pain", "ja": "胸痛"},
+        "narrative": {
+            "ed_note_template": {"ed_workup_summary_en": "BP {sbp}/{dbp} mmHg."},
+        },
+    }
+    ctx = _ctx(DocumentType.ED_NOTE, proto)
+    ctx.encounter = {"encounter_id": "ENC-1", "admission_datetime": "2025-01-10T09:00:00"}
+    ctx.vitals = [_vital("2025-01-10T10:00:00", heart_rate=88)]  # no BP anywhere
+    gen = TemplateNarrativeGenerator()
+    out = gen.generate(ctx, _spec("ed_note"))
+    assert out.sections["ed_workup"] == "No special findings"
+
+
+def test_vitals_mixed_with_unknown_placeholder_still_falls_back():
+    """Resolvable vitals + one unknown placeholder → whole-section fallback (I-2)."""
+    proto = {
+        "condition_id": "prescription_renewal",
+        "chief_complaint": {"en": "Prescription renewal", "ja": "処方継続"},
+        "narrative": {
+            "ed_note_template": {
+                "ed_workup_summary_en": "BP {sbp}/{dbp}, BW {weight}kg.",
+            },
+        },
+    }
+    ctx = _ctx(DocumentType.ED_NOTE, proto)
+    ctx.encounter = {"encounter_id": "ENC-1", "admission_datetime": "2025-01-10T09:00:00"}
+    ctx.vitals = [_vital("2025-01-10T10:00:00", systolic_bp=120, diastolic_bp=70)]
+    gen = TemplateNarrativeGenerator()
+    out = gen.generate(ctx, _spec("ed_note"))
+    assert out.sections["ed_workup"] == "No special findings"
+
+
+def test_vitals_placeholders_deterministic():
+    """Same ctx twice → identical output (no RNG in the resolution path)."""
+    def _build():
+        ctx = _ctx(DocumentType.ED_NOTE, _VITALS_PROTOCOL)
+        ctx.encounter = {
+            "encounter_id": "ENC-1", "admission_datetime": "2025-01-10T09:00:00",
+        }
+        ctx.vitals = [
+            _vital("2025-01-10T10:00:00", systolic_bp=132, diastolic_bp=84,
+                   heart_rate=88, temperature_celsius=37.25, spo2=97.0,
+                   respiratory_rate=18),
+            _vital("2025-01-10T18:00:00", systolic_bp=128, diastolic_bp=80,
+                   heart_rate=84, temperature_celsius=37.0, spo2=98.0,
+                   respiratory_rate=16),
+        ]
+        return TemplateNarrativeGenerator().generate(ctx, _spec("ed_note"))
+
+    assert _build().sections["ed_workup"] == _build().sections["ed_workup"]
 
 
 def test_ed_physical_exam_all_parts_unresolved_falls_back_once():

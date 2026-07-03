@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import logging
 import string
+from datetime import datetime, timedelta
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -76,28 +77,118 @@ def _pick_localized(
     return text
 
 
-# Placeholders _fill_template_placeholders can resolve today (chain 1a).
-# Everything else ({sbp}, {lab_summary_ja}, ...) makes the whole section fall
-# back to the locale generic phrase — chain 1b derives vitals from ctx.vitals.
+# Placeholders _fill_template_placeholders can resolve today (chain 1a
+# statics + chain 1b T4 vitals). Everything else ({lab_summary_ja},
+# {severity_desc_en}, {weight}, ...) makes the whole section fall back to the
+# locale generic phrase.
 _KNOWN_PLACEHOLDERS = frozenset({"onset_days", "chief_complaint_ja", "chief_complaint_en"})
+
+# β-JP-1 chain 1b T4: numeric vitals placeholders resolved from ctx.vitals
+# (wired in chain 1a). Placeholder name → structural-CIF vital_signs field.
+# YAML inventory today (grep over encounter reference_data): {sbp} {dbp}
+# {hr} {temp}; {spo2}/{rr} are covered ahead of authoring. A placeholder is
+# "known" only when a non-null reading exists for the stub's day — otherwise
+# the whole-section fallback (adv-1 I-2) is preserved.
+_VITAL_PLACEHOLDER_FIELDS: dict[str, str] = {
+    "sbp": "systolic_bp",
+    "dbp": "diastolic_bp",
+    "hr": "heart_rate",
+    "temp": "temperature_celsius",
+    "spo2": "spo2",
+    "rr": "respiratory_rate",
+}
+
+
+def _format_vital_value(placeholder: str, value: Any) -> str:
+    """Clinical display format: temp → 1 decimal, everything else → integer."""
+    if placeholder == "temp":
+        return f"{float(value):.1f}"
+    return str(int(round(float(value))))
+
+
+def _resolve_vital_placeholders(
+    ctx: NarrativeContext, wanted: set[str]
+) -> dict[str, str]:
+    """T4: resolve vitals placeholders from ctx.vitals for the stub's day.
+
+    Readings are ranked by day distance to (admission date + ctx.day_index),
+    ties broken by original list order (structural CIF vital_signs order is
+    chronological + deterministic — AD-16, no RNG). Per placeholder, the
+    nearest reading with a non-null value wins; unresolvable placeholders are
+    simply absent from the result (caller falls back whole-section).
+    """
+    if not wanted:
+        return {}
+    vitals = list(ctx.vitals or [])
+    if not vitals:
+        return {}
+
+    admission_dt = None
+    if ctx.encounter is not None:
+        raw = _o(ctx.encounter, "admission_datetime", None)
+        if isinstance(raw, datetime):
+            admission_dt = raw
+        elif raw:
+            try:
+                admission_dt = datetime.fromisoformat(str(raw))
+            except ValueError:
+                admission_dt = None
+    target_date = (
+        admission_dt.date() + timedelta(days=ctx.day_index)
+        if admission_dt is not None
+        else None
+    )
+
+    def _day_distance(vital: Any) -> int:
+        if target_date is None:
+            return 0
+        raw_ts = _o(vital, "timestamp", None)
+        ts: datetime | None
+        if isinstance(raw_ts, datetime):
+            ts = raw_ts
+        else:
+            try:
+                ts = datetime.fromisoformat(str(raw_ts)) if raw_ts else None
+            except ValueError:
+                ts = None
+        if ts is None:
+            return 10_000  # unparseable timestamps rank last
+        return abs((ts.date() - target_date).days)
+
+    ranked = sorted(enumerate(vitals), key=lambda pair: (_day_distance(pair[1]), pair[0]))
+    resolved: dict[str, str] = {}
+    for placeholder in wanted:
+        field_name = _VITAL_PLACEHOLDER_FIELDS[placeholder]
+        for _, vital in ranked:
+            value = _o(vital, field_name, None)
+            if value is None:
+                continue
+            try:
+                resolved[placeholder] = _format_vital_value(placeholder, value)
+            except (TypeError, ValueError):
+                continue  # non-numeric junk — try the next reading
+            break
+    return resolved
 
 
 def _fill_template_placeholders(text: str, ctx: NarrativeContext, lang: str) -> str:
     """Substitute `{placeholder}` tokens in encounter-template text (chain 1a).
 
-    Known placeholders (``_KNOWN_PLACEHOLDERS``):
+    Known placeholders:
       - ``{onset_days}`` → fixed default 3 (α-min-1 convention, see module
         docstring: computed values use a fixed reasonable default until they
         can be derived from CIF).
       - ``{chief_complaint_ja}`` / ``{chief_complaint_en}`` → the encounter
         protocol's own ``chief_complaint`` multi-language dict.
+      - ``{sbp}`` / ``{dbp}`` / ``{hr}`` / ``{temp}`` / ``{spo2}`` / ``{rr}``
+        (chain 1b T4) → nearest non-null reading in ``ctx.vitals`` for the
+        stub's day (``_resolve_vital_placeholders``).
 
-    adv-1 I-2: if the text carries ANY placeholder outside the known set
-    (``{sbp}``, ``{lab_summary_ja}``, ``{severity_desc_en}``, ...), the WHOLE
-    text falls back to the locale generic phrase — pre-chain-1a parity. The
+    adv-1 I-2: if the text carries ANY placeholder outside the known set —
+    including a vitals placeholder with NO resolvable reading — the WHOLE
+    text falls back to the locale generic phrase (pre-chain-1a parity). The
     earlier per-placeholder generic substitution produced broken sentences
-    ("BP No special findings/No special findings mmHg"). Deriving real vitals
-    values for those slots from ctx.vitals is β-JP-1 chain 1b (TODO.md).
+    ("BP No special findings/No special findings mmHg").
     """
     if "{" not in text:
         return text
@@ -115,7 +206,10 @@ def _fill_template_placeholders(text: str, ctx: NarrativeContext, lang: str) -> 
         return text
     if not fields:
         return text
-    if not fields <= _KNOWN_PLACEHOLDERS:
+    vital_values = _resolve_vital_placeholders(
+        ctx, fields & _VITAL_PLACEHOLDER_FIELDS.keys()
+    )
+    if not fields <= (_KNOWN_PLACEHOLDERS | vital_values.keys()):
         return generic
     cc = _o(ctx.encounter_protocol, "chief_complaint", {}) if ctx.encounter_protocol else {}
     if not isinstance(cc, dict):
@@ -124,6 +218,7 @@ def _fill_template_placeholders(text: str, ctx: NarrativeContext, lang: str) -> 
         "onset_days": "3",
         "chief_complaint_ja": str(cc.get("ja") or "") or generic,
         "chief_complaint_en": str(cc.get("en") or "") or generic,
+        **vital_values,
     }
     try:
         return text.format_map(mapping)
