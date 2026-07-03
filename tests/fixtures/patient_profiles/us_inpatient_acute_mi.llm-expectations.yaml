@@ -1,0 +1,14 @@
+# Semantic-check expectations for us_inpatient_acute_mi (β-JP-1 chain 1b T2).
+# Minimal clinically-load-bearing anchors only (disease / key drugs / outcome)
+# — avoid brittle full-sentence pins. Sections NOT listed here are still
+# covered by the builtin axes (structure / facts / forbidden patterns).
+admission_hp:
+  chief_complaint:
+    all_of: ["Chest pain"]
+discharge_summary:
+  discharge_diagnoses:
+    all_of: ["myocardial infarction", "I21.9"]
+  discharge_medications:
+    all_of: ["Aspirin", "Atorvastatin"]
+  hospital_course:
+    any_of: ["improve", "discharged", "hospitalized"]
