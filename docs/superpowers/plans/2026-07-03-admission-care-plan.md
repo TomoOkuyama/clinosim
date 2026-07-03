@@ -256,6 +256,21 @@ SUPPORTED_DOCUMENT_TYPES: frozenset[DocumentType] = frozenset({
 Run: `pytest tests/unit/modules/document/narrative/test_registry.py tests/unit/modules/document/narrative/test_encounter_types_supported.py -v`
 Expected: PASS (all tests, including the pre-existing `test_registry_covers_α_min_1_doc_types` etc. — the Layer 4 forward/reverse-coverage validator now passes since YAML and enum agree).
 
+- [ ] **Step 5b (discovered during execution): update 3 pre-existing hardcoded fixtures + 3 count assertions**
+
+`test_load_raises_on_missing_required_field` / `test_load_raises_on_null_entry` /
+`test_load_raises_on_empty_countries_supported` each hardcode a full 9-entry `bad_data["specs"]`
+dict to exercise one specific validator layer. Once `SUPPORTED_DOCUMENT_TYPES` has 10 members,
+the Layer-4 forward/reverse-coverage check (which runs BEFORE the per-field loop) fires first
+on these 9-entry dicts with a "drift: missing=['admission_care_plan']" error instead of the
+message each test expects — added a 10th valid `admission_care_plan` entry to all 3 dicts so
+the intended validator layer is what actually fires. Also updated 3 count-assertion tests that
+hardcoded the pre-chain-2 totals: `test_load_specs_returns_9_total` → `..._10_total`,
+`test_supported_document_types_covers_9_entries` → `..._10_entries`,
+`test_specs_for_encounter_type_inpatient_returns_6_specs` → `..._7_specs` (admission_care_plan
+adds one more inpatient-restricted spec). None of this was anticipated in the original plan —
+caught by running the full registry test file, not just the 2 new test functions.
+
 - [ ] **Step 6: Commit**
 
 ```bash
