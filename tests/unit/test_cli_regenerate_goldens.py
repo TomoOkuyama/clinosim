@@ -29,6 +29,10 @@ def test_regenerate_goldens_help():
     assert result.returncode == 0
     assert "--profile" in result.stdout
     assert "--all" in result.stdout
+    # β-JP-1 chain 1b T1: LLM golden support
+    assert "--provider" in result.stdout
+    assert "--llm-config" in result.stdout
+    assert "--model-tag" in result.stdout
 
 
 def test_regenerate_single_profile(tmp_path: Path):
@@ -122,3 +126,102 @@ def test_regenerate_is_idempotent(tmp_path: Path):
     second = (fixture_dir / "idem_test.golden.json").read_text()
 
     assert first == second, "regenerate-goldens is not idempotent (byte-diff between two runs)"
+
+
+# --- β-JP-1 chain 1b T1: --provider {template,mock,bedrock,ollama} ---
+
+
+def test_regenerate_mock_provider_writes_llm_mock_golden(tmp_path: Path):
+    """--provider mock writes <name>.llm-mock.golden.json (template golden untouched)."""
+    fixture_dir = tmp_path / "patient_profiles"
+    fixture_dir.mkdir()
+    _write_profile(fixture_dir, "mock_test", {
+        "profile_id": "mock_test",
+        "disease_id": "bacterial_pneumonia",
+        "country": "US",
+        "severity": "moderate",
+        "count": 1,
+        "random_seed": 42,
+    })
+
+    result = subprocess.run(
+        [sys.executable, "-m", "clinosim.simulator.cli", "regenerate-goldens",
+         "--profile", "mock_test", "--provider", "mock"],
+        capture_output=True, text=True, check=False,
+        env=_env_with(fixture_dir),
+    )
+    assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
+
+    golden_path = fixture_dir / "mock_test.llm-mock.golden.json"
+    assert golden_path.is_file(), "llm-mock golden JSON not written"
+    assert not (fixture_dir / "mock_test.golden.json").is_file(), (
+        "--provider mock must NOT touch the template golden"
+    )
+    golden = json.loads(golden_path.read_text())
+    assert isinstance(golden, dict) and golden, "golden should be document_id → narrative dict"
+    # At least one template_seed doc must carry actual mock-LLM section text —
+    # otherwise the narrate step silently ran template-only (PR-90 class).
+    all_text = json.dumps(golden, ensure_ascii=False)
+    assert "[Mock LLM response" in all_text, "mock provider output missing from golden"
+
+
+def test_regenerate_mock_provider_model_tag_override(tmp_path: Path):
+    """--model-tag TAG overrides the filename tag derived from the provider."""
+    fixture_dir = tmp_path / "patient_profiles"
+    fixture_dir.mkdir()
+    _write_profile(fixture_dir, "tag_test", {
+        "profile_id": "tag_test",
+        "disease_id": "bacterial_pneumonia",
+        "country": "US",
+        "severity": "moderate",
+        "count": 1,
+        "random_seed": 42,
+    })
+
+    result = subprocess.run(
+        [sys.executable, "-m", "clinosim.simulator.cli", "regenerate-goldens",
+         "--profile", "tag_test", "--provider", "mock", "--model-tag", "mymodel"],
+        capture_output=True, text=True, check=False,
+        env=_env_with(fixture_dir),
+    )
+    assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
+    assert (fixture_dir / "tag_test.llm-mymodel.golden.json").is_file()
+
+
+def test_regenerate_template_rejects_llm_only_flags(tmp_path: Path):
+    """--model-tag / --llm-config with --provider template = fail-loud (exit != 0)."""
+    fixture_dir = tmp_path / "patient_profiles"
+    fixture_dir.mkdir()
+    for extra in (["--model-tag", "x"], ["--llm-config", "/tmp/nonexistent.yaml"]):
+        result = subprocess.run(
+            [sys.executable, "-m", "clinosim.simulator.cli", "regenerate-goldens",
+             "--profile", "whatever", *extra],
+            capture_output=True, text=True, check=False,
+            env=_env_with(fixture_dir),
+        )
+        assert result.returncode != 0, f"expected rejection for {extra}"
+        assert "provider" in result.stderr.lower()
+
+
+def test_regenerate_mock_provider_is_idempotent(tmp_path: Path):
+    """Two --provider mock runs yield byte-identical llm-mock goldens (AD-16)."""
+    fixture_dir = tmp_path / "patient_profiles"
+    fixture_dir.mkdir()
+    _write_profile(fixture_dir, "mock_idem", {
+        "profile_id": "mock_idem",
+        "disease_id": "bacterial_pneumonia",
+        "country": "US",
+        "severity": "moderate",
+        "count": 1,
+        "random_seed": 42,
+    })
+    env = _env_with(fixture_dir)
+    cmd = [sys.executable, "-m", "clinosim.simulator.cli", "regenerate-goldens",
+           "--profile", "mock_idem", "--provider", "mock"]
+
+    subprocess.run(cmd, env=env, capture_output=True, text=True, check=True)
+    first = (fixture_dir / "mock_idem.llm-mock.golden.json").read_text()
+    subprocess.run(cmd, env=env, capture_output=True, text=True, check=True)
+    second = (fixture_dir / "mock_idem.llm-mock.golden.json").read_text()
+
+    assert first == second, "mock llm golden is not byte-stable across two subprocess runs"

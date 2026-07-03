@@ -36,4 +36,22 @@ def profile_ids() -> list[str]:
 
     Deterministic order (sorted) for parametrize stability.
     """
-    return sorted(p.stem for p in FIXTURE_DIR.glob("*.yaml"))
+    return sorted(
+        p.stem for p in FIXTURE_DIR.glob("*.yaml") if not p.name.endswith(".llm-expectations.yaml")
+    )
+
+
+_LLM_MOCK_GOLDEN_SUFFIX = ".llm-mock.golden.json"
+
+
+def llm_mock_profile_ids() -> list[str]:
+    """Profile ids that carry an llm-mock golden (β-JP-1 chain 1b T1).
+
+    The llm-mock leg only runs for profiles whose `<name>.llm-mock.golden.json`
+    exists — bootstrap via `clinosim regenerate-goldens --profile <name>
+    --provider mock`. Sorted for parametrize stability.
+    """
+    return sorted(
+        p.name[: -len(_LLM_MOCK_GOLDEN_SUFFIX)]
+        for p in FIXTURE_DIR.glob(f"*{_LLM_MOCK_GOLDEN_SUFFIX}")
+    )
