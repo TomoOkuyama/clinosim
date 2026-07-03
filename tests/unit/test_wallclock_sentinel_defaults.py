@@ -111,3 +111,8 @@ def test_update_differential_no_longer_touches_wall_clock():
     before = diff.timestamp
     diff = update_differential(diff, [("chest_xray_consolidation", True)])
     assert diff.timestamp == before == _SENTINEL_DATETIME
+
+
+def test_hospital_state_timestamp_sentinel():
+    from clinosim.modules.facility.hospital_state import HospitalState
+    assert HospitalState().timestamp == _SENTINEL_DATETIME

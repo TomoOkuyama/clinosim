@@ -14,6 +14,9 @@ from typing import Any
 
 import yaml
 
+# See clinosim/types/clinical.py for rationale (determinism chain, 2026-07-04).
+_UNSET_DATETIME = datetime(1970, 1, 1)
+
 _HERE = Path(__file__).resolve().parent
 _HOSPITAL_OPERATIONS_PATH = _HERE.parents[1] / "config" / "hospital_operations.yaml"
 
@@ -22,7 +25,7 @@ _HOSPITAL_OPERATIONS_PATH = _HERE.parents[1] / "config" / "hospital_operations.y
 class HospitalState:
     """Time-varying operational state of the hospital."""
 
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime = field(default_factory=lambda: _UNSET_DATETIME)
 
     # Resource queue utilization (0.0=idle, 1.0=fully occupied)
     lab_queue: float = 0.1
