@@ -1,0 +1,17 @@
+# Semantic-check expectations for jp_inpatient_bacterial_pneumonia
+# (β-JP-1 chain 1b T2). Minimal clinical anchors — see us_inpatient_acute_mi
+# expectations header for authoring policy. `numeric` on hospital_course
+# pins LOS preservation through the LLM rewrite (prompt contract: numbers in
+# the seed must be preserved); tolerance ±1 absorbs day-count phrasing.
+admission_hp:
+  chief_complaint:
+    all_of: ["発熱"]
+discharge_summary:
+  discharge_diagnoses:
+    all_of: ["肺炎"]
+  discharge_medications:
+    all_of: ["Amoxicillin"]
+  hospital_course:
+    any_of: ["退院", "改善"]
+    numeric:
+      - {value: 11, tolerance: 1}

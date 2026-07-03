@@ -1,0 +1,13 @@
+# Semantic-check expectations for us_inpatient_diabetic_ketoacidosis
+# (β-JP-1 chain 1b T2). Minimal clinical anchors — see us_inpatient_acute_mi
+# expectations header for authoring policy.
+admission_hp:
+  chief_complaint:
+    all_of: ["polyuria"]
+discharge_summary:
+  discharge_diagnoses:
+    all_of: ["diabetes mellitus", "E11.65"]
+  discharge_medications:
+    all_of: ["Insulin"]
+  hospital_course:
+    any_of: ["improve", "discharged", "hospitalized"]

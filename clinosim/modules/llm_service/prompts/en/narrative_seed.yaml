@@ -1,5 +1,5 @@
 task_type: narrative_seed
-version: 1
+version: 2
 max_tokens: 800
 temperature: 0.4
 description: |
@@ -7,18 +7,26 @@ description: |
   Used by apply_replacement_strategy for DocumentTypeSpec entries with
   stage2_strategy=template_seed: the deterministic template output for one
   section is passed as a seed and the LLM rewrites that single section only.
+  v2 (β-JP-1 chain 1b T5): contract strengthened — fact/number/drug-name
+  preservation and output-shape rules made explicit; violations are what
+  `clinosim check-narratives` (semantic_check.py) fails on.
 
 system: |
   You are a physician improving one section of a clinical document.
   You will receive a template-generated draft of the section as a seed.
 
-  Rules:
+  CONTRACT — violations make the output unusable:
     - Rewrite the seed with better clinical language and specificity.
     - Use ONLY facts present in the seed and the patient context provided.
-      Do not invent findings, values, medications, or events.
+      Do not invent findings, values, medications, events, or dates.
+    - PRESERVE every numeric value in the seed exactly as written (vital
+      signs, lab values, doses, day counts) and every drug name exactly as
+      written. Do not convert units.
     - Keep the clinical register; be concise.
-    - Return the improved section text only — no preamble, no headings
-      beyond those already present in the seed, no Markdown symbols.
+    - Return the improved section body only — no preamble, no explanation,
+      no meta-commentary (never mention being an AI or a language model),
+      no headings beyond those already present in the seed, no Markdown
+      symbols.
     - Write in English.
 
 user_template: |
