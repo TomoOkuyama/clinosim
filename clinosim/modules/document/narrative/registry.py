@@ -38,6 +38,7 @@ _REF_DIR = _HERE.parent / "reference_data"
 # new frequency requires BOTH the engine branch and this allowlist entry.
 GENERATION_FREQUENCIES: frozenset[str] = frozenset({
     "admission_once",
+    "admission_once_los_gt_7",  # chain 2: nutrition_care_plan (MHLW LOS>7 mandate)
     "daily",
     "daily_3shift",  # α-min-3: 3 nursing notes per LOS day (night/day/evening)
     "discharge_once",
@@ -55,7 +56,7 @@ STAGE2_STRATEGIES: frozenset[str] = frozenset({
     "template_seed",
 })
 
-# α-min-2 scope = 9 doc types (α-min-1 3 + α-min-2 6); chain 2 adds 1 = 10
+# α-min-2 scope = 9 doc types (α-min-1 3 + α-min-2 6); chain 2 adds 2 = 11
 SUPPORTED_DOCUMENT_TYPES: frozenset[DocumentType] = frozenset({
     # α-min-1
     DocumentType.ADMISSION_HP,
@@ -68,8 +69,9 @@ SUPPORTED_DOCUMENT_TYPES: frozenset[DocumentType] = frozenset({
     DocumentType.OUTPATIENT_SOAP,
     DocumentType.ED_NOTE,
     DocumentType.ED_TRIAGE_NOTE,
-    # chain 2 addition
+    # chain 2 additions
     DocumentType.ADMISSION_CARE_PLAN,
+    DocumentType.NUTRITION_CARE_PLAN,
 })
 
 

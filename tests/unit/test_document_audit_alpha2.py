@@ -188,3 +188,24 @@ def test_lift_firing_proof_includes_admission_care_plan_checks():
     ):
         _, actual, expected = labels[label]
         assert actual == expected, f"{label}: {actual!r} != {expected!r}"
+
+
+@pytest.mark.unit
+def test_lift_firing_proof_includes_nutrition_care_plan_checks():
+    """chain 2: nutrition_care_plan dispatch proof — LOS>7 gate, JP-only gate.
+
+    Proves BOTH positive (LOS>7 fires) and negative (LOS<=7 does not fire)
+    cases, per the admission_care_plan adv-1 lesson (design spec §5).
+    """
+    proof = _build_proof()
+    labels = {c[0]: c for c in proof["equality_checks"]}
+    expected_labels = (
+        "nutrition_care_plan_jp_inpatient_los10_count",
+        "nutrition_care_plan_jp_inpatient_los5_count",
+        "nutrition_care_plan_jp_icu_los10_count",
+        "nutrition_care_plan_us_inpatient_los10_count",
+    )
+    for label in expected_labels:
+        assert label in labels, f"missing check {label!r}"
+        _, actual, expected = labels[label]
+        assert actual == expected, f"{label}: {actual!r} != {expected!r}"

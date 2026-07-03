@@ -6,7 +6,7 @@ AD-60 plug-in #5 (after hai, antibiotic, order_service_request, imaging).
 Verifies CIF -> FHIR emission integrity for the document pipeline:
 DocumentReference / Composition / AllergyIntolerance / ClinicalImpression / CareTeam.
 
-41 equality_checks in lift_firing_proof guard canonical constants and
+45 equality_checks in lift_firing_proof guard canonical constants and
 no-drop emission paths against PR-90 class silent-no-op regression.
 
 Registered checks:
@@ -60,6 +60,12 @@ Registered checks:
     encounter types (not silently emitting for US or rehab_inpatient; adv-1
     finding: the original proof omitted the icu case despite icu being one
     of only two encounter_types_supported values). See `_proof_admission_care_plan`.
+  chain 2 nutrition_care_plan gate (+4, total = 45):
+    `nutrition_care_plan_jp_inpatient_los10_count` (positive: LOS>7 fires) /
+    `nutrition_care_plan_jp_inpatient_los5_count` (negative: LOS<=7 does not
+    fire) / `nutrition_care_plan_jp_icu_los10_count` (positive, icu) /
+    `nutrition_care_plan_us_inpatient_los10_count` (negative, country gate).
+    See `_proof_nutrition_care_plan`.
 
 TODO(jp_language_audit): jp_language_checks not implemented — ModuleAuditSpec
 does not have a jp_language_checks field. Deferred to a follow-up sweep
@@ -662,6 +668,56 @@ def _proof_admission_care_plan() -> dict[str, Any]:
     }
 
 
+def _proof_nutrition_care_plan() -> dict[str, Any]:
+    """chain 2: prove the nutrition_care_plan LOS>7 + JP-only gate fires.
+
+    Four synthetic encounters (JP inpatient LOS=10, JP inpatient LOS=5, JP
+    ICU LOS=10, US inpatient LOS=10) run through document_enricher; proves
+    BOTH the positive dispatch (LOS>7 fires) and the negative dispatch
+    (LOS<=7 does not fire, non-JP does not fire) — the admission_care_plan
+    adv-1 lesson (that chain's first proof only tested one direction of a
+    related gate) applied here from the start.
+    """
+    from datetime import datetime, timedelta
+    from types import SimpleNamespace
+
+    from clinosim.modules.document.engine import document_enricher
+
+    def _run(encounter_type: str, los_days: int, country: str) -> int:
+        admission_dt = datetime(2026, 7, 1, 10, 0)
+        record: dict[str, Any] = {
+            "patient": {"patient_id": f"pt-ncp-proof-{encounter_type}-{los_days}-{country}"},
+            "encounters": [
+                {
+                    "encounter_id": f"enc-ncp-proof-{encounter_type}-{los_days}-{country}",
+                    "encounter_type": encounter_type,
+                    "status": "completed",
+                    "admission_datetime": admission_dt,
+                    "discharge_datetime": admission_dt + timedelta(days=los_days),
+                    "attending_physician_id": "dr-ncp-proof",
+                    "primary_nurse_id": "ns-ncp-proof",
+                }
+            ],
+            "documents": [],
+            "extensions": {},
+            "physiological_states": [],
+        }
+        ctx = SimpleNamespace(
+            master_seed=42, records=[record], config=SimpleNamespace(country=country)
+        )
+        document_enricher(ctx)
+        return len([
+            d for d in record["documents"] if getattr(d, "task_type", "") == "nutrition_care_plan"
+        ])
+
+    return {
+        "jp_inpatient_los10_count": _run("inpatient", 10, "jp"),
+        "jp_inpatient_los5_count": _run("inpatient", 5, "jp"),
+        "jp_icu_los10_count": _run("icu", 10, "jp"),
+        "us_inpatient_los10_count": _run("inpatient", 10, "us"),
+    }
+
+
 def _build_document_proof() -> dict[str, Any]:
     """Zero-arg factory: run document FHIR builders on synthetic data.
 
@@ -873,6 +929,9 @@ def _build_document_proof() -> dict[str, Any]:
 
     # chain 2: admission_care_plan JP-only / inpatient+icu gate proof.
     _acp_proof = _proof_admission_care_plan()
+
+    # chain 2: nutrition_care_plan LOS>7 + JP-only gate proof.
+    _ncp_proof = _proof_nutrition_care_plan()
 
     return {
         "equality_checks": [
@@ -1101,6 +1160,27 @@ def _build_document_proof() -> dict[str, Any]:
             (
                 "admission_care_plan_jp_rehab_inpatient_count",
                 _acp_proof["jp_rehab_inpatient_count"],
+                0,
+            ),
+            # === chain 2: nutrition_care_plan gate proof (+4, total = 45) ===
+            (
+                "nutrition_care_plan_jp_inpatient_los10_count",
+                _ncp_proof["jp_inpatient_los10_count"],
+                1,
+            ),
+            (
+                "nutrition_care_plan_jp_inpatient_los5_count",
+                _ncp_proof["jp_inpatient_los5_count"],
+                0,
+            ),
+            (
+                "nutrition_care_plan_jp_icu_los10_count",
+                _ncp_proof["jp_icu_los10_count"],
+                1,
+            ),
+            (
+                "nutrition_care_plan_us_inpatient_los10_count",
+                _ncp_proof["us_inpatient_los10_count"],
                 0,
             ),
         ]

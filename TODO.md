@@ -1804,10 +1804,21 @@ These items were **explicitly out of scope** for the α-min-2 document density c
   scope). `special_nutrition_management` is hardcoded "無" pending a future
   nutrition subsystem chain (see below) — no NutritionOrder/nutritionist
   data source exists yet to derive a real value.
-- **看護必要度 D 表** (Nursing dependency D-form) — DPC algorithm-based scoring, mandatory
-  for acute care hospitals. Requires `extensions["nursing"]` GCS/ADL scores.
-- **栄養管理計画書** (Nutrition care plan) — mandatory for all hospital admissions > 7 days.
-  Requires nutritionist staff role + NutritionOrder foundation.
+- ~~**栄養管理計画書** (Nutrition care plan)~~ — **DONE (chain 2, 2026-07-03)**:
+  LOINC 80791-7, Composition, 12 sections per MHLW 別紙23, JP-only,
+  inpatient/icu only, emitted only for admissions with LOS > 7 days (new
+  `admission_once_los_gt_7` generation_frequency). Only 3/12 sections are
+  data-driven (ward/physician from Encounter, nutrition_risk from
+  PatientProfile.bmi, nutrition_supply energy/protein estimate from
+  PatientProfile.weight_kg); the other 9 are MVP fixed fallbacks — see
+  deferred entries below.
+- **重症度、医療・看護必要度に係る評価票**(TODO.mdの旧記載「看護必要度D表」は誤記 — 正式名称は
+  A項目/B項目/C項目の評価票、"D表"という区分はMHLW公式には存在しない、chain 2調査で訂正
+  2026-07-03)— DPC/診療報酬算定用の国内専用スコアリング様式。**適切なLOINCコードなし**
+  (検証済み:LOINC 80346-0 "Nursing physiologic assessment panel"は米国の一般看護身体
+  アセスメントパネルで別物、誤用不可)。ローカルコード体系でのQuestionnaireResponse実装が
+  必要(現状は`FormatType.QUESTIONNAIRE_RESPONSE`のinfrastructure stubのみ)。GCS/ADLデータは
+  `nursing_enricher.py`に既存だが、評価票のA/B/C項目粒度とは一致しない。
 - **リハビリテーション計画書** (Rehabilitation plan) — mandatory for rehab wards. Requires
   `extensions["procedure"]` rehab sessions.
 - **JP section text full localization** — `past_medical_history` / `medications_at_home` /
@@ -1847,6 +1858,45 @@ every `DocumentTypeSpec.composition_sections` list and asserts each section
 key maps to at most one doc type's intended semantics, OR restructure
 `section_builders` to be keyed by `(doc_type, section)` instead of bare
 `section` so collisions become structurally impossible.
+
+### chain 2 deferred: nutrition_care_plan real data derivation
+
+`_build_ncp_dietitian` / `_build_ncp_nutrition_assessment` /
+`_build_ncp_nutrition_goals` / `_build_ncp_dysphagia_diet` /
+`_build_ncp_dietary_content` / `_build_ncp_nutrition_counseling` /
+`_build_ncp_other_issues` / `_build_ncp_reassessment_timing` (8 of 12
+sections) render MVP fixed fallback strings — no CIF data source exists for
+dietitian staff, real nutrition assessment/counseling content, or dysphagia
+screening. Revisit when a richer nutrition-assessment data model + dietitian
+staff role are built. `nutrition_risk`'s BMI-threshold heuristic is a coarse
+screening proxy (not GLIM/MUST-validated) — acceptable for synthetic-data
+MVP but should not be treated as clinically authoritative if reused
+elsewhere.
+
+### chain 2 deferred: nutrition_care_plan discharge-time revision
+
+`_build_ncp_discharge_evaluation` always renders a fixed "pending" phrase —
+this system has no mechanism to re-render a Stage-1 document stub at a later
+encounter phase. If discharge-time nutrition evaluation becomes a priority,
+this would need either a second document type (mirroring the
+`nursing_discharge_summary` vs `admission_nursing_assessment` split
+precedent) or a new Stage-2 revision mechanism.
+
+### chain 2 deferred: LOS-gated document_enricher pattern (final review, PR #139)
+
+`nutrition_care_plan` introduced `admission_once_los_gt_7`, the first
+`generation_frequency` that bakes a numeric threshold into the enum string
+itself (`document/engine.py`'s `document_enricher` dispatch). This is fine
+for one gated doc type, but before a **third** LOS-gated document lands,
+consider parameterizing instead of adding `admission_once_los_gt_14` etc.
+ad hoc — e.g. keep `generation_frequency: admission_once` plus an optional
+`min_los_days: int | None` field on `DocumentTypeSpec`, read once by a
+single `admission_once` branch. Relatedly, `document_enricher` now has 3
+near-identical 10-field `ClinicalDocument(...)` constructions
+(`admission_once` / `admission_once_los_gt_7` / the per-day loop body in
+`daily`) — a small local `_make_doc_stub(spec, encounter_id, doc_seq,
+authored_dt, pid, lang, author)` helper would collapse the duplication and
+make the LOS guard the only visible difference between branches.
 
 ### β-2 phase — Clinical event density
 

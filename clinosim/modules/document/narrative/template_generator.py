@@ -261,6 +261,31 @@ _ACP_OTHER_PLANS_JA = "その他：看護計画・リハビリテーション等
 _ACP_OTHER_PLANS_EN = (
     "Other: see nursing documentation for the nursing care plan and rehabilitation plan."
 )
+
+# chain 2: NUTRITION_CARE_PLAN fallback phrases
+_NCP_DIETITIAN_FALLBACK_JA = "担当なし"
+_NCP_DIETITIAN_FALLBACK_EN = "No dietitian assigned"
+_NCP_ASSESSMENT_FALLBACK_JA = "栄養状態の評価と課題：特記事項なし"
+_NCP_ASSESSMENT_FALLBACK_EN = "Nutrition status assessment: no significant findings"
+_NCP_GOALS_FALLBACK_JA = "栄養管理計画の目標：現在の栄養状態を維持"
+_NCP_GOALS_FALLBACK_EN = "Nutrition management goal: maintain current nutritional status"
+_NCP_DYSPHAGIA_NONE_JA = "嚥下調整食の必要性：なし"
+_NCP_DYSPHAGIA_NONE_EN = "Dysphagia diet required: No"
+_NCP_DIETARY_CONTENT_FALLBACK_JA = "食事内容：常食"
+_NCP_DIETARY_CONTENT_FALLBACK_EN = "Dietary content: regular diet"
+_NCP_COUNSELING_FALLBACK_JA = "栄養食事相談：必要に応じて実施"
+_NCP_COUNSELING_FALLBACK_EN = "Nutrition counseling: to be provided as needed"
+_NCP_OTHER_ISSUES_FALLBACK_JA = "その他栄養管理上の課題：特記事項なし"
+_NCP_OTHER_ISSUES_FALLBACK_EN = "Other nutrition management issues: none noted"
+_NCP_REASSESSMENT_FALLBACK_JA = "栄養状態の再評価：入院後1週間を目安に実施"
+_NCP_REASSESSMENT_FALLBACK_EN = (
+    "Nutrition status reassessment: planned approximately 1 week after admission"
+)
+_NCP_DISCHARGE_EVAL_FALLBACK_JA = "退院時及び終了時の総合的評価：退院時に評価予定"
+_NCP_DISCHARGE_EVAL_FALLBACK_EN = (
+    "Comprehensive evaluation at discharge: pending, to be assessed at discharge"
+)
+
 _CARE_PLAN_FALLBACK_JA = "看護計画：標準的ケア継続"
 _CARE_PLAN_FALLBACK_EN = "Care plan: continue standard nursing care"
 _INTERVENTIONS_FALLBACK_JA = "実施した看護介入：特記事項なし"
@@ -498,6 +523,19 @@ class TemplateNarrativeGenerator:
             "estimated_los": self._build_acp_estimated_los,
             "special_nutrition_management": self._build_acp_special_nutrition_management,
             "other_plans": self._build_acp_other_plans,
+            # chain 2: NUTRITION_CARE_PLAN sections (LOINC 80791-7)
+            "ward_and_physician": self._build_ncp_ward_and_physician,
+            "dietitian": self._build_ncp_dietitian,
+            "nutrition_risk": self._build_ncp_nutrition_risk,
+            "nutrition_assessment": self._build_ncp_nutrition_assessment,
+            "nutrition_goals": self._build_ncp_nutrition_goals,
+            "nutrition_supply": self._build_ncp_nutrition_supply,
+            "dysphagia_diet": self._build_ncp_dysphagia_diet,
+            "dietary_content": self._build_ncp_dietary_content,
+            "nutrition_counseling": self._build_ncp_nutrition_counseling,
+            "other_issues": self._build_ncp_other_issues,
+            "reassessment_timing": self._build_ncp_reassessment_timing,
+            "discharge_evaluation": self._build_ncp_discharge_evaluation,
         }
 
         for section in spec.composition_sections:
@@ -1361,6 +1399,143 @@ class TemplateNarrativeGenerator:
         without a larger architecture change (out of scope, see plan)."""
         is_ja = ctx.target_lang == "ja"
         return (_ACP_OTHER_PLANS_JA if is_ja else _ACP_OTHER_PLANS_EN), []
+
+    # ─────────────────────────────────────────────────────────────────
+    # chain 2: NUTRITION_CARE_PLAN section builders (栄養管理計画書, LOINC 80791-7)
+    #
+    # MHLW form 別紙23 (verified 2026-07-03 — design spec §2). JP-only,
+    # LOS>7-gated. Only 3 of 12 sections are data-driven (ward_and_physician /
+    # nutrition_risk / nutrition_supply); the rest are MVP fixed fallbacks —
+    # no dietitian role or real nutrition-assessment data source exists yet
+    # (TODO.md tracks this). Both language branches implemented for
+    # consistency with every other builder in this file, though this doc
+    # type is JP-only in production.
+    # ─────────────────────────────────────────────────────────────────
+
+    def _build_ncp_ward_and_physician(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """病棟／担当医師名／入院日 — same Encounter fields as admission_care_plan."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        ward = str(_o(ctx.encounter, "ward_id", "") or "")
+        physician = str(_o(ctx.encounter, "attending_physician_id", "") or "")
+        if ward:
+            facts.append("encounter.ward_id")
+        if physician:
+            facts.append("encounter.attending_physician_id")
+        ward_disp = ward or ("未定" if is_ja else "TBD")
+        physician_disp = physician or ("未定" if is_ja else "TBD")
+        if is_ja:
+            return f"病棟：{ward_disp}　担当医師：{physician_disp}", facts
+        return f"Ward: {ward_disp}, Attending physician: {physician_disp}", facts
+
+    def _build_ncp_dietitian(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """担当管理栄養士名 — MVP: no dietitian staff role exists yet."""
+        is_ja = ctx.target_lang == "ja"
+        return (_NCP_DIETITIAN_FALLBACK_JA if is_ja else _NCP_DIETITIAN_FALLBACK_EN), []
+
+    def _build_ncp_nutrition_risk(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """入院時栄養状態に関するリスク — BMI 3-tier threshold (coarse screening
+        proxy, not a validated instrument like GLIM/MUST — design spec §4)."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        bmi = _o(ctx.patient, "bmi", None)
+        if bmi is None:
+            fallback = (
+                "栄養リスク：評価データなし" if is_ja else "Nutrition risk: no assessment data"
+            )
+            return fallback, facts
+        facts.append("patient.bmi")
+        bmi_r = round(float(bmi), 1)
+        if bmi_r < 18.5:
+            return (
+                f"低栄養リスク：高（BMI {bmi_r}）" if is_ja
+                else f"Malnutrition risk: high (BMI {bmi_r})"
+            ), facts
+        if bmi_r > 25:
+            return (
+                f"過栄養傾向（BMI {bmi_r}）" if is_ja
+                else f"Overnutrition tendency (BMI {bmi_r})"
+            ), facts
+        return (
+            f"低栄養リスク：低（BMI {bmi_r}、リスクなし）" if is_ja
+            else f"Malnutrition risk: low (BMI {bmi_r}, no risk identified)"
+        ), facts
+
+    def _build_ncp_nutrition_assessment(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """栄養状態の評価と課題 — MVP fixed fallback."""
+        is_ja = ctx.target_lang == "ja"
+        return (_NCP_ASSESSMENT_FALLBACK_JA if is_ja else _NCP_ASSESSMENT_FALLBACK_EN), []
+
+    def _build_ncp_nutrition_goals(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """栄養管理計画 目標 — MVP fixed fallback."""
+        is_ja = ctx.target_lang == "ja"
+        return (_NCP_GOALS_FALLBACK_JA if is_ja else _NCP_GOALS_FALLBACK_EN), []
+
+    def _build_ncp_nutrition_supply(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """栄養補給に関する事項 (エネルギー/たんぱく質/補給方法) — standard
+        initial-planning estimation formulas from PatientProfile.weight_kg
+        (25-30 kcal/kg/day energy midpoint, 1.0-1.2 g/kg/day protein
+        midpoint — design spec §3c). Route fixed to 経口 (oral) MVP default."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        weight = _o(ctx.patient, "weight_kg", None)
+        if weight is None:
+            fallback = (
+                "栄養補給量：算出データなし" if is_ja
+                else "Nutrition supply: no data to compute"
+            )
+            return fallback, facts
+        facts.append("patient.weight_kg")
+        energy = round(float(weight) * 27.5)
+        protein = round(float(weight) * 1.1, 1)
+        if is_ja:
+            return (
+                f"エネルギー：{energy}kcal／日　たんぱく質：{protein}g／日　"
+                f"補給方法：経口"
+            ), facts
+        return (
+            f"Energy: {energy} kcal/day, Protein: {protein} g/day, Route: oral"
+        ), facts
+
+    def _build_ncp_dysphagia_diet(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """嚥下調整食の必要性 — MVP fixed 「なし」."""
+        is_ja = ctx.target_lang == "ja"
+        return (_NCP_DYSPHAGIA_NONE_JA if is_ja else _NCP_DYSPHAGIA_NONE_EN), []
+
+    def _build_ncp_dietary_content(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """食事内容 — MVP fixed fallback."""
+        is_ja = ctx.target_lang == "ja"
+        return (
+            _NCP_DIETARY_CONTENT_FALLBACK_JA if is_ja else _NCP_DIETARY_CONTENT_FALLBACK_EN
+        ), []
+
+    def _build_ncp_nutrition_counseling(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """栄養食事相談に関する事項 — MVP fixed fallback (collapses the 3 MHLW
+        sub-items — admission/consult/discharge instruction — into one
+        section; no per-item data source exists, design spec §2 row 7)."""
+        is_ja = ctx.target_lang == "ja"
+        return (_NCP_COUNSELING_FALLBACK_JA if is_ja else _NCP_COUNSELING_FALLBACK_EN), []
+
+    def _build_ncp_other_issues(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """その他栄養管理上解決すべき課題 — MVP fixed fallback."""
+        is_ja = ctx.target_lang == "ja"
+        return (_NCP_OTHER_ISSUES_FALLBACK_JA if is_ja else _NCP_OTHER_ISSUES_FALLBACK_EN), []
+
+    def _build_ncp_reassessment_timing(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """栄養状態の再評価の時期 — MVP fixed fallback."""
+        is_ja = ctx.target_lang == "ja"
+        return (
+            _NCP_REASSESSMENT_FALLBACK_JA if is_ja else _NCP_REASSESSMENT_FALLBACK_EN
+        ), []
+
+    def _build_ncp_discharge_evaluation(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """退院時及び終了時の総合的評価 — genuinely unknowable at plan-creation
+        time; this system has no mechanism to revise a Stage-1 stub at a
+        later encounter phase for this doc type (design spec §2 row 10)."""
+        is_ja = ctx.target_lang == "ja"
+        return (
+            _NCP_DISCHARGE_EVAL_FALLBACK_JA if is_ja else _NCP_DISCHARGE_EVAL_FALLBACK_EN
+        ), []
 
     # ─────────────────────────────────────────────────────────────────
     # α-min-2: NURSING_DISCHARGE_SUMMARY section builders
