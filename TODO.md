@@ -1882,6 +1882,22 @@ this would need either a second document type (mirroring the
 `nursing_discharge_summary` vs `admission_nursing_assessment` split
 precedent) or a new Stage-2 revision mechanism.
 
+### chain 2 deferred: LOS-gated document_enricher pattern (final review, PR #139)
+
+`nutrition_care_plan` introduced `admission_once_los_gt_7`, the first
+`generation_frequency` that bakes a numeric threshold into the enum string
+itself (`document/engine.py`'s `document_enricher` dispatch). This is fine
+for one gated doc type, but before a **third** LOS-gated document lands,
+consider parameterizing instead of adding `admission_once_los_gt_14` etc.
+ad hoc — e.g. keep `generation_frequency: admission_once` plus an optional
+`min_los_days: int | None` field on `DocumentTypeSpec`, read once by a
+single `admission_once` branch. Relatedly, `document_enricher` now has 3
+near-identical 10-field `ClinicalDocument(...)` constructions
+(`admission_once` / `admission_once_los_gt_7` / the per-day loop body in
+`daily`) — a small local `_make_doc_stub(spec, encounter_id, doc_seq,
+authored_dt, pid, lang, author)` helper would collapse the duplication and
+make the LOS guard the only visible difference between branches.
+
 ### β-2 phase — Clinical event density
 
 - **手術記録** (Operative note) — LOINC 11504-8, existing Stage 2 LLM path; Stage 1 template
