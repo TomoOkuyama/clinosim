@@ -45,6 +45,7 @@ def build_narrative_context(
         medications=_o(record, "medication_administrations", []) or [],
         diagnoses=_o(record, "diagnoses", []) or [],
         procedures=_o(record, "procedures", []) or [],
+        rehab_sessions=_o(record, "rehab_sessions", []) or [],
         allergies=allergies or [],
         document_type=document_type,
         target_lang=lang,

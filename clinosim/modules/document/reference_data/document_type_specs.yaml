@@ -196,3 +196,34 @@ specs:
       - discharge_evaluation
     stage2_strategy: template_only
     llm_enabled_sections: []
+
+  # === chain 2 (厚労省4帳票, third and final sub-project, 2026-07-04) ===
+  # LOINC 34823-5 verified via loinc.org — "Physical medicine and rehab Note" is a
+  # generic PM&R clinical-note code (design spec §2; NOT 18776-5, which already
+  # owns the admission_care_plan display — reusing it would be an AD-30-class
+  # code/display integrity violation). MHLW form 別紙様式21
+  # (https://www.mhlw.go.jp/bunya/iryouhoken/iryouhoken15/dl/h24_02-07-32.pdf)
+  # base form (page 1 of 6; variants 21の2〜21の5 excluded, design spec §2).
+  # generation_frequency=admission_once_if_rehab_sessions: emitted only when the
+  # encounter has ≥1 RehabSession record (design spec §1 — reuses the existing
+  # post-surgical RehabSession data rather than the never-fired rehab_inpatient/icu
+  # ward-transfer scaffold). encounter_types_supported=[inpatient] only for the
+  # same reason. 6 of 9 sections are data-driven (design spec §3e).
+  rehabilitation_plan:
+    loinc_code: "34823-5"
+    format_type: composition
+    countries_supported: [jp]
+    encounter_types_supported: [inpatient]
+    generation_frequency: admission_once_if_rehab_sessions
+    composition_sections:
+      - patient_and_diagnosis
+      - rehab_team
+      - functional_status
+      - basic_movement
+      - session_frequency
+      - goals
+      - policy
+      - discharge_estimate
+      - explanation_consent
+    stage2_strategy: template_only
+    llm_enabled_sections: []

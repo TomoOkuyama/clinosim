@@ -286,6 +286,57 @@ _NCP_DISCHARGE_EVAL_FALLBACK_EN = (
     "Comprehensive evaluation at discharge: pending, to be assessed at discharge"
 )
 
+# chain 2: REHABILITATION_PLAN fallback phrases
+_RP_TEAM_FALLBACK_JA = "リハビリ実施なし"
+_RP_TEAM_FALLBACK_EN = "No rehabilitation therapy on record"
+_RP_THERAPIST_FALLBACK_JA = "担当者未定"
+_RP_THERAPIST_FALLBACK_EN = "Named therapist: not yet assigned"
+_RP_FUNCTIONAL_FALLBACK_JA = "機能評価：記録なし"
+_RP_FUNCTIONAL_FALLBACK_EN = "Functional assessment: no record"
+_RP_MOVEMENT_FALLBACK_JA = "基本動作：記録なし"
+_RP_MOVEMENT_FALLBACK_EN = "Basic movement: no record"
+_RP_FREQUENCY_FALLBACK_JA = "実施回数：記録なし"
+_RP_FREQUENCY_FALLBACK_EN = "Session frequency: no record"
+_RP_GOALS_FALLBACK_JA = (
+    "本人の希望：現在の身体機能の回復・自宅復帰を希望／"
+    "家族の希望：早期の日常生活動作自立を希望"
+)
+_RP_GOALS_FALLBACK_EN = (
+    "Patient goal: recovery of function and return home / "
+    "Family goal: early independence in activities of daily living"
+)
+_RP_POLICY_FALLBACK_JA = (
+    "リハビリテーション治療方針：疾患特異的リハビリテーションを継続し、"
+    "日常生活動作の自立度向上を図る"
+)
+_RP_POLICY_FALLBACK_EN = (
+    "Rehabilitation policy: continue disease-specific rehabilitation therapy "
+    "to improve independence in activities of daily living"
+)
+_RP_EXPLANATION_FALLBACK_JA = "本人・家族への説明：説明予定"
+_RP_EXPLANATION_FALLBACK_EN = "Explanation to patient/family: pending"
+
+_RP_THERAPY_TYPE_JA = {"PT": "理学療法(PT)", "OT": "作業療法(OT)", "ST": "言語聴覚療法(ST)"}
+_RP_THERAPY_TYPE_EN = {
+    "PT": "Physical therapy (PT)", "OT": "Occupational therapy (OT)", "ST": "Speech therapy (ST)",
+}
+_RP_PROGRESS_JA = {"improved": "改善", "stable": "維持", "unable_to_assess": "評価不能"}
+_RP_PROGRESS_EN = {
+    "improved": "improved", "stable": "stable", "unable_to_assess": "unable to assess",
+}
+_RP_PARTICIPATION_JA = {"good": "良好", "fair": "やや不良", "refused": "拒否"}
+_RP_PARTICIPATION_EN = {"good": "good", "fair": "fair", "refused": "refused"}
+_RP_PHASE_JA = {
+    "early": "早期(ベッド上運動・座位保持練習)",
+    "mid": "中期(歩行器歩行・移乗動作練習)",
+    "late": "後期(独立歩行・ADL練習)",
+}
+_RP_PHASE_EN = {
+    "early": "Early phase (bed exercises, sitting practice)",
+    "mid": "Mid phase (walker ambulation, transfer training)",
+    "late": "Late phase (independent ambulation, ADL practice)",
+}
+
 _CARE_PLAN_FALLBACK_JA = "看護計画：標準的ケア継続"
 _CARE_PLAN_FALLBACK_EN = "Care plan: continue standard nursing care"
 _INTERVENTIONS_FALLBACK_JA = "実施した看護介入：特記事項なし"
@@ -536,6 +587,16 @@ class TemplateNarrativeGenerator:
             "other_issues": self._build_ncp_other_issues,
             "reassessment_timing": self._build_ncp_reassessment_timing,
             "discharge_evaluation": self._build_ncp_discharge_evaluation,
+            # chain 2: REHABILITATION_PLAN sections (LOINC 34823-5)
+            "patient_and_diagnosis": self._build_rp_patient_and_diagnosis,
+            "rehab_team": self._build_rp_rehab_team,
+            "functional_status": self._build_rp_functional_status,
+            "basic_movement": self._build_rp_basic_movement,
+            "session_frequency": self._build_rp_session_frequency,
+            "goals": self._build_rp_goals,
+            "policy": self._build_rp_policy,
+            "discharge_estimate": self._build_rp_discharge_estimate,
+            "explanation_consent": self._build_rp_explanation_consent,
         }
 
         for section in spec.composition_sections:
@@ -1364,16 +1425,18 @@ class TemplateNarrativeGenerator:
         joined = "、".join(types) if is_ja else ", ".join(types)
         return (f"手術予定：{joined}" if is_ja else f"Planned surgery: {joined}"), facts
 
-    def _build_acp_estimated_los(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """推定される入院期間 — disease_protocol.target_los[country][severity].mean
-        when available: a genuine day-0 estimate, RNG-free (target_los is a static
-        YAML dict, read directly with no sampling — adv-1 finding: the original
-        implementation used ctx.los_days, the already-realized LOS, which is
-        tautologically 100% accurate and therefore unrealistic for a document
-        meant to represent an AT-ADMISSION prediction). Falls back to ctx.los_days
-        only when disease_protocol is unavailable (e.g. unknown-condition path)."""
+    def _estimated_los_days(self, ctx: NarrativeContext) -> tuple[int, list[str]]:
+        """disease_protocol.target_los[country][severity].mean → whole days,
+        RNG-free (target_los is a static YAML dict, read with no sampling —
+        adv-1 finding on admission_care_plan: ctx.los_days, the already-realized
+        LOS, is tautologically 100% accurate and unrealistic for a document
+        meant to represent an AT-ADMISSION prediction). Falls back to
+        ctx.los_days only when disease_protocol is unavailable.
+
+        Shared by _build_acp_estimated_los and _build_rp_discharge_estimate —
+        extracted once rehabilitation_plan became the 2nd consumer
+        (implementation-rules.md §4 canonical single-source rule)."""
         facts: list[str] = []
-        is_ja = ctx.target_lang == "ja"
         los: float = 0
         proto = ctx.disease_protocol
         if proto is not None:
@@ -1386,7 +1449,12 @@ class TemplateNarrativeGenerator:
         if not los:
             los = ctx.los_days or 1
             facts.append("ctx.los_days")
-        los_days = round(los)
+        return round(los), facts
+
+    def _build_acp_estimated_los(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """推定される入院期間 — see _estimated_los_days for the shared calculation."""
+        is_ja = ctx.target_lang == "ja"
+        los_days, facts = self._estimated_los_days(ctx)
         if is_ja:
             return f"推定入院期間：約{los_days}日間", facts
         return f"Estimated length of stay: approximately {los_days} days", facts
@@ -1544,6 +1612,138 @@ class TemplateNarrativeGenerator:
         return (
             _NCP_DISCHARGE_EVAL_FALLBACK_JA if is_ja else _NCP_DISCHARGE_EVAL_FALLBACK_EN
         ), []
+
+    # ─────────────────────────────────────────────────────────────────
+    # chain 2: REHABILITATION_PLAN sections (LOINC 34823-5)
+    # ─────────────────────────────────────────────────────────────────
+
+    def _build_rp_patient_and_diagnosis(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """患者・原因疾患 — reuses admission_care_plan's diagnosis extraction
+        (same ctx.diagnoses source, design spec §3e)."""
+        return self._build_acp_diagnosis(ctx)
+
+    def _build_rp_rehab_team(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """リハ担当医・PT・OT・ST — therapy_type set from ctx.rehab_sessions.
+        generate_rehab_sessions (modules/procedure/engine.py) currently only
+        produces "PT" — this renders whatever therapy types are actually
+        present rather than implying multi-disciplinary coverage that doesn't
+        exist (design spec §3e / §4 out-of-scope note)."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        therapy_types = sorted({
+            str(_o(s, "therapy_type", "") or "") for s in (ctx.rehab_sessions or [])
+            if _o(s, "therapy_type", "")
+        })
+        if not therapy_types:
+            return (_RP_TEAM_FALLBACK_JA if is_ja else _RP_TEAM_FALLBACK_EN), facts
+        facts.append("ctx.rehab_sessions")
+        labels = _RP_THERAPY_TYPE_JA if is_ja else _RP_THERAPY_TYPE_EN
+        joined = ("、" if is_ja else ", ").join(labels.get(t, t) for t in therapy_types)
+        therapist_note = _RP_THERAPIST_FALLBACK_JA if is_ja else _RP_THERAPIST_FALLBACK_EN
+        if is_ja:
+            return f"担当リハビリ職種：{joined}／{therapist_note}", facts
+        return f"Rehab discipline(s): {joined} / {therapist_note}", facts
+
+    def _build_rp_functional_status(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """機能評価 — latest (by session_date) session's functional_progress /
+        patient_participation / pain_score."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        sessions = ctx.rehab_sessions or []
+        if not sessions:
+            return (_RP_FUNCTIONAL_FALLBACK_JA if is_ja else _RP_FUNCTIONAL_FALLBACK_EN), facts
+        latest = max(sessions, key=lambda s: _o(s, "session_date", datetime(1970, 1, 1)))
+        facts.append("ctx.rehab_sessions")
+        progress = str(_o(latest, "functional_progress", "") or "")
+        participation = str(_o(latest, "patient_participation", "") or "")
+        pain = _o(latest, "pain_score", None)
+        progress_label = (_RP_PROGRESS_JA if is_ja else _RP_PROGRESS_EN).get(progress, progress)
+        participation_label = (
+            _RP_PARTICIPATION_JA if is_ja else _RP_PARTICIPATION_EN
+        ).get(participation, participation)
+        pain_text = f"{pain}/10" if pain is not None else ("評価なし" if is_ja else "not assessed")
+        if is_ja:
+            return (
+                f"機能的改善度：{progress_label}／リハビリへの参加度：{participation_label}／"
+                f"疼痛スコア：{pain_text}"
+            ), facts
+        return (
+            f"Functional progress: {progress_label} / Participation: {participation_label} / "
+            f"Pain score: {pain_text}"
+        ), facts
+
+    def _build_rp_basic_movement(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """基本動作 — day_post_op から phase (early/mid/late) を再導出。
+        generate_rehab_sessions (modules/procedure/engine.py) が内部で使う閾値
+        (<=3 early, <=14 mid, else late) と同一 — RehabSession に phase フィールド
+        はないため再計算する。AD-30: RehabSession.activities の生英語文は使わない
+        (design spec §4)。"""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        sessions = ctx.rehab_sessions or []
+        if not sessions:
+            return (_RP_MOVEMENT_FALLBACK_JA if is_ja else _RP_MOVEMENT_FALLBACK_EN), facts
+        latest = max(sessions, key=lambda s: _o(s, "session_date", datetime(1970, 1, 1)))
+        facts.append("ctx.rehab_sessions")
+        day_post_op = _o(latest, "day_post_op", 0) or 0
+        if day_post_op <= 3:
+            phase = "early"
+        elif day_post_op <= 14:
+            phase = "mid"
+        else:
+            phase = "late"
+        return (_RP_PHASE_JA if is_ja else _RP_PHASE_EN)[phase], facts
+
+    def _build_rp_session_frequency(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """実施回数・期間・1回あたりの時間。"""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        sessions = ctx.rehab_sessions or []
+        if not sessions:
+            return (_RP_FREQUENCY_FALLBACK_JA if is_ja else _RP_FREQUENCY_FALLBACK_EN), facts
+        facts.append("ctx.rehab_sessions")
+        dates = [_o(s, "session_date", datetime(1970, 1, 1)) for s in sessions]
+        first_date, last_date = min(dates), max(dates)
+        duration = _o(sessions[0], "duration_minutes", 0) or 0
+        count = len(sessions)
+        if is_ja:
+            return (
+                f"実施回数：{count}回（{first_date.date().isoformat()}〜"
+                f"{last_date.date().isoformat()}）、1回あたり{duration}分"
+            ), facts
+        return (
+            f"Sessions: {count} ({first_date.date().isoformat()} to "
+            f"{last_date.date().isoformat()}), {duration} min each"
+        ), facts
+
+    def _build_rp_goals(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """本人の希望・家族の希望 — CIF に患者意向を表すフィールドなし
+        (design spec §3d)、固定フォールバック。"""
+        is_ja = ctx.target_lang == "ja"
+        return (_RP_GOALS_FALLBACK_JA if is_ja else _RP_GOALS_FALLBACK_EN), []
+
+    def _build_rp_policy(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """リハビリテーション治療方針 — 固定フォールバック(design spec §3d)。"""
+        is_ja = ctx.target_lang == "ja"
+        return (_RP_POLICY_FALLBACK_JA if is_ja else _RP_POLICY_FALLBACK_EN), []
+
+    def _build_rp_discharge_estimate(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """リハビリテーション終了の目安・時期 — _estimated_los_days を再利用
+        (admission_care_plan の estimated_los と同じ target_los データ、
+        リハ完了フレーミングの文言のみ異なる)。"""
+        is_ja = ctx.target_lang == "ja"
+        los_days, facts = self._estimated_los_days(ctx)
+        if is_ja:
+            return f"リハビリテーション終了の目安：入院後約{los_days}日", facts
+        return (
+            f"Estimated rehabilitation completion: approximately {los_days} days post-admission"
+        ), facts
+
+    def _build_rp_explanation_consent(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        """本人・家族への説明(署名欄) — 固定フォールバック
+        (admission_care_plan/nutrition_care_plan と同じ signature-block pattern)。"""
+        is_ja = ctx.target_lang == "ja"
+        return (_RP_EXPLANATION_FALLBACK_JA if is_ja else _RP_EXPLANATION_FALLBACK_EN), []
 
     # ─────────────────────────────────────────────────────────────────
     # α-min-2: NURSING_DISCHARGE_SUMMARY section builders

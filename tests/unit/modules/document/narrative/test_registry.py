@@ -135,6 +135,12 @@ def test_load_raises_on_missing_required_field() -> None:
                 "countries_supported": ["jp"],
                 "generation_frequency": "admission_once_los_gt_7",
             },
+            "rehabilitation_plan": {
+                "loinc_code": "34823-5",
+                "format_type": "composition",
+                "countries_supported": ["jp"],
+                "generation_frequency": "admission_once_if_rehab_sessions",
+            },
         }
     }
     with pytest.raises(ValueError, match="missing countries_supported"):
@@ -207,6 +213,12 @@ def test_load_raises_on_null_entry() -> None:
                 "format_type": "composition",
                 "countries_supported": ["jp"],
                 "generation_frequency": "admission_once_los_gt_7",
+            },
+            "rehabilitation_plan": {
+                "loinc_code": "34823-5",
+                "format_type": "composition",
+                "countries_supported": ["jp"],
+                "generation_frequency": "admission_once_if_rehab_sessions",
             },
         }
     }
@@ -286,6 +298,12 @@ def test_load_raises_on_empty_countries_supported() -> None:
                 "countries_supported": ["jp"],
                 "generation_frequency": "admission_once_los_gt_7",
             },
+            "rehabilitation_plan": {
+                "loinc_code": "34823-5",
+                "format_type": "composition",
+                "countries_supported": ["jp"],
+                "generation_frequency": "admission_once_if_rehab_sessions",
+            },
         }
     }
     with pytest.raises(ValueError, match="countries_supported empty"):
@@ -294,16 +312,16 @@ def test_load_raises_on_empty_countries_supported() -> None:
 
 # === α-min-2 tests ===
 
-def test_load_specs_returns_11_total() -> None:
-    """11 (3 α-min-1 + 6 α-min-2 + 2 chain-2) total specs loaded from YAML."""
+def test_load_specs_returns_12_total() -> None:
+    """12 (3 α-min-1 + 6 α-min-2 + 3 chain-2) total specs loaded from YAML."""
     load_document_type_specs.cache_clear()
     specs = load_document_type_specs()
-    assert len(specs) == 11, f"Expected 11 specs (3 α-min-1 + 6 α-min-2 + 2 chain-2), got {len(specs)}"
+    assert len(specs) == 12, f"Expected 12 specs (3 α-min-1 + 6 α-min-2 + 3 chain-2), got {len(specs)}"
 
 
-def test_supported_document_types_covers_11_entries() -> None:
-    """SUPPORTED_DOCUMENT_TYPES frozenset has 11 members (α-min-1 3 + α-min-2 6 + chain-2 2)."""
-    assert len(SUPPORTED_DOCUMENT_TYPES) == 11
+def test_supported_document_types_covers_12_entries() -> None:
+    """SUPPORTED_DOCUMENT_TYPES frozenset has 12 members (α-min-1 3 + α-min-2 6 + chain-2 3)."""
+    assert len(SUPPORTED_DOCUMENT_TYPES) == 12
 
 
 def test_specs_for_encounter_type_outpatient_returns_only_outpatient_soap() -> None:
@@ -317,12 +335,12 @@ def test_specs_for_encounter_type_outpatient_returns_only_outpatient_soap() -> N
     assert keys == ["outpatient_soap"], f"Expected only outpatient_soap in restricted set, got {keys}"
 
 
-def test_specs_for_encounter_type_inpatient_returns_8_specs() -> None:
+def test_specs_for_encounter_type_inpatient_returns_9_specs() -> None:
     """3 α-min-1 (no restriction, matches all) + 3 nursing specs + admission_care_plan +
-    nutrition_care_plan (chain 2) = 8 total for inpatient."""
+    nutrition_care_plan + rehabilitation_plan (chain 2) = 9 total for inpatient."""
     load_document_type_specs.cache_clear()
     inpatient_specs = specs_for_encounter_type("inpatient")
-    assert len(inpatient_specs) == 8, f"Expected 8 inpatient specs, got {len(inpatient_specs)}"
+    assert len(inpatient_specs) == 9, f"Expected 9 inpatient specs, got {len(inpatient_specs)}"
 
 
 def test_specs_for_encounter_type_emergency_returns_2_ed_specs() -> None:
@@ -536,3 +554,16 @@ def test_admission_once_los_gt_7_in_generation_frequencies_allowlist() -> None:
     from clinosim.modules.document.narrative.registry import GENERATION_FREQUENCIES
 
     assert "admission_once_los_gt_7" in GENERATION_FREQUENCIES
+
+
+# === chain 2: rehabilitation_plan (LOINC 34823-5) ===
+
+
+def test_document_type_has_rehabilitation_plan() -> None:
+    assert DocumentType.REHABILITATION_PLAN.value == "rehabilitation_plan"
+
+
+def test_generation_frequencies_includes_admission_once_if_rehab_sessions() -> None:
+    from clinosim.modules.document.narrative.registry import GENERATION_FREQUENCIES
+
+    assert "admission_once_if_rehab_sessions" in GENERATION_FREQUENCIES
