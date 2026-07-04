@@ -11,8 +11,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from clinosim.codes import get_system_uri
-from clinosim.modules._shared import resolve_lang
+from clinosim.codes import get_system_uri, system_key_for
+from clinosim.locale.loader import load_code_mapping
+from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output._fhir_common import BundleContext, _micro_coding
 
 _SUSCEPTIBILITY_DISPLAY = {
@@ -50,6 +51,9 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
     if not cultures:
         return []
     lang = resolve_lang(ctx.country)
+    country_code = "JP" if is_jp(ctx.country) else "US"
+    culture_code_system = system_key_for("microbiology", country_code)
+    culture_code_map = load_code_mapping("microbiology", country_code)
     subject = {"reference": f"Patient/{ctx.patient_id}"}
     enc_ref = {"reference": f"Encounter/{ctx.primary_enc_id}"} if ctx.primary_enc_id else None
     lab_category = [{"coding": [{
@@ -76,9 +80,20 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             specimen["collection"] = {"collectedDateTime": mb["collected_datetime"]}
         out.append(specimen)
 
-        culture_loinc = mb.get("test_loinc", "")
-        culture_code = ({"coding": [_micro_coding("loinc", culture_loinc, lang)]}
-                        if culture_loinc else {"text": "Culture"})
+        specimen_key = mb.get("specimen", "")
+        if specimen_key in culture_code_map:
+            culture_code_value = culture_code_map[specimen_key]
+            code_system = culture_code_system
+        else:
+            # Unmapped specimen (e.g. a future specimen not yet added to
+            # code_mapping_microbiology.yaml) falls back to the raw LOINC
+            # value — the system must fall back with it, since tagging a
+            # LOINC code under the country's mapped system (e.g. jlac10)
+            # would produce an incoherent coding.
+            culture_code_value = mb.get("test_loinc", "")
+            code_system = "loinc"
+        culture_code = ({"coding": [_micro_coding(code_system, culture_code_value, lang)]}
+                        if culture_code_value else {"text": "Culture"})
         result_refs: list[dict] = []
 
         org_id = f"{MB_ORG_ID_PREFIX}{base}"
