@@ -17,8 +17,7 @@ No-drop invariant (CIF → FHIR):
   verification_status  -> AllergyIntolerance.verificationStatus
   onset_date           -> AllergyIntolerance.onsetDateTime
   reactions[*]         -> AllergyIntolerance.reaction[*]
-    manifestation_snomed -> reaction.manifestation[*].coding[SNOMED]
-    manifestation_display -> reaction.manifestation[*].text
+    manifestation_snomed -> reaction.manifestation[*].coding[SNOMED] + .text (code_lookup, AD-30)
     severity           -> reaction.severity
 
 Canonical constant ownership:
@@ -146,15 +145,12 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
     reactions: list[dict[str, Any]] = []
     for rxn in reactions_raw:
         manifestation_snomed = _o(rxn, "manifestation_snomed", "") or ""
-        manifestation_display = _o(rxn, "manifestation_display", "") or ""
         severity = _o(rxn, "severity", "mild") or "mild"
 
-        # Resolve manifestation display via code_lookup (locale-aware).
-        if manifestation_snomed:
-            _rm = code_lookup("snomed-ct", manifestation_snomed, lang)
-            resolved_manifestation = _rm if _rm != manifestation_snomed else (manifestation_display or manifestation_snomed)
-        else:
-            resolved_manifestation = manifestation_display
+        # Resolve manifestation display via code_lookup (locale-aware, AD-30 —
+        # CIF stores the code only; import-time validation guarantees every
+        # manifestation_snomed in allergens.yaml resolves).
+        resolved_manifestation = code_lookup("snomed-ct", manifestation_snomed, lang) if manifestation_snomed else ""
 
         manifestation: dict[str, Any] = {}
         if resolved_manifestation:

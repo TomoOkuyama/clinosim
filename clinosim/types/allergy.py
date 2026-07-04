@@ -15,7 +15,6 @@ class AllergyReaction:
     """Allergic reaction manifestation."""
 
     manifestation_snomed: str = ""    # SNOMED CT code
-    manifestation_display: str = ""   # locale-resolved display
     severity: str = "mild"            # mild / moderate / severe
 
 
