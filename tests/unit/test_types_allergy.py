@@ -27,18 +27,16 @@ def test_allergy_defaults_no_op():
 def test_allergy_full_payload():
     reaction = AllergyReaction(
         manifestation_snomed="247472004",
-        manifestation_display="Rash",
         severity="moderate",
     )
     a = Allergy(
         allergy_id="al-pt1-1",
         allergen_code="387207008",
-        allergen_display="Penicillin",
         category="medication",
         criticality="high",
         verification_status="confirmed",
         onset_date=date(2020, 6, 15),
         reactions=[reaction],
     )
-    assert a.allergen_display == "Penicillin"
+    assert a.allergen_code == "387207008"
     assert a.reactions[0].severity == "moderate"

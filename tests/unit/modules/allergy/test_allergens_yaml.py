@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from clinosim.modules.allergy.engine import load_allergens
+import pytest
+
+from clinosim.modules.allergy.engine import _validate_allergens, load_allergens
 
 
 def test_allergens_yaml_loads():
@@ -49,3 +51,51 @@ def test_prevalence_adult_in_range():
             assert 0 <= adult <= 1, (
                 f"{category}[{e['allergen_display_en']}]: prevalence.adult={adult} out of range"
             )
+
+
+def test_validate_allergens_raises_on_unregistered_allergen_code():
+    data = {
+        "allergens": {
+            "medication": [{
+                "allergen_code": "99999999999",  # not in snomed-ct.yaml
+                "allergen_display_en": "Fake Drug",
+                "allergen_display_ja": "偽薬",
+                "prevalence": {"adult": 0.1},
+                "criticality": "low",
+                "common_reactions": [{
+                    "manifestation_snomed": "247472004",
+                    "manifestation_display_en": "Rash",
+                    "manifestation_display_ja": "発疹",
+                    "severity": "mild",
+                }],
+            }],
+            "food": [],
+            "environment": [],
+        }
+    }
+    with pytest.raises(ValueError, match="99999999999"):
+        _validate_allergens(data)
+
+
+def test_validate_allergens_raises_on_unregistered_manifestation_snomed():
+    data = {
+        "allergens": {
+            "medication": [{
+                "allergen_code": "387207008",  # Penicillin, registered
+                "allergen_display_en": "Penicillin",
+                "allergen_display_ja": "ペニシリン",
+                "prevalence": {"adult": 0.1},
+                "criticality": "low",
+                "common_reactions": [{
+                    "manifestation_snomed": "99999999999",  # not registered
+                    "manifestation_display_en": "Fake",
+                    "manifestation_display_ja": "偽",
+                    "severity": "mild",
+                }],
+            }],
+            "food": [],
+            "environment": [],
+        }
+    }
+    with pytest.raises(ValueError, match="99999999999"):
+        _validate_allergens(data)

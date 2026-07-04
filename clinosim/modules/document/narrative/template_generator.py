@@ -746,7 +746,14 @@ class TemplateNarrativeGenerator:
         return "; ".join(str(m) for m in meds), facts
 
     def _build_allergies(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        """Build allergies section from ctx.allergies."""
+        """Build allergies section from ctx.allergies.
+
+        Resolves display via code_lookup (AD-30 — CIF stores allergen_code
+        only, not display text; this mirrors _build_discharge_diagnoses'
+        code_lookup pattern in this same file).
+        """
+        from clinosim.codes import lookup as code_lookup
+
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
@@ -758,7 +765,8 @@ class TemplateNarrativeGenerator:
         facts.append("ctx.allergies")
         parts = []
         for allergy in allergies:
-            display = _o(allergy, "allergen_display", "") or ""
+            allergen_code = _o(allergy, "allergen_code", "") or ""
+            display = code_lookup("snomed-ct", allergen_code, lang) if allergen_code else ""
             criticality = _o(allergy, "criticality", "") or ""
             if display:
                 if criticality:

@@ -123,6 +123,7 @@ _COUNTRY_SYSTEM_KEYS: dict[str, dict[str, str]] = {
     "diagnosis": {"jp": "icd-10", "default": "icd-10-cm"},
     "drug": {"jp": "yj", "default": "rxnorm"},
     "procedure": {"jp": "k-codes", "default": "cpt"},
+    "microbiology": {"jp": "jlac10", "default": "loinc"},
 }
 
 
@@ -130,7 +131,8 @@ def system_key_for(kind: str, country: str) -> str:
     """Return the code-system key a country uses for a clinical data kind.
 
     Args:
-        kind: one of ``"lab"``, ``"diagnosis"``, ``"drug"``, ``"procedure"``.
+        kind: one of ``"lab"``, ``"diagnosis"``, ``"drug"``, ``"procedure"``,
+            ``"microbiology"``.
         country: country code (``"US"`` / ``"JP"``, case-insensitive).
 
     Raises:

@@ -24,7 +24,6 @@ class ImagingSeries:
     series_number: int = 1
     modality_code: str = ""             # DCM modality(CR/CT/MR/US/NM...)
     body_site_snomed: str = ""
-    body_site_display: str = ""         # locale 解決前(en/ja 共通 key)
     description: str = ""               # "PA view" / "axial 5mm" 等
     instance_count: int = 0             # DICOM instance 数(placeholder)
 

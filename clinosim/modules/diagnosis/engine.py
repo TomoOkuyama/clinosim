@@ -14,6 +14,9 @@ import yaml
 
 from clinosim.codes import lookup
 
+# See clinosim/types/clinical.py for rationale (determinism chain, 2026-07-04).
+_UNSET_DATETIME = datetime(1970, 1, 1)
+
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 
@@ -62,7 +65,7 @@ class DifferentialDiagnosis:
     candidates: list[DiagnosisCandidate] = field(default_factory=list)
     working_diagnosis: str | None = None
     confirmed: bool = False
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime = field(default_factory=lambda: _UNSET_DATETIME)
 
     @property
     def top_candidate(self) -> DiagnosisCandidate | None:
@@ -170,7 +173,6 @@ def update_differential(
     elif top.probability >= 0.5:
         diff.working_diagnosis = top.disease_code
 
-    diff.timestamp = datetime.now()
     return diff
 
 

@@ -27,6 +27,25 @@ OVERALL_ALLERGY_PREVALENCE = 0.15   # baseline calibrated (see brief Step 4)
 CATEGORY_WEIGHTS = {"medication": 0.50, "food": 0.25, "environment": 0.25}
 
 
+def _code_in_data(system: str, code: str) -> bool:
+    """Direct membership check in codes/data/<system>.yaml.
+
+    `lookup()` returns the code itself as fallback for unknown entries (not
+    None), so it can't distinguish "code exists" from "code absent". Direct
+    `cs.codes` membership IS the authoritative check (same pattern as
+    `hai/engine.py:_code_in_data`).
+    """
+    from clinosim.codes.loader import _load_system
+
+    cs = _load_system(system)
+    if cs is None:
+        raise ValueError(
+            f"_code_in_data: code system {system!r} not registered in "
+            f"clinosim/codes/data/ — system itself is missing, not the code"
+        )
+    return code in cs.codes
+
+
 def _validate_allergens(data: dict[str, Any]) -> None:
     """Fail-loud validation of allergens.yaml (silent-no-op defense Layer 3-6).
 
@@ -34,6 +53,9 @@ def _validate_allergens(data: dict[str, Any]) -> None:
     Layer 4: forward + reverse coverage vs SUPPORTED_ALLERGEN_CATEGORIES
     Layer 5: validator runs BEFORE data is returned (pre-register ordering)
     Layer 6: required-field check per entry + prevalence range 0..1
+    Layer 6b (AD-30 chain): allergen_code + every common_reactions[].manifestation_snomed
+      must resolve in codes/data/snomed-ct.yaml (safety net now that the CIF
+      no longer carries a fallback display string for unresolvable codes).
     """
     if not data:
         raise ValueError("allergens.yaml: empty top-level")
@@ -78,6 +100,24 @@ def _validate_allergens(data: dict[str, Any]) -> None:
                 raise ValueError(
                     f"allergens.yaml[{cat}][{i}].common_reactions: must be non-empty list"
                 )
+            allergen_code = e["allergen_code"]
+            if not _code_in_data("snomed-ct", allergen_code):
+                raise ValueError(
+                    f"allergens.yaml[{cat}][{i}].allergen_code {allergen_code!r} "
+                    f"not in codes/data/snomed-ct.yaml"
+                )
+            for j, rxn in enumerate(reactions):
+                manifestation_snomed = rxn.get("manifestation_snomed", "")
+                if not manifestation_snomed:
+                    raise ValueError(
+                        f"allergens.yaml[{cat}][{i}].common_reactions[{j}]: "
+                        f"missing manifestation_snomed"
+                    )
+                if not _code_in_data("snomed-ct", manifestation_snomed):
+                    raise ValueError(
+                        f"allergens.yaml[{cat}][{i}].common_reactions[{j}].manifestation_snomed "
+                        f"{manifestation_snomed!r} not in codes/data/snomed-ct.yaml"
+                    )
 
 
 @lru_cache(maxsize=1)
@@ -129,7 +169,6 @@ def allergy_enricher(ctx: Any) -> None:
             Allergy(
                 allergy_id="1",  # FHIR builder owns the canonical "allergy-{patient_id}-{idx}" format (I-4 fix)
                 allergen_code=entry["allergen_code"],
-                allergen_display=entry["allergen_display_en"],
                 category=category,
                 criticality=entry["criticality"],
                 verification_status="confirmed",
@@ -137,7 +176,6 @@ def allergy_enricher(ctx: Any) -> None:
                 reactions=[
                     AllergyReaction(
                         manifestation_snomed=reaction_entry["manifestation_snomed"],
-                        manifestation_display=reaction_entry["manifestation_display_en"],
                         severity=reaction_entry["severity"],
                     )
                 ],

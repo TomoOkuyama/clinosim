@@ -1530,9 +1530,6 @@ Shipped in α-min-2c chain (AD-66):
 - CI GitHub Actions workflow for automated regression at PR time
 - LLM parallel goldens (`<profile>.llm-<model>.golden.json`) alongside
   `<profile>.golden.json`
-- Pre-existing structural CIF nondeterminism (issue_date / MAR timestamp
-  wall-clock) — narrative regression scope-clean, but structural byte-diff
-  requires fix for full pipeline determinism
 - Re-add `PatientProfile.chronic_medications` / `time_range` WITH actual
   consumption (removed in adv-1 F-1 as unwired fields — they were declared but
   nothing consumed them, defeating the extra=forbid typo defense)
@@ -2184,58 +2181,26 @@ prioritization). The byte-identical subset (R1-R7) landed on
 `refactor/common-logic-unification`; everything below changes behavior/schema and needs
 its own chain.
 
-### ★★★ N-chain: Narrative interface unification (β-JP-1 prerequisite)
+### N-chain: Narrative interface unification (β-JP-1 prerequisite) — DONE, 2 items remain
 
-- **N-1 generator contract**: add `NarrativeGenerator` Protocol to `clinosim/types/document.py`
-  (`generate(ctx, spec) -> NarrativeOutput`); `TemplateNarrativePass` takes the generator by
-  constructor injection (currently hardcodes `TemplateNarrativeGenerator()` at
-  `document/narrative/passes.py:262`). Decide fate of the ORPHANED α-min-1 Task 7 machinery
-  (`llm_generator.py` / `replacement_strategy.py` / `cache.py` — `apply_replacement_strategy`,
-  `NarrativeCache`, `DocumentTypeSpec.stage2_strategy` / `llm_enabled_sections` are all
-  currently unreachable): wire it under `NarrativePass` per master plan §3 (D template-as-seed
-  + E cache + B section-level) or delete it. Aspirational scaffold = PR-90 class risk.
-  Also: export public API from empty `llm_service/__init__.py`.
-- **N-2 provider unification**: two incompatible protocols share the name `LLMProvider`
-  (`narrative/replacement_strategy.py:28 generate(prompt)->str` vs
-  `llm_service/providers/base.py:24 complete(...)->ProviderResponse`). Keep the llm_service
-  one; thin adapter on the narrative side. Structurally guarantees AD-11.
-- **N-3 prompt ownership**: prompts live ONLY in `llm_service/prompts/{en,ja}/*.yaml` (AD-40),
-  consumed via PromptRegistry keyed by (doc_type, language); replace `_build_seed_prompt`
-  inline assembly. Unify `DocumentType` (9) vs `LLMTaskType` narrative subset drift.
-- **N-4 (optional, incremental)**: data-drive `template_generator.py` (1446-line Python string
-  assembly) into per-section YAML templates so new doc types need no Python edits.
-
-#### N-chain adv-1 deferred
+N-1 (`NarrativeGenerator` Protocol + constructor injection + former α-min-1 Task 7
+machinery wired live via `LLMNarrativePass`), N-2 (provider unification via
+`LLMService.complete_prompt`), N-3 (prompt ownership via `llm_service/prompts/{en,ja}/*.yaml`
++ `PromptRegistry`, public API exported from `llm_service/__init__.py`), and the adv-1
+`_build_context` degenerate-context-fields item (now wired to real structural CIF fields —
+`disease_protocol` / `clinical_course_archetype` / `severity` all read live data; see
+`document/narrative/passes.py:_build_context`) were completed in session 31-32 (N-chain +
+β-JP-1 chain 1a, commits `5e7077f0d9`/`c981c390e2`/`3da54aaeb6`/`38b4b32f31`/`45b4899c1e`).
+Verified against code directly in session 35 — this entry had gone stale (marked ★★★ /
+undone) after completion; **β-JP-1 has been unblocked since session 31**. Only two small
+items remain, both previously filed as "later cleanup" / optional:
 
 - **`narrative/cache.py get_default_cache()` singleton = test-only dead seam**: no production
   code path uses the module-level `_default_cache` (LLMNarrativePass owns a per-run
   `NarrativeCache` instance; LLMNarrativeGenerator defaults to a fresh instance). Remove the
-  singleton + its test, or wire it deliberately, in a later cleanup.
-- **`NarrativePass._build_context` degenerate context fields** (adv-1 reviewer note):
-  the production pass path passes `disease_protocol=None` / `clinical_course_archetype`
-  fallback `""` / `severity` fallback `""` / `day_index=0` into `NarrativeContext` —
-  already documented as spec §6 deferred (structural CIF does not yet carry per-day
-  clinical-course context for Stage 2). Cross-reference: the C-1 fix (adv-1) made the
-  layer-1 cache safe against this degeneration by adding the template-seed hash to the
-  cache key, but richer per-day context remains deferred to spec §6.
-
-### ★★ AD-30 chain: display-in-CIF removal (CIF schema change + golden regen)
-
-- `types/allergy.py:18,28` `manifestation_display`/`allergen_display` (populated at
-  `allergy/engine.py:132,140`; builder already re-resolves via code_lookup → dead data).
-- `types/imaging.py:27` `body_site_display` (populated from `display_en` at
-  `imaging/engine.py:277`).
-
-### ★★ Determinism chain: wall-clock removal (extends session-30 TODO)
-
-Byte-diff-measured live fields: `discharge_prescription.issue_date` +
-`physiological_states[].timestamp` (+ metadata generation_timestamp, by design). New finds:
-`diagnosis/engine.py:173 datetime.now()` (live in inpatient path), `immunization/enricher.py:30
-date.today()` fallback, `default_factory=datetime.now` across `types/clinical.py` /
-`types/encounter.py` / `types/procedure.py`. ALSO: fix `locale/jp/demographics.yaml` blood_type
-weights (sum = 0.9999999999999999) then wrap population blood_type sampling with
-`normalize_probabilities(fallback="raise")` (the one site R6 had to skip byte-safely).
-Outcome: full byte-diff incl. structural CIF.
+  singleton + its test, or wire it deliberately.
+- **N-4 (optional, incremental)**: data-drive `template_generator.py` (2075-line Python string
+  assembly) into per-section YAML templates so new doc types need no Python edits.
 
 ### ★ Display-dict → codes YAML migration
 
@@ -2255,6 +2220,20 @@ Python clinical display dicts to migrate to `codes/data/*.yaml` (en+ja) + `code_
 
 ### Single items (ride along with related chains)
 
+- `PrescriptionRecord.issue_date` precision gap — inpatient discharge prescription
+  uses `admission_time` rather than true discharge datetime (deliberate simplification:
+  `encounter.discharge_datetime` is not finalized at `_build_discharge_rx()` call site
+  in `clinosim/simulator/inpatient.py`, and is `None` for AD-32 snapshot-truncated
+  in-progress encounters). If closer precision needed later, move `_build_discharge_rx()`
+  call to after discharge_datetime finalization, or duplicate the discharge formula at
+  call site.
+- Dead Bundle-timestamp footgun — `clinosim/modules/output/_fhir_facility.py:159` and
+  `clinosim/modules/output/fhir_r4_adapter.py:456` both call `datetime.now()` to
+  populate `Bundle["timestamp"]`, but this field is confirmed never read or serialized
+  to output. Scope-clean from determinism chain (only sentinel-default fields +
+  PhysiologicalState.timestamp + PrescriptionRecord.issue_date were in scope), but
+  track to prevent future refactors accidentally propagating this unread wall-clock
+  value into real output without noticing non-determinism.
 - Move `DiagnosisCandidate` / `DifferentialDiagnosis` (`diagnosis/engine.py:51,60`) to
   `clinosim/types/` (types rule).
 - `inpatient.py:1826` unknown-condition path: call `scenario_flags_from_protocol(None)` in the
@@ -2264,3 +2243,44 @@ Python clinical display dicts to migrate to `codes/data/*.yaml` (en+ja) + `code_
 - Root `spec.md` (2026-06-05): add historical-document header pointing to DESIGN.md +
   `clinosim/modules/output/SPEC.md`.
 - DESIGN.md: note AD-1/2/12/14/15/27 numbering gaps as reserved/withdrawn; sort compact table.
+- Allergy/imaging display locale-freeze — `clinosim/modules/allergy/reference_data/allergens.yaml`
+  and `clinosim/modules/imaging/reference_data/body_sites.yaml` carry both `display_en` and
+  `display_ja` per entry, but `allergy/engine.py`'s `allergy_enricher()` and
+  `imaging/engine.py`'s `_expand_views_to_series()` only ever read the `_en` variant when
+  populating YAML-sourced fields consumed elsewhere (unrelated to the AD-30 chain's CIF
+  fields, which are code-only after that chain — this is about the YAML data's own
+  locale handling for any future en/ja-sensitive consumer of these loaders). Not a CIF
+  violation; a distinct localization gap. Fixing requires threading `lang`/`country`
+  into the relevant loader call sites and selecting `display_en`/`display_ja` accordingly.
+- JP microbiology culture codes now use JLAC10 (`6B010`, session 35, 2026-07-04) —
+  `_fhir_microbiology.py` resolves the culture Observation/DiagnosticReport code via
+  `code_mapping_microbiology.yaml` + `system_key_for("microbiology", ...)`, covering
+  both community-acquired and HAI-derived cultures (both carry the same country-neutral
+  `MicrobiologyResult.specimen` key). Verified against JSLM JLAC10 master v137: category
+  6B (微生物学的検査/培養同定検査) has one generic culture-identification analyte code
+  (no per-specimen variants at the analyte-code level — specimen type lives in the
+  17-digit full code's material segment, which clinosim doesn't model), so all 4
+  specimens map to the same `6B010`. Deferred, not required for this fix: (a) antibiotic
+  susceptibility JLAC10 mapping (`SusceptibilityResult.antibiotic_loinc`, 10 drugs) —
+  JLAC10's susceptibility-result structure may not mirror LOINC's per-drug-per-test-code
+  model, needs its own research pass; (b) CSV adapter (`csv_adapter.py`) still dumps the
+  raw `test_loinc` CIF field for JP — acceptable since it's a raw code column, not a
+  `display`/`text` field (CLAUDE.md's JP-must-be-Japanese rule targets FHIR
+  display/text), but could be revisited for JP output consistency later.
+- `_build_lab_observation` unconditional code/system pairing latent defect (found during
+  Task 3 review of the JP microbiology JLAC10 mapping chain, this branch, 2026-07-04) —
+  `clinosim/modules/output/_fhir_observations.py:52-62` computes
+  `code_system_key = system_key_for("lab", country_code)` once per country (line 58) and
+  pairs it with `code_value = code_map.get(lab_name, order.get("order_code", ""))`
+  (line 55), the same "system chosen independent of whether the map actually had this
+  `lab_name`" shape that Task 3 had to fix in `_bb_microbiology`. Currently masked: both
+  `clinosim/locale/jp/code_mapping_lab.yaml` and `clinosim/locale/us/code_mapping_lab.yaml`
+  are believed to have full coverage for every lab name presently in use, so the
+  `order.get("order_code", "")` fallback branch never fires for real cohorts today — but
+  if a future lab test is added to one country's mapping YAML without the other, this
+  function would silently mistag the fallback `order_code` with the wrong country's code
+  system (LOINC key paired with a JLAC10-shaped order code or vice versa), the same class
+  of bug Task 3 fixed. Not fixed here — different file, out of scope for this plan. A
+  future session should decide whether to harden `_build_lab_observation` the same way
+  Task 3 hardened `_bb_microbiology` (making the code system co-vary with whether
+  `code_map` actually resolved `lab_name`, not just with `country`).

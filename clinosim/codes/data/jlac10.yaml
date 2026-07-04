@@ -161,3 +161,7 @@ codes:
   5C215:
     en: Procalcitonin
     ja: プロカルシトニン
+  # --- Microbiology culture (6B) ---
+  6B010:
+    en: Culture and identification (common bacteria)
+    ja: 培養同定(一般細菌)

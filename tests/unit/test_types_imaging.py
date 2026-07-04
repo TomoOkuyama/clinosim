@@ -13,7 +13,6 @@ def test_imaging_series_defaults_are_no_op():
     assert s.series_number == 1
     assert s.modality_code == ""
     assert s.body_site_snomed == ""
-    assert s.body_site_display == ""
     assert s.description == ""
     assert s.instance_count == 0
 
