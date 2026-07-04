@@ -110,7 +110,8 @@ def _validate_allergens(data: dict[str, Any]) -> None:
                 manifestation_snomed = rxn.get("manifestation_snomed", "")
                 if not manifestation_snomed:
                     raise ValueError(
-                        f"allergens.yaml[{cat}][{i}].common_reactions[{j}]: missing manifestation_snomed"
+                        f"allergens.yaml[{cat}][{i}].common_reactions[{j}]: "
+                        f"missing manifestation_snomed"
                     )
                 if not _code_in_data("snomed-ct", manifestation_snomed):
                     raise ValueError(
