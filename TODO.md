@@ -2267,20 +2267,16 @@ Python clinical display dicts to migrate to `codes/data/*.yaml` (en+ja) + `code_
   raw `test_loinc` CIF field for JP — acceptable since it's a raw code column, not a
   `display`/`text` field (CLAUDE.md's JP-must-be-Japanese rule targets FHIR
   display/text), but could be revisited for JP output consistency later.
-- `_build_lab_observation` unconditional code/system pairing latent defect (found during
-  Task 3 review of the JP microbiology JLAC10 mapping chain, this branch, 2026-07-04) —
-  `clinosim/modules/output/_fhir_observations.py:52-62` computes
-  `code_system_key = system_key_for("lab", country_code)` once per country (line 58) and
-  pairs it with `code_value = code_map.get(lab_name, order.get("order_code", ""))`
-  (line 55), the same "system chosen independent of whether the map actually had this
-  `lab_name`" shape that Task 3 had to fix in `_bb_microbiology`. Currently masked: both
-  `clinosim/locale/jp/code_mapping_lab.yaml` and `clinosim/locale/us/code_mapping_lab.yaml`
-  are believed to have full coverage for every lab name presently in use, so the
-  `order.get("order_code", "")` fallback branch never fires for real cohorts today — but
-  if a future lab test is added to one country's mapping YAML without the other, this
-  function would silently mistag the fallback `order_code` with the wrong country's code
-  system (LOINC key paired with a JLAC10-shaped order code or vice versa), the same class
-  of bug Task 3 fixed. Not fixed here — different file, out of scope for this plan. A
-  future session should decide whether to harden `_build_lab_observation` the same way
-  Task 3 hardened `_bb_microbiology` (making the code system co-vary with whether
-  `code_map` actually resolved `lab_name`, not just with `country`).
+- ~~`_build_lab_observation` unconditional code/system pairing latent defect~~ — **FIXED
+  (2026-07-04, direct TDD fix on master)**: `clinosim/modules/output/_fhir_observations.py`
+  now resolves `code_system_key` inside the same branch as `code_value` (`if lab_name in
+  code_map: ... else: code_value = order.get("order_code", ""); code_system_key = "loinc"`),
+  mirroring the fix Task 3 applied to `_bb_microbiology` in the JP microbiology JLAC10
+  mapping chain (found during that task's review, this entry originally filed as a
+  deferred follow-up). Regression tests in
+  `tests/unit/output/test_fhir_observations_code_system.py` (JP mapped → jlac10, JP
+  unmapped → loinc fallback stays coherent, US unaffected). No behavior change for real
+  cohorts today (both `code_mapping_lab.yaml` files have full coverage, so the fallback
+  branch was and remains dead for current data) — this hardens against a future
+  incomplete-coverage regression. `pytest -m unit` (1062 passed) and `-m integration`
+  (278 passed, 5 skipped, 1 xfailed) both green.

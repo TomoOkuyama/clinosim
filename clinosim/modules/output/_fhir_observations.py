@@ -52,10 +52,18 @@ def _build_lab_observation(
     country_code = "JP" if country != "US" else "US"
     lang = resolve_lang(country_code)
     code_map = load_code_mapping("lab", country_code)
-    code_value = code_map.get(lab_name, order.get("order_code", ""))
+    if lab_name in code_map:
+        code_value = code_map[lab_name]
+        code_system_key = system_key_for("lab", country_code)
+    else:
+        # Unmapped lab_name falls back to the raw order_code (LOINC-shaped) — the
+        # system must fall back with it, since tagging a LOINC code under the
+        # country's mapped system (e.g. jlac10) would produce an incoherent coding
+        # (same fix as _bb_microbiology's culture-code resolution, TODO.md 2026-07-04).
+        code_value = order.get("order_code", "")
+        code_system_key = "loinc"
 
     # Display text comes from codes module (via standard code)
-    code_system_key = system_key_for("lab", country_code)
     display_name = code_lookup(code_system_key, code_value, lang) if code_value else lab_name
     if display_name == code_value:  # no translation found
         display_name = lab_name
