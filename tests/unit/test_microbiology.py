@@ -208,3 +208,54 @@ class TestFhirBuilder:
         coding = org_obs["code"]["coding"][0]
         assert coding["system"] == get_system_uri("loinc")
         assert coding["code"] == "6463-4"
+
+    def test_jp_susceptibility_uses_jlac10_code(self):
+        bundle, _ = self._bundle("sepsis", country="JP")
+        sus_obs = [e["resource"] for e in bundle["entry"]
+                   if e["resource"]["id"].startswith("mb-sus")]
+        assert sus_obs, "expected at least one susceptibility Observation"
+        for obs in sus_obs:
+            coding = obs["code"]["coding"][0]
+            assert coding["system"] == get_system_uri("jlac10")
+            assert coding["code"] == "6C010"
+
+    def test_us_susceptibility_still_uses_loinc(self):
+        bundle, mb = self._bundle("sepsis", country="US")
+        sus_obs = [e["resource"] for e in bundle["entry"]
+                   if e["resource"]["id"].startswith("mb-sus")]
+        assert sus_obs, "expected at least one susceptibility Observation"
+        expected_loincs = {s.antibiotic_loinc for m in mb for s in m.susceptibilities}
+        actual_loincs = {obs["code"]["coding"][0]["code"] for obs in sus_obs}
+        assert actual_loincs == expected_loincs
+        for obs in sus_obs:
+            assert obs["code"]["coding"][0]["system"] == get_system_uri("loinc")
+
+    def test_jp_unmapped_antibiotic_falls_back_to_antibiotic_loinc(self):
+        # Defensive regression guard for the fallback branch: every real
+        # antibiotic_loinc value in microbiology.yaml is mapped today, so this
+        # branch is unreachable with real data — but a future antibiotic added
+        # to microbiology.yaml before code_mapping_microbiology_susceptibility.yaml
+        # is updated for it must not get its LOINC value mistagged as jlac10.
+        unmapped_culture = {
+            "encounter_id": "ENC-UNMAPPED-ABX",
+            "specimen": "blood",
+            "specimen_snomed": "119297000",
+            "test_loinc": "600-7",
+            "growth": True,
+            "organism_snomed": "3092008",
+            "quantitation": "",
+            "susceptibilities": [{"antibiotic_loinc": "99999-1", "interpretation": "S"}],
+            "hai_event_id": "",
+        }
+        rec = {
+            "patient": {"patient_id": "P-UNMAPPED-ABX", "sex": "M"},
+            "encounters": [{"encounter_id": "ENC-UNMAPPED-ABX"}],
+            "clinical_diagnosis": {},
+            "microbiology": [unmapped_culture],
+        }
+        bundle = fhir._build_bundle(rec, "JP")
+        sus_obs = next(e["resource"] for e in bundle["entry"]
+                       if e["resource"]["id"].startswith("mb-sus"))
+        coding = sus_obs["code"]["coding"][0]
+        assert coding["system"] == get_system_uri("loinc")
+        assert coding["code"] == "99999-1"

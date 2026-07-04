@@ -1,0 +1,33 @@
+# antibiotic_loinc (the LOINC "<drug> [Susceptibility]" test code already stored on
+# SusceptibilityResult) → JLAC10 analyte code (分析物コード) mapping for drug
+# susceptibility tests.
+#
+# AUTHORITATIVE SOURCE — verified against the official JLAC10 master:
+#   日本臨床検査医学会 (JSLM) 検査項目コード委員会
+#   "JLAC10コード表_臨床検査" v137 (2026-06): https://www.jslm.org/committees/code/
+#   (137jlac10_1.xlsx, sheet「分析物コード」)
+# Display text lives in clinosim/codes/data/jlac10.yaml. Never fabricate a code (AD-57).
+#
+# NOTE: unlike code_mapping_lab.yaml, all ten antibiotics share the same code.
+# JLAC10 category 6C (微生物学的検査/薬剤感受性検査) has a single generic analyte
+# code for "drug susceptibility test (common bacteria)" — 6C010 — with no
+# per-drug variants at the analyte-code level (mirrors category 6B's single
+# generic culture-identification code — see code_mapping_microbiology.yaml).
+# The specific drug is distinguished elsewhere in clinosim's FHIR output via
+# the antibiotic_loinc-keyed lookup itself plus the interpretation value, not
+# via the analyte code, matching how JLAC10 represents drug/method distinction
+# in the 17-digit full code's result-identifier segment, not the 5-character
+# analyte code clinosim stores. Keys are the antibiotic_loinc values from
+# clinosim/modules/observation/reference_data/microbiology.yaml's `antibiotics`
+# dict (ampicillin/cefazolin/ceftriaxone/cefepime/ciprofloxacin/gentamicin/
+# vancomycin/piperacillin_tazobactam/meropenem/trimethoprim_sulfamethoxazole).
+"18862-3": "6C010"
+"18866-4": "6C010"
+"18895-3": "6C010"
+"18879-7": "6C010"
+"18906-8": "6C010"
+"18908-4": "6C010"
+"18991-2": "6C010"
+"18949-0": "6C010"
+"18943-3": "6C010"
+"18996-1": "6C010"

@@ -165,3 +165,7 @@ codes:
   6B010:
     en: Culture and identification (common bacteria)
     ja: 培養同定(一般細菌)
+  # --- Microbiology drug susceptibility (6C) ---
+  6C010:
+    en: Drug susceptibility test (common bacteria)
+    ja: 薬剤感受性検査(一般細菌)
