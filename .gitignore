@@ -38,3 +38,6 @@ htmlcov/
 # Claude Code
 .claude/
 venv/
+
+# Superpowers subagent-driven-development scratch state
+.superpowers/
