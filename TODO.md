@@ -2252,3 +2252,35 @@ Python clinical display dicts to migrate to `codes/data/*.yaml` (en+ja) + `code_
   locale handling for any future en/ja-sensitive consumer of these loaders). Not a CIF
   violation; a distinct localization gap. Fixing requires threading `lang`/`country`
   into the relevant loader call sites and selecting `display_en`/`display_ja` accordingly.
+- JP microbiology culture codes now use JLAC10 (`6B010`, session 35, 2026-07-04) —
+  `_fhir_microbiology.py` resolves the culture Observation/DiagnosticReport code via
+  `code_mapping_microbiology.yaml` + `system_key_for("microbiology", ...)`, covering
+  both community-acquired and HAI-derived cultures (both carry the same country-neutral
+  `MicrobiologyResult.specimen` key). Verified against JSLM JLAC10 master v137: category
+  6B (微生物学的検査/培養同定検査) has one generic culture-identification analyte code
+  (no per-specimen variants at the analyte-code level — specimen type lives in the
+  17-digit full code's material segment, which clinosim doesn't model), so all 4
+  specimens map to the same `6B010`. Deferred, not required for this fix: (a) antibiotic
+  susceptibility JLAC10 mapping (`SusceptibilityResult.antibiotic_loinc`, 10 drugs) —
+  JLAC10's susceptibility-result structure may not mirror LOINC's per-drug-per-test-code
+  model, needs its own research pass; (b) CSV adapter (`csv_adapter.py`) still dumps the
+  raw `test_loinc` CIF field for JP — acceptable since it's a raw code column, not a
+  `display`/`text` field (CLAUDE.md's JP-must-be-Japanese rule targets FHIR
+  display/text), but could be revisited for JP output consistency later.
+- `_build_lab_observation` unconditional code/system pairing latent defect (found during
+  Task 3 review of the JP microbiology JLAC10 mapping chain, this branch, 2026-07-04) —
+  `clinosim/modules/output/_fhir_observations.py:52-62` computes
+  `code_system_key = system_key_for("lab", country_code)` once per country (line 58) and
+  pairs it with `code_value = code_map.get(lab_name, order.get("order_code", ""))`
+  (line 55), the same "system chosen independent of whether the map actually had this
+  `lab_name`" shape that Task 3 had to fix in `_bb_microbiology`. Currently masked: both
+  `clinosim/locale/jp/code_mapping_lab.yaml` and `clinosim/locale/us/code_mapping_lab.yaml`
+  are believed to have full coverage for every lab name presently in use, so the
+  `order.get("order_code", "")` fallback branch never fires for real cohorts today — but
+  if a future lab test is added to one country's mapping YAML without the other, this
+  function would silently mistag the fallback `order_code` with the wrong country's code
+  system (LOINC key paired with a JLAC10-shaped order code or vice versa), the same class
+  of bug Task 3 fixed. Not fixed here — different file, out of scope for this plan. A
+  future session should decide whether to harden `_build_lab_observation` the same way
+  Task 3 hardened `_bb_microbiology` (making the code system co-vary with whether
+  `code_map` actually resolved `lab_name`, not just with `country`).
