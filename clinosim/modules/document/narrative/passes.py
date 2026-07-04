@@ -257,6 +257,7 @@ class NarrativePass(ABC):
             discharge_medications=self._collect_discharge_medications(patient_dict),
             diagnoses=[clinical_diagnosis] if clinical_diagnosis else [],
             procedures=patient_dict.get("procedures", []) or [],
+            rehab_sessions=patient_dict.get("rehab_sessions", []) or [],
             allergies=_o(patient_dict.get("patient") or {}, "allergies", []) or [],
             document_type=DocumentType(spec.type_key),
             target_lang=language,

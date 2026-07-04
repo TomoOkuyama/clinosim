@@ -89,3 +89,4 @@ def test_build_context_empty_lists_when_no_data() -> None:
     assert ctx.medications == []
     assert ctx.diagnoses == []
     assert ctx.procedures == []
+    assert ctx.rehab_sessions == []
