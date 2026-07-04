@@ -257,6 +257,7 @@ class NarrativePass(ABC):
             discharge_medications=self._collect_discharge_medications(patient_dict),
             diagnoses=[clinical_diagnosis] if clinical_diagnosis else [],
             procedures=patient_dict.get("procedures", []) or [],
+            rehab_sessions=self._parse_rehab_sessions(patient_dict.get("rehab_sessions", []) or []),
             allergies=_o(patient_dict.get("patient") or {}, "allergies", []) or [],
             document_type=DocumentType(spec.type_key),
             target_lang=language,
@@ -271,6 +272,32 @@ class NarrativePass(ABC):
         if spec.format_type.value == "composition":
             ctx.section_facts = extract_for_composition(ctx, spec)
         return ctx
+
+    @staticmethod
+    def _parse_rehab_sessions(raw: list[Any]) -> list[Any]:
+        """Coerce ``RehabSession.session_date`` back to ``datetime`` after the
+        structural-CIF JSON round trip.
+
+        ``write_cif`` serializes ``RehabSession`` dataclasses (whose
+        ``session_date`` field is a ``datetime``) to JSON, turning the value
+        into an ISO string — same lossy round trip that ``_parse_dt`` above
+        already handles for ``admission_datetime``/``discharge_datetime``.
+        The chain 2 rehabilitation_plan section builders
+        (``_build_rp_session_frequency`` / ``_build_rp_functional_status`` /
+        ``_build_rp_basic_movement``) call ``.date()`` / compare via
+        ``min``/``max`` on this field — a raw string round-trips fine through
+        dict access but breaks those calls (found by the chain 2 Task 4
+        full-chain integration test, which is the first test to exercise the
+        real structural-CIF JSON path rather than an in-memory fixture).
+        """
+        parsed_sessions = []
+        for session in raw:
+            session_date = _o(session, "session_date", None)
+            parsed_date = _parse_dt(session_date)
+            if parsed_date is not None and isinstance(session, dict):
+                session = {**session, "session_date": parsed_date}
+            parsed_sessions.append(session)
+        return parsed_sessions
 
     @staticmethod
     def _resolve_disease_protocol(condition_event: Any) -> Any | None:

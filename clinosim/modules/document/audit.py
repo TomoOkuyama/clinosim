@@ -6,7 +6,7 @@ AD-60 plug-in #5 (after hai, antibiotic, order_service_request, imaging).
 Verifies CIF -> FHIR emission integrity for the document pipeline:
 DocumentReference / Composition / AllergyIntolerance / ClinicalImpression / CareTeam.
 
-45 equality_checks in lift_firing_proof guard canonical constants and
+49 equality_checks in lift_firing_proof guard canonical constants and
 no-drop emission paths against PR-90 class silent-no-op regression.
 
 Registered checks:
@@ -66,6 +66,14 @@ Registered checks:
     fire) / `nutrition_care_plan_jp_icu_los10_count` (positive, icu) /
     `nutrition_care_plan_us_inpatient_los10_count` (negative, country gate).
     See `_proof_nutrition_care_plan`.
+  chain 2 rehabilitation_plan gate (+4, total = 49):
+    `rehabilitation_plan_jp_inpatient_with_rehab_count` (positive) /
+    `rehabilitation_plan_jp_inpatient_no_rehab_count` (negative: no
+    RehabSession) / `rehabilitation_plan_us_inpatient_with_rehab_count`
+    (negative: country gate) / `rehabilitation_plan_jp_icu_with_rehab_count`
+    (negative: icu not in encounter_types_supported, unlike
+    admission_care_plan/nutrition_care_plan which legitimately support icu).
+    See `_proof_rehabilitation_plan`.
 
 TODO(jp_language_audit): jp_language_checks not implemented — ModuleAuditSpec
 does not have a jp_language_checks field. Deferred to a follow-up sweep
@@ -718,6 +726,81 @@ def _proof_nutrition_care_plan() -> dict[str, Any]:
     }
 
 
+def _proof_rehabilitation_plan() -> dict[str, Any]:
+    """chain 2: prove the rehabilitation_plan RehabSession-presence + JP-only +
+    inpatient-only gate fires.
+
+    Four synthetic encounters (JP inpatient with rehab sessions, JP inpatient
+    without, US inpatient with rehab sessions, JP icu with rehab sessions) run
+    through document_enricher; proves the positive dispatch (rehab sessions
+    present -> fires), the negative dispatch (no rehab sessions -> does not
+    fire), the country gate (non-JP does not fire even with sessions present),
+    and the encounter-type gate (icu does not fire even with sessions present
+    — unlike admission_care_plan/nutrition_care_plan, icu is NOT in this
+    spec's encounter_types_supported since it's a verified-unreachable
+    EncounterType value, design spec §1) — same both-directions discipline as
+    _proof_nutrition_care_plan, extended with the icu negative check specific
+    to this spec's narrower scope.
+    """
+    from datetime import datetime, timedelta
+    from types import SimpleNamespace
+
+    from clinosim.modules.document.engine import document_enricher
+
+    def _run(encounter_type: str, country: str, with_rehab: bool) -> int:
+        admission_dt = datetime(2026, 7, 1, 10, 0)
+        encounter_id = f"enc-rp-proof-{encounter_type}-{country}-{with_rehab}"
+        rehab_sessions = (
+            [{
+                "session_id": "REHAB-rp-proof-001",
+                "patient_id": "pt-rp-proof",
+                "encounter_id": encounter_id,
+                "therapy_type": "PT",
+                "session_date": admission_dt + timedelta(days=1),
+                "duration_minutes": 40,
+                "day_post_op": 1,
+                "activities": [],
+                "patient_participation": "good",
+                "pain_score": 3,
+                "functional_progress": "stable",
+            }]
+            if with_rehab
+            else []
+        )
+        record: dict[str, Any] = {
+            "patient": {"patient_id": "pt-rp-proof"},
+            "encounters": [
+                {
+                    "encounter_id": encounter_id,
+                    "encounter_type": encounter_type,
+                    "status": "completed",
+                    "admission_datetime": admission_dt,
+                    "discharge_datetime": admission_dt + timedelta(days=10),
+                    "attending_physician_id": "dr-rp-proof",
+                    "primary_nurse_id": "ns-rp-proof",
+                }
+            ],
+            "documents": [],
+            "extensions": {},
+            "physiological_states": [],
+            "rehab_sessions": rehab_sessions,
+        }
+        ctx = SimpleNamespace(
+            master_seed=42, records=[record], config=SimpleNamespace(country=country)
+        )
+        document_enricher(ctx)
+        return len([
+            d for d in record["documents"] if getattr(d, "task_type", "") == "rehabilitation_plan"
+        ])
+
+    return {
+        "jp_inpatient_with_rehab_count": _run("inpatient", "jp", True),
+        "jp_inpatient_no_rehab_count": _run("inpatient", "jp", False),
+        "us_inpatient_with_rehab_count": _run("inpatient", "us", True),
+        "jp_icu_with_rehab_count": _run("icu", "jp", True),
+    }
+
+
 def _build_document_proof() -> dict[str, Any]:
     """Zero-arg factory: run document FHIR builders on synthetic data.
 
@@ -930,6 +1013,9 @@ def _build_document_proof() -> dict[str, Any]:
 
     # chain 2: nutrition_care_plan LOS>7 + JP-only gate proof.
     _ncp_proof = _proof_nutrition_care_plan()
+
+    # chain 2: rehabilitation_plan RehabSession-presence + JP-only + inpatient-only gate proof.
+    _rp_proof = _proof_rehabilitation_plan()
 
     return {
         "equality_checks": [
@@ -1179,6 +1265,27 @@ def _build_document_proof() -> dict[str, Any]:
             (
                 "nutrition_care_plan_us_inpatient_los10_count",
                 _ncp_proof["us_inpatient_los10_count"],
+                0,
+            ),
+            # === chain 2: rehabilitation_plan gate proof (+4, total = 49) ===
+            (
+                "rehabilitation_plan_jp_inpatient_with_rehab_count",
+                _rp_proof["jp_inpatient_with_rehab_count"],
+                1,
+            ),
+            (
+                "rehabilitation_plan_jp_inpatient_no_rehab_count",
+                _rp_proof["jp_inpatient_no_rehab_count"],
+                0,
+            ),
+            (
+                "rehabilitation_plan_us_inpatient_with_rehab_count",
+                _rp_proof["us_inpatient_with_rehab_count"],
+                0,
+            ),
+            (
+                "rehabilitation_plan_jp_icu_with_rehab_count",
+                _rp_proof["jp_icu_with_rehab_count"],
                 0,
             ),
         ]

@@ -21,6 +21,9 @@ Architecture:
 
 Supported generation_frequency values (α-min-2, extended in α-min-3):
   admission_once  → 1 document at day 0 (inpatient H&P, nursing assessment)
+  admission_once_if_rehab_sessions → 1 document at the first RehabSession's
+                    date, only if the encounter has ≥1 RehabSession record
+                    (chain 2: rehabilitation_plan, MHLW 別紙様式21)
   daily           → 1 document per LOS day (progress note)
   daily_3shift    → 3 documents per LOS day at night 00:00 / day 08:00 /
                     evening 16:00 (nursing shift note, α-min-3); mirrors
@@ -204,6 +207,36 @@ def _compute_los_days(
     return max(1, n - 1) if n > 1 else 1
 
 
+def _make_doc_stub(
+    spec: Any, encounter_id: str, doc_seq: int, dt: datetime,
+    pid: str, lang: str, author: str,
+) -> ClinicalDocument:
+    """Shared ClinicalDocument construction for the admission_once family of
+    generation_frequency branches (admission_once / admission_once_los_gt_7 /
+    admission_once_if_rehab_sessions) — all three set authored_datetime ==
+    period_start == period_end to the same instant `dt`. Extracted once a
+    third variant landed (rehabilitation_plan design spec §3b), closing the
+    nutrition_care_plan chain's PR #139 deferred TODO ("LOS-gated
+    document_enricher pattern") — mechanical refactor, no behavior change to
+    the two existing call sites (admission_dt in, identical ClinicalDocument
+    out).
+    """
+    return ClinicalDocument(
+        document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
+        task_type=spec.type_key,
+        loinc_code=spec.loinc_code,
+        patient_id=pid,
+        encounter_id=encounter_id,
+        author_practitioner_id=author,
+        authored_datetime=dt.isoformat(),
+        period_start=dt.isoformat(),
+        period_end=dt.isoformat(),
+        language=lang,
+        format_type=spec.format_type.value,
+        narrative=None,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Enricher entry point
 # ---------------------------------------------------------------------------
@@ -291,19 +324,9 @@ def document_enricher(ctx: Any) -> None:
                 freq = spec.generation_frequency
 
                 if freq == "admission_once":
-                    documents.append(ClinicalDocument(
-                        document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
-                        task_type=spec.type_key,
-                        loinc_code=spec.loinc_code,
-                        patient_id=pid,
-                        encounter_id=encounter_id,
-                        author_practitioner_id=_pick_document_author(spec, encounter),
-                        authored_datetime=admission_dt.isoformat(),
-                        period_start=admission_dt.isoformat(),
-                        period_end=admission_dt.isoformat(),
-                        language=lang,
-                        format_type=spec.format_type.value,
-                        narrative=None,
+                    documents.append(_make_doc_stub(
+                        spec, encounter_id, doc_seq, admission_dt, pid, lang,
+                        _pick_document_author(spec, encounter),
                     ))
                     doc_seq += 1
 
@@ -313,19 +336,32 @@ def document_enricher(ctx: Any) -> None:
                     # LOS-skip pattern below.
                     if los_days <= 7:
                         continue
-                    documents.append(ClinicalDocument(
-                        document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
-                        task_type=spec.type_key,
-                        loinc_code=spec.loinc_code,
-                        patient_id=pid,
-                        encounter_id=encounter_id,
-                        author_practitioner_id=_pick_document_author(spec, encounter),
-                        authored_datetime=admission_dt.isoformat(),
-                        period_start=admission_dt.isoformat(),
-                        period_end=admission_dt.isoformat(),
-                        language=lang,
-                        format_type=spec.format_type.value,
-                        narrative=None,
+                    documents.append(_make_doc_stub(
+                        spec, encounter_id, doc_seq, admission_dt, pid, lang,
+                        _pick_document_author(spec, encounter),
+                    ))
+                    doc_seq += 1
+
+                elif freq == "admission_once_if_rehab_sessions":
+                    # MHLW 別紙様式21: rehabilitation plan required only when the
+                    # patient is actually receiving disease-specific rehab therapy
+                    # (design spec §1 — reuses the existing RehabSession data
+                    # rather than the never-fired rehab_inpatient ward-transfer
+                    # scaffold). authored_datetime = first rehab session's date,
+                    # NOT admission_dt (the plan is assessed when rehab starts,
+                    # which is POD1+ per generate_rehab_sessions, not at admission).
+                    enc_rehab_sessions = [
+                        s for s in (_o(record, "rehab_sessions", []) or [])
+                        if _o(s, "encounter_id", "") == encounter_id
+                    ]
+                    if not enc_rehab_sessions:
+                        continue
+                    first_session_dt = min(
+                        _o(s, "session_date", admission_dt) for s in enc_rehab_sessions
+                    )
+                    documents.append(_make_doc_stub(
+                        spec, encounter_id, doc_seq, first_session_dt, pid, lang,
+                        _pick_document_author(spec, encounter),
                     ))
                     doc_seq += 1
 
