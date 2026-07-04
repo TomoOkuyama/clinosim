@@ -274,7 +274,6 @@ def _expand_views_to_series(
     body_sites = load_body_sites()
     mod_def = modalities[order_modality]
     body_site_snomed = body_sites[body_site_key]["snomed"]
-    body_site_display = body_sites[body_site_key]["display_en"]
 
     series_list: list[ImagingSeries] = []
 
@@ -287,7 +286,6 @@ def _expand_views_to_series(
                 series_number=i,
                 modality_code=order_modality,
                 body_site_snomed=body_site_snomed,
-                body_site_display=body_site_display,
                 description=f"{view} view",
                 instance_count=instance_count,
             ))
@@ -306,7 +304,6 @@ def _expand_views_to_series(
                 series_number=i,
                 modality_code=order_modality,
                 body_site_snomed=body_site_snomed,
-                body_site_display=body_site_display,
                 description=f"{view} acquisition",
                 instance_count=instance_count,
             ))
