@@ -54,6 +54,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
     country_code = "JP" if is_jp(ctx.country) else "US"
     culture_code_system = system_key_for("microbiology", country_code)
     culture_code_map = load_code_mapping("microbiology", country_code)
+    susceptibility_code_map = load_code_mapping("microbiology_susceptibility", country_code)
     subject = {"reference": f"Patient/{ctx.patient_id}"}
     enc_ref = {"reference": f"Encounter/{ctx.primary_enc_id}"} if ctx.primary_enc_id else None
     lab_category = [{"coding": [{
@@ -123,10 +124,20 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             interp = sus.get("interpretation", "")
             disp = _SUSCEPTIBILITY_DISPLAY.get(interp, {})
             sus_id = f"{MB_SUS_ID_PREFIX}{base}-{j}"
+            antibiotic_loinc = sus.get("antibiotic_loinc", "")
+            if antibiotic_loinc in susceptibility_code_map:
+                sus_code_value = susceptibility_code_map[antibiotic_loinc]
+                sus_code_system = culture_code_system
+            else:
+                # Unmapped antibiotic falls back to the raw LOINC value — the
+                # system must fall back with it (same fix as the culture code
+                # resolution above, TODO.md 2026-07-04).
+                sus_code_value = antibiotic_loinc
+                sus_code_system = "loinc"
             sus_obs: dict[str, Any] = {
                 "resourceType": "Observation", "id": sus_id, "status": "final",
                 "category": lab_category,
-                "code": {"coding": [_micro_coding("loinc", sus.get("antibiotic_loinc", ""), lang)]},
+                "code": {"coding": [_micro_coding(sus_code_system, sus_code_value, lang)]},
                 "subject": subject,
                 "specimen": {"reference": f"Specimen/{spec_id}"},
                 "valueCodeableConcept": {"coding": [{

@@ -2260,13 +2260,26 @@ Python clinical display dicts to migrate to `codes/data/*.yaml` (en+ja) + `code_
   6B (微生物学的検査/培養同定検査) has one generic culture-identification analyte code
   (no per-specimen variants at the analyte-code level — specimen type lives in the
   17-digit full code's material segment, which clinosim doesn't model), so all 4
-  specimens map to the same `6B010`. Deferred, not required for this fix: (a) antibiotic
-  susceptibility JLAC10 mapping (`SusceptibilityResult.antibiotic_loinc`, 10 drugs) —
-  JLAC10's susceptibility-result structure may not mirror LOINC's per-drug-per-test-code
-  model, needs its own research pass; (b) CSV adapter (`csv_adapter.py`) still dumps the
-  raw `test_loinc` CIF field for JP — acceptable since it's a raw code column, not a
-  `display`/`text` field (CLAUDE.md's JP-must-be-Japanese rule targets FHIR
-  display/text), but could be revisited for JP output consistency later.
+  specimens map to the same `6B010`. Deferred, not required for this fix: CSV adapter
+  (`csv_adapter.py`) still dumps the raw `test_loinc` CIF field for JP — acceptable since
+  it's a raw code column, not a `display`/`text` field (CLAUDE.md's JP-must-be-Japanese
+  rule targets FHIR display/text), but could be revisited for JP output consistency later.
+- ~~Antibiotic susceptibility JLAC10 mapping~~ — **FIXED (session 35, 2026-07-04, same-day
+  follow-up)**: contrary to the original "needs its own research pass" deferral above, the
+  JSLM master lookup showed JLAC10 category 6C (微生物学的検査/薬剤感受性検査) has the
+  identical single-generic-code shape as category 6B did for culture — one code, `6C010`
+  ("drug susceptibility test, common bacteria"), with no per-drug variants at the
+  analyte-code level. `_bb_microbiology`'s susceptibility Observation code now resolves
+  via `code_mapping_microbiology_susceptibility.yaml` (keyed by the `antibiotic_loinc`
+  value already stored on `SusceptibilityResult` — no CIF schema change) +
+  `system_key_for("microbiology", ...)` (reusing the same kind registered for culture
+  codes). All 10 antibiotics (ampicillin/cefazolin/ceftriaxone/cefepime/ciprofloxacin/
+  gentamicin/vancomycin/piperacillin_tazobactam/meropenem/trimethoprim_sulfamethoxazole)
+  map to `6C010`. Same country-gated-with-coherent-fallback shape as the culture fix and
+  the `_build_lab_observation` hardening (code system co-varies with whether the map
+  actually resolved the key). Implemented directly with TDD on `master` (no subagent
+  chain — pattern fully precedented by the same-day culture fix, no new design
+  decisions). `pytest -m unit` 1069 passed.
 - ~~`_build_lab_observation` unconditional code/system pairing latent defect~~ — **FIXED
   (2026-07-04, direct TDD fix on master)**: `clinosim/modules/output/_fhir_observations.py`
   now resolves `code_system_key` inside the same branch as `code_value` (`if lab_name in

@@ -16,6 +16,9 @@ from clinosim.codes import lookup
 _ROOT = Path(clinosim.__file__).parent
 _JLAC10 = yaml.safe_load((_ROOT / "codes/data/jlac10.yaml").read_text())["codes"]
 _JP_MAP = yaml.safe_load((_ROOT / "locale/jp/code_mapping_lab.yaml").read_text())
+_JP_MICRO_SUS_MAP = yaml.safe_load(
+    (_ROOT / "locale/jp/code_mapping_microbiology_susceptibility.yaml").read_text()
+)
 
 
 @pytest.mark.unit
@@ -92,3 +95,34 @@ class TestMicrobiologyJLAC10Integrity:
     def test_display_resolves(self):
         assert lookup("jlac10", "6B010", "en") == "Culture and identification (common bacteria)"
         assert lookup("jlac10", "6B010", "ja") == "培養同定(一般細菌)"
+
+
+@pytest.mark.unit
+class TestMicrobiologySusceptibilityJLAC10Integrity:
+    def test_every_mapped_code_exists(self):
+        missing = {
+            loinc: code for loinc, code in _JP_MICRO_SUS_MAP.items()
+            if code not in _JLAC10
+        }
+        assert not missing, f"JP susceptibility codes absent from jlac10.yaml: {missing}"
+
+    def test_all_ten_antibiotics_mapped(self):
+        # Keys are the antibiotic_loinc values from microbiology.yaml's `antibiotics`
+        # dict (the join key SusceptibilityResult already carries — no CIF schema
+        # change needed, mirrors the culture-code fix's use of `specimen`).
+        assert set(_JP_MICRO_SUS_MAP) == {
+            "18862-3", "18866-4", "18895-3", "18879-7", "18906-8",
+            "18908-4", "18991-2", "18949-0", "18943-3", "18996-1",
+        }
+
+    def test_verified_code(self):
+        """JLAC10 has one generic drug-susceptibility-test analyte code (6C010),
+        not per-drug codes — the drug distinction lives in the 17-digit full
+        code's result-identifier segment, which clinosim does not model.
+        Verified against JSLM JLAC10 master v137, category 6C
+        (微生物学的検査/薬剤感受性検査), 2026-07-04."""
+        assert all(code == "6C010" for code in _JP_MICRO_SUS_MAP.values())
+
+    def test_display_resolves(self):
+        assert lookup("jlac10", "6C010", "en") == "Drug susceptibility test (common bacteria)"
+        assert lookup("jlac10", "6C010", "ja") == "薬剤感受性検査(一般細菌)"
