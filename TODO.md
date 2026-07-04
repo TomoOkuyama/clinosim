@@ -1816,8 +1816,14 @@ These items were **explicitly out of scope** for the α-min-2 document density c
   アセスメントパネルで別物、誤用不可)。ローカルコード体系でのQuestionnaireResponse実装が
   必要(現状は`FormatType.QUESTIONNAIRE_RESPONSE`のinfrastructure stubのみ)。GCS/ADLデータは
   `nursing_enricher.py`に既存だが、評価票のA/B/C項目粒度とは一致しない。
-- **リハビリテーション計画書** (Rehabilitation plan) — mandatory for rehab wards. Requires
-  `extensions["procedure"]` rehab sessions.
+- ~~**リハビリテーション計画書** (Rehabilitation plan)~~ — **DONE (chain 2, 2026-07-04)**:
+  LOINC 34823-5, Composition, 9 sections per MHLW 別紙様式21 (base form only —
+  variants 21の2〜21の5 out of scope), JP-only, inpatient-only (icu/rehab_inpatient
+  both verified-unreachable EncounterType values — see status-audit finding in
+  design spec §1). Gated on existing RehabSession data (post-surgical rehab for
+  `requires_surgery: true` diseases), NOT the never-implemented rehab_inpatient
+  ward-transfer subsystem the original TODO entry envisioned. 6/9 sections are
+  data-driven.
 - **JP section text full localization** — `past_medical_history` / `medications_at_home` /
   `discharge_medications` sections currently English-only in α-min-1. Full JP: condition names
   via `code_lookup(..., "ja")`, drug names via `_localize_drug_name()`.
@@ -1894,6 +1900,53 @@ near-identical 10-field `ClinicalDocument(...)` constructions
 `daily`) — a small local `_make_doc_stub(spec, encounter_id, doc_seq,
 authored_dt, pid, lang, author)` helper would collapse the duplication and
 make the LOS guard the only visible difference between branches.
+
+### chain 2 deferred: rehab_inpatient / EncounterType.ICU ward-transfer subsystem
+
+Both `EncounterType.REHAB_INPATIENT` and `EncounterType.ICU` are defined in the
+enum and referenced in downstream module allowlists (`document`, `nursing`) but
+are **never actually assigned** anywhere in the simulator — verified empirically
+(JP p=500 cohort produced zero occurrences of either value; `create_inpatient_encounter()`
+hardcodes `EncounterType.INPATIENT`, `icu_transferred` is a boolean flag on that
+same encounter, not a distinct one). The rehabilitation_plan chain (2026-07-04)
+deliberately built against the already-firing `RehabSession` data on ordinary
+`inpatient` encounters instead of this subsystem — see design spec
+`docs/superpowers/specs/2026-07-04-rehabilitation-plan-design.md` §1. If a rehab
+ward transfer / distinct ICU encounter is ever prioritized, it is a
+simulator-level feature (transfer trigger in `inpatient.py` or
+`encounter/engine.py` + disease YAML trigger conditions), not a document-module
+change — and every downstream module currently declaring `rehab_inpatient`/`icu`
+support (`document`, `nursing`) would need re-verification against real data at
+that point, since none of it has ever been exercised in production.
+
+### chain 2 deferred: rehabilitation_plan OT/ST therapy types + named therapist
+
+`generate_rehab_sessions` (`modules/procedure/engine.py`) hardcodes
+`therapy_type="PT"` — the `rehabilitation_plan` document's `rehab_team` section
+will only ever show PT until that module (procedure module, out of scope for
+the document-module chain) is extended to produce OT/ST sessions. Separately,
+no PT/OT/ST staff role exists in the roster (mirrors the `nutrition_care_plan.dietitian`
+gap), so the named-therapist sub-field is a permanent fixed fallback until a
+therapist staff role is built.
+
+### chain 2 deferred: rehabilitation_plan patient/family goals data source
+
+`goals` and `policy` sections are fixed fallbacks with no CIF data source — no
+field represents a patient's stated rehab goals or family wishes. This is why
+`stage2_strategy=template_only` (no LLM) was chosen even though these two
+sections read as narrative-shaped (design spec §3d): an LLM asked to fill them
+would fabricate entirely. Revisit `stage2_strategy` for these two sections only
+if a patient-goals data model is ever built.
+
+### chain 2 deferred: RehabSession.activities free-text localization
+
+`RehabSession.activities` (`types/procedure.py`) holds hardcoded English phrases
+(e.g. "bed exercises") with no JP mapping. `rehabilitation_plan`'s
+`basic_movement` section avoids this entirely by re-deriving a phase
+(early/mid/late) from `day_post_op` instead of rendering the raw activity list.
+If a future consumer needs the raw activities in JP output, add a proper
+activity-key → {en, ja} lookup table then — do not hardcode ad hoc translations
+at that call site.
 
 ### β-2 phase — Clinical event density
 
