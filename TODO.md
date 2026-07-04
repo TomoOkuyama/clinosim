@@ -2260,10 +2260,7 @@ Python clinical display dicts to migrate to `codes/data/*.yaml` (en+ja) + `code_
   6B (微生物学的検査/培養同定検査) has one generic culture-identification analyte code
   (no per-specimen variants at the analyte-code level — specimen type lives in the
   17-digit full code's material segment, which clinosim doesn't model), so all 4
-  specimens map to the same `6B010`. Deferred, not required for this fix: CSV adapter
-  (`csv_adapter.py`) still dumps the raw `test_loinc` CIF field for JP — acceptable since
-  it's a raw code column, not a `display`/`text` field (CLAUDE.md's JP-must-be-Japanese
-  rule targets FHIR display/text), but could be revisited for JP output consistency later.
+  specimens map to the same `6B010`.
 - ~~Antibiotic susceptibility JLAC10 mapping~~ — **FIXED (session 35, 2026-07-04, same-day
   follow-up)**: contrary to the original "needs its own research pass" deferral above, the
   JSLM master lookup showed JLAC10 category 6C (微生物学的検査/薬剤感受性検査) has the
@@ -2280,6 +2277,23 @@ Python clinical display dicts to migrate to `codes/data/*.yaml` (en+ja) + `code_
   actually resolved the key). Implemented directly with TDD on `master` (no subagent
   chain — pattern fully precedented by the same-day culture fix, no new design
   decisions). `pytest -m unit` 1069 passed.
+- ~~CSV adapter JP microbiology code consistency~~ — **FIXED (session 35, 2026-07-04,
+  same-day follow-up)**: `csv_adapter.py`'s `microbiology.csv` previously dumped the raw
+  `test_loinc`/`antibiotic_loinc` CIF fields verbatim, so JP CSV output showed US LOINC
+  values even after the FHIR builder started emitting JLAC10 — a live inconsistency
+  between the two output formats for the same data. Fixed by (1) extracting
+  `resolve_culture_code(specimen, test_loinc, country)` and
+  `resolve_susceptibility_code(antibiotic_loinc, country)` out of `_bb_microbiology` in
+  `_fhir_microbiology.py` into public functions (single source of truth per
+  `docs/CONTRIBUTING-modules.md`'s "owner module public accessor" convention — no diff in
+  `_bb_microbiology`'s behavior, verified by the full pre-existing microbiology test suite
+  passing unchanged after the refactor); (2) `csv_adapter.py` now imports both and renames
+  the columns from `test_loinc`/`antibiotic_loinc` (a column name that asserted a fixed
+  code system) to `test_code`/`test_code_system` + `antibiotic_code`/
+  `antibiotic_code_system` (a code/system pair, mirroring how FHIR always carries
+  system+code together) — user explicitly chose the rename over keeping the misleading
+  old names. No existing test referenced the old column names (checked before renaming).
+  `pytest -m unit` 1072 passed.
 - ~~`_build_lab_observation` unconditional code/system pairing latent defect~~ — **FIXED
   (2026-07-04, direct TDD fix on master)**: `clinosim/modules/output/_fhir_observations.py`
   now resolves `code_system_key` inside the same branch as `code_value` (`if lab_name in

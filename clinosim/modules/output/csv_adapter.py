@@ -6,6 +6,10 @@ import csv
 import os
 
 from clinosim.codes import get_display
+from clinosim.modules.output._fhir_microbiology import (
+    resolve_culture_code,
+    resolve_susceptibility_code,
+)
 from clinosim.modules.output.cif_reader import CIFReader
 
 
@@ -249,13 +253,22 @@ def convert_cif_to_csv(
             })
 
         # Microbiology (one row per susceptibility result; one row if no growth)
+        # test_code/test_code_system + antibiotic_code/antibiotic_code_system are
+        # resolved via the same country-gated single source of truth the FHIR
+        # builder uses (resolve_culture_code/resolve_susceptibility_code in
+        # _fhir_microbiology.py), so CSV and FHIR output stay consistent for JP
+        # (TODO.md 2026-07-04).
         for mb in record.get("microbiology", []):
+            test_code, test_code_system = resolve_culture_code(
+                mb.get("specimen", ""), mb.get("test_loinc", ""), country
+            )
             base = {
                 "patient_id": patient_id,
                 "encounter_id": mb.get("encounter_id"),
                 "specimen": mb.get("specimen"),
                 "specimen_snomed": mb.get("specimen_snomed"),
-                "test_loinc": mb.get("test_loinc"),
+                "test_code": test_code,
+                "test_code_system": test_code_system,
                 "collected_datetime": mb.get("collected_datetime"),
                 "reported_datetime": mb.get("reported_datetime"),
                 "growth": mb.get("growth"),
@@ -265,13 +278,22 @@ def convert_cif_to_csv(
             susceptibilities = mb.get("susceptibilities") or []
             if susceptibilities:
                 for s in susceptibilities:
+                    abx_code, abx_code_system = resolve_susceptibility_code(
+                        s.get("antibiotic_loinc", ""), country
+                    )
                     microbiology_rows.append({
                         **base,
-                        "antibiotic_loinc": s.get("antibiotic_loinc"),
+                        "antibiotic_code": abx_code,
+                        "antibiotic_code_system": abx_code_system,
                         "interpretation": s.get("interpretation"),
                     })
             else:
-                microbiology_rows.append({**base, "antibiotic_loinc": "", "interpretation": ""})
+                microbiology_rows.append({
+                    **base,
+                    "antibiotic_code": "",
+                    "antibiotic_code_system": "",
+                    "interpretation": "",
+                })
 
         # Immunizations
         for imm in record.get("immunizations", []):

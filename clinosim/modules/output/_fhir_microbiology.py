@@ -45,16 +45,50 @@ MB_DR_ID_PREFIX = "dr-mb-"
 HAI_EVENT_ID_SYSTEM = "urn:clinosim:identifier:hai-event-id"
 
 
+def resolve_culture_code(specimen: str, test_loinc: str, country: str) -> tuple[str, str]:
+    """Resolve (code_value, code_system_key) for a microbiology culture test.
+
+    Country-gated: JP resolves via code_mapping_microbiology.yaml when the
+    specimen is mapped (currently all of blood/urine/sputum/wound -> jlac10
+    6B010); otherwise falls back to the raw `test_loinc` value tagged as
+    loinc (never tag a LOINC-shaped fallback under the country's mapped
+    system — that would produce an incoherent coding).
+
+    Single source of truth for this resolution — consumed by both the FHIR
+    builder (_bb_microbiology, below) and csv_adapter.py, so both outputs
+    stay consistent (TODO.md 2026-07-04).
+    """
+    country_code = "JP" if is_jp(country) else "US"
+    code_map = load_code_mapping("microbiology", country_code)
+    if specimen in code_map:
+        return code_map[specimen], system_key_for("microbiology", country_code)
+    return test_loinc, "loinc"
+
+
+def resolve_susceptibility_code(antibiotic_loinc: str, country: str) -> tuple[str, str]:
+    """Resolve (code_value, code_system_key) for a drug susceptibility test.
+
+    Country-gated: JP resolves via code_mapping_microbiology_susceptibility.yaml
+    when the antibiotic_loinc is mapped (currently all 10 known antibiotics ->
+    jlac10 6C010); otherwise falls back to the raw `antibiotic_loinc` value
+    tagged as loinc (same coherent-fallback rule as resolve_culture_code).
+
+    Single source of truth for this resolution — consumed by both the FHIR
+    builder (_bb_microbiology, below) and csv_adapter.py.
+    """
+    country_code = "JP" if is_jp(country) else "US"
+    code_map = load_code_mapping("microbiology_susceptibility", country_code)
+    if antibiotic_loinc in code_map:
+        return code_map[antibiotic_loinc], system_key_for("microbiology", country_code)
+    return antibiotic_loinc, "loinc"
+
+
 def _bb_microbiology(ctx: BundleContext) -> list[dict]:
     """Microbiology cultures → Specimen + Observation(s) + DiagnosticReport (AD-55)."""
     cultures = ctx.record.get("microbiology") or []
     if not cultures:
         return []
     lang = resolve_lang(ctx.country)
-    country_code = "JP" if is_jp(ctx.country) else "US"
-    culture_code_system = system_key_for("microbiology", country_code)
-    culture_code_map = load_code_mapping("microbiology", country_code)
-    susceptibility_code_map = load_code_mapping("microbiology_susceptibility", country_code)
     subject = {"reference": f"Patient/{ctx.patient_id}"}
     enc_ref = {"reference": f"Encounter/{ctx.primary_enc_id}"} if ctx.primary_enc_id else None
     lab_category = [{"coding": [{
@@ -81,18 +115,9 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             specimen["collection"] = {"collectedDateTime": mb["collected_datetime"]}
         out.append(specimen)
 
-        specimen_key = mb.get("specimen", "")
-        if specimen_key in culture_code_map:
-            culture_code_value = culture_code_map[specimen_key]
-            code_system = culture_code_system
-        else:
-            # Unmapped specimen (e.g. a future specimen not yet added to
-            # code_mapping_microbiology.yaml) falls back to the raw LOINC
-            # value — the system must fall back with it, since tagging a
-            # LOINC code under the country's mapped system (e.g. jlac10)
-            # would produce an incoherent coding.
-            culture_code_value = mb.get("test_loinc", "")
-            code_system = "loinc"
+        culture_code_value, code_system = resolve_culture_code(
+            mb.get("specimen", ""), mb.get("test_loinc", ""), ctx.country
+        )
         culture_code = ({"coding": [_micro_coding(code_system, culture_code_value, lang)]}
                         if culture_code_value else {"text": "Culture"})
         result_refs: list[dict] = []
@@ -125,15 +150,9 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             disp = _SUSCEPTIBILITY_DISPLAY.get(interp, {})
             sus_id = f"{MB_SUS_ID_PREFIX}{base}-{j}"
             antibiotic_loinc = sus.get("antibiotic_loinc", "")
-            if antibiotic_loinc in susceptibility_code_map:
-                sus_code_value = susceptibility_code_map[antibiotic_loinc]
-                sus_code_system = culture_code_system
-            else:
-                # Unmapped antibiotic falls back to the raw LOINC value — the
-                # system must fall back with it (same fix as the culture code
-                # resolution above, TODO.md 2026-07-04).
-                sus_code_value = antibiotic_loinc
-                sus_code_system = "loinc"
+            sus_code_value, sus_code_system = resolve_susceptibility_code(
+                antibiotic_loinc, ctx.country
+            )
             sus_obs: dict[str, Any] = {
                 "resourceType": "Observation", "id": sus_id, "status": "final",
                 "category": lab_category,
