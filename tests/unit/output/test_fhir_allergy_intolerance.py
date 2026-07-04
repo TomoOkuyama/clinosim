@@ -32,15 +32,13 @@ def _sample_allergy_dataclass() -> Allergy:
     return Allergy(
         allergy_id="a01",
         allergen_code="372687004",
-        allergen_display="Amoxicillin",
         category="medication",
         criticality="high",
         verification_status="confirmed",
         onset_date=date(2020, 3, 15),
         reactions=[
             AllergyReaction(
-                manifestation_snomed="271807003",
-                manifestation_display="Rash",
+                manifestation_snomed="247472004",
                 severity="mild",
             ),
         ],
@@ -51,15 +49,13 @@ def _sample_allergy_dict() -> dict:
     return {
         "allergy_id": "a01",
         "allergen_code": "372687004",
-        "allergen_display": "Amoxicillin",
         "category": "medication",
         "criticality": "high",
         "verification_status": "confirmed",
         "onset_date": date(2020, 3, 15),
         "reactions": [
             {
-                "manifestation_snomed": "271807003",
-                "manifestation_display": "Rash",
+                "manifestation_snomed": "247472004",
                 "severity": "mild",
             }
         ],
@@ -138,8 +134,7 @@ def test_criticality_high():
 
 
 def test_code_snomed_allergen():
-    # allergen_code "372687004" = Aspirin in SNOMED. code_lookup resolves to "Aspirin"
-    # (locale-aware, overrides the fixture's allergen_display "Amoxicillin").
+    # allergen_code "372687004" = Aspirin in SNOMED. code_lookup resolves to "Aspirin".
     ctx = _make_ctx([_sample_allergy_dataclass()])
     r = _bb_allergy_intolerances(ctx)[0]
     coding = r["code"]["coding"][0]
@@ -167,7 +162,7 @@ def test_reaction_manifestation_and_severity():
     rxn = r["reaction"][0]
     assert rxn["severity"] == "mild"
     manifestation = rxn["manifestation"][0]
-    assert manifestation["coding"][0]["code"] == "271807003"
+    assert manifestation["coding"][0]["code"] == "247472004"
     assert manifestation["text"] == "Rash"
 
 
@@ -230,7 +225,6 @@ def test_jp_locale_resolves_snomed_display_to_ja():
     """JP cohort: allergen_code 387207008 (Penicillin) resolved to ペニシリン via code_lookup."""
     a = _sample_allergy_dataclass()
     a.allergen_code = "387207008"
-    a.allergen_display = "Penicillin"
     ctx = _make_ctx([a], country="JP")
     r = _bb_allergy_intolerances(ctx)[0]
     assert r["code"]["coding"][0]["display"] == "ペニシリン"
@@ -241,11 +235,9 @@ def test_jp_locale_resolves_reaction_manifestation_to_ja():
     """JP cohort: manifestation_snomed 247472004 (Rash) resolved to 発疹 via code_lookup."""
     a = _sample_allergy_dataclass()
     a.allergen_code = "387207008"
-    a.allergen_display = "Penicillin"
     a.reactions = [
         AllergyReaction(
             manifestation_snomed="247472004",
-            manifestation_display="Rash",
             severity="moderate",
         )
     ]
@@ -263,8 +255,7 @@ def test_multiple_allergies_all_emitted():
     a1 = _sample_allergy_dataclass()
     a2 = _sample_allergy_dataclass()
     a2.allergy_id = "a02"
-    a2.allergen_code = "70618"
-    a2.allergen_display = "Penicillin"
+    a2.allergen_code = "387207008"
     ctx = _make_ctx([a1, a2])
     resources = _bb_allergy_intolerances(ctx)
     assert len(resources) == 2

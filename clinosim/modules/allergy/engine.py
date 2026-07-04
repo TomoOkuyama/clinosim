@@ -137,7 +137,6 @@ def allergy_enricher(ctx: Any) -> None:
                 reactions=[
                     AllergyReaction(
                         manifestation_snomed=reaction_entry["manifestation_snomed"],
-                        manifestation_display=reaction_entry["manifestation_display_en"],
                         severity=reaction_entry["severity"],
                     )
                 ],
