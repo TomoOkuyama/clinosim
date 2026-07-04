@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from clinosim.modules.imaging.engine import load_body_sites
+import pytest
+
+from clinosim.modules.imaging.engine import _validate_body_sites, load_body_sites
 
 
 def test_body_sites_loads_chest_and_head():
@@ -28,3 +30,36 @@ def test_head_has_ct_non_contrast_procedure_code():
     code = head["procedure_codes"]["CT_non_contrast"]
     assert code["loinc"] == "30799-1"
     assert code["cpt"] == "70450"
+
+
+def test_validate_body_sites_raises_on_unregistered_snomed():
+    data = {
+        "body_sites": {
+            "chest": {
+                "snomed": "99999999999",  # not registered
+                "display_en": "Chest",
+                "display_ja": "胸部",
+                "procedure_codes": {
+                    "cr": {
+                        "loinc": "36554-4", "cpt": "71046",
+                        "jp_k_code": "K001", "display_en": "X-ray",
+                        "display_ja": "X線",
+                    },
+                },
+            },
+            "head": {
+                "snomed": "69536005",
+                "display_en": "Head",
+                "display_ja": "頭部",
+                "procedure_codes": {
+                    "ct": {
+                        "loinc": "24725-4", "cpt": "70450",
+                        "jp_k_code": "K002", "display_en": "CT",
+                        "display_ja": "CT",
+                    },
+                },
+            },
+        }
+    }
+    with pytest.raises(ValueError, match="99999999999"):
+        _validate_body_sites(data)

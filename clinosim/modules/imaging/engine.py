@@ -86,8 +86,32 @@ def _validate_modalities(data: dict[str, Any]) -> None:
                     )
 
 
+def _code_in_data(system: str, code: str) -> bool:
+    """Direct membership check in codes/data/<system>.yaml.
+
+    `lookup()` returns the code itself as fallback for unknown entries (not
+    None), so it can't distinguish "code exists" from "code absent". Direct
+    `cs.codes` membership IS the authoritative check (same pattern as
+    `hai/engine.py:_code_in_data`).
+    """
+    from clinosim.codes.loader import _load_system
+
+    cs = _load_system(system)
+    if cs is None:
+        raise ValueError(
+            f"_code_in_data: code system {system!r} not registered in "
+            f"clinosim/codes/data/ — system itself is missing, not the code"
+        )
+    return code in cs.codes
+
+
 def _validate_body_sites(data: dict[str, Any]) -> None:
-    """Fail-loud validation of body_sites.yaml (forward + reverse coverage)."""
+    """Fail-loud validation of body_sites.yaml (forward + reverse coverage).
+
+    AD-30 chain addition: every body site's `snomed` must resolve in
+    codes/data/snomed-ct.yaml — safety net now that the CIF no longer carries
+    a fallback display string for unresolvable codes.
+    """
     if not data:
         raise ValueError("body_sites.yaml: empty top-level")
     body_sites = data.get("body_sites")
@@ -104,6 +128,11 @@ def _validate_body_sites(data: dict[str, Any]) -> None:
     for bs_key, bs in body_sites.items():
         if not bs.get("snomed"):
             raise ValueError(f"body_sites.yaml[{bs_key}]: missing snomed")
+        if not _code_in_data("snomed-ct", bs["snomed"]):
+            raise ValueError(
+                f"body_sites.yaml[{bs_key}].snomed {bs['snomed']!r} "
+                f"not in codes/data/snomed-ct.yaml"
+            )
         if not bs.get("display_en") or not bs.get("display_ja"):
             raise ValueError(f"body_sites.yaml[{bs_key}]: display_en + display_ja required")
         pcs = bs.get("procedure_codes") or {}
