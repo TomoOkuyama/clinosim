@@ -2181,40 +2181,26 @@ prioritization). The byte-identical subset (R1-R7) landed on
 `refactor/common-logic-unification`; everything below changes behavior/schema and needs
 its own chain.
 
-### ★★★ N-chain: Narrative interface unification (β-JP-1 prerequisite)
+### N-chain: Narrative interface unification (β-JP-1 prerequisite) — DONE, 2 items remain
 
-- **N-1 generator contract**: add `NarrativeGenerator` Protocol to `clinosim/types/document.py`
-  (`generate(ctx, spec) -> NarrativeOutput`); `TemplateNarrativePass` takes the generator by
-  constructor injection (currently hardcodes `TemplateNarrativeGenerator()` at
-  `document/narrative/passes.py:262`). Decide fate of the ORPHANED α-min-1 Task 7 machinery
-  (`llm_generator.py` / `replacement_strategy.py` / `cache.py` — `apply_replacement_strategy`,
-  `NarrativeCache`, `DocumentTypeSpec.stage2_strategy` / `llm_enabled_sections` are all
-  currently unreachable): wire it under `NarrativePass` per master plan §3 (D template-as-seed
-  + E cache + B section-level) or delete it. Aspirational scaffold = PR-90 class risk.
-  Also: export public API from empty `llm_service/__init__.py`.
-- **N-2 provider unification**: two incompatible protocols share the name `LLMProvider`
-  (`narrative/replacement_strategy.py:28 generate(prompt)->str` vs
-  `llm_service/providers/base.py:24 complete(...)->ProviderResponse`). Keep the llm_service
-  one; thin adapter on the narrative side. Structurally guarantees AD-11.
-- **N-3 prompt ownership**: prompts live ONLY in `llm_service/prompts/{en,ja}/*.yaml` (AD-40),
-  consumed via PromptRegistry keyed by (doc_type, language); replace `_build_seed_prompt`
-  inline assembly. Unify `DocumentType` (9) vs `LLMTaskType` narrative subset drift.
-- **N-4 (optional, incremental)**: data-drive `template_generator.py` (1446-line Python string
-  assembly) into per-section YAML templates so new doc types need no Python edits.
-
-#### N-chain adv-1 deferred
+N-1 (`NarrativeGenerator` Protocol + constructor injection + former α-min-1 Task 7
+machinery wired live via `LLMNarrativePass`), N-2 (provider unification via
+`LLMService.complete_prompt`), N-3 (prompt ownership via `llm_service/prompts/{en,ja}/*.yaml`
++ `PromptRegistry`, public API exported from `llm_service/__init__.py`), and the adv-1
+`_build_context` degenerate-context-fields item (now wired to real structural CIF fields —
+`disease_protocol` / `clinical_course_archetype` / `severity` all read live data; see
+`document/narrative/passes.py:_build_context`) were completed in session 31-32 (N-chain +
+β-JP-1 chain 1a, commits `5e7077f0d9`/`c981c390e2`/`3da54aaeb6`/`38b4b32f31`/`45b4899c1e`).
+Verified against code directly in session 35 — this entry had gone stale (marked ★★★ /
+undone) after completion; **β-JP-1 has been unblocked since session 31**. Only two small
+items remain, both previously filed as "later cleanup" / optional:
 
 - **`narrative/cache.py get_default_cache()` singleton = test-only dead seam**: no production
   code path uses the module-level `_default_cache` (LLMNarrativePass owns a per-run
   `NarrativeCache` instance; LLMNarrativeGenerator defaults to a fresh instance). Remove the
-  singleton + its test, or wire it deliberately, in a later cleanup.
-- **`NarrativePass._build_context` degenerate context fields** (adv-1 reviewer note):
-  the production pass path passes `disease_protocol=None` / `clinical_course_archetype`
-  fallback `""` / `severity` fallback `""` / `day_index=0` into `NarrativeContext` —
-  already documented as spec §6 deferred (structural CIF does not yet carry per-day
-  clinical-course context for Stage 2). Cross-reference: the C-1 fix (adv-1) made the
-  layer-1 cache safe against this degeneration by adding the template-seed hash to the
-  cache key, but richer per-day context remains deferred to spec §6.
+  singleton + its test, or wire it deliberately.
+- **N-4 (optional, incremental)**: data-drive `template_generator.py` (2075-line Python string
+  assembly) into per-section YAML templates so new doc types need no Python edits.
 
 ### ★ Display-dict → codes YAML migration
 
