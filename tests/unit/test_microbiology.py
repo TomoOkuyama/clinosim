@@ -8,6 +8,7 @@ from datetime import datetime
 import pytest
 
 import clinosim.modules.output.fhir_r4_adapter as fhir
+from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules.observation.microbiology import (
     _load,
@@ -131,3 +132,79 @@ class TestFhirBuilder:
                 assert org.get("valueString") == "No growth"
                 return
         pytest.skip("no no-growth culture sampled")
+
+    def test_jp_culture_uses_jlac10_code(self):
+        bundle, mb = self._bundle("urinary_tract_infection", country="JP")
+        org_obs = next(e["resource"] for e in bundle["entry"]
+                       if e["resource"]["id"].startswith("mb-org"))
+        coding = org_obs["code"]["coding"][0]
+        assert coding["system"] == get_system_uri("jlac10")
+        assert coding["code"] == "6B010"
+
+    def test_us_culture_still_uses_loinc(self):
+        bundle, mb = self._bundle("urinary_tract_infection", country="US")
+        org_obs = next(e["resource"] for e in bundle["entry"]
+                       if e["resource"]["id"].startswith("mb-org"))
+        coding = org_obs["code"]["coding"][0]
+        assert coding["system"] == get_system_uri("loinc")
+        assert coding["code"] == mb[0].test_loinc
+
+    def test_hai_derived_culture_resolves_same_as_community(self):
+        # Mimics the MicrobiologyResult shape hai/enricher.py builds (only
+        # specimen / specimen_snomed / test_loinc / growth / organism_snomed /
+        # hai_event_id set) — proves the single change point in
+        # _fhir_microbiology.py covers HAI-derived cultures too, since both
+        # sources carry the same country-neutral `specimen` key.
+        hai_culture = {
+            "encounter_id": "ENC-HAI",
+            "specimen": "blood",
+            "specimen_snomed": "119297000",
+            "test_loinc": "600-7",
+            "growth": True,
+            "organism_snomed": "3092008",
+            "quantitation": "",
+            "susceptibilities": [],
+            "hai_event_id": "HAI-1",
+        }
+        rec = {
+            "patient": {"patient_id": "P-HAI", "sex": "F"},
+            "encounters": [{"encounter_id": "ENC-HAI"}],
+            "clinical_diagnosis": {},
+            "microbiology": [hai_culture],
+        }
+        bundle = fhir._build_bundle(rec, "JP")
+        org_obs = next(e["resource"] for e in bundle["entry"]
+                       if e["resource"]["id"].startswith("mb-org"))
+        coding = org_obs["code"]["coding"][0]
+        assert coding["system"] == get_system_uri("jlac10")
+        assert coding["code"] == "6B010"
+
+    def test_jp_unmapped_specimen_falls_back_to_test_loinc(self):
+        # Defensive regression guard for the fallback branch itself: today all 4
+        # real specimens (blood/urine/sputum/wound) are mapped, so this branch is
+        # unreachable with real data — but the `.get(specimen, fallback)` code
+        # path must still behave correctly if a future specimen is added to
+        # microbiology.yaml before code_mapping_microbiology.yaml is updated for it.
+        unmapped_culture = {
+            "encounter_id": "ENC-UNMAPPED",
+            "specimen": "csf",  # not a key in code_mapping_microbiology.yaml
+            "specimen_snomed": "258450006",
+            "test_loinc": "6463-4",
+            "growth": True,
+            "organism_snomed": "9861002",
+            "quantitation": "",
+            "susceptibilities": [],
+            "hai_event_id": "",
+        }
+        rec = {
+            "patient": {"patient_id": "P-UNMAPPED", "sex": "M"},
+            "encounters": [{"encounter_id": "ENC-UNMAPPED"}],
+            "clinical_diagnosis": {},
+            "microbiology": [unmapped_culture],
+        }
+        bundle = fhir._build_bundle(rec, "JP")
+        org_obs = next(e["resource"] for e in bundle["entry"]
+                       if e["resource"]["id"].startswith("mb-org"))
+        coding = org_obs["code"]["coding"][0]
+        assert coding["system"] == get_system_uri("loinc")
+        assert coding["code"] == "6463-4"
