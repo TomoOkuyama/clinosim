@@ -57,7 +57,7 @@ STAGE2_STRATEGIES: frozenset[str] = frozenset({
     "template_seed",
 })
 
-# α-min-2 scope = 9 doc types (α-min-1 3 + α-min-2 6); chain 2 adds 2 = 11
+# α-min-2 scope = 9 doc types (α-min-1 3 + α-min-2 6); chain 2 adds 3 = 12
 SUPPORTED_DOCUMENT_TYPES: frozenset[DocumentType] = frozenset({
     # α-min-1
     DocumentType.ADMISSION_HP,
@@ -73,6 +73,7 @@ SUPPORTED_DOCUMENT_TYPES: frozenset[DocumentType] = frozenset({
     # chain 2 additions
     DocumentType.ADMISSION_CARE_PLAN,
     DocumentType.NUTRITION_CARE_PLAN,
+    DocumentType.REHABILITATION_PLAN,
 })
 
 
