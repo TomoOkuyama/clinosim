@@ -236,3 +236,26 @@ def test_nutrition_care_plan_excludes_rehab_inpatient() -> None:
     assert "nutrition_care_plan" in inpatient_keys
     assert "nutrition_care_plan" in icu_keys
     assert "nutrition_care_plan" not in rehab_keys
+
+
+def test_rehabilitation_plan_is_inpatient_only() -> None:
+    """rehabilitation_plan does NOT declare icu or rehab_inpatient support —
+    both are verified-unreachable EncounterType values in production (design
+    spec §1); declaring support for them would be a new aspirational-scaffold
+    violation, unlike admission_care_plan/nutrition_care_plan which legitimately
+    support icu (a real, if narrow, dispatch path)."""
+    from clinosim.modules.document.narrative.registry import load_document_type_specs
+    from clinosim.types.document import DocumentType
+
+    specs = load_document_type_specs()
+    rp = specs[DocumentType.REHABILITATION_PLAN]
+    assert set(rp.encounter_types_supported) == {"inpatient"}
+
+    inpatient_keys = {s.type_key for s in specs_for_encounter_type("inpatient")}
+    icu_keys = {s.type_key for s in specs_for_encounter_type("icu")}
+    rehab_keys = {s.type_key for s in specs_for_encounter_type("rehab_inpatient")}
+    outpatient_keys = {s.type_key for s in specs_for_encounter_type("outpatient")}
+    assert "rehabilitation_plan" in inpatient_keys
+    assert "rehabilitation_plan" not in icu_keys
+    assert "rehabilitation_plan" not in rehab_keys
+    assert "rehabilitation_plan" not in outpatient_keys
