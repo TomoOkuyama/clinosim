@@ -55,13 +55,11 @@ def create_test_patient() -> PatientProfile:
             Allergy(
                 allergy_id="al-P-ALPHA-001-1",
                 allergen_code="303408005",
-                allergen_display="Sulfonamide",
                 category="medication",
                 criticality="low",
                 verification_status="confirmed",
                 reactions=[AllergyReaction(
                     manifestation_snomed="247472004",
-                    manifestation_display="Rash",
                     severity="mild",
                 )],
             ),

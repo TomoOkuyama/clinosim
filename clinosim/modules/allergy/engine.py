@@ -129,7 +129,6 @@ def allergy_enricher(ctx: Any) -> None:
             Allergy(
                 allergy_id="1",  # FHIR builder owns the canonical "allergy-{patient_id}-{idx}" format (I-4 fix)
                 allergen_code=entry["allergen_code"],
-                allergen_display=entry["allergen_display_en"],
                 category=category,
                 criticality=entry["criticality"],
                 verification_status="confirmed",
