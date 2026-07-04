@@ -10,15 +10,13 @@ _fhir_patient._build_allergy_intolerance is retained as a private utility but no
 
 No-drop invariant (CIF → FHIR):
   allergy_id           -> AllergyIntolerance.id (allergy- prefix + patient_id + allergy_id)
-  allergen_code        -> AllergyIntolerance.code.coding[SNOMED]
-  allergen_display     -> AllergyIntolerance.code.text (locale-resolved)
+  allergen_code        -> AllergyIntolerance.code.coding[SNOMED] + .code.text (via code_lookup)
   category             -> AllergyIntolerance.category[]
   criticality          -> AllergyIntolerance.criticality
   verification_status  -> AllergyIntolerance.verificationStatus
   onset_date           -> AllergyIntolerance.onsetDateTime
   reactions[*]         -> AllergyIntolerance.reaction[*]
-    manifestation_snomed -> reaction.manifestation[*].coding[SNOMED]
-    manifestation_display -> reaction.manifestation[*].text
+    manifestation_snomed -> reaction.manifestation[*].coding[SNOMED] + .text (via code_lookup)
     severity           -> reaction.severity
 
 Canonical constant ownership:
@@ -80,8 +78,7 @@ def _bb_allergy_intolerances(ctx: BundleContext) -> list[dict[str, Any]]:
 def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") -> dict[str, Any] | None:
     """Build one FHIR R4 AllergyIntolerance from an Allergy (dataclass or dict)."""
     allergen_code = _o(allergy, "allergen_code", "") or ""
-    allergen_display = _o(allergy, "allergen_display", "") or ""
-    if not allergen_code and not allergen_display:
+    if not allergen_code:
         return None
 
     allergy_id = _o(allergy, "allergy_id", "") or ""
@@ -93,14 +90,10 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
 
     snomed_system = get_system_uri("snomed-ct")
 
-    # Resolve allergen display via code_lookup (locale-aware).
-    # code_lookup returns the code itself when not found, so compare against
-    # allergen_code to detect "not found" and fall through to allergen_display.
-    if allergen_code:
-        _r = code_lookup("snomed-ct", allergen_code, lang)
-        resolved_display = _r if _r != allergen_code else (allergen_display or allergen_code)
-    else:
-        resolved_display = allergen_display or allergen_code
+    # Resolve allergen display via code_lookup (locale-aware, AD-30 — CIF
+    # stores the code only; import-time validation guarantees every
+    # allergen_code in allergens.yaml resolves).
+    resolved_display = code_lookup("snomed-ct", allergen_code, lang)
 
     code: dict[str, Any] = {"text": resolved_display}
     if allergen_code:
@@ -146,15 +139,12 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
     reactions: list[dict[str, Any]] = []
     for rxn in reactions_raw:
         manifestation_snomed = _o(rxn, "manifestation_snomed", "") or ""
-        manifestation_display = _o(rxn, "manifestation_display", "") or ""
         severity = _o(rxn, "severity", "mild") or "mild"
 
-        # Resolve manifestation display via code_lookup (locale-aware).
-        if manifestation_snomed:
-            _rm = code_lookup("snomed-ct", manifestation_snomed, lang)
-            resolved_manifestation = _rm if _rm != manifestation_snomed else (manifestation_display or manifestation_snomed)
-        else:
-            resolved_manifestation = manifestation_display
+        # Resolve manifestation display via code_lookup (locale-aware, AD-30 —
+        # CIF stores the code only; import-time validation guarantees every
+        # manifestation_snomed in allergens.yaml resolves).
+        resolved_manifestation = code_lookup("snomed-ct", manifestation_snomed, lang) if manifestation_snomed else ""
 
         manifestation: dict[str, Any] = {}
         if resolved_manifestation:

@@ -20,14 +20,23 @@ def _as_of(ctx, rec) -> date:
     if snap:
         y, m, d = (int(x) for x in str(snap).split("-"))
         return date(y, m, d)
-    # else: latest encounter admission date, else today
+    # else: latest encounter admission date
     encs = _get(rec, "encounters", []) or []
     dates = []
     for e in encs:
         adm = _get(e, "admission_datetime")
         if isinstance(adm, datetime):
             dates.append(adm.date())
-    return max(dates) if dates else date.today()
+    if dates:
+        return max(dates)
+    raise ValueError(
+        "immunization _as_of(): no deterministic date reference available — "
+        "ctx.config.snapshot_date is unset AND the record has no encounters "
+        "with a valid admission_datetime. The CLI always resolves "
+        "snapshot_date (default: today, resolved once at invocation) before "
+        "any record is processed, so this indicates a caller/test setup gap, "
+        "not a real simulation path."
+    )
 
 
 def enrich_immunizations(ctx) -> None:

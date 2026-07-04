@@ -811,7 +811,6 @@ def _build_document_proof() -> dict[str, Any]:
     allergy_data = {
         "allergy_id": "a001",
         "allergen_code": "372687004",
-        "allergen_display": "Penicillin",
         "category": "medication",
         "criticality": "high",
         "verification_status": "confirmed",
@@ -819,7 +818,6 @@ def _build_document_proof() -> dict[str, Any]:
         "reactions": [
             {
                 "manifestation_snomed": "",
-                "manifestation_display": "Rash",
                 "severity": "mild",
             }
         ],

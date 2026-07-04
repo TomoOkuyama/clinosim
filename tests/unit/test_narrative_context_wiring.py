@@ -39,7 +39,7 @@ def _patient_dict(**overrides: Any) -> dict[str, Any]:
             "chronic_conditions": [],
             "current_medications": ["Amlodipine 5mg"],
             "allergies": [
-                {"allergen_display": "Penicillin", "criticality": "high"},
+                {"allergen_code": "387207008", "criticality": "high"},
             ],
         },
         "encounters": [
@@ -125,9 +125,12 @@ def test_diagnoses_wrap_clinical_diagnosis_dict():
 
 
 def test_allergies_read_from_patient_allergies():
+    """Context building passes allergies through unresolved — display
+    resolution happens later, in TemplateNarrativeGenerator._build_allergies
+    via code_lookup (AD-30)."""
     ctx = _build_ctx(_patient_dict())
     assert len(ctx.allergies) == 1
-    assert ctx.allergies[0]["allergen_display"] == "Penicillin"
+    assert ctx.allergies[0]["allergen_code"] == "387207008"
 
 
 def test_severity_and_archetype_read_from_encounter():
