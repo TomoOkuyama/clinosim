@@ -2216,13 +2216,6 @@ its own chain.
   layer-1 cache safe against this degeneration by adding the template-seed hash to the
   cache key, but richer per-day context remains deferred to spec §6.
 
-### ★★ AD-30 chain: display-in-CIF removal (CIF schema change + golden regen)
-
-- `types/allergy.py:18,28` `manifestation_display`/`allergen_display` (populated at
-  `allergy/engine.py:132,140`; builder already re-resolves via code_lookup → dead data).
-- `types/imaging.py:27` `body_site_display` (populated from `display_en` at
-  `imaging/engine.py:277`).
-
 ### ★ Display-dict → codes YAML migration
 
 Python clinical display dicts to migrate to `codes/data/*.yaml` (en+ja) + `code_lookup`:
