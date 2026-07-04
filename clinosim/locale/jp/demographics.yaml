@@ -134,6 +134,7 @@ disease_incidence:
     sex_ratio_female: 0.65
     event_type: acute_disease_onset
     severity_beta: [2, 3]
+    always_hospitalize: true
   diabetic_ketoacidosis:
     # JP: ~25/100k among diabetics. Source: JDSS
     age_rates: {0: 1500, 15: 2500, 25: 3500, 35: 4000, 45: 5000, 55: 4000, 65: 3500, 75: 2500, 85: 1500}
