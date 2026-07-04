@@ -1948,6 +1948,38 @@ If a future consumer needs the raw activities in JP output, add a proper
 activity-key → {en, ja} lookup table then — do not hardcode ad hoc translations
 at that call site.
 
+### chain 2 deferred: rehabilitation_plan SDD review ride-along findings (final review, PR #141)
+
+Minor, non-blocking items surfaced during the rehabilitation_plan chain's
+per-task and final whole-branch reviews, recorded here since the SDD
+`.superpowers/sdd/progress.md` ledger they originated in is git-ignored
+scratch (deleted with the worktree after merge):
+
+- **No multi-encounter isolation test**: `document_enricher`'s
+  `admission_once_if_rehab_sessions` branch correctly filters
+  `record.rehab_sessions` by `encounter_id`, but no test proves a
+  two-encounter patient record (e.g. a readmission) only emits the stub for
+  the encounter that actually has rehab sessions. Separately,
+  `NarrativeContext.rehab_sessions` (populated in `passes.py`) stays
+  record-wide/unfiltered — mirroring the pre-existing `procedures` field's
+  scope — so a rehab-plan document's *narrative content* for one encounter
+  could in principle describe session counts/dates from a different
+  encounter's rehab sessions on the same patient. Low real-world risk
+  (post-surgical rehab today only occurs within a single inpatient
+  encounter), but untested.
+- **`_build_rp_basic_movement` phase-boundary values untested**: only
+  `day_post_op=1` (early) and `=20` (late) are covered; the exact threshold
+  boundaries (3/4, 14/15) that would catch an off-by-one aren't.
+- **`document`/`nutrition_care_plan`/`admission_care_plan`/`rehabilitation_plan`
+  test files lack `pytest.mark.unit`**: `pytest -m unit` silently skips
+  `tests/unit/modules/document/**` entirely (confirmed: marker-agnostic
+  `pytest tests/unit -q` finds ~800 more tests than `pytest -m unit -q`).
+  Pre-existing gap, not introduced by any chain-2 sub-project — worth a
+  dedicated sweep to add the marker across the document module's test tree.
+
+None of these block correctness; the final whole-branch review (opus)
+returned "Ready to merge: Yes" with zero Critical/Important findings.
+
 ### β-2 phase — Clinical event density
 
 - **手術記録** (Operative note) — LOINC 11504-8, existing Stage 2 LLM path; Stage 1 template
