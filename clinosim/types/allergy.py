@@ -24,7 +24,6 @@ class Allergy:
 
     allergy_id: str = ""              # patient-internal id
     allergen_code: str = ""           # SNOMED for allergen substance
-    allergen_display: str = ""        # locale-resolved display
     category: str = ""                # "medication" / "food" / "environment"
     criticality: str = "low"          # low / high / unable-to-assess
     verification_status: str = "confirmed"  # confirmed / unconfirmed / refuted

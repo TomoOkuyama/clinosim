@@ -526,9 +526,11 @@ def test_metadata_includes_generator_and_lang() -> None:
 
 
 def test_allergies_listed_in_admission_hp() -> None:
-    """Allergies in ctx must appear in allergies section of ADMISSION_HP."""
+    """Allergies in ctx must appear in allergies section of ADMISSION_HP,
+    resolved via code_lookup (AD-30 — allergen_code 387207008 = Penicillin,
+    ja display ペニシリン, per clinosim/codes/data/snomed-ct.yaml)."""
     from clinosim.types.allergy import Allergy
-    allergy = Allergy(allergen_display="ペニシリン", criticality="high", category="medication")
+    allergy = Allergy(allergen_code="387207008", criticality="high", category="medication")
     protocol = load_disease_protocol("bacterial_pneumonia")
     spec = _get_spec(DocumentType.ADMISSION_HP)
     ctx = _make_ctx(
