@@ -62,3 +62,33 @@ class TestJLAC10Integrity:
         # ja entry uses the official JCCLS Japanese name with the English
         # abbreviation parenthesised (data-quality review 2026-06-23).
         assert lookup("jlac10", "4A055", "ja") == "甲状腺刺激ホルモン(TSH)"
+
+
+_JP_MICRO_MAP = yaml.safe_load(
+    (_ROOT / "locale/jp/code_mapping_microbiology.yaml").read_text()
+)
+
+
+@pytest.mark.unit
+class TestMicrobiologyJLAC10Integrity:
+    def test_every_mapped_code_exists(self):
+        missing = {
+            specimen: code for specimen, code in _JP_MICRO_MAP.items()
+            if code not in _JLAC10
+        }
+        assert not missing, f"JP microbiology codes absent from jlac10.yaml: {missing}"
+
+    def test_all_four_specimens_mapped(self):
+        assert set(_JP_MICRO_MAP) == {"blood", "urine", "sputum", "wound"}
+
+    def test_verified_code(self):
+        """JLAC10 has one generic culture-identification analyte code (6B010),
+        not per-specimen codes — the specimen distinction lives in the 17-digit
+        full code's material segment, which clinosim does not model. Verified
+        against JSLM JLAC10 master v137, category 6B (微生物学的検査/培養同定検査),
+        2026-07-04."""
+        assert all(code == "6B010" for code in _JP_MICRO_MAP.values())
+
+    def test_display_resolves(self):
+        assert lookup("jlac10", "6B010", "en") == "Culture and identification (common bacteria)"
+        assert lookup("jlac10", "6B010", "ja") == "培養同定(一般細菌)"

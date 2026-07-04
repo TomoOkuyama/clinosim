@@ -1,0 +1,21 @@
+# Internal specimen key → JLAC10 analyte code (分析物コード) mapping for
+# microbiology culture tests.
+#
+# AUTHORITATIVE SOURCE — verified against the official JLAC10 master:
+#   日本臨床検査医学会 (JSLM) 検査項目コード委員会
+#   "JLAC10コード表_臨床検査" v137 (2026-06): https://www.jslm.org/committees/code/
+#   (137jlac10_1.xlsx, sheet「分析物コード」)
+# Display text lives in clinosim/codes/data/jlac10.yaml. Never fabricate a code (AD-57).
+#
+# NOTE: unlike code_mapping_lab.yaml, all four specimens share the same code.
+# JLAC10 category 6B (微生物学的検査/培養同定検査) has a single generic analyte
+# code for "culture and identification (common bacteria)" — 6B010 — with no
+# per-specimen variants at the analyte-code level. Specimen type is
+# distinguished elsewhere in clinosim's FHIR output via the Specimen resource
+# (specimen_snomed), not via the test code, which matches how JLAC10 itself
+# represents specimen type (in the 17-digit full code's material segment, not
+# the 5-character analyte code clinosim stores).
+blood: "6B010"
+urine: "6B010"
+sputum: "6B010"
+wound: "6B010"
