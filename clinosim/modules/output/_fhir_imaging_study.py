@@ -114,10 +114,10 @@ def _build_series(series: Any, lang: str) -> dict[str, Any]:
     """Build one FHIR R4 ImagingStudy.series element from an ImagingSeries."""
     snomed_system = get_system_uri("snomed-ct")
     body_site_snomed = _o(series, "body_site_snomed", "")
-    # Resolve body site display via code registry; fall back to CIF display field.
-    body_site_display = code_lookup("snomed-ct", body_site_snomed, lang) or _o(
-        series, "body_site_display", "",
-    )
+    # Resolve body site display via code registry (AD-30 — CIF stores the code
+    # only; import-time validation guarantees every body_sites.yaml SNOMED
+    # code resolves).
+    body_site_display = code_lookup("snomed-ct", body_site_snomed, lang)
     modalities = load_modalities()
     modality_code = _o(series, "modality_code", "")
     mod_def = modalities.get(modality_code, {})

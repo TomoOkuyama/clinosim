@@ -89,7 +89,6 @@ def _build_imaging_proof() -> dict[str, Any]:
                 series_number=1,
                 modality_code="CR",
                 body_site_snomed="51185008",
-                body_site_display="Chest",
                 description="PA view",
                 instance_count=1,
             )

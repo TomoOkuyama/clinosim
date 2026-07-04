@@ -40,10 +40,10 @@ def _sample_study():
         modality_code="CR", body_site_snomed="51185008",
         series=[
             ImagingSeries(series_uid="2.25.43", series_number=1, modality_code="CR",
-                          body_site_snomed="51185008", body_site_display="Thoracic structure",
+                          body_site_snomed="51185008",
                           description="PA view", instance_count=1),
             ImagingSeries(series_uid="2.25.44", series_number=2, modality_code="CR",
-                          body_site_snomed="51185008", body_site_display="Thoracic structure",
+                          body_site_snomed="51185008",
                           description="Lateral view", instance_count=1),
         ],
         endpoint_id="endpoint-2.25.42",
@@ -119,7 +119,6 @@ def test_emits_imaging_study_from_dict_path():
         "series": [{
             "series_uid": "2.25.43", "series_number": 1,
             "modality_code": "CR", "body_site_snomed": "51185008",
-            "body_site_display": "Thoracic structure",
             "description": "PA view", "instance_count": 1,
         }],
         "endpoint_id": "endpoint-2.25.42",
