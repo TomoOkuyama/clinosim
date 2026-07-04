@@ -2264,3 +2264,12 @@ Python clinical display dicts to migrate to `codes/data/*.yaml` (en+ja) + `code_
 - Root `spec.md` (2026-06-05): add historical-document header pointing to DESIGN.md +
   `clinosim/modules/output/SPEC.md`.
 - DESIGN.md: note AD-1/2/12/14/15/27 numbering gaps as reserved/withdrawn; sort compact table.
+- Allergy/imaging display locale-freeze — `clinosim/modules/allergy/reference_data/allergens.yaml`
+  and `clinosim/modules/imaging/reference_data/body_sites.yaml` carry both `display_en` and
+  `display_ja` per entry, but `allergy/engine.py`'s `allergy_enricher()` and
+  `imaging/engine.py`'s `_expand_views_to_series()` only ever read the `_en` variant when
+  populating YAML-sourced fields consumed elsewhere (unrelated to the AD-30 chain's CIF
+  fields, which are code-only after that chain — this is about the YAML data's own
+  locale handling for any future en/ja-sensitive consumer of these loaders). Not a CIF
+  violation; a distinct localization gap. Fixing requires threading `lang`/`country`
+  into the relevant loader call sites and selecting `display_en`/`display_ja` accordingly.
