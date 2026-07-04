@@ -536,3 +536,16 @@ def test_admission_once_los_gt_7_in_generation_frequencies_allowlist() -> None:
     from clinosim.modules.document.narrative.registry import GENERATION_FREQUENCIES
 
     assert "admission_once_los_gt_7" in GENERATION_FREQUENCIES
+
+
+# === chain 2: rehabilitation_plan (LOINC 34823-5) ===
+
+
+def test_document_type_has_rehabilitation_plan() -> None:
+    assert DocumentType.REHABILITATION_PLAN.value == "rehabilitation_plan"
+
+
+def test_generation_frequencies_includes_admission_once_if_rehab_sessions() -> None:
+    from clinosim.modules.document.narrative.registry import GENERATION_FREQUENCIES
+
+    assert "admission_once_if_rehab_sessions" in GENERATION_FREQUENCIES

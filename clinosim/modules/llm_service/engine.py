@@ -63,6 +63,7 @@ class LLMTaskType(str, Enum):
     # chain 2 (厚労省4帳票, N-3 enum sync)
     ADMISSION_CARE_PLAN = "admission_care_plan"                    # LOINC 18776-5
     NUTRITION_CARE_PLAN = "nutrition_care_plan"                    # LOINC 80791-7
+    REHABILITATION_PLAN = "rehabilitation_plan"                    # LOINC 34823-5
 
 
 TASK_CATEGORY: dict[LLMTaskType, LLMTaskCategory] = {
@@ -85,6 +86,7 @@ TASK_CATEGORY: dict[LLMTaskType, LLMTaskCategory] = {
     LLMTaskType.ED_TRIAGE_NOTE: LLMTaskCategory.NARRATIVE,
     LLMTaskType.ADMISSION_CARE_PLAN: LLMTaskCategory.NARRATIVE,
     LLMTaskType.NUTRITION_CARE_PLAN: LLMTaskCategory.NARRATIVE,
+    LLMTaskType.REHABILITATION_PLAN: LLMTaskCategory.NARRATIVE,
 }
 
 
@@ -111,6 +113,7 @@ DOCUMENT_LOINC: dict[LLMTaskType, str] = {
     LLMTaskType.ED_TRIAGE_NOTE: "54094-8",                # Emergency department Triage note
     LLMTaskType.ADMISSION_CARE_PLAN: "18776-5",           # Plan of care note
     LLMTaskType.NUTRITION_CARE_PLAN: "80791-7",           # Nutrition and dietetics Plan of care note
+    LLMTaskType.REHABILITATION_PLAN: "34823-5",           # Physical medicine and rehab Note
 }
 
 

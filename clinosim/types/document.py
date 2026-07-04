@@ -41,6 +41,8 @@ class DocumentType(str, Enum):
     # β-JP-1 chain 2 (厚労省4帳票, first sub-project)
     ADMISSION_CARE_PLAN = "admission_care_plan"                   # LOINC 18776-5 (verified 2026-07-03)
     NUTRITION_CARE_PLAN = "nutrition_care_plan"                   # LOINC 80791-7 (verified 2026-07-03)
+    # β-JP-1 chain 2 (厚労省4帳票, third and final sub-project)
+    REHABILITATION_PLAN = "rehabilitation_plan"                   # LOINC 34823-5 (verified 2026-07-04)
 
 
 @dataclass(frozen=True)
@@ -133,6 +135,11 @@ class NarrativeContext:
     # ctx.medications above stays MAR-only (in-hospital administrations) so
     # ICU drips / protocol orders never leak into discharge medication lists.
     discharge_medications: list[Any] = field(default_factory=list)
+
+    # === β-JP-1 chain 2 (rehabilitation_plan, 2026-07-04) ===
+    # list[RehabSession] (clinosim/types/procedure.py) — unfiltered, mirrors the
+    # existing `procedures` field's record-wide (not per-encounter) scope.
+    rehab_sessions: list[Any] = field(default_factory=list)
 
 
 @dataclass

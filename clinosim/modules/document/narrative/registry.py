@@ -39,6 +39,7 @@ _REF_DIR = _HERE.parent / "reference_data"
 GENERATION_FREQUENCIES: frozenset[str] = frozenset({
     "admission_once",
     "admission_once_los_gt_7",  # chain 2: nutrition_care_plan (MHLW LOS>7 mandate)
+    "admission_once_if_rehab_sessions",  # chain 2: rehabilitation_plan (RehabSession presence gate)
     "daily",
     "daily_3shift",  # α-min-3: 3 nursing notes per LOS day (night/day/evening)
     "discharge_once",
