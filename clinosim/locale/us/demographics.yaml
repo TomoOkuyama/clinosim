@@ -135,6 +135,7 @@ disease_incidence:
     sex_ratio_female: 0.7
     event_type: acute_disease_onset
     severity_beta: [2, 3]
+    always_hospitalize: true
   diabetic_ketoacidosis:
     # US: ~30/100k among diabetics. Source: CDC Diabetes Statistics
     age_rates: {0: 2000, 15: 3000, 25: 4000, 35: 5000, 45: 6000, 55: 5000, 65: 4000, 75: 3000, 85: 2000}

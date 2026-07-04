@@ -368,3 +368,21 @@ def test_nondiabetic_condition_has_no_glycemic_control():
     profile = activate_patient(person, np.random.default_rng(7), _minimal_demo_for_activate())
     ht = next(c for c in profile.chronic_conditions if c.code.startswith("I10"))
     assert ht.glycemic_control is None
+
+
+# ---------------------------------------------------------------------------
+# gi_bleeding always_hospitalize: the gi_bleeding disease protocol assumes
+# universal admission (NPO + endoscopy workup), so its incidence config must
+# gate every incident case into the hospitalized cohort like the other acute
+# disease-onset conditions (acute_mi, cerebral_infarction, sepsis, ...).
+# Without this flag, population/engine.py:373 only hospitalizes cases whose
+# sampled severity exceeds the person's care-seeking threshold — silently
+# dropping ~35% of incident GI bleeds from the generated catchment.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("country", ["US", "JP"])
+def test_gi_bleeding_always_hospitalizes(country):
+    demo = _load_demo(country)
+    assert demo["disease_incidence"]["gi_bleeding"].get("always_hospitalize") is True, (
+        f"{country} gi_bleeding incidence config missing always_hospitalize: true"
+    )
