@@ -118,6 +118,7 @@ def _simulate_ed_visit(
     baseline_values = BASELINE_LAB_NORMALS
     _state = initialize_state(patient.physiological_profile, patient.chronic_conditions,
                               patient.patient_id)
+    _state.timestamp = visit_time
     # Acute-presentation injection (AD-57): fold the ED scenario's physiological impact (by
     # the sampled severity) into the state so BOTH labs and vitals reflect the acute illness
     # (e.g. UTI → WBC/CRP/temp up, gastroenteritis → dehydration), not just the comorbidity

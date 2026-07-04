@@ -1530,9 +1530,6 @@ Shipped in α-min-2c chain (AD-66):
 - CI GitHub Actions workflow for automated regression at PR time
 - LLM parallel goldens (`<profile>.llm-<model>.golden.json`) alongside
   `<profile>.golden.json`
-- Pre-existing structural CIF nondeterminism (issue_date / MAR timestamp
-  wall-clock) — narrative regression scope-clean, but structural byte-diff
-  requires fix for full pipeline determinism
 - Re-add `PatientProfile.chronic_medications` / `time_range` WITH actual
   consumption (removed in adv-1 F-1 as unwired fields — they were declared but
   nothing consumed them, defeating the extra=forbid typo defense)
@@ -2226,17 +2223,6 @@ its own chain.
 - `types/imaging.py:27` `body_site_display` (populated from `display_en` at
   `imaging/engine.py:277`).
 
-### ★★ Determinism chain: wall-clock removal (extends session-30 TODO)
-
-Byte-diff-measured live fields: `discharge_prescription.issue_date` +
-`physiological_states[].timestamp` (+ metadata generation_timestamp, by design). New finds:
-`diagnosis/engine.py:173 datetime.now()` (live in inpatient path), `immunization/enricher.py:30
-date.today()` fallback, `default_factory=datetime.now` across `types/clinical.py` /
-`types/encounter.py` / `types/procedure.py`. ALSO: fix `locale/jp/demographics.yaml` blood_type
-weights (sum = 0.9999999999999999) then wrap population blood_type sampling with
-`normalize_probabilities(fallback="raise")` (the one site R6 had to skip byte-safely).
-Outcome: full byte-diff incl. structural CIF.
-
 ### ★ Display-dict → codes YAML migration
 
 Python clinical display dicts to migrate to `codes/data/*.yaml` (en+ja) + `code_lookup`:
@@ -2255,6 +2241,20 @@ Python clinical display dicts to migrate to `codes/data/*.yaml` (en+ja) + `code_
 
 ### Single items (ride along with related chains)
 
+- `PrescriptionRecord.issue_date` precision gap — inpatient discharge prescription
+  uses `admission_time` rather than true discharge datetime (deliberate simplification:
+  `encounter.discharge_datetime` is not finalized at `_build_discharge_rx()` call site
+  in `clinosim/simulator/inpatient.py`, and is `None` for AD-32 snapshot-truncated
+  in-progress encounters). If closer precision needed later, move `_build_discharge_rx()`
+  call to after discharge_datetime finalization, or duplicate the discharge formula at
+  call site.
+- Dead Bundle-timestamp footgun — `clinosim/modules/output/_fhir_facility.py:159` and
+  `clinosim/modules/output/fhir_r4_adapter.py:456` both call `datetime.now()` to
+  populate `Bundle["timestamp"]`, but this field is confirmed never read or serialized
+  to output. Scope-clean from determinism chain (only sentinel-default fields +
+  PhysiologicalState.timestamp + PrescriptionRecord.issue_date were in scope), but
+  track to prevent future refactors accidentally propagating this unread wall-clock
+  value into real output without noticing non-determinism.
 - Move `DiagnosisCandidate` / `DifferentialDiagnosis` (`diagnosis/engine.py:51,60`) to
   `clinosim/types/` (types rule).
 - `inpatient.py:1826` unknown-condition path: call `scenario_flags_from_protocol(None)` in the

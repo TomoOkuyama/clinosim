@@ -122,6 +122,7 @@ def _simulate_outpatient_visit(
     baseline = patient.baseline_vitals
     _state = initialize_state(patient.physiological_profile, patient.chronic_conditions,
                               patient.patient_id)
+    _state.timestamp = visit_date
     vit_time = visit_date + timedelta(minutes=5)
     raw = derive_observed_vitals(_state, baseline, vit_time, rng)
     opd_nurse_id = assign_staff("medication_administration", "primary_care", roster, rng).get("administering_nurse", "")
@@ -212,6 +213,7 @@ def _simulate_outpatient_visit(
         rx = PrescriptionRecord(
             prescription_id=f"RX-{patient.patient_id}-OPD",
             prescriber_id=encounter.attending_physician_id,
+            issue_date=visit_date,
             items=[{"drug": med, "duration_days": 30} for med in patient.current_medications],
         )
 
