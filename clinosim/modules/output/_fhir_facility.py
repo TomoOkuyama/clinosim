@@ -6,8 +6,6 @@ leaf data, shared helpers, and stdlib/first-party deps — never the adapter.
 
 from __future__ import annotations
 
-from datetime import datetime
-
 from clinosim.codes import get_system_uri
 from clinosim.modules._shared import is_jp
 from clinosim.modules.output._fhir_common import _entry
@@ -156,6 +154,5 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
         "resourceType": "Bundle",
         "id": "facility",
         "type": "collection",
-        "timestamp": datetime.now().isoformat(),
         "entry": entries,
     }

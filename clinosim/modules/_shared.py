@@ -23,6 +23,19 @@ def is_jp(country: str) -> bool:
     return str(country).strip().lower() == "jp"
 
 
+def is_us(country: str) -> bool:
+    """True when the country code refers to the United States (case-insensitive).
+
+    Sibling to ``is_jp``. Locale loaders with only US/JP data files use
+    ``is_us(country) or is_jp(country)`` to gate on "supported country" and
+    return ``{}`` otherwise, rather than silently falling back to US data
+    for an unrecognized country (locale-loader unsupported-country contract,
+    2026-07-02 grand design review; ``care_level.load_rates`` is the
+    original compliant precedent this generalizes).
+    """
+    return str(country).strip().lower() == "us"
+
+
 def resolve_lang(country: str) -> str:
     """Display language for a country: ``"ja"`` for JP, ``"en"`` otherwise.
 

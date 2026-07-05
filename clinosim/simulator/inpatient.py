@@ -1831,13 +1831,18 @@ def _simulate_unknown_condition(
                 ))
 
         # Generate lab results. _simulate_unknown_condition has no disease
-        # protocol by definition — scenario flags (causes_myocardial_injury,
-        # causes_vte) are all-False here, matching scenario_flags_from_protocol(None).
+        # protocol by definition, so scenario_flags_from_protocol(None) is
+        # called explicitly (all-False) rather than relying on a
+        # comment-justified omission — this way a future scenario flag added
+        # to the helper reaches this call site automatically (J5-class risk).
         # Phase 2b: chronic warfarin from patient.current_medications still
         # applies (AF chronic patient hospitalized for unknown condition has
         # therapeutic INR). Pass medication_orders=None / current_day=None so
         # only the chronic detection path runs.
-        _flags_unknown = medication_flags_from_context(patient)
+        _flags_unknown = {
+            **scenario_flags_from_protocol(None),
+            **medication_flags_from_context(patient),
+        }
         true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, **_flags_unknown)
         for order in all_orders:
             if order.order_type.value == "lab" and order.status == OrderStatus.PLACED and order.display_name in true_labs:
