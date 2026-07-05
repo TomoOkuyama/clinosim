@@ -24,13 +24,24 @@ from clinosim.types.patient import (
 
 
 
-# CKD stage (KDIGO G1-G5) -> ChronicCondition.severity_score. Consumed by
-# physiology/engine.py's N18 branch (renal_function reduction + the s>0.5
-# anemia/acidosis complication gate). Spans past 0.5 for G4/G5 so severe CKD
-# stages are distinguishable from G1-G3 in generated creatinine values —
-# without this, every CKD patient shared the generic uniform(0.1, 0.4) draw
-# regardless of sampled stage (2026-06-20 realism audit finding).
-CKD_STAGE_SEVERITY = {"G1": 0.05, "G2": 0.15, "G3a": 0.35, "G3b": 0.50, "G4": 0.70, "G5": 0.90}
+# Graded chronic-condition stage text (as returned by _generate_stage) ->
+# ChronicCondition.severity_score, keyed by ICD-10-CM category. Consumed by
+# physiology/engine.py's per-code branches so a sampled clinical stage (KDIGO
+# CKD, NYHA heart failure, GOLD COPD, asthma severity, CCS ischemic heart
+# disease) actually drives physiologic severity instead of every condition
+# sharing the generic uniform(0.1, 0.4) draw below. Ranges chosen so
+# severity-gated branches (CKD's s>0.5, heart failure's s>0.3) trigger only
+# for the clinically severe stages (2026-06-20 realism audit finding, CKD;
+# extended this session to the other graded-stage conditions with the same
+# disconnect).
+STAGE_SEVERITY: dict[str, dict[str, float]] = {
+    "N18": {"G1": 0.05, "G2": 0.15, "G3a": 0.35, "G3b": 0.50, "G4": 0.70, "G5": 0.90},
+    "I50": {"NYHA I": 0.10, "NYHA II": 0.25, "NYHA III": 0.45, "NYHA IV": 0.70},
+    "J44": {"GOLD 1": 0.10, "GOLD 2": 0.25, "GOLD 3": 0.45, "GOLD 4": 0.70},
+    "J45": {"Mild intermittent": 0.05, "Mild persistent": 0.15,
+            "Moderate persistent": 0.35, "Severe persistent": 0.60},
+    "I25": {"CCS I": 0.10, "CCS II": 0.25, "CCS III": 0.50},
+}
 
 
 def _generate_stage(code: str, severity: str, rng: np.random.Generator) -> str:
@@ -205,12 +216,15 @@ def activate_patient(
         # diabetes gc_draw precedent above.
         controlled_flag = rng.random() < 0.7
         generic_severity_score = float(rng.uniform(0.1, 0.4))
-        # CKD severity_score derives from the sampled stage instead of the
-        # generic uniform(0.1, 0.4) shared by other chronic conditions.
-        severity_score = (
-            CKD_STAGE_SEVERITY[stage.removeprefix("CKD ")] if code_base == "N18"
-            else generic_severity_score
-        )
+        # Graded-stage conditions derive severity_score from the sampled
+        # stage instead of the generic uniform(0.1, 0.4) shared by other
+        # chronic conditions. N18's stage text carries a "CKD " display
+        # prefix not part of the KDIGO stage code itself, so it's the one
+        # code needing the prefix stripped before the STAGE_SEVERITY lookup.
+        severity_score = generic_severity_score
+        if code_base in STAGE_SEVERITY:
+            lookup_key = stage.removeprefix("CKD ") if code_base == "N18" else stage
+            severity_score = STAGE_SEVERITY[code_base][lookup_key]
         conditions.append(ChronicCondition(
             code=code,
             system="icd-10-cm",
