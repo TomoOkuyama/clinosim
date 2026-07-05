@@ -2289,19 +2289,53 @@ items remain, both previously filed as "later cleanup" / optional:
 
 ### ★ Display-dict → codes YAML migration
 
-Python clinical display dicts to migrate to `codes/data/*.yaml` (en+ja) + `code_lookup`:
-`_fhir_reference_data.py` (`_CONDITION_SHORT_NAME`, `_ENCOUNTER_TYPE_SNOMED_JA`),
-`_fhir_patient.py` (marital/lang), `_fhir_microbiology.py` (`_SUSCEPTIBILITY_DISPLAY`),
-`_fhir_allergy_intolerance.py` (status displays), `_fhir_care_team.py` (category en/ja),
-`_fhir_endpoint.py` hardcoded displays ("DICOM WADO-RS").
+**Re-verified 2026-07-05 (session 37)** — `_fhir_care_team.py` is already migrated (Task 11,
+2026-07-01: category code resolved via `code_lookup("snomed-ct", ...)`, `codes/data/snomed-ct.yaml`
+already has the entry; the Python constant is now only a defensive fallback). Remove from scope.
+Remaining, re-scoped:
+- `_fhir_patient.py` (marital status M/S/D/W/U/T + language display, 14 entries) — no existing
+  codes YAML; `loader.py`'s `_BUILTIN_URIS` already reserves a `hl7-v3-maritalstatus` URI, and
+  `codes/data/jp-care-level.yaml` is precedent for a non-ICD/LOINC/SNOMED locally-defined code
+  system. New `codes/data/hl7-v3-maritalstatus.yaml`.
+- `_fhir_microbiology.py` (`_SUSCEPTIBILITY_DISPLAY`, S/I/R, 3 entries) — duplicated by
+  `_fhir_localization.py`'s `_INTERPRETATION_DISPLAY_JA` (JA-only); consolidate both into one new
+  HL7 ObservationInterpretation codes YAML.
+- `_fhir_allergy_intolerance.py` — most of this file already migrated (allergen/manifestation via
+  `code_lookup("snomed-ct", ...)`); only `_CLINICAL_STATUS_DISPLAY` + `_VERIFICATION_STATUS_DISPLAY`
+  (7 entries, English-only FHIR value-set displays) remain.
+- `_fhir_endpoint.py` — 2 inline literals ("DICOM WADO-RS", "Any"), English-only (no JA path exists
+  for Endpoint at all). New HL7 endpoint connection-type/payload-type codes YAML.
+- `_fhir_reference_data.py` (largest, needs schema design) — `_CONDITION_SHORT_NAME` (39 entries)
+  is a *short/abbreviated* display distinct from the official long name already in
+  `icd-10-cm.yaml` (e.g. "COPD" vs "Other chronic obstructive pulmonary disease"); migrating
+  requires adding a parallel short-name field/lookup, not a plain delete. `_ENCOUNTER_TYPE_SNOMED_JA`
+  (4 entries) is keyed by an internal encounter-type enum, not the SNOMED code itself, and none of
+  its SNOMED codes exist in `codes/data/snomed-ct.yaml` yet — migration also changes the lookup key
+  from enum to SNOMED code.
 
 ### ★ Dual-access sweep
 
-- Read side: remaining `isinstance(x, dict)` branches → `_o()` (`_fhir_observations.py:431`,
-  `csv_adapter.py:290-293`, `_fhir_conditions.py:53,136,183`, `_fhir_device.py:23`,
-  `_fhir_hai.py:24`, `_fhir_immunization.py:31`, `observation/nursing_enricher.py:36,70`).
-- Write side: NO shared helper exists; `if isinstance(rec, dict): rec["x"]=... else: rec.x=...`
-  scattered across 7+ enrichers → add `set_attr_or_key()` to `_shared.py` and sweep.
+**Re-verified 2026-07-05 (session 37)** — line numbers had drifted; re-scoped by actual
+swap complexity:
+- Read side, trivial single-field `_o()` swaps: `csv_adapter.py:312-315`, `_fhir_device.py:23`,
+  `_fhir_hai.py:24`, `_fhir_immunization.py:32`.
+- Read side, needs a different helper (whole-object dict coercion, not a single-field read):
+  `_fhir_observations.py:431` (converts entire `Order` via `dataclasses.asdict()`),
+  `observation/nursing_enricher.py:36,70` (`vs.__dict__`/`adl.__dict__`). `_o()` doesn't fit these;
+  either add a `to_dict()`-style coercion helper or leave as-is (not a correctness bug today).
+- `_fhir_conditions.py:54,137,183` **mischaracterized in the original entry** — this is NOT the
+  dataclass-vs-dict pattern; it's `isinstance(chronic, str)` vs `isinstance(chronic, dict)`
+  disambiguating two legitimate CIF shapes (bare ICD code string vs structured dict). A real
+  `ChronicCondition` dataclass reaching this function matches neither branch and is silently
+  dropped via the trailing `else: continue` — a latent PR-90-class risk distinct from the
+  dual-access pattern; needs its own fix (add a dataclass branch or confirm it's unreachable).
+- Write side: NO shared helper exists (confirmed still true). Actual scope is larger than
+  originally estimated: 8 files / 11+ call sites (`code_status/enricher.py`,
+  `care_level/enricher.py`, `immunization/enricher.py`, `family_history/enricher.py`,
+  `nursing_enricher.py` — all simple single-field sets; `device/enricher.py`, `hai/enricher.py`,
+  `antibiotic/enricher.py` — nested `setdefault`-then-assign or list append/extend, which a plain
+  `set_attr_or_key(obj, name, value)` won't cover). A single helper needs at minimum a nested-path
+  parameter and a set/append/extend mode to cover all real call sites.
 
 ### Single items (ride along with related chains)
 
@@ -2328,15 +2362,13 @@ Python clinical display dicts to migrate to `codes/data/*.yaml` (en+ja) + `code_
 - Root `spec.md` (2026-06-05): add historical-document header pointing to DESIGN.md +
   `clinosim/modules/output/SPEC.md`.
 - DESIGN.md: note AD-1/2/12/14/15/27 numbering gaps as reserved/withdrawn; sort compact table.
-- Allergy/imaging display locale-freeze — `clinosim/modules/allergy/reference_data/allergens.yaml`
-  and `clinosim/modules/imaging/reference_data/body_sites.yaml` carry both `display_en` and
-  `display_ja` per entry, but `allergy/engine.py`'s `allergy_enricher()` and
-  `imaging/engine.py`'s `_expand_views_to_series()` only ever read the `_en` variant when
-  populating YAML-sourced fields consumed elsewhere (unrelated to the AD-30 chain's CIF
-  fields, which are code-only after that chain — this is about the YAML data's own
-  locale handling for any future en/ja-sensitive consumer of these loaders). Not a CIF
-  violation; a distinct localization gap. Fixing requires threading `lang`/`country`
-  into the relevant loader call sites and selecting `display_en`/`display_ja` accordingly.
+- ~~Allergy/imaging display locale-freeze~~ — **re-verified 2026-07-05 (session 37), already
+  correct, not a bug**: neither `allergy_enricher()` nor `_expand_views_to_series()` actually reads
+  `display_en`/`display_ja` at all — both only store the SNOMED code, and display resolution
+  happens downstream in `_fhir_allergy_intolerance.py` / `_fhir_service_request.py` via
+  `code_lookup()` / `resolve_lang()`, already locale-correct. The YAML `display_en`/`display_ja`
+  fields are validated as required (schema completeness) but simply unused by these two named
+  functions — no code fix needed.
 - JP microbiology culture codes now use JLAC10 (`6B010`, session 35, 2026-07-04) —
   `_fhir_microbiology.py` resolves the culture Observation/DiagnosticReport code via
   `code_mapping_microbiology.yaml` + `system_key_for("microbiology", ...)`, covering

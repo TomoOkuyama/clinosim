@@ -453,7 +453,6 @@ def _build_bundle(
         "resourceType": "Bundle",
         "id": str(uuid.uuid4()),
         "type": "collection",
-        "timestamp": datetime.now().isoformat(),
         "entry": entries,
     }
 

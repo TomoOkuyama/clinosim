@@ -3,6 +3,10 @@
 **バージョン**: 0.3（設計検討中）  
 **最終更新**: 2026年4月
 
+> ⚠️ **本文書は2026年4月時点の歴史的文書です。** 現行のアーキテクチャ・ADR一覧は
+> [`DESIGN.md`](DESIGN.md) を、FHIR出力の詳細仕様は
+> [`clinosim/modules/output/SPEC.md`](clinosim/modules/output/SPEC.md) を参照してください。
+
 ---
 
 ## 目次

@@ -6,16 +6,12 @@ updates via likelihood ratios as test results arrive.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
 
 import yaml
 
 from clinosim.codes import lookup
-
-# See clinosim/types/clinical.py for rationale (determinism chain, 2026-07-04).
-_UNSET_DATETIME = datetime(1970, 1, 1)
+from clinosim.types.diagnosis import DiagnosisCandidate, DifferentialDiagnosis
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
@@ -49,27 +45,6 @@ def _load_reference_data() -> tuple[
 def _display(icd_code: str) -> str:
     """Resolve an ICD code's English display via the code system (AD-30)."""
     return lookup("icd-10-cm", icd_code, "en")
-
-
-@dataclass
-class DiagnosisCandidate:
-    disease_code: str
-    icd_code: str
-    display_name: str
-    probability: float
-    evidence: list[str] = field(default_factory=list)
-
-
-@dataclass
-class DifferentialDiagnosis:
-    candidates: list[DiagnosisCandidate] = field(default_factory=list)
-    working_diagnosis: str | None = None
-    confirmed: bool = False
-    timestamp: datetime = field(default_factory=lambda: _UNSET_DATETIME)
-
-    @property
-    def top_candidate(self) -> DiagnosisCandidate | None:
-        return self.candidates[0] if self.candidates else None
 
 
 DIFFERENTIALS, DIAGNOSIS_PROGRESSION, LR_TABLE = _load_reference_data()
