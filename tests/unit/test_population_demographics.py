@@ -388,6 +388,20 @@ def test_gi_bleeding_always_hospitalizes(country):
     )
 
 
+# influenza.yaml and asthma_exacerbation.yaml both state their incidence rates
+# are "Hospitalized [cases] only" (not all infections/exacerbations) — the
+# same disconnect class as gi_bleeding: the rate is pre-filtered to the
+# hospitalized population, but the config lacked the flag that actually
+# routes every sampled event into the hospitalized cohort.
+@pytest.mark.parametrize("country", ["US", "JP"])
+@pytest.mark.parametrize("disease", ["influenza", "asthma_exacerbation"])
+def test_hospitalized_only_diseases_always_hospitalize(country, disease):
+    demo = _load_demo(country)
+    assert demo["disease_incidence"][disease].get("always_hospitalize") is True, (
+        f"{country} {disease} incidence config missing always_hospitalize: true"
+    )
+
+
 # ---------------------------------------------------------------------------
 # CKD severity_score must track the sampled G1-G5 stage (same "reuse the
 # existing draw, reinterpret" pattern as the diabetes glycemic_control axis
