@@ -311,3 +311,20 @@ codes:
   '21522001':
     en: Abdominal pain     # FSN: Abdominal pain (finding)
     ja: 腹痛
+
+  # === Encounter type (session 37 display-dict migration, matches
+  # previously-hardcoded _ENCOUNTER_TYPE_SNOMED / _ENCOUNTER_TYPE_SNOMED_JA
+  # display text verbatim — codes already in production use, not newly
+  # sourced) ===
+  '32485007':
+    en: Hospital admission
+    ja: 入院
+  '50849002':
+    en: Emergency hospital admission
+    ja: 救急入院
+  '270427003':
+    en: Patient-initiated encounter
+    ja: 外来受診
+  '183452005':
+    en: Emergency hospital admission
+    ja: 救急入院

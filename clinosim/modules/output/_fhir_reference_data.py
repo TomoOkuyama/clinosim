@@ -17,62 +17,6 @@ _ALLERGEN_RXNORM: dict[str, str] = {
 }
 
 
-_CONDITION_SHORT_NAME: dict[str, dict[str, str]] = {
-    # Respiratory
-    "J44": {"en": "COPD", "ja": "COPD（慢性閉塞性肺疾患）"},
-    "J45": {"en": "Asthma", "ja": "喘息"},
-    "J15": {"en": "Bacterial pneumonia", "ja": "細菌性肺炎"},
-    "J12": {"en": "Viral pneumonia", "ja": "ウイルス性肺炎"},
-    "J18": {"en": "Pneumonia", "ja": "肺炎"},
-    "J69": {"en": "Aspiration pneumonia", "ja": "誤嚥性肺炎"},
-    "J10": {"en": "Influenza", "ja": "インフルエンザ"},
-    # Cardiovascular
-    "I50": {"en": "Heart failure (CHF)", "ja": "心不全"},
-    "I21": {"en": "Acute MI", "ja": "急性心筋梗塞"},
-    "I25": {"en": "Chronic ischemic heart disease (IHD)", "ja": "慢性虚血性心疾患"},
-    "I48": {"en": "Atrial fibrillation (AF)", "ja": "心房細動"},
-    "I10": {"en": "Hypertension (HTN)", "ja": "高血圧"},
-    "I63": {"en": "Cerebral infarction (stroke)", "ja": "脳梗塞"},
-    "I61": {"en": "Hemorrhagic stroke (ICH)", "ja": "脳出血"},
-    "I26": {"en": "Pulmonary embolism (PE)", "ja": "肺塞栓"},
-    "I80": {"en": "DVT", "ja": "深部静脈血栓症"},
-    "I82": {"en": "DVT", "ja": "深部静脈血栓症"},
-    # Endocrine
-    "E11": {"en": "Type 2 diabetes (DM)", "ja": "2型糖尿病"},
-    "E10": {"en": "Type 1 diabetes (DM)", "ja": "1型糖尿病"},
-    "E78": {"en": "Dyslipidemia", "ja": "脂質異常症"},
-    "E03": {"en": "Hypothyroidism", "ja": "甲状腺機能低下症"},
-    # Renal
-    "N18": {"en": "CKD", "ja": "慢性腎臓病"},
-    "N17": {"en": "AKI", "ja": "急性腎障害"},
-    "N10": {"en": "Acute pyelonephritis (UTI)", "ja": "急性腎盂腎炎"},
-    "N39": {"en": "UTI", "ja": "尿路感染症"},
-    # GI
-    "K21": {"en": "GERD", "ja": "逆流性食道炎"},
-    "K85": {"en": "Acute pancreatitis", "ja": "急性膵炎"},
-    "K80": {"en": "Cholelithiasis", "ja": "胆石症"},
-    "K81": {"en": "Cholecystitis", "ja": "胆嚢炎"},
-    "K92": {"en": "GI bleeding", "ja": "消化管出血"},
-    "K56": {"en": "Ileus", "ja": "イレウス"},
-    "K74": {"en": "Liver cirrhosis", "ja": "肝硬変"},
-    # Musculoskeletal
-    "M17": {"en": "Knee OA", "ja": "変形性膝関節症"},
-    "M81": {"en": "Osteoporosis", "ja": "骨粗鬆症"},
-    "S72": {"en": "Hip fracture", "ja": "大腿骨骨折"},
-    # Neurological
-    "F00": {"en": "Alzheimer's dementia", "ja": "アルツハイマー型認知症"},
-    "G20": {"en": "Parkinson's disease (PD)", "ja": "パーキンソン病"},
-    # Infectious
-    "A41": {"en": "Sepsis", "ja": "敗血症"},
-    "R65": {"en": "Severe sepsis / septic shock", "ja": "重症敗血症"},
-    "L03": {"en": "Cellulitis", "ja": "蜂窩織炎"},
-    # Prostate
-    "N40": {"en": "BPH", "ja": "前立腺肥大症"},
-    # DKA
-    "E13": {"en": "DKA", "ja": "糖尿病性ケトアシドーシス"},
-}
-
-
 _SEVERITY_SNOMED: dict[str, dict[str, str]] = {
     "mild": {"code": "255604002", "display": "Mild"},
     "moderate": {"code": "6736007", "display": "Moderate"},
@@ -94,19 +38,15 @@ _PREFECTURE_CODE: dict[str, str] = {
 }
 
 
-_ENCOUNTER_TYPE_SNOMED: dict[str, dict[str, str]] = {
-    "inpatient": {"code": "32485007", "display": "Hospital admission"},
-    "emergency": {"code": "50849002", "display": "Emergency hospital admission"},
-    "outpatient": {"code": "270427003", "display": "Patient-initiated encounter"},
-    "icu": {"code": "183452005", "display": "Emergency hospital admission"},
-}
-
-
-_ENCOUNTER_TYPE_SNOMED_JA: dict[str, str] = {
-    "inpatient": "入院",
-    "emergency": "救急入院",
-    "outpatient": "外来受診",
-    "icu": "救急入院",
+# Encounter type -> SNOMED code. Display text (en/ja) lives in
+# codes/data/snomed-ct.yaml, resolved via code_lookup — not duplicated here
+# (session 37 display-dict migration; this mapping itself, enum -> code, is
+# not display text and stays in Python).
+_ENCOUNTER_TYPE_SNOMED_CODE: dict[str, str] = {
+    "inpatient": "32485007",
+    "emergency": "50849002",
+    "outpatient": "270427003",
+    "icu": "183452005",
 }
 
 

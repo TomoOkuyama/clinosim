@@ -2310,13 +2310,23 @@ Remaining, re-scoped:
   replace `_CLINICAL_STATUS_DISPLAY` / `_VERIFICATION_STATUS_DISPLAY`.
 - ~~`_fhir_endpoint.py`~~ — **DONE (session 37)**: new `codes/data/hl7-endpoint-connection-type.yaml`
   + `hl7-endpoint-payload-type.yaml` replace the 2 inline literals.
-- `_fhir_reference_data.py` (largest, needs schema design) — `_CONDITION_SHORT_NAME` (39 entries)
-  is a *short/abbreviated* display distinct from the official long name already in
-  `icd-10-cm.yaml` (e.g. "COPD" vs "Other chronic obstructive pulmonary disease"); migrating
-  requires adding a parallel short-name field/lookup, not a plain delete. `_ENCOUNTER_TYPE_SNOMED_JA`
-  (4 entries) is keyed by an internal encounter-type enum, not the SNOMED code itself, and none of
-  its SNOMED codes exist in `codes/data/snomed-ct.yaml` yet — migration also changes the lookup key
-  from enum to SNOMED code.
+- ~~`_fhir_reference_data.py`~~ — **DONE (session 37)**, the largest/last item in this backlog:
+  new standalone `codes/data/condition-short-name.yaml` (39 entries, own `urn:clinosim:` code
+  system rather than extending `icd-10-cm.yaml`'s schema — the short name is clinosim's own
+  abbreviation convention, distinct from the official long name, so a separate lookup avoids
+  confusing that widely-used file's existing consumers) replaces `_CONDITION_SHORT_NAME`.
+  `_ENCOUNTER_TYPE_SNOMED_JA` migrated by adding the 4 SNOMED codes to `codes/data/snomed-ct.yaml`
+  (en+ja) and simplifying `_ENCOUNTER_TYPE_SNOMED` (which held both code AND English display) down
+  to `_ENCOUNTER_TYPE_SNOMED_CODE` (enum -> code only); both EN and JA display now resolve via
+  `code_lookup("snomed-ct", code, lang)`, closing a second latent duplication (EN display had been
+  hardcoded in Python while JA lived in a separate dict, both for the same 4 SNOMED concepts).
+
+**★ Display-dict → codes YAML migration backlog CLOSED (session 37, 2026-07-05)** — all 6 files
+from the 2026-07-02 review re-verified and migrated (2 were already done by prior sessions). 8 new
+`codes/data/*.yaml` files added this session: `hl7-v3-maritalstatus`, `bcp-47-language`,
+`hl7-observation-interpretation`, `hl7-allergyintolerance-clinical`,
+`hl7-allergyintolerance-verification`, `hl7-endpoint-connection-type`, `hl7-endpoint-payload-type`,
+`condition-short-name`; plus 4 new entries added to the existing `snomed-ct.yaml`.
 
 ### ~~★ Dual-access sweep~~ — CLOSED (session 37, 2026-07-05)
 
