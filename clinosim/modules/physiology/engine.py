@@ -40,7 +40,13 @@ def initialize_state(
         s = c.severity_score
         code = c.code.upper()
         if code.startswith("N18"):  # CKD
-            state.renal_function *= 1.0 - s * 0.5
+            # Coefficient 0.9 (not 0.5): severity_score now tracks the sampled
+            # KDIGO G1-G5 stage (activator.py), so severe stages (G4/G5,
+            # s>=0.7) must be able to push renal_function down near its 0.05
+            # floor — a 0.5 coefficient could only ever halve renal_reserve,
+            # capping generated creatinine at G3-equivalent regardless of
+            # stage (2026-06-20 realism audit finding).
+            state.renal_function *= 1.0 - s * 0.9
             if s > 0.5:
                 state.anemia_level += 0.15
                 state.ph_status -= s * 0.1
