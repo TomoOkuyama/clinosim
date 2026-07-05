@@ -1,0 +1,14 @@
+# HL7 v3 ObservationInterpretation — antimicrobial susceptibility subset
+# (S/I/R). Authoritative source: HL7 Terminology (THO), CodeSystem
+# v3-ObservationInterpretation (http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation).
+# Only the S/I/R susceptibility codes are populated here; the broader
+# numeric-flag subset (N/H/L/HH/LL/A/AA/...) is a separate, not-yet-migrated
+# dict (_fhir_localization.py:_INTERPRETATION_DISPLAY_JA) — see TODO.md.
+metadata:
+  name: HL7 v3 ObservationInterpretation (susceptibility subset)
+  uri: http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation
+  source: "HL7 Terminology (THO)"
+codes:
+  S: {en: "Susceptible", ja: "感性"}
+  I: {en: "Intermediate", ja: "中間"}
+  R: {en: "Resistant", ja: "耐性"}

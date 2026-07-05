@@ -90,10 +90,7 @@ from clinosim.modules.output._fhir_medications import (  # noqa: F401
     _build_medication_admin,
     _build_medication_request,
 )
-from clinosim.modules.output._fhir_microbiology import (  # noqa: F401
-    _SUSCEPTIBILITY_DISPLAY,
-    _bb_microbiology,
-)
+from clinosim.modules.output._fhir_microbiology import _bb_microbiology  # noqa: F401
 from clinosim.modules.output._fhir_nursing import _build_nursing_observations  # noqa: F401
 from clinosim.modules.output._fhir_observations import (  # noqa: F401
     _bb_labs,
@@ -102,9 +99,6 @@ from clinosim.modules.output._fhir_observations import (  # noqa: F401
 )
 from clinosim.modules.output._fhir_patient import (  # noqa: F401
     _IDENTITY_CFG_CACHE,
-    _LANG_DISPLAY,
-    _MARITAL_DISPLAY,
-    _MARITAL_DISPLAY_JA,
     _ORG_TYPE_SYSTEM,
     _SUBSCRIBER_REL_SYSTEM,
     _build_coverage_resources,

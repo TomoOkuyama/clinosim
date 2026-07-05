@@ -1,0 +1,13 @@
+# HL7 v3 Marital Status. Authoritative source: HL7 Terminology (THO),
+# CodeSystem v3-MaritalStatus (http://terminology.hl7.org/CodeSystem/v3-MaritalStatus).
+metadata:
+  name: HL7 v3 Marital Status
+  uri: http://terminology.hl7.org/CodeSystem/v3-MaritalStatus
+  source: "HL7 Terminology (THO)"
+codes:
+  S: {en: "Never Married", ja: "未婚"}
+  M: {en: "Married", ja: "既婚"}
+  D: {en: "Divorced", ja: "離婚"}
+  W: {en: "Widowed", ja: "死別"}
+  U: {en: "Unmarried", ja: "未婚"}
+  T: {en: "Domestic partner", ja: "事実婚"}
