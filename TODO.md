@@ -2293,13 +2293,18 @@ items remain, both previously filed as "later cleanup" / optional:
 2026-07-01: category code resolved via `code_lookup("snomed-ct", ...)`, `codes/data/snomed-ct.yaml`
 already has the entry; the Python constant is now only a defensive fallback). Remove from scope.
 Remaining, re-scoped:
-- `_fhir_patient.py` (marital status M/S/D/W/U/T + language display, 14 entries) — no existing
-  codes YAML; `loader.py`'s `_BUILTIN_URIS` already reserves a `hl7-v3-maritalstatus` URI, and
-  `codes/data/jp-care-level.yaml` is precedent for a non-ICD/LOINC/SNOMED locally-defined code
-  system. New `codes/data/hl7-v3-maritalstatus.yaml`.
-- `_fhir_microbiology.py` (`_SUSCEPTIBILITY_DISPLAY`, S/I/R, 3 entries) — duplicated by
-  `_fhir_localization.py`'s `_INTERPRETATION_DISPLAY_JA` (JA-only); consolidate both into one new
-  HL7 ObservationInterpretation codes YAML.
+- ~~`_fhir_patient.py`~~ — **DONE (session 37)**: `codes/data/hl7-v3-maritalstatus.yaml` +
+  `codes/data/bcp-47-language.yaml` added; both marital status and preferred-language display
+  now resolve via `code_lookup`. Bonus: language display is now properly JP-localized (was
+  English-only before, a latent gap of its own — no golden fixture exercised this field, so no
+  regression risk).
+- ~~`_fhir_microbiology.py`~~ — **DONE (session 37)**: new
+  `codes/data/hl7-observation-interpretation.yaml` (S/I/R susceptibility subset only — the
+  broader numeric-flag subset N/H/L/HH/LL/A/AA/HU/LU/POS/NEG in
+  `_fhir_localization.py:_INTERPRETATION_DISPLAY_JA` is a separate, larger, not-yet-migrated code
+  system and was NOT touched, since it's used differently — mixed code/English-word keys, no
+  clean `code_lookup` fit yet). The dead duplicate R/S/I entries in that dict were removed after
+  confirming (by tracing both its 2 callers) that neither ever produces an S/I/R code.
 - `_fhir_allergy_intolerance.py` — most of this file already migrated (allergen/manifestation via
   `code_lookup("snomed-ct", ...)`); only `_CLINICAL_STATUS_DISPLAY` + `_VERIFICATION_STATUS_DISPLAY`
   (7 entries, English-only FHIR value-set displays) remain.

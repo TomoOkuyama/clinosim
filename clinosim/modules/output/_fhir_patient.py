@@ -13,8 +13,9 @@ import uuid
 from typing import Any
 
 from clinosim.codes import get_system_uri
+from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_identity_config
-from clinosim.modules._shared import is_jp
+from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output._fhir_common import _build_address, _build_telecom
 from clinosim.modules.output._fhir_localization import (
     _CATEGORY_DISPLAY_JA,
@@ -221,7 +222,7 @@ def _build_patient(p: dict, country: str) -> dict:
             "coding": [{
                 "system": get_system_uri("hl7-v3-maritalstatus"),
                 "code": marital,
-                "display": (_MARITAL_DISPLAY_JA if is_jp(country) else _MARITAL_DISPLAY).get(marital, ""),
+                "display": code_lookup("hl7-v3-maritalstatus", marital, resolve_lang(country)),
             }],
         }
 
@@ -231,9 +232,9 @@ def _build_patient(p: dict, country: str) -> dict:
         resource["communication"] = [{
             "language": {
                 "coding": [{
-                    "system": "urn:ietf:bcp:47",
+                    "system": get_system_uri("bcp-47-language"),
                     "code": lang,
-                    "display": _LANG_DISPLAY.get(lang, lang),
+                    "display": code_lookup("bcp-47-language", lang, resolve_lang(country)),
                 }],
             },
             "preferred": True,
@@ -264,21 +265,6 @@ def _build_patient(p: dict, country: str) -> dict:
             resource["contact"] = [ec]
 
     return resource
-
-
-_MARITAL_DISPLAY = {
-    "S": "Never Married", "M": "Married", "D": "Divorced",
-    "W": "Widowed", "U": "Unmarried", "T": "Domestic partner",
-}
-_MARITAL_DISPLAY_JA = {
-    "S": "未婚", "M": "既婚", "D": "離婚",
-    "W": "死別", "U": "未婚", "T": "事実婚",
-}
-
-_LANG_DISPLAY = {
-    "en-US": "English (US)",
-    "ja-JP": "Japanese (Japan)",
-}
 
 
 # ============================================================

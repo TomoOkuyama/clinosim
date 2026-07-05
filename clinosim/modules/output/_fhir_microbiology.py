@@ -12,15 +12,10 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.codes import get_system_uri, system_key_for
+from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output._fhir_common import BundleContext, _micro_coding
-
-_SUSCEPTIBILITY_DISPLAY = {
-    "S": {"en": "Susceptible", "ja": "感性"},
-    "I": {"en": "Intermediate", "ja": "中間"},
-    "R": {"en": "Resistant", "ja": "耐性"},
-}
 
 # Canonical id prefixes for microbiology resources. Imported by readers
 # (e.g. clinosim.audit.axes.clinical._organism_per_encounter) to avoid the
@@ -147,7 +142,6 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
 
         for j, sus in enumerate(mb.get("susceptibilities") or []):
             interp = sus.get("interpretation", "")
-            disp = _SUSCEPTIBILITY_DISPLAY.get(interp, {})
             sus_id = f"{MB_SUS_ID_PREFIX}{base}-{j}"
             antibiotic_loinc = sus.get("antibiotic_loinc", "")
             sus_code_value, sus_code_system = resolve_susceptibility_code(
@@ -162,7 +156,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                 "valueCodeableConcept": {"coding": [{
                     "system": get_system_uri("hl7-observation-interpretation"),
                     "code": interp,
-                    "display": disp.get(lang, disp.get("en", interp)),
+                    "display": code_lookup("hl7-observation-interpretation", interp, lang),
                 }]},
             }
             if hai_identifier:

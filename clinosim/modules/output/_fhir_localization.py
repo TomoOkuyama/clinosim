@@ -170,7 +170,11 @@ _INTERPRETATION_DISPLAY_JA: dict[str, str] = {
     "AA": "パニック異常", "Critical abnormal": "パニック異常",
     "HU": "測定上限超", "LU": "測定下限未満",
     "POS": "陽性", "NEG": "陰性",
-    "R": "耐性", "S": "感受性", "I": "中間",
+    # R/S/I (susceptibility) intentionally NOT here — this dict's only two
+    # callers (_fhir_observations.py's lab-flag interpretation and
+    # _localize_interp) never produce those codes; susceptibility display now
+    # lives solely in codes/data/hl7-observation-interpretation.yaml, consumed
+    # by _fhir_microbiology.py via code_lookup (2026-07-05 dedup).
 }
 
 _RELATIONSHIP_DISPLAY_JA: dict[str, str] = {
