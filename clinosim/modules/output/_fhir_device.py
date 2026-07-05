@@ -19,11 +19,7 @@ from clinosim.modules.output._fhir_common import BundleContext
 
 def _extensions_device_list(ctx: BundleContext) -> list:
     """Pull list[DeviceRecord] off ctx.record.extensions['device'] safely."""
-    rec = ctx.record
-    if isinstance(rec, dict):
-        ext = rec.get("extensions", {}) or {}
-    else:
-        ext = getattr(rec, "extensions", {}) or {}
+    ext = get_attr_or_key(ctx.record, "extensions", {}) or {}
     return ext.get("device", []) or []
 
 
