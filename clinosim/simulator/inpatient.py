@@ -1485,6 +1485,10 @@ def _o2_for(spo2, disease_id, rng):
 
 def _loc_for(state, disease_id, day, rng):
     """Infer AVPU consciousness level."""
+    if state.perfusion_status < 0.2:
+        # Refractory shock / severe neuro insult — matches the sepsis.yaml
+        # severe-septic-shock complication threshold (perfusion_status < 0.2).
+        return "U" if rng.random() < 0.5 else "P"
     if state.perfusion_status < 0.4:
         return "V" if rng.random() < 0.7 else "P"
     if state.perfusion_status < 0.6 and disease_id in _NEURO_DISEASES:

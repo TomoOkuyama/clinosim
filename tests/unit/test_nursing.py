@@ -67,3 +67,16 @@ def test_deterministic_same_seed():
     a = compute_braden({"barthel_score": 50}, "A", 0.0, np.random.default_rng(7))
     b = compute_braden({"barthel_score": 50}, "A", 0.0, np.random.default_rng(7))
     assert a == b
+
+
+def test_braden_reaches_published_floor_for_unresponsive_dependent_patient():
+    """Braden subscales must reach their full published low end (severe-risk
+    range) for a fully dependent, unresponsive, incontinent patient — before
+    this fix, sensory/moisture/friction were binary and never dropped below
+    ~10-11 total (2026-06-20 realism audit finding)."""
+    from clinosim.modules.observation.nursing import compute_braden
+    critical = compute_braden({"barthel_score": 0}, "U", 0.8, _rng())
+    assert critical["braden_sensory"] == 1
+    assert critical["braden_moisture"] == 1
+    assert critical["braden_friction"] == 1
+    assert critical["braden_total"] == 6

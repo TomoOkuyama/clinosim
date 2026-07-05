@@ -70,11 +70,25 @@ def compute_braden(adl: dict, consciousness_level: str, volume_status: float,
     barthel = adl.get("barthel_score", 100) if adl else 100
     activity = _barthel_to_subscale(barthel)
     mobility = _barthel_to_subscale(barthel)
-    sensory = 4 if consciousness_level == "A" else 2
+    # Sensory perception subscale tracks AVPU 1:1 (published range 1-4):
+    # unresponsive patients cannot sense/respond to pressure-related discomfort.
+    sensory = {"A": 4, "V": 3, "P": 2, "U": 1}.get(consciousness_level, 4)
     # Higher volume (edema/incontinence proxy) → more moisture risk (lower subscale).
-    moisture = 3 if volume_status > 0.3 else 4
+    if volume_status > 0.5:
+        moisture = 1
+    elif volume_status > 0.3:
+        moisture = 2
+    elif volume_status > 0.0:
+        moisture = 3
+    else:
+        moisture = 4
     nutrition = max(1, min(4, activity + int(rng.integers(-1, 1, endpoint=True))))
-    friction = 2 if barthel < 60 else 3
+    if barthel < 25:
+        friction = 1
+    elif barthel < 60:
+        friction = 2
+    else:
+        friction = 3
     total = sensory + moisture + activity + mobility + nutrition + friction
     return {
         "braden_sensory": sensory, "braden_moisture": moisture,
