@@ -205,20 +205,26 @@ disease_incidence:
     event_type: acute_disease_onset
     severity_beta: [3, 3]
   influenza:
-    # Strong seasonal pattern. Source: CDC FluView
+    # Strong seasonal pattern. Source: CDC FluView. Rates are hospitalized
+    # influenza only (see disease protocol) — always_hospitalize routes every
+    # sampled event into the hospitalized cohort accordingly.
     age_rates: {0: 200, 5: 150, 15: 80, 25: 60, 35: 70, 45: 90, 55: 150, 65: 400, 75: 800, 85: 1500}
     sex_ratio_female: 1.0
     event_type: acute_disease_onset
     severity_beta: [2, 4]
+    always_hospitalize: true
   asthma_exacerbation:
-    # Exacerbation rate among asthma patients. Source: NAEPP
+    # Exacerbation rate among asthma patients. Source: NAEPP. Rates are
+    # hospitalized exacerbations only (see disease protocol) —
+    # always_hospitalize routes every sampled event into the hospitalized
+    # cohort accordingly.
     age_rates: {0: 4000, 15: 6000, 25: 5000, 35: 5000, 45: 6000, 55: 7000, 65: 8000, 75: 8000, 85: 6000}
     sex_ratio_female: 1.3
     event_type: chronic_exacerbation
     prerequisite_condition: J45
     severity_beta: [2, 3]
     severity_minimum: 0.2
-    hospitalization_threshold_modifier: 0.7
+    always_hospitalize: true
   hemorrhagic_stroke:
     # US: ~40/100k age 65+. Source: AHA
     age_rates: {0: 1, 25: 2, 35: 3, 45: 8, 55: 20, 65: 50, 75: 120, 85: 250}
