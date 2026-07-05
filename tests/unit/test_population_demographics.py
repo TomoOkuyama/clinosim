@@ -386,3 +386,45 @@ def test_gi_bleeding_always_hospitalizes(country):
     assert demo["disease_incidence"]["gi_bleeding"].get("always_hospitalize") is True, (
         f"{country} gi_bleeding incidence config missing always_hospitalize: true"
     )
+
+
+# ---------------------------------------------------------------------------
+# CKD severity_score must track the sampled G1-G5 stage (same "reuse the
+# existing draw, reinterpret" pattern as the diabetes glycemic_control axis
+# above), not the flat uniform(0.1, 0.4) draw shared by other chronic
+# conditions. Otherwise physiology/engine.py's severity>0.5 anemia/acidosis
+# branch is dead code and CKD creatinine never spreads past G3-equivalent
+# (2026-06-20 realism audit finding).
+# ---------------------------------------------------------------------------
+
+from clinosim.modules.patient.activator import CKD_STAGE_SEVERITY
+
+
+def _make_ckd_person(age: int = 65) -> PersonRecord:
+    p = _make_person(age=age)
+    p.chronic_conditions = ["N18.3"]
+    return p
+
+
+def test_ckd_severity_score_tracks_sampled_stage():
+    demo = _minimal_demo_for_activate()
+    seen_severe = False
+    for seed in range(100):
+        person = _make_ckd_person()
+        profile = activate_patient(person, np.random.default_rng(seed), demo)
+        ckd = next(c for c in profile.chronic_conditions if c.code.startswith("N18"))
+        stage_suffix = ckd.stage.replace("CKD ", "")
+        assert stage_suffix in CKD_STAGE_SEVERITY, f"unexpected CKD stage text: {ckd.stage!r}"
+        assert ckd.severity_score == CKD_STAGE_SEVERITY[stage_suffix]
+        if stage_suffix in ("G4", "G5"):
+            seen_severe = True
+    assert seen_severe, "no G4/G5 CKD patient sampled in 100 seeds — check stage weights"
+
+
+def test_ckd_severity_score_deterministic_same_seed():
+    demo = _minimal_demo_for_activate()
+    p1 = activate_patient(_make_ckd_person(), np.random.default_rng(55), demo)
+    p2 = activate_patient(_make_ckd_person(), np.random.default_rng(55), demo)
+    s1 = next(c for c in p1.chronic_conditions if c.code.startswith("N18")).severity_score
+    s2 = next(c for c in p2.chronic_conditions if c.code.startswith("N18")).severity_score
+    assert s1 == s2

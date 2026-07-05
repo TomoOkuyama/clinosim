@@ -81,6 +81,21 @@ class TestInitializeState:
         state = initialize_state(profile, ckd)
         assert state.renal_function < 0.70  # reduced by CKD
 
+    def test_severe_ckd_unlocks_anemia_and_acidosis_branch(self):
+        """A G4/G5-equivalent severity_score (>0.5) must both drive
+        renal_function toward its floor and trigger the anemia/acidosis
+        complications of severe CKD. Before this fix, activator.py's flat
+        uniform(0.1, 0.4) severity_score draw could never exceed 0.4, so this
+        branch was dead code and CKD creatinine never modeled a severe end
+        (2026-06-20 realism audit finding: CKD median creatinine ~1.5, no
+        G4/G5-equivalent spread)."""
+        profile = PatientPhysiologicalProfile(renal_reserve=0.80)
+        severe_ckd = [ChronicCondition(code="N18.5", severity_score=0.9)]
+        state = initialize_state(profile, severe_ckd)
+        assert state.renal_function < 0.2
+        assert state.anemia_level > 0.0
+        assert state.ph_status < 0.0
+
 
 # --- Disease onset ---
 

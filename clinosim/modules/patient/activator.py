@@ -24,6 +24,15 @@ from clinosim.types.patient import (
 
 
 
+# CKD stage (KDIGO G1-G5) -> ChronicCondition.severity_score. Consumed by
+# physiology/engine.py's N18 branch (renal_function reduction + the s>0.5
+# anemia/acidosis complication gate). Spans past 0.5 for G4/G5 so severe CKD
+# stages are distinguishable from G1-G3 in generated creatinine values —
+# without this, every CKD patient shared the generic uniform(0.1, 0.4) draw
+# regardless of sampled stage (2026-06-20 realism audit finding).
+CKD_STAGE_SEVERITY = {"G1": 0.05, "G2": 0.15, "G3a": 0.35, "G3b": 0.50, "G4": 0.70, "G5": 0.90}
+
+
 def _generate_stage(code: str, severity: str, rng: np.random.Generator) -> str:
     """Generate clinical staging text for a chronic condition by ICD code."""
     base = code.split(".")[0]
@@ -178,7 +187,8 @@ def activate_patient(
         # Glucose baseline all derive from one continuous glycemic_control axis. We reuse the
         # single float draw that _generate_stage's E11 branch used to consume (now reinterpreted
         # here) so the main RNG stream is unperturbed (AD-16).
-        if code.split(".")[0] in ("E11", "E10"):
+        code_base = code.split(".")[0]
+        if code_base in ("E11", "E10"):
             gc_draw = float(rng.random())          # replaces the removed E11 stage uniform (1 draw)
             # Cube skews control toward "good" (most diabetics are reasonably controlled):
             # HbA1c median ~6.8%, ~55% < 7%, with a poorly-controlled tail to ~12%.
@@ -187,13 +197,27 @@ def activate_patient(
         else:
             glycemic_control = None
             stage = _generate_stage(code, sev, rng)
+        # Draw both values in the exact same order/position as before this fix
+        # (controlled, then the generic severity uniform), then substitute the
+        # CKD-stage-derived score for N18 afterward — the uniform draw is
+        # still consumed (value discarded) so the RNG stream position for
+        # every other condition/patient is unperturbed (AD-16), matching the
+        # diabetes gc_draw precedent above.
+        controlled_flag = rng.random() < 0.7
+        generic_severity_score = float(rng.uniform(0.1, 0.4))
+        # CKD severity_score derives from the sampled stage instead of the
+        # generic uniform(0.1, 0.4) shared by other chronic conditions.
+        severity_score = (
+            CKD_STAGE_SEVERITY[stage.removeprefix("CKD ")] if code_base == "N18"
+            else generic_severity_score
+        )
         conditions.append(ChronicCondition(
             code=code,
             system="icd-10-cm",
             onset_date=date(onset_year, onset_month, onset_day),
             severity=sev,
-            controlled=rng.random() < 0.7,
-            severity_score=float(rng.uniform(0.1, 0.4)),
+            controlled=controlled_flag,
+            severity_score=severity_score,
             stage=stage,
             glycemic_control=glycemic_control,
         ))
