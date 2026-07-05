@@ -181,6 +181,7 @@ disease_incidence:
     sex_ratio_female: 0.7
     event_type: acute_disease_onset
     severity_beta: [2, 4]
+    hospitalization_threshold_modifier: 0.7
   cellulitis:
     age_rates: {0: 4, 15: 8, 25: 15, 35: 25, 45: 35, 55: 50, 65: 85, 75: 150, 85: 260}
     sex_ratio_female: 0.8

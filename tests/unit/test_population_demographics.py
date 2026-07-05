@@ -402,6 +402,28 @@ def test_hospitalized_only_diseases_always_hospitalize(country, disease):
     )
 
 
+# atrial_fibrillation_rvr.yaml documents a severity distribution of
+# mild 0.35 / moderate 0.50 / severe 0.15 (rate>150 + hemodynamic instability)
+# and defines an inpatient target_los for every tier, i.e. the disease is
+# authored assuming most incident cases (moderate/severe = 65%) are admitted
+# for rate/rhythm control. But the incidence config has neither
+# always_hospitalize nor a hospitalization_threshold_modifier, so it falls
+# through to the generic care_seeking_threshold path in
+# population/engine.py:373 exactly like a routine outpatient complaint —
+# same disconnect class as the heart_failure_exacerbation / copd_exacerbation
+# entries, which both carry a modifier for this reason.
+@pytest.mark.parametrize("country", ["US", "JP"])
+def test_atrial_fibrillation_rvr_has_hospitalization_modifier(country):
+    demo = _load_demo(country)
+    spec = demo["disease_incidence"]["atrial_fibrillation_rvr"]
+    modifier = spec.get("hospitalization_threshold_modifier")
+    assert modifier is not None, (
+        f"{country} atrial_fibrillation_rvr incidence config missing "
+        "hospitalization_threshold_modifier (or always_hospitalize)"
+    )
+    assert modifier < 1.0, "modifier must lower the threshold to ease admission"
+
+
 # ---------------------------------------------------------------------------
 # Graded-stage chronic conditions (CKD G1-G5, heart failure NYHA I-IV, COPD
 # GOLD 1-4, asthma's 4 severity levels, ischemic heart disease CCS I-III)
