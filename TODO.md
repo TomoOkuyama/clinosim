@@ -2305,11 +2305,11 @@ Remaining, re-scoped:
   system and was NOT touched, since it's used differently — mixed code/English-word keys, no
   clean `code_lookup` fit yet). The dead duplicate R/S/I entries in that dict were removed after
   confirming (by tracing both its 2 callers) that neither ever produces an S/I/R code.
-- `_fhir_allergy_intolerance.py` — most of this file already migrated (allergen/manifestation via
-  `code_lookup("snomed-ct", ...)`); only `_CLINICAL_STATUS_DISPLAY` + `_VERIFICATION_STATUS_DISPLAY`
-  (7 entries, English-only FHIR value-set displays) remain.
-- `_fhir_endpoint.py` — 2 inline literals ("DICOM WADO-RS", "Any"), English-only (no JA path exists
-  for Endpoint at all). New HL7 endpoint connection-type/payload-type codes YAML.
+- ~~`_fhir_allergy_intolerance.py`~~ — **DONE (session 37)**: new
+  `codes/data/hl7-allergyintolerance-clinical.yaml` + `hl7-allergyintolerance-verification.yaml`
+  replace `_CLINICAL_STATUS_DISPLAY` / `_VERIFICATION_STATUS_DISPLAY`.
+- ~~`_fhir_endpoint.py`~~ — **DONE (session 37)**: new `codes/data/hl7-endpoint-connection-type.yaml`
+  + `hl7-endpoint-payload-type.yaml` replace the 2 inline literals.
 - `_fhir_reference_data.py` (largest, needs schema design) — `_CONDITION_SHORT_NAME` (39 entries)
   is a *short/abbreviated* display distinct from the official long name already in
   `icd-10-cm.yaml` (e.g. "COPD" vs "Other chronic obstructive pulmonary disease"); migrating

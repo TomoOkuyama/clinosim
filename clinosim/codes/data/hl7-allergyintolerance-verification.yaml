@@ -1,0 +1,14 @@
+# HL7 FHIR AllergyIntolerance verification status. Authoritative source:
+# HL7 Terminology (THO), CodeSystem allergyintolerance-verification
+# (http://terminology.hl7.org/CodeSystem/allergyintolerance-verification).
+# English only — matches this project's existing AllergyIntolerance JA scope
+# (only allergen/manifestation display are JA-localized).
+metadata:
+  name: HL7 FHIR AllergyIntolerance Verification Status
+  uri: http://terminology.hl7.org/CodeSystem/allergyintolerance-verification
+  source: "HL7 Terminology (THO)"
+codes:
+  confirmed: {en: "Confirmed"}
+  unconfirmed: {en: "Unconfirmed"}
+  refuted: {en: "Refuted"}
+  entered-in-error: {en: "Entered in Error"}

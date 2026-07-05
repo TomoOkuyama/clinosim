@@ -50,6 +50,23 @@ def test_emits_one_endpoint_per_study():
     assert e["payloadMimeType"] == ["application/dicom"]
 
 
+def test_connection_type_and_payload_type_displays_resolve_via_codes_yaml():
+    """Displays must come from codes/data/*.yaml + code_lookup, not inline
+    string literals (2026-07-02 grand design review, display-dict migration).
+    """
+    from clinosim.codes import lookup
+
+    e = _bb_endpoints(_make_ctx([_sample_study()]))[0]
+    assert e["connectionType"]["display"] == lookup(
+        "hl7-endpoint-connection-type", DICOM_WADO_RS_CONNECTION_TYPE, "en"
+    )
+    assert e["connectionType"]["display"] == "DICOM WADO-RS"
+    assert e["payloadType"][0]["coding"][0]["display"] == lookup(
+        "hl7-endpoint-payload-type", "any", "en"
+    )
+    assert e["payloadType"][0]["coding"][0]["display"] == "Any"
+
+
 def test_address_uses_wado_base_url_from_hospital_config():
     ctx = _make_ctx([_sample_study()],
                     hospital_config={"imaging": {"wado_base_url": "https://pacs.test/dicomweb"}})

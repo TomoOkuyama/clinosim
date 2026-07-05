@@ -1,0 +1,13 @@
+# HL7 FHIR AllergyIntolerance clinical status. Authoritative source: HL7
+# Terminology (THO), CodeSystem allergyintolerance-clinical
+# (http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical).
+# English only — matches this project's existing AllergyIntolerance JA scope
+# (only allergen/manifestation display are JA-localized).
+metadata:
+  name: HL7 FHIR AllergyIntolerance Clinical Status
+  uri: http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical
+  source: "HL7 Terminology (THO)"
+codes:
+  active: {en: "Active"}
+  inactive: {en: "Inactive"}
+  resolved: {en: "Resolved"}
