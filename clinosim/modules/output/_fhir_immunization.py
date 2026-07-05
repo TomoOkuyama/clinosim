@@ -14,7 +14,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
-from clinosim.modules._shared import resolve_lang
+from clinosim.modules._shared import get_attr_or_key, resolve_lang
 from clinosim.modules.output._fhir_common import BundleContext
 
 
@@ -29,17 +29,10 @@ def _build_immunizations(ctx: BundleContext) -> list[dict]:
     out: list[dict] = []
 
     for i, imm in enumerate(ctx.record.get("immunizations") or []):
-        if isinstance(imm, dict):
-            cvx = imm.get("vaccine_cvx", "")
-            occurrence = imm.get("occurrence_date", "")
-            status = imm.get("status", "completed")
-            primary_source = imm.get("primary_source", True)
-        else:
-            # ImmunizationRecord dataclass (in-memory path)
-            cvx = getattr(imm, "vaccine_cvx", "")
-            occurrence = getattr(imm, "occurrence_date", "")
-            status = getattr(imm, "status", "completed")
-            primary_source = getattr(imm, "primary_source", True)
+        cvx = get_attr_or_key(imm, "vaccine_cvx", "")
+        occurrence = get_attr_or_key(imm, "occurrence_date", "")
+        status = get_attr_or_key(imm, "status", "completed")
+        primary_source = get_attr_or_key(imm, "primary_source", True)
 
         if not cvx:
             continue

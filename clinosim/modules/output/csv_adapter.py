@@ -6,6 +6,7 @@ import csv
 import os
 
 from clinosim.codes import get_display
+from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.output._fhir_microbiology import (
     resolve_culture_code,
     resolve_susceptibility_code,
@@ -309,10 +310,10 @@ def convert_cif_to_csv(
         if patient_id and patient_id not in _fh_seen:
             _fh_seen.add(patient_id)
             for fam in record.get("family_history", []):
-                rel = fam.get("relationship") if isinstance(fam, dict) else getattr(fam, "relationship", "")
-                sex = fam.get("sex") if isinstance(fam, dict) else getattr(fam, "sex", "")
-                dec = fam.get("deceased") if isinstance(fam, dict) else getattr(fam, "deceased", False)
-                codes = fam.get("condition_codes") if isinstance(fam, dict) else getattr(fam, "condition_codes", [])
+                rel = get_attr_or_key(fam, "relationship", "")
+                sex = get_attr_or_key(fam, "sex", "")
+                dec = get_attr_or_key(fam, "deceased", False)
+                codes = get_attr_or_key(fam, "condition_codes", [])
                 for code in codes or []:
                     fh_rows.append({"patient_id": patient_id, "relationship": rel,
                                     "sex": sex, "deceased": dec, "condition_code": code})

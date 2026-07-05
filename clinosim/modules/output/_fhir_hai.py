@@ -20,11 +20,7 @@ from clinosim.modules.output._fhir_common import BundleContext, _map_diagnosis_c
 
 
 def _extensions_hai_list(ctx: BundleContext) -> list:
-    rec = ctx.record
-    if isinstance(rec, dict):
-        ext = rec.get("extensions", {}) or {}
-    else:
-        ext = getattr(rec, "extensions", {}) or {}
+    ext = get_attr_or_key(ctx.record, "extensions", {}) or {}
     return ext.get("hai", []) or []
 
 

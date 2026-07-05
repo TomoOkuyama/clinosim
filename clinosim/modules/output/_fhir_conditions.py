@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.codes import get_system_uri, system_key_for
-from clinosim.modules._shared import resolve_lang
+from clinosim.modules._shared import get_attr_or_key, resolve_lang
 from clinosim.modules.output._fhir_common import (
     _build_diagnosis_codeable_concept,
     _infer_severity,
@@ -51,12 +51,16 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
     chronic_list = record.get("patient", {}).get("chronic_conditions", [])
     chronic_onset_by_base: dict[str, str] = {}
     for _chronic in chronic_list:
-        if isinstance(_chronic, dict):
-            _cc = _chronic.get("code", "")
-            if _cc:
-                chronic_onset_by_base.setdefault(_cc.split(".")[0], _chronic.get("onset_date", "") or "")
-        elif isinstance(_chronic, str) and _chronic:
-            chronic_onset_by_base.setdefault(_chronic.split(".")[0], "")
+        if isinstance(_chronic, str):
+            _cc = _chronic
+            _onset = ""
+        else:
+            # dict (production JSON path) or a ChronicCondition dataclass
+            # (in-memory path) — get_attr_or_key handles both uniformly.
+            _cc = get_attr_or_key(_chronic, "code", "")
+            _onset = get_attr_or_key(_chronic, "onset_date", "") or ""
+        if _cc:
+            chronic_onset_by_base.setdefault(_cc.split(".")[0], _onset)
 
     # --- Primary diagnosis (encounter diagnosis) ---
     dx_code = dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", "")
@@ -134,12 +138,15 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             c_code = chronic
             c_onset = ""
             c_severity = ""
-        elif isinstance(chronic, dict):
-            c_code = chronic.get("code", "")
-            c_onset = chronic.get("onset_date", "")
-            c_severity = chronic.get("severity", "")
+            c_stage = ""
         else:
-            continue
+            # dict (production JSON path) or a ChronicCondition dataclass
+            # (in-memory path) — get_attr_or_key handles both uniformly, so
+            # a bare dataclass instance is no longer silently dropped.
+            c_code = get_attr_or_key(chronic, "code", "")
+            c_onset = get_attr_or_key(chronic, "onset_date", "")
+            c_severity = get_attr_or_key(chronic, "severity", "")
+            c_stage = get_attr_or_key(chronic, "stage", "")
 
         if not c_code:
             continue
@@ -180,8 +187,7 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         if c_severity:
             cond["severity"] = _severity_coding(c_severity, country)
 
-        # Stage (NYHA, CKD G, GOLD, etc.)
-        c_stage = chronic.get("stage", "") if isinstance(chronic, dict) else ""
+        # Stage (NYHA, CKD G, GOLD, etc.) — c_stage set in the branch above.
         if c_stage:
             cond["stage"] = [{
                 "summary": {"text": c_stage},
