@@ -42,19 +42,6 @@ __all__ = [
 _CLINICAL_STATUS_SYSTEM = get_system_uri("hl7-allergyintolerance-clinical")
 _VERIFICATION_STATUS_SYSTEM = get_system_uri("hl7-allergyintolerance-verification")
 
-# Canonical display for clinical/verification status (FHIR R4 standard)
-_CLINICAL_STATUS_DISPLAY: dict[str, str] = {
-    "active": "Active",
-    "inactive": "Inactive",
-    "resolved": "Resolved",
-}
-_VERIFICATION_STATUS_DISPLAY: dict[str, str] = {
-    "confirmed": "Confirmed",
-    "unconfirmed": "Unconfirmed",
-    "refuted": "Refuted",
-    "entered-in-error": "Entered in Error",
-}
-
 # FHIR-valid AllergyIntolerance.category values
 _VALID_CATEGORIES = {"medication", "food", "environment", "biologic"}
 
@@ -103,7 +90,7 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
             "display": resolved_display,
         }]
 
-    ver_display = _VERIFICATION_STATUS_DISPLAY.get(verification_status, verification_status)
+    ver_display = code_lookup("hl7-allergyintolerance-verification", verification_status, "en")
     res: dict[str, Any] = {
         "resourceType": "AllergyIntolerance",
         "id": f"{ALLERGY_ID_PREFIX}{patient_id}-{allergy_id}",
@@ -111,7 +98,7 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
             "coding": [{
                 "system": _CLINICAL_STATUS_SYSTEM,
                 "code": "active",
-                "display": _CLINICAL_STATUS_DISPLAY["active"],
+                "display": code_lookup("hl7-allergyintolerance-clinical", "active", "en"),
             }],
         },
         "verificationStatus": {

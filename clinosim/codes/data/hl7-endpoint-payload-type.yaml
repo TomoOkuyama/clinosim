@@ -1,0 +1,10 @@
+# HL7 FHIR Endpoint payload type. Authoritative source: HL7 Terminology
+# (THO), CodeSystem endpoint-payload-type
+# (http://terminology.hl7.org/CodeSystem/endpoint-payload-type). English
+# only — Endpoint has no JA output path in this project.
+metadata:
+  name: HL7 FHIR Endpoint Payload Type
+  uri: http://terminology.hl7.org/CodeSystem/endpoint-payload-type
+  source: "HL7 Terminology (THO)"
+codes:
+  any: {en: "Any"}

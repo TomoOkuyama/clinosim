@@ -19,6 +19,7 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.codes import get_system_uri
+from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.imaging.engine import ENDPOINT_ID_PREFIX
 from clinosim.modules.output._fhir_common import BundleContext
@@ -62,13 +63,13 @@ def _build_endpoint(study: Any, base_url: str) -> dict[str, Any]:
         "connectionType": {
             "system": get_system_uri("hl7-endpoint-connection-type"),
             "code": DICOM_WADO_RS_CONNECTION_TYPE,
-            "display": "DICOM WADO-RS",
+            "display": code_lookup("hl7-endpoint-connection-type", DICOM_WADO_RS_CONNECTION_TYPE, "en"),
         },
         "payloadType": [{
             "coding": [{
                 "system": get_system_uri("hl7-endpoint-payload-type"),
                 "code": "any",
-                "display": "Any",
+                "display": code_lookup("hl7-endpoint-payload-type", "any", "en"),
             }],
         }],
         "payloadMimeType": ["application/dicom"],

@@ -1,0 +1,10 @@
+# HL7 FHIR Endpoint connection type. Authoritative source: HL7 Terminology
+# (THO), CodeSystem endpoint-connection-type
+# (http://terminology.hl7.org/CodeSystem/endpoint-connection-type). English
+# only — Endpoint has no JA output path in this project.
+metadata:
+  name: HL7 FHIR Endpoint Connection Type
+  uri: http://terminology.hl7.org/CodeSystem/endpoint-connection-type
+  source: "HL7 Terminology (THO)"
+codes:
+  dicom-wado-rs: {en: "DICOM WADO-RS"}

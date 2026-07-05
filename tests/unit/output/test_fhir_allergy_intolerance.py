@@ -121,6 +121,21 @@ def test_verification_status_confirmed():
     assert "allergyintolerance-verification" in coding["system"]
 
 
+def test_status_displays_resolve_via_codes_yaml():
+    """Displays must come from codes/data/*.yaml + code_lookup, not hardcoded
+    Python dicts (2026-07-02 grand design review, display-dict migration)."""
+    from clinosim.codes import lookup
+
+    ctx = _make_ctx([_sample_allergy_dataclass()])
+    r = _bb_allergy_intolerances(ctx)[0]
+    clinical = r["clinicalStatus"]["coding"][0]
+    verification = r["verificationStatus"]["coding"][0]
+    assert clinical["display"] == lookup("hl7-allergyintolerance-clinical", "active", "en") == "Active"
+    assert verification["display"] == lookup(
+        "hl7-allergyintolerance-verification", "confirmed", "en"
+    ) == "Confirmed"
+
+
 def test_category_medication():
     ctx = _make_ctx([_sample_allergy_dataclass()])
     r = _bb_allergy_intolerances(ctx)[0]
