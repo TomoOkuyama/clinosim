@@ -85,6 +85,41 @@ def get_attr_or_key(obj: Any, name: str, default: Any = None) -> Any:
     return getattr(obj, name, default)
 
 
+def set_attr_or_key(obj: Any, name: str, value: Any) -> None:
+    """Set ``name`` on ``obj`` whether ``obj`` is a dict or a dataclass instance.
+
+    Write-side counterpart to ``get_attr_or_key``. Replaces the
+    ``if isinstance(rec, dict): rec["x"] = value else: rec.x = value``
+    branching pattern scattered across enrichers (dual-access sweep, 2026-07-02
+    grand design review). For a single top-level field replacement only — for
+    nested containers (e.g. a record's ``extensions`` dict) or list
+    append/extend, use ``get_or_create_container`` and mutate the returned
+    container directly.
+    """
+    if isinstance(obj, dict):
+        obj[name] = value
+    else:
+        setattr(obj, name, value)
+
+
+def get_or_create_container(obj: Any, name: str, factory: type) -> Any:
+    """Get the mutable dict/list field ``name`` off ``obj``, creating it via
+    ``factory()`` if ``obj`` is a dict and the key is missing.
+
+    Dataclass instances always have the field already (via
+    ``field(default_factory=...)``), so no creation is needed on that path —
+    only ``getattr`` is used. The returned container is a plain dict/list
+    either way, so callers mutate it directly (``container["k"] = v``,
+    ``container.append(item)``, ``container.extend(items)``) without further
+    isinstance branching. Composes for nested containers: call again on the
+    dict this function just returned to reach a second level (e.g.
+    ``extensions`` then a key inside it).
+    """
+    if isinstance(obj, dict):
+        return obj.setdefault(name, factory())
+    return getattr(obj, name)
+
+
 def normalize_probabilities(
     probs: list[float] | np.ndarray,
     fallback: str = "uniform",
