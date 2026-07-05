@@ -28,7 +28,6 @@ from clinosim.modules.output._fhir_localization import (
     _localize_drug_name,
 )
 from clinosim.modules.output._fhir_reference_data import (
-    _CONDITION_SHORT_NAME,
     _PREFECTURE_CODE,
     _ROUTE_SNOMED,
     _SEVERITY_SNOMED,
@@ -211,7 +210,9 @@ def _build_diagnosis_codeable_concept(
 
     # code.text: clinical short-name / abbreviation for search friendliness.
     # coding[].display remains the official ICD name; text is what clinicians type.
-    text = _CONDITION_SHORT_NAME.get(code.split(".")[0], {}).get(primary_lang) or primary_display
+    base_code = code.split(".")[0] if code else ""
+    short_name = code_lookup("condition-short-name", base_code, primary_lang) if base_code else ""
+    text = short_name if short_name and short_name != base_code else primary_display
 
     return {
         "coding": coding,

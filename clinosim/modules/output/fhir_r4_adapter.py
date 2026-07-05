@@ -114,9 +114,7 @@ from clinosim.modules.output._fhir_practitioner import (  # noqa: F401
 from clinosim.modules.output._fhir_procedures import _build_procedure  # noqa: F401
 from clinosim.modules.output._fhir_reference_data import (  # noqa: F401
     _ALLERGEN_RXNORM,
-    _CONDITION_SHORT_NAME,
-    _ENCOUNTER_TYPE_SNOMED,
-    _ENCOUNTER_TYPE_SNOMED_JA,
+    _ENCOUNTER_TYPE_SNOMED_CODE,
     _PREFECTURE_CODE,
     _ROLE_PREFIX_MAP,
     _ROUTE_SNOMED,

@@ -20,10 +20,7 @@ from clinosim.modules.output._fhir_localization import (
     _dept_display,
     _localize_display,
 )
-from clinosim.modules.output._fhir_reference_data import (
-    _ENCOUNTER_TYPE_SNOMED,
-    _ENCOUNTER_TYPE_SNOMED_JA,
-)
+from clinosim.modules.output._fhir_reference_data import _ENCOUNTER_TYPE_SNOMED_CODE
 
 
 def _build_encounter(
@@ -59,12 +56,13 @@ def _build_encounter(
     }
 
     # Type (SNOMED)
-    type_info = _ENCOUNTER_TYPE_SNOMED.get(enc_type)
-    if type_info:
-        coding = {"system": get_system_uri("snomed-ct"), **type_info}
-        if is_jp(country) and enc_type in _ENCOUNTER_TYPE_SNOMED_JA:
-            coding["display"] = _ENCOUNTER_TYPE_SNOMED_JA[enc_type]
-        resource["type"] = [{"coding": [coding]}]
+    type_code = _ENCOUNTER_TYPE_SNOMED_CODE.get(enc_type)
+    if type_code:
+        resource["type"] = [{"coding": [{
+            "system": get_system_uri("snomed-ct"),
+            "code": type_code,
+            "display": code_lookup("snomed-ct", type_code, resolve_lang(country)),
+        }]}]
 
     # Priority (Encounter.priority)
     priority = enc.get("priority", "")
