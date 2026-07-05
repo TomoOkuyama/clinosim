@@ -22,6 +22,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from clinosim.modules._shared import get_attr_or_key as _get
+from clinosim.modules._shared import get_or_create_container, set_attr_or_key as _set
 from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS
 from clinosim.modules.antibiotic.engine import (
     ABX_NARROW_SUFFIX,
@@ -109,22 +110,14 @@ def enrich_antibiotic(ctx) -> None:
                     duration_days=regimen.duration_days,
                     reason_condition=regimen.hai_event_id,
                 )
-                if isinstance(rec, dict):
-                    rec.setdefault("orders", []).append(order)
-                else:
-                    rec.orders.append(order)
+                get_or_create_container(rec, "orders", list).append(order)
                 mars = generate_mar_doses(regimen, snapshot_datetime=snapshot,
                                           order_id=order_id)
-                if isinstance(rec, dict):
-                    rec.setdefault("medication_administrations", []).extend(mars)
-                else:
-                    rec.medication_administrations.extend(mars)
+                get_or_create_container(rec, "medication_administrations", list).extend(mars)
                 regimens_out.append(regimen)
         if regimens_out:
-            if isinstance(rec, dict):
-                rec.setdefault("extensions", {}).setdefault("antibiotic", []).extend(regimens_out)
-            else:
-                rec.extensions.setdefault("antibiotic", []).extend(regimens_out)
+            ext = get_or_create_container(rec, "extensions", dict)
+            get_or_create_container(ext, "antibiotic", list).extend(regimens_out)
         # PR3b-3 Pass 2: narrow / de-escalation
         _apply_pass2(rec, snapshot)
 
@@ -140,24 +133,18 @@ def _truncate_mar(record, regimen: AntibioticRegimen) -> None:
     if regimen.discontinuation_datetime is None:
         return
     order_id = f"req-{regimen.regimen_id}"
-    if isinstance(record, dict):
-        mars = record.get("medication_administrations", [])
-    else:
-        mars = record.medication_administrations
+    mars = _get(record, "medication_administrations", [])
     kept = [m for m in mars if not (
         m.order_id == order_id
         and m.scheduled_datetime > regimen.discontinuation_datetime
     )]
-    if isinstance(record, dict):
-        record["medication_administrations"] = kept
-    else:
-        record.medication_administrations = kept
+    _set(record, "medication_administrations", kept)
 
 
 def _mark_order_stopped(record, regimen: AntibioticRegimen) -> None:
     """Set the matching Order.status to OrderStatus.STOPPED."""
     order_id = f"req-{regimen.regimen_id}"
-    orders = record.orders if not isinstance(record, dict) else record.get("orders", [])
+    orders = _get(record, "orders", [])
     for o in orders:
         if o.order_id == order_id:
             o.status = OrderStatus.STOPPED
@@ -275,18 +262,10 @@ def _apply_pass2(rec, snapshot: datetime) -> None:
                 duration_days=narrow_dur,
                 reason_condition=hai_id,
             )
-            if isinstance(rec, dict):
-                rec.setdefault("orders", []).append(order)
-            else:
-                rec.orders.append(order)
+            get_or_create_container(rec, "orders", list).append(order)
             mars = generate_mar_doses(new_regimen, snapshot_datetime=snapshot, order_id=order_id)
-            if isinstance(rec, dict):
-                rec.setdefault("medication_administrations", []).extend(mars)
-            else:
-                rec.medication_administrations.extend(mars)
+            get_or_create_container(rec, "medication_administrations", list).extend(mars)
 
     if new_regimens:
-        if isinstance(rec, dict):
-            rec.setdefault("extensions", {}).setdefault("antibiotic", []).extend(new_regimens)
-        else:
-            rec.extensions.setdefault("antibiotic", []).extend(new_regimens)
+        ext = get_or_create_container(rec, "extensions", dict)
+        get_or_create_container(ext, "antibiotic", list).extend(new_regimens)

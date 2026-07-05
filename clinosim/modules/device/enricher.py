@@ -13,6 +13,7 @@ from __future__ import annotations
 import numpy as np
 
 from clinosim.modules._shared import get_attr_or_key as _get
+from clinosim.modules._shared import get_or_create_container
 from clinosim.modules.device.engine import (
     load_devices_config,
     place_devices_for_encounter,
@@ -41,8 +42,5 @@ def enrich_device(ctx) -> None:
             devices.extend(place_devices_for_encounter(rec, encounter, rng, cfg))
         if not devices:
             continue
-        if isinstance(rec, dict):
-            ext = rec.setdefault("extensions", {})
-        else:
-            ext = rec.extensions
+        ext = get_or_create_container(rec, "extensions", dict)
         ext["device"] = devices

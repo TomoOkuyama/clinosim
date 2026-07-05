@@ -2313,29 +2313,25 @@ Remaining, re-scoped:
   its SNOMED codes exist in `codes/data/snomed-ct.yaml` yet — migration also changes the lookup key
   from enum to SNOMED code.
 
-### ★ Dual-access sweep
+### ~~★ Dual-access sweep~~ — CLOSED (session 37, 2026-07-05)
 
-**Re-verified 2026-07-05 (session 37)** — line numbers had drifted; re-scoped by actual
-swap complexity:
-- Read side, trivial single-field `_o()` swaps: `csv_adapter.py:312-315`, `_fhir_device.py:23`,
-  `_fhir_hai.py:24`, `_fhir_immunization.py:32`.
-- Read side, needs a different helper (whole-object dict coercion, not a single-field read):
-  `_fhir_observations.py:431` (converts entire `Order` via `dataclasses.asdict()`),
-  `observation/nursing_enricher.py:36,70` (`vs.__dict__`/`adl.__dict__`). `_o()` doesn't fit these;
-  either add a `to_dict()`-style coercion helper or leave as-is (not a correctness bug today).
-- `_fhir_conditions.py:54,137,183` **mischaracterized in the original entry** — this is NOT the
-  dataclass-vs-dict pattern; it's `isinstance(chronic, str)` vs `isinstance(chronic, dict)`
-  disambiguating two legitimate CIF shapes (bare ICD code string vs structured dict). A real
-  `ChronicCondition` dataclass reaching this function matches neither branch and is silently
-  dropped via the trailing `else: continue` — a latent PR-90-class risk distinct from the
-  dual-access pattern; needs its own fix (add a dataclass branch or confirm it's unreachable).
-- Write side: NO shared helper exists (confirmed still true). Actual scope is larger than
-  originally estimated: 8 files / 11+ call sites (`code_status/enricher.py`,
-  `care_level/enricher.py`, `immunization/enricher.py`, `family_history/enricher.py`,
-  `nursing_enricher.py` — all simple single-field sets; `device/enricher.py`, `hai/enricher.py`,
-  `antibiotic/enricher.py` — nested `setdefault`-then-assign or list append/extend, which a plain
-  `set_attr_or_key(obj, name, value)` won't cover). A single helper needs at minimum a nested-path
-  parameter and a set/append/extend mode to cover all real call sites.
+- Read side trivial single-field swaps (`csv_adapter.py`, `_fhir_device.py`, `_fhir_hai.py`,
+  `_fhir_immunization.py`) → `_o()` (`get_attr_or_key`).
+- `_fhir_conditions.py` — was mischaracterized in the original entry as the dataclass-vs-dict
+  pattern (it's actually str-vs-dict); fixed the real latent bug found while re-scoping: a bare
+  `ChronicCondition` dataclass reaching this function matched neither branch and was silently
+  dropped via a trailing `else: continue`. Replaced with `get_attr_or_key()`, which also removed
+  a redundant duplicate `c_stage` read.
+- Write side: added `set_attr_or_key(obj, name, value)` (single-field replacement) and
+  `get_or_create_container(obj, name, factory)` (nested dict/list field, composable for two levels
+  e.g. `extensions` → `antibiotic`) to `_shared.py`. Swept all 8 files / 13 call sites:
+  `code_status`/`care_level`/`immunization`/`family_history`/`nursing_enricher` (simple sets),
+  `device`/`hai` (nested extensions + list append), `antibiotic` (5 sites: orders/MAR
+  append+extend, extensions→antibiotic nested extend, plus 2 read-side sites in
+  `_truncate_mar`/`_mark_order_stopped` that were also inconsistent ternary dict/dataclass reads).
+- `_fhir_observations.py:431` / `observation/nursing_enricher.py:36,70` — confirmed NOT the same
+  pattern (whole-object `dataclasses.asdict()` / `.__dict__` coercion, needed because the consumer
+  function takes a full dict, not one field). Both already correct; no change made.
 
 ### Single items (ride along with related chains)
 

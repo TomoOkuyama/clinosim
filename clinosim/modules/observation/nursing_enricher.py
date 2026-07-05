@@ -15,6 +15,7 @@ from clinosim.modules.observation.nursing import (
     compute_news2,
 )
 from clinosim.modules._shared import get_attr_or_key as _get
+from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.encounter import NursingRiskAssessment
 
@@ -77,7 +78,4 @@ def enrich_nursing(ctx) -> None:
                 age, adld, loc, has_iv=str(d) in iv_dates, rng=rng)
             out.append(NursingRiskAssessment(
                 date=d, morse_total=morse, fall_risk_level=level, **braden))
-        if isinstance(rec, dict):
-            rec["nursing_risk_assessments"] = out
-        else:
-            rec.nursing_risk_assessments = out
+        _set(rec, "nursing_risk_assessments", out)

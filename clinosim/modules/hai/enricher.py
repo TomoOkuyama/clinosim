@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 import numpy as np
 
 from clinosim.modules._shared import get_attr_or_key as _get
-from clinosim.modules._shared import normalize_probabilities
+from clinosim.modules._shared import get_or_create_container, normalize_probabilities
 from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
 from clinosim.modules.hai import HAI_TYPES
 from clinosim.modules.hai.engine import (
@@ -179,10 +179,7 @@ def enrich_hai(ctx) -> None:
             _append_hai_culture(rec, ev, specimens_cfg[hai_type], onset_date,
                                 antibiogram_cfg, rng)
         if hai_events:
-            if isinstance(rec, dict):
-                rec.setdefault("extensions", {})["hai"] = hai_events
-            else:
-                rec.extensions["hai"] = hai_events
+            get_or_create_container(rec, "extensions", dict)["hai"] = hai_events
 
 
 def _append_hai_culture(
@@ -227,7 +224,4 @@ def _append_hai_culture(
         micro.susceptibilities.append(
             SusceptibilityResult(antibiotic_loinc=str(loinc), interpretation=interp)
         )
-    if isinstance(rec, dict):
-        rec.setdefault("microbiology", []).append(micro)
-    else:
-        rec.microbiology.append(micro)
+    get_or_create_container(rec, "microbiology", list).append(micro)

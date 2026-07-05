@@ -7,6 +7,7 @@ from __future__ import annotations
 import numpy as np
 
 from clinosim.modules._shared import get_attr_or_key as _get
+from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.care_level.engine import assign_care_level
 from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 
@@ -19,7 +20,4 @@ def enrich_care_level(ctx) -> None:
         age = int(_get(patient, "age", 0) or 0) if patient else 0
         rng = np.random.default_rng(derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["care_level"], pid or "x"))
         code = assign_care_level(age, country, rng)
-        if isinstance(rec, dict):
-            rec["care_level"] = code
-        else:
-            rec.care_level = code
+        _set(rec, "care_level", code)

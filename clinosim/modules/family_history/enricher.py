@@ -8,6 +8,7 @@ from __future__ import annotations
 import numpy as np
 
 from clinosim.modules._shared import get_attr_or_key as _get
+from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.family_history.engine import generate_family_history
 from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 
@@ -21,7 +22,4 @@ def enrich_family_history(ctx) -> None:
         conditions = _get(patient, "chronic_conditions", []) if patient else []
         rng = np.random.default_rng(derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["family_history"], pid or "x"))
         fams = generate_family_history(age, conditions, country, rng)
-        if isinstance(rec, dict):
-            rec["family_history"] = fams
-        else:
-            rec.family_history = fams
+        _set(rec, "family_history", fams)
