@@ -403,42 +403,59 @@ def test_hospitalized_only_diseases_always_hospitalize(country, disease):
 
 
 # ---------------------------------------------------------------------------
-# CKD severity_score must track the sampled G1-G5 stage (same "reuse the
-# existing draw, reinterpret" pattern as the diabetes glycemic_control axis
-# above), not the flat uniform(0.1, 0.4) draw shared by other chronic
-# conditions. Otherwise physiology/engine.py's severity>0.5 anemia/acidosis
-# branch is dead code and CKD creatinine never spreads past G3-equivalent
-# (2026-06-20 realism audit finding).
+# Graded-stage chronic conditions (CKD G1-G5, heart failure NYHA I-IV, COPD
+# GOLD 1-4, asthma's 4 severity levels, ischemic heart disease CCS I-III)
+# must have severity_score track the sampled stage (same "reuse the existing
+# draw, reinterpret" pattern as the diabetes glycemic_control axis above),
+# not the flat uniform(0.1, 0.4) draw shared by conditions without a graded
+# stage. Otherwise physiology/engine.py's stage-gated branches (CKD's
+# severity>0.5 anemia/acidosis, heart failure's severity>0.3 volume overload)
+# are dead/near-dead code and the sampled stage has no clinical consequence
+# (2026-06-20 realism audit finding, CKD; extended this session to the other
+# graded-stage conditions sharing the same disconnect).
 # ---------------------------------------------------------------------------
 
-from clinosim.modules.patient.activator import CKD_STAGE_SEVERITY
+from clinosim.modules.patient.activator import STAGE_SEVERITY
 
 
-def _make_ckd_person(age: int = 65) -> PersonRecord:
+def _make_condition_person(code: str, age: int = 65) -> PersonRecord:
     p = _make_person(age=age)
-    p.chronic_conditions = ["N18.3"]
+    p.chronic_conditions = [code]
     return p
 
 
-def test_ckd_severity_score_tracks_sampled_stage():
+@pytest.mark.parametrize("code,severe_stages", [
+    ("N18.3", ("CKD G4", "CKD G5")),
+    ("I50.9", ("NYHA III", "NYHA IV")),
+    ("J44.9", ("GOLD 3", "GOLD 4")),
+    ("J45.9", ("Moderate persistent", "Severe persistent")),
+    ("I25.9", ("CCS III",)),
+])
+def test_graded_stage_severity_score_tracks_sampled_stage(code, severe_stages):
     demo = _minimal_demo_for_activate()
+    code_base = code.split(".")[0]
+    stage_severity = STAGE_SEVERITY[code_base]
     seen_severe = False
     for seed in range(100):
-        person = _make_ckd_person()
+        person = _make_condition_person(code)
         profile = activate_patient(person, np.random.default_rng(seed), demo)
-        ckd = next(c for c in profile.chronic_conditions if c.code.startswith("N18"))
-        stage_suffix = ckd.stage.replace("CKD ", "")
-        assert stage_suffix in CKD_STAGE_SEVERITY, f"unexpected CKD stage text: {ckd.stage!r}"
-        assert ckd.severity_score == CKD_STAGE_SEVERITY[stage_suffix]
-        if stage_suffix in ("G4", "G5"):
+        cond = next(c for c in profile.chronic_conditions if c.code.startswith(code_base))
+        # N18's stage text carries a "CKD " display prefix not part of the
+        # KDIGO stage code itself (matches activator.py's own lookup).
+        lookup_key = cond.stage.removeprefix("CKD ") if code_base == "N18" else cond.stage
+        assert lookup_key in stage_severity, f"unexpected {code_base} stage text: {cond.stage!r}"
+        assert cond.severity_score == stage_severity[lookup_key]
+        if cond.stage in severe_stages:
             seen_severe = True
-    assert seen_severe, "no G4/G5 CKD patient sampled in 100 seeds — check stage weights"
+    assert seen_severe, f"no severe-stage {code_base} patient sampled in 100 seeds"
 
 
-def test_ckd_severity_score_deterministic_same_seed():
+@pytest.mark.parametrize("code", ["N18.3", "I50.9", "J44.9", "J45.9", "I25.9"])
+def test_graded_stage_severity_score_deterministic_same_seed(code):
     demo = _minimal_demo_for_activate()
-    p1 = activate_patient(_make_ckd_person(), np.random.default_rng(55), demo)
-    p2 = activate_patient(_make_ckd_person(), np.random.default_rng(55), demo)
-    s1 = next(c for c in p1.chronic_conditions if c.code.startswith("N18")).severity_score
-    s2 = next(c for c in p2.chronic_conditions if c.code.startswith("N18")).severity_score
+    code_base = code.split(".")[0]
+    p1 = activate_patient(_make_condition_person(code), np.random.default_rng(55), demo)
+    p2 = activate_patient(_make_condition_person(code), np.random.default_rng(55), demo)
+    s1 = next(c for c in p1.chronic_conditions if c.code.startswith(code_base)).severity_score
+    s2 = next(c for c in p2.chronic_conditions if c.code.startswith(code_base)).severity_score
     assert s1 == s2
