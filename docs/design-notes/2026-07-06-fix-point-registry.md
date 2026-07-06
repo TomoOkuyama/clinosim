@@ -136,8 +136,12 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 
 9 疾患欠如(全て `complications:` も欠如)。fallback は炎症性内科向けで外傷に不整合(考察 §3.3)。
 
-- **FP-ARCH-1(高)**: `heart_failure_exacerbation`(利尿反応/難治化 course、再入院 0.22)、
-  `subdural_hematoma`(再出血/神経悪化、死亡 0.15)。
+- **FP-ARCH-1(高)**: `heart_failure_exacerbation`(利尿反応/難治化 course、再入院 0.22)
+  = **DONE**(session 38: 6 diuresis-driven archetypes[volume_status↓/cardiac_function↑]
+  + cardiorenal AKI/afib-RVR/cardiogenic shock/respiratory failure complications。audit 0 FAIL、
+  golden byte 不変[HF は profile 疾患でない])。残 `subdural_hematoma`(再出血/神経悪化、死亡 0.15)。
+  **follow-up**: HF `initial_state_impact` の `sodium_status` は認識 state var 10 種に無く silent-drop
+  (別 latent issue)+ HF `daily_trajectory` narrative 未 author(generic fallback)。
 - **FP-ARCH-2(中)**: `industrial_burn_severe` / `traffic_accident_severe` / `fall_from_height`。
   **course_archetypes より先に/併せて `complications:`**(ICU 転送・DVT・せん妄・SSI)。
 - **FP-ARCH-3(低)**: `hip_fracture`(せん妄/DVT は complications 主体)/ `crush_injury_hand` /
