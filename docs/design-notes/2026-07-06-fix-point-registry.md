@@ -139,9 +139,13 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 - **FP-ARCH-1(高)**: `heart_failure_exacerbation`(利尿反応/難治化 course、再入院 0.22)
   = **DONE**(session 38: 6 diuresis-driven archetypes[volume_status↓/cardiac_function↑]
   + cardiorenal AKI/afib-RVR/cardiogenic shock/respiratory failure complications。audit 0 FAIL、
-  golden byte 不変[HF は profile 疾患でない])。残 `subdural_hematoma`(再出血/神経悪化、死亡 0.15)。
+  golden byte 不変[HF は profile 疾患でない])。`subdural_hematoma`(再出血/神経悪化、死亡 0.15)
+  = **DONE**(session 38: 6 post-evacuation archetypes[perfusion/inflammation/anemia 回復、再出血=
+  sudden_deterioration]+ recurrent_hematoma/postoperative_delirium/seizure/cerebral_herniation/VTE
+  complications。risk condition は `_evaluate_risk_condition` 対応分に限定[silent-no-op 回避]。
+  lift-firing 実証 500 severe×10d 全5発火。US+JP audit 0 FAIL、golden byte 不変)。**FP-ARCH-1 完了**。
   **follow-up**: HF `initial_state_impact` の `sodium_status` は認識 state var 10 種に無く silent-drop
-  (別 latent issue)+ HF `daily_trajectory` narrative 未 author(generic fallback)。
+  (別 latent issue)+ HF/subdural `daily_trajectory` narrative 未 author(generic fallback)。
 - **FP-ARCH-2(中)**: `industrial_burn_severe` / `traffic_accident_severe` / `fall_from_height`。
   **course_archetypes より先に/併せて `complications:`**(ICU 転送・DVT・せん妄・SSI)。
 - **FP-ARCH-3(低)**: `hip_fracture`(せん妄/DVT は complications 主体)/ `crush_injury_hand` /
