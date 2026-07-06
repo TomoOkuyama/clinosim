@@ -2435,3 +2435,78 @@ from the 2026-07-02 review re-verified and migrated (2 were already done by prio
   branch was and remains dead for current data) — this hardens against a future
   incomplete-coverage regression. `pytest -m unit` (1062 passed) and `-m integration`
   (278 passed, 5 skipped, 1 xfailed) both green.
+
+## clinical_course severity/archetype wiring fix — deferred scope (2026-07-05)
+
+Full context: `docs/superpowers/specs/2026-07-05-clinical-course-severity-archetype-wiring-design.md`.
+Comprehensive multi-agent code review + brainstorming session found a much
+larger structural issue while fixing two concrete bugs (course_archetypes
+wiring, severity_severe stub) — deliberately deferred per scope discipline.
+
+### Two disconnected severity systems: disease YAML `severity.distribution`/`modifiers` vs locale `severity_beta`
+
+`clinosim/modules/disease/protocol.py`'s `DiseaseProtocol` has no
+`model_config = ConfigDict(extra="forbid")`, so the `severity:` block's
+`distribution`/`modifiers` sub-keys (present in all 30 disease YAMLs, citing
+real clinical literature — TIMI score, ACC/AHA, Tokyo Guidelines, JROAD, etc.)
+are silently discarded at load time and never read by any Python code
+(grep-verified: zero references to `protocol.severity`, `moderate_multiplier`,
+`severe_multiplier`, `mild_multiplier` anywhere). The severity actually used
+in simulation comes from an unrelated `severity_beta` 2-parameter Beta
+distribution in `clinosim/locale/{us,jp}/demographics.yaml`, which is
+comorbidity-blind. Options: (a) wire disease YAML's `severity.distribution` +
+`modifiers` into the sampling path, replacing or supplementing
+`severity_beta` (a real architecture change touching `population/engine.py`
+and `simulator/inpatient.py`); (b) formally retire the disease-YAML
+`severity:` block as non-machine-readable documentation (delete or clearly
+annotate it, decide whether to keep the literature citations as comments);
+(c) some hybrid (e.g. `severity.modifiers` becomes a small, well-scoped
+comorbidity adjustment to the existing `severity_beta` draw, while
+`distribution` stays descriptive-only). This is a genuine design decision,
+not a mechanical fix — needs its own brainstorming session.
+
+### `archetype_modifiers` YAML block is dead (28/30 disease YAMLs)
+
+Meant to shift `course_archetypes` probabilities based on patient conditions
+(e.g. `age_over_75`, `heart_failure`, `valvular_heart_disease`) — but
+`select_archetype` (`clinosim/modules/clinical_course/engine.py:82-97`) has
+its own separate, hardcoded severity/profile modifier logic instead of
+reading this YAML block at all. Same missing-`extra="forbid"` root cause as
+above. Options: wire it in (would need to decide how it composes with the
+existing hardcoded modifiers — replace, or apply both?), or delete it from
+the 30 YAMLs as abandoned/aspirational content.
+
+### Smaller orphaned/duplicated disease-YAML top-level keys
+
+Also silently dropped due to the missing `extra="forbid"` guard:
+`differential_diagnosis` (5 files — `asthma_exacerbation`,
+`deep_vein_thrombosis`, `hemorrhagic_stroke`, `influenza`,
+`vertebral_compression_fracture` — duplicate the live nested
+`diagnostic.differential`, dead top-level copy, active dual-maintenance
+drift risk since nothing keeps the two in sync); `diagnostic_difficulty`
+(top-level copy dead, only `diagnostic.diagnostic_difficulty` nested inside
+the `diagnostic:` dict is read, at `inpatient.py:613`); `rehabilitation` (7
+trauma/fracture files); `precipitants` (DKA); `prerequisite` (asthma); and a
+fully vestigial `readmission: dict = {}` schema field with zero YAML usage
+and zero Python readers. Each needs its own small decision (wire vs delete)
+before `extra="forbid"` can be turned on safely.
+
+### `model_config = ConfigDict(extra="forbid")` rollout blocked on the above
+
+Cannot be added to `DiseaseProtocol` (`clinosim/modules/disease/protocol.py`)
+until every orphaned key above is resolved (wired or deleted from all 30
+YAMLs), or every existing disease YAML will fail to load. This is the actual
+fix that would have caught all of the above at author time — worth
+prioritizing once the per-key decisions are made.
+
+### 9 diseases with no `course_archetypes` block
+
+`heart_failure_exacerbation` plus 8 trauma/fracture diseases
+(`crush_injury_hand`, `electrical_injury`, `fall_from_height`, `hip_fracture`,
+`industrial_burn_severe`, `subdural_hematoma`, `traffic_accident_severe`,
+`wrist_fracture_surgical`) have no `course_archetypes` block, so they
+silently use the generic `_FALLBACK_PROBABILITIES`/`_FALLBACK_TRAJECTORIES`.
+Plausibly acceptable for trauma (generic post-op recovery shape); a real gap
+for `heart_failure_exacerbation`, which has a well-known diuresis-driven
+recovery curve that isn't modeled. Needs per-disease YAML authoring, not a
+code change.
