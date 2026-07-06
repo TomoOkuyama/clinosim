@@ -60,17 +60,19 @@ completeness 修正に固有の新規約だけを書く — 既存規約は**再
 
 ---
 
-## 3. 重症度 single-source-of-truth 規約(FP-SEV-MODEL 確定後に本節を更新)
+## 3. 重症度 single-source-of-truth 規約(FP-SEV-MODEL / AD-67 で確定)
 
-> **注意**: 本節は FP-SEV-MODEL の brainstorming で canonical が確定するまで**暫定**。確定後に
-> `severity_from_protocol` の正式シグネチャと下限一元化ルールをここに固定する。
-
-- 重症度は **1 つの canonical source**(考察 §3.1 推奨 = 疾患 YAML の分布)から導出する。
-  float↔カテゴリ境界・下限を**単一ヘルパ** `severity_from_protocol(protocol, draw)` に集約
-  (`scenario_flags_from_protocol` / `classify_lab_specs` 兄弟パターン)。
-- **禁止**: `inpatient.py:117` の 0.3/0.7 のような call-site ハードコード閾値。下限を
-  `severity_minimum`(float)と `minimum_severity`(str)で二重に持つこと。
-- 入院/ED の重症度は同一ヘルパに載せ、経路依存の二重定義を作らない。
+- 重症度の canonical source は **疾患 YAML `severity.distribution` × `modifiers`**。owner は
+  `clinosim/modules/disease/severity.py`。locale `severity_beta` / `severity_minimum` は撤廃済 —
+  **復活禁止**(`test_completeness_invariants.py` が reader 0 を強制)。
+- サンプリングは `sample_severity(protocol, person, rng) -> (category, score)`(入院、連続 score も返す)
+  / `sample_severity_category(distribution, modifiers, person, rng, minimum) -> category`(ED 共用)。
+  カテゴリ↔score 境界は `SEVERITY_SCORE_RANGES` + `category_from_score` が**唯一定義**。
+- **禁止**: call-site の 0.3/0.7 ハードコード閾値(`category_from_score` を使う)。下限を 2 箇所で持つこと
+  (`minimum_severity` に一元化、`sample_severity` 内で clamp)。
+- 入院(`population/engine`→`inpatient`)と ED(`emergency`)は同じプリミティブに載せる。
+- modifier condition は person 由来(EVALUABLE)と疾患内在(RESERVED_INTRINSIC、現状 skip)に分離、
+  未知 condition は load 時 `_validate_severity_block` で raise。
 
 ---
 

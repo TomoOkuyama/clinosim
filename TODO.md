@@ -2436,26 +2436,37 @@ from the 2026-07-02 review re-verified and migrated (2 were already done by prio
   incomplete-coverage regression. `pytest -m unit` (1062 passed) and `-m integration`
   (278 passed, 5 skipped, 1 xfailed) both green.
 
-## clinical_course severity/archetype wiring fix — deferred scope (2026-07-05)
+## clinical_course severity/archetype wiring fix — deferred scope (2026-07-05 → mostly RESOLVED 2026-07-06)
 
-> **2026-07-06 更新**: 本節以下の deferred 項目群(重症度二重システム / 孤児 YAML キー /
-> `extra="forbid"` / course_archetypes 欠如 / I10 stage / person.age 複数年)は、6 系統の
-> 横断調査(session 38)で **FHIR completeness ゴール**の下に再構成された。個別の修正手順・
-> 優先度・セッション割当・依存関係は **`docs/design-notes/2026-07-06-fix-point-registry.md`**
-> (TODO とは別の追跡台帳)に FP-* として集約。考察・ゴールは
-> `docs/design-notes/2026-07-06-fhir-completeness-and-data-model-unification.md`、実装が従う
-> 規約は `docs/design-guides/data-model-and-completeness-conventions.md`。以下の記述は原調査の
-> file:line 詳細として保持(registry から参照される)。
+> **★ 2026-07-06 session 38 で本節の大半が解決**。この deferred 群(重症度二重システム / 孤児 YAML
+> キー / `extra="forbid"` / course_archetypes 欠如 / I10 stage / person.age)は **FHIR completeness
+> ゴール**の下に再構成され、9 チェーンで消化された。追跡台帳 =
+> **`docs/design-notes/2026-07-06-fix-point-registry.md`**(FP-*)、考察 =
+> `2026-07-06-fhir-completeness-and-data-model-unification.md`、規約 =
+> `docs/design-guides/data-model-and-completeness-conventions.md`。
 >
-> **2026-07-06 追記(FP-SEV-MODEL DONE, AD-67)**: 重症度3系統の統合は完了(疾患YAML canonical、
-> `clinosim/modules/disease/severity.py`、locale `severity_beta`/`severity_minimum` 撤廃)。
-> **deferred follow-up = 疾患内在 modifier の評価機構**: `severity.modifiers` の condition 66 種のうち
-> person 由来 ~34 は評価済だが、疾患内在・シナリオ依存の ~32 種(`anterior_wall_MI` / `saddle_embolus`
-> / `gcs_below_8` / `APACHE_II_above_8` / `FEV1_below_30` / `first_presentation_T1DM` / `bilateral_dvt`
-> 等、`clinosim/modules/disease/severity.py:RESERVED_INTRINSIC_CONDITIONS`)は現状 skip(検証語彙には
-> 登録済で typo とは区別)。これらは disease sub-type / scenario の情報を要するため、scenario-flag 機構
-> (`scenario_flags_from_protocol` 兄弟)で評価する設計が別途必要。`archetype_modifiers`(FP-YAML-2)と
-> 同時に検討すると、両者とも「疾患内在フラグを患者イベントに解決する」共通機構に載る可能性がある。
+> **本節 sub-item の解決状況:**
+>
+> | 項目(以下の見出し) | 状態 | FP / commit |
+> |---|---|---|
+> | 重症度二重システム(severity.distribution vs severity_beta) | ✅ DONE | FP-SEV-MODEL / AD-67(疾患YAML canonical、severity.py、severity_beta 撤廃) |
+> | `archetype_modifiers` dead | ✅ DONE | FP-YAML-2b / AD-68(select_archetype に配線) |
+> | smaller orphaned keys(differential_diagnosis / rehabilitation / precipitants / prerequisite) | ✅ DONE | FP-YAML-2(削除) |
+> | `extra="forbid"` rollout | ✅ DONE | FP-YAML-3 / AD-69 |
+> | `incidence.risk_multipliers` unread(第3の disconnected data) | ⬜ OPEN | 未着手(registry follow-up 候補) |
+> | `disease_risk_multipliers.fall_from_height: {F10}` dead | ⬜ OPEN | 上と同時に検討 |
+> | 9 diseases no `course_archetypes` | 🟡 PARTIAL | FP-ARCH-1 で HF + subdural DONE、残 7 trauma 疾患(FP-ARCH-2/3) |
+> | I10 STAGE_SEVERITY no-op | ✅ DONE | FP-I10(stage→BP baseline 消費) |
+> | `person.age` multi-year 未対応 | ⬜ OPEN | FP-AGE(as-of 化 2 フェーズ、未着手) |
+>
+> **新規 follow-up(session 38 実装中に発見、registry 記載)**: (1) 疾患内在 modifier ~32 種
+> (`severity.py:RESERVED_INTRINSIC_CONDITIONS` + archetype 側)は scenario-flag 機構待ちで skip、
+> (2) `Condition.stage.type` の SNOMED 385356007 "Tumor stage finding" が全 6 staged 疾患で誤流用、
+> (3) 死蔵モデル field 3 件(expected_vital_distributions / reference_ranges / drug_interactions)、
+> (4) HF `initial_state_impact` の `sodium_status` 未認識 state var、(5) cohort-level 統計
+> completeness audit 軸。詳細は registry 参照。
+>
+> 以下の原調査 file:line 詳細は履歴として保持(registry から参照)。
 
 Full context: `docs/superpowers/specs/2026-07-05-clinical-course-severity-archetype-wiring-design.md`.
 Comprehensive multi-agent code review + brainstorming session found a much

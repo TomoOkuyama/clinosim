@@ -227,6 +227,28 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 
 **Tier 1 #2 Imaging chain α-min complete** (2026-06-30, AD-62) — `modules/imaging/` always-on POST_ENCOUNTER Module (order=90) emits `ImagingStudyRecord` into `extensions["imaging"]`. 4 FHIR resources per imaging encounter: `ImagingStudy` (urn:dicom:uid, DCM modality, multi-series), `Endpoint` (WADO-RS placeholder), radiology `DiagnosticReport` (findings + impression in `text.div` + `conclusion`), `ServiceRequest` (imaging category). Polymorphic `_fhir_service_request` dispatches LAB + IMAGING. 15-check `lift_firing_proof` (AD-60). Disease YAMLs: `bacterial_pneumonia.yaml` (CR CXR) + `hemorrhagic_stroke.yaml` (CT head). JP locale: 100% ja displays (modality/bodySite/DR.code/conclusion). Production cohort: US p=10k + JP p=5k. Bug found+fixed: `_simulate_unknown_condition` was not setting `encounter_id` on orders before returning `CIFPatientRecord` — added encounter_id backfill loop (mirrors `simulate_inpatient:361-363`).
 
+**FHIR completeness chain complete** (2026-07-06, session 38, AD-67/68/69) — a 9-chain effort
+to eliminate "incomplete FHIR element states", organized in a dedicated fix-point registry
+(`docs/design-notes/2026-07-06-fix-point-registry.md`, kept separate from this TODO) under a
+3-class definition: **C1 silent-drop** / **C2 degenerate** / **C3 missing-structure**. Landed:
+(1) **FP-SEV-MODEL / AD-67** — severity single source of truth: disease-YAML
+`severity.distribution` × `modifiers` is now canonical (new `clinosim/modules/disease/severity.py`
+owns sampling + the category↔score boundary + fail-loud validation); locale `severity_beta` /
+`severity_minimum` retired; comorbidity modifiers now fire (acute_mi severe rate ~0.11→~0.5).
+(2) **FP-YAML-2b / AD-68** — dead `archetype_modifiers` (23 YAMLs) wired into `select_archetype`.
+(3) **FP-YAML-3 / AD-69** — `DiseaseProtocol` `extra="forbid"` (author-time silent-drop defense)
+after deleting 4 unread orphan keys + the dead `readmission` field.
+(4) **FP-YAML-1** — `diagnostic_difficulty` top-level silent-drop (8 diseases had 0.25/0.5→0.3).
+(5) **FP-I10** — hypertension stage now drives baseline BP (was a no-op degenerate stage).
+(6) **FP-ARCH-1** — `heart_failure_exacerbation` + `subdural_hematoma` course_archetypes +
+complications (were on the generic infection fallback).
+(7) **FP-COMPLETENESS-GATE** — `tests/unit/test_completeness_invariants.py` durable guards
+(incl. a general-class C2 guard: every graded-stage condition must have a `STAGE_SEVERITY`
+consumer, so the I10-class no-op cannot recur). Remaining: FP-AGE (person.age multi-year),
+FP-ARCH-2/3 (7 trauma diseases), cross-cutting follow-ups (Condition.stage SNOMED code across 6
+staged conditions, 3 dead model fields, cohort-level statistical completeness audit axis) — all in
+the registry. Implementation conventions: `docs/design-guides/data-model-and-completeness-conventions.md`.
+
 See `TODO.md` for roadmap and remaining tasks.
 
 ## Key directories

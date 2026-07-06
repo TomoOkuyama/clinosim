@@ -76,6 +76,7 @@
 | 確率ベクトル | `normalize_probabilities(p, fallback="raise")`(`_shared.py`)を YAML 由来の全 `rng.choice(p=)` に |
 | lab order 分類 | `classify_lab_specs`(`order/panel_grouping.py`) |
 | scenario/medication flags | `scenario_flags_from_protocol` + `medication_flags_from_context` を **merge して `**flags` 渡し**。named-arg 追加禁止(J5 教訓) |
+| **重症度サンプリング** | `sample_severity(protocol, person, rng)` / `sample_severity_category(...)` / `category_from_score(score)`(`disease/severity.py`、AD-67)。重症度は疾患 YAML `severity.distribution × modifiers` が canonical。locale `severity_beta`/`severity_minimum` は撤廃済 — 復活禁止。0.3/0.7 のカテゴリ↔score 境界を call-site に hardcode 禁止(`SEVERITY_SCORE_RANGES` が唯一定義) |
 | imaging orders | `place_imaging_orders`(`order/engine.py`) |
 | 薬剤 protocol prefix 除去 | `strip_protocol_prefix`(`_shared.py`。FHIR と narrative の共用) |
 | LOS 計算 | `document/engine._compute_los_days`(in-progress proxy 込み) |
@@ -97,6 +98,16 @@
   `dict.get()` の silent fall-through 禁止。
 - aggregate loader(glob して全件 load)は **owner module に置く**(simulator 側から
   他 module の dir を glob しない)。
+- **YAML-loaded Pydantic model は `extra="forbid"`**(AD-69)。`DiseaseProtocol` /
+  `PatientProfile` は導入済。新しい top-level YAML キーは **model field を足してから**追加
+  (足さないと load で raise = author-time silent-drop 防御)。`DiseaseProtocol` の raw-dict
+  消費経路(`order/engine.py`)は forbid の保護外なので、そちらで読むキーも model に宣言する。
+- **FHIR completeness 3 不変則**(AD-67/68/69、`data-model-and-completeness-conventions.md`):
+  ①**C1** 読まれない YAML キーを ship しない(forbid + 消費配線)②**C2** 生成した要素は必ず
+  下流消費者を持つ — 特に **graded-stage 疾患(`_generate_stage`)は必ず `STAGE_SEVERITY` に
+  entry を持つ**(I10-class no-op の再発防止、`test_completeness_invariants.py` が強制)
+  ③**C3** 急性疾患は `course_archetypes` + `complications` を author(fallback は感染チューニング
+  で外傷/循環器に不整合)。regression ガード = `tests/unit/test_completeness_invariants.py`。
 
 ## 6. codes / locale / 多言語
 
