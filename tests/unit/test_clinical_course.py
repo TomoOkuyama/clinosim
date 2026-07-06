@@ -48,16 +48,23 @@ class TestSelectArchetype:
         assert counts.get("smooth_recovery", 0) > 500
 
     def test_low_immune_reactivity_increases_resistance(self, rng):
-        profile = PatientPhysiologicalProfile(immune_reactivity=0.2)
+        # FP-YAML-2b: the immune_reactivity -> treatment_resistant heuristic moved from
+        # a hardcoded rule to the disease YAML archetype_modifiers block. Exercise the
+        # same clinical intent through the new YAML-driven path.
+        mods = [
+            {"condition": "immune_reactivity < 0.3",
+             "effect": {"treatment_resistant": 0.10, "smooth_recovery": -0.10}}
+        ]
+        low = PatientPhysiologicalProfile(immune_reactivity=0.2)
         counts: dict[str, int] = {}
         for _ in range(1000):
-            a = select_archetype("moderate", profile, rng)
+            a = select_archetype("moderate", low, rng, protocol_modifiers=mods, patient=None)
             counts[a] = counts.get(a, 0) + 1
-        normal_profile = PatientPhysiologicalProfile(immune_reactivity=0.5)
+        normal = PatientPhysiologicalProfile(immune_reactivity=0.5)
         normal_counts: dict[str, int] = {}
         rng2 = np.random.default_rng(42)
         for _ in range(1000):
-            a = select_archetype("moderate", normal_profile, rng2)
+            a = select_archetype("moderate", normal, rng2, protocol_modifiers=mods, patient=None)
             normal_counts[a] = normal_counts.get(a, 0) + 1
         assert counts.get("treatment_resistant", 0) > normal_counts.get("treatment_resistant", 0)
 
