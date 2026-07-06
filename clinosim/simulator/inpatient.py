@@ -126,6 +126,8 @@ def _simulate_patient(
         archetype = select_archetype(
             severity, patient.physiological_profile, rng,
             protocol_archetypes=protocol.course_archetypes or None,
+            protocol_modifiers=protocol.archetype_modifiers or None,
+            patient=patient,
         )
 
     # Initialize physiological state

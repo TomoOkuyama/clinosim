@@ -6,13 +6,123 @@ defaults if YAML doesn't define them. Supports complication evaluation.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import numpy as np
 
 from clinosim.modules._shared import normalize_probabilities
+from clinosim.modules.disease.severity import _evaluate_condition as _severity_condition
 from clinosim.types.clinical import StateChangeDirective
 from clinosim.types.patient import PatientPhysiologicalProfile
+
+# --- archetype_modifiers condition evaluation (FP-YAML-2b) ---
+ARCHETYPE_EXPRESSION_VARS: frozenset[str] = frozenset(
+    {"age", "immune_reactivity", "treatment_sensitivity", "prior_dka_episodes"}
+)
+
+# Disease sub-type / scenario-specific conditions used only in archetype_modifiers,
+# not derivable from patient/profile. KNOWN (validation won't raise) but skipped this
+# chain (reserved for the shared scenario-flag mechanism — see TODO).
+ARCHETYPE_RESERVED_CONDITIONS: frozenset[str] = frozenset(
+    {
+        "dysphagia_known",
+        "troponin_elevated_and_rv_dysfunction",
+        "tpa_received",
+        "injection_drug_use",
+        "antiviral_within_48h",
+        "prerenal_etiology",
+        "active_infection",
+        "hematoma_volume_above_30mL",
+        "acalculous_cholecystitis",
+        "prior_vte",
+        "iliofemoral_location",
+        "symptom_duration_over_72h",
+        "symptom_duration_over_48h",
+        "prior_stroke",
+        "peptic_ulcer_history",
+        "anterior_wall_MI",
+        "prior_abdominal_surgery",
+        "hernia_incarcerated",
+        "medication_noncompliance",
+        "sepsis",
+        "prior_icu_admission",
+        "prior_icu_for_asthma",
+    }
+)
+
+_EXPR_RE = re.compile(r"^\s*(\w+)\s*(<=|>=|<|>|==)\s*(-?\d+(?:\.\d+)?)\s*$")
+_OPS = {
+    "<": lambda a, b: a < b,
+    "<=": lambda a, b: a <= b,
+    ">": lambda a, b: a > b,
+    ">=": lambda a, b: a >= b,
+    "==": lambda a, b: a == b,
+}
+
+
+def _eval_archetype_condition(condition: str, profile: Any, patient: Any) -> bool:
+    """True iff an archetype_modifier condition is active.
+
+    Expression form (``<var> <op> <number>``) reads age (patient) or
+    immune_reactivity / treatment_sensitivity (profile); unmodeled expression vars
+    (prior_dka_episodes) return False. Named form delegates to the severity
+    comorbidity vocabulary; reserved-intrinsic and unknown named conditions are False.
+    """
+    m = _EXPR_RE.match(condition or "")
+    if m:
+        var, op, num = m.group(1), m.group(2), float(m.group(3))
+        if var == "age":
+            val = float(getattr(patient, "age", 0))
+        elif var in ("immune_reactivity", "treatment_sensitivity"):
+            val = float(getattr(profile, var, 0.0))
+        else:
+            return False
+        return bool(_OPS[op](val, num))
+    return _severity_condition(condition, patient)
+
+
+def _apply_archetype_modifiers(
+    probs: dict[str, float], modifiers: list[dict[str, Any]], profile: Any, patient: Any
+) -> dict[str, float]:
+    """Add each active modifier's effect deltas to the archetype probabilities.
+
+    Effect keys are validated at load to be archetypes the disease defines, so a delta
+    to a non-existent archetype (silent phantom) cannot occur; guard with ``in probs``.
+    """
+    for mod in modifiers or []:
+        if not _eval_archetype_condition(mod.get("condition", ""), profile, patient):
+            continue
+        for arch, delta in (mod.get("effect") or {}).items():
+            if arch in probs:
+                probs[arch] = probs[arch] + float(delta)
+    return probs
+
+
+def _validate_archetype_modifiers(
+    disease_id: str, modifiers: list[dict[str, Any]], archetype_names: set[str]
+) -> None:
+    """Fail-loud validation of an archetype_modifiers block at load time.
+
+    Catches: an effect targeting an archetype the disease doesn't define (silent
+    phantom), a typo'd condition (neither a parseable expression nor a known named
+    condition), and a non-numeric delta.
+    """
+    from clinosim.modules.disease.severity import KNOWN_MODIFIER_CONDITIONS
+
+    known_named = ARCHETYPE_RESERVED_CONDITIONS | KNOWN_MODIFIER_CONDITIONS
+    for mod in modifiers or []:
+        cond = mod.get("condition", "")
+        if not _EXPR_RE.match(cond) and cond not in known_named:
+            raise ValueError(f"{disease_id}: unknown archetype_modifier condition {cond!r}")
+        for arch, delta in (mod.get("effect") or {}).items():
+            if arch not in archetype_names:
+                raise ValueError(
+                    f"{disease_id}: archetype_modifier effect targets {arch!r} not in "
+                    f"the disease's archetypes {sorted(archetype_names)}"
+                )
+            if not isinstance(delta, (int, float)):
+                raise ValueError(f"{disease_id}: non-numeric archetype_modifier delta for {arch!r}")
 
 
 # ============================================================
@@ -21,13 +131,31 @@ from clinosim.types.patient import PatientPhysiologicalProfile
 
 _FALLBACK_TRAJECTORIES: dict[str, dict[str, dict[int, float]]] = {
     "smooth_recovery": {
-        "inflammation_level": {0: 0.05, 1: -0.02, 2: -0.08, 3: -0.08, 5: -0.06, 7: -0.06, 10: -0.04, 14: -0.02},
+        "inflammation_level": {
+            0: 0.05,
+            1: -0.02,
+            2: -0.08,
+            3: -0.08,
+            5: -0.06,
+            7: -0.06,
+            10: -0.04,
+            14: -0.02,
+        },
         "volume_status": {0: 0.02, 1: 0.03, 2: 0.03, 3: 0.02, 5: 0.01, 7: 0.01},
         "renal_function": {0: 0.00, 2: 0.01, 5: 0.01, 10: 0.01},
         "perfusion_status": {0: 0.00, 2: 0.01, 5: 0.00},
     },
     "dip_then_recovery": {
-        "inflammation_level": {0: 0.10, 1: 0.05, 2: 0.02, 3: -0.02, 5: -0.08, 7: -0.10, 10: -0.08, 14: -0.05},
+        "inflammation_level": {
+            0: 0.10,
+            1: 0.05,
+            2: 0.02,
+            3: -0.02,
+            5: -0.08,
+            7: -0.10,
+            10: -0.08,
+            14: -0.05,
+        },
         "volume_status": {0: -0.05, 1: -0.03, 2: 0.02, 3: 0.03, 5: 0.02},
         "renal_function": {0: -0.02, 1: -0.01, 3: 0.01, 5: 0.01},
         "perfusion_status": {0: -0.03, 1: -0.02, 3: 0.01, 5: 0.01},
@@ -37,7 +165,16 @@ _FALLBACK_TRAJECTORIES: dict[str, dict[str, dict[int, float]]] = {
         "volume_status": {0: 0.01, 1: 0.01, 5: 0.00, 7: 0.01},
     },
     "treatment_resistant": {
-        "inflammation_level": {0: 0.08, 1: 0.05, 2: 0.05, 3: 0.02, 5: -0.02, 7: -0.05, 10: -0.10, 14: -0.08},
+        "inflammation_level": {
+            0: 0.08,
+            1: 0.05,
+            2: 0.05,
+            3: 0.02,
+            5: -0.02,
+            7: -0.05,
+            10: -0.10,
+            14: -0.08,
+        },
         "volume_status": {0: -0.03, 1: -0.02, 3: 0.00, 5: 0.02},
         "renal_function": {0: -0.02, 1: -0.01, 3: 0.00, 5: 0.01},
     },
@@ -54,9 +191,12 @@ _FALLBACK_TRAJECTORIES: dict[str, dict[str, dict[int, float]]] = {
 }
 
 _FALLBACK_PROBABILITIES = {
-    "smooth_recovery": 0.55, "dip_then_recovery": 0.20,
-    "plateau_then_recovery": 0.10, "treatment_resistant": 0.08,
-    "gradual_deterioration": 0.05, "sudden_deterioration": 0.02,
+    "smooth_recovery": 0.55,
+    "dip_then_recovery": 0.20,
+    "plateau_then_recovery": 0.10,
+    "treatment_resistant": 0.08,
+    "gradual_deterioration": 0.05,
+    "sudden_deterioration": 0.02,
 }
 
 
@@ -65,12 +205,17 @@ def select_archetype(
     profile: PatientPhysiologicalProfile,
     rng: np.random.Generator,
     protocol_archetypes: dict[str, Any] | None = None,
+    protocol_modifiers: list[dict[str, Any]] | None = None,
+    patient: Any = None,
 ) -> str:
     """Select a clinical course archetype.
 
     Args:
         protocol_archetypes: course_archetypes section from disease YAML.
             If None, uses built-in fallback probabilities.
+        protocol_modifiers: archetype_modifiers section from disease YAML — per-disease
+            patient-risk-factor adjustments to the archetype probabilities (FP-YAML-2b).
+        patient: patient object (age + chronic_conditions) for modifier evaluation.
     """
     # Get probabilities from YAML or fallback
     if protocol_archetypes:
@@ -88,13 +233,11 @@ def select_archetype(
         probs["gradual_deterioration"] = probs.get("gradual_deterioration", 0.05) * 0.3
         probs["sudden_deterioration"] = probs.get("sudden_deterioration", 0.02) * 0.3
 
-    # Patient profile modifiers
-    if profile.immune_reactivity < 0.3:
-        probs["treatment_resistant"] = probs.get("treatment_resistant", 0.08) + 0.10
-        probs["smooth_recovery"] = probs.get("smooth_recovery", 0.55) - 0.10
-    if profile.treatment_sensitivity > 1.2:
-        probs["smooth_recovery"] = probs.get("smooth_recovery", 0.55) + 0.10
-        probs["treatment_resistant"] = probs.get("treatment_resistant", 0.08) - 0.05
+    # Patient risk-factor modifiers from the disease YAML (FP-YAML-2b), replacing the
+    # former hardcoded immune_reactivity / treatment_sensitivity heuristics with the
+    # authored, per-disease archetype_modifiers block.
+    if protocol_modifiers:
+        probs = _apply_archetype_modifiers(probs, protocol_modifiers, profile, patient)
 
     # Normalize
     names = list(probs.keys())
@@ -149,9 +292,18 @@ def get_daily_directive(
     effective_day = day * speed_factor
 
     changes: dict[str, float] = {}
-    for var_name in ["inflammation_level", "volume_status", "renal_function",
-                     "perfusion_status", "cardiac_function", "hepatic_function",
-                     "anemia_level", "coagulation_status", "ph_status", "glucose_status"]:
+    for var_name in [
+        "inflammation_level",
+        "volume_status",
+        "renal_function",
+        "perfusion_status",
+        "cardiac_function",
+        "hepatic_function",
+        "anemia_level",
+        "coagulation_status",
+        "ph_status",
+        "glucose_status",
+    ]:
         if var_name in trajectory_data:
             traj = trajectory_data[var_name]
             int_traj = {int(k): v for k, v in traj.items()}
@@ -168,7 +320,7 @@ def get_daily_directive(
 
             # Deterioration deltas: elderly deteriorate faster
             if delta < 0 and var_name in ("renal_function", "perfusion_status"):
-                delta *= (2.0 - speed_factor)  # age 85, speed 0.7 → deterioration ×1.3
+                delta *= 2.0 - speed_factor  # age 85, speed 0.7 → deterioration ×1.3
 
             # --- Daily noise (biological variation) ---
             # Two components:
@@ -245,7 +397,11 @@ def evaluate_complications(
 
 
 def _evaluate_risk_condition(
-    condition: str, state: Any, patient: Any, day: int, severity: str,
+    condition: str,
+    state: Any,
+    patient: Any,
+    day: int,
+    severity: str,
 ) -> bool:
     """Evaluate a risk factor condition string against current state/patient."""
     try:
@@ -269,7 +425,9 @@ def _evaluate_risk_condition(
         if "delirium_susceptibility" in condition:
             parts = condition.split(">")
             if len(parts) == 2 and hasattr(patient, "physiological_profile"):
-                return patient.physiological_profile.delirium_susceptibility > float(parts[1].strip())
+                return patient.physiological_profile.delirium_susceptibility > float(
+                    parts[1].strip()
+                )
         if "immobility_days" in condition:
             parts = condition.split(">")
             if len(parts) == 2:
@@ -307,7 +465,10 @@ def _interpolate(trajectory: dict[int, float], day: int) -> float:
 _IMPROVEMENT_IS_NEGATIVE = {"inflammation_level", "anemia_level", "coagulation_status"}
 # Variables where POSITIVE delta = improvement
 _IMPROVEMENT_IS_POSITIVE = {
-    "renal_function", "cardiac_function", "hepatic_function", "perfusion_status",
+    "renal_function",
+    "cardiac_function",
+    "hepatic_function",
+    "perfusion_status",
 }
 # Variables where movement toward 0 = improvement
 _IMPROVEMENT_TOWARD_ZERO = {"volume_status", "ph_status", "glucose_status"}
@@ -375,7 +536,10 @@ def apply_diagnosis_modifier(
 
 
 def _is_improvement(
-    var: str, delta: float, current_volume: float, current_ph: float,
+    var: str,
+    delta: float,
+    current_volume: float,
+    current_ph: float,
 ) -> bool:
     """Check if a delta represents clinical improvement."""
     if var in _IMPROVEMENT_IS_NEGATIVE:
@@ -394,6 +558,7 @@ def _is_improvement(
 # ============================================================
 # Natural recovery
 # ============================================================
+
 
 def natural_recovery_directive(
     day: int,

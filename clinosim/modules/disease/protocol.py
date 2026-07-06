@@ -111,6 +111,9 @@ class DiseaseProtocol(BaseModel):
     severity: dict[str, Any]
     presenting_symptoms: list[dict[str, Any]] = []
     course_archetypes: dict[str, Any] = {}
+    # Per-disease patient-risk-factor adjustments to archetype selection probabilities
+    # (FP-YAML-2b). Consumed by select_archetype via _apply_archetype_modifiers.
+    archetype_modifiers: list[dict[str, Any]] = []
     initial_state_impact: dict[str, dict[str, float]] = {}
     diagnostic: dict[str, Any] = {}
     order_protocols: dict[str, Any] = {}
@@ -187,6 +190,16 @@ def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
     from clinosim.modules.disease.severity import _validate_severity_block
 
     _validate_severity_block(disease_id, data.get("severity", {}), protocol.minimum_severity)
+
+    # Fail-loud archetype_modifiers validation (FP-YAML-2b). Effect keys must reference
+    # archetypes the disease defines (or the 6 fallback names when it has none).
+    from clinosim.modules.clinical_course.engine import (
+        _FALLBACK_PROBABILITIES,
+        _validate_archetype_modifiers,
+    )
+
+    arch_names = set((data.get("course_archetypes") or {}).keys()) or set(_FALLBACK_PROBABILITIES)
+    _validate_archetype_modifiers(disease_id, data.get("archetype_modifiers", []), arch_names)
     return protocol
 
 
