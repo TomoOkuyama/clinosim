@@ -2446,6 +2446,16 @@ from the 2026-07-02 review re-verified and migrated (2 were already done by prio
 > `docs/design-notes/2026-07-06-fhir-completeness-and-data-model-unification.md`、実装が従う
 > 規約は `docs/design-guides/data-model-and-completeness-conventions.md`。以下の記述は原調査の
 > file:line 詳細として保持(registry から参照される)。
+>
+> **2026-07-06 追記(FP-SEV-MODEL DONE, AD-67)**: 重症度3系統の統合は完了(疾患YAML canonical、
+> `clinosim/modules/disease/severity.py`、locale `severity_beta`/`severity_minimum` 撤廃)。
+> **deferred follow-up = 疾患内在 modifier の評価機構**: `severity.modifiers` の condition 66 種のうち
+> person 由来 ~34 は評価済だが、疾患内在・シナリオ依存の ~32 種(`anterior_wall_MI` / `saddle_embolus`
+> / `gcs_below_8` / `APACHE_II_above_8` / `FEV1_below_30` / `first_presentation_T1DM` / `bilateral_dvt`
+> 等、`clinosim/modules/disease/severity.py:RESERVED_INTRINSIC_CONDITIONS`)は現状 skip(検証語彙には
+> 登録済で typo とは区別)。これらは disease sub-type / scenario の情報を要するため、scenario-flag 機構
+> (`scenario_flags_from_protocol` 兄弟)で評価する設計が別途必要。`archetype_modifiers`(FP-YAML-2)と
+> 同時に検討すると、両者とも「疾患内在フラグを患者イベントに解決する」共通機構に載る可能性がある。
 
 Full context: `docs/superpowers/specs/2026-07-05-clinical-course-severity-archetype-wiring-design.md`.
 Comprehensive multi-agent code review + brainstorming session found a much
