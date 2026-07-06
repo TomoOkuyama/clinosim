@@ -275,6 +275,25 @@ class TestDeriveLabValues:
         for name, value in labs.items():
             assert value >= 0, f"{name} is negative: {value}"
 
+    def test_wbc_circadian_nadir_at_4am_peak_at_4pm(self):
+        """WBC diurnal variation is documented (engine.py comment) as
+        'Nadir ~04:00, peak ~16:00' but the formula sin((hour-4)*pi/12) is
+        actually a zero-crossing at both 4:00 and 16:00 (peak at 10:00,
+        trough at 22:00) — a 6-hour phase shift from its own stated intent."""
+        state = PhysiologicalState()
+        wbc_4am = derive_lab_values(state, sex="M", age=50, hour=4)["WBC"]
+        wbc_10am = derive_lab_values(state, sex="M", age=50, hour=10)["WBC"]
+        wbc_4pm = derive_lab_values(state, sex="M", age=50, hour=16)["WBC"]
+        wbc_10pm = derive_lab_values(state, sex="M", age=50, hour=22)["WBC"]
+
+        assert wbc_4am < wbc_10am, "04:00 must be lower than 10:00 (approaching peak)"
+        assert wbc_4am < wbc_4pm, "04:00 (nadir) must be lower than 16:00 (peak)"
+        assert wbc_4pm > wbc_10pm, "16:00 (peak) must be higher than 22:00 (falling from peak)"
+        assert wbc_10am == pytest.approx(wbc_10pm, rel=0.01), (
+            "10:00 and 22:00 are both quarter-cycle points (equidistant from "
+            "nadir and peak) and should sit at the same baseline-crossing value"
+        )
+
 
 # --- Acid-base (two-axis metabolic / respiratory, AD-57) ---
 
@@ -349,15 +368,22 @@ class TestDeriveVitalSigns:
         assert vitals["heart_rate"] > 100  # compensatory tachycardia
 
     def test_circadian_temperature(self, baseline_vitals):
+        """Nadir must be at 04:00 and peak at 16:00 (real circadian body-temp
+        physiology). The formula sin((hour-4)*pi/12) is a zero-crossing at
+        both those hours (actual peak 10:00, actual trough 22:00) — a prior
+        weak version of this test only asserted `>=`, which the buggy
+        formula satisfied vacuously (both hours evaluated to exactly the
+        same value, 0 circadian contribution)."""
         state = PhysiologicalState()  # healthy
         morning = datetime(2024, 6, 15, 4, 0)  # 4 AM nadir
         evening = datetime(2024, 6, 15, 16, 0)  # 4 PM peak
         t_morning = derive_vital_signs(state, baseline_vitals, morning)["temperature"]
         t_evening = derive_vital_signs(state, baseline_vitals, evening)["temperature"]
 
-        # Circadian variation is 0.3°C amplitude, but rounding to 1 decimal
-        # may obscure small differences. Check raw difference.
-        assert t_evening >= t_morning  # evening should be >= morning
+        # Circadian amplitude is 0.3C -> nadir/peak differ by 0.6C, well
+        # above the 0.1C rounding precision of the returned value.
+        assert t_evening > t_morning  # evening (peak) strictly > morning (nadir)
+        assert t_evening - t_morning == pytest.approx(0.6, abs=0.05)
 
     def test_spo2_bounds(self, baseline_vitals):
         state = PhysiologicalState(inflammation_level=0.9, volume_status=0.8)
