@@ -201,6 +201,7 @@ def evaluate_complications(
     complications: list[dict[str, Any]],
     active_complications: set[str],
     rng: np.random.Generator,
+    severity: str = "moderate",
 ) -> list[dict[str, Any]]:
     """Evaluate whether any complications trigger on this day.
 
@@ -233,7 +234,7 @@ def evaluate_complications(
         for rf in comp.get("risk_factors", []):
             condition = rf.get("condition", "")
             mult = rf.get("multiplier", 1.0)
-            if _evaluate_risk_condition(condition, state, patient, day):
+            if _evaluate_risk_condition(condition, state, patient, day, severity):
                 prob *= mult
 
         if rng.random() < prob:
@@ -243,14 +244,16 @@ def evaluate_complications(
     return triggered
 
 
-def _evaluate_risk_condition(condition: str, state: Any, patient: Any, day: int) -> bool:
+def _evaluate_risk_condition(
+    condition: str, state: Any, patient: Any, day: int, severity: str,
+) -> bool:
     """Evaluate a risk factor condition string against current state/patient."""
     try:
         if condition.startswith("age_over_"):
             threshold = int(condition.split("_")[-1])
             return patient.age >= threshold if hasattr(patient, "age") else False
-        if condition.startswith("severity_"):
-            return False  # simplified
+        if condition == "severity_severe":
+            return severity == "severe"
         if "renal_function" in condition:
             parts = condition.split("<")
             if len(parts) == 2:
