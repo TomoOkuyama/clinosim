@@ -53,6 +53,114 @@ presenting_symptoms:
   - {name: "bleeding", probability: 0.80, severity_range: [0.3, 0.8]}
   - {name: "finger_amputation", probability: 0.25, severity_range: [0.9, 1.0]}
 
+# ============================================================
+# COURSE ARCHETYPES (FP-ARCH-2/3)
+# Localized occupational hand-crush injury; zero mortality. Post-debridement /
+# reconstruction course: inflammation_level (wound) and perfusion_status (local
+# tissue) recover, anemia_level resolves post-op. Wound infection / dehiscence =
+# treatment_resistant; compartment syndrome = sudden_deterioration. Recovery-heavy
+# (localized, non-life-threatening). Canonical names.
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.50
+    description: "Uneventful post-debridement healing; wound and perfusion recover"
+    trajectory:
+      inflammation_level: {0: 0.00, 1: -0.04, 2: -0.06, 3: -0.07, 5: -0.07, 7: -0.05, 10: -0.03, 14: -0.02}
+      perfusion_status:   {0: 0.00, 1: 0.02, 2: 0.04, 3: 0.05, 5: 0.04, 7: 0.03, 10: 0.02, 14: 0.01}
+      anemia_level:       {0: 0.02, 2: -0.02, 5: -0.03, 7: -0.03, 10: -0.02, 14: -0.01}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.20
+    description: "Post-op wound edema peaks Day 1-2, then healing resumes"
+    trajectory:
+      inflammation_level: {0: 0.05, 1: 0.05, 2: 0.02, 3: -0.03, 5: -0.06, 7: -0.06, 10: -0.04, 14: -0.02}
+      perfusion_status:   {0: -0.03, 1: -0.03, 2: 0.00, 3: 0.03, 5: 0.04, 7: 0.04, 10: 0.02, 14: 0.01}
+    order_modifications:
+      day_2:
+        add_labs: ["CRP", "WBC"]
+
+  plateau_then_recovery:
+    probability: 0.13
+    description: "Slow wound healing; inflammation plateaus 3-4 days then resolves"
+    trajectory:
+      inflammation_level: {0: 0.02, 1: 0.01, 2: 0.00, 3: -0.02, 5: -0.05, 7: -0.06, 10: -0.04, 14: -0.02}
+      perfusion_status:   {0: 0.00, 1: 0.00, 3: 0.01, 5: 0.03, 7: 0.03, 10: 0.02, 14: 0.01}
+
+  treatment_resistant:
+    probability: 0.10
+    description: "Wound infection / dehiscence; healing slow after debridement escalation"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.03, 3: 0.02, 5: 0.00, 7: -0.03, 10: -0.04, 14: -0.03}
+      perfusion_status:   {0: -0.02, 1: -0.02, 3: -0.01, 5: 0.01, 7: 0.02, 10: 0.02, 14: 0.02}
+    order_modifications:
+      day_3:
+        add_labs: ["CRP", "WBC"]
+        add_consult: ["orthopedics"]
+
+  gradual_deterioration:
+    probability: 0.05
+    description: "Progressive wound infection with worsening local inflammation"
+    trajectory:
+      inflammation_level: {0: 0.04, 1: 0.04, 2: 0.03, 3: 0.03, 5: 0.02, 7: 0.02}
+      perfusion_status:   {0: -0.02, 1: -0.02, 2: -0.02, 3: -0.02, 5: -0.01, 7: -0.01}
+
+  sudden_deterioration:
+    probability: 0.02
+    description: "Compartment syndrome / acute ischemia with abrupt Day 1-2 perfusion loss"
+    trajectory:
+      perfusion_status:   {0: 0.00, 1: -0.10, 2: -0.20, 3: -0.06, 5: 0.03, 7: 0.04}
+      inflammation_level: {0: 0.00, 1: 0.08, 2: 0.15, 3: 0.06, 5: -0.04, 7: -0.05}
+
+# ============================================================
+# COMPLICATIONS — SSI / wound dehiscence / compartment syndrome
+# risk_factor conditions restricted to those _evaluate_risk_condition supports.
+# ============================================================
+complications:
+  - name: "surgical_site_infection"
+    description: "Wound infection at the crush / reconstruction site"
+    probability_per_day: 0.02
+    onset_day_range: [2, 10]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.5}
+    state_impact:
+      inflammation_level: 0.06
+    detection:
+      test: "CRP"
+      finding: "wound_infection"
+    actions: ["order_wound_culture", "start_antibiotics"]
+
+  - name: "wound_dehiscence"
+    description: "Wound breakdown requiring reoperation / repeat closure"
+    probability_per_day: 0.008
+    onset_day_range: [3, 14]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.0}
+    state_impact:
+      inflammation_level: 0.04
+      perfusion_status: -0.03
+    detection:
+      test: "wound_inspection"
+      finding: "dehiscence"
+    actions: ["orthopedics_consult", "reoperation"]
+
+  - name: "compartment_syndrome"
+    description: "Elevated compartment pressure with tissue ischemia"
+    probability_per_day: 0.006
+    onset_day_range: [0, 3]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 4.0}
+      - {condition: "perfusion_status < 0.3", multiplier: 3.0}
+    state_impact:
+      perfusion_status: -0.20
+      inflammation_level: 0.05
+    detection:
+      test: "compartment_pressure"
+      finding: "elevated_pressure"
+    actions: ["icu_transfer", "emergent_fasciotomy"]
+
 order_protocols:
   admission_orders:
     labs:

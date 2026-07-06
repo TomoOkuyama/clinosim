@@ -81,6 +81,169 @@ presenting_symptoms:
   - {name: "tachycardia", probability: 0.60, severity_range: [0.4, 0.8]}
   - {name: "hypotension", probability: 0.35, severity_range: [0.3, 0.7]}
 
+# ============================================================
+# COURSE ARCHETYPES (FP-ARCH-2/3)
+# Post-resuscitation / post-op polytrauma course: volume_status, perfusion_status,
+# renal_function recover as hemorrhagic shock resolves; inflammation_level and
+# anemia_level decline as SIRS settles and transfusion corrects blood loss.
+# Deterioration = re-bleed / multi-organ failure / ARDS / PE / fat embolism.
+# Recovery trajectories are the reverse of initial_state_impact. Canonical names.
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.35
+    description: "Damage-control surgery successful; shock resolves, wounds heal uneventfully"
+    trajectory:
+      volume_status:      {0: 0.05, 1: 0.10, 2: 0.12, 3: 0.10, 5: 0.06, 7: 0.04, 10: 0.02, 14: 0.01}
+      perfusion_status:   {0: 0.04, 1: 0.08, 2: 0.08, 3: 0.06, 5: 0.04, 7: 0.03, 10: 0.02, 14: 0.01}
+      inflammation_level: {0: -0.03, 1: -0.06, 2: -0.08, 3: -0.08, 5: -0.06, 7: -0.05, 10: -0.03, 14: -0.02}
+      anemia_level:       {0: -0.02, 2: -0.05, 3: -0.05, 5: -0.05, 7: -0.04, 10: -0.02, 14: -0.01}
+      renal_function:     {0: 0.01, 2: 0.03, 3: 0.03, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.01}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.18
+    description: "Post-op SIRS / transient hypoperfusion peaks Day 1-2, then resolves"
+    trajectory:
+      volume_status:      {0: -0.05, 1: -0.05, 2: 0.02, 3: 0.06, 5: 0.08, 7: 0.06, 10: 0.03, 14: 0.02}
+      perfusion_status:   {0: -0.05, 1: -0.05, 2: 0.00, 3: 0.05, 5: 0.06, 7: 0.05, 10: 0.03, 14: 0.02}
+      inflammation_level: {0: 0.06, 1: 0.06, 2: 0.02, 3: -0.04, 5: -0.07, 7: -0.07, 10: -0.05, 14: -0.03}
+      anemia_level:       {0: 0.04, 1: 0.04, 2: 0.00, 3: -0.03, 5: -0.05, 7: -0.04, 10: -0.02, 14: -0.01}
+    order_modifications:
+      day_2:
+        add_labs: ["Hb", "Lactate"]
+
+  plateau_then_recovery:
+    probability: 0.13
+    description: "Slow recovery in the elderly / high injury burden; plateau then improvement"
+    trajectory:
+      volume_status:      {0: 0.00, 1: 0.01, 2: 0.02, 3: 0.03, 5: 0.05, 7: 0.06, 10: 0.04, 14: 0.02}
+      perfusion_status:   {0: 0.00, 1: 0.00, 2: 0.01, 3: 0.02, 5: 0.04, 7: 0.05, 10: 0.04, 14: 0.02}
+      inflammation_level: {0: 0.02, 1: 0.00, 3: -0.02, 5: -0.05, 7: -0.06, 10: -0.05, 14: -0.03}
+      anemia_level:       {0: 0.02, 2: 0.00, 3: -0.01, 5: -0.03, 7: -0.03, 10: -0.02, 14: -0.01}
+
+  treatment_resistant:
+    probability: 0.14
+    description: "Ongoing transfusion need / repeat washout for contaminated wounds; prolonged SIRS"
+    trajectory:
+      volume_status:      {0: -0.03, 1: -0.03, 3: -0.01, 5: 0.02, 7: 0.03, 10: 0.04, 14: 0.03}
+      perfusion_status:   {0: -0.02, 1: -0.02, 3: -0.01, 5: 0.01, 7: 0.02, 10: 0.03, 14: 0.02}
+      inflammation_level: {0: 0.04, 1: 0.04, 3: 0.03, 5: 0.01, 7: -0.02, 10: -0.04, 14: -0.03}
+      anemia_level:       {0: 0.04, 1: 0.03, 3: 0.02, 5: 0.00, 7: -0.02, 10: -0.02, 14: -0.01}
+    order_modifications:
+      day_3:
+        add_labs: ["Hb", "CRP"]
+        add_consult: ["trauma_surgery"]
+
+  gradual_deterioration:
+    probability: 0.12
+    description: "Progressive multi-organ failure from persistent shock / sepsis"
+    trajectory:
+      volume_status:      {0: -0.04, 1: -0.04, 2: -0.03, 3: -0.03, 5: -0.02, 7: -0.02}
+      perfusion_status:   {0: -0.04, 1: -0.04, 2: -0.03, 3: -0.03, 5: -0.02, 7: -0.02}
+      inflammation_level: {0: 0.05, 1: 0.05, 2: 0.04, 3: 0.04, 5: 0.03, 7: 0.03}
+      renal_function:     {0: -0.03, 1: -0.03, 2: -0.03, 3: -0.02, 5: -0.02, 7: -0.02}
+
+  sudden_deterioration:
+    probability: 0.08
+    description: "Re-bleed / pulmonary embolism / fat embolism with abrupt Day 1-4 collapse"
+    trajectory:
+      volume_status:      {0: 0.00, 1: -0.12, 2: -0.25, 3: -0.10, 5: 0.03, 7: 0.04}
+      perfusion_status:   {0: 0.00, 1: -0.12, 2: -0.28, 3: -0.10, 5: 0.03, 7: 0.04}
+      anemia_level:       {0: 0.00, 1: 0.08, 2: 0.12, 3: 0.05, 5: 0.00, 7: -0.02}
+      inflammation_level: {0: 0.00, 1: 0.08, 2: 0.15, 3: 0.06, 5: -0.03, 7: -0.05}
+
+# ============================================================
+# COMPLICATIONS — hemorrhagic shock / VTE / SSI / ARDS / delirium / AKI
+# risk_factor conditions restricted to those _evaluate_risk_condition supports.
+# ============================================================
+complications:
+  - name: "hemorrhagic_shock"
+    description: "Ongoing hemorrhage / re-bleed with hemodynamic collapse"
+    probability_per_day: 0.02
+    onset_day_range: [0, 4]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.5}
+      - {condition: "perfusion_status < 0.3", multiplier: 3.0}
+    state_impact:
+      volume_status: -0.20
+      perfusion_status: -0.20
+      anemia_level: 0.10
+    actions: ["icu_transfer", "massive_transfusion_protocol", "emergent_hemorrhage_control"]
+
+  - name: "acute_respiratory_distress"
+    description: "ARDS from chest trauma / massive transfusion / SIRS"
+    probability_per_day: 0.012
+    onset_day_range: [1, 7]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.5}
+      - {condition: "perfusion_status < 0.3", multiplier: 1.8}
+    state_impact:
+      perfusion_status: -0.15
+      inflammation_level: 0.05
+    detection:
+      test: "Chest_Xray"
+      finding: "bilateral_infiltrates"
+    actions: ["icu_transfer", "lung_protective_ventilation"]
+
+  - name: "surgical_site_infection"
+    description: "Wound infection of operative / open-fracture site"
+    probability_per_day: 0.01
+    onset_day_range: [3, 14]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 1.8}
+      - {condition: "immobility_days > 3", multiplier: 1.3}
+    state_impact:
+      inflammation_level: 0.06
+    detection:
+      test: "CRP"
+      finding: "wound_infection"
+    actions: ["order_wound_culture", "start_antibiotics"]
+
+  - name: "acute_kidney_injury"
+    description: "AKI from hypoperfusion / rhabdomyolysis / contrast nephropathy"
+    probability_per_day: 0.012
+    onset_day_range: [1, 7]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.0}
+      - {condition: "perfusion_status < 0.3", multiplier: 2.0}
+    state_impact:
+      renal_function: -0.15
+      volume_status: -0.05
+    detection:
+      test: "Creatinine"
+      finding: "rising_creatinine"
+    actions: ["order_renal_panel", "nephrology_consult"]
+
+  - name: "venous_thromboembolism"
+    description: "DVT / PE from immobility after major trauma"
+    probability_per_day: 0.008
+    onset_day_range: [3, 14]
+    risk_factors:
+      - {condition: "immobility_days > 3", multiplier: 2.0}
+      - {condition: "severity_severe", multiplier: 1.5}
+    state_impact:
+      perfusion_status: -0.05
+    detection:
+      test: "lower_extremity_doppler"
+      finding: "deep_vein_thrombosis"
+    actions: ["order_doppler", "start_anticoagulation"]
+
+  - name: "postoperative_delirium"
+    description: "Post-operative / ICU delirium (common in elderly polytrauma)"
+    probability_per_day: 0.04
+    onset_day_range: [0, 7]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 1.6}
+      - {condition: "delirium_susceptibility > 0.3", multiplier: 1.5}
+    state_impact:
+      inflammation_level: 0.02
+    detection:
+      test: "cam_icu"
+      finding: "delirium"
+    actions: ["order_delirium_assessment", "nonpharmacologic_measures"]
+
 order_protocols:
   admission_orders:
     labs:
