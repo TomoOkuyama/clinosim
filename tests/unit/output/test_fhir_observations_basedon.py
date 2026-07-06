@@ -126,3 +126,33 @@ def test_lab_observation_basedon_dict_input_standalone():
     obs = _bb_labs(ctx)
     assert len(obs) > 0
     assert obs[0]["basedOn"] == [{"reference": "ServiceRequest/sr-ORD-pt1-ADM-L05"}]
+
+
+# === Dataclass/dict filter-condition equivalence (drift-prevention) ===
+# _bb_labs used to maintain two independently-written filter conditions (one
+# per isinstance branch) for "is this a resulted lab order" — a prior fix
+# elsewhere in this file already closed one such drift (silent basedOn
+# omission on the dict path). These pin that both branches skip a non-lab
+# order / a resultless order identically, so a future edit to only one
+# branch's condition is caught immediately.
+
+def test_non_lab_order_filtered_for_both_dataclass_and_dict():
+    t = datetime(2026, 6, 29, 8, 5)
+    o = _make_lab_order("O1", "", "WBC", 6.0, t)
+    o.order_type = OrderType.MEDICATION
+    assert _bb_labs(_make_ctx([o])) == []
+
+    d = _make_dict_lab_order("O1", "", "WBC", 6.0)
+    d["order_type"] = "medication"
+    assert _bb_labs(_make_ctx([d])) == []  # type: ignore[list-item]
+
+
+def test_resultless_order_filtered_for_both_dataclass_and_dict():
+    t = datetime(2026, 6, 29, 8, 5)
+    o = _make_lab_order("O1", "", "WBC", 6.0, t)
+    o.result = None
+    assert _bb_labs(_make_ctx([o])) == []
+
+    d = _make_dict_lab_order("O1", "", "WBC", 6.0)
+    d["result"] = {}
+    assert _bb_labs(_make_ctx([d])) == []  # type: ignore[list-item]

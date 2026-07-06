@@ -428,27 +428,28 @@ def _bb_labs(ctx: BundleContext) -> list[dict[str, Any]]:
 
     out: list[dict[str, Any]] = []
     for i, order in enumerate(orders):
+        # Single, shared filter condition (dual-access via _o) — a prior
+        # version of this loop maintained two independently-written
+        # conditions, one per isinstance branch, which could silently drift
+        # apart. Only the dict/dataclass -> plain-dict conversion below
+        # still needs to branch, since dataclasses.asdict() only applies to
+        # the dataclass path.
+        if _o(order, "order_type") not in (OrderType.LAB, "lab"):
+            continue
+        result_data = _o(order, "result")
+        if not result_data:
+            continue
+
         if isinstance(order, Order):
             # Order dataclass path (tests + future direct-object pipeline).
-            if order.order_type != OrderType.LAB or order.result is None:
-                continue
-            # Convert to dict for _build_lab_observation (which uses dict.get access).
             order_dict = dataclasses.asdict(order)
             result_dict: dict[str, Any] = order_dict.get("result") or {}
-            sr_id: str | None = order_to_sr_id(order, panel_counter)
-        elif isinstance(order, dict):
+        else:
             # JSON-deserialized dict path (production CIF loaded from json.load).
-            if order.get("order_type") not in ("lab", OrderType.LAB):
-                continue
-            result_data = order.get("result")
-            if not result_data:
-                continue
             order_dict = order
             result_dict = result_data if isinstance(result_data, dict) else {}
-            # Now computable for dicts via dict-compatible panel_counter (Fix 1+2).
-            sr_id = order_to_sr_id(order, panel_counter)
-        else:
-            continue
+        # Computable for both dataclass and dict via dict-compatible panel_counter.
+        sr_id: str | None = order_to_sr_id(order, panel_counter)
 
         obs = _build_lab_observation(
             order_dict, result_dict, ctx.patient_id, i,
