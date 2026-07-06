@@ -12,6 +12,8 @@ from datetime import date, timedelta
 import numpy as np
 
 from clinosim.modules._shared import is_jp, normalize_probabilities
+from clinosim.modules.disease.protocol import load_disease_protocol
+from clinosim.modules.disease.severity import sample_severity
 from clinosim.types.population import HospitalizationSummary, LifeEvent, PersonRecord
 
 __all__ = ["HospitalizationSummary", "PersonRecord", "LifeEvent"]
@@ -358,12 +360,10 @@ def generate_monthly_events(
             if rng.random() >= rate:
                 continue
 
-            # Severity from beta distribution
-            beta_params = disease_spec.get("severity_beta", [2, 3])
-            severity = float(rng.beta(beta_params[0], beta_params[1]))
-            sev_min = disease_spec.get("severity_minimum")
-            if sev_min is not None:
-                severity = max(float(sev_min), severity)
+            # Severity from the disease-YAML distribution × comorbidity modifiers
+            # (FP-SEV-MODEL, c2). The continuous score feeds the hospitalization gate
+            # below and re-derives the same category via category_from_score.
+            _category, severity = sample_severity(load_disease_protocol(disease_id), person, rng)
 
             # Hospitalization decision
             event_type = disease_spec.get("event_type", "acute_disease_onset")
