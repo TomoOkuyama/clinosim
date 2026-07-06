@@ -114,11 +114,11 @@ link for the per-module README.
 | [physiology](clinosim/modules/physiology/README.md) | 患者生理学状態 + lab/vital derivation (15+ state axes) | simulation | types | observation, simulator/* (4 sites) | core |
 | [observation](clinosim/modules/observation/README.md) | lab/vital result generation (panels, microbiology, nursing) | simulation | physiology/codes/locale | simulator/*, output | core |
 | [order](clinosim/modules/order/README.md) | lab/medication/imaging order placement; panel-aware lab Order generation (PR1 ServiceRequest foundation) | simulation | observation/codes | simulator/*, output (_fhir_service_request.py) | core |
-| [clinical_course](clinosim/modules/clinical_course/README.md) | archetype rule-based daily evolution + complications | simulation | physiology | simulator/inpatient.py | core |
+| [clinical_course](clinosim/modules/clinical_course/README.md) | archetype rule-based daily evolution + complications | simulation | types/_shared (no `physiology` import — decoupled via `StateChangeDirective`) | simulator/inpatient.py | core |
 | [diagnosis](clinosim/modules/diagnosis/README.md) | working/discharge diagnosis with Bayesian likelihood ratios | simulation | codes | simulator/inpatient.py | core |
 | [procedure](clinosim/modules/procedure/README.md) | surgical + bedside procedures + rehab | simulation | codes/locale/types | simulator/inpatient.py | core |
 | [encounter](clinosim/modules/encounter/README.md) | 46 ED/outpatient condition YAML protocols | simulation | codes/locale | simulator/emergency.py, simulator/outpatient.py | core |
-| [disease](clinosim/modules/disease/README.md) | 30+ disease YAML protocols (Pydantic-validated) | simulation | types | simulator/inpatient.py | core |
+| [disease](clinosim/modules/disease/README.md) | 30+ disease YAML protocols (Pydantic-validated) | simulation | (self-contained — `protocol.py` defines its own Pydantic models, does not import `clinosim/types/`; a defensible historical exception since no other module imports these classes directly) | simulator/inpatient.py | core |
 | [population](clinosim/modules/population/README.md) | demographics + life events (Layer 1) | population | locale | simulator/__init__.py | core |
 | [patient](clinosim/modules/patient/README.md) | Layer 1 → Layer 2 activation (chronic conditions + home meds) | population | population/codes/locale/sdoh | simulator/* | core |
 | [identity](clinosim/modules/identity/README.md) | JP insurance + national ID assignment (AD-54, opt-in) | population | locale/types | output (FHIR Coverage) | optional (JP) |
@@ -161,11 +161,11 @@ observation/  ├── physiology/
               ├── codes/
               └── locale/
 order/        └── observation/, codes/
-clinical_course/  └── physiology/
+clinical_course/  └── types/, _shared/ (no physiology dependency — decoupled via StateChangeDirective)
 diagnosis/    └── codes/
 procedure/    └── codes/, locale/, types/
 encounter/    └── codes/, locale/
-disease/      └── types/
+disease/      └── (self-contained Pydantic models, not types/)
 
 population/   └── locale/
 patient/      ├── population/

@@ -67,11 +67,12 @@
 
 | 用途 | Helper(定義場所) |
 |---|---|
-| JP 判定 / 表示言語 | `is_jp(country)` / `resolve_lang(country)`(`modules/_shared.py`)。`country == "JP"` 等の手書き比較禁止 |
+| JP 判定 / 表示言語 | `is_jp(country)` / `is_us(country)` / `resolve_lang(country)`(`modules/_shared.py`)。`country == "JP"` 等の手書き比較禁止 |
 | 国→コード体系選択 | `system_key_for(kind, country)`(`clinosim.codes`)。jlac10/loinc 等の inline 分岐禁止 |
 | system URI | `get_system_uri(key)`(`clinosim.codes`)。URI 文字列 hardcode 禁止 |
 | code→display | `code_lookup(system, code, lang)`。display 文字列 hardcode 禁止 |
 | dict/dataclass 双対 read | `get_attr_or_key`(`_shared.py`)/ FHIR builder では `_o()`。`isinstance(x, dict)` 分岐の新設禁止。**cache key・比較・分岐などデータを読む全経路に適用**(C-1 教訓: `getattr` を dict に使い cohort 全体が同一 cache entry を共有した) |
+| dict/dataclass 双対 write | `set_attr_or_key(obj, name, value)`(単一フィールド代入)/ `get_or_create_container(obj, name, factory)`(ネストしたコンテナを取得 or 生成して直接 mutate)。`isinstance(rec, dict): rec["x"]=v else: rec.x=v` 分岐の新設禁止(session 37 dual-access sweep) |
 | 確率ベクトル | `normalize_probabilities(p, fallback="raise")`(`_shared.py`)を YAML 由来の全 `rng.choice(p=)` に |
 | lab order 分類 | `classify_lab_specs`(`order/panel_grouping.py`) |
 | scenario/medication flags | `scenario_flags_from_protocol` + `medication_flags_from_context` を **merge して `**flags` 渡し**。named-arg 追加禁止(J5 教訓) |

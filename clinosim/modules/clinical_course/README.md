@@ -286,9 +286,10 @@ for day in range(0, los_days):
 
 - `clinosim.types.clinical` — `StateChangeDirective`
 - `clinosim.types.patient` — `PatientPhysiologicalProfile`
+- `clinosim.modules._shared` — `normalize_probabilities`
 - `numpy` — 確率的選択
 
-**他モジュールへの依存なし** (physiology の状態を直接読み書きしない、 directive ベースで疎結合)。
+**他の domain module への依存なし** (physiology の状態を直接読み書きしない、 directive ベースで疎結合。`_shared` は infra ヘルパーであり domain module ではない)。
 
 ## Consumers
 

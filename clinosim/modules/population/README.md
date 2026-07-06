@@ -310,8 +310,10 @@ for event in sorted(all_events, key=lambda e: e.timestamp):
 ## 依存関係
 
 - `clinosim.locale.loader` — demographics / names / addresses / chronic_followup
+- `clinosim.modules._shared` — `is_jp`, `normalize_probabilities`
 - `numpy` — RNG と weighted choice
-- **他モジュールへの依存なし** (出力 `LifeEvent` を encounter モジュールが consume)
+- **他の domain module への依存なし** (出力 `LifeEvent` を encounter モジュールが consume。
+  `_shared` は infra ヘルパーであり domain module ではない)
 
 ## Consumers
 

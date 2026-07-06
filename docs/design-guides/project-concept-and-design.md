@@ -131,21 +131,23 @@
 歴史的事故(PR-90 / J5 / C-1)から fail-loud validation・canonical constants・発火 counter
 の 3 層防御が全域に張られている。詳細 = `implementation-rules.md` §9。
 
-## 7. 現在地とロードマップ(2026-07-03 時点)
+## 7. 現在地とロードマップ(2026-07-06 時点)
 
 - **version**: v0.2。US p=10k / JP p=5k の production cohort が audit 全 PASS で生成可能。
   32 疾患 + 46 外来/ED 条件、30 modules、FHIR R4 で 25+ resource type を emit。
-- **直近の完了**(session 31-32): 共通ロジック統一(#133)、nursing 3 交代(#134)、
-  **N-chain = narrative IF 統一**(#135)、**context 配線**(#136)、
-  **LLM golden + semantic check + リモート実行支援**(#137)。
-- **現在フェーズ = β-JP-1**(Document & Event Density Master Plan の第 3 phase、
-  `docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md` が正):
-  - 済: LLM 基盤一式(あとは別サーバでの実 LLM 実行・prompt 品質)
-  - 残: **厚労省 4 帳票**(入院診療計画書 / 看護必要度 D 表 / 栄養管理計画書 /
-    リハ計画書、QuestionnaireResponse active 化)+ 多職種 CareTeam
-- **その後の chain**(優先順、`docs/design-notes/2026-07-02-grand-design-review-and-roadmap.md` §4):
-  determinism chain(wall-clock 全除去)→ AD-30 chain(display-in-CIF 残骸除去)→
-  display-dict → codes YAML 移行 → β-2(手術/麻酔)→ γ/δ/ε → SS-MIX2。
+- **β-JP-1 chain 2(厚労省帳票)は完了**(session 33-36): 入院診療計画書 / 看護必要度
+  A・B・C 項目評価票(公式には「D 表」という帳票は存在しない、名称は session 36 で訂正
+  済み)/ 栄養管理計画書 / リハビリテーション実施計画書 の 4/4 文書が完了。
+- **共通ロジック統一・determinism chain・AD-30 chain・display-dict → codes YAML 移行は完了**
+  (session 31-37): narrative IF 統一(N-chain)、context 配線、LLM golden + semantic
+  check、wall-clock 全除去、display-in-CIF 残骸除去、8 codes YAML 新設 + dual-access
+  write-side 統一(`set_attr_or_key` / `get_or_create_container`)。
+- **現在フェーズ**: β-JP-1 の主要 chain は出揃った状態。次候補は β-2(手術/麻酔記録等)
+  だが着手前に brainstorming 必須(規模大)。他の小〜中規模候補は `TODO.md` の各
+  deferred section 参照(例: disease YAML の severity/archetype 二重管理系統合、
+  `person.age` 複数年シミュレーション対応)。
+- **その後の chain**(優先順、`docs/design-notes/2026-07-02-grand-design-review-and-roadmap.md` §4
+  ただし上記完了分は本節が最新): β-2(手術/麻酔)→ γ/δ/ε → SS-MIX2。
 - **deferred の正**: `TODO.md` の各 "deferred" section(chain ごとに文脈付き entry あり)。
   作業開始前に `.session-resume-prompt.md`(最新セッションの引き継ぎ)を必ず読む。
 
