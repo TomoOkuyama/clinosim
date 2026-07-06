@@ -1,29 +1,27 @@
 # clinosim — TODO
 
-## Status (current as of 2026-07-02)
+## Status (current as of 2026-07-06, session 38)
 
-**v0.2 (Simulation realism + Japanese/English documents + Occupational injuries)** — population-driven simulation with full FHIR R4 Bulk Data Export, multi-country (US/JP), 32 diseases + 46 ED/outpatient conditions, occupational injury support (6 work-related conditions + occupation field), snapshot date support, pluggable LLM providers (Ollama/Bedrock/Mock), three-stage CLI pipeline (`generate` → `narrate` → `export-fhir`), FHIR DocumentReference for 5 clinical document types (Tier A+B) in English and Japanese.
+**v0.2** — population-driven synthetic EHR simulator with full FHIR R4 Bulk Data Export,
+multi-country (US/JP), **32 diseases + 46 ED/outpatient conditions**, snapshot date support,
+pluggable LLM providers (Ollama/Bedrock/Mock/template), three-stage CLI pipeline
+(`generate` → `narrate` → `export-fhir`), 30 modules, 25+ FHIR resource types.
+Newcomers: read `docs/design-guides/README.md` first (concept → rules → data-generation
+walkthrough). Tests: **~1400 unit + ~287 integration + 37 e2e + 12 regression + 4-axis
+`clinosim audit run`** all passing; US p=10k + JP p=5k production audits PASS.
 
-Latest generated datasets:
+**★ FHIR completeness chain complete (2026-07-06, session 38, AD-67/68/69)** — an 11-chain
+effort to eliminate incomplete FHIR element states (C1 silent-drop / C2 degenerate /
+C3 missing-structure). Tracked in `docs/design-notes/2026-07-06-fix-point-registry.md`.
+Landed: severity single source of truth (disease-YAML canonical, `disease/severity.py`,
+`severity_beta` retired); `archetype_modifiers` wired; `DiseaseProtocol` `extra="forbid"`;
+`diagnostic_difficulty` silent-drop fixed; I10 stage → BP physiology; **all 32 diseases now
+have `course_archetypes` + `complications`**; `Condition.stage.type` tumor-code misuse fixed;
+completeness invariant test gate. Result: **C1/C3 fully closed, C2 主要 closed**. Remaining =
+optional follow-ups + FP-AGE (a CSV/narrative multi-year concern, NOT a FHIR-element issue).
 
-US full run (40K catchment, 50-bed hospital, seed=42):
-- 102,485 encounters (1,501 inpatient + 96,114 outpatient + 5,029 ED)
-- 3,344 Bedrock EN narrative documents (1,501 H&P + 1,501 DC + 181 Proc + 97 Op + 64 Death)
-- 15 in-progress encounters (snapshot date)
-- FHIR Bulk Data 2.0GB, 14 resource types (+ FamilyMemberHistory) + DocumentReference, 0 ID violations
-
-JP full run (5K catchment, 50-bed hospital, seed=42):
-- 16,637 encounters (227 inpatient + 15,886 outpatient + 524 ED)
-- 499 Bedrock JP narrative documents
-- Multilingual FHIR coding (JP primary + EN secondary for Condition/Procedure)
-- CRP unit conversion (mg/L→mg/dL) code-side (AD-42)
-- FHIR Bulk Data 467MB
-
-Code system coverage:
-- 349 ICD-10-CM codes, 306 ICD-10 (WHO) codes (EN + JA bilingual)
-- 72 LOINC, 68 RxNorm, 31 CPT, 25 K-codes, 39 YJ, 31 SNOMED CT
-- 120+ drug name JP translations (drug_names_ja.yaml)
-- 420 unit + 80 integration + 39 e2e tests passing
+Historical status detail (datasets/code-coverage snapshots below and in
+`## Recent completions` sections) is retained as-is; the numbers there predate session 38.
 
 **AD-55 Base data-enrichment roadmap complete (2026-06):** microbiology, cardiac
 markers, nursing flowsheets, immunization, family history, code status, extended

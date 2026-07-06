@@ -41,3 +41,12 @@ venv/
 
 # Superpowers subagent-driven-development scratch state
 .superpowers/
+
+# Scratchpad: ignore generated cohort outputs + run logs (keep tracked dev scripts).
+# Prevents accidental commit of large generated data (see session-38 84GB cleanup).
+scratchpad/*/
+scratchpad/*_gen.log
+scratchpad/*_audit.txt
+scratchpad/*_narrate.log
+scratchpad/*_mock.log
+scratchpad/*_report.txt
