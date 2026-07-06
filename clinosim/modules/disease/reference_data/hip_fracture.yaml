@@ -78,6 +78,153 @@ presenting_symptoms:
   - {name: "leg_shortening", probability: 0.70, severity_range: [0.5, 0.8]}
   - {name: "external_rotation", probability: 0.65, severity_range: [0.5, 0.8]}
 
+# ============================================================
+# COURSE ARCHETYPES (FP-ARCH-1)
+# Post-operative geriatric fracture course: inflammation_level (surgical stress)
+# and anemia_level (intra-op / fracture-site blood loss) resolve as haematopoiesis
+# recovers, volume_status normalizes with resuscitation / transfusion, and
+# perfusion_status improves. Slow rehab / cardiorenal setbacks map to
+# plateau/treatment_resistant; peri-operative cardiac / multi-organ events map to
+# gradual/sudden_deterioration. Canonical archetype names; interpolated over LOS.
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.42
+    description: "Uneventful post-op recovery; pain, anaemia and mobility improve on schedule"
+    trajectory:
+      inflammation_level: {0: 0.00, 1: -0.02, 2: -0.04, 3: -0.05, 5: -0.05, 7: -0.04, 10: -0.03, 14: -0.02}
+      anemia_level:       {0: 0.03, 1: 0.02, 2: 0.00, 3: -0.02, 5: -0.03, 7: -0.03, 10: -0.02, 14: -0.01}
+      volume_status:      {0: 0.00, 1: 0.05, 2: 0.06, 3: 0.05, 5: 0.04, 7: 0.03, 10: 0.02, 14: 0.01}
+      perfusion_status:   {0: 0.00, 1: 0.02, 2: 0.03, 3: 0.03, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.18
+    description: "Post-op anaemia / hypovolaemia dips Day 1-2, corrects with transfusion then recovers"
+    trajectory:
+      anemia_level:       {0: 0.05, 1: 0.06, 2: 0.03, 3: -0.01, 5: -0.03, 7: -0.03, 10: -0.02, 14: -0.01}
+      volume_status:      {0: -0.05, 1: -0.05, 2: 0.00, 3: 0.04, 5: 0.05, 7: 0.04, 10: 0.02, 14: 0.01}
+      inflammation_level: {0: 0.03, 1: 0.03, 2: 0.00, 3: -0.03, 5: -0.05, 7: -0.05, 10: -0.03, 14: -0.02}
+      perfusion_status:   {0: -0.03, 1: -0.03, 2: 0.00, 3: 0.02, 5: 0.03, 7: 0.02, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["Hb", "CRP"]
+
+  plateau_then_recovery:
+    probability: 0.13
+    description: "Slow geriatric rehab; deconditioning plateaus 3-5 days then improves"
+    trajectory:
+      inflammation_level: {0: 0.02, 1: 0.01, 2: 0.00, 3: -0.01, 5: -0.03, 7: -0.05, 10: -0.04, 14: -0.02}
+      anemia_level:       {0: 0.03, 1: 0.03, 3: 0.02, 5: 0.00, 7: -0.02, 10: -0.02, 14: -0.01}
+      volume_status:      {0: 0.00, 1: 0.00, 3: 0.02, 5: 0.03, 7: 0.03, 10: 0.02, 14: 0.01}
+    order_modifications:
+      day_3:
+        add_labs: ["Hb", "Albumin"]
+
+  treatment_resistant:
+    probability: 0.13
+    description: "Persistent anaemia / cardiorenal stress; slow correction after escalation"
+    trajectory:
+      anemia_level:       {0: 0.04, 1: 0.04, 3: 0.03, 5: 0.01, 7: -0.01, 10: -0.02, 14: -0.02}
+      renal_function:     {0: -0.04, 1: -0.04, 3: -0.03, 5: -0.01, 7: 0.00, 10: 0.01, 14: 0.01}
+      inflammation_level: {0: 0.03, 1: 0.03, 3: 0.02, 5: 0.00, 7: -0.02, 10: -0.03, 14: -0.03}
+      volume_status:      {0: -0.03, 1: -0.02, 3: 0.00, 5: 0.02, 7: 0.03, 10: 0.02, 14: 0.01}
+    order_modifications:
+      day_3:
+        add_labs: ["Hb", "Creatinine"]
+        add_consult: ["internal_medicine"]
+
+  gradual_deterioration:
+    probability: 0.09
+    description: "Progressive multi-organ decline in the frail elderly; perfusion and renal function worsen"
+    trajectory:
+      perfusion_status:   {0: -0.03, 1: -0.03, 2: -0.03, 3: -0.02, 5: -0.02, 7: -0.02}
+      renal_function:     {0: -0.03, 1: -0.03, 2: -0.02, 3: -0.02, 5: -0.02, 7: -0.01}
+      inflammation_level: {0: 0.03, 1: 0.03, 2: 0.02, 3: 0.02, 5: 0.02, 7: 0.01}
+      anemia_level:       {0: 0.02, 1: 0.02, 2: 0.02, 3: 0.02, 5: 0.01, 7: 0.01}
+
+  sudden_deterioration:
+    probability: 0.05
+    description: "Peri-operative cardiac event / pulmonary embolism with abrupt Day 1-3 decline"
+    trajectory:
+      perfusion_status:   {0: 0.00, 1: -0.10, 2: -0.20, 3: -0.06, 5: 0.03, 7: 0.04}
+      cardiac_function:   {0: 0.00, 1: -0.08, 2: -0.15, 3: -0.05, 5: 0.02, 7: 0.03}
+      inflammation_level: {0: 0.00, 1: 0.05, 2: 0.10, 3: 0.05, 5: -0.02, 7: -0.03}
+
+# ============================================================
+# COMPLICATIONS — geriatric post-op cascade (delirium / VTE / SSI / bleed / cardiac)
+# risk_factor conditions restricted to those _evaluate_risk_condition supports.
+# ============================================================
+complications:
+  - name: "postoperative_delirium"
+    description: "Post-operative delirium (very common in elderly hip-fracture patients)"
+    probability_per_day: 0.06
+    onset_day_range: [0, 7]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 1.6}
+      - {condition: "delirium_susceptibility > 0.3", multiplier: 1.5}
+    state_impact:
+      inflammation_level: 0.02
+    detection:
+      test: "cam_icu"
+      finding: "delirium"
+    actions: ["order_delirium_assessment", "nonpharmacologic_measures"]
+
+  - name: "venous_thromboembolism"
+    description: "DVT / PE from post-fracture immobility"
+    probability_per_day: 0.006
+    onset_day_range: [2, 14]
+    risk_factors:
+      - {condition: "immobility_days > 3", multiplier: 2.0}
+      - {condition: "age_over_75", multiplier: 1.3}
+    state_impact:
+      perfusion_status: -0.03
+    detection:
+      test: "lower_extremity_doppler"
+      finding: "deep_vein_thrombosis"
+    actions: ["order_doppler"]
+
+  - name: "surgical_site_infection"
+    description: "Wound / deep surgical-site infection after fracture fixation"
+    probability_per_day: 0.004
+    onset_day_range: [3, 14]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.5}
+    state_impact:
+      inflammation_level: 0.08
+    detection:
+      test: "CRP"
+      finding: "rising_inflammatory_markers"
+    actions: ["order_wound_culture", "start_antibiotics"]
+
+  - name: "postoperative_hemorrhage"
+    description: "Continued fracture-site / surgical bleeding with symptomatic anaemia"
+    probability_per_day: 0.008
+    onset_day_range: [0, 3]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.5}
+      - {condition: "age_over_75", multiplier: 1.3}
+    state_impact:
+      anemia_level: 0.10
+      volume_status: -0.08
+    detection:
+      test: "Hb"
+      finding: "falling_hemoglobin"
+    actions: ["order_cbc", "transfuse_prbc"]
+
+  - name: "perioperative_cardiac_event"
+    description: "Peri-operative myocardial injury / acute coronary event in the elderly"
+    probability_per_day: 0.004
+    onset_day_range: [0, 5]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 3.0}
+      - {condition: "perfusion_status < 0.3", multiplier: 2.5}
+    state_impact:
+      perfusion_status: -0.12
+      cardiac_function: -0.10
+    actions: ["icu_transfer", "order_ecg", "cardiology_consult"]
+
 order_protocols:
   admission_orders:
     labs:

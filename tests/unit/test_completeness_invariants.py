@@ -83,12 +83,10 @@ def test_c3_fp_arch1_closures_stay_closed():
         assert d.get("complications"), f"{name} lost its complications"
 
 
-# Curated backlog: diseases still lacking course_archetypes (FP-ARCH-2/3 trauma set).
-# When one is authored, remove it here; a new disease shipping without archetypes fails.
-_COURSE_ARCHETYPE_BACKLOG = {
-    "crush_injury_hand", "electrical_injury", "fall_from_height", "hip_fracture",
-    "industrial_burn_severe", "traffic_accident_severe", "wrist_fracture_surgical",
-}
+# Curated backlog: diseases still lacking course_archetypes. EMPTY as of FP-ARCH-2/3
+# (session 38) — all 32 diseases now author course_archetypes. A new disease shipping
+# without them fails this test; if authoring one is intentionally deferred, add it here.
+_COURSE_ARCHETYPE_BACKLOG: set[str] = set()
 
 
 def test_c3_course_archetype_backlog_is_exactly_the_known_set():

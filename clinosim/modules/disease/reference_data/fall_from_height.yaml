@@ -59,6 +59,152 @@ presenting_symptoms:
   - {name: "altered_consciousness", probability: 0.30, severity_range: [0.3, 0.8]}
   - {name: "hypotension", probability: 0.30, severity_range: [0.3, 0.7]}
 
+# ============================================================
+# COURSE ARCHETYPES (FP-ARCH-2/3)
+# Major polytrauma course: hemorrhage-driven anemia_level + volume_status recover
+# with resuscitation/transfusion (anemia slower — marrow response takes days), while
+# inflammation_level (SIRS) and perfusion_status normalize. Re-bleed / multi-organ
+# failure = gradual_deterioration / sudden_deterioration. Canonical archetype names.
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.38
+    description: "Damage-control resuscitation succeeds; shock reverses, hemostasis achieved"
+    trajectory:
+      volume_status:      {0: 0.00, 1: 0.08, 2: 0.10, 3: 0.10, 5: 0.08, 7: 0.06, 10: 0.04, 14: 0.02}
+      perfusion_status:   {0: 0.00, 1: 0.05, 2: 0.06, 3: 0.06, 5: 0.05, 7: 0.04, 10: 0.02, 14: 0.01}
+      anemia_level:       {0: 0.03, 1: 0.02, 2: -0.02, 3: -0.03, 5: -0.04, 7: -0.04, 10: -0.03, 14: -0.02}
+      inflammation_level: {0: 0.00, 1: -0.02, 2: -0.04, 3: -0.05, 5: -0.05, 7: -0.04, 10: -0.03, 14: -0.02}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.18
+    description: "Early shock worsening / transfusion requirement, then hemodynamics stabilize"
+    trajectory:
+      volume_status:      {0: -0.05, 1: -0.03, 2: 0.02, 3: 0.06, 5: 0.08, 7: 0.06, 10: 0.04, 14: 0.02}
+      perfusion_status:   {0: -0.04, 1: -0.03, 2: 0.00, 3: 0.03, 5: 0.05, 7: 0.04, 10: 0.02, 14: 0.01}
+      anemia_level:       {0: 0.06, 1: 0.05, 2: 0.02, 3: -0.02, 5: -0.04, 7: -0.04, 10: -0.03, 14: -0.02}
+    order_modifications:
+      day_2:
+        add_labs: ["Hb", "Lactate"]
+
+  plateau_then_recovery:
+    probability: 0.13
+    description: "Slow recovery from polytrauma; shock indices plateau then improve"
+    trajectory:
+      volume_status:      {0: -0.02, 1: 0.00, 2: 0.01, 3: 0.02, 5: 0.05, 7: 0.06, 10: 0.05, 14: 0.03}
+      perfusion_status:   {0: 0.00, 1: 0.00, 3: 0.01, 5: 0.03, 7: 0.04, 10: 0.03, 14: 0.02}
+      anemia_level:       {0: 0.02, 1: 0.02, 3: 0.00, 5: -0.02, 7: -0.03, 10: -0.03, 14: -0.02}
+    order_modifications:
+      day_3:
+        add_labs: ["Hb", "CRP"]
+
+  treatment_resistant:
+    probability: 0.13
+    description: "Ongoing transfusion need / persistent SIRS; slow resolution after escalation"
+    trajectory:
+      volume_status:      {0: -0.03, 1: -0.02, 3: 0.00, 5: 0.03, 7: 0.05, 10: 0.05, 14: 0.03}
+      anemia_level:       {0: 0.05, 1: 0.04, 3: 0.03, 5: 0.01, 7: -0.01, 10: -0.02, 14: -0.02}
+      inflammation_level: {0: 0.03, 1: 0.03, 3: 0.02, 5: 0.01, 7: -0.02, 10: -0.03, 14: -0.03}
+    order_modifications:
+      day_3:
+        add_labs: ["Hb", "Lactate", "CRP"]
+        add_consult: ["trauma_surgery"]
+
+  gradual_deterioration:
+    probability: 0.12
+    description: "Progressive multi-organ dysfunction from persistent shock / hypoperfusion"
+    trajectory:
+      volume_status:      {0: -0.03, 1: -0.03, 2: -0.03, 3: -0.02, 5: -0.02, 7: -0.02}
+      perfusion_status:   {0: -0.04, 1: -0.04, 2: -0.03, 3: -0.03, 5: -0.02, 7: -0.02}
+      renal_function:     {0: -0.03, 1: -0.03, 2: -0.02, 3: -0.02, 5: -0.02, 7: -0.01}
+      inflammation_level: {0: 0.04, 1: 0.04, 2: 0.03, 3: 0.03, 5: 0.02, 7: 0.02}
+
+  sudden_deterioration:
+    probability: 0.06
+    description: "Delayed hemorrhage / massive PE with abrupt Day 1-3 collapse"
+    trajectory:
+      volume_status:      {0: 0.00, 1: -0.10, 2: -0.25, 3: -0.08, 5: 0.03, 7: 0.05}
+      perfusion_status:   {0: 0.00, 1: -0.10, 2: -0.25, 3: -0.08, 5: 0.03, 7: 0.04}
+      anemia_level:       {0: 0.00, 1: 0.08, 2: 0.15, 3: 0.05, 5: 0.00, 7: -0.02}
+
+# ============================================================
+# COMPLICATIONS — hemorrhagic shock / ARDS / AKI / VTE / SSI (drive ICU transfer)
+# risk_factor conditions restricted to those _evaluate_risk_condition supports.
+# ============================================================
+complications:
+  - name: "hemorrhagic_shock"
+    description: "Ongoing / delayed hemorrhage with hypoperfusion requiring massive transfusion"
+    probability_per_day: 0.015
+    onset_day_range: [0, 3]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 4.0}
+      - {condition: "perfusion_status < 0.3", multiplier: 3.0}
+    state_impact:
+      volume_status: -0.15
+      perfusion_status: -0.15
+      anemia_level: 0.10
+    detection:
+      test: "Hb"
+      finding: "falling_hemoglobin"
+    actions: ["icu_transfer", "activate_massive_transfusion"]
+
+  - name: "acute_respiratory_distress"
+    description: "ARDS from pulmonary contusion / transfusion-related lung injury"
+    probability_per_day: 0.01
+    onset_day_range: [1, 7]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 3.5}
+    state_impact:
+      perfusion_status: -0.12
+      inflammation_level: 0.05
+    detection:
+      test: "Chest_Xray"
+      finding: "bilateral_infiltrates"
+    actions: ["icu_transfer", "lung_protective_ventilation"]
+
+  - name: "acute_kidney_injury"
+    description: "AKI from shock / rhabdomyolysis after crush component"
+    probability_per_day: 0.02
+    onset_day_range: [1, 7]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 3.0}
+      - {condition: "perfusion_status < 0.3", multiplier: 2.0}
+    state_impact:
+      renal_function: -0.06
+    detection:
+      test: "Creatinine"
+      finding: "rising_creatinine"
+    actions: ["order_renal_panel"]
+
+  - name: "venous_thromboembolism"
+    description: "DVT / PE from immobility and trauma hypercoagulability"
+    probability_per_day: 0.008
+    onset_day_range: [3, 14]
+    risk_factors:
+      - {condition: "immobility_days > 3", multiplier: 2.5}
+    state_impact:
+      perfusion_status: -0.04
+    detection:
+      test: "lower_extremity_doppler"
+      finding: "deep_vein_thrombosis"
+    actions: ["order_doppler"]
+
+  - name: "surgical_site_infection"
+    description: "Deep or superficial surgical site infection after fracture fixation"
+    probability_per_day: 0.01
+    onset_day_range: [3, 14]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.0}
+      - {condition: "immobility_days > 3", multiplier: 1.5}
+    state_impact:
+      inflammation_level: 0.06
+    detection:
+      test: "CRP"
+      finding: "rising_crp"
+    actions: ["order_wound_culture", "start_antibiotics"]
+
 order_protocols:
   admission_orders:
     labs:
