@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import numpy as np
 
 from clinosim.codes import system_key_for
+from clinosim.modules.disease.severity import sample_severity_category
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import get_lab_unit
 from clinosim.modules.staff.engine import StaffRoster, assign_staff
@@ -73,14 +74,11 @@ def _simulate_ed_visit(
 
     # ED stay duration from protocol or default
     if protocol:
+        # Shared categorical severity primitive (FP-SEV-MODEL). ED encounter YAML
+        # carries no modifiers/minimum, so pass []/None; the sampled category is the
+        # single source used for triage + ed_stay_hours.
         sev_dist = protocol.get("severity_distribution", {})
-        sev_probs = [float(sev_dist.get(s, 0.0)) for s in ["mild", "moderate", "severe"]]
-        total_p = sum(sev_probs)
-        if total_p <= 0:
-            sev_probs = [0.33, 0.34, 0.33]
-        else:
-            sev_probs = [p / total_p for p in sev_probs]
-        severity = str(rng.choice(["mild", "moderate", "severe"], p=sev_probs))
+        severity = sample_severity_category(sev_dist, [], patient, rng, None)
         stay_cfg = protocol.get("ed_stay_hours", {}).get(severity, {"mean": 3, "sd": 1})
         ed_hours = float(rng.normal(stay_cfg["mean"], stay_cfg["sd"]))
     else:
