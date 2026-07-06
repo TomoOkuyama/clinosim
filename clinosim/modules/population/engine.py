@@ -77,11 +77,8 @@ def _parse_chronic_prevalence(demo: dict) -> dict[str, ChronicConditionSpec]:
         for key, prev in entry.items():
             if key == "sex":
                 continue
-            try:
-                lo, hi = str(key).split("-")
-                age_ranges[(int(lo), int(hi))] = float(prev)
-            except (ValueError, TypeError):
-                continue
+            lo, hi = str(key).split("-")
+            age_ranges[(int(lo), int(hi))] = float(prev)
         result[code] = ChronicConditionSpec(age_ranges=age_ranges, sex=sex_filter)
     return result
 
@@ -99,6 +96,7 @@ def generate_population(
         demo = _load_demographics(country)
     avg_household_size = demo.get("average_household_size", 2.5)
     n_households = int(size / avg_household_size)
+    chronic_data = _parse_chronic_prevalence(demo)
 
     # Load name data and naming rules
     name_data = _load_name_data(country)
@@ -223,7 +221,6 @@ def generate_population(
                 bmi_cat = "overweight"
 
             conditions: list[str] = []
-            chronic_data = _parse_chronic_prevalence(demo)
             for code, spec in chronic_data.items():
                 if spec.sex and spec.sex != sex:
                     continue  # e.g., BPH (N40) is male-only

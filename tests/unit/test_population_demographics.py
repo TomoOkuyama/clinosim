@@ -4,7 +4,13 @@ import numpy as np
 import pytest
 from datetime import date
 
-from clinosim.modules.population.engine import PersonRecord, generate_population, generate_monthly_events, PopulationRegistry
+from clinosim.modules.population.engine import (
+    PersonRecord,
+    _parse_chronic_prevalence,
+    generate_population,
+    generate_monthly_events,
+    PopulationRegistry,
+)
 from clinosim.types.patient import PatientProfile
 
 
@@ -481,3 +487,24 @@ def test_graded_stage_severity_score_deterministic_same_seed(code):
     s1 = next(c for c in p1.chronic_conditions if c.code.startswith(code_base)).severity_score
     s2 = next(c for c in p2.chronic_conditions if c.code.startswith(code_base)).severity_score
     assert s1 == s2
+
+
+# ---------------------------------------------------------------------------
+# _parse_chronic_prevalence fail-loud: a malformed age-range key (e.g. a
+# typo'd "65+" instead of "65-120") was silently dropped via a bare
+# try/except ValueError/TypeError: continue, inconsistent with the sibling
+# _parse_age_distribution (no such guard, raises naturally) and with this
+# project's fail-loud-validation convention for YAML-sourced data.
+# ---------------------------------------------------------------------------
+
+def test_parse_chronic_prevalence_raises_on_malformed_age_range_key():
+    demo = {"chronic_prevalence": {"N10": {"65+": 0.1}}}
+    with pytest.raises(ValueError):
+        _parse_chronic_prevalence(demo)
+
+
+def test_parse_chronic_prevalence_accepts_well_formed_ranges():
+    demo = {"chronic_prevalence": {"N10": {"sex": "F", "0-64": 0.05, "65-120": 0.2}}}
+    result = _parse_chronic_prevalence(demo)
+    assert result["N10"].sex == "F"
+    assert result["N10"].age_ranges == {(0, 64): 0.05, (65, 120): 0.2}
