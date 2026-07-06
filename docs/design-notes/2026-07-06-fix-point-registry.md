@@ -15,8 +15,8 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 
 | FP | 見出し | クラス | 優先 | 依存 | Status |
 |---|---|---|---|---|---|
-| FP-UNIFY-1 | `_fhir_hai.py` system_key_for バイパス(潜在バグ) | — | 高 | なし | OPEN |
-| FP-YAML-1 | `diagnostic_difficulty` top-level silent-drop(実害バグ) | C1 | 高 | なし | OPEN |
+| FP-UNIFY-1 | `_fhir_hai.py` system_key_for バイパス(潜在バグ) | — | 高 | なし | **DONE**(89e616a43f) |
+| FP-YAML-1 | `diagnostic_difficulty` top-level silent-drop(実害バグ) | C1 | 高 | なし | **DONE**(7910813fe6) |
 | FP-SEV-MODEL | 重症度 single-source-of-truth 再設計 | C1 | 高 | brainstorming | OPEN |
 | FP-YAML-2 | 孤児キー triage(配線 or 削除) | C1 | 中 | FP-SEV-MODEL(archetype_modifiers 分) | OPEN |
 | FP-YAML-3 | `DiseaseProtocol` に `extra="forbid"` + 生 dict 経路封鎖 | C1 | 中 | FP-YAML-1/2 | OPEN |
@@ -41,7 +41,8 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 - **修正**: `system_key_for("diagnosis", country)` に置換。
 - **検証**: HAI cohort で ICD system URI が US=icd-10-cm / JP=icd-10 になることを grep。byte-diff は
   現行 country 値が大文字なら保存されるはず(確認すること)。
-- **Status:** OPEN
+- **Status:** DONE(session 38、commit 89e616a43f)。lowercase "us"/"jp" 双方の unit test 追加
+  (`tests/unit/output/test_fhir_hai_code_system.py`)。残る sibling 比較は FP-UNIFY-4 に分離。
 
 ## FP-YAML-1 — `diagnostic_difficulty` top-level silent-drop(実害バグ)【高】
 
@@ -54,7 +55,11 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
   golden は該当疾患のみ差分(diagnostic 難易度が working diagnosis 生成に効く)。AD-66 で再生成。
 - **注意**: FP-YAML-3(`extra="forbid"`)を先に入れると 15 疾患が load 不能になるので、**FP-YAML-1
   → FP-YAML-2 → FP-YAML-3 の順序厳守**。
-- **Status:** OPEN
+- **Status:** DONE(session 38、commit 7910813fe6)。実測分類 = top-only 10(うち値≠0.3 が 8:
+  acute_mi 0.25 / sepsis 0.5 / pulmonary_embolism 0.45 / gi_bleeding 0.35 / DKA・pancreatitis・
+  cholecystitis 0.2 / appendicitis 0.25、cerebral_infarction・ileus は 0.3 で値不変)+ both 5(冗長
+  top-level 削除)。sepsis golden のみ RNG 経路変化で再生成(AD-66 妥当性確認済)。top-level キー残存ゼロ
+  = FP-YAML-3 の diagnostic_difficulty 分の障害は解消。他の孤児キー(FP-YAML-2)が残る。
 
 ## FP-SEV-MODEL — 重症度 single-source-of-truth 再設計【高・brainstorming 必須】
 
