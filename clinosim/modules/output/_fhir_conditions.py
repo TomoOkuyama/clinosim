@@ -187,18 +187,15 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         if c_severity:
             cond["severity"] = _severity_coding(c_severity, country)
 
-        # Stage (NYHA, CKD G, GOLD, etc.) — c_stage set in the branch above.
+        # Stage (NYHA class, CKD G, GOLD, hypertension Stage, CCS, etc.) — c_stage set
+        # in the branch above. The stage VALUE is carried by summary.text. type.type is
+        # left as a plain-text label only: these are non-cancer clinical stages/classes,
+        # so the former SNOMED 385356007 "Tumor stage finding" coding was clinically
+        # wrong on every one of them and is intentionally NOT emitted (no fabricated code).
         if c_stage:
             cond["stage"] = [{
                 "summary": {"text": c_stage},
-                "type": {
-                    "coding": [{
-                        "system": get_system_uri("snomed-ct"),
-                        "code": "385356007",
-                        "display": "Tumor stage finding",
-                    }],
-                    "text": "Clinical stage",
-                },
+                "type": {"text": "Clinical stage"},
             }]
 
         if c_onset:
