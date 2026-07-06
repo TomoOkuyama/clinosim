@@ -336,7 +336,7 @@ def _build_vital_observations(
                 "coding": [{
                     "system": get_system_uri("snomed-ct"),
                     "code": loc_snomed,
-                    "display": loc_display,
+                    "display": display,
                 }],
                 "text": display,
             },
