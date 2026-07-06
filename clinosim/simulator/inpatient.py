@@ -126,7 +126,10 @@ def _simulate_patient(
     if forced_archetype:
         archetype = forced_archetype
     else:
-        archetype = select_archetype(severity, patient.physiological_profile, rng)
+        archetype = select_archetype(
+            severity, patient.physiological_profile, rng,
+            protocol_archetypes=protocol.course_archetypes or None,
+        )
 
     # Initialize physiological state
     state = initialize_state(patient.physiological_profile, patient.chronic_conditions, patient.patient_id)

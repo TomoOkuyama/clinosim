@@ -91,3 +91,29 @@ def test_run_daily_loop_passes_real_severity_to_evaluate_complications(monkeypat
 
     assert captured, "evaluate_complications was never called (check target_los >= 2 and complications are non-empty for bacterial_pneumonia/severe/US)"
     assert captured["kwargs"].get("severity") == "severe"
+
+
+def test_select_archetype_receives_disease_course_archetypes(monkeypatch):
+    """Before this fix, _simulate_patient's natural (non-forced) archetype
+    draw called select_archetype() without protocol_archetypes, so every
+    disease used the generic _FALLBACK_PROBABILITIES table regardless of its
+    own YAML-authored course_archetypes. A sibling call site 470 lines later
+    (get_daily_directive) already passed this correctly."""
+    from clinosim.simulator import inpatient as inpatient_mod
+    from clinosim.modules.disease.protocol import load_disease_protocol
+
+    captured: dict = {}
+    original = inpatient_mod.select_archetype
+
+    def spy(*args, **kwargs):
+        captured["kwargs"] = kwargs
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(inpatient_mod, "select_archetype", spy)
+
+    scenario = ForcedScenario(disease_id="bacterial_pneumonia", count=1, severity="moderate")
+    config = SimulatorConfig(random_seed=42, country="US")
+    run_forced(scenario, config)
+
+    protocol = load_disease_protocol("bacterial_pneumonia")
+    assert captured.get("kwargs", {}).get("protocol_archetypes") == protocol.course_archetypes
