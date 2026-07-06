@@ -2510,3 +2510,71 @@ Plausibly acceptable for trauma (generic post-op recovery shape); a real gap
 for `heart_failure_exacerbation`, which has a well-known diuresis-driven
 recovery curve that isn't modeled. Needs per-disease YAML authoring, not a
 code change.
+
+### Disease YAML's own `incidence.risk_multipliers` list is entirely unread (third disconnected-data instance)
+
+Discovered while investigating a locale-file dead-multiplier finding (F10
+below): disease YAMLs' own `incidence.risk_multipliers` field (a list of
+`{condition: "...", multiplier: ...}` dicts, e.g. `atrial_fibrillation_rvr.yaml`'s
+`hypertension`/`heart_failure`/`alcohol_dependence`/etc., or
+`fall_from_height.yaml` / `subdural_hematoma.yaml` /
+`traffic_accident_severe.yaml`'s `F10` condition) is grep-confirmed to have
+**zero** Python readers anywhere in the codebase. `population/engine.py`'s
+actual disease-incidence risk multiplier mechanism
+(`demo.get("disease_risk_multipliers", {})`, consumed at
+`_disease_monthly_rate_from_locale`) reads an entirely separate, differently-shaped
+top-level key from **locale** `demographics.yaml` (`{disease_id: {code: mult}}`,
+keyed by `chronic_conditions` codes), which is hand-authored independently and
+does NOT derive from the disease YAML's own list. This is the same
+"documented-in-disease-YAML, never wired" bug class as the `severity.distribution`
+finding above — same missing-`extra="forbid"` root cause, same scope
+(architecture decision: should locale's `disease_risk_multipliers` be derived
+from disease YAML's `incidence.risk_multipliers` instead of hand-duplicated?
+or is disease YAML's list purely descriptive and should be deleted/annotated?).
+Needs its own brainstorming session; do not fix piecemeal per-disease.
+
+### `disease_risk_multipliers.fall_from_height: {F10: 2.0}` is permanently dead (both locales)
+
+Symptom of the above: `F10` (ICD-10 "alcohol related disorders") is used as a
+`chronic_conditions` code key in `clinosim/locale/{us,jp}/demographics.yaml`'s
+`disease_risk_multipliers.fall_from_height`, but `F10` is never a key in
+either country's `chronic_prevalence` block, so no person can ever have it in
+`person.chronic_conditions` — the multiplier can never fire. Note a second,
+narrower naming inconsistency even after that's fixed: disease YAMLs mix two
+different key conventions for the same concept across different files —
+`F10` (ICD-10-code-style, used in `fall_from_height`/`subdural_hematoma`/
+`traffic_accident_severe`) vs `alcohol_dependence` (condition-name-style, used
+in `acute_pancreatitis`/`aspiration_pneumonia`/`atrial_fibrillation_rvr`/
+`bacterial_pneumonia`/`gi_bleeding`/`sepsis`/`liver_cirrhosis_decompensated`) —
+neither convention currently resolves to a real sampled `chronic_conditions`
+entry. Fold into the `incidence.risk_multipliers` wiring decision above rather
+than patching F10 alone.
+
+### Hypertension (I10) is the 6th graded-stage condition missing from `STAGE_SEVERITY` — currently a no-op
+
+`clinosim/modules/patient/activator.py:37-44`'s `STAGE_SEVERITY` dict covers
+N18/I50/J44/J45/I25 (the 5 conditions fixed this session/last) but not I10,
+even though `_generate_stage` (`activator.py:70-71`) already samples a
+graded I10 stage ("Stage 1"/"Stage 2") and a hardcoded vitals bump
+(`activator.py:262-264`, `systolic_bp += 10, diastolic_bp += 5`) is identical
+for both stages regardless. **Currently a true no-op fix**: `physiology/engine.py:initialize_state`
+has no I10 branch consuming `severity_score` at all, so adding I10 to
+`STAGE_SEVERITY` alone would produce a `severity_score` value nothing reads —
+not worth doing until hypertension severity modeling (a real physiological
+consumer) is added. Revisit together, not `STAGE_SEVERITY` alone.
+
+### `person.age` never advances across a multi-year simulation
+
+`generate_population` sets `age`/`date_of_birth` once
+(`clinosim/modules/population/engine.py`); nothing increments `age` as the
+simulation clock advances across `(year, month)` in
+`simulator/engine.py:125-142`, even though `date_of_birth` is stored and could
+derive current age. For the common single-year default run this has no
+effect; for a genuinely multi-year run, age-based incidence lookups,
+`hospitalization_threshold_modifier_by_age`, and the age-gated screening/flu-vax
+logic in `generate_healthcare_calendar` all use a frozen age for the entire
+run — cohort aging never happens. Fix is medium-complexity (derive age from
+`dob` at each of several call sites rather than reading the static field);
+deferred rather than folded into this session's quick-fix batch since it
+touches multiple files for a scenario (multi-year runs) not in common use
+today.
