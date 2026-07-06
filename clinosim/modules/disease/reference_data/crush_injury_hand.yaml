@@ -123,15 +123,6 @@ target_los:
     moderate: {mean: 3, sd: 2, min: 1, max: 7}
     severe: {mean: 7, sd: 3, min: 5, max: 14}
 
-rehabilitation:
-  start_day: 3
-  sessions_per_day: 1
-  session_duration_minutes: 30
-  goals:
-    - "Passive ROM by Day 5"
-    - "Active ROM by Week 2"
-    - "Functional grip by Week 4"
-
 outcome_benchmarks:
   japan:
     median_los: 14

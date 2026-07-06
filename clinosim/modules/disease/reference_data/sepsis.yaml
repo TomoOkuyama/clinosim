@@ -308,16 +308,6 @@ likelihood_ratios:
 diagnostic:
   diagnostic_difficulty: 0.5    # high — source often unclear, mimics many conditions
 
-differential_diagnosis:
-  - {disease: "sepsis", pretest_probability: 0.35}
-  - {disease: "pneumonia_with_SIRS", pretest_probability: 0.20}
-  - {disease: "uti_with_bacteremia", pretest_probability: 0.15}
-  - {disease: "intra_abdominal_infection", pretest_probability: 0.12}
-  - {disease: "meningitis", pretest_probability: 0.08}
-  - {disease: "endocarditis", pretest_probability: 0.05}
-  - {disease: "drug_reaction", pretest_probability: 0.03}
-  - {disease: "adrenal_crisis", pretest_probability: 0.02}
-
 # ============================================================
 # LAB REFERENCE RANGES (admission values for sepsis patients)
 # For benchmarking generated data
