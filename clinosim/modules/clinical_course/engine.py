@@ -99,6 +99,32 @@ def _apply_archetype_modifiers(
     return probs
 
 
+def _validate_archetype_modifiers(
+    disease_id: str, modifiers: list[dict[str, Any]], archetype_names: set[str]
+) -> None:
+    """Fail-loud validation of an archetype_modifiers block at load time.
+
+    Catches: an effect targeting an archetype the disease doesn't define (silent
+    phantom), a typo'd condition (neither a parseable expression nor a known named
+    condition), and a non-numeric delta.
+    """
+    from clinosim.modules.disease.severity import KNOWN_MODIFIER_CONDITIONS
+
+    known_named = ARCHETYPE_RESERVED_CONDITIONS | KNOWN_MODIFIER_CONDITIONS
+    for mod in modifiers or []:
+        cond = mod.get("condition", "")
+        if not _EXPR_RE.match(cond) and cond not in known_named:
+            raise ValueError(f"{disease_id}: unknown archetype_modifier condition {cond!r}")
+        for arch, delta in (mod.get("effect") or {}).items():
+            if arch not in archetype_names:
+                raise ValueError(
+                    f"{disease_id}: archetype_modifier effect targets {arch!r} not in "
+                    f"the disease's archetypes {sorted(archetype_names)}"
+                )
+            if not isinstance(delta, (int, float)):
+                raise ValueError(f"{disease_id}: non-numeric archetype_modifier delta for {arch!r}")
+
+
 # ============================================================
 # Built-in fallback archetypes (used when YAML doesn't define trajectories)
 # ============================================================
