@@ -143,15 +143,6 @@ target_los:
     moderate: {mean: 10, sd: 4, min: 7, max: 14}
     severe: {mean: 16, sd: 6, min: 10, max: 30}
 
-rehabilitation:
-  start_day: 3
-  sessions_per_day: 1
-  session_duration_minutes: 30
-  goals:
-    - "Bed mobility Week 1"
-    - "Transfers Week 2"
-    - "Ambulation with device Week 3-4"
-
 outcome_benchmarks:
   japan:
     median_los: 32
