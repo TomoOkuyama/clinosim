@@ -2575,3 +2575,65 @@ Neutral:
 **Related documents:**
 - Spec: `docs/superpowers/specs/2026-07-03-tier1-3-alpha-min-2c-fixture-library-design.md`
 - Plan: `docs/superpowers/plans/2026-07-03-tier1-3-alpha-min-2c-fixture-library-plan.md`
+
+---
+
+### AD-67 · Severity single source of truth (disease YAML canonical, hybrid c2)
+
+**Date:** 2026-07-06 (session 38, FP-SEV-MODEL)
+
+**Status:** Accepted
+
+**Context:**
+
+Three disconnected severity systems coexisted: (A) locale `demographics.yaml`
+per-disease `severity_beta` continuous draw (the only live inpatient source, also
+load-bearing for the hospitalization gate), (B) disease-YAML `severity.distribution`
++ `modifiers` (present in all 30 diseases with clinical-literature citations but read
+by zero code — dead), (C) encounter-YAML `severity_distribution` for the ED path.
+The float→category boundary was hardcoded (`inpatient.py`, `> 0.7`/`> 0.3`) and the
+minimum was defined twice (`severity_minimum` float + `minimum_severity` str, clamped
+separately). System B being dead meant the authored, comorbidity-aware severity
+distributions never reached the FHIR output — the largest C1 (silent-drop) instance
+in the FHIR-completeness goal.
+
+**Decision:**
+
+Disease-YAML `severity.distribution` × `modifiers` is the single canonical severity
+source (hybrid **c2**). A new `clinosim/modules/disease/severity.py` owns severity
+sampling and the canonical category↔score boundary (`SEVERITY_SCORE_RANGES`,
+`category_from_score`). `sample_severity(protocol, person, rng)` samples a category
+from the distribution × person-derived comorbidity modifiers (age/comorbidity), clamps
+to `minimum_severity`, and maps the category to a uniform continuous score; the score
+still feeds the population-time hospitalization gate and re-derives the same category.
+`population/engine.py` calls it (new population→disease dependency); `inpatient.py`
+uses `category_from_score`; `emergency.py` shares the categorical primitive. Locale
+`severity_beta`/`severity_minimum` are retired (incidence-only). Import-time
+`_validate_severity_block` fails loud on malformed distribution / unknown modifier
+condition / bad minimum / non-positive multiplier (silent-no-op defense).
+
+Modifier conditions were enumerated from the 30 YAMLs (66 distinct), partitioned into
+EVALUABLE (person-derived, ~34: age/comorbidity/BMI/smoking) and RESERVED_INTRINSIC
+(disease sub-type / scenario-specific, ~32: `anterior_wall_MI`, `gcs_below_8`, etc.),
+which are KNOWN (validation does not raise) but skipped this chain.
+
+**Consequences:**
+
+Positive:
+- The authored, comorbidity-aware severity distributions now drive generation
+  (e.g. acute_mi severe rate ~0.11 → ~0.5 for the older/comorbid MI cohort).
+- Single owner for the category↔score boundary and the minimum (no duplicate clamp).
+- Silent-no-op defense extended to the disease-YAML severity block.
+
+Negative / neutral:
+- New-feature-class change: inpatient cohort composition (hospitalization rate /
+  severity mix) shifts toward disease-YAML distributions; goldens regenerate
+  (profile goldens are forced-severity so byte-unchanged; cohort output shifts).
+- Disease-intrinsic modifiers deferred (scenario-flag mechanism) — TODO.
+
+**Related ADRs:** AD-16 / AD-55 / AD-57 (scenario flags sibling pattern)
+
+**Related documents:**
+- Spec: `docs/superpowers/specs/2026-07-06-severity-single-source-c2-design.md`
+- Plan: `docs/superpowers/plans/2026-07-06-severity-single-source-c2.md`
+- Registry: `docs/design-notes/2026-07-06-fix-point-registry.md` (FP-SEV-MODEL)

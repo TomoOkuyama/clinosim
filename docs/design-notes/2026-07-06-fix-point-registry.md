@@ -17,7 +17,7 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 |---|---|---|---|---|---|
 | FP-UNIFY-1 | `_fhir_hai.py` system_key_for バイパス(潜在バグ) | — | 高 | なし | **DONE**(89e616a43f) |
 | FP-YAML-1 | `diagnostic_difficulty` top-level silent-drop(実害バグ) | C1 | 高 | なし | **DONE**(7910813fe6) |
-| FP-SEV-MODEL | 重症度 single-source-of-truth 再設計 | C1 | 高 | brainstorming | OPEN |
+| FP-SEV-MODEL | 重症度 single-source-of-truth 再設計 | C1 | 高 | brainstorming | **DONE**(c2, AD-67) |
 | FP-YAML-2 | 孤児キー triage(配線 or 削除) | C1 | 中 | FP-SEV-MODEL(archetype_modifiers 分) | OPEN |
 | FP-YAML-3 | `DiseaseProtocol` に `extra="forbid"` + 生 dict 経路封鎖 | C1 | 中 | FP-YAML-1/2 | OPEN |
 | FP-I10 | 高血圧生理モデル新設 + stage 一貫配線 | C2 | 中 | FP-SEV-MODEL 推奨 | OPEN |
@@ -76,7 +76,14 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
   5. `severity_from_protocol(protocol, draw)` 兄弟ヘルパ(`scenario_flags_from_protocol` パターン)の新設。
 - **成果物**: `docs/superpowers/specs/` に design spec。実装は挙動変更 = golden 全再生成 + AD 追記。
 - **依存先**: FP-YAML-2(archetype_modifiers)/ FP-I10 がこの決定に乗る。
-- **Status:** OPEN
+- **Status:** DONE(session 38、c2、AD-67)。`clinosim/modules/disease/severity.py` 新設
+  (`sample_severity` / `sample_severity_category` / `category_from_score` /
+  `_validate_severity_block`)、population→disease 配線、inpatient/emergency 統一、locale
+  `severity_beta`/`severity_minimum` 撤廃(dangling reader 0 確認)。modifier 66 種を
+  EVALUABLE(person 由来 ~34)/ RESERVED_INTRINSIC(疾患内在 ~32)に分割。profile golden は
+  forced-severity で byte 不変、cohort は疾患YAML分布へシフト(acute_mi severe ~0.11→~0.5)。
+  spec/plan: `docs/superpowers/{specs,plans}/2026-07-06-severity-single-source-c2*`。
+  **残 follow-up**: 疾患内在 modifier の scenario-flag 評価機構(下記 §deferred)。
 
 ## FP-YAML-2 — 孤児キー triage(配線 or 削除)【中】
 
