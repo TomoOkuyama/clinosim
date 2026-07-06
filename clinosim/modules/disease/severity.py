@@ -208,3 +208,36 @@ def sample_severity(
     category = sample_severity_category(distribution, modifiers, person, rng, minimum)
     lo, hi = SEVERITY_SCORE_RANGES[category]
     return category, float(rng.uniform(lo, hi))
+
+
+def _validate_severity_block(
+    disease_id: str, severity: dict[str, Any], minimum_severity: str | None
+) -> None:
+    """Fail-loud validation of a disease-YAML severity block at load time.
+
+    Guards the silent-no-op class: a malformed distribution, a typo'd modifier
+    condition, a bad minimum, or a non-positive multiplier all raise rather than
+    silently degrading to a wrong-but-plausible severity draw.
+    """
+    dist = (severity or {}).get("distribution", {})
+    missing = [c for c in SEVERITY_CATEGORIES if c not in dist]
+    if missing:
+        raise ValueError(f"{disease_id}: severity.distribution missing {missing}")
+    vals = [float(dist[c]) for c in SEVERITY_CATEGORIES]
+    if any(v < 0 for v in vals):
+        raise ValueError(f"{disease_id}: negative severity.distribution weight {vals}")
+    if sum(vals) <= 0:
+        raise ValueError(f"{disease_id}: severity.distribution sums to 0")
+    if minimum_severity is not None and minimum_severity not in SEVERITY_CATEGORIES:
+        raise ValueError(f"{disease_id}: minimum_severity {minimum_severity!r} not a category")
+    for mod in severity.get("modifiers", []) or []:
+        cond = mod.get("condition", "")
+        if cond not in KNOWN_MODIFIER_CONDITIONS:
+            raise ValueError(
+                f"{disease_id}: unknown severity modifier condition {cond!r} "
+                f"(add to EVALUABLE_CONDITIONS or RESERVED_INTRINSIC_CONDITIONS)"
+            )
+        for cat in SEVERITY_CATEGORIES:
+            mult = mod.get(f"{cat}_multiplier")
+            if mult is not None and float(mult) <= 0:
+                raise ValueError(f"{disease_id}: non-positive {cat}_multiplier for {cond!r}")
