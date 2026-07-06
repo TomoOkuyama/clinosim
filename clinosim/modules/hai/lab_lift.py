@@ -124,7 +124,7 @@ def _wbc_pre_circadian(infl: float) -> float:
 
 def _circadian_wbc(hour: int) -> float:
     """Daily-loop WBC circadian factor; nadir ~04:00, peak ~16:00."""
-    return 1.0 + 0.10 * math.sin((hour - 4) * math.pi / 12)
+    return 1.0 + 0.10 * (-math.cos((hour - 4) * math.pi / 12))
 
 
 def _hai_lift_delta(
