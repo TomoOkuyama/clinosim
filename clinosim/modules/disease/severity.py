@@ -8,6 +8,12 @@ to (used by the population-time hospitalization gate).
 
 from __future__ import annotations
 
+from typing import Any
+
+import numpy as np
+
+from clinosim.modules._shared import normalize_probabilities
+
 SEVERITY_CATEGORIES: tuple[str, str, str] = ("mild", "moderate", "severe")
 
 # Half-open ranges (upper-inclusive on severe). category_from_score is exactly
@@ -68,29 +74,51 @@ _AGE_OVER: dict[str, int] = {
 EVALUABLE_CONDITIONS: frozenset[str] = frozenset(
     set(_COND_ICD_PREFIXES)
     | set(_AGE_OVER)
-    | {"age_under_5", "obesity", "obesity_bmi_over_30", "smoking_current",
-       "multiple_comorbidities"}
+    | {"age_under_5", "obesity", "obesity_bmi_over_30", "smoking_current", "multiple_comorbidities"}
 )
 
 # Disease sub-type / scenario-specific conditions not derivable from PersonRecord.
 # KNOWN (validation does not raise) but always evaluate False this chain. Reserved
 # for the deferred scenario-flag mechanism (see TODO / registry FP-SEV-MODEL follow-up).
-RESERVED_INTRINSIC_CONDITIONS: frozenset[str] = frozenset({
-    "anterior_wall_MI", "saddle_embolus", "iliofemoral_location", "bilateral_dvt",
-    "phlegmasia_signs", "intraventricular_hemorrhage", "acalculous", "gcs_below_8",
-    "APACHE_II_above_8", "FEV1_below_30", "hypercapnia_baseline",
-    "first_presentation_T1DM", "delayed_presentation", "coagulopathy",
-    "multiple_levels", "neurological_deficit", "hernia_incarcerated", "WPW_syndrome",
-    "sepsis", "prior_abdominal_surgery", "urinary_obstruction", "urinary_catheter",
-    "symptom_duration_over_48h", "symptom_duration_over_72h", "immunosuppressed",
-    "anticoagulant_use", "chronic_steroid_use", "home_oxygen_use", "pregnancy",
-    "medication_noncompliance", "poor_functional_status", "prior_icu_admission",
-    "prior_icu_for_asthma",
-})
-
-KNOWN_MODIFIER_CONDITIONS: frozenset[str] = (
-    EVALUABLE_CONDITIONS | RESERVED_INTRINSIC_CONDITIONS
+RESERVED_INTRINSIC_CONDITIONS: frozenset[str] = frozenset(
+    {
+        "anterior_wall_MI",
+        "saddle_embolus",
+        "iliofemoral_location",
+        "bilateral_dvt",
+        "phlegmasia_signs",
+        "intraventricular_hemorrhage",
+        "acalculous",
+        "gcs_below_8",
+        "APACHE_II_above_8",
+        "FEV1_below_30",
+        "hypercapnia_baseline",
+        "first_presentation_T1DM",
+        "delayed_presentation",
+        "coagulopathy",
+        "multiple_levels",
+        "neurological_deficit",
+        "hernia_incarcerated",
+        "WPW_syndrome",
+        "sepsis",
+        "prior_abdominal_surgery",
+        "urinary_obstruction",
+        "urinary_catheter",
+        "symptom_duration_over_48h",
+        "symptom_duration_over_72h",
+        "immunosuppressed",
+        "anticoagulant_use",
+        "chronic_steroid_use",
+        "home_oxygen_use",
+        "pregnancy",
+        "medication_noncompliance",
+        "poor_functional_status",
+        "prior_icu_admission",
+        "prior_icu_for_asthma",
+    }
 )
+
+KNOWN_MODIFIER_CONDITIONS: frozenset[str] = EVALUABLE_CONDITIONS | RESERVED_INTRINSIC_CONDITIONS
 
 
 def _has_icd(person: object, prefixes: tuple[str, ...]) -> bool:
@@ -119,7 +147,7 @@ def _evaluate_condition(condition: str, person: object) -> bool:
 
 
 def _apply_modifiers(
-    dist: dict[str, float], modifiers: list[dict], person: object
+    dist: dict[str, float], modifiers: list[dict[str, Any]], person: object
 ) -> dict[str, float]:
     """Multiply named-category probabilities for each active modifier condition."""
     out = dict(dist)
@@ -132,3 +160,51 @@ def _apply_modifiers(
             if mult is not None:
                 out[cat] = out.get(cat, 0.0) * float(mult)
     return out
+
+
+def _clamp_minimum(dist: dict[str, float], minimum: str | None) -> dict[str, float]:
+    """Zero out categories below ``minimum`` so sampling never returns them."""
+    if not minimum:
+        return dict(dist)
+    min_idx = SEVERITY_CATEGORIES.index(minimum)
+    return {
+        c: (dist.get(c, 0.0) if i >= min_idx else 0.0) for i, c in enumerate(SEVERITY_CATEGORIES)
+    }
+
+
+def sample_severity_category(
+    distribution: dict[str, float],
+    modifiers: list[dict[str, Any]],
+    person: object,
+    rng: np.random.Generator,
+    minimum: str | None,
+) -> str:
+    """Sample a severity category from a categorical distribution × modifiers.
+
+    Shared primitive for both the inpatient (disease YAML) and ED (encounter YAML)
+    paths. The ED path passes no modifiers / minimum.
+    """
+    dist = _apply_modifiers(dict(distribution), modifiers or [], person)
+    dist = _clamp_minimum(dist, minimum)
+    weights = normalize_probabilities(
+        [max(0.0, dist.get(c, 0.0)) for c in SEVERITY_CATEGORIES], fallback="raise"
+    )
+    return str(rng.choice(SEVERITY_CATEGORIES, p=weights))
+
+
+def sample_severity(
+    protocol: object, person: object, rng: np.random.Generator
+) -> tuple[str, float]:
+    """Draw (category, continuous score) from a disease protocol's severity block.
+
+    The score is a uniform draw inside the sampled category's range, giving the
+    population-time hospitalization gate a continuous value that re-derives the
+    same category via ``category_from_score``.
+    """
+    sev = getattr(protocol, "severity", {}) or {}
+    distribution = sev.get("distribution", {})
+    modifiers = sev.get("modifiers", [])
+    minimum = getattr(protocol, "minimum_severity", None)
+    category = sample_severity_category(distribution, modifiers, person, rng, minimum)
+    lo, hi = SEVERITY_SCORE_RANGES[category]
+    return category, float(rng.uniform(lo, hi))
