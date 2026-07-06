@@ -56,6 +56,131 @@ presenting_symptoms:
   - {name: "altered_consciousness", probability: 0.20, severity_range: [0.3, 0.7]}
   - {name: "muscle_necrosis", probability: 0.25, severity_range: [0.4, 0.9]}
 
+# ============================================================
+# COURSE ARCHETYPES (FP-ARCH-2/3)
+# Electrical injury is a short-LOS course: aggressive fluids clear myoglobin so
+# renal_function recovers, inflammation (burn/muscle) settles, and the transient
+# perfusion/cardiac hit resolves. Arrhythmia / rhabdo-AKI / compartment syndrome
+# drive the resistant / deteriorating tails. Most patients recover smoothly.
+# Canonical archetype names; trajectories interpolated over the (short) LOS.
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.50
+    description: "Uneventful recovery; myoglobin cleared, no arrhythmia, wounds heal"
+    trajectory:
+      inflammation_level: {0: 0.00, 1: -0.05, 2: -0.07, 3: -0.07, 5: -0.05, 7: -0.03}
+      renal_function:     {0: 0.02, 1: 0.03, 2: 0.05, 3: 0.05, 5: 0.04, 7: 0.02}
+      perfusion_status:   {0: 0.00, 1: 0.03, 2: 0.05, 3: 0.05, 5: 0.03, 7: 0.02}
+      volume_status:      {0: 0.03, 1: 0.05, 2: 0.04, 3: 0.03, 5: 0.02, 7: 0.01}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.16
+    description: "Early rhabdomyolysis/CK peak Day 1-2, then aggressive diuresis clears myoglobin"
+    trajectory:
+      renal_function:     {0: -0.05, 1: -0.05, 2: -0.02, 3: 0.02, 5: 0.04, 7: 0.03}
+      inflammation_level: {0: 0.05, 1: 0.05, 2: 0.02, 3: -0.03, 5: -0.05, 7: -0.04}
+      volume_status:      {0: -0.03, 1: 0.02, 2: 0.05, 3: 0.04, 5: 0.02, 7: 0.01}
+    order_modifications:
+      day_2:
+        add_labs: ["CK", "Basic_metabolic_panel"]
+
+  plateau_then_recovery:
+    probability: 0.12
+    description: "Slow CK/creatinine downtrend; renal recovery plateaus then improves"
+    trajectory:
+      renal_function:     {0: 0.00, 1: 0.00, 2: 0.01, 3: 0.02, 5: 0.04, 7: 0.03}
+      inflammation_level: {0: 0.02, 1: 0.00, 3: -0.02, 5: -0.04, 7: -0.04}
+
+  treatment_resistant:
+    probability: 0.12
+    description: "Persistent rhabdomyolysis / AKI needing escalated fluids or renal support"
+    trajectory:
+      renal_function:     {0: -0.04, 1: -0.04, 3: -0.02, 5: 0.00, 7: 0.02}
+      inflammation_level: {0: 0.03, 1: 0.03, 3: 0.02, 5: -0.01, 7: -0.03}
+    order_modifications:
+      day_3:
+        add_labs: ["CK", "Basic_metabolic_panel"]
+        add_consult: ["nephrology"]
+
+  gradual_deterioration:
+    probability: 0.06
+    description: "Progressive AKI / compartment syndrome with worsening perfusion"
+    trajectory:
+      renal_function:     {0: -0.04, 1: -0.04, 2: -0.03, 3: -0.03, 5: -0.02, 7: -0.02}
+      perfusion_status:   {0: -0.04, 1: -0.04, 2: -0.03, 3: -0.03, 5: -0.02, 7: -0.02}
+      inflammation_level: {0: 0.04, 1: 0.04, 2: 0.03, 3: 0.03, 5: 0.02, 7: 0.02}
+
+  sudden_deterioration:
+    probability: 0.04
+    description: "Lethal arrhythmia / abrupt cardiac decompensation Day 1-3"
+    trajectory:
+      cardiac_function:   {0: 0.00, 1: -0.15, 2: -0.20, 3: -0.08, 5: 0.03, 7: 0.04}
+      perfusion_status:   {0: 0.00, 1: -0.10, 2: -0.25, 3: -0.08, 5: 0.03, 7: 0.04}
+
+# ============================================================
+# COMPLICATIONS — arrhythmia / rhabdomyolysis-AKI / compartment / wound infection
+# risk_factor conditions restricted to those _evaluate_risk_condition supports.
+# ============================================================
+complications:
+  - name: "cardiac_arrhythmia"
+    description: "Ventricular / conduction arrhythmia from electrical injury to the myocardium"
+    probability_per_day: 0.02
+    onset_day_range: [0, 3]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.5}
+    state_impact:
+      cardiac_function: -0.08
+      perfusion_status: -0.05
+    detection:
+      test: "ecg"
+      finding: "arrhythmia"
+    actions: ["order_ecg", "cardiac_monitoring", "icu_transfer"]
+
+  - name: "rhabdomyolysis_aki"
+    description: "Rhabdomyolysis-induced acute kidney injury from myoglobinuria"
+    probability_per_day: 0.03
+    onset_day_range: [0, 5]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 3.0}
+    state_impact:
+      renal_function: -0.06
+      inflammation_level: 0.03
+    detection:
+      test: "Basic_metabolic_panel"
+      finding: "rising_creatinine"
+    actions: ["order_renal_panel", "aggressive_fluids", "urine_alkalinization"]
+
+  - name: "compartment_syndrome"
+    description: "Limb compartment syndrome from deep tissue / muscle injury"
+    probability_per_day: 0.015
+    onset_day_range: [0, 3]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 3.0}
+      - {condition: "perfusion_status < 0.3", multiplier: 2.0}
+    state_impact:
+      perfusion_status: -0.08
+      inflammation_level: 0.04
+    detection:
+      test: "compartment_pressure"
+      finding: "elevated_compartment_pressure"
+    actions: ["surgery_consult", "fasciotomy"]
+
+  - name: "wound_infection"
+    description: "Burn/entry-exit wound infection"
+    probability_per_day: 0.01
+    onset_day_range: [2, 10]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.0}
+    state_impact:
+      inflammation_level: 0.05
+    detection:
+      test: "wound_culture"
+      finding: "wound_infection"
+    actions: ["wound_culture", "start_antibiotics"]
+
 order_protocols:
   admission_orders:
     labs:

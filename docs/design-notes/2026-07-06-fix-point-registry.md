@@ -22,8 +22,7 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 | FP-YAML-3 | `DiseaseProtocol` に `extra="forbid"` + 生 dict 経路封鎖 | C1 | 中 | FP-YAML-1/2 | **DONE**(extra="forbid"、残: 生 dict 経路 + 死蔵 field 3 件)|
 | FP-I10 | 高血圧生理モデル新設 + stage 一貫配線 | C2 | 中 | FP-SEV-MODEL 推奨 | **DONE**(stage→BP baseline 消費)/ 残: FHIR stage SNOMED コード |
 | FP-ARCH-1 | course_archetypes 高優先(HF / subdural) | C3 | 中 | なし | OPEN |
-| FP-ARCH-2 | course_archetypes + complications 中優先(burn / trauma 系) | C3 | 中 | なし | OPEN |
-| FP-ARCH-3 | course_archetypes 低優先(hip / crush / electrical / wrist) | C3 | 低 | なし | OPEN |
+| FP-ARCH-2/3 | course_archetypes + complications 残 7 trauma 疾患 | C3 | 中〜低 | なし | **DONE**(全32疾患 course_archetypes 完備) |
 | FP-AGE | person.age as-of 化(2 フェーズ) | ~~C2~~ **非FHIR** | 低 | なし | OPEN(再分類、下記) |
 | FP-UNIFY-2 | 日付→ISO ヘルパ共通化 | — | 中 | なし | OPEN |
 | FP-UNIFY-3 | FHIR 固定 ja ラベル辞書統合 + idiom 統一 | — | 低 | なし | OPEN |
@@ -160,7 +159,15 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 - **スキーマ**: `bacterial_pneumonia.yaml:581-655` がテンプレート。正準 archetype 6 種(engine.py:22-60)。
   消費キー = `probability` / `trajectory.<state_var>`(認識 10 種)/ `order_modifications.day_N` /
   `treatment_modifications.day_N` / `daily_trajectory.day_N`。
-- **Status:** OPEN(3 件)
+- **Status:** DONE(session 38 で全完了)。**FP-ARCH-1**(HF + subdural)+ **FP-ARCH-2/3**(残 7 trauma:
+  hip_fracture / fall_from_height / traffic_accident_severe / industrial_burn_severe /
+  crush_injury_hand / electrical_injury / wrist_fracture_surgical)を authoring、**全 32 疾患が
+  course_archetypes + complications 完備**。trauma 7 は 7-way 並列 subagent authoring + 中央テスト
+  (`test_trauma_course_archetypes.py`: 正準6/認識 state var/対応 risk condition のガード)で検証、
+  lift-firing 実証(burn 4/4・hip 5/5)。risk_factor condition は `_evaluate_risk_condition` 対応分
+  (severity_severe / age_over_N / perfusion_status<X / delirium_susceptibility>X / immobility_days>N)
+  に限定 = silent-no-op 回避。completeness gate の backlog allowlist を空に更新(gate が drift を検出)。
+  **残 follow-up**: `daily_trajectory`(SOAP narrative)は全 9 疾患で未 author(generic fallback)。
 
 ## FP-AGE — person.age as-of 化(2 フェーズ)【中】
 
