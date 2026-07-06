@@ -24,7 +24,7 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 | FP-ARCH-1 | course_archetypes 高優先(HF / subdural) | C3 | 中 | なし | OPEN |
 | FP-ARCH-2 | course_archetypes + complications 中優先(burn / trauma 系) | C3 | 中 | なし | OPEN |
 | FP-ARCH-3 | course_archetypes 低優先(hip / crush / electrical / wrist) | C3 | 低 | なし | OPEN |
-| FP-AGE | person.age as-of 化(2 フェーズ) | C2 | 中 | なし | OPEN |
+| FP-AGE | person.age as-of 化(2 フェーズ) | ~~C2~~ **非FHIR** | 低 | なし | OPEN(再分類、下記) |
 | FP-UNIFY-2 | 日付→ISO ヘルパ共通化 | — | 中 | なし | OPEN |
 | FP-UNIFY-3 | FHIR 固定 ja ラベル辞書統合 + idiom 統一 | — | 低 | なし | OPEN |
 | FP-UNIFY-4 | case-sensitive `country == "US"` 比較の一掃(lowercase バグ class) | — | 中 | なし | OPEN |
@@ -175,7 +175,24 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
   - **Phase B(要 AD・golden 全再生成)**: incidence 判定(`population/engine.py:449,597,627,640`)を
     as-of 化。40 歳到達で健診/癌検診が発火するなど臨床的に正しくなるが rng 系列が変わる。
   - identity / 世帯 / 身長 shrinkage は as-of 不要。
-- **Status:** OPEN
+- **★ 再分類(2026-07-06、session 38 末)**: FP-AGE は **FHIR 要素の completeness ゴールには
+  該当しない**。FHIR Patient は `birthDate` のみ emit(`_fhir_patient.py:195`)、**age を emit する
+  FHIR builder はゼロ**(grep 確認)。よって FHIR 要素は完全・正しい(consumer は birthDate + 受診日で
+  age 算出可)。固定 age が矛盾するのは **CSV `age` 列 / narrative / LLM テキスト**(= 非FHIR)で、
+  かつ**複数年シミュレーション(既定の単年運用では非発生)でのみ**。したがって当初ゴール(FHIR 要素
+  不完全ゼロ化)の直接対象ではなく、「CSV/narrative データ品質 + 複数年対応」の別カテゴリ。優先度低。
+- **Status:** OPEN(完成ゴール外、別カテゴリ扱い)
+
+## Condition.stage.type SNOMED 誤流用 — DONE(FP-I10 follow-up)
+
+- 全 6 staged 疾患(N18/I50/J44/J45/I25/I10)の `Condition.stage.type.coding` が SNOMED
+  385356007 "Tumor stage finding"(がん staging コード)を非がん stage に誤流用していた
+  (`_fhir_conditions.py`)。**これは実際に FHIR 要素上の誤り = completeness ゴール直結**。
+- **修正(session 38)**: 誤 coding を除去、`summary.text`(stage 値)保持 + `type.text="Clinical stage"`
+  のみ(コード捏造なし)。cohort 実測: 5717 staged Conditions で tumor コード 0(旧: 全件)。
+  golden byte 不変(narrative golden は FHIR Condition を含まない)、unit 8 guards。
+- **Status:** DONE(session 38)。より完全化(CKD stage finding / NYHA class 等の per-system 正 SNOMED
+  付与)は authoritative 検証を要する任意の後続改善。
 
 ## FP-UNIFY-2 — 日付→ISO 文字列ヘルパ共通化【中・byte 保存】
 
