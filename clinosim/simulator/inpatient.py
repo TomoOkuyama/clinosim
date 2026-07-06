@@ -587,14 +587,6 @@ def _run_daily_loop(
     death_occurred = False
     icu_transferred = False
 
-    # Determine severity string for natural recovery scaling
-    severity_str = "moderate"  # default
-    for s in ("severe", "moderate", "mild"):
-        los_data = (protocol.target_los.get(country_key) or {}).get(s)
-        if los_data and abs(target_los - los_data.get("mean", 14)) < 5:
-            severity_str = s
-            break
-
     prev_diet = ""  # last diet ordered for this patient; threaded through the day loop
     for day in range(target_los):
         # State update with diagnosis-treatment feedback
@@ -623,7 +615,7 @@ def _run_daily_loop(
 
         # Phase 2: Natural recovery (small baseline healing)
         nat_directive = natural_recovery_directive(
-            day, disease_id, severity_str, patient.physiological_profile,
+            day, disease_id, severity, patient.physiological_profile,
         )
         for var, delta in nat_directive.changes.items():
             directive.changes[var] = directive.changes.get(var, 0.0) + delta
@@ -1009,7 +1001,9 @@ def _run_daily_loop(
         # Complications
         comp_list = protocol.complications if protocol.complications else []
         if comp_list and day >= 1:
-            triggered = evaluate_complications(day, state, patient, comp_list, active_complications, rng)
+            triggered = evaluate_complications(
+                day, state, patient, comp_list, active_complications, rng, severity=severity,
+            )
             for comp in triggered:
                 for var, delta in comp.get("state_impact", {}).items():
                     cur = getattr(state, var, None)
@@ -1030,7 +1024,7 @@ def _run_daily_loop(
         benchmark_mortality = (protocol.outcome_benchmarks.get(country_key, {})
                                .get("in_hospital_mortality", 0.0))
         if _evaluate_mortality(
-            state, patient, severity=severity_str, day=day, rng=rng,
+            state, patient, severity=severity, day=day, rng=rng,
             disease_mortality_rate=benchmark_mortality,
             target_los=target_los,
         ):

@@ -66,3 +66,28 @@ def test_old_json_without_archetype_field_still_loads():
     # dict read path convention used across Stage 2 / FHIR builders
     assert old_enc.get("clinical_course_archetype", "") == ""
     assert old_enc.get("severity", "") == ""
+
+
+def test_run_daily_loop_passes_real_severity_to_evaluate_complications(monkeypatch):
+    """Before this fix, _run_daily_loop ignored its own accurate `severity`
+    parameter and re-derived a separate, less-accurate `severity_str` via
+    target_los-mean matching, which is what actually reached
+    evaluate_complications. This pins that the real, forced severity is what
+    gets passed."""
+    from clinosim.simulator import inpatient as inpatient_mod
+
+    captured: dict = {}
+    original = inpatient_mod.evaluate_complications
+
+    def spy(*args, **kwargs):
+        captured["kwargs"] = kwargs
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(inpatient_mod, "evaluate_complications", spy)
+
+    scenario = ForcedScenario(disease_id="bacterial_pneumonia", count=1, severity="severe")
+    config = SimulatorConfig(random_seed=42, country="US")
+    run_forced(scenario, config)
+
+    assert captured, "evaluate_complications was never called (check target_los >= 2 and complications are non-empty for bacterial_pneumonia/severe/US)"
+    assert captured["kwargs"].get("severity") == "severe"
