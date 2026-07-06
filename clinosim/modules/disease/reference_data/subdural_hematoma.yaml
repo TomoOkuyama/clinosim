@@ -81,6 +81,138 @@ presenting_symptoms:
   - {name: "vomiting", probability: 0.40, severity_range: [0.3, 0.7]}
   - {name: "seizure", probability: 0.15, severity_range: [0.5, 0.9]}
 
+# ============================================================
+# COURSE ARCHETYPES (FP-ARCH-1)
+# Post-evacuation neurosurgical course: perfusion_status (cerebral) and
+# inflammation_level (edema) recover; anemia_level resolves post-op. Re-bleed /
+# recurrent collection = treatment_resistant / sudden_deterioration. Canonical names.
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.40
+    description: "Uneventful post-evacuation recovery; edema and neuro deficit resolve"
+    trajectory:
+      perfusion_status:   {0: 0.00, 1: 0.03, 2: 0.05, 3: 0.05, 5: 0.04, 7: 0.03, 10: 0.02, 14: 0.01}
+      inflammation_level: {0: 0.00, 1: -0.03, 2: -0.05, 3: -0.06, 5: -0.06, 7: -0.05, 10: -0.03, 14: -0.02}
+      anemia_level:       {0: 0.02, 2: -0.01, 5: -0.02, 7: -0.02, 10: -0.01, 14: -0.01}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.18
+    description: "Post-op cerebral edema peaks Day 1-2, then resolves"
+    trajectory:
+      perfusion_status:   {0: -0.03, 1: -0.03, 2: 0.00, 3: 0.03, 5: 0.05, 7: 0.04, 10: 0.02, 14: 0.01}
+      inflammation_level: {0: 0.05, 1: 0.05, 2: 0.02, 3: -0.03, 5: -0.06, 7: -0.06, 10: -0.04, 14: -0.02}
+    order_modifications:
+      day_2:
+        add_imaging: ["CT_head_noncontrast"]
+
+  plateau_then_recovery:
+    probability: 0.13
+    description: "Slow neurological recovery in the elderly; plateau then improvement"
+    trajectory:
+      perfusion_status:   {0: 0.00, 1: 0.00, 2: 0.01, 3: 0.01, 5: 0.03, 7: 0.04, 10: 0.03, 14: 0.02}
+      inflammation_level: {0: 0.02, 1: 0.00, 3: -0.02, 5: -0.04, 7: -0.05, 10: -0.04, 14: -0.02}
+
+  treatment_resistant:
+    probability: 0.14
+    description: "Recurrent / residual collection needing repeat imaging or re-evacuation"
+    trajectory:
+      perfusion_status:   {0: -0.02, 1: -0.02, 3: -0.01, 5: 0.01, 7: 0.02, 10: 0.03, 14: 0.02}
+      inflammation_level: {0: 0.03, 1: 0.03, 3: 0.02, 5: 0.00, 7: -0.03, 10: -0.04, 14: -0.03}
+    order_modifications:
+      day_3:
+        add_imaging: ["CT_head_noncontrast"]
+        add_consult: ["neurosurgery"]
+
+  gradual_deterioration:
+    probability: 0.10
+    description: "Progressive mass effect / cerebral edema with worsening deficit"
+    trajectory:
+      perfusion_status:   {0: -0.03, 1: -0.03, 2: -0.03, 3: -0.02, 5: -0.02, 7: -0.02}
+      inflammation_level: {0: 0.04, 1: 0.04, 2: 0.03, 3: 0.03, 5: 0.02, 7: 0.02}
+
+  sudden_deterioration:
+    probability: 0.05
+    description: "Re-bleed / hematoma expansion with abrupt Day 1-3 neuro decline"
+    trajectory:
+      perfusion_status:   {0: 0.00, 1: -0.10, 2: -0.25, 3: -0.08, 5: 0.03, 7: 0.04}
+      inflammation_level: {0: 0.00, 1: 0.10, 2: 0.20, 3: 0.08, 5: -0.05, 7: -0.06}
+      anemia_level:       {0: 0.00, 1: 0.05, 2: 0.08, 3: 0.03, 5: 0.00, 7: -0.02}
+
+# ============================================================
+# COMPLICATIONS — re-bleed / delirium / seizure / herniation / VTE
+# risk_factor conditions restricted to those _evaluate_risk_condition supports.
+# ============================================================
+complications:
+  - name: "recurrent_hematoma"
+    description: "Re-bleed or recurrent subdural collection"
+    probability_per_day: 0.012
+    onset_day_range: [1, 10]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.5}
+      - {condition: "age_over_75", multiplier: 1.5}
+    state_impact:
+      perfusion_status: -0.08
+      inflammation_level: 0.05
+      anemia_level: 0.03
+    detection:
+      test: "CT_head_noncontrast"
+      finding: "hematoma_expansion"
+    actions: ["order_ct_head", "neurosurgery_consult"]
+
+  - name: "postoperative_delirium"
+    description: "Post-operative delirium (common in elderly SDH)"
+    probability_per_day: 0.05
+    onset_day_range: [0, 7]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 1.6}
+      - {condition: "delirium_susceptibility > 0.3", multiplier: 1.5}
+    state_impact:
+      inflammation_level: 0.02
+    detection:
+      test: "cam_icu"
+      finding: "delirium"
+    actions: ["order_delirium_assessment", "nonpharmacologic_measures"]
+
+  - name: "seizure"
+    description: "Post-traumatic / post-operative seizure"
+    probability_per_day: 0.01
+    onset_day_range: [0, 7]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.0}
+    state_impact:
+      perfusion_status: -0.03
+    detection:
+      test: "eeg"
+      finding: "epileptiform_activity"
+    actions: ["order_eeg", "start_antiepileptic"]
+
+  - name: "cerebral_herniation"
+    description: "Uncal / transtentorial herniation from mass effect"
+    probability_per_day: 0.004
+    onset_day_range: [0, 4]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 5.0}
+      - {condition: "perfusion_status < 0.3", multiplier: 3.0}
+    state_impact:
+      perfusion_status: -0.20
+    actions: ["icu_transfer", "emergent_decompression"]
+
+  - name: "venous_thromboembolism"
+    description: "DVT / PE from immobility"
+    probability_per_day: 0.006
+    onset_day_range: [3, 14]
+    risk_factors:
+      - {condition: "immobility_days > 3", multiplier: 2.0}
+    state_impact:
+      perfusion_status: -0.03
+    detection:
+      test: "lower_extremity_doppler"
+      finding: "deep_vein_thrombosis"
+    actions: ["order_doppler"]
+
 order_protocols:
   admission_orders:
     labs:
