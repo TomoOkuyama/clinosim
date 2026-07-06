@@ -124,8 +124,12 @@ def test_subprocess_clinical_impression_has_required_fields() -> None:
             pytest.skip("No ClinicalImpression resources emitted for n=100 cohort")
         for ci in impressions:
             ci_id = ci.get("id", "?")
-            assert ci.get("status") == "completed", (
-                f"ClinicalImpression/{ci_id} expected status='completed', "
-                f"got {ci.get('status')!r}"
+            # FHIR R4 ClinicalImpression.status is `in-progress | completed |
+            # entered-in-error`. In-progress encounters at the snapshot date (AD-32)
+            # legitimately yield in-progress impressions, so accept both valid
+            # generated statuses rather than requiring "completed" (cohort composition
+            # is seed-dependent — an in-progress encounter may or may not appear).
+            assert ci.get("status") in ("completed", "in-progress"), (
+                f"ClinicalImpression/{ci_id} unexpected status {ci.get('status')!r}"
             )
             assert ci.get("subject"), f"ClinicalImpression/{ci_id} missing subject"

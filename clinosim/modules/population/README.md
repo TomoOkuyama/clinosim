@@ -26,6 +26,11 @@ clinosim の **全入院経路の起点**。 病院の catchment area (医療圏
 | 5 | **月次バッチ** | ライフイベントは年×月のループで生成、 timestamp は月内ランダム |
 | 6 | **再入院追跡** | `hospitalization_history` に `HospitalizationSummary` を蓄積、 再発率を 1.5 倍に |
 | 7 | **決定論的** | すべて `rng: np.random.Generator` 経由 |
+| 8 | **重症度は疾患 YAML から** | 重症度は `disease` モジュール(`disease.severity.sample_severity`)経由で疾患 YAML の `severity.distribution` × `modifiers` から抽選(FP-SEV-MODEL, c2)。旧 locale `severity_beta`/`severity_minimum` は撤廃 |
+
+## 依存関係
+
+`types` / `codes` / `locale` に加え、**`disease`**(`disease.protocol.load_disease_protocol` + `disease.severity.sample_severity`)に依存する。ライフイベントの重症度を疾患 YAML の `severity` ブロックから導出するため(FP-SEV-MODEL, c2、2026-07-06)。
 
 ## API リファレンス
 
