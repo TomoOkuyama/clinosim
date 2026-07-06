@@ -211,9 +211,9 @@ Note: `_home_meds`, `_allergies`, `_initial_labs`, `_pmh`, `_resolve_dx` は Tas
 | `tests/integration/test_output_adapter_contract.py` | adapter registry contract test | guard |
 | `tests/integration/test_readmission_flow.py` | readmission flow + output 整合性 | guard |
 | `tests/unit/test_*` (~15 件) | FHIR fragment / CSV / display localization 等の unit tests | guard |
-| **`modules/output/_fhir_*.py`** (21 ファイル、内部 cross-reference) | builder file 群が `_fhir_common.py` helper を共有 + `fhir_r4_adapter.py` で `_BUNDLE_BUILDERS` 登録 (内部分割、PR2 で SDOH 分離 + 今後 PR3 で immunization 分離予定) | core (FHIR output 全体) |
+| **`modules/output/_fhir_*.py`** (29 ファイル、内部 cross-reference) | builder file 群が `_fhir_common.py` helper を共有 + `fhir_r4_adapter.py` で `_BUNDLE_BUILDERS` 登録 (内部分割、PR2 で SDOH 分離、PR3 で immunization 分離済み) | core (FHIR output 全体) |
 
-> 51 ファイル中 21 は output module 内部の `_fhir_*.py` 兄弟ファイル間の
+> output module 内の `_fhir_*.py` 兄弟ファイル間は
 > 相互参照 (`_fhir_common.py` 共有 helper 経由)。本表では 1 行に集約。
 > 詳細は `## 拡張方法 (Extensibility) 総合ガイド` セクション参照。
 
