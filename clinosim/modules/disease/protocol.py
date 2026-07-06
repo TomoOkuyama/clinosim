@@ -36,9 +36,7 @@ class PhysicalExamDayFindings(BaseModel):
     """Physical exam findings for a single clinical day grouped by organ system."""
 
     general: PhysicalExamSystemFindings = Field(default_factory=PhysicalExamSystemFindings)
-    cardiovascular: PhysicalExamSystemFindings = Field(
-        default_factory=PhysicalExamSystemFindings
-    )
+    cardiovascular: PhysicalExamSystemFindings = Field(default_factory=PhysicalExamSystemFindings)
     respiratory: PhysicalExamSystemFindings = Field(default_factory=PhysicalExamSystemFindings)
     abdominal: str = ""
     neurological: str = ""
@@ -183,7 +181,13 @@ def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
     with open(protocol_path) as f:
         data = yaml.safe_load(f)
 
-    return DiseaseProtocol(**data)
+    protocol = DiseaseProtocol(**data)
+    # Fail-loud severity-block validation (FP-SEV-MODEL). Imported here to avoid a
+    # module-import cycle (severity.py has no dependency on protocol.py).
+    from clinosim.modules.disease.severity import _validate_severity_block
+
+    _validate_severity_block(disease_id, data.get("severity", {}), protocol.minimum_severity)
+    return protocol
 
 
 @lru_cache(maxsize=1)

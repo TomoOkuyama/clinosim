@@ -74,26 +74,21 @@ disease_incidence:
     age_rates: {0: 700, 5: 130, 15: 50, 25: 60, 35: 80, 45: 120, 55: 200, 65: 500, 75: 1200, 85: 2500}
     sex_ratio_female: 0.75
     event_type: acute_disease_onset
-    severity_beta: [2, 3]
   heart_failure_exacerbation:
     age_rates: {0: 5000, 45: 15000, 65: 20000, 75: 25000, 85: 30000}
     sex_ratio_female: 1.0
     event_type: chronic_exacerbation
     prerequisite_condition: I50
-    severity_beta: [3, 3]
-    severity_minimum: 0.3
     hospitalization_threshold_modifier: 0.8
   hip_fracture:
     age_rates: {0: 3, 45: 8, 55: 25, 65: 80, 75: 300, 85: 700}
     sex_ratio_female: 2.5
     event_type: trauma
-    severity_beta: [7, 3]
     always_hospitalize: true
   urinary_tract_infection:
     age_rates: {0: 25, 15: 40, 25: 70, 35: 90, 45: 110, 55: 180, 65: 380, 75: 750, 85: 1400}
     sex_ratio_female: 3.0
     event_type: acute_disease_onset
-    severity_beta: [3, 4]
     hospitalization_threshold_modifier_by_age:
       65: 0.5
       0: 0.7
@@ -102,38 +97,29 @@ disease_incidence:
     sex_ratio_female: 0.8
     event_type: chronic_exacerbation
     prerequisite_condition: J44
-    severity_beta: [3, 3]
-    severity_minimum: 0.2
     hospitalization_threshold_modifier: 0.7
   sepsis:
     age_rates: {0: 4, 15: 6, 25: 8, 35: 12, 45: 25, 55: 70, 65: 180, 75: 450, 85: 900}
     sex_ratio_female: 0.85
     event_type: acute_disease_onset
-    severity_beta: [4, 3]
-    severity_minimum: 0.3
     always_hospitalize: true
   cerebral_infarction:
     # JP: ~900/100k age 65+ (higher than US). Source: Japan Stroke Database
     age_rates: {0: 1, 25: 3, 35: 10, 45: 30, 55: 100, 65: 300, 75: 700, 85: 1400}
     sex_ratio_female: 0.75
     event_type: acute_disease_onset
-    severity_beta: [3, 3]
-    severity_minimum: 0.3
     always_hospitalize: true
   acute_mi:
     # JP: ~250/100k age 65+ (lower than US). Source: JROAD registry
     age_rates: {0: 0, 25: 1, 35: 3, 45: 12, 55: 40, 65: 100, 75: 250, 85: 400}
     sex_ratio_female: 0.45
     event_type: acute_disease_onset
-    severity_beta: [3, 3]
-    severity_minimum: 0.3
     always_hospitalize: true
   gi_bleeding:
     # JP: ~280/100k age 65+. Source: MHLW Patient Survey
     age_rates: {0: 2, 25: 4, 35: 8, 45: 20, 55: 50, 65: 130, 75: 300, 85: 550}
     sex_ratio_female: 0.65
     event_type: acute_disease_onset
-    severity_beta: [2, 3]
     always_hospitalize: true
   diabetic_ketoacidosis:
     # JP: ~25/100k among diabetics. Source: JDSS
@@ -141,69 +127,55 @@ disease_incidence:
     sex_ratio_female: 1.1
     event_type: acute_disease_onset
     prerequisite_condition: E11.9
-    severity_beta: [3, 3]
-    severity_minimum: 0.3
     always_hospitalize: true
   ileus:
     age_rates: {0: 4, 25: 7, 35: 12, 45: 25, 55: 55, 65: 110, 75: 230, 85: 380}
     sex_ratio_female: 0.9
     event_type: acute_disease_onset
-    severity_beta: [2, 3]
     always_hospitalize: true
   acute_pancreatitis:
     age_rates: {0: 2, 25: 8, 35: 18, 45: 30, 55: 45, 65: 70, 75: 110, 85: 140}
     sex_ratio_female: 0.6
     event_type: acute_disease_onset
-    severity_beta: [2, 4]
     always_hospitalize: true
   acute_appendicitis:
     age_rates: {0: 18, 5: 35, 15: 70, 25: 55, 35: 35, 45: 22, 55: 13, 65: 8, 75: 6, 85: 4}
     sex_ratio_female: 0.8
     event_type: acute_disease_onset
-    severity_beta: [3, 3]
-    severity_minimum: 0.3
     always_hospitalize: true
   pulmonary_embolism:
     age_rates: {0: 1, 25: 2, 35: 5, 45: 12, 55: 30, 65: 80, 75: 170, 85: 300}
     sex_ratio_female: 1.1
     event_type: acute_disease_onset
-    severity_beta: [3, 3]
     always_hospitalize: true
   acute_cholecystitis:
     age_rates: {0: 1, 25: 4, 35: 12, 45: 25, 55: 45, 65: 70, 75: 110, 85: 140}
     sex_ratio_female: 1.5
     event_type: acute_disease_onset
-    severity_beta: [3, 3]
-    severity_minimum: 0.3
     always_hospitalize: true
   atrial_fibrillation_rvr:
     age_rates: {0: 0, 25: 1, 35: 2, 45: 8, 55: 25, 65: 70, 75: 180, 85: 360}
     sex_ratio_female: 0.7
     event_type: acute_disease_onset
-    severity_beta: [2, 4]
     hospitalization_threshold_modifier: 0.7
   cellulitis:
     age_rates: {0: 4, 15: 8, 25: 15, 35: 25, 45: 35, 55: 50, 65: 85, 75: 150, 85: 260}
     sex_ratio_female: 0.8
     event_type: acute_disease_onset
-    severity_beta: [2, 4]
   acute_kidney_injury:
     age_rates: {0: 2, 25: 2, 35: 4, 45: 12, 55: 35, 65: 90, 75: 220, 85: 450}
     sex_ratio_female: 0.8
     event_type: acute_disease_onset
-    severity_beta: [3, 3]
     always_hospitalize: true
   liver_cirrhosis_decompensated:
     age_rates: {0: 0, 25: 1, 35: 4, 45: 12, 55: 35, 65: 55, 75: 70, 85: 55}
     sex_ratio_female: 0.4
     event_type: acute_disease_onset
-    severity_beta: [3, 3]
     always_hospitalize: true
   aspiration_pneumonia:
     age_rates: {0: 4, 25: 2, 35: 2, 45: 6, 55: 18, 65: 70, 75: 220, 85: 550}
     sex_ratio_female: 0.65
     event_type: acute_disease_onset
-    severity_beta: [3, 3]
   influenza:
     # Rates are hospitalized influenza only (see disease protocol) —
     # always_hospitalize routes every sampled event into the hospitalized
@@ -211,7 +183,6 @@ disease_incidence:
     age_rates: {0: 250, 5: 180, 15: 100, 25: 70, 35: 80, 45: 100, 55: 180, 65: 450, 75: 900, 85: 1700}
     sex_ratio_female: 1.0
     event_type: acute_disease_onset
-    severity_beta: [2, 4]
     always_hospitalize: true
   asthma_exacerbation:
     # Rates are hospitalized exacerbations only (see disease protocol) —
@@ -221,34 +192,26 @@ disease_incidence:
     sex_ratio_female: 1.3
     event_type: chronic_exacerbation
     prerequisite_condition: J45
-    severity_beta: [2, 3]
-    severity_minimum: 0.2
     always_hospitalize: true
   hemorrhagic_stroke:
     age_rates: {0: 1, 25: 2, 35: 4, 45: 10, 55: 25, 65: 60, 75: 140, 85: 280}
     sex_ratio_female: 0.8
     event_type: acute_disease_onset
-    severity_beta: [4, 3]
-    severity_minimum: 0.4
     always_hospitalize: true
   vertebral_compression_fracture:
     age_rates: {0: 0, 45: 4, 55: 12, 65: 50, 75: 140, 85: 300}
     sex_ratio_female: 2.5
     event_type: trauma
-    severity_beta: [2, 3]
     always_hospitalize: true
   deep_vein_thrombosis:
     age_rates: {0: 1, 25: 2, 35: 4, 45: 12, 55: 30, 65: 70, 75: 130, 85: 220}
     sex_ratio_female: 1.1
     event_type: acute_disease_onset
-    severity_beta: [2, 3]
     always_hospitalize: true
   traffic_accident_severe:
     age_rates: {0: 4, 15: 12, 25: 15, 35: 12, 45: 10, 55: 8, 65: 10, 75: 12, 85: 8}
     sex_ratio_female: 0.5
     event_type: trauma
-    severity_beta: [4, 3]
-    severity_minimum: 0.4
     always_hospitalize: true
   # Work-related severe injuries (occupation_risk_multipliers apply — see bottom of file)
   # Base rates are intentionally elevated vs real Japan data to produce
@@ -258,43 +221,31 @@ disease_incidence:
     age_rates: {0: 0, 15: 30, 25: 50, 35: 50, 45: 40, 55: 30, 65: 10, 75: 0, 85: 0}
     sex_ratio_female: 0.2
     event_type: trauma
-    severity_beta: [4, 3]
-    severity_minimum: 0.4
     always_hospitalize: true
   industrial_burn_severe:
     age_rates: {0: 0, 15: 20, 25: 35, 35: 35, 45: 25, 55: 20, 65: 5, 75: 0, 85: 0}
     sex_ratio_female: 0.2
     event_type: trauma
-    severity_beta: [4, 3]
-    severity_minimum: 0.5
     always_hospitalize: true
   fall_from_height:
     age_rates: {0: 0, 15: 20, 25: 40, 35: 40, 45: 40, 55: 30, 65: 20, 75: 0, 85: 0}
     sex_ratio_female: 0.2
     event_type: trauma
-    severity_beta: [4, 3]
-    severity_minimum: 0.5
     always_hospitalize: true
   electrical_injury:
     age_rates: {0: 0, 15: 15, 25: 25, 35: 25, 45: 20, 55: 15, 65: 3, 75: 0, 85: 0}
     sex_ratio_female: 0.15
     event_type: trauma
-    severity_beta: [3, 3]
-    severity_minimum: 0.4
     always_hospitalize: true
   wrist_fracture_surgical:
     age_rates: {0: 4, 15: 8, 25: 6, 35: 4, 45: 7, 55: 12, 65: 28, 75: 55, 85: 70}
     sex_ratio_female: 2.5
     event_type: trauma
-    severity_beta: [3, 3]
-    severity_minimum: 0.3
     always_hospitalize: true
   subdural_hematoma:
     age_rates: {0: 1, 25: 2, 35: 2, 45: 4, 55: 7, 65: 13, 75: 28, 85: 45}
     sex_ratio_female: 0.6
     event_type: trauma
-    severity_beta: [4, 3]
-    severity_minimum: 0.4
     always_hospitalize: true
 
 # Monthly seasonal modifiers (1.0 = baseline)
