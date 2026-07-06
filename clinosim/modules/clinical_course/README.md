@@ -38,9 +38,12 @@ physiology モジュールが「現在の状態」を保持するのに対し、
 
 ## API リファレンス
 
-### `select_archetype(severity, profile, rng, protocol_archetypes=None) -> str`
+### `select_archetype(severity, profile, rng, protocol_archetypes=None, protocol_modifiers=None, patient=None) -> str`
 
-患者ごとに 1 つのアーキタイプを選択する。 入院時に1度だけ呼ぶ。
+患者ごとに 1 つのアーキタイプを選択する。 入院時に1度だけ呼ぶ。`protocol_modifiers`
+(疾患 YAML の `archetype_modifiers`)で患者リスク因子(年齢・免疫・併存症)による
+確率補正を適用する(FP-YAML-2b, AD-68)。named 条件の評価は `disease.severity._evaluate_condition`
+を再利用するため、本モジュールは **`disease`(severity)に依存**する。
 
 ```python
 from clinosim.modules.clinical_course.engine import select_archetype

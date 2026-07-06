@@ -2637,3 +2637,52 @@ Negative / neutral:
 - Spec: `docs/superpowers/specs/2026-07-06-severity-single-source-c2-design.md`
 - Plan: `docs/superpowers/plans/2026-07-06-severity-single-source-c2.md`
 - Registry: `docs/design-notes/2026-07-06-fix-point-registry.md` (FP-SEV-MODEL)
+
+---
+
+### AD-68 · archetype_modifiers wiring (dead YAML activation, sibling to AD-67)
+
+**Date:** 2026-07-06 (session 38, FP-YAML-2b)
+
+**Status:** Accepted
+
+**Context:**
+
+`archetype_modifiers` (23 disease YAMLs) was silently dropped at load (`extra="ignore"`)
+and never read; `select_archetype` applied its own hardcoded `immune_reactivity` /
+`treatment_sensitivity` heuristics instead. The YAML block is a superset (adds age,
+comorbidities, disease factors) — a C1 (silent-drop) instance and the same
+dead-authored-YAML class AD-67 addressed for severity.
+
+**Decision:**
+
+Wire `archetype_modifiers` into `select_archetype` (owner: `clinical_course/engine.py`),
+replacing the hardcoded profile modifiers. `_eval_archetype_condition` evaluates each
+modifier's condition — expression form (`<var> <op> <number>` for age / immune_reactivity /
+treatment_sensitivity via a strict regex, NOT eval()) and named form (reusing
+`disease.severity._evaluate_condition` for the overlapping comorbidity vocabulary;
+disease-intrinsic conditions are reserved/skipped). `_apply_archetype_modifiers` adds the
+effect deltas to the archetype probabilities before the single `rng.choice` (no new rng
+draw). `DiseaseProtocol` gains `archetype_modifiers`; `_validate_archetype_modifiers`
+fails loud at load when an effect targets an archetype the disease doesn't define
+(silent-phantom guard), a condition is unknown, or a delta is non-numeric.
+
+NOTE: `plateau` is a legitimate per-disease archetype NAME (defined in those diseases'
+`course_archetypes`), not a typo for `plateau_then_recovery` — validation enforces
+per-disease self-consistency (effect keys ⊆ the disease's own archetypes) rather than a
+fixed canonical set.
+
+**Consequences:**
+
+Positive: the authored per-disease archetype adjustments (age/comorbidity → deterioration
+share) now drive course selection; single silent-no-op-guarded path.
+Negative/neutral: new-feature-class change (archetype distribution shifts, goldens
+regenerate; profile goldens use forced-archetype so byte-unchanged). Disease-intrinsic
+conditions deferred (shared scenario-flag mechanism with AD-67's reserved set).
+
+**Related ADRs:** AD-16 / AD-67 (severity sibling)
+
+**Related documents:**
+- Spec: `docs/superpowers/specs/2026-07-06-archetype-modifiers-wiring-design.md`
+- Plan: `docs/superpowers/plans/2026-07-06-archetype-modifiers-wiring.md`
+- Registry: `docs/design-notes/2026-07-06-fix-point-registry.md` (FP-YAML-2)
