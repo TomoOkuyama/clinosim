@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 # reference_data is in the same package: clinosim/modules/disease/reference_data/
 _HERE = Path(__file__).resolve().parent
@@ -105,6 +105,10 @@ class ImagingOrderSpec(BaseModel):
 class DiseaseProtocol(BaseModel):
     """Loaded disease protocol from YAML. Validated by Pydantic."""
 
+    # Author-time defense against the C1 silent-drop class (FP-YAML-3): an unrecognized
+    # top-level YAML key (typo or unwired field) raises at load instead of being dropped.
+    model_config = ConfigDict(extra="forbid")
+
     disease_id: str
     icd_codes: dict[str, Any]
     incidence: dict[str, Any]
@@ -119,7 +123,6 @@ class DiseaseProtocol(BaseModel):
     order_protocols: dict[str, Any] = {}
     target_los: dict[str, Any] = {}
     complications: list[dict[str, Any]] = []
-    readmission: dict[str, Any] = {}
     likelihood_ratios: dict[str, Any] = {}
     expected_lab_distributions: dict[str, Any] = {}
     expected_vital_distributions: dict[str, Any] = {}
