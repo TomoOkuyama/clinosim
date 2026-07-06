@@ -19,6 +19,7 @@ import pytest
 
 from clinosim.modules.hai import HAI_TYPES
 from clinosim.modules.hai.lab_lift import (
+    _circadian_wbc,
     _hai_lift_delta,
     apply_hai_lab_lift,
     load_hai_lab_lift_config,
@@ -129,15 +130,15 @@ def test_clabsi_full_lift_at_day_2_uses_closed_form_and_draw_hour():
       WBC pre-circadian (eff=0.75) - WBC pre-circadian (infl=0.4)
         = (7000 + 0.75 * 12000) - (7000 + 0.4 * 12000)
         = 16000 - 11800 = 4200
-      circadian(6) = 1.0 + 0.10 * sin((6-4) * pi / 12) = 1.05
-      delta_WBC = 4200 * 1.05 = 4410
+      circadian(6) = 1.0 + 0.10 * (-cos((6-4) * pi / 12)) ~= 0.9134
+      delta_WBC = 4200 * circadian(6)
     CRP: 400 * (0.75^3 - 0.4^3) = 400 * (0.421875 - 0.064) = 143.15
     """
     admission = datetime(2026, 1, 8, 0)
     state_history = _build_state_history([0.4] * 8)
     wbc_obs, wbc_order = _ordered_obs(
         "WBC", datetime(2026, 1, 12, 8), 11760.0, draw_hour=6,
-    )  # 11800 * 1.05 circadian (close to integer)
+    )  # 11800 * circadian(6) (close to integer)
     crp_obs, crp_order = _ordered_obs(
         "CRP", datetime(2026, 1, 12, 8), 25.9,
     )
@@ -147,7 +148,7 @@ def test_clabsi_full_lift_at_day_2_uses_closed_form_and_draw_hour():
 
     n = apply_hai_lab_lift(record, _encounter(), state_history, admission)
     assert n == 2
-    assert wbc_obs.value == pytest.approx(11760 + 4200 * 1.05, abs=1.0)
+    assert wbc_obs.value == pytest.approx(11760 + 4200 * _circadian_wbc(6), abs=1.0)
     assert crp_obs.value == pytest.approx(
         25.9 + 400 * (0.75**3 - 0.4**3), abs=0.5,
     )
@@ -259,7 +260,7 @@ def test_state_history_index_is_post_day_state():
 @pytest.mark.integration
 def test_wbc_uses_order_draw_hour_not_result_hour():
     """obs.result_datetime.hour=10 (post-turnaround), order.ordered_datetime.hour=6
-    (actual draw); circadian factor differs (10 → 1.087, 6 → 1.05). The lift
+    (actual draw); circadian factor differs (10 -> 1.0, 6 -> ~0.913). The lift
     must use the draw hour."""
     admission = datetime(2026, 1, 8, 0)
     state_history = _build_state_history([0.4] * 5)
@@ -271,9 +272,10 @@ def test_wbc_uses_order_draw_hour_not_result_hour():
         [_hai_event(onset_date="2026-01-08")], [obs], [order],
     )
     apply_hai_lab_lift(record, _encounter(), state_history, admission)
-    # delta = 4200 * circadian(6) = 4200 * 1.05 = 4410
-    expected_delta = 4200 * 1.05
+    # delta = 4200 * circadian(6), NOT circadian(10) (the result hour)
+    expected_delta = 4200 * _circadian_wbc(6)
     assert obs.value == pytest.approx(11760 + expected_delta, abs=1.0)
+    assert _circadian_wbc(6) != pytest.approx(_circadian_wbc(10), abs=0.01)
 
 
 @pytest.mark.integration
