@@ -133,8 +133,13 @@ def _validate_severity_block(protocol) -> None:
   intentionally not clamped).
 - **`emergency.py:76-83`** — replace the hand-rolled normalization + `rng.choice`
   with `sample_severity_category(encounter_distribution, [], person, rng, minimum)`.
-  ED has no modifiers/minimum today, so pass `[]`/`None`; target byte-identical ED
-  output (same normalization, same single `rng.choice` draw).
+  ED has no modifiers/minimum today, so pass `[]`/`None`. NOTE: the shared primitive
+  normalizes via `normalize_probabilities` (numpy float64 sum), whereas the old ED
+  code used Python `sum()` + a list comprehension; these can differ by ~1e-17, so a
+  single `rng.choice` outcome may flip in a boundary case. ED is therefore
+  **distribution-preserving, not guaranteed byte-identical** — verify the ED severity
+  *distribution* is statistically unchanged (not a byte-diff). Any change is an
+  accepted consequence of unifying on the canonical normalizer, not a bug.
 - **locale `demographics.yaml` (us + jp)** — remove `severity_beta` and
   `severity_minimum` from every `disease_incidence` entry (incidence-only from now).
   Pre-verify all 30 diseases carry a `severity.distribution` (investigation: they
@@ -185,8 +190,8 @@ found during implementation is fixed within this chain (not deferred).
   (profile regression goldens template + llm-mock, per AD-66 Rule 1) and clinically
   read the diff (AD-66 Rule 2 — severity mix, LOS, archetype, imaging rates should
   shift toward the disease-YAML distributions; nothing structurally broken).
-- ED path targets byte-identical output (same probs, same single draw). If a byte
-  diff appears there, treat it as a bug in the shared primitive, not an accepted change.
+- ED path is distribution-preserving (see emergency.py note above): verify the ED
+  severity category distribution is statistically unchanged, not byte-identical.
 - e2e tests are property-based (severity mix, archetype variety) — expected to pass;
   if a property threshold now fails, that reveals a distribution the test hard-coded.
 - `clinosim audit run` on US p=10k + JP p=5k must stay green.
@@ -227,7 +232,8 @@ regeneration; a new ADR (AD-6x) documenting severity single-source.
 4. Minimum clamp: `minimum_severity="moderate"` never yields mild.
 5. `_validate_severity_block`: malformed distribution / unknown modifier condition /
    bad minimum / non-positive multiplier each raise.
-6. ED byte-preservation smoke: a small ED cohort is byte-identical pre/post.
+6. ED distribution-preservation: a small ED cohort's severity category counts are
+   statistically unchanged pre/post (not a byte-diff — see emergency.py note).
 7. Downstream: a small inpatient cohort still produces coherent archetype/LOS/imaging/
    triage/FHIR (audit run green); re-grep proves zero `severity_beta` readers remain.
 
