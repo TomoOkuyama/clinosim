@@ -20,7 +20,7 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 | FP-SEV-MODEL | 重症度 single-source-of-truth 再設計 | C1 | 高 | brainstorming | **DONE**(c2, AD-67) |
 | FP-YAML-2 | 孤児キー triage(配線 or 削除) | C1 | 中 | FP-SEV-MODEL(archetype_modifiers 分) | **DONE**(archetype_modifiers 配線 AD-68 / 4 孤児キー削除)|
 | FP-YAML-3 | `DiseaseProtocol` に `extra="forbid"` + 生 dict 経路封鎖 | C1 | 中 | FP-YAML-1/2 | **DONE**(extra="forbid"、残: 生 dict 経路 + 死蔵 field 3 件)|
-| FP-I10 | 高血圧生理モデル新設 + stage 一貫配線 | C2 | 中 | FP-SEV-MODEL 推奨 | OPEN |
+| FP-I10 | 高血圧生理モデル新設 + stage 一貫配線 | C2 | 中 | FP-SEV-MODEL 推奨 | **DONE**(stage→BP baseline 消費)/ 残: FHIR stage SNOMED コード |
 | FP-ARCH-1 | course_archetypes 高優先(HF / subdural) | C3 | 中 | なし | OPEN |
 | FP-ARCH-2 | course_archetypes + complications 中優先(burn / trauma 系) | C3 | 中 | なし | OPEN |
 | FP-ARCH-3 | course_archetypes 低優先(hip / crush / electrical / wrist) | C3 | 低 | なし | OPEN |
@@ -130,7 +130,14 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
   を severity_score 連動化、(4) Condition.stage の SNOMED type を高血圧適切コードへ、(5) 任意で
   降圧薬 stage 段階化。**単独の STAGE_SEVERITY 追加は禁止**(誰も読まない値になる)。
 - **依存**: AD-16 決定論 — RNG 消費本数を変えない in-place 再解釈パターン厳守。FP-SEV-MODEL と整合推奨。
-- **Status:** OPEN
+- **Status:** DONE(session 38)。`STAGE_SEVERITY["I10"]={"Stage 1":0.30,"Stage 2":0.60}` +
+  activator の vitals bump を severity_score 連動(flat +10/+5 → stage 連動 systolic +14/+20)。
+  generic uniform は据え置き(値のみ substitute)= RNG 不変・非I10患者不変・golden byte 不変
+  (6 profile に I10 併存なし)。unit で stage-graded BP を実証。US audit 0 FAIL。
+  **残 follow-up(別 chain、broader bug)**: FHIR `Condition.stage.type` の SNOMED コード
+  385356007 "Tumor stage finding" は **全 6 staged 疾患(N18/I50/J44/J45/I25/I10)で誤流用** =
+  非がん stage に tumor-staging コード。staging system ごとの authoritative SNOMED 検証 or
+  optional `.type` 省略が必要(`_fhir_conditions.py:197`)。I10 単独でなく横断修正。
 
 ## FP-ARCH-1/2/3 — course_archetypes + complications authoring【中〜低】
 

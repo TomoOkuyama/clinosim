@@ -41,6 +41,9 @@ STAGE_SEVERITY: dict[str, dict[str, float]] = {
     "J45": {"Mild intermittent": 0.05, "Mild persistent": 0.15,
             "Moderate persistent": 0.35, "Severe persistent": 0.60},
     "I25": {"CCS I": 0.10, "CCS II": 0.25, "CCS III": 0.50},
+    # Hypertension: Stage 1 (130-139/80-89) vs Stage 2 (>=140/90). Consumed by the
+    # stage-scaled baseline-BP elevation below (FP-I10), making the stage non-degenerate.
+    "I10": {"Stage 1": 0.30, "Stage 2": 0.60},
 }
 
 
@@ -259,9 +262,14 @@ def activate_patient(
     )
 
     # Chronic condition adjustments to baseline vitals
+    # I10 (hypertension): stage-scaled elevation (FP-I10). severity_score is 0.30
+    # (Stage 1) / 0.60 (Stage 2), so Stage 2 raises BP more than Stage 1 — the stage is
+    # now a real physiological consumer rather than a no-op. No new rng draw.
+    _severity_by_code = {c.code: c.severity_score for c in conditions}
     if "I10" in person.chronic_conditions:
-        vitals.systolic_bp += 10
-        vitals.diastolic_bp += 5
+        _i10_sev = _severity_by_code.get("I10", 0.30)
+        vitals.systolic_bp += int(round(8 + _i10_sev * 20))
+        vitals.diastolic_bp += int(round(4 + _i10_sev * 10))
     if "I48" in person.chronic_conditions:
         vitals.heart_rate += int(rng.integers(5, 20))  # irregularly irregular
     if "J44" in person.chronic_conditions:
