@@ -12,7 +12,8 @@ encounter_type: medical
 requires_surgery: false
 minimum_severity: moderate
 readmission_eligible: true
-diagnostic_difficulty: 0.25   # ECG + troponin is straightforward, but NSTEMI can be subtle
+diagnostic:
+  diagnostic_difficulty: 0.25   # ECG + troponin is straightforward, but NSTEMI can be subtle
 
 icd_codes:
   primary: "I21.9"  # Acute myocardial infarction, unspecified

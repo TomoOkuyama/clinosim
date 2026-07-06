@@ -12,7 +12,8 @@ encounter_type: medical
 requires_surgery: false
 readmission_eligible: true
 minimum_severity: null
-diagnostic_difficulty: 0.45   # Mimics pneumonia, ACS, anxiety, pleurisy — Wells/Geneva + D-dimer + CTPA needed
+diagnostic:
+  diagnostic_difficulty: 0.45   # Mimics pneumonia, ACS, anxiety, pleurisy — Wells/Geneva + D-dimer + CTPA needed
 
 icd_codes:
   primary: "I26.9"  # Pulmonary embolism without acute cor pulmonale
