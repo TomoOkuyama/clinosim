@@ -53,8 +53,11 @@
 - **CLI 3-stage(AD-37)**: `clinosim generate`(→ structural CIF)→ `clinosim narrate
   --provider template|mock|ollama|bedrock`(→ narratives/<version>/)→
   `clinosim export-fhir --narrative-version X`。これがコンセプト 6(差し替え)の実体。
-- **決定性(AD-16)**: 全乱数は階層 sub-seed。同 seed = byte 同一出力(wall-clock 残存
-  2 フィールドを除く — determinism chain で解消予定)。
+- **決定性(AD-16)**: 全乱数は階層 sub-seed。同 seed = byte 同一出力(wall-clock は
+  determinism chain で全除去済、session 34)。
+- **★ この図の詳細版**(実ファイル/関数名つきの end-to-end トレース)=
+  [`data-generation-walkthrough.md`](data-generation-walkthrough.md)。新規貢献者はまず本節で
+  全体像を掴み、walkthrough で 1 患者の生成を具体的に追う。
 
 ## 3. レイヤと責任分解
 

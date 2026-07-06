@@ -121,6 +121,22 @@
 - Condition/Procedure 等は dual coding(local primary + interop)。数値 Observation は
   referenceRange + interpretation を両方 emit し出力時に再計算。
 
+## 6.5 共通ロジック所在マップ(4 横断ロジック)
+
+新規セッションが「◯◯のロジックはどこで、どの入口で書くか」を即引くための一覧。各ロジックは
+**単一の canonical 入口**を持ち、call-site で再実装しない(§4 の原則の適用)。
+
+| 横断ロジック | canonical 入口(owner) | 規約 / データ源 |
+|---|---|---|
+| **データ参照**(YAML/参照データの load) | 各 module の `load_X()`(`@lru_cache` + `_HERE/_REF_DIR/_LOCALE` path 定数 + import 時 `_validate_X`)。他 module の reference_data は owner の accessor 経由(§5) | Layer 1 = `modules/*/reference_data/`・`locale/`・`config/`。cached loader の戻り値は shared read-only(mutate 禁止) |
+| **データ生成**(乱数・生理・重症度) | 乱数 = `derive_sub_seed` + `ENRICHER_SEED_OFFSETS`(lab は `panel_specimen_seed`/`individual_lab_seed`)。重症度 = `disease.severity.sample_severity`。course = `clinical_course.select_archetype`。生理 = `physiology.engine`(initialize_state / derive_lab_values) | 全乱数 seed 由来で決定的(AD-16)。臨床値は疾患/検査 YAML 駆動、Python にハードコードしない。`rng.choice(p=)` は `normalize_probabilities(p, fallback="raise")` 経由 |
+| **コードマッピング**(内部名→標準コード→表示) | 内部名→標準コード = `locale/<country>/code_mapping_*.yaml`。国→コード体系 = `system_key_for(kind, country)`。code→display = `code_lookup(system, code, lang)`。system URI = `get_system_uri(key)` | `codes/data/*.yaml`(EN 必須、国際標準、locale 非依存)。display 文字列・URI・コードの hardcode/捏造禁止。CIF は code のみ(AD-30) |
+| **多言語対応**(i18n) | 国判定 = `is_jp`/`is_us`、表示言語 = `resolve_lang(country)`。表示解決 = `code_lookup(..., lang)` / `_localize_display`。JP 固定ラベルは `_fhir_localization` 辞書 | 変換は language-neutral(AD-44):enrichment は英語構造化データを産み、LLM が翻訳。**JP 出力は全 display 日本語 / US 出力は日本語 0**(audit の jp_language 軸が強制) |
+
+これらが「統一されているか」の判定は `data-model-and-completeness-conventions.md`(重症度)+ 本書 §4
+(canonical helpers)+ audit の silent_no_op 軸。実装の end-to-end 像は
+`data-generation-walkthrough.md`。
+
 ## 7. Narrative 層(Stage 2)規約
 
 - Generator 契約 = `NarrativeGenerator` Protocol(`types/document.py`)。
