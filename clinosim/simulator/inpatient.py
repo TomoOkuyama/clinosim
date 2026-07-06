@@ -22,6 +22,7 @@ from clinosim.modules.diagnosis.engine import (
     update_differential,
 )
 from clinosim.modules.disease.protocol import DiseaseProtocol
+from clinosim.modules.disease.severity import category_from_score
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import (
     canonical_lab_name,
@@ -114,14 +115,10 @@ def _simulate_patient(
     if forced_severity:
         severity = forced_severity
     else:
-        severity = "severe" if event.severity > 0.7 else ("moderate" if event.severity > 0.3 else "mild")
-        # Apply minimum severity from protocol (e.g., fractures are at least moderate)
-        if protocol.minimum_severity:
-            severity_order = ["mild", "moderate", "severe"]
-            min_idx = severity_order.index(protocol.minimum_severity) if protocol.minimum_severity in severity_order else 0
-            cur_idx = severity_order.index(severity) if severity in severity_order else 0
-            if cur_idx < min_idx:
-                severity = protocol.minimum_severity
+        # Canonical category<->score boundary (FP-SEV-MODEL). minimum_severity is
+        # already applied at sampling time (disease.severity.sample_severity), so no
+        # local re-clamp is needed — the sampled score already respects the minimum.
+        severity = category_from_score(event.severity)
 
     if forced_archetype:
         archetype = forced_archetype
