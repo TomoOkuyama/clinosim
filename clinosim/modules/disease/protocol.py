@@ -111,6 +111,9 @@ class DiseaseProtocol(BaseModel):
     severity: dict[str, Any]
     presenting_symptoms: list[dict[str, Any]] = []
     course_archetypes: dict[str, Any] = {}
+    # Per-disease patient-risk-factor adjustments to archetype selection probabilities
+    # (FP-YAML-2b). Consumed by select_archetype via _apply_archetype_modifiers.
+    archetype_modifiers: list[dict[str, Any]] = []
     initial_state_impact: dict[str, dict[str, float]] = {}
     diagnostic: dict[str, Any] = {}
     order_protocols: dict[str, Any] = {}

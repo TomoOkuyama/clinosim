@@ -179,12 +179,17 @@ def select_archetype(
     profile: PatientPhysiologicalProfile,
     rng: np.random.Generator,
     protocol_archetypes: dict[str, Any] | None = None,
+    protocol_modifiers: list[dict[str, Any]] | None = None,
+    patient: Any = None,
 ) -> str:
     """Select a clinical course archetype.
 
     Args:
         protocol_archetypes: course_archetypes section from disease YAML.
             If None, uses built-in fallback probabilities.
+        protocol_modifiers: archetype_modifiers section from disease YAML — per-disease
+            patient-risk-factor adjustments to the archetype probabilities (FP-YAML-2b).
+        patient: patient object (age + chronic_conditions) for modifier evaluation.
     """
     # Get probabilities from YAML or fallback
     if protocol_archetypes:
@@ -202,13 +207,11 @@ def select_archetype(
         probs["gradual_deterioration"] = probs.get("gradual_deterioration", 0.05) * 0.3
         probs["sudden_deterioration"] = probs.get("sudden_deterioration", 0.02) * 0.3
 
-    # Patient profile modifiers
-    if profile.immune_reactivity < 0.3:
-        probs["treatment_resistant"] = probs.get("treatment_resistant", 0.08) + 0.10
-        probs["smooth_recovery"] = probs.get("smooth_recovery", 0.55) - 0.10
-    if profile.treatment_sensitivity > 1.2:
-        probs["smooth_recovery"] = probs.get("smooth_recovery", 0.55) + 0.10
-        probs["treatment_resistant"] = probs.get("treatment_resistant", 0.08) - 0.05
+    # Patient risk-factor modifiers from the disease YAML (FP-YAML-2b), replacing the
+    # former hardcoded immune_reactivity / treatment_sensitivity heuristics with the
+    # authored, per-disease archetype_modifiers block.
+    if protocol_modifiers:
+        probs = _apply_archetype_modifiers(probs, protocol_modifiers, profile, patient)
 
     # Normalize
     names = list(probs.keys())
