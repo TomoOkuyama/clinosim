@@ -142,10 +142,18 @@
   (session 31-37): narrative IF 統一(N-chain)、context 配線、LLM golden + semantic
   check、wall-clock 全除去、display-in-CIF 残骸除去、8 codes YAML 新設 + dual-access
   write-side 統一(`set_attr_or_key` / `get_or_create_container`)。
-- **現在フェーズ**: β-JP-1 の主要 chain は出揃った状態。次候補は β-2(手術/麻酔記録等)
-  だが着手前に brainstorming 必須(規模大)。他の小〜中規模候補は `TODO.md` の各
-  deferred section 参照(例: disease YAML の severity/archetype 二重管理系統合、
-  `person.age` 複数年シミュレーション対応)。
+- **★ FHIR completeness chain 完了**(session 38、AD-67/68/69): 「最終 FHIR 出力の不完全
+  状態(C1 silent-drop / C2 degenerate / C3 missing-structure)をゼロにする」ゴールの下、
+  9 チェーンを消化。重症度 single source(疾患YAML canonical、`disease/severity.py`、
+  `severity_beta` 撤廃)/ `archetype_modifiers` 配線 / `DiseaseProtocol` `extra="forbid"` /
+  `diagnostic_difficulty` silent-drop 修正 / I10 stage→BP 生理消費 / HF+subdural
+  course_archetypes+complications / completeness 不変則 gate。追跡台帳 =
+  `docs/design-notes/2026-07-06-fix-point-registry.md`、規約 =
+  `docs/design-guides/data-model-and-completeness-conventions.md`。
+- **現在フェーズ**: β-JP-1 の主要 chain + FHIR completeness の C1/C2/C3 主要部が完了。
+  次候補は β-2(手術/麻酔記録等、着手前 brainstorming 必須・規模大)、または completeness の
+  残(FP-AGE person.age 複数年 / FP-ARCH-2/3 残 7 trauma 疾患 course_archetypes / 横断
+  follow-up)。詳細は fix-point registry と `TODO.md` の各 deferred section。
 - **その後の chain**(優先順、`docs/design-notes/2026-07-02-grand-design-review-and-roadmap.md` §4
   ただし上記完了分は本節が最新): β-2(手術/麻酔)→ γ/δ/ε → SS-MIX2。
 - **deferred の正**: `TODO.md` の各 "deferred" section(chain ごとに文脈付き entry あり)。

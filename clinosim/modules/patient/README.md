@@ -86,7 +86,9 @@ def activate_patient(
 4. **アレルギー** — 約 15% に mild rash アレルギー (Penicillin / Sulfonamide / NSAIDs / Cephalosporin)
 5. **常用薬** — `_derive_home_medications()` が `chronic_medications.yaml` から ICD コードベースで導出。 exact match → base code fallback (例: `E11.9` → `E11`)。 JP locale では `drug_ja` フィールドを使用。空文字のフィルタ付き。
 6. **ベースラインバイタル** — 年齢補正 (SBP は +0.5/yr over 30) + 慢性疾患調整:
-   - `I10` (HT) → SBP +10, DBP +5
+   - `I10` (HT) → **stage 連動** SBP/DBP 上昇(FP-I10, AD-67 sibling): `STAGE_SEVERITY["I10"]`
+     の severity_score(Stage 1=0.30 / Stage 2=0.60)で `SBP += round(8 + s*20)` /
+     `DBP += round(4 + s*10)`。Stage 2 は Stage 1 より高い(stage が生理消費される = no-op でない)
    - `I48` (AFib) → HR +5〜20 の irregular
    - `J44` (COPD) → SpO2 を 94 付近に制限
    - `J45` (Asthma) → 呼吸数 +0〜3
