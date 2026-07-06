@@ -7,6 +7,7 @@ clinosim にモジュールを追加する新規開発者/実装 AI 向けの索
 |---|---|---|
 | 0a | [`project-concept-and-design.md`](project-concept-and-design.md) | **一番最初**。プロジェクトのコンセプト(9 要求)・パイプライン全体像・ナラティブ 2 層設計・現在地とロードマップのキャッチアップ |
 | 0b | [`implementation-rules.md`](implementation-rules.md) | **コードを書く前に必ず**。全実装者が守る不変則の蒸留版(workflow 規律 / 決定性 / canonical helpers / silent-no-op 防御 / 検証 gate) |
+| 0c | [`data-generation-walkthrough.md`](data-generation-walkthrough.md) | **コンセプトの次に**。「1 件の患者データがどう生まれるか」を population → イベント → 受診シミュレーション → CIF → FHIR まで実ファイル/関数名つきで end-to-end に追う。3 段 CLI・enricher・拡張の入口も。新規貢献者のオンボーディング用 |
 | 1 | [`MODULES.md`](../../MODULES.md) | 全 30 module(`clinosim/modules/` 配下の package)の俯瞰・依存関係・データフローを 1 ページで把握する |
 | 2 | [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.md) | 実装前に。Base/Module 判定、正準 layout、loader / sub-seed / registry / 検証 (byte-diff vs DQR) の実践 playbook |
 | 3 | [`.github/TEMPLATE_MODULE_README.md`](../../.github/TEMPLATE_MODULE_README.md) | モジュールの skeleton を作るとき。README + パス定数などの boilerplate をここからコピーする |

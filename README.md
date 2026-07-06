@@ -47,6 +47,8 @@ Other navigation:
 
 | Looking for | Read |
 |---|---|
+| ★ **How data is generated** (population → CIF → FHIR, end-to-end for newcomers) | [`docs/design-guides/data-generation-walkthrough.md`](docs/design-guides/data-generation-walkthrough.md) |
+| New-contributor reading path (concept → rules → walkthrough) | [`docs/design-guides/README.md`](docs/design-guides/README.md) |
 | Scenario / medication flags | [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.md) |
 | Architecture + ADR table | [`DESIGN.md`](DESIGN.md) |
 | Module author HOW-TO + PR verification guide | [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) |
