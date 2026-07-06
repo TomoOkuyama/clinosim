@@ -18,8 +18,8 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 | FP-UNIFY-1 | `_fhir_hai.py` system_key_for バイパス(潜在バグ) | — | 高 | なし | **DONE**(89e616a43f) |
 | FP-YAML-1 | `diagnostic_difficulty` top-level silent-drop(実害バグ) | C1 | 高 | なし | **DONE**(7910813fe6) |
 | FP-SEV-MODEL | 重症度 single-source-of-truth 再設計 | C1 | 高 | brainstorming | **DONE**(c2, AD-67) |
-| FP-YAML-2 | 孤児キー triage(配線 or 削除) | C1 | 中 | FP-SEV-MODEL(archetype_modifiers 分) | **archetype_modifiers DONE**(AD-68)/ 他キー削除は残 |
-| FP-YAML-3 | `DiseaseProtocol` に `extra="forbid"` + 生 dict 経路封鎖 | C1 | 中 | FP-YAML-1/2 | OPEN |
+| FP-YAML-2 | 孤児キー triage(配線 or 削除) | C1 | 中 | FP-SEV-MODEL(archetype_modifiers 分) | **DONE**(archetype_modifiers 配線 AD-68 / 4 孤児キー削除)|
+| FP-YAML-3 | `DiseaseProtocol` に `extra="forbid"` + 生 dict 経路封鎖 | C1 | 中 | FP-YAML-1/2 | **DONE**(extra="forbid"、残: 生 dict 経路 + 死蔵 field 3 件)|
 | FP-I10 | 高血圧生理モデル新設 + stage 一貫配線 | C2 | 中 | FP-SEV-MODEL 推奨 | OPEN |
 | FP-ARCH-1 | course_archetypes 高優先(HF / subdural) | C3 | 中 | なし | OPEN |
 | FP-ARCH-2 | course_archetypes + complications 中優先(burn / trauma 系) | C3 | 中 | なし | OPEN |
@@ -110,7 +110,13 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
   `order/engine.py` の生 dict `.get()` 経路(`:255,260,273,432`)は owner module accessor 経由に寄せ、
   両消費経路で未知キーを fail-loud に。
 - **検証**: 全 32 疾患 YAML が load 成功 + 意図的に未知キーを足すと ImportError。
-- **Status:** OPEN
+- **Status:** DONE(session 38、`extra="forbid"` 導入 + 死蔵 `readmission` field 除去 +
+  byte-diff 一致確認)。**残 follow-up 2 件**(別 chain 化):
+  (1) 生 dict 経路(`order/engine.py` の `.get()`)は Pydantic を通らず forbid の保護外 —
+  owner accessor 経由化 or 別途 validation が要る。
+  (2) 死蔵モデル field 3 件(`expected_vital_distributions` / `reference_ranges` /
+  `drug_interactions`、各 23 YAML に block あり・消費 0)は forbid が受理するため未除去。
+  除去は model field + 23×3 YAML block 削除の機械作業(byte 保存)。
 
 ## FP-I10 — 高血圧生理モデル新設 + stage 一貫配線【中】
 

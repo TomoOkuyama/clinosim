@@ -177,22 +177,6 @@ target_los:
     moderate: {mean: 10, sd: 4, min: 7, max: 14}
     severe: {mean: 14, sd: 5, min: 10, max: 30}
 
-rehabilitation:
-  start_day: 3   # after initial stabilization
-  sessions_per_day: 1
-  session_duration_minutes: 30
-  goals:
-    - "Bed mobility by Week 1"
-    - "Seated balance by Week 2"
-    - "Standing transfers by Week 3"
-    - "Ambulation with assistive device by Week 4"
-  fim_trajectory:
-    day_0: {motor: 20, cognitive: 25}
-    week_1: {motor: 30, cognitive: 27}
-    week_2: {motor: 40, cognitive: 29}
-    week_3: {motor: 55, cognitive: 31}
-    week_4: {motor: 65, cognitive: 32}
-
 diagnostic:
   diagnostic_difficulty: 0.30  # multiple injuries may obscure some findings
   differential:

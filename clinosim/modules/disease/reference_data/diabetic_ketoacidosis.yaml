@@ -953,74 +953,10 @@ complications:
 # DIFFERENTIAL DIAGNOSIS
 # Used by the diagnostic reasoning engine
 # ============================================================
-differential_diagnosis:
-  - disease: "diabetic_ketoacidosis"
-    pre_test_probability: 0.40
-    key_distinguishing: "Glucose >250, AG metabolic acidosis, ketonemia, known DM"
-
-  - disease: "hyperosmolar_hyperglycemic_state"
-    pre_test_probability: 0.15
-    key_distinguishing: "Glucose often >600, osmolality >320, minimal ketosis, no significant acidosis"
-
-  - disease: "alcoholic_ketoacidosis"
-    pre_test_probability: 0.10
-    key_distinguishing: "Alcohol history, glucose low/normal/mildly elevated, ketones+, AG acidosis"
-
-  - disease: "starvation_ketosis"
-    pre_test_probability: 0.05
-    key_distinguishing: "Prolonged fasting, mild ketosis, glucose low/normal, minimal acidosis"
-
-  - disease: "lactic_acidosis"
-    pre_test_probability: 0.15
-    key_distinguishing: "Elevated lactate >4, AG acidosis, low/absent ketones, various causes (sepsis, metformin, shock)"
-
-  - disease: "uremic_acidosis"
-    pre_test_probability: 0.05
-    key_distinguishing: "Severely elevated BUN/Cr, AG acidosis, known CKD/ESRD"
-
-  - disease: "toxic_ingestion"
-    pre_test_probability: 0.05
-    key_distinguishing: "History of ingestion (methanol, ethylene glycol, salicylate), osmolar gap"
-
-  - disease: "sepsis"
-    pre_test_probability: 0.05
-    key_distinguishing: "Fever, source of infection, lactic acidosis predominant, may coexist with DKA as trigger"
-
 # ============================================================
 # PRECIPITANT / TRIGGER IDENTIFICATION
 # DKA always has a trigger — identifying it is critical for treatment
 # ============================================================
-precipitants:
-  - trigger: "infection"
-    probability: 0.40
-    workup: ["CBC", "CRP", "Blood_culture", "Urinalysis", "Chest_Xray"]
-    treatment: "Treat underlying infection with appropriate antibiotics"
-
-  - trigger: "insulin_non_compliance"
-    probability: 0.25
-    workup: ["Medication reconciliation", "Social work consult"]
-    treatment: "Diabetes education, insulin restart, address barriers to compliance"
-
-  - trigger: "new_onset_diabetes"
-    probability: 0.15
-    workup: ["HbA1c", "C-peptide", "GAD antibodies", "Islet cell antibodies"]
-    treatment: "Establish insulin regimen, diabetes education, endocrinology follow-up"
-
-  - trigger: "medication_related"
-    probability: 0.05
-    workup: ["Medication review (corticosteroids, SGLT2 inhibitors, atypical antipsychotics)"]
-    treatment: "Discontinue or adjust offending agent"
-
-  - trigger: "myocardial_infarction"
-    probability: 0.05
-    workup: ["Troponin", "ECG", "Echocardiogram"]
-    treatment: "Cardiology consult, appropriate cardiac intervention"
-
-  - trigger: "unknown"
-    probability: 0.10
-    workup: ["Comprehensive workup if no clear trigger identified"]
-    treatment: "Close follow-up, adherence support"
-
 # ============================================================
 # FORCED GENERATION (for testing / specific scenario creation)
 # Users can override population-driven generation to force specific cases.

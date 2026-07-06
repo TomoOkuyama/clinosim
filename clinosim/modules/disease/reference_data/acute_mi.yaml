@@ -1012,32 +1012,6 @@ complications:
 # DIFFERENTIAL DIAGNOSIS
 # Used by diagnostic reasoning module
 # ============================================================
-differential_diagnosis:
-  - disease: "acute_mi"
-    prior_probability: 0.35
-    key_features: ["chest_pain_pressure", "diaphoresis", "ecg_changes", "troponin_elevated"]
-  - disease: "unstable_angina"
-    prior_probability: 0.25
-    key_features: ["chest_pain_exertional", "ecg_changes_possible", "troponin_normal"]
-  - disease: "aortic_dissection"
-    prior_probability: 0.05
-    key_features: ["tearing_chest_pain", "bp_differential", "widened_mediastinum"]
-  - disease: "pulmonary_embolism"
-    prior_probability: 0.10
-    key_features: ["pleuritic_chest_pain", "dyspnea", "d_dimer_elevated", "tachycardia"]
-  - disease: "pericarditis"
-    prior_probability: 0.08
-    key_features: ["positional_chest_pain", "friction_rub", "diffuse_st_elevation"]
-  - disease: "gerd"
-    prior_probability: 0.10
-    key_features: ["burning_chest_pain", "postprandial", "relieved_by_antacid"]
-  - disease: "myocarditis"
-    prior_probability: 0.04
-    key_features: ["recent_viral_illness", "troponin_elevated", "diffuse_ecg_changes"]
-  - disease: "stress_cardiomyopathy"
-    prior_probability: 0.03
-    key_features: ["emotional_trigger", "apical_ballooning", "troponin_mild_elevation"]
-
 # ============================================================
 # FORCED GENERATION (for testing / specific scenario creation)
 # Users can override population-driven generation to force specific cases.

@@ -880,38 +880,6 @@ complications:
 # DIFFERENTIAL DIAGNOSIS
 # For LLM-driven clinical reasoning and documentation
 # ============================================================
-differential_diagnosis:
-  - diagnosis: "Peptic ulcer bleeding (gastric/duodenal)"
-    probability: 0.35
-    distinguishing_features: ["epigastric pain", "NSAID or H. pylori history", "EGD confirms ulcer"]
-  - diagnosis: "Esophageal or gastric variceal bleeding"
-    probability: 0.15
-    distinguishing_features: ["known liver cirrhosis", "massive hematemesis", "spider angiomata", "ascites"]
-  - diagnosis: "Mallory-Weiss tear"
-    probability: 0.08
-    distinguishing_features: ["preceded by vomiting or retching", "self-limited", "EGD shows mucosal tear at GEJ"]
-  - diagnosis: "Diverticular bleeding (lower GI)"
-    probability: 0.12
-    distinguishing_features: ["painless hematochezia", "older patient", "colonoscopy confirms"]
-  - diagnosis: "Colorectal malignancy"
-    probability: 0.08
-    distinguishing_features: ["weight loss", "iron deficiency anemia", "change in bowel habits", "colonoscopy with mass"]
-  - diagnosis: "Angiodysplasia"
-    probability: 0.05
-    distinguishing_features: ["recurrent occult or overt bleeding", "elderly", "CKD or aortic stenosis"]
-  - diagnosis: "Erosive gastritis/esophagitis"
-    probability: 0.10
-    distinguishing_features: ["diffuse mucosal erosions on EGD", "NSAID or alcohol use", "usually less severe"]
-  - diagnosis: "Dieulafoy lesion"
-    probability: 0.03
-    distinguishing_features: ["massive arterial bleeding", "small submucosal vessel", "difficult to locate on EGD"]
-  - diagnosis: "Aortoenteric fistula"
-    probability: 0.02
-    distinguishing_features: ["prior aortic surgery", "herald bleed then massive hemorrhage", "CT angiography"]
-  - diagnosis: "Upper GI malignancy (gastric/esophageal cancer)"
-    probability: 0.02
-    distinguishing_features: ["weight loss", "dysphagia", "mass on EGD"]
-
 # ============================================================
 # FORCED GENERATION (for testing / specific scenario creation)
 # Users can override population-driven generation to force specific cases.

@@ -152,22 +152,6 @@ target_los:
     moderate: {mean: 1, sd: 0.5, min: 0, max: 2}
     severe: {mean: 2, sd: 1, min: 1, max: 4}
 
-rehabilitation:
-  start_day: 1   # POD 1 — finger exercises
-  sessions_per_day: 1
-  session_duration_minutes: 20
-  goals:
-    - "Active finger ROM by POD 1"
-    - "Gentle wrist ROM at 2 weeks (after suture removal)"
-    - "Progressive strengthening at 6 weeks"
-    - "Full function by 3-4 months"
-  fim_trajectory:
-    day_0: {motor: 75, cognitive: 35}
-    week_1: {motor: 78, cognitive: 35}
-    week_2: {motor: 82, cognitive: 35}
-    week_3: {motor: 85, cognitive: 35}
-    week_4: {motor: 88, cognitive: 35}
-
 diagnostic:
   diagnostic_difficulty: 0.05  # X-ray/CT confirms immediately
   differential:

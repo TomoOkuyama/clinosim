@@ -273,16 +273,6 @@ likelihood_ratios:
 # DIFFERENTIAL DIAGNOSIS
 # Source: Clinical stroke mimics literature
 # ============================================================
-differential_diagnosis:
-  - {disease: "cerebral_infarction", prior_probability: 0.55}
-  - {disease: "hemorrhagic_stroke", prior_probability: 0.15}
-  - {disease: "tia", prior_probability: 0.10}
-  - {disease: "brain_tumor", prior_probability: 0.05}
-  - {disease: "todds_paralysis", prior_probability: 0.05}
-  - {disease: "migraine_with_aura", prior_probability: 0.05}
-  - {disease: "hypoglycemia", prior_probability: 0.03}
-  - {disease: "conversion_disorder", prior_probability: 0.02}
-
 # ============================================================
 # LAB REFERENCE RANGES (admission values for stroke patients)
 # For benchmarking generated data
@@ -990,45 +980,6 @@ complications:
 # Rehabilitation is critical for stroke recovery — PT/OT/ST from early days
 # Source: AHA/ASA Guidelines, 日本脳卒中学会リハビリガイドライン
 # ============================================================
-rehabilitation:
-  start_timing: "Day 2 (once medically stable and no hemorrhagic transformation)"
-  components:
-    physical_therapy:
-      description: "Mobility, gait training, balance, strengthening of affected limbs"
-      frequency: "Daily (BID in JP inpatient rehab phase)"
-      duration_minutes: 40
-      goals:
-        - "Sit to stand independently"
-        - "Ambulate with or without assistive device"
-        - "Stair navigation"
-    occupational_therapy:
-      description: "ADL training, fine motor skills, upper extremity function"
-      frequency: "Daily"
-      duration_minutes: 40
-      goals:
-        - "Self-feeding"
-        - "Dressing and grooming"
-        - "Handwriting or adaptive techniques"
-    speech_therapy:
-      description: "Swallowing rehabilitation, aphasia therapy, cognitive-communication"
-      frequency: "Daily (if aphasia or dysphagia present)"
-      duration_minutes: 30
-      probability: 0.60  # not all stroke patients need ST
-      goals:
-        - "Safe oral intake (pass swallowing evaluation)"
-        - "Functional communication"
-        - "Cognitive-linguistic recovery"
-
-  japan_specific:
-    kaifuku_ki_rehab: true  # 回復期リハビリテーション — JP-specific rehab ward transfer
-    typical_rehab_ward_los: {mean: 60, sd: 20, min: 30, max: 120}
-    note: "Most JP stroke patients transfer to rehab ward (回復期リハ病棟) after acute phase"
-
-  us_specific:
-    inpatient_rehab_facility_transfer: true
-    typical_irf_los: {mean: 16, sd: 5, min: 7, max: 30}
-    note: "US patients typically transfer to IRF or SNF after acute hospital stay"
-
 # ============================================================
 # FORCED GENERATION (for testing / specific scenario creation)
 # ============================================================

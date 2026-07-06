@@ -171,22 +171,6 @@ target_los:
     severe: {mean: 8, sd: 3, min: 5, max: 18}
 
 # Rehabilitation (critical for hip fracture)
-rehabilitation:
-  start_day: 1   # POD 1 (day after surgery)
-  sessions_per_day: 1
-  session_duration_minutes: 40
-  goals:
-    - "Weight bearing as tolerated by Week 1"
-    - "Independent transfer by Week 2"
-    - "Walker ambulation by Week 3"
-    - "Modified independent ADL by discharge"
-  fim_trajectory:
-    day_0: {motor: 35, cognitive: 30}
-    week_1: {motor: 45, cognitive: 30}
-    week_2: {motor: 55, cognitive: 31}
-    week_3: {motor: 65, cognitive: 32}
-    week_4: {motor: 75, cognitive: 33}
-
 diagnostic:
   diagnostic_difficulty: 0.05  # X-ray confirms immediately
   differential:
