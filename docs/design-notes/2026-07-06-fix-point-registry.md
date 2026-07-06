@@ -18,7 +18,7 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 | FP-UNIFY-1 | `_fhir_hai.py` system_key_for バイパス(潜在バグ) | — | 高 | なし | **DONE**(89e616a43f) |
 | FP-YAML-1 | `diagnostic_difficulty` top-level silent-drop(実害バグ) | C1 | 高 | なし | **DONE**(7910813fe6) |
 | FP-SEV-MODEL | 重症度 single-source-of-truth 再設計 | C1 | 高 | brainstorming | **DONE**(c2, AD-67) |
-| FP-YAML-2 | 孤児キー triage(配線 or 削除) | C1 | 中 | FP-SEV-MODEL(archetype_modifiers 分) | OPEN |
+| FP-YAML-2 | 孤児キー triage(配線 or 削除) | C1 | 中 | FP-SEV-MODEL(archetype_modifiers 分) | **archetype_modifiers DONE**(AD-68)/ 他キー削除は残 |
 | FP-YAML-3 | `DiseaseProtocol` に `extra="forbid"` + 生 dict 経路封鎖 | C1 | 中 | FP-YAML-1/2 | OPEN |
 | FP-I10 | 高血圧生理モデル新設 + stage 一貫配線 | C2 | 中 | FP-SEV-MODEL 推奨 | OPEN |
 | FP-ARCH-1 | course_archetypes 高優先(HF / subdural) | C3 | 中 | なし | OPEN |
@@ -92,7 +92,7 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 
 | キー | 出現 | 判定候補 | 備考 |
 |---|---|---|---|
-| `archetype_modifiers` | 23 | 配線 or 削除 | FP-SEV-MODEL 後。`select_archetype` の独自ハードコード modifier(`clinical_course/engine.py:82-97`)との二重管理を解消 |
+| `archetype_modifiers` | 23 | **DONE = 配線**(AD-68) | `select_archetype` に配線しハードコード modifier を置換。式条件パーサ + severity 語彙再利用 + 自己整合検証。`plateau` は typo でなく疾患固有 archetype 名と判明(recon 修正)。疾患内在条件 ~22 は RESERVED（scenario-flag 機構待ち、AD-67 と共通 follow-up）|
 | `incidence.risk_multipliers` | 複数 | 配線 or 削除 | locale `disease_risk_multipliers` の手作業重複を疾患 YAML から導出に切替 or 削除。`F10` は両 locale で永久 dead(chronic_prevalence に無い) |
 | `differential_diagnosis`(top) | 5 | 削除 | live な `diagnostic.differential` の drift 重複 |
 | `rehabilitation` | 8 | 削除 or 配線 | 未配線。`rehabilitation_plan` 文書とは無関係 |
