@@ -11,7 +11,8 @@ encounter_type: medical
 requires_surgery: false
 readmission_eligible: true
 minimum_severity: null
-diagnostic_difficulty: 0.3   # CT usually confirms, but adhesive vs. mechanical distinction can be tricky
+diagnostic:
+  diagnostic_difficulty: 0.3   # CT usually confirms, but adhesive vs. mechanical distinction can be tricky
 
 icd_codes:
   primary: "K56.6"  # Other and unspecified intestinal obstruction

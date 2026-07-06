@@ -16,7 +16,8 @@ minimum_severity: null
 medication_holds:
   - drugs: ["Metformin"]
     reason: "Acute illness with lactic acidosis risk + NPO status"
-diagnostic_difficulty: 0.2   # Lipase > 3x ULN is highly specific; diagnosis usually straightforward
+diagnostic:
+  diagnostic_difficulty: 0.2   # Lipase > 3x ULN is highly specific; diagnosis usually straightforward
 
 icd_codes:
   primary: "K85.9"  # Acute pancreatitis, unspecified

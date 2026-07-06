@@ -12,7 +12,6 @@ encounter_type: medical
 requires_surgery: false
 readmission_eligible: true
 minimum_severity: null
-diagnostic_difficulty: 0.3   # D-dimer + compression ultrasound confirm; clinical diagnosis alone unreliable
 
 icd_codes:
   primary: "I80.20"  # Phlebitis and thrombophlebitis of unspecified deep vessels of lower extremity

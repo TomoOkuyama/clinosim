@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from clinosim.codes import get_system_uri
+from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key, resolve_lang
 from clinosim.modules.output._fhir_common import BundleContext, _map_diagnosis_code
@@ -41,7 +41,7 @@ def _build_hai_conditions(ctx: BundleContext) -> list[dict]:
         if not icd_internal or not hai_id:
             continue
         icd_country = _map_diagnosis_code(icd_internal, country)
-        icd_sys_key = "icd-10-cm" if country == "US" else "icd-10"
+        icd_sys_key = system_key_for("diagnosis", country)
         icd_disp = code_lookup(icd_sys_key, icd_country, lang) or ""
         snomed_disp = code_lookup("snomed-ct", snomed, lang) or ""
         coding: list[dict[str, Any]] = [{

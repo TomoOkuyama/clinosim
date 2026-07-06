@@ -16,7 +16,8 @@ encounter_type: medical
 requires_surgery: false
 minimum_severity: moderate
 readmission_eligible: true
-diagnostic_difficulty: 0.3   # CT/MRI confirms quickly, but stroke mimics exist
+diagnostic:
+  diagnostic_difficulty: 0.3   # CT/MRI confirms quickly, but stroke mimics exist
 
 icd_codes:
   primary: "I63.9"  # Cerebral infarction, unspecified

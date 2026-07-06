@@ -2438,6 +2438,15 @@ from the 2026-07-02 review re-verified and migrated (2 were already done by prio
 
 ## clinical_course severity/archetype wiring fix — deferred scope (2026-07-05)
 
+> **2026-07-06 更新**: 本節以下の deferred 項目群(重症度二重システム / 孤児 YAML キー /
+> `extra="forbid"` / course_archetypes 欠如 / I10 stage / person.age 複数年)は、6 系統の
+> 横断調査(session 38)で **FHIR completeness ゴール**の下に再構成された。個別の修正手順・
+> 優先度・セッション割当・依存関係は **`docs/design-notes/2026-07-06-fix-point-registry.md`**
+> (TODO とは別の追跡台帳)に FP-* として集約。考察・ゴールは
+> `docs/design-notes/2026-07-06-fhir-completeness-and-data-model-unification.md`、実装が従う
+> 規約は `docs/design-guides/data-model-and-completeness-conventions.md`。以下の記述は原調査の
+> file:line 詳細として保持(registry から参照される)。
+
 Full context: `docs/superpowers/specs/2026-07-05-clinical-course-severity-archetype-wiring-design.md`.
 Comprehensive multi-agent code review + brainstorming session found a much
 larger structural issue while fixing two concrete bugs (course_archetypes

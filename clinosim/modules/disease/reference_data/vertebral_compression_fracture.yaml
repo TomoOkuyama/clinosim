@@ -11,7 +11,6 @@ encounter_type: medical
 requires_surgery: false
 readmission_eligible: true
 minimum_severity: null
-diagnostic_difficulty: 0.2   # Spine X-ray/MRI confirms; distinguishing acute vs. old and pathologic vs. osteoporotic takes more workup
 
 icd_codes:
   primary: "M80.08"  # Age-related osteoporosis with current pathological fracture, vertebrae

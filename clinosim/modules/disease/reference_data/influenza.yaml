@@ -11,7 +11,6 @@ encounter_type: medical
 requires_surgery: false
 readmission_eligible: true
 minimum_severity: null
-diagnostic_difficulty: 0.2   # Rapid influenza test confirms diagnosis quickly
 
 icd_codes:
   primary: "J10.1"  # Influenza due to other identified influenza virus with other respiratory manifestations

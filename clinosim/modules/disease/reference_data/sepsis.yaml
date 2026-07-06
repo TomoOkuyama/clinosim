@@ -305,7 +305,8 @@ likelihood_ratios:
 # DIAGNOSTIC DIFFICULTY
 # Source: Sepsis-3 definitions, clinical literature on diagnostic delay
 # ============================================================
-diagnostic_difficulty: 0.5    # high — source often unclear, mimics many conditions
+diagnostic:
+  diagnostic_difficulty: 0.5    # high — source often unclear, mimics many conditions
 
 differential_diagnosis:
   - {disease: "sepsis", pretest_probability: 0.35}
