@@ -18,7 +18,6 @@ medication_holds:
     reason: "Active intracranial hemorrhage — anticoagulation contraindicated"
   - drugs: ["Aspirin", "Clopidogrel", "Prasugrel", "Ticagrelor"]
     reason: "Active intracranial hemorrhage — antiplatelet contraindicated"
-diagnostic_difficulty: 0.15   # CT confirms ICH immediately; underlying cause evaluation takes longer
 
 icd_codes:
   primary: "I61.9"  # Nontraumatic intracerebral hemorrhage, unspecified
