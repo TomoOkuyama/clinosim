@@ -21,7 +21,8 @@ procedure:
   estimated_blood_loss_ml: {mean: 50, sd: 30, min: 10, max: 200}
   approach:
     laparoscopic appendectomy: "laparoscopic approach with 3-port technique"
-diagnostic_difficulty: 0.25   # Classic presentation is clear, but atypical (retrocecal, early) can mimic other diagnoses
+diagnostic:
+  diagnostic_difficulty: 0.25   # Classic presentation is clear, but atypical (retrocecal, early) can mimic other diagnoses
 
 icd_codes:
   primary: "K35.80"  # Unspecified acute appendicitis without abscess

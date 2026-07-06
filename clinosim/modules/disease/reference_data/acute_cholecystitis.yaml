@@ -21,7 +21,8 @@ procedure:
   estimated_blood_loss_ml: {mean: 100, sd: 75, min: 20, max: 500}
   approach:
     laparoscopic cholecystectomy: "laparoscopic approach with 4-port technique"
-diagnostic_difficulty: 0.2   # US + clinical criteria (Tokyo Guidelines) make diagnosis straightforward
+diagnostic:
+  diagnostic_difficulty: 0.2   # US + clinical criteria (Tokyo Guidelines) make diagnosis straightforward
 
 icd_codes:
   primary: "K81.0"  # Acute cholecystitis

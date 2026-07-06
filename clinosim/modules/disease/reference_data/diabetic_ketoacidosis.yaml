@@ -19,7 +19,8 @@ chronic_glycemic_control: 0.1
 medication_holds:
   - drugs: ["Metformin"]
     reason: "DKA — lactic acidosis risk; resume after metabolic stabilization"
-diagnostic_difficulty: 0.2  # glucose + ABG + ketones confirms quickly
+diagnostic:
+  diagnostic_difficulty: 0.2  # glucose + ABG + ketones confirms quickly
 
 icd_codes:
   primary: "E11.10"  # Type 2 DM with ketoacidosis without coma

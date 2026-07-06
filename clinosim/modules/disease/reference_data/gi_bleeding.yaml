@@ -100,7 +100,8 @@ severity:
 # DIAGNOSTIC DIFFICULTY
 # Source: Clinical experience; EGD required for definitive source ID
 # ============================================================
-diagnostic_difficulty: 0.35
+diagnostic:
+  diagnostic_difficulty: 0.35
 
 # ============================================================
 # INITIAL PHYSIOLOGICAL STATE IMPACT
