@@ -167,22 +167,6 @@ target_los:
     moderate: {mean: 7, sd: 3, min: 5, max: 14}
     severe: {mean: 14, sd: 5, min: 7, max: 30}
 
-rehabilitation:
-  start_day: 2   # POD 2 if neurologically stable
-  sessions_per_day: 1
-  session_duration_minutes: 30
-  goals:
-    - "Orientation and cognitive assessment by Week 1"
-    - "Seated balance and transfers by Week 2"
-    - "Ambulation with assistance by Week 3"
-    - "Modified independent ADL by Week 4"
-  fim_trajectory:
-    day_0: {motor: 25, cognitive: 18}
-    week_1: {motor: 35, cognitive: 22}
-    week_2: {motor: 45, cognitive: 26}
-    week_3: {motor: 55, cognitive: 28}
-    week_4: {motor: 65, cognitive: 30}
-
 diagnostic:
   diagnostic_difficulty: 0.15  # CT confirms, but timing/mechanism may be unclear
   differential:

@@ -134,15 +134,6 @@ target_los:
     moderate: {mean: 14, sd: 6, min: 7, max: 21}
     severe: {mean: 28, sd: 12, min: 14, max: 60}
 
-rehabilitation:
-  start_day: 5
-  sessions_per_day: 2
-  session_duration_minutes: 30
-  goals:
-    - "Maintain ROM during healing"
-    - "Contracture prevention"
-    - "Progressive strengthening"
-
 outcome_benchmarks:
   japan:
     median_los: 35
