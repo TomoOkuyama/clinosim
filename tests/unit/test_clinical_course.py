@@ -5,6 +5,7 @@ import pytest
 
 from clinosim.modules.clinical_course.engine import (
     _FALLBACK_PROBABILITIES,
+    _evaluate_risk_condition,
     evaluate_complications,
     get_daily_directive,
     select_archetype,
@@ -157,6 +158,52 @@ class TestComplications:
         triggered = evaluate_complications(15, MockState(), MockPatient(), complications, set(), rng)
         assert len(triggered) == 1
 
+    def test_severity_severe_condition_applies_multiplier_when_severe(self):
+        rng = np.random.default_rng(0)
+
+        class MockState:
+            pass
+
+        class MockPatient:
+            age = 50
+
+        complications = [{
+            "name": "severe_only_comp",
+            "probability_per_day": 0.5,
+            "onset_day_range": [1, 5],
+            "risk_factors": [{"condition": "severity_severe", "multiplier": 2.0}],
+        }]
+
+        # 0.5 * 2.0 = 1.0 -> rng.random() (always < 1.0) guarantees a fire,
+        # independent of the specific draw, when severity="severe".
+        triggered = evaluate_complications(
+            3, MockState(), MockPatient(), complications, set(), rng, severity="severe",
+        )
+        assert len(triggered) == 1
+
+    def test_severity_severe_condition_not_applied_when_not_severe(self):
+        rng = np.random.default_rng(0)
+
+        class MockState:
+            pass
+
+        class MockPatient:
+            age = 50
+
+        complications = [{
+            "name": "severe_only_comp",
+            "probability_per_day": 0.0,
+            "onset_day_range": [1, 5],
+            "risk_factors": [{"condition": "severity_severe", "multiplier": 2.0}],
+        }]
+
+        # Base probability is 0.0; the multiplier must NOT apply when
+        # severity != "severe", so prob stays 0.0 and never fires.
+        triggered = evaluate_complications(
+            3, MockState(), MockPatient(), complications, set(), rng, severity="moderate",
+        )
+        assert len(triggered) == 0
+
 
 @pytest.mark.unit
 class TestInterpolation:
@@ -177,3 +224,13 @@ class TestInterpolation:
     def test_after_last_day(self):
         trajectory = {0: 0.10, 7: -0.05, 14: -0.02}
         assert _interpolate(trajectory, 20) == pytest.approx(-0.02)
+
+
+@pytest.mark.unit
+class TestEvaluateRiskConditionSeverity:
+    def test_severity_severe_matches_severe(self):
+        assert _evaluate_risk_condition("severity_severe", None, None, 1, "severe") is True
+
+    def test_severity_severe_does_not_match_moderate_or_mild(self):
+        assert _evaluate_risk_condition("severity_severe", None, None, 1, "moderate") is False
+        assert _evaluate_risk_condition("severity_severe", None, None, 1, "mild") is False
