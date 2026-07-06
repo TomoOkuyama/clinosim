@@ -93,6 +93,129 @@ presenting_symptoms:
   - {name: "fatigue", probability: 0.85, severity_range: [0.3, 0.7]}
   - {name: "cough", probability: 0.40, severity_range: [0.1, 0.4]}
 
+# ============================================================
+# COURSE ARCHETYPES (FP-ARCH-1)
+# Decompensated-HF course is diuresis-driven: volume_status falls toward 0 as
+# diuresis works and cardiac_function recovers, unlike the generic infection
+# fallback. Canonical archetype names; trajectories interpolated over the LOS.
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.42
+    description: "Steady diuresis from Day 1; congestion and cardiac output improve"
+    trajectory:
+      volume_status:    {0: 0.00, 1: -0.08, 2: -0.10, 3: -0.10, 5: -0.08, 7: -0.06, 10: -0.04, 14: -0.02}
+      cardiac_function: {0: 0.00, 1: 0.02, 2: 0.04, 3: 0.05, 5: 0.05, 7: 0.04, 10: 0.03, 14: 0.02}
+      perfusion_status: {0: 0.00, 1: 0.02, 2: 0.03, 3: 0.03, 5: 0.02, 7: 0.01, 10: 0.01, 14: 0.00}
+      inflammation_level: {0: 0.00, 2: -0.03, 5: -0.04, 7: -0.03, 10: -0.02, 14: -0.01}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.18
+    description: "Early cardiorenal worsening (WRF), then diuresis takes hold"
+    trajectory:
+      volume_status:    {0: 0.05, 1: 0.03, 2: -0.04, 3: -0.08, 5: -0.08, 7: -0.06, 10: -0.04, 14: -0.02}
+      renal_function:   {0: -0.04, 1: -0.03, 2: -0.01, 3: 0.01, 5: 0.02, 7: 0.02, 10: 0.02, 14: 0.01}
+      cardiac_function: {0: -0.02, 1: 0.00, 2: 0.02, 3: 0.04, 5: 0.05, 7: 0.04, 10: 0.03, 14: 0.02}
+      perfusion_status: {0: -0.03, 1: -0.02, 2: 0.01, 3: 0.02, 5: 0.02, 7: 0.01, 10: 0.00, 14: 0.00}
+    order_modifications:
+      day_2:
+        add_labs: ["BNP", "Basic_metabolic_panel"]
+
+  plateau_then_recovery:
+    probability: 0.13
+    description: "Slow diuretic response; congestion plateaus 3-4 days then clears"
+    trajectory:
+      volume_status:    {0: 0.02, 1: 0.01, 2: 0.00, 3: -0.02, 5: -0.06, 7: -0.08, 10: -0.06, 14: -0.03}
+      cardiac_function: {0: 0.00, 1: 0.00, 3: 0.01, 5: 0.03, 7: 0.04, 10: 0.03, 14: 0.02}
+      perfusion_status: {0: 0.00, 3: 0.00, 5: 0.01, 7: 0.02, 10: 0.01, 14: 0.00}
+    order_modifications:
+      day_3:
+        add_labs: ["BNP", "Basic_metabolic_panel"]
+
+  treatment_resistant:
+    probability: 0.13
+    description: "Diuretic resistance; congestion clears slowly after escalation"
+    trajectory:
+      volume_status:    {0: 0.03, 1: 0.02, 2: 0.01, 3: 0.00, 5: -0.03, 7: -0.05, 10: -0.06, 14: -0.05}
+      renal_function:   {0: -0.03, 1: -0.03, 3: -0.02, 5: -0.01, 7: 0.00, 10: 0.01, 14: 0.01}
+      cardiac_function: {0: -0.02, 1: -0.01, 3: 0.00, 5: 0.02, 7: 0.03, 10: 0.03, 14: 0.02}
+    order_modifications:
+      day_3:
+        add_labs: ["BNP", "Basic_metabolic_panel"]
+        add_consult: ["cardiology"]
+
+  gradual_deterioration:
+    probability: 0.09
+    description: "Progressive pump failure; congestion and hypoperfusion worsen"
+    trajectory:
+      volume_status:    {0: 0.03, 1: 0.03, 2: 0.03, 3: 0.02, 5: 0.02, 7: 0.01}
+      cardiac_function: {0: -0.03, 1: -0.03, 2: -0.03, 3: -0.02, 5: -0.02, 7: -0.02}
+      perfusion_status: {0: -0.04, 1: -0.04, 2: -0.03, 3: -0.03, 5: -0.02, 7: -0.02}
+      renal_function:   {0: -0.03, 1: -0.03, 2: -0.02, 3: -0.02, 5: -0.01, 7: -0.01}
+
+  sudden_deterioration:
+    probability: 0.05
+    description: "Flash pulmonary edema / arrhythmia; abrupt Day 2-3 decompensation"
+    trajectory:
+      volume_status:    {0: 0.00, 1: -0.02, 2: 0.15, 3: 0.05, 5: -0.05, 7: -0.06}
+      perfusion_status: {0: 0.00, 1: 0.00, 2: -0.25, 3: -0.08, 5: 0.03, 7: 0.04}
+      cardiac_function: {0: 0.00, 1: 0.00, 2: -0.15, 3: -0.05, 5: 0.02, 7: 0.03}
+
+# ============================================================
+# COMPLICATIONS — cardiorenal / arrhythmia / shock (drive ICU transfer)
+# ============================================================
+complications:
+  - name: "acute_kidney_injury"
+    description: "Cardiorenal syndrome — worsening renal function from low output / diuresis"
+    probability_per_day: 0.02
+    onset_day_range: [1, 7]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 3.0}
+      - {condition: "age_over_75", multiplier: 1.5}
+    state_impact:
+      renal_function: -0.05
+    detection:
+      test: "Basic_metabolic_panel"
+      finding: "rising_creatinine"
+    actions: ["order_renal_panel"]
+
+  - name: "atrial_fibrillation_rvr"
+    description: "New/worsened atrial fibrillation with rapid ventricular response"
+    probability_per_day: 0.015
+    onset_day_range: [0, 5]
+    risk_factors:
+      - {condition: "age_over_75", multiplier: 1.5}
+    state_impact:
+      cardiac_function: -0.03
+      perfusion_status: -0.03
+    detection:
+      test: "ecg"
+      finding: "atrial_fibrillation"
+    actions: ["order_ecg", "rate_control"]
+
+  - name: "cardiogenic_shock"
+    description: "Low-output state with end-organ hypoperfusion"
+    probability_per_day: 0.004
+    onset_day_range: [0, 5]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 5.0}
+    state_impact:
+      perfusion_status: -0.15
+      cardiac_function: -0.10
+    actions: ["icu_transfer", "inotrope_support"]
+
+  - name: "respiratory_failure"
+    description: "Acute pulmonary edema requiring respiratory support"
+    probability_per_day: 0.006
+    onset_day_range: [0, 4]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 4.0}
+    state_impact:
+      perfusion_status: -0.10
+    actions: ["icu_transfer"]
+
 order_protocols:
   admission_orders:
     labs:
