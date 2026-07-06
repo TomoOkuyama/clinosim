@@ -28,7 +28,7 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 | FP-UNIFY-2 | 日付→ISO ヘルパ共通化 | — | 中 | なし | OPEN |
 | FP-UNIFY-3 | FHIR 固定 ja ラベル辞書統合 + idiom 統一 | — | 低 | なし | OPEN |
 | FP-UNIFY-4 | case-sensitive `country == "US"` 比較の一掃(lowercase バグ class) | — | 中 | なし | OPEN |
-| FP-COMPLETENESS-GATE | C1/C2/C3 を検証する audit completeness 軸 | — | 高(capstone) | 上流 FP 完了後 | OPEN |
+| FP-COMPLETENESS-GATE | C1/C2/C3 を検証する audit completeness 軸 | — | 高(capstone) | 上流 FP 完了後 | **DONE**(不変則 test suite)/ cohort 統計 audit 軸は残 |
 
 ---
 
@@ -224,5 +224,14 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
     complications 由来 Encounter)が生成されているかの per-disease 期待マトリクス。
   - **成果物**: `clinosim/audit/axes/completeness.py` + 疾患ごとの期待宣言。DESIGN.md に AD 追記。
 - **依存**: 上流 FP 完了後(先に導入すると大量 FAIL で ship 不能)。
-- **Status:** OPEN
+- **Status:** DONE(pragmatic capstone、session 38)= **不変則 test suite**
+  `tests/unit/test_completeness_invariants.py`(7 guards、sub-second、production 変更なし)。
+  C1: `extra="forbid"` 維持 / top-level diagnostic_difficulty 0 / severity_beta reader 0 /
+  全 severity.distribution well-formed。**C2 一般クラス guard**: 全 graded-stage 疾患
+  ({N18,I50,J44,J45,I10,I25})が STAGE_SEVERITY 消費者を持つ(I10-class no-op 再発防止)。
+  C3: HF/subdural closures 維持 + course_archetypes backlog allowlist の drift 検出。
+  regression 捕捉を実証(I10 除去で guard fail)。spec:
+  `docs/superpowers/specs/2026-07-06-completeness-gate-design.md`。
+  **残(別 chain)**: cohort-level 統計 audit 軸(`audit/axes/completeness.py`、authored 分布の
+  cohort 反映 / stage 別 vitals 分離 / per-disease 期待 resource マトリクス)= audit framework 統合が要る大工事。
 </content>
