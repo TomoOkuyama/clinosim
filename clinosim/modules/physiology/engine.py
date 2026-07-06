@@ -581,7 +581,7 @@ def derive_lab_values(
 
     # --- WBC diurnal variation (±10%, afternoon slightly higher) ---
     # Nadir ~04:00, peak ~16:00
-    wbc_circadian = 1.0 + 0.10 * math.sin((hour - 4) * math.pi / 12)
+    wbc_circadian = 1.0 + 0.10 * (-math.cos((hour - 4) * math.pi / 12))
     labs["WBC"] *= wbc_circadian
 
     return labs
@@ -611,7 +611,7 @@ def derive_vital_signs(
 
     # Temperature: inflammation + circadian
     hour = timestamp.hour
-    circadian = 0.3 * math.sin((hour - 4) * math.pi / 12)
+    circadian = 0.3 * (-math.cos((hour - 4) * math.pi / 12))
     temperature = baseline.temperature + infl * 3.0 + circadian
     temperature = clamp(temperature, 35.0, 42.0)
 
