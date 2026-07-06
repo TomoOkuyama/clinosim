@@ -75,6 +75,110 @@ presenting_symptoms:
   - {name: "wrist_deformity", probability: 0.70, severity_range: [0.5, 0.8]}
   - {name: "limited_range_of_motion", probability: 0.95, severity_range: [0.8, 1.0]}
 
+# ============================================================
+# COURSE ARCHETYPES (FP-ARCH-1)
+# Distal-radius ORIF is the most benign / stereotyped surgical course: brief
+# post-op inflammation and minor anemia resolve quickly; nearly all patients
+# follow smooth_recovery. Deterioration branches are vanishingly rare. Small
+# deltas reflect a low-morbidity extremity operation. Canonical archetype names.
+# ============================================================
+course_archetypes:
+  smooth_recovery:
+    probability: 0.65
+    description: "Uneventful post-ORIF recovery; swelling and pain resolve, early mobilization"
+    trajectory:
+      inflammation_level: {0: 0.00, 1: -0.02, 2: -0.03, 3: -0.03, 5: -0.02, 7: -0.02, 10: -0.01, 14: -0.01}
+      anemia_level:       {0: 0.01, 2: -0.01, 5: -0.01, 7: -0.01, 10: -0.01, 14: 0.00}
+      volume_status:      {0: 0.00, 1: 0.02, 2: 0.02, 3: 0.02, 5: 0.01, 7: 0.01, 10: 0.00, 14: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  dip_then_recovery:
+    probability: 0.15
+    description: "Transient Day 1 post-op swelling / pain flare, then rapid resolution"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.03, 2: 0.00, 3: -0.02, 5: -0.03, 7: -0.02, 10: -0.01, 14: -0.01}
+      perfusion_status:   {0: -0.02, 1: -0.02, 2: 0.00, 3: 0.01, 5: 0.02, 7: 0.01, 10: 0.00, 14: 0.00}
+    order_modifications: {}
+    treatment_modifications: {}
+
+  plateau_then_recovery:
+    probability: 0.10
+    description: "Slow-to-settle swelling / stiffness in the elderly, then improvement"
+    trajectory:
+      inflammation_level: {0: 0.02, 1: 0.01, 2: 0.00, 3: -0.01, 5: -0.02, 7: -0.03, 10: -0.02, 14: -0.01}
+      volume_status:      {0: 0.00, 1: 0.01, 3: 0.01, 5: 0.02, 7: 0.02, 10: 0.01, 14: 0.00}
+
+  treatment_resistant:
+    probability: 0.05
+    description: "Persistent pain / stiffness requiring extended analgesia and therapy"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.03, 2: 0.02, 3: 0.02, 5: 0.01, 7: 0.00, 10: -0.02, 14: -0.02}
+      perfusion_status:   {0: -0.02, 1: -0.02, 3: -0.01, 5: 0.00, 7: 0.01, 10: 0.01, 14: 0.01}
+    order_modifications:
+      day_3:
+        add_consult: ["orthopedics"]
+
+  gradual_deterioration:
+    probability: 0.03
+    description: "Progressive swelling / neurovascular compromise (rare)"
+    trajectory:
+      inflammation_level: {0: 0.03, 1: 0.03, 2: 0.03, 3: 0.02, 5: 0.02, 7: 0.02}
+      perfusion_status:   {0: -0.03, 1: -0.03, 2: -0.02, 3: -0.02, 5: -0.02, 7: -0.02}
+
+  sudden_deterioration:
+    probability: 0.02
+    description: "Acute compartment syndrome / wound event with abrupt Day 1-2 decline (rare)"
+    trajectory:
+      perfusion_status:   {0: 0.00, 1: -0.08, 2: -0.10, 3: -0.04, 5: 0.02, 7: 0.03}
+      inflammation_level: {0: 0.00, 1: 0.06, 2: 0.08, 3: 0.04, 5: -0.02, 7: -0.03}
+
+# ============================================================
+# COMPLICATIONS — SSI / VTE / median nerve dysfunction (all low-frequency)
+# risk_factor conditions restricted to those _evaluate_risk_condition supports.
+# No ICU transfer — this is a low-acuity extremity operation.
+# ============================================================
+complications:
+  - name: "surgical_site_infection"
+    description: "Post-operative wound infection at the ORIF site"
+    probability_per_day: 0.003
+    onset_day_range: [2, 14]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.0}
+      - {condition: "age_over_75", multiplier: 1.3}
+    state_impact:
+      inflammation_level: 0.06
+    detection:
+      test: "CRP"
+      finding: "rising_crp"
+    actions: ["order_wound_culture", "start_antibiotics"]
+
+  - name: "venous_thromboembolism"
+    description: "DVT / PE from post-operative immobility"
+    probability_per_day: 0.002
+    onset_day_range: [3, 14]
+    risk_factors:
+      - {condition: "immobility_days > 3", multiplier: 2.0}
+    state_impact:
+      perfusion_status: -0.03
+    detection:
+      test: "lower_extremity_doppler"
+      finding: "deep_vein_thrombosis"
+    actions: ["order_doppler"]
+
+  - name: "median_nerve_dysfunction"
+    description: "Median nerve irritation / acute carpal tunnel from swelling or hardware"
+    probability_per_day: 0.004
+    onset_day_range: [0, 7]
+    risk_factors:
+      - {condition: "severity_severe", multiplier: 2.0}
+    state_impact:
+      inflammation_level: 0.02
+    detection:
+      test: "nerve_conduction_study"
+      finding: "median_neuropathy"
+    actions: ["order_nerve_conduction_study", "orthopedics_consult"]
+
 order_protocols:
   admission_orders:
     labs:
