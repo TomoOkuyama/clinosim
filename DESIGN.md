@@ -2686,3 +2686,37 @@ conditions deferred (shared scenario-flag mechanism with AD-67's reserved set).
 - Spec: `docs/superpowers/specs/2026-07-06-archetype-modifiers-wiring-design.md`
 - Plan: `docs/superpowers/plans/2026-07-06-archetype-modifiers-wiring.md`
 - Registry: `docs/design-notes/2026-07-06-fix-point-registry.md` (FP-YAML-2)
+
+---
+
+### AD-69 · DiseaseProtocol extra="forbid" (author-time silent-drop defense)
+
+**Date:** 2026-07-06 (session 38, FP-YAML-3)
+
+**Status:** Accepted
+
+**Context:** `DiseaseProtocol` used Pydantic's default `extra="ignore"`, so any
+top-level YAML key not matching a model field was silently dropped at load. This was
+the root cause of a whole class of C1 (silent-drop) defects — `diagnostic_difficulty`
+placed top-level (fell back to 0.3), `archetype_modifiers` (23 files unread),
+`severity.distribution` never read — and left new typos undetectable.
+
+**Decision:** After resolving every orphan key (diagnostic_difficulty nested,
+archetype_modifiers wired, and 4 unread keys — differential_diagnosis / rehabilitation /
+precipitants / prerequisite — deleted), turn on `model_config = ConfigDict(extra="forbid")`
+on `DiseaseProtocol` so an unrecognized top-level key raises at load. `EncounterConditionProtocol`
+already uses `extra="allow"` (returns the raw dict); `PatientProfile` already uses forbid —
+this brings the disease protocol into line. Also removed the vestigial `readmission`
+model field (0 YAML, 0 readers).
+
+**Consequences:** Byte-diff identical to master (deleted keys were never consumed) —
+a refactor-class change. New disease-YAML authors must add a model field for any new
+top-level key (or it fails loud). Two follow-ups (registry FP-YAML-3): the raw-dict
+consumption path in `order/engine.py` bypasses Pydantic (not covered by forbid), and
+3 declared-but-dead fields (expected_vital_distributions / reference_ranges /
+drug_interactions) remain (forbid accepts them; removal is a separate mechanical sweep).
+
+**Related ADRs:** AD-67 / AD-68 (the severity + archetype activations this unblocks/hardens)
+
+**Related documents:** `docs/design-notes/2026-07-06-fix-point-registry.md` (FP-YAML-3);
+`docs/design-guides/data-model-and-completeness-conventions.md` §2
