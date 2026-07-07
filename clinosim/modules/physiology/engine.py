@@ -698,5 +698,10 @@ def _variable_range(var: str) -> tuple[float, float]:
         "respiratory_fraction": (0.0, 1.0),
         "glucose_status": (-1.0, 1.0),
         "sodium_status": (-1.0, 1.0),
+        # Bipolar axis: negative = non-AG (hyperchloremic, GI loss), positive =
+        # high-AG (ketone/lactate/uremia). Missing here previously meant the
+        # (0.0, 1.0) default silently clamped every GI condition's negative axis
+        # to 0.0 in apply_disease_onset (degenerate hyperchloremia).
+        "anion_gap_status": (-1.0, 1.0),
     }
     return ranges.get(var, (0.0, 1.0))
