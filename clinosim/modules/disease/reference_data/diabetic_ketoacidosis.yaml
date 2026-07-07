@@ -548,69 +548,6 @@ drug_interactions:
     action: "Hold metformin 48h before/after contrast"
 
 # ============================================================
-# LAB ITEM REFERENCE RANGES (age/sex-specific normal values)
-# Used for flagging H/L results
-# Source: Standard clinical laboratory references
-# ============================================================
-reference_ranges:
-  Glucose:
-    unit: "mg/dL"
-    fasting: {low: 70, high: 100}
-    random: {low: 70, high: 140}
-  HbA1c:
-    unit: "%"
-    all: {low: 4.0, high: 5.6}
-    prediabetes: {low: 5.7, high: 6.4}
-    diabetes: {low: 6.5, high: 99}
-  pH:
-    unit: ""
-    all: {low: 7.35, high: 7.45}
-  HCO3:
-    unit: "mEq/L"
-    all: {low: 22, high: 26}
-  Beta_hydroxybutyrate:
-    unit: "mmol/L"
-    all: {low: 0, high: 0.6}
-  Anion_gap:
-    unit: "mEq/L"
-    all: {low: 8, high: 12}
-  Na:
-    unit: "mEq/L"
-    all: {low: 136, high: 145}
-  K:
-    unit: "mEq/L"
-    all: {low: 3.5, high: 5.0}
-  Cl:
-    unit: "mEq/L"
-    all: {low: 98, high: 106}
-  Creatinine:
-    unit: "mg/dL"
-    male: {low: 0.6, high: 1.1}
-    female: {low: 0.4, high: 0.8}
-  BUN:
-    unit: "mg/dL"
-    all: {low: 8, high: 20}
-  Phosphate:
-    unit: "mg/dL"
-    all: {low: 2.5, high: 4.5}
-  Mg:
-    unit: "mg/dL"
-    all: {low: 1.7, high: 2.2}
-  Lactate:
-    unit: "mmol/L"
-    all: {low: 0.5, high: 2.0}
-  WBC:
-    unit: "/uL"
-    all: {low: 3500, high: 9500}
-  Hb:
-    unit: "g/dL"
-    male: {low: 13.5, high: 17.5}
-    female: {low: 11.5, high: 15.5}
-  CRP:
-    unit: "mg/L"
-    all: {low: 0, high: 3}
-
-# ============================================================
 # TARGET LENGTH OF STAY (country-specific)
 # Source: JP — DPC data, JDS reports (longer stay for education)
 #         US — Premier/NIS database, Dhatariya et al. 2020

@@ -450,39 +450,6 @@ drug_interactions:
     action: "Limit simvastatin to 10mg daily"
 
 # ============================================================
-# REFERENCE RANGES
-# ============================================================
-reference_ranges:
-  BNP:
-    unit: "pg/mL"
-    all: {low: 0, high: 100}
-    age_over_75: {low: 0, high: 200}
-  Troponin:
-    unit: "ng/mL"
-    all: {low: 0, high: 0.04}
-  K:
-    unit: "mEq/L"
-    all: {low: 3.5, high: 5.0}
-  Mg:
-    unit: "mg/dL"
-    all: {low: 1.7, high: 2.2}
-  TSH:
-    unit: "mIU/L"
-    all: {low: 0.5, high: 4.5}
-  Creatinine:
-    unit: "mg/dL"
-    male: {low: 0.6, high: 1.1}
-    female: {low: 0.4, high: 0.8}
-  PT_INR:
-    unit: ""
-    all: {low: 0.9, high: 1.1}
-    on_warfarin: {low: 2.0, high: 3.0}
-  Hb:
-    unit: "g/dL"
-    male: {low: 13.5, high: 17.5}
-    female: {low: 11.5, high: 15.5}
-
-# ============================================================
 # TARGET LENGTH OF STAY
 # ============================================================
 target_los:

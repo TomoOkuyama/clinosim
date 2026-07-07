@@ -478,50 +478,6 @@ drug_interactions:
     action: "Do not use together"
 
 # ============================================================
-# REFERENCE RANGES
-# ============================================================
-reference_ranges:
-  CRP:
-    unit: "mg/L"
-    all: {low: 0, high: 3}
-  WBC:
-    unit: "/uL"
-    all: {low: 3500, high: 9500}
-  Hb:
-    unit: "g/dL"
-    male: {low: 13.5, high: 17.5}
-    female: {low: 11.5, high: 15.5}
-  Plt:
-    unit: "x10^3/uL"
-    all: {low: 150, high: 400}
-  Creatinine:
-    unit: "mg/dL"
-    male: {low: 0.6, high: 1.1}
-    female: {low: 0.4, high: 0.8}
-  BUN:
-    unit: "mg/dL"
-    all: {low: 8, high: 20}
-  Na:
-    unit: "mEq/L"
-    all: {low: 136, high: 145}
-  K:
-    unit: "mEq/L"
-    all: {low: 3.5, high: 5.0}
-  Glucose:
-    unit: "mg/dL"
-    fasting: {low: 70, high: 100}
-    random: {low: 70, high: 140}
-  Albumin:
-    unit: "g/dL"
-    all: {low: 3.5, high: 5.0}
-  PCT:
-    unit: "ng/mL"
-    all: {low: 0, high: 0.05}
-  Lactate:
-    unit: "mmol/L"
-    all: {low: 0.5, high: 2.0}
-
-# ============================================================
 # TARGET LENGTH OF STAY
 # ============================================================
 target_los:

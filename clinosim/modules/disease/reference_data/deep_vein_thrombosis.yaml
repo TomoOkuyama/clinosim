@@ -469,55 +469,6 @@ drug_interactions:
     action: "Avoid combination or monitor closely"
 
 # ============================================================
-# LAB ITEM REFERENCE RANGES
-# ============================================================
-reference_ranges:
-  D_dimer:
-    unit: "ug/mL"
-    all: {low: 0, high: 0.5}
-    age_adjusted: "Age x 10 ng/mL for patients > 50 years"
-  CRP:
-    unit: "mg/L"
-    all: {low: 0, high: 3}
-  WBC:
-    unit: "/uL"
-    all: {low: 3500, high: 9500}
-  Hb:
-    unit: "g/dL"
-    male: {low: 13.5, high: 17.5}
-    female: {low: 11.5, high: 15.5}
-  Plt:
-    unit: "x10^3/uL"
-    all: {low: 150, high: 400}
-  PT_INR:
-    unit: ""
-    all: {low: 0.9, high: 1.1}
-    on_warfarin: {low: 2.0, high: 3.0}
-  aPTT:
-    unit: "sec"
-    all: {low: 25, high: 35}
-    on_heparin: {low: 60, high: 90}
-  Creatinine:
-    unit: "mg/dL"
-    male: {low: 0.6, high: 1.1}
-    female: {low: 0.4, high: 0.8}
-  BUN:
-    unit: "mg/dL"
-    all: {low: 8, high: 20}
-  Na:
-    unit: "mEq/L"
-    all: {low: 136, high: 145}
-  K:
-    unit: "mEq/L"
-    all: {low: 3.5, high: 5.0}
-  AST:
-    unit: "U/L"
-    all: {low: 10, high: 35}
-  ALT:
-    unit: "U/L"
-    all: {low: 5, high: 40}
-
-# ============================================================
 # TARGET LENGTH OF STAY
 # ============================================================
 target_los:

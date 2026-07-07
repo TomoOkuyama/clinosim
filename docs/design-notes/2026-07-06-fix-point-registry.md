@@ -96,7 +96,7 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 | `differential_diagnosis`(top) | 5 | 削除 | live な `diagnostic.differential` の drift 重複 |
 | `rehabilitation` | 8 | 削除 or 配線 | 未配線。`rehabilitation_plan` 文書とは無関係 |
 | `precipitants` / `prerequisite` | 各1 | 削除 | 未配線(prerequisite は別キー `prerequisite_condition` が live) |
-| `expected_vital_distributions` / `reference_ranges` / `drug_interactions` | 各23 | 削除 | モデルに在るが消費ゼロ。reference_ranges は locale 側が live |
+| `expected_vital_distributions` / `reference_ranges` / `drug_interactions` | 各23 | **triage 済(session 39)**: reference_ranges=削除(locale 重複)、他2=将来配線 seed として保持 | drug_interactions→DetectedIssue seed、expected_vital_distributions→completeness audit target |
 | `readmission`(model field) | 0 | 削除 | YAML 投入ゼロ + 消費ゼロの二重死蔵 |
 
 - **Status:** OPEN
@@ -113,9 +113,11 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
   byte-diff 一致確認)。**残 follow-up 2 件**(別 chain 化):
   (1) 生 dict 経路(`order/engine.py` の `.get()`)は Pydantic を通らず forbid の保護外 —
   owner accessor 経由化 or 別途 validation が要る。
-  (2) 死蔵モデル field 3 件(`expected_vital_distributions` / `reference_ranges` /
-  `drug_interactions`、各 23 YAML に block あり・消費 0)は forbid が受理するため未除去。
-  除去は model field + 23×3 YAML block 削除の機械作業(byte 保存)。
+  (2) 死蔵モデル field 3 件 triage 済(session 39、user 判断)= **`reference_ranges` のみ除去**
+  (locale-side live の重複 = 真の drift、model field + 23 block/1184 行を byte-clean 削除、
+  profile golden byte 不変)。`drug_interactions`(FHIR `DetectedIssue` の計画済み seed、
+  master-plan)+ `expected_vital_distributions`(cohort completeness audit 軸の検証 target 候補)
+  は **将来配線 seed として保持**(authored 臨床 content の損失回避)。DESIGN.md AD-69 節に記録。
 
 ## FP-I10 — 高血圧生理モデル新設 + stage 一貫配線【中】
 

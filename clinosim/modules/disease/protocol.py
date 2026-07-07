@@ -127,8 +127,15 @@ class DiseaseProtocol(BaseModel):
     expected_lab_distributions: dict[str, Any] = {}
     expected_vital_distributions: dict[str, Any] = {}
     drugs: dict[str, Any] = {}
+    # NOTE (session 39): reference_ranges was removed — it duplicated the live
+    # locale-side lab reference ranges (locale is the single source; AD-30). The
+    # sibling authored-but-unwired blocks (drug_interactions below and
+    # expected_vital_distributions at line 128) are RETAINED as future-wiring
+    # seeds, not deleted: drug_interactions seeds the planned FHIR DetectedIssue
+    # resource (docs/design-notes/2026-06-30-tier1-...-master-plan.md), and
+    # expected_vital_distributions is a candidate target for the cohort-level
+    # completeness audit axis (fix-point registry FP-COMPLETENESS-GATE).
     drug_interactions: list[dict[str, Any]] = []
-    reference_ranges: dict[str, Any] = {}
     outcome_benchmarks: dict[str, Any] = {}
 
     # Disease metadata (eliminates hardcoding in simulator)
