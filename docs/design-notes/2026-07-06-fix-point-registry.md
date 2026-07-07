@@ -26,7 +26,8 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 | FP-AGE | person.age as-of 化(2 フェーズ) | ~~C2~~ **非FHIR** | 低 | なし | OPEN(再分類、下記) |
 | FP-UNIFY-2 | 日付→ISO ヘルパ共通化 | — | 中 | なし | OPEN |
 | FP-UNIFY-3 | FHIR 固定 ja ラベル辞書統合 + idiom 統一 | — | 低 | なし | OPEN |
-| FP-UNIFY-4 | case-sensitive `country == "US"` 比較の一掃(lowercase バグ class) | — | 中 | なし | OPEN |
+| FP-UNIFY-4 | case-sensitive `country == "US"` 比較の一掃(lowercase バグ class) | — | 中 | なし | **DONE**(session 39、output 7 + identity/patient 2 sibling)|
+| FP-CLAMP-RANGE | 状態変数 clamp が canonical `_variable_range` をバイパス(inpatient 手術/合併症) | C2 | 中 | なし | **DONE**(session 39、`apply_state_delta` 単一化)|
 | FP-COMPLETENESS-GATE | C1/C2/C3 を検証する audit completeness 軸 | — | 高(capstone) | 上流 FP 完了後 | **DONE**(不変則 test suite)/ cohort 統計 audit 軸は残 |
 
 ---
@@ -234,7 +235,28 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 - **検証**: uppercase では byte 保存(production 不変)。lowercase cohort で US/JP の code system・
   mapping が正しく分岐することを確認。恒久防御は config 境界での country 正規化 or validation も検討。
 - **由来**: FP-UNIFY-1(hai)は `system_key_for` 化で解消済。本項は残る sibling 比較の sweep。
-- **Status:** OPEN
+- **Status:** DONE(session 39)。output 層 7 箇所を `is_us(country)` へ置換(commit b11f67b281、uppercase
+  byte 保存、guard `test_fhir_country_case_insensitive.py`)。**「1 バグ見つけたら他 module も確認」**の
+  cross-module sweep(user 指示)で output 層外に **同 class 2 件を追加検出+修正**(commit 8d82c04285):
+  `identity/registry.py:get_provider`(lowercase で `ValueError` = fail-loud 不整合)+
+  `patient/activator.py:347`(emergency-contact fallback、lowercase "us" で日本語「家」suffix)。
+  全コードベース掃引で残存生比較ゼロを確認(`.lower()` idiom 群は正規化済で問題なし)。恒久防御
+  (config 境界での country 正規化)は別 backlog。
+
+## FP-CLAMP-RANGE — 状態変数 clamp が canonical `_variable_range` をバイパス【中・実害】
+
+- **由来(session 39、anion_gap 修正の cross-module sweep)**: `apply_disease_onset`/`update` は
+  `_variable_range(var)` で clamp するが、`inpatient.py:262`(手術 impacts)と `:1013`(合併症
+  `state_impact`)は **ハードコード `max(-1.0, min(1.0, cur+delta))`** で適用。0..1 軸
+  (cardiac_function / perfusion_status / renal_function 等)に大きな負 delta(例 cardiogenic-shock
+  合併症 `cardiac_function: -0.30`)が乗ると **負値化**(生理学的に無効)。`apply_coupling_rules` は
+  cardiac_function を再クランプしないため持続し、derived perfusion / lactate / BP を歪める。
+- **修正**: 公開ヘルパ `physiology.engine.apply_state_delta(state, var, delta)` を新設(clamp range を
+  `_variable_range` から取得)= clamped delta 適用の single edit point。`apply_disease_onset`/`update`
+  を byte-identical に載せ替え + inpatient 2 箇所を経由化。
+- **検証**: profile golden 12 件 byte 不変(該当 seed で 0..1 軸が負に到達せず)= 低 blast-radius の
+  防御修正。guard `TestApplyStateDelta`。
+- **Status:** DONE(session 39、commit f8090ddde0)
 
 ## FP-COMPLETENESS-GATE — C1/C2/C3 検証 audit 軸【高・capstone】
 
