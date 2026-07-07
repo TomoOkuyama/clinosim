@@ -79,6 +79,20 @@ def _engine_differential_codes() -> set[str]:
     return codes
 
 
+def _family_history_codes() -> set[str]:
+    """ICD codes in the family_history condition prevalence table (4th emittable
+    source: FamilyMemberHistory.condition[]). Session 40 gap: I64 emitted from
+    this channel had no icd-10-cm entry and no US mapping, so US FHIR fell back to
+    "(display unavailable)". The coverage test now spans all four channels so any
+    future family_history addition without a code registration fails at unit time.
+    """
+    fp = os.path.join(
+        ROOT, "clinosim/modules/family_history/reference_data/family_history.yaml"
+    )
+    data = yaml.safe_load(open(fp)) or {}
+    return set((data.get("conditions") or {}).keys())
+
+
 # A genuine WHO ICD-10 code is 3-4 chars: a letter, two digits, optionally one decimal digit.
 # CM granularity (5-7 chars, 7th-char extensions, X placeholders) is NOT valid WHO.
 _WHO_FORMAT = re.compile(r"^[A-Z][0-9]{2}(\.[0-9])?$")
@@ -88,7 +102,7 @@ WHO = _codes("clinosim/codes/data/icd-10.yaml")
 US_MAP = _map("clinosim/locale/us/code_mapping_diagnosis.yaml")
 JP_MAP = _map("clinosim/locale/jp/code_mapping_diagnosis.yaml")
 INTERNAL = _emittable_internal_codes()
-ALL_EMITTABLE = INTERNAL | _engine_differential_codes()
+ALL_EMITTABLE = INTERNAL | _engine_differential_codes() | _family_history_codes()
 
 
 def test_us_emittable_codes_resolve_billable_cm() -> None:

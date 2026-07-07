@@ -30,6 +30,7 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 | FP-UNIFY-4 | case-sensitive `country == "US"` 比較の一掃(lowercase バグ class) | — | 中 | なし | **DONE**(session 39、output 7 + identity/patient 2 sibling)|
 | FP-CLAMP-RANGE | 状態変数 clamp が canonical `_variable_range` をバイパス(inpatient 手術/合併症) | C2 | 中 | なし | **DONE**(session 39、`apply_state_delta` 単一化)|
 | FP-COMPLETENESS-GATE | C1/C2/C3 を検証する audit completeness 軸 | — | 高(capstone) | 上流 FP 完了後 | **DONE**(不変則 test suite)/ cohort 統計 audit 軸は残 |
+| FP-FH-CODE-RESOLUTION | `FamilyMemberHistory` の I64 / E11 表示 fallback + Z-code 誤 map | C1+C2 | 中 | なし | **DONE**(session 40)|
 
 ---
 
@@ -314,6 +315,51 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
   (20 test)。
 - **恒久防御**: 今後の新 physiology 軸追加は `_VARIABLE_RANGES` + `PhysiologicalState` + 必要なら
   `TRAJECTORY_STATE_VARS` の 3 点更新で完成。validator が自動的にカバー。
+- **Status:** DONE(session 40)。
+
+## FP-FH-CODE-RESOLUTION — `FamilyMemberHistory` の I64 / E11 表示 fallback + Z-code 誤 map【中・実害】
+
+- **由来(session 40、`FP-UNIFY-2` に続く「FHIR データ品質」観点の候補洗い出し中に検出)**:
+  US p=1000 cohort probe で `FamilyMemberHistory.condition[].coding[0].display` に
+  `"(display unavailable)"` を出力。3 defect が converge:
+  1. **I64 missing**: `family_history.yaml.conditions.I64`("Stroke, not specified as
+     haemorrhage or infarction"、WHO ICD-10 leaf)が `codes/data/icd-10-cm.yaml` にも
+     `code_mapping_diagnosis/us.yaml` にも未登録 → US emit で `code=I64` + `display=
+     "(display unavailable)"`(FHIR display 完全 fallback)。JP emit も `display=I64`
+     (icd-10.yaml にも未登録)。
+  2. **E11 prefix-child fallback misdisplay**: E11(category header、CM 未 billable)が
+     `icd-10-cm.yaml` に無く、`code_lookup` の prefix-child 探索が E11.10 を拾って
+     `"Type 2 diabetes mellitus with ketoacidosis without coma"` を返す = family-of-DM
+     には臨床的に誤 display。
+  3. **Personal-history Z-code overreach**: chronic-history 用 `_map_diagnosis_code` が
+     I63 → Z86.73("Personal history of TIA / cerebral infarction")に fold。これは
+     患者本人の既往を表す Z-code で、`FamilyMemberHistory.condition.code`
+     (relative の疾患そのもの)には意味論的に不適合。
+- **修正**:
+  1. `codes/data/icd-10.yaml` に **WHO I64**(WHO ICD-10 authoritative、
+     icd.who.int/browse10 JsonGetChildrenConcepts で権威検証)追加。EN/JA。
+  2. `locale/us/code_mapping_diagnosis.yaml` に `E11 → E11.9` + `I64 → I63.9` 追加
+     (CM billable leaf)。CMS ICD-10-CM に I64 は存在しない事実を NLM Clinical Tables
+     API で確認、CLAUDE.md 規則に従う。
+  3. `_fhir_family_history._resolve_family_history_code(code, country)` 新設 =
+     `_map_diagnosis_code` をラップし **Z-code target を reject**(family-history
+     文脈では personal-history 変換を skip、原コードで disease 側 display を保持)。
+  4. FH builder が新 helper 経由で code 変換 → `_build_diagnosis_codeable_concept`
+     (`_fhir_conditions` の chronic condition 経路と同じ pattern に到達)。
+- **coverage test 拡張**: `test_diagnosis_code_coverage.py` に **4th source =
+  `family_history.yaml.conditions`** を追加(既存の disease icd_codes + encounter icd10_code
+  + engine differential/progression の 3 source と同じ resolve 検証を掛ける)= 未登録 code の
+  追加を unit gate で catch する恒久防御。
+- **横展開 sibling sweep**: `_build_diagnosis_codeable_concept` を使う他 builder
+  (`_fhir_conditions` — 既に `_map_diagnosis_code` 適用済)+ ICD 直接 emit する builder
+  (`_fhir_hai` — HAI コードは全 billable leaf、prefix-child 罠回避)を全て確認。他 gap 無し。
+- **検証**: unit 2312 + integration 289(既存 `test_builds_one_resource_per_relative`
+  の `assert "E11" in codes` を `assert "E11.9" in codes` に更新 — 修正が反映された
+  ことの逆側 guard)+ regression 12 + e2e 37 全 PASS。US p=1000 cohort 再 probe で
+  `(display unavailable)` = **0 件**、E11 → "Type 2 diabetes mellitus without complications"
+  正しく表示。
+- **恒久防御**: 今後 family_history.yaml.conditions に追加された code は
+  `test_diagnosis_code_coverage.py` の 4-source sweep で自動 catch。unit で fail-loud。
 - **Status:** DONE(session 40)。
 
 ## FP-COMPLETENESS-GATE — C1/C2/C3 検証 audit 軸【高・capstone】

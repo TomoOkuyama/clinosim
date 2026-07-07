@@ -103,6 +103,12 @@ codes:
   I63.9:
     en: Cerebral infarction, unspecified
     ja: 脳梗塞、詳細不明
+  I64:
+    # WHO ICD-10 leaf (verified via icd.who.int/browse10 JsonGetChildrenConcepts I60-I69).
+    # Removed from ICD-10-CM (CMS folds to I63.9); JP retains the WHO code for
+    # family_history / FamilyMemberHistory emission of unspecified stroke.
+    en: Stroke, not specified as haemorrhage or infarction
+    ja: 脳卒中（出血または梗塞と明示されないもの）
   I80:
     en: Phlebitis and thrombophlebitis
     ja: 静脈炎・血栓性静脈炎

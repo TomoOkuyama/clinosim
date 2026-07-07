@@ -15,6 +15,7 @@
 
 # --- Chronic conditions → unspecified billable leaf ---
 I10: "I10"          # Essential hypertension (already billable)
+E11: "E11.9"        # Type 2 diabetes mellitus (WHO/category header) → uncomplicated leaf (billable CM)
 E11.9: "E11.9"      # Type 2 diabetes mellitus without complications
 E10: "E10.9"        # Type 1 diabetes mellitus without complications
 E78: "E78.5"        # Hyperlipidemia, unspecified
@@ -37,6 +38,7 @@ I21: "I25.2"        # Old myocardial infarction
 I26: "Z86.711"      # Personal history of pulmonary embolism
 I61: "Z86.73"       # Personal history of cerebral infarction without residual deficits
 I63: "Z86.73"       # Personal history of cerebral infarction without residual deficits
+I64: "I63.9"        # WHO-only "Stroke, not specified as haemorrhage or infarction" → CM Cerebral infarction, unspecified (I64 removed from CM; CMS folds unspecified stroke to I63.9)
 I80: "Z86.718"      # Personal history of other venous thrombosis and embolism
 I82: "Z86.718"      # Personal history of other venous thrombosis and embolism
 M48: "Z87.311"      # Personal history of (healed) other pathological fracture (vertebral)
