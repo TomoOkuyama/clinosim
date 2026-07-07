@@ -2711,10 +2711,21 @@ model field (0 YAML, 0 readers).
 
 **Consequences:** Byte-diff identical to master (deleted keys were never consumed) —
 a refactor-class change. New disease-YAML authors must add a model field for any new
-top-level key (or it fails loud). Two follow-ups (registry FP-YAML-3): the raw-dict
-consumption path in `order/engine.py` bypasses Pydantic (not covered by forbid), and
-3 declared-but-dead fields (expected_vital_distributions / reference_ranges /
-drug_interactions) remain (forbid accepts them; removal is a separate mechanical sweep).
+top-level key (or it fails loud).
+
+**Dead-field triage (session 39, registry FP-YAML-3 follow-up):** of the 3
+declared-but-unconsumed fields, only `reference_ranges` was removed — it duplicated the
+live locale-side lab reference ranges (locale is the single source of truth, AD-30), so
+the disease-YAML copy was pure drift. Its model field + 23×3 YAML blocks (banner + body,
+1184 lines) were deleted byte-cleanly (all-deletions diff; the 6 profile goldens are
+byte-identical). The other two were **retained as future-wiring seeds, not deleted**,
+because both are authored clinical content with a documented downstream plan:
+`drug_interactions` (real interaction pairs + clinical actions) seeds the planned FHIR
+`DetectedIssue` resource (`docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md`),
+and `expected_vital_distributions` is a candidate verification target for the cohort-level
+completeness audit axis (FP-COMPLETENESS-GATE). Deleting them would have destroyed authored
+seeds for planned features. One follow-up remains (registry FP-YAML-3): the raw-dict
+consumption path in `order/engine.py` bypasses Pydantic (not covered by forbid).
 
 **Related ADRs:** AD-67 / AD-68 (the severity + archetype activations this unblocks/hardens)
 

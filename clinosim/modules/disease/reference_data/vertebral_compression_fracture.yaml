@@ -459,54 +459,6 @@ drug_interactions:
     action: "Take bisphosphonate 30min before calcium"
 
 # ============================================================
-# LAB ITEM REFERENCE RANGES
-# ============================================================
-reference_ranges:
-  CRP:
-    unit: "mg/L"
-    all: {low: 0, high: 3}
-  WBC:
-    unit: "/uL"
-    all: {low: 3500, high: 9500}
-  Hb:
-    unit: "g/dL"
-    male: {low: 13.5, high: 17.5}
-    female: {low: 11.5, high: 15.5}
-  Plt:
-    unit: "x10^3/uL"
-    all: {low: 150, high: 400}
-  Creatinine:
-    unit: "mg/dL"
-    male: {low: 0.6, high: 1.1}
-    female: {low: 0.4, high: 0.8}
-  BUN:
-    unit: "mg/dL"
-    all: {low: 8, high: 20}
-  Na:
-    unit: "mEq/L"
-    all: {low: 136, high: 145}
-  K:
-    unit: "mEq/L"
-    all: {low: 3.5, high: 5.0}
-  Ca:
-    unit: "mg/dL"
-    all: {low: 8.5, high: 10.5}
-  P:
-    unit: "mg/dL"
-    all: {low: 2.5, high: 4.5}
-  ALP:
-    unit: "U/L"
-    all: {low: 40, high: 120}
-  Albumin:
-    unit: "g/dL"
-    all: {low: 3.5, high: 5.0}
-  Vitamin_D_25OH:
-    unit: "ng/mL"
-    all: {low: 30, high: 100}
-    deficient: {low: 0, high: 20}
-    insufficient: {low: 20, high: 30}
-
-# ============================================================
 # TARGET LENGTH OF STAY
 # JP much longer due to in-hospital rehabilitation model
 # ============================================================

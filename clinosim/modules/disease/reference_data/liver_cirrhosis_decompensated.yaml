@@ -580,53 +580,6 @@ drug_interactions:
     action: "Avoid benzodiazepines in cirrhosis"
 
 # ============================================================
-# REFERENCE RANGES
-# ============================================================
-reference_ranges:
-  Total_bilirubin:
-    unit: "mg/dL"
-    all: {low: 0.2, high: 1.2}
-  Albumin:
-    unit: "g/dL"
-    all: {low: 3.5, high: 5.0}
-  AST:
-    unit: "U/L"
-    all: {low: 10, high: 35}
-  ALT:
-    unit: "U/L"
-    all: {low: 5, high: 40}
-  ALP:
-    unit: "U/L"
-    all: {low: 40, high: 130}
-  GGT:
-    unit: "U/L"
-    male: {low: 10, high: 50}
-    female: {low: 7, high: 32}
-  PT_INR:
-    unit: ""
-    all: {low: 0.9, high: 1.1}
-  Ammonia:
-    unit: "ug/dL"
-    all: {low: 10, high: 50}
-  Plt:
-    unit: "x10^3/uL"
-    all: {low: 150, high: 400}
-  Creatinine:
-    unit: "mg/dL"
-    male: {low: 0.6, high: 1.1}
-    female: {low: 0.4, high: 0.8}
-  Na:
-    unit: "mEq/L"
-    all: {low: 136, high: 145}
-  K:
-    unit: "mEq/L"
-    all: {low: 3.5, high: 5.0}
-  Hb:
-    unit: "g/dL"
-    male: {low: 13.5, high: 17.5}
-    female: {low: 11.5, high: 15.5}
-
-# ============================================================
 # TARGET LENGTH OF STAY
 # ============================================================
 target_los:

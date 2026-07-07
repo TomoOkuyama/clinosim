@@ -511,43 +511,6 @@ drug_interactions:
     action: "Avoid combination in AKI; use alternative"
 
 # ============================================================
-# REFERENCE RANGES
-# ============================================================
-reference_ranges:
-  Creatinine:
-    unit: "mg/dL"
-    male: {low: 0.6, high: 1.1}
-    female: {low: 0.4, high: 0.8}
-  BUN:
-    unit: "mg/dL"
-    all: {low: 8, high: 20}
-  K:
-    unit: "mEq/L"
-    all: {low: 3.5, high: 5.0}
-  Na:
-    unit: "mEq/L"
-    all: {low: 136, high: 145}
-  CO2:
-    unit: "mEq/L"
-    all: {low: 22, high: 29}
-  Phosphate:
-    unit: "mg/dL"
-    all: {low: 2.5, high: 4.5}
-  Ca:
-    unit: "mg/dL"
-    all: {low: 8.5, high: 10.5}
-  Hb:
-    unit: "g/dL"
-    male: {low: 13.5, high: 17.5}
-    female: {low: 11.5, high: 15.5}
-  CRP:
-    unit: "mg/L"
-    all: {low: 0, high: 3}
-  Albumin:
-    unit: "g/dL"
-    all: {low: 3.5, high: 5.0}
-
-# ============================================================
 # TARGET LENGTH OF STAY
 # ============================================================
 target_los:

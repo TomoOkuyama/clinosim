@@ -443,67 +443,6 @@ drug_interactions:
     action: "Do not use together"
 
 # ============================================================
-# LAB ITEM REFERENCE RANGES (age/sex-specific normal values)
-# Used for flagging H/L results
-# Source: Standard clinical laboratory references
-# ============================================================
-reference_ranges:
-  CRP:
-    unit: "mg/L"
-    all: {low: 0, high: 3}     # some labs use 5 or 10
-  WBC:
-    unit: "/uL"
-    all: {low: 3500, high: 9500}
-  Hb:
-    unit: "g/dL"
-    male: {low: 13.5, high: 17.5}
-    female: {low: 11.5, high: 15.5}
-    pregnant: {low: 10.0, high: 14.0}  # pregnancy-adjusted
-  Plt:
-    unit: "x10^3/uL"
-    all: {low: 150, high: 400}
-  Creatinine:
-    unit: "mg/dL"
-    male: {low: 0.6, high: 1.1}
-    female: {low: 0.4, high: 0.8}
-  BUN:
-    unit: "mg/dL"
-    all: {low: 8, high: 20}
-  Na:
-    unit: "mEq/L"
-    all: {low: 136, high: 145}
-  K:
-    unit: "mEq/L"
-    all: {low: 3.5, high: 5.0}
-  Glucose:
-    unit: "mg/dL"
-    fasting: {low: 70, high: 100}
-    random: {low: 70, high: 140}
-  Albumin:
-    unit: "g/dL"
-    all: {low: 3.5, high: 5.0}
-  AST:
-    unit: "U/L"
-    all: {low: 10, high: 35}
-  ALT:
-    unit: "U/L"
-    all: {low: 5, high: 40}
-  PCT:
-    unit: "ng/mL"
-    all: {low: 0, high: 0.05}
-  Lactate:
-    unit: "mmol/L"
-    all: {low: 0.5, high: 2.0}
-  PT_INR:
-    unit: ""
-    all: {low: 0.9, high: 1.1}
-    on_warfarin: {low: 2.0, high: 3.0}
-  BNP:
-    unit: "pg/mL"
-    all: {low: 0, high: 100}
-    age_over_75: {low: 0, high: 200}
-
-# ============================================================
 # ============================================================
 # TARGET LENGTH OF STAY (country-specific)
 # ============================================================

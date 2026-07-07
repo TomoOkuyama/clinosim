@@ -590,62 +590,6 @@ drug_interactions:
     action: "Add PPI prophylaxis if both required"
 
 # ============================================================
-# LAB ITEM REFERENCE RANGES (age/sex-specific normal values)
-# Used for flagging H/L results
-# Source: Standard clinical laboratory references
-# ============================================================
-reference_ranges:
-  CRP:
-    unit: "mg/L"
-    all: {low: 0, high: 3}
-  WBC:
-    unit: "/uL"
-    all: {low: 3500, high: 9500}
-  Hb:
-    unit: "g/dL"
-    male: {low: 13.5, high: 17.5}
-    female: {low: 11.5, high: 15.5}
-  Plt:
-    unit: "x10^3/uL"
-    all: {low: 150, high: 400}
-  Creatinine:
-    unit: "mg/dL"
-    male: {low: 0.6, high: 1.1}
-    female: {low: 0.4, high: 0.8}
-  BUN:
-    unit: "mg/dL"
-    all: {low: 8, high: 20}
-  Na:
-    unit: "mEq/L"
-    all: {low: 136, high: 145}
-  K:
-    unit: "mEq/L"
-    all: {low: 3.5, high: 5.0}
-  Glucose:
-    unit: "mg/dL"
-    fasting: {low: 70, high: 100}
-    random: {low: 70, high: 140}
-  PCT:
-    unit: "ng/mL"
-    all: {low: 0, high: 0.05}
-  ABG_pH:
-    unit: ""
-    all: {low: 7.35, high: 7.45}
-  ABG_pCO2:
-    unit: "mmHg"
-    all: {low: 35, high: 45}
-  ABG_pO2:
-    unit: "mmHg"
-    all: {low: 80, high: 100}
-  ABG_HCO3:
-    unit: "mEq/L"
-    all: {low: 22, high: 26}
-  BNP:
-    unit: "pg/mL"
-    all: {low: 0, high: 100}
-    age_over_75: {low: 0, high: 200}
-
-# ============================================================
 # TARGET LENGTH OF STAY (country-specific)
 # Source: MHLW DPC data (JP), HCUP NIS (US), GOLD 2023
 # ============================================================
