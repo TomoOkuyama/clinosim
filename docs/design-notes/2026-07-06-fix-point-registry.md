@@ -26,7 +26,7 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 | FP-ARCH-2/3 | course_archetypes + complications 残 7 trauma 疾患 | C3 | 中〜低 | なし | **DONE**(全32疾患 course_archetypes 完備) |
 | FP-AGE | person.age as-of 化(2 フェーズ) | ~~C2~~ **非FHIR** | 低 | なし | OPEN(再分類、下記) |
 | FP-UNIFY-2 | 日付→ISO ヘルパ共通化 | — | 中 | なし | DONE |
-| FP-UNIFY-3 | FHIR 固定 ja ラベル辞書統合 + idiom 統一 | — | 低 | なし | OPEN |
+| FP-UNIFY-3 | FHIR 固定 ja ラベル辞書統合 + idiom 統一 | — | 低 | なし | **DONE**(session 40)|
 | FP-UNIFY-4 | case-sensitive `country == "US"` 比較の一掃(lowercase バグ class) | — | 中 | なし | **DONE**(session 39、output 7 + identity/patient 2 sibling)|
 | FP-CLAMP-RANGE | 状態変数 clamp が canonical `_variable_range` をバイパス(inpatient 手術/合併症) | C2 | 中 | なし | **DONE**(session 39、`apply_state_delta` 単一化)|
 | FP-COMPLETENESS-GATE | C1/C2/C3 を検証する audit completeness 軸 | — | 高(capstone) | 上流 FP 完了後 | **DONE**(不変則 test suite)/ cohort 統計 audit 軸は残 |
@@ -238,7 +238,23 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
   (`_fhir_observations:33` / `_fhir_service_request:74` / `_fhir_diagnostic_report:56`)を
   `get_attr_or_key as _o` alias import に。`healthcare_system/loader.py:24-27` の country map を
   `is_jp/is_us` 経由に。`device`/`sdoh`/`facility` loader に `_validate_*` 追加。
-- **Status:** OPEN
+- **Status:** DONE(session 40)。**主要 sub-item 完了**:
+  1. 「社会歴」2 経路重複 → `_fhir_patient._build_occupation_observation` を
+     `_fhir_common._social_category(country)` へ delegate、inline 直書き削除。
+  2. 固定 ja ラベル → `_fhir_localization._FIXED_LABEL_JA` 辞書 +
+     `localize_fixed_label(en_label, country)` helper 新設。4 emission site を helper 経由に
+     (`_fhir_diagnostic_report:429` "Radiology" / `_fhir_microbiology:139` "No growth" /
+     `_fhir_service_request:317` "Imaging procedure" / `_fhir_service_request:497`
+     "Laboratory procedure")。`_build_sr_skeleton` + `_build_panel_sr` に `country` 引数追加
+     で `lang=="ja"` idiom 消去。
+  3. 残る `lang=="ja"` 参照(`_fhir_care_team:87` の `_CARE_TEAM_CATEGORY_JA/_EN` dispatch +
+     `_fhir_diagnostic_report:407-418` の `findings_text_ja` / `impression_text_ja` フィールド
+     selector)は data-field 選択(literal label emission ではない)なので intentional にそのまま。
+  - **Out-of-scope**(low value、別 backlog): `_o` ラッパ 3 箇所を `get_attr_or_key as _o` alias
+    import に統一 / `healthcare_system/loader.py:24-27` country map の `is_jp/is_us` 経由化
+    (現状 `.get(country)` の case-sensitivity で fail-loud、silent-no-op ではない)/
+    `device`/`sdoh`/`facility` loader の `_validate_*` 追加(現状 offender 0)。
+  - 検証: byte-preserving。unit 2312 + integration 289 + regression 12 + e2e 37 全 PASS。
 
 ## FP-UNIFY-4 — case-sensitive `country == "US"` 比較の一掃【中・byte 保存】
 
