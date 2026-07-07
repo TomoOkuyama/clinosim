@@ -3,8 +3,11 @@
 ## Status (current as of 2026-07-08, session 42 — Cycle 3 CLOSED)
 
 **★ Audit Cycle 3 CLOSED (2026-07-08, session 42, `docs/audit-cycles/cycle-3.md`)** — JP p=10000
-seed=42 baseline audit → 30 issues → fixes → JP regen → verification. **20 fully resolved / 4
-partial / 6 attempted-defer (larger scope; user approved 2)**. Major wins: adapter-level
+seed=42 baseline audit → 30 issues → fixes → JP regen → verification → **end-of-cycle fix
+review** (new mandatory step, user directive 2026-07-08). Post-review outcome: **18 fully
+resolved / 4 partial / 6 attempted-defer (larger scope; user approved 2) / 2 reverted
+post-review (fabrication risk)**. The end-of-cycle review workflow is now permanent — see
+`docs/audit-cycles/README.md` step 8. Major wins: adapter-level
 `_apply_jp_core_profile(resource)` + `_JP_CORE_PROFILES` dict (13 JP Core StructureDefinition
 URLs, all authoritatively verified via jpfhir.jp WebFetch); Encounter.location fallback to
 department Location for AMB/EMER (facility bundle now emits dept-Location, previously only

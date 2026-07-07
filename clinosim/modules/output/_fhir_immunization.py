@@ -28,16 +28,6 @@ def _build_immunizations(ctx: BundleContext) -> list[dict]:
     lang = resolve_lang(ctx.country)
     out: list[dict] = []
 
-    # Any staff whose role includes "physician" or "nurse" can serve as a
-    # vaccine administrator. C3-04 (session 42 cycle 3): pick one
-    # deterministically per patient so regeneration is byte-identical
-    # (AD-16). The choice is stable per patient — reflects a "family doctor"
-    # relationship in outpatient practice.
-    admin_ids = sorted(
-        sid for sid, staff in (ctx.roster_map or {}).items()
-        if (staff.get("role", "") or "") in ("physician", "nurse")
-    )
-
     for i, imm in enumerate(ctx.record.get("immunizations") or []):
         cvx = get_attr_or_key(imm, "vaccine_cvx", "")
         occurrence = get_attr_or_key(imm, "occurrence_date", "")
@@ -81,26 +71,12 @@ def _build_immunizations(ctx: BundleContext) -> list[dict]:
                 "coding": [_coding_with_display("hl7-v3-actreason", "PATOBJ", lang)],
                 "text": "患者拒否" if lang == "ja" else "Patient refused",
             }
-        # C3-03/04/05 (session 42 cycle 3): fill structural Immunization
-        # fields that were previously always missing.
-        # - lotNumber: pseudo-deterministic per (patient, cvx, occurrence),
-        #   mirroring real vaccine-lot tracking. Format = "L-{cvx}-{yyyymm}"
-        #   (7-8 chars) is a stub — JP practice records the manufacturer's
-        #   printed lot, which clinosim does not simulate; the format is
-        #   flagged in NOTE. Better than "" (JP mandatory field).
-        # - performer.actor: attending-role staff picked by (patient-id hash
-        #   % roster) so re-generation is byte-identical.
-        # - reasonCode: text-only "予防接種" / "Vaccination" — the CIF does
-        #   not carry a differentiated reason (booster / campaign / etc.).
-        if status == "completed":
-            _month = str(occ_str)[:7].replace("-", "") if occ_str else ""
-            resource["lotNumber"] = f"L-{cvx}-{_month}"
-            if admin_ids:
-                idx = sum(ord(c) for c in ctx.patient_id) % len(admin_ids)
-                resource["performer"] = [{
-                    "actor": {"reference": f"Practitioner/{admin_ids[idx]}"},
-                }]
-        # reasonCode is universal — vaccination is always the reason.
+        # C3-05 (session 42 cycle 3): reasonCode is universal — vaccination
+        # is always the reason. text-only per AD-30 (no fabricated coding).
+        # C3-03/04 (session 42 cycle 3 review): lotNumber + performer stubs
+        # removed per user directive — emit no field rather than fabricate
+        # values that could be treated as real by downstream consumers.
+        # Real values will land once CIF gains authored lot / administered_by.
         resource["reasonCode"] = [{
             "text": "予防接種（定期接種）" if lang == "ja" else "Vaccination (routine)",
         }]

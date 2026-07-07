@@ -27,8 +27,16 @@ clinical integrity / realism.
    `feedback_cif_fhir_quality_focus.md`).
 6. Regenerate CIF/FHIR at the same seed / population.
 7. Verify per-issue resolution (resolved / not resolved / newly discovered).
-8. **Cycle-boundary documentation update + cross-session resume prompt
-   record** (mandatory before the user prompt in step 9):
+8. **Cycle-end fix review** (mandatory, added 2026-07-08 by user directive):
+   at the end of the cycle, after the regeneration + per-issue verification,
+   **also re-review every fix that was applied within the cycle** for risk,
+   verification quality, and correctness. Same 3-axis (data quality /
+   clinical integrity / realism) plus authoritative-source verification for
+   any new codes / URLs / mappings. Report findings to the user before
+   moving on to docs update. This mirrors the mid-cycle 3 review of cycle
+   2's improvements — the pattern is now permanent.
+9. **Cycle-boundary documentation update + cross-session resume prompt
+   record** (mandatory before the user prompt in step 10):
    - Append verification results (resolved / carried over / newly
      discovered) to `docs/audit-cycles/cycle-<N>.md`.
    - Update memory if the cycle surfaced new durable rules or knowledge.
@@ -39,11 +47,15 @@ clinical integrity / realism.
      is sufficient for a cold-start in a different session.
    - Reflect the current cycle progress in `TODO.md` Status.
    - Commit + push everything (finish in a clean state).
-9. **Ask the user before starting the next cycle** with resolution
-   status + carry-over count + doc-update result. Auto-continuation is
-   forbidden.
-10. Unresolved issues carry over to the next cycle's opening list; then
+10. **Ask the user before starting the next cycle** with resolution
+    status + carry-over count + doc-update result. Auto-continuation is
+    forbidden.
+11. Unresolved issues carry over to the next cycle's opening list; then
     review + sampling proceeds to 30 issues total for that cycle.
+    **★ In-cycle carry-over judgement is forbidden without user consent**
+    (added 2026-07-08). If a fix cannot land within the cycle, ask the
+    user whether to attempt it within-cycle or defer — do not silently
+    move it to the next cycle's list.
 
 ## Progress display (required during fixes)
 
