@@ -18,6 +18,7 @@ from clinosim.modules.output._fhir_common import (
     BundleContext,
     _loinc_coding,
     _survey_category,
+    to_fhir_datetime,
 )
 
 
@@ -59,8 +60,8 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
 
     # --- Vital signs: NEWS2 and GCS ---
     for i, vs in enumerate(ctx.record.get("vital_signs") or []):
-        ts: str | None = vs.get("timestamp")
-        effective = ts if isinstance(ts, str) else (str(ts) if ts is not None else None)
+        ts = vs.get("timestamp")
+        effective = to_fhir_datetime(ts) or None
 
         news2 = vs.get("news2_score")
         if news2 is not None:
@@ -82,10 +83,8 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
 
     # --- Nursing risk assessments: Braden and Morse ---
     for i, nra in enumerate(ctx.record.get("nursing_risk_assessments") or []):
-        nra_date: str | None = nra.get("date")
-        effective = nra_date if isinstance(nra_date, str) else (
-            str(nra_date) if nra_date is not None else None
-        )
+        nra_date = nra.get("date")
+        effective = to_fhir_datetime(nra_date) or None
 
         braden = nra.get("braden_total")
         if braden is not None:
@@ -139,9 +138,7 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
     # --- ADL assessments: Barthel index ---
     for i, adl in enumerate(ctx.record.get("adl_assessments") or []):
         adl_date = adl.get("date")
-        effective = adl_date if isinstance(adl_date, str) else (
-            str(adl_date) if adl_date is not None else None
-        )
+        effective = to_fhir_datetime(adl_date) or None
 
         barthel = adl.get("barthel_score")
         if barthel is not None:
@@ -156,9 +153,7 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
     # --- Intake and output records ---
     for i, io in enumerate(ctx.record.get("intake_output_records") or []):
         io_date = io.get("date")
-        effective = io_date if isinstance(io_date, str) else (
-            str(io_date) if io_date is not None else None
-        )
+        effective = to_fhir_datetime(io_date) or None
 
         # Fluid intake total 24h = iv + oral + other (LOINC 9108-2)
         iv_ml = io.get("intake_iv_ml") or 0
