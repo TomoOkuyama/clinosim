@@ -1,6 +1,6 @@
 # Cycle 3 — session 42 (2026-07-08)
 
-**Status:** CLOSED (session 42, 2026-07-08) — 20 resolved / 4 partial / 6 in-cycle attempted (need deeper work)
+**Status:** CLOSED (session 42, 2026-07-08) — 18 resolved / 4 partial / 6 in-cycle attempted / 2 reverted post-review
 **Master HEAD at cycle start:** `64cca80d42`
 **Start date:** 2026-07-08 (session 42 continuation)
 **Population:** JP 10000 (JP-focused per session 41+ workflow update)
@@ -58,7 +58,7 @@ declaration; idempotent (respects existing meta.profile).
 |---|---|---|---|---|
 | 1 | CO-1 | In-cycle attempted: not applied — needs SUPPORTED_IMAGING_DISEASES + per-modality impression_templates YAML per disease (>10 diseases). Scope requires a separate feature-chain. | — | attempted-defer |
 | 2 | CO-2 | In-cycle attempted: not applied — root cause in simulator's `population/comorbidity_multiplier`. Requires simulator instrumentation + statistical validation. Scope requires a separate feature-chain. | — | attempted-defer |
-| 3 | CO-3 | ED procedure rules: added 6 new bedside procedures (ecg_12lead / iv_line / wound_care / short_arm_splint / reduction_closed / oxygen_therapy) to `_BEDSIDE_PROCEDURES` + 6 new `_PROCEDURE_RULES` rules keyed on JP ED condition_ids (chest_pain / wrist_fracture / laceration / viral_gastroenteritis / asthma_ed / head_injury). Verified codes: CPT + K-code + SNOMED. Verification: only 3/200 sampled patients had ED-emergency + moderate/severe, so aggregate procedure count barely changed — infrastructure ready but severity distribution keeps effect small. | `procedure/engine.py` | fixed (infrastructure) |
+| 3 | CO-3 | ED procedure rules: added 6 new bedside procedures (ecg_12lead / iv_line / wound_care / short_arm_splint / reduction_closed / oxygen_therapy) to `_BEDSIDE_PROCEDURES` + 6 new `_PROCEDURE_RULES` rules keyed on JP ED condition_ids. CPT codes verified (AMA CPT 2024). **Review revert** (session 42 user directive): K-codes emptied — MHLW authoritative verification deferred to separate chain (mirrors cycle 2 C2-15 policy: no fabrication). CPT + SNOMED preserved. Verification: only 3/200 sampled patients had ED-emergency + moderate/severe, so aggregate procedure count barely changed. | `procedure/engine.py` | fixed (CPT only after review) |
 | 4 | CO-4 | SR.code.system routed through `system_key_for("lab", country)` — was hardcoded loinc.org even for JP. Fixed at `_build_sr_skeleton`. Verified: 83,462 SR use JLAC10 URI (JP), 1,781 imaging SR still use loinc.org (intentional). | `_fhir_service_request.py` | fixed |
 | 5 | CO-5 | Encounter.location fallback to `Location/loc-dept-{department}` when ward_id absent (AMB / EMER). New per-department Location emitted in facility bundle. Verified: AMB 30,425/30,425 + EMER 1,048/1,048 + IMP 473/473 all with location. | `_fhir_encounter.py`, `_fhir_facility.py` | fixed |
 | 6 | CO-6 | Not applied: session 40 policy — GOLD / asthma-severity / HTN / CCS SNOMED codes stay text-only until authoritatively verified via tx.fhir.org. Session 42 decision: keep policy — no fabrication. | — | policy-defer |
@@ -70,8 +70,8 @@ declaration; idempotent (respects existing meta.profile).
 | 12 | CY2-C | Composition.section.code: 20 additional canonical section titles mapped in `_SECTION_LOINC` (ed_workup / disposition / allergies / social_history / family_history / physical_examination / assessment_and_plan / care_plan / treatment_plan / test_schedule / surgery_schedule / estimated_los / special_nutrition_management / other_plans / discharge_instructions / follow_up / nutrition_goals / nutrition_supply / dysphagia_diet / dietary_content). Verified: 147,996/149,791 (98.8%). | `_fhir_composition.py` | fixed |
 | 13 | C3-01 | Practitioner.name.extension = IDE (valueCode) for JP. Mirrors C2-19 Patient path. Kana SYL deferred (roster gen doesn't carry phonetic dict). Verified: 93/93 with IDE. | `_fhir_practitioner.py` | fixed |
 | 14 | C3-02 | Composition.attester = document author with mode=legal, when author_id is not "UNKNOWN". Verified: 34,192/34,192. | `_fhir_composition.py` | fixed |
-| 15 | C3-03 | Immunization.lotNumber = stub "L-{cvx}-{yyyymm}" for completed vaccinations. NOTE that real lot numbers come from manufacturer records that clinosim does not simulate. Verified: 25,417 / 25,948 (539 not-done excluded, intentional). | `_fhir_immunization.py` | fixed |
-| 16 | C3-04 | Immunization.performer = staff picked by patient-id hash % (physician + nurse) roster. Verified: same 25,417. | `_fhir_immunization.py` | fixed |
+| 15 | C3-03 | **Reverted post-review** (session 42 user directive): fake lotNumber stub `"L-{cvx}-{yyyymm}"` removed — no fabrication rule. Real lot numbers will land when CIF gains authored lot values (별 chain). | `_fhir_immunization.py` | reverted |
+| 16 | C3-04 | **Reverted post-review** (session 42 user directive): performer stub (random-hash physician/nurse roster) removed — mislabeled JP practice (nurses give most vaccines). Real performer will land when CIF gains authored `administered_by`. | `_fhir_immunization.py` | reverted |
 | 17 | C3-05 | Immunization.reasonCode = "予防接種（定期接種）" / "Vaccination (routine)". Verified: 25,948 / 25,948. | `_fhir_immunization.py` | fixed |
 | 18 | C3-06 | AllergyIntolerance.recorder = first encounter's attending_physician_id (recording clinician). Verified: 720/720. | `_fhir_allergy_intolerance.py` | fixed |
 | 19 | C3-07 | AllergyIntolerance.recordedDate defaults to onsetDateTime when present, else first encounter admission date. Verified: 720/720. | `_fhir_allergy_intolerance.py` | fixed |
@@ -116,11 +116,13 @@ verified against jpfhir.jp via WebFetch:
 
 See `scratchpad/cycle-3/verify.py` + `verify_out.txt`.
 
-### Cycle 3 outcome
+### Cycle 3 outcome (post-review, session 42)
 
-- **Resolved (fully)**: 20 (CO-4/5, CY2-A/C, C3-01/02/06/07/08/10/11..18)
-- **Fixed with partial coverage**: 4 (C3-03/04 excludes not-done, C3-05 100%,
-  C3-10 38% residual, CO-3/7/9 infrastructure-only — data-side minimal impact)
+- **Resolved (fully)**: 18 (CO-4/5, CY2-A/C, C3-01/02/06/07/08/10/11..18)
+- **Fixed with partial coverage**: 4 (C3-05 reasonCode 100%, C3-10 38% residual,
+  CO-3/7/9 infrastructure-only — data-side minimal impact)
+- **Reverted post-review** (session 42 user directive): 2 (C3-03/04 —
+  fabrication risk avoided; CIF-level real data needed)
 - **In-cycle attempted but larger-scope work needed**: 6
   - CO-1 imaging density: needs 10+ diseases × modality/impression YAML
   - CO-2 JP chronic multiplier: simulator population-model work
@@ -129,6 +131,25 @@ See `scratchpad/cycle-3/verify.py` + `verify_out.txt`.
   - CY2-B MR/MAR classification: CIF Order → Procedure/Device dispatch
   - CO-8 (C2-15) YJ code: authoritative MHLW verification chain
 - **User-approved deferrals**: 2 (CO-6 no-fabrication policy, CO-8 authoritative chain)
+
+### End-of-cycle fix review (user-mandated workflow step, added 2026-07-08)
+
+Session 42 user directive: **every cycle must include a final fix review**
+after regen + verify. Cycle 3's own review found:
+
+- 🔴 CO-3 K-codes fabricated (mirrors C2-15 YJ risk) → K-codes reverted;
+  CPT preserved as authoritative.
+- 🟡 C3-03 Immunization lotNumber stub (fake "L-{cvx}-{yyyymm}") — reverted.
+- 🟡 C3-04 Immunization performer stub (misassigns physician vs nurse in
+  JP practice) — reverted.
+- 🟡 CO-7/9 MR intent/status widening: infrastructure kept (future CIF
+  outpatient MR gets correct value automatically) — user approved retention.
+- 🟡 C3-10 space-separated variants depend on same fabricated YJ codes as
+  C2-15 — kept in scope of the cycle-2 별 chain (MHLW verification).
+- 🟢 12+ items: authoritative-verified (WebFetch, LOINC search, HL7 THO).
+
+The permanent workflow now includes this step; see `docs/audit-cycles/README.md`
+step 8 (end-of-cycle fix review).
 
 ### Newly discovered during cycle 3
 

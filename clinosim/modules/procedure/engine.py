@@ -249,18 +249,17 @@ _BEDSIDE_PROCEDURES: list[tuple[str, str, str, str, str, str]] = [
     ("dialysis_acute", "90935", "J038", "Acute hemodialysis", "急性血液透析", "none"),
     ("bronchoscopy", "31622", "D302", "Bronchoscopy", "気管支鏡検査", "sedation"),
     ("echocardiography", "93306", "D215", "Transthoracic echocardiography", "経胸壁心エコー", "none"),
-    # CO-3 (session 42 cycle 3): ED-typical procedures. Verified codes:
-    # CPT 93000 = ECG 12-lead / K-code D208 = 心電図検査
-    # CPT 96360 = IV hydration / K-code G001 = 皮下静脈内注射
-    # CPT 12001 = simple wound repair / K-code K000 = 創傷処理
-    # CPT 29075 = short arm splint / K-code J117 = ギプス
-    # CPT 51701 = straight cath / K-code D002 already covered
-    ("ecg_12lead", "93000", "D208", "12-lead ECG", "12誘導心電図", "none"),
-    ("iv_line", "96360", "G001", "IV line placement", "末梢静脈路確保", "local"),
-    ("wound_care", "12001", "K000", "Simple wound repair", "創傷処理", "local"),
-    ("short_arm_splint", "29075", "J117", "Short arm splint", "短腕シーネ固定", "none"),
-    ("reduction_closed", "25605", "K046", "Closed reduction of wrist fracture", "手関節骨折徒手整復", "local"),
-    ("oxygen_therapy", "94640", "J024", "Oxygen therapy (nebulizer)", "酸素療法", "none"),
+    # CO-3 (session 42 cycle 3): ED-typical procedures. CPT codes verified
+    # (AMA CPT 2024). K-codes intentionally BLANK — MHLW authoritative
+    # verification deferred to a separate chain (mirrors cycle 2 C2-15 YJ
+    # policy: no fabrication).  A subsequent chain will populate K-codes
+    # from the MHLW 診療報酬点数表 master and re-verify each entry.
+    ("ecg_12lead", "93000", "", "12-lead ECG", "12誘導心電図", "none"),
+    ("iv_line", "96360", "", "IV line placement", "末梢静脈路確保", "local"),
+    ("wound_care", "12001", "", "Simple wound repair", "創傷処理", "local"),
+    ("short_arm_splint", "29075", "", "Short arm splint", "短腕シーネ固定", "none"),
+    ("reduction_closed", "25605", "", "Closed reduction of wrist fracture", "手関節骨折徒手整復", "local"),
+    ("oxygen_therapy", "94640", "", "Oxygen therapy (nebulizer)", "酸素療法", "none"),
 ]
 
 # Rules: (disease_id or category) → [(procedure_type, probability)]
@@ -378,6 +377,12 @@ def generate_bedside_procedures(
             continue
 
         _, cpt, kcode, _name_en, _name_ja, anesthesia = spec
+        # CO-3 review (session 42): when JP export and no authoritative K-code
+        # is registered, skip emission rather than emit an empty code (broken
+        # FHIR). Mirrors the cycle 2 no-fabrication policy — real K-codes will
+        # land when the MHLW verification chain populates them.
+        if is_jp(country) and not kcode:
+            continue
         code = kcode if is_jp(country) else cpt
         # Names not stored — FHIR adapter resolves via code_lookup (AD-30)
 
