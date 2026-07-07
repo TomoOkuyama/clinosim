@@ -73,13 +73,19 @@ def _build_immunizations(ctx: BundleContext) -> list[dict]:
             }
         # C3-05 (session 42 cycle 3): reasonCode is universal — vaccination
         # is always the reason. text-only per AD-30 (no fabricated coding).
-        # C3-03/04 (session 42 cycle 3 review): lotNumber + performer stubs
-        # removed per user directive — emit no field rather than fabricate
-        # values that could be treated as real by downstream consumers.
-        # Real values will land once CIF gains authored lot / administered_by.
         resource["reasonCode"] = [{
             "text": "予防接種（定期接種）" if lang == "ja" else "Vaccination (routine)",
         }]
+        # RM-3 (session 42): lot_number + administered_by now populated in CIF
+        # (nurse roster-based). Emit only when present — no fabrication.
+        lot = get_attr_or_key(imm, "lot_number", "") or ""
+        if lot:
+            resource["lotNumber"] = lot
+        admin_by = get_attr_or_key(imm, "administered_by", "") or ""
+        if admin_by:
+            resource["performer"] = [{
+                "actor": {"reference": f"Practitioner/{admin_by}"},
+            }]
         out.append(resource)
 
     return out

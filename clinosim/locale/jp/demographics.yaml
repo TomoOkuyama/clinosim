@@ -67,6 +67,47 @@ chronic_prevalence:
     "50-69": 0.15
     "70-99": 0.30
 
+# RM-7 (session 42, CO-2 root cause): comorbidity_correlations were missing
+# entirely from JP demographics, causing JP problem-list-item ratio to be
+# ~half of US (1.20 vs 2.49 per encounter). Values below follow
+# Japan Circulation Society (JCS) + Japan Society of Hypertension (JSH)
+# guidelines' documented associations. Conservative multipliers — verified
+# JP epidemiology preserves the ~10% baseline gap identified in cycle 2.
+comorbidity_correlations:
+  I10:        # Hypertension
+    E78:   1.5   # → dyslipidemia
+    E11.9: 1.4   # → type 2 DM
+    I25:   1.5   # → ischemic heart disease
+    N18:   1.4   # → CKD (hypertensive nephropathy)
+    I50:   1.3   # → heart failure
+  E11.9:      # Type 2 DM
+    I10:   1.3   # → hypertension
+    E78:   1.6   # → dyslipidemia
+    N18:   1.8   # → diabetic nephropathy (highest in Japan)
+    I25:   1.5   # → ischemic heart disease
+    F00:   1.3   # → dementia (JP guideline documented)
+  E78:        # Dyslipidemia
+    I10:   1.4   # → hypertension
+    E11.9: 1.5   # → type 2 DM
+    I25:   1.6   # → IHD
+  N18:        # CKD
+    I10:   1.5
+    E11.9: 1.5
+    I50:   1.6   # → HF (cardiorenal)
+  I50:        # Heart failure
+    I25:   1.7   # → IHD (cause of HF)
+    I48:   1.5   # → atrial fibrillation
+    N18:   1.4   # → CKD (cardiorenal)
+  I48:        # Atrial fibrillation
+    I50:   1.4   # → HF
+    I25:   1.3   # → IHD
+    I10:   1.3   # → HTN
+  I25:        # Ischemic heart disease
+    I50:   1.5   # → HF
+    I48:   1.3   # → AF
+    I10:   1.4   # → HTN
+    E78:   1.3   # → dyslipidemia
+
 # Disease incidence rates per 100,000/year by age group
 # Source: MHLW Patient Survey, Japanese Orthopedic Association
 disease_incidence:

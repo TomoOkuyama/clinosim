@@ -63,3 +63,45 @@ templates:
         findings_ja: "右側基底核に急性期実質出血を認め、周囲浮腫および5mmの正中偏位を伴う。"
         impression_en: "Acute right basal ganglia intracerebral hemorrhage with mass effect."
         impression_ja: "右側基底核急性脳出血、mass effect を伴う。"
+
+  # RM-5 (session 42, cycle-3 tail / CO-1 expansion): sepsis / heart failure /
+  # acute MI — all commonly workup with CXR to evaluate for pulmonary source
+  # (sepsis) or pulmonary edema (HF) or cardiomegaly (MI).
+  sepsis:
+    CR_chest:
+      normal:
+        findings_en: "No focal consolidation or effusion. No cardiomegaly."
+        findings_ja: "consolidation・胸水を認めず。心陰影は正常。"
+        impression_en: "No pulmonary source of sepsis identified radiographically."
+        impression_ja: "胸部単純写真上、敗血症の肺由来源を示唆する所見なし。"
+      abnormal:
+        findings_en: "Bibasilar opacities suspicious for developing infection or aspiration; small right pleural effusion."
+        findings_ja: "両側下肺野に浸潤影を認め、感染ないし誤嚥を示唆。右少量胸水あり。"
+        impression_en: "Bibasilar pneumonia; possible source of sepsis."
+        impression_ja: "両側下葉肺炎、敗血症の source として矛盾せず。"
+
+  heart_failure_exacerbation:
+    CR_chest:
+      normal:
+        findings_en: "Cardiac silhouette within normal limits. No pulmonary edema."
+        findings_ja: "心陰影正常範囲。肺水腫を認めず。"
+        impression_en: "No radiographic signs of congestive heart failure."
+        impression_ja: "うっ血性心不全を示唆する所見なし。"
+      abnormal:
+        findings_en: "Cardiomegaly. Bilateral perihilar interstitial edema with Kerley B lines and small bilateral pleural effusions."
+        findings_ja: "心拡大。両側肺門周囲に間質性浮腫、Kerley B lines および両側少量胸水を認める。"
+        impression_en: "Findings consistent with congestive heart failure exacerbation."
+        impression_ja: "うっ血性心不全増悪像。"
+
+  acute_mi:
+    CR_chest:
+      normal:
+        findings_en: "Cardiac silhouette within normal limits. No acute pulmonary process."
+        findings_ja: "心陰影正常。急性肺疾患を示唆する所見なし。"
+        impression_en: "No acute cardiopulmonary process."
+        impression_ja: "急性心肺疾患を示唆する所見なし。"
+      abnormal:
+        findings_en: "Mild cardiomegaly with pulmonary vascular congestion."
+        findings_ja: "軽度心拡大および肺血管うっ血像。"
+        impression_en: "Cardiogenic pulmonary congestion, consider left ventricular dysfunction from acute MI."
+        impression_ja: "急性心筋梗塞に伴う左室機能不全の可能性、心原性肺うっ血像。"

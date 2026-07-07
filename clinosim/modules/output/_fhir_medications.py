@@ -72,7 +72,13 @@ def _mr_intent_from_order(order: dict, encounter_type: str = "") -> str:
     display = str(order.get("display_name", "") or "").lower()
     if "discharge" in ci or "discharge" in protocol or display.startswith("discharge:"):
         return "original-order"
-    if any(k in ci for k in ("follow-up", "follow up", "chronic", "refill", "maintenance")):
+    # RM-2 (session 42): expanded to match clinosim's actual CIF phrasing
+    # ("Home medication (continue)" → chronic-refill / "Outpatient follow-up"
+    # → chronic follow-up).
+    if any(k in ci for k in (
+        "follow-up", "follow up", "chronic", "refill", "maintenance",
+        "home medication", "continue", "outpatient follow",
+    )):
         return "instance-order"
     # CO-7 (session 42 cycle 3): outpatient encounter type → instance-order.
     if encounter_type == "outpatient":
@@ -144,10 +150,20 @@ def _build_medication_request(
     # _map_order_status_to_fhir returns otherwise.
     # CO-9 (session 42 cycle 3): also complete when the encounter itself is
     # finished (outpatient Rx end at encounter close in JP practice).
+    # RM-2 (session 42): episodic inpatient orders (Supportive / ED treatment /
+    # antibiotics keyed on clinical_intent phrasing) complete at discharge.
+    # Home-medication orders REMAIN active because chronic-meds continue
+    # post-discharge.
     status_val = _map_order_status_to_fhir(order.get("status", ""))
+    _ci_lower = str(order.get("clinical_intent", "") or "").lower()
+    _episodic_kw = ("supportive:", "ed treatment:", "day ", "dvt_prophylaxis",
+                    "antibiotic", "escalation")
+    _is_home_med = "home medication" in _ci_lower
+    _is_episodic = (not _is_home_med) and any(kw in _ci_lower for kw in _episodic_kw)
     if status_val == "active" and (
         order.get("end_datetime")
         or (encounter_type == "outpatient" and order.get("encounter_id"))
+        or (_is_episodic and encounter_type == "inpatient" and order.get("encounter_id"))
     ):
         status_val = "completed"
     resource: dict[str, Any] = {

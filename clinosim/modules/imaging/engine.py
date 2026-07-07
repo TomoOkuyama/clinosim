@@ -31,8 +31,11 @@ SUPPORTED_MODALITIES: frozenset[str] = frozenset({"CR", "CT"})
 SUPPORTED_BODY_SITES: frozenset[str] = frozenset({"chest", "head"})
 
 # Canonical disease set with imaging coverage (PR1 scope).
+# RM-5 (session 42, cycle-3 tail): expanded to include sepsis / heart failure /
+# acute MI — all commonly workup with CXR.
 SUPPORTED_IMAGING_DISEASES: frozenset[str] = frozenset({
     "bacterial_pneumonia", "aspiration_pneumonia", "hemorrhagic_stroke",
+    "sepsis", "heart_failure_exacerbation", "acute_mi",
 })
 
 

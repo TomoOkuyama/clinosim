@@ -43,9 +43,19 @@ def _as_of(ctx, rec) -> date:
 def enrich_immunizations(ctx) -> None:
     country = _get(_get(ctx, "config"), "country", "US") if _get(ctx, "config") else "US"
     schedule = load_schedule(country)
+    # RM-3 (session 42): pass a sorted nurse roster so administered_by can be
+    # populated per-Immunization deterministically (real JP practice: nurses
+    # administer routine vaccinations).
+    roster = getattr(ctx, "roster", None)
+    nurse_ids = []
+    if roster and hasattr(roster, "members"):
+        nurse_ids = sorted(
+            m.staff_id for m in roster.members
+            if getattr(m, "role", "") == "nurse"
+        )
     for rec in ctx.records:
         patient = _get(rec, "patient")
         pid = _get(patient, "patient_id", "") if patient else ""
         rng = np.random.default_rng(derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["immunization"], pid or "x"))
-        recs = generate_immunizations(patient, schedule, _as_of(ctx, rec), rng)
+        recs = generate_immunizations(patient, schedule, _as_of(ctx, rec), rng, nurse_ids=nurse_ids)
         _set(rec, "immunizations", recs)

@@ -42,6 +42,13 @@ _STAGE_SUMMARY_SNOMED: dict[str, str] = {
     "NYHA II": "421704003",
     "NYHA III": "420913000",
     "NYHA IV": "422293003",
+    # RM-4 (session 42, cycle-3 tail): GOLD 1/2/3 for COPD severity — verified
+    # via tx.fhir.org $lookup. GOLD 4 (very severe) SNOMED not found in tx —
+    # left text-only until a distinct SNOMED "Very severe COPD" concept is
+    # identified (mirrors session 40 no-fabrication policy).
+    "GOLD 1": "313296004",
+    "GOLD 2": "313297008",
+    "GOLD 3": "313299006",
 }
 
 

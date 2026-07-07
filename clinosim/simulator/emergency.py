@@ -195,17 +195,35 @@ def _simulate_ed_visit(
             status=OrderStatus.PLACED,
         ))
 
-    # Treatment orders from protocol
+    # Treatment orders from protocol.
+    # RM-6 (session 42): reclassify non-drug treatment items — ice packs,
+    # splints, casts, sutures, nebulizer setups, reductions, wound closures,
+    # compression devices etc. are procedures/therapies, not medications.
+    # Route them to OrderType.PROCEDURE / THERAPY so the medication path
+    # doesn't emit MedicationRequest / MedicationAdministration for them.
+    _procedure_kw = (
+        "ice pack", "splint", "cast", "closure", "closed reduction",
+        "reduction", "suture", "nebulizer", "compression", "bandage",
+        "immobili", "cervical collar", "traction", "wound care",
+        "wound clean", "wrap", "sling", "ecg", "ekg", "oxygen therapy",
+        "elevation",
+    )
     for i, tx in enumerate((protocol or {}).get("treatment", [])):
         if rng.random() > tx.get("probability", 1.0):
             continue
+        _tx_name = tx.get("name", "")
+        _tx_lower = _tx_name.lower()
+        # Default: medication. Non-drug treatment names → OrderType.PROCEDURE.
+        _order_type = OrderType.MEDICATION
+        if any(kw in _tx_lower for kw in _procedure_kw):
+            _order_type = OrderType.PROCEDURE
         orders.append(Order(
             order_id=f"ORD-{patient.patient_id}-ED-T{i}",
             patient_id=patient.patient_id,
-            order_type=OrderType.MEDICATION,
-            display_name=tx.get("name", ""),
+            order_type=_order_type,
+            display_name=_tx_name,
             urgency="stat",
-            clinical_intent=f"ED treatment: {tx.get('intent', tx.get('name', ''))}",
+            clinical_intent=f"ED treatment: {tx.get('intent', _tx_name)}",
             ordered_datetime=visit_time + timedelta(minutes=int(rng.normal(30, 10))),
             ordered_by=encounter.attending_physician_id,
             status=OrderStatus.PLACED,

@@ -41,10 +41,20 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
     enc_ref: dict[str, Any] | None = (
         {"reference": f"Encounter/{enc}"} if enc else None
     )
+    # RM-1 (session 42): primary_nurse_id as fallback performer for
+    # nursing-observation Observations whose source record lacks a
+    # measured_by field (nursing risk / ADL / intake-output).
+    encounters = ctx.record.get("encounters", []) or []
+    default_nurse_id = encounters[0].get("primary_nurse_id", "") if encounters else ""
     out: list[dict] = []
 
-    def _obs_base(obs_id: str, effective: str | None) -> dict[str, Any]:
-        """Return the shared skeleton of a survey Observation."""
+    def _obs_base(obs_id: str, effective: str | None, performer_id: str = "") -> dict[str, Any]:
+        """Return the shared skeleton of a survey Observation.
+
+        RM-1 (session 42, cycle 3 tail): performer forwarded when known
+        (nursing assessments carry `measured_by` on the source vital or a
+        parallel CIF field on assessments themselves).
+        """
         resource: dict[str, Any] = {
             "resourceType": "Observation",
             "id": obs_id,
@@ -56,6 +66,8 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
             resource["encounter"] = enc_ref
         if effective:
             resource["effectiveDateTime"] = effective
+        if performer_id:
+            resource["performer"] = [{"reference": f"Practitioner/{performer_id}"}]
         return resource
 
     # --- Vital signs: NEWS2 and GCS ---
@@ -63,9 +75,10 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
         ts = vs.get("timestamp")
         effective = to_fhir_datetime(ts) or None
 
+        performer_id = vs.get("measured_by", "") or ""
         news2 = vs.get("news2_score")
         if news2 is not None:
-            obs = _obs_base(f"news2-{enc or ctx.patient_id}-{i}", effective)
+            obs = _obs_base(f"news2-{enc or ctx.patient_id}-{i}", effective, performer_id)
             # C2-30 (session 42 cycle 2): NEWS2 has an authoritative LOINC
             # code — 90557-9 "National Early Warning Score (NEWS) 2 [Score]"
             # (verified via LOINC search). Was text-only per earlier brief,
@@ -79,7 +92,7 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
 
         gcs = vs.get("gcs_score")
         if gcs is not None:
-            obs = _obs_base(f"gcs-{enc or ctx.patient_id}-{i}", effective)
+            obs = _obs_base(f"gcs-{enc or ctx.patient_id}-{i}", effective, performer_id)
             obs["code"] = {
                 "coding": [_loinc_coding("9269-2", lang)],
                 "text": code_lookup("loinc", "9269-2", lang) or "Glasgow coma score total",
@@ -94,7 +107,7 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
 
         braden = nra.get("braden_total")
         if braden is not None:
-            obs = _obs_base(f"braden-{enc or ctx.patient_id}-{i}", effective)
+            obs = _obs_base(f"braden-{enc or ctx.patient_id}-{i}", effective, default_nurse_id)
             obs["code"] = {
                 "coding": [_loinc_coding("38227-5", lang)],
                 "text": code_lookup("loinc", "38227-5", lang) or "Braden scale total score",
@@ -104,7 +117,7 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
 
         morse = nra.get("morse_total")
         if morse is not None:
-            obs = _obs_base(f"morse-{enc or ctx.patient_id}-{i}", effective)
+            obs = _obs_base(f"morse-{enc or ctx.patient_id}-{i}", effective, default_nurse_id)
             morse_text = (
                 code_lookup("loinc", "59460-6", lang) or "Fall risk total [Morse Fall Scale]"
             )
@@ -148,7 +161,7 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
 
         barthel = adl.get("barthel_score")
         if barthel is not None:
-            obs = _obs_base(f"barthel-{enc or ctx.patient_id}-{i}", effective)
+            obs = _obs_base(f"barthel-{enc or ctx.patient_id}-{i}", effective, default_nurse_id)
             obs["code"] = {
                 "coding": [_loinc_coding("96761-2", lang)],
                 "text": code_lookup("loinc", "96761-2", lang) or "Total score Barthel Index",
@@ -167,7 +180,7 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
         other_in_ml = io.get("intake_other_ml") or 0
         intake_total = iv_ml + oral_ml + other_in_ml
         if intake_total > 0:
-            obs = _obs_base(f"intake-{enc or ctx.patient_id}-{i}", effective)
+            obs = _obs_base(f"intake-{enc or ctx.patient_id}-{i}", effective, default_nurse_id)
             obs["code"] = {
                 "coding": [_loinc_coding("9108-2", lang)],
                 "text": code_lookup("loinc", "9108-2", lang) or "Fluid intake total 24 hour",
@@ -183,7 +196,7 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
         # Urine output 24h (component; LOINC 9192-6)
         urine_ml = io.get("output_urine_ml")
         if urine_ml is not None:
-            obs = _obs_base(f"urine-{enc or ctx.patient_id}-{i}", effective)
+            obs = _obs_base(f"urine-{enc or ctx.patient_id}-{i}", effective, default_nurse_id)
             obs["code"] = {
                 "coding": [_loinc_coding("9192-6", lang)],
                 "text": code_lookup("loinc", "9192-6", lang) or "Urine output 24 hour",
@@ -201,7 +214,7 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
         other_out_ml = io.get("output_other_ml") or 0
         output_total = (urine_ml or 0) + drain_ml + other_out_ml
         if output_total > 0:
-            obs = _obs_base(f"output-{enc or ctx.patient_id}-{i}", effective)
+            obs = _obs_base(f"output-{enc or ctx.patient_id}-{i}", effective, default_nurse_id)
             obs["code"] = {
                 "coding": [_loinc_coding("9262-7", lang)],
                 "text": code_lookup("loinc", "9262-7", lang) or "Fluid output total 24 hour",

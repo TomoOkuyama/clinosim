@@ -351,6 +351,10 @@ def _build_vital_observations(
             loc_obs["effectiveDateTime"] = to_fhir_datetime(timestamp)
         if encounter_id:
             loc_obs["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+        # RM-1 (session 42): forward performer (nurse measured_by) on LOC obs.
+        _perf = vs.get("measured_by", "")
+        if _perf:
+            loc_obs["performer"] = [{"reference": f"Practitioner/{_perf}"}]
         entries.append(_entry(loc_obs))
 
     # Supplemental oxygen (LOINC 3151-8 = inhaled oxygen flow rate)
@@ -402,6 +406,10 @@ def _build_vital_observations(
             o2_obs["effectiveDateTime"] = to_fhir_datetime(timestamp)
         if encounter_id:
             o2_obs["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+        # RM-1 (session 42): forward performer on O2 obs.
+        _perf = vs.get("measured_by", "")
+        if _perf:
+            o2_obs["performer"] = [{"reference": f"Practitioner/{_perf}"}]
         entries.append(_entry(o2_obs))
 
     return entries

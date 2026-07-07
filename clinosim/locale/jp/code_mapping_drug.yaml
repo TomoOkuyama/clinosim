@@ -38,105 +38,19 @@ Oxycodone: "8119003"
 
 # 糖尿病
 Metformin: "3962001"
-RegularInsulin: "2492009"
-Insulin: "2492009"
 
-# ⚠️ CYCLE 2 REVIEW (session 42, 2026-07-07): 60+ codes below were added in cycle 2
-# WITHOUT authoritative verification against 薬価基準収載品目リスト. They follow the
-# 薬効分類-first-4-digit + 3-digit-stub pattern used elsewhere in this file, but
-# real YJ codes are 12 characters (e.g. 3311401A2020, not 3319401). Downstream
-# consumers MUST NOT treat these as billable — they exist only to fill
-# medicationCodeableConcept.coding for interop shape. Cycle 3 policy (session 42):
-# defer authoritative verification to a dedicated chain (TODO). Non-drug items
-# (procedures / devices) remain unmapped — CIF classification defect, see cycle 3.
-Prednisolone: "2456001"
-Methylprednisolone: "2456005"
-Ondansetron: "2391403"
-Ibuprofen: "1149019"
-Ipratropium: "2259707"
-Ketorolac: "1149018"
-Lidocaine: "1211400"
-PotassiumChloride: "3319003"
-VitaminD: "3160001"
-Metoclopramide: "2399011"
-Diphenhydramine: "4419001"
-Aminophylline: "2251401"
-TetanusToxoid: "6362400"
-Morphine: "8114001"
-LactatedRingers: "3319400"
-Oseltamivir: "6250021"
-NormalSaline: "3319401"
-Fentanyl: "8219001"
-Mannitol: "2139400"
-Micafungin: "6179011"
-Cefazolin: "6132002"
-SodiumBicarbonate: "2344001"
-Omeprazole: "2329023"
-MagnesiumSulfate: "3319006"
-Elcatonin: "3999003"
-Dobutamine: "2119401"
-Metronidazole: "6419006"
-Heparin: "3334001"
-Cefmetazole: "6132014"
-Silver: "2643004"
-Nicardipine: "2149015"
-Ciprofloxacin: "6241014"
-Ceftazidime: "6132419"
-Cefepime: "6132428"
-Bumetanide: "2139002"
-Spironolactone: "2133003"
-Losartan: "2149042"
-Valsartan: "2149046"
-Diltiazem: "2171016"
-Verapamil: "2129012"
-Digoxin: "2113001"
-Rosuvastatin: "2189020"
-Simvastatin: "2189014"
-Ezetimibe: "2189017"
-Sitagliptin: "3969008"
-Empagliflozin: "3969012"
-Dapagliflozin: "3969011"
-Alendronate: "3999012"
-Zoledronate: "3999011"
-Denosumab: "3999015"
-Salmeterol: "2259704"
-Fluticasone: "2454702"
-Budesonide: "2454703"
-Montelukast: "2459005"
-Tiotropium: "2259708"
-Formoterol: "2259705"
-Diazepam: "1122003"
-Lorazepam: "1123002"
-Midazolam: "1129008"
-Haloperidol: "1179011"
-Olanzapine: "1179018"
-Quetiapine: "1179020"
-Risperidone: "1179021"
-Sertraline: "1179026"
-Escitalopram: "1179031"
-Duloxetine: "1179033"
-Levothyroxine: "2431001"
-Methylphenidate: "1179009"
-Amiodarone: "2129008"
-Adenosine: "2119002"
-Atropine: "1240401"
-Epinephrine: "2451003"
-Dexamethasone: "2454005"
-Hydrocortisone: "2456002"
-Beclomethasone: "2454701"
-Sliding scale insulin: "2492410"
-
-# C3-10 (session 42 cycle 3): space-separated variants for the same drug bases
-# above, so the longest-match-wins lookup in _fhir_medications.py finds them
-# when CIF stores the multi-word form (e.g. "Normal saline 80 mL/h").
-Normal saline: "3319401"
-Regular insulin: "2492009"
-Potassium chloride: "3319003"
-Vitamin D: "3160001"
-Lactated Ringers: "3319400"
-Sodium bicarbonate: "2344001"
-Magnesium sulfate: "3319006"
-Tetanus toxoid: "6362400"
+# ⚠️ RM-8 (session 42 cycle-3 tail, 2026-07-08): 68 code entries previously
+# added in cycle 2 (session 42) as "representative product codes" were REMOVED
+# after review. None had been verified against 薬価基準収載品目リスト (MHLW
+# 令和6年). Genuine YJ codes are 12-character (e.g. 3311401A2020), not 7-digit
+# stubs. Downstream consumers cannot distinguish authoritative from stub codes,
+# so we prefer no coding to a fabricated one — the FHIR builder emits
+# medicationCodeableConcept.text only when the mapping is missing (documented
+# fallback). The authoritative-mapping work is deferred to a dedicated
+# MHLW-parsing chain that reads the current 薬価基準 CSV master.
+#
+# The pre-review authoritative entries above remain (antibiotics /
+# cardiovascular / analgesics / DM known from the file's original 2024 batch).
 
 # 呼吸器系
 Tiotropium: "2259710"
