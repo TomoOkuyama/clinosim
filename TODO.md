@@ -1,6 +1,6 @@
 # clinosim — TODO
 
-## Status (current as of 2026-07-07, session 39)
+## Status (current as of 2026-07-07, session 40)
 
 **v0.2** — population-driven synthetic EHR simulator with full FHIR R4 Bulk Data Export,
 multi-country (US/JP), **32 diseases + 46 ED/outpatient conditions**, snapshot date support,
@@ -38,12 +38,36 @@ asthma/HTN/CCS stay text-only — no fabricated codes; drift guard added). Regis
 (FP-UNIFY-4 / FP-CLAMP-RANGE DONE; Condition.stage follow-up partially done). New standing rule
 in memory: `feedback_check_sibling_bugs_across_modules.md`.
 
-Remaining cross-cutting tail (all lower-value, see registry): FP-UNIFY-2 (date→ISO helper —
-has a hidden str-vs-`.isoformat()` inconsistency to resolve, not pure byte-preserving) /
-FP-UNIFY-3 (fixed ja labels) / `order/engine` raw-dict path (needs nested sub-model typing —
-larger than registry implied) / `daily_trajectory` SOAP narrative for 9 diseases (existing
-authored blocks are minimal/generic — low value unless all 32 upgraded) / per-staging SNOMED
-for GOLD/CCS (no verified codes yet) / FP-AGE (non-FHIR, multi-year).
+**★ FHIR data-quality & silent-drop tail sweep (2026-07-07, session 40)** — 6 chains closed
+on master (all pushed, unit 2323 + integration 289 + regression 12 + e2e 37 green):
+(1) **FP-UNIFY-2** — `to_fhir_datetime` / `to_fhir_date` helpers (`_fhir_common`), 14 emission
+sites across 7 files unified — closes the space-separated `str(datetime)` FHIR R4 `dateTime`
+regex non-compliance trap; (2) **FP-DELTA-VALIDATE** — `apply_state_delta` silent no-op class
+closed with 3 fail-loud validators (`initial_state_impact` / `complications[].state_impact` /
+`course_archetypes[].trajectory`) wired into `load_disease_protocol`; **25 authored-but-
+dropped delta entries in DKA + hemorrhagic_stroke YAMLs triaged**; `_VARIABLE_RANGES` +
+`canonical_state_vars()` single source of truth; `TRAJECTORY_STATE_VARS` iteration order pinned
+(AD-16 determinism, caught by regression); (3) **FP-FH-CODE-RESOLUTION** — 3 converged
+`FamilyMemberHistory` defects (I64 missing WHO code, E11 prefix-child fallback misdisplay,
+personal-history Z-code map overreach); WHO I64 authoritatively verified via icd.who.int;
+`_resolve_family_history_code` rejects Z-code targets; **`test_diagnosis_code_coverage.py`
+extended to 4th source (family_history)**; (4) **FP-UNIFY-2 sweep completion** — `_fhir_nursing`
+4 sites + `_fhir_imaging_study._isoformat_or_str` migrated; (5) **FP-UNIFY-3** — 社会歴
+duplication + 4 inline `"XXX" if lang=="ja" else "YYY"` labels centralized to
+`_FIXED_LABEL_JA` + `localize_fixed_label` helper; (6) **FP-YAML-KEY-COVERAGE** — sub-model-
+free alternative to nested YAML validation: `test_disease_yaml_key_coverage.py` with per-
+container allowlists (`ORDER_PROTOCOLS_KEYS` etc.); **5 real silent-drop offenders discovered**
+(UTI `diagnostic.presenting_symptoms/initial_differentials`, `rib_fracture.admission_criteria`,
+`wrist_fracture.surgical_referral`, `dialysis_session.workup.vitals_pre_and_post`) all
+triaged delete + NOTE.
+
+Remaining cross-cutting tail (all lower-value): `_fhir_imaging_study._isoformat_or_str` alias
+撤去 (currently a helper alias) / `_o` wrapper alias unification / healthcare_system loader
+country map is_jp/is_us / device/sdoh/facility loader validators (currently 0 offenders) /
+`daily_trajectory` SOAP narrative for 9 diseases (subagent-authoring class, existing authored
+blocks generic) / per-staging SNOMED for GOLD/asthma/HTN/CCS (no verified codes yet,
+fabrication risk) / FP-AGE (non-FHIR, multi-year) / β-2 phase (surgery/anesthesia records,
+new major phase, brainstorming required).
 
 Historical status detail (datasets/code-coverage snapshots below and in
 `## Recent completions` sections) is retained as-is; the numbers there predate session 38.
