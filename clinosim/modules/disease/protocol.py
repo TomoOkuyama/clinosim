@@ -210,6 +210,25 @@ def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
 
     arch_names = set((data.get("course_archetypes") or {}).keys()) or set(_FALLBACK_PROBABILITIES)
     _validate_archetype_modifiers(disease_id, data.get("archetype_modifiers", []), arch_names)
+
+    # Fail-loud course_archetypes[].trajectory state-var validation
+    # (FP-DELTA-VALIDATE sibling, session 40). Trajectory keys not in
+    # TRAJECTORY_STATE_VARS silently no-op in get_state_changes.
+    from clinosim.modules.clinical_course.engine import _validate_course_archetypes
+
+    _validate_course_archetypes(disease_id, data.get("course_archetypes", {}) or {})
+
+    # Fail-loud initial_state_impact + complications state-var validation
+    # (FP-DELTA-VALIDATE, session 40). Sibling of anion_gap_status silent-drop
+    # closed in session 39 — catches typo'd or unmodeled state-var keys that
+    # would silently no-op in apply_state_delta at both delta sinks.
+    from clinosim.modules.physiology.engine import (
+        _validate_complications_state_impact,
+        _validate_initial_state_impact,
+    )
+
+    _validate_initial_state_impact(disease_id, data.get("initial_state_impact", {}) or {})
+    _validate_complications_state_impact(disease_id, data.get("complications", []) or [])
     return protocol
 
 

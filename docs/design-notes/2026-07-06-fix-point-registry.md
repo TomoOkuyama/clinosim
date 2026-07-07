@@ -21,7 +21,8 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 | FP-YAML-2 | 孤児キー triage(配線 or 削除) | C1 | 中 | FP-SEV-MODEL(archetype_modifiers 分) | **DONE**(archetype_modifiers 配線 AD-68 / 4 孤児キー削除)|
 | FP-YAML-3 | `DiseaseProtocol` に `extra="forbid"` + 生 dict 経路封鎖 | C1 | 中 | FP-YAML-1/2 | **DONE**(extra="forbid"、残: 生 dict 経路 + 死蔵 field 3 件)|
 | FP-I10 | 高血圧生理モデル新設 + stage 一貫配線 | C2 | 中 | FP-SEV-MODEL 推奨 | **DONE**(stage→BP baseline 消費)/ 残: FHIR stage SNOMED コード |
-| FP-ARCH-1 | course_archetypes 高優先(HF / subdural) | C3 | 中 | なし | OPEN |
+| FP-ARCH-1 | course_archetypes 高優先(HF / subdural) | C3 | 中 | なし | **DONE**(session 38、下記詳細参照)|
+| FP-DELTA-VALIDATE | `initial_state_impact` / `complications[].state_impact` / `course_archetypes[].trajectory` state-var silent-drop の author-time gate | C1 | 高 | FP-CLAMP-RANGE | **DONE**(session 40)|
 | FP-ARCH-2/3 | course_archetypes + complications 残 7 trauma 疾患 | C3 | 中〜低 | なし | **DONE**(全32疾患 course_archetypes 完備) |
 | FP-AGE | person.age as-of 化(2 フェーズ) | ~~C2~~ **非FHIR** | 低 | なし | OPEN(再分類、下記) |
 | FP-UNIFY-2 | 日付→ISO ヘルパ共通化 | — | 中 | なし | DONE |
@@ -273,6 +274,47 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 - **検証**: profile golden 12 件 byte 不変(該当 seed で 0..1 軸が負に到達せず)= 低 blast-radius の
   防御修正。guard `TestApplyStateDelta`。
 - **Status:** DONE(session 39、commit f8090ddde0)
+
+## FP-DELTA-VALIDATE — 状態変数 delta の author-time silent-drop gate【高・実害あり class】
+
+- **由来(session 40、`FP-UNIFY-2` に続く「FHIR データ品質・臨床整合性」観点の候補洗い出し
+  中に検出)**: `physiology.engine.apply_state_delta` は `getattr(state, var, None)` で存在しない
+  state 属性を **silent no-op** にする。session 39 の `anion_gap_status` 追加(GI acidosis 実害)
+  と同 class の C1 silent-drop が YAML author 側に **3 sink × 25 entry** 残存していた:
+  1. `initial_state_impact.<severity>.<state_var>` — 5 件(DKA `electrolyte_status` moderate/severe
+     + DKA `consciousness` severe + hemorrhagic_stroke `neurological_status` moderate/severe)。
+     `apply_disease_onset → apply_state_delta` 経由で silent-drop。
+  2. `complications[].state_impact.<state_var>` — 9 件(DKA hypokalemia/hypoglycemia/cerebral_edema/
+     AKI の `electrolyte_status` × 2 + `consciousness` × 2、hemorrhagic_stroke hematoma_expansion/
+     cerebral_edema/brain_herniation/hydrocephalus/seizure の `neurological_status` × 5)。
+     `inpatient.py:1009 apply_state_delta` 経由で silent-drop。
+  3. `course_archetypes.<name>.trajectory.<state_var>` — 11 件(DKA `electrolyte_status` × 4 +
+     `consciousness` × 1、hemorrhagic_stroke `neurological_status` × 6)。
+     `clinical_course.engine.get_state_changes` の ハードコード whitelist ループで silent-drop。
+- **修正(3 層 fail-loud gate + canonical single source of truth)**:
+  1. `physiology.engine._VARIABLE_RANGES` を module-level 定数化(以前は関数内 local dict)+ 公開
+     `canonical_state_vars() -> frozenset[str]` helper(single source of truth)。
+  2. `physiology.engine._validate_initial_state_impact` + `_validate_complications_state_impact`
+     新設(disease_id / severity / 該当 state_var を含む詳細 error message)。
+  3. `clinical_course.engine.TRAJECTORY_STATE_VARS` を `canonical_state_vars() - {respiratory_fraction}`
+     由来の pinned tuple 化(順序は AD-16 で load-bearing — 内部 RNG 消費順に影響、e2e で検証済)+
+     module-level `assert` で drift catch。`_validate_course_archetypes` 新設。
+  4. `disease.protocol.load_disease_protocol` に 3 validator を wire(既存 severity / archetype_modifiers
+     validator と同 pattern)= YAML load 時 fail-loud。
+- **既存 25 entry の triage**: 全て「delete + NOTE コメント(将来 state 軸拡張 TODO)」で clinical
+  actions は unchanged。fabrication 回避(delete)を salvage-mapping(不完全マッピング)より優先。
+  Consciousness/GCS は nursing flowsheet enricher で独立生成済のため clinical 情報 loss なし。
+  Electrolyte/K axis + neurological_status axis は本格的な physiological-model 拡張として別 brainstorming。
+- **横展開 sibling sweep(session 39 の user 明示ルール適用)**: 3 sink 全てを再スイープし、全 32
+  disease YAML で残存 silent-drop = 0 を確認(集計スクリプト `python` 使用、CI 不採用)。
+  encounter YAML の `initial_state_impact` は現状 0 件、course_archetypes trajectory も 0 件。
+- **検証**: unit 2299 + integration 289 + regression 12 + e2e 37 全 PASS(regression の初回失敗
+  = `TRAJECTORY_STATE_VARS = sorted(frozenset(...))` へ変更したことで RNG 順序ズレ → 復元して解決、
+  AD-16 教訓を order-pin unit test に追加)。guard: `tests/unit/test_initial_state_impact_validation.py`
+  (20 test)。
+- **恒久防御**: 今後の新 physiology 軸追加は `_VARIABLE_RANGES` + `PhysiologicalState` + 必要なら
+  `TRAJECTORY_STATE_VARS` の 3 点更新で完成。validator が自動的にカバー。
+- **Status:** DONE(session 40)。
 
 ## FP-COMPLETENESS-GATE — C1/C2/C3 検証 audit 軸【高・capstone】
 
