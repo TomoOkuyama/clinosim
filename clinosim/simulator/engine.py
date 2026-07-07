@@ -117,12 +117,8 @@ def run_beta(
     # numbering (AD-54). Each enricher uses its own sub-seed; the main random stream
     # (and golden files) is untouched (AD-16).
     register_builtin_enrichers()
-    # RM-3 (session 42): pass roster to POST_POPULATION so
-    # enrich_immunizations can populate ImmunizationRecord.administered_by
-    # from the nurse pool.
     run_stage(POST_POPULATION, EnricherContext(
         config=config, master_seed=config.random_seed, population=population,
-        roster=roster,
     ))
 
     # Run life events
@@ -461,9 +457,12 @@ def run_beta(
 
     # Post-records enrichers (AD-56) — opt-in modules that read/extend finished records
     # (e.g. billing, devices, care-coordination write to CIFPatientRecord.extensions).
+    # RM-3 (session 42): pass roster so immunization enricher can populate
+    # ImmunizationRecord.administered_by from the nurse pool.
     run_stage(POST_RECORDS, EnricherContext(
         config=config, master_seed=config.random_seed,
         population=population, records=patient_records,
+        roster=roster,
     ))
 
     metadata = CIFMetadata(
