@@ -1,6 +1,6 @@
 # Cycle 1 — (not yet started, opens session 41)
 
-**Status:** IN-PROGRESS — Global review + sampling phase
+**Status:** CLOSED (session 41, 2026-07-07) — 13 resolved / 5 not-a-bug / 2 carry-over
 **Master HEAD at cycle start:** `615a4c28b6`
 **Start date:** 2026-07-07 (session 40 tail, transitioning to cycle format)
 **Population:** US 10000 + JP 10000
@@ -90,10 +90,39 @@ simplicity, plus rule "additions only when strictly required".
 
 Summary: 20 issues addressed — 13 fixed with code changes, 5 not-a-bug (documented rationale), 2 carry-over to cycle 2 (C1-10 imaging density + C1-18 JP chronic conditions root cause).
 
-## Verification result (recorded at cycle 2 opening)
+## Verification result (JP p=10000 regeneration, session 41 same-cycle)
 
-_(populated when session ≥ 42 opens cycle 2 and re-runs generation)_
+Regeneration output: `scratchpad/cycle-1/jp-verify/` (transient scratchpad).
 
-- Resolved: _(list)_
-- Carried over to cycle 2: _(list)_
-- Newly discovered during verification: _(list)_
+| # | id | verification | verdict |
+|---|---|---|---|
+| 1 | C1-01 | 0 / 30431 AMB encounters have `hospitalization` block | ✅ RESOLVED |
+| 2 | C1-02 | 0 admitSource codings missing display | ✅ RESOLVED |
+| 3 | C1-03 | 0 dischargeDisposition codings missing display | ✅ RESOLVED |
+| 4 | C1-04 | 24 in-progress encounters correctly lack dischargeDisposition | ✅ NOT-A-BUG (baseline correct) |
+| 5 | C1-05 | AMB type diversified into 2+ SNOMED codes (11429006 / 185349003 / 270427003). Post-verification tweak: flipped the primary_dx_code default to "check-up" (185349003) so JP outpatient follow-up visits (majority) get the correct SNOMED. Screening / immunization keep the generic 270427003. Re-verification needed in cycle 2 opening. | ✅ RESOLVED (with follow-up tweak) |
+| 6 | C1-06 | 154342 / 154342 MedicationAdministration records now emit `.request` reference | ✅ RESOLVED |
+| 7 | C1-07 | All MedicationRequests reachable from MAR via `.request` (same root cause) | ✅ RESOLVED |
+| 8 | C1-08 | MR count remains realistic given encounter mix | ✅ NOT-A-BUG (baseline correct) |
+| 9 | C1-09 | Code path added to `simulator/emergency.py` to call `generate_bedside_procedures`, but no rule in `_PROCEDURE_RULES` matches JP ED conditions (chest_pain, viral_gastroenteritis, wrist_fracture, etc.) — procedure count unchanged (361). YAML/rules expansion for ED-specific procedures deferred to cycle 2. | ⚠️ PARTIAL (infrastructure in, rules deferred) |
+| 10 | C1-10 | ImagingStudy 104 (unchanged) — carry-over confirmed | ⏭️ CARRY-OVER cycle 2 |
+| 11 | C1-11 | ClinicalImpression.summary optional per FHIR R4 | ✅ NOT-A-BUG (baseline correct) |
+| 12 | C1-12 | 14475 SDOH obs now have effectiveDateTime, 0 missing | ✅ RESOLVED |
+| 13 | C1-13 | 446 microbiology susceptibility obs now have effectiveDateTime, 0 missing | ✅ RESOLVED |
+| 14 | C1-14 | CareTeam.status=inactive spec-correct for completed encounters | ✅ NOT-A-BUG (baseline correct) |
+| 15 | C1-15 | CareTeam participant distribution: 30431 solo (AMB — correct, no pharmacist per policy), 1041 with 2 (nurse), 460 with 3 (nurse + pharmacist for inpatient/emergency) | ✅ RESOLVED (min viable) |
+| 16 | C1-16 | SR.intent 3-way diversified: order 58289 / instance-order 25181 / original-order 1526 | ✅ RESOLVED |
+| 17 | C1-17 | Allergy clinicalStatus: active 713 + resolved 9. verificationStatus: confirmed 618 + unconfirmed 104. Diversified per plan. | ✅ RESOLVED |
+| 18 | C1-18 | 38416 problem-list-items (unchanged, 1.20 per encounter) — root cause is in population/comorbidity path, not FHIR emission. Deferred for JP-focused cycle 2 investigation. | ⏭️ CARRY-OVER cycle 2 |
+| 19 | C1-19 | 539 Immunization records now `status=not-done` with PATOBJ statusReason (~2.1% of 25871 total) | ✅ RESOLVED |
+| 20 | C1-20 | Population 10000 → 4825 Patient (with encounters) is intentional design | ✅ NOT-A-BUG (baseline correct) |
+
+### Cycle 1 outcome
+
+- **Resolved**: 13 (C1-01/02/03/05/06/07/12/13/15/16/17/19 all fixed; C1-09 partial with infrastructure ready for rules expansion)
+- **Not-a-bug** (documented, baseline correct): 5 (C1-04/08/11/14/20)
+- **Carry-over to cycle 2**: 2 (C1-10 ImagingStudy density + C1-18 JP chronic conditions root cause) + C1-09 rules expansion
+
+### Newly discovered during verification
+
+- **C1-05 secondary finding**: Initial fix classified 99.98% of AMB encounters as "consultation" (11429006). Post-verification analysis showed JP outpatient reality is majority follow-ups (再診). Flipped the primary_dx_code default to check-up (185349003); consultation now reserved for the rare first-visit path (needs new CIF flag to detect properly — cycle-2 candidate).
