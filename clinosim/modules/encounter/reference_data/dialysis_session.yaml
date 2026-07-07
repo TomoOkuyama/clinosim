@@ -16,8 +16,12 @@ visit_duration_minutes:
   sd: 30
 
 workup:
-  vitals: true   # before and after dialysis
-  vitals_pre_and_post: true
+  vitals: true   # before and after dialysis (twice-measured protocol handled by simulator)
+  # NOTE (FP-YAML-KEY-COVERAGE, session 40): vitals_pre_and_post was authored here
+  # but no consumer reads workup.vitals_pre_and_post — silent-drop. The twice-
+  # measured pattern is implicit in the twice-per-encounter vitals emission; if
+  # a proper pre/post structural distinction is needed, wire a schema-aware
+  # consumer first.
   labs:
     - {test: "K", probability: 0.9}
     - {test: "BUN", probability: 0.9}

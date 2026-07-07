@@ -50,10 +50,11 @@ discharge_prescriptions:
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "tid", duration_days: 10, probability: 0.5}
   - {drug: "Oxycodone 5mg", route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.3}
 
-# Severe cases (flail chest, pneumothorax) may require admission
-admission_criteria:
-  probability: 0.10
-  criteria: "Flail chest, pneumothorax, hemothorax, 3+ fractures in elderly, SpO2 < 94%"
+# NOTE (FP-YAML-KEY-COVERAGE, session 40): admission_criteria was authored as
+# {probability: 0.10, criteria: "Flail chest, pneumothorax, ..."} but no simulator
+# consumer reads this key — silent-drop of admission-routing intent. Removed to
+# fail-loud on future typos; wiring severe rib-fracture ED-to-inpatient routing
+# is deferred to a proper encounter escalation feature.
 
 incidence_modifier: 1.0
 probability: 0.04  # relative frequency among ED visits
