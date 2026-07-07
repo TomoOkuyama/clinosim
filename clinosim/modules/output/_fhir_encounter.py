@@ -14,7 +14,11 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import is_jp, resolve_lang
-from clinosim.modules.output._fhir_common import _make_participant, _map_encounter_status
+from clinosim.modules.output._fhir_common import (
+    _coding_with_display,
+    _make_participant,
+    _map_encounter_status,
+)
 from clinosim.modules.output._fhir_localization import (
     _CLASS_DISPLAY_JA,
     _dept_display,
@@ -46,6 +50,10 @@ def _build_encounter(
     resource: dict[str, Any] = {
         "resourceType": "Encounter",
         "id": encounter_id,
+        # C2-20 (session 42 cycle 2): JP Core Encounter profile.
+        **({"meta": {"profile": [
+            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter"
+        ]}} if str(country).upper() == "JP" else {}),
         "status": _map_encounter_status(enc.get("status", "")),
         "class": {
             "system": get_system_uri("hl7-v3-actcode"),
@@ -78,11 +86,11 @@ def _build_encounter(
             # future cycle (needs new CIF field).
             type_code = "185349003"
     if type_code:
-        resource["type"] = [{"coding": [{
-            "system": get_system_uri("snomed-ct"),
-            "code": type_code,
-            "display": code_lookup("snomed-ct", type_code, resolve_lang(country)),
-        }]}]
+        # C2-01 (session 42): use _coding_with_display so codes lacking a
+        # codes/data entry emit without display=code fallback (FHIR interop).
+        resource["type"] = [{"coding": [
+            _coding_with_display("snomed-ct", type_code, resolve_lang(country))
+        ]}]
 
     # Priority (Encounter.priority)
     priority = enc.get("priority", "")
@@ -137,7 +145,13 @@ def _build_encounter(
                 reason_text = enc["chief_complaint"]  # fallback to English text
         else:
             reason_text = enc["chief_complaint"]
-        resource["reasonCode"] = [{"text": reason_text}]
+        # C2-29 (session 42 cycle 2): also emit reasonCode.coding pointing at
+        # the admission diagnosis code (ICD-10 or ICD-10-CM), not just text.
+        # This gives every Encounter a machine-processable reason.
+        rc: dict[str, Any] = {"text": reason_text}
+        if admit_dx_code and admit_dx_system:
+            rc["coding"] = [_coding_with_display(admit_dx_system, admit_dx_code, lang)]
+        resource["reasonCode"] = [rc]
         # reasonReference: link to primary Condition (if dx exists)
         if primary_dx_code:
             resource["reasonReference"] = [{
@@ -220,6 +234,32 @@ def _build_encounter(
             }],
             "text": "再入院" if is_jp(country) else "Re-admission",
         }
+    # C2-18 (session 42 cycle 2): IMP encounters must carry a hospitalization
+    # block. When both admit_source and discharge_disposition are missing
+    # (edge case: 8 encounters in the JP p=10k cohort), fall back to sane
+    # defaults — admit_source=hosp (from hospital administration, catch-all)
+    # and discharge_disposition=home when the encounter is finished.
+    if _emit_hospitalization and not hosp.get("admitSource"):
+        _default_code = "hosp"
+        _default_disp = code_lookup("hl7-admit-source", _default_code, _lang)
+        _default_coding: dict[str, Any] = {
+            "system": get_system_uri("hl7-admit-source"),
+            "code": _default_code,
+        }
+        if _default_disp and _default_disp != _default_code:
+            _default_coding["display"] = _default_disp
+        hosp["admitSource"] = {"coding": [_default_coding]}
+    if (_emit_hospitalization and not hosp.get("dischargeDisposition")
+            and enc.get("status") == "finished"):
+        _dd_code = "home"
+        _dd_disp = code_lookup("hl7-discharge-disposition", _dd_code, _lang)
+        _dd_coding = {
+            "system": get_system_uri("hl7-discharge-disposition"),
+            "code": _dd_code,
+        }
+        if _dd_disp and _dd_disp != _dd_code:
+            _dd_coding["display"] = _dd_disp
+        hosp["dischargeDisposition"] = {"coding": [_dd_coding]}
     if hosp:
         resource["hospitalization"] = hosp
 

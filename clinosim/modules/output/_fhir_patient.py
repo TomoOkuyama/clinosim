@@ -19,6 +19,7 @@ from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output._fhir_common import (
     _build_address,
     _build_telecom,
+    _coding_with_display,
     _social_category,
     to_fhir_date,
 )
@@ -37,6 +38,20 @@ _IDENTITY_CFG_CACHE: dict[str, dict] = {}
 _ORG_TYPE_SYSTEM = get_system_uri("hl7-organization-type")
 # FHIR R4 standard: beneficiary's relationship to the policy subscriber
 _SUBSCRIBER_REL_SYSTEM = get_system_uri("hl7-subscriber-relationship")
+
+
+def _default_coverage_period_year(patient_data: dict) -> int:
+    """Pick a default calendar year for Coverage.period when the enrollment
+    lacks explicit start/end (C2-11 fallback). Uses the patient's first
+    encounter year if available; otherwise a fixed simulation year.
+    """
+    encs = patient_data.get("encounters", [])
+    if encs:
+        first_dt = encs[0].get("admission_datetime", "") or encs[0].get("period", {}).get("start", "")
+        first_dt = str(first_dt)
+        if len(first_dt) >= 4 and first_dt[:4].isdigit():
+            return int(first_dt[:4])
+    return 2025
 
 
 def _identity_cfg(country: str) -> dict:
@@ -125,22 +140,32 @@ def _build_coverage_resources(patient_data: dict, country: str) -> list[dict]:
             coverage["meta"] = {"profile": [cfg["profile"]]}
         if branch:
             coverage["dependent"] = branch
+        # C2-06 (session 42 cycle 2): resolve display via codes/data/
+        # hl7-subscriber-relationship.yaml — was raw code emission.
         # Beneficiary's relationship to the subscriber: 被扶養者 → not self.
         rel_code = "other" if category == "dependent" else "self"
         coverage["relationship"] = {
-            "coding": [{"system": _SUBSCRIBER_REL_SYSTEM, "code": rel_code}]
+            "coding": [_coding_with_display(
+                "hl7-subscriber-relationship", rel_code, resolve_lang(country),
+            )]
         }
         # Coverage.type: human label (text-only CodeableConcept — no fabricated codes).
         label = type_labels.get(category)
         if label:
             coverage["type"] = {"text": label}
+        # C2-11 (session 42 cycle 2): guarantee Coverage.period. FHIR R4
+        # recommends period on active coverage. If enrollment lacks explicit
+        # start/end, default to the current calendar year — clinosim's
+        # 保険証 renewal cycle is annual per JP 医療保険 practice.
         period = {}
         if enr.get("valid_from"):
             period["start"] = enr["valid_from"]
         if enr.get("valid_to"):
             period["end"] = enr["valid_to"]
-        if period:
-            coverage["period"] = period
+        if not period:
+            year = _default_coverage_period_year(patient_data)
+            period = {"start": f"{year}-01-01", "end": f"{year}-12-31"}
+        coverage["period"] = period
         resources.append(coverage)
 
     return resources
@@ -156,15 +181,35 @@ def _build_patient(p: dict, country: str) -> dict:
     gender = "female" if p.get("sex") == "F" else "male"
     dob = p.get("date_of_birth")
 
-    # Build FHIR HumanName
-    fhir_name: dict[str, Any] = {"family": family, "given": [given]}
-    phonetic = name_data.get("phonetic")
-    if phonetic and is_jp(country):
-        # JP: add phonetic representation (katakana)
-        fhir_name["extension"] = [{
-            "url": "http://hl7.org/fhir/StructureDefinition/iso21090-EN-representation",
-            "valueString": "SYL",
-        }]
+    # Build FHIR HumanName. C2-19 (session 42 cycle 2): JP Core requires
+    # kanji + kana names as TWO separate name[] entries, each tagged with the
+    # ISO21090 EN-representation extension using `valueCode` (was
+    # `valueString` — an FHIR schema violation, JP Core validators reject).
+    # Kanji name → IDE (ideographic), phonetic (katakana / hiragana) → SYL.
+    ISO21090_URL = "http://hl7.org/fhir/StructureDefinition/iso21090-EN-representation"
+    names: list[dict[str, Any]] = []
+    if is_jp(country):
+        # Kanji entry — always emitted for JP.
+        kanji_name: dict[str, Any] = {
+            "family": family,
+            "given": [given],
+            "extension": [{"url": ISO21090_URL, "valueCode": "IDE"}],
+        }
+        names.append(kanji_name)
+        # Phonetic (kana) entry — emitted only when phonetic pair present.
+        phonetic = name_data.get("phonetic") or {}
+        if isinstance(phonetic, dict):
+            kana_family = phonetic.get("family_name", "")
+            kana_given = phonetic.get("given_name", "")
+            if kana_family or kana_given:
+                names.append({
+                    "family": kana_family or family,
+                    "given": [kana_given or given],
+                    "extension": [{"url": ISO21090_URL, "valueCode": "SYL"}],
+                })
+    else:
+        names.append({"family": family, "given": [given]})
+    fhir_name = names[0]  # kept for legacy readers below
 
     pid = p.get("patient_id", str(uuid.uuid4()))
     # Hospital MRN identifier system (country-specific)
@@ -176,6 +221,12 @@ def _build_patient(p: dict, country: str) -> dict:
     resource: dict[str, Any] = {
         "resourceType": "Patient",
         "id": pid,
+        # C2-20 (session 42 cycle 2): declare JP Core Patient conformance
+        # for JP exports. US export intentionally omits — no US Core profile
+        # is asserted (a separate roadmap item).
+        **({"meta": {"profile": [
+            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Patient"
+        ]}} if is_jp(country) else {}),
         "identifier": [{
             "use": "usual",
             "type": {
@@ -191,7 +242,7 @@ def _build_patient(p: dict, country: str) -> dict:
             "assigner": {"reference": "Organization/hospital-main"},
         }],
         "active": True,
-        "name": [fhir_name],
+        "name": names,
         "gender": gender,
     }
 

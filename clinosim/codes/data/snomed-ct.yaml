@@ -328,6 +328,21 @@ codes:
   '183452005':
     en: Emergency hospital admission
     ja: 救急入院
+  # C1-05 (session 41 cycle 1) — AMB Encounter.type diversification. Codes
+  # emitted by clinosim/modules/output/_fhir_encounter.py. Cycle 1 fix note
+  # claimed to add these, but they were never committed (silent regression
+  # discovered as C2-01 in cycle 2, session 42). Verified via SNOMED CT $lookup.
+  '185349003':
+    en: Encounter for check-up
+    ja: 定期健診外来受診
+  '11429006':
+    en: Consultation
+    ja: 初診
+  # C2-08 (session 42 cycle 2) — DiagnosticReport.category for radiology
+  # imaging reports emitted by _fhir_diagnostic_report / imaging chain.
+  '394914008':
+    en: Radiology
+    ja: 放射線科
   # === Condition.stage.summary — chronic-condition staging (verified via
   # tx.fhir.org $lookup, session 39). Only staging systems with unambiguous
   # SNOMED CT concepts are coded; GOLD / asthma-severity / hypertension-stage /

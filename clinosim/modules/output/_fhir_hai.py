@@ -16,7 +16,11 @@ from typing import Any
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key, resolve_lang
-from clinosim.modules.output._fhir_common import BundleContext, _map_diagnosis_code
+from clinosim.modules.output._fhir_common import (
+    BundleContext,
+    _coding_with_display,
+    _map_diagnosis_code,
+)
 
 
 def _extensions_hai_list(ctx: BundleContext) -> list:
@@ -58,14 +62,16 @@ def _build_hai_conditions(ctx: BundleContext) -> list[dict]:
         resource: dict[str, Any] = {
             "resourceType": "Condition",
             "id": hai_id,
-            "clinicalStatus": {"coding": [{
-                "system": get_system_uri("hl7-condition-clinical"),
-                "code": "active",
-            }]},
-            "verificationStatus": {"coding": [{
-                "system": get_system_uri("hl7-condition-verification"),
-                "code": "confirmed",
-            }]},
+            # C2-02/03 (session 42): use _coding_with_display so status displays
+            # are populated from codes/data/hl7-condition-{clinical,ver-status}.yaml.
+            # Also fixes wrong system key `hl7-condition-verification` (never
+            # registered; canonical URI ends in `condition-ver-status`).
+            "clinicalStatus": {"coding": [
+                _coding_with_display("hl7-condition-clinical", "active",
+                                     resolve_lang(ctx.country))]},
+            "verificationStatus": {"coding": [
+                _coding_with_display("hl7-condition-ver-status", "confirmed",
+                                     resolve_lang(ctx.country))]},
             "category": [{"coding": [{
                 "system": get_system_uri("hl7-condition-category"),
                 "code": "encounter-diagnosis",

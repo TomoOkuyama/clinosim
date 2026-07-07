@@ -333,7 +333,7 @@ def _bb_practitioners(ctx: BundleContext) -> list[dict]:
             return
         seen.add(staff_id)
         out.append(_build_practitioner(staff_id, ctx.roster_map, country=ctx.country))
-        role = _build_practitioner_role(staff_id, ctx.roster_map)
+        role = _build_practitioner_role(staff_id, ctx.roster_map, country=ctx.country)
         if role:
             out.append(role)
 
@@ -352,6 +352,13 @@ def _bb_practitioners(ctx: BundleContext) -> list[dict]:
     for proc in ctx.record.get("procedures", []):
         add(proc.get("primary_surgeon_id", ""))
         add(proc.get("anesthesiologist_id", ""))
+    # C2-09 (session 42 cycle 2): also emit every pharmacist in the roster so
+    # CareTeam.participant refs to `Practitioner/PH-*` (C1-15 fix) resolve.
+    # Pharmacists are assigned deterministically by encounter-id hash in
+    # _fhir_care_team.py, so any pharmacist in the roster might be referenced.
+    for sid, staff in (ctx.roster_map or {}).items():
+        if (staff.get("role", "") or "") == "pharmacist":
+            add(sid)
     return out
 
 

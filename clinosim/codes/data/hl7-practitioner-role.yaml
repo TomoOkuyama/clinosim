@@ -1,0 +1,16 @@
+# HL7 FHIR PractitionerRole.code. Authoritative source: HL7 Terminology (THO),
+# CodeSystem practitioner-role
+# (http://terminology.hl7.org/CodeSystem/practitioner-role).
+# C2-07 (session 42 cycle 2): registered so PractitionerRole.code stops
+# emitting display-less coding.
+metadata:
+  name: HL7 FHIR Practitioner Role
+  uri: http://terminology.hl7.org/CodeSystem/practitioner-role
+  source: "HL7 Terminology (THO)"
+codes:
+  doctor:        {en: "Doctor",           ja: "医師"}
+  nurse:         {en: "Nurse",            ja: "看護師"}
+  pharmacist:    {en: "Pharmacist",       ja: "薬剤師"}
+  researcher:    {en: "Researcher",       ja: "研究者"}
+  teacher:       {en: "Teacher/educator", ja: "教育者"}
+  ict:           {en: "ICT professional", ja: "ICT専門職"}

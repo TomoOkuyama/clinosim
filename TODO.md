@@ -1,6 +1,25 @@
 # clinosim — TODO
 
-## Status (current as of 2026-07-07, session 40)
+## Status (current as of 2026-07-07, session 42 — Cycle 2 CLOSED)
+
+**★ Audit Cycle 2 CLOSED (2026-07-07, session 42, `docs/audit-cycles/cycle-2.md`)** — JP p=10000
+seed=42 baseline audit → 30 issues → fixes → JP regen → verification. **17 fully resolved / 3
+partial (infra ready) / 2 not-a-bug / 6 carry-over to cycle 3 + 3 new cycle-3 candidates**.
+Major wins: 6 new HL7 THO/canonical `codes/data/` YAMLs (condition-clinical / ver-status /
+v3-administrativegender / subscriber-relationship / practitioner-role / v3-actreason) +
+authoritative code additions (SNOMED 185349003/11429006/394914008, LOINC 90557-9, admit-source
+`hosp`); new canonical helper `_coding_with_display(system_key, code, lang)` in `_fhir_common`
+(single edit point for display-fallback prevention; `_micro_coding` retained as alias);
+Patient.name JP kanji/kana (`valueCode` fix, +kana entry when phonetic dict); meta.profile
+for Patient / Encounter / Condition / Coverage; Composition.identifier + section.code (LOINC
+mapping 92% coverage); CareTeam pharmacist Practitioner emission (1,501 broken refs → 0);
+Encounter.reasonCode ICD-10 coding 100%; NEWS2 → LOINC 90557-9. Unit tests: **2339 passed**.
+Cycle 3 carry-over: CO-1/2/3 (from cycle 1) + C2-04 SR system mismatch + C2-17 Encounter.location +
+C2-33 Condition.stage tail. Newly discovered cycle-3 candidates: CareTeam.participant.role
+missing 33,893, MedicationRequest procedure/device混入 (CIF classification), Composition.section.code
+残 8% auto-derived titles, `_fhir_hai.py` typo `hl7-condition-verification` (fixed in cycle 2).
+
+## Status (2026-07-07, session 40)
 
 **v0.2** — population-driven synthetic EHR simulator with full FHIR R4 Bulk Data Export,
 multi-country (US/JP), **32 diseases + 46 ED/outpatient conditions**, snapshot date support,

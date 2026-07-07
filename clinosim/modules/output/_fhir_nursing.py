@@ -66,8 +66,14 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
         news2 = vs.get("news2_score")
         if news2 is not None:
             obs = _obs_base(f"news2-{enc or ctx.patient_id}-{i}", effective)
-            # NEWS2 has no authoritative LOINC — emit code.text only (per AD brief)
-            obs["code"] = {"text": "NEWS2"}
+            # C2-30 (session 42 cycle 2): NEWS2 has an authoritative LOINC
+            # code — 90557-9 "National Early Warning Score (NEWS) 2 [Score]"
+            # (verified via LOINC search). Was text-only per earlier brief,
+            # 118,131 Observations lacked coding as a result.
+            obs["code"] = {
+                "coding": [_loinc_coding("90557-9", lang)],
+                "text": code_lookup("loinc", "90557-9", lang) or "NEWS2",
+            }
             obs["valueInteger"] = int(news2)
             out.append(obs)
 

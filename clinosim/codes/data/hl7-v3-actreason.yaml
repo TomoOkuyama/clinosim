@@ -1,0 +1,16 @@
+# HL7 v3 ActReason. Authoritative source: HL7 Terminology (THO),
+# CodeSystem v3-ActReason
+# (http://terminology.hl7.org/CodeSystem/v3-ActReason).
+# C2-28 (session 42 cycle 2): registered so Immunization.statusReason emits
+# a Japanese display for JP exports (was en-only "patient objection").
+# Only the codes clinosim currently emits are registered — expand as callers
+# add new reason codes.
+metadata:
+  name: HL7 v3 ActReason
+  uri: http://terminology.hl7.org/CodeSystem/v3-ActReason
+  source: "HL7 Terminology (THO)"
+codes:
+  PATOBJ:      {en: "Patient objection",       ja: "患者による拒否"}
+  IMMUNE:      {en: "Immunity",                ja: "免疫獲得済"}
+  MEDPREC:     {en: "Medical precaution",      ja: "医学的注意"}
+  OSTOCK:      {en: "Out of stock",            ja: "在庫切れ"}

@@ -70,13 +70,33 @@ def _escape_html(s: str) -> str:
     )
 
 
-def _micro_coding(system_key: str, code: str, lang: str) -> dict:
-    """Build a coding with display resolved via codes (never display == code)."""
+def _coding_with_display(system_key: str, code: str, lang: str) -> dict:
+    """Build a FHIR coding, resolving display via codes/data.
+
+    Never emits ``display=code`` (a common FHIR interop trap); if
+    ``code_lookup`` cannot resolve a display it is omitted entirely.
+
+    Used at every builder site that emits a single coding (no CodeableConcept
+    wrapping and no multilingual duplicate). Sibling helpers: ``_value()``
+    (wraps as full CodeableConcept), ``_loinc_coding()`` (LOINC-specialized),
+    ``_build_diagnosis_codeable_concept()`` (multi-language dx codes).
+
+    C2-01/02/03/05/06/07/08 (session 42 cycle 2) — migrated the display-fallback
+    sites (Encounter.type, Condition.clinicalStatus/verificationStatus,
+    Observation.referenceRange.appliesTo, Coverage.relationship,
+    PractitionerRole.code, DiagnosticReport.category) through this helper.
+    """
     coding: dict[str, Any] = {"system": get_system_uri(system_key), "code": code}
     disp = code_lookup(system_key, code, lang)
     if disp and disp != code:
         coding["display"] = disp
     return coding
+
+
+# Legacy alias — microbiology builders (_fhir_microbiology) use this name.
+# The public helper name is `_coding_with_display`. Keep the alias to avoid
+# churn on unrelated call sites (session 42, cycle 2).
+_micro_coding = _coding_with_display
 
 
 def _survey_category() -> list[dict]:
@@ -487,11 +507,12 @@ def _build_reference_range(
 
         # appliesTo for sex-specific ranges
         if sex:
+            # C2-05 (session 42): resolve display via codes/data/hl7-v3-
+            # administrativegender.yaml (was raw code emission with no display).
             rr["appliesTo"] = [{
-                "coding": [{
-                    "system": get_system_uri("hl7-v3-administrativegender"),
-                    "code": sex,
-                }],
+                "coding": [_coding_with_display(
+                    "hl7-v3-administrativegender", sex, resolve_lang(country_code),
+                )],
             }]
 
         # Source extension (JP Core)

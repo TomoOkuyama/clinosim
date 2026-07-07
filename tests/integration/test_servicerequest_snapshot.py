@@ -51,9 +51,12 @@ def test_snapshot_yields_active_sr_for_inprogress_orders():
             )
 
         # Structural validation of active SRs.
+        # C1-16 (session 41 cycle 1) diversified SR.intent to {order,
+        # instance-order, original-order} based on clinical_intent —
+        # all three are valid values on an active SR.
         for sr in active[:10]:  # spot-check
             assert sr["resourceType"] == "ServiceRequest"
-            assert sr["intent"] == "order"
+            assert sr["intent"] in ("order", "instance-order", "original-order")
             assert "identifier" in sr
             plac = sr["identifier"][0]["type"]["coding"][0]
             assert plac["code"] == "PLAC"

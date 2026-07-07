@@ -1,0 +1,16 @@
+# HL7 FHIR Condition clinical status. Authoritative source: HL7 Terminology
+# (THO), CodeSystem condition-clinical
+# (http://terminology.hl7.org/CodeSystem/condition-clinical).
+# C2-02 (session 42 cycle 2): registered so _fhir_conditions.py + _fhir_hai.py
+# stop emitting display-less coding on 70,348+ Condition records.
+metadata:
+  name: HL7 FHIR Condition Clinical Status
+  uri: http://terminology.hl7.org/CodeSystem/condition-clinical
+  source: "HL7 Terminology (THO)"
+codes:
+  active:     {en: "Active",     ja: "活動性"}
+  recurrence: {en: "Recurrence", ja: "再発"}
+  relapse:    {en: "Relapse",    ja: "再燃"}
+  inactive:   {en: "Inactive",   ja: "非活動性"}
+  remission:  {en: "Remission",  ja: "寛解"}
+  resolved:   {en: "Resolved",   ja: "解消"}

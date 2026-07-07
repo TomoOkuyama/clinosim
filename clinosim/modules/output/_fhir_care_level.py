@@ -20,6 +20,7 @@ from clinosim.modules.output._fhir_common import (
     _social_category,
     _value,
 )
+from clinosim.modules.output._fhir_smoking_alcohol import _sdoh_effective_datetime
 
 
 def _build_care_level(ctx: BundleContext) -> list[dict]:
@@ -29,6 +30,11 @@ def _build_care_level(ctx: BundleContext) -> list[dict]:
         return []
     lang = resolve_lang(ctx.country)
     text = "要介護度" if is_jp(ctx.country) else "Long-term care need level"
+    # C2-10 (session 42 cycle 2): derive effectiveDateTime from earliest
+    # encounter admission (mirrors _fhir_smoking_alcohol._sdoh_effective_datetime
+    # pattern from C1-12). Care-level is patient-level SDOH, so tying it to the
+    # first encounter is appropriate as a proxy for when the level was recorded.
+    effective_dt = _sdoh_effective_datetime(ctx)
     o: dict[str, Any] = {
         "resourceType": "Observation",
         "id": f"carelevel-{ctx.patient_id}",
@@ -38,4 +44,6 @@ def _build_care_level(ctx: BundleContext) -> list[dict]:
         "subject": {"reference": f"Patient/{ctx.patient_id}"},
         "valueCodeableConcept": _value("jp-care-level", code, lang),
     }
+    if effective_dt:
+        o["effectiveDateTime"] = effective_dt
     return [o]

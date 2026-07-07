@@ -13,6 +13,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key, is_us, resolve_lang
 from clinosim.modules.output._fhir_common import (
     _build_diagnosis_codeable_concept,
+    _coding_with_display,
     _infer_severity,
     _map_diagnosis_code,
     _severity_coding,
@@ -110,17 +111,15 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         cond: dict[str, Any] = {
             "resourceType": "Condition",
             "id": f"cond-{encounter_id}-primary" if encounter_id else f"cond-{patient_id}-primary",
+            # C2-20 (session 42 cycle 2): JP Core Condition profile.
+            **({"meta": {"profile": [
+                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"
+            ]}} if country_code == "JP" else {}),
             "clinicalStatus": {
-                "coding": [{
-                    "system": get_system_uri("hl7-condition-clinical"),
-                    "code": clinical_status,
-                }],
+                "coding": [_coding_with_display("hl7-condition-clinical", clinical_status, lang)],
             },
             "verificationStatus": {
-                "coding": [{
-                    "system": get_system_uri("hl7-condition-ver-status"),
-                    "code": "confirmed",
-                }],
+                "coding": [_coding_with_display("hl7-condition-ver-status", "confirmed", lang)],
             },
             "category": [{
                 "coding": [{
@@ -149,6 +148,13 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
 
         if encounters:
             cond["encounter"] = {"reference": f"Encounter/{encounters[0].get('encounter_id', '')}"}
+            # C2-31 (session 42 cycle 2): Condition.recorder ← attending physician
+            # of the encounter. FHIR R4 R0..1; JP Core Condition recommends
+            # this reference for chart traceability. Attending is emitted as
+            # Practitioner in the encounter builder so this ref resolves.
+            _att = encounters[0].get("attending_physician_id", "")
+            if _att:
+                cond["recorder"] = {"reference": f"Practitioner/{_att}"}
 
         conditions.append(cond)
 
@@ -179,17 +185,18 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         cond = {
             "resourceType": "Condition",
             "id": f"cond-{encounter_id}-chronic-{i:02d}" if encounter_id else f"cond-{patient_id}-chronic-{i:02d}",
+            # C2-20 (session 42): JP Core Condition profile also on chronic-
+            # condition path (encounter-dx path handled above).
+            **({"meta": {"profile": [
+                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"
+            ]}} if country_code == "JP" else {}),
+            # C2-02/03 (session 42 cycle 2): use _coding_with_display so the
+            # chronic-condition path also emits displays (was raw code).
             "clinicalStatus": {
-                "coding": [{
-                    "system": get_system_uri("hl7-condition-clinical"),
-                    "code": "active",
-                }],
+                "coding": [_coding_with_display("hl7-condition-clinical", "active", lang)],
             },
             "verificationStatus": {
-                "coding": [{
-                    "system": get_system_uri("hl7-condition-ver-status"),
-                    "code": "confirmed",
-                }],
+                "coding": [_coding_with_display("hl7-condition-ver-status", "confirmed", lang)],
             },
             "category": [{
                 "coding": [{
@@ -230,6 +237,11 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         if c_onset:
             cond["onsetDateTime"] = to_fhir_date(c_onset)
 
+        # C2-31 (session 42): Condition.recorder for chronic path as well.
+        if encounters:
+            _att = encounters[0].get("attending_physician_id", "")
+            if _att:
+                cond["recorder"] = {"reference": f"Practitioner/{_att}"}
         # recordedDate: use admission date or onset, whichever is available
         if admission_dt:
             cond["recordedDate"] = to_fhir_date(admission_dt)
