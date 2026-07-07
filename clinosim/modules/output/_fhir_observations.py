@@ -17,7 +17,7 @@ from typing import Any
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
-from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
+from clinosim.modules._shared import get_attr_or_key, is_jp, is_us, resolve_lang
 from clinosim.modules.output._fhir_common import BundleContext, _build_reference_range, _entry
 from clinosim.modules.output._fhir_diagnostic_report import lab_obs_id
 from clinosim.modules.output._fhir_localization import (
@@ -49,7 +49,7 @@ def _build_lab_observation(
     lab_name = result.get("lab_name") or order.get("display_name", "Unknown")
 
     # test_name → code mapping still lives in locale (internal name → standard code)
-    country_code = "JP" if country != "US" else "US"
+    country_code = "US" if is_us(country) else "JP"
     lang = resolve_lang(country_code)
     code_map = load_code_mapping("lab", country_code)
     if lab_name in code_map:

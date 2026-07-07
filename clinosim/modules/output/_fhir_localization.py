@@ -16,7 +16,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_department_display as _load_department_display
 from clinosim.locale.loader import load_drug_names_ja as _load_drug_names_ja
 from clinosim.locale.loader import load_med_terms_ja as _load_med_terms_ja
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules._shared import is_jp, is_us, resolve_lang
 
 # ``_load_med_terms_ja`` / ``_load_drug_names_ja`` / ``_load_department_display``
 # are thin re-export aliases of the canonical cached locale loaders. They are
@@ -60,7 +60,7 @@ def _localize_drug_name(drug_name: str, country: str) -> str:
     - Any drug name substring found anywhere in the text (longest match wins)
     - Dosage/route/frequency terms translated at end
     """
-    if country == "US" or not drug_name:
+    if is_us(country) or not drug_name:
         return drug_name
     ja_dict = _load_drug_names_ja()
     # Normalize underscores to spaces for matching

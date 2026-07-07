@@ -17,7 +17,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping, load_reference_ranges
-from clinosim.modules._shared import is_jp, resolve_lang, strip_protocol_prefix
+from clinosim.modules._shared import is_jp, is_us, resolve_lang, strip_protocol_prefix
 from clinosim.modules.output._fhir_localization import (
     _CATEGORY_DISPLAY_JA,
     _FREQ_JA,
@@ -234,7 +234,7 @@ def _map_diagnosis_code(code: str, country: str) -> str:
     """
     if not code:
         return code
-    country_code = "JP" if country != "US" else "US"
+    country_code = "US" if is_us(country) else "JP"
     return load_code_mapping("diagnosis", country_code).get(code, code)
 
 

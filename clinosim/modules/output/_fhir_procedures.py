@@ -15,7 +15,7 @@ from clinosim.codes import (
 from clinosim.codes import (
     lookup as code_lookup,
 )
-from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules._shared import is_jp, is_us, resolve_lang
 from clinosim.modules.output._fhir_localization import _procedure_display
 
 
@@ -60,7 +60,7 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
             "code": proc_code_us,
             "display": us_display,
         })
-    elif country == "US" and proc_code_jp:
+    elif is_us(country) and proc_code_jp:
         # Secondary K-code for interop — use ENGLISH display (not Japanese)
         jp_en_display = _procedure_display(proc_code_jp, "en", fallback)
         coding_entries.append({
