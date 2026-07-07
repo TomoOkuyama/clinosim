@@ -98,6 +98,28 @@ class TestGetDailyDirective:
         d = get_daily_directive("treatment_resistant", 3, normal_profile)
         assert d.changes["inflammation_level"] > 0
 
+    def test_electrolyte_axes_in_trajectory_are_applied(self, normal_profile):
+        """A course_archetype trajectory may drive sodium_status / anion_gap_status.
+
+        Regression guard for the recognized-var list drift: these bipolar axes
+        exist on ClinicalState and in _variable_range, but were missing from the
+        get_daily_directive iteration list, so a trajectory referencing them was
+        silently dropped. HF fluid overload / GI acidosis evolving over days is
+        the realistic use case.
+        """
+        archs = {
+            "electrolyte_shift": {
+                "probability": 1.0,
+                "trajectory": {
+                    "sodium_status": {0: -0.2, 5: -0.4},
+                    "anion_gap_status": {0: 0.1, 5: 0.5},
+                },
+            }
+        }
+        d = get_daily_directive("electrolyte_shift", 5, normal_profile, protocol_archetypes=archs)
+        assert "sodium_status" in d.changes
+        assert "anion_gap_status" in d.changes
+
     def test_all_fallback_archetypes_produce_directives(self, normal_profile):
         for name in _FALLBACK_PROBABILITIES:
             d = get_daily_directive(name, 5, normal_profile)
