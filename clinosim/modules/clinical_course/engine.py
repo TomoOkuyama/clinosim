@@ -292,6 +292,11 @@ def get_daily_directive(
     effective_day = day * speed_factor
 
     changes: dict[str, float] = {}
+    # Recognized trajectory-able state axes. Keep in sync with the bipolar/unit
+    # axes in physiology.engine._variable_range — a var present there but absent
+    # here is silently dropped from any course_archetype trajectory (the drift
+    # that hid sodium_status / anion_gap_status; both are used in day-evolving
+    # electrolyte / acid-base courses, e.g. HF fluid overload, GI acidosis).
     for var_name in [
         "inflammation_level",
         "volume_status",
@@ -303,6 +308,8 @@ def get_daily_directive(
         "coagulation_status",
         "ph_status",
         "glucose_status",
+        "sodium_status",
+        "anion_gap_status",
     ]:
         if var_name in trajectory_data:
             traj = trajectory_data[var_name]
