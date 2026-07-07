@@ -47,6 +47,15 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
         name_obj: dict[str, Any] = {"family": family, "given": [given] if given else []}
         if role in ("physician", "radiologist") and not is_jp(country):
             name_obj["prefix"] = ["Dr."]
+        # C3-01 (session 42 cycle 3): JP Core requires kanji (IDE)
+        # representation tag on Practitioner names as well as Patient.
+        # Kana (SYL) entry is deferred until roster generation carries a
+        # phonetic pair (same limitation as C2-19 Patient path).
+        if is_jp(country):
+            name_obj["extension"] = [{
+                "url": "http://hl7.org/fhir/StructureDefinition/iso21090-EN-representation",
+                "valueCode": "IDE",
+            }]
         resource["name"] = [name_obj]
 
         # Gender

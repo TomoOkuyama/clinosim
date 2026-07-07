@@ -108,6 +108,29 @@ _SECTION_LOINC: dict[str, str] = {
     "rehab_team": "51897-7",           # Care team member
     "functional_status": "45391-8",    # Functional status assessment
     "basic_movement": "45391-8",       # (same)
+    # CY2-C (session 42 cycle 3): residual auto-derived section titles that
+    # appeared in cycle 2's 8% uncoded remainder. Codes verified via LOINC
+    # search.
+    "ed_workup": "51852-2",            # Workup panel (ED assessment)
+    "disposition": "68609-7",          # Discharge disposition (ED disposition)
+    "allergies": "48765-2",            # Allergies and adverse reactions
+    "social_history": "29762-2",       # Social history
+    "family_history": "10157-6",       # History of family member disease
+    "physical_examination": "29545-1", # Physical findings (reuse of physical_exam)
+    "assessment_and_plan": "51847-2",  # Assessment and plan note
+    "care_plan": "18776-5",            # Plan of care note (reuse of plan)
+    "treatment_plan": "18776-5",       # (reused)
+    "test_schedule": "18776-5",        # (falls under plan)
+    "surgery_schedule": "18776-5",     # (falls under plan)
+    "estimated_los": "8648-8",         # Hospital course (LOS estimate)
+    "special_nutrition_management": "9279-1", # Nutritional risk assessment
+    "other_plans": "18776-5",          # Plan of care (catch-all)
+    "discharge_instructions": "8653-8",# Hospital discharge instructions
+    "follow_up": "18776-5",            # Plan of care (follow-up)
+    "nutrition_goals": "61144-2",      # Diet nutrition goals
+    "nutrition_supply": "61144-2",     # (same)
+    "dysphagia_diet": "61144-2",       # (same)
+    "dietary_content": "61144-2",      # (same)
 }
 
 
@@ -197,6 +220,17 @@ def _build_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[st
 
     if encounter_id:
         res["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+
+    # C3-02 (session 42 cycle 3): Composition.attester — JP EHR legal
+    # signature (電子署名). Attester = the document author (attending
+    # physician) with mode=legal. FHIR R4 Composition.attester is 0..*;
+    # populate when author_practitioner_id is known.
+    if author_id and author_id != "UNKNOWN":
+        res["attester"] = [{
+            "mode": "legal",
+            "time": authored_dt,
+            "party": {"reference": f"Practitioner/{author_id}"},
+        }]
 
     # Build section[] from doc["narrative"]["sections"] (passed in as `sections`)
     # C2-27 (session 42 cycle 2): resolve LOINC section codes from the

@@ -52,7 +52,7 @@ def _map_order_status_to_fhir(status: str) -> str:
     return mapping.get(status, "active")
 
 
-def _mr_intent_from_order(order: dict) -> str:
+def _mr_intent_from_order(order: dict, encounter_type: str = "") -> str:
     """Pick MedicationRequest.intent from the CIF Order (C2-14, session 42).
 
     Mirrors `_sr_intent_from_clinical_intent` (C1-16) for medications:
@@ -61,7 +61,11 @@ def _mr_intent_from_order(order: dict) -> str:
       ongoing plan).
     - Discharge / take-home prescriptions → `original-order` (starts a new
       series of encounters at another provider).
-    - Default → `order` (a specific order for this encounter).
+    - Outpatient AMB encounter → `instance-order` (an instance on the
+      ongoing outpatient chronic-management plan). CO-7 (session 42 cycle 3):
+      broaden the inference because upstream CIF rarely populates
+      `clinical_intent`; encounter_type is a reliable proxy.
+    - Default → `order`.
     """
     ci = str(order.get("clinical_intent", "") or "").lower()
     protocol = str(order.get("protocol_category", "") or "").lower()
@@ -70,12 +74,16 @@ def _mr_intent_from_order(order: dict) -> str:
         return "original-order"
     if any(k in ci for k in ("follow-up", "follow up", "chronic", "refill", "maintenance")):
         return "instance-order"
+    # CO-7 (session 42 cycle 3): outpatient encounter type → instance-order.
+    if encounter_type == "outpatient":
+        return "instance-order"
     return "order"
 
 
 def _build_medication_request(
     order: dict, patient_id: str, country: str,
     encounter_id: str = "", primary_dx_code: str = "",
+    encounter_type: str = "",
 ) -> dict:
     """Build FHIR MedicationRequest resource."""
     drug_name_raw = order.get("display_name", "Unknown medication")
@@ -90,7 +98,21 @@ def _build_medication_request(
     lang = resolve_lang(country_code)
     drug_codes = load_code_mapping("drug", country_code)  # name → RxNorm/YJ
 
-    code_value = drug_codes.get(base_name, "")
+    # C3-10 (session 42 cycle 3): multi-word drug names (e.g. "Normal saline",
+    # "Regular insulin") previously failed the base-only lookup because
+    # `.split(" ")[0]` truncated at the first space. Try progressively shorter
+    # prefixes so multi-word keys match too. Longest-match-wins.
+    code_value = ""
+    if drug_name_clean:
+        tokens = drug_name_clean.split(" ")
+        for n_tokens in range(len(tokens), 0, -1):
+            candidate = " ".join(tokens[:n_tokens])
+            if candidate in drug_codes:
+                code_value = drug_codes[candidate]
+                base_name = candidate
+                break
+        if not code_value:
+            code_value = drug_codes.get(base_name, "")
     drug_system_key = system_key_for("drug", country_code)
     display = code_lookup(drug_system_key, code_value, lang) if code_value else drug_name
     if display == code_value:
@@ -115,13 +137,18 @@ def _build_medication_request(
     # applied the same idea to ServiceRequest. Chronic-management refills →
     # `instance-order`; discharge take-home meds → `original-order`; the rest
     # remain `order`.
-    intent_val = _mr_intent_from_order(order)
+    intent_val = _mr_intent_from_order(order, encounter_type)
     # C2-16 (session 42): finished courses get status=completed. `end_datetime`
     # (or `discontinuation_datetime`) is populated in CIF when the course is
     # deliberately stopped or naturally ends; fall through to whatever
     # _map_order_status_to_fhir returns otherwise.
+    # CO-9 (session 42 cycle 3): also complete when the encounter itself is
+    # finished (outpatient Rx end at encounter close in JP practice).
     status_val = _map_order_status_to_fhir(order.get("status", ""))
-    if status_val == "active" and order.get("end_datetime"):
+    if status_val == "active" and (
+        order.get("end_datetime")
+        or (encounter_type == "outpatient" and order.get("encounter_id"))
+    ):
         status_val = "completed"
     resource: dict[str, Any] = {
         "resourceType": "MedicationRequest",
@@ -170,7 +197,18 @@ def _build_medication_admin(
     country_code = "US" if is_us(country) else "JP"
     lang = resolve_lang(country_code)
     drug_codes = load_code_mapping("drug", country_code)
-    code_value = drug_codes.get(base_name, "")
+    # C3-10 (session 42 cycle 3): longest-match-wins for multi-word keys.
+    code_value = ""
+    if drug_name_clean:
+        tokens = drug_name_clean.split(" ")
+        for n_tokens in range(len(tokens), 0, -1):
+            candidate = " ".join(tokens[:n_tokens])
+            if candidate in drug_codes:
+                code_value = drug_codes[candidate]
+                base_name = candidate
+                break
+        if not code_value:
+            code_value = drug_codes.get(base_name, "")
     drug_system_key = system_key_for("drug", country_code)
     code_system = get_system_uri(drug_system_key)
 

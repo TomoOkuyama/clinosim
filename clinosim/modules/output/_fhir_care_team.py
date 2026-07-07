@@ -100,14 +100,34 @@ def _build_care_team(
     # adv-1 fix). Surfaces for reference integrity audit; does not silently drop the resource.
     attending_ref = attending_id if attending_id else "UNKNOWN"
 
+    # CY2-A (session 42 cycle 3): CareTeam.participant.role = SNOMED role
+    # code. Verified SNOMED CT concepts:
+    #   309343006 = "Physician"
+    #   224535009 = "Registered nurse"
+    #   46255001  = "Pharmacist"
     # Build participant list: attending always first; nurse only when non-empty.
+    def _role_coding(code: str, en: str, ja: str) -> list[dict]:
+        display = ja if lang == "ja" else en
+        return [{
+            "coding": [{
+                "system": "http://snomed.info/sct",
+                "code": code,
+                "display": display,
+            }],
+            "text": display,
+        }]
+
     participants: list[dict[str, Any]] = [
-        {"member": {"reference": f"Practitioner/{attending_ref}"}},
+        {
+            "role": _role_coding("309343006", "Physician", "医師"),
+            "member": {"reference": f"Practitioner/{attending_ref}"},
+        },
     ]
     if primary_nurse_id:
-        participants.append(
-            {"member": {"reference": f"Practitioner/{primary_nurse_id}"}},
-        )
+        participants.append({
+            "role": _role_coding("224535009", "Registered nurse", "看護師"),
+            "member": {"reference": f"Practitioner/{primary_nurse_id}"},
+        })
     # C1-15 (session 41 cycle 1): pharmacist participant for encounters that
     # actually had medication activity — inpatient/emergency where a clinical
     # pharmacist is standard-of-care in JP multi-disciplinary teams
@@ -117,9 +137,10 @@ def _build_care_team(
     enc_type = _o(encounter, "encounter_type", "") or ""
     if pharmacist_ids and enc_type in ("inpatient", "emergency"):
         idx = sum(ord(c) for c in encounter_id) % len(pharmacist_ids)
-        participants.append(
-            {"member": {"reference": f"Practitioner/{pharmacist_ids[idx]}"}},
-        )
+        participants.append({
+            "role": _role_coding("46255001", "Pharmacist", "薬剤師"),
+            "member": {"reference": f"Practitioner/{pharmacist_ids[idx]}"},
+        })
 
     care_team: dict[str, Any] = {
         "resourceType": "CareTeam",

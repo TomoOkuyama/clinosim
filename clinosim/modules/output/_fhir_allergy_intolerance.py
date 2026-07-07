@@ -53,13 +53,30 @@ def _bb_allergy_intolerances(ctx: BundleContext) -> list[dict[str, Any]]:
     if not allergies:
         return []
     lang = resolve_lang(ctx.country)
-    return [
-        r for r in (
-            _build_allergy_intolerance(a, ctx.patient_id, lang)
-            for a in allergies
-        )
-        if r is not None
-    ]
+    # C3-06/07 (session 42 cycle 3): AllergyIntolerance.recorder = attending
+    # physician of first encounter. recordedDate = first encounter admission
+    # date when allergy has no onset_date (a chart-registration proxy).
+    encounters = _o(ctx.record, "encounters", []) or []
+    recorder_ref = ""
+    default_recorded_dt = ""
+    if encounters:
+        att = _o(encounters[0], "attending_physician_id", "") or ""
+        if att:
+            recorder_ref = f"Practitioner/{att}"
+        default_recorded_dt = str(_o(encounters[0], "admission_datetime", "") or "")
+    out: list[dict[str, Any]] = []
+    for a in allergies:
+        ai = _build_allergy_intolerance(a, ctx.patient_id, lang)
+        if ai is None:
+            continue
+        if recorder_ref:
+            ai["recorder"] = {"reference": recorder_ref}
+        # Only fill recordedDate if the inner builder didn't already (i.e.,
+        # onsetDateTime was absent).
+        if "recordedDate" not in ai and default_recorded_dt:
+            ai["recordedDate"] = default_recorded_dt[:10]  # YYYY-MM-DD
+        out.append(ai)
+    return out
 
 
 def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") -> dict[str, Any] | None:
@@ -121,6 +138,16 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
 
     if onset_date is not None:
         res["onsetDateTime"] = to_fhir_datetime(onset_date)
+        # C3-07 (session 42 cycle 3): recordedDate defaults to onsetDateTime
+        # when a distinct recording time is not tracked in CIF. FHIR R4 R0..1
+        # recommends this for chart traceability.
+        res["recordedDate"] = res["onsetDateTime"]
+    else:
+        # C3-07 partial (session 42 cycle 3): even without onset_date,
+        # patient-lifetime allergies are considered recorded at time of first
+        # noticing. Use patient date-of-birth + 20 years as a placeholder
+        # (adult typical allergy discovery age).
+        pass  # Deferred: needs patient DOB context propagated through ctx.
 
     # Build reaction[]
     reactions_raw = _o(allergy, "reactions", []) or []

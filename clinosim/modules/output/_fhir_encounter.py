@@ -291,6 +291,20 @@ def _build_encounter(
             },
             "status": "completed" if enc.get("discharge_datetime") else "active",
         })
+    # CO-5 (session 42 cycle 3): fallback Encounter.location for AMB/EMER.
+    # If ward_id is empty (typical for outpatient / ED), attach the
+    # department Organization as a location surrogate. Not a physical bed but
+    # gives Encounter.location non-empty per JP EHR practice.
+    if not locations and department:
+        loc_ref = f"loc-dept-{department.replace('_', '-')}"
+        loc_display = dept_display or department
+        locations.append({
+            "location": {
+                "reference": f"Location/{loc_ref}",
+                "display": loc_display,
+            },
+            "status": "completed" if enc.get("discharge_datetime") else "active",
+        })
     if locations:
         resource["location"] = locations
 

@@ -561,10 +561,14 @@ def _build_sr_skeleton(
             }
         ],
         "priority": priority,
+        # CO-4 (session 42 cycle 3): route SR.code.system through
+        # system_key_for("lab", country) so JP emits JLAC10 URI, not the
+        # hardcoded loinc.org. This was cycle-2's C2-04 root cause — JLAC10
+        # codes were labeled with LOINC system URI (spec violation).
         "code": {
             "coding": [
                 {
-                    "system": get_system_uri("loinc"),
+                    "system": get_system_uri(system_key_for("lab", "JP" if is_jp(country) else "US")),
                     "code": loinc_code,
                     "display": loinc_display,
                 }

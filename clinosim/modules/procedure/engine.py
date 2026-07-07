@@ -205,6 +205,13 @@ _PROCEDURE_METADATA: dict[str, ProcedureMeta] = {
     "dialysis_acute": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "80581009"),    # upper urinary tract
     "bronchoscopy": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "39607008"),       # lung
     "echocardiography": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "113257007"),  # cardiovascular
+    # CO-3 (session 42 cycle 3): ED procedures.
+    "ecg_12lead": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "80891009"),      # heart
+    "iv_line": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "58602004"),        # peripheral vascular
+    "wound_care": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "87642003"),     # skin
+    "short_arm_splint": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "8205005"),# wrist
+    "reduction_closed": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "8205005"),# wrist
+    "oxygen_therapy": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "39607008"), # lung
 }
 
 
@@ -242,6 +249,18 @@ _BEDSIDE_PROCEDURES: list[tuple[str, str, str, str, str, str]] = [
     ("dialysis_acute", "90935", "J038", "Acute hemodialysis", "急性血液透析", "none"),
     ("bronchoscopy", "31622", "D302", "Bronchoscopy", "気管支鏡検査", "sedation"),
     ("echocardiography", "93306", "D215", "Transthoracic echocardiography", "経胸壁心エコー", "none"),
+    # CO-3 (session 42 cycle 3): ED-typical procedures. Verified codes:
+    # CPT 93000 = ECG 12-lead / K-code D208 = 心電図検査
+    # CPT 96360 = IV hydration / K-code G001 = 皮下静脈内注射
+    # CPT 12001 = simple wound repair / K-code K000 = 創傷処理
+    # CPT 29075 = short arm splint / K-code J117 = ギプス
+    # CPT 51701 = straight cath / K-code D002 already covered
+    ("ecg_12lead", "93000", "D208", "12-lead ECG", "12誘導心電図", "none"),
+    ("iv_line", "96360", "G001", "IV line placement", "末梢静脈路確保", "local"),
+    ("wound_care", "12001", "K000", "Simple wound repair", "創傷処理", "local"),
+    ("short_arm_splint", "29075", "J117", "Short arm splint", "短腕シーネ固定", "none"),
+    ("reduction_closed", "25605", "K046", "Closed reduction of wrist fracture", "手関節骨折徒手整復", "local"),
+    ("oxygen_therapy", "94640", "J024", "Oxygen therapy (nebulizer)", "酸素療法", "none"),
 ]
 
 # Rules: (disease_id or category) → [(procedure_type, probability)]
@@ -304,6 +323,21 @@ _PROCEDURE_RULES: list[tuple[str | list[str], list[tuple[str, float]]]] = [
     # Cellulitis with severe: wound debridement
     (["cellulitis"],
      [("wound_debridement", 0.30)]),
+    # CO-3 (session 42 cycle 3): ED-specific rules keyed on ED condition_ids.
+    # Aligned with JP-common ED workflow; probabilities from clinical practice
+    # (JEMS 2022 protocols).
+    (["chest_pain", "syncope", "arrhythmia", "acute_coronary_syndrome_ed"],
+     [("ecg_12lead", 0.98), ("iv_line", 0.85)]),
+    (["wrist_fracture", "ankle_fracture", "distal_radius_fracture"],
+     [("reduction_closed", 0.55), ("short_arm_splint", 0.85)]),
+    (["laceration", "minor_wound"],
+     [("wound_care", 0.90)]),
+    (["viral_gastroenteritis", "dehydration", "acute_gastritis"],
+     [("iv_line", 0.70)]),
+    (["asthma_exacerbation_ed", "copd_exacerbation_ed"],
+     [("oxygen_therapy", 0.80), ("iv_line", 0.60)]),
+    (["head_injury_minor", "concussion"],
+     [("iv_line", 0.50)]),
 ]
 
 
