@@ -16,9 +16,13 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_identity_config
 from clinosim.modules._shared import is_jp, resolve_lang
-from clinosim.modules.output._fhir_common import _build_address, _build_telecom, to_fhir_date
+from clinosim.modules.output._fhir_common import (
+    _build_address,
+    _build_telecom,
+    _social_category,
+    to_fhir_date,
+)
 from clinosim.modules.output._fhir_localization import (
-    _CATEGORY_DISPLAY_JA,
     _OCCUPATION_DISPLAY_EN,
     _OCCUPATION_DISPLAY_JA,
     _RELATIONSHIP_DISPLAY_JA,
@@ -285,19 +289,11 @@ def _build_occupation_observation(
         return None
     display_map = _OCCUPATION_DISPLAY_JA if is_jp(country) else _OCCUPATION_DISPLAY_EN
     display = display_map.get(occupation, occupation.title())
-    category_text = "社会歴" if is_jp(country) else "Social History"
     return {
         "resourceType": "Observation",
         "id": f"occupation-{patient_id}",
         "status": "final",
-        "category": [{
-            "coding": [{
-                "system": get_system_uri("hl7-observation-category"),
-                "code": "social-history",
-                "display": _localize_display("Social History", country, _CATEGORY_DISPLAY_JA),
-            }],
-            "text": category_text,
-        }],
+        "category": _social_category(country),
         "code": {
             "coding": [{
                 "system": get_system_uri("loinc"),

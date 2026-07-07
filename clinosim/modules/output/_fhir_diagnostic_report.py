@@ -34,6 +34,7 @@ from clinosim.modules.imaging.engine import (
 )
 from clinosim.modules.order.panel_grouping import load_panel_definitions
 from clinosim.modules.output._fhir_common import _escape_html, to_fhir_datetime
+from clinosim.modules.output._fhir_localization import localize_fixed_label
 from clinosim.modules.output._fhir_service_request import (
     LAB_CATEGORY_V2_0074,
     SR_ID_PREFIX,
@@ -426,7 +427,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     )
 
     snomed_radiology_display = _codes_lookup("snomed-ct", RADIOLOGY_CATEGORY_SNOMED, lang) or (
-        "放射線科" if lang == "ja" else "Radiology"
+        localize_fixed_label("Radiology", ctx.country)
     )
 
     dr: dict = {

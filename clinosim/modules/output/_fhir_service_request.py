@@ -35,6 +35,7 @@ from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.order.panel_grouping import load_panel_definitions
 from clinosim.modules.output._fhir_common import BundleContext, to_fhir_datetime
+from clinosim.modules.output._fhir_localization import localize_fixed_label
 from clinosim.types.encounter import OrderStatus, OrderType
 
 # === Canonical constants (silent-no-op defense, PR-90 lesson) ===
@@ -220,7 +221,7 @@ def _build_lab_service_requests(lab_orders: list[Any], ctx: BundleContext) -> li
     for sr_id, members in sorted(panel_buckets.items()):
         anchor = members[0]
         panel_def = panels[_o(anchor, "panel_key", "")]
-        sr = _build_panel_sr(sr_id, anchor, members, panel_def, lang)
+        sr = _build_panel_sr(sr_id, anchor, members, panel_def, lang, country)
         resources.append(sr)
     for o in sorted(standalone_orders, key=lambda x: _o(x, "order_id", "")):
         sr = _build_standalone_sr(o, lang, country)
@@ -314,7 +315,7 @@ def _build_imaging_sr(order: Any, lang: str, country: str) -> dict[str, Any]:
     )
 
     snomed_imaging_display = code_lookup("snomed-ct", IMAGING_CATEGORY_SNOMED, lang) or (
-        "画像診断" if lang == "ja" else "Imaging procedure"
+        localize_fixed_label("Imaging procedure", country)
     )
 
     # Fail-loud on empty subject/encounter (PR-90 lesson: "Patient/" is FHIR-invalid).
@@ -395,6 +396,7 @@ def _build_panel_sr(
     members: list[Any],
     panel_def: dict[str, Any],
     lang: str,
+    country: str,
 ) -> dict[str, Any]:
     """Build one ServiceRequest resource for a panel (all members share the SR).
 
@@ -414,6 +416,7 @@ def _build_panel_sr(
         loinc_text=_o(anchor, "panel_key", ""),
         anchor=anchor,
         lang=lang,
+        country=country,
     )
 
 
@@ -463,6 +466,7 @@ def _build_standalone_sr(o: Any, lang: str, country: str) -> dict[str, Any]:
         loinc_text=display_name,
         anchor=o,
         lang=lang,
+        country=country,
     )
 
 
@@ -477,6 +481,7 @@ def _build_sr_skeleton(
     loinc_text: str,
     anchor: Any,
     lang: str,
+    country: str,
 ) -> dict[str, Any]:
     """Shared SR resource skeleton for panel + stand-alone.
 
@@ -494,7 +499,7 @@ def _build_sr_skeleton(
     )
 
     snomed_display = code_lookup("snomed-ct", LAB_CATEGORY_SNOMED, lang) or (
-        "臨床検査" if lang == "ja" else "Laboratory procedure"
+        localize_fixed_label("Laboratory procedure", country)
     )
     # ordered_datetime may arrive as a datetime object (dataclass path) or an
     # ISO string (JSON-deserialized dict path). If None, authoredOn is omitted.

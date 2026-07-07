@@ -16,6 +16,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output._fhir_common import BundleContext, _micro_coding
+from clinosim.modules.output._fhir_localization import localize_fixed_label
 
 # Canonical id prefixes for microbiology resources. Imported by readers
 # (e.g. clinosim.audit.axes.clinical._organism_per_encounter) to avoid the
@@ -136,7 +137,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             if mb.get("quantitation"):
                 org_obs["note"] = [{"text": mb["quantitation"]}]
         else:
-            org_obs["valueString"] = "発育なし" if lang == "ja" else "No growth"
+            org_obs["valueString"] = localize_fixed_label("No growth", ctx.country)
         out.append(org_obs)
         result_refs.append({"reference": f"Observation/{org_id}"})
 

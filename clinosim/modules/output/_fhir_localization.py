@@ -255,6 +255,33 @@ _FREQ_JA: dict[str, str] = {
     "1x/day": "1日1回", "2x/day": "1日2回", "3x/day": "1日3回", "4x/day": "1日4回",
 }
 
+# FHIR fixed-label JA dictionary (FP-UNIFY-3, session 40): centralizes short
+# free-text FHIR field labels that used to be scattered as inline conditionals
+# ("放射線科" if lang == "ja" else "Radiology"). Add a new EN → JA row here rather
+# than reintroducing an inline conditional. Consumed via ``localize_fixed_label``.
+_FIXED_LABEL_JA: dict[str, str] = {
+    "Radiology": "放射線科",
+    "No growth": "発育なし",
+    "Imaging procedure": "画像診断",
+    "Laboratory procedure": "臨床検査",
+}
+
+
+def localize_fixed_label(en_label: str, country: str) -> str:
+    """Return the JA label for JP, the EN label otherwise.
+
+    Small, focused helper for the FHIR fixed-label dictionary above. Fails
+    loudly (silently returning the EN label unchanged) is intentional for
+    US / non-JP paths — the same behavior every inline conditional used.
+    New callers must add the EN key to ``_FIXED_LABEL_JA`` before use to
+    make the JA branch fire.
+    """
+    from clinosim.modules._shared import is_jp
+    if is_jp(country):
+        return _FIXED_LABEL_JA.get(en_label, en_label)
+    return en_label
+
+
 _ROLE_PREFIX_MAP_JA: dict[str, dict[str, str]] = {
     "physician": {"qual_code": "MD", "qual_display": "医師", "prefix": ""},
     "nurse": {"qual_code": "RN", "qual_display": "看護師", "prefix": ""},
