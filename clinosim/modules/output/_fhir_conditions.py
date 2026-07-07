@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.codes import get_system_uri, system_key_for
+from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key, is_us, resolve_lang
 from clinosim.modules.output._fhir_common import (
     _build_diagnosis_codeable_concept,
@@ -20,6 +21,26 @@ from clinosim.modules.output._fhir_localization import (
     _CATEGORY_DISPLAY_JA,
     _localize_display,
 )
+
+# Condition.stage.summary SNOMED coding for staging systems with an unambiguous,
+# authoritatively-verified (tx.fhir.org $lookup) SNOMED CT concept. Keys are the
+# exact stage strings produced by patient.activator._generate_stage — the drift
+# guard test_every_ckd_nyha_generated_stage_is_mapped fails loud if activator adds
+# a CKD/NYHA value without a code here (whitelist-drift bug class). GOLD / asthma
+# severity / hypertension stage / CCS are intentionally absent (no verified code),
+# so their stage.summary stays text-only.
+_STAGE_SUMMARY_SNOMED: dict[str, str] = {
+    "CKD G1": "431855005",
+    "CKD G2": "431856006",
+    "CKD G3a": "700378005",
+    "CKD G3b": "700379002",
+    "CKD G4": "431857002",
+    "CKD G5": "433146000",
+    "NYHA I": "420300004",
+    "NYHA II": "421704003",
+    "NYHA III": "420913000",
+    "NYHA IV": "422293003",
+}
 
 
 def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]:
@@ -188,13 +209,22 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             cond["severity"] = _severity_coding(c_severity, country)
 
         # Stage (NYHA class, CKD G, GOLD, hypertension Stage, CCS, etc.) — c_stage set
-        # in the branch above. The stage VALUE is carried by summary.text. type.type is
-        # left as a plain-text label only: these are non-cancer clinical stages/classes,
-        # so the former SNOMED 385356007 "Tumor stage finding" coding was clinically
-        # wrong on every one of them and is intentionally NOT emitted (no fabricated code).
+        # in the branch above. The stage VALUE is carried by summary.text (always) plus
+        # a summary.coding when the staging system has a verified SNOMED CT concept
+        # (_STAGE_SUMMARY_SNOMED — CKD / NYHA). type.type is left as a plain-text label:
+        # these are non-cancer clinical stages, so the former SNOMED 385356007 "Tumor
+        # stage finding" coding was clinically wrong and is intentionally NOT emitted.
         if c_stage:
+            summary: dict[str, Any] = {"text": c_stage}
+            stage_snomed = _STAGE_SUMMARY_SNOMED.get(c_stage)
+            if stage_snomed:
+                summary["coding"] = [{
+                    "system": get_system_uri("snomed-ct"),
+                    "code": stage_snomed,
+                    "display": code_lookup("snomed-ct", stage_snomed, resolve_lang(country)),
+                }]
             cond["stage"] = [{
-                "summary": {"text": c_stage},
+                "summary": summary,
                 "type": {"text": "Clinical stage"},
             }]
 
