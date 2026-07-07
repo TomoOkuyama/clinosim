@@ -343,8 +343,10 @@ def activate_patient(
             else:
                 emergency_name = f"{given_name} {name.family_name}"
         except Exception:
-            # Fallback if name data unavailable
-            emergency_name = f"{name.family_name} family" if country == "US" else f"{name.family_name}家"
+            # Fallback if name data unavailable. Gate on is_jp (matching the main
+            # path above) — a raw country == "US" would give a lowercase "us"
+            # patient the Japanese "家" suffix (FP-UNIFY-4 sibling class).
+            emergency_name = f"{name.family_name}家" if is_jp(country) else f"{name.family_name} family"
 
     contact = ContactInfo(
         phone_home=phone_home,
