@@ -39,7 +39,7 @@ from clinosim.modules.imaging.engine import (  # canonical owners; re-exported b
     IMAGING_STUDY_ID_PREFIX,
     load_modalities,
 )
-from clinosim.modules.output._fhir_common import BundleContext
+from clinosim.modules.output._fhir_common import BundleContext, to_fhir_datetime
 from clinosim.modules.output._fhir_service_request import SR_ID_PREFIX  # canonical owner
 
 # Writer-owned constant — DICOM/FHIR standard URI for DICOM Study UID.
@@ -55,12 +55,14 @@ __all__ = [
 
 
 def _isoformat_or_str(dt: Any) -> str:
-    """Convert datetime to ISO-8601 string; passthrough for str; empty for None."""
-    if dt is None:
-        return ""
-    if isinstance(dt, str):
-        return dt
-    return dt.isoformat()
+    """Convert datetime to ISO-8601 string; passthrough for str; empty for None.
+
+    Session 40 (FP-UNIFY-2 completion): delegates to the shared
+    ``to_fhir_datetime`` helper in ``_fhir_common``. Kept as a thin alias so
+    external callers importing this symbol continue to work; new code should
+    import ``to_fhir_datetime`` directly.
+    """
+    return to_fhir_datetime(dt)
 
 
 def _bb_imaging_studies(ctx: BundleContext) -> list[dict[str, Any]]:
