@@ -18,7 +18,12 @@ from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import get_attr_or_key, is_jp, is_us, resolve_lang
-from clinosim.modules.output._fhir_common import BundleContext, _build_reference_range, _entry
+from clinosim.modules.output._fhir_common import (
+    BundleContext,
+    _build_reference_range,
+    _entry,
+    to_fhir_datetime,
+)
 from clinosim.modules.output._fhir_diagnostic_report import lab_obs_id
 from clinosim.modules.output._fhir_localization import (
     _CATEGORY_DISPLAY_JA,
@@ -233,7 +238,7 @@ def _build_vital_observations(
                 shifted = base_dt + _td(seconds=offset_sec)
                 obs["effectiveDateTime"] = shifted.isoformat()
             except (ValueError, TypeError):
-                obs["effectiveDateTime"] = timestamp if isinstance(timestamp, str) else str(timestamp)
+                obs["effectiveDateTime"] = to_fhir_datetime(timestamp)
 
         # Encounter reference
         if encounter_id:
@@ -343,7 +348,7 @@ def _build_vital_observations(
         }
         timestamp = vs.get("timestamp")
         if timestamp:
-            loc_obs["effectiveDateTime"] = timestamp if isinstance(timestamp, str) else str(timestamp)
+            loc_obs["effectiveDateTime"] = to_fhir_datetime(timestamp)
         if encounter_id:
             loc_obs["encounter"] = {"reference": f"Encounter/{encounter_id}"}
         entries.append(_entry(loc_obs))
@@ -394,7 +399,7 @@ def _build_vital_observations(
             }]
         timestamp = vs.get("timestamp")
         if timestamp:
-            o2_obs["effectiveDateTime"] = timestamp if isinstance(timestamp, str) else str(timestamp)
+            o2_obs["effectiveDateTime"] = to_fhir_datetime(timestamp)
         if encounter_id:
             o2_obs["encounter"] = {"reference": f"Encounter/{encounter_id}"}
         entries.append(_entry(o2_obs))

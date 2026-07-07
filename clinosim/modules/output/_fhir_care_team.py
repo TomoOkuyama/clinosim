@@ -36,7 +36,7 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import resolve_lang
-from clinosim.modules.output._fhir_common import BundleContext
+from clinosim.modules.output._fhir_common import BundleContext, to_fhir_datetime
 
 __all__ = [
     "CARE_TEAM_ID_PREFIX",
@@ -128,7 +128,5 @@ def _build_care_team(encounter: Any, patient_id: str, lang: str) -> dict[str, An
 
 
 def _fmt_dt(dt: Any) -> str:
-    """Format datetime-like value as ISO 8601 string."""
-    if hasattr(dt, "isoformat"):
-        return dt.isoformat()
-    return str(dt)
+    """Format datetime-like value as ISO 8601 string (FP-UNIFY-2 helper delegation)."""
+    return to_fhir_datetime(dt)

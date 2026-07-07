@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
+from datetime import date, datetime
 from typing import Any
 
 from clinosim.codes import get_system_uri
@@ -508,6 +509,44 @@ def _build_reference_range(
 
 def _map_mar_status(status: str) -> str:
     return {"given": "completed", "held": "on-hold", "refused": "not-done", "not_available": "not-done"}.get(status, "completed")
+
+
+def to_fhir_datetime(value: Any) -> str:
+    """Normalize a datetime-like value to a FHIR R4 ``dateTime`` string.
+
+    FHIR R4 ``dateTime`` requires ISO 8601 with ``T`` separator; ``str(datetime)``
+    produces space-separated form which fails the R4 regex. This helper accepts:
+    ``datetime`` / ``date`` objects (via ``.isoformat()``), ISO strings
+    (passthrough), space-separated strings (normalized to ``T`` form),
+    ``None`` / empty string (→ ``""``).
+
+    Single edit point for the ``str(x)`` / ``hasattr(x, "isoformat")`` fallback
+    pattern previously scattered across FHIR builders (FP-UNIFY-2, 2026-07-07).
+    """
+    if value is None or value == "":
+        return ""
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    s = str(value)
+    if len(s) >= 11 and s[10] == " ":
+        return s[:10] + "T" + s[11:]
+    return s
+
+
+def to_fhir_date(value: Any) -> str:
+    """Normalize a datetime-like value to a FHIR R4 ``date`` string (YYYY-MM-DD).
+
+    Strips any time component. Accepts ``date`` / ``datetime`` objects, ISO
+    strings, space-separated strings, ``None`` / empty string (→ ``""``).
+    Companion to :func:`to_fhir_datetime` (FP-UNIFY-2, 2026-07-07).
+    """
+    if value is None or value == "":
+        return ""
+    if isinstance(value, datetime):
+        return value.date().isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    return str(value)[:10]
 
 
 def _map_encounter_status(status: str) -> str:

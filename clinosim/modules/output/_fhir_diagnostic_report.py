@@ -33,7 +33,7 @@ from clinosim.modules.imaging.engine import (
     load_body_sites,
 )
 from clinosim.modules.order.panel_grouping import load_panel_definitions
-from clinosim.modules.output._fhir_common import _escape_html
+from clinosim.modules.output._fhir_common import _escape_html, to_fhir_datetime
 from clinosim.modules.output._fhir_service_request import (
     LAB_CATEGORY_V2_0074,
     SR_ID_PREFIX,
@@ -376,7 +376,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     body_site_snomed = _o(study, "body_site_snomed", "")
     modality_code = _o(study, "modality_code", "")
     started = _o(study, "started_datetime")
-    started_iso = started.isoformat() if hasattr(started, "isoformat") else str(started or "")
+    started_iso = to_fhir_datetime(started)
 
     # Procedure code resolution: contrast-aware via _resolve_imaging_procedure_code_key
     # (canonical owner: imaging/engine.py). Replaces startswith() fallback that

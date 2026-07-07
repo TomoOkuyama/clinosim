@@ -16,6 +16,7 @@ from clinosim.modules.output._fhir_common import (
     _infer_severity,
     _map_diagnosis_code,
     _severity_coding,
+    to_fhir_date,
 )
 from clinosim.modules.output._fhir_localization import (
     _CATEGORY_DISPLAY_JA,
@@ -139,13 +140,11 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
 
         if chronic_onset:
             # Chronic primary: onset is the disease onset date; recordedDate is the visit.
-            onset_str = chronic_onset if isinstance(chronic_onset, str) else str(chronic_onset)
-            cond["onsetDateTime"] = onset_str[:10]
+            cond["onsetDateTime"] = to_fhir_date(chronic_onset)
             if admission_dt:
-                cond["recordedDate"] = (admission_dt[:10] if isinstance(admission_dt, str)
-                                        else str(admission_dt)[:10])
+                cond["recordedDate"] = to_fhir_date(admission_dt)
         elif admission_dt:
-            cond["onsetDateTime"] = admission_dt[:10] if isinstance(admission_dt, str) else str(admission_dt)[:10]
+            cond["onsetDateTime"] = to_fhir_date(admission_dt)
             cond["recordedDate"] = cond["onsetDateTime"]
 
         if encounters:
@@ -229,13 +228,11 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             }]
 
         if c_onset:
-            onset_str = c_onset if isinstance(c_onset, str) else str(c_onset)
-            cond["onsetDateTime"] = onset_str[:10]
+            cond["onsetDateTime"] = to_fhir_date(c_onset)
 
         # recordedDate: use admission date or onset, whichever is available
         if admission_dt:
-            cond["recordedDate"] = (admission_dt[:10] if isinstance(admission_dt, str)
-                                    else str(admission_dt)[:10])
+            cond["recordedDate"] = to_fhir_date(admission_dt)
 
         conditions.append(cond)
 

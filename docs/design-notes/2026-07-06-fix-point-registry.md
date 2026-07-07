@@ -24,7 +24,7 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 | FP-ARCH-1 | course_archetypes 高優先(HF / subdural) | C3 | 中 | なし | OPEN |
 | FP-ARCH-2/3 | course_archetypes + complications 残 7 trauma 疾患 | C3 | 中〜低 | なし | **DONE**(全32疾患 course_archetypes 完備) |
 | FP-AGE | person.age as-of 化(2 フェーズ) | ~~C2~~ **非FHIR** | 低 | なし | OPEN(再分類、下記) |
-| FP-UNIFY-2 | 日付→ISO ヘルパ共通化 | — | 中 | なし | OPEN |
+| FP-UNIFY-2 | 日付→ISO ヘルパ共通化 | — | 中 | なし | DONE |
 | FP-UNIFY-3 | FHIR 固定 ja ラベル辞書統合 + idiom 統一 | — | 低 | なし | OPEN |
 | FP-UNIFY-4 | case-sensitive `country == "US"` 比較の一掃(lowercase バグ class) | — | 中 | なし | **DONE**(session 39、output 7 + identity/patient 2 sibling)|
 | FP-CLAMP-RANGE | 状態変数 clamp が canonical `_variable_range` をバイパス(inpatient 手術/合併症) | C2 | 中 | なし | **DONE**(session 39、`apply_state_delta` 単一化)|
@@ -216,7 +216,16 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 - `_fhir_imaging_study.py:57 _isoformat_or_str` を `_fhir_common`(or `_shared`)へ昇格し、
   `_fhir_conditions`(7)/ `_fhir_observations`(:236/346/397)/ `_fhir_nursing`(:63/86/142/159)/
   `_fhir_patient:195` / `_fhir_service_request:504` の `[:10]`/`isinstance` インライン重複を置換。
-- **Status:** OPEN
+- **Status:** DONE(session 40)。`clinosim/modules/output/_fhir_common.py` に
+  `to_fhir_datetime(v)` / `to_fhir_date(v)` 2 helper 新設(FHIR R4 `dateTime` 正規表現準拠、
+  空白区切り str も `T` 化)。observations(3)/ care_team(1)/ diagnostic_report(1)/
+  immunization(1)/ service_request(2)/ conditions(4)/ patient(1)/ allergy_intolerance(1)/
+  clinical_impression(1)= **7 file / 14 emission site** を helper 経由に統一。
+  `_fhir_imaging_study._isoformat_or_str` は既に `.isoformat()` のみで文字列 fallback を持たず
+  今回 sweep 対象外(byte 保存のため後日別 sweep で置換可)。guard:
+  `tests/unit/test_fhir_datetime_helpers.py`(24 test、FHIR R4 dateTime regex compliance
+  sweep 含む)。unit 2279 + integration 289 + regression 12 + e2e 37 全 PASS。
+  production CIF は既に ISO 保存済で latent trap(空白区切り str→FHIR spec 不適合)防御が主目的。
 
 ## FP-UNIFY-3 — FHIR 固定 ja ラベル辞書統合 + idiom 統一【低・byte 保存】
 
