@@ -262,37 +262,18 @@ likelihood_ratios:
 # ============================================================
 diagnostic:
   diagnostic_difficulty: 0.25  # Urinalysis + culture; complicated vs simple takes longer
-  presenting_symptoms:
-    - "dysuria"
-    - "urinary_frequency"
-    - "urinary_urgency"
-    - "suprapubic_pain"
-    - "flank_pain"
-    - "fever"
-    - "nausea_vomiting"
-    - "costovertebral_angle_tenderness"
 
-  initial_differentials:
-    - disease: "urinary_tract_infection"
-      prior_probability: 0.50
-      key_findings: ["positive_urinalysis", "urine_culture_positive", "dysuria", "fever"]
-    - disease: "pyelonephritis"
-      prior_probability: 0.25
-      key_findings: ["flank_pain", "fever", "cva_tenderness", "positive_urine_culture"]
-    - disease: "nephrolithiasis"
-      prior_probability: 0.10
-      key_findings: ["colicky_flank_pain", "hematuria", "ct_stone_detected"]
-    - disease: "prostatitis"
-      prior_probability: 0.08
-      key_findings: ["perineal_pain", "tender_prostate", "male_patient"]
-      applies_to: "male_only"
-    - disease: "urethritis"
-      prior_probability: 0.04
-      key_findings: ["urethral_discharge", "sexually_active", "negative_urine_culture"]
-    - disease: "vaginitis"
-      prior_probability: 0.03
-      key_findings: ["vaginal_discharge", "external_dysuria", "negative_urinalysis"]
-      applies_to: "female_only"
+  # NOTE (FP-YAML-KEY-COVERAGE, session 40): the following were authored here but
+  # `diagnostic.presenting_symptoms` and `diagnostic.initial_differentials` are
+  # not consumed by any simulator or diagnosis-engine code path — silently dropped.
+  # The differential-diagnosis engine reads
+  # `clinosim/modules/diagnosis/reference_data/builtin_differentials.yaml`
+  # (see modules/diagnosis/engine.py:_load_reference_data), not per-disease YAML.
+  # `DiseaseProtocol.presenting_symptoms` (top-level) is currently a dead field
+  # with no consumer either. Blocks removed to avoid silent-drop misleadingness;
+  # if a future presenting-symptoms consumer is added, restore under the
+  # authoritative structural location (per-disease chief_complaint drives current
+  # narrative generation via simulator/helpers.py:_disease_chief_complaint).
 
 # ============================================================
 # LAB REFERENCE RANGES (admission values for UTI/pyelonephritis patients)

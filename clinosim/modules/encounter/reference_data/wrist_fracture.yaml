@@ -48,11 +48,12 @@ discharge_prescriptions:
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "tid PRN", duration_days: 7, probability: 0.5}
   - {drug: "Oxycodone 5mg", route: "PO", frequency: "q6h PRN", duration_days: 3, probability: 0.2}
 
-# Severe cases may be referred for ORIF → see wrist_fracture_surgical.yaml (inpatient)
-surgical_referral:
-  probability: 0.20
-  criteria: "Displaced, intra-articular, or comminuted fracture"
-  referral_to: "wrist_fracture_surgical"
+# NOTE (FP-YAML-KEY-COVERAGE, session 40): surgical_referral was authored as
+# {probability: 0.20, criteria: "...", referral_to: "wrist_fracture_surgical"}
+# but no simulator consumer reads this key — silent-drop of referral-routing
+# intent. Removed to fail-loud on future typos; wiring ED-to-elective-surgical
+# escalation is deferred. wrist_fracture_surgical.yaml still exists as an
+# independent inpatient scenario.
 
 incidence_modifier: 1.0
 probability: 0.04  # relative frequency among ED visits

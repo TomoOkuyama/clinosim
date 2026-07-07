@@ -31,6 +31,7 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 | FP-CLAMP-RANGE | 状態変数 clamp が canonical `_variable_range` をバイパス(inpatient 手術/合併症) | C2 | 中 | なし | **DONE**(session 39、`apply_state_delta` 単一化)|
 | FP-COMPLETENESS-GATE | C1/C2/C3 を検証する audit completeness 軸 | — | 高(capstone) | 上流 FP 完了後 | **DONE**(不変則 test suite)/ cohort 統計 audit 軸は残 |
 | FP-FH-CODE-RESOLUTION | `FamilyMemberHistory` の I64 / E11 表示 fallback + Z-code 誤 map | C1+C2 | 中 | なし | **DONE**(session 40)|
+| FP-YAML-KEY-COVERAGE | Consumer-Site Coverage Test で nested YAML key 白リスト検証(sub-model 化回避) | C1 | 中 | なし | **DONE**(session 40)|
 
 ---
 
@@ -376,6 +377,48 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
   正しく表示。
 - **恒久防御**: 今後 family_history.yaml.conditions に追加された code は
   `test_diagnosis_code_coverage.py` の 4-source sweep で自動 catch。unit で fail-loud。
+- **Status:** DONE(session 40)。
+
+## FP-YAML-KEY-COVERAGE — Consumer-Site Coverage Test で nested YAML key 白リスト検証【中・実害】
+
+- **由来(session 40、FP-UNIFY-3 の後で「残 tail の適切な代替手法」の考察から創出)**:
+  `DiseaseProtocol` の `extra="forbid"`(FP-YAML-3、session 38)は **top-level のみ** で
+  `dict[str, Any]` 型の nested container(`order_protocols` / `complications` / `diagnostic`
+  / `outcome_benchmarks` / `expected_lab_distributions` / etc.)は無防備 → typo/misplaced key
+  が silent-drop。**sub-model 化は構造複雑度上昇の懸念**あり、algorithm-appropriate な
+  代替手法として **Consumer-Site Coverage Test**(既存 `test_diagnosis_code_coverage.py`
+  pattern の sibling)を採用。
+- **手法**: nested container ごとに **canonical key allowlist**(frozenset)を test file
+  に定義、全 disease + encounter YAML を walk して unknown key を fail-loud。sub-model
+  定義 0、consumer code 変更 0、test 1 file 追加のみ = byte 保存。
+- **サーベイで発見した 5 real offenders**(3 sink × 2 module):
+  1. `urinary_tract_infection.yaml` — `diagnostic.presenting_symptoms`(8件)+
+     `diagnostic.initial_differentials`(6件)authored intent、consumer 0(differential
+     engine は `modules/diagnosis/reference_data/builtin_differentials.yaml` のみ読む)。
+  2. `rib_fracture.yaml` — top-level `admission_criteria`(probability 0.10 / criteria
+     "Flail chest, ...")= severe rib fracture の ED→inpatient 昇格 intent、consumer 0。
+  3. `wrist_fracture.yaml` — top-level `surgical_referral`(probability 0.20 / referral_to
+     "wrist_fracture_surgical")= ED→elective 手術 referral intent、consumer 0。
+  4. `dialysis_session.yaml` — `workup.vitals_pre_and_post` = pre/post 二回測定の構造
+     区別 intent、consumer 0(現状は暗黙の twice-per-encounter emission)。
+- **修正**: 5 entry すべて delete + NOTE コメント(将来の proper wiring を明示的に defer、
+  session 40 の FP-DELTA-VALIDATE 25 entry triage と同 pattern)。author intent は
+  commit 履歴に残る。臨床 action / narrative は変更なし。
+- **allowlist スコープ**:
+  - **disease YAML(6 container)**: `ORDER_PROTOCOLS_KEYS`(4) /
+    `ORDER_PROTOCOLS_ADMISSION_ORDERS_KEYS`(6) /
+    `ORDER_PROTOCOLS_DISCHARGE_CRITERIA_KEYS`(2) / `DIAGNOSTIC_KEYS`(5) /
+    `COMPLICATION_ENTRY_KEYS`(13) / `OUTCOME_BENCHMARKS_KEYS`(2) /
+    `EXPECTED_LAB_DISTRIBUTIONS_KEYS`(2) / `EXPECTED_VITAL_DISTRIBUTIONS_KEYS`(2)。
+  - **encounter YAML(2 container)**: `ENCOUNTER_TOP_KEYS`(25、consumer-wired
+    `prescriptions_renewed` 含む)/ `ENCOUNTER_WORKUP_KEYS`(3)。
+- **allowlist 自体の防御**: `TestAllowlistsAreNonEmpty` で全 frozenset の非空性を確認
+  (rename typo で全 test が trivial pass に落ちる silent-no-op 防御)。
+- **検証**: unit 2323 + integration 289 + regression 12 + e2e 37 全 PASS。
+  byte 保存 = e2e goldens 影響なし。
+- **恒久防御**: 今後 YAML に新 key を加える author は allowlist にも row を追加(PR diff で
+  意図確認)。consumer なしのまま allowlist 拡大は禁じられていないが、`TestOutcomeBenchmarksKeyCoverage`
+  等の PR diff が review 視点を強制する。sub-model 化への escalation は不要になった。
 - **Status:** DONE(session 40)。
 
 ## FP-COMPLETENESS-GATE — C1/C2/C3 検証 audit 軸【高・capstone】
