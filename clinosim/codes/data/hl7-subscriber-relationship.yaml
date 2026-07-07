@@ -1,0 +1,17 @@
+# HL7 FHIR Coverage.relationship. Authoritative source: HL7 Terminology (THO),
+# CodeSystem subscriber-relationship
+# (http://terminology.hl7.org/CodeSystem/subscriber-relationship).
+# C2-06 (session 42 cycle 2): registered so Coverage.relationship stops
+# emitting display-less coding on 4,825 records.
+metadata:
+  name: HL7 FHIR Coverage Subscriber Relationship
+  uri: http://terminology.hl7.org/CodeSystem/subscriber-relationship
+  source: "HL7 Terminology (THO)"
+codes:
+  child:       {en: "Child",           ja: "子"}
+  parent:      {en: "Parent",          ja: "親"}
+  spouse:      {en: "Spouse",          ja: "配偶者"}
+  common:      {en: "Common Law Spouse", ja: "内縁"}
+  other:       {en: "Other",           ja: "その他"}
+  self:        {en: "Self",            ja: "本人"}
+  injured:     {en: "Injured Party",   ja: "被災者"}

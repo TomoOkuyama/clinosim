@@ -15,7 +15,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key, resolve_lang
-from clinosim.modules.output._fhir_common import BundleContext, to_fhir_datetime
+from clinosim.modules.output._fhir_common import BundleContext, _coding_with_display, to_fhir_datetime
 
 
 def _build_immunizations(ctx: BundleContext) -> list[dict]:
@@ -64,13 +64,12 @@ def _build_immunizations(ctx: BundleContext) -> list[dict]:
         # medical contraindications; expand YAML → statusReason mapping when
         # the CIF gains an authored reason.
         if status == "not-done":
+            # C2-28 (session 42): display resolved via codes/data/
+            # hl7-v3-actreason.yaml — was en-only hardcoded string.
+            lang = resolve_lang(ctx.country)
             resource["statusReason"] = {
-                "coding": [{
-                    "system": get_system_uri("hl7-v3-actreason"),
-                    "code": "PATOBJ",
-                    "display": "patient objection",
-                }],
-                "text": "患者拒否" if resolve_lang(ctx.country) == "ja" else "Patient refused",
+                "coding": [_coding_with_display("hl7-v3-actreason", "PATOBJ", lang)],
+                "text": "患者拒否" if lang == "ja" else "Patient refused",
             }
         out.append(resource)
 

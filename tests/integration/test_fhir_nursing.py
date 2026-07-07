@@ -140,8 +140,12 @@ def test_encounter_reference_present():
         )
 
 
-def test_news2_has_no_loinc_coding():
-    """NEWS2 has no authoritative LOINC; must emit code.text only (no code.coding)."""
+def test_news2_has_loinc_coding():
+    """NEWS2 has an authoritative LOINC (90557-9 "National Early Warning
+    Score (NEWS) 2 [Score]"), verified via LOINC search. Emit as
+    code.coding + code.text. Session 42 cycle 2 (C2-30): 118,131 NEWS2
+    Observations previously lacked coding entry, blocking interop."""
+    from clinosim.codes import get_system_uri
     from clinosim.modules.output.fhir_r4_adapter import _build_nursing_observations
 
     ctx = _make_ctx(_record(), country="US")
@@ -150,8 +154,10 @@ def test_news2_has_no_loinc_coding():
     news2_obs = [o for o in obs if o["id"].startswith("news2-")]
     assert news2_obs, "No NEWS2 observation found"
     for o in news2_obs:
-        assert "coding" not in o["code"], "NEWS2 must not have code.coding"
-        assert o["code"].get("text") == "NEWS2"
+        codings = o["code"].get("coding", [])
+        assert codings, "NEWS2 must have code.coding (LOINC 90557-9)"
+        assert codings[0]["system"] == get_system_uri("loinc")
+        assert codings[0]["code"] == "90557-9"
 
 
 def test_gcs_has_loinc_coding():

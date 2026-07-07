@@ -10,7 +10,8 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.codes import get_system_uri
-from clinosim.modules._shared import is_jp
+from clinosim.modules._shared import is_jp, resolve_lang
+from clinosim.modules.output._fhir_common import _coding_with_display
 from clinosim.modules.output._fhir_localization import _ROLE_PREFIX_MAP_JA
 from clinosim.modules.output._fhir_reference_data import (
     _ROLE_PREFIX_MAP,
@@ -84,7 +85,11 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
     return resource
 
 
-def _build_practitioner_role(staff_id: str, roster_map: dict[str, dict] | None = None) -> dict | None:
+def _build_practitioner_role(
+    staff_id: str,
+    roster_map: dict[str, dict] | None = None,
+    country: str = "US",
+) -> dict | None:
     """Build FHIR PractitionerRole resource (specialty + department)."""
     staff = (roster_map or {}).get(staff_id)
     if not staff:
@@ -126,11 +131,12 @@ def _build_practitioner_role(staff_id: str, roster_map: dict[str, dict] | None =
         }]
 
     if role_code:
+        # C2-07 (session 42 cycle 2): resolve display via codes/data/
+        # hl7-practitioner-role.yaml — was raw code with no display.
         resource["code"] = [{
-            "coding": [{
-                "system": get_system_uri("hl7-practitioner-role"),
-                "code": role_code,
-            }],
+            "coding": [_coding_with_display(
+                "hl7-practitioner-role", role_code, resolve_lang(country),
+            )],
         }]
 
     if spec_info:

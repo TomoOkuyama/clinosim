@@ -52,6 +52,27 @@ def _map_order_status_to_fhir(status: str) -> str:
     return mapping.get(status, "active")
 
 
+def _mr_intent_from_order(order: dict) -> str:
+    """Pick MedicationRequest.intent from the CIF Order (C2-14, session 42).
+
+    Mirrors `_sr_intent_from_clinical_intent` (C1-16) for medications:
+    - Chronic-management refills (clinical_intent contains "Follow-up" /
+      "Chronic" / "Refill") → `instance-order` (a specific instance in an
+      ongoing plan).
+    - Discharge / take-home prescriptions → `original-order` (starts a new
+      series of encounters at another provider).
+    - Default → `order` (a specific order for this encounter).
+    """
+    ci = str(order.get("clinical_intent", "") or "").lower()
+    protocol = str(order.get("protocol_category", "") or "").lower()
+    display = str(order.get("display_name", "") or "").lower()
+    if "discharge" in ci or "discharge" in protocol or display.startswith("discharge:"):
+        return "original-order"
+    if any(k in ci for k in ("follow-up", "follow up", "chronic", "refill", "maintenance")):
+        return "instance-order"
+    return "order"
+
+
 def _build_medication_request(
     order: dict, patient_id: str, country: str,
     encounter_id: str = "", primary_dx_code: str = "",
@@ -90,11 +111,23 @@ def _build_medication_request(
     enc_ref_id = order.get("encounter_id", "") or encounter_id
     resource_id = f"{enc_ref_id}-{base_oid}" if enc_ref_id else base_oid
 
+    # C2-14 (session 42 cycle 2): MR.intent context-aware — mirrors C1-16 which
+    # applied the same idea to ServiceRequest. Chronic-management refills →
+    # `instance-order`; discharge take-home meds → `original-order`; the rest
+    # remain `order`.
+    intent_val = _mr_intent_from_order(order)
+    # C2-16 (session 42): finished courses get status=completed. `end_datetime`
+    # (or `discontinuation_datetime`) is populated in CIF when the course is
+    # deliberately stopped or naturally ends; fall through to whatever
+    # _map_order_status_to_fhir returns otherwise.
+    status_val = _map_order_status_to_fhir(order.get("status", ""))
+    if status_val == "active" and order.get("end_datetime"):
+        status_val = "completed"
     resource: dict[str, Any] = {
         "resourceType": "MedicationRequest",
         "id": resource_id,
-        "status": _map_order_status_to_fhir(order.get("status", "")),
-        "intent": "order",
+        "status": status_val,
+        "intent": intent_val,
         "medicationCodeableConcept": med_concept,
         "subject": {"reference": f"Patient/{patient_id}"},
         "authoredOn": order.get("ordered_datetime", ""),

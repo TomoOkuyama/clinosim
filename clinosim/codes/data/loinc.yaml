@@ -394,3 +394,7 @@ codes:
   # 600-7 (Blood), 630-4 (Urine), 619-7 (Sputum) are already registered
   # above in the existing microbiology block; PR-B reuses those rather
   # than introducing duplicates.
+  # C2-30 (session 42 cycle 2): NEWS2 score. Verified via LOINC search.
+  90557-9:
+    en: National Early Warning Score (NEWS) 2
+    ja: NEWS2 スコア

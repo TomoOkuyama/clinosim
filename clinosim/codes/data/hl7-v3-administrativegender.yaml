@@ -1,0 +1,13 @@
+# HL7 v3 AdministrativeGender. Authoritative source: HL7 Terminology (THO),
+# CodeSystem v3-AdministrativeGender
+# (http://terminology.hl7.org/CodeSystem/v3-AdministrativeGender).
+# C2-05 (session 42 cycle 2): used at Observation.referenceRange.appliesTo
+# to indicate sex-specific reference ranges.
+metadata:
+  name: HL7 v3 Administrative Gender
+  uri: http://terminology.hl7.org/CodeSystem/v3-AdministrativeGender
+  source: "HL7 Terminology (THO)"
+codes:
+  M:   {en: "Male",    ja: "男性"}
+  F:   {en: "Female",  ja: "女性"}
+  UN:  {en: "Undifferentiated", ja: "不明"}

@@ -62,6 +62,55 @@ __all__ = [
 ]
 
 
+# C2-27 (session 42 cycle 2): map section titles (as produced by document
+# enrichers / narrative pass) to LOINC section codes. Codes verified via the
+# LOINC search (loinc.org), matching HL7 recommendations for CCD document
+# sections. Titles not listed here remain title-only until either the enricher
+# starts emitting a canonical title or the code is verified.
+_SECTION_LOINC: dict[str, str] = {
+    # SOAP outpatient / progress notes
+    "subjective": "10164-2",           # History of Present illness (subj narrative)
+    "objective": "8716-3",             # Vital signs (objective) — narrower approx
+    "assessment": "51848-0",           # Evaluation note (assessment)
+    "plan": "18776-5",                 # Plan of care note
+    # Admission H&P / progress
+    "chief_complaint": "10154-3",      # Chief complaint
+    "hpi": "10164-2",                  # History of present illness
+    "past_medical_history": "11348-0", # History of past illness
+    "medications_at_home": "10160-0",  # History of medication use
+    "physical_exam": "29545-1",        # Physical findings
+    "triage_details": "56816-2",       # Vital signs assessment (triage)
+    # Discharge summary
+    "admission_summary": "10154-3",    # (reused, admission complaint)
+    "hospital_course": "8648-8",       # Hospital course
+    "discharge_diagnoses": "11535-2",  # Hospital discharge diagnosis
+    "discharge_medications": "10183-2",# Hospital discharge medications
+    # Nursing sections
+    "nursing_history": "34117-2",      # History and physical (H&P)
+    "adl_assessment": "45391-8",       # Functional status assessment
+    "risk_assessments": "75326-9",     # Assessment plan
+    "nursing_diagnosis": "51848-0",    # Evaluation note (approx)
+    "admission_status": "8648-8",      # Hospital course
+    "nursing_interventions_provided": "10184-0", # Interventions
+    "patient_education": "42346-6",    # Patient education plan
+    "discharge_readiness": "8650-4",   # Hospital discharge readiness
+    # Ward-info & plan sections
+    "ward_and_room": "42349-1",        # Reason for visit (approx)
+    "other_staff": "51897-7",          # Care team member
+    "diagnosis": "29308-4",            # Diagnosis
+    "symptoms": "10187-3",             # Review of systems (approx)
+    "ward_and_physician": "42349-1",   # Reason for visit
+    "dietitian": "51897-7",            # Care team member
+    "nutrition_risk": "9279-1",        # Nutritional risk assessment
+    "nutrition_assessment": "9279-1",  # (same)
+    # Rehab
+    "patient_and_diagnosis": "29308-4",# Diagnosis
+    "rehab_team": "51897-7",           # Care team member
+    "functional_status": "45391-8",    # Functional status assessment
+    "basic_movement": "45391-8",       # (same)
+}
+
+
 def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
     """Emit one Composition per ClinicalDocument with format_type='composition'.
 
@@ -113,9 +162,17 @@ def _build_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[st
     # ("comp-") so production ids ("doc-{enc}-{seq}") become "comp-{enc}-{seq}" instead
     # of "comp-doc-{enc}-{seq}" (double-prefix defect, I-3 fix).
     enc_part = doc_id[len(DOC_REFERENCE_ID_PREFIX):] if doc_id.startswith(DOC_REFERENCE_ID_PREFIX) else doc_id
+    comp_id = f"{COMPOSITION_ID_PREFIX}{enc_part}"
     res: dict[str, Any] = {
         "resourceType": "Composition",
-        "id": f"{COMPOSITION_ID_PREFIX}{enc_part}",
+        "id": comp_id,
+        # C2-34 (session 42 cycle 2): Composition.identifier (0..1) for
+        # cross-system document tracking. Uses the same id under a clinosim
+        # namespace URI — deterministic + unique across the export.
+        "identifier": {
+            "system": "urn:clinosim:composition-id",
+            "value": comp_id,
+        },
         "status": "final",
         "type": {
             "coding": [{
@@ -142,15 +199,28 @@ def _build_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[st
         res["encounter"] = {"reference": f"Encounter/{encounter_id}"}
 
     # Build section[] from doc["narrative"]["sections"] (passed in as `sections`)
+    # C2-27 (session 42 cycle 2): resolve LOINC section codes from the
+    # canonical mapping. Sections with a known LOINC code get `section.code`
+    # populated for interop; unknown titles retain title-only (documented
+    # deferral).
     section_entries: list[dict[str, Any]] = []
     for section_title, section_text in sections.items():
-        section_entries.append({
+        entry: dict[str, Any] = {
             "title": section_title,
             "text": {
                 "status": "generated",
                 "div": f"<div xmlns='http://www.w3.org/1999/xhtml'>{_escape_html(section_text)}</div>",
             },
-        })
+        }
+        loinc_section = _SECTION_LOINC.get(section_title)
+        if loinc_section:
+            lang = _o(doc, "language", "en")
+            entry["code"] = {"coding": [{
+                "system": get_system_uri("loinc"),
+                "code": loinc_section,
+                "display": code_lookup("loinc", loinc_section, lang) or section_title,
+            }]}
+        section_entries.append(entry)
     if section_entries:
         res["section"] = section_entries
 

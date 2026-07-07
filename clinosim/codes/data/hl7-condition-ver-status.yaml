@@ -1,0 +1,16 @@
+# HL7 FHIR Condition verification status. Authoritative source: HL7 Terminology
+# (THO), CodeSystem condition-ver-status
+# (http://terminology.hl7.org/CodeSystem/condition-ver-status).
+# C2-03 (session 42 cycle 2): registered so _fhir_conditions.py stops emitting
+# display-less coding on 70,348 Condition records.
+metadata:
+  name: HL7 FHIR Condition Verification Status
+  uri: http://terminology.hl7.org/CodeSystem/condition-ver-status
+  source: "HL7 Terminology (THO)"
+codes:
+  unconfirmed:     {en: "Unconfirmed",     ja: "未確定"}
+  provisional:    {en: "Provisional",    ja: "暫定"}
+  differential:   {en: "Differential",   ja: "鑑別中"}
+  confirmed:      {en: "Confirmed",      ja: "確定"}
+  refuted:        {en: "Refuted",        ja: "否定"}
+  entered-in-error: {en: "Entered in Error", ja: "誤入力"}
