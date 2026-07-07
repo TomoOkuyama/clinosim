@@ -100,6 +100,18 @@ class TestJPHouseholdAssignment:
         with pytest.raises(ValueError):
             get_provider("XX")
 
+    @pytest.mark.parametrize("country", ["JP", "jp"])
+    def test_get_provider_jp_case_insensitive(self, country):
+        from clinosim.modules.identity.providers import JPIdentityProvider
+
+        assert isinstance(get_provider(country), JPIdentityProvider)
+
+    @pytest.mark.parametrize("country", ["US", "us"])
+    def test_get_provider_us_case_insensitive(self, country):
+        from clinosim.modules.identity.providers import USIdentityProvider
+
+        assert isinstance(get_provider(country), USIdentityProvider)
+
 
 @pytest.mark.unit
 class TestSchemeByOccupation:
