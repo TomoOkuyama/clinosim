@@ -359,6 +359,15 @@ def _bb_practitioners(ctx: BundleContext) -> list[dict]:
     for proc in ctx.record.get("procedures", []):
         add(proc.get("primary_surgeon_id", ""))
         add(proc.get("anesthesiologist_id", ""))
+    # RM-3 (session 42): Immunization.performer.actor references (nurse admin).
+    for imm in ctx.record.get("immunizations", []) or []:
+        add(imm.get("administered_by", "") if isinstance(imm, dict)
+            else getattr(imm, "administered_by", ""))
+    # RM-1 (session 42): nursing survey Observations use primary_nurse_id;
+    # ensure the nurse is emitted even when not the primary_nurse of encounter.
+    for enc in ctx.record.get("encounters", []) or []:
+        add(enc.get("primary_nurse_id", "") if isinstance(enc, dict)
+            else getattr(enc, "primary_nurse_id", ""))
     # C2-09 (session 42 cycle 2): also emit every pharmacist in the roster so
     # CareTeam.participant refs to `Practitioner/PH-*` (C1-15 fix) resolve.
     # Pharmacists are assigned deterministically by encounter-id hash in

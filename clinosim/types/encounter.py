@@ -260,9 +260,15 @@ class ImmunizationRecord:
     """A completed immunization (vaccine history). FHIR Immunization (AD-55 Base).
 
     CIF stores the CVX code only; display resolved at output via clinosim.codes (AD-30).
+
+    RM-3 (session 42): `lot_number` + `administered_by` fields added so FHIR
+    Immunization.lotNumber and .performer[].actor can be populated from real
+    CIF data instead of a builder-side stub.
     """
     vaccine_cvx: str = ""
     occurrence_date: date = field(default_factory=lambda: _UNSET_DATE)
     status: str = "completed"
     primary_source: bool = True
     dose_number: int | None = None
+    lot_number: str = ""  # manufacturer lot ID; empty when unrecorded
+    administered_by: str = ""  # staff_id of nurse/physician who administered

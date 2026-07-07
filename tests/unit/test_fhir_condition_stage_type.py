@@ -95,7 +95,7 @@ def test_stage_summary_coding_uses_jp_display():
 
 
 @pytest.mark.parametrize("code,stage_text", [
-    ("J44.9", "GOLD 2"),                  # COPD — no verified SNOMED staging code yet
+    # RM-4 (session 42): "GOLD 2" removed — 313297008 "Moderate COPD" now verified via tx.fhir.org.
     ("J45.909", "Moderate persistent"),   # asthma severity
     ("I10", "Stage 2"),                   # hypertension stage
     ("I25.10", "CCS I"),                  # CCS angina class

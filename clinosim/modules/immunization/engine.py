@@ -61,12 +61,19 @@ def _safe_date(year: int, month: int, day: int) -> date:
 
 
 def generate_immunizations(patient, schedule: dict, as_of: date,
-                           rng: np.random.Generator) -> list:
+                           rng: np.random.Generator,
+                           nurse_ids: list[str] | None = None) -> list:
     from clinosim.types.encounter import ImmunizationRecord
 
     dob = getattr(patient, "date_of_birth", None)
     base_age = int(getattr(patient, "age", 0) or 0)
     sex = getattr(patient, "sex", "M") or "M"
+    pid = getattr(patient, "patient_id", "") or ""
+    # RM-3 (session 42): pick a stable "family nurse" per patient (nurses
+    # administer routine vaccinations in JP practice).
+    default_nurse = ""
+    if nurse_ids:
+        default_nurse = nurse_ids[sum(ord(c) for c in pid) % len(nurse_ids)]
     out: list = []
     # C1-19 (session 41 cycle 1): a small share of vaccines are documented in
     # the EHR as declined by the patient / caregiver (FHIR status="not-done" +
@@ -108,7 +115,10 @@ def generate_immunizations(patient, schedule: dict, as_of: date,
                     continue
                 age_at = _age_on(dob, occ, base_age)
                 if rng.random() < _coverage(cov, age_at, sex):
-                    out.append(ImmunizationRecord(vaccine_cvx=cvx, occurrence_date=occ))
+                    out.append(ImmunizationRecord(
+                        vaccine_cvx=cvx, occurrence_date=occ,
+                        administered_by=default_nurse,
+                    ))
                 elif rng.random() < 0.02:
                     out.append(ImmunizationRecord(
                         vaccine_cvx=cvx, occurrence_date=occ, status="not-done",
@@ -120,7 +130,10 @@ def generate_immunizations(patient, schedule: dict, as_of: date,
                 occ = _safe_date(yr, start.month, start.day)
                 age_at = _age_on(dob, occ, base_age)
                 if rng.random() < _coverage(cov, age_at, sex):
-                    out.append(ImmunizationRecord(vaccine_cvx=cvx, occurrence_date=occ))
+                    out.append(ImmunizationRecord(
+                        vaccine_cvx=cvx, occurrence_date=occ,
+                        administered_by=default_nurse,
+                    ))
                 elif rng.random() < 0.02:
                     out.append(ImmunizationRecord(
                         vaccine_cvx=cvx, occurrence_date=occ, status="not-done",
@@ -133,7 +146,10 @@ def generate_immunizations(patient, schedule: dict, as_of: date,
                 span = (as_of - start).days
                 offset = int(rng.integers(0, span + 1)) if span > 0 else 0
                 occ = date.fromordinal(start.toordinal() + offset)
-                out.append(ImmunizationRecord(vaccine_cvx=cvx, occurrence_date=occ))
+                out.append(ImmunizationRecord(
+                    vaccine_cvx=cvx, occurrence_date=occ,
+                    administered_by=default_nurse,
+                ))
 
     out.sort(key=lambda r: r.occurrence_date)
     return out

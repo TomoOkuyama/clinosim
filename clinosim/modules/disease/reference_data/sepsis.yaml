@@ -926,6 +926,22 @@ archetype_modifiers:
     effect: {treatment_resistant: 0.08, gradual_deterioration: 0.05, smooth_recovery: -0.13}
 
 # ============================================================
+# IMAGING (RM-5 / CO-1, session 42 cycle-3 tail)
+# Sepsis workup CXR to identify pulmonary source of infection.
+# ============================================================
+imaging_orders:
+  - modality: CR
+    body_site: chest
+    views: [PA]
+    urgency: stat
+    clinical_indication: "Sepsis workup — evaluate for pulmonary source"
+    day: 0
+    abnormal_rate_by_severity:
+      mild: 0.55
+      moderate: 0.70
+      severe: 0.85
+
+# ============================================================
 # COMPLICATIONS (secondary events during hospitalization)
 # Sepsis has high complication rates and multi-organ involvement
 # ============================================================

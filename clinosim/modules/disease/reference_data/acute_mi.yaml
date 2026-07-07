@@ -779,6 +779,21 @@ archetype_modifiers:
     effect: {smooth_recovery: 0.10, treatment_resistant: -0.05}
 
 # ============================================================
+# IMAGING (RM-5 / CO-1, session 42): baseline CXR for LV function evaluation.
+# ============================================================
+imaging_orders:
+  - modality: CR
+    body_site: chest
+    views: [PA]
+    urgency: routine
+    clinical_indication: "Baseline CXR for acute MI — evaluate LV function"
+    day: 0
+    abnormal_rate_by_severity:
+      mild: 0.30
+      moderate: 0.50
+      severe: 0.75
+
+# ============================================================
 # COMPLICATIONS (secondary events during hospitalization)
 # Each complication has: trigger conditions, timing, probability,
 # physiological impact, and detection/treatment actions.

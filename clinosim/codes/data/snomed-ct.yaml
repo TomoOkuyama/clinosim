@@ -343,6 +343,18 @@ codes:
   '394914008':
     en: Radiology
     ja: 放射線科
+  # RM-4 (session 42, cycle-3 tail) — COPD severity SNOMED (GOLD 1/2/3),
+  # verified via tx.fhir.org $lookup. GOLD 4 (very severe) not registered
+  # until authoritative code is identified.
+  '313296004':
+    en: Mild chronic obstructive pulmonary disease
+    ja: 軽症 慢性閉塞性肺疾患
+  '313297008':
+    en: Moderate chronic obstructive pulmonary disease
+    ja: 中等症 慢性閉塞性肺疾患
+  '313299006':
+    en: Severe chronic obstructive pulmonary disease
+    ja: 重症 慢性閉塞性肺疾患
   # === Condition.stage.summary — chronic-condition staging (verified via
   # tx.fhir.org $lookup, session 39). Only staging systems with unambiguous
   # SNOMED CT concepts are coded; GOLD / asthma-severity / hypertension-stage /
