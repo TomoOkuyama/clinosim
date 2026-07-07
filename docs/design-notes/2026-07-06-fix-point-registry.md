@@ -201,8 +201,15 @@ FP の **Status 列を更新**(OPEN → IN-PROGRESS → DONE)し、DONE 時に P
 - **修正(session 38)**: 誤 coding を除去、`summary.text`(stage 値)保持 + `type.text="Clinical stage"`
   のみ(コード捏造なし)。cohort 実測: 5717 staged Conditions で tumor コード 0(旧: 全件)。
   golden byte 不変(narrative golden は FHIR Condition を含まない)、unit 8 guards。
-- **Status:** DONE(session 38)。より完全化(CKD stage finding / NYHA class 等の per-system 正 SNOMED
-  付与)は authoritative 検証を要する任意の後続改善。
+- **Status:** DONE(session 38 で誤 coding 除去)。**追加完全化(session 39)**: `stage.summary.coding` に
+  per-system の正 SNOMED を付与 — **CKD G1-G5(431855005 / 431856006 / 700378005 / 700379002 /
+  431857002 / 433146000)+ NYHA I-IV(420300004 / 421704003 / 420913000 / 422293003)を tx.fhir.org
+  `$lookup` で 10 コード全数 authoritative 検証**して `snomed-ct.yaml`(en+ja)へ登録、`_STAGE_SUMMARY_SNOMED`
+  マップ経由で emit(JP は ja display)。**GOLD / asthma-severity / hypertension-stage / CCS は verified
+  SNOMED 無しのため text-only 維持**(捏造回避)。drift guard `test_every_ckd_nyha_generated_stage_is_mapped`
+  で activator の stage 語彙と map の乖離を fail-loud 化(whitelist-drift bug class 対策)。additive
+  (FHIR unit 24 + output 272 + FHIR integration 64 green、profile golden 不変)。残: GOLD/CCS 等の
+  authoritative code 発見時に順次追加 / `stage.type` の per-system 正コード。
 
 ## FP-UNIFY-2 — 日付→ISO 文字列ヘルパ共通化【中・byte 保存】
 

@@ -328,3 +328,39 @@ codes:
   '183452005':
     en: Emergency hospital admission
     ja: 救急入院
+  # === Condition.stage.summary — chronic-condition staging (verified via
+  # tx.fhir.org $lookup, session 39). Only staging systems with unambiguous
+  # SNOMED CT concepts are coded; GOLD / asthma-severity / hypertension-stage /
+  # CCS remain text-only until an authoritative code is verified. ===
+  # CKD (KDIGO G-stage) — N18
+  '431855005':
+    en: Chronic kidney disease stage 1
+    ja: 慢性腎臓病ステージ1
+  '431856006':
+    en: Chronic kidney disease stage 2
+    ja: 慢性腎臓病ステージ2
+  '700378005':
+    en: Chronic kidney disease stage 3A
+    ja: 慢性腎臓病ステージ3a
+  '700379002':
+    en: Chronic kidney disease stage 3B
+    ja: 慢性腎臓病ステージ3b
+  '431857002':
+    en: Chronic kidney disease stage 4
+    ja: 慢性腎臓病ステージ4
+  '433146000':
+    en: Chronic kidney disease stage 5
+    ja: 慢性腎臓病ステージ5
+  # NYHA functional classification — I50 (heart failure)
+  '420300004':
+    en: New York Heart Association Classification - Class I
+    ja: NYHA心機能分類 クラスI
+  '421704003':
+    en: New York Heart Association Classification - Class II
+    ja: NYHA心機能分類 クラスII
+  '420913000':
+    en: New York Heart Association Classification - Class III
+    ja: NYHA心機能分類 クラスIII
+  '422293003':
+    en: New York Heart Association Classification - Class IV
+    ja: NYHA心機能分類 クラスIV
