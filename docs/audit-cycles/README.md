@@ -78,7 +78,11 @@ Each cycle has its own file, `cycle-<N>.md`, with:
 
 _(populated as cycles run — session 41 will open cycle 1)_
 
-- Cycle 1 — not yet started.
+- [Cycle 1](cycle-1.md) — CLOSED 2026-07-07 (session 41): 20 issues addressed
+  (13 resolved / 5 not-a-bug / 2 carry-over to cycle 2). US p=10000 + JP p=10000
+  audit; JP p=10000 regeneration for verification.
+- Cycle 2 — not yet started. Carry-over: C1-09 rules expansion, C1-10 ImagingStudy density,
+  C1-18 JP chronic conditions root cause.
 
 ## Related documents
 

@@ -56,16 +56,27 @@ def _build_encounter(
     }
 
     # Type (SNOMED). C1-05 (session 41 cycle 1): outpatient AMB no longer
-    # uniformly "Patient-initiated encounter"; use chief_complaint prefix
-    # ("Follow-up:") + presence-of-primary-diagnosis heuristic to distinguish
-    # follow-up check-up vs consultation vs generic patient-initiated.
+    # uniformly "Patient-initiated encounter". Use existing context to pick a
+    # more specific SNOMED code — JP EHR reality: 再診 (follow-up check-up) is
+    # the vast majority of outpatient visits, 初診 (first-visit consultation)
+    # is a small minority, and screening/immunization visits keep the generic
+    # patient-initiated code.
     type_code = _ENCOUNTER_TYPE_SNOMED_CODE.get(enc_type)
     if enc_type == "outpatient":
         _cc = str(enc.get("chief_complaint", "") or "")
-        if _cc.startswith("Follow-up") or _cc.startswith("フォローアップ"):
+        # Health screening / annual check / immunization → keep the generic
+        # patient-initiated code (270427003) — not a disease-specific visit.
+        if any(kw in _cc for kw in ("健康診断", "screening", "予防接種", "vaccination")):
+            type_code = "270427003"
+        elif _cc.startswith("Follow-up") or _cc.startswith("フォローアップ") or \
+             _cc.startswith("Post-discharge"):
             type_code = "185349003"  # Encounter for check-up
-        elif primary_dx_code and not is_readmission:
-            type_code = "11429006"  # Consultation
+        elif primary_dx_code:
+            # Default for chronic-condition outpatient visits: check-up
+            # (follow-up). Consultation (11429006) reserved for the rare
+            # first-visit path — detected via encounter YAML flags in a
+            # future cycle (needs new CIF field).
+            type_code = "185349003"
     if type_code:
         resource["type"] = [{"coding": [{
             "system": get_system_uri("snomed-ct"),
