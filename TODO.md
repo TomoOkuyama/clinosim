@@ -1,6 +1,27 @@
 # clinosim — TODO
 
-## Status (current as of 2026-07-07, session 42 — Cycle 2 CLOSED)
+## Status (current as of 2026-07-08, session 42 — Cycle 3 CLOSED)
+
+**★ Audit Cycle 3 CLOSED (2026-07-08, session 42, `docs/audit-cycles/cycle-3.md`)** — JP p=10000
+seed=42 baseline audit → 30 issues → fixes → JP regen → verification. **20 fully resolved / 4
+partial / 6 attempted-defer (larger scope; user approved 2)**. Major wins: adapter-level
+`_apply_jp_core_profile(resource)` + `_JP_CORE_PROFILES` dict (13 JP Core StructureDefinition
+URLs, all authoritatively verified via jpfhir.jp WebFetch); Encounter.location fallback to
+department Location for AMB/EMER (facility bundle now emits dept-Location, previously only
+wards/beds); SR.code.system routed through `system_key_for("lab", country)` so JP emits JLAC10
+URI (was hardcoded loinc.org, cycle 2's C2-04 root cause fixed); CareTeam.participant.role
+SNOMED coding per participant (physician 309343006 / nurse 224535009 / pharmacist 46255001);
+Immunization.lotNumber / performer / reasonCode filled; AllergyIntolerance.recorder +
+recordedDate; Coverage.class[] + fiscal-year period (4/1–3/31); Composition.section.code
+LOINC mapping 98.8% (was 92%); MR/MAR multi-word drug base longest-match-wins lookup;
+ED procedure rules (6 new procedures + 6 rules keyed on JP ED condition_ids); Practitioner
+name JP kanji IDE extension. Also: cycle-2 improvement review completed mid-cycle (all JP
+Core URLs verified; YJ code fabrication risk documented + deferred to別 chain). Unit tests:
+**2339 passed**. Cycle 4 candidates: CO-1 imaging density / CO-2 JP chronic multiplier /
+CO-6 stage SNOMED tail / C3-09 Observation.performer cross-cut / CY2-B MR classification /
+CO-8 (C2-15) YJ MHLW verification chain.
+
+## Status (2026-07-07, session 42 — Cycle 2 CLOSED)
 
 **★ Audit Cycle 2 CLOSED (2026-07-07, session 42, `docs/audit-cycles/cycle-2.md`)** — JP p=10000
 seed=42 baseline audit → 30 issues → fixes → JP regen → verification. **17 fully resolved / 3

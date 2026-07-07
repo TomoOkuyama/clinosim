@@ -26,10 +26,18 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     beds = hospital_config.get("resource_capacity", {}).get("inpatient_beds", 0)
 
     # Root hospital Organization
+    # C3-17 (session 42 cycle 3): JP Core Organization profile also on
+    # facility-bundle entries (adapter's post-hook doesn't touch the
+    # separate facility bundle).
+    _jp_org_profile = (
+        {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization"]}}
+        if is_jp(country) else {}
+    )
     hosp_name = "総合病院" if is_jp(country) else "Community Hospital"
     root_org = {
         "resourceType": "Organization",
         "id": "hospital-main",
+        **_jp_org_profile,
         "active": True,
         "type": [{
             "coding": [{
@@ -49,6 +57,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
         dept_org = {
             "resourceType": "Organization",
             "id": f"dept-{dept.replace('_', '-')}",
+            **_jp_org_profile,
             "active": True,
             "type": [{
                 "coding": [{
@@ -61,6 +70,25 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             "partOf": {"reference": "Organization/hospital-main"},
         }
         entries.append(_entry(dept_org))
+        # CO-5 (session 42 cycle 3): also emit a Location per department so
+        # AMB / EMER Encounter.location = Location/loc-dept-{dept} resolves.
+        # Previously only ward + bed Locations existed; AMB visits linked
+        # to nothing physical.
+        dept_loc = {
+            "resourceType": "Location",
+            "id": f"loc-dept-{dept.replace('_', '-')}",
+            "status": "active",
+            "name": display,
+            "physicalType": {
+                "coding": [{
+                    "system": get_system_uri("hl7-location-physical-type"),
+                    "code": "area",
+                    "display": "Area" if not is_jp(country) else "エリア",
+                }],
+            },
+            "managingOrganization": {"reference": f"Organization/dept-{dept.replace('_', '-')}"},
+        }
+        entries.append(_entry(dept_loc))
 
     # Ward Location resources + Bed Locations (partOf ward)
     ward_capacity = hospital_config.get("ward_capacity", {}) or {}

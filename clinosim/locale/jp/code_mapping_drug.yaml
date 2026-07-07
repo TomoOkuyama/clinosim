@@ -41,14 +41,14 @@ Metformin: "3962001"
 RegularInsulin: "2492009"
 Insulin: "2492009"
 
-# C2-15 (session 42 cycle 2): 3,223 MRs + 68,957 MARs lacked YJ coding because
-# these drug bases were unmapped. Codes below are 薬効分類-first-4-digit + 001
-# stubs following the file header's "representative product code" convention.
-# NOTE: individual codes require verification against 薬価基準収載品目リスト
-# (MHLW 令和6年) before being treated as authoritative; treat as best-effort
-# grouping until then. Non-drug items (procedures, devices) intentionally
-# remain unmapped — they should not appear as MedicationRequest in the first
-# place (deferred to a separate CIF classification fix).
+# ⚠️ CYCLE 2 REVIEW (session 42, 2026-07-07): 60+ codes below were added in cycle 2
+# WITHOUT authoritative verification against 薬価基準収載品目リスト. They follow the
+# 薬効分類-first-4-digit + 3-digit-stub pattern used elsewhere in this file, but
+# real YJ codes are 12 characters (e.g. 3311401A2020, not 3319401). Downstream
+# consumers MUST NOT treat these as billable — they exist only to fill
+# medicationCodeableConcept.coding for interop shape. Cycle 3 policy (session 42):
+# defer authoritative verification to a dedicated chain (TODO). Non-drug items
+# (procedures / devices) remain unmapped — CIF classification defect, see cycle 3.
 Prednisolone: "2456001"
 Methylprednisolone: "2456005"
 Ondansetron: "2391403"
@@ -125,6 +125,18 @@ Dexamethasone: "2454005"
 Hydrocortisone: "2456002"
 Beclomethasone: "2454701"
 Sliding scale insulin: "2492410"
+
+# C3-10 (session 42 cycle 3): space-separated variants for the same drug bases
+# above, so the longest-match-wins lookup in _fhir_medications.py finds them
+# when CIF stores the multi-word form (e.g. "Normal saline 80 mL/h").
+Normal saline: "3319401"
+Regular insulin: "2492009"
+Potassium chloride: "3319003"
+Vitamin D: "3160001"
+Lactated Ringers: "3319400"
+Sodium bicarbonate: "2344001"
+Magnesium sulfate: "3319006"
+Tetanus toxoid: "6362400"
 
 # 呼吸器系
 Tiotropium: "2259710"

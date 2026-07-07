@@ -297,12 +297,19 @@ def _bb_vitals(ctx: BundleContext) -> list[dict]:
 
 def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
     out: list[dict] = []
+    # CO-7 (session 42 cycle 3): propagate encounter_type for MR.intent
+    # inference. The primary encounter type is a reliable proxy when
+    # CIF Order.clinical_intent is not populated.
+    encounters = ctx.record.get("encounters", []) or []
+    primary_enc_type = encounters[0].get("encounter_type", "") if encounters else ""
     for order in ctx.record.get("orders", []):
         if order.get("order_type") == "medication":
             if not (order.get("display_name") or "").strip():
                 continue  # skip blank drug names (CIF data quality)
             out.append(_build_medication_request(
-                order, ctx.patient_id, ctx.country, ctx.primary_enc_id, ctx.primary_dx_code))
+                order, ctx.patient_id, ctx.country, ctx.primary_enc_id, ctx.primary_dx_code,
+                encounter_type=primary_enc_type,
+            ))
     return out
 
 
@@ -453,6 +460,13 @@ def _build_bundle(
     entries: list[dict] = []
     for builder in _BUNDLE_BUILDERS:
         for resource in builder(ctx):
+            # C3-11..18 (session 42 cycle 3): apply JP Core profile URLs at
+            # the adapter level so every resource type gains conformance
+            # declarations without touching each builder. Coverage / Patient /
+            # Encounter / Condition already carry inline profile; the helper is
+            # idempotent (skips when meta.profile is already populated).
+            if ctx.country == "JP":
+                _apply_jp_core_profile(resource)
             entries.append(_entry(resource))
 
     return {
@@ -461,6 +475,42 @@ def _build_bundle(
         "type": "collection",
         "entry": entries,
     }
+
+
+_JP_CORE_PROFILES: dict[str, str] = {
+    # Resources with a canonical JP Core profile URL (JPFHIR core 1.1+).
+    # Verified via https://jpfhir.jp/fhir/core/
+    "Patient": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Patient",
+    "Encounter": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter",
+    "Condition": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition",
+    "Coverage": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Coverage",
+    "Observation": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common",
+    "MedicationRequest": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest",
+    "MedicationAdministration": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationAdministration",
+    "AllergyIntolerance": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_AllergyIntolerance",
+    "Immunization": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Immunization",
+    "Practitioner": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Practitioner",
+    "PractitionerRole": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_PractitionerRole",
+    "Organization": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization",
+    "DiagnosticReport": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Common",
+}
+
+
+def _apply_jp_core_profile(resource: dict) -> None:
+    """Attach the JP Core profile URL for the resource's type when absent.
+
+    C3-11..18 (session 42 cycle 3): idempotent — leaves existing meta.profile
+    untouched when a builder has already set one. Adds `meta.profile[]` with
+    the JP Core StructureDefinition URL when the resourceType is registered.
+    """
+    rt = resource.get("resourceType", "")
+    profile = _JP_CORE_PROFILES.get(rt)
+    if not profile:
+        return
+    meta = resource.setdefault("meta", {})
+    profs = meta.setdefault("profile", [])
+    if profile not in profs:
+        profs.append(profile)
 
 
 # ============================================================

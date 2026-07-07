@@ -157,6 +157,8 @@ def _build_coverage_resources(patient_data: dict, country: str) -> list[dict]:
         # recommends period on active coverage. If enrollment lacks explicit
         # start/end, default to the current calendar year — clinosim's
         # 保険証 renewal cycle is annual per JP 医療保険 practice.
+        # C3-08 review (cycle 3): JP 保険証 valid period actually runs
+        # 4/1 → 3/31 (fiscal year), not calendar year. Use fiscal boundary.
         period = {}
         if enr.get("valid_from"):
             period["start"] = enr["valid_from"]
@@ -164,8 +166,22 @@ def _build_coverage_resources(patient_data: dict, country: str) -> list[dict]:
             period["end"] = enr["valid_to"]
         if not period:
             year = _default_coverage_period_year(patient_data)
-            period = {"start": f"{year}-01-01", "end": f"{year}-12-31"}
+            period = {"start": f"{year}-04-01", "end": f"{year + 1}-03-31"}
         coverage["period"] = period
+        # C3-08 (session 42 cycle 3): Coverage.class[] — group / plan
+        # classification. For JP, class[0].type=group with 保険者番号 as
+        # the coverage class identifier.
+        coverage["class"] = [{
+            "type": {
+                "coding": [{
+                    "system": "http://terminology.hl7.org/CodeSystem/coverage-class",
+                    "code": "group",
+                    "display": "Group" if not is_jp(country) else "保険グループ",
+                }],
+            },
+            "value": insurer,
+            "name": name_map.get(insurer, insurer),
+        }]
         resources.append(coverage)
 
     return resources
