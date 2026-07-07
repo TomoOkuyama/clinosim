@@ -39,6 +39,7 @@ from clinosim.modules.order.engine import (
 )
 from clinosim.modules.physiology.engine import (
     apply_disease_onset,
+    apply_state_delta,
     derive_lab_values,
     derive_observed_vitals,
     initialize_state,
@@ -257,9 +258,7 @@ def _simulate_patient(
                                           operating_rooms=operating_rooms)
         procedures.append(proc)
         for var, delta in impacts.items():
-            cur = getattr(state, var, None)
-            if cur is not None:
-                setattr(state, var, max(-1.0, min(1.0, cur + delta)))
+            apply_state_delta(state, var, delta)
         rehab_sessions = generate_rehab_sessions(
             patient.patient_id, encounter.encounter_id,
             proc.start_datetime, target_los, rng, config.country,
@@ -1008,9 +1007,7 @@ def _run_daily_loop(
             )
             for comp in triggered:
                 for var, delta in comp.get("state_impact", {}).items():
-                    cur = getattr(state, var, None)
-                    if cur is not None:
-                        setattr(state, var, max(-1.0, min(1.0, cur + delta)))
+                    apply_state_delta(state, var, delta)
                 comp_name = comp.get("name", "unknown")
                 complications_occurred.append(comp_name)
                 if "icu_transfer" in comp.get("actions", []):

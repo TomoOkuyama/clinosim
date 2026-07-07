@@ -8,6 +8,7 @@ import pytest
 from clinosim.modules.physiology.engine import (
     apply_coupling_rules,
     apply_disease_onset,
+    apply_state_delta,
     derive_lab_values,
     derive_observed_vitals,
     derive_vital_signs,
@@ -159,6 +160,30 @@ class TestCouplingRules:
         state = PhysiologicalState(inflammation_level=0.85, coagulation_status=0.0)
         apply_coupling_rules(state)
         assert state.coagulation_status > 0  # DIC pathway activated
+
+
+@pytest.mark.unit
+class TestApplyStateDelta:
+    """apply_state_delta must clamp to each variable's CANONICAL range, so a
+    complication / surgery impact cannot drive a 0..1 axis negative (the
+    hardcoded max(-1,1) clamp bug at inpatient.py:262/1013)."""
+
+    def test_unipolar_var_floors_at_zero_not_negative(self):
+        # cardiac_function is 0..1; a large negative complication delta must
+        # floor at 0.0, never go negative (a hardcoded (-1,1) clamp allowed -0.1).
+        state = PhysiologicalState(cardiac_function=0.2)
+        apply_state_delta(state, "cardiac_function", -0.30)
+        assert state.cardiac_function == 0.0
+
+    def test_bipolar_var_still_reaches_negative_floor(self):
+        # volume_status is -1..1; negative values remain valid.
+        state = PhysiologicalState(volume_status=-0.9)
+        apply_state_delta(state, "volume_status", -0.5)
+        assert state.volume_status == -1.0
+
+    def test_absent_attr_is_noop(self):
+        state = PhysiologicalState()
+        apply_state_delta(state, "not_a_real_axis", 0.5)  # no crash, no-op
 
 
 # --- Lab value derivation ---

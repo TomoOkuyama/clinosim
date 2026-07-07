@@ -111,6 +111,23 @@ def hba1c_from_glycemic_control(glycemic_control: float) -> float:
 _ACID_BASE_RESPIRATORY_FRACTION = {"metabolic": 0.0, "mixed": 0.5, "respiratory": 1.0}
 
 
+def apply_state_delta(state: PhysiologicalState, var: str, delta: float) -> None:
+    """Add ``delta`` to ``state.<var>`` in place, clamped to the variable's
+    CANONICAL range from ``_variable_range``.
+
+    Single edit point for delta application. Every site that folds a YAML-driven
+    impact into physiological state (disease onset, daily update, surgery impacts,
+    complication state_impact) MUST route through here — a hardcoded ``max(-1.0,
+    min(1.0, ...))`` clamp lets a 0..1 axis (inflammation/renal/cardiac/perfusion/
+    hepatic/anemia/coagulation) go negative, which is physiologically invalid and
+    distorts downstream lab/coupling derivation. No-op when the attribute is absent.
+    """
+    current = getattr(state, var, None)
+    if current is not None:
+        lo, hi = _variable_range(var)
+        setattr(state, var, clamp(current + delta, lo, hi))
+
+
 def apply_disease_onset(
     state: PhysiologicalState,
     severity: str,
@@ -125,10 +142,7 @@ def apply_disease_onset(
     """
     impact = initial_impact.get(severity, {})
     for var, delta in impact.items():
-        current = getattr(state, var, None)
-        if current is not None:
-            lo, hi = _variable_range(var)
-            setattr(state, var, clamp(current + delta, lo, hi))
+        apply_state_delta(state, var, delta)
     if acid_base_type in _ACID_BASE_RESPIRATORY_FRACTION:
         state.respiratory_fraction = _ACID_BASE_RESPIRATORY_FRACTION[acid_base_type]
     apply_coupling_rules(state)
@@ -148,11 +162,7 @@ def update(
     scale = time_step.total_seconds() / 86400.0  # fraction of a day
 
     for variable, daily_delta in directive.changes.items():
-        current = getattr(state, variable, None)
-        if current is not None:
-            delta = daily_delta * scale
-            lo, hi = _variable_range(variable)
-            setattr(state, variable, clamp(current + delta, lo, hi))
+        apply_state_delta(state, variable, daily_delta * scale)
 
     apply_coupling_rules(state)
     state.timestamp += time_step
