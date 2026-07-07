@@ -1,6 +1,6 @@
 # clinosim — TODO
 
-## Status (current as of 2026-07-06, session 38)
+## Status (current as of 2026-07-07, session 39)
 
 **v0.2** — population-driven synthetic EHR simulator with full FHIR R4 Bulk Data Export,
 multi-country (US/JP), **32 diseases + 46 ED/outpatient conditions**, snapshot date support,
@@ -19,6 +19,31 @@ Landed: severity single source of truth (disease-YAML canonical, `disease/severi
 have `course_archetypes` + `complications`**; `Condition.stage.type` tumor-code misuse fixed;
 completeness invariant test gate. Result: **C1/C3 fully closed, C2 主要 closed**. Remaining =
 optional follow-ups + FP-AGE (a CSV/narrative multi-year concern, NOT a FHIR-element issue).
+
+**★ Cross-cutting follow-up + bug-sibling sweep (2026-07-07, session 39)** — 8 commits on
+master (all pushed, unit+integration 1721 green). Two real data bugs + a cross-module sweep
+(per the standing rule "find a bug → check every other module for the same class"):
+(1) `anion_gap_status` missing from `physiology._variable_range` → GI conditions' negative
+(non-AG hyperchloremic) axis was clamped to 0 (degenerate); (2) FP-UNIFY-4 `country=="US"`
+case-sensitive gating swept — output layer 7 sites + **2 siblings found outside output**
+(`identity/registry.py`, `patient/activator.py`); (3) FP-CLAMP-RANGE — `inpatient.py`
+surgery/complication impacts bypassed `_variable_range` with a hardcoded `(-1,1)` clamp
+(0..1 axes could go negative) → new `physiology.apply_state_delta` single-source helper;
+(4) dead `reference_ranges` model field + 23 YAML blocks removed (locale dup); `drug_interactions`
++ `expected_vital_distributions` **retained as future-wiring seeds** (DetectedIssue / completeness
+audit); (5) `clinical_course` trajectory var list recognizes sodium/anion_gap (latent drop);
+(6) **`Condition.stage.summary` now carries verified SNOMED for CKD G1-G5 + NYHA I-IV** (10
+codes authoritatively verified via tx.fhir.org `$lookup`, en+ja in `snomed-ct.yaml`; GOLD/
+asthma/HTN/CCS stay text-only — no fabricated codes; drift guard added). Registry updated
+(FP-UNIFY-4 / FP-CLAMP-RANGE DONE; Condition.stage follow-up partially done). New standing rule
+in memory: `feedback_check_sibling_bugs_across_modules.md`.
+
+Remaining cross-cutting tail (all lower-value, see registry): FP-UNIFY-2 (date→ISO helper —
+has a hidden str-vs-`.isoformat()` inconsistency to resolve, not pure byte-preserving) /
+FP-UNIFY-3 (fixed ja labels) / `order/engine` raw-dict path (needs nested sub-model typing —
+larger than registry implied) / `daily_trajectory` SOAP narrative for 9 diseases (existing
+authored blocks are minimal/generic — low value unless all 32 upgraded) / per-staging SNOMED
+for GOLD/CCS (no verified codes yet) / FP-AGE (non-FHIR, multi-year).
 
 Historical status detail (datasets/code-coverage snapshots below and in
 `## Recent completions` sections) is retained as-is; the numbers there predate session 38.
