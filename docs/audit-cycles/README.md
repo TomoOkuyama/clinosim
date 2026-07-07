@@ -4,6 +4,13 @@ This directory records the sequential CIF/FHIR data-quality audit cycles that
 became the default workflow for clinosim from **session 41 onward**
 (user directive at session 40 wrap-up, 2026-07-07).
 
+**Cycle 2 onward: JP only** (user directive at cycle 1 start, 2026-07-07).
+Cycle 1 opened with US p=10000 + JP p=10000 mixed; from cycle 2 onward
+both generation/regeneration and review are JP-only. Review points
+prioritise **appropriateness for Japanese medical-institution records** and
+**JP Core FHIR profile compliance**, on top of data quality / clinical
+integrity / realism.
+
 ## Workflow (per cycle)
 
 1. Generate US p=10000 + JP p=10000 CIF/FHIR (once per cycle).
