@@ -49,7 +49,46 @@ _(kept in scratchpad: `/private/tmp/claude-.../scratchpad/cycle-1/` NDJSON snaps
 
 ## Fix content (per issue)
 
-_(populated during fix phase — one row per issue with commit hash + alternatives considered)_
+Applied during cycle 1 fix phase. Verification is deferred to cycle 2 opening
+(regenerate JP p=10000 and confirm resolution). Session 41 4-axis rule applied:
+for every new addition, checked (1) project concept fit, (2) module
+responsibility, (3) data quality / clinical integrity, (4) structural
+simplicity, plus rule "additions only when strictly required".
+
+| # | id | fix approach | code touched | verdict |
+|---|---|---|---|---|
+| 1 | C1-01 | AMB encounters skip `hospitalization` block (FHIR R4 semantics: inpatient/ED only). Existing-code fix. | `_fhir_encounter.py` | fixed |
+| 2 | C1-02 | New authoritative `codes/data/hl7-admit-source.yaml` (en+ja, HL7 THO). Builder resolves display via `code_lookup` (locale-aware). Multi-language preserved. | `_fhir_encounter.py`, `codes/data/hl7-admit-source.yaml` (new) | fixed |
+| 3 | C1-03 | New authoritative `codes/data/hl7-discharge-disposition.yaml`; same pattern as C1-02. | `_fhir_encounter.py`, `codes/data/hl7-discharge-disposition.yaml` (new) | fixed |
+| 4 | C1-04 | Not-a-bug: 24 offenders are `status=in-progress` encounters (snapshot cut mid-stay); FHIR-correctly lack `dischargeDisposition`. | — | not-a-bug |
+| 5 | C1-05 | AMB SNOMED diversification: `chief_complaint` startswith "Follow-up" → 185349003 "Encounter for check-up"; else with primary_dx_code + not readmission → 11429006 "Consultation"; else 270427003 (unchanged). Existing-code fix using existing enc context. | `_fhir_encounter.py`, `codes/data/snomed-ct.yaml` (2 new authorized codes) | fixed |
+| 6 | C1-06 | MAR.request field populated by constructing the MedicationRequest id (`{enc_id}-{order_id}`) from CIF's existing `order_id`. No new fields. | `_fhir_medications.py` | fixed |
+| 7 | C1-07 | Same root cause as C1-06; the `request` reference makes all MedicationRequests reachable from MAR audit trail. | see C1-06 | fixed |
+| 8 | C1-08 | Not-a-bug on re-analysis: MR count 21820 for a 90% outpatient cohort matches EHR reality (~0.5/enc). MAR:MR 9:1 realistic for multi-day inpatient orders. | — | not-a-bug |
+| 9 | C1-09 | Partial: Emergency simulator now calls `generate_bedside_procedures` for moderate/severe ED cases (reuses existing rule table). Outpatient AMB procedures not fabricated. | `simulator/emergency.py` | partial fix |
+| 10 | C1-10 | Carry-over to cycle 2: adding imaging_orders to 5 more diseases requires expanding SUPPORTED_IMAGING_DISEASES + impression_templates.yaml for every disease/modality/body_site combination = 大工事 (violates simplicity axis for cycle 1 scope). | — | carry-over |
+| 11 | C1-11 | Not-a-bug: FHIR ClinicalImpression.summary is optional (0..1); no distinct source data in CIF. Fabrication would violate rules. `description` populated correctly. | — | not-a-bug |
+| 12 | C1-12 | SDOH Observations (occupation/smoking/alcohol) now derive effectiveDateTime from earliest encounter admission (US Core/JP Core social-history profile requires effective[x]). Shared helper `_sdoh_effective_datetime` in `_fhir_smoking_alcohol.py`. | `_fhir_smoking_alcohol.py`, `fhir_r4_adapter.py` | fixed |
+| 13 | C1-13 | Microbiology susceptibility Observation now inherits `reported_datetime` from the parent organism observation (same reported result). | `_fhir_microbiology.py` | fixed |
+| 14 | C1-14 | Not-a-bug: FHIR R4 CareTeam.status="inactive" is spec-correct for completed encounters (team no longer providing care). | — | not-a-bug |
+| 15 | C1-15 | Pharmacist added as CareTeam participant for inpatient/emergency encounters (JP practice: 病棟薬剤師). Deterministic pharmacist selection from roster by encounter-id hash (AD-16). Multi-language: no display, just Practitioner reference. | `_fhir_care_team.py` | fixed (min viable) |
+| 16 | C1-16 | SR.intent context-aware via `_sr_intent_from_clinical_intent(order.clinical_intent)`: "Follow-up" → instance-order; ED workup/imaging → original-order; default → order. Reuses existing CIF field. | `_fhir_service_request.py` | fixed |
+| 17 | C1-17 | AllergyIntolerance clinicalStatus + verificationStatus diversified: 85% active+confirmed, 5% resolved (food only, childhood outgrown), 10% active+unconfirmed. New CIF field `Allergy.clinical_status` (previously only verification_status existed — asymmetric, this fix aligns). | `types/allergy.py`, `allergy/engine.py`, `_fhir_allergy_intolerance.py` | fixed |
+| 18 | C1-18 | Carry-over to cycle 2: root cause identified (US patients have ~2.75 chronic conditions/enc, JP ~1.21, but demographics.yaml prevalence suggests JP should be higher). Bug is in comorbidity multiplier / lifestyle multiplier path, not in FHIR emission. Requires simulator investigation with JP focus. | — | carry-over |
+| 19 | C1-19 | ~2% of would-be immunizations now emitted as `status="not-done"` with `statusReason` PATOBJ (patient objection). Field already existed on ImmunizationRecord. New system URI `hl7-v3-actreason` registered. | `immunization/engine.py`, `_fhir_immunization.py`, `codes/loader.py` | fixed |
+| 20 | C1-20 | Not-a-bug: population=catchment total (10000) and Patient=those-with-encounters (~5-6k) is intentional design. Realistic healthcare utilization rate. | — | not-a-bug |
+
+### Sibling-sweep results per fix (session 39 rule)
+
+- **C1-02/03/05**: swept authoritative code data files under `codes/data/`. No other CodeSystem-URI-mapped builder emits code without display (grep on `"code":` + `"system":` + no `"display"` in FHIR builders). Clean.
+- **C1-06**: swept all resource-to-resource references. No other `_fhir_*` builder omits a "linked-order" reference where the linked resource exists. Clean.
+- **C1-12/13**: swept all Observation builders for missing `effectiveDateTime`. Others use to_fhir_datetime already. Clean.
+- **C1-15**: swept for other roster roles missing from FHIR CareTeam. Session 40 registry β-JP-1 backlog covers the full 6-name expansion (dietitian, PT/OT, MSW). Cycle 2+ candidate.
+- **C1-16**: swept for other `"intent": "order"` hardcodes. Only found the 2 SR emission points; both migrated.
+- **C1-17**: swept AllergyIntolerance for other missing clinical_status paths. Only 1 CIF source path; fixed.
+- **C1-19**: swept other status-monotonic resources. Immunization was the only 100% "completed" case; AllergyIntolerance had similar issue (C1-17). Others (Condition, Observation, MedicationRequest, ServiceRequest) already have realistic diversity.
+
+Summary: 20 issues addressed — 13 fixed with code changes, 5 not-a-bug (documented rationale), 2 carry-over to cycle 2 (C1-10 imaging density + C1-18 JP chronic conditions root cause).
 
 ## Verification result (recorded at cycle 2 opening)
 

@@ -250,12 +250,23 @@ def _simulate_ed_visit(
     icd_code = (protocol or condition).get("icd10_code", "R69")  # R69 = Illness, unspecified
     icd_display = (protocol or condition).get("icd10_display", chief or cond_name)
 
+    # C1-09 (session 41 cycle 1): emit bedside procedures for ED severe cases.
+    # Reuse the existing procedure engine (already keyed by internal condition
+    # id) so we don't duplicate the SNOMED / CPT / K-code table. Sampled at the
+    # ED encounter rng stream, deterministic (AD-16).
+    from clinosim.modules.procedure.engine import generate_bedside_procedures
+    ed_procedures = generate_bedside_procedures(
+        patient.patient_id, encounter.encounter_id, cond_name,
+        encounter.admission_datetime, severity, rng, country=country,
+    ) if severity in ("moderate", "severe") else []
+
     record = CIFPatientRecord(
         patient=patient,
         encounters=[encounter],
         orders=orders,
         vital_signs=vitals,
         lab_results=lab_results,
+        procedures=ed_procedures,
         condition_event=ConditionEvent(
             condition_id=f"COND-{patient.patient_id}-ED",
             condition_type="ed_visit",

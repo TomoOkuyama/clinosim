@@ -64,10 +64,20 @@ def _bb_care_teams(ctx: BundleContext) -> list[dict[str, Any]]:
         return []
     lang = resolve_lang(ctx.country)
     patient_id = _o(_o(ctx.record, "patient", {}) or {}, "patient_id", "") or ctx.patient_id
-    return [_build_care_team(enc, patient_id, lang) for enc in encounters]
+    # C1-15 (session 41 cycle 1): pharmacist ids from the hospital roster for
+    # multi-disciplinary CareTeam participation. Selected deterministically per
+    # encounter (id hash) so re-generation is byte-identical (AD-16).
+    pharmacist_ids = sorted(
+        sid for sid, staff in (ctx.roster_map or {}).items()
+        if (staff.get("role", "") or "") == "pharmacist"
+    )
+    return [_build_care_team(enc, patient_id, lang, pharmacist_ids) for enc in encounters]
 
 
-def _build_care_team(encounter: Any, patient_id: str, lang: str) -> dict[str, Any]:
+def _build_care_team(
+    encounter: Any, patient_id: str, lang: str,
+    pharmacist_ids: list[str] | None = None,
+) -> dict[str, Any]:
     """Build one FHIR R4 CareTeam resource from an Encounter (dataclass or dict)."""
     encounter_id = _o(encounter, "encounter_id", "") or ""
     attending_id = _o(encounter, "attending_physician_id", "") or ""
@@ -97,6 +107,18 @@ def _build_care_team(encounter: Any, patient_id: str, lang: str) -> dict[str, An
     if primary_nurse_id:
         participants.append(
             {"member": {"reference": f"Practitioner/{primary_nurse_id}"}},
+        )
+    # C1-15 (session 41 cycle 1): pharmacist participant for encounters that
+    # actually had medication activity — inpatient/emergency where a clinical
+    # pharmacist is standard-of-care in JP multi-disciplinary teams
+    # (病棟薬剤師). Deterministic selection from roster by encounter-id hash so
+    # regeneration is byte-identical (AD-16). Outpatient AMB visits typically
+    # don't invoke a bedside pharmacist so we skip them.
+    enc_type = _o(encounter, "encounter_type", "") or ""
+    if pharmacist_ids and enc_type in ("inpatient", "emergency"):
+        idx = sum(ord(c) for c in encounter_id) % len(pharmacist_ids)
+        participants.append(
+            {"member": {"reference": f"Practitioner/{pharmacist_ids[idx]}"}},
         )
 
     care_team: dict[str, Any] = {

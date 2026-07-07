@@ -27,5 +27,8 @@ class Allergy:
     category: str = ""                # "medication" / "food" / "environment"
     criticality: str = "low"          # low / high / unable-to-assess
     verification_status: str = "confirmed"  # confirmed / unconfirmed / refuted
+    # C1-17 (session 41 cycle 1): clinicalStatus per FHIR R4 AllergyIntolerance.
+    # active (currently reactive) / inactive / resolved (childhood outgrown).
+    clinical_status: str = "active"
     onset_date: date | None = None
     reactions: list[AllergyReaction] = field(default_factory=list)

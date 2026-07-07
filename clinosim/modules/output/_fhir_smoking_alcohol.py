@@ -48,6 +48,32 @@ def _obs(obs_id: str, country: str, loinc: str, loinc_text: str,
     }
 
 
+def _sdoh_effective_datetime(ctx: BundleContext) -> str:
+    """Return the effectiveDateTime string for a patient-level SDOH Observation.
+
+    C1-12 (session 41 cycle 1) fix: US Core and JP Core social-history
+    profiles list effective[x] as MUST-SUPPORT. Base FHIR R4 allows
+    omission, but interop degrades. Use the patient's earliest encounter
+    admission date as the SDOH-as-of proxy (the SDOH was assessed at
+    that visit). Empty string when the record carries no encounter.
+    """
+    from clinosim.modules._shared import get_attr_or_key as _o
+    from clinosim.modules.output._fhir_common import to_fhir_datetime
+    encs = _o(ctx.record, "encounters", []) or []
+    if not encs:
+        return ""
+    # earliest admission_datetime
+    starts = []
+    for e in encs:
+        v = _o(e, "admission_datetime", None)
+        if v:
+            starts.append(v)
+    if not starts:
+        return ""
+    starts.sort()
+    return to_fhir_datetime(starts[0])
+
+
 def _build_smoking_status(ctx: BundleContext) -> list[dict]:
     data = load_social_history()["smoking_status"]
     status = (ctx.patient_data or {}).get("smoking_status", "")
@@ -58,6 +84,9 @@ def _build_smoking_status(ctx: BundleContext) -> list[dict]:
     o = _obs(f"smoking-{ctx.patient_id}", ctx.country, data["loinc"], text,
              "snomed-ct", entry["snomed"])
     o["subject"] = {"reference": f"Patient/{ctx.patient_id}"}
+    eff = _sdoh_effective_datetime(ctx)
+    if eff:
+        o["effectiveDateTime"] = eff
     return [o]
 
 
@@ -71,4 +100,7 @@ def _build_alcohol_use(ctx: BundleContext) -> list[dict]:
     o = _obs(f"alcohol-{ctx.patient_id}", ctx.country, data["loinc"], text,
              "snomed-ct", entry["snomed"])
     o["subject"] = {"reference": f"Patient/{ctx.patient_id}"}
+    eff = _sdoh_effective_datetime(ctx)
+    if eff:
+        o["effectiveDateTime"] = eff
     return [o]

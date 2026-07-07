@@ -1,0 +1,13 @@
+# HL7 FHIR discharge-disposition. Authoritative source: HL7 Terminology (THO),
+# CodeSystem discharge-disposition
+# (http://terminology.hl7.org/CodeSystem/discharge-disposition). Cycle-1 C1-03
+# fix (session 41): clinosim currently emits "home" (routine discharge) and
+# "expired" (patient died); adding more codes here should be paired with the
+# emitter in simulator/inpatient.py.
+metadata:
+  name: HL7 FHIR Discharge Disposition
+  uri: http://terminology.hl7.org/CodeSystem/discharge-disposition
+  source: "HL7 Terminology (THO)"
+codes:
+  home:    {en: "Home", ja: "自宅退院"}
+  expired: {en: "Expired", ja: "死亡退院"}

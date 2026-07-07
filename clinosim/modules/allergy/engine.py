@@ -165,13 +165,26 @@ def allergy_enricher(ctx: Any) -> None:
         entry = entries[int(rng.integers(0, len(entries)))]
         reaction_entry = entry["common_reactions"][0]
 
+        # C1-17 (session 41 cycle 1): sample clinical/verification status
+        # variety realistically. Real EHR shows ~85% active+confirmed,
+        # ~5% resolved (typical: childhood peanut/milk outgrown by adulthood
+        # for food category), ~10% unconfirmed (patient-reported not verified
+        # by challenge). Draws follow the existing category rng stream (AD-16).
+        _stat_draw = float(rng.random())
+        if _stat_draw < 0.05 and category == "food":
+            _clin_stat, _ver_stat = "resolved", "confirmed"
+        elif _stat_draw < 0.15:
+            _clin_stat, _ver_stat = "active", "unconfirmed"
+        else:
+            _clin_stat, _ver_stat = "active", "confirmed"
         patient.allergies = [
             Allergy(
                 allergy_id="1",  # FHIR builder owns the canonical "allergy-{patient_id}-{idx}" format (I-4 fix)
                 allergen_code=entry["allergen_code"],
                 category=category,
                 criticality=entry["criticality"],
-                verification_status="confirmed",
+                verification_status=_ver_stat,
+                clinical_status=_clin_stat,
                 onset_date=None,
                 reactions=[
                     AllergyReaction(

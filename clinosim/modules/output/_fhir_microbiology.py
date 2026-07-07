@@ -164,6 +164,10 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                 sus_obs["identifier"] = hai_identifier
             if enc_ref:
                 sus_obs["encounter"] = enc_ref
+            # C1-13 (session 41 cycle 1): pin effectiveDateTime to match the
+            # organism observation above (both belong to the same reported result).
+            if mb.get("reported_datetime"):
+                sus_obs["effectiveDateTime"] = mb["reported_datetime"]
             out.append(sus_obs)
             result_refs.append({"reference": f"Observation/{sus_id}"})
 

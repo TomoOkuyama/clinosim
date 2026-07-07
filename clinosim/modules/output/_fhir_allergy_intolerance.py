@@ -73,6 +73,9 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
     category = category_raw if category_raw in _VALID_CATEGORIES else "medication"
     criticality = _o(allergy, "criticality", "low") or "low"
     verification_status = _o(allergy, "verification_status", "confirmed") or "confirmed"
+    # C1-17 (session 41 cycle 1): read clinical_status from CIF (defaults to
+    # "active" when the record predates the field addition).
+    clinical_status = _o(allergy, "clinical_status", "active") or "active"
     onset_date = _o(allergy, "onset_date", None)
 
     snomed_system = get_system_uri("snomed-ct")
@@ -97,8 +100,10 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
         "clinicalStatus": {
             "coding": [{
                 "system": _CLINICAL_STATUS_SYSTEM,
-                "code": "active",
-                "display": code_lookup("hl7-allergyintolerance-clinical", "active", "en"),
+                "code": clinical_status,
+                "display": code_lookup(
+                    "hl7-allergyintolerance-clinical", clinical_status, "en",
+                ),
             }],
         },
         "verificationStatus": {

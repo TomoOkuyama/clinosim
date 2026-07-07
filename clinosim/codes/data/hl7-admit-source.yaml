@@ -1,0 +1,12 @@
+# HL7 FHIR admit-source. Authoritative source: HL7 Terminology (THO),
+# CodeSystem admit-source (http://terminology.hl7.org/CodeSystem/admit-source).
+# Cycle-1 C1-02 fix (session 41): clinosim currently emits only "outp" and "emd";
+# adding more codes here should be paired with the emitter in simulator/*.py so
+# the coverage remains a closed subset (matches other codes/data/*.yaml files).
+metadata:
+  name: HL7 FHIR Admit Source
+  uri: http://terminology.hl7.org/CodeSystem/admit-source
+  source: "HL7 Terminology (THO)"
+codes:
+  outp: {en: "From outpatient department", ja: "外来より入院"}
+  emd:  {en: "From accident/emergency department", ja: "救急外来より入院"}

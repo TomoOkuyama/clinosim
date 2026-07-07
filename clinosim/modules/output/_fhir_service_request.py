@@ -36,6 +36,25 @@ from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.order.panel_grouping import load_panel_definitions
 from clinosim.modules.output._fhir_common import BundleContext, to_fhir_datetime
 from clinosim.modules.output._fhir_localization import localize_fixed_label
+
+
+# C1-16 (session 41 cycle 1): FHIR R4 ServiceRequest.intent values are
+# proposal / plan / directive / order / original-order / reflex-order /
+# filler-order / instance-order / option. clinosim's Order.clinical_intent
+# carries provenance hints (populated by simulator/*.py). Map only the
+# unambiguous cases; default to "order" so the semantic doesn't drift on
+# unclassified orders.
+def _sr_intent_from_clinical_intent(clinical_intent: str) -> str:
+    if not clinical_intent:
+        return "order"
+    ci = clinical_intent.lower()
+    # Outpatient follow-up prescription/labs re-issued from a chronic plan.
+    if ci.startswith("outpatient follow-up") or "follow-up" in ci:
+        return "instance-order"
+    # Fresh ED workup/imaging orders authored by the initial clinician.
+    if ci.startswith("ed workup") or ci.startswith("ed imaging"):
+        return "original-order"
+    return "order"
 from clinosim.types.encounter import OrderStatus, OrderType
 
 # === Canonical constants (silent-no-op defense, PR-90 lesson) ===
@@ -339,7 +358,7 @@ def _build_imaging_sr(order: Any, lang: str, country: str) -> dict[str, Any]:
             "value": _o(order, "order_id", ""),
         }],
         "status": _map_order_status_to_sr_status(_o(order, "status")),
-        "intent": "order",
+        "intent": _sr_intent_from_clinical_intent(_o(order, "clinical_intent", "") or ""),
         "category": [{
             "coding": [
                 {
@@ -524,7 +543,7 @@ def _build_sr_skeleton(
             }
         ],
         "status": status,
-        "intent": "order",
+        "intent": _sr_intent_from_clinical_intent(_o(anchor, "clinical_intent", "") or ""),
         "category": [
             {
                 "coding": [

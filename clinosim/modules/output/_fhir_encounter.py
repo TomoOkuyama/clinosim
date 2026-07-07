@@ -55,8 +55,17 @@ def _build_encounter(
         "subject": {"reference": f"Patient/{patient_id}"},
     }
 
-    # Type (SNOMED)
+    # Type (SNOMED). C1-05 (session 41 cycle 1): outpatient AMB no longer
+    # uniformly "Patient-initiated encounter"; use chief_complaint prefix
+    # ("Follow-up:") + presence-of-primary-diagnosis heuristic to distinguish
+    # follow-up check-up vs consultation vs generic patient-initiated.
     type_code = _ENCOUNTER_TYPE_SNOMED_CODE.get(enc_type)
+    if enc_type == "outpatient":
+        _cc = str(enc.get("chief_complaint", "") or "")
+        if _cc.startswith("Follow-up") or _cc.startswith("フォローアップ"):
+            type_code = "185349003"  # Encounter for check-up
+        elif primary_dx_code and not is_readmission:
+            type_code = "11429006"  # Consultation
     if type_code:
         resource["type"] = [{"coding": [{
             "system": get_system_uri("snomed-ct"),
@@ -159,25 +168,39 @@ def _build_encounter(
             "rank": 1,
         }]
 
-    # Hospitalization (admit source / discharge disposition / re-admission)
+    # Hospitalization (admit source / discharge disposition / re-admission).
+    # C1-02/C1-03 (session 41 cycle 1): resolve display via authoritative
+    # hl7-admit-source / hl7-discharge-disposition code data.
+    # C1-01 (session 41 cycle 1): FHIR R4 Encounter.hospitalization models
+    # inpatient/emergency admission context (admission/discharge, re-admission
+    # flag, etc.); skip for AMB (ambulatory) so we don't emit outp→home rings
+    # on every 30-minute outpatient visit.
     hosp: dict[str, Any] = {}
-    if enc.get("admit_source"):
-        hosp["admitSource"] = {
-            "coding": [{
-                "system": get_system_uri("hl7-admit-source"),
-                "code": enc["admit_source"],
-            }],
+    _emit_hospitalization = class_code != "AMB"
+    _lang = resolve_lang(country)
+    if _emit_hospitalization and enc.get("admit_source"):
+        _admit_code = enc["admit_source"]
+        _admit_disp = code_lookup("hl7-admit-source", _admit_code, _lang)
+        _admit_coding: dict[str, Any] = {
+            "system": get_system_uri("hl7-admit-source"),
+            "code": _admit_code,
         }
-    if enc.get("discharge_disposition"):
-        hosp["dischargeDisposition"] = {
-            "coding": [{
-                "system": get_system_uri("hl7-discharge-disposition"),
-                "code": enc["discharge_disposition"],
-            }],
+        if _admit_disp and _admit_disp != _admit_code:
+            _admit_coding["display"] = _admit_disp
+        hosp["admitSource"] = {"coding": [_admit_coding]}
+    if _emit_hospitalization and enc.get("discharge_disposition"):
+        _dd_code = enc["discharge_disposition"]
+        _dd_disp = code_lookup("hl7-discharge-disposition", _dd_code, _lang)
+        _dd_coding: dict[str, Any] = {
+            "system": get_system_uri("hl7-discharge-disposition"),
+            "code": _dd_code,
         }
+        if _dd_disp and _dd_disp != _dd_code:
+            _dd_coding["display"] = _dd_disp
+        hosp["dischargeDisposition"] = {"coding": [_dd_coding]}
     # Re-admission flag (FHIR standard: hospitalization.reAdmission CodeableConcept)
     # Using HL7 v2 table 0092 "Re-admission Indicator" — the canonical source.
-    if is_readmission:
+    if _emit_hospitalization and is_readmission:
         hosp["reAdmission"] = {
             "coding": [{
                 "system": get_system_uri("hl7-v2-0092"),
