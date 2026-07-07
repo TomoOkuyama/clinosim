@@ -4,12 +4,14 @@ This directory records the sequential CIF/FHIR data-quality audit cycles that
 became the default workflow for clinosim from **session 41 onward**
 (user directive at session 40 wrap-up, 2026-07-07).
 
-**Cycle 2 onward: JP only** (user directive at cycle 1 start, 2026-07-07).
-Cycle 1 opened with US p=10000 + JP p=10000 mixed; from cycle 2 onward
-both generation/regeneration and review are JP-only. Review points
-prioritise **appropriateness for Japanese medical-institution records** and
-**JP Core FHIR profile compliance**, on top of data quality / clinical
-integrity / realism.
+**Cycle 2 onward: JP first + 30 issues per cycle** (user directive at cycle 1
+start and mid-fix, 2026-07-07). Cycle 1 opened with US p=10000 + JP p=10000
+mixed and used the initial 20-issue rule (grandfathered); from cycle 2 onward
+generation/regeneration and review are JP-first (JP-focused, multi-language
+architecture preserved for both locales) and the cycle target is 30 issues.
+Review points prioritise **appropriateness for Japanese medical-institution
+records** and **JP Core FHIR profile compliance**, on top of data quality /
+clinical integrity / realism.
 
 ## Workflow (per cycle)
 
@@ -19,8 +21,8 @@ integrity / realism.
    anomalies, etc.
 3. Random-sample N patients (5–10 recommended) and review every FHIR resource
    for that patient (data quality / clinical integrity / data realism).
-4. Repeat 2 + 3 until **exactly 20 issues** are listed for the cycle.
-5. Fix all 20 issues. **New additions are made only when the FHIR-consistency
+4. Repeat 2 + 3 until **exactly 30 issues** are listed for the cycle.
+5. Fix all 30 issues. **New additions are made only when the FHIR-consistency
    contradiction cannot be resolved without adding** (see memory
    `feedback_cif_fhir_quality_focus.md`).
 6. Regenerate CIF/FHIR at the same seed / population.
@@ -41,11 +43,11 @@ integrity / realism.
    status + carry-over count + doc-update result. Auto-continuation is
    forbidden.
 10. Unresolved issues carry over to the next cycle's opening list; then
-    review + sampling proceeds to 20 issues total for that cycle.
+    review + sampling proceeds to 30 issues total for that cycle.
 
 ## Progress display (required during fixes)
 
-At every fix step, display `[Cycle N · n/20] <short description>` so the
+At every fix step, display `[Cycle N · n/30] <short description>` so the
 user always sees cycle number + progress. End-of-cycle summary shows
 resolved X / carried-over Y / newly discovered Z.
 
@@ -64,7 +66,7 @@ Each cycle has its own file, `cycle-<N>.md`, with:
 
 - Cycle number, start date, master HEAD at cycle start.
 - Generation command, seed, output paths.
-- **Issue list (20 items)** — each with id, summary, detection path, sample
+- **Issue list (30 items)** — each with id, summary, detection path, sample
   data or code, impact, category (FHIR spec / clinical / realism /
   silent-drop / etc.).
 - **Fix content** — commit hashes, change summaries, and (for each issue)

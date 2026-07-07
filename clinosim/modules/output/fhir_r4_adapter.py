@@ -273,6 +273,13 @@ def _bb_occupation(ctx: BundleContext) -> list[dict]:
     if occupation:
         occ_obs = _build_occupation_observation(occupation, ctx.patient_id, ctx.country)
         if occ_obs:
+            # C1-12 (session 41 cycle 1): US Core / JP Core social-history
+            # profile lists effective[x] as MUST-SUPPORT. Use earliest encounter
+            # admission as the SDOH-as-of proxy (same helper as smoking / alcohol).
+            from clinosim.modules.output._fhir_smoking_alcohol import _sdoh_effective_datetime
+            eff = _sdoh_effective_datetime(ctx)
+            if eff:
+                occ_obs["effectiveDateTime"] = eff
             return [occ_obs]
     return []
 

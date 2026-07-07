@@ -178,6 +178,8 @@ _BUILTIN_URIS: dict[str, str] = {
     "hl7-v3-participationtype": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
     "hl7-v3-administrativegender": "http://terminology.hl7.org/CodeSystem/v3-AdministrativeGender",
     "hl7-v3-actpriority": "http://terminology.hl7.org/CodeSystem/v3-ActPriority",
+    # C1-19 (session 41 cycle 1): Immunization.statusReason for status="not-done".
+    "hl7-v3-actreason": "http://terminology.hl7.org/CodeSystem/v3-ActReason",
     "hl7-v2-0360": "http://terminology.hl7.org/CodeSystem/v2-0360",
     "hl7-v2-0203": "http://terminology.hl7.org/CodeSystem/v2-0203",
     "hl7-v2-0131": "http://terminology.hl7.org/CodeSystem/v2-0131",

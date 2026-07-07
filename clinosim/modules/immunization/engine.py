@@ -68,6 +68,11 @@ def generate_immunizations(patient, schedule: dict, as_of: date,
     base_age = int(getattr(patient, "age", 0) or 0)
     sex = getattr(patient, "sex", "M") or "M"
     out: list = []
+    # C1-19 (session 41 cycle 1): a small share of vaccines are documented in
+    # the EHR as declined by the patient / caregiver (FHIR status="not-done" +
+    # statusReason "PATOBJ" patient objection). Real JP EHRs carry this ~1-3%
+    # depending on vaccine — flu/pneumococcal in the elderly; HPV in
+    # adolescents. Sampled per schedule entry via the same rng stream.
 
     for _name, v in schedule.items():
         cvx = str(v["cvx"])
@@ -104,6 +109,10 @@ def generate_immunizations(patient, schedule: dict, as_of: date,
                 age_at = _age_on(dob, occ, base_age)
                 if rng.random() < _coverage(cov, age_at, sex):
                     out.append(ImmunizationRecord(vaccine_cvx=cvx, occurrence_date=occ))
+                elif rng.random() < 0.02:
+                    out.append(ImmunizationRecord(
+                        vaccine_cvx=cvx, occurrence_date=occ, status="not-done",
+                    ))
         elif freq == "every_n_years":
             interval = int(v.get("interval_years", 10))
             yr = start.year
@@ -112,6 +121,10 @@ def generate_immunizations(patient, schedule: dict, as_of: date,
                 age_at = _age_on(dob, occ, base_age)
                 if rng.random() < _coverage(cov, age_at, sex):
                     out.append(ImmunizationRecord(vaccine_cvx=cvx, occurrence_date=occ))
+                elif rng.random() < 0.02:
+                    out.append(ImmunizationRecord(
+                        vaccine_cvx=cvx, occurrence_date=occ, status="not-done",
+                    ))
                 yr += interval
         else:  # once
             age_at = _age_on(dob, as_of, base_age)

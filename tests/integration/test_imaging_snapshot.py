@@ -66,7 +66,11 @@ def test_snapshot_yields_active_imaging_sr_for_inprogress_encounters() -> None:
         # Structural check: active imaging SRs have required fields.
         for sr in active_imaging[:10]:
             assert sr.get("resourceType") == "ServiceRequest"
-            assert sr.get("intent") == "order"
+            # C1-16 (session 41 cycle 1): SR.intent is now context-derived from
+            # order.clinical_intent — ED imaging orders map to "original-order"
+            # (fresh order authored by ED clinician). Both are valid FHIR R4
+            # intent values, so the test now accepts either.
+            assert sr.get("intent") in ("order", "original-order")
             assert "category" in sr
 
 
@@ -134,8 +138,12 @@ def test_snapshot_imaging_srs_valid_structure() -> None:
             assert sr.get("status") in {"active", "completed"}, (
                 f"SR/{sr_id} has unexpected status {sr.get('status')!r}"
             )
-            assert sr.get("intent") == "order", (
-                f"SR/{sr_id} intent must be 'order', got {sr.get('intent')!r}"
+            # C1-16 (session 41 cycle 1): SR.intent is now context-derived from
+            # order.clinical_intent — ED imaging orders map to "original-order"
+            # (fresh order authored by ED clinician). Both are valid FHIR R4
+            # intent values, so the test now accepts either.
+            assert sr.get("intent") in ("order", "original-order"), (
+                f"SR/{sr_id} intent must be order/original-order, got {sr.get('intent')!r}"
             )
             subj = sr.get("subject", {}).get("reference", "")
             assert subj.startswith("Patient/"), (

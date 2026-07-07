@@ -58,6 +58,20 @@ def _build_immunizations(ctx: BundleContext) -> list[dict]:
             "occurrenceDateTime": occ_str,
             "primarySource": primary_source,
         }
+        # C1-19 (session 41 cycle 1): FHIR R4 requires statusReason when
+        # Immunization.status is "not-done". Use v3-ActReason PATOBJ
+        # ("patient objection") since clinosim samples refusals rather than
+        # medical contraindications; expand YAML → statusReason mapping when
+        # the CIF gains an authored reason.
+        if status == "not-done":
+            resource["statusReason"] = {
+                "coding": [{
+                    "system": get_system_uri("hl7-v3-actreason"),
+                    "code": "PATOBJ",
+                    "display": "patient objection",
+                }],
+                "text": "患者拒否" if resolve_lang(ctx.country) == "ja" else "Patient refused",
+            }
         out.append(resource)
 
     return out
