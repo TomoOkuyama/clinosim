@@ -26,7 +26,12 @@ def test_builds_one_resource_per_relative():
     assert r0["relationship"]["coding"][0]["code"] == "MTH"
     assert r0["deceasedBoolean"] is True
     codes = [c["code"]["coding"][0]["code"] for c in r0["condition"]]
-    assert "E11" in codes
+    # E11 (category header) folds to E11.9 (billable CM leaf) in US emission —
+    # session 40 fix (FP-FH-CODE-RESOLUTION). Pre-fix output silently used the
+    # child-fallback display ("with ketoacidosis without coma") which was
+    # clinically wrong for a family-history-of-DM resource.
+    assert "E11.9" in codes
+    assert "C50" in codes
 
 
 def test_unique_ids():
