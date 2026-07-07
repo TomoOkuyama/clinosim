@@ -18,10 +18,23 @@ became the default workflow for clinosim from **session 41 onward**
    `feedback_cif_fhir_quality_focus.md`).
 6. Regenerate CIF/FHIR at the same seed / population.
 7. Verify per-issue resolution (resolved / not resolved / newly discovered).
-8. **Ask the user before starting the next cycle**. Auto-continuation is
+8. **Cycle-boundary documentation update + cross-session resume prompt
+   record** (mandatory before the user prompt in step 9):
+   - Append verification results (resolved / carried over / newly
+     discovered) to `docs/audit-cycles/cycle-<N>.md`.
+   - Update memory if the cycle surfaced new durable rules or knowledge.
+   - Add new FP entries to `docs/design-notes/2026-07-06-fix-point-registry.md`
+     when warranted.
+   - Refresh `.session-resume-prompt.md` so the current cycle state
+     (cycle N progress n/20, carry-over list, master HEAD, next action)
+     is sufficient for a cold-start in a different session.
+   - Reflect the current cycle progress in `TODO.md` Status.
+   - Commit + push everything (finish in a clean state).
+9. **Ask the user before starting the next cycle** with resolution
+   status + carry-over count + doc-update result. Auto-continuation is
    forbidden.
-9. Unresolved issues carry over to the next cycle's opening list; then
-   review + sampling proceeds to 20 issues total for that cycle.
+10. Unresolved issues carry over to the next cycle's opening list; then
+    review + sampling proceeds to 20 issues total for that cycle.
 
 ## Progress display (required during fixes)
 
