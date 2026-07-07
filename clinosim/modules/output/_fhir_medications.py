@@ -17,7 +17,7 @@ from clinosim.codes import (
     lookup as code_lookup,
 )
 from clinosim.locale.loader import load_code_mapping
-from clinosim.modules._shared import resolve_lang
+from clinosim.modules._shared import is_us, resolve_lang
 from clinosim.modules.output._fhir_common import (
     _build_dosage_instruction,
     _map_mar_status,
@@ -65,7 +65,7 @@ def _build_medication_request(
     # Strip dose info to get base drug name for code lookup (use cleaned name)
     base_name = drug_name_clean.split(" ")[0] if drug_name_clean else ""
 
-    country_code = "JP" if country != "US" else "US"
+    country_code = "US" if is_us(country) else "JP"
     lang = resolve_lang(country_code)
     drug_codes = load_code_mapping("drug", country_code)  # name → RxNorm/YJ
 
@@ -134,7 +134,7 @@ def _build_medication_admin(
     drug_name_clean, _ = _strip_protocol_prefix(drug_name_raw)
     drug_name = _localize_drug_name(drug_name_clean, country)
     base_name = drug_name_clean.split(" ")[0] if drug_name_clean else ""
-    country_code = "JP" if country != "US" else "US"
+    country_code = "US" if is_us(country) else "JP"
     lang = resolve_lang(country_code)
     drug_codes = load_code_mapping("drug", country_code)
     code_value = drug_codes.get(base_name, "")
