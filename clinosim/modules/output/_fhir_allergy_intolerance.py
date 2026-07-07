@@ -32,7 +32,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import resolve_lang
 from clinosim.modules.document import ALLERGY_ID_PREFIX
-from clinosim.modules.output._fhir_common import BundleContext
+from clinosim.modules.output._fhir_common import BundleContext, to_fhir_datetime
 
 __all__ = [
     "ALLERGY_ID_PREFIX",
@@ -115,11 +115,7 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
     }
 
     if onset_date is not None:
-        # Accept both date objects and ISO strings
-        if hasattr(onset_date, "isoformat"):
-            res["onsetDateTime"] = onset_date.isoformat()
-        else:
-            res["onsetDateTime"] = str(onset_date)
+        res["onsetDateTime"] = to_fhir_datetime(onset_date)
 
     # Build reaction[]
     reactions_raw = _o(allergy, "reactions", []) or []

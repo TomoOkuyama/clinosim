@@ -34,7 +34,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.order.panel_grouping import load_panel_definitions
-from clinosim.modules.output._fhir_common import BundleContext
+from clinosim.modules.output._fhir_common import BundleContext, to_fhir_datetime
 from clinosim.types.encounter import OrderStatus, OrderType
 
 # === Canonical constants (silent-no-op defense, PR-90 lesson) ===
@@ -379,7 +379,7 @@ def _build_imaging_sr(order: Any, lang: str, country: str) -> dict[str, Any]:
     # Optional fields
     dt = _o(order, "ordered_datetime")
     if dt is not None:
-        sr["authoredOn"] = dt.isoformat() if hasattr(dt, "isoformat") else str(dt)
+        sr["authoredOn"] = to_fhir_datetime(dt)
     ordered_by = _o(order, "ordered_by", "")
     if ordered_by:
         sr["requester"] = {"reference": f"Practitioner/{ordered_by}"}
@@ -498,13 +498,7 @@ def _build_sr_skeleton(
     )
     # ordered_datetime may arrive as a datetime object (dataclass path) or an
     # ISO string (JSON-deserialized dict path). If None, authoredOn is omitted.
-    dt = _o(anchor, "ordered_datetime")
-    if dt is None:
-        authored_on = ""
-    elif isinstance(dt, str):
-        authored_on = dt
-    else:
-        authored_on = dt.isoformat()
+    authored_on = to_fhir_datetime(_o(anchor, "ordered_datetime"))
 
     sr: dict[str, Any] = {
         "resourceType": "ServiceRequest",

@@ -25,7 +25,7 @@ from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document import CLINICAL_IMPRESSION_ID_PREFIX
-from clinosim.modules.output._fhir_common import BundleContext
+from clinosim.modules.output._fhir_common import BundleContext, to_fhir_datetime
 
 __all__ = [
     "CLINICAL_IMPRESSION_ID_PREFIX",
@@ -54,13 +54,8 @@ def _build_clinical_impression(imp: Any, patient_id: str) -> dict[str, Any]:
     prognosis = _o(imp, "prognosis", "") or ""
     practitioner_id = _o(imp, "practitioner_id", "") or ""
 
-    # date → ISO string
-    if date_val is not None and hasattr(date_val, "isoformat"):
-        effective_dt = date_val.isoformat()
-    elif date_val is not None:
-        effective_dt = str(date_val)
-    else:
-        effective_dt = ""
+    # date → ISO string (FP-UNIFY-2)
+    effective_dt = to_fhir_datetime(date_val)
 
     # AD-32 snapshot semantics: the last day of an in-progress encounter is "in-progress".
     # All prior days (and all days of completed encounters) are "completed".

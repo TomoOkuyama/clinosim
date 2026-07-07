@@ -15,7 +15,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key, resolve_lang
-from clinosim.modules.output._fhir_common import BundleContext
+from clinosim.modules.output._fhir_common import BundleContext, to_fhir_datetime
 
 
 def _build_immunizations(ctx: BundleContext) -> list[dict]:
@@ -46,8 +46,8 @@ def _build_immunizations(ctx: BundleContext) -> list[dict]:
         if display and display != cvx:
             vaccine_code["text"] = display
 
-        # occurrence_date may be a date object or ISO string; normalise to YYYY-MM-DD
-        occ_str = occurrence.isoformat() if hasattr(occurrence, "isoformat") else str(occurrence)
+        # occurrence_date may be a date object or ISO string; normalize via FP-UNIFY-2 helper
+        occ_str = to_fhir_datetime(occurrence)
 
         resource: dict[str, Any] = {
             "resourceType": "Immunization",

@@ -16,7 +16,7 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_identity_config
 from clinosim.modules._shared import is_jp, resolve_lang
-from clinosim.modules.output._fhir_common import _build_address, _build_telecom
+from clinosim.modules.output._fhir_common import _build_address, _build_telecom, to_fhir_date
 from clinosim.modules.output._fhir_localization import (
     _CATEGORY_DISPLAY_JA,
     _OCCUPATION_DISPLAY_EN,
@@ -192,7 +192,7 @@ def _build_patient(p: dict, country: str) -> dict:
     }
 
     if dob:
-        resource["birthDate"] = dob if isinstance(dob, str) else str(dob)
+        resource["birthDate"] = to_fhir_date(dob)
 
     # Extensions for blood type
     if p.get("blood_type"):
