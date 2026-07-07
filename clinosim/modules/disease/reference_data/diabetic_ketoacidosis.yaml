@@ -116,17 +116,25 @@ initial_state_impact:
     glucose_status: 0.60        # markedly elevated (300-500 mg/dL)
     renal_function: -0.15       # prerenal AKI from volume depletion
     perfusion_status: -0.10     # tachycardia, mild hypotension
-    electrolyte_status: -0.20   # total body K depleted despite normal/high serum K
     anion_gap_status: 1.0       # AG axis: ketoacids drive high-AG (AG 20-30)
+    # NOTE (FP-DELTA-VALIDATE, session 40): electrolyte_status (K/PO4 shift) was
+    # authored here but is not a canonical state var — silently dropped in
+    # apply_state_delta. Removed to fail-loud on future typos. Modeling DKA K+
+    # kinetics (insulin-driven cellular uptake, phosphate depletion) requires a
+    # new state axis + coupling — deferred to a physiological-model extension.
   severe:
     ph_status: -0.60            # severe acidosis (pH <7.00)
     volume_status: -0.60        # severe dehydration (6-9L deficit)
     glucose_status: 0.80        # very high (>500 mg/dL)
     renal_function: -0.30       # significant prerenal AKI
     perfusion_status: -0.30     # hypotension, shock possible
-    electrolyte_status: -0.40   # severe electrolyte derangement
-    consciousness: -0.30        # obtunded or comatose
     anion_gap_status: 1.0       # AG axis: severe DKA (AG 25-35)
+    # NOTE (FP-DELTA-VALIDATE, session 40): electrolyte_status + consciousness
+    # were authored here but are not canonical state vars — silently dropped.
+    # Consciousness/GCS is produced independently by the nursing flowsheet enricher
+    # and is not currently coupled to disease severity; modeling that link
+    # requires a new consciousness state axis. Deferred to a physiological-model
+    # extension.
 
 # ============================================================
 # ORDER PROTOCOLS (what to order and when)
@@ -603,7 +611,9 @@ course_archetypes:
       volume_status: {0: 0.10, 0.5: 0.10, 1: 0.08, 2: 0.05, 3: 0.03, 5: 0.02, 7: 0.00}
       glucose_status: {0: -0.10, 0.5: -0.20, 1: -0.15, 2: -0.08, 3: -0.05, 5: -0.02, 7: 0.00}
       renal_function: {0: 0.02, 0.5: 0.03, 1: 0.04, 2: 0.03, 3: 0.02, 5: 0.01, 7: 0.00}
-      electrolyte_status: {0: 0.03, 0.5: 0.05, 1: 0.05, 2: 0.03, 3: 0.02, 5: 0.01, 7: 0.00}
+      # NOTE (FP-DELTA-VALIDATE, session 40): electrolyte_status trajectory
+      # removed — not a canonical trajectory-able state var (silently dropped
+      # by get_state_changes). K axis is a physiological-model extension TODO.
     order_modifications: {}
     treatment_modifications: {}
 
@@ -626,8 +636,9 @@ course_archetypes:
       ph_status: {0: 0.03, 0.5: 0.08, 1: 0.02, 2: 0.08, 3: 0.05, 5: 0.02, 7: 0.00}
       volume_status: {0: 0.08, 0.5: 0.06, 1: 0.04, 2: 0.05, 3: 0.04, 5: 0.02, 7: 0.00}
       glucose_status: {0: -0.08, 0.5: -0.15, 1: 0.05, 2: -0.10, 3: -0.08, 5: -0.03, 7: 0.00}
-      electrolyte_status: {0: 0.02, 0.5: -0.05, 1: -0.03, 2: 0.05, 3: 0.05, 5: 0.02, 7: 0.00}
       renal_function: {0: 0.01, 0.5: 0.02, 1: 0.02, 2: 0.03, 3: 0.03, 5: 0.01, 7: 0.00}
+      # NOTE (FP-DELTA-VALIDATE, session 40): electrolyte_status trajectory
+      # removed — silently dropped by get_state_changes. See smooth_recovery.
     order_modifications:
       day_1:
         add_labs: ["K_stat", "Glucose_stat", "ABG"]
@@ -642,7 +653,8 @@ course_archetypes:
       ph_status: {0: 0.03, 0.5: 0.05, 1: 0.03, 2: 0.02, 3: 0.05, 5: 0.05, 7: 0.02}
       volume_status: {0: 0.08, 0.5: 0.06, 1: 0.04, 2: 0.02, 3: 0.02, 5: 0.01, 7: 0.00}
       glucose_status: {0: -0.08, 0.5: -0.12, 1: -0.05, 2: -0.02, 3: -0.05, 5: -0.05, 7: -0.02}
-      electrolyte_status: {0: 0.02, 0.5: 0.03, 1: 0.02, 2: 0.02, 3: 0.03, 5: 0.03, 7: 0.01}
+      # NOTE (FP-DELTA-VALIDATE, session 40): electrolyte_status trajectory
+      # removed — silently dropped by get_state_changes. See smooth_recovery.
     order_modifications:
       day_2:
         add_labs: ["Beta_hydroxybutyrate", "Anion_gap", "Lactate"]
@@ -658,7 +670,8 @@ course_archetypes:
       volume_status: {0: 0.05, 0.5: 0.04, 1: 0.03, 2: 0.02, 3: 0.03, 5: 0.03, 7: 0.02, 10: 0.01}
       glucose_status: {0: -0.05, 0.5: -0.08, 1: -0.03, 2: 0.02, 3: -0.05, 5: -0.08, 7: -0.05, 10: -0.02}
       renal_function: {0: 0.01, 0.5: 0.01, 1: 0.00, 2: -0.01, 3: 0.01, 5: 0.02, 7: 0.02, 10: 0.01}
-      electrolyte_status: {0: 0.01, 0.5: 0.02, 1: 0.01, 2: -0.02, 3: 0.02, 5: 0.03, 7: 0.03, 10: 0.01}
+      # NOTE (FP-DELTA-VALIDATE, session 40): electrolyte_status trajectory
+      # removed — silently dropped by get_state_changes. See smooth_recovery.
     order_modifications:
       day_2:
         add_labs: ["Blood_culture_x2", "CRP", "Urinalysis", "Chest_Xray"]
@@ -708,7 +721,9 @@ course_archetypes:
       volume_status: {0: 0.05, 0.5: 0.04, 1: -0.10, 2: 0.05, 3: 0.05, 5: 0.03, 7: 0.01}
       glucose_status: {0: -0.08, 0.5: -0.15, 1: -0.10, 2: 0.00, 3: -0.05, 5: -0.03, 7: -0.02}
       perfusion_status: {0: 0.00, 0.5: 0.00, 1: -0.25, 2: 0.05, 3: 0.05, 5: 0.03, 7: 0.01}
-      consciousness: {0: 0.00, 0.5: 0.00, 1: -0.30, 2: 0.05, 3: 0.05, 5: 0.05, 7: 0.03}
+      # NOTE (FP-DELTA-VALIDATE, session 40): consciousness trajectory removed
+      # — silently dropped by get_state_changes. GCS is produced independently
+      # by the nursing flowsheet enricher.
     order_modifications:
       day_1:
         add_labs: ["ABG", "K_stat", "Glucose_stat", "Troponin", "Lactate"]
@@ -758,8 +773,12 @@ complications:
       - {condition: "admission_K_below_4", multiplier: 2.0}
       - {condition: "aggressive_insulin_without_K_monitoring", multiplier: 3.0}
       - {condition: "vomiting", multiplier: 1.5}
-    state_impact:
-      electrolyte_status: -0.15
+    state_impact: {}
+      # NOTE (FP-DELTA-VALIDATE, session 40): electrolyte_status was authored
+      # here but is not a canonical state var — silently dropped in
+      # apply_state_delta. Modeling K+ derangement requires a new K axis;
+      # deferred to a physiological-model extension. Complication actions
+      # (K replacement, insulin hold) are unchanged and still fire.
     detection:
       test: "K"
       finding: "K_below_3.3"
@@ -775,7 +794,10 @@ complications:
       - {condition: "poor_oral_intake", multiplier: 1.5}
     state_impact:
       glucose_status: -0.30
-      consciousness: -0.10
+      # NOTE (FP-DELTA-VALIDATE, session 40): consciousness silent-drop removed
+      # — not a canonical state var. Consciousness/GCS is produced independently
+      # by the nursing flowsheet enricher; modeling severity-linked change
+      # deferred to a physiological-model extension.
     detection:
       test: "glucose"
       finding: "glucose_below_70"
@@ -791,8 +813,9 @@ complications:
       - {condition: "severe_acidosis_pH_below_7.0", multiplier: 2.0}
       - {condition: "rapid_glucose_drop_over_100_per_hour", multiplier: 2.5}
     state_impact:
-      consciousness: -0.40
       perfusion_status: -0.10
+      # NOTE (FP-DELTA-VALIDATE, session 40): consciousness silent-drop removed
+      # — not a canonical state var. See hypoglycemia complication above.
     detection:
       test: "clinical_assessment"
       finding: "altered_consciousness_headache_papilledema"
@@ -809,7 +832,8 @@ complications:
       - {condition: "NSAID_use", multiplier: 1.8}
     state_impact:
       renal_function: -0.20
-      electrolyte_status: -0.05
+      # NOTE (FP-DELTA-VALIDATE, session 40): electrolyte_status silent-drop
+      # removed — not a canonical state var. See hypokalemia complication above.
     detection:
       test: "creatinine"
       finding: "rise_above_0.3_from_baseline_or_50_percent"

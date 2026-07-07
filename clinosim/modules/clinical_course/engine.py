@@ -13,8 +13,73 @@ import numpy as np
 
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.modules.disease.severity import _evaluate_condition as _severity_condition
+from clinosim.modules.physiology.engine import canonical_state_vars
 from clinosim.types.clinical import StateChangeDirective
 from clinosim.types.patient import PatientPhysiologicalProfile
+
+# Trajectory-able state vars are the delta-driven canonical set minus
+# ``respiratory_fraction``, which is a one-shot routing axis
+# (metabolic/mixed/respiratory) set at disease onset — not day-evolving.
+# Iteration order is LOAD-BEARING for determinism (AD-16): ``get_state_changes``
+# consumes ``rng`` inside the loop, so shuffling the order shifts RNG draws.
+# The tuple pins the pre-FP-DELTA-VALIDATE order (session 40); the trailing
+# invariant check keeps it equal to ``canonical_state_vars() - {respiratory_fraction}``
+# so a physiology-model addition surfaces here as a fail-loud drift instead of a
+# silent trajectory-drop.
+TRAJECTORY_STATE_VARS: tuple[str, ...] = (
+    "inflammation_level",
+    "volume_status",
+    "renal_function",
+    "perfusion_status",
+    "cardiac_function",
+    "hepatic_function",
+    "anemia_level",
+    "coagulation_status",
+    "ph_status",
+    "glucose_status",
+    "sodium_status",
+    "anion_gap_status",
+)
+assert frozenset(TRAJECTORY_STATE_VARS) == canonical_state_vars() - {"respiratory_fraction"}, (
+    "TRAJECTORY_STATE_VARS drifted from canonical_state_vars — extend the tuple "
+    "with any new physiology axis (except respiratory_fraction) to preserve "
+    "the fail-loud validator gate."
+)
+
+
+def _validate_course_archetypes(
+    disease_id: str,
+    course_archetypes: dict,
+) -> None:
+    """Fail-loud gate for ``course_archetypes[].trajectory[]`` state-var keys.
+
+    Sibling of :func:`clinosim.modules.physiology.engine._validate_initial_state_impact`
+    — trajectory keys not in :data:`TRAJECTORY_STATE_VARS` are silently
+    ignored by :func:`get_state_changes` (see the for-loop iteration on the
+    hardcoded whitelist that was previously in that function). FP-DELTA-VALIDATE
+    sibling sweep, session 40.
+    """
+    if not course_archetypes:
+        return
+    offenders: list[tuple[str, str]] = []
+    for arch_name, arch in (course_archetypes or {}).items():
+        if not isinstance(arch, dict):
+            continue
+        traj = arch.get("trajectory") or {}
+        if not isinstance(traj, dict):
+            continue
+        for var in traj:
+            if var not in TRAJECTORY_STATE_VARS:
+                offenders.append((arch_name, var))
+    if offenders:
+        details = ", ".join(f"{a!r}: {v!r}" for a, v in offenders)
+        raise ValueError(
+            f"Disease {disease_id!r} course_archetypes[].trajectory declares "
+            f"trajectories on non-trajectory-able state var(s) [{details}] — "
+            f"these would silently no-op in get_state_changes. Trajectory-able "
+            f"vars: {sorted(TRAJECTORY_STATE_VARS)}. Either fix the YAML key "
+            f"(typo) or expand the physiological model."
+        )
 
 # --- archetype_modifiers condition evaluation (FP-YAML-2b) ---
 ARCHETYPE_EXPRESSION_VARS: frozenset[str] = frozenset(
@@ -292,25 +357,12 @@ def get_daily_directive(
     effective_day = day * speed_factor
 
     changes: dict[str, float] = {}
-    # Recognized trajectory-able state axes. Keep in sync with the bipolar/unit
-    # axes in physiology.engine._variable_range — a var present there but absent
-    # here is silently dropped from any course_archetype trajectory (the drift
-    # that hid sodium_status / anion_gap_status; both are used in day-evolving
-    # electrolyte / acid-base courses, e.g. HF fluid overload, GI acidosis).
-    for var_name in [
-        "inflammation_level",
-        "volume_status",
-        "renal_function",
-        "perfusion_status",
-        "cardiac_function",
-        "hepatic_function",
-        "anemia_level",
-        "coagulation_status",
-        "ph_status",
-        "glucose_status",
-        "sodium_status",
-        "anion_gap_status",
-    ]:
+    # Trajectory-able state axes derived from canonical_state_vars (single
+    # source of truth in physiology.engine). Author-time validator
+    # _validate_course_archetypes rejects YAML trajectory keys outside this
+    # set at load time so a typo can never silently drop again
+    # (FP-DELTA-VALIDATE, session 40).
+    for var_name in TRAJECTORY_STATE_VARS:
         if var_name in trajectory_data:
             traj = trajectory_data[var_name]
             int_traj = {int(k): v for k, v in traj.items()}

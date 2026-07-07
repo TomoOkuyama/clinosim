@@ -694,24 +694,109 @@ def derive_observed_vitals(
 # Helpers
 # ---------------------------------------------------------------------------
 
+# Single source of truth for canonical delta-driven state-var ranges.
+# Anion gap axis: negative = non-AG (hyperchloremic, GI loss), positive =
+# high-AG (ketone/lactate/uremia). Missing here previously meant the
+# (0.0, 1.0) default silently clamped every GI condition's negative axis
+# to 0.0 in apply_disease_onset (degenerate hyperchloremia).
+_VARIABLE_RANGES: dict[str, tuple[float, float]] = {
+    "inflammation_level": (0.0, 1.0),
+    "renal_function": (0.0, 1.0),
+    "cardiac_function": (0.0, 1.0),
+    "hepatic_function": (0.0, 1.0),
+    "anemia_level": (0.0, 1.0),
+    "coagulation_status": (0.0, 1.0),
+    "volume_status": (-1.0, 1.0),
+    "perfusion_status": (0.0, 1.0),
+    "ph_status": (-1.0, 1.0),
+    "respiratory_fraction": (0.0, 1.0),
+    "glucose_status": (-1.0, 1.0),
+    "sodium_status": (-1.0, 1.0),
+    "anion_gap_status": (-1.0, 1.0),
+}
+
+
 def _variable_range(var: str) -> tuple[float, float]:
-    ranges = {
-        "inflammation_level": (0.0, 1.0),
-        "renal_function": (0.0, 1.0),
-        "cardiac_function": (0.0, 1.0),
-        "hepatic_function": (0.0, 1.0),
-        "anemia_level": (0.0, 1.0),
-        "coagulation_status": (0.0, 1.0),
-        "volume_status": (-1.0, 1.0),
-        "perfusion_status": (0.0, 1.0),
-        "ph_status": (-1.0, 1.0),
-        "respiratory_fraction": (0.0, 1.0),
-        "glucose_status": (-1.0, 1.0),
-        "sodium_status": (-1.0, 1.0),
-        # Bipolar axis: negative = non-AG (hyperchloremic, GI loss), positive =
-        # high-AG (ketone/lactate/uremia). Missing here previously meant the
-        # (0.0, 1.0) default silently clamped every GI condition's negative axis
-        # to 0.0 in apply_disease_onset (degenerate hyperchloremia).
-        "anion_gap_status": (-1.0, 1.0),
-    }
-    return ranges.get(var, (0.0, 1.0))
+    return _VARIABLE_RANGES.get(var, (0.0, 1.0))
+
+
+def canonical_state_vars() -> frozenset[str]:
+    """Return the canonical set of delta-driven physiological state vars.
+
+    Consumed by :func:`_validate_initial_state_impact` to reject typo'd /
+    unmodeled state-var keys in disease YAMLs at author time (FP-DELTA-VALIDATE,
+    session 40). The set is the keys of the internal ``_VARIABLE_RANGES`` map,
+    which is the canonical clamp-range source consumed by
+    :func:`apply_state_delta`.
+    """
+    return frozenset(_VARIABLE_RANGES.keys())
+
+
+def _validate_complications_state_impact(
+    disease_id: str,
+    complications: list[dict],
+) -> None:
+    """Fail-loud gate for ``complications[].state_impact`` state-var keys.
+
+    Sibling of :func:`_validate_initial_state_impact` — complication state
+    deltas route through the same :func:`apply_state_delta` sink, so an
+    unmodeled var here also silently no-ops (FP-DELTA-VALIDATE cross-module
+    sweep, session 40).
+    """
+    if not complications:
+        return
+    canonical = canonical_state_vars()
+    offenders: list[tuple[str, str]] = []
+    for comp in complications or []:
+        if not isinstance(comp, dict):
+            continue
+        name = comp.get("name") or comp.get("id") or "<unnamed>"
+        state_impact = comp.get("state_impact") or {}
+        if not isinstance(state_impact, dict):
+            continue
+        for var in state_impact:
+            if var not in canonical:
+                offenders.append((name, var))
+    if offenders:
+        details = ", ".join(f"{n!r}: {v!r}" for n, v in offenders)
+        raise ValueError(
+            f"Disease {disease_id!r} complications[].state_impact declares deltas "
+            f"on non-canonical state var(s) [{details}] — these would silently "
+            f"no-op in apply_state_delta. Canonical vars: {sorted(canonical)}. "
+            f"Either fix the YAML key (typo) or expand the physiological model."
+        )
+
+
+def _validate_initial_state_impact(
+    disease_id: str,
+    initial_state_impact: dict[str, dict[str, float]],
+) -> None:
+    """Fail-loud gate for ``initial_state_impact`` state-var keys.
+
+    Raises ``ValueError`` if any severity block references a state var that is
+    not in :func:`canonical_state_vars` — such keys would silently no-op in
+    :func:`apply_state_delta` (via ``getattr(state, var, None)``) and lose the
+    author's clinical intent (FP-DELTA-VALIDATE, session 40). Error message
+    lists the disease id, offending severity, offending var(s), and the
+    canonical set.
+    """
+    if not initial_state_impact:
+        return
+    canonical = canonical_state_vars()
+    offenders: list[tuple[str, str]] = []
+    for severity, deltas in initial_state_impact.items():
+        if not isinstance(deltas, dict):
+            continue
+        for var in deltas:
+            if var not in canonical:
+                offenders.append((severity, var))
+    if offenders:
+        details = ", ".join(f"{sev!r}: {var!r}" for sev, var in offenders)
+        raise ValueError(
+            f"Disease {disease_id!r} initial_state_impact declares deltas on "
+            f"non-canonical state var(s) [{details}] — these would silently "
+            f"no-op in apply_state_delta. Canonical vars: "
+            f"{sorted(canonical)}. Either fix the YAML key (typo) or expand "
+            f"the physiological model (add the state var to PhysiologicalState "
+            f"+ _VARIABLE_RANGES + downstream lab / coupling wiring)."
+        )

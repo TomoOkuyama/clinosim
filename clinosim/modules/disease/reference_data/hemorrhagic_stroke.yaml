@@ -109,17 +109,24 @@ initial_state_impact:
   moderate:
     inflammation_level: 0.20
     perfusion_status: -0.10
-    neurological_status: -0.30
     volume_status: -0.05
     anion_gap_status: 0.2     # AG axis: large ICH with perfusion compromise
+    # NOTE (FP-DELTA-VALIDATE, session 40): neurological_status (GCS↓, focal
+    # deficit) was authored here but is not a canonical state var — silently
+    # dropped. Neurological findings are produced via the nursing flowsheet
+    # enricher (GCS scoring) and daily narrative independently of physiological
+    # state deltas. Modeling ICH-driven neurological deficit as a coupled state
+    # axis (severity → GCS → observation coding) is deferred to a
+    # physiological-model extension.
   severe:
     inflammation_level: 0.35
     perfusion_status: -0.25
-    neurological_status: -0.60
     volume_status: -0.10
     ph_status: -0.05
     renal_function: -0.05
     anion_gap_status: 0.3     # AG axis: severe ICH with lactate (AG 13-16)
+    # NOTE (FP-DELTA-VALIDATE, session 40): neurological_status silently dropped
+    # — see moderate branch above for full rationale.
 
 # ============================================================
 # ORDER PROTOCOLS
@@ -542,7 +549,9 @@ course_archetypes:
     description: "Small hematoma, stable course, neurological improvement, transfer to rehab"
     trajectory:
       inflammation_level: {0: 0.05, 1: 0.02, 2: -0.02, 3: -0.02, 5: -0.02, 7: -0.02, 14: -0.01, 21: -0.01, 28: -0.01}
-      neurological_status: {0: -0.05, 1: 0.00, 2: 0.02, 3: 0.02, 5: 0.02, 7: 0.02, 14: 0.02, 21: 0.01, 28: 0.01}
+      # NOTE (FP-DELTA-VALIDATE, session 40): neurological_status trajectory
+      # removed — not a canonical trajectory-able state var (silently dropped
+      # by get_state_changes). GCS is produced by the nursing flowsheet enricher.
       perfusion_status: {0: 0.00, 1: 0.01, 2: 0.01, 3: 0.01, 5: 0.00, 7: 0.00, 14: 0.00, 21: 0.00, 28: 0.00}
     order_modifications: {}
     treatment_modifications: {}
@@ -564,7 +573,8 @@ course_archetypes:
     description: "Mild hematoma expansion or edema Day 2-4, then stabilization and gradual recovery"
     trajectory:
       inflammation_level: {0: 0.08, 1: 0.05, 2: 0.03, 3: 0.00, 5: -0.02, 7: -0.03, 14: -0.02, 21: -0.01, 28: -0.01}
-      neurological_status: {0: -0.08, 1: -0.05, 2: -0.03, 3: 0.00, 5: 0.02, 7: 0.02, 14: 0.02, 21: 0.01, 28: 0.01}
+      # NOTE (FP-DELTA-VALIDATE, session 40): neurological_status trajectory
+      # removed — silently dropped. See smooth_recovery archetype.
       perfusion_status: {0: -0.03, 1: -0.02, 2: 0.00, 3: 0.01, 5: 0.01, 7: 0.00, 14: 0.00, 21: 0.00, 28: 0.00}
     order_modifications:
       day_2:
@@ -578,7 +588,8 @@ course_archetypes:
     description: "No neurological change for 7-10 days, then gradual improvement with rehabilitation"
     trajectory:
       inflammation_level: {0: 0.05, 1: 0.03, 2: 0.01, 3: 0.00, 5: 0.00, 7: -0.01, 14: -0.02, 21: -0.02, 28: -0.01}
-      neurological_status: {0: -0.05, 1: -0.02, 2: 0.00, 3: 0.00, 5: 0.00, 7: 0.00, 14: 0.01, 21: 0.02, 28: 0.02}
+      # NOTE (FP-DELTA-VALIDATE, session 40): neurological_status trajectory
+      # removed — silently dropped. See smooth_recovery archetype.
     order_modifications:
       day_5:
         add_imaging: ["CT_Head_repeat"]
@@ -590,7 +601,8 @@ course_archetypes:
     description: "Significant hematoma expansion despite BP control, requires surgical consideration"
     trajectory:
       inflammation_level: {0: 0.10, 1: 0.08, 2: 0.05, 3: 0.03, 5: 0.00, 7: -0.02, 14: -0.03, 21: -0.02, 28: -0.01}
-      neurological_status: {0: -0.10, 1: -0.08, 2: -0.03, 3: 0.00, 5: 0.01, 7: 0.02, 14: 0.02, 21: 0.02, 28: 0.01}
+      # NOTE (FP-DELTA-VALIDATE, session 40): neurological_status trajectory
+      # removed — silently dropped. See smooth_recovery archetype.
       perfusion_status: {0: -0.05, 1: -0.03, 2: -0.01, 3: 0.00, 5: 0.01, 7: 0.01, 14: 0.00, 21: 0.00, 28: 0.00}
     order_modifications:
       day_1:
@@ -611,7 +623,8 @@ course_archetypes:
     description: "Progressive cerebral edema, declining consciousness, ICU course, high mortality"
     trajectory:
       inflammation_level: {0: 0.10, 1: 0.08, 2: 0.06, 3: 0.05, 5: 0.03, 7: 0.02, 14: 0.00, 21: -0.01, 28: -0.01}
-      neurological_status: {0: -0.10, 1: -0.08, 2: -0.06, 3: -0.04, 5: -0.02, 7: 0.00, 14: 0.01, 21: 0.01, 28: 0.01}
+      # NOTE (FP-DELTA-VALIDATE, session 40): neurological_status trajectory
+      # removed — silently dropped. See smooth_recovery archetype.
       perfusion_status: {0: -0.05, 1: -0.05, 2: -0.03, 3: -0.02, 5: -0.01, 7: 0.00, 14: 0.01, 21: 0.01, 28: 0.00}
       renal_function: {0: -0.02, 1: -0.02, 2: -0.01, 3: -0.01, 5: 0.00, 7: 0.01, 14: 0.01, 21: 0.00, 28: 0.00}
     order_modifications:
@@ -636,7 +649,8 @@ course_archetypes:
     description: "Catastrophic hematoma expansion or herniation — ICU, possible surgical evacuation"
     trajectory:
       inflammation_level: {0: 0.08, 1: 0.20, 2: 0.10, 3: 0.00, 5: -0.03, 7: -0.05, 14: -0.03, 21: -0.02, 28: -0.01}
-      neurological_status: {0: -0.05, 1: -0.30, 2: -0.05, 3: 0.02, 5: 0.02, 7: 0.02, 14: 0.02, 21: 0.01, 28: 0.01}
+      # NOTE (FP-DELTA-VALIDATE, session 40): neurological_status trajectory
+      # removed — silently dropped. See smooth_recovery archetype.
       perfusion_status: {0: 0.00, 1: -0.20, 2: -0.05, 3: 0.03, 5: 0.03, 7: 0.02, 14: 0.01, 21: 0.00, 28: 0.00}
     order_modifications:
       day_1:
@@ -668,6 +682,13 @@ archetype_modifiers:
 # COMPLICATIONS
 # ============================================================
 complications:
+  # NOTE (FP-DELTA-VALIDATE, session 40): neurological_status was authored on
+  # the following 5 complications but is not a canonical state var — silently
+  # dropped in apply_state_delta. GCS / focal deficit are produced independently
+  # by the nursing flowsheet enricher and daily narrative; modeling ICH
+  # complication-driven neurological deficit as a coupled state axis is deferred
+  # to a physiological-model extension. Actions (mannitol, seizure meds, VP
+  # shunt, ICU escalation) are unchanged and still fire.
   - name: "hematoma_expansion"
     description: "Growth of intracerebral hemorrhage in first 24h"
     probability_per_day: 0.05
@@ -677,7 +698,6 @@ complications:
       - {condition: "spot_sign_on_CTA", multiplier: 4.0}
       - {condition: "large_initial_volume", multiplier: 2.0}
     state_impact:
-      neurological_status: -0.15
       perfusion_status: -0.05
     detection:
       test: "ct_head_repeat"
@@ -691,8 +711,7 @@ complications:
     risk_factors:
       - {condition: "large_hematoma", multiplier: 2.5}
       - {condition: "intraventricular_hemorrhage", multiplier: 2.0}
-    state_impact:
-      neurological_status: -0.10
+    state_impact: {}
     detection:
       test: "ct_head_repeat"
       finding: "significant_edema_with_midline_shift"
@@ -705,7 +724,6 @@ complications:
     parent_complication: "cerebral_edema"
     onset_days_after_parent: [0, 3]
     state_impact:
-      neurological_status: -0.30
       perfusion_status: -0.15
     actions: ["emergent_osmotic_therapy", "emergent_surgical_evacuation", "intubation"]
 
@@ -715,8 +733,7 @@ complications:
     onset_day_range: [0, 5]
     risk_factors:
       - {condition: "intraventricular_hemorrhage", multiplier: 5.0}
-    state_impact:
-      neurological_status: -0.10
+    state_impact: {}
     detection:
       test: "ct_head"
       finding: "ventricular_dilation"
@@ -729,8 +746,7 @@ complications:
     risk_factors:
       - {condition: "cortical_location", multiplier: 3.0}
       - {condition: "large_hematoma", multiplier: 1.5}
-    state_impact:
-      neurological_status: -0.05
+    state_impact: {}
     detection:
       test: "clinical_observation_or_EEG"
       finding: "seizure_activity"
