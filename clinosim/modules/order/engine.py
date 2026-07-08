@@ -371,9 +371,21 @@ def place_admission_orders(
         "large_bore_IV", "glucose_check", "O2", "fluid_balance", "IV_fluid_restriction",
         "head_elevation", "spinal_precautions", "isolation", "wound_care",
     }
+    # RM-6b (session 42): device/procedure keywords in the `detail` field
+    # override type-based classification. E.g. `type: "DVT_prophylaxis",
+    # detail: "Sequential compression devices"` is a device, not a drug —
+    # route to PROCEDURE so MAR isn't generated for it.
+    _DEVICE_PROCEDURE_KW = (
+        "compression device", "sequential compression", "positive pressure",
+        "nppv", "cpap", "bipap", "ipc device", "graduated compression",
+        "non-invasive ventilation",
+    )
     for i, sup in enumerate(admission.get("supportive", [])):
         sup_type = sup.get("type", "")
-        if sup_type in _MED_TYPES:
+        detail_lower = str(sup.get("detail", "") or "").lower()
+        if any(kw in detail_lower for kw in _DEVICE_PROCEDURE_KW):
+            order_type = OrderType.PROCEDURE
+        elif sup_type in _MED_TYPES:
             order_type = OrderType.MEDICATION
         elif sup_type in _CARE_PLAN_TYPES:
             order_type = OrderType.THERAPY

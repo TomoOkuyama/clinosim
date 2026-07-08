@@ -429,6 +429,49 @@ def _simulate_patient(
                 if m.reported_datetime is None or m.reported_datetime <= snapshot_dt
             ]
 
+    # RM-7d (session 42): acquired chronic conditions during inpatient stay.
+    # Real EHR practice: hospitalization commonly surfaces newly-diagnosed
+    # chronic disease (new-onset HTN, DM, AF, CKD, HF, IHD detected in
+    # workup). We map primary disease_id → likely-implied chronic ICD codes
+    # and append to patient.chronic_conditions when the code is not already
+    # present. Downstream FHIR emission picks these up as problem-list-item.
+    _IMPLIED_CHRONIC_BY_DISEASE = {
+        "acute_mi":                    ["I25", "I10", "E78"],  # IHD, HTN, dyslipidemia
+        "cerebral_infarction":         ["I10", "I48", "I25", "E78"],
+        "hemorrhagic_stroke":          ["I10", "I48"],
+        "subdural_hematoma":           ["I10"],
+        "heart_failure_exacerbation":  ["I50", "I25", "I10"],
+        "atrial_fibrillation_rvr":     ["I48", "I50", "I10"],
+        "pulmonary_embolism":          ["I48", "N40"],
+        "sepsis":                      ["N18"],
+        "diabetic_ketoacidosis":       ["E11.9", "E78"],
+        "acute_kidney_injury":         ["N18", "I10", "E11.9"],
+        "hip_fracture":                ["M81", "M17"],
+        "urinary_tract_infection":     ["N40"],
+        "acute_pancreatitis":          ["K74"],
+        "gi_bleeding":                 ["K74", "K21"],
+        "copd_exacerbation":           ["J44"],
+        "asthma_exacerbation":         ["J45"],
+        "bacterial_pneumonia":         ["J44"],
+        "aspiration_pneumonia":        ["F00", "K21"],
+    }
+    _existing_codes = {
+        (c.code.split(".")[0] if hasattr(c, "code") else str(c).split(".")[0])
+        for c in (getattr(patient, "chronic_conditions", []) or [])
+    }
+    _implied = _IMPLIED_CHRONIC_BY_DISEASE.get(disease_id, [])
+    if _implied:
+        from clinosim.types.patient import ChronicCondition
+        _adm_date = getattr(admission_time, "date", lambda: admission_time)()
+        for _code in _implied:
+            _base = _code.split(".")[0]
+            if _base in _existing_codes:
+                continue
+            _existing_codes.add(_base)
+            patient.chronic_conditions.append(ChronicCondition(
+                code=_code, onset_date=_adm_date,
+            ))
+
     record = CIFPatientRecord(
         patient=patient, encounters=[encounter], orders=all_orders,
         vital_signs=all_vitals, lab_results=all_lab_results,

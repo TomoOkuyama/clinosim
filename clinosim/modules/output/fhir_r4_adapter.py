@@ -325,10 +325,45 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
 
 
 def _bb_procedures(ctx: BundleContext) -> list[dict]:
-    return [
+    out = [
         _build_procedure(proc, ctx.patient_id, i, ctx.country)
         for i, proc in enumerate(ctx.record.get("procedures", []))
     ]
+    # RM-6c (session 42): emit Procedure resources from PROCEDURE-type Orders
+    # too. These are procedure/device items (compression device, splint, etc.)
+    # that used to leak through the MedicationRequest path — RM-6a/b routed
+    # them here at CIF creation. Emit a light-weight Procedure per Order.
+    proc_seq = len(out) + 1
+    for order in ctx.record.get("orders", []) or []:
+        ot = order.get("order_type", "") if isinstance(order, dict) else getattr(order, "order_type", "")
+        # OrderType enum stringifies to its value
+        if str(ot) not in ("procedure", "OrderType.PROCEDURE"):
+            continue
+        display = order.get("display_name", "") if isinstance(order, dict) else getattr(order, "display_name", "")
+        enc_id = order.get("encounter_id", "") if isinstance(order, dict) else getattr(order, "encounter_id", "")
+        order_id = order.get("order_id", "") if isinstance(order, dict) else getattr(order, "order_id", "")
+        ordered_by = order.get("ordered_by", "") if isinstance(order, dict) else getattr(order, "ordered_by", "")
+        ordered_dt = order.get("ordered_datetime", "") if isinstance(order, dict) else getattr(order, "ordered_datetime", "")
+        _lang = "ja" if str(ctx.country).upper() == "JP" else "en"
+        _profile = {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"]}} \
+            if str(ctx.country).upper() == "JP" else {}
+        procedure_res: dict = {
+            "resourceType": "Procedure",
+            "id": f"proc-order-{order_id}" if order_id else f"proc-order-{ctx.patient_id}-{proc_seq:04d}",
+            **_profile,
+            "status": "completed",
+            "code": {"text": display} if display else {"text": "Procedure"},
+            "subject": {"reference": f"Patient/{ctx.patient_id}"},
+        }
+        if enc_id:
+            procedure_res["encounter"] = {"reference": f"Encounter/{enc_id}"}
+        if ordered_dt:
+            procedure_res["performedDateTime"] = str(ordered_dt)
+        if ordered_by:
+            procedure_res["performer"] = [{"actor": {"reference": f"Practitioner/{ordered_by}"}}]
+        out.append(procedure_res)
+        proc_seq += 1
+    return out
 
 
 def _bb_practitioners(ctx: BundleContext) -> list[dict]:
@@ -502,6 +537,9 @@ _JP_CORE_PROFILES: dict[str, str] = {
     "PractitionerRole": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_PractitionerRole",
     "Organization": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization",
     "DiagnosticReport": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Common",
+    # RM-6c (session 42): Procedure profile so RECORD-based and ORDER-based
+    # Procedure emissions both carry JP Core conformance.
+    "Procedure": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure",
 }
 
 
