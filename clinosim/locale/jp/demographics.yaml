@@ -28,85 +28,147 @@ blood_type:
 # Format: ICD-10 code -> {age_range: prevalence}
 # Source: MHLW National Health and Nutrition Survey
 chronic_prevalence:
-  I10:      # Hypertension — ~43% of adults 40+
-    "40-99": 0.35
-  E11.9:    # Type 2 DM — ~10% of adults 40+
-    "40-99": 0.10
-  E78:      # Dyslipidemia — ~20% of adults 40+
-    "40-99": 0.20
-  J44:      # COPD — ~5% of adults 40+
-    "40-99": 0.05
-  N18:      # CKD — ~8% of adults 60+
-    "60-99": 0.08
-  I50:      # Heart failure — ~3% of adults 65+
-    "65-99": 0.03
-  I48:      # Atrial fibrillation — ~1.5% age 50+, ~9% age 75+
+  # RM-7c (session 42): age-stratified finer bands where JP epi data shows
+  # steep elderly increase — MHLW 国民健康・栄養調査 (令和2年) + JCS/JSH
+  # guideline reviews. Multiple bands compound at population init so late-
+  # elderly patients accumulate more chronic entries.
+  I10:      # Hypertension — MHLW 令和2 統計 JP adults 60+ ≈ 60%, 70+ ≈ 68%
+    "40-59": 0.20
+    "60-69": 0.50
+    "70-99": 0.65
+  E11.9:    # Type 2 DM — MHLW: 60+ 20%, 70+ 22%
+    "40-59": 0.08
+    "60-69": 0.18
+    "70-99": 0.22
+  E78:      # Dyslipidemia — MHLW/JAS: 60+ 40%, 70+ 45%
+    "40-59": 0.15
+    "60-69": 0.40
+    "70-99": 0.45
+  J44:      # COPD — MHLW: 40+ 5%, 60+ 10%
+    "40-59": 0.03
+    "60-99": 0.10
+  N18:      # CKD — MHLW: 60+ 15%, 70+ 25% (higher than earlier estimate)
+    "60-69": 0.12
+    "70-99": 0.25
+  I50:      # Heart failure — JCS 統計 65+ 3%, 75+ 8%
+    "65-74": 0.03
+    "75-99": 0.08
+  I48:      # Atrial fibrillation — JCS: 50+ 1.5%, 75+ 9%
     "50-74": 0.015
     "75-99": 0.09
-  I25:      # Ischemic heart disease — ~3% age 50+, ~10% age 70+ (lower than US)
+  I25:      # Ischemic heart disease — JCS 50+ 3%, 70+ 10%
     "50-69": 0.03
     "70-99": 0.10
-  M81:      # Osteoporosis — sex-neutral ~15% age 60+ (higher in Japan)
-    "60-99": 0.15
-  F00:      # Dementia/Alzheimer — ~3% age 65+, ~16% age 85+ (high longevity)
+  M81:      # Osteoporosis — sex-neutral: 60+ 15%, 70+ 25% (JOS)
+    "60-69": 0.15
+    "70-99": 0.25
+  F00:      # Dementia — MHLW: 65+ 3%, 85+ 16% (JP high longevity)
     "65-84": 0.03
     "85-99": 0.16
-  G20:      # Parkinson's disease — ~0.5% age 60+, ~2% age 80+
+  G20:      # Parkinson — 60+ 0.5%, 80+ 2%
     "60-79": 0.005
     "80-99": 0.02
-  E03:      # Hypothyroidism — ~4% age 50+ (slightly lower than US)
+  E03:      # Hypothyroidism
     "50-99": 0.04
-  K21:      # GERD — ~12% age 40+ (lower than US, rising trend)
-    "40-99": 0.12
-  J45:      # Asthma — ~7% all ages (slightly lower than US)
+  K21:      # GERD — MHLW: 40+ 15%, 60+ 20% (rising trend)
+    "40-59": 0.12
+    "60-99": 0.20
+  J45:      # Asthma
     "0-99": 0.07
-  N40:      # BPH (benign prostatic hyperplasia) — male only ~8% age 50+
+  N40:      # BPH male only — MHLW: 50+ 8%, 70+ 30%
     sex: M
-    "50-99": 0.08
-  M17:      # Osteoarthritis — ~15% age 50+, ~30% age 70+ (similar to US)
-    "50-69": 0.15
+    "50-69": 0.08
     "70-99": 0.30
+  M17:      # Osteoarthritis — 50+ 15%, 70+ 40% (MHLW higher than earlier)
+    "50-69": 0.15
+    "70-99": 0.40
+  # RM-7b (session 42): 7 JP-common chronic codes added, epi from MHLW
+  # 国民健康・栄養調査 (令和2) + 厚生労働省統計. These are prevalent in
+  # JP outpatient EHR problem lists but were absent from the base list.
+  E79:      # Hyperuricemia — MHLW: 40+ 8%, 60+ 15% (JP men-dominant)
+    "40-59": 0.08
+    "60-99": 0.15
+  H26:      # Cataract — MHLW: 60+ 40%, 70+ 60%, 80+ 80%
+    "60-69": 0.40
+    "70-79": 0.60
+    "80-99": 0.80
+  K59:      # Chronic constipation — MHLW: 60+ 15%, 70+ 20%
+    "60-69": 0.15
+    "70-99": 0.20
+  I84:      # Hemorrhoids — MHLW: 40+ 15%
+    "40-99": 0.15
+  K74:      # Chronic liver disease — MHLW: 40+ 3% (JP hepatitis-B/C
+            # cohort elevated)
+    "40-99": 0.03
+  M54:      # Chronic back pain — MHLW 国民生活基礎: 60+ 30%, 70+ 40%
+    "60-69": 0.30
+    "70-99": 0.40
+  F32:      # Depression — MHLW: adults 5% lifetime, elderly 8%
+    "40-64": 0.05
+    "65-99": 0.08
 
-# RM-7 (session 42, CO-2 root cause): comorbidity_correlations were missing
-# entirely from JP demographics, causing JP problem-list-item ratio to be
-# ~half of US (1.20 vs 2.49 per encounter). Values below follow
-# Japan Circulation Society (JCS) + Japan Society of Hypertension (JSH)
-# guidelines' documented associations. Conservative multipliers — verified
-# JP epidemiology preserves the ~10% baseline gap identified in cycle 2.
+# RM-7e (session 42): JP care-seeking threshold lower than US (30%→20%)
+# reflects JP 健診 culture (mandatory annual company + 特定健診 for 40+).
+# Lower threshold = more conditions get documented in EHR problem lists.
+care_seeking:
+  threshold_mean: 0.20
+  threshold_sd: 0.10
+
+# RM-7a (session 42 tune-up): comorbidity_correlations raised from
+# conservative 1.3-1.8 to JCS/JSH real association values (metabolic
+# syndrome cluster is well-documented at 2.0-2.5x). JP-specific metabolic
+# syndrome dominates the outpatient chronic condition mix.
 comorbidity_correlations:
   I10:        # Hypertension
-    E78:   1.5   # → dyslipidemia
-    E11.9: 1.4   # → type 2 DM
-    I25:   1.5   # → ischemic heart disease
-    N18:   1.4   # → CKD (hypertensive nephropathy)
-    I50:   1.3   # → heart failure
+    E78:   2.2   # → dyslipidemia (JSH metabolic cluster)
+    E11.9: 2.0   # → type 2 DM
+    I25:   2.0   # → ischemic heart disease
+    N18:   2.0   # → CKD (hypertensive nephropathy)
+    I50:   1.6   # → heart failure
+    E79:   1.8   # → hyperuricemia (metabolic cluster)
+    M54:   1.4   # → chronic back pain (activity-limited elderly)
   E11.9:      # Type 2 DM
-    I10:   1.3   # → hypertension
-    E78:   1.6   # → dyslipidemia
-    N18:   1.8   # → diabetic nephropathy (highest in Japan)
-    I25:   1.5   # → ischemic heart disease
-    F00:   1.3   # → dementia (JP guideline documented)
+    I10:   1.8   # → hypertension
+    E78:   2.2   # → dyslipidemia
+    N18:   2.5   # → diabetic nephropathy (highest in Japan)
+    I25:   2.0   # → ischemic heart disease
+    F00:   1.5   # → dementia (JP guideline documented, glycemic damage)
+    H26:   1.5   # → cataract (diabetic complication)
+    E79:   1.6   # → hyperuricemia (insulin resistance shared axis)
   E78:        # Dyslipidemia
-    I10:   1.4   # → hypertension
-    E11.9: 1.5   # → type 2 DM
-    I25:   1.6   # → IHD
+    I10:   1.8   # → hypertension
+    E11.9: 2.0   # → type 2 DM
+    I25:   2.2   # → IHD (LDL-driven ASCVD)
+    E79:   1.8   # → hyperuricemia (metabolic cluster)
   N18:        # CKD
-    I10:   1.5
-    E11.9: 1.5
-    I50:   1.6   # → HF (cardiorenal)
+    I10:   2.0
+    E11.9: 2.0
+    I50:   2.0   # → HF (cardiorenal syndrome)
+    E79:   2.0   # → hyperuricemia (uric acid retention)
   I50:        # Heart failure
-    I25:   1.7   # → IHD (cause of HF)
-    I48:   1.5   # → atrial fibrillation
-    N18:   1.4   # → CKD (cardiorenal)
+    I25:   2.2   # → IHD (cause of HF)
+    I48:   1.8   # → atrial fibrillation
+    N18:   1.8   # → CKD (cardiorenal)
   I48:        # Atrial fibrillation
-    I50:   1.4   # → HF
-    I25:   1.3   # → IHD
-    I10:   1.3   # → HTN
+    I50:   1.8   # → HF
+    I25:   1.5   # → IHD
+    I10:   1.5   # → HTN
   I25:        # Ischemic heart disease
-    I50:   1.5   # → HF
-    I48:   1.3   # → AF
-    I10:   1.4   # → HTN
-    E78:   1.3   # → dyslipidemia
+    I50:   1.8   # → HF
+    I48:   1.5   # → AF
+    I10:   1.8   # → HTN
+    E78:   1.8   # → dyslipidemia
+  E79:        # Hyperuricemia
+    I10:   1.6   # → HTN
+    E78:   1.6   # → dyslipidemia
+    E11.9: 1.5   # → DM
+    N18:   1.8   # → CKD (uric acid retention loop)
+  M17:        # Osteoarthritis
+    M54:   1.6   # → chronic back pain
+    M81:   1.3   # → osteoporosis (activity-limited elderly)
+  F00:        # Dementia
+    K21:   1.3   # → GERD (medication side effects / poor mobility)
+    K59:   1.6   # → constipation (immobility / anticholinergics)
 
 # Disease incidence rates per 100,000/year by age group
 # Source: MHLW Patient Survey, Japanese Orthopedic Association

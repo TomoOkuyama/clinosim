@@ -244,7 +244,12 @@ def generate_population(
                         conditions.append(code)
 
             # Care seeking threshold (JP: lower = more willing)
-            threshold = float(rng.normal(0.30, 0.12))
+            # RM-7e (session 42): care-seeking threshold from locale
+            # (JP: 20% reflects 健診 culture; US: 30% baseline).
+            _cs = demo.get("care_seeking") or {}
+            _cs_mean = float(_cs.get("threshold_mean", 0.30))
+            _cs_sd = float(_cs.get("threshold_sd", 0.12))
+            threshold = float(rng.normal(_cs_mean, _cs_sd))
             threshold = max(0.05, min(0.90, threshold))
 
             # Phone: generate mobile for adults
