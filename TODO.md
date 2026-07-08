@@ -1,6 +1,56 @@
 # clinosim — TODO
 
-## Status (current as of 2026-07-08, session 42 — Cycle 3 CLOSED)
+## Status (current as of 2026-07-08, session 42 — C2/C3 tail + RM-6/7 full CLOSED)
+
+**★ C2/C3 tail RM chain CLOSED (2026-07-08, session 42, master `d5a484e701`)** —
+after cycle 3 CLOSED, user requested closing all remaining C2/C3 open items.
+RM-1..8 first pass + RM-6/7 full 4/5-stage resolution both landed. Highlights:
+
+- **RM-1 (Observation.performer cross-cut)**: nursing survey Observations
+  (NEWS2/GCS/Braden/Morse/Barthel/intake-output) + LOC + O2 supplement all
+  forward vs.measured_by / encounter.primary_nurse_id. Survey category 100%
+  → 0.2%, vital-signs 22.2% → 0.0%.
+- **RM-2 (MR.intent + status widening)**: `_mr_intent_from_order` expanded
+  keyword matching ("Home medication (continue)"/"Outpatient follow-up"),
+  outpatient-encounter fallback. MR.status auto-completes for episodic
+  inpatient orders at encounter close. intent now 4998 order + 1465
+  instance-order; status now includes 1835 completed + 2 stopped.
+- **RM-3 (Immunization.performer)**: `ImmunizationRecord` gained
+  `lot_number` + `administered_by` typed fields; roster piped via
+  POST_RECORDS EnricherContext to `enrich_immunizations`; nurse pool picks
+  a stable "family nurse" per patient. Immunization.performer 100% of
+  completed (25,437/25,437).
+- **RM-4 (GOLD SNOMED)**: GOLD 1/2/3 verified via tx.fhir.org $lookup
+  (313296004/313297008/313299006), added to `_STAGE_SUMMARY_SNOMED` +
+  snomed-ct.yaml (en + ja). GOLD 4 / asthma / HTN / CCS remain text-only
+  (no fabrication).
+- **RM-5 (ImagingStudy density)**: sepsis + heart_failure_exacerbation +
+  acute_mi added to SUPPORTED_IMAGING_DISEASES with CXR impression
+  templates (JP + EN). ImagingStudy count 103 → 208 (2x).
+- **RM-6 (MR/MAR classification full 4-stage)**: order/engine.py `detail`
+  device/procedure keyword override; PROCEDURE-Order → FHIR Procedure
+  builder added; JP_Procedure profile registered (verified via
+  jpfhir.jp). Procedure count 361 → 2,236 (6.2x). Ice pack / Splint /
+  Cast / Sling / Cervical collar / Sequential compression / Suture
+  closure all correctly emit as Procedure.
+- **RM-7 (JP chronic ratio full 5-stage)**: comorbidity_correlations
+  tuned to JCS/JSH 1.8-2.5x; 7 JP-common chronic codes added
+  (E79/H26/K59/I84/K74/M54/F32) with MHLW 令和2 epi; age-stratified
+  60-69/70-79/80-99 bands; disease_id → implied chronic ICD codes
+  appended during inpatient stay; JP care-seeking threshold 30%→20%
+  reflecting 健診 culture. JP problem-list-item ratio 1.20 → **4.92/enc**
+  (exceeds US 2.49 target — tuning-down candidate for future cycle).
+- **RM-8 (YJ code cleanup)**: 68 cycle-2 fabricated YJ codes REMOVED from
+  `code_mapping_drug.yaml`. Real MHLW-verified mapping deferred to a
+  dedicated chain.
+
+Cycle 4 candidates: RM-7 elderly-cluster tuning if 4.92 is over-populated;
+GOLD 4 / asthma severity / HTN Stage / CCS SNOMED authoritative search;
+YJ code MHLW verification chain; inpatient daily-loop residual
+procedure/device items (NPPV 741 / IPC 154 in MAR). Unit tests: **2338
+passed**.
+
+## Status (2026-07-08, session 42 — Cycle 3 CLOSED)
 
 **★ Audit Cycle 3 CLOSED (2026-07-08, session 42, `docs/audit-cycles/cycle-3.md`)** — JP p=10000
 seed=42 baseline audit → 30 issues → fixes → JP regen → verification → **end-of-cycle fix
