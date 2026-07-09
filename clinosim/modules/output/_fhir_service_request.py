@@ -201,6 +201,26 @@ def _bb_service_requests(ctx: BundleContext) -> list[dict[str, Any]]:
     JSON-deserialized dicts (production CIF path via json.load).
     """
     orders: list[Any] = ctx.record.get("orders", []) or []
+    # C4-23 (session 43 cycle 4): SR.requester fallback to encounter attending
+    # (was 2% missing requester). Same pattern as C4-17 / C4-22. Applied to
+    # dict-shaped orders only (test-path dataclasses already carry ordered_by).
+    _attending_by_enc: dict[str, str] = {}
+    for _enc in ctx.record.get("encounters", []) or []:
+        _eid = _o(_enc, "encounter_id", "") or ""
+        _att = _o(_enc, "attending_physician_id", "") or ""
+        if _eid and _att:
+            _attending_by_enc[_eid] = _att
+    if _attending_by_enc:
+        enriched: list[Any] = []
+        for o in orders:
+            if isinstance(o, dict) and not o.get("ordered_by"):
+                _eid = o.get("encounter_id", "") or ""
+                _att = _attending_by_enc.get(_eid, "")
+                if _att:
+                    o = dict(o)
+                    o["ordered_by"] = _att
+            enriched.append(o)
+        orders = enriched
     resources: list[dict[str, Any]] = []
 
     lab_orders = [o for o in orders if _o(o, "order_type") in (OrderType.LAB, "lab")]

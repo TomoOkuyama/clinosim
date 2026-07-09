@@ -77,6 +77,96 @@ codes:
     # Verified: LONG_COMMON_NAME = "Emergency department Triage note"
     en: Emergency department Triage note
     ja: トリアージ記録
+  # === C4-04 (session 43 cycle 4): Composition.section[].code narrative LOINCs ===
+  # HL7 CCDA v2.1 canonical section codes, cited in HL7 US-CCDA IG Vol 2.
+  # `_SECTION_LOINC` maps document section titles (subjective / objective /
+  # assessment / plan / etc.) to these codes so Composition.section[].code
+  # carries a real display, not a code fallback. Registered here so
+  # `code_lookup("loinc", <code>, lang)` resolves an authoritative display.
+  10154-3:
+    en: Chief complaint Narrative - Reported
+    ja: 主訴
+  10157-6:
+    en: History of family member diseases Narrative
+    ja: 家族歴
+  10160-0:
+    en: History of medication use Narrative
+    ja: 服薬歴
+  10164-2:
+    en: History of Present illness Narrative
+    ja: 現病歴
+  10183-2:
+    en: Hospital discharge medications Narrative
+    ja: 退院時処方
+  10184-0:
+    en: Hospital discharge interventions Narrative
+    ja: 退院時介入内容
+  10187-3:
+    en: Review of systems Narrative - Reported
+    ja: システム別レビュー
+  11348-0:
+    en: History of Past illness Narrative
+    ja: 既往歴
+  11535-2:
+    en: Hospital discharge Dx Narrative
+    ja: 退院時診断
+  29308-4:
+    en: Diagnosis
+    ja: 診断
+  29545-1:
+    en: Physical findings Narrative
+    ja: 身体所見
+  29762-2:
+    en: Social history Narrative
+    ja: 社会歴
+  42346-6:
+    en: Patient education Narrative
+    ja: 患者教育
+  42349-1:
+    en: Reason for visit Narrative
+    ja: 受診理由
+  45391-8:
+    en: Physical function assessment Narrative
+    ja: 身体機能評価
+  48765-2:
+    en: Allergies and adverse reactions Document
+    ja: アレルギー・副作用歴
+  51847-2:
+    en: Evaluation + Plan note
+    ja: 評価計画記録
+  51848-0:
+    en: Evaluation note
+    ja: 評価記録
+  51852-2:
+    en: Provider unspecified Progress note
+    ja: 経過記録
+  51897-7:
+    en: Care team Narrative
+    ja: ケアチームメンバー
+  56816-2:
+    en: Vital signs assessment Narrative
+    ja: バイタルサイン評価
+  61144-2:
+    en: Diet and nutrition Narrative
+    ja: 食事栄養評価
+  68609-7:
+    en: Hospital discharge disposition
+    ja: 退院時転帰
+  75326-9:
+    en: Clinical finding
+    ja: 臨床所見
+  8648-8:
+    en: Hospital course Narrative
+    ja: 入院経過
+  8650-4:
+    en: Hospital discharge readiness Narrative
+    ja: 退院時準備状況
+  8653-8:
+    en: Hospital discharge instructions Narrative
+    ja: 退院時指示
+  8716-3:
+    en: Vital signs
+    ja: バイタルサイン
   # === Lab codes ===
   11580-8:
     en: Thyroid stimulating hormone [Units/volume] in Serum or Plasma

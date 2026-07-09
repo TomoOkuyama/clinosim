@@ -80,17 +80,32 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
     # primary diagnosis (active + chronic onset) and to emit problem-list items below.
     chronic_list = record.get("patient", {}).get("chronic_conditions", [])
     chronic_onset_by_base: dict[str, str] = {}
+    # C4-05 / C4-07..09 (session 43 cycle 4): also index severity + stage so a
+    # chronic-primary encounter-diagnosis can inherit them when _infer_severity
+    # returns empty (routine outpatient follow-up with no physiological states).
+    # Applies to essential HTN (I10) routine visits, DM/COPD/HF/CKD follow-ups —
+    # 65.8% of I10 lacked severity because _infer_severity fell back to "" for
+    # outpatient encounters.
+    chronic_severity_by_base: dict[str, str] = {}
+    chronic_stage_by_base: dict[str, str] = {}
     for _chronic in chronic_list:
         if isinstance(_chronic, str):
             _cc = _chronic
             _onset = ""
+            _sev = ""
+            _stg = ""
         else:
             # dict (production JSON path) or a ChronicCondition dataclass
             # (in-memory path) — get_attr_or_key handles both uniformly.
             _cc = get_attr_or_key(_chronic, "code", "")
             _onset = get_attr_or_key(_chronic, "onset_date", "") or ""
+            _sev = get_attr_or_key(_chronic, "severity", "") or ""
+            _stg = get_attr_or_key(_chronic, "stage", "") or ""
         if _cc:
-            chronic_onset_by_base.setdefault(_cc.split(".")[0], _onset)
+            base = _cc.split(".")[0]
+            chronic_onset_by_base.setdefault(base, _onset)
+            chronic_severity_by_base.setdefault(base, _sev)
+            chronic_stage_by_base.setdefault(base, _stg)
 
     # --- Primary diagnosis (encounter diagnosis) ---
     dx_code = dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", "")
@@ -106,6 +121,13 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # resolved at the visit: mark it active with the chronic onset date.
         is_chronic_primary = base_code in chronic_onset_by_base
         chronic_onset = chronic_onset_by_base.get(base_code, "") if is_chronic_primary else ""
+        # C4-05 (session 43 cycle 4): chronic-primary severity fallback.
+        # _infer_severity returns "" when the encounter has no physiological
+        # states (routine outpatient follow-up), leaving I10/E11/etc. Condition
+        # without severity. Inherit from patient chronic_conditions severity
+        # so problem-list severity is consistent with encounter-diagnosis.
+        if not severity and is_chronic_primary:
+            severity = chronic_severity_by_base.get(base_code, "")
 
         # clinicalStatus: resolved if discharged alive, active if deceased (didn't resolve)
         if is_chronic_primary:
@@ -143,6 +165,29 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
 
         if severity:
             cond["severity"] = _severity_coding(severity, country)
+
+        # C4-07..10 (session 43 cycle 4): encounter-diagnosis stage inheritance.
+        # When the primary dx is a staged chronic condition (DM/COPD/HF/CKD)
+        # the encounter-diagnosis Condition should carry the same stage as the
+        # patient's chronic entry. Otherwise E11/J44/I50 encounter-dx records
+        # emit no stage while the sibling problem-list-item entry has stage
+        # populated — inconsistent across the two Condition rows for the same
+        # underlying disease.
+        if is_chronic_primary:
+            _stg = chronic_stage_by_base.get(base_code, "")
+            if _stg:
+                summary: dict[str, Any] = {"text": _stg}
+                stage_snomed = _STAGE_SUMMARY_SNOMED.get(_stg)
+                if stage_snomed:
+                    summary["coding"] = [{
+                        "system": get_system_uri("snomed-ct"),
+                        "code": stage_snomed,
+                        "display": code_lookup("snomed-ct", stage_snomed, resolve_lang(country)),
+                    }]
+                cond["stage"] = [{
+                    "summary": summary,
+                    "type": {"text": "Clinical stage"},
+                }]
 
         if chronic_onset:
             # Chronic primary: onset is the disease onset date; recordedDate is the visit.
@@ -191,7 +236,12 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
 
         cond = {
             "resourceType": "Condition",
-            "id": f"cond-{encounter_id}-chronic-{i:02d}" if encounter_id else f"cond-{patient_id}-chronic-{i:02d}",
+            # C4-02 (session 43 cycle 4): patient-scoped ID so the adapter's
+            # write() dedup collapses per-encounter re-emissions. Was
+            # `cond-{encounter_id}-chronic-{i}` which produced N duplicates
+            # per patient (N = number of the patient's encounters), driving
+            # cycle-3 RM-7 problem-list-item excess to 10x realistic count.
+            "id": f"cond-chronic-{patient_id}-{i:02d}",
             # C2-20 (session 42): JP Core Condition profile also on chronic-
             # condition path (encounter-dx path handled above).
             **({"meta": {"profile": [

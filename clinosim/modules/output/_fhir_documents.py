@@ -125,6 +125,14 @@ def _build_dref_from_clinical_doc(
     resource: dict[str, Any] = {
         "resourceType": "DocumentReference",
         "id": resource_id,
+        # C4-05 (session 43 cycle 4): DocumentReference.identifier 0..* for
+        # cross-system document tracking (JP Core recommends). Uses the same
+        # id under a clinosim namespace URI — deterministic + unique across
+        # the export, mirrors Composition.identifier (C2-34).
+        "identifier": [{
+            "system": "urn:clinosim:documentreference-id",
+            "value": resource_id,
+        }],
         "status": "current",
         # Stage 1 (template) output IS production; "preliminary" would imply draft.
         # Stage 2 (LLM-augmented, β-JP-1) will re-evaluate this when llm_service is wired.
@@ -161,7 +169,18 @@ def _build_dref_from_clinical_doc(
                     "title": type_display,
                     "size": len(text.encode("utf-8")),
                     "hash": _sha1_b64(text),
-                }
+                },
+                # C4-06 (session 43 cycle 4): DocumentReference.content.format
+                # 0..1 IHE XDS format code. Non-standardized here — plain-text
+                # narrative in UTF-8 corresponds to IHE PCC "medical summary" =
+                # "urn:ihe:iti:xds:2017:mimeTypeSufficient" (uses contentType).
+                # Source: profiles.ihe.net/ITI/TF/Volume3/ch-4.2 XDS metadata
+                # attribute formatCode.
+                "format": {
+                    "system": "urn:oid:1.3.6.1.4.1.19376.1.2.3",
+                    "code": "urn:ihe:iti:xds:2017:mimeTypeSufficient",
+                    "display": "MIME type sufficient (contentType is authoritative)",
+                },
             }
         ],
     }

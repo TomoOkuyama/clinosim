@@ -101,8 +101,8 @@ _SECTION_LOINC: dict[str, str] = {
     "symptoms": "10187-3",             # Review of systems (approx)
     "ward_and_physician": "42349-1",   # Reason for visit
     "dietitian": "51897-7",            # Care team member
-    "nutrition_risk": "9279-1",        # Nutritional risk assessment
-    "nutrition_assessment": "9279-1",  # (same)
+    "nutrition_risk": "61144-2",       # Diet and nutrition Narrative (C4-04 cycle 4: 9279-1 was Respiratory rate — wrong LOINC)
+    "nutrition_assessment": "61144-2", # (same)
     # Rehab
     "patient_and_diagnosis": "29308-4",# Diagnosis
     "rehab_team": "51897-7",           # Care team member
@@ -123,7 +123,7 @@ _SECTION_LOINC: dict[str, str] = {
     "test_schedule": "18776-5",        # (falls under plan)
     "surgery_schedule": "18776-5",     # (falls under plan)
     "estimated_los": "8648-8",         # Hospital course (LOS estimate)
-    "special_nutrition_management": "9279-1", # Nutritional risk assessment
+    "special_nutrition_management": "61144-2", # Diet and nutrition Narrative
     "other_plans": "18776-5",          # Plan of care (catch-all)
     "discharge_instructions": "8653-8",# Hospital discharge instructions
     "follow_up": "18776-5",            # Plan of care (follow-up)
@@ -131,6 +131,20 @@ _SECTION_LOINC: dict[str, str] = {
     "nutrition_supply": "61144-2",     # (same)
     "dysphagia_diet": "61144-2",       # (same)
     "dietary_content": "61144-2",      # (same)
+    # C4-19 (session 43 cycle 4): residual unmapped titles from cycle 4
+    # baseline (546 sections in JP p=10000). Bind to the closest LOINC where
+    # the CCDA / narrative theme corresponds; uncertain titles fall back to
+    # a plan-of-care catch-all (18776-5) matching how care_plan / follow_up
+    # already map above.
+    "nutrition_counseling": "61144-2",   # Diet and nutrition Narrative
+    "other_issues": "51852-2",           # Provider unspecified Progress note (catch-all narrative)
+    "reassessment_timing": "18776-5",    # Plan of care (schedule)
+    "discharge_evaluation": "8650-4",    # Hospital discharge readiness
+    "session_frequency": "18776-5",      # Plan of care
+    "goals": "18776-5",                  # Plan of care (goals section of care plan)
+    "policy": "18776-5",                 # Plan of care (policy = clinical plan)
+    "discharge_estimate": "8648-8",      # Hospital course (estimated LOS/discharge)
+    "explanation_consent": "42346-6",    # Patient education (consent / explanation)
 }
 
 

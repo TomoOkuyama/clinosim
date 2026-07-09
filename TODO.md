@@ -1,6 +1,88 @@
 # clinosim — TODO
 
-## Status (current as of 2026-07-08, session 42 — C2/C3 tail + RM-6/7 full CLOSED)
+## Status (current as of 2026-07-09, session 43 — Cycle 4 CLOSED)
+
+**★ Cycle 4 CLOSED (2026-07-09, session 43)** — 22 fully resolved / 3 partial /
+5 deferred. Highlights:
+
+- **C4-01 (ICD code coverage gap)**: 49,391 Condition records with
+  `"(display unavailable)"` — 4 codes added in session 42 (E79/H26/K59/I84)
+  had no `icd-10.yaml` entry. Fixed + M54 root (was M54.5 only). Extended
+  `test_diagnosis_code_coverage.py` to a 5th emittable source
+  (`_locale_chronic_codes` scans `demographics.yaml` chronic_conditions +
+  comorbidity_correlations, per-country) so any future locale addition
+  without a code registration fails at unit time.
+- **C4-02 (problem-list-item duplication bug)**: chronic Condition ID
+  was `cond-{enc_id}-chronic-{i}` → each encounter emitted its own copy
+  of every patient chronic (N-way duplicate). Changed to
+  `cond-chronic-{patient_id}-{i}` and let the adapter's `written_ids`
+  dedup collapse. Condition **219,018 → 61,562 (-72%)**;
+  problem-list-item per patient **mean 38.85 → 5.19, max 317 → 17**.
+  Root cause of cycle 3 RM-7 excess (not tuning — a duplication bug).
+- **C4-04 (Composition section.code display fallback 63.9%)**: 28 HL7
+  CCDA v2.1 section-code LOINCs added; wrong LOINC 9279-1
+  ("Respiratory rate") misused for nutrition sections fixed to 61144-2.
+  display fallback **63.9% → 0%**.
+- **C4-05/07/08/09/10 (staged Condition severity/stage)**: chronic-primary
+  encounter-diagnosis path now inherits severity + stage from
+  `patient.chronic_conditions[]` when `_infer_severity` returns empty.
+  I10 severity **65.8% missing → 100% present**;
+  E11/J44/I50 stage **97-100% present**.
+- **C4-05/06 (DocumentReference identifier + content.format)**: added
+  `urn:clinosim:documentreference-id` identifier + IHE XDS
+  `mimeTypeSufficient` format code. Both **0% → 100%**.
+- **C4-11 (ClinicalImpression description stub)**: template enriched
+  with disease + severity + phase hint (admission/acute/stabilisation/
+  recovery/pre-discharge). Length **25 → 175 chars**.
+- **C4-12/13/14 (Patient/Location metadata)**: added `name.use=official`,
+  `address.use=home`, `Location.type` (HL7 v3-RoleCode: OUTPT/HU/ICU/ER).
+  All **0-3% → 100%**.
+- **C4-15/16 (MR dispenseRequest + timing.repeat)**: outpatient/home-med
+  MRs emit dispenseRequest; freq strings (qd/bid/tid/qid/q6h/qhs/PRN)
+  auto-derive freq_per_day + timing.repeat, PRN routes to
+  `asNeededBoolean`. dispenseRequest **0% → 40.9%**; timing.repeat 73.6%
+  → 86.9%.
+- **C4-17/22/23 (Procedure/MR/SR requester fallback)**: encounter
+  attending_physician_id fallback when order-side is empty. Procedure
+  performer **41% → 98.7%**; MR/SR requester missing **521/391 → 0**.
+- **C4-20 (IMP finished no dischargeDisposition)**: C2-18 backfill fixed
+  — compared FHIR "finished" but CIF status is "completed". **4 → 0**.
+- **C4-24 (JP Encounter emits icd-10-cm)**: route admit_dx_system through
+  `system_key_for("diagnosis", country)` + `_map_diagnosis_code` so JP
+  always emits WHO icd-10 folding CM-granular. icd-10-cm systems **4 → 0**.
+- **C4-28 (NPPV/IPC in MAR)**: RM-6b sibling — daily step-medication
+  loop in inpatient.py now applies `_DEVICE_PROCEDURE_KW` filter.
+  NPPV/IPC in Procedure **0 → 28**, in MAR **895 → 184** (79% moved).
+- **C4-30 (Encounter participant ADM/DIS sparse)**: for IMP/EMER, emit
+  ADM/DIS even when practitioner == attending (FHIR R4 allows same
+  Practitioner in multi-role participant). ADM/DIS **4 → 37,109/37,067**.
+
+### Cycle 5 candidates (deferred from cycle 4)
+
+- **C4-21 (vital-signs interp/refRange 22% missing)**: root-cause trace
+  needed — `_build_vital_observations` has full ranges, so the missing
+  22% comes from another builder (nursing survey / GCS / pain_score?).
+- **C4-25/26 (DR type diversity / section text length)**: by design;
+  β-JP-1 LLM narrative pass will resolve section length.
+- **C4-27 (CY2-B MR/MAR classification)**: 17.9% MAR codeless from CIF
+  Order → Procedure/Device dispatch. Separate feature chain.
+- **C4-28 tail**: 184 NPPV/IPC in MAR residual — trace `admission.supportive.detail`
+  path that goes through order/engine.py PROCEDURE routing but produces
+  MAR anyway. Small remainder.
+- **Regression golden refresh**: pre-existing (as of master `225e1c7ca9`)
+  regression failure for `jp_icu_sepsis_hai_clabsi` — session 42
+  demographic tune shifted N18 into the age-74 ICU sepsis profile.
+  AD-66 Rule 1: regen golden + commit.
+- **GOLD 4 / asthma severity / HTN Stage / CCS SNOMED**: authoritative
+  search continues (no fabrication).
+- **YJ code MHLW verification chain**: separate large-scope chain.
+
+Cycle 4 unit tests: **2,338 all PASS**. FHIR builders: 15 files changed;
++528 lines / -40 lines net.
+
+---
+
+## Status (2026-07-08, session 42 — C2/C3 tail + RM-6/7 full CLOSED)
 
 **★ C2/C3 tail RM chain CLOSED (2026-07-08, session 42, master `d5a484e701`)** —
 after cycle 3 CLOSED, user requested closing all remaining C2/C3 open items.

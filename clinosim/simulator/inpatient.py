@@ -948,17 +948,44 @@ def _run_daily_loop(
                     drug = med.get("drug", "").strip()
                     proc = med.get("procedure", "").strip()
                     if drug:
-                        # Medication order
+                        # C4-28 (session 43 cycle 4): device-drugs (NIV_BiPAP /
+                        # CPAP / IPC / sequential compression / etc.) enter the
+                        # step-medications list but are procedures, not drugs.
+                        # Same _DEVICE_PROCEDURE_KW filter as
+                        # clinosim.modules.order.engine (RM-6b sibling: daily
+                        # loop was missed — 741 NPPV + 154 IPC records were
+                        # emitted as MedicationAdministration in the JP p=10k
+                        # baseline).
+                        _drug_low = drug.lower()
+                        _dev_kw = (
+                            "niv_bipap", "niv-bipap", "bipap", "cpap", "nppv",
+                            "non-invasive", "non_invasive", "noninvasive",
+                            "compression device", "sequential compression",
+                            "ipc device", "graduated compression",
+                            "positive pressure ventilation",
+                        )
+                        _is_device_drug = any(kw in _drug_low for kw in _dev_kw)
                         display = f"{drug} {med.get('dose', '')}".strip()
-                        all_orders.append(Order(
-                            order_id=f"ORD-{patient.patient_id}-START-D{day}-{drug[:8]}",
-                            patient_id=patient.patient_id, order_type=OrderType.MEDICATION,
-                            display_name=display,
-                            urgency="urgent",
-                            clinical_intent=f"Day {day} {archetype}: new medication",
-                            ordered_datetime=admission_time + timedelta(days=day, hours=10),
-                            status=OrderStatus.PLACED,
-                        ))
+                        if _is_device_drug:
+                            all_orders.append(Order(
+                                order_id=f"ORD-{patient.patient_id}-DEV-D{day}-{drug[:8]}",
+                                patient_id=patient.patient_id, order_type=OrderType.PROCEDURE,
+                                display_name=display,
+                                urgency="urgent",
+                                clinical_intent=f"Day {day} {archetype}: device / respiratory support",
+                                ordered_datetime=admission_time + timedelta(days=day, hours=10),
+                                status=OrderStatus.PLACED,
+                            ))
+                        else:
+                            all_orders.append(Order(
+                                order_id=f"ORD-{patient.patient_id}-START-D{day}-{drug[:8]}",
+                                patient_id=patient.patient_id, order_type=OrderType.MEDICATION,
+                                display_name=display,
+                                urgency="urgent",
+                                clinical_intent=f"Day {day} {archetype}: new medication",
+                                ordered_datetime=admission_time + timedelta(days=day, hours=10),
+                                status=OrderStatus.PLACED,
+                            ))
                     elif proc:
                         # Procedure order (not a medication)
                         detail = med.get("detail", "")

@@ -11,12 +11,13 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from clinosim.codes import get_system_uri
+from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output._fhir_common import (
     _coding_with_display,
     _make_participant,
+    _map_diagnosis_code,
     _map_encounter_status,
 )
 from clinosim.modules.output._fhir_localization import (
@@ -139,9 +140,18 @@ def _build_encounter(
         # reasonCode: use diagnosis display in target language (codes module)
         # Falls back to English chief_complaint text if no code available
         lang = resolve_lang(country)
-        if admit_dx_code:
-            reason_text = code_lookup(admit_dx_system, admit_dx_code, lang)
-            if reason_text == admit_dx_code:
+        # C4-24 (session 43 cycle 4): route the admission dx system + code
+        # through the country's diagnosis code system so JP output never
+        # emits icd-10-cm under an icd-10 semantic surface (was 4 encounters
+        # in baseline where CIF stored icd-10-cm CM-granular codes as-is).
+        # `system_key_for("diagnosis", ...)` yields `icd-10-cm` for US and
+        # `icd-10` for JP; `_map_diagnosis_code` folds CM-granular to WHO
+        # roots via code_mapping_diagnosis.
+        _reason_system = system_key_for("diagnosis", country)
+        _reason_code = _map_diagnosis_code(admit_dx_code, country) if admit_dx_code else ""
+        if _reason_code:
+            reason_text = code_lookup(_reason_system, _reason_code, lang)
+            if reason_text == _reason_code:
                 reason_text = enc["chief_complaint"]  # fallback to English text
         else:
             reason_text = enc["chief_complaint"]
@@ -149,8 +159,8 @@ def _build_encounter(
         # the admission diagnosis code (ICD-10 or ICD-10-CM), not just text.
         # This gives every Encounter a machine-processable reason.
         rc: dict[str, Any] = {"text": reason_text}
-        if admit_dx_code and admit_dx_system:
-            rc["coding"] = [_coding_with_display(admit_dx_system, admit_dx_code, lang)]
+        if _reason_code:
+            rc["coding"] = [_coding_with_display(_reason_system, _reason_code, lang)]
         resource["reasonCode"] = [rc]
         # reasonReference: link to primary Condition (if dx exists)
         if primary_dx_code:
@@ -166,15 +176,21 @@ def _build_encounter(
 
     if attending:
         participants.append(_make_participant("ATND", "attender", attending))
-    if admitter and admitter != attending:
-        participants.append(_make_participant("ADM", "admitter", admitter))
-    if discharger and discharger != attending and discharger != admitter:
-        participants.append(_make_participant("DIS", "discharger", discharger))
-    elif attending and not admitter:
-        # If only attending exists, they also serve as admitter/discharger
-        participants.append(_make_participant("ADM", "admitter", attending))
-        if enc.get("discharge_datetime"):
-            participants.append(_make_participant("DIS", "discharger", attending))
+    # C4-30 (session 43 cycle 4): emit ADM / DIS for IMP encounters even
+    # when the practitioner is the same as attending — FHIR R4 allows the
+    # same Practitioner across multiple participant.type entries, and JP
+    # Core Encounter recommends admitter / discharger tracking for inpatient
+    # workflows. Previously only 4 IMP encounters emitted ADM/DIS because
+    # attending == admitter suppressed the elif fallback.
+    _is_ip = class_code in ("IMP", "EMER")
+    _admitter_effective = admitter or (attending if _is_ip else "")
+    _discharger_effective = discharger or (
+        attending if _is_ip and enc.get("discharge_datetime") else ""
+    )
+    if _admitter_effective:
+        participants.append(_make_participant("ADM", "admitter", _admitter_effective))
+    if _discharger_effective:
+        participants.append(_make_participant("DIS", "discharger", _discharger_effective))
 
     if participants:
         resource["participant"] = participants
@@ -249,8 +265,15 @@ def _build_encounter(
         if _default_disp and _default_disp != _default_code:
             _default_coding["display"] = _default_disp
         hosp["admitSource"] = {"coding": [_default_coding]}
+    # C4-20 (session 43 cycle 4): CIF encounter status is "completed"
+    # (mapped to FHIR "finished" by _map_encounter_status). Prior comparison
+    # to raw "finished" never matched, so 4 IMP encounters retained no
+    # dischargeDisposition. Use both CIF and FHIR values so future refactors
+    # (e.g. status stored in FHIR form) still trigger the fallback.
+    _cif_status = enc.get("status", "")
+    _is_finished = _cif_status in ("completed", "finished")
     if (_emit_hospitalization and not hosp.get("dischargeDisposition")
-            and enc.get("status") == "finished"):
+            and _is_finished):
         _dd_code = "home"
         _dd_disp = code_lookup("hl7-discharge-disposition", _dd_code, _lang)
         _dd_coding = {
