@@ -13,6 +13,7 @@ from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 
+from clinosim.codes import get_system_uri, lookup as code_lookup
 from clinosim.modules.output._fhir_care_level import _build_care_level  # noqa: F401
 from clinosim.modules.output._fhir_code_status import _build_code_status  # noqa: F401
 from clinosim.modules.output.cif_reader import CIFReader
@@ -220,7 +221,12 @@ def convert_cif_to_fhir(
             write(entry["resource"])
 
         # Walk patient records (structural + merged narrative), build per-record
-        # FHIR resources, write each line
+        # FHIR resources, write each line. Patient-scoped resources
+        # (chronic problem-list-item Condition, Coverage, AllergyIntolerance,
+        # FamilyMemberHistory, Immunization) use patient-scoped IDs so the
+        # `write()` helper's `written_ids` dedup keeps them at one per patient
+        # (root-cause fix for cycle 3 RM-7 problem-list-item excess = per-
+        # encounter re-emission with encounter-scoped IDs, C4-02 session 43).
         for record in reader.iter_patients():
             bundle = _build_bundle(record, country, roster_map, hospital_config)
             for entry in bundle.get("entry", []):
@@ -302,10 +308,26 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
     # CIF Order.clinical_intent is not populated.
     encounters = ctx.record.get("encounters", []) or []
     primary_enc_type = encounters[0].get("encounter_type", "") if encounters else ""
+    # C4-22 (session 43 cycle 4): MR.requester fallback to encounter attending
+    # (was 3% missing requester). Same pattern as C4-17 for Procedure.performer.
+    _attending_by_enc: dict[str, str] = {}
+    for _enc in encounters:
+        _eid = (_enc.get("encounter_id", "") if isinstance(_enc, dict)
+                else getattr(_enc, "encounter_id", "")) or ""
+        _att = (_enc.get("attending_physician_id", "") if isinstance(_enc, dict)
+                else getattr(_enc, "attending_physician_id", "")) or ""
+        if _eid and _att:
+            _attending_by_enc[_eid] = _att
     for order in ctx.record.get("orders", []):
         if order.get("order_type") == "medication":
             if not (order.get("display_name") or "").strip():
                 continue  # skip blank drug names (CIF data quality)
+            if not order.get("ordered_by"):
+                _eid = order.get("encounter_id", "") or ctx.primary_enc_id
+                _att = _attending_by_enc.get(_eid, "")
+                if _att:
+                    order = dict(order)
+                    order["ordered_by"] = _att
             out.append(_build_medication_request(
                 order, ctx.patient_id, ctx.country, ctx.primary_enc_id, ctx.primary_dx_code,
                 encounter_type=primary_enc_type,
@@ -325,9 +347,32 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
 
 
 def _bb_procedures(ctx: BundleContext) -> list[dict]:
+    # C4-17 (session 43 cycle 4): Procedure.performer fallback to encounter
+    # attending physician when the CIF procedure record has no
+    # primary_surgeon_id (was 59% missing performer in baseline). Look up by
+    # encounter_id; falls through to _build_procedure's own no-performer path
+    # if no attending is available.
+    _attending_by_enc: dict[str, str] = {}
+    for _enc in ctx.record.get("encounters", []) or []:
+        _eid = (_enc.get("encounter_id", "") if isinstance(_enc, dict)
+                else getattr(_enc, "encounter_id", "")) or ""
+        _att = (_enc.get("attending_physician_id", "") if isinstance(_enc, dict)
+                else getattr(_enc, "attending_physician_id", "")) or ""
+        if _eid and _att:
+            _attending_by_enc[_eid] = _att
+    _procs = ctx.record.get("procedures", []) or []
+    _enriched = []
+    for proc in _procs:
+        if not proc.get("primary_surgeon_id"):
+            _eid = proc.get("encounter_id", "")
+            _att = _attending_by_enc.get(_eid, "")
+            if _att:
+                proc = dict(proc)
+                proc["primary_surgeon_id"] = _att
+        _enriched.append(proc)
     out = [
         _build_procedure(proc, ctx.patient_id, i, ctx.country)
-        for i, proc in enumerate(ctx.record.get("procedures", []))
+        for i, proc in enumerate(_enriched)
     ]
     # RM-6c (session 42): emit Procedure resources from PROCEDURE-type Orders
     # too. These are procedure/device items (compression device, splint, etc.)
@@ -347,11 +392,25 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         _lang = "ja" if str(ctx.country).upper() == "JP" else "en"
         _profile = {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"]}} \
             if str(ctx.country).upper() == "JP" else {}
+        # C4-03/18 (session 43 cycle 4): PROCEDURE-Order path lacked
+        # Procedure.category. Bind SNOMED 277132007 (Therapeutic procedure,
+        # SNOMED CT) — these are treatment-side procedures (splint / bandage /
+        # wound care / etc.) routed to PROCEDURE by emergency.py's _procedure_kw
+        # filter. category is a Procedure.category coding, well-known SNOMED
+        # concept from https://build.fhir.org/valueset-procedure-category.html.
+        _cat_lang = "ja" if str(ctx.country).upper() == "JP" else "en"
         procedure_res: dict = {
             "resourceType": "Procedure",
             "id": f"proc-order-{order_id}" if order_id else f"proc-order-{ctx.patient_id}-{proc_seq:04d}",
             **_profile,
             "status": "completed",
+            "category": {
+                "coding": [{
+                    "system": get_system_uri("snomed-ct"),
+                    "code": "277132007",
+                    "display": code_lookup("snomed-ct", "277132007", _cat_lang),
+                }],
+            },
             "code": {"text": display} if display else {"text": "Procedure"},
             "subject": {"reference": f"Patient/{ctx.patient_id}"},
         }

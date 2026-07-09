@@ -31,6 +31,12 @@ codes:
   E78:
     en: Disorders of lipoprotein metabolism and other lipidaemias
     ja: 脂質異常症
+  E79:
+    # WHO ICD-10 category (icd.who.int/browse10 Chapter IV, Metabolic disorders).
+    # JP DPC / SDM uses E79 root for 高尿酸血症 (hyperuricemia) — one of MHLW's
+    # major chronic diseases for men in age 40+.
+    en: Disorders of purine and pyrimidine metabolism
+    ja: プリン・ピリミジン代謝障害（高尿酸血症）
   F00:
     en: Dementia in Alzheimer disease
     ja: アルツハイマー型認知症
@@ -46,6 +52,11 @@ codes:
   G20:
     en: Parkinson disease
     ja: パーキンソン病
+  H26:
+    # WHO ICD-10 category (icd.who.int/browse10 Chapter VII, Disorders of lens).
+    # JP MHLW chronic disease prevalence 40-60% in 60+/70+ demographic.
+    en: Other cataract
+    ja: 白内障（その他）
   G43:
     en: Migraine
     ja: 片頭痛
@@ -115,6 +126,11 @@ codes:
   I82:
     en: Other venous embolism and thrombosis
     ja: その他の静脈塞栓・血栓症
+  I84:
+    # WHO ICD-10 2013 category — JP 厚労省 ICD-10 (2013 準拠) retains I84.
+    # WHO ICD-10 2019 update moved this to K64.x; JP DPC / MHLW still emits I84.
+    en: Haemorrhoids
+    ja: 痔核
   J06.9:
     en: Acute upper respiratory infection, unspecified
     ja: 急性上気道感染症、詳細不明
@@ -181,6 +197,12 @@ codes:
   K35:
     en: Acute appendicitis
     ja: 急性虫垂炎
+  K59:
+    # WHO ICD-10 category (icd.who.int/browse10 Chapter XI, Other functional
+    # intestinal disorders). JP MHLW chronic disease prevalence 60+ 15%, 70+ 20%.
+    # Includes K59.0 constipation as leaf sub-code.
+    en: Other functional intestinal disorders
+    ja: その他の機能性腸障害（便秘症を含む）
   K37:
     en: Unspecified appendicitis
     ja: 虫垂炎、詳細不明
@@ -211,6 +233,11 @@ codes:
   M48:
     en: Other spondylopathies
     ja: その他脊椎症
+  M54:
+    # WHO ICD-10 category (icd.who.int/browse10 Chapter XIII, Dorsopathies).
+    # JP MHLW chronic disease demographics uses M54 root for 腰痛.
+    en: Dorsalgia
+    ja: 背部痛（腰痛を含む）
   M54.5:
     en: Low back pain
     ja: 腰痛

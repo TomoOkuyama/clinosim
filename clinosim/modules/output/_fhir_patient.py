@@ -203,10 +203,13 @@ def _build_patient(p: dict, country: str) -> dict:
     # `valueString` — an FHIR schema violation, JP Core validators reject).
     # Kanji name → IDE (ideographic), phonetic (katakana / hiragana) → SYL.
     ISO21090_URL = "http://hl7.org/fhir/StructureDefinition/iso21090-EN-representation"
+    # C4-12 (session 43 cycle 4): HumanName.use = "official" per FHIR R4 spec
+    # and JP Core Patient recommendation for the registered / kanji name.
     names: list[dict[str, Any]] = []
     if is_jp(country):
         # Kanji entry — always emitted for JP.
         kanji_name: dict[str, Any] = {
+            "use": "official",
             "family": family,
             "given": [given],
             "extension": [{"url": ISO21090_URL, "valueCode": "IDE"}],
@@ -219,12 +222,13 @@ def _build_patient(p: dict, country: str) -> dict:
             kana_given = phonetic.get("given_name", "")
             if kana_family or kana_given:
                 names.append({
+                    "use": "official",
                     "family": kana_family or family,
                     "given": [kana_given or given],
                     "extension": [{"url": ISO21090_URL, "valueCode": "SYL"}],
                 })
     else:
-        names.append({"family": family, "given": [given]})
+        names.append({"use": "official", "family": family, "given": [given]})
     fhir_name = names[0]  # kept for legacy readers below
 
     pid = p.get("patient_id", str(uuid.uuid4()))

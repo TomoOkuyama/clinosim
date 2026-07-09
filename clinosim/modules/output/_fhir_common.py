@@ -308,6 +308,10 @@ def _build_address(addr: dict, country: str) -> dict[str, Any] | None:
         line = addr.get("line1", "")
 
     fhir_addr: dict[str, Any] = {
+        # C4-13 (session 43 cycle 4): Address.use = "home" per FHIR R4 spec.
+        # JP Core Patient guidance mirrors HL7 R4: use should be populated
+        # (was implicit "?"/missing, 100% of Patient.address records).
+        "use": "home",
         "type": "both",
         "line": [line] if line else [],
         "city": addr.get("city", ""),
@@ -400,6 +404,31 @@ def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any
         parts.append(route)
 
     # Timing
+    # C4-16 (session 43 cycle 4): derive freq_per_day from common freq
+    # strings when the order only supplies the label (was 13% of MR with
+    # dosageInstruction lacking timing.repeat).
+    if freq_per_day is None and freq:
+        _flow = freq.lower().strip()
+        _derived: int | None = None
+        if _flow in ("qd", "q24h", "once daily", "daily", "1x/day"):
+            _derived = 1
+        elif _flow in ("bid", "q12h", "twice daily", "2x/day"):
+            _derived = 2
+        elif _flow in ("tid", "q8h", "three times daily", "3x/day"):
+            _derived = 3
+        elif _flow in ("qid", "q6h", "four times daily", "4x/day"):
+            _derived = 4
+        elif _flow in ("q4h",):
+            _derived = 6
+        elif _flow in ("q3h",):
+            _derived = 8
+        elif _flow in ("q2h",):
+            _derived = 12
+        elif _flow in ("qhs", "bedtime", "at bedtime", "hs"):
+            _derived = 1
+        if _derived is not None:
+            freq_per_day = _derived
+
     if freq_per_day:
         dosage["timing"] = {
             "repeat": {
@@ -410,6 +439,10 @@ def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any
         }
         parts.append(freq or f"{freq_per_day}x/day")
     elif freq:
+        _flow = freq.lower().strip()
+        # PRN / as needed → asNeededBoolean=true, no fixed frequency.
+        if _flow in ("prn", "as needed", "when required"):
+            dosage["asNeededBoolean"] = True
         parts.append(freq)
 
     # Text summary

@@ -93,6 +93,38 @@ def _family_history_codes() -> set[str]:
     return set((data.get("conditions") or {}).keys())
 
 
+def _locale_chronic_codes(country: str) -> set[str]:
+    """ICD codes referenced in locale demographics (5th emittable source: chronic
+    condition prevalence + comorbidity_correlations tables that drive population
+    generation). Session 42 gap: 7 chronic codes were added to JP demographics.yaml
+    (E79/H26/K59/I84/K74/M54/F32) but 4 (E79/H26/K59/I84) had no icd-10.yaml
+    entry, so 49,391 Condition resources fell back to "(display unavailable)".
+    The coverage test now spans all five channels so any locale demographics
+    addition without a code registration fails at unit time.
+
+    Scoped per-country: the simulator only reads demographics.yaml for the
+    country under simulation, so JP-only chronic codes should not be tested
+    against the US code system.
+    """
+    fp = os.path.join(ROOT, f"clinosim/locale/{country}/demographics.yaml")
+    if not os.path.exists(fp):
+        return set()
+    data = yaml.safe_load(open(fp)) or {}
+    codes: set[str] = set()
+    chronic = data.get("chronic_conditions") or {}
+    if isinstance(chronic, dict):
+        codes |= set(chronic.keys())
+    # comorbidity_correlations: {source_icd: {target_icd: multiplier}} — both
+    # source and target are emittable.
+    corr = data.get("comorbidity_correlations") or {}
+    if isinstance(corr, dict):
+        for src, targets in corr.items():
+            codes.add(src)
+            if isinstance(targets, dict):
+                codes |= set(targets.keys())
+    return codes
+
+
 # A genuine WHO ICD-10 code is 3-4 chars: a letter, two digits, optionally one decimal digit.
 # CM granularity (5-7 chars, 7th-char extensions, X placeholders) is NOT valid WHO.
 _WHO_FORMAT = re.compile(r"^[A-Z][0-9]{2}(\.[0-9])?$")
@@ -102,11 +134,15 @@ WHO = _codes("clinosim/codes/data/icd-10.yaml")
 US_MAP = _map("clinosim/locale/us/code_mapping_diagnosis.yaml")
 JP_MAP = _map("clinosim/locale/jp/code_mapping_diagnosis.yaml")
 INTERNAL = _emittable_internal_codes()
-ALL_EMITTABLE = INTERNAL | _engine_differential_codes() | _family_history_codes()
+_COUNTRY_AGNOSTIC = (
+    INTERNAL | _engine_differential_codes() | _family_history_codes()
+)
+US_EMITTABLE = _COUNTRY_AGNOSTIC | _locale_chronic_codes("us")
+JP_EMITTABLE = _COUNTRY_AGNOSTIC | _locale_chronic_codes("jp")
 
 
 def test_us_emittable_codes_resolve_billable_cm() -> None:
-    missing = sorted(c for c in ALL_EMITTABLE if US_MAP.get(c, c) not in CM)
+    missing = sorted(c for c in US_EMITTABLE if US_MAP.get(c, c) not in CM)
     assert not missing, (
         "Emittable diagnosis codes whose US target is not an exact key in icd-10-cm.yaml "
         f"(add the code or a code_mapping_diagnosis/US entry): {missing}"
@@ -114,7 +150,7 @@ def test_us_emittable_codes_resolve_billable_cm() -> None:
 
 
 def test_jp_emittable_codes_resolve_true_who() -> None:
-    missing = sorted(c for c in ALL_EMITTABLE if JP_MAP.get(c, c) not in WHO)
+    missing = sorted(c for c in JP_EMITTABLE if JP_MAP.get(c, c) not in WHO)
     assert not missing, (
         "Emittable diagnosis codes whose JP target is not an exact WHO ICD-10 key in "
         f"icd-10.yaml (add the WHO code or a code_mapping_diagnosis/jp entry): {missing}"
@@ -133,7 +169,7 @@ def test_jp_never_emits_cm_granular_code() -> None:
     (5-7 char, 7th-char extensions, X placeholders) emitted under the WHO system URI.
     Covers all three emittable sources: disease + encounter YAMLs + engine.py differentials."""
     cm_granular = sorted(
-        c for c in ALL_EMITTABLE if not _WHO_FORMAT.match(JP_MAP.get(c, c))
+        c for c in JP_EMITTABLE if not _WHO_FORMAT.match(JP_MAP.get(c, c))
     )
     assert not cm_granular, (
         "JP would emit non-WHO-format codes under the icd-10 (WHO) system URI; add a "

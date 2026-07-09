@@ -79,6 +79,16 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             "id": f"loc-dept-{dept.replace('_', '-')}",
             "status": "active",
             "name": display,
+            # C4-14 (session 43 cycle 4): Location.type per FHIR spec
+            # (HL7 v3-RoleCode _ServiceDeliveryLocationRoleType). Departments
+            # are outpatient service delivery locations.
+            "type": [{
+                "coding": [{
+                    "system": get_system_uri("hl7-v3-rolecode"),
+                    "code": "OUTPHARM" if dept == "pharmacy" else "OUTPT",
+                    "display": "Outpatient pharmacy" if dept == "pharmacy" else "Outpatient clinic",
+                }],
+            }],
             "physicalType": {
                 "coding": [{
                     "system": get_system_uri("hl7-location-physical-type"),
@@ -107,11 +117,29 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 phys_type = "area"
                 phys_display = "Outpatient Clinic"
             org_ref = f"Organization/dept-{dept.replace('_', '-')}"
+            # C4-14 (session 43 cycle 4): Location.type per HL7 v3-RoleCode.
+            if ward == "ER":
+                _type_code, _type_disp = "ER", "Emergency room"
+            elif ward == "OPD":
+                _type_code, _type_disp = "OUTPT", "Outpatient clinic"
+            elif ward.startswith("ICU") or ward == "ICU":
+                _type_code, _type_disp = "ICU", "Intensive care unit"
+            elif "REHAB" in ward.upper() or "回復期" in ward:
+                _type_code, _type_disp = "HUACC", "Acute care unit"
+            else:
+                _type_code, _type_disp = "HU", "Hospital unit"
             ward_loc = {
                 "resourceType": "Location",
                 "id": f"loc-ward-{ward}",
                 "status": "active",
                 "name": (f"{ward}病棟" if is_jp(country) else f"Ward {ward}") if ward not in ("ER", "OPD") else _localize_display(phys_display, country, _LOCATION_NAME_JA),
+                "type": [{
+                    "coding": [{
+                        "system": get_system_uri("hl7-v3-rolecode"),
+                        "code": _type_code,
+                        "display": _type_disp,
+                    }],
+                }],
                 "physicalType": {
                     "coding": [{
                         "system": get_system_uri("hl7-location-physical-type"),
@@ -133,6 +161,14 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                         "id": f"loc-bed-{bed_id}",
                         "status": "active",
                         "name": f"{bed_id}号室" if is_jp(country) else f"Bed {bed_id}",
+                        # C4-14 (session 43 cycle 4): Location.type per HL7 v3-RoleCode.
+                        "type": [{
+                            "coding": [{
+                                "system": get_system_uri("hl7-v3-rolecode"),
+                                "code": "HU",
+                                "display": "Hospital unit",
+                            }],
+                        }],
                         "physicalType": {
                             "coding": [{
                                 "system": get_system_uri("hl7-location-physical-type"),

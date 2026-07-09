@@ -465,17 +465,49 @@ def document_enricher(ctx: Any) -> None:
 
             # ── ClinicalImpression generation (inpatient types only; spec §3.3) ─
             if emit_ci:
+                # C4-11 (session 43 cycle 4): richer template description.
+                # Pre-fix was a 25-char stub ("Day N clinical assessment").
+                # Now includes disease id + severity + phase hint. Purely
+                # template-driven (deterministic, no LLM) — β-JP-1 is a
+                # DocumentReference/Composition narrative pass and does not
+                # touch ClinicalImpression.description.
+                _disease_id = _o(encounter, "disease_id", "") or ""
+                _severity = _o(encounter, "severity", "") or ""
+                _enc_label = "inpatient" if enc_type_val == "inpatient" else (
+                    "ICU" if "icu" in enc_type_val.lower() else "rehab"
+                )
                 for day in range(los_days):
                     day_dt = admission_dt + timedelta(days=day)
                     # AD-32: the last day of an in-progress encounter is "in-progress"
                     # (encounter still open; prior days remain "completed").
                     last_day_of_in_progress = is_in_progress and (day == los_days - 1)
+                    # Phase hint (deterministic by day-index vs LOS).
+                    if los_days <= 2:
+                        _phase = "brief admission"
+                    elif day == 0:
+                        _phase = "admission workup"
+                    elif day == los_days - 1:
+                        _phase = "pre-discharge review"
+                    elif day < los_days / 3:
+                        _phase = "acute phase"
+                    elif day < 2 * los_days / 3:
+                        _phase = "stabilisation"
+                    else:
+                        _phase = "recovery"
+                    _dx_part = f" for {_disease_id}" if _disease_id else ""
+                    _sev_part = f" ({_severity})" if _severity else ""
+                    description = (
+                        f"Day {day + 1} of {los_days} {_enc_label} clinical assessment"
+                        f"{_dx_part}{_sev_part} — {_phase}. Attending review of vitals, "
+                        f"medication response, complication risk, and progress toward "
+                        f"discharge criteria."
+                    )
                     clinical_impressions.append(ClinicalImpressionRecord(
                         impression_id=f"{CLINICAL_IMPRESSION_ID_PREFIX}{encounter_id}-{day}",
                         encounter_id=encounter_id,
                         date=day_dt.date(),
                         day_index=day,
-                        description=f"Day {day + 1} clinical assessment",
+                        description=description,
                         practitioner_id=attending_id,
                         is_in_progress=last_day_of_in_progress,
                     ))
