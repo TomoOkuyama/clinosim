@@ -309,8 +309,8 @@ codes:
     en: PT-INR
     ja: PT-INR
   6598-7:
-    en: Troponin T.cardiac [Mass/volume] in Serum or Plasma
-    ja: 心筋トロポニンT（血清）
+    en: Troponin T, cardiac
+    ja: 心筋トロポニンT
   6690-2:
     en: White blood cell count
     ja: 白血球数
@@ -488,3 +488,29 @@ codes:
   90557-9:
     en: National Early Warning Score (NEWS) 2
     ja: NEWS2 スコア
+  # C5-01 residual (session 43 cycle 5): analyte LOINCs verified via NLM
+  # Clinical Table Search Service (clinicaltables.nlm.nih.gov/api/loinc_items/v3/search).
+  2777-1:
+    en: Phosphate
+    ja: リン
+  32340-6:
+    en: 3-Hydroxybutyrate
+    ja: 3-ヒドロキシ酪酸
+  1863-0:
+    en: Anion gap
+    ja: アニオンギャップ
+  33452-4:
+    en: Peak expiratory flow
+    ja: ピークフロー
+  20565-8:
+    en: Carbon dioxide, total
+    ja: 総二酸化炭素
+  6295-0:
+    en: Ammonium
+    ja: アンモニア
+  19123-9:
+    en: Magnesium
+    ja: マグネシウム
+  24357-6:
+    en: Urinalysis panel
+    ja: 尿検査パネル

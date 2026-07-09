@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.codes import get_system_uri
+from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output._fhir_common import _coding_with_display
 from clinosim.modules.output._fhir_localization import _ROLE_PREFIX_MAP_JA
@@ -149,12 +150,19 @@ def _build_practitioner_role(
         }]
 
     if spec_info:
+        # C5-05 (session 43 cycle 5): resolve specialty display through
+        # snomed-ct.yaml so JP output uses 内科/循環器内科 etc. instead of
+        # the English fallback baked into _SPECIALTY_SNOMED entries.
+        _lang = resolve_lang(country)
+        _snomed_code = spec_info["code"]
+        _spec_display = code_lookup("snomed-ct", _snomed_code, _lang) or spec_info["display"]
         resource["specialty"] = [{
             "coding": [{
                 "system": get_system_uri("snomed-ct"),
-                **spec_info,
+                "code": _snomed_code,
+                "display": _spec_display,
             }],
-            "text": spec_info["display"],
+            "text": _spec_display,
         }]
 
     return resource

@@ -7,6 +7,7 @@
         "disease_protocol.chief_complaint.en",
         "disease_protocol.narrative.hpi_template.onset_pattern.severe:ja_only_fallback",
         "disease_protocol.narrative.hpi_template.trigger_options[0]",
+        "ctx.patient.chronic_conditions",
         "ctx.patient.smoking_status",
         "ctx.patient.alcohol_use",
         "ctx.patient.occupation",
@@ -26,7 +27,7 @@
         "family_history": "No significant family history",
         "hpi": "[Mock LLM response #1]\nModel: mock\nFirst prompt line: Section: hpi",
         "medications_at_home": "No home medications",
-        "past_medical_history": "No significant past medical history",
+        "past_medical_history": "E11.9; E78",
         "physical_examination": "General: 意識清明、苦痛様. Cardiovascular: 整、心雑音なし. Respiratory: 肺音清明. Abdomen: 平坦、軟、圧痛なし. Neurological: 麻痺なし、項部硬直なし",
         "social_history": "Smoking: Non-smoker; Alcohol: Non-drinker; Occupation: other"
       },

@@ -7,6 +7,7 @@
         "disease_protocol.chief_complaint.ja",
         "disease_protocol.narrative.hpi_template.onset_pattern.severe",
         "disease_protocol.narrative.hpi_template.trigger_options[0]",
+        "ctx.patient.chronic_conditions",
         "ctx.patient.smoking_status",
         "ctx.patient.alcohol_use",
         "ctx.patient.occupation",
@@ -25,7 +26,7 @@
         "family_history": "特記家族歴なし",
         "hpi": "[Mock LLM response #1]\nModel: mock\nFirst prompt line: Section: hpi",
         "medications_at_home": "常用薬なし",
-        "past_medical_history": "特記既往歴なし",
+        "past_medical_history": "N18",
         "physical_examination": "一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "social_history": "喫煙歴: 非喫煙者; 飲酒歴: 飲酒なし; 職業: other"
       },

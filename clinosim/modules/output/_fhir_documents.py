@@ -158,6 +158,20 @@ def _build_dref_from_clinical_doc(
                 ]
             }
         ],
+        # C5-28 (session 43 cycle 5): DocumentReference.securityLabel
+        # (0..* CodeableConcept). Mirrors Composition.confidentiality "N".
+        # Uses HL7 v3-Confidentiality valueset (system + code).
+        "securityLabel": [
+            {
+                "coding": [
+                    {
+                        "system": "http://terminology.hl7.org/CodeSystem/v3-Confidentiality",
+                        "code": "N",
+                        "display": "Normal",
+                    }
+                ],
+            }
+        ],
         "subject": {"reference": f"Patient/{patient_id}"},
         "date": _o(doc, "authored_datetime", "") or _o(narrative, "generated_at", ""),
         "content": [

@@ -56,6 +56,13 @@ def _build_immunizations(ctx: BundleContext) -> list[dict]:
             "vaccineCode": vaccine_code,
             "patient": {"reference": f"Patient/{ctx.patient_id}"},
             "occurrenceDateTime": occ_str,
+            # C5-13 (session 43 cycle 5): Immunization.recorded (0..1) —
+            # timestamp of registry entry. Defaults to occurrence_date for
+            # historical entries (JP 予防接種台帳 practice: recorded on the
+            # day of administration for real-time entry). Distinct from
+            # occurrenceDateTime for future workflow support where recorded
+            # differs from performed (e.g. late data entry).
+            "recorded": occ_str,
             "primarySource": primary_source,
         }
         # C1-19 (session 41 cycle 1): FHIR R4 requires statusReason when

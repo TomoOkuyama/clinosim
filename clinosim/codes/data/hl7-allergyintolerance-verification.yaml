@@ -8,7 +8,7 @@ metadata:
   uri: http://terminology.hl7.org/CodeSystem/allergyintolerance-verification
   source: "HL7 Terminology (THO)"
 codes:
-  confirmed: {en: "Confirmed"}
-  unconfirmed: {en: "Unconfirmed"}
-  refuted: {en: "Refuted"}
-  entered-in-error: {en: "Entered in Error"}
+  confirmed: {en: "Confirmed", ja: "確認済"}
+  unconfirmed: {en: "Unconfirmed", ja: "未確認"}
+  refuted: {en: "Refuted", ja: "否定"}
+  entered-in-error: {en: "Entered in Error", ja: "誤入力"}

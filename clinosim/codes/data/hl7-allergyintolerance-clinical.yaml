@@ -8,6 +8,6 @@ metadata:
   uri: http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical
   source: "HL7 Terminology (THO)"
 codes:
-  active: {en: "Active"}
-  inactive: {en: "Inactive"}
-  resolved: {en: "Resolved"}
+  active: {en: "Active", ja: "有効"}
+  inactive: {en: "Inactive", ja: "無効"}
+  resolved: {en: "Resolved", ja: "消失"}

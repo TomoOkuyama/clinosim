@@ -391,3 +391,29 @@ codes:
   '422293003':
     en: New York Heart Association Classification - Class IV
     ja: NYHA心機能分類 クラスIV
+  # === C5-05 (session 43 cycle 5): PractitionerRole specialty SNOMED codes.
+  # WHO SNOMED CT concepts, JP display added for JP output localization.
+  '419192003':
+    en: Internal medicine
+    ja: 内科
+  '394579002':
+    en: Cardiology
+    ja: 循環器内科
+  '418112009':
+    en: Pulmonary medicine
+    ja: 呼吸器内科
+  '394584008':
+    en: Gastroenterology
+    ja: 消化器内科
+  '394589003':
+    en: Nephrology
+    ja: 腎臓内科
+  '394583003':
+    en: Endocrinology
+    ja: 内分泌内科
+  '722414000':
+    en: Laboratory medicine
+    ja: 検査科
+  '405623001':
+    en: Pharmacy
+    ja: 薬剤科

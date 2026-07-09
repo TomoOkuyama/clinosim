@@ -282,10 +282,16 @@ def _bb_occupation(ctx: BundleContext) -> list[dict]:
             # C1-12 (session 41 cycle 1): US Core / JP Core social-history
             # profile lists effective[x] as MUST-SUPPORT. Use earliest encounter
             # admission as the SDOH-as-of proxy (same helper as smoking / alcohol).
-            from clinosim.modules.output._fhir_smoking_alcohol import _sdoh_effective_datetime
+            from clinosim.modules.output._fhir_smoking_alcohol import (
+                _sdoh_effective_datetime,
+                _sdoh_performer_ref,
+            )
             eff = _sdoh_effective_datetime(ctx)
             if eff:
                 occ_obs["effectiveDateTime"] = eff
+            perf = _sdoh_performer_ref(ctx)
+            if perf:
+                occ_obs["performer"] = [{"reference": perf}]
             return [occ_obs]
     return []
 
