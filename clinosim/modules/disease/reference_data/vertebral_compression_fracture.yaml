@@ -773,3 +773,28 @@ narrative:
     diet_lifestyle:
       en: "Maintain balanced diet and adequate hydration."
       ja: "バランスの良い食事と十分な水分摂取を心がけてください。"
+
+# ============================================================
+# IMAGING ORDERS (CO-1 / RM-5 continuation — session 43)
+# ============================================================
+imaging_orders:
+  - modality: CR
+    body_site: spine
+    views: [AP, Lateral]
+    urgency: urgent
+    clinical_indication: "Confirm compression fracture level"
+    day: 0
+    abnormal_rate_by_severity:
+      mild: 0.9
+      moderate: 0.95
+      severe: 1.0
+  - modality: MR
+    body_site: spine
+    contrast: false
+    urgency: routine
+    clinical_indication: "Assess acuity, rule out malignancy"
+    day: 2
+    abnormal_rate_by_severity:
+      mild: 0.85
+      moderate: 0.95
+      severe: 1.0

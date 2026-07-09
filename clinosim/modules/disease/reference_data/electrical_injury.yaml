@@ -298,3 +298,18 @@ narrative:
     diet_lifestyle:
       en: "Maintain balanced diet and adequate hydration."
       ja: "バランスの良い食事と十分な水分摂取を心がけてください。"
+
+# ============================================================
+# IMAGING ORDERS (CO-1 / RM-5 continuation — session 43)
+# ============================================================
+imaging_orders:
+  - modality: CR
+    body_site: chest
+    views: [PA]
+    urgency: urgent
+    clinical_indication: "Screen for cardiac / pulmonary injury"
+    day: 0
+    abnormal_rate_by_severity:
+      mild: 0.1
+      moderate: 0.3
+      severe: 0.6

@@ -744,3 +744,17 @@ narrative:
     diet_lifestyle:
       en: "Maintain balanced diet and adequate hydration."
       ja: "バランスの良い食事と十分な水分摂取を心がけてください。"
+
+# ============================================================
+# IMAGING ORDERS (CO-1 / RM-5 continuation — session 43)
+# ============================================================
+imaging_orders:
+  - modality: US
+    body_site: skin
+    urgency: routine
+    clinical_indication: "Rule out abscess / DVT differential"
+    day: 0
+    abnormal_rate_by_severity:
+      mild: 0.15
+      moderate: 0.35
+      severe: 0.6

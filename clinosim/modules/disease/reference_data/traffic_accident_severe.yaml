@@ -417,3 +417,48 @@ narrative:
     diet_lifestyle:
       en: "Maintain balanced diet and adequate hydration."
       ja: "バランスの良い食事と十分な水分摂取を心がけてください。"
+
+# ============================================================
+# IMAGING ORDERS (CO-1 / RM-5 continuation — session 43)
+# ============================================================
+imaging_orders:
+  - modality: CT
+    body_site: head
+    contrast: false
+    urgency: stat
+    clinical_indication: "Trauma head CT, exclude intracranial injury"
+    day: 0
+    abnormal_rate_by_severity:
+      mild: 0.3
+      moderate: 0.6
+      severe: 0.85
+  - modality: CT
+    body_site: chest
+    contrast: true
+    urgency: stat
+    clinical_indication: "Trauma chest CT, evaluate thoracic injury"
+    day: 0
+    abnormal_rate_by_severity:
+      mild: 0.35
+      moderate: 0.65
+      severe: 0.9
+  - modality: CT
+    body_site: abdomen
+    contrast: true
+    urgency: stat
+    clinical_indication: "Trauma abdomen CT, evaluate solid organ injury"
+    day: 0
+    abnormal_rate_by_severity:
+      mild: 0.3
+      moderate: 0.55
+      severe: 0.85
+  - modality: CT
+    body_site: spine
+    contrast: false
+    urgency: stat
+    clinical_indication: "Trauma spine CT, exclude fracture"
+    day: 0
+    abnormal_rate_by_severity:
+      mild: 0.2
+      moderate: 0.45
+      severe: 0.75

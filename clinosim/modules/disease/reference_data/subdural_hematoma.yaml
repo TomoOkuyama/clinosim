@@ -377,3 +377,28 @@ narrative:
     diet_lifestyle:
       en: "Maintain balanced diet and adequate hydration."
       ja: "バランスの良い食事と十分な水分摂取を心がけてください。"
+
+# ============================================================
+# IMAGING ORDERS (CO-1 / RM-5 continuation — session 43)
+# ============================================================
+imaging_orders:
+  - modality: CT
+    body_site: head
+    contrast: false
+    urgency: stat
+    clinical_indication: "Confirm subdural hematoma, assess mass effect"
+    day: 0
+    abnormal_rate_by_severity:
+      mild: 1.0
+      moderate: 1.0
+      severe: 1.0
+  - modality: CT
+    body_site: head
+    contrast: false
+    urgency: urgent
+    clinical_indication: "Follow-up hematoma progression"
+    day: 2
+    abnormal_rate_by_severity:
+      mild: 0.6
+      moderate: 0.75
+      severe: 0.9

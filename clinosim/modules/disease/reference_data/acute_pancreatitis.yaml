@@ -794,3 +794,27 @@ narrative:
     diet_lifestyle:
       en: "Maintain balanced diet and adequate hydration."
       ja: "バランスの良い食事と十分な水分摂取を心がけてください。"
+
+# ============================================================
+# IMAGING ORDERS (CO-1 / RM-5 continuation — session 43)
+# ============================================================
+imaging_orders:
+  - modality: US
+    body_site: abdomen
+    urgency: urgent
+    clinical_indication: "Suspected pancreatitis, evaluate biliary tree"
+    day: 0
+    abnormal_rate_by_severity:
+      mild: 0.6
+      moderate: 0.75
+      severe: 0.85
+  - modality: CT
+    body_site: abdomen
+    contrast: true
+    urgency: routine
+    clinical_indication: "Assess pancreatic necrosis (day 3+)"
+    day: 3
+    abnormal_rate_by_severity:
+      mild: 0.4
+      moderate: 0.75
+      severe: 0.95
