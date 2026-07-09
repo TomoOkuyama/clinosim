@@ -62,6 +62,11 @@ class CIFPatientRecord:
     microbiology: list[MicrobiologyResult] = field(default_factory=list)  # AD-55 Base (codes only)
     discharge_prescription: PrescriptionRecord | None = None
     icu_transferred: bool = False
+    # C5-22 (session 43 imaging chain closure): day (0-indexed LOS day) at
+    # which the patient was transferred to ICU. -1 when no transfer. Used
+    # by `_fhir_encounter._build_class_history` to emit FHIR
+    # Encounter.classHistory segments (ward → ICU transition point).
+    icu_transferred_day: int = -1
     deceased: bool = False
     death_day: int | None = None
 

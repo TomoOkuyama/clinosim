@@ -313,6 +313,7 @@ def _simulate_patient(
     complications_occurred = loop_result["complications"]
     death_occurred = loop_result["death_occurred"]
     icu_transferred = loop_result["icu_transferred"]
+    icu_transferred_day = loop_result.get("icu_transferred_day", -1)
     differential = loop_result["differential"]
     actual_los = loop_result["actual_los"]
 
@@ -483,7 +484,9 @@ def _simulate_patient(
         adl_assessments=all_adl,
         microbiology=microbiology,
         discharge_prescription=discharge_rx,
-        icu_transferred=icu_transferred, deceased=death_occurred,
+        icu_transferred=icu_transferred,
+        icu_transferred_day=icu_transferred_day,
+        deceased=death_occurred,
         death_day=actual_los if death_occurred else None,
         is_readmission=is_readmission,
         prior_encounter_id=prior_encounter_id,
@@ -630,6 +633,7 @@ def _run_daily_loop(
     complications_occurred: list[str] = []
     death_occurred = False
     icu_transferred = False
+    icu_transferred_day_local: int = -1  # C5-22 (session 43): day of ICU transfer
 
     prev_diet = ""  # last diet ordered for this patient; threaded through the day loop
     for day in range(target_los):
@@ -1081,6 +1085,13 @@ def _run_daily_loop(
                 comp_name = comp.get("name", "unknown")
                 complications_occurred.append(comp_name)
                 if "icu_transfer" in comp.get("actions", []):
+                    if not icu_transferred:
+                        # C5-22 (session 43): capture day of transfer for
+                        # Encounter.classHistory. First trigger wins;
+                        # subsequent ICU-triggering complications on later
+                        # days do not overwrite (the patient is already in
+                        # ICU by then).
+                        icu_transferred_day_local = day
                     icu_transferred = True
                 # Cancel contraindicated meds when AKI develops as complication
                 if comp_name == "acute_kidney_injury":
@@ -1114,7 +1125,9 @@ def _run_daily_loop(
         "mars": all_mars, "io_records": all_io, "adl_assessments": all_adl,
         "state_history": state_history,
         "complications": complications_occurred, "death_occurred": death_occurred,
-        "icu_transferred": icu_transferred, "differential": differential,
+        "icu_transferred": icu_transferred,
+        "icu_transferred_day": icu_transferred_day_local,  # C5-22
+        "differential": differential,
         "actual_los": actual_los,
     }
 

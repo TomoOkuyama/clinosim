@@ -35,6 +35,8 @@ def _build_encounter(
     country: str = "US",
     admit_dx_code: str = "",
     admit_dx_system: str = "icd-10-cm",
+    icu_transferred_day: int = -1,
+    deceased: bool = False,
 ) -> dict:
     """Build FHIR Encounter resource."""
     encounter_id = enc.get("encounter_id", str(uuid.uuid4()))
@@ -153,6 +155,87 @@ def _build_encounter(
                     }
             except (ValueError, TypeError):
                 pass
+
+    # C5-22 (session 43): Encounter.classHistory + statusHistory for
+    # inpatient encounters that transitioned through ward → ICU (icu_transferred_day
+    # captured in inpatient.py simulator loop) OR whose planned → in-progress
+    # → finished status transitions matter for audit trail.
+    if class_code == "IMP" and enc.get("admission_datetime"):
+        from datetime import datetime as _dt, timedelta as _td
+        try:
+            _adm = _dt.fromisoformat(str(enc["admission_datetime"]).replace("Z","+00:00").split("+")[0])
+        except (ValueError, TypeError):
+            _adm = None
+        _dis = None
+        if enc.get("discharge_datetime"):
+            try:
+                _dis = _dt.fromisoformat(str(enc["discharge_datetime"]).replace("Z","+00:00").split("+")[0])
+            except (ValueError, TypeError):
+                pass
+        # classHistory: ward IMP → ICU IMP transition
+        if icu_transferred_day is not None and icu_transferred_day >= 0 and _adm:
+            _icu_transfer_dt = _adm + _td(days=icu_transferred_day)
+            _act_uri = get_system_uri("hl7-v3-actcode")
+            class_history: list[dict[str, Any]] = [
+                {
+                    "class": {
+                        "system": _act_uri, "code": "IMP",
+                        "display": _localize_display(
+                            "inpatient ward", country, _CLASS_DISPLAY_JA,
+                        ),
+                    },
+                    "period": {
+                        "start": enc["admission_datetime"],
+                        "end": _icu_transfer_dt.isoformat(),
+                    },
+                },
+                {
+                    "class": {
+                        "system": _act_uri, "code": "ACUTE",  # HL7 ActCode Acute inpatient
+                        "display": _localize_display(
+                            "ICU", country, _CLASS_DISPLAY_JA,
+                        ),
+                    },
+                    "period": {
+                        "start": _icu_transfer_dt.isoformat(),
+                        **({"end": enc["discharge_datetime"]} if enc.get("discharge_datetime") else {}),
+                    },
+                },
+            ]
+            resource["classHistory"] = class_history
+        # statusHistory: planned → in-progress → finished (deterministic
+        # timeline: planned = admission-1h, in-progress = admission,
+        # finished = discharge). Only emit when we have both timestamps.
+        if _adm:
+            _planned_start = (_adm - _td(hours=1)).isoformat()
+            status_history: list[dict[str, Any]] = [
+                {
+                    "status": "planned",
+                    "period": {
+                        "start": _planned_start,
+                        "end": enc["admission_datetime"],
+                    },
+                },
+            ]
+            _cur_status = _map_encounter_status(enc.get("status", ""))
+            if _cur_status == "finished" and _dis:
+                status_history.append({
+                    "status": "in-progress",
+                    "period": {
+                        "start": enc["admission_datetime"],
+                        "end": enc["discharge_datetime"],
+                    },
+                })
+                status_history.append({
+                    "status": "finished",
+                    "period": {"start": enc["discharge_datetime"]},
+                })
+            else:
+                status_history.append({
+                    "status": "in-progress",
+                    "period": {"start": enc["admission_datetime"]},
+                })
+            resource["statusHistory"] = status_history
 
     if enc.get("chief_complaint"):
         # reasonCode: use diagnosis display in target language (codes module)

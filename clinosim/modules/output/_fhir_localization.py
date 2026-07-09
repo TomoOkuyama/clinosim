@@ -142,6 +142,10 @@ _CLASS_DISPLAY_JA: dict[str, str] = {
     "EMER": "救急", "emergency": "救急",
     "HH": "訪問看護", "home health": "訪問看護",
     "FLD": "現地訪問", "field": "現地訪問",
+    # C5-22 (session 43): classHistory transition labels.
+    "inpatient ward": "一般病棟",
+    "ICU": "集中治療室",
+    "ACUTE": "集中治療室",
 }
 
 _CATEGORY_DISPLAY_JA: dict[str, str] = {
