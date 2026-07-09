@@ -23,6 +23,11 @@ class StaffMember:
     phone: str = ""         # work phone
     email: str = ""         # work email
     ward: str = ""          # primary ward assignment (for nurses)
+    # C2-19 continuation (session 43 cycle 5): JP Core Practitioner requires
+    # phonetic (kana) name representation alongside kanji. Empty for non-JP
+    # rosters. Emitted as `iso21090-EN-representation=SYL` HumanName entry
+    # in `_fhir_practitioner._build_practitioner`.
+    name_phonetic: str = ""
 
 
 @dataclass

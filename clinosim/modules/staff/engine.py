@@ -67,25 +67,27 @@ def generate_roster(
     def _add_physician(dept: str, idx: int, specialty: str = "") -> None:
         prefix = _DEPT_PREFIX.get(dept, dept[:2].upper())
         sex = "M" if rng.random() < 0.65 else "F"
-        name = _generate_name(sex, country, rng)
+        name, name_kana = _generate_name_pair(sex, country, rng)
         sid = f"DR-{prefix}-{idx:03d}"
         roster.members.append(StaffMember(
             staff_id=sid, name=name, role="physician",
             department=dept, specialty=specialty or dept,
             qualification_year=int(rng.integers(1985, 2020)),
             sex=sex, phone=_gen_phone(country, rng), email=_gen_email(sid),
+            name_phonetic=name_kana,
         ))
 
     def _add_nurse(dept: str, idx: int, ward: str) -> None:
         prefix = _DEPT_PREFIX.get(dept, dept[:2].upper())
         sex = "F" if rng.random() < 0.85 else "M"
-        name = _generate_name(sex, country, rng)
+        name, name_kana = _generate_name_pair(sex, country, rng)
         sid = f"NS-{prefix}-{idx:03d}"
         roster.members.append(StaffMember(
             staff_id=sid, name=name, role="nurse",
             department=dept, specialty=dept, ward=ward,
             qualification_year=int(rng.integers(1995, 2023)),
             sex=sex, phone=_gen_phone(country, rng), email=_gen_email(sid),
+            name_phonetic=name_kana,
         ))
 
     # Physicians per department (scaled with hospital size)
@@ -147,34 +149,37 @@ def generate_roster(
     # Lab technicians (shared service)
     for i in range(10):
         sex = "F" if i % 2 == 0 else "M"
-        name = _generate_name(sex, country, rng)
+        name, name_kana = _generate_name_pair(sex, country, rng)
         sid = f"TECH-LAB-{i+1:03d}"
         roster.members.append(StaffMember(
             staff_id=sid, name=name, role="lab_technician", department="laboratory",
             qualification_year=int(rng.integers(2000, 2023)),
             sex=sex, phone=_gen_phone(country, rng), email=_gen_email(sid),
+            name_phonetic=name_kana,
         ))
 
     # Radiologists
     for i in range(4):
         sex = "M" if i % 2 == 0 else "F"
-        name = _generate_name(sex, country, rng)
+        name, name_kana = _generate_name_pair(sex, country, rng)
         sid = f"DR-RAD-{i+1:03d}"
         roster.members.append(StaffMember(
             staff_id=sid, name=name, role="radiologist", department="radiology",
             qualification_year=int(rng.integers(1990, 2015)),
             sex=sex, phone=_gen_phone(country, rng), email=_gen_email(sid),
+            name_phonetic=name_kana,
         ))
 
     # Pharmacists
     for i in range(8):
         sex = "F" if i % 2 == 0 else "M"
-        name = _generate_name(sex, country, rng)
+        name, name_kana = _generate_name_pair(sex, country, rng)
         sid = f"PH-{i+1:03d}"
         roster.members.append(StaffMember(
             staff_id=sid, name=name, role="pharmacist", department="pharmacy",
             qualification_year=int(rng.integers(2000, 2023)),
             sex=sex, phone=_gen_phone(country, rng), email=_gen_email(sid),
+            name_phonetic=name_kana,
         ))
 
     return roster
@@ -227,22 +232,50 @@ def assign_staff(
 
 
 def _generate_name(sex: str, country: str, rng: np.random.Generator) -> str:
-    """Generate a staff name using locale name data."""
+    """Generate a staff name using locale name data. Kanji-only string; see
+    ``_generate_name_pair`` for the (kanji, kana) tuple used by JP rosters."""
+    kanji, _kana = _generate_name_pair(sex, country, rng)
+    return kanji
+
+
+def _generate_name_pair(
+    sex: str, country: str, rng: np.random.Generator
+) -> tuple[str, str]:
+    """Generate (kanji, kana) name pair for staff.
+
+    C2-19 continuation (session 43 cycle 5): JP roster gen now returns the
+    kana reading alongside the kanji so ``StaffMember.name_phonetic`` can be
+    populated and downstream FHIR emit adds the SYL (syllabic) HumanName
+    entry required by JP Core Practitioner. Non-JP rosters return kana="".
+    """
     names_data = load_names(country)
     surnames = names_data.get("surnames", [])
     given_key = "given_names_male" if sex == "M" else "given_names_female"
     givens = names_data.get(given_key, [])
 
     if not surnames or not givens:
-        return f"Staff-{rng.integers(1000, 9999)}"
+        return f"Staff-{rng.integers(1000, 9999)}", ""
 
-    # Extract name strings (JP uses "kanji", US uses "name")
+    # Preserve existing RNG stream ordering: rng.choice on the kanji list
+    # (as before), then look up the kana column via the same index. Keeping
+    # the same rng call preserves byte-diff for existing goldens.
     surname_list = [s.get("kanji", s.get("name", "")) for s in surnames]
     given_list = [g.get("kanji", g.get("name", "")) for g in givens]
-
-    surname = rng.choice(surname_list)
-    given = rng.choice(given_list)
+    surname_kanji = str(rng.choice(surname_list))
+    given_kanji = str(rng.choice(given_list))
+    surname_kana = ""
+    given_kana = ""
+    for s in surnames:
+        if s.get("kanji", s.get("name", "")) == surname_kanji:
+            surname_kana = s.get("kana", "")
+            break
+    for g in givens:
+        if g.get("kanji", g.get("name", "")) == given_kanji:
+            given_kana = g.get("kana", "")
+            break
 
     if is_jp(country):
-        return f"{surname} {given}"
-    return f"{given} {surname}"
+        kanji = f"{surname_kanji} {given_kanji}"
+        kana = f"{surname_kana} {given_kana}" if (surname_kana and given_kana) else ""
+        return kanji, kana
+    return f"{given_kanji} {surname_kanji}", ""

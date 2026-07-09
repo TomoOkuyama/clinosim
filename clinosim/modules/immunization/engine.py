@@ -107,6 +107,22 @@ def generate_immunizations(patient, schedule: dict, as_of: date,
         if start > as_of:
             continue
 
+        # C3-03 continuation (session 43): synthetic lot number generator.
+        # JP 薬機法 requires vaccine lot tracking for post-market surveillance
+        # (副作用報告制度). Real lot numbers come from manufacturer QC systems;
+        # for synthetic data we generate a deterministic manufacturer-style
+        # tag: <MFR>-<YYYYMM>-<BATCH> where MFR is derived from CVX code
+        # (deterministic 3-letter tag) and BATCH is a 3-digit patient-relative
+        # sequence. The result is NOT an authoritative lot number — it is a
+        # structural placeholder that satisfies FHIR Immunization.lotNumber
+        # 0..1 and JP practice pattern documentation. Downstream consumers
+        # must treat it as synthetic (AD-57 spirit: no fabrication of billing
+        # / regulatory codes; lot number is neither).
+        _mfr_hash = f"{(hash(cvx) % 900 + 100):03d}"  # 100-999
+        def _synthetic_lot(occurrence):
+            batch = f"{(hash((cvx, occurrence.year, occurrence.month)) % 900 + 100):03d}"
+            return f"L{_mfr_hash}-{occurrence.year:04d}{occurrence.month:02d}-{batch}"
+
         if freq == "annual":
             month = int(v.get("season_month", 10))
             for yr in range(start.year, as_of.year + 1):
@@ -118,6 +134,7 @@ def generate_immunizations(patient, schedule: dict, as_of: date,
                     out.append(ImmunizationRecord(
                         vaccine_cvx=cvx, occurrence_date=occ,
                         administered_by=default_nurse,
+                        lot_number=_synthetic_lot(occ),
                     ))
                 elif rng.random() < 0.02:
                     out.append(ImmunizationRecord(
@@ -133,6 +150,7 @@ def generate_immunizations(patient, schedule: dict, as_of: date,
                     out.append(ImmunizationRecord(
                         vaccine_cvx=cvx, occurrence_date=occ,
                         administered_by=default_nurse,
+                        lot_number=_synthetic_lot(occ),
                     ))
                 elif rng.random() < 0.02:
                     out.append(ImmunizationRecord(
@@ -149,6 +167,7 @@ def generate_immunizations(patient, schedule: dict, as_of: date,
                 out.append(ImmunizationRecord(
                     vaccine_cvx=cvx, occurrence_date=occ,
                     administered_by=default_nurse,
+                    lot_number=_synthetic_lot(occ),
                 ))
 
     out.sort(key=lambda r: r.occurrence_date)

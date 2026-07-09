@@ -50,14 +50,39 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
             name_obj["prefix"] = ["Dr."]
         # C3-01 (session 42 cycle 3): JP Core requires kanji (IDE)
         # representation tag on Practitioner names as well as Patient.
-        # Kana (SYL) entry is deferred until roster generation carries a
-        # phonetic pair (same limitation as C2-19 Patient path).
+        # C2-19 continuation (session 43 cycle 5): Kana SYL entry now
+        # emitted when roster generation populated `name_phonetic`.
+        # names.yaml carries kana column for every kanji entry so JP
+        # rosters always fill this field.
+        names_list: list[dict[str, Any]] = []
         if is_jp(country):
-            name_obj["extension"] = [{
-                "url": "http://hl7.org/fhir/StructureDefinition/iso21090-EN-representation",
-                "valueCode": "IDE",
-            }]
-        resource["name"] = [name_obj]
+            names_list.append({
+                **name_obj,
+                "use": "official",
+                "extension": [{
+                    "url": "http://hl7.org/fhir/StructureDefinition/iso21090-EN-representation",
+                    "valueCode": "IDE",
+                }],
+            })
+            phonetic = staff.get("name_phonetic", "")
+            if phonetic:
+                p_parts = phonetic.split(" ", 1)
+                if len(p_parts) == 2:
+                    p_family, p_given = p_parts[0], p_parts[1]
+                else:
+                    p_family, p_given = phonetic, ""
+                names_list.append({
+                    "use": "official",
+                    "family": p_family,
+                    "given": [p_given] if p_given else [],
+                    "extension": [{
+                        "url": "http://hl7.org/fhir/StructureDefinition/iso21090-EN-representation",
+                        "valueCode": "SYL",
+                    }],
+                })
+        else:
+            names_list.append(name_obj)
+        resource["name"] = names_list
 
         # Gender
         sex = staff.get("sex", "")
