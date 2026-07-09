@@ -37,6 +37,7 @@ def _build_encounter(
     admit_dx_system: str = "icd-10-cm",
     icu_transferred_day: int = -1,
     deceased: bool = False,
+    chronic_condition_codes: list[str] | None = None,
 ) -> dict:
     """Build FHIR Encounter resource."""
     encounter_id = enc.get("encounter_id", str(uuid.uuid4()))
@@ -305,7 +306,7 @@ def _build_encounter(
         _dd_display = _localize_display(
             "Discharge diagnosis", country, _DIAGNOSIS_ROLE_DISPLAY_JA
         )
-        resource["diagnosis"] = [{
+        diagnosis_list: list[dict[str, Any]] = [{
             "condition": {"reference": f"Condition/cond-{encounter_id}-primary"},
             "use": {
                 "coding": [{
@@ -316,6 +317,40 @@ def _build_encounter(
             },
             "rank": 1,
         }]
+        # C5-12 (session 43 history-chain continuation): add secondary
+        # diagnoses for polymorbid encounters. Chronic conditions carried
+        # by the patient at encounter time contribute Encounter.diagnosis[]
+        # with `use=CM` (Comorbidity, from HL7 diagnosis-role valueset) and
+        # rank 2..N. References the patient-scoped chronic Condition ids
+        # emitted by _fhir_conditions (`cond-chronic-{patient}-{i:02d}`).
+        # De-dupe when the chronic base matches the primary dx (already
+        # emitted as rank=1).
+        if chronic_condition_codes:
+            _cm_display = _localize_display(
+                "Comorbidity diagnosis", country, _DIAGNOSIS_ROLE_DISPLAY_JA,
+            )
+            _primary_base = primary_dx_code.split(".")[0] if primary_dx_code else ""
+            _rank = 2
+            for _i, _ccode in enumerate(chronic_condition_codes):
+                if not _ccode:
+                    continue
+                if _ccode.split(".")[0] == _primary_base:
+                    continue  # already emitted as primary rank=1
+                diagnosis_list.append({
+                    "condition": {
+                        "reference": f"Condition/cond-chronic-{patient_id}-{_i:02d}",
+                    },
+                    "use": {
+                        "coding": [{
+                            "system": get_system_uri("hl7-diagnosis-role"),
+                            "code": "CM",
+                            "display": _cm_display,
+                        }],
+                    },
+                    "rank": _rank,
+                })
+                _rank += 1
+        resource["diagnosis"] = diagnosis_list
 
     # Hospitalization (admit source / discharge disposition / re-admission).
     # C1-02/C1-03 (session 41 cycle 1): resolve display via authoritative

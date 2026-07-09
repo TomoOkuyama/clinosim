@@ -275,11 +275,23 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
         if isinstance(_record, dict)
         else getattr(_record, "deceased", False)
     )
+    # C5-12 (session 43 history chain): extract chronic condition codes
+    # from record.patient.chronic_conditions for secondary diagnosis emit.
+    _chronic_codes: list[str] = []
+    _patient_dict = ctx.patient_data or {}
+    for _c in _patient_dict.get("chronic_conditions", []) or []:
+        if isinstance(_c, str):
+            _chronic_codes.append(_c)
+        elif isinstance(_c, dict):
+            _chronic_codes.append(_c.get("code", ""))
+        else:
+            _chronic_codes.append(getattr(_c, "code", ""))
     return [
         _build_encounter(enc, ctx.patient_id, ctx.is_readmission, ctx.prior_encounter_id,
                          primary_dx_code=ctx.primary_dx_code, country=ctx.country,
                          admit_dx_code=ctx.admit_dx_code, admit_dx_system=ctx.admit_dx_system,
-                         icu_transferred_day=_icu_day, deceased=_deceased)
+                         icu_transferred_day=_icu_day, deceased=_deceased,
+                         chronic_condition_codes=_chronic_codes)
         for enc in ctx.record.get("encounters", [])
     ]
 
@@ -358,12 +370,35 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
 
 def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
     out: list[dict] = []
+    # C5-07 (session 43 history chain): build the set of MedicationRequest ids
+    # that WILL be emitted so we can drop MAR.request references that would
+    # otherwise dangle (was 4 orphan refs in baseline — CIF corner case where
+    # a supportive Order is created but not persisted into record.orders while
+    # the corresponding MAR is). Reference integrity > preserving a broken link.
+    _mr_ids: set[str] = set()
+    _primary_enc_id = ctx.primary_enc_id
+    for order in ctx.record.get("orders", []) or []:
+        if order.get("order_type") == "medication":
+            if not (order.get("display_name") or "").strip():
+                continue
+            _base_oid = order.get("order_id", "") or ""
+            _enc_ref_id = order.get("encounter_id", "") or _primary_enc_id
+            _mr_id = f"{_enc_ref_id}-{_base_oid}" if _enc_ref_id else _base_oid
+            _mr_ids.add(_mr_id)
     for i, mar in enumerate(ctx.record.get("medication_administrations", [])):
         if not (mar.get("drug_name") or "").strip():
             continue
-        out.append(_build_medication_admin(
+        _resource = _build_medication_admin(
             mar, ctx.patient_id, i, ctx.country,
-            encounter_id=ctx.primary_enc_id, primary_dx_code=ctx.primary_dx_code))
+            encounter_id=ctx.primary_enc_id, primary_dx_code=ctx.primary_dx_code)
+        _req = _resource.get("request") if isinstance(_resource, dict) else None
+        if _req and isinstance(_req, dict):
+            _ref = _req.get("reference", "")
+            if _ref.startswith("MedicationRequest/"):
+                _target = _ref[len("MedicationRequest/"):]
+                if _target not in _mr_ids:
+                    _resource.pop("request", None)  # drop the dangling ref
+        out.append(_resource)
     return out
 
 
