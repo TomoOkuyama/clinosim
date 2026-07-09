@@ -229,6 +229,11 @@ def _build_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[st
         # TODO(Task 10/15): document enricher must always populate author_practitioner_id.
         "author": [{"reference": f"Practitioner/{author_id}"}] if author_id else [{"reference": "Practitioner/UNKNOWN"}],
         "title": loinc_display or loinc_code,
+        # C5-27 (session 43 cycle 5): Composition.confidentiality (0..1 code)
+        # per HL7 CDA / FHIR ConfidentialityCode. `N` = Normal (default JP
+        # 医療情報 practice). All clinical documents are Normal unless
+        # explicit privacy tag is set.
+        "confidentiality": "N",
         "language": language,
     }
 

@@ -73,10 +73,18 @@ def _build_family_history(ctx: BundleContext) -> list[dict]:
         # relative," not the patient's personal history. Fall back to the original
         # code when the map target is a Z-code so the display resolves to the
         # actual disease (I63 → "Cerebral infarction").
+        # C5-15 (session 43 cycle 5): FamilyMemberHistory.condition[].onsetString.
+        # CIF family_history has no per-condition onset data (relatives are
+        # patient-reported). Emit an "詳細不明" / "unknown" onsetString so the
+        # field is populated per JP Core FamilyMemberHistory recommendation.
+        _onset_unknown = "詳細不明" if lang == "ja" else "unknown onset"
         conditions = [
-            {"code": _build_diagnosis_codeable_concept(
-                _resolve_family_history_code(code, ctx.country), icd_system_key, ctx.country,
-            )}
+            {
+                "code": _build_diagnosis_codeable_concept(
+                    _resolve_family_history_code(code, ctx.country), icd_system_key, ctx.country,
+                ),
+                "onsetString": _onset_unknown,
+            }
             for code in _get(fam, "condition_codes", []) or []
         ]
         if conditions:

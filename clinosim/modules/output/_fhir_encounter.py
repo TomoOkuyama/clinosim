@@ -97,6 +97,13 @@ def _build_encounter(
     priority = enc.get("priority", "")
     if priority:
         priority_display = {"EM": "emergency", "UR": "urgent", "R": "routine"}.get(priority, "")
+        # C5-03 (session 43 cycle 5): localize priority display for JP output.
+        from clinosim.modules.output._fhir_localization import (
+            _ACT_PRIORITY_DISPLAY_JA,
+        )
+        priority_display = _localize_display(
+            priority_display, country, _ACT_PRIORITY_DISPLAY_JA
+        )
         resource["priority"] = {
             "coding": [{
                 "system": get_system_uri("hl7-v3-actpriority"),
@@ -121,18 +128,29 @@ def _build_encounter(
         resource["period"] = {"start": enc["admission_datetime"]}
         if enc.get("discharge_datetime"):
             resource["period"]["end"] = enc["discharge_datetime"]
-            # Length in minutes
+            # Length — C5-11 (session 43 cycle 5): use days for LOS ≥ 1 day
+            # (typical IMP encounters run to 20+ days = large minute counts;
+            # UCUM `d` is more natural for chart LOS displays).
             try:
                 from datetime import datetime as _dt
                 start = _dt.fromisoformat(str(enc["admission_datetime"]).replace("Z","+00:00").split("+")[0])
                 end = _dt.fromisoformat(str(enc["discharge_datetime"]).replace("Z","+00:00").split("+")[0])
-                minutes = int((end - start).total_seconds() / 60)
-                resource["length"] = {
-                    "value": minutes,
-                    "unit": "min",
-                    "system": get_system_uri("ucum"),
-                    "code": "min",
-                }
+                total_min = int((end - start).total_seconds() / 60)
+                if total_min >= 1440:  # 1 day
+                    days = round(total_min / 1440, 2)
+                    resource["length"] = {
+                        "value": days,
+                        "unit": "d",
+                        "system": get_system_uri("ucum"),
+                        "code": "d",
+                    }
+                else:
+                    resource["length"] = {
+                        "value": total_min,
+                        "unit": "min",
+                        "system": get_system_uri("ucum"),
+                        "code": "min",
+                    }
             except (ValueError, TypeError):
                 pass
 
@@ -175,7 +193,7 @@ def _build_encounter(
     discharger = enc.get("discharging_physician_id", "")
 
     if attending:
-        participants.append(_make_participant("ATND", "attender", attending))
+        participants.append(_make_participant("ATND", "attender", attending, country))
     # C4-30 (session 43 cycle 4): emit ADM / DIS for IMP encounters even
     # when the practitioner is the same as attending — FHIR R4 allows the
     # same Practitioner across multiple participant.type entries, and JP
@@ -188,22 +206,29 @@ def _build_encounter(
         attending if _is_ip and enc.get("discharge_datetime") else ""
     )
     if _admitter_effective:
-        participants.append(_make_participant("ADM", "admitter", _admitter_effective))
+        participants.append(_make_participant("ADM", "admitter", _admitter_effective, country))
     if _discharger_effective:
-        participants.append(_make_participant("DIS", "discharger", _discharger_effective))
+        participants.append(_make_participant("DIS", "discharger", _discharger_effective, country))
 
     if participants:
         resource["participant"] = participants
 
     # Diagnosis reference (link to Condition)
     if primary_dx_code:
+        # C5-04 (session 43 cycle 5): localize diagnosis role display.
+        from clinosim.modules.output._fhir_localization import (
+            _DIAGNOSIS_ROLE_DISPLAY_JA,
+        )
+        _dd_display = _localize_display(
+            "Discharge diagnosis", country, _DIAGNOSIS_ROLE_DISPLAY_JA
+        )
         resource["diagnosis"] = [{
             "condition": {"reference": f"Condition/cond-{encounter_id}-primary"},
             "use": {
                 "coding": [{
                     "system": get_system_uri("hl7-diagnosis-role"),
                     "code": "DD",
-                    "display": "Discharge diagnosis",
+                    "display": _dd_display,
                 }],
             },
             "rank": 1,

@@ -74,6 +74,22 @@ def _sdoh_effective_datetime(ctx: BundleContext) -> str:
     return to_fhir_datetime(starts[0])
 
 
+def _sdoh_performer_ref(ctx: BundleContext) -> str:
+    """Return a Practitioner reference for SDOH Observation.performer.
+
+    C4-29 (session 43 cycle 5): SDOH is patient-self-reported but JP 健診
+    practice records the earliest encounter's attending as the
+    admin-of-record ("recorder"). Fall back to empty when no encounter.
+    """
+    from clinosim.modules._shared import get_attr_or_key as _o
+    encs = _o(ctx.record, "encounters", []) or []
+    for e in encs:
+        att = _o(e, "attending_physician_id", "") or ""
+        if att:
+            return f"Practitioner/{att}"
+    return ""
+
+
 def _build_smoking_status(ctx: BundleContext) -> list[dict]:
     data = load_social_history()["smoking_status"]
     status = (ctx.patient_data or {}).get("smoking_status", "")
@@ -87,6 +103,9 @@ def _build_smoking_status(ctx: BundleContext) -> list[dict]:
     eff = _sdoh_effective_datetime(ctx)
     if eff:
         o["effectiveDateTime"] = eff
+    perf = _sdoh_performer_ref(ctx)
+    if perf:
+        o["performer"] = [{"reference": perf}]
     return [o]
 
 
@@ -103,4 +122,7 @@ def _build_alcohol_use(ctx: BundleContext) -> list[dict]:
     eff = _sdoh_effective_datetime(ctx)
     if eff:
         o["effectiveDateTime"] = eff
+    perf = _sdoh_performer_ref(ctx)
+    if perf:
+        o["performer"] = [{"reference": perf}]
     return [o]

@@ -216,6 +216,13 @@ def _build_medication_request(
         disp["numberOfRepeatsAllowed"] = 3 if _is_home_med else 0
         resource["dispenseRequest"] = disp
 
+    # C5-23 (session 43 cycle 5): MedicationRequest.substitution (0..1)
+    # for generic substitution allowance. JP GE 促進 policy allows generic
+    # substitution for chronic outpatient scripts unless explicitly
+    # marked "brand only" — default `allowed = true` for outpatient/home-med.
+    if encounter_type == "outpatient" or _is_home_med:
+        resource["substitution"] = {"allowedBoolean": True}
+
     return resource
 
 

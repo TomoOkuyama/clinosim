@@ -348,14 +348,26 @@ def _build_telecom(contact: dict) -> list[dict[str, str]]:
     return telecoms
 
 
-def _make_participant(code: str, display: str, practitioner_id: str) -> dict[str, Any]:
-    """Build an Encounter.participant entry."""
+def _make_participant(
+    code: str, display: str, practitioner_id: str, country: str = "US"
+) -> dict[str, Any]:
+    """Build an Encounter.participant entry.
+
+    C5-02 (session 43 cycle 5): localize `display` for JP output — HL7
+    v3-ParticipationType English default (attender / admitter / discharger)
+    was leaking to JP output as literal text.
+    """
+    from clinosim.modules.output._fhir_localization import (
+        _PARTICIPATION_TYPE_DISPLAY_JA,
+        _localize_display,
+    )
+    localized = _localize_display(display, country, _PARTICIPATION_TYPE_DISPLAY_JA)
     return {
         "type": [{
             "coding": [{
                 "system": get_system_uri("hl7-v3-participationtype"),
                 "code": code,
-                "display": display,
+                "display": localized,
             }],
         }],
         "individual": {"reference": f"Practitioner/{practitioner_id}"},

@@ -210,6 +210,46 @@ _LOCATION_NAME_JA: dict[str, str] = {
     "Outpatient Clinic": "外来",
 }
 
+# C5-02 (session 43 cycle 5): HL7 v3-ParticipationType displays used by
+# Encounter.participant.type.coding.display. English default per HL7 leaks
+# to JP output; localize here.
+_PARTICIPATION_TYPE_DISPLAY_JA: dict[str, str] = {
+    "ATND": "担当医", "attender": "担当医",
+    "ADM": "入院担当医", "admitter": "入院担当医",
+    "DIS": "退院担当医", "discharger": "退院担当医",
+    "CON": "コンサルタント", "consultant": "コンサルタント",
+    "REF": "紹介元", "referrer": "紹介元",
+    "PART": "参加者", "Participation": "参加者",
+}
+
+# C5-03 (session 43 cycle 5): HL7 v3-ActPriority displays used by
+# Encounter.priority.coding.display.
+_ACT_PRIORITY_DISPLAY_JA: dict[str, str] = {
+    "R": "通常", "routine": "通常",
+    "EM": "救急", "emergency": "救急",
+    "S": "予定", "stat": "至急",
+    "UR": "至急", "urgent": "至急",
+    "A": "至急要求", "ASAP": "至急要求",
+    "CS": "予定手術", "callback for scheduling": "予定手術",
+    "CR": "コールバック", "callback results": "コールバック",
+    "EL": "選択的", "elective": "選択的",
+    "P": "予防", "preop": "予防",
+    "T": "予定", "timing critical": "予定",
+    "PRN": "頓用", "as needed": "頓用",
+}
+
+# C5-04 (session 43 cycle 5): HL7 diagnosis-role displays used by
+# Encounter.diagnosis.use.coding.display.
+_DIAGNOSIS_ROLE_DISPLAY_JA: dict[str, str] = {
+    "AD": "入院時診断", "Admission diagnosis": "入院時診断",
+    "DD": "退院時診断", "Discharge diagnosis": "退院時診断",
+    "CC": "主訴", "Chief complaint": "主訴",
+    "CM": "併存疾患", "Comorbidity diagnosis": "併存疾患",
+    "pre-op": "術前診断", "pre-op diagnosis": "術前診断",
+    "post-op": "術後診断", "post-op diagnosis": "術後診断",
+    "billing": "請求診断", "Billing": "請求診断",
+}
+
 # Procedure names (from disease YAML procedure.type) — EN→JA
 def _procedure_display(code: str, lang: str, fallback: str = "") -> str:
     """Look up procedure display in k-codes.yaml / cpt.yaml.

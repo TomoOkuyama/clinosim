@@ -44,3 +44,23 @@ TG: "2571-8"
 TC: "2093-3"
 TSH: "3016-3"
 ESR: "4537-7"
+# C5-01 residual (session 43 cycle 5): add missing analyte name variants
+# and additional labs that CIF orders emit under these display names.
+# All LOINC codes verified against NLM Clinical Table Search Service
+# (clinicaltables.nlm.nih.gov) v3 LOINC API.
+Phosphate: "2777-1"          # Phosphate [Mass/volume] in Serum or Plasma
+T_Bilirubin: "1975-2"        # Total bilirubin (alias for T_Bil)
+Beta_hydroxybutyrate: "32340-6"  # 3-Hydroxybutyrate [Moles/volume] in Serum or Plasma
+Anion_gap: "1863-0"          # Anion gap in Serum or Plasma
+Peak_Expiratory_Flow: "33452-4"  # Peak expiratory flow
+CO2: "20565-8"               # Carbon dioxide, total [Moles/volume] in Serum or Plasma
+Ammonia: "6295-0"            # Ammonium in Serum or Plasma
+Blood_culture: "600-7"       # Bacteria identified in Blood by Aerobe culture
+Blood_culture_x2: "600-7"    # Same LOINC for two-set culture
+# Analyte name aliases (avoid re-mapping — use existing code file entries).
+Mg: "19123-9"                # Magnesium (alias)
+Magnesium: "19123-9"
+aPTT: "14979-9"              # Activated Partial Thromboplastin Time (lowercase alias)
+Troponin: "10839-9"          # Troponin I (default alias when no isoform specified)
+Troponin_T: "6598-7"         # Troponin T (cardiac)
+Urinalysis: "24357-6"        # Urinalysis panel

@@ -484,13 +484,34 @@ def _build_standalone_sr(o: Any, lang: str, country: str) -> dict[str, Any]:
     code_map = load_code_mapping("lab", country_code)
     resolved_code = code_map.get(display_name)
     # Two-tier fallback: when JP map missing entry, try LOINC (US) map.
+    used_loinc_fallback = False
     if not resolved_code and is_jp(country_code):
         us_map = load_code_mapping("lab", "US")
-        resolved_code = us_map.get(display_name)
+        us_resolved = us_map.get(display_name)
+        if us_resolved:
+            resolved_code = us_resolved
+            used_loinc_fallback = True
+
+    # C5-01 (session 43 cycle 5): also treat display_name as a panel key.
+    # Orders emitted at panel granularity (order.display_name == "CBC" /
+    # "ABG" / "BMP") have no JLAC10 code — JLAC10 vocabulary is analyte-
+    # only. Fall back to the panel's LOINC. Fixes 12,604 SRs emitting
+    # `{system:"jlac10",code:"CBC",display:"CBC"}` = spec-invalid JLAC10.
+    if not resolved_code:
+        panels = load_panel_definitions()
+        if display_name in panels:
+            resolved_code = panels[display_name].get("loinc", "")
+            used_loinc_fallback = True
+
     resolved_code = resolved_code or raw_code
 
     # Display text comes from the code system (LOINC for US, JLAC10 for JP).
-    code_system_key = system_key_for("lab", country_code)
+    # When we fall back to LOINC (used_loinc_fallback=True), also override
+    # the SR.code.coding.system to loinc.org so system + code stay consistent.
+    if used_loinc_fallback:
+        code_system_key = "loinc"
+    else:
+        code_system_key = system_key_for("lab", country_code)
     loinc_display = code_lookup(code_system_key, resolved_code, lang) or display_name
     if loinc_display == resolved_code:  # no translation found
         loinc_display = display_name
@@ -506,6 +527,7 @@ def _build_standalone_sr(o: Any, lang: str, country: str) -> dict[str, Any]:
         anchor=o,
         lang=lang,
         country=country,
+        code_system_override_key=code_system_key if used_loinc_fallback else None,
     )
 
 
@@ -521,6 +543,7 @@ def _build_sr_skeleton(
     anchor: Any,
     lang: str,
     country: str,
+    code_system_override_key: str | None = None,
 ) -> dict[str, Any]:
     """Shared SR resource skeleton for panel + stand-alone.
 
@@ -588,7 +611,15 @@ def _build_sr_skeleton(
         "code": {
             "coding": [
                 {
-                    "system": get_system_uri(system_key_for("lab", "JP" if is_jp(country) else "US")),
+                    # C5-01 (session 43 cycle 5): allow the caller to override
+                    # the code system when a JLAC10 fallback to LOINC is
+                    # needed (panel-level orders, or analytes missing from
+                    # the JLAC10 mapping). Default remains the country's lab
+                    # system per CO-4 (session 42 cycle 3).
+                    "system": get_system_uri(
+                        code_system_override_key
+                        or system_key_for("lab", "JP" if is_jp(country) else "US")
+                    ),
                     "code": loinc_code,
                     "display": loinc_display,
                 }

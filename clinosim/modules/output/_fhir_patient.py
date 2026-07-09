@@ -171,7 +171,10 @@ def _build_coverage_resources(patient_data: dict, country: str) -> list[dict]:
         # C3-08 (session 42 cycle 3): Coverage.class[] — group / plan
         # classification. For JP, class[0].type=group with 保険者番号 as
         # the coverage class identifier.
-        coverage["class"] = [{
+        # C5-09 (session 43 cycle 5): diversify to include both `group` and
+        # `plan` classifications when insurer symbol resolves to a plan
+        # name — plan carries the human-readable insurance product name.
+        _class_entries: list[dict[str, Any]] = [{
             "type": {
                 "coding": [{
                     "system": "http://terminology.hl7.org/CodeSystem/coverage-class",
@@ -182,6 +185,19 @@ def _build_coverage_resources(patient_data: dict, country: str) -> list[dict]:
             "value": insurer,
             "name": name_map.get(insurer, insurer),
         }]
+        if symbol:
+            _class_entries.append({
+                "type": {
+                    "coding": [{
+                        "system": "http://terminology.hl7.org/CodeSystem/coverage-class",
+                        "code": "plan",
+                        "display": "Plan" if not is_jp(country) else "保険プラン",
+                    }],
+                },
+                "value": symbol,
+                "name": name_map.get(insurer, insurer),
+            })
+        coverage["class"] = _class_entries
         resources.append(coverage)
 
     return resources

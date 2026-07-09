@@ -375,10 +375,25 @@ def place_admission_orders(
     # override type-based classification. E.g. `type: "DVT_prophylaxis",
     # detail: "Sequential compression devices"` is a device, not a drug —
     # route to PROCEDURE so MAR isn't generated for it.
+    # C4-27 / C5-18 (session 43 cycle 5): expanded keyword set to catch
+    # residual device/procedure-as-medication misclassification (was 17.9%
+    # MAR codeless). New keywords: ice pack, splint, bandage, cast,
+    # nebulizer, sling, catheter, cervical collar, wound care, dressing,
+    # suture, reduction, traction, elevation, immobilization, oxygen,
+    # nasal cannula, endotracheal tube, chest tube, drain, tourniquet,
+    # ecg lead, iv line, foley.
     _DEVICE_PROCEDURE_KW = (
         "compression device", "sequential compression", "positive pressure",
         "nppv", "cpap", "bipap", "ipc device", "graduated compression",
         "non-invasive ventilation",
+        # C5-18 additions:
+        "ice pack", "splint", "bandage", "cast", "nebulizer", "sling",
+        "cervical collar", "wound care", "dressing", "suture", "reduction",
+        "traction", "elevation", "immobili", "oxygen therapy",
+        "nasal cannula", "endotracheal", "chest tube", "drain",
+        "tourniquet", "ecg lead", "iv line", "foley", "catheter placement",
+        "wound protection", "wound cleaning", "wound assessment",
+        "wound closure", "wound irrigation",
     )
     for i, sup in enumerate(admission.get("supportive", [])):
         sup_type = sup.get("type", "")

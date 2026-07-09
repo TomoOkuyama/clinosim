@@ -110,7 +110,10 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
             "display": resolved_display,
         }]
 
-    ver_display = code_lookup("hl7-allergyintolerance-verification", verification_status, "en")
+    # C5-24 (session 43 cycle 5): AllergyIntolerance status displays now
+    # locale-aware. Was hard-coded "en" — JP output leaked English displays.
+    ver_display = code_lookup("hl7-allergyintolerance-verification", verification_status, lang)
+    clin_display = code_lookup("hl7-allergyintolerance-clinical", clinical_status, lang)
     res: dict[str, Any] = {
         "resourceType": "AllergyIntolerance",
         "id": f"{ALLERGY_ID_PREFIX}{patient_id}-{allergy_id}",
@@ -118,9 +121,7 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
             "coding": [{
                 "system": _CLINICAL_STATUS_SYSTEM,
                 "code": clinical_status,
-                "display": code_lookup(
-                    "hl7-allergyintolerance-clinical", clinical_status, "en",
-                ),
+                "display": clin_display,
             }],
         },
         "verificationStatus": {
@@ -130,6 +131,14 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
                 "display": ver_display,
             }],
         },
+        # C5-14 (session 43 cycle 5): AllergyIntolerance.type (0..1) —
+        # `allergy` for immune-mediated hypersensitivity, `intolerance` for
+        # non-immune adverse reactions. FHIR R4 required-binding to
+        # http://hl7.org/fhir/allergy-intolerance-type. Default to "allergy"
+        # because clinosim's allergen registry (allergens.yaml) is populated
+        # with true allergens (penicillin / shellfish / peanut / etc.), not
+        # intolerances (lactose intolerance would be a Condition, not AI).
+        "type": "allergy",
         "category": [category],
         "criticality": criticality,
         "code": code,
