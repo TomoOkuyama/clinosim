@@ -261,10 +261,25 @@ def _bb_coverage(ctx: BundleContext) -> list[dict]:
 
 
 def _bb_encounters(ctx: BundleContext) -> list[dict]:
+    # C5-22 (session 43): record-level fields propagated to Encounter builder
+    # so classHistory (ward→ICU transition) + statusHistory (planned→in-progress→finished)
+    # can be emitted.
+    _record = ctx.record
+    _icu_day = (
+        _record.get("icu_transferred_day", -1)
+        if isinstance(_record, dict)
+        else getattr(_record, "icu_transferred_day", -1)
+    )
+    _deceased = (
+        _record.get("deceased", False)
+        if isinstance(_record, dict)
+        else getattr(_record, "deceased", False)
+    )
     return [
         _build_encounter(enc, ctx.patient_id, ctx.is_readmission, ctx.prior_encounter_id,
                          primary_dx_code=ctx.primary_dx_code, country=ctx.country,
-                         admit_dx_code=ctx.admit_dx_code, admit_dx_system=ctx.admit_dx_system)
+                         admit_dx_code=ctx.admit_dx_code, admit_dx_system=ctx.admit_dx_system,
+                         icu_transferred_day=_icu_day, deceased=_deceased)
         for enc in ctx.record.get("encounters", [])
     ]
 
