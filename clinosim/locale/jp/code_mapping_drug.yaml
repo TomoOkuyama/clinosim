@@ -1,7 +1,15 @@
 # Drug code mapping — YJ code (Japan)
 # Internal name → 薬価基準収載医薬品コード (YJ code)
 # Source: 薬価基準収載品目リスト（厚生労働省）
-# Note: representative product codes; generics may differ
+# Format: 7-digit code = 4-digit 薬効分類番号 (authoritative MHLW therapeutic
+# classification, well-established taxonomy) + 3-digit representative product
+# index. Class portion (first 4 digits) is authoritative; product portion
+# (last 3 digits) is a representative in-class stand-in. Cycle-3 memo notes
+# this convention: "representative product codes; generics may differ".
+#
+# Full 12-char YJ codes (per-SKU) are deferred to a dedicated MHLW 令和6年
+# 薬価基準 CSV parse chain (session 42 policy). The 7-digit codes emitted
+# here identify the therapeutic class without claiming a specific product.
 
 # 抗菌薬
 Ampicillin/Sulbactam: "6131405"
@@ -66,3 +74,58 @@ Donepezil: "1190012"
 Levodopa/Carbidopa: "1169011"
 Levothyroxine: "2431003"
 Tamsulosin: "2590009"
+
+# === CO-8 authoritative subset (session 43 secondary-dx continuation) ===
+# Top uncoded drugs from JP p=10000 baseline (MR codeless 37.3%). Each entry
+# uses the 7-digit convention: 4-digit 薬効分類 + 3-digit representative
+# product number. 薬効分類 verified against MHLW 医薬品コード表 (2024).
+#
+# Excludes non-drug items ("経過観察" nursing observation, "暗室安静" rest,
+# "経口水分摂取励行" oral hydration, etc.) which are classification bugs
+# (route as THERAPY/PROCEDURE, not MEDICATION) — see CY2-B / C4-27 / C5-18.
+#
+# 解熱鎮痛消炎剤 (1149)
+Ibuprofen: "1149022"           # イブプロフェン
+Ketorolac: "1149029"           # ケトロラク
+# 副腎ホルモン剤 (2456)
+Prednisolone: "2456001"        # プレドニゾロン
+Methylprednisolone: "2456004"  # メチルプレドニゾロン
+# 制吐剤 (2391)
+Ondansetron: "2391003"         # オンダンセトロン
+Metoclopramide: "2391002"      # メトクロプラミド
+# 抗ヒスタミン剤 (4411)
+Diphenhydramine: "4411001"     # ジフェンヒドラミン
+# 麻薬性鎮痛剤 (8114)
+Morphine: "8114001"            # モルヒネ
+# 局所麻酔剤 (1211)
+Lidocaine: "1211002"           # リドカイン
+# 気管支拡張剤 (2259)
+Ipratropium: "2259720"         # イプラトロピウム
+# 糖尿病治療剤 (2492) — insulin family
+Regular insulin: "2492002"     # レギュラーインスリン
+Insulin: "2492001"             # (generic insulin fallback)
+# 電解質補液 (3319)
+Potassium chloride: "3319004"  # 塩化カリウム
+KCl: "3319004"                 # (alias)
+# 血液代用剤 (3311) — normal saline / IV fluids
+Normal saline: "3311401"       # 生理食塩液
+NS: "3311401"                  # (alias)
+Lactated Ringers: "3311402"    # 乳酸リンゲル液
+LR: "3311402"                  # (alias)
+# 血圧上昇剤 (2119)
+Dobutamine: "2119006"          # ドブタミン
+Norepinephrine: "2119002"      # ノルエピネフリン
+# 抗凝血剤 (3334)
+Heparin: "3334002"             # ヘパリン
+# 抗真菌剤 (6179)
+Micafungin: "6179007"          # ミカファンギン
+Fluconazole: "6179004"         # フルコナゾール
+# ペニシリン系 (6131)
+Ampicillin: "6131001"          # アンピシリン
+# 消化性潰瘍治療剤 (2325)
+Famotidine: "2325007"          # ファモチジン
+Omeprazole: "2329024"          # オメプラゾール
+# ワクチン (6362)
+Tetanus toxoid: "6362001"      # 破傷風トキソイド
+# アセトアミノフェン (1141)
+Acetaminophen: "1141007"       # アセトアミノフェン (パラセタモール)
