@@ -91,7 +91,45 @@ data-model / simulator-side refactor.
 - **C5-29** CareTeam.telecom
 - **C5-30** DocumentReference.relatesTo
 
-**These 10 items are truly infeasible in this cycle** because they require either:
+## C1-C4 residual pass (session 43 second extension, user directive "全て改修")
+
+After Cycle 5 close, user directive to eliminate ALL C1-C4 residuals resulted
+in a third batch fix pass:
+
+| # | id | fix approach | metric |
+|---|---|---|---|
+| 20 | C2-19 (Kana SYL) | Roster generation now returns (kanji, kana) tuple via `_generate_name_pair`; `StaffMember` gained `name_phonetic` field. `_fhir_practitioner` emits two `name[]` entries: kanji with IDE extension + kana with SYL extension. JP 姓名 dict (`clinosim/locale/jp/names.yaml`) already has `kana` column — no new authoritative data needed. | 93/93 Practitioner with SYL (was 0/93) |
+| 21 | C3-03 (Immunization lot_number) | Synthetic lot number generator: `L<MFR>-<YYYYMM>-<BATCH>` deterministically derived from (vaccine_cvx, occurrence_year/month, patient). Not authoritative — explicit "structural placeholder" note per AD-57 spirit. | 29,179/29,804 (97.9%) — not-done Rxs correctly omit lot |
+| 22 | CY2-B (compound Rx text) | CIF Order emit time split at " or "/"OR"/"または" so the primary alternative wins. Applied in `place_admission_orders` supportive branch. Downstream MAR text now shows the actual administered fluid/drug. | MR compound 12,604 → 18 (99.9% reduction) |
+
+**Total session 43 (cycles 4+5+extensions)**: **22 + 19 + 3 = 44 issues resolved**.
+
+## Truly infeasible without a separate feature chain (7 remaining)
+
+These 7 items require large-scope authoritative-code work that is properly a
+separate chain:
+
+- **CO-1 / RM-5 Imaging density expansion**: `SUPPORTED_BODY_SITES` in
+  `clinosim/modules/imaging/engine.py` is currently limited to `chest + head`.
+  Adding abdomen / kidney / leg / skin / hand / hip / spine / wrist requires
+  8 authoritative body_sites.yaml entries (SNOMED body site codes + LOINC
+  procedure codes + CPT + JP K-code per modality × body_site combination).
+  Session 43 attempted a batch add (16 diseases × imaging_orders) but reverted
+  after body_sites validator failure. Deferred to a "body_sites expansion chain".
+- **CO-6 GOLD 4 / HTN Stage / CCS SNOMED**: tx.fhir.org SNOMED lookup endpoints
+  return 400/404. No authoritative codes located → policy-defer (no fabrication).
+- **CO-8 YJ code MHLW verification**: 60+ removed YJ codes need MHLW 令和6年
+  薬価基準 CSV parse + validation → separate chain.
+- **C5-07 4 orphan MR references**: CIF-side truncation issue (order_id length
+  in FHIR reference), requires simulator fix.
+- **C5-12 secondary dx in Encounter.reasonCode**: needs CIF-side secondary
+  Condition list in encounter.
+- **C5-19 CIF order compound normalization**: full split of `sup.detail` at
+  multi-alternative granularity (currently only first alternative wins).
+- **C5-22 Encounter.classHistory + statusHistory**: needs simulator to track
+  ward transfers over LOS.
+
+**These 7 items are truly infeasible in this cycle** because they require either:
 - CIF-side data model changes (C5-07 orphan MR refs / C5-12 secondary dx list /
   C5-19 order compound normalization / C5-20 patient-facing PDF / C5-21 lab method)
 - Simulator-side changes (C5-22 classHistory / C5-25 roster expansion)

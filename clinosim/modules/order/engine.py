@@ -397,7 +397,17 @@ def place_admission_orders(
     )
     for i, sup in enumerate(admission.get("supportive", [])):
         sup_type = sup.get("type", "")
-        detail_lower = str(sup.get("detail", "") or "").lower()
+        # CY2-B continuation (session 43 cycle 5): disease-YAML supportive detail
+        # texts sometimes carry alternatives ("NS or LR", "Enoxaparin ... or IPC").
+        # Real MARs specify what was given — pick the primary (first) alternative
+        # for the Order display_name so downstream FHIR emit doesn't produce
+        # "生理食塩液 または 乳酸リンゲル液" as a fake compound drug name.
+        detail_raw = str(sup.get("detail", "") or "")
+        for splitter in (" or ", " OR ", " または "):
+            if splitter in detail_raw:
+                detail_raw = detail_raw.split(splitter, 1)[0].strip()
+                break
+        detail_lower = detail_raw.lower()
         if any(kw in detail_lower for kw in _DEVICE_PROCEDURE_KW):
             order_type = OrderType.PROCEDURE
         elif sup_type in _MED_TYPES:
@@ -413,7 +423,7 @@ def place_admission_orders(
             patient_id=patient_id,
             order_type=order_type,
             order_code="",
-            display_name=f"{sup['type']}: {sup['detail']}",
+            display_name=f"{sup['type']}: {detail_raw}",
             urgency="routine",
             clinical_intent=f"Supportive: {sup['type']}",
             ordered_datetime=admission_time + timedelta(minutes=int(rng.normal(45, 15))),
