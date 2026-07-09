@@ -25,17 +25,42 @@ _REF_DIR = _HERE / "reference_data"
 
 # Canonical DICOM modality set (PR1 scope). Extension here triggers validators
 # (forward + reverse coverage), so adding a modality is one-edit-one-check.
-SUPPORTED_MODALITIES: frozenset[str] = frozenset({"CR", "CT"})
+SUPPORTED_MODALITIES: frozenset[str] = frozenset({
+    "CR", "CT",
+    # CO-1 continuation (session 43): MR + US added — modalities.yaml carries
+    # matching entries with DICOM code + display_en/ja.
+    "MR", "US",
+})
 
-# Canonical body site set (PR1 scope).
-SUPPORTED_BODY_SITES: frozenset[str] = frozenset({"chest", "head"})
+# Canonical body site set. CO-1 continuation (session 43): expanded from
+# {chest, head} to 10 sites, each with SNOMED code + procedure_codes
+# verified via NLM Clinical Table Search Service + AMA CPT 2024 + MHLW
+# 診療報酬点数表 令和6年.
+SUPPORTED_BODY_SITES: frozenset[str] = frozenset({
+    "chest", "head",
+    "abdomen", "kidney", "leg", "skin", "hand", "hip", "spine", "wrist",
+})
 
-# Canonical disease set with imaging coverage (PR1 scope).
+# Canonical disease set with imaging coverage.
 # RM-5 (session 42, cycle-3 tail): expanded to include sepsis / heart failure /
 # acute MI — all commonly workup with CXR.
+# CO-1 continuation (session 43): expanded to 26 additional diseases with
+# clinically-warranted imaging orders (see disease/*.yaml `imaging_orders`
+# blocks and impression_templates.yaml for the paired coverage).
 SUPPORTED_IMAGING_DISEASES: frozenset[str] = frozenset({
     "bacterial_pneumonia", "aspiration_pneumonia", "hemorrhagic_stroke",
     "sepsis", "heart_failure_exacerbation", "acute_mi",
+    # CO-1 continuation additions (session 43):
+    "acute_appendicitis", "acute_cholecystitis", "acute_kidney_injury",
+    "acute_pancreatitis", "asthma_exacerbation", "atrial_fibrillation_rvr",
+    "cellulitis", "cerebral_infarction", "copd_exacerbation",
+    "crush_injury_hand", "deep_vein_thrombosis", "diabetic_ketoacidosis",
+    "electrical_injury", "fall_from_height", "gi_bleeding", "hip_fracture",
+    "ileus", "industrial_burn_severe", "influenza",
+    "liver_cirrhosis_decompensated", "pulmonary_embolism",
+    "subdural_hematoma", "traffic_accident_severe",
+    "urinary_tract_infection", "vertebral_compression_fracture",
+    "wrist_fracture_surgical",
 })
 
 
@@ -236,19 +261,40 @@ def _resolve_imaging_procedure_code_key(
 ) -> str:
     """Resolve (modality, body_site, views, contrast) → procedure_codes key.
 
-    PR1 mapping:
-      - CR + chest + (PA + Lateral) → "CR_PA_Lateral"
-      - CT + any body_site + non-contrast → "CT_non_contrast"
-      - CT + any body_site + contrast → "CT_with_contrast"
-    Future modalities / variants extend this map.
-
-    ``views`` is accepted for forward-compat but not used in current mapping;
-    contrast is the discriminating field for CT variants.
+    CO-1 continuation (session 43): expanded from PR1 chest+head scope to
+    10 body sites × CR/CT/MR/US modalities. Mapping picks the closest
+    procedure_codes entry defined in body_sites.yaml.
     """
-    if modality == "CR" and body_site == "chest":
-        return "CR_PA_Lateral"
+    # CR (X-ray) — per-body-site view combinations
+    if modality == "CR":
+        if body_site == "chest":
+            return "CR_PA_Lateral" if "Lateral" in views else "CR_PA"
+        if body_site == "abdomen":
+            return "CR_Supine_Upright" if len(views) >= 2 else "CR_AP"
+        if body_site == "hand":
+            return "CR_PA_Oblique_Lateral"
+        if body_site in ("hip", "spine"):
+            return "CR_AP_Lateral"
+        if body_site == "wrist":
+            return "CR_PA_Lateral_Oblique" if len(views) >= 3 else "CR_PA_Lateral"
+    # CT — contrast is the discriminator; non-contrast is the default
     if modality == "CT":
-        return "CT_with_contrast" if contrast else "CT_non_contrast"
+        if body_site in ("chest", "abdomen"):
+            return "CT_contrast" if contrast else "CT_non_contrast"
+        if body_site == "head":
+            return "CT_non_contrast" if not contrast else "CT"
+        if body_site in ("hip", "spine"):
+            return "CT_non_contrast"
+    # MR — non-contrast is the standard variant (contrast MR reserved for future)
+    if modality == "MR":
+        if body_site in ("head", "spine"):
+            return "MR_non_contrast"
+    # US — single procedure per body site (doppler for leg, generic for the rest)
+    if modality == "US":
+        if body_site == "leg":
+            return "US_Doppler"
+        if body_site in ("abdomen", "kidney", "skin"):
+            return "US"
     raise ValueError(
         f"Unsupported imaging combination: modality={modality} "
         f"body_site={body_site} views={views} contrast={contrast}"

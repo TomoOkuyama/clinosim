@@ -417,3 +417,26 @@ codes:
   '405623001':
     en: Pharmacy
     ja: 薬剤科
+  # === CO-1 continuation (session 43): body site SNOMED codes for imaging
+  # expansion. Well-established SNOMED CT International concepts, verified
+  # via standard SNOMED CT browsers. Used in body_sites.yaml.
+  # Note: 818983003 Abdomen and 29836001 Hip region already registered
+  # above; new entries below are additions only. ===
+  '64033007':
+    en: Kidney
+    ja: 腎臓
+  '61685007':
+    en: Lower extremity
+    ja: 下肢
+  '39937001':
+    en: Skin structure
+    ja: 皮膚
+  '85562004':
+    en: Hand
+    ja: 手
+  '421060004':
+    en: Vertebral column
+    ja: 脊椎
+  '8205005':
+    en: Wrist region
+    ja: 手関節部

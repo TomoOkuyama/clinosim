@@ -719,3 +719,28 @@ narrative:
     diet_lifestyle:
       en: "Maintain balanced diet and adequate hydration."
       ja: "バランスの良い食事と十分な水分摂取を心がけてください。"
+
+# ============================================================
+# IMAGING ORDERS (CO-1 / RM-5 continuation — session 43)
+# ============================================================
+imaging_orders:
+  - modality: CR
+    body_site: abdomen
+    views: [Supine, Upright]
+    urgency: urgent
+    clinical_indication: "Evaluate bowel gas pattern / air-fluid levels"
+    day: 0
+    abnormal_rate_by_severity:
+      mild: 0.75
+      moderate: 0.9
+      severe: 0.98
+  - modality: CT
+    body_site: abdomen
+    contrast: true
+    urgency: routine
+    clinical_indication: "Rule out mechanical obstruction / ischemia"
+    day: 1
+    abnormal_rate_by_severity:
+      mild: 0.4
+      moderate: 0.7
+      severe: 0.9

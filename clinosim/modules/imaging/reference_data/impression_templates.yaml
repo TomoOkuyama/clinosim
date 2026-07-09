@@ -105,3 +105,476 @@ templates:
         findings_ja: "軽度心拡大および肺血管うっ血像。"
         impression_en: "Cardiogenic pulmonary congestion, consider left ventricular dysfunction from acute MI."
         impression_ja: "急性心筋梗塞に伴う左室機能不全の可能性、心原性肺うっ血像。"
+
+  # === CO-1 continuation additions (session 43 cycle 5) ===
+
+  acute_appendicitis:
+    CT_abdomen:
+      normal:
+        findings_en: 'No acute intra-abdominal pathology.'
+        findings_ja: '急性腹部疾患を示唆する所見なし。'
+        impression_en: 'No acute intra-abdominal pathology.'
+        impression_ja: '急性腹部疾患を示唆する所見なし。'
+      abnormal:
+        findings_en: 'Dilated appendix (>7mm) with periappendiceal fat stranding, consistent with acute appendicitis.'
+        findings_ja: '虫垂径拡大（>7mm）と虫垂周囲脂肪織濃度上昇、急性虫垂炎と矛盾せず。'
+        impression_en: 'Dilated appendix (>7mm) with periappendiceal fat stranding, consistent with acute appendicitis.'
+        impression_ja: '虫垂径拡大（>7mm）と虫垂周囲脂肪織濃度上昇、急性虫垂炎と矛盾せず。'
+
+  acute_cholecystitis:
+    US_abdomen:
+      normal:
+        findings_en: 'Unremarkable abdominal ultrasound.'
+        findings_ja: '特記所見なし。'
+        impression_en: 'Unremarkable abdominal ultrasound.'
+        impression_ja: '特記所見なし。'
+      abnormal:
+        findings_en: 'Gallbladder wall >4mm, pericholecystic fluid, positive sonographic Murphy sign.'
+        findings_ja: '胆嚢壁>4mm、胆嚢周囲液貯留、超音波Murphy徴候陽性。'
+        impression_en: 'Gallbladder wall >4mm, pericholecystic fluid, positive sonographic Murphy sign.'
+        impression_ja: '胆嚢壁>4mm、胆嚢周囲液貯留、超音波Murphy徴候陽性。'
+    CT_abdomen:
+      normal:
+        findings_en: 'No acute intra-abdominal pathology.'
+        findings_ja: '急性腹部疾患を示唆する所見なし。'
+        impression_en: 'No acute intra-abdominal pathology.'
+        impression_ja: '急性腹部疾患を示唆する所見なし。'
+      abnormal:
+        findings_en: 'Gallbladder wall thickening with pericholecystic fluid.'
+        findings_ja: '胆嚢壁肥厚および胆嚢周囲液貯留を認める。'
+        impression_en: 'Gallbladder wall thickening with pericholecystic fluid.'
+        impression_ja: '胆嚢壁肥厚および胆嚢周囲液貯留を認める。'
+
+  acute_kidney_injury:
+    US_kidney:
+      normal:
+        findings_en: 'Kidneys normal size and echogenicity.'
+        findings_ja: '腎臓大きさ・エコー輝度正常。'
+        impression_en: 'Kidneys normal size and echogenicity.'
+        impression_ja: '腎臓大きさ・エコー輝度正常。'
+      abnormal:
+        findings_en: 'Bilateral hydronephrosis, no stone identified.'
+        findings_ja: '両側水腎症、明らかな結石なし。'
+        impression_en: 'Bilateral hydronephrosis, no stone identified.'
+        impression_ja: '両側水腎症、明らかな結石なし。'
+
+  acute_pancreatitis:
+    US_abdomen:
+      normal:
+        findings_en: 'Unremarkable abdominal ultrasound.'
+        findings_ja: '特記所見なし。'
+        impression_en: 'Unremarkable abdominal ultrasound.'
+        impression_ja: '特記所見なし。'
+      abnormal:
+        findings_en: 'Pancreas hypoechoic and enlarged; peripancreatic fluid.'
+        findings_ja: '膵臓低エコー化・腫大、膵周囲液貯留。'
+        impression_en: 'Pancreas hypoechoic and enlarged; peripancreatic fluid.'
+        impression_ja: '膵臓低エコー化・腫大、膵周囲液貯留。'
+    CT_abdomen:
+      normal:
+        findings_en: 'No acute intra-abdominal pathology.'
+        findings_ja: '急性腹部疾患を示唆する所見なし。'
+        impression_en: 'No acute intra-abdominal pathology.'
+        impression_ja: '急性腹部疾患を示唆する所見なし。'
+      abnormal:
+        findings_en: 'Diffuse pancreatic enlargement with peripancreatic fluid, consistent with pancreatitis.'
+        findings_ja: '膵臓びまん性腫大および膵周囲液貯留、急性膵炎と矛盾せず。'
+        impression_en: 'Diffuse pancreatic enlargement with peripancreatic fluid, consistent with pancreatitis.'
+        impression_ja: '膵臓びまん性腫大および膵周囲液貯留、急性膵炎と矛盾せず。'
+
+  asthma_exacerbation:
+    CR_chest:
+      normal:
+        findings_en: 'Lungs clear. Heart size normal.'
+        findings_ja: '両肺野明らか、心陰影正常。'
+        impression_en: 'Lungs clear. Heart size normal.'
+        impression_ja: '両肺野明らか、心陰影正常。'
+      abnormal:
+        findings_en: 'Hyperinflated lungs with flattened diaphragms, no infiltrate.'
+        findings_ja: '肺過膨張、横隔膜平坦化、明らかな浸潤影なし。'
+        impression_en: 'Hyperinflated lungs with flattened diaphragms, no infiltrate.'
+        impression_ja: '肺過膨張、横隔膜平坦化、明らかな浸潤影なし。'
+
+  atrial_fibrillation_rvr:
+    CR_chest:
+      normal:
+        findings_en: 'Lungs clear. Heart size normal.'
+        findings_ja: '両肺野明らか、心陰影正常。'
+        impression_en: 'Lungs clear. Heart size normal.'
+        impression_ja: '両肺野明らか、心陰影正常。'
+      abnormal:
+        findings_en: 'Enlarged cardiac silhouette, mild pulmonary vascular congestion.'
+        findings_ja: '心陰影拡大、肺うっ血軽度。'
+        impression_en: 'Enlarged cardiac silhouette, mild pulmonary vascular congestion.'
+        impression_ja: '心陰影拡大、肺うっ血軽度。'
+
+  cellulitis:
+    US_skin:
+      normal:
+        findings_en: 'Diffuse skin thickening; no fluid collection.'
+        findings_ja: '皮下組織びまん性肥厚、液貯留なし。'
+        impression_en: 'Diffuse skin thickening; no fluid collection.'
+        impression_ja: '皮下組織びまん性肥厚、液貯留なし。'
+      abnormal:
+        findings_en: 'Cobblestone appearance of subcutaneous tissue with adjacent abscess collection.'
+        findings_ja: '皮下組織cobblestone像、隣接する膿瘍貯留を認める。'
+        impression_en: 'Cobblestone appearance of subcutaneous tissue with adjacent abscess collection.'
+        impression_ja: '皮下組織cobblestone像、隣接する膿瘍貯留を認める。'
+
+  cerebral_infarction:
+    CT_head:
+      normal:
+        findings_en: 'No acute intracranial abnormality.'
+        findings_ja: '急性頭蓋内異常を認めず。'
+        impression_en: 'No acute intracranial abnormality.'
+        impression_ja: '急性頭蓋内異常を認めず。'
+      abnormal:
+        findings_en: 'Hypodense area in the right MCA territory, suggestive of ischemic infarct.'
+        findings_ja: '右中大脳動脈領域の低吸収域、虚血性梗塞を疑う。'
+        impression_en: 'Hypodense area in the right MCA territory, suggestive of ischemic infarct.'
+        impression_ja: '右中大脳動脈領域の低吸収域、虚血性梗塞を疑う。'
+    MR_head:
+      normal:
+        findings_en: 'No acute intracranial finding.'
+        findings_ja: '急性頭蓋内所見なし。'
+        impression_en: 'No acute intracranial finding.'
+        impression_ja: '急性頭蓋内所見なし。'
+      abnormal:
+        findings_en: 'Diffusion restriction in the right MCA territory, consistent with acute infarct.'
+        findings_ja: '右中大脳動脈領域拡散制限、急性梗塞と矛盾せず。'
+        impression_en: 'Diffusion restriction in the right MCA territory, consistent with acute infarct.'
+        impression_ja: '右中大脳動脈領域拡散制限、急性梗塞と矛盾せず。'
+
+  copd_exacerbation:
+    CR_chest:
+      normal:
+        findings_en: 'Lungs clear. Heart size normal.'
+        findings_ja: '両肺野明らか、心陰影正常。'
+        impression_en: 'Lungs clear. Heart size normal.'
+        impression_ja: '両肺野明らか、心陰影正常。'
+      abnormal:
+        findings_en: 'Hyperinflation with flattened diaphragms and increased retrosternal airspace.'
+        findings_ja: '肺過膨張、横隔膜平坦化、胸骨後腔拡大。'
+        impression_en: 'Hyperinflation with flattened diaphragms and increased retrosternal airspace.'
+        impression_ja: '肺過膨張、横隔膜平坦化、胸骨後腔拡大。'
+
+  crush_injury_hand:
+    CR_hand:
+      normal:
+        findings_en: 'No fracture identified.'
+        findings_ja: '骨折を認めず。'
+        impression_en: 'No fracture identified.'
+        impression_ja: '骨折を認めず。'
+      abnormal:
+        findings_en: 'Multiple metacarpal and phalangeal fractures, comminuted.'
+        findings_ja: '多発中手骨・指骨骨折、粉砕状。'
+        impression_en: 'Multiple metacarpal and phalangeal fractures, comminuted.'
+        impression_ja: '多発中手骨・指骨骨折、粉砕状。'
+
+  deep_vein_thrombosis:
+    US_leg:
+      normal:
+        findings_en: 'Compressible veins throughout; no thrombus.'
+        findings_ja: '全区分静脈圧迫良好、血栓なし。'
+        impression_en: 'Compressible veins throughout; no thrombus.'
+        impression_ja: '全区分静脈圧迫良好、血栓なし。'
+      abnormal:
+        findings_en: 'Non-compressible femoropopliteal vein with echogenic intraluminal material, consistent with DVT.'
+        findings_ja: '大腿膝窩静脈圧迫不能、内部エコー、DVTと矛盾せず。'
+        impression_en: 'Non-compressible femoropopliteal vein with echogenic intraluminal material, consistent with DVT.'
+        impression_ja: '大腿膝窩静脈圧迫不能、内部エコー、DVTと矛盾せず。'
+
+  diabetic_ketoacidosis:
+    CR_chest:
+      normal:
+        findings_en: 'Lungs clear. Heart size normal.'
+        findings_ja: '両肺野明らか、心陰影正常。'
+        impression_en: 'Lungs clear. Heart size normal.'
+        impression_ja: '両肺野明らか、心陰影正常。'
+      abnormal:
+        findings_en: 'Left lower lobe consolidation.'
+        findings_ja: '左下葉consolidation。'
+        impression_en: 'Left lower lobe consolidation.'
+        impression_ja: '左下葉consolidation。'
+
+  electrical_injury:
+    CR_chest:
+      normal:
+        findings_en: 'Lungs clear. Heart size normal.'
+        findings_ja: '両肺野明らか、心陰影正常。'
+        impression_en: 'Lungs clear. Heart size normal.'
+        impression_ja: '両肺野明らか、心陰影正常。'
+      abnormal:
+        findings_en: 'No acute cardiopulmonary abnormality.'
+        findings_ja: '急性心肺異常なし。'
+        impression_en: 'No acute cardiopulmonary abnormality.'
+        impression_ja: '急性心肺異常なし。'
+
+  fall_from_height:
+    CT_head:
+      normal:
+        findings_en: 'No acute intracranial abnormality.'
+        findings_ja: '急性頭蓋内異常を認めず。'
+        impression_en: 'No acute intracranial abnormality.'
+        impression_ja: '急性頭蓋内異常を認めず。'
+      abnormal:
+        findings_en: 'Small right frontal contusion; no midline shift.'
+        findings_ja: '右前頭葉小さな脳挫傷、正中偏位なし。'
+        impression_en: 'Small right frontal contusion; no midline shift.'
+        impression_ja: '右前頭葉小さな脳挫傷、正中偏位なし。'
+    CT_spine:
+      normal:
+        findings_en: 'Vertebral alignment normal, no fracture.'
+        findings_ja: '椎体配列正常、骨折なし。'
+        impression_en: 'Vertebral alignment normal, no fracture.'
+        impression_ja: '椎体配列正常、骨折なし。'
+      abnormal:
+        findings_en: 'L1 burst fracture with retropulsion.'
+        findings_ja: 'L1破裂骨折、椎体後方偏位。'
+        impression_en: 'L1 burst fracture with retropulsion.'
+        impression_ja: 'L1破裂骨折、椎体後方偏位。'
+    CR_chest:
+      normal:
+        findings_en: 'Lungs clear. Heart size normal.'
+        findings_ja: '両肺野明らか、心陰影正常。'
+        impression_en: 'Lungs clear. Heart size normal.'
+        impression_ja: '両肺野明らか、心陰影正常。'
+      abnormal:
+        findings_en: 'Multiple rib fractures on the right; small pneumothorax.'
+        findings_ja: '右側多発肋骨骨折、少量気胸。'
+        impression_en: 'Multiple rib fractures on the right; small pneumothorax.'
+        impression_ja: '右側多発肋骨骨折、少量気胸。'
+
+  gi_bleeding:
+    CT_abdomen:
+      normal:
+        findings_en: 'No acute intra-abdominal pathology.'
+        findings_ja: '急性腹部疾患を示唆する所見なし。'
+        impression_en: 'No acute intra-abdominal pathology.'
+        impression_ja: '急性腹部疾患を示唆する所見なし。'
+      abnormal:
+        findings_en: 'Active contrast extravasation in the sigmoid colon lumen suggesting active bleeding.'
+        findings_ja: 'S状結腸腔内に造影剤漏出を認め、活動性出血を示唆。'
+        impression_en: 'Active contrast extravasation in the sigmoid colon lumen suggesting active bleeding.'
+        impression_ja: 'S状結腸腔内に造影剤漏出を認め、活動性出血を示唆。'
+
+  hip_fracture:
+    CR_hip:
+      normal:
+        findings_en: 'No fracture.'
+        findings_ja: '骨折なし。'
+        impression_en: 'No fracture.'
+        impression_ja: '骨折なし。'
+      abnormal:
+        findings_en: 'Left intertrochanteric femoral fracture, displaced.'
+        findings_ja: '左大腿骨転子部骨折、転位あり。'
+        impression_en: 'Left intertrochanteric femoral fracture, displaced.'
+        impression_ja: '左大腿骨転子部骨折、転位あり。'
+    CT_hip:
+      normal:
+        findings_en: 'No fracture; joint congruent.'
+        findings_ja: '骨折なし、関節整合性保たれる。'
+        impression_en: 'No fracture; joint congruent.'
+        impression_ja: '骨折なし、関節整合性保たれる。'
+      abnormal:
+        findings_en: 'Intertrochanteric fracture with detailed fragment displacement.'
+        findings_ja: '転子部骨折、詳細な骨片転位。'
+        impression_en: 'Intertrochanteric fracture with detailed fragment displacement.'
+        impression_ja: '転子部骨折、詳細な骨片転位。'
+
+  ileus:
+    CR_abdomen:
+      normal:
+        findings_en: 'Non-specific bowel gas pattern.'
+        findings_ja: '非特異的な腸管ガスパターン。'
+        impression_en: 'Non-specific bowel gas pattern.'
+        impression_ja: '非特異的な腸管ガスパターン。'
+      abnormal:
+        findings_en: 'Dilated small bowel loops with air-fluid levels.'
+        findings_ja: '小腸拡張と air-fluid level。'
+        impression_en: 'Dilated small bowel loops with air-fluid levels.'
+        impression_ja: '小腸拡張と air-fluid level。'
+    CT_abdomen:
+      normal:
+        findings_en: 'No acute intra-abdominal pathology.'
+        findings_ja: '急性腹部疾患を示唆する所見なし。'
+        impression_en: 'No acute intra-abdominal pathology.'
+        impression_ja: '急性腹部疾患を示唆する所見なし。'
+      abnormal:
+        findings_en: 'Diffusely dilated small bowel loops with air-fluid levels, no transition point.'
+        findings_ja: '小腸びまん性拡張と air-fluid level、明らかな移行部なし。'
+        impression_en: 'Diffusely dilated small bowel loops with air-fluid levels, no transition point.'
+        impression_ja: '小腸びまん性拡張と air-fluid level、明らかな移行部なし。'
+
+  industrial_burn_severe:
+    CR_chest:
+      normal:
+        findings_en: 'Lungs clear. Heart size normal.'
+        findings_ja: '両肺野明らか、心陰影正常。'
+        impression_en: 'Lungs clear. Heart size normal.'
+        impression_ja: '両肺野明らか、心陰影正常。'
+      abnormal:
+        findings_en: 'Bibasilar atelectasis; no infiltrate or pneumothorax.'
+        findings_ja: '両側下肺無気肺、明らかな浸潤影・気胸なし。'
+        impression_en: 'Bibasilar atelectasis; no infiltrate or pneumothorax.'
+        impression_ja: '両側下肺無気肺、明らかな浸潤影・気胸なし。'
+
+  influenza:
+    CR_chest:
+      normal:
+        findings_en: 'Lungs clear. Heart size normal.'
+        findings_ja: '両肺野明らか、心陰影正常。'
+        impression_en: 'Lungs clear. Heart size normal.'
+        impression_ja: '両肺野明らか、心陰影正常。'
+      abnormal:
+        findings_en: 'Bilateral patchy interstitial opacities, viral pneumonia pattern.'
+        findings_ja: '両側斑状間質性陰影、ウイルス性肺炎パターン。'
+        impression_en: 'Bilateral patchy interstitial opacities, viral pneumonia pattern.'
+        impression_ja: '両側斑状間質性陰影、ウイルス性肺炎パターン。'
+
+  liver_cirrhosis_decompensated:
+    US_abdomen:
+      normal:
+        findings_en: 'Unremarkable abdominal ultrasound.'
+        findings_ja: '特記所見なし。'
+        impression_en: 'Unremarkable abdominal ultrasound.'
+        impression_ja: '特記所見なし。'
+      abnormal:
+        findings_en: 'Coarse liver echotexture with ascites and splenomegaly.'
+        findings_ja: '肝実質エコー粗雑化、腹水、脾腫。'
+        impression_en: 'Coarse liver echotexture with ascites and splenomegaly.'
+        impression_ja: '肝実質エコー粗雑化、腹水、脾腫。'
+    CT_abdomen:
+      normal:
+        findings_en: 'No acute intra-abdominal pathology.'
+        findings_ja: '急性腹部疾患を示唆する所見なし。'
+        impression_en: 'No acute intra-abdominal pathology.'
+        impression_ja: '急性腹部疾患を示唆する所見なし。'
+      abnormal:
+        findings_en: 'Nodular liver contour, moderate ascites, splenomegaly, and portosystemic collaterals.'
+        findings_ja: '肝結節状輪郭、中等度腹水、脾腫、門脈体循環系側副血行路。'
+        impression_en: 'Nodular liver contour, moderate ascites, splenomegaly, and portosystemic collaterals.'
+        impression_ja: '肝結節状輪郭、中等度腹水、脾腫、門脈体循環系側副血行路。'
+
+  pulmonary_embolism:
+    CT_chest:
+      normal:
+        findings_en: 'No acute pulmonary process.'
+        findings_ja: '急性肺疾患なし。'
+        impression_en: 'No acute pulmonary process.'
+        impression_ja: '急性肺疾患なし。'
+      abnormal:
+        findings_en: 'Filling defects in bilateral segmental pulmonary arteries, consistent with pulmonary embolism.'
+        findings_ja: '両側肺動脈亜区域枝内充填欠損、肺塞栓症と矛盾せず。'
+        impression_en: 'Filling defects in bilateral segmental pulmonary arteries, consistent with pulmonary embolism.'
+        impression_ja: '両側肺動脈亜区域枝内充填欠損、肺塞栓症と矛盾せず。'
+
+  subdural_hematoma:
+    CT_head:
+      normal:
+        findings_en: 'No acute intracranial abnormality.'
+        findings_ja: '急性頭蓋内異常を認めず。'
+        impression_en: 'No acute intracranial abnormality.'
+        impression_ja: '急性頭蓋内異常を認めず。'
+      abnormal:
+        findings_en: 'Crescent-shaped extra-axial collection over the right convexity, subdural hematoma.'
+        findings_ja: '右円蓋部三日月状硬膜外貯留、硬膜下血腫。'
+        impression_en: 'Crescent-shaped extra-axial collection over the right convexity, subdural hematoma.'
+        impression_ja: '右円蓋部三日月状硬膜外貯留、硬膜下血腫。'
+
+  traffic_accident_severe:
+    CT_head:
+      normal:
+        findings_en: 'No acute intracranial abnormality.'
+        findings_ja: '急性頭蓋内異常を認めず。'
+        impression_en: 'No acute intracranial abnormality.'
+        impression_ja: '急性頭蓋内異常を認めず。'
+      abnormal:
+        findings_en: 'Bilateral frontal contusions with subarachnoid hemorrhage.'
+        findings_ja: '両側前頭葉挫傷、くも膜下出血。'
+        impression_en: 'Bilateral frontal contusions with subarachnoid hemorrhage.'
+        impression_ja: '両側前頭葉挫傷、くも膜下出血。'
+    CT_chest:
+      normal:
+        findings_en: 'No acute pulmonary process.'
+        findings_ja: '急性肺疾患なし。'
+        impression_en: 'No acute pulmonary process.'
+        impression_ja: '急性肺疾患なし。'
+      abnormal:
+        findings_en: 'Right upper lobe contusion with rib fractures.'
+        findings_ja: '右上葉肺挫傷、肋骨骨折を伴う。'
+        impression_en: 'Right upper lobe contusion with rib fractures.'
+        impression_ja: '右上葉肺挫傷、肋骨骨折を伴う。'
+    CT_abdomen:
+      normal:
+        findings_en: 'No acute intra-abdominal pathology.'
+        findings_ja: '急性腹部疾患を示唆する所見なし。'
+        impression_en: 'No acute intra-abdominal pathology.'
+        impression_ja: '急性腹部疾患を示唆する所見なし。'
+      abnormal:
+        findings_en: 'Grade III splenic laceration with hemoperitoneum.'
+        findings_ja: '脾臓GradeIII裂傷および腹腔内出血。'
+        impression_en: 'Grade III splenic laceration with hemoperitoneum.'
+        impression_ja: '脾臓GradeIII裂傷および腹腔内出血。'
+    CT_spine:
+      normal:
+        findings_en: 'Vertebral alignment normal, no fracture.'
+        findings_ja: '椎体配列正常、骨折なし。'
+        impression_en: 'Vertebral alignment normal, no fracture.'
+        impression_ja: '椎体配列正常、骨折なし。'
+      abnormal:
+        findings_en: 'C6-C7 facet joint dislocation.'
+        findings_ja: 'C6-C7椎間関節脱臼。'
+        impression_en: 'C6-C7 facet joint dislocation.'
+        impression_ja: 'C6-C7椎間関節脱臼。'
+
+  urinary_tract_infection:
+    US_kidney:
+      normal:
+        findings_en: 'Kidneys normal size and echogenicity.'
+        findings_ja: '腎臓大きさ・エコー輝度正常。'
+        impression_en: 'Kidneys normal size and echogenicity.'
+        impression_ja: '腎臓大きさ・エコー輝度正常。'
+      abnormal:
+        findings_en: 'Right renal pelvis dilation and echogenic debris.'
+        findings_ja: '右腎盂拡張、内部エコー輝度上昇。'
+        impression_en: 'Right renal pelvis dilation and echogenic debris.'
+        impression_ja: '右腎盂拡張、内部エコー輝度上昇。'
+
+  vertebral_compression_fracture:
+    CR_spine:
+      normal:
+        findings_en: 'Vertebral alignment normal, no fracture.'
+        findings_ja: '椎体配列正常、骨折なし。'
+        impression_en: 'Vertebral alignment normal, no fracture.'
+        impression_ja: '椎体配列正常、骨折なし。'
+      abnormal:
+        findings_en: 'Anterior wedge deformity of L1 vertebral body, compression fracture.'
+        findings_ja: 'L1椎体前方楔状変形、圧迫骨折。'
+        impression_en: 'Anterior wedge deformity of L1 vertebral body, compression fracture.'
+        impression_ja: 'L1椎体前方楔状変形、圧迫骨折。'
+    MR_spine:
+      normal:
+        findings_en: 'No acute vertebral or cord finding.'
+        findings_ja: '急性椎体・脊髄所見なし。'
+        impression_en: 'No acute vertebral or cord finding.'
+        impression_ja: '急性椎体・脊髄所見なし。'
+      abnormal:
+        findings_en: 'Bone marrow edema at L1 consistent with acute compression fracture.'
+        findings_ja: 'L1椎体骨髄浮腫、急性圧迫骨折と矛盾せず。'
+        impression_en: 'Bone marrow edema at L1 consistent with acute compression fracture.'
+        impression_ja: 'L1椎体骨髄浮腫、急性圧迫骨折と矛盾せず。'
+
+  wrist_fracture_surgical:
+    CR_wrist:
+      normal:
+        findings_en: 'No fracture.'
+        findings_ja: '骨折なし。'
+        impression_en: 'No fracture.'
+        impression_ja: '骨折なし。'
+      abnormal:
+        findings_en: 'Distal radius fracture with dorsal displacement.'
+        findings_ja: '橈骨遠位端骨折、背側転位あり。'
+        impression_en: 'Distal radius fracture with dorsal displacement.'
+        impression_ja: '橈骨遠位端骨折、背側転位あり。'
+

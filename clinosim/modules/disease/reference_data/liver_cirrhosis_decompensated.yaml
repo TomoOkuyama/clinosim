@@ -922,3 +922,27 @@ narrative:
     diet_lifestyle:
       en: "Maintain balanced diet and adequate hydration."
       ja: "バランスの良い食事と十分な水分摂取を心がけてください。"
+
+# ============================================================
+# IMAGING ORDERS (CO-1 / RM-5 continuation — session 43)
+# ============================================================
+imaging_orders:
+  - modality: US
+    body_site: abdomen
+    urgency: routine
+    clinical_indication: "Evaluate ascites / hepatic parenchyma"
+    day: 0
+    abnormal_rate_by_severity:
+      mild: 0.85
+      moderate: 0.95
+      severe: 1.0
+  - modality: CT
+    body_site: abdomen
+    contrast: true
+    urgency: routine
+    clinical_indication: "HCC screening / portal hypertension assessment"
+    day: 2
+    abnormal_rate_by_severity:
+      mild: 0.5
+      moderate: 0.7
+      severe: 0.9

@@ -1,6 +1,12 @@
-# Body site reference + procedure code lookup (PR1 scope = chest + head).
+# Body site reference + procedure code lookup.
 # procedure_codes keyed by "{modality_dicom_code}_{variant}" — e.g. CR_PA_Lateral,
 # CT_non_contrast — and carry LOINC + CPT + JP K-code for billing/interop.
+#
+# SNOMED body site concepts verified via SNOMED CT International browser.
+# LOINC procedure codes verified via NLM Clinical Table Search Service
+# (clinicaltables.nlm.nih.gov/api/loinc_items/v3/search) — see CO-1 continuation
+# session 43 for the individual query URLs.
+# CPT codes from AMA CPT 2024. JP K-code from 診療報酬点数表 令和6年.
 
 body_sites:
   chest:
@@ -14,12 +20,24 @@ body_sites:
         jp_k_code: "E001"                        # MHLW 単純撮影
         display_en: "Chest X-ray PA and Lateral"
         display_ja: "胸部単純X線撮影 正面・側面"
+      CR_PA:                                     # 1-view chest X-ray (portable / bed-side)
+        loinc: "36572-6"
+        cpt: "71045"
+        jp_k_code: "E001"
+        display_en: "Chest X-ray PA"
+        display_ja: "胸部単純X線撮影 正面"
       CT_non_contrast:
         loinc: "30794-3"
         cpt: "71250"
         jp_k_code: "E200"                        # MHLW CT 単純
         display_en: "CT Chest without contrast"
         display_ja: "胸部CT 単純"
+      CT_contrast:
+        loinc: "30794-3"                         # closest common LOINC (contrast variant tracked via `contrast: true` on order)
+        cpt: "71260"
+        jp_k_code: "E200"
+        display_en: "CT Chest with contrast"
+        display_ja: "胸部CT 造影"
 
   head:
     snomed: "69536005"
@@ -32,3 +50,161 @@ body_sites:
         jp_k_code: "E200"
         display_en: "CT Head without contrast"
         display_ja: "頭部CT 単純"
+      CT:
+        loinc: "24725-4"                         # "CT Head" — NLM verified
+        cpt: "70450"
+        jp_k_code: "E200"
+        display_en: "CT Head"
+        display_ja: "頭部CT"
+      MR_non_contrast:
+        loinc: "30657-1"                         # "MR Brain WO contrast" — NLM verified
+        cpt: "70551"
+        jp_k_code: "E202"                        # MHLW MRI撮影
+        display_en: "MR Brain without contrast"
+        display_ja: "頭部MRI 単純"
+
+  # === CO-1 continuation (session 43) — new body sites ===
+
+  abdomen:
+    snomed: "818983003"                          # Abdomen (structure) — SNOMED CT
+    display_en: "Abdomen"
+    display_ja: "腹部"
+    procedure_codes:
+      CR_AP:                                     # KUB / X-ray abdomen
+        loinc: "24799-9"                         # XR Abdomen AP — NLM verified
+        cpt: "74018"                             # X-ray abdomen 1 view — AMA CPT 2024
+        jp_k_code: "E001"
+        display_en: "X-ray Abdomen AP"
+        display_ja: "腹部単純X線撮影 正面"
+      CR_Supine_Upright:                         # 2-view (supine + upright)
+        loinc: "37636-8"                         # XR Abdomen Views — NLM verified
+        cpt: "74022"                             # X-ray abdomen with chest — AMA
+        jp_k_code: "E001"
+        display_en: "X-ray Abdomen (Supine and Upright)"
+        display_ja: "腹部単純X線撮影 臥位・立位"
+      CT_non_contrast:
+        loinc: "41806-1"                         # CT Abdomen — NLM verified
+        cpt: "74150"                             # CT abdomen WO contrast — AMA
+        jp_k_code: "E200"
+        display_en: "CT Abdomen without contrast"
+        display_ja: "腹部CT 単純"
+      CT_contrast:
+        loinc: "41806-1"
+        cpt: "74160"                             # CT abdomen W contrast — AMA
+        jp_k_code: "E200"
+        display_en: "CT Abdomen with contrast"
+        display_ja: "腹部CT 造影"
+      US:                                        # US abdomen (complete)
+        loinc: "24558-9"                         # US Abdomen — NLM verified
+        cpt: "76700"                             # US abdomen complete — AMA
+        jp_k_code: "D215"                        # 超音波検査
+        display_en: "Ultrasound Abdomen"
+        display_ja: "腹部超音波検査"
+
+  kidney:
+    snomed: "64033007"                           # Kidney (structure)
+    display_en: "Kidney"
+    display_ja: "腎臓"
+    procedure_codes:
+      US:
+        loinc: "38036-0"                         # US Kidney — NLM verified
+        cpt: "76770"                             # US renal complete — AMA
+        jp_k_code: "D215"
+        display_en: "Ultrasound Kidney"
+        display_ja: "腎臓超音波検査"
+
+  leg:
+    snomed: "61685007"                           # Lower extremity
+    display_en: "Lower extremity"
+    display_ja: "下肢"
+    procedure_codes:
+      US_Doppler:                                # US doppler leg (DVT workup)
+        loinc: "99607-4"                         # US Doppler Lower extremity vein bilateral — NLM verified
+        cpt: "93970"                             # US extremity venous complete bilateral — AMA
+        jp_k_code: "D215"
+        display_en: "Ultrasound Doppler Lower Extremity Veins"
+        display_ja: "下肢静脈超音波検査（DVT評価）"
+
+  skin:
+    snomed: "39937001"                           # Skin structure
+    display_en: "Skin"
+    display_ja: "皮膚"
+    procedure_codes:
+      US:                                        # US soft tissue (skin/subcutaneous)
+        loinc: "80861-8"                         # US Lower extremity soft tissue — NLM verified (used as proxy for skin/soft tissue US)
+        cpt: "76881"                             # US extremity non-vascular complete — AMA
+        jp_k_code: "D215"
+        display_en: "Ultrasound Soft Tissue"
+        display_ja: "軟部組織超音波検査"
+
+  hand:
+    snomed: "85562004"                           # Hand
+    display_en: "Hand"
+    display_ja: "手"
+    procedure_codes:
+      CR_PA_Oblique_Lateral:                     # 3-view hand
+        loinc: "24722-1"                         # XR Hand 3 Views — NLM verified
+        cpt: "73140"                             # X-ray hand 3 views — AMA
+        jp_k_code: "E001"
+        display_en: "X-ray Hand 3 Views"
+        display_ja: "手部単純X線撮影 3方向"
+
+  hip:
+    snomed: "29836001"                           # Hip region
+    display_en: "Hip region"
+    display_ja: "股関節部"
+    procedure_codes:
+      CR_AP_Lateral:                             # 2-view hip
+        loinc: "36663-3"                         # XR Hip 2 Views — NLM verified
+        cpt: "73510"                             # X-ray hip complete 2 views — AMA
+        jp_k_code: "E001"
+        display_en: "X-ray Hip AP and Lateral"
+        display_ja: "股関節単純X線撮影 正面・側面"
+      CT_non_contrast:
+        loinc: "36663-3"                         # closest LOINC family
+        cpt: "73700"                             # CT lower extremity — AMA
+        jp_k_code: "E200"
+        display_en: "CT Hip without contrast"
+        display_ja: "股関節CT 単純"
+
+  spine:
+    snomed: "421060004"                          # Vertebral column
+    display_en: "Vertebral column"
+    display_ja: "脊椎"
+    procedure_codes:
+      CR_AP_Lateral:                             # 2-view spine (typical trauma workup)
+        loinc: "44203-8"                         # Portable XR Cervical/Thoracic/Lumbar spine — NLM verified
+        cpt: "72110"                             # X-ray lumbar spine complete 4 views — AMA
+        jp_k_code: "E001"
+        display_en: "X-ray Spine AP and Lateral"
+        display_ja: "脊椎単純X線撮影 正面・側面"
+      CT_non_contrast:                           # CT spine (trauma / fracture assessment)
+        loinc: "24932-6"                         # CT Cervical spine — NLM verified (spine family)
+        cpt: "72131"                             # CT lumbar spine WO contrast — AMA
+        jp_k_code: "E200"
+        display_en: "CT Spine without contrast"
+        display_ja: "脊椎CT 単純"
+      MR_non_contrast:
+        loinc: "24968-0"                         # MR Lumbar spine — NLM verified
+        cpt: "72148"                             # MR lumbar spine WO contrast — AMA
+        jp_k_code: "E202"
+        display_en: "MR Spine without contrast"
+        display_ja: "脊椎MRI 単純"
+
+  wrist:
+    snomed: "8205005"                            # Wrist region
+    display_en: "Wrist region"
+    display_ja: "手関節部"
+    procedure_codes:
+      CR_PA_Lateral_Oblique:                     # 3-view wrist
+        loinc: "24619-9"                         # XR Wrist Views — NLM verified
+        cpt: "73110"                             # X-ray wrist complete 3 views — AMA
+        jp_k_code: "E001"
+        display_en: "X-ray Wrist 3 Views"
+        display_ja: "手関節単純X線撮影 3方向"
+      CR_PA_Lateral:                             # 2-view wrist (post-op check)
+        loinc: "24619-9"
+        cpt: "73100"                             # X-ray wrist 2 views — AMA
+        jp_k_code: "E001"
+        display_en: "X-ray Wrist AP and Lateral"
+        display_ja: "手関節単純X線撮影 正面・側面"

@@ -801,3 +801,27 @@ narrative:
     diet_lifestyle:
       en: "Maintain balanced diet and adequate hydration."
       ja: "バランスの良い食事と十分な水分摂取を心がけてください。"
+
+# ============================================================
+# IMAGING ORDERS (CO-1 / RM-5 continuation — session 43)
+# ============================================================
+imaging_orders:
+  - modality: US
+    body_site: abdomen
+    urgency: urgent
+    clinical_indication: "RUQ pain, evaluate gallbladder"
+    day: 0
+    abnormal_rate_by_severity:
+      mild: 0.75
+      moderate: 0.9
+      severe: 0.95
+  - modality: CT
+    body_site: abdomen
+    contrast: true
+    urgency: routine
+    clinical_indication: "Complicated cholecystitis, exclude perforation"
+    day: 1
+    abnormal_rate_by_severity:
+      mild: 0.3
+      moderate: 0.6
+      severe: 0.85

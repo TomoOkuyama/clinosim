@@ -286,3 +286,18 @@ narrative:
     diet_lifestyle:
       en: "Maintain balanced diet and adequate hydration."
       ja: "バランスの良い食事と十分な水分摂取を心がけてください。"
+
+# ============================================================
+# IMAGING ORDERS (CO-1 / RM-5 continuation — session 43)
+# ============================================================
+imaging_orders:
+  - modality: CR
+    body_site: hand
+    views: [PA, Oblique, Lateral]
+    urgency: stat
+    clinical_indication: "Evaluate fracture / foreign body"
+    day: 0
+    abnormal_rate_by_severity:
+      mild: 0.7
+      moderate: 0.9
+      severe: 1.0

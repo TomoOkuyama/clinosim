@@ -33,10 +33,26 @@ def test_head_has_ct_non_contrast_procedure_code():
 
 
 def test_validate_body_sites_raises_on_unregistered_snomed():
+    # CO-1 continuation (session 43): SUPPORTED_BODY_SITES expanded to 10
+    # sites; mock data must include all so the drift check passes and the
+    # per-site SNOMED validation runs.
+    def _stub(snomed: str) -> dict:
+        return {
+            "snomed": snomed,
+            "display_en": "stub",
+            "display_ja": "stub",
+            "procedure_codes": {
+                "stub_proc": {
+                    "loinc": "24725-4", "cpt": "70450",
+                    "jp_k_code": "K002", "display_en": "stub",
+                    "display_ja": "stub",
+                },
+            },
+        }
     data = {
         "body_sites": {
             "chest": {
-                "snomed": "99999999999",  # not registered
+                "snomed": "99999999999",  # not registered — triggers the SNOMED check
                 "display_en": "Chest",
                 "display_ja": "胸部",
                 "procedure_codes": {
@@ -47,18 +63,15 @@ def test_validate_body_sites_raises_on_unregistered_snomed():
                     },
                 },
             },
-            "head": {
-                "snomed": "69536005",
-                "display_en": "Head",
-                "display_ja": "頭部",
-                "procedure_codes": {
-                    "ct": {
-                        "loinc": "24725-4", "cpt": "70450",
-                        "jp_k_code": "K002", "display_en": "CT",
-                        "display_ja": "CT",
-                    },
-                },
-            },
+            "head": _stub("69536005"),
+            "abdomen": _stub("818983003"),
+            "kidney": _stub("64033007"),
+            "leg": _stub("61685007"),
+            "skin": _stub("39937001"),
+            "hand": _stub("85562004"),
+            "hip": _stub("29836001"),
+            "spine": _stub("421060004"),
+            "wrist": _stub("8205005"),
         }
     }
     with pytest.raises(ValueError, match="99999999999"):
