@@ -18,6 +18,7 @@ from clinosim.modules.imaging.engine import (
     load_modalities,
 )
 from clinosim.modules.order.panel_grouping import classify_lab_specs, load_panel_definitions
+from clinosim.modules.order.treatment_classifier import classify_inpatient_supportive
 from clinosim.types.encounter import Order, OrderStatus, OrderType
 
 # Mapping: text frequency token → times per day
@@ -357,44 +358,9 @@ def place_admission_orders(
         )
         orders.append(order)
 
-    # Supportive orders — classify into medication vs. care plan/therapy
-    _MED_TYPES = {
-        "IV_fluid", "iv_fluid", "K_replacement", "antibiotic", "antipyretic", "DVT_prophylaxis",
-        "PPI", "lactulose", "bronchodilator", "steroid", "iv_insulin", "IV_insulin",
-        "anticoagulant", "vasopressor", "antiemetic", "analgesic", "pain_management",
-        "rate_control", "anti_inflammatory", "thrombolytic", "diuretic",
-    }
-    _CARE_PLAN_TYPES = {
-        "NPO", "fall_precautions", "BP_management", "neuro_checks", "bed_rest",
-        "leg_elevation", "compression_stocking", "fluid_restriction", "sodium_restriction",
-        "diet", "daily_weight", "monitoring", "continuous_telemetry", "HOB_elevation",
-        "large_bore_IV", "glucose_check", "O2", "fluid_balance", "IV_fluid_restriction",
-        "head_elevation", "spinal_precautions", "isolation", "wound_care",
-    }
-    # RM-6b (session 42): device/procedure keywords in the `detail` field
-    # override type-based classification. E.g. `type: "DVT_prophylaxis",
-    # detail: "Sequential compression devices"` is a device, not a drug —
-    # route to PROCEDURE so MAR isn't generated for it.
-    # C4-27 / C5-18 (session 43 cycle 5): expanded keyword set to catch
-    # residual device/procedure-as-medication misclassification (was 17.9%
-    # MAR codeless). New keywords: ice pack, splint, bandage, cast,
-    # nebulizer, sling, catheter, cervical collar, wound care, dressing,
-    # suture, reduction, traction, elevation, immobilization, oxygen,
-    # nasal cannula, endotracheal tube, chest tube, drain, tourniquet,
-    # ecg lead, iv line, foley.
-    _DEVICE_PROCEDURE_KW = (
-        "compression device", "sequential compression", "positive pressure",
-        "nppv", "cpap", "bipap", "ipc device", "graduated compression",
-        "non-invasive ventilation",
-        # C5-18 additions:
-        "ice pack", "splint", "bandage", "cast", "nebulizer", "sling",
-        "cervical collar", "wound care", "dressing", "suture", "reduction",
-        "traction", "elevation", "immobili", "oxygen therapy",
-        "nasal cannula", "endotracheal", "chest tube", "drain",
-        "tourniquet", "ecg lead", "iv line", "foley", "catheter placement",
-        "wound protection", "wound cleaning", "wound assessment",
-        "wound closure", "wound irrigation",
-    )
+    # Supportive orders — classify into medication vs. care plan/therapy via
+    # the canonical treatment_classifier (single source of truth shared with
+    # the ED treatment path in simulator/emergency.py; J5 pattern prevention).
     for i, sup in enumerate(admission.get("supportive", [])):
         sup_type = sup.get("type", "")
         # CY2-B continuation (session 43 cycle 5): disease-YAML supportive detail
@@ -407,16 +373,7 @@ def place_admission_orders(
             if splitter in detail_raw:
                 detail_raw = detail_raw.split(splitter, 1)[0].strip()
                 break
-        detail_lower = detail_raw.lower()
-        if any(kw in detail_lower for kw in _DEVICE_PROCEDURE_KW):
-            order_type = OrderType.PROCEDURE
-        elif sup_type in _MED_TYPES:
-            order_type = OrderType.MEDICATION
-        elif sup_type in _CARE_PLAN_TYPES:
-            order_type = OrderType.THERAPY
-        else:
-            # Default: heuristic — explicit "drug" keyword → medication, else therapy
-            order_type = OrderType.MEDICATION if "drug" in sup_type.lower() else OrderType.THERAPY
+        order_type = classify_inpatient_supportive(detail_raw, sup_type)
         order = Order(
             order_id=f"ORD-{patient_id}-ADM-S{i:02d}",
             encounter_id=encounter_id,

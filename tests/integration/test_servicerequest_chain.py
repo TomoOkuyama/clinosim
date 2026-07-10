@@ -147,10 +147,13 @@ def test_run_beta_emits_service_request_ndjson_us():
         assert sr_files, "ServiceRequest.ndjson not found under output"
         lines = [ln for ln in sr_files[0].read_text().splitlines() if ln.strip()]
         assert len(lines) > 0, "ServiceRequest.ndjson must be non-empty"
-        # Validate structure of first resource.
+        # Validate structure of first resource. Accept any FHIR R4 SR.intent
+        # value emitted by _sr_intent_from_clinical_intent (order /
+        # instance-order / original-order); the first line's specific intent
+        # shifts with any RNG-visible cohort change (session 44).
         sr = json.loads(lines[0])
         assert sr["resourceType"] == "ServiceRequest"
-        assert sr["intent"] == "order"
+        assert sr["intent"] in {"order", "instance-order", "original-order"}
         assert "identifier" in sr
         plac = sr["identifier"][0]["type"]["coding"][0]
         assert plac["code"] == "PLAC"
