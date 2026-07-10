@@ -37,6 +37,7 @@ from clinosim.modules.order.engine import (
     place_daily_lab_orders,
     place_imaging_orders,
 )
+from clinosim.modules.order.treatment_classifier import classify_encounter_treatment
 from clinosim.modules.physiology.engine import (
     apply_disease_onset,
     apply_state_delta,
@@ -952,44 +953,30 @@ def _run_daily_loop(
                     drug = med.get("drug", "").strip()
                     proc = med.get("procedure", "").strip()
                     if drug:
-                        # C4-28 (session 43 cycle 4): device-drugs (NIV_BiPAP /
-                        # CPAP / IPC / sequential compression / etc.) enter the
-                        # step-medications list but are procedures, not drugs.
-                        # Same _DEVICE_PROCEDURE_KW filter as
-                        # clinosim.modules.order.engine (RM-6b sibling: daily
-                        # loop was missed — 741 NPPV + 154 IPC records were
-                        # emitted as MedicationAdministration in the JP p=10k
-                        # baseline).
-                        _drug_low = drug.lower()
-                        _dev_kw = (
-                            "niv_bipap", "niv-bipap", "bipap", "cpap", "nppv",
-                            "non-invasive", "non_invasive", "noninvasive",
-                            "compression device", "sequential compression",
-                            "ipc device", "graduated compression",
-                            "positive pressure ventilation",
-                        )
-                        _is_device_drug = any(kw in _drug_low for kw in _dev_kw)
+                        # Daily-loop step medications sometimes carry device or
+                        # therapy names disguised as drugs (NIV_BiPAP / CPAP /
+                        # IPC / cardiac monitoring / etc.). Classify via the
+                        # canonical treatment_classifier (single source of
+                        # truth; J5 pattern prevention — this was C4-28's
+                        # RM-6b sibling gap in session 43).
                         display = f"{drug} {med.get('dose', '')}".strip()
-                        if _is_device_drug:
-                            all_orders.append(Order(
-                                order_id=f"ORD-{patient.patient_id}-DEV-D{day}-{drug[:8]}",
-                                patient_id=patient.patient_id, order_type=OrderType.PROCEDURE,
-                                display_name=display,
-                                urgency="urgent",
-                                clinical_intent=f"Day {day} {archetype}: device / respiratory support",
-                                ordered_datetime=admission_time + timedelta(days=day, hours=10),
-                                status=OrderStatus.PLACED,
-                            ))
+                        _dc_order_type = classify_encounter_treatment(drug)
+                        _is_medication = _dc_order_type == OrderType.MEDICATION
+                        if _is_medication:
+                            _order_id_prefix = f"ORD-{patient.patient_id}-START-D{day}-{drug[:8]}"
+                            _intent = f"Day {day} {archetype}: new medication"
                         else:
-                            all_orders.append(Order(
-                                order_id=f"ORD-{patient.patient_id}-START-D{day}-{drug[:8]}",
-                                patient_id=patient.patient_id, order_type=OrderType.MEDICATION,
-                                display_name=display,
-                                urgency="urgent",
-                                clinical_intent=f"Day {day} {archetype}: new medication",
-                                ordered_datetime=admission_time + timedelta(days=day, hours=10),
-                                status=OrderStatus.PLACED,
-                            ))
+                            _order_id_prefix = f"ORD-{patient.patient_id}-DEV-D{day}-{drug[:8]}"
+                            _intent = f"Day {day} {archetype}: device / therapy"
+                        all_orders.append(Order(
+                            order_id=_order_id_prefix,
+                            patient_id=patient.patient_id, order_type=_dc_order_type,
+                            display_name=display,
+                            urgency="urgent",
+                            clinical_intent=_intent,
+                            ordered_datetime=admission_time + timedelta(days=day, hours=10),
+                            status=OrderStatus.PLACED,
+                        ))
                     elif proc:
                         # Procedure order (not a medication)
                         detail = med.get("detail", "")
@@ -1016,13 +1003,19 @@ def _run_daily_loop(
                 drug_name = esc_drug.get("drug", "")
                 dose = esc_drug.get("dose", "")
                 indication = esc_drug.get("indication", "no improvement")
+                # Escalation entries carry a `drug` field but the value is
+                # sometimes actually a procedure name (Vertebroplasty,
+                # Hemodialysis, endoscopy, etc.). Route via the canonical
+                # treatment_classifier (J5 pattern prevention).
+                _esc_display = f"{drug_name} {dose}".strip()
+                _esc_order_type = classify_encounter_treatment(_esc_display)
                 all_orders.append(Order(
                     order_id=f"ORD-{patient.patient_id}-ESC-D{day}-{drug_name[:8]}",
                     encounter_id=encounter_id,
                     patient_id=patient.patient_id,
-                    order_type=OrderType.MEDICATION,
+                    order_type=_esc_order_type,
                     order_code=esc_drug.get("code_yj", esc_drug.get("code_rxnorm", "")),
-                    display_name=f"{drug_name} {dose}".strip(),
+                    display_name=_esc_display,
                     urgency="urgent",
                     clinical_intent=f"Escalation day {day}: {drug_name} ({indication})",
                     ordered_datetime=admission_time + timedelta(days=day, hours=10),

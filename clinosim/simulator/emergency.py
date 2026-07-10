@@ -10,6 +10,7 @@ from clinosim.codes import system_key_for
 from clinosim.modules.disease.severity import sample_severity_category
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import get_lab_unit
+from clinosim.modules.order.treatment_classifier import classify_encounter_treatment
 from clinosim.modules.staff.engine import StaffRoster, assign_staff
 from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent
 from clinosim.types.encounter import (
@@ -195,28 +196,15 @@ def _simulate_ed_visit(
             status=OrderStatus.PLACED,
         ))
 
-    # Treatment orders from protocol.
-    # RM-6 (session 42): reclassify non-drug treatment items — ice packs,
-    # splints, casts, sutures, nebulizer setups, reductions, wound closures,
-    # compression devices etc. are procedures/therapies, not medications.
-    # Route them to OrderType.PROCEDURE / THERAPY so the medication path
-    # doesn't emit MedicationRequest / MedicationAdministration for them.
-    _procedure_kw = (
-        "ice pack", "splint", "cast", "closure", "closed reduction",
-        "reduction", "suture", "nebulizer", "compression", "bandage",
-        "immobili", "cervical collar", "traction", "wound care",
-        "wound clean", "wrap", "sling", "ecg", "ekg", "oxygen therapy",
-        "elevation",
-    )
+    # Treatment orders from protocol — classify via the canonical
+    # treatment_classifier (single source of truth shared with the inpatient
+    # supportive path in modules/order/engine.py; J5 pattern prevention).
+    # Default is MEDICATION; non-drug names route to PROCEDURE or THERAPY.
     for i, tx in enumerate((protocol or {}).get("treatment", [])):
         if rng.random() > tx.get("probability", 1.0):
             continue
         _tx_name = tx.get("name", "")
-        _tx_lower = _tx_name.lower()
-        # Default: medication. Non-drug treatment names → OrderType.PROCEDURE.
-        _order_type = OrderType.MEDICATION
-        if any(kw in _tx_lower for kw in _procedure_kw):
-            _order_type = OrderType.PROCEDURE
+        _order_type = classify_encounter_treatment(_tx_name)
         orders.append(Order(
             order_id=f"ORD-{patient.patient_id}-ED-T{i}",
             patient_id=patient.patient_id,
