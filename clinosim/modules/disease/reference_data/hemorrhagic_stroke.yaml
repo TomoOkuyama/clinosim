@@ -384,7 +384,7 @@ drugs:
         route: IV
         indication: "warfarin_use_with_elevated_INR"
       - drug: "Prothrombin Complex Concentrate (4F-PCC)"
-        code_yj: "6343401"
+        code_yj: "6343449"
         dose: "25-50 IU/kg IV"
         route: IV
         indication: "warfarin_use_urgent_reversal"

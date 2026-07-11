@@ -62,6 +62,10 @@ _ALLOWED_ALIASES: dict[str, set[str]] = {
     # 4-Factor PCC = Kcentra = same product (brand name vs generic descriptor).
     "4-factor pcc (kcentra)": {"kcentra"},
     "kcentra": {"4-factor pcc (kcentra)"},
+    # Albumin = "Human serum albumin" (normalized to "serum albumin" after
+    # stripping the qualifier "human"). Same clinical product.
+    "albumin": {"serum albumin"},
+    "serum albumin": {"albumin"},
 }
 
 # Session 45 backlog (session-45-drug-code-audit) — resolved 2026-07-11.
