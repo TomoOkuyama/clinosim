@@ -134,3 +134,99 @@ codes:
   '2590009':
     en: Tamsulosin (Flomax)
     ja: タムスロシン（ハルナール）
+
+  # === CO-8 (Chain 4 MHLW ingestion chain, 2026-07-11) ===
+  # Full 12-char 個別医薬品コード from MHLW 令和8年6月12日適用 薬価基準
+  # 収載品目リスト (tp20260612-01_05.xlsx, sheet1, ~12,400 rows).
+  # These entries reference the specific SKU that clinosim's
+  # code_mapping_drug/jp.yaml resolves internal English drug names to.
+  '6250021F1028':
+    en: Oseltamivir phosphate (Tamiflu)
+    ja: オセルタミビルリン酸塩（タミフル）
+  '6241400A4021':
+    en: Ciprofloxacin
+    ja: シプロフロキサシン
+  '2355002X1016':
+    en: Magnesium sulfate hydrate
+    ja: 硫酸マグネシウム水和物
+  '2115001X1015':
+    en: Aminophylline hydrate
+    ja: アミノフィリン水和物
+  '1242002F1330':
+    en: Butylscopolamine bromide (Buscopan)
+    ja: ブチルスコポラミン臭化物（ブスコパン）
+  '5200092C1025':
+    en: Dai-kenchu-to extract
+    ja: 大建中湯エキス
+  '6132408E1034':
+    en: Cefmetazole sodium
+    ja: セフメタゾールナトリウム
+  '2190400A2011':
+    en: D-Mannitol
+    ja: Ｄ－マンニトール
+  '2129005F1013':
+    en: Disopyramide phosphate
+    ja: リン酸ジソピラミド
+  '1124031Q1024':
+    en: Midazolam
+    ja: ミダゾラム
+  '1119400A1031':
+    en: Ketamine hydrochloride
+    ja: ケタミン塩酸塩
+  '3959402D1027':
+    en: Alteplase (recombinant)
+    ja: アルテプラーゼ（遺伝子組換え）
+  '2451400A1013':
+    en: Adrenaline (Epinephrine)
+    ja: アドレナリン（エピネフリン）
+  '2414402A1019':
+    en: Vasopressin
+    ja: バソプレシン
+  '2254001F1102':
+    en: Salbutamol sulfate
+    ja: サルブタモール硫酸塩
+  '3319539A1015':
+    en: Ringer's solution
+    ja: リンゲル液
+  '6343410X1088':
+    en: Human serum albumin
+    ja: 人血清アルブミン
+  '2499403A1037':
+    en: Octreotide acetate
+    ja: オクトレオチド酢酸塩
+  '1139010F1024':
+    en: Levetiracetam
+    ja: レベチラセタム
+  '1149019C1149':
+    en: Loxoprofen sodium hydrate
+    ja: ロキソプロフェンナトリウム水和物
+  '1179040F1012':
+    en: Milnacipran hydrochloride
+    ja: ミルナシプラン塩酸塩
+  '1119402A1022':
+    en: Propofol
+    ja: プロポフォール
+  '8219700S5026':
+    en: Fentanyl (Durotep MT patch)
+    ja: フェンタニル（デュロテップMTパッチ）
+  '3999033F1026':
+    en: Levocarnitine (Elcarnitine)
+    ja: レボカルニチン
+  '1242008X1066':
+    en: Atropine sulfate hydrate
+    ja: アトロピン硫酸塩水和物
+  '6132401D1061':
+    en: Cefazolin sodium
+    ja: セファゾリンナトリウム
+  '2633705N1031':
+    en: Silver sulfadiazine cream (Geben)
+    ja: スルファジアジン銀クリーム（ゲーベン）
+  '1147002F1013':
+    en: Diclofenac sodium
+    ja: ジクロフェナクナトリウム
+  '6290100F2115':
+    en: Sulfamethoxazole-Trimethoprim (Bactrim/Baktar)
+    ja: スルファメトキサゾール・トリメトプリム（バクタ）
+  '2492403A4051':
+    en: Regular human insulin (Humulin R)
+    ja: ヒト(遺伝子組換え)インスリン（ヒューマリンR）
