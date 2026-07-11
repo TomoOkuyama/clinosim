@@ -24,7 +24,11 @@ from clinosim.modules.output._fhir_common import (
     _parse_dose_for_mar,
     _strip_protocol_prefix,
 )
-from clinosim.modules.output._fhir_localization import _localize_drug_name
+from clinosim.modules.output._fhir_localization import (
+    _localize_drug_name,
+    _localize_rate_adjustment,
+    _split_rate_adjustment_suffix,
+)
 from clinosim.modules.output._fhir_reference_data import _ROUTE_SNOMED
 
 
@@ -96,6 +100,11 @@ def _build_medication_request(
     # Strip protocol prefix (e.g. "DVT_prophylaxis:") from medicationCodeableConcept.text
     # The prefix goes to dosageInstruction note instead.
     drug_name_clean, protocol_category = _strip_protocol_prefix(drug_name_raw)
+    # Session 45: split off any "increase/decrease rate by X%" continuous-infusion
+    # adjustment suffix (disease YAML pattern for Day-N drip rate changes) so
+    # the medicationCodeableConcept.text stays as a clean drug name and the
+    # adjustment note can be appended to dosageInstruction.
+    drug_name_clean, rate_adjustment_note = _split_rate_adjustment_suffix(drug_name_clean)
     drug_name = _localize_drug_name(drug_name_clean, country)
     # Strip dose info to get base drug name for code lookup (use cleaned name)
     base_name = drug_name_clean.split(" ")[0] if drug_name_clean else ""
@@ -125,6 +134,18 @@ def _build_medication_request(
                 code_value = drug_codes[candidate]
                 base_name = candidate
                 break
+        # Session 45: suffix-match fallback lets qualifier-prefixed aliases
+        # ("Unfractionated Heparin", "Recombinant Insulin", "Regular Human Insulin"
+        # 等) resolve to their base drug entry without duplicating the same code
+        # under multiple keys in code_mapping_drug.yaml (which would violate the
+        # test_no_two_drugs_share_a_rxcui integrity guard).
+        if not code_value and len(tokens) > 1:
+            for n_tokens in range(len(tokens) - 1, 0, -1):
+                candidate = " ".join(tokens[-n_tokens:])
+                if candidate in drug_codes:
+                    code_value = drug_codes[candidate]
+                    base_name = candidate
+                    break
         if not code_value:
             code_value = drug_codes.get(base_name.replace("_", " "), "")
     # C6-C7 residual sweep: fallback to `protocol_category` (the "TYPE:" prefix
@@ -253,6 +274,16 @@ def _build_medication_request(
 
     # Dosage instruction
     dosage = _build_dosage_instruction(order, country=country)
+    # Session 45: append any rate-adjustment note peeled off drug_name so the
+    # continuous-infusion adjustment intent (e.g. "increase rate by 20%") lives
+    # in dosageInstruction where it belongs — not in medicationCodeableConcept.text.
+    if rate_adjustment_note:
+        rate_note_localized = _localize_rate_adjustment(rate_adjustment_note, country)
+        if dosage is None:
+            dosage = {"text": rate_note_localized}
+        else:
+            existing = str(dosage.get("text", "") or "").strip()
+            dosage["text"] = f"{existing} ({rate_note_localized})".strip() if existing else rate_note_localized
     if dosage:
         resource["dosageInstruction"] = [dosage]
 
@@ -305,6 +336,8 @@ def _build_medication_admin(
     """Build FHIR MedicationAdministration resource."""
     drug_name_raw = mar.get("drug_name", "")
     drug_name_clean, protocol_category = _strip_protocol_prefix(drug_name_raw)
+    # Session 45: peel off rate-adjustment suffix (see _build_medication_request).
+    drug_name_clean, rate_adjustment_note = _split_rate_adjustment_suffix(drug_name_clean)
     drug_name = _localize_drug_name(drug_name_clean, country)
     base_name = drug_name_clean.split(" ")[0] if drug_name_clean else ""
     country_code = "US" if is_us(country) else "JP"
@@ -323,6 +356,14 @@ def _build_medication_admin(
                 code_value = drug_codes[candidate]
                 base_name = candidate
                 break
+        # Session 45: suffix-match fallback for qualifier-prefixed aliases.
+        if not code_value and len(tokens) > 1:
+            for n_tokens in range(len(tokens) - 1, 0, -1):
+                candidate = " ".join(tokens[-n_tokens:])
+                if candidate in drug_codes:
+                    code_value = drug_codes[candidate]
+                    base_name = candidate
+                    break
         if not code_value:
             code_value = drug_codes.get(base_name.replace("_", " "), "")
     # C6-C7 residual sweep: same protocol_category fallback as MR builder.
@@ -383,6 +424,11 @@ def _build_medication_admin(
     dose_text = mar.get("dose", "") or drug_name
     dose_str = mar.get("dose", "")
     parsed = _parse_dose_for_mar(dose_str or drug_name)
+    # Session 45: attach any rate-adjustment note peeled off drug_name to dose_text
+    # so continuous-infusion titration intent surfaces in the dosage record.
+    if rate_adjustment_note:
+        rate_note_localized = _localize_rate_adjustment(rate_adjustment_note, country)
+        dose_text = f"{dose_text} ({rate_note_localized})".strip() if dose_text.strip() else rate_note_localized
     dosage: dict[str, Any] = {"text": dose_text}
     if parsed.get("dose_quantity") is not None and parsed.get("dose_unit"):
         dosage["dose"] = {
