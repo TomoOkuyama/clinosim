@@ -71,10 +71,25 @@ def _bb_imaging_studies(ctx: BundleContext) -> list[dict[str, Any]]:
     if not studies:
         return []
     lang = resolve_lang(ctx.country)
-    return [_build_imaging_study(s, lang) for s in studies]
+    # CY7-03 (Chain-7): reasonCode inherits the encounter's primary reasonCode
+    # (imaging is done to investigate the current diagnosis). Encounter → dx.
+    _enc_reason_by_id: dict[str, list[dict]] = {}
+    for _enc in ctx.record.get("encounters", []) or []:
+        _eid = _o(_enc, "encounter_id", "")
+        if _eid:
+            _rc = _enc.get("reason_code", "") if isinstance(_enc, dict) else getattr(_enc, "reason_code", "")
+            # Encounter carries reason via chief_complaint or disease_event_id;
+            # simpler path: use the study's own order-encounter link and
+            # look up the encounter's primary Condition.code at ImagingStudy
+            # emit is out of scope here. Instead attach a chief-complaint text
+            # from the Encounter which is already carried on Encounter model.
+            _cc = _enc.get("chief_complaint", "") if isinstance(_enc, dict) else getattr(_enc, "chief_complaint", "")
+            if _cc:
+                _enc_reason_by_id[_eid] = [{"text": _cc}]
+    return [_build_imaging_study(s, lang, _enc_reason_by_id) for s in studies]
 
 
-def _build_imaging_study(study: Any, lang: str) -> dict[str, Any]:
+def _build_imaging_study(study: Any, lang: str, enc_reason_by_id: dict[str, list[dict]] | None = None) -> dict[str, Any]:
     """Build one FHIR R4 ImagingStudy resource from an ImagingStudyRecord."""
     modalities = load_modalities()
     modality_code = _o(study, "modality_code", "")
@@ -109,6 +124,48 @@ def _build_imaging_study(study: Any, lang: str) -> dict[str, Any]:
     started = _isoformat_or_str(_o(study, "started_datetime", None))
     if started:
         res["started"] = started
+    # CY7-03 (Chain-7): reasonCode from encounter chief complaint (text-only
+    # CodeableConcept per no-fabrication policy — the actual ICD/SNOMED
+    # code lives on the Condition; ImagingStudy references it via encounter).
+    if enc_reason_by_id:
+        _rc = enc_reason_by_id.get(_o(study, "encounter_id", ""))
+        if _rc:
+            res["reasonCode"] = _rc
+    # CY7-04 (Chain-7): procedureCode — resolve LOINC from body_sites.yaml
+    # procedure_codes for the (modality, body_site, contrast) triplet. Uses
+    # the same resolver as the SR / radiology-DR emit paths so the codes
+    # match across resources.
+    body_site_snomed = _o(study, "body_site_snomed", "")
+    from clinosim.modules.imaging.engine import (
+        _resolve_imaging_procedure_code_key,
+        load_body_sites,
+    )
+    body_sites = load_body_sites()
+    _bs_key = None
+    for bsk, bsv in body_sites.items():
+        if bsv["snomed"] == body_site_snomed:
+            _bs_key = bsk
+            break
+    if _bs_key is not None:
+        try:
+            _contrast = bool(_o(study, "contrast", False))
+            _ck = _resolve_imaging_procedure_code_key(
+                modality_code, _bs_key, [], _contrast
+            )
+            _proc = (body_sites[_bs_key].get("procedure_codes") or {}).get(_ck, {})
+            _proc_loinc = _proc.get("loinc", "")
+            _proc_display = _proc.get(f"display_{lang}") or _proc.get("display_en", "")
+            if _proc_loinc:
+                res["procedureCode"] = [{
+                    "coding": [{
+                        "system": get_system_uri("loinc"),
+                        "code": _proc_loinc,
+                        "display": _proc_display,
+                    }],
+                    "text": _proc_display,
+                }]
+        except ValueError:
+            pass  # unknown combination, procedureCode omitted (forward-compat)
     return res
 
 

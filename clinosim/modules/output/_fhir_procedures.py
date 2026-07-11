@@ -135,6 +135,13 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
         resource["reasonReference"] = [
             {"reference": f"Condition/cond-{enc_id}-primary"}
         ]
+    # CY7-17 (Chain-7): Procedure.reasonCode fallback — text-only citing the
+    # encounter's primary diagnosis when the CIF procedure record doesn't
+    # carry an explicit reason. FHIR R4 Procedure.reasonCode 0..*.
+    if not resource.get("reasonCode"):
+        resource["reasonCode"] = [{
+            "text": "入院時診断に基づく処置" if is_jp(country) else "Procedure indicated by encounter diagnosis",
+        }]
 
     # bodySite (SNOMED)
     body_site_code = proc.get("body_site_code", "")
@@ -146,6 +153,10 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
                 "display": code_lookup("snomed-ct", body_site_code, lang),
             }],
         }]
+    # CY7-18 (Chain-7): bodySite text-only fallback when the CIF record
+    # doesn't carry a SNOMED site code (bedside procedures often don't).
+    if not resource.get("bodySite"):
+        resource["bodySite"] = [{"text": "処置部位不明" if is_jp(country) else "Body site not specified"}]
 
     # location (OR etc.)
     location_id = proc.get("location_id", "")
@@ -161,6 +172,20 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
                 "code": outcome_code,
                 "display": code_lookup("snomed-ct", outcome_code, lang),
             }],
+        }
+    # CY7-19 (Chain-7): outcome default = SNOMED 385669000 "Successful" when
+    # Procedure.status == "completed" and no explicit outcome_code. Reflects
+    # the majority clinical reality (few procedures fail without explicit
+    # complication).
+    if not resource.get("outcome") and resource.get("status") == "completed":
+        _succ_code = "385669000"
+        resource["outcome"] = {
+            "coding": [{
+                "system": sct_uri,
+                "code": _succ_code,
+                "display": code_lookup("snomed-ct", _succ_code, lang) or "Successful",
+            }],
+            "text": "成功" if is_jp(country) else "Successful",
         }
 
     # complication (SNOMED)

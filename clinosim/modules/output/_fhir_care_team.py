@@ -160,6 +160,17 @@ def _build_care_team(
         "subject": {"reference": f"Patient/{patient_id}"},
         "encounter": {"reference": f"Encounter/{encounter_id}"},
         "participant": participants,
+        # CY7-24 (Chain-7): CareTeam.managingOrganization — the hospital
+        # coordinating this care team. 100% clinosim CareTeams are hospital-
+        # coordinated (no cross-facility care coordination modeled).
+        "managingOrganization": [{"reference": "Organization/hospital-main"}],
+        # CY7-25 (Chain-7): CareTeam.reasonCode — link to the encounter
+        # primary diagnosis. Emit the chief_complaint as text when available;
+        # the encounter's Condition already carries the ICD code so we don't
+        # duplicate the coding.
+        "reasonCode": [
+            {"text": _o(encounter, "chief_complaint", "") or ("入院診療" if lang == "ja" else "Inpatient care")}
+        ],
     }
 
     # period — only when admission_datetime is present.

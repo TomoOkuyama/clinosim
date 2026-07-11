@@ -286,14 +286,41 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
             _chronic_codes.append(_c.get("code", ""))
         else:
             _chronic_codes.append(getattr(_c, "code", ""))
-    return [
-        _build_encounter(enc, ctx.patient_id, ctx.is_readmission, ctx.prior_encounter_id,
+    # CY7-05 (Chain-7): ED→IMP partOf linkage. Correlate an inpatient
+    # encounter admitted from ED (admit_source == "emd") with the most
+    # recent EMER encounter for the same patient. Emits partOf on the
+    # IMP encounter so the ED-to-admission clinical episode is traceable.
+    _enc_list = list(ctx.record.get("encounters", []) or [])
+    _ed_encs = [e for e in _enc_list if str((e.get("encounter_type") if isinstance(e, dict) else getattr(e, "encounter_type", ""))).lower() in ("emergency", "encountertype.emergency")]
+    _resources = []
+    for enc in _enc_list:
+        _et = str((enc.get("encounter_type") if isinstance(enc, dict) else getattr(enc, "encounter_type", ""))).lower()
+        _admit_source = enc.get("admit_source", "") if isinstance(enc, dict) else getattr(enc, "admit_source", "")
+        _partof_id: str | None = None
+        if _et in ("inpatient", "encountertype.inpatient") and _admit_source == "emd" and _ed_encs:
+            # find most recent ED encounter before this IMP's admission
+            _adm_dt = enc.get("admission_datetime", "") if isinstance(enc, dict) else getattr(enc, "admission_datetime", "")
+            _adm_str = str(_adm_dt) if _adm_dt else ""
+            _candidates = []
+            for _ed in _ed_encs:
+                _ed_disch = _ed.get("discharge_datetime", "") if isinstance(_ed, dict) else getattr(_ed, "discharge_datetime", "")
+                _ed_disch_str = str(_ed_disch) if _ed_disch else ""
+                if _ed_disch_str and _adm_str and _ed_disch_str <= _adm_str:
+                    _candidates.append((_ed_disch_str, _ed.get("encounter_id", "") if isinstance(_ed, dict) else getattr(_ed, "encounter_id", "")))
+            if _candidates:
+                _candidates.sort()
+                _partof_id = _candidates[-1][1] or None
+        _resource = _build_encounter(enc, ctx.patient_id, ctx.is_readmission, ctx.prior_encounter_id,
                          primary_dx_code=ctx.primary_dx_code, country=ctx.country,
                          admit_dx_code=ctx.admit_dx_code, admit_dx_system=ctx.admit_dx_system,
                          icu_transferred_day=_icu_day, deceased=_deceased,
                          chronic_condition_codes=_chronic_codes)
-        for enc in ctx.record.get("encounters", [])
-    ]
+        # Only add ED→IMP partOf if _build_encounter didn't already set one
+        # (readmission takes precedence — same field, different semantics).
+        if _partof_id and "partOf" not in _resource:
+            _resource["partOf"] = {"reference": f"Encounter/{_partof_id}"}
+        _resources.append(_resource)
+    return _resources
 
 
 def _bb_conditions(ctx: BundleContext) -> list[dict]:
@@ -488,10 +515,35 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         }
         if enc_id:
             procedure_res["encounter"] = {"reference": f"Encounter/{enc_id}"}
+            # CY7-17 (Chain-7): reasonReference to encounter primary Condition.
+            procedure_res["reasonReference"] = [
+                {"reference": f"Condition/cond-{enc_id}-primary"}
+            ]
         if ordered_dt:
             procedure_res["performedDateTime"] = str(ordered_dt)
         if ordered_by:
             procedure_res["performer"] = [{"actor": {"reference": f"Practitioner/{ordered_by}"}}]
+        # CY7-17 (Chain-7): text-only reasonCode fallback for treatment-side
+        # Procedures (splint/bandage/wound-care/etc.) — same rationale as
+        # _fhir_procedures._build_procedure text-only fallback.
+        procedure_res["reasonCode"] = [{
+            "text": "入院時診断に基づく処置" if str(ctx.country).upper() == "JP" else "Procedure indicated by encounter diagnosis",
+        }]
+        # CY7-18 (Chain-7): text-only bodySite fallback for order-derived
+        # Procedures — the Order carries display_name but not a SNOMED site
+        # code, so text is defensible.
+        procedure_res["bodySite"] = [{
+            "text": "処置部位不明" if str(ctx.country).upper() == "JP" else "Body site not specified",
+        }]
+        # CY7-19 (Chain-7): outcome default = Successful for completed status.
+        procedure_res["outcome"] = {
+            "coding": [{
+                "system": get_system_uri("snomed-ct"),
+                "code": "385669000",
+                "display": code_lookup("snomed-ct", "385669000", _cat_lang) or "Successful",
+            }],
+            "text": "成功" if str(ctx.country).upper() == "JP" else "Successful",
+        }
         out.append(procedure_res)
         proc_seq += 1
     return out

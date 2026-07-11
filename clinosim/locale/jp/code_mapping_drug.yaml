@@ -196,8 +196,14 @@ NSAIDs:                 "1149019C1149"  # (plural alias)
 # CY6-17 (Chain-6): "Amoxicillin/Clavulanate 875/125mg" — the "/"-form
 # stays as an aliased key since split(" ") never separates it. Also fold
 # the bare EN form to the same 7-digit class code.
+# CY7-26 (Chain-7): also add lowercase-c variant — encounter YAMLs use
+# `Amoxicillin/clavulanate 875/125mg` (lowercase c per common convention);
+# dict lookup is case-sensitive so both variants are needed.
 "Amoxicillin/Clavulanate 875/125mg":   "6131100"
 "Amoxicillin/Clavulanate 500/125mg":   "6131100"
+"Amoxicillin/clavulanate 875/125mg":   "6131100"
+"Amoxicillin/clavulanate 500/125mg":   "6131100"
+"Butylscopolamine 20mg":               "1242002F1330"
 
 # === CY6-05..11 (Chain-6 MHLW ingestion, 2026-07-11) ===
 # JP-marketed drugs newly reached during cycle 6 audit. YJ codes verified
@@ -209,3 +215,22 @@ Elcatonin:              "3999401A1200"  # エルカトニン (エルシトニン
 Diltiazem:              "2171405D3020"  # ジルチアゼム塩酸塩 (ヘルベッサー注射用250)
 Nicardipine:            "2149400A1019"  # ニカルジピン塩酸塩 注射液
 Landiolol:              "2123404D1033"  # ランジオロール塩酸塩 (オノアクト点滴静注用50mg)
+
+# === CY7-26/27/29/30 (Chain-7, 2026-07-11): JP-localized text aliases +
+# additional MHLW YJ codes ===
+# JP-text aliases for full-dose forms that bypass English key lookup in
+# the code_mapping longest-match path (drug_name_clean starts as Japanese
+# for JP-cohort orders).
+"アモキシシリン/クラブラン酸 875/125mg": "6139100F2044"  # → オーグメンチン配合錠250RS
+"アモキシシリン/クラブラン酸 500/125mg": "6139100F1048"  # → オーグメンチン配合錠125SS
+"ブチルスコポラミン 20mg":            "1242002F1330"  # → ブスコパン(既存 alias の JP-full form)
+"乳酸リンゲル液 125-250 mL/h":         "3311402"       # → Lactated Ringers rate variant
+"乳酸リンゲル液 250-500 mL/h":         "3311402"       # → Lactated Ringers aggressive
+"乳酸リンゲル液":                     "3311402"       # → bare JP text alias
+Hydromorphone:                         "8119003F1023"  # ヒドロモルフォン塩酸塩 (ナルラピド錠1mg)
+"ヒドロモルフォン":                    "8119003F1023"  # → JP alias
+# Broad-spectrum antibiotic category label (CY7-28) — assign a representative
+# broad-spectrum agent (Meropenem carbapenem) as a defensible fallback.
+# The clinical text "広域スペクトラム抗菌薬" is a shortcut in disease YAMLs.
+"広域スペクトラム抗菌薬":               "6139002"        # → Meropenem (existing)
+"Broad spectrum antibiotic":           "6139002"

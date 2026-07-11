@@ -249,3 +249,13 @@ codes:
   '2123404D1033':
     en: Landiolol hydrochloride injection (Onoact)
     ja: ランジオロール塩酸塩（オノアクト点滴静注用50mg）
+  # === CY7-26/29 (Chain-7 MHLW ingestion, 2026-07-11) ===
+  '6139100F2044':
+    en: Amoxicillin/Clavulanate 250mg (Augmentin RS)
+    ja: アモキシシリン/クラブラン酸配合錠250RS（オーグメンチン）
+  '6139100F1048':
+    en: Amoxicillin/Clavulanate 125mg (Augmentin SS)
+    ja: アモキシシリン/クラブラン酸配合錠125SS（オーグメンチン）
+  '8119003F1023':
+    en: Hydromorphone hydrochloride 1mg (Narurapid)
+    ja: ヒドロモルフォン塩酸塩1mg（ナルラピド錠）

@@ -214,7 +214,10 @@ def test_fhir_procedure_japanese_display():
 
 
 def test_fhir_procedure_omits_empty_fields():
-    """Bedside procedure with no surgeon / location should not emit empty fields."""
+    """Bedside procedure with no surgeon / location: reference-only fields
+    should not emit empty. bodySite gets a text-only fallback (CY7-18) since
+    FHIR R4 recommends non-empty bodySite for auditability.
+    """
     proc = _proc_dict(
         primary_surgeon_id="",
         anesthesiologist_id="",
@@ -225,7 +228,8 @@ def test_fhir_procedure_omits_empty_fields():
     assert "performer" not in r
     assert "recorder" not in r
     assert "location" not in r
-    assert "bodySite" not in r
+    # CY7-18: bodySite text-only fallback when SNOMED body_site_code absent.
+    assert r["bodySite"] == [{"text": "Body site not specified"}]
 
 
 # ---------------------------------------------------------------------------

@@ -243,6 +243,16 @@
 - **established_pr**: cycle 6 open
 - **revalidation_check**: performer 欠落 Immunization の status を集計し全て "not-done" であることを確認。
 
+### icu-transfer-rate-classhistory-6pct
+
+- **id**: `icu-transfer-rate-classhistory-6pct`
+- **observation**: `Encounter.classHistory` は IMP encounter の ~6% でしか emit されない(cycle 7 で 73/1223)。
+- **by_design_reason**: `classHistory` は encounter class の遷移(一般病棟 → ICU、ICU → 一般病棟)を記録する。ICU 転棟したケースのみ遷移が発生するため、IMP の中で ICU 経由率(clinical reality ~5-10%、cycle 7 の 6.0% は妥当) だけが classHistory を持つ。session 43 C5-22 で導入した機能で、100% ではなく「該当ケースの 100%」が正しい挙動。
+- **signature**: classHistory 欠落 IMP encounter が `icu_transferred_day` を持たないこと(ICU 経由なし)。ICU 経由あり(icu_transferred_day 有)で classHistory 欠落 = 真のバグ。
+- **established_session**: session 44, 2026-07-11 (Cycle 7 review)
+- **established_pr**: cycle 7 open (`499f72a09d`)
+- **revalidation_check**: classHistory 欠落 IMP encounter に対応する CIF record の `icu_transferred_day` を確認し全て -1 (or missing) であること。
+
 ### o2-flow-rate-device-setting-no-refrange
 
 - **id**: `o2-flow-rate-device-setting-no-refrange`
@@ -281,3 +291,5 @@
   `immunization-not-done-no-performer`) を追加 + `co8-non-jp-marketed-drugs` の
   whitelist を 5 件拡張 (Meclizine / Nitrofurantoin / Proparacaine / Ofloxacin
   ophthalmic / Oxymetazoline)。合計 **20 entries**。
+- 2026-07-11 (session 44 Cycle 7 拡張): cycle 7 baseline review で発見した 1 新
+  パターン `icu-transfer-rate-classhistory-6pct` を追加。合計 **21 entries**。

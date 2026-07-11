@@ -98,6 +98,12 @@ def _build_encounter(
 
     # Priority (Encounter.priority)
     priority = enc.get("priority", "")
+    # CY7-06 (Chain-7): default priority "R" (routine) when unset. Real EHR
+    # systems always carry a priority — an empty priority is a data-model
+    # completeness gap. 8 IMP encounters in cycle 7 baseline had priority
+    # empty (all `type == 32485007` general hospital admission).
+    if not priority:
+        priority = "R"
     if priority:
         priority_display = {"EM": "emergency", "UR": "urgent", "R": "routine"}.get(priority, "")
         # C5-03 (session 43 cycle 5): localize priority display for JP output.

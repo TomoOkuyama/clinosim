@@ -168,6 +168,14 @@ def _build_dref_from_clinical_doc(
     resource: dict[str, Any] = {
         "resourceType": "DocumentReference",
         "id": resource_id,
+        # CY7-09 (Chain-7): DocumentReference.masterIdentifier — the
+        # authoritative unique document instance identifier (FHIR R4 spec
+        # recommends OID or UUID). Deterministic OID under clinosim namespace
+        # so re-generation is stable (AD-16 byte-determinism).
+        "masterIdentifier": {
+            "system": "urn:clinosim:documentreference-master",
+            "value": resource_id,
+        },
         # C4-05 (session 43 cycle 4): DocumentReference.identifier 0..* for
         # cross-system document tracking (JP Core recommends). Uses the same
         # id under a clinosim namespace URI — deterministic + unique across
@@ -246,6 +254,10 @@ def _build_dref_from_clinical_doc(
     author_id = _o(doc, "author_practitioner_id", "")
     if author_id:
         resource["author"] = [{"reference": f"Practitioner/{author_id}"}]
+
+    # CY7-10 (Chain-7): DocumentReference.custodian — the managing hospital.
+    # 100% of clinosim documents are custodied by hospital-main Organization.
+    resource["custodian"] = {"reference": "Organization/hospital-main"}
 
     # Encounter context
     enc_id = _o(doc, "encounter_id", "")
