@@ -16,18 +16,32 @@
   - `o2-flow-rate-device-setting-no-refrange` → rename + signature 拡張(LOINC 80288-4 AVPU 追加)= `vital-signs-no-refrange-for-device-setting-or-categorical`
   - `realistic-mr-mar-ratio-for-outpatient-heavy-cohort` → band 5-15 → 5-40
 
-### Session 45 backlog(次サイクル送り)
+### Session 45 backlog CLOSED(2026-07-11 hot-fix chain #2)
 
-**session-45-drug-code-audit(US code_rxnorm 残 5 mismatches)**:
-authoritative NLM RxNav lookup が必要な 5 disease YAML entries。rxnorm.yaml にそもそも該当 code の entry がなく US emit 時に display 引けない状態なので優先度中。regression guard の `_KNOWN_MISMATCHES_TODO` に登録済で新規追加は fail、既知は許容。
+**session-45-drug-code-audit — RESOLVED**: NLM RxNav の `/REST/rxcui/<cui>/properties.json` で各 code を authoritative 確認 → 判明した 3 パターンで対応:
 
-- `acute_pancreatitis.yaml`: Hydromorphone code_rxnorm=3423(実は Heparin RxCUI)
-- `aspiration_pneumonia.yaml`: Moxifloxacin code_rxnorm=139462(実は Piperacillin/Tazobactam RxCUI)
-- `hemorrhagic_stroke.yaml`: Vitamin K code_rxnorm=11253(実は Vitamin D)
-- `hemorrhagic_stroke.yaml`: 4-Factor PCC (Kcentra) code_rxnorm=1364430(実は Apixaban RxCUI)
-- `sepsis.yaml`: Aztreonam code_rxnorm=18631(実は Azithromycin RxCUI)
+1. **rxnorm.yaml 側の label が誤り**(disease YAML の code は authoritative 一致):
+   - RxCUI **3423 = Hydromorphone (IN)**(rxnorm.yaml は `Heparin` と誤登録)
+   - RxCUI **139462 = Moxifloxacin (IN)**(rxnorm.yaml + US mapping は `Piperacillin/Tazobactam` と誤登録)
+   - → rxnorm.yaml + US code_mapping_drug.yaml の label を訂正。
 
-各 authoritative NLM RxNav 検索 → rxnorm.yaml 追加 → disease YAML 修正 → guard から removal の 4-step 作業。
+2. **disease YAML の code が誤り**(authoritative code に修正):
+   - `hemorrhagic_stroke.yaml`: Vitamin K `11253` → **`8308`** (Phytonadione RxCUI)
+   - `hemorrhagic_stroke.yaml`: 4-Factor PCC (Kcentra) `1364430` → **`1484959`** (Kcentra BN)
+   - `sepsis.yaml`: Aztreonam `18631` → **`1272`** (Aztreonam IN)
+
+3. **rxnorm.yaml 新規 authoritative entries**(全 5 件):
+   - `5224 = Heparin`, `8308 = Phytonadione (Vitamin K1)`, `1272 = Aztreonam (Azactam)`,
+     `74169 = Piperacillin/Tazobactam (Zosyn)`, `1484959 = Kcentra (4-Factor PCC)`
+
+4. **US code_mapping_drug.yaml 新規/修正 entries**:
+   - `Heparin: "3423"` → **`Heparin: "5224"`** (authoritative fix)
+   - `Piperacillin/Tazobactam: "139462"` → **`"74169"`** (authoritative fix)
+   - 新規追加: `Moxifloxacin: "139462"`, `Aztreonam: "1272"`, `Hydromorphone: "3423"`, `Phytonadione: "8308"`, `Kcentra: "1484959"`
+
+5. **regression guard**: `test_disease_yaml_drug_code_consistency` の `_KNOWN_MISMATCHES_TODO` 空セット化 + `_ALLOWED_ALIASES` に `Vitamin K/Phytonadione` + `4-Factor PCC (Kcentra)/Kcentra` 2 alias 追加。
+
+unit test 1524 PASS(+1 from session 45 hot-fix chain #1)。 codes-integrity guard 通過。
 
 ## Status (2026-07-11, session 44 — Cycles 6 + 7 CLOSED + CY7-05 structural)
 

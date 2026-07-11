@@ -232,14 +232,21 @@ seed 依存で顕在化した 2 defect(heparin rate adjustment / EMER length)と
 - **C4-STAGE 85.55%** = HbA1c stage text-only(registry #6 で PASS 確認、当スクリプト側の C4-STAGE 条件が registry aware でないため cosmetic FAIL)
 - **D-CIINPROG 4.39%** = pre-existing test-side gap(session 44 wrap で TODO 記載済 `test_jp_clinical_impression_structural_fields_present`)
 
-### Backlog(次サイクル送り)
+### Backlog CLOSED(2026-07-11 hot-fix chain #2)
 
-US code_rxnorm 系の 5 disease YAML entries に更なる drug/code mismatch が sibling sweep で発見された。rxnorm.yaml にそもそも該当 code の entry がなく US emit で display 引けないため優先度中、`session-45-drug-code-audit` として TODO.md に登録済:
+`session-45-drug-code-audit` の 5 US code_rxnorm mismatch は **同日中に authoritative fix 完了**。NLM RxNav `/REST/rxcui/<cui>/properties.json` で各 code の正確な IN/BN を確認 → 3 パターンで整合を回復:
 
-- `acute_pancreatitis.yaml`: Hydromorphone → 3423 (Heparin RxCUI)
-- `aspiration_pneumonia.yaml`: Moxifloxacin → 139462 (Piperacillin/Tazobactam RxCUI)
-- `hemorrhagic_stroke.yaml`: Vitamin K → 11253 (Vitamin D RxCUI)
-- `hemorrhagic_stroke.yaml`: 4-Factor PCC (Kcentra) → 1364430 (Apixaban RxCUI)
-- `sepsis.yaml`: Aztreonam → 18631 (Azithromycin RxCUI)
+1. **rxnorm.yaml 側の label 誤り**(disease YAML の code は正しかった):
+   - RxCUI 3423 → 実は Hydromorphone(rxnorm.yaml が Heparin と誤登録)
+   - RxCUI 139462 → 実は Moxifloxacin(rxnorm.yaml + US mapping が Piperacillin/Tazobactam と誤登録)
 
-各 authoritative NLM RxNav lookup → rxnorm.yaml 追加 → disease YAML 修正 → guard から removal の 4-step 作業。
+2. **disease YAML の code 誤り**(authoritative code に修正):
+   - Vitamin K: 11253 → **8308** (Phytonadione)
+   - Kcentra: 1364430 → **1484959** (Kcentra BN)
+   - Aztreonam: 18631 → **1272** (Aztreonam IN)
+
+3. **rxnorm.yaml に 5 新規 authoritative entries**(5224 Heparin / 8308 Phytonadione / 1272 Aztreonam / 74169 Piperacillin/Tazobactam / 1484959 Kcentra)+ **US code_mapping に 5 新規 + 2 code 修正**(Heparin 3423→5224, Piperacillin/Tazobactam 139462→74169)。
+
+4. **regression guard**: `_KNOWN_MISMATCHES_TODO` 空セット化、`_ALLOWED_ALIASES` に Vitamin K/Phytonadione + 4-Factor PCC (Kcentra)/Kcentra を追加。
+
+unit test 1524 PASS 継続。**session 45 verification chain の全 backlog 消化 = ゼロ items 残**。
