@@ -51,7 +51,16 @@ def _deactivate_to_layer1(
         base_code = dx_code.split(".")[0] if "." in dx_code else dx_code
         # Only add if it's a chronic/recurring condition and not already present
         chronic_prefixes = ("I", "E", "J44", "J45", "N18", "M", "G20", "F00", "K21", "N40")
-        if any(base_code.startswith(p) for p in chronic_prefixes):
+        # Session 45 seed=400 verification finding: N40 (BPH) is anatomically
+        # male-only; sibling with the sex-guard added to `inpatient.py`
+        # `_IMPLIED_CHRONIC_BY_DISEASE`. Prevent discharge-Dx propagation from
+        # attaching N40 (or any future sex-restricted ICD) to the wrong sex.
+        _SEX_RESTRICTED_ICD = {"N40": "M"}
+        _patient_sex = str(getattr(person, "sex", "") or "").upper()[:1]
+        _sex_req = _SEX_RESTRICTED_ICD.get(base_code)
+        if _sex_req and _patient_sex and _sex_req != _patient_sex:
+            pass  # skip; wrong sex for this ICD
+        elif any(base_code.startswith(p) for p in chronic_prefixes):
             # Check if base code already in chronic conditions
             existing_bases = {c.split(".")[0] for c in person.chronic_conditions}
             if base_code not in existing_bases:

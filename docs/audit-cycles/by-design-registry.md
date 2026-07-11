@@ -256,6 +256,31 @@
 - **established_pr**: cycle 7 open (`499f72a09d`)
 - **revalidation_check**: classHistory 欠落 IMP encounter に対応する CIF record の `icu_transferred_day` を確認し全て -1 (or missing) であること。
 
+### cy7-05-synth-ed-encounter-no-condition
+
+- **id**: `cy7-05-synth-ed-encounter-no-condition`
+- **observation**: `Condition.ndjson` does not reference the synthesized ED
+  Encounter resources (id suffix `-ED`) — clinical audits show
+  IMP/EMER-without-Condition count matches exactly the number of ED→IMP
+  partOf-linked synth encounters (session 45 seed=400: 972/972).
+- **by_design_reason**: CY7-05 (session 44) synthesizes a lightweight ED
+  Encounter FHIR resource so IMP.partOf resolves, but the diagnosis lives on
+  the primary IMP encounter — not duplicated on the synth stub. The synth
+  carries chief-complaint text in `reasonCode` and `hospitalization.admitSource
+  = "outp"` / `dischargeDisposition = "hosp"` to convey the ED-visit event
+  without inflating downstream Condition/Procedure/Order counts. Adding a
+  Condition specifically for the synth stub would misrepresent EHR reality
+  (in practice, ED-to-admission is billed on the inpatient encounter, not the
+  ED subacct). Session 45 seed=400 verification confirmed all 972 IMP/EMER
+  missing-Condition were synth `-ED` ids (`class == "EMER"`, `status ==
+  "finished"`, id endswith `-ED`).
+- **signature**: `IMP/EMER encounters without any Condition.encounter =
+  Encounter/<id> reference` all have id endswith `-ED`.
+- **established_session**: session 45 verification, 2026-07-11
+- **established_pr**: session 45 chain #5 (`210bc6b057`..)
+- **revalidation_check**: sort no-Condition IMP/EMER by id; every id must
+  end with `-ED` (the CY7-05 synth suffix).
+
 ### vital-signs-no-refrange-for-device-setting-or-categorical
 
 - **id**: `vital-signs-no-refrange-for-device-setting-or-categorical`
