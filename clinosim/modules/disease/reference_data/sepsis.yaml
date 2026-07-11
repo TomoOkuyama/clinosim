@@ -556,7 +556,7 @@ drugs:
           eGFR_below_50: "400mg IV q12h"
         pregnancy_safe: false
       - drug: "Aztreonam"
-        code_rxnorm: "18631"
+        code_rxnorm: "1272"
         dose: "2g IV q8h"
         renal_adjustment:
           eGFR_below_30: "1g IV q8h"

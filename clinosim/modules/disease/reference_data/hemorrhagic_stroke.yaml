@@ -395,12 +395,12 @@ drugs:
         indication: "dabigatran_reversal"
     us:
       - drug: "Vitamin K"
-        code_rxnorm: "11253"
+        code_rxnorm: "8308"
         dose: "10mg IV"
         route: IV
         indication: "warfarin_reversal"
       - drug: "4-Factor PCC (Kcentra)"
-        code_rxnorm: "1364430"
+        code_rxnorm: "1484959"
         dose: "25-50 IU/kg IV"
         route: IV
         indication: "warfarin_urgent_reversal"

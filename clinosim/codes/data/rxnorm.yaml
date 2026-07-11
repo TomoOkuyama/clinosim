@@ -53,8 +53,8 @@ codes:
     en: Apixaban (Eliquis)
     ja: アピキサバン（エリキュース）
   '139462':
-    en: Piperacillin/Tazobactam (Zosyn)
-    ja: ピペラシリン/タゾバクタム（ゾシン）
+    en: Moxifloxacin (Avelox)
+    ja: モキシフロキサシン（アベロックス）
   '140587':
     en: Celecoxib (Celebrex)
     ja: セレコキシブ（セレコックス）
@@ -128,8 +128,8 @@ codes:
     en: Clopidogrel (Plavix)
     ja: クロピドグレル（プラビックス）
   '3423':
-    en: Heparin
-    ja: ヘパリン
+    en: Hydromorphone (Dilaudid)
+    ja: ヒドロモルフォン（ジラウジド）
   '3443':
     en: Epinephrine
     ja: エピネフリン
@@ -223,3 +223,19 @@ codes:
   '9796':
     en: Sodium bicarbonate
     ja: 炭酸水素ナトリウム（メイロン）
+  # session 45 authoritative additions (NLM RxNav verified 2026-07-11).
+  '5224':
+    en: Heparin
+    ja: ヘパリン
+  '8308':
+    en: Phytonadione (Vitamin K1)
+    ja: フィトナジオン（ビタミンK1）
+  '1272':
+    en: Aztreonam (Azactam)
+    ja: アズトレオナム（アザクタム）
+  '74169':
+    en: Piperacillin/Tazobactam (Zosyn)
+    ja: ピペラシリン/タゾバクタム（ゾシン）
+  '1484959':
+    en: Kcentra (4-Factor Prothrombin Complex Concentrate)
+    ja: ケイセントラ（4因子プロトロンビン複合体製剤）

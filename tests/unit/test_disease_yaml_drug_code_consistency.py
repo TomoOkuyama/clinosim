@@ -56,19 +56,23 @@ _ALLOWED_ALIASES: dict[str, set[str]] = {
     "insulin regular": {"sliding scale insulin"},
     "regular insulin": {"sliding scale insulin"},
     "sliding scale insulin": {"insulin regular", "regular insulin"},
+    # Vitamin K1 = phytonadione = same molecule, clinical vs INN name pair.
+    "vitamin k": {"phytonadione"},
+    "phytonadione": {"vitamin k"},
+    # 4-Factor PCC = Kcentra = same product (brand name vs generic descriptor).
+    "4-factor pcc (kcentra)": {"kcentra"},
+    "kcentra": {"4-factor pcc (kcentra)"},
 }
 
-# Known-broken US code_rxnorm mismatches (session 45 sibling-sweep finding).
-# rxnorm.yaml carries no entry for these codes so US emit resolves to
-# unmapped display anyway. Tracked in TODO.md session-45-drug-code-audit for
-# authoritative RxNav lookup + fix in a follow-up chain.
-_KNOWN_MISMATCHES_TODO: set[tuple[str, str, str, str]] = {
-    ("acute_pancreatitis.yaml", "Hydromorphone", "rxnorm", "3423"),
-    ("aspiration_pneumonia.yaml", "Moxifloxacin", "rxnorm", "139462"),
-    ("hemorrhagic_stroke.yaml", "Vitamin K", "rxnorm", "11253"),
-    ("hemorrhagic_stroke.yaml", "4-Factor PCC (Kcentra)", "rxnorm", "1364430"),
-    ("sepsis.yaml", "Aztreonam", "rxnorm", "18631"),
-}
+# Session 45 backlog (session-45-drug-code-audit) — resolved 2026-07-11.
+# All 5 US code_rxnorm mismatches were verified against NLM RxNav
+# (`/REST/rxcui/<cui>/properties.json`) and either the code was already
+# correct (Hydromorphone 3423, Moxifloxacin 139462 — rxnorm.yaml's label was
+# the misfire) or the disease YAML was corrected to the authoritative CUI
+# (Vitamin K 8308, Kcentra 1484959, Aztreonam 1272). rxnorm.yaml + US
+# code_mapping_drug.yaml updated in the same commit. Left empty here so a
+# future entry has to be justified.
+_KNOWN_MISMATCHES_TODO: set[tuple[str, str, str, str]] = set()
 
 _QUALIFIER_PREFIXES = (
     "unfractionated",
