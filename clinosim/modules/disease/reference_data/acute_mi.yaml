@@ -409,7 +409,7 @@ drugs:
         note: "Dual antiplatelet therapy (DAPT)"
         pregnancy_safe: false
       - drug: "Heparin"
-        code_yj: "3334400"
+        code_yj: "3334002"
         dose: "60U/kg bolus, then 12U/kg/h IV drip (target APTT 1.5-2.5x)"
         route: IV
         pregnancy_safe: true

@@ -411,7 +411,7 @@ drugs:
   discharge_oral:
     japan:
       - drug: "Amoxicillin"
-        code_yj: "6131001"
+        code_yj: "6131002"
         dose: "250mg PO TID"
         duration_days: 5
     us:
