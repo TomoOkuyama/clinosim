@@ -1,6 +1,35 @@
 # clinosim — TODO
 
-## Status (current as of 2026-07-11, session 44 — Cycles 6 + 7 CLOSED + CY7-05 structural)
+## Status (2026-07-11, session 45 — seed=100 verification + hot-fix chain)
+
+**Session 45 (2026-07-11 evening)** — JP p=10000 seed=100 で C1-C7 fix の別seed回収検証を実施。結果:66/75 checks PASS、6 FAIL の内訳 = 4 by-design + 2 新規defect。全て hot-fix chain で改修 + 8 sibling-sweep code mismatches のうち 4 (Heparin family + Amoxicillin) を修正:
+
+- **未分画ヘパリン rate adjustment**: `_split_rate_adjustment_suffix` + `_localize_rate_adjustment` helper (`_fhir_localization.py`) + MR/MAR builder wire-up。drug 名 suffix "increase_rate_by_20%" を dosageInstruction に分離。
+- **suffix-match fallback**: `_fhir_medications.py` の token loop に右→左 fallback 追加 = "Unfractionated Heparin" のような qualifier-prefixed alias が base "Heparin" にfold される。
+- **EMER length synthesis**: `_compute_encounter_length` helper 抽出 + `_bb_encounters` 内の synthesized ED encounter に length emit 追加。
+- **Disease YAML drug/code mismatch (真の code誤り)** — 4 files 修正:
+  - pulmonary_embolism.yaml / acute_mi.yaml / deep_vein_thrombosis.yaml / atrial_fibrillation_rvr.yaml: Heparin(_Unfractionated) の code_yj が Enoxaparin の 3334400 → Heparin の 3334002 に修正
+  - bacterial_pneumonia.yaml: Amoxicillin の code_yj が Ampicillin の 6131001 → Amoxicillin の 6131002 に修正
+- **regression guard 追加**: `tests/unit/test_disease_yaml_drug_code_consistency.py` — 全 disease YAML を drug↔code_(yj|rxnorm)↔code_mapping で自動照合。alias は allowlist、既知 backlog は KNOWN_MISMATCHES_TODO で除外。
+- **by-design registry update**: 3 entries:
+  - `condition-severity-none-on-chronic-primary-encounter` → RETIRED
+  - `o2-flow-rate-device-setting-no-refrange` → rename + signature 拡張(LOINC 80288-4 AVPU 追加)= `vital-signs-no-refrange-for-device-setting-or-categorical`
+  - `realistic-mr-mar-ratio-for-outpatient-heavy-cohort` → band 5-15 → 5-40
+
+### Session 45 backlog(次サイクル送り)
+
+**session-45-drug-code-audit(US code_rxnorm 残 5 mismatches)**:
+authoritative NLM RxNav lookup が必要な 5 disease YAML entries。rxnorm.yaml にそもそも該当 code の entry がなく US emit 時に display 引けない状態なので優先度中。regression guard の `_KNOWN_MISMATCHES_TODO` に登録済で新規追加は fail、既知は許容。
+
+- `acute_pancreatitis.yaml`: Hydromorphone code_rxnorm=3423(実は Heparin RxCUI)
+- `aspiration_pneumonia.yaml`: Moxifloxacin code_rxnorm=139462(実は Piperacillin/Tazobactam RxCUI)
+- `hemorrhagic_stroke.yaml`: Vitamin K code_rxnorm=11253(実は Vitamin D)
+- `hemorrhagic_stroke.yaml`: 4-Factor PCC (Kcentra) code_rxnorm=1364430(実は Apixaban RxCUI)
+- `sepsis.yaml`: Aztreonam code_rxnorm=18631(実は Azithromycin RxCUI)
+
+各 authoritative NLM RxNav 検索 → rxnorm.yaml 追加 → disease YAML 修正 → guard から removal の 4-step 作業。
+
+## Status (2026-07-11, session 44 — Cycles 6 + 7 CLOSED + CY7-05 structural)
 
 **★ Session 44 (2026-07-11, master HEAD `92c184e8d6`)** — comprehensive
 FHIR-completeness sweep across 3 cycles + full residual close-out:

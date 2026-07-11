@@ -138,12 +138,12 @@
 ### realistic-mr-mar-ratio-for-outpatient-heavy-cohort
 
 - **id**: `realistic-mr-mar-ratio-for-outpatient-heavy-cohort`
-- **observation**: MR 件数がある基準値 (例 21820 for JP p=10000) より少なく見える。MAR:MR 比が ~9:1。
-- **by_design_reason**: 90% 外来コホートで MR = 外来処方 + 入院初期オーダーのみ、MAR = 入院での複数日投与実績。~0.5 MR/enc + MAR:MR 9:1 は実 EHR reality。C1-08 で確認済(cycle 1)。
-- **signature**: `MR count / encounter count ≈ 0.4–0.7` かつ `MAR / MR ≈ 5–15`。両範囲内なら by-design。範囲外 = 要調査。
-- **established_session**: session 41, 2026-07-07 (cycle 1)
-- **established_pr**: cycle 1 close
-- **revalidation_check**: 上記 2 比率を計算し範囲内であること。
+- **observation**: MR 件数がある基準値 (例 21820 for JP p=10000) より少なく見える。MAR:MR 比が ~9:1 〜 33:1 の広い帯。
+- **by_design_reason**: 90% 外来コホートで MR = 外来処方 + 入院初期オーダーのみ、MAR = 入院での複数日投与実績。~0.4-0.6 MR/enc + 高比率 MAR:MR は実 EHR reality。session 45 seed=100 verification で 32.6 観測 = long-LOS IMP + continuous-infusion drip の重畳による自然な pattern。C1-08 (cycle 1) + session 45 verification 併合。
+- **signature**: `MR count / encounter count ≈ 0.4–0.7` かつ `MAR / MR ≈ 5–40`。両範囲内なら by-design。範囲外 = 要調査(cohort 混合が変化 or MAR bloat)。
+- **established_session**: session 41, 2026-07-07 (cycle 1) — band widened session 45, 2026-07-11
+- **established_pr**: cycle 1 close + session 45 verification
+- **revalidation_check**: 上記 2 比率を計算し範囲内であること。band 上限を上回るときは continuous-infusion drip の混在率が急変していないか確認。
 
 ### clinical-impression-summary-optional
 
@@ -185,15 +185,16 @@
 - **established_pr**: cycle 2 close
 - **revalidation_check**: 全 Coverage の type に `coding` が無く、`text` のみであること。authoritative code source が確立した時点で本 entry は解除。
 
-### condition-severity-none-on-chronic-primary-encounter
+### condition-severity-none-on-chronic-primary-encounter [RETIRED]
 
 - **id**: `condition-severity-none-on-chronic-primary-encounter`
-- **observation**: `Condition.severity` の一部欠落(65.8% observed at cycle 2 for I10 routine visit と類似 pattern)。
-- **by_design_reason**: primary dx が慢性疾患 (I10 essential HTN etc.) の routine outpatient follow-up では acute severity が sensor 由来で inferable でない → severity None が clinically correct。C2-32 で確認済(cycle 2)。cycle 4 C4-05/07-09 で chronic_conditions からの inherit path 追加済(残 severity 欠落は真に acute-inferable でない encounter のみ)。
-- **signature**: severity 欠落 Condition の encounter が `outpatient` かつ primary dx が慢性 (I10/E11/N18/I50/J44/J45/I25 系) であること。inpatient encounter で severity 欠落 = 真のバグ(本レジストリ対象外)。
+- **status**: **RETIRED — session 45, 2026-07-11 verification**
+- **retirement_reason**: cycle 6-7 residual sweep + Cycle 4 C4-05/07-09 chronic-inherit path で全 Condition が severity populate 済。session 45 seed=100 verification で severity 欠落 Condition = 0 件を確認 = 該当 pattern が消失。今後 severity 欠落を検出した場合は **真のバグ**(本 entry で by-design 扱いしない)。
+- **original_observation**: `Condition.severity` の一部欠落(65.8% observed at cycle 2 for I10 routine visit)。
+- **original_by_design_reason**: primary dx が慢性疾患 (I10 essential HTN etc.) の routine outpatient follow-up では acute severity が sensor 由来で inferable でない → severity None が clinically correct。C2-32 で確認済(cycle 2)。
 - **established_session**: session 42, 2026-07-07 (cycle 2)
-- **established_pr**: cycle 2 close (partial fix in cycle 4)
-- **revalidation_check**: severity 欠落 Condition の encounter_type + primary dx が上記 pattern であることを確認。
+- **retired_session**: session 45, 2026-07-11 (verification)
+- **retired_pr**: session 45 verification chain
 
 ### composition-vs-documentreference-format-type-split
 
@@ -255,15 +256,19 @@
 - **established_pr**: cycle 7 open (`499f72a09d`)
 - **revalidation_check**: classHistory 欠落 IMP encounter に対応する CIF record の `icu_transferred_day` を確認し全て -1 (or missing) であること。
 
-### o2-flow-rate-device-setting-no-refrange
+### vital-signs-no-refrange-for-device-setting-or-categorical
 
-- **id**: `o2-flow-rate-device-setting-no-refrange`
-- **observation**: バイタル系 `Observation` の 22% に `referenceRange` が無い。specifically LOINC 3151-8 O2 flow rate (13,843 obs at cycle 5 baseline)。
-- **by_design_reason**: O2 flow rate は装置設定値 (device setting) であり、生理学的 normal range が定義されない (酸素投与量 = 治療介入量、健常者に対する reference 範囲は存在しない)。FHIR R4 は device setting observation に refRange を要求しない。C5-17 で確認済(cycle 5)。
-- **signature**: refRange 欠落バイタル Observation の `code.coding[0].code` が `3151-8` (O2 flow rate) であること。他 LOINC で refRange 欠落 = 真のバグ。
-- **established_session**: session 43, 2026-07-09 (cycle 5)
-- **established_pr**: cycle 5 close
-- **revalidation_check**: refRange 欠落 Observation の LOINC が全て `3151-8` に一致することを確認。
+- **id**: `vital-signs-no-refrange-for-device-setting-or-categorical`
+- **aliases**: `o2-flow-rate-device-setting-no-refrange` (original session 43 name; kept as alias for back-reference from session 41-44 cycle docs)
+- **observation**: バイタル系 `Observation` の一部に `referenceRange` が無い。cycle 5 baseline で LOINC 3151-8 (O2 flow rate) 13,843 obs 観測。session 45 seed=100 verification で LOINC 80288-4 (AVPU consciousness level) 131,364 obs 追加確認。
+- **by_design_reason**: 以下 2 種類のバイタル観測は生理学的 normal range が概念的に不要:
+  - **Device setting**: LOINC 3151-8 O2 flow rate = 装置設定値(酸素投与量 = 治療介入量、健常者に対する reference 範囲は存在しない)。
+  - **Categorical scale**: LOINC 80288-4 AVPU = 4 段階 categorical valueSet (Alert / Verbal / Pain / Unresponsive)、numeric range が意味を持たない。session 45 追加。
+  他の categorical vital scale(GCS の 3 sub-components など)を将来追加する場合は同 pattern。FHIR R4 は refRange を 0..* で要求しない。
+- **signature**: refRange 欠落バイタル Observation の `code.coding[0].code` が `{3151-8 (O2 flow rate), 80288-4 (AVPU consciousness)}` のいずれかに一致すること。他 LOINC で refRange 欠落 = 真のバグ(本レジストリ対象外)。
+- **established_session**: session 43, 2026-07-09 (cycle 5) — signature extended session 45, 2026-07-11
+- **established_pr**: cycle 5 close + session 45 verification
+- **revalidation_check**: refRange 欠落 Observation の LOINC が全て上記 whitelist に含まれることを確認。新規 categorical vital LOINC を発見した場合は registry を update。
 
 ---
 
@@ -295,3 +300,13 @@
   ophthalmic / Oxymetazoline)。合計 **20 entries**。
 - 2026-07-11 (session 44 Cycle 7 拡張): cycle 7 baseline review で発見した 1 新
   パターン `icu-transfer-rate-classhistory-6pct` を追加。合計 **21 entries**。
+- 2026-07-11 (session 45 verification): JP p=10000 seed=100 verification で発見した
+  3 修正 (heparin rate adjustment / EMER length synthesis) と registry 3 更新を統合:
+  - `condition-severity-none-on-chronic-primary-encounter` → RETIRED
+    (cycle 6-7 residual sweep 後 severity 欠落 = 0 件、pattern 消失)
+  - `o2-flow-rate-device-setting-no-refrange` → rename +
+    signature 拡張 = `vital-signs-no-refrange-for-device-setting-or-categorical`
+    (LOINC 80288-4 AVPU consciousness を追加)
+  - `realistic-mr-mar-ratio-for-outpatient-heavy-cohort` → MAR/MR band 5-15 → 5-40 に拡張
+    (long-LOS IMP + continuous-infusion drip 混在の広い自然帯を許容)
+  net: **21 entries**(1 retire + 2 signature update、新規 entry 無し)。
