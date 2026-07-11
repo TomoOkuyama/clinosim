@@ -119,6 +119,11 @@ def test_cli_generate_argparse_population_uses_suppress() -> None:
 def test_cli_generate_reports_explicit_population_in_stdout(tmp_path: object) -> None:
     """End-to-end smoke test (tiny population for speed): explicit -p N is echoed
     verbatim in stdout, not replaced.
+
+    Person count is not asserted exactly — households sample from [1,2,2,3,3,4]
+    so the realized total_persons varies with RNG state (2 households for -p 7
+    → range [2, 8]).  What we DO enforce is that the CLI passes -p through and
+    that a population is actually generated (non-zero).
     """
     r = subprocess.run(
         [sys.executable, "-m", "clinosim.simulator.cli", "generate",
@@ -127,4 +132,8 @@ def test_cli_generate_reports_explicit_population_in_stdout(tmp_path: object) ->
     )
     assert r.returncode == 0, r.stderr
     assert "population=7" in r.stdout
-    assert "Population: 7 persons" in r.stdout
+    import re
+    m = re.search(r"Population: (\d+) persons", r.stdout)
+    assert m, f"'Population: N persons' line missing from stdout:\n{r.stdout}"
+    n = int(m.group(1))
+    assert 1 <= n <= 12, f"total_persons={n} outside realistic range for -p 7"

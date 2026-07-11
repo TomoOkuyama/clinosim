@@ -143,6 +143,21 @@ def _build_practitioner_role(
     }
     role_code = role_code_map.get(role, "")
 
+    # C5-25 (Chain 3): text-only PractitionerRole.code for allied-health
+    # roles not covered by HL7's practitioner-role CodeSystem. FHIR R4
+    # CodeableConcept accepts text-only (no fabricated code). SNOMED CT
+    # occupation codes exist for these roles but registering them requires
+    # per-code SNOMED verification (deferred to a separate authoritative
+    # code chain — mirrors C2-15 policy).
+    _text_only_role: dict[str, tuple[str, str]] = {
+        "physical_therapist":     ("Physical therapist",         "理学療法士"),
+        "occupational_therapist": ("Occupational therapist",     "作業療法士"),
+        "speech_therapist":       ("Speech-language therapist",  "言語聴覚士"),
+        "medical_social_worker":  ("Medical social worker",      "医療ソーシャルワーカー"),
+        "dietitian":              ("Registered dietitian",       "管理栄養士"),
+    }
+    _text_only_display = _text_only_role.get(role)
+
     spec_info = _SPECIALTY_SNOMED.get(specialty) or _SPECIALTY_SNOMED.get(department)
 
     resource: dict[str, Any] = {
@@ -173,6 +188,10 @@ def _build_practitioner_role(
                 "hl7-practitioner-role", role_code, resolve_lang(country),
             )],
         }]
+    elif _text_only_display:
+        _lang = resolve_lang(country)
+        _disp = _text_only_display[1] if _lang == "ja" else _text_only_display[0]
+        resource["code"] = [{"text": _disp}]
 
     if spec_info:
         # C5-05 (session 43 cycle 5): resolve specialty display through

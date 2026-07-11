@@ -525,6 +525,19 @@ def _bb_practitioners(ctx: BundleContext) -> list[dict]:
     for sid, staff in (ctx.roster_map or {}).items():
         if (staff.get("role", "") or "") == "pharmacist":
             add(sid)
+    # C5-25 (Chain 3): allied-health staff (PT/OT/ST/MSW/RD) are populated by
+    # generate_roster but not yet referenced by CareTeam (2-name scope
+    # invariant AD-64 until β-JP-1 multi-disciplinary expansion). Emit them
+    # here so the hospital's Practitioner registry is complete — matches JP
+    # EHR practice where staff master data lists all licensed clinicians
+    # regardless of encounter participation.
+    _allied_roles = {
+        "physical_therapist", "occupational_therapist", "speech_therapist",
+        "medical_social_worker", "dietitian",
+    }
+    for sid, staff in (ctx.roster_map or {}).items():
+        if (staff.get("role", "") or "") in _allied_roles:
+            add(sid)
     return out
 
 
