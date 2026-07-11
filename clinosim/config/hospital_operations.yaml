@@ -28,6 +28,14 @@ available_departments:
   - orthopedics          # 整形外科
   - emergency_medicine   # 救急
   - primary_care         # プライマリケア (outpatient)
+  # CY6-01 / CY6-30 (Chain-6): allied-health service lines added to match the
+  # roster (session 44 C5-25) — Organization + Location + PractitionerRole.org
+  # references now all resolve. Physical space for these services is co-located
+  # with inpatient wards (rehab gym in ortho ward; nutrition consultants
+  # visit bedside), so no new ward entry is required.
+  - rehabilitation       # リハビリテーション科 (PT/OT/ST)
+  - nutrition            # 栄養管理科 (RD)
+  - medical_social_work  # 医療社会事業科 (MSW)
 
 # Map granular specialties to the available departments at this hospital
 department_rollup:

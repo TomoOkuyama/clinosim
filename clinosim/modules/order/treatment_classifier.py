@@ -48,6 +48,10 @@ PROCEDURE_KEYWORDS: tuple[str, ...] = (
     "endoscopy", "biopsy", "polypectomy", "hemodialysis", "dialysis",
     "foreign body removal", "rust ring removal", "vertebroplasty",
     "procedural sedation",
+    # CY6-14 (Chain-6): CRRT — continuous renal replacement therapy is a
+    # procedure regardless of how it's spelled. Both the canonical acronym
+    # and the expanded form register here.
+    "crrt", "continuous renal replacement",
     # Physical modalities (topical devices)
     "ice pack", "heat pack", "heat application", "cold application",
     # Nebulizer as a bare setup (nebulized DRUG matches "nebulized" NOT "nebulizer")
@@ -77,6 +81,12 @@ THERAPY_KEYWORDS: tuple[str, ...] = (
     "elevation",
     # Medication review is not itself a medication order
     "medication review", "review and adjustment",
+    # CY6-15 / CY6-16 (Chain-6): resuscitation formulas / therapeutic
+    # protocols are care-plan instructions, not specific drug orders. The
+    # underlying fluid (LR / NS) is placed as a separate ADM-M order.
+    "parkland formula", "parkland式",
+    "治療的抗凝固療法", "therapeutic anticoagulation",
+    "抗凝固療法 (置換", "anticoagulation (substitution",
 )
 
 MEDICATION_TYPE_HINTS: frozenset[str] = frozenset({

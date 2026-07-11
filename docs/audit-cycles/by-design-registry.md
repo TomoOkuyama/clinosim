@@ -88,14 +88,19 @@
 ### co8-non-jp-marketed-drugs
 
 - **id**: `co8-non-jp-marketed-drugs`
-- **observation**: `MedicationRequest.ndjson` の 4 前後の記録が YJ code を持たない(text-only)。
-- **by_design_reason**: 該当 drug (2026-07-11 時点で Cyclobenzaprine / Phenazopyridine) は 日本 薬価基準未掲載 (imported / OTC / withdrawn)。No-fabrication policy (session 40 確立) により、authoritative code 未確認の drug には code を emit しない。
+- **observation**: `MedicationRequest.ndjson` の一部記録が YJ code を持たない(text-only)。
+- **by_design_reason**: 該当 drug は 日本 薬価基準未掲載 (imported / OTC / withdrawn / 眼科点眼など海外一般名指定処方)。No-fabrication policy (session 40 確立) により、authoritative code 未確認の drug には code を emit しない。
 - **signature**: uncoded MR の drug name (medicationCodeableConcept.text の base name / normalized form) が以下 whitelist に含まれること:
   - "シクロベンザプリン" / "Cyclobenzaprine"
   - "フェナゾピリジン" / "Phenazopyridine"
+  - "メクリジン" / "Meclizine"  (session 44 cycle 6 追加 — 抗ヒスタミン、JP 薬価基準未掲載)
+  - "ニトロフラントイン" / "Nitrofurantoin"  (session 44 cycle 6 追加 — UTI、JP 未掲載)
+  - "プロパラカイン" / "Proparacaine"  (session 44 cycle 6 追加 — 眼科表面麻酔、JP 未掲載)
+  - "オフロキサシン点眼" / "Ofloxacin ophthalmic"  (session 44 cycle 6 追加 — 眼科 個別 code なし)
+  - "オキシメタゾリン" / "Oxymetazoline"  (session 44 cycle 6 追加 — 鼻噴霧 OTC)
   他の drug で uncoded が発生した場合 = 真のバグ(MHLW lookup 追加が必要)。
-- **established_session**: session 44, 2026-07-11 (Chain 4 CO-8)
-- **established_pr**: `2c5e79b974`
+- **established_session**: session 44, 2026-07-11 (Chain 4 CO-8) — cycle 6 (session 44 continuation) で 5 件追加
+- **established_pr**: `2c5e79b974` + cycle 6 close
 - **revalidation_check**: uncoded MR の text が全て上記 whitelist の subset に一致することを確認。増減があれば registry を update。
 
 ### hba1c-value-as-stage-text
@@ -208,6 +213,36 @@
 - **established_pr**: cycle 5 close
 - **revalidation_check**: compound text MR/MAR で `medicationCodeableConcept.coding[0].code` が non-empty であること(primary drug が resolved)。
 
+### amb-encounter-no-hospitalization
+
+- **id**: `amb-encounter-no-hospitalization`
+- **observation**: `Encounter.hospitalization` が cohort 全体で ~10% しか emit されない(cycle 6 で 3951/37137)。
+- **by_design_reason**: `Encounter.hospitalization` は入院/退院 episode 情報(admit source / discharge disposition / dietary preference 等)を保持する。AMB (ambulatory / outpatient) encounter には入退院 episode が存在しないため、FHIR R4 は `hospitalization` を emit しない。EMER + IMP encounter だけが hospitalization を持つ = 実 EHR 挙動と整合。
+- **signature**: `hospitalization` 欠落 Encounter が全て `class.code == "AMB"` であること。EMER / IMP で欠落 = 真のバグ。
+- **established_session**: session 44, 2026-07-11 (Cycle 6 review)
+- **established_pr**: cycle 6 open (`892c15051c`)
+- **revalidation_check**: hospitalization 欠落 Encounter の class.code を集計し全て "AMB" であることを確認。EMER + IMP は 100% 有。
+
+### observation-method-lab-only
+
+- **id**: `observation-method-lab-only`
+- **observation**: `Observation.method` の cohort emit rate が ~12% (cycle 6 baseline 282762/2340725)。
+- **by_design_reason**: session 44 CO-8 で `Observation.method` を lab カテゴリのみに wired。vital-signs (device 設定値の計測)、survey (質問票 / 意識レベル)、social-history (喫煙 / 飲酒 / 職業) は概念的に method 不要:vital signs は device による自動計測、survey は問診、social-history は聞き取り。lab のみ analyzer method (自動分析器測定 / 培養同定 / 感受性試験) が意味を持つ。
+- **signature**: method 欠落 Observation が全て非 lab カテゴリ (`vital-signs | survey | social-history | imaging`) であること。lab カテゴリで method 欠落 = 真のバグ。
+- **established_session**: session 44, 2026-07-11 (Chain 2 + Cycle 6 review)
+- **established_pr**: `1481306d2f` (Chain 2 initial) + cycle 6 confirm
+- **revalidation_check**: method 欠落 Observation の category を集計し全て非 lab であることを確認。lab カテゴリの method rate = 100% であること。
+
+### immunization-not-done-no-performer
+
+- **id**: `immunization-not-done-no-performer`
+- **observation**: `Immunization.ndjson` の一部 (~2%) で `performer` field が欠落 (cycle 6 で 599/29995)。
+- **by_design_reason**: `Immunization.status == "not-done"` は「接種予定だったが未接種」の記録形式(refusal / contraindication / logistics 等)。実接種者が存在しないため performer は emit しない。CDC IIS / JP 予防接種台帳の両方で同じ挙動。FHIR R4 `Immunization.performer` は 0..* で not-done で欠落しても spec 適合。
+- **signature**: performer 欠落 Immunization が全て `status == "not-done"` であること。`status == "completed"` で欠落 = 真のバグ。
+- **established_session**: session 44, 2026-07-11 (Cycle 6 review)
+- **established_pr**: cycle 6 open
+- **revalidation_check**: performer 欠落 Immunization の status を集計し全て "not-done" であることを確認。
+
 ### o2-flow-rate-device-setting-no-refrange
 
 - **id**: `o2-flow-rate-device-setting-no-refrange`
@@ -241,3 +276,8 @@
   - Cycle 5 (2): C5-16, C5-17
   - Session 44 Chain 1-4 verify (7): snapshot-length, MR substitution, Coverage 後期高齢者,
     FMH healthy relative, CO-8 non-JP drugs, HbA1c stage text, CI in-progress status
+- 2026-07-11 (session 44 Cycle 6 拡張): cycle 6 baseline review で発見した 3 新パターン
+  (`amb-encounter-no-hospitalization` / `observation-method-lab-only` /
+  `immunization-not-done-no-performer`) を追加 + `co8-non-jp-marketed-drugs` の
+  whitelist を 5 件拡張 (Meclizine / Nitrofurantoin / Proparacaine / Ofloxacin
+  ophthalmic / Oxymetazoline)。合計 **20 entries**。

@@ -241,6 +241,18 @@ def build_dr_resource(
         res["issued"] = issued
     if performer_ref:
         res["performer"] = [{"reference": performer_ref}]
+    # CY6-20 (Chain-6): DR.conclusion for lab panel. Encloses a locale-aware
+    # one-line summary indicating the number of analytes included and
+    # deferring to per-Observation interpretation for abnormal detail.
+    # Real clinical reports carry a similar summary line ("All values within
+    # reference range" / "See individual results" — clinosim goes with the
+    # latter because per-analyte interpretation is already carried on each
+    # linked Observation).
+    _n_obs = len(group.obs_refs)
+    if lang == "ja":
+        res["conclusion"] = f"{display}({_n_obs}項目):個別検査値および解釈は関連 Observation を参照。"
+    else:
+        res["conclusion"] = f"{display} ({_n_obs} analytes) — see linked Observation resources for per-analyte values and interpretation."
     # C5-20 (Chain 3): presentedForm — text-plain rendered summary of the
     # panel report (patient-facing form). Header + observation count is
     # sufficient without inflating the attachment with per-analyte lines;
@@ -325,6 +337,23 @@ def build_lab_panel_reports(ctx) -> list[dict]:
     # so the SR ids produced here match those emitted in ServiceRequest.ndjson.
     panel_counter = build_panel_counter(lab_orders)
 
+    # CY6-03 (Chain-6): DR.performer fallback to encounter attending physician.
+    # FHIR R4 DiagnosticReport.performer is 0..* — but a real lab report is
+    # always attributable to the ordering/reporting physician (or the lab
+    # itself). Radiology DR builder path already carries a performer via the
+    # radiology report; lab panel DR was 0% populated. Attending fallback
+    # mirrors the C4-17 / C4-22 / C4-23 pattern used by other builders.
+    _attending_by_enc: dict[str, str] = {}
+    for _enc in ctx.record.get("encounters", []) or []:
+        _eid = _o(_enc, "encounter_id", "") or ""
+        _att = _o(_enc, "attending_physician_id", "") or ""
+        if _eid and _att:
+            _attending_by_enc[_eid] = _att
+    _lab_performer_ref = ""
+    _att_for_enc = _attending_by_enc.get(enc_id, "")
+    if _att_for_enc:
+        _lab_performer_ref = f"Practitioner/{_att_for_enc}"
+
     groups = group_lab_orders(orders, enc_id)
     seq_by_panel: dict[str, int] = defaultdict(int)
     out: list[dict] = []
@@ -333,7 +362,7 @@ def build_lab_panel_reports(ctx) -> list[dict]:
         seq_by_panel[g.panel_name] = seq + 1
         report = build_dr_resource(
             g, ctx.patient_id, enc_id, ctx.country,
-            performer_ref=None, issued=None, seq=seq,
+            performer_ref=_lab_performer_ref or None, issued=None, seq=seq,
         )
         # basedOn: look up contributing orders via the obs_id index embedded in
         # each obs_ref ("lab-{enc_id}-{idx:04d}").  This handles both panel orders
@@ -488,6 +517,18 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
         "imagingStudy": [{"reference": f"ImagingStudy/{IMAGING_STUDY_ID_PREFIX}{study_id}"}],
         "conclusion": impression_text,
     }
+    # CY6-03 (Chain-6): radiology DR performer — the radiologist who read the
+    # study. Encounter attending fallback (radiologist_id is not distinct
+    # from attending in clinosim's roster model without a dedicated radiology
+    # assignment step; can be refined in a future roster expansion).
+    _enc_id = _o(study, "encounter_id", "") or ""
+    _att = ""
+    for _enc in ctx.record.get("encounters", []) or []:
+        if _o(_enc, "encounter_id", "") == _enc_id:
+            _att = _o(_enc, "attending_physician_id", "") or ""
+            break
+    if _att:
+        dr["performer"] = [{"reference": f"Practitioner/{_att}"}]
 
     if started_iso:
         dr["effectiveDateTime"] = started_iso

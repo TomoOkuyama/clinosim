@@ -377,6 +377,13 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
     # the corresponding MAR is). Reference integrity > preserving a broken link.
     _mr_ids: set[str] = set()
     _primary_enc_id = ctx.primary_enc_id
+    # CY6-04 / CY6-25 (Chain-6, 2026-07-11): build order_id → order_code map so
+    # MAR builder can inherit the parent Order's authoritative YJ / RxNorm code
+    # (previously the MAR builder re-derived code via English code_mapping,
+    # missing JP-text drug names like "エルカトニン" / "乳酸リンゲル液" that
+    # bypass the English keys). Session 44 CO-8 fixed the MR-side; MAR-side
+    # requires this join because MAR records don't carry code_yj directly.
+    _order_code_by_id: dict[str, str] = {}
     for order in ctx.record.get("orders", []) or []:
         if order.get("order_type") == "medication":
             if not (order.get("display_name") or "").strip():
@@ -385,9 +392,18 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
             _enc_ref_id = order.get("encounter_id", "") or _primary_enc_id
             _mr_id = f"{_enc_ref_id}-{_base_oid}" if _enc_ref_id else _base_oid
             _mr_ids.add(_mr_id)
+            _oc = order.get("order_code", "") or ""
+            if _base_oid and _oc:
+                _order_code_by_id[_base_oid] = _oc
     for i, mar in enumerate(ctx.record.get("medication_administrations", [])):
         if not (mar.get("drug_name") or "").strip():
             continue
+        # Inject the parent Order's code_yj so MAR emits authoritative coding.
+        _oid = mar.get("order_id", "") or ""
+        _parent_code = _order_code_by_id.get(_oid, "")
+        if _parent_code and not mar.get("code_yj"):
+            mar = dict(mar)
+            mar["code_yj"] = _parent_code
         _resource = _build_medication_admin(
             mar, ctx.patient_id, i, ctx.country,
             encounter_id=ctx.primary_enc_id, primary_dx_code=ctx.primary_dx_code)

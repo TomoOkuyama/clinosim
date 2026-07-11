@@ -180,3 +180,32 @@ Regular human insulin:  "2492403A4051"  # ヒューマリンR注100単位/mL
 "Nebulized salbutamol": "2254001F1102"  # → Salbutamol (long form)
 "Nebulized Salbutamol": "2254001F1102"  # (case alias)
 "Sliding scale insulin": "2492403A4051" # → Regular human insulin (ヒューマリンR)
+
+# === CY6-12 (Chain-6): Crystalloid — clinical instruction "Crystalloid
+# 30 mL/kg bolus within 3 hours" resolves to a Ringer's or NS product at
+# bedside. Map to LR (乳酸リンゲル液) which is the JP first-choice
+# crystalloid for sepsis resuscitation (JSICS Sepsis Guideline 2020).
+Crystalloid:            "3311402"       # → Lactated Ringers (乳酸リンゲル液)
+# CY6-13 (Chain-6): NSAID wrapper stripping — the disease YAML
+# `drug: "NSAID (Loxoprofen)"` resolves via alias to the underlying
+# Loxoprofen entry (already added in CO-8, 1149019C1149). Also handle the
+# bare "NSAID" keyword as a compound-index fallback.
+"NSAID (Loxoprofen)":   "1149019C1149"  # → Loxoprofen sodium hydrate
+NSAID:                  "1149019C1149"  # (bare compound → representative NSAID)
+NSAIDs:                 "1149019C1149"  # (plural alias)
+# CY6-17 (Chain-6): "Amoxicillin/Clavulanate 875/125mg" — the "/"-form
+# stays as an aliased key since split(" ") never separates it. Also fold
+# the bare EN form to the same 7-digit class code.
+"Amoxicillin/Clavulanate 875/125mg":   "6131100"
+"Amoxicillin/Clavulanate 500/125mg":   "6131100"
+
+# === CY6-05..11 (Chain-6 MHLW ingestion, 2026-07-11) ===
+# JP-marketed drugs newly reached during cycle 6 audit. YJ codes verified
+# against MHLW 令和8年 tp20260612-01_05.xlsx sheet1 — inpatient-typical
+# formulation preferred (IV drip / injection over PO where both exist).
+Edoxaban:               "3339002F1020"  # エドキサバントシル酸塩水和物 (リクシアナ錠15mg)
+Lorazepam:              "1139403A1020"  # ロラゼパム (ロラピタ静注2mg)
+Elcatonin:              "3999401A1200"  # エルカトニン (エルシトニン注40単位)
+Diltiazem:              "2171405D3020"  # ジルチアゼム塩酸塩 (ヘルベッサー注射用250)
+Nicardipine:            "2149400A1019"  # ニカルジピン塩酸塩 注射液
+Landiolol:              "2123404D1033"  # ランジオロール塩酸塩 (オノアクト点滴静注用50mg)
