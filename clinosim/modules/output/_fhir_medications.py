@@ -183,6 +183,39 @@ def _build_medication_request(
         "subject": {"reference": f"Patient/{patient_id}"},
         "authoredOn": order.get("ordered_datetime", ""),
     }
+    # CY6-22 (Chain-6): MedicationRequest.category — HL7 medicationrequest-
+    # category (inpatient / outpatient / community / discharge). Derived
+    # from encounter_type + is_home_med + is_episodic (already computed above).
+    # ED encounters (encounter_type == "emergency") map to "outpatient" because
+    # the patient is not admitted; discharge from ED emits under the same
+    # community-Rx-at-discharge category as chronic outpatient scripts when
+    # clinical_intent indicates the Rx is a take-home.
+    _cat_code = _cat_display = ""
+    if _is_home_med or (encounter_type == "outpatient" and not _is_episodic):
+        _cat_code = "community"; _cat_display = "Community"
+    elif encounter_type == "outpatient":
+        _cat_code = "outpatient"; _cat_display = "Outpatient"
+    elif encounter_type == "emergency":
+        # ED order — outpatient by FHIR classification (no admission episode)
+        _cat_code = "outpatient"; _cat_display = "Outpatient"
+    elif encounter_type == "inpatient":
+        # Discharge medication if the clinical_intent explicitly says so
+        if "discharge" in _ci_lower:
+            _cat_code = "discharge"; _cat_display = "Discharge"
+        else:
+            _cat_code = "inpatient"; _cat_display = "Inpatient"
+    else:
+        # encounter_type not set (edge cases) — safe fallback to inpatient
+        # since intent already indicated an order was authored (not a plan).
+        _cat_code = "inpatient"; _cat_display = "Inpatient"
+    if _cat_code:
+        resource["category"] = [{
+            "coding": [{
+                "system": "http://terminology.hl7.org/CodeSystem/medicationrequest-category",
+                "code": _cat_code,
+                "display": _cat_display,
+            }],
+        }]
 
     # Encounter reference
     enc_ref = order.get("encounter_id", "") or encounter_id
@@ -279,6 +312,17 @@ def _build_medication_admin(
         "medicationCodeableConcept": med_concept,
         "subject": {"reference": f"Patient/{patient_id}"},
         "effectiveDateTime": mar.get("actual_datetime") or mar.get("scheduled_datetime", ""),
+    }
+    # CY6-23 (Chain-6): MedicationAdministration.category — HL7 medication-
+    # admin-category (inpatient / outpatient / community). clinosim MAR is
+    # nurse-administered inpatient dosing (encounter_id-scoped), so default
+    # to "inpatient".
+    resource["category"] = {
+        "coding": [{
+            "system": "http://terminology.hl7.org/CodeSystem/medication-admin-category",
+            "code": "inpatient",
+            "display": "Inpatient",
+        }],
     }
 
     # Encounter context

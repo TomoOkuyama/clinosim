@@ -27,3 +27,7 @@ departments:
   psychiatry: {en: "Psychiatry", ja: "精神科"}
   radiology: {en: "Radiology", ja: "放射線科"}
   rehabilitation: {en: "Rehabilitation", ja: "リハビリテーション科"}
+  # CY6-01 (Chain-6, session 44 backfill): allied-health service lines added
+  # so PractitionerRole.organization refs to allied-health staff resolve.
+  nutrition: {en: "Clinical Nutrition", ja: "栄養管理科"}
+  medical_social_work: {en: "Medical Social Work", ja: "医療社会事業科"}

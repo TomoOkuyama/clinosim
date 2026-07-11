@@ -230,3 +230,22 @@ codes:
   '2492403A4051':
     en: Regular human insulin (Humulin R)
     ja: ヒト(遺伝子組換え)インスリン（ヒューマリンR）
+  # === CY6-05..11 (Chain-6 MHLW ingestion, 2026-07-11) ===
+  '3339002F1020':
+    en: Edoxaban tosilate hydrate (Lixiana)
+    ja: エドキサバントシル酸塩水和物（リクシアナ錠15mg）
+  '1139403A1020':
+    en: Lorazepam injection (Lorapita)
+    ja: ロラゼパム（ロラピタ静注2mg）
+  '3999401A1200':
+    en: Elcatonin injection (Elcitonin)
+    ja: エルカトニン（エルシトニン注40単位）
+  '2171405D3020':
+    en: Diltiazem hydrochloride injection (Herbesser)
+    ja: ジルチアゼム塩酸塩（ヘルベッサー注射用250）
+  '2149400A1019':
+    en: Nicardipine hydrochloride injection
+    ja: ニカルジピン塩酸塩注射液
+  '2123404D1033':
+    en: Landiolol hydrochloride injection (Onoact)
+    ja: ランジオロール塩酸塩（オノアクト点滴静注用50mg）

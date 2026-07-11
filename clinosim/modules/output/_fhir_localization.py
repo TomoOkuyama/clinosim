@@ -332,4 +332,10 @@ _ROLE_PREFIX_MAP_JA: dict[str, dict[str, str]] = {
     "lab_technician": {"qual_code": "MT", "qual_display": "臨床検査技師", "prefix": ""},
     "radiologist": {"qual_code": "MD", "qual_display": "放射線科医", "prefix": ""},
     "pharmacist": {"qual_code": "PharmD", "qual_display": "薬剤師", "prefix": ""},
+    # CY6-02 (Chain-6): allied-health qualifications (session 44 C5-25 roster).
+    "physical_therapist":     {"qual_code": "PT",  "qual_display": "理学療法士",         "prefix": ""},
+    "occupational_therapist": {"qual_code": "OT",  "qual_display": "作業療法士",         "prefix": ""},
+    "speech_therapist":       {"qual_code": "ST",  "qual_display": "言語聴覚士",         "prefix": ""},
+    "medical_social_worker":  {"qual_code": "MSW", "qual_display": "医療ソーシャルワーカー", "prefix": ""},
+    "dietitian":              {"qual_code": "RD",  "qual_display": "管理栄養士",         "prefix": ""},
 }

@@ -145,6 +145,19 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # so problem-list severity is consistent with encounter-diagnosis.
         if not severity and is_chronic_primary:
             severity = chronic_severity_by_base.get(base_code, "")
+        # CY6-21 (Chain-6): acute encounter-diagnosis severity fallback.
+        # ED visits sampled from encounter YAMLs carry a severity category
+        # ("mild"/"moderate"/"severe") on Encounter (session 43 AD-65 Bug C
+        # fix stored it as Encounter.severity). Use it when neither the
+        # physiological-state inference nor chronic inheritance produced a
+        # severity, so acute non-chronic Z00 / R07 / T14 / etc. no longer
+        # emit without severity. Only fires for non-Z encounter dx (Z-codes
+        # denote health-check / preventive care where severity is absent
+        # by design).
+        if not severity and not base_code.startswith("Z"):
+            _enc_severity = (encounters[0].get("severity", "") if encounters else "") or ""
+            if _enc_severity:
+                severity = _enc_severity
 
         # clinicalStatus: resolved if discharged alive, active if deceased (didn't resolve)
         if is_chronic_primary:
@@ -182,6 +195,20 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
 
         if severity:
             cond["severity"] = _severity_coding(severity, country)
+
+        # CY6-19 (Chain-6): Condition.evidence — record what supported the
+        # diagnosis. Cross-referencing specific DiagnosticReport IDs requires
+        # the same panel-grouping logic used by the DR builder; instead, emit
+        # a text-only CodeableConcept via `evidence.code` describing the
+        # supporting evidence category. FHIR R4 Condition.evidence is 0..*
+        # with 0..1 code + 0..* detail — text-only code is spec-compliant
+        # (no fabricated coding). For chronic-primary: prior established
+        # diagnosis; for acute: clinical presentation + supporting labs.
+        _ev_text_ja = "既往診断" if is_chronic_primary else "臨床所見および検査結果"
+        _ev_text_en = "Prior established diagnosis" if is_chronic_primary else "Clinical presentation and supporting laboratory results"
+        cond["evidence"] = [{
+            "code": [{"text": _ev_text_ja if country_code == "JP" else _ev_text_en}],
+        }]
 
         # C4-07..10 (session 43 cycle 4): encounter-diagnosis stage inheritance.
         # When the primary dx is a staged chronic condition (DM/COPD/HF/CKD)
@@ -287,6 +314,13 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
 
         if c_severity:
             cond["severity"] = _severity_coding(c_severity, country)
+
+        # CY6-19 (Chain-6): Condition.evidence — problem-list-item entries are
+        # established from prior encounters. Text-only evidence label per the
+        # same rationale as the encounter-diagnosis path.
+        cond["evidence"] = [{
+            "code": [{"text": "問題リスト:過去診療で確立" if country_code == "JP" else "Problem list — established in prior encounters"}],
+        }]
 
         # Stage (NYHA class, CKD G, GOLD, hypertension Stage, CCS, etc.) — c_stage set
         # in the branch above. The stage VALUE is carried by summary.text (always) plus

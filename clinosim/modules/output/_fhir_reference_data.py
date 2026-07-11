@@ -69,6 +69,16 @@ _ROLE_PREFIX_MAP: dict[str, dict[str, str]] = {
     "lab_technician": {"qual_code": "MT", "qual_display": "Medical Technologist"},
     "radiologist": {"qual_code": "MD", "qual_display": "Doctor of Medicine"},
     "pharmacist": {"qual_code": "PharmD", "qual_display": "Doctor of Pharmacy"},
+    # CY6-02 (Chain-6): allied-health qualifications for the roster
+    # expansion added in session 44 C5-25. Codes follow HL7 v2-0360
+    # convention where possible (PT/OT/ST are widely-used qual codes;
+    # MSW / RD are text-only since v2-0360 does not enumerate them —
+    # FHIR R4 CodeableConcept allows text-only representations).
+    "physical_therapist":     {"qual_code": "PT",  "qual_display": "Physical Therapist"},
+    "occupational_therapist": {"qual_code": "OT",  "qual_display": "Occupational Therapist"},
+    "speech_therapist":       {"qual_code": "ST",  "qual_display": "Speech-Language Therapist"},
+    "medical_social_worker":  {"qual_code": "MSW", "qual_display": "Medical Social Worker"},
+    "dietitian":              {"qual_code": "RD",  "qual_display": "Registered Dietitian"},
 }
 
 

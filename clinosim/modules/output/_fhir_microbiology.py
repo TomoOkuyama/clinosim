@@ -91,6 +91,16 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         "system": get_system_uri("hl7-observation-category"),
         "code": "laboratory", "display": "Laboratory",
     }]}]
+    # CY6-03 (Chain-6): microbiology DR performer — encounter attending
+    # fallback (same rationale as lab panel DR).
+    _mb_performer_ref = ""
+    for _enc in ctx.record.get("encounters", []) or []:
+        _eid = _enc.get("encounter_id", "") if isinstance(_enc, dict) else getattr(_enc, "encounter_id", "")
+        if _eid == ctx.primary_enc_id:
+            _att = _enc.get("attending_physician_id", "") if isinstance(_enc, dict) else getattr(_enc, "attending_physician_id", "")
+            if _att:
+                _mb_performer_ref = f"Practitioner/{_att}"
+            break
     out: list[dict] = []
 
     for i, mb in enumerate(cultures):
@@ -196,6 +206,8 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             report["encounter"] = enc_ref
         if mb.get("reported_datetime"):
             report["effectiveDateTime"] = mb["reported_datetime"]
+        if _mb_performer_ref:
+            report["performer"] = [{"reference": _mb_performer_ref}]
         # C5-20 (Chain 3): presentedForm — text/plain summary of culture +
         # susceptibility results (patient-facing form of the microbiology
         # report). Deterministic text (no external state).
