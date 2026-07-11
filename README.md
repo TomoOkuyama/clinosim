@@ -9,6 +9,10 @@
 
 🇯🇵 **日本語版**: [README.ja.md](README.ja.md)
 
+> ⚠️ **Personal project disclaimer**: This is an independent personal project and is **not** an official product of any company or organization. All design decisions and code are the responsibility of the individual contributors listed in `pyproject.toml`.
+>
+> ⚠️ **Synthetic data only**: All output is **fully synthetic**. clinosim does not ingest, reference, or reproduce any real patient data or PHI/PII. The output is **not intended for clinical use** and must not be relied upon for any diagnostic, therapeutic, or care decision.
+
 **clinosim** generates synthetic EHR data through **forward simulation** starting from a population. Rather than producing random values, every patient carries a hidden **13-variable physiological state**, and all observations (labs, vitals, medications, diagnoses) are derived from that state — ensuring **clinically coherent** data.
 
 Primary use cases:
@@ -23,6 +27,7 @@ Primary use cases:
 
 - [Features](#features)
 - [Installation](#installation)
+- [Versioning & Releases](#versioning--releases)
 - [Quick Start](#quick-start)
 - [CLI Reference](#cli-reference)
 - [Output Formats](#output-formats)
@@ -128,6 +133,26 @@ Latest reviews:
 
 ## Installation
 
+### As a user (recommended)
+
+Once released to PyPI, install the packaged version directly:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install clinosim                # (PyPI upload pending — see fallback below)
+clinosim --help
+```
+
+**Pre-PyPI fallback** — install straight from GitHub:
+
+```bash
+pip install "git+https://github.com/TomoOkuyama/clinosim.git@master"
+clinosim --help
+```
+
+### As a developer (editable install with dev deps)
+
 ```bash
 git clone https://github.com/TomoOkuyama/clinosim.git
 cd clinosim
@@ -138,8 +163,57 @@ pip install -e ".[dev]"
 
 **Requirements**:
 - Python 3.11+
-- Main dependencies: numpy, pyyaml, pydantic
+- Main dependencies: numpy, scipy, pydantic, pyyaml, httpx
 - (Optional) Ollama for local LLM narrative generation
+- (Optional) `pip install "clinosim[parquet]"` for CIF Parquet export
+
+---
+
+## Versioning & Releases
+
+clinosim follows [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html):
+
+- **MAJOR** — incompatible API / CIF / FHIR schema changes.
+- **MINOR** — backward-compatible feature additions (new modules, new
+  resource types, additional locale support). May change output byte-for-byte
+  even at the same seed.
+- **PATCH** — backward-compatible bug fixes and data-quality corrections
+  that preserve the CIF/FHIR schema. **Byte-identical output within the
+  same seed is a hard guarantee for PATCH releases within one MINOR line.**
+
+### Cutting a release
+
+Version lives in exactly one place: `clinosim/__init__.py::__version__`.
+`pyproject.toml` reads it dynamically (`[tool.hatch.version]`), so PyPI
+metadata, `pip show clinosim`, and `import clinosim; print(clinosim.__version__)`
+never drift.
+
+```bash
+# 1. Bump the version and update the changelog
+$EDITOR clinosim/__init__.py       # e.g. __version__ = "0.2.0"
+$EDITOR CHANGELOG.md               # move [Unreleased] entries under [0.2.0] - YYYY-MM-DD
+
+# 2. Commit and tag
+git add clinosim/__init__.py CHANGELOG.md
+git commit -m "release: v0.2.0"
+git tag -a v0.2.0 -m "clinosim v0.2.0"
+git push origin master --tags
+
+# 3. Create the GitHub Release
+# Draft a new release on GitHub against tag v0.2.0, paste the CHANGELOG entry
+# as the release notes, and attach the built wheel + sdist:
+python -m pip install --upgrade build
+python -m build                    # produces dist/clinosim-0.2.0-py3-none-any.whl + .tar.gz
+# then upload dist/* through the GitHub Release UI or `gh release create`.
+
+# 4. (Once PyPI is set up) upload to PyPI
+python -m pip install --upgrade twine
+python -m twine upload dist/*
+```
+
+The `Changelog` URL in `pyproject.toml [project.urls]` points at
+`CHANGELOG.md`, so PyPI users can reach the notes without leaving the
+package listing.
 
 ---
 
