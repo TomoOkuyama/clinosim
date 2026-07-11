@@ -239,6 +239,23 @@ def _build_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[st
 
     if encounter_id:
         res["encounter"] = {"reference": f"Encounter/{encounter_id}"}
+        # CY7-11 (Chain-7): Composition.event — the clinical event(s) the
+        # composition documents. For discharge summary / progress note /
+        # H&P etc., this is the encounter the doc summarizes, with the
+        # encounter period.
+        _period_start = _o(doc, "period_start", "") or authored_dt
+        _period_end = _o(doc, "period_end", "") or ""
+        _event: dict[str, Any] = {"period": {}}
+        if _period_start:
+            _event["period"]["start"] = _period_start
+        if _period_end:
+            _event["period"]["end"] = _period_end
+        _event["detail"] = [{"reference": f"Encounter/{encounter_id}"}]
+        if _event["period"]:
+            res["event"] = [_event]
+
+    # CY7-12 (Chain-7): Composition.custodian — managing hospital.
+    res["custodian"] = {"reference": "Organization/hospital-main"}
 
     # C3-02 (session 42 cycle 3): Composition.attester — JP EHR legal
     # signature (電子署名). Attester = the document author (attending

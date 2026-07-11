@@ -226,6 +226,18 @@ def _build_medication_request(
     if order.get("ordered_by"):
         resource["requester"] = {"reference": f"Practitioner/{order['ordered_by']}"}
 
+    # CY7-08 (Chain-7): MR.priority — derive from Order.urgency (routine /
+    # urgent / stat / asap). FHIR R4 valueset: routine | urgent | asap | stat.
+    _urgency = str(order.get("urgency", "") or "").lower()
+    _priority_map = {
+        "routine": "routine",
+        "urgent": "urgent",
+        "stat": "stat",
+        "asap": "asap",
+        "": "routine",  # empty → routine default
+    }
+    resource["priority"] = _priority_map.get(_urgency, "routine")
+
     # Dosage instruction
     dosage = _build_dosage_instruction(order, country=country)
     if dosage:
@@ -244,18 +256,24 @@ def _build_medication_request(
     # recommends population for meaningful pharmacy dispense workflow. We
     # emit a light-weight dispenseRequest describing typical validity period
     # for chronic-med / discharge orders (was 100% missing in baseline).
-    if encounter_type == "outpatient" or _is_home_med:
-        _authored = order.get("ordered_datetime", "") or ""
-        _end = order.get("end_datetime", "") or ""
-        disp: dict[str, Any] = {}
-        # Default 30-day validity for outpatient scripts (JP 保険 typical).
-        if _authored and _end:
-            disp["validityPeriod"] = {"start": str(_authored), "end": str(_end)}
-        elif _authored:
-            disp["validityPeriod"] = {"start": str(_authored)}
-        # Default 0 refills for acute; 3 refills for chronic home-med orders.
-        disp["numberOfRepeatsAllowed"] = 3 if _is_home_med else 0
-        resource["dispenseRequest"] = disp
+    # CY7-07 (Chain-7): also emit dispenseRequest for inpatient orders — JP
+    # 入院処方 has a distinct dispense track (病棟薬剤師 dispensing per shift).
+    # Default 0 refills for acute, 3 for chronic home-med, 1 for inpatient
+    # (single scheduled dispense per order).
+    _authored = order.get("ordered_datetime", "") or ""
+    _end = order.get("end_datetime", "") or ""
+    disp: dict[str, Any] = {}
+    if _authored and _end:
+        disp["validityPeriod"] = {"start": str(_authored), "end": str(_end)}
+    elif _authored:
+        disp["validityPeriod"] = {"start": str(_authored)}
+    if _is_home_med:
+        disp["numberOfRepeatsAllowed"] = 3
+    elif encounter_type == "outpatient":
+        disp["numberOfRepeatsAllowed"] = 0
+    elif encounter_type in ("inpatient", "emergency"):
+        disp["numberOfRepeatsAllowed"] = 0  # inpatient/ED dispense once per order
+    resource["dispenseRequest"] = disp
 
     # C5-23 (session 43 cycle 5): MedicationRequest.substitution (0..1)
     # for generic substitution allowance. JP GE 促進 policy allows generic

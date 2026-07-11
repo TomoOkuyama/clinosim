@@ -59,11 +59,13 @@ def _bb_allergy_intolerances(ctx: BundleContext) -> list[dict[str, Any]]:
     encounters = _o(ctx.record, "encounters", []) or []
     recorder_ref = ""
     default_recorded_dt = ""
+    first_encounter_id = ""
     if encounters:
         att = _o(encounters[0], "attending_physician_id", "") or ""
         if att:
             recorder_ref = f"Practitioner/{att}"
         default_recorded_dt = str(_o(encounters[0], "admission_datetime", "") or "")
+        first_encounter_id = _o(encounters[0], "encounter_id", "") or ""
     out: list[dict[str, Any]] = []
     for a in allergies:
         ai = _build_allergy_intolerance(a, ctx.patient_id, lang)
@@ -75,6 +77,12 @@ def _bb_allergy_intolerances(ctx: BundleContext) -> list[dict[str, Any]]:
         # onsetDateTime was absent).
         if "recordedDate" not in ai and default_recorded_dt:
             ai["recordedDate"] = default_recorded_dt[:10]  # YYYY-MM-DD
+        # CY7-22 (Chain-7): AllergyIntolerance.encounter — link to the first
+        # encounter where the allergy was recorded (allergies are asserted at
+        # a specific encounter in real EHRs; clinosim's chart-registration
+        # proxy is the first encounter).
+        if first_encounter_id:
+            ai["encounter"] = {"reference": f"Encounter/{first_encounter_id}"}
         out.append(ai)
     return out
 

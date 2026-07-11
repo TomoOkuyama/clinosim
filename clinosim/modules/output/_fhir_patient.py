@@ -133,6 +133,14 @@ def _build_coverage_resources(patient_data: dict, country: str) -> list[dict]:
             "identifier": [{"system": cfg.get("member_id_system", ""), "value": composite}],
             "status": "active",
             "subscriberId": subscriber,
+            # CY7-13 (Chain-7): Coverage.subscriber — the person carrying the
+            # policy. For "self" relationship the subscriber IS the beneficiary
+            # (JP 主たる被保険者 = 本人); for "other" (dependent) it's the
+            # policy-holder relative. Without a distinct 主たる被保険者
+            # Person record, we point to the patient themselves (matches
+            # subscriberId derivation above and passes FHIR R4 conformance —
+            # subscriber is 0..1 Reference to Patient|RelatedPerson).
+            "subscriber": {"reference": f"Patient/{pid}"},
             "beneficiary": {"reference": f"Patient/{pid}"},
             "payor": [{"reference": f"Organization/{payer_org_id}"}],
         }
@@ -198,6 +206,27 @@ def _build_coverage_resources(patient_data: dict, country: str) -> list[dict]:
                 "name": name_map.get(insurer, insurer),
             })
         coverage["class"] = _class_entries
+        # CY7-14 (Chain-7): Coverage.costToBeneficiary — JP 自己負担割合.
+        # Standard JP 医療保険 co-pay: 3割 for adults, 1割 for elderly (≥70,
+        # 現役並み所得除く). Population module carries age; use category as
+        # a proxy (late-elderly insurer = 1割; others = 3割 default).
+        _coshare_pct = 10 if insurer == "39130083" else 30  # 39130083 = 後期高齢者
+        coverage["costToBeneficiary"] = [{
+            "type": {
+                "coding": [{
+                    "system": "http://terminology.hl7.org/CodeSystem/coverage-copay-type",
+                    "code": "copaypct",
+                    "display": "Copay percentage",
+                }],
+                "text": "自己負担割合" if is_jp(country) else "Copay percentage",
+            },
+            "valueQuantity": {
+                "value": _coshare_pct,
+                "unit": "%",
+                "system": "http://unitsofmeasure.org",
+                "code": "%",
+            },
+        }]
         resources.append(coverage)
 
     return resources
@@ -284,6 +313,24 @@ def _build_patient(p: dict, country: str) -> dict:
 
     if dob:
         resource["birthDate"] = to_fhir_date(dob)
+
+    # CY7-15 (Chain-7): multipleBirthBoolean — required by JP Core Patient
+    # profile 0..1. Default false (majority — realistic multiple-birth
+    # rate <2% for JP live-birth records but registered explicitly on
+    # birth certificate). Population module doesn't currently model this,
+    # so default across cohort is a defensible completeness fix (Coverage:
+    # boolean false is a valid emit per FHIR R4).
+    resource["multipleBirthBoolean"] = False
+
+    # CY7-16 (Chain-7): deceased[Boolean|DateTime] — carries mortality
+    # status. Default deceasedBoolean=false because Patient records in
+    # clinosim represent the living cohort at snapshot time; if the CIF
+    # marks the patient as deceased, override with deceasedDateTime.
+    _dod = p.get("date_of_death", "") or p.get("dod", "")
+    if _dod:
+        resource["deceasedDateTime"] = str(_dod)
+    else:
+        resource["deceasedBoolean"] = False
 
     # Extensions for blood type
     if p.get("blood_type"):

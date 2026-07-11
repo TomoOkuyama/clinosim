@@ -420,9 +420,15 @@ def _build_imaging_sr(order: Any, lang: str, country: str) -> dict[str, Any]:
     dt = _o(order, "ordered_datetime")
     if dt is not None:
         sr["authoredOn"] = to_fhir_datetime(dt)
+        # CY7-02 (Chain-7): occurrenceDateTime = expected fulfillment time
+        # (same as authoredOn — see _build_sr_skeleton for rationale).
+        sr["occurrenceDateTime"] = to_fhir_datetime(dt)
     ordered_by = _o(order, "ordered_by", "")
     if ordered_by:
         sr["requester"] = {"reference": f"Practitioner/{ordered_by}"}
+        # CY7-01 (Chain-7): imaging SR.performer — requester fallback (no
+        # distinct radiology-tech assignment in the roster model).
+        sr["performer"] = [{"reference": f"Practitioner/{ordered_by}"}]
     clinical_intent = _o(order, "clinical_intent", "")
     if clinical_intent:
         sr["reasonCode"] = [{"text": clinical_intent}]
@@ -634,7 +640,22 @@ def _build_sr_skeleton(
     ordered_by = _o(anchor, "ordered_by", "")
     if ordered_by:
         sr["requester"] = {"reference": f"Practitioner/{ordered_by}"}
+        # CY7-01 (Chain-7): SR.performer — clinosim's simulator does not
+        # have a distinct lab/imaging technician assignment step, so we use
+        # the requester as performer fallback. Real EHR systems record the
+        # ordering physician here when the fulfilling department has not yet
+        # assigned an executor. Mirrors the C4-17 attending-fallback pattern.
+        sr["performer"] = [{"reference": f"Practitioner/{ordered_by}"}]
     clinical_intent = _o(anchor, "clinical_intent", "")
     if clinical_intent:
         sr["reasonCode"] = [{"text": clinical_intent}]
+    # CY7-02 (Chain-7): SR.occurrenceDateTime — when the order should be
+    # fulfilled. For labs/imaging the practical answer is "as soon as
+    # possible after ordered_datetime" so we set it to authoredOn as a
+    # deterministic realistic estimate. Real EHR practice is to set this
+    # when the fulfillment slot is scheduled; clinosim's model has no
+    # separate scheduling module, so authored = expected occurrence is
+    # a defensible approximation.
+    if authored_on:
+        sr["occurrenceDateTime"] = authored_on
     return sr
