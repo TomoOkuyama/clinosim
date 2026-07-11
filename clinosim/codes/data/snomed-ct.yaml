@@ -391,6 +391,51 @@ codes:
   '422293003':
     en: New York Heart Association Classification - Class IV
     ja: NYHA心機能分類 クラスIV
+  # === CO-6 (Chain 4, 2026-07-11): staging SNOMED codes newly verified via
+  # tx.fhir.org $lookup. Covers GOLD 4 / hypertension stage 1-2 / asthma
+  # severity 4-tier (mild intermittent → severe persistent) / CCS angina
+  # class I-IV. Previously text-only (session 42 RM-4, session 43 cycle 5). ===
+  # GOLD 4 (very severe COPD) — clinical practice equates GOLD 4 with
+  # "end-stage COPD" (both denote FEV1<30% predicted or FEV1<50% with
+  # chronic respiratory failure). SNOMED CT does not carry a distinct
+  # "Very severe COPD" concept, so we map to 135836000 "End stage COPD"
+  # which SNOMED-CT lists as a descendant of 13645005 (COPD).
+  '135836000':
+    en: End stage chronic obstructive airways disease
+    ja: 末期 慢性閉塞性肺疾患
+  # Hypertension stage — I10
+  '827069000':
+    en: Hypertension stage 1
+    ja: 高血圧ステージ1
+  '827068008':
+    en: Hypertension stage 2
+    ja: 高血圧ステージ2
+  # Asthma severity 4-tier — J45
+  '427679007':
+    en: Mild intermittent asthma
+    ja: 軽症間欠型喘息
+  '426979002':
+    en: Mild persistent asthma
+    ja: 軽症持続型喘息
+  '427295004':
+    en: Moderate persistent asthma
+    ja: 中等症持続型喘息
+  '426656000':
+    en: Severe persistent asthma
+    ja: 重症持続型喘息
+  # CCS angina class I-IV — I25 (ischemic heart disease)
+  '61490001':
+    en: Angina, class I
+    ja: 狭心症 クラスI
+  '41334000':
+    en: Angina, class II
+    ja: 狭心症 クラスII
+  '85284003':
+    en: Angina, class III
+    ja: 狭心症 クラスIII
+  '89323001':
+    en: Angina, class IV
+    ja: 狭心症 クラスIV
   # === C5-05 (session 43 cycle 5): PractitionerRole specialty SNOMED codes.
   # WHO SNOMED CT concepts, JP display added for JP output localization.
   '419192003':

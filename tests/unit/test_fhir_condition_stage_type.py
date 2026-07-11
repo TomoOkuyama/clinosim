@@ -94,26 +94,46 @@ def test_stage_summary_coding_uses_jp_display():
     assert any(ord(ch) > 0x3000 for ch in coding["display"]), coding["display"]
 
 
-@pytest.mark.parametrize("code,stage_text", [
-    # RM-4 (session 42): "GOLD 2" removed — 313297008 "Moderate COPD" now verified via tx.fhir.org.
-    ("J45.909", "Moderate persistent"),   # asthma severity
-    ("I10", "Stage 2"),                   # hypertension stage
-    ("I25.10", "CCS I"),                  # CCS angina class
+@pytest.mark.parametrize("code,stage_text,snomed,en", [
+    # CO-6 (Chain 4, 2026-07-11): asthma severity 4-tier — verified via tx.fhir.org.
+    ("J45.20", "Mild intermittent",   "427679007", "Mild intermittent asthma"),
+    ("J45.30", "Mild persistent",     "426979002", "Mild persistent asthma"),
+    ("J45.40", "Moderate persistent", "427295004", "Moderate persistent asthma"),
+    ("J45.50", "Severe persistent",   "426656000", "Severe persistent asthma"),
+    # Hypertension stage — I10
+    ("I10",    "Stage 1",             "827069000", "Hypertension stage 1"),
+    ("I10",    "Stage 2",             "827068008", "Hypertension stage 2"),
+    # CCS angina class I-IV — I25.10
+    ("I25.10", "CCS I",               "61490001",  "Angina, class I"),
+    ("I25.10", "CCS II",              "41334000",  "Angina, class II"),
+    ("I25.10", "CCS III",             "85284003",  "Angina, class III"),
+    ("I25.10", "CCS IV",              "89323001",  "Angina, class IV"),
+    # GOLD 4 — mapped to 135836000 "End stage COPD" (clinical equivalence).
+    ("J44.9",  "GOLD 4",              "135836000", "End stage chronic obstructive airways disease"),
 ])
-def test_unverified_staging_systems_remain_text_only(code, stage_text):
+def test_extended_staging_snomed_coding(code, stage_text, snomed, en):
+    """CO-6 verified stagings (Chain 4): asthma severity, hypertension stage,
+    CCS angina, GOLD 4 all emit stage.summary.coding with authoritative SNOMED."""
     c = _stage(code, stage_text)
     summary = c["stage"][0]["summary"]
     assert summary["text"] == stage_text
-    assert "coding" not in summary, f"{stage_text}: emitted an unverified SNOMED coding"
+    coding = summary["coding"][0]
+    assert coding["system"] == "http://snomed.info/sct"
+    assert coding["code"] == snomed
+    assert coding["display"] == en
 
 
-def test_every_ckd_nyha_generated_stage_is_mapped():
-    """Drift guard: every CKD/NYHA string _generate_stage can produce must be in
+def test_every_generated_stage_is_mapped():
+    """Drift guard: every stage string _generate_stage can produce must be in
     the stage->SNOMED map, or the coding silently drops (the whitelist-drift bug
     class). Fails loud if activator adds a stage value without a code."""
     from clinosim.modules.output._fhir_conditions import _STAGE_SUMMARY_SNOMED
 
-    ckd = [f"CKD {g}" for g in ("G1", "G2", "G3a", "G3b", "G4", "G5")]
-    nyha = [f"NYHA {c}" for c in ("I", "II", "III", "IV")]
-    for s in ckd + nyha:
+    ckd    = [f"CKD {g}" for g in ("G1", "G2", "G3a", "G3b", "G4", "G5")]
+    nyha   = [f"NYHA {c}" for c in ("I", "II", "III", "IV")]
+    gold   = [f"GOLD {n}" for n in (1, 2, 3, 4)]
+    asthma = ["Mild intermittent", "Mild persistent", "Moderate persistent", "Severe persistent"]
+    htn    = ["Stage 1", "Stage 2"]
+    ccs    = [f"CCS {n}" for n in ("I", "II", "III")]  # activator emits I-III; IV is forward-compat
+    for s in ckd + nyha + gold + asthma + htn + ccs:
         assert s in _STAGE_SUMMARY_SNOMED, f"unmapped generated stage: {s}"
