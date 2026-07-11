@@ -18,10 +18,16 @@ clinical integrity / realism.
 1. Generate US p=10000 + JP p=10000 CIF/FHIR (once per cycle).
 2. Global review of the NDJSON — FHIR spec compliance, display fallback,
    reference integrity, spec-violating datetimes, silent-drops, statistical
-   anomalies, etc.
+   anomalies, etc. **Before adding an observation to the cycle issue list**,
+   check [`by-design-registry.md`](by-design-registry.md) — if the observation
+   matches a registered by-design entry's Signature, do not add it; instead
+   record one line in `cycle-<N>.md`: `By-design confirmed (see
+   by-design-registry.md#<slug>)` so the full-scan record is preserved.
 3. Random-sample N patients (5–10 recommended) and review every FHIR resource
    for that patient (data quality / clinical integrity / data realism).
-4. Repeat 2 + 3 until **exactly 30 issues** are listed for the cycle.
+   Same by-design-registry check applies here.
+4. Repeat 2 + 3 until **exactly 30 issues** are listed for the cycle
+   (by-design confirmations do NOT count toward the 30).
 5. Fix all 30 issues. **New additions are made only when the FHIR-consistency
    contradiction cannot be resolved without adding** (see memory
    `feedback_cif_fhir_quality_focus.md`).
