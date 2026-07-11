@@ -84,6 +84,10 @@ def _build_lab_observation(
     resource: dict[str, Any] = {
         "resourceType": "Observation",
         "id": lab_obs_id(encounter_id, index),
+        # Session 46 chain #2: JP Core Observation_LabResult profile.
+        **({"meta": {"profile": [
+            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult"
+        ]}} if is_jp(country) else {}),
         "status": "final",
         "category": [{
             "coding": [{
@@ -232,6 +236,10 @@ def _build_vital_observations(
         obs: dict[str, Any] = {
             "resourceType": "Observation",
             "id": f"vs-{encounter_id or patient_id}-{index:04d}-{field}",
+            # Session 46 chain #2: JP Core Observation_Common profile for vitals.
+            **({"meta": {"profile": [
+                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"
+            ]}} if is_jp(country) else {}),
             "status": "final",
             "category": [{
                 "coding": [{
@@ -344,6 +352,10 @@ def _build_vital_observations(
         loc_obs: dict[str, Any] = {
             "resourceType": "Observation",
             "id": f"vs-{encounter_id or patient_id}-{index:04d}-loc",
+            # Session 46 chain #2: JP Core Observation_Common profile for vitals.
+            **({"meta": {"profile": [
+                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"
+            ]}} if is_jp(country) else {}),
             "status": "final",
             "category": [{
                 "coding": [{
@@ -389,6 +401,10 @@ def _build_vital_observations(
         o2_obs: dict[str, Any] = {
             "resourceType": "Observation",
             "id": f"vs-{encounter_id or patient_id}-{index:04d}-o2",
+            # Session 46 chain #2: JP Core Observation_Common profile for vitals.
+            **({"meta": {"profile": [
+                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"
+            ]}} if is_jp(country) else {}),
             "status": "final",
             "category": [{
                 "coding": [{

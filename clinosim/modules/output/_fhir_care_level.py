@@ -38,6 +38,10 @@ def _build_care_level(ctx: BundleContext) -> list[dict]:
     o: dict[str, Any] = {
         "resourceType": "Observation",
         "id": f"carelevel-{ctx.patient_id}",
+        # Session 46 chain #2: JP Core Observation_Common profile.
+        **({"meta": {"profile": [
+            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"
+        ]}} if is_jp(ctx.country) else {}),
         "status": "final",
         "category": _social_category(ctx.country),
         "code": {"text": text},

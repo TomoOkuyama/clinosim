@@ -14,7 +14,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
-from clinosim.modules._shared import get_attr_or_key, resolve_lang
+from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.output._fhir_common import BundleContext, _coding_with_display, to_fhir_datetime
 
 
@@ -52,6 +52,10 @@ def _build_immunizations(ctx: BundleContext) -> list[dict]:
         resource: dict[str, Any] = {
             "resourceType": "Immunization",
             "id": f"imm-{ctx.patient_id}-{i}",
+            # Session 46 chain #2: JP Core Immunization profile.
+            **({"meta": {"profile": [
+                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Immunization"
+            ]}} if is_jp(ctx.country) else {}),
             "status": status,
             "vaccineCode": vaccine_code,
             "patient": {"reference": f"Patient/{ctx.patient_id}"},

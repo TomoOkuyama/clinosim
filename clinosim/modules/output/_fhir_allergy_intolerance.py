@@ -125,6 +125,12 @@ def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str = "en") 
     res: dict[str, Any] = {
         "resourceType": "AllergyIntolerance",
         "id": f"{ALLERGY_ID_PREFIX}{patient_id}-{allergy_id}",
+        # Session 46 chain #2: JP Core AllergyIntolerance profile.
+        # lang == "ja" is the JP-country signal in this builder's caller chain
+        # (BundleContext resolves lang from country in _bb_allergy_intolerances).
+        **({"meta": {"profile": [
+            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_AllergyIntolerance"
+        ]}} if lang == "ja" else {}),
         "clinicalStatus": {
             "coding": [{
                 "system": _CLINICAL_STATUS_SYSTEM,

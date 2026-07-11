@@ -211,6 +211,10 @@ def _build_medication_request(
     resource: dict[str, Any] = {
         "resourceType": "MedicationRequest",
         "id": resource_id,
+        # Session 46 chain #2: JP Core MedicationRequest profile.
+        **({"meta": {"profile": [
+            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"
+        ]}} if country_code == "JP" else {}),
         "status": status_val,
         "intent": intent_val,
         "medicationCodeableConcept": med_concept,
@@ -387,6 +391,10 @@ def _build_medication_admin(
     resource: dict[str, Any] = {
         "resourceType": "MedicationAdministration",
         "id": f"mar-{encounter_id or patient_id}-{index:05d}",
+        # Session 46 chain #2: JP Core MedicationAdministration profile.
+        **({"meta": {"profile": [
+            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationAdministration"
+        ]}} if country_code == "JP" else {}),
         "status": _map_mar_status(mar.get("status", "completed")),
         "medicationCodeableConcept": med_concept,
         "subject": {"reference": f"Patient/{patient_id}"},

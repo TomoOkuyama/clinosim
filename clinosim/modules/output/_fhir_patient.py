@@ -426,6 +426,10 @@ def _build_occupation_observation(
     return {
         "resourceType": "Observation",
         "id": f"occupation-{patient_id}",
+        # Session 46 chain #2: JP Core Observation_Common profile.
+        **({"meta": {"profile": [
+            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"
+        ]}} if is_jp(country) else {}),
         "status": "final",
         "category": _social_category(country),
         "code": {
