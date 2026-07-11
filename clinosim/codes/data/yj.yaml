@@ -5,13 +5,13 @@ metadata:
   source: MHLW 薬価基準 YJ / MEDIS HOT-YJ master
   description: Japanese drug code (YJ/HOT)
 codes:
-  '6131405':
+  '6139504G1028':
     en: Ampicillin/Sulbactam (Unasyn)
     ja: アンピシリン/スルバクタム（ユナシン）
   '6131002':
     en: Amoxicillin (Amoxil)
     ja: アモキシシリン（サワシリン）
-  '6131100':
+  '6139100F1048':
     en: Amoxicillin/Clavulanate (Augmentin)
     ja: アモキシシリン/クラブラン酸（オーグメンチン）
   '6149004':
@@ -35,7 +35,7 @@ codes:
   '2139007':
     en: Furosemide (Lasix)
     ja: フロセミド（ラシックス）
-  '2149036':
+  '2149032F1013':
     en: Carvedilol (Coreg)
     ja: カルベジロール（アーチスト）
   '2144002':
@@ -53,7 +53,7 @@ codes:
   '2171002':
     en: Nitroglycerin (Nitrostat)
     ja: ニトログリセリン（ミリスロール）
-  '2119004':
+  '2179400D1022':
     en: Carperitide
     ja: カルペリチド（ハンプ）
   '3334400':
@@ -74,25 +74,25 @@ codes:
   '2189015':
     en: Atorvastatin (Lipitor)
     ja: アトルバスタチン（リピトール）
-  '2451002':
+  '2451401A1018':
     en: Norepinephrine (Levophed)
     ja: ノルエピネフリン（ノルアドリナリン）
   '1141007':
     en: Acetaminophen (Tylenol)
     ja: アセトアミノフェン（カロナール）
-  '1149036':
+  '1149037F1020':
     en: Celecoxib (Celebrex)
     ja: セレコキシブ（セレコックス）
-  '8119003':
+  '8119002B2023':
     en: Oxycodone (OxyContin)
     ja: オキシコドン（オキシコンチン）
-  '3962001':
+  '3962002F2027':
     en: Metformin (Glucophage)
     ja: メトホルミン（メトグルコ）
   '2492410':
     en: Sliding scale insulin (Regular insulin)
     ja: スライディングスケールインスリン（ヒューマリンR）
-  '2259710':
+  '2259709G1027':
     en: Tiotropium (Spiriva)
     ja: チオトロピウム（スピリーバ）
   '2254701':
@@ -101,25 +101,25 @@ codes:
   '2290800':
     en: Fluticasone/Salmeterol (Advair)
     ja: フルチカゾン/サルメテロール（アドエア）
-  '2329025':
+  '2329023F1020':
     en: Lansoprazole (Prevacid)
     ja: ランソプラゾール（タケプロン）
   '7211001':
     en: Sodium bicarbonate
     ja: 炭酸水素ナトリウム（メイロン）
-  '3112002':
+  '3112001F1055':
     en: Vitamin D (Cholecalciferol)
     ja: ビタミンD（アルファカルシドール）
-  '3999017':
+  '3999018F1013':
     en: Alendronate (Fosamax)
     ja: アレンドロン酸（フォサマック/ボナロン）
   '1190012':
     en: Donepezil (Aricept)
     ja: ドネペジル（アリセプト）
-  '1169011':
+  '1169101F1120':
     en: Levodopa/Carbidopa (Sinemet)
     ja: レボドパ/カルビドパ（ネオドパストン/メネシット）
-  '2431003':
+  '2431004F1013':
     en: Levothyroxine (Synthroid)
     ja: レボチロキシン（チラーヂンS）
   '2590009':
@@ -278,7 +278,7 @@ codes:
   '2115001':
     en: Aminophylline
     ja: アミノフィリン水和物
-  '2129010':
+  '2129410A1028':
     en: Amiodarone
     ja: アミオダロン塩酸塩
   '2149114':

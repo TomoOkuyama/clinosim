@@ -371,7 +371,7 @@ drugs:
   first_line:
     japan:
       - drug: "Ampicillin/Sulbactam"
-        code_yj: "6131405"
+        code_yj: "6139504G1028"
         dose: "3g IV q6h"
         route: IV
         note: "Preferred — covers oral anaerobes and streptococci"
@@ -440,7 +440,7 @@ drugs:
   discharge_oral:
     japan:
       - drug: "Amoxicillin/Clavulanate"
-        code_yj: "6131100"
+        code_yj: "6139100F1048"
         dose: "500/125mg PO TID"
         duration_days: 7
     us:
