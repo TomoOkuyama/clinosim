@@ -58,7 +58,10 @@ from clinosim.modules.output._fhir_diagnostic_report import (  # noqa: F401
 from clinosim.modules.output._fhir_documents import (  # noqa: F401
     _bb_document_references,
 )
-from clinosim.modules.output._fhir_encounter import _build_encounter  # noqa: F401
+from clinosim.modules.output._fhir_encounter import (  # noqa: F401
+    _build_encounter,
+    _compute_encounter_length,
+)
 from clinosim.modules.output._fhir_facility import _build_facility_bundle  # noqa: F401
 from clinosim.modules.output._fhir_family_history import _build_family_history  # noqa: F401
 from clinosim.modules.output._fhir_hai import _build_hai_conditions  # noqa: F401
@@ -340,6 +343,12 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
                 _period["end"] = _ed_end_str
             if _period:
                 _ed_resource["period"] = _period
+            # Session 45: emit Encounter.length on the synthesized ED encounter
+            # (CY7-05 synthesis previously skipped this — verification found
+            # 1093/1144 length-missing Encounter were EMER-with-partOf).
+            _ed_length = _compute_encounter_length(_ed_start_str, _ed_end_str)
+            if _ed_length is not None:
+                _ed_resource["length"] = _ed_length
             if _att:
                 _ed_resource["participant"] = [{
                     "individual": {"reference": f"Practitioner/{_att}"},
