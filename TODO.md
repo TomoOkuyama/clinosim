@@ -1,6 +1,76 @@
 # clinosim — TODO
 
-## Status (2026-07-11, session 45 CLOSED — 4-seed verification + 9-commit chain)
+## Status (2026-07-12, session 45 CLOSED — 5-seed verification + 13-commit chain)
+
+**★ Session 45 CLOSED (2026-07-12, master HEAD `b32c9d38b4`)** — 13-commit chain
+across 5 alt-seed verifications. Started as session-44 seed=42 baseline verification →
+seed=100/200/300 pure FHIR-coverage rounds → seed=400 added a clinical + statistical
+integrity audit that surfaced 4 more production defects, all resolved.
+
+### Chain #5 (2026-07-12, seed=400 clinical/statistical audit)
+
+1. **BPH sex-gate** (`230bec5413`): `N40` (Benign prostatic hyperplasia) was
+   attached to 93 female patients because two chronic-condition propagation paths
+   ignored the sex constraint declared in `chronic_prevalence.N40: sex: M`:
+   - `inpatient.py:_IMPLIED_CHRONIC_BY_DISEASE` (PE → [I48, N40], UTI → [N40])
+   - `helpers.py` discharge-Dx → `person.chronic_conditions` loop
+   Both now honor a `_SEX_RESTRICTED_ICD = {"N40": "M"}` map (single edit point,
+   sibling-sweep-safe for future sex-specific ICD additions). Population sampler
+   was already correct; only these two paths had drifted. BPH male rate
+   80.5% → **100%**.
+
+2. **Mortality propagation to Patient.deceasedDateTime** (`5d4932b371`): the
+   mortality path in `helpers._evaluate_mortality` fires correctly (74/1071 IMP
+   at seed=400 → `dischargeDisposition = "expired"`) but the flag never reached
+   the Patient FHIR resource — all Patient records emitted with
+   `deceasedBoolean: false`, contradicting the paired Encounter.
+   Fix: new `PatientProfile.date_of_death` field; set in `inpatient.py` when
+   `death_occurred = True`; picked up by `_fhir_patient.py:329` (already
+   reads `p.get("date_of_death")`). Also defense-in-depth in `fhir_r4_adapter.
+   _build_bundle` — copies discharge_datetime into patient_data when
+   `record.deceased` is true but the field is still empty.
+   Patient.deceasedDateTime emit rate 0 → **74** (matches expired-IMP 1:1).
+   Clinical audit S-7 IMP mortality 0.00% → **6.91%** (target 0.5-15%).
+
+3. **STAT antibiotic first-dose timing** (`b32c9d38b4`): Sepsis empirical
+   abx-within-3h rate 13/38 = **34.2%** (Surviving Sepsis / JSSCG bundle target
+   ≥80%, ideal ≤1h). Root cause: `_generate_mar` scheduled doses on fixed hours
+   (0/8/16) and skipped slots that fell before admission_time, so admission at
+   09:04 pushed the first abx to 16:00 (+6.9h), admission at 19:42 pushed it to
+   next-day 00:00 (+4.3h), etc.
+   Fix: for `Order.urgency == "stat"` on Day 0 only, prepend an ad-hoc first
+   dose 30-60min after admission. The scheduled q6/8h grid picks up from the
+   next slot ≥90min later so no back-to-back double administration.
+   Same guarantee now applies to any STAT medication (pressor for shock,
+   epinephrine for anaphylaxis, insulin infusion for DKA, etc.).
+   Sepsis-3h rate 34.2% → **100%** (47/47).
+
+4. **JP Core Observation_Common LOINC dual coding** (`b32c9d38b4`): JP lab
+   observations emitted JLAC10 only (0% LOINC coverage), violating JP Core
+   Observation_Common profile guidance to dual-code with LOINC for
+   interoperability. Condition and Procedure already dual-code (JP + WHO);
+   Observation was the outlier.
+   Fix: `_fhir_observations._build_lab_observation` — when `country_code ==
+   "JP"`, look up the analyte's LOINC in the US `code_mapping_lab.yaml` and
+   append it as a second `code.coding[]` entry.
+   Lab-obs LOINC coverage 0.0% → **99.5%** (262,319 / 263,697). The 0.5%
+   residual is JP-only JLAC10 analytes with no US LOINC counterpart in the
+   current mapping — deferred to a lab-code completeness chain.
+
+### Chain #1-#4 summary(from 2026-07-11)
+
+- Chain #1 (`a68105b0e7`..`8f98692912`): heparin rate adjustment / EMER length
+  synth / heparin+amoxicillin code_yj mismatch / regression guard 導入
+- Chain #2 (`80b451dc99`..`5015c65b9f`): rxnorm.yaml 3423=Hydromorphone,
+  139462=Moxifloxacin(共に label 誤登録)+ 5 US code_rxnorm authoritative fix
+- Chain #3 (`dd96df8344`..`79f9721f1b`): Cefotaxime/Albumin/PCC(session 200
+  seed 発見)+ 138 items authoritative audit で発覚した cycle-8 相当の
+  mass sweep(94 disease YAML replacement + 80 yj.yaml + 40 code_mapping +
+  rxnorm.yaml 3 label 追加訂正 3443/4053/6902 = Diltiazem/Erythromycin/
+  Methylprednisolone)
+- Chain #4 (`09b206539f`): Cefepime + 5 US antibiotic RxCUI gap
+
+## Status (2026-07-11, session 45 CLOSED — 4-seed verification + 9-commit chain, updated 2026-07-12 → 5-seed / 13-commit)
 
 **★ Session 45 CLOSED (2026-07-11 late-evening, master HEAD `09b206539f`)** — 9-commit
 "seed verification chain" started as alt-seed verification of session 44 fixes
