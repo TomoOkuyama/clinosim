@@ -1399,6 +1399,23 @@ def _generate_mar(
         else:
             admin_hours = [8, 14, 20]  # TID default for PO
 
+        # Session 45 seed=400 verification finding: Sepsis abx-within-3h
+        # target (Surviving Sepsis / JSSCG bundle) was 34% because Day-0
+        # first dose waited for the next fixed slot (0/8/16). For STAT
+        # urgency (sepsis empirical antibiotics, cardiogenic-shock pressor,
+        # anaphylaxis epinephrine, etc.) prepend an ad-hoc dose 30-60min
+        # after admission on Day-0 so the empirical response window is
+        # respected. Subsequent doses continue on the scheduled q6/8h grid.
+        stat_first_dose_time = None
+        if day == 0 and str(getattr(order, "urgency", "")).lower() == "stat":
+            stat_first_dose_time = admission_time + timedelta(
+                minutes=int(rng.integers(30, 61))
+            )
+
+        scheduled_times = []
+        if stat_first_dose_time is not None:
+            scheduled_times.append(stat_first_dose_time)
+
         for hour in admin_hours:
             scheduled = datetime(
                 admission_time.year, admission_time.month, admission_time.day, hour, 0
@@ -1406,6 +1423,15 @@ def _generate_mar(
 
             if scheduled < admission_time:
                 continue
+            # Skip the scheduled-grid slot if it is within 90min of the STAT
+            # ad-hoc dose to avoid a double administration back-to-back.
+            if stat_first_dose_time is not None and abs(
+                (scheduled - stat_first_dose_time).total_seconds()
+            ) < 5400:
+                continue
+            scheduled_times.append(scheduled)
+
+        for scheduled in scheduled_times:
 
             # Determine status
             status = "given"

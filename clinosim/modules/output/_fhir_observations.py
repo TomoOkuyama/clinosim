@@ -100,6 +100,21 @@ def _build_lab_observation(
         "subject": {"reference": f"Patient/{patient_id}"},
         "effectiveDateTime": result.get("result_datetime", ""),
     }
+    # Session 45 seed=400 verification: JP Core Observation_Common profile
+    # recommends dual coding (JLAC10 primary + LOINC interop) so downstream
+    # consumers not conversant with JLAC10 can still recognize the analyte.
+    # Condition / Procedure already dual-code (JP Core + WHO); Observation
+    # was the outlier. Attach the LOINC equivalent when the analyte has one.
+    if country_code == "JP":
+        us_code_map = load_code_mapping("lab", "US")
+        loinc_code = us_code_map.get(lab_name)
+        if loinc_code and loinc_code != code_value:
+            loinc_display = code_lookup("loinc", loinc_code, "en") or lab_name
+            resource["code"]["coding"].append({
+                "system": get_system_uri("loinc"),
+                "code": loinc_code,
+                "display": loinc_display,
+            })
 
     if isinstance(value, (int, float)):
         unit_str = result.get("unit", "")
