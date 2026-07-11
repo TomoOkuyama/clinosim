@@ -350,7 +350,7 @@ drugs:
   rhythm_control:
     japan:
       - drug: "Amiodarone"
-        code_yj: "2129010"
+        code_yj: "2129410A1028"
         dose: "150mg IV over 10min, then 1mg/min x6h, then 0.5mg/min"
         route: IV
         indication: "persistent_AF_or_hemodynamic_compromise"

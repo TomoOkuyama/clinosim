@@ -343,7 +343,7 @@ drugs:
   escalation:  # bacterial superinfection suspected
     japan:
       - drug: "Ampicillin/Sulbactam"
-        code_yj: "6131405"
+        code_yj: "6139504G1028"
         dose: "3g IV q6h"
         indication: "suspected_bacterial_superinfection"
     us:

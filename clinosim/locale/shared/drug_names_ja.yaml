@@ -9,19 +9,25 @@ Ampicillin: "アンピシリン"
 Ampicillin/Sulbactam: "アンピシリン/スルバクタム"
 Amoxicillin: "アモキシシリン"
 Amoxicillin/Clavulanate: "アモキシシリン/クラブラン酸"
+Azithromycin: "アジスロマイシン"           # MHLW YJ 6149004
+Aztreonam: "アズトレオナム"                # MHLW YJ 6122400D1028 (アザクタム)
 Cefazolin: "セファゾリン"
 Cefepime: "セフェピム"
 Cefcapene pivoxil: "セフカペンピボキシル"
 Cefditoren pivoxil: "セフジトレンピボキシル"
 Cefmetazole: "セフメタゾール"
+Cefotaxime: "セフォタキシム"               # MHLW YJ 6132409 (セフォタックス)
 Ceftriaxone: "セフトリアキソン"
 Cephalexin: "セファレキシン"
 Ciprofloxacin: "シプロフロキサシン"
+Clindamycin: "クリンダマイシン"
+Fluconazole: "フルコナゾール"              # MHLW YJ 6290002M1020 (ジフルカン)
 Gentamicin: "ゲンタマイシン"
 Levofloxacin: "レボフロキサシン"
 Meropenem: "メロペネム"
 Metronidazole: "メトロニダゾール"
 Micafungin: "ミカファンギン"
+Moxifloxacin: "モキシフロキサシン"
 Nitrofurantoin: "ニトロフラントイン"
 Piperacillin/Tazobactam: "ピペラシリン/タゾバクタム"
 # DEPRECATED 2026-06-27 — Trimethoprim-sulfamethoxazole hyphen form is legacy
@@ -33,44 +39,68 @@ Vancomycin: "バンコマイシン"
 
 # --- Antiviral / 抗ウイルス薬 ---
 Oseltamivir: "オセルタミビル"
+Peramivir: "ペラミビル"                    # MHLW YJ 6250405A1032 (ラピアクタ)
 
 # --- Analgesics / 鎮痛薬 ---
 Acetaminophen: "アセトアミノフェン"
 Acetaminophen/codeine: "アセトアミノフェン/コデイン"
 Celecoxib: "セレコキシブ"
+Codeine: "コデイン"                        # MHLW YJ 2242001B2017
 Diclofenac: "ジクロフェナク"
 Fentanyl: "フェンタニル"
 Ibuprofen: "イブプロフェン"
 Ketorolac: "ケトロラク"
 Loxoprofen: "ロキソプロフェン"
 Morphine: "モルヒネ"
+NSAID: "ロキソプロフェン"                  # code_mapping substitutes NSAID → Loxoprofen (YJ 1149019C1149)
 Oxycodone: "オキシコドン"
+Pregabalin: "プレガバリン"                 # MHLW YJ 1190017F1029 (リリカ)
+Tramadol: "トラマドール"                   # MHLW YJ 1149038F1024 (トラマール)
 
 # --- Cardiovascular / 循環器系 ---
+Adrenaline: "アドレナリン"                 # MHLW YJ 2451400A1013 (alias of Epinephrine)
+Alteplase: "アルテプラーゼ"                # MHLW YJ 3959402D1027 (アクチバシン; 遺伝子組換え)
+Amiodarone: "アミオダロン"                 # MHLW YJ 2129410A1028 (アンカロン)
 Amlodipine: "アムロジピン"
 Apixaban: "アピキサバン"
 Aspirin: "アスピリン"
 Atorvastatin: "アトルバスタチン"
+Atropine: "アトロピン"                     # MHLW YJ 1242008X1066 (アトロピン硫酸塩水和物)
 Bisoprolol: "ビソプロロール"
 Candesartan: "カンデサルタン"
+Carperitide: "カルペリチド"                # MHLW YJ 2179400D1022 (ハンプ; 遺伝子組換え)
 Carvedilol: "カルベジロール"
 Clopidogrel: "クロピドグレル"
+Digoxin: "ジゴキシン"
 Diltiazem: "ジルチアゼム"
+Disopyramide: "ジソピラミド"               # MHLW YJ 2129005F1013 (リン酸ジソピラミド)
 Dobutamine: "ドブタミン"
 Edoxaban: "エドキサバン"
 Enalapril: "エナラプリル"
 Enoxaparin: "エノキサパリン"
 Furosemide: "フロセミド"
 Heparin: "ヘパリン"
+Idarucizumab: "イダルシズマブ"             # MHLW YJ 3399412A1027 (プリズバインド; 遺伝子組換え)
+Labetalol: "ラベタロール"                  # MHLW YJ 2149009F1030 (トランデート)
 Landiolol: "ランジオロール"
+Lisinopril: "リシノプリル"                 # MHLW YJ 2144006 (リシノプリル水和物)
+Metoprolol: "メトプロロール"               # MHLW YJ 2149010F1017 (セロケン)
+Midodrine: "ミドドリン"                    # MHLW YJ 2160002F1028 (メトリジン; 塩酸塩)
 Nicardipine: "ニカルジピン"
 Nitroglycerin: "ニトログリセリン"
 Norepinephrine: "ノルエピネフリン"
+Prothrombin complex concentrate: "乾燥濃縮人プロトロンビン複合体"   # MHLW YJ 6343449D1024 (ケイセントラ)
+Prothrombin complex concentrate (4F-PCC): "乾燥濃縮人プロトロンビン複合体"
+4-factor PCC (Kcentra): "乾燥濃縮人プロトロンビン複合体"
+Rivaroxaban: "リバーロキサバン"            # MHLW YJ 3339003F1024 (イグザレルト)
 Spironolactone: "スピロノラクトン"
+Ticagrelor: "チカグレロル"                 # MHLW YJ 3399011F1027 (ブリリンタ)
 Unfractionated Heparin: "未分画ヘパリン"
+Vasopressin: "バソプレシン"                # MHLW YJ 2414402A1019 (バソプレシン注射液)
 Warfarin: "ワルファリン"
 
 # --- Respiratory / 呼吸器系 ---
+Albuterol: "サルブタモール"                # US INN for Salbutamol (same drug)
 Aminophylline: "アミノフィリン"
 Fluticasone/Salmeterol: "フルチカゾン/サルメテロール"
 Ipratropium: "イプラトロピウム"
@@ -79,37 +109,52 @@ Tiotropium: "チオトロピウム"
 
 # --- GI / 消化器系 ---
 Buscopan: "ブチルスコポラミン"
+Butylscopolamine: "ブチルスコポラミン"     # MHLW YJ 1242002F1330 (ブスコパン; 臭化物) — chemical-name alias of Buscopan
 Daikenchuto: "大建中湯"
+Dai-kenchu-to: "大建中湯"                  # hyphenated alias
 Famotidine: "ファモチジン"
 Lactulose: "ラクツロース"
 Lansoprazole: "ランソプラゾール"
 Metoclopramide: "メトクロプラミド"
 Mosapride: "モサプリド"
+Octreotide: "オクトレオチド"               # MHLW YJ 2499403 (サンドスタチン; 酢酸塩)
 Omeprazole: "オメプラゾール"
 Ondansetron: "オンダンセトロン"
 Rifaximin: "リファキシミン"
+Sodium bicarbonate oral: "経口炭酸水素ナトリウム"
 
 # --- Endocrine / 内分泌系 ---
+Insulin: "インスリン"                      # generic insulin fallback
+Insulin aspart: "インスリンアスパルト"     # MHLW YJ 2492415A3031 (ノボラピッド)
 Insulin glargine: "インスリングラルギン"
+Insulin lispro: "インスリンリスプロ"       # MHLW YJ 2492414A2030 (ヒューマログ)
 Levothyroxine: "レボチロキシン"
 Metformin: "メトホルミン"
 Regular insulin: "レギュラーインスリン"
+Regular human insulin: "ヒトインスリン"    # MHLW YJ 2492403A4051 (ヒューマリンR; 遺伝子組換え)
 Sliding scale insulin: "スライディングスケールインスリン"
 
 # --- Neurology / 神経系 ---
 Cyclobenzaprine: "シクロベンザプリン"
 Donepezil: "ドネペジル"
+Ketamine: "ケタミン"                       # MHLW YJ 1119400A1031 (ケタラール; 塩酸塩)
 Levetiracetam: "レベチラセタム"
+Levocarnitine: "レボカルニチン"            # MHLW YJ 3999033F1026 (エルカルチンFF)
 Levodopa/Carbidopa: "レボドパ/カルビドパ"
 Lorazepam: "ロラゼパム"
+Milnacipran: "ミルナシプラン"              # MHLW YJ 1179040F1012
 
 # --- Bone / 骨代謝 ---
 Alendronate: "アレンドロネート"
 Alfacalcidol: "アルファカルシドール"
 Calcium/Vitamin D: "カルシウム/ビタミンD"
+Calcitonin nasal spray: "カルシトニン点鼻"
+Calcium carbonate + vitamin D: "炭酸カルシウム/ビタミンD"
+Calcium gluconate: "グルコン酸カルシウム"  # MHLW YJ 3213001X1010 (カルチコール; 水和物)
 Denosumab: "デノスマブ"
 Elcatonin: "エルカトニン"
 Vitamin D: "ビタミンD"
+Vitamin K: "ビタミンK"                     # generic; MHLW authoritative product = フィトナジオン (カチーフN)
 
 # --- Urology / 泌尿器系 ---
 Phenazopyridine: "フェナゾピリジン"
@@ -122,24 +167,34 @@ Silver sulfadiazine: "スルファジアジン銀"
 Silver nitrate: "硝酸銀"
 
 # --- Others / その他 ---
+Albumin: "アルブミン"
 Camostat mesilate: "カモスタットメシル酸塩"
 Diphenhydramine: "ジフェンヒドラミン"
 Epinephrine: "エピネフリン"
 Ferrous fumarate: "フマル酸第一鉄"
+Ferrous sulfate: "硫酸鉄"                  # MHLW YJ 3222007G1033 (フェロ・グラデュメット; 硫酸鉄水和物)
+Human serum albumin: "人血清アルブミン"    # MHLW YJ 6343410X1088 (献血アルブミン)
 Lidocaine: "リドカイン"
 Magnesium Sulfate: "硫酸マグネシウム"
+Magnesium sulfate: "硫酸マグネシウム"      # lowercase alias (MHLW YJ 2355002X1016)
 Mannitol: "マンニトール"
 Methylprednisolone: "メチルプレドニゾロン"
 Nafamostat: "ナファモスタット"
+Patiromer: "パチロマー"                    # MHLW YJ 2190046B1028 (ビルタサ; パチロマーソルビテクスカルシウム)
 Potassium chloride: "塩化カリウム"
 Prednisolone: "プレドニゾロン"
 Sodium bicarbonate: "炭酸水素ナトリウム"
+Sodium polystyrene sulfonate: "ポリスチレンスルホン酸ナトリウム"  # MHLW YJ 2190009A1048 (ケイキサレート)
 
 # --- IV fluids / 輸液 ---
 IV normal saline: "生理食塩液"
 Normal saline: "生理食塩液"
 NS: "生理食塩液"
 Lactated Ringer: "乳酸リンゲル液"
+Lactated Ringers: "乳酸リンゲル液"          # plural alias (MHLW YJ 3319534A4046 = ラクテック注)
+Lactated Ringer's: "乳酸リンゲル液"          # apostrophe alias
+Lactated Ringer's solution: "乳酸リンゲル液"
+Ringers: "リンゲル液"                       # MHLW YJ 3319539A1015 (リンゲル液)
 LR: "乳酸リンゲル液"
 Hypertonic Saline: "高張食塩液"
 Crystalloid: "晶質液"

@@ -357,7 +357,7 @@ drugs:
   first_line:
     japan:
       - drug: "Ampicillin/Sulbactam"
-        code_yj: "6131405"
+        code_yj: "6139504G1028"
         dose: "3g IV q6h"
         route: IV
         renal_adjustment:

@@ -289,7 +289,7 @@ order_protocols:
       - {test: "Chest_Xray_PA_Lateral", code_cpt: "71046", urgency: "stat"}
     medications:
       first_line:
-        japan: {drug: "ABPC/SBT", dose: "3g IV q6h", code_yj: "6131405", duration: "until_review_day3"}
+        japan: {drug: "ABPC/SBT", dose: "3g IV q6h", code_yj: "6139504G1028", duration: "until_review_day3"}
         us: {drug: "Ceftriaxone + Azithromycin", dose: "1g IV daily + 500mg IV daily", duration: "until_review_day3"}
       alternative_penicillin_allergy:
         japan: {drug: "Levofloxacin", dose: "500mg IV daily"}
