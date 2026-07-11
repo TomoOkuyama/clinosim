@@ -33,7 +33,7 @@ from clinosim.modules.imaging.engine import (
     load_body_sites,
 )
 from clinosim.modules.order.panel_grouping import load_panel_definitions
-from clinosim.modules.output._fhir_common import _escape_html, to_fhir_datetime
+from clinosim.modules.output._fhir_common import _escape_html, build_presented_form, to_fhir_datetime
 from clinosim.modules.output._fhir_localization import localize_fixed_label
 from clinosim.modules.output._fhir_service_request import (
     LAB_CATEGORY_V2_0074,
@@ -241,7 +241,32 @@ def build_dr_resource(
         res["issued"] = issued
     if performer_ref:
         res["performer"] = [{"reference": performer_ref}]
+    # C5-20 (Chain 3): presentedForm — text-plain rendered summary of the
+    # panel report (patient-facing form). Header + observation count is
+    # sufficient without inflating the attachment with per-analyte lines;
+    # downstream systems render the full lab result grid from Observation
+    # refs. Titled after the panel.
+    _summary = _lab_panel_presented_text(panel, display, group, lang)
+    _pf = build_presented_form(_summary, display, lang)
+    if _pf:
+        res["presentedForm"] = _pf
     return res
+
+
+def _lab_panel_presented_text(panel: dict, display: str, group: _GroupedPanel, lang: str) -> str:
+    """Compose a short text/plain summary for lab panel presentedForm.
+
+    Deterministic (no timestamps beyond the effectiveDateTime already on the
+    resource) so regeneration is byte-identical (AD-16).
+    """
+    header_en = f"Diagnostic Report: {display}"
+    header_ja = f"検査報告書: {display}"
+    header = header_ja if lang == "ja" else header_en
+    n_obs = len(group.obs_refs)
+    body_en = f"Report date: {group.bucket}\nObservations included: {n_obs}"
+    body_ja = f"報告日: {group.bucket}\n含まれる検査項目数: {n_obs}"
+    body = body_ja if lang == "ja" else body_en
+    return f"{header}\n\n{body}\n"
 
 
 def _sr_ids_for_group(
@@ -475,4 +500,20 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
             {"coding": [{"system": get_system_uri("snomed-ct"), "code": code}]}
             for code in findings_codes
         ]
+    # C5-20 (Chain 3): presentedForm — findings + impression as text/plain
+    # (mirrors text.div content, formatted for direct patient reading).
+    _title_en = f"Radiology Report: {proc_display}" if proc_display else "Radiology Report"
+    _title_ja = f"画像診断報告書: {proc_display}" if proc_display else "画像診断報告書"
+    _title = _title_ja if lang == "ja" else _title_en
+    _summary = _radiology_presented_text(findings_text, impression_text, lang)
+    _pf = build_presented_form(_summary, _title, lang)
+    if _pf:
+        dr["presentedForm"] = _pf
     return dr
+
+
+def _radiology_presented_text(findings: str, impression: str, lang: str) -> str:
+    """Compose text/plain radiology summary for presentedForm."""
+    if lang == "ja":
+        return f"[所見]\n{findings}\n\n[印象]\n{impression}\n"
+    return f"[Findings]\n{findings}\n\n[Impression]\n{impression}\n"

@@ -78,8 +78,13 @@ def run_beta(
     else:
         hospital_ops = load_hospital_operations()
 
-    # Staff roster scaled to hospital config (ward-aware, dept-aware)
-    roster = generate_roster(config.hospital_scale, config.country, rng, hospital_config=hospital_ops)
+    # Staff roster scaled to hospital config (ward-aware, dept-aware).
+    # C5-25 (Chain 3, 2026-07-11): use a dedicated sub-RNG so roster
+    # changes (e.g., adding allied-health roles) don't shift downstream
+    # RNG state (population / life events). Mirrors the AD-16 sub-seed
+    # pattern used by module enrichers.
+    _roster_rng = np.random.default_rng(config.random_seed ^ 0x524F5354)  # "ROST"
+    roster = generate_roster(config.hospital_scale, config.country, _roster_rng, hospital_config=hospital_ops)
     hospital_state = HospitalState()
 
     # Population: use hospital's recommended_population only when the user did not

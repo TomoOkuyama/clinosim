@@ -182,6 +182,32 @@ def generate_roster(
             name_phonetic=name_kana,
         ))
 
+    # C5-25 (Chain 3): roster expansion — multi-disciplinary staff types
+    # typically present in a JP community hospital of this size. Counts
+    # scaled to a 50-bed inpatient hospital and biased female per JP
+    # allied-health workforce norms (PT/OT/ST/RD ~65% female; MSW ~70%).
+    # Enables β-JP-1 multi-disciplinary CareTeam expansion and
+    # nutrition-order emit paths downstream.
+    _extra_roles: list[tuple[str, str, str, int, float]] = [
+        # (role, id_prefix, department, count, female_ratio)
+        ("physical_therapist", "PT",  "rehabilitation", 4, 0.55),
+        ("occupational_therapist", "OT", "rehabilitation", 2, 0.65),
+        ("speech_therapist", "ST", "rehabilitation", 2, 0.75),
+        ("medical_social_worker", "MSW", "medical_social_work", 2, 0.70),
+        ("dietitian", "RD", "nutrition", 3, 0.90),
+    ]
+    for role, prefix, dept, count, female_ratio in _extra_roles:
+        for i in range(count):
+            sex = "F" if rng.random() < female_ratio else "M"
+            name, name_kana = _generate_name_pair(sex, country, rng)
+            sid = f"{prefix}-{i+1:03d}"
+            roster.members.append(StaffMember(
+                staff_id=sid, name=name, role=role, department=dept,
+                qualification_year=int(rng.integers(2005, 2023)),
+                sex=sex, phone=_gen_phone(country, rng), email=_gen_email(sid),
+                name_phonetic=name_kana,
+            ))
+
     return roster
 
 

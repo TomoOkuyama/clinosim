@@ -330,6 +330,34 @@ def _build_address(addr: dict, country: str) -> dict[str, Any] | None:
     return fhir_addr
 
 
+def build_presented_form(text: str, title: str, lang: str = "en") -> list[dict[str, Any]]:
+    """Build DiagnosticReport.presentedForm[] from a text summary.
+
+    C5-20 (Chain 3): patient-facing rendered form of the diagnostic report.
+    FHIR R4 presentedForm is Attachment (0..*). clinosim emits a text/plain
+    representation (base64-encoded) — a PDF-format placeholder would require
+    a PDF-generation dependency and would not be reviewable by consumers.
+    Downstream systems can transform text/plain to PDF at delivery time if
+    needed.
+
+    Returns [] if text is empty (Attachment.data must be non-empty).
+    """
+    if not text:
+        return []
+    import base64
+    import hashlib
+    encoded = base64.b64encode(text.encode("utf-8")).decode("ascii")
+    h = hashlib.sha1(text.encode("utf-8")).digest()
+    return [{
+        "contentType": "text/plain; charset=utf-8",
+        "language": lang,
+        "data": encoded,
+        "title": title,
+        "size": len(text.encode("utf-8")),
+        "hash": base64.b64encode(h).decode("ascii"),
+    }]
+
+
 def _build_telecom(contact: dict) -> list[dict[str, str]]:
     """Build FHIR ContactPoint list from CIF contact data."""
     telecoms: list[dict[str, str]] = []

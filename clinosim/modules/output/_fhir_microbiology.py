@@ -15,7 +15,7 @@ from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import is_jp, resolve_lang
-from clinosim.modules.output._fhir_common import BundleContext, _micro_coding
+from clinosim.modules.output._fhir_common import BundleContext, _micro_coding, build_presented_form
 from clinosim.modules.output._fhir_localization import localize_fixed_label
 
 # Canonical id prefixes for microbiology resources. Imported by readers
@@ -196,6 +196,48 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             report["encounter"] = enc_ref
         if mb.get("reported_datetime"):
             report["effectiveDateTime"] = mb["reported_datetime"]
+        # C5-20 (Chain 3): presentedForm — text/plain summary of culture +
+        # susceptibility results (patient-facing form of the microbiology
+        # report). Deterministic text (no external state).
+        _title = "微生物検査報告書" if lang == "ja" else "Microbiology Report"
+        _summary = _mb_presented_text(mb, lang)
+        _pf = build_presented_form(_summary, _title, lang)
+        if _pf:
+            report["presentedForm"] = _pf
         out.append(report)
 
     return out
+
+
+def _mb_presented_text(mb: dict, lang: str) -> str:
+    """Text/plain culture + susceptibility summary for presentedForm."""
+    specimen = mb.get("specimen", "") or "unknown"
+    organism = mb.get("organism_snomed", "") or ""
+    growth = "detected" if mb.get("growth") else "no-growth"
+    if lang == "ja":
+        lines = [f"検体: {specimen}"]
+        if organism:
+            org_disp = code_lookup("snomed-ct", organism, "ja") or organism
+            lines.append(f"検出菌: {org_disp}")
+        else:
+            lines.append("検出菌: (陰性)")
+        sus_list = mb.get("susceptibilities") or []
+        if sus_list:
+            lines.append("[感受性]")
+            for sus in sus_list:
+                ab = sus.get("antibiotic_loinc", "?")
+                interp = sus.get("interpretation", "?")
+                lines.append(f"  {ab}: {interp}")
+        return "\n".join(lines) + "\n"
+    lines = [f"Specimen: {specimen}", f"Growth: {growth}"]
+    if organism:
+        org_disp = code_lookup("snomed-ct", organism, "en") or organism
+        lines.append(f"Organism: {org_disp}")
+    sus_list = mb.get("susceptibilities") or []
+    if sus_list:
+        lines.append("Susceptibilities:")
+        for sus in sus_list:
+            ab = sus.get("antibiotic_loinc", "?")
+            interp = sus.get("interpretation", "?")
+            lines.append(f"  {ab}: {interp}")
+    return "\n".join(lines) + "\n"
