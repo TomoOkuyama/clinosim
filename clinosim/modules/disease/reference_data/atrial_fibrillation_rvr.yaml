@@ -367,7 +367,7 @@ drugs:
   anticoagulation:
     japan:
       - drug: "Heparin"
-        code_yj: "3334400"
+        code_yj: "3334002"
         dose: "Initial bolus 5000IU IV, then 1000IU/h drip (adjust by APTT)"
         route: IV
         indication: "CHA2DS2-VASc >= 1 (Japan)"

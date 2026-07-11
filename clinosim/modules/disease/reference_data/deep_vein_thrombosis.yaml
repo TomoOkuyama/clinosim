@@ -336,7 +336,7 @@ drugs:
   first_line:
     japan:
       - drug: "Unfractionated Heparin"
-        code_yj: "3334400"
+        code_yj: "3334002"
         dose: "80 U/kg IV bolus, then 18 U/kg/h infusion"
         route: IV
         note: "Target aPTT 1.5-2.5x control"
