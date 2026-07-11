@@ -352,14 +352,14 @@ drugs:
   first_line:
     japan:
       - drug: "Nicardipine"
-        code_yj: "2149401"
+        code_yj: "2149019"
         dose: "1-6 mg/h IV infusion"
         route: IV
         note: "Target SBP < 140 mmHg within 1h"
         renal_adjustment: {}
         pregnancy_safe: false
       - drug: "Mannitol"
-        code_yj: "3399001"
+        code_yj: "2190400"
         dose: "200mL (20%) IV over 30min q6-8h"
         route: IV
         indication: "elevated_ICP_signs"
@@ -389,7 +389,7 @@ drugs:
         route: IV
         indication: "warfarin_use_urgent_reversal"
       - drug: "Idarucizumab"
-        code_yj: "3339910"
+        code_yj: "3399412"
         dose: "5g IV"
         route: IV
         indication: "dabigatran_reversal"
@@ -436,12 +436,12 @@ drugs:
   discharge_oral:
     japan:
       - drug: "Amlodipine"
-        code_yj: "2171015"
+        code_yj: "2149114"
         dose: "5-10mg PO daily"
         duration_days: 90
         note: "Long-term BP control"
       - drug: "Levetiracetam"
-        code_yj: "1139009"
+        code_yj: "1139010"
         dose: "500mg PO BID"
         duration_days: 30
         note: "Only if seizure occurred during hospitalization"

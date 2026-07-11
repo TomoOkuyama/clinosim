@@ -353,7 +353,7 @@ drugs:
   first_line:
     japan:
       - drug: "Cefmetazole"
-        code_yj: "6132405"
+        code_yj: "6132408"
         dose: "1g IV q8h"
         route: IV
         note: "Good biliary coverage; widely used in Japan"
@@ -361,12 +361,12 @@ drugs:
           eGFR_below_30: "0.5g IV q12h"
         pregnancy_safe: true
       - drug: "Acetaminophen"
-        code_yj: "1141700"
+        code_yj: "1141001"
         dose: "1000mg IV q6h"
         route: IV
         pregnancy_safe: true
       - drug: "Diclofenac"
-        code_yj: "1147700"
+        code_yj: "1147002"
         dose: "50mg suppository PRN"
         route: PR
         note: "NSAIDs reduce gallbladder prostaglandin-mediated inflammation"
@@ -394,7 +394,7 @@ drugs:
   alternative_penicillin_allergy:
     japan:
       - drug: "Levofloxacin"
-        code_yj: "6241017"
+        code_yj: "6241013"
         dose: "500mg IV daily"
         renal_adjustment:
           eGFR_below_50: "250mg IV daily"

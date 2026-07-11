@@ -298,7 +298,7 @@ drugs:
   first_line:
     japan:
       - drug: "Oseltamivir"
-        code_yj: "6250001"
+        code_yj: "6250021"
         dose: "75mg PO BID"
         route: PO
         duration_days: 5
@@ -321,7 +321,7 @@ drugs:
   alternative_oral_intolerance:
     japan:
       - drug: "Peramivir"
-        code_yj: "6250101"
+        code_yj: "6250405"
         dose: "300mg IV single dose"
         route: IV
         renal_adjustment:
@@ -359,7 +359,7 @@ drugs:
   discharge_oral:
     japan:
       - drug: "Oseltamivir"
-        code_yj: "6250001"
+        code_yj: "6250021"
         dose: "75mg PO BID"
         duration_days: 5
         note: "Continue to complete 5-day course if started late"

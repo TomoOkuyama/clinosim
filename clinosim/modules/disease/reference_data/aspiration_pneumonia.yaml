@@ -393,12 +393,12 @@ drugs:
   alternative_penicillin_allergy:
     japan:
       - drug: "Clindamycin"
-        code_yj: "6152002"
+        code_yj: "6112001"
         dose: "600mg IV q8h"
         note: "Good anaerobic coverage but C.diff risk"
         pregnancy_safe: false
       - drug: "Meropenem"
-        code_yj: "6139401"
+        code_yj: "6139400"
         dose: "1g IV q8h"
         note: "If severe or hospital-acquired aspiration"
         renal_adjustment:
@@ -418,7 +418,7 @@ drugs:
   escalation:
     japan:
       - drug: "Meropenem"
-        code_yj: "6139401"
+        code_yj: "6139400"
         dose: "1g IV q8h"
         indication: "no_defervescence_72h or lung_abscess"
         renal_adjustment:

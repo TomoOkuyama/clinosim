@@ -131,8 +131,8 @@ codes:
     en: Hydromorphone (Dilaudid)
     ja: ヒドロモルフォン（ジラウジド）
   '3443':
-    en: Epinephrine
-    ja: エピネフリン
+    en: Diltiazem (Cardizem)
+    ja: ジルチアゼム（ヘルベッサー）
   '36567':
     en: Simvastatin
     ja: シンバスタチン
@@ -140,8 +140,8 @@ codes:
     en: Enalapril (Vasotec)
     ja: エナラプリル（レニベース）
   '4053':
-    en: Diphenhydramine
-    ja: ジフェンヒドラミン
+    en: Erythromycin
+    ja: エリスロマイシン
   '4337':
     en: Ceftriaxone
     ja: セフトリアキソン
@@ -176,8 +176,8 @@ codes:
     en: Metformin (Glucophage)
     ja: メトホルミン（メトグルコ）
   '6902':
-    en: Metformin
-    ja: メトホルミン
+    en: Methylprednisolone
+    ja: メチルプレドニゾロン
   '6960':
     en: Midazolam
     ja: ミダゾラム

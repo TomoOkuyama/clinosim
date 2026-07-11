@@ -437,7 +437,7 @@ drugs:
         dose: "1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h"
         route: IV
       - drug: "Potassium chloride"
-        code_yj: "3319501"
+        code_yj: "3229001"
         dose: "20-40 mEq/L in IV fluids"
         route: IV
         note: "Hold if K > 5.3; increase if K < 3.3"
@@ -474,7 +474,7 @@ drugs:
   bicarbonate:
     japan:
       - drug: "Sodium bicarbonate"
-        code_yj: "3319002"
+        code_yj: "2344004"
         dose: "100 mEq in 400mL sterile water + 20mEq KCl, infuse over 2h"
         route: IV
         indication: "pH < 6.9 ONLY"
@@ -489,12 +489,12 @@ drugs:
   transition_to_subcutaneous:
     japan:
       - drug: "Insulin glargine"
-        code_yj: "2492414"
+        code_yj: "2492416"
         dose: "0.2-0.3 U/kg SC daily"
         route: SC
         note: "Give 1-2h before stopping drip; add rapid-acting insulin with meals"
       - drug: "Insulin aspart"
-        code_yj: "2492411"
+        code_yj: "2492415"
         dose: "Dose per carb counting or sliding scale"
         route: SC
     us:
@@ -511,7 +511,7 @@ drugs:
   discharge_oral:
     japan:
       - drug: "Insulin glargine"
-        code_yj: "2492414"
+        code_yj: "2492416"
         dose: "Per established regimen"
         duration_days: ongoing
         note: "T1DM: always insulin. T2DM: may add metformin once stable."

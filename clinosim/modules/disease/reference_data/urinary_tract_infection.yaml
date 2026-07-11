@@ -389,7 +389,7 @@ drugs:
   first_line:
     japan:
       - drug: "Ceftriaxone"
-        code_yj: "6132412"
+        code_yj: "6132419"
         dose: "1-2g IV daily"
         route: IV
         renal_adjustment:
@@ -412,7 +412,7 @@ drugs:
   alternative_penicillin_allergy:
     japan:
       - drug: "Levofloxacin"
-        code_yj: "6241017"
+        code_yj: "6241013"
         dose: "500mg IV daily"
         renal_adjustment:
           eGFR_below_50: "250mg IV daily"
@@ -428,7 +428,7 @@ drugs:
   escalation:  # when first-line fails (Day 3 no improvement)
     japan:
       - drug: "Meropenem"
-        code_yj: "6139401"
+        code_yj: "6139400"
         dose: "1g IV q8h"
         indication: "no_defervescence_72h or culture_ESBL_producing_organism"
         renal_adjustment:
@@ -448,7 +448,7 @@ drugs:
   discharge_oral:
     japan:
       - drug: "Levofloxacin"
-        code_yj: "6241017"
+        code_yj: "6241013"
         dose: "500mg PO daily"
         duration_days: 7
       - drug: "Cefcapene pivoxil"

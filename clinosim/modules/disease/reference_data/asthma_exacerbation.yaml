@@ -316,17 +316,17 @@ drugs:
   first_line:
     japan:
       - drug: "Methylprednisolone"
-        code_yj: "2456401"
+        code_yj: "2456003"
         dose: "40-80mg IV q6-8h"
         route: IV
         duration_days: 3
         note: "Switch to oral prednisolone when improving"
       - drug: "Salbutamol"
-        code_yj: "2254700"
+        code_yj: "2254001"
         dose: "2.5mg NEB q1-4h"
         route: NEB
       - drug: "Ipratropium"
-        code_yj: "2259700"
+        code_yj: "2259702"
         dose: "0.5mg NEB q4-6h"
         route: NEB
     us:
@@ -347,7 +347,7 @@ drugs:
   escalation:
     japan:
       - drug: "Magnesium Sulfate"
-        code_yj: "3219401"
+        code_yj: "2355002"
         dose: "2g IV over 20min"
         route: IV
         indication: "no_response_to_initial_treatment"

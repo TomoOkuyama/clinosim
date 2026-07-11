@@ -362,7 +362,7 @@ drugs:
   first_line:
     japan:
       - drug: "Lactated Ringer"
-        code_yj: "3319501"
+        code_yj: "3319534"
         dose: "250-500 mL/h IV for first 12-24h"
         route: IV
         note: "Aggressive early fluid resuscitation (JP guidelines: goal-directed)"
@@ -374,7 +374,7 @@ drugs:
         note: "Preferred over morphine (no sphincter of Oddi spasm)"
         pregnancy_safe: false
       - drug: "Acetaminophen"
-        code_yj: "1141700"
+        code_yj: "1141001"
         dose: "1000mg IV q6h"
         route: IV
         pregnancy_safe: true
@@ -401,7 +401,7 @@ drugs:
   escalation:  # for infected necrosis or severe disease
     japan:
       - drug: "Meropenem"
-        code_yj: "6139401"
+        code_yj: "6139400"
         dose: "1g IV q8h"
         indication: "infected_necrosis_or_pancreatic_abscess"
         renal_adjustment:
@@ -426,7 +426,7 @@ drugs:
   discharge_oral:
     japan:
       - drug: "Acetaminophen"
-        code_yj: "1141007"
+        code_yj: "1141001"
         dose: "500mg PO q6h PRN"
         duration_days: 7
       - drug: "Camostat mesilate"

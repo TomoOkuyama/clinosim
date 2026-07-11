@@ -388,19 +388,19 @@ drugs:
   first_line:
     japan:
       - drug: "Furosemide"
-        code_yj: "2139002"
+        code_yj: "2139005"
         dose: "20-40mg IV or PO daily"
         route: IV
         note: "Combined with spironolactone for ascites"
         pregnancy_safe: false
       - drug: "Spironolactone"
-        code_yj: "2133002"
+        code_yj: "2133001"
         dose: "25-100mg PO daily"
         route: PO
         note: "Primary diuretic for cirrhotic ascites (100:40 ratio with furosemide)"
         pregnancy_safe: false
       - drug: "Lactulose"
-        code_yj: "2359003"
+        code_yj: "3999001"
         dose: "30mL PO TID (titrate to 2-3 soft stools/day)"
         route: PO
         indication: "hepatic_encephalopathy"
@@ -450,12 +450,12 @@ drugs:
   variceal_bleeding:
     japan:
       - drug: "Octreotide"
-        code_yj: "2413600"
+        code_yj: "2499403"
         dose: "50ug IV bolus, then 50ug/h continuous"
         route: IV
         duration_days: 5
       - drug: "Ceftriaxone"
-        code_yj: "6132404"
+        code_yj: "6132419"
         dose: "1g IV daily"
         route: IV
         note: "Antibiotic prophylaxis in variceal bleed"
@@ -475,7 +475,7 @@ drugs:
   encephalopathy_adjunct:
     japan:
       - drug: "Rifaximin"
-        code_yj: "6119001"
+        code_yj: "6199001"
         dose: "400mg PO TID"
         route: PO
         indication: "recurrent_encephalopathy or inadequate_response_to_lactulose"
@@ -528,7 +528,7 @@ drugs:
         dose: "30mL PO TID"
         duration_days: 0
       - drug: "Rifaximin"
-        code_yj: "6119001"
+        code_yj: "6199001"
         dose: "400mg PO TID"
         duration_days: 0
         probability: 0.50

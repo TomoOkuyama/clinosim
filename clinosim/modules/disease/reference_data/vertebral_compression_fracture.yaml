@@ -316,14 +316,14 @@ drugs:
         route: PO
         note: "First-line analgesic"
       - drug: "NSAID (Loxoprofen)"
-        code_yj: "1149001"
+        code_yj: "1149019"
         dose: "60mg PO TID"
         route: PO
         note: "Add if acetaminophen insufficient; limit duration for elderly"
         renal_adjustment:
           eGFR_below_30: "avoid"
       - drug: "Elcatonin"
-        code_yj: "3999104"
+        code_yj: "3999401"
         dose: "20 units IM weekly"
         route: IM
         note: "Calcitonin for acute pain and bone loss"
@@ -341,12 +341,12 @@ drugs:
   pain_escalation:
     japan:
       - drug: "Tramadol"
-        code_yj: "1149501"
+        code_yj: "1149038"
         dose: "25-50mg PO q4-6h PRN"
         route: PO
         note: "For moderate pain unresponsive to NSAID"
       - drug: "Pregabalin"
-        code_yj: "1190003"
+        code_yj: "1190017"
         dose: "75mg PO BID, titrate to 150mg BID"
         route: PO
         note: "For neuropathic component"
@@ -367,7 +367,7 @@ drugs:
   osteoporosis_treatment:
     japan:
       - drug: "Denosumab"
-        code_yj: "3999440"
+        code_yj: "3999435"
         dose: "60mg SC q6months"
         route: SC
         note: "Start during hospitalization"
@@ -376,7 +376,7 @@ drugs:
         dose: "1mcg PO daily"
         route: PO
       - drug: "Calcium carbonate"
-        code_yj: "3229001"
+        code_yj: "2344007"
         dose: "500mg PO BID"
         route: PO
     us:
@@ -415,7 +415,7 @@ drugs:
         dose: "500mg PO TID PRN"
         duration_days: 14
       - drug: "Denosumab"
-        code_yj: "3999440"
+        code_yj: "3999435"
         dose: "60mg SC q6months"
         note: "Continue osteoporosis treatment"
       - drug: "Alfacalcidol"

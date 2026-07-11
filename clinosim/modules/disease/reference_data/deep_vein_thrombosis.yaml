@@ -343,7 +343,7 @@ drugs:
         renal_adjustment: {}
         pregnancy_safe: true
       - drug: "Edoxaban"
-        code_yj: "3339006"
+        code_yj: "3339002"
         dose: "60mg PO daily (after 5+ days heparin)"
         route: PO
         note: "Start after initial heparin phase"
@@ -386,7 +386,7 @@ drugs:
   cancer_associated_vte:
     japan:
       - drug: "Edoxaban"
-        code_yj: "3339006"
+        code_yj: "3339002"
         dose: "60mg PO daily"
         route: PO
         note: "DOAC preferred over LMWH in most cancer-associated VTE (Hokusai-VTE Cancer)"
@@ -423,7 +423,7 @@ drugs:
   discharge_oral:
     japan:
       - drug: "Edoxaban"
-        code_yj: "3339006"
+        code_yj: "3339002"
         dose: "60mg PO daily"
         duration_days: 90
         note: "Minimum 3 months; extend if unprovoked or ongoing risk"
