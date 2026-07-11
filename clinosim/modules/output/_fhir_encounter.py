@@ -28,6 +28,42 @@ from clinosim.modules.output._fhir_localization import (
 from clinosim.modules.output._fhir_reference_data import _ENCOUNTER_TYPE_SNOMED_CODE
 
 
+def _compute_encounter_length(start_iso: str, end_iso: str) -> dict[str, Any] | None:
+    """Compute FHIR ``Encounter.length`` from ISO-8601 period bounds.
+
+    Returns ``None`` if either bound cannot be parsed or if the interval
+    is non-positive. Emits UCUM ``d`` (days) for LOS ≥ 1 day, else ``min``.
+
+    Session 45: extracted from ``_build_encounter`` so the ED-encounter
+    synthesis path in ``fhir_r4_adapter._bb_encounters`` can share the same
+    computation instead of only IMP paths getting length.
+    """
+    if not start_iso or not end_iso:
+        return None
+    try:
+        from datetime import datetime as _dt
+        start = _dt.fromisoformat(str(start_iso).replace("Z", "+00:00").split("+")[0])
+        end = _dt.fromisoformat(str(end_iso).replace("Z", "+00:00").split("+")[0])
+    except (ValueError, TypeError):
+        return None
+    total_min = int((end - start).total_seconds() / 60)
+    if total_min <= 0:
+        return None
+    if total_min >= 1440:  # 1 day
+        return {
+            "value": round(total_min / 1440, 2),
+            "unit": "d",
+            "system": get_system_uri("ucum"),
+            "code": "d",
+        }
+    return {
+        "value": total_min,
+        "unit": "min",
+        "system": get_system_uri("ucum"),
+        "code": "min",
+    }
+
+
 def _build_encounter(
     enc: dict, patient_id: str,
     is_readmission: bool = False, prior_encounter_id: str | None = None,
@@ -140,28 +176,11 @@ def _build_encounter(
             # Length — C5-11 (session 43 cycle 5): use days for LOS ≥ 1 day
             # (typical IMP encounters run to 20+ days = large minute counts;
             # UCUM `d` is more natural for chart LOS displays).
-            try:
-                from datetime import datetime as _dt
-                start = _dt.fromisoformat(str(enc["admission_datetime"]).replace("Z","+00:00").split("+")[0])
-                end = _dt.fromisoformat(str(enc["discharge_datetime"]).replace("Z","+00:00").split("+")[0])
-                total_min = int((end - start).total_seconds() / 60)
-                if total_min >= 1440:  # 1 day
-                    days = round(total_min / 1440, 2)
-                    resource["length"] = {
-                        "value": days,
-                        "unit": "d",
-                        "system": get_system_uri("ucum"),
-                        "code": "d",
-                    }
-                else:
-                    resource["length"] = {
-                        "value": total_min,
-                        "unit": "min",
-                        "system": get_system_uri("ucum"),
-                        "code": "min",
-                    }
-            except (ValueError, TypeError):
-                pass
+            length = _compute_encounter_length(
+                enc["admission_datetime"], enc["discharge_datetime"]
+            )
+            if length is not None:
+                resource["length"] = length
 
     # C5-22 (session 43): Encounter.classHistory + statusHistory for
     # inpatient encounters that transitioned through ward → ICU (icu_transferred_day
