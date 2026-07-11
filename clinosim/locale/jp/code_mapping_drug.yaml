@@ -116,7 +116,7 @@ LR: "3311402"                  # (alias)
 Dobutamine: "2119006"          # ドブタミン
 Norepinephrine: "2119002"      # ノルエピネフリン
 # 抗凝血剤 (3334)
-Heparin: "3334002"             # ヘパリン
+Heparin: "3334002"             # ヘパリン (Unfractionated Heparin also resolves here via suffix-match fallback in _fhir_medications; session 45)
 # 抗真菌剤 (6179)
 Micafungin: "6179007"          # ミカファンギン
 Fluconazole: "6179004"         # フルコナゾール

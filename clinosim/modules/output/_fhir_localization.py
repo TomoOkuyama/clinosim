@@ -51,6 +51,59 @@ def _localize_dosage_terms(text: str) -> str:
     return text
 
 
+# Rate-adjustment suffix pattern for continuous-infusion medications (session 45).
+# Disease YAMLs (e.g. pulmonary_embolism.yaml Day-2 heparin drip) may emit
+# `dose: "increase_rate_by_20%"` which upstream concatenates to display_name as
+# `"Unfractionated_Heparin increase_rate_by_20%"`. That protocol notation belongs
+# in dosageInstruction, not in medicationCodeableConcept.text — otherwise the
+# code_mapping token loop fails to hit the base drug name and the coding is
+# emitted uncoded.
+_RATE_ADJUSTMENT_SUFFIX_RE = re.compile(
+    r"\s*[_ ](increase|decrease)[_ ]rate[_ ]by[_ ](\d+)%\s*$",
+    re.IGNORECASE,
+)
+
+
+def _split_rate_adjustment_suffix(drug_name: str) -> tuple[str, str]:
+    """Split a drug display name into (base_drug_name, rate_adjustment_note).
+
+    Returns ("", "") for empty input; returns (drug_name, "") when no
+    adjustment suffix is present.
+
+    Examples::
+
+        >>> _split_rate_adjustment_suffix("Unfractionated_Heparin increase_rate_by_20%")
+        ('Unfractionated_Heparin', 'increase rate by 20%')
+        >>> _split_rate_adjustment_suffix("Norepinephrine decrease rate by 15%")
+        ('Norepinephrine', 'decrease rate by 15%')
+        >>> _split_rate_adjustment_suffix("Acetaminophen 500mg PO")
+        ('Acetaminophen 500mg PO', '')
+    """
+    if not drug_name:
+        return "", ""
+    m = _RATE_ADJUSTMENT_SUFFIX_RE.search(drug_name)
+    if not m:
+        return drug_name, ""
+    base = drug_name[: m.start()].rstrip(" _")
+    direction = m.group(1).lower()
+    percent = m.group(2)
+    return base, f"{direction} rate by {percent}%"
+
+
+def _localize_rate_adjustment(note_en: str, country: str) -> str:
+    """Localize an English rate-adjustment note produced by ``_split_rate_adjustment_suffix``.
+
+    Returns the input unchanged for US or empty notes.
+    """
+    if not note_en or is_us(country):
+        return note_en
+    m = re.match(r"^(increase|decrease) rate by (\d+)%\s*$", note_en, re.IGNORECASE)
+    if not m:
+        return note_en
+    direction_ja = "増量" if m.group(1).lower() == "increase" else "減量"
+    return f"注入速度を{m.group(2)}%{direction_ja}"
+
+
 def _localize_drug_name(drug_name: str, country: str) -> str:
     """Resolve drug name to Japanese when country=JP.
 
