@@ -129,3 +129,54 @@ Omeprazole: "2329024"          # オメプラゾール
 Tetanus toxoid: "6362001"      # 破傷風トキソイド
 # アセトアミノフェン (1141)
 Acetaminophen: "1141007"       # アセトアミノフェン (パラセタモール)
+
+# === CO-8 (Chain 4 MHLW ingestion, 2026-07-11) ===
+# Full 12-char 個別医薬品コード (per-SKU) from MHLW 令和8年6月12日適用
+# 薬価基準収載品目リスト (tp20260612-01_05.xlsx, sheet1). Representative
+# generic/brand pick — the first SKU per 成分 encountered in the sheet
+# (typically the standard-formulation adult dose). Keys mirror the internal
+# English names used by disease/encounter YAMLs, plus multi-token aliases
+# for the common `"IV normal saline"` / `"Nebulized <drug>"` prefix forms
+# that would otherwise miss the longest-match lookup in _fhir_medications.
+Oseltamivir:            "6250021F1028"  # オセルタミビルリン酸塩
+Ciprofloxacin:          "6241400A4021"  # シプロフロキサシン
+Magnesium sulfate:      "2355002X1016"  # 硫酸マグネシウム水和物
+Magnesium Sulfate:      "2355002X1016"  # (case alias)
+Aminophylline:          "2115001X1015"  # アミノフィリン水和物
+Butylscopolamine:       "1242002F1330"  # ブチルスコポラミン臭化物
+Dai-kenchu-to:          "5200092C1025"  # 大建中湯エキス
+Cefmetazole:            "6132408E1034"  # セフメタゾールナトリウム
+Mannitol:               "2190400A2011"  # Ｄ－マンニトール
+Disopyramide:           "2129005F1013"  # リン酸ジソピラミド
+Midazolam:              "1124031Q1024"  # ミダゾラム
+Ketamine:               "1119400A1031"  # ケタミン塩酸塩
+Alteplase:              "3959402D1027"  # アルテプラーゼ (遺伝子組換え)
+Adrenaline:             "2451400A1013"  # アドレナリン
+Epinephrine:            "2451400A1013"  # (alias — same drug as Adrenaline)
+Vasopressin:            "2414402A1019"  # バソプレシン
+Salbutamol:             "2254001F1102"  # サルブタモール硫酸塩 (long form; short
+                                        # form 2254701 also valid, kept above)
+Ringers:                "3319539A1015"  # リンゲル液 (unqualified Ringer's)
+Human serum albumin:    "6343410X1088"  # 人血清アルブミン
+Albumin:                "6343410X1088"  # (alias)
+Octreotide:             "2499403A1037"  # オクトレオチド酢酸塩
+Levetiracetam:          "1139010F1024"  # レベチラセタム
+Loxoprofen:             "1149019C1149"  # ロキソプロフェンナトリウム水和物
+Milnacipran:            "1179040F1012"  # ミルナシプラン塩酸塩
+Propofol:               "1119402A1022"  # プロポフォール
+Fentanyl:               "8219700S5026"  # フェンタニル
+Levocarnitine:          "3999033F1026"  # レボカルニチン
+Atropine:               "1242008X1066"  # アトロピン硫酸塩水和物
+Cefazolin:              "6132401D1061"  # セファゾリンナトリウム
+Silver sulfadiazine:    "2633705N1031"  # スルファジアジン銀 (ゲーベンクリーム)
+Diclofenac:             "1147002F1013"  # ジクロフェナクナトリウム
+"Trimethoprim/Sulfamethoxazole": "6290100F2115"  # バクタ配合錠
+# Regular human insulin — the sliding-scale-appropriate short-acting insulin
+Regular human insulin:  "2492403A4051"  # ヒューマリンR注100単位/mL
+# Multi-token aliases so "IV normal saline 1000mL" / "Nebulized salbutamol" /
+# similar leading-modifier prefixes still resolve via longest-match lookup
+# in _fhir_medications._build_medication_request.
+"IV normal saline":     "3311401"       # → Normal saline
+"Nebulized salbutamol": "2254001F1102"  # → Salbutamol (long form)
+"Nebulized Salbutamol": "2254001F1102"  # (case alias)
+"Sliding scale insulin": "2492403A4051" # → Regular human insulin (ヒューマリンR)

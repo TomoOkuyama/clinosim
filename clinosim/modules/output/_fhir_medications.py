@@ -108,9 +108,17 @@ def _build_medication_request(
     # "Regular insulin") previously failed the base-only lookup because
     # `.split(" ")[0]` truncated at the first space. Try progressively shorter
     # prefixes so multi-word keys match too. Longest-match-wins.
-    code_value = ""
-    if drug_name_clean:
-        tokens = drug_name_clean.split(" ")
+    #
+    # CO-8 (Chain 4 MHLW ingestion, 2026-07-11): also normalize underscores
+    # to spaces before lookup — disease YAMLs sometimes ship `Normal_saline`
+    # / `Regular_insulin` (underscore variant of the same key) and previously
+    # missed the code_mapping match. Simultaneously honor Order.order_code
+    # when the disease YAML already supplies an authoritative `code_yj` /
+    # `code_rxnorm` (Order.order_code is set at place_admission_orders time).
+    code_value = order.get("order_code", "") or ""
+    if not code_value and drug_name_clean:
+        normalized = drug_name_clean.replace("_", " ")
+        tokens = normalized.split(" ")
         for n_tokens in range(len(tokens), 0, -1):
             candidate = " ".join(tokens[:n_tokens])
             if candidate in drug_codes:
@@ -118,7 +126,7 @@ def _build_medication_request(
                 base_name = candidate
                 break
         if not code_value:
-            code_value = drug_codes.get(base_name, "")
+            code_value = drug_codes.get(base_name.replace("_", " "), "")
     drug_system_key = system_key_for("drug", country_code)
     display = code_lookup(drug_system_key, code_value, lang) if code_value else drug_name
     if display == code_value:
@@ -239,9 +247,12 @@ def _build_medication_admin(
     lang = resolve_lang(country_code)
     drug_codes = load_code_mapping("drug", country_code)
     # C3-10 (session 42 cycle 3): longest-match-wins for multi-word keys.
-    code_value = ""
-    if drug_name_clean:
-        tokens = drug_name_clean.split(" ")
+    # CO-8 (Chain 4 2026-07-11): normalize underscores + honor MAR.code_yj
+    # if downstream ever propagates the Order's code (see _build_medication_request).
+    code_value = mar.get("code_yj", "") or ""
+    if not code_value and drug_name_clean:
+        normalized = drug_name_clean.replace("_", " ")
+        tokens = normalized.split(" ")
         for n_tokens in range(len(tokens), 0, -1):
             candidate = " ".join(tokens[:n_tokens])
             if candidate in drug_codes:
@@ -249,7 +260,7 @@ def _build_medication_admin(
                 base_name = candidate
                 break
         if not code_value:
-            code_value = drug_codes.get(base_name, "")
+            code_value = drug_codes.get(base_name.replace("_", " "), "")
     drug_system_key = system_key_for("drug", country_code)
     code_system = get_system_uri(drug_system_key)
 
