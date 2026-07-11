@@ -175,6 +175,16 @@ def _build_lab_observation(
     if performer_id:
         resource["performer"] = [{"reference": f"Practitioner/{performer_id}"}]
 
+    # C5-21 (Chain 2): Observation.method for lab. clinosim's synthetic
+    # analytes are all produced on an automated bench analyzer path (there
+    # is no manual titration / immunofluorescence / HPLC branch in the
+    # data-generation pipeline). Text-only CodeableConcept per FHIR R4
+    # (system+code omitted intentionally — no authoritative universal
+    # method-code exists for "automated bench analyzer" that fits every
+    # analyte). Mirrors session-42 Coverage.type text-only precedent.
+    _method_text = "自動分析器測定" if is_jp(country) else "Automated laboratory measurement"
+    resource["method"] = {"text": _method_text}
+
     return resource
 
 

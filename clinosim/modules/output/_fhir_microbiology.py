@@ -118,11 +118,19 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                         if culture_code_value else {"text": "Culture"})
         result_refs: list[dict] = []
 
+        # C5-21 (Chain 2): Observation.method for microbiology. Culture-based
+        # identification is a distinct method from bench-analyzer chemistry
+        # (see _fhir_observations._build_lab_observation). Text-only per
+        # FHIR R4 CodeableConcept precedent.
+        _culture_method_text = "培養同定" if lang == "ja" else "Culture and identification"
+        _sus_method_text = "感受性試験" if lang == "ja" else "Antimicrobial susceptibility testing"
+
         org_id = f"{MB_ORG_ID_PREFIX}{base}"
         org_obs: dict[str, Any] = {
             "resourceType": "Observation", "id": org_id, "status": "final",
             "category": lab_category, "code": culture_code, "subject": subject,
             "specimen": {"reference": f"Specimen/{spec_id}"},
+            "method": {"text": _culture_method_text},
         }
         if hai_identifier:
             org_obs["identifier"] = hai_identifier
@@ -154,6 +162,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                 "code": {"coding": [_micro_coding(sus_code_system, sus_code_value, lang)]},
                 "subject": subject,
                 "specimen": {"reference": f"Specimen/{spec_id}"},
+                "method": {"text": _sus_method_text},
                 "valueCodeableConcept": {"coding": [{
                     "system": get_system_uri("hl7-observation-interpretation"),
                     "code": interp,
