@@ -470,6 +470,14 @@ def _simulate_patient(
         (c.code.split(".")[0] if hasattr(c, "code") else str(c).split(".")[0])
         for c in (getattr(patient, "chronic_conditions", []) or [])
     }
+    # Session 45 seed=400 verification finding: N40 (BPH) is anatomically
+    # male-only, but the implied-chronic table was applying it sex-blind.
+    # Register sex constraints per code so future additions are safe by
+    # default (single edit point; sibling-sweep-safe pattern).
+    _SEX_RESTRICTED_ICD = {
+        "N40": "M",  # Benign prostatic hyperplasia — male only
+    }
+    _patient_sex = str(getattr(patient, "sex", "") or "").upper()[:1]
     _implied = _IMPLIED_CHRONIC_BY_DISEASE.get(disease_id, [])
     if _implied:
         from clinosim.types.patient import ChronicCondition
@@ -478,6 +486,9 @@ def _simulate_patient(
             _base = _code.split(".")[0]
             if _base in _existing_codes:
                 continue
+            _sex_req = _SEX_RESTRICTED_ICD.get(_base)
+            if _sex_req and _patient_sex and _sex_req != _patient_sex:
+                continue  # skip sex-restricted ICD for the wrong sex
             _existing_codes.add(_base)
             patient.chronic_conditions.append(ChronicCondition(
                 code=_code, onset_date=_adm_date,
