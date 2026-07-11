@@ -98,6 +98,8 @@
   - "プロパラカイン" / "Proparacaine"  (session 44 cycle 6 追加 — 眼科表面麻酔、JP 未掲載)
   - "オフロキサシン点眼" / "Ofloxacin ophthalmic"  (session 44 cycle 6 追加 — 眼科 個別 code なし)
   - "オキシメタゾリン" / "Oxymetazoline"  (session 44 cycle 6 追加 — 鼻噴霧 OTC)
+  - "テルリプレシン" / "Terlipressin"  (session 44 cycle 7 residual sweep 追加 — JP 薬価基準未掲載)
+  - "シクロペントラート" / "Cyclopentolate"  (session 44 cycle 7 residual sweep 追加 — 眼科 個別 code なし)
   他の drug で uncoded が発生した場合 = 真のバグ(MHLW lookup 追加が必要)。
 - **established_session**: session 44, 2026-07-11 (Chain 4 CO-8) — cycle 6 (session 44 continuation) で 5 件追加
 - **established_pr**: `2c5e79b974` + cycle 6 close

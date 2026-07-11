@@ -67,6 +67,10 @@ class Encounter:
     time_resolution: timedelta | None = None
     # FHIR-aligned hospitalization fields
     admit_source: str = ""  # "emd" | "hosp-trans" | "gp" | "mp" | "nursing" | "outp"
+    # CY7-05 (Chain-6): when admit_source == "emd", store the source ED encounter
+    # id so FHIR Encounter.partOf can link ED → IMP within the same patient's
+    # care episode (Encounter.partOf 0..1 Reference to Encounter).
+    admit_source_encounter_id: str = ""
     discharge_disposition: str = ""  # "home" | "hosp" | "other-hcf" | "exp" | "snf"
     priority: str = ""  # "EM" (emergency) | "UR" (urgent) | "R" (routine)
     # Tier 1 #3 α-min-2 additions

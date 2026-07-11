@@ -127,6 +127,19 @@ def _build_medication_request(
                 break
         if not code_value:
             code_value = drug_codes.get(base_name.replace("_", " "), "")
+    # C6-C7 residual sweep: fallback to `protocol_category` (the "TYPE:" prefix
+    # stripped by `_strip_protocol_prefix`, e.g. "lactulose:" / "antibiotic:" /
+    # "antipyretic:"). Supportive Orders carry the drug identity in the type
+    # field rather than the detail text — the classifier already trusts
+    # this signal via MEDICATION_TYPE_HINTS, so the FHIR builder should too.
+    if not code_value and protocol_category:
+        _pc = protocol_category.strip().lower()
+        # normalize common variants
+        _pc = _pc.replace("_", " ").rstrip(":")
+        for cand in (protocol_category, _pc, _pc.capitalize(), _pc.title()):
+            if cand and cand in drug_codes:
+                code_value = drug_codes[cand]
+                break
     drug_system_key = system_key_for("drug", country_code)
     display = code_lookup(drug_system_key, code_value, lang) if code_value else drug_name
     if display == code_value:
@@ -291,7 +304,7 @@ def _build_medication_admin(
 ) -> dict:
     """Build FHIR MedicationAdministration resource."""
     drug_name_raw = mar.get("drug_name", "")
-    drug_name_clean, _ = _strip_protocol_prefix(drug_name_raw)
+    drug_name_clean, protocol_category = _strip_protocol_prefix(drug_name_raw)
     drug_name = _localize_drug_name(drug_name_clean, country)
     base_name = drug_name_clean.split(" ")[0] if drug_name_clean else ""
     country_code = "US" if is_us(country) else "JP"
@@ -312,6 +325,13 @@ def _build_medication_admin(
                 break
         if not code_value:
             code_value = drug_codes.get(base_name.replace("_", " "), "")
+    # C6-C7 residual sweep: same protocol_category fallback as MR builder.
+    if not code_value and protocol_category:
+        _pc = protocol_category.strip().lower().replace("_", " ").rstrip(":")
+        for cand in (protocol_category, _pc, _pc.capitalize(), _pc.title()):
+            if cand and cand in drug_codes:
+                code_value = drug_codes[cand]
+                break
     drug_system_key = system_key_for("drug", country_code)
     code_system = get_system_uri(drug_system_key)
 

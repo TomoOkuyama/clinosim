@@ -62,6 +62,21 @@ PROCEDURE_KEYWORDS: tuple[str, ...] = (
     # bare spirometry / device → PROCEDURE)
 )
 
+# Strong THERAPY indicators — the detail text describes a protocol / clinical
+# plan rather than a specific drug. Wins over MEDICATION_TYPE_HINTS so that
+# `{type: "DVT_prophylaxis", detail: "therapeutic_anticoagulation ..."}` is
+# classified as THERAPY even though DVT_prophylaxis is normally MEDICATION.
+# Added in the C6-C7 residual sweep (2026-07-11) to stop plan text from
+# emitting as MedicationRequest / MedicationAdministration.
+PROTOCOL_TEXT_KEYWORDS: tuple[str, ...] = (
+    "parkland formula", "parkland式",
+    "therapeutic_anticoagulation", "therapeutic anticoagulation",
+    "治療的抗凝固療法",
+    "抗凝固療法 (置換", "anticoagulation (substitution",
+    "replaces prophylactic", "置換 予防投与",
+)
+
+
 THERAPY_KEYWORDS: tuple[str, ...] = (
     # Observation / monitoring (non-invasive care plan)
     "monitoring", "observation", "surveillance",
@@ -136,18 +151,25 @@ def classify_inpatient_supportive(display_name: str, type_hint: str) -> OrderTyp
     ``continuous_telemetry``) and a free-text ``detail`` field. PROCEDURE
     keywords in detail override everything (a "DVT_prophylaxis" typed order
     whose detail is "Sequential compression device" is a device, not a drug).
+    PROTOCOL_TEXT_KEYWORDS in detail also override the type hint — text like
+    "Parkland formula" / "therapeutic_anticoagulation" describes a clinical
+    plan, not a specific drug, so it should be THERAPY regardless of the
+    (often-inherited) type field.
     Otherwise the type hint decides: MEDICATION types stay MEDICATION even
     if the detail contains an incidental THERAPY keyword ("consider medication
     review at day 3"), and CARE_PLAN types stay THERAPY. Only when the type
     hint is unknown do THERAPY keywords in the detail get a chance.
 
-    Precedence: PROCEDURE_KEYWORDS > MEDICATION_TYPE_HINTS >
-    CARE_PLAN_TYPE_HINTS > THERAPY_KEYWORDS > "drug" substring → MEDICATION >
-    THERAPY.
+    Precedence: PROCEDURE_KEYWORDS > PROTOCOL_TEXT_KEYWORDS (THERAPY) >
+    MEDICATION_TYPE_HINTS > CARE_PLAN_TYPE_HINTS > THERAPY_KEYWORDS >
+    "drug" substring → MEDICATION > THERAPY.
     """
     lowered = display_name.lower()
     if _matches_keyword(lowered, PROCEDURE_KEYWORDS):
         return OrderType.PROCEDURE
+    # C6-C7 residual sweep: plan-text overrides MEDICATION type_hint.
+    if _matches_keyword(lowered, PROTOCOL_TEXT_KEYWORDS):
+        return OrderType.THERAPY
     if type_hint in MEDICATION_TYPE_HINTS:
         return OrderType.MEDICATION
     if type_hint in CARE_PLAN_TYPE_HINTS:
