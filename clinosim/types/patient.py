@@ -93,6 +93,12 @@ class PatientProfile:
     age: int = 0  # kept for backward compat; derived from date_of_birth in output
     sex: str = "M"
     date_of_birth: date | None = None
+    # Session 45 seed=400 verification: mortality logic in the inpatient
+    # simulator (helpers._evaluate_mortality) was firing (74 expired IMP at
+    # seed=400) but the flag never propagated to Patient FHIR emit. Setting
+    # this at the moment of in-hospital death lets `_fhir_patient` emit
+    # `deceasedDateTime` matching the Encounter dischargeDisposition="expired".
+    date_of_death: date | None = None
     blood_type: str = "A"
     rh_factor: str = "+"
     height_cm: float = 170.0

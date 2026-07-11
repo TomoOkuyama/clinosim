@@ -494,6 +494,19 @@ def _simulate_patient(
                 code=_code, onset_date=_adm_date,
             ))
 
+    # Session 45 seed=400 verification: propagate in-hospital death to the
+    # Patient record so `_fhir_patient` can emit `deceasedDateTime`. Uses
+    # the encounter's discharge_datetime (set to the death moment in the
+    # simulator when death_occurred is True).
+    if death_occurred and encounter.discharge_datetime is not None:
+        _dod = (
+            encounter.discharge_datetime.date()
+            if hasattr(encounter.discharge_datetime, "date")
+            else encounter.discharge_datetime
+        )
+        if not getattr(patient, "date_of_death", None):
+            patient.date_of_death = _dod
+
     record = CIFPatientRecord(
         patient=patient, encounters=[encounter], orders=all_orders,
         vital_signs=all_vitals, lab_results=all_lab_results,
