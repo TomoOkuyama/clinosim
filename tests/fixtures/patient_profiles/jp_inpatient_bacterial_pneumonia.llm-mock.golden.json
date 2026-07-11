@@ -260,28 +260,6 @@
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
-        "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
-        "physical_exam_findings.smooth_recovery.day_10",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "day_index": 10,
-        "generator": "template",
-        "lang": "ja"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "S（主観） 症状緩和傾向\nO（客観） バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） 治療反応良好\nP（計画） 治療継続"
-    }
-  },
-  "doc-ENC-FORCED-0001-000001-13": {
-    "document_id": "doc-ENC-FORCED-0001-000001-13",
-    "encounter_id": "ENC-FORCED-0001-000001",
-    "narrative": {
-      "facts_used": [
         "disease_protocol.chief_complaint.ja",
         "ctx.diagnoses",
         "ctx.discharge_medications",
@@ -307,8 +285,8 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-000001-14": {
-    "document_id": "doc-ENC-FORCED-0001-000001-14",
+  "doc-ENC-FORCED-0001-000001-13": {
+    "document_id": "doc-ENC-FORCED-0001-000001-13",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [],
@@ -329,8 +307,8 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-000001-15-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-15-night",
+  "doc-ENC-FORCED-0001-000001-14-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-14-night",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -348,11 +326,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-16-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-16-day",
+  "doc-ENC-FORCED-0001-000001-15-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-15-day",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -370,11 +348,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-17-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-17-evening",
+  "doc-ENC-FORCED-0001-000001-16-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-16-evening",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -392,11 +370,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-18-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-18-night",
+  "doc-ENC-FORCED-0001-000001-17-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-17-night",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -414,11 +392,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 2 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 2 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-19-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-19-day",
+  "doc-ENC-FORCED-0001-000001-18-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-18-day",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -436,11 +414,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 2 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 2 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-20-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-20-evening",
+  "doc-ENC-FORCED-0001-000001-19-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-19-evening",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -458,11 +436,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 2 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 2 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-21-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-21-night",
+  "doc-ENC-FORCED-0001-000001-20-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-20-night",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -480,11 +458,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 3 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 3 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-22-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-22-day",
+  "doc-ENC-FORCED-0001-000001-21-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-21-day",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -502,11 +480,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 3 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 3 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-23-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-23-evening",
+  "doc-ENC-FORCED-0001-000001-22-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-22-evening",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -524,11 +502,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 3 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 3 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-24-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-24-night",
+  "doc-ENC-FORCED-0001-000001-23-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-23-night",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -546,11 +524,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 4 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 4 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-25-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-25-day",
+  "doc-ENC-FORCED-0001-000001-24-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-24-day",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -568,11 +546,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 4 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 4 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-26-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-26-evening",
+  "doc-ENC-FORCED-0001-000001-25-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-25-evening",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -590,11 +568,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 4 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 4 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-27-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-27-night",
+  "doc-ENC-FORCED-0001-000001-26-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-26-night",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -612,11 +590,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 5 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 5 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-28-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-28-day",
+  "doc-ENC-FORCED-0001-000001-27-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-27-day",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -634,11 +612,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 5 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 5 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-29-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-29-evening",
+  "doc-ENC-FORCED-0001-000001-28-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-28-evening",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -656,11 +634,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 5 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 5 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-30-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-30-night",
+  "doc-ENC-FORCED-0001-000001-29-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-29-night",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -678,11 +656,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 6 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 6 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-31-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-31-day",
+  "doc-ENC-FORCED-0001-000001-30-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-30-day",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -700,11 +678,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 6 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 6 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-32-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-32-evening",
+  "doc-ENC-FORCED-0001-000001-31-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-31-evening",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -722,11 +700,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 6 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 6 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-33-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-33-night",
+  "doc-ENC-FORCED-0001-000001-32-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-32-night",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -744,11 +722,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 7 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 7 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-34-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-34-day",
+  "doc-ENC-FORCED-0001-000001-33-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-33-day",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -766,11 +744,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 7 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 7 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-35-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-35-evening",
+  "doc-ENC-FORCED-0001-000001-34-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-34-evening",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -788,11 +766,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 7 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 7 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-36-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-36-night",
+  "doc-ENC-FORCED-0001-000001-35-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-35-night",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -810,11 +788,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 8 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 8 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-37-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-37-day",
+  "doc-ENC-FORCED-0001-000001-36-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-36-day",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -832,11 +810,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 8 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 8 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-38-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-38-evening",
+  "doc-ENC-FORCED-0001-000001-37-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-37-evening",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -854,11 +832,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 8 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 8 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-39-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-39-night",
+  "doc-ENC-FORCED-0001-000001-38-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-38-night",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -876,11 +854,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 9 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 9 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-40-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-40-day",
+  "doc-ENC-FORCED-0001-000001-39-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-39-day",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -898,11 +876,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 9 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 9 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-41-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-41-evening",
+  "doc-ENC-FORCED-0001-000001-40-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-40-evening",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -920,11 +898,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 9 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 9 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-42-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-42-night",
+  "doc-ENC-FORCED-0001-000001-41-night": {
+    "document_id": "doc-ENC-FORCED-0001-000001-41-night",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -942,11 +920,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(深夜)】 入院 10 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 10 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-43-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-43-day",
+  "doc-ENC-FORCED-0001-000001-42-day": {
+    "document_id": "doc-ENC-FORCED-0001-000001-42-day",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -964,11 +942,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(日勤)】 入院 10 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 10 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-44-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-44-evening",
+  "doc-ENC-FORCED-0001-000001-43-evening": {
+    "document_id": "doc-ENC-FORCED-0001-000001-43-evening",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -986,77 +964,11 @@
       },
       "sections": {},
       "structured": {},
-      "text": "【看護記録(準夜)】 入院 10 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 10 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-45-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-45-night",
-    "encounter_id": "ENC-FORCED-0001-000001",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "day_index": 10,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "【看護記録(深夜)】 入院 11 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-000001-46-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-46-day",
-    "encounter_id": "ENC-FORCED-0001-000001",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "day_index": 10,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "【看護記録(日勤)】 入院 11 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-000001-47-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-47-evening",
-    "encounter_id": "ENC-FORCED-0001-000001",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "day_index": 10,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "structured": {},
-      "text": "【看護記録(準夜)】 入院 11 日目 / 入院予定 11 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-000001-48": {
-    "document_id": "doc-ENC-FORCED-0001-000001-48",
+  "doc-ENC-FORCED-0001-000001-44": {
+    "document_id": "doc-ENC-FORCED-0001-000001-44",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -1069,7 +981,7 @@
         "lang": "ja"
       },
       "sections": {
-        "admission_status": "入院期間: 11 日間。入院目的達成後、退院となった。",
+        "admission_status": "入院期間: 10 日間。入院目的達成後、退院となった。",
         "discharge_readiness": "退院準備：退院基準を満たす",
         "nursing_interventions_provided": "実施した看護介入：特記事項なし",
         "patient_education": "患者教育：退院指導実施"
@@ -1078,8 +990,8 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-000001-49": {
-    "document_id": "doc-ENC-FORCED-0001-000001-49",
+  "doc-ENC-FORCED-0001-000001-45": {
+    "document_id": "doc-ENC-FORCED-0001-000001-45",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -1106,14 +1018,14 @@
         "symptoms": "発熱・咳嗽・呼吸困難",
         "test_schedule": "検査：担当医の判断により決定",
         "treatment_plan": "評価: 初期診断確定、治療開始。方針: 治療継続、経過観察。",
-        "ward_and_room": "病棟：4E　病室：4E-01"
+        "ward_and_room": "病棟：4E　病室：4E-10"
       },
       "structured": {},
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-000001-50": {
-    "document_id": "doc-ENC-FORCED-0001-000001-50",
+  "doc-ENC-FORCED-0001-000001-46": {
+    "document_id": "doc-ENC-FORCED-0001-000001-46",
     "encounter_id": "ENC-FORCED-0001-000001",
     "narrative": {
       "facts_used": [
@@ -1137,10 +1049,10 @@
         "nutrition_counseling": "栄養食事相談：必要に応じて実施",
         "nutrition_goals": "栄養管理計画の目標：現在の栄養状態を維持",
         "nutrition_risk": "低栄養リスク：低（BMI 22.0、リスクなし）",
-        "nutrition_supply": "エネルギー：1507kcal／日　たんぱく質：60.3g／日　補給方法：経口",
+        "nutrition_supply": "エネルギー：1389kcal／日　たんぱく質：55.6g／日　補給方法：経口",
         "other_issues": "その他栄養管理上の課題：特記事項なし",
         "reassessment_timing": "栄養状態の再評価：入院後1週間を目安に実施",
-        "ward_and_physician": "病棟：4E　担当医師：DR-IM-006"
+        "ward_and_physician": "病棟：4E　担当医師：DR-IM-004"
       },
       "structured": {},
       "text": ""
