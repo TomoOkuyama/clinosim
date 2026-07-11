@@ -173,10 +173,19 @@ def test_jp_care_team_count_matches_encounter_count() -> None:
         care_teams = load_ndjson(find_ndjson(out, "CareTeam.ndjson"))
         encounters = load_ndjson(find_ndjson(out, "Encounter.ndjson"))
         assert care_teams, "CareTeam.ndjson empty for JP cohort — silent-no-op in JP path"
-        assert len(care_teams) == len(encounters), (
-            f"JP CareTeam count {len(care_teams)} != Encounter count {len(encounters)} — "
-            "CareTeam 1:1-with-Encounter invariant violated for JP cohort. "
-            "Check if JP locale gating in _fhir_care_team.py is filtering encounters."
+        # CY7-05 (structural, 2026-07-11): FHIR-emit-only synthetic ED
+        # encounters (id ends with "-ED", used for Encounter.partOf ED→IMP
+        # linkage) don't have CareTeam records because they don't exist in
+        # CIF. Exclude them from the 1:1 count assertion.
+        real_encounter_count = sum(
+            1 for e in encounters if not e.get("id", "").endswith("-ED")
+        )
+        assert len(care_teams) == real_encounter_count, (
+            f"JP CareTeam count {len(care_teams)} != real Encounter count "
+            f"{real_encounter_count} (total encounters incl. synth ED: "
+            f"{len(encounters)}) — CareTeam 1:1-with-Encounter invariant "
+            "violated for JP cohort. Check if JP locale gating in "
+            "_fhir_care_team.py is filtering encounters."
         )
 
 

@@ -286,30 +286,16 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
             _chronic_codes.append(_c.get("code", ""))
         else:
             _chronic_codes.append(getattr(_c, "code", ""))
-    # CY7-05 (Chain-7): ED→IMP partOf linkage. Correlate an inpatient
-    # encounter admitted from ED (admit_source == "emd") with the most
-    # recent EMER encounter for the same patient. Emits partOf on the
-    # IMP encounter so the ED-to-admission clinical episode is traceable.
-    _enc_list = list(ctx.record.get("encounters", []) or [])
-    _ed_encs = [e for e in _enc_list if str((e.get("encounter_type") if isinstance(e, dict) else getattr(e, "encounter_type", ""))).lower() in ("emergency", "encountertype.emergency")]
+    # CY7-05 (structural fix, 2026-07-11): ED→IMP partOf linkage. The
+    # inpatient simulator sets `admit_source_encounter_id` on IMP encounters
+    # admitted from ED (admit_source == "emd"). At emit time we ALSO
+    # synthesize a lightweight ED Encounter FHIR resource for that ID so
+    # the partOf reference resolves. The synthesis is FHIR-emit only —
+    # the ED encounter does NOT appear in CIF nor generate additional
+    # doc stubs / orders — avoiding downstream contract breakage.
     _resources = []
-    for enc in _enc_list:
-        _et = str((enc.get("encounter_type") if isinstance(enc, dict) else getattr(enc, "encounter_type", ""))).lower()
-        _admit_source = enc.get("admit_source", "") if isinstance(enc, dict) else getattr(enc, "admit_source", "")
-        _partof_id: str | None = None
-        if _et in ("inpatient", "encountertype.inpatient") and _admit_source == "emd" and _ed_encs:
-            # find most recent ED encounter before this IMP's admission
-            _adm_dt = enc.get("admission_datetime", "") if isinstance(enc, dict) else getattr(enc, "admission_datetime", "")
-            _adm_str = str(_adm_dt) if _adm_dt else ""
-            _candidates = []
-            for _ed in _ed_encs:
-                _ed_disch = _ed.get("discharge_datetime", "") if isinstance(_ed, dict) else getattr(_ed, "discharge_datetime", "")
-                _ed_disch_str = str(_ed_disch) if _ed_disch else ""
-                if _ed_disch_str and _adm_str and _ed_disch_str <= _adm_str:
-                    _candidates.append((_ed_disch_str, _ed.get("encounter_id", "") if isinstance(_ed, dict) else getattr(_ed, "encounter_id", "")))
-            if _candidates:
-                _candidates.sort()
-                _partof_id = _candidates[-1][1] or None
+    for enc in ctx.record.get("encounters", []) or []:
+        _partof_id = enc.get("admit_source_encounter_id", "") if isinstance(enc, dict) else getattr(enc, "admit_source_encounter_id", "")
         _resource = _build_encounter(enc, ctx.patient_id, ctx.is_readmission, ctx.prior_encounter_id,
                          primary_dx_code=ctx.primary_dx_code, country=ctx.country,
                          admit_dx_code=ctx.admit_dx_code, admit_dx_system=ctx.admit_dx_system,
@@ -319,6 +305,64 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
         # (readmission takes precedence — same field, different semantics).
         if _partof_id and "partOf" not in _resource:
             _resource["partOf"] = {"reference": f"Encounter/{_partof_id}"}
+            # Synthesize the ED Encounter FHIR resource (minimal but valid).
+            _adm_dt = enc.get("admission_datetime", "") if isinstance(enc, dict) else getattr(enc, "admission_datetime", "")
+            _adm_str = str(_adm_dt) if _adm_dt else ""
+            # ED stay ~3.5 hours before IMP admission — clinical-realistic.
+            _ed_end_str = _adm_str
+            _ed_start_str = ""
+            try:
+                from datetime import datetime as _dt, timedelta as _td
+                if _adm_str:
+                    _dt0 = _dt.fromisoformat(_adm_str.replace("Z", "+00:00")) if "T" in _adm_str else None
+                    if _dt0:
+                        _ed_start_str = (_dt0 - _td(hours=3, minutes=30)).isoformat()
+            except (ValueError, TypeError):
+                pass
+            _att = enc.get("attending_physician_id", "") if isinstance(enc, dict) else getattr(enc, "attending_physician_id", "")
+            _chief = enc.get("chief_complaint", "") if isinstance(enc, dict) else getattr(enc, "chief_complaint", "")
+            _ed_resource: dict = {
+                "resourceType": "Encounter",
+                "id": _partof_id,
+                "meta": _resource.get("meta", {}),
+                "status": "finished",
+                "class": {
+                    "system": get_system_uri("hl7-v3-actcode"),
+                    "code": "EMER",
+                    "display": "救急外来" if str(ctx.country).upper() == "JP" else "Emergency",
+                },
+                "subject": {"reference": f"Patient/{ctx.patient_id}"},
+            }
+            _period: dict = {}
+            if _ed_start_str:
+                _period["start"] = _ed_start_str
+            if _ed_end_str:
+                _period["end"] = _ed_end_str
+            if _period:
+                _ed_resource["period"] = _period
+            if _att:
+                _ed_resource["participant"] = [{
+                    "individual": {"reference": f"Practitioner/{_att}"},
+                }]
+            if _chief:
+                _ed_resource["reasonCode"] = [{"text": _chief}]
+            _ed_resource["hospitalization"] = {
+                "admitSource": {
+                    "coding": [{
+                        "system": get_system_uri("hl7-admit-source"),
+                        "code": "outp",
+                        "display": "外来より" if str(ctx.country).upper() == "JP" else "From outpatient",
+                    }],
+                },
+                "dischargeDisposition": {
+                    "coding": [{
+                        "system": get_system_uri("hl7-discharge-disposition"),
+                        "code": "hosp",
+                        "display": "入院となる" if str(ctx.country).upper() == "JP" else "Admitted to hospital",
+                    }],
+                },
+            }
+            _resources.append(_ed_resource)
         _resources.append(_resource)
     return _resources
 
@@ -693,6 +737,9 @@ def _build_bundle(
         primary_dx_code=dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", ""),
         admit_dx_code=dx.get("admission_diagnosis_code", ""),
         admit_dx_system=dx.get("admission_diagnosis_system", "icd-10-cm"),
+        # CY7-05 (structural fix): CIFPatientRecord contract — primary
+        # (IMP) encounter is always at encounters[0]; synthesized ED
+        # encounter (when present) is appended at [1].
         primary_enc_id=encounters[0].get("encounter_id", "") if encounters else "",
         patient_sex=patient_data.get("sex", ""),
     )

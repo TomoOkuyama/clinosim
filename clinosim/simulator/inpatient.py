@@ -377,6 +377,15 @@ def _simulate_patient(
     encounter.admitting_physician_id = attending_id
     if not encounter.admit_source:
         encounter.admit_source = "emd"  # Most inpatients come via ED
+    # CY7-05 (structural fix, 2026-07-11): populate `admit_source_encounter_id`
+    # on the inpatient encounter so the FHIR adapter can emit a synthetic ED
+    # Encounter with Encounter.partOf → IMP. Only sets the ID (a deterministic
+    # derived string); the actual ED Encounter FHIR resource is synthesized at
+    # emit time in _bb_encounters. Keeping this CIF-side change ID-only avoids
+    # the record.encounters[0] contract breakage (many downstream sites assume
+    # singleton) and avoids extra doc stubs for the synthesized ED.
+    if encounter.admit_source == "emd" and not encounter.admit_source_encounter_id:
+        encounter.admit_source_encounter_id = f"{encounter.encounter_id}-ED"
     if not encounter.discharge_disposition:
         if death_occurred:
             encounter.discharge_disposition = "expired"

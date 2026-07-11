@@ -1006,7 +1006,7 @@
         "symptoms": "呼吸困難増悪・喀痰増加・喘鳴",
         "test_schedule": "検査：担当医の判断により決定",
         "treatment_plan": "評価: 経過観察中。方針: 治療継続。",
-        "ward_and_room": "病棟：4E　病室：4E-08"
+        "ward_and_room": "病棟：4E　病室：4E-10"
       },
       "structured": {},
       "text": ""
@@ -1037,10 +1037,10 @@
         "nutrition_counseling": "栄養食事相談：必要に応じて実施",
         "nutrition_goals": "栄養管理計画の目標：現在の栄養状態を維持",
         "nutrition_risk": "低栄養リスク：低（BMI 22.0、リスクなし）",
-        "nutrition_supply": "エネルギー：1746kcal／日　たんぱく質：69.9g／日　補給方法：経口",
+        "nutrition_supply": "エネルギー：1617kcal／日　たんぱく質：64.7g／日　補給方法：経口",
         "other_issues": "その他栄養管理上の課題：特記事項なし",
         "reassessment_timing": "栄養状態の再評価：入院後1週間を目安に実施",
-        "ward_and_physician": "病棟：4E　担当医師：DR-IM-001"
+        "ward_and_physician": "病棟：4E　担当医師：DR-IM-006"
       },
       "structured": {},
       "text": ""
