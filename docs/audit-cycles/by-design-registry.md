@@ -118,6 +118,106 @@
 - **established_pr**: `544fd40d18` (session 43 wrap で observed / not yet formalized)
 - **revalidation_check**: 全 in-progress CI に対し、その encounter が同じく in-progress であることを確認。将来的には test を snapshot-aware に緩和する予定(FHIR completeness registry 参照)。
 
+### snapshot-in-progress-encounter-discharge-disposition-omitted
+
+- **id**: `snapshot-in-progress-encounter-discharge-disposition-omitted`
+- **observation**: `Encounter.ndjson` の一部が `hospitalization.dischargeDisposition` を持たない(cycle 1 監査で 24 件観測)。
+- **by_design_reason**: AD-32 snapshot 意味論。in-progress encounter は退院していないので disposition 未定 = FHIR spec 適合。C1-04 で確認済(cycle 1)。
+- **signature**: `dischargeDisposition` 欠落の Encounter が全て `status == "in-progress"` かつ `discharge_datetime == null`。
+- **established_session**: session 41, 2026-07-07 (cycle 1)
+- **established_pr**: cycle 1 close (session 41)
+- **revalidation_check**: dischargeDisposition 欠落 Encounter が全て in-progress であること。
+
+### realistic-mr-mar-ratio-for-outpatient-heavy-cohort
+
+- **id**: `realistic-mr-mar-ratio-for-outpatient-heavy-cohort`
+- **observation**: MR 件数がある基準値 (例 21820 for JP p=10000) より少なく見える。MAR:MR 比が ~9:1。
+- **by_design_reason**: 90% 外来コホートで MR = 外来処方 + 入院初期オーダーのみ、MAR = 入院での複数日投与実績。~0.5 MR/enc + MAR:MR 9:1 は実 EHR reality。C1-08 で確認済(cycle 1)。
+- **signature**: `MR count / encounter count ≈ 0.4–0.7` かつ `MAR / MR ≈ 5–15`。両範囲内なら by-design。範囲外 = 要調査。
+- **established_session**: session 41, 2026-07-07 (cycle 1)
+- **established_pr**: cycle 1 close
+- **revalidation_check**: 上記 2 比率を計算し範囲内であること。
+
+### clinical-impression-summary-optional
+
+- **id**: `clinical-impression-summary-optional`
+- **observation**: `ClinicalImpression.summary` field が空(多くの CI で omit)。
+- **by_design_reason**: FHIR R4 `ClinicalImpression.summary` は 0..1 (optional)。CIF に対応する source data 無し(distinct 所見総括データを clinosim は生成しない)。fabrication すると no-fabrication policy 違反。`description` は populated (Day N clinical assessment)。C1-11 で確認済(cycle 1)。
+- **signature**: 全 CI で `summary` field が omit されている(コード側で emit していない)ことを確認。将来 β-JP-1 LLM narrative pass で populate 予定(FHIR completeness registry 参照)。
+- **established_session**: session 41, 2026-07-07 (cycle 1)
+- **established_pr**: cycle 1 close
+- **revalidation_check**: `_fhir_composition.py` (or clinical_impression builder) が summary を emit していないことを grep 確認。
+
+### care-team-inactive-for-completed-encounter
+
+- **id**: `care-team-inactive-for-completed-encounter`
+- **observation**: `CareTeam.status = "inactive"` の record が多い(退院済 encounter に紐付く CT)。"active" を期待するレビューあり。
+- **by_design_reason**: FHIR R4 `CareTeam.status` valueSet includes `active | inactive | suspended | entered-in-error`。退院済 encounter = team が現在ケアを提供していない = inactive が spec 正解(`_fhir_care_team.py:88-89`)。C1-14 で確認済(cycle 1)。
+- **signature**: `status = "inactive"` の CT に紐付く `encounter.discharge_datetime` が non-null であること。
+- **established_session**: session 41, 2026-07-07 (cycle 1)
+- **established_pr**: cycle 1 close
+- **revalidation_check**: inactive CT の encounter が全て discharge_datetime 有(= completed)であること。
+
+### population-vs-patient-count-utilization-rate
+
+- **id**: `population-vs-patient-count-utilization-rate`
+- **observation**: `--population 10000` で `Patient.ndjson` が 5000-6000 程度(= 全員患者化しない)。
+- **by_design_reason**: population = catchment area total = 病院サービスエリア人口(健常人含む)。Patient = 期間内に encounter を持った人だけ。~50% healthcare utilization rate は実データと整合。C1-20 で確認済(cycle 1)。
+- **signature**: `Patient count / population` が `0.4–0.7` 範囲内(country demographics 依存)。
+- **established_session**: session 41, 2026-07-07 (cycle 1)
+- **established_pr**: cycle 1 close
+- **revalidation_check**: 上記 ratio を計算し範囲内であること。範囲外 = disease incidence data の drift 疑い。
+
+### coverage-type-text-only-no-fabrication
+
+- **id**: `coverage-type-text-only-no-fabrication`
+- **observation**: `Coverage.type` が `{"text": "..."}` のみで `coding` を持たない。
+- **by_design_reason**: JP 保険 type (公費 / 社保 / 国保 等) に authoritative FHIR CodeSystem が確定していない。fabrication 禁止 policy に従い text-only 維持(`_fhir_patient.py:152-155`)。C2-12 で確認済(cycle 2)。
+- **signature**: `Coverage.type.coding` が全 Coverage で omit されていること(`_fhir_patient.py` に fabricated code が入っていない)。
+- **established_session**: session 42, 2026-07-07 (cycle 2)
+- **established_pr**: cycle 2 close
+- **revalidation_check**: 全 Coverage の type に `coding` が無く、`text` のみであること。authoritative code source が確立した時点で本 entry は解除。
+
+### condition-severity-none-on-chronic-primary-encounter
+
+- **id**: `condition-severity-none-on-chronic-primary-encounter`
+- **observation**: `Condition.severity` の一部欠落(65.8% observed at cycle 2 for I10 routine visit と類似 pattern)。
+- **by_design_reason**: primary dx が慢性疾患 (I10 essential HTN etc.) の routine outpatient follow-up では acute severity が sensor 由来で inferable でない → severity None が clinically correct。C2-32 で確認済(cycle 2)。cycle 4 C4-05/07-09 で chronic_conditions からの inherit path 追加済(残 severity 欠落は真に acute-inferable でない encounter のみ)。
+- **signature**: severity 欠落 Condition の encounter が `outpatient` かつ primary dx が慢性 (I10/E11/N18/I50/J44/J45/I25 系) であること。inpatient encounter で severity 欠落 = 真のバグ(本レジストリ対象外)。
+- **established_session**: session 42, 2026-07-07 (cycle 2)
+- **established_pr**: cycle 2 close (partial fix in cycle 4)
+- **revalidation_check**: severity 欠落 Condition の encounter_type + primary dx が上記 pattern であることを確認。
+
+### composition-vs-documentreference-format-type-split
+
+- **id**: `composition-vs-documentreference-format-type-split`
+- **observation**: `Composition.ndjson` の resource 数 が `DocumentReference.ndjson` より多い / 少ないなど「分布が偏る」観測。
+- **by_design_reason**: `ClinicalDocument.format_type` により意図的に分岐 — `composition` (H&P / Discharge Summary / Nursing / SOAP 等 section 構造持つ帳票) → Composition emit。`free_text` (Progress Note / Nursing Record / Triage 等) → DocumentReference emit。両者は独立 resource type であり比率一致は要求されない。C4-25 で確認済(cycle 4)。
+- **signature**: `_fhir_composition.py` および `_fhir_documents.py` の `format_type` filter が両ビルダーで一貫していること(composition ↔ Composition emit / free_text ↔ DR emit / それ以外 → skip)。
+- **established_session**: session 43, 2026-07-08 (cycle 4)
+- **established_pr**: cycle 4 close
+- **revalidation_check**: Composition 全 resource が `format_type == "composition"` doc 由来、DR 全 resource が `format_type == "free_text"` doc 由来であること(id 遡り検証)。
+
+### compound-rx-with-device-alternative-real-drug
+
+- **id**: `compound-rx-with-device-alternative-real-drug`
+- **observation**: `MedicationRequest` / `MedicationAdministration` の text が `"エノキサパリン ... または 間欠的空気圧迫"` 等の複合表現。184 件観測(cycle 5 baseline)。
+- **by_design_reason**: 実 CIF Order の detail は 「実薬 (Enoxaparin) OR 代替 device (IPC)」の compound orderable。session 43 CY2-B fix + session 44 C5-19 で primary alternative が prefer される splitter を導入したが、`"または"` 前が real drug の場合は drug 側が採用され、alternative text が残る事もある = 分類バグではない。C5-16 で確認済(cycle 5)。
+- **signature**: compound text の primary drug が code_mapping にヒットして coding 有、後半 " または " 以降の text が display に混じる。primary が uncoded なら真のバグ。
+- **established_session**: session 43, 2026-07-09 (cycle 5)
+- **established_pr**: cycle 5 close
+- **revalidation_check**: compound text MR/MAR で `medicationCodeableConcept.coding[0].code` が non-empty であること(primary drug が resolved)。
+
+### o2-flow-rate-device-setting-no-refrange
+
+- **id**: `o2-flow-rate-device-setting-no-refrange`
+- **observation**: バイタル系 `Observation` の 22% に `referenceRange` が無い。specifically LOINC 3151-8 O2 flow rate (13,843 obs at cycle 5 baseline)。
+- **by_design_reason**: O2 flow rate は装置設定値 (device setting) であり、生理学的 normal range が定義されない (酸素投与量 = 治療介入量、健常者に対する reference 範囲は存在しない)。FHIR R4 は device setting observation に refRange を要求しない。C5-17 で確認済(cycle 5)。
+- **signature**: refRange 欠落バイタル Observation の `code.coding[0].code` が `3151-8` (O2 flow rate) であること。他 LOINC で refRange 欠落 = 真のバグ。
+- **established_session**: session 43, 2026-07-09 (cycle 5)
+- **established_pr**: cycle 5 close
+- **revalidation_check**: refRange 欠落 Observation の LOINC が全て `3151-8` に一致することを確認。
+
 ---
 
 ## Non-Entries (真のバグ、Registry 対象外)
@@ -133,3 +233,11 @@
 ## 更新履歴
 
 - 2026-07-11 (session 44): 初版。Chain 1-4 で確定した 7 by-design entry を登録。
+- 2026-07-11 (session 44 追補): cycle 1-5 の doc から遡って 10 by-design/not-a-bug 記述を統合。
+  合計 **17 entries** で C1-C5 全 by-design 観測をカバー:
+  - Cycle 1 (5): C1-04, C1-08, C1-11, C1-14, C1-20
+  - Cycle 2 (2): C2-12, C2-32
+  - Cycle 4 (1): C4-25
+  - Cycle 5 (2): C5-16, C5-17
+  - Session 44 Chain 1-4 verify (7): snapshot-length, MR substitution, Coverage 後期高齢者,
+    FMH healthy relative, CO-8 non-JP drugs, HbA1c stage text, CI in-progress status
