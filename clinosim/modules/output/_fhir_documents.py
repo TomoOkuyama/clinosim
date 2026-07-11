@@ -74,6 +74,14 @@ def _bb_document_references(ctx: BundleContext) -> list[dict[str, Any]]:
     raw_docs = _o(ctx.record, "documents", []) or []
     patient_id = _o(_o(ctx.record, "patient", {}), "patient_id", "")
     country = ctx.country or "us"
+
+    # C5-30 (Chain 1 close-out): pre-compute relatesTo chains. Group free-text
+    # docs by (encounter_id, loinc_code) and sort by authored_datetime; each
+    # DR after the first in its group `appends` the immediately-prior DR
+    # (progress note day N appends day N-1; nursing record N appends N-1).
+    # Requires the whole doc set up-front so it must run before per-doc emit.
+    doc_id_to_prior: dict[str, str] = _build_prior_doc_chain(raw_docs)
+
     out: list[dict[str, Any]] = []
     for doc in raw_docs:
         if _o(doc, "format_type", "") != "free_text":
@@ -88,8 +96,43 @@ def _bb_document_references(ctx: BundleContext) -> list[dict[str, Any]]:
             continue
         resource = _build_dref_from_clinical_doc(doc, narrative, patient_id, country)
         if resource:
+            prior = doc_id_to_prior.get(resource["id"], "")
+            if prior:
+                resource["relatesTo"] = [{
+                    "code": "appends",
+                    "target": {"reference": f"DocumentReference/{prior}"},
+                }]
             out.append(resource)
     return out
+
+
+def _build_prior_doc_chain(raw_docs: list[Any]) -> dict[str, str]:
+    """Return {doc_id -> immediately-prior doc_id in same (encounter, loinc) group}.
+
+    Only free-text docs with populated narrative participate. Groups sort by
+    authored_datetime ascending so a later entry `appends` an earlier one.
+    """
+    groups: dict[tuple[str, str], list[tuple[str, str]]] = {}
+    for doc in raw_docs:
+        if _o(doc, "format_type", "") != "free_text":
+            continue
+        if not _o(doc, "narrative", None):
+            continue
+        enc_id = _o(doc, "encounter_id", "") or ""
+        loinc = _o(doc, "loinc_code", "") or ""
+        doc_id = _o(doc, "document_id", "") or (
+            f"{DOC_REFERENCE_ID_PREFIX}{enc_id or 'unknown'}-{_o(doc, 'task_type', 'note') or 'note'}"
+        )
+        authored = _o(doc, "authored_datetime", "") or ""
+        groups.setdefault((enc_id, loinc), []).append((authored, doc_id))
+
+    prior: dict[str, str] = {}
+    for _key, entries in groups.items():
+        # Sort by authored_datetime then doc_id for deterministic tie-break.
+        entries.sort(key=lambda t: (t[0] or "", t[1] or ""))
+        for i in range(1, len(entries)):
+            prior[entries[i][1]] = entries[i - 1][1]
+    return prior
 
 
 def _build_dref_from_clinical_doc(

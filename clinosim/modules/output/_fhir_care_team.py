@@ -35,7 +35,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import resolve_lang
+from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.output._fhir_common import BundleContext, to_fhir_datetime
 
 __all__ = [
@@ -71,12 +71,13 @@ def _bb_care_teams(ctx: BundleContext) -> list[dict[str, Any]]:
         sid for sid, staff in (ctx.roster_map or {}).items()
         if (staff.get("role", "") or "") == "pharmacist"
     )
-    return [_build_care_team(enc, patient_id, lang, pharmacist_ids) for enc in encounters]
+    return [_build_care_team(enc, patient_id, lang, pharmacist_ids, ctx.country) for enc in encounters]
 
 
 def _build_care_team(
     encounter: Any, patient_id: str, lang: str,
     pharmacist_ids: list[str] | None = None,
+    country: str = "US",
 ) -> dict[str, Any]:
     """Build one FHIR R4 CareTeam resource from an Encounter (dataclass or dict)."""
     encounter_id = _o(encounter, "encounter_id", "") or ""
@@ -84,6 +85,7 @@ def _build_care_team(
     primary_nurse_id = _o(encounter, "primary_nurse_id", "") or ""
     admission_dt = _o(encounter, "admission_datetime", None)
     discharge_dt = _o(encounter, "discharge_datetime", None)
+    ward_id = _o(encounter, "ward_id", "") or ""
 
     # CareTeam.status: active = in-progress, inactive = completed.
     status = "active" if discharge_dt is None else "inactive"
@@ -167,7 +169,41 @@ def _build_care_team(
             period["end"] = _fmt_dt(discharge_dt)
         care_team["period"] = period
 
+    # C5-29 (Chain 1 close-out): CareTeam.telecom — synthetic ward extension
+    # phone number for team contact. Deterministic per (encounter_id, ward_id).
+    # Structural placeholder (mirrors C3-03 lot_number pattern): no
+    # authoritative phone directory; format follows locale telephone
+    # conventions so the field is spec-compliant ContactPoint.
+    _telecom = _ward_telecom(encounter_id, ward_id, country)
+    if _telecom:
+        care_team["telecom"] = _telecom
+
     return care_team
+
+
+def _ward_telecom(encounter_id: str, ward_id: str, country: str) -> list[dict[str, str]]:
+    """Deterministic synthetic ward phone as FHIR ContactPoint.
+
+    Structural placeholder — same category as C3-03 immunization lot_number
+    (synthetic-but-deterministic). Format:
+      JP: 03-XXXX-YYYY (Tokyo area code, ward-derived extension)
+      US: (555) XXX-YYYY (555 reserved-for-fiction area code)
+    Uses (encounter_id, ward_id) hash so the same encounter regenerates the
+    same phone across runs (AD-16 byte-determinism).
+    """
+    if not encounter_id:
+        return []
+    seed_str = f"{encounter_id}:{ward_id}"
+    h = sum(ord(c) * (i + 1) for i, c in enumerate(seed_str))
+    if is_jp(country):
+        ext = f"{(h // 10_000) % 10_000:04d}"
+        num = f"{h % 10_000:04d}"
+        value = f"03-{ext}-{num}"
+    else:
+        area = f"{(h // 10_000) % 1000:03d}"
+        num = f"{h % 10_000:04d}"
+        value = f"(555) {area}-{num}"
+    return [{"system": "phone", "value": value, "use": "work"}]
 
 
 def _fmt_dt(dt: Any) -> str:
