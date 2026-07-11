@@ -77,6 +77,10 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
         dept_loc = {
             "resourceType": "Location",
             "id": f"loc-dept-{dept.replace('_', '-')}",
+            # Session 46 chain #2: JP Core Location profile.
+            **({"meta": {"profile": [
+                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"
+            ]}} if is_jp(country) else {}),
             "status": "active",
             "name": display,
             # C4-14 (session 43 cycle 4): Location.type per FHIR spec
@@ -131,6 +135,10 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             ward_loc = {
                 "resourceType": "Location",
                 "id": f"loc-ward-{ward}",
+                # Session 46 chain #2: JP Core Location profile.
+                **({"meta": {"profile": [
+                    "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"
+                ]}} if is_jp(country) else {}),
                 "status": "active",
                 "name": (f"{ward}病棟" if is_jp(country) else f"Ward {ward}") if ward not in ("ER", "OPD") else _localize_display(phys_display, country, _LOCATION_NAME_JA),
                 "type": [{
@@ -159,6 +167,10 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                     bed_loc = {
                         "resourceType": "Location",
                         "id": f"loc-bed-{bed_id}",
+                        # Session 46 chain #2: JP Core Location profile.
+                        **({"meta": {"profile": [
+                            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"
+                        ]}} if is_jp(country) else {}),
                         "status": "active",
                         "name": f"{bed_id}号室" if is_jp(country) else f"Bed {bed_id}",
                         # C4-14 (session 43 cycle 4): Location.type per HL7 v3-RoleCode.
@@ -194,6 +206,10 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             or_loc = {
                 "resourceType": "Location",
                 "id": f"loc-or-{i}",
+                # Session 46 chain #2: JP Core Location profile.
+                **({"meta": {"profile": [
+                    "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"
+                ]}} if is_jp(country) else {}),
                 "status": "active",
                 "name": (f"手術室 {i}" if is_jp(country) else f"Operating Room {i}"),
                 "physicalType": {

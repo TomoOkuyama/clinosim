@@ -5,7 +5,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
-from clinosim.modules._shared import resolve_lang
+from clinosim.modules._shared import is_jp, resolve_lang
 from clinosim.modules.code_status.engine import load_reference
 from clinosim.modules.output._fhir_common import BundleContext, _survey_category
 
@@ -31,6 +31,10 @@ def _build_code_status(ctx: BundleContext) -> list[dict]:
     obs: dict[str, Any] = {
         "resourceType": "Observation",
         "id": f"codestatus-{enc or ctx.patient_id}",
+        # Session 46 chain #2: JP Core Observation_Common profile.
+        **({"meta": {"profile": [
+            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"
+        ]}} if is_jp(ctx.country) else {}),
         "status": "final",
         "category": _survey_category(),
         "code": {"coding": [_coding(observable)]},

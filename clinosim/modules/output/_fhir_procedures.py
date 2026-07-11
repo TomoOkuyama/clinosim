@@ -72,6 +72,10 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
     resource: dict[str, Any] = {
         "resourceType": "Procedure",
         "id": resource_id,
+        # Session 46 chain #2: JP Core Procedure profile.
+        **({"meta": {"profile": [
+            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"
+        ]}} if is_jp(country) else {}),
         "status": "completed",
         "code": {
             "coding": coding_entries,

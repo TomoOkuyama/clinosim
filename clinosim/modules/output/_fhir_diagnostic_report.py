@@ -25,7 +25,7 @@ from typing import Any, NamedTuple
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as _codes_lookup
-from clinosim.modules._shared import get_attr_or_key, resolve_lang
+from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.imaging.engine import (
     IMAGING_STUDY_ID_PREFIX,
     RADIOLOGY_REPORT_ID_PREFIX,
@@ -216,6 +216,10 @@ def build_dr_resource(
     res: dict[str, object] = {
         "resourceType": "DiagnosticReport",
         "id": f"dr-{group.panel_name.lower()}-{encounter_id}-{seq}",
+        # Session 46 chain #2: JP Core DiagnosticReport_LabResult profile.
+        **({"meta": {"profile": [
+            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_LabResult"
+        ]}} if is_jp(country) else {}),
         "status": "final",
         "category": [{
             "coding": [{
@@ -487,6 +491,11 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     dr: dict = {
         "resourceType": "DiagnosticReport",
         "id": f"{RADIOLOGY_DR_ID_PREFIX}{rep_id}",
+        # Session 46 chain #2: JP Core DiagnosticReport_Common profile
+        # (radiology; JP Core does not define a dedicated Radiology variant).
+        **({"meta": {"profile": [
+            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Common"
+        ]}} if is_jp(ctx.country) else {}),
         "status": _o(report, "status", "final"),
         "text": {"status": "generated", "div": div},
         "category": [{

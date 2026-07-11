@@ -137,7 +137,12 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
 
         org_id = f"{MB_ORG_ID_PREFIX}{base}"
         org_obs: dict[str, Any] = {
-            "resourceType": "Observation", "id": org_id, "status": "final",
+            "resourceType": "Observation", "id": org_id,
+            # Session 46 chain #2: JP Core Observation_LabResult profile.
+            **({"meta": {"profile": [
+                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult"
+            ]}} if is_jp(ctx.country) else {}),
+            "status": "final",
             "category": lab_category, "code": culture_code, "subject": subject,
             "specimen": {"reference": f"Specimen/{spec_id}"},
             "method": {"text": _culture_method_text},
@@ -167,7 +172,12 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                 antibiotic_loinc, ctx.country
             )
             sus_obs: dict[str, Any] = {
-                "resourceType": "Observation", "id": sus_id, "status": "final",
+                "resourceType": "Observation", "id": sus_id,
+                # Session 46 chain #2: JP Core Observation_LabResult profile.
+                **({"meta": {"profile": [
+                    "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult"
+                ]}} if is_jp(ctx.country) else {}),
+                "status": "final",
                 "category": lab_category,
                 "code": {"coding": [_micro_coding(sus_code_system, sus_code_value, lang)]},
                 "subject": subject,
@@ -191,7 +201,12 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             result_refs.append({"reference": f"Observation/{sus_id}"})
 
         report: dict[str, Any] = {
-            "resourceType": "DiagnosticReport", "id": f"{MB_DR_ID_PREFIX}{base}", "status": "final",
+            "resourceType": "DiagnosticReport", "id": f"{MB_DR_ID_PREFIX}{base}",
+            # Session 46 chain #2: JP Core DiagnosticReport_LabResult profile.
+            **({"meta": {"profile": [
+                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_LabResult"
+            ]}} if is_jp(ctx.country) else {}),
+            "status": "final",
             "category": [{"coding": [{
                 "system": get_system_uri("hl7-diagnostic-service-section"),
                 "code": "MB", "display": "Microbiology",

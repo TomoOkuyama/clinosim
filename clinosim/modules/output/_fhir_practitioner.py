@@ -25,6 +25,10 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
     resource: dict[str, Any] = {
         "resourceType": "Practitioner",
         "id": staff_id,
+        # Session 46 chain #2: JP Core Practitioner profile.
+        **({"meta": {"profile": [
+            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Practitioner"
+        ]}} if is_jp(country) else {}),
         "active": True,
         "identifier": [{"system": "urn:clinosim:staff", "value": staff_id}],
     }
@@ -163,6 +167,10 @@ def _build_practitioner_role(
     resource: dict[str, Any] = {
         "resourceType": "PractitionerRole",
         "id": f"role-{staff_id}",
+        # Session 46 chain #2: JP Core PractitionerRole profile.
+        **({"meta": {"profile": [
+            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_PractitionerRole"
+        ]}} if is_jp(country) else {}),
         "active": True,
         "practitioner": {"reference": f"Practitioner/{staff_id}"},
     }

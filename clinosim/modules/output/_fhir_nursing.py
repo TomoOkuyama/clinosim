@@ -58,6 +58,10 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
         resource: dict[str, Any] = {
             "resourceType": "Observation",
             "id": obs_id,
+            # Session 46 chain #2: JP Core Observation_Common profile.
+            **({"meta": {"profile": [
+                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"
+            ]}} if is_jp(ctx.country) else {}),
             "status": "final",
             "category": _survey_category(),
             "subject": subject,

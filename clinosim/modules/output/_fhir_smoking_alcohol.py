@@ -39,6 +39,10 @@ def _obs(obs_id: str, country: str, loinc: str, loinc_text: str,
     return {
         "resourceType": "Observation",
         "id": obs_id,
+        # Session 46 chain #2: JP Core Observation_Common profile.
+        **({"meta": {"profile": [
+            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"
+        ]}} if is_jp(country) else {}),
         "status": "final",
         "category": _social_category(country),
         "code": {"coding": [{"system": get_system_uri("loinc"), "code": loinc,
