@@ -27,10 +27,13 @@ from clinosim.modules.output._fhir_localization import (
 # Condition.stage.summary SNOMED coding for staging systems with an unambiguous,
 # authoritatively-verified (tx.fhir.org $lookup) SNOMED CT concept. Keys are the
 # exact stage strings produced by patient.activator._generate_stage — the drift
-# guard test_every_ckd_nyha_generated_stage_is_mapped fails loud if activator adds
-# a CKD/NYHA value without a code here (whitelist-drift bug class). GOLD / asthma
-# severity / hypertension stage / CCS are intentionally absent (no verified code),
-# so their stage.summary stays text-only.
+# guard test_every_generated_stage_is_mapped fails loud if activator adds a value
+# without a code here (whitelist-drift bug class).
+#
+# Post-CO-6 (Chain 4, 2026-07-11): every stage system used by _generate_stage now
+# has a verified SNOMED coding. Previously-text-only entries (GOLD 4, asthma
+# severity 4-tier, hypertension stage 1-2, CCS angina I-III) verified via
+# tx.fhir.org $lookup this session.
 _STAGE_SUMMARY_SNOMED: dict[str, str] = {
     "CKD G1": "431855005",
     "CKD G2": "431856006",
@@ -42,13 +45,27 @@ _STAGE_SUMMARY_SNOMED: dict[str, str] = {
     "NYHA II": "421704003",
     "NYHA III": "420913000",
     "NYHA IV": "422293003",
-    # RM-4 (session 42, cycle-3 tail): GOLD 1/2/3 for COPD severity — verified
-    # via tx.fhir.org $lookup. GOLD 4 (very severe) SNOMED not found in tx —
-    # left text-only until a distinct SNOMED "Very severe COPD" concept is
-    # identified (mirrors session 40 no-fabrication policy).
+    # COPD severity — GOLD 1/2/3 verified session 42 (RM-4); GOLD 4 mapped
+    # to SNOMED 135836000 "End stage COPD" (clinical equivalence; no distinct
+    # "Very severe COPD" concept exists in SNOMED CT International Edition).
     "GOLD 1": "313296004",
     "GOLD 2": "313297008",
     "GOLD 3": "313299006",
+    "GOLD 4": "135836000",
+    # Asthma severity 4-tier (J45)
+    "Mild intermittent":   "427679007",
+    "Mild persistent":     "426979002",
+    "Moderate persistent": "427295004",
+    "Severe persistent":   "426656000",
+    # Hypertension stage (I10) — Stage 1/2 per ACC/AHA 2017 boundaries
+    "Stage 1": "827069000",
+    "Stage 2": "827068008",
+    # CCS angina class (I25) — Canadian Cardiovascular Society I-IV
+    # (activator currently emits I/II/III only; IV registered forward-compat)
+    "CCS I":   "61490001",
+    "CCS II":  "41334000",
+    "CCS III": "85284003",
+    "CCS IV":  "89323001",
 }
 
 
