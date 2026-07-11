@@ -18,6 +18,7 @@ Amoxicillin/Clavulanate: "6131100"
 Azithromycin: "6149004"
 Ceftriaxone: "6132419"
 Cefotaxime: "6132409"  # session 45 verification finding — authoritative MHLW YJ (セフォタキシムナトリウム)
+Cefepime: "6132425"    # session 45 seed=300 verification — authoritative MHLW YJ (セフェピム塩酸塩水和物)
 Levofloxacin: "6241013"
 Meropenem: "6139400"
 Piperacillin/Tazobactam: "6131700"

@@ -3,17 +3,23 @@
 # Source: NLM RxNorm
 
 # Antibiotics
+Ampicillin: "733"
 Ampicillin/Sulbactam: "308182"
 Amoxicillin: "723"
 Amoxicillin/Clavulanate: "19711"
 Aztreonam: "1272"
 Azithromycin: "18631"
+Cefazolin: "2180"
+Cefepime: "20481"
 Cefotaxime: "2186"
 Ceftriaxone: "2193"
+Ciprofloxacin: "2551"
+Gentamicin: "1596450"
 Levofloxacin: "82122"
 Meropenem: "29561"
 Moxifloxacin: "139462"
 Piperacillin/Tazobactam: "74169"
+Trimethoprim/Sulfamethoxazole: "10831"
 Vancomycin: "11124"
 
 # Cardiovascular

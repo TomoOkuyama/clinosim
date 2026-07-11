@@ -245,3 +245,22 @@ codes:
   '828529':
     en: Albumin human, USP
     ja: 人血清アルブミン
+  # Session 45 seed=300 verification finding + antibiotic module coverage.
+  '20481':
+    en: Cefepime (Maxipime)
+    ja: セフェピム（マキシピーム）
+  '733':
+    en: Ampicillin
+    ja: アンピシリン
+  '2180':
+    en: Cefazolin (Ancef)
+    ja: セファゾリン
+  '1596450':
+    en: Gentamicin
+    ja: ゲンタマイシン
+  '2551':
+    en: Ciprofloxacin (Cipro)
+    ja: シプロフロキサシン
+  '10831':
+    en: Sulfamethoxazole / Trimethoprim (Bactrim)
+    ja: スルファメトキサゾール／トリメトプリム（バクタ）
