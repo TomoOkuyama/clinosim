@@ -398,23 +398,23 @@ drugs:
   first_line:
     japan:
       - drug: "Aspirin"
-        code_yj: "3399007"
+        code_yj: "1143001"
         dose: "162-325mg loading, then 100mg PO daily"
         route: PO
         pregnancy_safe: false
       - drug: "Clopidogrel"
-        code_yj: "3399100"
+        code_yj: "3399008"
         dose: "300mg loading, then 75mg PO daily"
         route: PO
         note: "Dual antiplatelet therapy (DAPT)"
         pregnancy_safe: false
       - drug: "Heparin"
-        code_yj: "3334002"
+        code_yj: "3334400"
         dose: "60U/kg bolus, then 12U/kg/h IV drip (target APTT 1.5-2.5x)"
         route: IV
         pregnancy_safe: true
       - drug: "Nitroglycerin"
-        code_yj: "2171019"
+        code_yj: "2171013"
         dose: "5ug/min IV, titrate for chest pain and BP"
         route: IV
         note: "Avoid if SBP < 90 or right ventricular MI"
@@ -459,13 +459,13 @@ drugs:
         note: "High-intensity statin; some JP guidelines use moderate intensity"
         pregnancy_safe: false
       - drug: "Bisoprolol"
-        code_yj: "2123017"
+        code_yj: "2149700"
         dose: "2.5mg PO daily, titrate"
         route: PO
         note: "Beta-blocker; start low if EF reduced"
         pregnancy_safe: false
       - drug: "Enalapril"
-        code_yj: "2144003"
+        code_yj: "2144002"
         dose: "2.5mg PO daily, titrate to 10mg"
         route: PO
         note: "ACE inhibitor for LV remodeling prevention"
@@ -498,11 +498,11 @@ drugs:
   escalation:  # cardiogenic shock or recurrent ischemia
     japan:
       - drug: "Dobutamine"
-        code_yj: "2119406"
+        code_yj: "2119404"
         dose: "2-20ug/kg/min IV drip"
         indication: "cardiogenic_shock_with_low_CO"
       - drug: "Norepinephrine"
-        code_yj: "2451400"
+        code_yj: "2451401"
         dose: "0.05-0.3ug/kg/min IV drip"
         indication: "cardiogenic_shock_with_hypotension"
     us:
@@ -523,7 +523,7 @@ drugs:
         duration_days: 365
         note: "indefinite"
       - drug: "Clopidogrel"
-        code_yj: "3399100"
+        code_yj: "3399008"
         dose: "75mg PO daily"
         duration_days: 365
         note: "DAPT for 12 months post-PCI"

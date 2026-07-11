@@ -390,7 +390,7 @@ drugs:
         note: "Fluid resuscitation for prerenal AKI"
         pregnancy_safe: true
       - drug: "Furosemide"
-        code_yj: "2139002"
+        code_yj: "2139005"
         dose: "20-40mg IV (if fluid overloaded)"
         route: IV
         note: "Only for volume management, does not improve renal recovery"
@@ -423,7 +423,7 @@ drugs:
         indication: "K > 5.5"
         note: "Shifts K intracellularly"
       - drug: "Sodium_polystyrene_sulfonate"
-        code_yj: "2399001"
+        code_yj: "2190009"
         dose: "15-30g PO or PR"
         indication: "K > 5.5"
     us:
@@ -444,7 +444,7 @@ drugs:
   acidosis_management:
     japan:
       - drug: "Sodium_bicarbonate"
-        code_yj: "2344001"
+        code_yj: "2344004"
         dose: "50-100 mEq IV over 1-2h"
         route: IV
         indication: "pH < 7.1 or CO2 < 12"
@@ -470,7 +470,7 @@ drugs:
   discharge_oral:
     japan:
       - drug: "Sodium_bicarbonate_oral"
-        code_yj: "2344100"
+        code_yj: "2344004"
         dose: "1-2g PO TID"
         duration_days: 30
         note: "If persistent mild metabolic acidosis"

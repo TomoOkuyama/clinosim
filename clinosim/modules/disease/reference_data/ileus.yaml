@@ -326,18 +326,18 @@ drugs:
   first_line:
     japan:
       - drug: "Lactated Ringer"
-        code_yj: "3319501"
+        code_yj: "3319534"
         dose: "125-250 mL/h IV"
         route: IV
         pregnancy_safe: true
       - drug: "Metoclopramide"
-        code_yj: "2399100"
+        code_yj: "2399004"
         dose: "10mg IV q8h"
         route: IV
         note: "Prokinetic for paralytic ileus"
         pregnancy_safe: true
       - drug: "Daikenchuto"
-        code_yj: "5200110"
+        code_yj: "5200092"
         dose: "5g PO TID"
         route: PO
         note: "Kampo medicine — widely used in JP for postoperative ileus"
@@ -360,7 +360,7 @@ drugs:
   escalation:  # when conservative management fails
     japan:
       - drug: "Cefmetazole"
-        code_yj: "6132405"
+        code_yj: "6132408"
         dose: "1g IV q8h"
         indication: "fever or suspected bowel ischemia — prophylactic antibiotic"
         renal_adjustment:
@@ -374,7 +374,7 @@ drugs:
   discharge_oral:
     japan:
       - drug: "Mosapride"
-        code_yj: "2399009"
+        code_yj: "2399010"
         dose: "5mg PO TID"
         duration_days: 7
     us:

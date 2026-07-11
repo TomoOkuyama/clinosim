@@ -314,7 +314,7 @@ drugs:
   first_line:
     japan:
       - drug: "Cefazolin"
-        code_yj: "6132003"
+        code_yj: "6132401"
         dose: "1g IV q8h"
         route: IV
         renal_adjustment:
@@ -334,7 +334,7 @@ drugs:
   alternative_penicillin_allergy:
     japan:
       - drug: "Clindamycin"
-        code_yj: "6152002"
+        code_yj: "6112001"
         dose: "600mg IV q8h"
         pregnancy_safe: false
         note: "C. diff risk"
@@ -350,7 +350,7 @@ drugs:
   mrsa_coverage:
     japan:
       - drug: "Vancomycin"
-        code_yj: "6113003"
+        code_yj: "6113001"
         dose: "1g IV q12h (adjust by trough)"
         indication: "known_MRSA_or_failed_first_line"
         renal_adjustment:
@@ -378,7 +378,7 @@ drugs:
   discharge_oral:
     japan:
       - drug: "Cephalexin"
-        code_yj: "6132001"
+        code_yj: "6132002"
         dose: "500mg PO QID"
         duration_days: 7
     us:

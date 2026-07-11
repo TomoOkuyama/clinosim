@@ -495,7 +495,7 @@ drugs:
   first_line:
     japan:
       - drug: "Meropenem"
-        code_yj: "6139401"
+        code_yj: "6139400"
         dose: "1g IV q8h"
         route: IV
         renal_adjustment:
@@ -504,7 +504,7 @@ drugs:
         pregnancy_safe: true
         note: "Empiric broad-spectrum for unknown source"
       - drug: "Vancomycin"
-        code_yj: "6113400"
+        code_yj: "6113001"
         dose: "15-20mg/kg IV q12h"
         route: IV
         renal_adjustment:
@@ -537,13 +537,13 @@ drugs:
   alternative_penicillin_allergy:
     japan:
       - drug: "Ciprofloxacin"
-        code_yj: "6241007"
+        code_yj: "6241400"
         dose: "400mg IV q8h"
         renal_adjustment:
           eGFR_below_50: "400mg IV q12h"
         pregnancy_safe: false
       - drug: "Aztreonam"
-        code_yj: "6139203"
+        code_yj: "6122400"
         dose: "2g IV q8h"
         renal_adjustment:
           eGFR_below_30: "1g IV q8h"
@@ -565,12 +565,12 @@ drugs:
   escalation:  # when empiric therapy fails
     japan:
       - drug: "Meropenem"
-        code_yj: "6139401"
+        code_yj: "6139400"
         dose: "2g IV q8h"
         indication: "persistent bacteremia or resistant organism"
         note: "Dose escalation if already on standard dose"
       - drug: "Micafungin"
-        code_yj: "6179001"
+        code_yj: "6179400"
         dose: "100mg IV daily"
         indication: "suspected_invasive_candidiasis"
         note: "Add antifungal if >5 days broad-spectrum ABx with no improvement"
@@ -605,7 +605,7 @@ drugs:
   discharge_oral:
     japan:
       - drug: "Levofloxacin"
-        code_yj: "6241017"
+        code_yj: "6241013"
         dose: "500mg PO daily"
         duration_days: 7
         note: "Guided by culture results; total ABx course 7-14 days"

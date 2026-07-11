@@ -374,13 +374,13 @@ drugs:
   first_line:
     japan:
       - drug: "Omeprazole"
-        code_yj: "2329021"
+        code_yj: "2329022"
         dose: "80mg IV bolus, then 8mg/h continuous infusion x 72h"
         route: IV
         note: "High-dose PPI for peptic ulcer bleeding"
         pregnancy_safe: false
       - drug: "Omeprazole"
-        code_yj: "2329020"
+        code_yj: "2329022"
         dose: "20mg PO daily (after IV course)"
         route: PO
         note: "Step-down oral PPI"
@@ -401,13 +401,13 @@ drugs:
   variceal_specific:
     japan:
       - drug: "Octreotide"
-        code_yj: "7229401"
+        code_yj: "2499403"
         dose: "50mcg IV bolus, then 50mcg/h continuous infusion x 3-5 days"
         route: IV
         note: "Somatostatin analog for variceal bleeding"
         pregnancy_safe: false
       - drug: "Ceftriaxone"
-        code_yj: "6132414"
+        code_yj: "6132419"
         dose: "1g IV daily x 7 days"
         route: IV
         note: "Antibiotic prophylaxis for cirrhotic patients with GI bleed"
@@ -459,7 +459,7 @@ drugs:
   discharge_oral:
     japan:
       - drug: "Omeprazole"
-        code_yj: "2329020"
+        code_yj: "2329022"
         dose: "20mg PO daily"
         duration_days: 56  # 8 weeks for ulcer healing
       - drug: "Ferrous_fumarate"

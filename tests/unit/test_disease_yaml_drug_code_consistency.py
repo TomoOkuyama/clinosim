@@ -66,6 +66,15 @@ _ALLOWED_ALIASES: dict[str, set[str]] = {
     # stripping the qualifier "human"). Same clinical product.
     "albumin": {"serum albumin"},
     "serum albumin": {"albumin"},
+    # Sodium_bicarbonate_oral = Sodium bicarbonate (route variant).
+    "sodium bicarbonate oral": {"sodium bicarbonate"},
+    "sodium bicarbonate": {"sodium bicarbonate oral"},
+    # PCC synonyms: multiple free-text variants for the same product family.
+    "prothrombin complex concentrate (4f-pcc)": {"4-factor pcc (kcentra)"},
+    "4-factor pcc (kcentra)": {"prothrombin complex concentrate (4f-pcc)", "kcentra"},
+    # NSAID (Loxoprofen) = Loxoprofen (drug is Loxoprofen, class-prefix in name).
+    "nsaid (loxoprofen)": {"loxoprofen"},
+    "loxoprofen": {"nsaid (loxoprofen)"},
 }
 
 # Session 45 backlog (session-45-drug-code-audit) — resolved 2026-07-11.
@@ -86,6 +95,23 @@ _QUALIFIER_PREFIXES = (
     "low molecular weight",
 )
 
+# Session 45 cycle-8 chain: strip authoritative-ingredient-name suffixes that
+# MHLW YJ uses to disambiguate salt forms / hydrate forms / recombinant forms
+# from the plain drug ingredient. When we compare a disease-YAML drug name
+# (typically the plain English/JA name) against the code_mapping canonical
+# name (typically the full MHLW ingredient), these suffixes are the reason
+# for a naive-string mismatch even though the underlying molecule is the same.
+_INGREDIENT_SUFFIXES = (
+    "塩酸塩水和物", "硫酸塩水和物", "酢酸塩水和物", "リン酸塩水和物", "水和物",
+    "塩酸塩", "硫酸塩", "酢酸塩", "リン酸塩", "クエン酸塩", "マレイン酸塩",
+    "コハク酸塩", "フマル酸塩", "臭化物", "ナトリウム", "カリウム",
+    "カルシウム水和物", "カルシウム",
+    "(遺伝子組換え)", "（遺伝子組換え）", "遺伝子組換え",
+    "hydrochloride", "sulfate", "acetate", "phosphate", "citrate",
+    "maleate", "succinate", "fumarate", "sodium", "potassium",
+    "hydrate", "monohydrate", "dihydrate",
+)
+
 
 def _norm(name: str) -> str:
     n = name.strip().lower().replace("_", " ")
@@ -97,6 +123,10 @@ def _norm(name: str) -> str:
                 n = n[len(pfx) + 1 :]
                 changed = True
                 break
+    # Strip authoritative-ingredient-name suffixes (session 45 cycle-8).
+    for sfx in _INGREDIENT_SUFFIXES:
+        while n.endswith(sfx.lower()):
+            n = n[: -len(sfx)].rstrip()
     return n
 
 

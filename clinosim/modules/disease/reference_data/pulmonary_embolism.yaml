@@ -385,7 +385,7 @@ drugs:
         indication: "massive_PE_with_hemodynamic_instability"
         note: "Lower dose in Japan than US protocol"
       - drug: "Norepinephrine"
-        code_yj: "2451700"
+        code_yj: "2451401"
         dose: "0.05-0.5 ug/kg/min IV drip"
         indication: "shock"
     us:
@@ -406,7 +406,7 @@ drugs:
         duration_days: 90
         note: "Minimum 3 months; longer if unprovoked or cancer"
       - drug: "Edoxaban"
-        code_yj: "3339003"
+        code_yj: "3339002"
         dose: "60mg PO daily (30mg if body weight <=60kg or eGFR 15-50)"
         duration_days: 90
         note: "DOAC alternative widely used in Japan"

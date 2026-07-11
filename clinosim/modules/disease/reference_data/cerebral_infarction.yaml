@@ -420,13 +420,13 @@ drugs:
     first_line:
       japan:
         - drug: "Aspirin"
-          code_yj: "3399007"
+          code_yj: "1143001"
           dose: "160-300mg loading, then 100mg PO daily"
           route: PO
           start_timing: "within 24-48h (after 24h if tPA given)"
           pregnancy_safe: false
         - drug: "Clopidogrel"
-          code_yj: "3399100"
+          code_yj: "3399008"
           dose: "300mg loading, then 75mg PO daily"
           route: PO
           probability: 0.40  # dual antiplatelet for minor stroke / high-risk TIA
@@ -450,7 +450,7 @@ drugs:
     start_timing: "typically Day 3-14 depending on infarct size"
     japan:
       - drug: "Edoxaban"
-        code_yj: "3339004"
+        code_yj: "3339002"
         dose: "60mg PO daily (30mg if CrCl 15-50 or weight <= 60kg)"
         route: PO
         note: "DOAC preferred over warfarin in Japan"
@@ -491,11 +491,11 @@ drugs:
     start_timing: "after acute phase (typically Day 2-3, once neurologically stable)"
     japan:
       - drug: "Amlodipine"
-        code_yj: "2171022"
+        code_yj: "2149114"
         dose: "5mg PO daily"
         route: PO
       - drug: "Candesartan"
-        code_yj: "2149041"
+        code_yj: "2149040"
         dose: "8mg PO daily"
         route: PO
     us:
@@ -512,7 +512,7 @@ drugs:
     indication: "SBP > 185 or DBP > 110 (pre-tPA) or SBP > 220 (no tPA)"
     japan:
       - drug: "Nicardipine"
-        code_yj: "2171401"
+        code_yj: "2149019"
         dose: "1-6mg/h IV drip"
         route: IV
     us:

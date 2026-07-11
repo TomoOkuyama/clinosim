@@ -311,7 +311,7 @@ drugs:
         contraindication: "heart_failure_with_reduced_EF"
         pregnancy_safe: false
       - drug: "Landiolol"
-        code_yj: "2123700"
+        code_yj: "2123404"
         dose: "0.0625mg/kg/min IV"
         route: IV
         note: "Ultra-short-acting beta-blocker, Japan-specific"
@@ -333,7 +333,7 @@ drugs:
   alternative_beta_blocker_contraindicated:
     japan:
       - drug: "Digoxin"
-        code_yj: "2113001"
+        code_yj: "2113003"
         dose: "0.25mg IV, then 0.125-0.25mg PO daily"
         note: "When both CCB and beta-blocker contraindicated"
         renal_adjustment:
@@ -350,7 +350,7 @@ drugs:
   rhythm_control:
     japan:
       - drug: "Amiodarone"
-        code_yj: "2129009"
+        code_yj: "2129010"
         dose: "150mg IV over 10min, then 1mg/min x6h, then 0.5mg/min"
         route: IV
         indication: "persistent_AF_or_hemodynamic_compromise"
@@ -367,13 +367,13 @@ drugs:
   anticoagulation:
     japan:
       - drug: "Heparin"
-        code_yj: "3334002"
+        code_yj: "3334400"
         dose: "Initial bolus 5000IU IV, then 1000IU/h drip (adjust by APTT)"
         route: IV
         indication: "CHA2DS2-VASc >= 1 (Japan)"
         pregnancy_safe: false
       - drug: "Edoxaban"
-        code_yj: "3339003"
+        code_yj: "3339002"
         dose: "60mg PO daily (30mg if CrCl 15-50 or weight <= 60kg)"
         route: PO
         indication: "transition_from_heparin"
@@ -395,12 +395,12 @@ drugs:
   discharge_oral:
     japan:
       - drug: "Bisoprolol"
-        code_yj: "2123014"
+        code_yj: "2149700"
         dose: "2.5-5mg PO daily"
         duration_days: 0   # chronic
         note: "Rate control maintenance"
       - drug: "Edoxaban"
-        code_yj: "3339003"
+        code_yj: "3339002"
         dose: "60mg PO daily"
         duration_days: 0   # chronic
         note: "If CHA2DS2-VASc indicates anticoagulation"

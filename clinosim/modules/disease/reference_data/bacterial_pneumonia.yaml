@@ -381,7 +381,7 @@ drugs:
   alternative_penicillin_allergy:
     japan:
       - drug: "Levofloxacin"
-        code_yj: "6241017"
+        code_yj: "6241013"
         dose: "500mg IV daily"
         renal_adjustment:
           eGFR_below_50: "250mg IV daily"
@@ -397,7 +397,7 @@ drugs:
   escalation:  # when first-line fails (Day 3 no improvement)
     japan:
       - drug: "Meropenem"
-        code_yj: "6139401"
+        code_yj: "6139400"
         dose: "1g IV q8h"
         indication: "no_defervescence_72h or culture_resistant_organism"
         renal_adjustment:
@@ -411,7 +411,7 @@ drugs:
   discharge_oral:
     japan:
       - drug: "Amoxicillin"
-        code_yj: "6131002"
+        code_yj: "6131001"
         dose: "250mg PO TID"
         duration_days: 5
     us:
