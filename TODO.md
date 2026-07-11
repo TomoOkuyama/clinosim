@@ -1,6 +1,67 @@
 # clinosim — TODO
 
-## Status (current as of 2026-07-09, session 43 — Cycle 4 CLOSED)
+## Status (current as of 2026-07-11, session 44 — Cycles 6 + 7 CLOSED + CY7-05 structural)
+
+**★ Session 44 (2026-07-11, master HEAD `92c184e8d6`)** — comprehensive
+FHIR-completeness sweep across 3 cycles + full residual close-out:
+
+- **Chain 1-4 completion** (see `[Chain X]` commits between session 43 close
+  `544fd40d18` and cycle 6 open `499f72a09d`) — 20-item cycle-5 deferred list
+  fully consumed: CareTeam.telecom (100%), DR.relatesTo (94%), Obs.method (100%),
+  Roster + DR.presentedForm (100%), staging SNOMED (GOLD 4 / HTN Stage / Asthma
+  4-tier / CCS I-IV — 11 verified codes), MHLW YJ ingestion (30 authoritative
+  codes, MR uncoded 14%→0.79%).
+- **by-design registry** established + backfilled → 21 entries
+  (`docs/audit-cycles/by-design-registry.md`) covering C1-C7 patterns +
+  session-43 fix confirmations.
+- **Cycle 6 CLOSED** (`499f72a09d`) — 30 issues resolved, 3 new by-design
+  patterns registered, +5 whitelist drugs.
+- **Cycle 7 CLOSED** (`ed2091b984`) — 29/30 issues resolved (CY7-05 initially
+  deferred), 1 new by-design (`icu-transfer-classhistory-6pct`). 12 fields
+  went 0% → 100% (SR.performer/occurrenceDateTime, ImagingStudy.reasonCode/
+  procedureCode, MR.dispenseRequest/priority/category, MAR.category, DR.
+  masterIdentifier/custodian, Composition.event/custodian, Coverage.subscriber/
+  costToBeneficiary, Patient.multipleBirth/deceased, Procedure.reasonCode/
+  bodySite/outcome, Immunization.site/route/doseQuantity, AllergyIntolerance.
+  encounter, CareTeam.managingOrganization/reasonCode).
+- **C6-C7 residual sweep** (`682e5b8ba2`) — PROTOCOL_TEXT_KEYWORDS classifier
+  extension + protocol_category MR/MAR fallback + 7 MHLW YJ additions
+  (Amiodarone, Nafamostat, Ca gluconate, Metronidazole IV, Ferrous fumarate,
+  Codeine, Lactulose). **MAR uncoded 0.65% → 0.001%** (only Terlipressin left,
+  by-design non-JP-marketed).
+- **CY7-05 structural (`92c184e8d6`)** — Encounter.partOf ED→IMP linkage now
+  99.4% via FHIR-emit-only ED synthesis. `admit_source_encounter_id` set on
+  CIF IMP encounter (deterministic id derivation, no new CIF encounter records)
+  and `_bb_encounters` synthesizes the ED Encounter FHIR resource at emit time.
+
+**Baseline metrics after session 44** (JP p=10000 seed=42):
+
+| Metric | Value |
+|---|---|
+| IMP Encounter.partOf | 1,235/1,243 (99.4%) — 8 readmissions by-design |
+| Dangling refs | 0 |
+| MR uncoded | 223/16,690 (1.34%) — all by-design registry drugs |
+| MAR uncoded | 7/557,699 (0.001%) — Terlipressin only |
+| DR.performer / conclusion / presentedForm | 100% |
+| Practitioner.qualification | 100% |
+| Condition.evidence / severity | 100% / 85% |
+| MR.category / dispenseRequest / priority | 100% |
+| MAR.category | 100% |
+| Coverage.subscriber / costToBeneficiary | 100% |
+| Patient.multipleBirth / deceased | 100% |
+| Composition.event / custodian | 100% |
+| DR.masterIdentifier / custodian | 100% |
+| Procedure.reasonCode / bodySite / outcome | 100% |
+| Immunization.site / route / doseQuantity (completed) | 100% |
+| AllergyIntolerance.encounter | 100% |
+| CareTeam.managingOrganization / reasonCode / telecom | 100% |
+| ImagingStudy.reasonCode / procedureCode | 100% |
+| SR.performer / occurrenceDateTime | 100% |
+
+## Status (2026-07-09, session 43 — Cycle 4 CLOSED)
+
+_(previous session status entries follow, unchanged)_
+
 
 **★ Cycle 4 CLOSED (2026-07-09, session 43)** — 22 fully resolved / 3 partial /
 5 deferred. Highlights:
