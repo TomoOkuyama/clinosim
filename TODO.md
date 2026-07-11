@@ -1,6 +1,66 @@
 # clinosim — TODO
 
-## Status (2026-07-11, session 45 — seed=100 verification + hot-fix chain)
+## Status (2026-07-11, session 45 CLOSED — 4-seed verification + 9-commit chain)
+
+**★ Session 45 CLOSED (2026-07-11 late-evening, master HEAD `09b206539f`)** — 9-commit
+"seed verification chain" started as alt-seed verification of session 44 fixes
+and grew into an authoritative drug-code sweep across MHLW YJ + NLM RxNav.
+
+### 検証と修正のフロー(seed 別)
+| seed | 発見 | fix commits |
+|---|---|---|
+| 42 (session 44 baseline) | — | — (baseline PASS) |
+| 100 (chain #1) | 未分画ヘパリン rate adjustment / EMER length / by-design signature 更新 3 件 | `a68105b0e7` heparin helper / `0292e79450` EMER length / `84a0867953` 5 disease YAML + guard / `8f98692912` docs+registry |
+| 100 (chain #2) | rxnorm.yaml 2 label 誤り(3423 = Hydromorphone / 139462 = Moxifloxacin) | `80b451dc99` 5 authoritative RxCUI + `5015c65b9f` close docs |
+| 200 (chain #3) | Cefotaxime + Albumin + PCC 3 defects + 138 items authoritative audit → cycle-8 chain | `dd96df8344` Cefotaxime/Albumin/PCC + `79f9721f1b` cycle-8 mass sweep (94 replacements + 3 rxnorm.yaml labels + 80 yj.yaml + 40 code_mapping) |
+| **300 (chain #4)** | **Cefepime + 5 US antibiotic gaps** | `09b206539f` antibiotic module coverage(6 authoritative RxCUIs)|
+
+### 主要成果
+- **silent-code-substitution 12+ defects 解消**(具体的な数字は [`docs/audit-cycles/verification-2026-07-11-seed100.md`](docs/audit-cycles/verification-2026-07-11-seed100.md) 参照):
+  - Heparin 4 disease YAML: 3334400(Enoxaparin)→ 3334002 authoritative
+  - Amoxicillin: 6131001(Ampicillin)→ 6131002 authoritative
+  - Cefotaxime 3 places: 6132401(Cefazolin grp)→ 6132409 / RxCUI 2059(unknown)→ 2186
+  - Albumin 2 places: 6343401(存在せず)→ 6343410X1088 / RxCUI 596(Alprazolam!)→ 828529
+  - PCC: 6343401(存在せず)→ 6343449
+  - **cycle-8**: Meropenem 6 files(Biapenem 誤マップ)/ Clopidogrel 2(Aspirin!)/ Calcium carbonate(Potassium chloride!)/ Denosumab(Glatiramer)/ Oseltamivir(Zidovudine 抗レトロウイルス!)/ Norepinephrine(Adrenaline)/ Insulin glargine(Lispro)/ Omeprazole(Irsogladine)/ Rifaximin(Fidaxomicin)/ Levofloxacin 6 files(Garenoxacin)/ Edoxaban(Rivaroxaban)/ Lactated Ringer / Cefazolin RxNorm 4053(Erythromycin)/ …
+  - **cefepime**: 全 empirical antibiotic escalation で narrow ladder 発火時 uncoded → 6132425 authoritative
+
+- **rxnorm.yaml pre-2024-batch 6 label 誤り全解消**(全 NLM RxNav 検証済):
+  - 3423 = Heparin → Hydromorphone
+  - 139462 = Piperacillin/Tazobactam → Moxifloxacin
+  - 3443 = Epinephrine → Diltiazem
+  - 4053 = Diphenhydramine → Erythromycin
+  - 6902 = Metformin → Methylprednisolone
+
+- **yj.yaml + code_mapping 大幅拡張**:80 新規 yj.yaml + 40 JP code_mapping + 6 US antibiotic mapping。
+
+- **regression guard 導入**:`tests/unit/test_disease_yaml_drug_code_consistency.py` — 全 disease YAML の drug↔code_yj/code_rxnorm↔code_mapping 三方向整合を自動照合。_norm() で 塩酸塩 / 硫酸塩 / 水和物 / (遺伝子組換え) / sodium 等の authoritative-ingredient-name suffix を strip。_ALLOWED_ALIASES に 6 pairs 登録。
+
+### 4-seed 検証結果(headline metrics 一貫)
+| seed | verify(56 checks)| MAR uncoded | 新規 defect | fix 後 |
+|---|:---:|---:|---|:---:|
+| 42 baseline | 53 PASS / 2 FAIL(by-design) / 1 INFO | 7 件(Terlipressin only)| — | — |
+| 100 v3 | 53 PASS / 2 FAIL / 1 INFO | 0 | Heparin + Cefotaxime + Albumin + 138 items → chain #1-3 で fix | 53 PASS |
+| 200 v3 | 53 PASS / 2 FAIL / 1 INFO | 0 | Cefotaxime + 138 items → chain #3 で fix | 53 PASS |
+| 300 v2 | 53 PASS / 2 FAIL / 1 INFO | 0 | Cefepime + 5 US antibiotic → chain #4 で fix | 53 PASS |
+
+**残 FAIL 2 は 4 seed 全てで同一・既知 by-design**:
+- C4-STAGE 85% = HbA1c stage text-only(registry `hba1c-value-as-stage-text`)
+- D-CIINPROG 4-5% = pre-existing `test_jp_clinical_impression_structural_fields_present` skip(TODO レベル)
+
+### tests
+- unit: 1524 PASS(session 44 の 2441 → 1524 は `-m unit` selection、+1 は session 45 新規 regression guard)
+- integration: 106 PASS + 1 pre-existing skip(既知)
+- codes-integrity: `test_us_mapped_rxcuis_present` + `test_no_two_drugs_share_a_rxcui` PASS
+- disease-yaml consistency guard: PASS
+
+### Session 45 backlog(全解消・ZERO residuals)
+- session-45-drug-code-audit(chain #2 で CLOSED)
+- 138 items authoritative audit(chain #3 cycle-8 で fix apply、guard で吸収)
+- rxnorm.yaml pre-2024-batch label 誤り(chain #2/#3 で 6 items 全解消)
+- Cefepime + US antibiotic gaps(chain #4 CLOSED)
+
+## Status (2026-07-11 evening, session 45 chain #1)
 
 **Session 45 (2026-07-11 evening)** — JP p=10000 seed=100 で C1-C7 fix の別seed回収検証を実施。結果:66/75 checks PASS、6 FAIL の内訳 = 4 by-design + 2 新規defect。全て hot-fix chain で改修 + 8 sibling-sweep code mismatches のうち 4 (Heparin family + Amoxicillin) を修正:
 
