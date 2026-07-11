@@ -426,24 +426,24 @@ drugs:
   sbp_treatment:
     japan:
       - drug: "Cefotaxime"
-        code_yj: "6132401"
+        code_yj: "6132409"
         dose: "2g IV q8h"
         route: IV
         indication: "ascitic_PMN > 250"
         duration_days: 5
       - drug: "Albumin"
-        code_yj: "6343401"
+        code_yj: "6343410X1088"
         dose: "1.5g/kg Day 1, 1g/kg Day 3"
         route: IV
         note: "Prevents hepatorenal syndrome in SBP"
     us:
       - drug: "Cefotaxime"
-        code_rxnorm: "2059"
+        code_rxnorm: "2186"
         dose: "2g IV q8h"
         route: IV
         duration_days: 5
       - drug: "Albumin"
-        code_rxnorm: "596"
+        code_rxnorm: "828529"
         dose: "1.5g/kg Day 1, 1g/kg Day 3"
         route: IV
 
@@ -495,7 +495,7 @@ drugs:
         route: IV
         indication: "hepatorenal_syndrome_type_1"
       - drug: "Albumin"
-        code_yj: "6343401"
+        code_yj: "6343410X1088"
         dose: "20-40g IV daily"
         route: IV
     us:
@@ -509,7 +509,7 @@ drugs:
         dose: "100-200ug SC TID"
         route: SC
       - drug: "Albumin"
-        code_rxnorm: "596"
+        code_rxnorm: "828529"
         dose: "25-50g IV daily"
         route: IV
 
