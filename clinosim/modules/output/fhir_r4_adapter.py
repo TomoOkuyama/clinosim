@@ -734,6 +734,31 @@ def _build_bundle(
     patient_data = record.get("patient", {})
     dx = record.get("clinical_diagnosis", {})
     encounters = record.get("encounters") or []
+    # Session 45 seed=400 verification finding: record.deceased was set by
+    # `_evaluate_mortality` in the inpatient simulator (74 expired IMP
+    # encounters at seed=400 v2) but never propagated to `patient_data`, so
+    # `_build_patient` always emitted `deceasedBoolean=False`. Copy the flag
+    # + death timestamp into patient_data so the FHIR Patient carries a
+    # `deceasedDateTime` matching the Encounter.dischargeDisposition="expired".
+    _record_deceased = (
+        record.get("deceased", False)
+        if isinstance(record, dict)
+        else getattr(record, "deceased", False)
+    )
+    if _record_deceased and not patient_data.get("date_of_death") and not patient_data.get("dod"):
+        _dod = None
+        for _enc in encounters:
+            _dis = (
+                _enc.get("discharge_datetime")
+                if isinstance(_enc, dict)
+                else getattr(_enc, "discharge_datetime", None)
+            )
+            if _dis:
+                _dod = _dis
+                break
+        if _dod:
+            patient_data = dict(patient_data)
+            patient_data["date_of_death"] = str(_dod)
     ctx = BundleContext(
         record=record,
         country=country,
