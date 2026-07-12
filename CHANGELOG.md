@@ -20,6 +20,18 @@ byte output but must document the change here.
 
 ### Added
 
+- **`clinosim eval` public evaluation framework** (P1-8): new package
+  `clinosim/eval/` scoring any generated cohort on three axes
+  (**structural** / **clinical** / **locale**). 15 checks total
+  (5 per axis, severity-weighted). Auto-detects US vs JP from cohort
+  content when the layout is flat. Emits JSON (machine-readable) +
+  Markdown (human) via `--json` / `--md`; `--strict` exits 1 on any
+  FAIL. Distinct from `clinosim audit run` (internal per-Module PR
+  gate) — `eval` targets external researchers grading synthetic
+  cohorts before use. 16 unit tests + 2 end-to-end tests
+  (us-100 + jp-100 presets). Full reference at `docs/eval.md`. First
+  real bug the tool caught (US Composition CJK leak from
+  hpi_template.onset_pattern) filed as `good first issue` #149.
 - **Dataset presets** (P1-6): `datasets/` directory with four named
   presets — `us-100`, `us-1000`, `jp-100`, `jp-1000` — each carrying a
   `spec.yaml` (params) and a dataset card in HuggingFace format. New
