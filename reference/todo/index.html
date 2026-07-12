@@ -1665,7 +1665,19 @@
 <h1 id="clinosim-todo">clinosim — TODO<a class="headerlink" href="#clinosim-todo" title="Permanent link">&para;</a></h1>
 <h2 id="status-2026-07-13-session-48-in-progress-bcdefg">Status (2026-07-13, <strong>★ session 48 IN-PROGRESS — bcdefg 順消化開始</strong>)<a class="headerlink" href="#status-2026-07-13-session-48-in-progress-bcdefg" title="Permanent link">&para;</a></h2>
 <p><strong>Session 48 開始状態(順序 d → e → f → g → b → c、d 完了)</strong>:</p>
-<h3 id="d-e-f-gpr3-sub-pr-bce-deferred-cleanup-3">完了(d, e, f, g):PR3 sub-PR-B/C/E + Deferred cleanup 3 件<a class="headerlink" href="#d-e-f-gpr3-sub-pr-bce-deferred-cleanup-3" title="Permanent link">&para;</a></h3>
+<h3 id="d-e-f-g-bpr3-sub-pr-bce-deferred-cleanup-p2-14-country-scaffold">完了(d, e, f, g, b):PR3 sub-PR-B/C/E + Deferred cleanup + P2-14 country scaffold<a class="headerlink" href="#d-e-f-g-bpr3-sub-pr-bce-deferred-cleanup-p2-14-country-scaffold" title="Permanent link">&para;</a></h3>
+<p><strong>(b) P2-14 add-your-country ガイド + 国パック scaffold</strong>:
+- <code>docs/add-your-country.md</code> 新設(prerequisites / required YAMLs / optional
+  YAMLs / code registration steps / testing checklist / common pitfalls)
+- <code>clinosim/locale/_template/</code> scaffold ディレクトリ 9 YAML + README
+  - 必須 YAML(names / addresses / demographics / formatting / code_mapping 4
+    種 / reference_range_lab)全て schema 説明 + placeholder 値
+  - "TODO_..." で fabrication 防止 + non-runnable 明示
+- <code>_country_dir</code> loader gate:leading-underscore folder は country として
+  reject(<code>_template</code> 誤用防止)
+- 単体 test 6 個(guide 存在 / scaffold shape / underscore rejection /
+  既存 country 動作維持 / 新 country lowercase fallback)</p>
+<p><strong>(d, e, f, g) 完了内容</strong>(上へ):</p>
 <p><strong>(g) Deferred cleanup 3 件</strong>:
 - <strong>g.1</strong> <code>_JP_CORE_PROFILES</code> shape unify:<code>dict[str, str]</code> → <code>dict[str, list[str]]</code>、<code>_apply_jp_core_profile</code> を list-対応に更新(将来 JP Core が同一 resource で複数 sibling profile を publish しても既存 accessor で吸収可能)
 - <strong>g.2</strong> CLI <code>generate</code> → <code>simulate</code> rename:
