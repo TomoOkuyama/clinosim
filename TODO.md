@@ -88,7 +88,14 @@ P1 (7 items) of the diffusion plan landed in one session as 12 focused PRs.
     encounter walk 用に enricher を 「新規 CIFPatientRecord 追加」pattern
     に refactor(既存 record への append では narrative pass が
     HEALTH_CHECKUP_REPORT spec を認識しなかった問題を修正)。
-  - [ ] PR3 sub-PR-C: jpfhir-validator bridge(optional CI job)。
+  - [x] PR3 sub-PR-C (session 47): jpfhir-validator bridge。
+    `scripts/validate_jp.sh` = JP コホート生成 → profile 対応 resource
+    代表サンプル抽出 → HL7 公式 FHIR Validator 実行(`VALIDATOR_JAR`
+    env 経由)。Java + jar 未設定時は手順表示で graceful skip。
+    `.github/workflows/jp-validate.yml` = manual-only(workflow_dispatch
+    + `jp-validate` PR label)。通常 CI パイプラインには組み込まず必要時
+    のみ回す設計。将来:IG package `.tgz` の SHA256 pinning + 全 resource
+    検証 + CI 自動 fail gate 化。
   - [ ] PR3 sub-PR-D: 特定健診(01011/01012)+ 広域連合健診(01021/01022)
     section 対応。
 - **P2-14** "Add your country" guide + country-pack scaffold.

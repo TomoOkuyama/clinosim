@@ -136,6 +136,59 @@ Note: 健診 IG は JP-CLINS と別に発行されている(JP-eCheckup General 
 **US path**:健診 opt-in flag は US では発火しない
 (`countries_supported: [jp]` により spec 側で JP に限定)。
 
+## JP FHIR Validator Bridge (PR3 sub-PR-C)
+
+session 47 で `scripts/validate_jp.sh` と `.github/workflows/jp-validate.yml` を追加しました。**JP 出力を HL7 公式 FHIR Validator で JP Core / JP-CLINS / JP-eCheckup に適合検証** できます。
+
+### Local 実行
+
+```bash
+# サンプル抽出のみ(validator jar 未指定なら skip)
+./scripts/validate_jp.sh
+
+# 実際の validator 実行(要 Java 11+)
+VALIDATOR_JAR=/path/to/validator_cli.jar ./scripts/validate_jp.sh
+```
+
+環境変数(全て optional):
+- `VALIDATOR_JAR`:HL7 公式 validator jar のパス。未設定なら手順表示のみで skip。
+- `CLINOSIM_JP_VAL_POPULATION`:default 10
+- `CLINOSIM_JP_VAL_SEED`:default 42
+- `CLINOSIM_JP_VAL_END`:default 2026-06-30
+- `CLINOSIM_JP_VAL_HEALTH`:default "1"(health_checkup opt-in)
+
+### Validator jar 取得
+
+<https://github.com/hapifhir/org.hl7.fhir.core/releases> から `validator_cli.jar` を取得。Java 11+ が必要です。
+
+### 検証対象(MVP)
+
+小規模 JP コホート生成後、以下 profile 対応 resource から代表 1 件を抽出して検証:
+
+- `JP_Condition_eCS`
+- `JP_AllergyIntolerance_eCS`
+- `JP_Observation_LabResult_eCS`(laboratory category)
+- `JP_MedicationRequest_eCS`
+- `JP_Procedure_eCS`
+- `JP_Composition_eDischargeSummary`
+- `JP_Composition_eReferral`
+- `JP_Composition_eCheckupGeneral`(health_checkup opt-in 時)
+
+### CI 実行
+
+`.github/workflows/jp-validate.yml` は **manual-only workflow**:
+
+- **workflow_dispatch**:UI から `population` / `seed` / `run_validator` bool を指定
+- **PR label**:`jp-validate` ラベルを付けた PR で自動実行
+
+CI 時間の浪費を防ぐため、通常の CI パイプラインには組み込まず、必要時のみ手動で回す設計です。
+
+### 将来 sub-PR での高度化
+
+- IG package `.tgz` URL の SHA256 pinning + 自動 fetch
+- 全 resource 検証(現状 profile あたり 1 サンプルのみ)
+- CI 自動 fail gate 化(現状 manual trigger + fail は最終 summary のみ)
+
 ## Reproducibility
 
 The layer is deterministic — `scripts/reproduce.sh` continues to pass with country=JP output byte-identical across independent runs.
