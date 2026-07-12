@@ -788,6 +788,7 @@ def _build_bundle(
             # idempotent (skips when meta.profile is already populated).
             if ctx.country == "JP":
                 _apply_jp_core_profile(resource)
+                _apply_jp_clins_profile(resource)
             entries.append(_entry(resource))
 
     return {

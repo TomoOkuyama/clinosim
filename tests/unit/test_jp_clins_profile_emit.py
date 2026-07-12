@@ -125,6 +125,100 @@ class TestCategoryFilters:
 
 
 @pytest.mark.unit
+class TestBundleIntegration:
+    def test_jp_bundle_medication_request_has_both_profiles(self):
+        from clinosim.modules.output.fhir_r4_adapter import _build_bundle
+        record = _minimal_jp_record()
+        bundle = _build_bundle(record, "JP")
+        mrs = [e["resource"] for e in bundle["entry"]
+               if e["resource"]["resourceType"] == "MedicationRequest"]
+        assert mrs, "expected at least one MedicationRequest in JP bundle"
+        for mr in mrs:
+            profs = mr.get("meta", {}).get("profile", [])
+            assert any(
+                "eCS" in p and "MedicationRequest" in p for p in profs
+            ), f"MedicationRequest missing JP-CLINS profile: {profs}"
+            assert any(
+                "core" in p and "MedicationRequest" in p for p in profs
+            ), f"MedicationRequest missing JP Core profile: {profs}"
+
+    def test_us_bundle_has_no_clins_profile(self):
+        from clinosim.modules.output.fhir_r4_adapter import _build_bundle
+        record = _minimal_us_record()
+        bundle = _build_bundle(record, "US")
+        for entry in bundle["entry"]:
+            profs = entry["resource"].get("meta", {}).get("profile", [])
+            assert not any(
+                "jpfhir.jp/fhir/eCS" in p for p in profs
+            ), f"US bundle leaked JP-CLINS profile: {profs}"
+
+
+def _minimal_jp_record() -> dict:
+    """Minimal CIF-shaped dict sufficient for bundle build (JP)."""
+    return {
+        "patient": {
+            "patient_id": "POP-000001",
+            "sex": "M",
+            "date_of_birth": "1960-01-01",
+            "name": {"family_name": "山田", "given_name": "太郎"},
+        },
+        "clinical_diagnosis": {
+            "admission_diagnosis_code": "I21.4",
+            "admission_diagnosis_system": "icd-10-cm",
+            "discharge_diagnosis_code": "I21.4",
+        },
+        "encounters": [{
+            "encounter_id": "ENC-001",
+            "encounter_type": "inpatient",
+            "admission_datetime": "2026-01-15T09:00:00",
+            "discharge_datetime": "2026-01-20T10:00:00",
+        }],
+        "orders": [{
+            "order_type": "medication",
+            "display_name": "アスピリン腸溶錠100mg",
+            "medication_code": "1124402",
+            "medication_system": "yj",
+            "ordered_datetime": "2026-01-15T10:00:00",
+            "start_datetime": "2026-01-15T10:00:00",
+            "encounter_id": "ENC-001",
+            "ordered_by": "PRAC-JP-001",
+        }],
+    }
+
+
+def _minimal_us_record() -> dict:
+    return {
+        "patient": {
+            "patient_id": "POP-000002",
+            "sex": "F",
+            "date_of_birth": "1970-01-01",
+            "name": {"family_name": "Smith", "given_name": "Jane"},
+        },
+        "clinical_diagnosis": {
+            "admission_diagnosis_code": "I21.4",
+            "admission_diagnosis_system": "icd-10-cm",
+            "discharge_diagnosis_code": "I21.4",
+        },
+        "encounters": [{
+            "encounter_id": "ENC-101",
+            "encounter_type": "inpatient",
+            "admission_datetime": "2026-01-15T09:00:00",
+            "discharge_datetime": "2026-01-20T10:00:00",
+        }],
+        "orders": [{
+            "order_type": "medication",
+            "display_name": "aspirin 100 MG oral tablet",
+            "medication_code": "1191",
+            "medication_system": "rxnorm",
+            "ordered_datetime": "2026-01-15T10:00:00",
+            "start_datetime": "2026-01-15T10:00:00",
+            "encounter_id": "ENC-101",
+            "ordered_by": "PRAC-US-001",
+        }],
+    }
+
+
+@pytest.mark.unit
 class TestIsLabObservation:
     def test_true_for_laboratory_category(self):
         r = {"category": [{"coding": [{"code": "laboratory"}]}]}
