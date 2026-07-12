@@ -20,6 +20,19 @@ byte output but must document the change here.
 
 ### Added
 
+- **Dataset presets** (P1-6): `datasets/` directory with four named
+  presets — `us-100`, `us-1000`, `jp-100`, `jp-1000` — each carrying a
+  `spec.yaml` (params) and a dataset card in HuggingFace format. New
+  CLI `clinosim dataset list` / `clinosim dataset build <name> -o <dir>`
+  subcommand under `clinosim/dataset/` reads the spec and delegates to
+  `clinosim generate` so no logic is duplicated. Zenodo integration
+  (`.zenodo.json` at repo root) mints a DOI on every tagged release.
+  Release workflow extended to build all four presets and attach them
+  to the GitHub Release as `clinosim-dataset-<name>-vX.Y.Z.tar.gz`
+  starting v0.3.0 onward. 13 unit tests
+  (`tests/unit/test_dataset_cli.py`) cover preset discovery, spec
+  validation, and CLI wiring; end-to-end smoke tested via
+  `clinosim dataset build jp-100`.
 - **End-to-end reproducibility gate** (P1-7): `scripts/reproduce.sh`
   runs `clinosim generate` twice per locale (US + JP by default) at
   the same seed and byte-diffs every NDJSON + CIF JSON. Excludes

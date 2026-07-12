@@ -1,0 +1,12 @@
+# clinosim dataset preset — us-100
+#
+# US cohort, 100 patients, 3 months. Small enough to build in <30 s
+# on a laptop; representative enough for smoke tests and demos.
+name: us-100
+description: US cohort, 100 patients, 2026-01-01 to 2026-03-31 (3 months), FHIR R4 Bulk output
+country: US
+population: 100
+seed: 42
+start: 2026-01-01
+end: 2026-03-31
+format: fhir

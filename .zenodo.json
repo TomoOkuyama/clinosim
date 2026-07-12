@@ -1,0 +1,34 @@
+{
+  "title": "clinosim: Clinically Realistic Hospital Data Simulator",
+  "description": "Population-driven, physiology-based synthetic Electronic Health Record generator. Every patient carries a hidden 13-variable physiological state and every lab, vital, medication, and diagnosis is derived from that state. FHIR R4 Bulk Data Access output; multi-country (US and JP) locale packs; JP Core FHIR profile compliance on 16 primary resource types; 32 inpatient diseases and 46 ED / outpatient conditions; deterministic seeded reproduction (byte-identical output within a MINOR release line).",
+  "license": "MIT",
+  "keywords": [
+    "synthetic EHR",
+    "synthetic data",
+    "FHIR R4",
+    "HL7 FHIR",
+    "EHR simulation",
+    "clinical data generation",
+    "healthcare",
+    "medical AI",
+    "JP Core",
+    "population-driven simulation",
+    "physiology-driven"
+  ],
+  "creators": [
+    {
+      "name": "clinosim contributors",
+      "affiliation": "https://github.com/TomoOkuyama/clinosim/graphs/contributors"
+    }
+  ],
+  "access_right": "open",
+  "upload_type": "software",
+  "communities": [],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/TomoOkuyama/clinosim",
+      "relation": "isSupplementTo",
+      "resource_type": "software"
+    }
+  ]
+}

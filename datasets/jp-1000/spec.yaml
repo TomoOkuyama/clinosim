@@ -1,0 +1,13 @@
+# clinosim dataset preset — jp-1000
+#
+# JP cohort, 1000 patients, 6 months. ML-dev-friendly JP size for
+# training / evaluating models on Japanese clinical data with JP Core
+# profile compliance.
+name: jp-1000
+description: JP cohort, 1000 patients, 2026-01-01 to 2026-06-30 (6 months), FHIR R4 Bulk output
+country: JP
+population: 1000
+seed: 42
+start: 2026-01-01
+end: 2026-06-30
+format: fhir
