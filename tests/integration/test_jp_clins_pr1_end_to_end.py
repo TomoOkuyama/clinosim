@@ -24,7 +24,6 @@ import pytest
 
 from tests.integration._sr_helpers import run_generate
 
-
 _JP_CLINS_PROFILE_ROOT = "http://jpfhir.jp/fhir/eCS/StructureDefinition/"
 _SNAPSHOT_END = "2026-06-30"
 
@@ -52,7 +51,8 @@ def test_jp_p100_carries_clins_profiles_on_five_types(tmp_path):
     resources_by_type = _load_resources(outdir)
 
     from clinosim.modules.output.fhir_r4_adapter import (
-        _JP_CLINS_PROFILES, _is_lab_observation,
+        _JP_CLINS_PROFILES,
+        _is_lab_observation,
     )
 
     # Dense resource types — expected to have at least one instance at p=100.
@@ -102,5 +102,6 @@ def test_us_p50_has_no_clins_profile(tmp_path):
                 r = json.loads(line)
                 profs = r.get("meta", {}).get("profile", [])
                 assert not any(p.startswith(_JP_CLINS_PROFILE_ROOT) for p in profs), (
-                    f"US cohort leaked JP-CLINS profile: {r['resourceType']}/{r.get('id')} → {profs}"
+                    "US cohort leaked JP-CLINS profile: "
+                    f"{r['resourceType']}/{r.get('id')} → {profs}"
                 )
