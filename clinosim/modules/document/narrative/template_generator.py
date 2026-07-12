@@ -598,6 +598,9 @@ class TemplateNarrativeGenerator:
             "referral_purpose": self._build_referral_purpose,
             "diagnoses_and_complaint": self._build_diagnoses_and_complaint,
             "present_illness_ref": self._build_present_illness_ref,
+            # P2-13 PR3: JP-eCheckup 健診結果報告書 sections (JP only, opt-in)
+            "checkup_lab_results": self._build_checkup_lab_results,
+            "checkup_questionnaire": self._build_checkup_questionnaire,
             # chain 2: REHABILITATION_PLAN sections (LOINC 34823-5)
             "patient_and_diagnosis": self._build_rp_patient_and_diagnosis,
             "rehab_team": self._build_rp_rehab_team,
@@ -1268,6 +1271,73 @@ class TemplateNarrativeGenerator:
                 else f"Patient presented with {ctx.severity} symptoms."
             )
         return hpi_text, facts
+
+    # ─────────────────────────────────────────────────────────────────
+    # P2-13 PR3:JP-eCheckup 健診結果報告書用 section builder 群(JP-only、opt-in)
+    # 事業者健診(労安衛法定健診)の 2 必須 section を対象。
+    # ─────────────────────────────────────────────────────────────────
+
+    def _build_checkup_lab_results(
+        self, ctx: NarrativeContext
+    ) -> tuple[str, list[str]]:
+        """01031 事業者健診検査結果セクション:法定健診項目の判定文。
+
+        MVP 実装:法定健診項目 5 群(身体計測 / 血圧 / 脂質 / 肝機能 /
+        血糖)の一言判定を組み立てる。将来:実測 ObservationRecord を
+        参照して基準値と比較判定する PR3+1 で高度化。
+        """
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        if is_ja:
+            text = (
+                "【身体計測】BMI 標準範囲内。\n"
+                "【血圧】収縮期・拡張期ともに基準内。\n"
+                "【脂質】総コレステロール・HDL・LDL・中性脂肪 基準内。\n"
+                "【肝機能】AST・ALT・γ-GTP 基準内。\n"
+                "【血糖・HbA1c】空腹時血糖・HbA1c 基準内。\n"
+                "総合判定:A(異常なし)。"
+            )
+        else:
+            text = (
+                "Body measurements: BMI within normal range.\n"
+                "Blood pressure: systolic and diastolic within normal.\n"
+                "Lipid panel: TC/HDL/LDL/TG within normal range.\n"
+                "Liver enzymes: AST/ALT/GGT within normal range.\n"
+                "Glucose/HbA1c: fasting glucose and HbA1c within normal.\n"
+                "Overall assessment: A (no abnormalities)."
+            )
+        return text, facts
+
+    def _build_checkup_questionnaire(
+        self, ctx: NarrativeContext
+    ) -> tuple[str, list[str]]:
+        """01032 事業者健診問診結果セクション:標準問診項目の要約。
+
+        MVP 実装:定型問診項目(既往歴・生活習慣・自覚症状)の一言記述。
+        将来:PatientProfile.chronic_conditions と smoking / alcohol
+        history を参照して個別化する PR3+1 で高度化。
+        """
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        if is_ja:
+            text = (
+                "【既往歴】特記事項なし。\n"
+                "【自覚症状】特記事項なし。\n"
+                "【服薬】現在の常用薬なし。\n"
+                "【生活習慣】喫煙:なし、飲酒:機会飲酒程度、"
+                "運動:週 1-2 回程度。\n"
+                "【判定】経過観察不要。"
+            )
+        else:
+            text = (
+                "History: none noted.\n"
+                "Symptoms: none noted.\n"
+                "Medications: none currently taken.\n"
+                "Lifestyle: non-smoker, occasional alcohol, "
+                "moderate weekly exercise.\n"
+                "Assessment: no follow-up required."
+            )
+        return text, facts
 
     def _build_hospital_course(
         self, ctx: NarrativeContext

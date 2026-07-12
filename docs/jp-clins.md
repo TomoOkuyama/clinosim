@@ -96,6 +96,38 @@ Simulation approximations:
 
 **US path**: referral notes are not emitted for `country=US` (`countries_supported: [jp]`). US clinical practice uses ordinary referral letters, not the JP-CLINS eReferral profile.
 
+## JP-eCheckup 健診結果報告書 Composition (PR3、opt-in)
+
+`country=JP` かつ `SimulatorConfig.modules["health_checkup"]=True` の場合、
+健診 encounter に対して **健診結果報告書 (health checkup report)** Composition を
+`JP_Composition_eCheckupGeneral`(JP-eCheckup General v1.7.0)準拠で emit します。
+急性期病院想定を維持するため **default off**。
+
+Note: 健診 IG は JP-CLINS と別に発行されている(JP-eCheckup General v1.7.0、
+2026-02-16)。canonical URL は `/fhir/eCheckup/` 配下で、CodeSystem も別
+(section-code は 5 桁数値、JP-CLINS の 3 桁とは異なる)。
+
+- `Composition.meta.profile` = `http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Composition_eCheckupGeneral`
+- `Composition.type.coding[0]` = `{system: doc-typecodes, code: 53576-5, display: 検診・健診報告書}`。LOINC coding も secondary で併存。
+- `Composition.section` は flat 2 個(nesting なし):
+  - **01031** 事業者健診検査結果セクション
+  - **01032** 事業者健診問診結果セクション
+- `section.code.system` = `http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code`
+
+**対象範囲(scope)**:
+- 事業者健診(労安衛法定健診)のみに絞る MVP 実装。特定健診(01011/01012)や
+  広域連合健診(01021/01022)は将来 sub-PR で追加可能。
+- section content は MVP では固定の定型健診項目判定文(BMI 標準・血圧基準内・
+  脂質/肝機能/血糖 基準内)。将来:実 ObservationRecord 参照で個別化する
+  PR3+1 で高度化予定。
+- **健診 encounter 生成 module 自体は本 PR3 スコープ外**。
+  `SimulatorConfig.modules["health_checkup"]=True` は Composition 発行の
+  opt-in gate として先に infrastructure を用意している状態。健診 encounter
+  planner + observation generator は次 sub-PR で追加。
+
+**US path**:健診 opt-in flag は US では発火しない
+(`countries_supported: [jp]` により spec 側で JP に限定)。
+
 ## Reproducibility
 
 The layer is deterministic — `scripts/reproduce.sh` continues to pass with country=JP output byte-identical across independent runs.

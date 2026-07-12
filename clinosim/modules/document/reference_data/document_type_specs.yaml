@@ -268,3 +268,26 @@ specs:
       - present_illness_ref
     stage2_strategy: template_only
     llm_enabled_sections: []
+
+  # === P2-13 PR3(session 47)JP-eCheckup 健診結果報告書(JP-only、opt-in) ===
+  # LOINC 53576-5 を jpfhir.jp JP-eCheckup General v1.7.0(2026-02-16)で照合済。
+  # https://jpfhir.jp/fhir/eCheckup/igv1/StructureDefinition-JP-Composition-eCheckupGeneral.html
+  # 対応 Composition profile:JP_Composition_eCheckupGeneral(section-code は
+  # JP-CLINS の 3 桁 code 系とは別で 5 桁数値、URL も /fhir/eCheckup/ 配下)。
+  #
+  # opt-in 制御:SimulatorConfig.modules["health_checkup"]=True かつ
+  # country=JP のとき、健康診断 encounter(encounter_type="checkup")に
+  # 対して 1 通発行する。急性期病院想定を維持するため default off。
+  # 対象健診種別は労安衛法定健診(事業者健診)= section 01031 検査結果 +
+  # 01032 問診結果 を必須 emit。
+  health_checkup_report:
+    loinc_code: "53576-5"
+    format_type: composition
+    countries_supported: [jp]
+    encounter_types_supported: [checkup]
+    generation_frequency: checkup_once
+    composition_sections:
+      - checkup_lab_results
+      - checkup_questionnaire
+    stage2_strategy: template_only
+    llm_enabled_sections: []

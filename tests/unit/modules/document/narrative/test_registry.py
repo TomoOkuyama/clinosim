@@ -147,6 +147,12 @@ def test_load_raises_on_missing_required_field() -> None:
                 "countries_supported": ["jp"],
                 "generation_frequency": "discharge_fraction_20pct",
             },
+            "health_checkup_report": {
+                "loinc_code": "53576-5",
+                "format_type": "composition",
+                "countries_supported": ["jp"],
+                "generation_frequency": "checkup_once",
+            },
         }
     }
     with pytest.raises(ValueError, match="missing countries_supported"):
@@ -231,6 +237,12 @@ def test_load_raises_on_null_entry() -> None:
                 "format_type": "composition",
                 "countries_supported": ["jp"],
                 "generation_frequency": "discharge_fraction_20pct",
+            },
+            "health_checkup_report": {
+                "loinc_code": "53576-5",
+                "format_type": "composition",
+                "countries_supported": ["jp"],
+                "generation_frequency": "checkup_once",
             },
         }
     }
@@ -322,6 +334,12 @@ def test_load_raises_on_empty_countries_supported() -> None:
                 "countries_supported": ["jp"],
                 "generation_frequency": "discharge_fraction_20pct",
             },
+            "health_checkup_report": {
+                "loinc_code": "53576-5",
+                "format_type": "composition",
+                "countries_supported": ["jp"],
+                "generation_frequency": "checkup_once",
+            },
         }
     }
     with pytest.raises(ValueError, match="countries_supported empty"):
@@ -330,19 +348,19 @@ def test_load_raises_on_empty_countries_supported() -> None:
 
 # === α-min-2 tests ===
 
-def test_load_specs_returns_13_total() -> None:
-    """13 (3 α-min-1 + 6 α-min-2 + 3 chain-2 + 1 P2-13 PR2b referral_note) specs."""
+def test_load_specs_returns_14_total() -> None:
+    """14 (3 α-min-1 + 6 α-min-2 + 3 chain-2 + PR2b referral + PR3 checkup) specs."""
     load_document_type_specs.cache_clear()
     specs = load_document_type_specs()
-    assert len(specs) == 13, (
-        f"Expected 13 specs (3 α-min-1 + 6 α-min-2 + 3 chain-2 + 1 referral_note), "
+    assert len(specs) == 14, (
+        f"Expected 14 specs (3 α-min-1 + 6 α-min-2 + 3 chain-2 + referral + checkup), "
         f"got {len(specs)}"
     )
 
 
-def test_supported_document_types_covers_13_entries() -> None:
-    """SUPPORTED_DOCUMENT_TYPES frozenset has 13 members after P2-13 PR2b."""
-    assert len(SUPPORTED_DOCUMENT_TYPES) == 13
+def test_supported_document_types_covers_14_entries() -> None:
+    """SUPPORTED_DOCUMENT_TYPES frozenset has 14 members after P2-13 PR3."""
+    assert len(SUPPORTED_DOCUMENT_TYPES) == 14
 
 
 def test_specs_for_encounter_type_outpatient_returns_only_outpatient_soap() -> None:

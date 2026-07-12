@@ -20,9 +20,10 @@ codes:
   "57133-1":
     en: "Referral note"
     ja: "診療情報提供書"
-  "JPGCHKUP01":
+  # JP-eCheckup v1.7.0 で LOINC 53576-5 が正式 code(session 47 PR3 で確認)
+  "53576-5":
     en: "Health checkup report"
-    ja: "健診結果報告書"
+    ja: "検診・健診報告書"
   "57833-6":
     en: "Prescription for medication"
     ja: "処方箋"
