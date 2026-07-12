@@ -1,0 +1,49 @@
+# Demographics template.
+#
+# Sources: national census + disease surveillance authorities.
+# All distributions must be non-negative with sum > 0
+# (validated by `_validate_demographics` at load).
+
+age_distribution:
+  # 5-year buckets. weights sampled proportionally.
+  "0-4": 0.05
+  "5-9": 0.05
+  # ... TODO: replace with locale census
+
+sex_distribution:
+  M: 0.49
+  F: 0.51
+
+blood_type_distribution:
+  # A / B / AB / O × Rh+ / Rh-
+  A_pos: 0.30
+  B_pos: 0.20
+  AB_pos: 0.05
+  O_pos: 0.36
+  A_neg: 0.03
+  B_neg: 0.02
+  AB_neg: 0.01
+  O_neg: 0.03
+
+chronic_condition_prevalence:
+  # code = internal chronic condition key (see clinosim/modules/patient/reference_data/chronic_conditions.yaml)
+  # value = prevalence 0.0..1.0 at adult population level
+  I10:   __TODO_hypertension__       # e.g. 0.30 in adults
+  E11:   __TODO_type2_diabetes__     # e.g. 0.09
+  E78:   __TODO_dyslipidemia__       # e.g. 0.28
+  J45:   __TODO_asthma__             # e.g. 0.05
+
+disease_incidence_per_1000:
+  # Annual acute disease incidence per 1000 population (seeds run_beta cohort sampling)
+  bacterial_pneumonia: __TODO__
+  acute_mi:            __TODO__
+  # ... one entry per disease under clinosim/modules/disease/reference_data/
+
+lifestyle_distribution:
+  # Optional, only add when you have authoritative smoking / alcohol data
+  smoking:
+    M: {never: 0.5, former: 0.3, current: 0.2}
+    F: {never: 0.75, former: 0.15, current: 0.1}
+  alcohol:
+    M: {none: 0.2, occasional: 0.5, regular: 0.25, heavy: 0.05}
+    F: {none: 0.4, occasional: 0.5, regular: 0.09, heavy: 0.01}

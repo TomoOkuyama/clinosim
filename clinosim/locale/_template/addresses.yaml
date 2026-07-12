@@ -1,0 +1,16 @@
+# Regional address template.
+#
+# Structure:
+#   regions:           list of {name, weight, postal_code_prefix}
+#   city_pool:         list of {name, region, postal_code}
+#
+# `weight` drives frequency of sampling. Prefer weights from actual population
+# distribution — do not fabricate.
+# Sources: national postal service / statistics bureau.
+
+regions:
+  - {name: "__TODO_region_1__", weight: 100, postal_code_prefix: "00"}
+  - {name: "__TODO_region_2__", weight: 80, postal_code_prefix: "01"}
+
+city_pool:
+  - {name: "__TODO_city_1__", region: "__TODO_region_1__", postal_code: "000-0000"}

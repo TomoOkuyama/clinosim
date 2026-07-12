@@ -1,0 +1,9 @@
+# Lab code mapping template.
+# Maps internal lab name → national lab coding system (LOINC / JLAC10 / national).
+
+mapping:
+  # Internal name → national code
+  CRP:        "__TODO_crp_code__"
+  WBC:        "__TODO_wbc_code__"
+  Creatinine: "__TODO_creatinine_code__"
+  # ... one entry per lab emitted (see clinosim/modules/observation/reference_data/)

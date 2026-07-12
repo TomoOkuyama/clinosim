@@ -1,0 +1,9 @@
+# Drug code mapping template.
+# Maps internal drug name → national formulary code (RxNorm / YJ / national).
+
+mapping:
+  # Internal English name → national code
+  Ceftriaxone:    "__TODO_ceftriaxone_code__"
+  Vancomycin:     "__TODO_vancomycin_code__"
+  Atorvastatin:   "__TODO_atorvastatin_code__"
+  # ... one entry per drug emitted

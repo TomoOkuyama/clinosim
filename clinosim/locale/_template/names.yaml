@@ -1,0 +1,29 @@
+# Name pool template.
+#
+# Structure:
+#   family_names:      list of {name, weight}
+#   given_names_male:  list of {name, weight}
+#   given_names_female: list of {name, weight}
+#
+# Weights are sampled proportionally. They don't have to sum to 1;
+# clinosim normalizes internally (`normalize_probabilities`).
+#
+# Sources: national statistics office / civil registry / open datasets.
+# DO NOT fabricate — cite the source in a top-level comment when authoring.
+
+family_names:
+  - {name: "__TODO_family_1__", weight: 100}
+  - {name: "__TODO_family_2__", weight: 80}
+  - {name: "__TODO_family_3__", weight: 60}
+
+given_names_male:
+  - {name: "__TODO_male_1__", weight: 100}
+  - {name: "__TODO_male_2__", weight: 80}
+
+given_names_female:
+  - {name: "__TODO_female_1__", weight: 100}
+  - {name: "__TODO_female_2__", weight: 80}
+
+# Optional: reading (phonetic / kana / romanization) for scripts that need it
+# Structure mirrors JP names.yaml `readings` block.
+readings: {}

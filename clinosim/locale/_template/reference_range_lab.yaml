@@ -1,0 +1,18 @@
+# Lab reference range template.
+#
+# Structure:
+#   ranges:
+#     <internal_lab_name>:
+#       - {sex: M|F|"", age_min: 0, age_max: 150, low: X, high: Y, unit: "..."}
+#       - ... more strata
+#
+# When a lab has no sex/age dependency use a single row with sex="".
+# Sources: national clinical society / hospital consensus (JCCLS for JP,
+# Tietz for US, etc.)
+
+ranges:
+  CRP:
+    - {sex: "", age_min: 0, age_max: 150, low: 0.0, high: 5.0, unit: "mg/L"}
+  WBC:
+    - {sex: "", age_min: 0, age_max: 150, low: 4000, high: 10000, unit: "/uL"}
+  # ... one entry per lab (see JP reference_range_lab.yaml for the full list)
