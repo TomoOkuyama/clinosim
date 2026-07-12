@@ -67,8 +67,13 @@ def test_health_checkup_subset_rate_approximately_30pct():
 
 
 @pytest.mark.unit
-def test_health_checkup_creates_encounter_and_document_for_selected_adult():
-    """40 歳以上かつサブセット内の患者に対して encounter + observations + document が追加される。"""
+def test_health_checkup_creates_new_record_for_selected_adult():
+    """40 歳以上かつサブセット内の患者に対して新規 CIFPatientRecord が追加される。
+
+    sub-PR-B(session 47):narrative pass は record.encounters[0] を見て
+    spec applicability を判定するため、健診 encounter は既存 record への
+    append ではなく新規 record として ctx.records に足す。
+    """
     from clinosim.modules.health_checkup.engine import (
         _patient_selected, enrich_health_checkup,
     )
@@ -81,27 +86,35 @@ def test_health_checkup_creates_encounter_and_document_for_selected_adult():
             selected_id = pid
             break
     assert selected_id is not None, "no subset-matching patient id in 100 samples"
-    record = _make_record(selected_id, age=45)
-    ctx = _make_ctx("JP", opt_in=True, records=[record])
+    existing_record = _make_record(selected_id, age=45)
+    records = [existing_record]
+    ctx = _make_ctx("JP", opt_in=True, records=records)
     enrich_health_checkup(ctx)
-    # 1 CHECKUP encounter が追加
-    assert len(record.encounters) == 1
-    enc = record.encounters[0]
+    # 既存 record は不変
+    assert existing_record.encounters == []
+    assert existing_record.documents == []
+    # 新規 CHECKUP record が append されている
+    assert len(records) == 2
+    checkup_record = records[1]
+    assert len(checkup_record.encounters) == 1
+    enc = checkup_record.encounters[0]
     assert enc.encounter_type == EncounterType.CHECKUP
     assert enc.department_id == "health_checkup"
     assert enc.chief_complaint == "定期健康診断"
     # 法定健診 5 項目が lab_results に追加
-    assert len(record.lab_results) == 5
-    loincs = {r.lab_name for r in record.lab_results}
+    assert len(checkup_record.lab_results) == 5
+    loincs = {r.lab_name for r in checkup_record.lab_results}
     assert loincs == {"39156-5", "8480-6", "8462-4", "4548-4", "18262-6"}
     # HEALTH_CHECKUP_REPORT stub が documents に追加
-    assert len(record.documents) == 1
-    doc = record.documents[0]
+    assert len(checkup_record.documents) == 1
+    doc = checkup_record.documents[0]
     assert doc.loinc_code == "53576-5"
     assert doc.task_type == "health_checkup_report"
     assert doc.encounter_id == enc.encounter_id
     assert doc.format_type == "composition"
     assert doc.narrative is None  # Stage 2 が populate する
+    # 新規 record の patient は既存 record と同一 patient(参照共有)
+    assert checkup_record.patient is existing_record.patient
 
 
 @pytest.mark.unit
@@ -117,11 +130,12 @@ def test_health_checkup_deterministic_across_runs():
             selected_id = pid
             break
     assert selected_id is not None
-    r1 = _make_record(selected_id, age=45)
-    ctx1 = _make_ctx("JP", opt_in=True, records=[r1])
+    records1 = [_make_record(selected_id, age=45)]
+    ctx1 = _make_ctx("JP", opt_in=True, records=records1)
     enrich_health_checkup(ctx1)
-    r2 = _make_record(selected_id, age=45)
-    ctx2 = _make_ctx("JP", opt_in=True, records=[r2])
+    records2 = [_make_record(selected_id, age=45)]
+    ctx2 = _make_ctx("JP", opt_in=True, records=records2)
     enrich_health_checkup(ctx2)
-    assert r1.encounters[0].encounter_id == r2.encounters[0].encounter_id
-    assert r1.documents[0].document_id == r2.documents[0].document_id
+    assert len(records1) == 2 and len(records2) == 2
+    assert records1[1].encounters[0].encounter_id == records2[1].encounters[0].encounter_id
+    assert records1[1].documents[0].document_id == records2[1].documents[0].document_id

@@ -117,9 +117,13 @@ Note: 健診 IG は JP-CLINS と別に発行されている(JP-eCheckup General 
 **対象範囲(scope)**:
 - 事業者健診(労安衛法定健診)のみに絞る MVP 実装。特定健診(01011/01012)や
   広域連合健診(01021/01022)は将来 sub-PR で追加可能。
-- section content は MVP では固定の定型健診項目判定文(BMI 標準・血圧基準内・
-  脂質/肝機能/血糖 基準内)。将来:実 ObservationRecord 参照で個別化する
-  PR3+1 で高度化予定。
+- section content は個別化済(sub-PR-B、session 47):
+  - **01031 検査結果**:record.lab_results から 5 項目(BMI / 収縮期 BP /
+    拡張期 BP / HbA1c / LDL)の実測値を拾い、法定健診基準で
+    A/B/C/D 判定を組み立てる。総合判定は各項目の最悪 grade。
+  - **01032 問診結果**:PatientProfile 参照で個別化(chronic_conditions
+    → 既往歴、current_medications → 服薬、smoking_status/alcohol_use →
+    生活習慣)。慢性疾患保有時は「継続経過観察を要す」判定。
 - **健診 encounter 生成 module**(sub-PR-A、session 47 で追加):
   `clinosim/modules/health_checkup/` の POST_RECORDS enricher が
   `SimulatorConfig.modules["health_checkup"]=True` + country=JP 時に発火。
