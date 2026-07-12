@@ -20,6 +20,22 @@ byte output but must document the change here.
 
 ### Added
 
+- **MkDocs documentation site** (P1-11): `mkdocs.yml` at repo root
+  configures a Material-themed site at
+  [tomookuyama.github.io/clinosim](https://tomookuyama.github.io/clinosim/)
+  organized into Home / Getting started / Concepts / Reference / Guides
+  / Development / Governance tabs. Existing `docs/` markdown and
+  transcluded root files (`README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`,
+  `MODULES.md`, `DESIGN.md`, ...) are referenced via
+  `mkdocs-include-markdown-plugin` so there is no duplication or drift.
+  Internal-only subtrees (`audit-cycles/`, `reviews/`, `design-notes/`,
+  `superpowers/`) are excluded from the published site; contributors
+  read them directly on GitHub. New `docs` optional dependency group in
+  `pyproject.toml` (`pip install -e ".[docs]"`) installs the build
+  toolchain. New `.github/workflows/docs.yml` builds on every PR and
+  deploys to `gh-pages` on master push. README documentation badge +
+  link added. GitHub Pages must be enabled manually once at
+  Settings → Pages → "Deploy from a branch: gh-pages / (root)".
 - **`clinosim eval` public evaluation framework** (P1-8): new package
   `clinosim/eval/` scoring any generated cohort on three axes
   (**structural** / **clinical** / **locale**). 15 checks total

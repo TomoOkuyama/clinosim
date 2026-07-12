@@ -71,7 +71,13 @@ parquet = [
     "pyarrow>=15.0",
     "pandas>=2.2",
 ]
-all = ["clinosim[dev,llm,parquet]"]
+docs = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "mkdocs-include-markdown-plugin>=6",
+    "pymdown-extensions>=10",
+]
+all = ["clinosim[dev,llm,parquet,docs]"]
 
 [project.scripts]
 clinosim = "clinosim.simulator.cli:main"
