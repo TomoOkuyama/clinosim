@@ -151,7 +151,15 @@ def load_expectations(path: str | Path) -> dict[str, Any]:
             )
         if not isinstance(sections, dict) or not sections:
             raise ValueError(f"{p.name}[{doc_key}]: must be a non-empty section mapping")
-        allowed_sections = set(spec.composition_sections) | {TEXT_SECTION_KEY}
+        # P2-13 PR2a (session 47): allow both US and JP-CLINS section keys
+        # so a single expectations file can carry per-country checks. The
+        # spec accessor returns the JP list when composition_sections_jp is
+        # populated; we union both to accept any valid section key.
+        allowed_sections = (
+            set(spec.composition_sections)
+            | set(spec.composition_sections_for("JP"))
+            | {TEXT_SECTION_KEY}
+        )
         for section_key, entry in sections.items():
             if section_key not in allowed_sections:
                 raise ValueError(
@@ -369,14 +377,33 @@ def _check_structure(
     """Axis 1 (per-document part): section key set + non-empty content."""
     sections = narrative.get("sections") or {}
     if spec.format_type == FormatType.COMPOSITION:
-        expected = set(spec.composition_sections)
+        # P2-13 PR2a (session 47): a doc may follow either the US
+        # composition_sections list or, when country=JP, the JP-CLINS
+        # composition_sections_jp list. Both are registry-valid — flag drift
+        # only when the actual set matches NEITHER country variant.
+        us_expected = set(spec.composition_sections)
+        jp_expected = set(spec.composition_sections_for("JP"))
         actual = set(sections)
-        missing, extra = expected - actual, actual - expected
-        if missing or extra:
+        if actual != us_expected and actual != jp_expected:
+            # Report drift against the closest variant so the message is useful.
+            us_delta = (
+                (us_expected - actual), (actual - us_expected),
+                "us",
+            )
+            jp_delta = (
+                (jp_expected - actual), (actual - jp_expected),
+                "jp",
+            )
+            closest = us_delta if (
+                len(us_delta[0]) + len(us_delta[1])
+                <= len(jp_delta[0]) + len(jp_delta[1])
+            ) else jp_delta
+            missing, extra, variant = closest
             report.findings.append(SemanticCheckFinding(
                 axis="structure", document_id=document_id,
                 message=(
-                    f"composition section keys drift from registry: "
+                    f"composition section keys drift from registry "
+                    f"(closest={variant}): "
                     f"missing={sorted(missing)}, extra={sorted(extra)}"
                 ),
             ))
@@ -492,8 +519,14 @@ def _check_expectations(
 ) -> int:
     """Axes 4+5: required/forbidden phrases + numeric facts. Returns mock skips."""
     skipped = 0
+    # P2-13 PR2a (session 47): union of US + JP LLM-enabled sections so the
+    # mock exemption fires regardless of which locale variant produced the
+    # section keys under check.
+    llm_enabled = (
+        set(spec.llm_enabled_sections) | set(spec.llm_enabled_sections_jp)
+    )
     for section_key, entry in doc_expectations.items():
-        if is_mock and section_key in spec.llm_enabled_sections:
+        if is_mock and section_key in llm_enabled:
             # Mock stub text is not clinical narrative — expectations on
             # LLM-replaced sections only make sense for real providers.
             skipped += 1

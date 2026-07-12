@@ -60,6 +60,12 @@ specs:
       - present_illness
     stage2_strategy: template_seed
     llm_enabled_sections: [hospital_course, discharge_instructions]
+    # β-JP-1 seam: JP-CLINS present_illness (360 現病歴) is the narrative-heavy
+    # section eligible for LLM replacement; the other 4 JP required sections
+    # (admission_reason / admission_details / admission_diagnoses /
+    # chief_complaint) are structured code+datetime data with little narrative
+    # variance and stay template-only.
+    llm_enabled_sections_jp: [present_illness]
 
   # === α-min-2 additions (Task 9 — NLM-verified LOINC codes from Task 8) ===
 

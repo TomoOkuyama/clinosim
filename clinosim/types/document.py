@@ -89,6 +89,16 @@ class DocumentTypeSpec:
     numeric codes) lives in the Composition builder.
     """
 
+    llm_enabled_sections_jp: tuple[str, ...] = field(default_factory=tuple)
+    """JP-CLINS-specific LLM-enabled sections (P2-13 PR2a, session 47).
+
+    Empty (default) = fall through to ``llm_enabled_sections``. Non-empty =
+    replaces ``llm_enabled_sections`` when country=JP. This lets a spec
+    author which JP-CLINS section keys are narrative-heavy enough to warrant
+    LLM replacement, independently of the US-locale llm_enabled_sections
+    list (which references US-only section names).
+    """
+
     def composition_sections_for(self, country: str) -> tuple[str, ...]:
         """Return the section list for a given country.
 
@@ -101,6 +111,16 @@ class DocumentTypeSpec:
         if country.upper() == "JP" and self.composition_sections_jp:
             return self.composition_sections_jp
         return self.composition_sections
+
+    def llm_enabled_sections_for(self, country: str) -> tuple[str, ...]:
+        """Return the LLM-enabled section list for a given country.
+
+        JP path uses ``llm_enabled_sections_jp`` if populated; US and the
+        default JP fallback use ``llm_enabled_sections``.
+        """
+        if country.upper() == "JP" and self.llm_enabled_sections_jp:
+            return self.llm_enabled_sections_jp
+        return self.llm_enabled_sections
 
 
 @dataclass
