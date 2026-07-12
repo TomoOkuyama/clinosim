@@ -354,12 +354,15 @@ def _minimal_jp_record() -> dict:
             "admission_datetime": "2026-01-15T09:00:00",
             "discharge_datetime": "2026-01-20T10:00:00",
         }],
-        "medications": [{
+        "orders": [{
+            "order_type": "medication",
+            "display_name": "アスピリン腸溶錠100mg",
             "medication_code": "1124402",
             "medication_system": "yj",
-            "display_name": "アスピリン腸溶錠100mg",
+            "ordered_datetime": "2026-01-15T10:00:00",
             "start_datetime": "2026-01-15T10:00:00",
             "encounter_id": "ENC-001",
+            "ordered_by": "PRAC-JP-001",
         }],
     }
 
@@ -383,12 +386,15 @@ def _minimal_us_record() -> dict:
             "admission_datetime": "2026-01-15T09:00:00",
             "discharge_datetime": "2026-01-20T10:00:00",
         }],
-        "medications": [{
+        "orders": [{
+            "order_type": "medication",
+            "display_name": "aspirin 100 MG oral tablet",
             "medication_code": "1191",
             "medication_system": "rxnorm",
-            "display_name": "aspirin 100 MG oral tablet",
+            "ordered_datetime": "2026-01-15T10:00:00",
             "start_datetime": "2026-01-15T10:00:00",
             "encounter_id": "ENC-101",
+            "ordered_by": "PRAC-US-001",
         }],
     }
 ```
@@ -637,22 +643,24 @@ Claude-Session: https://claude.ai/code/session_01QKWJC5cbLaBYfTywtrx92a"
 
 ---
 
-### Task 6: Completeness invariants gate for JP-CLINS profile emission
+### Task 6: Completeness invariants gate for JP-CLINS profile emission (in-process, canonical profile)
 
 **Files:**
 - Modify: `tests/unit/test_completeness_invariants.py`(JP-CLINS section 追加)
 
 **Interfaces:**
-- Consumes: Task 3 の bundle-level emission
+- Consumes: Task 3 の bundle-level emission、`run_forced` + `convert_cif_to_fhir` in-process pipeline、既存 canonical patient profile fixture library(AD-66、`tests/fixtures/patient_profiles/*.yaml`)
 - Produces: cohort 単位で「該当 resource が emit されている時、JP-CLINS profile URL が meta.profile[] に必ず含まれる」invariant guard
+
+**Design note (session 47 improvement)**: unit test は subprocess ではなく、in-process の `run_forced`(engine)+ `write_cif` + `convert_cif_to_fhir` を直接呼ぶ。既存の canonical patient profile fixture(AD-66)を再利用することで、`test_fhir_coverage.py` と同型の focused pattern に統一(subagent-driven-development skill の pre-flight review + user 明示 = OSS-quality 改善)。
 
 - [ ] **Step 1: Locate the completeness invariants file structure and identify insertion point**
 
 Run: `grep -n "^class\|^def\|@pytest.mark" tests/unit/test_completeness_invariants.py | head -30`
 
-Read: 既存 test class 群を確認、cohort fixture(country=JP p=100 seed=42)を再利用可能な形式にする。
+Read: 既存 test class 群を確認、末尾に新 test class を追加する insertion point を決める。
 
-- [ ] **Step 2: Write failing test — JP-CLINS emission gate**
+- [ ] **Step 2: Write failing test — JP-CLINS emission gate (in-process)**
 
 Add a new test class to `tests/unit/test_completeness_invariants.py`(末尾に追加):
 
@@ -668,69 +676,106 @@ class TestJpClinsProfileEmissionInvariants:
       - DiagnosticReport: only LAB category
       - Condition: JP_Condition_eCS always; JP_Condition_Infection_eCS when
         primary code is in ICD-10 A/B chapter
+
+    Uses the canonical patient profile fixture library (AD-66) via in-process
+    run_forced + convert_cif_to_fhir. No subprocess.
     """
 
-    def test_jp_cohort_meds_procedures_allergies_have_clins_profile(
-        self, small_jp_cohort_bundles
+    def test_jp_bacterial_pneumonia_cohort_has_clins_profiles(
+        self, jp_bacterial_pneumonia_resources
     ):
-        from clinosim.modules.output.fhir_r4_adapter import _JP_CLINS_PROFILES
+        from clinosim.modules.output.fhir_r4_adapter import (
+            _JP_CLINS_PROFILES, _is_lab_diagnostic_report, _is_lab_observation,
+        )
 
-        for bundle in small_jp_cohort_bundles:
-            for entry in bundle["entry"]:
-                r = entry["resource"]
-                rt = r["resourceType"]
-                if rt not in _JP_CLINS_PROFILES:
-                    continue
-                if rt == "Observation":
-                    from clinosim.modules.output.fhir_r4_adapter import (
-                        _is_lab_observation,
-                    )
-                    if not _is_lab_observation(r):
-                        continue
-                if rt == "DiagnosticReport":
-                    from clinosim.modules.output.fhir_r4_adapter import (
-                        _is_lab_diagnostic_report,
-                    )
-                    if not _is_lab_diagnostic_report(r):
-                        continue
-                profs = r.get("meta", {}).get("profile", [])
-                expected = _JP_CLINS_PROFILES[rt][0]
-                assert expected in profs, (
-                    f"{rt}/{r.get('id')} missing {expected}, got {profs}"
-                )
+        # At least one Condition + Observation.lab + DiagnosticReport.lab +
+        # MedicationRequest + Procedure should appear for a bacterial pneumonia
+        # inpatient cohort. AllergyIntolerance is sparse (pool may be empty at
+        # small profile counts; profile check is vacuously true if pool is empty).
+        expected_dense = {"Condition", "Observation", "DiagnosticReport",
+                          "MedicationRequest", "Procedure"}
+        seen_dense: set[str] = set()
+
+        for r in jp_bacterial_pneumonia_resources:
+            rt = r["resourceType"]
+            if rt not in _JP_CLINS_PROFILES:
+                continue
+            if rt == "Observation" and not _is_lab_observation(r):
+                continue
+            if rt == "DiagnosticReport" and not _is_lab_diagnostic_report(r):
+                continue
+            profs = r.get("meta", {}).get("profile", [])
+            expected = _JP_CLINS_PROFILES[rt][0]
+            assert expected in profs, (
+                f"{rt}/{r.get('id')} missing {expected}, got {profs}"
+            )
+            if rt in expected_dense:
+                seen_dense.add(rt)
+
+        missing = expected_dense - seen_dense
+        assert not missing, (
+            f"expected dense JP-CLINS resource types missing from cohort: {missing}"
+        )
 ```
 
-If `small_jp_cohort_bundles` fixture does not yet exist in `tests/unit/test_completeness_invariants.py`, add it as a session-scoped fixture:
+Add a session-scoped fixture near the top of the same file (or in a shared conftest if one exists at `tests/unit/conftest.py`):
 
 ```python
 @pytest.fixture(scope="session")
-def small_jp_cohort_bundles(tmp_path_factory):
-    """Small country=JP cohort (p=20 seed=42) — Bundle dicts.
+def jp_bacterial_pneumonia_resources(tmp_path_factory):
+    """AD-66 canonical patient profile → in-process CIF → FHIR → resource list.
 
-    Kept small (p=20) for unit-suite speed; the p=100/1000 verification runs
-    in the integration test in Task 7.
+    Uses the JP bacterial pneumonia canonical fixture (5 patients, deterministic
+    seed). Runs run_forced + write_cif + convert_cif_to_fhir in-process; no
+    subprocess. Session-scoped so a single simulation run serves all tests
+    in this class.
     """
-    import subprocess, json
-    outdir = tmp_path_factory.mktemp("jp-clins-cohort")
-    subprocess.run(
-        ["clinosim", "simulate",
-         "--country", "JP", "--population", "20", "--seed", "42",
-         "--format", "fhir_r4", "--output", str(outdir)],
-        check=True,
+    import json
+    from pathlib import Path
+
+    from clinosim.modules.output.cif_writer import write_cif
+    from clinosim.modules.output.fhir_r4_adapter import convert_cif_to_fhir
+    from clinosim.simulator.engine import run_forced
+    from clinosim.types.config import SimulatorConfig, load_patient_profile
+
+    profile_path = (
+        Path(__file__).resolve().parents[1]
+        / "fixtures" / "patient_profiles"
+        / "jp_inpatient_bacterial_pneumonia.yaml"
     )
-    bundles = []
-    for ndjson_path in sorted(outdir.glob("*.ndjson")):
+    profile = load_patient_profile(str(profile_path))
+    scenario = profile.to_forced_scenario()
+    config = SimulatorConfig(
+        random_seed=profile.random_seed,
+        country=profile.country,
+        hospital_scale=profile.hospital_scale,
+        catchment_population=profile.count,
+    )
+    dataset = run_forced(scenario, config)
+
+    outroot = tmp_path_factory.mktemp("jp-clins-invariant")
+    cif_dir = str(outroot / "cif")
+    fhir_dir = str(outroot / "fhir_r4")
+    write_cif(dataset, cif_dir)
+    convert_cif_to_fhir(cif_dir, fhir_dir, country=profile.country)
+
+    resources: list[dict] = []
+    for ndjson_path in sorted(Path(fhir_dir).glob("*.ndjson")):
         with open(ndjson_path) as f:
             for line in f:
-                resource = json.loads(line)
-                bundles.append({"entry": [{"resource": resource}]})
-    return bundles
+                line = line.strip()
+                if not line:
+                    continue
+                resources.append(json.loads(line))
+    return resources
 ```
 
 - [ ] **Step 3: Run test to verify pass**
 
 Run: `pytest tests/unit/test_completeness_invariants.py::TestJpClinsProfileEmissionInvariants -v`
-Expected: PASS(all 6 JP-CLINS resource types in p=20 JP cohort carry the expected profile URL)
+Expected: PASS(5 dense JP-CLINS resource types found and carry expected profile URL)
+
+If the fixture profile does not produce all 5 dense types (e.g., no lab DiagnosticReport in a 5-patient run), adjust the profile choice or expected-dense set — but do NOT silently loosen the assertion.
 
 - [ ] **Step 4: Commit**
 
@@ -755,7 +800,7 @@ Claude-Session: https://claude.ai/code/session_01QKWJC5cbLaBYfTywtrx92a"
 - Create: `tests/integration/test_jp_clins_pr1_end_to_end.py`
 
 **Interfaces:**
-- Consumes: Task 3 完成 pipeline、`clinosim simulate` CLI
+- Consumes: Task 3 完成 pipeline、`clinosim generate` CLI(既存 `tests/integration/_sr_helpers.py:run_generate` ヘルパー再利用)
 - Produces: production-scale profile emission rate 検証、reference integrity 検証
 
 - [ ] **Step 1: Write integration test**
@@ -765,52 +810,72 @@ Create `tests/integration/test_jp_clins_pr1_end_to_end.py`:
 ```python
 """Integration test — P2-13 PR1: JP-CLINS profile URL emission at cohort scale.
 
-Runs a small country=JP cohort (p=100 seed=42), verifies:
+Runs a small country=JP cohort (p=100 seed=42, snapshot end=2026-06-30),
+verifies:
 - 6 information items resource types carry JP-CLINS eCS profile URLs
 - Filters honored (lab-only for Observation/DiagnosticReport)
 - No profile URLs leak into country=US cohort
+- AllergyIntolerance may be sparse or absent at p=100 (single-digit %
+  prevalence in the general population); when the pool is empty, the
+  profile check is vacuously satisfied. All other five resource types
+  are expected to have non-empty pools.
 """
 
 from __future__ import annotations
 
 import json
-import subprocess
+from pathlib import Path
 
 import pytest
 
+from tests.integration._sr_helpers import run_generate
+
 
 _JP_CLINS_PROFILE_ROOT = "http://jpfhir.jp/fhir/clins/StructureDefinition/"
+_SNAPSHOT_END = "2026-06-30"
+
+
+def _load_resources(outdir: Path) -> dict[str, list[dict]]:
+    resources_by_type: dict[str, list[dict]] = {}
+    for ndjson_path in sorted(outdir.rglob("*.ndjson")):
+        with open(ndjson_path) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                r = json.loads(line)
+                rt = r.get("resourceType", "")
+                if not rt:
+                    continue
+                resources_by_type.setdefault(rt, []).append(r)
+    return resources_by_type
 
 
 @pytest.mark.integration
 def test_jp_p100_carries_clins_profiles_on_six_info(tmp_path):
     outdir = tmp_path / "jp"
-    subprocess.run(
-        ["clinosim", "simulate",
-         "--country", "JP", "--population", "100", "--seed", "42",
-         "--format", "fhir_r4", "--output", str(outdir)],
-        check=True,
-    )
-    resources_by_type: dict[str, list[dict]] = {}
-    for ndjson_path in sorted(outdir.glob("*.ndjson")):
-        with open(ndjson_path) as f:
-            for line in f:
-                r = json.loads(line)
-                rt = r["resourceType"]
-                resources_by_type.setdefault(rt, []).append(r)
+    run_generate("JP", 100, 42, outdir, end=_SNAPSHOT_END)
+    resources_by_type = _load_resources(outdir)
 
     from clinosim.modules.output.fhir_r4_adapter import (
         _JP_CLINS_PROFILES, _is_lab_observation, _is_lab_diagnostic_report,
     )
 
+    # Dense resource types — expected to have at least one instance at p=100.
+    dense_types = {"Condition", "Observation", "DiagnosticReport",
+                   "MedicationRequest", "Procedure"}
+    # AllergyIntolerance is sparse (single-digit % prevalence in the general
+    # population); the profile check is vacuous if the pool is empty.
     for rt in _JP_CLINS_PROFILES:
         pool = resources_by_type.get(rt, [])
         if rt == "Observation":
             pool = [r for r in pool if _is_lab_observation(r)]
         elif rt == "DiagnosticReport":
             pool = [r for r in pool if _is_lab_diagnostic_report(r)]
-        # p=100 cohort should produce non-empty pools for all six types.
-        assert pool, f"expected {rt} pool non-empty in p=100 JP cohort"
+        if rt in dense_types:
+            assert pool, (
+                f"expected dense JP-CLINS type {rt} non-empty at p=100 JP"
+            )
         for r in pool:
             profs = r.get("meta", {}).get("profile", [])
             expected = _JP_CLINS_PROFILES[rt][0]
@@ -822,15 +887,13 @@ def test_jp_p100_carries_clins_profiles_on_six_info(tmp_path):
 @pytest.mark.integration
 def test_us_p50_has_no_clins_profile(tmp_path):
     outdir = tmp_path / "us"
-    subprocess.run(
-        ["clinosim", "simulate",
-         "--country", "US", "--population", "50", "--seed", "42",
-         "--format", "fhir_r4", "--output", str(outdir)],
-        check=True,
-    )
-    for ndjson_path in sorted(outdir.glob("*.ndjson")):
+    run_generate("US", 50, 42, outdir, end=_SNAPSHOT_END)
+    for ndjson_path in sorted(outdir.rglob("*.ndjson")):
         with open(ndjson_path) as f:
             for line in f:
+                line = line.strip()
+                if not line:
+                    continue
                 r = json.loads(line)
                 profs = r.get("meta", {}).get("profile", [])
                 assert not any(p.startswith(_JP_CLINS_PROFILE_ROOT) for p in profs), (
