@@ -18,8 +18,18 @@ byte output but must document the change here.
 
 ## [Unreleased]
 
-_No unreleased changes yet — this section will list changes on top of
-v0.2.0 as they land._
+### Documentation
+
+- **README positioning** (P0-5): new "Why clinosim?" section up-front
+  with three concrete differentiators (physiology-driven coherence /
+  JP + US native / YAML-driven extension), a Synthea comparison table
+  (nine dimensions + "when to use which"), a sample FHIR Observation
+  showing a physiology-derived PT-INR for a warfarin-anticoagulated
+  patient, and placeholders for the demo GIF and architecture diagram
+  (tracked as good-first-issue backlog).
+- Table of Contents updated to include the new sections.
+- `README.ja.md` translation of the new sections is intentionally
+  deferred to a separate PR (scope discipline).
 
 ## [0.2.0] - 2026-07-12
 
