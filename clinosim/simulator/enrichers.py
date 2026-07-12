@@ -310,3 +310,32 @@ def register_builtin_enrichers() -> None:
             run=document_enricher,
         )
     )
+
+    # P2-13 PR3 sub-PR-A(session 47):JP-eCheckup 事業者健診 opt-in module。
+    # SimulatorConfig.modules["health_checkup"]=True かつ country=JP のときのみ発火。
+    # POST_RECORDS order=70 で、他 POST_RECORDS enricher(nursing 20 /
+    # immunization 30 / family_history 40 / code_status 50 / care_level 60)の
+    # あとに走らせる。40 歳以上のうち決定的 30% サブセットに対して
+    # CHECKUP encounter + 法定健診 5 項目 + HEALTH_CHECKUP_REPORT stub を追加。
+    from clinosim.modules.health_checkup import enrich_health_checkup
+
+    def _health_checkup_enabled(c: Any) -> bool:
+        # None-safe(care_level pattern):test_registry_helpers の
+        # run_stage(ctx.config=None)を通すため getattr fallback を使う。
+        country = getattr(c, "country", "") if c is not None else ""
+        if not is_jp(country):
+            return False
+        module_enabled = getattr(c, "module_enabled", None)
+        if module_enabled is None:
+            return False
+        return bool(module_enabled("health_checkup"))
+
+    register_enricher(
+        Enricher(
+            name="health_checkup",
+            stage=POST_RECORDS,
+            order=70,
+            enabled=_health_checkup_enabled,
+            run=enrich_health_checkup,
+        )
+    )

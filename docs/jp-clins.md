@@ -120,10 +120,14 @@ Note: 健診 IG は JP-CLINS と別に発行されている(JP-eCheckup General 
 - section content は MVP では固定の定型健診項目判定文(BMI 標準・血圧基準内・
   脂質/肝機能/血糖 基準内)。将来:実 ObservationRecord 参照で個別化する
   PR3+1 で高度化予定。
-- **健診 encounter 生成 module 自体は本 PR3 スコープ外**。
-  `SimulatorConfig.modules["health_checkup"]=True` は Composition 発行の
-  opt-in gate として先に infrastructure を用意している状態。健診 encounter
-  planner + observation generator は次 sub-PR で追加。
+- **健診 encounter 生成 module**(sub-PR-A、session 47 で追加):
+  `clinosim/modules/health_checkup/` の POST_RECORDS enricher が
+  `SimulatorConfig.modules["health_checkup"]=True` + country=JP 時に発火。
+  40 歳以上の成人患者から SHA-256 hash-based 決定的 30% サブセットを
+  選び、各患者に 1 CHECKUP encounter(1 日完結)+ 法定健診 5 項目
+  ObservationRecord + HEALTH_CHECKUP_REPORT stub を追加する。
+  narrative content は Stage 2 の TemplateNarrativePass が populate、
+  FHIR emit は `_build_jp_eCheckup_general_composition` が担う。
 
 **US path**:健診 opt-in flag は US では発火しない
 (`countries_supported: [jp]` により spec 側で JP に限定)。
