@@ -161,6 +161,7 @@ means in practice.
 - [Testing](#testing)
   - [Reproducibility](#reproducibility)
 - [Datasets](#datasets)
+- [Evaluation](#evaluation)
 - [Extension Guide](#extension-guide)
 - [Governance & Community](#governance--community)
 - [License](#license)
@@ -1067,6 +1068,30 @@ Starting with the **next release cycle**, the release workflow builds
 all four presets and attaches them as GitHub Release assets. The
 current v0.2.0 release ships the infrastructure only — use
 `clinosim dataset build` to reproduce locally.
+
+---
+
+## Evaluation
+
+`clinosim eval` scores any generated cohort against three axes —
+**structural** (FHIR compliance), **clinical** (physiological
+coherence), and **locale** (language + code-system compliance) — and
+emits a JSON + Markdown report. Distinct from
+[`clinosim audit run`](docs/CONTRIBUTING-modules.md) which is the
+internal per-Module PR gate; `eval` is the public-facing tool for
+researchers and ML engineers grading synthetic data before using it.
+
+```bash
+clinosim dataset build jp-100 --output ./jp-100
+clinosim eval -d ./jp-100                           # print Markdown to stdout
+clinosim eval -d ./jp-100 --json report.json        # machine-readable
+clinosim eval -d ./jp-100 --md report.md --strict   # exit 1 on any FAIL
+```
+
+Each axis holds five checks (MVP). Severity-weighted scoring:
+CRITICAL = 3, MAJOR = 2, MINOR = 1; PASS = 1.0, WARN = 0.5, FAIL / N/A
+= 0. Axis score = 100 × Σ pass-weight / Σ total-weight; overall score
+= mean of axis scores. Full reference: [`docs/eval.md`](docs/eval.md).
 
 ---
 

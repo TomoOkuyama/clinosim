@@ -347,6 +347,11 @@ def main() -> None:
 
     add_dataset_subparser(sub)
 
+    # === eval: public 3-axis evaluation framework ===
+    from clinosim.eval import add_eval_subparser
+
+    add_eval_subparser(sub)
+
     args = parser.parse_args()
 
     if args.command == "audit":
@@ -362,6 +367,13 @@ def main() -> None:
         from clinosim.dataset import dispatch_dataset
 
         sys.exit(dispatch_dataset(args))
+
+    if args.command == "eval":
+        import sys
+
+        from clinosim.eval import dispatch_eval
+
+        sys.exit(dispatch_eval(args))
 
     if args.command == "list-diseases":
         protocols = _load_all_disease_protocols()
