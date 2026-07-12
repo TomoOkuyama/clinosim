@@ -79,6 +79,29 @@ class DocumentTypeSpec:
     'emergency'). Populated by Task 9 for the 6 new encounter-scoped document types.
     """
 
+    composition_sections_jp: tuple[str, ...] = field(default_factory=tuple)
+    """JP-CLINS-conformant section list (P2-13 PR2a, session 47).
+
+    Empty tuple (default) = no JP override; JP output uses ``composition_sections``.
+    Non-empty = replaces ``composition_sections`` when country=JP. The section
+    keys here are still English snake_case identifiers consumed by narrative
+    renderers; the FHIR-side dispatch (jp-codeSystem-clins-document-section
+    numeric codes) lives in the Composition builder.
+    """
+
+    def composition_sections_for(self, country: str) -> tuple[str, ...]:
+        """Return the section list for a given country.
+
+        JP-CLINS v1.12.0 requires a different discharge-summary section
+        structure than the existing English 6-section list. When
+        ``composition_sections_jp`` is populated and ``country`` is JP, that
+        JP-specific list wins; otherwise the country-neutral
+        ``composition_sections`` is returned unchanged.
+        """
+        if country.upper() == "JP" and self.composition_sections_jp:
+            return self.composition_sections_jp
+        return self.composition_sections
+
 
 @dataclass
 class NarrativeContext:
