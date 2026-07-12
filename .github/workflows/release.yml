@@ -1,0 +1,130 @@
+# Release workflow — tag-triggered.
+#
+# Cutting a release:
+#   1. Bump `clinosim/__init__.py::__version__` (e.g. 0.2.0 → 0.3.0).
+#   2. Move `[Unreleased]` content in CHANGELOG.md under a new
+#      `## [X.Y.Z] - YYYY-MM-DD` heading.
+#   3. Commit + push to master.
+#   4. `git tag -a vX.Y.Z -m "clinosim vX.Y.Z"` and
+#      `git push origin vX.Y.Z`.
+#   5. This workflow fires on the tag push, builds sdist + wheel,
+#      validates them with `twine check`, and publishes a GitHub
+#      Release with the artifacts attached and the CHANGELOG entry
+#      as release notes.
+#
+# PyPI upload is INTENTIONALLY commented out. To enable:
+#   - Configure a `PYPI_API_TOKEN` repository secret (or set up PyPI
+#     trusted publishing and switch to the `pypi-publish` action),
+#   - Uncomment the "Publish to PyPI" step below.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+# Prevent two overlapping releases if a tag is force-pushed. In practice
+# tag force-pushes should be avoided; this is defensive.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Cut GitHub Release
+    runs-on: ubuntu-latest
+    permissions:
+      # Needed for `gh release create` and artifact uploads on the tag.
+      contents: write
+      # Uncomment when enabling PyPI trusted publishing (OIDC-based):
+      # id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history helps release-notes tooling walk CHANGELOG history
+          # and is cheap for a tag build.
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install build tooling
+        run: pip install build twine
+
+      - name: Verify tag matches package version
+        # Tag `vX.Y.Z` must match `clinosim.__version__` — otherwise the
+        # PyPI artifact and the GitHub Release describe different things.
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION=$(python -c "import clinosim; print(clinosim.__version__)")
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} (parsed as ${TAG_VERSION}) does not match clinosim.__version__=${PKG_VERSION}. Refusing to release."
+            exit 1
+          fi
+          echo "Tag/package versions agree: ${PKG_VERSION}"
+
+      - name: Build sdist + wheel
+        run: python -m build
+
+      - name: Verify PyPI-compatible metadata
+        run: twine check dist/*
+
+      - name: Extract release notes from CHANGELOG.md
+        id: notes
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          # Awk extracts the block between `## [VERSION]` and the next `## `
+          # heading. `index()` is used instead of regex `~` because
+          # `[X.Y.Z]` would otherwise be interpreted as a character class.
+          # Preserves blank lines and Markdown formatting.
+          awk -v v="[$VERSION]" '
+            index($0, "## " v) == 1 { flag=1; next }
+            flag && index($0, "## ") == 1 { exit }
+            flag { print }
+          ' CHANGELOG.md > release_notes.md
+          if [ ! -s release_notes.md ]; then
+            echo "::warning::No CHANGELOG entry found for version ${VERSION}; using tag message as fallback."
+            git tag -l --format='%(contents)' "${GITHUB_REF_NAME}" > release_notes.md
+          fi
+          echo "--- release_notes.md preview ---"
+          head -30 release_notes.md
+
+      - name: Create GitHub Release with artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "clinosim ${GITHUB_REF_NAME}" \
+            --notes-file release_notes.md \
+            dist/clinosim-*.tar.gz \
+            dist/clinosim-*.whl
+
+      # Enable when PyPI is configured. Two options:
+      #
+      # (a) API-token based (simpler, requires storing a long-lived token):
+      # - name: Publish to PyPI (token)
+      #   env:
+      #     TWINE_USERNAME: __token__
+      #     TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      #   run: twine upload --non-interactive dist/*
+      #
+      # (b) Trusted publishing / OIDC (recommended by PyPI, no secrets):
+      #   1. Add `id-token: write` to `permissions:` above.
+      #   2. Configure a "Trusted Publisher" for this repo + workflow at
+      #      https://pypi.org/manage/account/publishing/
+      #   3. Replace the step below.
+      # - name: Publish to PyPI (trusted publishing)
+      #   uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Upload build artifacts to the workflow run
+        # Even without a PyPI push, keep the artifacts attached to the run
+        # for 90 days so they can be inspected / re-downloaded from the
+        # Actions UI if the Release page misses something.
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ github.ref_name }}
+          path: dist/*
+          retention-days: 90

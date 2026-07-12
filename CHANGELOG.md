@@ -18,49 +18,8 @@ byte output but must document the change here.
 
 ## [Unreleased]
 
-### Added
-
-- **GitHub Actions CI** (`.github/workflows/ci.yml`) — runs on every push
-  to `master` and every PR. Hard gates: unit tests on Python 3.11 + 3.12,
-  integration tests on 3.12, and `python -m build` + `twine check`
-  packaging smoke. Informational (non-blocking) jobs: `ruff check` /
-  `ruff format --check`, `mypy clinosim/`. Concurrency cancels in-flight
-  runs on newer pushes to the same branch. Integration timeout set to
-  60 min after empirical measurement showed CI runners run integration
-  ~2.5x slower than the local baseline.
-- README CI status badge pointing at the workflow.
-- **Repository hygiene** (P0-3):
-  - `CONTRIBUTING.md` — entry point covering setup, workflow, DCO signoff,
-    and quality expectations. Links to
-    `docs/CONTRIBUTING-modules.md` for module-level how-to.
-  - `CODE_OF_CONDUCT.md` — Contributor Covenant 2.1
-    (contact: tomo.okuyama@gmail.com).
-  - `SECURITY.md` — GitHub Security Advisories as the disclosure
-    channel; 90-day coordinated-disclosure target.
-  - `CITATION.cff` — machine-readable citation metadata (CFF 1.2.0)
-    that GitHub renders as the "Cite this repository" button.
-  - `.github/ISSUE_TEMPLATE/{bug_report,feature_request}.yml` +
-    `config.yml` disabling blank issues and routing questions to
-    Discussions, security to Advisories, and module how-to to
-    `docs/CONTRIBUTING-modules.md`.
-  - `.github/PULL_REQUEST_TEMPLATE.md` — PR checklist with a mandatory
-    determinism-impact statement and DCO reminder.
-  - `.github/workflows/dco.yml` — hard-gate DCO check: every PR commit
-    must carry a `Signed-off-by:` trailer (see `CONTRIBUTING.md#dco`
-    for how to sign / retro-sign a branch).
-  - README `Governance & Community` section indexing all of the above.
-
-### Fixed
-
-- `Makefile` `lint` / `typecheck` / `format` targets pointed at a
-  nonexistent `src/` prefix and failed immediately; corrected to the
-  real `clinosim/` layout so the CI jobs (and local `make`) work.
-
-### Packaging
-
-- Add `types-PyYAML>=6.0` and `build>=1.0` to the `dev` extras so
-  `mypy clinosim/` gets its yaml stubs and CI can build sdist + wheel
-  without extra installs.
+_No unreleased changes yet — this section will list changes on top of
+v0.2.0 as they land._
 
 ## [0.2.0] - 2026-07-12
 
@@ -135,3 +94,49 @@ distribution work that makes it installable.
   technician / noise are per-order sub-RNGs, so a YAML edit cannot shift
   unrelated patients' cohorts.
 - Verified across seed=42/100/200/300/400 in session 45's 5-seed chain.
+
+### CI / Automation
+
+- **GitHub Actions CI** (`.github/workflows/ci.yml`) — runs on every
+  push to `master` and every PR. Hard gates: unit tests on Python 3.11
+  + 3.12, integration tests on 3.12, and `python -m build` +
+  `twine check` packaging smoke. Informational (non-blocking) jobs:
+  `ruff check` / `ruff format --check`, `mypy clinosim/`. Concurrency
+  cancels in-flight runs on newer pushes to the same branch.
+  Integration timeout set to 60 min after empirical measurement showed
+  CI runners run integration ~2.5x slower than the local baseline.
+- README CI status badge pointing at the workflow.
+- `Makefile` `lint` / `typecheck` / `format` targets pointed at a
+  nonexistent `src/` prefix and failed immediately; corrected to the
+  real `clinosim/` layout so the CI jobs (and local `make`) work.
+- Add `types-PyYAML>=6.0` and `build>=1.0` to the `dev` extras so
+  `mypy clinosim/` gets its yaml stubs and CI can build sdist + wheel
+  without extra installs.
+- **Release automation** (`.github/workflows/release.yml`) — tag push
+  (`v*.*.*`) triggers `python -m build` + `twine check` + GitHub
+  Release creation with wheel + sdist attached and release notes
+  extracted from `CHANGELOG.md`. PyPI upload step is present but
+  commented out until `PYPI_API_TOKEN` / trusted publishing is
+  configured on the repository.
+
+### Repository hygiene
+
+- `CONTRIBUTING.md` — entry point covering setup, workflow, DCO
+  signoff, and quality expectations. Links to
+  `docs/CONTRIBUTING-modules.md` for module-level how-to.
+- `CODE_OF_CONDUCT.md` — Contributor Covenant 2.1
+  (contact: tomo.okuyama@gmail.com).
+- `SECURITY.md` — GitHub Security Advisories as the disclosure
+  channel; 90-day coordinated-disclosure target.
+- `CITATION.cff` — machine-readable citation metadata (CFF 1.2.0)
+  that GitHub renders as the "Cite this repository" button.
+- `.github/ISSUE_TEMPLATE/{bug_report,feature_request}.yml` +
+  `config.yml` disabling blank issues and routing questions to
+  Discussions, security to Advisories, and module how-to to
+  `docs/CONTRIBUTING-modules.md`.
+- `.github/PULL_REQUEST_TEMPLATE.md` — PR checklist with a mandatory
+  determinism-impact statement and DCO reminder.
+- `.github/workflows/dco.yml` — hard-gate DCO check: every PR commit
+  must carry a `Signed-off-by:` trailer (see `CONTRIBUTING.md#dco`
+  for how to sign / retro-sign a branch).
+- README `Governance & Community` section indexing all of the above.
