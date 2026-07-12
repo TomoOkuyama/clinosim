@@ -158,6 +158,13 @@ class ClinicalDocument:
     # localized labels (日勤/準夜/深夜) are resolved at Stage 2 render time
     # by language (AD-30 spirit: no display text in structural CIF).
     shift: str = ""
+    # P2-13 PR3 sub-PR-D(session 47):JP-eCheckup 健診種別。
+    # HEALTH_CHECKUP_REPORT stub 以外は "" のまま。値:
+    #   "occupational"   → 事業者健診(section 01031/01032)
+    #   "specific"       → 特定健診(section 01011/01012)
+    #   "regional_union" → 広域連合健診(section 01021/01022)
+    # health_checkup enricher が患者年齢から決定的に選択する。
+    checkup_type: str = ""
     narrative: ClinicalDocumentNarrative | None = None
 
 

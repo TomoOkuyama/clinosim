@@ -115,8 +115,16 @@ Note: 健診 IG は JP-CLINS と別に発行されている(JP-eCheckup General 
 - `section.code.system` = `http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code`
 
 **対象範囲(scope)**:
-- 事業者健診(労安衛法定健診)のみに絞る MVP 実装。特定健診(01011/01012)や
-  広域連合健診(01021/01022)は将来 sub-PR で追加可能。
+- 3 健診種別すべて対応(sub-PR-D、session 47):
+  - **事業者健診**(occupational、40-64 歳):section 01031 + 01032
+  - **特定健診**(specific、65-74 歳):section 01011 + 01012
+  - **広域連合健診**(regional_union、75 歳以上):section 01021 + 01022
+
+  種別選定は `_pick_checkup_type(age)` による age-based 決定的マッピング。
+  MVP は年齢帯単一 dispatch(実務では 40-64 歳の保険加入者は特定健診対象
+  になる場合もあるが、simulation では単純化)。将来:保険種別/就業状態を
+  参照した精緻化余地あり。ClinicalDocument に `checkup_type: str` field を
+  追加(sub-PR-D)、Composition builder が dispatch。
 - section content は個別化済(sub-PR-B、session 47):
   - **01031 検査結果**:record.lab_results から 5 項目(BMI / 収縮期 BP /
     拡張期 BP / HbA1c / LDL)の実測値を拾い、法定健診基準で

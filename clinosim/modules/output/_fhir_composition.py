@@ -540,12 +540,26 @@ _JPFHIR_ECHECKUP_SECTION_SYSTEM = (
     "http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code"
 )
 
-# eCheckup General の section キー → jpfhir eCheckup 番号 code
-# 事業者健診(労安衛法定健診)の 2 必須 section のみ対象。
-_JP_ECHECKUP_SECTION_CODE: dict[str, str] = {
-    "checkup_lab_results":   "01031",  # 事業者健診検査結果セクション
-    "checkup_questionnaire": "01032",  # 事業者健診問診結果セクション
+# eCheckup General の section キー + 健診種別 → jpfhir eCheckup 番号 code(sub-PR-D)
+# checkup_type("occupational"/"specific"/"regional_union")と section key
+# (checkup_lab_results / checkup_questionnaire)の組で dispatch する。
+_JP_ECHECKUP_SECTION_CODE_MATRIX: dict[str, dict[str, str]] = {
+    "occupational": {
+        "checkup_lab_results":   "01031",  # 事業者健診検査結果セクション
+        "checkup_questionnaire": "01032",  # 事業者健診問診結果セクション
+    },
+    "specific": {
+        "checkup_lab_results":   "01011",  # 特定健診検査結果セクション
+        "checkup_questionnaire": "01012",  # 特定健診問診結果セクション
+    },
+    "regional_union": {
+        "checkup_lab_results":   "01021",  # 広域連合保健事業検査結果セクション
+        "checkup_questionnaire": "01022",  # 広域連合保健事業問診結果セクション
+    },
 }
+
+# 既存 test 互換 alias。checkup_type 未指定時は事業者健診として dispatch。
+_JP_ECHECKUP_SECTION_CODE: dict[str, str] = _JP_ECHECKUP_SECTION_CODE_MATRIX["occupational"]
 
 
 def _build_jp_eCheckup_general_composition(
@@ -581,8 +595,14 @@ def _build_jp_eCheckup_general_composition(
     comp["title"] = disp
 
     # section:2 個 flat(nesting なし)
+    # sub-PR-D:doc.checkup_type から健診種別を dispatch(未設定なら
+    # occupational 事業者健診にfallback)
+    checkup_type = _o(doc, "checkup_type", "") or "occupational"
+    section_code_map = _JP_ECHECKUP_SECTION_CODE_MATRIX.get(
+        checkup_type, _JP_ECHECKUP_SECTION_CODE_MATRIX["occupational"]
+    )
     section_entries: list[dict[str, Any]] = []
-    for key, code in _JP_ECHECKUP_SECTION_CODE.items():
+    for key, code in section_code_map.items():
         disp_c = (
             code_lookup("jpfhir-eCheckup-section", code, lang) or key
         )
