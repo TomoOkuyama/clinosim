@@ -361,6 +361,11 @@ def main() -> None:
 
     add_eval_subparser(sub)
 
+    # === benchmark: session 48 P2-15 prediction benchmark harness ===
+    from clinosim.benchmarks.cli import add_benchmark_subparser
+
+    add_benchmark_subparser(sub)
+
     args = parser.parse_args()
 
     if args.command == "audit":
@@ -383,6 +388,13 @@ def main() -> None:
         from clinosim.eval import dispatch_eval
 
         sys.exit(dispatch_eval(args))
+
+    if args.command == "benchmark":
+        import sys
+
+        from clinosim.benchmarks.cli import dispatch_benchmark
+
+        sys.exit(dispatch_benchmark(args))
 
     if args.command == "list-diseases":
         protocols = _load_all_disease_protocols()
