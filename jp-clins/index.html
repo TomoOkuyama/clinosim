@@ -1695,6 +1695,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="JP-eCheckup 健診結果報告書 Composition (PR3、opt-in)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentreference-wrappersub-pr-esession-48" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DocumentReference wrapper(sub-PR-E、session 48)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2009,6 +2026,23 @@
     LOINC 別に <code>_interp_for</code> で付与、"H" フラグは renderer の A/B/C/D 判定と整合</p>
 <p><strong>US path</strong>:健診 opt-in flag は US では発火しない
 (<code>countries_supported: [jp]</code> により spec 側で JP に限定)。</p>
+<h3 id="documentreference-wrappersub-pr-esession-48">DocumentReference wrapper(sub-PR-E、session 48)<a class="headerlink" href="#documentreference-wrappersub-pr-esession-48" title="Permanent link">&para;</a></h3>
+<p>HEALTH_CHECKUP_REPORT の Composition と併存する DocumentReference を追加発行:</p>
+<ul>
+<li><strong>対象</strong>:<code>ClinicalDocument.task_type == "health_checkup_report"</code> かつ
+  <code>format_type == "composition"</code>(discharge_summary / referral_note は emit しない)</li>
+<li><strong>id 命名</strong>:<code>drf-&lt;document_id&gt;</code>(Composition の id と衝突しない prefix)</li>
+<li><strong>参照</strong>:<code>relatesTo=[{code:"transforms", target: Composition/&lt;id&gt;}]</code></li>
+<li><strong>content</strong>:narrative.text(空なら sections 値 join)を base64 で添付</li>
+<li><strong>category</strong>:JP-eCheckup doc-typecodes <code>eCheckupGeneral</code>(健診結果報告書)</li>
+<li><strong>encounter context</strong>:<code>Encounter/CHK-&lt;pid&gt;-&lt;seq&gt;</code> に紐付け</li>
+<li><strong>custodian</strong>:<code>Organization/hospital-main</code></li>
+<li><strong>byte-diff invariant</strong>:JP かつ opt-in 有効時のみ emit、reproduce.sh の
+  default runs は影響なし(既に確認済み)</li>
+</ul>
+<p>実 EHR 交換シナリオ:Composition = 構造化(section で保持)、DocumentReference =
+portable な wrapper。事業所 ⇄ 保険者 ⇄ 実施機関 間の交換で DocumentReference
+を使うことが多いため、両者併存が JP-eCheckup interchange の標準形。</p>
 <h2 id="jp-fhir-validator-bridge-pr3-sub-pr-c-session-48">JP FHIR Validator Bridge (PR3 sub-PR-C, session 48 高度化)<a class="headerlink" href="#jp-fhir-validator-bridge-pr3-sub-pr-c-session-48" title="Permanent link">&para;</a></h2>
 <p>session 47 で <code>scripts/validate_jp.sh</code> と <code>.github/workflows/jp-validate.yml</code> を追加、session 48 で <strong>SHA256 pin + auto-fail gate 化</strong> に高度化しました。<strong>JP 出力を HL7 公式 FHIR Validator で JP Core / JP-CLINS / JP-eCheckup に適合検証</strong> し、pin mismatch や validation failure で CI が自動 fail します。</p>
 <h3 id="pin-session-48">Pin ファイル(session 48 追加)<a class="headerlink" href="#pin-session-48" title="Permanent link">&para;</a></h3>

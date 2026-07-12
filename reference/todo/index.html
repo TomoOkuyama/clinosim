@@ -1665,7 +1665,14 @@
 <h1 id="clinosim-todo">clinosim — TODO<a class="headerlink" href="#clinosim-todo" title="Permanent link">&para;</a></h1>
 <h2 id="status-2026-07-13-session-48-in-progress-bcdefg">Status (2026-07-13, <strong>★ session 48 IN-PROGRESS — bcdefg 順消化開始</strong>)<a class="headerlink" href="#status-2026-07-13-session-48-in-progress-bcdefg" title="Permanent link">&para;</a></h2>
 <p><strong>Session 48 開始状態(順序 d → e → f → g → b → c、d 完了)</strong>:</p>
-<h3 id="d-epr3-sub-pr-b-sub-pr-c-sha256-pin-auto-fail-gate">完了(d, e):PR3 sub-PR-B 個別化 + sub-PR-C SHA256 pin + auto-fail gate<a class="headerlink" href="#d-epr3-sub-pr-b-sub-pr-c-sha256-pin-auto-fail-gate" title="Permanent link">&para;</a></h3>
+<h3 id="d-e-fpr3-sub-pr-bce">完了(d, e, f):PR3 sub-PR-B/C/E<a class="headerlink" href="#d-e-fpr3-sub-pr-bce" title="Permanent link">&para;</a></h3>
+<p><strong>(f) sub-PR-E</strong>:
+- <code>_fhir_document_reference_checkup.py</code> 新設(HEALTH_CHECKUP_REPORT の Composition wrapper)
+- <code>_BUNDLE_BUILDERS</code> に <code>_bb_document_references_checkup</code> 登録
+- <code>relatesTo transforms → Composition</code>、JP-eCheckup doc-typecodes category、encounter context 完備
+- byte-diff invariant 保持(opt-in 無効時 empty list、reproduce.sh PASS)
+- 単体 test 9 個(country gate / task_type gate / format_type gate / narrative fallback / registry)</p>
+<p><strong>(d, e) 完了内容</strong>(上へ):</p>
 <p><strong>(e) sub-PR-C 高度化</strong>:
 - <code>.github/jp-validator-pins.env</code> 新設(validator + JP Core / CLINS / eCheckup pin)
 - <code>scripts/pin_jp_validator.sh</code> 新設(SHA256 bootstrap、in-place 書き換え)
