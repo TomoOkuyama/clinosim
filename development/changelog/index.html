@@ -1071,6 +1071,8 @@
       
         
       
+        
+      
     
     
     
@@ -1161,6 +1163,34 @@
     
   
     Clinical documents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../fhir-server-ingestion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Load into a FHIR server
   
 
     
@@ -1590,6 +1620,18 @@ byte output but must document the change here.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
+<li><strong>FHIR server ingestion guide</strong> (P1-12):
+  <a href="../../fhir-server-ingestion/"><code>docs/fhir-server-ingestion.md</code></a>
+  walks through loading a generated cohort into a FHIR R4 server via
+  the Bulk Data Access <code>$import</code> operation, using HAPI FHIR (Docker)
+  as the concrete OSS example and listing InterSystems IRIS for Health,
+  Microsoft FHIR Server, and Google Cloud Healthcare API as
+  vendor-neutral alternatives. Covers per-file POST for small cohorts,
+  <code>$import</code> for larger ones, dependency-ordered loading to avoid
+  reference-integrity errors, JP Core profile validation notes, and a
+  round-trip determinism check. Wired into the docs site nav under
+  Guides. Vendor-neutral by design: no code path depends on any
+  specific FHIR server product.</li>
 <li><strong>MkDocs documentation site</strong> (P1-11): <code>mkdocs.yml</code> at repo root
   configures a Material-themed site at
   <a href="https://tomookuyama.github.io/clinosim/">tomookuyama.github.io/clinosim</a>
