@@ -837,6 +837,62 @@ def _apply_jp_core_profile(resource: dict) -> None:
         profs.append(profile)
 
 
+# JP-CLINS eCS profiles (電子カルテ情報共有サービス).
+# Applied additively on top of JP Core profiles for country=JP.
+# URLs verified against jpfhir.jp/fhir/clins/igv1/artifacts.html (v1.12.0,
+# 2026-02-16) on 2026-07-12. Canonical URLs use /fhir/eCS/ path.
+#
+# JP-CLINS v1.12.0 publishes 5 profiles covering the "6 information items"
+# domain: 傷病名 + 感染症 share JP_Condition_eCS; DiagnosticReport is not in
+# JP-CLINS scope (lab results emitted only as Observation.LabResult).
+_JP_CLINS_PROFILES: dict[str, list[str]] = {
+    "Condition": [
+        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Condition_eCS",
+    ],
+    "AllergyIntolerance": [
+        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_AllergyIntolerance_eCS",
+    ],
+    "Observation": [
+        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Observation_LabResult_eCS",
+    ],
+    "MedicationRequest": [
+        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS",
+    ],
+    "Procedure": [
+        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Procedure_eCS",
+    ],
+}
+
+
+def _apply_jp_clins_profile(resource: dict) -> None:
+    """Attach JP-CLINS eCS profile URLs additively (idempotent).
+
+    Called after `_apply_jp_core_profile`. Preserves existing meta.profile[]
+    entries and skips URLs already present. Filter: for Observation, only
+    laboratory category resources receive the JP-CLINS profile (vital signs
+    stay on the JP Core profile only).
+    """
+    rt = resource.get("resourceType", "")
+    profiles = _JP_CLINS_PROFILES.get(rt)
+    if not profiles:
+        return
+    if rt == "Observation" and not _is_lab_observation(resource):
+        return
+    meta = resource.setdefault("meta", {})
+    profs = meta.setdefault("profile", [])
+    for url in profiles:
+        if url not in profs:
+            profs.append(url)
+
+
+def _is_lab_observation(resource: dict) -> bool:
+    for cat in resource.get("category", []) or []:
+        for coding in cat.get("coding", []) or []:
+            if coding.get("code") == "laboratory":
+                return True
+    return False
+
+
 # ============================================================
 # Resource builders
 # ============================================================
