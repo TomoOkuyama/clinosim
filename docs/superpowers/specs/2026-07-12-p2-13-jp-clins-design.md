@@ -19,13 +19,13 @@ clinosim の JP FHIR 出力を、**厚労省「電子カルテ情報共有サー
 
 ### 1.2 In-scope
 
-- **6 情報**(既存 resource type に JP-CLINS profile URL 追加 emit):
-  1. 傷病名 → Condition
-  2. アレルギー → AllergyIntolerance
-  3. 感染症 → Condition(category = infection)
-  4. 検査 → Observation + DiagnosticReport(category = laboratory)
-  5. 処方 → MedicationRequest
-  6. 処置 → Procedure
+- **6 情報**(既存 resource type に JP-CLINS profile URL 追加 emit — v1.12.0 一次照会 2026-07-12):
+  1. 傷病名 → Condition(`JP_Condition_eCS`)
+  2. アレルギー → AllergyIntolerance(`JP_AllergyIntolerance_eCS`)
+  3. 感染症 → Condition(**JP-CLINS は感染症用の別 profile を publish していない**、同 `JP_Condition_eCS` でカバー。infection マーキングが必要な場合は既存の code system で ICD-10 A/B chapter 判別のみ、profile 分岐はしない)
+  4. 検査 → Observation(`JP_Observation_LabResult_eCS`、category=laboratory)。**JP-CLINS は DiagnosticReport profile を publish していない** — 検査結果は Observation のみで emit(clinosim の DiagnosticReport 出力は JP Core `JP_DiagnosticReport_Common` のまま、JP-CLINS profile は付与しない)
+  5. 処方 → MedicationRequest(`JP_MedicationRequest_eCS`)
+  6. 処置 → Procedure(`JP_Procedure_eCS`)
 - **2 文書 Composition(default on、country=JP)**:
   1. 退院時サマリー(LOINC 18842-5)— 既存 discharge summary narrative asset 活用
   2. 診療情報提供書(LOINC 57133-1)— 新規 template、fraction 発行
@@ -135,40 +135,44 @@ NDJSON per resource type(Composition.ndjson に merge)
 3. Observation.effective[x] 必須(lab)
 4. Procedure.performedDateTime 必須
 5. MedicationRequest.dosageInstruction 必須(dosage instruction 詳細)
-6. DiagnosticReport.category に laboratory coding 存在
 
-**未確定 → PR1 実装前に確定**:
-- JP-CLINS eCS profile URL の正確な canonical form(v2025.4)
-- 感染症判別基準(ICD-10 A/B chapter 全域 vs SNOMED infection category、v0.3 は ICD-10 A/B chapter 判定を採用)
+**確定済**(session 47 一次照会 2026-07-12):
+- URL canonical form: `http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_<Type>_eCS`(underscore、`/fhir/eCS/` path)、jpfhir.jp v1.12.0(2026-02-16)
+- 感染症別 profile / DiagnosticReport 別 profile は JP-CLINS v1.12.0 で publish されていないため、それぞれ scope から削除(§1.2 参照)
 
-### 3.1.1 `_JP_CLINS_PROFILES` 定義(URL 一次照会後確定)
+### 3.1.1 `_JP_CLINS_PROFILES` 定義(URL 一次照会確定、jpfhir.jp v1.12.0 2026-02-16)
 
 ```python
+# JP-CLINS eCS profile URLs — verified against jpfhir.jp igv1 artifacts.html
+# on 2026-07-12. Canonical URLs use /fhir/eCS/ path, NOT /fhir/clins/. See
+# https://jpfhir.jp/fhir/clins/igv1/artifacts.html
+#
+# JP-CLINS v1.12.0 publishes 5 profiles covering the "6 information items"
+# domain concept — 傷病名 and 感染症 share the same JP_Condition_eCS profile,
+# and DiagnosticReport is NOT published (lab results are emitted only as
+# Observation.LabResult in JP-CLINS).
 _JP_CLINS_PROFILES: dict[str, list[str]] = {
     "Condition": [
-        "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_Condition_eCS",
+        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Condition_eCS",
     ],
     "AllergyIntolerance": [
-        "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_AllergyIntolerance_eCS",
+        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_AllergyIntolerance_eCS",
     ],
     "Observation": [
         # laboratory category のみ
-        "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_Observation_LabResult_eCS",
-    ],
-    "DiagnosticReport": [
-        "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_DiagnosticReport_LabResult_eCS",
+        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Observation_LabResult_eCS",
     ],
     "MedicationRequest": [
-        "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_MedicationRequest_eCS",
+        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS",
     ],
     "Procedure": [
-        "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_Procedure_eCS",
+        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Procedure_eCS",
     ],
 }
-# 感染症の Condition には + "JP_Condition_Infection_eCS" を追加
+# NOTE: DiagnosticReport は JP-CLINS profile 未 publish → 既存 JP Core
+# JP_DiagnosticReport_Common のまま(_JP_CORE_PROFILES に既存)。
+# NOTE: 感染症も別 profile 未 publish → JP_Condition_eCS で共通カバー。
 ```
-
-canonical URL は spec 実装前に jpfhir.jp v2025.4 から fetch し、この spec と `docs/jp-clins.md` に一次 URL リンク付きで記録。
 
 ### 3.2 PR2: 2 文書 Composition builder(退院サマリー + 診療情報提供書)
 
