@@ -1,4 +1,4 @@
-"""P2-13 PR2a Task 4: JP-CLINS discharge summary Composition unit tests."""
+"""P2-13 PR2a Task 4:JP-CLINS 退院時サマリー Composition unit tests(JP-only)."""
 
 from __future__ import annotations
 

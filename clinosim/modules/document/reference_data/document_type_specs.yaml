@@ -49,9 +49,9 @@ specs:
       - discharge_medications
       - discharge_instructions
       - follow_up
-    # JP-CLINS v1.12.0 required 5-section structure nested under structural (300).
-    # Consumed by DocumentTypeSpec.composition_sections_for("JP") — Composition
-    # builder maps these section keys to numeric section codes 312/322/342/352/360.
+    # JP-CLINS v1.12.0 準拠の必須 5 セクション(300 構造情報の下に nest)
+    # DocumentTypeSpec.composition_sections_for("JP") が読取り、Composition
+    # builder が section キーを番号 code(312/322/342/352/360)に変換する。
     composition_sections_jp:
       - admission_reason
       - admission_details
@@ -60,11 +60,11 @@ specs:
       - present_illness
     stage2_strategy: template_seed
     llm_enabled_sections: [hospital_course, discharge_instructions]
-    # β-JP-1 seam: JP-CLINS present_illness (360 現病歴) is the narrative-heavy
-    # section eligible for LLM replacement; the other 4 JP required sections
+    # β-JP-1 seam:JP-CLINS の 5 section 中、現病歴(present_illness / 360)
+    # のみ narrative 量が大きく LLM 差替の意義がある。他 4 section
     # (admission_reason / admission_details / admission_diagnoses /
-    # chief_complaint) are structured code+datetime data with little narrative
-    # variance and stay template-only.
+    # chief_complaint)は code + datetime + 定型文で narrative variance が
+    # 少ないため template のみで運用する。
     llm_enabled_sections_jp: [present_illness]
 
   # === α-min-2 additions (Task 9 — NLM-verified LOINC codes from Task 8) ===
@@ -243,16 +243,17 @@ specs:
     stage2_strategy: template_only
     llm_enabled_sections: []
 
-  # === P2-13 PR2b (session 47) JP-CLINS 診療情報提供書 (Referral note) ===
-  # LOINC 57133-1 verified via jpfhir.jp v1.12.0 (2026-02-16). JP-CLINS
-  # eReferral profile (JP_Composition_eReferral) required section structure:
+  # === P2-13 PR2b(session 47)JP-CLINS 診療情報提供書(JP-only)===
+  # LOINC 57133-1 を jpfhir.jp v1.12.0(2026-02-16)で照合済。JP-CLINS
+  # eReferral profile(JP_Composition_eReferral)の必須 section 構造:
   #   920 紹介元 / 910 紹介先 / 300 構造情報
   #     └ 950 紹介目的 / 340 傷病名・主訴 / 360 現病歴
-  # US path is not supported (referral note is a JP-specific document type
-  # for 医療機関間情報連携; US clinical practice uses ordinary letters).
-  # generation_frequency=discharge_fraction_20pct: emitted for ~20% of
-  # inpatient discharges (empirical benchmark for acute-care hospitals),
-  # controlled by a per-record deterministic RNG (jp_clins_referral seed).
+  # US path は非対応(診療情報提供書は医療機関間情報連携用の JP 特有
+  # 文書種別。US では通常の紹介状で運用される)。
+  # generation_frequency=discharge_fraction_20pct:急性期病院の実務比率
+  # に合わせ inpatient 退院の約 20% を発行対象とする。発行判定は
+  # (encounter_id, patient_id) の SHA-256 hash による決定的サブセット
+  # 選択(新規 RNG allocation 不要)。
   referral_note:
     loinc_code: "57133-1"
     format_type: composition
