@@ -1663,6 +1663,112 @@
 
 <h1 id="roadmap">Roadmap<a class="headerlink" href="#roadmap" title="Permanent link">&para;</a></h1>
 <h1 id="clinosim-todo">clinosim — TODO<a class="headerlink" href="#clinosim-todo" title="Permanent link">&para;</a></h1>
+<h2 id="status-2026-07-13-session-47-closed-p2-13-v03-flagship-28-commits-push">Status (2026-07-13, <strong>★★★ session 47 CLOSED — P2-13 v0.3 flagship 完成、28 commits push 済</strong>)<a class="headerlink" href="#status-2026-07-13-session-47-closed-p2-13-v03-flagship-28-commits-push" title="Permanent link">&para;</a></h2>
+<p>Session 47 は session 46 の OSS diffusion plan 後の flagship task = <strong>P2-13 JP-CLINS + JP-eCheckup 対応</strong>を完遂。全 28 commits を master direct push(feedback-clinosim-workflow の "直接 master 方式" per)、PR 不要。</p>
+<p><strong>master HEAD</strong>: <code>a9b9efbab1</code> (P2-13 PR3 sub-PR-D age-based type dispatch)</p>
+<h3 id="session-47">Session 47 主要達成<a class="headerlink" href="#session-47" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>chain</th>
+<th>commits</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Design</td>
+<td>3</td>
+<td>design spec + PR1 plan + preflight</td>
+</tr>
+<tr>
+<td>PR1</td>
+<td>6</td>
+<td>JP-CLINS eCS 5 profile URLs(Condition/AllergyIntolerance/Observation.lab/MedicationRequest/Procedure)</td>
+</tr>
+<tr>
+<td>PR2 split + PR2a</td>
+<td>8</td>
+<td>退院時サマリー Full JP-CLINS 準拠 + <strong>多locale bug fix</strong></td>
+</tr>
+<tr>
+<td>PR2b</td>
+<td>1</td>
+<td>診療情報提供書 Full JP-CLINS 準拠(20% fraction 発行、hash 決定的)</td>
+</tr>
+<tr>
+<td>Comment lang rule</td>
+<td>2</td>
+<td>JP-only 日本語コメントルール制定 + CLAUDE.md</td>
+</tr>
+<tr>
+<td>PR3 infra</td>
+<td>1</td>
+<td>JP-eCheckup Composition infrastructure(opt-in、JPGCHKUP01→53576-5 修正)</td>
+</tr>
+<tr>
+<td>sub-PR-A</td>
+<td>1</td>
+<td>health_checkup enricher module(POST_RECORDS、age 40+ 決定的 30%)</td>
+</tr>
+<tr>
+<td>sub-PR-B</td>
+<td>1</td>
+<td>renderer 個別化(実 lab_results + PatientProfile 参照、A/B/C/D 判定)</td>
+</tr>
+<tr>
+<td>sub-PR-C</td>
+<td>1</td>
+<td>HL7 FHIR Validator bridge(script + workflow_dispatch CI)</td>
+</tr>
+<tr>
+<td>sub-PR-D</td>
+<td>1</td>
+<td>3 種別 age-based dispatch(事業者/特定/広域連合)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>P2-13 v0.3 flagship 完成状態</strong>:
+- JP-CLINS <strong>3 文書</strong>(退院サマリー + 診療情報提供書 + [opt-in]健診結果報告書)
+- JP-CLINS <strong>6 情報</strong>(5 resource types full profile URL 準拠)
+- JP-eCheckup <strong>3 種別</strong>(事業者/特定/広域連合 age-based)
+- HL7 official validator bridge(CI 手動 trigger)</p>
+<h3 id="locale-bug-3">発見+修正した多locale bug 3 件<a class="headerlink" href="#locale-bug-3" title="Permanent link">&para;</a></h3>
+<ol>
+<li><code>_build_reference_range</code> の JP Core extension URL が US Observation にリーク → country_code gate 追加(commit <code>1107536202</code>)</li>
+<li><code>apply_replacement_strategy</code> の <code>llm_enabled_sections</code> が US-only、JP output で ghost sections → country-aware accessor 追加(commit <code>297c78b591</code>)</li>
+<li><code>_check_expectations</code> / <code>_check_structure</code> が US-only section list で判定 → JP variant union で修正(commit <code>297c78b591</code>)</li>
+</ol>
+<h3 id="test-state-at-wrap">Test state at wrap<a class="headerlink" href="#test-state-at-wrap" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Unit: 2578 PASS</strong>(session 46 wrap 2487 + PR1 17 + PR2a 34 + PR2b 7 + PR3 9 + sub-PR-A 5 + sub-PR-B 6 + sub-PR-D 13)、regression 0</li>
+<li><code>bash scripts/reproduce.sh</code>: PASS(US 272 + JP 192 files byte-identical、2 locale × 2 runs)</li>
+<li>Integration + e2e: <strong>session 末 batch</strong>(memory <code>feedback-batch-long-running-ci-at-session-end</code> per、wrap commit 直後起動)</li>
+</ul>
+<h3 id="session-47-empirical">Session 47 直後の empirical 検証<a class="headerlink" href="#session-47-empirical" title="Permanent link">&para;</a></h3>
+<p><strong>p=500 seed=42 JP end=2026-06-30 health_checkup opt-in</strong>:
+- 事業者健診: 29 encounters(中年層)
+- 特定健診: 30 encounters(65-74 歳層)
+- 広域連合健診: 24 encounters(75+)</p>
+<p><strong>p=100 seed=42 JP end=2026-06-30</strong>(sub-PR-B の e2e):
+- Composition <code>comp-CHK-POP-000013-001-01</code>:
+  - 01031 事業者健診検査結果:「BMI 22.5 標準 / 118/76 mmHg 基準内 / HbA1c 5.4% 基準内 / LDL 118 mg/dL 基準内 / 総合判定 A(異常なし)」
+  - 01032 事業者健診問診結果:「既往歴 = 脂質異常症（E78）/ 服薬 Atorvastatin 10mg / 現在喫煙中 / 継続経過観察を要す」</p>
+<h3 id="session-48">Session 48 候補<a class="headerlink" href="#session-48" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>PR3 sub-PR-B 高度化</strong>:実 ObservationRecord をさらに Age/BMI 個別化(現状の固定値 22.5/118/76/5.4/118 は決定的 replay 用)</li>
+<li><strong>PR3 sub-PR-C 高度化</strong>:jpfhir IG package <code>.tgz</code> の SHA256 pinning + CI auto-fail gate 化</li>
+<li><strong>PR3 sub-PR-E 候補</strong>:健診 encounter Composition 以外の周辺 FHIR resource(Coverage-Insurance/DocumentReference-eCheckup 等)</li>
+<li><strong>P2-14 "Add your country" ガイド</strong>:国パック scaffold(session 46 backlog、v0.3 一区切り後の展開)</li>
+<li><strong>P2-15 Benchmark</strong>:sepsis / AKI 予測タスク定義 + baseline eval script(v0.3 一区切り後)</li>
+<li><strong>Deferred cleanup</strong>(3 件、<code>docs/jp-clins.md</code> にも記載):</li>
+<li>CIF <code>orders</code> list 分離(<code>medication_orders</code> / <code>lab_orders</code> field 化)</li>
+<li>CLI <code>generate</code> → <code>simulate</code> rename(deprecation alias 経由)</li>
+<li><code>_JP_CORE_PROFILES: dict[str, str]</code> → <code>dict[str, list[str]]</code> unification(JP-CLINS と shape 統一)</li>
+<li><strong>Cycle 8 監査</strong>:2578 unit 通過後の JP p=10000 監査再開(memory <code>feedback_audit_cycle_workflow</code> per、by-design registry 参照必須)</li>
+<li><strong>β-JP-1 実 LLM narrative</strong>:現状 template-based、Ollama / Bedrock 実行 seam は sub-PR-B で LLM 差替可能な形にした</li>
+</ul>
+<hr />
 <h2 id="status-2026-07-12-session-46-closed-oss-diffusion-plan-p0p1-12-major-prs">Status (2026-07-12, <strong>session 46 CLOSED — OSS diffusion plan P0/P1 全 12 major PRs</strong>)<a class="headerlink" href="#status-2026-07-12-session-46-closed-oss-diffusion-plan-p0p1-12-major-prs" title="Permanent link">&para;</a></h2>
 <p>Session 46 pivoted from EHR data quality (chain #1: silent-code-substitution
 17 fix / chain #2: JP Core meta.profile 100% emission on 16 resources) to
@@ -1689,7 +1795,7 @@ P1 (7 items) of the diffusion plan landed in one session as 12 focused PRs.</p>
 <li><code>27fe046b11</code> — <strong>P1-9</strong> Clinical contradiction checks (8 pairings + warfarin PT-INR band) + <code>docs/eval-rules.md</code>.</li>
 <li><code>eff40dfb43</code> — <strong>P1-10</strong> Synthea comparison adapter (<code>clinosim eval</code> auto-detects Synthea Bundles) + <code>docs/synthea-comparison.md</code>.</li>
 </ol>
-<h3 id="test-state-at-wrap">Test state at wrap<a class="headerlink" href="#test-state-at-wrap" title="Permanent link">&para;</a></h3>
+<h3 id="test-state-at-wrap_1">Test state at wrap<a class="headerlink" href="#test-state-at-wrap_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Unit: <strong>2487 PASS</strong>, zero regressions across 12 PRs.</li>
 <li><code>bash scripts/reproduce.sh</code>: PASS (US + JP byte-identical).</li>
