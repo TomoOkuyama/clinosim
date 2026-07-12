@@ -1665,7 +1665,23 @@
 <h1 id="clinosim-todo">clinosim — TODO<a class="headerlink" href="#clinosim-todo" title="Permanent link">&para;</a></h1>
 <h2 id="status-2026-07-13-session-48-in-progress-bcdefg">Status (2026-07-13, <strong>★ session 48 IN-PROGRESS — bcdefg 順消化開始</strong>)<a class="headerlink" href="#status-2026-07-13-session-48-in-progress-bcdefg" title="Permanent link">&para;</a></h2>
 <p><strong>Session 48 開始状態(順序 d → e → f → g → b → c、d 完了)</strong>:</p>
-<h3 id="d-e-fpr3-sub-pr-bce">完了(d, e, f):PR3 sub-PR-B/C/E<a class="headerlink" href="#d-e-fpr3-sub-pr-bce" title="Permanent link">&para;</a></h3>
+<h3 id="d-e-f-gpr3-sub-pr-bce-deferred-cleanup-3">完了(d, e, f, g):PR3 sub-PR-B/C/E + Deferred cleanup 3 件<a class="headerlink" href="#d-e-f-gpr3-sub-pr-bce-deferred-cleanup-3" title="Permanent link">&para;</a></h3>
+<p><strong>(g) Deferred cleanup 3 件</strong>:
+- <strong>g.1</strong> <code>_JP_CORE_PROFILES</code> shape unify:<code>dict[str, str]</code> → <code>dict[str, list[str]]</code>、<code>_apply_jp_core_profile</code> を list-対応に更新(将来 JP Core が同一 resource で複数 sibling profile を publish しても既存 accessor で吸収可能)
+- <strong>g.2</strong> CLI <code>generate</code> → <code>simulate</code> rename:
+  - <code>simulate</code> を canonical、<code>aliases=["generate"]</code> で後方互換
+  - <code>generate</code> 使用時 stderr に <code>DeprecationWarning</code> 出力(将来削除予告)
+  - README.md / README.ja.md / docs/getting-started/quick-start.md を <code>simulate</code> に更新
+  - 単体 test 5 個(simulate/generate 両方起動 / warning 出力 / help に両方表示)
+- <strong>g.3</strong> CIF <code>orders</code> 分離(互換保持型):
+  - <code>CIFPatientRecord</code> に <code>.medication_orders</code> / <code>.lab_orders</code> / <code>.imaging_orders</code> property view を追加(read-only filtered view)
+  - <code>orders</code> は mixed 単一 source of truth のまま(30+ callers の破壊回避)
+  - 新規 code は typed view で <code>for o in record.orders: if o.order_type == X</code> を書く必要が消える
+  - <code>_order_type_value</code> helper で Enum / str / dict 三方対応
+  - 単体 test 6 個
+  - 完全 split(mixed list 廃止)は 30+ caller への波及 + golden 更新が必要なため
+    scope discipline per 別 session の refactor PR に defer</p>
+<p><strong>(f) sub-PR-E</strong>:</p>
 <p><strong>(f) sub-PR-E</strong>:
 - <code>_fhir_document_reference_checkup.py</code> 新設(HEALTH_CHECKUP_REPORT の Composition wrapper)
 - <code>_BUNDLE_BUILDERS</code> に <code>_bb_document_references_checkup</code> 登録
