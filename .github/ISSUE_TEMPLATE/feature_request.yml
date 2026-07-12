@@ -1,0 +1,89 @@
+name: Feature request
+description: Propose a new feature, module, resource type, YAML field, or CLI subcommand.
+title: "[feature] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for wanting to make clinosim better!
+
+        Non-trivial features benefit from a design conversation before
+        code is written. This template captures what a reviewer needs
+        to know to give useful early feedback.
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: What problem does this solve? Who benefits? A concrete use case is more persuasive than an abstract "would be nice".
+      placeholder: |
+        As a researcher building a sepsis-detection benchmark, I need
+        NUMBER-OF-VASOACTIVE-DRIP-STARTS in the output, currently only
+        the initial order is emitted...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed approach
+      description: Sketch the design. Where does the code live? What CIF fields / FHIR resources are affected? Does it fit the AD-55 "Base vs opt-in Module vs always-on Module" taxonomy in DESIGN.md?
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: How will you know it's done? Bullet points.
+      placeholder: |
+        - New enricher registered under POST_ENCOUNTER order=NN
+        - New FHIR ResourceType X emitted with JP Core profile Y
+        - Adds N unit tests + M integration tests
+        - `clinosim audit run` still PASS
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: Which axis / axes does this touch?
+      multiple: true
+      options:
+        - Simulator (CIF generation)
+        - FHIR output builders
+        - CIF format / schema
+        - CLI
+        - Locale (US / JP / new country)
+        - Documentation
+        - Testing / audit infrastructure
+        - Packaging / CI
+    validations:
+      required: true
+
+  - type: dropdown
+    id: determinism
+    attributes:
+      label: Determinism impact
+      description: Would this change the byte output at a given seed within the current MINOR line?
+      options:
+        - "No — additive, doesn't touch existing seeded paths"
+        - "Yes — new opt-in path that changes output only when enabled"
+        - "Yes — changes existing output (would require a MINOR bump)"
+        - "Not sure"
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What did you consider and reject?
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?

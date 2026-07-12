@@ -1,0 +1,14 @@
+# Force filers to pick one of the structured templates rather than opening a
+# blank issue with no context. Discussion / question / security channels are
+# routed via contact_links.
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question / general discussion
+    url: https://github.com/TomoOkuyama/clinosim/discussions
+    about: For usage questions, design discussion, and anything that isn't a concrete bug or feature request.
+  - name: Report a security vulnerability
+    url: https://github.com/TomoOkuyama/clinosim/security/advisories/new
+    about: Please do not file security issues publicly. Use GitHub Security Advisories — see SECURITY.md.
+  - name: How to add a new module / plugin
+    url: https://github.com/TomoOkuyama/clinosim/blob/master/docs/CONTRIBUTING-modules.md
+    about: Practical playbook for extending clinosim (Base vs Module, enricher stages, registry usage).

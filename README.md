@@ -41,6 +41,7 @@ Primary use cases:
 - [Design Philosophy](#design-philosophy)
 - [Testing](#testing)
 - [Extension Guide](#extension-guide)
+- [Governance & Community](#governance--community)
 - [License](#license)
 
 ---
@@ -1087,6 +1088,28 @@ pytest
 ```
 
 Each module's README has extension guidelines.
+
+---
+
+## Governance & Community
+
+clinosim is an independent personal project. Community-facing documents:
+
+| Document | Purpose |
+|---|---|
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How to file issues, propose changes, and open a PR. Includes the DCO signoff requirement (`git commit -s`). |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Contributor Covenant 2.1. Contact: `tomo.okuyama@gmail.com`. |
+| [SECURITY.md](SECURITY.md) | How to report vulnerabilities privately via GitHub Security Advisories. **Please do not open public issues for security bugs.** |
+| [CITATION.cff](CITATION.cff) | Machine-readable citation metadata — renders as GitHub's "Cite this repository" button. |
+| [CHANGELOG.md](CHANGELOG.md) | Keep a Changelog format, [SemVer](https://semver.org/) contract. |
+| [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) | Practical playbook for adding a new module / FHIR builder — the how-to layer above the general CONTRIBUTING.md. |
+| [Issue templates](.github/ISSUE_TEMPLATE/) | Structured bug report / feature request forms. |
+| [Pull request template](.github/PULL_REQUEST_TEMPLATE.md) | PR checklist with determinism impact + DCO reminder. |
+| [`good first issue` label](https://github.com/TomoOkuyama/clinosim/labels/good%20first%20issue) | Starter-friendly tasks currently open. |
+
+CI enforces: unit tests (Python 3.11 + 3.12), integration tests, packaging
+(`python -m build` + `twine check`), and DCO signoff. Lint / typecheck are
+informational for now while pre-existing debt is being worked down.
 
 ---
 

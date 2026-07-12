@@ -1,0 +1,98 @@
+name: Bug report
+description: Something in clinosim behaves incorrectly (wrong output, crash, non-deterministic result, ...).
+title: "[bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug!
+
+        Before reporting: please check that there isn't already
+        [an open issue](https://github.com/TomoOkuyama/clinosim/issues?q=is%3Aissue)
+        covering the same behavior. If this is a **security** issue,
+        stop here and follow [SECURITY.md](https://github.com/TomoOkuyama/clinosim/blob/master/SECURITY.md)
+        instead — please do not describe the vulnerability publicly.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What went wrong?
+      description: One or two sentences on the observed behavior.
+      placeholder: "`clinosim generate ...` produces X, but should produce Y."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: The exact commands and inputs. Include seed, country, population, and any custom hospital config so the run is reproducible.
+      render: bash
+      placeholder: |
+        clinosim generate --country JP --population 100 --seed 42 \
+          --start 2026-01-01 --end 2026-03-31 --output ./out --format fhir
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to see?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What did you see instead? Paste error tracebacks or diffs.
+      render: text
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: clinosim version
+      description: "Output of: python -c 'import clinosim; print(clinosim.__version__)'"
+      placeholder: "0.2.0"
+    validations:
+      required: true
+
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      description: "Output of: python --version"
+      placeholder: "Python 3.12.7"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "macOS 14.5 / Ubuntu 24.04 / Windows 11"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: determinism
+    attributes:
+      label: Is this a determinism issue?
+      description: Does the same seed + config produce different output across runs, or across MINOR-line releases?
+      options:
+        - "No — different symptom"
+        - "Yes — non-deterministic within one release"
+        - "Yes — determinism broke between two releases"
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Relevant screenshots, related issues, workaround you tried, etc.
