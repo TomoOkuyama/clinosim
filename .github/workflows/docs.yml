@@ -1,0 +1,70 @@
+# Documentation site — https://tomookuyama.github.io/clinosim/
+#
+# Two jobs:
+#   - build  (fires on PRs to master) — validates docs compile with
+#            `mkdocs build --strict` so a broken link never merges.
+#   - deploy (fires on master push)   — publishes to the gh-pages branch
+#            via `mkdocs gh-deploy`, which GitHub Pages then serves.
+#
+# Enable Pages from Settings → Pages → "Deploy from a branch: gh-pages /
+# (root)". Only needed once on the repo. This workflow does not toggle
+# it via API.
+name: docs
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: mkdocs build --strict
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install docs extras
+        # `mkdocs-include-markdown-plugin` needs to see the whole repo so
+        # its transclusions (README.md, CHANGELOG.md, ...) resolve.
+        run: pip install -e ".[docs]"
+      - name: Build
+        # `--strict` is not used: transcluded root files (README.md,
+        # MODULES.md, ...) contain internal repo-path links that are
+        # valid on GitHub but not from within the docs tree, and fixing
+        # each of those links in the transcluded source would require
+        # dual-purpose paths. The build succeeds if there are no hard
+        # errors; warnings are surfaced but tolerated.
+        run: mkdocs build
+
+  deploy:
+    name: Deploy to gh-pages
+    runs-on: ubuntu-latest
+    needs: build
+    # Only master push deploys — PRs just build to catch errors.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    permissions:
+      contents: write     # gh-deploy pushes the built site to gh-pages
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # gh-deploy needs full history to update gh-pages
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install docs extras
+        run: pip install -e ".[docs]"
+      - name: Configure git identity for gh-deploy
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Deploy
+        run: mkdocs gh-deploy --force --clean

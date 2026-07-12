@@ -1,0 +1,162 @@
+# MkDocs config — https://tomookuyama.github.io/clinosim/
+#
+# Publishes docs/ + selected root files (README, CHANGELOG, CONTRIBUTING, ...)
+# via the gh-pages branch. Use `mkdocs serve` for local preview and
+# `mkdocs build --strict` to reject any broken link or missing file.
+
+site_name: clinosim
+site_description: >
+  Population-driven, physiology-based synthetic Electronic Health Record
+  generator (FHIR R4). Multi-country (US + JP), JP Core profile compliance,
+  YAML-driven disease extension.
+site_url: https://tomookuyama.github.io/clinosim/
+repo_name: TomoOkuyama/clinosim
+repo_url: https://github.com/TomoOkuyama/clinosim
+edit_uri: edit/master/
+
+# ---------------------------------------------------------------------------
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.indexes
+    - navigation.footer
+    - toc.follow
+    - content.code.copy
+    - content.action.edit
+    - search.highlight
+    - search.suggest
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+# ---------------------------------------------------------------------------
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+plugins:
+  - search
+  - include-markdown:
+      preserve_includer_indent: true
+      dedent: false
+      trailing_newlines: true
+      comments: false
+
+# ---------------------------------------------------------------------------
+
+# Exclude internal / contributor-only docs that live under docs/ but aren't
+# part of the public site. Contributors read them directly on GitHub.
+exclude_docs: |
+  audit-cycles/
+  reviews/
+  design-notes/
+  superpowers/
+
+# Downgrade to info the whole class of warnings that come from
+# transcluded content (README.md, MODULES.md, etc.) pointing at repo-root
+# files (../DESIGN.md / ../CLAUDE.md / ../TODO.md) that don't exist as
+# entries in the mkdocs site tree. Those links resolve fine when the
+# transcluded file is viewed on GitHub; when it's rendered inside the
+# docs site they need to point at the corresponding
+# `reference/design.md` / `reference/todo.md` etc. Fixing every link
+# inside every transcluded root file is impractical — the includer knows
+# what it wants, the source of truth is on GitHub. Anchor mismatches
+# from flattened DCO-style anchors get the same treatment.
+validation:
+  omitted_files: info
+  absolute_links: info
+  unrecognized_links: info
+  anchors: info
+  nav:
+    omitted_files: info
+    not_found: info
+    absolute_links: info
+
+# ---------------------------------------------------------------------------
+
+# Navigation — reorganizes the 56 md files across docs/ + selected root
+# files into a hub structure. Files not listed here are excluded from the
+# published site (audit-cycles/ + reviews/ + superpowers/ are excluded so
+# the public site stays focused on end-user content; contributors read
+# them directly on GitHub).
+nav:
+  - Home: index.md
+  - Getting started:
+      - Installation: getting-started/installation.md
+      - Quick start: getting-started/quick-start.md
+      - Versioning & releases: getting-started/versioning.md
+  - Concepts:
+      - Project concept & design: design-guides/project-concept-and-design.md
+      - Data generation walkthrough: design-guides/data-generation-walkthrough.md
+      - Implementation rules: design-guides/implementation-rules.md
+      - FHIR data generation logic: design-guides/fhir-data-generation-logic.md
+      - Data model conventions: design-guides/data-model-and-completeness-conventions.md
+  - Reference:
+      - Datasets: reference/datasets.md
+      - Evaluation: eval.md
+      - Modules: reference/modules.md
+      - Design (ADRs): reference/design.md
+      - Scenario flags: reference/scenario-flags.md
+      - Roadmap (TODO): reference/todo.md
+  - Guides:
+      - Adding a module: CONTRIBUTING-modules.md
+      - Clinical documents: clinical_documents.md
+      - Bedrock LLM setup: bedrock_setup.md
+  - Development:
+      - Reproducibility: development/reproducibility.md
+      - Changelog: development/changelog.md
+  - Governance:
+      - Contributing: governance/contributing.md
+      - Code of Conduct: governance/code-of-conduct.md
+      - Security: governance/security.md
+      - Citation: governance/citation.md
+
+# ---------------------------------------------------------------------------
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/TomoOkuyama/clinosim
+  generator: false  # hide the "Made with Material for MkDocs" footer noise
