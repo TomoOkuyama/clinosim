@@ -61,6 +61,8 @@ dev = [
     "pytest-cov>=5.0",
     "ruff>=0.3",
     "mypy>=1.8",
+    "types-PyYAML>=6.0",  # mypy stubs for pyyaml (P0-2, session 46)
+    "build>=1.0",         # sdist/wheel build (P0-2, used by CI packaging job)
 ]
 llm = [
     "httpx>=0.27",

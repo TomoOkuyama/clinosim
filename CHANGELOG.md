@@ -18,6 +18,28 @@ byte output but must document the change here.
 
 ## [Unreleased]
 
+### Added
+
+- **GitHub Actions CI** (`.github/workflows/ci.yml`) — runs on every push
+  to `master` and every PR. Hard gates: unit tests on Python 3.11 + 3.12
+  and integration tests on 3.12. Informational (non-blocking) jobs:
+  `ruff check` / `ruff format --check`, `mypy clinosim/`, and a
+  `python -m build` + `twine check` packaging smoke. Concurrency
+  cancels in-flight runs on newer pushes to the same branch.
+- README CI status badge pointing at the workflow.
+
+### Fixed
+
+- `Makefile` `lint` / `typecheck` / `format` targets pointed at a
+  nonexistent `src/` prefix and failed immediately; corrected to the
+  real `clinosim/` layout so the CI jobs (and local `make`) work.
+
+### Packaging
+
+- Add `types-PyYAML>=6.0` and `build>=1.0` to the `dev` extras so
+  `mypy clinosim/` gets its yaml stubs and CI can build sdist + wheel
+  without extra installs.
+
 ## [0.2.0] - 2026-07-12
 
 Initial public v0.2 baseline release. Bundles the physiology-driven
