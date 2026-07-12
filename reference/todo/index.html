@@ -1665,7 +1665,23 @@
 <h1 id="clinosim-todo">clinosim — TODO<a class="headerlink" href="#clinosim-todo" title="Permanent link">&para;</a></h1>
 <h2 id="status-2026-07-13-session-48-in-progress-bcdefg">Status (2026-07-13, <strong>★ session 48 IN-PROGRESS — bcdefg 順消化開始</strong>)<a class="headerlink" href="#status-2026-07-13-session-48-in-progress-bcdefg" title="Permanent link">&para;</a></h2>
 <p><strong>Session 48 開始状態(順序 d → e → f → g → b → c、d 完了)</strong>:</p>
-<h3 id="d-e-f-g-bpr3-sub-pr-bce-deferred-cleanup-p2-14-country-scaffold">完了(d, e, f, g, b):PR3 sub-PR-B/C/E + Deferred cleanup + P2-14 country scaffold<a class="headerlink" href="#d-e-f-g-bpr3-sub-pr-bce-deferred-cleanup-p2-14-country-scaffold" title="Permanent link">&para;</a></h3>
+<h3 id="d-e-f-g-b-cpr3-sub-pr-bce-deferred-cleanup-p2-14-p2-15">完了(d, e, f, g, b, c):PR3 sub-PR-B/C/E + Deferred cleanup + P2-14 + P2-15<a class="headerlink" href="#d-e-f-g-b-cpr3-sub-pr-bce-deferred-cleanup-p2-14-p2-15" title="Permanent link">&para;</a></h3>
+<p><strong>&copy; P2-15 benchmark</strong>:
+- <code>clinosim/benchmarks/</code> 新設(harness / sepsis / aki / cli)
+- <code>LabelRow</code> + <code>BaselineReport</code> dataclass、<code>compute_auroc</code> は Mann-Whitney U
+  ベースの numpy 実装(scikit-learn 不要)
+- Sepsis 判定 = <code>disease_id=="sepsis"</code> or ICD A41/R65.2、score = first-window
+  Lactate max。Surviving Sepsis 2021 threshold 2.0 mmol/L baseline
+- AKI 判定 = <code>disease_id=="acute_kidney_injury"</code> or ICD N17/N19、score =
+  peak SCr − baseline SCr。KDIGO 2012 Stage 1 threshold 0.3 mg/dL baseline
+- <code>majority</code> baseline は全 task 共通(floor accuracy + AUROC=0.5 規約)
+- CLI <code>clinosim benchmark {sepsis,aki} --cif-dir &lt;path&gt;</code> を simulator/cli.py
+  に登録、<code>--json</code> output 対応
+- 単体 test 11 個(AUROC arithmetic / majority degenerate / label extractor /
+  threshold baseline / CLI dispatch / empty cohort fail)
+- Docs <code>docs/benchmarks.md</code>(purpose / supported tasks / baselines /
+  running / example output / 拡張手順 / out-of-scope)
+- 実 US p=300 seed=42 で smoke 検証 PASS</p>
 <p><strong>(b) P2-14 add-your-country ガイド + 国パック scaffold</strong>:
 - <code>docs/add-your-country.md</code> 新設(prerequisites / required YAMLs / optional
   YAMLs / code registration steps / testing checklist / common pitfalls)
