@@ -1,9 +1,12 @@
-# JP FHIR profile validation (session 47 PR3 sub-PR-C)
+# JP FHIR profile validation (session 47 PR3 sub-PR-C, session 48 高度化)
 #
-# Manual-only workflow that generates a JP cohort and (optionally) runs
-# the HL7 official FHIR Validator against JP Core / JP-CLINS / JP-eCheckup
-# profiles. Not run on every PR (Java + jar download is heavy); triggered
-# by workflow_dispatch or by adding the "jp-validate" label to a PR.
+# HL7 official FHIR Validator を JP Core / JP-CLINS / JP-eCheckup profile に
+# 対して自動実行する CI gate。session 48 で下記を追加:
+#   - validator_cli.jar の version + SHA256 pin(`.github/jp-validator-pins.env`)
+#   - JP IG package の version / URL / SHA256 pin
+#   - STRICT モード(pin mismatch → fail)
+#   - workflow_dispatch の run_validator default=true(auto-fail gate)
+#   - PR label "jp-validate" trigger は維持(重い job のため on-demand)
 name: JP FHIR validate
 
 on:
@@ -18,10 +21,15 @@ on:
         required: false
         default: "42"
       run_validator:
-        description: "Run the HL7 validator against samples (requires Java + jar)"
+        description: "Run the HL7 validator against samples (auto-fail on mismatch)"
         type: boolean
         required: false
-        default: false
+        default: true
+      strict_pins:
+        description: "STRICT mode — SHA256 mismatch → job fail"
+        type: boolean
+        required: false
+        default: true
   pull_request:
     types: [labeled]
 
@@ -44,28 +52,66 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .
 
-      - name: Set up Java (optional validator)
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_validator == 'true' }}
+      - name: Load validator pins
+        id: pins
+        run: |
+          set -euo pipefail
+          set -a
+          # shellcheck disable=SC1091
+          source .github/jp-validator-pins.env
+          set +a
+          echo "VALIDATOR_VERSION=$VALIDATOR_VERSION" >> "$GITHUB_ENV"
+          echo "VALIDATOR_SHA256=$VALIDATOR_SHA256"   >> "$GITHUB_ENV"
+          echo "  pinned validator: $VALIDATOR_VERSION (sha256=${VALIDATOR_SHA256:-<unset>})"
+
+      - name: Set up Java (validator)
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_validator == 'true' || github.event_name == 'pull_request' }}
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
-      - name: Download HL7 FHIR validator (optional)
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_validator == 'true' }}
+      - name: Download HL7 FHIR Validator (pinned version)
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_validator == 'true' || github.event_name == 'pull_request' }}
         run: |
-          # 公式 release から最新の validator_cli.jar を取得(SHA256 検証は
-          # 将来 sub-PR で pinning 可能に)。
+          set -euo pipefail
           mkdir -p .cache
-          curl -sSL -o .cache/validator_cli.jar \
-            https://github.com/hapifhir/org.hl7.fhir.core/releases/latest/download/validator_cli.jar
+          url="https://github.com/hapifhir/org.hl7.fhir.core/releases/download/${VALIDATOR_VERSION}/validator_cli.jar"
+          echo "downloading validator_cli.jar $VALIDATOR_VERSION"
+          curl -sSL --fail -o .cache/validator_cli.jar "$url"
           echo "VALIDATOR_JAR=$PWD/.cache/validator_cli.jar" >> "$GITHUB_ENV"
+
+      - name: Verify validator SHA256 (STRICT gate)
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_validator == 'true' || github.event_name == 'pull_request' }}
+        env:
+          STRICT: ${{ github.event.inputs.strict_pins }}
+        run: |
+          set -euo pipefail
+          if [ -z "${VALIDATOR_SHA256:-}" ]; then
+              if [ "${STRICT:-true}" = "true" ]; then
+                  echo "::error::VALIDATOR_SHA256 pin が未設定です。scripts/pin_jp_validator.sh を実行して .github/jp-validator-pins.env を更新してください。"
+                  echo "  (bootstrap 実行例:)"
+                  actual=$(shasum -a 256 "$VALIDATOR_JAR" | awk '{print $1}')
+                  echo "  VALIDATOR_SHA256=$actual"
+                  exit 1
+              fi
+              echo "::warning::VALIDATOR_SHA256 未設定(soft-mode で continue)"
+              exit 0
+          fi
+          actual=$(shasum -a 256 "$VALIDATOR_JAR" | awk '{print $1}')
+          if [ "$actual" != "$VALIDATOR_SHA256" ]; then
+              echo "::error::SHA256 mismatch: expected=$VALIDATOR_SHA256 actual=$actual"
+              exit 1
+          fi
+          echo "  validator SHA256 verified: $actual"
 
       - name: Run JP validation bridge
         env:
           CLINOSIM_JP_VAL_POPULATION: ${{ github.event.inputs.population || '100' }}
           CLINOSIM_JP_VAL_SEED: ${{ github.event.inputs.seed || '42' }}
           CLINOSIM_JP_VAL_HEALTH: "1"
+          CLINOSIM_JP_VAL_PINS: ${{ github.workspace }}/.github/jp-validator-pins.env
+          CLINOSIM_JP_VAL_STRICT: ${{ (github.event.inputs.strict_pins || 'true') == 'true' && '1' || '0' }}
         run: |
           chmod +x scripts/validate_jp.sh
           scripts/validate_jp.sh

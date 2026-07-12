@@ -162,9 +162,42 @@ Note: 健診 IG は JP-CLINS と別に発行されている(JP-eCheckup General 
 **US path**:健診 opt-in flag は US では発火しない
 (`countries_supported: [jp]` により spec 側で JP に限定)。
 
-## JP FHIR Validator Bridge (PR3 sub-PR-C)
+## JP FHIR Validator Bridge (PR3 sub-PR-C, session 48 高度化)
 
-session 47 で `scripts/validate_jp.sh` と `.github/workflows/jp-validate.yml` を追加しました。**JP 出力を HL7 公式 FHIR Validator で JP Core / JP-CLINS / JP-eCheckup に適合検証** できます。
+session 47 で `scripts/validate_jp.sh` と `.github/workflows/jp-validate.yml` を追加、session 48 で **SHA256 pin + auto-fail gate 化** に高度化しました。**JP 出力を HL7 公式 FHIR Validator で JP Core / JP-CLINS / JP-eCheckup に適合検証** し、pin mismatch や validation failure で CI が自動 fail します。
+
+### Pin ファイル(session 48 追加)
+
+`.github/jp-validator-pins.env` に validator と IG package のバージョン / SHA256 が集約されています:
+
+```env
+VALIDATOR_VERSION=6.4.3
+VALIDATOR_SHA256=
+
+JP_CORE_PACKAGE_ID=jp-core.r4
+JP_CORE_PACKAGE_VERSION=1.1.7
+JP_CORE_PACKAGE_URL=
+JP_CORE_PACKAGE_SHA256=
+
+JP_CLINS_PACKAGE_URL=
+JP_CLINS_PACKAGE_SHA256=
+
+JP_ECHECKUP_PACKAGE_URL=
+JP_ECHECKUP_PACKAGE_SHA256=
+```
+
+- SHA256 空欄 + STRICT モード = fail(bootstrap 指示メッセージを出力)
+- SHA256 記入済 = 実測との一致確認 → mismatch で fail
+
+### 初回 pin bootstrap
+
+```bash
+bash scripts/pin_jp_validator.sh
+git diff .github/jp-validator-pins.env  # ← 差分確認
+git commit -m "chore(jp-validate): pin validator + IG SHA256"
+```
+
+`PIN_FILE=<path>` / `DRY_RUN=1` で挙動を上書き可能。
 
 ### Local 実行
 
@@ -172,20 +205,21 @@ session 47 で `scripts/validate_jp.sh` と `.github/workflows/jp-validate.yml` 
 # サンプル抽出のみ(validator jar 未指定なら skip)
 ./scripts/validate_jp.sh
 
-# 実際の validator 実行(要 Java 11+)
-VALIDATOR_JAR=/path/to/validator_cli.jar ./scripts/validate_jp.sh
+# 実際の validator 実行 + pin gate(要 Java 11+)
+VALIDATOR_JAR=/path/to/validator_cli.jar \
+CLINOSIM_JP_VAL_PINS=.github/jp-validator-pins.env \
+CLINOSIM_JP_VAL_STRICT=1 \
+./scripts/validate_jp.sh
 ```
 
-環境変数(全て optional):
-- `VALIDATOR_JAR`:HL7 公式 validator jar のパス。未設定なら手順表示のみで skip。
+環境変数:
+- `VALIDATOR_JAR`(必須):HL7 公式 validator jar のパス。
+- `CLINOSIM_JP_VAL_PINS`:pin file 参照(未指定なら IG resolve は skip)。
+- `CLINOSIM_JP_VAL_STRICT`:`1` で SHA256 mismatch / sample 0 抽出 → exit 1。
 - `CLINOSIM_JP_VAL_POPULATION`:default 10
 - `CLINOSIM_JP_VAL_SEED`:default 42
 - `CLINOSIM_JP_VAL_END`:default 2026-06-30
 - `CLINOSIM_JP_VAL_HEALTH`:default "1"(health_checkup opt-in)
-
-### Validator jar 取得
-
-<https://github.com/hapifhir/org.hl7.fhir.core/releases> から `validator_cli.jar` を取得。Java 11+ が必要です。
 
 ### 検証対象(MVP)
 
@@ -200,20 +234,20 @@ VALIDATOR_JAR=/path/to/validator_cli.jar ./scripts/validate_jp.sh
 - `JP_Composition_eReferral`
 - `JP_Composition_eCheckupGeneral`(health_checkup opt-in 時)
 
-### CI 実行
+### CI 実行(auto-fail gate、session 48 高度化)
 
-`.github/workflows/jp-validate.yml` は **manual-only workflow**:
+`.github/workflows/jp-validate.yml`:
 
-- **workflow_dispatch**:UI から `population` / `seed` / `run_validator` bool を指定
-- **PR label**:`jp-validate` ラベルを付けた PR で自動実行
+- **workflow_dispatch**:`run_validator=true`(default) + `strict_pins=true`(default) → SHA256 mismatch / validator FAIL / sample 0 抽出のいずれかで **job が自動 fail**
+- **PR label**:`jp-validate` ラベルを付けた PR で自動実行(default STRICT)
 
-CI 時間の浪費を防ぐため、通常の CI パイプラインには組み込まず、必要時のみ手動で回す設計です。
+CI 時間の浪費を防ぐため、通常の PR CI パイプラインには組み込まず、必要時のみ手動 or label で回す設計です。
 
-### 将来 sub-PR での高度化
+### 将来の高度化余地
 
-- IG package `.tgz` URL の SHA256 pinning + 自動 fetch
 - 全 resource 検証(現状 profile あたり 1 サンプルのみ)
-- CI 自動 fail gate 化(現状 manual trigger + fail は最終 summary のみ)
+- packages.fhir.org 登録前の JP-CLINS / JP-eCheckup の direct .tgz URL 確定と `_PACKAGE_URL` フィールドへの反映
+- JP profile violation の granular reporting(現状は tail 5 行のみ)
 
 ## Reproducibility
 
