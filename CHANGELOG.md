@@ -20,6 +20,17 @@ byte output but must document the change here.
 
 ### Added
 
+- **Synthea comparison adapter** (P1-10):
+  [`clinosim eval`](eval.md) can now score a
+  [Synthea](https://synthetichealth.github.io/synthea/) `fhir/`
+  output directory directly. Point `-d` at the Synthea directory;
+  the new `clinosim/eval/synthea_adapter.py` auto-detects the
+  per-patient Bundle layout and fans it into per-`ResourceType`
+  NDJSON under `<cohort>/../synthea-normalized/` (or the
+  `--synthea-normalize` override). Deterministic conversion so scores
+  are reproducible. Synthea is an **optional** dependency — nothing
+  in clinosim imports it at runtime. Full comparison walk-through at
+  `docs/synthea-comparison.md`; 7 unit tests cover the adapter.
 - **Clinical contradiction checks** (P1-9): two new checks on the
   `clinical` axis of `clinosim eval` — `condition_lab_coherence`
   (aggregate over 8 canonical pairings: sepsis-lactate, DKA-HCO₃,
