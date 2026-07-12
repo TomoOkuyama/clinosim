@@ -1709,7 +1709,16 @@ P1 (7 items) of the diffusion plan landed in one session as 12 focused PRs.</p>
     <code>JP_Observation_LabResult_eCS</code> / <code>JP_MedicationRequest_eCS</code> /
     <code>JP_Procedure_eCS</code>). URL verified against jpfhir.jp v1.12.0 (2026-02-16).
     Docs at <code>docs/jp-clins.md</code>.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PR2: 2 documents Composition (退院時サマリー + 診療情報提供書).</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> PR2a (session 47): Full-conformance 退院時サマリー Composition
+    (<code>JP_Composition_eDischargeSummary</code>). Adds jpfhir doc-typecodes +
+    doc-section CodeSystems (48 codes total), <code>composition_sections_jp</code>
+    override on <code>DocumentTypeSpec</code>, 4 new JP section renderers
+    (admission_reason / admission_details / admission_diagnoses /
+    present_illness — chief_complaint reuses existing) + <code>_build_jp_clins_
+    discharge_summary_composition</code>. Uncovered + fixed the
+    <code>_build_reference_range</code> multi-locale bug (JP Core extension URL was
+    leaking into US Observation output).</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PR2b: 診療情報提供書 (referral note) Composition + 紹介元/紹介先 CIF extension.</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PR3: 健診 opt-in module + jpfhir-validator bridge + docs polish.</li>
 <li><strong>P2-14</strong> "Add your country" guide + country-pack scaffold.</li>
 <li><strong>P2-15</strong> Benchmark task definitions (sepsis / AKI prediction) + baseline eval script.</li>
