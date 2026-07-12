@@ -1734,8 +1734,20 @@ P1 (7 items) of the diffusion plan landed in one session as 12 focused PRs.</p>
     CodeSystem(7 codes)+ <code>HEALTH_CHECKUP_REPORT</code> DocumentType +
     <code>checkup_once</code> generation_frequency + <code>SimulatorConfig.modules
     ["health_checkup"]</code> gate + 事業者健診 2 section builder(01031 +
-    01032)。健診 encounter planner + observation generator は次 sub-PR。
-    jpfhir-validator bridge は別 sub-PR。</li>
+    01032)。</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> PR3 sub-PR-A (session 47): 健診 encounter planner + observation
+    generator module (<code>clinosim/modules/health_checkup/</code>)。40 歳以上成人
+    から SHA-256 hash-based 決定的 30% サブセット選定、CHECKUP encounter
+    +法定健診 5 項目 + HEALTH_CHECKUP_REPORT stub を追加。
+    Empirical p=100 seed=42 JP: 39 unique adults 40+ → 15 CHECKUP encounters<ul>
+<li>15 HEALTH_CHECKUP_REPORT stubs (~38%).</li>
+</ul>
+</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PR3 sub-PR-B: MVP 定型文 → 実 ObservationRecord 参照による個別化
+    (現状 checkup_lab_results / checkup_questionnaire は固定定型文)。</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PR3 sub-PR-C: jpfhir-validator bridge(optional CI job)。</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PR3 sub-PR-D: 特定健診(01011/01012)+ 広域連合健診(01021/01022)
+    section 対応。</li>
 <li><strong>P2-14</strong> "Add your country" guide + country-pack scaffold.</li>
 <li><strong>P2-15</strong> Benchmark task definitions (sepsis / AKI prediction) + baseline eval script.</li>
 <li><strong>PyPI upload</strong> for v0.2.0 (user manual, needs <code>PYPI_API_TOKEN</code>).</li>
