@@ -144,6 +144,7 @@ nav:
   - Guides:
       - Adding a module: CONTRIBUTING-modules.md
       - Clinical documents: clinical_documents.md
+      - Compare to Synthea: synthea-comparison.md
       - Load into a FHIR server: fhir-server-ingestion.md
       - Bedrock LLM setup: bedrock_setup.md
   - Development:

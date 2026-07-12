@@ -17,7 +17,13 @@ def add_eval_subparser(subparsers: argparse._SubParsersAction) -> None:
     )
     ev.add_argument(
         "-d", "--cohort-dir", required=True, type=Path,
-        help="Cohort root directory (contains fhir_r4/ NDJSON).",
+        help=(
+            "Cohort root directory (contains fhir_r4/ NDJSON), OR a "
+            "Synthea `fhir/` output directory containing per-patient "
+            "Bundle JSONs — Synthea layout is auto-detected and "
+            "normalized in-place under `<cohort-dir>/../synthea-normalized/`. "
+            "Override the normalization target with --synthea-normalize."
+        ),
     )
     ev.add_argument(
         "--json", type=Path, default=None,
@@ -35,10 +41,36 @@ def add_eval_subparser(subparsers: argparse._SubParsersAction) -> None:
         "--strict", action="store_true",
         help="Exit 1 if any axis has a FAIL check. Default: exit 0 regardless.",
     )
+    ev.add_argument(
+        "--synthea-normalize", type=Path, default=None,
+        help=(
+            "When --cohort-dir points at Synthea output, write the "
+            "normalized per-resourceType NDJSON layout to this "
+            "directory before scoring. Default: `<cohort-dir>/../synthea-normalized/`."
+        ),
+    )
 
 
 def dispatch_eval(args: argparse.Namespace) -> int:
-    engine = EvalEngine(cohort_dir=args.cohort_dir, countries=args.country)
+    # Synthea layout detection — if `--cohort-dir` looks like a Synthea
+    # per-patient-Bundle directory, normalize it into a clinosim-shaped
+    # layout first, then evaluate.
+    from clinosim.eval.synthea_adapter import (
+        bundle_dir_to_ndjson_layout,
+        looks_like_synthea_output,
+    )
+    cohort_dir = args.cohort_dir
+    if looks_like_synthea_output(cohort_dir):
+        target = args.synthea_normalize or (cohort_dir.parent / "synthea-normalized")
+        print(f"clinosim eval: detected Synthea layout — normalizing into {target}",
+              file=sys.stderr)
+        counts = bundle_dir_to_ndjson_layout(cohort_dir, target, overwrite=True)
+        total = sum(counts.values())
+        print(f"clinosim eval: wrote {total} resources across {len(counts)} ResourceType(s)",
+              file=sys.stderr)
+        cohort_dir = target
+
+    engine = EvalEngine(cohort_dir=cohort_dir, countries=args.country)
     try:
         report = engine.run()
     except FileNotFoundError as exc:
