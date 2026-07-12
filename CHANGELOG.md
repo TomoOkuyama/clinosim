@@ -18,6 +18,28 @@ byte output but must document the change here.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-12
+
+Initial public v0.2 baseline release. Bundles the physiology-driven
+generator (session-16-through-46 development) with the packaging /
+distribution work that makes it installable.
+
+### Changed
+
+- **Version bumped 0.1.0 → 0.2.0** to align the version string with the
+  codebase reality — `CLAUDE.md`, README `[![Status](...v0.2...)]` badge,
+  and the "release: v0.2.0" example in the README's Versioning section
+  had all been describing v0.2 while `pyproject.toml` still declared
+  `0.1.0`. The v0.2 label was the truth; the version string was stale.
+- **Removed `requirements.txt`.** It carried a `pip freeze` snapshot
+  including a hard-coded `-e /Users/tokuyama/workspace/clinosim` local
+  path, which broke `pip install -r requirements.txt` for anyone else.
+  Runtime + development dependencies are now single-sourced from
+  `pyproject.toml` `[project.dependencies]` and
+  `[project.optional-dependencies]` (`dev` / `llm` / `parquet` / `all`).
+  Migration: `pip install -e ".[dev]"` (developers) or
+  `pip install clinosim` (users, once on PyPI).
+
 ### Packaging & Distribution
 
 - `pyproject.toml`: switch to `dynamic = ["version"]` sourced from
@@ -32,10 +54,8 @@ byte output but must document the change here.
 - New `CHANGELOG.md` (this file), Keep a Changelog format.
 - New `tests/unit/test_packaging.py` — asserts version single-source-of-truth
   and console entry point registration.
-
-## [0.1.0] - 2026-07-12
-
-Initial public v0.2 baseline release.
+- New `LICENSE` file at repo root (prior state: `pyproject.toml` declared
+  MIT but no LICENSE text shipped).
 
 ### Added
 
