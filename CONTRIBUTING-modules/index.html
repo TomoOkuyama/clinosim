@@ -1,0 +1,3754 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Population-driven, physiology-based synthetic Electronic Health Record generator (FHIR R4). Multi-country (US + JP), JP Core profile compliance, YAML-driven disease extension.
+">
+      
+      
+      
+        <link rel="canonical" href="https://tomookuyama.github.io/clinosim/CONTRIBUTING-modules/">
+      
+      
+        <link rel="prev" href="../reference/todo/">
+      
+      
+        <link rel="next" href="../clinical_documents/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Adding a module - clinosim</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="clinosim" class="md-header__button md-logo" aria-label="clinosim" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            clinosim
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Adding a module
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/TomoOkuyama/clinosim" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    TomoOkuyama/clinosim
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../design-guides/project-concept-and-design/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../reference/datasets/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../development/reproducibility/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../governance/contributing/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Governance
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="clinosim" class="md-nav__button md-logo" aria-label="clinosim" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    clinosim
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/TomoOkuyama/clinosim" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    TomoOkuyama/clinosim
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning & releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design-guides/project-concept-and-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project concept & design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design-guides/data-generation-walkthrough/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data generation walkthrough
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design-guides/implementation-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementation rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design-guides/fhir-data-generation-logic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FHIR data generation logic
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design-guides/data-model-and-completeness-conventions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data model conventions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/datasets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Datasets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../eval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design (ADRs)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/scenario-flags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scenario flags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/todo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap (TODO)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding a module
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding a module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#adrcurated-designmd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        最初に読む ADR(curated、全文は DESIGN.md)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#base-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        判断: Base か Module か
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="判断: Base か Module か">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        決定チェックリスト
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#opt-in" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ゲートの実装 (opt-in の場合)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#locale-signature" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        locale 依存の signature 規約
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        モジュールの構造
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="モジュールの構造">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#canonical-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        正準レイアウト (canonical layout)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clinosimmodules_sharedpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        共有ヘルパは clinosim/modules/_shared.py に集約する
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pr-a-2026-06-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        パス定数の正規形(PR-A 2026-06-26 で確立)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lru_cache-maxsize-pr-a-2026-06-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @lru_cache の maxsize 規約(PR-A 2026-06-26 で確立)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aggregate-loader-owner-module-2026-07-02" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Aggregate loader は owner module に置く(2026-07-02)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pr-a-2026-06-26_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        確率サンプリング規約(PR-A 2026-06-26 で確立)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#import-cross-validationcanonical-constants-gate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Import 時 cross-validation(canonical-constants gate)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#per-dimensional-cohort-filterpr3b-3-d1d2-2026-06-29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-dimensional cohort filter(PR3b-3 D1+D2, 2026-06-29)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validator-ordering-reverse-stalenesspr3b-3-chain-stage-23-2026-06-29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validator ordering &amp; reverse-staleness(PR3b-3 chain stage-&#8532;, 2026-06-29)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cross-module-canonical-uri-constantspr3b-5-2026-06-29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-module canonical URI constants(PR3b-5, 2026-06-29)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#variant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        データ専用モジュール (variant)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#canonical-pure-function-enginemod-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        canonical な「pure-function engine」(MOD-13 が手本)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clinosimtypes-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        型は clinosim/types/ に置く (engine 内に定義しない)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yaml-pydantic-validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YAML は Pydantic で validate する
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#__init__py-public-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        __init__.py で public API を明示する
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#readme-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        README に ## Dependencies を書く
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        データ生成の作法
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="データ生成の作法">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ad-16-ad-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        決定論コントラクト (AD-16 / AD-17)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pr-byte-diff-vs-3-axis-dqr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PR 検証ガイド: byte-diff vs 3-axis DQR
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PR 検証ガイド: byte-diff vs 3-axis DQR">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#byte-diff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        byte-diff の実施手順
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-axis-dqr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3-axis DQR の実施手順
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#physiology-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        physiology state から導出する
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sub-seed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sub-seed 導出ルール (コピーすべき正確なパターン)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cif-base-extensions-decision-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CIF への書き込み: Base か extensions か (decision tree)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        拡張点の使い方
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="拡張点の使い方">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-fhir-register_bundle_builder-ad-56" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A. FHIR リソースを追加する (register_bundle_builder, AD-56)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-register_output_adapter-ad-58" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        B. 出力フォーマットを追加する (register_output_adapter, AD-58)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#c-post-pass-enricher-ad-56" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C. post-pass を追加する (Enricher, AD-56)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        何のデータ/コードを使うか
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="何のデータ/コードを使うか">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#codes-locale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        codes と locale の分離
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#display-lookup-ad-30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        display は lookup() で解決する (AD-30)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#uri-get_system_uri" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        URI は get_system_uri() で解決する
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#system_key_for2026-07-02" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        国→コード体系の選択は system_key_for()(2026-07-02)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#internal-name-code_mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        internal-name → 標準コードは code_mapping
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#locale-shared-canonical-loader-2026-07-02" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        locale の shared データも canonical loader を通す(2026-07-02 拡充)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#english-first-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        権威出典 / English-first / コード coverage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        追加時チェックリスト
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#regen-scope-matrix-local-iteration-cycles-ad-65-2026-07-02" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Regen scope matrix: Local iteration cycles (AD-65, 2026-07-02)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Regen scope matrix: Local iteration cycles (AD-65, 2026-07-02)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#change-types-and-iteration-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change types and iteration time
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#case-1-template-narrative-generator-bug-ad-65-tier-1-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case 1: Template narrative generator bug (AD-65 Tier 1 #3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#case-2-structuralauthor-bug-encounterorderenricher-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case 2: Structural/author bug (encounter/order/enricher logic)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#case-3-fhir-builder-bug" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case 3: FHIR builder bug
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#determinism-reproducibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Determinism &amp; reproducibility
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        よくある落とし穴
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-a-new-patient-profile-fixture-ad-66" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a new patient profile fixture (AD-66)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clinical_documents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinical documents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bedrock_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bedrock LLM setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/reproducibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Governance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Governance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../governance/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../governance/code-of-conduct/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../governance/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../governance/citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Citation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#adrcurated-designmd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        最初に読む ADR(curated、全文は DESIGN.md)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#base-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        判断: Base か Module か
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="判断: Base か Module か">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        決定チェックリスト
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#opt-in" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ゲートの実装 (opt-in の場合)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#locale-signature" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        locale 依存の signature 規約
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        モジュールの構造
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="モジュールの構造">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#canonical-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        正準レイアウト (canonical layout)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clinosimmodules_sharedpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        共有ヘルパは clinosim/modules/_shared.py に集約する
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pr-a-2026-06-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        パス定数の正規形(PR-A 2026-06-26 で確立)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lru_cache-maxsize-pr-a-2026-06-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @lru_cache の maxsize 規約(PR-A 2026-06-26 で確立)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aggregate-loader-owner-module-2026-07-02" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Aggregate loader は owner module に置く(2026-07-02)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pr-a-2026-06-26_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        確率サンプリング規約(PR-A 2026-06-26 で確立)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#import-cross-validationcanonical-constants-gate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Import 時 cross-validation(canonical-constants gate)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#per-dimensional-cohort-filterpr3b-3-d1d2-2026-06-29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-dimensional cohort filter(PR3b-3 D1+D2, 2026-06-29)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validator-ordering-reverse-stalenesspr3b-3-chain-stage-23-2026-06-29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validator ordering &amp; reverse-staleness(PR3b-3 chain stage-&#8532;, 2026-06-29)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cross-module-canonical-uri-constantspr3b-5-2026-06-29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-module canonical URI constants(PR3b-5, 2026-06-29)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#variant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        データ専用モジュール (variant)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#canonical-pure-function-enginemod-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        canonical な「pure-function engine」(MOD-13 が手本)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clinosimtypes-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        型は clinosim/types/ に置く (engine 内に定義しない)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yaml-pydantic-validate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YAML は Pydantic で validate する
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#__init__py-public-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        __init__.py で public API を明示する
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#readme-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        README に ## Dependencies を書く
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        データ生成の作法
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="データ生成の作法">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ad-16-ad-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        決定論コントラクト (AD-16 / AD-17)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pr-byte-diff-vs-3-axis-dqr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PR 検証ガイド: byte-diff vs 3-axis DQR
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PR 検証ガイド: byte-diff vs 3-axis DQR">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#byte-diff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        byte-diff の実施手順
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-axis-dqr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3-axis DQR の実施手順
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#physiology-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        physiology state から導出する
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sub-seed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sub-seed 導出ルール (コピーすべき正確なパターン)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cif-base-extensions-decision-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CIF への書き込み: Base か extensions か (decision tree)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        拡張点の使い方
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="拡張点の使い方">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-fhir-register_bundle_builder-ad-56" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A. FHIR リソースを追加する (register_bundle_builder, AD-56)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-register_output_adapter-ad-58" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        B. 出力フォーマットを追加する (register_output_adapter, AD-58)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#c-post-pass-enricher-ad-56" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C. post-pass を追加する (Enricher, AD-56)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        何のデータ/コードを使うか
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="何のデータ/コードを使うか">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#codes-locale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        codes と locale の分離
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#display-lookup-ad-30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        display は lookup() で解決する (AD-30)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#uri-get_system_uri" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        URI は get_system_uri() で解決する
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#system_key_for2026-07-02" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        国→コード体系の選択は system_key_for()(2026-07-02)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#internal-name-code_mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        internal-name → 標準コードは code_mapping
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#locale-shared-canonical-loader-2026-07-02" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        locale の shared データも canonical loader を通す(2026-07-02 拡充)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#english-first-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        権威出典 / English-first / コード coverage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        追加時チェックリスト
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#regen-scope-matrix-local-iteration-cycles-ad-65-2026-07-02" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Regen scope matrix: Local iteration cycles (AD-65, 2026-07-02)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Regen scope matrix: Local iteration cycles (AD-65, 2026-07-02)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#change-types-and-iteration-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change types and iteration time
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#case-1-template-narrative-generator-bug-ad-65-tier-1-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case 1: Template narrative generator bug (AD-65 Tier 1 #3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#case-2-structuralauthor-bug-encounterorderenricher-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case 2: Structural/author bug (encounter/order/enricher logic)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#case-3-fhir-builder-bug" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case 3: FHIR builder bug
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#determinism-reproducibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Determinism &amp; reproducibility
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        よくある落とし穴
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-a-new-patient-profile-fixture-ad-66" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a new patient profile fixture (AD-66)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/CONTRIBUTING-modules.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="_1">コントリビューターガイド: モジュール/プラグインの追加<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>このドキュメントは、新しいコントリビューターが clinosim に <strong>モジュール/プラグインを追加し、データを生成し、どのデータ/コードを使うかを正しく選択する</strong> ための実践 playbook です。アーキテクチャ原則 (ADR) は <code>DESIGN.md</code>、規約の総覧は <code>CLAUDE.md</code> を参照してください。本書はそれらと重複せず、<strong>HOW-TO</strong> に集中します。</p>
+<blockquote>
+<p><strong>本書は CIF 生成 layer(Layers 1-3 = 参照 YAML、loader、CIF generation module)が中心</strong> です。<strong>FHIR builder layer(Layer 4 = <code>_fhir_*.py</code>)を追加・拡張する場合は</strong> <a href="../design-guides/fhir-data-generation-logic/"><code>docs/design-guides/fhir-data-generation-logic.md</code></a> を参照してください(BundleContext / code_lookup / 多言語 display / identifier system 規約 / register_bundle_builder)。</p>
+<p><strong>新規モジュール作成時</strong>: <a href="../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a> をコピーして開始。全 30 module(counting rule: <code>clinosim/modules/</code> 配下の package 数。<code>_shared.py</code> 等の非 package ファイルは含まない)の俯瞰は <a href="../MODULES.md"><code>MODULES.md</code></a> を参照。PR 検証手段の選び方は本書の「PR 検証ガイド: byte-diff vs 3-axis DQR」セクション参照。読む順序の全体像は <a href="../design-guides/"><code>docs/design-guides/README.md</code></a> を参照。</p>
+</blockquote>
+<p>実コードの正本パス:
+- Enricher registry: <code>clinosim/simulator/enrichers.py</code>
+- Output adapter registry: <code>clinosim/modules/output/adapter.py</code>
+- FHIR bundle builder registry: <code>clinosim/modules/output/fhir_r4_adapter.py</code>
+- 共有型: <code>clinosim/types/</code>
+- コードシステム: <code>clinosim/codes/</code>
+- locale データ: <code>clinosim/locale/</code></p>
+<h2 id="adrcurated-designmd">最初に読む ADR(curated、全文は <code>DESIGN.md</code>)<a class="headerlink" href="#adrcurated-designmd" title="Permanent link">&para;</a></h2>
+<p><code>DESIGN.md</code> には 55+ の ADR があるが、新規 module 著者が最初に把握すべきは以下の 9 つ:</p>
+<table>
+<thead>
+<tr>
+<th>ADR</th>
+<th>一言サマリ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AD-16</td>
+<td>決定論: 同 seed + 同 config = byte-identical な structural 出力。全乱数は sub-seed 由来の <code>numpy.random.Generator</code>(<code>random.random()</code> 禁止)</td>
+</tr>
+<tr>
+<td>AD-17</td>
+<td>CIF が唯一の simulation 出力。format adapter(FHIR/CSV)は CIF だけを読む — simulation 内部に触れない</td>
+</tr>
+<tr>
+<td>AD-25</td>
+<td>CIF は language-neutral。localization(用語翻訳・単位・整形)は出力時に行う(CIF 生成時の国別データは氏名のみ)</td>
+</tr>
+<tr>
+<td>AD-30</td>
+<td>Code is the truth: CIF は code のみ保持、display text は出力時に <code>code_lookup()</code> で解決</td>
+</tr>
+<tr>
+<td>AD-55</td>
+<td>データ追加の 3 分類: Base(always-on、core 型拡張)/ opt-in Module / always-on Module(near-essential clinical cascade)</td>
+</tr>
+<tr>
+<td>AD-56</td>
+<td>拡張は registry 経由(<code>register_bundle_builder</code> / <code>register_output_adapter</code> / <code>register_enricher</code>)。core dispatch を編集しない</td>
+</tr>
+<tr>
+<td>AD-59</td>
+<td>per-order lab RNG isolation: YAML の lab order 編集が無関係患者の cohort を shift させない(<code>panel_specimen_seed</code> / <code>individual_lab_seed</code>)</td>
+</tr>
+<tr>
+<td>AD-60</td>
+<td><code>clinosim audit run</code> = 新機能 PR の統一 verification gate(structural / clinical / jp_language / silent_no_op の 4 軸)</td>
+</tr>
+<tr>
+<td>AD-65</td>
+<td>two-pass CIF: structural(Stage 1、immutable)と narrative(Stage 2、versioned)を file-level 分離。canonical spec = <a href="../clinosim/modules/output/SPEC.md"><code>clinosim/modules/output/SPEC.md</code></a></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="base-module">判断: Base か Module か<a class="headerlink" href="#base-module" title="Permanent link">&para;</a></h2>
+<p>新しいデータ/機能を追加するとき、最初に <strong>Base (always-on, core を拡張)</strong> か <strong>opt-in Module (<code>SimulatorConfig.modules</code> + <code>config.module_enabled()</code> でゲート)</strong> か <strong>always-on Module = near-essential clinical cascade</strong>(AD-55 PR3b-1 supplement、2026-06-25 追加: 上流 <code>extensions[X]</code> の存在を前提に clinically coherent な拡張を不可避的に出すモジュール。例 <code>device</code>/<code>hai</code>/<code>antibiotic</code>/<code>imaging</code>)を決めます (AD-55)。</p>
+<p><strong>always-on Module 先例 (2026-07-01 時点):</strong>(Tier 1 #3 系列の全体 roadmap = <a href="../design-notes/2026-06-30-tier1-document-and-event-density-master-plan/"><code>docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md</code></a>)
+- <code>device</code> (PR-A): ICU デバイス配置 (POST_ENCOUNTER order=70)
+- <code>hai</code> (PR-B): CDC NHSN HAI サンプリング (POST_ENCOUNTER order=80)。<code>extensions["device"]</code> の存在を前提。
+- <code>antibiotic</code> (PR3b-1): HAI 経験的抗菌薬 (POST_ENCOUNTER order=85)。<code>extensions["hai"]</code> の存在を前提。
+- <code>imaging</code> (Tier 1 #2, AD-62): 画像診断メタデータチェーン (POST_ENCOUNTER order=90)。disease YAML の <code>imaging_orders</code> が存在する encounter でのみ <code>extensions["imaging"]</code> を生成し、ImagingStudy + Endpoint + 放射線科 DR + imaging SR を emit する。upstream extensions に依存しない (device/hai とは独立)。
+- <code>allergy</code> (Tier 1 #3, AD-63): AllergyIntolerance 8-field SNOMED-coded スキーマ upgrade (POST_RECORDS order=65)。<code>PersonRecord.allergies: list[Allergy] | None</code> に 15% prevalence で allergy サンプリングし、<code>_fhir_allergy_intolerance.py</code> builder が emit。activator.py inline sampling を置換。
+- <code>document</code> (Tier 1 #3, AD-63): Stage 1 テンプレート起動の臨床文書 emit (POST_ENCOUNTER order=95)。<code>extensions["document"]</code> + <code>extensions["clinical_impressions"]</code> に ClinicalDocument / ClinicalImpressionRecord を書き込み、3 FHIR builder (<code>_fhir_document_reference.py</code> / <code>_fhir_composition.py</code> / <code>_fhir_clinical_impression.py</code>) が emit。<code>enabled=lambda c: True</code>、upstream <code>extensions["allergy"]</code> に依存しない(患者アレルギー情報はビルダーが <code>patient.allergies</code> を直接参照)。
+- <code>triage</code> (Tier 1 #3 α-min-2, AD-64): ED encounter の triage level (JTAS/JP・ESI/US) + arrival_mode + acuity_score を sample (POST_ENCOUNTER order=93)。<code>EncounterRecord.triage_data</code> に書き込み、<code>document_enricher</code> が <code>ED_TRIAGE_NOTE</code> (LOINC 54094-8) dispatch に使用。<code>enabled=lambda c: True</code>、ED-only (非 ED encounter は no-op early return)。
+- <code>nursing_assignment</code> (Tier 1 #3 α-min-2, AD-64): 入院/ICU/rehab encounter に primary nurse を assign (POST_ENCOUNTER order=94)。<code>EncounterRecord.primary_nurse_id</code> に書き込み、<code>_fhir_care_team.py</code> builder が CareTeam.participant[1] に使用。<code>enabled=lambda c: True</code>。<strong>注意</strong>: このモジュールは <code>modules/nursing/</code> ディレクトリだが POST_ENCOUNTER 担当の nursing_enricher 関数(primary nurse 割当)。同ディレクトリには POST_RECORDS の nursing flowsheet 担当 enricher (NEWS2/GCS/Braden/Morse) も存在する。混同注意。</p>
+<h3 id="_2">決定チェックリスト<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<p>以下にすべて Yes なら <strong>Base</strong>。1 つでも No 寄りなら <strong>opt-in Module</strong>。</p>
+<ol>
+<li>ほぼすべての EHR で必須のデータか? (例: 入院基本情報、vital、検査結果)</li>
+<li>国/テーマに依存せず、ほぼ全 encounter に存在するか?</li>
+<li>CIF の core 型 (<code>CIFPatientRecord</code> / <code>CIFDataset</code>) に typed field として常時持たせるべきか?</li>
+</ol>
+<p>逆に、以下に当てはまるなら <strong>opt-in Module</strong>:</p>
+<ul>
+<li>特定テーマ 1 つに閉じている (<code>identity</code> = 在留番号/保険番号, <code>immunization</code> = 予防接種)</li>
+<li>特定国でのみ意味がある (JP 保険番号など) / ユーザーが OFF にしたい可能性がある</li>
+<li>core 型を汚さず <code>CIFPatientRecord.extensions[&lt;module&gt;]</code> に書ける</li>
+</ul>
+<h3 id="opt-in">ゲートの実装 (opt-in の場合)<a class="headerlink" href="#opt-in" title="Permanent link">&para;</a></h3>
+<p>opt-in module は <code>Enricher.enabled</code> で gate します。<code>config.module_enabled(name, default=...)</code> を使うのが正しい作法です (AD-56)。</p>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># clinosim/simulator/enrichers.py の register_builtin_enrichers() 内</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">register_enricher</span><span class="p">(</span><span class="n">Enricher</span><span class="p">(</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;immunization&quot;</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">stage</span><span class="o">=</span><span class="n">POST_RECORDS</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">run</span><span class="o">=</span><span class="n">run_immunization_enricher</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">order</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">enabled</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">module_enabled</span><span class="p">(</span><span class="s2">&quot;immunization&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">))</span>
+</span></code></pre></div>
+<blockquote>
+<p><strong>注意 (EXT-5):</strong> 現状 <code>module_enabled()</code> は production で未配線で、<code>modules</code> dict は dead key になっています。新規 module は上記のように <code>module_enabled</code> 経由で gate し、advertised な AD-56 ゲートを実際に有効化してください。<code>default=True</code> を保てば既存 golden は不変です。</p>
+</blockquote>
+<h3 id="locale-signature">locale 依存の signature 規約<a class="headerlink" href="#locale-signature" title="Permanent link">&para;</a></h3>
+<p>locale 別データ(国別 prevalence、reference range、code mapping 等)をロードする関数は、<strong><code>country: str</code> パラメータを必ず受け取り</strong>、対象外の国では <code>{}</code> / <code>""</code> 等の no-op 値を早期 return します:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">lru_cache</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules._shared</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_jp</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">load_rates</span><span class="p">(</span><span class="n">country</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;JP&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Load rates for ``country``. Returns {} for unsupported countries.&quot;&quot;&quot;</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_jp</span><span class="p">(</span><span class="n">country</span><span class="p">):</span>        <span class="c1"># 国判定は必ず is_jp() 経由(下記「共有ヘルパ」参照)</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>        <span class="k">return</span> <span class="p">{}</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">_LOCALE</span> <span class="o">/</span> <span class="s2">&quot;jp&quot;</span> <span class="o">/</span> <span class="s2">&quot;...&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>        <span class="k">return</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</span></code></pre></div>
+<p>理由 — モジュールが現状 1 国対応(例: care_level は JP 専用)であっても、signature を統一しておけば将来 US 対応を追加する際に caller の API を変えずに済みます。<code>_LOCALE / "jp" / ...</code> のように country 引数なしでハードコードするのは consistency bug です。</p>
+<p><code>@lru_cache(maxsize=...)</code> を併用して反復ロードを避ける(他モジュール — immunization / family_history / code_status — もこのパターン)。</p>
+<hr />
+<h2 id="_3">モジュールの構造<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>各モジュールは <code>clinosim/modules/&lt;name&gt;/</code> 配下の 1 パッケージで、<strong>他モジュールへの依存は README の Dependencies に明記したものだけ</strong> に限定します。</p>
+<h3 id="canonical-layout">正準レイアウト (canonical layout)<a class="headerlink" href="#canonical-layout" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>clinosim/modules/&lt;name&gt;/
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  __init__.py            &lt;- public API を __all__ で re-export (空にしない)
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  engine.py              &lt;- pure-function 群。cross-module import を持たない
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  protocol.py            &lt;- (任意) YAML を Pydantic で validate して load
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  reference_data/*.yaml  &lt;- データ駆動の定義 (Pydantic で検証)
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>  README.md              &lt;- 日本語 + 英語技術用語。## Dependencies を持つ
+</span></code></pre></div>
+<h3 id="clinosimmodules_sharedpy">共有ヘルパは <code>clinosim/modules/_shared.py</code> に集約する<a class="headerlink" href="#clinosimmodules_sharedpy" title="Permanent link">&para;</a></h3>
+<p>複数 enricher で同じ helper を持つ場合(例: <code>get_attr_or_key(obj, name, default)</code> で dict / dataclass 両対応の属性アクセス)、各モジュールに local 定義を書かず <strong><code>clinosim/modules/_shared.py</code></strong> に置きます。新規モジュールも以下のように import します:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules._shared</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_attr_or_key</span> <span class="k">as</span> <span class="n">_get</span>
+</span></code></pre></div>
+<p><code>as _get</code> alias で短い local 名を維持し、call site の可読性も保ちます。新しい cross-module helper を追加する場合は <strong>2 モジュール以上で実需が生じたタイミング</strong>で <code>_shared.py</code> に昇格させます(YAGNI — 1 モジュールしか使わないなら local 定義のまま)。</p>
+<p>現在 <code>_shared.py</code> に集約されている helper(PR-A 2026-06-26 で <code>normalize_probabilities</code> 追加、共通ロジック統一 2026-07-02 で <code>is_jp</code> / <code>resolve_lang</code> 追加):</p>
+<ul>
+<li><code>get_attr_or_key(obj, name, default)</code> — dict/dataclass 両対応の属性アクセス</li>
+<li><code>normalize_probabilities(probs, fallback="uniform") -&gt; np.ndarray</code> — 確率配列を 1.0 へ正規化(下記「確率サンプリング規約」参照)</li>
+<li><code>is_jp(country) -&gt; bool</code> — <strong>JP 判定の唯一の正準 idiom</strong>(case-insensitive + strip 正規化)</li>
+<li><code>resolve_lang(country) -&gt; str</code> — <strong>display 言語選択の唯一の正準 idiom</strong>(JP → <code>"ja"</code>、その他 → <code>"en"</code>)</li>
+</ul>
+<p><strong>JP-gating / 言語選択の必須 idiom(2026-07-02)</strong> — 国判定と display 言語選択は必ず <code>is_jp(country)</code> / <code>resolve_lang(country)</code> を使うこと:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules._shared</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_jp</span><span class="p">,</span> <span class="n">resolve_lang</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="k">if</span> <span class="n">is_jp</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">):</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="o">...</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">lang</span> <span class="o">=</span> <span class="n">resolve_lang</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>   <span class="c1"># &quot;ja&quot; / &quot;en&quot;</span>
+</span></code></pre></div>
+<blockquote>
+<p><strong>アンチパターン:</strong> hand-rolled な国判定の変種(<code>country == "JP"</code> / <code>country.lower() == "jp"</code> / <code>str(country).upper() == "JP"</code> / <code>lang = "ja" if country == "JP" else "en"</code>)を新規に書かない。共通ロジック統一前は 5 種類の divergent idiom が混在し、大文字小文字の扱い差で JP gating が silent に外れる PR-90 class risk があった。<code>is_jp</code> / <code>resolve_lang</code> が単一の正規化点。</p>
+</blockquote>
+<h3 id="pr-a-2026-06-26">パス定数の正規形(PR-A 2026-06-26 で確立)<a class="headerlink" href="#pr-a-2026-06-26" title="Permanent link">&para;</a></h3>
+<p>モジュールが reference_data や locale データを読み込むときの<strong>正規パターン</strong>:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">_HERE</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">_REF_DIR</span> <span class="o">=</span> <span class="n">_HERE</span> <span class="o">/</span> <span class="s2">&quot;reference_data&quot;</span>        <span class="c1"># reference_data/ を持つなら</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">_LOCALE</span> <span class="o">=</span> <span class="n">_HERE</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="s2">&quot;locale&quot;</span>      <span class="c1"># clinosim/locale/ を参照するなら</span>
+</span></code></pre></div>
+<p>call site では <code>_REF_DIR / "X.yaml"</code> / <code>_LOCALE / country / "X.yaml"</code> で path を組み立て、<code>Path(__file__).parent / ...</code> の inline を避けます。理由:</p>
+<ul>
+<li><code>_HERE</code> を起点にすると <code>parents[N]</code> の <code>N</code> が module の深さに依存しないので <strong>fragile な <code>.parents[2]</code> 問題</strong>(immunization の旧パターン)が避けられます。</li>
+<li>命名統一(<code>_REFERENCE_DATA_DIR</code> / <code>_DATA</code> / <code>_HAI_REF_DIR</code> のような揺れを廃止)で grep / refactor が容易。</li>
+<li>データ専用 module variant も同じ<code>_HERE</code> + <code>_REF_DIR</code> を採用。</li>
+</ul>
+<h3 id="lru_cache-maxsize-pr-a-2026-06-26"><code>@lru_cache</code> の <code>maxsize</code> 規約(PR-A 2026-06-26 で確立)<a class="headerlink" href="#lru_cache-maxsize-pr-a-2026-06-26" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>loader の signature</th>
+<th><code>maxsize</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>load_X() -&gt; dict</code>(no parameter)</td>
+<td><code>1</code></td>
+</tr>
+<tr>
+<td><code>load_X(country: str) -&gt; dict</code></td>
+<td><code>2</code>(US + JP)</td>
+</tr>
+<tr>
+<td><code>load_X(country: str, language: str)</code></td>
+<td><code>4</code>(将来の多言語拡張用、現在は未使用)</td>
+</tr>
+</tbody>
+</table>
+<p><code>maxsize</code> は eviction policy にしか効きませんが、<strong>意図を読みやすくする load-bearing な signal</strong> です。<code>maxsize=4</code> を country-only loader に付けるとレビュアーが「将来 4 国対応?」と誤解します。</p>
+<p><strong>PR-B1 (2026-06-27) + adversarial fix で完成</strong>: 残存していた hand-rolled cache pattern(<code>global X; if X is None: ... else return X</code> を <strong>6 loader</strong>で使用)を撤廃し、全 module の loader が <code>@lru_cache</code> 標準。touch 対象は <code>clinosim/modules/encounter/protocol.py:load_all_encounter_conditions</code> / <code>clinosim/simulator/helpers.py:_load_all_disease_protocols</code> / <code>clinosim/modules/output/_fhir_diagnostic_report.py:load_panel_groups</code> / <code>clinosim/modules/output/_fhir_localization.py</code> の <code>_load_med_terms_ja</code> + <code>_load_drug_names_ja</code> + <code>_load_department_display</code>。新規 module で global mutable <code>_cache</code> 変数を導入することは禁止(<code>test_*</code> で <code>load_X.cache_clear()</code> を使う標準テスト pattern と相反するため)。同 PR で <code>clinosim/simulator/helpers.py:_load_all_disease_protocols</code> の <code>try/except pass</code> silent skip も削除済(silent-no-op 防御強化、PR #102 silent-no-op 防御 3 層との整合)。<strong>brainstorming Step 1 での sweep grep は <code>grep -i "cache\|state\|memo"</code> 等の意味フィルタを使わず、<code>grep -E "^_[A-Za-z_]+: *.+ *= *None"</code> の generic sentinel pattern を必ず使うこと</strong>(PR-B1 adversarial review 教訓: 意味フィルタが <code>_drug_names_ja</code> 等の cache を false-negative)。</p>
+<p><strong>共通ロジック統一 (2026-07-02) で protocol / config loader も <code>@lru_cache</code> 化済</strong>: <code>load_disease_protocol(disease_id)</code>(maxsize=64)/ <code>load_encounter_condition(condition_id)</code>(maxsize=64)/ <code>load_healthcare_config(country)</code>(maxsize=2)/ <code>load_hospital_operations()</code>(maxsize=1)。</p>
+<blockquote>
+<p><strong>必須ルール: cached loader の戻り値は共有 instance — 絶対に mutate しない。</strong> <code>@lru_cache</code> 付き loader が返す dict / Pydantic model は全 caller 間で同一 object を共有する(Pydantic model は default で mutable、dict は当然 mutable)。caller が field を書き換えると同 process の他の全 caller に silent に伝播する = PR-90 class の隠れ状態バグ。read-only で扱い、変更が必要なら caller 側で <code>copy.deepcopy(data)</code> / <code>model.model_copy(deep=True)</code> してから触ること。</p>
+</blockquote>
+<h3 id="aggregate-loader-owner-module-2026-07-02">Aggregate loader は owner module に置く(2026-07-02)<a class="headerlink" href="#aggregate-loader-owner-module-2026-07-02" title="Permanent link">&para;</a></h3>
+<p>他 module の <code>reference_data/</code> を glob / 走査する aggregate loader を simulator 等の外部 package に書かない。<strong>reference_data の layout と validation は owner module の責務</strong>(責任分解点)であり、外部 package が path 構造を知っていると layout 変更時に silent break する。</p>
+<ul>
+<li>正準例: <code>load_all_disease_protocols()</code> は <code>clinosim/modules/disease/protocol.py</code>(owner)に定義。<code>clinosim/simulator/helpers.py:_load_all_disease_protocols</code> は同 lru_cache object の thin re-export alias で、既存 caller と <code>.cache_clear()</code> テスト pattern を不変に保つ。</li>
+<li>同様に、他 module の YAML を直接 path join で読むのも禁止 — owner module の public accessor を使う(例: <code>modules/antibiotic</code> は <code>microbiology.yaml</code> を直接読まず <code>clinosim.modules.observation.microbiology.antibiotic_loinc_lookup()</code> を import する)。</li>
+</ul>
+<h3 id="pr-a-2026-06-26_1">確率サンプリング規約(PR-A 2026-06-26 で確立)<a class="headerlink" href="#pr-a-2026-06-26_1" title="Permanent link">&para;</a></h3>
+<p><code>rng.choice(items, p=weights)</code> を呼ぶ前に <strong>必ず <code>normalize_probabilities()</code> でラップ</strong>します:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules._shared</span><span class="w"> </span><span class="kn">import</span> <span class="n">normalize_probabilities</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">probs</span> <span class="o">=</span> <span class="n">normalize_probabilities</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>   <span class="c1"># idempotent on already-normalized arrays</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">),</span> <span class="n">p</span><span class="o">=</span><span class="n">probs</span><span class="p">))</span>
+</span></code></pre></div>
+<p>理由:<code>numpy.random.Generator.choice</code> は <code>p=</code> を<strong>自動正規化しません</strong>(sum ≠ 1.0 で <code>ValueError</code>)。YAML を手作業で正規化していると、編集ミスで sum が崩れた瞬間に silent regression / runtime crash になります。<code>normalize_probabilities</code> は</p>
+<ul>
+<li>すでに正規化済みなら <code>np.asarray(probs, dtype=float)</code> と byte-identical(byte-diff invariant 保持)</li>
+<li>非正規化なら正規化</li>
+<li>sum=0 なら uniform fallback(<code>fallback="raise"</code> で <code>ValueError</code> も可)</li>
+<li>負の重みは <code>ValueError</code></li>
+</ul>
+<p>の挙動。inline literal(<code>p=[0.6, 0.4]</code> 等)は正規化済が自明なので migration 不要です。</p>
+<h3 id="import-cross-validationcanonical-constants-gate">Import 時 cross-validation(canonical-constants gate)<a class="headerlink" href="#import-cross-validationcanonical-constants-gate" title="Permanent link">&para;</a></h3>
+<p>YAML data に外部 ID(SNOMED / LOINC / antibiotic key 等)を埋めるモジュールは、<strong>load 時に canonical 集合へ cross-check</strong> し、未知のキーは <code>ValueError</code> で loud-fail します(silent-no-op の構造的防御 — PR-90 教訓)。先例:</p>
+<ul>
+<li><code>clinosim/modules/hai/__init__.py:load_hai_antibiogram</code> — <code>HAI_TYPES</code> × <code>hai_organisms.yaml</code> SNOMED × <code>ANTIBIOTIC_LOINC_LOOKUP</code> の 3-way 検証</li>
+<li><code>clinosim/modules/observation/microbiology.py:_validate_microbiology</code> — organism antibiogram key を <code>antibiotics</code> set と照合(PR-A 2026-06-26 で silent skip から ValueError へ移行、Fix #100/#101 で 7 cross-refs に拡張)</li>
+<li><code>clinosim/modules/antibiotic/audit.py:_validate_nhsn_resistance_bands</code> — <code>_NHSN_RESISTANCE_BANDS</code> の cohort/antibiotic を canonical に対し検証</li>
+<li><code>clinosim/modules/hai/engine.py:_validate_hai_organisms</code> — <code>hai_organisms.yaml</code> を <code>HAI_TYPES</code> × SNOMED non-empty × non-negative weight × non-zero-sum で検証(本 PR 2026-06-27)</li>
+<li><code>clinosim/locale/loader.py:_validate_demographics</code> / <code>_validate_names</code> / <code>_validate_addresses</code> — <code>demographics.yaml</code> の lifestyle_distribution + <code>names.yaml</code> の surnames/given_names + <code>addresses.yaml</code> の cities を、各 weight の非負 + sum &gt; 0 で検証(本 PR 2026-06-27、4 主要 loader 完備)</li>
+<li><code>clinosim/modules/antibiotic/engine.py:_validate_narrow_ladder</code> — <code>narrow_ladder.yaml</code> を <strong>4-way 検証</strong>: <code>HAI_TYPES</code> × <code>hai_antibiogram.yaml</code> (forward + reverse-coverage) × <code>ANTIBIOTIC_DRUGS</code> + 空コンテナ(top-level / drug list)拒否(PR3b-3 + adversarial-2 stage-3、reverse-coverage は新組織追加時の silent no-op 防御)</li>
+<li><code>clinosim/modules/antibiotic/audit.py:_validate_narrow_rate_bands</code> — <code>_NARROW_RATE_BANDS</code> cohort string format (per-hai_type のみ、no slash) + 必須 key + [0, 1] 範囲 + 空 list 拒否(PR3b-3 adversarial-1 / 2、cohort string typo 防御)</li>
+<li><code>clinosim/modules/hai/engine.py:_validate_hai_rates</code> — <code>per_day_risk ∈ [0, 1]</code> + <code>source_device_type ∈ load_devices_config()["devices"]</code> (HAI sibling sweep 2026-06-29)</li>
+<li><code>clinosim/modules/hai/engine.py:_validate_hai_codes</code> — <code>icd10_us_billable</code> / <code>icd10_jp_who</code> / <code>snomed</code> を <code>_code_in_data()</code> で authoritative cs.codes 直接 membership 検証(HAI sibling sweep 2026-06-29)</li>
+<li><code>clinosim/modules/hai/engine.py:_validate_hai_specimens</code> — <code>specimen_snomed</code> / <code>test_loinc</code> を <code>_code_in_data()</code> で authoritative 検証(HAI sibling sweep 2026-06-29)</li>
+<li><code>clinosim/modules/hai/lab_lift.py:_validate_hai_lab_lift_config</code> — <code>ramp_peak_days &gt; 0</code> + lift values ∈ [0, 1] + HAI_TYPES forward-coverage(HAI sibling sweep 2026-06-29、inline check から refactor)</li>
+</ul>
+<p>新規 module で外部 ID 参照 YAML または確率重み YAML を作る場合は同パターンを必須化してください(<code>_validate_X(data)</code> を <code>load_X</code> 内で wire、<code>fallback="raise"</code> と組み合わせて後方防御も同時に確保)。<strong>Reverse-coverage</strong>(canonical set ⊆ data set)も忘れずに wire — adv-1 stage-2 sibling sweep で発覚した通り、forward-only validation は新 canonical 追加時の silent no-op を防げない。</p>
+<h3 id="per-dimensional-cohort-filterpr3b-3-d1d2-2026-06-29">Per-dimensional cohort filter(PR3b-3 D1+D2, 2026-06-29)<a class="headerlink" href="#per-dimensional-cohort-filterpr3b-3-d1d2-2026-06-29" title="Permanent link">&para;</a></h3>
+<p>監査 clinical-axis の gate が per-(dim1, dim2, ...) cohort の threshold で calibrate されているが gate filter が dimension を捨てている場合、production scale で threshold の意味が崩壊する(現状は n&lt;30 WARN guard でマスクされる)。例: PR3b-3 D1 は band <code>clabsi/3092008/cefazolin</code>(S.aureus only)を <code>hai_type</code> only で filter していた = S.aureus + S.epidermidis + E.coli 混在計測。D2 は empty-rate threshold(5%)が NHSN panel-eligible denominator 想定なのに全 HAI cohort denominator で計測 = E.faecalis / C.albicans no-panel が分子・分母 inflate。</p>
+<p><strong>新ルール</strong>: 監査 gate を実装するとき、band cohort key の各 dimension を gate filter が消費しているか確認する。消費していない dimension は cohort key から除くか、その dimension の lookup map を build して filter に組込む。<strong>lookup map は (country, audit-run) 内で 1 回 build して複数 gate で再利用</strong>(D1 R-rate + D2 empty-rate が <code>_organism_per_encounter</code> を共有する pattern が precedent)。</p>
+<ul>
+<li>先例: <code>clinosim/audit/axes/clinical.py:_organism_per_encounter</code> — <code>Observation.ndjson</code> mb-org-* を 1 pass 走査して <code>{enc_id: {organism_snomed, ...}}</code> を build、D1 + D2 で再利用</li>
+<li>先例: <code>clinosim/audit/axes/clinical.py:_panel_eligible_organisms</code> — <code>load_hai_antibiogram()</code> keys から panel-eligible set を derive(no-panel は hard-coded list でなく antibiogram 不在で auto-exclude)</li>
+</ul>
+<h3 id="validator-ordering-reverse-stalenesspr3b-3-chain-stage-23-2026-06-29">Validator ordering &amp; reverse-staleness(PR3b-3 chain stage-&#8532;, 2026-06-29)<a class="headerlink" href="#validator-ordering-reverse-stalenesspr3b-3-chain-stage-23-2026-06-29" title="Permanent link">&para;</a></h3>
+<p>監査 module の <code>audit.py</code> が canonical-constants validator + reverse-coverage validator を定義する場合、以下 3 原則を守ること:</p>
+<ol>
+<li><strong>All validators MUST run BEFORE <code>register_audit_module</code></strong>: validator が失敗したときに stale spec が registry に入らないことを保証する。先例 <code>clinosim/modules/antibiotic/audit.py:656-658</code> で <code>_validate_narrow_rate_bands</code> + <code>_validate_nhsn_resistance_bands</code> + <code>_validate_narrow_ladder_at_import</code> が全て register の前に invoked。</li>
+<li><strong>Forward-coverage + reverse-coverage の対称性</strong>: band 集合が "every (dim1, dim2) in canonical YAML が covered or explicitly exempt" を要求する場合(reverse)、同じ集合に "every canonical HAI_TYPE has at least one band"(forward)も要求する。両方 missing → 新 dimension 追加時の silent no-op risk。先例 <code>_validate_narrow_rate_bands</code>(forward)+ <code>_validate_nhsn_resistance_bands</code>(reverse + forward via band)。</li>
+<li><strong>Reverse-coverage の staleness check</strong>: exempt list を持つ validator は「exempt 中の entry が現 YAML データに本当に存在するか」も check。dropping an organism from YAML が stale exempt を残す silent risk を防ぐ。先例 <code>_validate_nhsn_resistance_bands</code> の <code>_NHSN_REVERSE_COVERAGE_EXEMPT</code> staleness ループ。</li>
+</ol>
+<p>regression test pattern:<code>inspect.getsource()</code> で source 内 <code>_validate_*()</code> 呼び出し position が <code>register_audit_module(</code> よりも小さいことを assert(<code>tests/integration/test_antibiotic_audit.py:test_validators_run_before_register_audit_module</code> precedent)。</p>
+<h3 id="cross-module-canonical-uri-constantspr3b-5-2026-06-29">Cross-module canonical URI constants(PR3b-5, 2026-06-29)<a class="headerlink" href="#cross-module-canonical-uri-constantspr3b-5-2026-06-29" title="Permanent link">&para;</a></h3>
+<p>FHIR builder と audit reader が共有する canonical URI(system / identifier
+URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module(<code>clinosim/modules/output/_fhir_*.py</code>)に module-level 定数として定義 + reader 側がそれを import する pattern</strong>を踏襲。rename 時に reader 側で ImportError が triggered され、silent-no-op skip を防御する(同パターン:<code>MB_ORG_ID_PREFIX</code> PR #113 / <code>ABX_ORDER_ID_PREFIX</code> PR #114 / <code>HAI_EVENT_ID_SYSTEM</code> PR3b-5)。</p>
+<p>定数命名規約:
+- ID prefix:<code>&lt;BUILDER_PREFIX&gt;_&lt;RESOURCE&gt;_ID_PREFIX = "..."</code>(例 <code>MB_ORG_ID_PREFIX</code>)
+- system URI(canonical):<code>&lt;DOMAIN&gt;_&lt;CONCEPT&gt;_SYSTEM = "..."</code>(例 <code>HAI_EVENT_ID_SYSTEM</code>)
+- 内部 URI には <strong>urn-form</strong> を使用:<code>urn:clinosim:identifier:&lt;purpose&gt;</code>(identifier system 用、例 <code>HAI_EVENT_ID_SYSTEM = "urn:clinosim:identifier:hai-event-id"</code>)または <code>urn:clinosim:&lt;resource&gt;:&lt;concept&gt;</code>(その他 resource 用、例 <code>_fhir_practitioner.py</code> の <code>"urn:clinosim:staff"</code>)。pr117-adv-1 で http-form と urn-form が両方混在していた状態を urn-form に統一(JP Core / US Core / HL7 IG に登録ない内部 concept のみ urn-form を許容)</p>
+<p>contract test pattern:<code>assert clinical_axis.CONSTANT is mb_builder.CONSTANT</code>(同一 object identity 確認、import path 一致を pin)。先例 <code>tests/unit/test_clinical_axis_per_organism.py:test_hai_event_id_system_canonical_constant_shared</code>。</p>
+<h3 id="variant">データ専用モジュール (variant)<a class="headerlink" href="#variant" title="Permanent link">&para;</a></h3>
+<p><code>modules/sdoh/</code> のように、<strong>reference データ + loader のみ</strong> を持ち、generation / assignment logic を持たないモジュール variant も認められます (PR2 2026-06-24 で確立)。<code>clinosim/codes/</code> が同パターンの先例です。</p>
+<p>判定基準:
+- データは存在するが、generation / assignment は別の場所 (patient activator / FHIR output builder / 他モジュール enricher) で行われる
+- 複数の consumer から参照される共通参照データを集約したい
+- 将来同テーマのデータ拡張余地が高い</p>
+<p>レイアウト:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>clinosim/modules/&lt;name&gt;/
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>  __init__.py            &lt;- public API (loader 関数を export)
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>  engine.py              &lt;- @lru_cache 付き loader のみ (assignment 関数なし OK)
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>  reference_data/*.yaml  &lt;- データ駆動の定義
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>  README.md              &lt;- 他モジュールと同型
+</span></code></pre></div>
+<p>enricher.py は <strong>不要</strong> (post_records enricher の登録なし)。<code>ENRICHER_SEED_OFFSETS</code> への登録も <strong>不要</strong> (RNG draw なし)。</p>
+<h3 id="canonical-pure-function-enginemod-13">canonical な「pure-function engine」(MOD-13 が手本)<a class="headerlink" href="#canonical-pure-function-enginemod-13" title="Permanent link">&para;</a></h3>
+<p><code>observation/engine.py</code> は <strong>cross-module import がゼロ</strong> で、physiology 値・reference range などすべての文脈を関数引数で受け取ります。新規 engine はこれを手本にしてください。</p>
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># 良い例: 文脈は引数で受ける。clinosim.modules.* を import しない</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">generate_lab_result</span><span class="p">(</span><span class="n">canon</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">true_value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">rng</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">Generator</span><span class="p">,</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>                        <span class="n">reference_ranges</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    <span class="o">...</span>
+</span></code></pre></div>
+<h3 id="clinosimtypes-engine">型は <code>clinosim/types/</code> に置く (engine 内に定義しない)<a class="headerlink" href="#clinosimtypes-engine" title="Permanent link">&para;</a></h3>
+<p><strong>共有 runtime 型はモジュール内に定義してはいけません</strong> (CLAUDE.md: "All types defined in <code>clinosim/types/</code>")。</p>
+<ul>
+<li><code>@dataclass</code> → runtime 型 (例: <code>clinosim/types/patient.py</code>, <code>encounter.py</code>, <code>output.py</code>)</li>
+<li>Pydantic <code>BaseModel</code> → YAML-loaded config 型 (AD-18, 例: <code>clinosim/types/config.py</code>)</li>
+</ul>
+<blockquote>
+<p><strong>既知の負債 (MOD-2..6, TYP-2):</strong> <code>PersonRecord</code>/<code>LifeEvent</code>/<code>HospitalizationSummary</code> (population/engine.py)、<code>StaffMember</code>/<code>StaffRoster</code> (staff/engine.py)、<code>ProcedureRecord</code>/<code>RehabSession</code> (procedure/engine.py)、<code>HospitalState</code> (facility/hospital_state.py)、<code>DiseaseProtocol</code> (disease/protocol.py) は engine 内に残っています。<strong>新規型はこの轍を踏まず最初から <code>clinosim/types/&lt;name&gt;.py</code> に定義し、<code>clinosim/types/__init__.py</code> に <code>__all__</code> で export</strong> してください。loader 関数 (<code>load_disease_protocol</code> 等) は module 側に残し、型を types から import します。</p>
+</blockquote>
+<h3 id="yaml-pydantic-validate">YAML は Pydantic で validate する<a class="headerlink" href="#yaml-pydantic-validate" title="Permanent link">&para;</a></h3>
+<p><code>disease/protocol.py</code> が正しい手本です。<code>DiseaseProtocol(BaseModel)</code> を <code>load_disease_protocol()</code> で <code>model_validate()</code> します。</p>
+<blockquote>
+<p><strong>アンチパターン (ENC-1):</strong> <code>encounter/protocol.py</code> は 46 YAML を <code>dict[str,Any]</code> のまま返し、<code>except Exception: pass</code> でパースエラーを握り潰しています。<strong>新規 YAML protocol は必ず Pydantic でラップ</strong> し、<code>extra="allow"</code> で段階導入してください。bare <code>except</code> 禁止。</p>
+</blockquote>
+<h3 id="__init__py-public-api"><code>__init__.py</code> で public API を明示する<a class="headerlink" href="#__init__py-public-api" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>既知の負債 (MOD-1, TYP-1):</strong> 18 モジュール中 17 の <code>__init__.py</code> が空 (0 byte) で、caller が <code>from clinosim.modules.population.engine import LifeEvent</code> のように内部に直接到達しています。<code>identity/__init__.py</code> のみが正しく <code>__all__</code> で export しています。<strong>新規モジュールは <code>__init__.py</code> に public surface を re-export</strong> し、caller は <code>.engine</code> ではなく <code>from clinosim.modules.&lt;name&gt; import X</code> を使ってください。</p>
+</blockquote>
+<h3 id="readme-dependencies">README に <code>## Dependencies</code> を書く<a class="headerlink" href="#readme-dependencies" title="Permanent link">&para;</a></h3>
+<p>許可された依存先 (<code>clinosim/types/</code>, <code>clinosim/codes/</code>, <code>clinosim/locale/</code>, README に列挙した他モジュール) を <code>## Dependencies</code> (英語見出し、<code>identity/README.md</code> に合わせる) で明記します。</p>
+<hr />
+<h2 id="_4">データ生成の作法<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<h3 id="ad-16-ad-17">決定論コントラクト (AD-16 / AD-17)<a class="headerlink" href="#ad-16-ad-17" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>CIF が唯一の simulation 出力</strong> (AD-17)。venue simulator は <code>return CIFPatientRecord(...)</code> で record を <strong>返す</strong> だけ。共有コレクションへ直接書いたり output adapter を呼んだりしない (DET-7 が手本: <code>inpatient.py:402</code> 等が return-based)。</li>
+<li><strong><code>random.random()</code> / stdlib <code>random</code> 禁止</strong> (AD-16, DET-8)。必ず引数で渡された <code>np.random.Generator</code> を使う。module-level の可変 global state も禁止。</li>
+<li><strong>違反例 (DET-4):</strong> <code>_generate_vitals._prev_diet</code> のように関数オブジェクト属性へ状態を溜めると、<code>FORCED-0001</code> 等の決定論 ID を共有する複数テスト呼び出しで stale 状態を読みます。状態は呼び出しスコープの local 変数に閉じること。</li>
+</ul>
+<h3 id="pr-byte-diff-vs-3-axis-dqr">PR 検証ガイド: byte-diff vs 3-axis DQR<a class="headerlink" href="#pr-byte-diff-vs-3-axis-dqr" title="Permanent link">&para;</a></h3>
+<p><strong>真の goal</strong>: CIF データを <strong>FHIR R4 + JP Core 準拠</strong> の正確な出力に変換すること + 臨床的整合性 + JP localization 品質。</p>
+<p>PR の性質によって適切な検証手段が異なります:</p>
+<table>
+<thead>
+<tr>
+<th>PR の性質</th>
+<th>検証手段</th>
+<th>何を保証するか</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Pure mechanical refactor</strong> (例: 内部構造整理、helper 共通化、registry 中央化、ファイル分割)</td>
+<td><strong>byte-diff</strong> — master と branch で同 seed/設定で生成した 11 NDJSON が sha256 IDENTICAL</td>
+<td>refactor 前後で <strong>出力が一切変わっていない</strong> = no-regression gate</td>
+</tr>
+<tr>
+<td><strong>新機能 / リアリティ改善</strong> (例: 新 analyte 追加、scenario flag 追加、medication coupling 追加、新疾患追加)</td>
+<td><strong><code>clinosim audit run</code></strong> — 4 軸 (structural / clinical / jp_language / silent_no_op) を一括検証。Module 著者は <code>clinosim/modules/&lt;name&gt;/audit.py</code> に <code>ModuleAuditSpec</code> を register する。レポートは <code>docs/reviews/&lt;date&gt;-&lt;topic&gt;-audit.md</code> に保存</td>
+<td><strong>FHIR R4 / JP Core 適合性 + 臨床整合性 + JP language 品質 + silent-no-op gate</strong> (PR-90 class of bug 再発防止) = goal achievement gate</td>
+</tr>
+<tr>
+<td><strong>Pure docs update</strong> (例: README 更新、新 doc 作成)</td>
+<td>regression check (テスト緑) + manual link review</td>
+<td>code 変更がないこと</td>
+</tr>
+<tr>
+<td><strong>混合</strong> (refactor + 小さな behavior change)</td>
+<td>byte-diff で意図的変化のみあることを確認 + DQR で goal 維持を確認</td>
+<td>両方</td>
+</tr>
+</tbody>
+</table>
+<p><strong>byte-diff は手段、3-axis DQR が真の goal テスト</strong>:</p>
+<ul>
+<li>refactor PR で byte-diff を使うのは「behavior 変えていない」を mechanical に確認する shortcut。output が変わると refactor の主張が嘘になるため。</li>
+<li>新機能 PR では byte-diff は <strong>完全一致でなくて OK</strong> (意図的に変わる)。3-axis DQR が真のゴール — FHIR/JP Core 規格適合性、臨床的妥当性 (warfarin patient の INR 2-3 等)、JP localization 品質 (display 文字列、JLAC10 ja の権威出典準拠) — を verify する。</li>
+<li>例: Phase 2a (D-dimer / causes_vte) は新機能なので、9 NDJSON は byte-identical で残り 2 つ (Observation / DR) が意図的に変化。3-axis DQR で PE/DVT/CI 患者の D-dimer が VTE-positive 帯にあるか + JLAC10 2B140 ja JCCLS 公式日本語名であるか等を verify。</li>
+</ul>
+<h4 id="byte-diff">byte-diff の実施手順<a class="headerlink" href="#byte-diff" title="Permanent link">&para;</a></h4>
+<ol>
+<li>master HEAD で <code>python -m clinosim.simulator.cli generate -p 2000 -s 42 --country US --format fhir-r4 -o scratchpad/&lt;topic&gt;_byte_diff/master/us</code> (JP も同様)</li>
+<li>branch HEAD で同じコマンドを <code>scratchpad/&lt;topic&gt;_byte_diff/branch/us</code> に出力</li>
+<li>sha256 比較スクリプトを実行 (PR1/PR2 の <code>scratchpad/refactor_pr*_byte_diff/compare.py</code> を template として参照)</li>
+<li>全 11 NDJSON が IDENTICAL であることを確認 (refactor PR の gate)</li>
+<li>結果を <code>scratchpad/&lt;topic&gt;_byte_diff_results.md</code> に書き、PR 本体に commit</li>
+</ol>
+<h4 id="3-axis-dqr">3-axis DQR の実施手順<a class="headerlink" href="#3-axis-dqr" title="Permanent link">&para;</a></h4>
+<ol>
+<li>US p≥10000 + JP p≥5000 で生成 (大規模 cohort で cohort-emergent 現象を捕捉)</li>
+<li>3 軸監査スクリプトを実行 (Phase 2a/2b の <code>scratchpad/phase2*_dqr/dqr_audit.py</code> を template として参照):</li>
+<li><strong>構造</strong>: refRange 100%, interpretation 100%, display≠code 100%, id 重複 0</li>
+<li><strong>臨床</strong>: 期待される疾患ごとの lab 値域 (DKA HCO3 / ACS Troponin / VTE D-dimer / AF chronic INR therapeutic 等)</li>
+<li><strong>JP language</strong>: US 日本語混入 0、JP display 文字列が JCCLS-JSLM / MHLW 等の権威出典準拠</li>
+<li>全 axes PASS を確認</li>
+<li>結果を <code>docs/reviews/&lt;date&gt;-&lt;topic&gt;-data-quality-review.md</code> に書き、PR 本体に commit</li>
+</ol>
+<h3 id="physiology-state">physiology state から導出する<a class="headerlink" href="#physiology-state" title="Permanent link">&para;</a></h3>
+<p>可能な限り、lab/vital は患者の physiology state (true value) から導出します。生成 chain は次に funnel させてください:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>order → canonical_lab_name → generate_lab_result(true_value, rng) → determine_flag(canon, observed, sex, reference_ranges)
+</span></code></pre></div>
+<p>疾患・薬剤が特定 lab を lift する場合は <code>derive_lab_values</code> の scenario flag(<code>causes_X</code>)/ medication flag(<code>on_warfarin</code> 等)を使います — flag の一覧・追加手順・J5-pattern 防止の設計は <a href="../SCENARIO_FLAGS.md"><code>SCENARIO_FLAGS.md</code></a> を参照。</p>
+<blockquote>
+<p><strong>注意 (OBS-3):</strong> <code>determine_flag()</code> には locale reference range を渡してください。現状 call site (<code>inpatient.py:604</code>, <code>outpatient.py:178</code>, <code>emergency.py:146</code> 等) が <code>reference_ranges=</code> を渡さず、JP 出力で interpretation が US default で計算される不整合があります。新規 call は <code>reference_ranges=load_reference_ranges(country).get("ranges", {})</code> を渡すこと。</p>
+<p><strong>注意 (DET-6):</strong> fallback baseline lab 値を venue ごとに別定義しないこと (<code>outpatient.py</code> の WBC 6500 と <code>emergency.py</code> の WBC 7500 が乖離)。observation/engine.py 側の単一定数を import してください。</p>
+</blockquote>
+<h3 id="sub-seed">sub-seed 導出ルール (コピーすべき正確なパターン)<a class="headerlink" href="#sub-seed" title="Permanent link">&para;</a></h3>
+<p>各 enricher/module は <strong>master seed から自分専用の sub-stream を導出</strong> し、メイン random stream には触れません。derive 式は <code>clinosim/simulator/seeding.py:derive_sub_seed(master, module_offset, key)</code> に集約済 (AD-16 / AD-59)。</p>
+<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.simulator.seeding</span><span class="w"> </span><span class="kn">import</span> <span class="n">ENRICHER_SEED_OFFSETS</span><span class="p">,</span> <span class="n">derive_sub_seed</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="c1"># 患者/encounter ごとに fresh な Generator を作る</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    <span class="n">derive_sub_seed</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">master_seed</span><span class="p">,</span> <span class="n">ENRICHER_SEED_OFFSETS</span><span class="p">[</span><span class="s2">&quot;my_module&quot;</span><span class="p">],</span> <span class="n">patient_id</span><span class="p">)</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="p">)</span>
+</span></code></pre></div>
+<p><code>key</code> には patient_id / household_id / encounter_id など <strong>per-entity な一意キー</strong> を必ず混ぜます (DET-3: identity module は integer-only の sub-seed で per-patient keying を欠く既知の不整合)。</p>
+<p><strong>新モジュールのオフセット登録</strong>: モジュール作成時、sub-seed の数値オフセットを <strong><code>clinosim/simulator/seeding.py:ENRICHER_SEED_OFFSETS</code></strong> に登録します。convention は <strong>16-bit hex ASCII (2 文字)</strong> — モジュール名から覚えやすい 2 文字を選ぶ:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">ENRICHER_SEED_OFFSETS</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    <span class="s2">&quot;identity&quot;</span><span class="p">:</span>       <span class="mi">540_054</span><span class="p">,</span>    <span class="c1"># 例外: legacy decimal (grandfathered)</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    <span class="s2">&quot;microbiology&quot;</span><span class="p">:</span>   <span class="mi">770_077</span><span class="p">,</span>    <span class="c1"># 例外: legacy decimal (grandfathered)</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    <span class="s2">&quot;immunization&quot;</span><span class="p">:</span>   <span class="mh">0x494D</span><span class="p">,</span>     <span class="c1"># &quot;IM&quot;</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>    <span class="s2">&quot;code_status&quot;</span><span class="p">:</span>    <span class="mh">0x4353</span><span class="p">,</span>     <span class="c1"># &quot;CS&quot;</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>    <span class="s2">&quot;family_history&quot;</span><span class="p">:</span> <span class="mh">0x4648</span><span class="p">,</span>     <span class="c1"># &quot;FH&quot;</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>    <span class="s2">&quot;care_level&quot;</span><span class="p">:</span>     <span class="mh">0x434C</span><span class="p">,</span>     <span class="c1"># &quot;CL&quot;</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>    <span class="s2">&quot;nursing&quot;</span><span class="p">:</span>        <span class="mh">0x4E55</span><span class="p">,</span>     <span class="c1"># &quot;NU&quot;</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>    <span class="c1"># 新モジュール例: &quot;device&quot; = 0x4456 (&quot;DV&quot;), &quot;hai&quot; = 0x4841 (&quot;HA&quot;)</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>モジュール側はローカル定数を持たず、registry から import します。dict 末尾の <code>assert len(set(...values())) == len(...)</code> が重複オフセットを import 時に検出します(誤って既存モジュールの RNG ストリームを汚染するのを構造的に防ぐ)。</p>
+<h3 id="cif-base-extensions-decision-tree">CIF への書き込み: Base か extensions か (decision tree)<a class="headerlink" href="#cif-base-extensions-decision-tree" title="Permanent link">&para;</a></h3>
+<p>判定フロー:</p>
+<ol>
+<li><strong>すべての EHR で必須のデータか?</strong></li>
+<li>YES → 質問 2 へ</li>
+<li>NO  → <code>extensions["module_name"]</code> (opt-in module data)</li>
+<li><strong>将来削除しないコアフィールドか?</strong></li>
+<li>YES → 質問 3 へ</li>
+<li>NO  → <code>extensions</code></li>
+<li><strong>複数モジュール / FHIR builder が参照するか?</strong></li>
+<li>YES → <code>CIFPatientRecord</code> typed field</li>
+<li>NO  → <code>extensions</code></li>
+</ol>
+<p>決定 matrix:</p>
+<table>
+<thead>
+<tr>
+<th>軸</th>
+<th>typed field</th>
+<th>extensions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Always-on Base data</td>
+<td>✓</td>
+<td></td>
+</tr>
+<tr>
+<td>Opt-in module data</td>
+<td></td>
+<td>✓</td>
+</tr>
+<tr>
+<td>共通 core EHR field</td>
+<td>✓</td>
+<td></td>
+</tr>
+<tr>
+<td>Theme-specific</td>
+<td></td>
+<td>✓</td>
+</tr>
+<tr>
+<td>例</td>
+<td><code>immunizations</code> / <code>family_history</code> / <code>code_status</code> / <code>care_level</code></td>
+<td><code>nursing</code> extensions (always-on だが specialized)</td>
+</tr>
+<tr>
+<td>Persistence</td>
+<td><code>asdict</code> で完全シリアライズ</td>
+<td>dict、explicit シリアライズ</td>
+</tr>
+</tbody>
+</table>
+<p><strong>例外明文化 (TYP-4)</strong>: always-on の Base enricher で typed field を使ってよい (例 <code>nursing_risk_assessments</code>)。<strong>新規 opt-in module は必ず <code>extensions[&lt;module&gt;]</code> を使う</strong>。</p>
+<blockquote>
+<p><strong>PR2 教訓 (data-only variant)</strong>: <code>modules/sdoh/</code> のような data-only module variant は <strong>データを CIF に書かない</strong> — patient activator が <code>PatientProfile.smoking_status</code> 等の既存 field を更新するため、本質的に Base data。新モジュールで CIF 書き込みが不要なら、この判定フローはスキップ。</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># opt-in module enricher 内</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="n">rec</span><span class="o">.</span><span class="n">extensions</span><span class="p">[</span><span class="s2">&quot;my_module&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">asdict</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">my_records</span><span class="p">]</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># always-on Base enricher 内 (例外: TYP-4)</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="n">rec</span><span class="o">.</span><span class="n">my_typed_field</span> <span class="o">=</span> <span class="p">[</span><span class="n">asdict</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">my_records</span><span class="p">]</span>
+</span></code></pre></div>
+<hr />
+<h2 id="_5">拡張点の使い方<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<p><strong>3 つの registry はいずれも core dispatch を編集せず、登録だけで拡張</strong> します。core を直接編集してはいけません。</p>
+<h3 id="a-fhir-register_bundle_builder-ad-56">A. FHIR リソースを追加する (<code>register_bundle_builder</code>, AD-56)<a class="headerlink" href="#a-fhir-register_bundle_builder-ad-56" title="Permanent link">&para;</a></h3>
+<p><code>_build_bundle()</code> を編集しない。builder は <code>(ctx: BundleContext) -&gt; list[dict]</code> の pure 関数で raw resource を返します (Bundle entry でラップしない — registry が <code>_entry()</code> で一律ラップする)。</p>
+<div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># clinosim/modules/output/fhir_r4_adapter.py</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_my_resource</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>    <span class="c1"># ctx fields: record, country, roster_map, hospital_config, patient_data,</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>    <span class="c1">#             patient_id, primary_dx_code, admit_dx_code, primary_enc_id, patient_sex, ...</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">country</span> <span class="o">!=</span> <span class="s2">&quot;JP&quot;</span><span class="p">:</span>          <span class="c1"># 国 gate は builder 内で行う</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>        <span class="k">return</span> <span class="p">[]</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>    <span class="k">return</span> <span class="p">[{</span><span class="s2">&quot;resourceType&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;...-</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">primary_enc_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">}]</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="n">register_bundle_builder</span><span class="p">(</span><span class="n">_bb_my_resource</span><span class="p">)</span>
+</span></code></pre></div>
+<ul>
+<li>命名は <code>_bb_*</code> prefix で統一 (EXT-6: <code>_build_nursing_observations</code> 等は旧式)。</li>
+<li><code>Resource.id</code> は型内で globally unique に。encounter-scoped id (<code>lab-{encounter_id}-...</code>) を使う (FA-7)。</li>
+<li><strong>double-wrap 注意 (FA-3):</strong> builder は raw resource dict を返す。<code>_entry()</code> を builder 内で呼ばない。</li>
+</ul>
+<p><strong>Canonical example — <code>_bb_service_requests</code> (PR1, 2026-06-29, <code>_fhir_service_request.py</code>):</strong></p>
+<div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># clinosim/modules/output/_fhir_service_request.py</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4_adapter</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_bundle_builder</span><span class="p">,</span> <span class="n">BundleContext</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.order.panel_grouping</span><span class="w"> </span><span class="kn">import</span> <span class="n">classify_lab_specs</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_service_requests</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Emit 1 ServiceRequest per panel instance + 1 per stand-alone lab order.&quot;&quot;&quot;</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>    <span class="n">resources</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>    <span class="n">orders</span> <span class="o">=</span> <span class="n">_collect_lab_orders</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">record</span><span class="p">)</span>       <span class="c1"># walk all encounters&#39; orders</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>    <span class="k">for</span> <span class="n">group_key</span><span class="p">,</span> <span class="n">group_orders</span> <span class="ow">in</span> <span class="n">_group_by_panel</span><span class="p">(</span><span class="n">orders</span><span class="p">):</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>        <span class="n">sr</span> <span class="o">=</span> <span class="n">_build_service_request</span><span class="p">(</span><span class="n">group_key</span><span class="p">,</span> <span class="n">group_orders</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>        <span class="n">resources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sr</span><span class="p">)</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>    <span class="k">return</span> <span class="n">resources</span>
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="n">register_bundle_builder</span><span class="p">(</span><span class="n">_bb_service_requests</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Key patterns illustrated:
+- <code>ctx.record</code> is the <code>CIFPatientRecord</code> (dict in production JSON path, dataclass in tests).
+  Always access fields via <code>_o(order, "field_name", default)</code> (<code>get_attr_or_key</code> wrapper, see
+  <code>clinosim/modules/_shared.py</code>) to support both paths — unit tests may pass dataclass
+  instances while the production path deserializes to dict.
+- Panel grouping logic lives in <code>clinosim/modules/order/panel_grouping.py:classify_lab_specs</code>.
+  Never inline a panel-detection if/elif in the builder. [AD-61]
+- Both dict-path and dataclass-path MUST be covered by tests: a subprocess integration smoke
+  test exercises the production dict path (see <code>tests/integration/test_service_request.py</code>).</p>
+<p>See <a href="../clinosim/modules/output/_fhir_service_request.py"><code>clinosim/modules/output/_fhir_service_request.py</code></a> for the full implementation.</p>
+<h3 id="b-register_output_adapter-ad-58">B. 出力フォーマットを追加する (<code>register_output_adapter</code>, AD-58)<a class="headerlink" href="#b-register_output_adapter-ad-58" title="Permanent link">&para;</a></h3>
+<p>CLI の <code>--format</code> dispatch を編集しない。<code>OutputAdapter</code> Protocol を満たすクラスを <code>adapters_builtin.py</code> パターンで登録します。adapter は <strong>CIF + <code>clinosim.codes</code> + <code>clinosim.locale</code> のみ</strong> に依存できます。</p>
+<div class="highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># clinosim/modules/output/adapter.py の Protocol:</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="c1">#   format_id: str / description: str / subdir: str</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="c1">#   def convert(self, cif_dir: str, out_dir: str, ctx: OutputContext) -&gt; None</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyFormatAdapter</span><span class="p">:</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>    <span class="n">format_id</span> <span class="o">=</span> <span class="s2">&quot;my-format&quot;</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>    <span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;My export format&quot;</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>    <span class="n">subdir</span> <span class="o">=</span> <span class="s2">&quot;my_format&quot;</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cif_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">OutputContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.my_converter</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_cif_to_myformat</span>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>        <span class="n">convert_cif_to_myformat</span><span class="p">(</span><span class="n">cif_dir</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">,</span> <span class="n">country</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>  <span class="c1"># ctx.country を渡す</span>
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>
+</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="n">register_output_adapter</span><span class="p">(</span><span class="n">MyFormatAdapter</span><span class="p">())</span>
+</span></code></pre></div>
+<p>builtin は <code>_ensure_builtins()</code> が <code>adapters_builtin</code> を import して self-register します。新規 builtin はそこに <code>register_output_adapter(...)</code> を追加してください。</p>
+<blockquote>
+<p><strong>注意 (FA-9):</strong> <code>ctx.country</code> を必ず使う。CSV adapter は現状 <code>ctx.country</code> を捨てている既知の負債があります。</p>
+</blockquote>
+<h3 id="c-post-pass-enricher-ad-56">C. post-pass を追加する (Enricher, AD-56)<a class="headerlink" href="#c-post-pass-enricher-ad-56" title="Permanent link">&para;</a></h3>
+<p><code>run_beta</code> にインライン化しない。<code>Enricher</code> を <code>register_builtin_enrichers()</code> (<code>enrichers.py</code>) で登録します。</p>
+<div class="highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># clinosim/simulator/enrichers.py</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="nd">@dataclass</span>  <span class="c1"># 実体は既存の Enricher dataclass</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="c1"># Enricher(name, stage, run: Callable[[EnricherContext], None], order=100, enabled=lambda c: True)</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_my_pass</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">EnricherContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    <span class="c1"># ctx fields: config, master_seed, population, records</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>    <span class="n">rng_seed</span> <span class="o">=</span> <span class="n">_sub_seed</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">master_seed</span><span class="p">,</span> <span class="s2">&quot;my-pass&quot;</span><span class="p">)</span>  <span class="c1"># 自前 sub-seed (メイン stream に触れない)</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>    <span class="k">for</span> <span class="n">rec</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">records</span><span class="p">:</span>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>        <span class="n">rec</span><span class="o">.</span><span class="n">extensions</span><span class="p">[</span><span class="s2">&quot;my_module&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="o">...</span>
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="n">register_enricher</span><span class="p">(</span><span class="n">Enricher</span><span class="p">(</span>
+</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_module&quot;</span><span class="p">,</span>
+</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>    <span class="n">stage</span><span class="o">=</span><span class="n">POST_RECORDS</span><span class="p">,</span>                 <span class="c1"># or POST_POPULATION</span>
+</span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>    <span class="n">run</span><span class="o">=</span><span class="n">run_my_pass</span><span class="p">,</span>
+</span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>    <span class="n">order</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>                          <span class="c1"># 昇順実行。order は固定 = 決定論</span>
+</span><span id="__span-16-16"><a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>    <span class="n">enabled</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">module_enabled</span><span class="p">(</span><span class="s2">&quot;my_module&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+</span><span id="__span-16-17"><a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a><span class="p">))</span>
+</span></code></pre></div>
+<ul>
+<li>stage は <code>POST_POPULATION</code> (population 生成後/simulation 前、<code>ctx.population</code> を mutate) または <code>POST_RECORDS</code> (record 生成後、<code>ctx.records</code> を読み/extend)。</li>
+<li>registry は name で idempotent。order 整数が実行順 = 決定論を支配します。</li>
+</ul>
+<hr />
+<h2 id="_6">何のデータ/コードを使うか<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<h3 id="codes-locale">codes と locale の分離<a class="headerlink" href="#codes-locale" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>clinosim/codes/</code></strong> = 国際標準コードシステム (locale 非依存, EN-first)。<code>icd-10-cm.yaml</code>, <code>icd-10.yaml</code>, <code>loinc.yaml</code>, <code>rxnorm.yaml</code>, <code>yj.yaml</code>, <code>cpt.yaml</code>, <code>k-codes.yaml</code>, <code>cvx.yaml</code> 等。</li>
+<li><strong><code>clinosim/locale/</code></strong> = 国/文化依存データのみ (氏名, 住所, reference range, <code>code_mapping_*</code>)。terminology は codes/ へ移行済み (CODES-2)。<strong>locale に display text を置かない。</strong></li>
+</ul>
+<h3 id="display-lookup-ad-30">display は <code>lookup()</code> で解決する (AD-30)<a class="headerlink" href="#display-lookup-ad-30" title="Permanent link">&para;</a></h3>
+<p>CIF は <strong>コードのみ</strong> 保持。display は出力時に解決します。</p>
+<div class="highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">lookup</span> <span class="k">as</span> <span class="n">code_lookup</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="n">name</span> <span class="o">=</span> <span class="n">code_lookup</span><span class="p">(</span><span class="s2">&quot;icd-10-cm&quot;</span><span class="p">,</span> <span class="s2">&quot;I50.9&quot;</span><span class="p">,</span> <span class="s2">&quot;en&quot;</span><span class="p">)</span>  <span class="c1"># 見つからなければ code 自身/EN fallback</span>
+</span></code></pre></div>
+<blockquote>
+<p><strong>アンチパターン (DUP-3, FA-4, DIAG-1):</strong> <code>CONDITION_NAMES</code> (patient/activator.py) のような display dict を新設しない。<code>csv_adapter.py</code> / <code>narrative_generator.py</code> の <code>admission_diagnosis_name</code> 等は CIF に存在しない ghost field で常に空。新規コードは <code>code_lookup(system, code, lang)</code> を使う。</p>
+</blockquote>
+<h3 id="uri-get_system_uri">URI は <code>get_system_uri()</code> で解決する<a class="headerlink" href="#uri-get_system_uri" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_system_uri</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="n">uri</span> <span class="o">=</span> <span class="n">get_system_uri</span><span class="p">(</span><span class="s2">&quot;snomed-ct&quot;</span><span class="p">)</span>  <span class="c1"># FHIR system URI を文字列リテラルで書かない</span>
+</span></code></pre></div>
+<blockquote>
+<p><strong>アンチパターン (URI-1, CODES-4, FA-2):</strong> SNOMED/LOINC/UCUM/HL7 URI を生文字列で埋め込まない (現状 fhir_r4_adapter.py に多数残存)。新規キーは <code>codes/loader.py</code> の <code>_BUILTIN_URIS</code> に正準 HL7 URI を登録してから <code>get_system_uri()</code> を使う。</p>
+</blockquote>
+<h3 id="system_key_for2026-07-02">国→コード体系の選択は <code>system_key_for()</code>(2026-07-02)<a class="headerlink" href="#system_key_for2026-07-02" title="Permanent link">&para;</a></h3>
+<p>「JP は JLAC10 / ICD-10 (WHO) / YJ / K-codes、それ以外は LOINC / ICD-10-CM / RxNorm / CPT」という国→code system 選択は、必ず <code>clinosim.codes.system_key_for(kind, country)</code> を使います(single source of truth):</p>
+<div class="highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">system_key_for</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="n">system</span> <span class="o">=</span> <span class="n">system_key_for</span><span class="p">(</span><span class="s2">&quot;lab&quot;</span><span class="p">,</span> <span class="n">country</span><span class="p">)</span>        <span class="c1"># JP → &quot;jlac10&quot;, 他 → &quot;loinc&quot;</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="n">system</span> <span class="o">=</span> <span class="n">system_key_for</span><span class="p">(</span><span class="s2">&quot;diagnosis&quot;</span><span class="p">,</span> <span class="n">country</span><span class="p">)</span>  <span class="c1"># JP → &quot;icd-10&quot;, 他 → &quot;icd-10-cm&quot;</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="n">system</span> <span class="o">=</span> <span class="n">system_key_for</span><span class="p">(</span><span class="s2">&quot;drug&quot;</span><span class="p">,</span> <span class="n">country</span><span class="p">)</span>       <span class="c1"># JP → &quot;yj&quot;,     他 → &quot;rxnorm&quot;</span>
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="n">system</span> <span class="o">=</span> <span class="n">system_key_for</span><span class="p">(</span><span class="s2">&quot;procedure&quot;</span><span class="p">,</span> <span class="n">country</span><span class="p">)</span>  <span class="c1"># JP → &quot;k-codes&quot;, 他 → &quot;cpt&quot;</span>
+</span></code></pre></div>
+<ul>
+<li><code>kind</code> は <code>"lab"</code> / <code>"diagnosis"</code> / <code>"drug"</code> / <code>"procedure"</code> の 4 種。未知の kind は <code>KeyError</code> で fail-loud(silent fallback しない)。</li>
+<li><code>country</code> は case-insensitive(内部で JP 判定を正規化)。</li>
+</ul>
+<blockquote>
+<p><strong>アンチパターン:</strong> <code>"jlac10" if country == "JP" else "loinc"</code> のような inline 分岐を builder / simulator の call site に書かない。共通ロジック統一前は同じ選択が複数箇所に inline され、新 code system 追加時に一部 call site だけ更新漏れする J5-pattern risk があった。</p>
+</blockquote>
+<h3 id="internal-name-code_mapping">internal-name → 標準コードは <code>code_mapping</code><a class="headerlink" href="#internal-name-code_mapping" title="Permanent link">&para;</a></h3>
+<p>内部テスト名 (<code>"WBC"</code>) → 標準コードは <code>locale/&lt;country&gt;/code_mapping_*.yaml</code> で解決します (<code>load_code_mapping()</code>)。YAML を直 <code>yaml.safe_load</code> せず canonical loader を通すこと (LOC-1)。</p>
+<h3 id="locale-shared-canonical-loader-2026-07-02">locale の shared データも canonical loader を通す(2026-07-02 拡充)<a class="headerlink" href="#locale-shared-canonical-loader-2026-07-02" title="Permanent link">&para;</a></h3>
+<p><code>clinosim/locale/loader.py</code> には shared locale データの cached loader が揃っています。<strong>canonical loader が存在する YAML を module 内 / FHIR builder 内で raw <code>yaml.safe_load</code> するのは禁止</strong>(共通ロジック統一 2026-07-02 で <code>_fhir_localization.py</code> と <code>patient/activator.py</code> の inline 読み込みを全て loader 経由に移行済):</p>
+<ul>
+<li><code>load_med_terms_ja()</code> — JP 薬剤用語テーブル(categories + terms、YAML 順序保持 = 置換 order-sensitive)</li>
+<li><code>load_drug_names_ja()</code> — 英→日 薬剤名 mapping(key は lowercase 正規化済)</li>
+<li><code>load_department_display()</code> — 診療科 display テーブル(<code>{key: {en, ja}}</code>)</li>
+<li><code>load_chronic_medications()</code> — 慢性疾患→常用薬(patient activator が消費)</li>
+</ul>
+<p>いずれも <code>@lru_cache(maxsize=1)</code> — 戻り値は共有 instance なので mutate 禁止(上記「<code>@lru_cache</code> の <code>maxsize</code> 規約」の必須ルール参照)。新しい shared locale YAML を追加する場合も同様に <code>locale/loader.py</code> に cached loader を定義し、consumer はそれを import します。</p>
+<h3 id="english-first-coverage">権威出典 / English-first / コード coverage<a class="headerlink" href="#english-first-coverage" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>権威出典のみ:</strong> CMS (ICD-10-CM), NLM (RxNorm, ICD-10-CM API <code>clinicaltables.nlm.nih.gov/api/icd10cm</code>), WHO (ICD-10, <code>icd.who.int/browse10</code>), Regenstrief (LOINC), AMA (CPT), JCCLS/JSLM (JLAC10), MHLW (YJ, K codes)。<strong>コードを fabricate しない</strong> (CODES-7: RxNorm CUI 18631 を 2 薬で共有した fabricated display が実例)。</li>
+<li><strong>English-first:</strong> <code>codes/data/*.yaml</code> の全エントリに <code>en</code> 必須、他言語 (<code>ja</code> 等) は任意 (CODES-1)。</li>
+<li><strong>emittable な診断コードは全て登録:</strong> disease の <code>icd_codes</code> (primary + variants)、encounter の <code>icd10_code</code>、<code>builtin_differentials.yaml</code> の <code>differentials[*].icd</code> + <code>diagnosis_progression</code>。US billable は <code>icd-10-cm.yaml</code>、非 billable は <code>code_mapping_diagnosis/us.yaml</code> で billable leaf へ。JP は WHO 3-4 桁を <code>icd-10.yaml</code> に (CM 粒度は <code>code_mapping_diagnosis/jp.yaml</code> で WHO 親へ畳む)。追加後は必ず:</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>pytest<span class="w"> </span>tests/unit/test_diagnosis_code_coverage.py
+</span></code></pre></div>
+<blockquote>
+<p>RxNorm/YJ/CPT/K-codes/CVX には同等の coverage test がまだありません (CODES-6)。drug/procedure コードを追加したら手動で mapping → codes の存在を確認してください。</p>
+</blockquote>
+<hr />
+<h2 id="_7">追加時チェックリスト<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<p>順番に実行:</p>
+<ol>
+<li><strong>対象モジュールの <code>README.md</code> を読む</strong> (Dependencies と既存 API を把握)。</li>
+<li><strong>共有型を <code>clinosim/types/&lt;name&gt;.py</code> に定義</strong> し <code>types/__init__.py</code> に <code>__all__</code> で export (engine 内に定義しない)。<code>@dataclass</code> = runtime, Pydantic = config (AD-18)。</li>
+<li><strong>データ駆動なら <code>reference_data/*.yaml</code> + Pydantic 検証</strong> (<code>model_validate</code>)。bare <code>except</code> 禁止。</li>
+<li><strong>決定論 sub-seed</strong> を式どおりに導出 (per-entity key を混ぜる)。<code>random.random()</code> / global state 禁止。</li>
+<li><strong>適切な registry で登録:</strong> FHIR → <code>register_bundle_builder</code>、出力形式 → <code>register_output_adapter</code>、post-pass → <code>register_enricher</code>。core dispatch / <code>_build_bundle</code> / <code>run_beta</code> / CLI <code>--format</code> を編集しない。</li>
+<li><strong>コード coverage:</strong> 新規/変更コードを権威出典で照合 → <code>codes/data/&lt;system&gt;.yaml</code> (<code>en</code> 必須) または <code>code_mapping_*</code> に登録 → <code>pytest tests/unit/test_diagnosis_code_coverage.py</code>。</li>
+<li><strong>README / types を更新</strong> (API・データ構造が変わったら)。<code>README.md</code> の依存グラフで downstream 影響を確認。</li>
+<li><strong><code>pytest -x -q</code></strong> (unit 必須、commit 前)。出力に影響しうるなら <code>pytest -m e2e</code> で golden を確認。</li>
+<li><strong>生成された CIF + FHIR を臨床的整合性で監査</strong> (lab/vital が physiology と整合、診断コードが正しく解決、JP 出力に英語が混入しないか、URI/reference 整合)。</li>
+</ol>
+<hr />
+<h2 id="regen-scope-matrix-local-iteration-cycles-ad-65-2026-07-02">Regen scope matrix: Local iteration cycles (AD-65, 2026-07-02)<a class="headerlink" href="#regen-scope-matrix-local-iteration-cycles-ad-65-2026-07-02" title="Permanent link">&para;</a></h2>
+<p>The two-pass CIF generation architecture (<code>clinosim generate</code> → Stage 1 structural + auto Stage 2 template narratives) + dev facility (<code>test-disease --format</code>, <code>narrate</code> verb) enables fast iteration on different change types. Use this matrix to select the fastest workflow for your change. Canonical spec for the two-pass structural/narrative CIF separation = <a href="../clinosim/modules/output/SPEC.md"><code>clinosim/modules/output/SPEC.md</code></a> § "Stage 2: Narrative Generation".</p>
+<h3 id="change-types-and-iteration-time">Change types and iteration time<a class="headerlink" href="#change-types-and-iteration-time" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Change target</th>
+<th>Fastest regen command</th>
+<th>Estimated time</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Simulator engine / enricher</strong> (population, disease, encounter logic)</td>
+<td><code>clinosim generate -p N -o /tmp/cX</code></td>
+<td>5-50 min</td>
+<td>Full cohort → CIF output. Proportional to N.</td>
+</tr>
+<tr>
+<td><strong>Template narrative generator</strong> (TemplateNarrativeGenerator, bug A pattern)</td>
+<td><code>clinosim narrate --cif-dir /tmp/cX --version-id template</code> → <code>clinosim export-fhir --cif-dir /tmp/cX</code></td>
+<td>~30 sec + 5 min</td>
+<td>Reuse existing structural CIF. Stage 2 only.</td>
+</tr>
+<tr>
+<td><strong>FHIR builder</strong> (bug C pattern)</td>
+<td><code>clinosim export-fhir --cif-dir /tmp/cX</code></td>
+<td>~5 min</td>
+<td>Reuse existing CIF. Stage 3 only.</td>
+</tr>
+<tr>
+<td><strong>Locale display / code resolution</strong></td>
+<td><code>clinosim export-fhir --cif-dir /tmp/cX</code></td>
+<td>~5 min</td>
+<td>No CIF change, Stage 3 only.</td>
+</tr>
+<tr>
+<td><strong>1 disease scenario</strong> (bug B pattern: structural CIF bug within 1 disease)</td>
+<td><code>clinosim test-disease &lt;disease_id&gt; -n 5 --format all -o /tmp/verify</code></td>
+<td>~10 seconds</td>
+<td>Structural CIF + Stage 2 narratives + Stage 3 FHIR, 5 patients.</td>
+</tr>
+<tr>
+<td><strong>1 encounter condition</strong> (bug B pattern: structural CIF bug within 1 ED/outpatient condition)</td>
+<td><code>clinosim test-encounter &lt;condition_id&gt; --format all -o /tmp/verify</code></td>
+<td>~5 seconds</td>
+<td>Same 3 stages, ~3 patients.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="case-1-template-narrative-generator-bug-ad-65-tier-1-3">Case 1: Template narrative generator bug (AD-65 Tier 1 #3)<a class="headerlink" href="#case-1-template-narrative-generator-bug-ad-65-tier-1-3" title="Permanent link">&para;</a></h3>
+<p><strong>Symptom:</strong> H&amp;P Progress Note HPI section contains Japanese characters in US cohort (bug A pattern).</p>
+<p><strong>Workflow:</strong></p>
+<ol>
+<li>
+<p><strong>Diagnose</strong> via <code>test-disease</code> (structural CIF only):
+   <div class="highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>clinosim<span class="w"> </span>test-disease<span class="w"> </span>acute_mi<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span>-o<span class="w"> </span>/tmp/test
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="c1"># Verify structural CIF has correct encounter/patient data</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Fix</strong> in code: <code>clinosim/modules/document/narrative/template_generator.py</code></p>
+</li>
+<li>Locate builder function (<code>_build_hpi</code>, <code>_build_physical_examination</code>)</li>
+<li>Check <code>_pick_localized(tmpl, key, lang)</code> call is routing to <code>en</code> field for US language</li>
+<li>
+<p>Verify Disease YAML <code>narrative.physical_examination_en</code> field is populated</p>
+</li>
+<li>
+<p><strong>Verify fix</strong> via fast Stage 2 regen (skip expensive full cohort):
+   <div class="highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># Reuse structural CIF from step 1</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/test<span class="w"> </span>--version-id<span class="w"> </span>template
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/test
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="c1"># Check output Composition resource&#39;s text field has zero Japanese</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Full validation</strong> (once confident):
+   <div class="highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>clinosim<span class="w"> </span>generate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>clinosim<span class="w"> </span>audit<span class="w"> </span>run<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/us500
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="c1"># Gate: &quot;us_admission_hp_zero_ja_chars&quot; = 0</span>
+</span></code></pre></div></p>
+</li>
+</ol>
+<p><strong>Total iteration time:</strong> ~35 seconds per fix attempt (10 sec <code>test-disease</code> + 25 sec <code>narrate</code>+<code>export-fhir</code>).</p>
+<hr />
+<h3 id="case-2-structuralauthor-bug-encounterorderenricher-logic">Case 2: Structural/author bug (encounter/order/enricher logic)<a class="headerlink" href="#case-2-structuralauthor-bug-encounterorderenricher-logic" title="Permanent link">&para;</a></h3>
+<p><strong>Symptom:</strong> Nursing notes have physician as author instead of primary nurse (bug B pattern).</p>
+<p><strong>Workflow:</strong></p>
+<ol>
+<li>
+<p><strong>Diagnose</strong> via unit test:
+   <div class="highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>pytest<span class="w"> </span>tests/unit/test_document_author_selection.py<span class="w"> </span>-xvs
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="c1"># Verify _pick_document_author(spec, encounter) returns correct id</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Fix</strong> in code: <code>clinosim/modules/document/engine.py</code></p>
+</li>
+<li>Locate <code>_emit_doc()</code> function</li>
+<li>Replace hardcoded <code>attending_id = encounter.attending_physician_id</code></li>
+<li>
+<p>Call helper <code>_pick_document_author(spec, encounter)</code> instead</p>
+</li>
+<li>
+<p><strong>Verify fix</strong> via <code>test-disease --format all</code> (includes structural + narrative + FHIR):
+   <div class="highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>clinosim<span class="w"> </span>test-disease<span class="w"> </span>acute_mi<span class="w"> </span>-n<span class="w"> </span><span class="m">3</span><span class="w"> </span>--format<span class="w"> </span>all<span class="w"> </span>-o<span class="w"> </span>/tmp/verify
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="c1"># Check FHIR Composition.author field</span>
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="c1"># Check CIF Composition.subject.type has nursing LOINC + author is nurse_id</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Integration test</strong> on production cohort:
+   <div class="highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>clinosim<span class="w"> </span>generate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>clinosim<span class="w"> </span>audit<span class="w"> </span>run<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/us500
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="c1"># Gate: &quot;nursing_doc_author_is_nurse_ratio&quot; = 1.0</span>
+</span></code></pre></div></p>
+</li>
+</ol>
+<p><strong>Total iteration time:</strong> ~8 seconds per fix attempt (3 sec <code>test-disease</code>, 5 sec integration).</p>
+<hr />
+<h3 id="case-3-fhir-builder-bug">Case 3: FHIR builder bug<a class="headerlink" href="#case-3-fhir-builder-bug" title="Permanent link">&para;</a></h3>
+<p><strong>Symptom:</strong> Composition resource is missing a required section, or reference integrity is broken.</p>
+<p><strong>Workflow:</strong></p>
+<ol>
+<li>
+<p><strong>Diagnose</strong> via unit test on builder:
+   <div class="highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>pytest<span class="w"> </span>tests/unit/test_fhir_composition.py<span class="w"> </span>-xvs<span class="w"> </span>-k<span class="w"> </span><span class="s2">&quot;missing_section&quot;</span>
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="c1"># Unit test on builder logic</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Fix</strong> in code: <code>clinosim/modules/output/_fhir_composition.py</code></p>
+</li>
+<li>Check <code>_bb_compositions()</code> reads <code>doc.narrative.sections</code> (post-AD-65 structure)</li>
+<li>
+<p>Verify reference integrity: all <code>reference</code> URIs resolve to resources in manifest</p>
+</li>
+<li>
+<p><strong>Quick structural check</strong> (FHIR builder doesn't change structural CIF):
+   <div class="highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1"># Reuse existing /tmp/us500 CIF from case 2</span>
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/us500
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="c1"># Inspect Composition.ndjson for correct section[] content</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Validation</strong>:
+   <div class="highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>pytest<span class="w"> </span>tests/unit/test_fhir_composition.py<span class="w"> </span>-xvs
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>pytest<span class="w"> </span>-m<span class="w"> </span>integration<span class="w"> </span>-xvs<span class="w"> </span>tests/integration/test_fhir_reference_integrity.py
+</span></code></pre></div></p>
+</li>
+</ol>
+<p><strong>Total iteration time:</strong> ~5 minutes per fix attempt (all Stage 3 only, no CIF regen).</p>
+<hr />
+<h3 id="determinism-reproducibility">Determinism &amp; reproducibility<a class="headerlink" href="#determinism-reproducibility" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Seed pinning:</strong> All structural + narrative generation uses deterministic seed (default 42). Use <code>--seed N</code> to reproduce exact cohort across runs.</li>
+<li><strong>Narrative version pointer:</strong> <code>cif/narratives/current_version.txt</code> tracks active narrative version. Export defaults to <code>current</code>, or specify <code>--narrative-version &lt;id&gt;</code>.</li>
+<li><strong>Backwards compat:</strong> Old CIF without narrative dir → <code>export-fhir</code> emits empty narrative and warns. <code>test-disease --format cif</code> writes structural CIF only (no narrative, consistent with <code>generate</code> Stage 1 output).</li>
+</ul>
+<hr />
+<h2 id="_8">よくある落とし穴<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
+<p><strong>Do</strong>
+- engine は pure function、文脈は引数で渡す (<code>observation/engine.py</code> が手本)。
+- 型は <code>clinosim/types/</code>、display は <code>code_lookup()</code>、URI は <code>get_system_uri()</code>。
+- 国判定は <code>is_jp()</code>、display 言語は <code>resolve_lang()</code>、国→code system 選択は <code>system_key_for()</code>(hand-rolled な <code>country == "JP"</code> 変種 / inline 分岐を書かない)。
+- cached loader の戻り値は read-only 扱い(共有 instance — mutate 禁止)。
+- venue simulator は <code>CIFPatientRecord</code> を <strong>return</strong>、opt-in は <code>extensions[&lt;module&gt;]</code> に書く。
+- sub-seed に per-entity key を混ぜ、各 entity ごとに fresh な <code>default_rng</code> を作る。
+- YAML は Pydantic で validate、canonical loader (<code>locale/loader.py</code>, <code>codes/loader.py</code>) を通す。</p>
+<p><strong>Don't</strong>
+- ❌ CIF に display text を保存しない (codes のみ。AD-30)。
+- ❌ FHIR system URI / 診断 display を生文字列でハードコードしない (URI-1, MOD-11, DUP-&frac12;/3, FA-2/4/8)。
+- ❌ <code>random.random()</code> / stdlib <code>random</code> / module-level 可変 global を使わない (AD-16; DET-4 の <code>_prev_diet</code> が反面教師)。
+- ❌ core dispatch (<code>_build_bundle</code>, <code>run_beta</code>, CLI <code>--format</code>) を編集しない — registry で拡張する。
+- ❌ 共有型を engine 内に定義しない (MOD-2..6)。<code>__init__.py</code> を空のままにせず public API を export する (MOD-1/TYP-1)。
+- ❌ private 関数 (<code>_sample_given_name</code> 等) を他モジュールから import しない (MOD-7/TYP-5) — locale の public utility に昇格させる。
+- ❌ コードを fabricate しない / <code>except Exception: pass</code> で YAML エラーを握り潰さない (CODES-7, ENC-1)。
+- ❌ <code>ctx.country</code> を捨てない (FA-9)。<code>determine_flag()</code> に locale reference range を渡し忘れない (OBS-3)。
+- ❌ venue ごとに baseline 値や lookup table を別定義して乖離させない (DET-6, DUP-1)。</p>
+<h2 id="adding-a-new-patient-profile-fixture-ad-66">Adding a new patient profile fixture (AD-66)<a class="headerlink" href="#adding-a-new-patient-profile-fixture-ad-66" title="Permanent link">&para;</a></h2>
+<p>See <code>tests/fixtures/patient_profiles/README.md</code> for the full workflow.
+Quick summary:</p>
+<ol>
+<li>Copy an existing profile YAML as a template</li>
+<li>Edit <code>profile_id</code> (must match filename stem), <code>disease_id</code>, <code>country</code>, <code>severity</code>, <code>archetype</code>, <code>patient_overrides</code></li>
+<li>Run <code>clinosim regenerate-goldens --profile &lt;new_profile_id&gt;</code> to bootstrap the golden</li>
+<li>Manually review <code>&lt;new_profile_id&gt;.golden.json</code></li>
+<li>Run <code>pytest -m regression -k &lt;new_profile_id&gt; -q</code> to verify</li>
+<li>Commit YAML + golden together (AD-66 rule 1)</li>
+</ol>
+<p><strong>AD-66 policy</strong> (see <code>CLAUDE.md</code> for canonical wording):
+- Profile YAML changes MUST regenerate golden + commit both together
+- Unexpected <code>git diff</code> on goldens after intentional template changes = regression suspicion</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../reference/todo/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Roadmap (TODO)">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Roadmap (TODO)
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../clinical_documents/" class="md-footer__link md-footer__link--next" aria-label="Next: Clinical documents">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Clinical documents
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/TomoOkuyama/clinosim" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

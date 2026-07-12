@@ -1,0 +1,2253 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Population-driven, physiology-based synthetic Electronic Health Record generator (FHIR R4). Multi-country (US + JP), JP Core profile compliance, YAML-driven disease extension.
+">
+      
+      
+      
+        <link rel="canonical" href="https://tomookuyama.github.io/clinosim/design-guides/data-generation-walkthrough/">
+      
+      
+        <link rel="prev" href="../project-concept-and-design/">
+      
+      
+        <link rel="next" href="../implementation-rules/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Data generation walkthrough - clinosim</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#data-generation-walkthrough" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="clinosim" class="md-header__button md-logo" aria-label="clinosim" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            clinosim
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Data generation walkthrough
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/TomoOkuyama/clinosim" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    TomoOkuyama/clinosim
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Getting started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../project-concept-and-design/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/datasets/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../CONTRIBUTING-modules/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../development/reproducibility/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../governance/contributing/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Governance
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="clinosim" class="md-nav__button md-logo" aria-label="clinosim" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    clinosim
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/TomoOkuyama/clinosim" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    TomoOkuyama/clinosim
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning & releases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project-concept-and-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project concept & design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data generation walkthrough
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data generation walkthrough
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0-3-cli-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0. 3 段 CLI = 3 つの成果物
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-stage-1-generate-cif" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Stage 1 = generate:人口 → イベント → 受診シミュレーション → CIF
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Stage 1 = generate:人口 → イベント → 受診シミュレーション → CIF">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1a-layer-1-modulespopulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1a. 人口生成(Layer 1)— modules/population
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1b-generate_monthly_events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1b. ライフイベント発火 — generate_monthly_events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1c-hydrate-modulespatient" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1c. 患者の hydrate — modules/patient
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1d-daily-loop-simulatorinpatientpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1d. 受診シミュレーション(daily loop)— simulator/inpatient.py ほか
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1e-enricher-simulatorenricherspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1e. Enricher(モジュール拡張)— simulator/enrichers.py
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1f-cif" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1f. CIF 書き出し
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-stage-2-narrate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Stage 2 = narrate:ナラティブ生成(差し替え可能層)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-stage-3-export-fhircif-fhir-r4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Stage 3 = export-fhir:CIF → FHIR R4
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 1 人の入院患者を追う(具体トレース)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. データを増やす/直すときの入口
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. なぜこの形か(設計の背骨)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../implementation-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementation rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fhir-data-generation-logic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FHIR data generation logic
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-model-and-completeness-conventions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data model conventions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/datasets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Datasets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../eval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design (ADRs)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/scenario-flags/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scenario flags
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/todo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap (TODO)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CONTRIBUTING-modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding a module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../clinical_documents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Clinical documents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bedrock_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bedrock LLM setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/reproducibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Governance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Governance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../governance/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../governance/code-of-conduct/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../governance/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../governance/citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Citation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0-3-cli-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0. 3 段 CLI = 3 つの成果物
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-stage-1-generate-cif" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Stage 1 = generate:人口 → イベント → 受診シミュレーション → CIF
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Stage 1 = generate:人口 → イベント → 受診シミュレーション → CIF">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1a-layer-1-modulespopulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1a. 人口生成(Layer 1)— modules/population
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1b-generate_monthly_events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1b. ライフイベント発火 — generate_monthly_events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1c-hydrate-modulespatient" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1c. 患者の hydrate — modules/patient
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1d-daily-loop-simulatorinpatientpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1d. 受診シミュレーション(daily loop)— simulator/inpatient.py ほか
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1e-enricher-simulatorenricherspy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1e. Enricher(モジュール拡張)— simulator/enrichers.py
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1f-cif" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1f. CIF 書き出し
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-stage-2-narrate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Stage 2 = narrate:ナラティブ生成(差し替え可能層)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-stage-3-export-fhircif-fhir-r4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Stage 3 = export-fhir:CIF → FHIR R4
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 1 人の入院患者を追う(具体トレース)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. データを増やす/直すときの入口
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. なぜこの形か(設計の背骨)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/design-guides/data-generation-walkthrough.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="data-generation-walkthrough">Data Generation Walkthrough — 「データはどう生まれるか」<a class="headerlink" href="#data-generation-walkthrough" title="Permanent link">&para;</a></h1>
+<p><strong>Status:</strong> Active(2026-07-06、session 38 で確立)
+<strong>Audience:</strong> clinosim に初めて触れる開発者/実装 AI。<strong>このプロジェクトが 1 件の患者データを
+どう組み立てるか</strong>を、実際のファイル名・関数名・データ構造つきで end-to-end に追う。
+<strong>読む順:</strong> <code>README.md</code>(索引)→ <code>project-concept-and-design.md</code>(コンセプト)→ <strong>本書</strong>
+→ <code>implementation-rules.md</code>(不変則)。詳細な HOW-TO は <code>../CONTRIBUTING-modules.md</code>。</p>
+<blockquote>
+<p>ひとことで言うと: <strong>人口を作り → その人口から病院受診イベントを発火させ → 受診ごとに生理・
+検査・処置・文書を日次シミュレーションして中間表現 CIF に書き → CIF から FHIR を組む。</strong>
+乱数は全て seed 由来で決定的(同 seed = 同一出力)。</p>
+</blockquote>
+<hr />
+<h2 id="0-3-cli-3">0. 3 段 CLI = 3 つの成果物<a class="headerlink" href="#0-3-cli-3" title="Permanent link">&para;</a></h2>
+<p>データ生成は 3 つの独立した CLI ステージに分かれる(AD-37)。各ステージは前段の成果物だけを読む。</p>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>clinosim generate      →  CIF(構造化)      cif/structural/patients/&lt;enc&gt;.json
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>        ↓                                    + cif/hospital.json / metadata.json
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>clinosim narrate       →  CIF(ナラティブ)  cif/narratives/&lt;version&gt;/documents/&lt;enc&gt;/&lt;doc&gt;.json
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        ↓
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>clinosim export-fhir   →  FHIR R4 NDJSON     fhir_r4/&lt;ResourceType&gt;.ndjson + manifest.json
+</span></code></pre></div>
+<ul>
+<li><strong>なぜ 3 段か</strong>: ナラティブ(問診・経過記録の自然文)を <strong>後から差し替え可能</strong>にするため。
+  最初は template でナラティブを作り、後で <code>narrate --provider bedrock</code> で LLM 再生成 →
+  <code>export-fhir --narrative-version &lt;id&gt;</code> で FHIR を作り直す、が独立に回る(コンセプト要求 6)。</li>
+<li><strong>CIF がシミュレーションの唯一の出力</strong>(AD-17)。FHIR/CSV adapter は CIF だけを読み、
+  シミュレーション内部には触れない。</li>
+<li>他の subcommand: <code>test-disease &lt;id&gt;</code>(1 疾患を単体生成してデバッグ表示)/ <code>test-encounter</code>
+  / <code>audit run</code>(4 軸検証)/ <code>validate</code> / <code>regenerate-goldens</code> / <code>check-narratives</code> /
+  <code>list-diseases</code>。</li>
+</ul>
+<hr />
+<h2 id="1-stage-1-generate-cif">1. Stage 1 = <code>generate</code>:人口 → イベント → 受診シミュレーション → CIF<a class="headerlink" href="#1-stage-1-generate-cif" title="Permanent link">&para;</a></h2>
+<p>エントリは <code>clinosim/simulator/engine.py:run_beta()</code>。以下の順に進む。</p>
+<h3 id="1a-layer-1-modulespopulation">1a. 人口生成(Layer 1)— <code>modules/population</code><a class="headerlink" href="#1a-layer-1-modulespopulation" title="Permanent link">&para;</a></h3>
+<p><code>generate_population(size, country, rng)</code>(<code>population/engine.py</code>)が <strong>医療圏の住民集団</strong>を
+世帯単位で作る。各 <code>PersonRecord</code>(<code>types/population.py</code>)は軽量:年齢・性別・住所・
+<strong>慢性疾患(ICD コードのリスト)</strong>・BMI・喫煙/飲酒・受診閾値など。疫学データ(年齢分布・
+慢性疾患有病率・疾患発生率)は全て <code>locale/&lt;country&gt;/demographics.yaml</code> から読む(コードに疫学値を
+ハードコードしない)。</p>
+<h3 id="1b-generate_monthly_events">1b. ライフイベント発火 — <code>generate_monthly_events</code><a class="headerlink" href="#1b-generate_monthly_events" title="Permanent link">&para;</a></h3>
+<p><code>run_beta</code> は <code>time_range</code>(既定 1 年)を <strong>年 × 月ループ</strong>で回し、各月
+<code>generate_monthly_events(registry, year, month, rng, country)</code> を呼ぶ。住民ごとに疾患 incidence
+(発生率 × 年齢 × 季節性 × 生活習慣リスク)を評価し、<code>rng.random() &lt; rate</code> で疾患発症を判定。
+発症したら:</p>
+<ul>
+<li><strong>重症度</strong>を <code>disease.severity.sample_severity(load_disease_protocol(disease_id), person, rng)</code>
+  で決定(AD-67)。疾患 YAML の <code>severity.distribution × modifiers</code>(年齢・併存症で補正)から
+  カテゴリを引き、連続 score も返す。← <strong>重症度の唯一の source は疾患 YAML</strong>(旧 <code>severity_beta</code> は撤廃)。</li>
+<li><strong>入院要否</strong>を連続 score と受診閾値で判定(<code>severity &gt; care_seeking_threshold</code>)。</li>
+<li><code>LifeEvent</code>(person_id / disease_id / timestamp / severity / requires_hospital)を生成。</li>
+</ul>
+<p>「患者は population から生まれる」— どの患者も最初は住民で、イベントが閾値を超えて初めて
+hospital encounter に変換される。これにより疫学が人口レベルで正しくスケールする。</p>
+<h3 id="1c-hydrate-modulespatient">1c. 患者の hydrate — <code>modules/patient</code><a class="headerlink" href="#1c-hydrate-modulespatient" title="Permanent link">&para;</a></h3>
+<p>入院/受診が確定した住民は <code>activate_patient(person, rng, demo)</code>(<code>patient/activator.py</code>)で
+Layer 1 → Layer 2 <code>PatientProfile</code> に厚くなる:身長/体重、<strong>慢性疾患の staging</strong>
+(<code>_generate_stage</code>:CKD G3a / NYHA II / 高血圧 Stage 2 …)、<strong>ステージ由来の生理パラメータ</strong>
+(<code>STAGE_SEVERITY</code> が stage → severity_score、それが baseline vitals や physiology を駆動 —
+例:高血圧 Stage 2 → 高い baseline 血圧、FP-I10)、常用薬、アレルギー、baseline vitals。</p>
+<h3 id="1d-daily-loop-simulatorinpatientpy">1d. 受診シミュレーション(daily loop)— <code>simulator/inpatient.py</code> ほか<a class="headerlink" href="#1d-daily-loop-simulatorinpatientpy" title="Permanent link">&para;</a></h3>
+<p>受診タイプ別に分岐:
+- <strong>入院</strong>: <code>inpatient.py:_simulate_patient()</code> → <code>_run_daily_loop()</code>。
+- <strong>ED</strong>: <code>emergency.py</code>。<strong>外来</strong>: <code>outpatient.py</code>。</p>
+<p>入院の 1 日ループがデータの中心。おおまかに:</p>
+<ol>
+<li><strong>重症度 → コース選択</strong>: <code>event.severity</code>(連続 score)を <code>category_from_score</code> で
+   mild/moderate/severe に。<code>select_archetype(severity, profile, rng, protocol_archetypes=…,
+   protocol_modifiers=…, patient=…)</code>(<code>clinical_course/engine.py</code>)が疾患 YAML の
+   <code>course_archetypes</code>(6 正準アーキタイプの確率 + 患者リスク因子 <code>archetype_modifiers</code> 補正、
+   AD-68)から <strong>その患者の経過アーキタイプ</strong>を 1 つ引く(smooth_recovery / dip_then_recovery /
+   … / sudden_deterioration)。</li>
+<li><strong>初期生理状態</strong>: <code>apply_disease_onset(state, severity, protocol.initial_state_impact, …)</code> で
+   疾患の onset を physiology 状態(inflammation_level / volume_status / perfusion_status /
+   renal_function / cardiac_function …)に反映。</li>
+<li><strong>日次で状態を進める</strong>: <code>get_daily_directive(archetype, day, …)</code> がアーキタイプの
+   <code>trajectory</code>(状態変数ごとの日次デルタ)を補間して状態を更新。</li>
+<li><strong>合併症</strong>: <code>evaluate_complications(day, state, patient, protocol.complications, …, severity=…)</code>
+   が疾患 YAML の <code>complications</code>(発生率・リスク因子・state_impact・actions)を評価。
+   <code>actions: ["icu_transfer"]</code> を含む合併症が発火すると ICU 転送。</li>
+<li><strong>オーダ/検査/バイタル/投薬</strong>: physiology 状態から <code>derive_lab_values</code>(30+ analyte)で検査値、
+   vitals、<code>place_admission_orders</code> / <code>place_daily_lab_orders</code>(panel-aware)/ 画像
+   (<code>place_imaging_orders</code>)/ MAR を生成。</li>
+<li><strong>退院/死亡</strong>: LOS(疾患 YAML <code>target_los</code>)と <code>outcome_benchmarks</code>(死亡率)で決定。
+   <code>--end</code>(snapshot)以降は in-progress 扱い(AD-32)。</li>
+</ol>
+<p>結果は 1 患者 = 1 <code>CIFPatientRecord</code>。<strong>scenario / severity / course / complications / labs は
+すべて疾患 YAML 駆動</strong>で、engine コードに臨床値をハードコードしない。</p>
+<h3 id="1e-enricher-simulatorenricherspy">1e. Enricher(モジュール拡張)— <code>simulator/enrichers.py</code><a class="headerlink" href="#1e-enricher-simulatorenricherspy" title="Permanent link">&para;</a></h3>
+<p>Base の受診シミュレーションの前後に、<strong>opt-in / always-on モジュール</strong>が 3 ステージで走る:</p>
+<ul>
+<li><strong>POST_POPULATION</strong>(人口生成後・シミュレーション前): 例 identity(JP マイナンバー/保険)。</li>
+<li><strong>POST_ENCOUNTER</strong>(1 受診の daily loop 完了直後、encounter simulator の内側): 臨床カスケード。
+  順序固定 <code>device(70) → hai(80) → antibiotic(85) → imaging(90) → triage(93) →
+  nursing_assignment(94) → document(95)</code>。前段の <code>extensions[X]</code> を読んで次段が動く
+  (device なしに HAI なし等)。</li>
+<li><strong>POST_RECORDS</strong>(全患者シミュレーション後): cross-record。nursing flowsheet / immunization /
+  family_history / code_status / care_level。</li>
+</ul>
+<p>モジュールは <code>CIFPatientRecord.extensions[&lt;module&gt;]</code> にだけ書く(コア型への typed field 追加は
+Base のみ)。新モジュール追加 = enricher を registry 登録するだけ(dispatch 本体は編集しない、AD-56)。</p>
+<h3 id="1f-cif">1f. CIF 書き出し<a class="headerlink" href="#1f-cif" title="Permanent link">&para;</a></h3>
+<p>各患者の構造化データを <code>cif/structural/patients/&lt;encounter_id&gt;.json</code> に immutable で書く。
+この時点で <code>document</code> モジュールは <code>ClinicalDocument</code> の <strong>stub のみ</strong>(metadata + author +
+encounter binding、<code>narrative=None</code>)を作る。実際の自然文は Stage 2 で入る(AD-65)。</p>
+<hr />
+<h2 id="2-stage-2-narrate">2. Stage 2 = <code>narrate</code>:ナラティブ生成(差し替え可能層)<a class="headerlink" href="#2-stage-2-narrate" title="Permanent link">&para;</a></h2>
+<p><code>narrate --provider template|mock|ollama|bedrock --version-id &lt;id&gt;</code> が
+<code>cif/narratives/&lt;version&gt;/documents/&lt;enc&gt;/&lt;doc&gt;.json</code> を書く。</p>
+<ul>
+<li><code>NarrativePass</code>(<code>document/narrative/passes.py</code>、ABC)が structural CIF を読み、患者 profile /
+  labs / conditions / medications / scenario spine を入力に narrative を導出。</li>
+<li><strong>walk 順序 = (doc_type, language) group 単位</strong>で、同 prompt prefix を共有する batch を逐次処理
+  → LLM prompt cache hit 率最大化(変更禁止)。</li>
+<li>template と LLM で <strong>同一 base class</strong>。LLM 経路は <code>LLMService.complete_prompt()</code> が唯一の
+  LLM 呼び出し口(AD-11)、prompt は <code>llm_service/prompts/{en,ja}/*.yaml</code>。</li>
+<li>version 化されるので、後で別バージョンを作って FHIR を作り直せる。</li>
+</ul>
+<hr />
+<h2 id="3-stage-3-export-fhircif-fhir-r4">3. Stage 3 = <code>export-fhir</code>:CIF → FHIR R4<a class="headerlink" href="#3-stage-3-export-fhircif-fhir-r4" title="Permanent link">&para;</a></h2>
+<p><code>export-fhir --narrative-version &lt;id&gt;</code> が <code>CIFReader</code> で structural + narrative を merge し、
+<code>_fhir_*</code> builder 群(<code>modules/output/</code>)が FHIR resource を組む。</p>
+<ul>
+<li><strong>Bulk Data Access</strong>(AD-31): resource type ごとに 1 NDJSON + <code>manifest.json</code>。Bundle でラップしない。</li>
+<li>builder は <strong>CIF を読むだけ</strong>。display は <code>code_lookup(system, code, lang)</code>、URI は
+  <code>get_system_uri</code>、国→コード体系は <code>system_key_for</code> で解決(ハードコード禁止)。</li>
+<li>FHIR resource を足す = <code>register_bundle_builder</code> で builder を登録(AD-56、dispatch は編集しない)。</li>
+<li>出力形式を足す = <code>register_output_adapter</code>(CSV が実例)。</li>
+</ul>
+<p>現在 25+ resource type(Patient / Encounter / Condition / Observation / MedicationRequest /
+MedicationAdministration / Procedure / DiagnosticReport / ServiceRequest / ImagingStudy /
+DocumentReference / Composition / ClinicalImpression / CareTeam / AllergyIntolerance /
+Immunization / FamilyMemberHistory / Coverage / Device / Specimen / Organization / Location /
+Practitioner / PractitionerRole / Endpoint …)。</p>
+<hr />
+<h2 id="4-1">4. 1 人の入院患者を追う(具体トレース)<a class="headerlink" href="#4-1" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>run_beta(config)                                   # simulator/engine.py
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a> └ generate_population(40000, &quot;US&quot;, rng)            # 医療圏 40k 人
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>     → PersonRecord(age=78, chronic=[&quot;I10&quot;,&quot;N18&quot;])  # 高血圧+CKD の 78 歳
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a> └ generate_monthly_events(...) 各月                 # population/engine.py
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>     → incidence 評価 → acute_mi 発症
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>     → sample_severity(acute_mi protocol, person)   # 疾患YAML分布×modifiers(高齢→severe寄り)
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>        = (&quot;severe&quot;, 0.82)
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>     → requires_hospital = 0.82 &gt; threshold = True
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>     → LifeEvent(acute_mi, severe, requires_hospital)
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a> └ activate_patient(person)                          # patient/activator.py
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>     → PatientProfile(stage: &quot;CKD G3a&quot;/&quot;HT Stage 2&quot;, baseline BP ↑ by stage)
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a> └ _simulate_patient(event)                          # inpatient.py
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>     → category_from_score(0.82) = &quot;severe&quot;
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>     → select_archetype(&quot;severe&quot;, …, acute_mi.course_archetypes, .archetype_modifiers)
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>        = &quot;dip_then_recovery&quot;
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>     → apply_disease_onset(state, &quot;severe&quot;, acute_mi.initial_state_impact)
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>     └ _run_daily_loop(...)  各日                     # 日次で状態→検査/vitals/orders/MAR
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>         → derive_lab_values(...)  troponin↑ CK-MB↑ Cr↑(CKD baseline)
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>         → evaluate_complications(...)  # acute_mi.complications
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>         → POST_ENCOUNTER enrichers: device→hai→antibiotic→imaging→triage→nursing→document
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>     → CIFPatientRecord(orders, labs, vitals, mar, documents(stub), extensions{...})
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a> └ cif/structural/patients/ENC-....json 書き出し
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>--- narrate ---
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a> └ TemplateNarrativePass  → cif/narratives/template/documents/ENC-.../hp.json (H&amp;P 本文)
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>--- export-fhir ---
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a> └ _fhir_conditions → Condition(acute_mi I21, stage &quot;CKD G3a&quot; …)
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>    _fhir_observations → Observation(troponin, Cr, …)
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>    _fhir_medications → MedicationRequest/Administration
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>    … → fhir_r4/*.ndjson
+</span></code></pre></div>
+<hr />
+<h2 id="5">5. データを増やす/直すときの入口<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>やりたいこと</th>
+<th>どこを触るか</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>新しい疾患</td>
+<td><code>modules/disease/reference_data/&lt;id&gt;.yaml</code> を追加(既存疾患を雛形に)+ 発生率を locale に + 診断コードを <code>codes/data/</code> に登録。engine コード変更不要。<code>CONTRIBUTING-modules.md</code></td>
+</tr>
+<tr>
+<td>新しい ED/外来条件</td>
+<td><code>modules/encounter/reference_data/&lt;id&gt;.yaml</code></td>
+</tr>
+<tr>
+<td>新しい検査値 analyte</td>
+<td><code>derive_lab_values</code>(observation)+ code_mapping + <code>codes/data/loinc.yaml</code></td>
+</tr>
+<tr>
+<td>新しい FHIR resource</td>
+<td><code>_fhir_&lt;topic&gt;.py</code> builder + <code>register_bundle_builder</code>(§3)</td>
+</tr>
+<tr>
+<td>新しい出力形式</td>
+<td><code>OutputAdapter</code> + <code>register_output_adapter</code></td>
+</tr>
+<tr>
+<td>新しいデータ種(モジュール)</td>
+<td><code>modules/&lt;name&gt;/</code> + enricher 登録(§1e)+ <code>extensions[&lt;name&gt;]</code> に書く</td>
+</tr>
+<tr>
+<td>コード → 表示名</td>
+<td><code>codes/data/&lt;system&gt;.yaml</code>(EN 必須、JA 任意)。<code>code_lookup</code> で解決</td>
+</tr>
+</tbody>
+</table>
+<p><strong>必ず守る不変則</strong>(詳細 <code>implementation-rules.md</code>):決定性(全乱数 seed 由来)/ CIF は code のみ
+(display は出力時解決)/ 疾患 YAML の未知キーは <code>extra="forbid"</code> で load 時 raise / 重症度・
+course・complications は疾患 YAML 駆動 / silent-no-op 防御(canonical constants + <code>_validate_*</code> +
+completeness 不変則 test)。</p>
+<hr />
+<h2 id="6">6. なぜこの形か(設計の背骨)<a class="headerlink" href="#6" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>population-driven</strong>: 疫学を人口レベルで正しくスケールさせ、再入院や外来フォローを同一 person_id で
+  追跡するため。</li>
+<li><strong>YAML 駆動</strong>: 臨床値を Python に埋めず、疾患/検査/locale/コードを YAML 定義にすることで、
+  「モジュール/疾患を足すだけ」で新データを生成できる(コンセプト要求 4・8)。</li>
+<li><strong>CIF 2 層 + 3 段 CLI</strong>: ナラティブ品質を後から独立に上げられる(template → LLM)ため(要求 5・6)。</li>
+<li><strong>決定性</strong>: 同 seed = byte 同一。refactor の byte-diff 検証と regression golden が成立する。</li>
+<li><strong>silent-no-op 防御</strong>: 「動いているように見えて実は発火していない」バグ(PR-90/J5/C-1)が
+  このプロジェクト最大の敵。canonical constants・fail-loud validation・発火 counter・completeness
+  不変則 test の多層で防ぐ(<code>implementation-rules.md</code> §9)。
+</content></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../project-concept-and-design/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Project concept &amp; design">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Project concept & design
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../implementation-rules/" class="md-footer__link md-footer__link--next" aria-label="Next: Implementation rules">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Implementation rules
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/TomoOkuyama/clinosim" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
