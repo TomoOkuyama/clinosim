@@ -1743,7 +1743,8 @@
 <ul>
 <li><strong>Unit: 2578 PASS</strong>(session 46 wrap 2487 + PR1 17 + PR2a 34 + PR2b 7 + PR3 9 + sub-PR-A 5 + sub-PR-B 6 + sub-PR-D 13)、regression 0</li>
 <li><code>bash scripts/reproduce.sh</code>: PASS(US 272 + JP 192 files byte-identical、2 locale × 2 runs)</li>
-<li>Integration + e2e: <strong>session 末 batch</strong>(memory <code>feedback-batch-long-running-ci-at-session-end</code> per、wrap commit 直後起動)</li>
+<li><strong>Integration: 297 PASS + 1 pre-existing #144 fail + 7 skipped + 1 xfailed</strong>(session 46 wrap 294 → 297、+3。#144 = test_jp_clinical_impression_structural_fields_present、by-design ci-in-progress、TODO tracked)</li>
+<li><strong>E2E: 37 PASS</strong>(session 46 wrap 37 と同、regression 0)</li>
 </ul>
 <h3 id="session-47-empirical">Session 47 直後の empirical 検証<a class="headerlink" href="#session-47-empirical" title="Permanent link">&para;</a></h3>
 <p><strong>p=500 seed=42 JP end=2026-06-30 health_checkup opt-in</strong>:
