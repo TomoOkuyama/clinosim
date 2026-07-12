@@ -76,6 +76,26 @@ For every `country=JP` inpatient / icu / rehab_inpatient discharge encounter, cl
 
 **Multi-locale isolation.** US NDJSON output contains no JP CodeSystem URIs, no `http://jpfhir.jp/fhir/*` URL prefix, and no Japanese text. Integration test `tests/integration/test_jp_clins_composition_ds_end_to_end.py::test_us_p50_has_no_japanese_language_leakage` scans every US NDJSON file byte-by-byte for JP signals — this is the check that surfaced the pre-existing `_build_reference_range` JP Core extension leak fixed in this PR.
 
+## JP-CLINS 診療情報提供書 Composition (PR2b)
+
+For a deterministic 20% subset of `country=JP` inpatient / icu / rehab_inpatient discharge encounters, clinosim emits a **診療情報提供書 (referral note)** Composition conforming to `JP_Composition_eReferral` (v1.12.0):
+
+- Emission rate: 20% (empirical acute-care hospital benchmark), controlled by a stable hash of `(encounter_id, patient_id)` so the same seed produces the same referral-note-emitting subset (no new RNG allocation).
+- `Composition.meta.profile` includes `http://jpfhir.jp/fhir/eReferral/StructureDefinition/JP_Composition_eReferral`
+- `Composition.type.coding[0]` = `{system: doc-typecodes, code: 57133-1, display: 診療情報提供書}`. LOINC coding retained as secondary.
+- `Composition.section` is a two-level tree:
+  - Top-level: **920** 紹介元 / **910** 紹介先 / **300** 構造情報
+  - Under 300: **950** 紹介目的 / **340** 傷病名・主訴 / **360** 現病歴
+
+Simulation approximations:
+- **紹介元** = this hospital (clinosim simulates a single facility).
+- **紹介先** = "他院" (generic placeholder; clinosim does not model inter-institution referral targets — future work could sample from a small pool of plausible receiving hospitals).
+- **紹介目的** = deterministic pick from `{継続加療 / 精査依頼 / 他科紹介 / リハビリテーション継続}` per `encounter_id` hash.
+- **傷病名・主訴** = combines the encounter's diagnosis list (code + Japanese display) with the disease-YAML chief complaint.
+- **現病歴** = HPI derived from `disease_protocol.narrative.hpi_template` (same source as the discharge summary's present_illness section).
+
+**US path**: referral notes are not emitted for `country=US` (`countries_supported: [jp]`). US clinical practice uses ordinary referral letters, not the JP-CLINS eReferral profile.
+
 ## Reproducibility
 
 The layer is deterministic — `scripts/reproduce.sh` continues to pass with country=JP output byte-identical across independent runs.

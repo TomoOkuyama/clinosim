@@ -58,7 +58,16 @@ P1 (7 items) of the diffusion plan landed in one session as 12 focused PRs.
     discharge_summary_composition`. Uncovered + fixed the
     `_build_reference_range` multi-locale bug (JP Core extension URL was
     leaking into US Observation output).
-  - [ ] PR2b: 診療情報提供書 (referral note) Composition + 紹介元/紹介先 CIF extension.
+  - [x] PR2b (session 47): Full-conformance 診療情報提供書 Composition
+    (`JP_Composition_eReferral`). Adds `REFERRAL_NOTE` DocumentType,
+    `discharge_fraction_20pct` generation_frequency (deterministic hash-
+    based ~20% emission rate for inpatient discharges), 5 new JP narrative
+    section renderers (referring_institution / referral_destination /
+    referral_purpose / diagnoses_and_complaint / present_illness_ref),
+    `_build_jp_clins_referral_note_composition` builder (920+910+300→950/340/360
+    two-level nested section tree). 紹介先 / 紹介元 / 紹介目的 are simulation
+    approximations (single-hospital, generic 他院 placeholder). Not
+    emitted for country=US.
   - [ ] PR3: 健診 opt-in module + jpfhir-validator bridge + docs polish.
 - **P2-14** "Add your country" guide + country-pack scaffold.
 - **P2-15** Benchmark task definitions (sepsis / AKI prediction) + baseline eval script.

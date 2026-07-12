@@ -32,6 +32,10 @@ codes:
   34823-5:
     en: Physical medicine and rehab Note
     ja: リハビリテーション実施計画書
+  # P2-13 PR2b (session 47) JP-CLINS 診療情報提供書 (Referral note)
+  57133-1:
+    en: Referral note
+    ja: 診療情報提供書
   69730-0:
     en: Death note
     ja: 死亡時記録

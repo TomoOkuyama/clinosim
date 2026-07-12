@@ -136,6 +136,30 @@ SHIFT_SCHEDULE: tuple[tuple[str, int], ...] = (
 )
 
 
+# P2-13 PR2b (session 47): JP-CLINS 診療情報提供書 emission rate.
+# 0.20 = 20% of eligible inpatient discharges emit a referral note.
+# Empirical acute-care hospital benchmark from spec §3.2.2. Deterministic
+# per (encounter_id, patient_id) so the same cohort seed produces the same
+# subset of referral-note emitters — no new RNG allocation needed.
+REFERRAL_NOTE_FIRE_RATE = 0.20
+
+
+def _referral_note_fires(encounter_id: str, patient_id: str) -> bool:
+    """Return True if this encounter should emit a JP-CLINS referral note.
+
+    Deterministic:
+      hash((encounter_id, patient_id)) as an int → normalized to [0, 1).
+      Fires when the value is below REFERRAL_NOTE_FIRE_RATE. The hash is
+      hashlib.sha256-based (like session 46 P1-7 lot_number fix) so the
+      result is stable across Python invocations and locales.
+    """
+    import hashlib
+    key = f"{encounter_id}::{patient_id}".encode("utf-8")
+    digest = hashlib.sha256(key).digest()
+    frac = int.from_bytes(digest[:8], "big") / (1 << 64)
+    return frac < REFERRAL_NOTE_FIRE_RATE
+
+
 def _pick_document_author(spec: Any, encounter: Any) -> str:
     """AD-65 Bug B fix: author dispatch by document type.
 
@@ -425,6 +449,35 @@ def document_enricher(ctx: Any) -> None:
                     if is_in_progress:
                         continue  # AD-32: no discharge summary while encounter is open
                     end_dt = discharge_dt or admission_dt  # discharge_dt is non-None here
+                    documents.append(ClinicalDocument(
+                        document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
+                        task_type=spec.type_key,
+                        loinc_code=spec.loinc_code,
+                        patient_id=pid,
+                        encounter_id=encounter_id,
+                        author_practitioner_id=_pick_document_author(spec, encounter),
+                        authored_datetime=end_dt.isoformat(),
+                        period_start=admission_dt.isoformat(),
+                        period_end=end_dt.isoformat(),
+                        language=lang,
+                        format_type=spec.format_type.value,
+                        narrative=None,
+                    ))
+                    doc_seq += 1
+
+                elif freq == "discharge_fraction_20pct":
+                    # P2-13 PR2b (session 47): JP-CLINS 診療情報提供書 fires on
+                    # a deterministic 20% subset of inpatient discharges
+                    # (empirical acute-care hospital referral-note rate).
+                    # AD-32: no referral note while encounter is open.
+                    # AD-16: per-record deterministic RNG (encounter_id +
+                    # patient_id as the discriminator; no new sub-seed
+                    # allocation needed — the seed is stable string hashing).
+                    if is_in_progress:
+                        continue
+                    if not _referral_note_fires(encounter_id, pid):
+                        continue
+                    end_dt = discharge_dt or admission_dt
                     documents.append(ClinicalDocument(
                         document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
                         task_type=spec.type_key,
