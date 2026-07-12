@@ -1743,8 +1743,13 @@ P1 (7 items) of the diffusion plan landed in one session as 12 focused PRs.</p>
 <li>15 HEALTH_CHECKUP_REPORT stubs (~38%).</li>
 </ul>
 </li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PR3 sub-PR-B: MVP 定型文 → 実 ObservationRecord 参照による個別化
-    (現状 checkup_lab_results / checkup_questionnaire は固定定型文)。</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> PR3 sub-PR-B (session 47): checkup_lab_results / checkup_questionnaire
+    renderer 個別化。ctx.lab_results から法定健診 5 項目実測値 → A/B/C/D
+    判定、PatientProfile.chronic_conditions / current_medications /
+    smoking_status / alcohol_use → 個別問診記録。narrative pass の
+    encounter walk 用に enricher を 「新規 CIFPatientRecord 追加」pattern
+    に refactor(既存 record への append では narrative pass が
+    HEALTH_CHECKUP_REPORT spec を認識しなかった問題を修正)。</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PR3 sub-PR-C: jpfhir-validator bridge(optional CI job)。</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PR3 sub-PR-D: 特定健診(01011/01012)+ 広域連合健診(01021/01022)
     section 対応。</li>
