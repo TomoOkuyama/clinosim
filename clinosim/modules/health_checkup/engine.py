@@ -174,17 +174,29 @@ def enrich_health_checkup(ctx: Any) -> None:
 
     lang = "ja" if is_jp(_o(ctx.config, "country", "")) else "en"
 
-    # 患者 id ごとに 1 度だけ健診 encounter を追加する(年 1 回想定)。
-    # dataset.patients には同一患者の記録が複数(inpatient + outpatient + ED)
-    # 含まれる場合があるため、重複追加を防ぐ。最初に遭遇したレコードに
-    # 追加する pattern。
+    # 患者 id ごとに 1 度だけ健診レコードを追加する(年 1 回想定)。
+    # dataset.patients は encounter 種別ごとに record を分けているため、
+    # 健診 encounter も新規 CIFPatientRecord として append する。narrative
+    # pass は record.encounters[0] で spec applicability を判定するため、
+    # 既存 inpatient record に健診 encounter を後ろから足すと
+    # HEALTH_CHECKUP_REPORT spec が適用対象外になり narrative 生成が skip
+    # される(session 47 sub-PR-B verify で発覚)。健診 record を独立させる
+    # ことで narrative pass の walk が CHECKUP encounter を正しく認識する。
+    from clinosim.types.output import CIFPatientRecord
+
     seen_patient_ids: set[str] = set()
+    known_patients: dict[str, Any] = {}
     for record in ctx.records:
         patient = _o(record, "patient", None)
         if patient is None:
             continue
         patient_id = _o(patient, "patient_id", "")
-        if not patient_id or patient_id in seen_patient_ids:
+        if patient_id and patient_id not in known_patients:
+            known_patients[patient_id] = patient
+
+    new_records: list[Any] = []
+    for patient_id, patient in known_patients.items():
+        if patient_id in seen_patient_ids:
             continue
         age = _o(patient, "age", 0) or 0
         if age < HEALTH_CHECKUP_MIN_AGE:
@@ -194,21 +206,22 @@ def enrich_health_checkup(ctx: Any) -> None:
         seen_patient_ids.add(patient_id)
 
         checkup_date = _pick_checkup_date(snapshot_date)
-
-        existing_encounters = _o(record, "encounters", []) or []
-        encounter_seq = len(existing_encounters) + 1
-        encounter = _build_checkup_encounter(
-            patient_id, checkup_date, encounter_seq,
-        )
-        # AD-55 の spirit:opt-in module は core field に書くのを最小に留めるが、
-        # 健診 encounter は encounter そのものなので encounters list に追加する。
-        record.encounters.append(encounter)
-
-        record.lab_results.extend(
-            _build_checkup_lab_results(patient_id, checkup_date)
+        encounter = _build_checkup_encounter(patient_id, checkup_date, 1)
+        checkup_labs = _build_checkup_lab_results(patient_id, checkup_date)
+        checkup_doc = _build_checkup_document_stub(
+            patient_id, encounter.encounter_id, checkup_date, 1, lang,
         )
 
-        doc_seq = len(_o(record, "documents", []) or []) + 1
-        record.documents.append(_build_checkup_document_stub(
-            patient_id, encounter.encounter_id, checkup_date, doc_seq, lang,
-        ))
+        # 健診 record は新規 CIFPatientRecord として組み立てる:
+        # narrative pass の spec applicability は record.encounters[0] を
+        # 見るため、健診専用 record の唯一の encounter が CHECKUP になる。
+        checkup_record = CIFPatientRecord(
+            patient=patient,
+            encounters=[encounter],
+            lab_results=list(checkup_labs),
+            documents=[checkup_doc],
+        )
+        new_records.append(checkup_record)
+
+    # まとめて append(iteration 中の list 変更を避ける)
+    ctx.records.extend(new_records)

@@ -1282,60 +1282,199 @@ class TemplateNarrativeGenerator:
     ) -> tuple[str, list[str]]:
         """01031 事業者健診検査結果セクション:法定健診項目の判定文。
 
-        MVP 実装:法定健診項目 5 群(身体計測 / 血圧 / 脂質 / 肝機能 /
-        血糖)の一言判定を組み立てる。将来:実測 ObservationRecord を
-        参照して基準値と比較判定する PR3+1 で高度化。
+        sub-PR-B(session 47):ctx.lab_results から健診 5 項目の実測値を
+        拾い、法定健診の基準に基づき A/B/C/D 判定を組み立てる。lab_results
+        が空(または一部欠損)の場合は該当項目を「未測定」と記す。総合
+        判定は各項目の最悪判定を返す。将来:HDL / TC / TG や AST / ALT
+        を追加する sub-PR で拡張余地あり。
         """
         facts: list[str] = []
         is_ja = ctx.target_lang == "ja"
+
+        # 5 項目の実測値を lab_results から拾う(LOINC key)
+        results_by_loinc: dict[str, float | None] = {}
+        for r in ctx.lab_results or []:
+            loinc = _o(r, "lab_name", "")
+            val = _o(r, "value", None)
+            if loinc in {"39156-5", "8480-6", "8462-4", "4548-4", "18262-6"}:
+                results_by_loinc[loinc] = val
+                facts.append(f"ctx.lab_results[{loinc}]")
+
+        # 各項目の判定を返す helper(A=正常、B=境界、C=要指導、D=要精査)
+        def _judge_bmi(v: float | None) -> tuple[str, str]:
+            if v is None:
+                return ("未測定", "A")
+            if v < 18.5:
+                return (f"{v:.1f}(低体重)", "B")
+            if v < 25.0:
+                return (f"{v:.1f}(標準)", "A")
+            if v < 30.0:
+                return (f"{v:.1f}(肥満 1 度)", "B")
+            return (f"{v:.1f}(肥満 2 度以上)", "C")
+
+        def _judge_bp(sys_v: float | None, dia_v: float | None) -> tuple[str, str]:
+            if sys_v is None or dia_v is None:
+                return ("未測定", "A")
+            if sys_v >= 140 or dia_v >= 90:
+                return (f"{sys_v:.0f}/{dia_v:.0f} mmHg(高血圧)", "D")
+            if sys_v >= 130 or dia_v >= 85:
+                return (f"{sys_v:.0f}/{dia_v:.0f} mmHg(高値注意)", "B")
+            return (f"{sys_v:.0f}/{dia_v:.0f} mmHg(基準内)", "A")
+
+        def _judge_hba1c(v: float | None) -> tuple[str, str]:
+            if v is None:
+                return ("未測定", "A")
+            if v >= 6.5:
+                return (f"{v:.1f}%(糖尿病型)", "D")
+            if v >= 5.6:
+                return (f"{v:.1f}%(境界)", "B")
+            return (f"{v:.1f}%(基準内)", "A")
+
+        def _judge_ldl(v: float | None) -> tuple[str, str]:
+            if v is None:
+                return ("未測定", "A")
+            if v >= 160:
+                return (f"{v:.0f} mg/dL(高 LDL 血症)", "D")
+            if v >= 140:
+                return (f"{v:.0f} mg/dL(境界域)", "C")
+            if v >= 120:
+                return (f"{v:.0f} mg/dL(高値注意)", "B")
+            return (f"{v:.0f} mg/dL(基準内)", "A")
+
+        bmi_desc, bmi_grade = _judge_bmi(results_by_loinc.get("39156-5"))
+        bp_desc, bp_grade = _judge_bp(
+            results_by_loinc.get("8480-6"), results_by_loinc.get("8462-4")
+        )
+        hba1c_desc, hba1c_grade = _judge_hba1c(results_by_loinc.get("4548-4"))
+        ldl_desc, ldl_grade = _judge_ldl(results_by_loinc.get("18262-6"))
+
+        # 総合判定 = 各項目の最悪 grade(A<B<C<D)
+        grades = [bmi_grade, bp_grade, hba1c_grade, ldl_grade]
+        overall = max(grades, key=lambda g: "ABCD".index(g))
+        overall_note = {
+            "A": "異常なし",
+            "B": "軽度異常、生活指導",
+            "C": "要指導",
+            "D": "要精査・要治療",
+        }[overall]
+
         if is_ja:
             text = (
-                "【身体計測】BMI 標準範囲内。\n"
-                "【血圧】収縮期・拡張期ともに基準内。\n"
-                "【脂質】総コレステロール・HDL・LDL・中性脂肪 基準内。\n"
-                "【肝機能】AST・ALT・γ-GTP 基準内。\n"
-                "【血糖・HbA1c】空腹時血糖・HbA1c 基準内。\n"
-                "総合判定:A(異常なし)。"
+                f"【身体計測】BMI:{bmi_desc}。\n"
+                f"【血圧】{bp_desc}。\n"
+                f"【血糖・HbA1c】HbA1c:{hba1c_desc}。\n"
+                f"【脂質】LDL:{ldl_desc}。\n"
+                f"総合判定:{overall}({overall_note})。"
             )
         else:
             text = (
-                "Body measurements: BMI within normal range.\n"
-                "Blood pressure: systolic and diastolic within normal.\n"
-                "Lipid panel: TC/HDL/LDL/TG within normal range.\n"
-                "Liver enzymes: AST/ALT/GGT within normal range.\n"
-                "Glucose/HbA1c: fasting glucose and HbA1c within normal.\n"
-                "Overall assessment: A (no abnormalities)."
+                f"Body measurements: BMI {bmi_desc}.\n"
+                f"Blood pressure: {bp_desc}.\n"
+                f"HbA1c: {hba1c_desc}.\n"
+                f"LDL: {ldl_desc}.\n"
+                f"Overall assessment: {overall} ({overall_note})."
             )
         return text, facts
 
     def _build_checkup_questionnaire(
         self, ctx: NarrativeContext
     ) -> tuple[str, list[str]]:
-        """01032 事業者健診問診結果セクション:標準問診項目の要約。
+        """01032 事業者健診問診結果セクション:PatientProfile 依存の個別問診記録。
 
-        MVP 実装:定型問診項目(既往歴・生活習慣・自覚症状)の一言記述。
-        将来:PatientProfile.chronic_conditions と smoking / alcohol
-        history を参照して個別化する PR3+1 で高度化。
+        sub-PR-B(session 47):ctx.patient から以下を反映:
+          - 既往歴:chronic_conditions(code → 日本語 display)
+          - 服薬:current_medications
+          - 生活習慣:smoking_status / alcohol_use
+        判定は慢性疾患を持つ患者は「経過観察を要す」、それ以外は「経過
+        観察不要」を返す MVP ロジック。将来 sub-PR で身体活動量・食習慣
+        などの詳細問診を追加可能。
         """
+        from clinosim.codes import lookup as code_lookup
+
         facts: list[str] = []
         is_ja = ctx.target_lang == "ja"
+        patient = ctx.patient
+
+        # 既往歴(chronic_conditions)を code → 日本語 display に変換
+        chronic = _o(patient, "chronic_conditions", []) or []
+        history_lines: list[str] = []
+        for cond in chronic:
+            code = _o(cond, "code", "")
+            system = _o(cond, "system", "icd-10-cm") or "icd-10-cm"
+            if not code:
+                continue
+            # JP は icd-10 権威、US は icd-10-cm(spec §Diagnosis code coverage)
+            resolved_system = "icd-10" if is_ja else system
+            display = code_lookup(resolved_system, code, ctx.target_lang)
+            if display and display != code:
+                history_lines.append(
+                    f"- {display}（{code}）" if is_ja else f"- {display} ({code})"
+                )
+            else:
+                history_lines.append(f"- {code}")
+        if chronic:
+            facts.append("ctx.patient.chronic_conditions")
+        history_text = (
+            "\n".join(history_lines) if history_lines
+            else ("特記事項なし" if is_ja else "None noted")
+        )
+
+        # 服薬(current_medications は drug 名の str list)
+        current_meds = _o(patient, "current_medications", []) or []
+        if current_meds:
+            facts.append("ctx.patient.current_medications")
+        med_text = (
+            "、".join(str(m) for m in current_meds) if current_meds
+            else ("常用薬なし" if is_ja else "None taken")
+        )
+
+        # 生活習慣(smoking_status / alcohol_use)
+        smoking = _o(patient, "smoking_status", "never") or "never"
+        alcohol = _o(patient, "alcohol_use", "none") or "none"
+        facts.append("ctx.patient.smoking_status")
+        facts.append("ctx.patient.alcohol_use")
+
+        smoking_ja = {
+            "never": "喫煙歴なし",
+            "former": "禁煙(過去に喫煙歴あり)",
+            "current": "現在喫煙中",
+        }.get(smoking, f"{smoking}(区分未定義)")
+        alcohol_ja = {
+            "none": "飲酒なし",
+            "occasional": "機会飲酒",
+            "regular": "習慣的飲酒",
+            "heavy": "多量飲酒",
+        }.get(alcohol, f"{alcohol}(区分未定義)")
+
+        # 判定:慢性疾患保有時は経過観察を要す
+        needs_followup = len(chronic) > 0
+        assessment_ja = (
+            "既往に慢性疾患あり、かかりつけ医での継続経過観察を要す。"
+            if needs_followup
+            else "経過観察不要。"
+        )
+        assessment_en = (
+            "Chronic condition(s) present; continued follow-up with primary "
+            "care recommended."
+            if needs_followup
+            else "No follow-up required."
+        )
+
         if is_ja:
             text = (
-                "【既往歴】特記事項なし。\n"
-                "【自覚症状】特記事項なし。\n"
-                "【服薬】現在の常用薬なし。\n"
-                "【生活習慣】喫煙:なし、飲酒:機会飲酒程度、"
-                "運動:週 1-2 回程度。\n"
-                "【判定】経過観察不要。"
+                f"【既往歴】\n{history_text}\n"
+                f"【自覚症状】特記事項なし。\n"
+                f"【服薬】{med_text}。\n"
+                f"【生活習慣】{smoking_ja}、{alcohol_ja}。\n"
+                f"【判定】{assessment_ja}"
             )
         else:
             text = (
-                "History: none noted.\n"
-                "Symptoms: none noted.\n"
-                "Medications: none currently taken.\n"
-                "Lifestyle: non-smoker, occasional alcohol, "
-                "moderate weekly exercise.\n"
-                "Assessment: no follow-up required."
+                f"History: {history_text}\n"
+                f"Symptoms: none noted.\n"
+                f"Medications: {med_text}.\n"
+                f"Lifestyle: smoking={smoking}, alcohol={alcohol}.\n"
+                f"Assessment: {assessment_en}"
             )
         return text, facts
 
