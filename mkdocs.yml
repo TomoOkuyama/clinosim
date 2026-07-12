@@ -136,6 +136,7 @@ nav:
   - Reference:
       - Datasets: reference/datasets.md
       - Evaluation: eval.md
+      - Evaluation rules: eval-rules.md
       - Modules: reference/modules.md
       - Design (ADRs): reference/design.md
       - Scenario flags: reference/scenario-flags.md

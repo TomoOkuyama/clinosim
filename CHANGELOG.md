@@ -20,6 +20,19 @@ byte output but must document the change here.
 
 ### Added
 
+- **Clinical contradiction checks** (P1-9): two new checks on the
+  `clinical` axis of `clinosim eval` — `condition_lab_coherence`
+  (aggregate over 8 canonical pairings: sepsis-lactate, DKA-HCO₃,
+  MI-troponin, CKD-creatinine, T2DM-HbA1c, pneumonia-WBC, anemia-Hgb,
+  CHF-BNP) and `medication_lab_coherence_warfarin` (PT-INR therapeutic
+  band on warfarin patients). Each pairing draws laboratory
+  observations within ±7 days of the Condition onset and scores the
+  overall violation rate against thresholds PASS ≤ 5% / WARN ≤ 25% /
+  FAIL > 25% with per-pairing detail on the report. Full rule catalog
+  with clinical rationale + literature source lives at
+  `docs/eval-rules.md`; `docs/eval.md` clinical-axis table updated;
+  new page wired into the docs site nav under Reference. 5 new unit
+  tests. Clinical axis check count 5 → 7.
 - **FHIR server ingestion guide** (P1-12):
   [`docs/fhir-server-ingestion.md`](docs/fhir-server-ingestion.md)
   walks through loading a generated cohort into a FHIR R4 server via

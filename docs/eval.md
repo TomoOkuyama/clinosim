@@ -63,6 +63,8 @@ tagged `good first issue` on GitHub.
 | `medication_date_sanity` | major | MedicationRequest.authoredOn ≥ Patient.birthDate |
 | `encounter_temporal_ordering` | major | Encounter.period.start ≤ .end |
 | `condition_encounter_link` | minor | When Condition.encounter is set, it resolves to an emitted Encounter |
+| `condition_lab_coherence` | major | Sepsis lifts lactate, DKA drops HCO₃, MI lifts troponin, ... (8 pairings — see [eval-rules.md](eval-rules.md#condition_lab_coherence-major)) |
+| `medication_lab_coherence_warfarin` | major | Warfarin patients' PT-INR sits in the 2.0–3.5 therapeutic band |
 
 ### Locale (language + code system)
 
