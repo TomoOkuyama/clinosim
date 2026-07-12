@@ -25,8 +25,126 @@ Primary use cases:
 
 ---
 
+## Why clinosim?
+
+Most synthetic-EHR tools produce records by sampling from disease
+distributions. **clinosim runs the disease.** Every patient carries a
+hidden 13-variable physiological state, and every lab / vital /
+medication is derived from that state. A CKD patient's ED creatinine is
+elevated even when they present for something unrelated. A
+warfarin-anticoagulated patient sits in the therapeutic PT-INR band. A
+sepsis patient shows the WBC / CRP / lactate cascade.
+
+Three concrete differentiators:
+
+- **Clinical coherence by construction.** Not a post-hoc filter — the
+  physiology model makes incoherent labs impossible.
+- **JP + US natively.** JP Core profile compliance for 16 primary FHIR
+  resource types, JLAC10 / MHLW YJ codes, JP names / addresses /
+  insurance out of the box. Not an English-only tool with translations
+  bolted on.
+- **YAML-driven extension.** 32 inpatient diseases + 46 ED / outpatient
+  conditions are all data files, not code. Adding a disease is editing
+  YAML.
+
+### How clinosim compares to Synthea
+
+[Synthea](https://synthetichealth.github.io/synthea/) (the widely-used
+state-transition simulator by MITRE) and clinosim tackle synthetic EHR
+from different angles. Both are open source and both emit FHIR — the
+differences are in modeling approach and locale coverage.
+
+| Dimension | clinosim | Synthea |
+|---|---|---|
+| Modeling approach | Physiology-driven forward simulation (13-var hidden state per patient) | State-transition modules per condition |
+| Coherence between labs / vitals | Guaranteed by shared physiological state | Independent per module |
+| Native FHIR R4 output | Bulk Data Access NDJSON, one file per ResourceType | FHIR R4 JSON per patient |
+| JP Core profile compliance | 16 resource types (Patient / Condition / Encounter / Observation / MedicationRequest / DiagnosticReport / Procedure / Immunization / Coverage / ...) | Not a design goal |
+| Multi-locale (US + JP) | Both first-class; JP names, addresses, insurance, JLAC10, MHLW YJ | US-first; internationalization via community modules |
+| Determinism guarantee | Byte-identical output within a MINOR release for the same seed | Deterministic per-run seed |
+| Extension model | YAML-driven (edit a file, no code) | Java module (`.json` state machines + code) |
+| Runtime | Python 3.11+ | Java 11+ |
+| License | MIT | Apache 2.0 |
+
+**When to use which:**
+
+- **clinosim** — you need clinically coherent labs / vitals, JP output,
+  or want to iterate on disease definitions without touching Java code.
+- **Synthea** — you need a broad US population with well-established
+  disease modules and a mature downstream tooling ecosystem.
+
+They're not exclusive — both write FHIR, and a Synthea comparison
+harness (same evaluation metrics on both sides) is on the roadmap.
+
+### Sample output — one physiology-driven lab
+
+For a JP patient on chronic warfarin for atrial fibrillation, clinosim
+emits a PT-INR Observation like:
+
+```json
+{
+  "resourceType": "Observation",
+  "id": "lab-enc-jp-042-15-pt-inr",
+  "meta": { "profile": [
+    "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult"
+  ]},
+  "status": "final",
+  "category": [{"coding": [{
+    "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+    "code": "laboratory",
+    "display": "検体検査"
+  }]}],
+  "code": {"coding": [
+    { "system": "urn:oid:1.2.392.200119.4.504", "code": "2B160000002327101",
+      "display": "PT-INR" },
+    { "system": "http://loinc.org", "code": "6301-6",
+      "display": "INR in Platelet poor plasma by Coagulation assay" }
+  ]},
+  "subject": {"reference": "Patient/jp-042"},
+  "effectiveDateTime": "2026-04-15T08:00:00+09:00",
+  "valueQuantity": {"value": 2.7, "unit": "{INR}",
+    "system": "http://unitsofmeasure.org", "code": "{INR}"},
+  "referenceRange": [{
+    "low": {"value": 2.0}, "high": {"value": 3.0},
+    "text": "Warfarin therapeutic (AF stroke prevention)"
+  }],
+  "interpretation": [{"coding": [{
+    "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+    "code": "N",
+    "display": "Normal"
+  }]}]
+}
+```
+
+Notice: the INR value 2.7 wasn't sampled from a "PT-INR normal range"
+— the physiology engine detected warfarin from the chronic-medication
+list, placed this patient in the 2.0–3.0 therapeutic band, and picked
+the reference range and interpretation to match. Change the seed → a
+different but still-therapeutic value. Remove the warfarin → a normal
+(~1.0) INR next run. This is what "clinical coherence by construction"
+means in practice.
+
+### Demo
+
+> 📷 **Demo GIF placeholder.** An asciinema recording of
+> `clinosim generate --country JP --population 100 --seed 42` will land
+> at `docs/assets/demo.gif` — see the
+> [good first issues](https://github.com/TomoOkuyama/clinosim/labels/good%20first%20issue)
+> tracker for the current TODO.
+>
+> 🖼️ **Architecture diagram placeholder.** The population → CIF → FHIR
+> pipeline diagram will land at `docs/assets/pipeline.svg`. Meanwhile,
+> the text walkthrough lives at
+> [`docs/design-guides/data-generation-walkthrough.md`](docs/design-guides/data-generation-walkthrough.md).
+
+---
+
 ## Table of Contents
 
+- [Why clinosim?](#why-clinosim)
+  - [How clinosim compares to Synthea](#how-clinosim-compares-to-synthea)
+  - [Sample output](#sample-output--one-physiology-driven-lab)
+  - [Demo](#demo)
 - [Features](#features)
 - [Installation](#installation)
 - [Versioning & Releases](#versioning--releases)
