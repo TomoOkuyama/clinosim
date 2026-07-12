@@ -1663,6 +1663,56 @@
 
 <h1 id="roadmap">Roadmap<a class="headerlink" href="#roadmap" title="Permanent link">&para;</a></h1>
 <h1 id="clinosim-todo">clinosim — TODO<a class="headerlink" href="#clinosim-todo" title="Permanent link">&para;</a></h1>
+<h2 id="status-2026-07-12-session-46-closed-oss-diffusion-plan-p0p1-12-major-prs">Status (2026-07-12, <strong>session 46 CLOSED — OSS diffusion plan P0/P1 全 12 major PRs</strong>)<a class="headerlink" href="#status-2026-07-12-session-46-closed-oss-diffusion-plan-p0p1-12-major-prs" title="Permanent link">&para;</a></h2>
+<p>Session 46 pivoted from EHR data quality (chain #1: silent-code-substitution
+17 fix / chain #2: JP Core meta.profile 100% emission on 16 resources) to
+the OSS diffusion plan the user articulated mid-session. Full P0 (5 items) +
+P1 (7 items) of the diffusion plan landed in one session as 12 focused PRs.</p>
+<p><strong>master HEAD</strong>: <code>eff40dfb43</code> (P1-10 Synthea comparison adapter)
+<strong>Tag / Release</strong>: <code>v0.2.0</code> (GitHub Release published with wheel + sdist + notes)
+<strong>GitHub Issues opened</strong>: <strong>8 good first issues</strong> (#142–#149)</p>
+<h3 id="landed-this-session-all-merged-pushed">Landed this session (all merged + pushed)<a class="headerlink" href="#landed-this-session-all-merged-pushed" title="Permanent link">&para;</a></h3>
+<ol>
+<li><code>d5d203f75f</code> — drug_names_ja +54 entries + 17 silent-code-substitution fix (MHLW YJ authoritative).</li>
+<li><code>2a4783f311</code> — JP Core meta.profile emission for 11 new resource types (16 primary total at 100%).</li>
+<li><code>44f44669e5</code> — <strong>P0 #1</strong> dynamic version + LICENSE + CHANGELOG + README disclaimers + version single-source-of-truth guard.</li>
+<li><code>470a32c303</code> — <strong>P0-1</strong> version 0.1.0 → 0.2.0 + drop poisoned <code>requirements.txt</code>.</li>
+<li><code>15459c7860</code>, <code>7a1dcb0681</code> — <strong>P0-2</strong> GitHub Actions CI (unit / integration / packaging / lint informational / typecheck informational) + Makefile path fix + <code>types-PyYAML</code> dev extra.</li>
+<li><code>2a36e1f388</code> — <strong>P0-3</strong> CONTRIBUTING/CoC/SECURITY/CITATION + Issue + PR templates + DCO workflow (hard gate) + 5 good first issues.</li>
+<li><code>2a0e1d88ab</code> — <strong>P0-4</strong> Release workflow (tag → wheel+sdist+GitHub Release+CHANGELOG extract) + v0.2.0 tag + Release published.</li>
+<li><code>f504f3ecc2</code> — <strong>P0-5</strong> README 4 new sections (Why / Synthea comparison / Sample output / Demo placeholder) + 2 asset issues.</li>
+<li><code>4f766feb8c</code> — <strong>P1-7</strong> <code>scripts/reproduce.sh</code> + CI <code>reproducibility</code> hard gate + integration test + <strong>Immunization lot_number non-determinism fix</strong> (Python <code>hash()</code> on str → <code>hashlib.sha256</code>).</li>
+<li><code>319aa60d30</code> — <strong>P1-6</strong> <code>datasets/{us,jp}-{100,1000}/</code> with HF frontmatter cards + <code>.zenodo.json</code> + <code>clinosim dataset {list,build}</code> + release workflow attaches datasets.</li>
+<li><code>bd310b224f</code> — <strong>P1-8</strong> <code>clinosim eval</code> (3 axes / 15 checks / severity-weighted score / JSON + Markdown) + <code>docs/eval.md</code> + issue #149 (US Composition CJK leak surfaced by the tool).</li>
+<li><code>2dd03811eb</code> — <strong>P1-11</strong> MkDocs Material site (<code>mkdocs.yml</code>) + <code>.github/workflows/docs.yml</code> (gh-pages auto-deploy) + 6-section nav.</li>
+<li><code>e364f9ce80</code> — <strong>P1-12</strong> <code>docs/fhir-server-ingestion.md</code> (HAPI FHIR Docker recipe + <code>$import</code> + troubleshooting, vendor-neutral).</li>
+<li><code>27fe046b11</code> — <strong>P1-9</strong> Clinical contradiction checks (8 pairings + warfarin PT-INR band) + <code>docs/eval-rules.md</code>.</li>
+<li><code>eff40dfb43</code> — <strong>P1-10</strong> Synthea comparison adapter (<code>clinosim eval</code> auto-detects Synthea Bundles) + <code>docs/synthea-comparison.md</code>.</li>
+</ol>
+<h3 id="test-state-at-wrap">Test state at wrap<a class="headerlink" href="#test-state-at-wrap" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Unit: <strong>2487 PASS</strong>, zero regressions across 12 PRs.</li>
+<li><code>bash scripts/reproduce.sh</code>: PASS (US + JP byte-identical).</li>
+<li>Integration: session-end batch (see <code>feedback-batch-long-running-ci-at-session-end</code>).</li>
+</ul>
+<h3 id="bugs-surfaced-by-session-46-tooling-open-for-later-fix">Bugs surfaced by session-46 tooling (open for later fix)<a class="headerlink" href="#bugs-surfaced-by-session-46-tooling-open-for-later-fix" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>#149</strong> — US Composition contains JP <code>hpi_template.onset_pattern</code> text
+  (already-tracked YAML-authoring gap; <code>clinosim eval</code> <code>no_japanese_leakage</code>
+  CRITICAL now surfaces it on every run).</li>
+</ul>
+<h3 id="session-47-candidates">Session 47 candidates<a class="headerlink" href="#session-47-candidates" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>P2-13</strong> JP-CLINS (3 documents / 6 information items) FHIR profile — v0.3 flagship.</li>
+<li><strong>P2-14</strong> "Add your country" guide + country-pack scaffold.</li>
+<li><strong>P2-15</strong> Benchmark task definitions (sepsis / AKI prediction) + baseline eval script.</li>
+<li><strong>PyPI upload</strong> for v0.2.0 (user manual, needs <code>PYPI_API_TOKEN</code>).</li>
+<li><strong>GitHub Pages toggle</strong> (Settings → Pages → gh-pages, one-time).</li>
+<li><strong>Zenodo integration</strong> enable (auto DOI on tag, one-time).</li>
+<li>Any of the 8 open good first issues (#142–#149) — the visible tail-end
+  of the P0/P1 work is a natural first-timer entry point.</li>
+</ul>
+<hr />
 <h2 id="status-2026-07-12-session-45-closed-5-seed-verification-13-commit-chain">Status (2026-07-12, session 45 CLOSED — 5-seed verification + 13-commit chain)<a class="headerlink" href="#status-2026-07-12-session-45-closed-5-seed-verification-13-commit-chain" title="Permanent link">&para;</a></h2>
 <p><strong>★ Session 45 CLOSED (2026-07-12, master HEAD <code>b32c9d38b4</code>)</strong> — 13-commit chain
 across 5 alt-seed verifications. Started as session-44 seed=42 baseline verification →
