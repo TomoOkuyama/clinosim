@@ -187,6 +187,7 @@ def load_document_type_specs() -> dict[DocumentType, DocumentTypeSpec]:
             stage2_strategy=entry.get("stage2_strategy", "template_only"),
             llm_enabled_sections=tuple(entry.get("llm_enabled_sections") or ()),
             encounter_types_supported=tuple(entry.get("encounter_types_supported") or ()),
+            composition_sections_jp=tuple(entry.get("composition_sections_jp") or ()),
         )
     return result
 

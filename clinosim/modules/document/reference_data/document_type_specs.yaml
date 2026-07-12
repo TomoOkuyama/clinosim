@@ -49,6 +49,15 @@ specs:
       - discharge_medications
       - discharge_instructions
       - follow_up
+    # JP-CLINS v1.12.0 required 5-section structure nested under structural (300).
+    # Consumed by DocumentTypeSpec.composition_sections_for("JP") — Composition
+    # builder maps these section keys to numeric section codes 312/322/342/352/360.
+    composition_sections_jp:
+      - admission_reason
+      - admission_details
+      - admission_diagnoses
+      - chief_complaint
+      - present_illness
     stage2_strategy: template_seed
     llm_enabled_sections: [hospital_course, discharge_instructions]
 
