@@ -1687,6 +1687,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#jp-echeckup-composition-pr3opt-in" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JP-eCheckup 健診結果報告書 Composition (PR3、opt-in)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#reproducibility" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1854,6 +1865,34 @@
 - <strong>傷病名・主訴</strong> = combines the encounter's diagnosis list (code + Japanese display) with the disease-YAML chief complaint.
 - <strong>現病歴</strong> = HPI derived from <code>disease_protocol.narrative.hpi_template</code> (same source as the discharge summary's present_illness section).</p>
 <p><strong>US path</strong>: referral notes are not emitted for <code>country=US</code> (<code>countries_supported: [jp]</code>). US clinical practice uses ordinary referral letters, not the JP-CLINS eReferral profile.</p>
+<h2 id="jp-echeckup-composition-pr3opt-in">JP-eCheckup 健診結果報告書 Composition (PR3、opt-in)<a class="headerlink" href="#jp-echeckup-composition-pr3opt-in" title="Permanent link">&para;</a></h2>
+<p><code>country=JP</code> かつ <code>SimulatorConfig.modules["health_checkup"]=True</code> の場合、
+健診 encounter に対して <strong>健診結果報告書 (health checkup report)</strong> Composition を
+<code>JP_Composition_eCheckupGeneral</code>(JP-eCheckup General v1.7.0)準拠で emit します。
+急性期病院想定を維持するため <strong>default off</strong>。</p>
+<p>Note: 健診 IG は JP-CLINS と別に発行されている(JP-eCheckup General v1.7.0、
+2026-02-16)。canonical URL は <code>/fhir/eCheckup/</code> 配下で、CodeSystem も別
+(section-code は 5 桁数値、JP-CLINS の 3 桁とは異なる)。</p>
+<ul>
+<li><code>Composition.meta.profile</code> = <code>http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Composition_eCheckupGeneral</code></li>
+<li><code>Composition.type.coding[0]</code> = <code>{system: doc-typecodes, code: 53576-5, display: 検診・健診報告書}</code>。LOINC coding も secondary で併存。</li>
+<li><code>Composition.section</code> は flat 2 個(nesting なし):</li>
+<li><strong>01031</strong> 事業者健診検査結果セクション</li>
+<li><strong>01032</strong> 事業者健診問診結果セクション</li>
+<li><code>section.code.system</code> = <code>http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code</code></li>
+</ul>
+<p><strong>対象範囲(scope)</strong>:
+- 事業者健診(労安衛法定健診)のみに絞る MVP 実装。特定健診(01011/01012)や
+  広域連合健診(01021/01022)は将来 sub-PR で追加可能。
+- section content は MVP では固定の定型健診項目判定文(BMI 標準・血圧基準内・
+  脂質/肝機能/血糖 基準内)。将来:実 ObservationRecord 参照で個別化する
+  PR3+1 で高度化予定。
+- <strong>健診 encounter 生成 module 自体は本 PR3 スコープ外</strong>。
+  <code>SimulatorConfig.modules["health_checkup"]=True</code> は Composition 発行の
+  opt-in gate として先に infrastructure を用意している状態。健診 encounter
+  planner + observation generator は次 sub-PR で追加。</p>
+<p><strong>US path</strong>:健診 opt-in flag は US では発火しない
+(<code>countries_supported: [jp]</code> により spec 側で JP に限定)。</p>
 <h2 id="reproducibility">Reproducibility<a class="headerlink" href="#reproducibility" title="Permanent link">&para;</a></h2>
 <p>The layer is deterministic — <code>scripts/reproduce.sh</code> continues to pass with country=JP output byte-identical across independent runs.</p>
 <h2 id="out-of-scope-for-pr1">Out of scope for PR1<a class="headerlink" href="#out-of-scope-for-pr1" title="Permanent link">&para;</a></h2>
