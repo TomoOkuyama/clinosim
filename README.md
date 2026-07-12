@@ -1072,6 +1072,9 @@ all four presets and attaches them as GitHub Release assets. The
 current v0.2.0 release ships the infrastructure only — use
 `clinosim dataset build` to reproduce locally.
 
+To load a dataset into a FHIR server (HAPI FHIR, etc.), see
+[`docs/fhir-server-ingestion.md`](docs/fhir-server-ingestion.md).
+
 ---
 
 ## Evaluation
