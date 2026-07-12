@@ -174,7 +174,27 @@ _JP_CLINS_PROFILES: dict[str, list[str]] = {
 # NOTE: 感染症も別 profile 未 publish → JP_Condition_eCS で共通カバー。
 ```
 
-### 3.2 PR2: 2 文書 Composition builder(退院サマリー + 診療情報提供書)
+### 3.2 PR2: 2 文書 Full JP-CLINS 準拠 Composition emit(2 sub-PR chain)
+
+**Session 47 追加調査**(2026-07-12 jpfhir.jp v1.12.0 一次照会)により、JP-CLINS 準拠 Composition は既存 clinosim 出力とは以下の点で非互換であり、単なる profile URL 追加では不十分と判明:
+
+- **専用 base path**:退院時サマリー = `/fhir/eDischargeSummary/`、診療情報提供書 = `/fhir/eReferral/`
+- **専用 CodeSystem**(既存 codes/data/ に未登録、追加必須):
+  - `http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes` — Composition.type LOINC 表現
+  - `http://jpfhir.jp/fhir/clins/CodeSystem/jp-codeSystem-clins-document-section` — section coding(300/312/322/342/352/360/910/920/950 等 3 桁数値)
+- **必須 section 群**:
+  - 退院時サマリー = 300(構造情報)配下に 312(入院理由)/322(入院時詳細)/342(入院時診断)/352(主訴)/360(現病歴)
+  - 診療情報提供書 = 920(紹介元)/910(紹介先)/300 配下に 950(紹介目的)/340(傷病名・主訴)/360(現病歴)
+- **現行 clinosim** の `_fhir_composition.py` は 6 doc types 対応済だが section 構造は英語 snake_case + LOINC section codes(既存 `discharge_summary` の 6 sections `admission_summary/hospital_course/discharge_diagnoses/discharge_medications/discharge_instructions/follow_up` は JP-CLINS 必須 section と 1:1 対応せず)
+
+**PR2 を 2 sub-PR に分割**:
+
+- **PR2a**:退院時サマリー Full JP-CLINS 準拠(既存 discharge_summary emit の JP variant として別 builder + 新 CodeSystem + section 再構造)
+- **PR2b**:診療情報提供書 新規 emit(新 doc type + narrative template + Composition builder + 紹介元/紹介先 情報 CIF 拡張 + fraction 発行)
+
+各 sub-PR は独立に user 確認 + plan + 実装 + adversarial review + push を経る。
+
+### 3.2 (deprecated) 2 文書 Composition builder(退院サマリー + 診療情報提供書)
 
 **目的**:country=JP の inpatient encounter に対して 2 文書 Composition を emit。
 
