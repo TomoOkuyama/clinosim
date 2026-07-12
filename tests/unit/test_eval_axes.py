@@ -154,6 +154,153 @@ def test_clinical_medication_before_birth_is_flagged(tmp_path: Path) -> None:
     assert med.outcome is Outcome.FAIL
 
 
+# --------------------------------------------------------------------------- #
+# P1-9 — condition × lab coherence
+
+
+@pytest.mark.unit
+def test_clinical_sepsis_with_normal_lactate_is_flagged(tmp_path: Path) -> None:
+    """The canonical case: A41.x sepsis Condition on the day of a normal
+    lactate reading. Should register as a `condition_lab_coherence`
+    violation."""
+    _write_ndjson(tmp_path, "Patient", [
+        {"resourceType": "Patient", "id": "p1", "identifier": [{"value": "x"}]},
+    ])
+    _write_ndjson(tmp_path, "Condition", [
+        {"resourceType": "Condition", "id": "c1",
+         "subject": {"reference": "Patient/p1"},
+         "onsetDateTime": "2026-05-01T08:00:00Z",
+         "code": {"coding": [{"code": "A41.9"}]}},
+    ])
+    _write_ndjson(tmp_path, "Observation", [
+        # Lactate 1.0 — normal — but sepsis is present. Contradiction.
+        {"resourceType": "Observation", "id": "o1",
+         "subject": {"reference": "Patient/p1"},
+         "effectiveDateTime": "2026-05-01T08:30:00Z",
+         "code": {"coding": [{"system": "http://loinc.org", "code": "2524-7"}]},
+         "valueQuantity": {"value": 1.0, "unit": "mmol/L"}},
+    ])
+    from clinosim.audit.types import Cohort
+    from clinosim.eval.axes import clinical
+    checks = clinical.run(Cohort.open(tmp_path), "")
+    coh = next(c for c in checks if c.name == "condition_lab_coherence")
+    assert coh.outcome is Outcome.FAIL
+    assert coh.detail["per_pairing"]["sepsis_lactate"]["violations"] == 1
+    assert coh.detail["per_pairing"]["sepsis_lactate"]["eligible"] == 1
+
+
+@pytest.mark.unit
+def test_clinical_sepsis_with_elevated_lactate_passes(tmp_path: Path) -> None:
+    """The correct-cohort case: sepsis + lactate ≥ 2.0 → PASS."""
+    _write_ndjson(tmp_path, "Patient", [
+        {"resourceType": "Patient", "id": "p1", "identifier": [{"value": "x"}]},
+    ])
+    _write_ndjson(tmp_path, "Condition", [
+        {"resourceType": "Condition", "id": "c1",
+         "subject": {"reference": "Patient/p1"},
+         "onsetDateTime": "2026-05-01T08:00:00Z",
+         "code": {"coding": [{"code": "A41.9"}]}},
+    ])
+    _write_ndjson(tmp_path, "Observation", [
+        {"resourceType": "Observation", "id": "o1",
+         "subject": {"reference": "Patient/p1"},
+         "effectiveDateTime": "2026-05-01T08:30:00Z",
+         "code": {"coding": [{"system": "http://loinc.org", "code": "2524-7"}]},
+         "valueQuantity": {"value": 4.2, "unit": "mmol/L"}},
+    ])
+    from clinosim.audit.types import Cohort
+    from clinosim.eval.axes import clinical
+    checks = clinical.run(Cohort.open(tmp_path), "")
+    coh = next(c for c in checks if c.name == "condition_lab_coherence")
+    assert coh.outcome is Outcome.PASS
+
+
+@pytest.mark.unit
+def test_clinical_lab_outside_window_does_not_count(tmp_path: Path) -> None:
+    """Lactate drawn 30 days before the sepsis onset should be
+    excluded from the pairing (not a violation, not eligible)."""
+    _write_ndjson(tmp_path, "Patient", [
+        {"resourceType": "Patient", "id": "p1", "identifier": [{"value": "x"}]},
+    ])
+    _write_ndjson(tmp_path, "Condition", [
+        {"resourceType": "Condition", "id": "c1",
+         "subject": {"reference": "Patient/p1"},
+         "onsetDateTime": "2026-06-01T00:00:00Z",
+         "code": {"coding": [{"code": "A41.9"}]}},
+    ])
+    _write_ndjson(tmp_path, "Observation", [
+        {"resourceType": "Observation", "id": "o1",
+         "subject": {"reference": "Patient/p1"},
+         "effectiveDateTime": "2026-05-01T00:00:00Z",  # 31 days before onset
+         "code": {"coding": [{"system": "http://loinc.org", "code": "2524-7"}]},
+         "valueQuantity": {"value": 1.0}},
+    ])
+    from clinosim.audit.types import Cohort
+    from clinosim.eval.axes import clinical
+    checks = clinical.run(Cohort.open(tmp_path), "")
+    coh = next(c for c in checks if c.name == "condition_lab_coherence")
+    # No eligible pair — outcome must be N/A, not FAIL.
+    assert coh.outcome is Outcome.NA
+
+
+@pytest.mark.unit
+def test_clinical_warfarin_subtherapeutic_inr_is_flagged(tmp_path: Path) -> None:
+    """Warfarin MedicationRequest exists; PT-INR reading on same day is
+    1.0 (subtherapeutic) → violation."""
+    _write_ndjson(tmp_path, "Patient", [
+        {"resourceType": "Patient", "id": "p1", "identifier": [{"value": "x"}]},
+    ])
+    _write_ndjson(tmp_path, "MedicationRequest", [
+        {"resourceType": "MedicationRequest", "id": "mr1",
+         "subject": {"reference": "Patient/p1"},
+         "authoredOn": "2026-05-01",
+         "medicationCodeableConcept": {"coding": [{
+             "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+             "code": "11289"}]}},
+    ])
+    _write_ndjson(tmp_path, "Observation", [
+        {"resourceType": "Observation", "id": "o1",
+         "subject": {"reference": "Patient/p1"},
+         "effectiveDateTime": "2026-05-02T09:00:00Z",  # day after warfarin start
+         "code": {"coding": [{"system": "http://loinc.org", "code": "6301-6"}]},
+         "valueQuantity": {"value": 1.0}},
+    ])
+    from clinosim.audit.types import Cohort
+    from clinosim.eval.axes import clinical
+    checks = clinical.run(Cohort.open(tmp_path), "")
+    warf = next(c for c in checks if c.name == "medication_lab_coherence_warfarin")
+    assert warf.outcome is Outcome.FAIL
+    assert warf.detail["violations"] == 1
+
+
+@pytest.mark.unit
+def test_clinical_warfarin_therapeutic_inr_passes(tmp_path: Path) -> None:
+    """Warfarin MedicationRequest + PT-INR 2.7 (in-band) → PASS."""
+    _write_ndjson(tmp_path, "Patient", [
+        {"resourceType": "Patient", "id": "p1", "identifier": [{"value": "x"}]},
+    ])
+    _write_ndjson(tmp_path, "MedicationRequest", [
+        {"resourceType": "MedicationRequest", "id": "mr1",
+         "subject": {"reference": "Patient/p1"},
+         "authoredOn": "2026-05-01",
+         "medicationCodeableConcept": {"coding": [{
+             "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+             "code": "11289"}]}},
+    ])
+    _write_ndjson(tmp_path, "Observation", [
+        {"resourceType": "Observation", "id": "o1",
+         "subject": {"reference": "Patient/p1"},
+         "effectiveDateTime": "2026-05-05T09:00:00Z",
+         "code": {"coding": [{"system": "http://loinc.org", "code": "6301-6"}]},
+         "valueQuantity": {"value": 2.7}},
+    ])
+    from clinosim.audit.types import Cohort
+    from clinosim.eval.axes import clinical
+    checks = clinical.run(Cohort.open(tmp_path), "")
+    warf = next(c for c in checks if c.name == "medication_lab_coherence_warfarin")
+    assert warf.outcome is Outcome.PASS
+
+
 @pytest.mark.unit
 def test_clinical_reversed_encounter_period_is_flagged(tmp_path: Path) -> None:
     _write_ndjson(tmp_path, "Encounter", [
