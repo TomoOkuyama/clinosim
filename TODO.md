@@ -4,7 +4,26 @@
 
 **Session 48 開始状態(順序 d → e → f → g → b → c、d 完了)**:
 
-### 完了(d, e, f, g, b):PR3 sub-PR-B/C/E + Deferred cleanup + P2-14 country scaffold
+### 完了(d, e, f, g, b, c):PR3 sub-PR-B/C/E + Deferred cleanup + P2-14 + P2-15
+
+**(c) P2-15 benchmark**:
+- `clinosim/benchmarks/` 新設(harness / sepsis / aki / cli)
+- `LabelRow` + `BaselineReport` dataclass、`compute_auroc` は Mann-Whitney U
+  ベースの numpy 実装(scikit-learn 不要)
+- Sepsis 判定 = `disease_id=="sepsis"` or ICD A41/R65.2、score = first-window
+  Lactate max。Surviving Sepsis 2021 threshold 2.0 mmol/L baseline
+- AKI 判定 = `disease_id=="acute_kidney_injury"` or ICD N17/N19、score =
+  peak SCr − baseline SCr。KDIGO 2012 Stage 1 threshold 0.3 mg/dL baseline
+- `majority` baseline は全 task 共通(floor accuracy + AUROC=0.5 規約)
+- CLI `clinosim benchmark {sepsis,aki} --cif-dir <path>` を simulator/cli.py
+  に登録、`--json` output 対応
+- 単体 test 11 個(AUROC arithmetic / majority degenerate / label extractor /
+  threshold baseline / CLI dispatch / empty cohort fail)
+- Docs `docs/benchmarks.md`(purpose / supported tasks / baselines /
+  running / example output / 拡張手順 / out-of-scope)
+- 実 US p=300 seed=42 で smoke 検証 PASS
+
+
 
 **(b) P2-14 add-your-country ガイド + 国パック scaffold**:
 - `docs/add-your-country.md` 新設(prerequisites / required YAMLs / optional
