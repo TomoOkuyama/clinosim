@@ -55,6 +55,9 @@ from clinosim.modules.output._fhir_diagnostic_report import (  # noqa: F401
     _bb_diagnostic_reports,
     build_lab_panel_reports,  # kept for backward compat (tests + external callers)
 )
+from clinosim.modules.output._fhir_document_reference_checkup import (  # noqa: F401
+    _bb_document_references_checkup,
+)
 from clinosim.modules.output._fhir_documents import (  # noqa: F401
     _bb_document_references,
 )
@@ -703,6 +706,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _build_hai_conditions,
     _bb_document_references,   # Task 10: DocumentReference from record.documents (free_text, §2.2)
     _bb_compositions,          # Task 9: Composition (section-structured H&P / Discharge)
+    _bb_document_references_checkup,  # P2-13 PR3 sub-PR-E (session 48): DocumentReference wrapper for HEALTH_CHECKUP_REPORT
 ]
 
 

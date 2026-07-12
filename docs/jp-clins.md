@@ -162,6 +162,25 @@ Note: 健診 IG は JP-CLINS と別に発行されている(JP-eCheckup General 
 **US path**:健診 opt-in flag は US では発火しない
 (`countries_supported: [jp]` により spec 側で JP に限定)。
 
+### DocumentReference wrapper(sub-PR-E、session 48)
+
+HEALTH_CHECKUP_REPORT の Composition と併存する DocumentReference を追加発行:
+
+- **対象**:`ClinicalDocument.task_type == "health_checkup_report"` かつ
+  `format_type == "composition"`(discharge_summary / referral_note は emit しない)
+- **id 命名**:`drf-<document_id>`(Composition の id と衝突しない prefix)
+- **参照**:`relatesTo=[{code:"transforms", target: Composition/<id>}]`
+- **content**:narrative.text(空なら sections 値 join)を base64 で添付
+- **category**:JP-eCheckup doc-typecodes `eCheckupGeneral`(健診結果報告書)
+- **encounter context**:`Encounter/CHK-<pid>-<seq>` に紐付け
+- **custodian**:`Organization/hospital-main`
+- **byte-diff invariant**:JP かつ opt-in 有効時のみ emit、reproduce.sh の
+  default runs は影響なし(既に確認済み)
+
+実 EHR 交換シナリオ:Composition = 構造化(section で保持)、DocumentReference =
+portable な wrapper。事業所 ⇄ 保険者 ⇄ 実施機関 間の交換で DocumentReference
+を使うことが多いため、両者併存が JP-eCheckup interchange の標準形。
+
 ## JP FHIR Validator Bridge (PR3 sub-PR-C, session 48 高度化)
 
 session 47 で `scripts/validate_jp.sh` と `.github/workflows/jp-validate.yml` を追加、session 48 で **SHA256 pin + auto-fail gate 化** に高度化しました。**JP 出力を HL7 公式 FHIR Validator で JP Core / JP-CLINS / JP-eCheckup に適合検証** し、pin mismatch や validation failure で CI が自動 fail します。
