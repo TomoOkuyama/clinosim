@@ -1,0 +1,151 @@
+# JP-CLINS document section CodeSystem — Composition.section[].code coding
+#
+# AUTHORITATIVE SOURCE: jpfhir.jp JP-CLINS v1.12.0 (2026-02-16).
+# Verified via https://jpfhir.jp/fhir/clins/igv1/CodeSystem-jp-codeSystem-clins-document-section.html
+# on 2026-07-12 (session 47 P2-13 PR2a).
+#
+# Used for Composition.section[].code.coding when country=JP. US Composition
+# output uses LOINC section codes and never this system.
+#
+# Groups (all present in a single flat map, group tag is informational only):
+#   COMMON: 200 / 210 / 230 / 300 / 360 / 370 / 410 / 510 / 530 / 550 / 640 / 810 / 830
+#   DIS (Discharge summary): 312 / 322 / 324 / 333 / 342 / 344 / 352 / 424 / 432 / 444 / 612 / 614 / 623 / 713
+#   REF (Referral note):     220 / 330 / 340 / 420 / 430 / 520 / 610 / 620 / 720 / 730 / 740 / 910 / 920 / 950
+#   PCS (Patient care summary): 422
+metadata:
+  name: JP-CLINS Document Section Code
+  uri: http://jpfhir.jp/fhir/clins/CodeSystem/jp-codeSystem-clins-document-section
+  version: "1.12.0"
+  source: "jpfhir.jp JP-CLINS v1.12.0 CodeSystem jp-codeSystem-clins-document-section"
+  description: JP-CLINS document section code system for FHIR Composition.section
+codes:
+  # === COMMON sections ===
+  "200":
+    en: "CDA reference section"
+    ja: "CDA参照セクション"
+  "210":
+    en: "Attachment information section"
+    ja: "添付情報セクション"
+  "230":
+    en: "PDF section"
+    ja: "PDFセクション"
+  "300":
+    en: "Structured information section"
+    ja: "構造情報セクション"
+  "360":
+    en: "Present illness section"
+    ja: "現病歴セクション"
+  "370":
+    en: "Past illness section"
+    ja: "既往歴セクション"
+  "410":
+    en: "Advance directive section"
+    ja: "事前指示セクション"
+  "510":
+    en: "Allergy / intolerance section"
+    ja: "アレルギー・不耐性反応セクション"
+  "530":
+    en: "Immunization history section"
+    ja: "予防接種歴セクション"
+  "550":
+    en: "Family history section"
+    ja: "家族歴セクション"
+  "640":
+    en: "Social history / lifestyle section"
+    ja: "社会歴・生活習慣セクション"
+  "810":
+    en: "Medical device section"
+    ja: "医療機器セクション"
+  "830":
+    en: "Clinical research participation section"
+    ja: "臨床研究参加セクション"
+  # === DIS (Discharge summary) sections ===
+  "312":
+    en: "Reason for admission section"
+    ja: "入院理由セクション"
+  "322":
+    en: "Admission details section"
+    ja: "入院時詳細セクション"
+  "324":
+    en: "Discharge details section"
+    ja: "退院時詳細セクション"
+  "333":
+    en: "Hospital course section"
+    ja: "入院中経過セクション"
+  "342":
+    en: "Admission diagnoses section"
+    ja: "入院時診断セクション"
+  "344":
+    en: "Discharge diagnoses section"
+    ja: "退院時診断セクション"
+  "352":
+    en: "Chief complaints section"
+    ja: "主訴セクション"
+  "424":
+    en: "Discharge policy / instructions section"
+    ja: "退院時方針指示セクション"
+  "432":
+    en: "Medications on admission section"
+    ja: "入院時服薬セクション"
+  "444":
+    en: "Discharge medication orders section"
+    ja: "退院時投薬指示セクション"
+  "612":
+    en: "Physical findings on admission section"
+    ja: "入院時身体所見セクション"
+  "614":
+    en: "Physical findings on discharge section"
+    ja: "退院時身体所見セクション"
+  "623":
+    en: "In-hospital lab results section"
+    ja: "入院中検査結果セクション"
+  "713":
+    en: "In-hospital treatment section"
+    ja: "入院中治療セクション"
+  # === REF (Referral note) sections ===
+  "220":
+    en: "Note / contact information section"
+    ja: "備考・連絡情報セクション"
+  "330":
+    en: "Clinical course section"
+    ja: "臨床経過セクション"
+  "340":
+    en: "Diagnoses / chief complaint section"
+    ja: "傷病名・主訴セクション"
+  "420":
+    en: "Clinical policy / instructions section"
+    ja: "診療方針指示セクション"
+  "430":
+    en: "Medication orders section"
+    ja: "投薬指示セクション"
+  "520":
+    en: "Infection information section"
+    ja: "感染症情報セクション"
+  "610":
+    en: "Physical findings section"
+    ja: "身体所見セクション"
+  "620":
+    en: "Lab results section"
+    ja: "検査結果セクション"
+  "720":
+    en: "Procedure section"
+    ja: "処置セクション"
+  "730":
+    en: "Operation section"
+    ja: "手術セクション"
+  "740":
+    en: "Transfusion history section"
+    ja: "輸血歴セクション"
+  "910":
+    en: "Referral destination information section"
+    ja: "紹介先情報セクション"
+  "920":
+    en: "Referring institution information section"
+    ja: "紹介元情報セクション"
+  "950":
+    en: "Referral purpose section"
+    ja: "紹介目的セクション"
+  # === PCS (Patient care summary) sections ===
+  "422":
+    en: "Plan summary section"
+    ja: "計画サマリーセクション"

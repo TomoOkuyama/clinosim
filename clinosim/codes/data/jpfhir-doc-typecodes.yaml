@@ -1,0 +1,32 @@
+# JP-CLINS document type CodeSystem — Composition.type coding
+#
+# AUTHORITATIVE SOURCE: jpfhir.jp JP-CLINS v1.12.0 (2026-02-16).
+# Verified via https://jpfhir.jp/fhir/clins/igv1/CodeSystem-jp-codeSystem-documentTypeCode.html
+# on 2026-07-12 (session 47 P2-13 PR2a).
+#
+# Used for Composition.type.coding when country=JP and the document is one of
+# the JP-CLINS document types (退院時サマリー / 診療情報提供書 / 健診結果報告書 /
+# 処方箋 / 計画書). US Composition output uses LOINC directly and never this
+# system.
+metadata:
+  name: JP-CLINS Document Type Code
+  uri: http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes
+  version: "1.12.0"
+  source: "jpfhir.jp JP-CLINS v1.12.0 CodeSystem doc-typecodes"
+  description: JP-CLINS document type code system for FHIR Composition.type
+codes:
+  "18842-5":
+    en: "Discharge summary"
+    ja: "退院時サマリー"
+  "57133-1":
+    en: "Referral note"
+    ja: "診療情報提供書"
+  "JPGCHKUP01":
+    en: "Health checkup report"
+    ja: "健診結果報告書"
+  "57833-6":
+    en: "Prescription for medication"
+    ja: "処方箋"
+  "56447-6":
+    en: "Plan of care note"
+    ja: "計画書"
