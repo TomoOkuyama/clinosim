@@ -11,7 +11,6 @@ from __future__ import annotations
 import pytest
 
 from clinosim.modules.output.fhir_r4_adapter import (
-    _JP_CLINS_PROFILES,
     _apply_jp_clins_profile,
     _is_lab_observation,
 )

@@ -176,7 +176,8 @@ class TestJpClinsProfileEmissionInvariants:
         self, jp_bacterial_pneumonia_resources
     ):
         from clinosim.modules.output.fhir_r4_adapter import (
-            _JP_CLINS_PROFILES, _is_lab_observation,
+            _JP_CLINS_PROFILES,
+            _is_lab_observation,
         )
 
         # Dense JP-CLINS resource types for an inpatient bacterial pneumonia

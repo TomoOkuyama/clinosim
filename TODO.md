@@ -44,6 +44,13 @@ P1 (7 items) of the diffusion plan landed in one session as 12 focused PRs.
 ### Session 47 candidates
 
 - **P2-13** JP-CLINS (3 documents / 6 information items) FHIR profile — v0.3 flagship.
+  - [x] PR1 (session 47): 6 information items JP-CLINS eCS profile URL layer.
+    5 profiles emitted (`JP_Condition_eCS` / `JP_AllergyIntolerance_eCS` /
+    `JP_Observation_LabResult_eCS` / `JP_MedicationRequest_eCS` /
+    `JP_Procedure_eCS`). URL verified against jpfhir.jp v1.12.0 (2026-02-16).
+    Docs at `docs/jp-clins.md`.
+  - [ ] PR2: 2 documents Composition (退院時サマリー + 診療情報提供書).
+  - [ ] PR3: 健診 opt-in module + jpfhir-validator bridge + docs polish.
 - **P2-14** "Add your country" guide + country-pack scaffold.
 - **P2-15** Benchmark task definitions (sepsis / AKI prediction) + baseline eval script.
 - **PyPI upload** for v0.2.0 (user manual, needs `PYPI_API_TOKEN`).
