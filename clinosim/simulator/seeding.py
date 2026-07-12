@@ -105,6 +105,7 @@ ENRICHER_SEED_OFFSETS = {
     "allergy":        0x414C,     # "AL" (Tier 1 #3 α-min-1 PR1, allergy module)
     "document":       0x444F,     # "DO" (Tier 1 #3 α-min-1 PR1, document module)
     "triage":         0x5452,     # "TR" (Tier 1 #3 α-min-2 PR1, triage module)
+    "health_checkup": 0x4843,     # "HC" (P2-13 PR3 sub-PR-B 高度化, per-patient checkup lab sampling)
 }
 
 assert len(set(ENRICHER_SEED_OFFSETS.values())) == len(ENRICHER_SEED_OFFSETS), \

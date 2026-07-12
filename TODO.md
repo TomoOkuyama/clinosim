@@ -1,5 +1,28 @@
 # clinosim — TODO
 
+## Status (2026-07-13, **★ session 48 IN-PROGRESS — bcdefg 順消化開始**)
+
+**Session 48 開始状態(順序 d → e → f → g → b → c、d 完了)**:
+
+### 完了(d):PR3 sub-PR-B 高度化(個別化)
+
+かつて固定値だった健診 5 項目を PatientProfile + chronic_conditions から個別化:
+
+- `_derive_checkup_values(patient, rng)` 新設 — BMI/SBP/DBP は `patient.bmi` / `baseline_vitals` を base に日間変動 noise、HbA1c は DM 保有時 `hba1c_from_glycemic_control` reuse、LDL は年齢/性別 baseline + E78 modifier + statin 逆補正
+- `ENRICHER_SEED_OFFSETS["health_checkup"] = 0x4843` 追加、`derive_sub_seed(master, offset, patient_id)` で per-patient 決定的(AD-16)
+- `OrderResult.interpretation` / `reference_range` を LOINC 別 `_interp_for` で付与(N/H フラグ + 参照範囲)
+- 単体テスト 8 個追加(patient profile 反映 / DM 上昇 / E78+statin 逆補正 / 決定性 / 患者間分散)
+
+### 残り(session 48 続行予定)
+
+- **(e) sub-PR-C 高度化**:jpfhir IG package `.tgz` の SHA256 pinning + CI auto-fail gate
+- **(f) sub-PR-E**:健診 encounter 周辺 FHIR resource(Coverage-Insurance / DocumentReference-eCheckup 等)
+- **(g) Deferred cleanup 3 件**:CIF `orders` 分離 / CLI `generate`→`simulate` rename / `_JP_CORE_PROFILES` shape unify
+- **(b) P2-14 add-your-country ガイド + 国パック scaffold**
+- **(c) P2-15 benchmark**:sepsis/AKI 予測 + baseline eval
+
+---
+
 ## Status (2026-07-13, **★★★ session 47 CLOSED — P2-13 v0.3 flagship 完成、28 commits push 済**)
 
 Session 47 は session 46 の OSS diffusion plan 後の flagship task = **P2-13 JP-CLINS + JP-eCheckup 対応**を完遂。全 28 commits を master direct push(feedback-clinosim-workflow の "直接 master 方式" per)、PR 不要。

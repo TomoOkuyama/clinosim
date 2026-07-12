@@ -140,6 +140,24 @@ Note: 健診 IG は JP-CLINS と別に発行されている(JP-eCheckup General 
   ObservationRecord + HEALTH_CHECKUP_REPORT stub を追加する。
   narrative content は Stage 2 の TemplateNarrativePass が populate、
   FHIR emit は `_build_jp_eCheckup_general_composition` が担う。
+- **法定健診 5 項目の実測値個別化(sub-PR-B 高度化、session 48)**:
+  かつては固定値(BMI 22.5 / SBP 118 / DBP 76 / HbA1c 5.4 / LDL 118)
+  だったが、`_derive_checkup_values(patient, rng)` が PatientProfile と
+  chronic_conditions を反映するよう改修:
+  - **BMI** = `patient.bmi` + 測定日変動(sd 0.3 kg/m²)
+  - **SBP/DBP** = `patient.baseline_vitals` を base に日間変動
+    (sd 5.0/3.5 mmHg)。高血圧(I10)は FP-I10(session 38)で
+    baseline_vitals に反映済み
+  - **HbA1c** = 糖尿病(E10/E11)保有時は `hba1c_from_glycemic_control`
+    を reuse(physiology 経路と一貫)、非 DM は `HBA1C_NONDM_BASE` +
+    年齢係数 0.003 + noise
+  - **LDL** = 年齢/性別 baseline + 脂質異常症(E78)で +40 mg/dL +
+    スタチン系薬(`-statin` 末尾)で -30 mg/dL
+  - RNG は `ENRICHER_SEED_OFFSETS["health_checkup"] = 0x4843` から
+    `derive_sub_seed(master, offset, patient_id)` で per-patient に確定。
+    同 seed + 同 patient で byte-identical(AD-16 準拠)
+  - `OrderResult.interpretation`("N"/"H")と `reference_range` も
+    LOINC 別に `_interp_for` で付与、"H" フラグは renderer の A/B/C/D 判定と整合
 
 **US path**:健診 opt-in flag は US では発火しない
 (`countries_supported: [jp]` により spec 側で JP に限定)。
