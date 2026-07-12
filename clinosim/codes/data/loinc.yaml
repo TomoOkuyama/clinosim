@@ -36,6 +36,10 @@ codes:
   57133-1:
     en: Referral note
     ja: 診療情報提供書
+  # P2-13 PR3 (session 47) JP-eCheckup General 健診結果報告書
+  53576-5:
+    en: Health checkup report
+    ja: 検診・健診報告書
   69730-0:
     en: Death note
     ja: 死亡時記録

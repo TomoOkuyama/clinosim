@@ -494,6 +494,31 @@ def document_enricher(ctx: Any) -> None:
                     ))
                     doc_seq += 1
 
+                elif freq == "checkup_once":
+                    # P2-13 PR3(session 47):JP-eCheckup 健診結果報告書
+                    # opt-in。config.module_enabled("health_checkup") が
+                    # True の場合のみ発行対象。encounter_types_supported
+                    # ["checkup"] gate と併せて、通常の inpatient/outpatient
+                    # encounter には絶対に発火しない設計。
+                    if not ctx.config.module_enabled("health_checkup"):
+                        continue
+                    end_dt = discharge_dt or admission_dt
+                    documents.append(ClinicalDocument(
+                        document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
+                        task_type=spec.type_key,
+                        loinc_code=spec.loinc_code,
+                        patient_id=pid,
+                        encounter_id=encounter_id,
+                        author_practitioner_id=_pick_document_author(spec, encounter),
+                        authored_datetime=end_dt.isoformat(),
+                        period_start=admission_dt.isoformat(),
+                        period_end=end_dt.isoformat(),
+                        language=lang,
+                        format_type=spec.format_type.value,
+                        narrative=None,
+                    ))
+                    doc_seq += 1
+
                 elif freq == "encounter_once":
                     # Single-visit encounters (outpatient SOAP, ED note, ED triage note).
                     # Emit at day 0; period covers full encounter duration.

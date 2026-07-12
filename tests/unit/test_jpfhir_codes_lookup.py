@@ -25,7 +25,8 @@ def test_jpfhir_doc_section_system_uri():
 @pytest.mark.parametrize("code,ja", [
     ("18842-5", "退院時サマリー"),
     ("57133-1", "診療情報提供書"),
-    ("JPGCHKUP01", "健診結果報告書"),
+    # session 47 PR3:JPGCHKUP01 は誤りで、JP-eCheckup が LOINC 53576-5 を使用
+    ("53576-5", "検診・健診報告書"),
     ("57833-6", "処方箋"),
     ("56447-6", "計画書"),
 ])

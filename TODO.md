@@ -68,7 +68,14 @@ P1 (7 items) of the diffusion plan landed in one session as 12 focused PRs.
     two-level nested section tree). 紹介先 / 紹介元 / 紹介目的 are simulation
     approximations (single-hospital, generic 他院 placeholder). Not
     emitted for country=US.
-  - [ ] PR3: 健診 opt-in module + jpfhir-validator bridge + docs polish.
+  - [x] PR3 (session 47): JP-eCheckup General 健診結果報告書 Composition
+    infrastructure(opt-in、default off)。`JP_Composition_eCheckupGeneral`
+    profile + LOINC 53576-5(誤 JPGCHKUP01 を修正)+ eCheckup section
+    CodeSystem(7 codes)+ `HEALTH_CHECKUP_REPORT` DocumentType +
+    `checkup_once` generation_frequency + `SimulatorConfig.modules
+    ["health_checkup"]` gate + 事業者健診 2 section builder(01031 +
+    01032)。健診 encounter planner + observation generator は次 sub-PR。
+    jpfhir-validator bridge は別 sub-PR。
 - **P2-14** "Add your country" guide + country-pack scaffold.
 - **P2-15** Benchmark task definitions (sepsis / AKI prediction) + baseline eval script.
 - **PyPI upload** for v0.2.0 (user manual, needs `PYPI_API_TOKEN`).

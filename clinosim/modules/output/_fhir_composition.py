@@ -190,6 +190,9 @@ def _build_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[st
             return _build_jp_clins_discharge_summary_composition(doc, sections, lang)
         if loinc == "57133-1":
             return _build_jp_clins_referral_note_composition(doc, sections, lang)
+        # P2-13 PR3(session 47):JP-eCheckup General
+        if loinc == "53576-5":
+            return _build_jp_eCheckup_general_composition(doc, sections, lang)
     return _build_composition_generic(doc, sections, lang)
 
 
@@ -523,4 +526,84 @@ def _build_jp_clins_referral_note_composition(
         "section": struct_children,
     })
     comp["section"] = top_sections
+    return comp
+
+
+# ============================================================
+# P2-13 PR3:JP-eCheckup General 健診結果報告書用 Composition builder
+# ============================================================
+
+_JP_ECHECKUP_GENERAL_PROFILE = (
+    "http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Composition_eCheckupGeneral"
+)
+_JPFHIR_ECHECKUP_SECTION_SYSTEM = (
+    "http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code"
+)
+
+# eCheckup General の section キー → jpfhir eCheckup 番号 code
+# 事業者健診(労安衛法定健診)の 2 必須 section のみ対象。
+_JP_ECHECKUP_SECTION_CODE: dict[str, str] = {
+    "checkup_lab_results":   "01031",  # 事業者健診検査結果セクション
+    "checkup_questionnaire": "01032",  # 事業者健診問診結果セクション
+}
+
+
+def _build_jp_eCheckup_general_composition(
+    doc: Any, sections: dict[str, str], lang: str
+) -> dict[str, Any]:
+    """JP-eCheckup General v1.7.0 準拠 Composition を emit する(JP-only、opt-in)。
+
+    汎用 Composition builder との差分:
+      - meta.profile = [JP_Composition_eCheckupGeneral]
+      - type.coding[0].system = doc-typecodes(53576-5)、LOINC coding も併存
+      - section は flat 2 個(事業者健診の必須 2 section:01031 検査結果、
+        01032 問診結果)。section.code.system は eCheckup 固有 CodeSystem。
+    """
+    comp = _build_composition_generic(doc, sections, lang)
+
+    # meta.profile 追加
+    meta = comp.setdefault("meta", {})
+    profs = meta.setdefault("profile", [])
+    if _JP_ECHECKUP_GENERAL_PROFILE not in profs:
+        profs.append(_JP_ECHECKUP_GENERAL_PROFILE)
+
+    # type:53576-5 を doc-typecodes と LOINC 両方で emit
+    disp = code_lookup("jpfhir-doc-typecodes", "53576-5", lang) or "検診・健診報告書"
+    comp["type"] = {
+        "coding": [
+            {"system": _JPFHIR_DOC_TYPECODES_SYSTEM,
+             "code": "53576-5", "display": disp},
+            {"system": get_system_uri("loinc"),
+             "code": "53576-5", "display": code_lookup("loinc", "53576-5", lang) or disp},
+        ],
+        "text": disp,
+    }
+    comp["title"] = disp
+
+    # section:2 個 flat(nesting なし)
+    section_entries: list[dict[str, Any]] = []
+    for key, code in _JP_ECHECKUP_SECTION_CODE.items():
+        disp_c = (
+            code_lookup("jpfhir-eCheckup-section", code, lang) or key
+        )
+        text_val = sections.get(key, "") or ""
+        section_entries.append({
+            "title": disp_c,
+            "code": {
+                "coding": [{
+                    "system": _JPFHIR_ECHECKUP_SECTION_SYSTEM,
+                    "code": code,
+                    "display": disp_c,
+                }],
+                "text": disp_c,
+            },
+            "text": {
+                "status": "generated",
+                "div": (
+                    f'<div xmlns="http://www.w3.org/1999/xhtml">'
+                    f"{_escape_html(text_val)}</div>"
+                ),
+            },
+        })
+    comp["section"] = section_entries
     return comp

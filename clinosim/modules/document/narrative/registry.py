@@ -45,6 +45,7 @@ GENERATION_FREQUENCIES: frozenset[str] = frozenset({
     "discharge_once",
     "discharge_fraction_20pct",  # P2-13 PR2b: JP-CLINS referral_note (20% of discharges)
     "encounter_once",
+    "checkup_once",  # P2-13 PR3: JP-eCheckup health_checkup_report (opt-in module)
 })
 
 # N-chain adv-1 I-1: canonical allowlist of stage2_strategy values. The
@@ -77,6 +78,8 @@ SUPPORTED_DOCUMENT_TYPES: frozenset[DocumentType] = frozenset({
     DocumentType.REHABILITATION_PLAN,
     # P2-13 PR2b (session 47): JP-CLINS 診療情報提供書
     DocumentType.REFERRAL_NOTE,
+    # P2-13 PR3 (session 47): JP-eCheckup 健診結果報告書(opt-in)
+    DocumentType.HEALTH_CHECKUP_REPORT,
 })
 
 

@@ -24,6 +24,9 @@ class EncounterType(str, Enum):
     PRENATAL_VISIT = "prenatal_visit"
     DELIVERY = "delivery"
     NICU = "nicu"
+    # P2-13 PR3 (session 47) 健診(健康診断)encounter — opt-in、
+    # SimulatorConfig.modules["health_checkup"]=True かつ country=JP 時のみ発生
+    CHECKUP = "checkup"
 
 
 class EncounterStatus(str, Enum):
@@ -44,6 +47,7 @@ TIME_RESOLUTION: dict[EncounterType, timedelta | None] = {
     EncounterType.PRENATAL_VISIT: None,  # snapshot
     EncounterType.DELIVERY: timedelta(minutes=5),
     EncounterType.NICU: timedelta(minutes=15),
+    EncounterType.CHECKUP: None,  # 健診は snapshot(1日で完結)
 }
 
 

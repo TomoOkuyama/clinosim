@@ -45,6 +45,8 @@ class DocumentType(str, Enum):
     REHABILITATION_PLAN = "rehabilitation_plan"                   # LOINC 34823-5 (verified 2026-07-04)
     # P2-13 PR2b (session 47) JP-CLINS 診療情報提供書 — LOINC 57133-1
     REFERRAL_NOTE = "referral_note"                               # LOINC 57133-1 (JP-CLINS v1.12.0)
+    # P2-13 PR3 (session 47) JP-eCheckup General 健診結果報告書 — LOINC 53576-5(opt-in)
+    HEALTH_CHECKUP_REPORT = "health_checkup_report"               # LOINC 53576-5 (JP-eCheckup v1.7.0)
 
 
 @dataclass(frozen=True)

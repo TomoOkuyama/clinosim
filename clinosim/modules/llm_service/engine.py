@@ -66,6 +66,8 @@ class LLMTaskType(str, Enum):
     REHABILITATION_PLAN = "rehabilitation_plan"                    # LOINC 34823-5
     # P2-13 PR2b (session 47) JP-CLINS 診療情報提供書
     REFERRAL_NOTE = "referral_note"                                # LOINC 57133-1
+    # P2-13 PR3 (session 47) JP-eCheckup General 健診結果報告書(opt-in)
+    HEALTH_CHECKUP_REPORT = "health_checkup_report"                # LOINC 53576-5
 
 
 TASK_CATEGORY: dict[LLMTaskType, LLMTaskCategory] = {
@@ -90,6 +92,7 @@ TASK_CATEGORY: dict[LLMTaskType, LLMTaskCategory] = {
     LLMTaskType.NUTRITION_CARE_PLAN: LLMTaskCategory.NARRATIVE,
     LLMTaskType.REHABILITATION_PLAN: LLMTaskCategory.NARRATIVE,
     LLMTaskType.REFERRAL_NOTE: LLMTaskCategory.NARRATIVE,
+    LLMTaskType.HEALTH_CHECKUP_REPORT: LLMTaskCategory.NARRATIVE,
 }
 
 
@@ -118,6 +121,7 @@ DOCUMENT_LOINC: dict[LLMTaskType, str] = {
     LLMTaskType.NUTRITION_CARE_PLAN: "80791-7",           # Nutrition and dietetics Plan of care note
     LLMTaskType.REHABILITATION_PLAN: "34823-5",           # Physical medicine and rehab Note
     LLMTaskType.REFERRAL_NOTE: "57133-1",                 # Referral note (JP-CLINS 診療情報提供書)
+    LLMTaskType.HEALTH_CHECKUP_REPORT: "53576-5",         # Health checkup report (JP-eCheckup 検診・健診報告書)
 }
 
 

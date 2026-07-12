@@ -1,0 +1,37 @@
+# JP-eCheckup セクションコード CodeSystem — Composition.section[].code 用(JP-only)
+#
+# 一次出典:jpfhir.jp JP-eCheckup General v1.7.0(2026-02-16)。
+# https://jpfhir.jp/fhir/eCheckup/igv1/StructureDefinition-JP-Composition-eCheckupGeneral.html
+# を 2026-07-12(session 47 P2-13 PR3)に照合。
+#
+# JP-CLINS の doc-section CodeSystem(3 桁数値)と別 IG の CodeSystem(5 桁数値)。
+# country=JP かつ health_checkup opt-in module 有効時の
+# Composition.section[].code.coding に使用する。
+metadata:
+  name: JP-eCheckup Section Code
+  uri: http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code
+  version: "1.7.0"
+  source: "jpfhir.jp JP-eCheckup General v1.7.0 CodeSystem section-code"
+  description: JP-eCheckup General section code system for FHIR Composition.section
+codes:
+  "01011":
+    en: "Specific health checkup test results section"
+    ja: "特定健診検査結果セクション"
+  "01012":
+    en: "Specific health checkup questionnaire results section"
+    ja: "特定健診問診結果セクション"
+  "01021":
+    en: "Regional union health program test results section"
+    ja: "広域連合保健事業検査結果セクション"
+  "01022":
+    en: "Regional union health program questionnaire results section"
+    ja: "広域連合保健事業問診結果セクション"
+  "01031":
+    en: "Occupational health checkup test results section"
+    ja: "事業者健診検査結果セクション"
+  "01032":
+    en: "Occupational health checkup questionnaire results section"
+    ja: "事業者健診問診結果セクション"
+  "01990":
+    en: "Optional additional items section"
+    ja: "任意追加項目セクション"
