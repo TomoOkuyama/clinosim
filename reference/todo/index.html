@@ -1760,8 +1760,12 @@ P1 (7 items) of the diffusion plan landed in one session as 12 focused PRs.</p>
 検証 + CI 自動 fail gate 化。</li>
 </ul>
 </li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PR3 sub-PR-D: 特定健診(01011/01012)+ 広域連合健診(01021/01022)
-    section 対応。</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> PR3 sub-PR-D (session 47): 特定健診(01011/01012)+ 広域連合健診
+    (01021/01022)section 対応。ClinicalDocument に <code>checkup_type: str</code>
+    field 追加、age-based dispatch(40-64→事業者 / 65-74→特定 / 75+→広域
+    連合)。Composition builder は <code>_JP_ECHECKUP_SECTION_CODE_MATRIX</code> で
+    3 種別の section code を dispatch。Empirical p=500 seed=42 JP:
+    事業者29 / 特定30 / 広域連合24 の 3 種すべて emit 確認。</li>
 <li><strong>P2-14</strong> "Add your country" guide + country-pack scaffold.</li>
 <li><strong>P2-15</strong> Benchmark task definitions (sepsis / AKI prediction) + baseline eval script.</li>
 <li><strong>PyPI upload</strong> for v0.2.0 (user manual, needs <code>PYPI_API_TOKEN</code>).</li>

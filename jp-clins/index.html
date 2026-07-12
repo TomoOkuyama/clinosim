@@ -1954,8 +1954,15 @@
 <li><code>section.code.system</code> = <code>http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code</code></li>
 </ul>
 <p><strong>対象範囲(scope)</strong>:
-- 事業者健診(労安衛法定健診)のみに絞る MVP 実装。特定健診(01011/01012)や
-  広域連合健診(01021/01022)は将来 sub-PR で追加可能。
+- 3 健診種別すべて対応(sub-PR-D、session 47):
+  - <strong>事業者健診</strong>(occupational、40-64 歳):section 01031 + 01032
+  - <strong>特定健診</strong>(specific、65-74 歳):section 01011 + 01012
+  - <strong>広域連合健診</strong>(regional_union、75 歳以上):section 01021 + 01022</p>
+<p>種別選定は <code>_pick_checkup_type(age)</code> による age-based 決定的マッピング。
+  MVP は年齢帯単一 dispatch(実務では 40-64 歳の保険加入者は特定健診対象
+  になる場合もあるが、simulation では単純化)。将来:保険種別/就業状態を
+  参照した精緻化余地あり。ClinicalDocument に <code>checkup_type: str</code> field を
+  追加(sub-PR-D)、Composition builder が dispatch。
 - section content は個別化済(sub-PR-B、session 47):
   - <strong>01031 検査結果</strong>:record.lab_results から 5 項目(BMI / 収縮期 BP /
     拡張期 BP / HbA1c / LDL)の実測値を拾い、法定健診基準で
