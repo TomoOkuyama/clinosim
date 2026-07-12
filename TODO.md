@@ -4,7 +4,16 @@
 
 **Session 48 開始状態(順序 d → e → f → g → b → c、d 完了)**:
 
-### 完了(d):PR3 sub-PR-B 高度化(個別化)
+### 完了(d, e):PR3 sub-PR-B 個別化 + sub-PR-C SHA256 pin + auto-fail gate
+
+**(e) sub-PR-C 高度化**:
+- `.github/jp-validator-pins.env` 新設(validator + JP Core / CLINS / eCheckup pin)
+- `scripts/pin_jp_validator.sh` 新設(SHA256 bootstrap、in-place 書き換え)
+- `scripts/validate_jp.sh` に `_verify_sha256` / `_resolve_ig` / STRICT モード追加
+- `.github/workflows/jp-validate.yml`:pin load / SHA256 verify / auto-fail gate、`run_validator` + `strict_pins` default true 化
+- 単体テスト 10 個(pin file shape / bash -n / workflow yml shape / STRICT モード default)
+
+**(d) sub-PR-B 高度化**:
 
 かつて固定値だった健診 5 項目を PatientProfile + chronic_conditions から個別化:
 

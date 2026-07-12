@@ -237,6 +237,84 @@ if [ ! -f "$VALIDATOR_JAR" ]; then
     exit 2
 fi
 
+# --------------------------------------------------------------------------- #
+# 3a. IG package pinning(sub-PR-C 高度化, session 48)
+#
+# `.github/jp-validator-pins.env` を source すると *_PACKAGE_ID / _VERSION /
+# _URL / _SHA256 が入り、validator の `-ig` オプションに変換する。
+# 未指定なら profile URL 経由の online 解決に fallback(v0.2 挙動、warn)。
+#
+# STRICT=1 のとき:pin 済み SHA256 と実測値が不一致 → exit 1(CI gate)。
+# STRICT=0(default)でも placeholder が無設定なら警告のみ。
+STRICT="${CLINOSIM_JP_VAL_STRICT:-0}"
+
+IG_ARGS=()
+
+_verify_sha256() {
+    local file="$1"; local expected="$2"; local label="$3"
+    if [ -z "$expected" ]; then
+        if [ "$STRICT" = "1" ]; then
+            echo "validate_jp.sh: STRICT モードで $label の SHA256 が未設定" >&2
+            return 1
+        fi
+        echo "  warn: $label SHA256 未設定(bootstrap モード扱い)"
+        return 0
+    fi
+    local actual
+    actual=$(shasum -a 256 "$file" | awk '{print $1}')
+    if [ "$actual" != "$expected" ]; then
+        echo "validate_jp.sh: $label SHA256 mismatch" >&2
+        echo "  expected: $expected" >&2
+        echo "  actual:   $actual" >&2
+        return 1
+    fi
+    echo "  ok: $label SHA256 verified"
+    return 0
+}
+
+# JP Core:優先順位 = 直接 URL > package id#version > profile URL fallback
+_resolve_ig() {
+    local label="$1"; local pkg_id="$2"; local pkg_ver="$3"
+    local pkg_url="$4"; local pkg_sha="$5"
+    if [ -n "$pkg_url" ]; then
+        local dest="$TMP/${label}.tgz"
+        echo "  fetch: $label from $pkg_url"
+        curl -sSL -o "$dest" "$pkg_url" || {
+            echo "validate_jp.sh: $label のダウンロード失敗($pkg_url)" >&2
+            return 1
+        }
+        _verify_sha256 "$dest" "$pkg_sha" "$label" || return 1
+        IG_ARGS+=("-ig" "$dest")
+        return 0
+    fi
+    if [ -n "$pkg_id" ] && [ -n "$pkg_ver" ]; then
+        echo "  pin: $label -> $pkg_id#$pkg_ver (validator が package registry から解決)"
+        IG_ARGS+=("-ig" "${pkg_id}#${pkg_ver}")
+        return 0
+    fi
+    echo "  warn: $label 未 pin(validator が profile URL からオンライン解決を試みる)"
+    return 0
+}
+
+if [ -n "${CLINOSIM_JP_VAL_PINS:-}" ] && [ -f "${CLINOSIM_JP_VAL_PINS}" ]; then
+    echo ""
+    echo "== Step 3a: IG package pin 解決 =="
+    # shellcheck source=/dev/null
+    set -a; source "${CLINOSIM_JP_VAL_PINS}"; set +a
+    _resolve_ig "jp-core" \
+        "${JP_CORE_PACKAGE_ID:-}" "${JP_CORE_PACKAGE_VERSION:-}" \
+        "${JP_CORE_PACKAGE_URL:-}" "${JP_CORE_PACKAGE_SHA256:-}" \
+        || exit 1
+    _resolve_ig "jp-clins" \
+        "${JP_CLINS_PACKAGE_ID:-}" "${JP_CLINS_PACKAGE_VERSION:-}" \
+        "${JP_CLINS_PACKAGE_URL:-}" "${JP_CLINS_PACKAGE_SHA256:-}" \
+        || exit 1
+    _resolve_ig "jp-eCheckup" \
+        "${JP_ECHECKUP_PACKAGE_ID:-}" "${JP_ECHECKUP_PACKAGE_VERSION:-}" \
+        "${JP_ECHECKUP_PACKAGE_URL:-}" "${JP_ECHECKUP_PACKAGE_SHA256:-}" \
+        || exit 1
+fi
+
 # 各サンプルを検証(profile URL は JP FHIR IG の canonical URL を使用)
 declare -A PROFILES=(
     ["Condition.json"]="http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Condition_eCS"
@@ -260,12 +338,9 @@ for sample in "$SAMPLES"/*.json; do
     profile="${PROFILES[$filename]}"
     TOTAL=$((TOTAL + 1))
     echo "  validating $filename against $profile"
-    # NOTE:実際の IG package URL は将来 sub-PR で固定化。ここでは
-    # profile URL のみを渡し、validator に IG 解決を任せる。ネットワーク
-    # 越しの動的取得はローカル環境依存で失敗する可能性あるため fail 時も
-    # continue する。
     if java -jar "$VALIDATOR_JAR" \
             -version 4.0.1 \
+            "${IG_ARGS[@]}" \
             -profile "$profile" \
             "$sample" >"$TMP/val_${filename}.log" 2>&1; then
         PASSED=$((PASSED + 1))
@@ -283,5 +358,10 @@ echo "  total=$TOTAL passed=$PASSED failed=$FAILED"
 if [ "$FAILED" -gt 0 ]; then
     echo "validate_jp.sh: FAIL — $FAILED / $TOTAL profile checks failed"
     exit 1
+fi
+if [ "$TOTAL" -eq 0 ]; then
+    # STRICT モードでサンプル 0 は silent-no-op として fail(sub-PR-C 高度化)
+    echo "validate_jp.sh: no samples validated (extraction may be broken)" >&2
+    [ "$STRICT" = "1" ] && exit 1
 fi
 echo "validate_jp.sh: PASS — all $TOTAL profile checks passed"
