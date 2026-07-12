@@ -99,10 +99,10 @@ user 明示の「他モジュールへの影響」チェック per、integration
 ---
 STEP 4:テスト状態(session 47 wrap 時)
 
-- **Unit 2578 PASS**(session 46 wrap 2487 + PR1 17 + PR2a 34 + PR2b 7 + PR3 9 + sub-PR-A 5 + sub-PR-B 6 + sub-PR-D 13)、regression 0
+- **Unit 2578 PASS**(session 46 wrap 2487 + PR1-3 chain +91)、regression 0
 - reproduce.sh PASS(US 272 + JP 192 files byte-identical)
-- Integration:session 末 batch 実行済(#144 = test_jp_clinical_impression_structural_fields_present pre-existing known-fail、by-design ci-in-progress)
-- e2e:37 PASS(既知安定)
+- **Integration 297 PASS + 1 pre-existing #144 fail**(session 46 wrap 294 → 297、+3。#144 = test_jp_clinical_impression_structural_fields_present、by-design ci-in-progress、TODO tracked)
+- **E2E 37 PASS**(session 46 wrap と同)
 
 ---
 STEP 5:Empirical 検証結果(session 47 中に確認済み)

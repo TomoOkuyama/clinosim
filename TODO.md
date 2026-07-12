@@ -37,7 +37,8 @@ Session 47 は session 46 の OSS diffusion plan 後の flagship task = **P2-13 
 
 - **Unit: 2578 PASS**(session 46 wrap 2487 + PR1 17 + PR2a 34 + PR2b 7 + PR3 9 + sub-PR-A 5 + sub-PR-B 6 + sub-PR-D 13)、regression 0
 - `bash scripts/reproduce.sh`: PASS(US 272 + JP 192 files byte-identical、2 locale × 2 runs)
-- Integration + e2e: **session 末 batch**(memory `feedback-batch-long-running-ci-at-session-end` per、wrap commit 直後起動)
+- **Integration: 297 PASS + 1 pre-existing #144 fail + 7 skipped + 1 xfailed**(session 46 wrap 294 → 297、+3。#144 = test_jp_clinical_impression_structural_fields_present、by-design ci-in-progress、TODO tracked)
+- **E2E: 37 PASS**(session 46 wrap 37 と同、regression 0)
 
 ### Session 47 直後の empirical 検証
 
