@@ -30,8 +30,17 @@ def main() -> None:
     )
     sub = parser.add_subparsers(dest="command", help="Command to run")
 
-    # === generate: population-driven simulation ===
-    gen = sub.add_parser("generate", help="Generate patient data from population simulation")
+    # === simulate: population-driven simulation ===
+    # session 48 cleanup (g): 元 command 名は "generate" だったが
+    # physiology-driven simulator という実態を反映して "simulate" を canonical に
+    # し、"generate" は deprecation alias として残す。alias 利用時のみ
+    # deprecation warning を stderr に出す(run() で sys.argv 検査)。
+    gen = sub.add_parser(
+        "simulate",
+        aliases=["generate"],
+        help="Simulate patient data from population + physiology "
+        "(alias: generate — deprecated)",
+    )
     gen.add_argument("-o", "--output", default="./output", help="Output directory")
     gen.add_argument(
         "-p",
@@ -430,7 +439,18 @@ def main() -> None:
         _run_quality_checks(dataset)
         return
 
-    if args.command == "generate":
+    # session 48 cleanup (g): canonical は "simulate"、"generate" は
+    # deprecation alias。argparse の alias は args.command に打鍵された表記を
+    # そのまま返すため、両方を受け入れつつ alias 側では stderr に warn を出す。
+    if args.command in ("simulate", "generate"):
+        if args.command == "generate":
+            import sys as _sys
+            print(
+                "clinosim: DeprecationWarning: 'generate' subcommand is deprecated, "
+                "use 'simulate' instead. Backward-compat alias will be removed in a "
+                "future release.",
+                file=_sys.stderr,
+            )
         _validate_formats(args.format, parser)  # fail fast on bad --format (AD-58)
         from datetime import date
         from datetime import timedelta as _td

@@ -135,20 +135,20 @@ pip install -e ".[dev]"
 
 ```bash
 # デフォルト: US, 過去1年, 今日が snapshot, 40,000人 catchment, 50床hospital
-clinosim generate -o ./output
+clinosim simulate -o ./output
 
 # 期間指定 (--end が snapshot date)
-clinosim generate -o ./output --start 2024-01-01 --end 2024-12-31
+clinosim simulate -o ./output --start 2024-01-01 --end 2024-12-31
 
 # Japan 10床 clinic
-clinosim generate -o ./output \
+clinosim simulate -o ./output \
   --country JP \
   --hospital-config clinosim/config/hospital_small.yaml \
   -p 12000
 
 # === Stage 2: 臨床文書生成 (DEPRECATED — 以下注意) ===
 # α-min-1 (2026-07-01) 以降、DocumentReference / Composition / ClinicalImpression は
-# Stage 1 (clinosim generate --format fhir-r4) で自動生成されます。
+# Stage 1 (clinosim simulate --format fhir-r4) で自動生成されます。
 # clinosim narrate サブコマンドは廃止済みでエラー終了します。
 # Stage 2 LLM ナラティブ統合は β-JP-1 chain に延期 (TODO.md 参照)。
 #
@@ -214,7 +214,7 @@ get_system_uri("loinc")
 
 ## CLI リファレンス
 
-### `clinosim generate`
+### `clinosim simulate`
 
 人口駆動の population-based シミュレーション (主用途)。
 
@@ -347,7 +347,7 @@ output/csv/
 
 ```mermaid
 flowchart TD
-    subgraph stage1["Stage 1 — clinosim generate"]
+    subgraph stage1["Stage 1 — clinosim simulate"]
         pop["population engine<br/>人口生成 (世帯ベース)<br/>PersonRecord (Layer 1)<br/>月次 LifeEvent"]
         act["patient activator<br/>Layer 1 → Layer 2 変換"]
         enc["encounter creation<br/>disease YAML → 科判定<br/>staff / ward / bed 割当"]
@@ -739,7 +739,7 @@ ollama serve
 ollama pull qwen:7b
 
 # Narrative付きで生成
-clinosim generate --narrative --narrative-model qwen:7b
+clinosim simulate --narrative --narrative-model qwen:7b
 ```
 
 LLMは structural データ生成には**不要**。 Without LLM, template-based narratives が使われる。

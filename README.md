@@ -130,7 +130,7 @@ means in practice.
 ### Demo
 
 > 📷 **Demo GIF placeholder.** An asciinema recording of
-> `clinosim generate --country JP --population 100 --seed 42` will land
+> `clinosim simulate --country JP --population 100 --seed 42` will land
 > at `docs/assets/demo.gif` — see the
 > [good first issues](https://github.com/TomoOkuyama/clinosim/labels/good%20first%20issue)
 > tracker for the current TODO.
@@ -352,20 +352,20 @@ package listing.
 # === Stage 1: structured simulation (always local, deterministic) ===
 
 # Default: US, past 1 year ending today, 40,000 catchment, 50-bed hospital
-clinosim generate -o ./output
+clinosim simulate -o ./output
 
 # Custom period (--end is the snapshot date)
-clinosim generate -o ./output --start 2024-01-01 --end 2024-12-31
+clinosim simulate -o ./output --start 2024-01-01 --end 2024-12-31
 
 # Japan 10-bed clinic
-clinosim generate -o ./output \
+clinosim simulate -o ./output \
   --country JP \
   --hospital-config clinosim/config/hospital_small.yaml \
   -p 12000
 
 # === Stage 2: clinical documents (DEPRECATED — see note below) ===
 # As of α-min-1 (2026-07-01), DocumentReference / Composition / ClinicalImpression are
-# generated automatically during Stage 1 (clinosim generate --format fhir-r4).
+# generated automatically during Stage 1 (clinosim simulate --format fhir-r4).
 # The clinosim narrate subcommand is deprecated and will exit with an error.
 # Stage 2 LLM narrative integration is deferred to the β-JP-1 chain (see TODO.md).
 #
@@ -388,7 +388,7 @@ clinosim export-fhir --cif-dir ./output/cif --narrative-version ollama_en_v1
 # === One-shot pipeline ===
 
 # Stage 1 + Stage 2 + Stage 3 in a single command
-clinosim generate -o ./output --format fhir --narrative \
+clinosim simulate -o ./output --format fhir --narrative \
   --llm-config clinosim/config/llm_service.yaml
 
 # === Debug / inspection ===
@@ -443,7 +443,7 @@ get_system_uri("loinc")
 
 ## CLI Reference
 
-clinosim is organized as three independent stages. You can run them as a single pipeline with `clinosim generate`, or run each stage separately for reproducibility, remote execution (e.g. Bedrock on EC2), or iterative narrative experiments.
+clinosim is organized as three independent stages. You can run them as a single pipeline with `clinosim simulate`, or run each stage separately for reproducibility, remote execution (e.g. Bedrock on EC2), or iterative narrative experiments.
 
 ```
 ┌────────────────┐  ┌────────────────┐  ┌──────────────────┐
@@ -453,7 +453,7 @@ clinosim is organized as three independent stages. You can run them as a single 
 └────────────────┘  └────────────────┘  └──────────────────┘
 ```
 
-### `clinosim generate` — Stage 1 (structural simulation)
+### `clinosim simulate` — Stage 1 (structural simulation)
 
 Population-driven simulation. Produces the structural CIF and optionally runs Stage 2/3 in one command.
 
@@ -476,7 +476,7 @@ Population-driven simulation. Produces the structural CIF and optionally runs St
 
 > **Deprecated (Task 15, 2026-07-01)**: `clinosim narrate` is no longer functional.
 > DocumentReference resources are now generated automatically during simulation
-> by the `document_enricher` module (Stage 1). Run `clinosim generate --format fhir-r4`
+> by the `document_enricher` module (Stage 1). Run `clinosim simulate --format fhir-r4`
 > to get DocumentReferences without a separate narrate step.
 > Stage 2 LLM provider integration is deferred to the β-JP-1 chain (see TODO.md).
 
@@ -542,14 +542,14 @@ Show all 32 diseases + 46 encounter conditions.
 
 **Local template-only run (no LLM, deterministic):**
 ```bash
-clinosim generate -o ./output -p 5000 --country US
+clinosim simulate -o ./output -p 5000 --country US
 clinosim narrate --cif-dir ./output/cif --version-id template_v1
 clinosim export-fhir --cif-dir ./output/cif --narrative-version template_v1
 ```
 
 **Local LLM (Ollama):**
 ```bash
-clinosim generate -o ./output -p 5000 --country US
+clinosim simulate -o ./output -p 5000 --country US
 clinosim narrate --cif-dir ./output/cif \
     --llm-config clinosim/config/llm_service.yaml \
     --version-id ollama_en_v1
@@ -559,7 +559,7 @@ clinosim export-fhir --cif-dir ./output/cif --narrative-version ollama_en_v1
 **Split: local Stage 1, EC2 Stage 2 (Bedrock), back to local Stage 3:**
 ```bash
 # On local machine
-clinosim generate -o ./output -p 5000 --country US --format cif
+clinosim simulate -o ./output -p 5000 --country US --format cif
 scp -r ./output/cif ec2-user@ec2-host:/home/ec2-user/
 
 # On EC2 (IAM role with bedrock:Converse)
@@ -644,7 +644,7 @@ output/fhir_r4/
 
 Each line = 1 FHIR resource. `Resource.id` is unique across all resource types. Reference integrity is maintained.
 
-`DocumentReference.ndjson` is emitted only when `clinosim export-fhir` is given `--narrative-version` (or when `clinosim generate --narrative --format fhir` runs the full pipeline). Without a narrative version, the remaining resource types are produced normally. `Coverage.ndjson` (+ insurer `Organization`) is emitted only for JP with insurance enabled (`--jp-insurance`, default on).
+`DocumentReference.ndjson` is emitted only when `clinosim export-fhir` is given `--narrative-version` (or when `clinosim simulate --narrative --format fhir` runs the full pipeline). Without a narrative version, the remaining resource types are produced normally. `Coverage.ndjson` (+ insurer `Organization`) is emitted only for JP with insurance enabled (`--jp-insurance`, default on).
 
 ### Included FHIR R4 Fields (key resources)
 
@@ -686,7 +686,7 @@ clinosim implements a three-stage pipeline. Each stage is self-contained, has a 
 
 ```mermaid
 flowchart TD
-    subgraph stage1["Stage 1 — clinosim generate"]
+    subgraph stage1["Stage 1 — clinosim simulate"]
         pop["population engine<br/>Catchment (household-based)<br/>PersonRecord (Layer 1)<br/>Monthly LifeEvent"]
         act["patient activator<br/>Layer 1 → Layer 2"]
         enc["encounter creation<br/>disease YAML → department<br/>staff / ward / bed / OR"]
@@ -1029,7 +1029,7 @@ Verify at any time:
 bash scripts/reproduce.sh
 ```
 
-The script runs `clinosim generate --format fhir` twice per locale
+The script runs `clinosim simulate --format fhir` twice per locale
 (US + JP by default) to two isolated temp directories, sha256s every
 NDJSON + CIF JSON, and diffs the hash lists. Exit 0 = byte-identical,
 exit 1 = determinism regression with the offending file(s) listed in
@@ -1279,7 +1279,7 @@ Details: `clinosim/modules/validator/README.md`
 
 ## Disclaimer
 
-clinosim generates entirely **synthetic** data. No real patient information is used or produced. Generated data is intended for software development, algorithm research, and system testing only. **It must not be used for clinical decision-making**.
+clinosim simulates entirely **synthetic** data. No real patient information is used or produced. Generated data is intended for software development, algorithm research, and system testing only. **It must not be used for clinical decision-making**.
 
 ---
 

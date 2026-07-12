@@ -32,13 +32,13 @@ More detail: [Datasets](../reference/datasets.md).
 
 ```bash
 # JP, 500 patients, 3 months
-clinosim generate \
+clinosim simulate \
     --country JP --population 500 --seed 42 \
     --start 2026-01-01 --end 2026-03-31 \
     --output ./my-cohort --format fhir
 
 # US, 1000 patients, 12 months
-clinosim generate \
+clinosim simulate \
     --country US --population 1000 --seed 42 \
     --start 2025-07-01 --end 2026-06-30 \
     --output ./my-us-cohort --format fhir
