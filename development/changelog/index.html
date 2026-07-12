@@ -1103,6 +1103,8 @@
       
         
       
+        
+      
     
     
     
@@ -1193,6 +1195,34 @@
     
   
     Clinical documents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../synthea-comparison/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compare to Synthea
   
 
     
@@ -1650,6 +1680,17 @@ byte output but must document the change here.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
+<li><strong>Synthea comparison adapter</strong> (P1-10):
+  <a href="../../eval.md"><code>clinosim eval</code></a> can now score a
+  <a href="https://synthetichealth.github.io/synthea/">Synthea</a> <code>fhir/</code>
+  output directory directly. Point <code>-d</code> at the Synthea directory;
+  the new <code>clinosim/eval/synthea_adapter.py</code> auto-detects the
+  per-patient Bundle layout and fans it into per-<code>ResourceType</code>
+  NDJSON under <code>&lt;cohort&gt;/../synthea-normalized/</code> (or the
+  <code>--synthea-normalize</code> override). Deterministic conversion so scores
+  are reproducible. Synthea is an <strong>optional</strong> dependency — nothing
+  in clinosim imports it at runtime. Full comparison walk-through at
+  <code>docs/synthea-comparison.md</code>; 7 unit tests cover the adapter.</li>
 <li><strong>Clinical contradiction checks</strong> (P1-9): two new checks on the
   <code>clinical</code> axis of <code>clinosim eval</code> — <code>condition_lab_coherence</code>
   (aggregate over 8 canonical pairings: sepsis-lactate, DKA-HCO₃,

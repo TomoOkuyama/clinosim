@@ -11,31 +11,31 @@
       
       
       
-        <link rel="canonical" href="https://tomookuyama.github.io/clinosim/getting-started/quick-start/">
+        <link rel="canonical" href="https://tomookuyama.github.io/clinosim/synthea-comparison/">
       
       
-        <link rel="prev" href="../installation/">
+        <link rel="prev" href="../clinical_documents/">
       
       
-        <link rel="next" href="../versioning/">
+        <link rel="next" href="../fhir-server-ingestion/">
       
       
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>Quick start - clinosim</title>
+        <title>Compare to Synthea - clinosim</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -54,7 +54,7 @@
       
     
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -79,7 +79,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#quick-start" class="md-skip">
+        <a href="#comparing-clinosim-and-synthea-with-clinosim-eval" class="md-skip">
           Skip to content
         </a>
       
@@ -95,7 +95,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="clinosim" class="md-header__button md-logo" aria-label="clinosim" data-md-component="logo">
+    <a href=".." title="clinosim" class="md-header__button md-logo" aria-label="clinosim" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -115,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Quick start
+              Compare to Synthea
             
           </span>
         </div>
@@ -222,7 +222,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href=".." class="md-tabs__link">
         
   
   
@@ -239,13 +239,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../installation/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../getting-started/installation/" class="md-tabs__link">
           
   
   
@@ -267,7 +265,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../design-guides/project-concept-and-design/" class="md-tabs__link">
+        <a href="../design-guides/project-concept-and-design/" class="md-tabs__link">
           
   
   
@@ -289,7 +287,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../reference/datasets/" class="md-tabs__link">
+        <a href="../reference/datasets/" class="md-tabs__link">
           
   
   
@@ -307,11 +305,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../CONTRIBUTING-modules/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../CONTRIBUTING-modules/" class="md-tabs__link">
           
   
   
@@ -333,7 +333,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../development/reproducibility/" class="md-tabs__link">
+        <a href="../development/reproducibility/" class="md-tabs__link">
           
   
   
@@ -355,7 +355,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../governance/contributing/" class="md-tabs__link">
+        <a href="../governance/contributing/" class="md-tabs__link">
           
   
   
@@ -397,7 +397,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="clinosim" class="md-nav__button md-logo" aria-label="clinosim" data-md-component="logo">
+    <a href=".." title="clinosim" class="md-nav__button md-logo" aria-label="clinosim" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -427,7 +427,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -451,10 +451,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -468,22 +466,21 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
             
   
   
@@ -501,7 +498,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -519,7 +516,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../installation/" class="md-nav__link">
+      <a href="../getting-started/installation/" class="md-nav__link">
         
   
   
@@ -544,37 +541,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Quick start
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../getting-started/quick-start/" class="md-nav__link">
         
   
   
@@ -590,70 +560,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#build-a-shipped-dataset-preset" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Build a shipped dataset preset
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#roll-your-own-cohort" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Roll your own cohort
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#score-a-cohort" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Score a cohort
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Next steps
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -666,7 +572,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../versioning/" class="md-nav__link">
+      <a href="../getting-started/versioning/" class="md-nav__link">
         
   
   
@@ -767,7 +673,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design-guides/project-concept-and-design/" class="md-nav__link">
+      <a href="../design-guides/project-concept-and-design/" class="md-nav__link">
         
   
   
@@ -795,7 +701,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design-guides/data-generation-walkthrough/" class="md-nav__link">
+      <a href="../design-guides/data-generation-walkthrough/" class="md-nav__link">
         
   
   
@@ -823,7 +729,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design-guides/implementation-rules/" class="md-nav__link">
+      <a href="../design-guides/implementation-rules/" class="md-nav__link">
         
   
   
@@ -851,7 +757,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design-guides/fhir-data-generation-logic/" class="md-nav__link">
+      <a href="../design-guides/fhir-data-generation-logic/" class="md-nav__link">
         
   
   
@@ -879,7 +785,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../design-guides/data-model-and-completeness-conventions/" class="md-nav__link">
+      <a href="../design-guides/data-model-and-completeness-conventions/" class="md-nav__link">
         
   
   
@@ -984,7 +890,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/datasets/" class="md-nav__link">
+      <a href="../reference/datasets/" class="md-nav__link">
         
   
   
@@ -1012,7 +918,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../eval/" class="md-nav__link">
+      <a href="../eval/" class="md-nav__link">
         
   
   
@@ -1040,7 +946,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../eval-rules/" class="md-nav__link">
+      <a href="../eval-rules/" class="md-nav__link">
         
   
   
@@ -1068,7 +974,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/modules/" class="md-nav__link">
+      <a href="../reference/modules/" class="md-nav__link">
         
   
   
@@ -1096,7 +1002,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/design/" class="md-nav__link">
+      <a href="../reference/design/" class="md-nav__link">
         
   
   
@@ -1124,7 +1030,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/scenario-flags/" class="md-nav__link">
+      <a href="../reference/scenario-flags/" class="md-nav__link">
         
   
   
@@ -1152,7 +1058,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/todo/" class="md-nav__link">
+      <a href="../reference/todo/" class="md-nav__link">
         
   
   
@@ -1184,8 +1090,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -1203,21 +1111,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   
@@ -1235,7 +1144,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1253,7 +1162,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../CONTRIBUTING-modules/" class="md-nav__link">
+      <a href="../CONTRIBUTING-modules/" class="md-nav__link">
         
   
   
@@ -1281,7 +1190,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../clinical_documents/" class="md-nav__link">
+      <a href="../clinical_documents/" class="md-nav__link">
         
   
   
@@ -1306,10 +1215,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../synthea-comparison/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compare to Synthea
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1325,6 +1261,131 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-generate-a-synthea-cohort" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1 — Generate a Synthea cohort
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1 — Generate a Synthea cohort">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#java-direct" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Java direct
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-score-the-synthea-cohort-with-clinosim-eval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2 — Score the Synthea cohort with clinosim eval
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-score-the-equivalent-clinosim-cohort" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3 — Score the equivalent clinosim cohort
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-compare-axis-by-axis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4 — Compare axis by axis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-two-tools-legitimately-score-differently" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the two tools legitimately score differently
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-a-rule-thats-fair-to-both" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a rule that's fair to both
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1337,7 +1398,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../fhir-server-ingestion/" class="md-nav__link">
+      <a href="../fhir-server-ingestion/" class="md-nav__link">
         
   
   
@@ -1365,7 +1426,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../bedrock_setup/" class="md-nav__link">
+      <a href="../bedrock_setup/" class="md-nav__link">
         
   
   
@@ -1460,7 +1521,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/reproducibility/" class="md-nav__link">
+      <a href="../development/reproducibility/" class="md-nav__link">
         
   
   
@@ -1488,7 +1549,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../development/changelog/" class="md-nav__link">
+      <a href="../development/changelog/" class="md-nav__link">
         
   
   
@@ -1587,7 +1648,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../governance/contributing/" class="md-nav__link">
+      <a href="../governance/contributing/" class="md-nav__link">
         
   
   
@@ -1615,7 +1676,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../governance/code-of-conduct/" class="md-nav__link">
+      <a href="../governance/code-of-conduct/" class="md-nav__link">
         
   
   
@@ -1643,7 +1704,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../governance/security/" class="md-nav__link">
+      <a href="../governance/security/" class="md-nav__link">
         
   
   
@@ -1671,7 +1732,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../governance/citation/" class="md-nav__link">
+      <a href="../governance/citation/" class="md-nav__link">
         
   
   
@@ -1726,10 +1787,49 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#build-a-shipped-dataset-preset" class="md-nav__link">
+  <a href="#1-generate-a-synthea-cohort" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Build a shipped dataset preset
+        1 — Generate a Synthea cohort
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1 — Generate a Synthea cohort">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#java-direct" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Java direct
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-score-the-synthea-cohort-with-clinosim-eval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2 — Score the Synthea cohort with clinosim eval
       
     </span>
   </a>
@@ -1737,10 +1837,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#roll-your-own-cohort" class="md-nav__link">
+  <a href="#3-score-the-equivalent-clinosim-cohort" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Roll your own cohort
+        3 — Score the equivalent clinosim cohort
       
     </span>
   </a>
@@ -1748,10 +1848,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#score-a-cohort" class="md-nav__link">
+  <a href="#4-compare-axis-by-axis" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Score a cohort
+        4 — Compare axis by axis
       
     </span>
   </a>
@@ -1759,10 +1859,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
+  <a href="#what-the-two-tools-legitimately-score-differently" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next steps
+        What the two tools legitimately score differently
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-a-rule-thats-fair-to-both" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a rule that's fair to both
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See also
       
     </span>
   </a>
@@ -1786,7 +1908,7 @@
 
 
   
-    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/getting-started/quick-start.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/synthea-comparison.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -1794,57 +1916,133 @@
   
 
 
-<h1 id="quick-start">Quick start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h1>
-<h2 id="build-a-shipped-dataset-preset">Build a shipped dataset preset<a class="headerlink" href="#build-a-shipped-dataset-preset" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>list<span class="w">                                    </span><span class="c1"># enumerate presets</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># jp-100      JP cohort, 100 patients, 2026-01-01 to 2026-03-31 (3 months)</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># jp-1000     JP cohort, 1000 patients, 2026-01-01 to 2026-06-30 (6 months)</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># us-100      US cohort, 100 patients, 2026-01-01 to 2026-03-31 (3 months)</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># us-1000     US cohort, 1000 patients, 2026-01-01 to 2026-06-30 (6 months)</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>build<span class="w"> </span>jp-100<span class="w"> </span>--output<span class="w"> </span>./jp-100<span class="w">          </span><span class="c1"># ~30 s</span>
+<h1 id="comparing-clinosim-and-synthea-with-clinosim-eval">Comparing clinosim and Synthea with <code>clinosim eval</code><a class="headerlink" href="#comparing-clinosim-and-synthea-with-clinosim-eval" title="Permanent link">&para;</a></h1>
+<p><a href="https://synthetichealth.github.io/synthea/">Synthea</a> (MITRE's state-
+transition synthetic health record generator) and clinosim tackle the
+same problem from different angles — see the top-level
+<a href="https://github.com/TomoOkuyama/clinosim#how-clinosim-compares-to-synthea">README comparison table</a>
+for the design difference summary.</p>
+<p>This page shows how to score them on the <strong>same</strong> evaluation axes so
+you can compare the two side by side quantitatively. clinosim ships an
+adapter that fans Synthea's per-patient Bundle output into the
+per-<code>ResourceType</code> NDJSON layout <code>clinosim eval</code> expects.</p>
+<div class="admonition note">
+<p class="admonition-title">Synthea is an optional dependency</p>
+<p>Nothing in clinosim imports or depends on Synthea at runtime. Java
+(11+) is only needed while you generate a Synthea cohort. Once the
+output exists on disk, everything below is pure Python.</p>
+</div>
+<h2 id="1-generate-a-synthea-cohort">1 — Generate a Synthea cohort<a class="headerlink" href="#1-generate-a-synthea-cohort" title="Permanent link">&para;</a></h2>
+<p>Synthea is Java-based. Two easy ways to run it:</p>
+<h3 id="docker">Docker<a class="headerlink" href="#docker" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>./synthea-out
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span>-v<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">/synthea-out:/output&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span>docker.io/mitre/synthea:latest<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span>-p<span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span>--exporter.fhir.export<span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span>--exporter.fhir.transaction_bundle<span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span>--exporter.baseDirectory<span class="o">=</span>/output<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span>California<span class="w"> </span>San_Francisco
 </span></code></pre></div>
-<p>Output layout:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>jp-100/
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>├── cif/                         # canonical intermediate format
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>└── fhir_r4/
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    ├── Patient.ndjson
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    ├── Encounter.ndjson
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    ├── Condition.ndjson
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    ├── Observation.ndjson
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    ├── ...
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    └── manifest.json            # FHIR Bulk manifest
+<p>The FHIR R4 output lands in <code>./synthea-out/fhir/</code> — one JSON file per
+patient (a top-level FHIR Bundle whose <code>entry[].resource</code> list holds
+Patient / Encounter / Observation / ...).</p>
+<h3 id="java-direct">Java direct<a class="headerlink" href="#java-direct" title="Permanent link">&para;</a></h3>
+<p>If you prefer the plain <code>.jar</code> route:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/synthetichealth/synthea.git
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">cd</span><span class="w"> </span>synthea
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>./run_synthea<span class="w"> </span>-p<span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span>--exporter.fhir.export<span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span>California<span class="w"> </span>San_Francisco
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1"># → output/fhir/&lt;uuid&gt;.json</span>
 </span></code></pre></div>
-<p>More detail: <a href="../../reference/datasets/">Datasets</a>.</p>
-<h2 id="roll-your-own-cohort">Roll your own cohort<a class="headerlink" href="#roll-your-own-cohort" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># JP, 500 patients, 3 months</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>clinosim<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span>--country<span class="w"> </span>JP<span class="w"> </span>--population<span class="w"> </span><span class="m">500</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span>--start<span class="w"> </span><span class="m">2026</span>-01-01<span class="w"> </span>--end<span class="w"> </span><span class="m">2026</span>-03-31<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span>--output<span class="w"> </span>./my-cohort<span class="w"> </span>--format<span class="w"> </span>fhir
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># US, 1000 patients, 12 months</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>clinosim<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span>--country<span class="w"> </span>US<span class="w"> </span>--population<span class="w"> </span><span class="m">1000</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span>--start<span class="w"> </span><span class="m">2025</span>-07-01<span class="w"> </span>--end<span class="w"> </span><span class="m">2026</span>-06-30<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span>--output<span class="w"> </span>./my-us-cohort<span class="w"> </span>--format<span class="w"> </span>fhir
+<p>Refer to the <a href="https://github.com/synthetichealth/synthea/wiki">Synthea wiki</a>
+for population size / state / config options.</p>
+<h2 id="2-score-the-synthea-cohort-with-clinosim-eval">2 — Score the Synthea cohort with <code>clinosim eval</code><a class="headerlink" href="#2-score-the-synthea-cohort-with-clinosim-eval" title="Permanent link">&para;</a></h2>
+<p>Point <code>clinosim eval</code> at Synthea's <code>fhir/</code> output — the layout is
+auto-detected and the Bundle files are normalized into
+<code>fhir_r4/&lt;ResourceType&gt;.ndjson</code> alongside it:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>-d<span class="w"> </span>./synthea-out/fhir
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># clinosim eval: detected Synthea layout — normalizing into ./synthea-out/synthea-normalized</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># clinosim eval: wrote 12345 resources across 18 ResourceType(s)</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># ...</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># Overall score: 82.4 / 100 (WARN)</span>
 </span></code></pre></div>
-<p>Deterministic — same seed + same params = byte-identical output. Verify
-at any time with:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bash<span class="w"> </span>scripts/reproduce.sh
+<p>The normalization is deterministic (same Bundles ⇒ same NDJSON bytes);
+subsequent <code>eval</code> runs against the same input reuse the on-disk
+<code>synthea-normalized/</code> directory unless you <code>rm -rf</code> it.</p>
+<p>Force the target directory with <code>--synthea-normalize</code>:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>-d<span class="w"> </span>./synthea-out/fhir<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span>--synthea-normalize<span class="w"> </span>/tmp/synthea-flat<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span>--json<span class="w"> </span>synthea-eval.json<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span>--md<span class="w"> </span>synthea-eval.md
 </span></code></pre></div>
-<p>See <a href="../../development/reproducibility/">Reproducibility</a> for the
-underlying guarantee.</p>
-<h2 id="score-a-cohort">Score a cohort<a class="headerlink" href="#score-a-cohort" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>-d<span class="w"> </span>./jp-100<span class="w">                                </span><span class="c1"># Markdown to stdout</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>-d<span class="w"> </span>./jp-100<span class="w"> </span>--json<span class="w"> </span>report.json<span class="w"> </span>--md<span class="w"> </span>report.md
+<h2 id="3-score-the-equivalent-clinosim-cohort">3 — Score the equivalent clinosim cohort<a class="headerlink" href="#3-score-the-equivalent-clinosim-cohort" title="Permanent link">&para;</a></h2>
+<p>Generate a comparable clinosim cohort — the <code>us-100</code> preset ships with
+the same size / country / duration ballpark:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>build<span class="w"> </span>us-100<span class="w"> </span>--output<span class="w"> </span>./clinosim-out
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>-d<span class="w"> </span>./clinosim-out<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span>--json<span class="w"> </span>clinosim-eval.json<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span>--md<span class="w"> </span>clinosim-eval.md
 </span></code></pre></div>
-<p>Full reference: <a href="../../eval/">Evaluation</a>.</p>
-<h2 id="next-steps">Next steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<h2 id="4-compare-axis-by-axis">4 — Compare axis by axis<a class="headerlink" href="#4-compare-axis-by-axis" title="Permanent link">&para;</a></h2>
+<p>Diff the two JSON reports on the axes you care about:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python3<span class="w"> </span>-<span class="w"> </span><span class="s">&lt;&lt;&#39;PY&#39;</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="s">import json</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="s">a = json.load(open(&quot;synthea-eval.json&quot;))</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="s">b = json.load(open(&quot;clinosim-eval.json&quot;))</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="s">print(f&quot;{&#39;axis&#39;:&lt;15} {&#39;synthea&#39;:&gt;10} {&#39;clinosim&#39;:&gt;10}&quot;)</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="s">for ax_a, ax_b in zip(a[&quot;axes&quot;], b[&quot;axes&quot;]):</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="s">    assert ax_a[&quot;axis&quot;] == ax_b[&quot;axis&quot;]</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="s">    print(f&quot;{ax_a[&#39;axis&#39;]:&lt;15} {ax_a[&#39;score&#39;]:&gt;10.1f} {ax_b[&#39;score&#39;]:&gt;10.1f}&quot;)</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="s">print(f&quot;{&#39;overall&#39;:&lt;15} {a[&#39;overall_score&#39;]:&gt;10.1f} {b[&#39;overall_score&#39;]:&gt;10.1f}&quot;)</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="s">PY</span>
+</span></code></pre></div>
+<p>Example output (a real comparison will differ):</p>
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>axis            synthea    clinosim
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>structural         98.5      100.0
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>clinical           74.2       77.8
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>locale             85.0      100.0
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>overall            85.9       92.6
+</span></code></pre></div>
+<p>The scoring formula is documented at
+<a href="../eval/#scoring">Evaluation</a>; the per-check pass criteria at
+<a href="../eval-rules/">Evaluation rules</a>.</p>
+<h2 id="what-the-two-tools-legitimately-score-differently">What the two tools legitimately score differently<a class="headerlink" href="#what-the-two-tools-legitimately-score-differently" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Understand the model</strong> — <a href="../../design-guides/data-generation-walkthrough/">Concepts / Data generation walkthrough</a></li>
-<li><strong>Extend a disease YAML</strong> — <a href="../../CONTRIBUTING-modules/">Adding a module</a></li>
-<li><strong>Verify reproducibility on your machine</strong> — <a href="../../development/reproducibility/">Reproducibility</a></li>
+<li><strong>Structural.</strong> Both tools emit valid FHIR R4, so scores here should
+  be close. Any structural gap tends to be resource-cardinality: e.g.
+  Synthea doesn't emit <code>CareTeam</code> for every Encounter, clinosim does
+  after session 46 P0.</li>
+<li><strong>Clinical.</strong> clinosim's physiology model was tuned by the
+  <code>condition_lab_coherence</code> pairings in <a href="../eval-rules/">eval-rules.md</a>,
+  so a clinosim cohort should score high there almost by construction.
+  Synthea's state-transition modules were tuned for prevalence and
+  progression, which is a different quality axis; the coherence checks
+  will surface pairings where Synthea's per-condition lab modules and
+  the eval bands don't line up. Neither result is inherently "wrong" —
+  it's what you're measuring.</li>
+<li><strong>Locale.</strong> clinosim's JP checks (<code>japanese_displays_on_condition</code>,
+  <code>jlac10_or_loinc_on_lab</code>, <code>yj_code_on_medications</code>,
+  <code>jp_core_profile_declared</code>) will fail on Synthea output because
+  Synthea is US-first — the eval tool is calling out that Synthea
+  wasn't built to hit those thresholds, not that Synthea is broken.
+  Use <code>--country US</code> to restrict the locale axis to the US checks
+  when scoring Synthea.</li>
+</ul>
+<h2 id="adding-a-rule-thats-fair-to-both">Adding a rule that's fair to both<a class="headerlink" href="#adding-a-rule-thats-fair-to-both" title="Permanent link">&para;</a></h2>
+<p>If you plan to publish a comparison, <a href="../eval-rules/#adding-a-rule">eval-rules.md</a>
+is the single edit point for the check set. Any new rule you land there
+will score both tools consistently on the next eval run.</p>
+<h2 id="see-also">See also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../eval/">Evaluation</a> — CLI + scoring reference.</li>
+<li><a href="../eval-rules/">Evaluation rules</a> — per-check pass criteria + literature.</li>
+<li><a href="../reference/datasets/">Datasets</a> — clinosim preset cohorts.</li>
+<li><a href="../development/reproducibility/">Reproducibility</a> — clinosim's byte-identical
+  determinism contract.</li>
+<li><a href="https://github.com/synthetichealth/synthea/wiki">Synthea documentation</a>.</li>
 </ul>
 
 
@@ -1881,7 +2079,7 @@ underlying guarantee.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../installation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Installation">
+          <a href="../clinical_documents/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Clinical documents">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1891,20 +2089,20 @@ underlying guarantee.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Installation
+                Clinical documents
               </div>
             </div>
           </a>
         
         
           
-          <a href="../versioning/" class="md-footer__link md-footer__link--next" aria-label="Next: Versioning &amp; releases">
+          <a href="../fhir-server-ingestion/" class="md-footer__link md-footer__link--next" aria-label="Next: Load into a FHIR server">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Versioning & releases
+                Load into a FHIR server
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -1952,10 +2150,10 @@ underlying guarantee.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.indexes", "navigation.footer", "toc.follow", "content.code.copy", "content.action.edit", "search.highlight", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
