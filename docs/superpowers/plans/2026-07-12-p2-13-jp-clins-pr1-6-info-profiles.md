@@ -14,16 +14,16 @@
 - **JP Core 併存**:既存 `_apply_jp_core_profile` の出力を維持したまま、`_apply_jp_clins_profile` を追加 layer として重ねる。既存の `_JP_CORE_PROFILES` dict は変更しない。
 - **Idempotent**:`meta.profile[]` に既に同 URL があれば append しない。複数回呼ばれても副作用なし。
 - **country ゲート**:country="JP" 時のみ apply。country="US" の Bundle は byte-identical(既存 reproduce.sh gate と一致)。
-- **URL canonical form**:`http://jpfhir.jp/fhir/clins/StructureDefinition/<Name>` 形式。URL は Python constant に固定、YAML 化しない(spec 内 URL リスト = single source of truth)。
-- **感染症判別**:ICD-10 A00-B99 chapter に base code(3 桁)が入る Condition のみ `JP_Condition_Infection_eCS` を追加 emit(通常の `JP_Condition_eCS` も併存)。仕様書 §3.1 の判定基準を採用。
+- **URL canonical form**:`http://jpfhir.jp/fhir/eCS/StructureDefinition/<Name>` 形式。URL は Python constant に固定、YAML 化しない(spec 内 URL リスト = single source of truth)。
+- **感染症判別**:**削除**(JP-CLINS v1.12.0 は感染症用の別 Condition profile を publish していない — 感染症も通常も同 `JP_Condition_eCS` でカバー)。
 - **Observation フィルタ**:`category.coding[].code == "laboratory"` の Observation のみ `JP_Observation_LabResult_eCS` を追加 emit(vital signs 等は対象外)。
-- **DiagnosticReport フィルタ**:`category.coding[].code == "LAB"` or system=hl7-diagnostic-service-sections の LAB のみ対象。
+- **DiagnosticReport**:**JP-CLINS で publish されていない**(JP Core `JP_DiagnosticReport_Common` のまま、JP-CLINS profile URL は付与しない)。
 - **反復 adversarial review**(`feedback_iterative_adversarial_review`):PR1 land 前に 1 段 adversarial pass 実施、silent-no-op class の bug を封じる。
 
 ## File Structure
 
 **Modify:**
-- `clinosim/modules/output/fhir_r4_adapter.py` — `_JP_CLINS_PROFILES` dict、`_apply_jp_clins_profile` 関数、`_is_lab_observation`、`_is_lab_diagnostic_report`、`_is_infection_condition` helper、`_build_bundle` 内で `_apply_jp_core_profile` の直後に呼ぶ 1 行追加
+- `clinosim/modules/output/fhir_r4_adapter.py` — `_JP_CLINS_PROFILES` dict、`_apply_jp_clins_profile` 関数、`_is_lab_observation` helper、`_build_bundle` 内で `_apply_jp_core_profile` の直後に呼ぶ 1 行追加
 - `tests/unit/test_completeness_invariants.py` — JP-CLINS profile emission gate 追加(全 country=JP Bundle で 6 情報 profile URL が対応 resource に出ていること)
 
 **Create:**
@@ -43,43 +43,25 @@
 - Consumes: なし
 - Produces: `_JP_CLINS_PROFILES` に使う exact URL(後続 Task 2 が import)
 
-- [ ] **Step 1: jpfhir.jp v2025.4 の JP-CLINS eCS StructureDefinition URL を fetch**
+**Status**: session 47 でこの task を完遂済 — spec + plan 内 URL は jpfhir.jp
+JP-CLINS **v1.12.0**(2026-02-16)の `https://jpfhir.jp/fhir/clins/igv1/artifacts.html`
+を fetch して以下 5 profile の canonical URL を確定:
 
-Run: `curl -s "https://jpfhir.jp/fhir/clins/" | head -200` and browse to StructureDefinition index. 6 情報対応 profile の canonical URL を確認。
+- Condition: `http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Condition_eCS`
+- AllergyIntolerance: `http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_AllergyIntolerance_eCS`
+- Observation (lab only): `http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Observation_LabResult_eCS`
+- MedicationRequest: `http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS`
+- Procedure: `http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Procedure_eCS`
 
-Expected: 以下 6 profile の canonical URL 確定
-- Condition: `http://jpfhir.jp/fhir/clins/StructureDefinition/JP_Condition_eCS`
-- Condition (infection): `http://jpfhir.jp/fhir/clins/StructureDefinition/JP_Condition_Infection_eCS`
-- AllergyIntolerance: `http://jpfhir.jp/fhir/clins/StructureDefinition/JP_AllergyIntolerance_eCS`
-- Observation (lab): `http://jpfhir.jp/fhir/clins/StructureDefinition/JP_Observation_LabResult_eCS`
-- DiagnosticReport (lab): `http://jpfhir.jp/fhir/clins/StructureDefinition/JP_DiagnosticReport_LabResult_eCS`
-- MedicationRequest: `http://jpfhir.jp/fhir/clins/StructureDefinition/JP_MedicationRequest_eCS`
-- Procedure: `http://jpfhir.jp/fhir/clins/StructureDefinition/JP_Procedure_eCS`
+**Key findings** — these deviate from the initial plan draft:
 
-もし公式 URL が上と異なる場合、下記のドキュメント更新 + Task 2 の `_JP_CLINS_PROFILES` 値を差し替える。fetch 不能 or URL が jpfhir.jp v2025.4 に登録されていない場合、Task 1 はブロック → user に確認要求。
+1. Canonical URL path is `/fhir/eCS/StructureDefinition/`, NOT `/fhir/clins/StructureDefinition/`.
+2. JP-CLINS **does not publish** a DiagnosticReport profile. Lab results are emitted only as `Observation.LabResult` in JP-CLINS scope. clinosim's DiagnosticReport output stays on JP Core `JP_DiagnosticReport_Common` only.
+3. JP-CLINS **does not publish** a separate infection Condition profile. The `jp-ecs-diagnosisType` extension distinguishes principal vs. secondary diagnosis, not infection status. All Conditions receive `JP_Condition_eCS` regardless of ICD chapter.
 
-- [ ] **Step 2: spec § 3.1.1 に「URL verified against jpfhir.jp v2025.4 on 2026-07-12」note と fetch source URL を追記**
+Both spec § 3.1.1 and this plan were updated in a single commit before the code tasks begin.
 
-Edit `docs/superpowers/specs/2026-07-12-p2-13-jp-clins-design.md`:
-
-`_JP_CLINS_PROFILES` の code block 直下に以下を追記:
-
-```
-> **URL verification (2026-07-12)**: 上記 canonical URL 群は jpfhir.jp v2025.4 の JP-CLINS StructureDefinition index(https://jpfhir.jp/fhir/clins/)から照合。fetch 時のスナップショット URL リスト は `docs/superpowers/plans/2026-07-12-p2-13-jp-clins-pr1-6-info-profiles.md` Task 1 参照。
-```
-
-- [ ] **Step 3: commit spec update**
-
-```bash
-git add docs/superpowers/specs/2026-07-12-p2-13-jp-clins-design.md
-git commit -m "docs(spec): P2-13 pin JP-CLINS canonical URLs against jpfhir.jp v2025.4
-
-URL verified against jpfhir.jp/fhir/clins/ StructureDefinition index
-on 2026-07-12. Records source snapshot as PR1 Task 1.
-
-Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01QKWJC5cbLaBYfTywtrx92a"
-```
+Steps 2/3 of Task 1 are already applied; no more work required in Task 1.
 
 ---
 
@@ -92,12 +74,9 @@ Claude-Session: https://claude.ai/code/session_01QKWJC5cbLaBYfTywtrx92a"
 **Interfaces:**
 - Consumes: Task 1 の canonical URLs
 - Produces:
-  - `_JP_CLINS_PROFILES: dict[str, list[str]]` — resource type → JP-CLINS profile URL リスト
+  - `_JP_CLINS_PROFILES: dict[str, list[str]]` — resource type → JP-CLINS profile URL リスト(5 types: Condition, AllergyIntolerance, Observation, MedicationRequest, Procedure)
   - `_apply_jp_clins_profile(resource: dict) -> None` — idempotent、`meta.profile[]` に URL を append(同 URL 存在時は skip)
-  - `_INFECTION_ICD_PREFIXES: tuple[str, ...]` — `("A", "B")`(ICD-10 感染症 chapter)
-  - `_is_infection_condition(resource: dict) -> bool`
   - `_is_lab_observation(resource: dict) -> bool`
-  - `_is_lab_diagnostic_report(resource: dict) -> bool`
 
 - [ ] **Step 1: Write failing test for base cases**
 
@@ -113,8 +92,6 @@ import pytest
 from clinosim.modules.output.fhir_r4_adapter import (
     _JP_CLINS_PROFILES,
     _apply_jp_clins_profile,
-    _is_infection_condition,
-    _is_lab_diagnostic_report,
     _is_lab_observation,
 )
 
@@ -125,14 +102,14 @@ class TestApplyJpClinsProfile:
         r = {"resourceType": "AllergyIntolerance"}
         _apply_jp_clins_profile(r)
         assert r["meta"]["profile"] == [
-            "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_AllergyIntolerance_eCS"
+            "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_AllergyIntolerance_eCS"
         ]
 
     def test_medication_request_gets_ecs_profile(self):
         r = {"resourceType": "MedicationRequest"}
         _apply_jp_clins_profile(r)
         assert (
-            "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_MedicationRequest_eCS"
+            "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS"
             in r["meta"]["profile"]
         )
 
@@ -140,7 +117,7 @@ class TestApplyJpClinsProfile:
         r = {"resourceType": "Procedure"}
         _apply_jp_clins_profile(r)
         assert (
-            "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_Procedure_eCS"
+            "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Procedure_eCS"
             in r["meta"]["profile"]
         )
 
@@ -170,7 +147,7 @@ class TestApplyJpClinsProfile:
             in r["meta"]["profile"]
         )
         assert (
-            "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_MedicationRequest_eCS"
+            "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS"
             in r["meta"]["profile"]
         )
 ```
@@ -187,34 +164,29 @@ In `clinosim/modules/output/fhir_r4_adapter.py`, directly after `_JP_CORE_PROFIL
 ```python
 # JP-CLINS eCS profiles (Electronic Care Record Sharing Service).
 # Applied additively on top of JP Core profiles for country=JP.
-# URLs verified against jpfhir.jp/fhir/clins/ v2025.4 (see plan Task 1).
+# URLs verified against jpfhir.jp/fhir/clins/igv1/artifacts.html (v1.12.0,
+# 2026-02-16) on 2026-07-12. Canonical URLs use /fhir/eCS/ path.
+#
+# JP-CLINS v1.12.0 publishes 5 profiles covering the "6 information items"
+# domain: 傷病名 + 感染症 share JP_Condition_eCS; DiagnosticReport is not
+# in JP-CLINS scope (lab results emitted only as Observation.LabResult).
 _JP_CLINS_PROFILES: dict[str, list[str]] = {
     "Condition": [
-        "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_Condition_eCS",
+        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Condition_eCS",
     ],
     "AllergyIntolerance": [
-        "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_AllergyIntolerance_eCS",
+        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_AllergyIntolerance_eCS",
     ],
     "Observation": [
-        "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_Observation_LabResult_eCS",
-    ],
-    "DiagnosticReport": [
-        "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_DiagnosticReport_LabResult_eCS",
+        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Observation_LabResult_eCS",
     ],
     "MedicationRequest": [
-        "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_MedicationRequest_eCS",
+        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS",
     ],
     "Procedure": [
-        "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_Procedure_eCS",
+        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Procedure_eCS",
     ],
 }
-
-_JP_CLINS_CONDITION_INFECTION_PROFILE = (
-    "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_Condition_Infection_eCS"
-)
-
-# ICD-10 chapter prefixes for infectious diseases (A00-B99).
-_INFECTION_ICD_PREFIXES: tuple[str, ...] = ("A", "B")
 
 
 def _apply_jp_clins_profile(resource: dict) -> None:
@@ -223,11 +195,8 @@ def _apply_jp_clins_profile(resource: dict) -> None:
     Called after `_apply_jp_core_profile`. Preserves existing meta.profile[]
     entries and skips URLs already present. Filters:
 
-    - Observation: only when category=laboratory
-    - DiagnosticReport: only when category=LAB
-    - Condition: always attaches JP_Condition_eCS; additionally attaches
-      JP_Condition_Infection_eCS when the primary code base (before '.')
-      starts with an ICD-10 infection chapter prefix.
+    - Observation: only when category=laboratory (vital signs / surveys stay
+      on the JP Core profile only)
     """
     rt = resource.get("resourceType", "")
     profiles = _JP_CLINS_PROFILES.get(rt)
@@ -235,16 +204,11 @@ def _apply_jp_clins_profile(resource: dict) -> None:
         return
     if rt == "Observation" and not _is_lab_observation(resource):
         return
-    if rt == "DiagnosticReport" and not _is_lab_diagnostic_report(resource):
-        return
     meta = resource.setdefault("meta", {})
     profs = meta.setdefault("profile", [])
     for url in profiles:
         if url not in profs:
             profs.append(url)
-    if rt == "Condition" and _is_infection_condition(resource):
-        if _JP_CLINS_CONDITION_INFECTION_PROFILE not in profs:
-            profs.append(_JP_CLINS_CONDITION_INFECTION_PROFILE)
 
 
 def _is_lab_observation(resource: dict) -> bool:
@@ -252,24 +216,6 @@ def _is_lab_observation(resource: dict) -> bool:
         for coding in cat.get("coding", []):
             if coding.get("code") == "laboratory":
                 return True
-    return False
-
-
-def _is_lab_diagnostic_report(resource: dict) -> bool:
-    for cat in resource.get("category", []):
-        for coding in cat.get("coding", []):
-            if coding.get("code") == "LAB":
-                return True
-    return False
-
-
-def _is_infection_condition(resource: dict) -> bool:
-    code = resource.get("code", {})
-    for coding in code.get("coding", []):
-        c = coding.get("code", "")
-        base = c.split(".", 1)[0].upper()
-        if base and base[0] in _INFECTION_ICD_PREFIXES and len(base) >= 3:
-            return True
     return False
 ```
 
@@ -447,10 +393,10 @@ Claude-Session: https://claude.ai/code/session_01QKWJC5cbLaBYfTywtrx92a"
 
 ---
 
-### Task 4: Category filter tests — Observation vital signs must NOT get JP-CLINS profile
+### Task 4: Category filter tests — Observation vital signs and DiagnosticReport must NOT get JP-CLINS profile
 
 **Files:**
-- Modify: `tests/unit/test_jp_clins_profile_emit.py`(vital-sign Observation の非 emit + DiagnosticReport 非 LAB の非 emit を明示的にカバー)
+- Modify: `tests/unit/test_jp_clins_profile_emit.py`(vital-sign Observation の非 emit + DiagnosticReport 全体の非 emit を明示的にカバー)
 
 **Interfaces:**
 - Consumes: Task 2, Task 3 の実装
@@ -484,30 +430,20 @@ class TestCategoryFilters:
         }
         _apply_jp_clins_profile(r)
         assert (
-            "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_Observation_LabResult_eCS"
+            "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Observation_LabResult_eCS"
             in r["meta"]["profile"]
         )
 
-    def test_diagnostic_report_lab_gets_clins_profile(self):
+    def test_diagnostic_report_no_clins_profile(self):
+        # JP-CLINS v1.12.0 does not publish a DiagnosticReport profile.
+        # Lab results are emitted only as Observation.LabResult in JP-CLINS.
+        # The adapter must NOT attach a JP-CLINS profile to DiagnosticReport
+        # regardless of category.
         r = {
             "resourceType": "DiagnosticReport",
             "category": [{"coding": [{
                 "system": "http://terminology.hl7.org/CodeSystem/v2-0074",
                 "code": "LAB",
-            }]}],
-        }
-        _apply_jp_clins_profile(r)
-        assert (
-            "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_DiagnosticReport_LabResult_eCS"
-            in r["meta"]["profile"]
-        )
-
-    def test_diagnostic_report_non_lab_no_clins_profile(self):
-        r = {
-            "resourceType": "DiagnosticReport",
-            "category": [{"coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/v2-0074",
-                "code": "RAD",
             }]}],
         }
         _apply_jp_clins_profile(r)
@@ -517,7 +453,7 @@ class TestCategoryFilters:
 - [ ] **Step 2: Run test to verify pass**
 
 Run: `pytest tests/unit/test_jp_clins_profile_emit.py::TestCategoryFilters -v`
-Expected: 4 PASS(Task 2 実装が既に filter を含む)
+Expected: 3 PASS(Task 2 実装が既に Observation filter を含み、DiagnosticReport は `_JP_CLINS_PROFILES` から除外済)
 
 - [ ] **Step 3: Commit**
 
@@ -525,10 +461,12 @@ Expected: 4 PASS(Task 2 実装が既に filter を含む)
 git add tests/unit/test_jp_clins_profile_emit.py
 git commit -m "test(fhir): P2-13 PR1 pin JP-CLINS category filter behavior
 
-Locks in that only laboratory Observations and LAB DiagnosticReports
-get JP-CLINS eCS profile emission; vital-sign Observation and RAD
-report do not. Guards silent-no-op regression class where a filter
-change would accidentally emit JP-CLINS on vitals or omit it on labs.
+Locks in that only laboratory Observations get JP-CLINS eCS profile
+emission; vital-sign Observation does not. Also pins that
+DiagnosticReport is NOT covered by JP-CLINS v1.12.0 (lab results are
+emitted only as Observation.LabResult in JP-CLINS scope). Guards
+silent-no-op regression class where a filter change would accidentally
+emit JP-CLINS on vitals or on DiagnosticReport.
 
 Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01QKWJC5cbLaBYfTywtrx92a"
@@ -536,92 +474,15 @@ Claude-Session: https://claude.ai/code/session_01QKWJC5cbLaBYfTywtrx92a"
 
 ---
 
-### Task 5: Condition infection classification (ICD-10 A/B chapter)
+### Task 5: (removed) — JP-CLINS v1.12.0 does not publish a separate infection Condition profile
 
-**Files:**
-- Modify: `tests/unit/test_jp_clins_profile_emit.py`(感染症判別分岐テスト)
+Session 47 Task 1 URL verification against jpfhir.jp/fhir/clins/igv1/artifacts.html
+confirmed that JP-CLINS publishes only `JP_Condition_eCS`; there is no
+`JP_Condition_Infection_eCS`. The `jp-ecs-diagnosisType` extension distinguishes
+principal vs. secondary diagnosis, not infection status. This task's original
+dual-profile logic and the corresponding test class are removed to match spec.
 
-**Interfaces:**
-- Consumes: Task 2 の `_is_infection_condition` and `_JP_CLINS_CONDITION_INFECTION_PROFILE`
-- Produces: 感染症 Condition の 2 profile emit の regression guard
-
-- [ ] **Step 1: Write failing test**
-
-Add to `tests/unit/test_jp_clins_profile_emit.py`:
-
-```python
-@pytest.mark.unit
-class TestConditionInfectionClassification:
-    def test_sepsis_a41_gets_both_condition_and_infection(self):
-        r = {
-            "resourceType": "Condition",
-            "code": {"coding": [{
-                "system": "http://hl7.org/fhir/sid/icd-10-cm",
-                "code": "A41.9",
-                "display": "Sepsis, unspecified organism",
-            }]},
-        }
-        _apply_jp_clins_profile(r)
-        profs = r["meta"]["profile"]
-        assert (
-            "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_Condition_eCS" in profs
-        )
-        assert (
-            "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_Condition_Infection_eCS"
-            in profs
-        )
-
-    def test_pneumonia_j18_no_infection_profile(self):
-        r = {
-            "resourceType": "Condition",
-            "code": {"coding": [{
-                "system": "http://hl7.org/fhir/sid/icd-10-cm",
-                "code": "J18.9",
-                "display": "Pneumonia, unspecified organism",
-            }]},
-        }
-        _apply_jp_clins_profile(r)
-        profs = r["meta"]["profile"]
-        assert (
-            "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_Condition_eCS" in profs
-        )
-        assert (
-            "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_Condition_Infection_eCS"
-            not in profs
-        )
-
-    def test_b99_generic_infection_gets_infection_profile(self):
-        r = {
-            "resourceType": "Condition",
-            "code": {"coding": [{
-                "system": "http://hl7.org/fhir/sid/icd-10",
-                "code": "B99.9",
-                "display": "Unspecified infectious disease",
-            }]},
-        }
-        _apply_jp_clins_profile(r)
-        profs = r["meta"]["profile"]
-        assert (
-            "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_Condition_Infection_eCS"
-            in profs
-        )
-
-    def test_i21_non_infection_no_infection_profile(self):
-        r = {
-            "resourceType": "Condition",
-            "code": {"coding": [{
-                "system": "http://hl7.org/fhir/sid/icd-10-cm",
-                "code": "I21.4",
-                "display": "Non-ST elevation (NSTEMI) myocardial infarction",
-            }]},
-        }
-        _apply_jp_clins_profile(r)
-        profs = r["meta"]["profile"]
-        assert (
-            "http://jpfhir.jp/fhir/clins/StructureDefinition/JP_Condition_Infection_eCS"
-            not in profs
-        )
-```
+Skip this task; proceed to Task 6.
 
 - [ ] **Step 2: Run test to verify pass**
 
@@ -671,11 +532,13 @@ class TestJpClinsProfileEmissionInvariants:
 
     For a country=JP cohort, every emitted resource of a JP-CLINS-registered
     resource type MUST carry the JP-CLINS eCS profile URL in meta.profile[].
-    Filters apply:
-      - Observation: only laboratory category
-      - DiagnosticReport: only LAB category
-      - Condition: JP_Condition_eCS always; JP_Condition_Infection_eCS when
-        primary code is in ICD-10 A/B chapter
+    Filter apply:
+      - Observation: only laboratory category (vital signs stay JP Core only)
+
+    JP-CLINS v1.12.0 covers 5 resource types (Condition, AllergyIntolerance,
+    Observation.LabResult, MedicationRequest, Procedure). DiagnosticReport
+    is NOT in JP-CLINS scope; lab results are emitted only as
+    Observation.LabResult.
 
     Uses the canonical patient profile fixture library (AD-66) via in-process
     run_forced + convert_cif_to_fhir. No subprocess.
@@ -685,14 +548,13 @@ class TestJpClinsProfileEmissionInvariants:
         self, jp_bacterial_pneumonia_resources
     ):
         from clinosim.modules.output.fhir_r4_adapter import (
-            _JP_CLINS_PROFILES, _is_lab_diagnostic_report, _is_lab_observation,
+            _JP_CLINS_PROFILES, _is_lab_observation,
         )
 
-        # At least one Condition + Observation.lab + DiagnosticReport.lab +
-        # MedicationRequest + Procedure should appear for a bacterial pneumonia
-        # inpatient cohort. AllergyIntolerance is sparse (pool may be empty at
-        # small profile counts; profile check is vacuously true if pool is empty).
-        expected_dense = {"Condition", "Observation", "DiagnosticReport",
+        # Dense JP-CLINS resource types for an inpatient bacterial pneumonia
+        # cohort. AllergyIntolerance is sparse (pool may be empty at small
+        # profile counts; profile check is vacuously true if pool is empty).
+        expected_dense = {"Condition", "Observation",
                           "MedicationRequest", "Procedure"}
         seen_dense: set[str] = set()
 
@@ -701,8 +563,6 @@ class TestJpClinsProfileEmissionInvariants:
             if rt not in _JP_CLINS_PROFILES:
                 continue
             if rt == "Observation" and not _is_lab_observation(r):
-                continue
-            if rt == "DiagnosticReport" and not _is_lab_diagnostic_report(r):
                 continue
             profs = r.get("meta", {}).get("profile", [])
             expected = _JP_CLINS_PROFILES[rt][0]
@@ -773,9 +633,9 @@ def jp_bacterial_pneumonia_resources(tmp_path_factory):
 - [ ] **Step 3: Run test to verify pass**
 
 Run: `pytest tests/unit/test_completeness_invariants.py::TestJpClinsProfileEmissionInvariants -v`
-Expected: PASS(5 dense JP-CLINS resource types found and carry expected profile URL)
+Expected: PASS(4 dense JP-CLINS resource types found and carry expected profile URL)
 
-If the fixture profile does not produce all 5 dense types (e.g., no lab DiagnosticReport in a 5-patient run), adjust the profile choice or expected-dense set — but do NOT silently loosen the assertion.
+If the fixture profile does not produce all 4 dense types (e.g., no Procedure in a 5-patient run), adjust the profile choice or expected-dense set — but do NOT silently loosen the assertion.
 
 - [ ] **Step 4: Commit**
 
@@ -812,12 +672,16 @@ Create `tests/integration/test_jp_clins_pr1_end_to_end.py`:
 
 Runs a small country=JP cohort (p=100 seed=42, snapshot end=2026-06-30),
 verifies:
-- 6 information items resource types carry JP-CLINS eCS profile URLs
-- Filters honored (lab-only for Observation/DiagnosticReport)
+- 5 JP-CLINS-registered resource types (Condition, AllergyIntolerance,
+  Observation.laboratory, MedicationRequest, Procedure) carry JP-CLINS
+  eCS profile URLs
+- Observation filter honored (lab-only)
+- DiagnosticReport is NOT in JP-CLINS scope; it must NOT carry any
+  JP-CLINS profile URL even for lab category
 - No profile URLs leak into country=US cohort
 - AllergyIntolerance may be sparse or absent at p=100 (single-digit %
   prevalence in the general population); when the pool is empty, the
-  profile check is vacuously satisfied. All other five resource types
+  profile check is vacuously satisfied. All other four resource types
   are expected to have non-empty pools.
 """
 
@@ -831,7 +695,7 @@ import pytest
 from tests.integration._sr_helpers import run_generate
 
 
-_JP_CLINS_PROFILE_ROOT = "http://jpfhir.jp/fhir/clins/StructureDefinition/"
+_JP_CLINS_PROFILE_ROOT = "http://jpfhir.jp/fhir/eCS/StructureDefinition/"
 _SNAPSHOT_END = "2026-06-30"
 
 
@@ -852,17 +716,17 @@ def _load_resources(outdir: Path) -> dict[str, list[dict]]:
 
 
 @pytest.mark.integration
-def test_jp_p100_carries_clins_profiles_on_six_info(tmp_path):
+def test_jp_p100_carries_clins_profiles_on_five_types(tmp_path):
     outdir = tmp_path / "jp"
     run_generate("JP", 100, 42, outdir, end=_SNAPSHOT_END)
     resources_by_type = _load_resources(outdir)
 
     from clinosim.modules.output.fhir_r4_adapter import (
-        _JP_CLINS_PROFILES, _is_lab_observation, _is_lab_diagnostic_report,
+        _JP_CLINS_PROFILES, _is_lab_observation,
     )
 
     # Dense resource types — expected to have at least one instance at p=100.
-    dense_types = {"Condition", "Observation", "DiagnosticReport",
+    dense_types = {"Condition", "Observation",
                    "MedicationRequest", "Procedure"}
     # AllergyIntolerance is sparse (single-digit % prevalence in the general
     # population); the profile check is vacuous if the pool is empty.
@@ -870,8 +734,6 @@ def test_jp_p100_carries_clins_profiles_on_six_info(tmp_path):
         pool = resources_by_type.get(rt, [])
         if rt == "Observation":
             pool = [r for r in pool if _is_lab_observation(r)]
-        elif rt == "DiagnosticReport":
-            pool = [r for r in pool if _is_lab_diagnostic_report(r)]
         if rt in dense_types:
             assert pool, (
                 f"expected dense JP-CLINS type {rt} non-empty at p=100 JP"
@@ -882,6 +744,19 @@ def test_jp_p100_carries_clins_profiles_on_six_info(tmp_path):
             assert expected in profs, (
                 f"{rt}/{r.get('id')} missing {expected}"
             )
+
+
+@pytest.mark.integration
+def test_jp_p100_diagnostic_report_has_no_clins_profile(tmp_path):
+    """JP-CLINS v1.12.0 does not publish DiagnosticReport profile — must not emit."""
+    outdir = tmp_path / "jp-dr"
+    run_generate("JP", 100, 42, outdir, end=_SNAPSHOT_END)
+    resources_by_type = _load_resources(outdir)
+    for r in resources_by_type.get("DiagnosticReport", []):
+        profs = r.get("meta", {}).get("profile", [])
+        assert not any(p.startswith(_JP_CLINS_PROFILE_ROOT) for p in profs), (
+            f"DiagnosticReport {r.get('id')} leaked JP-CLINS profile: {profs}"
+        )
 
 
 @pytest.mark.integration
@@ -904,7 +779,7 @@ def test_us_p50_has_no_clins_profile(tmp_path):
 - [ ] **Step 2: Run the integration test locally**
 
 Run: `pytest tests/integration/test_jp_clins_pr1_end_to_end.py -v -m integration`
-Expected: 2 PASS
+Expected: 3 PASS
 
 - [ ] **Step 3: Commit**
 
@@ -985,30 +860,37 @@ Create `docs/jp-clins.md`:
 
 clinosim emits FHIR R4 resources with **JP-CLINS (電子カルテ情報共有サービス) profile URLs** for country=JP cohorts. This document covers the 6 information items covered in PR1; 3-document Composition support (退院時サマリー / 診療情報提供書 / opt-in 健康診断結果報告書) lands in PR2 and PR3.
 
+Verified against jpfhir.jp JP-CLINS **v1.12.0** (2026-02-16). See
+`https://jpfhir.jp/fhir/clins/igv1/artifacts.html`.
+
 ## Scope
 
 Acute-care hospital EHR/EMR data generation, `country=JP`.
 
-### 6 Information Items (PR1)
+### 6 Information Items / 5 Profiles (PR1)
+
+JP-CLINS v1.12.0 publishes **5 StructureDefinition profiles** covering the "6 information items" domain concept — 傷病名 and 感染症 share the same
+`JP_Condition_eCS` profile (no separate infection profile), and DiagnosticReport is **not** in JP-CLINS scope (lab results are emitted only as Observation.LabResult).
 
 For every country=JP cohort, the following resource types carry the JP-CLINS eCS profile URL in `meta.profile[]` alongside the existing JP Core profile:
 
 | Information | Resource | JP-CLINS profile URL |
 |---|---|---|
-| 傷病名 | Condition | `.../JP_Condition_eCS` |
-| 感染症 | Condition (ICD-10 A/B chapter) | `.../JP_Condition_eCS` + `.../JP_Condition_Infection_eCS` |
+| 傷病名 + 感染症 | Condition | `.../JP_Condition_eCS` |
 | アレルギー | AllergyIntolerance | `.../JP_AllergyIntolerance_eCS` |
 | 検査 | Observation (category=laboratory) | `.../JP_Observation_LabResult_eCS` |
-| 検査 | DiagnosticReport (category=LAB) | `.../JP_DiagnosticReport_LabResult_eCS` |
 | 処方 | MedicationRequest | `.../JP_MedicationRequest_eCS` |
 | 処置 | Procedure | `.../JP_Procedure_eCS` |
 
-URL root: `http://jpfhir.jp/fhir/clins/StructureDefinition/`
+URL root: `http://jpfhir.jp/fhir/eCS/StructureDefinition/`
 
-**Filters:**
-- Observation: only when `category.coding[].code == "laboratory"` — vital signs are excluded.
-- DiagnosticReport: only when `category.coding[].code == "LAB"` — radiology and other categories are excluded.
-- Condition (infection): the additional `JP_Condition_Infection_eCS` URL applies when the primary code base (before `.`) starts with `A` or `B` (ICD-10 chapter I).
+**Filter:**
+- Observation: only when `category.coding[].code == "laboratory"` — vital signs stay on the JP Core profile only.
+
+**Not covered by JP-CLINS v1.12.0** (emitted with JP Core profile only, no JP-CLINS URL added):
+- DiagnosticReport (any category)
+- Observation vital-signs / social-history / survey / imaging
+- Encounter, Patient, Organization, Practitioner, Coverage, Immunization, FamilyMemberHistory, etc. (JP Core is the applicable base)
 
 **Out of scope for PR1** (see spec §1.3 in `docs/superpowers/specs/2026-07-12-p2-13-jp-clins-design.md`):
 - 3 documents Composition (退院時サマリー / 診療情報提供書 / 健康診断結果報告書) — PR2 + PR3
@@ -1085,8 +967,9 @@ Notify user with a brief summary: PR1 tasks 1-10 完了、commit N commits pushe
 - `_JP_CLINS_PROFILES` map ✓ (Task 2)
 - `_apply_jp_clins_profile` idempotent ✓ (Task 2)
 - Observation category=laboratory filter ✓ (Task 2 + Task 4)
-- Condition infection classification (ICD-10 A/B chapter) ✓ (Task 2 + Task 5)
-- Structural conformance test ✓ (Task 2-5)
+- DiagnosticReport JP-CLINS NOT applied (v1.12.0 未 publish) ✓ (Task 2 + Task 4)
+- Condition 感染症別 profile NOT applied (v1.12.0 未 publish) ✓ (Task 5 removed)
+- Structural conformance test ✓ (Task 2 + Task 4)
 - Completeness invariants gate ✓ (Task 6)
 - p=100 JP cohort integration test ✓ (Task 7)
 - Byte-diff reproducibility with new baseline ✓ (Task 8)
@@ -1096,9 +979,5 @@ Notify user with a brief summary: PR1 tasks 1-10 完了、commit N commits pushe
 
 **3. Type consistency:** Task 全体で以下の identifier が一貫:
 - `_JP_CLINS_PROFILES: dict[str, list[str]]`
-- `_JP_CLINS_CONDITION_INFECTION_PROFILE: str`
 - `_apply_jp_clins_profile(resource: dict) -> None`
 - `_is_lab_observation(resource: dict) -> bool`
-- `_is_lab_diagnostic_report(resource: dict) -> bool`
-- `_is_infection_condition(resource: dict) -> bool`
-- `_INFECTION_ICD_PREFIXES: tuple[str, ...]` = `("A", "B")`
