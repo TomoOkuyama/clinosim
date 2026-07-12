@@ -49,7 +49,16 @@ P1 (7 items) of the diffusion plan landed in one session as 12 focused PRs.
     `JP_Observation_LabResult_eCS` / `JP_MedicationRequest_eCS` /
     `JP_Procedure_eCS`). URL verified against jpfhir.jp v1.12.0 (2026-02-16).
     Docs at `docs/jp-clins.md`.
-  - [ ] PR2: 2 documents Composition (退院時サマリー + 診療情報提供書).
+  - [x] PR2a (session 47): Full-conformance 退院時サマリー Composition
+    (`JP_Composition_eDischargeSummary`). Adds jpfhir doc-typecodes +
+    doc-section CodeSystems (48 codes total), `composition_sections_jp`
+    override on `DocumentTypeSpec`, 4 new JP section renderers
+    (admission_reason / admission_details / admission_diagnoses /
+    present_illness — chief_complaint reuses existing) + `_build_jp_clins_
+    discharge_summary_composition`. Uncovered + fixed the
+    `_build_reference_range` multi-locale bug (JP Core extension URL was
+    leaking into US Observation output).
+  - [ ] PR2b: 診療情報提供書 (referral note) Composition + 紹介元/紹介先 CIF extension.
   - [ ] PR3: 健診 opt-in module + jpfhir-validator bridge + docs polish.
 - **P2-14** "Add your country" guide + country-pack scaffold.
 - **P2-15** Benchmark task definitions (sepsis / AKI prediction) + baseline eval script.

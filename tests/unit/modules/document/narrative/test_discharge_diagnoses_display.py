@@ -54,10 +54,16 @@ def _ctx(lang: str, system: str, code: str):
     )
 
 
-def test_jp_discharge_diagnoses_resolves_japanese_display():
+def test_jp_admission_diagnoses_resolves_japanese_display():
+    """P2-13 PR2a (session 47): JP DS no longer emits `discharge_diagnoses`
+    (replaced by JP-CLINS 5-section structure). Diagnoses now surface in the
+    `admission_diagnoses` section (jpfhir section code 342), which uses the
+    same code_lookup pattern this test targets — Japanese display resolved
+    from icd-10.yaml + code retained for unambiguity.
+    """
     gen = TemplateNarrativeGenerator()
     out = gen.generate(_ctx("ja", "icd-10", "I63.9"), _spec("jp"))
-    text = out.sections["discharge_diagnoses"]
+    text = out.sections["admission_diagnoses"]
     assert "脳梗塞" in text  # authoritative ja display from codes/data/icd-10.yaml
     assert "I63.9" in text  # code retained for unambiguity
 
