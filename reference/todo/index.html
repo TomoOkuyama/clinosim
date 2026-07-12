@@ -1665,7 +1665,14 @@
 <h1 id="clinosim-todo">clinosim — TODO<a class="headerlink" href="#clinosim-todo" title="Permanent link">&para;</a></h1>
 <h2 id="status-2026-07-13-session-48-in-progress-bcdefg">Status (2026-07-13, <strong>★ session 48 IN-PROGRESS — bcdefg 順消化開始</strong>)<a class="headerlink" href="#status-2026-07-13-session-48-in-progress-bcdefg" title="Permanent link">&para;</a></h2>
 <p><strong>Session 48 開始状態(順序 d → e → f → g → b → c、d 完了)</strong>:</p>
-<h3 id="dpr3-sub-pr-b">完了(d):PR3 sub-PR-B 高度化(個別化)<a class="headerlink" href="#dpr3-sub-pr-b" title="Permanent link">&para;</a></h3>
+<h3 id="d-epr3-sub-pr-b-sub-pr-c-sha256-pin-auto-fail-gate">完了(d, e):PR3 sub-PR-B 個別化 + sub-PR-C SHA256 pin + auto-fail gate<a class="headerlink" href="#d-epr3-sub-pr-b-sub-pr-c-sha256-pin-auto-fail-gate" title="Permanent link">&para;</a></h3>
+<p><strong>(e) sub-PR-C 高度化</strong>:
+- <code>.github/jp-validator-pins.env</code> 新設(validator + JP Core / CLINS / eCheckup pin)
+- <code>scripts/pin_jp_validator.sh</code> 新設(SHA256 bootstrap、in-place 書き換え)
+- <code>scripts/validate_jp.sh</code> に <code>_verify_sha256</code> / <code>_resolve_ig</code> / STRICT モード追加
+- <code>.github/workflows/jp-validate.yml</code>:pin load / SHA256 verify / auto-fail gate、<code>run_validator</code> + <code>strict_pins</code> default true 化
+- 単体テスト 10 個(pin file shape / bash -n / workflow yml shape / STRICT モード default)</p>
+<p><strong>(d) sub-PR-B 高度化</strong>:</p>
 <p>かつて固定値だった健診 5 項目を PatientProfile + chronic_conditions から個別化:</p>
 <ul>
 <li><code>_derive_checkup_values(patient, rng)</code> 新設 — BMI/SBP/DBP は <code>patient.bmi</code> / <code>baseline_vitals</code> を base に日間変動 noise、HbA1c は DM 保有時 <code>hba1c_from_glycemic_control</code> reuse、LDL は年齢/性別 baseline + E78 modifier + statin 逆補正</li>

@@ -1698,22 +1698,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#jp-fhir-validator-bridge-pr3-sub-pr-c" class="md-nav__link">
+  <a href="#jp-fhir-validator-bridge-pr3-sub-pr-c-session-48" class="md-nav__link">
     <span class="md-ellipsis">
       
-        JP FHIR Validator Bridge (PR3 sub-PR-C)
+        JP FHIR Validator Bridge (PR3 sub-PR-C, session 48 高度化)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="JP FHIR Validator Bridge (PR3 sub-PR-C)">
+    <nav class="md-nav" aria-label="JP FHIR Validator Bridge (PR3 sub-PR-C, session 48 高度化)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#local" class="md-nav__link">
+  <a href="#pin-session-48" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Local 実行
+        Pin ファイル(session 48 追加)
       
     </span>
   </a>
@@ -1721,10 +1721,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#validator-jar" class="md-nav__link">
+  <a href="#pin-bootstrap" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Validator jar 取得
+        初回 pin bootstrap
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#local" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local 実行
       
     </span>
   </a>
@@ -1743,10 +1754,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ci" class="md-nav__link">
+  <a href="#ci-auto-fail-gatesession-48" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CI 実行
+        CI 実行(auto-fail gate、session 48 高度化)
       
     </span>
   </a>
@@ -1754,10 +1765,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sub-pr" class="md-nav__link">
+  <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        将来 sub-PR での高度化
+        将来の高度化余地
       
     </span>
   </a>
@@ -1998,23 +2009,52 @@
     LOINC 別に <code>_interp_for</code> で付与、"H" フラグは renderer の A/B/C/D 判定と整合</p>
 <p><strong>US path</strong>:健診 opt-in flag は US では発火しない
 (<code>countries_supported: [jp]</code> により spec 側で JP に限定)。</p>
-<h2 id="jp-fhir-validator-bridge-pr3-sub-pr-c">JP FHIR Validator Bridge (PR3 sub-PR-C)<a class="headerlink" href="#jp-fhir-validator-bridge-pr3-sub-pr-c" title="Permanent link">&para;</a></h2>
-<p>session 47 で <code>scripts/validate_jp.sh</code> と <code>.github/workflows/jp-validate.yml</code> を追加しました。<strong>JP 出力を HL7 公式 FHIR Validator で JP Core / JP-CLINS / JP-eCheckup に適合検証</strong> できます。</p>
-<h3 id="local">Local 実行<a class="headerlink" href="#local" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># サンプル抽出のみ(validator jar 未指定なら skip)</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>./scripts/validate_jp.sh
+<h2 id="jp-fhir-validator-bridge-pr3-sub-pr-c-session-48">JP FHIR Validator Bridge (PR3 sub-PR-C, session 48 高度化)<a class="headerlink" href="#jp-fhir-validator-bridge-pr3-sub-pr-c-session-48" title="Permanent link">&para;</a></h2>
+<p>session 47 で <code>scripts/validate_jp.sh</code> と <code>.github/workflows/jp-validate.yml</code> を追加、session 48 で <strong>SHA256 pin + auto-fail gate 化</strong> に高度化しました。<strong>JP 出力を HL7 公式 FHIR Validator で JP Core / JP-CLINS / JP-eCheckup に適合検証</strong> し、pin mismatch や validation failure で CI が自動 fail します。</p>
+<h3 id="pin-session-48">Pin ファイル(session 48 追加)<a class="headerlink" href="#pin-session-48" title="Permanent link">&para;</a></h3>
+<p><code>.github/jp-validator-pins.env</code> に validator と IG package のバージョン / SHA256 が集約されています:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>VALIDATOR_VERSION=6.4.3
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>VALIDATOR_SHA256=
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># 実際の validator 実行(要 Java 11+)</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nv">VALIDATOR_JAR</span><span class="o">=</span>/path/to/validator_cli.jar<span class="w"> </span>./scripts/validate_jp.sh
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>JP_CORE_PACKAGE_ID=jp-core.r4
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>JP_CORE_PACKAGE_VERSION=1.1.7
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>JP_CORE_PACKAGE_URL=
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>JP_CORE_PACKAGE_SHA256=
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>JP_CLINS_PACKAGE_URL=
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>JP_CLINS_PACKAGE_SHA256=
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>JP_ECHECKUP_PACKAGE_URL=
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>JP_ECHECKUP_PACKAGE_SHA256=
 </span></code></pre></div>
-<p>環境変数(全て optional):
-- <code>VALIDATOR_JAR</code>:HL7 公式 validator jar のパス。未設定なら手順表示のみで skip。
+<ul>
+<li>SHA256 空欄 + STRICT モード = fail(bootstrap 指示メッセージを出力)</li>
+<li>SHA256 記入済 = 実測との一致確認 → mismatch で fail</li>
+</ul>
+<h3 id="pin-bootstrap">初回 pin bootstrap<a class="headerlink" href="#pin-bootstrap" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>bash<span class="w"> </span>scripts/pin_jp_validator.sh
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>git<span class="w"> </span>diff<span class="w"> </span>.github/jp-validator-pins.env<span class="w">  </span><span class="c1"># ← 差分確認</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;chore(jp-validate): pin validator + IG SHA256&quot;</span>
+</span></code></pre></div>
+<p><code>PIN_FILE=&lt;path&gt;</code> / <code>DRY_RUN=1</code> で挙動を上書き可能。</p>
+<h3 id="local">Local 実行<a class="headerlink" href="#local" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># サンプル抽出のみ(validator jar 未指定なら skip)</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>./scripts/validate_jp.sh
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># 実際の validator 実行 + pin gate(要 Java 11+)</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nv">VALIDATOR_JAR</span><span class="o">=</span>/path/to/validator_cli.jar<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="nv">CLINOSIM_JP_VAL_PINS</span><span class="o">=</span>.github/jp-validator-pins.env<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="nv">CLINOSIM_JP_VAL_STRICT</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>./scripts/validate_jp.sh
+</span></code></pre></div>
+<p>環境変数:
+- <code>VALIDATOR_JAR</code>(必須):HL7 公式 validator jar のパス。
+- <code>CLINOSIM_JP_VAL_PINS</code>:pin file 参照(未指定なら IG resolve は skip)。
+- <code>CLINOSIM_JP_VAL_STRICT</code>:<code>1</code> で SHA256 mismatch / sample 0 抽出 → exit 1。
 - <code>CLINOSIM_JP_VAL_POPULATION</code>:default 10
 - <code>CLINOSIM_JP_VAL_SEED</code>:default 42
 - <code>CLINOSIM_JP_VAL_END</code>:default 2026-06-30
 - <code>CLINOSIM_JP_VAL_HEALTH</code>:default "1"(health_checkup opt-in)</p>
-<h3 id="validator-jar">Validator jar 取得<a class="headerlink" href="#validator-jar" title="Permanent link">&para;</a></h3>
-<p><a href="https://github.com/hapifhir/org.hl7.fhir.core/releases">https://github.com/hapifhir/org.hl7.fhir.core/releases</a> から <code>validator_cli.jar</code> を取得。Java 11+ が必要です。</p>
 <h3 id="mvp">検証対象(MVP)<a class="headerlink" href="#mvp" title="Permanent link">&para;</a></h3>
 <p>小規模 JP コホート生成後、以下 profile 対応 resource から代表 1 件を抽出して検証:</p>
 <ul>
@@ -2027,18 +2067,18 @@
 <li><code>JP_Composition_eReferral</code></li>
 <li><code>JP_Composition_eCheckupGeneral</code>(health_checkup opt-in 時)</li>
 </ul>
-<h3 id="ci">CI 実行<a class="headerlink" href="#ci" title="Permanent link">&para;</a></h3>
-<p><code>.github/workflows/jp-validate.yml</code> は <strong>manual-only workflow</strong>:</p>
+<h3 id="ci-auto-fail-gatesession-48">CI 実行(auto-fail gate、session 48 高度化)<a class="headerlink" href="#ci-auto-fail-gatesession-48" title="Permanent link">&para;</a></h3>
+<p><code>.github/workflows/jp-validate.yml</code>:</p>
 <ul>
-<li><strong>workflow_dispatch</strong>:UI から <code>population</code> / <code>seed</code> / <code>run_validator</code> bool を指定</li>
-<li><strong>PR label</strong>:<code>jp-validate</code> ラベルを付けた PR で自動実行</li>
+<li><strong>workflow_dispatch</strong>:<code>run_validator=true</code>(default) + <code>strict_pins=true</code>(default) → SHA256 mismatch / validator FAIL / sample 0 抽出のいずれかで <strong>job が自動 fail</strong></li>
+<li><strong>PR label</strong>:<code>jp-validate</code> ラベルを付けた PR で自動実行(default STRICT)</li>
 </ul>
-<p>CI 時間の浪費を防ぐため、通常の CI パイプラインには組み込まず、必要時のみ手動で回す設計です。</p>
-<h3 id="sub-pr">将来 sub-PR での高度化<a class="headerlink" href="#sub-pr" title="Permanent link">&para;</a></h3>
+<p>CI 時間の浪費を防ぐため、通常の PR CI パイプラインには組み込まず、必要時のみ手動 or label で回す設計です。</p>
+<h3 id="_1">将来の高度化余地<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
 <ul>
-<li>IG package <code>.tgz</code> URL の SHA256 pinning + 自動 fetch</li>
 <li>全 resource 検証(現状 profile あたり 1 サンプルのみ)</li>
-<li>CI 自動 fail gate 化(現状 manual trigger + fail は最終 summary のみ)</li>
+<li>packages.fhir.org 登録前の JP-CLINS / JP-eCheckup の direct .tgz URL 確定と <code>_PACKAGE_URL</code> フィールドへの反映</li>
+<li>JP profile violation の granular reporting(現状は tail 5 行のみ)</li>
 </ul>
 <h2 id="reproducibility">Reproducibility<a class="headerlink" href="#reproducibility" title="Permanent link">&para;</a></h2>
 <p>The layer is deterministic — <code>scripts/reproduce.sh</code> continues to pass with country=JP output byte-identical across independent runs.</p>
