@@ -588,8 +588,12 @@ def _build_reference_range(
                 )],
             }]
 
-        # Source extension (JP Core)
-        if source_url:
+        # Source extension. The JP Core Observation_Common profile defines a
+        # `referenceRangeSource` sub-extension for citing the range's issuing
+        # body (e.g. JCCLS 共用基準範囲 2022). Attach ONLY for country=JP;
+        # US bundles must not embed jpfhir.jp URLs (multi-locale isolation,
+        # session 47 P2-13 Task 5 bug fix).
+        if source_url and country_code.upper() == "JP":
             rr["extension"] = [{
                 "url": "http://jpfhir.jp/fhir/core/StructureDefinition/"
                        "JP_Observation_Common#referenceRangeSource",
