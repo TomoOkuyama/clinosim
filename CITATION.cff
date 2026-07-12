@@ -1,0 +1,43 @@
+# Citation File Format 1.2.0
+# https://citation-file-format.github.io/
+#
+# GitHub renders "Cite this repository" from this file. Update `version`
+# and `date-released` at each release.
+
+cff-version: 1.2.0
+message: "If you use clinosim in academic or research work, please cite it as below."
+title: "clinosim: Clinically Realistic Hospital Data Simulator"
+abstract: >-
+  clinosim is a population-driven, physiology-based synthetic
+  Electronic Health Record generator. Every patient carries a
+  hidden 13-variable physiological state, and all observations
+  (labs, vitals, medications, diagnoses) are derived from that
+  state, producing clinically coherent synthetic EHR data with
+  FHIR R4 Bulk Data Export output. Multi-country (US / JP)
+  locale packs, 32 inpatient diseases + 46 ED / outpatient
+  conditions, and deterministic seeded reproduction are supported.
+
+authors:
+  - name: "clinosim contributors"
+    website: "https://github.com/TomoOkuyama/clinosim/graphs/contributors"
+
+version: "0.2.0"
+date-released: "2026-07-12"
+
+repository-code: "https://github.com/TomoOkuyama/clinosim"
+url: "https://github.com/TomoOkuyama/clinosim"
+license: MIT
+
+type: software
+
+keywords:
+  - synthetic EHR
+  - synthetic data
+  - FHIR R4
+  - HL7 FHIR
+  - EHR simulation
+  - clinical data generation
+  - healthcare
+  - medical AI
+  - JP Core
+  - population-driven simulation

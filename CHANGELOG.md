@@ -21,12 +21,34 @@ byte output but must document the change here.
 ### Added
 
 - **GitHub Actions CI** (`.github/workflows/ci.yml`) — runs on every push
-  to `master` and every PR. Hard gates: unit tests on Python 3.11 + 3.12
-  and integration tests on 3.12. Informational (non-blocking) jobs:
-  `ruff check` / `ruff format --check`, `mypy clinosim/`, and a
-  `python -m build` + `twine check` packaging smoke. Concurrency
-  cancels in-flight runs on newer pushes to the same branch.
+  to `master` and every PR. Hard gates: unit tests on Python 3.11 + 3.12,
+  integration tests on 3.12, and `python -m build` + `twine check`
+  packaging smoke. Informational (non-blocking) jobs: `ruff check` /
+  `ruff format --check`, `mypy clinosim/`. Concurrency cancels in-flight
+  runs on newer pushes to the same branch. Integration timeout set to
+  60 min after empirical measurement showed CI runners run integration
+  ~2.5x slower than the local baseline.
 - README CI status badge pointing at the workflow.
+- **Repository hygiene** (P0-3):
+  - `CONTRIBUTING.md` — entry point covering setup, workflow, DCO signoff,
+    and quality expectations. Links to
+    `docs/CONTRIBUTING-modules.md` for module-level how-to.
+  - `CODE_OF_CONDUCT.md` — Contributor Covenant 2.1
+    (contact: tomo.okuyama@gmail.com).
+  - `SECURITY.md` — GitHub Security Advisories as the disclosure
+    channel; 90-day coordinated-disclosure target.
+  - `CITATION.cff` — machine-readable citation metadata (CFF 1.2.0)
+    that GitHub renders as the "Cite this repository" button.
+  - `.github/ISSUE_TEMPLATE/{bug_report,feature_request}.yml` +
+    `config.yml` disabling blank issues and routing questions to
+    Discussions, security to Advisories, and module how-to to
+    `docs/CONTRIBUTING-modules.md`.
+  - `.github/PULL_REQUEST_TEMPLATE.md` — PR checklist with a mandatory
+    determinism-impact statement and DCO reminder.
+  - `.github/workflows/dco.yml` — hard-gate DCO check: every PR commit
+    must carry a `Signed-off-by:` trailer (see `CONTRIBUTING.md#dco`
+    for how to sign / retro-sign a branch).
+  - README `Governance & Community` section indexing all of the above.
 
 ### Fixed
 
