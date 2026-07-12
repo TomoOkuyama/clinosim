@@ -834,6 +834,8 @@
       
         
       
+        
+      
     
     
     
@@ -924,6 +926,34 @@
     
   
     Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../eval-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation rules
   
 
     
@@ -1620,6 +1650,19 @@ byte output but must document the change here.</p>
 <h2 id="unreleased">[Unreleased]<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
+<li><strong>Clinical contradiction checks</strong> (P1-9): two new checks on the
+  <code>clinical</code> axis of <code>clinosim eval</code> — <code>condition_lab_coherence</code>
+  (aggregate over 8 canonical pairings: sepsis-lactate, DKA-HCO₃,
+  MI-troponin, CKD-creatinine, T2DM-HbA1c, pneumonia-WBC, anemia-Hgb,
+  CHF-BNP) and <code>medication_lab_coherence_warfarin</code> (PT-INR therapeutic
+  band on warfarin patients). Each pairing draws laboratory
+  observations within ±7 days of the Condition onset and scores the
+  overall violation rate against thresholds PASS ≤ 5% / WARN ≤ 25% /
+  FAIL &gt; 25% with per-pairing detail on the report. Full rule catalog
+  with clinical rationale + literature source lives at
+  <code>docs/eval-rules.md</code>; <code>docs/eval.md</code> clinical-axis table updated;
+  new page wired into the docs site nav under Reference. 5 new unit
+  tests. Clinical axis check count 5 → 7.</li>
 <li><strong>FHIR server ingestion guide</strong> (P1-12):
   <a href="../../fhir-server-ingestion/"><code>docs/fhir-server-ingestion.md</code></a>
   walks through loading a generated cohort into a FHIR R4 server via

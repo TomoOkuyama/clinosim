@@ -17,7 +17,7 @@
         <link rel="prev" href="../reference/datasets/">
       
       
-        <link rel="next" href="../reference/modules/">
+        <link rel="next" href="../eval-rules/">
       
       
         
@@ -836,6 +836,8 @@
       
         
       
+        
+      
     
     
     
@@ -1087,6 +1089,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../eval-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1991,6 +2021,16 @@ tagged <code>good first issue</code> on GitHub.</p>
 <td>minor</td>
 <td>When Condition.encounter is set, it resolves to an emitted Encounter</td>
 </tr>
+<tr>
+<td><code>condition_lab_coherence</code></td>
+<td>major</td>
+<td>Sepsis lifts lactate, DKA drops HCO₃, MI lifts troponin, ... (8 pairings — see <a href="../eval-rules/#condition_lab_coherence-major">eval-rules.md</a>)</td>
+</tr>
+<tr>
+<td><code>medication_lab_coherence_warfarin</code></td>
+<td>major</td>
+<td>Warfarin patients' PT-INR sits in the 2.0–3.5 therapeutic band</td>
+</tr>
 </tbody>
 </table>
 <h3 id="locale-language-code-system">Locale (language + code system)<a class="headerlink" href="#locale-language-code-system" title="Permanent link">&para;</a></h3>
@@ -2175,13 +2215,13 @@ one-shot 30-check rewrite.</p>
         
         
           
-          <a href="../reference/modules/" class="md-footer__link md-footer__link--next" aria-label="Next: Modules">
+          <a href="../eval-rules/" class="md-footer__link md-footer__link--next" aria-label="Next: Evaluation rules">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Modules
+                Evaluation rules
               </div>
             </div>
             <div class="md-footer__button md-icon">
