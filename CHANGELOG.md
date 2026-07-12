@@ -20,6 +20,18 @@ byte output but must document the change here.
 
 ### Added
 
+- **FHIR server ingestion guide** (P1-12):
+  [`docs/fhir-server-ingestion.md`](docs/fhir-server-ingestion.md)
+  walks through loading a generated cohort into a FHIR R4 server via
+  the Bulk Data Access `$import` operation, using HAPI FHIR (Docker)
+  as the concrete OSS example and listing InterSystems IRIS for Health,
+  Microsoft FHIR Server, and Google Cloud Healthcare API as
+  vendor-neutral alternatives. Covers per-file POST for small cohorts,
+  `$import` for larger ones, dependency-ordered loading to avoid
+  reference-integrity errors, JP Core profile validation notes, and a
+  round-trip determinism check. Wired into the docs site nav under
+  Guides. Vendor-neutral by design: no code path depends on any
+  specific FHIR server product.
 - **MkDocs documentation site** (P1-11): `mkdocs.yml` at repo root
   configures a Material-themed site at
   [tomookuyama.github.io/clinosim](https://tomookuyama.github.io/clinosim/)
