@@ -43,6 +43,7 @@ GENERATION_FREQUENCIES: frozenset[str] = frozenset({
     "daily",
     "daily_3shift",  # α-min-3: 3 nursing notes per LOS day (night/day/evening)
     "discharge_once",
+    "discharge_fraction_20pct",  # P2-13 PR2b: JP-CLINS referral_note (20% of discharges)
     "encounter_once",
 })
 
@@ -74,6 +75,8 @@ SUPPORTED_DOCUMENT_TYPES: frozenset[DocumentType] = frozenset({
     DocumentType.ADMISSION_CARE_PLAN,
     DocumentType.NUTRITION_CARE_PLAN,
     DocumentType.REHABILITATION_PLAN,
+    # P2-13 PR2b (session 47): JP-CLINS 診療情報提供書
+    DocumentType.REFERRAL_NOTE,
 })
 
 

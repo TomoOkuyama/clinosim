@@ -180,10 +180,16 @@ def _build_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[st
 
     P2-13 PR2a: dispatches to the JP-CLINS-conformant builder when
     ``lang == "ja"`` and the LOINC code is 18842-5 (discharge summary).
-    Otherwise the existing generic builder is used (US path unchanged).
+    PR2b (session 47): 57133-1 (referral note) dispatches to the eReferral
+    builder. Otherwise the existing generic builder is used (US path
+    unchanged).
     """
-    if lang == "ja" and _o(doc, "loinc_code", "") == "18842-5":
-        return _build_jp_clins_discharge_summary_composition(doc, sections, lang)
+    if lang == "ja":
+        loinc = _o(doc, "loinc_code", "")
+        if loinc == "18842-5":
+            return _build_jp_clins_discharge_summary_composition(doc, sections, lang)
+        if loinc == "57133-1":
+            return _build_jp_clins_referral_note_composition(doc, sections, lang)
     return _build_composition_generic(doc, sections, lang)
 
 
@@ -405,4 +411,115 @@ def _build_jp_clins_discharge_summary_composition(
         },
         "section": child_sections,
     }]
+    return comp
+
+
+# ============================================================
+# P2-13 PR2b: JP-CLINS referral note Composition builder
+# ============================================================
+
+_JP_CLINS_REFERRAL_PROFILE = (
+    "http://jpfhir.jp/fhir/eReferral/StructureDefinition/"
+    "JP_Composition_eReferral"
+)
+
+# JP-CLINS eReferral required section codes:
+#   920 紹介元 / 910 紹介先 / 300 構造情報
+#     └ 950 紹介目的 / 340 傷病名・主訴 / 360 現病歴
+# The top-level sections carry 920 + 910; the structural 300 nests the 3
+# child sections (950/340/360). Section-key → numeric jpfhir code:
+_JP_REFERRAL_TOP_LEVEL: dict[str, str] = {
+    "referring_institution":  "920",
+    "referral_destination":   "910",
+}
+_JP_REFERRAL_STRUCTURAL_CHILDREN: dict[str, str] = {
+    "referral_purpose":         "950",
+    "diagnoses_and_complaint":  "340",
+    "present_illness_ref":      "360",
+}
+
+
+def _build_jp_clins_referral_note_composition(
+    doc: Any, sections: dict[str, str], lang: str
+) -> dict[str, Any]:
+    """Emit a Composition conforming to JP-CLINS eReferral v1.12.0.
+
+    Structure vs the generic Composition:
+      - meta.profile = [JP_Composition_eReferral]
+      - type.coding[0].system = doc-typecodes (LOINC coding retained as
+        secondary for interop)
+      - section is a two-level tree:
+          top-level: 920 紹介元, 910 紹介先, 300 構造情報
+          under 300: 950 紹介目的, 340 傷病名・主訴, 360 現病歴
+        section.code.system uses jp-codeSystem-clins-document-section.
+    """
+    comp = _build_composition_generic(doc, sections, lang)
+
+    # meta.profile
+    meta = comp.setdefault("meta", {})
+    profs = meta.setdefault("profile", [])
+    if _JP_CLINS_REFERRAL_PROFILE not in profs:
+        profs.append(_JP_CLINS_REFERRAL_PROFILE)
+
+    # type: 57133-1 in doc-typecodes + LOINC (interop)
+    disp = code_lookup("jpfhir-doc-typecodes", "57133-1", lang) or "診療情報提供書"
+    comp["type"] = {
+        "coding": [
+            {"system": _JPFHIR_DOC_TYPECODES_SYSTEM,
+             "code": "57133-1", "display": disp},
+            {"system": get_system_uri("loinc"),
+             "code": "57133-1", "display": code_lookup("loinc", "57133-1", lang) or disp},
+        ],
+        "text": disp,
+    }
+    comp["title"] = disp
+
+    def _one_section(section_code: str, text_val: str) -> dict[str, Any]:
+        disp_c = (
+            code_lookup("jpfhir-doc-section", section_code, lang) or section_code
+        )
+        return {
+            "title": disp_c,
+            "code": {
+                "coding": [{
+                    "system": _JPFHIR_DOC_SECTION_SYSTEM,
+                    "code": section_code,
+                    "display": disp_c,
+                }],
+                "text": disp_c,
+            },
+            "text": {
+                "status": "generated",
+                "div": (
+                    f'<div xmlns="http://www.w3.org/1999/xhtml">'
+                    f"{_escape_html(text_val)}</div>"
+                ),
+            },
+        }
+
+    # Top-level 920 + 910
+    top_sections: list[dict[str, Any]] = []
+    for key, code in _JP_REFERRAL_TOP_LEVEL.items():
+        top_sections.append(_one_section(code, sections.get(key, "") or ""))
+
+    # 300 structural, nesting 950 / 340 / 360
+    struct_children: list[dict[str, Any]] = []
+    for key, code in _JP_REFERRAL_STRUCTURAL_CHILDREN.items():
+        struct_children.append(_one_section(code, sections.get(key, "") or ""))
+    struct_parent_disp = (
+        code_lookup("jpfhir-doc-section", "300", lang) or "構造情報セクション"
+    )
+    top_sections.append({
+        "title": struct_parent_disp,
+        "code": {
+            "coding": [{
+                "system": _JPFHIR_DOC_SECTION_SYSTEM,
+                "code": "300",
+                "display": struct_parent_disp,
+            }],
+            "text": struct_parent_disp,
+        },
+        "section": struct_children,
+    })
+    comp["section"] = top_sections
     return comp

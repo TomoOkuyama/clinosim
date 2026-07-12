@@ -141,6 +141,12 @@ def test_load_raises_on_missing_required_field() -> None:
                 "countries_supported": ["jp"],
                 "generation_frequency": "admission_once_if_rehab_sessions",
             },
+            "referral_note": {
+                "loinc_code": "57133-1",
+                "format_type": "composition",
+                "countries_supported": ["jp"],
+                "generation_frequency": "discharge_fraction_20pct",
+            },
         }
     }
     with pytest.raises(ValueError, match="missing countries_supported"):
@@ -219,6 +225,12 @@ def test_load_raises_on_null_entry() -> None:
                 "format_type": "composition",
                 "countries_supported": ["jp"],
                 "generation_frequency": "admission_once_if_rehab_sessions",
+            },
+            "referral_note": {
+                "loinc_code": "57133-1",
+                "format_type": "composition",
+                "countries_supported": ["jp"],
+                "generation_frequency": "discharge_fraction_20pct",
             },
         }
     }
@@ -304,6 +316,12 @@ def test_load_raises_on_empty_countries_supported() -> None:
                 "countries_supported": ["jp"],
                 "generation_frequency": "admission_once_if_rehab_sessions",
             },
+            "referral_note": {
+                "loinc_code": "57133-1",
+                "format_type": "composition",
+                "countries_supported": ["jp"],
+                "generation_frequency": "discharge_fraction_20pct",
+            },
         }
     }
     with pytest.raises(ValueError, match="countries_supported empty"):
@@ -312,16 +330,19 @@ def test_load_raises_on_empty_countries_supported() -> None:
 
 # === α-min-2 tests ===
 
-def test_load_specs_returns_12_total() -> None:
-    """12 (3 α-min-1 + 6 α-min-2 + 3 chain-2) total specs loaded from YAML."""
+def test_load_specs_returns_13_total() -> None:
+    """13 (3 α-min-1 + 6 α-min-2 + 3 chain-2 + 1 P2-13 PR2b referral_note) specs."""
     load_document_type_specs.cache_clear()
     specs = load_document_type_specs()
-    assert len(specs) == 12, f"Expected 12 specs (3 α-min-1 + 6 α-min-2 + 3 chain-2), got {len(specs)}"
+    assert len(specs) == 13, (
+        f"Expected 13 specs (3 α-min-1 + 6 α-min-2 + 3 chain-2 + 1 referral_note), "
+        f"got {len(specs)}"
+    )
 
 
-def test_supported_document_types_covers_12_entries() -> None:
-    """SUPPORTED_DOCUMENT_TYPES frozenset has 12 members (α-min-1 3 + α-min-2 6 + chain-2 3)."""
-    assert len(SUPPORTED_DOCUMENT_TYPES) == 12
+def test_supported_document_types_covers_13_entries() -> None:
+    """SUPPORTED_DOCUMENT_TYPES frozenset has 13 members after P2-13 PR2b."""
+    assert len(SUPPORTED_DOCUMENT_TYPES) == 13
 
 
 def test_specs_for_encounter_type_outpatient_returns_only_outpatient_soap() -> None:
@@ -335,12 +356,13 @@ def test_specs_for_encounter_type_outpatient_returns_only_outpatient_soap() -> N
     assert keys == ["outpatient_soap"], f"Expected only outpatient_soap in restricted set, got {keys}"
 
 
-def test_specs_for_encounter_type_inpatient_returns_9_specs() -> None:
+def test_specs_for_encounter_type_inpatient_returns_10_specs() -> None:
     """3 α-min-1 (no restriction, matches all) + 3 nursing specs + admission_care_plan +
-    nutrition_care_plan + rehabilitation_plan (chain 2) = 9 total for inpatient."""
+    nutrition_care_plan + rehabilitation_plan (chain 2) + referral_note (P2-13 PR2b)
+    = 10 total for inpatient."""
     load_document_type_specs.cache_clear()
     inpatient_specs = specs_for_encounter_type("inpatient")
-    assert len(inpatient_specs) == 9, f"Expected 9 inpatient specs, got {len(inpatient_specs)}"
+    assert len(inpatient_specs) == 10, f"Expected 10 inpatient specs, got {len(inpatient_specs)}"
 
 
 def test_specs_for_encounter_type_emergency_returns_2_ed_specs() -> None:

@@ -43,6 +43,8 @@ class DocumentType(str, Enum):
     NUTRITION_CARE_PLAN = "nutrition_care_plan"                   # LOINC 80791-7 (verified 2026-07-03)
     # β-JP-1 chain 2 (厚労省4帳票, third and final sub-project)
     REHABILITATION_PLAN = "rehabilitation_plan"                   # LOINC 34823-5 (verified 2026-07-04)
+    # P2-13 PR2b (session 47) JP-CLINS 診療情報提供書 — LOINC 57133-1
+    REFERRAL_NOTE = "referral_note"                               # LOINC 57133-1 (JP-CLINS v1.12.0)
 
 
 @dataclass(frozen=True)

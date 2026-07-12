@@ -592,6 +592,12 @@ class TemplateNarrativeGenerator:
             "admission_details": self._build_admission_details,
             "admission_diagnoses": self._build_admission_diagnoses,
             "present_illness": self._build_present_illness,
+            # P2-13 PR2b: JP-CLINS 診療情報提供書 sections (JP only)
+            "referring_institution": self._build_referring_institution,
+            "referral_destination": self._build_referral_destination,
+            "referral_purpose": self._build_referral_purpose,
+            "diagnoses_and_complaint": self._build_diagnoses_and_complaint,
+            "present_illness_ref": self._build_present_illness_ref,
             # chain 2: REHABILITATION_PLAN sections (LOINC 34823-5)
             "patient_and_diagnosis": self._build_rp_patient_and_diagnosis,
             "rehab_team": self._build_rp_rehab_team,
@@ -1130,6 +1136,140 @@ class TemplateNarrativeGenerator:
             hpi_text = (
                 f"{ctx.severity}の症状で受診し入院となった。" if is_ja
                 else f"Patient presented with {ctx.severity} symptoms leading to admission."
+            )
+        return hpi_text, facts
+
+    # ─────────────────────────────────────────────────────────────────
+    # P2-13 PR2b: JP-CLINS 診療情報提供書 (Referral note) sections (JP only)
+    # ─────────────────────────────────────────────────────────────────
+
+    def _build_referring_institution(
+        self, ctx: NarrativeContext
+    ) -> tuple[str, list[str]]:
+        """920 紹介元情報セクション: identifies the sending hospital.
+
+        clinosim simulates a single hospital, so the referring institution
+        is always our own facility. β-JP-1 seam: the hospital display name
+        could come from hospital_config instead of a fixed string in future.
+        """
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        if is_ja:
+            text = "紹介元:当院(急性期一般病棟)。担当医師の署名により発行。"
+        else:
+            text = "Referring institution: this hospital (acute-care general ward)."
+        return text, facts
+
+    def _build_referral_destination(
+        self, ctx: NarrativeContext
+    ) -> tuple[str, list[str]]:
+        """910 紹介先情報セクション: the destination institution.
+
+        clinosim does not model inter-institution referral targets, so the
+        destination is a generic "他院" placeholder. Future work: sample from
+        a small pool of plausible receiving-hospital types.
+        """
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        if is_ja:
+            text = "紹介先:他院。当該患者の継続加療を目的として本情報提供書を作成する。"
+        else:
+            text = "Referral destination: unspecified other institution (continued care)."
+        return text, facts
+
+    def _build_referral_purpose(
+        self, ctx: NarrativeContext
+    ) -> tuple[str, list[str]]:
+        """950 紹介目的セクション: deterministic selection from the standard set.
+
+        The purpose is picked from a small set based on a hash of the
+        encounter id so cohort-level distribution stays stable but per-
+        encounter the choice is varied.
+        """
+        import hashlib
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        enc = ctx.encounter
+        enc_id = _o(enc, "encounter_id", "") or "ENC-UNKNOWN"
+        purposes_ja = [
+            "継続加療",
+            "精査依頼",
+            "他科紹介",
+            "リハビリテーション継続",
+        ]
+        purposes_en = [
+            "continued treatment",
+            "further investigation",
+            "specialty consultation",
+            "continued rehabilitation",
+        ]
+        digest = hashlib.sha256(enc_id.encode("utf-8")).digest()
+        idx = digest[0] % len(purposes_ja)
+        picked = purposes_ja[idx] if is_ja else purposes_en[idx]
+        facts.append(f"ctx.encounter.encounter_id[hash-idx={idx}]")
+        if is_ja:
+            text = f"紹介目的:{picked}のため。"
+        else:
+            text = f"Referral purpose: {picked}."
+        return text, facts
+
+    def _build_diagnoses_and_complaint(
+        self, ctx: NarrativeContext
+    ) -> tuple[str, list[str]]:
+        """340 傷病名・主訴セクション: combined diagnoses + chief complaint."""
+        from clinosim.codes import lookup as code_lookup
+
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+
+        # Diagnoses
+        diagnoses = ctx.diagnoses or []
+        dx_lines: list[str] = []
+        for idx, dx in enumerate(diagnoses, start=1):
+            code = _o(dx, "discharge_diagnosis_code", "") or _o(
+                dx, "admission_diagnosis_code", ""
+            )
+            if not code:
+                continue
+            system = (
+                _o(dx, "discharge_diagnosis_system", "")
+                or _o(dx, "admission_diagnosis_system", "")
+                or ("icd-10" if is_ja else "icd-10-cm")
+            )
+            display = code_lookup(system, code, ctx.target_lang)
+            if display and display != code:
+                dx_lines.append(
+                    f"{idx}. {display}（{code}）" if is_ja else f"{idx}. {display} ({code})"
+                )
+            else:
+                dx_lines.append(f"{idx}. {code}")
+        if dx_lines:
+            facts.append("ctx.diagnoses")
+
+        # Chief complaint
+        cc_text, cc_facts = self._build_chief_complaint(ctx)
+        facts.extend(cc_facts)
+
+        if is_ja:
+            header = "【傷病名】\n" + ("\n".join(dx_lines) if dx_lines else "特記事項なし。")
+            complaint = f"\n\n【主訴】\n{cc_text}"
+            text = header + complaint
+        else:
+            header = "Diagnoses:\n" + ("\n".join(dx_lines) if dx_lines else "None recorded.")
+            complaint = f"\n\nChief complaint: {cc_text}"
+            text = header + complaint
+        return text, facts
+
+    def _build_present_illness_ref(
+        self, ctx: NarrativeContext
+    ) -> tuple[str, list[str]]:
+        """360 現病歴セクション for referral note (reuses HPI builder)."""
+        hpi_text, facts = self._build_hpi(ctx)
+        is_ja = ctx.target_lang == "ja"
+        if not hpi_text:
+            hpi_text = (
+                f"{ctx.severity}の症状で受診し入院となった。" if is_ja
+                else f"Patient presented with {ctx.severity} symptoms."
             )
         return hpi_text, facts
 

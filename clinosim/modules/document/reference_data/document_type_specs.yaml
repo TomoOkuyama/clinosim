@@ -242,3 +242,28 @@ specs:
       - explanation_consent
     stage2_strategy: template_only
     llm_enabled_sections: []
+
+  # === P2-13 PR2b (session 47) JP-CLINS 診療情報提供書 (Referral note) ===
+  # LOINC 57133-1 verified via jpfhir.jp v1.12.0 (2026-02-16). JP-CLINS
+  # eReferral profile (JP_Composition_eReferral) required section structure:
+  #   920 紹介元 / 910 紹介先 / 300 構造情報
+  #     └ 950 紹介目的 / 340 傷病名・主訴 / 360 現病歴
+  # US path is not supported (referral note is a JP-specific document type
+  # for 医療機関間情報連携; US clinical practice uses ordinary letters).
+  # generation_frequency=discharge_fraction_20pct: emitted for ~20% of
+  # inpatient discharges (empirical benchmark for acute-care hospitals),
+  # controlled by a per-record deterministic RNG (jp_clins_referral seed).
+  referral_note:
+    loinc_code: "57133-1"
+    format_type: composition
+    countries_supported: [jp]
+    encounter_types_supported: [inpatient, icu, rehab_inpatient]
+    generation_frequency: discharge_fraction_20pct
+    composition_sections:
+      - referring_institution
+      - referral_destination
+      - referral_purpose
+      - diagnoses_and_complaint
+      - present_illness_ref
+    stage2_strategy: template_only
+    llm_enabled_sections: []
