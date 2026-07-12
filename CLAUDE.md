@@ -23,7 +23,8 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 ## Language conventions
 
 - **Code**: Python 3.11+
-- **Code comments and docstrings**: English
+- **Code comments and docstrings (default)**: English
+- **JP-only code comments and docstrings** (session 47 rule): Japanese. JP-only means: JP-CLINS builder / JP section renderer / `_build_jp_clins_*` / `_JP_CLINS_*` maps / `codes/data/jpfhir-*.yaml` and other JP-locale-specific YAML / test docstrings of JP-only paths. Common dispatch/framework code that is *called for* JP but is locale-neutral in its own body (e.g. `_apply_jp_clins_profile`, `_referral_note_fires`, `_build_composition` dispatcher) keeps English.
 - **README.md**: English (default, international audience)
 - **README.ja.md**: Japanese translation of README.md
 - **Module READMEs** (`modules/<name>/README.md`): Japanese with English technical terms
