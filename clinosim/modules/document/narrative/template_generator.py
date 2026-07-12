@@ -587,6 +587,11 @@ class TemplateNarrativeGenerator:
             "other_issues": self._build_ncp_other_issues,
             "reassessment_timing": self._build_ncp_reassessment_timing,
             "discharge_evaluation": self._build_ncp_discharge_evaluation,
+            # P2-13 PR2a: JP-CLINS discharge summary sections (JP only)
+            "admission_reason": self._build_admission_reason,
+            "admission_details": self._build_admission_details,
+            "admission_diagnoses": self._build_admission_diagnoses,
+            "present_illness": self._build_present_illness,
             # chain 2: REHABILITATION_PLAN sections (LOINC 34823-5)
             "patient_and_diagnosis": self._build_rp_patient_and_diagnosis,
             "rehab_team": self._build_rp_rehab_team,
@@ -599,7 +604,12 @@ class TemplateNarrativeGenerator:
             "explanation_consent": self._build_rp_explanation_consent,
         }
 
-        for section in spec.composition_sections:
+        # P2-13 PR2a (session 47): use JP-specific section list when country=JP
+        # so JP-CLINS Composition emit finds the 5 required sections
+        # (admission_reason / admission_details / admission_diagnoses /
+        # chief_complaint / present_illness) instead of the US 6-section set.
+        section_list = spec.composition_sections_for(ctx.locale.upper())
+        for section in section_list:
             builder = section_builders.get(section)
             if builder is not None:
                 text, section_facts = builder(ctx)
@@ -974,6 +984,154 @@ class TemplateNarrativeGenerator:
             text = f"Chief complaint: {cc_text}. Admitted for inpatient care."
 
         return text, facts
+
+    # ─────────────────────────────────────────────────────────────────
+    # P2-13 PR2a: JP-CLINS discharge summary section builders (JP only)
+    # Consumed when country=JP + doc_type=discharge_summary. English text
+    # is emitted for the US path (via composition_sections_for("US"), which
+    # returns the pre-existing 6-section list). These builders keep the same
+    # signature and are language-branched so a US override could later
+    # cross-consume them cleanly.
+    # ─────────────────────────────────────────────────────────────────
+
+    def _build_admission_reason(
+        self, ctx: NarrativeContext
+    ) -> tuple[str, list[str]]:
+        """312 入院理由セクション: brief statement of the reason for admission.
+
+        Prefers the primary admission-diagnosis display (resolved via
+        clinosim.codes.lookup — AD-30). Falls back to chief complaint.
+        """
+        from clinosim.codes import lookup as code_lookup
+
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        diagnoses = ctx.diagnoses or []
+        primary = diagnoses[0] if diagnoses else None
+        code = ""
+        system = ""
+        if primary is not None:
+            code = _o(primary, "admission_diagnosis_code", "") or _o(
+                primary, "discharge_diagnosis_code", ""
+            )
+            system = (
+                _o(primary, "admission_diagnosis_system", "")
+                or _o(primary, "discharge_diagnosis_system", "")
+                or ("icd-10" if is_ja else "icd-10-cm")
+            )
+        display = code_lookup(system, code, ctx.target_lang) if code else ""
+        if display and display != code:
+            facts.append("ctx.diagnoses[0].admission_diagnosis_code")
+            if is_ja:
+                text = f"{display}のため入院となった。"
+            else:
+                text = f"Admitted for {display}."
+        else:
+            cc_text, cc_facts = self._build_chief_complaint(ctx)
+            facts.extend(cc_facts)
+            if is_ja:
+                text = f"{cc_text}のため入院となった。"
+            else:
+                text = f"Admitted for {cc_text}."
+        return text, facts
+
+    def _build_admission_details(
+        self, ctx: NarrativeContext
+    ) -> tuple[str, list[str]]:
+        """322 入院時詳細セクション: admission date, ward, and admission route."""
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        enc = ctx.encounter
+        adm_dt = _o(enc, "admission_datetime", "") if enc is not None else ""
+        ward = _o(enc, "ward", "") if enc is not None else ""
+        via_ed = bool(_o(enc, "via_emergency", False)) if enc is not None else False
+        facts.append("ctx.encounter.admission_datetime")
+
+        # Format the admission datetime portably
+        adm_date = ""
+        if adm_dt:
+            adm_date = str(adm_dt).split("T")[0]
+        if is_ja:
+            parts: list[str] = []
+            if adm_date:
+                parts.append(f"{adm_date}")
+            if via_ed:
+                parts.append("救急外来受診後")
+            if ward:
+                parts.append(f"{ward}病棟")
+            parts.append("に入院した。")
+            text = "、".join(parts[:-1]) + parts[-1] if len(parts) > 1 else parts[0]
+        else:
+            fragments: list[str] = []
+            if adm_date:
+                fragments.append(f"Admitted on {adm_date}")
+            if via_ed:
+                fragments.append("via the emergency department")
+            if ward:
+                fragments.append(f"to the {ward} ward")
+            text = " ".join(fragments) + "." if fragments else "Admitted for inpatient care."
+        return text, facts
+
+    def _build_admission_diagnoses(
+        self, ctx: NarrativeContext
+    ) -> tuple[str, list[str]]:
+        """342 入院時診断セクション: numbered list of admission diagnoses.
+
+        Reuses the same code-lookup pattern as _build_discharge_diagnoses but
+        keys off ``admission_diagnosis_code`` first (falling back to
+        ``discharge_diagnosis_code`` for records that only carry the latter).
+        """
+        from clinosim.codes import lookup as code_lookup
+
+        facts: list[str] = []
+        is_ja = ctx.target_lang == "ja"
+        diagnoses = ctx.diagnoses or []
+        if not diagnoses:
+            return ("特記事項なし。" if is_ja else "No admission diagnoses recorded."), facts
+
+        facts.append("ctx.diagnoses")
+        lines: list[str] = []
+        for idx, dx in enumerate(diagnoses, start=1):
+            code = _o(dx, "admission_diagnosis_code", "") or _o(
+                dx, "discharge_diagnosis_code", ""
+            )
+            if not code:
+                continue
+            system = (
+                _o(dx, "admission_diagnosis_system", "")
+                or _o(dx, "discharge_diagnosis_system", "")
+                or ("icd-10" if is_ja else "icd-10-cm")
+            )
+            display = code_lookup(system, code, ctx.target_lang)
+            if display and display != code:
+                lines.append(
+                    f"{idx}. {display}（{code}）" if is_ja else f"{idx}. {display} ({code})"
+                )
+            else:
+                lines.append(f"{idx}. {code}")
+        if not lines:
+            return ("特記事項なし。" if is_ja else "No admission diagnoses recorded."), facts
+        return "\n".join(lines), facts
+
+    def _build_present_illness(
+        self, ctx: NarrativeContext
+    ) -> tuple[str, list[str]]:
+        """360 現病歴セクション: brief history of present illness.
+
+        For discharge-summary use, reuses the same disease_protocol HPI
+        template as the ADMISSION_HP builder but frames the sentence in
+        past tense (述懐 = post-recovery narrative).
+        """
+        hpi_text, facts = self._build_hpi(ctx)
+        is_ja = ctx.target_lang == "ja"
+        # No structural reframing needed: hpi already reads as a chronological
+        # onset description. Retain as-is; β-JP-1 will refine tone.
+        if not hpi_text:
+            hpi_text = (
+                f"{ctx.severity}の症状で受診し入院となった。" if is_ja
+                else f"Patient presented with {ctx.severity} symptoms leading to admission."
+            )
+        return hpi_text, facts
 
     def _build_hospital_course(
         self, ctx: NarrativeContext
