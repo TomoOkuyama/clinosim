@@ -1,5 +1,59 @@
 # clinosim — TODO
 
+## Status (2026-07-12, **session 46 CLOSED — OSS diffusion plan P0/P1 全 12 major PRs**)
+
+Session 46 pivoted from EHR data quality (chain #1: silent-code-substitution
+17 fix / chain #2: JP Core meta.profile 100% emission on 16 resources) to
+the OSS diffusion plan the user articulated mid-session. Full P0 (5 items) +
+P1 (7 items) of the diffusion plan landed in one session as 12 focused PRs.
+
+**master HEAD**: `eff40dfb43` (P1-10 Synthea comparison adapter)
+**Tag / Release**: `v0.2.0` (GitHub Release published with wheel + sdist + notes)
+**GitHub Issues opened**: **8 good first issues** (#142–#149)
+
+### Landed this session (all merged + pushed)
+
+1. `d5d203f75f` — drug_names_ja +54 entries + 17 silent-code-substitution fix (MHLW YJ authoritative).
+2. `2a4783f311` — JP Core meta.profile emission for 11 new resource types (16 primary total at 100%).
+3. `44f44669e5` — **P0 #1** dynamic version + LICENSE + CHANGELOG + README disclaimers + version single-source-of-truth guard.
+4. `470a32c303` — **P0-1** version 0.1.0 → 0.2.0 + drop poisoned `requirements.txt`.
+5. `15459c7860`, `7a1dcb0681` — **P0-2** GitHub Actions CI (unit / integration / packaging / lint informational / typecheck informational) + Makefile path fix + `types-PyYAML` dev extra.
+6. `2a36e1f388` — **P0-3** CONTRIBUTING/CoC/SECURITY/CITATION + Issue + PR templates + DCO workflow (hard gate) + 5 good first issues.
+7. `2a0e1d88ab` — **P0-4** Release workflow (tag → wheel+sdist+GitHub Release+CHANGELOG extract) + v0.2.0 tag + Release published.
+8. `f504f3ecc2` — **P0-5** README 4 new sections (Why / Synthea comparison / Sample output / Demo placeholder) + 2 asset issues.
+9. `4f766feb8c` — **P1-7** `scripts/reproduce.sh` + CI `reproducibility` hard gate + integration test + **Immunization lot_number non-determinism fix** (Python `hash()` on str → `hashlib.sha256`).
+10. `319aa60d30` — **P1-6** `datasets/{us,jp}-{100,1000}/` with HF frontmatter cards + `.zenodo.json` + `clinosim dataset {list,build}` + release workflow attaches datasets.
+11. `bd310b224f` — **P1-8** `clinosim eval` (3 axes / 15 checks / severity-weighted score / JSON + Markdown) + `docs/eval.md` + issue #149 (US Composition CJK leak surfaced by the tool).
+12. `2dd03811eb` — **P1-11** MkDocs Material site (`mkdocs.yml`) + `.github/workflows/docs.yml` (gh-pages auto-deploy) + 6-section nav.
+13. `e364f9ce80` — **P1-12** `docs/fhir-server-ingestion.md` (HAPI FHIR Docker recipe + `$import` + troubleshooting, vendor-neutral).
+14. `27fe046b11` — **P1-9** Clinical contradiction checks (8 pairings + warfarin PT-INR band) + `docs/eval-rules.md`.
+15. `eff40dfb43` — **P1-10** Synthea comparison adapter (`clinosim eval` auto-detects Synthea Bundles) + `docs/synthea-comparison.md`.
+
+### Test state at wrap
+
+- Unit: **2487 PASS**, zero regressions across 12 PRs.
+- `bash scripts/reproduce.sh`: PASS (US + JP byte-identical).
+- Integration: session-end batch (see `feedback-batch-long-running-ci-at-session-end`).
+
+### Bugs surfaced by session-46 tooling (open for later fix)
+
+- **#149** — US Composition contains JP `hpi_template.onset_pattern` text
+  (already-tracked YAML-authoring gap; `clinosim eval` `no_japanese_leakage`
+  CRITICAL now surfaces it on every run).
+
+### Session 47 candidates
+
+- **P2-13** JP-CLINS (3 documents / 6 information items) FHIR profile — v0.3 flagship.
+- **P2-14** "Add your country" guide + country-pack scaffold.
+- **P2-15** Benchmark task definitions (sepsis / AKI prediction) + baseline eval script.
+- **PyPI upload** for v0.2.0 (user manual, needs `PYPI_API_TOKEN`).
+- **GitHub Pages toggle** (Settings → Pages → gh-pages, one-time).
+- **Zenodo integration** enable (auto DOI on tag, one-time).
+- Any of the 8 open good first issues (#142–#149) — the visible tail-end
+  of the P0/P1 work is a natural first-timer entry point.
+
+---
+
 ## Status (2026-07-12, session 45 CLOSED — 5-seed verification + 13-commit chain)
 
 **★ Session 45 CLOSED (2026-07-12, master HEAD `b32c9d38b4`)** — 13-commit chain
