@@ -4,7 +4,25 @@
 
 **Session 48 開始状態(順序 d → e → f → g → b → c、d 完了)**:
 
-### 完了(d, e, f):PR3 sub-PR-B/C/E
+### 完了(d, e, f, g):PR3 sub-PR-B/C/E + Deferred cleanup 3 件
+
+**(g) Deferred cleanup 3 件**:
+- **g.1** `_JP_CORE_PROFILES` shape unify:`dict[str, str]` → `dict[str, list[str]]`、`_apply_jp_core_profile` を list-対応に更新(将来 JP Core が同一 resource で複数 sibling profile を publish しても既存 accessor で吸収可能)
+- **g.2** CLI `generate` → `simulate` rename:
+  - `simulate` を canonical、`aliases=["generate"]` で後方互換
+  - `generate` 使用時 stderr に `DeprecationWarning` 出力(将来削除予告)
+  - README.md / README.ja.md / docs/getting-started/quick-start.md を `simulate` に更新
+  - 単体 test 5 個(simulate/generate 両方起動 / warning 出力 / help に両方表示)
+- **g.3** CIF `orders` 分離(互換保持型):
+  - `CIFPatientRecord` に `.medication_orders` / `.lab_orders` / `.imaging_orders` property view を追加(read-only filtered view)
+  - `orders` は mixed 単一 source of truth のまま(30+ callers の破壊回避)
+  - 新規 code は typed view で `for o in record.orders: if o.order_type == X` を書く必要が消える
+  - `_order_type_value` helper で Enum / str / dict 三方対応
+  - 単体 test 6 個
+  - 完全 split(mixed list 廃止)は 30+ caller への波及 + golden 更新が必要なため
+    scope discipline per 別 session の refactor PR に defer
+
+**(f) sub-PR-E**:
 
 **(f) sub-PR-E**:
 - `_fhir_document_reference_checkup.py` 新設(HEALTH_CHECKUP_REPORT の Composition wrapper)

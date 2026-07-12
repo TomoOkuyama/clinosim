@@ -803,43 +803,50 @@ def _build_bundle(
     }
 
 
-_JP_CORE_PROFILES: dict[str, str] = {
+# session 48 deferred cleanup (g): shape unification.
+# JP Core registry uses `dict[str, list[str]]` (was `dict[str, str]`) so its
+# shape matches `_JP_CLINS_PROFILES` below. Future JP Core release with
+# multiple sibling profiles per resource type (e.g. JP_Observation_Common
+# + JP_Observation_Vital) can be listed here without an accessor change.
+_JP_CORE_PROFILES: dict[str, list[str]] = {
     # Resources with a canonical JP Core profile URL (JPFHIR core 1.1+).
     # Verified via https://jpfhir.jp/fhir/core/
-    "Patient": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Patient",
-    "Encounter": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter",
-    "Condition": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition",
-    "Coverage": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Coverage",
-    "Observation": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common",
-    "MedicationRequest": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest",
-    "MedicationAdministration": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationAdministration",
-    "AllergyIntolerance": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_AllergyIntolerance",
-    "Immunization": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Immunization",
-    "Practitioner": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Practitioner",
-    "PractitionerRole": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_PractitionerRole",
-    "Organization": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization",
-    "DiagnosticReport": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Common",
+    "Patient":                ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Patient"],
+    "Encounter":              ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter"],
+    "Condition":              ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"],
+    "Coverage":               ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Coverage"],
+    "Observation":            ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"],
+    "MedicationRequest":      ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"],
+    "MedicationAdministration": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationAdministration"],
+    "AllergyIntolerance":     ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_AllergyIntolerance"],
+    "Immunization":           ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Immunization"],
+    "Practitioner":           ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Practitioner"],
+    "PractitionerRole":       ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_PractitionerRole"],
+    "Organization":           ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization"],
+    "DiagnosticReport":       ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Common"],
     # RM-6c (session 42): Procedure profile so RECORD-based and ORDER-based
     # Procedure emissions both carry JP Core conformance.
-    "Procedure": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure",
+    "Procedure":              ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"],
 }
 
 
 def _apply_jp_core_profile(resource: dict) -> None:
-    """Attach the JP Core profile URL for the resource's type when absent.
+    """Attach the JP Core profile URLs for the resource's type when absent.
 
     C3-11..18 (session 42 cycle 3): idempotent — leaves existing meta.profile
-    untouched when a builder has already set one. Adds `meta.profile[]` with
-    the JP Core StructureDefinition URL when the resourceType is registered.
+    untouched when a builder has already set one. Appends any JP Core
+    StructureDefinition URL that is not yet in `meta.profile[]`.
+    Session 48 cleanup: dict shape unified with `_JP_CLINS_PROFILES` (list-of-URLs).
     """
     rt = resource.get("resourceType", "")
-    profile = _JP_CORE_PROFILES.get(rt)
-    if not profile:
+    profiles = _JP_CORE_PROFILES.get(rt)
+    if not profiles:
         return
     meta = resource.setdefault("meta", {})
     profs = meta.setdefault("profile", [])
-    if profile not in profs:
-        profs.append(profile)
+    for profile in profiles:
+        if profile not in profs:
+            profs.append(profile)
 
 
 # JP-CLINS eCS profiles (電子カルテ情報共有サービス).

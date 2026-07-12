@@ -82,6 +82,36 @@ class CIFPatientRecord:
     # write under extensions[<module_name>] so they never edit this core type.
     extensions: dict[str, Any] = field(default_factory=dict)
 
+    # session 48 cleanup (g.3): typed views onto `orders` filtered by
+    # `Order.order_type`. `orders` is still the mixed source of truth
+    # (backwards-compat with 30+ callers); these views are read-only
+    # convenience for new code so it does not have to inline
+    # `for o in record.orders: if o.order_type == X` at every call site.
+    # Matches FHIR emit-side type separation (MedicationRequest / ServiceRequest
+    # category=lab / ServiceRequest category=imaging).
+
+    @property
+    def medication_orders(self) -> list["Order"]:
+        return [o for o in self.orders if _order_type_value(o) == "medication"]
+
+    @property
+    def lab_orders(self) -> list["Order"]:
+        return [o for o in self.orders if _order_type_value(o) == "lab"]
+
+    @property
+    def imaging_orders(self) -> list["Order"]:
+        return [o for o in self.orders if _order_type_value(o) == "imaging"]
+
+
+def _order_type_value(order: Any) -> str:
+    """Extract Order.order_type value robustly (Enum, str, or dict fallback)."""
+    ot = getattr(order, "order_type", None)
+    if ot is None and isinstance(order, dict):
+        ot = order.get("order_type", "")
+    if hasattr(ot, "value"):
+        return str(ot.value)
+    return str(ot or "")
+
 
 @dataclass
 class CIFDataset:
