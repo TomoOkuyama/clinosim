@@ -178,6 +178,18 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
 def _build_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[str, Any]:
     """Build one FHIR R4 Composition resource from a ClinicalDocument + its sections.
 
+    P2-13 PR2a: dispatches to the JP-CLINS-conformant builder when
+    ``lang == "ja"`` and the LOINC code is 18842-5 (discharge summary).
+    Otherwise the existing generic builder is used (US path unchanged).
+    """
+    if lang == "ja" and _o(doc, "loinc_code", "") == "18842-5":
+        return _build_jp_clins_discharge_summary_composition(doc, sections, lang)
+    return _build_composition_generic(doc, sections, lang)
+
+
+def _build_composition_generic(doc: Any, sections: dict[str, str], lang: str) -> dict[str, Any]:
+    """Locale-neutral Composition builder — used by non-JP-CLINS paths.
+
     ``sections`` is the already-resolved ``doc["narrative"]["sections"]`` dict
     (extracted by ``_bb_compositions`` so this function stays narrative-shape
     agnostic and testable in isolation).
@@ -295,3 +307,102 @@ def _build_composition(doc: Any, sections: dict[str, str], lang: str) -> dict[st
         res["section"] = section_entries
 
     return res
+
+
+# ============================================================
+# P2-13 PR2a: JP-CLINS discharge summary Composition builder
+# ============================================================
+
+_JP_CLINS_DS_PROFILE = (
+    "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/"
+    "JP_Composition_eDischargeSummary"
+)
+_JPFHIR_DOC_TYPECODES_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes"
+_JPFHIR_DOC_SECTION_SYSTEM = (
+    "http://jpfhir.jp/fhir/clins/CodeSystem/jp-codeSystem-clins-document-section"
+)
+
+# JP discharge summary section-key → jpfhir-doc-section numeric code
+_JP_DS_SECTION_CODE: dict[str, str] = {
+    "admission_reason":    "312",
+    "admission_details":   "322",
+    "admission_diagnoses": "342",
+    "chief_complaint":     "352",
+    "present_illness":     "360",
+}
+
+
+def _build_jp_clins_discharge_summary_composition(
+    doc: Any, sections: dict[str, str], lang: str
+) -> dict[str, Any]:
+    """Emit a Composition conforming to JP-CLINS eDischargeSummary v1.12.0.
+
+    Structure vs the generic Composition:
+      - meta.profile = [JP_Composition_eDischargeSummary]
+      - type.coding[0].system = doc-typecodes (LOINC coding retained as
+        secondary for interop with US tooling that expects LOINC)
+      - section is a single nested tree — 300 構造情報 → 5 required child
+        sections (312/322/342/352/360). section.code.system uses
+        jp-codeSystem-clins-document-section, not LOINC.
+    """
+    # Reuse the generic builder for common fields (id / subject / date /
+    # author / encounter / attester / custodian / confidentiality / etc.),
+    # then override type + section.
+    comp = _build_composition_generic(doc, sections, lang)
+
+    # meta.profile
+    meta = comp.setdefault("meta", {})
+    profs = meta.setdefault("profile", [])
+    if _JP_CLINS_DS_PROFILE not in profs:
+        profs.append(_JP_CLINS_DS_PROFILE)
+
+    # type — use jpfhir doc-typecodes; keep LOINC coding as secondary for interop.
+    disp = code_lookup("jpfhir-doc-typecodes", "18842-5", lang) or "退院時サマリー"
+    comp["type"] = {
+        "coding": [
+            {"system": _JPFHIR_DOC_TYPECODES_SYSTEM,
+             "code": "18842-5", "display": disp},
+            {"system": get_system_uri("loinc"),
+             "code": "18842-5", "display": code_lookup("loinc", "18842-5", lang) or disp},
+        ],
+        "text": disp,
+    }
+    comp["title"] = disp
+
+    # section: 300 parent + 5 child sections
+    parent_disp = code_lookup("jpfhir-doc-section", "300", lang) or "構造情報セクション"
+    child_sections: list[dict[str, Any]] = []
+    for key, code in _JP_DS_SECTION_CODE.items():
+        disp_c = code_lookup("jpfhir-doc-section", code, lang) or key
+        text_val = sections.get(key, "") or ""
+        child_sections.append({
+            "title": disp_c,
+            "code": {
+                "coding": [{
+                    "system": _JPFHIR_DOC_SECTION_SYSTEM,
+                    "code": code,
+                    "display": disp_c,
+                }],
+                "text": disp_c,
+            },
+            "text": {
+                "status": "generated",
+                "div": (
+                    f'<div xmlns="http://www.w3.org/1999/xhtml">'
+                    f"{_escape_html(text_val)}</div>"
+                ),
+            },
+        })
+    comp["section"] = [{
+        "title": parent_disp,
+        "code": {
+            "coding": [{
+                "system": _JPFHIR_DOC_SECTION_SYSTEM,
+                "code": "300",
+                "display": parent_disp,
+            }],
+            "text": parent_disp,
+        },
+        "section": child_sections,
+    }]
+    return comp
