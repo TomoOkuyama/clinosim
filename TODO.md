@@ -74,8 +74,18 @@ P1 (7 items) of the diffusion plan landed in one session as 12 focused PRs.
     CodeSystem(7 codes)+ `HEALTH_CHECKUP_REPORT` DocumentType +
     `checkup_once` generation_frequency + `SimulatorConfig.modules
     ["health_checkup"]` gate + 事業者健診 2 section builder(01031 +
-    01032)。健診 encounter planner + observation generator は次 sub-PR。
-    jpfhir-validator bridge は別 sub-PR。
+    01032)。
+  - [x] PR3 sub-PR-A (session 47): 健診 encounter planner + observation
+    generator module (`clinosim/modules/health_checkup/`)。40 歳以上成人
+    から SHA-256 hash-based 決定的 30% サブセット選定、CHECKUP encounter
+    +法定健診 5 項目 + HEALTH_CHECKUP_REPORT stub を追加。
+    Empirical p=100 seed=42 JP: 39 unique adults 40+ → 15 CHECKUP encounters
+    + 15 HEALTH_CHECKUP_REPORT stubs (~38%).
+  - [ ] PR3 sub-PR-B: MVP 定型文 → 実 ObservationRecord 参照による個別化
+    (現状 checkup_lab_results / checkup_questionnaire は固定定型文)。
+  - [ ] PR3 sub-PR-C: jpfhir-validator bridge(optional CI job)。
+  - [ ] PR3 sub-PR-D: 特定健診(01011/01012)+ 広域連合健診(01021/01022)
+    section 対応。
 - **P2-14** "Add your country" guide + country-pack scaffold.
 - **P2-15** Benchmark task definitions (sepsis / AKI prediction) + baseline eval script.
 - **PyPI upload** for v0.2.0 (user manual, needs `PYPI_API_TOKEN`).
