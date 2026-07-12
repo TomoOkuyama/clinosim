@@ -1718,7 +1718,16 @@ P1 (7 items) of the diffusion plan landed in one session as 12 focused PRs.</p>
     discharge_summary_composition</code>. Uncovered + fixed the
     <code>_build_reference_range</code> multi-locale bug (JP Core extension URL was
     leaking into US Observation output).</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PR2b: 診療情報提供書 (referral note) Composition + 紹介元/紹介先 CIF extension.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> PR2b (session 47): Full-conformance 診療情報提供書 Composition
+    (<code>JP_Composition_eReferral</code>). Adds <code>REFERRAL_NOTE</code> DocumentType,
+    <code>discharge_fraction_20pct</code> generation_frequency (deterministic hash-
+    based ~20% emission rate for inpatient discharges), 5 new JP narrative
+    section renderers (referring_institution / referral_destination /
+    referral_purpose / diagnoses_and_complaint / present_illness_ref),
+    <code>_build_jp_clins_referral_note_composition</code> builder (920+910+300→950/340/360
+    two-level nested section tree). 紹介先 / 紹介元 / 紹介目的 are simulation
+    approximations (single-hospital, generic 他院 placeholder). Not
+    emitted for country=US.</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> PR3: 健診 opt-in module + jpfhir-validator bridge + docs polish.</li>
 <li><strong>P2-14</strong> "Add your country" guide + country-pack scaffold.</li>
 <li><strong>P2-15</strong> Benchmark task definitions (sepsis / AKI prediction) + baseline eval script.</li>

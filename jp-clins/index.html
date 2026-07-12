@@ -1676,6 +1676,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#jp-clins-composition-pr2b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JP-CLINS 診療情報提供書 Composition (PR2b)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#reproducibility" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1826,6 +1837,23 @@
 </ul>
 <p><strong>US path unchanged.</strong> The English 6-section discharge summary Composition (<code>admission_summary</code> / <code>hospital_course</code> / <code>discharge_diagnoses</code> / <code>discharge_medications</code> / <code>discharge_instructions</code> / <code>follow_up</code>, LOINC-only type coding, no JP-CLINS URL) is emitted unchanged for <code>country=US</code>.</p>
 <p><strong>Multi-locale isolation.</strong> US NDJSON output contains no JP CodeSystem URIs, no <code>http://jpfhir.jp/fhir/*</code> URL prefix, and no Japanese text. Integration test <code>tests/integration/test_jp_clins_composition_ds_end_to_end.py::test_us_p50_has_no_japanese_language_leakage</code> scans every US NDJSON file byte-by-byte for JP signals — this is the check that surfaced the pre-existing <code>_build_reference_range</code> JP Core extension leak fixed in this PR.</p>
+<h2 id="jp-clins-composition-pr2b">JP-CLINS 診療情報提供書 Composition (PR2b)<a class="headerlink" href="#jp-clins-composition-pr2b" title="Permanent link">&para;</a></h2>
+<p>For a deterministic 20% subset of <code>country=JP</code> inpatient / icu / rehab_inpatient discharge encounters, clinosim emits a <strong>診療情報提供書 (referral note)</strong> Composition conforming to <code>JP_Composition_eReferral</code> (v1.12.0):</p>
+<ul>
+<li>Emission rate: 20% (empirical acute-care hospital benchmark), controlled by a stable hash of <code>(encounter_id, patient_id)</code> so the same seed produces the same referral-note-emitting subset (no new RNG allocation).</li>
+<li><code>Composition.meta.profile</code> includes <code>http://jpfhir.jp/fhir/eReferral/StructureDefinition/JP_Composition_eReferral</code></li>
+<li><code>Composition.type.coding[0]</code> = <code>{system: doc-typecodes, code: 57133-1, display: 診療情報提供書}</code>. LOINC coding retained as secondary.</li>
+<li><code>Composition.section</code> is a two-level tree:</li>
+<li>Top-level: <strong>920</strong> 紹介元 / <strong>910</strong> 紹介先 / <strong>300</strong> 構造情報</li>
+<li>Under 300: <strong>950</strong> 紹介目的 / <strong>340</strong> 傷病名・主訴 / <strong>360</strong> 現病歴</li>
+</ul>
+<p>Simulation approximations:
+- <strong>紹介元</strong> = this hospital (clinosim simulates a single facility).
+- <strong>紹介先</strong> = "他院" (generic placeholder; clinosim does not model inter-institution referral targets — future work could sample from a small pool of plausible receiving hospitals).
+- <strong>紹介目的</strong> = deterministic pick from <code>{継続加療 / 精査依頼 / 他科紹介 / リハビリテーション継続}</code> per <code>encounter_id</code> hash.
+- <strong>傷病名・主訴</strong> = combines the encounter's diagnosis list (code + Japanese display) with the disease-YAML chief complaint.
+- <strong>現病歴</strong> = HPI derived from <code>disease_protocol.narrative.hpi_template</code> (same source as the discharge summary's present_illness section).</p>
+<p><strong>US path</strong>: referral notes are not emitted for <code>country=US</code> (<code>countries_supported: [jp]</code>). US clinical practice uses ordinary referral letters, not the JP-CLINS eReferral profile.</p>
 <h2 id="reproducibility">Reproducibility<a class="headerlink" href="#reproducibility" title="Permanent link">&para;</a></h2>
 <p>The layer is deterministic — <code>scripts/reproduce.sh</code> continues to pass with country=JP output byte-identical across independent runs.</p>
 <h2 id="out-of-scope-for-pr1">Out of scope for PR1<a class="headerlink" href="#out-of-scope-for-pr1" title="Permanent link">&para;</a></h2>
