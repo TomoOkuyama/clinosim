@@ -134,7 +134,17 @@ def _apply_template_seed_strategy(
     # Copy sections so we don't mutate the template output in place
     new_sections = dict(template_output.sections)
 
-    for section in spec.llm_enabled_sections:
+    # P2-13 PR2a (session 47): pick the country-aware LLM-enabled list, then
+    # intersect with actually-produced sections. The country-aware call
+    # avoids returning US-only section names for a JP document; the intersect
+    # keeps us safe if the spec ever lists a section that the template
+    # generator did not emit (defensive against ghost sections).
+    country = ctx.locale.upper() if getattr(ctx, "locale", None) else "US"
+    llm_sections = [
+        s for s in spec.llm_enabled_sections_for(country) if s in new_sections
+    ]
+
+    for section in llm_sections:
         template_text = new_sections.get(section, "")
 
         # Layer-1 cache lookup (NarrativeCache, clinical-context key).

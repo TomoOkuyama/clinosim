@@ -6,12 +6,19 @@
 admission_hp:
   chief_complaint:
     all_of: ["発熱"]
+# P2-13 PR2a (session 47): JP-CLINS v1.12.0 conformance changed the JP
+# discharge summary section structure. Old English-flavored sections
+# (discharge_diagnoses / discharge_medications / hospital_course) no
+# longer exist in JP output; the required 5 sections are
+# admission_reason / admission_details / admission_diagnoses /
+# chief_complaint / present_illness (jpfhir section codes 312/322/342/352/360).
+# admission_diagnoses is the equivalent semantic slot for the disease
+# name check that discharge_diagnoses previously carried.
 discharge_summary:
-  discharge_diagnoses:
+  admission_diagnoses:
     all_of: ["肺炎"]
-  discharge_medications:
-    all_of: ["Amoxicillin"]
-  hospital_course:
-    any_of: ["退院", "改善"]
-    numeric:
-      - {value: 11, tolerance: 1}
+  # present_illness is the JP-CLINS section eligible for LLM replacement
+  # (llm_enabled_sections_jp), so this expectation is skipped in mock runs
+  # and only enforced on real-LLM narrative outputs.
+  present_illness:
+    any_of: ["発熱", "咳嗽", "3日前"]
