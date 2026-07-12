@@ -100,7 +100,8 @@ def test_health_checkup_creates_new_record_for_selected_adult():
     enc = checkup_record.encounters[0]
     assert enc.encounter_type == EncounterType.CHECKUP
     assert enc.department_id == "health_checkup"
-    assert enc.chief_complaint == "定期健康診断"
+    # sub-PR-D:age 45 は事業者健診に分類される(chief_complaint も反映)
+    assert enc.chief_complaint == "事業者健診"
     # 法定健診 5 項目が lab_results に追加
     assert len(checkup_record.lab_results) == 5
     loincs = {r.lab_name for r in checkup_record.lab_results}

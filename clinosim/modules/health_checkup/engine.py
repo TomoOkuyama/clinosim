@@ -44,6 +44,28 @@ HEALTH_CHECKUP_SUBSET_RATE = 0.30
 # 対象年齢下限(労安衛法定健診相当)
 HEALTH_CHECKUP_MIN_AGE = 40
 
+# 年齢帯 → 健診種別の decision map(sub-PR-D)。
+#   40-64: 事業者健診(occupational、労安衛法定)
+#   65-74: 特定健診(specific、40-74 保険 base)
+#   75+:   広域連合健診(regional_union、後期高齢者医療)
+# 実務では 40-64 でも保険加入者は特定健診対象になる場合があるが、MVP は
+# 年齢帯単一 dispatch で単純化する。将来 sub-PR で保険種別 / 就業状態を
+# 参照した精緻化余地あり。
+def _pick_checkup_type(age: int) -> str:
+    if age >= 75:
+        return "regional_union"
+    if age >= 65:
+        return "specific"
+    return "occupational"
+
+
+# 種別ごとの主訴表示
+_CHECKUP_TYPE_CHIEF_COMPLAINT: dict[str, str] = {
+    "occupational":   "事業者健診",
+    "specific":       "特定健診",
+    "regional_union": "広域連合健診",
+}
+
 # 法定健診項目の LOINC コードと標準基準内サンプル値(MVP:全員基準内、
 # 実 PatientProfile 参照個別化は sub-PR-B スコープ)。
 _CHECKUP_ITEMS: list[dict[str, Any]] = [
@@ -85,11 +107,17 @@ def _pick_checkup_date(snapshot_date: date | str | None) -> date:
 
 def _build_checkup_encounter(
     patient_id: str, checkup_date: date, encounter_seq: int,
+    checkup_type: str = "occupational",
 ) -> Encounter:
-    """CHECKUP encounter を組み立てる(1 日完結、退院同日)。"""
+    """CHECKUP encounter を組み立てる(1 日完結、退院同日)。
+
+    chief_complaint は健診種別を反映(occupational=事業者健診 等)、
+    将来 FHIR emit 側でこの表示を Encounter.reasonCode などに含める余地。
+    """
     enc_id = f"CHK-{patient_id}-{encounter_seq:03d}"
     admission_dt = datetime.combine(checkup_date, datetime.min.time().replace(hour=9))
     discharge_dt = admission_dt + timedelta(hours=2)
+    cc = _CHECKUP_TYPE_CHIEF_COMPLAINT.get(checkup_type, "定期健康診断")
     return Encounter(
         encounter_id=enc_id,
         patient_id=patient_id,
@@ -98,7 +126,7 @@ def _build_checkup_encounter(
         department_id="health_checkup",
         admission_datetime=admission_dt,
         discharge_datetime=discharge_dt,
-        chief_complaint="定期健康診断",
+        chief_complaint=cc,
         # 健診は routine、緊急でも救急経由でもない
         priority="R",
         admit_source="outp",
@@ -129,11 +157,14 @@ def _build_checkup_lab_results(
 
 def _build_checkup_document_stub(
     patient_id: str, encounter_id: str, checkup_date: date, doc_seq: int, lang: str,
+    checkup_type: str = "occupational",
 ) -> ClinicalDocument:
     """健診結果報告書 ClinicalDocument stub を作る(narrative=None)。
 
     Stage 2 の TemplateNarrativePass が checkup_lab_results /
     checkup_questionnaire section を populate する。
+    ``checkup_type`` は FHIR emit 時に section code(01011/01021/01031 等)
+    を dispatch するために Composition builder が読み取る。
     """
     authored_dt = datetime.combine(checkup_date, datetime.min.time().replace(hour=11))
     return ClinicalDocument(
@@ -148,6 +179,7 @@ def _build_checkup_document_stub(
         period_end=authored_dt.isoformat(),
         language=lang,
         format_type="composition",
+        checkup_type=checkup_type,
         narrative=None,
     )
 
@@ -206,10 +238,14 @@ def enrich_health_checkup(ctx: Any) -> None:
         seen_patient_ids.add(patient_id)
 
         checkup_date = _pick_checkup_date(snapshot_date)
-        encounter = _build_checkup_encounter(patient_id, checkup_date, 1)
+        checkup_type = _pick_checkup_type(age)
+        encounter = _build_checkup_encounter(
+            patient_id, checkup_date, 1, checkup_type=checkup_type,
+        )
         checkup_labs = _build_checkup_lab_results(patient_id, checkup_date)
         checkup_doc = _build_checkup_document_stub(
             patient_id, encounter.encounter_id, checkup_date, 1, lang,
+            checkup_type=checkup_type,
         )
 
         # 健診 record は新規 CIFPatientRecord として組み立てる:

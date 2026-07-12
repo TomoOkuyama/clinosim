@@ -96,8 +96,12 @@ P1 (7 items) of the diffusion plan landed in one session as 12 focused PRs.
     + `jp-validate` PR label)。通常 CI パイプラインには組み込まず必要時
     のみ回す設計。将来:IG package `.tgz` の SHA256 pinning + 全 resource
     検証 + CI 自動 fail gate 化。
-  - [ ] PR3 sub-PR-D: 特定健診(01011/01012)+ 広域連合健診(01021/01022)
-    section 対応。
+  - [x] PR3 sub-PR-D (session 47): 特定健診(01011/01012)+ 広域連合健診
+    (01021/01022)section 対応。ClinicalDocument に `checkup_type: str`
+    field 追加、age-based dispatch(40-64→事業者 / 65-74→特定 / 75+→広域
+    連合)。Composition builder は `_JP_ECHECKUP_SECTION_CODE_MATRIX` で
+    3 種別の section code を dispatch。Empirical p=500 seed=42 JP:
+    事業者29 / 特定30 / 広域連合24 の 3 種すべて emit 確認。
 - **P2-14** "Add your country" guide + country-pack scaffold.
 - **P2-15** Benchmark task definitions (sepsis / AKI prediction) + baseline eval script.
 - **PyPI upload** for v0.2.0 (user manual, needs `PYPI_API_TOKEN`).
