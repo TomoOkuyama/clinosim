@@ -342,6 +342,11 @@ def main() -> None:
 
     add_audit_subparser(sub)
 
+    # === dataset: named-preset dataset builder ===
+    from clinosim.dataset import add_dataset_subparser
+
+    add_dataset_subparser(sub)
+
     args = parser.parse_args()
 
     if args.command == "audit":
@@ -350,6 +355,13 @@ def main() -> None:
         from clinosim.audit.cli import dispatch_audit
 
         sys.exit(dispatch_audit(args))
+
+    if args.command == "dataset":
+        import sys
+
+        from clinosim.dataset import dispatch_dataset
+
+        sys.exit(dispatch_dataset(args))
 
     if args.command == "list-diseases":
         protocols = _load_all_disease_protocols()

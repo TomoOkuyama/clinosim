@@ -1,0 +1,13 @@
+# clinosim dataset preset — jp-100
+#
+# JP cohort, 100 patients, 3 months. Includes JP-native features
+# (JLAC10 codes, JP Core meta.profile, Japanese names / addresses,
+# 保険者番号 / 被保険者番号).
+name: jp-100
+description: JP cohort, 100 patients, 2026-01-01 to 2026-03-31 (3 months), FHIR R4 Bulk output
+country: JP
+population: 100
+seed: 42
+start: 2026-01-01
+end: 2026-03-31
+format: fhir

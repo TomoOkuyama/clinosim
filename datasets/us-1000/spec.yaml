@@ -1,0 +1,12 @@
+# clinosim dataset preset — us-1000
+#
+# US cohort, 1000 patients, 6 months. ML-dev-friendly size — enough
+# encounters to cover the disease long tail without a multi-hour build.
+name: us-1000
+description: US cohort, 1000 patients, 2026-01-01 to 2026-06-30 (6 months), FHIR R4 Bulk output
+country: US
+population: 1000
+seed: 42
+start: 2026-01-01
+end: 2026-06-30
+format: fhir

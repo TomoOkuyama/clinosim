@@ -51,8 +51,13 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Install build tooling
-        run: pip install build twine
+      - name: Install build tooling + clinosim
+        # `clinosim dataset build` needs the CLI on PATH, and the tag-verify
+        # step below needs `import clinosim`. Install once here (editable is
+        # fine — this env is torn down at job end).
+        run: |
+          pip install build twine
+          pip install -e .
 
       - name: Verify tag matches package version
         # Tag `vX.Y.Z` must match `clinosim.__version__` — otherwise the
@@ -92,6 +97,23 @@ jobs:
           echo "--- release_notes.md preview ---"
           head -30 release_notes.md
 
+      - name: Build dataset presets (P1-6)
+        # Deterministic — same clinosim version + same seed = byte-identical
+        # output — so every user who downloads these tarballs can rebuild
+        # them locally with `clinosim dataset build <name>` and get the
+        # same bytes. Total build time on ubuntu-latest ~5-8 min
+        # (us-100 + jp-100 ≤ 30 s each, us-1000 + jp-1000 ~2-3 min each).
+        run: |
+          mkdir -p dataset-dist
+          for name in us-100 us-1000 jp-100 jp-1000; do
+            echo "== Building preset ${name} =="
+            clinosim dataset build "${name}" --output "dataset-dist/${name}"
+            (cd dataset-dist && \
+              tar -czf "clinosim-dataset-${name}-${GITHUB_REF_NAME}.tar.gz" "${name}")
+            rm -rf "dataset-dist/${name}"
+          done
+          ls -la dataset-dist/
+
       - name: Create GitHub Release with artifacts
         env:
           GH_TOKEN: ${{ github.token }}
@@ -100,7 +122,8 @@ jobs:
             --title "clinosim ${GITHUB_REF_NAME}" \
             --notes-file release_notes.md \
             dist/clinosim-*.tar.gz \
-            dist/clinosim-*.whl
+            dist/clinosim-*.whl \
+            dataset-dist/clinosim-dataset-*.tar.gz
 
       # Enable when PyPI is configured. Two options:
       #
