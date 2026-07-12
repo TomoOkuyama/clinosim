@@ -4,7 +4,16 @@
 
 **Session 48 開始状態(順序 d → e → f → g → b → c、d 完了)**:
 
-### 完了(d, e):PR3 sub-PR-B 個別化 + sub-PR-C SHA256 pin + auto-fail gate
+### 完了(d, e, f):PR3 sub-PR-B/C/E
+
+**(f) sub-PR-E**:
+- `_fhir_document_reference_checkup.py` 新設(HEALTH_CHECKUP_REPORT の Composition wrapper)
+- `_BUNDLE_BUILDERS` に `_bb_document_references_checkup` 登録
+- `relatesTo transforms → Composition`、JP-eCheckup doc-typecodes category、encounter context 完備
+- byte-diff invariant 保持(opt-in 無効時 empty list、reproduce.sh PASS)
+- 単体 test 9 個(country gate / task_type gate / format_type gate / narrative fallback / registry)
+
+**(d, e) 完了内容**(上へ):
 
 **(e) sub-PR-C 高度化**:
 - `.github/jp-validator-pins.env` 新設(validator + JP Core / CLINS / eCheckup pin)
