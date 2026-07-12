@@ -1,17 +1,17 @@
-# JP-CLINS document section CodeSystem — Composition.section[].code coding
+# JP-CLINS 文書セクション CodeSystem — Composition.section[].code 用 coding(JP-only)
 #
-# AUTHORITATIVE SOURCE: jpfhir.jp JP-CLINS v1.12.0 (2026-02-16).
-# Verified via https://jpfhir.jp/fhir/clins/igv1/CodeSystem-jp-codeSystem-clins-document-section.html
-# on 2026-07-12 (session 47 P2-13 PR2a).
+# 一次出典:jpfhir.jp JP-CLINS v1.12.0(2026-02-16)。
+# https://jpfhir.jp/fhir/clins/igv1/CodeSystem-jp-codeSystem-clins-document-section.html
+# を 2026-07-12(session 47 P2-13 PR2a)に照合。
 #
-# Used for Composition.section[].code.coding when country=JP. US Composition
-# output uses LOINC section codes and never this system.
+# country=JP の Composition.section[].code.coding に使用する。US Composition
+# 出力は LOINC section code を用い、本 CodeSystem は経由しない。
 #
-# Groups (all present in a single flat map, group tag is informational only):
+# セクション種別(1 つの flat map に統合。種別 tag は informational のみ):
 #   COMMON: 200 / 210 / 230 / 300 / 360 / 370 / 410 / 510 / 530 / 550 / 640 / 810 / 830
-#   DIS (Discharge summary): 312 / 322 / 324 / 333 / 342 / 344 / 352 / 424 / 432 / 444 / 612 / 614 / 623 / 713
-#   REF (Referral note):     220 / 330 / 340 / 420 / 430 / 520 / 610 / 620 / 720 / 730 / 740 / 910 / 920 / 950
-#   PCS (Patient care summary): 422
+#   DIS(退院時サマリー):312 / 322 / 324 / 333 / 342 / 344 / 352 / 424 / 432 / 444 / 612 / 614 / 623 / 713
+#   REF(診療情報提供書):220 / 330 / 340 / 420 / 430 / 520 / 610 / 620 / 720 / 730 / 740 / 910 / 920 / 950
+#   PCS(患者ケアサマリー):422
 metadata:
   name: JP-CLINS Document Section Code
   uri: http://jpfhir.jp/fhir/clins/CodeSystem/jp-codeSystem-clins-document-section

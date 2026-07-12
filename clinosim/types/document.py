@@ -82,43 +82,42 @@ class DocumentTypeSpec:
     """
 
     composition_sections_jp: tuple[str, ...] = field(default_factory=tuple)
-    """JP-CLINS-conformant section list (P2-13 PR2a, session 47).
+    """JP-CLINS 準拠の section 一覧(P2-13 PR2a、session 47)。
 
-    Empty tuple (default) = no JP override; JP output uses ``composition_sections``.
-    Non-empty = replaces ``composition_sections`` when country=JP. The section
-    keys here are still English snake_case identifiers consumed by narrative
-    renderers; the FHIR-side dispatch (jp-codeSystem-clins-document-section
-    numeric codes) lives in the Composition builder.
+    空 tuple(既定)= JP override なし、``composition_sections`` を使用。
+    非空 = country=JP の場合に ``composition_sections`` を置換する。
+    ここに書く section キー自体は英語 snake_case で narrative renderer が
+    消費する識別子。FHIR 側の番号 code(jp-codeSystem-clins-document-section)
+    への変換は Composition builder 側で行う。
     """
 
     llm_enabled_sections_jp: tuple[str, ...] = field(default_factory=tuple)
-    """JP-CLINS-specific LLM-enabled sections (P2-13 PR2a, session 47).
+    """JP-CLINS 固有の LLM 差替対象 section(P2-13 PR2a、session 47)。
 
-    Empty (default) = fall through to ``llm_enabled_sections``. Non-empty =
-    replaces ``llm_enabled_sections`` when country=JP. This lets a spec
-    author which JP-CLINS section keys are narrative-heavy enough to warrant
-    LLM replacement, independently of the US-locale llm_enabled_sections
-    list (which references US-only section names).
+    空(既定)= ``llm_enabled_sections`` に fall through。
+    非空 = country=JP の場合に ``llm_enabled_sections`` を置換する。
+    US locale の llm_enabled_sections(US-only section 名を含む)と独立に
+    JP section の LLM 差替候補を宣言できるようにするための field。
     """
 
     def composition_sections_for(self, country: str) -> tuple[str, ...]:
-        """Return the section list for a given country.
+        """指定 country の section 一覧を返す。
 
-        JP-CLINS v1.12.0 requires a different discharge-summary section
-        structure than the existing English 6-section list. When
-        ``composition_sections_jp`` is populated and ``country`` is JP, that
-        JP-specific list wins; otherwise the country-neutral
-        ``composition_sections`` is returned unchanged.
+        JP-CLINS v1.12.0 は退院時サマリーで従来の英語 6-section とは
+        異なる構造を要求するため、``composition_sections_jp`` が populate
+        されており country=JP のときは JP 固有 list を優先する。それ以外は
+        country-neutral な ``composition_sections`` をそのまま返す。
         """
         if country.upper() == "JP" and self.composition_sections_jp:
             return self.composition_sections_jp
         return self.composition_sections
 
     def llm_enabled_sections_for(self, country: str) -> tuple[str, ...]:
-        """Return the LLM-enabled section list for a given country.
+        """指定 country の LLM 差替対象 section 一覧を返す。
 
-        JP path uses ``llm_enabled_sections_jp`` if populated; US and the
-        default JP fallback use ``llm_enabled_sections``.
+        JP path は ``llm_enabled_sections_jp`` が populate されていれば
+        それを、無ければ ``llm_enabled_sections`` を返す。US path は
+        常に ``llm_enabled_sections`` を返す。
         """
         if country.upper() == "JP" and self.llm_enabled_sections_jp:
             return self.llm_enabled_sections_jp

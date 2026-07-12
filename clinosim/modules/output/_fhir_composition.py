@@ -316,7 +316,7 @@ def _build_composition_generic(doc: Any, sections: dict[str, str], lang: str) ->
 
 
 # ============================================================
-# P2-13 PR2a: JP-CLINS discharge summary Composition builder
+# P2-13 PR2a:JP-CLINS 退院時サマリー用 Composition builder
 # ============================================================
 
 _JP_CLINS_DS_PROFILE = (
@@ -328,7 +328,7 @@ _JPFHIR_DOC_SECTION_SYSTEM = (
     "http://jpfhir.jp/fhir/clins/CodeSystem/jp-codeSystem-clins-document-section"
 )
 
-# JP discharge summary section-key → jpfhir-doc-section numeric code
+# JP-CLINS 退院時サマリー section キー → jpfhir-doc-section 番号 code
 _JP_DS_SECTION_CODE: dict[str, str] = {
     "admission_reason":    "312",
     "admission_details":   "322",
@@ -341,28 +341,28 @@ _JP_DS_SECTION_CODE: dict[str, str] = {
 def _build_jp_clins_discharge_summary_composition(
     doc: Any, sections: dict[str, str], lang: str
 ) -> dict[str, Any]:
-    """Emit a Composition conforming to JP-CLINS eDischargeSummary v1.12.0.
+    """JP-CLINS eDischargeSummary v1.12.0 準拠 Composition を emit する。
 
-    Structure vs the generic Composition:
+    汎用 Composition builder との差分:
       - meta.profile = [JP_Composition_eDischargeSummary]
-      - type.coding[0].system = doc-typecodes (LOINC coding retained as
-        secondary for interop with US tooling that expects LOINC)
-      - section is a single nested tree — 300 構造情報 → 5 required child
-        sections (312/322/342/352/360). section.code.system uses
-        jp-codeSystem-clins-document-section, not LOINC.
+      - type.coding[0].system = doc-typecodes(LOINC coding は US 互換の
+        ため secondary として併存)
+      - section は 1-level nested tree:300 構造情報 → 必須 5 子 section
+        (312/322/342/352/360)。section.code.system は
+        jp-codeSystem-clins-document-section(LOINC section code ではない)。
     """
-    # Reuse the generic builder for common fields (id / subject / date /
-    # author / encounter / attester / custodian / confidentiality / etc.),
-    # then override type + section.
+    # 共通 field(id / subject / date / author / encounter / attester /
+    # custodian / confidentiality 等)は汎用 builder を再利用し、type と
+    # section のみ上書きする。
     comp = _build_composition_generic(doc, sections, lang)
 
-    # meta.profile
+    # meta.profile 追加(既に含まれていれば skip)
     meta = comp.setdefault("meta", {})
     profs = meta.setdefault("profile", [])
     if _JP_CLINS_DS_PROFILE not in profs:
         profs.append(_JP_CLINS_DS_PROFILE)
 
-    # type — use jpfhir doc-typecodes; keep LOINC coding as secondary for interop.
+    # type:jpfhir doc-typecodes を primary、LOINC を secondary(interop 用)
     disp = code_lookup("jpfhir-doc-typecodes", "18842-5", lang) or "退院時サマリー"
     comp["type"] = {
         "coding": [
@@ -415,7 +415,7 @@ def _build_jp_clins_discharge_summary_composition(
 
 
 # ============================================================
-# P2-13 PR2b: JP-CLINS referral note Composition builder
+# P2-13 PR2b:JP-CLINS 診療情報提供書用 Composition builder
 # ============================================================
 
 _JP_CLINS_REFERRAL_PROFILE = (
@@ -423,11 +423,12 @@ _JP_CLINS_REFERRAL_PROFILE = (
     "JP_Composition_eReferral"
 )
 
-# JP-CLINS eReferral required section codes:
+# JP-CLINS eReferral の必須 section 構造:
 #   920 紹介元 / 910 紹介先 / 300 構造情報
 #     └ 950 紹介目的 / 340 傷病名・主訴 / 360 現病歴
-# The top-level sections carry 920 + 910; the structural 300 nests the 3
-# child sections (950/340/360). Section-key → numeric jpfhir code:
+# トップレベルは 920 + 910 を並列に配置、300 構造情報の下に 3 個の
+# 子 section(950/340/360)を nest する。
+# section キー → jpfhir 番号 code の対応:
 _JP_REFERRAL_TOP_LEVEL: dict[str, str] = {
     "referring_institution":  "920",
     "referral_destination":   "910",
@@ -442,26 +443,26 @@ _JP_REFERRAL_STRUCTURAL_CHILDREN: dict[str, str] = {
 def _build_jp_clins_referral_note_composition(
     doc: Any, sections: dict[str, str], lang: str
 ) -> dict[str, Any]:
-    """Emit a Composition conforming to JP-CLINS eReferral v1.12.0.
+    """JP-CLINS eReferral v1.12.0 準拠 Composition を emit する。
 
-    Structure vs the generic Composition:
+    汎用 Composition builder との差分:
       - meta.profile = [JP_Composition_eReferral]
-      - type.coding[0].system = doc-typecodes (LOINC coding retained as
-        secondary for interop)
-      - section is a two-level tree:
-          top-level: 920 紹介元, 910 紹介先, 300 構造情報
-          under 300: 950 紹介目的, 340 傷病名・主訴, 360 現病歴
-        section.code.system uses jp-codeSystem-clins-document-section.
+      - type.coding[0].system = doc-typecodes(LOINC coding は interop 用に
+        secondary として併存)
+      - section は 2-level tree:
+          top-level:920 紹介元, 910 紹介先, 300 構造情報
+          300 の下:950 紹介目的, 340 傷病名・主訴, 360 現病歴
+        section.code.system は jp-codeSystem-clins-document-section 固定。
     """
     comp = _build_composition_generic(doc, sections, lang)
 
-    # meta.profile
+    # meta.profile 追加(既に含まれていれば skip)
     meta = comp.setdefault("meta", {})
     profs = meta.setdefault("profile", [])
     if _JP_CLINS_REFERRAL_PROFILE not in profs:
         profs.append(_JP_CLINS_REFERRAL_PROFILE)
 
-    # type: 57133-1 in doc-typecodes + LOINC (interop)
+    # type:57133-1 を doc-typecodes と LOINC の両方で emit(interop 用)
     disp = code_lookup("jpfhir-doc-typecodes", "57133-1", lang) or "診療情報提供書"
     comp["type"] = {
         "coding": [

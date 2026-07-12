@@ -1,4 +1,4 @@
-"""P2-13 PR2b: JP-CLINS referral note (診療情報提供書) Composition unit tests."""
+"""P2-13 PR2b:JP-CLINS 診療情報提供書 Composition unit tests(JP-only)."""
 
 from __future__ import annotations
 
@@ -101,7 +101,7 @@ def test_jp_clins_referral_composition_section_content():
 
 @pytest.mark.unit
 def test_referral_note_fires_deterministic():
-    """20% fire rate is deterministic per (encounter_id, patient_id)."""
+    """20% fire rate は (encounter_id, patient_id) ごとに決定的であること。"""
     from clinosim.modules.document.engine import _referral_note_fires
     # Same inputs → same output
     assert _referral_note_fires("ENC-1", "P1") == _referral_note_fires("ENC-1", "P1")
@@ -113,7 +113,7 @@ def test_referral_note_fires_deterministic():
 
 @pytest.mark.unit
 def test_referral_note_fire_rate_approximately_20pct():
-    """Empirically ~20% of encounters fire; tolerate ±5% at N=2000."""
+    """N=2000 で実測発火率が 20% ±5% 以内であること。"""
     from clinosim.modules.document.engine import _referral_note_fires
     fires = sum(
         1 for i in range(2000) if _referral_note_fires(f"ENC-{i:04d}", f"P-{i:04d}")

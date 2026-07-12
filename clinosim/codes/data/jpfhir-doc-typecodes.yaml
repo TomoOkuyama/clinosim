@@ -1,13 +1,12 @@
-# JP-CLINS document type CodeSystem — Composition.type coding
+# JP-CLINS 文書種別 CodeSystem — Composition.type 用 coding(JP-only)
 #
-# AUTHORITATIVE SOURCE: jpfhir.jp JP-CLINS v1.12.0 (2026-02-16).
-# Verified via https://jpfhir.jp/fhir/clins/igv1/CodeSystem-jp-codeSystem-documentTypeCode.html
-# on 2026-07-12 (session 47 P2-13 PR2a).
+# 一次出典:jpfhir.jp JP-CLINS v1.12.0(2026-02-16)。
+# https://jpfhir.jp/fhir/clins/igv1/CodeSystem-jp-codeSystem-documentTypeCode.html
+# を 2026-07-12(session 47 P2-13 PR2a)に照合。
 #
-# Used for Composition.type.coding when country=JP and the document is one of
-# the JP-CLINS document types (退院時サマリー / 診療情報提供書 / 健診結果報告書 /
-# 処方箋 / 計画書). US Composition output uses LOINC directly and never this
-# system.
+# country=JP かつ JP-CLINS 対応文書種別(退院時サマリー / 診療情報提供書 /
+# 健診結果報告書 / 処方箋 / 計画書)の Composition.type.coding に使用する。
+# US Composition 出力は LOINC を直接使用し、本 CodeSystem は経由しない。
 metadata:
   name: JP-CLINS Document Type Code
   uri: http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes

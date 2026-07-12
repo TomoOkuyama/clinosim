@@ -992,21 +992,19 @@ class TemplateNarrativeGenerator:
         return text, facts
 
     # ─────────────────────────────────────────────────────────────────
-    # P2-13 PR2a: JP-CLINS discharge summary section builders (JP only)
-    # Consumed when country=JP + doc_type=discharge_summary. English text
-    # is emitted for the US path (via composition_sections_for("US"), which
-    # returns the pre-existing 6-section list). These builders keep the same
-    # signature and are language-branched so a US override could later
-    # cross-consume them cleanly.
+    # P2-13 PR2a:JP-CLINS 退院時サマリー用 section builder 群(JP-only)
+    # country=JP かつ doc_type=discharge_summary の場合に消費される。
+    # US path は composition_sections_for("US") で従来 6-section を返す。
+    # 各 builder は共通 signature を保持し ctx.target_lang で分岐する。
     # ─────────────────────────────────────────────────────────────────
 
     def _build_admission_reason(
         self, ctx: NarrativeContext
     ) -> tuple[str, list[str]]:
-        """312 入院理由セクション: brief statement of the reason for admission.
+        """312 入院理由セクション:入院理由の一言記述。
 
-        Prefers the primary admission-diagnosis display (resolved via
-        clinosim.codes.lookup — AD-30). Falls back to chief complaint.
+        主入院診断の display を clinosim.codes.lookup で resolve(AD-30)。
+        取得できない場合は主訴に fallback。
         """
         from clinosim.codes import lookup as code_lookup
 
@@ -1044,7 +1042,7 @@ class TemplateNarrativeGenerator:
     def _build_admission_details(
         self, ctx: NarrativeContext
     ) -> tuple[str, list[str]]:
-        """322 入院時詳細セクション: admission date, ward, and admission route."""
+        """322 入院時詳細セクション:入院日・入院経路(救急経由か)・入棟病棟。"""
         facts: list[str] = []
         is_ja = ctx.target_lang == "ja"
         enc = ctx.encounter
@@ -1053,7 +1051,7 @@ class TemplateNarrativeGenerator:
         via_ed = bool(_o(enc, "via_emergency", False)) if enc is not None else False
         facts.append("ctx.encounter.admission_datetime")
 
-        # Format the admission datetime portably
+        # 入院日時を YYYY-MM-DD 部分のみに整形
         adm_date = ""
         if adm_dt:
             adm_date = str(adm_dt).split("T")[0]
@@ -1081,11 +1079,11 @@ class TemplateNarrativeGenerator:
     def _build_admission_diagnoses(
         self, ctx: NarrativeContext
     ) -> tuple[str, list[str]]:
-        """342 入院時診断セクション: numbered list of admission diagnoses.
+        """342 入院時診断セクション:入院時診断名の番号付きリスト。
 
-        Reuses the same code-lookup pattern as _build_discharge_diagnoses but
-        keys off ``admission_diagnosis_code`` first (falling back to
-        ``discharge_diagnosis_code`` for records that only carry the latter).
+        _build_discharge_diagnoses と同じ code-lookup pattern を再利用するが
+        ``admission_diagnosis_code`` を最優先で拾い、無ければ
+        ``discharge_diagnosis_code`` に fallback。
         """
         from clinosim.codes import lookup as code_lookup
 
@@ -1122,16 +1120,16 @@ class TemplateNarrativeGenerator:
     def _build_present_illness(
         self, ctx: NarrativeContext
     ) -> tuple[str, list[str]]:
-        """360 現病歴セクション: brief history of present illness.
+        """360 現病歴セクション:現病歴の短文記述。
 
-        For discharge-summary use, reuses the same disease_protocol HPI
-        template as the ADMISSION_HP builder but frames the sentence in
-        past tense (述懐 = post-recovery narrative).
+        退院時サマリー用は ADMISSION_HP と同じ disease_protocol の HPI
+        template を再利用する。時制の言い換え(述懐調)は β-JP-1 で
+        LLM 差替時に調整予定。
         """
         hpi_text, facts = self._build_hpi(ctx)
         is_ja = ctx.target_lang == "ja"
-        # No structural reframing needed: hpi already reads as a chronological
-        # onset description. Retain as-is; β-JP-1 will refine tone.
+        # HPI は既に時系列 onset 記述として書かれているため構造変更不要。
+        # β-JP-1 で LLM narrative 差替時に文体を統一する。
         if not hpi_text:
             hpi_text = (
                 f"{ctx.severity}の症状で受診し入院となった。" if is_ja
@@ -1140,17 +1138,16 @@ class TemplateNarrativeGenerator:
         return hpi_text, facts
 
     # ─────────────────────────────────────────────────────────────────
-    # P2-13 PR2b: JP-CLINS 診療情報提供書 (Referral note) sections (JP only)
+    # P2-13 PR2b:JP-CLINS 診療情報提供書用 section builder 群(JP-only)
     # ─────────────────────────────────────────────────────────────────
 
     def _build_referring_institution(
         self, ctx: NarrativeContext
     ) -> tuple[str, list[str]]:
-        """920 紹介元情報セクション: identifies the sending hospital.
+        """920 紹介元情報セクション:紹介元(送信元)医療機関の記載。
 
-        clinosim simulates a single hospital, so the referring institution
-        is always our own facility. β-JP-1 seam: the hospital display name
-        could come from hospital_config instead of a fixed string in future.
+        clinosim は単一病院を simulate するため、紹介元は常に当院固定。
+        β-JP-1 で hospital_config から表示名を動的取得する余地を残す。
         """
         facts: list[str] = []
         is_ja = ctx.target_lang == "ja"
@@ -1163,11 +1160,11 @@ class TemplateNarrativeGenerator:
     def _build_referral_destination(
         self, ctx: NarrativeContext
     ) -> tuple[str, list[str]]:
-        """910 紹介先情報セクション: the destination institution.
+        """910 紹介先情報セクション:紹介先医療機関の記載。
 
-        clinosim does not model inter-institution referral targets, so the
-        destination is a generic "他院" placeholder. Future work: sample from
-        a small pool of plausible receiving-hospital types.
+        clinosim は機関間連携 workflow を simulate しないため、紹介先は
+        汎用 "他院" placeholder。将来:受け入れ想定医療機関の小さな pool
+        から sample する余地あり。
         """
         facts: list[str] = []
         is_ja = ctx.target_lang == "ja"
@@ -1180,11 +1177,10 @@ class TemplateNarrativeGenerator:
     def _build_referral_purpose(
         self, ctx: NarrativeContext
     ) -> tuple[str, list[str]]:
-        """950 紹介目的セクション: deterministic selection from the standard set.
+        """950 紹介目的セクション:標準セットから決定的に一つ選択。
 
-        The purpose is picked from a small set based on a hash of the
-        encounter id so cohort-level distribution stays stable but per-
-        encounter the choice is varied.
+        encounter_id の hash で 4 選択肢から index 決定。cohort 全体で
+        分布は stable、encounter 個別ではばらつき保持。
         """
         import hashlib
         facts: list[str] = []
@@ -1216,7 +1212,7 @@ class TemplateNarrativeGenerator:
     def _build_diagnoses_and_complaint(
         self, ctx: NarrativeContext
     ) -> tuple[str, list[str]]:
-        """340 傷病名・主訴セクション: combined diagnoses + chief complaint."""
+        """340 傷病名・主訴セクション:傷病名リスト + 主訴の複合セクション。"""
         from clinosim.codes import lookup as code_lookup
 
         facts: list[str] = []
@@ -1263,7 +1259,7 @@ class TemplateNarrativeGenerator:
     def _build_present_illness_ref(
         self, ctx: NarrativeContext
     ) -> tuple[str, list[str]]:
-        """360 現病歴セクション for referral note (reuses HPI builder)."""
+        """360 現病歴セクション(診療情報提供書用):HPI builder を再利用。"""
         hpi_text, facts = self._build_hpi(ctx)
         is_ja = ctx.target_lang == "ja"
         if not hpi_text:
