@@ -18,6 +18,31 @@ byte output but must document the change here.
 
 ## [Unreleased]
 
+### Added
+
+- **End-to-end reproducibility gate** (P1-7): `scripts/reproduce.sh`
+  runs `clinosim generate` twice per locale (US + JP by default) at
+  the same seed and byte-diffs every NDJSON + CIF JSON. Excludes
+  wall-clock metadata (`manifest.json` files + `cif/metadata.json`).
+  `tests/integration/test_full_reproducibility.py` invokes the script
+  as an integration test. New CI `reproducibility` job runs it as a
+  hard gate on every push and PR — the SemVer determinism promise now
+  has a machine-enforced guarantee. README `Testing → Reproducibility`
+  subsection documents the script + environment variable overrides.
+
+### Fixed
+
+- **Immunization `lot_number` was non-deterministic across runs.**
+  `clinosim/modules/immunization/engine.py` used Python's builtin
+  `hash()` on strings to synthesize lot numbers; that hash is salted
+  per-interpreter (`PYTHONHASHSEED`), so two runs at the same seed
+  produced different values like `L591-201506-172` vs `L253-201506-427`.
+  Replaced with a `hashlib.sha256`-based helper (`_det_hash`). Uncovered
+  by the P1-7 `scripts/reproduce.sh` gate; the byte-diff cascaded from
+  FHIR `Immunization.ndjson` into the CIF patient records that store
+  the same field, so ~65% of CIF patient files also differed. Both are
+  byte-identical now.
+
 ### Documentation
 
 - **README positioning** (P0-5): new "Why clinosim?" section up-front

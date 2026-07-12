@@ -104,6 +104,25 @@ jobs:
       - name: mypy
         run: mypy clinosim/
 
+  reproducibility:
+    name: Reproducibility (Py 3.12)
+    runs-on: ubuntu-latest
+    # Hard gate: enforces the SemVer determinism promise recorded in
+    # CHANGELOG.md. Runs `scripts/reproduce.sh` which itself does two
+    # `clinosim generate` runs per locale and byte-diffs the output.
+    # ~5-6 min including install (script itself is ~2 min on CI runners).
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install (runtime deps only; dev extras not needed for the script)
+        run: pip install -e "."
+      - name: Run scripts/reproduce.sh
+        run: bash scripts/reproduce.sh
+
   packaging:
     name: Build sdist + wheel (Py 3.12)
     runs-on: ubuntu-latest

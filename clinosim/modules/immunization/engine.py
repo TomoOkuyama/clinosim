@@ -7,6 +7,7 @@ Codes (CVX) live in clinosim.codes; schedules in clinosim/locale/<country>/.
 
 from __future__ import annotations
 
+import hashlib
 from datetime import date
 from functools import lru_cache
 from pathlib import Path
@@ -15,6 +16,21 @@ import numpy as np
 import yaml
 
 from clinosim.modules._shared import is_jp, is_us
+
+
+def _det_hash(*args: object) -> int:
+    """Deterministic hash for use in seeded output paths.
+
+    Python's builtin :func:`hash` on strings is salted per-interpreter (see
+    ``PYTHONHASHSEED``), so two runs of the same clinosim invocation produce
+    different lot numbers. P1-7 (session 46) uncovered this via the
+    reproduce.sh determinism gate — the immunization ``lotNumber`` was the
+    only field in the whole FHIR bundle that varied across runs at a fixed
+    seed. This helper substitutes ``hashlib.sha256`` so the value is
+    reproducible.
+    """
+    key = repr(args).encode("utf-8")
+    return int(hashlib.sha256(key).hexdigest(), 16)
 
 _HERE = Path(__file__).resolve().parent
 _LOCALE = _HERE.parents[1] / "locale"
@@ -118,9 +134,13 @@ def generate_immunizations(patient, schedule: dict, as_of: date,
         # 0..1 and JP practice pattern documentation. Downstream consumers
         # must treat it as synthetic (AD-57 spirit: no fabrication of billing
         # / regulatory codes; lot number is neither).
-        _mfr_hash = f"{(hash(cvx) % 900 + 100):03d}"  # 100-999
+        # P1-7 (session 46): use _det_hash (sha256-based) instead of the
+        # Python builtin `hash()`. Builtin hash on strings is salted per
+        # interpreter run so lot numbers used to vary between two runs at
+        # the same seed. reproduce.sh gates this now.
+        _mfr_hash = f"{(_det_hash(cvx) % 900 + 100):03d}"  # 100-999
         def _synthetic_lot(occurrence):
-            batch = f"{(hash((cvx, occurrence.year, occurrence.month)) % 900 + 100):03d}"
+            batch = f"{(_det_hash(cvx, occurrence.year, occurrence.month) % 900 + 100):03d}"
             return f"L{_mfr_hash}-{occurrence.year:04d}{occurrence.month:02d}-{batch}"
 
         if freq == "annual":
