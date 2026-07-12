@@ -1,0 +1,16 @@
+# Diagnosis code mapping template.
+#
+# Maps internal disease id / chronic condition code → national diagnosis
+# coding scheme (e.g. WHO ICD-10 for JP, ICD-10-CM for US, national
+# equivalents elsewhere).
+#
+# Behavior: if a code is missing from this map, clinosim emits the internal
+# code as-is. Add every code that must be transformed for your country.
+# Register the target code in `clinosim/codes/data/<scheme>.yaml` too
+# (see CLAUDE.md "Diagnosis code coverage").
+
+# Internal → national code
+mapping:
+  I10:  "__TODO_hypertension_code__"
+  E11:  "__TODO_type2_dm_code__"
+  # ...

@@ -4,7 +4,22 @@
 
 **Session 48 開始状態(順序 d → e → f → g → b → c、d 完了)**:
 
-### 完了(d, e, f, g):PR3 sub-PR-B/C/E + Deferred cleanup 3 件
+### 完了(d, e, f, g, b):PR3 sub-PR-B/C/E + Deferred cleanup + P2-14 country scaffold
+
+**(b) P2-14 add-your-country ガイド + 国パック scaffold**:
+- `docs/add-your-country.md` 新設(prerequisites / required YAMLs / optional
+  YAMLs / code registration steps / testing checklist / common pitfalls)
+- `clinosim/locale/_template/` scaffold ディレクトリ 9 YAML + README
+  - 必須 YAML(names / addresses / demographics / formatting / code_mapping 4
+    種 / reference_range_lab)全て schema 説明 + placeholder 値
+  - "TODO_..." で fabrication 防止 + non-runnable 明示
+- `_country_dir` loader gate:leading-underscore folder は country として
+  reject(`_template` 誤用防止)
+- 単体 test 6 個(guide 存在 / scaffold shape / underscore rejection /
+  既存 country 動作維持 / 新 country lowercase fallback)
+
+**(d, e, f, g) 完了内容**(上へ):
+
 
 **(g) Deferred cleanup 3 件**:
 - **g.1** `_JP_CORE_PROFILES` shape unify:`dict[str, str]` → `dict[str, list[str]]`、`_apply_jp_core_profile` を list-対応に更新(将来 JP Core が同一 resource で複数 sibling profile を publish しても既存 accessor で吸収可能)

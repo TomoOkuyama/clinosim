@@ -1,0 +1,10 @@
+# Local formatting conventions template.
+
+date_format: "%Y-%m-%d"       # ISO 8601 default; adapt to locale as needed
+time_format: "%H:%M"
+datetime_separator: "T"
+temperature_unit: "C"         # "C" or "F"
+weight_unit: "kg"             # "kg" or "lb"
+height_unit: "cm"             # "cm" or "in"
+number_decimal_separator: "."
+number_thousands_separator: ","

@@ -1,0 +1,8 @@
+# Procedure code mapping template.
+# Maps internal procedure name → national procedure coding scheme (CPT / K-code / national).
+
+mapping:
+  # Internal English name → national code
+  Chest_X_Ray:         "__TODO__"
+  Head_CT:             "__TODO__"
+  # ... one entry per procedure emitted
