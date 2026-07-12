@@ -1,5 +1,72 @@
 # clinosim — TODO
 
+## Status (2026-07-13, **★★★ session 47 CLOSED — P2-13 v0.3 flagship 完成、28 commits push 済**)
+
+Session 47 は session 46 の OSS diffusion plan 後の flagship task = **P2-13 JP-CLINS + JP-eCheckup 対応**を完遂。全 28 commits を master direct push(feedback-clinosim-workflow の "直接 master 方式" per)、PR 不要。
+
+**master HEAD**: `a9b9efbab1` (P2-13 PR3 sub-PR-D age-based type dispatch)
+
+### Session 47 主要達成
+
+| chain | commits | 内容 |
+|---|---|---|
+| Design | 3 | design spec + PR1 plan + preflight |
+| PR1 | 6 | JP-CLINS eCS 5 profile URLs(Condition/AllergyIntolerance/Observation.lab/MedicationRequest/Procedure) |
+| PR2 split + PR2a | 8 | 退院時サマリー Full JP-CLINS 準拠 + **多locale bug fix** |
+| PR2b | 1 | 診療情報提供書 Full JP-CLINS 準拠(20% fraction 発行、hash 決定的) |
+| Comment lang rule | 2 | JP-only 日本語コメントルール制定 + CLAUDE.md |
+| PR3 infra | 1 | JP-eCheckup Composition infrastructure(opt-in、JPGCHKUP01→53576-5 修正)|
+| sub-PR-A | 1 | health_checkup enricher module(POST_RECORDS、age 40+ 決定的 30%)|
+| sub-PR-B | 1 | renderer 個別化(実 lab_results + PatientProfile 参照、A/B/C/D 判定)|
+| sub-PR-C | 1 | HL7 FHIR Validator bridge(script + workflow_dispatch CI)|
+| sub-PR-D | 1 | 3 種別 age-based dispatch(事業者/特定/広域連合)|
+
+**P2-13 v0.3 flagship 完成状態**:
+- JP-CLINS **3 文書**(退院サマリー + 診療情報提供書 + [opt-in]健診結果報告書)
+- JP-CLINS **6 情報**(5 resource types full profile URL 準拠)
+- JP-eCheckup **3 種別**(事業者/特定/広域連合 age-based)
+- HL7 official validator bridge(CI 手動 trigger)
+
+### 発見+修正した多locale bug 3 件
+
+1. `_build_reference_range` の JP Core extension URL が US Observation にリーク → country_code gate 追加(commit `1107536202`)
+2. `apply_replacement_strategy` の `llm_enabled_sections` が US-only、JP output で ghost sections → country-aware accessor 追加(commit `297c78b591`)
+3. `_check_expectations` / `_check_structure` が US-only section list で判定 → JP variant union で修正(commit `297c78b591`)
+
+### Test state at wrap
+
+- **Unit: 2578 PASS**(session 46 wrap 2487 + PR1 17 + PR2a 34 + PR2b 7 + PR3 9 + sub-PR-A 5 + sub-PR-B 6 + sub-PR-D 13)、regression 0
+- `bash scripts/reproduce.sh`: PASS(US 272 + JP 192 files byte-identical、2 locale × 2 runs)
+- Integration + e2e: **session 末 batch**(memory `feedback-batch-long-running-ci-at-session-end` per、wrap commit 直後起動)
+
+### Session 47 直後の empirical 検証
+
+**p=500 seed=42 JP end=2026-06-30 health_checkup opt-in**:
+- 事業者健診: 29 encounters(中年層)
+- 特定健診: 30 encounters(65-74 歳層)
+- 広域連合健診: 24 encounters(75+)
+
+**p=100 seed=42 JP end=2026-06-30**(sub-PR-B の e2e):
+- Composition `comp-CHK-POP-000013-001-01`:
+  - 01031 事業者健診検査結果:「BMI 22.5 標準 / 118/76 mmHg 基準内 / HbA1c 5.4% 基準内 / LDL 118 mg/dL 基準内 / 総合判定 A(異常なし)」
+  - 01032 事業者健診問診結果:「既往歴 = 脂質異常症（E78）/ 服薬 Atorvastatin 10mg / 現在喫煙中 / 継続経過観察を要す」
+
+### Session 48 候補
+
+- **PR3 sub-PR-B 高度化**:実 ObservationRecord をさらに Age/BMI 個別化(現状の固定値 22.5/118/76/5.4/118 は決定的 replay 用)
+- **PR3 sub-PR-C 高度化**:jpfhir IG package `.tgz` の SHA256 pinning + CI auto-fail gate 化
+- **PR3 sub-PR-E 候補**:健診 encounter Composition 以外の周辺 FHIR resource(Coverage-Insurance/DocumentReference-eCheckup 等)
+- **P2-14 "Add your country" ガイド**:国パック scaffold(session 46 backlog、v0.3 一区切り後の展開)
+- **P2-15 Benchmark**:sepsis / AKI 予測タスク定義 + baseline eval script(v0.3 一区切り後)
+- **Deferred cleanup**(3 件、`docs/jp-clins.md` にも記載):
+  - CIF `orders` list 分離(`medication_orders` / `lab_orders` field 化)
+  - CLI `generate` → `simulate` rename(deprecation alias 経由)
+  - `_JP_CORE_PROFILES: dict[str, str]` → `dict[str, list[str]]` unification(JP-CLINS と shape 統一)
+- **Cycle 8 監査**:2578 unit 通過後の JP p=10000 監査再開(memory `feedback_audit_cycle_workflow` per、by-design registry 参照必須)
+- **β-JP-1 実 LLM narrative**:現状 template-based、Ollama / Bedrock 実行 seam は sub-PR-B で LLM 差替可能な形にした
+
+---
+
 ## Status (2026-07-12, **session 46 CLOSED — OSS diffusion plan P0/P1 全 12 major PRs**)
 
 Session 46 pivoted from EHR data quality (chain #1: silent-code-substitution
