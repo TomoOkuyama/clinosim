@@ -436,7 +436,6 @@ def main() -> None:
         return
 
     if args.command == "diff":
-        from datetime import datetime
         from pathlib import Path
 
         from clinosim.simulator.diff import build_diff_bundle, format_summary
@@ -558,6 +557,15 @@ def main() -> None:
 
     cif_dir = os.path.join(args.output, "cif")
     write_cif(dataset, cif_dir)
+
+    # F4 (session 49): write _cache_manifest.json alongside the output so a
+    # future `run_beta(..., cache_dir=args.output)` call (later cursor / cron
+    # advance) can validate + reuse already-discharged patients from this run.
+    from pathlib import Path as _Path
+
+    from clinosim.simulator.memoize import write_cache_manifest
+
+    write_cache_manifest(_Path(args.output), config)
 
     # Stage 2 (AD-65): auto-invoke the template narrative pass so cohorts are
     # always emit-ready. `clinosim narrate` remains available to regenerate
