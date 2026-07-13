@@ -36,7 +36,10 @@ from clinosim.types.encounter import (
     Encounter,
     EncounterStatus,
     EncounterType,
+    Order,
     OrderResult,
+    OrderStatus,
+    OrderType,
 )
 
 # 40 歳以上成人に対する決定的サブセット率。労安衛法定健診は年 1 回全員
@@ -380,6 +383,32 @@ def enrich_health_checkup(ctx: Any) -> None:
             patient_id, encounter.encounter_id, checkup_date, 1, lang,
             checkup_type=checkup_type,
         )
+        # CY8-01 fix(session 48 cycle 8):Order を lab_results 数だけ作り
+        # `result` に checkup_labs を対応付ける。これで既存 `_bb_labs` /
+        # `_bb_service_requests` / `_bb_diagnostic_reports` が checkup lab を
+        # 拾い、FHIR Observation + ServiceRequest + DiagnosticReport が
+        # 出力される(以前は record.lab_results 直接置きで silent-drop)。
+        # panel_key="Checkup" を共有し、5 orders → 1 SR + 1 DR + 5 Observation。
+        ordered_dt = datetime.combine(
+            checkup_date, datetime.min.time().replace(hour=9, minute=30),
+        )
+        checkup_orders: list[Order] = []
+        for i, res in enumerate(checkup_labs):
+            checkup_orders.append(Order(
+                order_id=f"ord-{encounter.encounter_id}-CHK-{i:02d}",
+                encounter_id=encounter.encounter_id,
+                patient_id=patient_id,
+                order_type=OrderType.LAB,
+                order_code=res.lab_name,  # LOINC
+                display_name=res.lab_name,
+                urgency="routine",
+                clinical_intent="health_checkup",
+                ordered_datetime=ordered_dt,
+                ordered_by="",  # 健診は事業所/自治体依頼、実施医師未指定
+                status=OrderStatus.REVIEWED,  # 健診結果まで完了、reviewed 相当
+                result=res,
+                panel_key="Checkup",  # 5 orders → 1 ServiceRequest + 1 DR
+            ))
 
         # 健診 record は新規 CIFPatientRecord として組み立てる:
         # narrative pass の spec applicability は record.encounters[0] を
@@ -387,7 +416,8 @@ def enrich_health_checkup(ctx: Any) -> None:
         checkup_record = CIFPatientRecord(
             patient=patient,
             encounters=[encounter],
-            lab_results=list(checkup_labs),
+            orders=list(checkup_orders),  # CY8-01 fix: FHIR emit の source
+            lab_results=list(checkup_labs),  # 後方互換 + narrative pass 用
             documents=[checkup_doc],
         )
         new_records.append(checkup_record)

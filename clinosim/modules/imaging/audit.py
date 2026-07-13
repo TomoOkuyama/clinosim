@@ -215,8 +215,11 @@ def _build_imaging_proof() -> dict[str, Any]:
                 "51185008",
             ),
             (
-                "findings_codes empty -> conclusionCode absent (conditional gate active)",
-                "conclusionCode" not in dr,
+                "findings_codes empty -> conclusionCode = Normal SNOMED default (CY8-14 session 48)",
+                # findings_codes 空でも normal/abnormal default emit されるように改修。
+                # conclusionCode は必ず 1 件、code = 17621005 (Normal) or 263654008 (Abnormal)。
+                dr.get("conclusionCode", [{}])[0].get("coding", [{}])[0].get("code")
+                in ("17621005", "263654008"),
                 True,
             ),
         ]

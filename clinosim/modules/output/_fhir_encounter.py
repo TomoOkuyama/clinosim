@@ -74,6 +74,7 @@ def _build_encounter(
     icu_transferred_day: int = -1,
     deceased: bool = False,
     chronic_condition_codes: list[str] | None = None,
+    record_orders: list | None = None,  # CY8-03: DIET Order source for dietPreference
 ) -> dict:
     """Build FHIR Encounter resource."""
     encounter_id = enc.get("encounter_id", str(uuid.uuid4()))
@@ -451,13 +452,53 @@ def _build_encounter(
         if _dd_disp and _dd_disp != _dd_code:
             _dd_coding["display"] = _dd_disp
         hosp["dischargeDisposition"] = {"coding": [_dd_coding]}
+    # CY8-03 fix (session 48 cycle 8):Encounter.hospitalization.dietPreference
+    # を CIF の DIET Order から derive。IMP/EMER encounter で diet order あれば
+    # 一意の diet 種別を text-only CodeableConcept として emit。
+    # (SNOMED diet codes は正典未確定、no-fabrication policy per text-only)
+    if _emit_hospitalization:
+        _rord = record_orders or []
+        diet_orders = [
+            o for o in _rord
+            if str((o.get("order_type") if isinstance(o, dict)
+                    else getattr(o, "order_type", ""))) in ("diet", "OrderType.DIET")
+            and (o.get("encounter_id") if isinstance(o, dict)
+                 else getattr(o, "encounter_id", "")) == encounter_id
+        ]
+        if diet_orders:
+            _diet_labels = {
+                "NPO": "絶食" if is_jp(country) else "NPO (nothing by mouth)",
+                "clear_liquid": "流動食" if is_jp(country) else "Clear liquids",
+                "soft_diet": "軟菜食" if is_jp(country) else "Soft diet",
+                "regular_diet": "常食" if is_jp(country) else "Regular diet",
+                "diabetic_diet": "糖尿病食" if is_jp(country) else "Diabetic diet",
+                "low_sodium": "減塩食" if is_jp(country) else "Low-sodium diet",
+                "renal_diet": "腎臓食" if is_jp(country) else "Renal diet",
+            }
+            seen = []
+            for o in diet_orders:
+                name = str(o.get("display_name") if isinstance(o, dict)
+                           else getattr(o, "display_name", ""))
+                label = _diet_labels.get(name, name)
+                if label and label not in seen:
+                    seen.append(label)
+            if seen:
+                hosp["dietPreference"] = [{"text": lb} for lb in seen]
+
     if hosp:
         resource["hospitalization"] = hosp
 
     # Service provider (department Organization in _facility.json)
+    # CY8-04 fix (session 48 cycle 8):department 未設定 encounter は
+    # hospital-main を fallback として serviceProvider に emit。従来 79.6% →
+    # 100% 化。department 名の "_" は "-" に normalize(既存 pattern)。
     if department:
         resource["serviceProvider"] = {
             "reference": f"Organization/dept-{department.replace('_', '-')}",
+        }
+    else:
+        resource["serviceProvider"] = {
+            "reference": "Organization/hospital-main",
         }
 
     # Location (bed → ward hierarchy via partOf in facility bundle)

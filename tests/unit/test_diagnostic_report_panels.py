@@ -4,11 +4,14 @@ import pytest
 
 @pytest.mark.unit
 class TestLoadPanelGroups:
-    def test_yaml_loads_with_all_seven_panels(self):
+    def test_yaml_loads_with_all_expected_panels(self):
         # Canonical loader now lives in order.panel_grouping (Task 2 unification).
+        # session 48 cycle 8 CY8-01: Checkup panel 追加 for JP-eCheckup 5 項目。
         from clinosim.modules.order.panel_grouping import load_panel_definitions
         panels = load_panel_definitions()
-        assert set(panels.keys()) == {"ABG", "CBC", "BMP", "LFT", "Lipid", "Coag", "UA"}
+        assert set(panels.keys()) == {
+            "ABG", "CBC", "BMP", "LFT", "Lipid", "Coag", "UA", "Checkup",
+        }
 
     def test_each_panel_has_loinc_components_threshold(self):
         from clinosim.modules.order.panel_grouping import load_panel_definitions

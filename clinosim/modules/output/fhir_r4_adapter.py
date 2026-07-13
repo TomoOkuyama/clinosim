@@ -306,7 +306,8 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
                          primary_dx_code=ctx.primary_dx_code, country=ctx.country,
                          admit_dx_code=ctx.admit_dx_code, admit_dx_system=ctx.admit_dx_system,
                          icu_transferred_day=_icu_day, deceased=_deceased,
-                         chronic_condition_codes=_chronic_codes)
+                         chronic_condition_codes=_chronic_codes,
+                         record_orders=ctx.record.get("orders", []))
         # Only add ED→IMP partOf if _build_encounter didn't already set one
         # (readmission takes precedence — same field, different semantics).
         if _partof_id and "partOf" not in _resource:
@@ -373,6 +374,11 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
                         "display": "入院となる" if str(ctx.country).upper() == "JP" else "Admitted to hospital",
                     }],
                 },
+            }
+            # CY8-04 (session 48 cycle 8): synthesized ED encounter にも
+            # serviceProvider を hospital-main で emit。従来 1075 EMER 欠落。
+            _ed_resource["serviceProvider"] = {
+                "reference": "Organization/hospital-main",
             }
             _resources.append(_ed_resource)
         _resources.append(_resource)

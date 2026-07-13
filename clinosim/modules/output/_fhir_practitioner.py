@@ -176,17 +176,37 @@ def _build_practitioner_role(
     }
 
     # Organization (department) reference
+    # CY8-08 fix(session 48 cycle 8):department 未指定 or 支援部門は
+    # hospital-main を fallback として emit(83.8% → 100%)。
     if department and department not in ("laboratory", "radiology", "pharmacy"):
         resource["organization"] = {
             "reference": f"Organization/dept-{department.replace('_', '-')}",
         }
+    else:
+        resource["organization"] = {
+            "reference": "Organization/hospital-main",
+        }
 
     # Location reference (for nurses assigned to a ward)
+    # CY8-07 fix(session 48 cycle 8):ward 未指定 staff は hospital-main
+    # Location を fallback として emit(46.8% → 100%)。
     ward = staff.get("ward", "")
     if ward:
         resource["location"] = [{
             "reference": f"Location/loc-ward-{ward}",
         }]
+    else:
+        resource["location"] = [{
+            "reference": "Location/loc-hospital-main",
+        }]
+
+    # CY8-06 fix(session 48 cycle 8):PractitionerRole.period.start を
+    # データ収集開始起点(2024-01-01)を default に emit。従来 0/111 → 100%。
+    # 実運用では雇用開始日を使うが、CIF に staff の hire_date は無いため
+    # simulator の period 全体を staff の active period として近似。
+    resource["period"] = {
+        "start": staff.get("period_start", "2024-01-01"),
+    }
 
     if role_code:
         # C2-07 (session 42 cycle 2): resolve display via codes/data/
@@ -216,5 +236,17 @@ def _build_practitioner_role(
             }],
             "text": _spec_display,
         }]
+    else:
+        # CY8-05 fix(session 48 cycle 8):allied-health / nurse など
+        # SNOMED specialty 未マッピングの staff にも text-only specialty
+        # を emit(42.3% → 100%)。role table から derive、無ければ role 名。
+        _lang = resolve_lang(country)
+        _spec_text = None
+        if _text_only_display:
+            _spec_text = _text_only_display[1] if _lang == "ja" else _text_only_display[0]
+        elif role:
+            _spec_text = role.replace("_", " ").title()
+        if _spec_text:
+            resource["specialty"] = [{"text": _spec_text}]
 
     return resource

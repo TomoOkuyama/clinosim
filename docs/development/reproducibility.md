@@ -12,7 +12,7 @@ differ, everything else must match.
 bash scripts/reproduce.sh
 ```
 
-The script runs `clinosim generate --format fhir` twice per locale
+The script runs `clinosim simulate --format fhir` twice per locale
 (US + JP by default) to two isolated temp directories, sha256s every
 NDJSON + CIF JSON, and diffs the hash lists. Exit 0 = byte-identical,
 exit 1 = determinism regression with the offending file(s) listed.

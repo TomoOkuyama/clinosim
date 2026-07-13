@@ -81,5 +81,21 @@ def _build_hai_conditions(ctx: BundleContext) -> list[dict]:
             "encounter": {"reference": f"Encounter/{enc_id}"},
             "onsetDateTime": onset_date,
         }
+        # CY8-21/22 polish (session 48 cycle 8): HAI Condition にも recorder /
+        # asserter を emit(hospital-main の感染管理チーム相当)。encounter に
+        # attending が居れば優先、無ければ hospital-main を fallback。
+        _att = ""
+        for _enc in ctx.record.get("encounters", []) or []:
+            if (_enc.get("encounter_id") if isinstance(_enc, dict)
+                else getattr(_enc, "encounter_id", "")) == enc_id:
+                _att = (_enc.get("attending_physician_id") if isinstance(_enc, dict)
+                        else getattr(_enc, "attending_physician_id", "")) or ""
+                break
+        if _att:
+            resource["recorder"] = {"reference": f"Practitioner/{_att}"}
+            resource["asserter"] = {"reference": f"Practitioner/{_att}"}
+        else:
+            resource["recorder"] = {"reference": "Practitioner/DR-IM-001"}
+            resource["asserter"] = {"reference": "Practitioner/DR-IM-001"}
         out.append(resource)
     return out

@@ -69,3 +69,14 @@ panels:
     components: [Urine_pH, Urine_specific_gravity, Urine_protein, Urine_glucose, Urine_ketones, Urine_blood, Urine_nitrite, Urine_leukocyte_esterase]
     min_components: 3
     skip_if_no_components_present: true
+
+  # session 48 cycle 8 CY8-01 fix: 労安衛法定健診 5 項目 panel。BMI + 血圧 +
+  # HbA1c + LDL コレステロールを単一 DiagnosticReport にまとめる。
+  # LOINC 55418-8 = Physical exam panel(健診パネルの canonical URL)。
+  # 内部の component 名は health_checkup enricher が emit する LOINC 直付。
+  Checkup:
+    loinc: "55418-8"
+    display: "Weight and height panel"
+    # 内部名(order.order_code)= LOINC そのものなので直付 match
+    components: ["39156-5", "8480-6", "8462-4", "4548-4", "18262-6"]
+    min_components: 3

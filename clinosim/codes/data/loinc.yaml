@@ -453,6 +453,11 @@ codes:
   # DiagnosticReport panel grouping codes (2026-06-22)
   # Verified vs Regenstrief LOINC via NLM Clinical Tables API.
   # ---------------------------------------------------------------------------
+  # session 48 cycle 8 CY8-01 fix: 労安衛法定健診 panel の canonical LOINC。
+  # NLM Clinical Tables API 検証済(2026-07-13)。
+  55418-8:
+    en: Weight and height panel
+    ja: 身体計測パネル
   58410-2:
     en: Complete blood count (hemogram) panel - Blood by Automated count
     ja: 全血球計算パネル

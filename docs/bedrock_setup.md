@@ -193,7 +193,7 @@ Key fields:
 
 ```bash
 # On your workstation:
-clinosim generate -o ./output -p 5000 --country US --format cif
+clinosim simulate -o ./output -p 5000 --country US --format cif
 scp -r ./output/cif ec2-user@<ec2-host>:/home/ec2-user/clinosim_cif
 ```
 
@@ -306,7 +306,7 @@ line per generated document.
 
 ## Cost estimates
 
-clinosim generates roughly **2.2 Tier A+B documents per inpatient encounter**
+clinosim simulates roughly **2.2 Tier A+B documents per inpatient encounter**
 (1 admission H&P + 1 discharge summary + ~0.2 other). Token counts per
 document depend on the complexity of the encounter, but typical ranges are:
 

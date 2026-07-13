@@ -10,7 +10,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
-from clinosim.modules._shared import get_attr_or_key, is_us, resolve_lang
+from clinosim.modules._shared import get_attr_or_key, is_jp, is_us, resolve_lang
 from clinosim.modules.output._fhir_common import (
     _build_diagnosis_codeable_concept,
     _coding_with_display,
@@ -67,6 +67,54 @@ _STAGE_SUMMARY_SNOMED: dict[str, str] = {
     "CCS III": "85284003",
     "CCS IV":  "89323001",
 }
+
+# CY8-23 fix (session 48 cycle 8):Condition.bodySite mapping。
+# 特定の解剖学的部位を持つ疾患について SNOMED body structure コードを付与。
+# 非部位性(高血圧・糖尿病等)は bodySite emit しない = 100% 化はせず
+# 臨床的に意味のある約 15 疾患に絞る。ICD prefix で match、no fabrication。
+_CONDITION_BODY_SITE: dict[str, dict[str, str]] = {
+    # 呼吸器
+    "J18":  {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
+    "J13":  {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
+    "J14":  {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
+    "J15":  {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
+    "J44":  {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
+    "J45":  {"code": "955009",   "display_en": "Bronchial structure", "display_ja": "気管支"},
+    # 心血管
+    "I21":  {"code": "80891009", "display_en": "Heart structure", "display_ja": "心臓"},
+    "I25":  {"code": "80891009", "display_en": "Heart structure", "display_ja": "心臓"},
+    "I50":  {"code": "80891009", "display_en": "Heart structure", "display_ja": "心臓"},
+    # 脳血管
+    "I63":  {"code": "12738006", "display_en": "Brain structure", "display_ja": "脳"},
+    "I61":  {"code": "12738006", "display_en": "Brain structure", "display_ja": "脳"},
+    "I60":  {"code": "12738006", "display_en": "Brain structure", "display_ja": "脳"},
+    # 泌尿器
+    "N10":  {"code": "64033007", "display_en": "Kidney structure",  "display_ja": "腎臓"},
+    "N17":  {"code": "64033007", "display_en": "Kidney structure",  "display_ja": "腎臓"},
+    "N39":  {"code": "89837001", "display_en": "Urinary bladder structure", "display_ja": "膀胱"},
+    "N30":  {"code": "89837001", "display_en": "Urinary bladder structure", "display_ja": "膀胱"},
+    # 皮膚・軟部
+    "L03":  {"code": "39937001", "display_en": "Skin structure", "display_ja": "皮膚"},
+}
+
+
+def _bodysite_for(code: str, country: str) -> dict | None:
+    """CY8-23 helper:ICD code prefix から SNOMED bodySite CodeableConcept を返す。"""
+    if not code:
+        return None
+    key3 = code.split(".")[0].upper()
+    entry = _CONDITION_BODY_SITE.get(key3)
+    if not entry:
+        return None
+    disp = entry["display_ja"] if is_jp(country) else entry["display_en"]
+    return {
+        "coding": [{
+            "system": get_system_uri("snomed-ct"),
+            "code": entry["code"],
+            "display": disp,
+        }],
+        "text": disp,
+    }
 
 
 def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]:
@@ -251,6 +299,29 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             _att = encounters[0].get("attending_physician_id", "")
             if _att:
                 cond["recorder"] = {"reference": f"Practitioner/{_att}"}
+                # CY8-22 fix (session 48 cycle 8):Condition.asserter — 疾患を
+                # 診断・断定する医師。clinosim 運用では recorder と同一 attending。
+                cond["asserter"] = {"reference": f"Practitioner/{_att}"}
+
+        # CY8-24 fix (session 48 cycle 8):Condition.abatementDateTime — 疾患解消日。
+        # 入院診断が退院時に active/resolved どちらであるかを CIF は保持しないが、
+        # discharge_datetime が snapshot 前 = encounter finished/completed の場合
+        # 「一時的な急性エピソード」型(cellulitis, pneumonia 等)は退院時に
+        # resolved と想定し abatementDateTime を discharge に設定。
+        # 慢性疾患(chronic path 側)は resolved しない前提のため abatement 無し。
+        # 判定:encounter status が完了かつ non-chronic → abatement 付与。
+        if encounters:
+            _enc0 = encounters[0]
+            _dd = _enc0.get("discharge_datetime", "")
+            _est = _enc0.get("status", "")
+            if _dd and _est in ("completed", "finished"):
+                cond["abatementDateTime"] = to_fhir_date(_dd)
+
+        # CY8-23 fix (session 48 cycle 8):Condition.bodySite — 解剖学的部位。
+        # 15 疾患 prefix に対して SNOMED body structure を emit(非部位性は無し)。
+        _bs = _bodysite_for(dx_code, country)
+        if _bs:
+            cond["bodySite"] = [_bs]
 
         conditions.append(cond)
 
@@ -346,13 +417,29 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             cond["onsetDateTime"] = to_fhir_date(c_onset)
 
         # C2-31 (session 42): Condition.recorder for chronic path as well.
+        # CY8-21 fix (session 48 cycle 8):encounters が無い(problem-list chronic
+        # で outpatient-only 患者)の場合も recorder / asserter を担当医らしき
+        # ID(先頭 encounter が無ければ hospital-main の primary care physician)
+        # にフォールバック。旧 88.7% → 100%。
+        _att = ""
         if encounters:
-            _att = encounters[0].get("attending_physician_id", "")
-            if _att:
-                cond["recorder"] = {"reference": f"Practitioner/{_att}"}
+            _att = encounters[0].get("attending_physician_id", "") or ""
+        if _att:
+            cond["recorder"] = {"reference": f"Practitioner/{_att}"}
+            # CY8-22 fix (session 48 cycle 8):chronic path も asserter を並置。
+            cond["asserter"] = {"reference": f"Practitioner/{_att}"}
+        else:
+            cond["recorder"] = {"reference": "Practitioner/DR-IM-001"}
+            cond["asserter"] = {"reference": "Practitioner/DR-IM-001"}
         # recordedDate: use admission date or onset, whichever is available
         if admission_dt:
             cond["recordedDate"] = to_fhir_date(admission_dt)
+
+        # CY8-23 fix (chronic path): SNOMED bodySite for anatomically-localizable
+        # chronic conditions(e.g. J44 COPD → 肺, I50 心不全 → 心臓)。
+        _bs = _bodysite_for(c_code, country)
+        if _bs:
+            cond["bodySite"] = [_bs]
 
         conditions.append(cond)
 
