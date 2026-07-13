@@ -295,6 +295,86 @@
 - **established_pr**: cycle 5 close + session 45 verification
 - **revalidation_check**: refRange 欠落 Observation の LOINC が全て上記 whitelist に含まれることを確認。新規 categorical vital LOINC を発見した場合は registry を update。
 
+### cy8-29-unknown-condition-imp-no-partof
+
+- **id**: `cy8-29-unknown-condition-imp-no-partof`
+- **observation**: `Encounter.ndjson` の IMP encounter の一部(概ね 6/1265 ≈
+  0.5%)で `partOf` が欠落。実運用では入院は ED 経由(`admit_source="emd"`)
+  が大部分で、CY7-05 で追加した `admit_source_encounter_id` derivation に
+  より partOf が emit される。残 0.5% は synth ED を持たない残存 pattern。
+- **by_design_reason**:`_simulate_unknown_condition`(`disease_id=None` の
+  idiopathic inpatient path)は `_simulate_patient` の discharge-phase
+  logic を通らないため、CY7-05 の admit_source 補完ロジックが発火せず
+  `admit_source=""` のまま CIF に書かれる。FHIR builder は空 admit_source
+  を `hosp`(from hospital administration)fallback として emit するので
+  意味論的には正しい(直接入院として記録)。partOf 欠落は「ED 経由なし
+  の直接入院」= FHIR spec 適合。fabrication 回避(no CY7-05 forcing on
+  paths that clinically don't necessarily route via ED)。
+- **signature**: partOf 欠落 IMP encounter が全て `hospitalization.admitSource.
+  coding[0].code == "hosp"`(FHIR builder fallback default)であり、対応する
+  CIF record の `condition_event.disease_id` が空(unknown-condition path
+  由来)であること。他 admit_source(emd / outp / born 等)で partOf 欠落 =
+  真のバグ(本レジストリ対象外)。
+- **established_session**: session 48, 2026-07-13 (Cycle 8 verify)
+- **established_pr**: cycle 8 close(this commit)
+- **revalidation_check**: partOf 欠落 IMP encounter を全数抽出し、admit_source
+  が全て `"hosp"` であること。JP p=10000 seed=42 での期待範囲 = ≤ 0.6% of IMP。
+
+### cy8-23-condition-bodysite-selective
+
+- **id**: `cy8-23-condition-bodysite-selective`
+- **observation**: `Condition.ndjson` の一部(≈ 92%)で `bodySite` が欠落。
+- **by_design_reason**: session 48 cycle 8 で導入した bodySite emit は 15
+  疾患 prefix(呼吸器 J13/J14/J15/J18/J44/J45 + 心血管 I21/I25/I50 + 脳
+  血管 I60/I61/I63 + 泌尿器 N10/N17/N30/N39 + 皮膚 L03)に限定 selective。
+  非部位性疾患(I10 高血圧、E11 糖尿病、E78 脂質異常症 等)には解剖学的
+  bodySite が無いので emit しないのが臨床的に正しい。fabrication 回避。
+- **signature**: bodySite 欠落 Condition の primary ICD prefix(`.` の前の
+  最初のセグメント)が上記 15 prefix 以外であること。15 prefix に該当する
+  Condition で bodySite 欠落 = 真のバグ(本レジストリ対象外)。
+- **established_session**: session 48, 2026-07-13 (Cycle 8)
+- **established_pr**: cycle 8 close
+- **revalidation_check**: bodySite 欠落 Condition の ICD prefix を集計、上記
+  15 prefix を含まないことを確認。新規部位性疾患を disease に追加した場合
+  は `_CONDITION_BODY_SITE`(`_fhir_conditions.py`)+ 本 signature を update。
+
+### cy8-24-condition-abatement-finished-encounter-only
+
+- **id**: `cy8-24-condition-abatement-finished-encounter-only`
+- **observation**: `Condition.ndjson` の一部(概ね 40%)で
+  `abatementDateTime` が欠落。
+- **by_design_reason**: session 48 cycle 8 で追加した abatement emit は
+  `encounter.status in ("completed", "finished")` かつ `discharge_datetime`
+  非空の encounter に限定。in-progress encounter(AD-32 snapshot 打切り)や
+  chronic problem-list-item(そもそも解消しない)は abatement を emit しない
+  のが FHIR spec に整合。
+- **signature**: abatementDateTime 欠落 Condition が (a) 対応 encounter が
+  in-progress、または (b) `category=problem-list-item`(chronic path 由来)、
+  または (c) encounter 参照無しの patient-level Condition のいずれか。
+  finished encounter の encounter-diagnosis で abatement 欠落 = 真のバグ。
+- **established_session**: session 48, 2026-07-13 (Cycle 8)
+- **established_pr**: cycle 8 close
+- **revalidation_check**: abatementDateTime 欠落 Condition を全数抽出し、
+  上記 (a)/(b)/(c) のいずれかに該当することを確認。
+
+### cy8-20-mar-device-iv-infusion-only
+
+- **id**: `cy8-20-mar-device-iv-infusion-only`
+- **observation**: `MedicationAdministration.ndjson` の大半(96.5%)で
+  `device` が欠落。IV 持続点滴 admin のみ ~3.5% 前後で emit される。
+- **by_design_reason**: `device` は infusion pump 等の投与機器を参照する
+  field。経口薬 / IM / SC / SL / topical admin にポンプ機器は不要で、
+  clinical 正確な運用として IV 持続点滴(dose_text に CONTINUOUS/DRIP/`/h`
+  含む + route=IV)のみ `Device/dev-infusion-pump` を参照。fabrication 回避
+  (経口薬に架空の Device を張らない)。
+- **signature**: device 欠落 MAR が `dosage.route.text != "IV"` または
+  `dosage.text` に CONTINUOUS/DRIP/`/h` を含まないこと。IV + CONTINUOUS で
+  device 欠落 = 真のバグ(本レジストリ対象外)。
+- **established_session**: session 48, 2026-07-13 (Cycle 8)
+- **established_pr**: cycle 8 close
+- **revalidation_check**: device 欠落 MAR の route + dose_text を集計、上記
+  条件を満たすことを確認。IV 持続点滴での device 100% 発火を保証。
+
 ---
 
 ## Non-Entries (真のバグ、Registry 対象外)
@@ -335,3 +415,8 @@
   - `realistic-mr-mar-ratio-for-outpatient-heavy-cohort` → MAR/MR band 5-15 → 5-40 に拡張
     (long-LOS IMP + continuous-infusion drip 混在の広い自然帯を許容)
   net: **21 entries**(1 retire + 2 signature update、新規 entry 無し)。
+- 2026-07-13 (session 48 Cycle 8 拡張): cycle 8 verify で確定した 4 新
+  パターン(`cy8-29-unknown-condition-imp-no-partof` +
+  `cy8-23-condition-bodysite-selective` +
+  `cy8-24-condition-abatement-finished-encounter-only` +
+  `cy8-20-mar-device-iv-infusion-only`)を追加。合計 **25 entries**。

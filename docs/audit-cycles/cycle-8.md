@@ -1,6 +1,6 @@
 # Cycle 8 — session 48 (2026-07-13)
 
-**Status:** **CLOSED** — 30 findings resolved (24 at 100%, 5 by-design selective, 1 partial deferred to simulator-level)
+**Status:** **CLOSED** — 30 findings resolved (24 at 100%, 5 by-design selective, 1 registered by-design)
 **Master HEAD at cycle start:** `13d0e41ef0` (session 48 c/d/e/f/g/b chain close)
 **Baseline generation:** JP p=10000 seed=42 fhir-r4 (health_checkup opt-in **enabled**)
 **Baseline directory:** `<scratchpad>/cycle-8/`
@@ -219,10 +219,10 @@ Re-observed on cycle 8, signature matches registry:
 | CY8-26 eCheckup DR.relatesTo | 1431/1431 (100%) | 1431/1431 (100%) | ✅ 維持確認 |
 | CY8-27 JP Core + JP-CLINS profile stacking | verify | ✅ | Composition-only は JP-CLINS 単独が正しい |
 | CY8-28 Composition.attester structure | verify | ✅ | 現行 mode=legal 1件で by-design |
-| CY8-29 Encounter.partOf ED→IMP simulator | 155/40158 (0.4%) | ⚠️ | simulator level fix 別 session に deferred(session 44 CY7-05 継承) |
+| CY8-29 Encounter.partOf ED→IMP | verify | 1259/1265 (99.5%) | ✅ **by-design registered** — 残 6 IMP は `_simulate_unknown_condition` path(disease_id=None、admit_source="hosp" fallback)。ED 経由でない直接入院 = 意味論的に partOf 不要。registry `cy8-29-unknown-condition-imp-no-partof` として登録 |
 | CY8-30 CLI rename docs sweep | 10 files | ✅ | `clinosim generate` → `clinosim simulate` 一括更新済 |
 
-**24 fully 100% + 5 by-design partial + 1 partial deferred(CY7-05 継承)= all 30 findings addressed.**
+**24 fully 100% + 5 by-design partial + 1 registered by-design = all 30 findings addressed.**
 
 ## End-of-cycle fix review
 
@@ -249,11 +249,19 @@ Re-observed on cycle 8, signature matches registry:
 
 ## New by-design registry additions
 
-3 candidates が cycle-8 で確認:
-- **CY8-23 partial**:`Condition.bodySite` は 15 疾患 prefix のみ selective emit(非部位性疾患は本質的に不要)
-- **CY8-24 partial**:`Condition.abatementDateTime` は completed/finished encounter のみ emit
-- **CY8-20 partial**:`MedicationAdministration.device` は IV infusion のみ emit
-
-これらは registry 22 → 25 entries への追加候補(実際の登録は cycle 9 開始時に user 確認)。
+**4 新パターンを registry に登録**(21 → 25 entries):
+- **cy8-23-condition-bodysite-selective** — `Condition.bodySite` は 15 疾患
+  prefix(呼吸器/心血管/脳血管/泌尿器/皮膚)のみ selective emit(非部位性
+  疾患は本質的に不要、no fabrication)
+- **cy8-24-condition-abatement-finished-encounter-only** —
+  `Condition.abatementDateTime` は completed/finished encounter のみ emit
+  (in-progress + chronic problem-list-item + patient-level Condition は無し)
+- **cy8-20-mar-device-iv-infusion-only** — `MedicationAdministration.device`
+  は IV 持続点滴(CONTINUOUS/DRIP/`/h` + route=IV)のみ Device/dev-infusion-pump
+  参照(経口薬 / IM / SC / SL / topical に架空 Device 張らない)
+- **cy8-29-unknown-condition-imp-no-partof** — `_simulate_unknown_condition`
+  path(disease_id=None、admit_source="hosp" fallback)の IMP は ED 経由でない
+  直接入院として意味論的に partOf 不要(CY7-05 の admit_source="emd" 補完を
+  fabrication で全 IMP に強制するのは避ける、registry gated 判定)
 
 **Cycle 8 CLOSED** — CRITICAL silent-drop 完全修復 + 資料品質 24 field を 100% coverage 化。次 cycle は session 48 additional fix の regression check + まだ調査していない resource(Coverage.class deep / Location detail / Provenance 等)を focus。
