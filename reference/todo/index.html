@@ -1663,6 +1663,94 @@
 
 <h1 id="roadmap">Roadmap<a class="headerlink" href="#roadmap" title="Permanent link">&para;</a></h1>
 <h1 id="clinosim-todo">clinosim — TODO<a class="headerlink" href="#clinosim-todo" title="Permanent link">&para;</a></h1>
+<h2 id="status-2026-07-13-session-48-closed-21-commits-push-session-49-b-incremental-cron-phase-a">Status (2026-07-13, <strong>★★★ session 48 CLOSED — 21 commits push、次 session 49 は 案 B incremental cron phase A</strong>)<a class="headerlink" href="#status-2026-07-13-session-48-closed-21-commits-push-session-49-b-incremental-cron-phase-a" title="Permanent link">&para;</a></h2>
+<p><strong>master HEAD</strong>: <code>038543aad9</code> (FB verify 27/27 PASS)</p>
+<h3 id="session-48-21-commits-direct-master">Session 48 主要成果(21 commits direct-master)<a class="headerlink" href="#session-48-21-commits-direct-master" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Chain</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(d) sub-PR-B 高度化</td>
+<td>健診 5 項目個別化</td>
+</tr>
+<tr>
+<td>(e) sub-PR-C 高度化</td>
+<td>SHA256 pin + CI auto-fail gate</td>
+</tr>
+<tr>
+<td>(f) sub-PR-E</td>
+<td>JP-eCheckup DocumentReference wrapper</td>
+</tr>
+<tr>
+<td>(g) Deferred cleanup 3</td>
+<td><code>_JP_CORE_PROFILES</code> shape / CLI simulate / typed order views</td>
+</tr>
+<tr>
+<td>(b) P2-14</td>
+<td>add-your-country ガイド + <code>_template</code> scaffold</td>
+</tr>
+<tr>
+<td>&copy; P2-15</td>
+<td>benchmark harness(sepsis + AKI 予測)</td>
+</tr>
+<tr>
+<td><strong>Cycle 8 audit</strong></td>
+<td>30 findings 全解消(24 at 100% + 5 by-design + 1 registered)</td>
+</tr>
+<tr>
+<td>Cross-seed verify</td>
+<td>seed=100/200/201 3 独立 cohort で invariant 保持</td>
+</tr>
+<tr>
+<td>Triple-seed review</td>
+<td>臨床 + 統計整合性検証</td>
+</tr>
+<tr>
+<td><strong>CIF-VS-FHIR-01</strong></td>
+<td>imaging silent-drop ratio 0.22 → <strong>1.00</strong> 完全解消</td>
+</tr>
+<tr>
+<td><strong>iris4h-ai FB-F1..F8</strong></td>
+<td>HAPI FHIR JP Core validator feedback 8 系統 27/27 PASS</td>
+</tr>
+<tr>
+<td>by-design registry</td>
+<td>21 → <strong>25 entries</strong>(4 new + 1 retired)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_1">最終テスト状態<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Unit: 1733 PASS</strong>、regression 0</li>
+<li><strong>reproduce.sh: PASS</strong>(US 272 + JP 193 files byte-identical)</li>
+<li><strong>FB verify: 27/27 PASS</strong></li>
+<li><strong>Cross-seed(42/100/200/201)</strong>: 全 invariant 保持</li>
+<li>Regen baseline: JP p=10000 = <strong>15-16 分</strong>(darwin 25.3.0, py 3.12.7)</li>
+</ul>
+<h3 id="session-49-b-incremental-cron-phase-a">Session 49 で開始:案 B incremental cron 実装 phase A<a class="headerlink" href="#session-49-b-incremental-cron-phase-a" title="Permanent link">&para;</a></h3>
+<p><strong>目的</strong>:cron で日次追記可能な構造への refactor。「一度生成した FHIR/CIF に新規データを追記する」運用を実現。</p>
+<p><strong>Phase A スコープ</strong>(1 session):
+- <code>clinosim/state/</code> module 新設
+- <code>PhysiologicalState / WorldState / HospitalState / PatientState</code> の JSON serialize
+- RNG state を base64-encoded getstate/setstate で復元
+- <code>run_beta</code> を state-machine 分解(<code>initialize</code> + <code>advance(days=1)</code> + <code>emit</code>)
+- state file schema:<code>world.json / hospital.json / patients/&lt;pid&gt;.json</code></p>
+<p><strong>Phase B..F 概略</strong>(subsequent sessions):
+- B: <code>clinosim advance</code> CLI subcommand + journal.log idempotency
+- C: FHIR NDJSON append-only 保証(既存 resource id 衝突検出)
+- D: batch=incremental golden test(AD-16 決定性の最終 gate)
+- E: cron 実運用 doc(lock file、schema migration path)
+- F: schema evolution + storage optimization(per-patient gzip)</p>
+<p><strong>設計 memo</strong>:
+- 案 B 選択理由:AD-17/30/56 準拠、numpy Generator pickle 可、cron 親和性、schema 進化容易
+- 却下:案 A(monolithic pickle、opaque)/ 案 C(CIF が state 兼務 = AD-30 違反)/ 案 D(event-sourcing、schema 複雑)
+- <strong>7 主要 challenge</strong>:RNG state format / idempotency / batch=incremental 決定性 / schema evolution / storage cost / AD-32 snapshot redefinition / resource id conflict</p>
+<hr />
 <h2 id="status-2026-07-13-session-48-in-progress-bcdefg">Status (2026-07-13, <strong>★ session 48 IN-PROGRESS — bcdefg 順消化開始</strong>)<a class="headerlink" href="#status-2026-07-13-session-48-in-progress-bcdefg" title="Permanent link">&para;</a></h2>
 <p><strong>Session 48 開始状態(順序 d → e → f → g → b → c、d 完了)</strong>:</p>
 <h3 id="d-e-f-g-b-cpr3-sub-pr-bce-deferred-cleanup-p2-14-p2-15">完了(d, e, f, g, b, c):PR3 sub-PR-B/C/E + Deferred cleanup + P2-14 + P2-15<a class="headerlink" href="#d-e-f-g-b-cpr3-sub-pr-bce-deferred-cleanup-p2-14-p2-15" title="Permanent link">&para;</a></h3>
@@ -2073,7 +2161,7 @@ and grew into an authoritative drug-code sweep across MHLW YJ + NLM RxNav.</p>
 </tr>
 </tbody>
 </table>
-<h3 id="_1">主要成果<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<h3 id="_2">主要成果<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>silent-code-substitution 12+ defects 解消</strong>(具体的な数字は <a href="../../audit-cycles/verification-2026-07-11-seed100/"><code>docs/audit-cycles/verification-2026-07-11-seed100.md</code></a> 参照):</li>
 <li>Heparin 4 disease YAML: 3334400(Enoxaparin)→ 3334002 authoritative</li>
