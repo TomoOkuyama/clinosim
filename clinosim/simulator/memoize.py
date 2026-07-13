@@ -77,11 +77,17 @@ class CacheManifest:
 
 
 def compute_config_hash(config: SimulatorConfig) -> str:
-    """SimulatorConfig の canonical sha256 hash (snapshot_date は除外)。
+    """SimulatorConfig の canonical sha256 hash (cursor-dependent field を除外)。
 
-    snapshot_date だけが違う config は cache 対象なので hash 一致させる。
-    seed / country / population / hospital / time_range 等が変わったら
-    hash が変わって cache 無効になる。
+    cursor(観測時点)だけが違う config は cache 対象なので hash 一致させる。
+    seed / country / population / hospital / time_range[0] (start) 等が
+    変わったら hash が変わって cache 無効になる。
+
+    除外 field:
+      - `snapshot_date`(明示的な cursor)
+      - `time_range[1]`(--end 経由の cursor 同期。CLI では --end が
+        snapshot_date と time_range[1] を両方 set するため、両方揃って
+        除外しないと cursor 進めた瞬間 cache invalidate される)
 
     NOTE: SimulatorConfig is a Pydantic BaseModel (not a stdlib dataclass),
     so `model_dump()` is used instead of `dataclasses.asdict()` for the
@@ -91,6 +97,11 @@ def compute_config_hash(config: SimulatorConfig) -> str:
     """
     d = config.model_dump()
     d.pop("snapshot_date", None)
+    # cursor は time_range[1] にも入る(CLI --end 経由)。tuple/list 両方許容。
+    tr = d.get("time_range")
+    if isinstance(tr, (list, tuple)) and len(tr) >= 2:
+        # start だけ残す:cursor が動いても start が同じなら cache 使う
+        d["time_range"] = [tr[0]]
     return hashlib.sha256(
         json.dumps(d, sort_keys=True, ensure_ascii=False, default=str).encode("utf-8")
     ).hexdigest()

@@ -82,6 +82,15 @@ def main() -> None:
         "(emitted as FHIR Coverage). Use --no-jp-insurance to omit. "
         "Ignored for non-JP countries.",
     )
+    gen.add_argument(
+        "--cache-dir",
+        default=None,
+        help="F4 memoize (session 49): path to a previous snapshot output "
+        "directory. When provided and valid (same seed / config / country), "
+        "patients whose encounters completed before the previous cursor are "
+        "loaded from cache instead of re-simulated. Enables cron 日次追記 for "
+        "large populations (p=500k advance drops from ~13h to ~minutes).",
+    )
 
     # === test-disease: generate specific disease/archetype ===
     td = sub.add_parser("test-disease", help="Generate data for a specific disease and archetype")
@@ -546,7 +555,15 @@ def main() -> None:
             print(f"  JP insurance numbers (被保険者番号): {status}")
         if hospital_cfg:
             print(f"  Hospital config: {hospital_cfg}")
-        dataset = run_beta(config, hospital_config_path=hospital_cfg)
+        # F4 (session 49): reuse prior snapshot's discharged patients when
+        # --cache-dir is provided. run_beta validates seed / config / country
+        # match; on mismatch it prints a warn and full-recomputes.
+        cache_dir_arg = getattr(args, "cache_dir", None)
+        if cache_dir_arg:
+            print(f"  Cache dir (F4 memoize): {cache_dir_arg}")
+        dataset = run_beta(
+            config, hospital_config_path=hospital_cfg, cache_dir=cache_dir_arg
+        )
 
     else:
         parser.print_help()

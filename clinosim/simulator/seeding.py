@@ -12,6 +12,10 @@ can use it without creating a dependency cycle.
 from __future__ import annotations
 
 import hashlib
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 def derive_sub_seed(master_seed: int, module_offset: int, key: str) -> int:
