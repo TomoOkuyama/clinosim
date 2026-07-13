@@ -92,7 +92,8 @@ print(list(all_conditions.keys())[:5])
 
 ### `create_inpatient_encounter(patient_id, admission_datetime, chief_complaint, department_id, visit_number) -> Encounter`
 
-新しい入院 encounter を作成する (`engine.py:28`)。グローバルカウンタで一意 ID を発行する。
+新しい入院 encounter を作成する (`engine.py:28`)。ID は `(patient_id, admission_datetime,
+visit_number)` の hash から決定論的に発行する(F1、session 49)。
 
 ```python
 from datetime import datetime
@@ -110,7 +111,13 @@ enc.encounter_type  # EncounterType.INPATIENT
 enc.status          # EncounterStatus.IN_PROGRESS
 ```
 
-**グローバルカウンタ**: モジュールレベル `_encounter_counter` がシミュレーション実行中に単調増加し、 ID 衝突を防ぐ。 テスト間でリセットしたい場合は `encounter.engine._encounter_counter = 0` を明示的に設定する (AD: 通常テストでは別 seed で判別)。
+**決定論的 ID(F1, session 49)**: 以前はモジュールレベル `_encounter_counter` がシミュレーション
+実行中に単調増加して一意 ID を発行していたが、この方式だと同一 encounter でも「実行中に何個
+他の encounter が先に作られたか」次第で ID が変わってしまい、cursor(snapshot_date)を変えて
+`run_beta()` を 2 回呼ぶと共有区間の encounter_id が一致しない(cross-cursor byte-identity が
+壊れる)問題があった。`_encounter_id_suffix(patient_id, admission_datetime, visit_number)` の
+sha256 hash から 6 桁 suffix を導出する方式に置き換え、encounter 自身の識別子だけから ID が
+決まるようにした(patient_id で namespace 済みなので衝突リスクは実質ゼロ)。
 
 ### `generate_daily_cycle(encounter, day_number) -> list[DailyCycleEvent]`
 

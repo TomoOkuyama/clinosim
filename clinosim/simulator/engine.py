@@ -42,6 +42,25 @@ from clinosim.simulator.helpers import (
 )
 from clinosim.simulator.inpatient import _simulate_patient, _simulate_unknown_condition
 from clinosim.simulator.outpatient import _simulate_outpatient_visit
+from clinosim.simulator.seeding import (
+    PHASE_ED_VISIT,
+    PHASE_INPATIENT_SIM,
+    PHASE_LIFE_EVENT,
+    PHASE_OUTPATIENT_CAL,
+    PHASE_READMISSION,
+    derive_phase_rng,
+)
+
+# F1 (session 49): `generate_healthcare_calendar` emits several distinct
+# screening kinds under the same `event_type == "health_screening"` (see the
+# ev_key comment in the P4 calendar loop below). Each needs its own visit
+# reason text so two screenings landing on the same calendar date don't
+# collapse into indistinguishable encounters.
+_HEALTH_SCREENING_VISIT_REASON = {
+    "annual_health_screening": "Annual health screening",
+    "colonoscopy_screening": "Colonoscopy screening",
+    "mammography_screening": "Mammography screening",
+}
 
 
 # ============================================================
@@ -62,6 +81,11 @@ def run_beta(
         config = SimulatorConfig()
 
     rng = np.random.default_rng(config.random_seed)
+    # F1 (session 49): P1/P2/P3/P4/P4' below derive per-key sub-seeds from
+    # master_seed instead of consuming the shared `rng` stream, so that
+    # cursor movement (snapshot_date change) cannot shift RNG state for
+    # entities that are unaffected by the cursor (cross-cursor determinism).
+    master_seed = config.random_seed
 
     # Load modules
     healthcare = load_healthcare_config(config.country)
@@ -129,6 +153,16 @@ def run_beta(
     # Run life events
     start_y, start_m = int(config.time_range[0][:4]), int(config.time_range[0][5:7])
     end_y, end_m = int(config.time_range[1][:4]), int(config.time_range[1][5:7])
+    # F1 (session 49): keep the *uncapped* end alongside the snapshot-capped one.
+    # `end_y, end_m` below get capped by snapshot_date and are correctly used as
+    # the P1 month-loop bound (fewer months generated for an earlier cursor is
+    # intended snapshot semantics). But the P4' ED slot phase uses `end_y, end_m`
+    # only to size a random draw range (`total_months`, below) — sizing that
+    # range off the cursor-capped end would make the draw itself cursor-
+    # dependent (same slot_rng stream, different range → different sampled
+    # month) even though slot_rng is otherwise cursor-independent. raw_end_y/m
+    # preserve the config's own (cursor-independent) time_range for that use.
+    raw_end_y, raw_end_m = end_y, end_m
 
     # Cap end date by snapshot_date (no life events past "today")
     snapshot_dt = None
@@ -141,7 +175,11 @@ def run_beta(
     all_events: list[LifeEvent] = []
     y, m = start_y, start_m
     while (y, m) <= (end_y, end_m):
-        all_events.extend(generate_monthly_events(population, y, m, rng, country=config.country))
+        month_key = f"{y:04d}-{m:02d}"
+        month_rng = derive_phase_rng(master_seed, PHASE_LIFE_EVENT, month_key)
+        all_events.extend(
+            generate_monthly_events(population, y, m, month_rng, country=config.country)
+        )
         m += 1
         if m > 12:
             m, y = 1, y + 1
@@ -176,7 +214,11 @@ def run_beta(
 
     def _activate_cached(p: PersonRecord) -> PatientProfile:
         if p.person_id not in patient_cache:
-            patient_cache[p.person_id] = activate_patient(p, rng, demo)
+            # Patient activation is fully determined by patient_id, independent of
+            # cursor (snapshot_date) — derive from a per-patient sub-seed rather
+            # than the shared master rng so it doesn't shift with cursor movement.
+            act_rng = derive_phase_rng(master_seed, PHASE_INPATIENT_SIM, f"activate|{p.person_id}")
+            patient_cache[p.person_id] = activate_patient(p, act_rng, demo)
         return patient_cache[p.person_id]
 
     n_hosp = len(hospital_events)
@@ -209,9 +251,15 @@ def run_beta(
         patient = _activate_cached(person)
         disease_id = event.disease_id
 
+        event_key = f"{event.person_id}|{event.timestamp.isoformat()}|{disease_id}"
+        event_rng = derive_phase_rng(master_seed, PHASE_INPATIENT_SIM, event_key)
+
         # Unknown condition
         if event.condition_type == "unknown" or disease_id.startswith("unknown_"):
-            record = _simulate_unknown_condition(patient, event, rng, healthcare, roster, hospital_ops=hospital_ops, config=config)
+            record = _simulate_unknown_condition(
+                patient, event, event_rng, healthcare, roster,
+                hospital_ops=hospital_ops, config=config,
+            )
             if record:
                 patient_records.append(record)
                 person.has_visited_hospital = True
@@ -226,11 +274,11 @@ def run_beta(
         secondary_protocol = None
         if event.condition_type == "mixed":
             secondary_protocol = _select_secondary_disease(
-                patient, disease_id, protocols, rng,
+                patient, disease_id, protocols, event_rng,
             )
 
         record = _simulate_patient(
-            patient, event, disease_id, protocol, healthcare, roster, config, rng,
+            patient, event, disease_id, protocol, healthcare, roster, config, event_rng,
             secondary_protocol=secondary_protocol,
             is_readmission=event.is_readmission,
             prior_encounter_id=event.prior_encounter_id,
@@ -268,8 +316,10 @@ def run_beta(
         protocol = protocols.get(disease_id)
         if not protocol:
             continue
+        re_key = f"{record.patient.patient_id}|{record.encounters[0].encounter_id}"
+        re_rng = derive_phase_rng(master_seed, PHASE_READMISSION, re_key)
         re_event = _evaluate_readmission(
-            record, person, disease_id, protocol, country_key, rng,
+            record, person, disease_id, protocol, country_key, re_rng,
         )
         if re_event:
             readmission_events.append(re_event)
@@ -291,9 +341,11 @@ def run_beta(
         if not protocol:
             continue
         patient = _activate_cached(person)
+        re_sim_key = f"{re_event.person_id}|{re_event.timestamp.isoformat()}|readmission"
+        re_sim_rng = derive_phase_rng(master_seed, PHASE_INPATIENT_SIM, re_sim_key)
         record = _simulate_patient(
             patient, re_event, re_event.disease_id, protocol,
-            healthcare, roster, config, rng,
+            healthcare, roster, config, re_sim_rng,
             is_readmission=True,
             prior_encounter_id=re_event.prior_encounter_id,
             readmission_number=re_event.readmission_number,
@@ -338,8 +390,10 @@ def run_beta(
         # Skip post-discharge visits scheduled after the snapshot date
         if snapshot_dt and followup_date > snapshot_dt:
             continue
+        opd_key = f"{pid}|post_discharge|{followup_date.isoformat()}"
+        opd_rng = derive_phase_rng(master_seed, PHASE_OUTPATIENT_CAL, opd_key)
         opd_record = _simulate_outpatient_visit(
-            _activate_cached(person), "post_discharge", followup_date, roster, rng,
+            _activate_cached(person), "post_discharge", followup_date, roster, opd_rng,
             followup_spec=merged_spec, post_discharge_disease=disease_id,
             country=config.country, config=config,
         )
@@ -348,7 +402,11 @@ def run_beta(
     n_post_dc = len(patient_records) - len(inpatient_records) - len(readmission_events)
 
     # Healthcare calendar: chronic visits + screening for ALL population
-    calendar_events = generate_healthcare_calendar(population, start_y, config.country, rng)
+    calendar_key = f"{config.country}|{start_y:04d}|calendar"
+    calendar_rng = derive_phase_rng(master_seed, PHASE_OUTPATIENT_CAL, calendar_key)
+    calendar_events = generate_healthcare_calendar(
+        population, start_y, config.country, calendar_rng
+    )
     # Filter out events past snapshot date
     if snapshot_dt:
         calendar_events = [
@@ -364,32 +422,60 @@ def run_beta(
             continue
         patient = _activate_cached(person)
 
+        # F1 (session 49): fold disease_id into the key. `generate_healthcare_calendar`
+        # can schedule more than one "health_screening"-type event for the same
+        # person (annual_health_screening / colonoscopy_screening /
+        # mammography_screening all share event_type="health_screening") — if two
+        # of them land on the same calendar date, a key without disease_id would
+        # give them the identical ev_rng stream (same randomized visit minute) and,
+        # combined with the health_screening dispatch below previously hardcoding
+        # the same chief_complaint text for all of them, produced two CIFPatientRecords
+        # with byte-identical (patient, time, complaint) — a true encounter_id
+        # collision (confirmed empirically at p=500: two same-day screenings hashed
+        # to one id, silently aliasing two distinct encounters).
+        ev_key = (
+            f"{event.person_id}|{event.timestamp.isoformat()}"
+            f"|{event.event_type}|{event.disease_id}"
+        )
+        ev_rng = derive_phase_rng(master_seed, PHASE_OUTPATIENT_CAL, ev_key)
+
         visit_time = datetime(event.timestamp.year, event.timestamp.month,
-                              event.timestamp.day, 10, int(rng.integers(0, 45)))
+                              event.timestamp.day, 10, int(ev_rng.integers(0, 45)))
 
         if event.event_type == "chronic_visit":
             spec = followup_data.get(event.disease_id, {})
             # Merge optional labs: quarterly (25% each visit) and annual (8% each visit)
             visit_labs = list(spec.get("labs", []))
             for lab in spec.get("labs_quarterly", []):
-                if rng.random() < 0.25 and lab not in visit_labs:
+                if ev_rng.random() < 0.25 and lab not in visit_labs:
                     visit_labs.append(lab)
             for lab in spec.get("labs_annual", []):
-                if rng.random() < 0.08 and lab not in visit_labs:
+                if ev_rng.random() < 0.08 and lab not in visit_labs:
                     visit_labs.append(lab)
             merged_spec = dict(spec)
             merged_spec["labs"] = visit_labs
             opd_record = _simulate_outpatient_visit(
-                patient, "chronic_followup", visit_time, roster, rng,
+                patient, "chronic_followup", visit_time, roster, ev_rng,
                 chronic_code=event.disease_id, followup_spec=merged_spec,
                 country=config.country, config=config,
             )
         elif event.event_type == "health_screening":
+            # F1 (session 49): visit_reason must vary by disease_id — see the
+            # ev_key comment above. Previously every health_screening dispatch
+            # (annual / colonoscopy / mammography) got the identical hardcoded
+            # "Annual health screening" text regardless of which screening
+            # actually fired, which (combined with a same-day RNG-stream
+            # collision) could produce two indistinguishable encounters for a
+            # single patient's mammography + annual checkup landing on the
+            # same date.
+            screening_reason = _HEALTH_SCREENING_VISIT_REASON.get(
+                event.disease_id, "Annual health screening"
+            )
             opd_record = _simulate_outpatient_visit(
-                patient, "health_screening", visit_time, roster, rng,
-                chronic_code="annual_health_screening",
+                patient, "health_screening", visit_time, roster, ev_rng,
+                chronic_code=event.disease_id or "annual_health_screening",
                 followup_spec={"labs": ["WBC", "Hb", "Glucose", "Creatinine", "AST", "ALT"],
-                               "visit_reason": "Annual health screening"},
+                               "visit_reason": screening_reason},
                 country=config.country, config=config,
             )
         else:
@@ -411,14 +497,20 @@ def run_beta(
     ed_rate = ed_demo.get("rate_per_admitted", 3.0)
     n_ed = int(len(inpatient_records) * ed_rate)
     if ed_conditions and n_ed > 0:
-        for _ in range(n_ed):
-            # Apply seasonal modifiers to probabilities for this visit's month
-            total_months = (end_y - start_y) * 12 + (end_m - start_m) + 1
-            month_offset = int(rng.integers(0, total_months))
+        for slot in range(n_ed):
+            slot_key = f"{config.country}|ed-slot-{slot:06d}"
+            slot_rng = derive_phase_rng(master_seed, PHASE_ED_VISIT, slot_key)
+
+            # Apply seasonal modifiers to probabilities for this visit's month.
+            # F1: use the uncapped raw_end_y/m (see above) so the draw range —
+            # and therefore the sampled value for a given slot — is stable
+            # across cursors; the snapshot filter below still enforces cutoff.
+            total_months = (raw_end_y - start_y) * 12 + (raw_end_m - start_m) + 1
+            month_offset = int(slot_rng.integers(0, total_months))
             visit_month = ((start_m - 1 + month_offset) % 12) + 1
 
             # Select person first (uniform), then filter conditions by their occupation
-            person_id = rng.choice(list(population.persons.keys()))
+            person_id = slot_rng.choice(list(population.persons.keys()))
             person = population.get_person(person_id)
             if not person or not person.is_alive:
                 continue
@@ -443,19 +535,19 @@ def run_beta(
             if total_p <= 0:
                 continue
             ed_probs = [p / total_p for p in ed_probs]
-            cond_idx = int(rng.choice(len(ed_conditions), p=ed_probs))
+            cond_idx = int(slot_rng.choice(len(ed_conditions), p=ed_probs))
             cond_name, cond = ed_conditions[cond_idx]
             # Use the same month that seasonal modifiers were calculated for
             ed_year = start_y + (start_m - 1 + month_offset) // 12
-            ed_day = int(rng.integers(1, 28))
-            ed_hour = int(rng.choice([9, 10, 14, 15, 19, 20, 21, 22]))
-            ed_time = datetime(ed_year, visit_month, ed_day, ed_hour, int(rng.integers(0, 60)))
+            ed_day = int(slot_rng.integers(1, 28))
+            ed_hour = int(slot_rng.choice([9, 10, 14, 15, 19, 20, 21, 22]))
+            ed_time = datetime(ed_year, visit_month, ed_day, ed_hour, int(slot_rng.integers(0, 60)))
             # Skip ED visits past snapshot date
             if snapshot_dt and ed_time > snapshot_dt:
                 continue
 
             ed_record = _simulate_ed_visit(
-                patient, cond, ed_time, roster, rng, country=config.country, config=config,
+                patient, cond, ed_time, roster, slot_rng, country=config.country, config=config,
             )
             patient_records.append(ed_record)
         print(f"  ED visits (not admitted): {n_ed} generated", flush=True)

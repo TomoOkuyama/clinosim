@@ -557,7 +557,27 @@ def generate_healthcare_calendar(
     from clinosim.locale.loader import load_chronic_followup
     followup_data = load_chronic_followup()
 
-    for person in registry.persons.values():
+    # F1 (session 49): spawn one independent child generator per person instead
+    # of consuming a single shared stream sequentially across the whole
+    # population. Each person's own draw *count* varies with their own
+    # age/sex/chronic_conditions (e.g. whether the flu-vaccination /
+    # colonoscopy / mammography branches below draw at all), so with a single
+    # shared stream, any change to ONE person's state shifts every
+    # later-iterated person's stream position — cascading a change for one
+    # patient into completely unrelated patients' calendar schedules. This
+    # is the same AD-16 defect class the F1 phase-rng work fixes in
+    # engine.py's own phases, just living one level deeper inside this
+    # function. `Generator.spawn(n)` allocates independent, position-keyed
+    # child streams up front (verified independent of how many draws the
+    # parent made before spawning), so each person's calendar is stable
+    # regardless of what happens to anyone else. Iteration order over
+    # `registry.persons` is itself already stable and cursor-independent
+    # (population generation doesn't depend on snapshot_date), so per-
+    # position spawning is sufficient for cross-cursor determinism.
+    persons = list(registry.persons.values())
+    person_rngs = rng.spawn(len(persons)) if persons else []
+
+    for person, prng in zip(persons, person_rngs):
         if not person.is_alive:
             continue
 
@@ -581,10 +601,10 @@ def generate_healthcare_calendar(
         max_visits = min(12 // shortest_interval, 6)
         primary_code = conditions_with_spec[0][0]  # main condition for the visit
 
-        month = int(rng.integers(1, min(shortest_interval + 1, 4)))
+        month = int(prng.integers(1, min(shortest_interval + 1, 4)))
         visit_count = 0
         while month <= 12 and visit_count < max_visits:
-            visit_date = date(year, month, int(rng.integers(1, 28)))
+            visit_date = date(year, month, int(prng.integers(1, 28)))
             events.append(LifeEvent(
                 person_id=person.person_id,
                 event_type="chronic_visit",
@@ -600,8 +620,8 @@ def generate_healthcare_calendar(
 
         # --- Annual health screening (age 40+) ---
         if person.age >= 40:
-            screening_month = int(rng.integers(4, 11))
-            screening_date = date(year, screening_month, int(rng.integers(1, 28)))
+            screening_month = int(prng.integers(4, 11))
+            screening_date = date(year, screening_month, int(prng.integers(1, 28)))
             events.append(LifeEvent(
                 person_id=person.person_id,
                 event_type="health_screening",
@@ -615,12 +635,12 @@ def generate_healthcare_calendar(
 
         # --- Flu vaccination (age 65+ or chronic conditions, Oct-Dec) ---
         if person.age >= 65 or len(person.chronic_conditions) >= 2:
-            if rng.random() < 0.5:  # ~50% vaccination rate
-                vax_month = int(rng.choice([10, 11, 12]))
+            if prng.random() < 0.5:  # ~50% vaccination rate
+                vax_month = int(prng.choice([10, 11, 12]))
                 events.append(LifeEvent(
                     person_id=person.person_id,
                     event_type="chronic_visit",
-                    timestamp=date(year, vax_month, int(rng.integers(1, 28))),
+                    timestamp=date(year, vax_month, int(prng.integers(1, 28))),
                     severity=0.0,
                     condition_type="screening",
                     disease_id="flu_vaccination",
@@ -629,11 +649,11 @@ def generate_healthcare_calendar(
                 ))
 
         # --- Colonoscopy screening (age 50+, every 10 years → ~10% per year) ---
-        if person.age >= 50 and rng.random() < 0.08:
+        if person.age >= 50 and prng.random() < 0.08:
             events.append(LifeEvent(
                 person_id=person.person_id,
                 event_type="health_screening",
-                timestamp=date(year, int(rng.integers(1, 13)), int(rng.integers(1, 28))),
+                timestamp=date(year, int(prng.integers(1, 13)), int(prng.integers(1, 28))),
                 severity=0.0,
                 condition_type="screening",
                 disease_id="colonoscopy_screening",
@@ -642,11 +662,11 @@ def generate_healthcare_calendar(
             ))
 
         # --- Mammography screening (women 40+, annual → ~60% participation) ---
-        if person.sex == "F" and person.age >= 40 and rng.random() < 0.4:
+        if person.sex == "F" and person.age >= 40 and prng.random() < 0.4:
             events.append(LifeEvent(
                 person_id=person.person_id,
                 event_type="health_screening",
-                timestamp=date(year, int(rng.integers(1, 13)), int(rng.integers(1, 28))),
+                timestamp=date(year, int(prng.integers(1, 13)), int(prng.integers(1, 28))),
                 severity=0.0,
                 condition_type="screening",
                 disease_id="mammography_screening",
@@ -655,11 +675,11 @@ def generate_healthcare_calendar(
             ))
 
         # --- Diabetic retinopathy screening (DM patients, annual) ---
-        if "E11.9" in person.chronic_conditions and rng.random() < 0.6:
+        if "E11.9" in person.chronic_conditions and prng.random() < 0.6:
             events.append(LifeEvent(
                 person_id=person.person_id,
                 event_type="chronic_visit",
-                timestamp=date(year, int(rng.integers(1, 13)), int(rng.integers(1, 28))),
+                timestamp=date(year, int(prng.integers(1, 13)), int(prng.integers(1, 28))),
                 severity=0.0,
                 condition_type="screening",
                 disease_id="diabetic_retinopathy_screening",

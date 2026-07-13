@@ -1,7 +1,7 @@
 {
-  "doc-ENC-FORCED-0001-000001-01": {
-    "document_id": "doc-ENC-FORCED-0001-000001-01",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-01": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-01",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "disease_protocol.chief_complaint.ja",
@@ -34,9 +34,9 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-000001-02": {
-    "document_id": "doc-ENC-FORCED-0001-000001-02",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-02": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-02",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "physical_exam_findings.dip_then_recovery.day_0",
@@ -55,9 +55,9 @@
       "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
     }
   },
-  "doc-ENC-FORCED-0001-000001-03": {
-    "document_id": "doc-ENC-FORCED-0001-000001-03",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-03": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-03",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "physical_exam_findings.dip_then_recovery.day_1",
@@ -76,9 +76,9 @@
       "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
     }
   },
-  "doc-ENC-FORCED-0001-000001-04": {
-    "document_id": "doc-ENC-FORCED-0001-000001-04",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-04": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-04",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "physical_exam_findings.dip_then_recovery.day_2",
@@ -97,9 +97,9 @@
       "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数軽度上昇。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 経過観察中\nP（計画） 治療継続"
     }
   },
-  "doc-ENC-FORCED-0001-000001-05": {
-    "document_id": "doc-ENC-FORCED-0001-000001-05",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-05": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-05",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "physical_exam_findings.dip_then_recovery.day_3",
@@ -118,9 +118,9 @@
       "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） 経過観察中\nP（計画） 治療継続"
     }
   },
-  "doc-ENC-FORCED-0001-000001-06": {
-    "document_id": "doc-ENC-FORCED-0001-000001-06",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-06": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-06",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "physical_exam_findings.dip_then_recovery.day_4",
@@ -139,9 +139,9 @@
       "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） 経過観察中\nP（計画） 治療継続"
     }
   },
-  "doc-ENC-FORCED-0001-000001-07": {
-    "document_id": "doc-ENC-FORCED-0001-000001-07",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-07": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-07",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "physical_exam_findings.dip_then_recovery.day_5",
@@ -160,9 +160,9 @@
       "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） 経過観察中\nP（計画） 治療継続"
     }
   },
-  "doc-ENC-FORCED-0001-000001-08": {
-    "document_id": "doc-ENC-FORCED-0001-000001-08",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-08": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-08",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "physical_exam_findings.dip_then_recovery.day_6",
@@ -181,9 +181,9 @@
       "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） 経過観察中\nP（計画） 治療継続"
     }
   },
-  "doc-ENC-FORCED-0001-000001-09": {
-    "document_id": "doc-ENC-FORCED-0001-000001-09",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-09": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-09",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "physical_exam_findings.dip_then_recovery.day_7",
@@ -202,9 +202,9 @@
       "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 経過観察中\nP（計画） 治療継続"
     }
   },
-  "doc-ENC-FORCED-0001-000001-10": {
-    "document_id": "doc-ENC-FORCED-0001-000001-10",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-10": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-10",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "physical_exam_findings.dip_then_recovery.day_8",
@@ -223,9 +223,9 @@
       "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 経過観察中\nP（計画） 治療継続"
     }
   },
-  "doc-ENC-FORCED-0001-000001-11": {
-    "document_id": "doc-ENC-FORCED-0001-000001-11",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-11": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-11",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "physical_exam_findings.dip_then_recovery.day_9",
@@ -244,17 +244,17 @@
       "text": "S（主観） 特記事項なし\nO（客観） 特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 経過観察中\nP（計画） 治療継続"
     }
   },
-  "doc-ENC-FORCED-0001-000001-12": {
-    "document_id": "doc-ENC-FORCED-0001-000001-12",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-12": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-12",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
-        "disease_protocol.chief_complaint.ja",
+        "ctx.diagnoses[0].admission_diagnosis_code",
+        "ctx.encounter.admission_datetime",
         "ctx.diagnoses",
-        "ctx.discharge_medications",
-        "discharge_instructions.baseline",
-        "discharge_instructions.disease_specific.copd_exacerbation",
-        "discharge_instructions.follow_up"
+        "disease_protocol.chief_complaint.ja",
+        "disease_protocol.narrative.hpi_template.onset_pattern.moderate",
+        "disease_protocol.narrative.hpi_template.trigger_options[0]"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -263,20 +263,19 @@
         "lang": "ja"
       },
       "sections": {
-        "admission_summary": "主訴: 呼吸困難増悪・喀痰増加・喘鳴。入院日: 1 日目現在。",
-        "discharge_diagnoses": "COPD急性増悪（J44.1）",
-        "discharge_instructions": "[Mock LLM response #4]\nModel: mock\nFirst prompt line: Section: discharge_instructions",
-        "discharge_medications": "Prednisolone; Amoxicillin/Clavulanate",
-        "follow_up": "退院後 1-2 週間以内に外来受診をお願いします。",
-        "hospital_course": "[Mock LLM response #3]\nModel: mock\nFirst prompt line: Section: hospital_course"
+        "admission_details": "2024-06-15に入院した。",
+        "admission_diagnoses": "1. COPD急性増悪（J44.1）",
+        "admission_reason": "COPD急性増悪のため入院となった。",
+        "chief_complaint": "呼吸困難増悪・喀痰増加・喘鳴",
+        "present_illness": "[Mock LLM response #3]\nModel: mock\nFirst prompt line: Section: present_illness"
       },
       "structured": {},
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-000001-13": {
-    "document_id": "doc-ENC-FORCED-0001-000001-13",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-13": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-13",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [],
       "generated_at": "2020-01-01T00:00:42Z",
@@ -296,9 +295,9 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-000001-14-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-14-night",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-14-night": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-14-night",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -318,9 +317,9 @@
       "text": "【看護記録(深夜)】 入院 1 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-15-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-15-day",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-15-day": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-15-day",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -340,9 +339,9 @@
       "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-16-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-16-evening",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-16-evening": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-16-evening",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -362,9 +361,9 @@
       "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-17-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-17-night",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-17-night": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-17-night",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -384,9 +383,9 @@
       "text": "【看護記録(深夜)】 入院 2 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-18-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-18-day",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-18-day": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-18-day",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -406,9 +405,9 @@
       "text": "【看護記録(日勤)】 入院 2 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-19-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-19-evening",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-19-evening": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-19-evening",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -428,9 +427,9 @@
       "text": "【看護記録(準夜)】 入院 2 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-20-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-20-night",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-20-night": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-20-night",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -450,9 +449,9 @@
       "text": "【看護記録(深夜)】 入院 3 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-21-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-21-day",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-21-day": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-21-day",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -472,9 +471,9 @@
       "text": "【看護記録(日勤)】 入院 3 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-22-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-22-evening",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-22-evening": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-22-evening",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -494,9 +493,9 @@
       "text": "【看護記録(準夜)】 入院 3 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-23-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-23-night",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-23-night": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-23-night",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -516,9 +515,9 @@
       "text": "【看護記録(深夜)】 入院 4 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-24-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-24-day",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-24-day": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-24-day",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -538,9 +537,9 @@
       "text": "【看護記録(日勤)】 入院 4 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-25-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-25-evening",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-25-evening": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-25-evening",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -560,9 +559,9 @@
       "text": "【看護記録(準夜)】 入院 4 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-26-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-26-night",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-26-night": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-26-night",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -582,9 +581,9 @@
       "text": "【看護記録(深夜)】 入院 5 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-27-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-27-day",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-27-day": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-27-day",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -604,9 +603,9 @@
       "text": "【看護記録(日勤)】 入院 5 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-28-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-28-evening",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-28-evening": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-28-evening",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -626,9 +625,9 @@
       "text": "【看護記録(準夜)】 入院 5 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-29-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-29-night",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-29-night": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-29-night",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -648,9 +647,9 @@
       "text": "【看護記録(深夜)】 入院 6 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-30-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-30-day",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-30-day": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-30-day",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -670,9 +669,9 @@
       "text": "【看護記録(日勤)】 入院 6 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-31-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-31-evening",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-31-evening": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-31-evening",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -692,9 +691,9 @@
       "text": "【看護記録(準夜)】 入院 6 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-32-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-32-night",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-32-night": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-32-night",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -714,9 +713,9 @@
       "text": "【看護記録(深夜)】 入院 7 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-33-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-33-day",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-33-day": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-33-day",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -736,9 +735,9 @@
       "text": "【看護記録(日勤)】 入院 7 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-34-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-34-evening",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-34-evening": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-34-evening",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -758,9 +757,9 @@
       "text": "【看護記録(準夜)】 入院 7 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-35-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-35-night",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-35-night": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-35-night",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -780,9 +779,9 @@
       "text": "【看護記録(深夜)】 入院 8 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-36-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-36-day",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-36-day": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-36-day",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -802,9 +801,9 @@
       "text": "【看護記録(日勤)】 入院 8 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-37-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-37-evening",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-37-evening": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-37-evening",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -824,9 +823,9 @@
       "text": "【看護記録(準夜)】 入院 8 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-38-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-38-night",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-38-night": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-38-night",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -846,9 +845,9 @@
       "text": "【看護記録(深夜)】 入院 9 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-39-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-39-day",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-39-day": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-39-day",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -868,9 +867,9 @@
       "text": "【看護記録(日勤)】 入院 9 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-40-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-40-evening",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-40-evening": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-40-evening",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -890,9 +889,9 @@
       "text": "【看護記録(準夜)】 入院 9 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-41-night": {
-    "document_id": "doc-ENC-FORCED-0001-000001-41-night",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-41-night": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-41-night",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -912,9 +911,9 @@
       "text": "【看護記録(深夜)】 入院 10 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-42-day": {
-    "document_id": "doc-ENC-FORCED-0001-000001-42-day",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-42-day": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-42-day",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -934,9 +933,9 @@
       "text": "【看護記録(日勤)】 入院 10 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-43-evening": {
-    "document_id": "doc-ENC-FORCED-0001-000001-43-evening",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-43-evening": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-43-evening",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.shift",
@@ -956,9 +955,9 @@
       "text": "【看護記録(準夜)】 入院 10 日目 / 入院予定 10 日間\n患者状態：バイタルサイン安定。観察・ケア継続。\n特記事項：特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-000001-44": {
-    "document_id": "doc-ENC-FORCED-0001-000001-44",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-44": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-44",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "ctx.los_days"
@@ -979,9 +978,9 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-000001-45": {
-    "document_id": "doc-ENC-FORCED-0001-000001-45",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-45": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-45",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "encounter.ward_id",
@@ -1012,9 +1011,9 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-000001-46": {
-    "document_id": "doc-ENC-FORCED-0001-000001-46",
-    "encounter_id": "ENC-FORCED-0001-000001",
+  "doc-ENC-FORCED-0001-196709175376-46": {
+    "document_id": "doc-ENC-FORCED-0001-196709175376-46",
+    "encounter_id": "ENC-FORCED-0001-196709175376",
     "narrative": {
       "facts_used": [
         "encounter.ward_id",

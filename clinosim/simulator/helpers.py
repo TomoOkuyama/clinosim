@@ -195,7 +195,21 @@ def _evaluate_readmission(
     if rng.random() >= rate:
         return None
 
-    discharge_date = person.last_discharge_date
+    # F1 (session 49): anchor to *this record's own* discharge/encounter, not
+    # person.last_discharge_date / person.last_encounter_id. Those two fields
+    # are mutated in-place by `_deactivate_to_layer1` after EVERY admission a
+    # patient has, so by the time the post-loop readmission pass reaches a
+    # patient with 2+ admissions, "last" reflects whichever admission was
+    # processed most recently — not the specific `record` this call is
+    # evaluating. That silently anchored a readmission chain stemming from an
+    # EARLIER admission to a LATER admission's discharge date (pre-existing
+    # bug, independent of cursor — confirmed to also occur within a single
+    # run_beta() call). Cross-cursor testing surfaced it because a longer
+    # snapshot cursor can give a patient an *additional* later admission,
+    # which retroactively changed an earlier admission's computed readmission
+    # date depending on how many months of life events had been generated.
+    enc = record.encounters[0] if record.encounters else None
+    discharge_date = enc.discharge_datetime.date() if enc and enc.discharge_datetime else None
     if not discharge_date:
         return None
 
@@ -217,7 +231,7 @@ def _evaluate_readmission(
         requires_hospital=True,
         condition_type="known_disease",
         is_readmission=True,
-        prior_encounter_id=person.last_encounter_id,
+        prior_encounter_id=enc.encounter_id if enc else None,
         readmission_number=(record.readmission_number or 0) + 1,
     )
 
