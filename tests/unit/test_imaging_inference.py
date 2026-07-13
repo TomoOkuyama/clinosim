@@ -70,6 +70,35 @@ class TestInferImagingMetadata:
         assert infer_imaging_metadata("head ct") is not None
         assert infer_imaging_metadata("HEAD CT") is not None
 
+    def test_underscore_separated_forms(self):
+        """session 48 cycle 8 拡張:simulator が生成する `_` 区切り display_name。"""
+        from clinosim.modules.imaging.inference import infer_imaging_metadata
+        assert infer_imaging_metadata("Chest_Xray_PA") is not None
+        assert infer_imaging_metadata("CT_Head") is not None
+        assert infer_imaging_metadata("CT_abdomen_pelvis") is not None
+        assert infer_imaging_metadata("CT_abdomen_pelvis_with_contrast") is not None
+        assert infer_imaging_metadata("CT_head_noncontrast") is not None
+        assert infer_imaging_metadata("CT_head_noncontrast_stat") is not None
+        assert infer_imaging_metadata("MRI_brain_DWI") is not None
+        assert infer_imaging_metadata("MRA_intracranial") is not None
+        assert infer_imaging_metadata("Renal_ultrasound") is not None
+        assert infer_imaging_metadata("Carotid_ultrasound") is not None
+        assert infer_imaging_metadata("Echocardiogram") is not None
+        assert infer_imaging_metadata("Echocardiography_TTE") is not None
+        assert infer_imaging_metadata("Ankle_Xray") is not None
+        assert infer_imaging_metadata("Shoulder_Xray_AP_Lateral") is not None
+        assert infer_imaging_metadata("Cervical_Spine_Xray") is not None
+        assert infer_imaging_metadata("Wrist_Xray_AP_Lateral") is not None
+        assert infer_imaging_metadata("Xray_Affected_Area") is not None
+
+    def test_ecg_and_angiography_correctly_fall_to_stub(self):
+        """ECG は electrocardiogram(non-imaging)、Coronary_angiography は XA
+        modality 未登録。両者 stub 落ちが正しい挙動。"""
+        from clinosim.modules.imaging.inference import infer_imaging_metadata
+        assert infer_imaging_metadata("ECG") is None
+        assert infer_imaging_metadata("ECG_12lead") is None
+        assert infer_imaging_metadata("Coronary_angiography") is None
+
 
 @pytest.mark.unit
 class TestEnricherInferencePath:
