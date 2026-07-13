@@ -429,6 +429,10 @@ def _build_imaging_sr(order: Any, lang: str, country: str) -> dict[str, Any]:
         # CY7-01 (Chain-7): imaging SR.performer — requester fallback (no
         # distinct radiology-tech assignment in the roster model).
         sr["performer"] = [{"reference": f"Practitioner/{ordered_by}"}]
+    else:
+        # cycle 8 cross-seed verify fix (CY7-01 regression): ordered_by 未設定
+        # SR にも hospital-main を performer fallback として emit。
+        sr["performer"] = [{"reference": "Organization/hospital-main"}]
     clinical_intent = _o(order, "clinical_intent", "")
     if clinical_intent:
         sr["reasonCode"] = [{"text": clinical_intent}]
@@ -646,6 +650,10 @@ def _build_sr_skeleton(
         # ordering physician here when the fulfilling department has not yet
         # assigned an executor. Mirrors the C4-17 attending-fallback pattern.
         sr["performer"] = [{"reference": f"Practitioner/{ordered_by}"}]
+    else:
+        # cycle 8 cross-seed verify fix (CY7-01 regression): 健診 panel SR 等
+        # ordered_by 未指定 SR にも performer を hospital-main で fallback。
+        sr["performer"] = [{"reference": "Organization/hospital-main"}]
     clinical_intent = _o(anchor, "clinical_intent", "")
     if clinical_intent:
         sr["reasonCode"] = [{"text": clinical_intent}]

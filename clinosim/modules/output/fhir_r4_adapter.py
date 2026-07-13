@@ -359,6 +359,16 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
                 }]
             if _chief:
                 _ed_resource["reasonCode"] = [{"text": _chief}]
+            # cycle 8 cross-seed verify fix (CY7-06 regression): ED synth
+            # encounter に priority を emit(実運用では ED は emergency = "EM"、
+            # ここでは実 IMP と同じ priority CodeableConcept 形状で "EM" 固定)。
+            _ed_resource["priority"] = {
+                "coding": [{
+                    "system": get_system_uri("hl7-v3-actpriority"),
+                    "code": "EM",
+                    "display": "緊急" if str(ctx.country).upper() == "JP" else "emergency",
+                }],
+            }
             _ed_resource["hospitalization"] = {
                 "admitSource": {
                     "coding": [{
