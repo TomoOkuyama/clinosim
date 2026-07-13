@@ -1,8 +1,51 @@
 # clinosim — TODO
 
-## Status (2026-07-13, **★★★ session 48 CLOSED — 21 commits push、次 session 49 は 案 B incremental cron phase A**)
+## Status (2026-07-14, **★★★ session 49 CLOSED — incremental snapshot chain F1+F2+F3+F4 12 commits landed**)
 
-**master HEAD**: `038543aad9` (FB verify 27/27 PASS)
+**master HEAD**: `2dd7101bf4` (final review fix: mypy strict + F4 CLI)
+
+### Session 49 成果(spec + plan + 9 実装 task + final review fix = 12 commits direct-master)
+
+| Layer | 内容 |
+|---|---|
+| Spec | `docs/superpowers/specs/2026-07-13-incremental-snapshot-diff-design.md`(F1+F2+F3+F4、user 3 段 clarify で「大掛かりな state module 不要 = 運用でカバー」に着地) |
+| Plan | `docs/superpowers/plans/2026-07-13-incremental-snapshot-diff.md`(9 task 3 PR chain、subagent-driven-development で執行) |
+| **F1** cross-cursor RNG determinism | `simulator/seeding.py` に PHASE_* 定数 5 種 + `derive_phase_rng` + `engine.py` 4 phase を per-key sub-seed 化。cursor A/B 共有区間の record が bit-identical に。副次的に `modules/encounter/engine.py` の `_encounter_counter` global → 12桁 hash-derived suffix、`modules/population/generate_healthcare_calendar` を `rng.spawn(len(persons))` per-person 化、`simulator/helpers.py::_evaluate_readmission` の pre-existing `person.last_discharge_date` bug 修正(record.encounters[0] に anchor)。 |
+| **F2** NDJSON id sort | `modules/output/fhir_r4_adapter.py` の write 後 in-place sort。行 diff friendly、cursor 依存 iteration 順排除。 |
+| **F3** diff CLI | 新規 `simulator/diff.py`(`canonical_hash` meta.lastUpdated/versionId/source strip / `classify_resources` 3-state / `load_ndjson_by_id` / `build_diff_bundle` FHIR R4 Bundle transaction / `format_summary`)+ `clinosim diff` subcommand。 |
+| **F4** snapshot memoize | 新規 `simulator/memoize.py`(`CacheManifest` + `compute_config_hash` snapshot_date + time_range[1] 除外 + `write/read_cache_manifest` + `is_cache_valid` + `eligible_patient_ids` + `load_patient_records_from_cif`)+ `engine.py::run_beta(cache_dir=...)` + `simulate --cache-dir` CLI flag。cache hit patient は cold run と bit-identical、p=500k advance が 15-16h → 数分に。 |
+| e2e | `tests/integration/test_incremental_snapshot_workflow.py`:cursor A snapshot → memoize cursor B → diff CLI → Bundle transaction 検証。 |
+| Final review fix | 2 Important 検出+修正:`seeding.py` の mypy strict(TYPE_CHECKING import)+ F4 CLI 未公開(`--cache-dir` flag + `compute_config_hash` の time_range[1] 除外)。 |
+
+### Session 49 テスト状態
+
+- **Unit: 2687 PASS**、4 pre-existing session 48 stale failures(imaging inference / TZ / panel_grouping)は F1-F4 と独立(follow-up)
+- **F1 invariant**(`test_cross_cursor_shared_window_byte_identical`)PASS
+- **F2 invariant**(`test_ndjson_files_id_sorted`)PASS
+- **F3**:16 unit + 1 CLI smoke test PASS
+- **F4**:17 test(config hash / manifest I/O / is_cache_valid / eligibility / memoize hit-bit-identical / config-change-invalidates / hit-ratio-realistic)PASS
+- **e2e**:F1+F2+F3+F4 統合 workflow PASS(3.67s)
+- **Regression** (AD-66) 12/12 PASS
+- **reproduce.sh** PASS: US 105 + JP 72 files byte-identical (seed=42, pop=30)
+
+### Session 49 で発見された defect(design が想定していなかった 3 sibling)
+
+F1 の cross-cursor invariant を書いてみて初めて発覚:
+1. `_encounter_counter` module-global counter → hash-derived 12桁 suffix(patient_id + admission + chief_complaint + department + visit_number)
+2. `generate_healthcare_calendar` の single shared RNG stream 逐次消費 → per-person `rng.spawn(n)`
+3. `_evaluate_readmission` の pre-existing bug(`person.last_discharge_date` が最新 admission に上書きされ、earlier admission の readmission が later admission の discharge に anchor される)→ `record.encounters[0].discharge_datetime` に直接 anchor
+
+### Session 49 で明示的に非目標にした後続 backlog
+
+- OAuth2 / SMART on FHIR auth for `clinosim diff` bundle push(Phase B)
+- Bulk Data `$import` 対応(Phase B)
+- retry queue の robust 化(Phase B)
+- 実 FHIR server に対する CI smoke test(Phase B)
+- schema evolution / migration path(Phase B)
+- parallel simulation(multiprocessing)による更なる高速化(Phase B)
+- pre-existing 4 stale test の更新(session 48 imaging inference + TZ 正規化 で残置。F1-F4 とは独立に対応)
+
+### Session 48 主要成果(21 commits direct-master)
 
 ### Session 48 主要成果(21 commits direct-master)
 
