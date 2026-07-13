@@ -1,5 +1,59 @@
 # clinosim — TODO
 
+## Status (2026-07-13, **★★★ session 48 CLOSED — 21 commits push、次 session 49 は 案 B incremental cron phase A**)
+
+**master HEAD**: `038543aad9` (FB verify 27/27 PASS)
+
+### Session 48 主要成果(21 commits direct-master)
+
+| Chain | 内容 |
+|---|---|
+| (d) sub-PR-B 高度化 | 健診 5 項目個別化 |
+| (e) sub-PR-C 高度化 | SHA256 pin + CI auto-fail gate |
+| (f) sub-PR-E | JP-eCheckup DocumentReference wrapper |
+| (g) Deferred cleanup 3 | `_JP_CORE_PROFILES` shape / CLI simulate / typed order views |
+| (b) P2-14 | add-your-country ガイド + `_template` scaffold |
+| (c) P2-15 | benchmark harness(sepsis + AKI 予測) |
+| **Cycle 8 audit** | 30 findings 全解消(24 at 100% + 5 by-design + 1 registered) |
+| Cross-seed verify | seed=100/200/201 3 独立 cohort で invariant 保持 |
+| Triple-seed review | 臨床 + 統計整合性検証 |
+| **CIF-VS-FHIR-01** | imaging silent-drop ratio 0.22 → **1.00** 完全解消 |
+| **iris4h-ai FB-F1..F8** | HAPI FHIR JP Core validator feedback 8 系統 27/27 PASS |
+| by-design registry | 21 → **25 entries**(4 new + 1 retired) |
+
+### 最終テスト状態
+
+- **Unit: 1733 PASS**、regression 0
+- **reproduce.sh: PASS**(US 272 + JP 193 files byte-identical)
+- **FB verify: 27/27 PASS**
+- **Cross-seed(42/100/200/201)**: 全 invariant 保持
+- Regen baseline: JP p=10000 = **15-16 分**(darwin 25.3.0, py 3.12.7)
+
+### Session 49 で開始:案 B incremental cron 実装 phase A
+
+**目的**:cron で日次追記可能な構造への refactor。「一度生成した FHIR/CIF に新規データを追記する」運用を実現。
+
+**Phase A スコープ**(1 session):
+- `clinosim/state/` module 新設
+- `PhysiologicalState / WorldState / HospitalState / PatientState` の JSON serialize
+- RNG state を base64-encoded getstate/setstate で復元
+- `run_beta` を state-machine 分解(`initialize` + `advance(days=1)` + `emit`)
+- state file schema:`world.json / hospital.json / patients/<pid>.json`
+
+**Phase B..F 概略**(subsequent sessions):
+- B: `clinosim advance` CLI subcommand + journal.log idempotency
+- C: FHIR NDJSON append-only 保証(既存 resource id 衝突検出)
+- D: batch=incremental golden test(AD-16 決定性の最終 gate)
+- E: cron 実運用 doc(lock file、schema migration path)
+- F: schema evolution + storage optimization(per-patient gzip)
+
+**設計 memo**:
+- 案 B 選択理由:AD-17/30/56 準拠、numpy Generator pickle 可、cron 親和性、schema 進化容易
+- 却下:案 A(monolithic pickle、opaque)/ 案 C(CIF が state 兼務 = AD-30 違反)/ 案 D(event-sourcing、schema 複雑)
+- **7 主要 challenge**:RNG state format / idempotency / batch=incremental 決定性 / schema evolution / storage cost / AD-32 snapshot redefinition / resource id conflict
+
+---
+
 ## Status (2026-07-13, **★ session 48 IN-PROGRESS — bcdefg 順消化開始**)
 
 **Session 48 開始状態(順序 d → e → f → g → b → c、d 完了)**:
