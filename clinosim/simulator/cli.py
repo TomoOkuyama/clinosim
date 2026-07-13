@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 from datetime import datetime
@@ -263,6 +264,22 @@ def main() -> None:
         help="Output directory (required when --format is set)",
     )
 
+    # === diff: F3 snapshot diff → Bundle transaction (session 49) ===
+    df = sub.add_parser(
+        "diff",
+        help="Generate FHIR Bundle transaction from 2 snapshot outputs (session 49 F3)",
+    )
+    df.add_argument("--old", required=True, help="前 snapshot の FHIR output directory")
+    df.add_argument("--new", required=True, help="現 snapshot の FHIR output directory")
+    df.add_argument("--output-bundle", required=True,
+                    help="Bundle transaction JSON の出力 path")
+    df.add_argument("--output-summary", default=None,
+                    help="Summary text の出力 path (省略時は stdout)")
+    df.add_argument("--old-cursor", default=None,
+                    help="前 snapshot の cursor 日付(summary 表示用、省略時は --old dir 名)")
+    df.add_argument("--new-cursor", default=None,
+                    help="現 snapshot の cursor 日付(summary 表示用、省略時は --new dir 名)")
+
     # === regenerate-goldens: AD-66 α-min-2c golden narrative bootstrap ===
     rg = sub.add_parser(
         "regenerate-goldens",
@@ -416,6 +433,38 @@ def main() -> None:
         if args.format and not args.output:
             parser.error("--format requires -o/--output to be set")
         _run_test_encounter(args)
+        return
+
+    if args.command == "diff":
+        from datetime import datetime
+        from pathlib import Path
+
+        from clinosim.simulator.diff import build_diff_bundle, format_summary
+
+        old_dir = Path(args.old)
+        new_dir = Path(args.new)
+        bundle_path = Path(args.output_bundle)
+
+        old_cursor = args.old_cursor or old_dir.name
+        new_cursor = args.new_cursor or new_dir.name
+
+        bundle_id = f"clinosim-diff-{old_cursor}-to-{new_cursor}"
+        last_updated = datetime.now().isoformat(timespec="seconds")
+
+        bundle = build_diff_bundle(old_dir, new_dir, bundle_id, last_updated)
+        bundle_path.parent.mkdir(parents=True, exist_ok=True)
+        bundle_path.write_text(
+            json.dumps(bundle, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+        summary = format_summary(bundle, old_cursor, new_cursor)
+        if args.output_summary:
+            summary_path = Path(args.output_summary)
+            summary_path.parent.mkdir(parents=True, exist_ok=True)
+            summary_path.write_text(summary, encoding="utf-8")
+        else:
+            print(summary)
         return
 
     if args.command == "test-disease":
