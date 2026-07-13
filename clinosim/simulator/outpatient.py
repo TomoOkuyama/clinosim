@@ -72,7 +72,7 @@ def _simulate_outpatient_visit(
     encounter = create_inpatient_encounter(
         patient.patient_id, visit_date,
         chief_complaint=chief,
-        visit_number=0,  # ignored — global counter used
+        visit_number=0,  # constant — id disambiguated by patient_id + visit_date hash (F1)
     )
     encounter.encounter_type = EncounterType.OUTPATIENT
     encounter.status = EncounterStatus.COMPLETED
