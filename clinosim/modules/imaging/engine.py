@@ -498,6 +498,15 @@ def imaging_enricher(ctx: Any) -> None:
                     stub_only = True
             body_site_key = _body_site_key_from_snomed(body_site_snomed) if body_site_snomed else ""
 
+            # case D fix: inferred metadata が modalities.yaml validation を通らない
+            # 場合(例:US + chest = Echocardiogram、modalities.yaml では US body_site
+            # に chest が未登録)は stub 落ちさせる。
+            if not stub_only and modality and body_site_key:
+                try:
+                    _test_series = _expand_views_to_series(modality, body_site_key, views, rng)
+                except (ValueError, KeyError):
+                    stub_only = True
+
             # stub-only path: build minimum spec-valid ImagingStudy (no series /
             # modality unknown / description = display_name)。JP Core ImagingStudy
             # は series / modality を required にしていないため spec 適合。
@@ -536,20 +545,27 @@ def imaging_enricher(ctx: Any) -> None:
             abnormal_rate: dict[str, float] = spec_meta.get("abnormal_rate_by_severity", {})
             contrast: bool = bool(spec_meta.get("contrast", False))
 
-            _variant, template = _select_report_template(
-                disease_id, modality, body_site_key, severity, abnormal_rate, rng,
-            )
-
-            encounter_id: str = _o(order, "encounter_id", "") or ""
-            report = RadiologyReport(
-                report_id=f"{RADIOLOGY_REPORT_ID_PREFIX}{encounter_id}-{idx}",
-                status="final",
-                findings_text=template["findings_en"],
-                findings_text_ja=template["findings_ja"],
-                impression_text=template["impression_en"],
-                impression_text_ja=template["impression_ja"],
-                # findings_codes: forward-compat slot — PR1 leaves empty.
-            )
+            # case D fix: template lookup が失敗した場合(disease_id 空 + 未登録
+            # modality_body_site 組合わせ、ED / unknown_condition path)は
+            # study のみ emit(report=None)、silent-drop よりは意味を保つ。
+            try:
+                _variant, template = _select_report_template(
+                    disease_id, modality, body_site_key, severity, abnormal_rate, rng,
+                )
+                encounter_id: str = _o(order, "encounter_id", "") or ""
+                report = RadiologyReport(
+                    report_id=f"{RADIOLOGY_REPORT_ID_PREFIX}{encounter_id}-{idx}",
+                    status="final",
+                    findings_text=template["findings_en"],
+                    findings_text_ja=template["findings_ja"],
+                    impression_text=template["impression_en"],
+                    impression_text_ja=template["impression_ja"],
+                    # findings_codes: forward-compat slot — PR1 leaves empty.
+                )
+            except ValueError:
+                # template 未登録 → report=None、study はそのまま emit
+                encounter_id: str = _o(order, "encounter_id", "") or ""
+                report = None
 
             study = ImagingStudyRecord(
                 study_id=f"{IMAGING_STUDY_ID_PREFIX}{encounter_id}-{idx}",

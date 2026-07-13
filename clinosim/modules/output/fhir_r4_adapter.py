@@ -809,6 +809,9 @@ def _build_bundle(
             if ctx.country == "JP":
                 _apply_jp_core_profile(resource)
                 _apply_jp_clins_profile(resource)
+            # session 48 feedback FB-F1: 全 emit resource の dateTime / instant
+            # field を single seam で TZ 付与に正規化(builders 個別修正回避)。
+            _normalize_dt_fields(resource)
             entries.append(_entry(resource))
 
     return {
@@ -844,6 +847,66 @@ _JP_CORE_PROFILES: dict[str, list[str]] = {
     # Procedure emissions both carry JP Core conformance.
     "Procedure":              ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"],
 }
+
+
+# session 48 feedback FB-F1: 全 emit resource で dateTime / instant field を
+# TZ 付与に正規化する post-emit normalization pass。builders 個別修正の代替。
+# 対象 field は FHIR R4 で dateTime / instant 型を持つ known-name 一覧。
+_DATETIME_FIELDS = frozenset((
+    # top-level dateTime
+    "authoredOn", "effectiveDateTime", "performedDateTime", "date",
+    "started", "receivedTime", "recordedDate", "onsetDateTime",
+    "occurrenceDateTime", "abatementDateTime", "assertedDate",
+    "authored", "assertedDateTime",
+    "collectedDateTime",  # Specimen.collection.collectedDateTime (nested)
+    "time",  # attester.time / Provenance.recorded など
+    # instant type
+    "issued", "recorded", "createdOn", "sent", "lastUpdated",
+))
+_PERIOD_FIELDS = frozenset(("start", "end"))
+# instant 型 field(秒精度+TZ 必須)
+_INSTANT_FIELDS = frozenset(("issued",))
+
+
+def _normalize_dt(v, want_instant: bool = False):
+    """string dateTime → +09:00 付与。TZ ある場合 passthrough。"""
+    if not isinstance(v, str) or not v:
+        return v
+    # date-only YYYY-MM-DD は通す(FHIR date 型として valid)
+    if len(v) == 10 and v[4] == "-" and v[7] == "-":
+        if want_instant:
+            # instant 要求 → 秒 + TZ 補完
+            return f"{v}T00:00:00+09:00"
+        return v
+    if "T" not in v:
+        return v  # 空 or 非 datetime 形式は不変
+    # 既に TZ suffix ある?
+    if v.endswith("Z") or (len(v) >= 6 and v[-6] in "+-" and v[-3] == ":"):
+        return v
+    # 秒欠落補完(instant 用)
+    if want_instant and v.count(":") == 1:
+        v = v + ":00"
+    return v + "+09:00"
+
+
+def _normalize_dt_fields(resource) -> None:
+    """resource dict を再帰 walk、_DATETIME_FIELDS / _INSTANT_FIELDS / Period を正規化。"""
+    if isinstance(resource, dict):
+        for k, v in list(resource.items()):
+            if k in _INSTANT_FIELDS and isinstance(v, str):
+                resource[k] = _normalize_dt(v, want_instant=True)
+            elif k in _DATETIME_FIELDS and isinstance(v, str):
+                resource[k] = _normalize_dt(v)
+            elif k in ("period", "validityPeriod", "servicedPeriod") and isinstance(v, dict):
+                for pk in _PERIOD_FIELDS:
+                    if pk in v:
+                        v[pk] = _normalize_dt(v[pk])
+                _normalize_dt_fields(v)
+            elif isinstance(v, (dict, list)):
+                _normalize_dt_fields(v)
+    elif isinstance(resource, list):
+        for item in resource:
+            _normalize_dt_fields(item)
 
 
 def _apply_jp_core_profile(resource: dict) -> None:
