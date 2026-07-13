@@ -2445,7 +2445,7 @@ project-local override so you can commit it to your deployment repo:</p>
 <hr />
 <h2 id="5-transfer-the-cif-from-your-workstation">5. Transfer the CIF from your workstation<a class="headerlink" href="#5-transfer-the-cif-from-your-workstation" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># On your workstation:</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>clinosim<span class="w"> </span>generate<span class="w"> </span>-o<span class="w"> </span>./output<span class="w"> </span>-p<span class="w"> </span><span class="m">5000</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-o<span class="w"> </span>./output<span class="w"> </span>-p<span class="w"> </span><span class="m">5000</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif
 </span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>scp<span class="w"> </span>-r<span class="w"> </span>./output/cif<span class="w"> </span>ec2-user@&lt;ec2-host&gt;:/home/ec2-user/clinosim_cif
 </span></code></pre></div>
 <p>Or via S3:</p>
@@ -2526,7 +2526,7 @@ after a successful first run is free:</p>
 line per generated document.</p>
 <hr />
 <h2 id="cost-estimates">Cost estimates<a class="headerlink" href="#cost-estimates" title="Permanent link">&para;</a></h2>
-<p>clinosim generates roughly <strong>2.2 Tier A+B documents per inpatient encounter</strong>
+<p>clinosim simulates roughly <strong>2.2 Tier A+B documents per inpatient encounter</strong>
 (1 admission H&amp;P + 1 discharge summary + ~0.2 other). Token counts per
 document depend on the complexity of the encounter, but typical ranges are:</p>
 <table>

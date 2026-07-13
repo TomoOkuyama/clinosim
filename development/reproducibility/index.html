@@ -1825,7 +1825,7 @@ differ, everything else must match.</p>
 <h2 id="verify-at-any-time">Verify at any time<a class="headerlink" href="#verify-at-any-time" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>bash<span class="w"> </span>scripts/reproduce.sh
 </span></code></pre></div>
-<p>The script runs <code>clinosim generate --format fhir</code> twice per locale
+<p>The script runs <code>clinosim simulate --format fhir</code> twice per locale
 (US + JP by default) to two isolated temp directories, sha256s every
 NDJSON + CIF JSON, and diffs the hash lists. Exit 0 = byte-identical,
 exit 1 = determinism regression with the offending file(s) listed.</p>

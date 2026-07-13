@@ -2183,7 +2183,7 @@
 
 
 <h1 id="clinical-documents-in-clinosim">Clinical documents in clinosim<a class="headerlink" href="#clinical-documents-in-clinosim" title="Permanent link">&para;</a></h1>
-<p>clinosim generates <strong>clinically structured narrative documents</strong> as part of the
+<p>clinosim simulates <strong>clinically structured narrative documents</strong> as part of the
 simulation pipeline. Every document is written twice: once as a CIF intermediate
 JSON (the <em>narrative CIF</em>) and once as a FHIR R4 <code>DocumentReference</code> resource in
 the Bulk Data NDJSON export.</p>
@@ -2377,7 +2377,7 @@ NDJSON files.</p>
 <hr />
 <h2 id="workflow">Workflow<a class="headerlink" href="#workflow" title="Permanent link">&para;</a></h2>
 <h3 id="three-stages">Three stages<a class="headerlink" href="#three-stages" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>clinosim generate   →   cif/structural/patients/*.json       (Stage 1)
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>clinosim simulate   →   cif/structural/patients/*.json       (Stage 1)
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>clinosim narrate    →   cif/narratives/&lt;ver&gt;/documents/*.json (Stage 2)
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>clinosim export-fhir →  fhir_r4/*.ndjson (incl. DocumentReference.ndjson)  (Stage 3)
 </span></code></pre></div>

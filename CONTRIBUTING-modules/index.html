@@ -3534,7 +3534,7 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 </ol>
 <hr />
 <h2 id="regen-scope-matrix-local-iteration-cycles-ad-65-2026-07-02">Regen scope matrix: Local iteration cycles (AD-65, 2026-07-02)<a class="headerlink" href="#regen-scope-matrix-local-iteration-cycles-ad-65-2026-07-02" title="Permanent link">&para;</a></h2>
-<p>The two-pass CIF generation architecture (<code>clinosim generate</code> → Stage 1 structural + auto Stage 2 template narratives) + dev facility (<code>test-disease --format</code>, <code>narrate</code> verb) enables fast iteration on different change types. Use this matrix to select the fastest workflow for your change. Canonical spec for the two-pass structural/narrative CIF separation = <a href="../clinosim/modules/output/SPEC.md"><code>clinosim/modules/output/SPEC.md</code></a> § "Stage 2: Narrative Generation".</p>
+<p>The two-pass CIF generation architecture (<code>clinosim simulate</code> → Stage 1 structural + auto Stage 2 template narratives) + dev facility (<code>test-disease --format</code>, <code>narrate</code> verb) enables fast iteration on different change types. Use this matrix to select the fastest workflow for your change. Canonical spec for the two-pass structural/narrative CIF separation = <a href="../clinosim/modules/output/SPEC.md"><code>clinosim/modules/output/SPEC.md</code></a> § "Stage 2: Narrative Generation".</p>
 <h3 id="change-types-and-iteration-time">Change types and iteration time<a class="headerlink" href="#change-types-and-iteration-time" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3548,7 +3548,7 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 <tbody>
 <tr>
 <td><strong>Simulator engine / enricher</strong> (population, disease, encounter logic)</td>
-<td><code>clinosim generate -p N -o /tmp/cX</code></td>
+<td><code>clinosim simulate -p N -o /tmp/cX</code></td>
 <td>5-50 min</td>
 <td>Full cohort → CIF output. Proportional to N.</td>
 </tr>
@@ -3612,7 +3612,7 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 </li>
 <li>
 <p><strong>Full validation</strong> (once confident):
-   <div class="highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>clinosim<span class="w"> </span>generate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
+   <div class="highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
 </span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>clinosim<span class="w"> </span>audit<span class="w"> </span>run<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/us500
 </span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="c1"># Gate: &quot;us_admission_hp_zero_ja_chars&quot; = 0</span>
 </span></code></pre></div></p>
@@ -3647,7 +3647,7 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 </li>
 <li>
 <p><strong>Integration test</strong> on production cohort:
-   <div class="highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>clinosim<span class="w"> </span>generate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
+   <div class="highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
 </span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>clinosim<span class="w"> </span>audit<span class="w"> </span>run<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/us500
 </span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="c1"># Gate: &quot;nursing_doc_author_is_nurse_ratio&quot; = 1.0</span>
 </span></code></pre></div></p>
