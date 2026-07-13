@@ -6,10 +6,18 @@ silently shift any RNG stream / golden output) and guard that every module's off
 stays distinct (so two enrichers never collide on the same sub-stream).
 """
 
+import numpy as np
 import pytest
 
 from clinosim.simulator.seeding import (
     ENRICHER_SEED_OFFSETS,
+    PHASE_ED_VISIT,
+    PHASE_INPATIENT_SIM,
+    PHASE_LIFE_EVENT,
+    PHASE_OUTPATIENT_CAL,
+    PHASE_READMISSION,
+    _PHASE_OFFSETS,
+    derive_phase_rng,
     derive_sub_seed,
     panel_specimen_seed,
 )
@@ -88,3 +96,32 @@ class TestPanelSpecimenSeed:
                     assert (
                         panel_specimen_seed(key) != derive_sub_seed(ms, offset, key)
                     )
+
+
+def test_phase_seed_offsets_unique():
+    """AD-16: phase offset の衝突は 2 phase の RNG stream を共有させる silent-no-op。"""
+    values = list(_PHASE_OFFSETS.values())
+    assert len(set(values)) == len(values), f"duplicate phase offsets: {_PHASE_OFFSETS!r}"
+
+
+def test_phase_seed_constants_registered():
+    """新規 phase 定数を _PHASE_OFFSETS に登録し忘れると silent-no-op になる。"""
+    assert PHASE_LIFE_EVENT in _PHASE_OFFSETS.values()
+    assert PHASE_INPATIENT_SIM in _PHASE_OFFSETS.values()
+    assert PHASE_READMISSION in _PHASE_OFFSETS.values()
+    assert PHASE_OUTPATIENT_CAL in _PHASE_OFFSETS.values()
+    assert PHASE_ED_VISIT in _PHASE_OFFSETS.values()
+
+
+def test_derive_phase_rng_returns_generator():
+    """determinism: 同 (master, phase, key) → 同 stream。"""
+    a = derive_phase_rng(42, PHASE_INPATIENT_SIM, "event-1")
+    b = derive_phase_rng(42, PHASE_INPATIENT_SIM, "event-1")
+    assert list(a.integers(0, 100, 10)) == list(b.integers(0, 100, 10))
+
+
+def test_derive_phase_rng_key_independent():
+    """determinism: 同 (master, phase) でも key が違えば独立 stream。"""
+    a = derive_phase_rng(42, PHASE_INPATIENT_SIM, "event-1")
+    b = derive_phase_rng(42, PHASE_INPATIENT_SIM, "event-2")
+    assert list(a.integers(0, 1000, 20)) != list(b.integers(0, 1000, 20))
