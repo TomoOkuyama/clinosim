@@ -252,8 +252,39 @@ def convert_cif_to_fhir(
         with open(os.path.join(output_dir, "manifest.json"), "w", encoding="utf-8") as f:
             json.dump(manifest, f, indent=2, ensure_ascii=False)
     finally:
+        # F2 (session 49): close writers, then rewrite each NDJSON file with
+        # its resources sorted by id ascending. Row order is otherwise
+        # cursor-dependent (patient_records iteration order), so a line diff
+        # between two snapshots (cursor A / cursor B) would surface spurious
+        # "line moved" noise. Sorting by id makes the diff reflect only
+        # genuine new / changed / removed resources.
         for w in writers.values():
             w.close()
+        for rt in writers:
+            path = os.path.join(output_dir, f"{rt}.ndjson")
+            _sort_ndjson_by_id_inplace(path)
+
+
+def _sort_ndjson_by_id_inplace(path: str) -> None:
+    """Rewrite an NDJSON file in place with lines sorted by resource id ascending.
+
+    F2 (session 49): sorting removes cursor-dependent (patient_records
+    iteration order) row ordering so that a line diff between two snapshots
+    surfaces only genuine new / changed / removed resources, not spurious
+    "line moved" noise.
+
+    Reads the whole file into memory, so RAM usage scales with file size —
+    at p=10k total NDJSON output is ~4.7GB, with the largest single file
+    (Observation.ndjson) in the multi-GB range. This is acceptable for
+    Phase A; a future JP p=500k scale may need to replace this with an
+    external merge sort, but in-memory sort is sufficient for now.
+    """
+    with open(path, encoding="utf-8") as f:
+        lines = [line for line in f.read().splitlines() if line.strip()]
+    lines.sort(key=lambda line: json.loads(line).get("id", ""))
+    with open(path, "w", encoding="utf-8") as f:
+        for line in lines:
+            f.write(line + "\n")
 
 
 # --- Resource builders: (ctx) -> list[resource]. Order here == emission order. ---
