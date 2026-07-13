@@ -160,7 +160,9 @@ def test_place_devices_for_encounter_device_id_format():
     rng = np.random.default_rng(42)
     out = place_devices_for_encounter(rec, enc, rng, load_devices_config())
     for d in out:
-        assert d.device_id.startswith(f"dev-abc-123-{d.device_type}-")
+        # feedback FB-F2: FHIR id 型準拠のため device_type の _ を - に置換
+        _device_type_id = d.device_type.replace("_", "-")
+        assert d.device_id.startswith(f"dev-abc-123-{_device_type_id}-")
         assert d.encounter_id == "abc-123"
         assert d.placement_date == "2026-01-01"
         assert d.removal_date == "2026-01-05"

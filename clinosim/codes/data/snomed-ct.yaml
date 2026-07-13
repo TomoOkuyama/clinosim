@@ -11,6 +11,10 @@ codes:
   '387713003':
     en: Surgical procedure
     ja: 手術
+  # feedback FB-F8: 103693007 は inactive、386053000 に更新。旧 entry は残置。
+  '386053000':
+    en: Evaluation procedure
+    ja: 評価的処置
   '103693007':
     en: Diagnostic procedure
     ja: 診断的処置
@@ -278,6 +282,15 @@ codes:
   '303408005':
     en: Sulfonamide        # FSN: Sulfonamide (substance) — common name: Sulfa drugs
     ja: サルファ剤
+  # feedback FB-F8: 227037002 と 256349002 は inactive concept、
+  # 735038006 (Egg protein) と 735029006 (Wheat) に更新済(allergens.yaml)。
+  # 旧 code は legacy CIF migration 用に entry を残す(将来削除可)。
+  '735038006':
+    en: Egg protein
+    ja: 卵タンパク
+  '735029006':
+    en: Wheat
+    ja: 小麦
   '227037002':
     en: Egg                # FSN: Egg (substance) — display: Eggs
     ja: 卵

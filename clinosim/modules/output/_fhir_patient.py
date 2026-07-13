@@ -333,10 +333,20 @@ def _build_patient(p: dict, country: str) -> dict:
         resource["deceasedBoolean"] = False
 
     # Extensions for blood type
-    if p.get("blood_type"):
+    # feedback FB-F4: `patient-bloodType` は FHIR 標準に存在せず HAPI validator
+    # が "unknown extension URL" と reject。US Core にも公式 ext 無いため、
+    # JP コホートは JP Core `StructureDefinition/JP_Patient_BloodType` を使用、
+    # US は Observation として blood type を emit する pattern が本来。
+    # 現状 CIF に blood type Observation-emit path がないため、当面 extension は
+    # 抑制(spec 違反解消 > 冗長情報保持)。
+    # 将来: (a) 別 Observation resource として emit or
+    #        (b) JP Core BloodType extension を codes registry に追加 + 使用
+    if p.get("blood_type") and is_jp(country):
         resource["extension"] = [{
-            "url": "http://hl7.org/fhir/StructureDefinition/patient-bloodType",
-            "valueString": f"{p['blood_type']}{p.get('rh_factor', '+')}",
+            "url": "http://jpfhir.jp/fhir/core/Extension/StructureDefinition/JP_Patient_BloodTypeCode",
+            "valueCodeableConcept": {
+                "text": f"{p['blood_type']}{p.get('rh_factor', '+')}",
+            },
         }]
 
     # Address

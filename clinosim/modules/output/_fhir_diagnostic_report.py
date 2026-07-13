@@ -245,10 +245,12 @@ def build_dr_resource(
     # 従来 imaging DR のみ issued が入り lab DR は 0% だった (6.9% overall)。
     # 実運用では検査値確定+ラボ承認時刻が入るが、CIF 相当時刻無いため
     # effectiveDateTime を近似として emit(100% coverage 実現)。
+    # feedback FB-F1: instant 型は 秒精度 + TZ 必須
+    from clinosim.modules.output._fhir_common import to_fhir_instant
     if issued:
-        res["issued"] = issued
+        res["issued"] = to_fhir_instant(issued)
     else:
-        res["issued"] = group.bucket
+        res["issued"] = to_fhir_instant(group.bucket)
     if performer_ref:
         res["performer"] = [{"reference": performer_ref}]
         # CY8-13 fix (session 48 cycle 8): DR.resultsInterpreter — lab DR は

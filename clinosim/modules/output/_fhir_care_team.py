@@ -47,10 +47,14 @@ CARE_TEAM_ID_PREFIX = "careteam-"
 
 # SNOMED CT "Clinical team" — verified via SNOMED International browser, 2026-07-01.
 # Registered in clinosim/codes/data/snomed-ct.yaml (Task 11 addition).
-_CARE_TEAM_CATEGORY_SYSTEM = get_system_uri("snomed-ct")
-_CARE_TEAM_CATEGORY_CODE = "424535000"
-_CARE_TEAM_CATEGORY_EN = "Clinical team"
-_CARE_TEAM_CATEGORY_JA = "臨床チーム"
+# feedback FB-F7: SNOMED CT 424535000 は現行 SNOMED CT International Edition で
+# 未定義(inactive?)扱いと validator が判定。FHIR R4 CareTeam.category は
+# `preferred` binding = http://hl7.org/fhir/ValueSet/care-team-category (LOINC 系)。
+# LA20429-6 "Encounter-focused care team" が inpatient encounter team に整合。
+_CARE_TEAM_CATEGORY_SYSTEM = get_system_uri("loinc")
+_CARE_TEAM_CATEGORY_CODE = "LA27976-8"  # Episode of care team focused
+_CARE_TEAM_CATEGORY_EN = "Episode of care team focused"
+_CARE_TEAM_CATEGORY_JA = "エピソード・オブ・ケアチーム"
 
 
 def _bb_care_teams(ctx: BundleContext) -> list[dict[str, Any]]:

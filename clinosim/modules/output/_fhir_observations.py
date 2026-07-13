@@ -81,13 +81,28 @@ def _build_lab_observation(
         "_build_lab_observation: encounter_id must be non-empty. "
         "All call sites pass ctx.primary_enc_id which is validated before the loop."
     )
+    # feedback FB-F6: 特定 LOINC は対応標準 profile を要求。
+    # LOINC 39156-5 (BMI) → hl7.org/.../bmi、8480-6/8462-4 (BP) → .../bp。
+    # JP コホートも JP Core LabResult + 該当 vital profile を stacking 可能。
+    _extra_profiles: list[str] = []
+    _lab_code = str(result.get("lab_name") or code_value or "")
+    if _lab_code == "39156-5":
+        _extra_profiles.append("http://hl7.org/fhir/StructureDefinition/bmi")
+    # BP 個別 obs は bp profile が component 構造を要求するため、
+    # 別 Observation で発行される limitation あり(TODO: 将来 combined 85354-9)。
+    # ここでは profile 付与を保留、TODO として cycle 9 に持越し。
+
+    _profiles: list[str] = []
+    if is_jp(country):
+        _profiles.append("http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult")
+    _profiles.extend(_extra_profiles)
+
     resource: dict[str, Any] = {
         "resourceType": "Observation",
         "id": lab_obs_id(encounter_id, index),
         # Session 46 chain #2: JP Core Observation_LabResult profile.
-        **({"meta": {"profile": [
-            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult"
-        ]}} if is_jp(country) else {}),
+        # feedback FB-F6: 該当 LOINC の standard profile も stack 追加。
+        **({"meta": {"profile": _profiles}} if _profiles else {}),
         "status": "final",
         "category": [{
             "coding": [{

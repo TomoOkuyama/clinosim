@@ -609,8 +609,36 @@ def _map_mar_status(status: str) -> str:
     return {"given": "completed", "held": "on-hold", "refused": "not-done", "not_available": "not-done"}.get(status, "completed")
 
 
+# session 48 cycle 8 拡張 (feedback FB-F1):
+# JP コホートの dateTime / instant field は JST (+09:00) を必ず付与する。
+# HAPI FHIR Validator (JP Core 準拠) は TZ 無し dateTime を regex エラーとする。
+# to_fhir_datetime + to_fhir_instant で単一 seam 化、per-builder 個別修正回避。
+_JST_TZ_SUFFIX = "+09:00"
+
+
+def _append_tz_if_missing(s: str) -> str:
+    """ISO 8601 datetime string に TZ が無ければ +09:00 (JST) を付与。
+
+    既に TZ suffix(+HH:MM / -HH:MM / Z)がある場合は passthrough。
+    'T' を含まない date-only 文字列 (YYYY-MM-DD) は passthrough(FHIR は date
+    型として許容)。
+    """
+    if not s or "T" not in s:
+        return s
+    # tail check for existing TZ
+    tail = s[-6:]  # like "+09:00" or "-05:00"
+    if s.endswith("Z"):
+        return s
+    if len(s) >= 6 and (tail.startswith("+") or tail.startswith("-")) and tail[3] == ":":
+        return s
+    # short TZ form "+0900" (no colon)
+    if len(s) >= 5 and (s[-5] == "+" or s[-5] == "-") and s[-5:-2].lstrip("+-").isdigit():
+        return s
+    return s + _JST_TZ_SUFFIX
+
+
 def to_fhir_datetime(value: Any) -> str:
-    """Normalize a datetime-like value to a FHIR R4 ``dateTime`` string.
+    """Normalize a datetime-like value to a FHIR R4 ``dateTime`` string with TZ.
 
     FHIR R4 ``dateTime`` requires ISO 8601 with ``T`` separator; ``str(datetime)``
     produces space-separated form which fails the R4 regex. This helper accepts:
@@ -620,15 +648,49 @@ def to_fhir_datetime(value: Any) -> str:
 
     Single edit point for the ``str(x)`` / ``hasattr(x, "isoformat")`` fallback
     pattern previously scattered across FHIR builders (FP-UNIFY-2, 2026-07-07).
+
+    session 48 cycle 8 (feedback FB-F1): TZ 無し文字列には JST (+09:00) を付与。
     """
     if value is None or value == "":
         return ""
     if isinstance(value, (datetime, date)):
-        return value.isoformat()
+        s = value.isoformat()
+    else:
+        s = str(value)
+        if len(s) >= 11 and s[10] == " ":
+            s = s[:10] + "T" + s[11:]
+    return _append_tz_if_missing(s)
+
+
+def to_fhir_instant(value: Any) -> str:
+    """Normalize to FHIR R4 ``instant`` (秒精度 + TZ 必須).
+
+    ``instant`` is stricter than ``dateTime``: time-of-day and TZ are required.
+    Milliseconds recommended. session 48 feedback FB-F1 で導入。
+    """
+    if value is None or value == "":
+        return ""
+    if isinstance(value, datetime):
+        s = value.isoformat()
+        # ensure seconds present
+        if "." not in s.split("T", 1)[1] and s.count(":") == 2:
+            pass  # already has seconds
+        elif s.count(":") == 1:
+            s += ":00"
+        return _append_tz_if_missing(s)
+    if isinstance(value, date):
+        # date-only → make midnight instant with TZ
+        return f"{value.isoformat()}T00:00:00{_JST_TZ_SUFFIX}"
     s = str(value)
     if len(s) >= 11 and s[10] == " ":
-        return s[:10] + "T" + s[11:]
-    return s
+        s = s[:10] + "T" + s[11:]
+    # date-only string → append midnight
+    if "T" not in s and len(s) == 10:
+        return f"{s}T00:00:00{_JST_TZ_SUFFIX}"
+    # ensure seconds present
+    if s.count(":") == 1:
+        s += ":00"
+    return _append_tz_if_missing(s)
 
 
 def to_fhir_date(value: Any) -> str:

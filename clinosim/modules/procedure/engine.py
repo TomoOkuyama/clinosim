@@ -156,7 +156,9 @@ def simulate_surgery(
 # SNOMED CT codes used by this module (resolved via clinosim.codes at output time)
 # ============================================================
 _SCT_CATEGORY_SURGICAL = "387713003"
-_SCT_CATEGORY_DIAGNOSTIC = "103693007"
+# feedback FB-F8: SNOMED 103693007 は inactive、active 386053000 "Evaluation
+# procedure" に更新(session 48 cycle 8 拡張)。
+_SCT_CATEGORY_DIAGNOSTIC = "386053000"
 _SCT_CATEGORY_THERAPEUTIC = "277132007"
 
 _SCT_OUTCOME_SUCCESS = "385669000"
