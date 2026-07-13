@@ -256,8 +256,10 @@ def build_dr_resource(
         # 別途担うが CIF 相当 field 無いため performer を fallback として emit。
         res["resultsInterpreter"] = [{"reference": performer_ref}]
     else:
-        # CY8-13 polish: performer_ref 未指定(健診 checkup panel 等)は
-        # hospital-main labo を fallback として emit(100% coverage 保証)。
+        # cycle 8 cross-seed verify fix (C6-DR-perf regression): 健診 panel
+        # 等 performer 未指定 DR にも performer + resultsInterpreter を
+        # hospital-main で fallback emit(CY6-03 の 100% 発火を維持)。
+        res["performer"] = [{"reference": "Organization/hospital-main"}]
         res["resultsInterpreter"] = [
             {"reference": "Organization/hospital-main"}
         ]

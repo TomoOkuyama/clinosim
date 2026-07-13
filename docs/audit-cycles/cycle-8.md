@@ -265,3 +265,36 @@ Re-observed on cycle 8, signature matches registry:
   fabrication で全 IMP に強制するのは避ける、registry gated 判定)
 
 **Cycle 8 CLOSED** — CRITICAL silent-drop 完全修復 + 資料品質 24 field を 100% coverage 化。次 cycle は session 48 additional fix の regression check + まだ調査していない resource(Coverage.class deep / Location detail / Provenance 等)を focus。
+
+## Cross-seed verify (session 48 追加, seed=100)
+
+user 依頼で JP p=10000 **seed=100** 別 seed で C1-C8 全 fix の invariant を検証。
+
+### 初回検出 = 4 real regressions + 2 false FAIL (script bug)
+
+| # | id | 種別 | 内容 |
+|---|---|---|---|
+| 1 | CY7-06 | 真 | 1095 ED synth encounter (`-ED` suffix) に priority 未設定 — CY8-04 で serviceProvider は追加したが priority 忘れ |
+| 2 | C6-DR-perf | 真 | 1466 checkup DR に performer 未設定 — CY8-13 で resultsInterpreter 側 fallback は追加したが performer 側漏れ |
+| 3 | CY7-01 | 真 | 1466 checkup SR に performer 未設定 — 同上 root cause |
+| 4 | C6-Cond-ev | 真 | 4 HAI Condition に evidence 未設定 — CY8-21/22 で recorder/asserter は追加したが evidence 忘れ |
+| 5 | CY7-09 | false | verify script が DocumentReference を DR と誤って check |
+| 6 | CY7-10 | false | 同上 |
+
+### Regression fix
+
+- `fhir_r4_adapter.py`:ED synth encounter に `priority="EM"` を canonical URI 経由で emit
+- `_fhir_diagnostic_report.py`:performer 未指定なら `Organization/hospital-main` fallback
+- `_fhir_service_request.py`:panel SR + standalone SR + imaging SR 全てに同 fallback
+- `_fhir_hai.py`:HAI Condition に text-only evidence を emit(`is_jp` import 追加)
+- verify script 修正:CY7-09/10 → DocumentReference 側 check
+- test 更新:`test_shape_jp_uses_japanese_display` に fallback 反映
+
+### 再 verify 結果
+
+**66 PASS + 11 BY-DESIGN + 0 FAIL** — 全 completeness gate + by-design signature が seed=100 でも invariant 保持。cycle-8 の全 fix が seed-independent に正しく動作することを確認。
+
+**発見の意義**:
+- CY8-04/13/21 の各 fix には「新 code path(健診 / ED synth / HAI)」への横展開漏れがあった = **PR-90 class silent-no-op のミニ版**(fix 追加時に既存 gate の網羅性チェックが不十分)
+- Cross-seed verify という separate seed 監査で捉えられた = 「seed=42 ベースの verify だけでは網羅不十分」の教訓
+- 追加 4 fix は全て「fallback を Organization/hospital-main に統一」する pattern で解決 — 責任分解点 clear

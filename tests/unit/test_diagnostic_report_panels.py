@@ -236,7 +236,9 @@ class TestBuildDrResource:
         )
         coding = r["code"]["coding"][0]
         assert coding["display"] == "全血球計算パネル"
-        assert "performer" not in r
+        # session 48 cycle 8 cross-seed verify fix: performer_ref 未指定でも
+        # hospital-main を fallback として emit(CY7-01 100% coverage 維持)。
+        assert r["performer"] == [{"reference": "Organization/hospital-main"}]
 
     def test_seq_increments_per_call(self):
         from clinosim.modules.output._fhir_diagnostic_report import build_dr_resource

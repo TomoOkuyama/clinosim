@@ -15,7 +15,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
-from clinosim.modules._shared import get_attr_or_key, resolve_lang
+from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
 from clinosim.modules.output._fhir_common import (
     BundleContext,
     _coding_with_display,
@@ -80,6 +80,14 @@ def _build_hai_conditions(ctx: BundleContext) -> list[dict]:
             "subject": {"reference": f"Patient/{ctx.patient_id}"},
             "encounter": {"reference": f"Encounter/{enc_id}"},
             "onsetDateTime": onset_date,
+            # cycle 8 cross-seed verify fix (C6-Cond-ev regression): HAI
+            # Condition にも evidence を emit(CY6-19 と同型式)。院内感染は
+            # 培養+臨床像から診断された感染症であることを示す text-only 記述。
+            "evidence": [{
+                "code": [{"text": "院内感染:培養検査+臨床所見に基づく診断"
+                                   if is_jp(ctx.country) else
+                                   "Hospital-acquired infection — culture + clinical findings"}],
+            }],
         }
         # CY8-21/22 polish (session 48 cycle 8): HAI Condition にも recorder /
         # asserter を emit(hospital-main の感染管理チーム相当)。encounter に
