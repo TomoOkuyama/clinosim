@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from datetime import date, datetime, timedelta
+from pathlib import Path
 
 import numpy as np
 
@@ -70,12 +71,21 @@ _HEALTH_SCREENING_VISIT_REASON = {
 def run_beta(
     config: SimulatorConfig | None = None,
     hospital_config_path: str | None = None,
+    cache_dir: Path | str | None = None,
 ) -> CIFDataset:
     """Run population-driven simulation.
 
     Args:
         hospital_config_path: Path to hospital operations YAML.
             If None, uses default config/hospital_operations.yaml.
+        cache_dir: Optional previous-snapshot output directory (F4, session
+            49). If it holds a valid ``_cache_manifest.json`` matching this
+            config's seed/config_hash/country, patients whose every
+            encounter was already discharged by the cache's cursor date are
+            loaded from the previous CIF instead of re-simulated. Any other
+            patient (new events, still-open encounters) is simulated as
+            normal. ``None`` (default) disables memoization entirely —
+            existing callers are unaffected.
     """
     if config is None:
         config = SimulatorConfig()
@@ -96,7 +106,6 @@ def run_beta(
     from clinosim.modules.facility.hospital_state import HospitalState, load_hospital_operations
     if hospital_config_path:
         import yaml
-        from pathlib import Path
         with open(Path(hospital_config_path)) as f:
             hospital_ops = yaml.safe_load(f) or {}
     else:
@@ -197,6 +206,82 @@ def run_beta(
     )
     print(f"  Life events: {len(all_events)} total, {len(hospital_events)} requiring hospital")
 
+    # F4 (session 49): load a previous-snapshot cache, if given and valid. Only
+    # the primary admission loop below (known_disease/mixed via `_simulate_patient`
+    # and unknown-condition via `_simulate_unknown_condition`) consults this cache —
+    # it is the single most expensive per-event computation (full daily-loop
+    # physiology simulation). F1's per-event sub-seed determinism guarantees the
+    # cache-hit admission's OWN record is byte-identical to what a fresh
+    # simulation of that same event would produce. This does NOT extend to every
+    # downstream side effect of skipping `_simulate_patient`, however — see
+    # `clinosim/simulator/memoize.py` module docstring ("既知の限界 2 件") for two
+    # confirmed classes of shared-mutable-state divergence a cache hit can cause
+    # for OTHER admissions processed later in the same run (implied-chronic
+    # accretion on the shared activated `PatientProfile`, and `HospitalState`
+    # resource-queue congestion affecting unrelated admissions' result_datetime).
+    # Both require touching `inpatient.py` / `order/engine.py` / `hospital_state.py`
+    # to fix properly — out of this task's file scope; documented as follow-up.
+    prev_cursor_date: date | None = None
+    prev_admission_cache: dict[tuple[str, str, str], CIFPatientRecord] = {}
+    if cache_dir is not None:
+        from clinosim.simulator.memoize import (
+            _all_pids_from_cif,
+            eligible_patient_ids,
+            is_cache_valid,
+            load_patient_records_from_cif,
+            read_cache_manifest,
+        )
+
+        cache_dir_p = Path(cache_dir)
+        valid, reason = is_cache_valid(cache_dir_p, config)
+        if not valid:
+            print(f"  ⚠️  cache invalidated ({reason}); recomputing from scratch", flush=True)
+        else:
+            manifest = read_cache_manifest(cache_dir_p)
+            assert manifest is not None  # is_cache_valid already confirmed it exists
+            prev_cursor_date = datetime.strptime(manifest.snapshot_date, "%Y-%m-%d").date()
+            prev_cif_dir = cache_dir_p / "cif"
+            all_prev_pids = _all_pids_from_cif(prev_cif_dir)
+            prev_all = load_patient_records_from_cif(prev_cif_dir, all_prev_pids)
+            flat_prev_records = [r for records in prev_all.values() for r in records]
+            eligible = eligible_patient_ids(flat_prev_records, prev_cursor_date)
+            # Index eligible patients' *admission-loop* records by the same
+            # (person_id, event date, disease_id) triple used to derive
+            # `event_key` below — content-derived (not RNG-derived), so it can
+            # be recomputed identically from a `LifeEvent` without having
+            # simulated anything yet. Only INPATIENT, non-readmission records
+            # are indexed: those are exactly the records `_simulate_patient` /
+            # `_simulate_unknown_condition` produce in the loop below (the
+            # readmission / post-discharge / calendar / ED loops build
+            # OUTPATIENT/EMERGENCY-type or is_readmission=True records, which
+            # this cache intentionally does not substitute — see module
+            # docstring above).
+            for pid, records in prev_all.items():
+                if pid not in eligible:
+                    continue
+                for r in records:
+                    if not r.encounters:
+                        continue
+                    if r.encounters[0].encounter_type != EncounterType.INPATIENT:
+                        continue
+                    if r.is_readmission:
+                        continue
+                    enc = r.encounters[0]
+                    ce_disease_id = (
+                        r.condition_event.ground_truth_diseases[0]
+                        if r.condition_event.ground_truth_diseases
+                        else r.condition_event.symptom_pattern
+                    )
+                    if not ce_disease_id:
+                        continue
+                    admission_date_iso = enc.admission_datetime.date().isoformat()
+                    prev_admission_cache[(pid, admission_date_iso, ce_disease_id)] = r
+            print(
+                f"  Cache: {len(eligible)} eligible patients, "
+                f"{len(prev_admission_cache)} admission-loop records reusable",
+                flush=True,
+            )
+
     # Simulate each patient in chronological order (DES-aware)
     # Hospital state is shared — concurrent patients affect delays
     patient_records: list[CIFPatientRecord] = []
@@ -253,13 +338,19 @@ def run_beta(
 
         event_key = f"{event.person_id}|{event.timestamp.isoformat()}|{disease_id}"
         event_rng = derive_phase_rng(master_seed, PHASE_INPATIENT_SIM, event_key)
+        # F4: content-derived cache key — identical shape to `event_key` above,
+        # reconstructable from a cached record without having simulated it.
+        cache_key = (event.person_id, event.timestamp.isoformat(), disease_id)
 
         # Unknown condition
         if event.condition_type == "unknown" or disease_id.startswith("unknown_"):
-            record = _simulate_unknown_condition(
-                patient, event, event_rng, healthcare, roster,
-                hospital_ops=hospital_ops, config=config,
-            )
+            if cache_key in prev_admission_cache:
+                record = prev_admission_cache[cache_key]
+            else:
+                record = _simulate_unknown_condition(
+                    patient, event, event_rng, healthcare, roster,
+                    hospital_ops=hospital_ops, config=config,
+                )
             if record:
                 patient_records.append(record)
                 person.has_visited_hospital = True
@@ -277,15 +368,18 @@ def run_beta(
                 patient, disease_id, protocols, event_rng,
             )
 
-        record = _simulate_patient(
-            patient, event, disease_id, protocol, healthcare, roster, config, event_rng,
-            secondary_protocol=secondary_protocol,
-            is_readmission=event.is_readmission,
-            prior_encounter_id=event.prior_encounter_id,
-            readmission_number=event.readmission_number,
-            hospital_state=hospital_state,
-            hospital_ops=hospital_ops,
-        )
+        if cache_key in prev_admission_cache:
+            record = prev_admission_cache[cache_key]
+        else:
+            record = _simulate_patient(
+                patient, event, disease_id, protocol, healthcare, roster, config, event_rng,
+                secondary_protocol=secondary_protocol,
+                is_readmission=event.is_readmission,
+                prior_encounter_id=event.prior_encounter_id,
+                readmission_number=event.readmission_number,
+                hospital_state=hospital_state,
+                hospital_ops=hospital_ops,
+            )
         patient_records.append(record)
         _deactivate_to_layer1(person, record, disease_id)
         # Track discharge for bed occupancy management
