@@ -89,8 +89,8 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             "type": [{
                 "coding": [{
                     "system": get_system_uri("hl7-v3-rolecode"),
-                    "code": "OUTPHARM" if dept == "pharmacy" else "OUTPT",
-                    "display": "Outpatient pharmacy" if dept == "pharmacy" else "Outpatient clinic",
+                    "code": "OUTPHARM" if dept == "pharmacy" else "OF",
+                    "display": "Outpatient pharmacy" if dept == "pharmacy" else "Outpatient facility",
                 }],
             }],
             "physicalType": {
@@ -125,7 +125,8 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             if ward == "ER":
                 _type_code, _type_disp = "ER", "Emergency room"
             elif ward == "OPD":
-                _type_code, _type_disp = "OUTPT", "Outpatient clinic"
+                # feedback FB-F7: OUTPT は v3-RoleCode 未定義、OF (Outpatient Facility) 使用
+                _type_code, _type_disp = "OF", "Outpatient facility"
             elif ward.startswith("ICU") or ward == "ICU":
                 _type_code, _type_disp = "ICU", "Intensive care unit"
             elif "REHAB" in ward.upper() or "回復期" in ward:

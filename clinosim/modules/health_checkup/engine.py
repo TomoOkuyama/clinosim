@@ -77,9 +77,13 @@ _CHECKUP_TYPE_CHIEF_COMPLAINT: dict[str, str] = {
 # `_derive_checkup_values(patient, rng)` が PatientProfile と chronic_conditions
 # から個別化する(sub-PR-B 高度化, session 48)。
 _CHECKUP_ITEMS: list[dict[str, str]] = [
+    # feedback FB-F7: UCUM canonical 形式に統一。
+    # 「kg/m2」→「kg/m2」(UCUM 準拠のまま、変更なし)
+    # 「mmHg」→「mm[Hg]」(UCUM は bracketed 単位を要求)
+    # 「mg/dL」→「mg/dL」(UCUM canonical、変更なし)
     {"loinc": "39156-5", "key": "bmi",     "unit": "kg/m2"},
-    {"loinc": "8480-6",  "key": "sbp",     "unit": "mmHg"},
-    {"loinc": "8462-4",  "key": "dbp",     "unit": "mmHg"},
+    {"loinc": "8480-6",  "key": "sbp",     "unit": "mm[Hg]"},
+    {"loinc": "8462-4",  "key": "dbp",     "unit": "mm[Hg]"},
     {"loinc": "4548-4",  "key": "hba1c",   "unit": "%"},
     {"loinc": "18262-6", "key": "ldl",     "unit": "mg/dL"},
 ]

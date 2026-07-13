@@ -218,7 +218,8 @@ class TestBuildDrResource:
         assert r["subject"] == {"reference": "Patient/POP-000002"}
         assert r["encounter"] == {"reference": "Encounter/ENC-001"}
         assert r["effectiveDateTime"] == "2026-05-12"
-        assert r["issued"] == "2026-05-12T14:28:39"
+        # session 48 feedback FB-F1: instant 型に JST TZ 付与
+        assert r["issued"] == "2026-05-12T14:28:39+09:00"
         assert r["performer"] == [{"reference": "Practitioner/TECH-LAB-001"}]
         assert r["result"] == [
             {"reference": "Observation/lab-ENC-001-0000"},

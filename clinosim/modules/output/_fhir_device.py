@@ -79,7 +79,10 @@ def _build_device_use(ctx: BundleContext) -> list[dict]:
             "device": {"reference": f"Device/{device_id}"},
             "timingPeriod": period,
         }
-        if encounter_id:
-            resource["context"] = {"reference": f"Encounter/{encounter_id}"}
+        # feedback FB-F3: FHIR R4 DeviceUseStatement には `context` field 無し
+        # (R3 から R4 で削除)。encounter は Device.patient から間接参照。
+        # 元の resource["context"] emit は unknown property として validator error。
+        # encounter 情報を保持したい場合は識別子 extension を使う必要あるが、
+        # 現状は削除で spec 準拠を優先(将来 JP Core が拡張定義したら再追加)。
         out.append(resource)
     return out

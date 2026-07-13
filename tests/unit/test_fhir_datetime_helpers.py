@@ -22,26 +22,28 @@ pytestmark = pytest.mark.unit
 
 
 class TestToFhirDatetime:
+    """session 48 cycle 8 拡張 (feedback FB-F1): TZ 無し文字列に JST +09:00 付与。"""
     def test_datetime_object_isoformat(self) -> None:
         from clinosim.modules.output._fhir_common import to_fhir_datetime
-        assert to_fhir_datetime(datetime(2024, 1, 1, 8, 30, 0)) == "2024-01-01T08:30:00"
+        # TZ 無し → JST +09:00 付与
+        assert to_fhir_datetime(datetime(2024, 1, 1, 8, 30, 0)) == "2024-01-01T08:30:00+09:00"
 
     def test_iso_str_passthrough(self) -> None:
         from clinosim.modules.output._fhir_common import to_fhir_datetime
-        assert to_fhir_datetime("2024-01-01T08:30:00") == "2024-01-01T08:30:00"
+        assert to_fhir_datetime("2024-01-01T08:30:00") == "2024-01-01T08:30:00+09:00"
 
     def test_space_separated_normalized_to_T(self) -> None:
         """The core fix — str(datetime) space-form must become T-form."""
         from clinosim.modules.output._fhir_common import to_fhir_datetime
-        assert to_fhir_datetime("2024-01-01 08:30:00") == "2024-01-01T08:30:00"
+        assert to_fhir_datetime("2024-01-01 08:30:00") == "2024-01-01T08:30:00+09:00"
 
     def test_microseconds_preserved(self) -> None:
         from clinosim.modules.output._fhir_common import to_fhir_datetime
-        assert to_fhir_datetime("2024-01-01T08:30:00.123456") == "2024-01-01T08:30:00.123456"
+        assert to_fhir_datetime("2024-01-01T08:30:00.123456") == "2024-01-01T08:30:00.123456+09:00"
 
     def test_space_separated_with_microseconds_normalized(self) -> None:
         from clinosim.modules.output._fhir_common import to_fhir_datetime
-        assert to_fhir_datetime("2024-01-01 08:30:00.123456") == "2024-01-01T08:30:00.123456"
+        assert to_fhir_datetime("2024-01-01 08:30:00.123456") == "2024-01-01T08:30:00.123456+09:00"
 
     def test_timezone_passthrough(self) -> None:
         from clinosim.modules.output._fhir_common import to_fhir_datetime

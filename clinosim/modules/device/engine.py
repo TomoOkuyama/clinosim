@@ -136,8 +136,11 @@ def place_devices_for_encounter(
     for device_type, cfg in devices_config["devices"].items():
         if not _indications_met(cfg["placement_criteria"], indications):
             continue
+        # feedback FB-F2: FHIR id 型は英数字+'-'+'.' のみ許可、_ 禁止。
+        # device_type YAML key(indwelling_catheter 等)の _ を - に置換。
+        _device_type_id = device_type.replace("_", "-")
         out.append(DeviceRecord(
-            device_id=f"dev-{enc_id}-{device_type}-{len(out)}",
+            device_id=f"dev-{enc_id}-{_device_type_id}-{len(out)}",
             encounter_id=enc_id,
             device_type=device_type,
             snomed_code=cfg["snomed_code"],

@@ -159,16 +159,14 @@ def _build_encounter(
         }
 
     # Service type (department)
+    # feedback FB-F7: hl7-service-type CodeSystem は診療科 code の canonical
+    # source ではない(numeric code 系のみ)。department 名(internal_medicine /
+    # health_checkup 等)を直接 code として使うと validator が "code 未定義" と
+    # reject する。JP-authoritative 診療科 CodeSystem が確立するまで text-only
+    # CodeableConcept で emit(Coverage.type と同じ no-fabrication policy)。
     department = enc.get("department_id", "") or "internal_medicine"
     dept_display = _dept_display(department, country)
-    resource["serviceType"] = {
-        "coding": [{
-            "system": get_system_uri("hl7-service-type"),
-            "code": department,
-            "display": dept_display,
-        }],
-        "text": dept_display,
-    }
+    resource["serviceType"] = {"text": dept_display}
 
     if enc.get("admission_datetime"):
         resource["period"] = {"start": enc["admission_datetime"]}

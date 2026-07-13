@@ -105,17 +105,32 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
             resource["telecom"] = telecoms
 
         # Qualification
+        # feedback FB-F7: HL7 v2-0360 CodeSystem に含まれない code(RD 等)は
+        # validator に "code 未定義" と reject される。v2-0360 に含まれる code
+        # (MD/DO/RN/PA 等)は system 付き coding、それ以外は text-only fallback。
+        # v2-0360 定義済 code(HL7 official table 0360)
+        _V2_0360_VALID_CODES = {
+            "MD", "DO", "RN", "LPN", "PA", "NP", "CNM",  # 医師系 + 看護系
+            "PT", "OT", "MSW", "ST",  # 療法士系
+            "BA", "BS", "MBA", "MS", "MA", "PHD",  # 学位系
+        }
         qual = (_ROLE_PREFIX_MAP_JA if is_jp(country) else _ROLE_PREFIX_MAP).get(role)
         if qual:
-            qualification: dict[str, Any] = {
-                "code": {
-                    "coding": [{
-                        "system": get_system_uri("hl7-v2-0360"),
-                        "code": qual["qual_code"],
-                        "display": qual["qual_display"],
-                    }],
-                },
-            }
+            _qual_code = qual["qual_code"]
+            _qual_display = qual["qual_display"]
+            if _qual_code in _V2_0360_VALID_CODES:
+                qualification: dict[str, Any] = {
+                    "code": {
+                        "coding": [{
+                            "system": get_system_uri("hl7-v2-0360"),
+                            "code": _qual_code,
+                            "display": _qual_display,
+                        }],
+                    },
+                }
+            else:
+                # v2-0360 未定義 code(RD 管理栄養士 等)は text-only
+                qualification = {"code": {"text": _qual_display}}
             qual_year = staff.get("qualification_year")
             if qual_year:
                 qualification["period"] = {"start": f"{qual_year}-01-01"}

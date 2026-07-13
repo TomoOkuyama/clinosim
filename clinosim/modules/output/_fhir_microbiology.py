@@ -281,7 +281,8 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         }]
         # CY8-16 polish: MB DR.issued default = reported_datetime。
         if not report.get("issued") and mb.get("reported_datetime"):
-            report["issued"] = mb["reported_datetime"]
+            from clinosim.modules.output._fhir_common import to_fhir_instant
+            report["issued"] = to_fhir_instant(mb["reported_datetime"])
         # C5-20 (Chain 3): presentedForm — text/plain summary of culture +
         # susceptibility results (patient-facing form of the microbiology
         # report). Deterministic text (no external state).

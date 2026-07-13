@@ -442,16 +442,20 @@ def imaging_enricher(ctx: Any) -> None:
     # Lazy import to avoid circular dependency with seeding module.
     from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 
+    # Lazy import to avoid circular dep with inference module (which imports
+    # load_body_sites / load_modalities from this module).
+    from clinosim.modules.imaging.inference import infer_imaging_metadata
+
     for record in ctx.records:
         orders = _o(record, "orders", []) or []
+        # session 48 cycle 8 拡張 (case D CIF-VS-FHIR-01):
+        # gate から imaging_body_site_code / imaging_modality 必須要件を撤去。
+        # metadata なし Order は loop 内で display_name → infer or stub fallback。
+        # これで全 imaging Order が ImagingStudy に mapping、silent-drop 消滅。
         imaging_orders = [
             o for o in orders
             if _o(o, "order_type") in (OrderType.IMAGING, "imaging")
             and _o(o, "status") not in (OrderStatus.CANCELLED, "cancelled")
-            # Skip legacy IMAGING orders (pre-Task3) that lack imaging metadata.
-            # Only orders emitted by place_imaging_orders() carry imaging_body_site_code.
-            and (_o(o, "imaging_body_site_code", "") or "")
-            and (_o(o, "imaging_modality", "") or "")
         ]
         if not imaging_orders:
             continue
@@ -480,7 +484,43 @@ def imaging_enricher(ctx: Any) -> None:
             modality: str = _o(order, "imaging_modality", "") or ""
             body_site_snomed: str = _o(order, "imaging_body_site_code", "") or ""
             views: list[str] = list(_o(order, "imaging_views", []) or [])
-            body_site_key = _body_site_key_from_snomed(body_site_snomed)
+            # 案 D case D fix: metadata 未 populate なら display_name から infer。
+            # 失敗すれば stub_only=True で最小 ImagingStudy を emit(下方)。
+            stub_only = False
+            if not (modality and body_site_snomed):
+                inferred = infer_imaging_metadata(_o(order, "display_name", "") or "")
+                if inferred:
+                    modality = inferred["modality"]
+                    body_site_snomed = inferred["body_site_snomed"]
+                    if not views:
+                        views = list(inferred.get("views", []))
+                else:
+                    stub_only = True
+            body_site_key = _body_site_key_from_snomed(body_site_snomed) if body_site_snomed else ""
+
+            # stub-only path: build minimum spec-valid ImagingStudy (no series /
+            # modality unknown / description = display_name)。JP Core ImagingStudy
+            # は series / modality を required にしていないため spec 適合。
+            if stub_only:
+                encounter_id_stub: str = _o(order, "encounter_id", "") or ""
+                stub_uid = _study_uid_from(sub_seed, "study")
+                stub_study = ImagingStudyRecord(
+                    study_id=f"{IMAGING_STUDY_ID_PREFIX}{encounter_id_stub}-{idx}",
+                    study_instance_uid=stub_uid,
+                    encounter_id=encounter_id_stub,
+                    patient_id=_o(order, "patient_id", "") or "",
+                    order_id=order_id,
+                    status="available",
+                    started_datetime=_o(order, "ordered_datetime"),
+                    modality_code="",  # inference 失敗
+                    body_site_snomed="",
+                    series=[],  # 0 series = FHIR R4 ImagingStudy 適合
+                    endpoint_id="",  # PACS 参照無し
+                    contrast=False,
+                    report=None,  # radiology report は生成しない
+                )
+                studies.append(stub_study)
+                continue
 
             series = _expand_views_to_series(modality, body_site_key, views, rng)
             # Attach deterministic per-series UID (sub_seed + 1-based index to avoid

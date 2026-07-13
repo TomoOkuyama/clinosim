@@ -50,9 +50,11 @@ allergens:
           severity: moderate
 
   food:
-    - allergen_code: "227037002"
-      allergen_display_en: "Eggs"
-      allergen_display_ja: "卵"
+    # feedback FB-F8 (session 48 cycle 8): SNOMED CT 227037002 は inactive、
+    # active substance code 735038006 "Egg protein (substance)" に更新。
+    - allergen_code: "735038006"
+      allergen_display_en: "Egg protein"
+      allergen_display_ja: "卵タンパク"
       prevalence:
         adult: 0.02
       criticality: low
@@ -61,7 +63,9 @@ allergens:
           manifestation_display_en: "Rash"
           manifestation_display_ja: "発疹"
           severity: mild
-    - allergen_code: "256349002"
+    # feedback FB-F8: SNOMED CT 256349002 は inactive、
+    # active substance code 735029006 "Wheat (substance)" に更新。
+    - allergen_code: "735029006"
       allergen_display_en: "Wheat"
       allergen_display_ja: "小麦"
       prevalence:

@@ -90,15 +90,30 @@ def _bb_imaging_studies(ctx: BundleContext) -> list[dict[str, Any]]:
 
 
 def _build_imaging_study(study: Any, lang: str, enc_reason_by_id: dict[str, list[dict]] | None = None) -> dict[str, Any]:
-    """Build one FHIR R4 ImagingStudy resource from an ImagingStudyRecord."""
+    """Build one FHIR R4 ImagingStudy resource from an ImagingStudyRecord.
+
+    session 48 cycle 8 拡張(案 D):stub-only ImagingStudy(modality/body_site
+    が空)にも対応。stub は modality / series 0..* を空で emit、identifier +
+    status + subject + basedOn 最小構成で spec-valid。SR がある限り「オーダー
+    はあった」ことを FHIR consumer に伝達可能。
+    """
     modalities = load_modalities()
     modality_code = _o(study, "modality_code", "")
-    mod_def = modalities.get(modality_code, {})
+    mod_def = modalities.get(modality_code, {}) if modality_code else {}
     modality_display = mod_def.get(f"display_{lang}") or mod_def.get("display_en", modality_code)
 
     series_list = _o(study, "series", []) or []
     series_resources = [_build_series(s, lang) for s in series_list]
     total_instances = sum(_o(s, "instance_count", 0) for s in series_list)
+
+    # 案 D stub 対応: modality_code 空なら modality array 空 emit
+    modality_field: list[dict] = []
+    if modality_code:
+        modality_field = [{
+            "system": get_system_uri("dicom-modality"),
+            "code": modality_code,
+            "display": modality_display,
+        }]
 
     res: dict[str, Any] = {
         "resourceType": "ImagingStudy",
@@ -108,19 +123,18 @@ def _build_imaging_study(study: Any, lang: str, enc_reason_by_id: dict[str, list
             "value": f"urn:oid:{_o(study, 'study_instance_uid', '')}",
         }],
         "status": _o(study, "status", "available"),
-        "modality": [{
-            "system": get_system_uri("dicom-modality"),
-            "code": modality_code,
-            "display": modality_display,
-        }],
+        "modality": modality_field,
         "subject": {"reference": f"Patient/{_o(study, 'patient_id', '')}"},
         "encounter": {"reference": f"Encounter/{_o(study, 'encounter_id', '')}"},
         "basedOn": [{"reference": f"ServiceRequest/{SR_ID_PREFIX}{_o(study, 'order_id', '')}"}],
-        "endpoint": [{"reference": f"Endpoint/{_o(study, 'endpoint_id', '')}"}],
         "numberOfSeries": len(series_resources),
         "numberOfInstances": total_instances,
         "series": series_resources,
     }
+    # endpoint は stub でない時のみ emit(PACS 参照)
+    endpoint_id = _o(study, "endpoint_id", "")
+    if endpoint_id:
+        res["endpoint"] = [{"reference": f"Endpoint/{endpoint_id}"}]
     started = _isoformat_or_str(_o(study, "started_datetime", None))
     if started:
         res["started"] = started
