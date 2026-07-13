@@ -1,6 +1,6 @@
 # Clinical documents in clinosim
 
-clinosim generates **clinically structured narrative documents** as part of the
+clinosim simulates **clinically structured narrative documents** as part of the
 simulation pipeline. Every document is written twice: once as a CIF intermediate
 JSON (the *narrative CIF*) and once as a FHIR R4 `DocumentReference` resource in
 the Bulk Data NDJSON export.
@@ -115,7 +115,7 @@ NDJSON files.
 ### Three stages
 
 ```
-clinosim generate   →   cif/structural/patients/*.json       (Stage 1)
+clinosim simulate   →   cif/structural/patients/*.json       (Stage 1)
 clinosim narrate    →   cif/narratives/<ver>/documents/*.json (Stage 2)
 clinosim export-fhir →  fhir_r4/*.ndjson (incl. DocumentReference.ndjson)  (Stage 3)
 ```

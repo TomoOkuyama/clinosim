@@ -11,7 +11,7 @@ from pathlib import Path
 def run_cohort(country: str, tmp: Path) -> Path:
     out = tmp / f"{country.lower()}_diag"
     r = subprocess.run(
-        [sys.executable, "-m", "clinosim.simulator.cli", "generate",
+        [sys.executable, "-m", "clinosim.simulator.cli", "simulate",
          "-p", "500", "--country", country, "-o", str(out),
          "--format", "cif"],
         capture_output=True, text=True, timeout=900,

@@ -50,7 +50,7 @@
    └ CSV / (将来: SS-MIX2, HL7 v2)
 ```
 
-- **CLI 3-stage(AD-37)**: `clinosim generate`(→ structural CIF)→ `clinosim narrate
+- **CLI 3-stage(AD-37)**: `clinosim simulate`(→ structural CIF)→ `clinosim narrate
   --provider template|mock|ollama|bedrock`(→ narratives/<version>/)→
   `clinosim export-fhir --narrative-version X`。これがコンセプト 6(差し替え)の実体。
 - **決定性(AD-16)**: 全乱数は階層 sub-seed。同 seed = byte 同一出力(wall-clock は

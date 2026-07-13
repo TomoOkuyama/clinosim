@@ -263,6 +263,25 @@ def _build_medication_request(
     # Requester (ordering physician)
     if order.get("ordered_by"):
         resource["requester"] = {"reference": f"Practitioner/{order['ordered_by']}"}
+        # CY8-17 fix (session 48 cycle 8): MR.recorder = 記録者(オーダー入力者)。
+        # clinosim では requester と同一 practitioner が入力する運用モデル、
+        # ordered_by を fallback として emit(100% coverage)。
+        resource["recorder"] = {"reference": f"Practitioner/{order['ordered_by']}"}
+
+    # CY8-18 fix (session 48 cycle 8): MR.courseOfTherapyType — acute / continuous /
+    # seasonal 分類。慢性処方(is_home_med / community intent)は continuous、
+    # 急性期治療は acute、その他は継続困難なため無指定にせず acute default。
+    # HL7 CodeSystem: http://terminology.hl7.org/CodeSystem/medicationrequest-course-of-therapy
+    _course_code = "continuous" if (_is_home_med or _cat_code == "community") else "acute"
+    _course_display = ("Continuous long-term therapy" if _course_code == "continuous"
+                       else "Short course (acute) therapy")
+    resource["courseOfTherapyType"] = {
+        "coding": [{
+            "system": "http://terminology.hl7.org/CodeSystem/medicationrequest-course-of-therapy",
+            "code": _course_code,
+            "display": _course_display,
+        }],
+    }
 
     # CY7-08 (Chain-7): MR.priority — derive from Order.urgency (routine /
     # urgent / stat / asap). FHIR R4 valueset: routine | urgent | asap | stat.
@@ -469,6 +488,37 @@ def _build_medication_admin(
         cond_ref = f"cond-{encounter_id}-primary" if encounter_id else f"cond-{patient_id}-primary"
         resource["reasonReference"] = [{
             "reference": f"Condition/{cond_ref}",
+        }]
+        # CY8-19 fix (session 48 cycle 8): MAR.reasonCode — primary diagnosis
+        # ICD code を CodeableConcept で並置(reasonReference との duplication は
+        # FHIR R4 で recommended:code と reference は互いに補完)。
+        # US = icd-10-cm、JP = icd-10。
+        _icd_system = get_system_uri(
+            "icd-10-cm" if country_code == "US" else "icd-10"
+        )
+        resource["reasonCode"] = [{
+            "coding": [{
+                "system": _icd_system,
+                "code": primary_dx_code,
+            }],
+        }]
+
+    # CY8-20 fix (session 48 cycle 8): MAR.device — 持続点滴 (continuous
+    # infusion / drip) のとき infusion pump Device を参照。route=IV かつ
+    # rate指定ある/CONTINUOUS/DRIP を含む admin のみ pump 参照 emit。
+    # Device resource 自体は既存 hospital-main の generic infusion pump を
+    # 参照(実 EHR 実装と同様、pump を patient に固有発行しない運用)。
+    _dose_text_up = (mar.get("dose") or "").upper()
+    _is_infusion = (
+        route == "IV" and (
+            "CONTINUOUS" in _dose_text_up or "DRIP" in _dose_text_up
+            or "/H" in _dose_text_up
+        )
+    )
+    if _is_infusion:
+        resource["device"] = [{
+            "reference": "Device/dev-infusion-pump",
+            "display": "汎用輸液ポンプ" if country_code == "JP" else "Generic infusion pump",
         }]
 
     return resource

@@ -15,7 +15,7 @@ FHIR-R4-conformant servers work the same way).
 
 ## Pre-requisites
 
-- A clinosim output directory produced by `clinosim generate --format fhir`
+- A clinosim output directory produced by `clinosim simulate --format fhir`
   or `clinosim dataset build <preset>`, e.g. `./jp-100/`.
 - Docker (for the local HAPI FHIR example) or an existing FHIR R4 server
   with the Bulk Data `$import` operation enabled.

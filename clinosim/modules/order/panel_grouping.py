@@ -28,7 +28,7 @@ _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 _PANEL_YAML = _REF_DIR / "lab_panel_groups.yaml"
 
-PANEL_PRIORITY_ORDER: tuple[str, ...] = ("ABG", "CBC", "BMP", "LFT", "Lipid", "Coag", "UA")
+PANEL_PRIORITY_ORDER: tuple[str, ...] = ("ABG", "CBC", "BMP", "LFT", "Lipid", "Coag", "UA", "Checkup")
 """Priority order for panel matching (header of lab_panel_groups.yaml).
 
 Verified against the YAML header comment at import time via

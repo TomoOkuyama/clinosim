@@ -642,13 +642,13 @@ pytest tests/unit/test_diagnosis_code_coverage.py
 
 ## Regen scope matrix: Local iteration cycles (AD-65, 2026-07-02)
 
-The two-pass CIF generation architecture (`clinosim generate` → Stage 1 structural + auto Stage 2 template narratives) + dev facility (`test-disease --format`, `narrate` verb) enables fast iteration on different change types. Use this matrix to select the fastest workflow for your change. Canonical spec for the two-pass structural/narrative CIF separation = [`clinosim/modules/output/SPEC.md`](../clinosim/modules/output/SPEC.md) § "Stage 2: Narrative Generation".
+The two-pass CIF generation architecture (`clinosim simulate` → Stage 1 structural + auto Stage 2 template narratives) + dev facility (`test-disease --format`, `narrate` verb) enables fast iteration on different change types. Use this matrix to select the fastest workflow for your change. Canonical spec for the two-pass structural/narrative CIF separation = [`clinosim/modules/output/SPEC.md`](../clinosim/modules/output/SPEC.md) § "Stage 2: Narrative Generation".
 
 ### Change types and iteration time
 
 | Change target | Fastest regen command | Estimated time | Notes |
 |---|---|---|---|
-| **Simulator engine / enricher** (population, disease, encounter logic) | `clinosim generate -p N -o /tmp/cX` | 5-50 min | Full cohort → CIF output. Proportional to N. |
+| **Simulator engine / enricher** (population, disease, encounter logic) | `clinosim simulate -p N -o /tmp/cX` | 5-50 min | Full cohort → CIF output. Proportional to N. |
 | **Template narrative generator** (TemplateNarrativeGenerator, bug A pattern) | `clinosim narrate --cif-dir /tmp/cX --version-id template` → `clinosim export-fhir --cif-dir /tmp/cX` | ~30 sec + 5 min | Reuse existing structural CIF. Stage 2 only. |
 | **FHIR builder** (bug C pattern) | `clinosim export-fhir --cif-dir /tmp/cX` | ~5 min | Reuse existing CIF. Stage 3 only. |
 | **Locale display / code resolution** | `clinosim export-fhir --cif-dir /tmp/cX` | ~5 min | No CIF change, Stage 3 only. |
@@ -682,7 +682,7 @@ The two-pass CIF generation architecture (`clinosim generate` → Stage 1 struct
 
 4. **Full validation** (once confident):
    ```bash
-   clinosim generate -p 500 --country US -o /tmp/us500
+   clinosim simulate -p 500 --country US -o /tmp/us500
    clinosim audit run --cif-dir /tmp/us500
    # Gate: "us_admission_hp_zero_ja_chars" = 0
    ```
@@ -717,7 +717,7 @@ The two-pass CIF generation architecture (`clinosim generate` → Stage 1 struct
 
 4. **Integration test** on production cohort:
    ```bash
-   clinosim generate -p 500 --country US -o /tmp/us500
+   clinosim simulate -p 500 --country US -o /tmp/us500
    clinosim audit run --cif-dir /tmp/us500
    # Gate: "nursing_doc_author_is_nurse_ratio" = 1.0
    ```

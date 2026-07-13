@@ -87,7 +87,7 @@ clinosim test-disease --patient-profile tests/fixtures/patient_profiles/jp_inpat
     --format cif -o /tmp/pneumonia
 
 # (b) その場で生成 — cohort 単位(品質確認用)
-clinosim generate -p 100 --country JP --format cif -o /tmp/jp100
+clinosim simulate -p 100 --country JP --format cif -o /tmp/jp100
 
 # (c) ローカルから転送
 rsync -az ./output/cif/ remote:/data/run1/cif/

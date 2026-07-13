@@ -216,7 +216,7 @@ def main() -> int:
         print("ALL CHECKS PASSED — Bedrock is ready for clinosim narrative generation")
         print()
         print("Next steps:")
-        print(f"  1. Generate CIF:   clinosim generate -o ./output -p 5000 --country US --format cif")
+        print(f"  1. Generate CIF:   clinosim simulate -o ./output -p 5000 --country US --format cif")
         print(f"  2. Run narratives: clinosim narrate --cif-dir ./output/cif \\")
         print(f"       --llm-config clinosim/config/llm_service.bedrock.yaml \\")
         print(f"       --version-id bedrock_en_v1")

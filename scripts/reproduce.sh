@@ -7,7 +7,7 @@
 # a MINOR release line. This script exercises that guarantee end-to-end
 # on both US and JP locales:
 #
-#   1. Run `clinosim generate --format fhir` twice per locale into two
+#   1. Run `clinosim simulate --format fhir` twice per locale into two
 #      isolated temp directories.
 #   2. Hash every *.ndjson and CIF *.json in each output with sha256sum
 #      (or `shasum -a 256` on macOS where the GNU tool is absent).
@@ -117,7 +117,7 @@ for country in "${COUNTRIES[@]}"; do
 
     for target in "$dir1" "$dir2"; do
         echo "-- generating into $target"
-        clinosim generate \
+        clinosim simulate \
             --country "$country" \
             --population "$POPULATION" \
             --seed "$SEED" \
@@ -126,7 +126,7 @@ for country in "${COUNTRIES[@]}"; do
             --output "$target" \
             --format fhir \
             > "$target.log" 2>&1 || {
-                echo "reproduce.sh: clinosim generate failed for $country; see $target.log" >&2
+                echo "reproduce.sh: clinosim simulate failed for $country; see $target.log" >&2
                 exit 2
             }
     done

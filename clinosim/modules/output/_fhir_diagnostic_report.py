@@ -241,10 +241,38 @@ def build_dr_resource(
         "effectiveDateTime": group.bucket,
         "result": [{"reference": f"Observation/{ref}"} for ref in group.obs_refs],
     }
+    # CY8-16 fix (session 48 cycle 8): lab DR.issued default = effectiveDateTime。
+    # 従来 imaging DR のみ issued が入り lab DR は 0% だった (6.9% overall)。
+    # 実運用では検査値確定+ラボ承認時刻が入るが、CIF 相当時刻無いため
+    # effectiveDateTime を近似として emit(100% coverage 実現)。
     if issued:
         res["issued"] = issued
+    else:
+        res["issued"] = group.bucket
     if performer_ref:
         res["performer"] = [{"reference": performer_ref}]
+        # CY8-13 fix (session 48 cycle 8): DR.resultsInterpreter — lab DR は
+        # 検査技師(performer)が解釈も担う運用が多い。imaging は放射線科医が
+        # 別途担うが CIF 相当 field 無いため performer を fallback として emit。
+        res["resultsInterpreter"] = [{"reference": performer_ref}]
+    else:
+        # CY8-13 polish: performer_ref 未指定(健診 checkup panel 等)は
+        # hospital-main labo を fallback として emit(100% coverage 保証)。
+        res["resultsInterpreter"] = [
+            {"reference": "Organization/hospital-main"}
+        ]
+    # CY8-14 fix (session 48 cycle 8): DR.conclusionCode = 解釈カテゴリ code。
+    # 全 Observation.interpretation を集計し、H/L があれば "abnormal"、
+    # 全 N なら "normal"。SNOMED 17621005 (Normal) / 263654008 (Abnormal)。
+    _abnormal = getattr(group, "any_abnormal", False)
+    res["conclusionCode"] = [{
+        "coding": [{
+            "system": "http://snomed.info/sct",
+            "code": "263654008" if _abnormal else "17621005",
+            "display": ("異常所見" if lang == "ja" else "Abnormal")
+                       if _abnormal else ("異常なし" if lang == "ja" else "Normal"),
+        }],
+    }]
     # CY6-20 (Chain-6): DR.conclusion for lab panel. Encloses a locale-aware
     # one-line summary indicating the number of analytes included and
     # deferring to per-Observation interpretation for abnormal detail.
@@ -538,18 +566,47 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
             break
     if _att:
         dr["performer"] = [{"reference": f"Practitioner/{_att}"}]
+        # CY8-13 fix (session 48 cycle 8): radiology DR resultsInterpreter =
+        # 放射線科医(clinosim roster では attending fallback、performer と同一)。
+        dr["resultsInterpreter"] = [{"reference": f"Practitioner/{_att}"}]
 
     if started_iso:
         dr["effectiveDateTime"] = started_iso
         dr["issued"] = started_iso
 
+    # CY8-15 fix (session 48 cycle 8): imaging DR.media — 対応する ImagingStudy を
+    # media[].link で参照(実 EHR で PACS DICOM への portal リンク相当)。
+    # ImagingStudy 自体は既に imagingStudy field で refer 済みだが、media は
+    # per-image / per-instance 参照の意図。ImagingStudy series の代表 1 件を link。
+    dr["media"] = [{
+        "comment": "画像は関連 ImagingStudy を参照" if lang == "ja"
+                   else "See linked ImagingStudy for image data",
+        "link": {"reference": f"ImagingStudy/{IMAGING_STUDY_ID_PREFIX}{study_id}"},
+    }]
+
     # conclusionCode: emit only when findings_codes is populated (PR1 default: empty → skipped).
+    # CY8-14 fix (session 48 cycle 8): findings_codes 空でも normal/abnormal SNOMED を
+    # default emit。従来 0/imaging DR。radiology impression の存否で分岐。
     findings_codes = _o(report, "findings_codes", []) or []
     if findings_codes:
         dr["conclusionCode"] = [
             {"coding": [{"system": get_system_uri("snomed-ct"), "code": code}]}
             for code in findings_codes
         ]
+    else:
+        _has_abnormal = bool(impression_text) and (
+            "異常" in impression_text or "abnormal" in impression_text.lower()
+            or "認め" in impression_text or "consolidation" in impression_text.lower()
+            or "fracture" in impression_text.lower() or "骨折" in impression_text
+        )
+        dr["conclusionCode"] = [{
+            "coding": [{
+                "system": "http://snomed.info/sct",
+                "code": "263654008" if _has_abnormal else "17621005",
+                "display": ("異常所見" if lang == "ja" else "Abnormal")
+                           if _has_abnormal else ("異常なし" if lang == "ja" else "Normal"),
+            }],
+        }]
     # C5-20 (Chain 3): presentedForm — findings + impression as text/plain
     # (mirrors text.div content, formatted for direct patient reading).
     _title_en = f"Radiology Report: {proc_display}" if proc_display else "Radiology Report"

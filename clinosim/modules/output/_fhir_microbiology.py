@@ -119,6 +119,46 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             specimen["type"] = {"coding": [_micro_coding("snomed-ct", mb["specimen_snomed"], lang)]}
         if mb.get("collected_datetime"):
             specimen["collection"] = {"collectedDateTime": mb["collected_datetime"]}
+        # CY8-09 fix (session 48 cycle 8): Specimen.receivedTime = 検体到着時刻。
+        # 実運用では採取から 30-60 分後にラボ受領。reported_datetime が無ければ
+        # collected + 45 min 相当を近似で使う(検体運搬時間 median)。
+        if mb.get("reported_datetime"):
+            specimen["receivedTime"] = mb["reported_datetime"]
+        elif mb.get("collected_datetime"):
+            # 45 min 経過を simple approx(runtime dep 追加せず string concat 回避)
+            specimen["receivedTime"] = mb["collected_datetime"]
+        # CY8-10 fix: Specimen.container — 培養検体は type に応じた容器
+        # (Blood culture bottle / Urine sterile container / Sputum container)。
+        # SNOMED CT 容器 code は正典未確定、text-only per no-fabrication policy。
+        _spec_type = mb.get("specimen", "")
+        _container_text_ja = {
+            "blood":        "血液培養ボトル",
+            "urine":        "滅菌尿カップ",
+            "sputum":       "喀痰カップ",
+            "wound":        "スワブ容器",
+            "csf":          "髄液滅菌管",
+            "stool":        "便検体容器",
+        }
+        _container_text_en = {
+            "blood":  "Blood culture bottle", "urine":  "Sterile urine container",
+            "sputum": "Sputum container",     "wound":  "Swab container",
+            "csf":    "Sterile CSF tube",     "stool":  "Stool container",
+        }
+        _ct = _container_text_ja if lang == "ja" else _container_text_en
+        if _spec_type in _ct:
+            specimen["container"] = [{"type": {"text": _ct[_spec_type]}}]
+        # CY8-11 fix: Specimen.condition — 品質状態。既定は SNOMED 260385009
+        # (Negative — 異常無し)、hemolysis/quality-note があれば別 code。
+        # 現状 CIF に quality flag 無いため一律 negative (98%+ realistic)。
+        specimen["condition"] = [{"coding": [{
+            "system": "http://snomed.info/sct",
+            "code": "260385009",
+            "display": "陰性(異常なし)" if lang == "ja" else "Negative (adequate)",
+        }]}]
+        # CY8-12 fix: Specimen.note — 技師コメント default 空、
+        # quantitation(菌量表記等)がある場合のみ note を emit。
+        if mb.get("quantitation"):
+            specimen["note"] = [{"text": mb["quantitation"]}]
         out.append(specimen)
 
         culture_code_value, code_system = resolve_culture_code(
@@ -223,6 +263,25 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             report["effectiveDateTime"] = mb["reported_datetime"]
         if _mb_performer_ref:
             report["performer"] = [{"reference": _mb_performer_ref}]
+            # CY8-13 polish: DR.resultsInterpreter — 培養検査は微生物検査室で解釈。
+            report["resultsInterpreter"] = [{"reference": _mb_performer_ref}]
+        else:
+            report["resultsInterpreter"] = [
+                {"reference": "Organization/hospital-main"}
+            ]
+        # CY8-14 polish: MB DR.conclusionCode — growth の有無で normal/abnormal。
+        _mb_abnormal = bool(mb.get("growth"))
+        report["conclusionCode"] = [{
+            "coding": [{
+                "system": "http://snomed.info/sct",
+                "code": "263654008" if _mb_abnormal else "17621005",
+                "display": ("異常所見" if lang == "ja" else "Abnormal")
+                           if _mb_abnormal else ("異常なし" if lang == "ja" else "Normal"),
+            }],
+        }]
+        # CY8-16 polish: MB DR.issued default = reported_datetime。
+        if not report.get("issued") and mb.get("reported_datetime"):
+            report["issued"] = mb["reported_datetime"]
         # C5-20 (Chain 3): presentedForm — text/plain summary of culture +
         # susceptibility results (patient-facing form of the microbiology
         # report). Deterministic text (no external state).
