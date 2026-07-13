@@ -110,3 +110,48 @@ ENRICHER_SEED_OFFSETS = {
 
 assert len(set(ENRICHER_SEED_OFFSETS.values())) == len(ENRICHER_SEED_OFFSETS), \
     f"ENRICHER_SEED_OFFSETS contains duplicate values: {ENRICHER_SEED_OFFSETS!r}"
+
+
+# ------------------------------------------------------------------
+# Phase-scoped sub-seed offsets (session 49, F1 cross-cursor determinism).
+#
+# run_beta の 4 phase(life event 生成 / hospital main loop / readmission /
+# outpatient calendar / ED)は現行 master RNG を串刺しに消費している。
+# cursor 移動 (snapshot_date の変更) で phase P1 の event 数が変わると
+# master RNG state が phase P2 開始時点で異なる → 同 patient X でも
+# 違う結果になる = 「cursor A の output と cursor B の共有区間が
+# bytewise 一致」が保証されない。
+#
+# ここで phase salt を分離し、各 phase 内で per-key sub-seed に切り替える
+# ことで master RNG を完全に迂回する。cursor 移動が phase をまたいで
+# 影響を伝播させない。
+#
+# Convention: 16-bit hex ASCII (4 ASCII 大文字) の 32-bit 値。既存
+# ENRICHER_SEED_OFFSETS と衝突しないよう 0x504xxxxx 帯を使用。
+PHASE_LIFE_EVENT      = 0x504C4556  # "PLEV"
+PHASE_INPATIENT_SIM   = 0x50494E50  # "PINP"
+PHASE_READMISSION     = 0x50524541  # "PREA"
+PHASE_OUTPATIENT_CAL  = 0x504F5054  # "POPT"
+PHASE_ED_VISIT        = 0x50454456  # "PEDV"
+
+_PHASE_OFFSETS = {
+    "life_event":          PHASE_LIFE_EVENT,
+    "inpatient_sim":       PHASE_INPATIENT_SIM,
+    "readmission":         PHASE_READMISSION,
+    "outpatient_calendar": PHASE_OUTPATIENT_CAL,
+    "ed_visit":            PHASE_ED_VISIT,
+}
+
+assert len(set(_PHASE_OFFSETS.values())) == len(_PHASE_OFFSETS), \
+    f"phase offset collision: {_PHASE_OFFSETS!r}"
+
+
+def derive_phase_rng(master_seed: int, phase_salt: int, key: str) -> "np.random.Generator":
+    """AD-16 徹底: run_beta の phase 内 key ごとに独立 RNG stream を返す。
+
+    cursor A と cursor B で同 phase の同 key を要求すれば同一 stream になり、
+    cross-cursor byte-identity が保証される。key は phase 内で unique な
+    entity 識別子(event.person_id + timestamp + disease_id など)を使う。
+    """
+    import numpy as np
+    return np.random.default_rng(derive_sub_seed(master_seed, phase_salt, key))
