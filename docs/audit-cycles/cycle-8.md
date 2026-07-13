@@ -298,3 +298,41 @@ user 依頼で JP p=10000 **seed=100** 別 seed で C1-C8 全 fix の invariant 
 - CY8-04/13/21 の各 fix には「新 code path(健診 / ED synth / HAI)」への横展開漏れがあった = **PR-90 class silent-no-op のミニ版**(fix 追加時に既存 gate の網羅性チェックが不十分)
 - Cross-seed verify という separate seed 監査で捉えられた = 「seed=42 ベースの verify だけでは網羅不十分」の教訓
 - 追加 4 fix は全て「fallback を Organization/hospital-main に統一」する pattern で解決 — 責任分解点 clear
+
+## Triple-seed review (session 48 追加, seed=200 + 3 layer)
+
+user 依頼で seed=200 で 3 layer 監査:構造完全性 (Layer A) + 臨床整合性
+(Layer B) + 統計整合性 (Layer C)。
+
+### Layer A: 構造完全性 (C1-C8 gates)
+
+**66/66 PASS**(seed=42/100/200 全 3 シードで invariant 保持)。
+
+### Layer B: 臨床整合性
+
+| チェック | 結果 | 詳細 |
+|---|---|---|
+| MI 患者 antithrombotic | ✅ 57/57 = 100% | JP 名 (アスピリン/クロピドグレル/ヘパリン) で全 MI 患者に発火 |
+| Sepsis lactate>2 | ✅ 98.4% (1082/1100) | Surviving Sepsis 2021 criteria と整合 |
+| LAB 急性期範囲 | ✅ 臨床的に妥当 | CRP 500 (severe sepsis) / Cr 6 (AKI stage 3) / AST 700 (shock liver) / Glucose 630 (DKA) は全て実運用の急性期 range 内 |
+| BMI 個別化 (sub-PR-B) | ✅ 168/186 possible = 90% saturation | std 3.5, min 14.3, max 32.9 kg/m²、session 48 fix の PatientProfile-based 個別化動作確認 |
+
+### Layer C: 統計整合性
+
+| チェック | 結果 | 詳細 |
+|---|---|---|
+| 性比 | ✅ 48.1% male | expected 45-55% |
+| LOS (IMP) | ✅ mean 16.6d, median 14.5d | 急性期病院 4-25 日想定内 |
+| Encounter mix | ✅ AMB 87% / IMP 3% / EMER 10% | 外来主体コホート spec と整合 |
+| Utilization | ✅ Patient 5866 / pop 10000 = 58.7% | expected 40-70% |
+| CHK age gate | ✅ 全 checkup patient ≥40 | (n=1462) 0 が <40 |
+| CHK type mix | ✅ occupational 623 (40-64) + specific 420 (65-74) + regional_union 419 (75+) | age-based dispatch 動作 |
+| Top ICD 分布 | ✅ I10 > E78 > E11 > J44 > N18 > I50 > I25 | JP 実 chronic condition ranking と近似 |
+| Age 分布 | ⚠️ ≥40=85%, ≥65=52% | patients-with-encounters cohort として妥当(高齢者は医療利用高、JP aging society)、一般 census ではない |
+
+### Triple-seed review 結論
+
+**Session 48 cycle 8 の C1-C8 全 fix は seed=42/100/200 の 3 独立コホートで
+invariant 保持を確認。構造完全性 100%、臨床値は生理学的に妥当、統計分布は
+JP の医療利用 demographics と整合。** cycle 8 全体を "closed with cross-seed
++ clinical + statistical validation" と宣言できる。
