@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -260,3 +262,37 @@ def test_format_summary_basic():
         assert "2026-06-01" in summary
         assert "Patient" in summary
         assert "1" in summary  # 1 entry
+
+
+# ===== Task 6: CLI smoke test =====
+
+
+@pytest.mark.unit
+def test_cli_diff_smoke(tmp_path):
+    """clinosim diff subcommand smoke test — subprocess invoke。"""
+    old_dir = tmp_path / "old"
+    new_dir = tmp_path / "new"
+    old_dir.mkdir()
+    new_dir.mkdir()
+    _write_ndjson(new_dir / "Patient.ndjson", [{"resourceType": "Patient", "id": "p1"}])
+
+    bundle_path = tmp_path / "bundle.json"
+    summary_path = tmp_path / "summary.txt"
+
+    result = subprocess.run(
+        [sys.executable, "-m", "clinosim.simulator.cli", "diff",
+         "--old", str(old_dir),
+         "--new", str(new_dir),
+         "--output-bundle", str(bundle_path),
+         "--output-summary", str(summary_path),
+         "--old-cursor", "2026-05-31",
+         "--new-cursor", "2026-06-01"],
+        capture_output=True, text=True,
+    )
+    assert result.returncode == 0, f"stderr: {result.stderr}"
+    bundle = json.loads(bundle_path.read_text())
+    assert bundle["type"] == "transaction"
+    assert len(bundle["entry"]) == 1
+    summary = summary_path.read_text()
+    assert "2026-05-31" in summary
+    assert "2026-06-01" in summary
