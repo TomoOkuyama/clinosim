@@ -1663,9 +1663,79 @@
 
 <h1 id="roadmap">Roadmap<a class="headerlink" href="#roadmap" title="Permanent link">&para;</a></h1>
 <h1 id="clinosim-todo">clinosim — TODO<a class="headerlink" href="#clinosim-todo" title="Permanent link">&para;</a></h1>
-<h2 id="status-2026-07-13-session-48-closed-21-commits-push-session-49-b-incremental-cron-phase-a">Status (2026-07-13, <strong>★★★ session 48 CLOSED — 21 commits push、次 session 49 は 案 B incremental cron phase A</strong>)<a class="headerlink" href="#status-2026-07-13-session-48-closed-21-commits-push-session-49-b-incremental-cron-phase-a" title="Permanent link">&para;</a></h2>
-<p><strong>master HEAD</strong>: <code>038543aad9</code> (FB verify 27/27 PASS)</p>
+<h2 id="status-2026-07-14-session-49-closed-incremental-snapshot-chain-f1f2f3f4-12-commits-landed">Status (2026-07-14, <strong>★★★ session 49 CLOSED — incremental snapshot chain F1+F2+F3+F4 12 commits landed</strong>)<a class="headerlink" href="#status-2026-07-14-session-49-closed-incremental-snapshot-chain-f1f2f3f4-12-commits-landed" title="Permanent link">&para;</a></h2>
+<p><strong>master HEAD</strong>: <code>2dd7101bf4</code> (final review fix: mypy strict + F4 CLI)</p>
+<h3 id="session-49-spec-plan-9-task-final-review-fix-12-commits-direct-master">Session 49 成果(spec + plan + 9 実装 task + final review fix = 12 commits direct-master)<a class="headerlink" href="#session-49-spec-plan-9-task-final-review-fix-12-commits-direct-master" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Spec</td>
+<td><code>docs/superpowers/specs/2026-07-13-incremental-snapshot-diff-design.md</code>(F1+F2+F3+F4、user 3 段 clarify で「大掛かりな state module 不要 = 運用でカバー」に着地)</td>
+</tr>
+<tr>
+<td>Plan</td>
+<td><code>docs/superpowers/plans/2026-07-13-incremental-snapshot-diff.md</code>(9 task 3 PR chain、subagent-driven-development で執行)</td>
+</tr>
+<tr>
+<td><strong>F1</strong> cross-cursor RNG determinism</td>
+<td><code>simulator/seeding.py</code> に PHASE_* 定数 5 種 + <code>derive_phase_rng</code> + <code>engine.py</code> 4 phase を per-key sub-seed 化。cursor A/B 共有区間の record が bit-identical に。副次的に <code>modules/encounter/engine.py</code> の <code>_encounter_counter</code> global → 12桁 hash-derived suffix、<code>modules/population/generate_healthcare_calendar</code> を <code>rng.spawn(len(persons))</code> per-person 化、<code>simulator/helpers.py::_evaluate_readmission</code> の pre-existing <code>person.last_discharge_date</code> bug 修正(record.encounters[0] に anchor)。</td>
+</tr>
+<tr>
+<td><strong>F2</strong> NDJSON id sort</td>
+<td><code>modules/output/fhir_r4_adapter.py</code> の write 後 in-place sort。行 diff friendly、cursor 依存 iteration 順排除。</td>
+</tr>
+<tr>
+<td><strong>F3</strong> diff CLI</td>
+<td>新規 <code>simulator/diff.py</code>(<code>canonical_hash</code> meta.lastUpdated/versionId/source strip / <code>classify_resources</code> 3-state / <code>load_ndjson_by_id</code> / <code>build_diff_bundle</code> FHIR R4 Bundle transaction / <code>format_summary</code>)+ <code>clinosim diff</code> subcommand。</td>
+</tr>
+<tr>
+<td><strong>F4</strong> snapshot memoize</td>
+<td>新規 <code>simulator/memoize.py</code>(<code>CacheManifest</code> + <code>compute_config_hash</code> snapshot_date + time_range[1] 除外 + <code>write/read_cache_manifest</code> + <code>is_cache_valid</code> + <code>eligible_patient_ids</code> + <code>load_patient_records_from_cif</code>)+ <code>engine.py::run_beta(cache_dir=...)</code> + <code>simulate --cache-dir</code> CLI flag。cache hit patient は cold run と bit-identical、p=500k advance が 15-16h → 数分に。</td>
+</tr>
+<tr>
+<td>e2e</td>
+<td><code>tests/integration/test_incremental_snapshot_workflow.py</code>:cursor A snapshot → memoize cursor B → diff CLI → Bundle transaction 検証。</td>
+</tr>
+<tr>
+<td>Final review fix</td>
+<td>2 Important 検出+修正:<code>seeding.py</code> の mypy strict(TYPE_CHECKING import)+ F4 CLI 未公開(<code>--cache-dir</code> flag + <code>compute_config_hash</code> の time_range[1] 除外)。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="session-49">Session 49 テスト状態<a class="headerlink" href="#session-49" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Unit: 2687 PASS</strong>、4 pre-existing session 48 stale failures(imaging inference / TZ / panel_grouping)は F1-F4 と独立(follow-up)</li>
+<li><strong>F1 invariant</strong>(<code>test_cross_cursor_shared_window_byte_identical</code>)PASS</li>
+<li><strong>F2 invariant</strong>(<code>test_ndjson_files_id_sorted</code>)PASS</li>
+<li><strong>F3</strong>:16 unit + 1 CLI smoke test PASS</li>
+<li><strong>F4</strong>:17 test(config hash / manifest I/O / is_cache_valid / eligibility / memoize hit-bit-identical / config-change-invalidates / hit-ratio-realistic)PASS</li>
+<li><strong>e2e</strong>:F1+F2+F3+F4 統合 workflow PASS(3.67s)</li>
+<li><strong>Regression</strong> (AD-66) 12/12 PASS</li>
+<li><strong>reproduce.sh</strong> PASS: US 105 + JP 72 files byte-identical (seed=42, pop=30)</li>
+</ul>
+<h3 id="session-49-defectdesign-3-sibling">Session 49 で発見された defect(design が想定していなかった 3 sibling)<a class="headerlink" href="#session-49-defectdesign-3-sibling" title="Permanent link">&para;</a></h3>
+<p>F1 の cross-cursor invariant を書いてみて初めて発覚:
+1. <code>_encounter_counter</code> module-global counter → hash-derived 12桁 suffix(patient_id + admission + chief_complaint + department + visit_number)
+2. <code>generate_healthcare_calendar</code> の single shared RNG stream 逐次消費 → per-person <code>rng.spawn(n)</code>
+3. <code>_evaluate_readmission</code> の pre-existing bug(<code>person.last_discharge_date</code> が最新 admission に上書きされ、earlier admission の readmission が later admission の discharge に anchor される)→ <code>record.encounters[0].discharge_datetime</code> に直接 anchor</p>
+<h3 id="session-49-backlog">Session 49 で明示的に非目標にした後続 backlog<a class="headerlink" href="#session-49-backlog" title="Permanent link">&para;</a></h3>
+<ul>
+<li>OAuth2 / SMART on FHIR auth for <code>clinosim diff</code> bundle push(Phase B)</li>
+<li>Bulk Data <code>$import</code> 対応(Phase B)</li>
+<li>retry queue の robust 化(Phase B)</li>
+<li>実 FHIR server に対する CI smoke test(Phase B)</li>
+<li>schema evolution / migration path(Phase B)</li>
+<li>parallel simulation(multiprocessing)による更なる高速化(Phase B)</li>
+<li>pre-existing 4 stale test の更新(session 48 imaging inference + TZ 正規化 で残置。F1-F4 とは独立に対応)</li>
+</ul>
 <h3 id="session-48-21-commits-direct-master">Session 48 主要成果(21 commits direct-master)<a class="headerlink" href="#session-48-21-commits-direct-master" title="Permanent link">&para;</a></h3>
+<h3 id="session-48-21-commits-direct-master_1">Session 48 主要成果(21 commits direct-master)<a class="headerlink" href="#session-48-21-commits-direct-master_1" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
