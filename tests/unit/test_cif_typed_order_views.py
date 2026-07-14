@@ -9,7 +9,7 @@ import pytest
 
 
 def _make_order(order_type):
-    from clinosim.types.encounter import Order, OrderType
+    from clinosim.types.encounter import Order
     return Order(
         order_id="ord-1",
         order_type=order_type,

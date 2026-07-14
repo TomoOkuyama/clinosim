@@ -5,7 +5,6 @@ from __future__ import annotations
 from clinosim.audit.types import Cohort
 from clinosim.eval.engine import EvalCheck, Outcome, Severity
 
-
 _RXNORM_SYSTEM = "http://www.nlm.nih.gov/research/umls/rxnorm"
 _LOINC_SYSTEM = "http://loinc.org"
 _JLAC10_SYSTEM_PREFIXES = ("urn:oid:1.2.392.200119.4.1005",)  # JLAC10 canonical OID

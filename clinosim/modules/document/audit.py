@@ -819,13 +819,13 @@ def _build_document_proof() -> dict[str, Any]:
     """
     # Lazy imports: defer FHIR builder imports to proof time (avoids import-time
     # overhead; same pattern as imaging/audit.py _build_imaging_proof).
+    from clinosim.modules.document import specs_for_encounter_type
     from clinosim.modules.output._fhir_allergy_intolerance import _bb_allergy_intolerances
     from clinosim.modules.output._fhir_care_team import _bb_care_teams
     from clinosim.modules.output._fhir_clinical_impression import _bb_clinical_impressions
+    from clinosim.modules.output._fhir_common import BundleContext
     from clinosim.modules.output._fhir_composition import _bb_compositions
     from clinosim.modules.output._fhir_documents import _bb_document_references
-    from clinosim.modules.output._fhir_common import BundleContext
-    from clinosim.modules.document import specs_for_encounter_type
 
     # Synthetic free-text ClinicalDocument (PROGRESS_NOTE, LOINC 11506-3).
     # This is the actual production free_text format (DocumentReference path).

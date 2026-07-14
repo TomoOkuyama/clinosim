@@ -138,7 +138,9 @@ def assign_primary_nurse(
 # POST_ENCOUNTER enricher (Task 5)
 # ---------------------------------------------------------------------------
 
-from clinosim.modules._shared import get_attr_or_key as _o  # noqa: E402 — kept here to avoid circular import
+from clinosim.modules._shared import (
+    get_attr_or_key as _o,  # noqa: E402 — kept here to avoid circular import
+)
 from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed  # noqa: E402
 
 

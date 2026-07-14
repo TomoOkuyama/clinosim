@@ -440,11 +440,10 @@ def imaging_enricher(ctx: Any) -> None:
       ctx.config       — SimulatorConfig-like object
     """
     # Lazy import to avoid circular dependency with seeding module.
-    from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
-
     # Lazy import to avoid circular dep with inference module (which imports
     # load_body_sites / load_modalities from this module).
     from clinosim.modules.imaging.inference import infer_imaging_metadata
+    from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 
     for record in ctx.records:
         orders = _o(record, "orders", []) or []

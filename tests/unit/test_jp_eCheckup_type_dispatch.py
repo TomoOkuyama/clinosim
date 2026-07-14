@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pytest
 
-
 _SECTION_SYSTEM = "http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code"
 
 
@@ -106,7 +105,8 @@ def test_pick_checkup_type_by_age(age, expected):
 def test_enricher_sets_checkup_type_on_document():
     """enricher が生成する ClinicalDocument に checkup_type が反映されること。"""
     from clinosim.modules.health_checkup.engine import (
-        _patient_selected, enrich_health_checkup,
+        _patient_selected,
+        enrich_health_checkup,
     )
     from clinosim.simulator.enrichers import EnricherContext
     from clinosim.types.config import SimulatorConfig

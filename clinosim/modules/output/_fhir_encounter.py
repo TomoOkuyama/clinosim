@@ -186,7 +186,8 @@ def _build_encounter(
     # captured in inpatient.py simulator loop) OR whose planned → in-progress
     # → finished status transitions matter for audit trail.
     if class_code == "IMP" and enc.get("admission_datetime"):
-        from datetime import datetime as _dt, timedelta as _td
+        from datetime import datetime as _dt
+        from datetime import timedelta as _td
         try:
             _adm = _dt.fromisoformat(str(enc["admission_datetime"]).replace("Z","+00:00").split("+")[0])
         except (ValueError, TypeError):
@@ -458,8 +459,8 @@ def _build_encounter(
         _rord = record_orders or []
         diet_orders = [
             o for o in _rord
-            if str((o.get("order_type") if isinstance(o, dict)
-                    else getattr(o, "order_type", ""))) in ("diet", "OrderType.DIET")
+            if str(o.get("order_type") if isinstance(o, dict)
+                    else getattr(o, "order_type", "")) in ("diet", "OrderType.DIET")
             and (o.get("encounter_id") if isinstance(o, dict)
                  else getattr(o, "encounter_id", "")) == encounter_id
         ]

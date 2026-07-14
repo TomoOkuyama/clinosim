@@ -142,10 +142,16 @@ def test_enricher_ct_head_emits_axial_series_with_instance_range():
     assert 180 <= series.instance_count <= 280
 
 
-def test_enricher_skips_legacy_orders_without_imaging_metadata():
-    """Pre-Task3 IMAGING orders without imaging_body_site_code/imaging_modality
-    are silently skipped (legacy emission sites still exist in inpatient.py +
-    emergency.py and would otherwise raise ValueError in body_site lookup).
+def test_enricher_infers_imaging_metadata_from_legacy_orders():
+    """Legacy IMAGING orders without imaging_body_site_code/imaging_modality
+    are now imputed via inference module (session 48 CIF-VS-FHIR-01 fix).
+
+    Pre-session-48: silently skipped → 78% of ImagingStudy silent-drop.
+    Session 48 added `clinosim/modules/imaging/inference.py` (40+ patterns,
+    JP/EN + underscore) so legacy emission sites (inpatient.py + emergency.py)
+    produce inferred metadata; silent-drop ratio dropped from 0.22 to 1.00.
+    Test updated to reflect the new contract:legacy orders are now included,
+    not skipped.
     """
     legacy_order = Order(
         order_id="ORD-legacy",
@@ -163,4 +169,10 @@ def test_enricher_skips_legacy_orders_without_imaging_metadata():
     )
     ctx = _make_ctx(record)
     imaging_enricher(ctx)
-    assert record.extensions.get("imaging", []) == []
+    imaging = record.extensions.get("imaging", [])
+    assert len(imaging) == 1, "legacy CT-HEAD order must be inferred to one ImagingStudy"
+    study = imaging[0]
+    # Inference module resolved CT-HEAD → modality CT + body site head
+    assert study.modality_code == "CT"
+    assert study.encounter_id == "enc1"
+    assert study.patient_id == "pt1"

@@ -23,9 +23,8 @@ import glob
 import os
 import re
 
-import yaml
-
 import pytest
+import yaml
 
 pytestmark = pytest.mark.unit
 

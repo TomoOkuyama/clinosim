@@ -135,11 +135,24 @@ def test_radiology_dr_text_div_has_xhtml_ns():
     assert 'xmlns="http://www.w3.org/1999/xhtml"' in dr["text"]["div"]
 
 
-def test_radiology_dr_no_conclusion_code_when_findings_codes_empty():
-    """findings_codes empty (PR1 default) → conclusionCode absent."""
+def test_radiology_dr_conclusion_code_normal_when_findings_codes_empty():
+    """findings_codes empty → conclusionCode = SNOMED 17621005 (Normal).
+
+    Session 48 (FB verify): empty findings_codes semantically means "no abnormal
+    findings observed", which is affirmatively emitted as SNOMED 17621005
+    (Normal) so downstream consumers can distinguish "unread" from "read-normal".
+    Previously (PR1) findings_codes empty → conclusionCode omitted, but that
+    conflated the two states and caused JP Core validation to flag missing code.
+    """
     ctx = _make_ctx([_sample_study()])
     dr = _rad_drs(ctx)[0]
-    assert "conclusionCode" not in dr
+    assert dr["conclusionCode"] == [{
+        "coding": [{
+            "system": "http://snomed.info/sct",
+            "code": "17621005",
+            "display": "Normal",
+        }],
+    }]
 
 
 def test_radiology_dr_conclusion_code_when_findings_codes_set():

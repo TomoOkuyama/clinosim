@@ -105,6 +105,7 @@ class TestEnricherInferencePath:
     def _make_ctx_and_run(self, orders):
         """metadata なし Order を含む minimum ctx で enricher を走らせる。"""
         from types import SimpleNamespace
+
         from clinosim.modules.imaging.engine import imaging_enricher as enrich_imaging
         record = SimpleNamespace(
             orders=orders,
@@ -200,7 +201,7 @@ class TestFhirStubImagingStudy:
         assert r["basedOn"][0]["reference"] == "ServiceRequest/sr-ORD-2"
 
     def test_full_study_unchanged(self):
-        from clinosim.types.imaging import ImagingStudyRecord, ImagingSeries
+        from clinosim.types.imaging import ImagingSeries, ImagingStudyRecord
         full = ImagingStudyRecord(
             study_id="ENC-1-1", study_instance_uid="1.2.3.999",
             encounter_id="ENC-1", patient_id="POP-1",

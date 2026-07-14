@@ -319,12 +319,18 @@ def test_bb_service_requests_dict_input_standalone():
 
 
 def test_bb_service_requests_dict_input_authored_on_iso():
-    """Production-path: authoredOn must be the ISO string directly (no .isoformat() crash)."""
+    """Production-path: authoredOn must be the ISO string (no .isoformat() crash).
+
+    Session 48 FB-F1: post-emit `_normalize_dt_fields` walker normalizes dateTime
+    fields to include JST timezone. authoredOn is a top-level dateTime, so the
+    normalized value should carry `+09:00`. The original string is preserved
+    verbatim except for the appended TZ suffix.
+    """
     t = "2026-06-29T08:05:00"
     orders = [_make_dict_order(ordered_datetime=t)]
     ctx = _make_ctx(orders)  # type: ignore[arg-type]
     sr = _bb_service_requests(ctx)[0]
-    assert sr["authoredOn"] == t
+    assert sr["authoredOn"] == f"{t}+09:00"
 
 
 def test_bb_service_requests_dict_status_string_aggregation():

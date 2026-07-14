@@ -21,11 +21,6 @@ from clinosim.modules.population.engine import (
     generate_population,
 )
 from clinosim.modules.staff.engine import generate_roster
-from clinosim.types.config import ForcedScenario, SimulatorConfig
-from clinosim.types.encounter import EncounterType
-from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord
-from clinosim.types.patient import PatientProfile
-
 from clinosim.simulator.emergency import _simulate_ed_visit
 from clinosim.simulator.enrichers import (
     POST_POPULATION,
@@ -51,6 +46,10 @@ from clinosim.simulator.seeding import (
     PHASE_READMISSION,
     derive_phase_rng,
 )
+from clinosim.types.config import ForcedScenario, SimulatorConfig
+from clinosim.types.encounter import EncounterType
+from clinosim.types.output import CIFDataset, CIFMetadata, CIFPatientRecord
+from clinosim.types.patient import PatientProfile
 
 # F1 (session 49): `generate_healthcare_calendar` emits several distinct
 # screening kinds under the same `event_type == "health_screening"` (see the

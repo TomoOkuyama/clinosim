@@ -22,8 +22,6 @@ from clinosim.types.patient import (
     PersonName,
 )
 
-
-
 # Graded chronic-condition stage text (as returned by _generate_stage) ->
 # ChronicCondition.severity_score, keyed by ICD-10-CM category. Consumed by
 # physiology/engine.py's per-code branches so a sampled clinical stage (KDIGO

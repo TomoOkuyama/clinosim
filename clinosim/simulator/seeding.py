@@ -150,7 +150,7 @@ assert len(set(_PHASE_OFFSETS.values())) == len(_PHASE_OFFSETS), \
     f"phase offset collision: {_PHASE_OFFSETS!r}"
 
 
-def derive_phase_rng(master_seed: int, phase_salt: int, key: str) -> "np.random.Generator":
+def derive_phase_rng(master_seed: int, phase_salt: int, key: str) -> np.random.Generator:
     """AD-16 徹底: run_beta の phase 内 key ごとに独立 RNG stream を返す。
 
     cursor A と cursor B で同 phase の同 key を要求すれば同一 stream になり、

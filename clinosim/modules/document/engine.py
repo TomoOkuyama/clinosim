@@ -154,7 +154,7 @@ def _referral_note_fires(encounter_id: str, patient_id: str) -> bool:
       result is stable across Python invocations and locales.
     """
     import hashlib
-    key = f"{encounter_id}::{patient_id}".encode("utf-8")
+    key = f"{encounter_id}::{patient_id}".encode()
     digest = hashlib.sha256(key).digest()
     frac = int.from_bytes(digest[:8], "big") / (1 << 64)
     return frac < REFERRAL_NOTE_FIRE_RATE

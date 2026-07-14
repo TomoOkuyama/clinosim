@@ -63,6 +63,7 @@ def test_pick_triage_level_deterministic():
 
 def test_triage_enricher_populates_ed_encounters():
     from types import SimpleNamespace
+
     from clinosim.modules.triage.engine import triage_enricher
 
     ed_enc = SimpleNamespace(
@@ -104,6 +105,7 @@ def test_triage_enricher_populates_ed_encounters():
 
 def test_triage_enricher_country_gates_esi_for_us():
     from types import SimpleNamespace
+
     from clinosim.modules.triage.engine import triage_enricher
 
     ed_enc = SimpleNamespace(
@@ -127,6 +129,7 @@ def test_triage_enricher_country_gates_esi_for_us():
 
 def test_triage_enricher_deterministic():
     from types import SimpleNamespace
+
     from clinosim.modules.triage.engine import triage_enricher
 
     def _make():

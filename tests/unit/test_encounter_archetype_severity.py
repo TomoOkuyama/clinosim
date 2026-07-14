@@ -99,8 +99,8 @@ def test_select_archetype_receives_disease_course_archetypes(monkeypatch):
     disease used the generic _FALLBACK_PROBABILITIES table regardless of its
     own YAML-authored course_archetypes. A sibling call site 470 lines later
     (get_daily_directive) already passed this correctly."""
-    from clinosim.simulator import inpatient as inpatient_mod
     from clinosim.modules.disease.protocol import load_disease_protocol
+    from clinosim.simulator import inpatient as inpatient_mod
 
     captured: dict = {}
     original = inpatient_mod.select_archetype

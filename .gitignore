@@ -50,3 +50,7 @@ scratchpad/*_audit.txt
 scratchpad/*_narrate.log
 scratchpad/*_mock.log
 scratchpad/*_report.txt
+
+# session 49 F4 memoize + smoke output directories
+output-p*-seed*/
+output/

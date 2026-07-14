@@ -145,12 +145,12 @@ def _simulate_outpatient_visit(
     # Labs (if specified in followup schedule).
     # Comorbidity-aware true values via the same physiology path as inpatient (AD-57);
     # reuses `_state` initialized above for vitals.
+    from clinosim.modules.observation.engine import BASELINE_LAB_NORMALS
     from clinosim.modules.physiology.engine import (
         derive_lab_values,
         medication_flags_from_context,
         scenario_flags_from_protocol,
     )
-    from clinosim.modules.observation.engine import BASELINE_LAB_NORMALS
     _has_dm = any("E11" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
     # J5 (Phase 2a): outpatient follow-ups carry no acute scenario flag by
     # design — causes_vte / causes_myocardial_injury describe acute events

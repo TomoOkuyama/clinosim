@@ -11,8 +11,14 @@ from clinosim.modules.order.panel_grouping import (
 
 
 def test_priority_order_constant():
-    """PANEL_PRIORITY_ORDER matches lab_panel_groups.yaml header convention."""
-    assert PANEL_PRIORITY_ORDER == ("ABG", "CBC", "BMP", "LFT", "Lipid", "Coag", "UA")
+    """PANEL_PRIORITY_ORDER matches lab_panel_groups.yaml header convention.
+
+    Session 47 P2-13 (JP-eCheckup): "Checkup" 健診 panel added at the tail so
+    checkup batteries can be grouped as one prescription without disturbing the
+    canonical acute-care panel order (ABG..UA)."""
+    assert PANEL_PRIORITY_ORDER == (
+        "ABG", "CBC", "BMP", "LFT", "Lipid", "Coag", "UA", "Checkup",
+    )
 
 
 def test_load_panel_definitions_has_known_panels():

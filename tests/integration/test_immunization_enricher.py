@@ -15,9 +15,10 @@ def _ctx(records, country="US", snapshot=None, seed=123):
 
 def _record(age=80, sex="F"):
     from datetime import date, datetime
+
+    from clinosim.types.encounter import Encounter
     from clinosim.types.output import CIFPatientRecord
     from clinosim.types.patient import PatientProfile
-    from clinosim.types.encounter import Encounter
     p = PatientProfile(patient_id="p1", age=age, sex=sex,
                        date_of_birth=date(2026 - age, 3, 1))
     enc = Encounter(admission_datetime=datetime(2026, 1, 10, 9, 0))
@@ -46,10 +47,11 @@ def test_as_of_raises_when_no_deterministic_reference():
     """No snapshot_date AND no encounters with a valid admission_datetime is a
     caller/test-setup gap, not a real simulation path — fail loud instead of
     silently falling back to date.today() (determinism chain, 2026-07-04)."""
+    from datetime import date
+
     from clinosim.modules.immunization.enricher import enrich_immunizations
     from clinosim.types.output import CIFPatientRecord
     from clinosim.types.patient import PatientProfile
-    from datetime import date
 
     rec = CIFPatientRecord(
         patient=PatientProfile(patient_id="p1", age=80, sex="F",

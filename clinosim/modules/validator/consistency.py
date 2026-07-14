@@ -12,7 +12,6 @@ Validates internal data integrity — no LLM needed. Checks that:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
 
 from clinosim.types.output import CIFDataset, CIFPatientRecord
 

@@ -32,7 +32,7 @@ def test_run_forced_registers_post_encounter_enrichers():
     config = SimulatorConfig(country="US", random_seed=42)
     run_forced(scenario, config)
 
-    from clinosim.simulator.enrichers import POST_ENCOUNTER, _ENRICHERS
+    from clinosim.simulator.enrichers import _ENRICHERS, POST_ENCOUNTER
     names_in_post_encounter = {
         name for name, e in _ENRICHERS.items() if e.stage == POST_ENCOUNTER
     }

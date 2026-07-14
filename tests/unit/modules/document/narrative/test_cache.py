@@ -17,7 +17,6 @@ from clinosim.modules.document.narrative.cache import (
     template_seed_hash,
 )
 
-
 # ─────────────────────────────────────────────────────────────────
 # cache_key tests
 # ─────────────────────────────────────────────────────────────────

@@ -5,8 +5,6 @@ from __future__ import annotations
 from datetime import datetime
 from types import SimpleNamespace
 
-import pytest
-
 from clinosim.modules.document.narrative.context import build_narrative_context
 from clinosim.types.document import DocumentType
 from clinosim.types.patient import PatientProfile

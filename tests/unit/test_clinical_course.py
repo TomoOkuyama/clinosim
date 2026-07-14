@@ -6,10 +6,10 @@ import pytest
 from clinosim.modules.clinical_course.engine import (
     _FALLBACK_PROBABILITIES,
     _evaluate_risk_condition,
+    _interpolate,
     evaluate_complications,
     get_daily_directive,
     select_archetype,
-    _interpolate,
 )
 from clinosim.types.patient import PatientPhysiologicalProfile
 

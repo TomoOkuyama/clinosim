@@ -55,6 +55,15 @@ from clinosim.modules.procedure.engine import (
     simulate_surgery,
 )
 from clinosim.modules.staff.engine import StaffRoster, assign_staff
+from clinosim.simulator.helpers import (
+    _check_discharge_ready,
+    _country_to_yaml_key,
+    _determine_route,
+    _disease_chief_complaint,
+    _disease_to_department,
+    _evaluate_mortality,
+)
+from clinosim.simulator.seeding import individual_lab_seed, panel_specimen_seed
 from clinosim.types.clinical import (
     ClinicalDiagnosis,
     ConditionEvent,
@@ -73,17 +82,6 @@ from clinosim.types.encounter import (
 )
 from clinosim.types.output import CIFPatientRecord
 from clinosim.types.patient import PatientProfile
-
-from clinosim.simulator.helpers import (
-    _check_discharge_ready,
-    _country_to_yaml_key,
-    _determine_route,
-    _disease_chief_complaint,
-    _disease_to_department,
-    _evaluate_mortality,
-)
-from clinosim.simulator.seeding import individual_lab_seed, panel_specimen_seed
-
 
 # ============================================================
 # Patient simulation
@@ -187,7 +185,7 @@ def _simulate_patient(
     encounter.clinical_course_archetype = archetype
 
     # Department resolution: granular YAML specialty → hospital's available department
-    from clinosim.simulator.helpers import resolve_department, pick_ward
+    from clinosim.simulator.helpers import pick_ward, resolve_department
     granular_dept = _disease_to_department(protocol)
     department = resolve_department(granular_dept, hospital_ops)
     encounter.department_id = department
@@ -1862,7 +1860,7 @@ def _simulate_unknown_condition(
     complaint = event.disease_id.replace("unknown_", "").replace("_", " ")
     encounter = create_inpatient_encounter(patient.patient_id, admission_time, chief_complaint=complaint)
     # Unknown conditions are managed by internal medicine — resolve via hospital config
-    from clinosim.simulator.helpers import resolve_department, pick_ward
+    from clinosim.simulator.helpers import pick_ward, resolve_department
     department = resolve_department("internal_medicine", hospital_ops)
     encounter.department_id = department
     attending_id = assign_staff("admission", department, roster, rng).get("attending_physician", "DR-001")

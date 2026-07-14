@@ -15,7 +15,11 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules._shared import get_attr_or_key, is_jp, resolve_lang
-from clinosim.modules.output._fhir_common import BundleContext, _coding_with_display, to_fhir_datetime
+from clinosim.modules.output._fhir_common import (
+    BundleContext,
+    _coding_with_display,
+    to_fhir_datetime,
+)
 
 
 def _build_immunizations(ctx: BundleContext) -> list[dict]:

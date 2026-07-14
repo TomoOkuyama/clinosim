@@ -17,11 +17,11 @@ mean of the axis scores.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Callable
 
 from clinosim.audit.types import Cohort
 
@@ -198,7 +198,7 @@ class EvalEngine:
 
         return EvalReport(
             cohort_dir=str(self.cohort_dir),
-            generated_at=datetime.now(timezone.utc).isoformat(),
+            generated_at=datetime.now(UTC).isoformat(),
             resource_counts=resource_counts,
             axes=axis_results,
         )

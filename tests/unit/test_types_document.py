@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from clinosim.types.document import (
-    DocumentType, FormatType, NarrativeContext, NarrativeOutput,
+    DocumentType,
+    FormatType,
+    NarrativeContext,
+    NarrativeOutput,
 )
 
 
@@ -42,8 +45,8 @@ def test_narrative_output_section_payload():
 
 def test_narrative_context_default_constructible():
     """NarrativeContext は dataclass、全 field default 設定可。"""
-    from clinosim.types.patient import PatientProfile
     from clinosim.types.encounter import Encounter, EncounterType
+    from clinosim.types.patient import PatientProfile
     # Note: EncounterRecord does not exist in codebase; using Encounter instead.
     ctx = NarrativeContext(
         patient=PatientProfile(),

@@ -21,7 +21,6 @@ from clinosim.dataset import (
     load_preset,
 )
 
-
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _PRESETS_DIR = _REPO_ROOT / "datasets"
 _EXPECTED_PRESETS = ("us-100", "us-1000", "jp-100", "jp-1000")
@@ -131,8 +130,9 @@ def test_cli_subcommand_registered() -> None:
 
     # Verify the top-level parser has a `dataset` subcommand by importing
     # the module and constructing a parser — cheaper than shelling out.
-    from clinosim.dataset import add_dataset_subparser
     import argparse
+
+    from clinosim.dataset import add_dataset_subparser
 
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="command")

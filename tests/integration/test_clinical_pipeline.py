@@ -1,24 +1,24 @@
 """Integration tests: disease → clinical_course → physiology → observation → diagnosis chain."""
 
-import pytest
-import numpy as np
-from copy import deepcopy
 from datetime import timedelta
 
-from clinosim.modules.clinical_course.engine import get_daily_directive, select_archetype
+import numpy as np
+import pytest
+
+from clinosim.modules.clinical_course.engine import get_daily_directive
 from clinosim.modules.diagnosis.engine import (
+    get_current_diagnosis_code,
     initialize_differential,
     update_differential,
-    get_current_diagnosis_code,
 )
-from clinosim.modules.observation.engine import generate_lab_result, determine_flag
+from clinosim.modules.observation.engine import generate_lab_result
 from clinosim.modules.physiology.engine import (
     apply_disease_onset,
     derive_lab_values,
     initialize_state,
     update,
 )
-from clinosim.types.patient import PatientPhysiologicalProfile, ChronicCondition
+from clinosim.types.patient import ChronicCondition, PatientPhysiologicalProfile
 
 
 @pytest.fixture

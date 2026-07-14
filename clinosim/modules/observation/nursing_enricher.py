@@ -8,14 +8,14 @@ from __future__ import annotations
 
 import numpy as np
 
+from clinosim.modules._shared import get_attr_or_key as _get
+from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.observation.nursing import (
     compute_braden,
     compute_gcs,
     compute_morse_fall_risk,
     compute_news2,
 )
-from clinosim.modules._shared import get_attr_or_key as _get
-from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.simulator.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.encounter import NursingRiskAssessment
 

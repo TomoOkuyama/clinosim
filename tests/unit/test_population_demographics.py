@@ -1,15 +1,16 @@
 """Unit tests for externalized population demographics."""
 
+from datetime import date
+
 import numpy as np
 import pytest
-from datetime import date
 
 from clinosim.modules.population.engine import (
     PersonRecord,
-    _parse_chronic_prevalence,
-    generate_population,
-    generate_monthly_events,
     PopulationRegistry,
+    _parse_chronic_prevalence,
+    generate_monthly_events,
+    generate_population,
 )
 from clinosim.types.patient import PatientProfile
 
@@ -101,9 +102,9 @@ def test_smoking_status_sex_differentiated():
     registry = generate_population(size=100, country="US", rng=rng, demo=demo)
     for p in registry.persons.values():
         if p.sex == "M":
-            assert p.smoking_status == "current", f"Male should be current smoker per demo"
+            assert p.smoking_status == "current", "Male should be current smoker per demo"
         else:
-            assert p.smoking_status == "never", f"Female should be never-smoker per demo"
+            assert p.smoking_status == "never", "Female should be never-smoker per demo"
 
 
 def test_comorbidity_correlation_raises_prevalence():

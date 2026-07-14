@@ -9,7 +9,6 @@ from clinosim.modules.observation.engine import (
     PHYSIOLOGIC_LIMITS,
     apply_realistic_variability,
     determine_flag,
-    generate_lab_result,
     round_to_precision,
 )
 

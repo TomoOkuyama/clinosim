@@ -17,7 +17,6 @@ from clinosim.eval.engine import (
     EvalAxisResult,
     EvalCheck,
     EvalEngine,
-    EvalReport,
     Outcome,
     Severity,
 )

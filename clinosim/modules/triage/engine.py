@@ -53,13 +53,13 @@ def _validate_triage_protocols(data: dict[str, Any]) -> None:
     arr = data.get("arrival_modes", [])
     if set(arr) != SUPPORTED_ARRIVAL_MODES:
         raise ValueError(
-            f"triage_protocols.yaml arrival_modes ↔ SUPPORTED_ARRIVAL_MODES drift"
+            "triage_protocols.yaml arrival_modes ↔ SUPPORTED_ARRIVAL_MODES drift"
         )
     # severity_to_triage_distribution: all 3 severities present, each sums to ~1.0
     dist = data.get("severity_to_triage_distribution", {})
     if set(dist.keys()) != SUPPORTED_SEVERITIES:
         raise ValueError(
-            f"triage_protocols.yaml severity_to_triage_distribution keys drift"
+            "triage_protocols.yaml severity_to_triage_distribution keys drift"
         )
     for sev, probs in dist.items():
         total = sum(probs.values())

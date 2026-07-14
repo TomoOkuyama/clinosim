@@ -267,6 +267,7 @@ def test_enrich_hai_non_forced_firing_path_baseline_sequence():
     baseline structure only, not equality with the forced path.
     """
     import numpy as np
+
     from clinosim.modules.hai import enricher as enricher_mod
 
     captured: list[tuple] = []
@@ -311,6 +312,7 @@ def test_enrich_hai_force_short_line_days_skips_no_drain():
     0 draws — NOT drain 3.
     """
     import numpy as np
+
     from clinosim.modules.hai import enricher as enricher_mod
     from clinosim.types.device import DeviceRecord
 

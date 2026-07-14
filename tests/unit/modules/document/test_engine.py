@@ -339,7 +339,6 @@ def test_nursing_loincs_derived_from_yaml() -> None:
         _load_nursing_loincs,
     )
     from clinosim.modules.document.narrative.registry import load_document_type_specs
-    from clinosim.types.document import DocumentType
 
     specs = load_document_type_specs()
     expected = {specs[DocumentType(k)].loinc_code for k in _NURSING_DOC_TYPE_KEYS}

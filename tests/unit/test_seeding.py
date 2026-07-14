@@ -6,17 +6,16 @@ silently shift any RNG stream / golden output) and guard that every module's off
 stays distinct (so two enrichers never collide on the same sub-stream).
 """
 
-import numpy as np
 import pytest
 
 from clinosim.simulator.seeding import (
+    _PHASE_OFFSETS,
     ENRICHER_SEED_OFFSETS,
     PHASE_ED_VISIT,
     PHASE_INPATIENT_SIM,
     PHASE_LIFE_EVENT,
     PHASE_OUTPATIENT_CAL,
     PHASE_READMISSION,
-    _PHASE_OFFSETS,
     derive_phase_rng,
     derive_sub_seed,
     panel_specimen_seed,

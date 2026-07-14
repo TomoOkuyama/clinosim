@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from clinosim.modules.physiology.engine import (
+    _variable_range,
     apply_coupling_rules,
     apply_disease_onset,
     apply_state_delta,
@@ -15,7 +16,6 @@ from clinosim.modules.physiology.engine import (
     hba1c_from_glycemic_control,
     initialize_state,
     update,
-    _variable_range,
 )
 from clinosim.types.clinical import PhysiologicalState, StateChangeDirective
 from clinosim.types.patient import BaselineVitals, ChronicCondition, PatientPhysiologicalProfile

@@ -13,10 +13,19 @@ from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 
-from clinosim.codes import get_system_uri, lookup as code_lookup
+from clinosim.codes import get_system_uri
+from clinosim.codes import lookup as code_lookup
+from clinosim.modules.output._fhir_allergy_intolerance import (  # noqa: F401
+    _bb_allergy_intolerances,
+)
 from clinosim.modules.output._fhir_care_level import _build_care_level  # noqa: F401
+from clinosim.modules.output._fhir_care_team import (  # noqa: F401
+    _bb_care_teams,
+)
+from clinosim.modules.output._fhir_clinical_impression import (  # noqa: F401
+    _bb_clinical_impressions,
+)
 from clinosim.modules.output._fhir_code_status import _build_code_status  # noqa: F401
-from clinosim.modules.output.cif_reader import CIFReader
 
 # FA-1 (Phases 1-13) split this adapter's leaf data, shared fragment helpers, and
 # per-theme resource builders into sibling _fhir_* modules. The blocks below are
@@ -46,6 +55,9 @@ from clinosim.modules.output._fhir_common import (  # noqa: F401
     _strip_protocol_prefix,
     _survey_category,
 )
+from clinosim.modules.output._fhir_composition import (  # noqa: F401
+    _bb_compositions,
+)
 from clinosim.modules.output._fhir_conditions import _build_conditions  # noqa: F401
 from clinosim.modules.output._fhir_device import (  # noqa: F401
     _build_device,
@@ -65,9 +77,15 @@ from clinosim.modules.output._fhir_encounter import (  # noqa: F401
     _build_encounter,
     _compute_encounter_length,
 )
+from clinosim.modules.output._fhir_endpoint import (  # noqa: F401
+    _bb_endpoints,
+)
 from clinosim.modules.output._fhir_facility import _build_facility_bundle  # noqa: F401
 from clinosim.modules.output._fhir_family_history import _build_family_history  # noqa: F401
 from clinosim.modules.output._fhir_hai import _build_hai_conditions  # noqa: F401
+from clinosim.modules.output._fhir_imaging_study import (  # noqa: F401
+    _bb_imaging_studies,
+)
 from clinosim.modules.output._fhir_immunization import _build_immunizations  # noqa: F401
 from clinosim.modules.output._fhir_localization import (  # noqa: F401
     _CATEGORY_DISPLAY_JA,
@@ -131,28 +149,11 @@ from clinosim.modules.output._fhir_reference_data import (  # noqa: F401
 from clinosim.modules.output._fhir_service_request import (  # noqa: F401
     _bb_service_requests,
 )
-from clinosim.modules.output._fhir_endpoint import (  # noqa: F401
-    _bb_endpoints,
-)
-from clinosim.modules.output._fhir_imaging_study import (  # noqa: F401
-    _bb_imaging_studies,
-)
-from clinosim.modules.output._fhir_allergy_intolerance import (  # noqa: F401
-    _bb_allergy_intolerances,
-)
-from clinosim.modules.output._fhir_care_team import (  # noqa: F401
-    _bb_care_teams,
-)
-from clinosim.modules.output._fhir_clinical_impression import (  # noqa: F401
-    _bb_clinical_impressions,
-)
-from clinosim.modules.output._fhir_composition import (  # noqa: F401
-    _bb_compositions,
-)
 from clinosim.modules.output._fhir_smoking_alcohol import (  # noqa: F401
     _build_alcohol_use,
     _build_smoking_status,
 )
+from clinosim.modules.output.cif_reader import CIFReader
 
 
 def convert_cif_to_fhir(
@@ -350,7 +351,8 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
             _ed_end_str = _adm_str
             _ed_start_str = ""
             try:
-                from datetime import datetime as _dt, timedelta as _td
+                from datetime import datetime as _dt
+                from datetime import timedelta as _td
                 if _adm_str:
                     _dt0 = _dt.fromisoformat(_adm_str.replace("Z", "+00:00")) if "T" in _adm_str else None
                     if _dt0:

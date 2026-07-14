@@ -84,7 +84,7 @@ def bundle_dir_to_ndjson_layout(
 
     counts: dict[str, int] = {}
     with ExitStack() as stack:
-        handles: dict[str, "object"] = {}
+        handles: dict[str, object] = {}
 
         for bundle_path in sorted(input_dir.glob("*.json")):
             try:

@@ -329,7 +329,7 @@ def test_nursing_discharge_summary_jp_has_japanese_text() -> None:
     out = gen.generate(ctx, spec)
     all_text = " ".join(out.sections.values())
     has_jp = any("぀" <= c <= "ヿ" or "一" <= c <= "鿿" for c in all_text)
-    assert has_jp, f"JP nursing discharge sections contain no Japanese text"
+    assert has_jp, "JP nursing discharge sections contain no Japanese text"
 
 
 def test_nursing_discharge_summary_los_days_appear_in_output() -> None:

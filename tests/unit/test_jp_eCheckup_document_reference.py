@@ -177,10 +177,10 @@ def test_content_attachment_contains_narrative_text():
 @pytest.mark.unit
 def test_fallback_to_sections_join_when_text_empty():
     """narrative.text が空でも sections 値を join して attachment を作れる。"""
-    from clinosim.types.clinical import ClinicalDocumentNarrative
     from clinosim.modules.output._fhir_document_reference_checkup import (
         _bb_document_references_checkup,
     )
+    from clinosim.types.clinical import ClinicalDocumentNarrative
     narrative = ClinicalDocumentNarrative(
         text="",
         sections={"01031": "検査結果 A 判定", "01032": "問診 特記なし"},

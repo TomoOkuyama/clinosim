@@ -1,13 +1,12 @@
 """Integration test for the full Layer 1→2→1→readmission cycle."""
 
-import json
 import os
 
 import pytest
 
-from clinosim.simulator import run_beta
 from clinosim.modules.output.cif_writer import write_cif
 from clinosim.modules.output.csv_adapter import convert_cif_to_csv
+from clinosim.simulator import run_beta
 from clinosim.types.config import SimulatorConfig
 
 
