@@ -481,6 +481,12 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
                 else getattr(_enc, "attending_physician_id", "")) or ""
         if _eid and _att:
             _attending_by_enc[_eid] = _att
+    # session 49 clinosim_feedback P1-4: JP_MedicationRequest.identifier slice
+    # rpNumber + orderInRp を assign。1 encounter = 1 Rp グループとして扱い、
+    # encounter 内の medication order 出現順を orderInRp (1-based) にする。
+    # 同一 order の MedicationRequest / MedicationAdministration は同じ
+    # order_id → order_in_rp map を使うため両者の紐付けが取れる。
+    _order_in_rp_by_oid = _build_order_in_rp_map(ctx.record.get("orders", []) or [])
     for order in ctx.record.get("orders", []):
         if order.get("order_type") == "medication":
             if not (order.get("display_name") or "").strip():
@@ -491,11 +497,37 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
                 if _att:
                     order = dict(order)
                     order["ordered_by"] = _att
+            _oid = order.get("order_id", "") or ""
             out.append(_build_medication_request(
                 order, ctx.patient_id, ctx.country, ctx.primary_enc_id, ctx.primary_dx_code,
                 encounter_type=primary_enc_type,
+                rp_number="1",
+                order_in_rp=str(_order_in_rp_by_oid.get(_oid, 1)),
             ))
     return out
+
+
+def _build_order_in_rp_map(orders: list) -> dict[str, int]:
+    """Per-encounter medication order 出現順 → orderInRp 番号(1-based)map を返す。
+
+    JP Core JP_MedicationRequest / JP_MedicationAdministration の
+    identifier:orderInRp slice に使う。同一 order_id で MR / MA 双方が
+    同じ番号を得るため、両 builder が同 map を再計算しても結果が一致する
+    ことを前提にしている(deterministic な iteration 順)。
+    """
+    result: dict[str, int] = {}
+    per_enc: dict[str, int] = {}
+    for order in orders:
+        if order.get("order_type") != "medication":
+            continue
+        if not (order.get("display_name") or "").strip():
+            continue
+        eid = order.get("encounter_id", "") or ""
+        per_enc[eid] = per_enc.get(eid, 0) + 1
+        oid = order.get("order_id", "") or ""
+        if oid:
+            result[oid] = per_enc[eid]
+    return result
 
 
 def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
@@ -525,6 +557,10 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
             _oc = order.get("order_code", "") or ""
             if _base_oid and _oc:
                 _order_code_by_id[_base_oid] = _oc
+    # session 49 clinosim_feedback P1-4: JP_MedicationAdministration.identifier
+    # slice orderInRp。同 order_id を参照する MedicationRequest と同じ
+    # 番号にするため、`_build_order_in_rp_map` の同一ロジックで再構築。
+    _order_in_rp_by_oid = _build_order_in_rp_map(ctx.record.get("orders", []) or [])
     for i, mar in enumerate(ctx.record.get("medication_administrations", [])):
         if not (mar.get("drug_name") or "").strip():
             continue
@@ -536,7 +572,10 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
             mar["code_yj"] = _parent_code
         _resource = _build_medication_admin(
             mar, ctx.patient_id, i, ctx.country,
-            encounter_id=ctx.primary_enc_id, primary_dx_code=ctx.primary_dx_code)
+            encounter_id=ctx.primary_enc_id, primary_dx_code=ctx.primary_dx_code,
+            rp_number="1",
+            order_in_rp=str(_order_in_rp_by_oid.get(_oid, 1)),
+        )
         _req = _resource.get("request") if isinstance(_resource, dict) else None
         if _req and isinstance(_req, dict):
             _ref = _req.get("reference", "")
@@ -840,6 +879,11 @@ def _build_bundle(
             if ctx.country == "JP":
                 _apply_jp_core_profile(resource)
                 _apply_jp_clins_profile(resource)
+                # session 49 clinosim_feedback P1-4: JP Core は
+                # Observation.category:first slice を要求。既存 HL7 slice の
+                # code を保持しつつ、JP CodeSystem URL の first slice を
+                # prepend する。builders 個別修正回避のため single seam で対応。
+                _inject_jp_observation_category_first(resource)
             # session 48 feedback FB-F1: 全 emit resource の dateTime / instant
             # field を single seam で TZ 付与に正規化(builders 個別修正回避)。
             _normalize_dt_fields(resource)
@@ -918,6 +962,52 @@ def _normalize_dt(v, want_instant: bool = False):
     if want_instant and v.count(":") == 1:
         v = v + ":00"
     return v + "+09:00"
+
+
+# session 49 clinosim_feedback P1-4: JP Core Observation.category:first slice。
+# `http://jpfhir.jp/fhir/observation-category` CodeSystem での first slice を要求。
+# 既存 emit は HL7 標準 `http://terminology.hl7.org/CodeSystem/observation-category`
+# のみで、iris4h-ai HAPI Validator が 100% miss を検出。JP-first-slice を prepend
+# して JP Core 準拠、既存 HL7 slice は互換用に維持。
+_JP_OBSERVATION_CATEGORY_SYSTEM = "http://jpfhir.jp/fhir/observation-category"
+
+
+def _inject_jp_observation_category_first(resource: dict) -> None:
+    """Prepend JP Core observation-category first slice for JP output。
+
+    JP only(caller が country=JP のみで呼ぶ前提)。既に JP-first-slice が
+    ある resource は idempotent。code は既存 HL7 slice のものを再利用する
+    (JP CodeSystem は HL7 と同 code 語彙:laboratory / vital-signs /
+    imaging / procedure / social-history / survey / exam / therapy /
+    activity)。
+    """
+    if resource.get("resourceType") != "Observation":
+        return
+    cats = resource.get("category")
+    if not isinstance(cats, list) or not cats:
+        return
+    # idempotent: 既に JP-first-slice がある場合 skip
+    for cat in cats:
+        for cod in cat.get("coding", []) if isinstance(cat.get("coding"), list) else []:
+            if cod.get("system") == _JP_OBSERVATION_CATEGORY_SYSTEM:
+                return
+    # 現行 first slice の code を抽出(HL7 observation-category からのみ拾う)
+    first_hl7 = cats[0]
+    hl7_code = None
+    for cod in first_hl7.get("coding", []) if isinstance(first_hl7.get("coding"), list) else []:
+        sys_val = cod.get("system") or ""
+        if "observation-category" in sys_val:
+            hl7_code = cod.get("code")
+            break
+    if not hl7_code:
+        return
+    jp_first = {
+        "coding": [{
+            "system": _JP_OBSERVATION_CATEGORY_SYSTEM,
+            "code": hl7_code,
+        }]
+    }
+    resource["category"] = [jp_first] + cats
 
 
 def _normalize_dt_fields(resource) -> None:

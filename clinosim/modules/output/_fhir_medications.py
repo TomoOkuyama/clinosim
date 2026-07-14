@@ -94,8 +94,18 @@ def _build_medication_request(
     order: dict, patient_id: str, country: str,
     encounter_id: str = "", primary_dx_code: str = "",
     encounter_type: str = "",
+    rp_number: str = "1",
+    order_in_rp: str = "1",
 ) -> dict:
-    """Build FHIR MedicationRequest resource."""
+    """Build FHIR MedicationRequest resource.
+
+    rp_number / order_in_rp (session 49 clinosim_feedback P1-4): JP Core
+    JP_MedicationRequest.identifier:rpNumber と :orderInRp slice を満たす
+    ための per-order identifier 値。caller は 1 encounter 内の医薬品
+    orders に対して同じ rp_number(処方単位)+ 連番 order_in_rp を
+    与える。同一 order の MedicationRequest と MedicationAdministration
+    は同じ (rp_number, order_in_rp) を使い、両者の紐付けが取れる。
+    """
     drug_name_raw = order.get("display_name", "Unknown medication")
     # Strip protocol prefix (e.g. "DVT_prophylaxis:") from medicationCodeableConcept.text
     # The prefix goes to dosageInstruction note instead.
@@ -215,6 +225,21 @@ def _build_medication_request(
         **({"meta": {"profile": [
             "http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"
         ]}} if country_code == "JP" else {}),
+        # session 49 clinosim_feedback P1-4: JP_MedicationRequest.identifier
+        # slice `rpNumber`(処方内 Rp グループ番号)+ `orderInRp`(Rp 内医薬品
+        # 順序)の 2 slice を JP output で emit。system URL は JP Core 1.2.0
+        # の StructureDefinition から取得(mhlw/IdSystem/Medication-RPGroupNumber
+        # + MedicationAdministrationIndex)。
+        **({"identifier": [
+            {
+                "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber",
+                "value": rp_number,
+            },
+            {
+                "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex",
+                "value": order_in_rp,
+            },
+        ]} if country_code == "JP" else {}),
         "status": status_val,
         "intent": intent_val,
         "medicationCodeableConcept": med_concept,
@@ -355,8 +380,16 @@ def _build_medication_request(
 def _build_medication_admin(
     mar: dict, patient_id: str, index: int, country: str = "US",
     encounter_id: str = "", primary_dx_code: str = "",
+    rp_number: str = "1",
+    order_in_rp: str = "1",
 ) -> dict:
-    """Build FHIR MedicationAdministration resource."""
+    """Build FHIR MedicationAdministration resource.
+
+    rp_number / order_in_rp (session 49 clinosim_feedback P1-4): 対応する
+    parent MedicationRequest と同じ値を渡すことで JP Core
+    JP_MedicationAdministration.identifier slice を満たす。caller は同
+    encounter 内で MR と同じ per-order 連番を割当てる。
+    """
     drug_name_raw = mar.get("drug_name", "")
     drug_name_clean, protocol_category = _strip_protocol_prefix(drug_name_raw)
     # Session 45: peel off rate-adjustment suffix (see _build_medication_request).
@@ -414,6 +447,18 @@ def _build_medication_admin(
         **({"meta": {"profile": [
             "http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationAdministration"
         ]}} if country_code == "JP" else {}),
+        # session 49 clinosim_feedback P1-4: JP_MedicationAdministration.
+        # identifier slice `rpNumber` + `orderInRp`(parent MR と同 URL / 同 値)。
+        **({"identifier": [
+            {
+                "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber",
+                "value": rp_number,
+            },
+            {
+                "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex",
+                "value": order_in_rp,
+            },
+        ]} if country_code == "JP" else {}),
         "status": _map_mar_status(mar.get("status", "completed")),
         "medicationCodeableConcept": med_concept,
         "subject": {"reference": f"Patient/{patient_id}"},
