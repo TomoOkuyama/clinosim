@@ -43,7 +43,7 @@ def _make_ctx(studies, orders=None, country="us"):
 
 def _sample_study():
     return ImagingStudyRecord(
-        study_id="enc1-1", study_instance_uid="2.25.42",
+        study_id="imgst-enc1-1", study_instance_uid="2.25.42",  # session 51 prefix production 準拠
         encounter_id="enc1", patient_id="pt1", order_id="ord1",
         status="available",
         started_datetime=datetime(2026, 6, 30, 10, 0),
@@ -55,7 +55,7 @@ def _sample_study():
         )],
         endpoint_id="endpoint-2.25.42",
         report=RadiologyReport(
-            report_id="enc1-1", status="final",
+            report_id="imgrpt-enc1-1", status="final",  # session 51
             findings_text="Right lower lobe consolidation.",
             impression_text="Pneumonia.",
         ),
@@ -195,9 +195,9 @@ def test_radiology_dr_jp_falls_back_to_en_when_ja_empty():
 def test_multiple_studies_emit_multiple_drs():
     """Each study with a report → one DR."""
     study2 = _sample_study()
-    study2.study_id = "enc1-2"
+    study2.study_id = "imgst-enc1-2"
     study2.order_id = "ord2"
-    study2.report.report_id = "enc1-2"
+    study2.report.report_id = "imgrpt-enc1-2"
     ctx = _make_ctx([_sample_study(), study2])
     drs = _rad_drs(ctx)
     assert len(drs) == 2
@@ -214,7 +214,7 @@ def test_multiple_studies_emit_multiple_drs():
 def test_radiology_dr_from_dict_path():
     """Production path: ImagingStudyRecord + RadiologyReport as plain dicts."""
     study_dict = {
-        "study_id": "enc1-1",
+        "study_id": "imgst-enc1-1",  # session 51
         "study_instance_uid": "2.25.42",
         "encounter_id": "enc1",
         "patient_id": "pt1",
@@ -226,7 +226,7 @@ def test_radiology_dr_from_dict_path():
         "series": [],
         "endpoint_id": "endpoint-2.25.42",
         "report": {
-            "report_id": "enc1-1",
+            "report_id": "imgrpt-enc1-1",  # session 51
             "status": "final",
             "findings_text": "Right lower lobe consolidation.",
             "findings_text_ja": "",
