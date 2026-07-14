@@ -1663,8 +1663,14 @@
 
 <h1 id="roadmap">Roadmap<a class="headerlink" href="#roadmap" title="Permanent link">&para;</a></h1>
 <h1 id="clinosim-todo">clinosim — TODO<a class="headerlink" href="#clinosim-todo" title="Permanent link">&para;</a></h1>
-<h2 id="status-2026-07-14-session-50-closed-iris4h-ai-feedback-p1-4-fix-ci-green-jp-p10000-seed300-regen">Status (2026-07-14, <strong>★★★ session 50 CLOSED — iris4h-ai feedback P1-4 fix + CI green + JP p=10000 seed=300 regen</strong>)<a class="headerlink" href="#status-2026-07-14-session-50-closed-iris4h-ai-feedback-p1-4-fix-ci-green-jp-p10000-seed300-regen" title="Permanent link">&para;</a></h2>
-<p><strong>master HEAD</strong>: <code>f5926554b2</code>(CI fix)</p>
+<h2 id="status-2026-07-14-session-50-closed-iris4h-ai-p1-4-fix-adv-1-critical-uri-fix-ci-green-unit-repro-build-all-success">Status (2026-07-14, <strong>★★★ session 50 CLOSED — iris4h-ai P1-4 fix + adv-1 CRITICAL URI fix + CI green (Unit + Repro + Build all SUCCESS)</strong>)<a class="headerlink" href="#status-2026-07-14-session-50-closed-iris4h-ai-p1-4-fix-adv-1-critical-uri-fix-ci-green-unit-repro-build-all-success" title="Permanent link">&para;</a></h2>
+<p><strong>master HEAD</strong>: <code>131e58f2d1</code>(gitignore anchor fix + 除外されていた 13 pin tests 追加)</p>
+<h3 id="session-50-adv-1-code-review-critical-important">Session 50 adv-1 code review 対応(CRITICAL + Important 対応済)<a class="headerlink" href="#session-50-adv-1-code-review-critical-important" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>CRITICAL(URI 誤り)</strong>: <code>_JP_OBSERVATION_CATEGORY_SYSTEM</code> の初版 URI(推測)<code>http://jpfhir.jp/fhir/observation-category</code> は JP Core 1.2.0 spec と不一致 → HAPI validator にとって silent-no-op。実 spec fixedUri <code>http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS</code> に訂正(commit <code>e36a714624</code>)。iris4h-ai <code>jp_core/package/StructureDefinition-jp-observation-common.json</code> の fixedUri で直接確認。</li>
+<li><strong>Important(test 欠如)</strong>: P1-4 logic に対する pin test を 13 個追加(<code>test_fhir_jp_core_p14_slices.py</code>)= URI pin(推測 URI への差し戻し規制)+ idempotent + non-Observation skip + HL7 code preservation(5 parametrize)+ MedicationRequest identifier slices spec URI pin + US output に JP identifier を emit しないこと + <code>_build_order_in_rp_map</code> per-encounter numbering + deterministic。</li>
+<li><strong>.gitignore 誤設定副次発見</strong>: <code>output/</code> パターンが <code>tests/unit/output/</code> を誤 match、新 pin test file が silent 除外されていた → repo root anchor(<code>/output/</code>)に訂正(commit <code>131e58f2d1</code>)。</li>
+</ul>
 <h3 id="session-50-3-commits-direct-master-fhir">Session 50 成果(3 commits direct-master + FHIR 再生成)<a class="headerlink" href="#session-50-3-commits-direct-master-fhir" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
