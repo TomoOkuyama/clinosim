@@ -1900,7 +1900,8 @@
 <li><strong>mypy strict PASS</strong>、reproduce.sh PASS(US 105 + JP 72 files byte-identical seed=42 pop=30)</li>
 <li><strong>Regression (AD-66) 12/12 PASS</strong></li>
 <li><strong>Integration</strong>:9 件失敗 → 2 系統 fix 済(imgst/imgrpt double-prefix + P1-3 dose)、残 5 件 = session 52 backlog</li>
-<li><strong>CI(29316588160)</strong>:session end 時点 in_progress、次 session 開始時に final status を確認すること</li>
+<li><strong>CI(29316588160)</strong> post-close 確認:Unit 3.11+3.12 / Reproducibility / Build sdist+wheel すべて SUCCESS、Type check + Lint は informational failure(pre-existing 非 blocker)、<strong>Integration は cancelled</strong>(session 52 開始時 push <code>7321c0d374</code> の CI 経過も要確認)</li>
+<li><strong>Local integration full run</strong>(23 分 58 秒、fix 適用時点跨ぎで信頼度低)= 288 passed / 9 failed。session 52 開始時に <code>pytest tests/integration -q --tb=no --deselect tests/integration/test_document_jp_localization.py::test_jp_clinical_impression_structural_fields_present</code> で post-fix 状態確認すること</li>
 </ul>
 <hr />
 <h2 id="step-4session-52-3">STEP 4:Session 52 で優先すべき候補 3 択<a class="headerlink" href="#step-4session-52-3" title="Permanent link">&para;</a></h2>
