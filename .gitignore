@@ -52,5 +52,6 @@ scratchpad/*_mock.log
 scratchpad/*_report.txt
 
 # session 49 F4 memoize + smoke output directories
-output-p*-seed*/
-output/
+# `/` anchors to repo root, so `tests/unit/output/` etc. are NOT matched.
+/output-p*-seed*/
+/output/
