@@ -25,6 +25,7 @@ from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import get_or_create_container
 from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS
+from clinosim.modules.order.engine import parse_dose_string
 from clinosim.modules.antibiotic.engine import (
     ABX_NARROW_SUFFIX,
     ABX_ORDER_REQ_PREFIX,
@@ -93,6 +94,8 @@ def enrich_antibiotic(ctx) -> None:
             start_dt = datetime.fromisoformat(ev.onset_date).replace(hour=_ORDER_HOUR)
             for regimen in build_regimens(ev, start_datetime=start_dt):
                 order_id = f"{ABX_ORDER_REQ_PREFIX}{regimen.regimen_id}"
+                # P1-3 (session 51): Parse dose string to split quantity/unit
+                dose_parsed = parse_dose_string(regimen.dose)
                 order = Order(
                     order_id=order_id,
                     encounter_id=regimen.encounter_id,
@@ -103,7 +106,8 @@ def enrich_antibiotic(ctx) -> None:
                     ),
                     ordered_datetime=regimen.start_datetime,
                     status=OrderStatus.ACCEPTED,
-                    dose_unit=regimen.dose,
+                    dose_quantity=dose_parsed.get("dose_quantity"),
+                    dose_unit=dose_parsed.get("dose_unit", ""),
                     frequency=regimen.frequency,
                     route=regimen.route,
                     duration_days=regimen.duration_days,
@@ -247,6 +251,8 @@ def _apply_pass2(rec, snapshot: datetime) -> None:
             )
             new_regimens.append(new_regimen)
             order_id = f"{ABX_ORDER_REQ_PREFIX}{new_regimen.regimen_id}"
+            # P1-3 (session 51): Parse narrow_dose to split quantity/unit
+            dose_parsed_narrow = parse_dose_string(narrow_dose)
             order = Order(
                 order_id=order_id,
                 encounter_id=template.encounter_id,
@@ -255,7 +261,8 @@ def _apply_pass2(rec, snapshot: datetime) -> None:
                 display_name=ANTIBIOTIC_DRUGS.get(target, {}).get("name", target),
                 ordered_datetime=reported,
                 status=OrderStatus.ACCEPTED,
-                dose_unit=narrow_dose,
+                dose_quantity=dose_parsed_narrow.get("dose_quantity"),
+                dose_unit=dose_parsed_narrow.get("dose_unit", ""),
                 frequency=narrow_freq,
                 route="IV",
                 duration_days=narrow_dur,

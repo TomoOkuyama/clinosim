@@ -387,6 +387,10 @@ def place_admission_orders(
             ordered_by=ordered_by,
             status=OrderStatus.PLACED,
         )
+        # P1-3 (session 51): Enrich MEDICATION orders with dose from detail_raw
+        # so dose_quantity / dose_unit are correctly set (not display_name).
+        if order_type == OrderType.MEDICATION:
+            enrich_medication_order(order, dose_str=detail_raw)
         orders.append(order)
 
     # Imaging orders

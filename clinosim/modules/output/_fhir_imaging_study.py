@@ -117,7 +117,8 @@ def _build_imaging_study(study: Any, lang: str, enc_reason_by_id: dict[str, list
 
     res: dict[str, Any] = {
         "resourceType": "ImagingStudy",
-        "id": f"{IMAGING_STUDY_ID_PREFIX}{_o(study, 'study_id', '')}",
+        # session 51: study_id (engine.py) は既に IMAGING_STUDY_ID_PREFIX 付。builder 再 prepend の double-prefix bug 修正。
+        "id": _o(study, "study_id", ""),
         "identifier": [{
             "system": DICOM_UID_SYSTEM,
             "value": f"urn:oid:{_o(study, 'study_instance_uid', '')}",
