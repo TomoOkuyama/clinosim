@@ -1,8 +1,32 @@
 # clinosim — TODO
 
-## Status (2026-07-14, **★★★ session 49 CLOSED — incremental snapshot chain F1+F2+F3+F4 12 commits landed**)
+## Status (2026-07-14, **★★★ session 50 CLOSED — iris4h-ai feedback P1-4 fix + CI green + JP p=10000 seed=300 regen**)
 
-**master HEAD**: `2dd7101bf4` (final review fix: mypy strict + F4 CLI)
+**master HEAD**: `f5926554b2`(CI fix)
+
+### Session 50 成果(3 commits direct-master + FHIR 再生成)
+
+| Layer | 内容 |
+|---|---|
+| **iris4h-ai feedback P1-4** | `~/workspace/iris4h-ai/clinosim_feedback.md`(2942件 / 107 pattern) の実データ精査で **session 48 fix 済 P1-1/2/5/6/7/9/10 は全て false-positive**(iris4h-ai 実データ検証で clean)。**真の残 P1-4 slice 欠如 3 系統 100% fix**:Observation.category:first(2.47M件、post-emit walker で JP-first slice prepend)+ MR/MA identifier:rpNumber+orderInRp(17k+571k件、JP Core spec の real fixedUri = `Medication-RPGroupNumber` + `MedicationAdministrationIndex` 取得、`_build_order_in_rp_map` で MR/MA が同 order で同 (rp, orderInRp) 得られる仕掛け)。 |
+| CI fix | mypy `_fhir_composition.py:368/468/584` の `# type:jpfhir...` を `# `type` field:jpfhir...` に reword(mypy が legacy annotation として parse していた)。4 pre-existing stale test(session 48 の TZ 正規化 / Normal conclusionCode / imaging inference / Checkup panel semantic 変更)を追随更新。ruff auto-fix 141 個の import ordering / whitespace 修正。`.gitignore` に `output-p*-seed*/` + `output/` 追加。 |
+| FHIR 再生成 | JP p=10000 seed=300、16 分 13 秒で 4.7 GB 26 NDJSON 生成。P1-4 fix 実効検証:MR 16,005/16,005 + MA 516,694/516,694 + Observation.category:first 2,289,052/2,289,052 全 100% JP Core 準拠。`~/workspace/iris4h-ai/fhir_r4/` に copy 済(次回 HAPI Validator で再検証準備完了)。 |
+
+### Session 50 テスト状態
+
+- **Unit 2691 PASS**(2687 + 4 pre-existing 修正)
+- **mypy strict PASS**(`_fhir_composition.py` syntax error 解消)
+- **reproduce.sh PASS**: US 105 + JP 72 files byte-identical(seed=42, pop=30)
+- **Regression (AD-66) 12/12 PASS**
+
+### Session 50 残 backlog
+
+- **P1-3 profile 必須要素**(134件):MedicationRequest.doseQuantity 8% missing / MA.dosage.dose 6% missing 根本原因調査 + fix
+- **P1-8 ValueSet 準拠**(327件):JP Core 独自 ValueSet coding への切替(HL7 標準 → JP CodeSystem)
+- **P2 Terminology 英語 display 化**(1314件):設計 axis 変更 = user 判断案件(現状は意図的 JP display、JP Core spec は英語 display + translation extension 推奨)
+- **Lint 残 376 error**:主に E501 (line too long) の pre-existing 系(informational 扱いで非 blocker)
+
+### Session 49 成果(spec + plan + 9 実装 task + final review fix = 12 commits direct-master)
 
 ### Session 49 成果(spec + plan + 9 実装 task + final review fix = 12 commits direct-master)
 
