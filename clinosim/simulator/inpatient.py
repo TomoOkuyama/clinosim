@@ -937,7 +937,7 @@ def _run_daily_loop(
             # Add labs
             for lab_name in mod.get("add_labs", []):
                 all_orders.append(Order(
-                    order_id=f"ORD-{patient.patient_id}-MOD-D{day}-{lab_name[:5]}",
+                    order_id=f"ORD-{encounter_id}-MOD-D{day}-{lab_name[:5]}",
                     patient_id=patient.patient_id, order_type=OrderType.LAB,
                     display_name=lab_name, urgency="stat",
                     clinical_intent=f"Day {day} {archetype}: additional workup",
@@ -945,9 +945,9 @@ def _run_daily_loop(
                     status=OrderStatus.PLACED,
                 ))
             # Add imaging
-            for img_name in mod.get("add_imaging", []):
+            for img_idx, img_name in enumerate(mod.get("add_imaging", [])):
                 all_orders.append(Order(
-                    order_id=f"ORD-{patient.patient_id}-MOD-D{day}-IMG",
+                    order_id=f"ORD-{encounter_id}-MOD-D{day}-IMG-{img_idx}",
                     patient_id=patient.patient_id, order_type=OrderType.IMAGING,
                     display_name=img_name, urgency="stat",
                     clinical_intent=f"Day {day} {archetype}: additional imaging",
@@ -967,7 +967,7 @@ def _run_daily_loop(
             # Stop medications
             for stop_idx, drug_name in enumerate(mod.get("stop", [])):
                 all_orders.append(Order(
-                    order_id=f"ORD-{patient.patient_id}-STOP-D{day}-{stop_idx}-{drug_name[:8]}",
+                    order_id=f"ORD-{encounter_id}-STOP-D{day}-{stop_idx}-{drug_name[:8]}",
                     patient_id=patient.patient_id, order_type=OrderType.MEDICATION,
                     display_name=f"DISCONTINUE: {drug_name}",
                     urgency="routine",
@@ -994,10 +994,10 @@ def _run_daily_loop(
                         _dc_order_type = classify_encounter_treatment(drug)
                         _is_medication = _dc_order_type == OrderType.MEDICATION
                         if _is_medication:
-                            _order_id_prefix = f"ORD-{patient.patient_id}-START-D{day}-{drug[:8]}"
+                            _order_id_prefix = f"ORD-{encounter_id}-START-D{day}-{drug[:8]}"
                             _intent = f"Day {day} {archetype}: new medication"
                         else:
-                            _order_id_prefix = f"ORD-{patient.patient_id}-DEV-D{day}-{drug[:8]}"
+                            _order_id_prefix = f"ORD-{encounter_id}-DEV-D{day}-{drug[:8]}"
                             _intent = f"Day {day} {archetype}: device / therapy"
                         all_orders.append(Order(
                             order_id=_order_id_prefix,
@@ -1013,7 +1013,7 @@ def _run_daily_loop(
                         detail = med.get("detail", "")
                         display = f"{proc}" + (f" ({detail})" if detail else "")
                         all_orders.append(Order(
-                            order_id=f"ORD-{patient.patient_id}-PROC-D{day}-{proc[:8]}",
+                            order_id=f"ORD-{encounter_id}-PROC-D{day}-{proc[:8]}",
                             patient_id=patient.patient_id, order_type=OrderType.PROCEDURE,
                             display_name=display,
                             urgency="urgent",
@@ -1041,7 +1041,7 @@ def _run_daily_loop(
                 _esc_display = f"{drug_name} {dose}".strip()
                 _esc_order_type = classify_encounter_treatment(_esc_display)
                 all_orders.append(Order(
-                    order_id=f"ORD-{patient.patient_id}-ESC-D{day}-{drug_name[:8]}",
+                    order_id=f"ORD-{encounter_id}-ESC-D{day}-{drug_name[:8]}",
                     encounter_id=encounter_id,
                     patient_id=patient.patient_id,
                     order_type=_esc_order_type,
@@ -1070,7 +1070,7 @@ def _run_daily_loop(
             diet = "regular_diet"
         if diet != prev_diet:
             all_orders.append(Order(
-                order_id=f"ORD-{patient.patient_id}-DIET-D{day}",
+                order_id=f"ORD-{encounter_id}-DIET-D{day}",
                 patient_id=patient.patient_id,
                 order_type=OrderType.DIET,
                 display_name=diet,
@@ -1240,7 +1240,7 @@ def _generate_home_medication_orders(
                         intent += " [dose reduced for renal impairment]"
 
             order = Order(
-                order_id=f"ORD-{patient.patient_id}-HM-{med_idx:02d}",
+                order_id=f"ORD-{encounter_id}-HM-{med_idx:02d}",
                 encounter_id=encounter_id,
                 patient_id=patient.patient_id,
                 order_type=OrderType.MEDICATION,
@@ -1292,7 +1292,7 @@ def _place_chronic_monitoring_orders(
                 if order_time < admission_time:
                     continue
                 orders.append(Order(
-                    order_id=f"ORD-{patient_id}-CM-D{day:02d}-{i:02d}-{t_idx}",
+                    order_id=f"ORD-{encounter_id}-CM-D{day:02d}-{i:02d}-{t_idx}",
                     encounter_id=encounter_id,
                     patient_id=patient_id,
                     order_type=OrderType.LAB,
@@ -1316,7 +1316,7 @@ def _place_chronic_monitoring_orders(
                 if order_time < admission_time:
                     continue
                 orders.append(Order(
-                    order_id=f"ORD-{patient_id}-CM-D{day:02d}-{i:02d}-{t_idx}",
+                    order_id=f"ORD-{encounter_id}-CM-D{day:02d}-{i:02d}-{t_idx}",
                     encounter_id=encounter_id,
                     patient_id=patient_id,
                     order_type=OrderType.LAB,
@@ -1335,7 +1335,7 @@ def _place_chronic_monitoring_orders(
             admission_time.year, admission_time.month, admission_time.day, 6, 0,
         ) + timedelta(days=day)
         orders.append(Order(
-            order_id=f"ORD-{patient_id}-CM-D{day:02d}-{i:02d}",
+            order_id=f"ORD-{encounter_id}-CM-D{day:02d}-{i:02d}",
             encounter_id=encounter_id,
             patient_id=patient_id,
             order_type=OrderType.LAB,
@@ -1882,7 +1882,7 @@ def _simulate_unknown_condition(
                       "AST", "ALT", "ALP", "LDH", "Albumin", "PT_INR", "PCT"]
     for i, lab_name in enumerate(admission_labs):
         all_orders.append(Order(
-            order_id=f"ORD-{patient.patient_id}-ADM-L{i:02d}",
+            order_id=f"ORD-{encounter.encounter_id}-ADM-L{i:02d}",
             patient_id=patient.patient_id, order_type=OrderType.LAB,
             display_name=lab_name, urgency="stat",
             clinical_intent=f"Unknown {complaint}: initial workup",
@@ -1893,7 +1893,7 @@ def _simulate_unknown_condition(
     # Imaging: CXR + CT (broader search)
     for i, img in enumerate(["Chest_Xray", "CT_abdomen_pelvis"]):
         all_orders.append(Order(
-            order_id=f"ORD-{patient.patient_id}-ADM-I{i:02d}",
+            order_id=f"ORD-{encounter.encounter_id}-ADM-I{i:02d}",
             patient_id=patient.patient_id, order_type=OrderType.IMAGING,
             display_name=img, urgency="stat" if i == 0 else "urgent",
             clinical_intent=f"Unknown {complaint}: imaging workup",
@@ -1912,7 +1912,7 @@ def _simulate_unknown_condition(
 
     for i, med in enumerate(supportive_meds):
         all_orders.append(Order(
-            order_id=f"ORD-{patient.patient_id}-ADM-M{i:02d}",
+            order_id=f"ORD-{encounter.encounter_id}-ADM-M{i:02d}",
             patient_id=patient.patient_id, order_type=OrderType.MEDICATION,
             display_name=med["drug"], urgency="routine",
             clinical_intent=f"Unknown {complaint}: {med['intent']}",
@@ -1937,7 +1937,7 @@ def _simulate_unknown_condition(
                 daily_labs.extend(["ANA", "RF"])  # autoimmune screening
                 # Additional imaging
                 all_orders.append(Order(
-                    order_id=f"ORD-{patient.patient_id}-D4-IMG",
+                    order_id=f"ORD-{encounter.encounter_id}-D4-IMG",
                     patient_id=patient.patient_id, order_type=OrderType.IMAGING,
                     display_name="CT_chest_with_contrast", urgency="routine",
                     clinical_intent="Day 4: expanded imaging for unknown fever",
@@ -1948,7 +1948,7 @@ def _simulate_unknown_condition(
             for i, lab_name in enumerate(daily_labs):
                 lab_time = admission_time + timedelta(days=day, hours=6)
                 all_orders.append(Order(
-                    order_id=f"ORD-{patient.patient_id}-D{day}-L{i:02d}",
+                    order_id=f"ORD-{encounter.encounter_id}-D{day}-L{i:02d}",
                     patient_id=patient.patient_id, order_type=OrderType.LAB,
                     display_name=lab_name, urgency="routine",
                     clinical_intent=f"Day {day}: monitoring + workup",

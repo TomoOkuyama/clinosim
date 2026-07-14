@@ -30,6 +30,11 @@ SUPPORTED_MODALITIES: frozenset[str] = frozenset({
     # CO-1 continuation (session 43): MR + US added — modalities.yaml carries
     # matching entries with DICOM code + display_en/ja.
     "MR", "US",
+    # Session 52 fix 4: XA (X-Ray Angiography — coronary angiography orders) +
+    # ECG (electrocardiography — DICOM waveform modality; ED/cardiac workup
+    # orders classified OrderType.IMAGING). Both are standard DICOM PS3.3
+    # modality values; without them these orders stub-fell with no modality.
+    "XA", "ECG",
 })
 
 # Canonical body site set. CO-1 continuation (session 43): expanded from

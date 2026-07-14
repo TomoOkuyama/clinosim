@@ -91,13 +91,21 @@ class TestInferImagingMetadata:
         assert infer_imaging_metadata("Wrist_Xray_AP_Lateral") is not None
         assert infer_imaging_metadata("Xray_Affected_Area") is not None
 
-    def test_ecg_and_angiography_correctly_fall_to_stub(self):
-        """ECG は electrocardiogram(non-imaging)、Coronary_angiography は XA
-        modality 未登録。両者 stub 落ちが正しい挙動。"""
+    def test_ecg_and_angiography_infer_dicom_modalities(self):
+        """Session 52 fix 4: ECG(DICOM waveform modality)+ XA(coronary
+        angiography)を modalities.yaml に正式登録 → stub 落ちから inference
+        成功に変更。session 48 時点の stub 期待を新挙動の pin に更新。"""
         from clinosim.modules.imaging.inference import infer_imaging_metadata
-        assert infer_imaging_metadata("ECG") is None
-        assert infer_imaging_metadata("ECG_12lead") is None
-        assert infer_imaging_metadata("Coronary_angiography") is None
+        ecg = infer_imaging_metadata("ECG")
+        assert ecg is not None and ecg["modality"] == "ECG"
+        ecg12 = infer_imaging_metadata("ECG_12lead")
+        assert ecg12 is not None and ecg12["modality"] == "ECG"
+        xa = infer_imaging_metadata("Coronary_angiography")
+        assert xa is not None and xa["modality"] == "XA"
+        # 非 DICOM order(眼科診察等)は引き続き stub 落ちが正
+        assert infer_imaging_metadata("Slit_lamp_exam") is None
+        assert infer_imaging_metadata("Fluorescein_stain") is None
+        assert infer_imaging_metadata("Bladder_ultrasound") is None
 
 
 @pytest.mark.unit

@@ -498,3 +498,8 @@ codes:
   '8205005':
     en: Wrist region
     ja: 手関節部
+  # Device (facility-shared infusion pump, session 52 fix 2 — verified via
+  # tx.fhir.org $expand 2026-07-14)
+  '433296005':
+    en: Infusion pump for intravenous fluids
+    ja: 輸液ポンプ

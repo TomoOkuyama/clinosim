@@ -178,7 +178,7 @@ def _simulate_outpatient_visit(
         canon = canonical_lab_name(test_name)
         if canon not in _true_labs and canon not in baseline_values:
             continue
-        order_id = f"ORD-{patient.patient_id}-OPD-L{i:02d}"
+        order_id = f"ORD-{encounter.encounter_id}-OPD-L{i:02d}"
         lab_rng = np.random.default_rng(individual_lab_seed(order_id))
         order = Order(
             order_id=order_id,

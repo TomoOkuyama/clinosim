@@ -61,6 +61,13 @@ def test_every_imaging_study_endpoint_resolves() -> None:
             pytest.skip("No ImagingStudy resources emitted — cannot verify endpoint refs")
         dangling: list[str] = []
         for study in studies:
+            if not study.get("modality"):
+                # Session 52 fix 3: stub-only studies (inference failed,
+                # session 48 case D) intentionally carry no Endpoint.
+                assert not study.get("endpoint"), (
+                    f"stub ImagingStudy/{study.get('id')} must not reference an Endpoint"
+                )
+                continue
             assert study.get("endpoint"), (
                 f"ImagingStudy/{study.get('id')} missing endpoint ref (silent-no-op)"
             )
