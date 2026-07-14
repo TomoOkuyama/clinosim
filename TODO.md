@@ -1,8 +1,14 @@
 # clinosim — TODO
 
-## Status (2026-07-14, **★★★ session 50 CLOSED — iris4h-ai feedback P1-4 fix + CI green + JP p=10000 seed=300 regen**)
+## Status (2026-07-14, **★★★ session 50 CLOSED — iris4h-ai P1-4 fix + adv-1 CRITICAL URI fix + CI green (Unit + Repro + Build all SUCCESS)**)
 
-**master HEAD**: `f5926554b2`(CI fix)
+**master HEAD**: `131e58f2d1`(gitignore anchor fix + 除外されていた 13 pin tests 追加)
+
+### Session 50 adv-1 code review 対応(CRITICAL + Important 対応済)
+
+- **CRITICAL(URI 誤り)**: `_JP_OBSERVATION_CATEGORY_SYSTEM` の初版 URI(推測)`http://jpfhir.jp/fhir/observation-category` は JP Core 1.2.0 spec と不一致 → HAPI validator にとって silent-no-op。実 spec fixedUri `http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS` に訂正(commit `e36a714624`)。iris4h-ai `jp_core/package/StructureDefinition-jp-observation-common.json` の fixedUri で直接確認。
+- **Important(test 欠如)**: P1-4 logic に対する pin test を 13 個追加(`test_fhir_jp_core_p14_slices.py`)= URI pin(推測 URI への差し戻し規制)+ idempotent + non-Observation skip + HL7 code preservation(5 parametrize)+ MedicationRequest identifier slices spec URI pin + US output に JP identifier を emit しないこと + `_build_order_in_rp_map` per-encounter numbering + deterministic。
+- **.gitignore 誤設定副次発見**: `output/` パターンが `tests/unit/output/` を誤 match、新 pin test file が silent 除外されていた → repo root anchor(`/output/`)に訂正(commit `131e58f2d1`)。
 
 ### Session 50 成果(3 commits direct-master + FHIR 再生成)
 
