@@ -45,12 +45,22 @@ def _resolve_wado_base_url(hospital_config: dict) -> str:
 
 
 def _bb_endpoints(ctx: BundleContext) -> list[dict[str, Any]]:
-    """Emit one Endpoint per ImagingStudyRecord in extensions['imaging']."""
+    """Emit one Endpoint per ImagingStudyRecord in extensions['imaging'].
+
+    Stub-only studies (inference failed; ``endpoint_id == ""``, session 48
+    case D) carry no PACS reference — skip them instead of emitting an
+    Endpoint with an empty ``id`` (invalid for Bulk Data NDJSON and breaks
+    Resource.id uniqueness).
+    """
     studies = (_o(ctx.record, "extensions", {}) or {}).get("imaging") or []
     if not studies:
         return []
     base_url = _resolve_wado_base_url(getattr(ctx, "hospital_config", {}) or {})
-    return [_build_endpoint(s, base_url) for s in studies]
+    return [
+        _build_endpoint(s, base_url)
+        for s in studies
+        if _o(s, "endpoint_id", "")
+    ]
 
 
 def _build_endpoint(study: Any, base_url: str) -> dict[str, Any]:

@@ -51,6 +51,60 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     }
     entries.append(_entry(root_org))
 
+    # Main-building Location — referenced by PractitionerRole.location fallback
+    # (CY8-07) for staff without a ward assignment. Session 52 fix 2: the
+    # reference existed since session 48 but the resource was never emitted
+    # (dangling reference, eval reference_integrity FAIL).
+    main_loc = {
+        "resourceType": "Location",
+        "id": "loc-hospital-main",
+        **({"meta": {"profile": [
+            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"
+        ]}} if is_jp(country) else {}),
+        "status": "active",
+        "name": hosp_name,
+        "type": [{
+            "coding": [{
+                "system": get_system_uri("hl7-v3-rolecode"),
+                "code": "HOSP",
+                "display": "Hospital",
+            }],
+        }],
+        "physicalType": {
+            "coding": [{
+                "system": get_system_uri("hl7-location-physical-type"),
+                "code": "bu",
+                "display": "Building" if not is_jp(country) else "建物",
+            }],
+        },
+        "managingOrganization": {"reference": "Organization/hospital-main"},
+    }
+    entries.append(_entry(main_loc))
+
+    # Facility-shared generic infusion pump Device — referenced by
+    # MedicationAdministration.device for continuous IV infusions (CY8-20).
+    # Session 52 fix 2: same dangling-reference closure as loc-hospital-main.
+    # Real EHRs reference a shared pump asset rather than issuing one per
+    # patient, so a single facility-level Device is clinically appropriate.
+    pump_device = {
+        "resourceType": "Device",
+        "id": "dev-infusion-pump",
+        "status": "active",
+        "type": {
+            "coding": [{
+                "system": get_system_uri("snomed-ct"),
+                "code": "433296005",
+                "display": (
+                    "輸液ポンプ" if is_jp(country)
+                    else "Infusion pump for intravenous fluids"
+                ),
+            }],
+            "text": "汎用輸液ポンプ" if is_jp(country) else "Generic infusion pump",
+        },
+        "owner": {"reference": "Organization/hospital-main"},
+    }
+    entries.append(_entry(pump_device))
+
     # Department Organizations (one per available_department)
     for dept in available:
         display = _dept_display(dept, country)

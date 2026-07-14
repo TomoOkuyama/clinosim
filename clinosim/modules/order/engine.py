@@ -112,7 +112,7 @@ def place_imaging_orders(
             days=day_index, minutes=int(rng.normal(15, 5))
         )
         order = Order(
-            order_id=f"ORD-{patient_id}-{encounter_id}-I{sequence_counter['I']:02d}",
+            order_id=f"ORD-{encounter_id}-I{sequence_counter['I']:02d}",
             encounter_id=encounter_id,
             patient_id=patient_id,
             order_type=OrderType.IMAGING,
@@ -301,7 +301,7 @@ def place_admission_orders(
         panel_time = admission_time + timedelta(minutes=int(rng.normal(5, 3)))
         for lab_spec in members:
             orders.append(_build_lab_order(
-                order_id=f"ORD-{patient_id}-ADM-L{order_seq:02d}",
+                order_id=f"ORD-{encounter_id}-ADM-L{order_seq:02d}",
                 encounter_id=encounter_id,
                 patient_id=patient_id,
                 lab_spec=lab_spec,
@@ -315,7 +315,7 @@ def place_admission_orders(
     # Emit stand-alone Orders: each test has its own independent datetime.
     for lab_spec in stand_alones:
         orders.append(_build_lab_order(
-            order_id=f"ORD-{patient_id}-ADM-L{order_seq:02d}",
+            order_id=f"ORD-{encounter_id}-ADM-L{order_seq:02d}",
             encounter_id=encounter_id,
             patient_id=patient_id,
             lab_spec=lab_spec,
@@ -338,7 +338,7 @@ def place_admission_orders(
         parsed = parse_dose_string(dose_str)
         drug_name = med_spec.get("drug", "Unknown")
         order = Order(
-            order_id=f"ORD-{patient_id}-ADM-M{med_idx + 1:02d}",
+            order_id=f"ORD-{encounter_id}-ADM-M{med_idx + 1:02d}",
             encounter_id=encounter_id,
             patient_id=patient_id,
             order_type=OrderType.MEDICATION,
@@ -375,7 +375,7 @@ def place_admission_orders(
                 break
         order_type = classify_inpatient_supportive(detail_raw, sup_type)
         order = Order(
-            order_id=f"ORD-{patient_id}-ADM-S{i:02d}",
+            order_id=f"ORD-{encounter_id}-ADM-S{i:02d}",
             encounter_id=encounter_id,
             patient_id=patient_id,
             order_type=order_type,
@@ -396,7 +396,7 @@ def place_admission_orders(
     # Imaging orders
     for i, img_spec in enumerate(admission.get("imaging", [])):
         order = Order(
-            order_id=f"ORD-{patient_id}-ADM-I{i:02d}",
+            order_id=f"ORD-{encounter_id}-ADM-I{i:02d}",
             encounter_id=encounter_id,
             patient_id=patient_id,
             order_type=OrderType.IMAGING,
@@ -472,7 +472,7 @@ def place_daily_lab_orders(
         # Daily monitoring panels share the morning round order_time.
         for lab_spec in members:
             orders.append(_build_lab_order(
-                order_id=f"ORD-{patient_id}-D{day_number:02d}-L{order_seq:02d}",
+                order_id=f"ORD-{encounter_id}-D{day_number:02d}-L{order_seq:02d}",
                 encounter_id=encounter_id,
                 patient_id=patient_id,
                 lab_spec=lab_spec,
@@ -485,7 +485,7 @@ def place_daily_lab_orders(
 
     for lab_spec in stand_alones:
         orders.append(_build_lab_order(
-            order_id=f"ORD-{patient_id}-D{day_number:02d}-L{order_seq:02d}",
+            order_id=f"ORD-{encounter_id}-D{day_number:02d}-L{order_seq:02d}",
             encounter_id=encounter_id,
             patient_id=patient_id,
             lab_spec=lab_spec,

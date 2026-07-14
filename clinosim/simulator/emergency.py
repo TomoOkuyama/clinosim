@@ -147,7 +147,7 @@ def _simulate_ed_visit(
     from clinosim.simulator.seeding import individual_lab_seed
     for i, lab_spec in enumerate(lab_specs):
         test = lab_spec.get("test", "")
-        order_id = f"ORD-{patient.patient_id}-ED-L{i}"
+        order_id = f"ORD-{encounter.encounter_id}-ED-L{i}"
         lab_rng = np.random.default_rng(individual_lab_seed(order_id))
         prob = lab_spec.get("probability", 1.0)
         if lab_rng.random() > prob:
@@ -186,7 +186,7 @@ def _simulate_ed_visit(
         if rng.random() > img_spec.get("probability", 1.0):
             continue
         orders.append(Order(
-            order_id=f"ORD-{patient.patient_id}-ED-I{i}",
+            order_id=f"ORD-{encounter.encounter_id}-ED-I{i}",
             patient_id=patient.patient_id,
             order_type=OrderType.IMAGING,
             display_name=test, urgency="stat",
@@ -206,7 +206,7 @@ def _simulate_ed_visit(
         _tx_name = tx.get("name", "")
         _order_type = classify_encounter_treatment(_tx_name)
         orders.append(Order(
-            order_id=f"ORD-{patient.patient_id}-ED-T{i}",
+            order_id=f"ORD-{encounter.encounter_id}-ED-T{i}",
             patient_id=patient.patient_id,
             order_type=_order_type,
             display_name=_tx_name,

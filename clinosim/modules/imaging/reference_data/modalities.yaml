@@ -4,6 +4,9 @@
 #
 # CO-1 continuation (session 43): MR + US modalities added along with the
 # 8-body-site expansion (see body_sites.yaml + SUPPORTED_BODY_SITES).
+# Session 52 fix 4: XA + ECG modalities added, plus CT+kidney / MR+abdomen /
+# US+chest (echocardiography) / US+spine (carotid) combos — all of these had
+# whitelisted inference patterns that stub-fell at _expand_views_to_series.
 
 modalities:
   CR:                                            # Computed Radiography (plain X-ray)
@@ -29,12 +32,14 @@ modalities:
       abdomen: [280, 420]                        # thin section abdomen
       hip: [180, 260]
       spine: [220, 320]
+      kidney: [280, 420]                         # CT urography ≈ abdomen coverage
     default_views_by_body_site:
       head: ["axial"]
       chest: ["axial"]
       abdomen: ["axial"]
       hip: ["axial"]
       spine: ["axial"]
+      kidney: ["axial"]
 
   MR:                                            # Magnetic Resonance
     dicom_code: "MR"
@@ -43,9 +48,11 @@ modalities:
     typical_instances_per_series_range:
       head: [140, 220]                           # DWI/FLAIR/T1/T2 typical
       spine: [120, 200]
+      abdomen: [150, 280]                        # T1/T2/DWI abdomen protocol
     default_views_by_body_site:
       head: ["axial", "sagittal"]
       spine: ["sagittal", "axial"]
+      abdomen: ["axial", "coronal"]
 
   US:                                            # Ultrasound
     dicom_code: "US"
@@ -56,8 +63,29 @@ modalities:
       kidney: [8, 20]
       leg: [8, 20]
       skin: [6, 15]
+      chest: [30, 90]                            # echocardiography (TTE) clip frames
+      spine: [15, 40]                            # carotid duplex (頸部; spine 集約 per session 48)
     default_views_by_body_site:
       abdomen: ["longitudinal", "transverse"]
       kidney: ["longitudinal", "transverse"]
       leg: ["longitudinal", "transverse", "doppler"]
       skin: ["longitudinal"]
+      chest: ["parasternal_long_axis", "apical_4_chamber"]
+      spine: ["longitudinal", "transverse", "doppler"]
+
+  XA:                                            # X-Ray Angiography (coronary angiography)
+    dicom_code: "XA"
+    display_en: "X-Ray Angiography"
+    display_ja: "血管造影撮影"
+    typical_instances_per_series_range:
+      chest: [300, 800]                          # cine runs, multiple projections
+    default_views_by_body_site:
+      chest: ["LAO", "RAO"]
+
+  ECG:                                           # Electrocardiography (DICOM waveform)
+    dicom_code: "ECG"
+    display_en: "Electrocardiography"
+    display_ja: "心電図検査"
+    typical_instances_per_view_range: [1, 1]     # 1 waveform object
+    default_views_by_body_site:
+      chest: ["12-lead"]

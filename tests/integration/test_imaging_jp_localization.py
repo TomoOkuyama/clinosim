@@ -35,10 +35,13 @@ def test_jp_imaging_study_modality_display_in_ja() -> None:
         studies = load_ndjson(find_ndjson(out, "ImagingStudy.ndjson"))
         if not studies:
             pytest.skip("No ImagingStudy resources emitted for JP cohort n=200")
-        for study in studies:
-            modality_list = study.get("modality", [])
-            assert modality_list, f"ImagingStudy/{study['id']} has no modality list"
-            mod_display = modality_list[0].get("display", "")
+        non_stub = [s for s in studies if s.get("modality")]
+        # Session 52 fix 3: stub-only studies (inference failed, session 48
+        # case D) legitimately have no modality — scope the JP-display
+        # assertion to non-stub studies, but require they exist at all.
+        assert non_stub, "every ImagingStudy is a stub — inference coverage collapsed"
+        for study in non_stub:
+            mod_display = study["modality"][0].get("display", "")
             assert _has_jp_chars(mod_display), (
                 f"ImagingStudy/{study['id']} modality display not Japanese: {mod_display!r}"
             )

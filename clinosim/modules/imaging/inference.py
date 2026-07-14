@@ -31,7 +31,7 @@ _PATTERNS: list[tuple[str, str, str, list[str]]] = [
      "CR", "chest",  ["PA"]),
     (rf"胸部{_SEP}x[\s\-_]*(?:線|ray|p)|胸部{_SEP}単純{_SEP}(?:x{_SEP}(?:線|ray|p)|レ|レントゲン)|胸写|胸{_SEP}x{_SEP}p",
      "CR", "chest",  ["PA"]),
-    (rf"abdomen{_SEP}x{_SEP}?ray|abdominal{_SEP}x{_SEP}?ray|kub|abd{_SEP}x{_SEP}?ray",
+    (rf"abdomen{_SEP}x{_SEP}?ray|abdominal{_SEP}x{_SEP}?ray|kub|abd{_SEP}x{_SEP}?ray|xray{_SEP}abdomen",
      "CR", "abdomen", ["AP"]),
     (rf"腹部{_SEP}x{_SEP}(?:線|ray|p)|腹部{_SEP}単純{_SEP}(?:x|レ)",
      "CR", "abdomen", ["AP"]),
@@ -90,7 +90,25 @@ _PATTERNS: list[tuple[str, str, str, list[str]]] = [
     # Carotid → 頸部血管、body_site 未定義のため spine に集約(頸部 spine 相当)
     (rf"carotid{_SEP}(?:ultrasound|us)",                           "US", "spine",   []),
     # Echocardiogram(TTE)は心臓 US → heart body_site 未定義のため chest に集約
-    (rf"echocardiog(?:ram|raphy)(?:{_SEP}(?:tte|complete))?",     "US", "chest",   []),
+    (rf"echocardiog(?:ram|raphy)(?:{_SEP}(?:tte|complete|bedside))?", "US", "chest", []),
+    # 下肢静脈エコー(DVT workup)— US leg は doppler views 登録済
+    (rf"lower{_SEP}extremity{_SEP}venous{_SEP}(?:ultrasound|us)|下肢{_SEP}静脈{_SEP}(?:超音波|エコー)",
+     "US", "leg",     []),
+
+    # ---- XA / angiography(session 52 fix 4)----
+    # 冠動脈造影 → XA。heart body_site 未定義のため chest に集約(echo と同精度)
+    (rf"coronary{_SEP}angio(?:graphy|gram)|冠動脈{_SEP}造影",     "XA", "chest",   []),
+    # CT pulmonary angiography(PE workup)は CT + chest
+    (rf"ct{_SEP}pulmonary{_SEP}angio(?:graphy|gram)|ctpa|肺動脈{_SEP}ct",
+     "CT", "chest",   []),
+
+    # ---- ECG(session 52 fix 4)----
+    # ED / cardiac workup が OrderType.IMAGING で発行する心電図 order。
+    # DICOM waveform modality "ECG"、body_site は chest 集約(echo と同精度)。
+    # \b は "_" を境界と見なさないため anchored 形("ECG" / "ECG_12lead" /
+    # "ECG_12lead_stat" 等、ecg/ekg で始まる display name 全般)
+    (r"^(?:ecg|ekg)(?:[\s\-_].*)?$|心電図",
+     "ECG", "chest",  []),
 ]
 
 
