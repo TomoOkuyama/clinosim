@@ -1663,9 +1663,47 @@
 
 <h1 id="roadmap">Roadmap<a class="headerlink" href="#roadmap" title="Permanent link">&para;</a></h1>
 <h1 id="clinosim-todo">clinosim — TODO<a class="headerlink" href="#clinosim-todo" title="Permanent link">&para;</a></h1>
-<h2 id="status-2026-07-14-session-49-closed-incremental-snapshot-chain-f1f2f3f4-12-commits-landed">Status (2026-07-14, <strong>★★★ session 49 CLOSED — incremental snapshot chain F1+F2+F3+F4 12 commits landed</strong>)<a class="headerlink" href="#status-2026-07-14-session-49-closed-incremental-snapshot-chain-f1f2f3f4-12-commits-landed" title="Permanent link">&para;</a></h2>
-<p><strong>master HEAD</strong>: <code>2dd7101bf4</code> (final review fix: mypy strict + F4 CLI)</p>
+<h2 id="status-2026-07-14-session-50-closed-iris4h-ai-feedback-p1-4-fix-ci-green-jp-p10000-seed300-regen">Status (2026-07-14, <strong>★★★ session 50 CLOSED — iris4h-ai feedback P1-4 fix + CI green + JP p=10000 seed=300 regen</strong>)<a class="headerlink" href="#status-2026-07-14-session-50-closed-iris4h-ai-feedback-p1-4-fix-ci-green-jp-p10000-seed300-regen" title="Permanent link">&para;</a></h2>
+<p><strong>master HEAD</strong>: <code>f5926554b2</code>(CI fix)</p>
+<h3 id="session-50-3-commits-direct-master-fhir">Session 50 成果(3 commits direct-master + FHIR 再生成)<a class="headerlink" href="#session-50-3-commits-direct-master-fhir" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>iris4h-ai feedback P1-4</strong></td>
+<td><code>~/workspace/iris4h-ai/clinosim_feedback.md</code>(2942件 / 107 pattern) の実データ精査で <strong>session 48 fix 済 P1-&frac12;/&#8538;/7/9/10 は全て false-positive</strong>(iris4h-ai 実データ検証で clean)。<strong>真の残 P1-4 slice 欠如 3 系統 100% fix</strong>:Observation.category:first(2.47M件、post-emit walker で JP-first slice prepend)+ MR/MA identifier:rpNumber+orderInRp(17k+571k件、JP Core spec の real fixedUri = <code>Medication-RPGroupNumber</code> + <code>MedicationAdministrationIndex</code> 取得、<code>_build_order_in_rp_map</code> で MR/MA が同 order で同 (rp, orderInRp) 得られる仕掛け)。</td>
+</tr>
+<tr>
+<td>CI fix</td>
+<td>mypy <code>_fhir_composition.py:368/468/584</code> の <code># type:jpfhir...</code> を <code>#</code>type<code>field:jpfhir...</code> に reword(mypy が legacy annotation として parse していた)。4 pre-existing stale test(session 48 の TZ 正規化 / Normal conclusionCode / imaging inference / Checkup panel semantic 変更)を追随更新。ruff auto-fix 141 個の import ordering / whitespace 修正。<code>.gitignore</code> に <code>output-p*-seed*/</code> + <code>output/</code> 追加。</td>
+</tr>
+<tr>
+<td>FHIR 再生成</td>
+<td>JP p=10000 seed=300、16 分 13 秒で 4.7 GB 26 NDJSON 生成。P1-4 fix 実効検証:MR 16,005/16,005 + MA 516,694/516,694 + Observation.category:first 2,289,052/2,289,052 全 100% JP Core 準拠。<code>~/workspace/iris4h-ai/fhir_r4/</code> に copy 済(次回 HAPI Validator で再検証準備完了)。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="session-50">Session 50 テスト状態<a class="headerlink" href="#session-50" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Unit 2691 PASS</strong>(2687 + 4 pre-existing 修正)</li>
+<li><strong>mypy strict PASS</strong>(<code>_fhir_composition.py</code> syntax error 解消)</li>
+<li><strong>reproduce.sh PASS</strong>: US 105 + JP 72 files byte-identical(seed=42, pop=30)</li>
+<li><strong>Regression (AD-66) 12/12 PASS</strong></li>
+</ul>
+<h3 id="session-50-backlog">Session 50 残 backlog<a class="headerlink" href="#session-50-backlog" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>P1-3 profile 必須要素</strong>(134件):MedicationRequest.doseQuantity 8% missing / MA.dosage.dose 6% missing 根本原因調査 + fix</li>
+<li><strong>P1-8 ValueSet 準拠</strong>(327件):JP Core 独自 ValueSet coding への切替(HL7 標準 → JP CodeSystem)</li>
+<li><strong>P2 Terminology 英語 display 化</strong>(1314件):設計 axis 変更 = user 判断案件(現状は意図的 JP display、JP Core spec は英語 display + translation extension 推奨)</li>
+<li><strong>Lint 残 376 error</strong>:主に E501 (line too long) の pre-existing 系(informational 扱いで非 blocker)</li>
+</ul>
 <h3 id="session-49-spec-plan-9-task-final-review-fix-12-commits-direct-master">Session 49 成果(spec + plan + 9 実装 task + final review fix = 12 commits direct-master)<a class="headerlink" href="#session-49-spec-plan-9-task-final-review-fix-12-commits-direct-master" title="Permanent link">&para;</a></h3>
+<h3 id="session-49-spec-plan-9-task-final-review-fix-12-commits-direct-master_1">Session 49 成果(spec + plan + 9 実装 task + final review fix = 12 commits direct-master)<a class="headerlink" href="#session-49-spec-plan-9-task-final-review-fix-12-commits-direct-master_1" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
