@@ -74,7 +74,8 @@ e36a714624 fix(fhir-jp): correct Observation.category:first CodeSystem URI per J
 - **mypy strict PASS**、reproduce.sh PASS(US 105 + JP 72 files byte-identical seed=42 pop=30)
 - **Regression (AD-66) 12/12 PASS**
 - **Integration**:9 件失敗 → 2 系統 fix 済(imgst/imgrpt double-prefix + P1-3 dose)、残 5 件 = session 52 backlog
-- **CI(29316588160)**:session end 時点 in_progress、次 session 開始時に final status を確認すること
+- **CI(29316588160)** post-close 確認:Unit 3.11+3.12 / Reproducibility / Build sdist+wheel すべて SUCCESS、Type check + Lint は informational failure(pre-existing 非 blocker)、**Integration は cancelled**(session 52 開始時 push `7321c0d374` の CI 経過も要確認)
+- **Local integration full run**(23 分 58 秒、fix 適用時点跨ぎで信頼度低)= 288 passed / 9 failed。session 52 開始時に `pytest tests/integration -q --tb=no --deselect tests/integration/test_document_jp_localization.py::test_jp_clinical_impression_structural_fields_present` で post-fix 状態確認すること
 
 ---
 
