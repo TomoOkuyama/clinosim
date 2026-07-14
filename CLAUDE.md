@@ -201,6 +201,7 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 - **referenceRange + interpretation**: Both MUST be present for numerical observations and MUST be consistent (FHIR R5 Note 5). Lab interpretation recomputed from value vs referenceRange.
 - **JP localization**: All `display`, `text`, `name` fields must use Japanese when `country="JP"`. Use `_localize_display()` for enum values. Drug/procedure names via `code_lookup()` or `_localize_drug_name()`.
 - **US output**: Must be 100% English. No Japanese characters in any field.
+- **JP Core / JP-CLINS profile URI・slice system URI は必ず spec の `fixedUri` を直接引用**(session 50 adv-1 教訓)。JP Core StructureDefinition JSON(`iris4h-ai/jp_core/package/StructureDefinition-*.json` or `jpfhir.jp` の該当 spec ファイル)の `Element.system.fixedUri` / `Element.fixedUri` を **grep で直接取得**して使う。**推測 URI・plausible naming に基づく URI 命名 禁止** — spec と不一致だと HAPI validator が silent-no-op(見た目に URI があるので通ってしまうが profile slice discriminator が match せず validation error は消えない)。新規に JP Core slice 対応する pull request は、`tests/unit/output/test_fhir_jp_core_p14_slices.py` のように **URI を module-level 定数として pin する test を必ず追加**(regression 防衛)。同じ規則が JP-eCheckup / JP-CLINS / SS-MIX2 の profile URI にも適用。
 
 ## Enrichment architecture (narrative prompts)
 
