@@ -526,7 +526,8 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
 
     dr: dict = {
         "resourceType": "DiagnosticReport",
-        "id": f"{RADIOLOGY_DR_ID_PREFIX}{rep_id}",
+        # session 51: rep_id (engine.py) は既に RADIOLOGY_REPORT_ID_PREFIX 付。builder 再 prepend の double-prefix bug 修正。
+        "id": rep_id,
         # Session 46 chain #2: JP Core DiagnosticReport_Common profile
         # (radiology; JP Core does not define a dedicated Radiology variant).
         **({"meta": {"profile": [
@@ -559,7 +560,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
         "subject": {"reference": f"Patient/{_o(study, 'patient_id', '')}"},
         "encounter": {"reference": f"Encounter/{_o(study, 'encounter_id', '')}"},
         "basedOn": [{"reference": f"ServiceRequest/{SR_ID_PREFIX}{order_id}"}],
-        "imagingStudy": [{"reference": f"ImagingStudy/{IMAGING_STUDY_ID_PREFIX}{study_id}"}],
+        "imagingStudy": [{"reference": f"ImagingStudy/{study_id}"}],
         "conclusion": impression_text,
     }
     # CY6-03 (Chain-6): radiology DR performer — the radiologist who read the
@@ -589,7 +590,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     dr["media"] = [{
         "comment": "画像は関連 ImagingStudy を参照" if lang == "ja"
                    else "See linked ImagingStudy for image data",
-        "link": {"reference": f"ImagingStudy/{IMAGING_STUDY_ID_PREFIX}{study_id}"},
+        "link": {"reference": f"ImagingStudy/{study_id}"},
     }]
 
     # conclusionCode: emit only when findings_codes is populated (PR1 default: empty → skipped).
