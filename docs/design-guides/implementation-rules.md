@@ -77,6 +77,7 @@
 | lab order 分類 | `classify_lab_specs`(`order/panel_grouping.py`) |
 | scenario/medication flags | `scenario_flags_from_protocol` + `medication_flags_from_context` を **merge して `**flags` 渡し**。named-arg 追加禁止(J5 教訓) |
 | **重症度サンプリング** | `sample_severity(protocol, person, rng)` / `sample_severity_category(...)` / `category_from_score(score)`(`disease/severity.py`、AD-67)。重症度は疾患 YAML `severity.distribution × modifiers` が canonical。locale `severity_beta`/`severity_minimum` は撤廃済 — 復活禁止。0.3/0.7 のカテゴリ↔score 境界を call-site に hardcode 禁止(`SEVERITY_SCORE_RANGES` が唯一定義) |
+| **JP Core / JP-CLINS profile URI**(session 50 adv-1 教訓) | spec の `StructureDefinition-*.json` の `Element.system.fixedUri` / `Element.fixedUri` を直接引用。**推測禁止**。session 50 で `_JP_OBSERVATION_CATEGORY_SYSTEM = "http://jpfhir.jp/fhir/observation-category"`(推測)としてしまい、実 spec は `http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS` で不一致 → HAPI validator が silent-no-op、2.47M records の profile slice compliance fix が完全に無効化された。手順:①`iris4h-ai/jp_core/package/StructureDefinition-*.json`(or jpfhir.jp fetch)を `grep -A2 fixedUri` で該当 slice の system URI を確認、②module-level 定数として定義、③**`tests/unit/output/test_fhir_jp_core_p14_slices.py` のように URI を pin する unit test を必ず追加**(推測 URI 差し戻し規制)。同じ規則が JP-eCheckup / SS-MIX2 の profile URI にも適用。
 | imaging orders | `place_imaging_orders`(`order/engine.py`) |
 | 薬剤 protocol prefix 除去 | `strip_protocol_prefix`(`_shared.py`。FHIR と narrative の共用) |
 | LOS 計算 | `document/engine._compute_los_days`(in-progress proxy 込み) |
