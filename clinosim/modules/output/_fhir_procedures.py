@@ -16,6 +16,7 @@ from clinosim.codes import (
     lookup as code_lookup,
 )
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
+from clinosim.modules.output._fhir_common import to_fhir_datetime
 from clinosim.modules.output._fhir_localization import _procedure_display
 
 
@@ -95,10 +96,17 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
             }],
         }
 
-    if start and end and start != end:
-        resource["performedPeriod"] = {"start": start, "end": end}
-    elif start:
-        resource["performedDateTime"] = start
+    # Session 52 fix: route through to_fhir_datetime so performedPeriod /
+    # performedDateTime carry the FHIR R4-required TZ suffix (JST +09:00
+    # for JP, per FB-F1 helper). Previously raw strings bypassed the
+    # helper — only site left after session 48 sweep, source of the
+    # iris4h-ai HAPI validator "日付/TZ 不備 262件 Procedure" finding.
+    _start_fhir = to_fhir_datetime(start)
+    _end_fhir = to_fhir_datetime(end)
+    if _start_fhir and _end_fhir and _start_fhir != _end_fhir:
+        resource["performedPeriod"] = {"start": _start_fhir, "end": _end_fhir}
+    elif _start_fhir:
+        resource["performedDateTime"] = _start_fhir
 
     if proc.get("encounter_id"):
         resource["encounter"] = {"reference": f"Encounter/{proc['encounter_id']}"}

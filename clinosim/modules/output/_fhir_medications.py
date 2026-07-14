@@ -185,11 +185,12 @@ def _build_medication_request(
             "display": display,
         }]
 
-    # ID: prepend encounter_id to ensure global uniqueness across patient's
-    # multiple encounters (raw order_id is patient-scoped only)
-    base_oid = order.get("order_id") or str(uuid.uuid4())
-    enc_ref_id = order.get("encounter_id", "") or encounter_id
-    resource_id = f"{enc_ref_id}-{base_oid}" if enc_ref_id else base_oid
+    # ID: order_id は session 52 fix 0 で encounter-scoped 化された
+    # (grep で "ORD-{encounter_id}-..." pattern に統一済)ので、そのまま
+    # resource id として使えば globally unique。以前の "prepend encounter_id"
+    # 実装は二重 prefix を作り 64-char 制限を超過(iris4h-ai HAPI 732 件)
+    # + Endpoint/imgst/imgrpt double-prefix (session 51) と同一 class。
+    resource_id = order.get("order_id") or str(uuid.uuid4())
 
     # C2-14 (session 42 cycle 2): MR.intent context-aware — mirrors C1-16 which
     # applied the same idea to ServiceRequest. Chronic-management refills →

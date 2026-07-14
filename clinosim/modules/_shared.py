@@ -70,6 +70,69 @@ def strip_protocol_prefix(name: str) -> tuple[str, str]:
     return name, ""
 
 
+_ID_ALLOWED_XLATE = str.maketrans({
+    "_": "-",
+    " ": "-",
+    "/": "-",
+    "\\": "-",
+    ",": "",
+    "(": "",
+    ")": "",
+    "[": "",
+    "]": "",
+    ":": "-",
+    ";": "",
+    "'": "",
+    '"': "",
+    "&": "and",
+    "+": "-",
+    "*": "",
+    "?": "",
+    "!": "",
+})
+
+
+def sanitize_id_token(token: str, max_len: int = 40) -> str:
+    """Normalize a free-text fragment into a FHIR R4 ``id``-safe token.
+
+    FHIR R4 ``id`` type restricts to ``[A-Za-z0-9\\-\\.]{1,64}`` — anything
+    else in a resource id fails HAPI validator with a hard error. Free-text
+    fragments like ``drug_name[:8]`` / ``proc[:8]`` (used to build
+    ``ORD-{enc}-STOP-D{day}-...`` order ids in the daily-loop simulators)
+    leak underscores, spaces, punctuation, and non-ASCII into id strings.
+    This helper is the single source of truth for producing the fragment
+    that ends up inside a resource id.
+
+    Session 52 fix (iris4h-ai HAPI FB): 24 Procedure / 3 MedicationRequest /
+    2 ServiceRequest ids carried ``NIV_BiPA`` / ``Broad sp`` / ``DIC_p``
+    substrings from raw ``drug[:8]`` slices. Route those slices through
+    ``sanitize_id_token(name)[:max_len]`` — never truncate first.
+
+    ``max_len`` is a defensive upper bound on the *emitted* fragment (the
+    caller still owns the overall id length, which must stay under 64
+    characters after joining prefixes / suffixes).
+    """
+    if not token:
+        return ""
+    # translate first (may produce empty runs), then drop stray non-ASCII
+    t = token.translate(_ID_ALLOWED_XLATE)
+    # collapse runs of dashes / dots into single dashes; strip leading/trailing
+    out_chars: list[str] = []
+    prev_dash = False
+    for c in t:
+        if c == "-":
+            if not prev_dash:
+                out_chars.append(c)
+                prev_dash = True
+            continue
+        # any leftover non-safe char → drop (defensive; xlate covers common ones)
+        if c.isalnum() or c == ".":
+            out_chars.append(c)
+            prev_dash = False
+    out = "".join(out_chars).strip("-.")
+    return out[:max_len]
+
+
 def get_attr_or_key(obj: Any, name: str, default: Any = None) -> Any:
     """Read ``name`` from ``obj`` whether ``obj`` is a dict or has attributes.
 

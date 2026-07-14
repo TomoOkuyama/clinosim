@@ -17,7 +17,7 @@ from typing import Any
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.locale.loader import load_code_mapping
-from clinosim.modules._shared import get_attr_or_key, is_jp, is_us, resolve_lang
+from clinosim.modules._shared import get_attr_or_key, is_jp, is_us, resolve_lang, sanitize_id_token
 from clinosim.modules.output._fhir_common import (
     BundleContext,
     _build_reference_range,
@@ -250,7 +250,11 @@ def _build_vital_observations(
 
         obs: dict[str, Any] = {
             "resourceType": "Observation",
-            "id": f"vs-{encounter_id or patient_id}-{index:04d}-{field}",
+            # Session 52 fix (iris4h-ai HAPI): vital field names carry
+            # underscores (systolic_bp / oxygen_saturation etc.); FHIR R4
+            # id type forbids '_'. sanitize_id_token routes the fragment
+            # through a single normalization point.
+            "id": f"vs-{encounter_id or patient_id}-{index:04d}-{sanitize_id_token(field)}",
             # Session 46 chain #2: JP Core Observation_Common profile for vitals.
             **({"meta": {"profile": [
                 "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"

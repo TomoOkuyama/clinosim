@@ -55,6 +55,7 @@ from clinosim.modules.procedure.engine import (
     simulate_surgery,
 )
 from clinosim.modules.staff.engine import StaffRoster, assign_staff
+from clinosim.modules._shared import sanitize_id_token
 from clinosim.simulator.helpers import (
     _check_discharge_ready,
     _country_to_yaml_key,
@@ -937,7 +938,7 @@ def _run_daily_loop(
             # Add labs
             for lab_name in mod.get("add_labs", []):
                 all_orders.append(Order(
-                    order_id=f"ORD-{encounter_id}-MOD-D{day}-{lab_name[:5]}",
+                    order_id=f"ORD-{encounter_id}-MOD-D{day}-{sanitize_id_token(lab_name, 5)}",
                     patient_id=patient.patient_id, order_type=OrderType.LAB,
                     display_name=lab_name, urgency="stat",
                     clinical_intent=f"Day {day} {archetype}: additional workup",
@@ -967,7 +968,7 @@ def _run_daily_loop(
             # Stop medications
             for stop_idx, drug_name in enumerate(mod.get("stop", [])):
                 all_orders.append(Order(
-                    order_id=f"ORD-{encounter_id}-STOP-D{day}-{stop_idx}-{drug_name[:8]}",
+                    order_id=f"ORD-{encounter_id}-STOP-D{day}-{stop_idx}-{sanitize_id_token(drug_name, 8)}",
                     patient_id=patient.patient_id, order_type=OrderType.MEDICATION,
                     display_name=f"DISCONTINUE: {drug_name}",
                     urgency="routine",
@@ -994,10 +995,10 @@ def _run_daily_loop(
                         _dc_order_type = classify_encounter_treatment(drug)
                         _is_medication = _dc_order_type == OrderType.MEDICATION
                         if _is_medication:
-                            _order_id_prefix = f"ORD-{encounter_id}-START-D{day}-{drug[:8]}"
+                            _order_id_prefix = f"ORD-{encounter_id}-START-D{day}-{sanitize_id_token(drug, 8)}"
                             _intent = f"Day {day} {archetype}: new medication"
                         else:
-                            _order_id_prefix = f"ORD-{encounter_id}-DEV-D{day}-{drug[:8]}"
+                            _order_id_prefix = f"ORD-{encounter_id}-DEV-D{day}-{sanitize_id_token(drug, 8)}"
                             _intent = f"Day {day} {archetype}: device / therapy"
                         all_orders.append(Order(
                             order_id=_order_id_prefix,
@@ -1013,7 +1014,7 @@ def _run_daily_loop(
                         detail = med.get("detail", "")
                         display = f"{proc}" + (f" ({detail})" if detail else "")
                         all_orders.append(Order(
-                            order_id=f"ORD-{encounter_id}-PROC-D{day}-{proc[:8]}",
+                            order_id=f"ORD-{encounter_id}-PROC-D{day}-{sanitize_id_token(proc, 8)}",
                             patient_id=patient.patient_id, order_type=OrderType.PROCEDURE,
                             display_name=display,
                             urgency="urgent",
@@ -1041,7 +1042,7 @@ def _run_daily_loop(
                 _esc_display = f"{drug_name} {dose}".strip()
                 _esc_order_type = classify_encounter_treatment(_esc_display)
                 all_orders.append(Order(
-                    order_id=f"ORD-{encounter_id}-ESC-D{day}-{drug_name[:8]}",
+                    order_id=f"ORD-{encounter_id}-ESC-D{day}-{sanitize_id_token(drug_name, 8)}",
                     encounter_id=encounter_id,
                     patient_id=patient.patient_id,
                     order_type=_esc_order_type,
