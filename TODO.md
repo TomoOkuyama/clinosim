@@ -1,8 +1,52 @@
 # clinosim — TODO
 
-## Status (2026-07-14, **★★★ session 50 CLOSED — iris4h-ai P1-4 fix + adv-1 CRITICAL URI fix + CI green (Unit + Repro + Build all SUCCESS)**)
+## Status (2026-07-14, **★★★ session 51 CLOSED — P1-4 slice URI 訂正 + docs rule + P1-3 dose fix + imgst/imgrpt double-prefix fix**)
 
-**master HEAD**: `131e58f2d1`(gitignore anchor fix + 除外されていた 13 pin tests 追加)
+**master HEAD**: `5a5a77ed42`(imaging test fixtures + audit synthetic prefix production 準拠)
+
+### Session 51 成果(6 commits direct-master、session 50 CI green → 継続)
+
+| Chain | 内容 |
+|---|---|
+| **P1-4 URI 修正**(session 50 adv-1 の続き) | `e36a714624` で spec fixedUri へ訂正 + `131e58f2d1` で pin tests 13 個追加(URI 差し戻し規制) |
+| **Docs rule** | `139d604db2`:CLAUDE.md FHIR output rules + implementation-rules.md § 6.5 canonical helpers + memory `feedback_verify_fhir_profile_uri_from_spec.md`。JP Core / JP-CLINS profile URI・slice system URI は spec の fixedUri を直接引用(推測禁止)+ URI pin test 必須 |
+| **P1-3 dose 欠落 fix** | `8c1fb45ff9`:`Order.dose_unit` が raw dose string("1g" 等)を格納していた問題 → `order/engine.py` supportive order に `enrich_medication_order()` 呼出し + `antibiotic/enricher.py` に `parse_dose_string()` 適用。134 orders 修正 |
+| **imgst/imgrpt double-prefix bug fix**(pre-existing、2026-06-30 以降 audit `startswith` で見落とし) | `_fhir_imaging_study.py`:`f"{IMAGING_STUDY_ID_PREFIX}{study_id}"` → `study_id`(engine.py 側で prefix 込みの id を builder は as-is)+ `_fhir_diagnostic_report.py` の DR + ImagingStudy reference 3 箇所同修正 + audit synthetic fixture 更新 |
+| **Test fixture prefix 準拠** | `5a5a77ed42`:test_fhir_imaging_study.py + test_fhir_radiology_dr.py + imaging/audit.py の fixture を production 準拠 (`study_id="imgst-enc1-1"` 等)へ |
+| **JP p=10000 seed=300 再生成 + iris4h-ai copy** | 16 分 13 秒で 4.7GB 26 NDJSON 生成 + iris4h-ai/fhir_r4 copy。**注**:cd33b33dd2 の**誤 URI 時点**での生成で、e36a714624 URI 訂正版での再生成は次 session backlog |
+
+### Session 51 テスト状態
+
+- **Unit 2704 PASS**(session 50 の 2691 → +13 URI pin tests = 2704)
+- **mypy strict PASS**、reproduce.sh PASS(US 105 + JP 72 files byte-identical seed=42 pop=30)
+- **Integration**:9 件失敗 → 2 系統 fix 済(imgst/imgrpt double-prefix + P1-3 dose)、残 5 件は next session backlog(下記)
+- **CI(29316588160)**:実行中(session end 時点)
+
+### Session 51 残 backlog(Integration test 5 件)
+
+1. **AllergyIntolerance rate 7.8% vs 8-27% 期待**(p=200):session 49 F1 RNG stream 変更による small-cohort 統計変動 → test tolerance 調整 or p=1000+ で fix
+2. **Reference integrity(Device/dev-infusion-pump 122 dangling)**:F1 encounter_id hash 化で Device 側 id 生成が同期漏れ or `dev-infusion-pump` reference が Device.id と format 不整合
+3. **Reference integrity(Location/loc-hospital-main 38 dangling)**:同上、`loc-hospital-main` が Location として emit されていない
+4. **ImagingStudy vs Endpoint 1:1(180 vs 167)+ Radiology DR vs ImagingStudy 1:1(69 vs 180)**:session 48 imaging inference で stub-only path が endpoint / report を出さない**意図的変更**に対する test 期待値 未更新 → test 側 relaxation か engine 側で stub にも emit させるか判断
+5. **ImagingStudy missing modality**:imaging inference で一部 legacy order が incomplete metadata を返す → inference module に fallback 追加 or test 対象を明示除外
+
+### Session 51 未着手 backlog(iris4h-ai feedback 残 P1/P2)
+
+- **P1-8 ValueSet 準拠**(327件):JP Core 独自 ValueSet coding への切替
+- **P2 Terminology 英語 display 化**(1314件):設計 axis 変更 = **user 判断案件**
+- **JP p=10000 seed=300 iris4h-ai 再生成**:URI 訂正版(e36a714624 以降)で再生成 → HAPI Validator 再走 → P1-4 fix の実効を再検証
+- **Lint 残 376 errors**(informational 非 blocker、pre-existing E501 系)
+
+### Session 50 CI 完了状態
+
+- Unit tests (Py 3.11 + 3.12):success ✅
+- Reproducibility (Py 3.12):success ✅
+- Build sdist + wheel:success ✅
+- Type check(informational):pre-existing failure(boto3 未 install + numpy stub on 3.11)= 非 blocker
+- Lint(informational):pre-existing E501 系失敗 = 非 blocker
+- Integration tests:失敗 9 件(session 51 で 2 系統 fix 済、残 5 件 backlog)
+
+### Session 49 成果(spec + plan + 9 実装 task + final review fix = 12 commits direct-master)
 
 ### Session 50 adv-1 code review 対応(CRITICAL + Important 対応済)
 
