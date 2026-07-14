@@ -97,7 +97,8 @@ def test_extract_sepsis_labels_reads_structural_cif(tmp_path):
 @pytest.mark.unit
 def test_lactate_threshold_baseline_scores_and_predicts(tmp_path):
     from clinosim.benchmarks import (
-        extract_sepsis_labels, lactate_threshold_baseline,
+        extract_sepsis_labels,
+        lactate_threshold_baseline,
     )
     _write_cif(tmp_path, [
         {
@@ -129,7 +130,8 @@ def test_lactate_threshold_baseline_scores_and_predicts(tmp_path):
 @pytest.mark.unit
 def test_extract_aki_labels_and_creatinine_baseline(tmp_path):
     from clinosim.benchmarks import (
-        creatinine_delta_baseline, extract_aki_labels,
+        creatinine_delta_baseline,
+        extract_aki_labels,
     )
     _write_cif(tmp_path, [
         {
@@ -185,8 +187,9 @@ def test_cli_dispatch_success(tmp_path, capsys):
 
 @pytest.mark.unit
 def test_cli_dispatch_missing_dir_returns_nonzero(tmp_path, capsys):
-    from clinosim.benchmarks.cli import dispatch_benchmark
     import argparse
+
+    from clinosim.benchmarks.cli import dispatch_benchmark
     args = argparse.Namespace(
         task="sepsis", cif_dir=str(tmp_path / "does-not-exist"), json=False,
     )

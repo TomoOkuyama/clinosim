@@ -321,8 +321,10 @@ class TestPanelYAMLs:
     def test_lab_panels_yaml_has_coag_lft_lipid_ua(self):
         """I1: lab_panels.yaml (expansion source) gains Coag/LFT/Lipid/UA
         to match lab_panel_groups.yaml (DR grouping source)."""
-        import yaml
         from pathlib import Path
+
+        import yaml
+
         import clinosim
         path = Path(clinosim.__file__).parent / "modules/observation/reference_data/lab_panels.yaml"
         panels = yaml.safe_load(path.read_text())
@@ -337,6 +339,7 @@ class TestPanelYAMLs:
         YAML moved to order/reference_data/ in Task 2 (unification: panel = ordering concept).
         """
         from pathlib import Path
+
         import clinosim
         # Canonical YAML location: order/reference_data/ (moved from output/reference_data/)
         path = Path(clinosim.__file__).parent / "modules/order/reference_data/lab_panel_groups.yaml"
@@ -348,6 +351,7 @@ class TestPanelYAMLs:
         """I3: stale 'e.g. Cl/Ca in BMP today' comment is removed (PR #78
         added Cl/Ca derives; the example is now misleading)."""
         from pathlib import Path
+
         import clinosim
         path = Path(clinosim.__file__).parent / "modules/observation/reference_data/lab_panels.yaml"
         text = path.read_text()

@@ -27,6 +27,10 @@ Not included (intentional scope):
 - Temporal features (early-window only; complex encoders deferred)
 """
 
+from clinosim.benchmarks.aki import (
+    creatinine_delta_baseline,
+    extract_aki_labels,
+)
 from clinosim.benchmarks.harness import (
     BaselineReport,
     LabelRow,
@@ -36,10 +40,6 @@ from clinosim.benchmarks.harness import (
 from clinosim.benchmarks.sepsis import (
     extract_sepsis_labels,
     lactate_threshold_baseline,
-)
-from clinosim.benchmarks.aki import (
-    creatinine_delta_baseline,
-    extract_aki_labels,
 )
 
 __all__ = [

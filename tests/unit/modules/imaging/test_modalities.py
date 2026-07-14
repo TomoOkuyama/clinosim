@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from clinosim.modules.imaging.engine import load_modalities
 
 

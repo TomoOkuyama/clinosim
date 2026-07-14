@@ -15,12 +15,13 @@ import pytest
 
 @pytest.fixture(scope="module")
 def jp_bacterial_pneumonia_documents():
-    from clinosim.modules.output.cif_writer import write_cif
+    import tempfile
+
+    from clinosim.modules.document.narrative.passes import TemplateNarrativePass
     from clinosim.modules.output.cif_reader import CIFReader
+    from clinosim.modules.output.cif_writer import write_cif
     from clinosim.simulator.engine import run_forced
     from clinosim.types.config import SimulatorConfig, load_patient_profile
-    import tempfile
-    from clinosim.modules.document.narrative.passes import TemplateNarrativePass
 
     profile_path = (
         Path(__file__).resolve().parents[1]

@@ -1,16 +1,17 @@
 """Unit tests for procedure engine."""
 
-import numpy as np
-import pytest
 from datetime import datetime
 
+import numpy as np
+import pytest
+
 from clinosim.modules.procedure.engine import (
-    simulate_surgery,
-    generate_rehab_sessions,
     ProcedureRecord,
     RehabSession,
+    generate_rehab_sessions,
+    simulate_surgery,
 )
-from clinosim.types.patient import PatientProfile, PatientPhysiologicalProfile, ChronicCondition
+from clinosim.types.patient import ChronicCondition, PatientProfile
 
 
 @pytest.fixture

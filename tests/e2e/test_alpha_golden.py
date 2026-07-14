@@ -103,8 +103,9 @@ class TestAlphaGolden:
         assert r1.discharge_prescription.issue_date == r2.discharge_prescription.issue_date
 
     def test_cif_output(self, alpha_result, tmp_path):
-        from clinosim.modules.output.cif_writer import write_cif
         import json
+
+        from clinosim.modules.output.cif_writer import write_cif
         output_dir = str(tmp_path / "cif")
         write_cif(alpha_result, output_dir)
         with open(f"{output_dir}/metadata.json") as f:

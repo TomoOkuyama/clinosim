@@ -18,9 +18,8 @@ import pytest
 
 from clinosim.modules.llm_service.cache import PromptCache
 from clinosim.modules.llm_service.engine import (
-    ClinicalEventData,
     DOCUMENT_LOINC,
-    LLMService,
+    ClinicalEventData,
     LLMTaskType,
     PatientSummary,
     loinc_for,
@@ -36,11 +35,7 @@ from clinosim.modules.llm_service.providers import (
 from clinosim.modules.llm_service.providers.base import ProviderResponse
 from clinosim.modules.output.hospital_course_extractor import (
     extract_hospital_course,
-    summarize_admission_vitals,
-    summarize_discharge_medications,
-    summarize_procedures,
 )
-
 
 # ---------------------------------------------------------------------------
 # PromptRegistry

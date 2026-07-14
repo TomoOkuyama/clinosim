@@ -22,7 +22,6 @@ import pytest
 
 from tests.integration._sr_helpers import run_generate
 
-
 _PROFILE = (
     "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/"
     "JP_Composition_eDischargeSummary"

@@ -279,7 +279,6 @@ def test_mb_org_id_prefix_canonical_constant() -> None:
     imported by both the FHIR builder (writer) and the audit helper
     (reader). Pins the contract so a rename in either side raises an
     ImportError at module load instead of silently no-op'ing the gate."""
-    from clinosim.audit.axes import clinical as clinical_axis
     from clinosim.modules.output._fhir_microbiology import MB_ORG_ID_PREFIX
 
     assert MB_ORG_ID_PREFIX == "mb-org-"

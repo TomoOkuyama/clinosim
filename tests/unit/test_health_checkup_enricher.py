@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 
-def _make_ctx(country: str, opt_in: bool, records: list) -> "object":
+def _make_ctx(country: str, opt_in: bool, records: list) -> object:
     """SimulatorConfig + EnricherContext を最小構成で組み立てる。"""
     from clinosim.simulator.enrichers import EnricherContext
     from clinosim.types.config import SimulatorConfig
@@ -46,7 +46,8 @@ def test_health_checkup_disabled_by_default():
 def test_health_checkup_skips_below_age_threshold():
     """40 歳未満は健診対象外(HEALTH_CHECKUP_MIN_AGE=40)。"""
     from clinosim.modules.health_checkup.engine import (
-        enrich_health_checkup, HEALTH_CHECKUP_MIN_AGE,
+        HEALTH_CHECKUP_MIN_AGE,
+        enrich_health_checkup,
     )
     assert HEALTH_CHECKUP_MIN_AGE == 40
     young = _make_record("POP-YOUNG-001", age=30)
@@ -75,7 +76,8 @@ def test_health_checkup_creates_new_record_for_selected_adult():
     append ではなく新規 record として ctx.records に足す。
     """
     from clinosim.modules.health_checkup.engine import (
-        _patient_selected, enrich_health_checkup,
+        _patient_selected,
+        enrich_health_checkup,
     )
     from clinosim.types.encounter import EncounterType
     # サブセットに入る patient_id を探す(決定的 hash)
@@ -122,7 +124,8 @@ def test_health_checkup_creates_new_record_for_selected_adult():
 def test_health_checkup_deterministic_across_runs():
     """同 patient_id で複数回 run しても結果が deterministic。"""
     from clinosim.modules.health_checkup.engine import (
-        _patient_selected, enrich_health_checkup,
+        _patient_selected,
+        enrich_health_checkup,
     )
     selected_id = None
     for i in range(100):

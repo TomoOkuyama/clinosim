@@ -22,11 +22,11 @@ from __future__ import annotations
 from datetime import datetime
 
 from clinosim.modules._shared import get_attr_or_key as _get
-from clinosim.modules._shared import get_or_create_container, set_attr_or_key as _set
+from clinosim.modules._shared import get_or_create_container
+from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS
 from clinosim.modules.antibiotic.engine import (
     ABX_NARROW_SUFFIX,
-    ABX_ORDER_ID_PREFIX,
     ABX_ORDER_REQ_PREFIX,
     ABX_REGIMEN_ID_PREFIX,
     NarrowOutcome,
@@ -41,7 +41,6 @@ from clinosim.modules.antibiotic.engine import (
 from clinosim.types.antibiotic import AntibioticRegimen
 from clinosim.types.encounter import Order, OrderStatus, OrderType
 from clinosim.types.hai import HAIEvent
-
 
 _ORDER_HOUR = 8  # empirical = "AM round" same day as onset
 

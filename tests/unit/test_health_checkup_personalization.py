@@ -14,7 +14,7 @@ from __future__ import annotations
 import pytest
 
 
-def _make_ctx_with_records(records: list, master_seed: int = 42) -> "object":
+def _make_ctx_with_records(records: list, master_seed: int = 42) -> object:
     from clinosim.simulator.enrichers import EnricherContext
     from clinosim.types.config import SimulatorConfig
     cfg = SimulatorConfig(country="JP", modules={"health_checkup": True})
@@ -174,6 +174,7 @@ def test_interpretation_and_reference_range_populated():
     pid = _find_selected_pid()
     labs = _run_and_extract_labs([_make_record(pid)])
     from clinosim.modules.health_checkup.engine import enrich_health_checkup
+
     # 直接 re-run して構造検証
     from clinosim.types.output import CIFPatientRecord
     from clinosim.types.patient import PatientProfile

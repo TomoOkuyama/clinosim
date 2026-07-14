@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import pytest
 
-
 pytestmark = pytest.mark.unit
 
 
@@ -200,6 +199,7 @@ class TestLoadDiseaseProtocolFailsLoud:
 
     def test_yaml_with_unknown_state_var_raises_on_load(self, tmp_path, monkeypatch) -> None:
         import yaml as _yaml
+
         from clinosim.modules.disease import protocol as protocol_module
         bad = {
             "disease_id": "test_bad",

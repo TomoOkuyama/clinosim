@@ -365,7 +365,7 @@ def _build_jp_clins_discharge_summary_composition(
     if _JP_CLINS_DS_PROFILE not in profs:
         profs.append(_JP_CLINS_DS_PROFILE)
 
-    # type:jpfhir doc-typecodes を primary、LOINC を secondary(interop 用)
+    # `type` field:jpfhir doc-typecodes を primary、LOINC を secondary(interop 用)
     disp = code_lookup("jpfhir-doc-typecodes", "18842-5", lang) or "退院時サマリー"
     comp["type"] = {
         "coding": [
@@ -465,7 +465,7 @@ def _build_jp_clins_referral_note_composition(
     if _JP_CLINS_REFERRAL_PROFILE not in profs:
         profs.append(_JP_CLINS_REFERRAL_PROFILE)
 
-    # type:57133-1 を doc-typecodes と LOINC の両方で emit(interop 用)
+    # `type` field:57133-1 を doc-typecodes と LOINC の両方で emit(interop 用)
     disp = code_lookup("jpfhir-doc-typecodes", "57133-1", lang) or "診療情報提供書"
     comp["type"] = {
         "coding": [
@@ -581,7 +581,7 @@ def _build_jp_eCheckup_general_composition(
     if _JP_ECHECKUP_GENERAL_PROFILE not in profs:
         profs.append(_JP_ECHECKUP_GENERAL_PROFILE)
 
-    # type:53576-5 を doc-typecodes と LOINC 両方で emit
+    # `type` field:53576-5 を doc-typecodes と LOINC 両方で emit
     disp = code_lookup("jpfhir-doc-typecodes", "53576-5", lang) or "検診・健診報告書"
     comp["type"] = {
         "coding": [

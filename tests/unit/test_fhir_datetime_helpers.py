@@ -17,7 +17,6 @@ from datetime import date, datetime
 
 import pytest
 
-
 pytestmark = pytest.mark.unit
 
 
@@ -125,6 +124,7 @@ class TestFhirR4DateTimeRegex:
     ])
     def test_output_matches_fhir_regex(self, value: object) -> None:
         import re
+
         from clinosim.modules.output._fhir_common import to_fhir_datetime
         out = to_fhir_datetime(value)
         assert re.match(self.FHIR_DATETIME_RE, out), (

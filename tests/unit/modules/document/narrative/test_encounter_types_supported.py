@@ -4,15 +4,12 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-import pytest
-
 from clinosim.modules.document.narrative.registry import (
     DocumentTypeSpec,
     load_document_type_specs,
     specs_for_encounter_type,
 )
 from clinosim.types.document import DocumentType, FormatType
-
 
 # ---------------------------------------------------------------------------
 # Helper factory — construct a minimal DocumentTypeSpec with encounter_types_supported

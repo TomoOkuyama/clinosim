@@ -12,7 +12,6 @@ import inspect
 import numpy as np
 import pytest
 
-
 # ---------- A1: hai/engine.py:85 _sample_organism ----------
 
 def test_a1_hai_sample_organism_raises_on_zero_sum():

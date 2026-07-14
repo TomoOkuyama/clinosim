@@ -10,8 +10,8 @@ CLI:
   clinosim test-disease bacterial_pneumonia --archetype treatment_resistant -n 5
 """
 
-from clinosim.simulator.engine import run_alpha, run_beta, run_forced
 from clinosim.simulator.cli import main
+from clinosim.simulator.engine import run_alpha, run_beta, run_forced
 from clinosim.simulator.helpers import _load_all_disease_protocols
 
 __all__ = [

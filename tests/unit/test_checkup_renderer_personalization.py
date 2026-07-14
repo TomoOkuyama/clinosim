@@ -29,7 +29,6 @@ def _make_lab_result(loinc: str, value):
 
 def _make_ctx(lab_results, patient):
     """narrative context 最小構成。"""
-    from clinosim.modules.document.narrative.registry import load_document_type_specs
     from clinosim.types.document import DocumentType, NarrativeContext
     ctx = NarrativeContext(
         patient=patient,

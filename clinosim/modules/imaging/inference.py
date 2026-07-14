@@ -16,7 +16,6 @@ metadata を whitelist regex で推論する。
 from __future__ import annotations
 
 import re
-from typing import Optional
 
 from clinosim.modules.imaging.engine import load_body_sites, load_modalities
 
@@ -95,7 +94,7 @@ _PATTERNS: list[tuple[str, str, str, list[str]]] = [
 ]
 
 
-def infer_imaging_metadata(display_name: str) -> Optional[dict]:
+def infer_imaging_metadata(display_name: str) -> dict | None:
     """display_name から (modality, body_site_snomed, views) を推論。
 
     見つからなければ ``None`` を返す(caller は text-only stub emit を選ぶ)。

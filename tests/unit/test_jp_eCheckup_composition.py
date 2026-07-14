@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pytest
 
-
 _PROFILE_URL = (
     "http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Composition_eCheckupGeneral"
 )

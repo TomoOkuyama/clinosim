@@ -2,16 +2,13 @@
 
 from __future__ import annotations
 
-import tempfile
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 import yaml
 
 from clinosim.modules.document.narrative.registry import (
     SUPPORTED_DOCUMENT_TYPES,
-    DocumentTypeSpec,
     load_document_type_specs,
     specs_for_country,
     specs_for_encounter_type,

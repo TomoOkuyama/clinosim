@@ -48,6 +48,7 @@ def test_keys_match_derive_lab_values_parameter_names():
     can splat with **flags. If derive_lab_values param is renamed, this
     test guards the contract."""
     import inspect
+
     from clinosim.modules.physiology.engine import derive_lab_values
     sig = inspect.signature(derive_lab_values)
     flags = scenario_flags_from_protocol(None)

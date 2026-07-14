@@ -33,7 +33,11 @@ from clinosim.modules.imaging.engine import (
     load_body_sites,
 )
 from clinosim.modules.order.panel_grouping import load_panel_definitions
-from clinosim.modules.output._fhir_common import _escape_html, build_presented_form, to_fhir_datetime
+from clinosim.modules.output._fhir_common import (
+    _escape_html,
+    build_presented_form,
+    to_fhir_datetime,
+)
 from clinosim.modules.output._fhir_localization import localize_fixed_label
 from clinosim.modules.output._fhir_service_request import (
     LAB_CATEGORY_V2_0074,

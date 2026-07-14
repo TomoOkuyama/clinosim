@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from clinosim.modules.nursing.engine import (
     INPATIENT_ENCOUNTER_TYPES,
@@ -13,7 +12,6 @@ from clinosim.modules.nursing.engine import (
     load_nursing_assessment,
 )
 from clinosim.types.staff import StaffMember, StaffRoster
-
 
 # ---------------------------------------------------------------------------
 # Constants

@@ -11,7 +11,6 @@ import pytest
 
 import clinosim.modules.document.reference_data_loaders as rdl
 
-
 # ─────────────────────────────────────────────────────────────────
 # physical_exam_findings
 # ─────────────────────────────────────────────────────────────────

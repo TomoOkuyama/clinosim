@@ -1,6 +1,7 @@
+from pathlib import Path
+
 import pytest
 import yaml
-from pathlib import Path
 
 from clinosim.types.family_history import FamilyMemberHistoryRecord
 

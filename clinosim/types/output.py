@@ -7,12 +7,22 @@ from datetime import date, datetime
 from typing import Any
 
 from clinosim.types.clinical import (
-    ClinicalDiagnosis, ClinicalDocument, ConditionEvent, PhysiologicalState,
+    ClinicalDiagnosis,
+    ClinicalDocument,
+    ConditionEvent,
+    PhysiologicalState,
 )
 from clinosim.types.encounter import (
-    ADLAssessment, Encounter, ImmunizationRecord, IntakeOutputRecord,
-    MedicationAdministration, NursingRiskAssessment, Order, OrderResult,
-    PrescriptionRecord, VitalSignRecord,
+    ADLAssessment,
+    Encounter,
+    ImmunizationRecord,
+    IntakeOutputRecord,
+    MedicationAdministration,
+    NursingRiskAssessment,
+    Order,
+    OrderResult,
+    PrescriptionRecord,
+    VitalSignRecord,
 )
 from clinosim.types.family_history import FamilyMemberHistoryRecord
 from clinosim.types.microbiology import MicrobiologyResult
@@ -91,15 +101,15 @@ class CIFPatientRecord:
     # category=lab / ServiceRequest category=imaging).
 
     @property
-    def medication_orders(self) -> list["Order"]:
+    def medication_orders(self) -> list[Order]:
         return [o for o in self.orders if _order_type_value(o) == "medication"]
 
     @property
-    def lab_orders(self) -> list["Order"]:
+    def lab_orders(self) -> list[Order]:
         return [o for o in self.orders if _order_type_value(o) == "lab"]
 
     @property
-    def imaging_orders(self) -> list["Order"]:
+    def imaging_orders(self) -> list[Order]:
         return [o for o in self.orders if _order_type_value(o) == "imaging"]
 
 

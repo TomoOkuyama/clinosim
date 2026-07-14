@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import pytest
 
-
 # ---------- L1: encounter/protocol.py load_all_encounter_conditions ----------
 
 def test_l1_load_all_encounter_conditions_uses_lru_cache():

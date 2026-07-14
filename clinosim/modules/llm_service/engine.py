@@ -256,7 +256,7 @@ class LLMService:
     # Factory helpers
     # ------------------------------------------------------------
     @classmethod
-    def from_config_file(cls, path: str | Any) -> "LLMService":
+    def from_config_file(cls, path: str | Any) -> LLMService:
         """Build an LLMService from a YAML config file.
 
         See ``clinosim/config/llm_service.yaml`` for the expected schema.

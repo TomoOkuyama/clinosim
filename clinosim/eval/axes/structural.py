@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
-
 from clinosim.audit.types import Cohort
 from clinosim.eval.engine import EvalCheck, Outcome, Severity
 

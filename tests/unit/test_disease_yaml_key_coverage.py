@@ -33,7 +33,6 @@ import os
 import pytest
 import yaml
 
-
 pytestmark = pytest.mark.unit
 
 

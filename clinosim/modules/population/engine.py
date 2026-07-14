@@ -102,7 +102,7 @@ def generate_population(
 
     # Load name data and naming rules
     name_data = _load_name_data(country)
-    from clinosim.locale.loader import load_naming_rules, load_addresses
+    from clinosim.locale.loader import load_addresses, load_naming_rules
     naming_rules = load_naming_rules(country)
     surname_rule = naming_rules.get("household_surname_rule", "shared")
     addr_data = load_addresses(country)
