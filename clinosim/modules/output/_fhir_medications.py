@@ -482,13 +482,14 @@ def _build_medication_admin(
         resource["context"] = {"reference": f"Encounter/{encounter_id}"}
 
     # Cycle-1 C1-06/C1-07: MAR → MR audit-trail link. The MedicationRequest id
-    # is formatted `{enc_id}-{order_id}` in _build_medication_request above; the
-    # MAR carries the same order_id in CIF (types/encounter.MedicationAdministration).
-    # Emit MedicationAdministration.request per FHIR R4 so the med-order-to-
-    # administration chain resolves. Session 41 cycle 1 fix.
+    # Session 52 fix: MR resource id は order_id 単体(encounter-scoped で
+    # globally unique)。以前は `{enc_id}-{order_id}` 二重 prefix だったが
+    # session 52 で削除、reader/writer 両側を同期(session 51 imgst/imgrpt
+    # double-prefix と同一 class の reference-integrity fix)。CI で 890
+    # dangling references を surface。
     mar_order_id = mar.get("order_id", "")
-    if mar_order_id and encounter_id:
-        resource["request"] = {"reference": f"MedicationRequest/{encounter_id}-{mar_order_id}"}
+    if mar_order_id:
+        resource["request"] = {"reference": f"MedicationRequest/{mar_order_id}"}
 
     if mar.get("administered_by"):
         resource["performer"] = [{"actor": {"reference": f"Practitioner/{mar['administered_by']}"}}]
