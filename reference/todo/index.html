@@ -1663,8 +1663,75 @@
 
 <h1 id="roadmap">Roadmap<a class="headerlink" href="#roadmap" title="Permanent link">&para;</a></h1>
 <h1 id="clinosim-todo">clinosim — TODO<a class="headerlink" href="#clinosim-todo" title="Permanent link">&para;</a></h1>
-<h2 id="status-2026-07-14-session-50-closed-iris4h-ai-p1-4-fix-adv-1-critical-uri-fix-ci-green-unit-repro-build-all-success">Status (2026-07-14, <strong>★★★ session 50 CLOSED — iris4h-ai P1-4 fix + adv-1 CRITICAL URI fix + CI green (Unit + Repro + Build all SUCCESS)</strong>)<a class="headerlink" href="#status-2026-07-14-session-50-closed-iris4h-ai-p1-4-fix-adv-1-critical-uri-fix-ci-green-unit-repro-build-all-success" title="Permanent link">&para;</a></h2>
-<p><strong>master HEAD</strong>: <code>131e58f2d1</code>(gitignore anchor fix + 除外されていた 13 pin tests 追加)</p>
+<h2 id="status-2026-07-14-session-51-closed-p1-4-slice-uri-docs-rule-p1-3-dose-fix-imgstimgrpt-double-prefix-fix">Status (2026-07-14, <strong>★★★ session 51 CLOSED — P1-4 slice URI 訂正 + docs rule + P1-3 dose fix + imgst/imgrpt double-prefix fix</strong>)<a class="headerlink" href="#status-2026-07-14-session-51-closed-p1-4-slice-uri-docs-rule-p1-3-dose-fix-imgstimgrpt-double-prefix-fix" title="Permanent link">&para;</a></h2>
+<p><strong>master HEAD</strong>: <code>5a5a77ed42</code>(imaging test fixtures + audit synthetic prefix production 準拠)</p>
+<h3 id="session-51-6-commits-direct-mastersession-50-ci-green">Session 51 成果(6 commits direct-master、session 50 CI green → 継続)<a class="headerlink" href="#session-51-6-commits-direct-mastersession-50-ci-green" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Chain</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>P1-4 URI 修正</strong>(session 50 adv-1 の続き)</td>
+<td><code>e36a714624</code> で spec fixedUri へ訂正 + <code>131e58f2d1</code> で pin tests 13 個追加(URI 差し戻し規制)</td>
+</tr>
+<tr>
+<td><strong>Docs rule</strong></td>
+<td><code>139d604db2</code>:CLAUDE.md FHIR output rules + implementation-rules.md § 6.5 canonical helpers + memory <code>feedback_verify_fhir_profile_uri_from_spec.md</code>。JP Core / JP-CLINS profile URI・slice system URI は spec の fixedUri を直接引用(推測禁止)+ URI pin test 必須</td>
+</tr>
+<tr>
+<td><strong>P1-3 dose 欠落 fix</strong></td>
+<td><code>8c1fb45ff9</code>:<code>Order.dose_unit</code> が raw dose string("1g" 等)を格納していた問題 → <code>order/engine.py</code> supportive order に <code>enrich_medication_order()</code> 呼出し + <code>antibiotic/enricher.py</code> に <code>parse_dose_string()</code> 適用。134 orders 修正</td>
+</tr>
+<tr>
+<td><strong>imgst/imgrpt double-prefix bug fix</strong>(pre-existing、2026-06-30 以降 audit <code>startswith</code> で見落とし)</td>
+<td><code>_fhir_imaging_study.py</code>:<code>f"{IMAGING_STUDY_ID_PREFIX}{study_id}"</code> → <code>study_id</code>(engine.py 側で prefix 込みの id を builder は as-is)+ <code>_fhir_diagnostic_report.py</code> の DR + ImagingStudy reference 3 箇所同修正 + audit synthetic fixture 更新</td>
+</tr>
+<tr>
+<td><strong>Test fixture prefix 準拠</strong></td>
+<td><code>5a5a77ed42</code>:test_fhir_imaging_study.py + test_fhir_radiology_dr.py + imaging/audit.py の fixture を production 準拠 (<code>study_id="imgst-enc1-1"</code> 等)へ</td>
+</tr>
+<tr>
+<td><strong>JP p=10000 seed=300 再生成 + iris4h-ai copy</strong></td>
+<td>16 分 13 秒で 4.7GB 26 NDJSON 生成 + iris4h-ai/fhir_r4 copy。<strong>注</strong>:cd33b33dd2 の<strong>誤 URI 時点</strong>での生成で、e36a714624 URI 訂正版での再生成は次 session backlog</td>
+</tr>
+</tbody>
+</table>
+<h3 id="session-51">Session 51 テスト状態<a class="headerlink" href="#session-51" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Unit 2704 PASS</strong>(session 50 の 2691 → +13 URI pin tests = 2704)</li>
+<li><strong>mypy strict PASS</strong>、reproduce.sh PASS(US 105 + JP 72 files byte-identical seed=42 pop=30)</li>
+<li><strong>Integration</strong>:9 件失敗 → 2 系統 fix 済(imgst/imgrpt double-prefix + P1-3 dose)、残 5 件は next session backlog(下記)</li>
+<li><strong>CI(29316588160)</strong>:実行中(session end 時点)</li>
+</ul>
+<h3 id="session-51-backlogintegration-test-5">Session 51 残 backlog(Integration test 5 件)<a class="headerlink" href="#session-51-backlogintegration-test-5" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>AllergyIntolerance rate 7.8% vs 8-27% 期待</strong>(p=200):session 49 F1 RNG stream 変更による small-cohort 統計変動 → test tolerance 調整 or p=1000+ で fix</li>
+<li><strong>Reference integrity(Device/dev-infusion-pump 122 dangling)</strong>:F1 encounter_id hash 化で Device 側 id 生成が同期漏れ or <code>dev-infusion-pump</code> reference が Device.id と format 不整合</li>
+<li><strong>Reference integrity(Location/loc-hospital-main 38 dangling)</strong>:同上、<code>loc-hospital-main</code> が Location として emit されていない</li>
+<li><strong>ImagingStudy vs Endpoint 1:1(180 vs 167)+ Radiology DR vs ImagingStudy 1:1(69 vs 180)</strong>:session 48 imaging inference で stub-only path が endpoint / report を出さない<strong>意図的変更</strong>に対する test 期待値 未更新 → test 側 relaxation か engine 側で stub にも emit させるか判断</li>
+<li><strong>ImagingStudy missing modality</strong>:imaging inference で一部 legacy order が incomplete metadata を返す → inference module に fallback 追加 or test 対象を明示除外</li>
+</ol>
+<h3 id="session-51-backlogiris4h-ai-feedback-p1p2">Session 51 未着手 backlog(iris4h-ai feedback 残 P1/P2)<a class="headerlink" href="#session-51-backlogiris4h-ai-feedback-p1p2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>P1-8 ValueSet 準拠</strong>(327件):JP Core 独自 ValueSet coding への切替</li>
+<li><strong>P2 Terminology 英語 display 化</strong>(1314件):設計 axis 変更 = <strong>user 判断案件</strong></li>
+<li><strong>JP p=10000 seed=300 iris4h-ai 再生成</strong>:URI 訂正版(e36a714624 以降)で再生成 → HAPI Validator 再走 → P1-4 fix の実効を再検証</li>
+<li><strong>Lint 残 376 errors</strong>(informational 非 blocker、pre-existing E501 系)</li>
+</ul>
+<h3 id="session-50-ci">Session 50 CI 完了状態<a class="headerlink" href="#session-50-ci" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Unit tests (Py 3.11 + 3.12):success ✅</li>
+<li>Reproducibility (Py 3.12):success ✅</li>
+<li>Build sdist + wheel:success ✅</li>
+<li>Type check(informational):pre-existing failure(boto3 未 install + numpy stub on 3.11)= 非 blocker</li>
+<li>Lint(informational):pre-existing E501 系失敗 = 非 blocker</li>
+<li>Integration tests:失敗 9 件(session 51 で 2 系統 fix 済、残 5 件 backlog)</li>
+</ul>
+<h3 id="session-49-spec-plan-9-task-final-review-fix-12-commits-direct-master">Session 49 成果(spec + plan + 9 実装 task + final review fix = 12 commits direct-master)<a class="headerlink" href="#session-49-spec-plan-9-task-final-review-fix-12-commits-direct-master" title="Permanent link">&para;</a></h3>
 <h3 id="session-50-adv-1-code-review-critical-important">Session 50 adv-1 code review 対応(CRITICAL + Important 対応済)<a class="headerlink" href="#session-50-adv-1-code-review-critical-important" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>CRITICAL(URI 誤り)</strong>: <code>_JP_OBSERVATION_CATEGORY_SYSTEM</code> の初版 URI(推測)<code>http://jpfhir.jp/fhir/observation-category</code> は JP Core 1.2.0 spec と不一致 → HAPI validator にとって silent-no-op。実 spec fixedUri <code>http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS</code> に訂正(commit <code>e36a714624</code>)。iris4h-ai <code>jp_core/package/StructureDefinition-jp-observation-common.json</code> の fixedUri で直接確認。</li>
@@ -1708,8 +1775,8 @@
 <li><strong>P2 Terminology 英語 display 化</strong>(1314件):設計 axis 変更 = user 判断案件(現状は意図的 JP display、JP Core spec は英語 display + translation extension 推奨)</li>
 <li><strong>Lint 残 376 error</strong>:主に E501 (line too long) の pre-existing 系(informational 扱いで非 blocker)</li>
 </ul>
-<h3 id="session-49-spec-plan-9-task-final-review-fix-12-commits-direct-master">Session 49 成果(spec + plan + 9 実装 task + final review fix = 12 commits direct-master)<a class="headerlink" href="#session-49-spec-plan-9-task-final-review-fix-12-commits-direct-master" title="Permanent link">&para;</a></h3>
 <h3 id="session-49-spec-plan-9-task-final-review-fix-12-commits-direct-master_1">Session 49 成果(spec + plan + 9 実装 task + final review fix = 12 commits direct-master)<a class="headerlink" href="#session-49-spec-plan-9-task-final-review-fix-12-commits-direct-master_1" title="Permanent link">&para;</a></h3>
+<h3 id="session-49-spec-plan-9-task-final-review-fix-12-commits-direct-master_2">Session 49 成果(spec + plan + 9 実装 task + final review fix = 12 commits direct-master)<a class="headerlink" href="#session-49-spec-plan-9-task-final-review-fix-12-commits-direct-master_2" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
