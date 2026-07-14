@@ -967,11 +967,23 @@ def _normalize_dt(v, want_instant: bool = False):
 
 
 # session 49 clinosim_feedback P1-4: JP Core Observation.category:first slice。
-# `http://jpfhir.jp/fhir/observation-category` CodeSystem での first slice を要求。
-# 既存 emit は HL7 標準 `http://terminology.hl7.org/CodeSystem/observation-category`
-# のみで、iris4h-ai HAPI Validator が 100% miss を検出。JP-first-slice を prepend
-# して JP Core 準拠、既存 HL7 slice は互換用に維持。
-_JP_OBSERVATION_CATEGORY_SYSTEM = "http://jpfhir.jp/fhir/observation-category"
+# JP_Observation_Common (v1.2.0) StructureDefinition の
+# `Observation.category:first.coding.system` が
+# `http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS` に
+# 固定されている(iris4h-ai jp_core/package/StructureDefinition-jp-
+# observation-common.json の fixedUri で確認)。実 example の Observation
+# は同 CodeSystem の code(laboratory / vital-signs / imaging / procedure /
+# social-history / exam / body-measurement)を使用しており、HL7 標準
+# observation-category と code 語彙が概ね一致するため、既存 HL7 slice の
+# code をそのまま再利用して URI だけを JP CodeSystem に切替える。既存
+# HL7 slice は互換用に維持し、JP-first-slice を prepend する。
+# ★ session 50 adv-1 code review 検出: 初版で
+#   `http://jpfhir.jp/fhir/observation-category`(推測)を使ってしまい HAPI
+#   validator が silent-no-op のまま 100% miss を継続。実 spec の fixedUri
+#   に修正済み。
+_JP_OBSERVATION_CATEGORY_SYSTEM = (
+    "http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS"
+)
 
 
 def _inject_jp_observation_category_first(resource: dict) -> None:
@@ -979,9 +991,9 @@ def _inject_jp_observation_category_first(resource: dict) -> None:
 
     JP only(caller が country=JP のみで呼ぶ前提)。既に JP-first-slice が
     ある resource は idempotent。code は既存 HL7 slice のものを再利用する
-    (JP CodeSystem は HL7 と同 code 語彙:laboratory / vital-signs /
-    imaging / procedure / social-history / survey / exam / therapy /
-    activity)。
+    (JP_SimpleObservationCategory_CS は HL7 observation-category と code
+    語彙が概ね一致:laboratory / vital-signs / imaging / procedure /
+    social-history / exam / body-measurement)。
     """
     if resource.get("resourceType") != "Observation":
         return
