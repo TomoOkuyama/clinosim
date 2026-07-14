@@ -74,7 +74,7 @@ def _build_imaging_proof() -> dict[str, Any]:
     order_id = "o-cxr-proof"
 
     study = ImagingStudyRecord(
-        study_id="enc-proof-0",
+        study_id=f"{IMAGING_STUDY_ID_PREFIX}enc-proof-0",  # session 51
         study_instance_uid=study_uid,
         encounter_id="enc-proof",
         patient_id="pt-proof",
@@ -95,7 +95,7 @@ def _build_imaging_proof() -> dict[str, Any]:
         ],
         endpoint_id=endpoint_id,
         report=RadiologyReport(
-            report_id="enc-proof-0",
+            report_id=f"{RADIOLOGY_REPORT_ID_PREFIX}enc-proof-0",  # session 51
             status="final",
             findings_text="No acute cardiopulmonary process.",
             impression_text="Clear lungs bilaterally.",
