@@ -45,9 +45,16 @@ def test_device_extension_through_fhir_pipeline(tmp_path):
             "once at least one device exists."
         )
 
-    # 1:1 Device : DeviceUseStatement
-    assert len(dus) == len(device), \
-        f"Device count {len(device)} ≠ DeviceUseStatement count {len(dus)}"
+    # Session 52 fix 2: facility bundle emits shared Devices without a
+    # DeviceUseStatement pair (currently `dev-infusion-pump`, referenced by
+    # MedicationAdministration.device for continuous IV infusions per CY8-20).
+    # 1:1 applies only to per-patient (ICU) Devices.
+    facility_device_ids = {"dev-infusion-pump"}
+    patient_devices = [d for d in device if d["id"] not in facility_device_ids]
+    assert len(dus) == len(patient_devices), (
+        f"per-patient Device count {len(patient_devices)} ≠ "
+        f"DeviceUseStatement count {len(dus)}"
+    )
 
     # Referential integrity
     device_ids = {d["id"] for d in device}
@@ -66,8 +73,11 @@ def test_device_extension_through_fhir_pipeline(tmp_path):
     assert len(device_ids) == len(device)
     assert len({u["id"] for u in dus}) == len(dus)
 
-    # SNOMED coding shape
+    # SNOMED coding shape — per-patient ICU devices (CVC/urinary catheter/
+    # ventilator) + facility-shared infusion pump (session 52 fix 2).
     for d in device:
         coding = d["type"]["coding"][0]
-        assert coding["code"] in ("52124006", "23973005", "706172005")
+        assert coding["code"] in (
+            "52124006", "23973005", "706172005", "433296005",
+        )
         assert coding["display"] != coding["code"]   # display ≠ code
