@@ -129,3 +129,20 @@ select = ["E", "F", "I", "N", "W", "UP"]
 [tool.mypy]
 python_version = "3.11"
 strict = true
+
+[[tool.mypy.overrides]]
+# boto3 is optional (installed only for the Bedrock LLM provider); skipping
+# its stubs keeps CI Type check green without forcing every dev to install it.
+# Session 52 fix.
+module = ["boto3.*", "botocore.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# numpy 2.5+ stubs use PEP 695 `type X = Y` syntax that only parses under
+# python_version = "3.12". Since we target 3.11 (minimum supported), the numpy
+# stub itself fails to load ("Type statement is only supported in Python 3.12
+# and greater"), which halts further checking. Skipping stub follow-through
+# keeps mypy running on our source without weakening type coverage on our
+# own code. Session 52 fix for the常時 CI Type check informational failure.
+module = ["numpy", "numpy.*"]
+follow_imports = "skip"

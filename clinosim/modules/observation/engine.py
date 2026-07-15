@@ -85,7 +85,8 @@ PRECISION: dict[str, int] = {
     "PT_INR": 1,
     "HbA1c": 1, "ESR": 0,
     "LDL": 0, "HDL": 0, "TG": 0, "TC": 0,
-    "Na": 0, "Fibrinogen": 0,
+    # session 52 lint: "Na": 0 was duplicated (already declared above); dropped.
+    "Fibrinogen": 0,
     "D_dimer": 2,
     "Amylase": 0, "Lipase": 0,
     "TSH": 2,
@@ -117,7 +118,7 @@ LAB_UNITS: dict[str, str] = {
     "LDL": "mg/dL", "HDL": "mg/dL", "TG": "mg/dL", "TC": "mg/dL",
     "Amylase": "U/L", "Lipase": "U/L",
     "Cortisol": "ug/dL",
-    "BNP": "pg/mL",
+    # session 52 lint: "BNP": "pg/mL" was duplicated (already declared above); dropped.
 }
 
 
