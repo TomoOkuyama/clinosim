@@ -922,11 +922,14 @@ def _build_bundle(
             if ctx.country == "JP":
                 _apply_jp_core_profile(resource)
                 _apply_jp_clins_profile(resource)
-                # session 49 clinosim_feedback P1-4: JP Core は
-                # Observation.category:first slice を要求。既存 HL7 slice の
-                # code を保持しつつ、JP CodeSystem URL の first slice を
-                # prepend する。builders 個別修正回避のため single seam で対応。
-                _inject_jp_observation_category_first(resource)
+                # session 49 P1-4 + session 53 iris4h-ai feedback F-2 + B:
+                # JP Core は Observation.category:first slice に
+                # JP_SimpleObservationCategory_CS URL を要求。従来の HL7
+                # slice を残す prepend 方式では ValueSet-outside info 46k +
+                # eCS `category max=1` 違反 27k を招いたため、in-place replace
+                # 方式で URI のみ置換(code は保持)。builders 個別修正回避
+                # のため single seam で対応。
+                _convert_hl7_observation_category_to_jp(resource)
             # session 48 feedback FB-F1: 全 emit resource の dateTime / instant
             # field を single seam で TZ 付与に正規化(builders 個別修正回避)。
             _normalize_dt_fields(resource)
@@ -1022,62 +1025,62 @@ def _normalize_dt(v, want_instant: bool = False):
     return v + "+09:00"
 
 
-# session 49 clinosim_feedback P1-4: JP Core Observation.category:first slice。
-# JP_Observation_Common (v1.2.0) StructureDefinition の
-# `Observation.category:first.coding.system` が
-# `http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS` に
-# 固定されている(iris4h-ai jp_core/package/StructureDefinition-jp-
-# observation-common.json の fixedUri で確認)。実 example の Observation
-# は同 CodeSystem の code(laboratory / vital-signs / imaging / procedure /
-# social-history / exam / body-measurement)を使用しており、HL7 標準
-# observation-category と code 語彙が概ね一致するため、既存 HL7 slice の
-# code をそのまま再利用して URI だけを JP CodeSystem に切替える。既存
-# HL7 slice は互換用に維持し、JP-first-slice を prepend する。
-# ★ session 50 adv-1 code review 検出: 初版で
-#   `http://jpfhir.jp/fhir/observation-category`(推測)を使ってしまい HAPI
-#   validator が silent-no-op のまま 100% miss を継続。実 spec の fixedUri
-#   に修正済み。
+# session 49 clinosim_feedback P1-4 + session 53 iris4h-ai feedback F-2 + B:
+# JP Core Observation.category の system は JP_Observation_Common
+# (v1.2.0) StructureDefinition の `category:first.coding.system` に
+# `http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS`
+# として固定(iris4h-ai jp_core/package/StructureDefinition-jp-
+# observation-common.json の fixedUri で確認)。JP_SimpleObservationCategory_CS
+# は HL7 標準 observation-category と code 語彙(laboratory / vital-signs /
+# imaging / procedure / social-history / exam / body-measurement 他)が
+# 概ね一致するため、code はそのまま保持して URI だけを JP CodeSystem に
+# in-place 置換する。
+#
+# ★ session 50 adv-1 教訓: 初版で fabricated URL
+#   `http://jpfhir.jp/fhir/observation-category` を使い HAPI silent-no-op。
+#   実 spec fixedUri に修正済み(session 51 で「spec fixedUri 直接引用」
+#   ルール制定)。
+# ★ session 53 iris4h-ai feedback F-2 + B: session 50 は「HL7 slice を残して
+#   JP slice を prepend」方式だったため
+#   - F-2: HL7 secondary slice が ValueSet-outside info 46,014 件を発生
+#   - B: session 49 fabricated URL の残骸 1,680 件
+#   - E: JP_Observation_LabResult_eCS `category max=1` 違反 27,507 件
+#   を招いた。in-place replace 方式で 3 finding 同時解消(~75k)。
 _JP_OBSERVATION_CATEGORY_SYSTEM = "http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS"
 
+# in-place 置換対象:HL7 標準 URL + session 49 fabricated URL(iris4h-ai
+# 古い regen data に残存する可能性への defensive normalize)。
+_HL7_OBSERVATION_CATEGORY_SYSTEMS = frozenset(
+    [
+        "http://terminology.hl7.org/CodeSystem/observation-category",
+        "http://jpfhir.jp/fhir/observation-category",  # session 49 fabricated
+    ]
+)
 
-def _inject_jp_observation_category_first(resource: dict) -> None:
-    """Prepend JP Core observation-category first slice for JP output。
 
-    JP only(caller が country=JP のみで呼ぶ前提)。既に JP-first-slice が
-    ある resource は idempotent。code は既存 HL7 slice のものを再利用する
-    (JP_SimpleObservationCategory_CS は HL7 observation-category と code
-    語彙が概ね一致:laboratory / vital-signs / imaging / procedure /
-    social-history / exam / body-measurement)。
+def _convert_hl7_observation_category_to_jp(resource: dict) -> None:
+    """In-place replace observation-category system URLs with the JP Core CS URL.
+
+    JP only(caller が country=JP のみで呼ぶ前提)。HL7 標準
+    `http://terminology.hl7.org/CodeSystem/observation-category` および
+    session 49 の fabricated URL `http://jpfhir.jp/fhir/observation-category`
+    を canonical JP_SimpleObservationCategory_CS URL に置換。code は保持。
+    display は既存のまま(JP CS は日本語 display 定義あり)。
     """
     if resource.get("resourceType") != "Observation":
         return
     cats = resource.get("category")
     if not isinstance(cats, list) or not cats:
         return
-    # idempotent: 既に JP-first-slice がある場合 skip
     for cat in cats:
-        for cod in cat.get("coding", []) if isinstance(cat.get("coding"), list) else []:
-            if cod.get("system") == _JP_OBSERVATION_CATEGORY_SYSTEM:
-                return
-    # 現行 first slice の code を抽出(HL7 observation-category からのみ拾う)
-    first_hl7 = cats[0]
-    hl7_code = None
-    for cod in first_hl7.get("coding", []) if isinstance(first_hl7.get("coding"), list) else []:
-        sys_val = cod.get("system") or ""
-        if "observation-category" in sys_val:
-            hl7_code = cod.get("code")
-            break
-    if not hl7_code:
-        return
-    jp_first = {
-        "coding": [
-            {
-                "system": _JP_OBSERVATION_CATEGORY_SYSTEM,
-                "code": hl7_code,
-            }
-        ]
-    }
-    resource["category"] = [jp_first] + cats
+        codings = cat.get("coding")
+        if not isinstance(codings, list):
+            continue
+        for cod in codings:
+            if not isinstance(cod, dict):
+                continue
+            if cod.get("system") in _HL7_OBSERVATION_CATEGORY_SYSTEMS:
+                cod["system"] = _JP_OBSERVATION_CATEGORY_SYSTEM
 
 
 def _normalize_dt_fields(resource) -> None:
