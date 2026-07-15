@@ -25,7 +25,6 @@ from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import get_or_create_container
 from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS
-from clinosim.modules.order.engine import parse_dose_string
 from clinosim.modules.antibiotic.engine import (
     ABX_NARROW_SUFFIX,
     ABX_ORDER_REQ_PREFIX,
@@ -39,6 +38,7 @@ from clinosim.modules.antibiotic.engine import (
     narrow_outcome,
     select_narrow_target,
 )
+from clinosim.modules.order.engine import parse_dose_string
 from clinosim.types.antibiotic import AntibioticRegimen
 from clinosim.types.encounter import Order, OrderStatus, OrderType
 from clinosim.types.hai import HAIEvent

@@ -254,7 +254,7 @@ def _simulate_ed_visit(
 
     # Use ICD-10 from encounter YAML (required by FHIR R4)
     icd_code = (protocol or condition).get("icd10_code", "R69")  # R69 = Illness, unspecified
-    icd_display = (protocol or condition).get("icd10_display", chief or cond_name)
+    (protocol or condition).get("icd10_display", chief or cond_name)
 
     # C1-09 (session 41 cycle 1): emit bedside procedures for ED severe cases.
     # Reuse the existing procedure engine (already keyed by internal condition

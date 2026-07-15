@@ -339,13 +339,13 @@ def _build_vital_observations(
         interp_code = "N"
         interp_display = "Normal"
         if crit_low is not None and value <= crit_low:
-            interp_code = "LL"; interp_display = "Critical low"
+            interp_code, interp_display = "LL", "Critical low"
         elif crit_high is not None and value >= crit_high:
-            interp_code = "HH"; interp_display = "Critical high"
+            interp_code, interp_display = "HH", "Critical high"
         elif value < low:
-            interp_code = "L"; interp_display = "Low"
+            interp_code, interp_display = "L", "Low"
         elif value > high:
-            interp_code = "H"; interp_display = "High"
+            interp_code, interp_display = "H", "High"
         obs["interpretation"] = [{
             "coding": [{
                 "system": get_system_uri("hl7-observation-interpretation"),

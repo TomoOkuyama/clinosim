@@ -10,7 +10,7 @@ Provider implementations live in `providers/` and are instantiated via
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 # Re-export ProviderResponse from the new providers subpackage so existing
@@ -28,12 +28,12 @@ class LLMCompletionError(RuntimeError):
     """
 
 
-class LLMTaskCategory(str, Enum):
+class LLMTaskCategory(StrEnum):
     JUDGMENT = "judgment"
     NARRATIVE = "narrative"
 
 
-class LLMTaskType(str, Enum):
+class LLMTaskType(StrEnum):
     # JUDGMENT (always English)
     DIAGNOSTIC_REASONING = "diagnostic_reasoning"
     TREATMENT_DECISION = "treatment_decision"

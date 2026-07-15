@@ -231,7 +231,6 @@ def _simulate_outpatient_visit(
 
     # Determine diagnosis code — prefer encounter YAML, fall back to chronic/Z-code
     dx_code = ""
-    dx_name = ""
 
     # First priority: encounter YAML icd10_code (for screenings, vaccinations, etc.)
     if chronic_code:
@@ -239,7 +238,7 @@ def _simulate_outpatient_visit(
             from clinosim.modules.encounter.protocol import load_encounter_condition
             enc_proto = load_encounter_condition(chronic_code)
             dx_code = enc_proto.get("icd10_code", "")
-            dx_name = enc_proto.get("icd10_display", "")
+            enc_proto.get("icd10_display", "")
         except (FileNotFoundError, Exception):
             pass
 
@@ -249,17 +248,16 @@ def _simulate_outpatient_visit(
         if len(chronic_code) >= 2 and chronic_code[0].isalpha() and chronic_code[1].isdigit():
             dx_code = chronic_code
             from clinosim.modules.patient.activator import CONDITION_NAMES
-            dx_name = CONDITION_NAMES.get(chronic_code, chronic_code)
+            CONDITION_NAMES.get(chronic_code, chronic_code)
 
     # Third priority: post-discharge follow-up
     if not dx_code and post_discharge_disease:
         dx_code = "Z09"
-        dx_name = f"Follow-up examination after treatment for {post_discharge_disease.replace('_', ' ')}"
+        f"Follow-up examination after treatment for {post_discharge_disease.replace('_', ' ')}"
 
     # Final fallback
     if not dx_code:
         dx_code = "Z09"
-        dx_name = "Encounter for follow-up examination"
 
     condition_event = ConditionEvent(
         condition_id=f"COND-{patient.patient_id}-OPD",

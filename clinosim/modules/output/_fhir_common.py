@@ -165,7 +165,7 @@ def _value(system_key: str, code: str, lang: str) -> dict[str, Any]:
 def _entry(resource: dict) -> dict:
     """Wrap a resource as a Bundle entry."""
     rid = resource.get("id", str(uuid.uuid4()))
-    rtype = resource.get("resourceType", "Resource")
+    resource.get("resourceType", "Resource")
     return {
         "fullUrl": f"urn:uuid:{rid}",
         "resource": resource,

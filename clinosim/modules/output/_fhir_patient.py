@@ -274,7 +274,7 @@ def _build_patient(p: dict, country: str) -> dict:
                 })
     else:
         names.append({"use": "official", "family": family, "given": [given]})
-    fhir_name = names[0]  # kept for legacy readers below
+    names[0]  # kept for legacy readers below
 
     pid = p.get("patient_id", str(uuid.uuid4()))
     # Hospital MRN identifier system (country-specific)

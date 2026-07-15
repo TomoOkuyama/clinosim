@@ -168,7 +168,6 @@ def _jp_core_profile_declared(cohort: Cohort, country: str) -> EvalCheck:
     types_seen = 0
     types_all_profiled = 0
     for path in _fhir_ndjsons(cohort, country):
-        rt = path.stem
         total = 0
         with_profile = 0
         for row in _iter(path):

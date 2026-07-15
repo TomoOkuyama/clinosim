@@ -20,13 +20,13 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 from clinosim.audit.types import Cohort
 
 
-class Outcome(str, Enum):
+class Outcome(StrEnum):
     """Outcome of a single check on a cohort."""
 
     PASS = "PASS"
@@ -44,7 +44,7 @@ class Outcome(str, Enum):
         return 0.0
 
 
-class Severity(str, Enum):
+class Severity(StrEnum):
     """Weight-encoded severity level of a check."""
 
     CRITICAL = "critical"
