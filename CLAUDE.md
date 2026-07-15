@@ -183,6 +183,37 @@ See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview,
 - `pytest -x` — full suite (234 tests; unit+integration ~2 min, e2e golden ~8 min)
 - Always run unit tests before committing.
 
+## Development workflow — Issue → PR → Merge(★ session 52 末以降 必須)
+
+複数人メンテを想定し、**master への直接 push 禁止**。fix / feature は
+以下の手順で必ず PR/Merge 経由:
+
+1. **Issue 起票** — 修正対象を GitHub Issue で定義(bug report / feature
+   / chain 単位)。既存 iris4h-ai HAPI feedback や TODO.md 記載事項は
+   Issue にコピーし tracker 化。
+2. **Feature branch 作成** — `git checkout -b <type>/<short-slug>`
+   (例:`fix/mypy-numpy-shim`、`feat/valueset-p1-8`)。
+3. **Commit + Push to feature branch** — commit meta は従来通り
+   `Co-Authored-By` + `Claude-Session` を付ける。
+4. **PR 作成** — `gh pr create` で対象 Issue link + 変更概要 + 検証
+   結果(unit / mypy / ruff / reproduce)を body に記す。CI 全 job
+   (Unit / Reproducibility / Build / Integration / Lint / Type check)
+   PASS を merge blocker とする。
+5. **Adversarial review**(推奨、大 chain のみ)— `/code-review` 等で
+   PR に対する追加 review、必要に応じて fix commit を追加。
+6. **Merge to master** — CI 全 green + review 完了後、`gh pr merge
+   --squash --delete-branch`(基本 squash、multi-commit chain の履歴
+   保存が必要な場合は `--merge`)。
+7. **Issue close** — merge SHA を Issue に post、close。
+
+**scope-discipline**: 1 PR = 1 論点(silent-drop fix / lint sweep 等の
+横断作業は別 PR に分割)。session 内で複数 chain を進める場合、
+chain 毎に別ブランチ + 別 PR。
+
+**hotfix 例外**: 本番 blocker(CI 全落ち / silent-drop 検出)は master
+直接 push OK、ただし同一 session 内で post-hoc Issue + 説明 comment
+を残すこと。
+
 ## When modifying a module
 
 1. Read the module's `README.md` first
