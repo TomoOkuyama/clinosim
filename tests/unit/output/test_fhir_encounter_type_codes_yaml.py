@@ -12,12 +12,15 @@ from clinosim.modules.output._fhir_encounter import _build_encounter
 pytestmark = pytest.mark.unit
 
 
-@pytest.mark.parametrize("enc_type,code,en", [
-    ("inpatient", "32485007", "Hospital admission"),
-    ("emergency", "50849002", "Emergency hospital admission"),
-    ("outpatient", "270427003", "Patient-initiated encounter"),
-    ("icu", "183452005", "Emergency hospital admission"),
-])
+@pytest.mark.parametrize(
+    "enc_type,code,en",
+    [
+        ("inpatient", "32485007", "Hospital admission"),
+        ("emergency", "50849002", "Emergency hospital admission"),
+        ("outpatient", "270427003", "Patient-initiated encounter"),
+        ("icu", "183452005", "Emergency hospital admission"),
+    ],
+)
 def test_encounter_type_display_us(enc_type, code, en):
     resource = _build_encounter({"encounter_id": "E1", "encounter_type": enc_type}, "P1", country="US")
     coding = resource["type"][0]["coding"][0]
@@ -25,12 +28,15 @@ def test_encounter_type_display_us(enc_type, code, en):
     assert coding["display"] == en == lookup("snomed-ct", code, "en")
 
 
-@pytest.mark.parametrize("enc_type,code,ja", [
-    ("inpatient", "32485007", "入院"),
-    ("emergency", "50849002", "救急入院"),
-    ("outpatient", "270427003", "外来受診"),
-    ("icu", "183452005", "救急入院"),
-])
+@pytest.mark.parametrize(
+    "enc_type,code,ja",
+    [
+        ("inpatient", "32485007", "入院"),
+        ("emergency", "50849002", "救急入院"),
+        ("outpatient", "270427003", "外来受診"),
+        ("icu", "183452005", "救急入院"),
+    ],
+)
 def test_encounter_type_display_jp(enc_type, code, ja):
     resource = _build_encounter({"encounter_id": "E1", "encounter_type": enc_type}, "P1", country="JP")
     coding = resource["type"][0]["coding"][0]

@@ -54,13 +54,20 @@ class DatasetPreset:
         """Return the ``clinosim generate ...`` argv this preset expands to."""
         return [
             "generate",
-            "--country", self.country,
-            "--population", str(self.population),
-            "--seed", str(self.seed),
-            "--start", self.start,
-            "--end", self.end,
-            "--output", output,
-            "--format", self.format,
+            "--country",
+            self.country,
+            "--population",
+            str(self.population),
+            "--seed",
+            str(self.seed),
+            "--start",
+            self.start,
+            "--end",
+            self.end,
+            "--output",
+            output,
+            "--format",
+            self.format,
         ]
 
 
@@ -69,10 +76,7 @@ def list_presets(presets_dir: Path | None = None) -> list[str]:
     root = presets_dir or _PRESETS_DIR
     if not root.exists():
         return []
-    return sorted(
-        p.name for p in root.iterdir()
-        if p.is_dir() and (p / "spec.yaml").exists()
-    )
+    return sorted(p.name for p in root.iterdir() if p.is_dir() and (p / "spec.yaml").exists())
 
 
 def load_preset(name: str, presets_dir: Path | None = None) -> DatasetPreset:
@@ -83,23 +87,17 @@ def load_preset(name: str, presets_dir: Path | None = None) -> DatasetPreset:
     if not spec_path.exists():
         available = list_presets(root)
         raise ValueError(
-            f"unknown dataset preset {name!r}; available: "
-            f"{', '.join(available) if available else '(none)'}"
+            f"unknown dataset preset {name!r}; available: {', '.join(available) if available else '(none)'}"
         )
     raw = yaml.safe_load(spec_path.read_text()) or {}
 
-    required = ("name", "description", "country", "population",
-                "seed", "start", "end", "format")
+    required = ("name", "description", "country", "population", "seed", "start", "end", "format")
     missing = [k for k in required if k not in raw]
     if missing:
-        raise ValueError(
-            f"preset {name!r} spec.yaml is missing required key(s): "
-            f"{', '.join(missing)}"
-        )
+        raise ValueError(f"preset {name!r} spec.yaml is missing required key(s): {', '.join(missing)}")
     if raw["name"] != name:
         raise ValueError(
-            f"preset {name!r} spec.yaml declares name={raw['name']!r}; "
-            "directory name and spec name must match."
+            f"preset {name!r} spec.yaml declares name={raw['name']!r}; directory name and spec name must match."
         )
     return DatasetPreset(
         name=str(raw["name"]),
@@ -122,19 +120,17 @@ def add_dataset_subparser(sub: argparse._SubParsersAction) -> None:
     )
     ds_sub = ds.add_subparsers(dest="dataset_command", required=True)
 
-    ds_sub.add_parser(
-        "list", help="List available dataset preset names."
-    )
+    ds_sub.add_parser("list", help="List available dataset preset names.")
 
-    build = ds_sub.add_parser(
-        "build", help="Build one preset dataset by name."
-    )
+    build = ds_sub.add_parser("build", help="Build one preset dataset by name.")
     build.add_argument(
         "name",
         help="Preset name (e.g. jp-100). Use `clinosim dataset list` to enumerate.",
     )
     build.add_argument(
-        "-o", "--output", required=True,
+        "-o",
+        "--output",
+        required=True,
         help="Output directory; overwritten if it exists.",
     )
 
@@ -173,6 +169,7 @@ def dispatch_dataset(args: argparse.Namespace) -> int:
 
         # Delayed import to avoid a circular import at CLI parse time.
         from clinosim.simulator.cli import main as _cli_main
+
         original_argv = sys.argv[:]
         try:
             sys.argv = [sys.argv[0], *gen_argv]

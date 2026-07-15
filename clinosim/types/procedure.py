@@ -60,11 +60,11 @@ class ProcedureRecord:
     # FHIR Procedure structural fields (SNOMED CT codes)
     # category_code: 387713003 surgical / 103693007 diagnostic / 277132007 therapeutic
     category_code: str = ""
-    body_site_code: str = ""       # SNOMED body site (empty if not applicable)
+    body_site_code: str = ""  # SNOMED body site (empty if not applicable)
     # outcome_code: 385669000 successful / 385670004 partial / 385671000 unsuccessful
     outcome_code: str = ""
     complication_codes: list[str] = field(default_factory=list)  # SNOMED complication codes
-    location_id: str = ""          # FHIR Location id (e.g. "loc-or-1" for operating rooms)
+    location_id: str = ""  # FHIR Location id (e.g. "loc-or-1" for operating rooms)
 
 
 @dataclass

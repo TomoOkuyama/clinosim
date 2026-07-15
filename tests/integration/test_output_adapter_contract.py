@@ -22,9 +22,7 @@ class _MemoAdapter:
     def convert(self, cif_dir, out_dir, ctx: OutputContext) -> None:
         out = Path(out_dir)
         out.mkdir(parents=True, exist_ok=True)
-        (out / "memo.json").write_text(
-            json.dumps({"cif_dir": cif_dir, "country": ctx.country}), encoding="utf-8"
-        )
+        (out / "memo.json").write_text(json.dumps({"cif_dir": cif_dir, "country": ctx.country}), encoding="utf-8")
 
 
 @pytest.mark.integration

@@ -31,10 +31,7 @@ def test_expected_presets_discoverable() -> None:
     """The four presets P1-6 promised must all be discoverable."""
     names = list_presets()
     for expected in _EXPECTED_PRESETS:
-        assert expected in names, (
-            f"preset {expected!r} missing under {_PRESETS_DIR} — "
-            f"discovered: {names}"
-        )
+        assert expected in names, f"preset {expected!r} missing under {_PRESETS_DIR} — discovered: {names}"
 
 
 @pytest.mark.unit
@@ -43,9 +40,7 @@ def test_preset_loads_and_matches_directory(name: str) -> None:
     """Every preset spec must load cleanly and declare a matching ``name``."""
     preset = load_preset(name)
     assert isinstance(preset, DatasetPreset)
-    assert preset.name == name, (
-        f"spec.yaml declares name={preset.name!r} but directory is {name!r}"
-    )
+    assert preset.name == name, f"spec.yaml declares name={preset.name!r} but directory is {name!r}"
     # All P1-6 presets seed at 42 (contract in datasets/README.md).
     assert preset.seed == 42
 
@@ -76,9 +71,7 @@ def test_unknown_preset_raises_helpful_error() -> None:
     msg = str(exc_info.value)
     assert "does-not-exist" in msg
     # Should list at least one real preset in the error.
-    assert any(p in msg for p in _EXPECTED_PRESETS), (
-        f"error message should list available presets: {msg}"
-    )
+    assert any(p in msg for p in _EXPECTED_PRESETS), f"error message should list available presets: {msg}"
 
 
 @pytest.mark.unit
@@ -87,16 +80,18 @@ def test_preset_directory_name_must_match_spec_name(tmp_path: Path) -> None:
     d = tmp_path / "mismatch"
     d.mkdir()
     (d / "spec.yaml").write_text(
-        yaml.safe_dump({
-            "name": "different-name",  # intentionally not "mismatch"
-            "description": "test",
-            "country": "US",
-            "population": 10,
-            "seed": 42,
-            "start": "2026-01-01",
-            "end": "2026-01-31",
-            "format": "fhir",
-        })
+        yaml.safe_dump(
+            {
+                "name": "different-name",  # intentionally not "mismatch"
+                "description": "test",
+                "country": "US",
+                "population": 10,
+                "seed": 42,
+                "start": "2026-01-01",
+                "end": "2026-01-31",
+                "format": "fhir",
+            }
+        )
     )
     with pytest.raises(ValueError, match="directory name and spec name must match"):
         load_preset("mismatch", presets_dir=tmp_path)
@@ -109,11 +104,13 @@ def test_missing_spec_key_raises_specific_error(tmp_path: Path) -> None:
     d = tmp_path / "partial"
     d.mkdir()
     (d / "spec.yaml").write_text(
-        yaml.safe_dump({
-            "name": "partial",
-            "description": "test",
-            # missing: country, population, seed, start, end, format
-        })
+        yaml.safe_dump(
+            {
+                "name": "partial",
+                "description": "test",
+                # missing: country, population, seed, start, end, format
+            }
+        )
     )
     with pytest.raises(ValueError, match="missing required key"):
         load_preset("partial", presets_dir=tmp_path)
@@ -123,6 +120,7 @@ def test_missing_spec_key_raises_specific_error(tmp_path: Path) -> None:
 def test_cli_subcommand_registered() -> None:
     """`clinosim dataset --help` must be reachable via the entry point."""
     from importlib import metadata
+
     try:
         metadata.distribution("clinosim")
     except metadata.PackageNotFoundError:

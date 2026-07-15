@@ -3,6 +3,7 @@
 All functions are pure — rng is injected as a parameter, no global random state (AD-16).
 Data-driven via reference_data/nursing_scores.yaml (authoritative published instruments).
 """
+
 from __future__ import annotations
 
 from functools import lru_cache
@@ -45,8 +46,7 @@ def compute_news2(vs: dict) -> int:
     return max(0, min(20, total))
 
 
-def compute_gcs(consciousness_level: str, perfusion_status: float,
-                rng: np.random.Generator) -> int:
+def compute_gcs(consciousness_level: str, perfusion_status: float, rng: np.random.Generator) -> int:
     cfg = _scores()["gcs"]
     base = int(cfg["avpu_base"].get(consciousness_level, 15))
     # Poor perfusion (shock/encephalopathy) nudges GCS down slightly, deterministic + small noise.
@@ -65,8 +65,7 @@ def _barthel_to_subscale(barthel: int) -> int:
     return sub
 
 
-def compute_braden(adl: dict, consciousness_level: str, volume_status: float,
-                   rng: np.random.Generator) -> dict:
+def compute_braden(adl: dict, consciousness_level: str, volume_status: float, rng: np.random.Generator) -> dict:
     barthel = adl.get("barthel_score", 100) if adl else 100
     activity = _barthel_to_subscale(barthel)
     mobility = _barthel_to_subscale(barthel)
@@ -91,15 +90,19 @@ def compute_braden(adl: dict, consciousness_level: str, volume_status: float,
         friction = 3
     total = sensory + moisture + activity + mobility + nutrition + friction
     return {
-        "braden_sensory": sensory, "braden_moisture": moisture,
-        "braden_activity": activity, "braden_mobility": mobility,
-        "braden_nutrition": nutrition, "braden_friction": friction,
+        "braden_sensory": sensory,
+        "braden_moisture": moisture,
+        "braden_activity": activity,
+        "braden_mobility": mobility,
+        "braden_nutrition": nutrition,
+        "braden_friction": friction,
         "braden_total": max(6, min(23, total)),
     }
 
 
-def compute_morse_fall_risk(age: int, adl: dict, consciousness_level: str,
-                            has_iv: bool, rng: np.random.Generator) -> tuple[int, str]:
+def compute_morse_fall_risk(
+    age: int, adl: dict, consciousness_level: str, has_iv: bool, rng: np.random.Generator
+) -> tuple[int, str]:
     cfg = _scores()["morse"]
     barthel = adl.get("barthel_score", 100) if adl else 100
     score = 0

@@ -62,12 +62,7 @@ def _escape_html(s: str) -> str:
     Shared across _fhir_diagnostic_report.py and _fhir_composition.py (DRY, CLAUDE.md
     unification rule — no inline duplication).
     """
-    return (
-        s.replace("&", "&amp;")
-         .replace("<", "&lt;")
-         .replace(">", "&gt;")
-         .replace('"', "&quot;")
-    )
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
 
 
 def _coding_with_display(system_key: str, code: str, lang: str) -> dict:
@@ -104,14 +99,18 @@ def _survey_category() -> list[dict]:
 
     Uses get_system_uri to avoid hardcoding FHIR system URIs (project rule).
     """
-    return [{
-        "coding": [{
-            "system": get_system_uri("hl7-observation-category"),
-            "code": "survey",
-            "display": "Survey",
-        }],
-        "text": "Survey",
-    }]
+    return [
+        {
+            "coding": [
+                {
+                    "system": get_system_uri("hl7-observation-category"),
+                    "code": "survey",
+                    "display": "Survey",
+                }
+            ],
+            "text": "Survey",
+        }
+    ]
 
 
 def _loinc_coding(code: str, lang: str) -> dict:
@@ -131,14 +130,18 @@ def _social_category(country: str) -> list[dict]:
     (smoking, alcohol, occupation, education, housing, ...). Promoted
     from _fhir_sdoh.py in PR2 (G2 SDOH integrity refactor, 2026-06-24).
     """
-    return [{
-        "coding": [{
-            "system": get_system_uri("hl7-observation-category"),
-            "code": "social-history",
-            "display": _localize_display("Social History", country, _CATEGORY_DISPLAY_JA),
-        }],
-        "text": "社会歴" if is_jp(country) else "Social History",
-    }]
+    return [
+        {
+            "coding": [
+                {
+                    "system": get_system_uri("hl7-observation-category"),
+                    "code": "social-history",
+                    "display": _localize_display("Social History", country, _CATEGORY_DISPLAY_JA),
+                }
+            ],
+            "text": "社会歴" if is_jp(country) else "Social History",
+        }
+    ]
 
 
 def _value(system_key: str, code: str, lang: str) -> dict[str, Any]:
@@ -172,9 +175,7 @@ def _entry(resource: dict) -> dict:
     }
 
 
-def _build_diagnosis_codeable_concept(
-    code: str, system_key: str, country: str
-) -> dict[str, Any]:
+def _build_diagnosis_codeable_concept(code: str, system_key: str, country: str) -> dict[str, Any]:
     """Build a FHIR CodeableConcept for a diagnosis code with multilingual coding.
 
     - Primary coding: target country's system + target language display
@@ -193,11 +194,7 @@ def _build_diagnosis_codeable_concept(
     primary_system = get_system_uri(system_key)
 
     # Look up display in primary language (with cross-system fallback)
-    primary_display = (
-        code_lookup(system_key, code, primary_lang)
-        if code
-        else ""
-    )
+    primary_display = code_lookup(system_key, code, primary_lang) if code else ""
     # If primary system has no entry, try icd-10-cm which is more comprehensive
     if (not primary_display or primary_display == code) and system_key != "icd-10-cm":
         alt = code_lookup("icd-10-cm", code, primary_lang)
@@ -216,18 +213,22 @@ def _build_diagnosis_codeable_concept(
     if not en_display or en_display == code:
         en_display = "(display unavailable)"
 
-    coding = [{
-        "system": primary_system,
-        "code": code,
-        "display": primary_display,
-    }]
+    coding = [
+        {
+            "system": primary_system,
+            "code": code,
+            "display": primary_display,
+        }
+    ]
     # Add English coding for multilingual interop when primary is not English
     if primary_lang != "en" and en_display != primary_display:
-        coding.append({
-            "system": primary_system,  # same code system, different display
-            "code": code,
-            "display": en_display,
-        })
+        coding.append(
+            {
+                "system": primary_system,  # same code system, different display
+                "code": code,
+                "display": en_display,
+            }
+        )
 
     # code.text: clinical short-name / abbreviation for search friendliness.
     # coding[].display remains the official ICD name; text is what clinicians type.
@@ -283,10 +284,12 @@ def _severity_coding(severity: str, country: str = "US") -> dict[str, Any]:
         orig_display = snomed.get("display", "")
         snomed["display"] = _SEVERITY_DISPLAY_JA.get(orig_display, orig_display)
     return {
-        "coding": [{
-            "system": get_system_uri("snomed-ct"),
-            **snomed,
-        }],
+        "coding": [
+            {
+                "system": get_system_uri("snomed-ct"),
+                **snomed,
+            }
+        ],
         "text": snomed.get("display", ""),
     }
 
@@ -346,39 +349,52 @@ def build_presented_form(text: str, title: str, lang: str = "en") -> list[dict[s
         return []
     import base64
     import hashlib
+
     encoded = base64.b64encode(text.encode("utf-8")).decode("ascii")
     h = hashlib.sha1(text.encode("utf-8")).digest()
-    return [{
-        "contentType": "text/plain; charset=utf-8",
-        "language": lang,
-        "data": encoded,
-        "title": title,
-        "size": len(text.encode("utf-8")),
-        "hash": base64.b64encode(h).decode("ascii"),
-    }]
+    return [
+        {
+            "contentType": "text/plain; charset=utf-8",
+            "language": lang,
+            "data": encoded,
+            "title": title,
+            "size": len(text.encode("utf-8")),
+            "hash": base64.b64encode(h).decode("ascii"),
+        }
+    ]
 
 
 def _build_telecom(contact: dict) -> list[dict[str, str]]:
     """Build FHIR ContactPoint list from CIF contact data."""
     telecoms: list[dict[str, str]] = []
     if contact.get("phone_mobile"):
-        telecoms.append({
-            "system": "phone", "value": contact["phone_mobile"], "use": "mobile",
-        })
+        telecoms.append(
+            {
+                "system": "phone",
+                "value": contact["phone_mobile"],
+                "use": "mobile",
+            }
+        )
     if contact.get("phone_home") and contact["phone_home"] != contact.get("phone_mobile"):
-        telecoms.append({
-            "system": "phone", "value": contact["phone_home"], "use": "home",
-        })
+        telecoms.append(
+            {
+                "system": "phone",
+                "value": contact["phone_home"],
+                "use": "home",
+            }
+        )
     if contact.get("email"):
-        telecoms.append({
-            "system": "email", "value": contact["email"], "use": "home",
-        })
+        telecoms.append(
+            {
+                "system": "email",
+                "value": contact["email"],
+                "use": "home",
+            }
+        )
     return telecoms
 
 
-def _make_participant(
-    code: str, display: str, practitioner_id: str, country: str = "US"
-) -> dict[str, Any]:
+def _make_participant(code: str, display: str, practitioner_id: str, country: str = "US") -> dict[str, Any]:
     """Build an Encounter.participant entry.
 
     C5-02 (session 43 cycle 5): localize `display` for JP output — HL7
@@ -389,15 +405,20 @@ def _make_participant(
         _PARTICIPATION_TYPE_DISPLAY_JA,
         _localize_display,
     )
+
     localized = _localize_display(display, country, _PARTICIPATION_TYPE_DISPLAY_JA)
     return {
-        "type": [{
-            "coding": [{
-                "system": get_system_uri("hl7-v3-participationtype"),
-                "code": code,
-                "display": localized,
-            }],
-        }],
+        "type": [
+            {
+                "coding": [
+                    {
+                        "system": get_system_uri("hl7-v3-participationtype"),
+                        "code": code,
+                        "display": localized,
+                    }
+                ],
+            }
+        ],
         "individual": {"reference": f"Practitioner/{practitioner_id}"},
     }
 
@@ -422,13 +443,15 @@ def _build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any
 
     # Dose quantity
     if dose_qty is not None and dose_unit:
-        dosage["doseAndRate"] = [{
-            "doseQuantity": {
-                "value": dose_qty,
-                "unit": dose_unit,
-                "system": get_system_uri("ucum"),
-            },
-        }]
+        dosage["doseAndRate"] = [
+            {
+                "doseQuantity": {
+                    "value": dose_qty,
+                    "unit": dose_unit,
+                    "system": get_system_uri("ucum"),
+                },
+            }
+        ]
         parts.append(f"{dose_qty}{dose_unit}")
 
     # Route
@@ -513,11 +536,11 @@ _strip_protocol_prefix = strip_protocol_prefix
 def _parse_dose_for_mar(text: str) -> dict[str, Any]:
     """Lightweight dose parser for MAR (avoids importing order engine in adapter)."""
     import re
+
     result: dict[str, Any] = {}
     if not text:
         return result
-    m = re.search(r"(\d+(?:\.\d+)?)\s*(mg|g|mcg|ug|mL|ml|L|IU|U|unit|units|%)",
-                  text, re.IGNORECASE)
+    m = re.search(r"(\d+(?:\.\d+)?)\s*(mg|g|mcg|ug|mL|ml|L|IU|U|unit|units|%)", text, re.IGNORECASE)
     if m:
         try:
             result["dose_quantity"] = float(m.group(1))
@@ -534,12 +557,15 @@ def _sha1_b64(text: str) -> str:
     """Return base64-encoded SHA1 hash of text, as required by FHIR Attachment.hash."""
     import base64
     import hashlib
+
     h = hashlib.sha1(text.encode("utf-8")).digest()
     return base64.b64encode(h).decode("ascii")
 
 
 def _build_reference_range(
-    lab_name: str, patient_sex: str, country_code: str,
+    lab_name: str,
+    patient_sex: str,
+    country_code: str,
 ) -> list[dict[str, Any]] | None:
     """Build FHIR referenceRange from locale reference range data.
 
@@ -567,13 +593,17 @@ def _build_reference_range(
         unit_str = entry.get("unit", "")
         if entry.get("low") is not None:
             rr["low"] = {
-                "value": entry["low"], "unit": unit_str,
-                "system": get_system_uri("ucum"), "code": unit_str,
+                "value": entry["low"],
+                "unit": unit_str,
+                "system": get_system_uri("ucum"),
+                "code": unit_str,
             }
         if entry.get("high") is not None:
             rr["high"] = {
-                "value": entry["high"], "unit": unit_str,
-                "system": get_system_uri("ucum"), "code": unit_str,
+                "value": entry["high"],
+                "unit": unit_str,
+                "system": get_system_uri("ucum"),
+                "code": unit_str,
             }
         if entry.get("text"):
             rr["text"] = entry["text"]
@@ -582,11 +612,17 @@ def _build_reference_range(
         if sex:
             # C2-05 (session 42): resolve display via codes/data/hl7-v3-
             # administrativegender.yaml (was raw code emission with no display).
-            rr["appliesTo"] = [{
-                "coding": [_coding_with_display(
-                    "hl7-v3-administrativegender", sex, resolve_lang(country_code),
-                )],
-            }]
+            rr["appliesTo"] = [
+                {
+                    "coding": [
+                        _coding_with_display(
+                            "hl7-v3-administrativegender",
+                            sex,
+                            resolve_lang(country_code),
+                        )
+                    ],
+                }
+            ]
 
         # Source extension. The JP Core Observation_Common profile defines a
         # `referenceRangeSource` sub-extension for citing the range's issuing
@@ -594,11 +630,12 @@ def _build_reference_range(
         # US bundles must not embed jpfhir.jp URLs (multi-locale isolation,
         # session 47 P2-13 Task 5 bug fix).
         if source_url and country_code.upper() == "JP":
-            rr["extension"] = [{
-                "url": "http://jpfhir.jp/fhir/core/StructureDefinition/"
-                       "JP_Observation_Common#referenceRangeSource",
-                "valueString": source_url,
-            }]
+            rr["extension"] = [
+                {
+                    "url": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common#referenceRangeSource",
+                    "valueString": source_url,
+                }
+            ]
 
         result.append(rr)
 
@@ -606,7 +643,9 @@ def _build_reference_range(
 
 
 def _map_mar_status(status: str) -> str:
-    return {"given": "completed", "held": "on-hold", "refused": "not-done", "not_available": "not-done"}.get(status, "completed")
+    return {"given": "completed", "held": "on-hold", "refused": "not-done", "not_available": "not-done"}.get(
+        status, "completed"
+    )  # noqa: E501
 
 
 # session 48 cycle 8 拡張 (feedback FB-F1):

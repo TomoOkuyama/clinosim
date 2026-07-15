@@ -95,15 +95,17 @@ class HospitalState:
             if pattern_weekday is not None and weekday != pattern_weekday:
                 continue
             # Apply deltas
-            for key in ["lab_queue", "ct_queue", "mri_queue", "xray_queue",
-                        "bed_occupancy", "ed_crowding"]:
+            for key in ["lab_queue", "ct_queue", "mri_queue", "xray_queue", "bed_occupancy", "ed_crowding"]:
                 delta_key = f"{key}_delta"
                 if delta_key in pattern:
                     current = getattr(self, key)
                     setattr(self, key, min(0.95, max(0.0, current + pattern[delta_key])))
 
     def calculate_delay(
-        self, resource: str, urgency: str, ops_config: dict[str, Any],
+        self,
+        resource: str,
+        urgency: str,
+        ops_config: dict[str, Any],
     ) -> float:
         """Calculate delay in minutes based on current hospital state.
 
@@ -168,8 +170,12 @@ class HospitalState:
         """Record that a resource is being used (increases utilization)."""
         capacity = ops_config.get("resource_capacity", {})
         cap_map = {
-            "lab": "lab_analyzers", "ct": "ct_scanners", "mri": "mri_scanners",
-            "xray": "xray_rooms", "ultrasound": "ultrasound_rooms", "or": "operating_rooms",
+            "lab": "lab_analyzers",
+            "ct": "ct_scanners",
+            "mri": "mri_scanners",
+            "xray": "xray_rooms",
+            "ultrasound": "ultrasound_rooms",
+            "or": "operating_rooms",
         }
         cap_key = cap_map.get(resource, resource)
         cap = capacity.get(cap_key, 5)
@@ -182,8 +188,12 @@ class HospitalState:
         """Record that a resource is freed."""
         capacity = ops_config.get("resource_capacity", {})
         cap_map = {
-            "lab": "lab_analyzers", "ct": "ct_scanners", "mri": "mri_scanners",
-            "xray": "xray_rooms", "ultrasound": "ultrasound_rooms", "or": "operating_rooms",
+            "lab": "lab_analyzers",
+            "ct": "ct_scanners",
+            "mri": "mri_scanners",
+            "xray": "xray_rooms",
+            "ultrasound": "ultrasound_rooms",
+            "or": "operating_rooms",
         }
         cap_key = cap_map.get(resource, resource)
         cap = capacity.get(cap_key, 5)

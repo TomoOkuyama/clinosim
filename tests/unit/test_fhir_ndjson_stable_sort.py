@@ -38,7 +38,5 @@ def test_ndjson_files_id_sorted(tmp_path):
         lines = [line for line in ndjson_file.read_text().splitlines() if line.strip()]
         ids = [json.loads(line).get("id", "") for line in lines]
         assert ids == sorted(ids), (
-            f"{ndjson_file.name} not id-sorted:\n"
-            f"  actual: {ids[:5]}...\n"
-            f"  sorted: {sorted(ids)[:5]}..."
+            f"{ndjson_file.name} not id-sorted:\n  actual: {ids[:5]}...\n  sorted: {sorted(ids)[:5]}..."
         )

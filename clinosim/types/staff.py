@@ -19,10 +19,10 @@ class StaffMember:
     department: str
     specialty: str = ""
     qualification_year: int = 2010
-    sex: str = ""           # "M" | "F"
-    phone: str = ""         # work phone
-    email: str = ""         # work email
-    ward: str = ""          # primary ward assignment (for nurses)
+    sex: str = ""  # "M" | "F"
+    phone: str = ""  # work phone
+    email: str = ""  # work email
+    ward: str = ""  # primary ward assignment (for nurses)
     # C2-19 continuation (session 43 cycle 5): JP Core Practitioner requires
     # phonetic (kana) name representation alongside kanji. Empty for non-JP
     # rosters. Emitted as `iso21090-EN-representation=SYL` HumanName entry
@@ -35,10 +35,7 @@ class StaffRoster:
     members: list[StaffMember] = field(default_factory=list)
 
     def get_by_role(self, role: str, department: str = "") -> list[StaffMember]:
-        return [
-            m for m in self.members
-            if m.role == role and (not department or m.department == department)
-        ]
+        return [m for m in self.members if m.role == role and (not department or m.department == department)]
 
     def get_by_id(self, staff_id: str) -> StaffMember | None:
         for m in self.members:

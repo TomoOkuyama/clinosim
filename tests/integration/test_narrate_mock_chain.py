@@ -60,8 +60,17 @@ def test_narrate_mock_over_generated_cif() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "out"
         r = _run_cli(
-            "generate", "--country", "US", "--population", "60",
-            "--seed", "42", "--format", "cif", "--output", str(out),
+            "generate",
+            "--country",
+            "US",
+            "--population",
+            "60",
+            "--seed",
+            "42",
+            "--format",
+            "cif",
+            "--output",
+            str(out),
         )
         assert r.returncode == 0, r.stderr
         cif_dir = out / "cif"
@@ -70,8 +79,16 @@ def test_narrate_mock_over_generated_cif() -> None:
 
         # --- mock LLM pass over the same structural CIF ---
         r = _run_cli(
-            "narrate", "--cif-dir", str(cif_dir), "--provider", "mock",
-            "--version-id", "llmtest", "--country", "US", "--no-set-current",
+            "narrate",
+            "--cif-dir",
+            str(cif_dir),
+            "--provider",
+            "mock",
+            "--version-id",
+            "llmtest",
+            "--country",
+            "US",
+            "--no-set-current",
         )
         assert r.returncode == 0, r.stderr
         llm = _load_narratives(cif_dir, "llmtest")
@@ -79,9 +96,7 @@ def test_narrate_mock_over_generated_cif() -> None:
             "mock pass must cover exactly the same documents as the template pass"
         )
 
-        manifest = json.loads(
-            (cif_dir / "narratives" / "llmtest" / "manifest.json").read_text()
-        )
+        manifest = json.loads((cif_dir / "narratives" / "llmtest" / "manifest.json").read_text())
         assert manifest["generator"] == "llm-mock"
         assert manifest["llm_cost_report"]["total_calls"] >= 1
 
@@ -105,18 +120,22 @@ def test_narrate_mock_over_generated_cif() -> None:
                     )
                     replaced += 1
                 else:
-                    assert new["sections"][section] == text, (
-                        f"non-enabled section drifted: {key}#{section}"
-                    )
+                    assert new["sections"][section] == text, f"non-enabled section drifted: {key}#{section}"
         assert replaced >= 1, "no template_seed section was replaced — seam is dead"
 
         # --- template pass re-run must be byte-identical (path unaffected) ---
         r = _run_cli(
-            "narrate", "--cif-dir", str(cif_dir), "--provider", "template",
-            "--version-id", "template_rerun", "--country", "US", "--no-set-current",
+            "narrate",
+            "--cif-dir",
+            str(cif_dir),
+            "--provider",
+            "template",
+            "--version-id",
+            "template_rerun",
+            "--country",
+            "US",
+            "--no-set-current",
         )
         assert r.returncode == 0, r.stderr
         template_after = _load_narratives(cif_dir, "template_rerun")
-        assert template_after == template_before, (
-            "template provider output changed after N-chain wiring"
-        )
+        assert template_after == template_before, "template provider output changed after N-chain wiring"

@@ -66,8 +66,13 @@ def majority_baseline(labels: list[LabelRow]) -> BaselineReport:
     """Predict the majority class for every row (floor number)."""
     if not labels:
         return BaselineReport(
-            name="majority", n=0, n_positive=0, prevalence=0.0,
-            auroc=0.0, accuracy=0.0, positive_predicted_rate=0.0,
+            name="majority",
+            n=0,
+            n_positive=0,
+            prevalence=0.0,
+            auroc=0.0,
+            accuracy=0.0,
+            positive_predicted_rate=0.0,
             rationale="empty label set",
         )
     y = np.array([r.label for r in labels], dtype=int)

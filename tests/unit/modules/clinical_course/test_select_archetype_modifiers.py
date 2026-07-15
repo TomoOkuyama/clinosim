@@ -30,9 +30,7 @@ ARCHS = {
     "gradual_deterioration": {"probability": 0.2},
     "treatment_resistant": {"probability": 0.2},
 }
-MODS = [
-    {"condition": "age >= 80", "effect": {"gradual_deterioration": 0.30, "smooth_recovery": -0.30}}
-]
+MODS = [{"condition": "age >= 80", "effect": {"gradual_deterioration": 0.30, "smooth_recovery": -0.30}}]
 
 
 def _rate(age):
@@ -57,11 +55,19 @@ def test_yaml_modifier_raises_deterioration_for_elderly():
 
 def test_deterministic():
     a = select_archetype(
-        "moderate", _profile(), np.random.default_rng(5),
-        protocol_archetypes=ARCHS, protocol_modifiers=MODS, patient=_patient(85),
+        "moderate",
+        _profile(),
+        np.random.default_rng(5),
+        protocol_archetypes=ARCHS,
+        protocol_modifiers=MODS,
+        patient=_patient(85),
     )
     b = select_archetype(
-        "moderate", _profile(), np.random.default_rng(5),
-        protocol_archetypes=ARCHS, protocol_modifiers=MODS, patient=_patient(85),
+        "moderate",
+        _profile(),
+        np.random.default_rng(5),
+        protocol_archetypes=ARCHS,
+        protocol_modifiers=MODS,
+        patient=_patient(85),
     )
     assert a == b

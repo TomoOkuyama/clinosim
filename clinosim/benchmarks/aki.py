@@ -33,8 +33,7 @@ def _creatinine_delta(rec: dict) -> float | None:
     cr_values = [
         float(lab.get("value"))
         for lab in labs
-        if lab.get("value") is not None
-        and str(lab.get("lab_name", "")).lower() in {"creatinine", "cr"}
+        if lab.get("value") is not None and str(lab.get("lab_name", "")).lower() in {"creatinine", "cr"}
     ]
     if len(cr_values) < 2:
         return None
@@ -57,15 +56,20 @@ def extract_aki_labels(cif_dir: str | Path) -> list[LabelRow]:
         enc_id = str((encs[0] if encs else {}).get("encounter_id", ""))
         label = 1 if _is_aki_encounter(rec) else 0
         ctx: dict[str, Any] = {"creatinine_delta": _creatinine_delta(rec)}
-        records.append(LabelRow(
-            patient_id=patient_id, encounter_id=enc_id,
-            label=label, context=ctx,
-        ))
+        records.append(
+            LabelRow(
+                patient_id=patient_id,
+                encounter_id=enc_id,
+                label=label,
+                context=ctx,
+            )
+        )
     return records
 
 
 def creatinine_delta_baseline(
-    labels: list[LabelRow], threshold: float = 0.3,
+    labels: list[LabelRow],
+    threshold: float = 0.3,
 ) -> BaselineReport:
     """KDIGO Stage 1 SCr delta > threshold(mg/dL)で AKI を予測。
 
@@ -74,15 +78,17 @@ def creatinine_delta_baseline(
     """
     if not labels:
         return BaselineReport(
-            name="creatinine_delta", n=0, n_positive=0, prevalence=0.0,
-            auroc=0.0, accuracy=0.0, positive_predicted_rate=0.0,
+            name="creatinine_delta",
+            n=0,
+            n_positive=0,
+            prevalence=0.0,
+            auroc=0.0,
+            accuracy=0.0,
+            positive_predicted_rate=0.0,
             rationale="empty label set",
         )
     y_true = [r.label for r in labels]
-    y_score = [
-        float(r.context.get("creatinine_delta") or 0.0)
-        for r in labels
-    ]
+    y_score = [float(r.context.get("creatinine_delta") or 0.0) for r in labels]
     auroc = compute_auroc(y_true, y_score)
     predicted = [1 if s > threshold else 0 for s in y_score]
     correct = sum(1 for yt, yp in zip(y_true, predicted) if yt == yp)

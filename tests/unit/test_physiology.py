@@ -54,12 +54,17 @@ def test_conditions():
 @pytest.fixture
 def baseline_vitals():
     return BaselineVitals(
-        temperature=36.4, heart_rate=76, systolic_bp=132,
-        diastolic_bp=78, respiratory_rate=16, spo2=97.0,
+        temperature=36.4,
+        heart_rate=76,
+        systolic_bp=132,
+        diastolic_bp=78,
+        respiratory_rate=16,
+        spo2=97.0,
     )
 
 
 # --- Initialization ---
+
 
 @pytest.mark.unit
 class TestInitializeState:
@@ -100,6 +105,7 @@ class TestInitializeState:
 
 # --- Disease onset ---
 
+
 @pytest.mark.unit
 class TestDiseaseOnset:
     def test_moderate_pneumonia(self, test_patient_profile, test_conditions):
@@ -121,6 +127,7 @@ class TestDiseaseOnset:
 
 
 # --- Update ---
+
 
 @pytest.mark.unit
 class TestUpdate:
@@ -146,11 +153,14 @@ class TestUpdate:
 
 # --- Coupling rules ---
 
+
 @pytest.mark.unit
 class TestCouplingRules:
     def test_low_perfusion_hurts_renal(self):
         state = PhysiologicalState(
-            cardiac_function=0.3, perfusion_status=0.3, renal_function=0.8,
+            cardiac_function=0.3,
+            perfusion_status=0.3,
+            renal_function=0.8,
         )
         apply_coupling_rules(state)
         assert state.perfusion_status < 0.5
@@ -188,6 +198,7 @@ class TestApplyStateDelta:
 
 # --- Lab value derivation ---
 
+
 @pytest.mark.unit
 class TestDeriveLabValues:
     def test_normal_state(self):
@@ -224,18 +235,15 @@ class TestDeriveLabValues:
     def test_dka_hyperglycemia_from_glucose_status(self):
         """DKA's acute glycemic state drives glucose to 300-500+, not baseline (AD-57)."""
         normal = derive_lab_values(PhysiologicalState(), sex="M", age=55)
-        dka = derive_lab_values(
-            PhysiologicalState(glucose_status=0.6), sex="M", age=55)
-        severe = derive_lab_values(
-            PhysiologicalState(glucose_status=0.8), sex="M", age=55)
+        dka = derive_lab_values(PhysiologicalState(glucose_status=0.6), sex="M", age=55)
+        severe = derive_lab_values(PhysiologicalState(glucose_status=0.8), sex="M", age=55)
         assert normal["Glucose"] < 130
         assert dka["Glucose"] > 300
         assert severe["Glucose"] > dka["Glucose"]
         assert dka["Glucose"] <= 1200  # clamped to a physiological bound
 
     def test_hypoglycemia_from_negative_glucose_status(self):
-        labs = derive_lab_values(
-            PhysiologicalState(glucose_status=-0.5), sex="M", age=55)
+        labs = derive_lab_values(PhysiologicalState(glucose_status=-0.5), sex="M", age=55)
         assert labs["Glucose"] < 95
 
     def test_bnp_discriminates_hf_from_mi(self):
@@ -244,17 +252,11 @@ class TestDeriveLabValues:
         # ~0.27 with volume overload ~0.56; acute MI drops cardiac to ~0.19 with normal
         # volume. The thresholds encode the clinical target bands (HF 800-1500, MI <400).
         # HF exacerbation: low cardiac + volume overload (wall stress) -> high BNP.
-        hf = derive_lab_values(
-            PhysiologicalState(cardiac_function=0.27, volume_status=0.56),
-            sex="M", age=75)
+        hf = derive_lab_values(PhysiologicalState(cardiac_function=0.27, volume_status=0.56), sex="M", age=75)
         # Uncomplicated MI: low cardiac, normal/low volume -> moderate BNP.
-        mi = derive_lab_values(
-            PhysiologicalState(cardiac_function=0.19, volume_status=-0.05),
-            sex="M", age=75)
+        mi = derive_lab_values(PhysiologicalState(cardiac_function=0.19, volume_status=-0.05), sex="M", age=75)
         # Normal heart -> near-baseline BNP.
-        normal = derive_lab_values(
-            PhysiologicalState(cardiac_function=0.90, volume_status=0.0),
-            sex="M", age=75)
+        normal = derive_lab_values(PhysiologicalState(cardiac_function=0.90, volume_status=0.0), sex="M", age=75)
         assert normal["BNP"] < 100
         assert 100 < mi["BNP"] < 400
         assert hf["BNP"] > 800
@@ -263,19 +265,13 @@ class TestDeriveLabValues:
     def test_bnp_volume_term_gated_by_cardiac(self):
         # Volume overload in a PRESERVED heart (e.g. cirrhosis ascites, AKI) must NOT
         # spuriously elevate BNP — the volume term is gated by cardiac dysfunction.
-        preserved = derive_lab_values(
-            PhysiologicalState(cardiac_function=0.85, volume_status=0.50),
-            sex="M", age=75)
+        preserved = derive_lab_values(PhysiologicalState(cardiac_function=0.85, volume_status=0.50), sex="M", age=75)
         assert preserved["BNP"] < 100
 
     def test_bnp_dehydration_does_not_suppress(self):
         # Negative volume_status (dehydration) must not push BNP below the cardiac floor.
-        dry = derive_lab_values(
-            PhysiologicalState(cardiac_function=0.50, volume_status=-0.60),
-            sex="M", age=75)
-        floor = derive_lab_values(
-            PhysiologicalState(cardiac_function=0.50, volume_status=0.0),
-            sex="M", age=75)
+        dry = derive_lab_values(PhysiologicalState(cardiac_function=0.50, volume_status=-0.60), sex="M", age=75)
+        floor = derive_lab_values(PhysiologicalState(cardiac_function=0.50, volume_status=0.0), sex="M", age=75)
         assert dry["BNP"] == pytest.approx(floor["BNP"])
 
     def test_bnp_clamped_to_assay_ceiling(self):
@@ -283,6 +279,7 @@ class TestDeriveLabValues:
             PHYSIOLOGIC_LIMITS,
             apply_realistic_variability,
         )
+
         assert PHYSIOLOGIC_LIMITS["BNP"] == (0.0, 5000.0)
         rng = np.random.default_rng(0)
         # A divergent true BNP (severe HF) must be capped at the assay ceiling.
@@ -292,9 +289,12 @@ class TestDeriveLabValues:
     def test_no_negative_values(self):
         """No lab value should ever be negative."""
         state = PhysiologicalState(
-            inflammation_level=0.9, renal_function=0.1,
-            cardiac_function=0.2, hepatic_function=0.1,
-            anemia_level=0.9, perfusion_status=0.1,
+            inflammation_level=0.9,
+            renal_function=0.1,
+            cardiac_function=0.2,
+            hepatic_function=0.1,
+            anemia_level=0.9,
+            perfusion_status=0.1,
         )
         labs = derive_lab_values(state, sex="F", age=85)
         for name, value in labs.items():
@@ -322,6 +322,7 @@ class TestDeriveLabValues:
 
 # --- Acid-base (two-axis metabolic / respiratory, AD-57) ---
 
+
 @pytest.mark.unit
 class TestAcidBase:
     def test_normal_blood_gas(self):
@@ -335,44 +336,41 @@ class TestAcidBase:
         state = PhysiologicalState(ph_status=-0.5, respiratory_fraction=0.0)
         labs = derive_lab_values(state, sex="M", age=50)
         assert labs["pH"] < 7.35
-        assert labs["HCO3"] < 18          # primary metabolic drop
-        assert labs["pCO2"] < 36          # respiratory compensation (NOT a rise)
+        assert labs["HCO3"] < 18  # primary metabolic drop
+        assert labs["pCO2"] < 36  # respiratory compensation (NOT a rise)
 
     def test_respiratory_acidosis_has_metabolic_compensation(self):
         """COPD-style respiratory acidosis: high pCO2 AND compensating high HCO3."""
         state = PhysiologicalState(ph_status=-0.25, respiratory_fraction=1.0)
         labs = derive_lab_values(state, sex="M", age=50)
-        assert labs["pCO2"] > 45          # CO2 retention
-        assert labs["HCO3"] > 25          # renal compensation (NOT a drop)
-        assert labs["pH"] > 7.30          # chronic compensation keeps pH near-normal
+        assert labs["pCO2"] > 45  # CO2 retention
+        assert labs["HCO3"] > 25  # renal compensation (NOT a drop)
+        assert labs["pH"] > 7.30  # chronic compensation keeps pH near-normal
 
     def test_axis_distinguishes_same_magnitude(self):
         """Same ph_status magnitude routes differently by respiratory_fraction."""
-        met = derive_lab_values(
-            PhysiologicalState(ph_status=-0.3, respiratory_fraction=0.0), sex="M", age=50)
-        resp = derive_lab_values(
-            PhysiologicalState(ph_status=-0.3, respiratory_fraction=1.0), sex="M", age=50)
-        assert met["HCO3"] < resp["HCO3"]   # metabolic drops bicarb, respiratory raises it
-        assert met["pCO2"] < resp["pCO2"]   # metabolic lowers CO2, respiratory raises it
+        met = derive_lab_values(PhysiologicalState(ph_status=-0.3, respiratory_fraction=0.0), sex="M", age=50)
+        resp = derive_lab_values(PhysiologicalState(ph_status=-0.3, respiratory_fraction=1.0), sex="M", age=50)
+        assert met["HCO3"] < resp["HCO3"]  # metabolic drops bicarb, respiratory raises it
+        assert met["pCO2"] < resp["pCO2"]  # metabolic lowers CO2, respiratory raises it
 
     def test_copd_chronic_sets_respiratory_axis(self):
         """A chronic COPD patient initializes onto the respiratory axis."""
-        profile = PatientPhysiologicalProfile(
-            renal_reserve=0.9, cardiac_reserve=0.9, hepatic_reserve=0.9)
+        profile = PatientPhysiologicalProfile(renal_reserve=0.9, cardiac_reserve=0.9, hepatic_reserve=0.9)
         copd = ChronicCondition(code="J44.9", severity="moderate", severity_score=0.5)
         state = initialize_state(profile, [copd])
         assert state.respiratory_fraction == 1.0
 
     def test_disease_onset_sets_axis_from_type(self):
         state = PhysiologicalState()
-        apply_disease_onset(state, "severe", {"severe": {"ph_status": -0.3}},
-                            acid_base_type="respiratory")
+        apply_disease_onset(state, "severe", {"severe": {"ph_status": -0.3}}, acid_base_type="respiratory")
         assert state.respiratory_fraction == 1.0
         labs = derive_lab_values(state, sex="M", age=50)
         assert labs["pCO2"] > 45 and labs["HCO3"] > 25
 
 
 # --- Vital signs derivation ---
+
 
 @pytest.mark.unit
 class TestDeriveVitalSigns:
@@ -420,6 +418,7 @@ class TestDeriveVitalSigns:
 
 # --- Observed vitals (shared inpatient/ED/outpatient path, AD-57) ---
 
+
 @pytest.mark.unit
 class TestDeriveObservedVitals:
     def test_keys_and_determinism(self, baseline_vitals):
@@ -427,8 +426,7 @@ class TestDeriveObservedVitals:
         ts = datetime(2024, 6, 15, 10, 0)
         a = derive_observed_vitals(state, baseline_vitals, ts, np.random.default_rng(7))
         b = derive_observed_vitals(state, baseline_vitals, ts, np.random.default_rng(7))
-        assert set(a) == {"temperature", "heart_rate", "systolic_bp",
-                          "diastolic_bp", "respiratory_rate", "spo2"}
+        assert set(a) == {"temperature", "heart_rate", "systolic_bp", "diastolic_bp", "respiratory_rate", "spo2"}
         assert a == b  # same seed → identical observed values
 
     def test_noise_keeps_spo2_in_range(self, baseline_vitals):
@@ -442,15 +440,14 @@ class TestDeriveObservedVitals:
         """Observed vitals follow the hidden state, not a fixed normal template."""
         ts = datetime(2024, 6, 15, 10, 0)
         rng = np.random.default_rng(0)
-        febrile = derive_observed_vitals(
-            PhysiologicalState(inflammation_level=0.7), baseline_vitals, ts, rng)
-        healthy = derive_observed_vitals(
-            PhysiologicalState(), baseline_vitals, ts, np.random.default_rng(0))
+        febrile = derive_observed_vitals(PhysiologicalState(inflammation_level=0.7), baseline_vitals, ts, rng)
+        healthy = derive_observed_vitals(PhysiologicalState(), baseline_vitals, ts, np.random.default_rng(0))
         assert febrile["temperature"] > healthy["temperature"]
         assert febrile["heart_rate"] > healthy["heart_rate"]
 
 
 # --- Sodium axis (dysnatremia) ---
+
 
 @pytest.mark.unit
 def test_sodium_status_field_and_range():
@@ -496,16 +493,12 @@ def test_chronic_hf_cirrhosis_baseline_hyponatremia():
     # Heart failure (I50.9) with moderate severity -> dilutional hyponatremia
     hf = ChronicCondition(code="I50.9", severity_score=0.6)
     state_hf = initialize_state(profile, [hf])
-    assert state_hf.sodium_status < 0.0, (
-        f"HF should lower sodium_status, got {state_hf.sodium_status}"
-    )
+    assert state_hf.sodium_status < 0.0, f"HF should lower sodium_status, got {state_hf.sodium_status}"
 
     # Cirrhosis (K74.6) -> dilutional hyponatremia
     cirrhosis = ChronicCondition(code="K74.6", severity_score=0.6)
     state_k74 = initialize_state(profile, [cirrhosis])
-    assert state_k74.sodium_status < 0.0, (
-        f"Cirrhosis should lower sodium_status, got {state_k74.sodium_status}"
-    )
+    assert state_k74.sodium_status < 0.0, f"Cirrhosis should lower sodium_status, got {state_k74.sodium_status}"
 
 
 @pytest.mark.unit
@@ -513,9 +506,9 @@ class TestHbA1cGlycemicControl:
     def test_hba1c_from_glycemic_control_monotonic_and_bounds(self):
         best = hba1c_from_glycemic_control(1.0)
         worst = hba1c_from_glycemic_control(0.0)
-        assert best < worst                      # worse control -> higher HbA1c
-        assert 6.0 <= best <= 7.0                # well-controlled diabetic
-        assert 10.0 <= worst <= 13.0             # very poor control
+        assert best < worst  # worse control -> higher HbA1c
+        assert 6.0 <= best <= 7.0  # well-controlled diabetic
+        assert 10.0 <= worst <= 13.0  # very poor control
         # clamps out-of-range input
         assert hba1c_from_glycemic_control(2.0) == hba1c_from_glycemic_control(1.0)
 
@@ -568,12 +561,12 @@ def test_creatinine_curve_matches_clinical_bands():
     # the formula independent of disease onset / coupling.
     expected = {
         # state.renal_function -> Cr (mg/dL), tolerance 0.05
-        0.0: 5.05,   # severe AKI (anuric state) - KDIGO 3 mid-high
-        0.1: 4.40,   # KDIGO 3
-        0.2: 3.75,   # KDIGO 2
-        0.3: 3.10,   # CKD3 typical
-        0.4: 2.45,   # early CKD
-        0.5: 1.80,   # baseline (boundary, continuous with renal>0.5 branch)
+        0.0: 5.05,  # severe AKI (anuric state) - KDIGO 3 mid-high
+        0.1: 4.40,  # KDIGO 3
+        0.2: 3.75,  # KDIGO 2
+        0.3: 3.10,  # CKD3 typical
+        0.4: 2.45,  # early CKD
+        0.5: 1.80,  # baseline (boundary, continuous with renal>0.5 branch)
     }
     for renal, target in expected.items():
         st = PhysiologicalState(patient_id="pt")
@@ -608,8 +601,7 @@ def test_aki_creatinine_not_anuric_on_elderly_baseline():
         state = apply_disease_onset(state, severity, proto.initial_state_impact)
         labs = derive_lab_values(state, sex="M", age=78)
         assert labs["Creatinine"] < ceiling, (
-            f"{severity}: state.renal={state.renal_function:.2f} "
-            f"Cr={labs['Creatinine']:.2f} >= ceiling {ceiling}"
+            f"{severity}: state.renal={state.renal_function:.2f} Cr={labs['Creatinine']:.2f} >= ceiling {ceiling}"
         )
 
 
@@ -619,20 +611,18 @@ def test_hco3_metabolic_axis_matches_ada_bands():
     (respiratory_fraction=0). Guards the DKA / sepsis / CKD HCO3 calibration."""
     # state.ph_status -> HCO3 (mEq/L), tolerance 0.10
     expected = {
-        0.00: 24.00,    # no disturbance
-        -0.10: 20.90,   # CKD chronic mild metabolic
-        -0.15: 19.35,   # severe sepsis
-        -0.35: 13.15,   # DKA moderate (ADA moderate band: 10-15)
-        -0.60: 5.40,    # DKA severe (ADA severe band: <10; clamped at 5.0 floor below -0.61)
+        0.00: 24.00,  # no disturbance
+        -0.10: 20.90,  # CKD chronic mild metabolic
+        -0.15: 19.35,  # severe sepsis
+        -0.35: 13.15,  # DKA moderate (ADA moderate band: 10-15)
+        -0.60: 5.40,  # DKA severe (ADA severe band: <10; clamped at 5.0 floor below -0.61)
     }
     for ph, target in expected.items():
         st = PhysiologicalState(patient_id="pt")
-        st.respiratory_fraction = 0.0   # pure metabolic axis
+        st.respiratory_fraction = 0.0  # pure metabolic axis
         st.ph_status = ph
         labs = derive_lab_values(st, sex="M", age=55)
-        assert abs(labs["HCO3"] - target) < 0.10, (
-            f"ph_status={ph:.2f} HCO3={labs['HCO3']:.2f} expected≈{target}"
-        )
+        assert abs(labs["HCO3"] - target) < 0.10, f"ph_status={ph:.2f} HCO3={labs['HCO3']:.2f} expected≈{target}"
 
 
 @pytest.mark.unit
@@ -659,10 +649,8 @@ def test_dka_moderate_acidosis_in_clinical_range():
 @pytest.mark.unit
 def test_anion_gap_status_field_default_is_zero():
     state = PhysiologicalState()
-    assert hasattr(state, "anion_gap_status"), \
-        "PhysiologicalState should have anion_gap_status field"
-    assert state.anion_gap_status == 0.0, \
-        "default anion_gap_status should be 0.0 (normal AG)"
+    assert hasattr(state, "anion_gap_status"), "PhysiologicalState should have anion_gap_status field"
+    assert state.anion_gap_status == 0.0, "default anion_gap_status should be 0.0 (normal AG)"
 
 
 @pytest.mark.unit
@@ -680,17 +668,22 @@ def _healthy_state() -> PhysiologicalState:
 def _dka_state() -> PhysiologicalState:
     """DKA: severe metabolic acidosis with high AG (ketone bodies)."""
     return PhysiologicalState(
-        ph_status=-0.5, respiratory_fraction=0.0,
-        anion_gap_status=1.0, glucose_status=0.6,
-        volume_status=-0.4, renal_function=0.85,
+        ph_status=-0.5,
+        respiratory_fraction=0.0,
+        anion_gap_status=1.0,
+        glucose_status=0.6,
+        volume_status=-0.4,
+        renal_function=0.85,
     )
 
 
 def _sepsis_state() -> PhysiologicalState:
     """Sepsis: high inflammation + lactic acidosis (high-AG mixed)."""
     return PhysiologicalState(
-        inflammation_level=0.85, ph_status=-0.30,
-        respiratory_fraction=0.0, anion_gap_status=0.7,
+        inflammation_level=0.85,
+        ph_status=-0.30,
+        respiratory_fraction=0.0,
+        anion_gap_status=0.7,
         perfusion_status=0.5,
     )
 
@@ -698,8 +691,10 @@ def _sepsis_state() -> PhysiologicalState:
 def _diarrhea_state() -> PhysiologicalState:
     """Non-AG hyperchloremic acidosis from GI HCO3 loss."""
     return PhysiologicalState(
-        inflammation_level=0.08, ph_status=-0.25,
-        respiratory_fraction=0.0, anion_gap_status=-0.5,
+        inflammation_level=0.08,
+        ph_status=-0.25,
+        respiratory_fraction=0.0,
+        anion_gap_status=-0.5,
         volume_status=-0.22,
     )
 
@@ -707,8 +702,10 @@ def _diarrhea_state() -> PhysiologicalState:
 def _ckd_state() -> PhysiologicalState:
     """CKD: low renal function with uremic mild AG."""
     return PhysiologicalState(
-        renal_function=0.3, anion_gap_status=0.4,
-        ph_status=-0.1, respiratory_fraction=0.0,
+        renal_function=0.3,
+        anion_gap_status=0.4,
+        ph_status=-0.1,
+        respiratory_fraction=0.0,
     )
 
 
@@ -736,8 +733,7 @@ def test_cl_high_ag_dka_keeps_normal():
 def test_cl_non_ag_diarrhea_hyperchloremic():
     """Non-AG: Cl absorbs the HCO3 deficit 1:1, hyperchloremic."""
     labs = derive_lab_values(_diarrhea_state(), sex="M", age=45)
-    assert labs["Cl"] >= 108, \
-        f"diarrhea non-AG should give Cl >= 108 (got {labs['Cl']})"
+    assert labs["Cl"] >= 108, f"diarrhea non-AG should give Cl >= 108 (got {labs['Cl']})"
     ag = labs["Na"] - labs["Cl"] - labs["HCO3"]
     assert 5 <= ag <= 14, f"diarrhea AG should be normal (got {ag})"
 
@@ -763,8 +759,7 @@ def test_ca_ckd_low_calcium():
 @pytest.mark.unit
 def test_ca_dehydration_normal_upper_range():
     labs = derive_lab_values(_dehydration_state(), sex="M", age=45)
-    assert 9.3 <= labs["Ca"] <= 10.0, \
-        f"dehydration Ca should land in upper-normal (got {labs['Ca']})"
+    assert 9.3 <= labs["Ca"] <= 10.0, f"dehydration Ca should land in upper-normal (got {labs['Ca']})"
 
 
 # -----------------------------------------------------------------------------
@@ -782,8 +777,7 @@ def test_aptt_healthy_state():
     state = PhysiologicalState()
     labs = derive_lab_values(state, sex="M", age=45)
     assert "APTT" in labs
-    assert 25.0 <= labs["APTT"] <= 38.0, \
-        f"APTT={labs['APTT']} out of healthy range"
+    assert 25.0 <= labs["APTT"] <= 38.0, f"APTT={labs['APTT']} out of healthy range"
 
 
 @pytest.mark.unit
@@ -791,8 +785,7 @@ def test_aptt_severe_dic_prolongation():
     """Severe DIC (coagulation_status=1.0) → APTT > 65 s (markedly prolonged)."""
     state = PhysiologicalState(coagulation_status=1.0)
     labs = derive_lab_values(state, sex="M", age=45)
-    assert labs["APTT"] > 65.0, \
-        f"APTT={labs['APTT']} should be DIC-prolonged"
+    assert labs["APTT"] > 65.0, f"APTT={labs['APTT']} should be DIC-prolonged"
     assert labs["APTT"] <= 150.0, "APTT must respect upper clamp"
 
 
@@ -803,8 +796,7 @@ def test_pt_consistency_invariant_healthy():
     state = PhysiologicalState()
     labs = derive_lab_values(state, sex="M", age=45)
     assert "PT" in labs
-    assert abs(labs["PT"] - 12.0 * labs["PT_INR"]) < 0.01, \
-        f"PT={labs['PT']} != 12 * PT_INR={labs['PT_INR']}"
+    assert abs(labs["PT"] - 12.0 * labs["PT_INR"]) < 0.01, f"PT={labs['PT']} != 12 * PT_INR={labs['PT_INR']}"
 
 
 @pytest.mark.unit
@@ -817,8 +809,7 @@ def test_pt_hepatic_failure_prolongation():
     """
     state = PhysiologicalState(hepatic_function=0.2)
     labs = derive_lab_values(state, sex="M", age=45)
-    assert labs["PT"] >= 17.0, \
-        f"PT={labs['PT']} should be prolonged in hepatic failure"
+    assert labs["PT"] >= 17.0, f"PT={labs['PT']} should be prolonged in hepatic failure"
     assert abs(labs["PT"] - 12.0 * labs["PT_INR"]) < 0.01
 
 
@@ -828,8 +819,7 @@ def test_fibrinogen_healthy_state():
     state = PhysiologicalState()
     labs = derive_lab_values(state, sex="M", age=45)
     assert "Fibrinogen" in labs
-    assert 200.0 <= labs["Fibrinogen"] <= 400.0, \
-        f"Fibrinogen={labs['Fibrinogen']} out of healthy band"
+    assert 200.0 <= labs["Fibrinogen"] <= 400.0, f"Fibrinogen={labs['Fibrinogen']} out of healthy band"
 
 
 @pytest.mark.unit
@@ -837,8 +827,7 @@ def test_fibrinogen_severe_dic_consumption():
     """Severe DIC (coag=1.0, no inflammation): Fibrinogen consumed to floor."""
     state = PhysiologicalState(coagulation_status=1.0)
     labs = derive_lab_values(state, sex="M", age=45)
-    assert labs["Fibrinogen"] <= 100.0, \
-        f"Fibrinogen={labs['Fibrinogen']} should be DIC-consumed below 100"
+    assert labs["Fibrinogen"] <= 100.0, f"Fibrinogen={labs['Fibrinogen']} should be DIC-consumed below 100"
     assert labs["Fibrinogen"] >= 50.0, "Fibrinogen must respect 50 mg/dL floor"
 
 
@@ -847,8 +836,7 @@ def test_fibrinogen_acute_phase_elevation():
     """Sepsis WITHOUT DIC (infl=0.85, coag=0): acute-phase reactant → ≥ 450."""
     state = PhysiologicalState(inflammation_level=0.85)
     labs = derive_lab_values(state, sex="M", age=45)
-    assert labs["Fibrinogen"] >= 450.0, \
-        f"Fibrinogen={labs['Fibrinogen']} should be acute-phase elevated"
+    assert labs["Fibrinogen"] >= 450.0, f"Fibrinogen={labs['Fibrinogen']} should be acute-phase elevated"
 
 
 @pytest.mark.unit
@@ -857,8 +845,7 @@ def test_fibrinogen_sepsis_dic_falls_below_baseline():
     acute-phase rise; Fibrinogen lands at DIC-trending level (< 250)."""
     state = PhysiologicalState(inflammation_level=0.85, coagulation_status=0.80)
     labs = derive_lab_values(state, sex="M", age=45)
-    assert labs["Fibrinogen"] < 350.0, \
-        f"Fibrinogen={labs['Fibrinogen']} should show consumption overtaking acute-phase"
+    assert labs["Fibrinogen"] < 350.0, f"Fibrinogen={labs['Fibrinogen']} should show consumption overtaking acute-phase"
 
 
 # -----------------------------------------------------------------------------
@@ -875,8 +862,7 @@ def test_d_dimer_healthy_state_low():
     state = PhysiologicalState()
     labs = derive_lab_values(state, sex="M", age=45)
     assert "D_dimer" in labs
-    assert labs["D_dimer"] < 1.0, \
-        f"D-dimer={labs['D_dimer']} should be < 1.0 in a healthy adult"
+    assert labs["D_dimer"] < 1.0, f"D-dimer={labs['D_dimer']} should be < 1.0 in a healthy adult"
 
 
 @pytest.mark.unit
@@ -886,8 +872,7 @@ def test_d_dimer_age_adjusted_baseline():
     state = PhysiologicalState()
     young = derive_lab_values(state, sex="M", age=35)
     old = derive_lab_values(state, sex="M", age=85)
-    assert old["D_dimer"] > young["D_dimer"], \
-        f"old D-dimer {old['D_dimer']} should exceed young {young['D_dimer']}"
+    assert old["D_dimer"] > young["D_dimer"], f"old D-dimer {old['D_dimer']} should exceed young {young['D_dimer']}"
 
 
 @pytest.mark.unit
@@ -896,11 +881,10 @@ def test_d_dimer_vte_flag_elevates_to_positive_range():
     state = PhysiologicalState()
     labs_no_vte = derive_lab_values(state, sex="M", age=60)
     labs_vte = derive_lab_values(state, sex="M", age=60, causes_vte=True)
-    assert labs_vte["D_dimer"] > 4.0, \
-        f"VTE D-dimer={labs_vte['D_dimer']} should be clinically positive (>4)"
-    assert labs_vte["D_dimer"] > labs_no_vte["D_dimer"] + 3.0, \
-        f"VTE flag should add ~4 to D-dimer, got delta " \
-        f"{labs_vte['D_dimer'] - labs_no_vte['D_dimer']}"
+    assert labs_vte["D_dimer"] > 4.0, f"VTE D-dimer={labs_vte['D_dimer']} should be clinically positive (>4)"
+    assert labs_vte["D_dimer"] > labs_no_vte["D_dimer"] + 3.0, (
+        f"VTE flag should add ~4 to D-dimer, got delta {labs_vte['D_dimer'] - labs_no_vte['D_dimer']}"
+    )
 
 
 @pytest.mark.unit
@@ -909,8 +893,7 @@ def test_d_dimer_sepsis_without_vte_mildly_elevated():
     but stays below the VTE-positive threshold."""
     state = PhysiologicalState(inflammation_level=0.85)
     labs = derive_lab_values(state, sex="M", age=60)
-    assert labs["D_dimer"] < 2.0, \
-        f"sepsis no-VTE D-dimer={labs['D_dimer']} should stay non-specific"
+    assert labs["D_dimer"] < 2.0, f"sepsis no-VTE D-dimer={labs['D_dimer']} should stay non-specific"
 
 
 @pytest.mark.unit
@@ -919,8 +902,7 @@ def test_d_dimer_dic_alone_can_reach_positive_without_vte():
     clinically true (consumptive coagulopathy with fibrinolysis)."""
     state = PhysiologicalState(inflammation_level=0.85, coagulation_status=1.0)
     labs = derive_lab_values(state, sex="M", age=60)
-    assert labs["D_dimer"] >= 2.0, \
-        f"severe DIC D-dimer={labs['D_dimer']} should be elevated"
+    assert labs["D_dimer"] >= 2.0, f"severe DIC D-dimer={labs['D_dimer']} should be elevated"
 
 
 @pytest.mark.unit
@@ -950,15 +932,32 @@ def test_anion_gap_status_does_not_mutate_other_labs():
     high_ag = PhysiologicalState(anion_gap_status=1.0)
     labs_base = derive_lab_values(base, sex="M", age=45)
     labs_ag = derive_lab_values(high_ag, sex="M", age=45)
-    for key in ("HCO3", "pCO2", "pH", "K", "Na", "Creatinine", "BUN", "Ca",
-                "WBC", "CRP", "BNP", "Lactate", "Glucose", "HbA1c", "Cl"):
-        assert abs(labs_base[key] - labs_ag[key]) < 1e-9, \
+    for key in (
+        "HCO3",
+        "pCO2",
+        "pH",
+        "K",
+        "Na",
+        "Creatinine",
+        "BUN",
+        "Ca",
+        "WBC",
+        "CRP",
+        "BNP",
+        "Lactate",
+        "Glucose",
+        "HbA1c",
+        "Cl",
+    ):
+        assert abs(labs_base[key] - labs_ag[key]) < 1e-9, (
             f"AG axis should not affect {key} (base={labs_base[key]}, ag={labs_ag[key]})"
+        )
 
 
 # ---------------------------------------------------------------------------
 # Phase 2b: PT_INR on warfarin (medication-physiology coupling)
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.unit
 def test_pt_inr_on_warfarin_healthy_baseline_therapeutic():

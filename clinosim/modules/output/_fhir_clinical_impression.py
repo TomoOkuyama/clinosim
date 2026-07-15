@@ -62,7 +62,9 @@ def _build_clinical_impression(imp: Any, patient_id: str) -> dict[str, Any]:
     is_in_progress = _o(imp, "is_in_progress", False)
     res: dict[str, Any] = {
         "resourceType": "ClinicalImpression",
-        "id": impression_id if impression_id.startswith(CLINICAL_IMPRESSION_ID_PREFIX) else f"{CLINICAL_IMPRESSION_ID_PREFIX}{impression_id}",
+        "id": impression_id
+        if impression_id.startswith(CLINICAL_IMPRESSION_ID_PREFIX)
+        else f"{CLINICAL_IMPRESSION_ID_PREFIX}{impression_id}",  # noqa: E501
         "status": "in-progress" if is_in_progress else "completed",
         "subject": {"reference": f"Patient/{patient_id}"},
     }
@@ -80,17 +82,16 @@ def _build_clinical_impression(imp: Any, patient_id: str) -> dict[str, Any]:
 
     # investigation: group observation refs into a single investigation item
     if investigation_refs:
-        res["investigation"] = [{
-            "code": {"text": "Investigations"},
-            "item": [{"reference": f"Observation/{ref}"} for ref in investigation_refs],
-        }]
+        res["investigation"] = [
+            {
+                "code": {"text": "Investigations"},
+                "item": [{"reference": f"Observation/{ref}"} for ref in investigation_refs],
+            }
+        ]
 
     # finding: one entry per condition ref
     if finding_refs:
-        res["finding"] = [
-            {"itemReference": {"reference": f"Condition/{ref}"}}
-            for ref in finding_refs
-        ]
+        res["finding"] = [{"itemReference": {"reference": f"Condition/{ref}"}} for ref in finding_refs]
 
     if prognosis:
         res["prognosisCodeableConcept"] = [{"text": prognosis}]

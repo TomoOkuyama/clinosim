@@ -51,6 +51,7 @@ HEALTH_CHECKUP_SUBSET_RATE = 0.30
 # 対象年齢下限(労安衛法定健診相当)
 HEALTH_CHECKUP_MIN_AGE = 40
 
+
 # 年齢帯 → 健診種別の decision map(sub-PR-D)。
 #   40-64: 事業者健診(occupational、労安衛法定)
 #   65-74: 特定健診(specific、40-74 保険 base)
@@ -68,8 +69,8 @@ def _pick_checkup_type(age: int) -> str:
 
 # 種別ごとの主訴表示
 _CHECKUP_TYPE_CHIEF_COMPLAINT: dict[str, str] = {
-    "occupational":   "事業者健診",
-    "specific":       "特定健診",
+    "occupational": "事業者健診",
+    "specific": "特定健診",
     "regional_union": "広域連合健診",
 }
 
@@ -81,11 +82,11 @@ _CHECKUP_ITEMS: list[dict[str, str]] = [
     # 「kg/m2」→「kg/m2」(UCUM 準拠のまま、変更なし)
     # 「mmHg」→「mm[Hg]」(UCUM は bracketed 単位を要求)
     # 「mg/dL」→「mg/dL」(UCUM canonical、変更なし)
-    {"loinc": "39156-5", "key": "bmi",     "unit": "kg/m2"},
-    {"loinc": "8480-6",  "key": "sbp",     "unit": "mm[Hg]"},
-    {"loinc": "8462-4",  "key": "dbp",     "unit": "mm[Hg]"},
-    {"loinc": "4548-4",  "key": "hba1c",   "unit": "%"},
-    {"loinc": "18262-6", "key": "ldl",     "unit": "mg/dL"},
+    {"loinc": "39156-5", "key": "bmi", "unit": "kg/m2"},
+    {"loinc": "8480-6", "key": "sbp", "unit": "mm[Hg]"},
+    {"loinc": "8462-4", "key": "dbp", "unit": "mm[Hg]"},
+    {"loinc": "4548-4", "key": "hba1c", "unit": "%"},
+    {"loinc": "18262-6", "key": "ldl", "unit": "mg/dL"},
 ]
 
 # 糖尿病を示す ICD-10 code(chronic_conditions.code で判定)
@@ -155,17 +156,13 @@ def _derive_checkup_values(patient: Any, rng: np.random.Generator) -> dict[str, 
     else:
         ldl_base = 115.0 + max(0, age - 40) * 0.3
     has_dyslipidemia = any(
-        (_o(c, "code", "") or "").split(".")[0] == "E78" or
-        (_o(c, "code", "") or "") in _DYSLIPIDEMIA_CODES
+        (_o(c, "code", "") or "").split(".")[0] == "E78" or (_o(c, "code", "") or "") in _DYSLIPIDEMIA_CODES
         for c in chronic
     )
     if has_dyslipidemia:
         ldl_base += 40.0  # 未治療脂質異常症の相対上昇
     # スタチン系薬(-statin 末尾)服用で薬理制御
-    on_statin = any(
-        isinstance(m, str) and m.lower().endswith("statin")
-        for m in meds
-    )
+    on_statin = any(isinstance(m, str) and m.lower().endswith("statin") for m in meds)
     if on_statin:
         ldl_base -= 30.0
     ldl = float(np.clip(ldl_base + rng.normal(0.0, 10.0), 40.0, 300.0))
@@ -202,7 +199,9 @@ def _pick_checkup_date(snapshot_date: date | str | None) -> date:
 
 
 def _build_checkup_encounter(
-    patient_id: str, checkup_date: date, encounter_seq: int,
+    patient_id: str,
+    checkup_date: date,
+    encounter_seq: int,
     checkup_type: str = "occupational",
 ) -> Encounter:
     """CHECKUP encounter を組み立てる(1 日完結、退院同日)。
@@ -238,11 +237,11 @@ def _interp_for(loinc: str, value: float) -> tuple[str, str]:
     """
     if loinc == "39156-5":  # BMI
         return ("H" if value >= 25.0 else "N", "18.5-24.9 kg/m2")
-    if loinc == "8480-6":   # SBP
+    if loinc == "8480-6":  # SBP
         return ("H" if value >= 130.0 else "N", "<130 mmHg")
-    if loinc == "8462-4":   # DBP
+    if loinc == "8462-4":  # DBP
         return ("H" if value >= 85.0 else "N", "<85 mmHg")
-    if loinc == "4548-4":   # HbA1c
+    if loinc == "4548-4":  # HbA1c
         return ("H" if value >= 5.6 else "N", "<5.6 %")
     if loinc == "18262-6":  # LDL
         return ("H" if value >= 120.0 else "N", "<120 mg/dL")
@@ -250,7 +249,9 @@ def _interp_for(loinc: str, value: float) -> tuple[str, str]:
 
 
 def _build_checkup_lab_results(
-    patient_id: str, patient: Any, checkup_date: date,
+    patient_id: str,
+    patient: Any,
+    checkup_date: date,
     rng: np.random.Generator,
 ) -> list[OrderResult]:
     """法定健診 5 項目の OrderResult を組み立てる(sub-PR-B 高度化)。
@@ -270,22 +271,28 @@ def _build_checkup_lab_results(
         else:
             v = float(round(v, 1))
         interp, ref = _interp_for(item["loinc"], v)
-        results.append(OrderResult(
-            result_datetime=result_dt,
-            performed_by="",
-            lab_name=item["loinc"],
-            value=v,
-            unit=item["unit"],
-            reference_range=ref,
-            flag=("H" if interp == "H" else None),
-            interpretation=interp,
-            specimen_note="",
-        ))
+        results.append(
+            OrderResult(
+                result_datetime=result_dt,
+                performed_by="",
+                lab_name=item["loinc"],
+                value=v,
+                unit=item["unit"],
+                reference_range=ref,
+                flag=("H" if interp == "H" else None),
+                interpretation=interp,
+                specimen_note="",
+            )
+        )
     return results
 
 
 def _build_checkup_document_stub(
-    patient_id: str, encounter_id: str, checkup_date: date, doc_seq: int, lang: str,
+    patient_id: str,
+    encounter_id: str,
+    checkup_date: date,
+    doc_seq: int,
+    lang: str,
     checkup_type: str = "occupational",
 ) -> ClinicalDocument:
     """健診結果報告書 ClinicalDocument stub を作る(narrative=None)。
@@ -374,17 +381,25 @@ def enrich_health_checkup(ctx: Any) -> None:
         checkup_date = _pick_checkup_date(snapshot_date)
         checkup_type = _pick_checkup_type(age)
         encounter = _build_checkup_encounter(
-            patient_id, checkup_date, 1, checkup_type=checkup_type,
+            patient_id,
+            checkup_date,
+            1,
+            checkup_type=checkup_type,
         )
         # per-patient sub-rng(AD-16):同 seed+同 patient_id → 同 lab 値。
-        patient_rng = np.random.default_rng(
-            derive_sub_seed(master_seed, hc_offset, patient_id)
-        )
+        patient_rng = np.random.default_rng(derive_sub_seed(master_seed, hc_offset, patient_id))
         checkup_labs = _build_checkup_lab_results(
-            patient_id, patient, checkup_date, patient_rng,
+            patient_id,
+            patient,
+            checkup_date,
+            patient_rng,
         )
         checkup_doc = _build_checkup_document_stub(
-            patient_id, encounter.encounter_id, checkup_date, 1, lang,
+            patient_id,
+            encounter.encounter_id,
+            checkup_date,
+            1,
+            lang,
             checkup_type=checkup_type,
         )
         # CY8-01 fix(session 48 cycle 8):Order を lab_results 数だけ作り
@@ -394,25 +409,28 @@ def enrich_health_checkup(ctx: Any) -> None:
         # 出力される(以前は record.lab_results 直接置きで silent-drop)。
         # panel_key="Checkup" を共有し、5 orders → 1 SR + 1 DR + 5 Observation。
         ordered_dt = datetime.combine(
-            checkup_date, datetime.min.time().replace(hour=9, minute=30),
+            checkup_date,
+            datetime.min.time().replace(hour=9, minute=30),
         )
         checkup_orders: list[Order] = []
         for i, res in enumerate(checkup_labs):
-            checkup_orders.append(Order(
-                order_id=f"ord-{encounter.encounter_id}-CHK-{i:02d}",
-                encounter_id=encounter.encounter_id,
-                patient_id=patient_id,
-                order_type=OrderType.LAB,
-                order_code=res.lab_name,  # LOINC
-                display_name=res.lab_name,
-                urgency="routine",
-                clinical_intent="health_checkup",
-                ordered_datetime=ordered_dt,
-                ordered_by="",  # 健診は事業所/自治体依頼、実施医師未指定
-                status=OrderStatus.REVIEWED,  # 健診結果まで完了、reviewed 相当
-                result=res,
-                panel_key="Checkup",  # 5 orders → 1 ServiceRequest + 1 DR
-            ))
+            checkup_orders.append(
+                Order(
+                    order_id=f"ord-{encounter.encounter_id}-CHK-{i:02d}",
+                    encounter_id=encounter.encounter_id,
+                    patient_id=patient_id,
+                    order_type=OrderType.LAB,
+                    order_code=res.lab_name,  # LOINC
+                    display_name=res.lab_name,
+                    urgency="routine",
+                    clinical_intent="health_checkup",
+                    ordered_datetime=ordered_dt,
+                    ordered_by="",  # 健診は事業所/自治体依頼、実施医師未指定
+                    status=OrderStatus.REVIEWED,  # 健診結果まで完了、reviewed 相当
+                    result=res,
+                    panel_key="Checkup",  # 5 orders → 1 ServiceRequest + 1 DR
+                )
+            )
 
         # 健診 record は新規 CIFPatientRecord として組み立てる:
         # narrative pass の spec applicability は record.encounters[0] を

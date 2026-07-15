@@ -21,9 +21,7 @@ from clinosim.modules.patient.activator import STAGE_SEVERITY
 
 pytestmark = pytest.mark.unit
 
-_YAML_DIR = os.path.join(
-    os.path.dirname(__file__), "..", "..", "clinosim", "modules", "disease", "reference_data"
-)
+_YAML_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "clinosim", "modules", "disease", "reference_data")
 _FILES = sorted(glob.glob(os.path.join(_YAML_DIR, "*.yaml")))
 
 
@@ -70,8 +68,7 @@ _GRADED_STAGE_CODES = {"N18", "I50", "J44", "J45", "I10", "I25"}
 def test_c2_every_graded_stage_condition_has_severity_consumer():
     missing = _GRADED_STAGE_CODES - set(STAGE_SEVERITY)
     assert not missing, (
-        f"graded-stage conditions without a STAGE_SEVERITY consumer (degenerate stage "
-        f"risk, I10-class): {missing}"
+        f"graded-stage conditions without a STAGE_SEVERITY consumer (degenerate stage risk, I10-class): {missing}"
     )
 
 
@@ -90,9 +87,7 @@ _COURSE_ARCHETYPE_BACKLOG: set[str] = set()
 
 
 def test_c3_course_archetype_backlog_is_exactly_the_known_set():
-    missing = {
-        os.path.basename(f)[:-5] for f in _FILES if not _raw(f).get("course_archetypes")
-    }
+    missing = {os.path.basename(f)[:-5] for f in _FILES if not _raw(f).get("course_archetypes")}
     assert missing == _COURSE_ARCHETYPE_BACKLOG, (
         f"course_archetypes backlog drifted. Missing now: {sorted(missing)}. "
         f"Expected: {sorted(_COURSE_ARCHETYPE_BACKLOG)}. If you authored one, remove it "
@@ -123,9 +118,7 @@ def jp_bacterial_pneumonia_resources(tmp_path_factory):
     from clinosim.types.config import SimulatorConfig, load_patient_profile
 
     profile_path = (
-        Path(__file__).resolve().parents[1]
-        / "fixtures" / "patient_profiles"
-        / "jp_inpatient_bacterial_pneumonia.yaml"
+        Path(__file__).resolve().parents[1] / "fixtures" / "patient_profiles" / "jp_inpatient_bacterial_pneumonia.yaml"
     )
     profile = load_patient_profile(str(profile_path))
     scenario = profile.to_forced_scenario()
@@ -172,9 +165,7 @@ class TestJpClinsProfileEmissionInvariants:
     convert_cif_to_fhir. No subprocess.
     """
 
-    def test_jp_bacterial_pneumonia_cohort_has_clins_profiles(
-        self, jp_bacterial_pneumonia_resources
-    ):
+    def test_jp_bacterial_pneumonia_cohort_has_clins_profiles(self, jp_bacterial_pneumonia_resources):
         from clinosim.modules.output.fhir_r4_adapter import (
             _JP_CLINS_PROFILES,
             _is_lab_observation,
@@ -183,8 +174,7 @@ class TestJpClinsProfileEmissionInvariants:
         # Dense JP-CLINS resource types for an inpatient bacterial pneumonia
         # cohort. AllergyIntolerance is sparse (pool may be empty; profile
         # check is vacuously true if empty).
-        expected_dense = {"Condition", "Observation",
-                          "MedicationRequest", "Procedure"}
+        expected_dense = {"Condition", "Observation", "MedicationRequest", "Procedure"}
         seen_dense: set[str] = set()
 
         for r in jp_bacterial_pneumonia_resources:
@@ -195,20 +185,14 @@ class TestJpClinsProfileEmissionInvariants:
                 continue
             profs = r.get("meta", {}).get("profile", [])
             expected = _JP_CLINS_PROFILES[rt][0]
-            assert expected in profs, (
-                f"{rt}/{r.get('id')} missing {expected}, got {profs}"
-            )
+            assert expected in profs, f"{rt}/{r.get('id')} missing {expected}, got {profs}"
             if rt in expected_dense:
                 seen_dense.add(rt)
 
         missing = expected_dense - seen_dense
-        assert not missing, (
-            f"expected dense JP-CLINS resource types missing from cohort: {missing}"
-        )
+        assert not missing, f"expected dense JP-CLINS resource types missing from cohort: {missing}"
 
-    def test_diagnostic_report_gets_no_clins_profile(
-        self, jp_bacterial_pneumonia_resources
-    ):
+    def test_diagnostic_report_gets_no_clins_profile(self, jp_bacterial_pneumonia_resources):
         """JP-CLINS v1.12.0 does not publish a DiagnosticReport profile."""
         clins_root = "http://jpfhir.jp/fhir/eCS/StructureDefinition/"
         for r in jp_bacterial_pneumonia_resources:

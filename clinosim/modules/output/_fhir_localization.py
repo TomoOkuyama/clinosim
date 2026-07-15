@@ -35,18 +35,18 @@ def _localize_dosage_terms(text: str) -> str:
     # These often appear as "Category: ..." or "Category_word ..."
     for cat, ja in sorted(tables["categories"].items(), key=lambda x: -len(x[0])):
         # Match as prefix word, case-insensitive, followed by : or space or _
-        pattern = r'(?i)\b' + re.escape(cat) + r'\b'
+        pattern = r"(?i)\b" + re.escape(cat) + r"\b"
         text = re.sub(pattern, ja, text)
     # Dose/route/frequency terms (word-boundary, case-sensitive for uppercase abbrevs,
     # case-insensitive for lowercase words)
     for term, ja in sorted(tables["terms"].items(), key=lambda x: -len(x[0])):
         if term.isupper():
             # Case-sensitive for uppercase abbrevs (PRN, PO, IV)
-            pattern = r'\b' + re.escape(term) + r'\b'
+            pattern = r"\b" + re.escape(term) + r"\b"
             text = re.sub(pattern, ja, text)
         else:
             # Case-insensitive for lowercase words
-            pattern = r'(?i)\b' + re.escape(term) + r'\b'
+            pattern = r"(?i)\b" + re.escape(term) + r"\b"
             text = re.sub(pattern, ja, text)
     return text
 
@@ -135,13 +135,17 @@ def _localize_drug_name(drug_name: str, country: str) -> str:
     changed = False
     for en_key in sorted(ja_dict.keys(), key=lambda k: -len(k)):
         ja_val = ja_dict[en_key]
-        pattern = re.compile(r'(?i)\b' + re.escape(en_key) + r'\b')
+        pattern = re.compile(r"(?i)\b" + re.escape(en_key) + r"\b")
         new_result, n = pattern.subn(ja_val, result)
         if n > 0:
             result = new_result
             changed = True
     # Always translate dosage terms
-    return _localize_dosage_terms(result).strip() if changed or result != drug_name else _localize_dosage_terms(drug_name).strip()
+    return (
+        _localize_dosage_terms(result).strip()
+        if changed or result != drug_name
+        else _localize_dosage_terms(drug_name).strip()
+    )  # noqa: E501
 
 
 def _dept_display(dept: str, country: str) -> str:
@@ -190,11 +194,16 @@ _OCCUPATION_DISPLAY_EN: dict[str, str] = {
 # --- Shared display dictionaries for JP localization ---
 
 _CLASS_DISPLAY_JA: dict[str, str] = {
-    "AMB": "外来", "ambulatory": "外来",
-    "IMP": "入院", "inpatient encounter": "入院",
-    "EMER": "救急", "emergency": "救急",
-    "HH": "訪問看護", "home health": "訪問看護",
-    "FLD": "現地訪問", "field": "現地訪問",
+    "AMB": "外来",
+    "ambulatory": "外来",
+    "IMP": "入院",
+    "inpatient encounter": "入院",
+    "EMER": "救急",
+    "emergency": "救急",
+    "HH": "訪問看護",
+    "home health": "訪問看護",
+    "FLD": "現地訪問",
+    "field": "現地訪問",
     # C5-22 (session 43): classHistory transition labels.
     "inpatient ward": "一般病棟",
     "ICU": "集中治療室",
@@ -202,31 +211,54 @@ _CLASS_DISPLAY_JA: dict[str, str] = {
 }
 
 _CATEGORY_DISPLAY_JA: dict[str, str] = {
-    "laboratory": "検体検査", "Laboratory": "検体検査",
-    "vital-signs": "バイタルサイン", "Vital Signs": "バイタルサイン",
-    "social-history": "社会歴", "Social History": "社会歴",
-    "encounter-diagnosis": "エンカウンター診断", "Encounter Diagnosis": "エンカウンター診断",
-    "problem-list-item": "問題リスト", "Problem List Item": "問題リスト",
-    "imaging": "画像検査", "Imaging": "画像検査",
-    "procedure": "処置", "Procedure": "処置",
+    "laboratory": "検体検査",
+    "Laboratory": "検体検査",
+    "vital-signs": "バイタルサイン",
+    "Vital Signs": "バイタルサイン",
+    "social-history": "社会歴",
+    "Social History": "社会歴",
+    "encounter-diagnosis": "エンカウンター診断",
+    "Encounter Diagnosis": "エンカウンター診断",
+    "problem-list-item": "問題リスト",
+    "Problem List Item": "問題リスト",
+    "imaging": "画像検査",
+    "Imaging": "画像検査",
+    "procedure": "処置",
+    "Procedure": "処置",
 }
 
 _SEVERITY_DISPLAY_JA: dict[str, str] = {
-    "Mild": "軽度", "mild": "軽度", "24484000": "軽度",
-    "Moderate": "中等度", "moderate": "中等度", "6736007": "中等度",
-    "Severe": "重度", "severe": "重度", "24484000|severe": "重度", "255604002": "重度",
+    "Mild": "軽度",
+    "mild": "軽度",
+    "24484000": "軽度",
+    "Moderate": "中等度",
+    "moderate": "中等度",
+    "6736007": "中等度",
+    "Severe": "重度",
+    "severe": "重度",
+    "24484000|severe": "重度",
+    "255604002": "重度",
 }
 
 _INTERPRETATION_DISPLAY_JA: dict[str, str] = {
-    "N": "正常", "Normal": "正常",
-    "H": "高値", "High": "高値",
-    "L": "低値", "Low": "低値",
-    "HH": "パニック高値", "Critical high": "パニック高値",
-    "LL": "パニック低値", "Critical low": "パニック低値",
-    "A": "異常", "Abnormal": "異常",
-    "AA": "パニック異常", "Critical abnormal": "パニック異常",
-    "HU": "測定上限超", "LU": "測定下限未満",
-    "POS": "陽性", "NEG": "陰性",
+    "N": "正常",
+    "Normal": "正常",
+    "H": "高値",
+    "High": "高値",
+    "L": "低値",
+    "Low": "低値",
+    "HH": "パニック高値",
+    "Critical high": "パニック高値",
+    "LL": "パニック低値",
+    "Critical low": "パニック低値",
+    "A": "異常",
+    "Abnormal": "異常",
+    "AA": "パニック異常",
+    "Critical abnormal": "パニック異常",
+    "HU": "測定上限超",
+    "LU": "測定下限未満",
+    "POS": "陽性",
+    "NEG": "陰性",
     # R/S/I (susceptibility) intentionally NOT here — this dict's only two
     # callers (_fhir_observations.py's lab-flag interpretation and
     # _localize_interp) never produce those codes; susceptibility display now
@@ -271,41 +303,66 @@ _LOCATION_NAME_JA: dict[str, str] = {
 # Encounter.participant.type.coding.display. English default per HL7 leaks
 # to JP output; localize here.
 _PARTICIPATION_TYPE_DISPLAY_JA: dict[str, str] = {
-    "ATND": "担当医", "attender": "担当医",
-    "ADM": "入院担当医", "admitter": "入院担当医",
-    "DIS": "退院担当医", "discharger": "退院担当医",
-    "CON": "コンサルタント", "consultant": "コンサルタント",
-    "REF": "紹介元", "referrer": "紹介元",
-    "PART": "参加者", "Participation": "参加者",
+    "ATND": "担当医",
+    "attender": "担当医",
+    "ADM": "入院担当医",
+    "admitter": "入院担当医",
+    "DIS": "退院担当医",
+    "discharger": "退院担当医",
+    "CON": "コンサルタント",
+    "consultant": "コンサルタント",
+    "REF": "紹介元",
+    "referrer": "紹介元",
+    "PART": "参加者",
+    "Participation": "参加者",
 }
 
 # C5-03 (session 43 cycle 5): HL7 v3-ActPriority displays used by
 # Encounter.priority.coding.display.
 _ACT_PRIORITY_DISPLAY_JA: dict[str, str] = {
-    "R": "通常", "routine": "通常",
-    "EM": "救急", "emergency": "救急",
-    "S": "予定", "stat": "至急",
-    "UR": "至急", "urgent": "至急",
-    "A": "至急要求", "ASAP": "至急要求",
-    "CS": "予定手術", "callback for scheduling": "予定手術",
-    "CR": "コールバック", "callback results": "コールバック",
-    "EL": "選択的", "elective": "選択的",
-    "P": "予防", "preop": "予防",
-    "T": "予定", "timing critical": "予定",
-    "PRN": "頓用", "as needed": "頓用",
+    "R": "通常",
+    "routine": "通常",
+    "EM": "救急",
+    "emergency": "救急",
+    "S": "予定",
+    "stat": "至急",
+    "UR": "至急",
+    "urgent": "至急",
+    "A": "至急要求",
+    "ASAP": "至急要求",
+    "CS": "予定手術",
+    "callback for scheduling": "予定手術",
+    "CR": "コールバック",
+    "callback results": "コールバック",
+    "EL": "選択的",
+    "elective": "選択的",
+    "P": "予防",
+    "preop": "予防",
+    "T": "予定",
+    "timing critical": "予定",
+    "PRN": "頓用",
+    "as needed": "頓用",
 }
 
 # C5-04 (session 43 cycle 5): HL7 diagnosis-role displays used by
 # Encounter.diagnosis.use.coding.display.
 _DIAGNOSIS_ROLE_DISPLAY_JA: dict[str, str] = {
-    "AD": "入院時診断", "Admission diagnosis": "入院時診断",
-    "DD": "退院時診断", "Discharge diagnosis": "退院時診断",
-    "CC": "主訴", "Chief complaint": "主訴",
-    "CM": "併存疾患", "Comorbidity diagnosis": "併存疾患",
-    "pre-op": "術前診断", "pre-op diagnosis": "術前診断",
-    "post-op": "術後診断", "post-op diagnosis": "術後診断",
-    "billing": "請求診断", "Billing": "請求診断",
+    "AD": "入院時診断",
+    "Admission diagnosis": "入院時診断",
+    "DD": "退院時診断",
+    "Discharge diagnosis": "退院時診断",
+    "CC": "主訴",
+    "Chief complaint": "主訴",
+    "CM": "併存疾患",
+    "Comorbidity diagnosis": "併存疾患",
+    "pre-op": "術前診断",
+    "pre-op diagnosis": "術前診断",
+    "post-op": "術後診断",
+    "post-op diagnosis": "術後診断",
+    "billing": "請求診断",
+    "Billing": "請求診断",
 }
+
 
 # Procedure names (from disease YAML procedure.type) — EN→JA
 def _procedure_display(code: str, lang: str, fallback: str = "") -> str:
@@ -341,15 +398,33 @@ def _localize_interp(coded: dict[str, str], country: str) -> dict[str, str]:
 
 
 _ROUTE_JA: dict[str, str] = {
-    "PO": "経口", "IV": "静注", "SC": "皮下注", "IM": "筋注",
-    "SL": "舌下", "PR": "直腸", "INH": "吸入", "TOPICAL": "外用",
-    "NG": "経鼻", "INHALED": "吸入",
+    "PO": "経口",
+    "IV": "静注",
+    "SC": "皮下注",
+    "IM": "筋注",
+    "SL": "舌下",
+    "PR": "直腸",
+    "INH": "吸入",
+    "TOPICAL": "外用",
+    "NG": "経鼻",
+    "INHALED": "吸入",
 }
 _FREQ_JA: dict[str, str] = {
-    "DAILY": "1日1回", "BID": "1日2回", "TID": "1日3回", "QID": "1日4回",
-    "Q4H": "4時間毎", "Q6H": "6時間毎", "Q8H": "8時間毎", "Q12H": "12時間毎",
-    "PRN": "必要時", "STAT": "緊急", "ONCE": "1回",
-    "1x/day": "1日1回", "2x/day": "1日2回", "3x/day": "1日3回", "4x/day": "1日4回",
+    "DAILY": "1日1回",
+    "BID": "1日2回",
+    "TID": "1日3回",
+    "QID": "1日4回",
+    "Q4H": "4時間毎",
+    "Q6H": "6時間毎",
+    "Q8H": "8時間毎",
+    "Q12H": "12時間毎",
+    "PRN": "必要時",
+    "STAT": "緊急",
+    "ONCE": "1回",
+    "1x/day": "1日1回",
+    "2x/day": "1日2回",
+    "3x/day": "1日3回",
+    "4x/day": "1日4回",
 }
 
 # FHIR fixed-label JA dictionary (FP-UNIFY-3, session 40): centralizes short
@@ -374,6 +449,7 @@ def localize_fixed_label(en_label: str, country: str) -> str:
     make the JA branch fire.
     """
     from clinosim.modules._shared import is_jp
+
     if is_jp(country):
         return _FIXED_LABEL_JA.get(en_label, en_label)
     return en_label
@@ -386,9 +462,9 @@ _ROLE_PREFIX_MAP_JA: dict[str, dict[str, str]] = {
     "radiologist": {"qual_code": "MD", "qual_display": "放射線科医", "prefix": ""},
     "pharmacist": {"qual_code": "PharmD", "qual_display": "薬剤師", "prefix": ""},
     # CY6-02 (Chain-6): allied-health qualifications (session 44 C5-25 roster).
-    "physical_therapist":     {"qual_code": "PT",  "qual_display": "理学療法士",         "prefix": ""},
-    "occupational_therapist": {"qual_code": "OT",  "qual_display": "作業療法士",         "prefix": ""},
-    "speech_therapist":       {"qual_code": "ST",  "qual_display": "言語聴覚士",         "prefix": ""},
-    "medical_social_worker":  {"qual_code": "MSW", "qual_display": "医療ソーシャルワーカー", "prefix": ""},
-    "dietitian":              {"qual_code": "RD",  "qual_display": "管理栄養士",         "prefix": ""},
+    "physical_therapist": {"qual_code": "PT", "qual_display": "理学療法士", "prefix": ""},
+    "occupational_therapist": {"qual_code": "OT", "qual_display": "作業療法士", "prefix": ""},
+    "speech_therapist": {"qual_code": "ST", "qual_display": "言語聴覚士", "prefix": ""},
+    "medical_social_worker": {"qual_code": "MSW", "qual_display": "医療ソーシャルワーカー", "prefix": ""},
+    "dietitian": {"qual_code": "RD", "qual_display": "管理栄養士", "prefix": ""},
 }

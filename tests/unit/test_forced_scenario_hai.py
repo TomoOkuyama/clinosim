@@ -1,4 +1,5 @@
 """Unit tests for ForcedScenario.force_hai_event (PR3b-1 Task 7b)."""
+
 from types import SimpleNamespace
 
 import pytest
@@ -55,12 +56,17 @@ def _make_ctx_with_device(device_type: str, force_hai_event: dict | None):
         microbiology=[],
     )
     forced = SimpleNamespace(
-        disease_id="urinary_tract_infection", count=1, severity=None,
-        archetype=None, complications=[], patient_overrides={},
+        disease_id="urinary_tract_infection",
+        count=1,
+        severity=None,
+        archetype=None,
+        complications=[],
+        patient_overrides={},
         force_hai_event=force_hai_event,
     )
     cfg = SimpleNamespace(
-        country="US", random_seed=42,
+        country="US",
+        random_seed=42,
         time_range=("2026-01-01", "2026-12-31"),
         snapshot_date=None,
         forced_scenarios=[forced],
@@ -141,7 +147,7 @@ def test_enrich_hai_force_missing_keys_raises():
     """PR-94 fix: missing required keys must raise."""
     ctx, rec = _make_ctx_with_device(
         device_type="indwelling_catheter",
-        force_hai_event={"hai_type": "cauti"},   # missing onset_offset_days + organism_snomed
+        force_hai_event={"hai_type": "cauti"},  # missing onset_offset_days + organism_snomed
     )
     with pytest.raises(ValueError, match="missing required keys"):
         enrich_hai(ctx)
@@ -152,6 +158,7 @@ def test_enrich_hai_force_missing_keys_raises():
 
 class _CapturingRNG:
     """Wraps np.random.Generator and logs each draw method called."""
+
     def __init__(self, inner, log):
         self._inner = inner
         self._log = log
@@ -182,6 +189,7 @@ def _capture_enrich_hai_draws(make_ctx_fn):
     import numpy as np
 
     from clinosim.modules.hai import enricher as enricher_mod
+
     orig_default_rng = np.random.default_rng
     log: list[tuple] = []
 
@@ -223,21 +231,21 @@ def test_enrich_hai_force_consumes_exact_firing_path_sequence():
     # Order: ceftriaxone, cefepime, meropenem, ciprofloxacin, trimethoprim_sulfamethoxazole
     _cauti_ecoli_abg_probs = [
         (0.83, 0.02, 0.15),  # ceftriaxone
-        (0.9, 0.02, 0.08),   # cefepime
-        (0.99, 0.0, 0.01),   # meropenem
-        (0.7, 0.05, 0.25),   # ciprofloxacin
-        (0.7, 0.02, 0.28),   # trimethoprim_sulfamethoxazole
+        (0.9, 0.02, 0.08),  # cefepime
+        (0.99, 0.0, 0.01),  # meropenem
+        (0.7, 0.05, 0.25),  # ciprofloxacin
+        (0.7, 0.02, 0.28),  # trimethoprim_sulfamethoxazole
     ]
-    expected_draws = (
-        [("random", None), ("integers", None), ("choice", _cauti_org_probs)]
-        + [("choice", probs) for probs in _cauti_ecoli_abg_probs]
-    )
+    expected_draws = [("random", None), ("integers", None), ("choice", _cauti_org_probs)] + [
+        ("choice", probs) for probs in _cauti_ecoli_abg_probs
+    ]
 
-    forced_log, _ = _capture_enrich_hai_draws(lambda: _make_ctx_with_device(
-        device_type="indwelling_catheter",
-        force_hai_event={"hai_type": "cauti", "onset_offset_days": 3,
-                         "organism_snomed": "112283007"},
-    ))
+    forced_log, _ = _capture_enrich_hai_draws(
+        lambda: _make_ctx_with_device(
+            device_type="indwelling_catheter",
+            force_hai_event={"hai_type": "cauti", "onset_offset_days": 3, "organism_snomed": "112283007"},
+        )
+    )
     assert forced_log == expected_draws, (
         f"forced path rng-method sequence is {forced_log}; "
         f"must be {expected_draws} to match the non-forced firing path "
@@ -278,14 +286,14 @@ def test_enrich_hai_non_forced_firing_path_baseline_sequence():
     # Patch load_hai_rates AT THE CALLSITE in enricher_mod (it was
     # imported via `from ... import load_hai_rates` so the name is
     # bound in enricher's namespace).
-    rates_high = {"hai_rates": {hai: {"per_day_risk": 1.0}
-                                for hai in ("clabsi", "cauti", "vap")}}
+    rates_high = {"hai_rates": {hai: {"per_day_risk": 1.0} for hai in ("clabsi", "cauti", "vap")}}
     orig_load = enricher_mod.load_hai_rates
     enricher_mod.load_hai_rates = lambda: rates_high
     enricher_mod.np.random.default_rng = capture_rng
     try:
         ctx, _ = _make_ctx_with_device(
-            device_type="indwelling_catheter", force_hai_event=None,
+            device_type="indwelling_catheter",
+            force_hai_event=None,
         )
         enrich_hai(ctx)
     finally:
@@ -321,26 +329,35 @@ def test_enrich_hai_force_short_line_days_skips_no_drain():
     try:
         # device line_days = 1 (< 2)
         dev = DeviceRecord(
-            device_id="d1", encounter_id="enc-1",
+            device_id="d1",
+            encounter_id="enc-1",
             device_type="indwelling_catheter",
             snomed_code="23973005",
             placement_date="2026-01-05",
-            removal_date="2026-01-06",   # 1 day
+            removal_date="2026-01-06",  # 1 day
             placement_indication="test",
         )
         rec = SimpleNamespace(
             patient=SimpleNamespace(patient_id="p1"),
-            extensions={"device": [dev]}, microbiology=[],
+            extensions={"device": [dev]},
+            microbiology=[],
         )
         forced = SimpleNamespace(
-            disease_id="x", count=1, severity=None, archetype=None,
-            complications=[], patient_overrides={},
-            force_hai_event={"hai_type": "cauti", "onset_offset_days": 3,
-                             "organism_snomed": "112283007"},
+            disease_id="x",
+            count=1,
+            severity=None,
+            archetype=None,
+            complications=[],
+            patient_overrides={},
+            force_hai_event={"hai_type": "cauti", "onset_offset_days": 3, "organism_snomed": "112283007"},
         )
-        cfg = SimpleNamespace(country="US", random_seed=42,
-                              time_range=("2026-01-01", "2026-12-31"),
-                              snapshot_date=None, forced_scenarios=[forced])
+        cfg = SimpleNamespace(
+            country="US",
+            random_seed=42,
+            time_range=("2026-01-01", "2026-12-31"),
+            snapshot_date=None,
+            forced_scenarios=[forced],
+        )
         ctx = SimpleNamespace(config=cfg, master_seed=42, records=[rec])
         enrich_hai(ctx)
     finally:
@@ -384,7 +401,8 @@ def test_run_forced_auto_injects_force_hai_event_into_config(monkeypatch):
     monkeypatch.setattr(enrichers_mod._ENRICHERS["hai"], "run", capture_ctx)
 
     scenario = ForcedScenario(
-        disease_id="bacterial_pneumonia", count=1,
+        disease_id="bacterial_pneumonia",
+        count=1,
         force_hai_event={
             "hai_type": "cauti",
             "onset_offset_days": 3,
@@ -401,6 +419,5 @@ def test_run_forced_auto_injects_force_hai_event_into_config(monkeypatch):
     )
     # Caller's config must NOT be mutated
     assert config.forced_scenarios == [], (
-        "run_forced mutated caller's config.forced_scenarios; "
-        "expected model_copy to leave caller untouched"
+        "run_forced mutated caller's config.forced_scenarios; expected model_copy to leave caller untouched"
     )

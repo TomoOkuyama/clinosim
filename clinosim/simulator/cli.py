@@ -39,8 +39,7 @@ def main() -> None:
     gen = sub.add_parser(
         "simulate",
         aliases=["generate"],
-        help="Simulate patient data from population + physiology "
-        "(alias: generate — deprecated)",
+        help="Simulate patient data from population + physiology (alias: generate — deprecated)",
     )
     gen.add_argument("-o", "--output", default="./output", help="Output directory")
     gen.add_argument(
@@ -60,14 +59,13 @@ def main() -> None:
     gen.add_argument(
         "--end",
         default=None,
-        help="Simulation end date / snapshot date YYYY-MM-DD (default: today). Inpatients still admitted on this date have no discharge.",
+        help="Simulation end date / snapshot date YYYY-MM-DD (default: today). Inpatients still admitted on this date have no discharge.",  # noqa: E501
     )
     gen.add_argument(
         "--format",
         nargs="+",
         default=["cif"],
-        help="Output formats: cif, csv, fhir-r4 (alias: fhir). "
-        "Add more by registering an OutputAdapter (AD-58).",
+        help="Output formats: cif, csv, fhir-r4 (alias: fhir). Add more by registering an OutputAdapter (AD-58).",
     )
     gen.add_argument(
         "--hospital-config",
@@ -103,8 +101,7 @@ def main() -> None:
     td.add_argument(
         "--patient-profile",
         default=None,
-        help="Patient profile fixture name or path (AD-66); "
-        "CLI args override profile fields with stderr WARN",
+        help="Patient profile fixture name or path (AD-66); CLI args override profile fields with stderr WARN",
     )
     # adv-1 F-2: -n/--seed/--country default to None (not 3/42/US) so an EXPLICIT
     # value equal to the old default is distinguishable from "flag omitted" when
@@ -112,17 +109,24 @@ def main() -> None:
     # _resolve_test_disease_defaults when the flag is omitted and no profile
     # supplies a value — non-profile behavior is unchanged.
     td.add_argument(
-        "-n", "--count", type=int, default=None,
+        "-n",
+        "--count",
+        type=int,
+        default=None,
         help="Number of patients (default: 3, or profile count)",
     )
     td.add_argument("--severity", default=None, help="Force severity: mild/moderate/severe")
     td.add_argument("--archetype", default=None, help="Force archetype name")
     td.add_argument(
-        "-s", "--seed", type=int, default=None,
+        "-s",
+        "--seed",
+        type=int,
+        default=None,
         help="Random seed (default: 42, or profile random_seed)",
     )
     td.add_argument(
-        "--country", default=None,
+        "--country",
+        default=None,
         help="Country code (US or JP; default: US, or profile country)",
     )
     # AD-65 Phase 4 (Task 16): when -o is set, run the full 3-stage pipeline
@@ -183,9 +187,7 @@ def main() -> None:
         default=None,
         help="Narrative version directory name (default: provider name)",
     )
-    nr.add_argument(
-        "--tasks", default=None, help="Comma-separated LLMTaskType filter (default: all)"
-    )
+    nr.add_argument("--tasks", default=None, help="Comma-separated LLMTaskType filter (default: all)")
     nr.add_argument("--country", default="US")
     nr.add_argument(
         "--set-current",
@@ -244,12 +246,8 @@ def main() -> None:
     )
 
     # === test-encounter: debug single encounter condition ===
-    te = sub.add_parser(
-        "test-encounter", help="Simulate one patient for an encounter condition (debug)"
-    )
-    te.add_argument(
-        "condition_id", help="Condition ID (e.g., chest_pain_noncardiac, flu_vaccination)"
-    )
+    te = sub.add_parser("test-encounter", help="Simulate one patient for an encounter condition (debug)")
+    te.add_argument("condition_id", help="Condition ID (e.g., chest_pain_noncardiac, flu_vaccination)")
     te.add_argument("-n", "--count", type=int, default=1, help="Number of patients")
     te.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
     te.add_argument("--country", default="US", help="Country code")
@@ -280,14 +278,14 @@ def main() -> None:
     )
     df.add_argument("--old", required=True, help="前 snapshot の FHIR output directory")
     df.add_argument("--new", required=True, help="現 snapshot の FHIR output directory")
-    df.add_argument("--output-bundle", required=True,
-                    help="Bundle transaction JSON の出力 path")
-    df.add_argument("--output-summary", default=None,
-                    help="Summary text の出力 path (省略時は stdout)")
-    df.add_argument("--old-cursor", default=None,
-                    help="前 snapshot の cursor 日付(summary 表示用、省略時は --old dir 名)")
-    df.add_argument("--new-cursor", default=None,
-                    help="現 snapshot の cursor 日付(summary 表示用、省略時は --new dir 名)")
+    df.add_argument("--output-bundle", required=True, help="Bundle transaction JSON の出力 path")
+    df.add_argument("--output-summary", default=None, help="Summary text の出力 path (省略時は stdout)")
+    df.add_argument(
+        "--old-cursor", default=None, help="前 snapshot の cursor 日付(summary 表示用、省略時は --old dir 名)"
+    )
+    df.add_argument(
+        "--new-cursor", default=None, help="現 snapshot の cursor 日付(summary 表示用、省略時は --new dir 名)"
+    )
 
     # === regenerate-goldens: AD-66 α-min-2c golden narrative bootstrap ===
     rg = sub.add_parser(
@@ -350,7 +348,8 @@ def main() -> None:
     )
     cn.add_argument("--cif-dir", required=True, help="Path to a CIF directory")
     cn.add_argument(
-        "--version", required=True,
+        "--version",
+        required=True,
         help="Narrative version id to check (e.g. llm-mock, ollama)",
     )
     cn.add_argument(
@@ -514,6 +513,7 @@ def main() -> None:
     if args.command in ("simulate", "generate"):
         if args.command == "generate":
             import sys as _sys
+
             print(
                 "clinosim: DeprecationWarning: 'generate' subcommand is deprecated, "
                 "use 'simulate' instead. Backward-compat alias will be removed in a "
@@ -526,11 +526,7 @@ def main() -> None:
 
         # Default end = today, default start = end - 1 year
         end_date = datetime.strptime(args.end, "%Y-%m-%d").date() if args.end else date.today()
-        start_date = (
-            datetime.strptime(args.start, "%Y-%m-%d").date()
-            if args.start
-            else end_date - _td(days=365)
-        )
+        start_date = datetime.strptime(args.start, "%Y-%m-%d").date() if args.start else end_date - _td(days=365)
         end = end_date.strftime("%Y-%m-%d")
         start = start_date.strftime("%Y-%m-%d")
         # Bug D fix: -p uses argparse.SUPPRESS as default, so args.population is only
@@ -561,9 +557,7 @@ def main() -> None:
         cache_dir_arg = getattr(args, "cache_dir", None)
         if cache_dir_arg:
             print(f"  Cache dir (F4 memoize): {cache_dir_arg}")
-        dataset = run_beta(
-            config, hospital_config_path=hospital_cfg, cache_dir=cache_dir_arg
-        )
+        dataset = run_beta(config, hospital_config_path=hospital_cfg, cache_dir=cache_dir_arg)
 
     else:
         parser.print_help()
@@ -661,16 +655,8 @@ def _print_summary(dataset: CIFDataset, output_dir: str) -> None:
     from collections import Counter, defaultdict
 
     all_records = dataset.patients
-    inpatients = [
-        r
-        for r in all_records
-        if r.encounters and r.encounters[0].encounter_type.value == "inpatient"
-    ]
-    outpatients = [
-        r
-        for r in all_records
-        if r.encounters and r.encounters[0].encounter_type.value == "outpatient"
-    ]
+    inpatients = [r for r in all_records if r.encounters and r.encounters[0].encounter_type.value == "inpatient"]
+    outpatients = [r for r in all_records if r.encounters and r.encounters[0].encounter_type.value == "outpatient"]
     readmits = [r for r in inpatients if r.is_readmission]
     deceased = [r for r in all_records if r.deceased]
 
@@ -692,11 +678,7 @@ def _print_summary(dataset: CIFDataset, output_dir: str) -> None:
     by_disease = Counter()
     los_by_disease = defaultdict(list)
     for r in inpatients:
-        d = (
-            r.condition_event.ground_truth_diseases[0]
-            if r.condition_event.ground_truth_diseases
-            else "?"
-        )
+        d = r.condition_event.ground_truth_diseases[0] if r.condition_event.ground_truth_diseases else "?"
         by_disease[d] += 1
         los_by_disease[d].append(len(r.physiological_states) - 1)
 
@@ -714,28 +696,14 @@ def _run_quality_checks(dataset: CIFDataset) -> None:
     from collections import Counter
 
     records = dataset.patients
-    inpatients = [
-        r
-        for r in records
-        if r.encounters and r.encounters[0].encounter_type == EncounterType.INPATIENT
-    ]
-    outpatients = [
-        r
-        for r in records
-        if r.encounters and r.encounters[0].encounter_type == EncounterType.OUTPATIENT
-    ]
-    ed_visits = [
-        r
-        for r in records
-        if r.encounters and r.encounters[0].encounter_type == EncounterType.EMERGENCY
-    ]
+    inpatients = [r for r in records if r.encounters and r.encounters[0].encounter_type == EncounterType.INPATIENT]
+    outpatients = [r for r in records if r.encounters and r.encounters[0].encounter_type == EncounterType.OUTPATIENT]
+    ed_visits = [r for r in records if r.encounters and r.encounters[0].encounter_type == EncounterType.EMERGENCY]
 
     print(f"\n{'=' * 50}")
     print("  Data Quality Report")
     print(f"{'=' * 50}")
-    print(
-        f"  Records: {len(records)} (inp={len(inpatients)}, opd={len(outpatients)}, ed={len(ed_visits)})"
-    )
+    print(f"  Records: {len(records)} (inp={len(inpatients)}, opd={len(outpatients)}, ed={len(ed_visits)})")
 
     issues = 0
 
@@ -768,9 +736,7 @@ def _run_quality_checks(dataset: CIFDataset) -> None:
 
     # Check: ward/bed
     inp_no_ward = sum(1 for r in inpatients if not r.encounters[0].ward_id)
-    print(
-        f"  {'❌' if inp_no_ward else '✅'} Ward/bed assignment: {len(inpatients) - inp_no_ward}/{len(inpatients)}"
-    )
+    print(f"  {'❌' if inp_no_ward else '✅'} Ward/bed assignment: {len(inpatients) - inp_no_ward}/{len(inpatients)}")
     if inp_no_ward:
         issues += 1
 
@@ -799,11 +765,7 @@ def _run_quality_checks(dataset: CIFDataset) -> None:
     # Disease distribution
     by_disease = Counter()
     for r in inpatients:
-        d = (
-            r.condition_event.ground_truth_diseases[0]
-            if r.condition_event.ground_truth_diseases
-            else "?"
-        )
+        d = r.condition_event.ground_truth_diseases[0] if r.condition_event.ground_truth_diseases else "?"
         by_disease[d] += 1
     print(f"\n  Disease distribution ({len(by_disease)} types):")
     for d, n in by_disease.most_common(5):
@@ -878,9 +840,7 @@ def _run_test_encounter_debug(args: Any) -> None:
         patient = activate_patient(person, rng, _demo)
 
         visit_time = datetime(2024, 6, 15, int(rng.integers(8, 20)), int(rng.integers(0, 60)))
-        record = _simulate_ed_visit(
-            patient, protocol, visit_time, roster, rng, country=args.country
-        )
+        record = _simulate_ed_visit(patient, protocol, visit_time, roster, rng, country=args.country)
 
         _print_debug_record(record, i + 1)
 
@@ -955,8 +915,13 @@ def _run_test_encounter_generate(args: Any) -> None:
 
         visit_time = datetime(2024, 6, 15, int(rng.integers(8, 20)), int(rng.integers(0, 60)))
         record = _simulate_ed_visit(
-            patient, protocol, visit_time, roster, rng,
-            country=args.country, config=config,
+            patient,
+            protocol,
+            visit_time,
+            roster,
+            rng,
+            country=args.country,
+            config=config,
         )
         records.append(record)
 
@@ -1076,8 +1041,7 @@ def _apply_profile_cli_overrides(args: Any, profile: PatientProfile) -> PatientP
         profile_value = getattr(profile, field)
         if cli_value != profile_value:
             print(
-                f"WARN: {label}={cli_value!r} differs from profile {field}="
-                f"{profile_value!r}; using {label}",
+                f"WARN: {label}={cli_value!r} differs from profile {field}={profile_value!r}; using {label}",
                 file=sys.stderr,
             )
             profile = profile.model_copy(update={field: cli_value})
@@ -1227,10 +1191,7 @@ def _run_regenerate_goldens(args: Any) -> None:
     fixture_dir = Path(fixture_dir_env) if fixture_dir_env else _PATIENT_PROFILE_DIR
 
     if args.all:
-        profile_paths = sorted(
-            p for p in fixture_dir.glob("*.yaml")
-            if not p.name.endswith(".llm-expectations.yaml")
-        )
+        profile_paths = sorted(p for p in fixture_dir.glob("*.yaml") if not p.name.endswith(".llm-expectations.yaml"))
     else:
         p = fixture_dir / f"{args.profile}.yaml"
         if not p.is_file():
@@ -1255,9 +1216,18 @@ def _run_regenerate_goldens(args: Any) -> None:
         profile_id = profile_path.stem
         with tempfile.TemporaryDirectory() as tmpdir:
             _run_step(
-                [sys.executable, "-m", "clinosim.simulator.cli", "test-disease",
-                 "--patient-profile", str(profile_path),
-                 "--format", "cif", "-o", str(tmpdir)],
+                [
+                    sys.executable,
+                    "-m",
+                    "clinosim.simulator.cli",
+                    "test-disease",
+                    "--patient-profile",
+                    str(profile_path),
+                    "--format",
+                    "cif",
+                    "-o",
+                    str(tmpdir),
+                ],
                 label=f"test-disease ({profile_id})",
             )
             cif_dir = Path(tmpdir) / "cif"
@@ -1272,11 +1242,21 @@ def _run_regenerate_goldens(args: Any) -> None:
                 narr_version = f"llm-{tag}"
                 profile = load_patient_profile(str(profile_path))
                 narrate_cmd = [
-                    sys.executable, "-m", "clinosim.simulator.cli", "narrate",
-                    "--cif-dir", str(cif_dir), "--provider", provider,
-                    "--country", profile.country,
-                    "--seed", str(profile.random_seed),
-                    "--version-id", narr_version, "--no-set-current",
+                    sys.executable,
+                    "-m",
+                    "clinosim.simulator.cli",
+                    "narrate",
+                    "--cif-dir",
+                    str(cif_dir),
+                    "--provider",
+                    provider,
+                    "--country",
+                    profile.country,
+                    "--seed",
+                    str(profile.random_seed),
+                    "--version-id",
+                    narr_version,
+                    "--no-set-current",
                 ]
                 if args.llm_config:
                     narrate_cmd += ["--llm-config", args.llm_config]
@@ -1294,9 +1274,7 @@ def _run_regenerate_goldens(args: Any) -> None:
                             continue
                         actual[doc_file.stem] = json.loads(doc_file.read_text())
 
-            golden_path.write_text(
-                json.dumps(actual, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
-            )
+            golden_path.write_text(json.dumps(actual, indent=2, ensure_ascii=False, sort_keys=True) + "\n")
             count += 1
             print(f"regenerated: {golden_path}", file=sys.stderr)
 
@@ -1313,9 +1291,7 @@ def _print_debug_record(record: CIFPatientRecord, index: int = 1) -> None:
     los = len(r.physiological_states) - 1 if r.physiological_states else 0
 
     print(f"\n--- Patient {index}: {r.patient.patient_id} ---")
-    print(
-        f"  {r.patient.age}yo {r.patient.sex} | Chronic: {[c.code for c in r.patient.chronic_conditions]}"
-    )
+    print(f"  {r.patient.age}yo {r.patient.sex} | Chronic: {[c.code for c in r.patient.chronic_conditions]}")
     if enc:
         print(f"  Encounter: {enc.encounter_type.value} | {enc.encounter_id}")
         print(f"  Chief: {enc.chief_complaint}")
@@ -1610,9 +1586,7 @@ def _run_export_fhir(args: Any) -> None:
     # Summarize output
     if not os.path.isdir(output_dir):
         return
-    files = sorted(
-        f for f in os.listdir(output_dir) if f.endswith(".ndjson") or f == "manifest.json"
-    )
+    files = sorted(f for f in os.listdir(output_dir) if f.endswith(".ndjson") or f == "manifest.json")
     print("\n  === FHIR Export Summary ===")
     for name in files:
         path = os.path.join(output_dir, name)

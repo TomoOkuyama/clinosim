@@ -4,6 +4,7 @@ Approach C の operational cover。clinosim 自身は決定的な snapshot gener
 「cursor 移動した差分だけを FHIR server に POST する」用の Bundle 生成をここで行う。
 push は user 側 tool (curl / httpx / hapi-fhir-cli) に委ねる。
 """
+
 from __future__ import annotations
 
 import copy
@@ -34,9 +35,7 @@ def canonical_hash(resource: dict) -> str:
             meta.pop(k, None)
         if not meta:
             stripped.pop("meta", None)
-    return hashlib.sha256(
-        json.dumps(stripped, sort_keys=True, ensure_ascii=False).encode("utf-8")
-    ).hexdigest()
+    return hashlib.sha256(json.dumps(stripped, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
 
 
 def classify_resources(
@@ -139,15 +138,19 @@ def build_diff_bundle(
         new_only, updated, _unchanged = classify_resources(old_by_id, new_by_id)
 
         for r in new_only:
-            entries.append({
-                "resource": r,
-                "request": {"method": "POST", "url": rt},
-            })
+            entries.append(
+                {
+                    "resource": r,
+                    "request": {"method": "POST", "url": rt},
+                }
+            )
         for r in updated:
-            entries.append({
-                "resource": r,
-                "request": {"method": "PUT", "url": f"{rt}/{r['id']}"},
-            })
+            entries.append(
+                {
+                    "resource": r,
+                    "request": {"method": "PUT", "url": f"{rt}/{r['id']}"},
+                }
+            )
 
     return {
         "resourceType": "Bundle",

@@ -1,4 +1,5 @@
 """Unit tests for clinosim.audit.reporter — Markdown render + file write."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -16,19 +17,25 @@ from clinosim.audit.types import (
 
 def _make_result():
     res = AuditResult(
-        cohort_dir=Path("/tmp/cohort"), modules=["hai"], axes=["structural", "clinical"],
+        cohort_dir=Path("/tmp/cohort"),
+        modules=["hai"],
+        axes=["structural", "clinical"],
     )
     res.add(
-        "structural", "hai",
+        "structural",
+        "hai",
         AxisResult(
-            axis="structural", module="hai",
+            axis="structural",
+            module="hai",
             info={"WBC_n": 100, "WBC_refRange_pct": 100.0},
         ),
     )
     res.add(
-        "clinical", "hai",
+        "clinical",
+        "hai",
         AxisResult(
-            axis="clinical", module="hai",
+            axis="clinical",
+            module="hai",
             findings=[AuditFinding(Severity.WARN, "rare-event cohort", {"n": 3})],
             info={"baseline_WBC_p50": 12029},
         ),

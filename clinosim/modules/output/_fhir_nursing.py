@@ -38,9 +38,7 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
     enc = ctx.primary_enc_id
     lang = resolve_lang(ctx.country)
     subject: dict[str, Any] = {"reference": f"Patient/{ctx.patient_id}"}
-    enc_ref: dict[str, Any] | None = (
-        {"reference": f"Encounter/{enc}"} if enc else None
-    )
+    enc_ref: dict[str, Any] | None = {"reference": f"Encounter/{enc}"} if enc else None
     # RM-1 (session 42): primary_nurse_id as fallback performer for
     # nursing-observation Observations whose source record lacks a
     # measured_by field (nursing risk / ADL / intake-output).
@@ -59,9 +57,11 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
             "resourceType": "Observation",
             "id": obs_id,
             # Session 46 chain #2: JP Core Observation_Common profile.
-            **({"meta": {"profile": [
-                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"
-            ]}} if is_jp(ctx.country) else {}),
+            **(
+                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
+                if is_jp(ctx.country)
+                else {}
+            ),
             "status": "final",
             "category": _survey_category(),
             "subject": subject,
@@ -122,9 +122,7 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
         morse = nra.get("morse_total")
         if morse is not None:
             obs = _obs_base(f"morse-{enc or ctx.patient_id}-{i}", effective, default_nurse_id)
-            morse_text = (
-                code_lookup("loinc", "59460-6", lang) or "Fall risk total [Morse Fall Scale]"
-            )
+            morse_text = code_lookup("loinc", "59460-6", lang) or "Fall risk total [Morse Fall Scale]"
             obs["code"] = {
                 "coding": [_loinc_coding("59460-6", lang)],
                 "text": morse_text,
@@ -139,23 +137,21 @@ def _build_nursing_observations(ctx: BundleContext) -> list[dict]:
                     "moderate": ("N", "Normal", "中リスク"),
                     "high": ("H", "High", "高リスク"),
                 }
-                code_val, display_en, display_ja = _fall_interp.get(
-                    str(fall_level).lower(), ("N", "Normal", "通常")
-                )
+                code_val, display_en, display_ja = _fall_interp.get(str(fall_level).lower(), ("N", "Normal", "通常"))
                 interp_display = display_ja if is_jp(ctx.country) else display_en
-                interp_text = (
-                    f"転倒リスク: {fall_level}"
-                    if is_jp(ctx.country)
-                    else f"Fall risk: {fall_level}"
-                )
-                obs["interpretation"] = [{
-                    "coding": [{
-                        "system": get_system_uri("hl7-observation-interpretation"),
-                        "code": code_val,
-                        "display": interp_display,
-                    }],
-                    "text": interp_text,
-                }]
+                interp_text = f"転倒リスク: {fall_level}" if is_jp(ctx.country) else f"Fall risk: {fall_level}"
+                obs["interpretation"] = [
+                    {
+                        "coding": [
+                            {
+                                "system": get_system_uri("hl7-observation-interpretation"),
+                                "code": code_val,
+                                "display": interp_display,
+                            }
+                        ],
+                        "text": interp_text,
+                    }
+                ]
             out.append(obs)
 
     # --- ADL assessments: Barthel index ---

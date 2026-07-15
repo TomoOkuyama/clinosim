@@ -36,17 +36,12 @@ def test_every_imaging_study_basedon_resolves() -> None:
             pytest.skip("No ImagingStudy resources emitted — cannot verify basedOn")
         dangling: list[str] = []
         for study in studies:
-            assert study.get("basedOn"), (
-                f"ImagingStudy/{study.get('id')} missing basedOn ref (silent-no-op)"
-            )
+            assert study.get("basedOn"), f"ImagingStudy/{study.get('id')} missing basedOn ref (silent-no-op)"
             for ref in study["basedOn"]:
                 sr_id = ref["reference"].removeprefix("ServiceRequest/")
                 if sr_id not in sr_ids:
                     dangling.append(f"ImagingStudy/{study['id']} -> ServiceRequest/{sr_id}")
-        assert not dangling, (
-            f"{len(dangling)} dangling ImagingStudy.basedOn references:\n"
-            + "\n".join(dangling[:10])
-        )
+        assert not dangling, f"{len(dangling)} dangling ImagingStudy.basedOn references:\n" + "\n".join(dangling[:10])
 
 
 @pytest.mark.integration
@@ -64,21 +59,14 @@ def test_every_imaging_study_endpoint_resolves() -> None:
             if not study.get("modality"):
                 # Session 52 fix 3: stub-only studies (inference failed,
                 # session 48 case D) intentionally carry no Endpoint.
-                assert not study.get("endpoint"), (
-                    f"stub ImagingStudy/{study.get('id')} must not reference an Endpoint"
-                )
+                assert not study.get("endpoint"), f"stub ImagingStudy/{study.get('id')} must not reference an Endpoint"
                 continue
-            assert study.get("endpoint"), (
-                f"ImagingStudy/{study.get('id')} missing endpoint ref (silent-no-op)"
-            )
+            assert study.get("endpoint"), f"ImagingStudy/{study.get('id')} missing endpoint ref (silent-no-op)"
             for ref in study["endpoint"]:
                 ep_id = ref["reference"].removeprefix("Endpoint/")
                 if ep_id not in endpoint_ids:
                     dangling.append(f"ImagingStudy/{study['id']} -> Endpoint/{ep_id}")
-        assert not dangling, (
-            f"{len(dangling)} dangling ImagingStudy.endpoint references:\n"
-            + "\n".join(dangling[:10])
-        )
+        assert not dangling, f"{len(dangling)} dangling ImagingStudy.endpoint references:\n" + "\n".join(dangling[:10])
 
 
 @pytest.mark.integration
@@ -94,17 +82,12 @@ def test_every_radiology_dr_basedon_resolves() -> None:
             pytest.skip("No radiology DiagnosticReport resources emitted")
         dangling: list[str] = []
         for dr in rad_drs:
-            assert dr.get("basedOn"), (
-                f"DiagnosticReport/{dr['id']} missing basedOn ref (silent-no-op)"
-            )
+            assert dr.get("basedOn"), f"DiagnosticReport/{dr['id']} missing basedOn ref (silent-no-op)"
             for ref in dr["basedOn"]:
                 sr_id = ref["reference"].removeprefix("ServiceRequest/")
                 if sr_id not in sr_ids:
                     dangling.append(f"DiagnosticReport/{dr['id']} -> ServiceRequest/{sr_id}")
-        assert not dangling, (
-            f"{len(dangling)} dangling radiology DR.basedOn references:\n"
-            + "\n".join(dangling[:10])
-        )
+        assert not dangling, f"{len(dangling)} dangling radiology DR.basedOn references:\n" + "\n".join(dangling[:10])
 
 
 @pytest.mark.integration
@@ -120,16 +103,13 @@ def test_every_radiology_dr_imagingstudy_resolves() -> None:
             pytest.skip("No radiology DiagnosticReport resources emitted")
         dangling: list[str] = []
         for dr in rad_drs:
-            assert dr.get("imagingStudy"), (
-                f"DiagnosticReport/{dr['id']} missing imagingStudy ref (silent-no-op)"
-            )
+            assert dr.get("imagingStudy"), f"DiagnosticReport/{dr['id']} missing imagingStudy ref (silent-no-op)"
             for ref in dr["imagingStudy"]:
                 st_id = ref["reference"].removeprefix("ImagingStudy/")
                 if st_id not in study_ids:
                     dangling.append(f"DiagnosticReport/{dr['id']} -> ImagingStudy/{st_id}")
-        assert not dangling, (
-            f"{len(dangling)} dangling radiology DR.imagingStudy references:\n"
-            + "\n".join(dangling[:10])
+        assert not dangling, f"{len(dangling)} dangling radiology DR.imagingStudy references:\n" + "\n".join(
+            dangling[:10]
         )
 
 
@@ -147,18 +127,12 @@ def test_imaging_study_outgoing_patient_encounter_refs_resolve() -> None:
         for study in studies:
             study_id = study.get("id", "?")
             subj = study.get("subject", {}).get("reference", "")
-            assert subj.startswith("Patient/"), (
-                f"ImagingStudy/{study_id} subject must start with 'Patient/': {subj!r}"
-            )
+            assert subj.startswith("Patient/"), f"ImagingStudy/{study_id} subject must start with 'Patient/': {subj!r}"
             pid = subj.removeprefix("Patient/")
-            assert pid in patient_ids, (
-                f"ImagingStudy/{study_id} dangling Patient ref Patient/{pid}"
-            )
+            assert pid in patient_ids, f"ImagingStudy/{study_id} dangling Patient ref Patient/{pid}"
             enc = study.get("encounter", {}).get("reference", "")
             assert enc.startswith("Encounter/"), (
                 f"ImagingStudy/{study_id} encounter must start with 'Encounter/': {enc!r}"
             )
             eid = enc.removeprefix("Encounter/")
-            assert eid in encounter_ids, (
-                f"ImagingStudy/{study_id} dangling Encounter ref Encounter/{eid}"
-            )
+            assert eid in encounter_ids, f"ImagingStudy/{study_id} dangling Encounter ref Encounter/{eid}"

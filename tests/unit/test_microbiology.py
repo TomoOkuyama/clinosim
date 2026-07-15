@@ -38,8 +38,9 @@ class TestGenerator:
     def test_different_encounter_differs_seed(self):
         # Different encounter ids should generally not be identical across many draws.
         results = {
-            tuple((m.specimen, m.growth, m.organism_snomed) for m in
-                   generate_microbiology("sepsis", _DT, f"ENC-{i}", 42))
+            tuple(
+                (m.specimen, m.growth, m.organism_snomed) for m in generate_microbiology("sepsis", _DT, f"ENC-{i}", 42)
+            )
             for i in range(20)
         }
         assert len(results) > 1
@@ -127,24 +128,21 @@ class TestFhirBuilder:
                     "microbiology": [asdict(m) for m in mb],
                 }
                 bundle = fhir._build_bundle(rec, "US")
-                org = next(e["resource"] for e in bundle["entry"]
-                           if e["resource"]["id"].startswith("mb-org"))
+                org = next(e["resource"] for e in bundle["entry"] if e["resource"]["id"].startswith("mb-org"))
                 assert org.get("valueString") == "No growth"
                 return
         pytest.skip("no no-growth culture sampled")
 
     def test_jp_culture_uses_jlac10_code(self):
         bundle, mb = self._bundle("urinary_tract_infection", country="JP")
-        org_obs = next(e["resource"] for e in bundle["entry"]
-                       if e["resource"]["id"].startswith("mb-org"))
+        org_obs = next(e["resource"] for e in bundle["entry"] if e["resource"]["id"].startswith("mb-org"))
         coding = org_obs["code"]["coding"][0]
         assert coding["system"] == get_system_uri("jlac10")
         assert coding["code"] == "6B010"
 
     def test_us_culture_still_uses_loinc(self):
         bundle, mb = self._bundle("urinary_tract_infection", country="US")
-        org_obs = next(e["resource"] for e in bundle["entry"]
-                       if e["resource"]["id"].startswith("mb-org"))
+        org_obs = next(e["resource"] for e in bundle["entry"] if e["resource"]["id"].startswith("mb-org"))
         coding = org_obs["code"]["coding"][0]
         assert coding["system"] == get_system_uri("loinc")
         assert coding["code"] == mb[0].test_loinc
@@ -173,8 +171,7 @@ class TestFhirBuilder:
             "microbiology": [hai_culture],
         }
         bundle = fhir._build_bundle(rec, "JP")
-        org_obs = next(e["resource"] for e in bundle["entry"]
-                       if e["resource"]["id"].startswith("mb-org"))
+        org_obs = next(e["resource"] for e in bundle["entry"] if e["resource"]["id"].startswith("mb-org"))
         coding = org_obs["code"]["coding"][0]
         assert coding["system"] == get_system_uri("jlac10")
         assert coding["code"] == "6B010"
@@ -203,16 +200,14 @@ class TestFhirBuilder:
             "microbiology": [unmapped_culture],
         }
         bundle = fhir._build_bundle(rec, "JP")
-        org_obs = next(e["resource"] for e in bundle["entry"]
-                       if e["resource"]["id"].startswith("mb-org"))
+        org_obs = next(e["resource"] for e in bundle["entry"] if e["resource"]["id"].startswith("mb-org"))
         coding = org_obs["code"]["coding"][0]
         assert coding["system"] == get_system_uri("loinc")
         assert coding["code"] == "6463-4"
 
     def test_jp_susceptibility_uses_jlac10_code(self):
         bundle, _ = self._bundle("sepsis", country="JP")
-        sus_obs = [e["resource"] for e in bundle["entry"]
-                   if e["resource"]["id"].startswith("mb-sus")]
+        sus_obs = [e["resource"] for e in bundle["entry"] if e["resource"]["id"].startswith("mb-sus")]
         assert sus_obs, "expected at least one susceptibility Observation"
         for obs in sus_obs:
             coding = obs["code"]["coding"][0]
@@ -221,8 +216,7 @@ class TestFhirBuilder:
 
     def test_us_susceptibility_still_uses_loinc(self):
         bundle, mb = self._bundle("sepsis", country="US")
-        sus_obs = [e["resource"] for e in bundle["entry"]
-                   if e["resource"]["id"].startswith("mb-sus")]
+        sus_obs = [e["resource"] for e in bundle["entry"] if e["resource"]["id"].startswith("mb-sus")]
         assert sus_obs, "expected at least one susceptibility Observation"
         expected_loincs = {s.antibiotic_loinc for m in mb for s in m.susceptibilities}
         actual_loincs = {obs["code"]["coding"][0]["code"] for obs in sus_obs}
@@ -254,8 +248,7 @@ class TestFhirBuilder:
             "microbiology": [unmapped_culture],
         }
         bundle = fhir._build_bundle(rec, "JP")
-        sus_obs = next(e["resource"] for e in bundle["entry"]
-                       if e["resource"]["id"].startswith("mb-sus"))
+        sus_obs = next(e["resource"] for e in bundle["entry"] if e["resource"]["id"].startswith("mb-sus"))
         coding = sus_obs["code"]["coding"][0]
         assert coding["system"] == get_system_uri("loinc")
         assert coding["code"] == "99999-1"

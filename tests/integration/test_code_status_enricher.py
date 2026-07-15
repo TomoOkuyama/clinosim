@@ -14,9 +14,12 @@ class _Ctx:
 
 
 def _rec(eid, etype, age, deceased=False, icu=False):
-    return {"patient": {"patient_id": "P", "age": age},
-            "encounters": [{"encounter_id": eid, "encounter_type": etype}],
-            "deceased": deceased, "icu_transferred": icu}
+    return {
+        "patient": {"patient_id": "P", "age": age},
+        "encounters": [{"encounter_id": eid, "encounter_type": etype}],
+        "deceased": deceased,
+        "icu_transferred": icu,
+    }
 
 
 def test_inpatient_always_assigned():

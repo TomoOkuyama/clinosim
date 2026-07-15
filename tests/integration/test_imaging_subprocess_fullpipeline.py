@@ -28,28 +28,34 @@ from tests.integration._sr_helpers import find_ndjson, load_ndjson, run_generate
 def test_subprocess_produces_well_formed_imaging_ndjson() -> None:
     """Full pipeline via subprocess: imaging NDJSON is valid and error-free."""
     import subprocess
+
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "out"
         result = subprocess.run(
             [
-                "python", "-m", "clinosim.simulator.cli", "generate",
-                "--country", "US",
-                "--population", "100",
-                "--seed", "42",
-                "--format", "fhir-r4",
-                "--output", str(out),
+                "python",
+                "-m",
+                "clinosim.simulator.cli",
+                "generate",
+                "--country",
+                "US",
+                "--population",
+                "100",
+                "--seed",
+                "42",
+                "--format",
+                "fhir-r4",
+                "--output",
+                str(out),
             ],
             capture_output=True,
             text=True,
         )
-        assert result.returncode == 0, (
-            f"generate failed (returncode={result.returncode}):\n{result.stderr}"
-        )
+        assert result.returncode == 0, f"generate failed (returncode={result.returncode}):\n{result.stderr}"
         # PR1 LAB regression class: attribute/key errors appear in stderr.
         for err_class in ("AttributeError", "KeyError", "TypeError"):
             assert err_class not in result.stderr, (
-                f"{err_class} found in stderr — imaging builder may be crashing on dict CIF:\n"
-                f"{result.stderr[:500]}"
+                f"{err_class} found in stderr — imaging builder may be crashing on dict CIF:\n{result.stderr[:500]}"
             )
         # All imaging-related NDJSONs parse as valid JSON lines.
         for resource in ("ImagingStudy", "Endpoint"):
@@ -82,15 +88,9 @@ def test_subprocess_imaging_study_has_required_fields() -> None:
             # fields still apply to every study.
             if study.get("modality"):
                 non_stub_seen = True
-            assert study.get("subject"), (
-                f"ImagingStudy/{sid} missing subject"
-            )
-            assert study.get("started"), (
-                f"ImagingStudy/{sid} missing started datetime"
-            )
-        assert non_stub_seen, (
-            "every ImagingStudy is a stub — imaging inference coverage collapsed"
-        )
+            assert study.get("subject"), f"ImagingStudy/{sid} missing subject"
+            assert study.get("started"), f"ImagingStudy/{sid} missing started datetime"
+        assert non_stub_seen, "every ImagingStudy is a stub — imaging inference coverage collapsed"
 
 
 @pytest.mark.integration
@@ -104,15 +104,9 @@ def test_subprocess_endpoint_has_required_fields() -> None:
             pytest.skip("No Endpoint resources emitted for n=100 cohort")
         for ep in endpoints:
             ep_id = ep.get("id", "?")
-            assert ep.get("status") == "active", (
-                f"Endpoint/{ep_id} expected status='active', got {ep.get('status')!r}"
-            )
-            assert ep.get("connectionType"), (
-                f"Endpoint/{ep_id} missing connectionType"
-            )
-            assert ep.get("address"), (
-                f"Endpoint/{ep_id} missing address (WADO-RS URL)"
-            )
+            assert ep.get("status") == "active", f"Endpoint/{ep_id} expected status='active', got {ep.get('status')!r}"
+            assert ep.get("connectionType"), f"Endpoint/{ep_id} missing connectionType"
+            assert ep.get("address"), f"Endpoint/{ep_id} missing address (WADO-RS URL)"
 
 
 @pytest.mark.integration
@@ -130,9 +124,5 @@ def test_subprocess_radiology_dr_has_required_fields() -> None:
             assert dr.get("status") == "final", (
                 f"DiagnosticReport/{dr_id} expected status='final', got {dr.get('status')!r}"
             )
-            assert dr.get("conclusion"), (
-                f"DiagnosticReport/{dr_id} missing conclusion (impression_text)"
-            )
-            assert dr.get("imagingStudy"), (
-                f"DiagnosticReport/{dr_id} missing imagingStudy reference"
-            )
+            assert dr.get("conclusion"), f"DiagnosticReport/{dr_id} missing conclusion (impression_text)"
+            assert dr.get("imagingStudy"), f"DiagnosticReport/{dr_id} missing imagingStudy reference"

@@ -18,9 +18,14 @@ def _write_cif(cif_dir, record):
 
 def test_code_status_csv_written(tmp_path):
     cif, out = str(tmp_path / "cif"), str(tmp_path / "out")
-    _write_cif(cif, {"patient": {"patient_id": "P1"},
-                     "encounters": [{"encounter_id": "E1", "encounter_type": "inpatient"}],
-                     "code_status": "304253006"})
+    _write_cif(
+        cif,
+        {
+            "patient": {"patient_id": "P1"},
+            "encounters": [{"encounter_id": "E1", "encounter_type": "inpatient"}],
+            "code_status": "304253006",
+        },
+    )
     convert_cif_to_csv(cif, out, country="US")
     path = os.path.join(out, "code_status.csv")
     assert os.path.exists(path)

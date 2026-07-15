@@ -17,7 +17,14 @@ def test_priority_order_constant():
     checkup batteries can be grouped as one prescription without disturbing the
     canonical acute-care panel order (ABG..UA)."""
     assert PANEL_PRIORITY_ORDER == (
-        "ABG", "CBC", "BMP", "LFT", "Lipid", "Coag", "UA", "Checkup",
+        "ABG",
+        "CBC",
+        "BMP",
+        "LFT",
+        "Lipid",
+        "Coag",
+        "UA",
+        "Checkup",
     )
 
 
@@ -91,8 +98,7 @@ def test_hco3_with_only_partial_abg_falls_to_standalone():
 def test_mixed_cbc_and_standalone():
     """4 CBC + 1 troponin = CBC panel + 1 stand-alone."""
     panels = load_panel_definitions()
-    specs = [{"test": "WBC"}, {"test": "Hb"}, {"test": "Hct"}, {"test": "Plt"},
-             {"test": "Troponin_I"}]
+    specs = [{"test": "WBC"}, {"test": "Hb"}, {"test": "Hct"}, {"test": "Plt"}, {"test": "Troponin_I"}]
     panel_groups, stand_alones = classify_lab_specs(specs, panels)
     assert "CBC" in panel_groups
     assert len(panel_groups["CBC"]) == 4

@@ -146,9 +146,7 @@ def _evaluate_condition(condition: str, person: object) -> bool:
     return False
 
 
-def _apply_modifiers(
-    dist: dict[str, float], modifiers: list[dict[str, Any]], person: object
-) -> dict[str, float]:
+def _apply_modifiers(dist: dict[str, float], modifiers: list[dict[str, Any]], person: object) -> dict[str, float]:
     """Multiply named-category probabilities for each active modifier condition."""
     out = dict(dist)
     for mod in modifiers or []:
@@ -167,9 +165,7 @@ def _clamp_minimum(dist: dict[str, float], minimum: str | None) -> dict[str, flo
     if not minimum:
         return dict(dist)
     min_idx = SEVERITY_CATEGORIES.index(minimum)
-    return {
-        c: (dist.get(c, 0.0) if i >= min_idx else 0.0) for i, c in enumerate(SEVERITY_CATEGORIES)
-    }
+    return {c: (dist.get(c, 0.0) if i >= min_idx else 0.0) for i, c in enumerate(SEVERITY_CATEGORIES)}
 
 
 def sample_severity_category(
@@ -186,15 +182,11 @@ def sample_severity_category(
     """
     dist = _apply_modifiers(dict(distribution), modifiers or [], person)
     dist = _clamp_minimum(dist, minimum)
-    weights = normalize_probabilities(
-        [max(0.0, dist.get(c, 0.0)) for c in SEVERITY_CATEGORIES], fallback="raise"
-    )
+    weights = normalize_probabilities([max(0.0, dist.get(c, 0.0)) for c in SEVERITY_CATEGORIES], fallback="raise")
     return str(rng.choice(SEVERITY_CATEGORIES, p=weights))
 
 
-def sample_severity(
-    protocol: object, person: object, rng: np.random.Generator
-) -> tuple[str, float]:
+def sample_severity(protocol: object, person: object, rng: np.random.Generator) -> tuple[str, float]:
     """Draw (category, continuous score) from a disease protocol's severity block.
 
     The score is a uniform draw inside the sampled category's range, giving the
@@ -210,9 +202,7 @@ def sample_severity(
     return category, float(rng.uniform(lo, hi))
 
 
-def _validate_severity_block(
-    disease_id: str, severity: dict[str, Any], minimum_severity: str | None
-) -> None:
+def _validate_severity_block(disease_id: str, severity: dict[str, Any], minimum_severity: str | None) -> None:
     """Fail-loud validation of a disease-YAML severity block at load time.
 
     Guards the silent-no-op class: a malformed distribution, a typo'd modifier

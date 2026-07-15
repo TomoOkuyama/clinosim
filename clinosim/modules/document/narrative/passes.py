@@ -84,9 +84,7 @@ class NarrativePass(ABC):
         # patient_id — remote per-patient iteration support. Compiled here so
         # an invalid regex fails loud at construction, not mid-walk.
         self.patient_filter = patient_filter or ""
-        self._patient_filter_re: re.Pattern[str] | None = (
-            re.compile(patient_filter) if patient_filter else None
-        )
+        self._patient_filter_re: re.Pattern[str] | None = re.compile(patient_filter) if patient_filter else None
 
     def run(self) -> NarrativeVersionManifest:
         specs = specs_for_country(self.country)
@@ -131,9 +129,7 @@ class NarrativePass(ABC):
                         # patient with day_index=0.
                         ctx.day_index = self._stub_day_index(stub, encounter_dict)
                         output = self._generate(ctx, spec)
-                        wrapper = self._output_to_wrapper(
-                            output, generator=self._generator_name()
-                        )
+                        wrapper = self._output_to_wrapper(output, generator=self._generator_name())
                         self._write(narrative_dir, encounter_id, stub, wrapper, spec)
                         doc_counts[spec.type_key] = doc_counts.get(spec.type_key, 0) + 1
                         languages_used.add(language)
@@ -158,9 +154,7 @@ class NarrativePass(ABC):
             json.dump(asdict(manifest), f, indent=2, ensure_ascii=False)
         return manifest
 
-    def _apply_patient_filter(
-        self, structural_dir: str, patient_files: list[str]
-    ) -> list[str]:
+    def _apply_patient_filter(self, structural_dir: str, patient_files: list[str]) -> list[str]:
         """T3: keep files whose stem OR patient_id matches ``patient_filter``.
 
         One extra JSON read per patient, only when a filter is set (the
@@ -321,8 +315,8 @@ class NarrativePass(ABC):
             return load_disease_protocol(disease_id)
         except FileNotFoundError:
             logger.warning(
-                "narrative context: unknown disease id %r in condition_event — "
-                "disease_protocol falls back to None", disease_id,
+                "narrative context: unknown disease id %r in condition_event — disease_protocol falls back to None",
+                disease_id,
             )
             return None
 
@@ -349,7 +343,8 @@ class NarrativePass(ABC):
         except FileNotFoundError:
             logger.warning(
                 "narrative context: unknown encounter condition id %r in "
-                "condition_event — encounter_protocol falls back to None", condition_id,
+                "condition_event — encounter_protocol falls back to None",
+                condition_id,
             )
             return None
 
@@ -385,15 +380,11 @@ class NarrativePass(ABC):
         for item in _o(rx, "items", []) or []:
             drug = str(_o(item, "drug_name", "") or _o(item, "drug", "") or "")
             if drug:
-                items.append(
-                    {"drug_name": drug, "dose": str(_o(item, "dose", "") or "")}
-                )
+                items.append({"drug_name": drug, "dose": str(_o(item, "dose", "") or "")})
         return items
 
     @staticmethod
-    def _compute_los_days(
-        patient_dict: dict[str, Any], encounter_dict: dict[str, Any]
-    ) -> int:
+    def _compute_los_days(patient_dict: dict[str, Any], encounter_dict: dict[str, Any]) -> int:
         """LOS in whole days from admission→discharge dates.
 
         In-progress encounters (AD-32 snapshot truncation) reuse the document
@@ -420,17 +411,13 @@ class NarrativePass(ABC):
         unparseable dates → 0 (pre-1a behavior); negative deltas are clamped
         to 0 (defensive — stubs never precede admission in production).
         """
-        stub_dt = _parse_dt(stub.get("period_start")) or _parse_dt(
-            stub.get("authored_datetime")
-        )
+        stub_dt = _parse_dt(stub.get("period_start")) or _parse_dt(stub.get("authored_datetime"))
         admission_dt = _parse_dt(encounter_dict.get("admission_datetime"))
         if stub_dt is None or admission_dt is None:
             return 0
         return max(0, (stub_dt.date() - admission_dt.date()).days)
 
-    def _find_matching_stubs(
-        self, patient_dict: dict[str, Any], spec: DocumentTypeSpec
-    ) -> list[dict[str, Any]]:
+    def _find_matching_stubs(self, patient_dict: dict[str, Any], spec: DocumentTypeSpec) -> list[dict[str, Any]]:
         """Return ALL stubs matching ``spec.type_key``, in document-list order.
 
         A single encounter can carry multiple stubs with the same
@@ -458,9 +445,7 @@ class NarrativePass(ABC):
         base = datetime(2020, 1, 1, tzinfo=UTC) + timedelta(seconds=self.rng_seed)
         return base.isoformat().replace("+00:00", "Z")
 
-    def _output_to_wrapper(
-        self, output: NarrativeOutput, generator: str
-    ) -> ClinicalDocumentNarrative:
+    def _output_to_wrapper(self, output: NarrativeOutput, generator: str) -> ClinicalDocumentNarrative:
         return ClinicalDocumentNarrative(
             text=output.raw_text,
             sections=output.sections,
@@ -569,8 +554,13 @@ class LLMNarrativePass(NarrativePass):
             cache=NarrativeCache(),
         )
         super().__init__(
-            cif_dir, version_id, country, tasks, rng_seed,
-            generator=self._llm_generator, patient_filter=patient_filter,
+            cif_dir,
+            version_id,
+            country,
+            tasks,
+            rng_seed,
+            generator=self._llm_generator,
+            patient_filter=patient_filter,
         )
 
     def run(self) -> NarrativeVersionManifest:

@@ -51,8 +51,7 @@ class TestCoverageBuilder:
         assert kinds == ["Organization", "Coverage"]
 
     def test_coverage_core_fields(self):
-        cov = next(r for r in _build_coverage_resources(_PATIENT_JP, "JP")
-                   if r["resourceType"] == "Coverage")
+        cov = next(r for r in _build_coverage_resources(_PATIENT_JP, "JP") if r["resourceType"] == "Coverage")
         assert cov["status"] == "active"
         assert cov["beneficiary"]["reference"] == "Patient/POP-000001"
         assert cov["payor"][0]["reference"] == "Organization/payer-01130012"
@@ -62,20 +61,17 @@ class TestCoverageBuilder:
         assert cov["meta"]["profile"][0].endswith("JP_Coverage")
 
     def test_coverage_type_is_text_label(self):
-        cov = next(r for r in _build_coverage_resources(_PATIENT_JP, "JP")
-                   if r["resourceType"] == "Coverage")
+        cov = next(r for r in _build_coverage_resources(_PATIENT_JP, "JP") if r["resourceType"] == "Coverage")
         # text-only CodeableConcept (no fabricated coding)
         assert "coding" not in cov["type"]
         assert cov["type"]["text"] == "被用者保険（被保険者）"
 
     def test_coverage_relationship_self_for_subscriber(self):
-        cov = next(r for r in _build_coverage_resources(_PATIENT_JP, "JP")
-                   if r["resourceType"] == "Coverage")
+        cov = next(r for r in _build_coverage_resources(_PATIENT_JP, "JP") if r["resourceType"] == "Coverage")
         assert cov["relationship"]["coding"][0]["code"] == "self"
 
     def test_jp_core_extensions(self):
-        cov = next(r for r in _build_coverage_resources(_PATIENT_JP, "JP")
-                   if r["resourceType"] == "Coverage")
+        cov = next(r for r in _build_coverage_resources(_PATIENT_JP, "JP") if r["resourceType"] == "Coverage")
         ext_by_url = {e["url"]: e["valueString"] for e in cov["extension"]}
         symbol_url = next(u for u in ext_by_url if u.endswith("InsuredPersonSymbol"))
         number_url = next(u for u in ext_by_url if u.endswith("InsuredPersonNumber"))
@@ -85,8 +81,7 @@ class TestCoverageBuilder:
         assert ext_by_url[sub_url] == "01"
 
     def test_payer_org_identifier_and_name(self):
-        org = next(r for r in _build_coverage_resources(_PATIENT_JP, "JP")
-                   if r["resourceType"] == "Organization")
+        org = next(r for r in _build_coverage_resources(_PATIENT_JP, "JP") if r["resourceType"] == "Organization")
         assert org["id"] == "payer-01130012"
         assert org["identifier"][0]["value"] == "01130012"
         assert "jp-insurer-number-namingsystem" in org["identifier"][0]["system"]
@@ -94,8 +89,7 @@ class TestCoverageBuilder:
         assert org["name"] == "全国健康保険協会 東京支部"
 
     def test_payer_org_type_coding(self):
-        org = next(r for r in _build_coverage_resources(_PATIENT_JP, "JP")
-                   if r["resourceType"] == "Organization")
+        org = next(r for r in _build_coverage_resources(_PATIENT_JP, "JP") if r["resourceType"] == "Organization")
         coding = org["type"][0]["coding"][0]
         assert coding["code"] == "pay"
         assert coding["system"].endswith("organization-type")

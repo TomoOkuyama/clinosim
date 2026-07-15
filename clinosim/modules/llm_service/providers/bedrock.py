@@ -101,6 +101,7 @@ class BedrockProvider:
             kwargs["system"] = system_blocks
 
         import time
+
         t0 = time.time()
         try:
             resp = client.converse(**kwargs)
@@ -147,9 +148,8 @@ class BedrockProvider:
         """Best-effort: list available foundation models in the region."""
         try:
             import boto3
-            session = boto3.Session(
-                profile_name=self.profile, region_name=self.region
-            )
+
+            session = boto3.Session(profile_name=self.profile, region_name=self.region)
             bedrock_client = session.client("bedrock")
             resp = bedrock_client.list_foundation_models()
             return [m["modelId"] for m in resp.get("modelSummaries", [])]

@@ -40,7 +40,9 @@ def test_dka_individual_cl_order_now_resulted():
     individual-order path that Pass 1 handles via individual_lab_seed.
     """
     scenario = ForcedScenario(
-        disease_id="diabetic_ketoacidosis", count=3, severity="moderate",
+        disease_id="diabetic_ketoacidosis",
+        count=3,
+        severity="moderate",
     )
     cfg = SimulatorConfig(random_seed=42, country="US")
     dataset = run_forced(scenario, cfg)
@@ -49,9 +51,9 @@ def test_dka_individual_cl_order_now_resulted():
         # Find the individual Cl order (display_name == "Cl"), NOT panel children
         # (whose order_id ends in "-Cl" after a parent prefix).
         cl_individual = [
-            o for o in record.orders
-            if o.display_name == "Cl"
-            and not (o.order_id.endswith("-Cl") and "-" in o.order_id[:-3])
+            o
+            for o in record.orders
+            if o.display_name == "Cl" and not (o.order_id.endswith("-Cl") and "-" in o.order_id[:-3])
         ]
         assert cl_individual, (
             f"DKA patient {record.patient.patient_id} should have at least one "
@@ -67,9 +69,7 @@ def test_dka_individual_cl_order_now_resulted():
         )
         for o in resulted:
             assert o.result is not None and o.result.value is not None
-            assert 80 <= o.result.value <= 125, (
-                f"Cl value {o.result.value} out of physiological range"
-            )
+            assert 80 <= o.result.value <= 125, f"Cl value {o.result.value} out of physiological range"
 
 
 @pytest.mark.integration
@@ -84,16 +84,19 @@ def test_sepsis_individual_fibrinogen_order_now_resulted():
     invariant for the coag-panel additions on the individual-order path.
     """
     scenario = ForcedScenario(
-        disease_id="sepsis", count=3, severity="moderate",
+        disease_id="sepsis",
+        count=3,
+        severity="moderate",
     )
     cfg = SimulatorConfig(random_seed=42, country="US")
     dataset = run_forced(scenario, cfg)
 
     for record in dataset.patients:
         fib_individual = [
-            o for o in record.orders
+            o
+            for o in record.orders
             if o.display_name == "Fibrinogen"
-            and not (o.order_id.endswith("-Fibrinogen") and "-" in o.order_id[:-len("-Fibrinogen")])
+            and not (o.order_id.endswith("-Fibrinogen") and "-" in o.order_id[: -len("-Fibrinogen")])
         ]
         assert fib_individual, (
             f"Sepsis patient {record.patient.patient_id} should have at least one "
@@ -107,9 +110,7 @@ def test_sepsis_individual_fibrinogen_order_now_resulted():
         )
         for o in resulted:
             assert o.result is not None and o.result.value is not None
-            assert 50 <= o.result.value <= 800, (
-                f"Fibrinogen value {o.result.value} out of physiological range"
-            )
+            assert 50 <= o.result.value <= 800, f"Fibrinogen value {o.result.value} out of physiological range"
 
 
 @pytest.mark.integration
@@ -122,16 +123,19 @@ def test_pe_individual_d_dimer_order_now_resulted():
     Counterpart to the Cl (PR #78) and Fibrinogen (PR #80) guards: same
     AD-59 invariant exercised for the new VTE-flag path."""
     scenario = ForcedScenario(
-        disease_id="pulmonary_embolism", count=3, severity="moderate",
+        disease_id="pulmonary_embolism",
+        count=3,
+        severity="moderate",
     )
     cfg = SimulatorConfig(random_seed=42, country="US")
     dataset = run_forced(scenario, cfg)
 
     for record in dataset.patients:
         dd = [
-            o for o in record.orders
+            o
+            for o in record.orders
             if o.display_name == "D_dimer"
-            and not (o.order_id.endswith("-D_dimer") and "-" in o.order_id[:-len("-D_dimer")])
+            and not (o.order_id.endswith("-D_dimer") and "-" in o.order_id[: -len("-D_dimer")])
         ]
         assert dd, (
             f"PE patient {record.patient.patient_id} should have ≥1 "
@@ -145,9 +149,7 @@ def test_pe_individual_d_dimer_order_now_resulted():
         )
         for o in resulted:
             assert o.result is not None and o.result.value is not None
-            assert 4.0 <= o.result.value <= 20.0, (
-                f"PE D-dimer {o.result.value} should be clinically positive"
-            )
+            assert 4.0 <= o.result.value <= 20.0, f"PE D-dimer {o.result.value} should be clinically positive"
 
 
 @pytest.mark.integration
@@ -157,7 +159,9 @@ def test_simulator_deterministic_across_repeated_runs():
     (panel_specimen_seed) refactors did not introduce any nondeterminism.
     """
     scenario = ForcedScenario(
-        disease_id="diabetic_ketoacidosis", count=3, severity="moderate",
+        disease_id="diabetic_ketoacidosis",
+        count=3,
+        severity="moderate",
     )
     cfg = SimulatorConfig(random_seed=42, country="US")
     ds1 = run_forced(scenario, cfg)
@@ -170,6 +174,5 @@ def test_simulator_deterministic_across_repeated_runs():
         labs1 = {(r.lab_name, r.result_datetime): r.value for r in p1.lab_results}
         labs2 = {(r.lab_name, r.result_datetime): r.value for r in p2.lab_results}
         assert labs1 == labs2, (
-            f"non-determinism for {p1.patient.patient_id}: lab results "
-            f"differ between two same-seed runs"
+            f"non-determinism for {p1.patient.patient_id}: lab results differ between two same-seed runs"
         )

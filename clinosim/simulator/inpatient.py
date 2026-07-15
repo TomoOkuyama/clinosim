@@ -88,6 +88,7 @@ from clinosim.types.patient import PatientProfile
 # Patient simulation
 # ============================================================
 
+
 def _simulate_patient(
     patient: PatientProfile,
     event: LifeEvent,
@@ -125,7 +126,9 @@ def _simulate_patient(
         archetype = forced_archetype
     else:
         archetype = select_archetype(
-            severity, patient.physiological_profile, rng,
+            severity,
+            patient.physiological_profile,
+            rng,
             protocol_archetypes=protocol.course_archetypes or None,
             protocol_modifiers=protocol.archetype_modifiers or None,
             patient=patient,
@@ -140,8 +143,7 @@ def _simulate_patient(
         state.inflammation_level = max(state.inflammation_level, 0.05)
         state.renal_function = min(state.renal_function, 0.9)
 
-    state = apply_disease_onset(state, severity, protocol.initial_state_impact,
-                                acid_base_type=protocol.acid_base_type)
+    state = apply_disease_onset(state, severity, protocol.initial_state_impact, acid_base_type=protocol.acid_base_type)
 
     # Scenario-implied chronic glycemic control (e.g. DKA/HHS imply long-standing poor
     # control). Overrides the patient's sampled glycemic_control so HbA1c is coherently high
@@ -154,8 +156,9 @@ def _simulate_patient(
     if secondary_protocol:
         secondary_disease_id = secondary_protocol.disease_id
         # Secondary disease typically presents at moderate severity
-        state = apply_disease_onset(state, "moderate", secondary_protocol.initial_state_impact,
-                                    acid_base_type=secondary_protocol.acid_base_type)
+        state = apply_disease_onset(
+            state, "moderate", secondary_protocol.initial_state_impact, acid_base_type=secondary_protocol.acid_base_type
+        )
 
     # Create encounter — realistic admission time pattern
     if protocol.encounter_type == "surgical":
@@ -169,12 +172,12 @@ def _simulate_patient(
         adm_hour = int(rng.normal(14, 3))
         adm_hour = max(8, min(22, adm_hour))
     adm_minute = int(rng.integers(0, 60))
-    admission_time = datetime(event.timestamp.year, event.timestamp.month, event.timestamp.day,
-                               adm_hour, adm_minute)
+    admission_time = datetime(event.timestamp.year, event.timestamp.month, event.timestamp.day, adm_hour, adm_minute)
     state.timestamp = admission_time
     chief_complaint = _disease_chief_complaint(protocol, country=config.country)
     encounter = create_inpatient_encounter(
-        patient.patient_id, admission_time,
+        patient.patient_id,
+        admission_time,
         chief_complaint=chief_complaint,
         visit_number=readmission_number + 1,
     )
@@ -187,6 +190,7 @@ def _simulate_patient(
 
     # Department resolution: granular YAML specialty → hospital's available department
     from clinosim.simulator.helpers import pick_ward, resolve_department
+
     granular_dept = _disease_to_department(protocol)
     department = resolve_department(granular_dept, hospital_ops)
     encounter.department_id = department
@@ -205,7 +209,9 @@ def _simulate_patient(
     country_key = _country_to_yaml_key(config.country)
     los_by_country = protocol.target_los.get(country_key) or protocol.target_los.get("japan", {})
     los_cfg = los_by_country.get(severity, {"mean": 14, "sd": 4, "min": 5, "max": 30})
-    target_los = int(max(los_cfg.get("min", 5), min(los_cfg.get("max", 30), rng.normal(los_cfg["mean"], los_cfg["sd"]))))
+    target_los = int(
+        max(los_cfg.get("min", 5), min(los_cfg.get("max", 30), rng.normal(los_cfg["mean"], los_cfg["sd"])))
+    )  # noqa: E501
     # Archetypes with treatment changes need minimum LOS to reach the change day
     if archetype in ("treatment_resistant", "plateau", "gradual_deterioration", "sudden_deterioration"):
         arc_data = (protocol.course_archetypes or {}).get(archetype, {})
@@ -217,8 +223,13 @@ def _simulate_patient(
 
     # Admission orders
     admission_orders = place_admission_orders(
-        protocol.model_dump(), patient.patient_id, encounter.encounter_id,
-        admission_time, country=country_key, rng=rng, ordered_by=attending_id,
+        protocol.model_dump(),
+        patient.patient_id,
+        encounter.encounter_id,
+        admission_time,
+        country=country_key,
+        rng=rng,
+        ordered_by=attending_id,
     )
 
     # Imaging orders from disease YAML imaging_orders[] (Tier 1 #2 PR1).
@@ -226,16 +237,27 @@ def _simulate_patient(
     # guarantee unique order_ids within the encounter.
     imaging_seq_counter: dict[str, int] = {"I": 0}
     adm_imaging = place_imaging_orders(
-        protocol, encounter.encounter_id, patient.patient_id,
-        admission_time, day_index=0, severity=severity, rng=rng,
+        protocol,
+        encounter.encounter_id,
+        patient.patient_id,
+        admission_time,
+        day_index=0,
+        severity=severity,
+        rng=rng,
         sequence_counter=imaging_seq_counter,
     )
     admission_orders.extend(adm_imaging)
 
     # Home medication orders (chronic condition continuation)
     home_med_orders, chronic_monitoring = _generate_home_medication_orders(
-        patient, encounter.encounter_id, admission_time, attending_id, rng,
-        state=state, disease_id=disease_id, protocol=protocol,
+        patient,
+        encounter.encounter_id,
+        admission_time,
+        attending_id,
+        rng,
+        state=state,
+        disease_id=disease_id,
+        protocol=protocol,
     )
     admission_orders.extend(home_med_orders)
 
@@ -249,25 +271,40 @@ def _simulate_patient(
         surgeons = [m for m in roster.members if m.role == "physician"]
         surgeon_id = str(rng.choice(surgeons).staff_id) if surgeons else attending_id
         anes_id = str(rng.choice(surgeons).staff_id) if surgeons else attending_id
-        operating_rooms = int(
-            (hospital_ops or {}).get("resource_capacity", {}).get("operating_rooms", 2)
+        operating_rooms = int((hospital_ops or {}).get("resource_capacity", {}).get("operating_rooms", 2))
+        proc, impacts = simulate_surgery(
+            patient,
+            disease_id,
+            encounter.encounter_id,
+            admission_time,
+            protocol,
+            rng,
+            config.country,
+            surgeon_id=surgeon_id,
+            anesthesiologist_id=anes_id,
+            operating_rooms=operating_rooms,
         )
-        proc, impacts = simulate_surgery(patient, disease_id, encounter.encounter_id,
-                                          admission_time, protocol, rng, config.country,
-                                          surgeon_id=surgeon_id, anesthesiologist_id=anes_id,
-                                          operating_rooms=operating_rooms)
         procedures.append(proc)
         for var, delta in impacts.items():
             apply_state_delta(state, var, delta)
         rehab_sessions = generate_rehab_sessions(
-            patient.patient_id, encounter.encounter_id,
-            proc.start_datetime, target_los, rng, config.country,
+            patient.patient_id,
+            encounter.encounter_id,
+            proc.start_datetime,
+            target_los,
+            rng,
+            config.country,
         )
 
     # Bedside / routine procedures (disease-driven rules)
     bedside = generate_bedside_procedures(
-        patient.patient_id, encounter.encounter_id, disease_id,
-        admission_time, severity, rng, config.country,
+        patient.patient_id,
+        encounter.encounter_id,
+        disease_id,
+        admission_time,
+        severity,
+        rng,
+        config.country,
     )
     procedures.extend(bedside)
 
@@ -280,16 +317,26 @@ def _simulate_patient(
             state.volume_status = min(1.0, state.volume_status + 0.05)
 
     # Differential diagnosis
-    protocol_diagnostic = protocol.diagnostic if hasattr(protocol, 'diagnostic') else {}
+    protocol_diagnostic = protocol.diagnostic if hasattr(protocol, "diagnostic") else {}
     differential = initialize_differential(disease_id, patient.age, protocol_diagnostic=protocol_diagnostic)
 
     # Daily simulation loop
     has_diabetes = any(c.code.startswith("E11") for c in patient.chronic_conditions)
     protocol_min_los = los_cfg.get("min", 3)
     loop_result = _run_daily_loop(
-        state, patient, disease_id, protocol, archetype, differential,
-        admission_orders, admission_time, target_los, has_diabetes,
-        healthcare, roster, rng,
+        state,
+        patient,
+        disease_id,
+        protocol,
+        archetype,
+        differential,
+        admission_orders,
+        admission_time,
+        target_los,
+        has_diabetes,
+        healthcare,
+        roster,
+        rng,
         chronic_monitoring=chronic_monitoring,
         country_key=country_key,
         min_los=protocol_min_los,
@@ -318,7 +365,7 @@ def _simulate_patient(
     actual_los = loop_result["actual_los"]
 
     # Final diagnosis
-    protocol_diagnostic = protocol.diagnostic if hasattr(protocol, 'diagnostic') else {}
+    protocol_diagnostic = protocol.diagnostic if hasattr(protocol, "diagnostic") else {}
     yaml_progression = protocol_diagnostic.get("diagnosis_progression") if protocol_diagnostic else None
     dx_code, dx_name = get_current_diagnosis_code(differential, protocol_progression=yaml_progression)
 
@@ -357,13 +404,24 @@ def _simulate_patient(
 
     # Discharge prescription
     final_renal = state.renal_function if state else 1.0
-    discharge_rx = _build_discharge_rx(
-        patient, disease_id, protocol, attending_id, admission_time, rng,
-        country_key=country_key, final_renal_function=final_renal,
-    ) if not death_occurred else None
+    discharge_rx = (
+        _build_discharge_rx(
+            patient,
+            disease_id,
+            protocol,
+            attending_id,
+            admission_time,
+            rng,
+            country_key=country_key,
+            final_renal_function=final_renal,
+        )
+        if not death_occurred
+        else None
+    )
 
     # Enrich medication orders with parsed dose/frequency/route
     from clinosim.modules.order.engine import enrich_medication_order
+
     for o in all_orders:
         if o.order_type == OrderType.MEDICATION:
             enrich_medication_order(o)
@@ -391,8 +449,12 @@ def _simulate_patient(
         else:
             encounter.discharge_disposition = "home"
     if not encounter.priority:
-        encounter.priority = "EM" if disease_id in ("acute_mi", "sepsis", "hemorrhagic_stroke",
-                                                     "subdural_hematoma", "traffic_accident_severe") else "UR"
+        encounter.priority = (
+            "EM"
+            if disease_id
+            in ("acute_mi", "sepsis", "hemorrhagic_stroke", "subdural_hematoma", "traffic_accident_severe")
+            else "UR"
+        )
 
     # Discharge time: morning (10-12) for planned discharge, any time for death
     dc_hour = 0 if death_occurred else int(rng.normal(11, 1.5))
@@ -404,7 +466,9 @@ def _simulate_patient(
     snapshot_dt = None
     if config.snapshot_date:
         snapshot_dt = datetime.strptime(config.snapshot_date, "%Y-%m-%d").replace(
-            hour=23, minute=59, second=59,
+            hour=23,
+            minute=59,
+            second=59,
         )
 
     if snapshot_dt and planned_discharge > snapshot_dt and not death_occurred:
@@ -417,8 +481,7 @@ def _simulate_patient(
         all_orders = [o for o in all_orders if o.ordered_datetime <= snapshot_dt]
         all_vitals = [v for v in all_vitals if v.timestamp <= snapshot_dt]
         all_lab_results = [r for r in all_lab_results if r.result_datetime <= snapshot_dt]
-        all_mars = [m for m in all_mars
-                    if (m.actual_datetime or m.scheduled_datetime) <= snapshot_dt]
+        all_mars = [m for m in all_mars if (m.actual_datetime or m.scheduled_datetime) <= snapshot_dt]
         # Discharge prescription not yet issued
         discharge_rx = None
     else:
@@ -428,15 +491,18 @@ def _simulate_patient(
     # Microbiology cultures + susceptibilities (AD-55 Base) — infections only.
     # Encounter-scoped sub-seed keeps the main random stream unperturbed (AD-16).
     from clinosim.modules.observation.microbiology import generate_microbiology, has_microbiology
+
     microbiology: list = []
     if has_microbiology(disease_id):
         microbiology = generate_microbiology(
-            disease_id, admission_time, encounter.encounter_id, config.random_seed,
+            disease_id,
+            admission_time,
+            encounter.encounter_id,
+            config.random_seed,
         )
         if snapshot_dt:  # drop cultures not yet resulted as of snapshot
             microbiology = [
-                m for m in microbiology
-                if m.reported_datetime is None or m.reported_datetime <= snapshot_dt
+                m for m in microbiology if m.reported_datetime is None or m.reported_datetime <= snapshot_dt
             ]
 
     # RM-7d (session 42): acquired chronic conditions during inpatient stay.
@@ -446,24 +512,24 @@ def _simulate_patient(
     # and append to patient.chronic_conditions when the code is not already
     # present. Downstream FHIR emission picks these up as problem-list-item.
     _IMPLIED_CHRONIC_BY_DISEASE = {
-        "acute_mi":                    ["I25", "I10", "E78"],  # IHD, HTN, dyslipidemia
-        "cerebral_infarction":         ["I10", "I48", "I25", "E78"],
-        "hemorrhagic_stroke":          ["I10", "I48"],
-        "subdural_hematoma":           ["I10"],
-        "heart_failure_exacerbation":  ["I50", "I25", "I10"],
-        "atrial_fibrillation_rvr":     ["I48", "I50", "I10"],
-        "pulmonary_embolism":          ["I48", "N40"],
-        "sepsis":                      ["N18"],
-        "diabetic_ketoacidosis":       ["E11.9", "E78"],
-        "acute_kidney_injury":         ["N18", "I10", "E11.9"],
-        "hip_fracture":                ["M81", "M17"],
-        "urinary_tract_infection":     ["N40"],
-        "acute_pancreatitis":          ["K74"],
-        "gi_bleeding":                 ["K74", "K21"],
-        "copd_exacerbation":           ["J44"],
-        "asthma_exacerbation":         ["J45"],
-        "bacterial_pneumonia":         ["J44"],
-        "aspiration_pneumonia":        ["F00", "K21"],
+        "acute_mi": ["I25", "I10", "E78"],  # IHD, HTN, dyslipidemia
+        "cerebral_infarction": ["I10", "I48", "I25", "E78"],
+        "hemorrhagic_stroke": ["I10", "I48"],
+        "subdural_hematoma": ["I10"],
+        "heart_failure_exacerbation": ["I50", "I25", "I10"],
+        "atrial_fibrillation_rvr": ["I48", "I50", "I10"],
+        "pulmonary_embolism": ["I48", "N40"],
+        "sepsis": ["N18"],
+        "diabetic_ketoacidosis": ["E11.9", "E78"],
+        "acute_kidney_injury": ["N18", "I10", "E11.9"],
+        "hip_fracture": ["M81", "M17"],
+        "urinary_tract_infection": ["N40"],
+        "acute_pancreatitis": ["K74"],
+        "gi_bleeding": ["K74", "K21"],
+        "copd_exacerbation": ["J44"],
+        "asthma_exacerbation": ["J45"],
+        "bacterial_pneumonia": ["J44"],
+        "aspiration_pneumonia": ["F00", "K21"],
     }
     _existing_codes = {
         (c.code.split(".")[0] if hasattr(c, "code") else str(c).split(".")[0])
@@ -480,6 +546,7 @@ def _simulate_patient(
     _implied = _IMPLIED_CHRONIC_BY_DISEASE.get(disease_id, [])
     if _implied:
         from clinosim.types.patient import ChronicCondition
+
         _adm_date = getattr(admission_time, "date", lambda: admission_time)()
         for _code in _implied:
             _base = _code.split(".")[0]
@@ -489,9 +556,12 @@ def _simulate_patient(
             if _sex_req and _patient_sex and _sex_req != _patient_sex:
                 continue  # skip sex-restricted ICD for the wrong sex
             _existing_codes.add(_base)
-            patient.chronic_conditions.append(ChronicCondition(
-                code=_code, onset_date=_adm_date,
-            ))
+            patient.chronic_conditions.append(
+                ChronicCondition(
+                    code=_code,
+                    onset_date=_adm_date,
+                )
+            )
 
     # Session 45 seed=400 verification: propagate in-hospital death to the
     # Patient record so `_fhir_patient` can emit `deceasedDateTime`. Uses
@@ -507,11 +577,16 @@ def _simulate_patient(
             patient.date_of_death = _dod
 
     record = CIFPatientRecord(
-        patient=patient, encounters=[encounter], orders=all_orders,
-        vital_signs=all_vitals, lab_results=all_lab_results,
-        condition_event=condition_event, clinical_diagnosis=clinical_diagnosis,
+        patient=patient,
+        encounters=[encounter],
+        orders=all_orders,
+        vital_signs=all_vitals,
+        lab_results=all_lab_results,
+        condition_event=condition_event,
+        clinical_diagnosis=clinical_diagnosis,
         complications_occurred=complications_occurred,
-        procedures=procedures, rehab_sessions=rehab_sessions,
+        procedures=procedures,
+        rehab_sessions=rehab_sessions,
         medication_administrations=all_mars,
         intake_output_records=all_io,
         adl_assessments=all_adl,
@@ -580,6 +655,7 @@ def _simulate_patient(
     # cultures the pre-POST_ENCOUNTER filter missed.
     if snapshot_dt is not None:
         from datetime import date as _date
+
         snapshot_date = snapshot_dt.date()
         ext = record.extensions or {}
         ext_hai = ext.get("hai") or []
@@ -599,8 +675,7 @@ def _simulate_patient(
                 ext["hai"] = kept_hai
         if record.microbiology:
             record.microbiology = [
-                m for m in record.microbiology
-                if m.reported_datetime is None or m.reported_datetime <= snapshot_dt
+                m for m in record.microbiology if m.reported_datetime is None or m.reported_datetime <= snapshot_dt
             ]
 
     # Phase 3a (2026-06-25): apply HAI WBC + CRP forward-delta lift to
@@ -623,6 +698,7 @@ def _simulate_patient(
 # ============================================================
 # Daily simulation loop
 # ============================================================
+
 
 def _run_daily_loop(
     state: PhysiologicalState,
@@ -672,9 +748,12 @@ def _run_daily_loop(
     for day in range(target_los):
         # State update with diagnosis-treatment feedback
         directive = get_daily_directive(
-            archetype, day, patient.physiological_profile,
+            archetype,
+            day,
+            patient.physiological_profile,
             protocol_archetypes=protocol.course_archetypes or None,
-            age=patient.age, rng=rng,
+            age=patient.age,
+            rng=rng,
         )
 
         # Phase 1: Dampen recovery if diagnosis is wrong
@@ -685,18 +764,25 @@ def _run_daily_loop(
             working_dx = differential.top_candidate.disease_code
         dx_difficulty = (protocol.diagnostic or {}).get("diagnostic_difficulty", 0.3)
         effectiveness = compute_diagnosis_effectiveness(
-            working_dx, disease_id, dx_confidence, day,
+            working_dx,
+            disease_id,
+            dx_confidence,
+            day,
             diagnostic_difficulty=dx_difficulty,
         )
         directive = apply_diagnosis_modifier(
-            directive, effectiveness,
+            directive,
+            effectiveness,
             current_volume=state.volume_status,
             current_ph=state.ph_status,
         )
 
         # Phase 2: Natural recovery (small baseline healing)
         nat_directive = natural_recovery_directive(
-            day, disease_id, severity, patient.physiological_profile,
+            day,
+            disease_id,
+            severity,
+            patient.physiological_profile,
         )
         for var, delta in nat_directive.changes.items():
             directive.changes[var] = directive.changes.get(var, 0.0) + delta
@@ -713,8 +799,11 @@ def _run_daily_loop(
                 lab_hour = 5
                 lab_min = int(rng.integers(30, 60))  # 05:30-06:00
             lab_time = datetime(
-                admission_time.year, admission_time.month, admission_time.day,
-                lab_hour, lab_min,
+                admission_time.year,
+                admission_time.month,
+                admission_time.day,
+                lab_hour,
+                lab_min,
             ) + timedelta(days=day)
 
             # Context-dependent lab frequency modulation
@@ -733,8 +822,14 @@ def _run_daily_loop(
                 freq_mod *= 0.8
 
             daily_orders = place_daily_lab_orders(
-                protocol.model_dump(), patient.patient_id, encounter_id, day, lab_time,
-                freq_mod, rng, ordered_by=attending_id,
+                protocol.model_dump(),
+                patient.patient_id,
+                encounter_id,
+                day,
+                lab_time,
+                freq_mod,
+                rng,
+                ordered_by=attending_id,
             )
             all_orders.extend(daily_orders)
 
@@ -742,8 +837,13 @@ def _run_daily_loop(
             # simulate_inpatient_encounter). Counter threads from admission
             # call so IDs are unique across the full encounter.
             daily_imaging = place_imaging_orders(
-                protocol, encounter_id, patient.patient_id,
-                admission_time, day_index=day, severity=severity, rng=rng,
+                protocol,
+                encounter_id,
+                patient.patient_id,
+                admission_time,
+                day_index=day,
+                severity=severity,
+                rng=rng,
                 sequence_counter=_img_seq,
             )
             all_orders.extend(daily_imaging)
@@ -751,13 +851,18 @@ def _run_daily_loop(
         # Chronic condition monitoring labs (additional to disease protocol)
         if chronic_monitoring and day >= 1:
             chronic_lab_orders = _place_chronic_monitoring_orders(
-                chronic_monitoring, patient.patient_id, day, admission_time, rng,
-                encounter_id=encounter_id, ordered_by=attending_id,
+                chronic_monitoring,
+                patient.patient_id,
+                day,
+                admission_time,
+                rng,
+                encounter_id=encounter_id,
+                ordered_by=attending_id,
             )
             all_orders.extend(chronic_lab_orders)
 
         # Lab results (with temporal lag for slow markers like CRP)
-        lab_hour = lab_time.hour if 'lab_time' in dir() else 6  # early morning default
+        lab_hour = lab_time.hour if "lab_time" in dir() else 6  # early morning default
         # J5 (Phase 2a): read every scenario flag (causes_myocardial_injury,
         # causes_vte, future additions) via one helper and splat with **flags
         # so every call site stays in sync. See physiology.engine docstring.
@@ -776,13 +881,17 @@ def _run_daily_loop(
                 current_day=day,
             ),
         }
-        true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, hour=lab_hour, **flags)
+        true_labs = derive_lab_values(
+            state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, hour=lab_hour, **flags
+        )  # noqa: E501
 
         # Apply temporal lag: CRP reflects inflammation from ~1 day ago
         if len(state_history) >= 2 and "CRP" in true_labs:
             lag_idx = max(0, len(state_history) - 2)
             lagged_state = state_history[lag_idx]
-            lagged_labs = derive_lab_values(lagged_state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, hour=lab_hour, **flags)
+            lagged_labs = derive_lab_values(
+                lagged_state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, hour=lab_hour, **flags
+            )  # noqa: E501
             true_labs["CRP"] = lagged_labs.get("CRP", true_labs["CRP"])
 
         # Expand panel orders (e.g. ABG → pH/pCO2/pO2/HCO3; CBC → WBC/Hb/Hct/Plt) into
@@ -799,21 +908,26 @@ def _run_daily_loop(
                     continue
                 children: list[Order] = []
                 for comp in comps:
-                    children.append(Order(
-                        order_id=f"{order.order_id}-{comp}", patient_id=order.patient_id,
-                        order_type=OrderType.LAB, display_name=comp, urgency=order.urgency,
-                        clinical_intent=order.clinical_intent,
-                        ordered_datetime=order.ordered_datetime, ordered_by=order.ordered_by,
-                        encounter_id=order.encounter_id, status=OrderStatus.PLACED,
-                    ))
+                    children.append(
+                        Order(
+                            order_id=f"{order.order_id}-{comp}",
+                            patient_id=order.patient_id,
+                            order_type=OrderType.LAB,
+                            display_name=comp,
+                            urgency=order.urgency,
+                            clinical_intent=order.clinical_intent,
+                            ordered_datetime=order.ordered_datetime,
+                            ordered_by=order.ordered_by,
+                            encounter_id=order.encounter_id,
+                            status=OrderStatus.PLACED,
+                        )
+                    )
                 _panel_children_by_parent[order.order_id] = children
                 order.status = OrderStatus.RESULTED
 
         # The flat list (preserves insertion order so downstream serialisers, e.g.
         # _bb_labs in fhir_r4_adapter, retain a stable index for `lab-{enc}-{idx:04d}`).
-        _panel_children: list[Order] = [
-            c for kids in _panel_children_by_parent.values() for c in kids
-        ]
+        _panel_children: list[Order] = [c for kids in _panel_children_by_parent.values() for c in kids]
         all_orders.extend(_panel_children)
         _panel_child_ids = {c.order_id for c in _panel_children}
 
@@ -842,9 +956,12 @@ def _run_daily_loop(
                     hemolyzed_val = true_labs[canon] * float(lab_rng.uniform(1.2, 1.8))
                     lab_tech = assign_staff("lab_result", "", roster, lab_rng).get("performing_technician", "TECH-001")
                     order.result = OrderResult(
-                        result_datetime=result_time, performed_by=lab_tech,
-                        lab_name=canon, value=round(hemolyzed_val, 1),
-                        unit=get_lab_unit(canon), flag="H*",
+                        result_datetime=result_time,
+                        performed_by=lab_tech,
+                        lab_name=canon,
+                        value=round(hemolyzed_val, 1),
+                        unit=get_lab_unit(canon),
+                        flag="H*",
                     )
                     order.status = OrderStatus.RESULTED
                     all_lab_results.append(order.result)
@@ -855,9 +972,12 @@ def _run_daily_loop(
                 flag = determine_flag(canon, observed, sex=patient.sex)
                 lab_tech = assign_staff("lab_result", "", roster, lab_rng).get("performing_technician", "TECH-001")
                 order.result = OrderResult(
-                    result_datetime=result_time, performed_by=lab_tech,
-                    lab_name=canon, value=observed,
-                    unit=get_lab_unit(canon), flag=flag,
+                    result_datetime=result_time,
+                    performed_by=lab_tech,
+                    lab_name=canon,
+                    value=observed,
+                    unit=get_lab_unit(canon),
+                    flag=flag,
                 )
                 order.status = OrderStatus.RESULTED
                 all_lab_results.append(order.result)
@@ -880,25 +1000,37 @@ def _run_daily_loop(
                 if canon not in true_labs:
                     continue  # silently dropped; status stays PLACED
                 result_time = calculate_result_time_from_state(
-                    child, hospital_state, hospital_ops or {}, sub_rng,
+                    child,
+                    hospital_state,
+                    hospital_ops or {},
+                    sub_rng,
                 )
                 lab_tech = assign_staff(
-                    "lab_result", "", roster, sub_rng,
+                    "lab_result",
+                    "",
+                    roster,
+                    sub_rng,
                 ).get("performing_technician", "TECH-001")
                 if canon in ("K", "LDH") and sub_rng.random() < 0.03:
                     hemolyzed_val = true_labs[canon] * float(sub_rng.uniform(1.2, 1.8))
                     child.result = OrderResult(
-                        result_datetime=result_time, performed_by=lab_tech,
-                        lab_name=canon, value=round(hemolyzed_val, 1),
-                        unit=get_lab_unit(canon), flag="H*",
+                        result_datetime=result_time,
+                        performed_by=lab_tech,
+                        lab_name=canon,
+                        value=round(hemolyzed_val, 1),
+                        unit=get_lab_unit(canon),
+                        flag="H*",
                     )
                 else:
                     observed = generate_lab_result(canon, true_labs[canon], sub_rng)
                     flag = determine_flag(canon, observed, sex=patient.sex)
                     child.result = OrderResult(
-                        result_datetime=result_time, performed_by=lab_tech,
-                        lab_name=canon, value=observed,
-                        unit=get_lab_unit(canon), flag=flag,
+                        result_datetime=result_time,
+                        performed_by=lab_tech,
+                        lab_name=canon,
+                        value=observed,
+                        unit=get_lab_unit(canon),
+                        flag=flag,
                     )
                 child.status = OrderStatus.RESULTED
                 all_lab_results.append(child.result)
@@ -907,8 +1039,12 @@ def _run_daily_loop(
         if day >= 1:
             findings = _extract_findings(all_lab_results, disease_id, day)
             if findings:
-                protocol_lr = protocol.likelihood_ratios if hasattr(protocol, 'likelihood_ratios') and protocol.likelihood_ratios else None
-                protocol_diagnostic = protocol.diagnostic if hasattr(protocol, 'diagnostic') else {}
+                protocol_lr = (
+                    protocol.likelihood_ratios
+                    if hasattr(protocol, "likelihood_ratios") and protocol.likelihood_ratios
+                    else None
+                )  # noqa: E501
+                protocol_diagnostic = protocol.diagnostic if hasattr(protocol, "diagnostic") else {}
                 yaml_lr = protocol_diagnostic.get("likelihood_ratios") if protocol_diagnostic else None
                 differential = update_differential(differential, findings, protocol_lr_table=yaml_lr or protocol_lr)
 
@@ -937,24 +1073,32 @@ def _run_daily_loop(
             mod = order_mods[matched_order_key]
             # Add labs
             for lab_name in mod.get("add_labs", []):
-                all_orders.append(Order(
-                    order_id=f"ORD-{encounter_id}-MOD-D{day}-{sanitize_id_token(lab_name, 5)}",
-                    patient_id=patient.patient_id, order_type=OrderType.LAB,
-                    display_name=lab_name, urgency="stat",
-                    clinical_intent=f"Day {day} {archetype}: additional workup",
-                    ordered_datetime=admission_time + timedelta(days=day, hours=10),
-                    status=OrderStatus.PLACED,
-                ))
+                all_orders.append(
+                    Order(
+                        order_id=f"ORD-{encounter_id}-MOD-D{day}-{sanitize_id_token(lab_name, 5)}",
+                        patient_id=patient.patient_id,
+                        order_type=OrderType.LAB,
+                        display_name=lab_name,
+                        urgency="stat",
+                        clinical_intent=f"Day {day} {archetype}: additional workup",
+                        ordered_datetime=admission_time + timedelta(days=day, hours=10),
+                        status=OrderStatus.PLACED,
+                    )
+                )
             # Add imaging
             for img_idx, img_name in enumerate(mod.get("add_imaging", [])):
-                all_orders.append(Order(
-                    order_id=f"ORD-{encounter_id}-MOD-D{day}-IMG-{img_idx}",
-                    patient_id=patient.patient_id, order_type=OrderType.IMAGING,
-                    display_name=img_name, urgency="stat",
-                    clinical_intent=f"Day {day} {archetype}: additional imaging",
-                    ordered_datetime=admission_time + timedelta(days=day, hours=10),
-                    status=OrderStatus.PLACED,
-                ))
+                all_orders.append(
+                    Order(
+                        order_id=f"ORD-{encounter_id}-MOD-D{day}-IMG-{img_idx}",
+                        patient_id=patient.patient_id,
+                        order_type=OrderType.IMAGING,
+                        display_name=img_name,
+                        urgency="stat",
+                        clinical_intent=f"Day {day} {archetype}: additional imaging",
+                        ordered_datetime=admission_time + timedelta(days=day, hours=10),
+                        status=OrderStatus.PLACED,
+                    )
+                )
 
         # Treatment modifications (same jitter logic)
         matched_tx_key = None
@@ -967,15 +1111,18 @@ def _run_daily_loop(
             mod = treatment_mods[matched_tx_key]
             # Stop medications
             for stop_idx, drug_name in enumerate(mod.get("stop", [])):
-                all_orders.append(Order(
-                    order_id=f"ORD-{encounter_id}-STOP-D{day}-{stop_idx}-{sanitize_id_token(drug_name, 8)}",
-                    patient_id=patient.patient_id, order_type=OrderType.MEDICATION,
-                    display_name=f"DISCONTINUE: {drug_name}",
-                    urgency="routine",
-                    clinical_intent=f"Day {day} {archetype}: stop {drug_name}",
-                    ordered_datetime=admission_time + timedelta(days=day, hours=10),
-                    status=OrderStatus.PLACED,
-                ))
+                all_orders.append(
+                    Order(
+                        order_id=f"ORD-{encounter_id}-STOP-D{day}-{stop_idx}-{sanitize_id_token(drug_name, 8)}",
+                        patient_id=patient.patient_id,
+                        order_type=OrderType.MEDICATION,
+                        display_name=f"DISCONTINUE: {drug_name}",
+                        urgency="routine",
+                        clinical_intent=f"Day {day} {archetype}: stop {drug_name}",
+                        ordered_datetime=admission_time + timedelta(days=day, hours=10),
+                        status=OrderStatus.PLACED,
+                    )
+                )
             # Start new medications or procedures
             start_meds = mod.get("start", {}).get(country_key, mod.get("start", []))
             if isinstance(start_meds, list):
@@ -1000,28 +1147,34 @@ def _run_daily_loop(
                         else:
                             _order_id_prefix = f"ORD-{encounter_id}-DEV-D{day}-{sanitize_id_token(drug, 8)}"
                             _intent = f"Day {day} {archetype}: device / therapy"
-                        all_orders.append(Order(
-                            order_id=_order_id_prefix,
-                            patient_id=patient.patient_id, order_type=_dc_order_type,
-                            display_name=display,
-                            urgency="urgent",
-                            clinical_intent=_intent,
-                            ordered_datetime=admission_time + timedelta(days=day, hours=10),
-                            status=OrderStatus.PLACED,
-                        ))
+                        all_orders.append(
+                            Order(
+                                order_id=_order_id_prefix,
+                                patient_id=patient.patient_id,
+                                order_type=_dc_order_type,
+                                display_name=display,
+                                urgency="urgent",
+                                clinical_intent=_intent,
+                                ordered_datetime=admission_time + timedelta(days=day, hours=10),
+                                status=OrderStatus.PLACED,
+                            )
+                        )
                     elif proc:
                         # Procedure order (not a medication)
                         detail = med.get("detail", "")
                         display = f"{proc}" + (f" ({detail})" if detail else "")
-                        all_orders.append(Order(
-                            order_id=f"ORD-{encounter_id}-PROC-D{day}-{sanitize_id_token(proc, 8)}",
-                            patient_id=patient.patient_id, order_type=OrderType.PROCEDURE,
-                            display_name=display,
-                            urgency="urgent",
-                            clinical_intent=f"Day {day} {archetype}: new procedure",
-                            ordered_datetime=admission_time + timedelta(days=day, hours=10),
-                            status=OrderStatus.PLACED,
-                        ))
+                        all_orders.append(
+                            Order(
+                                order_id=f"ORD-{encounter_id}-PROC-D{day}-{sanitize_id_token(proc, 8)}",
+                                patient_id=patient.patient_id,
+                                order_type=OrderType.PROCEDURE,
+                                display_name=display,
+                                urgency="urgent",
+                                clinical_intent=f"Day {day} {archetype}: new procedure",
+                                ordered_datetime=admission_time + timedelta(days=day, hours=10),
+                                status=OrderStatus.PLACED,
+                            )
+                        )
                     # Skip entries with neither drug nor procedure
 
         # Treatment escalation: if inflammation not improving by day 3, escalate
@@ -1041,23 +1194,27 @@ def _run_daily_loop(
                 # treatment_classifier (J5 pattern prevention).
                 _esc_display = f"{drug_name} {dose}".strip()
                 _esc_order_type = classify_encounter_treatment(_esc_display)
-                all_orders.append(Order(
-                    order_id=f"ORD-{encounter_id}-ESC-D{day}-{sanitize_id_token(drug_name, 8)}",
-                    encounter_id=encounter_id,
-                    patient_id=patient.patient_id,
-                    order_type=_esc_order_type,
-                    order_code=esc_drug.get("code_yj", esc_drug.get("code_rxnorm", "")),
-                    display_name=_esc_display,
-                    urgency="urgent",
-                    clinical_intent=f"Escalation day {day}: {drug_name} ({indication})",
-                    ordered_datetime=admission_time + timedelta(days=day, hours=10),
-                    ordered_by=attending_id,
-                    status=OrderStatus.PLACED,
-                    route=esc_drug.get("route", "IV"),
-                ))
+                all_orders.append(
+                    Order(
+                        order_id=f"ORD-{encounter_id}-ESC-D{day}-{sanitize_id_token(drug_name, 8)}",
+                        encounter_id=encounter_id,
+                        patient_id=patient.patient_id,
+                        order_type=_esc_order_type,
+                        order_code=esc_drug.get("code_yj", esc_drug.get("code_rxnorm", "")),
+                        display_name=_esc_display,
+                        urgency="urgent",
+                        clinical_intent=f"Escalation day {day}: {drug_name} ({indication})",
+                        ordered_datetime=admission_time + timedelta(days=day, hours=10),
+                        ordered_by=attending_id,
+                        status=OrderStatus.PLACED,
+                        route=esc_drug.get("route", "IV"),
+                    )
+                )
 
         # Medication administration (MAR)
-        mars_today = _generate_mar(patient, all_orders, day, admission_time, department=department, roster=roster, rng=rng)
+        mars_today = _generate_mar(
+            patient, all_orders, day, admission_time, department=department, roster=roster, rng=rng
+        )  # noqa: E501
         all_mars.extend(mars_today)
 
         # Diet order (only when diet changes: NPO → clear liquid → soft → regular)
@@ -1070,23 +1227,36 @@ def _run_daily_loop(
         else:
             diet = "regular_diet"
         if diet != prev_diet:
-            all_orders.append(Order(
-                order_id=f"ORD-{encounter_id}-DIET-D{day}",
-                patient_id=patient.patient_id,
-                order_type=OrderType.DIET,
-                display_name=diet,
-                urgency="routine",
-                clinical_intent=f"Day {day} diet: {diet}",
-                ordered_datetime=admission_time + timedelta(days=day, hours=7),
-                ordered_by=attending_id,
-                status=OrderStatus.PLACED,
-            ))
+            all_orders.append(
+                Order(
+                    order_id=f"ORD-{encounter_id}-DIET-D{day}",
+                    patient_id=patient.patient_id,
+                    order_type=OrderType.DIET,
+                    display_name=diet,
+                    urgency="routine",
+                    clinical_intent=f"Day {day} diet: {diet}",
+                    ordered_datetime=admission_time + timedelta(days=day, hours=7),
+                    ordered_by=attending_id,
+                    status=OrderStatus.PLACED,
+                )
+            )
             prev_diet = diet
 
         # Vitals
-        ward_nurse_id = assign_staff("medication_administration", department, roster, rng).get("administering_nurse", "NS-001")
+        ward_nurse_id = assign_staff("medication_administration", department, roster, rng).get(
+            "administering_nurse", "NS-001"
+        )  # noqa: E501
         vitals_country = "JP" if country_key == "japan" else "US"
-        vitals_today = _generate_vitals(state, patient, day, admission_time, rng, disease_id=disease_id, nurse_id=ward_nurse_id, country=vitals_country)
+        vitals_today = _generate_vitals(
+            state,
+            patient,
+            day,
+            admission_time,
+            rng,
+            disease_id=disease_id,
+            nurse_id=ward_nurse_id,
+            country=vitals_country,
+        )  # noqa: E501
         all_vitals.extend(vitals_today)
 
         # Daily I/O record
@@ -1102,7 +1272,13 @@ def _run_daily_loop(
         comp_list = protocol.complications if protocol.complications else []
         if comp_list and day >= 1:
             triggered = evaluate_complications(
-                day, state, patient, comp_list, active_complications, rng, severity=severity,
+                day,
+                state,
+                patient,
+                comp_list,
+                active_complications,
+                rng,
+                severity=severity,
             )
             for comp in triggered:
                 for var, delta in comp.get("state_impact", {}).items():
@@ -1126,10 +1302,13 @@ def _run_daily_loop(
                                 o.status = OrderStatus.CANCELLED
 
         # Mortality (disease-specific rate from YAML benchmarks)
-        benchmark_mortality = (protocol.outcome_benchmarks.get(country_key, {})
-                               .get("in_hospital_mortality", 0.0))
+        benchmark_mortality = protocol.outcome_benchmarks.get(country_key, {}).get("in_hospital_mortality", 0.0)
         if _evaluate_mortality(
-            state, patient, severity=severity, day=day, rng=rng,
+            state,
+            patient,
+            severity=severity,
+            day=day,
+            rng=rng,
             disease_mortality_rate=benchmark_mortality,
             target_los=target_los,
         ):
@@ -1146,10 +1325,15 @@ def _run_daily_loop(
     except NameError:
         actual_los = max(1, target_los)
     return {
-        "orders": all_orders, "lab_results": all_lab_results, "vitals": all_vitals,
-        "mars": all_mars, "io_records": all_io, "adl_assessments": all_adl,
+        "orders": all_orders,
+        "lab_results": all_lab_results,
+        "vitals": all_vitals,
+        "mars": all_mars,
+        "io_records": all_io,
+        "adl_assessments": all_adl,
         "state_history": state_history,
-        "complications": complications_occurred, "death_occurred": death_occurred,
+        "complications": complications_occurred,
+        "death_occurred": death_occurred,
         "icu_transferred": icu_transferred,
         "icu_transferred_day": icu_transferred_day_local,  # C5-22
         "differential": differential,
@@ -1162,6 +1346,7 @@ def _run_daily_loop(
 # ============================================================
 # Home medications and chronic monitoring
 # ============================================================
+
 
 def _generate_home_medication_orders(
     patient: PatientProfile,
@@ -1179,6 +1364,7 @@ def _generate_home_medication_orders(
         (medication_orders, chronic_monitoring_specs)
     """
     from clinosim.locale.loader import load_chronic_medications
+
     chronic_meds = load_chronic_medications()
 
     orders: list[Order] = []
@@ -1193,7 +1379,9 @@ def _generate_home_medication_orders(
 
         # Home medications (with YAML-driven holds + renal dose adjustment)
         has_ckd = any(c.code.startswith("N18") for c in patient.chronic_conditions)
-        renal_reserve = patient.physiological_profile.renal_reserve if hasattr(patient, "physiological_profile") else 1.0
+        renal_reserve = (
+            patient.physiological_profile.renal_reserve if hasattr(patient, "physiological_profile") else 1.0
+        )  # noqa: E501
         initial_renal = state.renal_function if state else renal_reserve
         has_renal_impairment = has_ckd or initial_renal < 0.4
 
@@ -1201,7 +1389,7 @@ def _generate_home_medication_orders(
         held_drugs: set[str] = set()
         hold_reasons: dict[str, str] = {}
         if protocol and hasattr(protocol, "medication_holds"):
-            for hold in (protocol.medication_holds or []):
+            for hold in protocol.medication_holds or []:
                 reason = hold.get("reason", "disease-specific hold")
                 for drug in hold.get("drugs", []):
                     held_drugs.add(drug.lower())
@@ -1232,8 +1420,7 @@ def _generate_home_medication_orders(
 
             # 3. Renal dose adjustment for CKD patients
             if has_renal_impairment and renal_reserve < 0.5:
-                renal_drugs = ["enoxaparin", "enalapril", "candesartan",
-                               "alendronate", "celecoxib"]
+                renal_drugs = ["enoxaparin", "enalapril", "candesartan", "alendronate", "celecoxib"]
                 if any(rd in drug_lower for rd in renal_drugs):
                     if "celecoxib" in drug_lower:
                         continue  # held
@@ -1287,72 +1474,89 @@ def _place_chronic_monitoring_orders(
             times = mon.get("times", [6, 11, 17, 21])
             for t_idx, hour in enumerate(times):
                 order_time = datetime(
-                    admission_time.year, admission_time.month, admission_time.day,
-                    hour, 0,
+                    admission_time.year,
+                    admission_time.month,
+                    admission_time.day,
+                    hour,
+                    0,
                 ) + timedelta(days=day)
                 if order_time < admission_time:
                     continue
-                orders.append(Order(
-                    order_id=f"ORD-{encounter_id}-CM-D{day:02d}-{i:02d}-{t_idx}",
-                    encounter_id=encounter_id,
-                    patient_id=patient_id,
-                    order_type=OrderType.LAB,
-                    order_code="",
-                    display_name=mon["test"],
-                    urgency="routine",
-                    clinical_intent=mon.get("intent", f"Chronic monitoring: {mon['test']}"),
-                    ordered_datetime=order_time,
-                    ordered_by=ordered_by,
-                    status=OrderStatus.PLACED,
-                ))
+                orders.append(
+                    Order(
+                        order_id=f"ORD-{encounter_id}-CM-D{day:02d}-{i:02d}-{t_idx}",
+                        encounter_id=encounter_id,
+                        patient_id=patient_id,
+                        order_type=OrderType.LAB,
+                        order_code="",
+                        display_name=mon["test"],
+                        urgency="routine",
+                        clinical_intent=mon.get("intent", f"Chronic monitoring: {mon['test']}"),
+                        ordered_datetime=order_time,
+                        ordered_by=ordered_by,
+                        status=OrderStatus.PLACED,
+                    )
+                )
             continue
 
         if freq == "tid":
             times = [8, 14, 20]
             for t_idx, hour in enumerate(times):
                 order_time = datetime(
-                    admission_time.year, admission_time.month, admission_time.day,
-                    hour, 0,
+                    admission_time.year,
+                    admission_time.month,
+                    admission_time.day,
+                    hour,
+                    0,
                 ) + timedelta(days=day)
                 if order_time < admission_time:
                     continue
-                orders.append(Order(
-                    order_id=f"ORD-{encounter_id}-CM-D{day:02d}-{i:02d}-{t_idx}",
-                    encounter_id=encounter_id,
-                    patient_id=patient_id,
-                    order_type=OrderType.LAB,
-                    order_code="",
-                    display_name=mon["test"],
-                    urgency="routine",
-                    clinical_intent=mon.get("intent", f"Chronic monitoring: {mon['test']}"),
-                    ordered_datetime=order_time,
-                    ordered_by=ordered_by,
-                    status=OrderStatus.PLACED,
-                ))
+                orders.append(
+                    Order(
+                        order_id=f"ORD-{encounter_id}-CM-D{day:02d}-{i:02d}-{t_idx}",
+                        encounter_id=encounter_id,
+                        patient_id=patient_id,
+                        order_type=OrderType.LAB,
+                        order_code="",
+                        display_name=mon["test"],
+                        urgency="routine",
+                        clinical_intent=mon.get("intent", f"Chronic monitoring: {mon['test']}"),
+                        ordered_datetime=order_time,
+                        ordered_by=ordered_by,
+                        status=OrderStatus.PLACED,
+                    )
+                )
             continue
 
         # Default: daily at 06:00
         order_time = datetime(
-            admission_time.year, admission_time.month, admission_time.day, 6, 0,
+            admission_time.year,
+            admission_time.month,
+            admission_time.day,
+            6,
+            0,
         ) + timedelta(days=day)
-        orders.append(Order(
-            order_id=f"ORD-{encounter_id}-CM-D{day:02d}-{i:02d}",
-            encounter_id=encounter_id,
-            patient_id=patient_id,
-            order_type=OrderType.LAB,
-            order_code="",
-            display_name=mon["test"],
-            urgency="routine",
-            clinical_intent=mon.get("intent", f"Chronic monitoring: {mon['test']}"),
-            ordered_datetime=order_time,
-            ordered_by=ordered_by,
-            status=OrderStatus.PLACED,
-        ))
+        orders.append(
+            Order(
+                order_id=f"ORD-{encounter_id}-CM-D{day:02d}-{i:02d}",
+                encounter_id=encounter_id,
+                patient_id=patient_id,
+                order_type=OrderType.LAB,
+                order_code="",
+                display_name=mon["test"],
+                urgency="routine",
+                clinical_intent=mon.get("intent", f"Chronic monitoring: {mon['test']}"),
+                ordered_datetime=order_time,
+                ordered_by=ordered_by,
+                status=OrderStatus.PLACED,
+            )
+        )
 
     return orders
 
 
 # ============================================================
+
 
 def _generate_mar(
     patient: PatientProfile,
@@ -1366,6 +1570,7 @@ def _generate_mar(
 ) -> list[MedicationAdministration]:
     """Generate MAR entries for medication orders on this day."""
     from clinosim.modules.order.engine import enrich_medication_order
+
     mars: list[MedicationAdministration] = []
 
     med_orders = [o for o in orders if o.order_type == OrderType.MEDICATION and o.status == OrderStatus.PLACED]
@@ -1407,37 +1612,32 @@ def _generate_mar(
         # respected. Subsequent doses continue on the scheduled q6/8h grid.
         stat_first_dose_time = None
         if day == 0 and str(getattr(order, "urgency", "")).lower() == "stat":
-            stat_first_dose_time = admission_time + timedelta(
-                minutes=int(rng.integers(30, 61))
-            )
+            stat_first_dose_time = admission_time + timedelta(minutes=int(rng.integers(30, 61)))
 
         scheduled_times = []
         if stat_first_dose_time is not None:
             scheduled_times.append(stat_first_dose_time)
 
         for hour in admin_hours:
-            scheduled = datetime(
-                admission_time.year, admission_time.month, admission_time.day, hour, 0
-            ) + timedelta(days=day)
+            scheduled = datetime(admission_time.year, admission_time.month, admission_time.day, hour, 0) + timedelta(
+                days=day
+            )
 
             if scheduled < admission_time:
                 continue
             # Skip the scheduled-grid slot if it is within 90min of the STAT
             # ad-hoc dose to avoid a double administration back-to-back.
-            if stat_first_dose_time is not None and abs(
-                (scheduled - stat_first_dose_time).total_seconds()
-            ) < 5400:
+            if stat_first_dose_time is not None and abs((scheduled - stat_first_dose_time).total_seconds()) < 5400:
                 continue
             scheduled_times.append(scheduled)
 
         for scheduled in scheduled_times:
-
             # Determine status
             status = "given"
             hold_reason = None
 
             # Hold conditions (clinical)
-            if "antihypertensive" in drug_name.lower() and hasattr(patient, 'baseline_vitals'):
+            if "antihypertensive" in drug_name.lower() and hasattr(patient, "baseline_vitals"):
                 if patient.baseline_vitals.systolic_bp < 90:
                     status, hold_reason = "held", "SBP < 90"
 
@@ -1455,17 +1655,19 @@ def _generate_mar(
                     dose_text += f" {order.frequency}"
             else:
                 dose_text = order.display_name
-            mars.append(MedicationAdministration(
-                order_id=order.order_id,
-                drug_name=drug_name,
-                scheduled_datetime=scheduled,
-                actual_datetime=actual,
-                status=status,
-                dose=dose_text,
-                route=order.route or _determine_route(drug_name, order.clinical_intent),
-                administered_by=nurse_id,
-                hold_reason=hold_reason,
-            ))
+            mars.append(
+                MedicationAdministration(
+                    order_id=order.order_id,
+                    drug_name=drug_name,
+                    scheduled_datetime=scheduled,
+                    actual_datetime=actual,
+                    status=status,
+                    dose=dose_text,
+                    route=order.route or _determine_route(drug_name, order.clinical_intent),
+                    administered_by=nurse_id,
+                    hold_reason=hold_reason,
+                )
+            )
 
     return mars
 
@@ -1473,6 +1675,7 @@ def _generate_mar(
 # ============================================================
 # Vitals generation
 # ============================================================
+
 
 def _generate_adl_assessment(
     state: PhysiologicalState,
@@ -1573,19 +1776,28 @@ def _generate_daily_io(
     io_date = (admission_time + timedelta(days=day)).date()
     return IntakeOutputRecord(
         date=io_date,
-        intake_iv_ml=iv, intake_oral_ml=oral,
-        output_urine_ml=urine, output_drain_ml=drain,
+        intake_iv_ml=iv,
+        intake_oral_ml=oral,
+        output_urine_ml=urine,
+        output_drain_ml=drain,
         net_balance_ml=net,
     )
 
 
 _RESPIRATORY_DISEASES = {
-    "bacterial_pneumonia", "aspiration_pneumonia", "copd_exacerbation",
-    "asthma_exacerbation", "pulmonary_embolism",
+    "bacterial_pneumonia",
+    "aspiration_pneumonia",
+    "copd_exacerbation",
+    "asthma_exacerbation",
+    "pulmonary_embolism",
 }
 _NEURO_DISEASES = {
-    "cerebral_infarction", "hemorrhagic_stroke", "subdural_hematoma",
-    "diabetic_ketoacidosis", "sepsis", "liver_cirrhosis_decompensated",
+    "cerebral_infarction",
+    "hemorrhagic_stroke",
+    "subdural_hematoma",
+    "diabetic_ketoacidosis",
+    "sepsis",
+    "liver_cirrhosis_decompensated",
 }
 
 
@@ -1649,19 +1861,22 @@ def _generate_vitals(
 
     # Routine full-vitals schedule by acuity
     # Critically unstable (septic shock, acute MI, hemorrhagic stroke): q1-2h
-    is_critical = (state.perfusion_status < 0.3
-                   or disease_id in ("sepsis", "acute_mi", "hemorrhagic_stroke",
-                                     "traffic_accident_severe"))
+    is_critical = state.perfusion_status < 0.3 or disease_id in (
+        "sepsis",
+        "acute_mi",
+        "hemorrhagic_stroke",
+        "traffic_accident_severe",
+    )
     if is_critical and day <= 2:
-        full_hours = list(range(0, 24, 2))   # q2h (12 sets/day)
+        full_hours = list(range(0, 24, 2))  # q2h (12 sets/day)
     elif is_unstable:
         full_hours = [2, 6, 10, 14, 18, 22]  # q4h (6 sets/day)
     elif day <= 2:
-        full_hours = [0, 6, 12, 18]          # q6h
+        full_hours = [0, 6, 12, 18]  # q6h
     elif state.inflammation_level < 0.1 and day >= 7:
-        full_hours = [6, 18]                 # bid (stable, late stay)
+        full_hours = [6, 18]  # bid (stable, late stay)
     else:
-        full_hours = [6, 14, 22]             # tid
+        full_hours = [6, 14, 22]  # tid
 
     def _emit(time: datetime, *, fields: set[str], raw: dict, note: str = "") -> None:
         """Emit a VitalSignRecord with only the specified fields populated."""
@@ -1676,27 +1891,31 @@ def _generate_vitals(
             if day <= 2:
                 base_pain += 2
             pain = int(max(0, min(10, rng.normal(base_pain, 1.5))))
-        vitals.append(VitalSignRecord(
-            timestamp=time,
-            temperature_celsius=round(raw["temperature"], 1) if "temp" in fields else None,
-            heart_rate=int(round(raw["heart_rate"])) if "hr" in fields else None,
-            systolic_bp=int(round(raw["systolic_bp"])) if "bp" in fields else None,
-            diastolic_bp=int(round(raw["diastolic_bp"])) if "bp" in fields else None,
-            respiratory_rate=int(round(raw["respiratory_rate"])) if "rr" in fields else None,
-            spo2=round(raw["spo2"], 1) if "spo2" in fields else None,
-            pain_score=pain,
-            consciousness_level=loc,
-            on_supplemental_oxygen=on_o2,
-            oxygen_flow_rate_lpm=round(o2_flow, 1) if o2_flow else None,
-            oxygen_delivery_device=o2_device,
-            nursing_note=note,
-            measured_by=nurse_id,
-            data_source="manual",
-        ))
+        vitals.append(
+            VitalSignRecord(
+                timestamp=time,
+                temperature_celsius=round(raw["temperature"], 1) if "temp" in fields else None,
+                heart_rate=int(round(raw["heart_rate"])) if "hr" in fields else None,
+                systolic_bp=int(round(raw["systolic_bp"])) if "bp" in fields else None,
+                diastolic_bp=int(round(raw["diastolic_bp"])) if "bp" in fields else None,
+                respiratory_rate=int(round(raw["respiratory_rate"])) if "rr" in fields else None,
+                spo2=round(raw["spo2"], 1) if "spo2" in fields else None,
+                pain_score=pain,
+                consciousness_level=loc,
+                on_supplemental_oxygen=on_o2,
+                oxygen_flow_rate_lpm=round(o2_flow, 1) if o2_flow else None,
+                oxygen_delivery_device=o2_device,
+                nursing_note=note,
+                measured_by=nurse_id,
+                data_source="manual",
+            )
+        )
 
     # 1. Routine full vitals at scheduled rounds
     for hour in full_hours:
-        vit_time = datetime(admission_time.year, admission_time.month, admission_time.day, hour, 0) + timedelta(days=day)
+        vit_time = datetime(admission_time.year, admission_time.month, admission_time.day, hour, 0) + timedelta(
+            days=day
+        )  # noqa: E501
         if vit_time < admission_time:
             continue
         raw = _make_raw(state, patient, vit_time, rng)
@@ -1714,16 +1933,18 @@ def _generate_vitals(
             note_parts.append("admission assessment completed")
         note = ". ".join(note_parts) + "." if note_parts else ""
 
-        _emit(actual_time,
-              fields={"temp", "hr", "bp", "rr", "spo2", "pain", "loc"},
-              raw=raw, note=note)
+        _emit(actual_time, fields={"temp", "hr", "bp", "rr", "spo2", "pain", "loc"}, raw=raw, note=note)
 
         # 1a. Febrile re-check: re-measure temperature 30-60 min later
         if raw["temperature"] >= 38.5 and rng.random() < 0.7:
             recheck_time = actual_time + timedelta(minutes=int(rng.uniform(30, 60)))
             recheck_raw = _make_raw(state, patient, recheck_time, rng)
-            _emit(recheck_time, fields={"temp"}, raw=recheck_raw,
-                  note=f"febrile recheck after {recheck_time.minute - actual_time.minute} min")
+            _emit(
+                recheck_time,
+                fields={"temp"},
+                raw=recheck_raw,
+                note=f"febrile recheck after {recheck_time.minute - actual_time.minute} min",
+            )
 
     # 2. Continuous bedside monitoring (HR + SpO2 only) every ~2h
     #    for unstable / respiratory / cardiac patients
@@ -1732,13 +1953,14 @@ def _generate_vitals(
         # Pick hours not already covered by full vitals
         monitor_hours = [h for h in range(1, 24, 2) if h not in full_hour_set]
         for hour in monitor_hours:
-            mon_time = datetime(admission_time.year, admission_time.month, admission_time.day, hour, 0) + timedelta(days=day)
+            mon_time = datetime(admission_time.year, admission_time.month, admission_time.day, hour, 0) + timedelta(
+                days=day
+            )  # noqa: E501
             if mon_time < admission_time:
                 continue
             mon_time += timedelta(minutes=float(rng.normal(0, 5)))
             raw = _make_raw(state, patient, mon_time, rng)
-            _emit(mon_time, fields={"hr", "spo2"}, raw=raw,
-                  note="continuous monitor")
+            _emit(mon_time, fields={"hr", "spo2"}, raw=raw, note="continuous monitor")
 
     return vitals
 
@@ -1746,6 +1968,7 @@ def _generate_vitals(
 # ============================================================
 # Discharge prescription
 # ============================================================
+
 
 def _build_discharge_rx(
     patient: PatientProfile,
@@ -1766,8 +1989,7 @@ def _build_discharge_rx(
     items: list[dict] = []
 
     # Drugs contraindicated at low renal function (eGFR roughly maps to state value)
-    renal_hold_drugs = {"metformin", "celecoxib", "ibuprofen", "naproxen",
-                         "enoxaparin", "alendronate"}
+    renal_hold_drugs = {"metformin", "celecoxib", "ibuprofen", "naproxen", "enoxaparin", "alendronate"}
 
     discharge_drugs = protocol.drugs.get("discharge_oral", {}).get(country_key, [])
     if isinstance(discharge_drugs, dict):
@@ -1777,22 +1999,20 @@ def _build_discharge_rx(
         if isinstance(drug_spec, dict):
             drug_name = drug_spec.get("drug", "")
             # Renal contraindication check at discharge
-            if final_renal_function < 0.3 and any(
-                rd in drug_name.lower() for rd in renal_hold_drugs
-            ):
+            if final_renal_function < 0.3 and any(rd in drug_name.lower() for rd in renal_hold_drugs):
                 continue  # skip nephrotoxic drug
-            items.append({
-                "drug_name": drug_name,
-                "dose": drug_spec.get("dose", ""),
-                "duration_days": drug_spec.get("duration_days", 7),
-                "route": drug_spec.get("route", "PO"),
-            })
+            items.append(
+                {
+                    "drug_name": drug_name,
+                    "dose": drug_spec.get("dose", ""),
+                    "duration_days": drug_spec.get("duration_days", 7),
+                    "route": drug_spec.get("route", "PO"),
+                }
+            )
 
     # Continue chronic medications (with renal check)
     for med in patient.current_medications:
-        if final_renal_function < 0.3 and any(
-            rd in med.lower() for rd in renal_hold_drugs
-        ):
+        if final_renal_function < 0.3 and any(rd in med.lower() for rd in renal_hold_drugs):
             continue  # do not restart nephrotoxic drug at discharge
         items.append({"drug_name": med, "dose": "", "route": "PO", "duration_days": 28})
 
@@ -1808,6 +2028,7 @@ def _build_discharge_rx(
 # ============================================================
 # Findings extraction for diagnosis
 # ============================================================
+
 
 def _extract_findings(
     lab_results: list[OrderResult],
@@ -1838,6 +2059,7 @@ def _extract_findings(
 # Unknown condition simulation
 # ============================================================
 
+
 def _simulate_unknown_condition(
     patient: PatientProfile,
     event: LifeEvent,
@@ -1855,13 +2077,15 @@ def _simulate_unknown_condition(
     state = initialize_state(patient.physiological_profile, patient.chronic_conditions, patient.patient_id)
     state.inflammation_level += float(rng.uniform(0.10, 0.30))
 
-    admission_time = datetime(event.timestamp.year, event.timestamp.month, event.timestamp.day,
-                               int(rng.integers(8, 22)), 0)
+    admission_time = datetime(
+        event.timestamp.year, event.timestamp.month, event.timestamp.day, int(rng.integers(8, 22)), 0
+    )
     state.timestamp = admission_time
     complaint = event.disease_id.replace("unknown_", "").replace("_", " ")
     encounter = create_inpatient_encounter(patient.patient_id, admission_time, chief_complaint=complaint)
     # Unknown conditions are managed by internal medicine — resolve via hospital config
     from clinosim.simulator.helpers import pick_ward, resolve_department
+
     department = resolve_department("internal_medicine", hospital_ops)
     encounter.department_id = department
     attending_id = assign_staff("admission", department, roster, rng).get("attending_physician", "DR-001")
@@ -1879,28 +2103,53 @@ def _simulate_unknown_condition(
     has_diabetes = any(c.code.startswith("E11") for c in patient.chronic_conditions)
 
     # Extensive admission workup (broader than known-disease)
-    admission_labs = ["CRP", "WBC", "Hb", "Plt", "Creatinine", "Na", "K", "Glucose",
-                      "AST", "ALT", "ALP", "LDH", "Albumin", "PT_INR", "PCT"]
+    admission_labs = [
+        "CRP",
+        "WBC",
+        "Hb",
+        "Plt",
+        "Creatinine",
+        "Na",
+        "K",
+        "Glucose",
+        "AST",
+        "ALT",
+        "ALP",
+        "LDH",
+        "Albumin",
+        "PT_INR",
+        "PCT",
+    ]
     for i, lab_name in enumerate(admission_labs):
-        all_orders.append(Order(
-            order_id=f"ORD-{encounter.encounter_id}-ADM-L{i:02d}",
-            patient_id=patient.patient_id, order_type=OrderType.LAB,
-            display_name=lab_name, urgency="stat",
-            clinical_intent=f"Unknown {complaint}: initial workup",
-            ordered_datetime=admission_time, ordered_by=attending_id,
-            status=OrderStatus.PLACED,
-        ))
+        all_orders.append(
+            Order(
+                order_id=f"ORD-{encounter.encounter_id}-ADM-L{i:02d}",
+                patient_id=patient.patient_id,
+                order_type=OrderType.LAB,
+                display_name=lab_name,
+                urgency="stat",
+                clinical_intent=f"Unknown {complaint}: initial workup",
+                ordered_datetime=admission_time,
+                ordered_by=attending_id,
+                status=OrderStatus.PLACED,
+            )
+        )
 
     # Imaging: CXR + CT (broader search)
     for i, img in enumerate(["Chest_Xray", "CT_abdomen_pelvis"]):
-        all_orders.append(Order(
-            order_id=f"ORD-{encounter.encounter_id}-ADM-I{i:02d}",
-            patient_id=patient.patient_id, order_type=OrderType.IMAGING,
-            display_name=img, urgency="stat" if i == 0 else "urgent",
-            clinical_intent=f"Unknown {complaint}: imaging workup",
-            ordered_datetime=admission_time + timedelta(hours=i + 1),
-            ordered_by=attending_id, status=OrderStatus.PLACED,
-        ))
+        all_orders.append(
+            Order(
+                order_id=f"ORD-{encounter.encounter_id}-ADM-I{i:02d}",
+                patient_id=patient.patient_id,
+                order_type=OrderType.IMAGING,
+                display_name=img,
+                urgency="stat" if i == 0 else "urgent",
+                clinical_intent=f"Unknown {complaint}: imaging workup",
+                ordered_datetime=admission_time + timedelta(hours=i + 1),
+                ordered_by=attending_id,
+                status=OrderStatus.PLACED,
+            )
+        )
 
     # Supportive medications (even unknown conditions need basic care)
     supportive_meds = [
@@ -1912,14 +2161,19 @@ def _simulate_unknown_condition(
         supportive_meds.append({"drug": "Ceftriaxone 1g IV daily", "intent": "empiric antibiotic (pending workup)"})
 
     for i, med in enumerate(supportive_meds):
-        all_orders.append(Order(
-            order_id=f"ORD-{encounter.encounter_id}-ADM-M{i:02d}",
-            patient_id=patient.patient_id, order_type=OrderType.MEDICATION,
-            display_name=med["drug"], urgency="routine",
-            clinical_intent=f"Unknown {complaint}: {med['intent']}",
-            ordered_datetime=admission_time + timedelta(minutes=30),
-            ordered_by=attending_id, status=OrderStatus.PLACED,
-        ))
+        all_orders.append(
+            Order(
+                order_id=f"ORD-{encounter.encounter_id}-ADM-M{i:02d}",
+                patient_id=patient.patient_id,
+                order_type=OrderType.MEDICATION,
+                display_name=med["drug"],
+                urgency="routine",
+                clinical_intent=f"Unknown {complaint}: {med['intent']}",
+                ordered_datetime=admission_time + timedelta(minutes=30),
+                ordered_by=attending_id,
+                status=OrderStatus.PLACED,
+            )
+        )
     all_mars: list[MedicationAdministration] = []
 
     for day in range(target_los):
@@ -1937,25 +2191,35 @@ def _simulate_unknown_condition(
             if day == 4:
                 daily_labs.extend(["ANA", "RF"])  # autoimmune screening
                 # Additional imaging
-                all_orders.append(Order(
-                    order_id=f"ORD-{encounter.encounter_id}-D4-IMG",
-                    patient_id=patient.patient_id, order_type=OrderType.IMAGING,
-                    display_name="CT_chest_with_contrast", urgency="routine",
-                    clinical_intent="Day 4: expanded imaging for unknown fever",
-                    ordered_datetime=admission_time + timedelta(days=4, hours=10),
-                    ordered_by=attending_id, status=OrderStatus.PLACED,
-                ))
+                all_orders.append(
+                    Order(
+                        order_id=f"ORD-{encounter.encounter_id}-D4-IMG",
+                        patient_id=patient.patient_id,
+                        order_type=OrderType.IMAGING,
+                        display_name="CT_chest_with_contrast",
+                        urgency="routine",
+                        clinical_intent="Day 4: expanded imaging for unknown fever",
+                        ordered_datetime=admission_time + timedelta(days=4, hours=10),
+                        ordered_by=attending_id,
+                        status=OrderStatus.PLACED,
+                    )
+                )
 
             for i, lab_name in enumerate(daily_labs):
                 lab_time = admission_time + timedelta(days=day, hours=6)
-                all_orders.append(Order(
-                    order_id=f"ORD-{encounter.encounter_id}-D{day}-L{i:02d}",
-                    patient_id=patient.patient_id, order_type=OrderType.LAB,
-                    display_name=lab_name, urgency="routine",
-                    clinical_intent=f"Day {day}: monitoring + workup",
-                    ordered_datetime=lab_time, ordered_by=attending_id,
-                    status=OrderStatus.PLACED,
-                ))
+                all_orders.append(
+                    Order(
+                        order_id=f"ORD-{encounter.encounter_id}-D{day}-L{i:02d}",
+                        patient_id=patient.patient_id,
+                        order_type=OrderType.LAB,
+                        display_name=lab_name,
+                        urgency="routine",
+                        clinical_intent=f"Day {day}: monitoring + workup",
+                        ordered_datetime=lab_time,
+                        ordered_by=attending_id,
+                        status=OrderStatus.PLACED,
+                    )
+                )
 
         # Generate lab results. _simulate_unknown_condition has no disease
         # protocol by definition, so scenario_flags_from_protocol(None) is
@@ -1970,27 +2234,42 @@ def _simulate_unknown_condition(
             **scenario_flags_from_protocol(None),
             **medication_flags_from_context(patient),
         }
-        true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, **_flags_unknown)
+        true_labs = derive_lab_values(
+            state, sex=patient.sex, age=patient.age, has_diabetes=has_diabetes, **_flags_unknown
+        )  # noqa: E501
         for order in all_orders:
-            if order.order_type.value == "lab" and order.status == OrderStatus.PLACED and order.display_name in true_labs:
-                result_time = calculate_result_time_from_state(order, None, {}, rng)  # unknown condition: no hospital state
+            if (
+                order.order_type.value == "lab"
+                and order.status == OrderStatus.PLACED
+                and order.display_name in true_labs
+            ):  # noqa: E501
+                result_time = calculate_result_time_from_state(
+                    order, None, {}, rng
+                )  # unknown condition: no hospital state  # noqa: E501
                 observed = generate_lab_result(order.display_name, true_labs[order.display_name], rng)
                 flag = determine_flag(order.display_name, observed, sex=patient.sex)
                 tech_id = assign_staff("lab_result", "", roster, rng).get("performing_technician", "TECH-001")
                 order.result = OrderResult(
-                    result_datetime=result_time, performed_by=tech_id,
-                    lab_name=order.display_name, value=observed,
-                    unit=get_lab_unit(order.display_name), flag=flag,
+                    result_datetime=result_time,
+                    performed_by=tech_id,
+                    lab_name=order.display_name,
+                    value=observed,
+                    unit=get_lab_unit(order.display_name),
+                    flag=flag,
                 )
                 order.status = OrderStatus.RESULTED
                 all_lab_results.append(order.result)
 
         # Vitals
-        unk_nurse_id = assign_staff("medication_administration", department, roster, rng).get("administering_nurse", "NS-001")
+        unk_nurse_id = assign_staff("medication_administration", department, roster, rng).get(
+            "administering_nurse", "NS-001"
+        )  # noqa: E501
         all_vitals.extend(_generate_vitals(state, patient, day, admission_time, rng, nurse_id=unk_nurse_id))
 
         # MAR for supportive medications
-        all_mars.extend(_generate_mar(patient, all_orders, day, admission_time, department=department, roster=roster, rng=rng))
+        all_mars.extend(
+            _generate_mar(patient, all_orders, day, admission_time, department=department, roster=roster, rng=rng)
+        )  # noqa: E501
 
     encounter.status = EncounterStatus.COMPLETED
     encounter.discharge_datetime = admission_time + timedelta(days=target_los, hours=14)
@@ -2024,11 +2303,15 @@ def _simulate_unknown_condition(
     # adds ICU transfer to unknown-condition simulation, gate the hook on
     # icu_transferred just like every other AD-32-aware code path.
     return CIFPatientRecord(
-        patient=patient, encounters=[encounter],
-        orders=all_orders, vital_signs=all_vitals, lab_results=all_lab_results,
+        patient=patient,
+        encounters=[encounter],
+        orders=all_orders,
+        vital_signs=all_vitals,
+        lab_results=all_lab_results,
         medication_administrations=all_mars,
-        condition_event=ConditionEvent(condition_id=f"COND-{patient.patient_id}-UNK",
-                                       condition_type="unknown", symptom_pattern=event.disease_id),
+        condition_event=ConditionEvent(
+            condition_id=f"COND-{patient.patient_id}-UNK", condition_type="unknown", symptom_pattern=event.disease_id
+        ),
         clinical_diagnosis=ClinicalDiagnosis(
             admission_diagnosis_code="R50.9" if "fever" in event.disease_id else "R53.1",
             admission_diagnosis_system="icd-10-cm",

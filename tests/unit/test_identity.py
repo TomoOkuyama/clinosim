@@ -121,8 +121,10 @@ class TestSchemeByOccupation:
         provider = get_provider("JP")
         rng = np.random.default_rng(1)
         for _ in range(50):
-            members = [_person("P1", "H", 50, occupation="unemployed"),
-                       _person("P2", "H", 48, "F", occupation="retired")]
+            members = [
+                _person("P1", "H", 50, occupation="unemployed"),
+                _person("P2", "H", 48, "F", occupation="retired"),
+            ]
             enr = provider.assign_household(members, rng, config)
             assert all(e.category == "national" for e in enr.values())
 
@@ -134,8 +136,10 @@ class TestSchemeByOccupation:
         employee = 0
         n = 300
         for i in range(n):
-            members = [_person(f"P{i}a", f"H{i}", 40, occupation="office"),
-                       _person(f"P{i}b", f"H{i}", 38, "F", occupation="homemaker")]
+            members = [
+                _person(f"P{i}a", f"H{i}", 40, occupation="office"),
+                _person(f"P{i}b", f"H{i}", 38, "F", occupation="homemaker"),
+            ]
             enr = provider.assign_household(members, rng, config)
             if enr[f"P{i}a"].category == "employee":
                 employee += 1

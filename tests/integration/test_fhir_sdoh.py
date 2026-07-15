@@ -10,10 +10,21 @@ pytestmark = pytest.mark.integration
 
 
 def _ctx(profile, country="US"):
-    return BundleContext(record={}, country=country, roster_map={}, hospital_config={},
-                         patient_data=profile, patient_id="p1", is_readmission=False,
-                         prior_encounter_id=None, primary_dx_code="", admit_dx_code="",
-                         admit_dx_system="icd-10-cm", primary_enc_id="e1", patient_sex="male")
+    return BundleContext(
+        record={},
+        country=country,
+        roster_map={},
+        hospital_config={},
+        patient_data=profile,
+        patient_id="p1",
+        is_readmission=False,
+        prior_encounter_id=None,
+        primary_dx_code="",
+        admit_dx_code="",
+        admit_dx_system="icd-10-cm",
+        primary_enc_id="e1",
+        patient_sex="male",
+    )
 
 
 def test_smoking_observation():

@@ -140,9 +140,7 @@ def test_jp_locale_nursing_shift_note_display():
     assert len(resources) == 1
     r = resources[0]
     display = r["type"]["coding"][0]["display"]
-    assert display == "看護記録", (
-        f"Expected '看護記録', got '{display}' — check loinc.yaml 34746-8 ja field"
-    )
+    assert display == "看護記録", f"Expected '看護記録', got '{display}' — check loinc.yaml 34746-8 ja field"
 
 
 # ── ED_TRIAGE_NOTE ────────────────────────────────────────────────────────────

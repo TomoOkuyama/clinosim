@@ -51,10 +51,7 @@ def _make_ctx(orders):
 def test_lab_observation_has_basedon_panel():
     """Panel lab Observation → basedOn references panel SR."""
     t = datetime(2026, 6, 29, 8, 5)
-    orders = [
-        _make_lab_order(f"O{i}", "CBC", name, 6.0, t)
-        for i, name in enumerate(["WBC", "Hb", "Hct", "Plt"])
-    ]
+    orders = [_make_lab_order(f"O{i}", "CBC", name, 6.0, t) for i, name in enumerate(["WBC", "Hb", "Hct", "Plt"])]
     ctx = _make_ctx(orders)
     obs = _bb_labs(ctx)
     lab_obs = [o for o in obs if o.get("resourceType") == "Observation"]
@@ -77,8 +74,8 @@ def test_lab_observation_has_basedon_standalone():
 # These tests verify that the previously silent omission (sr_id = None on dict path)
 # is fixed. Dict orders are what json.load() produces in production CIF.
 
-def _make_dict_lab_order(order_id: str, panel_key: str, lab_name: str,
-                          value: float) -> dict:
+
+def _make_dict_lab_order(order_id: str, panel_key: str, lab_name: str, value: float) -> dict:
     """Dict-style order with a result, matching json.load() CIF output."""
     t = "2026-06-29T08:05:00"
     return {
@@ -106,10 +103,7 @@ def _make_dict_lab_order(order_id: str, panel_key: str, lab_name: str,
 
 def test_lab_observation_basedon_dict_input_panel():
     """Production-path: Observation.basedOn populated for dict-style panel Orders."""
-    orders = [
-        _make_dict_lab_order(f"O{i}", "CBC", name, 6.0)
-        for i, name in enumerate(["WBC", "Hb", "Hct", "Plt"])
-    ]
+    orders = [_make_dict_lab_order(f"O{i}", "CBC", name, 6.0) for i, name in enumerate(["WBC", "Hb", "Hct", "Plt"])]
     ctx = _make_ctx(orders)  # type: ignore[arg-type]
     obs = _bb_labs(ctx)
     lab_obs = [o for o in obs if o.get("resourceType") == "Observation"]
@@ -135,6 +129,7 @@ def test_lab_observation_basedon_dict_input_standalone():
 # omission on the dict path). These pin that both branches skip a non-lab
 # order / a resultless order identically, so a future edit to only one
 # branch's condition is caught immediately.
+
 
 def test_non_lab_order_filtered_for_both_dataclass_and_dict():
     t = datetime(2026, 6, 29, 8, 5)

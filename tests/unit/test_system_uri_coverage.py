@@ -36,18 +36,14 @@ EXPECTED_URIS = {
     "hl7-practitioner-role": "http://terminology.hl7.org/CodeSystem/practitioner-role",
     "hl7-discharge-disposition": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
     "hl7-diagnosis-role": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
-    "hl7-allergyintolerance-verification":
-        "http://terminology.hl7.org/CodeSystem/allergyintolerance-verification",
-    "hl7-allergyintolerance-clinical":
-        "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+    "hl7-allergyintolerance-verification": "http://terminology.hl7.org/CodeSystem/allergyintolerance-verification",
+    "hl7-allergyintolerance-clinical": "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
     "hl7-admit-source": "http://terminology.hl7.org/CodeSystem/admit-source",
-    "us-core-documentreference-category":
-        "http://hl7.org/fhir/us/core/CodeSystem/us-core-documentreference-category",
+    "us-core-documentreference-category": "http://hl7.org/fhir/us/core/CodeSystem/us-core-documentreference-category",
     "occupation-category": "http://clinosim.example.org/CodeSystem/occupation-category",
 }
 
-_ADAPTER = Path(__file__).resolve().parent.parent.parent \
-    / "clinosim" / "modules" / "output" / "fhir_r4_adapter.py"
+_ADAPTER = Path(__file__).resolve().parent.parent.parent / "clinosim" / "modules" / "output" / "fhir_r4_adapter.py"
 
 
 @pytest.mark.unit

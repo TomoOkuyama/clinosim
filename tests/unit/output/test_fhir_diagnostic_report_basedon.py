@@ -20,9 +20,7 @@ _T = datetime(2026, 6, 29, 8, 5)
 _T_ISO = "2026-06-29T08:05:00"
 
 
-def _make_panel_orders_dataclass(
-    panel_key: str, members: list[str], t: datetime
-) -> list[Order]:
+def _make_panel_orders_dataclass(panel_key: str, members: list[str], t: datetime) -> list[Order]:
     """Create Order dataclass instances with results (direct-object path)."""
     out = []
     for i, name in enumerate(members):
@@ -49,9 +47,7 @@ def _make_panel_orders_dataclass(
     return out
 
 
-def _make_panel_orders_dict(
-    panel_key: str, members: list[str], t_iso: str
-) -> list[dict]:
+def _make_panel_orders_dict(panel_key: str, members: list[str], t_iso: str) -> list[dict]:
     """Create dict-style orders with results (JSON-deserialized production path)."""
     return [
         {
@@ -109,9 +105,7 @@ def test_diagnostic_report_basedon_single_panel_dataclass():
     cbc_reports = [r for r in reports if "cbc" in r.get("id", "").lower()]
     assert len(cbc_reports) == 1, f"Expected 1 CBC DR, got {len(cbc_reports)}"
     assert "basedOn" in cbc_reports[0], "basedOn missing from CBC DiagnosticReport"
-    assert cbc_reports[0]["basedOn"] == [
-        {"reference": f"ServiceRequest/sr-{_ENC_ID}-CBC-1"}
-    ]
+    assert cbc_reports[0]["basedOn"] == [{"reference": f"ServiceRequest/sr-{_ENC_ID}-CBC-1"}]
 
 
 def test_diagnostic_report_basedon_present_on_all_panels_dataclass():
@@ -135,9 +129,7 @@ def test_diagnostic_report_basedon_single_panel_dict():
     cbc_reports = [r for r in reports if "cbc" in r.get("id", "").lower()]
     assert len(cbc_reports) == 1, f"Expected 1 CBC DR, got {len(cbc_reports)}"
     assert "basedOn" in cbc_reports[0], "basedOn missing from CBC DiagnosticReport"
-    assert cbc_reports[0]["basedOn"] == [
-        {"reference": f"ServiceRequest/sr-{_ENC_ID}-CBC-1"}
-    ]
+    assert cbc_reports[0]["basedOn"] == [{"reference": f"ServiceRequest/sr-{_ENC_ID}-CBC-1"}]
 
 
 def test_diagnostic_report_basedon_present_on_all_panels_dict():
@@ -192,19 +184,18 @@ def test_diagnostic_report_basedon_standalone_orders_form_panel():
                 "unit": "u",
             },
         }
-        for i, (name, loinc) in enumerate([
-            ("WBC", "6690-2"),
-            ("Hb", "718-7"),
-            ("Hct", "4544-3"),
-            ("Plt", "777-3"),
-        ])
+        for i, (name, loinc) in enumerate(
+            [
+                ("WBC", "6690-2"),
+                ("Hb", "718-7"),
+                ("Hct", "4544-3"),
+                ("Plt", "777-3"),
+            ]
+        )
     ]
     ctx = _make_ctx(orders)
     reports = build_lab_panel_reports(ctx)
-    cbc_reports = [
-        r for r in reports
-        if r.get("code", {}).get("coding", [{}])[0].get("code") == "58410-2"
-    ]
+    cbc_reports = [r for r in reports if r.get("code", {}).get("coding", [{}])[0].get("code") == "58410-2"]
     assert len(cbc_reports) >= 1, "group_lab_orders should detect a CBC panel from stand-alone orders"
     based_on_refs = {e["reference"] for e in cbc_reports[0]["basedOn"]}
     # Stand-alone orders → sr-{order_id} pattern (not sr-{enc}-CBC-N)
@@ -214,18 +205,14 @@ def test_diagnostic_report_basedon_standalone_orders_form_panel():
         "ServiceRequest/sr-ORD-pt1-ADM-L02",
         "ServiceRequest/sr-ORD-pt1-ADM-L03",
     }
-    assert based_on_refs == expected, (
-        f"Expected individual-order SR refs for stand-alone orders, got: {based_on_refs}"
-    )
+    assert based_on_refs == expected, f"Expected individual-order SR refs for stand-alone orders, got: {based_on_refs}"
 
 
 def test_diagnostic_report_basedon_multi_day_two_srs_dict():
     """Same panel ordered on two days → 2 DRs, each referencing its own SR."""
     t1 = "2026-06-29T08:05:00"
     t2 = "2026-06-30T08:05:00"
-    orders = _make_panel_orders_dict("CBC", _CBC_MEMBERS, t1) + _make_panel_orders_dict(
-        "CBC", _CBC_MEMBERS, t2
-    )
+    orders = _make_panel_orders_dict("CBC", _CBC_MEMBERS, t1) + _make_panel_orders_dict("CBC", _CBC_MEMBERS, t2)
     ctx = _make_ctx(orders)
     reports = build_lab_panel_reports(ctx)
     cbc_reports = [r for r in reports if "cbc" in r.get("id", "").lower()]

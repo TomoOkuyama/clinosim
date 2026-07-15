@@ -47,15 +47,12 @@ def test_version_single_source_of_truth() -> None:
         "pyproject.toml [project] must not set a static `version = ...`; "
         "version is dynamic and sourced from clinosim/__init__.py."
     )
-    assert "version" in project.get("dynamic", []), (
-        "pyproject.toml [project].dynamic must include \"version\"."
-    )
+    assert "version" in project.get("dynamic", []), 'pyproject.toml [project].dynamic must include "version".'
 
     # Rule B: the hatch source path is the one file we expect.
     hatch_version = pyproject.get("tool", {}).get("hatch", {}).get("version", {})
     assert hatch_version.get("path") == "clinosim/__init__.py", (
-        f"[tool.hatch.version].path must be clinosim/__init__.py; "
-        f"got {hatch_version.get('path')!r}."
+        f"[tool.hatch.version].path must be clinosim/__init__.py; got {hatch_version.get('path')!r}."
     )
 
     # Rule C: the actual __version__ string must be SemVer-shaped so tag
@@ -76,17 +73,11 @@ def test_console_entry_point_registered() -> None:
     except metadata.PackageNotFoundError:
         pytest.skip("clinosim package not installed in this Python env")
 
-    scripts = [
-        ep for ep in dist.entry_points if ep.group == "console_scripts"
-    ]
+    scripts = [ep for ep in dist.entry_points if ep.group == "console_scripts"]
     names = {ep.name: ep.value for ep in scripts}
-    assert "clinosim" in names, (
-        f"console_scripts entry `clinosim` not registered; "
-        f"present: {sorted(names)}."
-    )
+    assert "clinosim" in names, f"console_scripts entry `clinosim` not registered; present: {sorted(names)}."
     assert names["clinosim"] == "clinosim.simulator.cli:main", (
-        f"console_scripts entry `clinosim` points at {names['clinosim']!r}, "
-        f"expected clinosim.simulator.cli:main."
+        f"console_scripts entry `clinosim` points at {names['clinosim']!r}, expected clinosim.simulator.cli:main."
     )
 
 
@@ -105,6 +96,4 @@ def test_cli_main_is_importable() -> None:
 def test_python_version_gate() -> None:
     """We advertise ``requires-python = ">=3.11"``. If a test is running on
     something older, the packaging metadata is wrong."""
-    assert sys.version_info >= (3, 11), (
-        f"clinosim requires Python 3.11+; running on {sys.version_info}."
-    )
+    assert sys.version_info >= (3, 11), f"clinosim requires Python 3.11+; running on {sys.version_info}."

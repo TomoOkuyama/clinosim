@@ -11,6 +11,7 @@ the CIF does not currently record an explicit ICU sub-period. This
 slightly over-estimates true ICU line-days but stays clinically
 defensible for the HAI Phase 2 risk-window computation.
 """
+
 from __future__ import annotations
 
 from functools import lru_cache
@@ -77,9 +78,7 @@ def _indications_met(criteria: list[dict], met: set[str]) -> bool:
     return False
 
 
-def _altered_consciousness_for_encounter(
-    record: CIFPatientRecord, encounter: Encounter
-) -> bool:
+def _altered_consciousness_for_encounter(record: CIFPatientRecord, encounter: Encounter) -> bool:
     """True if any vital_sign for this encounter has GCS < 13."""
     enc_id = encounter.encounter_id
     for vs in record.vital_signs or []:
@@ -91,9 +90,7 @@ def _altered_consciousness_for_encounter(
     return False
 
 
-def _peak_state_for_encounter(
-    record: CIFPatientRecord, encounter: Encounter
-) -> PhysiologicalState:
+def _peak_state_for_encounter(record: CIFPatientRecord, encounter: Encounter) -> PhysiologicalState:
     """Pick a representative PhysiologicalState for the encounter.
 
     Phase 1 simplification: use the first recorded state; falls back to a
@@ -121,16 +118,12 @@ def place_devices_for_encounter(
         return []
     if encounter.encounter_type != EncounterType.INPATIENT:
         return []
-    severity_moderate_plus = True   # ICU transfer ≈ severity moderate+
+    severity_moderate_plus = True  # ICU transfer ≈ severity moderate+
     altered = _altered_consciousness_for_encounter(record, encounter)
     state = _peak_state_for_encounter(record, encounter)
     indications = _evaluate_indications(state, severity_moderate_plus, altered)
     placement = encounter.admission_datetime.date().isoformat()
-    removal = (
-        encounter.discharge_datetime.date().isoformat()
-        if encounter.discharge_datetime
-        else None
-    )
+    removal = encounter.discharge_datetime.date().isoformat() if encounter.discharge_datetime else None
     out: list[DeviceRecord] = []
     enc_id = encounter.encounter_id or "unknown"
     for device_type, cfg in devices_config["devices"].items():
@@ -139,13 +132,15 @@ def place_devices_for_encounter(
         # feedback FB-F2: FHIR id 型は英数字+'-'+'.' のみ許可、_ 禁止。
         # device_type YAML key(indwelling_catheter 等)の _ を - に置換。
         _device_type_id = device_type.replace("_", "-")
-        out.append(DeviceRecord(
-            device_id=f"dev-{enc_id}-{_device_type_id}-{len(out)}",
-            encounter_id=enc_id,
-            device_type=device_type,
-            snomed_code=cfg["snomed_code"],
-            placement_date=placement,
-            removal_date=removal,
-            placement_indication=",".join(sorted(indications)),
-        ))
+        out.append(
+            DeviceRecord(
+                device_id=f"dev-{enc_id}-{_device_type_id}-{len(out)}",
+                encounter_id=enc_id,
+                device_type=device_type,
+                snomed_code=cfg["snomed_code"],
+                placement_date=placement,
+                removal_date=removal,
+                placement_indication=",".join(sorted(indications)),
+            )
+        )
     return out

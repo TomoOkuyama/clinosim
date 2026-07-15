@@ -24,8 +24,9 @@ def test_canonical_constants():
     assert LAB_CATEGORY_V2_0074 == "LAB"
 
 
-def _make_order(order_id="O1", panel_key="", status=OrderStatus.PLACED,
-                encounter_id="enc1", ordered_datetime=None) -> Order:
+def _make_order(
+    order_id="O1", panel_key="", status=OrderStatus.PLACED, encounter_id="enc1", ordered_datetime=None
+) -> Order:
     return Order(
         order_id=order_id,
         encounter_id=encounter_id,
@@ -50,10 +51,7 @@ def test_order_to_sr_id_standalone():
 def test_order_to_sr_id_panel():
     """Panel Order → sr-{enc}-{panel_key}-{N}, N is encounter-scoped index."""
     t = datetime(2026, 6, 29, 8, 5)
-    orders = [
-        _make_order(order_id=f"O{i}", panel_key="CBC",
-                    encounter_id="enc1", ordered_datetime=t) for i in range(4)
-    ]
+    orders = [_make_order(order_id=f"O{i}", panel_key="CBC", encounter_id="enc1", ordered_datetime=t) for i in range(4)]
     counter = build_panel_counter(orders)
     for o in orders:
         assert order_to_sr_id(o, counter) == "sr-enc1-CBC-1"
@@ -64,11 +62,9 @@ def test_panel_counter_increments_per_panel_instance():
     t1 = datetime(2026, 6, 29, 8, 5)
     t2 = datetime(2026, 7, 2, 8, 5)  # day 3
     orders = [
-        _make_order(order_id=f"O{i}", panel_key="CBC",
-                    encounter_id="enc1", ordered_datetime=t1) for i in range(4)
+        _make_order(order_id=f"O{i}", panel_key="CBC", encounter_id="enc1", ordered_datetime=t1) for i in range(4)
     ] + [
-        _make_order(order_id=f"O{i+10}", panel_key="CBC",
-                    encounter_id="enc1", ordered_datetime=t2) for i in range(4)
+        _make_order(order_id=f"O{i + 10}", panel_key="CBC", encounter_id="enc1", ordered_datetime=t2) for i in range(4)
     ]
     counter = build_panel_counter(orders)
     # First instance (t1) = 1, second (t2) = 2
@@ -84,11 +80,9 @@ def test_build_panel_counter_input_order_independent():
     t1 = datetime(2026, 6, 29, 8, 5)
     t2 = datetime(2026, 7, 2, 8, 5)
     orders_chronological = [
-        _make_order(order_id=f"O{i}", panel_key="CBC",
-                    encounter_id="enc1", ordered_datetime=t1) for i in range(4)
+        _make_order(order_id=f"O{i}", panel_key="CBC", encounter_id="enc1", ordered_datetime=t1) for i in range(4)
     ] + [
-        _make_order(order_id=f"O{i+10}", panel_key="CBC",
-                    encounter_id="enc1", ordered_datetime=t2) for i in range(4)
+        _make_order(order_id=f"O{i + 10}", panel_key="CBC", encounter_id="enc1", ordered_datetime=t2) for i in range(4)
     ]
     # Reverse the input
     orders_reversed = list(reversed(orders_chronological))
@@ -157,6 +151,7 @@ def test_aggregate_panel_status_single_member():
 def _make_ctx(orders: list[Order], country: str = "us"):
     """Minimal BundleContext for builder testing."""
     from clinosim.modules.output._fhir_common import BundleContext
+
     return BundleContext(
         record={"orders": orders},
         country=country,
@@ -177,10 +172,7 @@ def _make_ctx(orders: list[Order], country: str = "us"):
 def test_bb_service_requests_panel_emits_single_sr():
     """4 CBC Orders → 1 ServiceRequest resource."""
     t = datetime(2026, 6, 29, 8, 5)
-    orders = [
-        _make_order(order_id=f"O{i}", panel_key="CBC",
-                    encounter_id="enc1", ordered_datetime=t) for i in range(4)
-    ]
+    orders = [_make_order(order_id=f"O{i}", panel_key="CBC", encounter_id="enc1", ordered_datetime=t) for i in range(4)]
     for o, name in zip(orders, ["WBC", "Hb", "Hct", "Plt"]):
         o.display_name = name
     ctx = _make_ctx(orders)
@@ -191,15 +183,12 @@ def test_bb_service_requests_panel_emits_single_sr():
     assert sr["id"] == "sr-enc1-CBC-1"
     assert sr["intent"] == "order"
     assert sr["code"]["text"] == "CBC"
-    assert sr["code"]["coding"][0]["code"] == "58410-2"   # CBC LOINC panel code
+    assert sr["code"]["coding"][0]["code"] == "58410-2"  # CBC LOINC panel code
 
 
 def test_bb_service_requests_standalone_emits_one_sr_per_order():
     """3 stand-alone Orders → 3 ServiceRequest resources."""
-    orders = [
-        _make_order(order_id=f"ORD-pt1-ADM-L0{i}", panel_key="",
-                    encounter_id="enc1") for i in range(3)
-    ]
+    orders = [_make_order(order_id=f"ORD-pt1-ADM-L0{i}", panel_key="", encounter_id="enc1") for i in range(3)]
     ctx = _make_ctx(orders)
     resources = _bb_service_requests(ctx)
     assert len(resources) == 3
@@ -239,8 +228,7 @@ def test_bb_service_requests_jp_locale_uses_ja_snomed_display():
     orders = [_make_order(order_id="ORD-1", panel_key="")]
     ctx = _make_ctx(orders, country="jp")
     sr = _bb_service_requests(ctx)[0]
-    snomed_coding = next(c for c in sr["category"][0]["coding"]
-                          if c["code"] == LAB_CATEGORY_SNOMED)
+    snomed_coding = next(c for c in sr["category"][0]["coding"] if c["code"] == LAB_CATEGORY_SNOMED)
     assert snomed_coding["display"] == "臨床検査"
 
 
@@ -267,9 +255,16 @@ def test_bb_service_requests_skips_medication_orders():
 # which is the ACTUAL production path. The above dataclass tests were passing
 # while production code was broken (AttributeError on dict.order_type).
 
-def _make_dict_order(order_id="O1", panel_key="", status="placed",
-                     encounter_id="enc1", ordered_datetime="2026-06-29T08:05:00",
-                     display_name="WBC", order_code="6690-2") -> dict:
+
+def _make_dict_order(
+    order_id="O1",
+    panel_key="",
+    status="placed",
+    encounter_id="enc1",
+    ordered_datetime="2026-06-29T08:05:00",
+    display_name="WBC",
+    order_code="6690-2",
+) -> dict:
     """Produce a dict matching json.load() CIF output (no dataclass instances)."""
     return {
         "order_id": order_id,
@@ -292,8 +287,7 @@ def test_bb_service_requests_dict_input_panel():
     """Production-path: orders are JSON-deserialized dicts (not Order dataclasses)."""
     t = "2026-06-29T08:05:00"
     orders = [
-        _make_dict_order(order_id=f"O{i}", panel_key="CBC",
-                         ordered_datetime=t, display_name=name)
+        _make_dict_order(order_id=f"O{i}", panel_key="CBC", ordered_datetime=t, display_name=name)
         for i, name in enumerate(["WBC", "Hb", "Hct", "Plt"])
     ]
     ctx = _make_ctx(orders)  # type: ignore[arg-type]
@@ -306,12 +300,14 @@ def test_bb_service_requests_dict_input_panel():
 
 def test_bb_service_requests_dict_input_standalone():
     """Production-path stand-alone Order (dict)."""
-    orders = [_make_dict_order(
-        order_id="ORD-pt1-ADM-L05",
-        panel_key="",
-        order_code="67151-1",
-        display_name="Troponin_I",
-    )]
+    orders = [
+        _make_dict_order(
+            order_id="ORD-pt1-ADM-L05",
+            panel_key="",
+            order_code="67151-1",
+            display_name="Troponin_I",
+        )
+    ]
     ctx = _make_ctx(orders)  # type: ignore[arg-type]
     resources = _bb_service_requests(ctx)
     assert len(resources) == 1
@@ -335,10 +331,7 @@ def test_bb_service_requests_dict_input_authored_on_iso():
 
 def test_bb_service_requests_dict_status_string_aggregation():
     """Production-path: string status values ('placed', 'resulted') aggregate correctly."""
-    orders = [
-        _make_dict_order(order_id=f"O{i}", panel_key="BMP", status="resulted")
-        for i in range(4)
-    ]
+    orders = [_make_dict_order(order_id=f"O{i}", panel_key="BMP", status="resulted") for i in range(4)]
     ctx = _make_ctx(orders)  # type: ignore[arg-type]
     sr = _bb_service_requests(ctx)[0]
     assert sr["status"] == "completed"
@@ -384,12 +377,14 @@ def test_bb_service_requests_standalone_resolves_internal_name_via_code_map():
     Without code_map lookup the SR emits "code": "WBC" (FHIR-invalid).
     """
     # Simulate the production scenario: order_code = internal name "WBC"
-    orders = [_make_dict_order(
-        order_id="ORD-pt1-ADM-L10",
-        panel_key="",
-        order_code="WBC",   # internal name, not LOINC
-        display_name="WBC",
-    )]
+    orders = [
+        _make_dict_order(
+            order_id="ORD-pt1-ADM-L10",
+            panel_key="",
+            order_code="WBC",  # internal name, not LOINC
+            display_name="WBC",
+        )
+    ]
     ctx = _make_ctx(orders, country="us")  # type: ignore[arg-type]
     resources = _bb_service_requests(ctx)
     assert len(resources) == 1
@@ -398,12 +393,9 @@ def test_bb_service_requests_standalone_resolves_internal_name_via_code_map():
     coding = code_obj["coding"][0]
     # Must resolve to real LOINC, NOT the internal name
     assert coding["code"] != "WBC", (
-        "Stand-alone SR.code.coding[].code must be a LOINC code, not the "
-        f"internal test name. Got {coding['code']!r}"
+        f"Stand-alone SR.code.coding[].code must be a LOINC code, not the internal test name. Got {coding['code']!r}"
     )
-    assert coding["code"] == "6690-2", (
-        f"WBC must resolve to LOINC 6690-2 via US code_map. Got {coding['code']!r}"
-    )
+    assert coding["code"] == "6690-2", f"WBC must resolve to LOINC 6690-2 via US code_map. Got {coding['code']!r}"
     # FHIR rule: display must not equal code
     assert coding["code"] != coding["display"], (
         f"SR.code.coding display must not equal code. Got display={coding['display']!r}"
@@ -418,12 +410,14 @@ def test_bb_service_requests_standalone_code_map_not_found_falls_back_to_order_c
     Defensive: if a new analyte isn't yet in code_mapping_lab.yaml, the SR
     uses the raw order_code rather than crashing.
     """
-    orders = [_make_dict_order(
-        order_id="ORD-pt1-ADM-L11",
-        panel_key="",
-        order_code="999-UNKNOWN",   # raw code set by caller (not in code_map)
-        display_name="UnknownAnalyte",  # not in US code_map
-    )]
+    orders = [
+        _make_dict_order(
+            order_id="ORD-pt1-ADM-L11",
+            panel_key="",
+            order_code="999-UNKNOWN",  # raw code set by caller (not in code_map)
+            display_name="UnknownAnalyte",  # not in US code_map
+        )
+    ]
     ctx = _make_ctx(orders, country="us")  # type: ignore[arg-type]
     resources = _bb_service_requests(ctx)
     assert len(resources) == 1
@@ -442,12 +436,14 @@ def test_bb_service_requests_standalone_resolves_internal_name_via_code_map_jp()
     ("WBC") must resolve to the real JLAC10 code ("2A010").
     """
     # Simulate the production scenario: order_code = internal name "WBC"
-    orders = [_make_dict_order(
-        order_id="ORD-pt1-ADM-L20",
-        panel_key="",
-        order_code="WBC",   # internal name, not JLAC10
-        display_name="WBC",
-    )]
+    orders = [
+        _make_dict_order(
+            order_id="ORD-pt1-ADM-L20",
+            panel_key="",
+            order_code="WBC",  # internal name, not JLAC10
+            display_name="WBC",
+        )
+    ]
     ctx = _make_ctx(orders, country="jp")  # type: ignore[arg-type]
     resources = _bb_service_requests(ctx)
     assert len(resources) == 1
@@ -456,12 +452,9 @@ def test_bb_service_requests_standalone_resolves_internal_name_via_code_map_jp()
     coding = code_obj["coding"][0]
     # Must resolve to real JLAC10, NOT the internal name
     assert coding["code"] != "WBC", (
-        "Stand-alone SR.code.coding[].code must be a JLAC10 code, not the "
-        f"internal test name. Got {coding['code']!r}"
+        f"Stand-alone SR.code.coding[].code must be a JLAC10 code, not the internal test name. Got {coding['code']!r}"
     )
-    assert coding["code"] == "2A010", (
-        f"WBC must resolve to JLAC10 2A010 via JP code_map. Got {coding['code']!r}"
-    )
+    assert coding["code"] == "2A010", f"WBC must resolve to JLAC10 2A010 via JP code_map. Got {coding['code']!r}"
     # FHIR rule: display must not equal code
     assert coding["code"] != coding["display"], (
         f"SR.code.coding display must not equal code. Got display={coding['display']!r}"
@@ -487,12 +480,14 @@ def test_bb_service_requests_jp_falls_back_to_loinc_when_jlac10_missing():
     # is missing from JP JLAC10 map (simulated via test assumptions).
     # For now, we test the logic with a known code pair.
     # Real scenario: new analyte added to US but not yet to JP YAML.
-    orders = [_make_dict_order(
-        order_id="ORD-pt1-ADM-L21",
-        panel_key="",
-        order_code="6690-2",   # US LOINC for WBC (real code)
-        display_name="WBC",
-    )]
+    orders = [
+        _make_dict_order(
+            order_id="ORD-pt1-ADM-L21",
+            panel_key="",
+            order_code="6690-2",  # US LOINC for WBC (real code)
+            display_name="WBC",
+        )
+    ]
     # If we assume WBC is in both maps (it is), the test verifies that
     # the primary JP map is used. The fallback is defensive for future
     # analyte additions.
@@ -502,6 +497,4 @@ def test_bb_service_requests_jp_falls_back_to_loinc_when_jlac10_missing():
     sr = resources[0]
     coding = sr["code"]["coding"][0]
     # Should resolve to JLAC10 (primary JP map), not fall back to LOINC
-    assert coding["code"] == "2A010", (
-        f"JP path should use JLAC10 2A010, not LOINC 6690-2. Got {coding['code']!r}"
-    )
+    assert coding["code"] == "2A010", f"JP path should use JLAC10 2A010, not LOINC 6690-2. Got {coding['code']!r}"

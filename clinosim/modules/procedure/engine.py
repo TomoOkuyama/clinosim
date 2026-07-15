@@ -18,7 +18,6 @@ from clinosim.types.procedure import ProcedureRecord, RehabSession
 __all__ = ["ProcedureRecord", "RehabSession"]
 
 
-
 def simulate_surgery(
     patient: Any,
     disease_id: str,
@@ -167,8 +166,8 @@ _SCT_OUTCOME_UNSUCCESS = "385671000"
 
 # Complication type → SNOMED code
 _COMPLICATION_SCT: dict[str, str] = {
-    "excessive_bleeding": "131148009",          # Bleeding
-    "anesthesia_hypotension": "45007003",       # Hypotension
+    "excessive_bleeding": "131148009",  # Bleeding
+    "anesthesia_hypotension": "45007003",  # Hypotension
     "surgical_site_infection": "87317003",
     "ards": "67782005",
 }
@@ -182,38 +181,38 @@ _COMPLICATION_SCT: dict[str, str] = {
 # the structural FHIR fields.
 @dataclass(frozen=True)
 class ProcedureMeta:
-    category_code: str         # SNOMED category
-    body_site_code: str = ""   # SNOMED body site (empty if n/a)
+    category_code: str  # SNOMED category
+    body_site_code: str = ""  # SNOMED body site (empty if n/a)
 
 
 _PROCEDURE_METADATA: dict[str, ProcedureMeta] = {
     # --- Surgeries ---
-    "ORIF": ProcedureMeta(_SCT_CATEGORY_SURGICAL, "71341001"),              # femur
+    "ORIF": ProcedureMeta(_SCT_CATEGORY_SURGICAL, "71341001"),  # femur
     "hemiarthroplasty": ProcedureMeta(_SCT_CATEGORY_SURGICAL, "29836001"),  # hip region
     "surgery": ProcedureMeta(_SCT_CATEGORY_SURGICAL, ""),
     # --- Bedside / routine ---
     "urinary_catheter": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "89837001"),  # bladder
-    "central_line": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "113257007"),     # cardiovascular
-    "arterial_line": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "58602004"),     # peripheral vascular
-    "lumbar_puncture": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "32713005"),    # vertebral column
-    "thoracentesis": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "118375008"),    # intrathoracic
-    "paracentesis": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "818983003"),     # abdomen
-    "intubation": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "74262004"),        # oral cavity
+    "central_line": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "113257007"),  # cardiovascular
+    "arterial_line": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "58602004"),  # peripheral vascular
+    "lumbar_puncture": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "32713005"),  # vertebral column
+    "thoracentesis": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "118375008"),  # intrathoracic
+    "paracentesis": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "818983003"),  # abdomen
+    "intubation": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "74262004"),  # oral cavity
     "nasogastric_tube": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "74262004"),  # oral cavity
-    "chest_tube": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "118375008"),       # intrathoracic
-    "wound_debridement": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "87642003"), # skin/subcut
-    "cardioversion": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "113257007"),    # cardiovascular
-    "blood_transfusion": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "38266002"), # entire body
-    "dialysis_acute": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "80581009"),    # upper urinary tract
-    "bronchoscopy": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "39607008"),       # lung
+    "chest_tube": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "118375008"),  # intrathoracic
+    "wound_debridement": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "87642003"),  # skin/subcut
+    "cardioversion": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "113257007"),  # cardiovascular
+    "blood_transfusion": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "38266002"),  # entire body
+    "dialysis_acute": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "80581009"),  # upper urinary tract
+    "bronchoscopy": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "39607008"),  # lung
     "echocardiography": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "113257007"),  # cardiovascular
     # CO-3 (session 42 cycle 3): ED procedures.
-    "ecg_12lead": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "80891009"),      # heart
-    "iv_line": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "58602004"),        # peripheral vascular
-    "wound_care": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "87642003"),     # skin
-    "short_arm_splint": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "8205005"),# wrist
-    "reduction_closed": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "8205005"),# wrist
-    "oxygen_therapy": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "39607008"), # lung
+    "ecg_12lead": ProcedureMeta(_SCT_CATEGORY_DIAGNOSTIC, "80891009"),  # heart
+    "iv_line": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "58602004"),  # peripheral vascular
+    "wound_care": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "87642003"),  # skin
+    "short_arm_splint": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "8205005"),  # wrist
+    "reduction_closed": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "8205005"),  # wrist
+    "oxygen_therapy": ProcedureMeta(_SCT_CATEGORY_THERAPEUTIC, "39607008"),  # lung
 }
 
 
@@ -268,77 +267,90 @@ _BEDSIDE_PROCEDURES: list[tuple[str, str, str, str, str, str]] = [
 # category keywords checked against disease_id
 _PROCEDURE_RULES: list[tuple[str | list[str], list[tuple[str, float]]]] = [
     # Universal: urinary catheter for severe patients
-    (["sepsis", "acute_mi", "heart_failure", "cerebral_infarction", "hemorrhagic_stroke",
-      "subdural_hematoma", "traffic_accident_severe"],
-     [("urinary_catheter", 0.85)]),
+    (
+        [
+            "sepsis",
+            "acute_mi",
+            "heart_failure",
+            "cerebral_infarction",
+            "hemorrhagic_stroke",
+            "subdural_hematoma",
+            "traffic_accident_severe",
+        ],
+        [("urinary_catheter", 0.85)],
+    ),
     # Moderate-severe inpatients: urinary catheter
-    (["copd_exacerbation", "gi_bleeding", "acute_pancreatitis", "diabetic_ketoacidosis",
-      "liver_cirrhosis_decompensated", "pulmonary_embolism", "acute_kidney_injury"],
-     [("urinary_catheter", 0.50)]),
+    (
+        [
+            "copd_exacerbation",
+            "gi_bleeding",
+            "acute_pancreatitis",
+            "diabetic_ketoacidosis",
+            "liver_cirrhosis_decompensated",
+            "pulmonary_embolism",
+            "acute_kidney_injury",
+        ],
+        [("urinary_catheter", 0.50)],
+    ),
     # Sepsis / critical: central line, arterial line
-    (["sepsis"],
-     [("central_line", 0.70), ("arterial_line", 0.50), ("blood_transfusion", 0.15)]),
+    (["sepsis"], [("central_line", 0.70), ("arterial_line", 0.50), ("blood_transfusion", 0.15)]),
     # Heart failure: echocardiography
-    (["heart_failure_exacerbation"],
-     [("echocardiography", 0.80), ("urinary_catheter", 0.60)]),
+    (["heart_failure_exacerbation"], [("echocardiography", 0.80), ("urinary_catheter", 0.60)]),
     # Acute MI: arterial line, echo
-    (["acute_mi"],
-     [("arterial_line", 0.60), ("central_line", 0.40), ("echocardiography", 0.90)]),
+    (["acute_mi"], [("arterial_line", 0.60), ("central_line", 0.40), ("echocardiography", 0.90)]),
     # Stroke: nasogastric tube (dysphagia risk), lumbar puncture
-    (["cerebral_infarction", "hemorrhagic_stroke"],
-     [("nasogastric_tube", 0.30), ("echocardiography", 0.50)]),
+    (["cerebral_infarction", "hemorrhagic_stroke"], [("nasogastric_tube", 0.30), ("echocardiography", 0.50)]),
     # Hemorrhagic stroke / subdural: intubation
-    (["hemorrhagic_stroke", "subdural_hematoma"],
-     [("intubation", 0.40), ("central_line", 0.50), ("arterial_line", 0.40)]),
+    (
+        ["hemorrhagic_stroke", "subdural_hematoma"],
+        [("intubation", 0.40), ("central_line", 0.50), ("arterial_line", 0.40)],
+    ),
     # GI bleeding: nasogastric tube, blood transfusion
-    (["gi_bleeding"],
-     [("nasogastric_tube", 0.50), ("blood_transfusion", 0.60), ("central_line", 0.30)]),
+    (["gi_bleeding"], [("nasogastric_tube", 0.50), ("blood_transfusion", 0.60), ("central_line", 0.30)]),
     # Liver cirrhosis: paracentesis, nasogastric tube
-    (["liver_cirrhosis_decompensated"],
-     [("paracentesis", 0.70), ("nasogastric_tube", 0.25), ("blood_transfusion", 0.30)]),
+    (
+        ["liver_cirrhosis_decompensated"],
+        [("paracentesis", 0.70), ("nasogastric_tube", 0.25), ("blood_transfusion", 0.30)],
+    ),
     # Pneumonia/aspiration: bronchoscopy in severe cases
-    (["bacterial_pneumonia", "aspiration_pneumonia"],
-     [("bronchoscopy", 0.15), ("intubation", 0.10)]),
+    (["bacterial_pneumonia", "aspiration_pneumonia"], [("bronchoscopy", 0.15), ("intubation", 0.10)]),
     # DKA: central line, arterial line
-    (["diabetic_ketoacidosis"],
-     [("central_line", 0.35), ("arterial_line", 0.20)]),
+    (["diabetic_ketoacidosis"], [("central_line", 0.35), ("arterial_line", 0.20)]),
     # Pulmonary embolism: echo
-    (["pulmonary_embolism"],
-     [("echocardiography", 0.70), ("central_line", 0.20)]),
+    (["pulmonary_embolism"], [("echocardiography", 0.70), ("central_line", 0.20)]),
     # Ileus: nasogastric tube
-    (["ileus"],
-     [("nasogastric_tube", 0.80)]),
+    (["ileus"], [("nasogastric_tube", 0.80)]),
     # AKI: dialysis in severe cases
-    (["acute_kidney_injury"],
-     [("dialysis_acute", 0.30), ("central_line", 0.40)]),
+    (["acute_kidney_injury"], [("dialysis_acute", 0.30), ("central_line", 0.40)]),
     # Atrial fibrillation: cardioversion, echo
-    (["atrial_fibrillation_rvr"],
-     [("cardioversion", 0.25), ("echocardiography", 0.60)]),
+    (["atrial_fibrillation_rvr"], [("cardioversion", 0.25), ("echocardiography", 0.60)]),
     # Pancreatitis: nasogastric tube
-    (["acute_pancreatitis"],
-     [("nasogastric_tube", 0.40), ("central_line", 0.20)]),
+    (["acute_pancreatitis"], [("nasogastric_tube", 0.40), ("central_line", 0.20)]),
     # Trauma: central line, arterial line, blood transfusion
-    (["traffic_accident_severe"],
-     [("central_line", 0.70), ("arterial_line", 0.60), ("blood_transfusion", 0.50),
-      ("intubation", 0.30), ("chest_tube", 0.25)]),
+    (
+        ["traffic_accident_severe"],
+        [
+            ("central_line", 0.70),
+            ("arterial_line", 0.60),
+            ("blood_transfusion", 0.50),
+            ("intubation", 0.30),
+            ("chest_tube", 0.25),
+        ],
+    ),
     # Cellulitis with severe: wound debridement
-    (["cellulitis"],
-     [("wound_debridement", 0.30)]),
+    (["cellulitis"], [("wound_debridement", 0.30)]),
     # CO-3 (session 42 cycle 3): ED-specific rules keyed on ED condition_ids.
     # Aligned with JP-common ED workflow; probabilities from clinical practice
     # (JEMS 2022 protocols).
-    (["chest_pain", "syncope", "arrhythmia", "acute_coronary_syndrome_ed"],
-     [("ecg_12lead", 0.98), ("iv_line", 0.85)]),
-    (["wrist_fracture", "ankle_fracture", "distal_radius_fracture"],
-     [("reduction_closed", 0.55), ("short_arm_splint", 0.85)]),
-    (["laceration", "minor_wound"],
-     [("wound_care", 0.90)]),
-    (["viral_gastroenteritis", "dehydration", "acute_gastritis"],
-     [("iv_line", 0.70)]),
-    (["asthma_exacerbation_ed", "copd_exacerbation_ed"],
-     [("oxygen_therapy", 0.80), ("iv_line", 0.60)]),
-    (["head_injury_minor", "concussion"],
-     [("iv_line", 0.50)]),
+    (["chest_pain", "syncope", "arrhythmia", "acute_coronary_syndrome_ed"], [("ecg_12lead", 0.98), ("iv_line", 0.85)]),
+    (
+        ["wrist_fracture", "ankle_fracture", "distal_radius_fracture"],
+        [("reduction_closed", 0.55), ("short_arm_splint", 0.85)],
+    ),
+    (["laceration", "minor_wound"], [("wound_care", 0.90)]),
+    (["viral_gastroenteritis", "dehydration", "acute_gastritis"], [("iv_line", 0.70)]),
+    (["asthma_exacerbation_ed", "copd_exacerbation_ed"], [("oxygen_therapy", 0.80), ("iv_line", 0.60)]),
+    (["head_injury_minor", "concussion"], [("iv_line", 0.50)]),
 ]
 
 
@@ -453,7 +465,9 @@ def generate_rehab_sessions(
         else:
             phase = "late"
 
-        activities = list(rng.choice(activities_by_phase[phase], size=min(3, len(activities_by_phase[phase])), replace=False))
+        activities = list(
+            rng.choice(activities_by_phase[phase], size=min(3, len(activities_by_phase[phase])), replace=False)
+        )  # noqa: E501
 
         pain = int(max(0, min(10, rng.normal(4 - day_offset * 0.1, 1.5))))
 

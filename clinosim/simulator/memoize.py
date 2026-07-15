@@ -102,9 +102,7 @@ def compute_config_hash(config: SimulatorConfig) -> str:
     if isinstance(tr, (list, tuple)) and len(tr) >= 2:
         # start だけ残す:cursor が動いても start が同じなら cache 使う
         d["time_range"] = [tr[0]]
-    return hashlib.sha256(
-        json.dumps(d, sort_keys=True, ensure_ascii=False, default=str).encode("utf-8")
-    ).hexdigest()
+    return hashlib.sha256(json.dumps(d, sort_keys=True, ensure_ascii=False, default=str).encode("utf-8")).hexdigest()
 
 
 def write_cache_manifest(output_dir: Path, config: SimulatorConfig) -> None:
@@ -143,9 +141,7 @@ def is_cache_valid(cache_dir: Path, config: SimulatorConfig) -> tuple[bool, str]
     if manifest is None:
         return False, f"no cache manifest at {cache_dir / _MANIFEST_FILENAME}"
     if manifest.schema_version != _MANIFEST_SCHEMA_VERSION:
-        return False, (
-            f"cache schema version {manifest.schema_version} != expected {_MANIFEST_SCHEMA_VERSION}"
-        )
+        return False, (f"cache schema version {manifest.schema_version} != expected {_MANIFEST_SCHEMA_VERSION}")
     if manifest.master_seed != config.random_seed:
         return False, (f"seed mismatch: cache={manifest.master_seed} config={config.random_seed}")
     if manifest.config_hash != compute_config_hash(config):

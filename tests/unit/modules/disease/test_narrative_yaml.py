@@ -66,6 +66,4 @@ def test_all_diseases_have_narrative() -> None:
         if p.narrative is None:
             missing.append(name)
 
-    assert not missing, (
-        f"{len(missing)} disease(s) missing narrative block: {missing}"
-    )
+    assert not missing, f"{len(missing)} disease(s) missing narrative block: {missing}"

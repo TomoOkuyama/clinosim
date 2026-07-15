@@ -36,9 +36,7 @@ class _StopEarlyError(Exception):
 def _capture_pop_size(monkeypatch: pytest.MonkeyPatch) -> dict[str, int]:
     captured: dict[str, int] = {}
 
-    def fake_generate_population(
-        pop_size: int, country: str, rng: object, *a: object, **kw: object
-    ) -> None:
+    def fake_generate_population(pop_size: int, country: str, rng: object, *a: object, **kw: object) -> None:
         captured["pop_size"] = pop_size
         raise _StopEarlyError()
 
@@ -126,13 +124,28 @@ def test_cli_generate_reports_explicit_population_in_stdout(tmp_path: object) ->
     that a population is actually generated (non-zero).
     """
     r = subprocess.run(
-        [sys.executable, "-m", "clinosim.simulator.cli", "generate",
-         "-p", "7", "--country", "US", "-o", str(tmp_path), "--format", "cif"],
-        capture_output=True, text=True, timeout=120,
+        [
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "generate",
+            "-p",
+            "7",
+            "--country",
+            "US",
+            "-o",
+            str(tmp_path),
+            "--format",
+            "cif",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=120,
     )
     assert r.returncode == 0, r.stderr
     assert "population=7" in r.stdout
     import re
+
     m = re.search(r"Population: (\d+) persons", r.stdout)
     assert m, f"'Population: N persons' line missing from stdout:\n{r.stdout}"
     n = int(m.group(1))

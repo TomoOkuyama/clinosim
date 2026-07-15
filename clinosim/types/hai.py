@@ -1,4 +1,5 @@
 """Hospital-acquired infection events (AD-55 Module: hai)."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

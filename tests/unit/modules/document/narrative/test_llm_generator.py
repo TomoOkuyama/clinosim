@@ -6,6 +6,7 @@ construction of an LLMService. Three paths:
 - llm configured → apply_replacement_strategy (MockProvider-backed LLMService)
 - strategy raises → template output, generator=template_fallback, WARN
 """
+
 from __future__ import annotations
 
 import logging
@@ -84,8 +85,7 @@ def _mock_template_generator(sections: dict[str, str] | None = None) -> MagicMoc
 class _RaisingProvider:
     """Provider whose complete() always raises (exhausts LLMService retries)."""
 
-    def complete(self, prompt, model=None, max_tokens=1000, system_prompt="",
-                 temperature=0.4, stop_sequences=None):
+    def complete(self, prompt, model=None, max_tokens=1000, system_prompt="", temperature=0.4, stop_sequences=None):
         raise RuntimeError("LLM connection refused")
 
     def health_check(self) -> bool:
@@ -122,8 +122,7 @@ def test_llm_generator_no_service_falls_back_to_template_with_warning(
     tg.generate.assert_called_once_with(ctx, spec)
     assert result.sections["hpi"] == "template hpi"
     assert result.metadata["generator"] == "template_fallback"
-    assert any("LLMService" in rec.message or "llm" in rec.message.lower()
-               for rec in caplog.records)
+    assert any("LLMService" in rec.message or "llm" in rec.message.lower() for rec in caplog.records)
 
 
 def test_llm_generator_default_llm_is_none() -> None:
@@ -188,9 +187,7 @@ def test_llm_generator_provider_raises_falls_back_to_template_with_warning(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     tg = _mock_template_generator()
-    gen = LLMNarrativeGenerator(
-        template_generator=tg, llm=_mock_llm_service(_RaisingProvider())
-    )
+    gen = LLMNarrativeGenerator(template_generator=tg, llm=_mock_llm_service(_RaisingProvider()))
     spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
     ctx = _make_ctx()
 
@@ -230,9 +227,7 @@ def test_llm_generator_counters_all_calls_fail(caplog: pytest.LogCaptureFixture)
     """Provider down: every eligible doc falls back → llm_docs stays 0,
     fallback_docs == eligible doc count, exception reasons sampled."""
     tg = _mock_template_generator()
-    gen = LLMNarrativeGenerator(
-        template_generator=tg, llm=_mock_llm_service(_RaisingProvider())
-    )
+    gen = LLMNarrativeGenerator(template_generator=tg, llm=_mock_llm_service(_RaisingProvider()))
     spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
     ctx = _make_ctx()
 
@@ -244,8 +239,7 @@ def test_llm_generator_counters_all_calls_fail(caplog: pytest.LogCaptureFixture)
     assert gen.eligible_docs == 2
     assert gen.fallback_docs == 2
     assert gen.fallback_reasons  # at least one sampled reason
-    assert any("LLM connection refused" in r or "LLMCompletionError" in r
-               for r in gen.fallback_reasons)
+    assert any("LLM connection refused" in r or "LLMCompletionError" in r for r in gen.fallback_reasons)
 
 
 def test_llm_generator_counters_healthy_provider() -> None:
@@ -268,9 +262,7 @@ def test_llm_generator_counters_healthy_provider() -> None:
 def test_llm_generator_fallback_reasons_capped_at_3() -> None:
     """Reason sampling is bounded (~3) so manifests stay small."""
     tg = _mock_template_generator()
-    gen = LLMNarrativeGenerator(
-        template_generator=tg, llm=_mock_llm_service(_RaisingProvider())
-    )
+    gen = LLMNarrativeGenerator(template_generator=tg, llm=_mock_llm_service(_RaisingProvider()))
     spec = _make_spec(stage2_strategy="template_seed", llm_enabled_sections=("hpi",))
     ctx = _make_ctx()
 

@@ -89,7 +89,9 @@ def test_run_daily_loop_passes_real_severity_to_evaluate_complications(monkeypat
     config = SimulatorConfig(random_seed=42, country="US")
     run_forced(scenario, config)
 
-    assert captured, "evaluate_complications was never called (check target_los >= 2 and complications are non-empty for bacterial_pneumonia/severe/US)"
+    assert captured, (
+        "evaluate_complications was never called (check target_los >= 2 and complications are non-empty for bacterial_pneumonia/severe/US)"  # noqa: E501
+    )  # noqa: E501
     assert captured["kwargs"].get("severity") == "severe"
 
 

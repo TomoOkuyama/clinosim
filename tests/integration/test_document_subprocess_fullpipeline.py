@@ -35,19 +35,25 @@ def test_subprocess_produces_well_formed_document_ndjson() -> None:
         out = Path(tmp) / "out"
         result = subprocess.run(
             [
-                sys.executable, "-m", "clinosim.simulator.cli", "generate",
-                "--country", "US",
-                "--population", "100",
-                "--seed", "42",
-                "--format", "fhir-r4",
-                "--output", str(out),
+                sys.executable,
+                "-m",
+                "clinosim.simulator.cli",
+                "generate",
+                "--country",
+                "US",
+                "--population",
+                "100",
+                "--seed",
+                "42",
+                "--format",
+                "fhir-r4",
+                "--output",
+                str(out),
             ],
             capture_output=True,
             text=True,
         )
-        assert result.returncode == 0, (
-            f"generate failed (returncode={result.returncode}):\n{result.stderr}"
-        )
+        assert result.returncode == 0, f"generate failed (returncode={result.returncode}):\n{result.stderr}"
         # PR-90 regression class: attribute/key errors appear in stderr
         for err_class in ("AttributeError", "KeyError", "TypeError"):
             assert err_class not in result.stderr, (
@@ -55,8 +61,7 @@ def test_subprocess_produces_well_formed_document_ndjson() -> None:
                 f"dict-form CIF (PR-90 class silent-no-op):\n{result.stderr[:500]}"
             )
         # All document-chain NDJSONs must exist and be non-empty
-        for resource in ("DocumentReference", "Composition", "ClinicalImpression",
-                         "AllergyIntolerance"):
+        for resource in ("DocumentReference", "Composition", "ClinicalImpression", "AllergyIntolerance"):
             f = find_ndjson(out, f"{resource}.ndjson")
             assert f.exists(), f"{resource}.ndjson missing from subprocess output"
             assert f.stat().st_size > 0, f"{resource}.ndjson empty after subprocess run"
@@ -65,8 +70,7 @@ def test_subprocess_produces_well_formed_document_ndjson() -> None:
                 if line.strip():
                     parsed = json.loads(line)
                     assert parsed.get("resourceType") == resource, (
-                        f"Expected resourceType={resource!r}, "
-                        f"got {parsed.get('resourceType')!r}"
+                        f"Expected resourceType={resource!r}, got {parsed.get('resourceType')!r}"
                     )
 
 
@@ -88,9 +92,7 @@ def test_subprocess_document_reference_has_required_fields() -> None:
             assert dr.get("subject"), f"DocumentReference/{dr_id} missing subject"
             content = dr.get("content", [])
             assert content, f"DocumentReference/{dr_id} missing content[]"
-            assert content[0].get("attachment"), (
-                f"DocumentReference/{dr_id} content[0].attachment missing"
-            )
+            assert content[0].get("attachment"), f"DocumentReference/{dr_id} content[0].attachment missing"
 
 
 @pytest.mark.integration

@@ -49,10 +49,7 @@ def enrich_immunizations(ctx) -> None:
     roster = getattr(ctx, "roster", None)
     nurse_ids = []
     if roster and hasattr(roster, "members"):
-        nurse_ids = sorted(
-            m.staff_id for m in roster.members
-            if getattr(m, "role", "") == "nurse"
-        )
+        nurse_ids = sorted(m.staff_id for m in roster.members if getattr(m, "role", "") == "nurse")
     for rec in ctx.records:
         patient = _get(rec, "patient")
         pid = _get(patient, "patient_id", "") if patient else ""

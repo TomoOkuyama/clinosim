@@ -1,4 +1,5 @@
 """Integration: small cohort exercises full HAI → FHIR Condition + culture chain (PR-B)."""
+
 from __future__ import annotations
 
 import json
@@ -24,9 +25,20 @@ def test_hai_chain_through_fhir_pipeline(tmp_path):
     """
     out = tmp_path / "out"
     cmd = [
-        "python", "-m", "clinosim.simulator.cli", "generate",
-        "-p", "500", "-s", "42", "--country", "US",
-        "--format", "fhir-r4", "-o", str(out),
+        "python",
+        "-m",
+        "clinosim.simulator.cli",
+        "generate",
+        "-p",
+        "500",
+        "-s",
+        "42",
+        "--country",
+        "US",
+        "--format",
+        "fhir-r4",
+        "-o",
+        str(out),
     ]
     proc = subprocess.run(cmd, check=False, capture_output=True, text=True)
     assert proc.returncode == 0, f"stdout={proc.stdout}\nstderr={proc.stderr}"

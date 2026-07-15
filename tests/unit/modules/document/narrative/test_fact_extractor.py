@@ -64,6 +64,7 @@ def test_extract_lab_facts_emits_value_zero_dict() -> None:
 @pytest.mark.unit
 def test_extract_lab_facts_drops_none_value() -> None:
     """Actually-missing value (None) is dropped — NOT the same as 0.0."""
+
     @dataclass
     class _LabWithNone:
         test_name: str = "Glucose"

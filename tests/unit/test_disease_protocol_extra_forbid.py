@@ -16,9 +16,7 @@ from clinosim.modules.disease.protocol import DiseaseProtocol, load_disease_prot
 
 pytestmark = pytest.mark.unit
 
-_YAML_DIR = os.path.join(
-    os.path.dirname(__file__), "..", "..", "clinosim", "modules", "disease", "reference_data"
-)
+_YAML_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "clinosim", "modules", "disease", "reference_data")
 _IDS = [os.path.basename(f)[:-5] for f in glob.glob(os.path.join(_YAML_DIR, "*.yaml"))]
 _ORPHANS = ("rehabilitation", "differential_diagnosis", "precipitants", "prerequisite")
 
@@ -28,7 +26,10 @@ def test_unknown_top_level_key_raises():
 
     with pytest.raises(ValidationError):
         DiseaseProtocol(
-            disease_id="x", icd_codes={}, incidence={}, severity={"distribution": {}},
+            disease_id="x",
+            icd_codes={},
+            incidence={},
+            severity={"distribution": {}},
             totally_unknown_key=123,
         )
 

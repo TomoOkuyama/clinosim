@@ -41,8 +41,13 @@ def _o(order: Any, name: str, default: Any = None) -> Any:
 
 
 def _build_lab_observation(
-    order: dict, result: dict, patient_id: str, index: int,
-    country: str, patient_sex: str = "", encounter_id: str = "",
+    order: dict,
+    result: dict,
+    patient_id: str,
+    index: int,
+    country: str,
+    patient_sex: str = "",
+    encounter_id: str = "",
 ) -> dict | None:
     """Build FHIR Observation resource for a lab result."""
     value = result.get("value")
@@ -104,14 +109,18 @@ def _build_lab_observation(
         # feedback FB-F6: 該当 LOINC の standard profile も stack 追加。
         **({"meta": {"profile": _profiles}} if _profiles else {}),
         "status": "final",
-        "category": [{
-            "coding": [{
-                "system": get_system_uri("hl7-observation-category"),
-                "code": "laboratory",
-                "display": _localize_display("Laboratory", country, _CATEGORY_DISPLAY_JA),
-            }],
-            "text": _localize_display("Laboratory", country, _CATEGORY_DISPLAY_JA),
-        }],
+        "category": [
+            {
+                "coding": [
+                    {
+                        "system": get_system_uri("hl7-observation-category"),
+                        "code": "laboratory",
+                        "display": _localize_display("Laboratory", country, _CATEGORY_DISPLAY_JA),
+                    }
+                ],
+                "text": _localize_display("Laboratory", country, _CATEGORY_DISPLAY_JA),
+            }
+        ],
         "code": {
             "coding": [{"system": code_system, "code": code_value, "display": display_name}],
             "text": display_name,
@@ -129,11 +138,13 @@ def _build_lab_observation(
         loinc_code = us_code_map.get(lab_name)
         if loinc_code and loinc_code != code_value:
             loinc_display = code_lookup("loinc", loinc_code, "en") or lab_name
-            resource["code"]["coding"].append({
-                "system": get_system_uri("loinc"),
-                "code": loinc_code,
-                "display": loinc_display,
-            })
+            resource["code"]["coding"].append(
+                {
+                    "system": get_system_uri("loinc"),
+                    "code": loinc_code,
+                    "display": loinc_display,
+                }
+            )
 
     if isinstance(value, (int, float)):
         unit_str = result.get("unit", "")
@@ -192,12 +203,16 @@ def _build_lab_observation(
     if coded is None:
         coded = interp_map.get(flag) if flag else {"code": "N", "display": "Normal"}
     coded = _localize_interp(coded, country)
-    resource["interpretation"] = [{
-        "coding": [{
-            "system": get_system_uri("hl7-observation-interpretation"),
-            **coded,
-        }],
-    }]
+    resource["interpretation"] = [
+        {
+            "coding": [
+                {
+                    "system": get_system_uri("hl7-observation-interpretation"),
+                    **coded,
+                }
+            ],
+        }
+    ]
 
     # Encounter reference (use order's encounter_id, fallback to primary)
     enc_ref = order.get("encounter_id", "") or encounter_id
@@ -223,7 +238,10 @@ def _build_lab_observation(
 
 
 def _build_vital_observations(
-    vs: dict, patient_id: str, index: int, country: str = "US",
+    vs: dict,
+    patient_id: str,
+    index: int,
+    country: str = "US",
     encounter_id: str = "",
 ) -> list[dict]:
     """Build FHIR Observation resources for vital signs (one per parameter)."""
@@ -256,18 +274,24 @@ def _build_vital_observations(
             # through a single normalization point.
             "id": f"vs-{encounter_id or patient_id}-{index:04d}-{sanitize_id_token(field)}",
             # Session 46 chain #2: JP Core Observation_Common profile for vitals.
-            **({"meta": {"profile": [
-                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"
-            ]}} if is_jp(country) else {}),
+            **(
+                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
+                if is_jp(country)
+                else {}
+            ),
             "status": "final",
-            "category": [{
-                "coding": [{
-                    "system": get_system_uri("hl7-observation-category"),
-                    "code": "vital-signs",
-                    "display": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
-                }],
-                "text": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
-            }],
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-observation-category"),
+                            "code": "vital-signs",
+                            "display": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
+                        }
+                    ],
+                    "text": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
+                }
+            ],
             "code": {
                 "coding": [{"system": get_system_uri("loinc"), "code": loinc, "display": display}],
                 "text": display,
@@ -286,7 +310,8 @@ def _build_vital_observations(
             try:
                 from datetime import datetime as _dt
                 from datetime import timedelta as _td
-                base_dt = _dt.fromisoformat(str(timestamp).replace("Z","+00:00").split("+")[0])
+
+                base_dt = _dt.fromisoformat(str(timestamp).replace("Z", "+00:00").split("+")[0])
                 shifted = base_dt + _td(seconds=offset_sec)
                 obs["effectiveDateTime"] = shifted.isoformat()
             except (ValueError, TypeError):
@@ -304,27 +329,33 @@ def _build_vital_observations(
         # Reference range — normal range (always) + critical range (when defined)
         range_text = "成人正常範囲" if is_jp(country) else "Normal adult range"
         crit_text = "パニック値" if is_jp(country) else "Critical range"
-        ref_ranges = [{
-            "low": {"value": low, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
-            "high": {"value": high, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
-            "type": {
-                "coding": [{
-                    "system": get_system_uri("hl7-referencerange-meaning"),
-                    "code": "normal",
-                    "display": "正常範囲" if is_jp(country) else "Normal Range",
-                }],
-            },
-            "text": range_text,
-        }]
+        ref_ranges = [
+            {
+                "low": {"value": low, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
+                "high": {"value": high, "unit": unit, "system": get_system_uri("ucum"), "code": unit},
+                "type": {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-referencerange-meaning"),
+                            "code": "normal",
+                            "display": "正常範囲" if is_jp(country) else "Normal Range",
+                        }
+                    ],
+                },
+                "text": range_text,
+            }
+        ]
         # Add critical range as separate entry (panic values)
         if crit_low is not None or crit_high is not None:
             crit_range: dict[str, Any] = {
                 "type": {
-                    "coding": [{
-                        "system": get_system_uri("hl7-referencerange-meaning"),
-                        "code": "treatment",
-                        "display": "パニック範囲" if is_jp(country) else "Critical Range",
-                    }],
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-referencerange-meaning"),
+                            "code": "treatment",
+                            "display": "パニック範囲" if is_jp(country) else "Critical Range",
+                        }
+                    ],
                 },
                 "text": crit_text,
             }
@@ -346,13 +377,17 @@ def _build_vital_observations(
             interp_code, interp_display = "L", "Low"
         elif value > high:
             interp_code, interp_display = "H", "High"
-        obs["interpretation"] = [{
-            "coding": [{
-                "system": get_system_uri("hl7-observation-interpretation"),
-                "code": interp_code,
-                "display": _localize_display(interp_display, country, _INTERPRETATION_DISPLAY_JA),
-            }],
-        }]
+        obs["interpretation"] = [
+            {
+                "coding": [
+                    {
+                        "system": get_system_uri("hl7-observation-interpretation"),
+                        "code": interp_code,
+                        "display": _localize_display(interp_display, country, _INTERPRETATION_DISPLAY_JA),
+                    }
+                ],
+            }
+        ]
 
         entries.append(_entry(obs))
 
@@ -372,33 +407,43 @@ def _build_vital_observations(
             "resourceType": "Observation",
             "id": f"vs-{encounter_id or patient_id}-{index:04d}-loc",
             # Session 46 chain #2: JP Core Observation_Common profile for vitals.
-            **({"meta": {"profile": [
-                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"
-            ]}} if is_jp(country) else {}),
+            **(
+                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
+                if is_jp(country)
+                else {}
+            ),
             "status": "final",
-            "category": [{
-                "coding": [{
-                    "system": get_system_uri("hl7-observation-category"),
-                    "code": "vital-signs",
-                    "display": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
-                }],
-                "text": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
-            }],
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-observation-category"),
+                            "code": "vital-signs",
+                            "display": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
+                        }
+                    ],
+                    "text": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
+                }
+            ],
             "code": {
-                "coding": [{
-                    "system": get_system_uri("loinc"),
-                    "code": "80288-4",
-                    "display": "Level of consciousness AVPU",
-                }],
+                "coding": [
+                    {
+                        "system": get_system_uri("loinc"),
+                        "code": "80288-4",
+                        "display": "Level of consciousness AVPU",
+                    }
+                ],
                 "text": "意識レベル (AVPU)" if is_jp(country) else "Level of consciousness (AVPU)",
             },
             "subject": {"reference": f"Patient/{patient_id}"},
             "valueCodeableConcept": {
-                "coding": [{
-                    "system": get_system_uri("snomed-ct"),
-                    "code": loc_snomed,
-                    "display": display,
-                }],
+                "coding": [
+                    {
+                        "system": get_system_uri("snomed-ct"),
+                        "code": loc_snomed,
+                        "display": display,
+                    }
+                ],
                 "text": display,
             },
         }
@@ -421,24 +466,32 @@ def _build_vital_observations(
             "resourceType": "Observation",
             "id": f"vs-{encounter_id or patient_id}-{index:04d}-o2",
             # Session 46 chain #2: JP Core Observation_Common profile for vitals.
-            **({"meta": {"profile": [
-                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"
-            ]}} if is_jp(country) else {}),
+            **(
+                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
+                if is_jp(country)
+                else {}
+            ),
             "status": "final",
-            "category": [{
-                "coding": [{
-                    "system": get_system_uri("hl7-observation-category"),
-                    "code": "vital-signs",
-                    "display": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
-                }],
-                "text": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
-            }],
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-observation-category"),
+                            "code": "vital-signs",
+                            "display": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
+                        }
+                    ],
+                    "text": _localize_display("Vital Signs", country, _CATEGORY_DISPLAY_JA),
+                }
+            ],
             "code": {
-                "coding": [{
-                    "system": get_system_uri("loinc"),
-                    "code": "3151-8",
-                    "display": "Inhaled oxygen flow rate",
-                }],
+                "coding": [
+                    {
+                        "system": get_system_uri("loinc"),
+                        "code": "3151-8",
+                        "display": "Inhaled oxygen flow rate",
+                    }
+                ],
                 "text": "酸素投与量" if is_jp(country) else "Supplemental oxygen flow rate",
             },
             "subject": {"reference": f"Patient/{patient_id}"},
@@ -451,16 +504,20 @@ def _build_vital_observations(
                 "code": "L/min",
             }
         if device:
-            o2_obs["component"] = [{
-                "code": {
-                    "coding": [{
-                        "system": get_system_uri("loinc"),
-                        "code": "8478-0",
-                        "display": "Inhaled oxygen delivery system",
-                    }],
-                },
-                "valueString": device,
-            }]
+            o2_obs["component"] = [
+                {
+                    "code": {
+                        "coding": [
+                            {
+                                "system": get_system_uri("loinc"),
+                                "code": "8478-0",
+                                "display": "Inhaled oxygen delivery system",
+                            }
+                        ],
+                    },
+                    "valueString": device,
+                }
+            ]
         timestamp = vs.get("timestamp")
         if timestamp:
             o2_obs["effectiveDateTime"] = to_fhir_datetime(timestamp)
@@ -493,10 +550,7 @@ def _bb_labs(ctx: BundleContext) -> list[dict[str, Any]]:
 
     # Build panel counter from all lab orders (dataclass OR dict — both accepted
     # after Fix 1 refactored build_panel_counter to use _o dual-access).
-    lab_order_objects = [
-        o for o in orders
-        if _o(o, "order_type") in (OrderType.LAB, "lab")
-    ]
+    lab_order_objects = [o for o in orders if _o(o, "order_type") in (OrderType.LAB, "lab")]
     panel_counter = build_panel_counter(lab_order_objects)
 
     out: list[dict[str, Any]] = []
@@ -525,8 +579,13 @@ def _bb_labs(ctx: BundleContext) -> list[dict[str, Any]]:
         sr_id: str | None = order_to_sr_id(order, panel_counter)
 
         obs = _build_lab_observation(
-            order_dict, result_dict, ctx.patient_id, i,
-            ctx.country, ctx.patient_sex, ctx.primary_enc_id,
+            order_dict,
+            result_dict,
+            ctx.patient_id,
+            i,
+            ctx.country,
+            ctx.patient_sex,
+            ctx.primary_enc_id,
         )
         if obs:
             if sr_id is not None:

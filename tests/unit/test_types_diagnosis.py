@@ -13,8 +13,9 @@ pytestmark = pytest.mark.unit
 
 
 def test_diagnosis_candidate_importable_from_types():
-    c = DiagnosisCandidate(disease_code="bacterial_pneumonia", icd_code="J18.9",
-                            display_name="Pneumonia", probability=0.5)
+    c = DiagnosisCandidate(
+        disease_code="bacterial_pneumonia", icd_code="J18.9", display_name="Pneumonia", probability=0.5
+    )
     assert c.probability == 0.5
 
 
@@ -27,5 +28,6 @@ def test_differential_diagnosis_importable_from_types():
 def test_engine_still_reexports_for_backward_compat():
     from clinosim.modules.diagnosis.engine import DiagnosisCandidate as EngineCandidate
     from clinosim.modules.diagnosis.engine import DifferentialDiagnosis as EngineDifferential
+
     assert EngineCandidate is DiagnosisCandidate
     assert EngineDifferential is DifferentialDiagnosis

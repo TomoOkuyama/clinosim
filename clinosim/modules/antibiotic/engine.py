@@ -6,6 +6,7 @@ constants — surfacing case-mismatch / typo class of bugs at import
 time (PR-90 教訓). build_regimens + generate_mar_doses produce the
 typed records the enricher attaches to the CIF record.
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta
@@ -35,18 +36,18 @@ _NARROW_LADDER_YAML = _REF_DIR / "narrow_ladder.yaml"
 # these constants instead of duplicating literals, so a rename here triggers an
 # ImportError downstream rather than a silent gate skip — same defense pattern
 # as MB_ORG_ID_PREFIX in _fhir_microbiology.py.
-ABX_REGIMEN_ID_PREFIX = "abx-"                                  # AntibioticRegimen.regimen_id
-ABX_ORDER_REQ_PREFIX = "req-"                                   # Order.order_id = "req-" + regimen_id
+ABX_REGIMEN_ID_PREFIX = "abx-"  # AntibioticRegimen.regimen_id
+ABX_ORDER_REQ_PREFIX = "req-"  # Order.order_id = "req-" + regimen_id
 ABX_ORDER_ID_PREFIX = ABX_ORDER_REQ_PREFIX + ABX_REGIMEN_ID_PREFIX  # composed prefix for readers
-ABX_NARROW_SUFFIX = "-narrowed"                                 # narrowed regimen id suffix
+ABX_NARROW_SUFFIX = "-narrowed"  # narrowed regimen id suffix
 
 
 FREQ_PER_DAY: dict[str, int] = {
     "q24h": 1,
     "q12h": 2,
-    "q8h":  3,
-    "q6h":  4,
-    "q4h":  6,
+    "q8h": 3,
+    "q6h": 4,
+    "q4h": 6,
 }
 
 
@@ -70,32 +71,25 @@ def _validate_narrow_ladder(data: dict[str, dict[str, list[str]]]) -> None:
     for hai_type, organism_map in data.items():
         if hai_type not in valid_hai_types:
             raise ValueError(
-                f"narrow_ladder.yaml: unknown hai_type {hai_type!r}, "
-                f"expected one of {sorted(valid_hai_types)}"
+                f"narrow_ladder.yaml: unknown hai_type {hai_type!r}, expected one of {sorted(valid_hai_types)}"
             )
         if not organism_map:
             raise ValueError(
-                f"narrow_ladder.yaml: hai_type {hai_type!r} has empty "
-                f"organism map (PR-90 class silent no-op)"
+                f"narrow_ladder.yaml: hai_type {hai_type!r} has empty organism map (PR-90 class silent no-op)"
             )
         for organism_snomed, drug_list in organism_map.items():
             if not drug_list:
                 raise ValueError(
-                    f"narrow_ladder.yaml: empty drug list for "
-                    f"{hai_type}/{organism_snomed} (PR-90 class silent no-op)"
+                    f"narrow_ladder.yaml: empty drug list for {hai_type}/{organism_snomed} (PR-90 class silent no-op)"
                 )
             if organism_snomed not in antibiogram.get(hai_type, {}):
                 raise ValueError(
-                    f"narrow_ladder.yaml: organism {organism_snomed!r} "
-                    f"not in antibiogram for hai_type {hai_type!r}"
+                    f"narrow_ladder.yaml: organism {organism_snomed!r} not in antibiogram for hai_type {hai_type!r}"
                 )
             antibiogram_drugs = set(antibiogram[hai_type][organism_snomed].keys())
             for drug_key in drug_list:
                 if drug_key not in valid_drugs:
-                    raise ValueError(
-                        f"narrow_ladder.yaml: drug_key {drug_key!r} "
-                        f"not in ANTIBIOTIC_DRUGS"
-                    )
+                    raise ValueError(f"narrow_ladder.yaml: drug_key {drug_key!r} not in ANTIBIOTIC_DRUGS")
                 if drug_key not in antibiogram_drugs:
                     raise ValueError(
                         f"narrow_ladder.yaml: drug_key {drug_key!r} for "
@@ -196,18 +190,20 @@ def build_regimens(
     out: list[AntibioticRegimen] = []
     for drug in cfg["drugs"]:
         slug = _drug_slug(drug["drug_key"])
-        out.append(AntibioticRegimen(
-            regimen_id=f"{ABX_REGIMEN_ID_PREFIX}{hai_event.hai_id}-{slug}",
-            hai_event_id=hai_event.hai_id,
-            encounter_id=hai_event.encounter_id,
-            drug_key=drug["drug_key"],
-            dose=drug["dose"],
-            route=drug["route"],
-            frequency=drug["frequency"],
-            start_datetime=start_datetime,
-            duration_days=duration_days,
-            intent="empirical",
-        ))
+        out.append(
+            AntibioticRegimen(
+                regimen_id=f"{ABX_REGIMEN_ID_PREFIX}{hai_event.hai_id}-{slug}",
+                hai_event_id=hai_event.hai_id,
+                encounter_id=hai_event.encounter_id,
+                drug_key=drug["drug_key"],
+                dose=drug["dose"],
+                route=drug["route"],
+                frequency=drug["frequency"],
+                start_datetime=start_datetime,
+                duration_days=duration_days,
+                intent="empirical",
+            )
+        )
     return out
 
 
@@ -231,17 +227,17 @@ def generate_mar_doses(
         sched = regimen.start_datetime + spacing * i
         if sched > snapshot_datetime:
             break
-        out.append(MedicationAdministration(
-            order_id=order_id,
-            drug_name=ANTIBIOTIC_DRUGS.get(regimen.drug_key, {}).get(
-                "name", regimen.drug_key
-            ),
-            scheduled_datetime=sched,
-            actual_datetime=sched,
-            status="given",
-            dose=regimen.dose,
-            route=regimen.route,
-        ))
+        out.append(
+            MedicationAdministration(
+                order_id=order_id,
+                drug_name=ANTIBIOTIC_DRUGS.get(regimen.drug_key, {}).get("name", regimen.drug_key),
+                scheduled_datetime=sched,
+                actual_datetime=sched,
+                status="given",
+                dose=regimen.dose,
+                route=regimen.route,
+            )
+        )
     return out
 
 
@@ -252,9 +248,10 @@ def generate_mar_doses(
 
 class NarrowOutcome(Enum):
     """Three dispatched outcomes of narrow_outcome (PR3b-3 spec §2.4)."""
-    NO_CHANGE = "no_change"     # case (iii): no target or target == single empirical
+
+    NO_CHANGE = "no_change"  # case (iii): no target or target == single empirical
     ELIMINATION = "elimination"  # case (ii): target in multi-drug empirical, keep target
-    SWITCH = "switch"            # case (i): target is a new drug not in empirical
+    SWITCH = "switch"  # case (i): target is a new drug not in empirical
 
 
 def select_narrow_target(
@@ -293,7 +290,9 @@ def narrow_outcome(
 
 
 def narrow_duration_days(
-    empirical_start: datetime, reported: datetime, total_course: int,
+    empirical_start: datetime,
+    reported: datetime,
+    total_course: int,
 ) -> int:
     """Total course minus elapsed empirical days. Clamps at 0 (no negative)."""
     elapsed = (reported - empirical_start).days

@@ -72,14 +72,15 @@ def _bb_care_teams(ctx: BundleContext) -> list[dict[str, Any]]:
     # multi-disciplinary CareTeam participation. Selected deterministically per
     # encounter (id hash) so re-generation is byte-identical (AD-16).
     pharmacist_ids = sorted(
-        sid for sid, staff in (ctx.roster_map or {}).items()
-        if (staff.get("role", "") or "") == "pharmacist"
+        sid for sid, staff in (ctx.roster_map or {}).items() if (staff.get("role", "") or "") == "pharmacist"
     )
     return [_build_care_team(enc, patient_id, lang, pharmacist_ids, ctx.country) for enc in encounters]
 
 
 def _build_care_team(
-    encounter: Any, patient_id: str, lang: str,
+    encounter: Any,
+    patient_id: str,
+    lang: str,
     pharmacist_ids: list[str] | None = None,
     country: str = "US",
 ) -> dict[str, Any]:
@@ -114,14 +115,18 @@ def _build_care_team(
     # Build participant list: attending always first; nurse only when non-empty.
     def _role_coding(code: str, en: str, ja: str) -> list[dict]:
         display = ja if lang == "ja" else en
-        return [{
-            "coding": [{
-                "system": "http://snomed.info/sct",
-                "code": code,
-                "display": display,
-            }],
-            "text": display,
-        }]
+        return [
+            {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": code,
+                        "display": display,
+                    }
+                ],
+                "text": display,
+            }
+        ]
 
     participants: list[dict[str, Any]] = [
         {
@@ -130,10 +135,12 @@ def _build_care_team(
         },
     ]
     if primary_nurse_id:
-        participants.append({
-            "role": _role_coding("224535009", "Registered nurse", "看護師"),
-            "member": {"reference": f"Practitioner/{primary_nurse_id}"},
-        })
+        participants.append(
+            {
+                "role": _role_coding("224535009", "Registered nurse", "看護師"),
+                "member": {"reference": f"Practitioner/{primary_nurse_id}"},
+            }
+        )
     # C1-15 (session 41 cycle 1): pharmacist participant for encounters that
     # actually had medication activity — inpatient/emergency where a clinical
     # pharmacist is standard-of-care in JP multi-disciplinary teams
@@ -143,23 +150,29 @@ def _build_care_team(
     enc_type = _o(encounter, "encounter_type", "") or ""
     if pharmacist_ids and enc_type in ("inpatient", "emergency"):
         idx = sum(ord(c) for c in encounter_id) % len(pharmacist_ids)
-        participants.append({
-            "role": _role_coding("46255001", "Pharmacist", "薬剤師"),
-            "member": {"reference": f"Practitioner/{pharmacist_ids[idx]}"},
-        })
+        participants.append(
+            {
+                "role": _role_coding("46255001", "Pharmacist", "薬剤師"),
+                "member": {"reference": f"Practitioner/{pharmacist_ids[idx]}"},
+            }
+        )
 
     care_team: dict[str, Any] = {
         "resourceType": "CareTeam",
         "id": f"{CARE_TEAM_ID_PREFIX}{encounter_id}",
         "status": status,
-        "category": [{
-            "coding": [{
-                "system": _CARE_TEAM_CATEGORY_SYSTEM,
-                "code": _CARE_TEAM_CATEGORY_CODE,
-                "display": category_display,
-            }],
-            "text": category_display,
-        }],
+        "category": [
+            {
+                "coding": [
+                    {
+                        "system": _CARE_TEAM_CATEGORY_SYSTEM,
+                        "code": _CARE_TEAM_CATEGORY_CODE,
+                        "display": category_display,
+                    }
+                ],
+                "text": category_display,
+            }
+        ],
         "name": f"Care team for encounter {encounter_id}",
         "subject": {"reference": f"Patient/{patient_id}"},
         "encounter": {"reference": f"Encounter/{encounter_id}"},

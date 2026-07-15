@@ -14,18 +14,18 @@ from datetime import date
 class AllergyReaction:
     """Allergic reaction manifestation."""
 
-    manifestation_snomed: str = ""    # SNOMED CT code
-    severity: str = "mild"            # mild / moderate / severe
+    manifestation_snomed: str = ""  # SNOMED CT code
+    severity: str = "mild"  # mild / moderate / severe
 
 
 @dataclass
 class Allergy:
     """Patient allergy/intolerance(AD-30 code-only CIF)."""
 
-    allergy_id: str = ""              # patient-internal id
-    allergen_code: str = ""           # SNOMED for allergen substance
-    category: str = ""                # "medication" / "food" / "environment"
-    criticality: str = "low"          # low / high / unable-to-assess
+    allergy_id: str = ""  # patient-internal id
+    allergen_code: str = ""  # SNOMED for allergen substance
+    category: str = ""  # "medication" / "food" / "environment"
+    criticality: str = "low"  # low / high / unable-to-assess
     verification_status: str = "confirmed"  # confirmed / unconfirmed / refuted
     # C1-17 (session 41 cycle 1): clinicalStatus per FHIR R4 AllergyIntolerance.
     # active (currently reactive) / inactive / resolved (childhood outgrown).

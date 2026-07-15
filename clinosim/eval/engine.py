@@ -167,6 +167,7 @@ class EvalEngine:
         # Lazy import to keep the top-level `clinosim.eval` import cheap.
         if axes is None:
             from clinosim.eval.axes import clinical, locale, structural
+
             axes = {
                 "structural": structural.run,
                 "clinical": clinical.run,
@@ -181,9 +182,7 @@ class EvalEngine:
         if self.country_filter is not None:
             countries = [c for c in countries if c in self.country_filter or c == ""]
         if not countries:
-            raise FileNotFoundError(
-                f"cohort at {self.cohort_dir} contains no fhir_r4/ output"
-            )
+            raise FileNotFoundError(f"cohort at {self.cohort_dir} contains no fhir_r4/ output")
 
         resource_counts: dict[str, dict[str, int]] = {}
         axis_results: list[EvalAxisResult] = []
@@ -192,9 +191,7 @@ class EvalEngine:
             resource_counts[country or "_flat"] = _count_resources(cohort, country)
             for axis_name, runner in self.axes.items():
                 checks = runner(cohort, country)
-                axis_results.append(
-                    EvalAxisResult(axis=axis_name, country=country or "_flat", checks=checks)
-                )
+                axis_results.append(EvalAxisResult(axis=axis_name, country=country or "_flat", checks=checks))
 
         return EvalReport(
             cohort_dir=str(self.cohort_dir),

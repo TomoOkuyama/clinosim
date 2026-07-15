@@ -20,7 +20,7 @@ from clinosim.modules.document.engine import document_enricher
 # ─── Fixtures ────────────────────────────────────────────────────────────────
 
 ADMISSION_DT = datetime(2026, 7, 1, 10, 0)
-LOS_1_DT = ADMISSION_DT + timedelta(days=1)   # same-day discharge
+LOS_1_DT = ADMISSION_DT + timedelta(days=1)  # same-day discharge
 LOS_3_DT = ADMISSION_DT + timedelta(days=3)
 
 
@@ -104,17 +104,11 @@ def test_inpatient_encounter_los1_gets_4_documents() -> None:
 
     assert "admission_hp" in task_types, f"expected admission_hp in {task_types}"
     assert "discharge_summary" in task_types, f"expected discharge_summary in {task_types}"
-    assert "admission_nursing_assessment" in task_types, (
-        f"expected admission_nursing_assessment in {task_types}"
-    )
-    assert "nursing_discharge_summary" in task_types, (
-        f"expected nursing_discharge_summary in {task_types}"
-    )
+    assert "admission_nursing_assessment" in task_types, f"expected admission_nursing_assessment in {task_types}"
+    assert "nursing_discharge_summary" in task_types, f"expected nursing_discharge_summary in {task_types}"
     # daily specs skipped for LOS=1
     assert "progress_note" not in task_types, f"progress_note must be skipped for LOS=1, got {task_types}"
-    assert "nursing_shift_note" not in task_types, (
-        f"nursing_shift_note must be skipped for LOS=1, got {task_types}"
-    )
+    assert "nursing_shift_note" not in task_types, f"nursing_shift_note must be skipped for LOS=1, got {task_types}"
     assert len(docs) == 4, f"Expected 4 documents for LOS=1 inpatient, got {len(docs)}: {task_types}"
 
 
@@ -151,9 +145,7 @@ def test_outpatient_encounter_gets_only_outpatient_soap() -> None:
     docs = record.documents
     task_types = [d.task_type for d in docs]
 
-    assert task_types == ["outpatient_soap"], (
-        f"Outpatient must emit exactly ['outpatient_soap'], got {task_types}"
-    )
+    assert task_types == ["outpatient_soap"], f"Outpatient must emit exactly ['outpatient_soap'], got {task_types}"
 
     soap = docs[0]
     assert soap.encounter_id == "enc1"
@@ -169,9 +161,14 @@ def test_outpatient_encounter_no_inpatient_docs_leak() -> None:
     document_enricher(ctx)
 
     task_types = [d.task_type for d in record.documents]
-    for inpatient_type in ("admission_hp", "progress_note", "discharge_summary",
-                           "admission_nursing_assessment", "nursing_shift_note",
-                           "nursing_discharge_summary"):
+    for inpatient_type in (
+        "admission_hp",
+        "progress_note",
+        "discharge_summary",
+        "admission_nursing_assessment",
+        "nursing_shift_note",
+        "nursing_discharge_summary",
+    ):
         assert inpatient_type not in task_types, (
             f"Inpatient spec '{inpatient_type}' must NOT leak into outpatient encounter"
         )
@@ -188,9 +185,7 @@ def test_emergency_encounter_gets_ed_note_plus_triage() -> None:
     task_types = [d.task_type for d in docs]
 
     assert "ed_note" in task_types, f"ED encounter must emit ed_note, got {task_types}"
-    assert "ed_triage_note" in task_types, (
-        f"ED encounter must emit ed_triage_note, got {task_types}"
-    )
+    assert "ed_triage_note" in task_types, f"ED encounter must emit ed_triage_note, got {task_types}"
     assert len(docs) == 2, f"Expected 2 documents for emergency encounter, got {len(docs)}: {task_types}"
 
     ed_note = next(d for d in docs if d.task_type == "ed_note")
@@ -210,12 +205,16 @@ def test_emergency_encounter_no_inpatient_docs_leak() -> None:
     document_enricher(ctx)
 
     task_types = [d.task_type for d in record.documents]
-    for other_type in ("admission_hp", "progress_note", "discharge_summary",
-                       "admission_nursing_assessment", "nursing_shift_note",
-                       "nursing_discharge_summary", "outpatient_soap"):
-        assert other_type not in task_types, (
-            f"Non-ED spec '{other_type}' must NOT appear in emergency encounter docs"
-        )
+    for other_type in (
+        "admission_hp",
+        "progress_note",
+        "discharge_summary",
+        "admission_nursing_assessment",
+        "nursing_shift_note",
+        "nursing_discharge_summary",
+        "outpatient_soap",
+    ):
+        assert other_type not in task_types, f"Non-ED spec '{other_type}' must NOT appear in emergency encounter docs"
 
 
 def test_clinical_impression_only_for_inpatient() -> None:
@@ -226,9 +225,7 @@ def test_clinical_impression_only_for_inpatient() -> None:
         ctx = _make_ctx(record)
         document_enricher(ctx)
         impressions = record.extensions.get("clinical_impressions", [])
-        assert len(impressions) > 0, (
-            f"ClinicalImpression must be emitted for enc_type='{enc_type}'"
-        )
+        assert len(impressions) > 0, f"ClinicalImpression must be emitted for enc_type='{enc_type}'"
 
     for enc_type in ("outpatient", "emergency"):
         encounter = _make_encounter(enc_type=enc_type, discharge_dt=LOS_1_DT)
@@ -237,8 +234,7 @@ def test_clinical_impression_only_for_inpatient() -> None:
         document_enricher(ctx)
         impressions = record.extensions.get("clinical_impressions", [])
         assert len(impressions) == 0, (
-            f"ClinicalImpression must NOT be emitted for enc_type='{enc_type}', "
-            f"got {len(impressions)}"
+            f"ClinicalImpression must NOT be emitted for enc_type='{enc_type}', got {len(impressions)}"
         )
 
 
@@ -254,8 +250,7 @@ def test_encounter_once_frequency_emits_at_day_0() -> None:
     soap = docs[0]
     # authored_datetime should be the admission datetime (day 0)
     assert soap.authored_datetime == ADMISSION_DT.isoformat(), (
-        f"encounter_once doc authored_datetime must be admission_dt, "
-        f"got '{soap.authored_datetime}'"
+        f"encounter_once doc authored_datetime must be admission_dt, got '{soap.authored_datetime}'"
     )
     assert soap.period_start == ADMISSION_DT.isoformat()
 
@@ -268,9 +263,7 @@ def test_cancelled_encounter_no_documents_alpha2() -> None:
         ctx = _make_ctx(record)
         document_enricher(ctx)
 
-        assert record.documents == [], (
-            f"Cancelled {enc_type} encounter must produce no documents"
-        )
+        assert record.documents == [], f"Cancelled {enc_type} encounter must produce no documents"
         assert record.extensions.get("clinical_impressions", []) == [], (
             f"Cancelled {enc_type} encounter must produce no clinical impressions"
         )
@@ -289,6 +282,4 @@ def test_encounter_once_document_id_prefix() -> None:
         assert doc.document_id.startswith(DOC_REFERENCE_ID_PREFIX), (
             f"document_id '{doc.document_id}' must start with '{DOC_REFERENCE_ID_PREFIX}'"
         )
-        assert "enc-ed-1" in doc.document_id, (
-            f"document_id '{doc.document_id}' must contain encounter_id 'enc-ed-1'"
-        )
+        assert "enc-ed-1" in doc.document_id, f"document_id '{doc.document_id}' must contain encounter_id 'enc-ed-1'"

@@ -41,8 +41,7 @@ def test_dataclass_chronic_condition_stage_is_emitted():
     record = {
         "patient": {
             "chronic_conditions": [
-                ChronicCondition(code="N18.3", onset_date="2020-01-01", severity="moderate",
-                                  stage="CKD G3a"),
+                ChronicCondition(code="N18.3", onset_date="2020-01-01", severity="moderate", stage="CKD G3a"),
             ],
         },
         "encounters": [{"encounter_id": "E1", "encounter_type": "outpatient"}],

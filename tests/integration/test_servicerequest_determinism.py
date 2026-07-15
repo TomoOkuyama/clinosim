@@ -29,9 +29,7 @@ def test_service_request_ndjson_byte_identical_us():
             run_generate("US", 50, 42, out)
             hashes.append(_sha256(find_ndjson(out, "ServiceRequest.ndjson")))
     assert hashes[0] == hashes[1], (
-        f"ServiceRequest.ndjson determinism broken (AD-16):\n"
-        f"  run1 sha256={hashes[0]}\n"
-        f"  run2 sha256={hashes[1]}"
+        f"ServiceRequest.ndjson determinism broken (AD-16):\n  run1 sha256={hashes[0]}\n  run2 sha256={hashes[1]}"
     )
 
 

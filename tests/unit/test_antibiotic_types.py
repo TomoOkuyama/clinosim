@@ -1,4 +1,5 @@
 """Unit tests for AntibioticRegimen and canonical ANTIBIOTIC_DRUGS."""
+
 from datetime import datetime
 
 import pytest
@@ -28,9 +29,7 @@ def test_antibiotic_drugs_canonical_dict():
     assert ANTIBIOTIC_DRUGS["cefepime"]["name"] == "Cefepime"
     assert ANTIBIOTIC_DRUGS["meropenem"]["name"] == "Meropenem"
     assert ANTIBIOTIC_DRUGS["ciprofloxacin"]["name"] == "Ciprofloxacin"
-    assert ANTIBIOTIC_DRUGS["trimethoprim_sulfamethoxazole"]["name"] == (
-        "Trimethoprim/Sulfamethoxazole"
-    )
+    assert ANTIBIOTIC_DRUGS["trimethoprim_sulfamethoxazole"]["name"] == ("Trimethoprim/Sulfamethoxazole")
     assert ANTIBIOTIC_DRUGS["ampicillin"]["name"] == "Ampicillin"
     assert ANTIBIOTIC_DRUGS["gentamicin"]["name"] == "Gentamicin"
 
@@ -70,6 +69,7 @@ def test_antibiotic_regimen_discontinuation_datetime_settable():
 def test_microbiology_result_hai_event_id_default_empty():
     """PR-93 adversarial review fix: PR3b-2 forward-compat backref."""
     from clinosim.types.microbiology import MicrobiologyResult
+
     m = MicrobiologyResult()
     assert m.hai_event_id == ""
 
@@ -77,6 +77,7 @@ def test_microbiology_result_hai_event_id_default_empty():
 @pytest.mark.unit
 def test_microbiology_result_hai_event_id_settable():
     from clinosim.types.microbiology import MicrobiologyResult
+
     m = MicrobiologyResult(hai_event_id="hai-enc-1-cauti-0")
     assert m.hai_event_id == "hai-enc-1-cauti-0"
 

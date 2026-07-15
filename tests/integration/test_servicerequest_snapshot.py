@@ -85,19 +85,13 @@ def test_snapshot_inprogress_encounters_have_srs():
         srs = load_ndjson(find_ndjson(out, "ServiceRequest.ndjson"))
 
         sr_for_inprogress = [
-            s for s in srs
-            if s.get("encounter", {}).get("reference", "").removeprefix("Encounter/")
-            in in_progress_ids
+            s for s in srs if s.get("encounter", {}).get("reference", "").removeprefix("Encounter/") in in_progress_ids
         ]
         # Verify in-progress encounters actually have at least one SR.
-        assert sr_for_inprogress, (
-            f"No ServiceRequests linked to {len(in_progress_ids)} in-progress Encounters"
-        )
+        assert sr_for_inprogress, f"No ServiceRequests linked to {len(in_progress_ids)} in-progress Encounters"
         # Spot-check: SRs for in-progress encounters should include some 'active' status.
         active_for_inprogress = [s for s in sr_for_inprogress if s.get("status") == "active"]
-        assert active_for_inprogress, (
-            "Expected at least one 'active' SR for in-progress encounters"
-        )
+        assert active_for_inprogress, "Expected at least one 'active' SR for in-progress encounters"
 
 
 @pytest.mark.integration
@@ -137,10 +131,7 @@ def test_snapshot_placed_orders_have_no_observation():
             sr_id = sr.get("id", "")
             return not any(f"-{p}-" in sr_id for p in PANEL_PRIORITY_ORDER)
 
-        active_standalone_ids = {
-            s["id"] for s in srs
-            if s.get("status") == "active" and _is_standalone(s)
-        }
+        active_standalone_ids = {s["id"] for s in srs if s.get("status") == "active" and _is_standalone(s)}
 
         if not active_standalone_ids:
             pytest.skip(

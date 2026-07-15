@@ -12,20 +12,30 @@ from clinosim.modules.output._fhir_common import _build_diagnosis_codeable_conce
 pytestmark = pytest.mark.unit
 
 
-@pytest.mark.parametrize("code,en", [
-    ("J44.9", "COPD"), ("I50.9", "Heart failure (CHF)"),
-    ("N18.3", "CKD"), ("E11.9", "Type 2 diabetes (DM)"),
-])
+@pytest.mark.parametrize(
+    "code,en",
+    [
+        ("J44.9", "COPD"),
+        ("I50.9", "Heart failure (CHF)"),
+        ("N18.3", "CKD"),
+        ("E11.9", "Type 2 diabetes (DM)"),
+    ],
+)
 def test_short_name_us(code, en):
     concept = _build_diagnosis_codeable_concept(code, "icd-10-cm", "US")
     assert concept["text"] == en
     assert concept["text"] == lookup("condition-short-name", code.split(".")[0], "en")
 
 
-@pytest.mark.parametrize("code,ja", [
-    ("J44", "COPD（慢性閉塞性肺疾患）"), ("I50", "心不全"),
-    ("N18", "慢性腎臓病"), ("E11", "2型糖尿病"),
-])
+@pytest.mark.parametrize(
+    "code,ja",
+    [
+        ("J44", "COPD（慢性閉塞性肺疾患）"),
+        ("I50", "心不全"),
+        ("N18", "慢性腎臓病"),
+        ("E11", "2型糖尿病"),
+    ],
+)
 def test_short_name_jp(code, ja):
     concept = _build_diagnosis_codeable_concept(code, "icd-10", "JP")
     assert concept["text"] == ja

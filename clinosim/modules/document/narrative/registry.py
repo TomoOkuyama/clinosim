@@ -36,17 +36,19 @@ _REF_DIR = _HERE.parent / "reference_data"
 # that spec (PR-90 class silent no-op). Fail-loud here at YAML load time so
 # a typo (e.g. "daily3shift") raises before any simulation runs. Adding a
 # new frequency requires BOTH the engine branch and this allowlist entry.
-GENERATION_FREQUENCIES: frozenset[str] = frozenset({
-    "admission_once",
-    "admission_once_los_gt_7",  # chain 2: nutrition_care_plan (MHLW LOS>7 mandate)
-    "admission_once_if_rehab_sessions",  # chain 2: rehabilitation_plan (RehabSession presence gate)
-    "daily",
-    "daily_3shift",  # α-min-3: 3 nursing notes per LOS day (night/day/evening)
-    "discharge_once",
-    "discharge_fraction_20pct",  # P2-13 PR2b: JP-CLINS referral_note (20% of discharges)
-    "encounter_once",
-    "checkup_once",  # P2-13 PR3: JP-eCheckup health_checkup_report (opt-in module)
-})
+GENERATION_FREQUENCIES: frozenset[str] = frozenset(
+    {
+        "admission_once",
+        "admission_once_los_gt_7",  # chain 2: nutrition_care_plan (MHLW LOS>7 mandate)
+        "admission_once_if_rehab_sessions",  # chain 2: rehabilitation_plan (RehabSession presence gate)
+        "daily",
+        "daily_3shift",  # α-min-3: 3 nursing notes per LOS day (night/day/evening)
+        "discharge_once",
+        "discharge_fraction_20pct",  # P2-13 PR2b: JP-CLINS referral_note (20% of discharges)
+        "encounter_once",
+        "checkup_once",  # P2-13 PR3: JP-eCheckup health_checkup_report (opt-in module)
+    }
+)
 
 # N-chain adv-1 I-1: canonical allowlist of stage2_strategy values. The
 # replacement-strategy dispatch (replacement_strategy.apply_replacement_strategy)
@@ -54,33 +56,37 @@ GENERATION_FREQUENCIES: frozenset[str] = frozenset({
 # "template-seed" would silently no-op the ENTIRE LLM path (PR-90 class).
 # Fail-loud here at YAML load time. Adding a new strategy requires BOTH the
 # dispatch branch and this allowlist entry.
-STAGE2_STRATEGIES: frozenset[str] = frozenset({
-    "template_only",
-    "template_seed",
-})
+STAGE2_STRATEGIES: frozenset[str] = frozenset(
+    {
+        "template_only",
+        "template_seed",
+    }
+)
 
 # α-min-2 scope = 9 doc types (α-min-1 3 + α-min-2 6); chain 2 adds 3 = 12
-SUPPORTED_DOCUMENT_TYPES: frozenset[DocumentType] = frozenset({
-    # α-min-1
-    DocumentType.ADMISSION_HP,
-    DocumentType.PROGRESS_NOTE,
-    DocumentType.DISCHARGE_SUMMARY,
-    # α-min-2 additions
-    DocumentType.ADMISSION_NURSING_ASSESSMENT,
-    DocumentType.NURSING_SHIFT_NOTE,
-    DocumentType.NURSING_DISCHARGE_SUMMARY,
-    DocumentType.OUTPATIENT_SOAP,
-    DocumentType.ED_NOTE,
-    DocumentType.ED_TRIAGE_NOTE,
-    # chain 2 additions
-    DocumentType.ADMISSION_CARE_PLAN,
-    DocumentType.NUTRITION_CARE_PLAN,
-    DocumentType.REHABILITATION_PLAN,
-    # P2-13 PR2b (session 47): JP-CLINS 診療情報提供書
-    DocumentType.REFERRAL_NOTE,
-    # P2-13 PR3 (session 47): JP-eCheckup 健診結果報告書(opt-in)
-    DocumentType.HEALTH_CHECKUP_REPORT,
-})
+SUPPORTED_DOCUMENT_TYPES: frozenset[DocumentType] = frozenset(
+    {
+        # α-min-1
+        DocumentType.ADMISSION_HP,
+        DocumentType.PROGRESS_NOTE,
+        DocumentType.DISCHARGE_SUMMARY,
+        # α-min-2 additions
+        DocumentType.ADMISSION_NURSING_ASSESSMENT,
+        DocumentType.NURSING_SHIFT_NOTE,
+        DocumentType.NURSING_DISCHARGE_SUMMARY,
+        DocumentType.OUTPATIENT_SOAP,
+        DocumentType.ED_NOTE,
+        DocumentType.ED_TRIAGE_NOTE,
+        # chain 2 additions
+        DocumentType.ADMISSION_CARE_PLAN,
+        DocumentType.NUTRITION_CARE_PLAN,
+        DocumentType.REHABILITATION_PLAN,
+        # P2-13 PR2b (session 47): JP-CLINS 診療情報提供書
+        DocumentType.REFERRAL_NOTE,
+        # P2-13 PR3 (session 47): JP-eCheckup 健診結果報告書(opt-in)
+        DocumentType.HEALTH_CHECKUP_REPORT,
+    }
+)
 
 
 def _validate_document_type_specs(data: dict[str, Any]) -> None:
@@ -201,10 +207,7 @@ def load_document_type_specs() -> dict[DocumentType, DocumentTypeSpec]:
 
 def specs_for_country(country: str) -> list[DocumentTypeSpec]:
     """Locale gating: return only specs supporting given country."""
-    return [
-        s for s in load_document_type_specs().values()
-        if country.lower() in s.countries_supported
-    ]
+    return [s for s in load_document_type_specs().values() if country.lower() in s.countries_supported]
 
 
 def specs_for_encounter_type(encounter_type: str) -> list[DocumentTypeSpec]:
@@ -224,7 +227,8 @@ def specs_for_encounter_type(encounter_type: str) -> list[DocumentTypeSpec]:
     """
     encounter_type_lower = encounter_type.lower()
     return [
-        s for s in load_document_type_specs().values()
+        s
+        for s in load_document_type_specs().values()
         if not s.encounter_types_supported  # empty tuple = no restriction
         or encounter_type_lower in s.encounter_types_supported
     ]

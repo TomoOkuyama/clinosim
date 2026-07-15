@@ -5,6 +5,7 @@ retry + PromptCache + token accounting, NO template fallback — on provider
 absence or retry exhaustion it raises LLMCompletionError and the CALLER
 (e.g. LLMNarrativeGenerator) decides the fallback.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -22,8 +23,7 @@ class _RaisingProvider:
     def __init__(self) -> None:
         self.call_count = 0
 
-    def complete(self, prompt, model=None, max_tokens=1000, system_prompt="",
-                 temperature=0.4, stop_sequences=None):
+    def complete(self, prompt, model=None, max_tokens=1000, system_prompt="", temperature=0.4, stop_sequences=None):
         self.call_count += 1
         raise ConnectionError("refused")
 
@@ -47,8 +47,10 @@ def _service(provider=None, cache=None, retry_attempts=2) -> LLMService:
 def test_complete_prompt_returns_llm_response_with_text() -> None:
     svc = _service()
     resp = svc.complete_prompt(
-        "system text", "user text",
-        language="en", task_type=LLMTaskType.ADMISSION_HP,
+        "system text",
+        "user text",
+        language="en",
+        task_type=LLMTaskType.ADMISSION_HP,
     )
     assert resp.source == "llm"
     assert resp.text
@@ -59,8 +61,7 @@ def test_complete_prompt_returns_llm_response_with_text() -> None:
 @pytest.mark.unit
 def test_complete_prompt_accounts_tokens_and_calls() -> None:
     svc = _service()
-    svc.complete_prompt("s", "u one two three",
-                        language="en", task_type=LLMTaskType.ADMISSION_HP)
+    svc.complete_prompt("s", "u one two three", language="en", task_type=LLMTaskType.ADMISSION_HP)
     assert svc.call_count == 1
     assert svc.total_input_tokens > 0
     assert svc.total_output_tokens > 0
@@ -70,8 +71,7 @@ def test_complete_prompt_accounts_tokens_and_calls() -> None:
 def test_complete_prompt_no_provider_raises() -> None:
     svc = LLMService(mode="llm", narrative_provider=None)
     with pytest.raises(LLMCompletionError):
-        svc.complete_prompt("s", "u", language="en",
-                            task_type=LLMTaskType.ADMISSION_HP)
+        svc.complete_prompt("s", "u", language="en", task_type=LLMTaskType.ADMISSION_HP)
 
 
 @pytest.mark.unit
@@ -79,8 +79,7 @@ def test_complete_prompt_retry_exhaustion_raises_no_template_fallback() -> None:
     provider = _RaisingProvider()
     svc = _service(provider=provider, retry_attempts=3)
     with pytest.raises(LLMCompletionError):
-        svc.complete_prompt("s", "u", language="en",
-                            task_type=LLMTaskType.ADMISSION_HP)
+        svc.complete_prompt("s", "u", language="en", task_type=LLMTaskType.ADMISSION_HP)
     assert provider.call_count == 3  # all retries attempted
     assert svc.fallback_count == 0  # NO template fallback in this API
 
@@ -90,10 +89,8 @@ def test_complete_prompt_uses_prompt_cache(tmp_path) -> None:
     cache = PromptCache(cache_dir=tmp_path, enabled=True)
     provider = MockProvider()
     svc = _service(provider=provider, cache=cache)
-    r1 = svc.complete_prompt("s", "u", language="en",
-                             task_type=LLMTaskType.ADMISSION_HP)
-    r2 = svc.complete_prompt("s", "u", language="en",
-                             task_type=LLMTaskType.ADMISSION_HP)
+    r1 = svc.complete_prompt("s", "u", language="en", task_type=LLMTaskType.ADMISSION_HP)
+    r2 = svc.complete_prompt("s", "u", language="en", task_type=LLMTaskType.ADMISSION_HP)
     assert provider.call_count == 1  # second call served from disk cache
     assert r2.cache_hit is True
     assert r2.source == "cache"
@@ -104,17 +101,13 @@ def test_complete_prompt_uses_prompt_cache(tmp_path) -> None:
 @pytest.mark.unit
 def test_complete_prompt_max_tokens_temperature_override() -> None:
     class _Capture(MockProvider):
-        def complete(self, prompt, model=None, max_tokens=1000, system_prompt="",
-                     temperature=0.4, stop_sequences=None):
+        def complete(self, prompt, model=None, max_tokens=1000, system_prompt="", temperature=0.4, stop_sequences=None):
             self.captured = (max_tokens, temperature)
-            return super().complete(prompt, model, max_tokens, system_prompt,
-                                    temperature, stop_sequences)
+            return super().complete(prompt, model, max_tokens, system_prompt, temperature, stop_sequences)
 
     provider = _Capture()
     svc = _service(provider=provider)
-    svc.complete_prompt("s", "u", language="en",
-                        task_type=LLMTaskType.ADMISSION_HP,
-                        max_tokens=42, temperature=0.9)
+    svc.complete_prompt("s", "u", language="en", task_type=LLMTaskType.ADMISSION_HP, max_tokens=42, temperature=0.9)
     assert provider.captured == (42, 0.9)
 
 
@@ -133,8 +126,7 @@ def test_complete_prompt_judgment_task_uses_judgment_provider() -> None:
         retry_attempts=1,
         retry_backoff_seconds=0.0,
     )
-    resp = svc.complete_prompt("s", "u", language="en",
-                               task_type=LLMTaskType.DIAGNOSTIC_REASONING)
+    resp = svc.complete_prompt("s", "u", language="en", task_type=LLMTaskType.DIAGNOSTIC_REASONING)
     assert judgment.call_count == 1
     assert narrative.call_count == 0
     assert resp.provider == "judge"

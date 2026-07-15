@@ -3,6 +3,7 @@
 Seeded by encounter_id so the value is stable within an encounter and the main
 simulation stream is untouched (AD-16). Assigned only to serious encounters.
 """
+
 from __future__ import annotations
 
 import numpy as np

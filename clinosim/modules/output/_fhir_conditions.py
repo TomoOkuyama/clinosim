@@ -53,19 +53,19 @@ _STAGE_SUMMARY_SNOMED: dict[str, str] = {
     "GOLD 3": "313299006",
     "GOLD 4": "135836000",
     # Asthma severity 4-tier (J45)
-    "Mild intermittent":   "427679007",
-    "Mild persistent":     "426979002",
+    "Mild intermittent": "427679007",
+    "Mild persistent": "426979002",
     "Moderate persistent": "427295004",
-    "Severe persistent":   "426656000",
+    "Severe persistent": "426656000",
     # Hypertension stage (I10) — Stage 1/2 per ACC/AHA 2017 boundaries
     "Stage 1": "827069000",
     "Stage 2": "827068008",
     # CCS angina class (I25) — Canadian Cardiovascular Society I-IV
     # (activator currently emits I/II/III only; IV registered forward-compat)
-    "CCS I":   "61490001",
-    "CCS II":  "41334000",
+    "CCS I": "61490001",
+    "CCS II": "41334000",
     "CCS III": "85284003",
-    "CCS IV":  "89323001",
+    "CCS IV": "89323001",
 }
 
 # CY8-23 fix (session 48 cycle 8):Condition.bodySite mapping。
@@ -74,27 +74,27 @@ _STAGE_SUMMARY_SNOMED: dict[str, str] = {
 # 臨床的に意味のある約 15 疾患に絞る。ICD prefix で match、no fabrication。
 _CONDITION_BODY_SITE: dict[str, dict[str, str]] = {
     # 呼吸器
-    "J18":  {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
-    "J13":  {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
-    "J14":  {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
-    "J15":  {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
-    "J44":  {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
-    "J45":  {"code": "955009",   "display_en": "Bronchial structure", "display_ja": "気管支"},
+    "J18": {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
+    "J13": {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
+    "J14": {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
+    "J15": {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
+    "J44": {"code": "39607008", "display_en": "Lung structure", "display_ja": "肺"},
+    "J45": {"code": "955009", "display_en": "Bronchial structure", "display_ja": "気管支"},
     # 心血管
-    "I21":  {"code": "80891009", "display_en": "Heart structure", "display_ja": "心臓"},
-    "I25":  {"code": "80891009", "display_en": "Heart structure", "display_ja": "心臓"},
-    "I50":  {"code": "80891009", "display_en": "Heart structure", "display_ja": "心臓"},
+    "I21": {"code": "80891009", "display_en": "Heart structure", "display_ja": "心臓"},
+    "I25": {"code": "80891009", "display_en": "Heart structure", "display_ja": "心臓"},
+    "I50": {"code": "80891009", "display_en": "Heart structure", "display_ja": "心臓"},
     # 脳血管
-    "I63":  {"code": "12738006", "display_en": "Brain structure", "display_ja": "脳"},
-    "I61":  {"code": "12738006", "display_en": "Brain structure", "display_ja": "脳"},
-    "I60":  {"code": "12738006", "display_en": "Brain structure", "display_ja": "脳"},
+    "I63": {"code": "12738006", "display_en": "Brain structure", "display_ja": "脳"},
+    "I61": {"code": "12738006", "display_en": "Brain structure", "display_ja": "脳"},
+    "I60": {"code": "12738006", "display_en": "Brain structure", "display_ja": "脳"},
     # 泌尿器
-    "N10":  {"code": "64033007", "display_en": "Kidney structure",  "display_ja": "腎臓"},
-    "N17":  {"code": "64033007", "display_en": "Kidney structure",  "display_ja": "腎臓"},
-    "N39":  {"code": "89837001", "display_en": "Urinary bladder structure", "display_ja": "膀胱"},
-    "N30":  {"code": "89837001", "display_en": "Urinary bladder structure", "display_ja": "膀胱"},
+    "N10": {"code": "64033007", "display_en": "Kidney structure", "display_ja": "腎臓"},
+    "N17": {"code": "64033007", "display_en": "Kidney structure", "display_ja": "腎臓"},
+    "N39": {"code": "89837001", "display_en": "Urinary bladder structure", "display_ja": "膀胱"},
+    "N30": {"code": "89837001", "display_en": "Urinary bladder structure", "display_ja": "膀胱"},
     # 皮膚・軟部
-    "L03":  {"code": "39937001", "display_en": "Skin structure", "display_ja": "皮膚"},
+    "L03": {"code": "39937001", "display_en": "Skin structure", "display_ja": "皮膚"},
 }
 
 
@@ -108,11 +108,13 @@ def _bodysite_for(code: str, country: str) -> dict | None:
         return None
     disp = entry["display_ja"] if is_jp(country) else entry["display_en"]
     return {
-        "coding": [{
-            "system": get_system_uri("snomed-ct"),
-            "code": entry["code"],
-            "display": disp,
-        }],
+        "coding": [
+            {
+                "system": get_system_uri("snomed-ct"),
+                "code": entry["code"],
+                "display": disp,
+            }
+        ],
         "text": disp,
     }
 
@@ -219,25 +221,29 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             "resourceType": "Condition",
             "id": f"cond-{encounter_id}-primary" if encounter_id else f"cond-{patient_id}-primary",
             # C2-20 (session 42 cycle 2): JP Core Condition profile.
-            **({"meta": {"profile": [
-                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"
-            ]}} if country_code == "JP" else {}),
+            **(
+                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"]}}
+                if country_code == "JP"
+                else {}
+            ),
             "clinicalStatus": {
                 "coding": [_coding_with_display("hl7-condition-clinical", clinical_status, lang)],
             },
             "verificationStatus": {
                 "coding": [_coding_with_display("hl7-condition-ver-status", "confirmed", lang)],
             },
-            "category": [{
-                "coding": [{
-                    "system": get_system_uri("hl7-condition-category"),
-                    "code": "encounter-diagnosis",
-                    "display": _localize_display("Encounter Diagnosis", country, _CATEGORY_DISPLAY_JA),
-                }],
-            }],
-            "code": _build_diagnosis_codeable_concept(
-                _map_diagnosis_code(dx_code, country), icd_system_key, country
-            ),
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-condition-category"),
+                            "code": "encounter-diagnosis",
+                            "display": _localize_display("Encounter Diagnosis", country, _CATEGORY_DISPLAY_JA),
+                        }
+                    ],
+                }
+            ],
+            "code": _build_diagnosis_codeable_concept(_map_diagnosis_code(dx_code, country), icd_system_key, country),
             "subject": {"reference": f"Patient/{patient_id}"},
         }
 
@@ -253,10 +259,16 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # (no fabricated coding). For chronic-primary: prior established
         # diagnosis; for acute: clinical presentation + supporting labs.
         _ev_text_ja = "既往診断" if is_chronic_primary else "臨床所見および検査結果"
-        _ev_text_en = "Prior established diagnosis" if is_chronic_primary else "Clinical presentation and supporting laboratory results"
-        cond["evidence"] = [{
-            "code": [{"text": _ev_text_ja if country_code == "JP" else _ev_text_en}],
-        }]
+        _ev_text_en = (
+            "Prior established diagnosis"
+            if is_chronic_primary
+            else "Clinical presentation and supporting laboratory results"
+        )  # noqa: E501
+        cond["evidence"] = [
+            {
+                "code": [{"text": _ev_text_ja if country_code == "JP" else _ev_text_en}],
+            }
+        ]
 
         # C4-07..10 (session 43 cycle 4): encounter-diagnosis stage inheritance.
         # When the primary dx is a staged chronic condition (DM/COPD/HF/CKD)
@@ -271,15 +283,19 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
                 summary: dict[str, Any] = {"text": _stg}
                 stage_snomed = _STAGE_SUMMARY_SNOMED.get(_stg)
                 if stage_snomed:
-                    summary["coding"] = [{
-                        "system": get_system_uri("snomed-ct"),
-                        "code": stage_snomed,
-                        "display": code_lookup("snomed-ct", stage_snomed, resolve_lang(country)),
-                    }]
-                cond["stage"] = [{
-                    "summary": summary,
-                    "type": {"text": "Clinical stage"},
-                }]
+                    summary["coding"] = [
+                        {
+                            "system": get_system_uri("snomed-ct"),
+                            "code": stage_snomed,
+                            "display": code_lookup("snomed-ct", stage_snomed, resolve_lang(country)),
+                        }
+                    ]
+                cond["stage"] = [
+                    {
+                        "summary": summary,
+                        "type": {"text": "Clinical stage"},
+                    }
+                ]
 
         if chronic_onset:
             # Chronic primary: onset is the disease onset date; recordedDate is the visit.
@@ -359,9 +375,11 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             "id": f"cond-chronic-{patient_id}-{i:02d}",
             # C2-20 (session 42): JP Core Condition profile also on chronic-
             # condition path (encounter-dx path handled above).
-            **({"meta": {"profile": [
-                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"
-            ]}} if country_code == "JP" else {}),
+            **(
+                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"]}}
+                if country_code == "JP"
+                else {}
+            ),
             # C2-02/03 (session 42 cycle 2): use _coding_with_display so the
             # chronic-condition path also emits displays (was raw code).
             "clinicalStatus": {
@@ -370,16 +388,18 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             "verificationStatus": {
                 "coding": [_coding_with_display("hl7-condition-ver-status", "confirmed", lang)],
             },
-            "category": [{
-                "coding": [{
-                    "system": get_system_uri("hl7-condition-category"),
-                    "code": "problem-list-item",
-                    "display": _localize_display("Problem List Item", country, _CATEGORY_DISPLAY_JA),
-                }],
-            }],
-            "code": _build_diagnosis_codeable_concept(
-                _map_diagnosis_code(c_code, country), icd_system_key, country
-            ),
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-condition-category"),
+                            "code": "problem-list-item",
+                            "display": _localize_display("Problem List Item", country, _CATEGORY_DISPLAY_JA),
+                        }
+                    ],
+                }
+            ],
+            "code": _build_diagnosis_codeable_concept(_map_diagnosis_code(c_code, country), icd_system_key, country),
             "subject": {"reference": f"Patient/{patient_id}"},
         }
 
@@ -389,9 +409,17 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         # CY6-19 (Chain-6): Condition.evidence — problem-list-item entries are
         # established from prior encounters. Text-only evidence label per the
         # same rationale as the encounter-diagnosis path.
-        cond["evidence"] = [{
-            "code": [{"text": "問題リスト:過去診療で確立" if country_code == "JP" else "Problem list — established in prior encounters"}],
-        }]
+        cond["evidence"] = [
+            {
+                "code": [
+                    {
+                        "text": "問題リスト:過去診療で確立"
+                        if country_code == "JP"
+                        else "Problem list — established in prior encounters"
+                    }
+                ],  # noqa: E501
+            }
+        ]
 
         # Stage (NYHA class, CKD G, GOLD, hypertension Stage, CCS, etc.) — c_stage set
         # in the branch above. The stage VALUE is carried by summary.text (always) plus
@@ -403,15 +431,19 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
             summary: dict[str, Any] = {"text": c_stage}
             stage_snomed = _STAGE_SUMMARY_SNOMED.get(c_stage)
             if stage_snomed:
-                summary["coding"] = [{
-                    "system": get_system_uri("snomed-ct"),
-                    "code": stage_snomed,
-                    "display": code_lookup("snomed-ct", stage_snomed, resolve_lang(country)),
-                }]
-            cond["stage"] = [{
-                "summary": summary,
-                "type": {"text": "Clinical stage"},
-            }]
+                summary["coding"] = [
+                    {
+                        "system": get_system_uri("snomed-ct"),
+                        "code": stage_snomed,
+                        "display": code_lookup("snomed-ct", stage_snomed, resolve_lang(country)),
+                    }
+                ]
+            cond["stage"] = [
+                {
+                    "summary": summary,
+                    "type": {"text": "Clinical stage"},
+                }
+            ]
 
         if c_onset:
             cond["onsetDateTime"] = to_fhir_date(c_onset)

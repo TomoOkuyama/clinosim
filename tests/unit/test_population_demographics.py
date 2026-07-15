@@ -60,16 +60,24 @@ def _us_demo_minimal() -> dict:
         "occupation_risk_multipliers": {},
         "sex_ratio": {"male": 0.50},
         "physiology": {
-            "bmi": {"male": {"mean": 29.0, "std": 0.001}, "female": {"mean": 29.5, "std": 0.001}, "clamp": [15.0, 45.0]},
-            "height_cm": {"male": {"mean": 175.5, "std": 0.001}, "female": {"mean": 162.0, "std": 0.001}, "shrinkage_per_decade_after_60": 0.5},
+            "bmi": {
+                "male": {"mean": 29.0, "std": 0.001},
+                "female": {"mean": 29.5, "std": 0.001},
+                "clamp": [15.0, 45.0],
+            },  # noqa: E501
+            "height_cm": {
+                "male": {"mean": 175.5, "std": 0.001},
+                "female": {"mean": 162.0, "std": 0.001},
+                "shrinkage_per_decade_after_60": 0.5,
+            },  # noqa: E501
         },
         "lifestyle_distribution": {
             "smoking": {
-                "male":   {"never": 0.0, "former": 0.0, "current": 1.0},
+                "male": {"never": 0.0, "former": 0.0, "current": 1.0},
                 "female": {"never": 1.0, "former": 0.0, "current": 0.0},
             },
             "alcohol": {
-                "male":   {"none": 1.0, "social": 0.0, "heavy": 0.0},
+                "male": {"none": 1.0, "social": 0.0, "heavy": 0.0},
                 "female": {"none": 1.0, "social": 0.0, "heavy": 0.0},
             },
         },
@@ -112,7 +120,7 @@ def test_comorbidity_correlation_raises_prevalence():
     # Force I10 to always trigger, E11.9 just below threshold without correlation
     demo = _us_demo_minimal()
     demo["chronic_prevalence"] = {
-        "I10":   {"40-99": 1.0},   # always present for age 40+
+        "I10": {"40-99": 1.0},  # always present for age 40+
         "E11.9": {"40-99": 0.01},  # too low to trigger without boost
     }
     demo["comorbidity_correlations"] = {"I10": {"E11.9": 200.0}}  # 200x boost → should always trigger
@@ -122,8 +130,7 @@ def test_comorbidity_correlation_raises_prevalence():
     assert len(adults) > 0
     # All adults have I10; with 200x boost, E11.9 should appear in almost all
     e11_count = sum(1 for p in adults if "E11.9" in p.chronic_conditions)
-    assert e11_count / len(adults) > 0.95, \
-        f"Expected >95% E11.9 with 200x boost, got {e11_count}/{len(adults)}"
+    assert e11_count / len(adults) > 0.95, f"Expected >95% E11.9 with 200x boost, got {e11_count}/{len(adults)}"
 
 
 def test_lifestyle_risk_multiplier_raises_chronic_prevalence():
@@ -139,7 +146,7 @@ def test_lifestyle_risk_multiplier_raises_chronic_prevalence():
         "smoking": {},
     }
     # Force all patients to be obese (BMI mean=35, std≈0)
-    demo["physiology"]["bmi"]["male"]   = {"mean": 35.0, "std": 0.001}
+    demo["physiology"]["bmi"]["male"] = {"mean": 35.0, "std": 0.001}
     demo["physiology"]["bmi"]["female"] = {"mean": 35.0, "std": 0.001}
 
     rng_obese = np.random.default_rng(42)
@@ -149,16 +156,15 @@ def test_lifestyle_risk_multiplier_raises_chronic_prevalence():
     demo2 = _us_demo_minimal()
     demo2["chronic_prevalence"] = {"E11.9": {"0-99": 0.10}}
     demo2["lifestyle_risk_multipliers"] = demo["lifestyle_risk_multipliers"]
-    demo2["physiology"]["bmi"]["male"]   = {"mean": 22.0, "std": 0.001}
+    demo2["physiology"]["bmi"]["male"] = {"mean": 22.0, "std": 0.001}
     demo2["physiology"]["bmi"]["female"] = {"mean": 22.0, "std": 0.001}
 
     rng_thin = np.random.default_rng(42)
     registry_thin = generate_population(size=500, country="US", rng=rng_thin, demo=demo2)
 
     obese_rate = sum(1 for p in registry_obese.persons.values() if "E11.9" in p.chronic_conditions) / 500
-    thin_rate  = sum(1 for p in registry_thin.persons.values() if "E11.9" in p.chronic_conditions) / 500
-    assert obese_rate > thin_rate * 2, \
-        f"Obese E11.9 rate {obese_rate:.2f} should be >2x thin rate {thin_rate:.2f}"
+    thin_rate = sum(1 for p in registry_thin.persons.values() if "E11.9" in p.chronic_conditions) / 500
+    assert obese_rate > thin_rate * 2, f"Obese E11.9 rate {obese_rate:.2f} should be >2x thin rate {thin_rate:.2f}"
 
 
 def _make_registry_with_person(age: int, sex: str, smoking: str, bmi: float) -> PopulationRegistry:
@@ -208,8 +214,9 @@ def test_lifestyle_risk_multiplier_increases_monthly_event_rate():
         events_n = generate_monthly_events(reg_n, 2024, 1, np.random.default_rng(seed), demo=demo)
         nonsmoker_events += len(events_n)
 
-    assert smoker_events > nonsmoker_events, \
+    assert smoker_events > nonsmoker_events, (
         f"Smoker events {smoker_events} should exceed non-smoker {nonsmoker_events}"
+    )
 
 
 def test_occupation_age_thresholds_from_yaml():
@@ -231,8 +238,9 @@ def test_occupation_age_thresholds_from_yaml():
 from clinosim.modules.patient.activator import activate_patient
 
 
-def _make_person(age: int = 45, sex: str = "M", bmi: float = 28.0,
-                 smoking: str = "never", alcohol: str = "none") -> PersonRecord:
+def _make_person(
+    age: int = 45, sex: str = "M", bmi: float = 28.0, smoking: str = "never", alcohol: str = "none"
+) -> PersonRecord:
     return PersonRecord(
         person_id="POP-TEST",
         household_id="HH-TEST",
@@ -250,7 +258,11 @@ def _minimal_demo_for_activate(country_hint: str = "US") -> dict:
         "_country": country_hint,
         "physiology": {
             "bmi": {"male": {"mean": 29.0, "std": 6.0}, "female": {"mean": 29.5, "std": 6.0}, "clamp": [15.0, 45.0]},
-            "height_cm": {"male": {"mean": 175.5, "std": 7.0}, "female": {"mean": 162.0, "std": 7.0}, "shrinkage_per_decade_after_60": 0.5},
+            "height_cm": {
+                "male": {"mean": 175.5, "std": 7.0},
+                "female": {"mean": 162.0, "std": 7.0},
+                "shrinkage_per_decade_after_60": 0.5,
+            },  # noqa: E501
         },
         "insurance_distribution": [
             {"age_range": "0-64", "weights": {"private": 1.0}},
@@ -267,8 +279,7 @@ def test_activate_patient_uses_person_bmi_not_regenerate():
     rng = np.random.default_rng(0)
     demo = _minimal_demo_for_activate()
     profile = activate_patient(person, rng, demo)
-    assert abs(profile.bmi - 33.7) < 0.01, \
-        f"PatientProfile.bmi {profile.bmi} should match PersonRecord.bmi 33.7"
+    assert abs(profile.bmi - 33.7) < 0.01, f"PatientProfile.bmi {profile.bmi} should match PersonRecord.bmi 33.7"
 
 
 def test_activate_patient_uses_person_smoking():
@@ -283,13 +294,13 @@ def test_activate_patient_uses_person_smoking():
 def test_activate_patient_insurance_from_yaml():
     """Insurance type should come from insurance_distribution in demo."""
     person_young = _make_person(age=30)
-    person_old   = _make_person(age=70)
+    person_old = _make_person(age=70)
     rng = np.random.default_rng(0)
     demo = _minimal_demo_for_activate()
     profile_young = activate_patient(person_young, rng, demo)
-    profile_old   = activate_patient(person_old,   rng, demo)
+    profile_old = activate_patient(person_old, rng, demo)
     assert profile_young.insurance_type == "private"
-    assert profile_old.insurance_type   == "medicare"
+    assert profile_old.insurance_type == "medicare"
 
 
 def test_activate_patient_race_from_yaml():
@@ -324,22 +335,25 @@ def test_us_population_bmi_distribution_matches_yaml():
     demo = _load_demo("US")
     rng = np.random.default_rng(42)
     registry = generate_population(size=500, country="US", rng=rng, demo=demo)
-    males   = [p.bmi for p in registry.persons.values() if p.sex == "M"]
+    males = [p.bmi for p in registry.persons.values() if p.sex == "M"]
     females = [p.bmi for p in registry.persons.values() if p.sex == "F"]
-    assert males,   "No male persons generated"
+    assert males, "No male persons generated"
     assert females, "No female persons generated"
     m_cfg = demo["physiology"]["bmi"]["male"]
     f_cfg = demo["physiology"]["bmi"]["female"]
-    assert abs(np.mean(males)   - m_cfg["mean"]) < m_cfg["std"] * 2, \
+    assert abs(np.mean(males) - m_cfg["mean"]) < m_cfg["std"] * 2, (
         f"Male BMI mean {np.mean(males):.1f} not within 2 std of {m_cfg['mean']}"
-    assert abs(np.mean(females) - f_cfg["mean"]) < f_cfg["std"] * 2, \
+    )
+    assert abs(np.mean(females) - f_cfg["mean"]) < f_cfg["std"] * 2, (
         f"Female BMI mean {np.mean(females):.1f} not within 2 std of {f_cfg['mean']}"
+    )
 
 
 # ---------------------------------------------------------------------------
 # Glycemic control axis (DET-6): E11 stage HbA1c must match glycemic_control,
 # and sampling must be deterministic + stream-preserving.
 # ---------------------------------------------------------------------------
+
 
 def _make_diabetic_person(age: int = 60) -> PersonRecord:
     p = _make_person(age=age)
@@ -349,6 +363,7 @@ def _make_diabetic_person(age: int = 60) -> PersonRecord:
 
 def test_e11_stage_hba1c_matches_glycemic_control():
     from clinosim.modules.physiology.engine import hba1c_from_glycemic_control
+
     person = _make_diabetic_person()
     profile = activate_patient(person, np.random.default_rng(7), _minimal_demo_for_activate())
     dm = next(c for c in profile.chronic_conditions if c.code.startswith("E11"))
@@ -386,6 +401,7 @@ def test_nondiabetic_condition_has_no_glycemic_control():
 # sampled severity exceeds the person's care-seeking threshold — silently
 # dropping ~35% of incident GI bleeds from the generated catchment.
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.parametrize("country", ["US", "JP"])
 def test_gi_bleeding_always_hospitalizes(country):
@@ -453,13 +469,16 @@ def _make_condition_person(code: str, age: int = 65) -> PersonRecord:
     return p
 
 
-@pytest.mark.parametrize("code,severe_stages", [
-    ("N18.3", ("CKD G4", "CKD G5")),
-    ("I50.9", ("NYHA III", "NYHA IV")),
-    ("J44.9", ("GOLD 3", "GOLD 4")),
-    ("J45.9", ("Moderate persistent", "Severe persistent")),
-    ("I25.9", ("CCS III",)),
-])
+@pytest.mark.parametrize(
+    "code,severe_stages",
+    [
+        ("N18.3", ("CKD G4", "CKD G5")),
+        ("I50.9", ("NYHA III", "NYHA IV")),
+        ("J44.9", ("GOLD 3", "GOLD 4")),
+        ("J45.9", ("Moderate persistent", "Severe persistent")),
+        ("I25.9", ("CCS III",)),
+    ],
+)
 def test_graded_stage_severity_score_tracks_sampled_stage(code, severe_stages):
     demo = _minimal_demo_for_activate()
     code_base = code.split(".")[0]
@@ -497,6 +516,7 @@ def test_graded_stage_severity_score_deterministic_same_seed(code):
 # _parse_age_distribution (no such guard, raises naturally) and with this
 # project's fail-loud-validation convention for YAML-sourced data.
 # ---------------------------------------------------------------------------
+
 
 def test_parse_chronic_prevalence_raises_on_malformed_age_range_key():
     demo = {"chronic_prevalence": {"N10": {"65+": 0.1}}}

@@ -16,9 +16,17 @@ def test_enricher_fills_nursing_data():
 
     rec = CIFPatientRecord(
         patient=PatientProfile(patient_id="p1", age=80),
-        vital_signs=[VitalSignRecord(respiratory_rate=26, spo2=92,
-                     on_supplemental_oxygen=True, temperature_celsius=39.2,
-                     systolic_bp=95, heart_rate=115, consciousness_level="A")],
+        vital_signs=[
+            VitalSignRecord(
+                respiratory_rate=26,
+                spo2=92,
+                on_supplemental_oxygen=True,
+                temperature_celsius=39.2,
+                systolic_bp=95,
+                heart_rate=115,
+                consciousness_level="A",
+            )
+        ],
         adl_assessments=[ADLAssessment(date=date(2026, 1, 1), barthel_score=20)],
         intake_output_records=[IntakeOutputRecord(date=date(2026, 1, 1), intake_iv_ml=1500)],
     )
@@ -49,10 +57,12 @@ def test_enricher_impaired_consciousness_affects_scores():
     def _make_rec(clvl: str) -> CIFPatientRecord:
         return CIFPatientRecord(
             patient=PatientProfile(patient_id="p_impaired", age=75),
-            vital_signs=[VitalSignRecord(
-                timestamp=datetime(2026, 3, 15, 8, 0),
-                consciousness_level=clvl,
-            )],
+            vital_signs=[
+                VitalSignRecord(
+                    timestamp=datetime(2026, 3, 15, 8, 0),
+                    consciousness_level=clvl,
+                )
+            ],
             adl_assessments=[ADLAssessment(date=target_date, barthel_score=50)],
         )
 
@@ -88,6 +98,7 @@ def test_enricher_deterministic():
             vital_signs=[VitalSignRecord(consciousness_level="A")],
             adl_assessments=[ADLAssessment(date=date(2026, 1, 1), barthel_score=50)],
         )
+
     r1, r2 = build(), build()
     enrich_nursing(EnricherContext(config=None, master_seed=99, records=[r1]))
     enrich_nursing(EnricherContext(config=None, master_seed=99, records=[r2]))

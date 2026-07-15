@@ -24,9 +24,7 @@ def jp_bacterial_pneumonia_documents():
     from clinosim.types.config import SimulatorConfig, load_patient_profile
 
     profile_path = (
-        Path(__file__).resolve().parents[1]
-        / "fixtures" / "patient_profiles"
-        / "jp_inpatient_bacterial_pneumonia.yaml"
+        Path(__file__).resolve().parents[1] / "fixtures" / "patient_profiles" / "jp_inpatient_bacterial_pneumonia.yaml"
     )
     profile = load_patient_profile(str(profile_path))
     scenario = profile.to_forced_scenario()
@@ -55,9 +53,7 @@ def jp_bacterial_pneumonia_documents():
 
 @pytest.mark.unit
 def test_jp_discharge_summary_has_5_required_sections(jp_bacterial_pneumonia_documents):
-    assert jp_bacterial_pneumonia_documents, (
-        "expected at least one JP discharge summary in the fixture cohort"
-    )
+    assert jp_bacterial_pneumonia_documents, "expected at least one JP discharge summary in the fixture cohort"
     expected = {
         "admission_reason",
         "admission_details",
@@ -69,8 +65,7 @@ def test_jp_discharge_summary_has_5_required_sections(jp_bacterial_pneumonia_doc
         narr = doc.get("narrative") or {}
         secs = narr.get("sections") or {}
         assert set(secs.keys()) == expected, (
-            f"unexpected JP DS section keys for {doc.get('document_id')}: "
-            f"{sorted(secs.keys())}"
+            f"unexpected JP DS section keys for {doc.get('document_id')}: {sorted(secs.keys())}"
         )
 
 
@@ -80,6 +75,4 @@ def test_jp_discharge_summary_sections_have_content(jp_bacterial_pneumonia_docum
         narr = doc.get("narrative") or {}
         secs = narr.get("sections") or {}
         for key, text in secs.items():
-            assert text and text.strip(), (
-                f"empty section {key!r} on {doc.get('document_id')}"
-            )
+            assert text and text.strip(), f"empty section {key!r} on {doc.get('document_id')}"

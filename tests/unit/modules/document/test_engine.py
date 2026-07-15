@@ -204,7 +204,7 @@ def test_document_enricher_skips_cancelled_encounter() -> None:
 def test_document_enricher_locale_gating_us_excludes_jp_only_specs() -> None:
     """US context: only US-supported specs applied; JP-only spec produces 0 docs for US."""
     jp_only_spec = DocumentTypeSpec(
-        type_key="admission_hp",       # valid DocumentType value
+        type_key="admission_hp",  # valid DocumentType value
         loinc_code="34117-2",
         format_type=FormatType.COMPOSITION,
         countries_supported=("jp",),
@@ -271,9 +271,7 @@ def test_document_enricher_sets_format_type_for_dispatch() -> None:
     progress_docs = [d for d in record.documents if d.task_type == "progress_note"]
     assert len(progress_docs) > 0
     for d in progress_docs:
-        assert d.format_type == "free_text", (
-            f"progress_note must have format_type='free_text', got '{d.format_type}'"
-        )
+        assert d.format_type == "free_text", f"progress_note must have format_type='free_text', got '{d.format_type}'"
 
     # ADMISSION_HP → composition
     hp_docs = [d for d in record.documents if d.task_type == "admission_hp"]
@@ -304,9 +302,7 @@ def test_document_enricher_deterministic() -> None:
         record = _make_record(encounter=_make_encounter())
         ctx = _make_ctx(record, master_seed=seed)
         document_enricher(ctx)
-        impressions: list[ClinicalImpressionRecord] = record.extensions.get(
-            "clinical_impressions", []
-        )
+        impressions: list[ClinicalImpressionRecord] = record.extensions.get("clinical_impressions", [])
         return record.documents, impressions
 
     docs1, imps1 = _run(42)

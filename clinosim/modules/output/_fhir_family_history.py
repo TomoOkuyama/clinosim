@@ -1,4 +1,5 @@
 """FHIR FamilyMemberHistory builder (AD-55 Base, AD-56 builder registry)."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -52,11 +53,15 @@ def _build_family_history(ctx: BundleContext) -> list[dict]:
             "id": f"fmh-{ctx.patient_id}-{i:02d}",
             "status": "completed",
             "patient": {"reference": f"Patient/{ctx.patient_id}"},
-            "relationship": {"coding": [{
-                "system": get_system_uri("hl7-v3-rolecode"),
-                "code": rel,
-                "display": disp.get(lang, disp.get("en", rel)),
-            }]},
+            "relationship": {
+                "coding": [
+                    {
+                        "system": get_system_uri("hl7-v3-rolecode"),
+                        "code": rel,
+                        "display": disp.get(lang, disp.get("en", rel)),
+                    }
+                ]
+            },
             "deceasedBoolean": bool(_get(fam, "deceased", False)),
         }
         # Apply the locale diagnosis map (session 40 fix): family_history condition
@@ -81,7 +86,9 @@ def _build_family_history(ctx: BundleContext) -> list[dict]:
         conditions = [
             {
                 "code": _build_diagnosis_codeable_concept(
-                    _resolve_family_history_code(code, ctx.country), icd_system_key, ctx.country,
+                    _resolve_family_history_code(code, ctx.country),
+                    icd_system_key,
+                    ctx.country,
                 ),
                 "onsetString": _onset_unknown,
             }

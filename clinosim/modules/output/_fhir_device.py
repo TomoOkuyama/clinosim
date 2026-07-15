@@ -42,11 +42,13 @@ def _build_device(ctx: BundleContext) -> list[dict]:
             "id": device_id,
             "status": "inactive" if removal_date else "active",
             "type": {
-                "coding": [{
-                    "system": get_system_uri("snomed-ct"),
-                    "code": snomed,
-                    "display": display,
-                }],
+                "coding": [
+                    {
+                        "system": get_system_uri("snomed-ct"),
+                        "code": snomed,
+                        "display": display,
+                    }
+                ],
                 "text": display,
             },
             "patient": {"reference": f"Patient/{ctx.patient_id}"},

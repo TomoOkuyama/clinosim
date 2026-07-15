@@ -58,10 +58,7 @@ def get_adapter(format_id: str) -> OutputAdapter:
     """Return the adapter for format_id, or raise KeyError with the available list."""
     _ensure_builtins()
     if format_id not in _ADAPTERS:
-        raise KeyError(
-            f"Unknown output format {format_id!r}. "
-            f"Available: {', '.join(sorted(_ADAPTERS))}"
-        )
+        raise KeyError(f"Unknown output format {format_id!r}. Available: {', '.join(sorted(_ADAPTERS))}")
     return _ADAPTERS[format_id]
 
 

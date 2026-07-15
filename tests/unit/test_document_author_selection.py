@@ -48,7 +48,4 @@ def test_nurse_missing_falls_back_to_attending_with_warn(caplog):
     with caplog.at_level(logging.WARNING):
         result = _pick_document_author(spec, enc)
     assert result == "DR-1"
-    assert any(
-        "primary_nurse_id" in rec.message.lower() or "fallback" in rec.message.lower()
-        for rec in caplog.records
-    )
+    assert any("primary_nurse_id" in rec.message.lower() or "fallback" in rec.message.lower() for rec in caplog.records)

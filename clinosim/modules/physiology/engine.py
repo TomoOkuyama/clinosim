@@ -23,6 +23,7 @@ def clamp(value: float, lo: float, hi: float) -> float:
 # Initialization
 # ---------------------------------------------------------------------------
 
+
 def initialize_state(
     profile: PatientPhysiologicalProfile,
     conditions: list[ChronicCondition],
@@ -55,11 +56,11 @@ def initialize_state(
             state.cardiac_function *= 1.0 - s * 0.4
             if s > 0.3:
                 state.volume_status += s * 0.3
-            state.sodium_status -= s * 0.30   # dilutional hyponatremia
+            state.sodium_status -= s * 0.30  # dilutional hyponatremia
         elif code.startswith("K74"):  # Cirrhosis
             state.hepatic_function *= 1.0 - s * 0.5
             state.coagulation_status += s * 0.2
-            state.sodium_status -= s * 0.40   # dilutional hyponatremia
+            state.sodium_status -= s * 0.40  # dilutional hyponatremia
         elif code.startswith("J44"):  # COPD
             state.ph_status -= s * 0.05
             state.respiratory_fraction = 1.0  # chronic CO2 retention → respiratory axis
@@ -91,13 +92,13 @@ def initialize_state(
 
 
 # HbA1c model (chronic glycemic control). Coefficients fixed by generation audit.
-HBA1C_NONDM_BASE = 5.1     # %, non-diabetic baseline (mild age term added at use site)
-HBA1C_BEST = 6.0           # %, diabetic at perfect control (glycemic_control = 1.0)
-HBA1C_SPAN = 6.0           # %, added at glycemic_control = 0.0  -> 12.0% worst case
+HBA1C_NONDM_BASE = 5.1  # %, non-diabetic baseline (mild age term added at use site)
+HBA1C_BEST = 6.0  # %, diabetic at perfect control (glycemic_control = 1.0)
+HBA1C_SPAN = 6.0  # %, added at glycemic_control = 0.0  -> 12.0% worst case
 # Diabetic fasting Glucose baseline as a function of glycemic control.
-GLU_DM_BEST = 120.0        # mg/dL at glycemic_control = 1.0
-GLU_DM_SPAN = 100.0        # mg/dL added at glycemic_control = 0.0 -> 220 worst
-GLYCEMIC_CONTROL_DEFAULT = 0.5   # fallback when has_diabetes but axis unset (e.g. new-onset)
+GLU_DM_BEST = 120.0  # mg/dL at glycemic_control = 1.0
+GLU_DM_SPAN = 100.0  # mg/dL added at glycemic_control = 0.0 -> 220 worst
+GLYCEMIC_CONTROL_DEFAULT = 0.5  # fallback when has_diabetes but axis unset (e.g. new-onset)
 
 
 def hba1c_from_glycemic_control(glycemic_control: float) -> float:
@@ -154,6 +155,7 @@ def apply_disease_onset(
 # State update (time-stepping)
 # ---------------------------------------------------------------------------
 
+
 def update(
     state: PhysiologicalState,
     directive: StateChangeDirective,
@@ -174,6 +176,7 @@ def update(
 # Coupling rules
 # ---------------------------------------------------------------------------
 
+
 def apply_coupling_rules(state: PhysiologicalState) -> None:
     """Apply physiological coupling between state variables. Order matters."""
     # Perfusion depends on cardiac + volume
@@ -182,9 +185,7 @@ def apply_coupling_rules(state: PhysiologicalState) -> None:
         volume_effect = state.volume_status * 0.3
     elif state.volume_status > 0.5 and state.cardiac_function < 0.5:
         volume_effect = -0.1
-    state.perfusion_status = clamp(
-        state.cardiac_function * 0.8 + 0.2 + volume_effect, 0.0, 1.0
-    )
+    state.perfusion_status = clamp(state.cardiac_function * 0.8 + 0.2 + volume_effect, 0.0, 1.0)
 
     # Renal depends on perfusion (pre-renal)
     if state.perfusion_status < 0.5:
@@ -207,31 +208,24 @@ def apply_coupling_rules(state: PhysiologicalState) -> None:
 
     # Hepatic dysfunction worsens coagulation
     if state.hepatic_function < 0.4:
-        state.coagulation_status = clamp(
-            state.coagulation_status + (0.4 - state.hepatic_function) * 0.1, 0.0, 1.0
-        )
+        state.coagulation_status = clamp(state.coagulation_status + (0.4 - state.hepatic_function) * 0.1, 0.0, 1.0)
 
     # Chronic inflammation causes anemia (very slow)
     if state.inflammation_level > 0.5:
-        state.anemia_level = clamp(
-            state.anemia_level + (state.inflammation_level - 0.5) * 0.005, 0.0, 1.0
-        )
+        state.anemia_level = clamp(state.anemia_level + (state.inflammation_level - 0.5) * 0.005, 0.0, 1.0)
     # Resolving inflammation allows anemia to recover (bone marrow de-suppression)
     elif state.inflammation_level < 0.2 and state.anemia_level > 0.05:
-        state.anemia_level = clamp(
-            state.anemia_level - 0.005, 0.0, 1.0
-        )
+        state.anemia_level = clamp(state.anemia_level - 0.005, 0.0, 1.0)
 
     # Dehydration (free-water deficit) concentrates serum sodium -> hypernatremia.
     if state.volume_status < -0.35:
-        state.sodium_status = clamp(
-            state.sodium_status + (abs(state.volume_status) - 0.35) * 1.2, -1.0, 1.0
-        )
+        state.sodium_status = clamp(state.sodium_status + (abs(state.volume_status) - 0.35) * 1.2, -1.0, 1.0)
 
 
 # ---------------------------------------------------------------------------
 # Lab value derivation (Layer 2)
 # ---------------------------------------------------------------------------
+
 
 def scenario_flags_from_protocol(protocol) -> dict[str, bool]:
     """Extract every `derive_lab_values` scenario flag from a disease YAML
@@ -304,7 +298,7 @@ def medication_flags_from_context(
     on_warfarin = False
 
     # (1) Chronic warfarin from home meds
-    for med in (getattr(patient, "current_medications", None) or []):
+    for med in getattr(patient, "current_medications", None) or []:
         if not isinstance(med, str):
             continue
         med_lower = med.lower()
@@ -321,7 +315,7 @@ def medication_flags_from_context(
         and current_day >= 3
     ):
         for o in medication_orders:
-            display = (getattr(o, "display_name", "") or "")
+            display = getattr(o, "display_name", "") or ""
             if not any(name in display.lower() for name in _WARFARIN_NAMES):
                 continue
             ordered_dt = getattr(o, "ordered_datetime", None)
@@ -365,13 +359,11 @@ def derive_lab_values(
     # as part of the sepsis-cascade extension.
     effective_infl = min(1.0, infl + hai_inflammation_lift)
     # CRP: effective_infl 0→0.3, 0.4→26, 0.6→87, 0.75→169, 1.0→400 mg/L
-    labs["CRP"] = 0.3 + 400 * effective_infl ** 3
+    labs["CRP"] = 0.3 + 400 * effective_infl**3
     if effective_infl < 0.8:
         labs["WBC"] = 7000 + effective_infl * 12000
     else:
-        labs["WBC"] = max(
-            1500, 7000 + 0.8 * 12000 - (effective_infl - 0.8) * 30000
-        )
+        labs["WBC"] = max(1500, 7000 + 0.8 * 12000 - (effective_infl - 0.8) * 30000)
     labs["PCT"] = 0.03 * math.exp(infl * 7)
     labs["Albumin"] = max(1.0, 4.2 - infl * 2.0 - (1 - hepatic) * 1.5)
 
@@ -409,9 +401,7 @@ def derive_lab_values(
     # simulator actually produces (HF exacerbation cardiac~0.27/volume~0.56, acute MI
     # cardiac~0.19/volume~0), these give HF exacerbation BNP ~800-1500, MI ~150-300, and
     # non-cardiac < 100 pg/mL.
-    labs["BNP"] = 30.0 * math.exp(
-        (1 - cardiac) * 2.0 + max(0.0, state.volume_status) * (1 - cardiac) * 5.0
-    )
+    labs["BNP"] = 30.0 * math.exp((1 - cardiac) * 2.0 + max(0.0, state.volume_status) * (1 - cardiac) * 5.0)
     # Cardiac injury markers. Normal heart (cardiac≈1.0) stays negative so troponin
     # rule-outs in non-cardiac disease read normal; acute injury (MI: cardiac 0.3–0.5)
     # elevates strongly. Steep (^4) so only meaningful dysfunction lifts troponin.
@@ -421,13 +411,13 @@ def derive_lab_values(
     # the disease scenario) releases MI-level troponin. Renal impairment reduces clearance →
     # chronic mild elevation (CKD confounder). Keeps non-cardiac labs clinically coherent.
     renal_tnt = (1 - renal) * 0.10
-    tnt = 0.01 + min(injury**3 * 8.0, 3.0) + renal_tnt   # type-2 (mild, ≲3 ng/mL)
+    tnt = 0.01 + min(injury**3 * 8.0, 3.0) + renal_tnt  # type-2 (mild, ≲3 ng/mL)
     ckmb = 0.5 + min(injury**3 * 5.0, 3.0)
-    if myocardial_injury:                                # ACS → primary necrosis
+    if myocardial_injury:  # ACS → primary necrosis
         tnt += injury**2 * 120.0
         ckmb += injury**2 * 60.0
-    labs["Troponin_I"] = tnt   # ng/mL (normal < 0.04; ACS ~10–100)
-    labs["CK_MB"] = ckmb       # ng/mL (normal < 5)
+    labs["Troponin_I"] = tnt  # ng/mL (normal < 0.04; ACS ~10–100)
+    labs["CK_MB"] = ckmb  # ng/mL (normal < 5)
 
     # --- Hepatic ---
     labs["AST"] = 25 + (1 - hepatic) * 500
@@ -477,7 +467,8 @@ def derive_lab_values(
     # Fibrinogen 3255-7 emits as an individual Observation.
     labs["Fibrinogen"] = clamp(
         300.0 + infl * 250.0 - state.coagulation_status * 280.0,
-        50.0, 800.0,
+        50.0,
+        800.0,
     )
 
     # D-dimer (ug/mL FEU). Baseline 0.3 + age-adjustment (well-documented
@@ -489,13 +480,7 @@ def derive_lab_values(
     # upper limit). AD-57 BNP-pattern surgical: scenario flag is the
     # input, no state mutation, no master-RNG draw.
     age_factor = max(0.0, age - 50) * 0.005
-    d_dimer = (
-        0.3
-        + age_factor
-        + infl * 0.5
-        + state.coagulation_status * 1.5
-        + (4.0 if causes_vte else 0.0)
-    )
+    d_dimer = 0.3 + age_factor + infl * 0.5 + state.coagulation_status * 1.5 + (4.0 if causes_vte else 0.0)
     labs["D_dimer"] = clamp(d_dimer, 0.15, 20.0)
 
     # --- Perfusion ---
@@ -514,8 +499,8 @@ def derive_lab_values(
     # (10-15). 31 lands moderate DKA at HCO3 ~13 (mid-band) and severe DKA at <10,
     # while CKD chronic (ph_status~-0.10) drops only from 21.6 to 20.9. state is
     # unchanged. Spec: docs/superpowers/specs/2026-06-22-aki-dka-surgical-calibration-design.md
-    hco3 = 24.0 + ph * mf * 31.0   # metabolic load drives bicarbonate
-    pco2 = 40.0 - ph * rf * 40.0   # respiratory load drives CO2 (acidosis → retention)
+    hco3 = 24.0 + ph * mf * 31.0  # metabolic load drives bicarbonate
+    pco2 = 40.0 - ph * rf * 40.0  # respiratory load drives CO2 (acidosis → retention)
     if mf > 0.0 and ph != 0.0:
         # Respiratory compensation for a metabolic disturbance (Winter's formula, ~80%).
         winters_pco2 = 1.5 * hco3 + 8.0
@@ -567,15 +552,15 @@ def derive_lab_values(
     # Acute glycemic drive (DKA/HHS push glucose_status up; insulin therapy lowers it).
     gs = state.glucose_status
     if gs >= 0:
-        base_glu += gs * 500.0   # hyperglycemia: gs 0.6 ≈ +300 (DKA 300–500 range)
+        base_glu += gs * 500.0  # hyperglycemia: gs 0.6 ≈ +300 (DKA 300–500 range)
     else:
-        base_glu += gs * 55.0    # hypoglycemia: gs -0.5 ≈ -27
+        base_glu += gs * 55.0  # hypoglycemia: gs -0.5 ≈ -27
     labs["Glucose"] = base_glu
     labs["Glucose"] += infl * 50  # stress hyperglycemia
     # Postprandial rise: meals ~8h, 12h, 18h → peak 1-2h after
     # Fasting (early morning 04-07): lowest
     postprandial = 0.0
-    if 9 <= hour <= 10:    # post-breakfast
+    if 9 <= hour <= 10:  # post-breakfast
         postprandial = 25.0
     elif 13 <= hour <= 14:  # post-lunch
         postprandial = 20.0

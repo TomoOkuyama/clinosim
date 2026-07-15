@@ -36,9 +36,7 @@ def test_document_builders_registered() -> None:
         "_bb_allergy_intolerances",
         "_bb_clinical_impressions",
     ):
-        assert name in builders, (
-            f"{name} not registered — check fhir_r4_adapter.py imports"
-        )
+        assert name in builders, f"{name} not registered — check fhir_r4_adapter.py imports"
 
 
 @pytest.mark.integration
@@ -67,11 +65,7 @@ def test_document_reference_contains_progress_notes() -> None:
         run_generate("US", 200, 42, out)
         drefs = load_ndjson(find_ndjson(out, "DocumentReference.ndjson"))
         progress_notes = [
-            d for d in drefs
-            if any(
-                c.get("code") == _LOINC_PROGRESS_NOTE
-                for c in d.get("type", {}).get("coding", [])
-            )
+            d for d in drefs if any(c.get("code") == _LOINC_PROGRESS_NOTE for c in d.get("type", {}).get("coding", []))
         ]
         assert progress_notes, (
             "No PROGRESS_NOTE DocumentReferences (LOINC 11506-3) found in "
@@ -87,11 +81,7 @@ def test_composition_contains_admission_hp_and_discharge_summary() -> None:
         out = Path(tmp) / "out"
         run_generate("US", 200, 42, out)
         comps = load_ndjson(find_ndjson(out, "Composition.ndjson"))
-        found_loinc = {
-            c.get("code")
-            for comp in comps
-            for c in comp.get("type", {}).get("coding", [])
-        }
+        found_loinc = {c.get("code") for comp in comps for c in comp.get("type", {}).get("coding", [])}
         assert _LOINC_ADMISSION_HP in found_loinc, (
             f"ADMISSION_HP (LOINC {_LOINC_ADMISSION_HP}) missing from Composition.ndjson"
         )
@@ -113,14 +103,10 @@ def test_clinical_impression_count_consistent_with_encounter_count() -> None:
         run_generate("US", 200, 42, out)
         impressions = load_ndjson(find_ndjson(out, "ClinicalImpression.ndjson"))
         encs = load_ndjson(find_ndjson(out, "Encounter.ndjson"))
-        inpatient_encs = [
-            e for e in encs
-            if e.get("class", {}).get("code", "") in {"IMP", "ACUTE", "OBSENC"}
-        ]
+        inpatient_encs = [e for e in encs if e.get("class", {}).get("code", "") in {"IMP", "ACUTE", "OBSENC"}]
         if not inpatient_encs:
             pytest.skip(
-                "No inpatient Encounters found for n=200 cohort "
-                "(unexpected — check FHIR Encounter.class filter)"
+                "No inpatient Encounters found for n=200 cohort (unexpected — check FHIR Encounter.class filter)"
             )
         assert len(impressions) >= len(inpatient_encs), (
             f"ClinicalImpression count {len(impressions)} < inpatient encounter count "

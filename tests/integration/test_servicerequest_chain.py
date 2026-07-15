@@ -30,19 +30,25 @@ def test_full_pipeline_emits_service_request_no_crash():
         out = Path(tmp) / "out"
         result = subprocess.run(
             [
-                "python", "-m", "clinosim.simulator.cli", "generate",
-                "--country", "US",
-                "--population", "5",
-                "--seed", "42",
-                "--format", "fhir-r4",
-                "--output", str(out),
+                "python",
+                "-m",
+                "clinosim.simulator.cli",
+                "generate",
+                "--country",
+                "US",
+                "--population",
+                "5",
+                "--seed",
+                "42",
+                "--format",
+                "fhir-r4",
+                "--output",
+                str(out),
             ],
             capture_output=True,
             text=True,
         )
-        assert result.returncode == 0, (
-            f"generate failed (returncode={result.returncode}):\n{result.stderr}"
-        )
+        assert result.returncode == 0, f"generate failed (returncode={result.returncode}):\n{result.stderr}"
 
         # The fhir-r4 output lands in a sub-directory named after the format.
         # Walk for ServiceRequest.ndjson wherever the adapter wrote it.
@@ -53,9 +59,7 @@ def test_full_pipeline_emits_service_request_no_crash():
         )
         sr_file = sr_files[0]
         lines = [ln for ln in sr_file.read_text().splitlines() if ln.strip()]
-        assert len(lines) > 0, (
-            "ServiceRequest.ndjson is empty — no lab orders were emitted for p=5 cohort"
-        )
+        assert len(lines) > 0, "ServiceRequest.ndjson is empty — no lab orders were emitted for p=5 cohort"
         # Verify each line is valid JSON with correct resourceType.
         for ln in lines:
             resource = json.loads(ln)
@@ -76,19 +80,25 @@ def test_full_pipeline_diagnostic_report_basedon():
         out = Path(tmp) / "out"
         result = subprocess.run(
             [
-                "python", "-m", "clinosim.simulator.cli", "generate",
-                "--country", "US",
-                "--population", "5",
-                "--seed", "42",
-                "--format", "fhir-r4",
-                "--output", str(out),
+                "python",
+                "-m",
+                "clinosim.simulator.cli",
+                "generate",
+                "--country",
+                "US",
+                "--population",
+                "5",
+                "--seed",
+                "42",
+                "--format",
+                "fhir-r4",
+                "--output",
+                str(out),
             ],
             capture_output=True,
             text=True,
         )
-        assert result.returncode == 0, (
-            f"generate failed (returncode={result.returncode}):\n{result.stderr}"
-        )
+        assert result.returncode == 0, f"generate failed (returncode={result.returncode}):\n{result.stderr}"
 
         # Collect all emitted ServiceRequest ids for referential integrity check.
         sr_ids: set[str] = set()
@@ -99,9 +109,7 @@ def test_full_pipeline_diagnostic_report_basedon():
 
         # Collect DiagnosticReport panel resources (id = dr-{panel}-{enc}-{seq}).
         dr_files = list(out.rglob("DiagnosticReport.ndjson"))
-        assert len(dr_files) > 0, (
-            "DiagnosticReport.ndjson not found — builder may not be registered"
-        )
+        assert len(dr_files) > 0, "DiagnosticReport.ndjson not found — builder may not be registered"
         panel_drs = []
         for dr_file in dr_files:
             for ln in dr_file.read_text().splitlines():
@@ -119,12 +127,8 @@ def test_full_pipeline_diagnostic_report_basedon():
             pytest.skip("No lab-panel DiagnosticReports emitted for p=5 cohort — skip")
 
         for dr in panel_drs:
-            assert "basedOn" in dr, (
-                f"DiagnosticReport/{dr.get('id')} missing basedOn"
-            )
-            assert len(dr["basedOn"]) >= 1, (
-                f"DiagnosticReport/{dr.get('id')} has empty basedOn list"
-            )
+            assert "basedOn" in dr, f"DiagnosticReport/{dr.get('id')} missing basedOn"
+            assert len(dr["basedOn"]) >= 1, f"DiagnosticReport/{dr.get('id')} has empty basedOn list"
             for ref_entry in dr["basedOn"]:
                 ref = ref_entry["reference"]
                 assert ref.startswith("ServiceRequest/"), (
@@ -177,17 +181,10 @@ def test_run_beta_emits_service_request_jp_with_ja_display():
                 continue
             sr = json.loads(line)
             snomed = next(
-                (
-                    c
-                    for entry in sr["category"]
-                    for c in entry["coding"]
-                    if c["code"] == "108252007"
-                ),
+                (c for entry in sr["category"] for c in entry["coding"] if c["code"] == "108252007"),
                 None,
             )
             if snomed is None:
                 continue  # not a lab SR (imaging / other) — skip
-            assert snomed["display"] == "臨床検査", (
-                f"Expected '臨床検査', got {snomed['display']!r}"
-            )
+            assert snomed["display"] == "臨床検査", f"Expected '臨床検査', got {snomed['display']!r}"
             break  # one sample is sufficient

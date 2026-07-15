@@ -12,14 +12,14 @@ from clinosim.eval.engine import EvalCheck, Outcome, Severity
 # certainly a bug — not a real edge case. All in the units clinosim emits.
 _LAB_BOUNDS = {
     # LOINC → (min, max, unit hint)
-    "6690-2":  (0.0, 500.0, "WBC 10^9/L"),                # WBC
-    "718-7":   (0.0, 25.0, "Hb g/dL"),                    # Hemoglobin
-    "2160-0":  (0.0, 30.0, "Creatinine mg/dL"),           # Serum creatinine
-    "2345-7":  (0.0, 1500.0, "Glucose mg/dL"),            # Serum glucose
-    "2823-3":  (0.0, 10.0, "Potassium mEq/L"),            # Serum potassium
-    "2951-2":  (0.0, 200.0, "Sodium mEq/L"),              # Serum sodium
-    "1975-2":  (0.0, 50.0, "Total bilirubin mg/dL"),      # Total bili
-    "6301-6":  (0.5, 20.0, "PT-INR"),                     # PT-INR
+    "6690-2": (0.0, 500.0, "WBC 10^9/L"),  # WBC
+    "718-7": (0.0, 25.0, "Hb g/dL"),  # Hemoglobin
+    "2160-0": (0.0, 30.0, "Creatinine mg/dL"),  # Serum creatinine
+    "2345-7": (0.0, 1500.0, "Glucose mg/dL"),  # Serum glucose
+    "2823-3": (0.0, 10.0, "Potassium mEq/L"),  # Serum potassium
+    "2951-2": (0.0, 200.0, "Sodium mEq/L"),  # Serum sodium
+    "1975-2": (0.0, 50.0, "Total bilirubin mg/dL"),  # Total bili
+    "6301-6": (0.5, 20.0, "PT-INR"),  # PT-INR
 }
 
 
@@ -39,10 +39,10 @@ _LAB_BOUNDS = {
 @dataclass(frozen=True)
 class _CondLabPairing:
     name: str
-    icd_prefixes: tuple[str, ...]      # matches Condition.code.coding[].code.startswith(any of these)
-    loinc: str                         # target lab's LOINC code
+    icd_prefixes: tuple[str, ...]  # matches Condition.code.coding[].code.startswith(any of these)
+    loinc: str  # target lab's LOINC code
     expected_band: tuple[float, float]  # inclusive [low, high]; violation = outside
-    direction: str                     # "high" (expect above low), "low" (expect below high), "band" (expect between)
+    direction: str  # "high" (expect above low), "low" (expect below high), "band" (expect between)
     rationale: str
 
 
@@ -57,15 +57,15 @@ _CONDITION_LAB_PAIRINGS: tuple[_CondLabPairing, ...] = (
     _CondLabPairing(
         name="sepsis_lactate",
         icd_prefixes=("A41",),
-        loinc="2524-7",         # Serum lactate (there are multiple LOINCs; this is the venous one clinosim emits)
+        loinc="2524-7",  # Serum lactate (there are multiple LOINCs; this is the venous one clinosim emits)
         expected_band=(2.0, 100.0),
         direction="high",
-        rationale="Surviving Sepsis 2021: lactate > 2 mmol/L is a defining feature of sepsis with tissue hypoperfusion.",
+        rationale="Surviving Sepsis 2021: lactate > 2 mmol/L is a defining feature of sepsis with tissue hypoperfusion.",  # noqa: E501
     ),
     _CondLabPairing(
         name="dka_hco3",
         icd_prefixes=("E10.10", "E10.11", "E11.10", "E11.11"),
-        loinc="1963-8",         # HCO3 serum
+        loinc="1963-8",  # HCO3 serum
         expected_band=(0.0, 18.0),
         direction="low",
         rationale="ADA severity criteria: HCO3 < 18 mEq/L on presentation defines mild-to-severe DKA.",
@@ -73,7 +73,7 @@ _CONDITION_LAB_PAIRINGS: tuple[_CondLabPairing, ...] = (
     _CondLabPairing(
         name="acute_mi_troponin",
         icd_prefixes=("I21", "I22"),
-        loinc="10839-9",        # Troponin I
+        loinc="10839-9",  # Troponin I
         expected_band=(0.04, 100.0),
         direction="high",
         rationale="Universal Definition of MI: Troponin I above 99th-percentile URL (0.04 ng/mL for most assays).",
@@ -81,15 +81,15 @@ _CONDITION_LAB_PAIRINGS: tuple[_CondLabPairing, ...] = (
     _CondLabPairing(
         name="ckd_stage_creatinine",
         icd_prefixes=("N18.3", "N18.4", "N18.5"),
-        loinc="2160-0",         # Serum creatinine
+        loinc="2160-0",  # Serum creatinine
         expected_band=(1.3, 20.0),
         direction="high",
-        rationale="KDIGO 2012: CKD stage 3+ corresponds to eGFR ≤ 60 mL/min/1.73m², which typically implies Cr > 1.3 mg/dL in most adult body sizes.",
+        rationale="KDIGO 2012: CKD stage 3+ corresponds to eGFR ≤ 60 mL/min/1.73m², which typically implies Cr > 1.3 mg/dL in most adult body sizes.",  # noqa: E501
     ),
     _CondLabPairing(
         name="t2dm_hba1c",
         icd_prefixes=("E11.9",),
-        loinc="4548-4",         # HbA1c
+        loinc="4548-4",  # HbA1c
         expected_band=(6.5, 20.0),
         direction="high",
         rationale="ADA: HbA1c ≥ 6.5% is diagnostic threshold for type-2 diabetes.",
@@ -97,23 +97,23 @@ _CONDITION_LAB_PAIRINGS: tuple[_CondLabPairing, ...] = (
     _CondLabPairing(
         name="bacterial_pneumonia_wbc",
         icd_prefixes=("J13", "J14", "J15"),
-        loinc="6690-2",         # WBC
+        loinc="6690-2",  # WBC
         expected_band=(11.0, 500.0),
         direction="high",
-        rationale="Infection response: WBC > 11 × 10^9/L is one of the SIRS criteria and typical of bacterial pneumonia.",
+        rationale="Infection response: WBC > 11 × 10^9/L is one of the SIRS criteria and typical of bacterial pneumonia.",  # noqa: E501
     ),
     _CondLabPairing(
         name="anemia_hgb",
         icd_prefixes=("D50", "D51", "D52", "D53", "D62", "D63", "D64"),
-        loinc="718-7",          # Hb
+        loinc="718-7",  # Hb
         expected_band=(0.0, 12.0),
         direction="low",
-        rationale="WHO anemia cutoffs: Hgb < 12 g/dL (non-pregnant adult female) / < 13 g/dL (male). Using the more permissive cutoff to avoid false positives on borderline male cases.",
+        rationale="WHO anemia cutoffs: Hgb < 12 g/dL (non-pregnant adult female) / < 13 g/dL (male). Using the more permissive cutoff to avoid false positives on borderline male cases.",  # noqa: E501
     ),
     _CondLabPairing(
         name="chf_bnp",
         icd_prefixes=("I50",),
-        loinc="30934-4",        # BNP serum
+        loinc="30934-4",  # BNP serum
         expected_band=(100.0, 5000.0),
         direction="high",
         rationale="Framingham / ACC-AHA heart failure criteria: BNP > 100 pg/mL supports acute HF diagnosis.",
@@ -147,12 +147,13 @@ def run(cohort: Cohort, country: str) -> list[EvalCheck]:
         _check_medication_date_sanity(cohort, country),
         _check_encounter_temporal_ordering(cohort, country),
         _check_condition_encounter_link(cohort, country),
-        _check_condition_lab_coherence(cohort, country),        # P1-9
+        _check_condition_lab_coherence(cohort, country),  # P1-9
         _check_medication_lab_coherence_warfarin(cohort, country),  # P1-9
     ]
 
 
 # --------------------------------------------------------------------------- #
+
 
 def _check_lab_values_physiological_range(cohort: Cohort, country: str) -> EvalCheck:
     """Lab values must fall inside gross physiological bounds. Any WBC
@@ -332,11 +333,14 @@ def _check_condition_encounter_link(cohort: Cohort, country: str) -> EvalCheck:
 # --------------------------------------------------------------------------- #
 # helpers
 
+
 def _read(cohort: Cohort, country: str, resource_type: str):
     import json
+
     path = cohort.root / country / "fhir_r4" / f"{resource_type}.ndjson"
     if not path.exists():
         return iter(())
+
     def _gen():
         with path.open() as f:
             for line in f:
@@ -347,6 +351,7 @@ def _read(cohort: Cohort, country: str, resource_type: str):
                     yield json.loads(line)
                 except json.JSONDecodeError:
                     continue
+
     return _gen()
 
 
@@ -367,9 +372,7 @@ def _patient_ages(cohort: Cohort, country: str) -> dict[str, int]:
             continue
         try:
             b = date.fromisoformat(birth[:10])
-            ages[pid] = today.year - b.year - int(
-                (today.month, today.day) < (b.month, b.day)
-            )
+            ages[pid] = today.year - b.year - int((today.month, today.day) < (b.month, b.day))
         except ValueError:
             continue
     return ages
@@ -425,7 +428,7 @@ def _check_condition_lab_coherence(cohort: Cohort, country: str) -> EvalCheck:
             obs_list = obs_by_patient_loinc.get((pid, pairing.loinc), [])
             related = _within_window(obs_list, onset, _LAB_WINDOW_DAYS)
             if not related:
-                continue                       # no eligible lab — skip (not a violation)
+                continue  # no eligible lab — skip (not a violation)
             eligible += 1
             if not any(_value_in_band(v, pairing.expected_band, pairing.direction) for _, v in related):
                 violations += 1
@@ -441,7 +444,8 @@ def _check_condition_lab_coherence(cohort: Cohort, country: str) -> EvalCheck:
     if total_eligible == 0:
         return EvalCheck(
             name="condition_lab_coherence",
-            outcome=Outcome.NA, severity=Severity.MAJOR,
+            outcome=Outcome.NA,
+            severity=Severity.MAJOR,
             message="No eligible Condition + lab pairs found (small cohort or no matching diagnoses).",
             detail={"per_pairing": per_pairing},
         )
@@ -449,7 +453,8 @@ def _check_condition_lab_coherence(cohort: Cohort, country: str) -> EvalCheck:
     outcome = _outcome_from_rate(overall_rate)
     return EvalCheck(
         name="condition_lab_coherence",
-        outcome=outcome, severity=Severity.MAJOR,
+        outcome=outcome,
+        severity=Severity.MAJOR,
         message=(
             f"{total_violations}/{total_eligible} condition-lab pairs violate the expected clinical band "
             f"({overall_rate:.1%} overall; PASS ≤ {_COHERENCE_PASS_MAX:.0%}, WARN ≤ {_COHERENCE_WARN_MAX:.0%})"
@@ -471,10 +476,11 @@ def _check_medication_lab_coherence_warfarin(cohort: Cohort, country: str) -> Ev
     for row in _read(cohort, country, "MedicationRequest"):
         codings = ((row.get("medicationCodeableConcept") or {}).get("coding")) or []
         is_warfarin = any(
-            (c.get("system") == "http://www.nlm.nih.gov/research/umls/rxnorm"
-             and c.get("code") == _WARFARIN_RXNORM)
-            or (c.get("system", "").startswith("urn:oid:1.2.392.100495.20.2.74")
-                and (c.get("code") or "").startswith(_WARFARIN_YJ_PREFIX))
+            (c.get("system") == "http://www.nlm.nih.gov/research/umls/rxnorm" and c.get("code") == _WARFARIN_RXNORM)
+            or (
+                c.get("system", "").startswith("urn:oid:1.2.392.100495.20.2.74")
+                and (c.get("code") or "").startswith(_WARFARIN_YJ_PREFIX)
+            )
             for c in codings
         )
         if not is_warfarin:
@@ -492,7 +498,8 @@ def _check_medication_lab_coherence_warfarin(cohort: Cohort, country: str) -> Ev
     if not warfarin_start_by_patient:
         return EvalCheck(
             name="medication_lab_coherence_warfarin",
-            outcome=Outcome.NA, severity=Severity.MAJOR,
+            outcome=Outcome.NA,
+            severity=Severity.MAJOR,
             message="No warfarin MedicationRequests found in the cohort.",
         )
 
@@ -522,7 +529,8 @@ def _check_medication_lab_coherence_warfarin(cohort: Cohort, country: str) -> Ev
     if eligible == 0:
         return EvalCheck(
             name="medication_lab_coherence_warfarin",
-            outcome=Outcome.NA, severity=Severity.MAJOR,
+            outcome=Outcome.NA,
+            severity=Severity.MAJOR,
             message=(
                 f"{len(warfarin_start_by_patient)} warfarin patient(s) found but no eligible PT-INR observations."
             ),
@@ -531,7 +539,8 @@ def _check_medication_lab_coherence_warfarin(cohort: Cohort, country: str) -> Ev
     outcome = _outcome_from_rate(rate)
     return EvalCheck(
         name="medication_lab_coherence_warfarin",
-        outcome=outcome, severity=Severity.MAJOR,
+        outcome=outcome,
+        severity=Severity.MAJOR,
         message=(
             f"{violations}/{eligible} PT-INR readings on warfarin patients "
             f"outside the therapeutic band {_WARFARIN_THERAPEUTIC_BAND[0]}-{_WARFARIN_THERAPEUTIC_BAND[1]} "
@@ -549,6 +558,7 @@ def _check_medication_lab_coherence_warfarin(cohort: Cohort, country: str) -> Ev
 
 # --------------------------------------------------------------------------- #
 # helpers used by the P1-9 checks
+
 
 def _first_loinc(row: dict) -> str | None:
     for c in (row.get("code") or {}).get("coding") or []:

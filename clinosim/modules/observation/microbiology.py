@@ -50,24 +50,17 @@ def _validate_microbiology(data: dict[str, Any]) -> None:
     # Check antibiotic LOINC values are non-empty strings (#7)
     for abx_key, loinc in antibiotics.items():
         if not isinstance(loinc, str) or not loinc:
-            raise ValueError(
-                f"microbiology.yaml: antibiotic {abx_key!r} has invalid LOINC "
-                f"value {loinc!r}"
-            )
+            raise ValueError(f"microbiology.yaml: antibiotic {abx_key!r} has invalid LOINC value {loinc!r}")
 
     # Check specimen.snomed + test_loinc are non-empty (#5 + #6)
     for spec_id, spec in specimens.items():
         if not isinstance(spec, dict):
             continue
         if not isinstance(spec.get("snomed"), str) or not spec["snomed"]:
-            raise ValueError(
-                f"microbiology.yaml: specimen {spec_id!r} has invalid SNOMED "
-                f"{spec.get('snomed')!r}"
-            )
+            raise ValueError(f"microbiology.yaml: specimen {spec_id!r} has invalid SNOMED {spec.get('snomed')!r}")
         if not isinstance(spec.get("test_loinc"), str) or not spec["test_loinc"]:
             raise ValueError(
-                f"microbiology.yaml: specimen {spec_id!r} has invalid test_loinc "
-                f"{spec.get('test_loinc')!r}"
+                f"microbiology.yaml: specimen {spec_id!r} has invalid test_loinc {spec.get('test_loinc')!r}"
             )
 
     for organism_id, organism in organisms.items():
@@ -75,8 +68,7 @@ def _validate_microbiology(data: dict[str, Any]) -> None:
         if isinstance(organism, dict):
             if not isinstance(organism.get("snomed"), str) or not organism["snomed"]:
                 raise ValueError(
-                    f"microbiology.yaml: organism {organism_id!r} has invalid "
-                    f"SNOMED {organism.get('snomed')!r}"
+                    f"microbiology.yaml: organism {organism_id!r} has invalid SNOMED {organism.get('snomed')!r}"
                 )
         # Check organism.antibiogram keys → antibiotics (#1)
         antibiogram = (organism or {}).get("antibiogram") or {}
@@ -187,11 +179,7 @@ def generate_microbiology(
         spec_key = str(culture.get("specimen", ""))
         spec = specimens.get(spec_key, {})
         grows = bool(rng.random() < float(culture.get("growth_prob", 0.0)))
-        reported = (
-            collected_datetime + timedelta(days=int(rng.integers(2, 4)))
-            if collected_datetime
-            else None
-        )
+        reported = collected_datetime + timedelta(days=int(rng.integers(2, 4))) if collected_datetime else None
         result = MicrobiologyResult(
             encounter_id=encounter_id,
             specimen=spec_key,
@@ -216,8 +204,6 @@ def generate_microbiology(
                     )
                 probs = normalize_probabilities([float(x) for x in sir], fallback="raise")
                 interp = _SIR[int(rng.choice(len(_SIR), p=probs))]
-                result.susceptibilities.append(
-                    SusceptibilityResult(antibiotic_loinc=str(loinc), interpretation=interp)
-                )
+                result.susceptibilities.append(SusceptibilityResult(antibiotic_loinc=str(loinc), interpretation=interp))
         results.append(result)
     return results

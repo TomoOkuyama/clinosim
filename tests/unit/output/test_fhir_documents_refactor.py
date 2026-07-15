@@ -77,6 +77,7 @@ def _sample_doc_dict(format_type="free_text") -> dict:
 
 # --- test_bb_document_references_emits_for_free_text_docs ---
 
+
 def test_bb_document_references_emits_for_free_text_docs():
     """Fixture with a ClinicalDocument format_type='free_text' → 1 DocumentReference emitted."""
     ctx = _make_ctx([_sample_doc_dataclass()])
@@ -135,6 +136,7 @@ def test_bb_document_references_empty_input_returns_empty_list():
 
 
 # --- additional edge cases ---
+
 
 def test_bb_document_references_skips_empty_text():
     """ClinicalDocument with text='' → not emitted (FHIR R4 requires attachment content)."""

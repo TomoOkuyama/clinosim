@@ -48,7 +48,10 @@ class TestFacilityDepartmentDisplay:
     def _facility_dept_displays(self, country: str) -> dict[str, str]:
         config = {
             "available_departments": [
-                "internal_medicine", "cardiology", "orthopedics", "primary_care",
+                "internal_medicine",
+                "cardiology",
+                "orthopedics",
+                "primary_care",
             ],
             "wards": {},
             "resource_capacity": {"inpatient_beds": 50},

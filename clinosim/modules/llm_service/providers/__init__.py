@@ -43,8 +43,5 @@ def build_provider(provider_name: str, provider_config: dict[str, Any] | None) -
         build_provider("bedrock", {"region": "us-east-1", "model_id": "..."})
     """
     if provider_name not in _REGISTRY:
-        raise ValueError(
-            f"Unknown LLM provider: {provider_name!r}. "
-            f"Registered: {sorted(_REGISTRY.keys())}"
-        )
+        raise ValueError(f"Unknown LLM provider: {provider_name!r}. Registered: {sorted(_REGISTRY.keys())}")
     return _REGISTRY[provider_name](provider_config or {})

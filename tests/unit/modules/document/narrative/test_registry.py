@@ -345,13 +345,13 @@ def test_load_raises_on_empty_countries_supported() -> None:
 
 # === α-min-2 tests ===
 
+
 def test_load_specs_returns_14_total() -> None:
     """14 (3 α-min-1 + 6 α-min-2 + 3 chain-2 + PR2b referral + PR3 checkup) specs."""
     load_document_type_specs.cache_clear()
     specs = load_document_type_specs()
     assert len(specs) == 14, (
-        f"Expected 14 specs (3 α-min-1 + 6 α-min-2 + 3 chain-2 + referral + checkup), "
-        f"got {len(specs)}"
+        f"Expected 14 specs (3 α-min-1 + 6 α-min-2 + 3 chain-2 + referral + checkup), got {len(specs)}"
     )
 
 
@@ -522,9 +522,16 @@ def test_admission_care_plan_spec_metadata() -> None:
     assert acp.generation_frequency == "admission_once"
     assert acp.stage2_strategy == "template_only"
     assert set(acp.composition_sections) == {
-        "ward_and_room", "other_staff", "diagnosis", "symptoms",
-        "treatment_plan", "test_schedule", "surgery_schedule",
-        "estimated_los", "special_nutrition_management", "other_plans",
+        "ward_and_room",
+        "other_staff",
+        "diagnosis",
+        "symptoms",
+        "treatment_plan",
+        "test_schedule",
+        "surgery_schedule",
+        "estimated_los",
+        "special_nutrition_management",
+        "other_plans",
     }
 
 
@@ -573,10 +580,18 @@ def test_nutrition_care_plan_spec_metadata() -> None:
     assert ncp.generation_frequency == "admission_once_los_gt_7"
     assert ncp.stage2_strategy == "template_only"
     assert set(ncp.composition_sections) == {
-        "ward_and_physician", "dietitian", "nutrition_risk",
-        "nutrition_assessment", "nutrition_goals", "nutrition_supply",
-        "dysphagia_diet", "dietary_content", "nutrition_counseling",
-        "other_issues", "reassessment_timing", "discharge_evaluation",
+        "ward_and_physician",
+        "dietitian",
+        "nutrition_risk",
+        "nutrition_assessment",
+        "nutrition_goals",
+        "nutrition_supply",
+        "dysphagia_diet",
+        "dietary_content",
+        "nutrition_counseling",
+        "other_issues",
+        "reassessment_timing",
+        "discharge_evaluation",
     }
 
 

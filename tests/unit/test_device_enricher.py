@@ -1,4 +1,5 @@
 """Unit tests for clinosim.modules.device.enricher (PR-A)."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -18,6 +19,7 @@ pytestmark = pytest.mark.unit
 @dataclass
 class _Ctx:
     """Minimal EnricherContext stand-in for unit tests."""
+
     config: Any = None
     master_seed: int = 42
     population: Any = None

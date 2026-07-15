@@ -36,17 +36,24 @@ def _base_record(microbiology: list[dict]) -> dict:
 def test_jp_culture_and_susceptibility_use_jlac10_columns(tmp_path):
     cif = str(tmp_path / "cif")
     out = str(tmp_path / "out")
-    _write_cif(cif, _base_record([{
-        "encounter_id": "E1",
-        "specimen": "blood",
-        "specimen_snomed": "119297000",
-        "test_loinc": "600-7",
-        "growth": True,
-        "organism_snomed": "3092008",
-        "quantitation": "",
-        "susceptibilities": [{"antibiotic_loinc": "18862-3", "interpretation": "S"}],
-        "hai_event_id": "",
-    }]))
+    _write_cif(
+        cif,
+        _base_record(
+            [
+                {
+                    "encounter_id": "E1",
+                    "specimen": "blood",
+                    "specimen_snomed": "119297000",
+                    "test_loinc": "600-7",
+                    "growth": True,
+                    "organism_snomed": "3092008",
+                    "quantitation": "",
+                    "susceptibilities": [{"antibiotic_loinc": "18862-3", "interpretation": "S"}],
+                    "hai_event_id": "",
+                }
+            ]
+        ),
+    )
     convert_cif_to_csv(cif, out, country="JP")
     path = os.path.join(out, "microbiology.csv")
     assert os.path.exists(path)
@@ -64,17 +71,24 @@ def test_jp_culture_and_susceptibility_use_jlac10_columns(tmp_path):
 def test_us_culture_and_susceptibility_use_loinc_columns(tmp_path):
     cif = str(tmp_path / "cif")
     out = str(tmp_path / "out")
-    _write_cif(cif, _base_record([{
-        "encounter_id": "E1",
-        "specimen": "blood",
-        "specimen_snomed": "119297000",
-        "test_loinc": "600-7",
-        "growth": True,
-        "organism_snomed": "3092008",
-        "quantitation": "",
-        "susceptibilities": [{"antibiotic_loinc": "18862-3", "interpretation": "S"}],
-        "hai_event_id": "",
-    }]))
+    _write_cif(
+        cif,
+        _base_record(
+            [
+                {
+                    "encounter_id": "E1",
+                    "specimen": "blood",
+                    "specimen_snomed": "119297000",
+                    "test_loinc": "600-7",
+                    "growth": True,
+                    "organism_snomed": "3092008",
+                    "quantitation": "",
+                    "susceptibilities": [{"antibiotic_loinc": "18862-3", "interpretation": "S"}],
+                    "hai_event_id": "",
+                }
+            ]
+        ),
+    )
     convert_cif_to_csv(cif, out, country="US")
     path = os.path.join(out, "microbiology.csv")
     rows = list(csv.DictReader(open(path)))
@@ -88,17 +102,24 @@ def test_us_culture_and_susceptibility_use_loinc_columns(tmp_path):
 def test_jp_no_growth_culture_has_no_susceptibility_row_but_correct_test_code(tmp_path):
     cif = str(tmp_path / "cif")
     out = str(tmp_path / "out")
-    _write_cif(cif, _base_record([{
-        "encounter_id": "E1",
-        "specimen": "urine",
-        "specimen_snomed": "122575003",
-        "test_loinc": "630-4",
-        "growth": False,
-        "organism_snomed": "",
-        "quantitation": "",
-        "susceptibilities": [],
-        "hai_event_id": "",
-    }]))
+    _write_cif(
+        cif,
+        _base_record(
+            [
+                {
+                    "encounter_id": "E1",
+                    "specimen": "urine",
+                    "specimen_snomed": "122575003",
+                    "test_loinc": "630-4",
+                    "growth": False,
+                    "organism_snomed": "",
+                    "quantitation": "",
+                    "susceptibilities": [],
+                    "hai_event_id": "",
+                }
+            ]
+        ),
+    )
     convert_cif_to_csv(cif, out, country="JP")
     path = os.path.join(out, "microbiology.csv")
     rows = list(csv.DictReader(open(path)))

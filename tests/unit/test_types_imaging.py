@@ -29,12 +29,19 @@ def test_radiology_report_defaults_carry_empty_findings():
 
 
 def test_imaging_study_record_carries_series_and_report():
-    series = [ImagingSeries(series_uid="2.25.1", series_number=1,
-                            modality_code="CR", body_site_snomed="51185008",
-                            description="PA view", instance_count=1)]
-    report = RadiologyReport(report_id="imgrpt-enc1-1", status="final",
-                             findings_text="Lungs clear.",
-                             impression_text="No acute findings.")
+    series = [
+        ImagingSeries(
+            series_uid="2.25.1",
+            series_number=1,
+            modality_code="CR",
+            body_site_snomed="51185008",
+            description="PA view",
+            instance_count=1,
+        )
+    ]
+    report = RadiologyReport(
+        report_id="imgrpt-enc1-1", status="final", findings_text="Lungs clear.", impression_text="No acute findings."
+    )
     s = ImagingStudyRecord(
         study_id="imgst-enc1-1",
         study_instance_uid="2.25.42",
@@ -58,6 +65,7 @@ def test_imaging_study_record_carries_series_and_report():
 def test_order_imaging_fields_default_no_op():
     """Order 既存 dataclass に imaging_* field 追加 — 既存 disease で no-op."""
     from clinosim.types.encounter import Order, OrderType
+
     o = Order(order_id="ord1", order_type=OrderType.LAB)
     assert o.imaging_modality == ""
     assert o.imaging_body_site_code == ""
@@ -66,9 +74,12 @@ def test_order_imaging_fields_default_no_op():
 
 def test_order_imaging_fields_populated_for_imaging_order():
     from clinosim.types.encounter import Order, OrderType
+
     o = Order(
-        order_id="ord1", order_type=OrderType.IMAGING,
-        imaging_modality="CR", imaging_body_site_code="51185008",
+        order_id="ord1",
+        order_type=OrderType.IMAGING,
+        imaging_modality="CR",
+        imaging_body_site_code="51185008",
         imaging_views=["PA", "Lateral"],
     )
     assert o.imaging_modality == "CR"

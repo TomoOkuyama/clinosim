@@ -45,9 +45,7 @@ from clinosim.types.document import DocumentType, FormatType, NarrativeContext, 
 logger = logging.getLogger(__name__)
 
 
-def _pick_localized(
-    tmpl: Any, key_base: str, lang: str, ctx: NarrativeContext | None = None
-) -> str:
+def _pick_localized(tmpl: Any, key_base: str, lang: str, ctx: NarrativeContext | None = None) -> str:
     """AD-65 Bug A fix: locale-aware field access.
 
     Reads `<key_base>_<lang>` from tmpl (attribute or dict access), returning
@@ -106,9 +104,7 @@ def _format_vital_value(placeholder: str, value: Any) -> str:
     return str(int(round(float(value))))
 
 
-def _resolve_vital_placeholders(
-    ctx: NarrativeContext, wanted: set[str]
-) -> dict[str, str]:
+def _resolve_vital_placeholders(ctx: NarrativeContext, wanted: set[str]) -> dict[str, str]:
     """T4: resolve vitals placeholders from ctx.vitals for the stub's day.
 
     Readings are ranked by day distance to (admission date + ctx.day_index),
@@ -133,11 +129,7 @@ def _resolve_vital_placeholders(
                 admission_dt = datetime.fromisoformat(str(raw))
             except ValueError:
                 admission_dt = None
-    target_date = (
-        admission_dt.date() + timedelta(days=ctx.day_index)
-        if admission_dt is not None
-        else None
-    )
+    target_date = admission_dt.date() + timedelta(days=ctx.day_index) if admission_dt is not None else None
 
     def _day_distance(vital: Any) -> int:
         if target_date is None:
@@ -195,20 +187,14 @@ def _fill_template_placeholders(text: str, ctx: NarrativeContext, lang: str) -> 
     is_ja = lang == "ja"
     generic = _GENERIC_FALLBACK_JA if is_ja else _GENERIC_FALLBACK_EN
     try:
-        fields = {
-            fname
-            for _, fname, _, _ in string.Formatter().parse(text)
-            if fname is not None
-        }
+        fields = {fname for _, fname, _, _ in string.Formatter().parse(text) if fname is not None}
     except ValueError:
         # Malformed braces (e.g. literal "{" in clinical text) — emit as-is
         # rather than raise; never fail narrative generation on template data.
         return text
     if not fields:
         return text
-    vital_values = _resolve_vital_placeholders(
-        ctx, fields & _VITAL_PLACEHOLDER_FIELDS.keys()
-    )
+    vital_values = _resolve_vital_placeholders(ctx, fields & _VITAL_PLACEHOLDER_FIELDS.keys())
     if not fields <= (_KNOWN_PLACEHOLDERS | vital_values.keys()):
         return generic
     cc = _o(ctx.encounter_protocol, "chief_complaint", {}) if ctx.encounter_protocol else {}
@@ -258,9 +244,7 @@ _ACP_SURGERY_NONE_EN = "Surgery: none planned"
 _ACP_NUTRITION_NO_JA = "特別な栄養管理の必要性：無"
 _ACP_NUTRITION_NO_EN = "Special nutritional management required: No"
 _ACP_OTHER_PLANS_JA = "その他：看護計画・リハビリテーション等の計画については看護記録を参照。"
-_ACP_OTHER_PLANS_EN = (
-    "Other: see nursing documentation for the nursing care plan and rehabilitation plan."
-)
+_ACP_OTHER_PLANS_EN = "Other: see nursing documentation for the nursing care plan and rehabilitation plan."
 
 # chain 2: NUTRITION_CARE_PLAN fallback phrases
 _NCP_DIETITIAN_FALLBACK_JA = "担当なし"
@@ -278,13 +262,9 @@ _NCP_COUNSELING_FALLBACK_EN = "Nutrition counseling: to be provided as needed"
 _NCP_OTHER_ISSUES_FALLBACK_JA = "その他栄養管理上の課題：特記事項なし"
 _NCP_OTHER_ISSUES_FALLBACK_EN = "Other nutrition management issues: none noted"
 _NCP_REASSESSMENT_FALLBACK_JA = "栄養状態の再評価：入院後1週間を目安に実施"
-_NCP_REASSESSMENT_FALLBACK_EN = (
-    "Nutrition status reassessment: planned approximately 1 week after admission"
-)
+_NCP_REASSESSMENT_FALLBACK_EN = "Nutrition status reassessment: planned approximately 1 week after admission"
 _NCP_DISCHARGE_EVAL_FALLBACK_JA = "退院時及び終了時の総合的評価：退院時に評価予定"
-_NCP_DISCHARGE_EVAL_FALLBACK_EN = (
-    "Comprehensive evaluation at discharge: pending, to be assessed at discharge"
-)
+_NCP_DISCHARGE_EVAL_FALLBACK_EN = "Comprehensive evaluation at discharge: pending, to be assessed at discharge"
 
 # chain 2: REHABILITATION_PLAN fallback phrases
 _RP_TEAM_FALLBACK_JA = "リハビリ実施なし"
@@ -297,17 +277,12 @@ _RP_MOVEMENT_FALLBACK_JA = "基本動作：記録なし"
 _RP_MOVEMENT_FALLBACK_EN = "Basic movement: no record"
 _RP_FREQUENCY_FALLBACK_JA = "実施回数：記録なし"
 _RP_FREQUENCY_FALLBACK_EN = "Session frequency: no record"
-_RP_GOALS_FALLBACK_JA = (
-    "本人の希望：現在の身体機能の回復・自宅復帰を希望／"
-    "家族の希望：早期の日常生活動作自立を希望"
-)
+_RP_GOALS_FALLBACK_JA = "本人の希望：現在の身体機能の回復・自宅復帰を希望／家族の希望：早期の日常生活動作自立を希望"
 _RP_GOALS_FALLBACK_EN = (
-    "Patient goal: recovery of function and return home / "
-    "Family goal: early independence in activities of daily living"
+    "Patient goal: recovery of function and return home / Family goal: early independence in activities of daily living"
 )
 _RP_POLICY_FALLBACK_JA = (
-    "リハビリテーション治療方針：疾患特異的リハビリテーションを継続し、"
-    "日常生活動作の自立度向上を図る"
+    "リハビリテーション治療方針：疾患特異的リハビリテーションを継続し、日常生活動作の自立度向上を図る"
 )
 _RP_POLICY_FALLBACK_EN = (
     "Rehabilitation policy: continue disease-specific rehabilitation therapy "
@@ -318,11 +293,15 @@ _RP_EXPLANATION_FALLBACK_EN = "Explanation to patient/family: pending"
 
 _RP_THERAPY_TYPE_JA = {"PT": "理学療法(PT)", "OT": "作業療法(OT)", "ST": "言語聴覚療法(ST)"}
 _RP_THERAPY_TYPE_EN = {
-    "PT": "Physical therapy (PT)", "OT": "Occupational therapy (OT)", "ST": "Speech therapy (ST)",
+    "PT": "Physical therapy (PT)",
+    "OT": "Occupational therapy (OT)",
+    "ST": "Speech therapy (ST)",
 }
 _RP_PROGRESS_JA = {"improved": "改善", "stable": "維持", "unable_to_assess": "評価不能"}
 _RP_PROGRESS_EN = {
-    "improved": "improved", "stable": "stable", "unable_to_assess": "unable to assess",
+    "improved": "improved",
+    "stable": "stable",
+    "unable_to_assess": "unable to assess",
 }
 _RP_PARTICIPATION_JA = {"good": "良好", "fair": "やや不良", "refused": "拒否"}
 _RP_PARTICIPATION_EN = {"good": "good", "fair": "fair", "refused": "refused"}
@@ -461,9 +440,7 @@ class TemplateNarrativeGenerator:
             return self._render_ed_triage_note_text(ctx, spec)
         return self._render_progress_note_text(ctx, spec)
 
-    def _render_progress_note_text(
-        self, ctx: NarrativeContext, spec: DocumentTypeSpec
-    ) -> NarrativeOutput:
+    def _render_progress_note_text(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
         """Build a SOAP-style progress note as plain text (PROGRESS_NOTE)."""
         facts: list[str] = []
         lang = ctx.target_lang
@@ -488,21 +465,21 @@ class TemplateNarrativeGenerator:
         # Add physical exam findings to the objective section
         phys_exam = self._resolve_physical_exam(ctx, ctx.clinical_course_archetype, ctx.day_index)
         if phys_exam:
-            facts.append(
-                f"physical_exam_findings.{ctx.clinical_course_archetype}.day_{ctx.day_index}"
-            )
+            facts.append(f"physical_exam_findings.{ctx.clinical_course_archetype}.day_{ctx.day_index}")
         phys_summary = self._format_physical_exam(phys_exam, ctx.severity, is_ja)
         if phys_summary:
             objective = f"{objective}。{phys_summary}" if is_ja else f"{objective}. {phys_summary}"
 
         # Build SOAP note
         sep = "\n"
-        raw_text = sep.join([
-            f"{soap_labels[0]} {subjective}",
-            f"{soap_labels[1]} {objective}",
-            f"{soap_labels[2]} {assessment}",
-            f"{soap_labels[3]} {plan}",
-        ])
+        raw_text = sep.join(
+            [
+                f"{soap_labels[0]} {subjective}",
+                f"{soap_labels[1]} {objective}",
+                f"{soap_labels[2]} {assessment}",
+                f"{soap_labels[3]} {plan}",
+            ]
+        )
 
         # Always add at least ctx reference
         facts.append("ctx.day_index")
@@ -518,9 +495,7 @@ class TemplateNarrativeGenerator:
     # Renderer: COMPOSITION (ADMISSION_HP, DISCHARGE_SUMMARY + α-min-2)
     # ─────────────────────────────────────────────────────────────────
 
-    def _render_composition_sections(
-        self, ctx: NarrativeContext, spec: DocumentTypeSpec
-    ) -> NarrativeOutput:
+    def _render_composition_sections(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
         """Build section dict per spec.composition_sections."""
         facts: list[str] = []
         sections: dict[str, str] = {}
@@ -639,9 +614,7 @@ class TemplateNarrativeGenerator:
     # Renderer: QUESTIONNAIRE_RESPONSE (infrastructure stub)
     # ─────────────────────────────────────────────────────────────────
 
-    def _render_structured_form(
-        self, ctx: NarrativeContext, spec: DocumentTypeSpec
-    ) -> NarrativeOutput:
+    def _render_structured_form(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
         """QUESTIONNAIRE_RESPONSE infrastructure stub for α-min-1.
 
         Returns empty structured dict with metadata indicating stub stage.
@@ -661,9 +634,7 @@ class TemplateNarrativeGenerator:
     # Section builders (COMPOSITION)
     # ─────────────────────────────────────────────────────────────────
 
-    def _build_chief_complaint(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_chief_complaint(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build chief_complaint section.
 
         For ED_NOTE: reads from
@@ -681,9 +652,7 @@ class TemplateNarrativeGenerator:
             if ed_tmpl is not None:
                 text = _pick_localized(ed_tmpl, "chief_complaint", lang, ctx)
                 if text:
-                    facts.append(
-                        f"encounter_protocol.narrative.ed_note_template.chief_complaint_{lang}"
-                    )
+                    facts.append(f"encounter_protocol.narrative.ed_note_template.chief_complaint_{lang}")
                     return text, facts
             return fallback, facts
 
@@ -719,10 +688,7 @@ class TemplateNarrativeGenerator:
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
-        fallback = (
-            f"{ctx.severity}の症状で受診。" if is_ja
-            else f"Patient presented with {ctx.severity} symptoms."
-        )
+        fallback = f"{ctx.severity}の症状で受診。" if is_ja else f"Patient presented with {ctx.severity} symptoms."
 
         # α-min-2: ED_NOTE reads from ed_note_template
         if ctx.document_type == DocumentType.ED_NOTE:
@@ -730,9 +696,7 @@ class TemplateNarrativeGenerator:
             if ed_tmpl is not None:
                 text = _pick_localized(ed_tmpl, "hpi", lang, ctx)
                 if text:
-                    facts.append(
-                        f"encounter_protocol.narrative.ed_note_template.hpi_{lang}"
-                    )
+                    facts.append(f"encounter_protocol.narrative.ed_note_template.hpi_{lang}")
                     return text, facts
             return fallback, facts
 
@@ -776,9 +740,7 @@ class TemplateNarrativeGenerator:
 
         return text, facts
 
-    def _build_past_medical_history(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_past_medical_history(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build past medical history from ctx.patient.chronic_conditions."""
         facts: list[str] = []
         lang = ctx.target_lang
@@ -805,9 +767,7 @@ class TemplateNarrativeGenerator:
             return "; ".join(lines), facts
         return none_text, facts
 
-    def _build_medications_at_home(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_medications_at_home(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build home medications from ctx.patient.current_medications."""
         facts: list[str] = []
         lang = ctx.target_lang
@@ -901,17 +861,13 @@ class TemplateNarrativeGenerator:
         text = "特記家族歴なし" if is_ja else "No significant family history"
         return text, []
 
-    def _build_physical_examination(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_physical_examination(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build physical_examination using multi-step fallback chain."""
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
 
-        phys_exam = self._resolve_physical_exam(
-            ctx, ctx.clinical_course_archetype, ctx.day_index
-        )
+        phys_exam = self._resolve_physical_exam(ctx, ctx.clinical_course_archetype, ctx.day_index)
         if phys_exam:
             fact = f"physical_exam_findings.{ctx.clinical_course_archetype}.day_{ctx.day_index}"
             # physical_exam_findings (disease YAML + reference_data) carries no
@@ -936,17 +892,13 @@ class TemplateNarrativeGenerator:
 
         return text, facts
 
-    def _build_assessment_and_plan(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_assessment_and_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build assessment_and_plan from daily_trajectory day_0 assessment + plan."""
         facts: list[str] = []
         lang = ctx.target_lang
         is_ja = lang == "ja"
 
-        traj, traj_src = self._resolve_daily_trajectory_with_source(
-            ctx, ctx.clinical_course_archetype, 0
-        )
+        traj, traj_src = self._resolve_daily_trajectory_with_source(ctx, ctx.clinical_course_archetype, 0)
         if traj_src:
             # daily_trajectory (disease YAML) has no per-language split —
             # Japanese-sourced text only (same data-authoring gap class as
@@ -958,8 +910,7 @@ class TemplateNarrativeGenerator:
             if not is_ja:
                 traj_src += ":ja_only_fallback"
                 logger.warning(
-                    "daily_trajectory has no English variant; falling back to "
-                    "Japanese source text for archetype=%s",
+                    "daily_trajectory has no English variant; falling back to Japanese source text for archetype=%s",
                     ctx.clinical_course_archetype,
                 )
             facts.append(traj_src)
@@ -976,9 +927,7 @@ class TemplateNarrativeGenerator:
 
         return text, facts
 
-    def _build_admission_summary(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_admission_summary(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build admission_summary for DISCHARGE_SUMMARY."""
         facts: list[str] = []
         lang = ctx.target_lang
@@ -1001,9 +950,7 @@ class TemplateNarrativeGenerator:
     # 各 builder は共通 signature を保持し ctx.target_lang で分岐する。
     # ─────────────────────────────────────────────────────────────────
 
-    def _build_admission_reason(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_admission_reason(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """312 入院理由セクション:入院理由の一言記述。
 
         主入院診断の display を clinosim.codes.lookup で resolve(AD-30)。
@@ -1018,9 +965,7 @@ class TemplateNarrativeGenerator:
         code = ""
         system = ""
         if primary is not None:
-            code = _o(primary, "admission_diagnosis_code", "") or _o(
-                primary, "discharge_diagnosis_code", ""
-            )
+            code = _o(primary, "admission_diagnosis_code", "") or _o(primary, "discharge_diagnosis_code", "")
             system = (
                 _o(primary, "admission_diagnosis_system", "")
                 or _o(primary, "discharge_diagnosis_system", "")
@@ -1042,9 +987,7 @@ class TemplateNarrativeGenerator:
                 text = f"Admitted for {cc_text}."
         return text, facts
 
-    def _build_admission_details(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_admission_details(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """322 入院時詳細セクション:入院日・入院経路(救急経由か)・入棟病棟。"""
         facts: list[str] = []
         is_ja = ctx.target_lang == "ja"
@@ -1079,9 +1022,7 @@ class TemplateNarrativeGenerator:
             text = " ".join(fragments) + "." if fragments else "Admitted for inpatient care."
         return text, facts
 
-    def _build_admission_diagnoses(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_admission_diagnoses(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """342 入院時診断セクション:入院時診断名の番号付きリスト。
 
         _build_discharge_diagnoses と同じ code-lookup pattern を再利用するが
@@ -1099,9 +1040,7 @@ class TemplateNarrativeGenerator:
         facts.append("ctx.diagnoses")
         lines: list[str] = []
         for idx, dx in enumerate(diagnoses, start=1):
-            code = _o(dx, "admission_diagnosis_code", "") or _o(
-                dx, "discharge_diagnosis_code", ""
-            )
+            code = _o(dx, "admission_diagnosis_code", "") or _o(dx, "discharge_diagnosis_code", "")
             if not code:
                 continue
             system = (
@@ -1111,18 +1050,14 @@ class TemplateNarrativeGenerator:
             )
             display = code_lookup(system, code, ctx.target_lang)
             if display and display != code:
-                lines.append(
-                    f"{idx}. {display}（{code}）" if is_ja else f"{idx}. {display} ({code})"
-                )
+                lines.append(f"{idx}. {display}（{code}）" if is_ja else f"{idx}. {display} ({code})")
             else:
                 lines.append(f"{idx}. {code}")
         if not lines:
             return ("特記事項なし。" if is_ja else "No admission diagnoses recorded."), facts
         return "\n".join(lines), facts
 
-    def _build_present_illness(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_present_illness(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """360 現病歴セクション:現病歴の短文記述。
 
         退院時サマリー用は ADMISSION_HP と同じ disease_protocol の HPI
@@ -1135,7 +1070,8 @@ class TemplateNarrativeGenerator:
         # β-JP-1 で LLM narrative 差替時に文体を統一する。
         if not hpi_text:
             hpi_text = (
-                f"{ctx.severity}の症状で受診し入院となった。" if is_ja
+                f"{ctx.severity}の症状で受診し入院となった。"
+                if is_ja
                 else f"Patient presented with {ctx.severity} symptoms leading to admission."
             )
         return hpi_text, facts
@@ -1144,9 +1080,7 @@ class TemplateNarrativeGenerator:
     # P2-13 PR2b:JP-CLINS 診療情報提供書用 section builder 群(JP-only)
     # ─────────────────────────────────────────────────────────────────
 
-    def _build_referring_institution(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_referring_institution(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """920 紹介元情報セクション:紹介元(送信元)医療機関の記載。
 
         clinosim は単一病院を simulate するため、紹介元は常に当院固定。
@@ -1160,9 +1094,7 @@ class TemplateNarrativeGenerator:
             text = "Referring institution: this hospital (acute-care general ward)."
         return text, facts
 
-    def _build_referral_destination(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_referral_destination(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """910 紹介先情報セクション:紹介先医療機関の記載。
 
         clinosim は機関間連携 workflow を simulate しないため、紹介先は
@@ -1177,15 +1109,14 @@ class TemplateNarrativeGenerator:
             text = "Referral destination: unspecified other institution (continued care)."
         return text, facts
 
-    def _build_referral_purpose(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_referral_purpose(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """950 紹介目的セクション:標準セットから決定的に一つ選択。
 
         encounter_id の hash で 4 選択肢から index 決定。cohort 全体で
         分布は stable、encounter 個別ではばらつき保持。
         """
         import hashlib
+
         facts: list[str] = []
         is_ja = ctx.target_lang == "ja"
         enc = ctx.encounter
@@ -1212,9 +1143,7 @@ class TemplateNarrativeGenerator:
             text = f"Referral purpose: {picked}."
         return text, facts
 
-    def _build_diagnoses_and_complaint(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_diagnoses_and_complaint(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """340 傷病名・主訴セクション:傷病名リスト + 主訴の複合セクション。"""
         from clinosim.codes import lookup as code_lookup
 
@@ -1225,9 +1154,7 @@ class TemplateNarrativeGenerator:
         diagnoses = ctx.diagnoses or []
         dx_lines: list[str] = []
         for idx, dx in enumerate(diagnoses, start=1):
-            code = _o(dx, "discharge_diagnosis_code", "") or _o(
-                dx, "admission_diagnosis_code", ""
-            )
+            code = _o(dx, "discharge_diagnosis_code", "") or _o(dx, "admission_diagnosis_code", "")
             if not code:
                 continue
             system = (
@@ -1237,9 +1164,7 @@ class TemplateNarrativeGenerator:
             )
             display = code_lookup(system, code, ctx.target_lang)
             if display and display != code:
-                dx_lines.append(
-                    f"{idx}. {display}（{code}）" if is_ja else f"{idx}. {display} ({code})"
-                )
+                dx_lines.append(f"{idx}. {display}（{code}）" if is_ja else f"{idx}. {display} ({code})")
             else:
                 dx_lines.append(f"{idx}. {code}")
         if dx_lines:
@@ -1259,15 +1184,14 @@ class TemplateNarrativeGenerator:
             text = header + complaint
         return text, facts
 
-    def _build_present_illness_ref(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_present_illness_ref(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """360 現病歴セクション(診療情報提供書用):HPI builder を再利用。"""
         hpi_text, facts = self._build_hpi(ctx)
         is_ja = ctx.target_lang == "ja"
         if not hpi_text:
             hpi_text = (
-                f"{ctx.severity}の症状で受診し入院となった。" if is_ja
+                f"{ctx.severity}の症状で受診し入院となった。"
+                if is_ja
                 else f"Patient presented with {ctx.severity} symptoms."
             )
         return hpi_text, facts
@@ -1277,9 +1201,7 @@ class TemplateNarrativeGenerator:
     # 事業者健診(労安衛法定健診)の 2 必須 section を対象。
     # ─────────────────────────────────────────────────────────────────
 
-    def _build_checkup_lab_results(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_checkup_lab_results(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """01031 事業者健診検査結果セクション:法定健診項目の判定文。
 
         sub-PR-B(session 47):ctx.lab_results から健診 5 項目の実測値を
@@ -1342,9 +1264,7 @@ class TemplateNarrativeGenerator:
             return (f"{v:.0f} mg/dL(基準内)", "A")
 
         bmi_desc, bmi_grade = _judge_bmi(results_by_loinc.get("39156-5"))
-        bp_desc, bp_grade = _judge_bp(
-            results_by_loinc.get("8480-6"), results_by_loinc.get("8462-4")
-        )
+        bp_desc, bp_grade = _judge_bp(results_by_loinc.get("8480-6"), results_by_loinc.get("8462-4"))
         hba1c_desc, hba1c_grade = _judge_hba1c(results_by_loinc.get("4548-4"))
         ldl_desc, ldl_grade = _judge_ldl(results_by_loinc.get("18262-6"))
 
@@ -1376,9 +1296,7 @@ class TemplateNarrativeGenerator:
             )
         return text, facts
 
-    def _build_checkup_questionnaire(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_checkup_questionnaire(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """01032 事業者健診問診結果セクション:PatientProfile 依存の個別問診記録。
 
         sub-PR-B(session 47):ctx.patient から以下を反映:
@@ -1407,25 +1325,19 @@ class TemplateNarrativeGenerator:
             resolved_system = "icd-10" if is_ja else system
             display = code_lookup(resolved_system, code, ctx.target_lang)
             if display and display != code:
-                history_lines.append(
-                    f"- {display}（{code}）" if is_ja else f"- {display} ({code})"
-                )
+                history_lines.append(f"- {display}（{code}）" if is_ja else f"- {display} ({code})")
             else:
                 history_lines.append(f"- {code}")
         if chronic:
             facts.append("ctx.patient.chronic_conditions")
-        history_text = (
-            "\n".join(history_lines) if history_lines
-            else ("特記事項なし" if is_ja else "None noted")
-        )
+        history_text = "\n".join(history_lines) if history_lines else ("特記事項なし" if is_ja else "None noted")
 
         # 服薬(current_medications は drug 名の str list)
         current_meds = _o(patient, "current_medications", []) or []
         if current_meds:
             facts.append("ctx.patient.current_medications")
         med_text = (
-            "、".join(str(m) for m in current_meds) if current_meds
-            else ("常用薬なし" if is_ja else "None taken")
+            "、".join(str(m) for m in current_meds) if current_meds else ("常用薬なし" if is_ja else "None taken")
         )
 
         # 生活習慣(smoking_status / alcohol_use)
@@ -1449,13 +1361,10 @@ class TemplateNarrativeGenerator:
         # 判定:慢性疾患保有時は経過観察を要す
         needs_followup = len(chronic) > 0
         assessment_ja = (
-            "既往に慢性疾患あり、かかりつけ医での継続経過観察を要す。"
-            if needs_followup
-            else "経過観察不要。"
+            "既往に慢性疾患あり、かかりつけ医での継続経過観察を要す。" if needs_followup else "経過観察不要。"
         )
         assessment_en = (
-            "Chronic condition(s) present; continued follow-up with primary "
-            "care recommended."
+            "Chronic condition(s) present; continued follow-up with primary care recommended."
             if needs_followup
             else "No follow-up required."
         )
@@ -1478,9 +1387,7 @@ class TemplateNarrativeGenerator:
             )
         return text, facts
 
-    def _build_hospital_course(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_hospital_course(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build hospital_course — 1-3 sentence summary across all days."""
         facts: list[str] = []
         lang = ctx.target_lang
@@ -1498,9 +1405,7 @@ class TemplateNarrativeGenerator:
 
         return text, facts
 
-    def _build_discharge_diagnoses(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_discharge_diagnoses(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build discharge_diagnoses from ctx.diagnoses.
 
         β-JP-1 chain 1a: ctx.diagnoses is now wired (clinical_diagnosis), so
@@ -1546,9 +1451,7 @@ class TemplateNarrativeGenerator:
         cc_text, _ = self._build_chief_complaint(ctx)
         return cc_text, []
 
-    def _build_discharge_medications(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_discharge_medications(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build discharge_medications from ctx.discharge_medications (rx only).
 
         adv-1 I-1: reads ONLY the normalized discharge_prescription items —
@@ -1581,9 +1484,7 @@ class TemplateNarrativeGenerator:
             return "; ".join(drug_names), facts
         return none_text, facts
 
-    def _build_discharge_instructions(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_discharge_instructions(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build discharge_instructions using disease-specific override + baseline merge."""
         facts: list[str] = []
         lang = ctx.target_lang
@@ -1609,26 +1510,16 @@ class TemplateNarrativeGenerator:
 
         instructions = self._resolve_discharge_instructions(ctx)
         follow_up_entry = instructions.get("follow_up") or {}
-        text = (
-            follow_up_entry.get(lang)
-            or follow_up_entry.get("ja")
-            or follow_up_entry.get("en")
-            or ""
-        )
+        text = follow_up_entry.get(lang) or follow_up_entry.get("ja") or follow_up_entry.get("en") or ""
         if not text:
-            text = (
-                "外来フォローアップ予定" if lang == "ja"
-                else "Follow up with outpatient provider"
-            )
+            text = "外来フォローアップ予定" if lang == "ja" else "Follow up with outpatient provider"
         return text, ["discharge_instructions.follow_up"]
 
     # ─────────────────────────────────────────────────────────────────
     # α-min-2: Free-text renderers (NURSING_SHIFT_NOTE, ED_TRIAGE_NOTE)
     # ─────────────────────────────────────────────────────────────────
 
-    def _render_nursing_shift_note_text(
-        self, ctx: NarrativeContext, spec: DocumentTypeSpec
-    ) -> NarrativeOutput:
+    def _render_nursing_shift_note_text(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
         """Build NURSING_SHIFT_NOTE as free text.
 
         Includes: day/shift info, primary_nurse_id (graceful when absent),
@@ -1674,10 +1565,7 @@ class TemplateNarrativeGenerator:
             status = "患者状態：バイタルサイン安定。観察・ケア継続。"
             observations = "特記事項：特記事項なし。"
         else:
-            title = (
-                f"[Nursing Shift Note - {shift_label} shift]" if shift_label
-                else "[Nursing Shift Note]"
-            )
+            title = f"[Nursing Shift Note - {shift_label} shift]" if shift_label else "[Nursing Shift Note]"
             header = f"{title} Day {day_num} / LOS {los} days"
             status = "Patient status: vital signs stable. Observation and care ongoing."
             observations = "Notes: no significant findings."
@@ -1705,9 +1593,7 @@ class TemplateNarrativeGenerator:
             facts_used=facts,
         )
 
-    def _render_ed_triage_note_text(
-        self, ctx: NarrativeContext, spec: DocumentTypeSpec
-    ) -> NarrativeOutput:
+    def _render_ed_triage_note_text(self, ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
         """Build ED_TRIAGE_NOTE as free text from encounter.triage_data.
 
         Reads TriageData fields (level, level_system, arrival_mode,
@@ -1745,7 +1631,8 @@ class TemplateNarrativeGenerator:
 
         if is_ja:
             level_line = (
-                f"トリアージレベル: {level_system} Level {level}" if level_system and level
+                f"トリアージレベル: {level_system} Level {level}"
+                if level_system and level
                 else "トリアージレベル: 未評価"
             )
             arrival_line = f"来院形態: {arrival_display}" if arrival_display else "来院形態: 不明"
@@ -1753,7 +1640,8 @@ class TemplateNarrativeGenerator:
             raw_text = "\n".join([level_line, arrival_line, cc_line])
         else:
             level_line = (
-                f"Triage level: {level_system} Level {level}" if level_system and level
+                f"Triage level: {level_system} Level {level}"
+                if level_system and level
                 else "Triage level: not assessed"
             )
             arrival_line = f"Arrival mode: {arrival_display}" if arrival_display else "Arrival mode: unknown"
@@ -1915,16 +1803,11 @@ class TemplateNarrativeGenerator:
         """手術内容及び日程 — ctx.procedures filtered to category_code=387713003 (surgical)."""
         facts: list[str] = []
         is_ja = ctx.target_lang == "ja"
-        surgical = [
-            p for p in (ctx.procedures or [])
-            if str(_o(p, "category_code", "") or "") == "387713003"
-        ]
+        surgical = [p for p in (ctx.procedures or []) if str(_o(p, "category_code", "") or "") == "387713003"]
         if not surgical:
             return (_ACP_SURGERY_NONE_JA if is_ja else _ACP_SURGERY_NONE_EN), facts
         facts.append("ctx.procedures")
-        types = [
-            str(_o(p, "procedure_type", "") or "") for p in surgical if _o(p, "procedure_type", "")
-        ]
+        types = [str(_o(p, "procedure_type", "") or "") for p in surgical if _o(p, "procedure_type", "")]
         joined = "、".join(types) if is_ja else ", ".join(types)
         return (f"手術予定：{joined}" if is_ja else f"Planned surgery: {joined}"), facts
 
@@ -1962,9 +1845,7 @@ class TemplateNarrativeGenerator:
             return f"推定入院期間：約{los_days}日間", facts
         return f"Estimated length of stay: approximately {los_days} days", facts
 
-    def _build_acp_special_nutrition_management(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_acp_special_nutrition_management(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """特別な栄養管理の必要性 — MVP: always「無」(no NutritionOrder subsystem
         exists yet; TODO.md tracks the future nutrition subsystem chain)."""
         is_ja = ctx.target_lang == "ja"
@@ -2019,24 +1900,17 @@ class TemplateNarrativeGenerator:
         is_ja = ctx.target_lang == "ja"
         bmi = _o(ctx.patient, "bmi", None)
         if bmi is None:
-            fallback = (
-                "栄養リスク：評価データなし" if is_ja else "Nutrition risk: no assessment data"
-            )
+            fallback = "栄養リスク：評価データなし" if is_ja else "Nutrition risk: no assessment data"
             return fallback, facts
         facts.append("patient.bmi")
         bmi_r = round(float(bmi), 1)
         if bmi_r < 18.5:
-            return (
-                f"低栄養リスク：高（BMI {bmi_r}）" if is_ja
-                else f"Malnutrition risk: high (BMI {bmi_r})"
-            ), facts
+            return (f"低栄養リスク：高（BMI {bmi_r}）" if is_ja else f"Malnutrition risk: high (BMI {bmi_r})"), facts
         if bmi_r > 25:
-            return (
-                f"過栄養傾向（BMI {bmi_r}）" if is_ja
-                else f"Overnutrition tendency (BMI {bmi_r})"
-            ), facts
+            return (f"過栄養傾向（BMI {bmi_r}）" if is_ja else f"Overnutrition tendency (BMI {bmi_r})"), facts
         return (
-            f"低栄養リスク：低（BMI {bmi_r}、リスクなし）" if is_ja
+            f"低栄養リスク：低（BMI {bmi_r}、リスクなし）"
+            if is_ja
             else f"Malnutrition risk: low (BMI {bmi_r}, no risk identified)"
         ), facts
 
@@ -2059,22 +1933,14 @@ class TemplateNarrativeGenerator:
         is_ja = ctx.target_lang == "ja"
         weight = _o(ctx.patient, "weight_kg", None)
         if weight is None:
-            fallback = (
-                "栄養補給量：算出データなし" if is_ja
-                else "Nutrition supply: no data to compute"
-            )
+            fallback = "栄養補給量：算出データなし" if is_ja else "Nutrition supply: no data to compute"
             return fallback, facts
         facts.append("patient.weight_kg")
         energy = round(float(weight) * 27.5)
         protein = round(float(weight) * 1.1, 1)
         if is_ja:
-            return (
-                f"エネルギー：{energy}kcal／日　たんぱく質：{protein}g／日　"
-                f"補給方法：経口"
-            ), facts
-        return (
-            f"Energy: {energy} kcal/day, Protein: {protein} g/day, Route: oral"
-        ), facts
+            return (f"エネルギー：{energy}kcal／日　たんぱく質：{protein}g／日　補給方法：経口"), facts
+        return (f"Energy: {energy} kcal/day, Protein: {protein} g/day, Route: oral"), facts
 
     def _build_ncp_dysphagia_diet(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """嚥下調整食の必要性 — MVP fixed 「なし」."""
@@ -2084,9 +1950,7 @@ class TemplateNarrativeGenerator:
     def _build_ncp_dietary_content(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """食事内容 — MVP fixed fallback."""
         is_ja = ctx.target_lang == "ja"
-        return (
-            _NCP_DIETARY_CONTENT_FALLBACK_JA if is_ja else _NCP_DIETARY_CONTENT_FALLBACK_EN
-        ), []
+        return (_NCP_DIETARY_CONTENT_FALLBACK_JA if is_ja else _NCP_DIETARY_CONTENT_FALLBACK_EN), []
 
     def _build_ncp_nutrition_counseling(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """栄養食事相談に関する事項 — MVP fixed fallback (collapses the 3 MHLW
@@ -2103,18 +1967,14 @@ class TemplateNarrativeGenerator:
     def _build_ncp_reassessment_timing(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """栄養状態の再評価の時期 — MVP fixed fallback."""
         is_ja = ctx.target_lang == "ja"
-        return (
-            _NCP_REASSESSMENT_FALLBACK_JA if is_ja else _NCP_REASSESSMENT_FALLBACK_EN
-        ), []
+        return (_NCP_REASSESSMENT_FALLBACK_JA if is_ja else _NCP_REASSESSMENT_FALLBACK_EN), []
 
     def _build_ncp_discharge_evaluation(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """退院時及び終了時の総合的評価 — genuinely unknowable at plan-creation
         time; this system has no mechanism to revise a Stage-1 stub at a
         later encounter phase for this doc type (design spec §2 row 10)."""
         is_ja = ctx.target_lang == "ja"
-        return (
-            _NCP_DISCHARGE_EVAL_FALLBACK_JA if is_ja else _NCP_DISCHARGE_EVAL_FALLBACK_EN
-        ), []
+        return (_NCP_DISCHARGE_EVAL_FALLBACK_JA if is_ja else _NCP_DISCHARGE_EVAL_FALLBACK_EN), []
 
     # ─────────────────────────────────────────────────────────────────
     # chain 2: REHABILITATION_PLAN sections (LOINC 34823-5)
@@ -2133,10 +1993,9 @@ class TemplateNarrativeGenerator:
         exist (design spec §3e / §4 out-of-scope note)."""
         facts: list[str] = []
         is_ja = ctx.target_lang == "ja"
-        therapy_types = sorted({
-            str(_o(s, "therapy_type", "") or "") for s in (ctx.rehab_sessions or [])
-            if _o(s, "therapy_type", "")
-        })
+        therapy_types = sorted(
+            {str(_o(s, "therapy_type", "") or "") for s in (ctx.rehab_sessions or []) if _o(s, "therapy_type", "")}
+        )
         if not therapy_types:
             return (_RP_TEAM_FALLBACK_JA if is_ja else _RP_TEAM_FALLBACK_EN), facts
         facts.append("ctx.rehab_sessions")
@@ -2161,18 +2020,16 @@ class TemplateNarrativeGenerator:
         participation = str(_o(latest, "patient_participation", "") or "")
         pain = _o(latest, "pain_score", None)
         progress_label = (_RP_PROGRESS_JA if is_ja else _RP_PROGRESS_EN).get(progress, progress)
-        participation_label = (
-            _RP_PARTICIPATION_JA if is_ja else _RP_PARTICIPATION_EN
-        ).get(participation, participation)
+        participation_label = (_RP_PARTICIPATION_JA if is_ja else _RP_PARTICIPATION_EN).get(
+            participation, participation
+        )
         pain_text = f"{pain}/10" if pain is not None else ("評価なし" if is_ja else "not assessed")
         if is_ja:
             return (
-                f"機能的改善度：{progress_label}／リハビリへの参加度：{participation_label}／"
-                f"疼痛スコア：{pain_text}"
+                f"機能的改善度：{progress_label}／リハビリへの参加度：{participation_label}／疼痛スコア：{pain_text}"
             ), facts
         return (
-            f"Functional progress: {progress_label} / Participation: {participation_label} / "
-            f"Pain score: {pain_text}"
+            f"Functional progress: {progress_label} / Participation: {participation_label} / Pain score: {pain_text}"
         ), facts
 
     def _build_rp_basic_movement(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -2238,9 +2095,7 @@ class TemplateNarrativeGenerator:
         los_days, facts = self._estimated_los_days(ctx)
         if is_ja:
             return f"リハビリテーション終了の目安：入院後約{los_days}日", facts
-        return (
-            f"Estimated rehabilitation completion: approximately {los_days} days post-admission"
-        ), facts
+        return (f"Estimated rehabilitation completion: approximately {los_days} days post-admission"), facts
 
     def _build_rp_explanation_consent(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """本人・家族への説明(署名欄) — 固定フォールバック
@@ -2268,9 +2123,7 @@ class TemplateNarrativeGenerator:
 
         return text, facts
 
-    def _build_nursing_interventions_provided(
-        self, ctx: NarrativeContext
-    ) -> tuple[str, list[str]]:
+    def _build_nursing_interventions_provided(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
         """Build nursing_interventions_provided — generic placeholder for α-min-2."""
         lang = ctx.target_lang
         is_ja = lang == "ja"
@@ -2428,15 +2281,9 @@ class TemplateNarrativeGenerator:
             level_text = "未評価" if is_ja else "not assessed"
 
         if is_ja:
-            text = (
-                f"トリアージレベル: {level_text}。"
-                f"来院形態: {arrival_display or '不明'}。"
-            )
+            text = f"トリアージレベル: {level_text}。来院形態: {arrival_display or '不明'}。"
         else:
-            text = (
-                f"Triage level: {level_text}. "
-                f"Arrival mode: {arrival_display or 'unknown'}."
-            )
+            text = f"Triage level: {level_text}. Arrival mode: {arrival_display or 'unknown'}."
 
         return text, facts
 
@@ -2523,9 +2370,7 @@ class TemplateNarrativeGenerator:
     # Fallback helpers
     # ─────────────────────────────────────────────────────────────────
 
-    def _resolve_physical_exam(
-        self, ctx: NarrativeContext, archetype: str, day_index: int
-    ) -> dict[str, Any]:
+    def _resolve_physical_exam(self, ctx: NarrativeContext, archetype: str, day_index: int) -> dict[str, Any]:
         """Multi-step fallback chain for per-day physical exam findings.
 
         Fallback priority:
@@ -2588,9 +2433,7 @@ class TemplateNarrativeGenerator:
 
         return {}
 
-    def _resolve_daily_trajectory(
-        self, ctx: NarrativeContext, archetype: str, day_index: int
-    ) -> dict[str, str]:
+    def _resolve_daily_trajectory(self, ctx: NarrativeContext, archetype: str, day_index: int) -> dict[str, str]:
         """Fallback chain for SOAP-structured daily trajectory.
 
         Fallback priority:
@@ -2628,10 +2471,7 @@ class TemplateNarrativeGenerator:
             day_key = f"day_{day}"
             entry = daily_trajectory.get(day_key)
             if entry is not None:
-                source = (
-                    f"disease_protocol.course_archetypes.{archetype}"
-                    f".daily_trajectory.{day_key}"
-                )
+                source = f"disease_protocol.course_archetypes.{archetype}.daily_trajectory.{day_key}"
                 if isinstance(entry, dict):
                     return entry, source
                 # Pydantic DailyTrajectoryEntry
@@ -2655,9 +2495,7 @@ class TemplateNarrativeGenerator:
             "plan": _GENERIC_PLAN_JA if is_ja else _GENERIC_PLAN_EN,
         }
 
-    def _resolve_discharge_instructions(
-        self, ctx: NarrativeContext
-    ) -> dict[str, dict[str, str]]:
+    def _resolve_discharge_instructions(self, ctx: NarrativeContext) -> dict[str, dict[str, str]]:
         """Merge baseline + disease_specific discharge instructions.
 
         disease_specific entries take precedence over baseline for shared keys.
@@ -2686,9 +2524,7 @@ class TemplateNarrativeGenerator:
         if narrative is not None:
             proto_di = _o(narrative, "discharge_instructions", None)
             if proto_di is not None:
-                _di_sections = (
-                    "follow_up", "activity", "medications", "emergency", "diet_lifestyle"
-                )
+                _di_sections = ("follow_up", "activity", "medications", "emergency", "diet_lifestyle")
                 for section in _di_sections:
                     sec_data = _o(proto_di, section, {})
                     if isinstance(sec_data, dict) and (sec_data.get("en") or sec_data.get("ja")):
@@ -2721,9 +2557,7 @@ class TemplateNarrativeGenerator:
                     }
         return result
 
-    def _format_physical_exam(
-        self, phys_exam: dict[str, Any], severity: str, is_ja: bool
-    ) -> str:
+    def _format_physical_exam(self, phys_exam: dict[str, Any], severity: str, is_ja: bool) -> str:
         """Format a physical exam findings dict to a single text string.
 
         Picks the most appropriate severity level per system:

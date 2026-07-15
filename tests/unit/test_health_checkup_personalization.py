@@ -9,6 +9,7 @@
 4. 同 seed + 同 patient → byte-identical(AD-16)
 5. 患者間で値が分散する(全員同一値ではない)
 """
+
 from __future__ import annotations
 
 import pytest
@@ -17,6 +18,7 @@ import pytest
 def _make_ctx_with_records(records: list, master_seed: int = 42) -> object:
     from clinosim.simulator.enrichers import EnricherContext
     from clinosim.types.config import SimulatorConfig
+
     cfg = SimulatorConfig(country="JP", modules={"health_checkup": True})
     return EnricherContext(config=cfg, master_seed=master_seed, records=records)
 
@@ -24,6 +26,7 @@ def _make_ctx_with_records(records: list, master_seed: int = 42) -> object:
 def _find_selected_pid(start: int = 0) -> str:
     """`_patient_selected` に入る patient_id を検索。"""
     from clinosim.modules.health_checkup.engine import _patient_selected
+
     for i in range(start, start + 200):
         pid = f"POP-{i:06d}"
         if _patient_selected(pid):
@@ -34,6 +37,7 @@ def _find_selected_pid(start: int = 0) -> str:
 def _make_record(patient_id: str, **overrides):
     from clinosim.types.output import CIFPatientRecord
     from clinosim.types.patient import PatientProfile
+
     kwargs = {"patient_id": patient_id, "age": 55, "sex": "M"}
     kwargs.update(overrides)
     return CIFPatientRecord(patient=PatientProfile(**kwargs))
@@ -43,6 +47,7 @@ def _run_and_extract_labs(records: list) -> dict[str, float]:
     """enrich_health_checkup を実行し、追加された CHECKUP record の
     lab_results を {LOINC: value} で返す。"""
     from clinosim.modules.health_checkup.engine import enrich_health_checkup
+
     n_before = len(records)
     ctx = _make_ctx_with_records(records)
     enrich_health_checkup(ctx)
@@ -67,6 +72,7 @@ def test_bmi_reflects_patient_profile():
 def test_bp_reflects_baseline_vitals():
     """baseline_vitals.systolic_bp/diastolic_bp が SBP/DBP に反映される。"""
     from clinosim.types.patient import BaselineVitals
+
     pid = _find_selected_pid()
     normo = _make_record(pid, baseline_vitals=BaselineVitals(systolic_bp=118, diastolic_bp=72))
     labs_n = _run_and_extract_labs([normo])
@@ -83,6 +89,7 @@ def test_bp_reflects_baseline_vitals():
 def test_hba1c_elevated_for_dm_patient():
     """E11(2 型糖尿病)保有時、HbA1c が非 DM 患者より明確に高い。"""
     from clinosim.types.patient import ChronicCondition
+
     pid = _find_selected_pid()
     healthy = _make_record(pid)
     labs_healthy = _run_and_extract_labs([healthy])
@@ -102,6 +109,7 @@ def test_hba1c_elevated_for_dm_patient():
 def test_ldl_elevated_for_dyslipidemia_patient():
     """E78(脂質異常症)保有時、LDL が健常者より約 40 mg/dL 高い。"""
     from clinosim.types.patient import ChronicCondition
+
     pid = _find_selected_pid()
     healthy = _make_record(pid)
     labs_h = _run_and_extract_labs([healthy])
@@ -119,6 +127,7 @@ def test_ldl_elevated_for_dyslipidemia_patient():
 def test_ldl_lowered_by_statin_medication():
     """スタチン系服薬中は LDL が薬理的に低下(-30 mg/dL)。"""
     from clinosim.types.patient import ChronicCondition
+
     pid = _find_selected_pid()
     dyslip_no_statin = _make_record(
         pid,
@@ -148,6 +157,7 @@ def test_deterministic_across_runs():
 def test_lab_values_vary_across_patients():
     """複数患者で lab 値が全員同一にならない(sub-seed が patient_id 依存)。"""
     from clinosim.modules.health_checkup.engine import _patient_selected
+
     records = []
     seen = 0
     for i in range(200):
@@ -159,6 +169,7 @@ def test_lab_values_vary_across_patients():
                 break
     assert seen == 5
     from clinosim.modules.health_checkup.engine import enrich_health_checkup
+
     ctx = _make_ctx_with_records(records)
     enrich_health_checkup(ctx)
     # 5 患者分の CHECKUP record が追加された
@@ -178,6 +189,7 @@ def test_interpretation_and_reference_range_populated():
     # 直接 re-run して構造検証
     from clinosim.types.output import CIFPatientRecord
     from clinosim.types.patient import PatientProfile
+
     rec = CIFPatientRecord(patient=PatientProfile(patient_id=pid, age=55, sex="M"))
     ctx = _make_ctx_with_records([rec])
     enrich_health_checkup(ctx)

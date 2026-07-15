@@ -19,11 +19,9 @@ from clinosim.types.allergy import Allergy, AllergyReaction
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 
-SUPPORTED_ALLERGEN_CATEGORIES: frozenset[str] = frozenset(
-    {"medication", "food", "environment"}
-)
+SUPPORTED_ALLERGEN_CATEGORIES: frozenset[str] = frozenset({"medication", "food", "environment"})
 
-OVERALL_ALLERGY_PREVALENCE = 0.15   # baseline calibrated (see brief Step 4)
+OVERALL_ALLERGY_PREVALENCE = 0.15  # baseline calibrated (see brief Step 4)
 CATEGORY_WEIGHTS = {"medication": 0.50, "food": 0.25, "environment": 0.25}
 
 
@@ -67,8 +65,7 @@ def _validate_allergens(data: dict[str, Any]) -> None:
         missing = SUPPORTED_ALLERGEN_CATEGORIES - yaml_keys
         extra = yaml_keys - SUPPORTED_ALLERGEN_CATEGORIES
         raise ValueError(
-            f"allergens.yaml ↔ SUPPORTED_ALLERGEN_CATEGORIES drift: "
-            f"missing={sorted(missing)}, extra={sorted(extra)}"
+            f"allergens.yaml ↔ SUPPORTED_ALLERGEN_CATEGORIES drift: missing={sorted(missing)}, extra={sorted(extra)}"
         )
     required_entry_fields = (
         "allergen_code",
@@ -87,32 +84,22 @@ def _validate_allergens(data: dict[str, Any]) -> None:
                     raise ValueError(f"allergens.yaml[{cat}][{i}]: missing {f!r}")
             prev = e["prevalence"]
             if not isinstance(prev, dict) or "adult" not in prev:
-                raise ValueError(
-                    f"allergens.yaml[{cat}][{i}].prevalence: must have 'adult' key"
-                )
+                raise ValueError(f"allergens.yaml[{cat}][{i}].prevalence: must have 'adult' key")
             adult_val = prev["adult"]
             if not isinstance(adult_val, (int, float)) or not (0 <= adult_val <= 1):
-                raise ValueError(
-                    f"allergens.yaml[{cat}][{i}].prevalence.adult: 0..1 expected, got {adult_val!r}"
-                )
+                raise ValueError(f"allergens.yaml[{cat}][{i}].prevalence.adult: 0..1 expected, got {adult_val!r}")
             reactions = e.get("common_reactions", [])
             if not reactions or not isinstance(reactions, list):
-                raise ValueError(
-                    f"allergens.yaml[{cat}][{i}].common_reactions: must be non-empty list"
-                )
+                raise ValueError(f"allergens.yaml[{cat}][{i}].common_reactions: must be non-empty list")
             allergen_code = e["allergen_code"]
             if not _code_in_data("snomed-ct", allergen_code):
                 raise ValueError(
-                    f"allergens.yaml[{cat}][{i}].allergen_code {allergen_code!r} "
-                    f"not in codes/data/snomed-ct.yaml"
+                    f"allergens.yaml[{cat}][{i}].allergen_code {allergen_code!r} not in codes/data/snomed-ct.yaml"
                 )
             for j, rxn in enumerate(reactions):
                 manifestation_snomed = rxn.get("manifestation_snomed", "")
                 if not manifestation_snomed:
-                    raise ValueError(
-                        f"allergens.yaml[{cat}][{i}].common_reactions[{j}]: "
-                        f"missing manifestation_snomed"
-                    )
+                    raise ValueError(f"allergens.yaml[{cat}][{i}].common_reactions[{j}]: missing manifestation_snomed")
                 if not _code_in_data("snomed-ct", manifestation_snomed):
                     raise ValueError(
                         f"allergens.yaml[{cat}][{i}].common_reactions[{j}].manifestation_snomed "
@@ -147,9 +134,7 @@ def allergy_enricher(ctx: Any) -> None:
     for patient in ctx.population.persons.values():
         # PersonRecord uses person_id (Layer 1 naming); PatientProfile maps this to patient_id.
         pid = getattr(patient, "person_id", getattr(patient, "patient_id", ""))
-        sub_seed = derive_sub_seed(
-            ctx.master_seed, ENRICHER_SEED_OFFSETS["allergy"], pid
-        )
+        sub_seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["allergy"], pid)
         rng = np.random.default_rng(sub_seed)
 
         if rng.random() >= OVERALL_ALLERGY_PREVALENCE:

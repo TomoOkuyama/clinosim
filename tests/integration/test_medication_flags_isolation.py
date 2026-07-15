@@ -9,6 +9,7 @@ This regression-guards future couplings: when Phase 2c adds another
 medication flag (e.g., on_therapeutic_heparin), the same determinism
 property must hold.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -36,8 +37,7 @@ def test_pt_inr_distribution_deterministic_under_same_seed():
     runs disagree, the helper or its call-site merge is leaking
     nondeterminism into the lab generation path.
     """
-    scenario = ForcedScenario(disease_id="urinary_tract_infection", count=5,
-                              severity="moderate")
+    scenario = ForcedScenario(disease_id="urinary_tract_infection", count=5, severity="moderate")
     cfg = SimulatorConfig(random_seed=42, country="US")
 
     run1 = run_forced(scenario, cfg)
@@ -46,16 +46,14 @@ def test_pt_inr_distribution_deterministic_under_same_seed():
     pt_inrs_1 = _collect_pt_inr_values(run1)
     pt_inrs_2 = _collect_pt_inr_values(run2)
 
-    assert pt_inrs_1 == pt_inrs_2, \
-        "PT_INR distribution must be deterministic under same seed (AD-16)"
+    assert pt_inrs_1 == pt_inrs_2, "PT_INR distribution must be deterministic under same seed (AD-16)"
 
 
 @pytest.mark.integration
 def test_pt_inr_distribution_deterministic_pe_cohort():
     """Same property for PE cohort (where in-hospital warfarin ramp path
     is exercised — chronic_medications I26 entry + day-3 gate)."""
-    scenario = ForcedScenario(disease_id="pulmonary_embolism", count=5,
-                              severity="moderate")
+    scenario = ForcedScenario(disease_id="pulmonary_embolism", count=5, severity="moderate")
     cfg = SimulatorConfig(random_seed=42, country="US")
 
     run1 = run_forced(scenario, cfg)
@@ -64,5 +62,4 @@ def test_pt_inr_distribution_deterministic_pe_cohort():
     pt_inrs_1 = _collect_pt_inr_values(run1)
     pt_inrs_2 = _collect_pt_inr_values(run2)
 
-    assert pt_inrs_1 == pt_inrs_2, \
-        "PE cohort PT_INR distribution must be deterministic under same seed"
+    assert pt_inrs_1 == pt_inrs_2, "PE cohort PT_INR distribution must be deterministic under same seed"

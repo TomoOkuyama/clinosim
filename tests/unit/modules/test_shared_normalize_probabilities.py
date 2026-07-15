@@ -1,4 +1,5 @@
 """Unit tests for normalize_probabilities helper (PR-A Task 3)."""
+
 import numpy as np
 import pytest
 
@@ -82,6 +83,5 @@ def test_byte_clean_against_old_arr_divide_arr_sum_pattern():
     old_result = arr / arr.sum()
     new_result = normalize_probabilities(probs)
     assert np.array_equal(new_result, old_result), (
-        "normalize_probabilities must be byte-identical to "
-        "arr / arr.sum() for CAUTI-style weights summing to 0.9999..."
+        "normalize_probabilities must be byte-identical to arr / arr.sum() for CAUTI-style weights summing to 0.9999..."
     )

@@ -6,6 +6,7 @@ demographics-driven attributes set on PatientProfile during activation
 module only provides the enum→SNOMED + LOINC reference data needed by
 FHIR builders.
 """
+
 from __future__ import annotations
 
 from functools import lru_cache

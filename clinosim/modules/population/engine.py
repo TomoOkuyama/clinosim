@@ -42,6 +42,7 @@ class PopulationRegistry:
 def _load_demographics(country: str) -> dict:
     """Load demographic data from locale."""
     from clinosim.locale.loader import load_demographics
+
     return load_demographics(country)
 
 
@@ -103,13 +104,14 @@ def generate_population(
     # Load name data and naming rules
     name_data = _load_name_data(country)
     from clinosim.locale.loader import load_addresses, load_naming_rules
+
     naming_rules = load_naming_rules(country)
     surname_rule = naming_rules.get("household_surname_rule", "shared")
     addr_data = load_addresses(country)
 
     person_count = 0
     for h_idx in range(n_households):
-        hh_id = f"HH-{h_idx+1:06d}"
+        hh_id = f"HH-{h_idx + 1:06d}"
         hh = Household(household_id=hh_id)
 
         # Generate household address (shared by all members)
@@ -150,14 +152,14 @@ def generate_population(
             sex_key = "male" if sex == "M" else "female"
 
             bmi_mean = (bmi_cfg.get(sex_key) or {}).get("mean", 23.5 if sex == "M" else 22.0)
-            bmi_std  = (bmi_cfg.get(sex_key) or {}).get("std", 3.5)
+            bmi_std = (bmi_cfg.get(sex_key) or {}).get("std", 3.5)
             bmi_clamp = bmi_cfg.get("clamp", [15.0, 45.0])
             bmi = float(np.clip(rng.normal(bmi_mean, bmi_std), bmi_clamp[0], bmi_clamp[1]))
 
             ht_mean = (ht_cfg.get(sex_key) or {}).get("mean", 170.0 if sex == "M" else 157.5)
-            ht_std  = (ht_cfg.get(sex_key) or {}).get("std", 5.5)
-            shrink  = ht_cfg.get("shrinkage_per_decade_after_60", 0.5)
-            height  = float(rng.normal(ht_mean, ht_std))
+            ht_std = (ht_cfg.get(sex_key) or {}).get("std", 5.5)
+            shrink = ht_cfg.get("shrinkage_per_decade_after_60", 0.5)
+            height = float(rng.normal(ht_mean, ht_std))
             if age > 60:
                 height -= (age - 60) / 10 * shrink
 
@@ -169,9 +171,7 @@ def generate_population(
                 sp = normalize_probabilities([smoking_dist[k] for k in sk], fallback="raise")
                 smoking_status = str(rng.choice(sk, p=sp))
             else:
-                smoking_status = str(rng.choice(
-                    ["never", "former", "current"], p=[0.55, 0.30, 0.15]
-                ))
+                smoking_status = str(rng.choice(["never", "former", "current"], p=[0.55, 0.30, 0.15]))
 
             alcohol_dist = (lifestyle.get("alcohol") or {}).get(sex_key, {})
             if alcohol_dist:
@@ -179,9 +179,7 @@ def generate_population(
                 ap = normalize_probabilities([alcohol_dist[k] for k in ak], fallback="raise")
                 alcohol_use = str(rng.choice(ak, p=ap))
             else:
-                alcohol_use = str(rng.choice(
-                    ["none", "social", "heavy"], p=[0.60, 0.30, 0.10]
-                ))
+                alcohol_use = str(rng.choice(["none", "social", "heavy"], p=[0.60, 0.30, 0.10]))
 
             # Given name (sex-appropriate)
             given = _sample_given_name(name_data, sex, rng)
@@ -337,15 +335,17 @@ def generate_monthly_events(
             disease_risk = risk_mults.get(disease_id, {})
 
             rate = _disease_monthly_rate_from_locale(
-                person, month, age_rates, sex_ratio, disease_seasonal, disease_risk,
+                person,
+                month,
+                age_rates,
+                sex_ratio,
+                disease_seasonal,
+                disease_risk,
             )
 
             # Prior hospitalization for the same disease increases recurrence risk
             if hasattr(person, "hospitalization_history"):
-                prior_same = [
-                    h for h in person.hospitalization_history
-                    if h.disease_id == disease_id
-                ]
+                prior_same = [h for h in person.hospitalization_history if h.disease_id == disease_id]
                 if prior_same:
                     rate *= 1.5  # 50% higher recurrence after prior episode
 
@@ -389,39 +389,48 @@ def generate_monthly_events(
                     threshold *= float(flat_mod)
                 requires_hospital = severity > threshold
 
-            events.append(LifeEvent(
-                person_id=person.person_id,
-                event_type=event_type,
-                timestamp=event_date + timedelta(days=int(rng.integers(0, 28))),
-                severity=severity,
-                disease_id=disease_id,
-                requires_hospital=requires_hospital,
-                condition_type="known_disease",
-            ))
+            events.append(
+                LifeEvent(
+                    person_id=person.person_id,
+                    event_type=event_type,
+                    timestamp=event_date + timedelta(days=int(rng.integers(0, 28))),
+                    severity=severity,
+                    disease_id=disease_id,
+                    requires_hospital=requires_hospital,
+                    condition_type="known_disease",
+                )
+            )
 
         # --- Unknown-cause conditions ---
         unknown_cfg = demo.get("unknown_conditions", {})
         unknown_min_age = unknown_cfg.get("min_age", 40)
         unknown_base_rate = unknown_cfg.get("base_rate", 0.00008)
         unknown_age_factor = unknown_cfg.get("age_factor", 0.005)
-        unknown_patterns = unknown_cfg.get("patterns", [
-            "fever_unknown", "weight_loss_unexplained",
-            "malaise_fatigue", "elevated_inflammatory_markers",
-        ])
+        unknown_patterns = unknown_cfg.get(
+            "patterns",
+            [
+                "fever_unknown",
+                "weight_loss_unexplained",
+                "malaise_fatigue",
+                "elevated_inflammatory_markers",
+            ],
+        )
         if person.age >= unknown_min_age:
             unknown_rate = unknown_base_rate * (1.0 + (person.age - unknown_min_age) * unknown_age_factor)
             if rng.random() < unknown_rate:
                 pattern = str(rng.choice(unknown_patterns))
                 unk_severity = float(rng.beta(2, 3))
-                events.append(LifeEvent(
-                    person_id=person.person_id,
-                    event_type="unknown_condition",
-                    timestamp=event_date + timedelta(days=int(rng.integers(0, 28))),
-                    severity=unk_severity,
-                    disease_id=f"unknown_{pattern}",
-                    requires_hospital=unk_severity > person.care_seeking_threshold,
-                    condition_type="unknown",
-                ))
+                events.append(
+                    LifeEvent(
+                        person_id=person.person_id,
+                        event_type="unknown_condition",
+                        timestamp=event_date + timedelta(days=int(rng.integers(0, 28))),
+                        severity=unk_severity,
+                        disease_id=f"unknown_{pattern}",
+                        requires_hospital=unk_severity > person.care_seeking_threshold,
+                        condition_type="unknown",
+                    )
+                )
 
     # --- Post-processing: upgrade some known_disease events to mixed ---
     mixed_cfg = demo.get("mixed_conditions", {})
@@ -431,8 +440,7 @@ def generate_monthly_events(
     for event in events:
         if event.condition_type == "known_disease" and event.requires_hospital:
             person = registry.persons.get(event.person_id)
-            if (person and person.age >= mixed_min_age
-                    and len(person.chronic_conditions) >= mixed_min_chronic):
+            if person and person.age >= mixed_min_age and len(person.chronic_conditions) >= mixed_min_chronic:
                 if rng.random() < mixed_probability:
                     event.condition_type = "mixed"
 
@@ -491,6 +499,7 @@ def _sample_blood_type(demo: dict, rng: np.random.Generator) -> str:
 def _load_name_data(country: str) -> dict:
     """Load name data from locale module."""
     from clinosim.locale.loader import load_names
+
     return load_names(country)
 
 
@@ -506,10 +515,10 @@ def _sample_occupation(demo: dict, age: int, sex: str, rng: np.random.Generator)
     """Sample occupation category from demographics occupation_distribution."""
     occ_cfg = demo.get("occupation_distribution") or {}
     thresholds = occ_cfg.get("age_thresholds") or {}
-    student_max   = int(thresholds.get("student_max_age", 14))
-    young_max     = int(thresholds.get("young_adult_max_age", 21))
-    young_prob    = float(thresholds.get("young_adult_student_prob", 0.70))
-    retirement    = int(thresholds.get("retirement_min_age", 65))
+    student_max = int(thresholds.get("student_max_age", 14))
+    young_max = int(thresholds.get("young_adult_max_age", 21))
+    young_prob = float(thresholds.get("young_adult_student_prob", 0.70))
+    retirement = int(thresholds.get("retirement_min_age", 65))
 
     if age <= student_max:
         return "student"
@@ -534,8 +543,6 @@ def _sample_given_name(name_data: dict, sex: str, rng: np.random.Generator) -> d
     return names[idx]
 
 
-
-
 def generate_healthcare_calendar(
     registry: PopulationRegistry,
     year: int,
@@ -555,6 +562,7 @@ def generate_healthcare_calendar(
 
     # Load follow-up schedules
     from clinosim.locale.loader import load_chronic_followup
+
     followup_data = load_chronic_followup()
 
     # F1 (session 49): spawn one independent child generator per person instead
@@ -585,18 +593,13 @@ def generate_healthcare_calendar(
         # Group conditions into combined visits (real patients see one doctor
         # for multiple conditions in a single visit)
         conditions_with_spec = [
-            (code, followup_data.get(code))
-            for code in person.chronic_conditions
-            if followup_data.get(code)
+            (code, followup_data.get(code)) for code in person.chronic_conditions if followup_data.get(code)
         ]
         if not conditions_with_spec:
             continue
 
         # Use shortest interval as visit frequency (covers all conditions)
-        shortest_interval = min(
-            spec.get("follow_up_interval_months", 3)
-            for _, spec in conditions_with_spec
-        )
+        shortest_interval = min(spec.get("follow_up_interval_months", 3) for _, spec in conditions_with_spec)
         # Cap: max 6 visits/year for chronic management
         max_visits = min(12 // shortest_interval, 6)
         primary_code = conditions_with_spec[0][0]  # main condition for the visit
@@ -605,16 +608,18 @@ def generate_healthcare_calendar(
         visit_count = 0
         while month <= 12 and visit_count < max_visits:
             visit_date = date(year, month, int(prng.integers(1, 28)))
-            events.append(LifeEvent(
-                person_id=person.person_id,
-                event_type="chronic_visit",
-                timestamp=visit_date,
-                severity=0.0,
-                condition_type="chronic_followup",
-                disease_id=primary_code,
-                encounter_type="outpatient",
-                protocol_source=f"chronic_followup:{primary_code}",
-            ))
+            events.append(
+                LifeEvent(
+                    person_id=person.person_id,
+                    event_type="chronic_visit",
+                    timestamp=visit_date,
+                    severity=0.0,
+                    condition_type="chronic_followup",
+                    disease_id=primary_code,
+                    encounter_type="outpatient",
+                    protocol_source=f"chronic_followup:{primary_code}",
+                )
+            )
             month += shortest_interval
             visit_count += 1
 
@@ -622,70 +627,80 @@ def generate_healthcare_calendar(
         if person.age >= 40:
             screening_month = int(prng.integers(4, 11))
             screening_date = date(year, screening_month, int(prng.integers(1, 28)))
-            events.append(LifeEvent(
-                person_id=person.person_id,
-                event_type="health_screening",
-                timestamp=screening_date,
-                severity=0.0,
-                condition_type="screening",
-                disease_id="annual_health_screening",
-                encounter_type="outpatient",
-                protocol_source="screening:annual",
-            ))
+            events.append(
+                LifeEvent(
+                    person_id=person.person_id,
+                    event_type="health_screening",
+                    timestamp=screening_date,
+                    severity=0.0,
+                    condition_type="screening",
+                    disease_id="annual_health_screening",
+                    encounter_type="outpatient",
+                    protocol_source="screening:annual",
+                )
+            )
 
         # --- Flu vaccination (age 65+ or chronic conditions, Oct-Dec) ---
         if person.age >= 65 or len(person.chronic_conditions) >= 2:
             if prng.random() < 0.5:  # ~50% vaccination rate
                 vax_month = int(prng.choice([10, 11, 12]))
-                events.append(LifeEvent(
-                    person_id=person.person_id,
-                    event_type="chronic_visit",
-                    timestamp=date(year, vax_month, int(prng.integers(1, 28))),
-                    severity=0.0,
-                    condition_type="screening",
-                    disease_id="flu_vaccination",
-                    encounter_type="outpatient",
-                    protocol_source="encounter:flu_vaccination",
-                ))
+                events.append(
+                    LifeEvent(
+                        person_id=person.person_id,
+                        event_type="chronic_visit",
+                        timestamp=date(year, vax_month, int(prng.integers(1, 28))),
+                        severity=0.0,
+                        condition_type="screening",
+                        disease_id="flu_vaccination",
+                        encounter_type="outpatient",
+                        protocol_source="encounter:flu_vaccination",
+                    )
+                )
 
         # --- Colonoscopy screening (age 50+, every 10 years → ~10% per year) ---
         if person.age >= 50 and prng.random() < 0.08:
-            events.append(LifeEvent(
-                person_id=person.person_id,
-                event_type="health_screening",
-                timestamp=date(year, int(prng.integers(1, 13)), int(prng.integers(1, 28))),
-                severity=0.0,
-                condition_type="screening",
-                disease_id="colonoscopy_screening",
-                encounter_type="outpatient",
-                protocol_source="encounter:colonoscopy_screening",
-            ))
+            events.append(
+                LifeEvent(
+                    person_id=person.person_id,
+                    event_type="health_screening",
+                    timestamp=date(year, int(prng.integers(1, 13)), int(prng.integers(1, 28))),
+                    severity=0.0,
+                    condition_type="screening",
+                    disease_id="colonoscopy_screening",
+                    encounter_type="outpatient",
+                    protocol_source="encounter:colonoscopy_screening",
+                )
+            )
 
         # --- Mammography screening (women 40+, annual → ~60% participation) ---
         if person.sex == "F" and person.age >= 40 and prng.random() < 0.4:
-            events.append(LifeEvent(
-                person_id=person.person_id,
-                event_type="health_screening",
-                timestamp=date(year, int(prng.integers(1, 13)), int(prng.integers(1, 28))),
-                severity=0.0,
-                condition_type="screening",
-                disease_id="mammography_screening",
-                encounter_type="outpatient",
-                protocol_source="encounter:mammography_screening",
-            ))
+            events.append(
+                LifeEvent(
+                    person_id=person.person_id,
+                    event_type="health_screening",
+                    timestamp=date(year, int(prng.integers(1, 13)), int(prng.integers(1, 28))),
+                    severity=0.0,
+                    condition_type="screening",
+                    disease_id="mammography_screening",
+                    encounter_type="outpatient",
+                    protocol_source="encounter:mammography_screening",
+                )
+            )
 
         # --- Diabetic retinopathy screening (DM patients, annual) ---
         if "E11.9" in person.chronic_conditions and prng.random() < 0.6:
-            events.append(LifeEvent(
-                person_id=person.person_id,
-                event_type="chronic_visit",
-                timestamp=date(year, int(prng.integers(1, 13)), int(prng.integers(1, 28))),
-                severity=0.0,
-                condition_type="screening",
-                disease_id="diabetic_retinopathy_screening",
-                encounter_type="outpatient",
-                protocol_source="encounter:diabetic_retinopathy_screening",
-            ))
+            events.append(
+                LifeEvent(
+                    person_id=person.person_id,
+                    event_type="chronic_visit",
+                    timestamp=date(year, int(prng.integers(1, 13)), int(prng.integers(1, 28))),
+                    severity=0.0,
+                    condition_type="screening",
+                    disease_id="diabetic_retinopathy_screening",
+                    encounter_type="outpatient",
+                    protocol_source="encounter:diabetic_retinopathy_screening",
+                )
+            )
 
     return events
 

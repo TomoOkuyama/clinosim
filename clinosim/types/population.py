@@ -22,6 +22,7 @@ __all__ = ["HospitalizationSummary", "PersonRecord", "LifeEvent"]
 @dataclass
 class HospitalizationSummary:
     """Compact record of a past hospitalization, persisted in Layer 1."""
+
     encounter_id: str
     disease_id: str
     admission_date: date
@@ -38,6 +39,7 @@ class HospitalizationSummary:
 @dataclass
 class PersonRecord:
     """Layer 1 person record — lightweight but retains medical history."""
+
     person_id: str
     household_id: str
     age: int
@@ -60,8 +62,8 @@ class PersonRecord:
     occupation: str = "other"
     # Lifestyle attributes (set at generation time; drive disease risk multipliers)
     bmi: float = 22.0
-    smoking_status: str = "never"   # "never" | "former" | "current"
-    alcohol_use: str = "none"       # "none" | "social" | "heavy"
+    smoking_status: str = "never"  # "never" | "former" | "current"
+    alcohol_use: str = "none"  # "none" | "social" | "heavy"
     is_alive: bool = True
     care_seeking_threshold: float = 0.3
     has_visited_hospital: bool = False

@@ -47,36 +47,44 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
     primary_lang = resolve_lang(country)
     primary_display = _procedure_display(primary_code, primary_lang, fallback)
 
-    coding_entries: list[dict[str, Any]] = [{
-        "system": code_system,
-        "code": primary_code,
-        "display": primary_display,
-    }]
+    coding_entries: list[dict[str, Any]] = [
+        {
+            "system": code_system,
+            "code": primary_code,
+            "display": primary_display,
+        }
+    ]
 
     # Secondary coding: the OTHER country's code system for international interop
     if is_jp(country) and proc_code_us:
         us_display = _procedure_display(proc_code_us, "en", fallback)
-        coding_entries.append({
-            "system": get_system_uri("cpt"),
-            "code": proc_code_us,
-            "display": us_display,
-        })
+        coding_entries.append(
+            {
+                "system": get_system_uri("cpt"),
+                "code": proc_code_us,
+                "display": us_display,
+            }
+        )
     elif is_us(country) and proc_code_jp:
         # Secondary K-code for interop — use ENGLISH display (not Japanese)
         jp_en_display = _procedure_display(proc_code_jp, "en", fallback)
-        coding_entries.append({
-            "system": get_system_uri("k-codes"),
-            "code": proc_code_jp,
-            "display": jp_en_display,
-        })
+        coding_entries.append(
+            {
+                "system": get_system_uri("k-codes"),
+                "code": proc_code_jp,
+                "display": jp_en_display,
+            }
+        )
 
     resource: dict[str, Any] = {
         "resourceType": "Procedure",
         "id": resource_id,
         # Session 46 chain #2: JP Core Procedure profile.
-        **({"meta": {"profile": [
-            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"
-        ]}} if is_jp(country) else {}),
+        **(
+            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"]}}
+            if is_jp(country)
+            else {}
+        ),
         "status": "completed",
         "code": {
             "coding": coding_entries,
@@ -89,11 +97,13 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
     category_code = proc.get("category_code", "")
     if category_code:
         resource["category"] = {
-            "coding": [{
-                "system": sct_uri,
-                "code": category_code,
-                "display": code_lookup("snomed-ct", category_code, lang),
-            }],
+            "coding": [
+                {
+                    "system": sct_uri,
+                    "code": category_code,
+                    "display": code_lookup("snomed-ct", category_code, lang),
+                }
+            ],
         }
 
     # Session 52 fix: route through to_fhir_datetime so performedPeriod /
@@ -116,27 +126,35 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
     surgeon_id = proc.get("primary_surgeon_id", "")
     anes_id = proc.get("anesthesiologist_id", "")
     if surgeon_id:
-        performers.append({
-            "function": {
-                "coding": [{
-                    "system": sct_uri,
-                    "code": "304292004",
-                    "display": code_lookup("snomed-ct", "304292004", lang),
-                }],
-            },
-            "actor": {"reference": f"Practitioner/{surgeon_id}"},
-        })
+        performers.append(
+            {
+                "function": {
+                    "coding": [
+                        {
+                            "system": sct_uri,
+                            "code": "304292004",
+                            "display": code_lookup("snomed-ct", "304292004", lang),
+                        }
+                    ],
+                },
+                "actor": {"reference": f"Practitioner/{surgeon_id}"},
+            }
+        )
     if anes_id and anes_id != surgeon_id:
-        performers.append({
-            "function": {
-                "coding": [{
-                    "system": sct_uri,
-                    "code": "158967008",
-                    "display": code_lookup("snomed-ct", "158967008", lang),
-                }],
-            },
-            "actor": {"reference": f"Practitioner/{anes_id}"},
-        })
+        performers.append(
+            {
+                "function": {
+                    "coding": [
+                        {
+                            "system": sct_uri,
+                            "code": "158967008",
+                            "display": code_lookup("snomed-ct", "158967008", lang),
+                        }
+                    ],
+                },
+                "actor": {"reference": f"Practitioner/{anes_id}"},
+            }
+        )
     if performers:
         resource["performer"] = performers
         # recorder (default to surgeon when available)
@@ -144,27 +162,31 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
 
     # reasonReference — link to encounter's primary Condition
     if enc_id:
-        resource["reasonReference"] = [
-            {"reference": f"Condition/cond-{enc_id}-primary"}
-        ]
+        resource["reasonReference"] = [{"reference": f"Condition/cond-{enc_id}-primary"}]
     # CY7-17 (Chain-7): Procedure.reasonCode fallback — text-only citing the
     # encounter's primary diagnosis when the CIF procedure record doesn't
     # carry an explicit reason. FHIR R4 Procedure.reasonCode 0..*.
     if not resource.get("reasonCode"):
-        resource["reasonCode"] = [{
-            "text": "入院時診断に基づく処置" if is_jp(country) else "Procedure indicated by encounter diagnosis",
-        }]
+        resource["reasonCode"] = [
+            {
+                "text": "入院時診断に基づく処置" if is_jp(country) else "Procedure indicated by encounter diagnosis",
+            }
+        ]
 
     # bodySite (SNOMED)
     body_site_code = proc.get("body_site_code", "")
     if body_site_code:
-        resource["bodySite"] = [{
-            "coding": [{
-                "system": sct_uri,
-                "code": body_site_code,
-                "display": code_lookup("snomed-ct", body_site_code, lang),
-            }],
-        }]
+        resource["bodySite"] = [
+            {
+                "coding": [
+                    {
+                        "system": sct_uri,
+                        "code": body_site_code,
+                        "display": code_lookup("snomed-ct", body_site_code, lang),
+                    }
+                ],
+            }
+        ]
     # CY7-18 (Chain-7): bodySite text-only fallback when the CIF record
     # doesn't carry a SNOMED site code (bedside procedures often don't).
     if not resource.get("bodySite"):
@@ -179,11 +201,13 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
     outcome_code = proc.get("outcome_code", "")
     if outcome_code:
         resource["outcome"] = {
-            "coding": [{
-                "system": sct_uri,
-                "code": outcome_code,
-                "display": code_lookup("snomed-ct", outcome_code, lang),
-            }],
+            "coding": [
+                {
+                    "system": sct_uri,
+                    "code": outcome_code,
+                    "display": code_lookup("snomed-ct", outcome_code, lang),
+                }
+            ],
         }
     # CY7-19 (Chain-7): outcome default = SNOMED 385669000 "Successful" when
     # Procedure.status == "completed" and no explicit outcome_code. Reflects
@@ -192,11 +216,13 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
     if not resource.get("outcome") and resource.get("status") == "completed":
         _succ_code = "385669000"
         resource["outcome"] = {
-            "coding": [{
-                "system": sct_uri,
-                "code": _succ_code,
-                "display": code_lookup("snomed-ct", _succ_code, lang) or "Successful",
-            }],
+            "coding": [
+                {
+                    "system": sct_uri,
+                    "code": _succ_code,
+                    "display": code_lookup("snomed-ct", _succ_code, lang) or "Successful",
+                }
+            ],
             "text": "成功" if is_jp(country) else "Successful",
         }
 
@@ -205,11 +231,13 @@ def _build_procedure(proc: dict, patient_id: str, index: int, country: str) -> d
     if comp_codes:
         resource["complication"] = [
             {
-                "coding": [{
-                    "system": sct_uri,
-                    "code": c,
-                    "display": code_lookup("snomed-ct", c, lang),
-                }],
+                "coding": [
+                    {
+                        "system": sct_uri,
+                        "code": c,
+                        "display": code_lookup("snomed-ct", c, lang),
+                    }
+                ],
             }
             for c in comp_codes
         ]

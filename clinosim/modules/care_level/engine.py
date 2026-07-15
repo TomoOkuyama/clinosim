@@ -1,4 +1,5 @@
 """JP 要介護度 (long-term-care need level) assignment (AD-55 Base). Pure + seeded."""
+
 from __future__ import annotations
 
 from functools import lru_cache

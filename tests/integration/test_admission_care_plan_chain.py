@@ -116,12 +116,8 @@ def test_jp_inpatient_produces_admission_care_plan_composition(encounter_type: s
         manifest = TemplateNarrativePass(tmp, version_id="v1", country="jp").run()
         assert manifest.document_counts_by_type.get("admission_care_plan") == 1
 
-        narrative_dir = os.path.join(
-            tmp, "narratives", "v1", "documents", f"enc-{patient_id}"
-        )
-        acp_stub = next(
-            d for d in patient_dict["documents"] if d["task_type"] == "admission_care_plan"
-        )
+        narrative_dir = os.path.join(tmp, "narratives", "v1", "documents", f"enc-{patient_id}")
+        acp_stub = next(d for d in patient_dict["documents"] if d["task_type"] == "admission_care_plan")
         acp_file = os.path.join(narrative_dir, f"{acp_stub['document_id']}.json")
         assert os.path.exists(acp_file)
         with open(acp_file) as f:
@@ -143,15 +139,16 @@ def test_jp_inpatient_produces_admission_care_plan_composition(encounter_type: s
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("encounter_type,country", [
-    ("inpatient", "us"),
-    ("outpatient", "jp"),
-    ("emergency", "jp"),
-    ("rehab_inpatient", "jp"),
-])
-def test_out_of_scope_cohorts_produce_no_admission_care_plan(
-    encounter_type: str, country: str
-) -> None:
+@pytest.mark.parametrize(
+    "encounter_type,country",
+    [
+        ("inpatient", "us"),
+        ("outpatient", "jp"),
+        ("emergency", "jp"),
+        ("rehab_inpatient", "jp"),
+    ],
+)
+def test_out_of_scope_cohorts_produce_no_admission_care_plan(encounter_type: str, country: str) -> None:
     record: dict = {
         "patient": {"patient_id": f"pt-chain-{encounter_type}-{country}", "age": 50, "sex": "F"},
         "encounters": [

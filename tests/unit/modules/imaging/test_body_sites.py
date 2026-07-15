@@ -43,12 +43,15 @@ def test_validate_body_sites_raises_on_unregistered_snomed():
             "display_ja": "stub",
             "procedure_codes": {
                 "stub_proc": {
-                    "loinc": "24725-4", "cpt": "70450",
-                    "jp_k_code": "K002", "display_en": "stub",
+                    "loinc": "24725-4",
+                    "cpt": "70450",
+                    "jp_k_code": "K002",
+                    "display_en": "stub",
                     "display_ja": "stub",
                 },
             },
         }
+
     data = {
         "body_sites": {
             "chest": {
@@ -57,8 +60,10 @@ def test_validate_body_sites_raises_on_unregistered_snomed():
                 "display_ja": "胸部",
                 "procedure_codes": {
                     "cr": {
-                        "loinc": "36554-4", "cpt": "71046",
-                        "jp_k_code": "K001", "display_en": "X-ray",
+                        "loinc": "36554-4",
+                        "cpt": "71046",
+                        "jp_k_code": "K001",
+                        "display_en": "X-ray",
                         "display_ja": "X線",
                     },
                 },

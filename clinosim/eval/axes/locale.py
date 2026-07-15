@@ -53,6 +53,7 @@ def run(cohort: Cohort, country: str) -> list[EvalCheck]:
 # --------------------------------------------------------------------------- #
 # JP checks
 
+
 def _jp_japanese_displays_on_condition(cohort: Cohort, country: str) -> EvalCheck:
     """Condition.code.text or coding.display must contain at least one
     non-ASCII character (kanji / hiragana / katakana) — otherwise the
@@ -62,7 +63,7 @@ def _jp_japanese_displays_on_condition(cohort: Cohort, country: str) -> EvalChec
     for row in _read(cohort, country, "Condition"):
         code = row.get("code") or {}
         parts = [code.get("text", "")]
-        for c in (code.get("coding") or []):
+        for c in code.get("coding") or []:
             parts.append(c.get("display", ""))
         blob = "".join(p for p in parts if p)
         if not blob:
@@ -73,20 +74,23 @@ def _jp_japanese_displays_on_condition(cohort: Cohort, country: str) -> EvalChec
     if total == 0:
         return EvalCheck(
             name="japanese_displays_on_condition",
-            outcome=Outcome.NA, severity=Severity.MAJOR,
+            outcome=Outcome.NA,
+            severity=Severity.MAJOR,
             message="No Condition rows with display text found.",
         )
     if english_only == 0:
         return EvalCheck(
             name="japanese_displays_on_condition",
-            outcome=Outcome.PASS, severity=Severity.MAJOR,
+            outcome=Outcome.PASS,
+            severity=Severity.MAJOR,
             message=f"All {total} Condition rows carry Japanese display text.",
         )
     ratio = english_only / total
     outcome = Outcome.WARN if ratio < 0.05 else Outcome.FAIL
     return EvalCheck(
         name="japanese_displays_on_condition",
-        outcome=outcome, severity=Severity.MAJOR,
+        outcome=outcome,
+        severity=Severity.MAJOR,
         message=f"{english_only}/{total} Condition rows carry ASCII-only display ({ratio:.1%}).",
         detail={"total": total, "english_only": english_only},
     )
@@ -103,9 +107,7 @@ def _jp_jlac10_or_loinc_on_lab(cohort: Cohort, country: str) -> EvalCheck:
             continue
         total += 1
         codings = (row.get("code") or {}).get("coding") or []
-        has_jlac = any(
-            any(c.get("system", "").startswith(p) for p in _JLAC10_SYSTEM_PREFIXES) for c in codings
-        )
+        has_jlac = any(any(c.get("system", "").startswith(p) for p in _JLAC10_SYSTEM_PREFIXES) for c in codings)
         has_loinc = any(c.get("system") == _LOINC_SYSTEM for c in codings)
         if not (has_jlac or has_loinc):
             without += 1
@@ -114,19 +116,23 @@ def _jp_jlac10_or_loinc_on_lab(cohort: Cohort, country: str) -> EvalCheck:
     if total == 0:
         return EvalCheck(
             name="jlac10_or_loinc_on_lab",
-            outcome=Outcome.NA, severity=Severity.MAJOR,
+            outcome=Outcome.NA,
+            severity=Severity.MAJOR,
             message="No laboratory-category Observations found.",
         )
     if without == 0:
-        msg = f"All {total} lab Observations carry JLAC10 and/or LOINC (dual coding: {with_dual}/{total} = {with_dual/total:.1%})."
+        msg = f"All {total} lab Observations carry JLAC10 and/or LOINC (dual coding: {with_dual}/{total} = {with_dual / total:.1%})."  # noqa: E501
         return EvalCheck(
             name="jlac10_or_loinc_on_lab",
-            outcome=Outcome.PASS, severity=Severity.MAJOR,
-            message=msg, detail={"total": total, "dual_coded": with_dual},
+            outcome=Outcome.PASS,
+            severity=Severity.MAJOR,
+            message=msg,
+            detail={"total": total, "dual_coded": with_dual},
         )
     return EvalCheck(
         name="jlac10_or_loinc_on_lab",
-        outcome=Outcome.FAIL, severity=Severity.MAJOR,
+        outcome=Outcome.FAIL,
+        severity=Severity.MAJOR,
         message=f"{without}/{total} lab Observations without JLAC10 or LOINC.",
     )
 
@@ -145,18 +151,21 @@ def _jp_yj_code_on_medications(cohort: Cohort, country: str) -> EvalCheck:
     if total == 0:
         return EvalCheck(
             name="yj_code_on_medications",
-            outcome=Outcome.NA, severity=Severity.MAJOR,
+            outcome=Outcome.NA,
+            severity=Severity.MAJOR,
             message="No medication resources found.",
         )
     if without == 0:
         return EvalCheck(
             name="yj_code_on_medications",
-            outcome=Outcome.PASS, severity=Severity.MAJOR,
+            outcome=Outcome.PASS,
+            severity=Severity.MAJOR,
             message=f"All {total} medication resources carry a YJ code.",
         )
     return EvalCheck(
         name="yj_code_on_medications",
-        outcome=Outcome.FAIL, severity=Severity.MAJOR,
+        outcome=Outcome.FAIL,
+        severity=Severity.MAJOR,
         message=f"{without}/{total} medication resources missing a YJ code.",
         detail={"missing": without, "total": total},
     )
@@ -183,20 +192,23 @@ def _jp_core_profile_declared(cohort: Cohort, country: str) -> EvalCheck:
     if types_seen == 0:
         return EvalCheck(
             name="jp_core_profile_declared",
-            outcome=Outcome.NA, severity=Severity.MAJOR,
+            outcome=Outcome.NA,
+            severity=Severity.MAJOR,
             message="No FHIR resources found.",
         )
     ratio = types_all_profiled / types_seen
     if ratio == 1.0:
         return EvalCheck(
             name="jp_core_profile_declared",
-            outcome=Outcome.PASS, severity=Severity.MAJOR,
+            outcome=Outcome.PASS,
+            severity=Severity.MAJOR,
             message=f"All {types_seen} resource types declare JP Core meta.profile.",
         )
     outcome = Outcome.WARN if ratio > 0.7 else Outcome.FAIL
     return EvalCheck(
         name="jp_core_profile_declared",
-        outcome=outcome, severity=Severity.MAJOR,
+        outcome=outcome,
+        severity=Severity.MAJOR,
         message=f"{types_all_profiled}/{types_seen} resource types declare JP Core profile ({ratio:.1%}).",
     )
 
@@ -218,18 +230,21 @@ def _jp_name_order(cohort: Cohort, country: str) -> EvalCheck:
     if total == 0:
         return EvalCheck(
             name="jp_name_order",
-            outcome=Outcome.NA, severity=Severity.MINOR,
+            outcome=Outcome.NA,
+            severity=Severity.MINOR,
             message="No Patient.name found.",
         )
     if without_kana == 0:
         return EvalCheck(
             name="jp_name_order",
-            outcome=Outcome.PASS, severity=Severity.MINOR,
+            outcome=Outcome.PASS,
+            severity=Severity.MINOR,
             message=f"All {total} JP Patient names carry both IDE (kanji) and SYL (kana) variants.",
         )
     return EvalCheck(
         name="jp_name_order",
-        outcome=Outcome.WARN, severity=Severity.MINOR,
+        outcome=Outcome.WARN,
+        severity=Severity.MINOR,
         message=f"{without_kana}/{total} JP Patient names missing SYL (kana) variant.",
     )
 
@@ -237,14 +252,13 @@ def _jp_name_order(cohort: Cohort, country: str) -> EvalCheck:
 # --------------------------------------------------------------------------- #
 # US checks
 
+
 def _us_ascii_only_displays(cohort: Cohort, country: str) -> EvalCheck:
     """No non-ASCII characters should appear in US Condition displays."""
     problems: list[str] = []
     for row in _read(cohort, country, "Condition"):
         code = row.get("code") or {}
-        parts = [code.get("text", "")] + [
-            c.get("display", "") for c in (code.get("coding") or [])
-        ]
+        parts = [code.get("text", "")] + [c.get("display", "") for c in (code.get("coding") or [])]
         blob = "".join(p for p in parts if p)
         if any(ord(ch) > 127 for ch in blob):
             problems.append(f"Condition/{row.get('id', '?')}: {blob[:60]}")
@@ -253,12 +267,14 @@ def _us_ascii_only_displays(cohort: Cohort, country: str) -> EvalCheck:
     if not problems:
         return EvalCheck(
             name="ascii_only_displays",
-            outcome=Outcome.PASS, severity=Severity.MAJOR,
+            outcome=Outcome.PASS,
+            severity=Severity.MAJOR,
             message="All Condition displays are ASCII.",
         )
     return EvalCheck(
         name="ascii_only_displays",
-        outcome=Outcome.FAIL, severity=Severity.MAJOR,
+        outcome=Outcome.FAIL,
+        severity=Severity.MAJOR,
         message=f"{len(problems)} Condition display(s) contain non-ASCII characters.",
         detail={"problems_sample": problems[:10]},
     )
@@ -277,18 +293,21 @@ def _us_rxnorm_present_on_medications(cohort: Cohort, country: str) -> EvalCheck
     if total == 0:
         return EvalCheck(
             name="rxnorm_present_on_medications",
-            outcome=Outcome.NA, severity=Severity.MAJOR,
+            outcome=Outcome.NA,
+            severity=Severity.MAJOR,
             message="No medication resources found.",
         )
     if without == 0:
         return EvalCheck(
             name="rxnorm_present_on_medications",
-            outcome=Outcome.PASS, severity=Severity.MAJOR,
+            outcome=Outcome.PASS,
+            severity=Severity.MAJOR,
             message=f"All {total} medication resources carry an RxNorm code.",
         )
     return EvalCheck(
         name="rxnorm_present_on_medications",
-        outcome=Outcome.FAIL, severity=Severity.MAJOR,
+        outcome=Outcome.FAIL,
+        severity=Severity.MAJOR,
         message=f"{without}/{total} medication resources missing RxNorm.",
     )
 
@@ -306,30 +325,35 @@ def _us_loinc_present_on_lab_observations(cohort: Cohort, country: str) -> EvalC
     if total == 0:
         return EvalCheck(
             name="loinc_present_on_lab_observations",
-            outcome=Outcome.NA, severity=Severity.MAJOR,
+            outcome=Outcome.NA,
+            severity=Severity.MAJOR,
             message="No laboratory-category Observations found.",
         )
     if without == 0:
         return EvalCheck(
             name="loinc_present_on_lab_observations",
-            outcome=Outcome.PASS, severity=Severity.MAJOR,
+            outcome=Outcome.PASS,
+            severity=Severity.MAJOR,
             message=f"All {total} lab Observations carry LOINC.",
         )
     return EvalCheck(
         name="loinc_present_on_lab_observations",
-        outcome=Outcome.FAIL, severity=Severity.MAJOR,
+        outcome=Outcome.FAIL,
+        severity=Severity.MAJOR,
         message=f"{without}/{total} lab Observations missing LOINC.",
     )
 
 
 def _us_no_japanese_leakage(cohort: Cohort, country: str) -> EvalCheck:
     """No CJK characters anywhere in US output."""
+
     def has_cjk(s: str) -> bool:
         return any(
-            0x3040 <= ord(ch) <= 0x30FF        # hiragana + katakana
-            or 0x4E00 <= ord(ch) <= 0x9FFF     # CJK unified ideographs
+            0x3040 <= ord(ch) <= 0x30FF  # hiragana + katakana
+            or 0x4E00 <= ord(ch) <= 0x9FFF  # CJK unified ideographs
             for ch in s
         )
+
     leaks: list[str] = []
     for path in _fhir_ndjsons(cohort, country):
         for row in _iter(path):
@@ -343,12 +367,14 @@ def _us_no_japanese_leakage(cohort: Cohort, country: str) -> EvalCheck:
     if not leaks:
         return EvalCheck(
             name="no_japanese_leakage",
-            outcome=Outcome.PASS, severity=Severity.CRITICAL,
+            outcome=Outcome.PASS,
+            severity=Severity.CRITICAL,
             message="No CJK characters in US output.",
         )
     return EvalCheck(
         name="no_japanese_leakage",
-        outcome=Outcome.FAIL, severity=Severity.CRITICAL,
+        outcome=Outcome.FAIL,
+        severity=Severity.CRITICAL,
         message=f"{len(leaks)} US resource(s) contain CJK characters.",
         detail={"leaks_sample": leaks[:10]},
     )
@@ -371,24 +397,28 @@ def _us_practitioner_name_order(cohort: Cohort, country: str) -> EvalCheck:
     if total == 0:
         return EvalCheck(
             name="us_practitioner_name_order",
-            outcome=Outcome.NA, severity=Severity.MINOR,
+            outcome=Outcome.NA,
+            severity=Severity.MINOR,
             message="No Practitioner names found.",
         )
     if problems == 0:
         return EvalCheck(
             name="us_practitioner_name_order",
-            outcome=Outcome.PASS, severity=Severity.MINOR,
+            outcome=Outcome.PASS,
+            severity=Severity.MINOR,
             message=f"All {total} US Practitioner names have both given + family.",
         )
     return EvalCheck(
         name="us_practitioner_name_order",
-        outcome=Outcome.WARN, severity=Severity.MINOR,
+        outcome=Outcome.WARN,
+        severity=Severity.MINOR,
         message=f"{problems}/{total} US Practitioner names missing given or family.",
     )
 
 
 # --------------------------------------------------------------------------- #
 # helpers
+
 
 def _read(cohort: Cohort, country: str, resource_type: str):
     return _iter(cohort.root / country / "fhir_r4" / f"{resource_type}.ndjson")
@@ -401,8 +431,10 @@ def _read_many(cohort: Cohort, country: str, types: list[str]):
 
 def _iter(path):
     import json
+
     if not path.exists():
         return iter(())
+
     def _gen():
         with path.open() as f:
             for line in f:
@@ -413,6 +445,7 @@ def _iter(path):
                     yield json.loads(line)
                 except json.JSONDecodeError:
                     continue
+
     return _gen()
 
 

@@ -15,17 +15,30 @@ pytestmark = pytest.mark.unit
 
 def _ctx(country: str, susceptibilities: list[dict]) -> BundleContext:
     record = {
-        "microbiology": [{
-            "specimen": "blood", "test_loinc": "600-7", "growth": True,
-            "organism_snomed": "3092008",
-            "susceptibilities": susceptibilities,
-        }],
+        "microbiology": [
+            {
+                "specimen": "blood",
+                "test_loinc": "600-7",
+                "growth": True,
+                "organism_snomed": "3092008",
+                "susceptibilities": susceptibilities,
+            }
+        ],
     }
     return BundleContext(
-        record=record, country=country, roster_map={}, hospital_config={},
-        patient_data={}, patient_id="P1", is_readmission=False,
-        prior_encounter_id=None, primary_dx_code="", admit_dx_code="",
-        admit_dx_system="", primary_enc_id="E1", patient_sex="M",
+        record=record,
+        country=country,
+        roster_map={},
+        hospital_config={},
+        patient_data={},
+        patient_id="P1",
+        is_readmission=False,
+        prior_encounter_id=None,
+        primary_dx_code="",
+        admit_dx_code="",
+        admit_dx_system="",
+        primary_enc_id="E1",
+        patient_sex="M",
     )
 
 
@@ -33,26 +46,33 @@ def _sus_displays(resources: list[dict]) -> list[str]:
     return [
         r["valueCodeableConcept"]["coding"][0]["display"]
         for r in resources
-        if r.get("resourceType") == "Observation" and "valueCodeableConcept" in r
+        if r.get("resourceType") == "Observation"
+        and "valueCodeableConcept" in r
         and r["valueCodeableConcept"]["coding"][0].get("code") in ("S", "I", "R")
     ]
 
 
-@pytest.mark.parametrize("interp,en,ja", [
-    ("S", "Susceptible", "感性"),
-    ("I", "Intermediate", "中間"),
-    ("R", "Resistant", "耐性"),
-])
+@pytest.mark.parametrize(
+    "interp,en,ja",
+    [
+        ("S", "Susceptible", "感性"),
+        ("I", "Intermediate", "中間"),
+        ("R", "Resistant", "耐性"),
+    ],
+)
 def test_susceptibility_display_us(interp, en, ja):
     resources = _bb_microbiology(_ctx("US", [{"antibiotic_loinc": "18991-2", "interpretation": interp}]))
     assert _sus_displays(resources) == [en]
 
 
-@pytest.mark.parametrize("interp,en,ja", [
-    ("S", "Susceptible", "感性"),
-    ("I", "Intermediate", "中間"),
-    ("R", "Resistant", "耐性"),
-])
+@pytest.mark.parametrize(
+    "interp,en,ja",
+    [
+        ("S", "Susceptible", "感性"),
+        ("I", "Intermediate", "中間"),
+        ("R", "Resistant", "耐性"),
+    ],
+)
 def test_susceptibility_display_jp(interp, en, ja):
     resources = _bb_microbiology(_ctx("JP", [{"antibiotic_loinc": "18991-2", "interpretation": interp}]))
     assert _sus_displays(resources) == [ja]

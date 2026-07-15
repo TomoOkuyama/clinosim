@@ -1,4 +1,5 @@
 """Smoke test: HAI condition + organism + specimen + culture codes resolve (PR-B)."""
+
 from __future__ import annotations
 
 import pytest

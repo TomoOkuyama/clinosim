@@ -34,9 +34,7 @@ _REF_DIR = _HERE / "reference_data"
 # Required top-level keys for baseline and the minimum archetype.
 _PHYSICAL_EXAM_REQUIRED_BASELINE_ARCHETYPE = "uncomplicated_improvement"
 _PHYSICAL_EXAM_REQUIRED_BASELINE_DAY = "day_0"
-_PHYSICAL_EXAM_BODY_SYSTEMS = frozenset(
-    {"general", "cardiovascular", "respiratory", "abdominal", "neurological"}
-)
+_PHYSICAL_EXAM_BODY_SYSTEMS = frozenset({"general", "cardiovascular", "respiratory", "abdominal", "neurological"})
 
 # Required keys in baseline for discharge instructions.
 _DISCHARGE_BASELINE_REQUIRED_KEYS = ("hydrate", "rest", "follow_up")
@@ -153,24 +151,16 @@ def _validate_discharge_instructions(data: dict[str, Any]) -> None:
     # Layer 4 — required keys
     for req_key in _DISCHARGE_BASELINE_REQUIRED_KEYS:
         if req_key not in baseline:
-            raise ValueError(
-                f"discharge_instructions.yaml: baseline missing required key '{req_key}'"
-            )
+            raise ValueError(f"discharge_instructions.yaml: baseline missing required key '{req_key}'")
 
     # Layer 5 — each entry must have 'en' and 'ja'
     for key, entry in baseline.items():
         if not entry or not isinstance(entry, dict):
-            raise ValueError(
-                f"discharge_instructions.yaml: baseline[{key!r}] is empty or not a mapping"
-            )
+            raise ValueError(f"discharge_instructions.yaml: baseline[{key!r}] is empty or not a mapping")
         if "en" not in entry:
-            raise ValueError(
-                f"discharge_instructions.yaml: baseline[{key!r}] missing 'en'"
-            )
+            raise ValueError(f"discharge_instructions.yaml: baseline[{key!r}] missing 'en'")
         if "ja" not in entry:
-            raise ValueError(
-                f"discharge_instructions.yaml: baseline[{key!r}] missing 'ja'"
-            )
+            raise ValueError(f"discharge_instructions.yaml: baseline[{key!r}] missing 'ja'")
 
     # Layer 6 — disease_specific section must be present
     if "disease_specific" not in data:
@@ -184,8 +174,7 @@ def _validate_discharge_instructions(data: dict[str, Any]) -> None:
                 continue  # empty disease entry is allowed (no-op)
             if not isinstance(overrides, dict):
                 raise ValueError(
-                    f"discharge_instructions.yaml: disease_specific[{disease_id!r}] "
-                    f"must be a mapping or null"
+                    f"discharge_instructions.yaml: disease_specific[{disease_id!r}] must be a mapping or null"
                 )
             for key, entry in overrides.items():
                 if not entry or not isinstance(entry, dict):
@@ -196,13 +185,11 @@ def _validate_discharge_instructions(data: dict[str, Any]) -> None:
                     )
                 if "en" not in entry:
                     raise ValueError(
-                        f"discharge_instructions.yaml: "
-                        f"disease_specific[{disease_id!r}][{key!r}] missing 'en'"
+                        f"discharge_instructions.yaml: disease_specific[{disease_id!r}][{key!r}] missing 'en'"
                     )
                 if "ja" not in entry:
                     raise ValueError(
-                        f"discharge_instructions.yaml: "
-                        f"disease_specific[{disease_id!r}][{key!r}] missing 'ja'"
+                        f"discharge_instructions.yaml: disease_specific[{disease_id!r}][{key!r}] missing 'ja'"
                     )
 
 

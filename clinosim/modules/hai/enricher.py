@@ -7,6 +7,7 @@ _fhir_microbiology.py builder emits the culture automatically.
 Independent per-patient sub-seed (ENRICHER_SEED_OFFSETS["hai"] = 0x4841
 "HA") keeps the main RNG untouched (AD-16).
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta
@@ -131,11 +132,13 @@ def enrich_hai(ctx) -> None:
                 # must also short-circuit (a forced HAI on a < 2-day
                 # device line is clinically impossible anyway).
                 from datetime import date as _d
+
                 placement = _d.fromisoformat(_get(device, "placement_date", ""))
                 removal_raw = _get(device, "removal_date", None)
                 line_days = (
                     (_d.fromisoformat(removal_raw) - placement).days
-                    if removal_raw else 7  # snapshot in-progress fallback
+                    if removal_raw
+                    else 7  # snapshot in-progress fallback
                 )
                 if line_days < 2:
                     continue
@@ -144,10 +147,7 @@ def enrich_hai(ctx) -> None:
                 _ = rng.integers(2, line_days)
                 # Mirror _sample_organism's exact draw via choice with
                 # the matching weight distribution for this hai_type
-                _organism_weights = [
-                    o.get("weight", 0.0)
-                    for o in organisms_cfg.get(hai_type, [])
-                ]
+                _organism_weights = [o.get("weight", 0.0) for o in organisms_cfg.get(hai_type, [])]
                 if _organism_weights and sum(_organism_weights) > 0:
                     _probs = normalize_probabilities(_organism_weights, fallback="raise")
                     _ = rng.choice(len(_organism_weights), p=_probs)
@@ -176,8 +176,7 @@ def enrich_hai(ctx) -> None:
                 culture_specimen_id=f"spec-hai-{hai_id}",
             )
             hai_events.append(ev)
-            _append_hai_culture(rec, ev, specimens_cfg[hai_type], onset_date,
-                                antibiogram_cfg, rng)
+            _append_hai_culture(rec, ev, specimens_cfg[hai_type], onset_date, antibiogram_cfg, rng)
         if hai_events:
             get_or_create_container(rec, "extensions", dict)["hai"] = hai_events
 
@@ -209,9 +208,7 @@ def _append_hai_culture(
         susceptibilities=[],
         hai_event_id=hai.hai_id,
     )
-    organism_table = (
-        antibiogram_cfg.get(hai.hai_type, {}).get(hai.organism_snomed, {})
-    )
+    organism_table = antibiogram_cfg.get(hai.hai_type, {}).get(hai.organism_snomed, {})
     for abx_key, sir_probs in organism_table.items():
         loinc = ANTIBIOTIC_LOINC_LOOKUP.get(abx_key)
         if not loinc:
@@ -221,7 +218,5 @@ def _append_hai_culture(
             continue
         probs = normalize_probabilities(sir_probs, fallback="raise")
         interp = _SIR[int(rng.choice(len(_SIR), p=probs))]
-        micro.susceptibilities.append(
-            SusceptibilityResult(antibiotic_loinc=str(loinc), interpretation=interp)
-        )
+        micro.susceptibilities.append(SusceptibilityResult(antibiotic_loinc=str(loinc), interpretation=interp))
     get_or_create_container(rec, "microbiology", list).append(micro)

@@ -64,6 +64,7 @@ def _sample_allergy_dict() -> dict:
 
 # --- Empty / no allergies ---
 
+
 def test_no_allergies_emits_nothing():
     ctx = _make_ctx([])
     assert _bb_allergy_intolerances(ctx) == []
@@ -89,6 +90,7 @@ def test_missing_allergies_key_emits_nothing():
 
 
 # --- Resource shape ---
+
 
 def test_emits_one_allergy_intolerance_dataclass():
     ctx = _make_ctx([_sample_allergy_dataclass()])
@@ -131,9 +133,7 @@ def test_status_displays_resolve_via_codes_yaml():
     clinical = r["clinicalStatus"]["coding"][0]
     verification = r["verificationStatus"]["coding"][0]
     assert clinical["display"] == lookup("hl7-allergyintolerance-clinical", "active", "en") == "Active"
-    assert verification["display"] == lookup(
-        "hl7-allergyintolerance-verification", "confirmed", "en"
-    ) == "Confirmed"
+    assert verification["display"] == lookup("hl7-allergyintolerance-verification", "confirmed", "en") == "Confirmed"
 
 
 def test_category_medication():
@@ -183,6 +183,7 @@ def test_reaction_manifestation_and_severity():
 
 # --- Dict path ---
 
+
 def test_allergy_from_dict_path():
     """Production CIF is json.load() -> dict; verify _o() dict-access path."""
     ctx = _make_ctx([_sample_allergy_dict()])
@@ -197,6 +198,7 @@ def test_allergy_from_dict_path():
 
 
 # --- Category fallback ---
+
 
 def test_unknown_category_defaults_to_medication():
     a = _sample_allergy_dataclass()
@@ -216,6 +218,7 @@ def test_food_category():
 
 # --- No onset date ---
 
+
 def test_no_onset_date_omits_field():
     a = _sample_allergy_dataclass()
     a.onset_date = None
@@ -226,6 +229,7 @@ def test_no_onset_date_omits_field():
 
 # --- No reactions ---
 
+
 def test_no_reactions_omits_reaction_field():
     a = _sample_allergy_dataclass()
     a.reactions = []
@@ -235,6 +239,7 @@ def test_no_reactions_omits_reaction_field():
 
 
 # --- JP locale ---
+
 
 def test_jp_locale_resolves_snomed_display_to_ja():
     """JP cohort: allergen_code 387207008 (Penicillin) resolved to ペニシリン via code_lookup."""
@@ -265,6 +270,7 @@ def test_jp_locale_resolves_reaction_manifestation_to_ja():
 
 
 # --- Multiple allergies ---
+
 
 def test_multiple_allergies_all_emitted():
     a1 = _sample_allergy_dataclass()

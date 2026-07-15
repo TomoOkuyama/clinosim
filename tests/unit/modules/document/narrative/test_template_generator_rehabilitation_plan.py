@@ -16,8 +16,15 @@ from clinosim.types.document import DocumentType, FormatType, NarrativeContext
 from clinosim.types.patient import PatientProfile
 
 _RP_SECTIONS = (
-    "patient_and_diagnosis", "rehab_team", "functional_status", "basic_movement",
-    "session_frequency", "goals", "policy", "discharge_estimate", "explanation_consent",
+    "patient_and_diagnosis",
+    "rehab_team",
+    "functional_status",
+    "basic_movement",
+    "session_frequency",
+    "goals",
+    "policy",
+    "discharge_estimate",
+    "explanation_consent",
 )
 
 
@@ -145,12 +152,16 @@ def test_rehab_team_fallback_when_no_sessions() -> None:
 def test_functional_status_reflects_latest_session() -> None:
     spec = _make_spec()
     older = _rehab_session(
-        day_post_op=1, session_date=datetime(2026, 7, 2, 10, 0),
-        functional_progress="stable", pain_score=6,
+        day_post_op=1,
+        session_date=datetime(2026, 7, 2, 10, 0),
+        functional_progress="stable",
+        pain_score=6,
     )
     latest = _rehab_session(
-        day_post_op=5, session_date=datetime(2026, 7, 6, 10, 0),
-        functional_progress="improved", pain_score=2,
+        day_post_op=5,
+        session_date=datetime(2026, 7, 6, 10, 0),
+        functional_progress="improved",
+        pain_score=2,
     )
     ctx = _make_ctx(rehab_sessions=[older, latest])
     gen = TemplateNarrativeGenerator()

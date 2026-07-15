@@ -283,7 +283,9 @@ def _pr3b3_narrow_proof_checks() -> list[tuple[str, Any, Any]]:
     )
     micro = MicrobiologyResult(
         encounter_id="enc-pr3b3",
-        specimen="blood", specimen_snomed="119297000", test_loinc="600-7",
+        specimen="blood",
+        specimen_snomed="119297000",
+        test_loinc="600-7",
         collected_datetime=_dt.fromisoformat(onset_date),
         reported_datetime=reported_dt,
         growth=True,
@@ -291,7 +293,9 @@ def _pr3b3_narrow_proof_checks() -> list[tuple[str, Any, Any]]:
         susceptibilities=[
             SusceptibilityResult(antibiotic_loinc=ANTIBIOTIC_LOINC_LOOKUP["vancomycin"], interpretation="S"),
             SusceptibilityResult(antibiotic_loinc=ANTIBIOTIC_LOINC_LOOKUP["cefazolin"], interpretation="S"),
-            SusceptibilityResult(antibiotic_loinc=ANTIBIOTIC_LOINC_LOOKUP["piperacillin_tazobactam"], interpretation="S"),
+            SusceptibilityResult(
+                antibiotic_loinc=ANTIBIOTIC_LOINC_LOOKUP["piperacillin_tazobactam"], interpretation="S"
+            ),  # noqa: E501
         ],
         hai_event_id=ev.hai_id,
     )
@@ -318,17 +322,12 @@ def _pr3b3_narrow_proof_checks() -> list[tuple[str, Any, Any]]:
     pip = next((r for r in empirical if r.drug_key == "piperacillin_tazobactam"), None)
 
     return [
-        ("pr3b3_narrow_target_drug",
-         narrowed[0].drug_key if narrowed else None, "cefazolin"),
-        ("pr3b3_empirical_vancomycin_discontinued_at",
-         vanc.discontinuation_datetime if vanc else None, reported_dt),
-        ("pr3b3_empirical_pip_tazo_discontinued_at",
-         pip.discontinuation_datetime if pip else None, reported_dt),
+        ("pr3b3_narrow_target_drug", narrowed[0].drug_key if narrowed else None, "cefazolin"),
+        ("pr3b3_empirical_vancomycin_discontinued_at", vanc.discontinuation_datetime if vanc else None, reported_dt),
+        ("pr3b3_empirical_pip_tazo_discontinued_at", pip.discontinuation_datetime if pip else None, reported_dt),
         ("pr3b3_new_narrowed_regimen_count", len(narrowed), 1),
-        ("pr3b3_new_narrowed_regimen_drug",
-         narrowed[0].drug_key if narrowed else None, "cefazolin"),
-        ("pr3b3_new_narrowed_regimen_intent",
-         narrowed[0].intent if narrowed else None, "narrowed"),
+        ("pr3b3_new_narrowed_regimen_drug", narrowed[0].drug_key if narrowed else None, "cefazolin"),
+        ("pr3b3_new_narrowed_regimen_intent", narrowed[0].intent if narrowed else None, "narrowed"),
     ]
 
 
@@ -359,9 +358,7 @@ def _build_combined_proof() -> dict[str, Any]:
         ]
     return {
         "equality_checks": (
-            list(regimen_result.get("equality_checks") or [])
-            + list(antibiogram_checks)
-            + list(narrow_checks)
+            list(regimen_result.get("equality_checks") or []) + list(antibiogram_checks) + list(narrow_checks)
         ),
     }
 
@@ -393,22 +390,22 @@ _NARROW_RATE_BANDS: list[dict[str, Any]] = [
         "expected_narrow_rate_min": 0.60,
         "expected_narrow_rate_max": 1.00,
         "source": "Aggregate per-hai_type: vancomycin always-S ELIMINATION + "
-                  "cefazolin SWITCH + gram-neg SWITCH (NHSN AR 2018-2020 weighted)",
+        "cefazolin SWITCH + gram-neg SWITCH (NHSN AR 2018-2020 weighted)",
     },
     {
         "cohort": "cauti",
         "expected_narrow_rate_min": 0.50,
         "expected_narrow_rate_max": 1.00,
         "source": "Aggregate per-hai_type: ceftriaxone single-empirical, ladder "
-                  "walk picks narrower target ~80-95% of E.coli / K.pneumoniae "
-                  "(NHSN AR 2018-2020 weighted)",
+        "walk picks narrower target ~80-95% of E.coli / K.pneumoniae "
+        "(NHSN AR 2018-2020 weighted)",
     },
     {
         "cohort": "vap",
         "expected_narrow_rate_min": 0.60,
         "expected_narrow_rate_max": 1.00,
         "source": "Aggregate per-hai_type: vancomycin always-S ELIMINATION on "
-                  "S.aureus VAP + cefazolin SWITCH (MSSA) + gram-neg ladder SWITCH",
+        "S.aureus VAP + cefazolin SWITCH (MSSA) + gram-neg ladder SWITCH",
     },
 ]
 
@@ -434,8 +431,7 @@ def _validate_narrow_rate_bands() -> None:
     """
     if not _NARROW_RATE_BANDS:
         raise ValueError(
-            "_NARROW_RATE_BANDS is empty — narrow rate gate would be silently "
-            "disabled (PR-90 class silent no-op)"
+            "_NARROW_RATE_BANDS is empty — narrow rate gate would be silently disabled (PR-90 class silent no-op)"
         )
     valid_hai_types = set(HAI_TYPES)
     banded_hai_types: set[str] = set()
@@ -448,21 +444,15 @@ def _validate_narrow_rate_bands() -> None:
                 f"per-hai_type aggregate"
             )
         if cohort not in valid_hai_types:
-            raise ValueError(
-                f"_NARROW_RATE_BANDS cohort {cohort!r} not in HAI_TYPES "
-                f"{sorted(valid_hai_types)}"
-            )
+            raise ValueError(f"_NARROW_RATE_BANDS cohort {cohort!r} not in HAI_TYPES {sorted(valid_hai_types)}")
         for required_key in ("expected_narrow_rate_min", "expected_narrow_rate_max", "source"):
             if required_key not in band:
-                raise ValueError(
-                    f"_NARROW_RATE_BANDS band {cohort!r} missing required key {required_key!r}"
-                )
+                raise ValueError(f"_NARROW_RATE_BANDS band {cohort!r} missing required key {required_key!r}")
         mn = band["expected_narrow_rate_min"]
         mx = band["expected_narrow_rate_max"]
         if not (0.0 <= mn <= mx <= 1.0):
             raise ValueError(
-                f"_NARROW_RATE_BANDS band {cohort!r} invalid range "
-                f"[{mn}, {mx}] (must satisfy 0 ≤ min ≤ max ≤ 1)"
+                f"_NARROW_RATE_BANDS band {cohort!r} invalid range [{mn}, {mx}] (must satisfy 0 ≤ min ≤ max ≤ 1)"
             )
         banded_hai_types.add(cohort)
 
@@ -503,50 +493,52 @@ def _validate_narrow_rate_bands() -> None:
 # If a future contributor finds an NHSN-published band for any exempt pair,
 # the correct action is to ADD the band (with NHSN Table # citation) and
 # REMOVE the exempt entry — NOT to leave the exempt with a stale rationale.
-_NHSN_REVERSE_COVERAGE_EXEMPT: frozenset[tuple[str, str]] = frozenset({
-    # CoNS (Coagulase-negative Staphylococci) is a frequent CLABSI organism
-    # but its empirical R% varies widely by hospital and is contamination-
-    # confounded; NHSN AR 2018-2020 does not publish a stable population
-    # band for this proxy.
-    ("clabsi", "60875001"),
-    # E.coli CLABSI is uncommon (line infection by enteric is unusual
-    # outside ICU); NHSN does not publish a CLABSI-specific E.coli band.
-    # CAUTI band already covers the dominant E.coli rate.
-    ("clabsi", "112283007"),
-    # K.pneumoniae CLABSI: same rationale as E.coli — NHSN bands focus on
-    # CAUTI-side enteric resistance.
-    ("clabsi", "56415008"),
-    # P.aeruginosa CLABSI: low incidence; resistance varies widely. CAUTI +
-    # VAP bands focus on Pseudo where it dominates.
-    ("clabsi", "52499004"),
-    # K.pneumoniae CAUTI: covered indirectly via ESBL proxy on E.coli
-    # ceftriaxone band; K.pneumoniae-specific NHSN band not published at
-    # this granularity.
-    ("cauti", "56415008"),
-    # P.aeruginosa CAUTI: highly variable resistance; NHSN bands focus on
-    # VAP Pseudo.
-    ("cauti", "52499004"),
-    # Proteus mirabilis CAUTI: secondary uropathogen; NHSN does not publish
-    # a P.mirabilis-specific resistance band.
-    ("cauti", "73457008"),
-    # E.coli VAP: rare; not banded.
-    ("vap", "112283007"),
-    # K.pneumoniae VAP: covered indirectly by VAP MRSA + Pseudo bands as
-    # the primary enforcement targets.
-    ("vap", "56415008"),
-    # P.aeruginosa VAP: high variability per facility; NHSN AR 2018-2020
-    # focuses on MRSA proxy for VAP at population scale.
-    ("vap", "52499004"),
-    # Enterobacter VAP: secondary organism; not banded by NHSN AR
-    # 2018-2020 at this granularity.
-    ("vap", "14385002"),
-    # Acinetobacter baumannii VAP: highly variable resistance pattern, not
-    # banded by NHSN at the proxy level used here.
-    ("vap", "91288006"),
-    # Stenotrophomonas maltophilia VAP: ICU-only, low incidence; NHSN does
-    # not publish a population band.
-    ("vap", "113697002"),
-})
+_NHSN_REVERSE_COVERAGE_EXEMPT: frozenset[tuple[str, str]] = frozenset(
+    {
+        # CoNS (Coagulase-negative Staphylococci) is a frequent CLABSI organism
+        # but its empirical R% varies widely by hospital and is contamination-
+        # confounded; NHSN AR 2018-2020 does not publish a stable population
+        # band for this proxy.
+        ("clabsi", "60875001"),
+        # E.coli CLABSI is uncommon (line infection by enteric is unusual
+        # outside ICU); NHSN does not publish a CLABSI-specific E.coli band.
+        # CAUTI band already covers the dominant E.coli rate.
+        ("clabsi", "112283007"),
+        # K.pneumoniae CLABSI: same rationale as E.coli — NHSN bands focus on
+        # CAUTI-side enteric resistance.
+        ("clabsi", "56415008"),
+        # P.aeruginosa CLABSI: low incidence; resistance varies widely. CAUTI +
+        # VAP bands focus on Pseudo where it dominates.
+        ("clabsi", "52499004"),
+        # K.pneumoniae CAUTI: covered indirectly via ESBL proxy on E.coli
+        # ceftriaxone band; K.pneumoniae-specific NHSN band not published at
+        # this granularity.
+        ("cauti", "56415008"),
+        # P.aeruginosa CAUTI: highly variable resistance; NHSN bands focus on
+        # VAP Pseudo.
+        ("cauti", "52499004"),
+        # Proteus mirabilis CAUTI: secondary uropathogen; NHSN does not publish
+        # a P.mirabilis-specific resistance band.
+        ("cauti", "73457008"),
+        # E.coli VAP: rare; not banded.
+        ("vap", "112283007"),
+        # K.pneumoniae VAP: covered indirectly by VAP MRSA + Pseudo bands as
+        # the primary enforcement targets.
+        ("vap", "56415008"),
+        # P.aeruginosa VAP: high variability per facility; NHSN AR 2018-2020
+        # focuses on MRSA proxy for VAP at population scale.
+        ("vap", "52499004"),
+        # Enterobacter VAP: secondary organism; not banded by NHSN AR
+        # 2018-2020 at this granularity.
+        ("vap", "14385002"),
+        # Acinetobacter baumannii VAP: highly variable resistance pattern, not
+        # banded by NHSN at the proxy level used here.
+        ("vap", "91288006"),
+        # Stenotrophomonas maltophilia VAP: ICU-only, low incidence; NHSN does
+        # not publish a population band.
+        ("vap", "113697002"),
+    }
+)
 
 
 # PR-90 lesson: validate canonical-constants references at import time.
@@ -583,30 +575,18 @@ def _validate_nhsn_resistance_bands() -> None:
     for band in _NHSN_RESISTANCE_BANDS:
         cohort = band["cohort"]
         if "/" not in cohort:
-            raise ValueError(
-                f"_NHSN_RESISTANCE_BANDS cohort {cohort!r} must be "
-                f"<hai_type>/<organism_snomed>"
-            )
+            raise ValueError(f"_NHSN_RESISTANCE_BANDS cohort {cohort!r} must be <hai_type>/<organism_snomed>")
         hai_type, organism = cohort.split("/", maxsplit=1)
         if hai_type not in valid_hai_types:
             raise ValueError(
-                f"_NHSN_RESISTANCE_BANDS cohort hai_type {hai_type!r} "
-                f"not in HAI_TYPES {sorted(valid_hai_types)}"
+                f"_NHSN_RESISTANCE_BANDS cohort hai_type {hai_type!r} not in HAI_TYPES {sorted(valid_hai_types)}"
             )
-        valid_organisms = {
-            str(entry["snomed"]) for entry in organisms_table.get(hai_type, [])
-        }
+        valid_organisms = {str(entry["snomed"]) for entry in organisms_table.get(hai_type, [])}
         if organism not in valid_organisms:
-            raise ValueError(
-                f"_NHSN_RESISTANCE_BANDS organism {organism!r} not in "
-                f"hai_organisms.yaml[{hai_type}]"
-            )
+            raise ValueError(f"_NHSN_RESISTANCE_BANDS organism {organism!r} not in hai_organisms.yaml[{hai_type}]")
         abx_key = band["antibiotic"]
         if abx_key not in valid_antibiotics:
-            raise ValueError(
-                f"_NHSN_RESISTANCE_BANDS antibiotic {abx_key!r} not in "
-                f"ANTIBIOTIC_DRUGS"
-            )
+            raise ValueError(f"_NHSN_RESISTANCE_BANDS antibiotic {abx_key!r} not in ANTIBIOTIC_DRUGS")
 
     # Reverse-coverage (forward): every panel-bearing (hai_type, organism)
     # pair should have at least one band. Pairs we deliberately don't band
@@ -648,6 +628,7 @@ def _validate_narrow_ladder_at_import() -> None:
     hai_type / organism / drug_key would silently no-op the narrow chain
     (PR-90 教訓 / silent-no-op defense triplet)."""
     from clinosim.modules.antibiotic.engine import load_narrow_ladder
+
     load_narrow_ladder()
 
 
@@ -687,27 +668,21 @@ register_audit_module(
                 # PR3b-2: NHSN resistance-band metadata. R-rate checks wired
                 # in clinical axis per-(hai_type, organism, antibiotic) cohort
                 # (PR3b-3 D1 complete, 2026-06-29).
-                "nhsn_r_bands": [
-                    b for b in _NHSN_RESISTANCE_BANDS if b["cohort"].startswith("clabsi/")
-                ],
+                "nhsn_r_bands": [b for b in _NHSN_RESISTANCE_BANDS if b["cohort"].startswith("clabsi/")],
             },
             "cauti": {
                 "icd10_code": "T83.511A",
                 "expected_drugs": ("ceftriaxone",),
                 "expected_duration_days": 7,
                 "min_mar_per_event": 7,
-                "nhsn_r_bands": [
-                    b for b in _NHSN_RESISTANCE_BANDS if b["cohort"].startswith("cauti/")
-                ],
+                "nhsn_r_bands": [b for b in _NHSN_RESISTANCE_BANDS if b["cohort"].startswith("cauti/")],
             },
             "vap": {
                 "icd10_code": "J95.851",
                 "expected_drugs": ("vancomycin", "piperacillin_tazobactam"),
                 "expected_duration_days": 7,
                 "min_mar_per_event": 7 * 2 + 7 * 4,
-                "nhsn_r_bands": [
-                    b for b in _NHSN_RESISTANCE_BANDS if b["cohort"].startswith("vap/")
-                ],
+                "nhsn_r_bands": [b for b in _NHSN_RESISTANCE_BANDS if b["cohort"].startswith("vap/")],
             },
         },
         lift_firing_proof=_build_combined_proof,

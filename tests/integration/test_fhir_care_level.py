@@ -6,11 +6,21 @@ pytestmark = pytest.mark.integration
 
 
 def _ctx(code, country="JP"):
-    return BundleContext(record={"care_level": code}, country=country, roster_map={},
-                         hospital_config={}, patient_data={}, patient_id="p1",
-                         is_readmission=False, prior_encounter_id=None, primary_dx_code="",
-                         admit_dx_code="", admit_dx_system="icd-10", primary_enc_id="e1",
-                         patient_sex="female")
+    return BundleContext(
+        record={"care_level": code},
+        country=country,
+        roster_map={},
+        hospital_config={},
+        patient_data={},
+        patient_id="p1",
+        is_readmission=False,
+        prior_encounter_id=None,
+        primary_dx_code="",
+        admit_dx_code="",
+        admit_dx_system="icd-10",
+        primary_enc_id="e1",
+        patient_sex="female",
+    )
 
 
 def test_care_level_observation():

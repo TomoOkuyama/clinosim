@@ -9,26 +9,49 @@ import pytest
 def _write_tiny_structural(tmp_path: Path):
     structural = tmp_path / "structural" / "patients"
     structural.mkdir(parents=True)
-    (structural / "ENC-1.json").write_text(json.dumps({
-        "patient": {"patient_id": "POP-1", "age": 65, "sex": "M"},
-        "encounters": [{"encounter_id": "ENC-1",
-                        "encounter_type": {"value": "inpatient"}}],
-        "documents": [{"document_id": "doc-1", "task_type": "admission_hp",
-                       "loinc_code": "34117-2", "format_type": "composition",
-                       "narrative": None}],
-        "vitals": [], "lab_results": [], "medications": [], "diagnoses": [],
-        "procedures": [], "allergies": [],
-    }))
+    (structural / "ENC-1.json").write_text(
+        json.dumps(
+            {
+                "patient": {"patient_id": "POP-1", "age": 65, "sex": "M"},
+                "encounters": [{"encounter_id": "ENC-1", "encounter_type": {"value": "inpatient"}}],
+                "documents": [
+                    {
+                        "document_id": "doc-1",
+                        "task_type": "admission_hp",
+                        "loinc_code": "34117-2",
+                        "format_type": "composition",
+                        "narrative": None,
+                    }
+                ],
+                "vitals": [],
+                "lab_results": [],
+                "medications": [],
+                "diagnoses": [],
+                "procedures": [],
+                "allergies": [],
+            }
+        )
+    )
 
 
 @pytest.mark.unit
 def test_narrate_template_writes_dir_and_pointer(tmp_path):
     _write_tiny_structural(tmp_path)
     r = subprocess.run(
-        [sys.executable, "-m", "clinosim.simulator.cli", "narrate",
-         "--cif-dir", str(tmp_path), "--provider", "template",
-         "--country", "US"],
-        capture_output=True, text=True,
+        [
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "narrate",
+            "--cif-dir",
+            str(tmp_path),
+            "--provider",
+            "template",
+            "--country",
+            "US",
+        ],
+        capture_output=True,
+        text=True,
     )
     assert r.returncode == 0, r.stderr
     assert (tmp_path / "narratives/template/documents/ENC-1").exists()
@@ -44,10 +67,21 @@ def test_narrate_no_set_current_leaves_pointer(tmp_path):
     (tmp_path / "narratives").mkdir(exist_ok=True)
     (tmp_path / "narratives" / "current_version.txt").write_text("prior")
     r = subprocess.run(
-        [sys.executable, "-m", "clinosim.simulator.cli", "narrate",
-         "--cif-dir", str(tmp_path), "--provider", "template",
-         "--country", "US", "--no-set-current"],
-        capture_output=True, text=True,
+        [
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "narrate",
+            "--cif-dir",
+            str(tmp_path),
+            "--provider",
+            "template",
+            "--country",
+            "US",
+            "--no-set-current",
+        ],
+        capture_output=True,
+        text=True,
     )
     assert r.returncode == 0, r.stderr
     pointer = (tmp_path / "narratives/current_version.txt").read_text().strip()
@@ -58,10 +92,22 @@ def test_narrate_no_set_current_leaves_pointer(tmp_path):
 def test_narrate_tasks_filter(tmp_path):
     _write_tiny_structural(tmp_path)
     r = subprocess.run(
-        [sys.executable, "-m", "clinosim.simulator.cli", "narrate",
-         "--cif-dir", str(tmp_path), "--provider", "template",
-         "--tasks", "progress_note", "--country", "US"],
-        capture_output=True, text=True,
+        [
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "narrate",
+            "--cif-dir",
+            str(tmp_path),
+            "--provider",
+            "template",
+            "--tasks",
+            "progress_note",
+            "--country",
+            "US",
+        ],
+        capture_output=True,
+        text=True,
     )
     assert r.returncode == 0, r.stderr
     # admission_hp should not appear
@@ -73,11 +119,22 @@ def test_narrate_llm_provider_missing_config_fails_loud(tmp_path):
     """--llm-config pointing nowhere must fail loudly (no silent template run)."""
     _write_tiny_structural(tmp_path)
     r = subprocess.run(
-        [sys.executable, "-m", "clinosim.simulator.cli", "narrate",
-         "--cif-dir", str(tmp_path), "--provider", "bedrock",
-         "--llm-config", str(tmp_path / "does_not_exist.yaml"),
-         "--country", "US"],
-        capture_output=True, text=True,
+        [
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "narrate",
+            "--cif-dir",
+            str(tmp_path),
+            "--provider",
+            "bedrock",
+            "--llm-config",
+            str(tmp_path / "does_not_exist.yaml"),
+            "--country",
+            "US",
+        ],
+        capture_output=True,
+        text=True,
     )
     assert r.returncode != 0
     assert "FileNotFoundError" in r.stderr or "not found" in r.stderr
@@ -90,10 +147,20 @@ def test_narrate_mock_provider_writes_llm_version_dir(tmp_path):
     """--provider mock runs LLMNarrativePass end-to-end (no network)."""
     _write_tiny_structural(tmp_path)
     r = subprocess.run(
-        [sys.executable, "-m", "clinosim.simulator.cli", "narrate",
-         "--cif-dir", str(tmp_path), "--provider", "mock",
-         "--country", "US"],
-        capture_output=True, text=True,
+        [
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "narrate",
+            "--cif-dir",
+            str(tmp_path),
+            "--provider",
+            "mock",
+            "--country",
+            "US",
+        ],
+        capture_output=True,
+        text=True,
     )
     assert r.returncode == 0, r.stderr
     # default version_id = provider name
@@ -116,10 +183,20 @@ def test_narrate_mock_default_does_not_repoint_existing_pointer(tmp_path):
     (tmp_path / "narratives").mkdir(exist_ok=True)
     (tmp_path / "narratives" / "current_version.txt").write_text("template")
     r = subprocess.run(
-        [sys.executable, "-m", "clinosim.simulator.cli", "narrate",
-         "--cif-dir", str(tmp_path), "--provider", "mock",
-         "--country", "US"],
-        capture_output=True, text=True,
+        [
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "narrate",
+            "--cif-dir",
+            str(tmp_path),
+            "--provider",
+            "mock",
+            "--country",
+            "US",
+        ],
+        capture_output=True,
+        text=True,
     )
     assert r.returncode == 0, r.stderr
     pointer = (tmp_path / "narratives/current_version.txt").read_text().strip()
@@ -132,10 +209,21 @@ def test_narrate_mock_explicit_set_current_updates_pointer(tmp_path):
     """M-3: explicit --set-current always wins, even for LLM providers."""
     _write_tiny_structural(tmp_path)
     r = subprocess.run(
-        [sys.executable, "-m", "clinosim.simulator.cli", "narrate",
-         "--cif-dir", str(tmp_path), "--provider", "mock",
-         "--country", "US", "--set-current"],
-        capture_output=True, text=True,
+        [
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "narrate",
+            "--cif-dir",
+            str(tmp_path),
+            "--provider",
+            "mock",
+            "--country",
+            "US",
+            "--set-current",
+        ],
+        capture_output=True,
+        text=True,
     )
     assert r.returncode == 0, r.stderr
     pointer = (tmp_path / "narratives/current_version.txt").read_text().strip()
@@ -148,9 +236,19 @@ def test_narrate_mock_explicit_set_current_updates_pointer(tmp_path):
 
 def _narrate(tmp_path: Path, *extra: str) -> subprocess.CompletedProcess:
     return subprocess.run(
-        [sys.executable, "-m", "clinosim.simulator.cli", "narrate",
-         "--cif-dir", str(tmp_path), "--country", "US", *extra],
-        capture_output=True, text=True,
+        [
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "narrate",
+            "--cif-dir",
+            str(tmp_path),
+            "--country",
+            "US",
+            *extra,
+        ],
+        capture_output=True,
+        text=True,
     )
 
 
@@ -171,8 +269,12 @@ def test_narrate_filtered_explicit_set_current_warns(tmp_path):
     """I-1: explicit --set-current with a filter proceeds but warns loudly."""
     _write_tiny_structural(tmp_path)
     r = _narrate(
-        tmp_path, "--provider", "template",
-        "--patient-filter", "ENC-1", "--set-current",
+        tmp_path,
+        "--provider",
+        "template",
+        "--patient-filter",
+        "ENC-1",
+        "--set-current",
     )
     assert r.returncode == 0, r.stderr
     pointer = (tmp_path / "narratives/current_version.txt").read_text().strip()
@@ -204,8 +306,12 @@ def test_narrate_filtered_merge_into_version_opt_in(tmp_path):
     full = _narrate(tmp_path, "--provider", "template", "--no-set-current")
     assert full.returncode == 0, full.stderr
     r = _narrate(
-        tmp_path, "--provider", "template",
-        "--patient-filter", "ENC-1", "--merge-into-version",
+        tmp_path,
+        "--provider",
+        "template",
+        "--patient-filter",
+        "ENC-1",
+        "--merge-into-version",
     )
     assert r.returncode == 0, r.stderr
     assert "NOTICE" in r.stderr
@@ -217,8 +323,13 @@ def test_narrate_filtered_fresh_version_needs_no_flag(tmp_path):
     """I-1: a filtered run into a fresh (or empty) version dir needs no flag."""
     _write_tiny_structural(tmp_path)
     r = _narrate(
-        tmp_path, "--provider", "template",
-        "--version-id", "trial-1", "--patient-filter", "ENC-1",
+        tmp_path,
+        "--provider",
+        "template",
+        "--version-id",
+        "trial-1",
+        "--patient-filter",
+        "ENC-1",
     )
     assert r.returncode == 0, r.stderr
     assert (tmp_path / "narratives/trial-1/documents/ENC-1").exists()
@@ -229,8 +340,13 @@ def test_narrate_manifest_partial_flag(tmp_path):
     """I-1: the manifest records partial=true for filtered runs, false else."""
     _write_tiny_structural(tmp_path)
     r = _narrate(
-        tmp_path, "--provider", "template",
-        "--version-id", "trial-1", "--patient-filter", "ENC-1",
+        tmp_path,
+        "--provider",
+        "template",
+        "--version-id",
+        "trial-1",
+        "--patient-filter",
+        "ENC-1",
     )
     assert r.returncode == 0, r.stderr
     partial = json.loads((tmp_path / "narratives/trial-1/manifest.json").read_text())

@@ -15,6 +15,7 @@ walk order is deterministic → byte-stable).
 Marker `regression` = opt-in. Default `pytest` run does not execute this
 suite (subprocess latency + β-JP-1 LLM cost budget considerations).
 """
+
 from __future__ import annotations
 
 import difflib
@@ -38,15 +39,24 @@ def _run_test_disease(profile_id: str, tmp_path: Path) -> None:
     profile_path = FIXTURE_DIR / f"{profile_id}.yaml"
     assert profile_path.is_file(), f"missing profile YAML: {profile_path}"
     result = subprocess.run(
-        [sys.executable, "-m", "clinosim.simulator.cli", "test-disease",
-         "--patient-profile", str(profile_path),
-         "--format", "cif", "-o", str(tmp_path)],
-        capture_output=True, text=True, check=False,
+        [
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "test-disease",
+            "--patient-profile",
+            str(profile_path),
+            "--format",
+            "cif",
+            "-o",
+            str(tmp_path),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
     )
     assert result.returncode == 0, (
-        f"test-disease failed for {profile_id}:\n"
-        f"stdout: {result.stdout}\n"
-        f"stderr: {result.stderr}"
+        f"test-disease failed for {profile_id}:\nstdout: {result.stdout}\nstderr: {result.stderr}"
     )
 
 
@@ -63,27 +73,24 @@ def _collect_narratives(narr_dir: Path) -> dict[str, dict]:
     return actual
 
 
-def _assert_matches_golden(
-    profile_id: str, actual: dict, golden_path: Path, regen_hint: str
-) -> None:
+def _assert_matches_golden(profile_id: str, actual: dict, golden_path: Path, regen_hint: str) -> None:
     """Assert actual == golden; on mismatch fail with an actionable unified diff."""
     expected = json.loads(golden_path.read_text())
     if actual == expected:
         return
     actual_str = json.dumps(actual, indent=2, ensure_ascii=False, sort_keys=True)
     expected_str = json.dumps(expected, indent=2, ensure_ascii=False, sort_keys=True)
-    diff = "\n".join(difflib.unified_diff(
-        expected_str.splitlines(),
-        actual_str.splitlines(),
-        fromfile=golden_path.name,
-        tofile=f"{profile_id}.actual",
-        lineterm="",
-        n=3,
-    ))
-    pytest.fail(
-        f"Narrative regression for {profile_id}:\n"
-        f"If intentional, run `{regen_hint}` + commit.\n\n{diff}"
+    diff = "\n".join(
+        difflib.unified_diff(
+            expected_str.splitlines(),
+            actual_str.splitlines(),
+            fromfile=golden_path.name,
+            tofile=f"{profile_id}.actual",
+            lineterm="",
+            n=3,
+        )
     )
+    pytest.fail(f"Narrative regression for {profile_id}:\nIf intentional, run `{regen_hint}` + commit.\n\n{diff}")
 
 
 @pytest.mark.regression
@@ -92,8 +99,7 @@ def test_profile_narrative_byte_diff(profile_id: str, tmp_path: Path) -> None:
     """<profile>.yaml → generate → byte-diff vs <profile>.golden.json."""
     golden_path = FIXTURE_DIR / f"{profile_id}.golden.json"
     assert golden_path.is_file(), (
-        f"missing golden JSON: {golden_path}. Run "
-        f"`clinosim regenerate-goldens --profile {profile_id}` to bootstrap."
+        f"missing golden JSON: {golden_path}. Run `clinosim regenerate-goldens --profile {profile_id}` to bootstrap."
     )
 
     _run_test_disease(profile_id, tmp_path)
@@ -104,7 +110,9 @@ def test_profile_narrative_byte_diff(profile_id: str, tmp_path: Path) -> None:
 
     actual = _collect_narratives(narr_dir)
     _assert_matches_golden(
-        profile_id, actual, golden_path,
+        profile_id,
+        actual,
+        golden_path,
         regen_hint=f"clinosim regenerate-goldens --profile {profile_id}",
     )
 
@@ -123,17 +131,29 @@ def test_profile_narrative_llm_mock_byte_diff(profile_id: str, tmp_path: Path) -
     profile = yaml.safe_load((FIXTURE_DIR / f"{profile_id}.yaml").read_text())
     cif_dir = tmp_path / "cif"
     result = subprocess.run(
-        [sys.executable, "-m", "clinosim.simulator.cli", "narrate",
-         "--cif-dir", str(cif_dir), "--provider", "mock",
-         "--country", str(profile.get("country", "US")),
-         "--seed", str(profile.get("random_seed", 42)),
-         "--version-id", LLM_MOCK_VERSION_ID, "--no-set-current"],
-        capture_output=True, text=True, check=False,
+        [
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "narrate",
+            "--cif-dir",
+            str(cif_dir),
+            "--provider",
+            "mock",
+            "--country",
+            str(profile.get("country", "US")),
+            "--seed",
+            str(profile.get("random_seed", 42)),
+            "--version-id",
+            LLM_MOCK_VERSION_ID,
+            "--no-set-current",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
     )
     assert result.returncode == 0, (
-        f"narrate --provider mock failed for {profile_id}:\n"
-        f"stdout: {result.stdout}\n"
-        f"stderr: {result.stderr}"
+        f"narrate --provider mock failed for {profile_id}:\nstdout: {result.stdout}\nstderr: {result.stderr}"
     )
 
     narr_dir = cif_dir / "narratives" / LLM_MOCK_VERSION_ID / "documents"
@@ -142,6 +162,8 @@ def test_profile_narrative_llm_mock_byte_diff(profile_id: str, tmp_path: Path) -
 
     actual = _collect_narratives(narr_dir)
     _assert_matches_golden(
-        profile_id, actual, golden_path,
+        profile_id,
+        actual,
+        golden_path,
         regen_hint=f"clinosim regenerate-goldens --profile {profile_id} --provider mock",
     )

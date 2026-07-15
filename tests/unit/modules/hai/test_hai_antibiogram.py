@@ -40,56 +40,76 @@ def _run_with_yaml(monkeypatch, tmp_path, yaml_text):
 @pytest.mark.unit
 def test_unknown_hai_type_raises(monkeypatch, tmp_path):
     with pytest.raises(ValueError, match="unknown hai_type"):
-        _run_with_yaml(monkeypatch, tmp_path, """
+        _run_with_yaml(
+            monkeypatch,
+            tmp_path,
+            """
 hai_antibiogram:
   CLABSI:
     "3092008":
       vancomycin: [1.0, 0.0, 0.0]
-""")
+""",
+        )
 
 
 @pytest.mark.unit
 def test_organism_not_in_hai_organisms_raises(monkeypatch, tmp_path):
     with pytest.raises(ValueError, match="not in hai_organisms"):
-        _run_with_yaml(monkeypatch, tmp_path, """
+        _run_with_yaml(
+            monkeypatch,
+            tmp_path,
+            """
 hai_antibiogram:
   clabsi:
     "99999999":
       vancomycin: [1.0, 0.0, 0.0]
-""")
+""",
+        )
 
 
 @pytest.mark.unit
 def test_unknown_antibiotic_key_raises(monkeypatch, tmp_path):
     with pytest.raises(ValueError, match="unknown antibiotic key"):
-        _run_with_yaml(monkeypatch, tmp_path, """
+        _run_with_yaml(
+            monkeypatch,
+            tmp_path,
+            """
 hai_antibiogram:
   clabsi:
     "3092008":
       lol_unknown_drug: [1.0, 0.0, 0.0]
-""")
+""",
+        )
 
 
 @pytest.mark.unit
 def test_triple_must_be_length_3(monkeypatch, tmp_path):
     with pytest.raises(ValueError, match="length 3"):
-        _run_with_yaml(monkeypatch, tmp_path, """
+        _run_with_yaml(
+            monkeypatch,
+            tmp_path,
+            """
 hai_antibiogram:
   clabsi:
     "3092008":
       vancomycin: [1.0, 0.0]
-""")
+""",
+        )
 
 
 @pytest.mark.unit
 def test_triple_must_sum_to_one(monkeypatch, tmp_path):
     with pytest.raises(ValueError, match="must sum to ~1.0"):
-        _run_with_yaml(monkeypatch, tmp_path, """
+        _run_with_yaml(
+            monkeypatch,
+            tmp_path,
+            """
 hai_antibiogram:
   clabsi:
     "3092008":
       vancomycin: [0.5, 0.0, 0.0]
-""")
+""",
+        )
 
 
 @pytest.mark.unit
@@ -100,8 +120,12 @@ def test_clabsi_saureus_antibiogram_key_order_is_canonical():
     """
     abg = load_hai_antibiogram()
     assert list(abg["clabsi"]["3092008"].keys()) == [
-        "vancomycin", "cefazolin", "ceftriaxone", "cefepime",
-        "ciprofloxacin", "trimethoprim_sulfamethoxazole",
+        "vancomycin",
+        "cefazolin",
+        "ceftriaxone",
+        "cefepime",
+        "ciprofloxacin",
+        "trimethoprim_sulfamethoxazole",
     ]
 
 
@@ -110,8 +134,11 @@ def test_cauti_ecoli_antibiotic_key_order_is_canonical():
     """PR3b-2 Adv #6 F2: CAUTI/E.coli (112283007) key order is load-bearing."""
     abg = load_hai_antibiogram()
     assert list(abg["cauti"]["112283007"].keys()) == [
-        "ceftriaxone", "cefepime", "meropenem",
-        "ciprofloxacin", "trimethoprim_sulfamethoxazole",
+        "ceftriaxone",
+        "cefepime",
+        "meropenem",
+        "ciprofloxacin",
+        "trimethoprim_sulfamethoxazole",
     ]
 
 
@@ -120,6 +147,10 @@ def test_vap_saureus_antibiogram_key_order_is_canonical():
     """PR3b-2 Adv #6 F2: VAP/S.aureus (3092008) key order is load-bearing."""
     abg = load_hai_antibiogram()
     assert list(abg["vap"]["3092008"].keys()) == [
-        "vancomycin", "cefazolin", "ceftriaxone", "cefepime",
-        "ciprofloxacin", "trimethoprim_sulfamethoxazole",
+        "vancomycin",
+        "cefazolin",
+        "ceftriaxone",
+        "cefepime",
+        "ciprofloxacin",
+        "trimethoprim_sulfamethoxazole",
     ]

@@ -15,9 +15,18 @@ from clinosim.types.document import DocumentType, FormatType, NarrativeContext
 from clinosim.types.patient import PatientProfile
 
 _NCP_SECTIONS = (
-    "ward_and_physician", "dietitian", "nutrition_risk", "nutrition_assessment",
-    "nutrition_goals", "nutrition_supply", "dysphagia_diet", "dietary_content",
-    "nutrition_counseling", "other_issues", "reassessment_timing", "discharge_evaluation",
+    "ward_and_physician",
+    "dietitian",
+    "nutrition_risk",
+    "nutrition_assessment",
+    "nutrition_goals",
+    "nutrition_supply",
+    "dysphagia_diet",
+    "dietary_content",
+    "nutrition_counseling",
+    "other_issues",
+    "reassessment_timing",
+    "discharge_evaluation",
 )
 
 

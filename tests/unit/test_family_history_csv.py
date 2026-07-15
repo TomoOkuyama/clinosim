@@ -19,14 +19,16 @@ def _write_cif(cif_dir: str, record: dict) -> None:
 def test_family_history_csv_written(tmp_path):
     cif = str(tmp_path / "cif")
     out = str(tmp_path / "out")
-    _write_cif(cif, {
-        "patient": {"patient_id": "P1"},
-        "encounters": [{"encounter_id": "E1", "encounter_type": "outpatient"}],
-        "family_history": [
-            {"relationship": "MTH", "sex": "female", "deceased": True,
-             "condition_codes": ["E11", "C50"]},
-        ],
-    })
+    _write_cif(
+        cif,
+        {
+            "patient": {"patient_id": "P1"},
+            "encounters": [{"encounter_id": "E1", "encounter_type": "outpatient"}],
+            "family_history": [
+                {"relationship": "MTH", "sex": "female", "deceased": True, "condition_codes": ["E11", "C50"]},
+            ],
+        },
+    )
     convert_cif_to_csv(cif, out, country="US")
     path = os.path.join(out, "family_history.csv")
     assert os.path.exists(path)

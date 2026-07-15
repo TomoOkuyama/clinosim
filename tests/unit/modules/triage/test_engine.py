@@ -185,8 +185,7 @@ def test_triage_enricher_reads_country_from_ctx_config_jp():
     triage_enricher(ctx)
     assert ed_enc.triage_data is not None
     assert ed_enc.triage_data.level_system == "JTAS", (
-        "JP cohort must resolve country from ctx.config.country → JTAS "
-        "(PR-90 regression guard)"
+        "JP cohort must resolve country from ctx.config.country → JTAS (PR-90 regression guard)"
     )
 
 

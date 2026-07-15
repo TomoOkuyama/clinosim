@@ -35,27 +35,41 @@ def _make_ctx(studies, orders=None, country="us"):
         country=country,
         patient_id="pt1",
         primary_enc_id="enc1",
-        roster_map={}, hospital_config={},
-        patient_data={}, is_readmission=False, prior_encounter_id=None,
-        primary_dx_code="", admit_dx_code="",
+        roster_map={},
+        hospital_config={},
+        patient_data={},
+        is_readmission=False,
+        prior_encounter_id=None,
+        primary_dx_code="",
+        admit_dx_code="",
     )
 
 
 def _sample_study():
     return ImagingStudyRecord(
-        study_id="imgst-enc1-1", study_instance_uid="2.25.42",  # session 51 prefix production 準拠
-        encounter_id="enc1", patient_id="pt1", order_id="ord1",
+        study_id="imgst-enc1-1",
+        study_instance_uid="2.25.42",  # session 51 prefix production 準拠
+        encounter_id="enc1",
+        patient_id="pt1",
+        order_id="ord1",
         status="available",
         started_datetime=datetime(2026, 6, 30, 10, 0),
-        modality_code="CR", body_site_snomed="51185008",
-        series=[ImagingSeries(
-            series_uid="2.25.43", series_number=1,
-            modality_code="CR", body_site_snomed="51185008",
-            description="PA view", instance_count=1,
-        )],
+        modality_code="CR",
+        body_site_snomed="51185008",
+        series=[
+            ImagingSeries(
+                series_uid="2.25.43",
+                series_number=1,
+                modality_code="CR",
+                body_site_snomed="51185008",
+                description="PA view",
+                instance_count=1,
+            )
+        ],
         endpoint_id="endpoint-2.25.42",
         report=RadiologyReport(
-            report_id="imgrpt-enc1-1", status="final",  # session 51
+            report_id="imgrpt-enc1-1",
+            status="final",  # session 51
             findings_text="Right lower lobe consolidation.",
             impression_text="Pneumonia.",
         ),
@@ -63,8 +77,7 @@ def _sample_study():
 
 
 def _rad_drs(ctx):
-    return [r for r in _bb_diagnostic_reports(ctx)
-            if r["id"].startswith(RADIOLOGY_DR_ID_PREFIX)]
+    return [r for r in _bb_diagnostic_reports(ctx) if r["id"].startswith(RADIOLOGY_DR_ID_PREFIX)]
 
 
 def test_empty_imaging_emits_no_radiology_dr():
@@ -146,13 +159,17 @@ def test_radiology_dr_conclusion_code_normal_when_findings_codes_empty():
     """
     ctx = _make_ctx([_sample_study()])
     dr = _rad_drs(ctx)[0]
-    assert dr["conclusionCode"] == [{
-        "coding": [{
-            "system": "http://snomed.info/sct",
-            "code": "17621005",
-            "display": "Normal",
-        }],
-    }]
+    assert dr["conclusionCode"] == [
+        {
+            "coding": [
+                {
+                    "system": "http://snomed.info/sct",
+                    "code": "17621005",
+                    "display": "Normal",
+                }
+            ],
+        }
+    ]
 
 
 def test_radiology_dr_conclusion_code_when_findings_codes_set():

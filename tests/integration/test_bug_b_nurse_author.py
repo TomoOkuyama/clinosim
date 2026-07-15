@@ -58,8 +58,7 @@ def _check_ndjson(path, bad_refs):
         if matched:
             nurse_authored += 1
         else:
-            bad_refs.append((path.name, d.get("id", ""),
-                              [a.get("reference", "") for a in d.get("author", [])]))
+            bad_refs.append((path.name, d.get("id", ""), [a.get("reference", "") for a in d.get("author", [])]))
     return total, nurse_authored
 
 
@@ -68,11 +67,23 @@ def test_nursing_docs_author_reference_nurse(tmp_path):
     out = tmp_path / "us500"
     r = subprocess.run(
         [
-            sys.executable, "-m", "clinosim.simulator.cli", "generate",
-            "-p", "500", "--country", "US", "-o", str(out),
-            "--format", "cif", "fhir-r4",
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "generate",
+            "-p",
+            "500",
+            "--country",
+            "US",
+            "-o",
+            str(out),
+            "--format",
+            "cif",
+            "fhir-r4",
         ],
-        capture_output=True, text=True, timeout=600,
+        capture_output=True,
+        text=True,
+        timeout=600,
     )
     assert r.returncode == 0, r.stderr
 

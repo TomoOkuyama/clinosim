@@ -55,11 +55,23 @@ def test_us_admission_hp_zero_japanese_chars(tmp_path: Path) -> None:
     out = tmp_path / "us100"
     r = subprocess.run(
         [
-            sys.executable, "-m", "clinosim.simulator.cli", "generate",
-            "-p", "100", "--country", "US", "-o", str(out),
-            "--format", "cif", "fhir-r4",
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "generate",
+            "-p",
+            "100",
+            "--country",
+            "US",
+            "-o",
+            str(out),
+            "--format",
+            "cif",
+            "fhir-r4",
         ],
-        capture_output=True, text=True, timeout=600,
+        capture_output=True,
+        text=True,
+        timeout=600,
     )
     assert r.returncode == 0, r.stderr
 

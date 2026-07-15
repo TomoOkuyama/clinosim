@@ -82,9 +82,7 @@ def test_alpha2_care_team_count_matches_encounter_count() -> None:
         # encounters (id ends with "-ED", used for Encounter.partOf ED→IMP
         # linkage) don't have CareTeam records because they don't exist in
         # CIF. Exclude them from the 1:1 count assertion.
-        real_encounter_count = sum(
-            1 for e in encounters if not e.get("id", "").endswith("-ED")
-        )
+        real_encounter_count = sum(1 for e in encounters if not e.get("id", "").endswith("-ED"))
         assert len(care_teams) == real_encounter_count, (
             f"CareTeam count {len(care_teams)} != real Encounter count "
             f"{real_encounter_count} (total encounters incl. synth ED: "
@@ -105,11 +103,9 @@ def test_alpha2_nursing_shift_note_in_document_references() -> None:
         drefs = load_ndjson(find_ndjson(out, "DocumentReference.ndjson"))
         assert drefs, "DocumentReference.ndjson is empty — document enricher not firing"
         nursing_shift = [
-            d for d in drefs
-            if any(
-                c.get("code") == _LOINC_NURSING_SHIFT_NOTE
-                for c in d.get("type", {}).get("coding", [])
-            )
+            d
+            for d in drefs
+            if any(c.get("code") == _LOINC_NURSING_SHIFT_NOTE for c in d.get("type", {}).get("coding", []))
         ]
         assert nursing_shift, (
             f"No NURSING_SHIFT_NOTE DocumentReferences (LOINC {_LOINC_NURSING_SHIFT_NOTE}) "
@@ -130,11 +126,7 @@ def test_alpha2_nursing_compositions_exist() -> None:
         run_generate("US", 200, 42, out)
         comps = load_ndjson(find_ndjson(out, "Composition.ndjson"))
         assert comps, "Composition.ndjson is empty — document enricher not firing"
-        found_loinc = {
-            c.get("code")
-            for comp in comps
-            for c in comp.get("type", {}).get("coding", [])
-        }
+        found_loinc = {c.get("code") for comp in comps for c in comp.get("type", {}).get("coding", [])}
         assert _LOINC_ADMISSION_NURSING_ASSESSMENT in found_loinc, (
             f"ADMISSION_NURSING_ASSESSMENT (LOINC {_LOINC_ADMISSION_NURSING_ASSESSMENT}) "
             "missing from Composition.ndjson — nursing enricher not emitting admission note"
@@ -144,9 +136,9 @@ def test_alpha2_nursing_compositions_exist() -> None:
             # Check if there are any completed inpatient encounters
             encs = load_ndjson(find_ndjson(out, "Encounter.ndjson"))
             completed_inpatient = [
-                e for e in encs
-                if e.get("status") == "finished"
-                and e.get("class", {}).get("code", "") in {"IMP", "ACUTE", "OBSENC"}
+                e
+                for e in encs
+                if e.get("status") == "finished" and e.get("class", {}).get("code", "") in {"IMP", "ACUTE", "OBSENC"}
             ]
             if not completed_inpatient:
                 pytest.skip(
@@ -176,8 +168,7 @@ def test_alpha2_alpha_min1_resources_preserved() -> None:
 
         # Progress note still present
         progress_notes = [
-            d for d in drefs
-            if any(c.get("code") == _LOINC_PROGRESS_NOTE for c in d.get("type", {}).get("coding", []))
+            d for d in drefs if any(c.get("code") == _LOINC_PROGRESS_NOTE for c in d.get("type", {}).get("coding", []))
         ]
         assert progress_notes, (
             f"PROGRESS_NOTE (LOINC {_LOINC_PROGRESS_NOTE}) missing from DocumentReference.ndjson "
@@ -185,19 +176,13 @@ def test_alpha2_alpha_min1_resources_preserved() -> None:
         )
 
         # Admission HP still in Composition
-        found_loinc = {
-            c.get("code")
-            for comp in comps
-            for c in comp.get("type", {}).get("coding", [])
-        }
+        found_loinc = {c.get("code") for comp in comps for c in comp.get("type", {}).get("coding", [])}
         assert _LOINC_ADMISSION_HP in found_loinc, (
             f"ADMISSION_HP (LOINC {_LOINC_ADMISSION_HP}) missing — α-min-1 regression"
         )
 
         # ClinicalImpression still emits
-        assert impressions, (
-            "ClinicalImpression.ndjson empty — α-min-1 regression (CI emitter broken)"
-        )
+        assert impressions, "ClinicalImpression.ndjson empty — α-min-1 regression (CI emitter broken)"
 
         # AllergyIntolerance within expected prevalence range
         patients = load_ndjson(find_ndjson(out, "Patient.ndjson"))

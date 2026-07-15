@@ -15,6 +15,7 @@ from clinosim.types.encounter import Encounter, EncounterType
 # Fixtures / helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_ctx(encounters, patient_id="pt1", country="us"):
     """Minimal BundleContext substitute."""
     return SimpleNamespace(
@@ -90,6 +91,7 @@ def _inpatient_enc_dict(nurse_id: str = "nurse-001") -> dict:
 # Shape tests
 # ---------------------------------------------------------------------------
 
+
 def test_care_team_has_required_fields():
     ctx = _make_ctx([_inpatient_enc_dataclass()])
     results = _bb_care_teams(ctx)
@@ -124,6 +126,7 @@ def test_care_team_encounter_reference_populated():
 # Status: active vs inactive
 # ---------------------------------------------------------------------------
 
+
 def test_discharged_encounter_status_is_inactive():
     enc = _inpatient_enc_dataclass()  # has discharge_datetime
     ctx = _make_ctx([enc])
@@ -149,6 +152,7 @@ def test_in_progress_encounter_status_is_active():
 # ---------------------------------------------------------------------------
 # Participant tests
 # ---------------------------------------------------------------------------
+
 
 def test_inpatient_encounter_emits_2_participants():
     ctx = _make_ctx([_inpatient_enc_dataclass(nurse_id="nurse-001")])
@@ -190,6 +194,7 @@ def test_empty_primary_nurse_id_no_orphan_participant():
 # Missing attending — UNKNOWN placeholder
 # ---------------------------------------------------------------------------
 
+
 def test_missing_attending_uses_UNKNOWN_placeholder():
     enc = Encounter(
         encounter_id="enc-nodr",
@@ -209,6 +214,7 @@ def test_missing_attending_uses_UNKNOWN_placeholder():
 # ---------------------------------------------------------------------------
 # Period tests
 # ---------------------------------------------------------------------------
+
 
 def test_care_team_period_from_encounter_datetimes():
     enc = _inpatient_enc_dataclass()
@@ -242,6 +248,7 @@ def test_in_progress_period_has_no_end():
 # Empty encounters list
 # ---------------------------------------------------------------------------
 
+
 def test_empty_encounters_returns_empty_list():
     ctx = _make_ctx([])
     assert _bb_care_teams(ctx) == []
@@ -270,6 +277,7 @@ def test_missing_encounters_key_returns_empty_list():
 # JP locale
 # ---------------------------------------------------------------------------
 
+
 def test_jp_locale_category_display_in_ja():
     ctx = _make_ctx([_inpatient_enc_dataclass()], country="jp")
     ct = _bb_care_teams(ctx)[0]
@@ -284,6 +292,7 @@ def test_jp_locale_category_display_in_ja():
 # ---------------------------------------------------------------------------
 # Dict path (PR-90 lesson: dual access)
 # ---------------------------------------------------------------------------
+
 
 def test_dict_path_records_work():
     """Dict-format encounter (production CIF) must produce valid CareTeam."""
@@ -315,6 +324,7 @@ def test_dataclass_path_records_work():
 # ---------------------------------------------------------------------------
 # Multiple encounters
 # ---------------------------------------------------------------------------
+
 
 def test_multiple_encounters_emit_multiple_care_teams():
     encs = [_inpatient_enc_dataclass(), _outpatient_enc_dataclass()]

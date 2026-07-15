@@ -108,21 +108,31 @@ def test_admission_below_min_components_falls_standalone():
 
 def test_deterministic_panel_ordering():
     """Same seed → same Orders (panel iteration uses sorted keys)."""
-    protocol = _make_protocol(["WBC", "Hb", "Hct", "Plt", "AST", "ALT", "ALP",
-                               "T_Bil", "Albumin"])  # CBC + LFT
+    protocol = _make_protocol(["WBC", "Hb", "Hct", "Plt", "AST", "ALT", "ALP", "T_Bil", "Albumin"])  # CBC + LFT
     rng1 = np.random.default_rng(42)
     rng2 = np.random.default_rng(42)
     base_time = datetime(2026, 6, 29, 8, 0)
     orders1 = place_admission_orders(
-        protocol=protocol, patient_id="pt001", encounter_id="enc001",
-        admission_time=base_time, country="us", rng=rng1, ordered_by="doc1",
+        protocol=protocol,
+        patient_id="pt001",
+        encounter_id="enc001",
+        admission_time=base_time,
+        country="us",
+        rng=rng1,
+        ordered_by="doc1",
     )
     orders2 = place_admission_orders(
-        protocol=protocol, patient_id="pt001", encounter_id="enc001",
-        admission_time=base_time, country="us", rng=rng2, ordered_by="doc1",
+        protocol=protocol,
+        patient_id="pt001",
+        encounter_id="enc001",
+        admission_time=base_time,
+        country="us",
+        rng=rng2,
+        ordered_by="doc1",
     )
-    assert [(o.order_id, o.panel_key, o.ordered_datetime) for o in orders1] == \
-           [(o.order_id, o.panel_key, o.ordered_datetime) for o in orders2]
+    assert [(o.order_id, o.panel_key, o.ordered_datetime) for o in orders1] == [
+        (o.order_id, o.panel_key, o.ordered_datetime) for o in orders2
+    ]
 
 
 def test_daily_lab_panel_orders_share_panel_key_and_datetime():

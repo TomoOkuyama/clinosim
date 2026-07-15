@@ -19,13 +19,30 @@ pytestmark = pytest.mark.unit
 
 # (internal code, expected US billable target)
 US_MAPPINGS = [
-    ("E78", "E78.5"), ("J44", "J44.9"), ("N18", "N18.9"), ("I50", "I50.9"),
-    ("I48", "I48.91"), ("I25", "I25.10"), ("M81", "M81.0"), ("F00", "F03.90"),
-    ("G20", "G20.C"), ("E03", "E03.9"), ("K21", "K21.9"), ("J45", "J45.909"),
-    ("N40", "N40.0"), ("M17", "M17.9"), ("E10", "E10.9"),
+    ("E78", "E78.5"),
+    ("J44", "J44.9"),
+    ("N18", "N18.9"),
+    ("I50", "I50.9"),
+    ("I48", "I48.91"),
+    ("I25", "I25.10"),
+    ("M81", "M81.0"),
+    ("F00", "F03.90"),
+    ("G20", "G20.C"),
+    ("E03", "E03.9"),
+    ("K21", "K21.9"),
+    ("J45", "J45.909"),
+    ("N40", "N40.0"),
+    ("M17", "M17.9"),
+    ("E10", "E10.9"),
     # past acute events carried as chronic background → history/old codes
-    ("I21", "I25.2"), ("I26", "Z86.711"), ("I61", "Z86.73"), ("I63", "Z86.73"),
-    ("I80", "Z86.718"), ("I82", "Z86.718"), ("M48", "Z87.311"), ("M80", "Z87.310"),
+    ("I21", "I25.2"),
+    ("I26", "Z86.711"),
+    ("I61", "Z86.73"),
+    ("I63", "Z86.73"),
+    ("I80", "Z86.718"),
+    ("I82", "Z86.718"),
+    ("M48", "Z87.311"),
+    ("M80", "Z87.310"),
 ]
 
 
@@ -46,8 +63,9 @@ def test_every_us_target_resolves_a_real_display() -> None:
     # Guards the whole US map (chronic + history + primary specificity entries):
     # no mapped code may emit "(display unavailable)".
     us_map = load_code_mapping("diagnosis", "US")
-    missing = [t for t in set(us_map.values())
-               if not (lookup("icd-10-cm", t, "en") and lookup("icd-10-cm", t, "en") != t)]
+    missing = [
+        t for t in set(us_map.values()) if not (lookup("icd-10-cm", t, "en") and lookup("icd-10-cm", t, "en") != t)
+    ]
     assert not missing, f"US targets without a display in icd-10-cm.yaml: {missing}"
 
 

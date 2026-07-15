@@ -135,9 +135,7 @@ def load_expectations(path: str | Path) -> dict[str, Any]:
         raise ValueError(f"{p.name}: top level must be a mapping, got {type(data).__name__}")
 
     specs = load_document_type_specs()
-    specs_by_key: dict[str, DocumentTypeSpec] = {
-        dt.value: spec for dt, spec in specs.items()
-    }
+    specs_by_key: dict[str, DocumentTypeSpec] = {dt.value: spec for dt, spec in specs.items()}
 
     for doc_key, sections in data.items():
         if doc_key == "global":
@@ -146,8 +144,7 @@ def load_expectations(path: str | Path) -> dict[str, Any]:
         spec = specs_by_key.get(str(doc_key))
         if spec is None:
             raise ValueError(
-                f"{p.name}: unknown document type {doc_key!r} — "
-                f"allowed: {sorted(specs_by_key)} (+ 'global')"
+                f"{p.name}: unknown document type {doc_key!r} — allowed: {sorted(specs_by_key)} (+ 'global')"
             )
         if not isinstance(sections, dict) or not sections:
             raise ValueError(f"{p.name}[{doc_key}]: must be a non-empty section mapping")
@@ -156,15 +153,12 @@ def load_expectations(path: str | Path) -> dict[str, Any]:
         # spec accessor returns the JP list when composition_sections_jp is
         # populated; we union both to accept any valid section key.
         allowed_sections = (
-            set(spec.composition_sections)
-            | set(spec.composition_sections_for("JP"))
-            | {TEXT_SECTION_KEY}
+            set(spec.composition_sections) | set(spec.composition_sections_for("JP")) | {TEXT_SECTION_KEY}
         )
         for section_key, entry in sections.items():
             if section_key not in allowed_sections:
                 raise ValueError(
-                    f"{p.name}[{doc_key}]: unknown section {section_key!r} — "
-                    f"allowed: {sorted(allowed_sections)}"
+                    f"{p.name}[{doc_key}]: unknown section {section_key!r} — allowed: {sorted(allowed_sections)}"
                 )
             _validate_entry(p.name, doc_key, section_key, entry)
     return data
@@ -175,10 +169,7 @@ def _validate_global(filename: str, entry: Any) -> None:
         raise ValueError(f"{filename}[global]: must be a mapping")
     unknown = set(entry) - {"forbidden_patterns"}
     if unknown:
-        raise ValueError(
-            f"{filename}[global]: unknown keys {sorted(unknown)} — "
-            f"allowed: ['forbidden_patterns']"
-        )
+        raise ValueError(f"{filename}[global]: unknown keys {sorted(unknown)} — allowed: ['forbidden_patterns']")
     patterns = entry.get("forbidden_patterns", [])
     if not isinstance(patterns, list):
         raise ValueError(f"{filename}[global.forbidden_patterns]: must be a list")
@@ -186,10 +177,7 @@ def _validate_global(filename: str, entry: Any) -> None:
         try:
             re.compile(str(pattern))
         except re.error as exc:
-            raise ValueError(
-                f"{filename}[global.forbidden_patterns]: invalid regex "
-                f"{pattern!r} ({exc})"
-            ) from exc
+            raise ValueError(f"{filename}[global.forbidden_patterns]: invalid regex {pattern!r} ({exc})") from exc
 
 
 def _validate_entry(filename: str, doc_key: str, section_key: str, entry: Any) -> None:
@@ -198,10 +186,7 @@ def _validate_entry(filename: str, doc_key: str, section_key: str, entry: Any) -
         raise ValueError(f"{where}: must be a non-empty mapping")
     unknown = set(entry) - _EXPECTATION_ENTRY_KEYS
     if unknown:
-        raise ValueError(
-            f"{where}: unknown keys {sorted(unknown)} — "
-            f"allowed: {sorted(_EXPECTATION_ENTRY_KEYS)}"
-        )
+        raise ValueError(f"{where}: unknown keys {sorted(unknown)} — allowed: {sorted(_EXPECTATION_ENTRY_KEYS)}")
     for list_key in ("all_of", "any_of", "forbidden"):
         value = entry.get(list_key, [])
         if not isinstance(value, list) or any(not str(v).strip() for v in value):
@@ -218,11 +203,7 @@ def _validate_entry(filename: str, doc_key: str, section_key: str, entry: Any) -
         if not isinstance(item["value"], (int, float)) or isinstance(item["value"], bool):
             raise ValueError(f"{where}.numeric: 'value' must be a number")
         tolerance = item.get("tolerance", 0)
-        if (
-            not isinstance(tolerance, (int, float))
-            or isinstance(tolerance, bool)
-            or tolerance < 0
-        ):
+        if not isinstance(tolerance, (int, float)) or isinstance(tolerance, bool) or tolerance < 0:
             raise ValueError(f"{where}.numeric: 'tolerance' must be a number >= 0")
 
 
@@ -246,14 +227,20 @@ def check_narratives(
     narrative_dir = os.path.join(version_dir, "documents")
 
     if not os.path.isdir(structural_dir):
-        report.findings.append(SemanticCheckFinding(
-            axis="structure", message=f"structural CIF tree missing: {structural_dir}",
-        ))
+        report.findings.append(
+            SemanticCheckFinding(
+                axis="structure",
+                message=f"structural CIF tree missing: {structural_dir}",
+            )
+        )
         return report
     if not os.path.isdir(narrative_dir):
-        report.findings.append(SemanticCheckFinding(
-            axis="structure", message=f"narrative version tree missing: {narrative_dir}",
-        ))
+        report.findings.append(
+            SemanticCheckFinding(
+                axis="structure",
+                message=f"narrative version tree missing: {narrative_dir}",
+            )
+        )
         return report
 
     manifest = _load_manifest(version_dir, report)
@@ -262,22 +249,15 @@ def check_narratives(
     languages_used = list(manifest.get("languages_used") or [])
     check_ja_leak = "ja" not in languages_used
 
-    specs_by_key: dict[str, DocumentTypeSpec] = {
-        dt.value: spec for dt, spec in load_document_type_specs().items()
-    }
-    extra_patterns = [
-        re.compile(str(pat))
-        for pat in (expectations.get("global") or {}).get("forbidden_patterns", [])
-    ]
+    specs_by_key: dict[str, DocumentTypeSpec] = {dt.value: spec for dt, spec in load_document_type_specs().items()}
+    extra_patterns = [re.compile(str(pat)) for pat in (expectations.get("global") or {}).get("forbidden_patterns", [])]
 
     generator_counts: dict[str, int] = {}
     skipped_mock_sections = 0
     empty_facts_template_only = 0
     seen_files: set[str] = set()
 
-    patient_files = sorted(
-        f for f in os.listdir(structural_dir) if f.endswith(".json")
-    )
+    patient_files = sorted(f for f in os.listdir(structural_dir) if f.endswith(".json"))
     for pf in patient_files:
         with open(os.path.join(structural_dir, pf), encoding="utf-8") as f:
             patient = json.load(f)
@@ -289,10 +269,13 @@ def check_narratives(
             report.document_count += 1
             narrative_path = os.path.join(narrative_dir, encounter_id, f"{document_id}.json")
             if not os.path.exists(narrative_path):
-                report.findings.append(SemanticCheckFinding(
-                    axis="structure", document_id=document_id,
-                    message=f"narrative file missing for stub (task_type={task_type})",
-                ))
+                report.findings.append(
+                    SemanticCheckFinding(
+                        axis="structure",
+                        document_id=document_id,
+                        message=f"narrative file missing for stub (task_type={task_type})",
+                    )
+                )
                 continue
             seen_files.add(os.path.relpath(narrative_path, narrative_dir))
             with open(narrative_path, encoding="utf-8") as f:
@@ -300,10 +283,13 @@ def check_narratives(
 
             spec = specs_by_key.get(task_type)
             if spec is None:
-                report.findings.append(SemanticCheckFinding(
-                    axis="structure", document_id=document_id,
-                    message=f"unknown task_type {task_type!r} (not in DocumentTypeSpec registry)",
-                ))
+                report.findings.append(
+                    SemanticCheckFinding(
+                        axis="structure",
+                        document_id=document_id,
+                        message=f"unknown task_type {task_type!r} (not in DocumentTypeSpec registry)",
+                    )
+                )
                 continue
 
             gen_meta = str((narrative.get("generator_metadata") or {}).get("generator", ""))
@@ -313,13 +299,20 @@ def check_narratives(
             _check_structure(report, document_id, spec, narrative)
             empty_facts_template_only += _check_facts(report, document_id, spec, narrative)
             _check_forbidden(
-                report, document_id, sections,
-                is_mock=is_mock, check_ja_leak=check_ja_leak,
+                report,
+                document_id,
+                sections,
+                is_mock=is_mock,
+                check_ja_leak=check_ja_leak,
                 extra_patterns=extra_patterns,
             )
             skipped_mock_sections += _check_expectations(
-                report, document_id, spec, sections,
-                expectations.get(task_type) or {}, is_mock=is_mock,
+                report,
+                document_id,
+                spec,
+                sections,
+                expectations.get(task_type) or {},
+                is_mock=is_mock,
             )
 
     _check_orphans(report, narrative_dir, seen_files)
@@ -327,14 +320,16 @@ def check_narratives(
     if generator.startswith("llm-"):
         fallback = generator_counts.get("template_fallback", 0)
         if fallback:
-            report.findings.append(SemanticCheckFinding(
-                axis="structure",
-                message=(
-                    f"{fallback} document(s) fell back to template output on an "
-                    f"LLM version ({generator}) — partial provider failure; "
-                    f"generator counts: {generator_counts}"
-                ),
-            ))
+            report.findings.append(
+                SemanticCheckFinding(
+                    axis="structure",
+                    message=(
+                        f"{fallback} document(s) fell back to template output on an "
+                        f"LLM version ({generator}) — partial provider failure; "
+                        f"generator counts: {generator_counts}"
+                    ),
+                )
+            )
 
     report.info["generator"] = generator
     report.info["generator_counts"] = generator_counts
@@ -347,9 +342,12 @@ def check_narratives(
 def _load_manifest(version_dir: str, report: SemanticCheckReport) -> dict[str, Any]:
     manifest_path = os.path.join(version_dir, "manifest.json")
     if not os.path.exists(manifest_path):
-        report.findings.append(SemanticCheckFinding(
-            axis="structure", message=f"manifest.json missing: {manifest_path}",
-        ))
+        report.findings.append(
+            SemanticCheckFinding(
+                axis="structure",
+                message=f"manifest.json missing: {manifest_path}",
+            )
+        )
         return {}
     with open(manifest_path, encoding="utf-8") as f:
         loaded = json.load(f)
@@ -360,9 +358,7 @@ def _sections_of(narrative: dict[str, Any], spec: DocumentTypeSpec) -> dict[str,
     """Checkable (section → text) map incl. the synthetic ``"text"`` key."""
     sections = dict(narrative.get("sections") or {})
     if spec.format_type == FormatType.COMPOSITION:
-        sections[TEXT_SECTION_KEY] = "\n\n".join(
-            str(v) for v in (narrative.get("sections") or {}).values()
-        )
+        sections[TEXT_SECTION_KEY] = "\n\n".join(str(v) for v in (narrative.get("sections") or {}).values())
     else:
         sections[TEXT_SECTION_KEY] = str(narrative.get("text", "") or "")
     return sections
@@ -387,38 +383,49 @@ def _check_structure(
         if actual != us_expected and actual != jp_expected:
             # Report drift against the closest variant so the message is useful.
             us_delta = (
-                (us_expected - actual), (actual - us_expected),
+                (us_expected - actual),
+                (actual - us_expected),
                 "us",
             )
             jp_delta = (
-                (jp_expected - actual), (actual - jp_expected),
+                (jp_expected - actual),
+                (actual - jp_expected),
                 "jp",
             )
-            closest = us_delta if (
-                len(us_delta[0]) + len(us_delta[1])
-                <= len(jp_delta[0]) + len(jp_delta[1])
-            ) else jp_delta
+            closest = (
+                us_delta if (len(us_delta[0]) + len(us_delta[1]) <= len(jp_delta[0]) + len(jp_delta[1])) else jp_delta
+            )
             missing, extra, variant = closest
-            report.findings.append(SemanticCheckFinding(
-                axis="structure", document_id=document_id,
-                message=(
-                    f"composition section keys drift from registry "
-                    f"(closest={variant}): "
-                    f"missing={sorted(missing)}, extra={sorted(extra)}"
-                ),
-            ))
+            report.findings.append(
+                SemanticCheckFinding(
+                    axis="structure",
+                    document_id=document_id,
+                    message=(
+                        f"composition section keys drift from registry "
+                        f"(closest={variant}): "
+                        f"missing={sorted(missing)}, extra={sorted(extra)}"
+                    ),
+                )
+            )
         for key, text in sections.items():
             if not str(text).strip():
-                report.findings.append(SemanticCheckFinding(
-                    axis="structure", document_id=document_id, section=key,
-                    message="empty section text",
-                ))
+                report.findings.append(
+                    SemanticCheckFinding(
+                        axis="structure",
+                        document_id=document_id,
+                        section=key,
+                        message="empty section text",
+                    )
+                )
     else:
         if not str(narrative.get("text", "") or "").strip():
-            report.findings.append(SemanticCheckFinding(
-                axis="structure", document_id=document_id,
-                message="empty free-text narrative body",
-            ))
+            report.findings.append(
+                SemanticCheckFinding(
+                    axis="structure",
+                    document_id=document_id,
+                    message="empty free-text narrative body",
+                )
+            )
 
 
 def _check_facts(
@@ -431,13 +438,16 @@ def _check_facts(
     facts = list(narrative.get("facts_used") or [])
     for tag in facts:
         if not str(tag).startswith(_ALLOWED_FACT_PREFIXES):
-            report.findings.append(SemanticCheckFinding(
-                axis="facts", document_id=document_id,
-                message=(
-                    f"facts_used tag {tag!r} outside the structural-CIF "
-                    f"vocabulary (allowed prefixes: {list(_ALLOWED_FACT_PREFIXES)})"
-                ),
-            ))
+            report.findings.append(
+                SemanticCheckFinding(
+                    axis="facts",
+                    document_id=document_id,
+                    message=(
+                        f"facts_used tag {tag!r} outside the structural-CIF "
+                        f"vocabulary (allowed prefixes: {list(_ALLOWED_FACT_PREFIXES)})"
+                    ),
+                )
+            )
     if not facts:
         # Deviation from spec §1-T2 ("facts_used non-empty" unconditionally):
         # template_only docs legitimately emit facts_used=[] today (e.g.
@@ -445,10 +455,13 @@ def _check_facts(
         # empty facts is a FINDING only where LLM sections exist (traceability
         # of LLM-touched docs) and an info counter otherwise.
         if spec.llm_enabled_sections:
-            report.findings.append(SemanticCheckFinding(
-                axis="facts", document_id=document_id,
-                message="facts_used is empty on an LLM-enabled document type",
-            ))
+            report.findings.append(
+                SemanticCheckFinding(
+                    axis="facts",
+                    document_id=document_id,
+                    message="facts_used is empty on an LLM-enabled document type",
+                )
+            )
         else:
             return 1
     return 0
@@ -476,18 +489,25 @@ def _check_forbidden(
                 continue
             match = pattern.search(text)
             if match:
-                report.findings.append(SemanticCheckFinding(
-                    axis="forbidden_pattern", document_id=document_id, section=section_key,
-                    message=f"{label}: matched {match.group(0)!r}",
-                ))
+                report.findings.append(
+                    SemanticCheckFinding(
+                        axis="forbidden_pattern",
+                        document_id=document_id,
+                        section=section_key,
+                        message=f"{label}: matched {match.group(0)!r}",
+                    )
+                )
         for pattern in extra_patterns:
             match = pattern.search(text)
             if match:
-                report.findings.append(SemanticCheckFinding(
-                    axis="forbidden_pattern", document_id=document_id, section=section_key,
-                    message=f"global forbidden pattern {pattern.pattern!r} matched "
-                            f"{match.group(0)!r}",
-                ))
+                report.findings.append(
+                    SemanticCheckFinding(
+                        axis="forbidden_pattern",
+                        document_id=document_id,
+                        section=section_key,
+                        message=f"global forbidden pattern {pattern.pattern!r} matched {match.group(0)!r}",
+                    )
+                )
         # JA-leak axis is composition-section-scoped, mirroring the Bug A
         # audit gate (`_count_us_hp_ja_chars`): free-text bodies (progress /
         # nursing shift notes) still carry Japanese from the SAME tracked
@@ -502,10 +522,14 @@ def _check_forbidden(
             and section_key not in KNOWN_JA_ONLY_FALLBACK_SECTIONS
             and _JA_CHAR_RE.search(text)
         ):
-            report.findings.append(SemanticCheckFinding(
-                axis="forbidden_pattern", document_id=document_id, section=section_key,
-                message="Japanese characters in a non-ja narrative version",
-            ))
+            report.findings.append(
+                SemanticCheckFinding(
+                    axis="forbidden_pattern",
+                    document_id=document_id,
+                    section=section_key,
+                    message="Japanese characters in a non-ja narrative version",
+                )
+            )
 
 
 def _check_expectations(
@@ -522,9 +546,7 @@ def _check_expectations(
     # P2-13 PR2a (session 47): union of US + JP LLM-enabled sections so the
     # mock exemption fires regardless of which locale variant produced the
     # section keys under check.
-    llm_enabled = (
-        set(spec.llm_enabled_sections) | set(spec.llm_enabled_sections_jp)
-    )
+    llm_enabled = set(spec.llm_enabled_sections) | set(spec.llm_enabled_sections_jp)
     for section_key, entry in doc_expectations.items():
         if is_mock and section_key in llm_enabled:
             # Mock stub text is not clinical narrative — expectations on
@@ -534,22 +556,34 @@ def _check_expectations(
         text = str(sections.get(section_key, ""))
         for phrase in entry.get("all_of", []):
             if str(phrase) not in text:
-                report.findings.append(SemanticCheckFinding(
-                    axis="phrase", document_id=document_id, section=section_key,
-                    message=f"required phrase missing: {phrase!r}",
-                ))
+                report.findings.append(
+                    SemanticCheckFinding(
+                        axis="phrase",
+                        document_id=document_id,
+                        section=section_key,
+                        message=f"required phrase missing: {phrase!r}",
+                    )
+                )
         any_of = [str(p) for p in entry.get("any_of", [])]
         if any_of and not any(p in text for p in any_of):
-            report.findings.append(SemanticCheckFinding(
-                axis="phrase", document_id=document_id, section=section_key,
-                message=f"none of the expected phrases found: {any_of}",
-            ))
+            report.findings.append(
+                SemanticCheckFinding(
+                    axis="phrase",
+                    document_id=document_id,
+                    section=section_key,
+                    message=f"none of the expected phrases found: {any_of}",
+                )
+            )
         for phrase in entry.get("forbidden", []):
             if str(phrase) in text:
-                report.findings.append(SemanticCheckFinding(
-                    axis="phrase", document_id=document_id, section=section_key,
-                    message=f"forbidden phrase present: {phrase!r}",
-                ))
+                report.findings.append(
+                    SemanticCheckFinding(
+                        axis="phrase",
+                        document_id=document_id,
+                        section=section_key,
+                        message=f"forbidden phrase present: {phrase!r}",
+                    )
+                )
         numeric = entry.get("numeric", [])
         if numeric:
             numbers = [float(m) for m in _NUMBER_RE.findall(text)]
@@ -557,19 +591,18 @@ def _check_expectations(
                 value = float(item["value"])
                 tolerance = float(item.get("tolerance", 0))
                 if not any(abs(n - value) <= tolerance for n in numbers):
-                    report.findings.append(SemanticCheckFinding(
-                        axis="numeric", document_id=document_id, section=section_key,
-                        message=(
-                            f"numeric fact {value} (±{tolerance}) not found in "
-                            f"section text"
-                        ),
-                    ))
+                    report.findings.append(
+                        SemanticCheckFinding(
+                            axis="numeric",
+                            document_id=document_id,
+                            section=section_key,
+                            message=(f"numeric fact {value} (±{tolerance}) not found in section text"),
+                        )
+                    )
     return skipped
 
 
-def _check_orphans(
-    report: SemanticCheckReport, narrative_dir: str, seen_files: set[str]
-) -> None:
+def _check_orphans(report: SemanticCheckReport, narrative_dir: str, seen_files: set[str]) -> None:
     """Axis 1 (tree part): narrative files without a matching structural stub."""
     for root, _dirs, files in os.walk(narrative_dir):
         for name in files:
@@ -577,7 +610,9 @@ def _check_orphans(
                 continue
             rel = os.path.relpath(os.path.join(root, name), narrative_dir)
             if rel not in seen_files:
-                report.findings.append(SemanticCheckFinding(
-                    axis="structure",
-                    message=f"orphan narrative file without structural stub: {rel}",
-                ))
+                report.findings.append(
+                    SemanticCheckFinding(
+                        axis="structure",
+                        message=f"orphan narrative file without structural stub: {rel}",
+                    )
+                )

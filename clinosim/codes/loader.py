@@ -30,6 +30,7 @@ _DATA_DIR = Path(__file__).parent / "data"
 @dataclass
 class CodeSystem:
     """A clinical code system with metadata and entries."""
+
     key: str  # short key (e.g., "icd-10-cm")
     name: str  # human-readable name
     uri: str  # FHIR system URI
@@ -139,10 +140,7 @@ def system_key_for(kind: str, country: str) -> str:
             falling back to a wrong code system (PR-90 silent-no-op class).
     """
     if kind not in _COUNTRY_SYSTEM_KEYS:
-        raise KeyError(
-            f"system_key_for: unknown kind {kind!r}; expected one of "
-            f"{sorted(_COUNTRY_SYSTEM_KEYS)}"
-        )
+        raise KeyError(f"system_key_for: unknown kind {kind!r}; expected one of {sorted(_COUNTRY_SYSTEM_KEYS)}")
     entry = _COUNTRY_SYSTEM_KEYS[kind]
     # JP test inlined (codes/ must not import from modules/ — dependency direction).
     return entry["jp"] if str(country).strip().lower() == "jp" else entry["default"]
@@ -187,19 +185,13 @@ _BUILTIN_URIS: dict[str, str] = {
     "hl7-practitioner-role": "http://terminology.hl7.org/CodeSystem/practitioner-role",
     "hl7-discharge-disposition": "http://terminology.hl7.org/CodeSystem/discharge-disposition",
     "hl7-diagnosis-role": "http://terminology.hl7.org/CodeSystem/diagnosis-role",
-    "hl7-allergyintolerance-verification":
-        "http://terminology.hl7.org/CodeSystem/allergyintolerance-verification",
-    "hl7-allergyintolerance-clinical":
-        "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+    "hl7-allergyintolerance-verification": "http://terminology.hl7.org/CodeSystem/allergyintolerance-verification",
+    "hl7-allergyintolerance-clinical": "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
     "hl7-admit-source": "http://terminology.hl7.org/CodeSystem/admit-source",
-    "hl7-endpoint-connection-type":
-        "http://terminology.hl7.org/CodeSystem/endpoint-connection-type",
-    "hl7-endpoint-payload-type":
-        "http://terminology.hl7.org/CodeSystem/endpoint-payload-type",
-    "hl7-subscriber-relationship":
-        "http://terminology.hl7.org/CodeSystem/subscriber-relationship",
-    "us-core-documentreference-category":
-        "http://hl7.org/fhir/us/core/CodeSystem/us-core-documentreference-category",
+    "hl7-endpoint-connection-type": "http://terminology.hl7.org/CodeSystem/endpoint-connection-type",
+    "hl7-endpoint-payload-type": "http://terminology.hl7.org/CodeSystem/endpoint-payload-type",
+    "hl7-subscriber-relationship": "http://terminology.hl7.org/CodeSystem/subscriber-relationship",
+    "us-core-documentreference-category": "http://hl7.org/fhir/us/core/CodeSystem/us-core-documentreference-category",
     "occupation-category": "http://clinosim.example.org/CodeSystem/occupation-category",
     # DICOM code systems (Tier 1 #2 Imaging, PR1)
     "dicom-modality": "http://dicom.nema.org/resources/ontology/DCM",

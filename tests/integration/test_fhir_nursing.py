@@ -135,9 +135,7 @@ def test_encounter_reference_present():
 
     for o in obs:
         enc_ref = o.get("encounter", {}).get("reference", "")
-        assert enc_ref == "Encounter/enc1", (
-            f"Observation {o['id']} missing or wrong encounter ref: {enc_ref!r}"
-        )
+        assert enc_ref == "Encounter/enc1", f"Observation {o['id']} missing or wrong encounter ref: {enc_ref!r}"
 
 
 def test_news2_has_loinc_coding():
@@ -191,9 +189,7 @@ def test_loinc_display_not_equal_to_code():
                 if coding.get("system") == loinc_uri:
                     disp = coding.get("display", "")
                     code_val = coding.get("code", "")
-                    assert disp != code_val, (
-                        f"display == code ({code_val!r}) in {o['id']} for country={country}"
-                    )
+                    assert disp != code_val, f"display == code ({code_val!r}) in {o['id']} for country={country}"
 
 
 def test_braden_and_morse_present():

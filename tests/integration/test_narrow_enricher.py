@@ -1,4 +1,5 @@
 """PR3b-3: enrich_antibiotic Pass 2 E2E tests (narrow / de-escalation)."""
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta
@@ -16,7 +17,8 @@ from clinosim.types.microbiology import MicrobiologyResult, SusceptibilityResult
 
 def _make_ctx(records: list, snapshot_iso: str = "2026-12-31"):
     cfg = SimpleNamespace(
-        country="US", snapshot_date=snapshot_iso,
+        country="US",
+        snapshot_date=snapshot_iso,
         time_range=("2026-01-01", snapshot_iso),
     )
     return SimpleNamespace(config=cfg, master_seed=42, records=records)
@@ -45,7 +47,9 @@ def _make_record(
     reported_dt = onset_dt + timedelta(days=reported_offset_days)
     micro = MicrobiologyResult(
         encounter_id="enc-test",
-        specimen="blood", specimen_snomed="119297000", test_loinc="600-7",
+        specimen="blood",
+        specimen_snomed="119297000",
+        test_loinc="600-7",
         collected_datetime=onset_dt,
         reported_datetime=reported_dt,
         growth=True,
@@ -54,7 +58,8 @@ def _make_record(
             SusceptibilityResult(
                 antibiotic_loinc=ANTIBIOTIC_LOINC_LOOKUP[k],
                 interpretation=i,
-            ) for k, i in susc
+            )
+            for k, i in susc
         ],
         hai_event_id=ev.hai_id,
     )
@@ -267,6 +272,7 @@ def test_fhir_medicationrequest_status_cancelled_pin() -> None:
     not pinned by any test so a future _map_order_status_to_fhir edit could
     silently drop the mapping)."""
     from clinosim.modules.output._fhir_medications import _map_order_status_to_fhir
+
     assert _map_order_status_to_fhir("cancelled") == "cancelled"
     assert _map_order_status_to_fhir("stopped") == "stopped"
     assert _map_order_status_to_fhir("accepted") == "active"
@@ -305,6 +311,5 @@ def test_fhir_medicationrequest_status_exhaustive_enum_coverage() -> None:
     )
     for status_value, expected_fhir in EXPECTED.items():
         assert _map_order_status_to_fhir(status_value) == expected_fhir, (
-            f"{status_value} → expected {expected_fhir}, "
-            f"got {_map_order_status_to_fhir(status_value)}"
+            f"{status_value} → expected {expected_fhir}, got {_map_order_status_to_fhir(status_value)}"
         )

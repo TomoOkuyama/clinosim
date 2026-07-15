@@ -29,12 +29,14 @@ def _status(cond: dict) -> str:
 def test_outpatient_chronic_primary_is_active_with_chronic_onset() -> None:
     record = {
         "clinical_diagnosis": {"discharge_diagnosis_code": "E11.9"},
-        "encounters": [{
-            "encounter_id": "enc-1",
-            "encounter_type": "outpatient",
-            "admission_datetime": "2026-05-01T10:00:00",
-            "discharge_datetime": "2026-05-01T11:00:00",
-        }],
+        "encounters": [
+            {
+                "encounter_id": "enc-1",
+                "encounter_type": "outpatient",
+                "admission_datetime": "2026-05-01T10:00:00",
+                "discharge_datetime": "2026-05-01T11:00:00",
+            }
+        ],
         "patient": {"chronic_conditions": [{"code": "E11.9", "onset_date": "2020-03-15"}]},
     }
     primary = _primary(_build_conditions(record, "pat-1", "US"))
@@ -47,12 +49,14 @@ def test_outpatient_chronic_primary_is_active_with_chronic_onset() -> None:
 def test_outpatient_acute_primary_stays_resolved_with_visit_onset() -> None:
     record = {
         "clinical_diagnosis": {"discharge_diagnosis_code": "J06.9"},  # acute URI
-        "encounters": [{
-            "encounter_id": "enc-2",
-            "encounter_type": "outpatient",
-            "admission_datetime": "2026-05-01T10:00:00",
-            "discharge_datetime": "2026-05-01T11:00:00",
-        }],
+        "encounters": [
+            {
+                "encounter_id": "enc-2",
+                "encounter_type": "outpatient",
+                "admission_datetime": "2026-05-01T10:00:00",
+                "discharge_datetime": "2026-05-01T11:00:00",
+            }
+        ],
         "patient": {"chronic_conditions": [{"code": "E11.9", "onset_date": "2020-03-15"}]},
     }
     primary = _primary(_build_conditions(record, "pat-2", "US"))

@@ -99,20 +99,30 @@ def _build_coverage_resources(patient_data: dict, country: str) -> list[dict]:
             continue
 
         payer_org_id = f"payer-{insurer}"
-        resources.append({
-            "resourceType": "Organization",
-            "id": payer_org_id,
-            "identifier": [{
-                "system": cfg.get("insurer_number_system", ""),
-                "value": insurer,
-            }],
-            "type": [{"coding": [{
-                "system": _ORG_TYPE_SYSTEM,
-                "code": "pay",
-                "display": "Payer",
-            }]}],
-            "name": name_map.get(insurer, insurer),
-        })
+        resources.append(
+            {
+                "resourceType": "Organization",
+                "id": payer_org_id,
+                "identifier": [
+                    {
+                        "system": cfg.get("insurer_number_system", ""),
+                        "value": insurer,
+                    }
+                ],
+                "type": [
+                    {
+                        "coding": [
+                            {
+                                "system": _ORG_TYPE_SYSTEM,
+                                "code": "pay",
+                                "display": "Payer",
+                            }
+                        ]
+                    }
+                ],
+                "name": name_map.get(insurer, insurer),
+            }
+        )
 
         # JP Core extensions: 記号 / 番号 / 枝番
         extensions: list[dict] = []
@@ -153,9 +163,13 @@ def _build_coverage_resources(patient_data: dict, country: str) -> list[dict]:
         # Beneficiary's relationship to the subscriber: 被扶養者 → not self.
         rel_code = "other" if category == "dependent" else "self"
         coverage["relationship"] = {
-            "coding": [_coding_with_display(
-                "hl7-subscriber-relationship", rel_code, resolve_lang(country),
-            )]
+            "coding": [
+                _coding_with_display(
+                    "hl7-subscriber-relationship",
+                    rel_code,
+                    resolve_lang(country),
+                )
+            ]
         }
         # Coverage.type: human label (text-only CodeableConcept — no fabricated codes).
         label = type_labels.get(category)
@@ -182,51 +196,63 @@ def _build_coverage_resources(patient_data: dict, country: str) -> list[dict]:
         # C5-09 (session 43 cycle 5): diversify to include both `group` and
         # `plan` classifications when insurer symbol resolves to a plan
         # name — plan carries the human-readable insurance product name.
-        _class_entries: list[dict[str, Any]] = [{
-            "type": {
-                "coding": [{
-                    "system": "http://terminology.hl7.org/CodeSystem/coverage-class",
-                    "code": "group",
-                    "display": "Group" if not is_jp(country) else "保険グループ",
-                }],
-            },
-            "value": insurer,
-            "name": name_map.get(insurer, insurer),
-        }]
-        if symbol:
-            _class_entries.append({
+        _class_entries: list[dict[str, Any]] = [
+            {
                 "type": {
-                    "coding": [{
-                        "system": "http://terminology.hl7.org/CodeSystem/coverage-class",
-                        "code": "plan",
-                        "display": "Plan" if not is_jp(country) else "保険プラン",
-                    }],
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/coverage-class",
+                            "code": "group",
+                            "display": "Group" if not is_jp(country) else "保険グループ",
+                        }
+                    ],
                 },
-                "value": symbol,
+                "value": insurer,
                 "name": name_map.get(insurer, insurer),
-            })
+            }
+        ]
+        if symbol:
+            _class_entries.append(
+                {
+                    "type": {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/coverage-class",
+                                "code": "plan",
+                                "display": "Plan" if not is_jp(country) else "保険プラン",
+                            }
+                        ],
+                    },
+                    "value": symbol,
+                    "name": name_map.get(insurer, insurer),
+                }
+            )
         coverage["class"] = _class_entries
         # CY7-14 (Chain-7): Coverage.costToBeneficiary — JP 自己負担割合.
         # Standard JP 医療保険 co-pay: 3割 for adults, 1割 for elderly (≥70,
         # 現役並み所得除く). Population module carries age; use category as
         # a proxy (late-elderly insurer = 1割; others = 3割 default).
         _coshare_pct = 10 if insurer == "39130083" else 30  # 39130083 = 後期高齢者
-        coverage["costToBeneficiary"] = [{
-            "type": {
-                "coding": [{
-                    "system": "http://terminology.hl7.org/CodeSystem/coverage-copay-type",
-                    "code": "copaypct",
-                    "display": "Copay percentage",
-                }],
-                "text": "自己負担割合" if is_jp(country) else "Copay percentage",
-            },
-            "valueQuantity": {
-                "value": _coshare_pct,
-                "unit": "%",
-                "system": "http://unitsofmeasure.org",
-                "code": "%",
-            },
-        }]
+        coverage["costToBeneficiary"] = [
+            {
+                "type": {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/coverage-copay-type",
+                            "code": "copaypct",
+                            "display": "Copay percentage",
+                        }
+                    ],
+                    "text": "自己負担割合" if is_jp(country) else "Copay percentage",
+                },
+                "valueQuantity": {
+                    "value": _coshare_pct,
+                    "unit": "%",
+                    "system": "http://unitsofmeasure.org",
+                    "code": "%",
+                },
+            }
+        ]
         resources.append(coverage)
 
     return resources
@@ -266,12 +292,14 @@ def _build_patient(p: dict, country: str) -> dict:
             kana_family = phonetic.get("family_name", "")
             kana_given = phonetic.get("given_name", "")
             if kana_family or kana_given:
-                names.append({
-                    "use": "official",
-                    "family": kana_family or family,
-                    "given": [kana_given or given],
-                    "extension": [{"url": ISO21090_URL, "valueCode": "SYL"}],
-                })
+                names.append(
+                    {
+                        "use": "official",
+                        "family": kana_family or family,
+                        "given": [kana_given or given],
+                        "extension": [{"url": ISO21090_URL, "valueCode": "SYL"}],
+                    }
+                )
     else:
         names.append({"use": "official", "family": family, "given": [given]})
     names[0]  # kept for legacy readers below
@@ -289,23 +317,29 @@ def _build_patient(p: dict, country: str) -> dict:
         # C2-20 (session 42 cycle 2): declare JP Core Patient conformance
         # for JP exports. US export intentionally omits — no US Core profile
         # is asserted (a separate roadmap item).
-        **({"meta": {"profile": [
-            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Patient"
-        ]}} if is_jp(country) else {}),
-        "identifier": [{
-            "use": "usual",
-            "type": {
-                "coding": [{
-                    "system": get_system_uri("hl7-v2-0203"),
-                    "code": "MR",
-                    "display": "Medical Record Number",
-                }],
-                "text": "診療録番号" if is_jp(country) else "MRN",
-            },
-            "system": mrn_system,
-            "value": pid,
-            "assigner": {"reference": "Organization/hospital-main"},
-        }],
+        **(
+            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Patient"]}}
+            if is_jp(country)
+            else {}
+        ),
+        "identifier": [
+            {
+                "use": "usual",
+                "type": {
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-v2-0203"),
+                            "code": "MR",
+                            "display": "Medical Record Number",
+                        }
+                    ],
+                    "text": "診療録番号" if is_jp(country) else "MRN",
+                },
+                "system": mrn_system,
+                "value": pid,
+                "assigner": {"reference": "Organization/hospital-main"},
+            }
+        ],
         "active": True,
         "name": names,
         "gender": gender,
@@ -342,12 +376,14 @@ def _build_patient(p: dict, country: str) -> dict:
     # 将来: (a) 別 Observation resource として emit or
     #        (b) JP Core BloodType extension を codes registry に追加 + 使用
     if p.get("blood_type") and is_jp(country):
-        resource["extension"] = [{
-            "url": "http://jpfhir.jp/fhir/core/Extension/StructureDefinition/JP_Patient_BloodTypeCode",
-            "valueCodeableConcept": {
-                "text": f"{p['blood_type']}{p.get('rh_factor', '+')}",
-            },
-        }]
+        resource["extension"] = [
+            {
+                "url": "http://jpfhir.jp/fhir/core/Extension/StructureDefinition/JP_Patient_BloodTypeCode",
+                "valueCodeableConcept": {
+                    "text": f"{p['blood_type']}{p.get('rh_factor', '+')}",
+                },
+            }
+        ]
 
     # Address
     addr = p.get("address")
@@ -367,26 +403,32 @@ def _build_patient(p: dict, country: str) -> dict:
     marital = p.get("marital_status", "")
     if marital:
         resource["maritalStatus"] = {
-            "coding": [{
-                "system": get_system_uri("hl7-v3-maritalstatus"),
-                "code": marital,
-                "display": code_lookup("hl7-v3-maritalstatus", marital, resolve_lang(country)),
-            }],
+            "coding": [
+                {
+                    "system": get_system_uri("hl7-v3-maritalstatus"),
+                    "code": marital,
+                    "display": code_lookup("hl7-v3-maritalstatus", marital, resolve_lang(country)),
+                }
+            ],
         }
 
     # Communication / preferred language
     lang = p.get("preferred_language", "")
     if lang:
-        resource["communication"] = [{
-            "language": {
-                "coding": [{
-                    "system": get_system_uri("bcp-47-language"),
-                    "code": lang,
-                    "display": code_lookup("bcp-47-language", lang, resolve_lang(country)),
-                }],
-            },
-            "preferred": True,
-        }]
+        resource["communication"] = [
+            {
+                "language": {
+                    "coding": [
+                        {
+                            "system": get_system_uri("bcp-47-language"),
+                            "code": lang,
+                            "display": code_lookup("bcp-47-language", lang, resolve_lang(country)),
+                        }
+                    ],
+                },
+                "preferred": True,
+            }
+        ]
 
     # Emergency contact
     if contact and isinstance(contact, dict):
@@ -396,20 +438,28 @@ def _build_patient(p: dict, country: str) -> dict:
         if emer_name or emer_phone:
             ec: dict[str, Any] = {}
             if emer_rel:
-                ec["relationship"] = [{
-                    "coding": [{
-                        "system": get_system_uri("hl7-v2-0131"),
-                        "code": "C",
-                        "display": "Emergency Contact",
-                    }],
-                    "text": _localize_display(emer_rel, country, _RELATIONSHIP_DISPLAY_JA),
-                }]
+                ec["relationship"] = [
+                    {
+                        "coding": [
+                            {
+                                "system": get_system_uri("hl7-v2-0131"),
+                                "code": "C",
+                                "display": "Emergency Contact",
+                            }
+                        ],
+                        "text": _localize_display(emer_rel, country, _RELATIONSHIP_DISPLAY_JA),
+                    }
+                ]
             if emer_name:
                 ec["name"] = {"text": emer_name}
             if emer_phone:
-                ec["telecom"] = [{
-                    "system": "phone", "value": emer_phone, "use": "mobile",
-                }]
+                ec["telecom"] = [
+                    {
+                        "system": "phone",
+                        "value": emer_phone,
+                        "use": "mobile",
+                    }
+                ]
             resource["contact"] = [ec]
 
     return resource
@@ -422,7 +472,9 @@ def _build_patient(p: dict, country: str) -> dict:
 
 # Occupation category localization for Observation.valueCodeableConcept
 def _build_occupation_observation(
-    occupation: str, patient_id: str, country: str,
+    occupation: str,
+    patient_id: str,
+    country: str,
 ) -> dict | None:
     """Build FHIR Observation for patient occupation (social history).
 
@@ -437,33 +489,42 @@ def _build_occupation_observation(
         "resourceType": "Observation",
         "id": f"occupation-{patient_id}",
         # Session 46 chain #2: JP Core Observation_Common profile.
-        **({"meta": {"profile": [
-            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"
-        ]}} if is_jp(country) else {}),
+        **(
+            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
+            if is_jp(country)
+            else {}
+        ),
         "status": "final",
         "category": _social_category(country),
         "code": {
-            "coding": [{
-                "system": get_system_uri("loinc"),
-                "code": "11341-5",
-                "display": "History of Occupation",
-            }],
+            "coding": [
+                {
+                    "system": get_system_uri("loinc"),
+                    "code": "11341-5",
+                    "display": "History of Occupation",
+                }
+            ],
             "text": "職業" if is_jp(country) else "Occupation",
         },
         "subject": {"reference": f"Patient/{patient_id}"},
         "valueCodeableConcept": {
-            "coding": [{
-                "system": get_system_uri("occupation-category"),
-                "code": occupation,
-                "display": display,
-            }],
+            "coding": [
+                {
+                    "system": get_system_uri("occupation-category"),
+                    "code": occupation,
+                    "display": display,
+                }
+            ],
             "text": display,
         },
     }
 
 
 def _build_allergy_intolerance(
-    allergy: dict, patient_id: str, index: int, country: str,
+    allergy: dict,
+    patient_id: str,
+    index: int,
+    country: str,
 ) -> dict | None:
     """Build FHIR AllergyIntolerance from CIF allergy data."""
     substance = allergy.get("substance", "")
@@ -476,11 +537,13 @@ def _build_allergy_intolerance(
     rxnorm = _ALLERGEN_RXNORM.get(substance, "")
     code: dict[str, Any] = {"text": substance_display}
     if rxnorm:
-        code["coding"] = [{
-            "system": get_system_uri("rxnorm"),
-            "code": rxnorm,
-            "display": substance_display,
-        }]
+        code["coding"] = [
+            {
+                "system": get_system_uri("rxnorm"),
+                "code": rxnorm,
+                "display": substance_display,
+            }
+        ]
 
     severity = allergy.get("severity", "mild").lower()
     criticality = "high" if severity == "severe" else "low"
@@ -488,26 +551,32 @@ def _build_allergy_intolerance(
     reaction_type = allergy.get("reaction_type", "")
     reaction: dict[str, Any] = {"severity": severity}
     if reaction_type:
-        reaction["manifestation"] = [{
-            "text": reaction_type,
-        }]
+        reaction["manifestation"] = [
+            {
+                "text": reaction_type,
+            }
+        ]
 
     return {
         "resourceType": "AllergyIntolerance",
         "id": f"allergy-{patient_id}-{index:02d}",  # patient-scoped is OK (allergies are patient-level)
         "clinicalStatus": {
-            "coding": [{
-                "system": get_system_uri("hl7-allergyintolerance-clinical"),
-                "code": "active",
-                "display": "Active",
-            }],
+            "coding": [
+                {
+                    "system": get_system_uri("hl7-allergyintolerance-clinical"),
+                    "code": "active",
+                    "display": "Active",
+                }
+            ],
         },
         "verificationStatus": {
-            "coding": [{
-                "system": get_system_uri("hl7-allergyintolerance-verification"),
-                "code": "confirmed",
-                "display": "Confirmed",
-            }],
+            "coding": [
+                {
+                    "system": get_system_uri("hl7-allergyintolerance-verification"),
+                    "code": "confirmed",
+                    "display": "Confirmed",
+                }
+            ],
         },
         "type": "allergy",
         "category": ["medication"],

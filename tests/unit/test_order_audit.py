@@ -4,6 +4,7 @@ The module-level import fires the side-effect that registers ModuleAuditSpec.
 Tests call discover() to ensure the spec is loaded even after _reset_for_test()
 clears the registry (same pattern as tests/integration/test_antibiotic_audit.py).
 """
+
 from __future__ import annotations
 
 import pytest
@@ -17,8 +18,7 @@ def test_order_audit_module_registered():
     discover()
     specs = get_registered()
     assert "order_service_request" in specs, (
-        f"'order_service_request' not in registry after discover(); "
-        f"registered: {sorted(specs)}"
+        f"'order_service_request' not in registry after discover(); registered: {sorted(specs)}"
     )
 
 
@@ -42,19 +42,12 @@ def test_lift_firing_proof_has_required_equality_checks():
     spec = get_registered()["order_service_request"]
     assert spec.lift_firing_proof is not None
     proof = spec.lift_firing_proof()
-    assert "equality_checks" in proof, (
-        "proof must contain 'equality_checks' key; "
-        f"got keys: {sorted(proof.keys())}"
-    )
+    assert "equality_checks" in proof, f"proof must contain 'equality_checks' key; got keys: {sorted(proof.keys())}"
     checks = proof["equality_checks"]
-    assert len(checks) >= 7, (
-        f"Expected >= 7 equality_checks, got {len(checks)}: {checks}"
-    )
+    assert len(checks) >= 7, f"Expected >= 7 equality_checks, got {len(checks)}: {checks}"
     # All checks must be (label, actual, expected) 3-tuples
     for i, check in enumerate(checks):
-        assert len(check) == 3, (
-            f"equality_checks[{i}] must be (label, actual, expected), got: {check!r}"
-        )
+        assert len(check) == 3, f"equality_checks[{i}] must be (label, actual, expected), got: {check!r}"
 
     # Verify the 7 canonical substrings appear in the labels
     labels_text = " ".join(label for label, _, _ in checks)
@@ -69,8 +62,7 @@ def test_lift_firing_proof_has_required_equality_checks():
     ]
     for substring in expected_substrings:
         assert substring in labels_text, (
-            f"Missing equality_check label substring: {substring!r}\n"
-            f"All labels: {labels_text}"
+            f"Missing equality_check label substring: {substring!r}\nAll labels: {labels_text}"
         )
 
 
@@ -80,15 +72,7 @@ def test_lift_firing_proof_all_checks_pass():
     discover()
     spec = get_registered()["order_service_request"]
     proof = spec.lift_firing_proof()
-    failures = [
-        (label, actual, expected)
-        for label, actual, expected in proof["equality_checks"]
-        if actual != expected
-    ]
-    assert not failures, (
-        "Some equality_checks failed (canonical drift detected):\n"
-        + "\n".join(
-            f"  {label!r}: actual={actual!r} != expected={expected!r}"
-            for label, actual, expected in failures
-        )
+    failures = [(label, actual, expected) for label, actual, expected in proof["equality_checks"] if actual != expected]
+    assert not failures, "Some equality_checks failed (canonical drift detected):\n" + "\n".join(
+        f"  {label!r}: actual={actual!r} != expected={expected!r}" for label, actual, expected in failures
     )

@@ -7,13 +7,25 @@ pytestmark = pytest.mark.integration
 
 
 def _ctx(country="US"):
-    fams = [FamilyMemberHistoryRecord("MTH", "female", True, ["E11", "C50"]),
-            FamilyMemberHistoryRecord("FTH", "male", False, ["I25"])]
-    return BundleContext(record={"family_history": fams}, country=country, roster_map={},
-                         hospital_config={}, patient_data={}, patient_id="pat-1",
-                         is_readmission=False, prior_encounter_id=None, primary_dx_code="",
-                         admit_dx_code="", admit_dx_system="icd-10-cm", primary_enc_id="enc-1",
-                         patient_sex="female")
+    fams = [
+        FamilyMemberHistoryRecord("MTH", "female", True, ["E11", "C50"]),
+        FamilyMemberHistoryRecord("FTH", "male", False, ["I25"]),
+    ]
+    return BundleContext(
+        record={"family_history": fams},
+        country=country,
+        roster_map={},
+        hospital_config={},
+        patient_data={},
+        patient_id="pat-1",
+        is_readmission=False,
+        prior_encounter_id=None,
+        primary_dx_code="",
+        admit_dx_code="",
+        admit_dx_system="icd-10-cm",
+        primary_enc_id="enc-1",
+        patient_sex="female",
+    )
 
 
 def test_builds_one_resource_per_relative():

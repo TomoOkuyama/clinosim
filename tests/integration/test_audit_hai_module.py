@@ -1,5 +1,6 @@
 """Integration test: real HAI audit plug-in registers and the engine
 runs lift-firing proof + constants check end-to-end."""
+
 from __future__ import annotations
 
 import importlib
@@ -26,10 +27,7 @@ def test_hai_audit_silent_no_op_passes_on_clean_lift(tmp_path):
     sn_result = result.results.get(("silent_no_op", "hai"))
     assert sn_result is not None
     # Constants check + proof both PASS → overall PASS
-    assert sn_result.status == "PASS", (
-        f"silent_no_op axis FAIL findings: "
-        f"{[f.message for f in sn_result.findings]}"
-    )
+    assert sn_result.status == "PASS", f"silent_no_op axis FAIL findings: {[f.message for f in sn_result.findings]}"
 
 
 @pytest.mark.integration

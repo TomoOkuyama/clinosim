@@ -19,11 +19,23 @@ def test_test_disease_format_all_writes_all_stages(tmp_path):
     out = tmp_path / "verify_mi"
     r = subprocess.run(
         [
-            sys.executable, "-m", "clinosim.simulator.cli", "test-disease",
-            "acute_mi", "-n", "3", "--format", "all", "-o", str(out),
-            "--country", "US",
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "test-disease",
+            "acute_mi",
+            "-n",
+            "3",
+            "--format",
+            "all",
+            "-o",
+            str(out),
+            "--country",
+            "US",
         ],
-        capture_output=True, text=True, timeout=120,
+        capture_output=True,
+        text=True,
+        timeout=120,
     )
     assert r.returncode == 0, r.stderr
     assert (out / "cif" / "structural" / "patients").exists()
@@ -37,10 +49,19 @@ def test_test_disease_format_all_writes_all_stages(tmp_path):
 def test_test_disease_no_output_keeps_stdout(tmp_path):
     r = subprocess.run(
         [
-            sys.executable, "-m", "clinosim.simulator.cli", "test-disease",
-            "acute_mi", "-n", "1", "--country", "US",
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "test-disease",
+            "acute_mi",
+            "-n",
+            "1",
+            "--country",
+            "US",
         ],
-        capture_output=True, text=True, timeout=60,
+        capture_output=True,
+        text=True,
+        timeout=60,
     )
     assert r.returncode == 0, r.stderr
     # existing debug print — should include patient info
@@ -53,10 +74,21 @@ def test_test_disease_no_output_keeps_stdout(tmp_path):
 def test_test_disease_format_without_output_errors():
     r = subprocess.run(
         [
-            sys.executable, "-m", "clinosim.simulator.cli", "test-disease",
-            "acute_mi", "-n", "1", "--format", "cif", "--country", "US",
+            sys.executable,
+            "-m",
+            "clinosim.simulator.cli",
+            "test-disease",
+            "acute_mi",
+            "-n",
+            "1",
+            "--format",
+            "cif",
+            "--country",
+            "US",
         ],
-        capture_output=True, text=True, timeout=30,
+        capture_output=True,
+        text=True,
+        timeout=30,
     )
     assert r.returncode != 0
     assert "--format" in r.stderr and "--output" in r.stderr

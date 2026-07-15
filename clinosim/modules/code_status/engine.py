@@ -1,4 +1,5 @@
 """Code status (resuscitation status) assignment (AD-55 Base). Pure + seeded."""
+
 from __future__ import annotations
 
 from functools import lru_cache
@@ -40,8 +41,7 @@ def _age_band(age: int, bands: list[str]) -> str:
     return bands[-1]
 
 
-def assign_code_status(age: int, context: str, country: str,
-                       rng: np.random.Generator) -> str:
+def assign_code_status(age: int, context: str, country: str, rng: np.random.Generator) -> str:
     """Return the SNOMED code of the sampled tier for (age, context).
 
     context: "routine" | "icu" | "terminal". Deterministic for a given rng.

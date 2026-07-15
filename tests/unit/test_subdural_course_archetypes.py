@@ -22,8 +22,13 @@ _CANONICAL = {
     "sudden_deterioration",
 }
 _SUPPORTED_RISK_PREFIXES = (
-    "severity_severe", "age_over_", "renal_function", "volume_status",
-    "perfusion_status", "delirium_susceptibility", "immobility_days",
+    "severity_severe",
+    "age_over_",
+    "renal_function",
+    "volume_status",
+    "perfusion_status",
+    "delirium_susceptibility",
+    "immobility_days",
 )
 
 
@@ -36,9 +41,16 @@ def test_subdural_has_course_archetypes():
 
 def test_subdural_trajectories_use_recognized_state_vars():
     recognized = {
-        "anemia_level", "cardiac_function", "coagulation_status", "glucose_status",
-        "hepatic_function", "inflammation_level", "perfusion_status", "ph_status",
-        "renal_function", "volume_status",
+        "anemia_level",
+        "cardiac_function",
+        "coagulation_status",
+        "glucose_status",
+        "hepatic_function",
+        "inflammation_level",
+        "perfusion_status",
+        "ph_status",
+        "renal_function",
+        "volume_status",
     }
     p = load_disease_protocol("subdural_hematoma")
     for name, a in p.course_archetypes.items():

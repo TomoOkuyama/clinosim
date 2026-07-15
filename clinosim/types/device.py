@@ -1,4 +1,5 @@
 """Device use records (AD-55 Module: device)."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

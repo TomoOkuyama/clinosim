@@ -4,10 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-_PROFILE_URL = (
-    "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/"
-    "JP_Composition_eDischargeSummary"
-)
+_PROFILE_URL = "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary"
 _DOC_TYPE_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes"
 _SECTION_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/jp-codeSystem-clins-document-section"
 
@@ -25,13 +22,15 @@ def _jp_ds_doc():
         "language": "ja",
         "period_start": "2026-01-15T09:00:00",
         "period_end": "2026-01-20T10:00:00",
-        "narrative": {"sections": {
-            "admission_reason": "細菌性肺炎のため入院となった。",
-            "admission_details": "2026-01-15、救急外来受診後、内科病棟に入院した。",
-            "admission_diagnoses": "1. 細菌性肺炎（J13）",
-            "chief_complaint": "発熱・咳嗽",
-            "present_illness": "3日前より発熱と咳嗽を認め、当院受診となった。",
-        }},
+        "narrative": {
+            "sections": {
+                "admission_reason": "細菌性肺炎のため入院となった。",
+                "admission_details": "2026-01-15、救急外来受診後、内科病棟に入院した。",
+                "admission_diagnoses": "1. 細菌性肺炎（J13）",
+                "chief_complaint": "発熱・咳嗽",
+                "present_illness": "3日前より発熱と咳嗽を認め、当院受診となった。",
+            }
+        },
     }
 
 
@@ -48,31 +47,34 @@ def _us_ds_doc():
         "language": "en",
         "period_start": "2026-01-15T09:00:00",
         "period_end": "2026-01-20T10:00:00",
-        "narrative": {"sections": {
-            "admission_summary": "Admitted for bacterial pneumonia.",
-            "hospital_course": "Improved on ceftriaxone.",
-            "discharge_diagnoses": "1. Bacterial pneumonia (J13)",
-            "discharge_medications": "amoxicillin-clavulanate 500mg PO TID x7d",
-            "discharge_instructions": "Follow up in 1 week.",
-            "follow_up": "PCP in 7 days",
-        }},
+        "narrative": {
+            "sections": {
+                "admission_summary": "Admitted for bacterial pneumonia.",
+                "hospital_course": "Improved on ceftriaxone.",
+                "discharge_diagnoses": "1. Bacterial pneumonia (J13)",
+                "discharge_medications": "amoxicillin-clavulanate 500mg PO TID x7d",
+                "discharge_instructions": "Follow up in 1 week.",
+                "follow_up": "PCP in 7 days",
+            }
+        },
     }
 
 
 @pytest.mark.unit
 def test_jp_clins_composition_type_uses_doc_typecodes():
     from clinosim.modules.output._fhir_composition import _build_composition
+
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
-    assert any(
-        c.get("system") == _DOC_TYPE_SYSTEM and c.get("code") == "18842-5"
-        for c in comp["type"]["coding"]
-    ), comp["type"]
+    assert any(c.get("system") == _DOC_TYPE_SYSTEM and c.get("code") == "18842-5" for c in comp["type"]["coding"]), (
+        comp["type"]
+    )
 
 
 @pytest.mark.unit
 def test_jp_clins_composition_has_profile():
     from clinosim.modules.output._fhir_composition import _build_composition
+
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
     profs = comp.get("meta", {}).get("profile", [])
@@ -82,6 +84,7 @@ def test_jp_clins_composition_has_profile():
 @pytest.mark.unit
 def test_jp_clins_composition_has_nested_structural_section():
     from clinosim.modules.output._fhir_composition import _build_composition
+
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
     top = comp["section"]
@@ -99,12 +102,11 @@ def test_jp_clins_composition_has_nested_structural_section():
 @pytest.mark.unit
 def test_jp_clins_composition_child_section_text_div():
     from clinosim.modules.output._fhir_composition import _build_composition
+
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
     parent = comp["section"][0]
-    children_by_code = {
-        c["code"]["coding"][0]["code"]: c for c in parent["section"]
-    }
+    children_by_code = {c["code"]["coding"][0]["code"]: c for c in parent["section"]}
     # 312 = admission_reason
     assert "細菌性肺炎" in children_by_code["312"]["text"]["div"]
     # 352 = chief_complaint
@@ -116,6 +118,7 @@ def test_jp_clins_composition_child_section_text_div():
 @pytest.mark.unit
 def test_jp_clins_composition_title_is_ja():
     from clinosim.modules.output._fhir_composition import _build_composition
+
     doc = _jp_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
     assert comp["title"] == "退院時サマリー"
@@ -124,12 +127,12 @@ def test_jp_clins_composition_title_is_ja():
 @pytest.mark.unit
 def test_us_discharge_summary_composition_unchanged():
     from clinosim.modules.output._fhir_composition import _build_composition
+
     doc = _us_ds_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "en")
     # No JP-CLINS profile
     profs = comp.get("meta", {}).get("profile", [])
-    assert not any(p.startswith(
-        "http://jpfhir.jp/fhir/eDischargeSummary/") for p in profs), profs
+    assert not any(p.startswith("http://jpfhir.jp/fhir/eDischargeSummary/") for p in profs), profs
     # Type uses LOINC only, no doc-typecodes leak
     systems = {c.get("system") for c in comp["type"]["coding"]}
     assert "http://loinc.org" in systems

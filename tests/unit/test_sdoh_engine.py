@@ -1,4 +1,5 @@
 """Unit tests for clinosim.modules.sdoh.engine.load_social_history."""
+
 from __future__ import annotations
 
 import pytest

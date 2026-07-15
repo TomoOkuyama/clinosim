@@ -82,16 +82,14 @@ def _validate_panel_definitions(panels: dict[str, dict[str, Any]]) -> None:
     missing_in_yaml = expected - yaml_keys
     if missing_in_yaml:
         raise ValueError(
-            f"lab_panel_groups.yaml missing panels declared in PANEL_PRIORITY_ORDER: "
-            f"{sorted(missing_in_yaml)}"
+            f"lab_panel_groups.yaml missing panels declared in PANEL_PRIORITY_ORDER: {sorted(missing_in_yaml)}"
         )
 
     # Layer 3: unknown keys — YAML panels not in PANEL_PRIORITY_ORDER (silent-no-op risk)
     extra_in_yaml = yaml_keys - expected
     if extra_in_yaml:
         raise ValueError(
-            f"lab_panel_groups.yaml has panels NOT in PANEL_PRIORITY_ORDER "
-            f"(silent-no-op risk): {sorted(extra_in_yaml)}"
+            f"lab_panel_groups.yaml has panels NOT in PANEL_PRIORITY_ORDER (silent-no-op risk): {sorted(extra_in_yaml)}"
         )
 
     # Layer 6 (key-order): YAML insertion order must match PANEL_PRIORITY_ORDER.
@@ -124,8 +122,7 @@ def _validate_panel_definitions(panels: dict[str, dict[str, Any]]) -> None:
         # check (Layer 2) but should fail at import time, not only at test-time.
         if not _code_in_data("loinc", panel["loinc"]):
             raise ValueError(
-                f"Panel '{name}' has unknown LOINC code '{panel['loinc']}' "
-                f"(not in clinosim/codes/data/loinc.yaml)"
+                f"Panel '{name}' has unknown LOINC code '{panel['loinc']}' (not in clinosim/codes/data/loinc.yaml)"
             )
 
     # Layer 6b: cross-validate components against lab_panels.yaml (observation engine).

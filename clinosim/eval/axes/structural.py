@@ -18,6 +18,7 @@ def run(cohort: Cohort, country: str) -> list[EvalCheck]:
 
 # --------------------------------------------------------------------------- #
 
+
 def _check_resource_id_uniqueness(cohort: Cohort, country: str) -> EvalCheck:
     """Within each resourceType file, no two rows may share `id`."""
     dup_by_type: dict[str, int] = {}
@@ -76,10 +77,7 @@ def _check_reference_integrity(cohort: Cohort, country: str) -> EvalCheck:
         name="reference_integrity",
         outcome=Outcome.FAIL,
         severity=Severity.CRITICAL,
-        message=(
-            f"{len(dangling)} dangling reference(s) — examples: "
-            + ", ".join(dangling[:5])
-        ),
+        message=(f"{len(dangling)} dangling reference(s) — examples: " + ", ".join(dangling[:5])),
         detail={"dangling_sample": dangling[:20], "dangling_total": len(dangling)},
     )
 
@@ -127,6 +125,7 @@ def _check_meta_profile_declared(cohort: Cohort, country: str) -> EvalCheck:
     # Delegate country detection to the locale axis's helper (handles flat
     # cohorts where the directory doesn't encode the country).
     from clinosim.eval.axes.locale import _detect_country_from_cohort
+
     if _detect_country_from_cohort(cohort, country) != "JP":
         return EvalCheck(
             name="meta_profile_declared",
@@ -136,10 +135,21 @@ def _check_meta_profile_declared(cohort: Cohort, country: str) -> EvalCheck:
         )
 
     expected_types = (
-        "Patient", "Practitioner", "PractitionerRole", "Organization",
-        "Location", "Encounter", "Condition", "Observation", "MedicationRequest",
-        "MedicationAdministration", "DiagnosticReport", "Procedure",
-        "AllergyIntolerance", "Immunization", "Coverage",
+        "Patient",
+        "Practitioner",
+        "PractitionerRole",
+        "Organization",
+        "Location",
+        "Encounter",
+        "Condition",
+        "Observation",
+        "MedicationRequest",
+        "MedicationAdministration",
+        "DiagnosticReport",
+        "Procedure",
+        "AllergyIntolerance",
+        "Immunization",
+        "Coverage",
     )
 
     missing_profile: dict[str, int] = {}
@@ -203,6 +213,7 @@ def _check_resource_type_consistency(cohort: Cohort, country: str) -> EvalCheck:
 # --------------------------------------------------------------------------- #
 # helpers
 
+
 def _fhir_ndjsons(cohort: Cohort, country: str):
     base = cohort.root / country / "fhir_r4"
     if not base.exists():
@@ -212,6 +223,7 @@ def _fhir_ndjsons(cohort: Cohort, country: str):
 
 def _read_ndjson(path):
     import json
+
     with path.open() as f:
         for line in f:
             line = line.strip()

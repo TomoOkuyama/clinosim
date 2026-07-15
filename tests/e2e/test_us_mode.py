@@ -36,13 +36,13 @@ class TestUSMode:
             name = r.patient.name
             assert name.name_script == "en"
             # No kanji/kana characters in family name
-            assert all(ord(c) < 0x3000 for c in name.family_name), \
-                f"Expected English name, got: {name.family_name}"
+            assert all(ord(c) < 0x3000 for c in name.family_name), f"Expected English name, got: {name.family_name}"
 
     def test_us_los_shorter_than_jp(self, us_dataset):
         """US pneumonia LOS should be significantly shorter than JP (14 days)."""
         pneumonia_patients = [
-            r for r in us_dataset.patients
+            r
+            for r in us_dataset.patients
             if r.condition_event.ground_truth_diseases
             and r.condition_event.ground_truth_diseases[0] == "bacterial_pneumonia"
         ]
@@ -53,6 +53,7 @@ class TestUSMode:
     def test_chronic_conditions_have_names(self, us_dataset):
         """All chronic conditions should resolve to proper English names via codes module."""
         from clinosim.codes import lookup
+
         for r in us_dataset.patients:
             for c in r.patient.chronic_conditions:
                 display = lookup(c.system or "icd-10-cm", c.code, "en")
@@ -61,14 +62,12 @@ class TestUSMode:
     def test_home_medications_present(self, us_dataset):
         """Inpatients with chronic conditions should have home medication orders."""
         inpatients_with_chronic = [
-            r for r in us_dataset.patients
-            if r.patient.chronic_conditions
-            and r.encounters
-            and r.encounters[0].encounter_type.value == "inpatient"
+            r
+            for r in us_dataset.patients
+            if r.patient.chronic_conditions and r.encounters and r.encounters[0].encounter_type.value == "inpatient"
         ]
         patients_with_home_meds = [
-            r for r in inpatients_with_chronic
-            if any("Home medication" in o.clinical_intent for o in r.orders)
+            r for r in inpatients_with_chronic if any("Home medication" in o.clinical_intent for o in r.orders)
         ]
         if inpatients_with_chronic:
             ratio = len(patients_with_home_meds) / len(inpatients_with_chronic)
@@ -85,16 +84,14 @@ class TestUSMode:
 
         # Bulk Data Export: Observation.ndjson contains lab Observations
         import os
+
         obs_path = os.path.join(fhir_dir, "Observation.ndjson")
         assert os.path.exists(obs_path)
         with open(obs_path) as f:
             for line in f:
                 obs = json.loads(line)
                 cats = obs.get("category", [])
-                is_lab = any(
-                    cat.get("coding", [{}])[0].get("code") == "laboratory"
-                    for cat in cats
-                )
+                is_lab = any(cat.get("coding", [{}])[0].get("code") == "laboratory" for cat in cats)
                 if is_lab:
                     code_system = obs["code"]["coding"][0].get("system", "")
                     assert "loinc" in code_system.lower(), f"Expected LOINC system, got: {code_system}"
@@ -105,7 +102,8 @@ class TestUSMode:
 class TestUSForcedScenario:
     def test_forced_us_pneumonia(self):
         scenario = ForcedScenario(
-            disease_id="bacterial_pneumonia", count=3,
+            disease_id="bacterial_pneumonia",
+            count=3,
             severity="moderate",
         )
         config = SimulatorConfig(random_seed=42, country="US")

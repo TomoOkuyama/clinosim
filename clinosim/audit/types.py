@@ -82,9 +82,7 @@ class Cohort:
     def countries(self) -> list[str]:
         if not self.root.exists():
             return []
-        multi = sorted(
-            p.name for p in self.root.iterdir() if p.is_dir() and (p / "fhir_r4").exists()
-        )
+        multi = sorted(p.name for p in self.root.iterdir() if p.is_dir() and (p / "fhir_r4").exists())
         if multi:
             return multi
         # Flat layout: single-country cohort generated without country subdir

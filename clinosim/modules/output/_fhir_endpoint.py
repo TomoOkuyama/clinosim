@@ -56,11 +56,7 @@ def _bb_endpoints(ctx: BundleContext) -> list[dict[str, Any]]:
     if not studies:
         return []
     base_url = _resolve_wado_base_url(getattr(ctx, "hospital_config", {}) or {})
-    return [
-        _build_endpoint(s, base_url)
-        for s in studies
-        if _o(s, "endpoint_id", "")
-    ]
+    return [_build_endpoint(s, base_url) for s in studies if _o(s, "endpoint_id", "")]
 
 
 def _build_endpoint(study: Any, base_url: str) -> dict[str, Any]:
@@ -75,13 +71,17 @@ def _build_endpoint(study: Any, base_url: str) -> dict[str, Any]:
             "code": DICOM_WADO_RS_CONNECTION_TYPE,
             "display": code_lookup("hl7-endpoint-connection-type", DICOM_WADO_RS_CONNECTION_TYPE, "en"),
         },
-        "payloadType": [{
-            "coding": [{
-                "system": get_system_uri("hl7-endpoint-payload-type"),
-                "code": "any",
-                "display": code_lookup("hl7-endpoint-payload-type", "any", "en"),
-            }],
-        }],
+        "payloadType": [
+            {
+                "coding": [
+                    {
+                        "system": get_system_uri("hl7-endpoint-payload-type"),
+                        "code": "any",
+                        "display": code_lookup("hl7-endpoint-payload-type", "any", "en"),
+                    }
+                ],
+            }
+        ],
         "payloadMimeType": ["application/dicom"],
         "address": f"{base_url}/studies/{study_uid}",
     }

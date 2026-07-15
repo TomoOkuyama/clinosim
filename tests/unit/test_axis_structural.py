@@ -1,4 +1,5 @@
 """Unit tests for clinosim.audit.axes.structural."""
+
 from __future__ import annotations
 
 import json
@@ -34,12 +35,19 @@ def hai_spec():
 @pytest.mark.unit
 def test_structural_pass_when_full_coverage(tmp_path: Path, hai_spec):
     obs = tmp_path / "us" / "fhir_r4" / "Observation.ndjson"
-    _write_obs(obs, [{"code": "6690-2", "display": "WBC"}],
-               referenceRange=[{"low": {"value": 4500}}],
-               interpretation=[{"text": "N"}])
-    _write_obs(obs, [{"code": "1988-5", "display": "CRP"}],
-               referenceRange=[{"low": {"value": 0}}],
-               interpretation=[{"text": "N"}], id="obs-2")
+    _write_obs(
+        obs,
+        [{"code": "6690-2", "display": "WBC"}],
+        referenceRange=[{"low": {"value": 4500}}],
+        interpretation=[{"text": "N"}],
+    )
+    _write_obs(
+        obs,
+        [{"code": "1988-5", "display": "CRP"}],
+        referenceRange=[{"low": {"value": 0}}],
+        interpretation=[{"text": "N"}],
+        id="obs-2",
+    )
     result = structural.run(hai_spec, Cohort.open(tmp_path))
     assert result.status == "PASS"
 
@@ -47,8 +55,7 @@ def test_structural_pass_when_full_coverage(tmp_path: Path, hai_spec):
 @pytest.mark.unit
 def test_structural_fail_missing_refRange(tmp_path: Path, hai_spec):
     obs = tmp_path / "us" / "fhir_r4" / "Observation.ndjson"
-    _write_obs(obs, [{"code": "6690-2", "display": "WBC"}],
-               interpretation=[{"text": "N"}])  # no referenceRange
+    _write_obs(obs, [{"code": "6690-2", "display": "WBC"}], interpretation=[{"text": "N"}])  # no referenceRange
     result = structural.run(hai_spec, Cohort.open(tmp_path))
     assert result.status == "FAIL"
     assert any("refRange" in f.message for f in result.findings)
@@ -57,10 +64,8 @@ def test_structural_fail_missing_refRange(tmp_path: Path, hai_spec):
 @pytest.mark.unit
 def test_structural_fail_duplicate_id(tmp_path: Path, hai_spec):
     obs = tmp_path / "us" / "fhir_r4" / "Observation.ndjson"
-    _write_obs(obs, [{"code": "6690-2", "display": "WBC"}], id="dup",
-               referenceRange=[{}], interpretation=[{}])
-    _write_obs(obs, [{"code": "1988-5", "display": "CRP"}], id="dup",
-               referenceRange=[{}], interpretation=[{}])
+    _write_obs(obs, [{"code": "6690-2", "display": "WBC"}], id="dup", referenceRange=[{}], interpretation=[{}])
+    _write_obs(obs, [{"code": "1988-5", "display": "CRP"}], id="dup", referenceRange=[{}], interpretation=[{}])
     result = structural.run(hai_spec, Cohort.open(tmp_path))
     assert result.status == "FAIL"
     assert any("duplicate" in f.message.lower() for f in result.findings)
@@ -69,8 +74,7 @@ def test_structural_fail_duplicate_id(tmp_path: Path, hai_spec):
 @pytest.mark.unit
 def test_structural_fail_display_equals_code(tmp_path: Path, hai_spec):
     obs = tmp_path / "us" / "fhir_r4" / "Observation.ndjson"
-    _write_obs(obs, [{"code": "6690-2", "display": "6690-2"}],
-               referenceRange=[{}], interpretation=[{}])
+    _write_obs(obs, [{"code": "6690-2", "display": "6690-2"}], referenceRange=[{}], interpretation=[{}])
     result = structural.run(hai_spec, Cohort.open(tmp_path))
     assert result.status == "FAIL"
     assert any("display" in f.message.lower() for f in result.findings)

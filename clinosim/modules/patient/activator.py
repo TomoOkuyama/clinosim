@@ -36,8 +36,7 @@ STAGE_SEVERITY: dict[str, dict[str, float]] = {
     "N18": {"G1": 0.05, "G2": 0.15, "G3a": 0.35, "G3b": 0.50, "G4": 0.70, "G5": 0.90},
     "I50": {"NYHA I": 0.10, "NYHA II": 0.25, "NYHA III": 0.45, "NYHA IV": 0.70},
     "J44": {"GOLD 1": 0.10, "GOLD 2": 0.25, "GOLD 3": 0.45, "GOLD 4": 0.70},
-    "J45": {"Mild intermittent": 0.05, "Mild persistent": 0.15,
-            "Moderate persistent": 0.35, "Severe persistent": 0.60},
+    "J45": {"Mild intermittent": 0.05, "Mild persistent": 0.15, "Moderate persistent": 0.35, "Severe persistent": 0.60},
     "I25": {"CCS I": 0.10, "CCS II": 0.25, "CCS III": 0.50},
     # Hypertension: Stage 1 (130-139/80-89) vs Stage 2 (>=140/90). Consumed by the
     # stage-scaled baseline-BP elevation below (FP-I10), making the stage non-degenerate.
@@ -135,9 +134,7 @@ def _sample_insurance(demo: dict, age: int, rng: np.random.Generator) -> str:
             weights_dict = band.get("weights") or {}
             if weights_dict:
                 keys = list(weights_dict.keys())
-                probs = normalize_probabilities(
-                    [weights_dict[k] for k in keys], fallback="raise"
-                )
+                probs = normalize_probabilities([weights_dict[k] for k in keys], fallback="raise")
                 return str(rng.choice(keys, p=probs))
     # Fallback: no matching band
     return ""
@@ -157,12 +154,12 @@ def activate_patient(
     ht_cfg = phys.get("height_cm") or {}
     sex_key = "male" if sex == "M" else "female"
     ht_mean = (ht_cfg.get(sex_key) or {}).get("mean", 170.0 if sex == "M" else 157.5)
-    ht_std  = (ht_cfg.get(sex_key) or {}).get("std", 5.5)
-    shrink  = ht_cfg.get("shrinkage_per_decade_after_60", 0.5)
-    height  = float(rng.normal(ht_mean, ht_std))
+    ht_std = (ht_cfg.get(sex_key) or {}).get("std", 5.5)
+    shrink = ht_cfg.get("shrinkage_per_decade_after_60", 0.5)
+    height = float(rng.normal(ht_mean, ht_std))
     if age > 60:
         height -= (age - 60) / 10 * shrink
-    bmi    = person.bmi
+    bmi = person.bmi
     weight = bmi * (height / 100) ** 2
 
     # Derive country from demo (for name formatting, language, etc.)
@@ -172,18 +169,21 @@ def activate_patient(
     age_penalty = max(0, (age - 40) * 0.005)
     profile = PatientPhysiologicalProfile(
         immune_reactivity=float(rng.beta(5, 5)),
-        drug_metabolism_rate=str(rng.choice(
-            ["poor", "normal", "rapid", "ultra_rapid"],
-            p=[0.15, 0.65, 0.15, 0.05] if is_jp(country) else [0.07, 0.70, 0.15, 0.08],
-        )),
+        drug_metabolism_rate=str(
+            rng.choice(
+                ["poor", "normal", "rapid", "ultra_rapid"],
+                p=[0.15, 0.65, 0.15, 0.05] if is_jp(country) else [0.07, 0.70, 0.15, 0.08],
+            )
+        ),
         renal_reserve=max(0.1, float(rng.beta(8, 2)) - age_penalty),
         cardiac_reserve=max(0.1, float(rng.beta(8, 2)) - age_penalty),
         hepatic_reserve=max(0.1, float(rng.beta(8, 2)) - age_penalty * 0.7),
         treatment_sensitivity=float(rng.normal(1.0, 0.15)),
         symptom_reporting_bias=float(rng.normal(1.0, 0.25)),
-        delirium_susceptibility=float(rng.beta(2, 8)) + (0.15 if age >= 75 else 0)
-            + (0.25 if "F00" in person.chronic_conditions else 0)
-            + (0.10 if "G20" in person.chronic_conditions else 0),
+        delirium_susceptibility=float(rng.beta(2, 8))
+        + (0.15 if age >= 75 else 0)
+        + (0.25 if "F00" in person.chronic_conditions else 0)
+        + (0.10 if "G20" in person.chronic_conditions else 0),
         dvt_susceptibility=float(rng.beta(2, 8)) + (0.10 if age >= 70 else 0),
     )
 
@@ -201,10 +201,10 @@ def activate_patient(
         # here) so the main RNG stream is unperturbed (AD-16).
         code_base = code.split(".")[0]
         if code_base in ("E11", "E10"):
-            gc_draw = float(rng.random())          # replaces the removed E11 stage uniform (1 draw)
+            gc_draw = float(rng.random())  # replaces the removed E11 stage uniform (1 draw)
             # Cube skews control toward "good" (most diabetics are reasonably controlled):
             # HbA1c median ~6.8%, ~55% < 7%, with a poorly-controlled tail to ~12%.
-            glycemic_control = 1.0 - gc_draw ** 3
+            glycemic_control = 1.0 - gc_draw**3
             stage = f"HbA1c {hba1c_from_glycemic_control(glycemic_control):.1f}%"
         else:
             glycemic_control = None
@@ -226,16 +226,18 @@ def activate_patient(
         if code_base in STAGE_SEVERITY:
             lookup_key = stage.removeprefix("CKD ") if code_base == "N18" else stage
             severity_score = STAGE_SEVERITY[code_base][lookup_key]
-        conditions.append(ChronicCondition(
-            code=code,
-            system="icd-10-cm",
-            onset_date=date(onset_year, onset_month, onset_day),
-            severity=sev,
-            controlled=controlled_flag,
-            severity_score=severity_score,
-            stage=stage,
-            glycemic_control=glycemic_control,
-        ))
+        conditions.append(
+            ChronicCondition(
+                code=code,
+                system="icd-10-cm",
+                onset_date=date(onset_year, onset_month, onset_day),
+                severity=sev,
+                controlled=controlled_flag,
+                severity_score=severity_score,
+                stage=stage,
+                glycemic_control=glycemic_control,
+            )
+        )
 
     # Allergies — allergy_enricher (POST_POPULATION, order=10) populates person.allergies
     # before activate_patient is called in production (engine.py run_stage then _activate_cached).
@@ -300,6 +302,7 @@ def activate_patient(
 
     # Address and contact from Layer 1
     from clinosim.types.patient import Address, ContactInfo
+
     address = Address(
         postal_code=getattr(person, "postal_code", ""),
         state=getattr(person, "state", ""),
@@ -320,8 +323,7 @@ def activate_patient(
         if age >= 75:
             emergency_rel = str(rng.choice(["child", "spouse", "sibling"], p=[0.6, 0.25, 0.15]))
         else:
-            emergency_rel = str(rng.choice(["spouse", "parent", "sibling", "child"],
-                                            p=[0.55, 0.20, 0.15, 0.10]))
+            emergency_rel = str(rng.choice(["spouse", "parent", "sibling", "child"], p=[0.55, 0.20, 0.15, 0.10]))
         # Generate a realistic person name for the emergency contact.
         # Spouse/sibling/parent/child typically shares family name (Japan);
         # opposite sex for spouse, random for others.
@@ -429,9 +431,7 @@ def activate_patient(
     )
 
 
-def _derive_home_medications(
-    chronic_conditions: list, rng: np.random.Generator, country: str = "US"
-) -> list[str]:
+def _derive_home_medications(chronic_conditions: list, rng: np.random.Generator, country: str = "US") -> list[str]:
     """Derive home medications from chronic conditions via chronic_medications.yaml.
 
     Returns a list of drug name strings. JP uses drug_ja if available.

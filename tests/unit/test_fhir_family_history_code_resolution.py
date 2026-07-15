@@ -59,9 +59,7 @@ class TestFamilyHistoryCodeResolutionUS:
             disp = lookup("icd-10-cm", resolved, "en")
             assert disp, f"US {c} → {resolved} has empty display"
             assert disp != resolved, f"US {c} → {resolved} display resolves to the code itself"
-            assert "unavailable" not in disp.lower(), (
-                f"US {c} → {resolved} falls back to placeholder: {disp!r}"
-            )
+            assert "unavailable" not in disp.lower(), f"US {c} → {resolved} falls back to placeholder: {disp!r}"
 
 
 class TestFamilyHistoryCodeResolutionJP:
@@ -77,9 +75,7 @@ class TestFamilyHistoryCodeResolutionJP:
             disp = lookup("icd-10", resolved, "ja")
             assert disp, f"JP {c} → {resolved} has empty display"
             assert disp != resolved, f"JP {c} → {resolved} display resolves to the code itself"
-            assert "表示不可" not in disp, (
-                f"JP {c} → {resolved} falls back to placeholder: {disp!r}"
-            )
+            assert "表示不可" not in disp, f"JP {c} → {resolved} falls back to placeholder: {disp!r}"
 
 
 class TestZCodeRejection:
@@ -87,13 +83,16 @@ class TestZCodeRejection:
     chronic-history map to prevent future personal-history regressions
     (Z86.* / Z87.* / Z82.* are all "personal history of X" codes)."""
 
-    @pytest.mark.parametrize("code,expected", [
-        ("I26", "I26"),  # map targets Z86.711 (Personal history of PE) → reject
-        ("I80", "I80"),  # map targets Z86.718 → reject
-        ("I82", "I82"),  # map targets Z86.718 → reject
-        ("M48", "M48"),  # map targets Z87.311 → reject
-        ("M80", "M80"),  # map targets Z87.310 → reject
-    ])
+    @pytest.mark.parametrize(
+        "code,expected",
+        [
+            ("I26", "I26"),  # map targets Z86.711 (Personal history of PE) → reject
+            ("I80", "I80"),  # map targets Z86.718 → reject
+            ("I82", "I82"),  # map targets Z86.718 → reject
+            ("M48", "M48"),  # map targets Z87.311 → reject
+            ("M80", "M80"),  # map targets Z87.310 → reject
+        ],
+    )
     def test_z_code_target_falls_back_to_original(self, code: str, expected: str) -> None:
         assert _resolve_family_history_code(code, "US") == expected
 

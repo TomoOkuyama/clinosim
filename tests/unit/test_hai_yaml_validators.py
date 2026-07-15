@@ -3,6 +3,7 @@
 Covers _validate_hai_rates, _validate_hai_codes, _validate_hai_specimens,
 _validate_hai_lab_lift_config, _validate_hai_organisms reverse-coverage.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -47,52 +48,68 @@ def test_hai_rates_rejects_empty_top_level(monkeypatch) -> None:
 
 @pytest.mark.unit
 def test_hai_rates_rejects_unknown_hai_type(monkeypatch) -> None:
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "hai_rates": {
-            "clabsi": {"per_day_risk": 0.001, "source_device_type": "cvc"},
-            "cauti": {"per_day_risk": 0.001, "source_device_type": "indwelling_catheter"},
-            "vap": {"per_day_risk": 0.001, "source_device_type": "mechanical_ventilator"},
-            "INVALID": {"per_day_risk": 0.001, "source_device_type": "cvc"},
-        }
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            "hai_rates": {
+                "clabsi": {"per_day_risk": 0.001, "source_device_type": "cvc"},
+                "cauti": {"per_day_risk": 0.001, "source_device_type": "indwelling_catheter"},
+                "vap": {"per_day_risk": 0.001, "source_device_type": "mechanical_ventilator"},
+                "INVALID": {"per_day_risk": 0.001, "source_device_type": "cvc"},
+            }
+        },
+    )
     with pytest.raises(ValueError, match="unknown hai_type 'INVALID'"):
         hai_engine.load_hai_rates()
 
 
 @pytest.mark.unit
 def test_hai_rates_rejects_missing_hai_type_forward_coverage(monkeypatch) -> None:
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "hai_rates": {
-            "clabsi": {"per_day_risk": 0.001, "source_device_type": "cvc"},
-            # cauti + vap missing
-        }
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            "hai_rates": {
+                "clabsi": {"per_day_risk": 0.001, "source_device_type": "cvc"},
+                # cauti + vap missing
+            }
+        },
+    )
     with pytest.raises(ValueError, match="missing HAI_TYPES"):
         hai_engine.load_hai_rates()
 
 
 @pytest.mark.unit
 def test_hai_rates_rejects_per_day_risk_out_of_range(monkeypatch) -> None:
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "hai_rates": {
-            "clabsi": {"per_day_risk": 1.5, "source_device_type": "cvc"},
-            "cauti": {"per_day_risk": 0.001, "source_device_type": "indwelling_catheter"},
-            "vap": {"per_day_risk": 0.001, "source_device_type": "mechanical_ventilator"},
-        }
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            "hai_rates": {
+                "clabsi": {"per_day_risk": 1.5, "source_device_type": "cvc"},
+                "cauti": {"per_day_risk": 0.001, "source_device_type": "indwelling_catheter"},
+                "vap": {"per_day_risk": 0.001, "source_device_type": "mechanical_ventilator"},
+            }
+        },
+    )
     with pytest.raises(ValueError, match="per_day_risk"):
         hai_engine.load_hai_rates()
 
 
 @pytest.mark.unit
 def test_hai_rates_rejects_unknown_device_type(monkeypatch) -> None:
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "hai_rates": {
-            "clabsi": {"per_day_risk": 0.001, "source_device_type": "INVALID_DEVICE"},
-            "cauti": {"per_day_risk": 0.001, "source_device_type": "indwelling_catheter"},
-            "vap": {"per_day_risk": 0.001, "source_device_type": "mechanical_ventilator"},
-        }
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            "hai_rates": {
+                "clabsi": {"per_day_risk": 0.001, "source_device_type": "INVALID_DEVICE"},
+                "cauti": {"per_day_risk": 0.001, "source_device_type": "indwelling_catheter"},
+                "vap": {"per_day_risk": 0.001, "source_device_type": "mechanical_ventilator"},
+            }
+        },
+    )
     with pytest.raises(ValueError, match="source_device_type"):
         hai_engine.load_hai_rates()
 
@@ -119,76 +136,77 @@ def test_hai_codes_rejects_empty_top_level(monkeypatch) -> None:
 @pytest.mark.unit
 def test_hai_codes_rejects_unknown_hai_type(monkeypatch) -> None:
     base = {
-        "clabsi": {"icd10_us_billable": "T80.211A", "icd10_jp_who": "T80.2",
-                   "snomed": "736442006"},
-        "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5",
-                  "snomed": "68566005"},
-        "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8",
-                "snomed": "429271009"},
+        "clabsi": {"icd10_us_billable": "T80.211A", "icd10_jp_who": "T80.2", "snomed": "736442006"},
+        "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5", "snomed": "68566005"},
+        "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8", "snomed": "429271009"},
     }
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "hai_codes": {**base, "INVALID": base["clabsi"]}
-    })
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {"hai_codes": {**base, "INVALID": base["clabsi"]}})
     with pytest.raises(ValueError, match="unknown hai_type 'INVALID'"):
         hai_engine.load_hai_codes()
 
 
 @pytest.mark.unit
 def test_hai_codes_rejects_missing_hai_type_forward_coverage(monkeypatch) -> None:
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "hai_codes": {
-            "clabsi": {"icd10_us_billable": "T80.211A", "icd10_jp_who": "T80.2",
-                       "snomed": "736442006"},
-        }
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            "hai_codes": {
+                "clabsi": {"icd10_us_billable": "T80.211A", "icd10_jp_who": "T80.2", "snomed": "736442006"},
+            }
+        },
+    )
     with pytest.raises(ValueError, match="missing HAI_TYPES"):
         hai_engine.load_hai_codes()
 
 
 @pytest.mark.unit
 def test_hai_codes_rejects_unknown_icd10_us(monkeypatch) -> None:
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "hai_codes": {
-            "clabsi": {"icd10_us_billable": "BOGUS.99", "icd10_jp_who": "T80.2",
-                       "snomed": "736442006"},
-            "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5",
-                      "snomed": "68566005"},
-            "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8",
-                    "snomed": "429271009"},
-        }
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            "hai_codes": {
+                "clabsi": {"icd10_us_billable": "BOGUS.99", "icd10_jp_who": "T80.2", "snomed": "736442006"},
+                "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5", "snomed": "68566005"},
+                "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8", "snomed": "429271009"},
+            }
+        },
+    )
     with pytest.raises(ValueError, match="icd10_us_billable"):
         hai_engine.load_hai_codes()
 
 
 @pytest.mark.unit
 def test_hai_codes_rejects_unknown_icd10_jp(monkeypatch) -> None:
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "hai_codes": {
-            "clabsi": {"icd10_us_billable": "T80.211A", "icd10_jp_who": "Z99.9",
-                       "snomed": "736442006"},
-            "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5",
-                      "snomed": "68566005"},
-            "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8",
-                    "snomed": "429271009"},
-        }
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            "hai_codes": {
+                "clabsi": {"icd10_us_billable": "T80.211A", "icd10_jp_who": "Z99.9", "snomed": "736442006"},
+                "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5", "snomed": "68566005"},
+                "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8", "snomed": "429271009"},
+            }
+        },
+    )
     with pytest.raises(ValueError, match="icd10_jp_who"):
         hai_engine.load_hai_codes()
 
 
 @pytest.mark.unit
 def test_hai_codes_rejects_unknown_snomed(monkeypatch) -> None:
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "hai_codes": {
-            "clabsi": {"icd10_us_billable": "T80.211A", "icd10_jp_who": "T80.2",
-                       "snomed": "9999999999"},
-            "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5",
-                      "snomed": "68566005"},
-            "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8",
-                    "snomed": "429271009"},
-        }
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            "hai_codes": {
+                "clabsi": {"icd10_us_billable": "T80.211A", "icd10_jp_who": "T80.2", "snomed": "9999999999"},
+                "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5", "snomed": "68566005"},
+                "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8", "snomed": "429271009"},
+            }
+        },
+    )
     with pytest.raises(ValueError, match="snomed"):
         hai_engine.load_hai_codes()
 
@@ -215,60 +233,60 @@ def test_hai_specimens_rejects_empty_top_level(monkeypatch) -> None:
 @pytest.mark.unit
 def test_hai_specimens_rejects_unknown_hai_type(monkeypatch) -> None:
     base = {
-        "clabsi": {"specimen": "blood", "specimen_snomed": "119297000",
-                   "test_loinc": "600-7"},
-        "cauti": {"specimen": "urine", "specimen_snomed": "122575003",
-                  "test_loinc": "630-4"},
-        "vap": {"specimen": "sputum", "specimen_snomed": "119334006",
-                "test_loinc": "619-7"},
+        "clabsi": {"specimen": "blood", "specimen_snomed": "119297000", "test_loinc": "600-7"},
+        "cauti": {"specimen": "urine", "specimen_snomed": "122575003", "test_loinc": "630-4"},
+        "vap": {"specimen": "sputum", "specimen_snomed": "119334006", "test_loinc": "619-7"},
     }
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "hai_specimens": {**base, "INVALID": base["clabsi"]}
-    })
+    monkeypatch.setattr(yaml, "safe_load", lambda f: {"hai_specimens": {**base, "INVALID": base["clabsi"]}})
     with pytest.raises(ValueError, match="unknown hai_type 'INVALID'"):
         hai_engine.load_hai_specimens()
 
 
 @pytest.mark.unit
 def test_hai_specimens_rejects_missing_hai_type_forward_coverage(monkeypatch) -> None:
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "hai_specimens": {
-            "clabsi": {"specimen": "blood", "specimen_snomed": "119297000",
-                       "test_loinc": "600-7"},
-        }
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            "hai_specimens": {
+                "clabsi": {"specimen": "blood", "specimen_snomed": "119297000", "test_loinc": "600-7"},
+            }
+        },
+    )
     with pytest.raises(ValueError, match="missing HAI_TYPES"):
         hai_engine.load_hai_specimens()
 
 
 @pytest.mark.unit
 def test_hai_specimens_rejects_unknown_snomed(monkeypatch) -> None:
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "hai_specimens": {
-            "clabsi": {"specimen": "blood", "specimen_snomed": "9999999999",
-                       "test_loinc": "600-7"},
-            "cauti": {"specimen": "urine", "specimen_snomed": "122575003",
-                      "test_loinc": "630-4"},
-            "vap": {"specimen": "sputum", "specimen_snomed": "119334006",
-                    "test_loinc": "619-7"},
-        }
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            "hai_specimens": {
+                "clabsi": {"specimen": "blood", "specimen_snomed": "9999999999", "test_loinc": "600-7"},
+                "cauti": {"specimen": "urine", "specimen_snomed": "122575003", "test_loinc": "630-4"},
+                "vap": {"specimen": "sputum", "specimen_snomed": "119334006", "test_loinc": "619-7"},
+            }
+        },
+    )
     with pytest.raises(ValueError, match="specimen_snomed"):
         hai_engine.load_hai_specimens()
 
 
 @pytest.mark.unit
 def test_hai_specimens_rejects_unknown_loinc(monkeypatch) -> None:
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "hai_specimens": {
-            "clabsi": {"specimen": "blood", "specimen_snomed": "119297000",
-                       "test_loinc": "99999-99"},
-            "cauti": {"specimen": "urine", "specimen_snomed": "122575003",
-                      "test_loinc": "630-4"},
-            "vap": {"specimen": "sputum", "specimen_snomed": "119334006",
-                    "test_loinc": "619-7"},
-        }
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            "hai_specimens": {
+                "clabsi": {"specimen": "blood", "specimen_snomed": "119297000", "test_loinc": "99999-99"},
+                "cauti": {"specimen": "urine", "specimen_snomed": "122575003", "test_loinc": "630-4"},
+                "vap": {"specimen": "sputum", "specimen_snomed": "119334006", "test_loinc": "619-7"},
+            }
+        },
+    )
     with pytest.raises(ValueError, match="test_loinc"):
         hai_engine.load_hai_specimens()
 
@@ -305,40 +323,56 @@ def test_hai_lab_lift_rejects_empty_top_level(monkeypatch) -> None:
 
 @pytest.mark.unit
 def test_hai_lab_lift_rejects_zero_ramp(monkeypatch) -> None:
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "ramp_peak_days": 0,
-        "hai_lift": {"clabsi": 0.35, "cauti": 0.20, "vap": 0.35},
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            "ramp_peak_days": 0,
+            "hai_lift": {"clabsi": 0.35, "cauti": 0.20, "vap": 0.35},
+        },
+    )
     with pytest.raises(ValueError, match="ramp_peak_days"):
         lab_lift_mod.load_hai_lab_lift_config()
 
 
 @pytest.mark.unit
 def test_hai_lab_lift_rejects_unknown_hai_type(monkeypatch) -> None:
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "ramp_peak_days": 2,
-        "hai_lift": {"clabsi": 0.35, "cauti": 0.20, "vap": 0.35, "INVALID": 0.5},
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            "ramp_peak_days": 2,
+            "hai_lift": {"clabsi": 0.35, "cauti": 0.20, "vap": 0.35, "INVALID": 0.5},
+        },
+    )
     with pytest.raises(ValueError, match="unknown"):
         lab_lift_mod.load_hai_lab_lift_config()
 
 
 @pytest.mark.unit
 def test_hai_lab_lift_rejects_missing_hai_type_forward_coverage(monkeypatch) -> None:
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "ramp_peak_days": 2,
-        "hai_lift": {"clabsi": 0.35},  # cauti + vap missing
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            "ramp_peak_days": 2,
+            "hai_lift": {"clabsi": 0.35},  # cauti + vap missing
+        },
+    )
     with pytest.raises(ValueError, match="missing HAI_TYPES"):
         lab_lift_mod.load_hai_lab_lift_config()
 
 
 @pytest.mark.unit
 def test_hai_lab_lift_rejects_out_of_range_lift_value(monkeypatch) -> None:
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "ramp_peak_days": 2,
-        "hai_lift": {"clabsi": 1.5, "cauti": 0.20, "vap": 0.35},
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            "ramp_peak_days": 2,
+            "hai_lift": {"clabsi": 1.5, "cauti": 0.20, "vap": 0.35},
+        },
+    )
     with pytest.raises(ValueError, match="lift"):
         lab_lift_mod.load_hai_lab_lift_config()
 
@@ -357,12 +391,16 @@ def test_hai_organisms_real_yaml_loads_clean() -> None:
 
 @pytest.mark.unit
 def test_hai_organisms_rejects_missing_hai_type_forward_coverage(monkeypatch) -> None:
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "hai_organisms": {
-            "clabsi": [{"snomed": "3092008", "weight": 1.0}],
-            # cauti + vap missing — must fail forward-coverage
-        }
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            "hai_organisms": {
+                "clabsi": [{"snomed": "3092008", "weight": 1.0}],
+                # cauti + vap missing — must fail forward-coverage
+            }
+        },
+    )
     with pytest.raises(ValueError, match="missing HAI_TYPES"):
         hai_engine.load_hai_organisms()
 
@@ -385,52 +423,64 @@ def test_code_in_data_raises_on_unregistered_system() -> None:
 @pytest.mark.unit
 def test_hai_rates_rejects_missing_per_day_risk_field(monkeypatch) -> None:
     """pr121-adv-1 Agent 1 Minor #3: missing required field test."""
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "hai_rates": {
-            "clabsi": {"source_device_type": "cvc"},  # per_day_risk missing
-            "cauti": {"per_day_risk": 0.001, "source_device_type": "indwelling_catheter"},
-            "vap": {"per_day_risk": 0.001, "source_device_type": "mechanical_ventilator"},
-        }
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            "hai_rates": {
+                "clabsi": {"source_device_type": "cvc"},  # per_day_risk missing
+                "cauti": {"per_day_risk": 0.001, "source_device_type": "indwelling_catheter"},
+                "vap": {"per_day_risk": 0.001, "source_device_type": "mechanical_ventilator"},
+            }
+        },
+    )
     with pytest.raises(ValueError, match="per_day_risk"):
         hai_engine.load_hai_rates()
 
 
 @pytest.mark.unit
 def test_hai_codes_rejects_missing_icd10_us_field(monkeypatch) -> None:
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "hai_codes": {
-            "clabsi": {"icd10_jp_who": "T80.2", "snomed": "736442006"},  # us missing
-            "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5",
-                      "snomed": "68566005"},
-            "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8",
-                    "snomed": "429271009"},
-        }
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            "hai_codes": {
+                "clabsi": {"icd10_jp_who": "T80.2", "snomed": "736442006"},  # us missing
+                "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5", "snomed": "68566005"},
+                "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8", "snomed": "429271009"},
+            }
+        },
+    )
     with pytest.raises(ValueError, match="icd10_us_billable"):
         hai_engine.load_hai_codes()
 
 
 @pytest.mark.unit
 def test_hai_specimens_rejects_missing_specimen_snomed_field(monkeypatch) -> None:
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        "hai_specimens": {
-            "clabsi": {"specimen": "blood", "test_loinc": "600-7"},  # snomed missing
-            "cauti": {"specimen": "urine", "specimen_snomed": "122575003",
-                      "test_loinc": "630-4"},
-            "vap": {"specimen": "sputum", "specimen_snomed": "119334006",
-                    "test_loinc": "619-7"},
-        }
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            "hai_specimens": {
+                "clabsi": {"specimen": "blood", "test_loinc": "600-7"},  # snomed missing
+                "cauti": {"specimen": "urine", "specimen_snomed": "122575003", "test_loinc": "630-4"},
+                "vap": {"specimen": "sputum", "specimen_snomed": "119334006", "test_loinc": "619-7"},
+            }
+        },
+    )
     with pytest.raises(ValueError, match="specimen_snomed"):
         hai_engine.load_hai_specimens()
 
 
 @pytest.mark.unit
 def test_hai_lab_lift_rejects_missing_ramp_peak_days_field(monkeypatch) -> None:
-    monkeypatch.setattr(yaml, "safe_load", lambda f: {
-        # ramp_peak_days missing
-        "hai_lift": {"clabsi": 0.35, "cauti": 0.20, "vap": 0.35},
-    })
+    monkeypatch.setattr(
+        yaml,
+        "safe_load",
+        lambda f: {
+            # ramp_peak_days missing
+            "hai_lift": {"clabsi": 0.35, "cauti": 0.20, "vap": 0.35},
+        },
+    )
     with pytest.raises(ValueError, match="ramp_peak_days"):
         lab_lift_mod.load_hai_lab_lift_config()

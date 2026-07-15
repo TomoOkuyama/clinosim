@@ -23,10 +23,7 @@ def test_document_chain_module_registered():
     """discover() finds and registers ModuleAuditSpec 'document_chain'."""
     discover()
     specs = get_registered()
-    assert "document_chain" in specs, (
-        f"'document_chain' not in registry after discover(); "
-        f"registered: {sorted(specs)}"
-    )
+    assert "document_chain" in specs, f"'document_chain' not in registry after discover(); registered: {sorted(specs)}"
 
 
 @pytest.mark.unit
@@ -40,30 +37,19 @@ def test_canonical_constants_correct():
     spec = get_registered()["document_chain"]
     cc = spec.canonical_constants
 
-    assert "doc_reference_id_prefix" in cc, (
-        "canonical_constants must contain 'doc_reference_id_prefix'"
-    )
+    assert "doc_reference_id_prefix" in cc, "canonical_constants must contain 'doc_reference_id_prefix'"
     assert cc["doc_reference_id_prefix"] == (DOC_REFERENCE_ID_PREFIX,), (
-        f"doc_reference_id_prefix mismatch: {cc['doc_reference_id_prefix']!r} "
-        f"vs actual {DOC_REFERENCE_ID_PREFIX!r}"
+        f"doc_reference_id_prefix mismatch: {cc['doc_reference_id_prefix']!r} vs actual {DOC_REFERENCE_ID_PREFIX!r}"
     )
-    assert "composition_id_prefix" in cc, (
-        "canonical_constants must contain 'composition_id_prefix'"
-    )
+    assert "composition_id_prefix" in cc, "canonical_constants must contain 'composition_id_prefix'"
     assert cc["composition_id_prefix"] == (COMPOSITION_ID_PREFIX,), (
-        f"composition_id_prefix mismatch: {cc['composition_id_prefix']!r} "
-        f"vs actual {COMPOSITION_ID_PREFIX!r}"
+        f"composition_id_prefix mismatch: {cc['composition_id_prefix']!r} vs actual {COMPOSITION_ID_PREFIX!r}"
     )
-    assert "allergy_id_prefix" in cc, (
-        "canonical_constants must contain 'allergy_id_prefix'"
-    )
+    assert "allergy_id_prefix" in cc, "canonical_constants must contain 'allergy_id_prefix'"
     assert cc["allergy_id_prefix"] == (ALLERGY_ID_PREFIX,), (
-        f"allergy_id_prefix mismatch: {cc['allergy_id_prefix']!r} "
-        f"vs actual {ALLERGY_ID_PREFIX!r}"
+        f"allergy_id_prefix mismatch: {cc['allergy_id_prefix']!r} vs actual {ALLERGY_ID_PREFIX!r}"
     )
-    assert "clinical_impression_id_prefix" in cc, (
-        "canonical_constants must contain 'clinical_impression_id_prefix'"
-    )
+    assert "clinical_impression_id_prefix" in cc, "canonical_constants must contain 'clinical_impression_id_prefix'"
     assert cc["clinical_impression_id_prefix"] == (CLINICAL_IMPRESSION_ID_PREFIX,), (
         f"clinical_impression_id_prefix mismatch: {cc['clinical_impression_id_prefix']!r} "
         f"vs actual {CLINICAL_IMPRESSION_ID_PREFIX!r}"
@@ -94,20 +80,10 @@ def test_lift_firing_proof_all_checks_pass():
     spec = get_registered()["document_chain"]
     assert spec.lift_firing_proof is not None
     proof = spec.lift_firing_proof()
-    assert "equality_checks" in proof, (
-        f"proof must contain 'equality_checks' key; got keys: {sorted(proof.keys())}"
-    )
-    failures = [
-        (label, actual, expected)
-        for label, actual, expected in proof["equality_checks"]
-        if actual != expected
-    ]
-    assert not failures, (
-        "Some equality_checks failed (canonical drift or builder silent-no-op):\n"
-        + "\n".join(
-            f"  {label!r}: actual={actual!r} != expected={expected!r}"
-            for label, actual, expected in failures
-        )
+    assert "equality_checks" in proof, f"proof must contain 'equality_checks' key; got keys: {sorted(proof.keys())}"
+    failures = [(label, actual, expected) for label, actual, expected in proof["equality_checks"] if actual != expected]
+    assert not failures, "Some equality_checks failed (canonical drift or builder silent-no-op):\n" + "\n".join(
+        f"  {label!r}: actual={actual!r} != expected={expected!r}" for label, actual, expected in failures
     )
 
 
@@ -118,18 +94,12 @@ def test_lift_firing_proof_has_at_least_15_checks():
     spec = get_registered()["document_chain"]
     assert spec.lift_firing_proof is not None
     proof = spec.lift_firing_proof()
-    assert "equality_checks" in proof, (
-        f"proof must contain 'equality_checks' key; got keys: {sorted(proof.keys())}"
-    )
+    assert "equality_checks" in proof, f"proof must contain 'equality_checks' key; got keys: {sorted(proof.keys())}"
     checks = proof["equality_checks"]
-    assert len(checks) >= 15, (
-        f"Expected >= 15 equality_checks, got {len(checks)}: {checks}"
-    )
+    assert len(checks) >= 15, f"Expected >= 15 equality_checks, got {len(checks)}: {checks}"
     # All checks must be (label, actual, expected) 3-tuples.
     for i, check in enumerate(checks):
-        assert len(check) == 3, (
-            f"equality_checks[{i}] must be (label, actual, expected), got: {check!r}"
-        )
+        assert len(check) == 3, f"equality_checks[{i}] must be (label, actual, expected), got: {check!r}"
 
 
 @pytest.mark.unit
@@ -150,9 +120,7 @@ def test_lift_firing_proof_includes_no_drop_invariants():
     proof = spec.lift_firing_proof()
     checks = proof["equality_checks"]
     no_drop_checks = [
-        (label, actual, expected)
-        for label, actual, expected in checks
-        if "no_drop" in label or "preserved" in label
+        (label, actual, expected) for label, actual, expected in checks if "no_drop" in label or "preserved" in label
     ]
     assert len(no_drop_checks) >= 5, (
         f"Expected >= 5 no_drop/preserved equality_checks, got {len(no_drop_checks)}.\n"

@@ -64,19 +64,18 @@ class OllamaProvider:
             )
         except httpx.ConnectError as e:
             raise ConnectionError(
-                f"Cannot connect to Ollama at {self.base_url}. "
-                f"Is Ollama running? Start with: ollama serve"
+                f"Cannot connect to Ollama at {self.base_url}. Is Ollama running? Start with: ollama serve"
             ) from e
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 404:
                 raise RuntimeError(
-                    f"Model '{actual_model}' not found in Ollama. "
-                    f"Pull it with: ollama pull {actual_model}"
+                    f"Model '{actual_model}' not found in Ollama. Pull it with: ollama pull {actual_model}"
                 ) from e
             raise
 
     def health_check(self) -> bool:
         import httpx
+
         try:
             r = httpx.get(f"{self.base_url}/api/tags", timeout=5)
             return r.status_code == 200
@@ -85,6 +84,7 @@ class OllamaProvider:
 
     def list_models(self) -> list[str]:
         import httpx
+
         try:
             r = httpx.get(f"{self.base_url}/api/tags", timeout=5)
             return [m["name"] for m in r.json().get("models", [])]

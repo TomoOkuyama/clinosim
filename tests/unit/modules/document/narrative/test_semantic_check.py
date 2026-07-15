@@ -1,4 +1,5 @@
 """β-JP-1 chain 1b T2: semantic check unit tests (PASS + FAIL pinned per axis)."""
+
 from __future__ import annotations
 
 import json
@@ -20,9 +21,7 @@ pytestmark = pytest.mark.unit
 ENC_ID = "ENC-SC-0001"
 VERSION = "llm-test"
 
-_HP_SECTIONS = tuple(
-    load_document_type_specs()[DocumentType.ADMISSION_HP].composition_sections
-)
+_HP_SECTIONS = tuple(load_document_type_specs()[DocumentType.ADMISSION_HP].composition_sections)
 
 
 def _hp_sections(**overrides: str) -> dict[str, str]:
@@ -55,11 +54,15 @@ def _write_fixture(
         {"document_id": "doc-sc-hp", "task_type": "admission_hp"},
         {"document_id": "doc-sc-pn", "task_type": "progress_note"},
     ]
-    (structural / "p1.json").write_text(json.dumps({
-        "patient": {"patient_id": "PT-SC-1"},
-        "encounters": [{"encounter_id": ENC_ID, "encounter_type": "inpatient"}],
-        "documents": stubs,
-    }))
+    (structural / "p1.json").write_text(
+        json.dumps(
+            {
+                "patient": {"patient_id": "PT-SC-1"},
+                "encounters": [{"encounter_id": ENC_ID, "encounter_type": "inpatient"}],
+                "documents": stubs,
+            }
+        )
+    )
 
     def _narr(doc_id: str, sections: dict[str, str], text: str, facts: list[str]) -> dict:
         return {
@@ -78,20 +81,38 @@ def _write_fixture(
 
     skip = skip_narrative_for or set()
     if "doc-sc-hp" not in skip:
-        (narr_docs / "doc-sc-hp.json").write_text(json.dumps(_narr(
-            "doc-sc-hp",
-            hp_sections if hp_sections is not None else _hp_sections(),
-            "",
-            hp_facts if hp_facts is not None else ["ctx.patient.smoking_status"],
-        )))
+        (narr_docs / "doc-sc-hp.json").write_text(
+            json.dumps(
+                _narr(
+                    "doc-sc-hp",
+                    hp_sections if hp_sections is not None else _hp_sections(),
+                    "",
+                    hp_facts if hp_facts is not None else ["ctx.patient.smoking_status"],
+                )
+            )
+        )
     if "doc-sc-pn" not in skip:
-        (narr_docs / "doc-sc-pn.json").write_text(json.dumps(_narr(
-            "doc-sc-pn", {}, pn_text, pn_facts if pn_facts is not None else [],
-        )))
+        (narr_docs / "doc-sc-pn.json").write_text(
+            json.dumps(
+                _narr(
+                    "doc-sc-pn",
+                    {},
+                    pn_text,
+                    pn_facts if pn_facts is not None else [],
+                )
+            )
+        )
     if orphan_file:
-        (narr_docs / "doc-orphan.json").write_text(json.dumps(_narr(
-            "doc-orphan", {}, "orphan", [],
-        )))
+        (narr_docs / "doc-orphan.json").write_text(
+            json.dumps(
+                _narr(
+                    "doc-orphan",
+                    {},
+                    "orphan",
+                    [],
+                )
+            )
+        )
 
     manifest = {
         "version_id": VERSION,
@@ -142,18 +163,13 @@ def test_structure_section_key_drift_fails(tmp_path: Path) -> None:
 def test_structure_empty_section_fails(tmp_path: Path) -> None:
     cif_dir = _write_fixture(tmp_path, hp_sections=_hp_sections(hpi="   "))
     report = check_narratives(cif_dir, VERSION)
-    assert any(
-        f.section == "hpi" and "empty" in f.message
-        for f in report.findings if f.axis == "structure"
-    )
+    assert any(f.section == "hpi" and "empty" in f.message for f in report.findings if f.axis == "structure")
 
 
 def test_structure_empty_free_text_fails(tmp_path: Path) -> None:
     cif_dir = _write_fixture(tmp_path, pn_text="")
     report = check_narratives(cif_dir, VERSION)
-    assert any(
-        "empty free-text" in f.message for f in report.findings if f.axis == "structure"
-    )
+    assert any("empty free-text" in f.message for f in report.findings if f.axis == "structure")
 
 
 def test_structure_template_fallback_on_llm_version_fails(tmp_path: Path) -> None:
@@ -164,8 +180,11 @@ def test_structure_template_fallback_on_llm_version_fails(tmp_path: Path) -> Non
     payload["narrative"]["generator_metadata"]["generator"] = "template_fallback"
     pn_path.write_text(json.dumps(payload))
     report = check_narratives(cif_dir, VERSION)
-    assert any("template_fallback" in str(f.message) or "fell back" in f.message
-               for f in report.findings if f.axis == "structure")
+    assert any(
+        "template_fallback" in str(f.message) or "fell back" in f.message
+        for f in report.findings
+        if f.axis == "structure"
+    )
 
 
 # --- Axis 2: facts ---
@@ -180,10 +199,7 @@ def test_facts_bad_prefix_fails(tmp_path: Path) -> None:
 def test_facts_empty_on_llm_enabled_doc_fails(tmp_path: Path) -> None:
     cif_dir = _write_fixture(tmp_path, hp_facts=[])
     report = check_narratives(cif_dir, VERSION)
-    assert any(
-        f.document_id == "doc-sc-hp" and "empty" in f.message
-        for f in report.findings if f.axis == "facts"
-    )
+    assert any(f.document_id == "doc-sc-hp" and "empty" in f.message for f in report.findings if f.axis == "facts")
 
 
 def test_facts_empty_on_template_only_doc_tolerated(tmp_path: Path) -> None:
@@ -196,26 +212,30 @@ def test_facts_empty_on_template_only_doc_tolerated(tmp_path: Path) -> None:
 # --- Axis 3: forbidden patterns ---
 
 
-@pytest.mark.parametrize("bad_text", [
-    "As an AI language model I refuse.",
-    "I cannot provide medical content.",
-    "[Mock LLM response #3]",
-    "BP {sbp}/{dbp} mmHg",
-    "--- TEMPLATE SEED ---",
-    "Generate an improved version of this section:",
-    "改善後のセクション本文:",
-])
+@pytest.mark.parametrize(
+    "bad_text",
+    [
+        "As an AI language model I refuse.",
+        "I cannot provide medical content.",
+        "[Mock LLM response #3]",
+        "BP {sbp}/{dbp} mmHg",
+        "--- TEMPLATE SEED ---",
+        "Generate an improved version of this section:",
+        "改善後のセクション本文:",
+    ],
+)
 def test_forbidden_builtin_patterns_fail(tmp_path: Path, bad_text: str) -> None:
     cif_dir = _write_fixture(tmp_path, hp_sections=_hp_sections(hpi=bad_text))
     report = check_narratives(cif_dir, VERSION)
-    assert any(
-        f.section == "hpi" for f in report.findings if f.axis == "forbidden_pattern"
-    ), f"pattern not caught: {bad_text!r}"
+    assert any(f.section == "hpi" for f in report.findings if f.axis == "forbidden_pattern"), (
+        f"pattern not caught: {bad_text!r}"
+    )
 
 
 def test_forbidden_mock_marker_exempt_on_mock_generator(tmp_path: Path) -> None:
     cif_dir = _write_fixture(
-        tmp_path, generator="llm-mock",
+        tmp_path,
+        generator="llm-mock",
         hp_sections=_hp_sections(hpi="[Mock LLM response #1]"),
     )
     report = check_narratives(cif_dir, VERSION)
@@ -223,13 +243,12 @@ def test_forbidden_mock_marker_exempt_on_mock_generator(tmp_path: Path) -> None:
 
 
 def test_forbidden_ja_leak_in_en_version_fails(tmp_path: Path) -> None:
-    cif_dir = _write_fixture(
-        tmp_path, hp_sections=_hp_sections(chief_complaint="胸痛")
-    )
+    cif_dir = _write_fixture(tmp_path, hp_sections=_hp_sections(chief_complaint="胸痛"))
     report = check_narratives(cif_dir, VERSION)
     assert any(
         "Japanese" in f.message and f.section == "chief_complaint"
-        for f in report.findings if f.axis == "forbidden_pattern"
+        for f in report.findings
+        if f.axis == "forbidden_pattern"
     )
 
 
@@ -242,7 +261,8 @@ def test_forbidden_ja_in_known_fallback_section_tolerated(tmp_path: Path) -> Non
 
 def test_forbidden_ja_not_checked_on_ja_version(tmp_path: Path) -> None:
     cif_dir = _write_fixture(
-        tmp_path, languages_used=["ja"],
+        tmp_path,
+        languages_used=["ja"],
         hp_sections=_hp_sections(chief_complaint="胸痛"),
     )
     report = check_narratives(cif_dir, VERSION)
@@ -253,9 +273,7 @@ def test_forbidden_global_expectations_pattern_fails(tmp_path: Path) -> None:
     cif_dir = _write_fixture(tmp_path, hp_sections=_hp_sections(hpi="lorem ipsum filler"))
     expectations = {"global": {"forbidden_patterns": [r"lorem\s+ipsum"]}}
     report = check_narratives(cif_dir, VERSION, expectations)
-    assert any(
-        "lorem" in f.message for f in report.findings if f.axis == "forbidden_pattern"
-    )
+    assert any("lorem" in f.message for f in report.findings if f.axis == "forbidden_pattern")
 
 
 # --- Axes 4+5: expectations phrases + numeric ---
@@ -266,9 +284,7 @@ def _expectations(entry: dict[str, Any], section: str = "chief_complaint") -> di
 
 
 def test_phrase_all_of_pass_and_fail(tmp_path: Path) -> None:
-    cif_dir = _write_fixture(
-        tmp_path, hp_sections=_hp_sections(chief_complaint="Chest pain and dyspnea")
-    )
+    cif_dir = _write_fixture(tmp_path, hp_sections=_hp_sections(chief_complaint="Chest pain and dyspnea"))
     ok = check_narratives(cif_dir, VERSION, _expectations({"all_of": ["Chest pain"]}))
     assert ok.passed, ok.findings
     bad = check_narratives(cif_dir, VERSION, _expectations({"all_of": ["Abdominal pain"]}))
@@ -276,23 +292,15 @@ def test_phrase_all_of_pass_and_fail(tmp_path: Path) -> None:
 
 
 def test_phrase_any_of_pass_and_fail(tmp_path: Path) -> None:
-    cif_dir = _write_fixture(
-        tmp_path, hp_sections=_hp_sections(chief_complaint="Chest pain")
-    )
-    ok = check_narratives(
-        cif_dir, VERSION, _expectations({"any_of": ["pain", "pressure"]})
-    )
+    cif_dir = _write_fixture(tmp_path, hp_sections=_hp_sections(chief_complaint="Chest pain"))
+    ok = check_narratives(cif_dir, VERSION, _expectations({"any_of": ["pain", "pressure"]}))
     assert ok.passed, ok.findings
-    bad = check_narratives(
-        cif_dir, VERSION, _expectations({"any_of": ["fever", "cough"]})
-    )
+    bad = check_narratives(cif_dir, VERSION, _expectations({"any_of": ["fever", "cough"]}))
     assert any(f.axis == "phrase" and "none of" in f.message for f in bad.findings)
 
 
 def test_phrase_forbidden_fail(tmp_path: Path) -> None:
-    cif_dir = _write_fixture(
-        tmp_path, hp_sections=_hp_sections(chief_complaint="Chest pain")
-    )
+    cif_dir = _write_fixture(tmp_path, hp_sections=_hp_sections(chief_complaint="Chest pain"))
     bad = check_narratives(cif_dir, VERSION, _expectations({"forbidden": ["Chest"]}))
     assert any(f.axis == "phrase" and "forbidden phrase" in f.message for f in bad.findings)
 
@@ -300,7 +308,8 @@ def test_phrase_forbidden_fail(tmp_path: Path) -> None:
 def test_phrase_skipped_on_mock_llm_section(tmp_path: Path) -> None:
     """Expectations on llm_enabled_sections are skipped for the mock generator."""
     cif_dir = _write_fixture(
-        tmp_path, generator="llm-mock",
+        tmp_path,
+        generator="llm-mock",
         hp_sections=_hp_sections(hpi="[Mock LLM response #1]"),
     )
     expectations = _expectations({"all_of": ["fever history"]}, section="hpi")
@@ -309,7 +318,8 @@ def test_phrase_skipped_on_mock_llm_section(tmp_path: Path) -> None:
     assert report.info["skipped_mock_llm_sections"] == 1
     # ... but the SAME expectations fail loud on a real-provider generator.
     cif_dir2 = _write_fixture(
-        tmp_path / "real", generator="llm-ollama",
+        tmp_path / "real",
+        generator="llm-ollama",
         hp_sections=_hp_sections(hpi="something else entirely"),
     )
     report2 = check_narratives(cif_dir2, VERSION, expectations)
@@ -322,12 +332,14 @@ def test_numeric_pass_within_tolerance_and_fail(tmp_path: Path) -> None:
         hp_sections=_hp_sections(chief_complaint="Fever for 12 days, up to 38.5 C"),
     )
     ok = check_narratives(
-        cif_dir, VERSION,
+        cif_dir,
+        VERSION,
         _expectations({"numeric": [{"value": 11, "tolerance": 1}]}),
     )
     assert ok.passed, ok.findings
     bad = check_narratives(
-        cif_dir, VERSION,
+        cif_dir,
+        VERSION,
         _expectations({"numeric": [{"value": 25, "tolerance": 1}]}),
     )
     assert any(f.axis == "numeric" for f in bad.findings)
@@ -343,11 +355,14 @@ def _write_expectations(tmp_path: Path, data: dict[str, Any]) -> Path:
 
 
 def test_load_expectations_valid(tmp_path: Path) -> None:
-    p = _write_expectations(tmp_path, {
-        "global": {"forbidden_patterns": ["lorem"]},
-        "admission_hp": {"chief_complaint": {"all_of": ["pain"]}},
-        "discharge_summary": {"text": {"any_of": ["discharged"]}},
-    })
+    p = _write_expectations(
+        tmp_path,
+        {
+            "global": {"forbidden_patterns": ["lorem"]},
+            "admission_hp": {"chief_complaint": {"all_of": ["pain"]}},
+            "discharge_summary": {"text": {"any_of": ["discharged"]}},
+        },
+    )
     data = load_expectations(p)
     assert "admission_hp" in data
 
@@ -377,9 +392,7 @@ def test_load_expectations_bad_regex_raises(tmp_path: Path) -> None:
 
 
 def test_load_expectations_bad_numeric_raises(tmp_path: Path) -> None:
-    p = _write_expectations(
-        tmp_path, {"admission_hp": {"hpi": {"numeric": [{"tolerance": 1}]}}}
-    )
+    p = _write_expectations(tmp_path, {"admission_hp": {"hpi": {"numeric": [{"tolerance": 1}]}}})
     with pytest.raises(ValueError, match="'value'"):
         load_expectations(p)
 

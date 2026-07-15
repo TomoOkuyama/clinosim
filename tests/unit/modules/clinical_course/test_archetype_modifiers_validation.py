@@ -10,9 +10,7 @@ from clinosim.modules.disease.protocol import load_disease_protocol
 
 pytestmark = pytest.mark.unit
 
-_IDS = [
-    os.path.basename(f)[:-5] for f in glob.glob("clinosim/modules/disease/reference_data/*.yaml")
-]
+_IDS = [os.path.basename(f)[:-5] for f in glob.glob("clinosim/modules/disease/reference_data/*.yaml")]
 _ARCH = {"smooth_recovery", "gradual_deterioration", "treatment_resistant"}
 
 

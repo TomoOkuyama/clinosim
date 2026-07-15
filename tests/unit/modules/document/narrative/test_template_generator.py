@@ -167,6 +167,7 @@ def test_questionnaire_response_returns_structured_dict() -> None:
     """QUESTIONNAIRE_RESPONSE format returns structured dict (infrastructure stub)."""
     # Build a fake spec with QUESTIONNAIRE_RESPONSE format_type
     from clinosim.modules.document.narrative.registry import DocumentTypeSpec
+
     spec = DocumentTypeSpec(
         type_key="test_qr",
         loinc_code="99999-9",
@@ -201,9 +202,7 @@ def test_jp_locale_admission_hp_uses_disease_yaml_chief_complaint() -> None:
     out = gen.generate(ctx, spec)
     # bacterial_pneumonia chief_complaint.ja = "発熱・咳嗽・呼吸困難"
     cc_text = out.sections.get("chief_complaint", "")
-    assert "発熱" in cc_text or "咳嗽" in cc_text or "呼吸" in cc_text, (
-        f"JP chief_complaint not found in: {cc_text!r}"
-    )
+    assert "発熱" in cc_text or "咳嗽" in cc_text or "呼吸" in cc_text, f"JP chief_complaint not found in: {cc_text!r}"
 
 
 def test_jp_locale_hpi_uses_onset_pattern() -> None:
@@ -316,9 +315,7 @@ def test_en_locale_discharge_instructions_has_en_text() -> None:
     di_text = out.sections.get("discharge_instructions", "")
     assert di_text != "", "discharge_instructions must not be empty for EN locale"
     # bacterial_pneumonia EN override has "antibiotic"
-    assert "antibiotic" in di_text.lower(), (
-        f"EN disease-specific instruction not found in: {di_text!r}"
-    )
+    assert "antibiotic" in di_text.lower(), f"EN disease-specific instruction not found in: {di_text!r}"
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -368,9 +365,7 @@ def test_progress_note_day_3_from_disease_yaml() -> None:
     out = gen.generate(ctx, spec)
     # bacterial_pneumonia day_1 subjective = "症状緩和傾向"
     assert out.raw_text != ""
-    assert "症状" in out.raw_text or "治療" in out.raw_text, (
-        f"Day-1 content not found in: {out.raw_text!r}"
-    )
+    assert "症状" in out.raw_text or "治療" in out.raw_text, f"Day-1 content not found in: {out.raw_text!r}"
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -392,9 +387,7 @@ def test_multi_day_fallback_no_empty_for_day_7() -> None:
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
     # Must produce non-empty output — no crash, no empty string
-    assert out.raw_text.strip() != "", (
-        "raw_text must not be empty for day_7 with fallback chain"
-    )
+    assert out.raw_text.strip() != "", "raw_text must not be empty for day_7 with fallback chain"
 
 
 def test_multi_day_fallback_physical_exam_day_5_uses_nearest_earlier() -> None:
@@ -483,9 +476,7 @@ def test_facts_used_populated_for_composition() -> None:
     )
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
-    assert len(out.facts_used) >= 3, (
-        f"facts_used should have >=3 entries, got {len(out.facts_used)}: {out.facts_used}"
-    )
+    assert len(out.facts_used) >= 3, f"facts_used should have >=3 entries, got {len(out.facts_used)}: {out.facts_used}"
 
 
 def test_facts_used_uses_dot_notation_strings() -> None:
@@ -549,6 +540,7 @@ def test_allergies_listed_in_admission_hp() -> None:
     resolved via code_lookup (AD-30 — allergen_code 387207008 = Penicillin,
     ja display ペニシリン, per clinosim/codes/data/snomed-ct.yaml)."""
     from clinosim.types.allergy import Allergy
+
     allergy = Allergy(allergen_code="387207008", criticality="high", category="medication")
     protocol = load_disease_protocol("bacterial_pneumonia")
     spec = _get_spec(DocumentType.ADMISSION_HP)
@@ -561,9 +553,7 @@ def test_allergies_listed_in_admission_hp() -> None:
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
     allergy_text = out.sections.get("allergies", "")
-    assert "ペニシリン" in allergy_text, (
-        f"Allergy 'ペニシリン' not found in: {allergy_text!r}"
-    )
+    assert "ペニシリン" in allergy_text, f"Allergy 'ペニシリン' not found in: {allergy_text!r}"
 
 
 def test_no_allergies_shows_nkda_phrase() -> None:

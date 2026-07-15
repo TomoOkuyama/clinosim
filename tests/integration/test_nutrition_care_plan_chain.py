@@ -52,7 +52,11 @@ def _jp_patient_dict(patient_id: str, los_days: int, encounter_type: str = "inpa
     admission_dt = datetime(2026, 7, 1, 10, 0)
     record: dict = {
         "patient": {
-            "patient_id": patient_id, "age": 70, "sex": "F", "bmi": 21.0, "weight_kg": 55.0,
+            "patient_id": patient_id,
+            "age": 70,
+            "sex": "F",
+            "bmi": 21.0,
+            "weight_kg": 55.0,
         },
         "encounters": [
             {
@@ -107,9 +111,7 @@ def test_jp_los_gt_7_produces_nutrition_care_plan_composition(encounter_type: st
         assert manifest.document_counts_by_type.get("nutrition_care_plan") == 1
 
         narrative_dir = os.path.join(tmp, "narratives", "v1", "documents", f"enc-{patient_id}")
-        ncp_stub = next(
-            d for d in patient_dict["documents"] if d["task_type"] == "nutrition_care_plan"
-        )
+        ncp_stub = next(d for d in patient_dict["documents"] if d["task_type"] == "nutrition_care_plan")
         ncp_file = os.path.join(narrative_dir, f"{ncp_stub['document_id']}.json")
         assert os.path.exists(ncp_file)
         with open(ncp_file) as f:
@@ -137,19 +139,22 @@ def test_jp_los_5_produces_no_nutrition_care_plan() -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("encounter_type,country", [
-    ("inpatient", "us"),
-    ("outpatient", "jp"),
-    ("emergency", "jp"),
-    ("rehab_inpatient", "jp"),
-])
-def test_out_of_scope_cohorts_produce_no_nutrition_care_plan(
-    encounter_type: str, country: str
-) -> None:
+@pytest.mark.parametrize(
+    "encounter_type,country",
+    [
+        ("inpatient", "us"),
+        ("outpatient", "jp"),
+        ("emergency", "jp"),
+        ("rehab_inpatient", "jp"),
+    ],
+)
+def test_out_of_scope_cohorts_produce_no_nutrition_care_plan(encounter_type: str, country: str) -> None:
     admission_dt = datetime(2026, 7, 1, 10, 0)
     record: dict = {
         "patient": {
-            "patient_id": f"pt-ncp-chain-{encounter_type}-{country}", "age": 50, "sex": "M",
+            "patient_id": f"pt-ncp-chain-{encounter_type}-{country}",
+            "age": 50,
+            "sex": "M",
         },
         "encounters": [
             {

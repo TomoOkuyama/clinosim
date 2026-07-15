@@ -76,22 +76,26 @@ def run_benchmarks(dataset: CIFDataset, country: str = "JP") -> BenchmarkReport:
 
     # --- Patient demographics ---
     ages = [p.patient.age for p in patients]
-    report.add(BenchmarkResult(
-        name="mean_age",
-        metric="Mean age of admitted pneumonia patients",
-        generated_value=mean(ages),
-        expected_value=72,
-        expected_range=(60, 82),
-    ))
+    report.add(
+        BenchmarkResult(
+            name="mean_age",
+            metric="Mean age of admitted pneumonia patients",
+            generated_value=mean(ages),
+            expected_value=72,
+            expected_range=(60, 82),
+        )
+    )
 
     male_ratio = sum(1 for p in patients if p.patient.sex == "M") / len(patients)
-    report.add(BenchmarkResult(
-        name="male_ratio",
-        metric="Male ratio",
-        generated_value=male_ratio,
-        expected_value=0.55,
-        expected_range=(0.40, 0.70),
-    ))
+    report.add(
+        BenchmarkResult(
+            name="male_ratio",
+            metric="Male ratio",
+            generated_value=male_ratio,
+            expected_value=0.55,
+            expected_range=(0.40, 0.70),
+        )
+    )
 
     # --- Length of stay (inpatient only) ---
     los_days = []
@@ -103,40 +107,48 @@ def run_benchmarks(dataset: CIFDataset, country: str = "JP") -> BenchmarkReport:
                     los_days.append(los)
 
     if los_days:
-        report.add(BenchmarkResult(
-            name="median_los",
-            metric="Median LOS (days)",
-            generated_value=median(los_days),
-            expected_value=14 if is_jp(country) else 4.5,
-            expected_range=(10, 20) if is_jp(country) else (3, 7),
-        ))
+        report.add(
+            BenchmarkResult(
+                name="median_los",
+                metric="Median LOS (days)",
+                generated_value=median(los_days),
+                expected_value=14 if is_jp(country) else 4.5,
+                expected_range=(10, 20) if is_jp(country) else (3, 7),
+            )
+        )
 
-        report.add(BenchmarkResult(
-            name="mean_los",
-            metric="Mean LOS (days)",
-            generated_value=mean(los_days),
-            expected_value=15 if is_jp(country) else 5,
-            expected_range=(10, 22) if is_jp(country) else (3, 8),
-        ))
+        report.add(
+            BenchmarkResult(
+                name="mean_los",
+                metric="Mean LOS (days)",
+                generated_value=mean(los_days),
+                expected_value=15 if is_jp(country) else 5,
+                expected_range=(10, 22) if is_jp(country) else (3, 8),
+            )
+        )
 
     # --- Data volume per patient ---
     labs_per_patient = [len(p.lab_results) for p in patients]
     vitals_per_patient = [len(p.vital_signs) for p in patients]
 
-    report.add(BenchmarkResult(
-        name="mean_labs_per_patient",
-        metric="Mean lab results per patient",
-        generated_value=mean(labs_per_patient),
-        expected_value=50,
-        expected_range=(20, 100),
-    ))
+    report.add(
+        BenchmarkResult(
+            name="mean_labs_per_patient",
+            metric="Mean lab results per patient",
+            generated_value=mean(labs_per_patient),
+            expected_value=50,
+            expected_range=(20, 100),
+        )
+    )
 
-    report.add(BenchmarkResult(
-        name="mean_vitals_per_patient",
-        metric="Mean vital sign sets per patient",
-        generated_value=mean(vitals_per_patient),
-        expected_value=42,
-        expected_range=(15, 80),
-    ))
+    report.add(
+        BenchmarkResult(
+            name="mean_vitals_per_patient",
+            metric="Mean vital sign sets per patient",
+            generated_value=mean(vitals_per_patient),
+            expected_value=42,
+            expected_range=(15, 80),
+        )
+    )
 
     return report

@@ -22,10 +22,7 @@ import pytest
 
 from tests.integration._sr_helpers import run_generate
 
-_PROFILE = (
-    "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/"
-    "JP_Composition_eDischargeSummary"
-)
+_PROFILE = "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary"
 _DOC_TYPE_SYSTEM = "http://jpfhir.jp/fhir/Common/CodeSystem/doc-typecodes"
 _SECTION_SYSTEM = "http://jpfhir.jp/fhir/clins/CodeSystem/jp-codeSystem-clins-document-section"
 _SNAPSHOT_END = "2026-06-30"
@@ -57,10 +54,7 @@ def test_jp_p50_discharge_summary_composition_conforms(tmp_path):
     comp_path = _find_composition(outdir)
     assert comp_path, "Composition.ndjson not found"
     comps = _read_ndjson(comp_path)
-    ds = [c for c in comps if any(
-        cc.get("code") == "18842-5"
-        for cc in c.get("type", {}).get("coding", [])
-    )]
+    ds = [c for c in comps if any(cc.get("code") == "18842-5" for cc in c.get("type", {}).get("coding", []))]
     assert ds, "no discharge summary Composition found in JP cohort"
 
     for c in ds:
@@ -94,8 +88,7 @@ def test_us_p50_discharge_summary_composition_unchanged(tmp_path):
     for c in comps:
         # No JP-CLINS profile leaks into US
         profs = c.get("meta", {}).get("profile", [])
-        assert not any(p.startswith(
-            "http://jpfhir.jp/fhir/eDischargeSummary/") for p in profs), profs
+        assert not any(p.startswith("http://jpfhir.jp/fhir/eDischargeSummary/") for p in profs), profs
         # US DS type coding does not use doc-typecodes
         systems = {cc.get("system") for cc in c.get("type", {}).get("coding", [])}
         assert _DOC_TYPE_SYSTEM not in systems, c["type"]
@@ -122,6 +115,4 @@ def test_us_p50_has_no_japanese_language_leakage(tmp_path):
         with open(ndjson_path, encoding="utf-8") as f:
             content = f.read()
         for sig in jp_url_signals:
-            assert sig not in content, (
-                f"US bundle {ndjson_path.name} contains JP URL signal {sig!r}"
-            )
+            assert sig not in content, f"US bundle {ndjson_path.name} contains JP URL signal {sig!r}"

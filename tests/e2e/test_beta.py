@@ -36,8 +36,7 @@ class TestBeta:
     def test_varied_archetypes(self, beta_result):
         """Not all patients should have the same trajectory."""
         final_inflammations = [
-            p.physiological_states[-1].inflammation_level
-            for p in beta_result.patients if p.physiological_states
+            p.physiological_states[-1].inflammation_level for p in beta_result.patients if p.physiological_states
         ]
         # Some variation expected
         assert max(final_inflammations) - min(final_inflammations) >= 0, "Some variation expected"
@@ -47,8 +46,9 @@ class TestBeta:
         history: chronic-condition onset dates (and stage) identical across all their
         records. Guards against activate_patient being re-run per encounter."""
         from collections import defaultdict
-        onsets = defaultdict(set)   # (patient_id, code) -> {onset_date}
-        stages = defaultdict(set)   # (patient_id, code) -> {stage}
+
+        onsets = defaultdict(set)  # (patient_id, code) -> {onset_date}
+        stages = defaultdict(set)  # (patient_id, code) -> {stage}
         rec_count = defaultdict(int)
         for rec in beta_result.patients:
             pid = rec.patient.patient_id
@@ -60,8 +60,12 @@ class TestBeta:
         assert multi, "test needs patients with >1 encounter to be meaningful"
         bad_onset = {k: v for k, v in onsets.items() if len(v) > 1}
         bad_stage = {k: v for k, v in stages.items() if len(v) > 1}
-        assert not bad_onset, f"{len(bad_onset)} (patient,condition) have inconsistent onset dates across encounters, e.g. {list(bad_onset.items())[:3]}"
-        assert not bad_stage, f"{len(bad_stage)} (patient,condition) have inconsistent stage across encounters, e.g. {list(bad_stage.items())[:3]}"
+        assert not bad_onset, (
+            f"{len(bad_onset)} (patient,condition) have inconsistent onset dates across encounters, e.g. {list(bad_onset.items())[:3]}"  # noqa: E501
+        )  # noqa: E501
+        assert not bad_stage, (
+            f"{len(bad_stage)} (patient,condition) have inconsistent stage across encounters, e.g. {list(bad_stage.items())[:3]}"  # noqa: E501
+        )  # noqa: E501
 
     def test_csv_output(self, beta_result, tmp_path):
         cif_dir = str(tmp_path / "cif")
@@ -79,7 +83,9 @@ class TestBeta:
         report = run_benchmarks(beta_result, country="US")
         print(f"\n{report.summary()}")
         for r in report.results:
-            print(f"  {r.name}: {r.generated_value:.1f} (expected {r.expected_value}, range {r.expected_range}) [{r.status}]")
+            print(
+                f"  {r.name}: {r.generated_value:.1f} (expected {r.expected_value}, range {r.expected_range}) [{r.status}]"  # noqa: E501
+            )  # noqa: E501
         # At least 50% should pass (beta quality, not production)
         assert report.pass_rate >= 0.5, f"Benchmark pass rate too low: {report.pass_rate:.0%}"
 
@@ -98,6 +104,7 @@ class TestBeta:
 
         # Validate first line of Patient.ndjson is a valid Patient resource
         import json
+
         with open(os.path.join(fhir_dir, "Patient.ndjson")) as f:
             first_line = f.readline()
         patient = json.loads(first_line)

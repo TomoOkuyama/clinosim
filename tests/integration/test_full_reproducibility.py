@@ -31,8 +31,7 @@ def test_reproduce_script_passes() -> None:
     US + JP at seed 42 with pop 50, 2026-01-01 → 2026-03-31)."""
     assert _SCRIPT.exists(), f"reproduce script missing at {_SCRIPT}"
     assert _SCRIPT.stat().st_mode & 0o111, (
-        f"reproduce script at {_SCRIPT} is not executable — "
-        "run `chmod +x scripts/reproduce.sh`."
+        f"reproduce script at {_SCRIPT} is not executable — run `chmod +x scripts/reproduce.sh`."
     )
 
     result = subprocess.run(

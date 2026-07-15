@@ -15,20 +15,23 @@ class TestForcedScenario:
 
     def test_forces_archetype(self):
         scenario = ForcedScenario(
-            disease_id="bacterial_pneumonia", count=5,
-            severity="moderate", archetype="treatment_resistant",
+            disease_id="bacterial_pneumonia",
+            count=5,
+            severity="moderate",
+            archetype="treatment_resistant",
         )
         dataset = run_forced(scenario)
         # At least some patients should have treatment modification orders
         patients_with_mods = sum(
-            1 for r in dataset.patients
-            if any("STOP" in o.order_id or "START" in o.order_id for o in r.orders)
+            1 for r in dataset.patients if any("STOP" in o.order_id or "START" in o.order_id for o in r.orders)
         )
         assert patients_with_mods > 0, "treatment_resistant should have drug changes in some patients"
 
     def test_forces_severity(self):
         scenario = ForcedScenario(
-            disease_id="bacterial_pneumonia", count=3, severity="severe",
+            disease_id="bacterial_pneumonia",
+            count=3,
+            severity="severe",
         )
         dataset = run_forced(scenario)
         for r in dataset.patients:
@@ -37,7 +40,8 @@ class TestForcedScenario:
 
     def test_patient_overrides(self):
         scenario = ForcedScenario(
-            disease_id="bacterial_pneumonia", count=2,
+            disease_id="bacterial_pneumonia",
+            count=2,
             patient_overrides={"age": 25, "sex": "M"},
         )
         dataset = run_forced(scenario)
@@ -68,7 +72,8 @@ class TestForcedScenario:
 @pytest.fixture(scope="module")
 def mixed_dataset():
     config = SimulatorConfig(
-        catchment_population=15_000, random_seed=42,
+        catchment_population=15_000,
+        random_seed=42,
         time_range=("2024-04-01", "2025-03-31"),
     )
     return run_beta(config)

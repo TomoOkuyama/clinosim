@@ -38,13 +38,16 @@ class TestBundleBuilderRegistry:
         # identity-check would wrongly register both.
         def _bb_test_dup(ctx):
             return []
+
         fa.register_bundle_builder(_bb_test_dup)
         n_after_first = fa.available_builders().count("_bb_test_dup")
 
         def _make():
             def _bb_test_dup(ctx):  # noqa: F811 — same __name__, different object
                 return [{"resourceType": "X"}]
+
             return _bb_test_dup
+
         fa.register_bundle_builder(_make())
         assert n_after_first == 1
         assert fa.available_builders().count("_bb_test_dup") == 1

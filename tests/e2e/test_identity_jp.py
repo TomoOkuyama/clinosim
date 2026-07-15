@@ -51,9 +51,7 @@ class TestJPIdentity:
             if not res:
                 continue
             built += 1
-            org_refs = {
-                f"Organization/{x['id']}" for x in res if x["resourceType"] == "Organization"
-            }
+            org_refs = {f"Organization/{x['id']}" for x in res if x["resourceType"] == "Organization"}
             cov = next(x for x in res if x["resourceType"] == "Coverage")
             assert cov["payor"][0]["reference"] in org_refs
             assert cov["beneficiary"]["reference"] == f"Patient/{r.patient.patient_id}"
@@ -77,13 +75,14 @@ class TestJPIdentity:
 class TestJPInsuranceToggle:
     def test_no_jp_insurance_omits_enrollment(self):
         """--no-jp-insurance (jp_insurance_numbers=False) → no enrollment, no Coverage."""
-        ds = run_beta(SimulatorConfig(
-            catchment_population=1_500, random_seed=7,
-            country="JP", jp_insurance_numbers=False,
-        ))
+        ds = run_beta(
+            SimulatorConfig(
+                catchment_population=1_500,
+                random_seed=7,
+                country="JP",
+                jp_insurance_numbers=False,
+            )
+        )
         assert ds.patients
         assert all(r.patient.identity is None for r in ds.patients)
-        assert all(
-            not _build_coverage_resources(asdict(r.patient), "JP")
-            for r in ds.patients[:25]
-        )
+        assert all(not _build_coverage_resources(asdict(r.patient), "JP") for r in ds.patients[:25])

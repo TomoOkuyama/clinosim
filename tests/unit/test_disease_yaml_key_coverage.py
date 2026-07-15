@@ -37,9 +37,7 @@ pytestmark = pytest.mark.unit
 
 
 ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
-DISEASE_YAMLS = sorted(glob.glob(
-    os.path.join(ROOT, "clinosim/modules/disease/reference_data/*.yaml")
-))
+DISEASE_YAMLS = sorted(glob.glob(os.path.join(ROOT, "clinosim/modules/disease/reference_data/*.yaml")))
 
 
 # --- Canonical nested-key allowlists -----------------------------------------
@@ -49,51 +47,61 @@ DISEASE_YAMLS = sorted(glob.glob(
 # does for new diagnosis codes. A key present in a YAML but absent here is a
 # silent-drop risk — either wire the consumer or delete the authored entry.
 
-ORDER_PROTOCOLS_KEYS = frozenset({
-    "admission_orders",
-    "daily_monitoring",
-    "discharge_criteria",
-    "trigger_orders",
-})
+ORDER_PROTOCOLS_KEYS = frozenset(
+    {
+        "admission_orders",
+        "daily_monitoring",
+        "discharge_criteria",
+        "trigger_orders",
+    }
+)
 
-ORDER_PROTOCOLS_ADMISSION_ORDERS_KEYS = frozenset({
-    "labs",
-    "imaging",
-    "supportive",
-    "procedures",
-    "consults",
-    "pulmonary_function",
-})
+ORDER_PROTOCOLS_ADMISSION_ORDERS_KEYS = frozenset(
+    {
+        "labs",
+        "imaging",
+        "supportive",
+        "procedures",
+        "consults",
+        "pulmonary_function",
+    }
+)
 
-ORDER_PROTOCOLS_DISCHARGE_CRITERIA_KEYS = frozenset({
-    "japan",
-    "us",
-})
+ORDER_PROTOCOLS_DISCHARGE_CRITERIA_KEYS = frozenset(
+    {
+        "japan",
+        "us",
+    }
+)
 
-DIAGNOSTIC_KEYS = frozenset({
-    "diagnostic_difficulty",
-    "differential",
-    "confirmation_threshold",
-    "diagnosis_progression",
-    "likelihood_ratios",
-})
+DIAGNOSTIC_KEYS = frozenset(
+    {
+        "diagnostic_difficulty",
+        "differential",
+        "confirmation_threshold",
+        "diagnosis_progression",
+        "likelihood_ratios",
+    }
+)
 
-COMPLICATION_ENTRY_KEYS = frozenset({
-    "name",
-    "description",
-    "state_impact",
-    "actions",
-    "probability_per_day",
-    "onset_day_range",
-    "risk_factors",
-    "detection",
-    "note",
-    # Cascade / parent-triggered complications
-    "cascade",
-    "parent_complication",
-    "probability_given_parent",
-    "onset_days_after_parent",
-})
+COMPLICATION_ENTRY_KEYS = frozenset(
+    {
+        "name",
+        "description",
+        "state_impact",
+        "actions",
+        "probability_per_day",
+        "onset_day_range",
+        "risk_factors",
+        "detection",
+        "note",
+        # Cascade / parent-triggered complications
+        "cascade",
+        "parent_complication",
+        "probability_given_parent",
+        "onset_days_after_parent",
+    }
+)
 
 OUTCOME_BENCHMARKS_KEYS = frozenset({"japan", "us"})
 
@@ -107,10 +115,7 @@ def _yaml(path: str) -> dict:
 
 
 def _report(offenders: list[tuple[str, str, set[str]]]) -> str:
-    return "\n".join(
-        f"  {os.path.basename(path)} :: {loc} :: {sorted(keys)}"
-        for path, loc, keys in offenders
-    )
+    return "\n".join(f"  {os.path.basename(path)} :: {loc} :: {sorted(keys)}" for path, loc, keys in offenders)
 
 
 class TestOrderProtocolsKeyCoverage:
@@ -125,8 +130,7 @@ class TestOrderProtocolsKeyCoverage:
                 offenders.append((path, "order_protocols", unknown))
         assert not offenders, (
             "Unknown keys under order_protocols (author typo silent-drop risk). "
-            "Either add the key to ORDER_PROTOCOLS_KEYS or fix the YAML:\n"
-            + _report(offenders)
+            "Either add the key to ORDER_PROTOCOLS_KEYS or fix the YAML:\n" + _report(offenders)
         )
 
     def test_admission_orders_keys_allowlisted(self) -> None:
@@ -139,10 +143,7 @@ class TestOrderProtocolsKeyCoverage:
             unknown = set(ao.keys()) - ORDER_PROTOCOLS_ADMISSION_ORDERS_KEYS
             if unknown:
                 offenders.append((path, "order_protocols.admission_orders", unknown))
-        assert not offenders, (
-            "Unknown keys under order_protocols.admission_orders:\n"
-            + _report(offenders)
-        )
+        assert not offenders, "Unknown keys under order_protocols.admission_orders:\n" + _report(offenders)
 
     def test_discharge_criteria_keys_allowlisted(self) -> None:
         offenders = []
@@ -170,8 +171,7 @@ class TestDiagnosticKeyCoverage:
         assert not offenders, (
             "Unknown keys under diagnostic (session 40 finding: "
             "urinary_tract_infection had presenting_symptoms + initial_differentials "
-            "misplaced here — both are dead / silent-dropped):\n"
-            + _report(offenders)
+            "misplaced here — both are dead / silent-dropped):\n" + _report(offenders)
         )
 
 
@@ -226,25 +226,42 @@ class TestDistributionKeyCoverage:
         assert not offenders, _report(offenders)
 
 
-ENCOUNTER_YAMLS = sorted(glob.glob(
-    os.path.join(ROOT, "clinosim/modules/encounter/reference_data/*.yaml")
-))
+ENCOUNTER_YAMLS = sorted(glob.glob(os.path.join(ROOT, "clinosim/modules/encounter/reference_data/*.yaml")))
 
 
-ENCOUNTER_TOP_KEYS = frozenset({
-    # Core (every encounter YAML)
-    "age_distribution", "chief_complaint", "condition_id", "department",
-    "disposition", "encounter_type", "icd10_code", "icd10_display",
-    "incidence_modifier", "narrative", "seasonal", "sex_ratio_female",
-    "treatment", "workup",
-    # Common but optional
-    "discharge_instructions", "discharge_prescriptions", "ed_stay_hours",
-    "severity_distribution", "probability", "scenarios",
-    "initial_state_impact", "followup_instructions", "prescriptions",
-    "visit_duration_minutes", "acid_base_type",
-    # Consumer-wired special cases
-    "prescriptions_renewed",  # consumed by outpatient.py:212
-})
+ENCOUNTER_TOP_KEYS = frozenset(
+    {
+        # Core (every encounter YAML)
+        "age_distribution",
+        "chief_complaint",
+        "condition_id",
+        "department",
+        "disposition",
+        "encounter_type",
+        "icd10_code",
+        "icd10_display",
+        "incidence_modifier",
+        "narrative",
+        "seasonal",
+        "sex_ratio_female",
+        "treatment",
+        "workup",
+        # Common but optional
+        "discharge_instructions",
+        "discharge_prescriptions",
+        "ed_stay_hours",
+        "severity_distribution",
+        "probability",
+        "scenarios",
+        "initial_state_impact",
+        "followup_instructions",
+        "prescriptions",
+        "visit_duration_minutes",
+        "acid_base_type",
+        # Consumer-wired special cases
+        "prescriptions_renewed",  # consumed by outpatient.py:212
+    }
+)
 
 ENCOUNTER_WORKUP_KEYS = frozenset({"labs", "vitals", "imaging"})
 
@@ -259,8 +276,7 @@ class TestEncounterYamlKeyCoverage:
         assert not offenders, (
             "Unknown top-level keys in encounter YAML (session 40 finding: "
             "rib_fracture.admission_criteria + wrist_fracture.surgical_referral "
-            "= unwired 'intent' — silent-drop of admission/referral logic):\n"
-            + _report(offenders)
+            "= unwired 'intent' — silent-drop of admission/referral logic):\n" + _report(offenders)
         )
 
     def test_workup_keys_allowlisted(self) -> None:

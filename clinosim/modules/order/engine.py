@@ -23,12 +23,20 @@ from clinosim.types.encounter import Order, OrderStatus, OrderType
 
 # Mapping: text frequency token → times per day
 _FREQ_PER_DAY: dict[str, int] = {
-    "once": 1, "qd": 1, "daily": 1,
-    "bid": 2, "q12h": 2,
-    "tid": 3, "q8h": 3,
-    "qid": 4, "q6h": 4,
-    "q4h": 6, "q3h": 8, "q2h": 12,
-    "continuous": 24, "drip": 24,
+    "once": 1,
+    "qd": 1,
+    "daily": 1,
+    "bid": 2,
+    "q12h": 2,
+    "tid": 3,
+    "q8h": 3,
+    "qid": 4,
+    "q6h": 4,
+    "q4h": 6,
+    "q3h": 8,
+    "q2h": 12,
+    "continuous": 24,
+    "drip": 24,
 }
 
 
@@ -85,32 +93,22 @@ def place_imaging_orders(
 
         body_site = body_sites.get(body_site_key)
         if not body_site:
-            raise ValueError(
-                f"imaging_orders[].body_site='{body_site_key}' not found in body_sites.yaml"
-            )
+            raise ValueError(f"imaging_orders[].body_site='{body_site_key}' not found in body_sites.yaml")
         modality_def = modalities.get(modality_key)
         if not modality_def:
-            raise ValueError(
-                f"imaging_orders[].modality='{modality_key}' not found in modalities.yaml"
-            )
+            raise ValueError(f"imaging_orders[].modality='{modality_key}' not found in modalities.yaml")
 
         views: list[str] = list(_s(spec, "views", []))
         if not views:
-            views = list(
-                (modality_def.get("default_views_by_body_site") or {}).get(body_site_key, [])
-            )
+            views = list((modality_def.get("default_views_by_body_site") or {}).get(body_site_key, []))
 
         code_key = _resolve_imaging_procedure_code_key(modality_key, body_site_key, views, contrast)
         proc = (body_site.get("procedure_codes") or {}).get(code_key)
         if not proc:
-            raise ValueError(
-                f"body_sites.yaml[{body_site_key}].procedure_codes['{code_key}'] not found"
-            )
+            raise ValueError(f"body_sites.yaml[{body_site_key}].procedure_codes['{code_key}'] not found")
 
         sequence_counter["I"] = sequence_counter.get("I", 0) + 1
-        ordered_dt = admission_dt + timedelta(
-            days=day_index, minutes=int(rng.normal(15, 5))
-        )
+        ordered_dt = admission_dt + timedelta(days=day_index, minutes=int(rng.normal(15, 5)))
         order = Order(
             order_id=f"ORD-{encounter_id}-I{sequence_counter['I']:02d}",
             encounter_id=encounter_id,
@@ -155,6 +153,7 @@ def enrich_medication_order(order: Order, dose_str: str = "") -> Order:
     # Fallback: heuristic from drug name (PO is the default for tablets)
     if not order.route and order.display_name:
         from clinosim.simulator.helpers import _determine_route
+
         order.route = _determine_route(order.display_name, order.clinical_intent or "")
     # Default frequency: assume daily if dose is set but no frequency parsed
     if order.dose_quantity is not None and not order.frequency:
@@ -185,8 +184,7 @@ def parse_dose_string(dose_str: str) -> dict[str, Any]:
             pass
 
     # Route (PO, IV, SC, IM, SL, topical, inhaled, PR, NG)
-    route_match = re.search(r"\b(PO|IV|SC|IM|SL|PR|NG|inhaled|topical|nebulized)\b",
-                            s, re.IGNORECASE)
+    route_match = re.search(r"\b(PO|IV|SC|IM|SL|PR|NG|inhaled|topical|nebulized)\b", s, re.IGNORECASE)
     if route_match:
         result["route"] = route_match.group(1).upper()
 
@@ -300,30 +298,34 @@ def place_admission_orders(
         members = panel_groups[panel_name]
         panel_time = admission_time + timedelta(minutes=int(rng.normal(5, 3)))
         for lab_spec in members:
-            orders.append(_build_lab_order(
-                order_id=f"ORD-{encounter_id}-ADM-L{order_seq:02d}",
-                encounter_id=encounter_id,
-                patient_id=patient_id,
-                lab_spec=lab_spec,
-                ordered_datetime=panel_time,
-                ordered_by=ordered_by,
-                panel_key=panel_name,
-                clinical_intent=f"Admission workup: {lab_spec['test']}",
-            ))
+            orders.append(
+                _build_lab_order(
+                    order_id=f"ORD-{encounter_id}-ADM-L{order_seq:02d}",
+                    encounter_id=encounter_id,
+                    patient_id=patient_id,
+                    lab_spec=lab_spec,
+                    ordered_datetime=panel_time,
+                    ordered_by=ordered_by,
+                    panel_key=panel_name,
+                    clinical_intent=f"Admission workup: {lab_spec['test']}",
+                )
+            )
             order_seq += 1
 
     # Emit stand-alone Orders: each test has its own independent datetime.
     for lab_spec in stand_alones:
-        orders.append(_build_lab_order(
-            order_id=f"ORD-{encounter_id}-ADM-L{order_seq:02d}",
-            encounter_id=encounter_id,
-            patient_id=patient_id,
-            lab_spec=lab_spec,
-            ordered_datetime=admission_time + timedelta(minutes=int(rng.normal(5, 3))),
-            ordered_by=ordered_by,
-            panel_key="",
-            clinical_intent=f"Admission workup: {lab_spec['test']}",
-        ))
+        orders.append(
+            _build_lab_order(
+                order_id=f"ORD-{encounter_id}-ADM-L{order_seq:02d}",
+                encounter_id=encounter_id,
+                patient_id=patient_id,
+                lab_spec=lab_spec,
+                ordered_datetime=admission_time + timedelta(minutes=int(rng.normal(5, 3))),
+                ordered_by=ordered_by,
+                panel_key="",
+                clinical_intent=f"Admission workup: {lab_spec['test']}",
+            )
+        )
         order_seq += 1
 
     # Medication orders (all first-line drugs, not just the first)
@@ -429,11 +431,14 @@ def place_daily_lab_orders(
     # Read from YAML, fall back to defaults
     order_protocols = protocol.get("order_protocols", {})
     daily_monitoring = order_protocols.get("daily_monitoring", {})
-    daily_labs = daily_monitoring.get("labs", [
-        {"test": "CRP", "frequency": "daily"},
-        {"test": "WBC", "frequency": "daily"},
-        {"test": "Creatinine", "frequency": "daily"},
-    ])
+    daily_labs = daily_monitoring.get(
+        "labs",
+        [
+            {"test": "CRP", "frequency": "daily"},
+            {"test": "WBC", "frequency": "daily"},
+            {"test": "Creatinine", "frequency": "daily"},
+        ],
+    )
 
     # Build effective_specs (post-filter) before classify_lab_specs so that
     # borderline panels resolve on the actually-ordered set (same pattern as
@@ -471,29 +476,33 @@ def place_daily_lab_orders(
         members = panel_groups[panel_name]
         # Daily monitoring panels share the morning round order_time.
         for lab_spec in members:
-            orders.append(_build_lab_order(
+            orders.append(
+                _build_lab_order(
+                    order_id=f"ORD-{encounter_id}-D{day_number:02d}-L{order_seq:02d}",
+                    encounter_id=encounter_id,
+                    patient_id=patient_id,
+                    lab_spec=lab_spec,
+                    ordered_datetime=order_time,
+                    ordered_by=ordered_by,
+                    panel_key=panel_name,
+                    clinical_intent=f"Day {day_number} monitoring: {lab_spec['test']}",
+                )
+            )
+            order_seq += 1
+
+    for lab_spec in stand_alones:
+        orders.append(
+            _build_lab_order(
                 order_id=f"ORD-{encounter_id}-D{day_number:02d}-L{order_seq:02d}",
                 encounter_id=encounter_id,
                 patient_id=patient_id,
                 lab_spec=lab_spec,
                 ordered_datetime=order_time,
                 ordered_by=ordered_by,
-                panel_key=panel_name,
+                panel_key="",
                 clinical_intent=f"Day {day_number} monitoring: {lab_spec['test']}",
-            ))
-            order_seq += 1
-
-    for lab_spec in stand_alones:
-        orders.append(_build_lab_order(
-            order_id=f"ORD-{encounter_id}-D{day_number:02d}-L{order_seq:02d}",
-            encounter_id=encounter_id,
-            patient_id=patient_id,
-            lab_spec=lab_spec,
-            ordered_datetime=order_time,
-            ordered_by=ordered_by,
-            panel_key="",
-            clinical_intent=f"Day {day_number} monitoring: {lab_spec['test']}",
-        ))
+            )
+        )
         order_seq += 1
 
     return orders
@@ -561,18 +570,18 @@ def calculate_imaging_result_time(
     # Scheduling delay (time from order to exam start)
     if order.urgency == "stat":
         if "CT" in imaging_name or "MRI" in imaging_name:
-            schedule_delay = float(rng.normal(60, 20))   # stat CT: ~1h
+            schedule_delay = float(rng.normal(60, 20))  # stat CT: ~1h
         else:
-            schedule_delay = float(rng.normal(30, 10))   # stat X-ray: ~30min
+            schedule_delay = float(rng.normal(30, 10))  # stat X-ray: ~30min
     else:
         if "MRI" in imaging_name:
             schedule_delay = float(rng.normal(24 * 60, 8 * 60))  # routine MRI: 1-2 days
         elif "CT" in imaging_name:
-            schedule_delay = float(rng.normal(4 * 60, 2 * 60))   # routine CT: 2-6h
+            schedule_delay = float(rng.normal(4 * 60, 2 * 60))  # routine CT: 2-6h
         elif "ECHO" in imaging_name or "ULTRASOUND" in imaging_name:
-            schedule_delay = float(rng.normal(3 * 60, 60))        # echo/US: 2-4h
+            schedule_delay = float(rng.normal(3 * 60, 60))  # echo/US: 2-4h
         else:
-            schedule_delay = float(rng.normal(60, 30))             # X-ray: ~1h
+            schedule_delay = float(rng.normal(60, 30))  # X-ray: ~1h
 
     # Weekend: scheduling takes longer
     if weekday >= 5:
@@ -597,6 +606,7 @@ def calculate_imaging_result_time(
 # ============================================================
 # Hospital-state-aware delay calculation
 # ============================================================
+
 
 def calculate_result_time_from_state(
     order: Order,

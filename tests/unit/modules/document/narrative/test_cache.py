@@ -7,6 +7,7 @@ Tests cover:
 - deterministic key generation (incl. seed_hash component, N-chain adv-1 C-1)
 - demographics_bucket helper (dict + attribute dual access, C-1)
 """
+
 from __future__ import annotations
 
 from clinosim.modules.document.narrative.cache import (
@@ -69,11 +70,23 @@ def test_cache_deterministic_keys_default_section_differs_from_named() -> None:
 def test_cache_key_different_seed_hash_different_key() -> None:
     """C-1: seed_hash is part of the key — different template seeds never collide."""
     key_a = cache_key(
-        "d", "arch", 0, "moderate", "50s-M", "ja", "hpi",
+        "d",
+        "arch",
+        0,
+        "moderate",
+        "50s-M",
+        "ja",
+        "hpi",
         seed_hash=template_seed_hash("Patient A template text"),
     )
     key_b = cache_key(
-        "d", "arch", 0, "moderate", "50s-M", "ja", "hpi",
+        "d",
+        "arch",
+        0,
+        "moderate",
+        "50s-M",
+        "ja",
+        "hpi",
         seed_hash=template_seed_hash("Patient B template text"),
     )
     assert key_a != key_b
@@ -166,6 +179,7 @@ def test_get_default_cache_returns_singleton() -> None:
 def test_demographics_bucket_decade_and_sex() -> None:
     """Bucket uses decade + sex."""
     from types import SimpleNamespace
+
     patient = SimpleNamespace(age=55, sex="M")
     bucket = demographics_bucket(patient)
     assert bucket == "50s-M"
@@ -174,6 +188,7 @@ def test_demographics_bucket_decade_and_sex() -> None:
 def test_demographics_bucket_rounds_down_to_decade() -> None:
     """Ages within same decade share a bucket."""
     from types import SimpleNamespace
+
     p30 = SimpleNamespace(age=30, sex="F")
     p39 = SimpleNamespace(age=39, sex="F")
     assert demographics_bucket(p30) == demographics_bucket(p39) == "30s-F"
@@ -182,6 +197,7 @@ def test_demographics_bucket_rounds_down_to_decade() -> None:
 def test_demographics_bucket_different_ages_different_buckets() -> None:
     """Different decades produce different buckets."""
     from types import SimpleNamespace
+
     p20 = SimpleNamespace(age=25, sex="M")
     p30 = SimpleNamespace(age=35, sex="M")
     assert demographics_bucket(p20) != demographics_bucket(p30)

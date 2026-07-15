@@ -204,9 +204,7 @@ _VITALS_PROTOCOL = {
     "chief_complaint": {"en": "Chest pain", "ja": "胸痛"},
     "narrative": {
         "ed_note_template": {
-            "ed_workup_summary_en": (
-                "BP {sbp}/{dbp} mmHg, HR {hr}/min, T {temp}C, SpO2 {spo2}%, RR {rr}/min."
-            ),
+            "ed_workup_summary_en": ("BP {sbp}/{dbp} mmHg, HR {hr}/min, T {temp}C, SpO2 {spo2}%, RR {rr}/min."),
         },
     },
 }
@@ -229,11 +227,17 @@ def _vital(timestamp: str, **values):
 def test_vitals_placeholders_resolve_from_ctx_vitals():
     ctx = _ctx(DocumentType.ED_NOTE, _VITALS_PROTOCOL)
     ctx.encounter = {"encounter_id": "ENC-1", "admission_datetime": "2025-01-10T09:00:00"}
-    ctx.vitals = [_vital(
-        "2025-01-10T10:00:00",
-        systolic_bp=132, diastolic_bp=84, heart_rate=88,
-        temperature_celsius=37.25, spo2=97.0, respiratory_rate=18,
-    )]
+    ctx.vitals = [
+        _vital(
+            "2025-01-10T10:00:00",
+            systolic_bp=132,
+            diastolic_bp=84,
+            heart_rate=88,
+            temperature_celsius=37.25,
+            spo2=97.0,
+            respiratory_rate=18,
+        )
+    ]
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, _spec("ed_note"))
     workup = out.sections["ed_workup"]
@@ -254,8 +258,8 @@ def test_vitals_placeholders_pick_nearest_day_reading():
     ctx.day_index = 1
     ctx.vitals = [
         _vital("2025-01-10T10:00:00", heart_rate=110),  # day 0
-        _vital("2025-01-11T10:00:00", heart_rate=92),   # day 1 ← nearest
-        _vital("2025-01-12T10:00:00", heart_rate=78),   # day 2
+        _vital("2025-01-11T10:00:00", heart_rate=92),  # day 1 ← nearest
+        _vital("2025-01-12T10:00:00", heart_rate=78),  # day 2
     ]
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, _spec("ed_note"))
@@ -274,8 +278,8 @@ def test_vitals_placeholder_skips_null_reading_to_next_nearest():
     ctx = _ctx(DocumentType.ED_NOTE, proto)
     ctx.encounter = {"encounter_id": "ENC-1", "admission_datetime": "2025-01-10T09:00:00"}
     ctx.vitals = [
-        _vital("2025-01-10T10:00:00", heart_rate=104),                 # temp null here
-        _vital("2025-01-10T16:00:00", temperature_celsius=38.6),      # temp from here
+        _vital("2025-01-10T10:00:00", heart_rate=104),  # temp null here
+        _vital("2025-01-10T16:00:00", temperature_celsius=38.6),  # temp from here
     ]
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, _spec("ed_note"))
@@ -320,18 +324,32 @@ def test_vitals_mixed_with_unknown_placeholder_still_falls_back():
 
 def test_vitals_placeholders_deterministic():
     """Same ctx twice → identical output (no RNG in the resolution path)."""
+
     def _build():
         ctx = _ctx(DocumentType.ED_NOTE, _VITALS_PROTOCOL)
         ctx.encounter = {
-            "encounter_id": "ENC-1", "admission_datetime": "2025-01-10T09:00:00",
+            "encounter_id": "ENC-1",
+            "admission_datetime": "2025-01-10T09:00:00",
         }
         ctx.vitals = [
-            _vital("2025-01-10T10:00:00", systolic_bp=132, diastolic_bp=84,
-                   heart_rate=88, temperature_celsius=37.25, spo2=97.0,
-                   respiratory_rate=18),
-            _vital("2025-01-10T18:00:00", systolic_bp=128, diastolic_bp=80,
-                   heart_rate=84, temperature_celsius=37.0, spo2=98.0,
-                   respiratory_rate=16),
+            _vital(
+                "2025-01-10T10:00:00",
+                systolic_bp=132,
+                diastolic_bp=84,
+                heart_rate=88,
+                temperature_celsius=37.25,
+                spo2=97.0,
+                respiratory_rate=18,
+            ),
+            _vital(
+                "2025-01-10T18:00:00",
+                systolic_bp=128,
+                diastolic_bp=80,
+                heart_rate=84,
+                temperature_celsius=37.0,
+                spo2=98.0,
+                respiratory_rate=16,
+            ),
         ]
         return TemplateNarrativeGenerator().generate(ctx, _spec("ed_note"))
 

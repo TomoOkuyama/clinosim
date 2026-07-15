@@ -17,10 +17,7 @@ def test_imaging_audit_module_registered():
     """discover() finds and registers ModuleAuditSpec 'imaging_chain'."""
     discover()
     specs = get_registered()
-    assert "imaging_chain" in specs, (
-        f"'imaging_chain' not in registry after discover(); "
-        f"registered: {sorted(specs)}"
-    )
+    assert "imaging_chain" in specs, f"'imaging_chain' not in registry after discover(); registered: {sorted(specs)}"
 
 
 @pytest.mark.unit
@@ -47,19 +44,12 @@ def test_lift_firing_proof_has_15_equality_checks():
     spec = get_registered()["imaging_chain"]
     assert spec.lift_firing_proof is not None
     proof = spec.lift_firing_proof()
-    assert "equality_checks" in proof, (
-        "proof must contain 'equality_checks' key; "
-        f"got keys: {sorted(proof.keys())}"
-    )
+    assert "equality_checks" in proof, f"proof must contain 'equality_checks' key; got keys: {sorted(proof.keys())}"
     checks = proof["equality_checks"]
-    assert len(checks) >= 15, (
-        f"Expected >= 15 equality_checks, got {len(checks)}: {checks}"
-    )
+    assert len(checks) >= 15, f"Expected >= 15 equality_checks, got {len(checks)}: {checks}"
     # All checks must be (label, actual, expected) 3-tuples.
     for i, check in enumerate(checks):
-        assert len(check) == 3, (
-            f"equality_checks[{i}] must be (label, actual, expected), got: {check!r}"
-        )
+        assert len(check) == 3, f"equality_checks[{i}] must be (label, actual, expected), got: {check!r}"
 
 
 @pytest.mark.unit
@@ -81,10 +71,7 @@ def test_canonical_constant_checks_present():
         "DICOM_WADO_RS_CONNECTION_TYPE",
     ]
     for substring in expected_substrings:
-        assert substring in labels, (
-            f"Missing canonical constant label substring: {substring!r}\n"
-            f"All labels: {labels}"
-        )
+        assert substring in labels, f"Missing canonical constant label substring: {substring!r}\nAll labels: {labels}"
 
 
 @pytest.mark.unit
@@ -107,10 +94,7 @@ def test_no_drop_invariant_checks_present():
         "findings_codes",
     ]
     for substring in expected_substrings:
-        assert substring in labels, (
-            f"Missing no-drop invariant label substring: {substring!r}\n"
-            f"All labels: {labels}"
-        )
+        assert substring in labels, f"Missing no-drop invariant label substring: {substring!r}\nAll labels: {labels}"
 
 
 @pytest.mark.unit
@@ -119,15 +103,7 @@ def test_lift_firing_proof_all_checks_pass():
     discover()
     spec = get_registered()["imaging_chain"]
     proof = spec.lift_firing_proof()
-    failures = [
-        (label, actual, expected)
-        for label, actual, expected in proof["equality_checks"]
-        if actual != expected
-    ]
-    assert not failures, (
-        "Some equality_checks failed (canonical drift or builder silent-no-op):\n"
-        + "\n".join(
-            f"  {label!r}: actual={actual!r} != expected={expected!r}"
-            for label, actual, expected in failures
-        )
+    failures = [(label, actual, expected) for label, actual, expected in proof["equality_checks"] if actual != expected]
+    assert not failures, "Some equality_checks failed (canonical drift or builder silent-no-op):\n" + "\n".join(
+        f"  {label!r}: actual={actual!r} != expected={expected!r}" for label, actual, expected in failures
     )

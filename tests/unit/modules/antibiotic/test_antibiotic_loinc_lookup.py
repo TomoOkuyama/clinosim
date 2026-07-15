@@ -43,8 +43,7 @@ def test_cipro_loinc_is_18906_8_not_18879_7():
     """Adv #3 F2: Task 2 corrected ciprofloxacin 18879-7 (Cefepime) → 18906-8.
     Pin to prevent silent revert via YAML merge conflict."""
     assert ANTIBIOTIC_LOINC_LOOKUP["ciprofloxacin"] == "18906-8", (
-        "ciprofloxacin LOINC reverted to wrong code "
-        "(18879-7 = Cefepime [Susceptibility], not Cipro)"
+        "ciprofloxacin LOINC reverted to wrong code (18879-7 = Cefepime [Susceptibility], not Cipro)"
     )
 
 

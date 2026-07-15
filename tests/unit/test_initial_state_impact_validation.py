@@ -19,6 +19,7 @@ class TestCanonicalStateVars:
     def test_canonical_set_matches_variable_range(self) -> None:
         """Canonical state vars must be discoverable as a single source."""
         from clinosim.modules.physiology.engine import canonical_state_vars
+
         got = canonical_state_vars()
         # 13 vars currently modeled — matches _variable_range keys
         assert "inflammation_level" in got
@@ -32,6 +33,7 @@ class TestCanonicalStateVars:
 class TestValidateInitialStateImpact:
     def test_valid_all_canonical_vars_passes(self) -> None:
         from clinosim.modules.physiology.engine import _validate_initial_state_impact
+
         _validate_initial_state_impact(
             "test_disease",
             {"severe": {"inflammation_level": 0.5, "renal_function": -0.2}},
@@ -39,14 +41,17 @@ class TestValidateInitialStateImpact:
 
     def test_empty_dict_passes(self) -> None:
         from clinosim.modules.physiology.engine import _validate_initial_state_impact
+
         _validate_initial_state_impact("test_disease", {})
 
     def test_empty_severity_deltas_passes(self) -> None:
         from clinosim.modules.physiology.engine import _validate_initial_state_impact
+
         _validate_initial_state_impact("test_disease", {"severe": {}})
 
     def test_unknown_state_var_raises(self) -> None:
         from clinosim.modules.physiology.engine import _validate_initial_state_impact
+
         with pytest.raises(ValueError, match=r"consciousness"):
             _validate_initial_state_impact(
                 "diabetic_ketoacidosis",
@@ -55,6 +60,7 @@ class TestValidateInitialStateImpact:
 
     def test_error_message_includes_disease_id(self) -> None:
         from clinosim.modules.physiology.engine import _validate_initial_state_impact
+
         with pytest.raises(ValueError, match=r"diabetic_ketoacidosis"):
             _validate_initial_state_impact(
                 "diabetic_ketoacidosis",
@@ -63,6 +69,7 @@ class TestValidateInitialStateImpact:
 
     def test_error_message_lists_offending_vars(self) -> None:
         from clinosim.modules.physiology.engine import _validate_initial_state_impact
+
         with pytest.raises(ValueError) as exc:
             _validate_initial_state_impact(
                 "test_disease",
@@ -74,6 +81,7 @@ class TestValidateInitialStateImpact:
 
     def test_error_message_includes_severity_key(self) -> None:
         from clinosim.modules.physiology.engine import _validate_initial_state_impact
+
         with pytest.raises(ValueError, match=r"moderate"):
             _validate_initial_state_impact(
                 "hemorrhagic_stroke",
@@ -89,6 +97,7 @@ class TestProductionYamlsAllValid:
 
     def test_all_disease_yamls_load_without_state_var_error(self) -> None:
         from clinosim.modules.disease.protocol import load_all_disease_protocols
+
         load_all_disease_protocols.cache_clear()
         # If any YAML has an unknown state_var key, this raises.
         protocols = load_all_disease_protocols()
@@ -98,6 +107,7 @@ class TestProductionYamlsAllValid:
 class TestValidateComplicationsStateImpact:
     def test_valid_state_impact_passes(self) -> None:
         from clinosim.modules.physiology.engine import _validate_complications_state_impact
+
         _validate_complications_state_impact(
             "test_disease",
             [{"name": "aki", "state_impact": {"renal_function": -0.2}}],
@@ -105,10 +115,12 @@ class TestValidateComplicationsStateImpact:
 
     def test_empty_list_passes(self) -> None:
         from clinosim.modules.physiology.engine import _validate_complications_state_impact
+
         _validate_complications_state_impact("test_disease", [])
 
     def test_unknown_state_var_raises(self) -> None:
         from clinosim.modules.physiology.engine import _validate_complications_state_impact
+
         with pytest.raises(ValueError, match=r"electrolyte_status"):
             _validate_complications_state_impact(
                 "diabetic_ketoacidosis",
@@ -117,6 +129,7 @@ class TestValidateComplicationsStateImpact:
 
     def test_error_lists_all_offending_complications(self) -> None:
         from clinosim.modules.physiology.engine import _validate_complications_state_impact
+
         with pytest.raises(ValueError) as exc:
             _validate_complications_state_impact(
                 "hemorrhagic_stroke",
@@ -132,6 +145,7 @@ class TestValidateComplicationsStateImpact:
 class TestValidateCourseArchetypes:
     def test_valid_trajectory_passes(self) -> None:
         from clinosim.modules.clinical_course.engine import _validate_course_archetypes
+
         _validate_course_archetypes(
             "test_disease",
             {
@@ -143,10 +157,12 @@ class TestValidateCourseArchetypes:
 
     def test_empty_dict_passes(self) -> None:
         from clinosim.modules.clinical_course.engine import _validate_course_archetypes
+
         _validate_course_archetypes("test_disease", {})
 
     def test_unknown_trajectory_var_raises(self) -> None:
         from clinosim.modules.clinical_course.engine import _validate_course_archetypes
+
         with pytest.raises(ValueError, match=r"neurological_status"):
             _validate_course_archetypes(
                 "hemorrhagic_stroke",
@@ -156,6 +172,7 @@ class TestValidateCourseArchetypes:
     def test_respiratory_fraction_rejected_as_trajectory(self) -> None:
         """respiratory_fraction is a routing axis, not day-evolving."""
         from clinosim.modules.clinical_course.engine import _validate_course_archetypes
+
         with pytest.raises(ValueError, match=r"respiratory_fraction"):
             _validate_course_archetypes(
                 "test_disease",
@@ -169,6 +186,7 @@ class TestTrajectoryStateVarsDerivedFromCanonical:
         but membership must match canonical minus respiratory_fraction."""
         from clinosim.modules.clinical_course.engine import TRAJECTORY_STATE_VARS
         from clinosim.modules.physiology.engine import canonical_state_vars
+
         assert frozenset(TRAJECTORY_STATE_VARS) == canonical_state_vars() - {"respiratory_fraction"}
 
     def test_trajectory_iteration_order_is_pinned(self) -> None:
@@ -178,6 +196,7 @@ class TestTrajectoryStateVarsDerivedFromCanonical:
         e2e goldens hours later.
         """
         from clinosim.modules.clinical_course.engine import TRAJECTORY_STATE_VARS
+
         assert TRAJECTORY_STATE_VARS == (
             "inflammation_level",
             "volume_status",
@@ -201,6 +220,7 @@ class TestLoadDiseaseProtocolFailsLoud:
         import yaml as _yaml
 
         from clinosim.modules.disease import protocol as protocol_module
+
         bad = {
             "disease_id": "test_bad",
             "icd_codes": {"primary": "Z99"},

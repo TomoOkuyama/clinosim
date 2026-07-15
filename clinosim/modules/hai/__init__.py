@@ -1,4 +1,5 @@
 """AD-55 Module: hai — HAI onset sampling (CLABSI / CAUTI / VAP)."""
+
 from __future__ import annotations
 
 from functools import lru_cache
@@ -36,10 +37,7 @@ def _organisms_by_hai_type() -> dict[str, set[str]]:
     # imported above) instead of re-reading hai_organisms.yaml raw. Returns a
     # fresh dict each call; the cached YAML is only read.
     table = load_hai_organisms().get("hai_organisms") or {}
-    return {
-        hai_type: {str(entry["snomed"]) for entry in entries}
-        for hai_type, entries in table.items()
-    }
+    return {hai_type: {str(entry["snomed"]) for entry in entries} for hai_type, entries in table.items()}
 
 
 @lru_cache(maxsize=1)
@@ -75,8 +73,7 @@ def load_hai_antibiogram() -> dict:  # type: ignore[type-arg]
         # error before falling through to "bucket empty".
         if hai_type not in valid_hai_types:
             raise ValueError(
-                f"hai_antibiogram.yaml: unknown hai_type {hai_type!r}, "
-                f"expected one of {sorted(valid_hai_types)}"
+                f"hai_antibiogram.yaml: unknown hai_type {hai_type!r}, expected one of {sorted(valid_hai_types)}"
             )
         # PR3b-3 stage-2 adversarial finding (Agent 2 HIGH): per-hai_type
         # bucket empty is same silent-no-op class as I2 top-level empty —
@@ -93,8 +90,7 @@ def load_hai_antibiogram() -> dict:  # type: ignore[type-arg]
             allowed_snomeds = valid_organisms.get(hai_type, set())
             if snomed not in allowed_snomeds:
                 raise ValueError(
-                    f"hai_antibiogram.yaml: organism {snomed!r} not in "
-                    f"hai_organisms.yaml for hai_type {hai_type!r}"
+                    f"hai_antibiogram.yaml: organism {snomed!r} not in hai_organisms.yaml for hai_type {hai_type!r}"
                 )
             for abx_key, triple in abx_table.items():
                 if abx_key not in valid_antibiotics:

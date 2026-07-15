@@ -22,9 +22,7 @@ def _tiny_dataset() -> CIFDataset:
     )
     doc_stub = ClinicalDocument(document_id="doc-2", loinc_code="34746-8", narrative=None)
     p = CIFPatientRecord(
-        patient=PatientProfile(
-            patient_id="POP-000001", age=65, sex="M", date_of_birth=date(1961, 1, 1)
-        ),
+        patient=PatientProfile(patient_id="POP-000001", age=65, sex="M", date_of_birth=date(1961, 1, 1)),
         encounters=[
             Encounter(
                 encounter_id="ENC-1",

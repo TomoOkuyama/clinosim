@@ -53,19 +53,21 @@ def _jp_patient_dict(patient_id: str, with_rehab: bool, encounter_type: str = "i
     admission_dt = datetime(2026, 7, 1, 10, 0)
     encounter_id = f"enc-{patient_id}"
     rehab_sessions = (
-        [{
-            "session_id": f"REHAB-{patient_id}-001",
-            "patient_id": patient_id,
-            "encounter_id": encounter_id,
-            "therapy_type": "PT",
-            "session_date": admission_dt + timedelta(days=1, hours=10),
-            "duration_minutes": 40,
-            "day_post_op": 1,
-            "activities": ["bed exercises"],
-            "patient_participation": "good",
-            "pain_score": 3,
-            "functional_progress": "stable",
-        }]
+        [
+            {
+                "session_id": f"REHAB-{patient_id}-001",
+                "patient_id": patient_id,
+                "encounter_id": encounter_id,
+                "therapy_type": "PT",
+                "session_date": admission_dt + timedelta(days=1, hours=10),
+                "duration_minutes": 40,
+                "day_post_op": 1,
+                "activities": ["bed exercises"],
+                "patient_participation": "good",
+                "pain_score": 3,
+                "functional_progress": "stable",
+            }
+        ]
         if with_rehab
         else []
     )
@@ -123,9 +125,7 @@ def test_jp_inpatient_with_rehab_sessions_produces_rehabilitation_plan_compositi
         assert manifest.document_counts_by_type.get("rehabilitation_plan") == 1
 
         narrative_dir = os.path.join(tmp, "narratives", "v1", "documents", f"enc-{patient_id}")
-        rp_stub = next(
-            d for d in patient_dict["documents"] if d["task_type"] == "rehabilitation_plan"
-        )
+        rp_stub = next(d for d in patient_dict["documents"] if d["task_type"] == "rehabilitation_plan")
         rp_file = os.path.join(narrative_dir, f"{rp_stub['document_id']}.json")
         assert os.path.exists(rp_file)
         with open(rp_file) as f:
@@ -153,16 +153,17 @@ def test_jp_inpatient_without_rehab_sessions_produces_no_rehabilitation_plan() -
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("encounter_type,country", [
-    ("inpatient", "us"),
-    ("outpatient", "jp"),
-    ("emergency", "jp"),
-    ("icu", "jp"),
-    ("rehab_inpatient", "jp"),
-])
-def test_out_of_scope_cohorts_produce_no_rehabilitation_plan(
-    encounter_type: str, country: str
-) -> None:
+@pytest.mark.parametrize(
+    "encounter_type,country",
+    [
+        ("inpatient", "us"),
+        ("outpatient", "jp"),
+        ("emergency", "jp"),
+        ("icu", "jp"),
+        ("rehab_inpatient", "jp"),
+    ],
+)
+def test_out_of_scope_cohorts_produce_no_rehabilitation_plan(encounter_type: str, country: str) -> None:
     admission_dt = datetime(2026, 7, 1, 10, 0)
     encounter_id = f"enc-rp-{encounter_type}-{country}"
     record: dict = {
@@ -180,19 +181,21 @@ def test_out_of_scope_cohorts_produce_no_rehabilitation_plan(
         "documents": [],
         "extensions": {},
         "physiological_states": [],
-        "rehab_sessions": [{
-            "session_id": "REHAB-oos-001",
-            "patient_id": f"pt-rp-chain-{encounter_type}-{country}",
-            "encounter_id": encounter_id,
-            "therapy_type": "PT",
-            "session_date": admission_dt + timedelta(days=1),
-            "duration_minutes": 40,
-            "day_post_op": 1,
-            "activities": [],
-            "patient_participation": "good",
-            "pain_score": 3,
-            "functional_progress": "stable",
-        }],
+        "rehab_sessions": [
+            {
+                "session_id": "REHAB-oos-001",
+                "patient_id": f"pt-rp-chain-{encounter_type}-{country}",
+                "encounter_id": encounter_id,
+                "therapy_type": "PT",
+                "session_date": admission_dt + timedelta(days=1),
+                "duration_minutes": 40,
+                "day_post_op": 1,
+                "activities": [],
+                "patient_participation": "good",
+                "pain_score": 3,
+                "functional_progress": "stable",
+            }
+        ],
     }
     ctx = SimpleNamespace(master_seed=42, records=[record], config=SimpleNamespace(country=country))
     document_enricher(ctx)

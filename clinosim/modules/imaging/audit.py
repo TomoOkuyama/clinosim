@@ -130,11 +130,7 @@ def _build_imaging_proof() -> dict[str, Any]:
 
     # Collect sets for reference integrity checks.
     endpoint_ids: set[str] = {e["id"] for e in endpoints_out}
-    endpoint_refs: set[str] = {
-        ref["reference"].split("/", 1)[1]
-        for s in studies_out
-        for ref in s.get("endpoint", [])
-    }
+    endpoint_refs: set[str] = {ref["reference"].split("/", 1)[1] for s in studies_out for ref in s.get("endpoint", [])}
 
     return {
         "equality_checks": [
@@ -178,9 +174,7 @@ def _build_imaging_proof() -> dict[str, Any]:
             # --- 3 reference integrity invariants ---
             (
                 "ImagingStudy.basedOn ref starts with ServiceRequest/SR_ID_PREFIX",
-                studies_out[0]["basedOn"][0]["reference"].startswith(
-                    f"ServiceRequest/{SR_ID_PREFIX}"
-                ),
+                studies_out[0]["basedOn"][0]["reference"].startswith(f"ServiceRequest/{SR_ID_PREFIX}"),
                 True,
             ),
             (
@@ -218,8 +212,7 @@ def _build_imaging_proof() -> dict[str, Any]:
                 "findings_codes empty -> conclusionCode = Normal SNOMED default (CY8-14 session 48)",
                 # findings_codes 空でも normal/abnormal default emit されるように改修。
                 # conclusionCode は必ず 1 件、code = 17621005 (Normal) or 263654008 (Abnormal)。
-                dr.get("conclusionCode", [{}])[0].get("coding", [{}])[0].get("code")
-                in ("17621005", "263654008"),
+                dr.get("conclusionCode", [{}])[0].get("coding", [{}])[0].get("code") in ("17621005", "263654008"),
                 True,
             ),
         ]

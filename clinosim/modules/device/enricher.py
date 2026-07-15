@@ -34,7 +34,9 @@ def enrich_device(ctx) -> None:
         pid = _get(patient, "patient_id", "") if patient else ""
         rng = np.random.default_rng(
             derive_sub_seed(
-                ctx.master_seed, ENRICHER_SEED_OFFSETS["device"], pid or "x",
+                ctx.master_seed,
+                ENRICHER_SEED_OFFSETS["device"],
+                pid or "x",
             )
         )
         devices = []

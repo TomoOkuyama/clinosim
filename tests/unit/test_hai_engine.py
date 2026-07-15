@@ -1,4 +1,5 @@
 """Unit tests for clinosim.modules.hai.engine (PR-B)."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -52,9 +53,13 @@ def test_load_hai_specimens_three_types():
 
 def test_sample_hai_onset_returns_false_for_short_line_days():
     device = DeviceRecord(
-        device_id="d", encounter_id="e", device_type="cvc",
-        snomed_code="52124006", placement_date="2026-01-01",
-        removal_date="2026-01-02", placement_indication="severity_moderate_plus",
+        device_id="d",
+        encounter_id="e",
+        device_type="cvc",
+        snomed_code="52124006",
+        placement_date="2026-01-01",
+        removal_date="2026-01-02",
+        placement_indication="severity_moderate_plus",
     )
     occurred, _ = sample_hai_onset(device, {"per_day_risk": 0.5}, np.random.default_rng(42))
     assert occurred is False
@@ -62,9 +67,13 @@ def test_sample_hai_onset_returns_false_for_short_line_days():
 
 def test_sample_hai_onset_returns_true_for_long_line_days_high_risk():
     device = DeviceRecord(
-        device_id="d", encounter_id="e", device_type="cvc",
-        snomed_code="52124006", placement_date="2026-01-01",
-        removal_date="2026-12-31", placement_indication="severity_moderate_plus",
+        device_id="d",
+        encounter_id="e",
+        device_type="cvc",
+        snomed_code="52124006",
+        placement_date="2026-01-01",
+        removal_date="2026-12-31",
+        placement_indication="severity_moderate_plus",
     )
     occurred, offset = sample_hai_onset(device, {"per_day_risk": 0.5}, np.random.default_rng(42))
     assert occurred is True
@@ -75,9 +84,13 @@ def test_sample_hai_onset_returns_true_for_long_line_days_high_risk():
 def test_sample_hai_onset_snapshot_in_progress_uses_fallback():
     """removal_date=None → conservative line_days=7."""
     device = DeviceRecord(
-        device_id="d", encounter_id="e", device_type="cvc",
-        snomed_code="52124006", placement_date="2026-01-01",
-        removal_date=None, placement_indication="severity_moderate_plus",
+        device_id="d",
+        encounter_id="e",
+        device_type="cvc",
+        snomed_code="52124006",
+        placement_date="2026-01-01",
+        removal_date=None,
+        placement_indication="severity_moderate_plus",
     )
     occurred_count = 0
     for seed in range(100):

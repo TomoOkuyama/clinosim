@@ -52,6 +52,7 @@ def _fhir_instant_or_empty(s: str) -> str:
     """feedback FB-F1 helper: 空文字は "" 保持、それ以外は to_fhir_instant()。"""
     return to_fhir_instant(s) if s else ""
 
+
 logger = logging.getLogger(__name__)
 
 __all__ = [
@@ -60,6 +61,7 @@ __all__ = [
 
 
 # === Stage 1 default: record.documents path (Task 10) ===
+
 
 def _bb_document_references(ctx: BundleContext) -> list[dict[str, Any]]:
     """Bundle builder: emit DocumentReference for record.documents where format_type='free_text'.
@@ -94,8 +96,7 @@ def _bb_document_references(ctx: BundleContext) -> list[dict[str, Any]]:
         narrative = _o(doc, "narrative", None)
         if not narrative:
             logger.warning(
-                "document reference stub %s has no narrative (Stage 2 pass not "
-                "run for this document) — skipping",
+                "document reference stub %s has no narrative (Stage 2 pass not run for this document) — skipping",
                 _o(doc, "document_id", ""),
             )
             continue
@@ -103,10 +104,12 @@ def _bb_document_references(ctx: BundleContext) -> list[dict[str, Any]]:
         if resource:
             prior = doc_id_to_prior.get(resource["id"], "")
             if prior:
-                resource["relatesTo"] = [{
-                    "code": "appends",
-                    "target": {"reference": f"DocumentReference/{prior}"},
-                }]
+                resource["relatesTo"] = [
+                    {
+                        "code": "appends",
+                        "target": {"reference": f"DocumentReference/{prior}"},
+                    }
+                ]
             out.append(resource)
     return out
 
@@ -140,9 +143,7 @@ def _build_prior_doc_chain(raw_docs: list[Any]) -> dict[str, str]:
     return prior
 
 
-def _build_dref_from_clinical_doc(
-    doc: Any, narrative: Any, patient_id: str, country: str
-) -> dict[str, Any] | None:
+def _build_dref_from_clinical_doc(doc: Any, narrative: Any, patient_id: str, country: str) -> dict[str, Any] | None:
     """Build DocumentReference from a ClinicalDocument stub + its narrative.
 
     ``narrative`` is the already-resolved ``doc["narrative"]`` subtree
@@ -185,10 +186,12 @@ def _build_dref_from_clinical_doc(
         # cross-system document tracking (JP Core recommends). Uses the same
         # id under a clinosim namespace URI — deterministic + unique across
         # the export, mirrors Composition.identifier (C2-34).
-        "identifier": [{
-            "system": "urn:clinosim:documentreference-id",
-            "value": resource_id,
-        }],
+        "identifier": [
+            {
+                "system": "urn:clinosim:documentreference-id",
+                "value": resource_id,
+            }
+        ],
         "status": "current",
         # Stage 1 (template) output IS production; "preliminary" would imply draft.
         # Stage 2 (LLM-augmented, β-JP-1) will re-evaluate this when llm_service is wired.
@@ -230,9 +233,7 @@ def _build_dref_from_clinical_doc(
         ],
         "subject": {"reference": f"Patient/{patient_id}"},
         # feedback FB-F1: DocumentReference.date は instant 型 (秒精度+TZ 必須)
-        "date": _fhir_instant_or_empty(
-            _o(doc, "authored_datetime", "") or _o(narrative, "generated_at", "")
-        ),
+        "date": _fhir_instant_or_empty(_o(doc, "authored_datetime", "") or _o(narrative, "generated_at", "")),
         "content": [
             {
                 "attachment": {
@@ -280,5 +281,3 @@ def _build_dref_from_clinical_doc(
         resource["context"] = context
 
     return resource
-
-

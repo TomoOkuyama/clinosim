@@ -21,33 +21,22 @@ class TestApplyJpClinsProfile:
     def test_allergy_gets_ecs_profile(self):
         r = {"resourceType": "AllergyIntolerance"}
         _apply_jp_clins_profile(r)
-        assert r["meta"]["profile"] == [
-            "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_AllergyIntolerance_eCS"
-        ]
+        assert r["meta"]["profile"] == ["http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_AllergyIntolerance_eCS"]
 
     def test_medication_request_gets_ecs_profile(self):
         r = {"resourceType": "MedicationRequest"}
         _apply_jp_clins_profile(r)
-        assert (
-            "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS"
-            in r["meta"]["profile"]
-        )
+        assert "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS" in r["meta"]["profile"]
 
     def test_procedure_gets_ecs_profile(self):
         r = {"resourceType": "Procedure"}
         _apply_jp_clins_profile(r)
-        assert (
-            "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Procedure_eCS"
-            in r["meta"]["profile"]
-        )
+        assert "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Procedure_eCS" in r["meta"]["profile"]
 
     def test_condition_gets_ecs_profile(self):
         r = {"resourceType": "Condition"}
         _apply_jp_clins_profile(r)
-        assert (
-            "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Condition_eCS"
-            in r["meta"]["profile"]
-        )
+        assert "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Condition_eCS" in r["meta"]["profile"]
 
     def test_idempotent_no_duplicate(self):
         r = {"resourceType": "AllergyIntolerance"}
@@ -65,19 +54,11 @@ class TestApplyJpClinsProfile:
     def test_preserves_existing_jp_core_profile(self):
         r = {
             "resourceType": "MedicationRequest",
-            "meta": {"profile": [
-                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"
-            ]},
+            "meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"]},
         }
         _apply_jp_clins_profile(r)
-        assert (
-            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"
-            in r["meta"]["profile"]
-        )
-        assert (
-            "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS"
-            in r["meta"]["profile"]
-        )
+        assert "http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest" in r["meta"]["profile"]
+        assert "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS" in r["meta"]["profile"]
 
 
 @pytest.mark.unit
@@ -85,10 +66,16 @@ class TestCategoryFilters:
     def test_vital_observation_no_clins_profile(self):
         r = {
             "resourceType": "Observation",
-            "category": [{"coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
-                "code": "vital-signs",
-            }]}],
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                            "code": "vital-signs",
+                        }
+                    ]
+                }
+            ],
         }
         _apply_jp_clins_profile(r)
         assert "meta" not in r or not r.get("meta", {}).get("profile")
@@ -96,16 +83,19 @@ class TestCategoryFilters:
     def test_lab_observation_gets_clins_profile(self):
         r = {
             "resourceType": "Observation",
-            "category": [{"coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
-                "code": "laboratory",
-            }]}],
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                            "code": "laboratory",
+                        }
+                    ]
+                }
+            ],
         }
         _apply_jp_clins_profile(r)
-        assert (
-            "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Observation_LabResult_eCS"
-            in r["meta"]["profile"]
-        )
+        assert "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Observation_LabResult_eCS" in r["meta"]["profile"]
 
     def test_diagnostic_report_no_clins_profile(self):
         # JP-CLINS v1.12.0 does not publish a DiagnosticReport profile.
@@ -114,10 +104,16 @@ class TestCategoryFilters:
         # regardless of category.
         r = {
             "resourceType": "DiagnosticReport",
-            "category": [{"coding": [{
-                "system": "http://terminology.hl7.org/CodeSystem/v2-0074",
-                "code": "LAB",
-            }]}],
+            "category": [
+                {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/v2-0074",
+                            "code": "LAB",
+                        }
+                    ]
+                }
+            ],
         }
         _apply_jp_clins_profile(r)
         assert "meta" not in r or not r.get("meta", {}).get("profile")
@@ -127,29 +123,28 @@ class TestCategoryFilters:
 class TestBundleIntegration:
     def test_jp_bundle_medication_request_has_both_profiles(self):
         from clinosim.modules.output.fhir_r4_adapter import _build_bundle
+
         record = _minimal_jp_record()
         bundle = _build_bundle(record, "JP")
-        mrs = [e["resource"] for e in bundle["entry"]
-               if e["resource"]["resourceType"] == "MedicationRequest"]
+        mrs = [e["resource"] for e in bundle["entry"] if e["resource"]["resourceType"] == "MedicationRequest"]
         assert mrs, "expected at least one MedicationRequest in JP bundle"
         for mr in mrs:
             profs = mr.get("meta", {}).get("profile", [])
-            assert any(
-                "eCS" in p and "MedicationRequest" in p for p in profs
-            ), f"MedicationRequest missing JP-CLINS profile: {profs}"
-            assert any(
-                "core" in p and "MedicationRequest" in p for p in profs
-            ), f"MedicationRequest missing JP Core profile: {profs}"
+            assert any("eCS" in p and "MedicationRequest" in p for p in profs), (
+                f"MedicationRequest missing JP-CLINS profile: {profs}"
+            )
+            assert any("core" in p and "MedicationRequest" in p for p in profs), (
+                f"MedicationRequest missing JP Core profile: {profs}"
+            )
 
     def test_us_bundle_has_no_clins_profile(self):
         from clinosim.modules.output.fhir_r4_adapter import _build_bundle
+
         record = _minimal_us_record()
         bundle = _build_bundle(record, "US")
         for entry in bundle["entry"]:
             profs = entry["resource"].get("meta", {}).get("profile", [])
-            assert not any(
-                "jpfhir.jp/fhir/eCS" in p for p in profs
-            ), f"US bundle leaked JP-CLINS profile: {profs}"
+            assert not any("jpfhir.jp/fhir/eCS" in p for p in profs), f"US bundle leaked JP-CLINS profile: {profs}"
 
 
 def _minimal_jp_record() -> dict:
@@ -166,22 +161,26 @@ def _minimal_jp_record() -> dict:
             "admission_diagnosis_system": "icd-10-cm",
             "discharge_diagnosis_code": "I21.4",
         },
-        "encounters": [{
-            "encounter_id": "ENC-001",
-            "encounter_type": "inpatient",
-            "admission_datetime": "2026-01-15T09:00:00",
-            "discharge_datetime": "2026-01-20T10:00:00",
-        }],
-        "orders": [{
-            "order_type": "medication",
-            "display_name": "アスピリン腸溶錠100mg",
-            "medication_code": "1124402",
-            "medication_system": "yj",
-            "ordered_datetime": "2026-01-15T10:00:00",
-            "start_datetime": "2026-01-15T10:00:00",
-            "encounter_id": "ENC-001",
-            "ordered_by": "PRAC-JP-001",
-        }],
+        "encounters": [
+            {
+                "encounter_id": "ENC-001",
+                "encounter_type": "inpatient",
+                "admission_datetime": "2026-01-15T09:00:00",
+                "discharge_datetime": "2026-01-20T10:00:00",
+            }
+        ],
+        "orders": [
+            {
+                "order_type": "medication",
+                "display_name": "アスピリン腸溶錠100mg",
+                "medication_code": "1124402",
+                "medication_system": "yj",
+                "ordered_datetime": "2026-01-15T10:00:00",
+                "start_datetime": "2026-01-15T10:00:00",
+                "encounter_id": "ENC-001",
+                "ordered_by": "PRAC-JP-001",
+            }
+        ],
     }
 
 
@@ -198,22 +197,26 @@ def _minimal_us_record() -> dict:
             "admission_diagnosis_system": "icd-10-cm",
             "discharge_diagnosis_code": "I21.4",
         },
-        "encounters": [{
-            "encounter_id": "ENC-101",
-            "encounter_type": "inpatient",
-            "admission_datetime": "2026-01-15T09:00:00",
-            "discharge_datetime": "2026-01-20T10:00:00",
-        }],
-        "orders": [{
-            "order_type": "medication",
-            "display_name": "aspirin 100 MG oral tablet",
-            "medication_code": "1191",
-            "medication_system": "rxnorm",
-            "ordered_datetime": "2026-01-15T10:00:00",
-            "start_datetime": "2026-01-15T10:00:00",
-            "encounter_id": "ENC-101",
-            "ordered_by": "PRAC-US-001",
-        }],
+        "encounters": [
+            {
+                "encounter_id": "ENC-101",
+                "encounter_type": "inpatient",
+                "admission_datetime": "2026-01-15T09:00:00",
+                "discharge_datetime": "2026-01-20T10:00:00",
+            }
+        ],
+        "orders": [
+            {
+                "order_type": "medication",
+                "display_name": "aspirin 100 MG oral tablet",
+                "medication_code": "1191",
+                "medication_system": "rxnorm",
+                "ordered_datetime": "2026-01-15T10:00:00",
+                "start_datetime": "2026-01-15T10:00:00",
+                "encounter_id": "ENC-101",
+                "ordered_by": "PRAC-US-001",
+            }
+        ],
     }
 
 

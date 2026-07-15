@@ -25,26 +25,41 @@ _REF_DIR = _HERE / "reference_data"
 
 # Canonical DICOM modality set (PR1 scope). Extension here triggers validators
 # (forward + reverse coverage), so adding a modality is one-edit-one-check.
-SUPPORTED_MODALITIES: frozenset[str] = frozenset({
-    "CR", "CT",
-    # CO-1 continuation (session 43): MR + US added — modalities.yaml carries
-    # matching entries with DICOM code + display_en/ja.
-    "MR", "US",
-    # Session 52 fix 4: XA (X-Ray Angiography — coronary angiography orders) +
-    # ECG (electrocardiography — DICOM waveform modality; ED/cardiac workup
-    # orders classified OrderType.IMAGING). Both are standard DICOM PS3.3
-    # modality values; without them these orders stub-fell with no modality.
-    "XA", "ECG",
-})
+SUPPORTED_MODALITIES: frozenset[str] = frozenset(
+    {
+        "CR",
+        "CT",
+        # CO-1 continuation (session 43): MR + US added — modalities.yaml carries
+        # matching entries with DICOM code + display_en/ja.
+        "MR",
+        "US",
+        # Session 52 fix 4: XA (X-Ray Angiography — coronary angiography orders) +
+        # ECG (electrocardiography — DICOM waveform modality; ED/cardiac workup
+        # orders classified OrderType.IMAGING). Both are standard DICOM PS3.3
+        # modality values; without them these orders stub-fell with no modality.
+        "XA",
+        "ECG",
+    }
+)
 
 # Canonical body site set. CO-1 continuation (session 43): expanded from
 # {chest, head} to 10 sites, each with SNOMED code + procedure_codes
 # verified via NLM Clinical Table Search Service + AMA CPT 2024 + MHLW
 # 診療報酬点数表 令和6年.
-SUPPORTED_BODY_SITES: frozenset[str] = frozenset({
-    "chest", "head",
-    "abdomen", "kidney", "leg", "skin", "hand", "hip", "spine", "wrist",
-})
+SUPPORTED_BODY_SITES: frozenset[str] = frozenset(
+    {
+        "chest",
+        "head",
+        "abdomen",
+        "kidney",
+        "leg",
+        "skin",
+        "hand",
+        "hip",
+        "spine",
+        "wrist",
+    }
+)
 
 # Canonical disease set with imaging coverage.
 # RM-5 (session 42, cycle-3 tail): expanded to include sepsis / heart failure /
@@ -52,21 +67,43 @@ SUPPORTED_BODY_SITES: frozenset[str] = frozenset({
 # CO-1 continuation (session 43): expanded to 26 additional diseases with
 # clinically-warranted imaging orders (see disease/*.yaml `imaging_orders`
 # blocks and impression_templates.yaml for the paired coverage).
-SUPPORTED_IMAGING_DISEASES: frozenset[str] = frozenset({
-    "bacterial_pneumonia", "aspiration_pneumonia", "hemorrhagic_stroke",
-    "sepsis", "heart_failure_exacerbation", "acute_mi",
-    # CO-1 continuation additions (session 43):
-    "acute_appendicitis", "acute_cholecystitis", "acute_kidney_injury",
-    "acute_pancreatitis", "asthma_exacerbation", "atrial_fibrillation_rvr",
-    "cellulitis", "cerebral_infarction", "copd_exacerbation",
-    "crush_injury_hand", "deep_vein_thrombosis", "diabetic_ketoacidosis",
-    "electrical_injury", "fall_from_height", "gi_bleeding", "hip_fracture",
-    "ileus", "industrial_burn_severe", "influenza",
-    "liver_cirrhosis_decompensated", "pulmonary_embolism",
-    "subdural_hematoma", "traffic_accident_severe",
-    "urinary_tract_infection", "vertebral_compression_fracture",
-    "wrist_fracture_surgical",
-})
+SUPPORTED_IMAGING_DISEASES: frozenset[str] = frozenset(
+    {
+        "bacterial_pneumonia",
+        "aspiration_pneumonia",
+        "hemorrhagic_stroke",
+        "sepsis",
+        "heart_failure_exacerbation",
+        "acute_mi",
+        # CO-1 continuation additions (session 43):
+        "acute_appendicitis",
+        "acute_cholecystitis",
+        "acute_kidney_injury",
+        "acute_pancreatitis",
+        "asthma_exacerbation",
+        "atrial_fibrillation_rvr",
+        "cellulitis",
+        "cerebral_infarction",
+        "copd_exacerbation",
+        "crush_injury_hand",
+        "deep_vein_thrombosis",
+        "diabetic_ketoacidosis",
+        "electrical_injury",
+        "fall_from_height",
+        "gi_bleeding",
+        "hip_fracture",
+        "ileus",
+        "industrial_burn_severe",
+        "influenza",
+        "liver_cirrhosis_decompensated",
+        "pulmonary_embolism",
+        "subdural_hematoma",
+        "traffic_accident_severe",
+        "urinary_tract_infection",
+        "vertebral_compression_fracture",
+        "wrist_fracture_surgical",
+    }
+)
 
 
 def _validate_modalities(data: dict[str, Any]) -> None:
@@ -82,8 +119,7 @@ def _validate_modalities(data: dict[str, Any]) -> None:
         missing = SUPPORTED_MODALITIES - yaml_keys
         extra = yaml_keys - SUPPORTED_MODALITIES
         raise ValueError(
-            f"modalities.yaml ↔ SUPPORTED_MODALITIES drift: "
-            f"missing={sorted(missing)}, extra={sorted(extra)}"
+            f"modalities.yaml ↔ SUPPORTED_MODALITIES drift: missing={sorted(missing)}, extra={sorted(extra)}"
         )
     for mod_key, mod in modalities.items():
         if not mod.get("dicom_code"):
@@ -99,20 +135,16 @@ def _validate_modalities(data: dict[str, Any]) -> None:
                 f"typical_instances_per_view_range or typical_instances_per_series_range"
             )
         if per_view is not None:
-            if (not isinstance(per_view, list) or len(per_view) != 2
-                    or per_view[0] > per_view[1] or per_view[0] < 1):
+            if not isinstance(per_view, list) or len(per_view) != 2 or per_view[0] > per_view[1] or per_view[0] < 1:
                 raise ValueError(
                     f"modalities.yaml[{mod_key}].typical_instances_per_view_range: "
                     f"must be [low, high] with 1 <= low <= high"
                 )
         if per_series is not None:
             if not isinstance(per_series, dict) or not per_series:
-                raise ValueError(
-                    f"modalities.yaml[{mod_key}].typical_instances_per_series_range: dict required"
-                )
+                raise ValueError(f"modalities.yaml[{mod_key}].typical_instances_per_series_range: dict required")
             for bs, rng in per_series.items():
-                if (not isinstance(rng, list) or len(rng) != 2
-                        or rng[0] > rng[1] or rng[0] < 1):
+                if not isinstance(rng, list) or len(rng) != 2 or rng[0] > rng[1] or rng[0] < 1:
                     raise ValueError(
                         f"modalities.yaml[{mod_key}].typical_instances_per_series_range[{bs}]: "
                         f"must be [low, high] with 1 <= low <= high"
@@ -155,17 +187,13 @@ def _validate_body_sites(data: dict[str, Any]) -> None:
         missing = SUPPORTED_BODY_SITES - yaml_keys
         extra = yaml_keys - SUPPORTED_BODY_SITES
         raise ValueError(
-            f"body_sites.yaml ↔ SUPPORTED_BODY_SITES drift: "
-            f"missing={sorted(missing)}, extra={sorted(extra)}"
+            f"body_sites.yaml ↔ SUPPORTED_BODY_SITES drift: missing={sorted(missing)}, extra={sorted(extra)}"
         )
     for bs_key, bs in body_sites.items():
         if not bs.get("snomed"):
             raise ValueError(f"body_sites.yaml[{bs_key}]: missing snomed")
         if not _code_in_data("snomed-ct", bs["snomed"]):
-            raise ValueError(
-                f"body_sites.yaml[{bs_key}].snomed {bs['snomed']!r} "
-                f"not in codes/data/snomed-ct.yaml"
-            )
+            raise ValueError(f"body_sites.yaml[{bs_key}].snomed {bs['snomed']!r} not in codes/data/snomed-ct.yaml")
         if not bs.get("display_en") or not bs.get("display_ja"):
             raise ValueError(f"body_sites.yaml[{bs_key}]: display_en + display_ja required")
         pcs = bs.get("procedure_codes") or {}
@@ -174,9 +202,7 @@ def _validate_body_sites(data: dict[str, Any]) -> None:
         for proc_key, proc in pcs.items():
             for required in ("loinc", "cpt", "jp_k_code", "display_en", "display_ja"):
                 if not proc.get(required):
-                    raise ValueError(
-                        f"body_sites.yaml[{bs_key}].procedure_codes[{proc_key}]: missing {required}"
-                    )
+                    raise ValueError(f"body_sites.yaml[{bs_key}].procedure_codes[{proc_key}]: missing {required}")
 
 
 def _validate_impression_templates(data: dict[str, Any]) -> None:
@@ -196,9 +222,7 @@ def _validate_impression_templates(data: dict[str, Any]) -> None:
     yaml_diseases = set(templates.keys())
     if not SUPPORTED_IMAGING_DISEASES.issubset(yaml_diseases):
         missing = SUPPORTED_IMAGING_DISEASES - yaml_diseases
-        raise ValueError(
-            f"impression_templates.yaml: missing disease entries: {sorted(missing)}"
-        )
+        raise ValueError(f"impression_templates.yaml: missing disease entries: {sorted(missing)}")
     extra = yaml_diseases - SUPPORTED_IMAGING_DISEASES
     if extra:
         raise ValueError(
@@ -210,20 +234,15 @@ def _validate_impression_templates(data: dict[str, Any]) -> None:
             raise ValueError(f"impression_templates.yaml[{disease}]: empty modality bucket")
         for mod_bs, variants in mod_bs_dict.items():
             if not variants:
-                raise ValueError(
-                    f"impression_templates.yaml[{disease}][{mod_bs}]: empty variants"
-                )
+                raise ValueError(f"impression_templates.yaml[{disease}][{mod_bs}]: empty variants")
             for kind in ("normal", "abnormal"):
                 if kind in variants:
                     for k in required_leaf_keys:
                         if not variants[kind].get(k):
-                            raise ValueError(
-                                f"impression_templates.yaml[{disease}][{mod_bs}][{kind}]: missing {k}"
-                            )
+                            raise ValueError(f"impression_templates.yaml[{disease}][{mod_bs}][{kind}]: missing {k}")
             if "normal" not in variants and "abnormal" not in variants:
                 raise ValueError(
-                    f"impression_templates.yaml[{disease}][{mod_bs}]: "
-                    f"must have at least 'normal' or 'abnormal' variant"
+                    f"impression_templates.yaml[{disease}][{mod_bs}]: must have at least 'normal' or 'abnormal' variant"
                 )
 
 
@@ -262,7 +281,10 @@ def load_impression_templates() -> dict[str, Any]:
 
 
 def _resolve_imaging_procedure_code_key(
-    modality: str, body_site: str, views: list[str], contrast: bool,
+    modality: str,
+    body_site: str,
+    views: list[str],
+    contrast: bool,
 ) -> str:
     """Resolve (modality, body_site, views, contrast) → procedure_codes key.
 
@@ -301,8 +323,7 @@ def _resolve_imaging_procedure_code_key(
         if body_site in ("abdomen", "kidney", "skin"):
             return "US"
     raise ValueError(
-        f"Unsupported imaging combination: modality={modality} "
-        f"body_site={body_site} views={views} contrast={contrast}"
+        f"Unsupported imaging combination: modality={modality} body_site={body_site} views={views} contrast={contrast}"
     )
 
 
@@ -365,13 +386,15 @@ def _expand_views_to_series(
         low, high = mod_def["typical_instances_per_view_range"]
         for i, view in enumerate(views, start=1):
             instance_count = int(rng.integers(low, high + 1))
-            series_list.append(ImagingSeries(
-                series_number=i,
-                modality_code=order_modality,
-                body_site_snomed=body_site_snomed,
-                description=f"{view} view",
-                instance_count=instance_count,
-            ))
+            series_list.append(
+                ImagingSeries(
+                    series_number=i,
+                    modality_code=order_modality,
+                    body_site_snomed=body_site_snomed,
+                    description=f"{view} view",
+                    instance_count=instance_count,
+                )
+            )
     elif "typical_instances_per_series_range" in mod_def:
         # Per-series modality (CT): 1 series per acquisition, body-site-specific range
         range_per_body = mod_def["typical_instances_per_series_range"]
@@ -383,13 +406,15 @@ def _expand_views_to_series(
         low, high = range_per_body[body_site_key]
         for i, view in enumerate(views, start=1):
             instance_count = int(rng.integers(low, high + 1))
-            series_list.append(ImagingSeries(
-                series_number=i,
-                modality_code=order_modality,
-                body_site_snomed=body_site_snomed,
-                description=f"{view} acquisition",
-                instance_count=instance_count,
-            ))
+            series_list.append(
+                ImagingSeries(
+                    series_number=i,
+                    modality_code=order_modality,
+                    body_site_snomed=body_site_snomed,
+                    description=f"{view} acquisition",
+                    instance_count=instance_count,
+                )
+            )
 
     return series_list
 
@@ -457,7 +482,8 @@ def imaging_enricher(ctx: Any) -> None:
         # metadata なし Order は loop 内で display_name → infer or stub fallback。
         # これで全 imaging Order が ImagingStudy に mapping、silent-drop 消滅。
         imaging_orders = [
-            o for o in orders
+            o
+            for o in orders
             if _o(o, "order_type") in (OrderType.IMAGING, "imaging")
             and _o(o, "status") not in (OrderStatus.CANCELLED, "cancelled")
         ]
@@ -468,21 +494,13 @@ def imaging_enricher(ctx: Any) -> None:
         # (Task 8 fix: enrichers run after record creation, disease_id not in CIF core).
         # Fallback to direct record.disease_id for tests (SimpleNamespace fixtures).
         extensions = _o(record, "extensions", {}) or {}
-        disease_id: str = (
-            extensions.get("_disease_id", "")
-            or _o(record, "disease_id", "")
-            or ""
-        )
+        disease_id: str = extensions.get("_disease_id", "") or _o(record, "disease_id", "") or ""
         severity: str = _o(record, "severity", "moderate") or "moderate"
-        studies: list[ImagingStudyRecord] = list(
-            (_o(record, "extensions", {}) or {}).get("imaging", [])
-        )
+        studies: list[ImagingStudyRecord] = list((_o(record, "extensions", {}) or {}).get("imaging", []))
 
         for idx, order in enumerate(imaging_orders, start=1):
             order_id: str = _o(order, "order_id", "") or ""
-            sub_seed = derive_sub_seed(
-                ctx.master_seed, ENRICHER_SEED_OFFSETS["imaging"], order_id
-            )
+            sub_seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["imaging"], order_id)
             rng = np.random.default_rng(sub_seed)
 
             modality: str = _o(order, "imaging_modality", "") or ""
@@ -554,7 +572,12 @@ def imaging_enricher(ctx: Any) -> None:
             # study のみ emit(report=None)、silent-drop よりは意味を保つ。
             try:
                 _variant, template = _select_report_template(
-                    disease_id, modality, body_site_key, severity, abnormal_rate, rng,
+                    disease_id,
+                    modality,
+                    body_site_key,
+                    severity,
+                    abnormal_rate,
+                    rng,
                 )
                 encounter_id: str = _o(order, "encounter_id", "") or ""
                 report = RadiologyReport(

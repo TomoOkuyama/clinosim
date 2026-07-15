@@ -36,8 +36,9 @@ class TestReadmissionFlow:
         readmits = [r for r in readmission_dataset.patients if r.is_readmission]
         for r in readmits:
             enc_id = r.encounters[0].encounter_id if r.encounters else None
-            assert enc_id != r.prior_encounter_id, \
+            assert enc_id != r.prior_encounter_id, (
                 f"Readmission encounter {enc_id} should differ from prior {r.prior_encounter_id}"
+            )
 
     def test_same_patient_appears_twice(self, readmission_dataset):
         """A readmitted patient should have both initial and readmission records."""
@@ -62,6 +63,7 @@ class TestReadmissionFlow:
         assert os.path.exists(os.path.join(csv_dir, "diagnoses.csv"))
 
         import csv
+
         with open(os.path.join(csv_dir, "diagnoses.csv")) as f:
             reader = csv.DictReader(f)
             rows = list(reader)
@@ -79,6 +81,7 @@ class TestReadmissionFlow:
         convert_cif_to_csv(cif_dir, csv_dir, country="US")
 
         import csv
+
         with open(os.path.join(csv_dir, "diagnoses.csv")) as f:
             rows = list(csv.DictReader(f))
         coded = [r for r in rows if r["discharge_diagnosis_code"]]
@@ -91,7 +94,8 @@ class TestReadmissionFlow:
     def test_readmission_rate_within_benchmark(self, readmission_dataset):
         """Overall readmission rate (inpatient only) should be between 5-40%."""
         inpatients = [
-            r for r in readmission_dataset.patients
+            r
+            for r in readmission_dataset.patients
             if r.encounters and r.encounters[0].encounter_type.value == "inpatient"
         ]
         total_first = sum(1 for r in inpatients if not r.is_readmission)

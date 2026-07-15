@@ -54,7 +54,6 @@ def test_no_jp_emergency_number_in_en_yaml_text() -> None:
             data = yaml.safe_load(yaml_path.read_text())
             _collect_en_values(data, yaml_path.name, hits)
     assert scanned > 0
-    assert not hits, (
-        "English text must say 'Call 911', not Japan's 119: "
-        + "; ".join(f"{path} = {text!r}" for path, text in hits)
+    assert not hits, "English text must say 'Call 911', not Japan's 119: " + "; ".join(
+        f"{path} = {text!r}" for path, text in hits
     )

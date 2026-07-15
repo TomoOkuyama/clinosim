@@ -26,9 +26,11 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
         "resourceType": "Practitioner",
         "id": staff_id,
         # Session 46 chain #2: JP Core Practitioner profile.
-        **({"meta": {"profile": [
-            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Practitioner"
-        ]}} if is_jp(country) else {}),
+        **(
+            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Practitioner"]}}
+            if is_jp(country)
+            else {}
+        ),
         "active": True,
         "identifier": [{"system": "urn:clinosim:staff", "value": staff_id}],
     }
@@ -60,14 +62,18 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
         # rosters always fill this field.
         names_list: list[dict[str, Any]] = []
         if is_jp(country):
-            names_list.append({
-                **name_obj,
-                "use": "official",
-                "extension": [{
-                    "url": "http://hl7.org/fhir/StructureDefinition/iso21090-EN-representation",
-                    "valueCode": "IDE",
-                }],
-            })
+            names_list.append(
+                {
+                    **name_obj,
+                    "use": "official",
+                    "extension": [
+                        {
+                            "url": "http://hl7.org/fhir/StructureDefinition/iso21090-EN-representation",
+                            "valueCode": "IDE",
+                        }
+                    ],
+                }
+            )
             phonetic = staff.get("name_phonetic", "")
             if phonetic:
                 p_parts = phonetic.split(" ", 1)
@@ -75,15 +81,19 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
                     p_family, p_given = p_parts[0], p_parts[1]
                 else:
                     p_family, p_given = phonetic, ""
-                names_list.append({
-                    "use": "official",
-                    "family": p_family,
-                    "given": [p_given] if p_given else [],
-                    "extension": [{
-                        "url": "http://hl7.org/fhir/StructureDefinition/iso21090-EN-representation",
-                        "valueCode": "SYL",
-                    }],
-                })
+                names_list.append(
+                    {
+                        "use": "official",
+                        "family": p_family,
+                        "given": [p_given] if p_given else [],
+                        "extension": [
+                            {
+                                "url": "http://hl7.org/fhir/StructureDefinition/iso21090-EN-representation",
+                                "valueCode": "SYL",
+                            }
+                        ],
+                    }
+                )
         else:
             names_list.append(name_obj)
         resource["name"] = names_list
@@ -110,9 +120,23 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
         # (MD/DO/RN/PA 等)は system 付き coding、それ以外は text-only fallback。
         # v2-0360 定義済 code(HL7 official table 0360)
         _V2_0360_VALID_CODES = {
-            "MD", "DO", "RN", "LPN", "PA", "NP", "CNM",  # 医師系 + 看護系
-            "PT", "OT", "MSW", "ST",  # 療法士系
-            "BA", "BS", "MBA", "MS", "MA", "PHD",  # 学位系
+            "MD",
+            "DO",
+            "RN",
+            "LPN",
+            "PA",
+            "NP",
+            "CNM",  # 医師系 + 看護系
+            "PT",
+            "OT",
+            "MSW",
+            "ST",  # 療法士系
+            "BA",
+            "BS",
+            "MBA",
+            "MS",
+            "MA",
+            "PHD",  # 学位系
         }
         qual = (_ROLE_PREFIX_MAP_JA if is_jp(country) else _ROLE_PREFIX_MAP).get(role)
         if qual:
@@ -121,11 +145,13 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
             if _qual_code in _V2_0360_VALID_CODES:
                 qualification: dict[str, Any] = {
                     "code": {
-                        "coding": [{
-                            "system": get_system_uri("hl7-v2-0360"),
-                            "code": _qual_code,
-                            "display": _qual_display,
-                        }],
+                        "coding": [
+                            {
+                                "system": get_system_uri("hl7-v2-0360"),
+                                "code": _qual_code,
+                                "display": _qual_display,
+                            }
+                        ],
                     },
                 }
             else:
@@ -169,11 +195,11 @@ def _build_practitioner_role(
     # per-code SNOMED verification (deferred to a separate authoritative
     # code chain — mirrors C2-15 policy).
     _text_only_role: dict[str, tuple[str, str]] = {
-        "physical_therapist":     ("Physical therapist",         "理学療法士"),
-        "occupational_therapist": ("Occupational therapist",     "作業療法士"),
-        "speech_therapist":       ("Speech-language therapist",  "言語聴覚士"),
-        "medical_social_worker":  ("Medical social worker",      "医療ソーシャルワーカー"),
-        "dietitian":              ("Registered dietitian",       "管理栄養士"),
+        "physical_therapist": ("Physical therapist", "理学療法士"),
+        "occupational_therapist": ("Occupational therapist", "作業療法士"),
+        "speech_therapist": ("Speech-language therapist", "言語聴覚士"),
+        "medical_social_worker": ("Medical social worker", "医療ソーシャルワーカー"),
+        "dietitian": ("Registered dietitian", "管理栄養士"),
     }
     _text_only_display = _text_only_role.get(role)
 
@@ -183,9 +209,11 @@ def _build_practitioner_role(
         "resourceType": "PractitionerRole",
         "id": f"role-{staff_id}",
         # Session 46 chain #2: JP Core PractitionerRole profile.
-        **({"meta": {"profile": [
-            "http://jpfhir.jp/fhir/core/StructureDefinition/JP_PractitionerRole"
-        ]}} if is_jp(country) else {}),
+        **(
+            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_PractitionerRole"]}}
+            if is_jp(country)
+            else {}
+        ),
         "active": True,
         "practitioner": {"reference": f"Practitioner/{staff_id}"},
     }
@@ -207,13 +235,17 @@ def _build_practitioner_role(
     # Location を fallback として emit(46.8% → 100%)。
     ward = staff.get("ward", "")
     if ward:
-        resource["location"] = [{
-            "reference": f"Location/loc-ward-{ward}",
-        }]
+        resource["location"] = [
+            {
+                "reference": f"Location/loc-ward-{ward}",
+            }
+        ]
     else:
-        resource["location"] = [{
-            "reference": "Location/loc-hospital-main",
-        }]
+        resource["location"] = [
+            {
+                "reference": "Location/loc-hospital-main",
+            }
+        ]
 
     # CY8-06 fix(session 48 cycle 8):PractitionerRole.period.start を
     # データ収集開始起点(2024-01-01)を default に emit。従来 0/111 → 100%。
@@ -226,11 +258,17 @@ def _build_practitioner_role(
     if role_code:
         # C2-07 (session 42 cycle 2): resolve display via codes/data/
         # hl7-practitioner-role.yaml — was raw code with no display.
-        resource["code"] = [{
-            "coding": [_coding_with_display(
-                "hl7-practitioner-role", role_code, resolve_lang(country),
-            )],
-        }]
+        resource["code"] = [
+            {
+                "coding": [
+                    _coding_with_display(
+                        "hl7-practitioner-role",
+                        role_code,
+                        resolve_lang(country),
+                    )
+                ],
+            }
+        ]
     elif _text_only_display:
         _lang = resolve_lang(country)
         _disp = _text_only_display[1] if _lang == "ja" else _text_only_display[0]
@@ -243,14 +281,18 @@ def _build_practitioner_role(
         _lang = resolve_lang(country)
         _snomed_code = spec_info["code"]
         _spec_display = code_lookup("snomed-ct", _snomed_code, _lang) or spec_info["display"]
-        resource["specialty"] = [{
-            "coding": [{
-                "system": get_system_uri("snomed-ct"),
-                "code": _snomed_code,
-                "display": _spec_display,
-            }],
-            "text": _spec_display,
-        }]
+        resource["specialty"] = [
+            {
+                "coding": [
+                    {
+                        "system": get_system_uri("snomed-ct"),
+                        "code": _snomed_code,
+                        "display": _spec_display,
+                    }
+                ],
+                "text": _spec_display,
+            }
+        ]
     else:
         # CY8-05 fix(session 48 cycle 8):allied-health / nurse など
         # SNOMED specialty 未マッピングの staff にも text-only specialty

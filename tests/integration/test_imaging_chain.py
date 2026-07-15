@@ -20,12 +20,8 @@ from tests.integration._sr_helpers import find_ndjson, load_ndjson, run_generate
 def test_imaging_builders_registered() -> None:
     """_bb_imaging_studies and _bb_endpoints must appear in the builder registry."""
     builders = available_builders()
-    assert "_bb_imaging_studies" in builders, (
-        "_bb_imaging_studies not registered — check fhir_r4_adapter.py imports"
-    )
-    assert "_bb_endpoints" in builders, (
-        "_bb_endpoints not registered — check fhir_r4_adapter.py imports"
-    )
+    assert "_bb_imaging_studies" in builders, "_bb_imaging_studies not registered — check fhir_r4_adapter.py imports"
+    assert "_bb_endpoints" in builders, "_bb_endpoints not registered — check fhir_r4_adapter.py imports"
 
 
 @pytest.mark.integration
@@ -63,12 +59,9 @@ def test_imaging_study_count_matches_endpoint_count() -> None:
         non_stub = [s for s in studies if s.get("modality")]
         stubs = [s for s in studies if not s.get("modality")]
         for s in stubs:
-            assert not s.get("endpoint"), (
-                f"stub ImagingStudy/{s['id']} must not reference an Endpoint"
-            )
+            assert not s.get("endpoint"), f"stub ImagingStudy/{s['id']} must not reference an Endpoint"
         assert len(non_stub) == len(endpoints), (
-            f"non-stub ImagingStudy count {len(non_stub)} != Endpoint count "
-            f"{len(endpoints)} (1:1 invariant broken)"
+            f"non-stub ImagingStudy count {len(non_stub)} != Endpoint count {len(endpoints)} (1:1 invariant broken)"
         )
 
 
@@ -119,12 +112,8 @@ def test_radiology_dr_count_equals_imaging_study_count() -> None:
         study_suffixes = {s["id"].removeprefix("imgst-") for s in studies}
         dr_suffixes = [r["id"].removeprefix("imgrpt-") for r in rad_drs]
         orphans = [sfx for sfx in dr_suffixes if sfx not in study_suffixes]
-        assert not orphans, (
-            f"{len(orphans)} radiology DRs without matching ImagingStudy: {orphans[:5]}"
-        )
-        assert len(dr_suffixes) == len(set(dr_suffixes)), (
-            "duplicate radiology DR ids — 1:1 injectivity broken"
-        )
+        assert not orphans, f"{len(orphans)} radiology DRs without matching ImagingStudy: {orphans[:5]}"
+        assert len(dr_suffixes) == len(set(dr_suffixes)), "duplicate radiology DR ids — 1:1 injectivity broken"
         assert len(rad_drs) <= len(studies)
 
 
@@ -136,7 +125,8 @@ def test_imaging_sr_emitted_for_disease_cohort() -> None:
         run_generate("US", 200, 42, out)
         srs = load_ndjson(find_ndjson(out, "ServiceRequest.ndjson"))
         imaging_srs = [
-            s for s in srs
+            s
+            for s in srs
             if any(
                 c.get("code") in {"363679005", "RAD"}
                 for entry in s.get("category", [])

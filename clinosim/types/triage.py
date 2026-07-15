@@ -14,9 +14,9 @@ from datetime import datetime
 class TriageData:
     """ED triage data(AD-30 code-only CIF、display は output で解決)."""
 
-    level: str = ""                       # e.g. "1"..."5"
-    level_system: str = ""                # "JTAS" | "ESI"
-    arrival_mode: str = ""                # "walk-in" | "ambulance" | "police" | "helicopter" | "private_vehicle"
+    level: str = ""  # e.g. "1"..."5"
+    level_system: str = ""  # "JTAS" | "ESI"
+    arrival_mode: str = ""  # "walk-in" | "ambulance" | "police" | "helicopter" | "private_vehicle"
     triage_time: datetime | None = None
-    acuity_score: float | None = None     # 0-100 数値スコア
-    chief_complaint_summary: str = ""     # triage 時 chief complaint 短文
+    acuity_score: float | None = None  # 0-100 数値スコア
+    chief_complaint_summary: str = ""  # triage 時 chief complaint 短文

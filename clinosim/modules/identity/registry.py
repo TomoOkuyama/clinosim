@@ -26,9 +26,7 @@ def get_provider(country: str) -> IdentityProvider:
     elif is_us(country):
         key = "US"
     else:
-        raise ValueError(
-            f"Unsupported country: {country}. Supported: {sorted(_SUPPORTED)}"
-        )
+        raise ValueError(f"Unsupported country: {country}. Supported: {sorted(_SUPPORTED)}")
     if key not in _CACHE:
         _CACHE[key] = JPIdentityProvider() if key == "JP" else USIdentityProvider()
     return _CACHE[key]

@@ -3,6 +3,7 @@
 The inline _build_seed_prompt is deleted; replacement_strategy renders
 prompts/{en,ja}/narrative_seed.yaml via LLMService.prompt_registry.
 """
+
 from __future__ import annotations
 
 from types import SimpleNamespace
@@ -48,8 +49,12 @@ def _make_ctx(target_lang: str = "en") -> NarrativeContext:
         severity="moderate",
         day_index=3,
         los_days=5,
-        vitals=[], lab_results=[], medications=[], diagnoses=[],
-        procedures=[], allergies=[],
+        vitals=[],
+        lab_results=[],
+        medications=[],
+        diagnoses=[],
+        procedures=[],
+        allergies=[],
         document_type=DocumentType.ADMISSION_HP,
         target_lang=target_lang,
         locale="jp" if target_lang == "ja" else "us",
@@ -90,11 +95,16 @@ def test_replacement_strategy_renders_registry_prompt() -> None:
     provider = MockProvider()
     template_output = NarrativeOutput(
         sections={"hpi": "SEED-CONTENT-XYZ"},
-        metadata={}, facts_used=[],
+        metadata={},
+        facts_used=[],
     )
     apply_replacement_strategy(
-        template_output, _make_ctx("en"), _make_spec(), _mock_llm(provider),
-        task_type=LLMTaskType.ADMISSION_HP, language="en",
+        template_output,
+        _make_ctx("en"),
+        _make_spec(),
+        _mock_llm(provider),
+        task_type=LLMTaskType.ADMISSION_HP,
+        language="en",
     )
     # Rendered from the YAML user_template: seed + section + severity + day
     assert "SEED-CONTENT-XYZ" in provider.last_prompt
@@ -102,8 +112,10 @@ def test_replacement_strategy_renders_registry_prompt() -> None:
     assert "moderate" in provider.last_prompt
     assert "3" in provider.last_prompt
     # System prompt comes from the YAML (static — prompt-cache friendly)
-    expected_system, _ = PromptRegistry().get("narrative_seed", "en").render(
-        {"section": "hpi", "template_text": "x", "severity": "s", "day_index": 0}
+    expected_system, _ = (
+        PromptRegistry()
+        .get("narrative_seed", "en")
+        .render({"section": "hpi", "template_text": "x", "severity": "s", "day_index": 0})
     )
     assert provider.last_system_prompt == expected_system
 
@@ -112,11 +124,17 @@ def test_replacement_strategy_renders_registry_prompt() -> None:
 def test_replacement_strategy_uses_ja_prompt_for_ja() -> None:
     provider = MockProvider()
     template_output = NarrativeOutput(
-        sections={"hpi": "シード本文"}, metadata={}, facts_used=[],
+        sections={"hpi": "シード本文"},
+        metadata={},
+        facts_used=[],
     )
     apply_replacement_strategy(
-        template_output, _make_ctx("ja"), _make_spec(), _mock_llm(provider),
-        task_type=LLMTaskType.ADMISSION_HP, language="ja",
+        template_output,
+        _make_ctx("ja"),
+        _make_spec(),
+        _mock_llm(provider),
+        task_type=LLMTaskType.ADMISSION_HP,
+        language="ja",
     )
     ja_system = PromptRegistry().get("narrative_seed", "ja").system
     assert provider.last_system_prompt.strip() == ja_system.strip()

@@ -21,8 +21,12 @@ _DEMO = load_demographics("US")
 
 def _person(chronic):
     return PersonRecord(
-        person_id="P1", household_id="H1", age=60, sex="M",
-        date_of_birth=date(1964, 1, 1), chronic_conditions=list(chronic),
+        person_id="P1",
+        household_id="H1",
+        age=60,
+        sex="M",
+        date_of_birth=date(1964, 1, 1),
+        chronic_conditions=list(chronic),
     )
 
 
@@ -41,8 +45,7 @@ def test_i10_severity_score_from_stage_not_generic():
         p = _activate(["I10"], seed)
         i10 = next(c for c in p.chronic_conditions if c.code == "I10")
         assert i10.severity_score in valid, (
-            f"I10 severity_score {i10.severity_score} not a stage value {valid} "
-            f"(stage={i10.stage!r})"
+            f"I10 severity_score {i10.severity_score} not a stage value {valid} (stage={i10.stage!r})"
         )
 
 

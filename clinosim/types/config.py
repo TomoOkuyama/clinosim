@@ -85,9 +85,7 @@ class ForcedScenario(BaseModel):
 
 # --- AD-66 α-min-2c: Canonical Patient Profile fixture library ---
 
-_PATIENT_PROFILE_DIR: Path = (
-    Path(__file__).parent.parent.parent / "tests" / "fixtures" / "patient_profiles"
-)
+_PATIENT_PROFILE_DIR: Path = Path(__file__).parent.parent.parent / "tests" / "fixtures" / "patient_profiles"
 
 
 class PatientProfile(BaseModel):
@@ -155,8 +153,7 @@ def load_patient_profile(name_or_path: str) -> PatientProfile:
         p = _PATIENT_PROFILE_DIR / f"{name_or_path}.yaml"
         if not p.is_file():
             raise FileNotFoundError(
-                f"patient profile not found: {name_or_path!r} "
-                f"(looked in {_PATIENT_PROFILE_DIR} and as literal path)"
+                f"patient profile not found: {name_or_path!r} (looked in {_PATIENT_PROFILE_DIR} and as literal path)"
             )
 
     data = yaml.safe_load(p.read_text())

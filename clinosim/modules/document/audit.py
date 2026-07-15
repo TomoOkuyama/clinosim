@@ -136,11 +136,13 @@ _JA_CHAR_RE = re.compile(r"[぀-ゟ゠-ヿ一-鿿]")
 # emitting that text once ctx.disease_protocol was wired (pre-1a it always
 # fell back to generic English). `_build_assessment_and_plan` tags
 # `:ja_only_fallback` at generation time, mirroring `_build_hpi`.
-KNOWN_JA_ONLY_FALLBACK_SECTIONS = frozenset({
-    "hpi",
-    "physical_examination",
-    "assessment_and_plan",
-})
+KNOWN_JA_ONLY_FALLBACK_SECTIONS = frozenset(
+    {
+        "hpi",
+        "physical_examination",
+        "assessment_and_plan",
+    }
+)
 
 
 def _count_us_hp_ja_chars(cif_dir: str) -> int:
@@ -241,9 +243,7 @@ def _write_us_hp_fixture(tmp: str, *, contaminate_counted_section: bool) -> None
         json.dump(
             {
                 "encounters": [{"encounter_id": "enc-proof-hp"}],
-                "documents": [
-                    {"document_id": "doc-enc-proof-hp-01", "task_type": "admission_hp"}
-                ],
+                "documents": [{"document_id": "doc-enc-proof-hp-01", "task_type": "admission_hp"}],
             },
             f,
         )
@@ -252,9 +252,7 @@ def _write_us_hp_fixture(tmp: str, *, contaminate_counted_section: bool) -> None
     # contaminate 時は日本語混入で Bug A regression 相当。
     chief_complaint = "胸痛" if contaminate_counted_section else "Chest pain"
 
-    with open(
-        os.path.join(narrative_dir, "doc-enc-proof-hp-01.json"), "w", encoding="utf-8"
-    ) as f:
+    with open(os.path.join(narrative_dir, "doc-enc-proof-hp-01.json"), "w", encoding="utf-8") as f:
         json.dump(
             {
                 "document_id": "doc-enc-proof-hp-01",
@@ -263,10 +261,7 @@ def _write_us_hp_fixture(tmp: str, *, contaminate_counted_section: bool) -> None
                     "sections": {
                         "chief_complaint": chief_complaint,
                         "hpi": "Patient presented with chest pain.",
-                        "physical_examination": (
-                            "General: 意識清明. "
-                            "Cardiovascular: regular rate, no murmurs."
-                        ),
+                        "physical_examination": ("General: 意識清明. Cardiovascular: regular rate, no murmurs."),
                         "assessment_and_plan": "Assessment: stable. Plan: monitor.",
                     }
                 },
@@ -337,7 +332,9 @@ def _proof_nursing_author_ratio() -> float:
     """
     with tempfile.TemporaryDirectory() as tmp:
         _write_nursing_author_fixture(
-            tmp, encounter_id="enc-nurse-proof", nurse_id="NS-IM-001",
+            tmp,
+            encounter_id="enc-nurse-proof",
+            nurse_id="NS-IM-001",
         )
         return _nursing_author_ratio(tmp)
 
@@ -366,15 +363,16 @@ def _proof_nursing_author_fallback_fires_on_missing_nurse() -> bool:
 
 
 def _write_nursing_author_fixture(
-    tmp: str, *, encounter_id: str, nurse_id: str,
+    tmp: str,
+    *,
+    encounter_id: str,
+    nurse_id: str,
 ) -> None:
     """内部: nurse assignment 有 fixture(1 nursing doc + 1 physician doc)を書き出す。"""
     structural_dir = os.path.join(tmp, "structural", "patients")
     os.makedirs(structural_dir, exist_ok=True)
 
-    with open(
-        os.path.join(structural_dir, f"pt-{encounter_id}.json"), "w", encoding="utf-8"
-    ) as f:
+    with open(os.path.join(structural_dir, f"pt-{encounter_id}.json"), "w", encoding="utf-8") as f:
         json.dump(
             {
                 "encounters": [
@@ -424,7 +422,8 @@ def _proof_narrative_pass_populated_ratio() -> float:
         os.makedirs(structural, exist_ok=True)
         with open(
             os.path.join(structural, "ENC-narrate-proof.json"),
-            "w", encoding="utf-8",
+            "w",
+            encoding="utf-8",
         ) as f:
             json.dump(
                 {
@@ -451,14 +450,19 @@ def _proof_narrative_pass_populated_ratio() -> float:
                     "procedures": [],
                     "allergies": [],
                 },
-                f, ensure_ascii=False,
+                f,
+                ensure_ascii=False,
             )
 
         TemplateNarrativePass(cif_dir=tmp, country="US", rng_seed=42).run()
 
         narr_path = os.path.join(
-            tmp, "narratives", "template", "documents",
-            "ENC-narrate-proof", "doc-narrate-01.json",
+            tmp,
+            "narratives",
+            "template",
+            "documents",
+            "ENC-narrate-proof",
+            "doc-narrate-01.json",
         )
         if not os.path.exists(narr_path):
             return 0.0
@@ -501,7 +505,8 @@ def _proof_structural_cif_zero_narrative_content() -> int:
         )
         patient = PatientProfile(
             patient_id="POP-leak",
-            age=65, sex="M",
+            age=65,
+            sex="M",
             date_of_birth=date(1961, 1, 1),
         )
         enc = Encounter(encounter_id="ENC-leak-1")
@@ -613,17 +618,12 @@ def _proof_nursing_shift_3_per_day() -> dict[str, Any]:
     )
     document_enricher(ctx)
 
-    notes = [
-        d for d in record["documents"]
-        if getattr(d, "task_type", "") == "nursing_shift_note"
-    ]
+    notes = [d for d in record["documents"] if getattr(d, "task_type", "") == "nursing_shift_note"]
     ids = [d.document_id for d in notes]
     return {
         "count": len(notes),
         "shift_keys": sorted({d.shift for d in notes}),
-        "hours": sorted({
-            datetime.fromisoformat(d.authored_datetime).hour for d in notes
-        }),
+        "hours": sorted({datetime.fromisoformat(d.authored_datetime).hour for d in notes}),
         "ids_unique": len(ids) == len(set(ids)),
     }
 
@@ -660,13 +660,9 @@ def _proof_admission_care_plan() -> dict[str, Any]:
             "extensions": {},
             "physiological_states": [],
         }
-        ctx = SimpleNamespace(
-            master_seed=42, records=[record], config=SimpleNamespace(country=country)
-        )
+        ctx = SimpleNamespace(master_seed=42, records=[record], config=SimpleNamespace(country=country))
         document_enricher(ctx)
-        return len([
-            d for d in record["documents"] if getattr(d, "task_type", "") == "admission_care_plan"
-        ])
+        return len([d for d in record["documents"] if getattr(d, "task_type", "") == "admission_care_plan"])
 
     return {
         "jp_inpatient_count": _run("inpatient", "jp"),
@@ -710,13 +706,9 @@ def _proof_nutrition_care_plan() -> dict[str, Any]:
             "extensions": {},
             "physiological_states": [],
         }
-        ctx = SimpleNamespace(
-            master_seed=42, records=[record], config=SimpleNamespace(country=country)
-        )
+        ctx = SimpleNamespace(master_seed=42, records=[record], config=SimpleNamespace(country=country))
         document_enricher(ctx)
-        return len([
-            d for d in record["documents"] if getattr(d, "task_type", "") == "nutrition_care_plan"
-        ])
+        return len([d for d in record["documents"] if getattr(d, "task_type", "") == "nutrition_care_plan"])
 
     return {
         "jp_inpatient_los10_count": _run("inpatient", 10, "jp"),
@@ -751,19 +743,21 @@ def _proof_rehabilitation_plan() -> dict[str, Any]:
         admission_dt = datetime(2026, 7, 1, 10, 0)
         encounter_id = f"enc-rp-proof-{encounter_type}-{country}-{with_rehab}"
         rehab_sessions = (
-            [{
-                "session_id": "REHAB-rp-proof-001",
-                "patient_id": "pt-rp-proof",
-                "encounter_id": encounter_id,
-                "therapy_type": "PT",
-                "session_date": admission_dt + timedelta(days=1),
-                "duration_minutes": 40,
-                "day_post_op": 1,
-                "activities": [],
-                "patient_participation": "good",
-                "pain_score": 3,
-                "functional_progress": "stable",
-            }]
+            [
+                {
+                    "session_id": "REHAB-rp-proof-001",
+                    "patient_id": "pt-rp-proof",
+                    "encounter_id": encounter_id,
+                    "therapy_type": "PT",
+                    "session_date": admission_dt + timedelta(days=1),
+                    "duration_minutes": 40,
+                    "day_post_op": 1,
+                    "activities": [],
+                    "patient_participation": "good",
+                    "pain_score": 3,
+                    "functional_progress": "stable",
+                }
+            ]
             if with_rehab
             else []
         )
@@ -785,13 +779,9 @@ def _proof_rehabilitation_plan() -> dict[str, Any]:
             "physiological_states": [],
             "rehab_sessions": rehab_sessions,
         }
-        ctx = SimpleNamespace(
-            master_seed=42, records=[record], config=SimpleNamespace(country=country)
-        )
+        ctx = SimpleNamespace(master_seed=42, records=[record], config=SimpleNamespace(country=country))
         document_enricher(ctx)
-        return len([
-            d for d in record["documents"] if getattr(d, "task_type", "") == "rehabilitation_plan"
-        ])
+        return len([d for d in record["documents"] if getattr(d, "task_type", "") == "rehabilitation_plan"])
 
     return {
         "jp_inpatient_with_rehab_count": _run("inpatient", "jp", True),
@@ -1151,10 +1141,7 @@ def _build_document_proof() -> dict[str, Any]:
             ),
             (
                 "no_drop: triage_data.level → ED_TRIAGE_NOTE LOINC 54094-8 in emergency dispatch",
-                any(
-                    s.loinc_code == "54094-8"
-                    for s in specs_for_encounter_type("emergency")
-                ),
+                any(s.loinc_code == "54094-8" for s in specs_for_encounter_type("emergency")),
                 True,
             ),
             (

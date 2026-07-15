@@ -244,10 +244,7 @@ def convert_cif_to_fhir(
             "transactionTime": datetime.now().isoformat(),
             "request": f"clinosim generate (country={country})",
             "requiresAccessToken": False,
-            "output": [
-                {"type": rt, "url": f"{rt}.ndjson"}
-                for rt in sorted(writers.keys())
-            ],
+            "output": [{"type": rt, "url": f"{rt}.ndjson"} for rt in sorted(writers.keys())],
             "error": [],
         }
         with open(os.path.join(output_dir, "manifest.json"), "w", encoding="utf-8") as f:
@@ -290,6 +287,7 @@ def _sort_ndjson_by_id_inplace(path: str) -> None:
 
 # --- Resource builders: (ctx) -> list[resource]. Order here == emission order. ---
 
+
 def _bb_patient(ctx: BundleContext) -> list[dict]:
     return [_build_patient(ctx.patient_data, ctx.country)]
 
@@ -308,11 +306,7 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
         if isinstance(_record, dict)
         else getattr(_record, "icu_transferred_day", -1)
     )
-    _deceased = (
-        _record.get("deceased", False)
-        if isinstance(_record, dict)
-        else getattr(_record, "deceased", False)
-    )
+    _deceased = _record.get("deceased", False) if isinstance(_record, dict) else getattr(_record, "deceased", False)
     # C5-12 (session 43 history chain): extract chronic condition codes
     # from record.patient.chronic_conditions for secondary diagnosis emit.
     _chronic_codes: list[str] = []
@@ -333,19 +327,33 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
     # doc stubs / orders — avoiding downstream contract breakage.
     _resources = []
     for enc in ctx.record.get("encounters", []) or []:
-        _partof_id = enc.get("admit_source_encounter_id", "") if isinstance(enc, dict) else getattr(enc, "admit_source_encounter_id", "")
-        _resource = _build_encounter(enc, ctx.patient_id, ctx.is_readmission, ctx.prior_encounter_id,
-                         primary_dx_code=ctx.primary_dx_code, country=ctx.country,
-                         admit_dx_code=ctx.admit_dx_code, admit_dx_system=ctx.admit_dx_system,
-                         icu_transferred_day=_icu_day, deceased=_deceased,
-                         chronic_condition_codes=_chronic_codes,
-                         record_orders=ctx.record.get("orders", []))
+        _partof_id = (
+            enc.get("admit_source_encounter_id", "")
+            if isinstance(enc, dict)
+            else getattr(enc, "admit_source_encounter_id", "")
+        )  # noqa: E501
+        _resource = _build_encounter(
+            enc,
+            ctx.patient_id,
+            ctx.is_readmission,
+            ctx.prior_encounter_id,
+            primary_dx_code=ctx.primary_dx_code,
+            country=ctx.country,
+            admit_dx_code=ctx.admit_dx_code,
+            admit_dx_system=ctx.admit_dx_system,
+            icu_transferred_day=_icu_day,
+            deceased=_deceased,
+            chronic_condition_codes=_chronic_codes,
+            record_orders=ctx.record.get("orders", []),
+        )
         # Only add ED→IMP partOf if _build_encounter didn't already set one
         # (readmission takes precedence — same field, different semantics).
         if _partof_id and "partOf" not in _resource:
             _resource["partOf"] = {"reference": f"Encounter/{_partof_id}"}
             # Synthesize the ED Encounter FHIR resource (minimal but valid).
-            _adm_dt = enc.get("admission_datetime", "") if isinstance(enc, dict) else getattr(enc, "admission_datetime", "")
+            _adm_dt = (
+                enc.get("admission_datetime", "") if isinstance(enc, dict) else getattr(enc, "admission_datetime", "")
+            )  # noqa: E501
             _adm_str = str(_adm_dt) if _adm_dt else ""
             # ED stay ~3.5 hours before IMP admission — clinical-realistic.
             _ed_end_str = _adm_str
@@ -353,13 +361,18 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
             try:
                 from datetime import datetime as _dt
                 from datetime import timedelta as _td
+
                 if _adm_str:
                     _dt0 = _dt.fromisoformat(_adm_str.replace("Z", "+00:00")) if "T" in _adm_str else None
                     if _dt0:
                         _ed_start_str = (_dt0 - _td(hours=3, minutes=30)).isoformat()
             except (ValueError, TypeError):
                 pass
-            _att = enc.get("attending_physician_id", "") if isinstance(enc, dict) else getattr(enc, "attending_physician_id", "")
+            _att = (
+                enc.get("attending_physician_id", "")
+                if isinstance(enc, dict)
+                else getattr(enc, "attending_physician_id", "")
+            )  # noqa: E501
             _chief = enc.get("chief_complaint", "") if isinstance(enc, dict) else getattr(enc, "chief_complaint", "")
             _ed_resource: dict = {
                 "resourceType": "Encounter",
@@ -387,35 +400,43 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
             if _ed_length is not None:
                 _ed_resource["length"] = _ed_length
             if _att:
-                _ed_resource["participant"] = [{
-                    "individual": {"reference": f"Practitioner/{_att}"},
-                }]
+                _ed_resource["participant"] = [
+                    {
+                        "individual": {"reference": f"Practitioner/{_att}"},
+                    }
+                ]
             if _chief:
                 _ed_resource["reasonCode"] = [{"text": _chief}]
             # cycle 8 cross-seed verify fix (CY7-06 regression): ED synth
             # encounter に priority を emit(実運用では ED は emergency = "EM"、
             # ここでは実 IMP と同じ priority CodeableConcept 形状で "EM" 固定)。
             _ed_resource["priority"] = {
-                "coding": [{
-                    "system": get_system_uri("hl7-v3-actpriority"),
-                    "code": "EM",
-                    "display": "緊急" if str(ctx.country).upper() == "JP" else "emergency",
-                }],
+                "coding": [
+                    {
+                        "system": get_system_uri("hl7-v3-actpriority"),
+                        "code": "EM",
+                        "display": "緊急" if str(ctx.country).upper() == "JP" else "emergency",
+                    }
+                ],
             }
             _ed_resource["hospitalization"] = {
                 "admitSource": {
-                    "coding": [{
-                        "system": get_system_uri("hl7-admit-source"),
-                        "code": "outp",
-                        "display": "外来より" if str(ctx.country).upper() == "JP" else "From outpatient",
-                    }],
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-admit-source"),
+                            "code": "outp",
+                            "display": "外来より" if str(ctx.country).upper() == "JP" else "From outpatient",
+                        }
+                    ],
                 },
                 "dischargeDisposition": {
-                    "coding": [{
-                        "system": get_system_uri("hl7-discharge-disposition"),
-                        "code": "hosp",
-                        "display": "入院となる" if str(ctx.country).upper() == "JP" else "Admitted to hospital",
-                    }],
+                    "coding": [
+                        {
+                            "system": get_system_uri("hl7-discharge-disposition"),
+                            "code": "hosp",
+                            "display": "入院となる" if str(ctx.country).upper() == "JP" else "Admitted to hospital",
+                        }
+                    ],
                 },
             }
             # CY8-04 (session 48 cycle 8): synthesized ED encounter にも
@@ -445,6 +466,7 @@ def _bb_occupation(ctx: BundleContext) -> list[dict]:
                 _sdoh_effective_datetime,
                 _sdoh_performer_ref,
             )
+
             eff = _sdoh_effective_datetime(ctx)
             if eff:
                 occ_obs["effectiveDateTime"] = eff
@@ -453,7 +475,6 @@ def _bb_occupation(ctx: BundleContext) -> list[dict]:
                 occ_obs["performer"] = [{"reference": perf}]
             return [occ_obs]
     return []
-
 
 
 def _bb_vitals(ctx: BundleContext) -> list[dict]:
@@ -477,10 +498,12 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
     # (was 3% missing requester). Same pattern as C4-17 for Procedure.performer.
     _attending_by_enc: dict[str, str] = {}
     for _enc in encounters:
-        _eid = (_enc.get("encounter_id", "") if isinstance(_enc, dict)
-                else getattr(_enc, "encounter_id", "")) or ""
-        _att = (_enc.get("attending_physician_id", "") if isinstance(_enc, dict)
-                else getattr(_enc, "attending_physician_id", "")) or ""
+        _eid = (_enc.get("encounter_id", "") if isinstance(_enc, dict) else getattr(_enc, "encounter_id", "")) or ""
+        _att = (
+            _enc.get("attending_physician_id", "")
+            if isinstance(_enc, dict)
+            else getattr(_enc, "attending_physician_id", "")
+        ) or ""
         if _eid and _att:
             _attending_by_enc[_eid] = _att
     # session 49 clinosim_feedback P1-4: JP_MedicationRequest.identifier slice
@@ -500,12 +523,18 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
                     order = dict(order)
                     order["ordered_by"] = _att
             _oid = order.get("order_id", "") or ""
-            out.append(_build_medication_request(
-                order, ctx.patient_id, ctx.country, ctx.primary_enc_id, ctx.primary_dx_code,
-                encounter_type=primary_enc_type,
-                rp_number="1",
-                order_in_rp=str(_order_in_rp_by_oid.get(_oid, 1)),
-            ))
+            out.append(
+                _build_medication_request(
+                    order,
+                    ctx.patient_id,
+                    ctx.country,
+                    ctx.primary_enc_id,
+                    ctx.primary_dx_code,
+                    encounter_type=primary_enc_type,
+                    rp_number="1",
+                    order_in_rp=str(_order_in_rp_by_oid.get(_oid, 1)),
+                )
+            )
     return out
 
 
@@ -573,8 +602,12 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
             mar = dict(mar)
             mar["code_yj"] = _parent_code
         _resource = _build_medication_admin(
-            mar, ctx.patient_id, i, ctx.country,
-            encounter_id=ctx.primary_enc_id, primary_dx_code=ctx.primary_dx_code,
+            mar,
+            ctx.patient_id,
+            i,
+            ctx.country,
+            encounter_id=ctx.primary_enc_id,
+            primary_dx_code=ctx.primary_dx_code,
             rp_number="1",
             order_in_rp=str(_order_in_rp_by_oid.get(_oid, 1)),
         )
@@ -582,7 +615,7 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
         if _req and isinstance(_req, dict):
             _ref = _req.get("reference", "")
             if _ref.startswith("MedicationRequest/"):
-                _target = _ref[len("MedicationRequest/"):]
+                _target = _ref[len("MedicationRequest/") :]
                 if _target not in _mr_ids:
                     _resource.pop("request", None)  # drop the dangling ref
         out.append(_resource)
@@ -597,10 +630,12 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
     # if no attending is available.
     _attending_by_enc: dict[str, str] = {}
     for _enc in ctx.record.get("encounters", []) or []:
-        _eid = (_enc.get("encounter_id", "") if isinstance(_enc, dict)
-                else getattr(_enc, "encounter_id", "")) or ""
-        _att = (_enc.get("attending_physician_id", "") if isinstance(_enc, dict)
-                else getattr(_enc, "attending_physician_id", "")) or ""
+        _eid = (_enc.get("encounter_id", "") if isinstance(_enc, dict) else getattr(_enc, "encounter_id", "")) or ""
+        _att = (
+            _enc.get("attending_physician_id", "")
+            if isinstance(_enc, dict)
+            else getattr(_enc, "attending_physician_id", "")
+        ) or ""
         if _eid and _att:
             _attending_by_enc[_eid] = _att
     _procs = ctx.record.get("procedures", []) or []
@@ -613,10 +648,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
                 proc = dict(proc)
                 proc["primary_surgeon_id"] = _att
         _enriched.append(proc)
-    out = [
-        _build_procedure(proc, ctx.patient_id, i, ctx.country)
-        for i, proc in enumerate(_enriched)
-    ]
+    out = [_build_procedure(proc, ctx.patient_id, i, ctx.country) for i, proc in enumerate(_enriched)]
     # RM-6c (session 42): emit Procedure resources from PROCEDURE-type Orders
     # too. These are procedure/device items (compression device, splint, etc.)
     # that used to leak through the MedicationRequest path — RM-6a/b routed
@@ -631,10 +663,15 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         enc_id = order.get("encounter_id", "") if isinstance(order, dict) else getattr(order, "encounter_id", "")
         order_id = order.get("order_id", "") if isinstance(order, dict) else getattr(order, "order_id", "")
         ordered_by = order.get("ordered_by", "") if isinstance(order, dict) else getattr(order, "ordered_by", "")
-        ordered_dt = order.get("ordered_datetime", "") if isinstance(order, dict) else getattr(order, "ordered_datetime", "")
+        ordered_dt = (
+            order.get("ordered_datetime", "") if isinstance(order, dict) else getattr(order, "ordered_datetime", "")
+        )  # noqa: E501
         _lang = "ja" if str(ctx.country).upper() == "JP" else "en"
-        _profile = {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"]}} \
-            if str(ctx.country).upper() == "JP" else {}
+        _profile = (
+            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"]}}
+            if str(ctx.country).upper() == "JP"
+            else {}
+        )
         # C4-03/18 (session 43 cycle 4): PROCEDURE-Order path lacked
         # Procedure.category. Bind SNOMED 277132007 (Therapeutic procedure,
         # SNOMED CT) — these are treatment-side procedures (splint / bandage /
@@ -648,11 +685,13 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
             **_profile,
             "status": "completed",
             "category": {
-                "coding": [{
-                    "system": get_system_uri("snomed-ct"),
-                    "code": "277132007",
-                    "display": code_lookup("snomed-ct", "277132007", _cat_lang),
-                }],
+                "coding": [
+                    {
+                        "system": get_system_uri("snomed-ct"),
+                        "code": "277132007",
+                        "display": code_lookup("snomed-ct", "277132007", _cat_lang),
+                    }
+                ],
             },
             "code": {"text": display} if display else {"text": "Procedure"},
             "subject": {"reference": f"Patient/{ctx.patient_id}"},
@@ -660,9 +699,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         if enc_id:
             procedure_res["encounter"] = {"reference": f"Encounter/{enc_id}"}
             # CY7-17 (Chain-7): reasonReference to encounter primary Condition.
-            procedure_res["reasonReference"] = [
-                {"reference": f"Condition/cond-{enc_id}-primary"}
-            ]
+            procedure_res["reasonReference"] = [{"reference": f"Condition/cond-{enc_id}-primary"}]
         if ordered_dt:
             procedure_res["performedDateTime"] = str(ordered_dt)
         if ordered_by:
@@ -670,22 +707,30 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         # CY7-17 (Chain-7): text-only reasonCode fallback for treatment-side
         # Procedures (splint/bandage/wound-care/etc.) — same rationale as
         # _fhir_procedures._build_procedure text-only fallback.
-        procedure_res["reasonCode"] = [{
-            "text": "入院時診断に基づく処置" if str(ctx.country).upper() == "JP" else "Procedure indicated by encounter diagnosis",
-        }]
+        procedure_res["reasonCode"] = [
+            {
+                "text": "入院時診断に基づく処置"
+                if str(ctx.country).upper() == "JP"
+                else "Procedure indicated by encounter diagnosis",  # noqa: E501
+            }
+        ]
         # CY7-18 (Chain-7): text-only bodySite fallback for order-derived
         # Procedures — the Order carries display_name but not a SNOMED site
         # code, so text is defensible.
-        procedure_res["bodySite"] = [{
-            "text": "処置部位不明" if str(ctx.country).upper() == "JP" else "Body site not specified",
-        }]
+        procedure_res["bodySite"] = [
+            {
+                "text": "処置部位不明" if str(ctx.country).upper() == "JP" else "Body site not specified",
+            }
+        ]
         # CY7-19 (Chain-7): outcome default = Successful for completed status.
         procedure_res["outcome"] = {
-            "coding": [{
-                "system": get_system_uri("snomed-ct"),
-                "code": "385669000",
-                "display": code_lookup("snomed-ct", "385669000", _cat_lang) or "Successful",
-            }],
+            "coding": [
+                {
+                    "system": get_system_uri("snomed-ct"),
+                    "code": "385669000",
+                    "display": code_lookup("snomed-ct", "385669000", _cat_lang) or "Successful",
+                }
+            ],
             "text": "成功" if str(ctx.country).upper() == "JP" else "Successful",
         }
         out.append(procedure_res)
@@ -723,13 +768,11 @@ def _bb_practitioners(ctx: BundleContext) -> list[dict]:
         add(proc.get("anesthesiologist_id", ""))
     # RM-3 (session 42): Immunization.performer.actor references (nurse admin).
     for imm in ctx.record.get("immunizations", []) or []:
-        add(imm.get("administered_by", "") if isinstance(imm, dict)
-            else getattr(imm, "administered_by", ""))
+        add(imm.get("administered_by", "") if isinstance(imm, dict) else getattr(imm, "administered_by", ""))
     # RM-1 (session 42): nursing survey Observations use primary_nurse_id;
     # ensure the nurse is emitted even when not the primary_nurse of encounter.
     for enc in ctx.record.get("encounters", []) or []:
-        add(enc.get("primary_nurse_id", "") if isinstance(enc, dict)
-            else getattr(enc, "primary_nurse_id", ""))
+        add(enc.get("primary_nurse_id", "") if isinstance(enc, dict) else getattr(enc, "primary_nurse_id", ""))
     # C2-09 (session 42 cycle 2): also emit every pharmacist in the roster so
     # CareTeam.participant refs to `Practitioner/PH-*` (C1-15 fix) resolve.
     # Pharmacists are assigned deterministically by encounter-id hash in
@@ -744,8 +787,11 @@ def _bb_practitioners(ctx: BundleContext) -> list[dict]:
     # EHR practice where staff master data lists all licensed clinicians
     # regardless of encounter participation.
     _allied_roles = {
-        "physical_therapist", "occupational_therapist", "speech_therapist",
-        "medical_social_worker", "dietitian",
+        "physical_therapist",
+        "occupational_therapist",
+        "speech_therapist",
+        "medical_social_worker",
+        "dietitian",
     }
     for sid, staff in (ctx.roster_map or {}).items():
         if (staff.get("role", "") or "") in _allied_roles:
@@ -766,14 +812,14 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_patient,
     _bb_coverage,
     _bb_encounters,
-    _bb_care_teams,            # α-min-2 Task 11: 1 CareTeam per encounter (attending + nurse)
+    _bb_care_teams,  # α-min-2 Task 11: 1 CareTeam per encounter (attending + nurse)
     _bb_conditions,
     _bb_allergy_intolerances,  # Task 9 / Task 15: 8-field SNOMED-coded schema (sole emit path)
     _bb_clinical_impressions,  # Task 9: ClinicalImpression (daily working diagnosis)
     _bb_occupation,
     _bb_service_requests,
-    _bb_endpoints,           # Imaging: emit after SR, before ImagingStudy (reference resolve order)
-    _bb_imaging_studies,     # Imaging: emit after Endpoint (endpoint[] ref resolve)
+    _bb_endpoints,  # Imaging: emit after SR, before ImagingStudy (reference resolve order)
+    _bb_imaging_studies,  # Imaging: emit after Endpoint (endpoint[] ref resolve)
     _bb_labs,
     _bb_vitals,
     _bb_microbiology,
@@ -792,9 +838,9 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _build_device,
     _build_device_use,
     _build_hai_conditions,
-    _bb_document_references,   # Task 10: DocumentReference from record.documents (free_text, §2.2)
-    _bb_compositions,          # Task 9: Composition (section-structured H&P / Discharge)
-    _bb_document_references_checkup,  # P2-13 PR3 sub-PR-E (session 48): DocumentReference wrapper for HEALTH_CHECKUP_REPORT
+    _bb_document_references,  # Task 10: DocumentReference from record.documents (free_text, §2.2)
+    _bb_compositions,  # Task 9: Composition (section-structured H&P / Discharge)
+    _bb_document_references_checkup,  # P2-13 PR3 sub-PR-E (session 48): DocumentReference wrapper for HEALTH_CHECKUP_REPORT  # noqa: E501
 ]
 
 
@@ -814,7 +860,8 @@ def available_builders() -> list[str]:
 
 
 def _build_bundle(
-    record: dict, country: str,
+    record: dict,
+    country: str,
     roster_map: dict[str, dict] | None = None,
     hospital_config: dict | None = None,
 ) -> dict:
@@ -832,18 +879,12 @@ def _build_bundle(
     # `_build_patient` always emitted `deceasedBoolean=False`. Copy the flag
     # + death timestamp into patient_data so the FHIR Patient carries a
     # `deceasedDateTime` matching the Encounter.dischargeDisposition="expired".
-    _record_deceased = (
-        record.get("deceased", False)
-        if isinstance(record, dict)
-        else getattr(record, "deceased", False)
-    )
+    _record_deceased = record.get("deceased", False) if isinstance(record, dict) else getattr(record, "deceased", False)
     if _record_deceased and not patient_data.get("date_of_death") and not patient_data.get("dod"):
         _dod = None
         for _enc in encounters:
             _dis = (
-                _enc.get("discharge_datetime")
-                if isinstance(_enc, dict)
-                else getattr(_enc, "discharge_datetime", None)
+                _enc.get("discharge_datetime") if isinstance(_enc, dict) else getattr(_enc, "discharge_datetime", None)
             )
             if _dis:
                 _dod = _dis
@@ -907,39 +948,54 @@ def _build_bundle(
 _JP_CORE_PROFILES: dict[str, list[str]] = {
     # Resources with a canonical JP Core profile URL (JPFHIR core 1.1+).
     # Verified via https://jpfhir.jp/fhir/core/
-    "Patient":                ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Patient"],
-    "Encounter":              ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter"],
-    "Condition":              ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"],
-    "Coverage":               ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Coverage"],
-    "Observation":            ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"],
-    "MedicationRequest":      ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"],
+    "Patient": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Patient"],
+    "Encounter": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter"],
+    "Condition": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"],
+    "Coverage": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Coverage"],
+    "Observation": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"],
+    "MedicationRequest": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"],
     "MedicationAdministration": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationAdministration"],
-    "AllergyIntolerance":     ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_AllergyIntolerance"],
-    "Immunization":           ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Immunization"],
-    "Practitioner":           ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Practitioner"],
-    "PractitionerRole":       ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_PractitionerRole"],
-    "Organization":           ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization"],
-    "DiagnosticReport":       ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Common"],
+    "AllergyIntolerance": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_AllergyIntolerance"],
+    "Immunization": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Immunization"],
+    "Practitioner": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Practitioner"],
+    "PractitionerRole": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_PractitionerRole"],
+    "Organization": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization"],
+    "DiagnosticReport": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Common"],
     # RM-6c (session 42): Procedure profile so RECORD-based and ORDER-based
     # Procedure emissions both carry JP Core conformance.
-    "Procedure":              ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"],
+    "Procedure": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"],
 }
 
 
 # session 48 feedback FB-F1: 全 emit resource で dateTime / instant field を
 # TZ 付与に正規化する post-emit normalization pass。builders 個別修正の代替。
 # 対象 field は FHIR R4 で dateTime / instant 型を持つ known-name 一覧。
-_DATETIME_FIELDS = frozenset((
-    # top-level dateTime
-    "authoredOn", "effectiveDateTime", "performedDateTime", "date",
-    "started", "receivedTime", "recordedDate", "onsetDateTime",
-    "occurrenceDateTime", "abatementDateTime", "assertedDate",
-    "authored", "assertedDateTime",
-    "collectedDateTime",  # Specimen.collection.collectedDateTime (nested)
-    "time",  # attester.time / Provenance.recorded など
-    # instant type
-    "issued", "recorded", "createdOn", "sent", "lastUpdated",
-))
+_DATETIME_FIELDS = frozenset(
+    (
+        # top-level dateTime
+        "authoredOn",
+        "effectiveDateTime",
+        "performedDateTime",
+        "date",
+        "started",
+        "receivedTime",
+        "recordedDate",
+        "onsetDateTime",
+        "occurrenceDateTime",
+        "abatementDateTime",
+        "assertedDate",
+        "authored",
+        "assertedDateTime",
+        "collectedDateTime",  # Specimen.collection.collectedDateTime (nested)
+        "time",  # attester.time / Provenance.recorded など
+        # instant type
+        "issued",
+        "recorded",
+        "createdOn",
+        "sent",
+        "lastUpdated",
+    )
+)
 _PERIOD_FIELDS = frozenset(("start", "end"))
 # instant 型 field(秒精度+TZ 必須)
 _INSTANT_FIELDS = frozenset(("issued",))
@@ -981,9 +1037,7 @@ def _normalize_dt(v, want_instant: bool = False):
 #   `http://jpfhir.jp/fhir/observation-category`(推測)を使ってしまい HAPI
 #   validator が silent-no-op のまま 100% miss を継続。実 spec の fixedUri
 #   に修正済み。
-_JP_OBSERVATION_CATEGORY_SYSTEM = (
-    "http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS"
-)
+_JP_OBSERVATION_CATEGORY_SYSTEM = "http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS"
 
 
 def _inject_jp_observation_category_first(resource: dict) -> None:
@@ -1016,10 +1070,12 @@ def _inject_jp_observation_category_first(resource: dict) -> None:
     if not hl7_code:
         return
     jp_first = {
-        "coding": [{
-            "system": _JP_OBSERVATION_CATEGORY_SYSTEM,
-            "code": hl7_code,
-        }]
+        "coding": [
+            {
+                "system": _JP_OBSERVATION_CATEGORY_SYSTEM,
+                "code": hl7_code,
+            }
+        ]
     }
     resource["category"] = [jp_first] + cats
 
@@ -1135,5 +1191,3 @@ def _is_lab_observation(resource: dict) -> bool:
 
 
 # SNOMED specialty codes
-
-
