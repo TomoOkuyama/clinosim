@@ -493,8 +493,15 @@ def _evaluate_risk_condition(
     return False
 
 
-def _interpolate(trajectory: dict[int, float], day: int) -> float:
-    """Linearly interpolate between defined day points."""
+def _interpolate(trajectory: dict[int, float], day: int | float) -> float:
+    """Linearly interpolate between defined day points.
+
+    Session 52: accepts ``int | float`` since ``effective_day = day *
+    speed_factor`` (get_daily_directive) is real-valued when speed_factor !=
+    1.0. Previously the caller cast to ``int`` which truncated e.g.
+    ``day=2, speed_factor=1.25 -> effective_day 2.5 -> int 2``, silently
+    shifting deterioration timing (test_clinical_course caught this).
+    """
     days = sorted(trajectory.keys())
     if not days:
         return 0.0

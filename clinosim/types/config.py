@@ -7,6 +7,20 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+# Session 52: exclude `PatientProfile` from `import *` so it does not collide
+# with the dataclass of the same name in `types/patient.py` (used at runtime
+# by simulator/inpatient/outpatient/emergency). Direct `from clinosim.types.
+# config import PatientProfile` sites (cli.py + tests) keep working — only
+# the star-import in `types/__init__.py` is intercepted.
+__all__ = [
+    "ForcedScenario",
+    "HealthcareSystemConfig",
+    "LLMProviderConfig",
+    "LLMServiceConfig",
+    "SimulatorConfig",
+    "load_patient_profile",
+]
+
 
 class HealthcareSystemConfig(BaseModel):
     """Country-specific configuration. Loaded from healthcare_system/configs/{country}.yaml."""

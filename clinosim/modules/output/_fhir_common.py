@@ -279,7 +279,8 @@ def _infer_severity(record: dict) -> str:
 def _severity_coding(severity: str, country: str = "US") -> dict[str, Any]:
     """Build FHIR severity CodeableConcept from severity string."""
     sev = severity.lower()
-    snomed = dict(_SEVERITY_SNOMED.get(sev, _SEVERITY_SNOMED.get("moderate")))
+    _snomed_map = _SEVERITY_SNOMED.get(sev) or _SEVERITY_SNOMED.get("moderate") or {}
+    snomed = dict(_snomed_map)
     if is_jp(country):
         orig_display = snomed.get("display", "")
         snomed["display"] = _SEVERITY_DISPLAY_JA.get(orig_display, orig_display)

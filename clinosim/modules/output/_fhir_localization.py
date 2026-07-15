@@ -18,6 +18,18 @@ from clinosim.locale.loader import load_drug_names_ja as _load_drug_names_ja
 from clinosim.locale.loader import load_med_terms_ja as _load_med_terms_ja
 from clinosim.modules._shared import is_jp, is_us, resolve_lang
 
+# Session 52: expose the private-name loader aliases so mypy's strict export
+# check passes at fhir_r4_adapter.py's import site.
+__all__ = [
+    "_load_department_display",
+    "_load_drug_names_ja",
+    "_load_med_terms_ja",
+    "code_lookup",
+    "is_jp",
+    "is_us",
+    "resolve_lang",
+]
+
 # ``_load_med_terms_ja`` / ``_load_drug_names_ja`` / ``_load_department_display``
 # are thin re-export aliases of the canonical cached locale loaders. They are
 # re-exported by ``fhir_r4_adapter.py`` (public import path) and exercised by

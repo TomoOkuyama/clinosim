@@ -174,7 +174,7 @@ def _check_proof(spec: ModuleAuditSpec, result: AxisResult) -> None:
             new_value = obs.value
             observed_delta = new_value - pre_value
             analyte = getattr(obs, "lab_name", None)
-            tol = _PROOF_TOLERANCE.get(analyte, _PROOF_DEFAULT_TOLERANCE)
+            tol = _PROOF_TOLERANCE.get(analyte, _PROOF_DEFAULT_TOLERANCE) if analyte else _PROOF_DEFAULT_TOLERANCE
             if abs(observed_delta - expected_delta) > tol:
                 result.findings.append(
                     AuditFinding(

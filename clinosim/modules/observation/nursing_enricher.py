@@ -74,5 +74,7 @@ def enrich_nursing(ctx) -> None:
             loc = consciousness_by_date.get(str(d), "A")
             braden = compute_braden(adld, loc, volume_status=0.0, rng=rng)
             morse, level = compute_morse_fall_risk(age, adld, loc, has_iv=str(d) in iv_dates, rng=rng)
+            if d is None:
+                continue
             out.append(NursingRiskAssessment(date=d, morse_total=morse, fall_risk_level=level, **braden))
         _set(rec, "nursing_risk_assessments", out)

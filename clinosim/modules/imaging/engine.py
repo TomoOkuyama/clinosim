@@ -591,7 +591,7 @@ def imaging_enricher(ctx: Any) -> None:
                 )
             except ValueError:
                 # template 未登録 → report=None、study はそのまま emit
-                encounter_id: str = _o(order, "encounter_id", "") or ""
+                encounter_id = _o(order, "encounter_id", "") or ""
                 report = None
 
             study = ImagingStudyRecord(

@@ -118,7 +118,8 @@ def _order_type_value(order: Any) -> str:
     ot = getattr(order, "order_type", None)
     if ot is None and isinstance(order, dict):
         ot = order.get("order_type", "")
-    if hasattr(ot, "value"):
+    # Enum objects expose `.value`; strings fall through to the `str(ot or "")` path.
+    if ot is not None and hasattr(ot, "value"):
         return str(ot.value)
     return str(ot or "")
 
